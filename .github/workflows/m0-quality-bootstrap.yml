@@ -7,6 +7,7 @@ on:
       - composer.json
       - package.json
       - .github/workflows/m0-quality-bootstrap.yml
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -41,7 +42,7 @@ jobs:
           cache: npm
 
       - name: Resolve PHP dependencies
-        run: composer update --no-interaction --prefer-dist --no-progress
+        run: composer update --with-all-dependencies --no-interaction --prefer-dist --no-progress
 
       - name: Resolve frontend dependencies
         run: npm install --ignore-scripts
