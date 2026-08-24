@@ -1,95 +1,314 @@
-# 16 — Uygulama Sırası ve Milestone'lar
+# 16 — Uygulama Sırası ve Milestone'lar V4
 
-V16.3 tasarımı geliştirme sırasını belirleyen kabul referansıdır. Amaç bütün ekranları boş kabuk olarak açmak değil, her milestone sonunda çalışan ve test edilen dikey bir iş akışı teslim etmektir.
+Amaç V16.3 tasarımını gerçek Laravel/PostgreSQL uygulamasına **küçük, çalışan, test edilmiş dikey dilimler** halinde dönüştürmektir. Eski repodaki büyük-bang geliştirme riski tekrar edilmez.
 
-## M0 — Repository ve temel kalite kapıları
-- Laravel 13 / PHP 8.5 iskeleti
-- PostgreSQL 18 CI
-- Valkey bağlantısı
-- formatter/static analysis/test komutları
-- `.env.example`, secret policy
+## Genel çıkış kuralı
+Her milestone:
+`schema → domain use-case/action → transaction/invariant → authorization → V16.3 UI → tests → PostgreSQL CI → audit/observability`.
+
+Bir milestone içindeki görünür butonlar gerçek route/action çalıştırmadan tamamlanmış sayılmaz. Future capability için kullanılmayan interface/table/framework önceden kurulmaz.
+
+# Wave A — Foundation
+
+## M0 — Repository / Laravel / PostgreSQL Foundation
+- PHP 8.5 / Laravel 13
+- PostgreSQL 18
+- Valkey
+- Composer lock
+- formatter/static analysis/test commands
+- `.env.example` ve secret policy
+- modular monolith skeleton
 - migration smoke test
-- temel health endpoint
+- health endpoint
+- Clock/correlation temel altyapısı
+- transactional Outbox skeleton
+- PostgreSQL FTS + `pg_trgm`
 
-## M1 — Core + UI Shell + Ayarlar
+## M1 — Core / Company / Users / Settings / UI Shell
 - auth/session
-- kullanıcı/rol/yetki
-- firma/şube bağlamı
-- numaralandırma
-- vergi/döviz/dönem
-- audit log
+- Company/Branch context
+- user/role/permission
+- base currency/timezone
+- document numbering
+- tax/exchange-rate/posting-period basics
+- audit
+- Files foundation
 - V16.3 sidebar/topbar/workspace tabs/global search/command palette
 
-## M2 — Cari
-- cari CRUD/detail/edit
-- iletişim/yetkililer
-- sevk/adres
-- cari iskonto/risk limiti
-- B2B erişimi
+## M2 — Cari Core
+- cari list/create/detail/edit
+- Firma / Ticari
+- İletişim / Yetkililer
+- Sevk / Adres + manuel Ambar/Nakliye
+- bank info
+- notes/files
+- risk limit / cari discount
+- B2B access foundation
 - `account_transactions`
-- bakiye/ekstre
+- balance/statement
+- Alacaklı/Borçlu/Bakiye Yok
 
-## M3 — Ürün/Stok/Depo
-- ürün CRUD/detail/edit
-- barkod/QR arama
-- depo/lokasyon
+OpenItem/allocation yok.
+
+# Wave B — Product / Stock / Sales / Purchase
+
+## M3 — Ürün / Katalog
+- product/category/unit/barcode
+- tek satış + tek alış fiyatı
+- readonly detail + separate edit
+- supplier relation
+- technical info file
+- media foundation
+- PostgreSQL product search
+
+Lot/serial ve generic price-list yok.
+
+## M4 — Stok / Depo
+- warehouse/location
 - `stock_movements`
-- rezervasyon
-- transfer
-- sayım
+- balances/availability
+- reservation
+- movement list
+- transfer: source issue → yolda → partial/full receipt
+- stock count
+- barcode Quick Count
 
-## M4 — Satış
-`Teklif → Satış Siparişi → İrsaliye/Sevkiyat → Satış Faturası → İade`
+Transfer/sayım ekranlarında cari/fiyat/KDV yok.
 
-Zorunlu: kısmi sevk/faturalama, kalan miktar, KDV sıfırlama, atomik posting ve idempotency.
+## M5 — Teklifler
+- quote list/create/detail
+- revisions
+- totals/tax/discount
+- approved revision → order
+- fixed/versioned PDF
+- readonly finalized detail
 
-## M5 — Alış
-`Satınalma Siparişi → Mal Kabul → Alış Faturası → Alış İadesi`
+## M6 — Satış Siparişleri
+- order list/create/detail
+- product search code/barcode/QR/name
+- reservation
+- ordered/dispatched/invoiced/remaining
+- over-operation guards
+- KDV Sıfırla
+- partial flows
 
-Mal kabul fiziksel stok girişidir; alış faturası cari borç etkisidir.
+## M7 — İrsaliye / Sevkiyat
+- dispatch list/create/detail
+- shipment/address + manual carrier/warehouse suggestion
+- previous/current/remaining shipment quantities
+- physical stock effect policy exactly-once
+- readonly finalized detail
 
-## M6 — Kasa/Banka
-- tahsilat
-- ödeme
-- gider
-- kasa/banka hareketleri
+Fiyat/KDV ana odak değildir.
+
+## M8 — Satış Faturaları
+- invoice list/create/detail
+- direct/order/dispatch lineage
+- price/discount/tax totals
+- KDV Sıfırla
+- order invoiced/remaining progress
+- account effect exactly-once
+- stock effect only if selected stock policy requires it
+- fixed/versioned PDF
+- e-document foundation
+- idempotent posting + concurrency tests
+
+## M9 — Satınalma
+Dikey alt akışlar ayrı commit/test gate ile:
+1. PurchaseOrder
+2. GoodsReceipt
+3. SupplierInvoice
+4. PurchaseReturn
+
+Zorunlu:
+- remaining_to_receive/invoice
+- over-receipt/invoice block
+- GoodsReceipt stock IN exactly-once
+- SupplierInvoice cari effect exactly-once
+- `Uygun / Kontrol Bekliyor / Uygun Değil`
+
+# Wave C — Finance / Instruments / Returns / Reports
+
+## M10 — Tahsilat / Ödeme / Kasa / Banka
+- dynamic PaymentMethod/PaymentType
+- Nakit / Banka / POS / Sanal POS / Çek / Senet / Diğer
+- account + treasury atomic effects
+- cash/bank movements
+- POS commission separation
+- expense
 - virman
-- ekstre Excel/CSV/MT940 import
-- mutabakat
-- dinamik ödeme tipi alanları
+- cash accounts / bank accounts secondary screens
+- cash count denominations
+- Excel/CSV/MT940 import
+- statement matching/reconciliation
 
-## M7 — Çek/Senet
-- alınan/verilen kayıtlar
-- state transition
-- portföy/konum geçmişi
-- ön/arka görseller
-- settlement concurrency testleri
+## M11 — Çek / Senet
+- received/issued cheque
+- received/issued promissory note
+- portfolio/physical location/history
+- front/back files + scanner hooks
+- delivery-time cari effect
+- bank settlement no second cari effect
+- dishonored/unpaid reversal
+- concurrency
 
-## M8 — Raporlar
-Hazır rapor merkezi + Excel/CSV/PDF/yazdırma. İlk sürümde generic report designer yok.
+## M12 — İadeler / RMA
+- Return Center
+- sales return
+- purchase return
+- ecommerce/RMA flow
+- eligible quantity cap
+- physical stock effect
+- financial refund/correction
+- source lineage
 
-## M9 — Üretim/Fason
-`Reçete → Üretim Emri → Malzeme Çıkışı → Mamul Girişi → Tamamla`
+## M13 — Rapor Merkezi
+- ready reports incremental catalog
+- 8 categories target
+- shared filters/KPI/table workspace
+- Saved Reports
+- Scheduled Reports
+- Excel/CSV
+- PDF/Print
+- runtime authorization
 
-Fason aynı stok motorunu kullanır.
+Hedef yaklaşık 40 hazır rapordur; hepsi tek committe yazılmaz. Generic designer yok.
 
-## M10 — İade/RMA
-Satış/alış/e-ticaret iadelerinin kontrollü akışı.
+### Commercial Core Gate
+M13 sonunda internal-use production candidate aşağıdaki akışları uçtan uca çalıştırmalıdır:
+- Cari
+- Ürün/Stok
+- Satış
+- Alış
+- Kasa/Banka
+- Çek/Senet
+- İade
+- temel raporlar
 
-## M11 — E-Ticaret/B2B
-Integration Core + WooCommerce + Trendyol + Mars B2B. Webhook, retry, idempotency, sync conflict ve error center zorunlu.
+# Wave D — Operations
 
-## M12 — İthalat
-Konteyner/sevkiyat, koli-malzeme eşleme, maliyet dağıtımı, üretim listeleri, yükleme/ağırlık simülasyonu.
+## M14 — Basit Üretim
+- recipes
+- production order
+- material issue
+- finished-goods receipt
+- fire/missing
+- production technical file
+- production report
 
-## M13 — İletişim/API/Dosyalar
-SMS/e-posta/WhatsApp provider adaptörleri, template/delivery/retry, dosya ekleri ve scanner agent.
+No routing/work-center/ECO/OEE/shop-floor platform.
 
-## M14 — Operasyon
-Backup/restore drill, veri migrasyonu, observability, hardening, performance ve final audit.
+## M15 — Fason
+- sent material
+- custody/location
+- received finished goods
+- fire/missing
+- remaining reconciliation
+- technical/photos/instructions
 
-## Milestone çıkış kapısı
-Her milestone için:
-`schema → use-case → V16.3 UI → authorization → invariant tests → PostgreSQL CI → observability`
+## M16 — İthalat / Konteyner
+- import file/shipment
+- containers/packages
+- product/package/component mapping
+- material location
+- container/general landed-cost analysis
+- technical/photo picking/production lists
+- subcontract collection lists
+- loading/weight/dimension simulator
 
-Bunlardan biri yoksa milestone tamamlanmış sayılmaz.
+# Wave E — External Commerce / Communication
+
+## M17 — E-Ticaret Integration Core + WooCommerce
+- Channel Center
+- Channel Settings/Connection
+- encrypted/masked secrets
+- connection test
+- product mapping
+- stock/price publish
+- external order Inbox/idempotency
+- returns/questions/problems
+- invoice sync foundation
+
+## M18 — Trendyol
+- Supplier ID/API credentials
+- product/listing mapping
+- order/package/cancel/return
+- stock/price publish
+- questions
+- invoice operations
+- retry/problem center
+
+## M19 — B2B / Bayi Sistemi
+- B2B user pre-bound Account
+- roles/permissions
+- Cari Edit B2B access
+- readonly Cari Detail B2B
+- catalog/search
+- stock visibility
+- price = sale price - Cari Discount
+- cart/order/history
+- invoice/statement
+- address permissions
+
+## M20 — Communication / System Integrations / API
+`Ayarlar → Entegrasyonlar`:
+- SMS
+- E-Mail
+- WhatsApp
+- E-Document
+- Scanner Agent
+
+Ayrıca:
+- `/api/v1`
+- provider adapters
+- template/version/preview/test
+- Notification → Delivery → ProviderAttempt
+- Outbox/retry/backoff
+
+# Wave F — Product Media / Hardening / Go-Live
+
+## M21 — Product Image Operations
+- site/channel destination sets
+- main/gallery/order
+- copy/move
+- optional image editor
+- crop/rotate/flip/resize
+- security/quarantine lifecycle where enabled
+
+## M22 — Product Installation PDF Builder
+- steps
+- warnings
+- tools
+- parts
+- images
+- A4 preview
+- versioned output
+
+Domain-specific builder; generic report/document designer değildir.
+
+## M23 — Security / Backup / Operational Hardening
+- authorization/company isolation review
+- file security
+- rate limits
+- provider retry/kill-switch
+- Outbox lease/ambiguous outcome review
+- backup/restore drill
+- Recovery Mode
+- log/secret redaction
+- performance indexes/query plans
+- PostgreSQL search tuning
+- full Gate A/B/C regression
+
+## M24 — Migration / Go-Live
+- legacy source inventory/mapping
+- stable source identity/idempotent import
+- dry-run/rehearsal
+- balance/stock/cash/bank/instrument reconciliation
+- cutover/delta strategy
+- provider/channel reconciliation
+- backup/restore drill
+- production smoke
+- full V16.3 browser regression
+
+## Commit büyüklüğü kuralı
+Bir milestone tek commit olmak zorunda değildir. Özellikle Satış, Satınalma, E-Ticaret ve Finans içinde her independently test edilebilir vertical slice ayrı atomic commit olabilir. Ama yarım çalışan aynı use-case main'de bırakılmaz.
