@@ -45,9 +45,10 @@
         "format": "pint --parallel",
         "format:check": "pint --parallel --test",
         "analyse": "phpstan analyse --ansi --memory-limit=512M",
-        "test": "pest tests/Unit tests/Feature --colors=always",
+        "test": "pest tests/Unit tests/Feature tests/Integration tests/Architecture --colors=always",
         "test:unit": "pest tests/Unit --colors=always",
-        "test:integration": "pest tests/Feature --colors=always",
+        "test:integration": "pest tests/Integration --colors=always",
+        "test:architecture": "pest tests/Architecture --colors=always",
         "test:browser": "pest tests/Browser --colors=always",
         "ci": [
             "@format:check",

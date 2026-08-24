@@ -83,7 +83,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.5'
-          extensions: pdo_pgsql, redis, sockets
+          extensions: pdo_pgsql, redis, sockets, intl
           coverage: none
           tools: composer:v2
 
