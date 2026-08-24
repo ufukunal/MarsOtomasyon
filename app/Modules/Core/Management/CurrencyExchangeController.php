@@ -8,6 +8,7 @@ use App\Modules\Core\Enums\AuditAction;
 use App\Modules\Core\Enums\AuditTargetType;
 use App\Modules\Core\Models\Currency;
 use App\Modules\Core\Models\ExchangeRate;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -47,21 +48,31 @@ final class CurrencyExchangeController
         $data = $this->validated($request, false);
         $this->assertIdentityAvailable($data['rate_date'], $data['from_currency_code'], $data['to_currency_code']);
 
-        $rate = DB::transaction(function () use ($data): ExchangeRate {
-            $rate = ExchangeRate::query()->create([
-                'company_id' => $this->companyId(),
-                ...$data,
+        try {
+            $rate = DB::transaction(function () use ($data): ExchangeRate {
+                $rate = ExchangeRate::query()->create([
+                    'company_id' => $this->companyId(),
+                    ...$data,
+                ]);
+
+                $this->audit->record(
+                    AuditAction::ExchangeRateCreated,
+                    AuditTargetType::ExchangeRate,
+                    (int) $rate->getKey(),
+                    after: $this->snapshot($rate),
+                );
+
+                return $rate;
+            });
+        } catch (QueryException $exception) {
+            if ((string) $exception->getCode() !== '23505') {
+                throw $exception;
+            }
+
+            throw ValidationException::withMessages([
+                'rate_date' => 'Bu tarih ve para birimi çifti için kur zaten kayıtlı.',
             ]);
-
-            $this->audit->record(
-                AuditAction::ExchangeRateCreated,
-                AuditTargetType::ExchangeRate,
-                (int) $rate->getKey(),
-                after: $this->snapshot($rate),
-            );
-
-            return $rate;
-        });
+        }
 
         return redirect()->route('settings.exchange-rates.show', $rate)->with('status', 'Kur kaydı oluşturuldu.');
     }
