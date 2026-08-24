@@ -1,4 +1,4 @@
-# 14 — Test, CI ve Kalite V4
+# 14 — Test, CI ve Kalite V4.1
 
 ## 1. Amaç
 Test stratejisi finans/stok doğruluğu ile V16.3 kullanıcı akışını birlikte korur. Production-benzeri PostgreSQL 18 davranışı esastır.
@@ -19,11 +19,13 @@ Main update için ilgili scope'ta:
 - company isolation
 - authorization
 - source-effect exactly-once
-- cari balance algebra
+- cari balance algebra + currency guard
 - stock/order quantity caps
-- reservation consume/release
+- reservation consume/release/oversell guard
 - reversal/correction
 - Outbox/Inbox idempotency
+- treasury ledger integrity
+- moving-average cost integrity
 - touched-domain concurrency
 - migration smoke/upgrade path
 
@@ -45,15 +47,17 @@ Touched kullanıcı-visible yüzey için browser/E2E acceptance:
 - duplicate kullanıcı-visible alan/sekme yok
 - beklenmeyen yatay page overflow yok
 
-## 5. Test piramidi
-### Unit
-Saf hesaplama, rounding, state transition, value object.
-
-### Feature/Integration
-Ana ağırlık: HTTP/use-case + PostgreSQL transaction + authorization + ledger effects.
-
-### Browser/E2E
-Yüksek değerli V16.3 akışları.
+## 5. M0 infrastructure gate
+Application bootstrap tamamlanmış sayılmaz unless:
+- Laravel/PHP dependency install çalışıyor
+- PostgreSQL 18 CI service çalışıyor
+- Valkey smoke çalışıyor
+- formatter/static-analysis command tanımlı
+- unit + integration test workflow var
+- browser/E2E skeleton route-smoke çalışıyor
+- dependency advisory/security check var
+- GitHub required status checks isimleri belirlenmiş
+- `main` branch protection/required checks uygulanabiliyorsa aktif; teknik/plan kısıtı varsa açık blocker olarak kaydedilmiş
 
 ## 6. Cari testleri
 - sales invoice balance increase
@@ -61,49 +65,83 @@ Yüksek değerli V16.3 akışları.
 - supplier invoice payable increase
 - payment payable decrease
 - over-collection/payment signed balance
+- Account book currency mismatch BLOCK
+- base amount/rate snapshot
 - OpenItem/allocation schema/UX bulunmaması
 - Alacaklı/Borçlu/Bakiye Yok mapping
 - cross-company access block
 
-## 7. Satış testleri
+## 7. Tax / pricing testleri
+- net/KDV-hariç product price authority
+- KDV hariç input → doğru net/tax/gross
+- KDV dahil input → deterministic net back-calc
+- line discount before tax
+- document discount deterministic line allocation
+- line tax sum = document tax total
+- explicit rounding difference
+- `KDV Sıfırla` recalculation
+- zero-tax reason code required where applicable
+- posted tax snapshot master değişince değişmiyor
+
+## 8. Satış testleri
 - quote revision immutability
 - partial dispatch
 - partial invoice
-- remaining_to_dispatch/invoice
+- net reversal-safe dispatched/invoiced counters
+- remaining_to_dispatch/invoice reversal sonrası reopen
 - reservation consume/release
-- over-dispatch block
-- over-invoice block
+- reservation > available BLOCK
+- over-dispatch BLOCK
+- over-invoice BLOCK
+- over-cancel BLOCK
+- over-return BLOCK
 - duplicate invoice posting block
-- KDV Sıfırla recalculation
-- dispatch/invoice same physical stock effect duplicate değil
+- dispatch stock OUT authority
+- dispatch→invoice second stock OUT yok
+- irsaliyesiz direct invoice stock OUT
 - finalized detail readonly
 
-## 8. Alış testleri
+## 9. Alış / Mal Kabul testleri
 - PO remaining receive/invoice
-- over-receipt block
-- over-invoice block
+- accepted/pending/rejected split sum = physical received
+- pending/rejected available stock'a girmez
+- PO received progress accepted quantity ile kapanır
+- pending→accepted reclassify second stock IN üretmez
+- pending→rejected reclassify second stock IN üretmez
+- over-acceptance BLOCK
+- over-invoice BLOCK
 - GoodsReceipt stock effect exactly-once
 - SupplierInvoice second stock IN üretmiyor
-- Uygun/Kontrol Bekliyor/Uygun Değil
 - invoice/receipt farklı tarihler
 - finalized detail readonly
 
-## 9. Stok testleri
+## 10. Stok / costing testleri
 - `stock_movements` authority
 - available stock formula
-- negative-stock policy
-- transfer source issue / partial receipt / final reconcile
-- stock count system/counted/difference
-- count double-post guard
+- negative stock BLOCK
+- reservation oversell BLOCK
+- transfer source issue → in-transit → partial/full receipt
+- transfer quantity/value company totalinde kaybolmuyor
+- transfer P/L üretmiyor
+- moving-average inbound update
+- moving-average outbound carrying value
+- positive stock count current average
+- cost yoksa positive count valuation required
+- no zero-cost positive inventory
+- stock count double-post guard
 - no lot/serial core assumption
 
-## 10. Kasa / Banka testleri
+## 11. Kasa / Banka / Treasury testleri
+- `treasury_movements` balance authority
+- source record direct balance mutation yapmıyor
 - collection/payment type-specific validation
-- account + treasury atomikliği
+- account + treasury atomicity
 - cash movement
 - bank movement
 - POS gross cari effect + separate commission
+- POS Pending→Settled banka movement
 - net settlement second cari effect üretmiyor
+- chargeback/reversal path
 - virman atomicity
 - cash denomination/total/difference
 - difference reason requirement
@@ -111,74 +149,101 @@ Yüksek değerli V16.3 akışları.
 - reconciliation match no second movement
 - unmatch/rematch history
 
-## 11. Çek / Senet testleri
+## 12. Çek / Senet testleri
 - received delivery reduces customer balance once
 - later bank collection no second cari effect
-- dishonored reversal reopens balance
 - issued delivery reduces supplier payable once
 - later bank payment no second cari effect
+- received instrument endorsement reduces supplier payable once
+- endorsement does not repeat customer effect
+- dishonored endorsed instrument supplier reversal + required customer reversal chain
 - unpaid/cancel reversal
 - lifecycle/history/physical location/front-back file refs
-- settlement concurrency
+- settlement/endorsement concurrency
 
-## 12. Üretim / Fason
+## 13. Üretim / Fason
 - recipe quantity
-- material issue stock OUT
-- finished good receipt stock IN
+- material issue stock OUT + carrying cost
+- finished good receipt stock IN + allocated cost
 - quantity cap
 - close reconciliation
 - fire/eksik handling
-- fason sent/received/scrap-missing/remaining reconcile
+- subcontract sent quantity/value custody
+- subcontract received/scrap-missing/remaining reconcile
+- custody value company inventory'den kaybolmuyor
 
 Routing/work-center/ECO/OEE tests core değildir.
 
-## 13. İthalat / maliyet
+## 14. İthalat / maliyet
 - container-product reconciliation
 - same product multi-container lineage
+- import acceptance kendi başına stock movement üretmiyor
+- GoodsReceipt/ImportReceipt handoff exactly-once stock IN
 - allocation source total = allocated total
 - duplicate cost item allocation block
 - deterministic rounding
+- late landed cost original receipt/import lineage
 - loading simulation business authority değil
 
-## 14. E-Ticaret / B2B ortak testleri
+## 15. Marketplace / B2B ortak testleri
 - provider-account + external entity uniqueness
 - inbound message dedupe
 - webhook/poll retry duplicate order üretmiyor
+- legal customer snapshot zorunlu Account yaratmıyor
+- clearing account mapping
+- marketplace invoice clearing receivable
+- payout clearing receivable + treasury bank movement
+- commission/fee separate effect
+- duplicate settlement row second finance effect üretmiyor
+- clearing reconciliation formula
 - Mars stock authority
 - publish stock formula incl. safety stock
 - stale retry current desired state'i geriye götürmüyor
+- unavailable stock → `Sorun/Stok Eksik`, negative stock yok
 - provider raw status Mars SalesOrder state'ini keyfi overwrite etmiyor
 - unsupported capability gerçek action gibi gösterilmiyor
+- media capability unsupported ise no-op yok
 - secret read-back masked
 - connection-test permission/error handling
 - rate-limit/backoff provider policy'ye uyuyor
 - ambiguous response blind resend yapmıyor
 - malformed provider payload business effect üretmiyor
 - channel/account isolation
-- B2B user pre-bound cari
-- B2B başka cari göremiyor
+
+### B2B auth/security
+- B2BUser internal User değildir
+- B2B login/logout/password reset/activation
+- brute-force/rate-limit
+- session/token revoke
+- pre-bound cari değiştirilemiyor
+- başka cari görülemiyor
+- internal admin route/API erişilemiyor
 - B2B order no cari effect
 - invoice cari effect
 - B2B discount = Cari İskontosu
+- risk/exposure server-side block/warning policy
 
-## 15. Marketplace adapter contract test suite
+## 16. Marketplace adapter contract test suite
 Aşağıdaki ortak contract suite her **aktif V1 marketplace adapterına** uygulanır:
-1. credential schema + secret masking
-2. connection test success/failure
-3. capability discovery/static matrix
-4. product/listing identity mapping
-5. stock desired-state publish idempotency
-6. price publish normalization/rounding
-7. order import normalization
-8. duplicate order/event guard
-9. shipment/cancel/return capability mapping
-10. provider error → normalized problem record
-11. retry/backoff/rate-limit
-12. timeout/ambiguous outcome reconcile
-13. polling cursor/watermark restart safety
-14. webhook replay safety where supported
-15. raw payload redaction/retention policy
-16. API version/deprecation fixture compatibility
+1. provider registry metadata mevcut
+2. credential schema + secret masking
+3. connection test success/failure
+4. capability discovery/static matrix
+5. product/listing identity mapping
+6. media/image publish capability mapping
+7. stock desired-state publish idempotency
+8. price publish normalization/rounding/tax gross conversion
+9. order import normalization
+10. duplicate order/event guard
+11. shipment/cancel/return capability mapping
+12. settlement/payout evidence normalization where supported
+13. provider error → normalized problem record
+14. retry/backoff/rate-limit
+15. timeout/ambiguous outcome reconcile
+16. polling cursor/watermark restart safety
+17. webhook replay safety where supported
+18. raw payload redaction/retention policy
+19. API version/deprecation fixture compatibility
 
 ### V1 provider-specific suites
 - WooCommerce
@@ -200,22 +265,24 @@ Her adapter için provider contract fixture/sample payload'ları repository test
 - Orders/shipment normalization
 - report/settlement evidence import idempotency
 
-### Diğer aktif marketplace adapterları ekstra testleri
-Hepsiburada, n11, idefix, PttAVM ve Allesgo için provider'ın batch/task/pagination/rate-limit/status davranışları fixture ile test edilir; provider'ın desteklemediği operasyonlar `unsupported/manual` olarak deterministic davranır.
-
 ### Deferred adaylar
-Çiçeksepeti, Pazarama, Koçtaş, Teknosa, Temu Türkiye ve Boyner V1 adapter test zorunluluğu değildir. Bu kanallar için fixture/contract suite ancak gerçek API veya seller/partner contract erişimi doğrulandıktan sonra açılır.
+Çiçeksepeti, Pazarama, Koçtaş, Teknosa, Temu Türkiye ve Boyner V1 adapter test zorunluluğu değildir. Fixture/contract suite gerçek API veya seller/partner contract erişimi doğrulandıktan sonra açılır.
 
-## 16. API / Security
+## 17. Posting period / security
+- open period posting success
+- closed/frozen period normal user BLOCK
+- override permission + reason + audit
+- approval policy aktifse approval required
+- document_date değiştirerek posting-period bypass yok
 - same idempotency key + different payload conflict
 - CSRF/authorization/rate-limit critical paths
-- webhook signature/replay
+- webhook signature/replay where supported
 - cross-company leak tests
 - private file authorization
 - upload validation/quarantine where enabled
 - secret/PII redaction
 
-## 17. Search
+## 18. Search
 PostgreSQL FTS + `pg_trgm`:
 - SKU/barcode exact/prefix
 - Turkish product/contact name
@@ -224,15 +291,16 @@ PostgreSQL FTS + `pg_trgm`:
 - company isolation
 - search result authorization re-check
 
-## 18. Reports / Print
-- ready report routes where implemented
+## 19. Reports / Print
+- ready report route/catalog ID exists
 - filter consistency
 - runtime permission for scheduled report
 - Excel/CSV export
 - PDF/print
 - no action column/browser scrollbar in print
+- report catalog implemented count vs expected milestone count
 
-## 19. Migration / import/export
+## 20. Migration / import/export
 - dry-run
 - row validation/error report
 - duplicate/restart idempotency
@@ -241,8 +309,9 @@ PostgreSQL FTS + `pg_trgm`:
 - large-file chunking/memory limits
 - historical import external side-effect count = 0
 - reconciliation
+- all enabled channel cutover cursor/watermark handling
 
-## 20. Backup / restore
+## 21. Backup / restore
 Release/pre-go-live:
 - backup creation
 - isolated restore drill
@@ -251,16 +320,17 @@ Release/pre-go-live:
 - sequence/external mapping integrity
 - recovery mode barrier
 
-## 21. Heavy / pre-release
+## 22. Heavy / pre-release
 - full regression
 - risky migration rehearsal
 - projection rebuild/reconciliation
 - provider timeout/ambiguous response
 - marketplace adapter fixture suite
 - selected sandbox/test-account smoke
+- marketplace clearing reconciliation
 - large import/export
 - UI route crawl
 - performance indexes/query plans for touched hotspots
 
-## 22. Merge / main kuralı
+## 23. Merge / main kuralı
 Kırmızı CI ile main değişikliği tamamlanmış sayılmaz. Flaky test disable edilmez; kök neden düzeltilir. Documentation-only commit application full suite'i zorunlu kılmaz.
