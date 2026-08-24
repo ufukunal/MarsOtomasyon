@@ -1,4 +1,4 @@
-# 05 — Veri Modeli Kataloğu V4.1
+# 05 — Veri Modeli Kataloğu V4.2
 
 Bu katalog fiziksel migration'ın birebir sözleşmesi değildir; domain sahipliğini, authority kaynaklarını ve korunacak ana entity ilişkilerini tanımlar.
 
@@ -61,7 +61,18 @@ Core fiyat:
 - sale_price_net
 - purchase_price_net
 
-Lot/serial V1 core schema'sında yoktur.
+`Product` V1'de satılabilir/stoklanabilir SKU authority'sidir. Lot/serial V1 core schema'sında yoktur.
+
+### Future product-family seam — conceptual
+Gerçek variant grouping ihtiyacında additive olarak:
+- ProductFamily
+- VariantDimension
+- ProductVariantRelation / family membership
+- localized/shared content relations
+
+eklenebilir.
+
+Bu entity'ler V1 zorunlu schema değildir. Family stock/price/cost authority olmaz; stock, barcode, price ve cost Product/SKU seviyesinde kalır.
 
 ## 5. Product media destinations
 Ürün görselleri yalnız tek galeri değildir. Kullanım yeri/kanal/site ilişkisi taşıyabilir:
@@ -275,6 +286,8 @@ Generic raw SQL/report designer schema yoktur.
 - checksum/security metadata
 - scan/quarantine status when used
 
+Future OCR/AI processing için Attachment kimliği korunur; extraction sonucu Attachment'ın kendisini mutate ederek business truth'a dönüşmez.
+
 ## 21. Outbox / Inbox
 - OutboxMessage
 - IntegrationInbox
@@ -303,3 +316,76 @@ Repeated import aynı business kaydı/effect'i duplicate etmez.
 
 ## 24. Ortak referans ilkesi
 Business event/ledger source bağlantılarında kontrollü `source_type + source_id` kullanılabilir. Kritik bütünlükte explicit FK/unique constraint tercih edilir. Generic polymorphism domain doğruluğunu kaybettirecek ölçüde yaygınlaştırılmaz.
+
+# Future extension conceptual model
+
+Aşağıdaki başlıklar **V1 fiziksel schema zorunluluğu değildir**. İlk gerçek consumer geldiğinde additive migration ile eklenir.
+
+## 25. Provider family extensions
+İleride domain-owner modele göre:
+- ShippingConnection / ShipmentExternalMapping
+- PaymentProviderConnection / PaymentExternalMapping
+- EDocumentProviderConnection
+- AccountingExportConnection / ExportMapping
+- FeedChannelConnection
+- ExchangeRateProviderConfig
+- OCR/AI ProviderConfig
+
+eklenebilir.
+
+Tek universal ProviderBusinessEntity tablosu oluşturulmaz. Family owner kendi mapping'ini korur; registry/credential/idempotency convention ortaktır.
+
+## 26. Document extraction / AI review
+Gerçek kullanımda aday entity'ler:
+- ProcessingJob / ExtractionJob
+- ExtractedField / SuggestedValue
+- ReviewDecision
+- provider/model/version/confidence metadata
+
+Bu kayıtlar source/suggestion evidence'tır. Finance/stock/sales authority değildir.
+
+## 27. Planning / suggestion models
+Gerçek ihtiyaçta:
+- ReorderPolicy
+- PurchaseSuggestion
+- DemandForecast snapshot
+- CashFlowForecast snapshot
+- AnomalyAlert
+read/planning domainine eklenebilir.
+
+Suggestion otomatik posted business record değildir.
+
+## 28. After-sales / service
+Gerçek ihtiyaçta:
+- WarrantyCase
+- ServiceRequest
+- InstallationAppointment
+- Repair/Replacement action
+- ServiceMaterialReference
+Sales/Product/Return lineage üzerinden eklenebilir.
+
+Service material consumption normal StockMovement use-case'ini çağırır; ayrı stok ledger'ı kurulmaz.
+
+## 29. CRM seam
+Gerçek ihtiyaçta:
+- Lead
+- Opportunity
+- Activity / FollowUp
+- SalesOwner relation
+Account ile ilişkilendirilebilir. CRM `AccountTransaction` authority değildir.
+
+## 30. Feature availability
+Başlangıçta code/config based `FeatureKey` registry kullanılır. Per-company rollout gerçek ihtiyaç olduğunda CompanyFeatureOverride benzeri additive config entity eklenebilir.
+
+Permission ve feature availability ayrı kavramlardır.
+
+## 31. Generic future-schema yasağı
+Bugünden yalnız gelecek ihtimali için:
+- nullable lot/serial kolonları,
+- boş plugin tabloları,
+- universal EAV/custom field tabloları,
+- universal external-reference polymorphic tablo,
+- generic BPM state tabloları
+oluşturulmaz.
+
+Ayrıntılı activation ve extension kuralları `27_GELECEK_GENISLEME_ALTYAPISI.md` içindedir.
