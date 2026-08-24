@@ -2,7 +2,6 @@
 
 namespace App\Modules\Core\Company;
 
-use App\Modules\Core\Enums\CompanyStatus;
 use App\Modules\Core\Models\CompanyMembership;
 use App\Modules\Core\Models\User;
 use Closure;
@@ -26,7 +25,7 @@ final class ResolveActiveCompany
             ->with('company')
             ->get()
             ->filter(
-                fn (CompanyMembership $membership): bool => $membership->company?->status === CompanyStatus::Active,
+                fn (CompanyMembership $membership): bool => $membership->company?->isActive() === true,
             )
             ->values();
 
@@ -37,8 +36,7 @@ final class ResolveActiveCompany
                 abort(409, 'Aktif şirket seçimi gerekli.');
             }
 
-            $membership = $memberships->first();
-            abort_unless($membership instanceof CompanyMembership, 409, 'Aktif şirket seçimi çözülemedi.');
+            $membership = $memberships->sole();
             $selectedCompanyId = $membership->company_id;
             $request->session()->put('active_company_id', $selectedCompanyId);
         }
