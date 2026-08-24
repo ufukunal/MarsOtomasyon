@@ -54,6 +54,12 @@ Marketplace adapter seti:
 - PttAVM
 - idefix
 - Çiçeksepeti
+- Pazarama
+- Koçtaş
+- Teknosa
+- Temu Türkiye
+- Allesgo
+- Boyner
 
 Bir adapter yalnız ürün bağlayabildiği için “tam entegre” sayılmaz. Hangi capability'lerin gerçekten çalıştığı kanal kartında/diagnostics'te görülebilir olmalıdır.
 
@@ -81,6 +87,20 @@ Provider desteklemiyorsa aynı aksiyon UI'da sessiz no-op olmaz; disabled/unsupp
 - Orders/shipment normalization testli
 - FBA/FBM capability farkı tanımlı
 - report/settlement import idempotent
+
+## Temu Türkiye ekstra DoD
+- marketplace/region Türkiye scope açık
+- seller authorization lifecycle güvenli
+- ürün/listing ve order/fulfillment normalization testli
+- diğer region/global capability'leri Türkiye kanalına istemeden açılmıyor
+
+## Yeni marketplace adapterları ekstra DoD
+Pazarama, Koçtaş, Teknosa, Allesgo ve Boyner için:
+- gerçek seller/API veya yetkili entegratör erişim modeli doğrulanmış
+- provider-specific external IDs/statuslar normalize edilmiş
+- capability matrix provider sözleşmesine göre kilitlenmiş
+- panelde manuel kalması gereken operasyonlar `manual` olarak gösterilmiş
+- en az connection + product/listing + stock/price + order akışında erişilebilen capability'ler fixture/sandbox/test-account ile doğrulanmış
 
 ## UI ekstra DoD
 - gerçek backend verisi
