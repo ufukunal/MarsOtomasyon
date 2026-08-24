@@ -1,4 +1,4 @@
-# 14 — Test, CI ve Kalite V4.1
+# 14 — Test, CI ve Kalite V4.2
 
 ## 1. Amaç
 Test stratejisi finans/stok doğruluğu ile V16.3 kullanıcı akışını birlikte korur. Production-benzeri PostgreSQL 18 davranışı esastır.
@@ -332,5 +332,75 @@ Release/pre-go-live:
 - UI route crawl
 - performance indexes/query plans for touched hotspots
 
-## 23. Merge / main kuralı
+# 23. Planlı M25–M31 genişleme testleri
+
+## M25 Product Family / Variant
+- simple Product family olmadan çalışıyor
+- existing Product ID/SKU migration sonrası aynı
+- ProductFamily duplicate/invalid membership guard
+- dimension/value uniqueness
+- family stock/price/cost authority değil
+- variant search/media behavior
+- marketplace parent/child mapping
+- family delete/archive SKU history silmiyor
+
+## M26 Barkod / Termal Etiket
+- label payload doğru product/barcode/location kaynağından geliyor
+- A4/PDF render smoke
+- ZPL/TSPL fixture/snapshot where implemented
+- cross-company label access BLOCK
+- reprint business ledger mutate etmiyor
+- printer unavailable/error path
+
+## M27 Mobil Depo / Scanner
+- mobile API same authorization/invariant yolunu kullanıyor
+- stable client operation id duplicate effect üretmiyor
+- repeated scan policy deterministic
+- GoodsReceipt/dispatch/transfer/count source-effect exactly-once
+- scanner focus/error/retry browser/PWA tests
+- wrong company/warehouse access BLOCK
+- offline write açık değilse network loss local fake success göstermiyor
+
+## M28 Kargo API Adapterları
+- provider registry/credential/capability
+- shipment create idempotency
+- timeout → query-before-retry/ambiguous reconcile
+- label artifact authorization
+- tracking event dedupe
+- provider status Mars Dispatch'i keyfi overwrite etmiyor
+- cancel/return capability mapping
+- unsupported/manual deterministic
+- secret/redaction/rate-limit
+
+## M29 OCR Fatura / Dekont
+- supported file/type/size validation
+- OCR provider/model/version evidence
+- extracted field + confidence
+- low confidence review required
+- cari/ürün/banka match sadece suggestion
+- duplicate file/result second posting üretmiyor
+- OCR output direct AccountTransaction/StockMovement/TreasuryMovement yazamıyor
+- reviewed result normal domain validation'dan geçiyor
+- PII/attachment authorization
+
+## M30 Hafif CRM
+- Lead/Opportunity company scope
+- stage transition/history
+- Activity/FollowUp permissions
+- Lead → Account conversion duplicate guard
+- Quote linkage
+- closed/lost opportunity finance/stock effect üretmiyor
+- Account master duplicate edilmemiş
+
+## M31 BI Export
+- dataset schema version
+- company scope + PII allow-list
+- curated dataset authoritative report totals ile reconcile
+- scheduled export runtime authorization
+- incremental watermark restart-safe where used
+- partial/failed export observable
+- expired artifact access BLOCK
+- BI write-back yok
+
+## 24. Merge / main kuralı
 Kırmızı CI ile main değişikliği tamamlanmış sayılmaz. Flaky test disable edilmez; kök neden düzeltilir. Documentation-only commit application full suite'i zorunlu kılmaz.
