@@ -234,8 +234,8 @@ No routing/work-center/ECO/OEE/shop-floor platform.
 
 WooCommerce ilk adapterdır ve ortak contract'ın referans implementasyonlarından biri olur.
 
-## M18 — Marketplace Adapter Pack
-Her provider **ayrı atomic alt-milestone/commit serisi** olarak uygulanır. Bir adapter tamamlanmadan diğerinin provider-specific kodu core'a karıştırılmaz.
+## M18 — Verified Marketplace Adapter Pack
+Her doğrulanmış provider **ayrı atomic alt-milestone/commit serisi** olarak uygulanır. Bir adapter tamamlanmadan diğerinin provider-specific kodu core'a karıştırılmaz.
 
 ### M18-TY — Trendyol
 - Supplier ID/API credentials
@@ -298,47 +298,6 @@ Her provider **ayrı atomic alt-milestone/commit serisi** olarak uygulanır. Bir
 - product questions
 - order questions
 
-### M18-CS — Çiçeksepeti
-- seller/supplier API connection
-- product/listing
-- stock/price
-- orders/shipment
-- returns/questions/invoice only where provider API exposes capability
-- provider-panel-only operations explicitly `manual/unsupported`
-
-### M18-PZR — Pazarama
-- seller/merchant connection
-- category/attribute + product/listing capability
-- stock/price
-- orders/shipment
-- cancel/return/invoice/questions according to current API capability
-- polling/webhook/rate-limit policy
-
-### M18-KOC — Koçtaş
-- marketplace seller connection
-- catalog/listing + category/attribute mapping where exposed
-- stock/price
-- orders/shipment
-- return/invoice capability where exposed
-- provider/entegratör contract compatibility tests
-
-### M18-TKS — Teknosa
-- marketplace seller connection
-- catalog/listing
-- stock/price
-- orders/shipment
-- cancellation/return/invoice capability where exposed
-- provider-specific external status/id normalization
-
-### M18-TEMU — Temu Türkiye
-- Türkiye marketplace/region scoped seller connection
-- seller authorization/token lifecycle
-- product/listing
-- stock/price
-- orders/fulfillment
-- cancellation/returns according to Türkiye capability set
-- global/other-region behavior not implicitly enabled
-
 ### M18-ALG — Allesgo
 - seller/API connection
 - product/listing
@@ -348,15 +307,8 @@ Her provider **ayrı atomic alt-milestone/commit serisi** olarak uygulanır. Bir
 - product/order questions where supported
 - payment/settlement evidence where supported
 
-### M18-BYN — Boyner
-- marketplace seller/account connection
-- product/listing + stock/price according to accessible integration contract
-- orders/shipment
-- cancellation/return/invoice capability where exposed
-- direct API or authorized-integrator transport hidden behind adapter contract
-
 ### M18 ortak çıkış kapısı
-Her adapter için:
+Her aktif adapter için:
 - connection test
 - encrypted/masked credential
 - capability matrix
@@ -368,6 +320,17 @@ Her adapter için:
 - problem center visibility
 - sandbox/test account smoke where provider offers it
 - production credential olmadan fake "tam entegre" işareti yok
+
+### Deferred Marketplace Candidates — milestone dışı
+Şimdilik milestone açılmayacak:
+- Çiçeksepeti
+- Pazarama
+- Koçtaş
+- Teknosa
+- Temu Türkiye
+- Boyner
+
+Bu kanallardan biri ancak güncel resmî API dokümanı veya gerçek seller/partner erişimi doğrulandıktan sonra yeni `M18-*` alt-milestone olarak eklenir.
 
 ## M19 — B2B / Bayi Sistemi
 - B2B user pre-bound Account
@@ -438,7 +401,7 @@ Domain-specific builder; generic report/document designer değildir.
 - balance/stock/cash/bank/instrument reconciliation
 - cutover/delta strategy
 - provider/channel reconciliation
-- marketplace credential/capability smoke tests
+- active marketplace credential/capability smoke tests
 - desired stock/price resync
 - backup/restore drill
 - production smoke
