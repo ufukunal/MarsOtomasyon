@@ -41,6 +41,8 @@ Duplicate alanlar birleştirilmiştir:
 ### Firma / Ticari
 Tek kaynak alanlar: resmi ünvan, vergi bilgileri, fatura/vergi uygulaması, vade, cari iskonto, risk limiti, para birimi.
 
+V1'de Cari Para Birimi tek book currency'dir. Farklı para birimleri tek ham bakiye altında toplanmaz.
+
 ### İletişim / Yetkililer
 Firma iletişim kanalları + dinamik yetkili listesi. Aynı anda tek bir birincil yetkili.
 
@@ -89,38 +91,42 @@ Lot/seri UI yoktur.
 Belge satırında code/barcode/QR/name arama. Sonuçta code/name/price/stock/reserved/available görünür. Keyboard/scanner Enter desteklenir; seçim sonrası quantity focus.
 
 ## 7. Tek fiyat
-Ürün başına tek satış ve tek alış fiyatı. Çoklu fiyat listesi ekranı yok.
+Ürün başına tek satış ve tek alış fiyatı. Çoklu fiyat listesi ekranı yok. Core fiyat net/KDV-hariç normalize edilir; belge ekranı company ayarına göre KDV dahil/hariç giriş sunabilir.
 
 ## 8. KDV Sıfırla
 Satış Siparişi ve Satış Faturası ürün satır alanında:
 `Satır Ekle · Hızlı Ürün · KDV Sıfırla`.
 
-KDV Sıfırla tüm line VAT rate değerini 0 yapar ve totals recalculation yapar.
+KDV Sıfırla tüm line VAT rate değerini 0 yapar ve totals recalculation yapar. Sıfır KDV'nin hukuki/e-belge gerekçesi gerekiyorsa mevcut belge yüzeyinde gerekçe/kod alanı açılır; yeni modül oluşturulmaz.
 
 ## 9. Satış belgeleri
 ### Satış Siparişi
 Sipariş/faturalanan/sevk/kalan miktar progress'i görünür.
 
 ### İrsaliye / Sevkiyat
-Fiyat/KDV odaklı ekran değildir. Satırda sipariş miktarı, önceki sevk, bu sevk, kalan ve sevk/nakliye bilgisi odaktır.
+Fiyat/KDV odaklı ekran değildir. Satırda sipariş miktarı, önceki sevk, bu sevk, kalan ve sevk/nakliye bilgisi odaktır. Varsayılan akışta fiziksel stok çıkışı sevkiyat kesinleşmesinde oluşur.
 
 ### Satış Faturası
-Fiyat/iskonto/KDV/toplam alanları vardır; kesinleşmiş detail readonly'dir.
+Fiyat/iskonto/KDV/toplam alanları vardır; kesinleşmiş detail readonly'dir. İrsaliyesiz doğrudan fatura fiziksel çıkışı temsil ediyorsa kendi stok OUT effect'ini üretebilir; kullanıcıya duplicate stok aksiyonu gösterilmez.
 
 ## 10. Alış
 ### Satınalma Siparişi
-Ordered/received/invoiced/remaining progress.
+Ordered/accepted/invoiced/remaining progress.
 
 ### Mal Kabul
-Ürün/cari satış belgesi şablonu kullanılmaz. Satır:
+Ürün/cari satış belgesi şablonu kullanılmaz. Satır temel olarak:
 - sipariş miktarı
 - daha önce kabul
-- bu kabul
+- bu fiziksel kabul
 - kalan
 - `Uygun / Kontrol Bekliyor / Uygun Değil`
 
+gösterir.
+
+Aynı fiziksel kabulde karma kalite sonucu varsa mevcut Mal Kabul ekranı içinde quantity split/subrow yaklaşımı kullanılabilir: `Uygun miktar / Kontrol Bekleyen miktar / Uygun Değil miktar`. Yeni QMS ekranı/modülü açılmaz.
+
 ## 11. Depo Transferi
-Cari/fiyat/KDV yok. Kaynak depo, hedef depo, ürün, miktar ve transfer progress'i vardır.
+Cari/fiyat/KDV yok. Kaynak depo, hedef depo, ürün, miktar ve transfer progress'i vardır. Kaynak çıkışı ile hedef kabulü arasında `Yolda` miktarı görünür; backend carrying value/custody teknik ayrıntıları normal kullanıcı jargonuna dönüştürülmez.
 
 ## 12. Stok Sayımı
 Sistem miktarı, sayılan miktar ve fark. Ürün/cari satış belgesi alanları yok.
@@ -168,7 +174,7 @@ Banka Hareketleri içinden `Banka Hesapları`, `Ekstre İçe Aktar`, `Mutabakat`
 Type-specific alanlar açılır. Cari mevcut bakiye, işlem tutarı ve işlem sonrası bakiye görünür.
 
 ### POS
-Gross tahsilat cariyi azaltır; komisyon ayrı gider/banka/POS effect'tir.
+Gross tahsilat cariyi azaltır; komisyon ayrı gider/banka/POS effect'tir. Pending/settlement gibi teknik ledger ayrıntısı kullanıcıya gereksiz jargonla gösterilmez; operasyonel durum gerektiğinde anlaşılır Türkçe görünür.
 
 ### Çek
 Çek no, vade, banka, şube, keşideci, yer, hesap/IBAN, portföy yeri ve ön/arka scan/upload.
@@ -211,7 +217,7 @@ Received statuses:
 Issued statuses:
 `Hazırlandı, Teslim Edildi, Ödendi, Karşılıksız/Ödenmedi, İade Alındı, İptal`.
 
-Physical location/history ve front/back images tutulur.
+Physical location/history ve front/back images tutulur. `Ciro Edildi` gerçek supplier cari effect'i olan business action'dır; yalnız label değişikliği değildir.
 
 ## 20. E-Ticaret / B2B menüsü
 - Kanal Merkezi
@@ -223,13 +229,19 @@ Physical location/history ve front/back images tutulur.
 - Entegrasyon Sorunları
 - Kanal Ayarları
 
+Yeni doğrulanmış kanallar ayrı ana menü açmaz; Kanal Merkezi'nde kart/filtre olarak görünür.
+
 ## 21. Kanal Ayarları
-Detail tabs:
+Detail tabs değişmez:
 `Bağlantı · Ürün · Sipariş · Fatura · Stok · Görsel`.
 
 WooCommerce: Site URL, Consumer Key, Consumer Secret, status/test.
 Trendyol: Supplier ID, API Key, API Secret, status/test.
 Mars B2B dahili ise external secret yok.
+
+**Diğer doğrulanmış V1 adapterları** — Hepsiburada, Amazon SP-API, n11, PttAVM, idefix, Allesgo — aynı Kanal Ayarları ve aynı tab yapısını kullanır. `Bağlantı` formundaki provider-specific credential alanları adapter-owned schema'dan gelir; V16.3 için ayrı sayfa/menu tasarlanmaz.
+
+Provider'ın desteklemediği `Ürün/Sipariş/Fatura/Stok/Görsel` capability'si varmış gibi çalışmaz; disabled/manual açıklaması gösterilir.
 
 Credential save sonrası secret maskelenir; gerçek değer tekrar gösterilmez.
 
@@ -245,15 +257,15 @@ Credential save sonrası secret maskelenir; gerçek değer tekrar gösterilmez.
 ## 23. B2B
 B2B account/user bir Mars carisine pre-bound. Siparişte cari seçilmez. Cari Edit B2B/Bayi Erişimi permissions/settings taşır. Cari Detail readonly B2B bilgisi gösterir.
 
-B2B discount = Cari İskontosu.
+B2B discount = Cari İskontosu. External B2B login internal Mars kullanıcı girişiyle aynı yetki alanı değildir; kullanıcı-visible B2B ekranlarında internal admin menüsü çıkmaz.
 
 ## 24. Görseller
 Upload sonrası image editor opsiyonel. Crop/rotate/flip/resize. Existing image `Resmi Düzenle` ile açılır.
 
-Image destinations dinamik ve site/channel bazlıdır; her destination bağımsız main/gallery/order taşır.
+Image destinations dinamik ve site/channel bazlıdır; her destination bağımsız main/gallery/order taşır. Marketplace adapter görsel publish desteklemiyorsa Görsel tabı manual/unsupported olarak açıkça davranır.
 
 ## 25. Rapor Merkezi
-40 hazır rapor hedefi, 8 kategori:
+**40 hazır rapor / 8 kategori** hedefi `13_UI_UX_RAPORLAMA.md` içindeki stabil rapor kataloğu ile tanımlıdır:
 Cari & Finans, Satış, Alış, Stok, Üretim/Fason, İthalat, E-Ticaret/B2B, Yönetim.
 
 Workspace:
@@ -274,5 +286,6 @@ Bir ekran V16.3 referansından implement edilirken:
 - stale legacy renderer yok,
 - teknik jargon yok,
 - runtime error yok,
-- user-visible duplicate sekme/alan yok
+- user-visible duplicate sekme/alan yok,
+- provider capability yoksa sessiz no-op yok
 olmalıdır.
