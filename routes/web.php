@@ -2,6 +2,7 @@
 
 use App\Modules\Core\Auth\AuthenticatedSessionController;
 use App\Modules\Core\Management\AuditTrailController;
+use App\Modules\Core\Management\BranchManagementController;
 use App\Modules\Core\Management\CompanyFileController;
 use App\Modules\Core\Management\CompanySettingsController;
 use App\Modules\Core\Management\CurrencyExchangeController;
@@ -34,6 +35,32 @@ Route::prefix('settings')
         Route::put('/company', [CompanySettingsController::class, 'update'])
             ->middleware('can:core.settings.manage')
             ->name('company.update');
+
+        Route::get('/branches', [BranchManagementController::class, 'index'])
+            ->middleware('can:core.branch.view')
+            ->name('branches.index');
+        Route::get('/branches/create', [BranchManagementController::class, 'create'])
+            ->middleware('can:core.branch.manage')
+            ->name('branches.create');
+        Route::post('/branches', [BranchManagementController::class, 'store'])
+            ->middleware('can:core.branch.manage')
+            ->name('branches.store');
+        Route::get('/branches/{branch}', [BranchManagementController::class, 'show'])
+            ->whereNumber('branch')
+            ->middleware('can:core.branch.view')
+            ->name('branches.show');
+        Route::get('/branches/{branch}/edit', [BranchManagementController::class, 'edit'])
+            ->whereNumber('branch')
+            ->middleware('can:core.branch.manage')
+            ->name('branches.edit');
+        Route::put('/branches/{branch}', [BranchManagementController::class, 'update'])
+            ->whereNumber('branch')
+            ->middleware('can:core.branch.manage')
+            ->name('branches.update');
+        Route::post('/branches/{branch}/select', [BranchManagementController::class, 'select'])
+            ->whereNumber('branch')
+            ->middleware('can:core.branch.view')
+            ->name('branches.select');
 
         Route::get('/numbering', [DocumentSequenceController::class, 'index'])
             ->middleware('can:core.settings.view')
