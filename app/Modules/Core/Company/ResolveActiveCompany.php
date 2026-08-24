@@ -6,6 +6,7 @@ use App\Modules\Core\Models\CompanyMembership;
 use App\Modules\Core\Models\User;
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Symfony\Component\HttpFoundation\Response;
 
 final class ResolveActiveCompany
@@ -18,7 +19,7 @@ final class ResolveActiveCompany
 
         abort_unless($user instanceof User, 401);
 
-        /** @var \Illuminate\Support\Collection<int, CompanyMembership> $memberships */
+        /** @var Collection<int, CompanyMembership> $memberships */
         $memberships = $user->memberships()
             ->where('is_active', true)
             ->with('company')
