@@ -160,7 +160,7 @@ final class CurrencyExchangeController
     private function snapshot(ExchangeRate $rate): array
     {
         return [
-            'rate_date' => $rate->rate_date?->format('Y-m-d') ?? '',
+            'rate_date' => $rate->rateDateString(),
             'from_currency_code' => (string) $rate->from_currency_code,
             'to_currency_code' => (string) $rate->to_currency_code,
             'rate' => (string) $rate->rate,
