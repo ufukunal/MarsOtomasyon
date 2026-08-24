@@ -1,5 +1,6 @@
 <?php
 
+use App\Foundation\Logging\MarsLoggingTap;
 use Monolog\Handler\NullHandler;
 use Monolog\Handler\StreamHandler;
 use Monolog\Handler\SyslogUdpHandler;
@@ -22,6 +23,7 @@ return [
             'path' => storage_path('logs/laravel.log'),
             'level' => env('LOG_LEVEL', 'debug'),
             'replace_placeholders' => true,
+            'tap' => [MarsLoggingTap::class],
         ],
         'stderr' => [
             'driver' => 'monolog',
@@ -29,11 +31,13 @@ return [
             'handler' => StreamHandler::class,
             'handler_with' => ['stream' => 'php://stderr'],
             'processors' => [PsrLogMessageProcessor::class],
+            'tap' => [MarsLoggingTap::class],
         ],
         'syslog' => [
             'driver' => 'monolog',
             'level' => env('LOG_LEVEL', 'debug'),
             'handler' => SyslogUdpHandler::class,
+            'tap' => [MarsLoggingTap::class],
         ],
         'null' => [
             'driver' => 'monolog',
