@@ -10,12 +10,13 @@ Bu klasör `ufukunal/MarsOtomasyon` için **otoriter geliştirme planıdır**.
 - operasyon/güvenlik dersleri
 kaynağıdır.
 
-V4.2, V4.1 code-ready doğruluk/gate yapısını korur ve ileride özellik eklerken çekirdeği bozmayacak **future extension seam** sözleşmelerini `27_GELECEK_GENISLEME_ALTYAPISI.md` ile tanımlar.
+V4.2, V4.1 code-ready doğruluk/gate yapısını korur; ileride özellik eklerken çekirdeği bozmayacak **future extension seam** sözleşmelerini `27_GELECEK_GENISLEME_ALTYAPISI.md` ile, resmî post-V1 genişleme roadmap'ini ise `28_PLANLI_GENISLEMELER.md` ile tanımlar.
 
 ## Durum
 - Plan: **V4.2 — code-ready + future-ready, V16.3 tasarım uyumlu**
 - UI referansı: **MarsOtomasyon V16.3 — Genel Tasarım Temizliği**
 - Future extension contract: `27_GELECEK_GENISLEME_ALTYAPISI.md`
+- Planned extension roadmap: `28_PLANLI_GENISLEMELER.md`
 - PHP 8.5 + Laravel 13
 - PostgreSQL 18 only
 - PostgreSQL FTS + `pg_trgm`
@@ -34,12 +35,15 @@ Ana navigasyon:
 ## Plan otoritesi
 Çelişki halinde sıra:
 1. `00_KARAR_KAYDI.md` locked decisions.
-2. İlgili business-owner plan belgesi (`03`–`25`).
-3. `26_V16_3_TASARIM_UYUMU.md` kullanıcı-visible ekran/akış sözleşmesi.
-4. `14_TEST_CI_KALITE.md` + `18_DEFINITION_OF_DONE.md` acceptance gates.
-5. `27_GELECEK_GENISLEME_ALTYAPISI.md` yalnız gelecekteki özelliklerin genişleme yöntemi için authority'dir; mevcut V1 business rule'u override etmez.
-6. Migration/application davranışı.
-7. `MarsEski` code/eski belge.
+2. İlgili V1 business-owner plan belgesi (`03`–`25`).
+3. M25–M31 planlı genişlemelerde `28_PLANLI_GENISLEMELER.md` ilgili feature owner/scope sözleşmesidir.
+4. `26_V16_3_TASARIM_UYUMU.md` kullanıcı-visible V1 ekran/akış sözleşmesi; post-V1 UI değişikliği yeni onaylı UI contract ister.
+5. `14_TEST_CI_KALITE.md` + `18_DEFINITION_OF_DONE.md` acceptance gates.
+6. `27_GELECEK_GENISLEME_ALTYAPISI.md` genişleme **yöntemi ve seam** authority'sidir; V1 veya `28` feature scope'unu override etmez.
+7. Migration/application davranışı.
+8. `MarsEski` code/eski belge.
+
+`27` içindeki aday listelerinden `28` içine terfi etmiş özelliklerde **`28` resmî roadmap statüsüdür**.
 
 **Not:** V16.3 kullanıcı-visible tasarımına aykırı davranış yalnız eski repoda vardı diye geri alınmaz.
 
@@ -96,6 +100,15 @@ Hazırlanan başlıca seam'ler:
 
 Ayrıntı: `27_GELECEK_GENISLEME_ALTYAPISI.md`.
 
+## Resmî planlı post-V1 genişlemeler
+M24 sonrası roadmap:
+
+`M25 Product Family/Variant → M26 Barkod/Termal Etiket → M27 Mobil Depo/Scanner → M28 Kargo API Adapterları → M29 OCR Fatura/Dekont → M30 Hafif CRM → M31 BI Export`
+
+Bu modüller V1 M24 go-live'ını bloklamaz. Her biri FeatureKey + additive migration + mevcut authority ledger sınırlarıyla açılır.
+
+Ayrıntı: `28_PLANLI_GENISLEMELER.md`.
+
 ## V4'te eski plandan geri alınan kritik ayrıntılar
 V16.3 ile uyumlu olduğu için korunan başlıca kurallar:
 - `NUMERIC(20,6)` money/qty/cost ve `NUMERIC(20,10)` kur standardı.
@@ -127,7 +140,7 @@ V16.3 ile uyumlu olduğu için korunan başlıca kurallar:
 `16_UYGULAMA_SIRASI_MILESTONE.md` küçük dikey dilimler kullanır.
 
 Her teslim:
-`entry gate → schema → use-case → transaction/invariant → authorization → V16.3 UI → tests → PostgreSQL CI → audit/observability`.
+`entry gate → schema → use-case → transaction/invariant → authorization → approved UI → tests → PostgreSQL CI → audit/observability`.
 
 Büyük modüller tek dev committe yazılmaz; independently test edilebilir vertical slice'lar atomic commitlerle ilerler.
 
@@ -142,7 +155,8 @@ Yeni geliştirmeye başlarken:
 4. yapılacak modülün owner belgesi
 5. `06_IS_KURALLARI_VE_INVARIANTLAR.md`
 6. `14_TEST_CI_KALITE.md`
-7. `26_V16_3_TASARIM_UYUMU.md`
-8. yalnız gelecek/genişleme özelliği ekleniyorsa `27_GELECEK_GENISLEME_ALTYAPISI.md`
+7. V1 kullanıcı yüzeyi için `26_V16_3_TASARIM_UYUMU.md`
+8. genişleme yöntemi için `27_GELECEK_GENISLEME_ALTYAPISI.md`
+9. M25–M31 için ayrıca `28_PLANLI_GENISLEMELER.md`
 
 Bu kaynaklar birlikte uygulanmadan modül tamamlanmış sayılmaz.
