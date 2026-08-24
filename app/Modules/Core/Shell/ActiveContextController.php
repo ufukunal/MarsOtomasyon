@@ -74,8 +74,12 @@ final readonly class ActiveContextController
         return redirect()->route('workspace')->with('status', 'Aktif firma değiştirildi.');
     }
 
-    public function selectBranch(Request $request, int $branch): RedirectResponse
+    public function selectBranch(Request $request): RedirectResponse
     {
+        $validated = $request->validate([
+            'branch_id' => ['required', 'integer'],
+        ]);
+
         $company = $this->companyContext->requireCompany();
         $companyId = $company->getKey();
         abort_unless(is_int($companyId), 409, 'Aktif şirket geçerli değil.');
@@ -83,7 +87,7 @@ final readonly class ActiveContextController
         $selected = Branch::query()
             ->where('company_id', $companyId)
             ->where('is_active', true)
-            ->findOrFail($branch);
+            ->findOrFail((int) $validated['branch_id']);
 
         $selectedId = $selected->getKey();
         abort_unless(is_int($selectedId), 409, 'Aktif şube geçerli değil.');
