@@ -4,7 +4,7 @@ use App\Modules\Core\Shell\ActiveContextController;
 use App\Modules\Core\Shell\WorkspaceController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware('auth')->group(function (): void {
+Route::middleware(['web', 'auth'])->group(function (): void {
     Route::get('/', [ActiveContextController::class, 'entry'])->name('entry');
 
     Route::get('/context/companies', [ActiveContextController::class, 'companies'])
