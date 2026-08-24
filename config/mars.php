@@ -3,6 +3,18 @@
 return [
     'features' => [
         'foundation' => true,
+        'customers' => false,
+        'product_stock' => false,
+        'sales' => false,
+        'purchasing' => false,
+        'production' => false,
+        'treasury' => false,
+        'instruments' => false,
+        'returns' => false,
+        'import' => false,
+        'commerce' => false,
+        'communications' => false,
+        'reports' => false,
     ],
     'correlation' => [
         'header' => 'X-Correlation-ID',
