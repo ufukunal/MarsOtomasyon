@@ -46,7 +46,7 @@ Basit reçete ve üretim akışı; fason malzeme gönderim/gelen mamul/fire/eksi
 Konteyner/sevkiyat bazlı ürün dağılımı, koli ve malzeme eşleme, maliyet dağıtımı, üretim uyumluluk listesi, ürün fotoğraflı toplama/fason listeleri ve konteyner yükleme/ağırlık simülasyonu.
 
 ## E-Ticaret / Pazaryeri / B2B
-Tek Integration Core üzerinden ilk kanal seti:
+Tek Integration Core üzerinden resmi kanal seti:
 - WooCommerce
 - Trendyol
 - Hepsiburada
@@ -55,6 +55,12 @@ Tek Integration Core üzerinden ilk kanal seti:
 - PttAVM
 - idefix
 - Çiçeksepeti
+- Pazarama
+- Koçtaş
+- Teknosa
+- Temu Türkiye
+- Allesgo
+- Boyner
 - dahili Mars B2B
 
 Ortak operasyon kapsamı provider capability'sine göre:
