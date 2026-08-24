@@ -8,6 +8,7 @@ use App\Modules\Core\Models\PostingPeriod;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
@@ -89,18 +90,25 @@ final class PostingPeriodController
 
     public function close(int $period): RedirectResponse
     {
-        $period = $this->period($period);
+        $period = DB::transaction(function () use ($period): PostingPeriod {
+            $locked = PostingPeriod::query()
+                ->where('company_id', $this->companyId())
+                ->lockForUpdate()
+                ->findOrFail($period);
 
-        if ($period->status === PostingPeriodStatus::Closed) {
-            return redirect()->route('settings.posting-periods.show', $period)->with('status', 'Muhasebe dönemi zaten kapalı.');
-        }
+            if ($locked->status === PostingPeriodStatus::Open) {
+                $locked->update([
+                    'status' => PostingPeriodStatus::Closed,
+                    'closed_at' => now(),
+                ]);
+            }
 
-        $period->update([
-            'status' => PostingPeriodStatus::Closed,
-            'closed_at' => now(),
-        ]);
+            return $locked;
+        });
 
-        return redirect()->route('settings.posting-periods.show', $period)->with('status', 'Muhasebe dönemi kapatıldı.');
+        $message = $period->wasChanged('status') ? 'Muhasebe dönemi kapatıldı.' : 'Muhasebe dönemi zaten kapalı.';
+
+        return redirect()->route('settings.posting-periods.show', $period)->with('status', $message);
     }
 
     /** @return array{code:string,name:string,starts_on:string,ends_on:string} */
