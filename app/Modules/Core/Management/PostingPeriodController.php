@@ -63,11 +63,7 @@ final class PostingPeriodController
                 return $period;
             });
         } catch (QueryException $exception) {
-            if ($exception->getCode() === '23P01') {
-                throw ValidationException::withMessages(['starts_on' => 'Bu tarih aralığı mevcut bir dönemle çakışıyor.']);
-            }
-
-            throw $exception;
+            $this->throwPostingPeriodValidation($exception);
         }
 
         return redirect()->route('settings.posting-periods.show', $period)->with('status', 'Muhasebe dönemi oluşturuldu.');
@@ -114,11 +110,7 @@ final class PostingPeriodController
                 return $locked;
             });
         } catch (QueryException $exception) {
-            if ($exception->getCode() === '23P01') {
-                throw ValidationException::withMessages(['starts_on' => 'Bu tarih aralığı mevcut bir dönemle çakışıyor.']);
-            }
-
-            throw $exception;
+            $this->throwPostingPeriodValidation($exception);
         }
 
         return redirect()->route('settings.posting-periods.show', $period)->with('status', 'Muhasebe dönemi güncellendi.');
@@ -203,6 +195,19 @@ final class PostingPeriodController
         if ($query->exists()) {
             throw ValidationException::withMessages(['code' => 'Bu dönem kodu zaten kullanılıyor.']);
         }
+    }
+
+    private function throwPostingPeriodValidation(QueryException $exception): never
+    {
+        if ((string) $exception->getCode() === '23P01') {
+            throw ValidationException::withMessages(['starts_on' => 'Bu tarih aralığı mevcut bir dönemle çakışıyor.']);
+        }
+
+        if ((string) $exception->getCode() === '23505') {
+            throw ValidationException::withMessages(['code' => 'Bu dönem kodu zaten kullanılıyor.']);
+        }
+
+        throw $exception;
     }
 
     private function period(int $id): PostingPeriod
