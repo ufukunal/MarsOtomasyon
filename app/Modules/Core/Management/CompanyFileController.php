@@ -8,6 +8,7 @@ use App\Modules\Core\Files\CompanyFileManager;
 use App\Modules\Core\Models\Attachment;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -46,7 +47,7 @@ final readonly class CompanyFileController
         ]);
 
         $upload = $request->file('file');
-        abort_if($upload === null, 422, 'Dosya yükleme isteği geçersiz.');
+        abort_if(! $upload instanceof UploadedFile, 422, 'Dosya yükleme isteği geçersiz.');
 
         $attachment = $this->files->upload($upload, isset($validated['label']) ? (string) $validated['label'] : null);
 
