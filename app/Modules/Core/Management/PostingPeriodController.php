@@ -2,7 +2,11 @@
 
 namespace App\Modules\Core\Management;
 
+use App\Foundation\Clock\Clock;
+use App\Modules\Core\Audit\AuditRecorder;
 use App\Modules\Core\Company\ActiveCompanyContext;
+use App\Modules\Core\Enums\AuditAction;
+use App\Modules\Core\Enums\AuditTargetType;
 use App\Modules\Core\Enums\PostingPeriodStatus;
 use App\Modules\Core\Models\PostingPeriod;
 use Illuminate\Database\QueryException;
@@ -14,7 +18,11 @@ use Illuminate\View\View;
 
 final class PostingPeriodController
 {
-    public function __construct(private readonly ActiveCompanyContext $companyContext) {}
+    public function __construct(
+        private readonly ActiveCompanyContext $companyContext,
+        private readonly AuditRecorder $audit,
+        private readonly Clock $clock,
+    ) {}
 
     public function index(): View
     {
@@ -37,12 +45,23 @@ final class PostingPeriodController
         $this->assertCodeAvailable($data['code']);
 
         try {
-            $period = PostingPeriod::query()->create([
-                'company_id' => $this->companyId(),
-                ...$data,
-                'status' => PostingPeriodStatus::Open,
-                'closed_at' => null,
-            ]);
+            $period = DB::transaction(function () use ($data): PostingPeriod {
+                $period = PostingPeriod::query()->create([
+                    'company_id' => $this->companyId(),
+                    ...$data,
+                    'status' => PostingPeriodStatus::Open,
+                    'closed_at' => null,
+                ]);
+
+                $this->audit->record(
+                    AuditAction::PostingPeriodCreated,
+                    AuditTargetType::PostingPeriod,
+                    (int) $period->getKey(),
+                    after: $this->snapshot($period),
+                );
+
+                return $period;
+            });
         } catch (QueryException $exception) {
             if ($exception->getCode() === '23P01') {
                 throw ValidationException::withMessages(['starts_on' => 'Bu tarih aralığı mevcut bir dönemle çakışıyor.']);
@@ -69,14 +88,31 @@ final class PostingPeriodController
 
     public function update(Request $request, int $period): RedirectResponse
     {
-        $period = $this->period($period);
-        abort_if($period->status === PostingPeriodStatus::Closed, 409, 'Kapalı dönem normal düzenleme akışıyla değiştirilemez.');
-
         $data = $this->validated($request);
-        $this->assertCodeAvailable($data['code'], (int) $period->getKey());
 
         try {
-            $period->update($data);
+            $period = DB::transaction(function () use ($period, $data): PostingPeriod {
+                $locked = PostingPeriod::query()
+                    ->where('company_id', $this->companyId())
+                    ->lockForUpdate()
+                    ->findOrFail($period);
+
+                abort_if($locked->status === PostingPeriodStatus::Closed, 409, 'Kapalı dönem normal düzenleme akışıyla değiştirilemez.');
+                $this->assertCodeAvailable($data['code'], (int) $locked->getKey());
+                $before = $this->snapshot($locked);
+
+                $locked->update($data);
+
+                $this->audit->record(
+                    AuditAction::PostingPeriodUpdated,
+                    AuditTargetType::PostingPeriod,
+                    (int) $locked->getKey(),
+                    before: $before,
+                    after: $this->snapshot($locked),
+                );
+
+                return $locked;
+            });
         } catch (QueryException $exception) {
             if ($exception->getCode() === '23P01') {
                 throw ValidationException::withMessages(['starts_on' => 'Bu tarih aralığı mevcut bir dönemle çakışıyor.']);
@@ -90,25 +126,37 @@ final class PostingPeriodController
 
     public function close(int $period): RedirectResponse
     {
-        $period = DB::transaction(function () use ($period): PostingPeriod {
+        /** @var array{period:PostingPeriod,changed:bool} $result */
+        $result = DB::transaction(function () use ($period): array {
             $locked = PostingPeriod::query()
                 ->where('company_id', $this->companyId())
                 ->lockForUpdate()
                 ->findOrFail($period);
 
-            if ($locked->status === PostingPeriodStatus::Open) {
-                $locked->update([
-                    'status' => PostingPeriodStatus::Closed,
-                    'closed_at' => now(),
-                ]);
+            if ($locked->status === PostingPeriodStatus::Closed) {
+                return ['period' => $locked, 'changed' => false];
             }
 
-            return $locked;
+            $before = $this->snapshot($locked);
+            $locked->update([
+                'status' => PostingPeriodStatus::Closed,
+                'closed_at' => $this->clock->now(),
+            ]);
+
+            $this->audit->record(
+                AuditAction::PostingPeriodClosed,
+                AuditTargetType::PostingPeriod,
+                (int) $locked->getKey(),
+                before: $before,
+                after: $this->snapshot($locked),
+            );
+
+            return ['period' => $locked, 'changed' => true];
         });
 
-        $message = $period->wasChanged('status') ? 'Muhasebe dönemi kapatıldı.' : 'Muhasebe dönemi zaten kapalı.';
+        $message = $result['changed'] ? 'Muhasebe dönemi kapatıldı.' : 'Muhasebe dönemi zaten kapalı.';
 
-        return redirect()->route('settings.posting-periods.show', $period)->with('status', $message);
+        return redirect()->route('settings.posting-periods.show', $result['period'])->with('status', $message);
     }
 
     /** @return array{code:string,name:string,starts_on:string,ends_on:string} */
@@ -126,6 +174,19 @@ final class PostingPeriodController
             'name' => trim((string) $validated['name']),
             'starts_on' => (string) $validated['starts_on'],
             'ends_on' => (string) $validated['ends_on'],
+        ];
+    }
+
+    /** @return array{code:string,name:string,starts_on:string,ends_on:string,status:string,closed_at:string|null} */
+    private function snapshot(PostingPeriod $period): array
+    {
+        return [
+            'code' => (string) $period->code,
+            'name' => (string) $period->name,
+            'starts_on' => $period->starts_on?->format('Y-m-d') ?? '',
+            'ends_on' => $period->ends_on?->format('Y-m-d') ?? '',
+            'status' => $period->status->value,
+            'closed_at' => $period->closed_at?->format(DATE_ATOM),
         ];
     }
 
