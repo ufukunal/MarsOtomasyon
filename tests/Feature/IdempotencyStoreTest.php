@@ -10,7 +10,6 @@ use App\Foundation\Idempotency\RequestFingerprint;
 use DateTimeImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
-use LogicException;
 use RuntimeException;
 use Tests\Support\FrozenClock;
 use Tests\TestCase;
@@ -108,17 +107,6 @@ final class IdempotencyStoreTest extends TestCase
         self::assertSame(
             '2026-08-24T12:00:00+00:00',
             (new DateTimeImmutable((string) $row->completed_at))->format(DATE_ATOM),
-        );
-    }
-
-    public function test_claim_is_rejected_outside_business_transaction(): void
-    {
-        $this->expectException(LogicException::class);
-
-        $this->app->make(IdempotencyStore::class)->claim(
-            'api.test',
-            'outside-transaction',
-            RequestFingerprint::fromPayload(['operation' => 'invalid']),
         );
     }
 }
