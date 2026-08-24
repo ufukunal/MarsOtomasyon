@@ -56,4 +56,26 @@ jobs:
             exit 0
           fi
           git commit -m "chore: lock M0 quality dependencies [skip ci]"
+          git pull --rebase origin main
+          git push origin HEAD:main
+
+      - name: Record bootstrap result
+        if: always()
+        env:
+          BOOTSTRAP_STATUS: ${{ job.status }}
+          BOOTSTRAP_RUN_ID: ${{ github.run_id }}
+          BOOTSTRAP_HEAD_SHA: ${{ github.sha }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin main
+          git reset --hard origin/main
+          mkdir -p .ci
+          printf 'conclusion=%s\nrun_id=%s\nhead_sha=%s\n' "$BOOTSTRAP_STATUS" "$BOOTSTRAP_RUN_ID" "$BOOTSTRAP_HEAD_SHA" > .ci/m0-quality-bootstrap-result
+          git add .ci/m0-quality-bootstrap-result
+          if git diff --cached --quiet; then
+            exit 0
+          fi
+          git commit -m "chore: record M0 quality bootstrap result [skip ci]"
+          git pull --rebase origin main
           git push origin HEAD:main
