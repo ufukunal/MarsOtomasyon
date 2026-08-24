@@ -22,6 +22,10 @@ return new class extends Migration
             ['code' => 'USD', 'name' => 'ABD Doları', 'minor_unit' => 2, 'is_active' => true, 'created_at' => now(), 'updated_at' => now()],
             ['code' => 'EUR', 'name' => 'Euro', 'minor_unit' => 2, 'is_active' => true, 'created_at' => now(), 'updated_at' => now()],
             ['code' => 'GBP', 'name' => 'İngiliz Sterlini', 'minor_unit' => 2, 'is_active' => true, 'created_at' => now(), 'updated_at' => now()],
+            ['code' => 'CNY', 'name' => 'Çin Yuanı', 'minor_unit' => 2, 'is_active' => true, 'created_at' => now(), 'updated_at' => now()],
+            ['code' => 'JPY', 'name' => 'Japon Yeni', 'minor_unit' => 0, 'is_active' => true, 'created_at' => now(), 'updated_at' => now()],
+            ['code' => 'CHF', 'name' => 'İsviçre Frangı', 'minor_unit' => 2, 'is_active' => true, 'created_at' => now(), 'updated_at' => now()],
+            ['code' => 'AED', 'name' => 'BAE Dirhemi', 'minor_unit' => 2, 'is_active' => true, 'created_at' => now(), 'updated_at' => now()],
         ]);
 
         Schema::create('taxes', function (Blueprint $table): void {
