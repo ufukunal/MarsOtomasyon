@@ -8,6 +8,7 @@ use App\Modules\Core\Authorization\GrantPermissionToRole;
 use App\Modules\Core\Company\ActiveCompanyContext;
 use App\Modules\Core\Enums\AuditAction;
 use App\Modules\Core\Enums\AuditTargetType;
+use App\Modules\Core\Enums\DocumentType;
 use App\Modules\Core\Enums\PermissionKey;
 use App\Modules\Core\Enums\UserStatus;
 use App\Modules\Core\Models\AuditEntry;
@@ -83,8 +84,51 @@ it('redacts user email and never stores submitted password in audit state', func
         ->and(array_key_exists('password', $entry->after_state))->toBeFalse();
 });
 
-it('rolls audit entry back with the business mutation', function (): void {
+it('records numbering and role management mutations as distinct audit events', function (): void {
     $company = auditCompany('AUD-D');
+    $actor = auditActor($company, [
+        PermissionKey::SettingsView,
+        PermissionKey::SettingsManage,
+        PermissionKey::RoleView,
+        PermissionKey::RoleManage,
+    ], 'manager');
+
+    $this->actingAs($actor)
+        ->withHeader('X-Correlation-ID', 'audit-numbering-001')
+        ->withSession(['active_company_id' => $company->getKey()])
+        ->post('/settings/numbering', [
+            'document_type' => DocumentType::Quote->value,
+            'series_code' => 'default',
+            'prefix' => 'TKL-',
+            'padding' => 6,
+            'next_value' => 1,
+            'is_active' => true,
+        ])
+        ->assertRedirect();
+
+    $this->actingAs($actor)
+        ->withHeader('X-Correlation-ID', 'audit-role-001')
+        ->withSession(['active_company_id' => $company->getKey()])
+        ->post('/settings/roles', [
+            'code' => 'audited-role',
+            'name' => 'Audited Role',
+            'is_active' => true,
+            'permission_keys' => [],
+        ])
+        ->assertRedirect();
+
+    $sequenceAudit = AuditEntry::query()->where('action', AuditAction::DocumentSequenceCreated->value)->firstOrFail();
+    $roleAudit = AuditEntry::query()->where('action', AuditAction::RoleCreated->value)->firstOrFail();
+
+    expect($sequenceAudit->correlation_id)->toBe('audit-numbering-001')
+        ->and($sequenceAudit->after_state['document_type'])->toBe(DocumentType::Quote->value)
+        ->and($roleAudit->correlation_id)->toBe('audit-role-001')
+        ->and($roleAudit->after_state['code'])->toBe('audited-role')
+        ->and($roleAudit->after_state['permission_keys'])->toBe([]);
+});
+
+it('rolls audit entry back with the business mutation', function (): void {
+    $company = auditCompany('AUD-E');
     $actor = auditActor($company, [PermissionKey::SettingsManage], 'manager');
     auditContext($company, $actor, 'audit-rollback-001');
 
@@ -108,7 +152,7 @@ it('rolls audit entry back with the business mutation', function (): void {
 });
 
 it('rejects update and delete attempts at PostgreSQL level', function (): void {
-    $company = auditCompany('AUD-E');
+    $company = auditCompany('AUD-F');
     $actor = auditActor($company, [PermissionKey::SettingsManage], 'manager');
     auditContext($company, $actor, 'audit-immutable-001');
 
@@ -127,8 +171,8 @@ it('rejects update and delete attempts at PostgreSQL level', function (): void {
 });
 
 it('keeps the read-only audit viewer company scoped', function (): void {
-    $companyA = auditCompany('AUD-F-A');
-    $companyB = auditCompany('AUD-F-B');
+    $companyA = auditCompany('AUD-G-A');
+    $companyB = auditCompany('AUD-G-B');
     $actorA = auditActor($companyA, [PermissionKey::SettingsView], 'viewer');
     $actorB = auditActor($companyB, [PermissionKey::SettingsView], 'viewer');
 
