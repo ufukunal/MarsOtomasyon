@@ -16,6 +16,7 @@ use App\Modules\Core\Models\User;
 use App\Modules\Core\Posting\PostingPeriodGuard;
 use DomainException;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Illuminate\Support\Facades\DB;
 
 uses(DatabaseMigrations::class);
 
@@ -234,8 +235,16 @@ it('prevents overlapping posting periods at PostgreSQL level and closes periods 
         ->assertStatus(409);
 });
 
-it('allows posting only inside an open company period', function (): void {
+it('requires period validation to run inside the same business transaction as posting', function (): void {
     $company = m16Company('M16-I');
+    $guard = app(PostingPeriodGuard::class);
+
+    expect(fn () => $guard->assertOpen((int) $company->getKey(), '2026-08-24'))
+        ->toThrow(DomainException::class, 'Dönem kontrolü business transaction içinde çalışmalıdır.');
+});
+
+it('allows posting only inside an open company period', function (): void {
+    $company = m16Company('M16-J');
     $guard = app(PostingPeriodGuard::class);
 
     PostingPeriod::query()->create([
@@ -247,14 +256,15 @@ it('allows posting only inside an open company period', function (): void {
         'status' => PostingPeriodStatus::Open,
     ]);
 
-    expect($guard->assertOpen((int) $company->getKey(), '2026-08-24')->code)->toBe('2026-Q3');
+    $period = DB::transaction(fn () => $guard->assertOpen((int) $company->getKey(), '2026-08-24'));
+    expect($period->code)->toBe('2026-Q3');
 
-    expect(fn () => $guard->assertOpen((int) $company->getKey(), '2026-10-01'))
+    expect(fn () => DB::transaction(fn () => $guard->assertOpen((int) $company->getKey(), '2026-10-01')))
         ->toThrow(DomainException::class, 'İşlem tarihi için muhasebe dönemi bulunamadı.');
 });
 
 it('rejects posting inside a closed period', function (): void {
-    $company = m16Company('M16-J');
+    $company = m16Company('M16-K');
     $guard = app(PostingPeriodGuard::class);
 
     PostingPeriod::query()->create([
@@ -267,7 +277,7 @@ it('rejects posting inside a closed period', function (): void {
         'closed_at' => now(),
     ]);
 
-    expect(fn () => $guard->assertOpen((int) $company->getKey(), '2026-07-15'))
+    expect(fn () => DB::transaction(fn () => $guard->assertOpen((int) $company->getKey(), '2026-07-15')))
         ->toThrow(DomainException::class, 'İşlem tarihi kapalı bir muhasebe döneminde.');
 });
 
