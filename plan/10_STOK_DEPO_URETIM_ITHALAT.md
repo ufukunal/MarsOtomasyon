@@ -1,32 +1,111 @@
-# 10 — Stok, Depo, Üretim ve İthalat
+# 10 — Stok, Depo, Üretim, Fason ve İthalat V4
 
-## Stok authority
-`stock_movements`. Stok miktarı ledger hareketlerinden/projection'dan elde edilir; keyfi direct balance mutation yasaktır.
+## 1. Stok authority
+`stock_movements` fiziksel stok source-of-truth'tur. Reservation movement değildir. Keyfi direct balance mutation yasaktır. Aynı fiziksel quantity aynı source lineage üzerinden yalnız bir kez etkilenir.
 
-## Depo/Lokasyon
-- bir ürün birden fazla depoda bulunabilir
-- lokasyon opsiyonel alt kırılımdır
-- transfer kaynak ve hedefi açıkça taşır
-- rezervasyon fiziksel hareket değildir
+## 2. Ürün / stok kapsamı
+Core ürün yetenekleri gerçek ihtiyaç oldukça:
+- stoklu/stoksuz
+- satılabilir
+- satın alınabilir
+- üretilebilir
+- birim/barkod/QR arama
+- tek satış + tek alış fiyatı
 
-## Depo transferi
-V16.3 ekranı cari/fiyat/KDV içermez. Kaynak depo, hedef depo, ürün, miktar ve progress gösterilir.
+Lot/seri V1 core kapsamında değildir.
 
-Posting tek transaction'da kaynak OUT + hedef IN üretir.
+## 3. Kullanılabilir stok
+Temel:
+`available = physical - reserved - quarantine_or_blocked`.
 
-## Stok sayımı
+Kanal publish:
+`publishable = available - channel_safety_stock`.
+
+Quarantine/blocked yalnız Mal Kabul veya gerçek operasyon ihtiyacında kullanılır; generic QMS kurulmaz.
+
+## 4. Depo / lokasyon / hareket
+- ürün birden fazla depoda olabilir
+- location opsiyonel alt kırılımdır
+- hareket source belge/depo/lokasyon/miktar taşır
+- technical effect/idempotency alanları normal UI'da gösterilmez
+
+## 5. Depo transferi
+V16.3 ekranı cari/fiyat/KDV içermez.
+
+Gerçek depolar arası akış:
+`Taslak → Kaynak Çıkışı → Yolda → Kısmi/Tam Hedef Kabul → Tamamlandı`.
+
+Ekran:
+- kaynak depo
+- hedef depo
+- ürün
+- miktar
+- açıklama/taşıma bilgisi
+- progress
+
+Source issue + destination receipt aynı transfer lineage'ında reconcile edilir. Aynı fiziksel hareket duplicate olmaz.
+
+## 6. Stok sayımı
+Sayım oturumu:
+- depo
+- tarih
+- sayımı yapan
+- ürün
 - sistem miktarı
 - sayılan miktar
 - fark
 
-Onay/posting fark kadar adjustment movement üretir. Quick Count barkod tarama destekleyebilir.
+Finalization exactly-once adjustment üretir. Quick Count barkod random scan ve sesli geri bildirim destekleyebilir.
 
-## Üretim
-Basit model:
+## 7. Mal Kabul kontrolü
+Satır:
+- sipariş miktarı
+- daha önce kabul
+- bu kabul
+- kalan
+- `Uygun | Kontrol Bekliyor | Uygun Değil`
+
+Kontrol bekleyen/uygun olmayan miktar gerekirse available stock dışında blocked/quarantine state'te tutulur. Control Plan/CAPA/8D/SPC core değildir.
+
+## 8. Ürün Teknik Bilgi Dosyası
+Ürün Detail içinde readonly sunulur. Stabil ürün bilgisini taşır:
+- teknik özellikler
+- ölçüler/malzeme
+- kullanım/dikkat bilgileri
+- teknik görseller/dosyalar
+
+Üretim operasyon talimatından ayrıdır.
+
+## 9. Ürün Kurulum Kılavuzu / PDF Builder
+Generic document/report designer değildir. Ürüne özel:
+- adımlar
+- uyarılar
+- gerekli araçlar
+- parçalar
+- görseller
+- A4 preview
+ile kurulum kılavuzu üretebilir. Çıktı versioned artifact olarak saklanabilir.
+
+## 10. Ürün görselleri
+Görsel destination'ları dinamik olabilir:
+- Ürün Kartı
+- Trendyol
+- B2B
+- belirli site/domain
+
+Her destination bağımsız:
+- main image
+- gallery
+- sort/order
+
+taşır.
+
+Upload sonrası görsel editörü opsiyoneldir. Crop/rotate/flip/resize desteklenebilir. Mevcut görsel `Resmi Düzenle` ile açılabilir.
+
+## 11. Basit Üretim
 `Reçete → Üretim Emri → Malzeme Çıkışı → Mamul Girişi → Tamamla`.
 
-### Reçete
-Mamul + gerekli malzeme satırları + standart miktar/fire bilgileri.
+Reçete hedef mamul ve gerekli malzeme/miktar/fire bilgisini taşır.
 
 ### Malzeme çıkışı
 Hammadde/yarı mamul stock OUT.
@@ -34,38 +113,79 @@ Hammadde/yarı mamul stock OUT.
 ### Mamul girişi
 Üretilen mamul stock IN.
 
-Tamamlama miktar uyumsuzluklarını doğrular.
+### Tamamlama
+- material issue reconcile
+- output receipt reconcile
+- fire/eksik explicit
+- unresolved quantity yok
 
-## Fason
-Aynı stok motoru kullanılır:
+Routing, Work Center, OperationRun, ECO, OEE, APS/finite scheduling core değildir.
+
+## 12. Teknik Üretim Dosyası
+Ürün Teknik Bilgi Dosyasından ayrıdır. Reçete/üretim emri operasyonel bilgisi:
+- nasıl yapılır
+- dikkat noktaları
+- malzeme/koli konumu
+- fotoğraflar
+- fason toplama talimatı
+
+## 13. Fason
 `Gönderilen Malzeme → Gelen Mamul → Fire/Eksik → Kalan → Tamamla`.
 
-Fason firma cariyle ilişkilidir; malzeme mülkiyeti/konumu ayrı izlenebilir ancak ikinci bir stok authority kurulmaz.
+Company-owned material custody'de izlenir. Fason firma cariyle ilişkilendirilebilir. Gelen + fire/eksik + remaining reconcile edilmeden tamamlanmaz. Ayrı stok authority yoktur.
 
-## Teknik dosyalar
-Ürün/üretim için teknik bilgi dosyası, kurulum kılavuzu, fotoğraf, dikkat edilecek hususlar ve üretim/toplama talimatları dosya sistemiyle ilişkilendirilir.
+## 14. İthalat dosyası
+Resmi gümrük/genel muhasebe platformu değildir; operasyon ve maliyet planlama aracıdır.
 
-## İthalat ana modeli
-- Shipment
-- Container
-- ContainerProduct
-- Package/Box
-- MaterialLocation
-- ImportCost
-- CostAllocation
-- Compatibility/Instruction
-- LoadingSimulation
+İçerik:
+- shipment/konteyner
+- ürünler
+- koli/component eşleşmesi
+- malzemenin hangi koli/konteynerde olduğu
+- fotoğraf/teknik talimat
+- üretim/toplama listesi
+- fason gönderim listesi
 
-## Konteynerler arası eşleme
-Aynı ürün farklı konteynerlerde bulunabilir. Genel gelen liste normalize edilir; container-product miktarları toplam sipariş/planla uzlaştırılır.
+## 15. Konteynerler arası eşleme
+Aynı ürün birden fazla konteynerde bulunabilir. Genel gelen liste normalize edilir; container-product miktarları sipariş/plan ile reconcile edilir. Source lineage korunur.
 
-## Koli/malzeme takibi
-Ürün toplanırken veya fasona gönderilirken hangi malzemenin hangi koli/konteynerde olduğu listelenir. Fotoğraf ve montaj/not bilgisi çıktıda bulunabilir.
+## 16. İthalat maliyeti
+Maliyet konteyner ve shipment/genel seviyede tutulabilir.
 
-## İthalat maliyeti
-Konteyner ve genel sevkiyat giderleri ayrı kalemlerdir. Vergi, nakliye, aracı/hizmet, liman, depolama, sigorta, resmi/operasyonel ek gider gibi yasal ve muhasebeleştirilebilir kategoriler tanımlanır.
+Cost item örnekleri:
+- ürün bedeli
+- navlun/nakliye
+- sigorta
+- vergi/resmi gider
+- aracı/hizmet gideri
+- liman/depolama
+- diğer yasal/operasyonel gider
 
-Maliyet ürünlere miktar, hacim, ağırlık, değer veya özel dağıtım anahtarıyla dağıtılabilir. Kapanışta dağıtılan toplam kaynak giderle uzlaşır.
+Allocation basis:
+- miktar
+- ağırlık
+- hacim
+- ürün değeri
+- manuel/özel oran
 
-## Yükleme simülatörü
-Konteyner iç ölçü/ağırlık sınırları, koli/ürün boyutları ve ağırlık merkezi/yayılımı kullanılarak yerleşim senaryosu oluşturulur. Simülasyon operasyon yardımcısıdır; stok authority değildir.
+Dağıtılan toplam source toplam ile reconcile olur. Aynı cost item iki kez allocation üretemez.
+
+## 17. Late cost
+Geç gelen navlun/vergi/hizmet maliyeti original import/receipt lineage'a bağlanır. Current on-hand'a körlemesine yığılmaz; `21_MALIYETLENDIRME.md` policy'sine uyar.
+
+## 18. Konteyner yükleme simülatörü
+Planlama aracıdır; stock authority değildir.
+
+Girdiler:
+- konteyner iç ölçü/ağırlık sınırı
+- koli ölçüleri
+- koli/ürün ağırlığı
+- yerleşim
+
+Çıktılar:
+- hacim doluluk
+- ağırlık dağılımı/merkezi
+- yerleşim senaryosu
+- kullanıcı override/not
+
+Simülasyon sonucu versioned snapshot olarak tutulabilir.
