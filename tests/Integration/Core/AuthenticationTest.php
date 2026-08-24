@@ -6,6 +6,10 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
 
+beforeEach(function (): void {
+    $this->withoutVite();
+});
+
 it('renders the internal login form', function (): void {
     $this->get('/login')
         ->assertOk()
@@ -109,7 +113,7 @@ it('logs out by invalidating authentication and clearing the previous session da
         'email' => 'logout@example.test',
         'password' => 'correct-password',
         'status' => UserStatus::Active,
-    ]);
+    ])->refresh();
 
     $response = $this
         ->actingAs($user)

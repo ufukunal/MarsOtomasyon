@@ -46,17 +46,18 @@ final class AuthenticatedSessionController
             ->whereRaw('lower(email) = ?', [$email])
             ->first();
 
-        $passwordMatches = Hash::check(
-            $password,
-            $user instanceof User ? $user->getAuthPassword() : self::DUMMY_PASSWORD_HASH,
-        );
+        if (! $user instanceof User) {
+            Hash::check($password, self::DUMMY_PASSWORD_HASH);
+            $this->rejectLogin($throttleKey);
+        }
 
-        if (! $user instanceof User || ! $passwordMatches || $user->status !== UserStatus::Active) {
-            RateLimiter::hit($throttleKey, self::DECAY_SECONDS);
+        $passwordMatches = Hash::check($password, $user->getAuthPassword());
+        $rawStatus = $user->getRawOriginal('status');
+        $isActive = is_string($rawStatus)
+            && UserStatus::tryFrom($rawStatus) === UserStatus::Active;
 
-            throw ValidationException::withMessages([
-                'email' => 'Giriş bilgileri geçersiz.',
-            ]);
+        if (! $passwordMatches || ! $isActive) {
+            $this->rejectLogin($throttleKey);
         }
 
         RateLimiter::clear($throttleKey);
@@ -82,5 +83,14 @@ final class AuthenticatedSessionController
     private function throttleKey(string $email, ?string $ipAddress): string
     {
         return 'login:'.hash('sha256', $email.'|'.($ipAddress ?? 'unknown'));
+    }
+
+    private function rejectLogin(string $throttleKey): never
+    {
+        RateLimiter::hit($throttleKey, self::DECAY_SECONDS);
+
+        throw ValidationException::withMessages([
+            'email' => 'Giriş bilgileri geçersiz.',
+        ]);
     }
 }
