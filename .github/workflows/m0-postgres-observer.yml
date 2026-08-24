@@ -9,8 +9,7 @@ permissions:
   contents: write
 
 jobs:
-  record-green-gate:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+  record-gate-result:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout main
@@ -19,16 +18,19 @@ jobs:
           ref: main
           fetch-depth: 0
 
-      - name: Record successful PostgreSQL gate
+      - name: Record PostgreSQL gate conclusion
         shell: bash
+        env:
+          FOUNDATION_CONCLUSION: ${{ github.event.workflow_run.conclusion }}
+          FOUNDATION_RUN_ID: ${{ github.event.workflow_run.id }}
         run: |
           mkdir -p .ci
-          printf 'Foundation PostgreSQL 18 gate passed.\n' > .ci/m0-postgresql-green
+          printf 'conclusion=%s\nrun_id=%s\n' "$FOUNDATION_CONCLUSION" "$FOUNDATION_RUN_ID" > .ci/m0-postgresql-result
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add .ci/m0-postgresql-green
+          git add .ci/m0-postgresql-result
           if git diff --cached --quiet; then
             exit 0
           fi
-          git commit -m "chore: record M0 PostgreSQL gate [skip ci]"
+          git commit -m "chore: record M0 PostgreSQL result [skip ci]"
           git push origin HEAD:main
