@@ -19,7 +19,9 @@ final readonly class ResolveActiveBranch
     public function handle(Request $request, Closure $next): Response
     {
         $companyId = $this->companyContext->id();
-        abort_if($companyId === null, 409, 'Aktif şirket context bulunamadı.');
+        if ($companyId === null) {
+            abort(409, 'Aktif şirket context bulunamadı.');
+        }
 
         /** @var Collection<int, Branch> $branches */
         $branches = Branch::query()
@@ -31,14 +33,23 @@ final readonly class ResolveActiveBranch
         $selectedBranchId = $request->session()->get('active_branch_id');
 
         if ($selectedBranchId === null) {
-            abort_if($branches->isEmpty(), 409, 'Aktif şube bulunamadı.');
-            abort_if($branches->count() !== 1, 409, 'Aktif şube seçimi gerekli.');
+            if ($branches->isEmpty()) {
+                abort(409, 'Aktif şube bulunamadı.');
+            }
+
+            if ($branches->count() !== 1) {
+                abort(409, 'Aktif şube seçimi gerekli.');
+            }
 
             $onlyBranch = $branches->first();
-            abort_if(! $onlyBranch instanceof Branch, 409, 'Aktif şube seçimi çözülemedi.');
+            if (! $onlyBranch instanceof Branch) {
+                abort(409, 'Aktif şube seçimi çözülemedi.');
+            }
 
             $onlyBranchId = $onlyBranch->getKey();
-            abort_if(! is_int($onlyBranchId), 409, 'Aktif şube seçimi geçersiz.');
+            if (! is_int($onlyBranchId)) {
+                abort(409, 'Aktif şube seçimi geçersiz.');
+            }
 
             $selectedBranchId = $onlyBranchId;
             $request->session()->put('active_branch_id', $selectedBranchId);
@@ -53,7 +64,9 @@ final readonly class ResolveActiveBranch
             fn (Branch $candidate): bool => (int) $candidate->getKey() === $selectedBranchId,
         );
 
-        abort_if($branch === null, 403, 'Bu şubeye erişim yetkiniz yok veya şube pasif.');
+        if (! $branch instanceof Branch) {
+            abort(403, 'Bu şubeye erişim yetkiniz yok veya şube pasif.');
+        }
 
         $this->branchContext->set($branch);
 
