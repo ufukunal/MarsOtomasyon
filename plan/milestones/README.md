@@ -22,8 +22,8 @@ Her milestone/alt kırılım:
 
 | Milestone | Başlık | Durum |
 |---|---|---|
-| [M1](M01.md) | Core / Company / Users / Settings / UI Shell | 🟡 Devam ediyor — M1.1–M1.4 kapalı |
-| [M2](M02.md) | Cari Core | ⏳ Bekliyor |
+| [M1](M01.md) | Core / Company / Users / Settings / UI Shell | ✅ Tamamlandı |
+| [M2](M02.md) | Cari Core | ▶️ Sıradaki — entry açık |
 | [M3](M03.md) | Ürün / Katalog | ⏳ Bekliyor |
 | [M4](M04.md) | Stok / Depo / Cost Foundation | ⏳ Bekliyor |
 | [M5](M05.md) | Teklifler / Tax Calculation Contract | ⏳ Bekliyor |
@@ -91,5 +91,6 @@ Her milestone/alt kırılım:
 
 - ✅ **TAMAMLANDI:** Kod + test + kabul/CI kanıtı mevcut.
 - 🟡 **KISMEN UYGULANDI / DEVAM EDİYOR:** Kodun bir kısmı mevcut, fakat zorunlu gate açık.
+- ▶️ **SIRADAKİ:** Önceki milestone kapalı; entry gate açık; henüz kod commit'i başlamadı.
 - ⏳ **BEKLİYOR:** Henüz başlanmadı veya entry gate açılmadı.
 - ⛔ **BLOCKED:** Dış karar/altyapı/contract nedeniyle ilerlenemiyor; blocker raporda açıkça yazılır.
