@@ -146,6 +146,12 @@ Tek Integration Core + adapter seti:
 - PttAVM
 - idefix
 - Çiçeksepeti
+- Pazarama
+- Koçtaş
+- Teknosa
+- Temu Türkiye
+- Allesgo
+- Boyner
 - Mars B2B
 
 Yeni pazaryeri ayrı ana modül/menu oluşturmaz. Kanal Merkezi ve ortak listelerde kanal filtresi/kartı olarak görünür.
