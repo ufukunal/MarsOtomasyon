@@ -58,7 +58,7 @@
                         @elseif ($shell['branches']->count() === 1 && $shell['branch'] !== null)
                             <strong>{{ $shell['branch']->name }}</strong>
                         @else
-                            <form method="POST" action="{{ $shell['branch'] === null ? route('context.branches.select', $shell['branches']->first()?->getKey() ?? 0) : route('context.branches.select', $shell['branch']->getKey()) }}" data-branch-selector-form>
+                            <form method="POST" action="{{ route('context.branches.select') }}" data-branch-selector-form>
                                 @csrf
                                 <select name="branch_id" data-branch-selector aria-label="Aktif şube">
                                     <option value="">Şube seçin</option>
