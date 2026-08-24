@@ -1,4 +1,4 @@
-# 19 — Açık Kararlar V4.1 — Just-in-Time Entry Gates
+# 19 — Açık Kararlar V4.2 — Just-in-Time Entry Gates
 
 Bu dosya backlog değildir. Yalnız ilgili milestone başlamadan gerçekten kapanması gereken kararları tutar. `00_KARAR_KAYDI.md` içinde kilitlenmiş kararlar burada tekrar tartışılmaz.
 
@@ -24,6 +24,7 @@ Bu dosya backlog değildir. Yalnız ilgili milestone başlamadan gerçekten kapa
 - B2B cari: pre-bound; siparişte cari seçimi yok.
 - Credential UI: kanal credentials Kanal Ayarları; sistem integrations Ayarlar → Entegrasyonlar; secret masked.
 - Belge numarası baseline: company + document type + year/period; branch yalnız gerektiğinde; legal number posting/finalization'da ayrılabilir.
+- Planlı M25–M31 genişleme seti: Product Family/Variant, Barkod/Termal Etiket, Mobil Depo/Scanner, Kargo API Adapterları, OCR Fatura/Dekont, Hafif CRM, BI Export.
 
 ## B. AÇIK — GERÇEK BLOCKER
 
@@ -55,7 +56,7 @@ M20 Communication production slice başlamadan Meta Cloud API veya seçilen prov
 SMTP/Lark-compatible SMTP, Resend, Brevo, SendGrid, Mailgun seçeneklerinden production primary/fallback M20 production slice öncesi kapanır.
 
 ### A-12 — Kargo provider
-M7 manuel sevkiyat için blocker değildir. API kargo istenirse ilgili adapter geliştirilmeden önce provider seçilir.
+M7 manuel sevkiyat için blocker değildir. **M28 Kargo API Adapterları** provider-specific slice başlamadan seçilen provider'ın gerçek API dokümanı/credential modeli/capability seti doğrulanır. Birden fazla kargo sağlayıcısı varsa her biri ayrı atomic adapter slice olur.
 
 ### A-13 — TCKN/VKN doğrulama derinliği
 Cari/form tarafında yalnız format/checksum mı, harici resmi doğrulama mı yapılacağı go-live öncesi netleşir. Internal checksum validation bu kararı beklemez.
@@ -117,6 +118,13 @@ Bir milestone başlamadan aşağıdaki açık kararlar gerçekten gerekliyse kap
 | M22 | Açık blocker yok |
 | M23 | A-03, A-14, A-15 production hardening öncesi zorunlu |
 | M24 | A-16 zorunlu; A-13 production policy de kapanmış olmalı |
+| M25 Product Family/Variant | Product/SKU identity ve marketplace mapping stabil; family additive olmalı, SKU authority değişmemeli |
+| M26 Barkod/Termal Etiket | Barcode + Files/Printing stabil; gerçek printer bridge gerekiyorsa cihaz/protokol contract'ı doğrulanmalı |
+| M27 Mobil Depo/Scanner | M4/M7/M9 server-side use-case'leri + API auth/idempotency stabil; offline write scope dışı veya ayrı tasarlanmış |
+| M28 Kargo API Adapterları | A-12 zorunlu; shipping provider registry + gerçek contract fixture zorunlu |
+| M29 OCR Fatura/Dekont | Attachment security + extraction/review seam hazır; seçilen OCR engine/provider gerçek contract'ı doğrulanmış; autonomous posting yasak |
+| M30 Hafif CRM | Account ve Quote authority stabil; CRM top-level navigation değiştiriyorsa yeni UI approval gerekir |
+| M31 BI Export | Report/read-model/export jobs stabil; dataset/PII allow-list belirli; operational DB write-back yok |
 
 ## D. KAPANIŞ KURALI
 Açık karar sonuçlandığında:
