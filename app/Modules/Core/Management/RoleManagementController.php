@@ -10,6 +10,7 @@ use App\Modules\Core\Enums\AuditTargetType;
 use App\Modules\Core\Enums\PermissionKey;
 use App\Modules\Core\Models\Permission;
 use App\Modules\Core\Models\Role;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -66,24 +67,28 @@ final class RoleManagementController
         $this->privilegeGuard->assertCanGrantPermissionKeys($permissionKeys);
         $this->assertCodeAvailable((string) $validated['code']);
 
-        $role = DB::transaction(function () use ($validated, $permissionKeys): Role {
-            $role = Role::query()->create([
-                'company_id' => $this->companyId(),
-                'code' => mb_strtolower(trim((string) $validated['code'])),
-                'name' => trim((string) $validated['name']),
-                'is_active' => (bool) $validated['is_active'],
-            ]);
+        try {
+            $role = DB::transaction(function () use ($validated, $permissionKeys): Role {
+                $role = Role::query()->create([
+                    'company_id' => $this->companyId(),
+                    'code' => mb_strtolower(trim((string) $validated['code'])),
+                    'name' => trim((string) $validated['name']),
+                    'is_active' => (bool) $validated['is_active'],
+                ]);
 
-            $this->syncPermissions($role, $permissionKeys);
-            $this->audit->record(
-                AuditAction::RoleCreated,
-                AuditTargetType::Role,
-                $role->getKey(),
-                after: $this->snapshot($role, $permissionKeys),
-            );
+                $this->syncPermissions($role, $permissionKeys);
+                $this->audit->record(
+                    AuditAction::RoleCreated,
+                    AuditTargetType::Role,
+                    $role->getKey(),
+                    after: $this->snapshot($role, $permissionKeys),
+                );
 
-            return $role;
-        });
+                return $role;
+            });
+        } catch (QueryException $exception) {
+            $this->throwDuplicateCode($exception);
+        }
 
         return redirect()->route('settings.roles.show', $role->getKey())
             ->with('status', 'Rol oluşturuldu.');
@@ -102,7 +107,6 @@ final class RoleManagementController
 
     public function update(Request $request, int $role): RedirectResponse
     {
-        $role = $this->role($role);
         $validated = $request->validate([
             'code' => ['required', 'string', 'max:64', 'regex:/^[a-z0-9._-]+$/i'],
             'name' => ['required', 'string', 'max:160'],
@@ -114,27 +118,40 @@ final class RoleManagementController
         $permissionKeys = $this->normalizePermissionKeys($validated['permission_keys'] ?? []);
         sort($permissionKeys);
         $this->privilegeGuard->assertCanGrantPermissionKeys($permissionKeys);
-        $this->assertCodeAvailable((string) $validated['code'], (int) $role->getKey());
-        $beforePermissionKeys = array_values(
-            $role->permissions->pluck('key')->map(static fn (mixed $key): string => (string) $key)->sort()->all(),
-        );
-        $before = $this->snapshot($role, $beforePermissionKeys);
 
-        DB::transaction(function () use ($role, $validated, $permissionKeys, $before): void {
-            $role->code = mb_strtolower(trim((string) $validated['code']));
-            $role->name = trim((string) $validated['name']);
-            $role->is_active = (bool) $validated['is_active'];
-            $role->save();
-            $this->syncPermissions($role, $permissionKeys);
+        try {
+            $role = DB::transaction(function () use ($role, $validated, $permissionKeys): Role {
+                $locked = Role::query()
+                    ->where('company_id', $this->companyId())
+                    ->with('permissions')
+                    ->lockForUpdate()
+                    ->findOrFail($role);
 
-            $this->audit->record(
-                AuditAction::RoleUpdated,
-                AuditTargetType::Role,
-                $role->getKey(),
-                before: $before,
-                after: $this->snapshot($role, $permissionKeys),
-            );
-        });
+                $this->assertCodeAvailable((string) $validated['code'], (int) $locked->getKey());
+                $beforePermissionKeys = array_values(
+                    $locked->permissions->pluck('key')->map(static fn (mixed $key): string => (string) $key)->sort()->all(),
+                );
+                $before = $this->snapshot($locked, $beforePermissionKeys);
+
+                $locked->code = mb_strtolower(trim((string) $validated['code']));
+                $locked->name = trim((string) $validated['name']);
+                $locked->is_active = (bool) $validated['is_active'];
+                $locked->save();
+                $this->syncPermissions($locked, $permissionKeys);
+
+                $this->audit->record(
+                    AuditAction::RoleUpdated,
+                    AuditTargetType::Role,
+                    $locked->getKey(),
+                    before: $before,
+                    after: $this->snapshot($locked, $permissionKeys),
+                );
+
+                return $locked;
+            });
+        } catch (QueryException $exception) {
+            $this->throwDuplicateCode($exception);
+        }
 
         return redirect()->route('settings.roles.show', $role->getKey())
             ->with('status', 'Rol güncellendi.');
@@ -207,6 +224,15 @@ final class RoleManagementController
         if ($query->exists()) {
             throw ValidationException::withMessages(['code' => 'Bu rol kodu şirkette zaten kullanılıyor.']);
         }
+    }
+
+    private function throwDuplicateCode(QueryException $exception): never
+    {
+        if ((string) $exception->getCode() !== '23505') {
+            throw $exception;
+        }
+
+        throw ValidationException::withMessages(['code' => 'Bu rol kodu şirkette zaten kullanılıyor.']);
     }
 
     private function companyId(): int
