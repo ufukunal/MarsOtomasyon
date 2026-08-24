@@ -73,6 +73,20 @@
             </div>
 
             <div class="app-topbar-actions">
+                @if ($shell['company'] !== null)
+                    <form method="GET" action="{{ route('search') }}" class="topbar-search" role="search">
+                        <input
+                            type="search"
+                            name="q"
+                            value="{{ request()->routeIs('search') ? request('q') : '' }}"
+                            minlength="2"
+                            maxlength="120"
+                            placeholder="Ara…"
+                            aria-label="Global arama"
+                            data-dirty-ignore
+                        >
+                    </form>
+                @endif
                 <button type="button" class="button-secondary" data-command-open>Komutlar <kbd>⌘K</kbd></button>
             </div>
         </header>
