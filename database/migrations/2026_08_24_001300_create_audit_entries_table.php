@@ -33,7 +33,7 @@ return new class extends Migration
         DB::statement("ALTER TABLE audit_entries ALTER COLUMN metadata SET DEFAULT '{}'::jsonb");
         DB::statement("ALTER TABLE audit_entries ADD CONSTRAINT audit_entries_source_check CHECK (source IN ('web', 'api', 'job', 'console', 'system'))");
         DB::statement(<<<'SQL'
-CREATE FUNCTION mars_prevent_audit_entry_mutation()
+CREATE OR REPLACE FUNCTION mars_prevent_audit_entry_mutation()
 RETURNS trigger
 LANGUAGE plpgsql
 AS $$
