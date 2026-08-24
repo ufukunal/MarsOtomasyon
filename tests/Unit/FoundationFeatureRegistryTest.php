@@ -13,8 +13,16 @@ final class FoundationFeatureRegistryTest extends TestCase
         self::assertTrue($this->app->make(FeatureRegistry::class)->enabled(FeatureKey::Foundation));
     }
 
-    public function test_only_real_foundation_feature_is_declared_at_m0(): void
+    public function test_future_business_features_are_declared_but_disabled_until_implemented(): void
     {
-        self::assertSame(['foundation' => true], config('mars.features'));
+        $registry = $this->app->make(FeatureRegistry::class);
+
+        foreach (FeatureKey::cases() as $feature) {
+            if ($feature === FeatureKey::Foundation) {
+                continue;
+            }
+
+            self::assertFalse($registry->enabled($feature), $feature->value.' must remain disabled until its milestone is implemented.');
+        }
     }
 }
