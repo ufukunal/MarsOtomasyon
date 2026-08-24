@@ -247,5 +247,3 @@ Route::prefix('settings')
             ->middleware('can:core.role.manage')
             ->name('roles.update');
     });
-
-Route::view('/', 'welcome')->name('home');
