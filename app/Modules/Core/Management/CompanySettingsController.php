@@ -6,6 +6,7 @@ use App\Modules\Core\Audit\AuditRecorder;
 use App\Modules\Core\Company\ActiveCompanyContext;
 use App\Modules\Core\Enums\AuditAction;
 use App\Modules\Core\Enums\AuditTargetType;
+use App\Modules\Core\Models\Company;
 use DateTimeZone;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -44,10 +45,12 @@ final class CompanySettingsController
             'timezone' => ['required', 'string', Rule::in(DateTimeZone::listIdentifiers())],
         ]);
 
-        $company = $this->companyContext->requireCompany();
-        $before = $this->snapshot();
+        $companyId = (int) $this->companyContext->requireCompany()->getKey();
 
-        DB::transaction(function () use ($company, $validated, $before): void {
+        DB::transaction(function () use ($companyId, $validated): void {
+            $company = Company::query()->whereKey($companyId)->lockForUpdate()->firstOrFail();
+            $before = $this->snapshot($company);
+
             $company->base_currency_code = mb_strtoupper((string) $validated['base_currency_code']);
             $company->timezone = (string) $validated['timezone'];
             $company->save();
@@ -57,7 +60,7 @@ final class CompanySettingsController
                 AuditTargetType::Company,
                 $company->getKey(),
                 before: $before,
-                after: $this->snapshot(),
+                after: $this->snapshot($company),
             );
         });
 
@@ -66,10 +69,8 @@ final class CompanySettingsController
     }
 
     /** @return array{base_currency_code:string,timezone:string} */
-    private function snapshot(): array
+    private function snapshot(Company $company): array
     {
-        $company = $this->companyContext->requireCompany();
-
         return [
             'base_currency_code' => (string) $company->base_currency_code,
             'timezone' => (string) $company->timezone,
