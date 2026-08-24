@@ -1,6 +1,7 @@
 <?php
 
 use App\Modules\Core\Shell\ActiveContextController;
+use App\Modules\Core\Shell\GlobalSearchController;
 use App\Modules\Core\Shell\WorkspaceController;
 use Illuminate\Support\Facades\Route;
 
@@ -19,6 +20,9 @@ Route::middleware(['web', 'auth'])->group(function (): void {
     Route::post('/context/branch', [ActiveContextController::class, 'selectBranch'])
         ->middleware('company.context')
         ->name('context.branches.select');
+    Route::get('/search', GlobalSearchController::class)
+        ->middleware('company.context')
+        ->name('search');
 
     Route::view('/settings', 'settings.index')
         ->middleware('company.context')
