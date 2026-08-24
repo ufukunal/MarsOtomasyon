@@ -119,10 +119,10 @@ POS komisyonu cariyi ikinci kez etkilemez.
 ### K-027 — B2B cari bağlantısı
 B2B hesabı önceden bir Mars carisine bağlıdır. Siparişte cari seçilmez. B2B siparişi cari bakiyesini etkilemez; fatura etkiler.
 
-### K-028 — E-Ticaret Integration Core ve kanal kapsamı
+### K-028 — E-Ticaret Integration Core ve doğrulanmış kanal kapsamı
 Tek **E-Ticaret Integration Core** kullanılır; pazaryerleri ayrı business engine değildir.
 
-Resmi adapter seti:
+**V1 doğrulanmış/resmî adapter seti:**
 - WooCommerce
 - Trendyol
 - Hepsiburada
@@ -130,16 +130,22 @@ Resmi adapter seti:
 - n11
 - PttAVM
 - idefix
+- Allesgo
+- Mars B2B
+
+Bu set, geliştirmenin başlayabilmesi için API/dokümantasyon erişimi yeterince net olan kanallardır.
+
+**Deferred / doğrulama bekleyen adaylar:**
 - Çiçeksepeti
 - Pazarama
 - Koçtaş
 - Teknosa
 - Temu Türkiye
-- Allesgo
 - Boyner
-- Mars B2B
 
-Mars ürün/stok/temel fiyat/iç sipariş/fatura authority'sidir; external kanal operasyon/satış kanalıdır. Her adapter ortak mapping, Inbox/idempotency, Outbox, retry/backoff, rate-limit ve problem-center kurallarını kullanır.
+Deferred adaylar V1 teslim zorunluluğu değildir. Güncel resmî API dokümanı veya gerçek seller/partner erişimi doğrulanmadan adapter milestone'u açılmaz ve UI'da aktif kanal olarak sunulmaz.
+
+Mars ürün/stok/temel fiyat/iç sipariş/fatura authority'sidir; external kanal operasyon/satış kanalıdır. Her aktif adapter ortak mapping, Inbox/idempotency, Outbox, retry/backoff, rate-limit ve problem-center kurallarını kullanır.
 
 Provider capability'leri farklı olabilir. Bir kanalın API'sinde bulunmayan özellik emüle edilip varmış gibi gösterilmez; kanal capability matrix'i üzerinden ilgili aksiyon `supported / unsupported / manual` olarak yönetilir.
 
@@ -190,6 +196,7 @@ Backup DB + dosyalar + gerekli config/manifest + checksum + release/schema bilgi
 - Canlı banka API/open-banking yok.
 - İlk sürümde ayrı search service yok.
 - Her pazaryeri için kopyalanmış ayrı sipariş/stok/fatura motoru yok.
+- Doğrulanmamış marketplace API'si için tahmine dayalı production adapter yok.
 
 ## C. Karar değiştirme
 Locked karar değişirse sebep, data/migration etkisi ve etkilenen invariant/test/modüller aynı commit'te güncellenir. V16.3 tasarımına aykırı kullanıcı-visible davranış yeni onay olmadan eklenmez.
