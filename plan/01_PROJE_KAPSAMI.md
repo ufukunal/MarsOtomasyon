@@ -46,7 +46,7 @@ Basit reçete ve üretim akışı; fason malzeme gönderim/gelen mamul/fire/eksi
 Konteyner/sevkiyat bazlı ürün dağılımı, koli ve malzeme eşleme, maliyet dağıtımı, üretim uyumluluk listesi, ürün fotoğraflı toplama/fason listeleri ve konteyner yükleme/ağırlık simülasyonu.
 
 ## E-Ticaret / Pazaryeri / B2B
-Tek Integration Core üzerinden resmi kanal seti:
+Tek Integration Core üzerinden **V1 doğrulanmış kanal seti**:
 - WooCommerce
 - Trendyol
 - Hepsiburada
@@ -54,14 +54,18 @@ Tek Integration Core üzerinden resmi kanal seti:
 - n11
 - PttAVM
 - idefix
+- Allesgo
+- dahili Mars B2B
+
+**Doğrulama bekleyen / sonraya bırakılan adaylar:**
 - Çiçeksepeti
 - Pazarama
 - Koçtaş
 - Teknosa
 - Temu Türkiye
-- Allesgo
 - Boyner
-- dahili Mars B2B
+
+Bu adaylar güncel resmî API dokümanı veya gerçek seller/partner erişimi doğrulanmadan V1 teslim kapsamına girmez.
 
 Ortak operasyon kapsamı provider capability'sine göre:
 - ürün/listing ve kategori/özellik mapping
@@ -94,6 +98,7 @@ Hazır rapor merkezi, filtre/KPI/tablo, Excel/CSV/PDF/yazdırma ve zamanlanmış
 - ayrı search cluster
 - gereksiz microservice parçalanması
 - her pazaryeri için ayrı kopya sipariş/stok/fatura motoru
+- doğrulanmamış marketplace API'sine dayalı production adapter
 
 ## Kullanıcı deneyimi sınırı
 V16.3'te görünen ana ekran ve akışlar acceptance baseline'dır. Yeni pazaryerleri ayrı ana menü şişkinliği oluşturmaz; mevcut `E-Ticaret/B2B` çalışma alanına kanal filtresi/kartı olarak girer. Teknik mimari ayrıntıları normal kullanıcı arayüzüne sızdırılmaz.
