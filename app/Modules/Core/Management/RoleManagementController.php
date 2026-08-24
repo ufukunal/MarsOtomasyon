@@ -124,8 +124,9 @@ final class RoleManagementController
             ->findOrFail($roleId);
     }
 
-    /** @param array<array-key, mixed> $rawKeys
-     *  @return list<string>
+    /**
+     * @param  array<array-key, mixed>  $rawKeys
+     * @return list<string>
      */
     private function normalizePermissionKeys(array $rawKeys): array
     {
