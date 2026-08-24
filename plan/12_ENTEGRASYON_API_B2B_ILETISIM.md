@@ -1,4 +1,4 @@
-# 12 — Entegrasyon, API, B2B ve İletişim V4.1
+# 12 — Entegrasyon, API, B2B ve İletişim V4.2
 
 ## 1. Integration Core
 WooCommerce, Trendyol, Hepsiburada, Amazon, n11, PttAVM, idefix, Allesgo ve Mars B2B ayrı business engine değildir. Tek **E-Ticaret Integration Core** üzerine adapter olarak bağlanır.
@@ -248,7 +248,11 @@ ayarlanabilir.
 Stock publish **CURRENT_DESIRED_STATE** semantiğindedir. Eski retry yeni stok değerini geriye götüremez.
 
 ## 14. Ürün / kanal mapping
-Mars product/barcode/variant reference ile external product/listing/variant identity eşleşmesi saklanır. Mars ürün authority'sidir.
+Mars authority mapping unit'i **Product/SKU**'dur. External provider listing/variant identity Product/SKU'ya bağlanır.
+
+Provider parent/child veya variant group isterse external grouping metadata mapping'de tutulabilir. Mars'ta gerçek family/variant grouping ihtiyacı doğarsa `05` ve `27`de tanımlanan additive `ProductFamily/VariantRelation` seam'i kullanılır.
+
+Family/grouping hiçbir zaman stock/price/cost authority olmaz; bu authority Product/SKU seviyesinde kalır.
 
 Mapping alanları provider'a göre category/attribute/brand/external listing identity taşıyabilir. Provider katalog eşleşmesi onay/red veya asynchronous task kullanıyorsa process state ayrı tutulur.
 
@@ -418,3 +422,16 @@ Canlı banka API/open-banking V1 kapsamında yoktur. Statement import/reconcilia
 Marketplace API'leri version/deprecation açısından dış bağımlılıktır.
 
 Her aktif adapter provider registry + versioned contract fixture/sample payload tests taşır. Provider değişikliği core Sales/Stock/Invoice/Finance modelini değiştirmek zorunda bırakmamalıdır.
+
+## 32. Future provider families — V1 dışı
+`27_GELECEK_GENISLEME_ALTYAPISI.md` ileride şu provider family'leri tanımlar:
+- shipping
+- payment
+- accounting_export
+- feed_discovery
+- exchange_rate
+- OCR/document extraction
+- AI assistant
+- storage
+
+Bunlar marketplace adapter interface'ine zorlanmaz. Registry/credential/idempotency/retry gibi cross-cutting kurallar ortak, business contract family-specific olur.
