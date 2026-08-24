@@ -88,7 +88,20 @@ SMS, e-posta, WhatsApp sağlayıcı adaptörleri; template, delivery, retry ve a
 ## Rapor
 Hazır rapor merkezi, filtre/KPI/tablo, Excel/CSV/PDF/yazdırma ve zamanlanmış raporlar.
 
-## V1 dışında
+# Planlı V1 sonrası genişlemeler
+Aşağıdaki özellikler artık fikir/adayı değil, resmî post-V1 roadmap kapsamıdır. V1 go-live M24'ü bloklamaz; varsayılan olarak M25–M31 arasında uygulanır.
+
+1. **Product Family / Variant** — mevcut Product/SKU authority'sini bozmadan ürün ailesi ve marketplace parent/child grouping.
+2. **Barkod / Termal Etiket** — A4/termal/ZPL ürün, depo, lokasyon, koli ve sevkiyat etiketleri.
+3. **Mobil Depo / Scanner** — mobil/PWA üzerinden kabul, toplama, sevk, transfer, sayım ve fason tarama operasyonları.
+4. **Kargo API Adapterları** — shipment create/cancel, label, tracking ve return-shipment capability'leri.
+5. **OCR Fatura / Dekont Okuma** — attachment extraction + confidence + human review + normal domain use-case.
+6. **Hafif CRM** — lead, fırsat, aktivite, takip ve teklif/cari bağlantısı; finans authority değil.
+7. **BI Export** — curated read-model dataset, scheduled export ve kontrollü analitik erişim; write-back yok.
+
+Ayrıntılı kapsam ve dependency: `28_PLANLI_GENISLEMELER.md`.
+
+## V1 dışında / planlı olmayan
 - SaaS abonelik/tier/billing
 - Kubernetes/multi-region/hyperscale
 - generic enterprise workflow platformu
@@ -101,4 +114,4 @@ Hazır rapor merkezi, filtre/KPI/tablo, Excel/CSV/PDF/yazdırma ve zamanlanmış
 - doğrulanmamış marketplace API'sine dayalı production adapter
 
 ## Kullanıcı deneyimi sınırı
-V16.3'te görünen ana ekran ve akışlar acceptance baseline'dır. Yeni pazaryerleri ayrı ana menü şişkinliği oluşturmaz; mevcut `E-Ticaret/B2B` çalışma alanına kanal filtresi/kartı olarak girer. Teknik mimari ayrıntıları normal kullanıcı arayüzüne sızdırılmaz.
+V16.3'te görünen ana ekran ve akışlar acceptance baseline'dır. Yeni pazaryerleri ayrı ana menü şişkinliği oluşturmaz; mevcut `E-Ticaret/B2B` çalışma alanına kanal filtresi/kartı olarak girer. Planlı genişlemeler de mümkün olduğunca mevcut `Ürün/Stok`, `Satış`, `Cariler`, `Raporlar` ve `Ayarlar` çalışma alanlarına secondary surface olarak eklenir; top-level navigasyon yalnız yeni onaylı UI sözleşmesiyle değişir. Teknik mimari ayrıntıları normal kullanıcı arayüzüne sızdırılmaz.
