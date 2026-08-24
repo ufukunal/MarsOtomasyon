@@ -58,6 +58,7 @@ return new class extends Migration
                 ->restrictOnDelete();
         });
 
+        DB::statement("ALTER TABLE attachments ADD CONSTRAINT attachments_company_target_check CHECK (attachable_type <> 'company' OR attachable_id = company_id)");
         DB::statement('CREATE UNIQUE INDEX attachments_active_target_unique ON attachments (company_id, file_asset_id, attachable_type, attachable_id) WHERE detached_at IS NULL');
 
         $timestamp = now();
