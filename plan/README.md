@@ -10,13 +10,14 @@ Bu klasör `ufukunal/MarsOtomasyon` için **otoriter geliştirme planıdır**.
 - operasyon/güvenlik dersleri
 kaynağıdır.
 
-V4.2, V4.1 code-ready doğruluk/gate yapısını korur; ileride özellik eklerken çekirdeği bozmayacak **future extension seam** sözleşmelerini `27_GELECEK_GENISLEME_ALTYAPISI.md` ile, resmî post-V1 genişleme roadmap'ini ise `28_PLANLI_GENISLEMELER.md` ile tanımlar.
+V4.2, V4.1 code-ready doğruluk/gate yapısını korur; ileride özellik eklerken çekirdeği bozmayacak **future extension seam** sözleşmelerini `27_GELECEK_GENISLEME_ALTYAPISI.md` ile, resmî post-V1 genişleme roadmap'ini `28_PLANLI_GENISLEMELER.md` ile ve ilk uygulama foundation sırasını `29_M0_ALTYAPI_UYGULAMA_SIRASI.md` ile tanımlar.
 
 ## Durum
 - Plan: **V4.2 — code-ready + future-ready, V16.3 tasarım uyumlu**
 - UI referansı: **MarsOtomasyon V16.3 — Genel Tasarım Temizliği**
 - Future extension contract: `27_GELECEK_GENISLEME_ALTYAPISI.md`
 - Planned extension roadmap: `28_PLANLI_GENISLEMELER.md`
+- M0 foundation execution contract: `29_M0_ALTYAPI_UYGULAMA_SIRASI.md`
 - PHP 8.5 + Laravel 13
 - PostgreSQL 18 only
 - PostgreSQL FTS + `pg_trgm`
@@ -36,12 +37,13 @@ Ana navigasyon:
 Çelişki halinde sıra:
 1. `00_KARAR_KAYDI.md` locked decisions.
 2. İlgili V1 business-owner plan belgesi (`03`–`25`).
-3. M25–M31 planlı genişlemelerde `28_PLANLI_GENISLEMELER.md` ilgili feature owner/scope sözleşmesidir.
-4. `26_V16_3_TASARIM_UYUMU.md` kullanıcı-visible V1 ekran/akış sözleşmesi; post-V1 UI değişikliği yeni onaylı UI contract ister.
-5. `14_TEST_CI_KALITE.md` + `18_DEFINITION_OF_DONE.md` acceptance gates.
-6. `27_GELECEK_GENISLEME_ALTYAPISI.md` genişleme **yöntemi ve seam** authority'sidir; V1 veya `28` feature scope'unu override etmez.
-7. Migration/application davranışı.
-8. `MarsEski` code/eski belge.
+3. M0 foundation implementation sırasında `29_M0_ALTYAPI_UYGULAMA_SIRASI.md` **execution order/tooling contract** olarak uygulanır; business rule override etmez.
+4. M25–M31 planlı genişlemelerde `28_PLANLI_GENISLEMELER.md` ilgili feature owner/scope sözleşmesidir.
+5. `26_V16_3_TASARIM_UYUMU.md` kullanıcı-visible V1 ekran/akış sözleşmesi; post-V1 UI değişikliği yeni onaylı UI contract ister.
+6. `14_TEST_CI_KALITE.md` + `18_DEFINITION_OF_DONE.md` acceptance gates.
+7. `27_GELECEK_GENISLEME_ALTYAPISI.md` genişleme **yöntemi ve seam** authority'sidir; V1 veya `28` feature scope'unu override etmez.
+8. Migration/application davranışı.
+9. `MarsEski` code/eski belge.
 
 `27` içindeki aday listelerinden `28` içine terfi etmiş özelliklerde **`28` resmî roadmap statüsüdür**.
 
@@ -100,6 +102,24 @@ Hazırlanan başlıca seam'ler:
 
 Ayrıntı: `27_GELECEK_GENISLEME_ALTYAPISI.md`.
 
+## M0 altyapı sırası
+M0 artık tek büyük bootstrap değildir. Zorunlu sıra:
+
+`M0.0 Repo/Toolchain → M0.1 Laravel 13 → M0.2 PostgreSQL 18 → M0.3 Valkey → M0.4 Foundation/Module Boundary → M0.5 Clock/Correlation/Idempotency → M0.6 Transactional Outbox → M0.7 Health/Observability → M0.8 Pest/Larastan/Browser → M0.9 GitHub Actions → M0.10 Branch/Fresh Clone Acceptance`
+
+Bir gate green olmadan sonraki gate başlamaz.
+
+M0 kalite standardı:
+- Node 24 LTS + npm lock
+- Pint
+- Larastan/PHPStan level 8, baseline yok
+- Pest 5 + Laravel plugin
+- Pest Browser + Playwright
+- PostgreSQL CI baseline 18.6
+- Valkey CI baseline 9.1.x
+
+Ayrıntı: `29_M0_ALTYAPI_UYGULAMA_SIRASI.md`.
+
 ## Resmî planlı post-V1 genişlemeler
 M24 sonrası roadmap:
 
@@ -151,12 +171,13 @@ Gelecek feature için ayrıca:
 Yeni geliştirmeye başlarken:
 1. `00_KARAR_KAYDI.md`
 2. `16_UYGULAMA_SIRASI_MILESTONE.md`
-3. `19_ACIK_KARARLAR.md` ilgili milestone entry gate'i
-4. yapılacak modülün owner belgesi
-5. `06_IS_KURALLARI_VE_INVARIANTLAR.md`
-6. `14_TEST_CI_KALITE.md`
-7. V1 kullanıcı yüzeyi için `26_V16_3_TASARIM_UYUMU.md`
-8. genişleme yöntemi için `27_GELECEK_GENISLEME_ALTYAPISI.md`
-9. M25–M31 için ayrıca `28_PLANLI_GENISLEMELER.md`
+3. M0 ise `29_M0_ALTYAPI_UYGULAMA_SIRASI.md`
+4. `19_ACIK_KARARLAR.md` ilgili milestone entry gate'i
+5. yapılacak modülün owner belgesi
+6. `06_IS_KURALLARI_VE_INVARIANTLAR.md`
+7. `14_TEST_CI_KALITE.md`
+8. V1 kullanıcı yüzeyi için `26_V16_3_TASARIM_UYUMU.md`
+9. genişleme yöntemi için `27_GELECEK_GENISLEME_ALTYAPISI.md`
+10. M25–M31 için ayrıca `28_PLANLI_GENISLEMELER.md`
 
 Bu kaynaklar birlikte uygulanmadan modül tamamlanmış sayılmaz.
