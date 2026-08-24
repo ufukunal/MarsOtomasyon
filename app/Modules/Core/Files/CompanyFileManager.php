@@ -160,14 +160,15 @@ final readonly class CompanyFileManager
                 ->lockForUpdate()
                 ->findOrFail($attachmentId);
 
-            if ($attachment->detached_at !== null) {
+            if ($attachment->isDetached()) {
                 return $attachment;
             }
 
             $now = $this->clock->now();
-            $attachment->detached_at = $now;
-            $attachment->detached_by_user_id = $actorId;
-            $attachment->save();
+            $attachment->update([
+                'detached_at' => $now,
+                'detached_by_user_id' => $actorId,
+            ]);
 
             $activeExists = Attachment::query()
                 ->where('file_asset_id', $attachment->file_asset_id)
