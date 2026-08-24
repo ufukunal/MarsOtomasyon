@@ -306,6 +306,55 @@ Her provider **ayrı atomic alt-milestone/commit serisi** olarak uygulanır. Bir
 - returns/questions/invoice only where provider API exposes capability
 - provider-panel-only operations explicitly `manual/unsupported`
 
+### M18-PZR — Pazarama
+- seller/merchant connection
+- category/attribute + product/listing capability
+- stock/price
+- orders/shipment
+- cancel/return/invoice/questions according to current API capability
+- polling/webhook/rate-limit policy
+
+### M18-KOC — Koçtaş
+- marketplace seller connection
+- catalog/listing + category/attribute mapping where exposed
+- stock/price
+- orders/shipment
+- return/invoice capability where exposed
+- provider/entegratör contract compatibility tests
+
+### M18-TKS — Teknosa
+- marketplace seller connection
+- catalog/listing
+- stock/price
+- orders/shipment
+- cancellation/return/invoice capability where exposed
+- provider-specific external status/id normalization
+
+### M18-TEMU — Temu Türkiye
+- Türkiye marketplace/region scoped seller connection
+- seller authorization/token lifecycle
+- product/listing
+- stock/price
+- orders/fulfillment
+- cancellation/returns according to Türkiye capability set
+- global/other-region behavior not implicitly enabled
+
+### M18-ALG — Allesgo
+- seller/API connection
+- product/listing
+- stock/price
+- orders/shipment
+- returns
+- product/order questions where supported
+- payment/settlement evidence where supported
+
+### M18-BYN — Boyner
+- marketplace seller/account connection
+- product/listing + stock/price according to accessible integration contract
+- orders/shipment
+- cancellation/return/invoice capability where exposed
+- direct API or authorized-integrator transport hidden behind adapter contract
+
 ### M18 ortak çıkış kapısı
 Her adapter için:
 - connection test
