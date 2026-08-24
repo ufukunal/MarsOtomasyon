@@ -10,7 +10,7 @@ Her teslim:
 
 Bir milestone içindeki görünür butonlar gerçek route/action çalıştırmadan tamamlanmış sayılmaz. Future capability için kullanılmayan interface/table/framework önceden kurulmaz.
 
-Gelecek özellik ekleme yolu ayrıca `27_GELECEK_GENISLEME_ALTYAPISI.md` içindeki activation checklist'e uyar.
+Gelecek özellik ekleme yolu ayrıca `27_GELECEK_GENISLEME_ALTYAPISI.md` içindeki activation checklist'e uyar. Planlı post-V1 özellikler `28_PLANLI_GENISLEMELER.md` ile birlikte okunur.
 
 # Wave A — Foundation
 
@@ -486,10 +486,90 @@ Entry gate: A-16 migration depth; A-13 production identity-validation policy kap
 - production smoke
 - full V16.3 browser regression
 
-# Post-V1 activation rule
-Kargo adapterları, payment gateway, feed/discovery, OCR/AI, mobil depo, ürün family/variant grouping, CRM, servis/garanti, reorder/forecast, dış muhasebe export veya diğer ileri özellikler **V1 milestone numaralarına gizlice eklenmez**.
+# Wave G — Planned Post-V1 Extensions
 
-Yeni feature önce `27_GELECEK_GENISLEME_ALTYAPISI.md` checklist'ini geçer; sonra yeni `M25+` milestone veya ilgili mevcut modülde açık versioned vertical slice olarak planlanır.
+Bu wave resmî roadmap kapsamıdır fakat M24 V1 go-live'ı bloklamaz. Ayrıntı `28_PLANLI_GENISLEMELER.md`.
+
+## M25 — Product Family / Variant
+- ProductFamily
+- VariantDimension / VariantValue
+- ProductVariantRelation
+- family shared content/media where justified
+- marketplace parent/child mapping
+- existing simple Product compatibility
+
+**Authority:** stock/price/barcode/cost Product/SKU seviyesinde kalır.
+
+## M26 — Barkod / Termal Etiket
+- product/warehouse/location/package/shipment labels
+- A4/thermal output
+- ZPL/TSPL adapters where needed
+- LabelTemplate/PrinterProfile gerçek consumer kadar
+- reprint/audit
+
+Barcode identity duplicate edilmez.
+
+## M27 — Mobil Depo / Scanner
+- mobile/PWA operational shell
+- scanner/product lookup
+- GoodsReceipt
+- picking
+- dispatch verification
+- transfer issue/receipt
+- stock count
+- subcontract send/receive
+- client operation idempotency
+
+Online-first. Offline write ayrı conflict/reconciliation milestone'u olmadan açılmaz.
+
+## M28 — Kargo API Adapterları
+Entry gate: A-12 + gerçek provider registry/contract fixture.
+
+- shipping provider family
+- connection/credential
+- service/quote where available
+- shipment create/cancel
+- label
+- tracking/events
+- return shipment
+- external shipment mapping
+- retry/ambiguous outcome/problem center
+
+Her provider ayrı atomic adapter slice'tır.
+
+## M29 — OCR Fatura / Dekont Okuma
+- Attachment → ExtractionJob
+- invoice/dekont/expense extraction
+- ExtractedField + confidence
+- cari/ürün/banka match suggestions
+- human review/correction
+- reviewed result → normal draft domain action
+- provider/model/version metadata
+
+OCR sonucu autonomous post/finalize/ledger write yapamaz.
+
+## M30 — Hafif CRM
+- Lead
+- Opportunity
+- stage/history
+- Activity/FollowUp
+- SalesOwner
+- Account/Quote/Sales linkage
+- conversion duplicate guard
+
+İlk UI yeri Cariler secondary workspace'tir; generic marketing automation/BPM değildir.
+
+## M31 — BI Export
+- curated analytics dataset definitions
+- dataset schema versioning
+- scheduled export
+- CSV/XLSX/JSON/Parquet where justified
+- PII/field allow-list
+- incremental watermark where useful
+- artifact/audit
+- materialized view/read replica yalnız ölçülmüş ihtiyaçta
+
+BI write-back yoktur; dataset authority değildir.
 
 ## Commit büyüklüğü kuralı
-Bir milestone tek commit olmak zorunda değildir. Özellikle Satış, Satınalma, E-Ticaret ve Finans içinde her independently test edilebilir vertical slice ayrı atomic commit olabilir. Ama yarım çalışan aynı use-case main'de bırakılmaz.
+Bir milestone tek commit olmak zorunda değildir. Özellikle Satış, Satınalma, E-Ticaret, Finans ve M25–M31 planlı genişlemelerinde her independently test edilebilir vertical slice ayrı atomic commit olabilir. Ama yarım çalışan aynı use-case main'de bırakılmaz.
