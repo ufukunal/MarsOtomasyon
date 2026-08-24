@@ -2,8 +2,11 @@
 
 use App\Modules\Core\Auth\AuthenticatedSessionController;
 use App\Modules\Core\Management\CompanySettingsController;
+use App\Modules\Core\Management\CurrencyExchangeController;
 use App\Modules\Core\Management\DocumentSequenceController;
+use App\Modules\Core\Management\PostingPeriodController;
 use App\Modules\Core\Management\RoleManagementController;
+use App\Modules\Core\Management\TaxSettingsController;
 use App\Modules\Core\Management\UserManagementController;
 use Illuminate\Support\Facades\Route;
 
@@ -51,6 +54,95 @@ Route::prefix('settings')
             ->whereNumber('sequence')
             ->middleware('can:core.settings.manage')
             ->name('numbering.update');
+
+        Route::get('/taxes', [TaxSettingsController::class, 'index'])
+            ->middleware('can:core.settings.view')
+            ->name('taxes.index');
+        Route::get('/taxes/create', [TaxSettingsController::class, 'createTax'])
+            ->middleware('can:core.settings.manage')
+            ->name('taxes.create');
+        Route::post('/taxes', [TaxSettingsController::class, 'storeTax'])
+            ->middleware('can:core.settings.manage')
+            ->name('taxes.store');
+        Route::get('/taxes/{tax}', [TaxSettingsController::class, 'showTax'])
+            ->whereNumber('tax')
+            ->middleware('can:core.settings.view')
+            ->name('taxes.show');
+        Route::get('/taxes/{tax}/edit', [TaxSettingsController::class, 'editTax'])
+            ->whereNumber('tax')
+            ->middleware('can:core.settings.manage')
+            ->name('taxes.edit');
+        Route::put('/taxes/{tax}', [TaxSettingsController::class, 'updateTax'])
+            ->whereNumber('tax')
+            ->middleware('can:core.settings.manage')
+            ->name('taxes.update');
+
+        Route::get('/tax-zero-reasons/create', [TaxSettingsController::class, 'createZeroReason'])
+            ->middleware('can:core.settings.manage')
+            ->name('tax-zero-reasons.create');
+        Route::post('/tax-zero-reasons', [TaxSettingsController::class, 'storeZeroReason'])
+            ->middleware('can:core.settings.manage')
+            ->name('tax-zero-reasons.store');
+        Route::get('/tax-zero-reasons/{zeroReason}', [TaxSettingsController::class, 'showZeroReason'])
+            ->whereNumber('zeroReason')
+            ->middleware('can:core.settings.view')
+            ->name('tax-zero-reasons.show');
+        Route::get('/tax-zero-reasons/{zeroReason}/edit', [TaxSettingsController::class, 'editZeroReason'])
+            ->whereNumber('zeroReason')
+            ->middleware('can:core.settings.manage')
+            ->name('tax-zero-reasons.edit');
+        Route::put('/tax-zero-reasons/{zeroReason}', [TaxSettingsController::class, 'updateZeroReason'])
+            ->whereNumber('zeroReason')
+            ->middleware('can:core.settings.manage')
+            ->name('tax-zero-reasons.update');
+
+        Route::get('/exchange-rates', [CurrencyExchangeController::class, 'index'])
+            ->middleware('can:core.settings.view')
+            ->name('exchange-rates.index');
+        Route::get('/exchange-rates/create', [CurrencyExchangeController::class, 'create'])
+            ->middleware('can:core.settings.manage')
+            ->name('exchange-rates.create');
+        Route::post('/exchange-rates', [CurrencyExchangeController::class, 'store'])
+            ->middleware('can:core.settings.manage')
+            ->name('exchange-rates.store');
+        Route::get('/exchange-rates/{rate}', [CurrencyExchangeController::class, 'show'])
+            ->whereNumber('rate')
+            ->middleware('can:core.settings.view')
+            ->name('exchange-rates.show');
+        Route::get('/exchange-rates/{rate}/edit', [CurrencyExchangeController::class, 'edit'])
+            ->whereNumber('rate')
+            ->middleware('can:core.settings.manage')
+            ->name('exchange-rates.edit');
+        Route::put('/exchange-rates/{rate}', [CurrencyExchangeController::class, 'update'])
+            ->whereNumber('rate')
+            ->middleware('can:core.settings.manage')
+            ->name('exchange-rates.update');
+
+        Route::get('/posting-periods', [PostingPeriodController::class, 'index'])
+            ->middleware('can:core.settings.view')
+            ->name('posting-periods.index');
+        Route::get('/posting-periods/create', [PostingPeriodController::class, 'create'])
+            ->middleware('can:core.settings.manage')
+            ->name('posting-periods.create');
+        Route::post('/posting-periods', [PostingPeriodController::class, 'store'])
+            ->middleware('can:core.settings.manage')
+            ->name('posting-periods.store');
+        Route::get('/posting-periods/{period}', [PostingPeriodController::class, 'show'])
+            ->whereNumber('period')
+            ->middleware('can:core.settings.view')
+            ->name('posting-periods.show');
+        Route::get('/posting-periods/{period}/edit', [PostingPeriodController::class, 'edit'])
+            ->whereNumber('period')
+            ->middleware('can:core.settings.manage')
+            ->name('posting-periods.edit');
+        Route::put('/posting-periods/{period}', [PostingPeriodController::class, 'update'])
+            ->whereNumber('period')
+            ->middleware('can:core.settings.manage')
+            ->name('posting-periods.update');
+        Route::post('/posting-periods/{period}/close', [PostingPeriodController::class, 'close'])
+            ->whereNumber('period')
+            ->middleware('can:core.settings.manage')
+            ->name('posting-periods.close');
 
         Route::get('/users', [UserManagementController::class, 'index'])
             ->middleware('can:core.user.view')
