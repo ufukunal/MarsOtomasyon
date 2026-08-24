@@ -3,7 +3,6 @@
 namespace App\Modules\Core\Shell;
 
 use App\Modules\Core\Company\ActiveCompanyContext;
-use App\Modules\Core\Enums\CompanyStatus;
 use App\Modules\Core\Models\Branch;
 use App\Modules\Core\Models\CompanyMembership;
 use App\Modules\Core\Models\User;
@@ -34,11 +33,7 @@ final readonly class ActiveContextController
         $request->session()->forget(['active_company_id', 'active_branch_id']);
 
         if ($memberships->count() === 1) {
-            $membership = $memberships->first();
-            if (! $membership instanceof CompanyMembership) {
-                abort(409, 'Şirket seçimi çözülemedi.');
-            }
-
+            $membership = $memberships->sole();
             $request->session()->put('active_company_id', $membership->company_id);
 
             return redirect()->route('workspace');
@@ -106,7 +101,7 @@ final readonly class ActiveContextController
             ->with('company')
             ->get()
             ->filter(
-                fn (CompanyMembership $membership): bool => $membership->company?->status === CompanyStatus::Active,
+                fn (CompanyMembership $membership): bool => $membership->company?->isActive() === true,
             )
             ->values();
 
