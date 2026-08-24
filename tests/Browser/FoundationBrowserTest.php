@@ -8,11 +8,11 @@ it('serves the liveness endpoint without browser errors', function (): void {
         ->assertNoConsoleLogs();
 });
 
-it('renders the foundation shell without browser errors', function (): void {
+it('redirects the application entry to login without browser errors', function (): void {
     $page = visit('/');
 
     $page
-        ->assertSee('Altyapı kuruluyor')
+        ->assertSee('Giriş Yap')
         ->assertNoJavaScriptErrors()
         ->assertNoConsoleLogs();
 });
