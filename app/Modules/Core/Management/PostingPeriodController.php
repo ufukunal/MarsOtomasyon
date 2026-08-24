@@ -186,7 +186,7 @@ final class PostingPeriodController
             'starts_on' => $period->starts_on?->format('Y-m-d') ?? '',
             'ends_on' => $period->ends_on?->format('Y-m-d') ?? '',
             'status' => $period->status->value,
-            'closed_at' => $period->closed_at?->format(DATE_ATOM),
+            'closed_at' => $period->closed_at?->setTimezone('UTC')->format(DATE_ATOM),
         ];
     }
 
