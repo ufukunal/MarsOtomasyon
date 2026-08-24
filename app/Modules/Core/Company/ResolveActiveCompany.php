@@ -18,6 +18,7 @@ final class ResolveActiveCompany
 
         abort_unless($user instanceof User, 401);
 
+        /** @var \Illuminate\Support\Collection<int, CompanyMembership> $memberships */
         $memberships = $user->memberships()
             ->where('is_active', true)
             ->with('company')
@@ -30,8 +31,7 @@ final class ResolveActiveCompany
                 abort(409, 'Aktif şirket seçimi gerekli.');
             }
 
-            /** @var CompanyMembership $membership */
-            $membership = $memberships->first();
+            $membership = $memberships->firstOrFail();
             $selectedCompanyId = $membership->company_id;
             $request->session()->put('active_company_id', $selectedCompanyId);
         }
@@ -42,7 +42,6 @@ final class ResolveActiveCompany
 
         $selectedCompanyId = (int) $selectedCompanyId;
 
-        /** @var CompanyMembership|null $membership */
         $membership = $memberships->first(
             fn (CompanyMembership $candidate): bool => $candidate->company_id === $selectedCompanyId,
         );

@@ -33,6 +33,7 @@ final class User extends Authenticatable
         ];
     }
 
+    /** @return HasMany<CompanyMembership, $this> */
     public function memberships(): HasMany
     {
         return $this->hasMany(CompanyMembership::class);

@@ -25,11 +25,13 @@ final class Company extends Model
         ];
     }
 
+    /** @return HasMany<Branch, $this> */
     public function branches(): HasMany
     {
         return $this->hasMany(Branch::class);
     }
 
+    /** @return HasMany<CompanyMembership, $this> */
     public function memberships(): HasMany
     {
         return $this->hasMany(CompanyMembership::class);
