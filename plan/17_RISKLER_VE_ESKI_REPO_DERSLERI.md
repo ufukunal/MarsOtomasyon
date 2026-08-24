@@ -1,4 +1,4 @@
-# 17 — Riskler ve MarsEski Dersleri V4.1
+# 17 — Riskler ve MarsEski Dersleri V4.2
 
 ## R1 — Scope creep / aşırı mimari
 Ön muhasebe uygulamasını generic ERP/QMS/PLM/BPM platformuna çevirmek en büyük kapsam riskidir.
@@ -163,6 +163,58 @@ Koruma: M0 required checks + branch protection entry/exit gate; M23 production-c
 V16.3 yalnız isim olarak kalırsa zamanla farklı geliştirici farklı prototype'a bakabilir.
 
 Koruma: M0 immutable design artifact veya canonical source/hash reference versioning.
+
+# V4.2 future-extension riskleri
+
+## R39 — Spekülatif plugin/framework şişmesi
+“İleride lazım olur” gerekçesiyle runtime plugin loader, universal provider interface, generic hook/BPM veya boş extension tabloları kurulursa bakım maliyeti feature'dan önce gelir.
+
+Koruma: `27_GELECEK_GENISLEME_ALTYAPISI.md`; ilk gerçek consumer yoksa yalnız convention/contract, fiziksel abstraction değil.
+
+## R40 — Marketplace variant modeli Product authority'yi kırması
+External marketplace parent/variant modeli doğrudan Mars Product'ı family gibi kullanırsa stok/fiyat/barkod authority belirsizleşir.
+
+Koruma: V1 Product = sellable SKU. Future `ProductFamily/VariantRelation` yalnız grouping/content seam; stock/price/cost Product seviyesinde kalır.
+
+## R41 — AI/OCR autonomous posting
+OCR veya AI önerisi doğrudan invoice/payment/stock/account movement yazarsa yanlış extraction finansal truth'a dönüşebilir.
+
+Koruma: `Attachment/Input → ProcessingJob → Suggestion/Confidence → Review → normal Domain Use-Case`; AI/OCR authority değildir.
+
+## R42 — Feature flag ile permission karışması
+Feature enabled olması kullanıcıya yetki vermez; permission olması da feature'ın hazır olduğu anlamına gelmez.
+
+Koruma: `FeatureKey availability` ve authorization ayrı kontrol edilir. Disabled feature dead route/button üretmez.
+
+## R43 — Universal external-reference tablosu domain bütünlüğünü yutması
+Her provider/domain kimliği tek polymorphic JSON tabloya sıkıştırılırsa unique constraint, FK ve lifecycle doğruluğu zayıflar.
+
+Koruma: önce shared identity convention; family/domain-specific mapping. Universal storage ancak birden fazla gerçek domain aynı contract'ı kanıtladığında.
+
+## R44 — Yeni provider'ın ledger bypass etmesi
+Kargo, payment, bank, accounting export veya future integration callback'i doğrudan ledger mutate ederse source-effect/idempotency modeli kırılır.
+
+Koruma: provider evidence/normalized source → owner application use-case → authority ledger.
+
+## R45 — Feed kanalını marketplace sanmak
+Google Merchant/Meta/Akakçe/Cimri gibi feed/discovery kanallarına order/return/settlement capability uydurmak yanlış UI ve state üretir.
+
+Koruma: ayrı `feed_discovery` provider family ve typed capability.
+
+## R46 — Mobil/offline duplicate write
+Mobil depo istemcisi veya gelecekte offline sync aynı sevk/sayım/transferi birden fazla kez post edebilir.
+
+Koruma: aynı server-side use-case + stable client operation identity + idempotency. Offline-first conflict modeli gerçek ihtiyaç olmadan açılmaz.
+
+## R47 — Generic custom-field/EAV çekirdek business modeline sızması
+Vergi, fiyat, stok, miktar veya belge state'i “custom field” olarak modellenirse constraint ve migration güvenliği kaybolur.
+
+Koruma: core business alanı explicit schema'dır. Flexible metadata yalnız non-authoritative, namespaced ve allow-listed ihtiyaçta değerlendirilir.
+
+## R48 — Forecast/suggestion authority drift
+Reorder, demand forecast, anomaly veya cash-flow forecast suggestion'ı otomatik posted record gibi ele alınırsa tahmin business truth olur.
+
+Koruma: planning/read-model → explicit user/domain action; ledger yalnız normal use-case ile değişir.
 
 ## MarsEski kullanım kuralı
 `MarsEski`:
