@@ -1,4 +1,4 @@
-# 08 — Modüller Master Planı V4
+# 08 — Modüller Master Planı V4.2
 
 Bu dosya **ürün/modül sahipliğini** tanımlar. Geliştirme sırası ve küçük dikey teslimler `16_UYGULAMA_SIRASI_MILESTONE.md` tarafından belirlenir. Kullanıcı-visible bilgi mimarisi `26_V16_3_TASARIM_UYUMU.md` ile aynıdır.
 
@@ -194,7 +194,7 @@ Credential config `Ayarlar → Entegrasyonlar` altındadır.
 - Zamanlanmış Raporlar
 - Excel/CSV/PDF/Yazdır
 
-Hedef yaklaşık 40 hazır rapor / 8 kategori. Generic report designer yoktur.
+Hedef 40 hazır rapor / 8 kategori. Generic report designer yoktur.
 
 ## 15. Ayarlar
 - Firma / Sistem
@@ -228,6 +228,79 @@ Admin/operasyon capability:
 
 Normal kullanıcı menüsünde teknik state/jargon şişkinliği oluşturulmaz.
 
+# Planlı post-V1 modül/capability sahipliği
+
+## 18. Product Family / Variant
+Sahibi `Catalog/Product` domainidir.
+- ProductFamily
+- VariantDimension/Value
+- ProductVariantRelation
+- marketplace parent/child mapping
+
+Stock/price/barcode/cost authority Product/SKU seviyesinde kalır. Ayrı top-level menü gerekmez; `Ürün/Stok` altında secondary surface'tir.
+
+## 19. Barkod / Termal Etiket
+Sahibi `Catalog/Inventory + Files/Printing` capability'leridir.
+- ürün/depo/lokasyon/koli/sevkiyat etiketi
+- A4/termal
+- ZPL/TSPL benzeri output adapters
+- printer profile/label template gerçek ihtiyaçta
+
+Barcode identity mevcut Product/Barcode modelinde kalır.
+
+## 20. Mobil Depo / Scanner
+Sahibi `Inventory Operations` domainidir.
+- kabul
+- toplama
+- sevk doğrulama
+- transfer çıkış/kabul
+- sayım
+- fason teslim
+
+Mobil/PWA aynı server-side use-case ve authority ledger'ları kullanır. Ayrı business engine değildir.
+
+## 21. Kargo API Adapterları
+Sahibi `Sales/Dispatch + Integration` sınırıdır.
+- shipment create/cancel
+- label
+- tracking
+- return shipment
+- provider capability/registry/problem center
+
+Shipping provider state Mars Dispatch authority değildir.
+
+## 22. OCR Fatura / Dekont Okuma
+Sahibi `Files/Document Processing` capability'sidir; hedef domain draft/action'a el değiştirir.
+- Attachment
+- ExtractionJob
+- ExtractedField
+- confidence/review
+- cari/ürün/banka eşleme önerileri
+
+OCR hiçbir ledger'a doğrudan posting yapmaz.
+
+## 23. Hafif CRM
+Sahibi `Accounts/CRM` domainidir.
+- Lead
+- Opportunity
+- Activity/FollowUp
+- SalesOwner
+- teklif/cari bağlantısı
+
+İlk UI yeri `Cariler → CRM/Fırsatlar` secondary workspace'tir. CRM `account_transactions` authority değildir.
+
+## 24. BI Export
+Sahibi `Reporting/Analytics Export` capability'sidir.
+- curated datasets
+- scheduled export
+- dataset schema version
+- PII allow-list
+- read-model/materialized-view/read-replica only when justified
+
+BI operational database authority değildir ve write-back yoktur.
+
+Ayrıntılı roadmap: `28_PLANLI_GENISLEMELER.md`.
+
 ## Modül anti-goals
 - aynı iş için duplicate ekran yok
 - her liste için ayrı teknik modül yok
@@ -240,3 +313,7 @@ Normal kullanıcı menüsünde teknik state/jargon şişkinliği oluşturulmaz.
 - ayrı search daemon yok
 - generic report designer yok
 - core lot/seri ve çoklu fiyat listesi yok
+- Mobil depo kendi stock engine'ini kurmaz
+- OCR autonomous finance/stock posting yapmaz
+- CRM ayrı Account master/finance ledger kurmaz
+- BI operational DB'ye sınırsız write/read authority vermez
