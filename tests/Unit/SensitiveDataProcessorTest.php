@@ -13,7 +13,7 @@ final class SensitiveDataProcessorTest extends TestCase
 {
     public function test_sensitive_context_and_pii_are_redacted(): void
     {
-        $processor = new SensitiveDataProcessor(new SensitiveDataRedactor());
+        $processor = new SensitiveDataProcessor(new SensitiveDataRedactor);
         $record = new LogRecord(
             datetime: new DateTimeImmutable('2026-08-24T12:00:00Z'),
             channel: 'test',

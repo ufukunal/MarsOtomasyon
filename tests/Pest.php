@@ -1,3 +1,5 @@
 <?php
 
-pest()->extend(Tests\TestCase::class)->in('Feature', 'Browser');
+use Tests\TestCase;
+
+pest()->extend(TestCase::class)->in('Feature', 'Browser');

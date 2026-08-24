@@ -9,9 +9,7 @@ use LogicException;
 
 final readonly class IdempotencyStore
 {
-    public function __construct(private Clock $clock)
-    {
-    }
+    public function __construct(private Clock $clock) {}
 
     public function claim(string $scope, string $key, RequestFingerprint $fingerprint): IdempotencyClaim
     {

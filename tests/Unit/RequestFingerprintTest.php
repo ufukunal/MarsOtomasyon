@@ -28,6 +28,6 @@ final class RequestFingerprintTest extends TestCase
     {
         $this->expectException(InvalidArgumentException::class);
 
-        RequestFingerprint::fromPayload(['invalid' => new \stdClass()]);
+        RequestFingerprint::fromPayload(['invalid' => new \stdClass]);
     }
 }

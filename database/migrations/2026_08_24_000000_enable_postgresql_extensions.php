@@ -8,7 +8,7 @@ return new class extends Migration
     public function up(): void
     {
         if (DB::connection()->getDriverName() !== 'pgsql') {
-            throw new \LogicException('MarsOtomasyon migrations require PostgreSQL.');
+            throw new LogicException('MarsOtomasyon migrations require PostgreSQL.');
         }
 
         DB::statement('CREATE EXTENSION IF NOT EXISTS pg_trgm');

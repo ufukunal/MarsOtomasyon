@@ -8,8 +8,7 @@ final readonly class OutboxAppendResult
         public int $recordId,
         public string $eventId,
         public bool $isNew,
-    ) {
-    }
+    ) {}
 
     public function isReplay(): bool
     {

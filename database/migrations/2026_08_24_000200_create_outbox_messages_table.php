@@ -40,14 +40,14 @@ return new class extends Migration
             $table->index(['company_id', 'status'], 'outbox_company_status_idx');
         });
 
-        DB::statement("ALTER TABLE outbox_messages ADD CONSTRAINT outbox_schema_version_check CHECK (schema_version > 0)");
+        DB::statement('ALTER TABLE outbox_messages ADD CONSTRAINT outbox_schema_version_check CHECK (schema_version > 0)');
         DB::statement("ALTER TABLE outbox_messages ADD CONSTRAINT outbox_semantic_class_check CHECK (semantic_class IN ('IMMUTABLE_EVENT_SNAPSHOT', 'CURRENT_DESIRED_STATE'))");
         DB::statement("ALTER TABLE outbox_messages ADD CONSTRAINT outbox_retry_capability_check CHECK (retry_capability IN ('SAFE_RETRY', 'IDEMPOTENT_WITH_KEY', 'QUERY_BEFORE_RETRY', 'NEVER_AUTO_RETRY'))");
         DB::statement("ALTER TABLE outbox_messages ADD CONSTRAINT outbox_status_check CHECK (status IN ('pending', 'leased', 'completed', 'failed'))");
         DB::statement('ALTER TABLE outbox_messages ADD CONSTRAINT outbox_attempts_check CHECK (attempts >= 0)');
         DB::statement('ALTER TABLE outbox_messages ADD CONSTRAINT outbox_company_id_check CHECK (company_id IS NULL OR company_id > 0)');
         DB::statement('ALTER TABLE outbox_messages ADD CONSTRAINT outbox_source_version_check CHECK (source_version IS NULL OR source_version > 0)');
-        DB::statement("ALTER TABLE outbox_messages ADD CONSTRAINT outbox_source_pair_check CHECK ((source_type IS NULL AND source_id IS NULL) OR (source_type IS NOT NULL AND source_id IS NOT NULL))");
+        DB::statement('ALTER TABLE outbox_messages ADD CONSTRAINT outbox_source_pair_check CHECK ((source_type IS NULL AND source_id IS NULL) OR (source_type IS NOT NULL AND source_id IS NOT NULL))');
     }
 
     public function down(): void

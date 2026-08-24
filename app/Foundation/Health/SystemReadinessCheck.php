@@ -12,8 +12,7 @@ final readonly class SystemReadinessCheck implements ReadinessCheck
     public function __construct(
         private DatabaseManager $database,
         private RedisManager $redis,
-    ) {
-    }
+    ) {}
 
     public function check(): ReadinessResult
     {

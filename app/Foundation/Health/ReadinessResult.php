@@ -8,6 +8,5 @@ final readonly class ReadinessResult
     public function __construct(
         public bool $ready,
         public array $failedDependencies = [],
-    ) {
-    }
+    ) {}
 }

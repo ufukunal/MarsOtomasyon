@@ -4,6 +4,4 @@ namespace App\Foundation\Outbox;
 
 use InvalidArgumentException;
 
-final class OutboxUnknownEvent extends InvalidArgumentException
-{
-}
+final class OutboxUnknownEvent extends InvalidArgumentException {}

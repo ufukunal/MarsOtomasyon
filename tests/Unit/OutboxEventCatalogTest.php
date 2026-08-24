@@ -12,7 +12,7 @@ final class OutboxEventCatalogTest extends TestCase
 {
     public function test_m0_catalog_contains_only_the_foundation_smoke_event(): void
     {
-        $catalog = new OutboxEventCatalog();
+        $catalog = new OutboxEventCatalog;
         $definition = $catalog->definition(OutboxEventCatalog::SYSTEM_SMOKE_V1);
 
         self::assertSame([OutboxEventCatalog::SYSTEM_SMOKE_V1], $catalog->names());
@@ -25,6 +25,6 @@ final class OutboxEventCatalogTest extends TestCase
     {
         $this->expectException(OutboxUnknownEvent::class);
 
-        (new OutboxEventCatalog())->definition('sales.invoice.posted.v1');
+        (new OutboxEventCatalog)->definition('sales.invoice.posted.v1');
     }
 }

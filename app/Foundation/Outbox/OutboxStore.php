@@ -12,8 +12,7 @@ final readonly class OutboxStore
     public function __construct(
         private Clock $clock,
         private OutboxEventCatalog $catalog,
-    ) {
-    }
+    ) {}
 
     public function append(OutboxMessageDraft $draft): OutboxAppendResult
     {

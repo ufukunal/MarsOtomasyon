@@ -12,8 +12,7 @@ final readonly class CorrelationIdMiddleware
     public function __construct(
         private CorrelationIdFactory $factory,
         private CorrelationContext $context,
-    ) {
-    }
+    ) {}
 
     public function handle(Request $request, Closure $next): Response
     {

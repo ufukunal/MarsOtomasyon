@@ -10,8 +10,7 @@ final readonly class ReadinessController
     public function __construct(
         private ReadinessCheck $readiness,
         private CorrelationContext $correlation,
-    ) {
-    }
+    ) {}
 
     public function __invoke(): JsonResponse
     {

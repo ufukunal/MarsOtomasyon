@@ -7,8 +7,8 @@ use InvalidArgumentException;
 final readonly class OutboxEventDefinition
 {
     /**
-     * @param list<string> $allowedPayloadKeys
-     * @param list<string> $requiredPayloadKeys
+     * @param  list<string>  $allowedPayloadKeys
+     * @param  list<string>  $requiredPayloadKeys
      */
     public function __construct(
         public string $name,

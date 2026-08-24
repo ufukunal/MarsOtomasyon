@@ -8,9 +8,7 @@ use Stringable;
 
 final readonly class RequestFingerprint implements Stringable
 {
-    private function __construct(public string $value)
-    {
-    }
+    private function __construct(public string $value) {}
 
     /** @throws JsonException */
     public static function fromPayload(array $payload): self

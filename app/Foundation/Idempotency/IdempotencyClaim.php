@@ -8,8 +8,7 @@ final readonly class IdempotencyClaim
         public int $recordId,
         public bool $isNew,
         public IdempotencyStatus $status,
-    ) {
-    }
+    ) {}
 
     public function isReplay(): bool
     {

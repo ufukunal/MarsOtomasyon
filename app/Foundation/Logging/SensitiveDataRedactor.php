@@ -7,18 +7,20 @@ final class SensitiveDataRedactor
     public const REDACTED = '[REDACTED]';
 
     /** @param array<mixed> $values
-     *  @return array<mixed>
+     * @return array<mixed>
      */
     public function redact(array $values): array
     {
         foreach ($values as $key => $value) {
             if (is_string($key) && $this->isSensitiveKey($key)) {
                 $values[$key] = self::REDACTED;
+
                 continue;
             }
 
             if (is_array($value)) {
                 $values[$key] = $this->redact($value);
+
                 continue;
             }
 
