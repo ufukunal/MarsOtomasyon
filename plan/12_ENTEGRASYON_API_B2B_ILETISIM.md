@@ -1,7 +1,20 @@
 # 12 — Entegrasyon, API, B2B ve İletişim V4
 
 ## 1. Integration Core
-WooCommerce, Trendyol ve Mars B2B ayrı business engine değildir. Tek **E-Ticaret Integration Core** üzerine adapter olarak bağlanır.
+WooCommerce, Trendyol, Hepsiburada, Amazon, n11, PttAVM, idefix, Çiçeksepeti ve Mars B2B ayrı business engine değildir. Tek **E-Ticaret Integration Core** üzerine adapter olarak bağlanır.
+
+İlk adapter seti:
+- WooCommerce
+- Trendyol
+- Hepsiburada
+- Amazon Selling Partner API — SP-API
+- n11
+- PttAVM
+- idefix
+- Çiçeksepeti
+- Mars B2B
+
+Amazon için ilk operasyon odağı Türkiye marketplace'idir; adapter marketplace/region kimliğini modelde ayrı taşıyarak SP-API'nin bölgesel yapısına hazır kalır.
 
 Mars authority:
 - ürün master
@@ -13,7 +26,50 @@ Mars authority:
 
 External kanal operasyon/satış kanalıdır; callback Mars truth'unu doğrulamasız overwrite edemez.
 
-## 2. External identity modeli
+## 2. Adapter contract
+Her marketplace adapterı aynı business contract'ın yalnız provider tarafından desteklenen capability'lerini uygular.
+
+Ortak capability başlıkları:
+- connection/authentication
+- category/attribute/brand/reference-data discovery
+- product/listing create/update/status
+- product/listing mapping
+- stock publish
+- price publish
+- order import
+- order acknowledgement/status
+- shipment/package/cargo operations
+- cancellation
+- return/claim/RMA
+- invoice/e-document reference upload/sync where supported
+- product/order questions where supported
+- marketplace accounting/settlement evidence where supported
+- webhook/notification where supported
+- polling/cursor fallback where webhook yoksa
+
+Bir provider capability sunmuyorsa adapter `unsupported` döndürür. Core veya UI bunu başarı gibi emüle etmez.
+
+## 3. Capability matrix
+Kanal bazlı gerçek özellik desteği `channel_capabilities` veya eşdeğer typed config/read-model ile belirlenir.
+
+Örnek capability flags:
+- `catalog_read`
+- `product_create`
+- `product_update`
+- `inventory_write`
+- `price_write`
+- `orders_read`
+- `shipment_write`
+- `cancel_write`
+- `returns_read_write`
+- `invoice_write`
+- `questions_read_write`
+- `settlement_read`
+- `webhook`
+
+Capability provider dokümantasyonuna göre adapter implementasyonunda kilitlenir; kullanıcı ayarı provider'ın desteklemediği özelliği açamaz.
+
+## 4. External identity modeli
 External entity identity:
 `company + provider + internal_channel/account + entity_type + external_entity_id`.
 
@@ -22,8 +78,10 @@ Inbound message identity:
 
 Bu iki identity ayrıdır. Aynı provider event/order retry duplicate Mars order/stock/finance effect üretemez.
 
-## 3. Kanal Merkezi
-V16.3 menüsü:
+Provider-specific listing/SKU/order/package/claim IDs ayrı external mapping olarak saklanır; tek bir `external_id` alanına bütün provider kimlikleri sıkıştırılmaz.
+
+## 5. Kanal Merkezi
+V16.3 menüsü değişmez:
 - Kanal Merkezi
 - E-Ticaret Siparişleri
 - Ürün Entegrasyonu
@@ -33,36 +91,69 @@ V16.3 menüsü:
 - Entegrasyon Sorunları
 - Kanal Ayarları
 
-## 4. Kanal ayarları
+Yeni pazaryerleri ayrı ana menü oluşturmaz; kanal filtresi/kartı olarak aynı çalışma alanına girer.
+
+## 6. Kanal ayarları
 Tabs:
 `Bağlantı · Ürün · Sipariş · Fatura · Stok · Görsel`.
 
-WooCommerce:
+Provider credential formu adapter-owned schema ile oluşturulur fakat secret davranışı ortaktır.
+
+Örnekler:
+
+### WooCommerce
 - Kanal Adı
 - Site URL
 - Consumer Key
 - Consumer Secret
-- durum
-- bağlantı testi
 
-Trendyol:
+### Trendyol
 - Supplier ID
 - API Key
 - API Secret
-- durum
-- bağlantı testi
+
+### Hepsiburada
+Merchant/integrator account bilgileri ve güncel authentication alanları provider dokümantasyonuna göre adapter tarafından tanımlanır.
+
+### Amazon SP-API
+- marketplace/region
+- seller/account identity
+- application authorization metadata
+- LWA/SP-API authorization secrets/tokens provider contract'a göre encrypted storage
+
+### n11
+- seller/app identity
+- app key
+- app secret
+
+### PttAVM
+- merchant identity
+- API Key/token veya provider'ın yürürlükteki authentication alanları
+
+### idefix
+- vendor/seller identity
+- API Key
+- API Secret
+
+### Çiçeksepeti
+- seller/supplier identity
+- API Key ve provider tarafından istenen ek connection metadata
 
 Mars B2B dahiliyse harici secret istemez.
 
-## 5. Secret UX / güvenlik
+Credential alan adları provider API değiştikçe adapter config schema ile güncellenir; core tabloda sağlayıcıya özel onlarca kolon açılmaz.
+
+## 7. Secret UX / güvenlik
 - encrypted-at-rest
 - save sonrası gerçek secret UI/API read-back yok
 - maskeli görünüm
 - `Değiştir` ile rotate
 - connection test ayrı use-case
 - ham HTTP/JSON exception normal kullanıcıya gösterilmez
+- refresh/access token lifecycle adapter'ın secure credential store'u üzerinden yürür
+- provider token/secret Outbox payload'a plaintext yazılmaz
 
-## 6. Sync ilkeleri
+## 8. Sync ilkeleri
 - idempotent import/export
 - cursor/page state
 - retry/backoff
@@ -72,40 +163,72 @@ Mars B2B dahiliyse harici secret istemez.
 - conflict policy
 - last successful sync / last error visibility
 - ambiguous result için blind retry yerine query/reconcile
+- provider-specific batch/task result polling where required
+- request/response schema versioning
+- deprecation/change tracking
 
-## 7. E-Ticaret sipariş akışı
-`Provider Inbox → Validate/Dedupe → Mars Sales Order → Reservation → Hazırlama/Sevk → Fatura → Kanal güncelleme`.
+Rate-limit tek global sabit değildir; provider/account/endpoint capability'sine göre adapter policy uygular.
 
-Kullanıcı-visible kanal durumları:
+## 9. E-Ticaret sipariş akışı
+`Provider Inbox/Poll → Validate/Dedupe → Mars Sales Order → Reservation → Hazırlama/Sevk → Fatura → Kanal güncelleme`.
+
+Kullanıcı-visible kanal durumları ortak normalizasyonda:
 `Yeni, Hazırlanıyor, Gönderildi, Tamamlandı, İptal, Sorun`.
 
-Mars SalesOrder lifecycle ayrı authority'dir.
+Provider'ın ham status'u ayrıca evidence olarak saklanabilir; Mars SalesOrder lifecycle ayrı authority'dir.
 
-## 8. Kanal stok yayını
+## 10. Kanal stok yayını
 `publish_qty = physical - reserved - quarantine/blocked - channel_safety_stock`.
 
 Kanal bazında:
 - stock source warehouse
 - safety stock
 - publish on/off
+- provider max/min publish policy where needed
+- last desired state / last acknowledged state
 ayarlanabilir.
 
-## 9. Ürün / kanal mapping
+Stock publish **CURRENT_DESIRED_STATE** semantiğindedir. Eski retry yeni stok değerini geriye götüremez.
+
+## 11. Ürün / kanal mapping
 Mars product/barcode/variant reference ile external product/listing/variant identity eşleşmesi saklanır. Mars ürün authority'sidir.
 
-## 10. Fiyat
-Core ürün tek satış fiyatı taşır. Kanal seviyesinde gerektiğinde explicit adjustment olabilir fakat generic çoklu price-list motoruna dönüşmez.
+Mapping alanları provider'a göre category/attribute/brand/external listing identity taşıyabilir. Provider katalog eşleşmesi onay/red veya asynchronous task kullanıyorsa process state ayrı tutulur.
+
+## 12. Fiyat
+Core ürün tek satış fiyatı taşır. Kanal seviyesinde gerektiğinde explicit adjustment/commission-aware export rule olabilir fakat generic çoklu price-list motoruna dönüşmez.
 
 B2B fiyatı:
 `Ürün Satış Fiyatı - Cari İskontosu`.
 
-## 11. B2B cari bağlantısı
+Marketplace komisyonu satış fiyatı authority değildir; raporlama/maliyet katkısı için provider evidence olarak tutulabilir.
+
+## 13. Kanal özel kapsam notları
+### Hepsiburada
+Target: katalog/listeleme, stok/fiyat, sipariş, sevkiyat, talep/iade, satıcı soruları ve provider'ın sunduğu muhasebe/fatura akışları.
+
+### Amazon SP-API
+Target: Catalog/Product Type Definitions/Listings, inventory/price, Orders, shipment confirmation, Reports/settlement evidence ve provider'ın desteklediği refund/return operasyonları. FBA/FBM farkları capability/policy ile ayrılır; biri diğerine varsayılmaz.
+
+### n11
+Target: ürün/listing, stok/fiyat, sipariş, sevkiyat, iade ve ürün soru-cevap.
+
+### PttAVM
+Target: ürün/listing, stok/fiyat, sipariş ve kargo/fatura/iade gibi provider'ın güncel API'de sunduğu operasyonlar. Legacy SOAP gerekirse adapter arkasında izole edilir; core SOAP bilmez.
+
+### idefix
+Target: ürün/kategori/özellik/marka, stok/fiyat, sipariş/sevkiyat, fatura linki, iade, ürün soruları ve sipariş soruları.
+
+### Çiçeksepeti
+Target: API key tabanlı channel connection; ürün/listing, stok/fiyat, sipariş/kargo ve provider'ın erişime açtığı iade/soru/fatura operasyonları. Provider panelinde kalması gereken operasyon capability matrix'te açıkça `unsupported/manual` gösterilir.
+
+## 14. B2B cari bağlantısı
 B2B user/account önceden bir Mars carisine bağlıdır:
 `Cari → B2B Kullanıcı → B2B Sipariş → Mars Satış Siparişi`.
 
 Siparişte cari seçilmez. B2B order cari bakiyesini etkilemez; invoice etkiler.
 
-## 12. B2B izinleri
+## 15. B2B izinleri
 Örnek permission'lar:
 - sipariş
 - fiyat görme
@@ -124,7 +247,7 @@ Cari `B2B / Bayi Erişimi` alanları:
 - adres yetkisi
 - stok/fiyat görünürlüğü
 
-## 13. API
+## 16. API
 External API `/api/v1` altında versionlanır.
 
 - session/token/client auth modele göre
@@ -137,24 +260,27 @@ External API `/api/v1` altında versionlanır.
 
 Same idempotency key farklı payload ile conflict'tir. Eloquent public API contract değildir.
 
-## 14. Webhook
-- signature/HMAC
+## 17. Webhook / polling
+Webhook destekleyen provider'da:
+- signature/HMAC where available
 - timestamp/replay defense
 - atomic Inbox
 - provider-account scoped dedupe
 - safe/redacted raw evidence
 - audited replay
 
-## 15. E-Belge
+Webhook sunmayan veya eksik olay sunan provider için cursor/watermark polling kullanılır. Polling de aynı Inbox/dedupe yoluna girer; ikinci business engine oluşturmaz.
+
+## 18. E-Belge
 Mars invoice lifecycle ile provider e-document lifecycle ayrıdır. Provider-neutral adapter:
 - submit
 - query/status
 - XML/PDF/artifact reference
 - cancel/response where supported
 
-Marketplace adapterı e-document authority değildir.
+Marketplace adapterı e-document authority değildir. Marketplace'e fatura linki/dosyası göndermek e-document provider lifecycle'ının yerine geçmez.
 
-## 16. İletişim provider modeli
+## 19. İletişim provider modeli
 Kanallar:
 - SMS
 - E-Posta
@@ -171,12 +297,12 @@ SMTP/Lark-compatible SMTP, Resend, Brevo, SendGrid, Mailgun adapterları destekl
 ### WhatsApp
 Meta WhatsApp Cloud API veya seçilen provider adapterı.
 
-## 17. Delivery modeli
+## 20. Delivery modeli
 `Notification → Delivery → ProviderAttempt`.
 
 Queue/outbox üzerinden gönderim, retry/backoff ve kalıcı hata kaydı vardır. Business transaction dış servisin cevabını beklemez.
 
-## 18. Template
+## 21. Template
 Versioned şablon:
 - değişken whitelist
 - preview
@@ -186,10 +312,10 @@ Versioned şablon:
 
 destekler.
 
-## 19. Scanner Agent
+## 22. Scanner Agent
 Yerel Mars Scanner Agent browser ile WIA/TWAIN veya işletim sistemi scanner API'si arasında localhost köprüsüdür. Çek/senet/belge taramada kullanılır. Business authority değildir.
 
-## 20. Sistem entegrasyonlarının UI yeri
+## 23. Sistem entegrasyonlarının UI yeri
 `Ayarlar → Entegrasyonlar`:
 - E-Belge
 - SMS
@@ -200,8 +326,23 @@ Yerel Mars Scanner Agent browser ile WIA/TWAIN veya işletim sistemi scanner API
 
 Kanal credentials burada duplicate edilmez.
 
-## 21. Search
+## 24. Search
 B2B/e-ticaret ürün araması ilk sürümde PostgreSQL FTS + `pg_trgm` ile başlar. Search fiyat/stok authority değildir.
 
-## 22. Bank scope
+## 25. Bank scope
 Canlı banka API/open-banking V1 kapsamında yoktur. Statement import/reconciliation Treasury/Finance Core'dadır.
+
+## 26. Provider değişiklik yönetimi
+Marketplace API'leri version/deprecation açısından dış bağımlılıktır.
+
+Her adapter:
+- API version/source documentation reference
+- capability set
+- last compatibility verification date
+- sandbox/test/prod config ayrımı where available
+- deprecated endpoint replacement plan
+- contract fixture/sample payload tests
+
+taşır.
+
+Provider değişikliği core Sales/Stock/Invoice modelini değiştirmek zorunda bırakmamalıdır.
