@@ -1,6 +1,8 @@
 <?php
 
 use App\Modules\Core\Auth\AuthenticatedSessionController;
+use App\Modules\Core\Management\CompanySettingsController;
+use App\Modules\Core\Management\DocumentSequenceController;
 use App\Modules\Core\Management\RoleManagementController;
 use App\Modules\Core\Management\UserManagementController;
 use Illuminate\Support\Facades\Route;
@@ -18,6 +20,38 @@ Route::prefix('settings')
     ->name('settings.')
     ->middleware(['auth', 'company.context'])
     ->group(function (): void {
+        Route::get('/company', [CompanySettingsController::class, 'show'])
+            ->middleware('can:core.settings.view')
+            ->name('company.show');
+        Route::get('/company/edit', [CompanySettingsController::class, 'edit'])
+            ->middleware('can:core.settings.manage')
+            ->name('company.edit');
+        Route::put('/company', [CompanySettingsController::class, 'update'])
+            ->middleware('can:core.settings.manage')
+            ->name('company.update');
+
+        Route::get('/numbering', [DocumentSequenceController::class, 'index'])
+            ->middleware('can:core.settings.view')
+            ->name('numbering.index');
+        Route::get('/numbering/create', [DocumentSequenceController::class, 'create'])
+            ->middleware('can:core.settings.manage')
+            ->name('numbering.create');
+        Route::post('/numbering', [DocumentSequenceController::class, 'store'])
+            ->middleware('can:core.settings.manage')
+            ->name('numbering.store');
+        Route::get('/numbering/{sequence}', [DocumentSequenceController::class, 'show'])
+            ->whereNumber('sequence')
+            ->middleware('can:core.settings.view')
+            ->name('numbering.show');
+        Route::get('/numbering/{sequence}/edit', [DocumentSequenceController::class, 'edit'])
+            ->whereNumber('sequence')
+            ->middleware('can:core.settings.manage')
+            ->name('numbering.edit');
+        Route::put('/numbering/{sequence}', [DocumentSequenceController::class, 'update'])
+            ->whereNumber('sequence')
+            ->middleware('can:core.settings.manage')
+            ->name('numbering.update');
+
         Route::get('/users', [UserManagementController::class, 'index'])
             ->middleware('can:core.user.view')
             ->name('users.index');
