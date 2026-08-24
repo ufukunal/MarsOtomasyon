@@ -12,8 +12,10 @@ use App\Modules\Core\Models\CompanyMembership;
 use App\Modules\Core\Models\FileAsset;
 use App\Modules\Core\Models\Role;
 use App\Modules\Core\Models\User;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 uses(DatabaseMigrations::class);
@@ -50,6 +52,12 @@ it('stores a company file on private storage with server metadata and sha256', f
 
     Storage::disk('local')->assertExists((string) $asset->storage_key);
     Storage::disk('public')->assertMissing((string) $asset->storage_key);
+
+    $this->actingAs($actor)
+        ->withSession(['active_company_id' => $company->getKey()])
+        ->get('/settings/files/'.$attachment->getKey().'/download')
+        ->assertOk()
+        ->assertHeader('X-Content-Type-Options', 'nosniff');
 
     $audit = AuditEntry::query()->where('action', AuditAction::FileUploaded->value)->firstOrFail();
     expect($audit->correlation_id)->toBe('file-upload-001')
@@ -116,6 +124,33 @@ it('does not expose another company attachment or download by route id', functio
         ->withSession(['active_company_id' => $companyA->getKey()])
         ->get('/settings/files/'.$foreign->getKey().'/download')
         ->assertNotFound();
+});
+
+it('rejects malformed company attachment targets at PostgreSQL level', function (): void {
+    $companyA = m1FileCompany('FILE-DB-A');
+    $companyB = m1FileCompany('FILE-DB-B');
+    $actor = m1FileActor($companyA, [PermissionKey::FileManage], 'manager-db');
+
+    $this->actingAs($actor)
+        ->withSession(['active_company_id' => $companyA->getKey()])
+        ->post('/settings/files', [
+            'file' => UploadedFile::fake()->createWithContent('db.txt', 'database guard'),
+        ])
+        ->assertRedirect();
+
+    $asset = FileAsset::query()->where('company_id', $companyA->getKey())->firstOrFail();
+
+    expect(fn () => DB::table('attachments')->insert([
+        'company_id' => $companyA->getKey(),
+        'file_asset_id' => $asset->getKey(),
+        'attachable_type' => 'company',
+        'attachable_id' => $companyB->getKey(),
+        'label' => null,
+        'attached_by_user_id' => $actor->getKey(),
+        'attached_at' => now(),
+        'detached_at' => null,
+        'detached_by_user_id' => null,
+    ]))->toThrow(QueryException::class);
 });
 
 it('detaches without deleting the original file and archives the last unlinked asset', function (): void {
