@@ -1,4 +1,4 @@
-# 02 — Mimari V4.1
+# 02 — Mimari V4.2
 
 ## Stil
 **Laravel-native modular monolith.** Tek deployable uygulama, net domain sınırları. Microservice yok; gerektiğinde ileride ayrılabilecek modül sınırları korunur.
@@ -106,6 +106,73 @@ Metadata PostgreSQL'de; binary dosyalar storage abstraction üzerinden local/S3-
 
 ## Observability
 Structured log + request/correlation id + queue/job context + audit trail. Finans/stok/treasury business audit'i application log'dan ayrı tutulur.
+
+# Future extension architecture
+
+## Extension seam ilkesi
+Geleceğe hazırlık runtime plugin sistemi kurmak değildir. Yeni özellik öncelikle mevcut modül sınırı ve application use-case üzerinden eklenir.
+
+Ortak genişleme araçları:
+- typed provider registry
+- typed capability set
+- versioned internal event contract
+- source-effect/external identity convention
+- FeatureKey/availability registry
+- import parser registry
+- ready-report registry
+- Attachment processing/review pattern
+
+Ayrıntı `27_GELECEK_GENISLEME_ALTYAPISI.md`.
+
+## Provider family sınırı
+Marketplace, kargo, ödeme, e-belge, iletişim, exchange-rate, storage, OCR/AI, accounting-export ve feed/discovery providerları aynı runtime plugin interface'ine zorlanmaz.
+
+Paylaşılanlar:
+- registry metadata
+- credential/secret kuralları
+- capability declaration
+- external identity/idempotency
+- retry/backoff/observability
+
+Business operation contract family'ye özeldir.
+
+## Internal event catalog
+Outbox event name/schema version owner module tarafından kayıtlı olmalıdır. Event Sourcing kurulmaz; source table/ledger authority değişmez.
+
+Yeni consumer geçmiş event'i current master ile sessizce yeniden yorumlamaz. Contract breaking change yeni schema version kullanır.
+
+## Feature availability
+Yeni özellik permission'dan ayrı availability kontrolüne sahip olabilir.
+
+Başlangıçta code/config based `FeatureKey` yeterlidir. Company-level feature flag tablosu yalnız ilk gerçek per-company rollout ihtiyacında eklenir.
+
+Disabled feature dead menu/button/route üretmez.
+
+## Product variant future seam
+V1'de `Product` satılabilir/stoklanabilir SKU'dur. İleri grouping ihtiyacında `ProductFamily/VariantRelation` additive olarak eklenebilir.
+
+Stock, barcode, price ve cost authority Product/SKU'dan family'ye taşınmaz.
+
+Bu karar marketplace variant grouping için ileride Product modelinin kırılmasını önler.
+
+## AI / OCR boundary
+AI/OCR provider sonucu yalnız suggestion/extraction source'tur. Doğrudan:
+- ledger posting,
+- stock movement,
+- payment,
+- invoice finalization
+çalıştıramaz.
+
+Akış gerekiyorsa:
+`Attachment/Input → ProcessingJob → Result/Confidence → Human/Policy Review → normal Domain Use-Case`.
+
+## Mobil / external client boundary
+Mobil depo, scanner/PWA veya üçüncü parti istemci yeni business engine kurmaz. Versioned DTO/action kullanır ve aynı authorization/idempotency/invariant yollarından geçer.
+
+Offline-first write senkronizasyonu gerçek ihtiyaç olmadan tasarlanmaz.
+
+## Future analytics boundary
+Forecast, anomaly detection, BI export ve AI insight read-model/evidence kullanır. Bunlar ledger authority veya silent correction mekanizması değildir.
 
 ## Deployment
 İlk hedef tek sunucu/az kullanıcı için sade kurulumdur. Horizontal scale için gereksiz altyapı önceden eklenmez. M0 CI foundation ve M23 production hardening uygulanmadan production-ready etiketi kullanılmaz.
