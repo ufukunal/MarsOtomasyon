@@ -17,7 +17,7 @@ jobs:
   postgres-tests:
     name: postgres-tests
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
 
     services:
       postgres:
@@ -83,15 +83,36 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.5'
-          extensions: pdo_pgsql, redis
+          extensions: pdo_pgsql, redis, sockets
           coverage: none
           tools: composer:v2
+
+      - name: Setup Node 24
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
 
       - name: Validate Composer manifest
         run: composer validate --strict
 
       - name: Install PHP dependencies
         run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Build frontend assets
+        run: npm run build
+
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Verify formatting
+        run: composer format:check
+
+      - name: Run static analysis
+        run: composer analyse
 
       - name: Verify PostgreSQL migration lifecycle
         run: |
@@ -100,4 +121,7 @@ jobs:
           php artisan migrate --force
 
       - name: Run foundation tests
-        run: php artisan test
+        run: composer test
+
+      - name: Run browser smoke tests
+        run: composer test:browser

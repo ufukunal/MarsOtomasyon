@@ -12,10 +12,14 @@
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
+        "larastan/larastan": "^3.9",
         "laravel/pint": "^1.27",
         "mockery/mockery": "^1.6",
-        "nunomaduro/collision": "^8.6",
-        "phpunit/phpunit": "^12.5.12"
+        "nunomaduro/collision": "^8.9",
+        "pestphp/pest": "^5.0.4",
+        "pestphp/pest-plugin-browser": "^5.0.4",
+        "pestphp/pest-plugin-laravel": "^5.0.1",
+        "phpstan/phpstan": "^2.2"
     },
     "autoload": {
         "psr-4": {
@@ -38,12 +42,18 @@
         "post-root-package-install": [
             "@php -r \"file_exists('.env') || copy('.env.example', '.env');\""
         ],
-        "test": [
-            "@php artisan config:clear --ansi @no_additional_args",
-            "@php artisan test"
-        ],
-        "format": "pint",
-        "format:check": "pint --test"
+        "format": "pint --parallel",
+        "format:check": "pint --parallel --test",
+        "analyse": "phpstan analyse --ansi --memory-limit=512M",
+        "test": "pest tests/Unit tests/Feature --colors=always",
+        "test:unit": "pest tests/Unit --colors=always",
+        "test:integration": "pest tests/Feature --colors=always",
+        "test:browser": "pest tests/Browser --colors=always",
+        "ci": [
+            "@format:check",
+            "@analyse",
+            "@test"
+        ]
     },
     "extra": {
         "laravel": {
@@ -51,6 +61,9 @@
         }
     },
     "config": {
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        },
         "optimize-autoloader": true,
         "preferred-install": "dist",
         "sort-packages": true
