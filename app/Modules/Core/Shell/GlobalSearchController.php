@@ -40,6 +40,11 @@ final readonly class GlobalSearchController
             if (Gate::allows(PermissionKey::RoleView->value)) {
                 $results = [...$results, ...$this->roles($query)];
             }
+
+            usort(
+                $results,
+                static fn (array $left, array $right): int => $right['score'] <=> $left['score'],
+            );
         }
 
         return view('search.index', [
@@ -57,8 +62,9 @@ final readonly class GlobalSearchController
             'name',
             $query,
         )
+            ->addSelect(['branches.id', 'branches.code', 'branches.name'])
             ->limit(self::LIMIT_PER_TYPE)
-            ->get(['id', 'code', 'name']);
+            ->get();
 
         return $rows->map(static fn (Branch $branch): array => [
             'type' => 'Şube',
@@ -84,11 +90,12 @@ final readonly class GlobalSearchController
             'users.name',
             $query,
         )
-            ->limit(self::LIMIT_PER_TYPE)
-            ->get([
+            ->addSelect([
                 'company_memberships.id',
                 'users.name as user_name',
-            ]);
+            ])
+            ->limit(self::LIMIT_PER_TYPE)
+            ->get();
 
         return $rows->map(static fn (CompanyMembership $membership): array => [
             'type' => 'Kullanıcı',
@@ -108,8 +115,9 @@ final readonly class GlobalSearchController
             'name',
             $query,
         )
+            ->addSelect(['roles.id', 'roles.code', 'roles.name'])
             ->limit(self::LIMIT_PER_TYPE)
-            ->get(['id', 'code', 'name']);
+            ->get();
 
         return $rows->map(static fn (Role $role): array => [
             'type' => 'Rol',
@@ -131,7 +139,7 @@ final readonly class GlobalSearchController
 
         return $builder
             ->selectRaw("{$rankSql} as search_score", [$query, $query])
-            ->where(function (Builder $search) use ($documentSql, $similarityColumn, $query): void {
+            ->where(function ($search) use ($documentSql, $similarityColumn, $query): void {
                 $search
                     ->whereRaw("to_tsvector('simple', {$documentSql}) @@ plainto_tsquery('simple', ?)", [$query])
                     ->orWhereRaw("similarity(lower({$similarityColumn}), lower(?)) >= 0.15", [$query])
