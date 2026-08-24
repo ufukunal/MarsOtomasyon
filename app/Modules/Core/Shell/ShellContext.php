@@ -5,12 +5,14 @@ namespace App\Modules\Core\Shell;
 use App\Modules\Core\Branch\ActiveBranchContext;
 use App\Modules\Core\Company\ActiveCompanyContext;
 use App\Modules\Core\Enums\CompanyStatus;
+use App\Modules\Core\Enums\PermissionKey;
 use App\Modules\Core\Models\Branch;
 use App\Modules\Core\Models\CompanyMembership;
 use App\Modules\Core\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 
 final readonly class ShellContext
 {
@@ -62,7 +64,7 @@ final readonly class ShellContext
         $company = $this->companyContext->company();
         /** @var Collection<int, Branch> $branches */
         $branches = collect();
-        if ($company !== null) {
+        if ($company !== null && Gate::allows(PermissionKey::BranchView->value)) {
             $branches = Branch::query()
                 ->where('company_id', $company->getKey())
                 ->where('is_active', true)
@@ -70,13 +72,16 @@ final readonly class ShellContext
                 ->get();
         }
 
-        $branch = $this->branchContext->branch();
-        if ($branch === null) {
-            $sessionBranchId = $request->session()->get('active_branch_id');
-            if (is_int($sessionBranchId) || (is_string($sessionBranchId) && ctype_digit($sessionBranchId))) {
-                $branch = $branches->first(
-                    fn (Branch $candidate): bool => (int) $candidate->getKey() === (int) $sessionBranchId,
-                );
+        $branch = null;
+        if (! $branches->isEmpty()) {
+            $branch = $this->branchContext->branch();
+            if ($branch === null) {
+                $sessionBranchId = $request->session()->get('active_branch_id');
+                if (is_int($sessionBranchId) || (is_string($sessionBranchId) && ctype_digit($sessionBranchId))) {
+                    $branch = $branches->first(
+                        fn (Branch $candidate): bool => (int) $candidate->getKey() === (int) $sessionBranchId,
+                    );
+                }
             }
         }
 
