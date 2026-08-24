@@ -48,4 +48,28 @@ final class Company extends Model
     {
         return $this->hasMany(DocumentSequence::class);
     }
+
+    /** @return HasMany<Tax, $this> */
+    public function taxes(): HasMany
+    {
+        return $this->hasMany(Tax::class);
+    }
+
+    /** @return HasMany<TaxZeroReason, $this> */
+    public function taxZeroReasons(): HasMany
+    {
+        return $this->hasMany(TaxZeroReason::class);
+    }
+
+    /** @return HasMany<ExchangeRate, $this> */
+    public function exchangeRates(): HasMany
+    {
+        return $this->hasMany(ExchangeRate::class);
+    }
+
+    /** @return HasMany<PostingPeriod, $this> */
+    public function postingPeriods(): HasMany
+    {
+        return $this->hasMany(PostingPeriod::class);
+    }
 }
