@@ -16,3 +16,13 @@ it('renders the foundation shell without browser errors', function (): void {
         ->assertNoJavaScriptErrors()
         ->assertNoConsoleLogs();
 });
+
+it('renders the internal login form without browser errors', function (): void {
+    $page = visit('/login');
+
+    $page
+        ->assertSee('Giriş Yap')
+        ->assertSee('E-posta')
+        ->assertNoJavaScriptErrors()
+        ->assertNoConsoleLogs();
+});
