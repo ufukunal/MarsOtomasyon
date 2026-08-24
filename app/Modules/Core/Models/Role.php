@@ -6,22 +6,20 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
-final class CompanyMembership extends Model
+final class Role extends Model
 {
     protected $fillable = [
         'company_id',
-        'user_id',
+        'code',
+        'name',
         'is_active',
-        'joined_at',
     ];
 
     protected function casts(): array
     {
         return [
             'company_id' => 'integer',
-            'user_id' => 'integer',
             'is_active' => 'boolean',
-            'joined_at' => 'immutable_datetime',
             'created_at' => 'immutable_datetime',
             'updated_at' => 'immutable_datetime',
         ];
@@ -33,20 +31,20 @@ final class CompanyMembership extends Model
         return $this->belongsTo(Company::class);
     }
 
-    /** @return BelongsTo<User, $this> */
-    public function user(): BelongsTo
+    /** @return BelongsToMany<Permission, $this> */
+    public function permissions(): BelongsToMany
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsToMany(Permission::class, 'role_permissions');
     }
 
-    /** @return BelongsToMany<Role, $this> */
-    public function roles(): BelongsToMany
+    /** @return BelongsToMany<CompanyMembership, $this> */
+    public function memberships(): BelongsToMany
     {
         return $this->belongsToMany(
-            Role::class,
+            CompanyMembership::class,
             'company_membership_roles',
-            'membership_id',
             'role_id',
+            'membership_id',
         )->withPivot(['company_id', 'assigned_at']);
     }
 }

@@ -36,4 +36,10 @@ final class Company extends Model
     {
         return $this->hasMany(CompanyMembership::class);
     }
+
+    /** @return HasMany<Role, $this> */
+    public function roles(): HasMany
+    {
+        return $this->hasMany(Role::class);
+    }
 }
