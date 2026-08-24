@@ -63,16 +63,17 @@ Core fiyat:
 
 `Product` V1'de satılabilir/stoklanabilir SKU authority'sidir. Lot/serial V1 core schema'sında yoktur.
 
-### Future product-family seam — conceptual
-Gerçek variant grouping ihtiyacında additive olarak:
+### Product-family seam
+Planlı M25 kapsamı olarak additive:
 - ProductFamily
 - VariantDimension
+- VariantValue
 - ProductVariantRelation / family membership
-- localized/shared content relations
+- localized/shared content relations where needed
 
 eklenebilir.
 
-Bu entity'ler V1 zorunlu schema değildir. Family stock/price/cost authority olmaz; stock, barcode, price ve cost Product/SKU seviyesinde kalır.
+Family stock/price/cost/barcode authority olmaz; bu authority Product/SKU seviyesinde kalır.
 
 ## 5. Product media destinations
 Ürün görselleri yalnız tek galeri değildir. Kullanım yeri/kanal/site ilişkisi taşıyabilir:
@@ -286,7 +287,7 @@ Generic raw SQL/report designer schema yoktur.
 - checksum/security metadata
 - scan/quarantine status when used
 
-Future OCR/AI processing için Attachment kimliği korunur; extraction sonucu Attachment'ın kendisini mutate ederek business truth'a dönüşmez.
+Planlı OCR processing için Attachment kimliği korunur; extraction sonucu Attachment'ın kendisini mutate ederek business truth'a dönüşmez.
 
 ## 21. Outbox / Inbox
 - OutboxMessage
@@ -319,7 +320,7 @@ Business event/ledger source bağlantılarında kontrollü `source_type + source
 
 # Future extension conceptual model
 
-Aşağıdaki başlıklar **V1 fiziksel schema zorunluluğu değildir**. İlk gerçek consumer geldiğinde additive migration ile eklenir.
+Aşağıdaki başlıklar ilk consumer geldiğinde additive migration ile eklenir; boş tablolar V1'de zorunlu değildir.
 
 ## 25. Provider family extensions
 İleride domain-owner modele göre:
@@ -367,7 +368,7 @@ Sales/Product/Return lineage üzerinden eklenebilir.
 Service material consumption normal StockMovement use-case'ini çağırır; ayrı stok ledger'ı kurulmaz.
 
 ## 29. CRM seam
-Gerçek ihtiyaçta:
+Planlı M30 kapsamında:
 - Lead
 - Opportunity
 - Activity / FollowUp
@@ -388,4 +389,58 @@ Bugünden yalnız gelecek ihtimali için:
 - generic BPM state tabloları
 oluşturulmaz.
 
-Ayrıntılı activation ve extension kuralları `27_GELECEK_GENISLEME_ALTYAPISI.md` içindedir.
+## 32. Planlı M25–M31 entity setleri
+
+### M25 Product Family / Variant
+- ProductFamily
+- VariantDimension
+- VariantValue
+- ProductVariantRelation
+- external parent/variant mapping metadata
+
+### M26 Barkod / Termal Etiket
+- LabelTemplate
+- LabelRenderRequest/RenderArtifact where persisted
+- PrinterProfile where needed
+
+Barcode identity ayrıca duplicate edilmez.
+
+### M27 Mobil Depo / Scanner
+Çoğu işlem yeni authority entity gerektirmez. Gerektiğinde:
+- MobileDevice/Client metadata
+- MobileOperationReceipt/idempotency evidence
+- saved scanner/user preferences
+
+eklenebilir.
+
+### M28 Kargo API Adapterları
+- ShippingConnection
+- ShippingService mapping where needed
+- ExternalShipmentMapping
+- ShippingLabel artifact/reference
+- TrackingEvent evidence
+
+### M29 OCR Fatura / Dekont
+- ExtractionJob
+- ExtractedField
+- ExtractionReview/Decision
+- DocumentMatchSuggestion
+
+### M30 Hafif CRM
+- Lead
+- Opportunity
+- OpportunityStage history
+- Activity
+- FollowUp
+- SalesOwner relation
+
+### M31 BI Export
+- AnalyticsDatasetDefinition
+- AnalyticsExportJob
+- DatasetArtifact
+- DatasetSchemaVersion
+- incremental watermark metadata where needed
+
+BI entity'leri ledger authority değildir.
+
+Ayrıntılı activation ve roadmap kuralları `27_GELECEK_GENISLEME_ALTYAPISI.md` ve `28_PLANLI_GENISLEMELER.md` içindedir.
