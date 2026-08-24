@@ -6,8 +6,11 @@ use PHPUnit\Framework\TestCase;
 
 final class FoundationContractTest extends TestCase
 {
-    public function test_financial_precision_contract_is_documented_as_decimal(): void
+    public function test_php_runtime_meets_the_locked_foundation_version(): void
     {
-        self::assertSame('20,6', '20,6');
+        self::assertTrue(
+            version_compare(PHP_VERSION, '8.5.0', '>='),
+            sprintf('MarsOtomasyon requires PHP 8.5+, running %s.', PHP_VERSION),
+        );
     }
 }
