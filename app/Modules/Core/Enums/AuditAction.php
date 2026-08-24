@@ -5,6 +5,8 @@ namespace App\Modules\Core\Enums;
 enum AuditAction: string
 {
     case CompanySettingsUpdated = 'core.company.settings.updated';
+    case BranchCreated = 'core.branch.created';
+    case BranchUpdated = 'core.branch.updated';
     case DocumentSequenceCreated = 'core.document_sequence.created';
     case DocumentSequenceUpdated = 'core.document_sequence.updated';
     case UserCreated = 'core.user.created';
@@ -27,6 +29,8 @@ enum AuditAction: string
     {
         return match ($this) {
             self::CompanySettingsUpdated => 'Firma / sistem ayarları güncellendi',
+            self::BranchCreated => 'Şube oluşturuldu',
+            self::BranchUpdated => 'Şube güncellendi',
             self::DocumentSequenceCreated => 'Numara serisi oluşturuldu',
             self::DocumentSequenceUpdated => 'Numara serisi güncellendi',
             self::UserCreated => 'Kullanıcı oluşturuldu',
