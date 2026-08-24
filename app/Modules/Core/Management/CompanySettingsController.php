@@ -39,7 +39,7 @@ final class CompanySettingsController
                 'string',
                 'size:3',
                 'regex:/^[A-Z]{3}$/',
-                Rule::exists('currencies', 'code')->where(fn ($query) => $query->where('is_active', true)),
+                Rule::exists('currencies', 'code')->where('is_active', true),
             ],
             'timezone' => ['required', 'string', Rule::in(DateTimeZone::listIdentifiers())],
         ]);
