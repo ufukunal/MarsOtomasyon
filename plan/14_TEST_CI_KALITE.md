@@ -189,6 +189,12 @@ Aşağıdaki ortak contract suite her marketplace adapterına uygulanır:
 - PttAVM
 - idefix
 - Çiçeksepeti
+- Pazarama
+- Koçtaş
+- Teknosa
+- Temu Türkiye
+- Allesgo
+- Boyner
 
 Her adapter için provider contract fixture/sample payload'ları repository test fixture'larında versionlanır. Production credential CI'a yazılmaz.
 
@@ -200,8 +206,14 @@ Her adapter için provider contract fixture/sample payload'ları repository test
 - Orders/shipment normalization
 - report/settlement evidence import idempotency
 
-### Hepsiburada/n11/idefix/PttAVM/Çiçeksepeti ekstra testleri
-Provider'ın batch/task/pagination/rate-limit/status davranışları fixture ile test edilir; provider'ın desteklemediği operasyonlar `unsupported/manual` olarak deterministic davranır.
+### Temu Türkiye ekstra testleri
+- marketplace/region Türkiye scope
+- seller authorization lifecycle
+- listing/order/fulfillment normalization
+- global/diğer region capability'lerinin Türkiye kanalına sızmaması
+
+### Diğer marketplace adapterları ekstra testleri
+Hepsiburada, n11, idefix, PttAVM, Çiçeksepeti, Pazarama, Koçtaş, Teknosa, Allesgo ve Boyner için provider'ın batch/task/pagination/rate-limit/status davranışları fixture ile test edilir; provider'ın desteklemediği operasyonlar `unsupported/manual` olarak deterministic davranır.
 
 ## 16. API / Security
 - same idempotency key + different payload conflict
