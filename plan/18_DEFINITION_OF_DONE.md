@@ -1,4 +1,4 @@
-# 18 — Definition of Done V4.1
+# 18 — Definition of Done V4.2
 
 Bir iş yalnız kod yazıldığı için tamamlanmış sayılmaz.
 
@@ -14,7 +14,13 @@ M0 ancak:
 - required status-check isimleri tanımlı
 - main protection uygulanabiliyorsa aktif; uygulanamıyorsa açık repo blocker'ı kayıtlı
 - V16.3 design/reference artifact veya immutable source/hash referansı versionlanmış
+- provider key/family naming convention tanımlı
+- typed capability naming convention tanımlı
+- internal event name/schema version convention tanımlı
+- FeatureKey availability convention tanımlı
 olduğunda tamamdır.
+
+Bu convention'lar gerçek consumer yoksa boş plugin/framework/DB tablo ağı kurmayı gerektirmez.
 
 ## Modül/feature DoD
 - ilgili `19_ACIK_KARARLAR.md` entry gate kapanmış veya capability açıkça scope dışı
@@ -214,6 +220,53 @@ M13 yalnız tamamlanan commercial domain raporlarını gerektirir; final 40 M23 
 
 ## Backup DoD
 Backup üretmek yetmez; restore drill başarılı değilse backup özelliği tamamlanmış değildir.
+
+# Future feature activation DoD
+V1 sonrası veya ileri özellik eklenirken `27_GELECEK_GENISLEME_ALTYAPISI.md` checklist'i uygulanır.
+
+Yeni feature ancak:
+- gerçek business ihtiyacı/owner tanımlı
+- mevcut authority ledger/source etkisi açık
+- mevcut extension seam kullanılıyor veya yeni seam gerekçeli
+- gereksiz universal plugin/EAV/BPM abstraction eklenmiyor
+- additive/backward-compatible schema migration var
+- FeatureKey/availability yolu var
+- disabled durumda dead UI/route yok
+- external provider ise registry + capability + real contract fixture var
+- external identity/idempotency tanımlı
+- internal event çıkarıyorsa canonical name + schema version tanımlı
+- API/mobile client ise same server-side invariant/authorization yolunu kullanıyor
+- AI/OCR/forecast/suggestion ise authority olmadığı testle korunuyor
+- PII/secret/company scope güvenliği tanımlı
+- backup/migration/recovery etkisi değerlendirildi
+- ilgili owner plan + test + UI contract güncellendi
+olduğunda production kapsamına alınabilir.
+
+## Ürün family/variant future DoD
+Variant grouping gerçek ihtiyaçta eklenirse:
+- Product/SKU stock-price-cost authority değişmiyor
+- family/variant relation additive
+- simple Product family olmadan çalışmaya devam ediyor
+- marketplace parent/child mapping explicit
+- migration existing Product ID/SKU'ları kırmıyor
+- search/media/report behavior testli
+
+## OCR/AI future DoD
+- provider/model/version metadata
+- input/output limitleri
+- PII/secret redaction policy
+- confidence/review lifecycle
+- low-confidence sonucu human/policy review'suz business posting yapmıyor
+- AI/OCR output doğrudan AccountTransaction/StockMovement/TreasuryMovement yazamıyor
+- accepted suggestion normal domain use-case'e giriyor
+- audit/reference korunuyor
+
+## Mobil/scanner future DoD
+- same server-side action/invariant
+- stable client operation/idempotency key
+- retry duplicate effect üretmiyor
+- permission/company scope
+- offline mode varsa ayrıca conflict/reconciliation design
 
 ## Milestone DoD
 Milestone içindeki zorunlu dikey akış en baştan sona gerçek PostgreSQL üzerinde çalışmalı ve smoke/E2E testi geçmelidir.
