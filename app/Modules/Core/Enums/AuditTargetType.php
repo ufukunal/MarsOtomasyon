@@ -5,6 +5,7 @@ namespace App\Modules\Core\Enums;
 enum AuditTargetType: string
 {
     case Company = 'company';
+    case Branch = 'branch';
     case DocumentSequence = 'document_sequence';
     case CompanyMembership = 'company_membership';
     case Role = 'role';
@@ -18,6 +19,7 @@ enum AuditTargetType: string
     {
         return match ($this) {
             self::Company => 'Firma',
+            self::Branch => 'Şube',
             self::DocumentSequence => 'Numara Serisi',
             self::CompanyMembership => 'Kullanıcı Üyeliği',
             self::Role => 'Rol',
