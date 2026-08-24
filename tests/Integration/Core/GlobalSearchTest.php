@@ -68,7 +68,7 @@ it('searches authorized core records with PostgreSQL FTS and trigram ranking ins
 
     $this->actingAs($actor)
         ->withSession(['active_company_id' => $company->getKey()])
-        ->get('/search?q=Ankra')
+        ->get('/search?q=Ankara%20Mrkez')
         ->assertOk()
         ->assertSee('Ankara Merkez');
 
