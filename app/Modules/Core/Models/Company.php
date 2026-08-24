@@ -5,6 +5,7 @@ namespace App\Modules\Core\Models;
 use App\Modules\Core\Enums\CompanyStatus;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use LogicException;
 
 final class Company extends Model
 {
@@ -23,6 +24,22 @@ final class Company extends Model
             'created_at' => 'immutable_datetime',
             'updated_at' => 'immutable_datetime',
         ];
+    }
+
+    public function statusEnum(): CompanyStatus
+    {
+        $raw = $this->getRawOriginal('status');
+        if (! is_string($raw)) {
+            throw new LogicException('Persisted company status must be a string.');
+        }
+
+        return CompanyStatus::tryFrom($raw)
+            ?? throw new LogicException('Persisted company status is invalid.');
+    }
+
+    public function isActive(): bool
+    {
+        return $this->statusEnum() === CompanyStatus::Active;
     }
 
     /** @return HasMany<Branch, $this> */
