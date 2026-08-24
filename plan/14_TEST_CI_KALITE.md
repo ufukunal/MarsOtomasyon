@@ -162,7 +162,7 @@ Routing/work-center/ECO/OEE tests core değildir.
 - B2B discount = Cari İskontosu
 
 ## 15. Marketplace adapter contract test suite
-Aşağıdaki ortak contract suite her marketplace adapterına uygulanır:
+Aşağıdaki ortak contract suite her **aktif V1 marketplace adapterına** uygulanır:
 1. credential schema + secret masking
 2. connection test success/failure
 3. capability discovery/static matrix
@@ -180,7 +180,7 @@ Aşağıdaki ortak contract suite her marketplace adapterına uygulanır:
 15. raw payload redaction/retention policy
 16. API version/deprecation fixture compatibility
 
-### Provider-specific suites
+### V1 provider-specific suites
 - WooCommerce
 - Trendyol
 - Hepsiburada
@@ -188,13 +188,7 @@ Aşağıdaki ortak contract suite her marketplace adapterına uygulanır:
 - n11
 - PttAVM
 - idefix
-- Çiçeksepeti
-- Pazarama
-- Koçtaş
-- Teknosa
-- Temu Türkiye
 - Allesgo
-- Boyner
 
 Her adapter için provider contract fixture/sample payload'ları repository test fixture'larında versionlanır. Production credential CI'a yazılmaz.
 
@@ -206,14 +200,11 @@ Her adapter için provider contract fixture/sample payload'ları repository test
 - Orders/shipment normalization
 - report/settlement evidence import idempotency
 
-### Temu Türkiye ekstra testleri
-- marketplace/region Türkiye scope
-- seller authorization lifecycle
-- listing/order/fulfillment normalization
-- global/diğer region capability'lerinin Türkiye kanalına sızmaması
+### Diğer aktif marketplace adapterları ekstra testleri
+Hepsiburada, n11, idefix, PttAVM ve Allesgo için provider'ın batch/task/pagination/rate-limit/status davranışları fixture ile test edilir; provider'ın desteklemediği operasyonlar `unsupported/manual` olarak deterministic davranır.
 
-### Diğer marketplace adapterları ekstra testleri
-Hepsiburada, n11, idefix, PttAVM, Çiçeksepeti, Pazarama, Koçtaş, Teknosa, Allesgo ve Boyner için provider'ın batch/task/pagination/rate-limit/status davranışları fixture ile test edilir; provider'ın desteklemediği operasyonlar `unsupported/manual` olarak deterministic davranır.
+### Deferred adaylar
+Çiçeksepeti, Pazarama, Koçtaş, Teknosa, Temu Türkiye ve Boyner V1 adapter test zorunluluğu değildir. Bu kanallar için fixture/contract suite ancak gerçek API veya seller/partner contract erişimi doğrulandıktan sonra açılır.
 
 ## 16. API / Security
 - same idempotency key + different payload conflict
