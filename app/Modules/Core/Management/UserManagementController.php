@@ -4,6 +4,7 @@ namespace App\Modules\Core\Management;
 
 use App\Modules\Core\Authorization\PrivilegeGrantGuard;
 use App\Modules\Core\Company\ActiveCompanyContext;
+use App\Modules\Core\Enums\PermissionKey;
 use App\Modules\Core\Enums\UserStatus;
 use App\Modules\Core\Models\CompanyMembership;
 use App\Modules\Core\Models\Role;
@@ -12,6 +13,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
@@ -172,8 +174,8 @@ final class UserManagementController
 
         return $roles->filter(function (Role $role): bool {
             foreach ($role->permissions as $permission) {
-                $key = \App\Modules\Core\Enums\PermissionKey::tryFrom((string) $permission->key);
-                if ($key === null || ! \Illuminate\Support\Facades\Gate::allows($key->value)) {
+                $key = PermissionKey::tryFrom((string) $permission->key);
+                if ($key === null || ! Gate::allows($key->value)) {
                     return false;
                 }
             }
@@ -182,8 +184,9 @@ final class UserManagementController
         })->values();
     }
 
-    /** @param array<array-key, mixed> $roleIds
-     *  @return Collection<int, Role>
+    /**
+     * @param  array<array-key, mixed>  $roleIds
+     * @return Collection<int, Role>
      */
     private function rolesFromRequest(array $roleIds): Collection
     {
