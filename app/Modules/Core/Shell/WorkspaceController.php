@@ -31,6 +31,21 @@ final readonly class WorkspaceController
             );
         }
 
+        if ($selectedBranch === null && $activeBranches->count() === 1) {
+            $onlyBranch = $activeBranches->first();
+            if ($onlyBranch instanceof Branch) {
+                $onlyBranchId = $onlyBranch->getKey();
+                if (is_int($onlyBranchId)) {
+                    $selectedBranch = $onlyBranch;
+                    $request->session()->put('active_branch_id', $onlyBranchId);
+                }
+            }
+        }
+
+        if ($selectedBranch === null && $selectedBranchId !== null) {
+            $request->session()->forget('active_branch_id');
+        }
+
         return view('workspace.index', [
             'company' => $company,
             'activeBranches' => $activeBranches,
