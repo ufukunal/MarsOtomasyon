@@ -2,17 +2,24 @@
 
 namespace App\Modules\Core\Management;
 
+use App\Modules\Core\Audit\AuditRecorder;
 use App\Modules\Core\Company\ActiveCompanyContext;
+use App\Modules\Core\Enums\AuditAction;
+use App\Modules\Core\Enums\AuditTargetType;
 use App\Modules\Core\Models\Currency;
 use App\Modules\Core\Models\ExchangeRate;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 final class CurrencyExchangeController
 {
-    public function __construct(private readonly ActiveCompanyContext $companyContext) {}
+    public function __construct(
+        private readonly ActiveCompanyContext $companyContext,
+        private readonly AuditRecorder $audit,
+    ) {}
 
     public function index(): View
     {
@@ -40,10 +47,21 @@ final class CurrencyExchangeController
         $data = $this->validated($request, false);
         $this->assertIdentityAvailable($data['rate_date'], $data['from_currency_code'], $data['to_currency_code']);
 
-        $rate = ExchangeRate::query()->create([
-            'company_id' => $this->companyId(),
-            ...$data,
-        ]);
+        $rate = DB::transaction(function () use ($data): ExchangeRate {
+            $rate = ExchangeRate::query()->create([
+                'company_id' => $this->companyId(),
+                ...$data,
+            ]);
+
+            $this->audit->record(
+                AuditAction::ExchangeRateCreated,
+                AuditTargetType::ExchangeRate,
+                (int) $rate->getKey(),
+                after: $this->snapshot($rate),
+            );
+
+            return $rate;
+        });
 
         return redirect()->route('settings.exchange-rates.show', $rate)->with('status', 'Kur kaydı oluşturuldu.');
     }
@@ -63,13 +81,30 @@ final class CurrencyExchangeController
 
     public function update(Request $request, int $rate): RedirectResponse
     {
-        $rate = $this->rate($rate);
         $data = $this->validated($request, true);
 
-        $rate->update([
-            'rate' => $data['rate'],
-            'source' => $data['source'],
-        ]);
+        $rate = DB::transaction(function () use ($rate, $data): ExchangeRate {
+            $locked = ExchangeRate::query()
+                ->where('company_id', $this->companyId())
+                ->lockForUpdate()
+                ->findOrFail($rate);
+
+            $before = $this->snapshot($locked);
+            $locked->update([
+                'rate' => $data['rate'],
+                'source' => $data['source'],
+            ]);
+
+            $this->audit->record(
+                AuditAction::ExchangeRateUpdated,
+                AuditTargetType::ExchangeRate,
+                (int) $locked->getKey(),
+                before: $before,
+                after: $this->snapshot($locked),
+            );
+
+            return $locked;
+        });
 
         return redirect()->route('settings.exchange-rates.show', $rate)->with('status', 'Kur değeri güncellendi.');
     }
@@ -118,6 +153,18 @@ final class CurrencyExchangeController
             'to_currency_code' => $to,
             'rate' => $rateValue,
             'source' => mb_strtolower(trim((string) $validated['source'])),
+        ];
+    }
+
+    /** @return array{rate_date:string,from_currency_code:string,to_currency_code:string,rate:string,source:string} */
+    private function snapshot(ExchangeRate $rate): array
+    {
+        return [
+            'rate_date' => $rate->rate_date?->format('Y-m-d') ?? '',
+            'from_currency_code' => (string) $rate->from_currency_code,
+            'to_currency_code' => (string) $rate->to_currency_code,
+            'rate' => (string) $rate->rate,
+            'source' => (string) $rate->source,
         ];
     }
 
