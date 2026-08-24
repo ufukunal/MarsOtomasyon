@@ -63,7 +63,6 @@ final class RoleManagementController
 
         $permissionKeys = $this->normalizePermissionKeys($validated['permission_keys'] ?? []);
         sort($permissionKeys);
-        $permissionKeys = array_values($permissionKeys);
         $this->privilegeGuard->assertCanGrantPermissionKeys($permissionKeys);
         $this->assertCodeAvailable((string) $validated['code']);
 
@@ -114,7 +113,6 @@ final class RoleManagementController
 
         $permissionKeys = $this->normalizePermissionKeys($validated['permission_keys'] ?? []);
         sort($permissionKeys);
-        $permissionKeys = array_values($permissionKeys);
         $this->privilegeGuard->assertCanGrantPermissionKeys($permissionKeys);
         $this->assertCodeAvailable((string) $validated['code'], (int) $role->getKey());
         $beforePermissionKeys = array_values(
