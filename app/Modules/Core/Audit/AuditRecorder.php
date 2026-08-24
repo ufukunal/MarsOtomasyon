@@ -33,7 +33,7 @@ final readonly class AuditRecorder
     public function record(
         AuditAction $action,
         AuditTargetType $targetType,
-        int|string|null $targetId,
+        mixed $targetId,
         ?array $before = null,
         ?array $after = null,
         array $metadata = [],
@@ -51,6 +51,10 @@ final readonly class AuditRecorder
         $actorId = Auth::id();
         if ($source === AuditSource::Web && ! is_int($actorId)) {
             throw new LogicException('Web audit recording requires an authenticated actor.');
+        }
+
+        if (! is_int($targetId) && ! is_string($targetId) && $targetId !== null) {
+            throw new InvalidArgumentException('Audit target ID must be an integer, string, or null.');
         }
 
         $target = $targetId === null ? null : (string) $targetId;
