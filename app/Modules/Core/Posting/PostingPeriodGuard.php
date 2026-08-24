@@ -29,7 +29,7 @@ final class PostingPeriodGuard
             throw new DomainException('İşlem tarihi için muhasebe dönemi bulunamadı.');
         }
 
-        if ($period->status !== PostingPeriodStatus::Open) {
+        if ($period->statusEnum() !== PostingPeriodStatus::Open) {
             throw new DomainException('İşlem tarihi kapalı bir muhasebe döneminde.');
         }
 
