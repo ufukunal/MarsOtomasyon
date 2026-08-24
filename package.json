@@ -1,0 +1,19 @@
+{
+    "$schema": "https://www.schemastore.org/package.json",
+    "name": "mars-otomasyon",
+    "private": true,
+    "type": "module",
+    "packageManager": "npm@11.6.0",
+    "engines": {
+        "node": ">=24 <25",
+        "npm": ">=11 <12"
+    },
+    "scripts": {
+        "build": "vite build",
+        "dev": "vite"
+    },
+    "devDependencies": {
+        "laravel-vite-plugin": "^3.1",
+        "vite": "^8.0.0"
+    }
+}
