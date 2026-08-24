@@ -76,6 +76,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Prepare Laravel environment
+        run: cp .env.example .env
+
       - name: Setup PHP 8.5
         uses: shivammathur/setup-php@v2
         with:
