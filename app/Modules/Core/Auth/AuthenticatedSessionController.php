@@ -68,7 +68,7 @@ final class AuthenticatedSessionController
             'last_login_at' => now(),
         ])->save();
 
-        return redirect()->intended(route('home', absolute: false));
+        return redirect()->intended(route('entry', absolute: false));
     }
 
     public function destroy(Request $request): RedirectResponse
