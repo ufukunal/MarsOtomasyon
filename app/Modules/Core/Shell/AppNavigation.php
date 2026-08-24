@@ -13,6 +13,7 @@ final readonly class AppNavigation
     /** @return list<array{label:string,route:string}> */
     public function items(): array
     {
+        /** @var list<array{label:string,route:string,feature:FeatureKey}> $candidates */
         $candidates = [
             ['label' => 'Ana Sayfa', 'route' => 'workspace', 'feature' => FeatureKey::Foundation],
             ['label' => 'Cariler', 'route' => 'customers.index', 'feature' => FeatureKey::Customers],
