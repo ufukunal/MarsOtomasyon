@@ -1,4 +1,4 @@
-# MarsOtomasyon — Master Plan V4.1 — V16.3 Tasarım Uyumlu
+# MarsOtomasyon — Master Plan V4.2 — V16.3 Tasarım Uyumlu
 
 Bu klasör `ufukunal/MarsOtomasyon` için **otoriter geliştirme planıdır**.
 
@@ -10,11 +10,12 @@ Bu klasör `ufukunal/MarsOtomasyon` için **otoriter geliştirme planıdır**.
 - operasyon/güvenlik dersleri
 kaynağıdır.
 
-V4.1, yeni temiz planın sade mimarisini korurken `MarsEski/plan` içindeki V16.3 ile hâlâ uyumlu doğruluk ayrıntılarını ve code-ready geliştirme gate'lerini birleştirir.
+V4.2, V4.1 code-ready doğruluk/gate yapısını korur ve ileride özellik eklerken çekirdeği bozmayacak **future extension seam** sözleşmelerini `27_GELECEK_GENISLEME_ALTYAPISI.md` ile tanımlar.
 
 ## Durum
-- Plan: **V4.1 — code-ready, V16.3 tasarım uyumlu**
+- Plan: **V4.2 — code-ready + future-ready, V16.3 tasarım uyumlu**
 - UI referansı: **MarsOtomasyon V16.3 — Genel Tasarım Temizliği**
+- Future extension contract: `27_GELECEK_GENISLEME_ALTYAPISI.md`
 - PHP 8.5 + Laravel 13
 - PostgreSQL 18 only
 - PostgreSQL FTS + `pg_trgm`
@@ -36,8 +37,9 @@ Ana navigasyon:
 2. İlgili business-owner plan belgesi (`03`–`25`).
 3. `26_V16_3_TASARIM_UYUMU.md` kullanıcı-visible ekran/akış sözleşmesi.
 4. `14_TEST_CI_KALITE.md` + `18_DEFINITION_OF_DONE.md` acceptance gates.
-5. Migration/application davranışı.
-6. `MarsEski` code/eski belge.
+5. `27_GELECEK_GENISLEME_ALTYAPISI.md` yalnız gelecekteki özelliklerin genişleme yöntemi için authority'dir; mevcut V1 business rule'u override etmez.
+6. Migration/application davranışı.
+7. `MarsEski` code/eski belge.
 
 **Not:** V16.3 kullanıcı-visible tasarımına aykırı davranış yalnız eski repoda vardı diye geri alınmaz.
 
@@ -74,6 +76,26 @@ Ana navigasyon:
 - M0 gerçek CI/toolchain/branch-protection çıkış kriteriyle güçlendirildi.
 - M12/M13 sequencing ve go-live channel cutover uyumsuzlukları düzeltildi.
 
+## V4.2 future-ready altyapı
+Geleceğe hazırlıkta kural **spekülatif framework değil, dar extension seam** bırakmaktır.
+
+Hazırlanan başlıca seam'ler:
+- provider family registry: marketplace, kargo, ödeme, e-belge, iletişim, kur, storage, OCR/AI, dış muhasebe, feed/discovery
+- typed capability contract
+- versioned internal event catalog convention
+- stable external identity/source-effect contract
+- code/config based feature registry
+- import parser registry
+- report registry
+- Product SKU'yu bozmadan opsiyonel ürün ailesi/varyant grouping yolu
+- mobil depo/scanner API yolu
+- shipping/payment/accounting/feed adapter aileleri
+- Attachment → extraction/review → domain action OCR yolu
+- AI recommendation seam; hiçbir AI sonucu ledger authority değildir
+- satış sonrası servis/garanti, hafif CRM, reorder/forecast ve BI'nin ledger'dan ayrıldığı sınırlar
+
+Ayrıntı: `27_GELECEK_GENISLEME_ALTYAPISI.md`.
+
 ## V4'te eski plandan geri alınan kritik ayrıntılar
 V16.3 ile uyumlu olduğu için korunan başlıca kurallar:
 - `NUMERIC(20,6)` money/qty/cost ve `NUMERIC(20,10)` kur standardı.
@@ -109,6 +131,9 @@ Her teslim:
 
 Büyük modüller tek dev committe yazılmaz; independently test edilebilir vertical slice'lar atomic commitlerle ilerler.
 
+Gelecek feature için ayrıca:
+`need → owner → extension seam → additive schema → feature gate → vertical slice → tests → rollout`.
+
 ## Başlangıç okuma sırası
 Yeni geliştirmeye başlarken:
 1. `00_KARAR_KAYDI.md`
@@ -118,5 +143,6 @@ Yeni geliştirmeye başlarken:
 5. `06_IS_KURALLARI_VE_INVARIANTLAR.md`
 6. `14_TEST_CI_KALITE.md`
 7. `26_V16_3_TASARIM_UYUMU.md`
+8. yalnız gelecek/genişleme özelliği ekleniyorsa `27_GELECEK_GENISLEME_ALTYAPISI.md`
 
 Bu kaynaklar birlikte uygulanmadan modül tamamlanmış sayılmaz.
