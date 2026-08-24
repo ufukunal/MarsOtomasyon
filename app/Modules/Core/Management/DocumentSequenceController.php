@@ -162,7 +162,7 @@ final class DocumentSequenceController
     private function snapshot(DocumentSequence $sequence): array
     {
         return [
-            'document_type' => $sequence->document_type->value,
+            'document_type' => $sequence->documentTypeEnum()->value,
             'series_code' => (string) $sequence->series_code,
             'prefix' => (string) $sequence->prefix,
             'padding' => (int) $sequence->padding,
