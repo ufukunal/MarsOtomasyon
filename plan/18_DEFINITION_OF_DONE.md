@@ -29,7 +29,7 @@ Bu convention'lar gerçek consumer yoksa boş plugin/framework/DB tablo ağı ku
 - validation ve authorization hazır
 - transaction sınırı doğru
 - idempotency/concurrency ihtiyacı ele alınmış
-- V16.3 kullanıcı-visible davranışına uyuyor
+- V16.3 veya sonraki onaylı kullanıcı-visible davranışına uyuyor
 - dead button/placeholder yok
 - audit/observability gereken yerde var
 - unit/feature/integration testleri var
@@ -242,31 +242,77 @@ Yeni feature ancak:
 - ilgili owner plan + test + UI contract güncellendi
 olduğunda production kapsamına alınabilir.
 
-## Ürün family/variant future DoD
-Variant grouping gerçek ihtiyaçta eklenirse:
-- Product/SKU stock-price-cost authority değişmiyor
-- family/variant relation additive
-- simple Product family olmadan çalışmaya devam ediyor
+# Planlı M25–M31 DoD
+
+## M25 Product Family / Variant
+- Product/SKU stock-price-barcode-cost authority değişmiyor
+- family/variant schema additive
+- simple Product family olmadan çalışıyor
+- existing Product ID/SKU değişmiyor
+- variant dimension/value uniqueness var
 - marketplace parent/child mapping explicit
-- migration existing Product ID/SKU'ları kırmıyor
-- search/media/report behavior testli
+- family archive/delete SKU/history'yi silmiyor
+- search/media/report davranışı testli
 
-## OCR/AI future DoD
-- provider/model/version metadata
-- input/output limitleri
-- PII/secret redaction policy
-- confidence/review lifecycle
-- low-confidence sonucu human/policy review'suz business posting yapmıyor
-- AI/OCR output doğrudan AccountTransaction/StockMovement/TreasuryMovement yazamıyor
-- accepted suggestion normal domain use-case'e giriyor
-- audit/reference korunuyor
+## M26 Barkod / Termal Etiket
+- label source payload canonical entity'den geliyor
+- A4/termal render testli
+- ZPL/TSPL gibi adapter varsa fixture/snapshot var
+- PrinterProfile/LabelTemplate company scope'lu
+- reprint audit var ama ledger/business state mutate etmiyor
+- printer/bridge failure açık error state
 
-## Mobil/scanner future DoD
-- same server-side action/invariant
-- stable client operation/idempotency key
-- retry duplicate effect üretmiyor
-- permission/company scope
-- offline mode varsa ayrıca conflict/reconciliation design
+## M27 Mobil Depo / Scanner
+- mevcut server-side domain action'ları kullanılıyor
+- stable client operation/idempotency key var
+- retry duplicate stock/document effect üretmiyor
+- scanner flow keyboard/camera/device failure state testli
+- company/warehouse/permission scope server-side
+- network loss fake success göstermiyor
+- offline write varsa ayrıca conflict/reconciliation design ve test var
+
+## M28 Kargo API Adapterları
+- A-12/provider entry gate kapanmış
+- shipping provider registry + credentials + capability matrix
+- shipment create idempotent
+- ambiguous timeout blind duplicate shipment oluşturmuyor
+- external shipment/tracking mapping var
+- label artifact authorized
+- tracking event dedupe
+- provider callback Mars Dispatch'i doğrudan mutate etmiyor
+- cancel/return-shipment supported/manual davranışı açık
+- problem center/retry/rate-limit/redaction hazır
+
+## M29 OCR Fatura / Dekont
+- Attachment security uygulanıyor
+- ExtractionJob + provider/model/version + confidence metadata
+- field-level review/correction history
+- low-confidence policy/human review
+- cari/ürün/banka eşleme yalnız suggestion
+- OCR output doğrudan AccountTransaction/StockMovement/TreasuryMovement yazamıyor
+- reviewed result normal Invoice/Expense/Bank use-case validation'ına giriyor
+- duplicate upload/result second business effect üretmiyor
+- PII/provider retention policy belli
+
+## M30 Hafif CRM
+- Lead/Opportunity/Activity company scope
+- stage/history audit
+- Account master duplicate edilmiyor
+- Lead→Account conversion explicit ve duplicate-safe
+- Quote/Account linkage testli
+- lost/cancelled opportunity finance/stock effect üretmiyor
+- generic BPM/marketing automation platformuna dönüşmüyor
+
+## M31 BI Export
+- curated dataset definition + schema version
+- company scope + PII field allow-list
+- dataset totals authoritative report/read-model ile reconcile
+- scheduled export runtime authorization
+- large export restart/failure handling
+- artifact expiry/access audit
+- incremental watermark varsa restart-safe
+- operational DB write-back yok
+- read replica/materialized view yalnız ölçülmüş ihtiyaçla
 
 ## Milestone DoD
 Milestone içindeki zorunlu dikey akış en baştan sona gerçek PostgreSQL üzerinde çalışmalı ve smoke/E2E testi geçmelidir.
@@ -284,3 +330,5 @@ Production candidate yalnız M23 sonunda:
 - final report catalog
 - CI/main protection doğrulaması
 başarılıysa verilir.
+
+M25–M31 post-V1 özellikleri kendi DoD'larını geçmeden mevcut production systemde `enabled` edilmez; bu milestone'ların eksikliği V1 M24 go-live'ını geriye dönük geçersiz kılmaz.
