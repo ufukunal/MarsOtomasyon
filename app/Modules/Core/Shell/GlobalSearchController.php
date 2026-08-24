@@ -136,15 +136,11 @@ final readonly class GlobalSearchController
     private function ranked(Builder $builder, string $documentSql, string $similarityColumn, string $query): Builder
     {
         $rankSql = "ts_rank(to_tsvector('simple', {$documentSql}), plainto_tsquery('simple', ?)) + similarity(lower({$similarityColumn}), lower(?))";
+        $matchSql = "(to_tsvector('simple', {$documentSql}) @@ plainto_tsquery('simple', ?) OR similarity(lower({$similarityColumn}), lower(?)) >= 0.15 OR lower({$similarityColumn}) LIKE ?)";
 
         return $builder
             ->selectRaw("{$rankSql} as search_score", [$query, $query])
-            ->where(function ($search) use ($documentSql, $similarityColumn, $query): void {
-                $search
-                    ->whereRaw("to_tsvector('simple', {$documentSql}) @@ plainto_tsquery('simple', ?)", [$query])
-                    ->orWhereRaw("similarity(lower({$similarityColumn}), lower(?)) >= 0.15", [$query])
-                    ->orWhereRaw("lower({$similarityColumn}) LIKE ?", ['%'.mb_strtolower($query).'%']);
-            })
+            ->whereRaw($matchSql, [$query, $query, '%'.mb_strtolower($query).'%'])
             ->orderByDesc('search_score');
     }
 
