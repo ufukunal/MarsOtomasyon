@@ -17,6 +17,9 @@
             @can('core.settings.view')
                 <a href="{{ route('settings.company.show') }}">Firma / Sistem</a>
                 <a href="{{ route('settings.numbering.index') }}">Numaralandırma</a>
+                <a href="{{ route('settings.taxes.index') }}">Vergi / KDV</a>
+                <a href="{{ route('settings.exchange-rates.index') }}">Para Birimi / Kur</a>
+                <a href="{{ route('settings.posting-periods.index') }}">Dönemler</a>
             @endcan
             @can('core.user.view')
                 <a href="{{ route('settings.users.index') }}">Kullanıcılar</a>
