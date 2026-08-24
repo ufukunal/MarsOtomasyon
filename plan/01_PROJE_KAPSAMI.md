@@ -88,8 +88,21 @@ SMS, e-posta, WhatsApp sağlayıcı adaptörleri; template, delivery, retry ve a
 ## Rapor
 Hazır rapor merkezi, filtre/KPI/tablo, Excel/CSV/PDF/yazdırma ve zamanlanmış raporlar.
 
+## Dosya / Önizleme / Yazdırma
+V1 ortak Files capability:
+- private attachment/media
+- checksum/version
+- PDF viewer
+- görsel viewer
+- permission kontrollü indirme/yazdırma
+- unsupported format için açık `Önizleme desteklenmiyor` davranışı
+
+PDF/görsel viewer ayrı top-level modül değildir; attachment bulunan her domain ekranında ortak `Önizle` action olarak çalışır.
+
+CAD/3D dosyaları V1'de yalnız güvenli attachment olarak saklanabilir; browser CAD/3D görüntüleme M32 planlı genişlemesidir.
+
 # Planlı V1 sonrası genişlemeler
-Aşağıdaki özellikler artık fikir/adayı değil, resmî post-V1 roadmap kapsamıdır. V1 go-live M24'ü bloklamaz; varsayılan olarak M25–M31 arasında uygulanır.
+Aşağıdaki özellikler artık fikir/adayı değil, resmî post-V1 roadmap kapsamıdır. V1 go-live M24'ü bloklamaz; varsayılan olarak M25–M32 arasında uygulanır.
 
 1. **Product Family / Variant** — mevcut Product/SKU authority'sini bozmadan ürün ailesi ve marketplace parent/child grouping.
 2. **Barkod / Termal Etiket** — A4/termal/ZPL ürün, depo, lokasyon, koli ve sevkiyat etiketleri.
@@ -98,8 +111,9 @@ Aşağıdaki özellikler artık fikir/adayı değil, resmî post-V1 roadmap kaps
 5. **OCR Fatura / Dekont Okuma** — attachment extraction + confidence + human review + normal domain use-case.
 6. **Hafif CRM** — lead, fırsat, aktivite, takip ve teklif/cari bağlantısı; finans authority değil.
 7. **BI Export** — curated read-model dataset, scheduled export ve kontrollü analitik erişim; write-back yok.
+8. **CAD / 3D Viewer** — DWG/DXF/MAX ve seçilen teknik 3D formatlar için original + derivative preview modeli; Autodesk APS/ODA/local conversion provider strategy.
 
-Ayrıntılı kapsam ve dependency: `28_PLANLI_GENISLEMELER.md`.
+Ayrıntılı kapsam ve dependency: `28_PLANLI_GENISLEMELER.md` ve dosya viewer sözleşmesi `30_DOSYA_ONIZLEME_CAD_3D.md`.
 
 ## V1 dışında / planlı olmayan
 - SaaS abonelik/tier/billing
@@ -112,6 +126,7 @@ Ayrıntılı kapsam ve dependency: `28_PLANLI_GENISLEMELER.md`.
 - gereksiz microservice parçalanması
 - her pazaryeri için ayrı kopya sipariş/stok/fatura motoru
 - doğrulanmamış marketplace API'sine dayalı production adapter
+- AutoCAD/3ds Max benzeri authoring/editing uygulaması geliştirmek
 
 ## Kullanıcı deneyimi sınırı
 V16.3'te görünen ana ekran ve akışlar acceptance baseline'dır. Yeni pazaryerleri ayrı ana menü şişkinliği oluşturmaz; mevcut `E-Ticaret/B2B` çalışma alanına kanal filtresi/kartı olarak girer. Planlı genişlemeler de mümkün olduğunca mevcut `Ürün/Stok`, `Satış`, `Cariler`, `Raporlar` ve `Ayarlar` çalışma alanlarına secondary surface olarak eklenir; top-level navigasyon yalnız yeni onaylı UI sözleşmesiyle değişir. Teknik mimari ayrıntıları normal kullanıcı arayüzüne sızdırılmaz.
