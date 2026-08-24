@@ -140,22 +140,70 @@ Routing/work-center/ECO/OEE tests core değildir.
 - deterministic rounding
 - loading simulation business authority değil
 
-## 14. E-Ticaret / B2B
+## 14. E-Ticaret / B2B ortak testleri
 - provider-account + external entity uniqueness
 - inbound message dedupe
-- webhook retry duplicate order üretmiyor
+- webhook/poll retry duplicate order üretmiyor
 - Mars stock authority
 - publish stock formula incl. safety stock
 - stale retry current desired state'i geriye götürmüyor
+- provider raw status Mars SalesOrder state'ini keyfi overwrite etmiyor
+- unsupported capability gerçek action gibi gösterilmiyor
+- secret read-back masked
+- connection-test permission/error handling
+- rate-limit/backoff provider policy'ye uyuyor
+- ambiguous response blind resend yapmıyor
+- malformed provider payload business effect üretmiyor
+- channel/account isolation
 - B2B user pre-bound cari
 - B2B başka cari göremiyor
 - B2B order no cari effect
 - invoice cari effect
 - B2B discount = Cari İskontosu
-- secret read-back masked
-- connection-test permission/error handling
 
-## 15. API / Security
+## 15. Marketplace adapter contract test suite
+Aşağıdaki ortak contract suite her marketplace adapterına uygulanır:
+1. credential schema + secret masking
+2. connection test success/failure
+3. capability discovery/static matrix
+4. product/listing identity mapping
+5. stock desired-state publish idempotency
+6. price publish normalization/rounding
+7. order import normalization
+8. duplicate order/event guard
+9. shipment/cancel/return capability mapping
+10. provider error → normalized problem record
+11. retry/backoff/rate-limit
+12. timeout/ambiguous outcome reconcile
+13. polling cursor/watermark restart safety
+14. webhook replay safety where supported
+15. raw payload redaction/retention policy
+16. API version/deprecation fixture compatibility
+
+### Provider-specific suites
+- WooCommerce
+- Trendyol
+- Hepsiburada
+- Amazon SP-API
+- n11
+- PttAVM
+- idefix
+- Çiçeksepeti
+
+Her adapter için provider contract fixture/sample payload'ları repository test fixture'larında versionlanır. Production credential CI'a yazılmaz.
+
+### Amazon ekstra testleri
+- marketplace/region scope
+- LWA/token lifecycle abstraction
+- listing/catalog identity
+- FBA/FBM capability ayrımı
+- Orders/shipment normalization
+- report/settlement evidence import idempotency
+
+### Hepsiburada/n11/idefix/PttAVM/Çiçeksepeti ekstra testleri
+Provider'ın batch/task/pagination/rate-limit/status davranışları fixture ile test edilir; provider'ın desteklemediği operasyonlar `unsupported/manual` olarak deterministic davranır.
+
+## 16. API / Security
 - same idempotency key + different payload conflict
 - CSRF/authorization/rate-limit critical paths
 - webhook signature/replay
@@ -164,7 +212,7 @@ Routing/work-center/ECO/OEE tests core değildir.
 - upload validation/quarantine where enabled
 - secret/PII redaction
 
-## 16. Search
+## 17. Search
 PostgreSQL FTS + `pg_trgm`:
 - SKU/barcode exact/prefix
 - Turkish product/contact name
@@ -173,7 +221,7 @@ PostgreSQL FTS + `pg_trgm`:
 - company isolation
 - search result authorization re-check
 
-## 17. Reports / Print
+## 18. Reports / Print
 - ready report routes where implemented
 - filter consistency
 - runtime permission for scheduled report
@@ -181,7 +229,7 @@ PostgreSQL FTS + `pg_trgm`:
 - PDF/print
 - no action column/browser scrollbar in print
 
-## 18. Migration / import/export
+## 19. Migration / import/export
 - dry-run
 - row validation/error report
 - duplicate/restart idempotency
@@ -191,7 +239,7 @@ PostgreSQL FTS + `pg_trgm`:
 - historical import external side-effect count = 0
 - reconciliation
 
-## 19. Backup / restore
+## 20. Backup / restore
 Release/pre-go-live:
 - backup creation
 - isolated restore drill
@@ -200,14 +248,16 @@ Release/pre-go-live:
 - sequence/external mapping integrity
 - recovery mode barrier
 
-## 20. Heavy / pre-release
+## 21. Heavy / pre-release
 - full regression
 - risky migration rehearsal
 - projection rebuild/reconciliation
 - provider timeout/ambiguous response
+- marketplace adapter fixture suite
+- selected sandbox/test-account smoke
 - large import/export
 - UI route crawl
 - performance indexes/query plans for touched hotspots
 
-## 21. Merge / main kuralı
+## 22. Merge / main kuralı
 Kırmızı CI ile main değişikliği tamamlanmış sayılmaz. Flaky test disable edilmez; kök neden düzeltilir. Documentation-only commit application full suite'i zorunlu kılmaz.
