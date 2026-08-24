@@ -15,7 +15,9 @@ final readonly class CompanyPermissionAuthorizer
 
     public function allows(User $user, PermissionKey $permission): bool
     {
-        if ($user->status !== UserStatus::Active) {
+        $status = UserStatus::tryFrom((string) $user->getRawOriginal('status'));
+
+        if ($status !== UserStatus::Active) {
             return false;
         }
 
