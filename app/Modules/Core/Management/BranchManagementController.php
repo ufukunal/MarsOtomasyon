@@ -140,7 +140,7 @@ final readonly class BranchManagementController
         $validated = $request->validate([
             'code' => ['required', 'string', 'max:32', 'regex:/^[A-Za-z0-9._-]+$/'],
             'name' => ['required', 'string', 'max:160'],
-            'is_active' => ['nullable', 'boolean'],
+            'is_active' => ['required', 'boolean'],
         ]);
 
         return [
