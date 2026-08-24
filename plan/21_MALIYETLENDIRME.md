@@ -1,53 +1,110 @@
-# 21 — Maliyetlendirme
+# 21 — Maliyetlendirme V4
 
-## Amaç
-MarsOtomasyon ürün, alış, üretim ve ithalat maliyetini izleyebilir; ancak V1'de tam genel muhasebe maliyet sistemi kurmaz.
+## 1. Amaç
+MarsOtomasyon ürün, alış, üretim, fason ve ithalat maliyetini izler; full general-ledger manufacturing costing platformu kurmaz.
 
-## Ürün maliyeti
-Temel maliyet kaynakları:
-- alış fiyatı/mal kabul
-- ithalat dağıtılmış maliyetleri
-- üretimde tüketilen malzeme
-- fason hizmet/giderleri
-- tanımlı ek operasyonel giderler
+Maliyet authoritative stock/purchase/import source hareketlerinden türetilir. `products.current_cost` tek başına truth değildir.
 
-Maliyet hesaplama yöntemi ayrı business policy olarak seçilir; stok miktarı ledger ile maliyet değerini aynı tabloda kontrolsüz karıştırmaz.
+## 2. Precision / chronology
+High-precision DECIMAL kullanılır. Company base currency ve exchange-rate snapshot saklanır. Silent historical rewrite yoktur.
 
-## İthalat maliyeti
-Sevkiyat/konteyner giderleri ayrı kalemlerdir:
-- ürün bedeli
-- navlun/nakliye
-- sigorta
-- vergi/resmi gider
-- liman/depolama
-- aracı/hizmet gideri
-- yasal olarak kaydedilen diğer operasyon giderleri
+## 3. Stok maliyet kaynağı
+StockMovement gerektiğinde:
+- unit cost
+- total/base cost
+- currency/rate snapshot
+- source lineage
 
-Dağıtım anahtarları:
-- miktar
-- ağırlık
-- hacim
-- ürün değeri
-- özel oran
+taşır.
 
-Her allocation run kaynak toplam, dağıtılan toplam ve farkı gösterir.
+Transfer destination carrying value'yu taşır; transfer kendi başına kâr/zarar yaratmaz.
 
-## Üretim maliyeti
-En az:
-- gerçek malzeme tüketimi
-- fason gideri
-- gerektiğinde tanımlı ek üretim gideri
+## 4. Satınalma maliyeti
+GoodsReceipt provisional/known purchase cost ile stock-in yapabilir. SupplierInvoice fiyat farkı gerekiyorsa original receipt/source lineage'a bağlanır.
 
-V1'de karmaşık standart maliyet/MRP varyans platformu hedeflenmez.
+Aynı quantity/price difference iki kez inventory cost adjustment üretemez.
 
-## Kârlılık
-Satış raporlarında gelir ile seçilen maliyet snapshot/projection karşılaştırılabilir. Geçmiş kârlılık raporu son master maliyet değişti diye sessizce yeniden anlam değiştirmemelidir.
+## 5. Purchase price vs FX difference
+Foreign-currency purchase'ta:
+- commercial purchase-price difference
+- exchange-rate difference
+ayrı kavramdır.
 
-## Döviz
-Foreign currency maliyetinde işlem tarihindeki kur snapshot'ı saklanır. Sonraki kur değişikliği geçmiş allocation'ı değiştirmez; yeniden değerleme ayrı ihtiyaçtır.
+Aynı ekonomik fark hem inventory adjustment hem FX effect olarak double-count edilmez.
 
-## Rounding
-Dağıtımda rounding artığı deterministik olarak bir/az sayıda satıra dağıtılır; toplam kaynak tutarla birebir uzlaşır.
+## 6. Stok sayım valuation
+Positive stock count adjustment yeni inventory value yaratır.
 
-## Audit
-Maliyet allocation run'ı kim/ne zaman/hangi yöntemle yaptı bilgisiyle saklanır; kapatılmış run değiştirilecekse yeni version/reversal yaklaşımı kullanılır.
+Güvenli baseline:
+- güvenilir carrying/moving-average cost varsa onu kullan
+- güvenilir cost yoksa yetkili explicit valuation/policy olmadan positive value posting yapma
+- negative adjustment mevcut carrying-value policy ile çıkar
+
+Silent zero-cost positive stock creation yoktur.
+
+## 7. Üretim maliyeti
+Basit üretim:
+`çıkan gerçek malzeme maliyeti + explicit üretim/fason ek giderleri = mamule dağıtılabilir maliyet`.
+
+Kısmi mamul girişi varsa posted output quantity'ye deterministic basis ile maliyet dağıtılır. Unresolved material/output quantity ile production close olmaz.
+
+Routing/work-center/labor-machine standard rate/OEE/ECO costing core değildir.
+
+## 8. Fason maliyeti
+Company-owned gönderilen malzeme carrying value custody'de korunur. Fason hizmet bedeli ve explicit diğer giderler gelen mamul maliyetine uygun basis ile eklenebilir.
+
+Fire/eksik ayrı adjustment/cost effect'tir; aynı value mamule ikinci kez yüklenmez.
+
+## 9. İthalat / landed cost
+Cost items container ve/veya shipment/general seviyede tutulur.
+
+Allocation basis snapshot:
+- purchase value
+- quantity
+- weight
+- volume
+- manual rate
+
+Source total ile allocated total reconcile edilir. Rounding artığı deterministic dağıtılır.
+
+## 10. Late landed cost
+Geç gelen navlun/vergi/hizmet vb. cost original import/receipt lineage'a bağlanır.
+
+Cost yalnız current on-hand'a körlemesine yığılmaz. Gerekirse:
+- consumed share
+- on-hand share
+ayrımı policy ile yapılır.
+
+Bu policy `19_ACIK_KARARLAR.md` A-17 kapanınca locked hale gelir.
+
+## 11. Returns
+Satış iadesinde mümkünse original outbound cost lineage kullanılır. Alış iadesi original receipt/cost lineage üzerinden value çıkarır.
+
+## 12. Kârlılık
+Sales profitability gelir ile seçilen cost snapshot/projection'ı karşılaştırır. Geçmiş rapor current master cost değişince sessizce anlam değiştirmez.
+
+## 13. Marketplace/B2B contribution
+Commission/shipping/return/provider fee ancak gerçek provider evidence varsa actual gösterilir. Tahmini değer actual truth gibi sunulmaz.
+
+## 14. Projection / rebuild
+Cost balance/reporting projection authority değildir. Incremental/full rebuild deterministic aynı sonucu üretmelidir. Mismatch silent fix değil alert → investigate → controlled correction akışı kullanır.
+
+## 15. Audit / versioning
+Cost allocation run:
+- kim
+- ne zaman
+- yöntem
+- source total
+- allocated total
+- rounding difference
+- source refs
+ile saklanır. Finalized run silent mutate edilmez; version/reversal/correction kullanılır.
+
+## 16. Scope dışı
+- full standard-cost/MRP variance platformu
+- routing/work-center costing
+- OEE cost accounting
+- ECO rebase costing
+- plant maintenance capitalization
+- generic manufacturing costing suite
+V1 core değildir.
