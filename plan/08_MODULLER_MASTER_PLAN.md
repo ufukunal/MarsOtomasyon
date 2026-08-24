@@ -207,12 +207,20 @@ Hedef 40 hazır rapor / 8 kategori. Generic report designer yoktur.
 - Yedekleme
 - gerekli business settings
 
-## 16. Dosyalar / Yazdırma
+## 16. Dosyalar / Önizleme / Yazdırma
 Ortak Files capability:
 - attachment/media metadata
 - private authorization
 - checksum/version
 - scan/quarantine where enabled
+- PDF viewer
+- görsel viewer
+- preview/derivative status ve normalized failure
+- permission kontrollü download/print
+
+V1 PDF viewer için PDF.js benzeri browser viewer; görseller için ortak zoom/pan/gallery viewer kullanılır. PDF/görsel viewer ayrı menü değildir; attachment bulunan tüm domainlerde `Önizle` action'dır.
+
+CAD/3D original dosyaları aynı Attachment authority altında tutulabilir; DWG/DXF/MAX ve diğer teknik formatların browser preview'si M32'de original → derivative → viewer modeliyle gelir.
 
 Belge PDF'leri server-owned versioned template kullanır. Ürün Kurulum PDF Builder domain-specific'tir.
 
@@ -299,7 +307,18 @@ Sahibi `Reporting/Analytics Export` capability'sidir.
 
 BI operational database authority değildir ve write-back yoktur.
 
-Ayrıntılı roadmap: `28_PLANLI_GENISLEMELER.md`.
+## 25. CAD / 3D Viewer
+Sahibi `Files/Preview + Integration` capability'sidir.
+- DWG/DXF 2D CAD preview
+- MAX/3DS/FBX/OBJ/STL/STEP/IFC gibi seçilmiş formatlarda 3D preview
+- original file + derivative artifact lineage
+- Autodesk APS / ODA / local converter provider strategy
+- read-only 2D/3D viewer
+- object/layer/property/measure capability provider destekliyorsa
+
+CAD/3D viewer authoring/editing motoru değildir. Orijinal Attachment authority kalır; derivative yeniden üretilebilir preview'dır.
+
+Ayrıntılı roadmap: `28_PLANLI_GENISLEMELER.md`. Dosya preview mimarisi: `30_DOSYA_ONIZLEME_CAD_3D.md`.
 
 ## Modül anti-goals
 - aynı iş için duplicate ekran yok
@@ -317,3 +336,4 @@ Ayrıntılı roadmap: `28_PLANLI_GENISLEMELER.md`.
 - OCR autonomous finance/stock posting yapmaz
 - CRM ayrı Account master/finance ledger kurmaz
 - BI operational DB'ye sınırsız write/read authority vermez
+- CAD/3D viewer AutoCAD veya 3ds Max replacement/editing platformu değildir
