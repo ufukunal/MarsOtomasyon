@@ -41,11 +41,7 @@ final readonly class ResolveActiveBranch
                 abort(409, 'Aktif şube seçimi gerekli.');
             }
 
-            $onlyBranch = $branches->first();
-            if (! $onlyBranch instanceof Branch) {
-                abort(409, 'Aktif şube seçimi çözülemedi.');
-            }
-
+            $onlyBranch = $branches->sole();
             $onlyBranchId = $onlyBranch->getKey();
             if (! is_int($onlyBranchId)) {
                 abort(409, 'Aktif şube seçimi geçersiz.');
