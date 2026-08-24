@@ -139,7 +139,11 @@ final readonly class CompanyFileManager
         return Storage::disk((string) $asset->storage_disk)->download(
             (string) $asset->storage_key,
             (string) $asset->original_name,
-            ['Content-Type' => (string) $asset->mime_type],
+            [
+                'Content-Type' => (string) $asset->mime_type,
+                'X-Content-Type-Options' => 'nosniff',
+                'Content-Security-Policy' => "default-src 'none'; sandbox",
+            ],
         );
     }
 
