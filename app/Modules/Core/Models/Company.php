@@ -42,4 +42,10 @@ final class Company extends Model
     {
         return $this->hasMany(Role::class);
     }
+
+    /** @return HasMany<DocumentSequence, $this> */
+    public function documentSequences(): HasMany
+    {
+        return $this->hasMany(DocumentSequence::class);
+    }
 }
