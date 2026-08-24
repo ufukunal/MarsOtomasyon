@@ -2,17 +2,24 @@
 
 namespace App\Modules\Core\Management;
 
+use App\Modules\Core\Audit\AuditRecorder;
 use App\Modules\Core\Company\ActiveCompanyContext;
+use App\Modules\Core\Enums\AuditAction;
+use App\Modules\Core\Enums\AuditTargetType;
 use App\Modules\Core\Models\Tax;
 use App\Modules\Core\Models\TaxZeroReason;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 final class TaxSettingsController
 {
-    public function __construct(private readonly ActiveCompanyContext $companyContext) {}
+    public function __construct(
+        private readonly ActiveCompanyContext $companyContext,
+        private readonly AuditRecorder $audit,
+    ) {}
 
     public function index(): View
     {
@@ -32,16 +39,27 @@ final class TaxSettingsController
     public function storeTax(Request $request): RedirectResponse
     {
         $data = $this->validateTax($request);
-        $code = mb_strtoupper(trim((string) $data['code']));
+        $code = mb_strtoupper(trim($data['code']));
         $this->assertTaxCodeAvailable($code);
 
-        $tax = Tax::query()->create([
-            'company_id' => $this->companyId(),
-            'code' => $code,
-            'name' => trim((string) $data['name']),
-            'rate' => (string) $data['rate'],
-            'is_active' => $request->boolean('is_active'),
-        ]);
+        $tax = DB::transaction(function () use ($data, $code, $request): Tax {
+            $tax = Tax::query()->create([
+                'company_id' => $this->companyId(),
+                'code' => $code,
+                'name' => trim($data['name']),
+                'rate' => $data['rate'],
+                'is_active' => $request->boolean('is_active'),
+            ]);
+
+            $this->audit->record(
+                AuditAction::TaxCreated,
+                AuditTargetType::Tax,
+                (int) $tax->getKey(),
+                after: $this->taxSnapshot($tax),
+            );
+
+            return $tax;
+        });
 
         return redirect()->route('settings.taxes.show', $tax)->with('status', 'Vergi tanımı oluşturuldu.');
     }
@@ -58,17 +76,35 @@ final class TaxSettingsController
 
     public function updateTax(Request $request, int $tax): RedirectResponse
     {
-        $tax = $this->tax($tax);
         $data = $this->validateTax($request);
-        $code = mb_strtoupper(trim((string) $data['code']));
-        $this->assertTaxCodeAvailable($code, (int) $tax->getKey());
+        $code = mb_strtoupper(trim($data['code']));
 
-        $tax->update([
-            'code' => $code,
-            'name' => trim((string) $data['name']),
-            'rate' => (string) $data['rate'],
-            'is_active' => $request->boolean('is_active'),
-        ]);
+        $tax = DB::transaction(function () use ($tax, $data, $code, $request): Tax {
+            $locked = Tax::query()
+                ->where('company_id', $this->companyId())
+                ->lockForUpdate()
+                ->findOrFail($tax);
+
+            $this->assertTaxCodeAvailable($code, (int) $locked->getKey());
+            $before = $this->taxSnapshot($locked);
+
+            $locked->update([
+                'code' => $code,
+                'name' => trim($data['name']),
+                'rate' => $data['rate'],
+                'is_active' => $request->boolean('is_active'),
+            ]);
+
+            $this->audit->record(
+                AuditAction::TaxUpdated,
+                AuditTargetType::Tax,
+                (int) $locked->getKey(),
+                before: $before,
+                after: $this->taxSnapshot($locked),
+            );
+
+            return $locked;
+        });
 
         return redirect()->route('settings.taxes.show', $tax)->with('status', 'Vergi tanımı güncellendi.');
     }
@@ -81,15 +117,26 @@ final class TaxSettingsController
     public function storeZeroReason(Request $request): RedirectResponse
     {
         $data = $this->validateZeroReason($request);
-        $code = mb_strtoupper(trim((string) $data['code']));
+        $code = mb_strtoupper(trim($data['code']));
         $this->assertZeroReasonCodeAvailable($code);
 
-        $reason = TaxZeroReason::query()->create([
-            'company_id' => $this->companyId(),
-            'code' => $code,
-            'name' => trim((string) $data['name']),
-            'is_active' => $request->boolean('is_active'),
-        ]);
+        $reason = DB::transaction(function () use ($data, $code, $request): TaxZeroReason {
+            $reason = TaxZeroReason::query()->create([
+                'company_id' => $this->companyId(),
+                'code' => $code,
+                'name' => trim($data['name']),
+                'is_active' => $request->boolean('is_active'),
+            ]);
+
+            $this->audit->record(
+                AuditAction::TaxZeroReasonCreated,
+                AuditTargetType::TaxZeroReason,
+                (int) $reason->getKey(),
+                after: $this->zeroReasonSnapshot($reason),
+            );
+
+            return $reason;
+        });
 
         return redirect()->route('settings.tax-zero-reasons.show', $reason)->with('status', 'KDV sıfır nedeni oluşturuldu.');
     }
@@ -106,16 +153,34 @@ final class TaxSettingsController
 
     public function updateZeroReason(Request $request, int $zeroReason): RedirectResponse
     {
-        $reason = $this->zeroReason($zeroReason);
         $data = $this->validateZeroReason($request);
-        $code = mb_strtoupper(trim((string) $data['code']));
-        $this->assertZeroReasonCodeAvailable($code, (int) $reason->getKey());
+        $code = mb_strtoupper(trim($data['code']));
 
-        $reason->update([
-            'code' => $code,
-            'name' => trim((string) $data['name']),
-            'is_active' => $request->boolean('is_active'),
-        ]);
+        $reason = DB::transaction(function () use ($zeroReason, $data, $code, $request): TaxZeroReason {
+            $locked = TaxZeroReason::query()
+                ->where('company_id', $this->companyId())
+                ->lockForUpdate()
+                ->findOrFail($zeroReason);
+
+            $this->assertZeroReasonCodeAvailable($code, (int) $locked->getKey());
+            $before = $this->zeroReasonSnapshot($locked);
+
+            $locked->update([
+                'code' => $code,
+                'name' => trim($data['name']),
+                'is_active' => $request->boolean('is_active'),
+            ]);
+
+            $this->audit->record(
+                AuditAction::TaxZeroReasonUpdated,
+                AuditTargetType::TaxZeroReason,
+                (int) $locked->getKey(),
+                before: $before,
+                after: $this->zeroReasonSnapshot($locked),
+            );
+
+            return $locked;
+        });
 
         return redirect()->route('settings.tax-zero-reasons.show', $reason)->with('status', 'KDV sıfır nedeni güncellendi.');
     }
@@ -154,6 +219,27 @@ final class TaxSettingsController
         ]);
 
         return ['code' => (string) $validated['code'], 'name' => (string) $validated['name']];
+    }
+
+    /** @return array{code:string,name:string,rate:string,is_active:bool} */
+    private function taxSnapshot(Tax $tax): array
+    {
+        return [
+            'code' => (string) $tax->code,
+            'name' => (string) $tax->name,
+            'rate' => (string) $tax->rate,
+            'is_active' => (bool) $tax->is_active,
+        ];
+    }
+
+    /** @return array{code:string,name:string,is_active:bool} */
+    private function zeroReasonSnapshot(TaxZeroReason $reason): array
+    {
+        return [
+            'code' => (string) $reason->code,
+            'name' => (string) $reason->name,
+            'is_active' => (bool) $reason->is_active,
+        ];
     }
 
     private function tax(int $id): Tax
