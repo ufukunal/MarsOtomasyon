@@ -170,7 +170,7 @@ final class TaxSettingsController
     {
         $query = Tax::query()->where('company_id', $this->companyId())->whereRaw('lower(code) = ?', [mb_strtolower($code)]);
         if ($exceptId !== null) {
-            $query->whereKeyNot($exceptId);
+            $query->where('id', '<>', $exceptId);
         }
 
         if ($query->exists()) {
@@ -182,7 +182,7 @@ final class TaxSettingsController
     {
         $query = TaxZeroReason::query()->where('company_id', $this->companyId())->whereRaw('lower(code) = ?', [mb_strtolower($code)]);
         if ($exceptId !== null) {
-            $query->whereKeyNot($exceptId);
+            $query->where('id', '<>', $exceptId);
         }
 
         if ($query->exists()) {
