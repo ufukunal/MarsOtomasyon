@@ -1,4 +1,4 @@
-# 05 — Veri Modeli Kataloğu V4
+# 05 — Veri Modeli Kataloğu V4.1
 
 Bu katalog fiziksel migration'ın birebir sözleşmesi değildir; domain sahipliğini, authority kaynaklarını ve korunacak ana entity ilişkilerini tanımlar.
 
@@ -9,7 +9,7 @@ Bu katalog fiziksel migration'ın birebir sözleşmesi değildir; domain sahipli
 - Role
 - Permission
 - DocumentSequence
-- Tax
+- Tax / TaxZeroReason
 - Currency / ExchangeRate
 - PostingPeriod
 - AuditEntry
@@ -25,16 +25,25 @@ Company tenant/hukuki sınırdır; Branch operasyon birimidir.
 - AccountAddress
 - AccountContact / AuthorizedContact
 - AccountBankInfo
-- AccountB2BAccess / B2BUser relation
+- AccountB2BAccess
 - AccountNote / AccountFile
 - authoritative `AccountTransaction`
 - rebuildable AccountBalance projection
 
-Account müşteri, tedarikçi veya her ikisi olabilir.
+Account müşteri, tedarikçi, karma veya marketplace clearing amaçlı olabilir. V1 Account tek `book_currency` taşır.
 
 **OpenItem/fatura-allocation/settlement modeli yoktur.**
 
-## 3. Catalog / Product
+## 3. B2B identity
+External B2B kullanıcı internal User değildir:
+- B2BUser
+- B2BAccountAccess / Account relation
+- B2BRole/Permission veya typed permission set
+- activation/password/session/token metadata
+
+B2BUser tam olarak bir/izin verilen Account bağlamında çalışır; internal admin RBAC privilege taşımaz.
+
+## 4. Catalog / Product
 - Product
 - Category
 - Brand (gerçek kullanım varsa)
@@ -49,15 +58,16 @@ Account müşteri, tedarikçi veya her ikisi olabilir.
 - ProductFile
 
 Core fiyat:
-- sale_price
-- purchase_price
+- sale_price_net
+- purchase_price_net
 
 Lot/serial V1 core schema'sında yoktur.
 
-## 4. Product media destinations
+## 5. Product media destinations
 Ürün görselleri yalnız tek galeri değildir. Kullanım yeri/kanal/site ilişkisi taşıyabilir:
 - Product Card
-- Trendyol
+- WooCommerce/site
+- aktif marketplace provider/account
 - B2B
 - belirli site/domain
 
@@ -66,10 +76,11 @@ Her destination bağımsız:
 - gallery membership
 - sort/order
 - derived/original metadata
+- provider validation/publish metadata
 
 taşıyabilir.
 
-## 5. Warehouse / Inventory
+## 6. Warehouse / Inventory
 - Warehouse
 - Location
 - authoritative `StockMovement`
@@ -77,15 +88,16 @@ taşıyabilir.
 - StockBalance / Availability projection
 - StockTransfer / lines
 - StockTransfer movement/receipt lineage
+- InTransitStock/Custody projection
 - StockCount / lines
 - StockCount adjustment reference
 
-Kullanılabilir stok temel mantığı:
+Kullanılabilir stok:
 `physical - reserved - quarantine/blocked`.
 
-Quarantine/blocked yalnız gerçek operasyon ihtiyacı oluştuğunda stock state/projection olarak kullanılır; lot/seri anlamına gelmez.
+Quarantine/blocked lot/seri anlamına gelmez. Transfer issue sonrası destination receipt'e kadar quantity/value in-transit custody'de izlenir.
 
-## 6. Commercial documents
+## 7. Commercial documents
 Header + lines:
 - Quote + revisions
 - SalesOrder
@@ -98,57 +110,70 @@ Header + lines:
 - PurchaseReturn
 - Proforma (non-ledger document)
 
-Belge satırları entered/base quantity, price/tax snapshot ve source lineage taşır. Posted/finalized belge current master değişince silent rewrite edilmez.
+Belge satırları entered/base quantity, net price/tax/discount snapshot, entered price mode ve source lineage taşır. Posted/finalized belge current master değişince silent rewrite edilmez.
 
-## 7. Sales progress
+## 8. Sales progress
 SalesOrderLine en az:
 - ordered_qty
 - dispatched_qty
+- reversed_dispatch_qty
 - invoiced_qty
+- reversed_invoice_qty
+- returned_qty
+- reversed_return_qty
 - cancelled_qty
 - remaining_to_dispatch
 - remaining_to_invoice
 
-Kısmi sevk/faturalama first-class'tır.
+Kısmi işlem ve reversal-safe progress first-class'tır.
 
-## 8. Purchasing progress
+## 9. Purchasing progress / quality split
 PurchaseOrderLine en az:
 - ordered_qty
-- received_qty
+- accepted_qty
 - invoiced_qty
 - cancelled_qty
 - remaining_to_receive
 - remaining_to_invoice
 
-GoodsReceiptLine basit kontrol kararı taşıyabilir:
-`uygun | kontrol_bekliyor | uygun_degil`.
+GoodsReceiptLine en az:
+- physical_received_qty
+- accepted_qty
+- pending_quality_qty
+- rejected_qty
+ve ilgili quality/custody metadata taşıyabilir.
 
-## 9. Treasury / Finance
+## 10. Treasury / Finance
+Authority:
+- immutable/appended `TreasuryMovement`
+
+Source/operational kayıtlar:
 - CashAccount
 - BankAccount
-- TreasuryTransaction / Movement
 - Collection
 - Payment
 - Expense
 - Transfer
 - PaymentMethod / PaymentType config
-- POS / VirtualPOS detail where applicable
+- POS / VirtualPOS transaction
+- POSSettlement
 - BankStatementImport / rows / matches
 - Reconciliation
 - CashCount
 - CashCountDenomination
 
-Tahsilat/ödeme invoice allocation tablosuna bağlanmaz; AccountTransaction üretir.
+Cash/bank/POS balance `TreasuryMovement` üzerinden rebuild edilebilir. Tahsilat/ödeme invoice allocation tablosuna bağlanmaz; AccountTransaction + TreasuryMovement üretir.
 
-## 10. Çek / Senet
+## 11. Çek / Senet
 - Instrument
 - InstrumentMovement / History
-- InstrumentPhysicalLocation
+- InstrumentPhysicalLocation / Holder
 - InstrumentImage (front/back)
+- InstrumentAccountEffectReference
 
-Received/issued ve cheque/promissory-note ayrımları açık tutulur. Cari effect teslim/posting aşamasında oluşur; later bank collection/payment ikinci cari effect üretmez.
+Received/issued ve cheque/promissory-note ayrımları açık tutulur. Ciro edilen alınan instrument supplier cari effect reference taşıyabilir. Later bank collection/payment aynı cari effect'i tekrar üretmez.
 
-## 11. Basit Üretim
+## 12. Basit Üretim
 - BOM/Recipe
 - RecipeLine
 - ProductionOrder
@@ -159,17 +184,17 @@ Received/issued ve cheque/promissory-note ayrımları açık tutulur. Cari effec
 
 Routing, WorkCenter, ECO, OperationRun, OEE core değildir.
 
-## 12. Fason
+## 13. Fason
 - SubcontractOrder
 - SubcontractMaterialShipment
 - SubcontractReceipt
 - SubcontractDiscrepancy / scrap-missing
-- remaining custody projection
+- SubcontractCustody / remaining projection
 - notes/files/technical instructions
 
-Ayrı stok authority kurulmaz.
+Custody quantity + carrying value korunur. Ayrı stok authority kurulmaz.
 
-## 13. İade / RMA
+## 14. İade / RMA
 - ReturnRequest
 - ReturnReceipt
 - ReturnDecision
@@ -177,7 +202,9 @@ Ayrı stok authority kurulmaz.
 - ReturnFinancialReference
 - source document/line lineage
 
-## 14. İthalat
+Provider-specific return IDs ayrı external mapping'dir.
+
+## 15. İthalat
 - ImportShipment
 - Container
 - ContainerProduct
@@ -188,14 +215,18 @@ Ayrı stok authority kurulmaz.
 - Compatibility / ProductionInstruction
 - TechnicalPhoto/File
 - LoadingSimulation snapshot
+- ImportReceipt handoff reference where needed
 
-Aynı ürün farklı konteynerlerde bulunabilir; lineage korunur.
+Aynı ürün farklı konteynerlerde bulunabilir; lineage korunur. ImportShipment kendi başına stock authority değildir.
 
-## 15. E-Ticaret / B2B
+## 16. E-Ticaret / Marketplace / B2B
 - Channel
 - ChannelCredential
+- ChannelCapability
+- ProviderRegistryEntry / compatibility metadata
 - ExternalProductMapping
 - ExternalOrderMapping / normalized order snapshot
+- ExternalCustomerSnapshot
 - external shipment/cancel/return mappings
 - IntegrationInbox / WebhookEvent
 - SyncJob / SyncError / Problem
@@ -205,7 +236,20 @@ Aynı ürün farklı konteynerlerde bulunabilir; lineage korunur.
 
 External entity identity ile inbound message identity ayrı kavramlardır.
 
-## 16. Communication / Integrations
+## 17. Marketplace finance
+Marketplace legal customer ile financial counterparty ayrıdır.
+
+Entity adayları:
+- MarketplaceClearingAccount relation → Account
+- MarketplaceSettlement
+- MarketplaceSettlementLine
+- MarketplacePayout
+- MarketplaceFee / Adjustment
+- MarketplaceSettlementExternalIdentity
+
+Invoice clearing receivable yaratabilir; payout/fee/chargeback/refund etkileri AccountTransaction ve/veya TreasuryMovement source references üretir. Provider settlement evidence immutable snapshot/reference olarak saklanır.
+
+## 18. Communication / Integrations
 - ProviderConfig
 - MessageTemplate (versioned)
 - Notification
@@ -216,7 +260,7 @@ External entity identity ile inbound message identity ayrı kavramlardır.
 
 Kanallar: SMS, E-Mail, WhatsApp, E-Document, Scanner Agent config.
 
-## 17. Reports
+## 19. Reports
 - ready report definitions/config
 - SavedReport filter/view state
 - ScheduledReport settings
@@ -224,37 +268,38 @@ Kanallar: SMS, E-Mail, WhatsApp, E-Document, Scanner Agent config.
 
 Generic raw SQL/report designer schema yoktur.
 
-## 18. Files
+## 20. Files
 - Attachment / Media
 - DocumentVersion
 - posted PDF/XML artifact refs where required
 - checksum/security metadata
 - scan/quarantine status when used
 
-## 19. Outbox / Inbox
+## 21. Outbox / Inbox
 - OutboxMessage
 - IntegrationInbox
 - IdempotencyRecord
 
 Valkey business truth değildir.
 
-## 20. Read models
+## 22. Read models
 - cari balance/running statement
-- stock balance/availability
+- stock balance/availability/in-transit
 - sales/purchase progress
-- cash/bank summary
+- cash/bank/POS summary
 - cheque/note portfolio
+- marketplace clearing/settlement summary
 - channel operation summary
 - report aggregates
 
 Hepsi authoritative source'tan rebuildable olmalıdır.
 
-## 21. Import / Export / Migration
+## 23. Import / Export / Migration
 - ImportJob / row result/manifest
 - ExportJob / artifact
 - stable source_instance/entity/source_id provenance
 
 Repeated import aynı business kaydı/effect'i duplicate etmez.
 
-## 22. Ortak referans ilkesi
+## 24. Ortak referans ilkesi
 Business event/ledger source bağlantılarında kontrollü `source_type + source_id` kullanılabilir. Kritik bütünlükte explicit FK/unique constraint tercih edilir. Generic polymorphism domain doğruluğunu kaybettirecek ölçüde yaygınlaştırılmaz.
