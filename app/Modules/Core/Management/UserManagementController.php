@@ -13,6 +13,7 @@ use App\Modules\Core\Models\CompanyMembership;
 use App\Modules\Core\Models\Role;
 use App\Modules\Core\Models\User;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -74,31 +75,35 @@ final class UserManagementController
         $roles = $this->rolesFromRequest($validated['role_ids'] ?? []);
         $this->privilegeGuard->assertCanGrantRoles($roles);
 
-        $membership = DB::transaction(function () use ($validated, $email, $roles): CompanyMembership {
-            $user = User::query()->create([
-                'name' => trim((string) $validated['name']),
-                'email' => $email,
-                'password' => (string) $validated['password'],
-                'status' => UserStatus::Active,
-            ]);
+        try {
+            $membership = DB::transaction(function () use ($validated, $email, $roles): CompanyMembership {
+                $user = User::query()->create([
+                    'name' => trim((string) $validated['name']),
+                    'email' => $email,
+                    'password' => (string) $validated['password'],
+                    'status' => UserStatus::Active,
+                ]);
 
-            $membership = CompanyMembership::query()->create([
-                'company_id' => $this->companyId(),
-                'user_id' => $user->getKey(),
-                'is_active' => true,
-                'joined_at' => now(),
-            ]);
+                $membership = CompanyMembership::query()->create([
+                    'company_id' => $this->companyId(),
+                    'user_id' => $user->getKey(),
+                    'is_active' => true,
+                    'joined_at' => now(),
+                ]);
 
-            $this->syncRoles($membership, $roles);
-            $this->audit->record(
-                AuditAction::UserCreated,
-                AuditTargetType::CompanyMembership,
-                $membership->getKey(),
-                after: $this->snapshot($membership, $user, $roles->modelKeys()),
-            );
+                $this->syncRoles($membership, $roles);
+                $this->audit->record(
+                    AuditAction::UserCreated,
+                    AuditTargetType::CompanyMembership,
+                    $membership->getKey(),
+                    after: $this->snapshot($membership, $user, $roles->modelKeys()),
+                );
 
-            return $membership;
-        });
+                return $membership;
+            });
+        } catch (QueryException $exception) {
+            $this->throwDuplicateEmail($exception);
+        }
 
         return redirect()->route('settings.users.show', $membership->getKey())
             ->with('status', 'Kullanıcı oluşturuldu.');
@@ -138,36 +143,40 @@ final class UserManagementController
         $this->privilegeGuard->assertCanGrantRoles($roles);
         $before = $this->snapshot($membership, $membership->user, $membership->roles->modelKeys());
 
-        DB::transaction(function () use ($membership, $identityEditable, $validated, $roles, $before): void {
-            $user = $membership->user;
-            abort_if($user === null, 409, 'Üyelik geçerli bir kullanıcıya bağlı değil.');
+        try {
+            DB::transaction(function () use ($membership, $identityEditable, $validated, $roles, $before): void {
+                $user = $membership->user;
+                abort_if($user === null, 409, 'Üyelik geçerli bir kullanıcıya bağlı değil.');
 
-            if ($identityEditable) {
-                $email = mb_strtolower(trim((string) $validated['email']));
-                $this->assertEmailAvailable($email, (int) $user->getKey());
+                if ($identityEditable) {
+                    $email = mb_strtolower(trim((string) $validated['email']));
+                    $this->assertEmailAvailable($email, (int) $user->getKey());
 
-                $user->name = trim((string) $validated['name']);
-                $user->email = $email;
+                    $user->name = trim((string) $validated['name']);
+                    $user->email = $email;
 
-                if (filled($validated['password'] ?? null)) {
-                    $user->password = (string) $validated['password'];
+                    if (filled($validated['password'] ?? null)) {
+                        $user->password = (string) $validated['password'];
+                    }
+
+                    $user->save();
                 }
 
-                $user->save();
-            }
+                $membership->is_active = (bool) $validated['is_active'];
+                $membership->save();
+                $this->syncRoles($membership, $roles);
 
-            $membership->is_active = (bool) $validated['is_active'];
-            $membership->save();
-            $this->syncRoles($membership, $roles);
-
-            $this->audit->record(
-                AuditAction::UserUpdated,
-                AuditTargetType::CompanyMembership,
-                $membership->getKey(),
-                before: $before,
-                after: $this->snapshot($membership, $user, $roles->modelKeys()),
-            );
-        });
+                $this->audit->record(
+                    AuditAction::UserUpdated,
+                    AuditTargetType::CompanyMembership,
+                    $membership->getKey(),
+                    before: $before,
+                    after: $this->snapshot($membership, $user, $roles->modelKeys()),
+                );
+            });
+        } catch (QueryException $exception) {
+            $this->throwDuplicateEmail($exception);
+        }
 
         return redirect()->route('settings.users.show', $membership->getKey())
             ->with('status', 'Kullanıcı üyeliği güncellendi.');
@@ -278,6 +287,15 @@ final class UserManagementController
         if ($query->exists()) {
             throw ValidationException::withMessages(['email' => 'Bu e-posta adresi zaten kullanılıyor.']);
         }
+    }
+
+    private function throwDuplicateEmail(QueryException $exception): never
+    {
+        if ((string) $exception->getCode() !== '23505') {
+            throw $exception;
+        }
+
+        throw ValidationException::withMessages(['email' => 'Bu e-posta adresi zaten kullanılıyor.']);
     }
 
     private function companyId(): int
