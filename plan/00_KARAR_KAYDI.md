@@ -119,8 +119,23 @@ POS komisyonu cariyi ikinci kez etkilemez.
 ### K-027 — B2B cari bağlantısı
 B2B hesabı önceden bir Mars carisine bağlıdır. Siparişte cari seçilmez. B2B siparişi cari bakiyesini etkilemez; fatura etkiler.
 
-### K-028 — E-Ticaret Integration Core
-Tek Integration Core + WooCommerce/Trendyol/Mars B2B adapterları kullanılır. Mars ürün/stok/fiyat/fatura authority'sidir; external kanal operasyon/satış kanalıdır.
+### K-028 — E-Ticaret Integration Core ve kanal kapsamı
+Tek **E-Ticaret Integration Core** kullanılır; pazaryerleri ayrı business engine değildir.
+
+İlk resmi adapter seti:
+- WooCommerce
+- Trendyol
+- Hepsiburada
+- Amazon Selling Partner API (SP-API; Türkiye marketplace öncelikli, region-aware)
+- n11
+- PttAVM
+- idefix
+- Çiçeksepeti
+- Mars B2B
+
+Mars ürün/stok/temel fiyat/iç sipariş/fatura authority'sidir; external kanal operasyon/satış kanalıdır. Her adapter ortak mapping, Inbox/idempotency, Outbox, retry/backoff, rate-limit ve problem-center kurallarını kullanır.
+
+Provider capability'leri farklı olabilir. Bir kanalın API'sinde bulunmayan özellik emüle edilip varmış gibi gösterilmez; kanal capability matrix'i üzerinden ilgili aksiyon görünür/aktif olur.
 
 ### K-029 — Credential yeri ve secret güvenliği
 - Kanal API bilgileri: `E-Ticaret/B2B → Kanal Ayarları → Bağlantı`.
@@ -168,6 +183,7 @@ Backup DB + dosyalar + gerekli config/manifest + checksum + release/schema bilgi
 - Business truth Valkey'de yok.
 - Canlı banka API/open-banking yok.
 - İlk sürümde ayrı search service yok.
+- Her pazaryeri için kopyalanmış ayrı sipariş/stok/fatura motoru yok.
 
 ## C. Karar değiştirme
 Locked karar değişirse sebep, data/migration etkisi ve etkilenen invariant/test/modüller aynı commit'te güncellenir. V16.3 tasarımına aykırı kullanıcı-visible davranış yeni onay olmadan eklenmez.
