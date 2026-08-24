@@ -4,7 +4,6 @@ namespace App\Modules\Core\Shell;
 
 use App\Modules\Core\Branch\ActiveBranchContext;
 use App\Modules\Core\Company\ActiveCompanyContext;
-use App\Modules\Core\Enums\CompanyStatus;
 use App\Modules\Core\Enums\PermissionKey;
 use App\Modules\Core\Models\Branch;
 use App\Modules\Core\Models\Company;
@@ -58,7 +57,7 @@ final readonly class ShellContext
             ->with('company')
             ->get()
             ->filter(
-                fn (CompanyMembership $membership): bool => $membership->company?->status === CompanyStatus::Active,
+                fn (CompanyMembership $membership): bool => $membership->company?->isActive() === true,
             )
             ->values();
 
