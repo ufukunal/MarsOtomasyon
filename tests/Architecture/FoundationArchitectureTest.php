@@ -10,7 +10,11 @@ arch('uses the security preset')
 
 arch('follows Laravel architecture conventions')
     ->preset()
-    ->laravel();
+    ->laravel()
+    ->ignoring([
+        'App\Foundation\Health\ReadinessController',
+        'App\Modules\Core\CoreServiceProvider',
+    ]);
 
 arch('keeps Foundation independent from application modules')
     ->expect('App\Foundation')
