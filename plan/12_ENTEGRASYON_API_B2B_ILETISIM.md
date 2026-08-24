@@ -1,9 +1,9 @@
 # 12 — Entegrasyon, API, B2B ve İletişim V4
 
 ## 1. Integration Core
-WooCommerce, Trendyol, Hepsiburada, Amazon, n11, PttAVM, idefix, Çiçeksepeti ve Mars B2B ayrı business engine değildir. Tek **E-Ticaret Integration Core** üzerine adapter olarak bağlanır.
+WooCommerce, Trendyol, Hepsiburada, Amazon, n11, PttAVM, idefix, Çiçeksepeti, Pazarama, Koçtaş, Teknosa, Temu Türkiye, Allesgo, Boyner ve Mars B2B ayrı business engine değildir. Tek **E-Ticaret Integration Core** üzerine adapter olarak bağlanır.
 
-İlk adapter seti:
+Resmi adapter seti:
 - WooCommerce
 - Trendyol
 - Hepsiburada
@@ -12,9 +12,15 @@ WooCommerce, Trendyol, Hepsiburada, Amazon, n11, PttAVM, idefix, Çiçeksepeti v
 - PttAVM
 - idefix
 - Çiçeksepeti
+- Pazarama
+- Koçtaş
+- Teknosa
+- Temu Türkiye
+- Allesgo
+- Boyner
 - Mars B2B
 
-Amazon için ilk operasyon odağı Türkiye marketplace'idir; adapter marketplace/region kimliğini modelde ayrı taşıyarak SP-API'nin bölgesel yapısına hazır kalır.
+Amazon için ilk operasyon odağı Türkiye marketplace'idir; adapter marketplace/region kimliğini modelde ayrı taşıyarak SP-API'nin bölgesel yapısına hazır kalır. Temu adapterı da Türkiye seller/marketplace kapsamını açık region/marketplace metadata ile taşır; global Temu varsayımı yapmaz.
 
 Mars authority:
 - ürün master
@@ -139,6 +145,27 @@ Merchant/integrator account bilgileri ve güncel authentication alanları provid
 - seller/supplier identity
 - API Key ve provider tarafından istenen ek connection metadata
 
+### Pazarama
+Seller/merchant identity ve yürürlükteki API credential alanları adapter-owned schema ile tanımlanır.
+
+### Koçtaş
+Marketplace seller/account identity ve entegrasyon erişim bilgileri güncel Koçtaş seller API/entegratör sözleşmesine göre adapter tarafından tanımlanır.
+
+### Teknosa
+Marketplace seller/account identity ve güncel marketplace/entegratör authentication alanları adapter tarafından tanımlanır; varsa platform altyapısı kaynaklı external IDs ayrı mapping olarak tutulur.
+
+### Temu Türkiye
+- marketplace/region = Türkiye
+- seller/account identity
+- seller application/API authorization metadata
+- yürürlükteki token/secret/authorization alanları encrypted storage
+
+### Allesgo
+Seller/account identity ve yürürlükteki API credentials adapter config schema ile tanımlanır.
+
+### Boyner
+Seller/account identity ve erişime açılan marketplace API/entegratör credential alanları adapter config schema ile tanımlanır.
+
 Mars B2B dahiliyse harici secret istemez.
 
 Credential alan adları provider API değiştikçe adapter config schema ile güncellenir; core tabloda sağlayıcıya özel onlarca kolon açılmaz.
@@ -221,6 +248,24 @@ Target: ürün/kategori/özellik/marka, stok/fiyat, sipariş/sevkiyat, fatura li
 
 ### Çiçeksepeti
 Target: API key tabanlı channel connection; ürün/listing, stok/fiyat, sipariş/kargo ve provider'ın erişime açtığı iade/soru/fatura operasyonları. Provider panelinde kalması gereken operasyon capability matrix'te açıkça `unsupported/manual` gösterilir.
+
+### Pazarama
+Target: provider'ın güncel seller API'sinde erişime açık ürün/listing, kategori/özellik, stok/fiyat, sipariş, sevkiyat, iptal, iade, fatura ve soru/mesaj capability'leri. Eksik operasyonlar panel-manual olarak işaretlenir.
+
+### Koçtaş
+Target: ev/yaşam ve yapı ürünleri için listing/katalog, stok/fiyat, sipariş/sevkiyat ve seller marketplace API'sinin erişime açtığı iade/fatura operasyonları. Provider/entegratör sözleşmesi capability matrix'in kaynağıdır.
+
+### Teknosa
+Target: marketplace seller kanalında listing/katalog, stok/fiyat, sipariş/sevkiyat ve erişime açılan cancellation/return/invoice operasyonları. Provider altyapısına özgü kimlik/status modeli adapter arkasında normalize edilir.
+
+### Temu Türkiye
+Target: Türkiye seller hesabı kapsamında katalog/listing, stok/fiyat, sipariş/fulfillment, iptal/iade ve erişime açılan diğer seller operasyonları. Global Temu davranışı Türkiye adapterına otomatik taşınmaz; region/marketplace capability açık tutulur.
+
+### Allesgo
+Target: provider'ın API'de sunduğu ürün/listing, stok/fiyat, sipariş, sevkiyat, iade, soru/cevap ve ödeme/settlement evidence operasyonları. Güncel capability provider contract fixture ile doğrulanır.
+
+### Boyner
+Target: seller hesabına ve erişime açılan entegrasyon sözleşmesine göre ürün/listing, stok/fiyat, sipariş/sevkiyat ve varsa iade/fatura operasyonları. Doğrudan API erişimi yerine yetkili entegratör gerekirse adapter contract buna göre uygulanır; core değişmez.
 
 ## 14. B2B cari bağlantısı
 B2B user/account önceden bir Mars carisine bağlıdır:
