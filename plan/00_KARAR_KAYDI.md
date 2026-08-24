@@ -1,4 +1,4 @@
-# 00 — Karar Kaydı V4 — V16.3 Tasarım Uyumlu
+# 00 — Karar Kaydı V4.1 — V16.3 Tasarım Uyumlu
 
 Bu belge MarsOtomasyon için kilitli mimari ve ürün kararlarını tutar. Çelişki halinde bu belge, ilgili business-owner planı ve `26_V16_3_TASARIM_UYUMU.md` birlikte otoritedir.
 
@@ -184,6 +184,57 @@ Correlation ID HTTP → transaction → Outbox → job → provider zincirinde t
 ### K-039 — Backup/restore
 Backup DB + dosyalar + gerekli config/manifest + checksum + release/schema bilgisini kapsar. **Restore drill başarıyla doğrulanmadan backup özelliği tamamlanmış sayılmaz.**
 
+### K-040 — Negatif stok V1 politikası
+V1'de fiziksel stok **negatife düşemez**. Posting/reservation işlemleri gerekli miktar yoksa BLOCK olur. Kullanıcı rolü business invariant'ı bypass edemez. Gerçek düzeltme ihtiyacı kontrollü stock adjustment/receipt/correction ile çözülür.
+
+### K-041 — Satışta physical stock OUT authority
+Varsayılan satış akışında **İrsaliye/Sevkiyat posting fiziksel stock OUT authority'sidir**.
+- Sipariş → Sevkiyat → Fatura zincirinde stock OUT yalnız sevkiyatta oluşur; fatura ikinci kez stok düşmez.
+- İrsaliyesiz/doğrudan satış faturası fiziksel çıkışı temsil ediyorsa invoice kendi stock OUT effect'ini üretir.
+- Source lineage/unique effect key aynı fiziksel miktarın iki kez düşmesini engeller.
+
+### K-042 — V1 stok maliyet yöntemi
+V1 perpetual inventory valuation yöntemi **hareketli ağırlıklı ortalama (moving weighted average)**dır.
+- carrying cost company + product seviyesinde deterministik hesaplanır,
+- depo transferi taşıdığı değeri korur; transfer kâr/zarar yaratmaz,
+- pozitif sayım adjustment'ında mevcut güvenilir moving-average kullanılır; yoksa explicit yetkili unit cost zorunludur,
+- silent zero-cost pozitif stok yasaktır,
+- return mümkünse original source cost lineage kullanır.
+
+FIFO/standard-cost V1 core değildir.
+
+### K-043 — Vergi / iskonto / fiyat giriş sözleşmesi
+- Core `sale_price/purchase_price` normalize **KDV hariç net fiyat** olarak saklanır.
+- Belge UI'sı company default'una göre `KDV Hariç` veya `KDV Dahil` giriş kabul edebilir; entered mode posted snapshot'ta saklanır ve net/tax deterministik hesaplanır.
+- Satır ve belge iskonto etkisi KDV matrahından önce uygulanır.
+- Belge geneli iskonto satırlara deterministik/oransal dağıtılır.
+- KDV line-level hesaplanır; document total line toplamlarından oluşur; rounding difference explicit'tir.
+- Sıfır KDV satırında `tax_zero_reason_code`/muafiyet gerekçesi tutulur; e-belge/provider mapping bu internal gerekçeden yapılır.
+
+### K-044 — Cari para birimi V1
+Her Account/Cari V1'de **tek book currency** taşır. Cari finans hareketi Account book currency ile aynı para biriminde olmalıdır; company base amount/rate snapshot ayrıca tutulabilir. Ham farklı para birimleri tek signed bakiye altında toplanmaz. Multi-currency cari bucket modeli future scope'tur.
+
+### K-045 — Marketplace finansal clearing modeli
+Marketplace siparişinde **legal/end-customer snapshot** ile **financial counterparty** ayrıdır.
+- Marketplace invoice/order müşteri ad/adres/vergi/contact snapshot'ını taşır; her marketplace müşterisi için zorunlu Account açılmaz.
+- Trendyol/Hepsiburada/Amazon/n11/PttAVM/idefix/Allesgo gibi marketplace hesaplarında finansal receivable varsayılan olarak kanal/account'a bağlı bir **Marketplace Clearing Account** üzerinde izlenir.
+- Invoice clearing receivable oluşturur; payout/banka settlement clearing receivable'ı azaltır.
+- Komisyon, hizmet, kargo, ceza/chargeback ve provider kesintileri ayrı fee/expense/settlement effect'tir; aynı tutar iki kez cariye yazılmaz.
+- WooCommerce finansal settlement modu ödeme yöntemine göre `direct_account` veya `clearing_account` olabilir.
+- Mars B2B pre-bound Account kullanır.
+
+### K-046 — Treasury authority
+Kasa/banka/POS parasal bakiye authority'si immutable/appended **`treasury_movements`** hareket defteridir. Collection/Payment/Expense/Transfer/POSSettlement gibi source kayıtları bu ledger'a deterministic source-effect üretir; doğrudan bakiye UPDATE edilmez.
+
+### K-047 — Reservation / oversell V1
+Reservation total, ilgili stok scope'unda `physical - blocked/quarantine` miktarını aşamaz. Explicit backorder V1 default değildir. Marketplace order importunda rezervasyon yapılamıyorsa negatif stok yaratılmaz; sipariş `Sorun/Stok Eksik` operasyon durumuna alınır. Kanal safety-stock oversell riskini azaltır fakat authority değildir.
+
+### K-048 — Transit ve fason custody
+Depolar arası kaynak çıkışı ile hedef kabulü arasında miktar/değer kaybolmaz; **in-transit custody** projection/ledger lineage ile şirket varlığı olarak izlenir. Fasona gönderilen company-owned malzeme de subcontract custody olarak aynı taşıma-değer ilkesini kullanır. Hedef kabul/gelen mamul reconcile edilmeden custody kapanmaz.
+
+### K-049 — B2B authentication sınırı
+External B2B kullanıcıları internal Mars User/RBAC hesabı değildir. Ayrı B2B auth context/guard kullanır; Account'a pre-bound'dur. Login/logout, activation/deactivation, password set/reset, rate-limit/session ve server-side B2B permission kontrolleri zorunludur. Internal admin permission'ları B2B token/session'a taşınmaz.
+
 ## B. YAPILMAYACAKLAR
 - Mikroservis, Event Sourcing, generic CQRS/BPM/hooks, GraphQL, EAV yok.
 - Fatura bazlı cari settlement/OpenItem UX yok.
@@ -197,6 +248,8 @@ Backup DB + dosyalar + gerekli config/manifest + checksum + release/schema bilgi
 - İlk sürümde ayrı search service yok.
 - Her pazaryeri için kopyalanmış ayrı sipariş/stok/fatura motoru yok.
 - Doğrulanmamış marketplace API'si için tahmine dayalı production adapter yok.
+- V1'de negatif stok bypass yok.
+- Marketplace customer snapshot'ını zorunlu cari master'a dönüştürmek yok.
 
 ## C. Karar değiştirme
 Locked karar değişirse sebep, data/migration etkisi ve etkilenen invariant/test/modüller aynı commit'te güncellenir. V16.3 tasarımına aykırı kullanıcı-visible davranış yeni onay olmadan eklenmez.
