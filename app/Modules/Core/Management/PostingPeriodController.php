@@ -81,7 +81,7 @@ final class PostingPeriodController
     public function edit(int $period): View
     {
         $period = $this->period($period);
-        abort_if($period->status === PostingPeriodStatus::Closed, 409, 'Kapalı dönem normal düzenleme akışıyla değiştirilemez.');
+        abort_if($period->statusEnum() === PostingPeriodStatus::Closed, 409, 'Kapalı dönem normal düzenleme akışıyla değiştirilemez.');
 
         return view('settings.posting-periods.form', ['period' => $period]);
     }
@@ -97,7 +97,7 @@ final class PostingPeriodController
                     ->lockForUpdate()
                     ->findOrFail($period);
 
-                abort_if($locked->status === PostingPeriodStatus::Closed, 409, 'Kapalı dönem normal düzenleme akışıyla değiştirilemez.');
+                abort_if($locked->statusEnum() === PostingPeriodStatus::Closed, 409, 'Kapalı dönem normal düzenleme akışıyla değiştirilemez.');
                 $this->assertCodeAvailable($data['code'], (int) $locked->getKey());
                 $before = $this->snapshot($locked);
 
@@ -133,7 +133,7 @@ final class PostingPeriodController
                 ->lockForUpdate()
                 ->findOrFail($period);
 
-            if ($locked->status === PostingPeriodStatus::Closed) {
+            if ($locked->statusEnum() === PostingPeriodStatus::Closed) {
                 return ['period' => $locked, 'changed' => false];
             }
 
@@ -183,10 +183,10 @@ final class PostingPeriodController
         return [
             'code' => (string) $period->code,
             'name' => (string) $period->name,
-            'starts_on' => $period->starts_on?->format('Y-m-d') ?? '',
-            'ends_on' => $period->ends_on?->format('Y-m-d') ?? '',
-            'status' => $period->status->value,
-            'closed_at' => $period->closed_at?->setTimezone('UTC')->format(DATE_ATOM),
+            'starts_on' => $period->startsOnDate(),
+            'ends_on' => $period->endsOnDate(),
+            'status' => $period->statusEnum()->value,
+            'closed_at' => $period->closedAtUtcIso(),
         ];
     }
 
