@@ -1,4 +1,4 @@
-# 00 — Karar Kaydı V4.1 — V16.3 Tasarım Uyumlu
+# 00 — Karar Kaydı V4.2 — V16.3 Tasarım Uyumlu
 
 Bu belge MarsOtomasyon için kilitli mimari ve ürün kararlarını tutar. Çelişki halinde bu belge, ilgili business-owner planı ve `26_V16_3_TASARIM_UYUMU.md` birlikte otoritedir.
 
@@ -235,6 +235,26 @@ Depolar arası kaynak çıkışı ile hedef kabulü arasında miktar/değer kayb
 ### K-049 — B2B authentication sınırı
 External B2B kullanıcıları internal Mars User/RBAC hesabı değildir. Ayrı B2B auth context/guard kullanır; Account'a pre-bound'dur. Login/logout, activation/deactivation, password set/reset, rate-limit/session ve server-side B2B permission kontrolleri zorunludur. Internal admin permission'ları B2B token/session'a taşınmaz.
 
+### K-050 — Gelecek özellik genişleme politikası
+İleri özellikler bugünden yarım modül veya generic runtime plugin sistemi olarak kurulmaz. Gelecek geliştirme `27_GELECEK_GENISLEME_ALTYAPISI.md` içindeki seam/activation kuralına uyar.
+
+Ortak seam'ler gerektiği ölçüde:
+- provider family registry,
+- typed capability,
+- versioned internal event contract,
+- stable external identity/source-effect,
+- FeatureKey availability,
+- import parser/report registry,
+- Attachment processing/review pattern
+olabilir.
+
+İlk gerçek consumer yoksa bu seam için boş tablo/interface/framework ağı kurmak zorunlu değildir.
+
+### K-051 — Product SKU ve future variant grouping
+V1 `Product` satılabilir/stoklanabilir SKU authority'sidir. Marketplace parent/variant grouping Product stock/price/cost authority'sini değiştiremez.
+
+Gerçek ihtiyaçta `ProductFamily/VariantRelation` additive olarak eklenebilir; family yalnız grouping/shared-content capability'sidir. Stock, price, barcode ve cost Product/SKU seviyesinde kalır.
+
 ## B. YAPILMAYACAKLAR
 - Mikroservis, Event Sourcing, generic CQRS/BPM/hooks, GraphQL, EAV yok.
 - Fatura bazlı cari settlement/OpenItem UX yok.
@@ -250,6 +270,9 @@ External B2B kullanıcıları internal Mars User/RBAC hesabı değildir. Ayrı B
 - Doğrulanmamış marketplace API'si için tahmine dayalı production adapter yok.
 - V1'de negatif stok bypass yok.
 - Marketplace customer snapshot'ını zorunlu cari master'a dönüştürmek yok.
+- Gelecek ihtimali için universal plugin loader/EAV/BPM altyapısı yok.
+- AI/OCR/forecast çıktısının doğrudan finans/stok ledger authority olması yok.
+- Gelecek lot/seri için bugünden her tabloya nullable tracking kolonları eklemek yok.
 
 ## C. Karar değiştirme
 Locked karar değişirse sebep, data/migration etkisi ve etkilenen invariant/test/modüller aynı commit'te güncellenir. V16.3 tasarımına aykırı kullanıcı-visible davranış yeni onay olmadan eklenmez.
