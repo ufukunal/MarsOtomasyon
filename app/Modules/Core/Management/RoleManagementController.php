@@ -2,8 +2,11 @@
 
 namespace App\Modules\Core\Management;
 
+use App\Modules\Core\Audit\AuditRecorder;
 use App\Modules\Core\Authorization\PrivilegeGrantGuard;
 use App\Modules\Core\Company\ActiveCompanyContext;
+use App\Modules\Core\Enums\AuditAction;
+use App\Modules\Core\Enums\AuditTargetType;
 use App\Modules\Core\Enums\PermissionKey;
 use App\Modules\Core\Models\Permission;
 use App\Modules\Core\Models\Role;
@@ -18,6 +21,7 @@ final class RoleManagementController
     public function __construct(
         private readonly ActiveCompanyContext $companyContext,
         private readonly PrivilegeGrantGuard $privilegeGuard,
+        private readonly AuditRecorder $audit,
     ) {}
 
     public function index(): View
@@ -58,6 +62,7 @@ final class RoleManagementController
         ]);
 
         $permissionKeys = $this->normalizePermissionKeys($validated['permission_keys'] ?? []);
+        sort($permissionKeys);
         $this->privilegeGuard->assertCanGrantPermissionKeys($permissionKeys);
         $this->assertCodeAvailable((string) $validated['code']);
 
@@ -70,6 +75,12 @@ final class RoleManagementController
             ]);
 
             $this->syncPermissions($role, $permissionKeys);
+            $this->audit->record(
+                AuditAction::RoleCreated,
+                AuditTargetType::Role,
+                $role->getKey(),
+                after: $this->snapshot($role, $permissionKeys),
+            );
 
             return $role;
         });
@@ -101,15 +112,26 @@ final class RoleManagementController
         ]);
 
         $permissionKeys = $this->normalizePermissionKeys($validated['permission_keys'] ?? []);
+        sort($permissionKeys);
         $this->privilegeGuard->assertCanGrantPermissionKeys($permissionKeys);
         $this->assertCodeAvailable((string) $validated['code'], (int) $role->getKey());
+        $beforePermissionKeys = $role->permissions->pluck('key')->map(static fn (mixed $key): string => (string) $key)->sort()->values()->all();
+        $before = $this->snapshot($role, $beforePermissionKeys);
 
-        DB::transaction(function () use ($role, $validated, $permissionKeys): void {
+        DB::transaction(function () use ($role, $validated, $permissionKeys, $before): void {
             $role->code = mb_strtolower(trim((string) $validated['code']));
             $role->name = trim((string) $validated['name']);
             $role->is_active = (bool) $validated['is_active'];
             $role->save();
             $this->syncPermissions($role, $permissionKeys);
+
+            $this->audit->record(
+                AuditAction::RoleUpdated,
+                AuditTargetType::Role,
+                $role->getKey(),
+                before: $before,
+                after: $this->snapshot($role, $permissionKeys),
+            );
         });
 
         return redirect()->route('settings.roles.show', $role->getKey())
@@ -125,7 +147,7 @@ final class RoleManagementController
     }
 
     /**
-     * @param  array<array-key, mixed>  $rawKeys
+     * @param array<array-key, mixed> $rawKeys
      * @return list<string>
      */
     private function normalizePermissionKeys(array $rawKeys): array
@@ -155,6 +177,19 @@ final class RoleManagementController
         }
 
         $role->permissions()->sync($permissionIds);
+    }
+
+    /** @param list<string> $permissionKeys
+     * @return array{code:string,name:string,is_active:bool,permission_keys:list<string>}
+     */
+    private function snapshot(Role $role, array $permissionKeys): array
+    {
+        return [
+            'code' => (string) $role->code,
+            'name' => (string) $role->name,
+            'is_active' => (bool) $role->is_active,
+            'permission_keys' => $permissionKeys,
+        ];
     }
 
     private function assertCodeAvailable(string $code, ?int $ignoreRoleId = null): void

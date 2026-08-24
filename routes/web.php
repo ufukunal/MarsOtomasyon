@@ -1,6 +1,7 @@
 <?php
 
 use App\Modules\Core\Auth\AuthenticatedSessionController;
+use App\Modules\Core\Management\AuditTrailController;
 use App\Modules\Core\Management\CompanySettingsController;
 use App\Modules\Core\Management\CurrencyExchangeController;
 use App\Modules\Core\Management\DocumentSequenceController;
@@ -143,6 +144,14 @@ Route::prefix('settings')
             ->whereNumber('period')
             ->middleware('can:core.settings.manage')
             ->name('posting-periods.close');
+
+        Route::get('/audit', [AuditTrailController::class, 'index'])
+            ->middleware('can:core.settings.view')
+            ->name('audit.index');
+        Route::get('/audit/{audit}', [AuditTrailController::class, 'show'])
+            ->whereNumber('audit')
+            ->middleware('can:core.settings.view')
+            ->name('audit.show');
 
         Route::get('/users', [UserManagementController::class, 'index'])
             ->middleware('can:core.user.view')

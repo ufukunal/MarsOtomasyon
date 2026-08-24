@@ -72,4 +72,10 @@ final class Company extends Model
     {
         return $this->hasMany(PostingPeriod::class);
     }
+
+    /** @return HasMany<AuditEntry, $this> */
+    public function auditEntries(): HasMany
+    {
+        return $this->hasMany(AuditEntry::class);
+    }
 }

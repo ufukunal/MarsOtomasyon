@@ -2,8 +2,11 @@
 
 namespace App\Modules\Core\Management;
 
+use App\Modules\Core\Audit\AuditRecorder;
 use App\Modules\Core\Authorization\PrivilegeGrantGuard;
 use App\Modules\Core\Company\ActiveCompanyContext;
+use App\Modules\Core\Enums\AuditAction;
+use App\Modules\Core\Enums\AuditTargetType;
 use App\Modules\Core\Enums\PermissionKey;
 use App\Modules\Core\Enums\UserStatus;
 use App\Modules\Core\Models\CompanyMembership;
@@ -22,6 +25,7 @@ final class UserManagementController
     public function __construct(
         private readonly ActiveCompanyContext $companyContext,
         private readonly PrivilegeGrantGuard $privilegeGuard,
+        private readonly AuditRecorder $audit,
     ) {}
 
     public function index(): View
@@ -86,6 +90,12 @@ final class UserManagementController
             ]);
 
             $this->syncRoles($membership, $roles);
+            $this->audit->record(
+                AuditAction::UserCreated,
+                AuditTargetType::CompanyMembership,
+                $membership->getKey(),
+                after: $this->snapshot($membership, $user, $roles->modelKeys()),
+            );
 
             return $membership;
         });
@@ -126,8 +136,9 @@ final class UserManagementController
         $validated = $request->validate($rules);
         $roles = $this->rolesFromRequest($validated['role_ids'] ?? []);
         $this->privilegeGuard->assertCanGrantRoles($roles);
+        $before = $this->snapshot($membership, $membership->user, $membership->roles->modelKeys());
 
-        DB::transaction(function () use ($membership, $identityEditable, $validated, $roles): void {
+        DB::transaction(function () use ($membership, $identityEditable, $validated, $roles, $before): void {
             $user = $membership->user;
             abort_if($user === null, 409, 'Üyelik geçerli bir kullanıcıya bağlı değil.');
 
@@ -148,6 +159,14 @@ final class UserManagementController
             $membership->is_active = (bool) $validated['is_active'];
             $membership->save();
             $this->syncRoles($membership, $roles);
+
+            $this->audit->record(
+                AuditAction::UserUpdated,
+                AuditTargetType::CompanyMembership,
+                $membership->getKey(),
+                before: $before,
+                after: $this->snapshot($membership, $user, $roles->modelKeys()),
+            );
         });
 
         return redirect()->route('settings.users.show', $membership->getKey())
@@ -185,7 +204,7 @@ final class UserManagementController
     }
 
     /**
-     * @param  array<array-key, mixed>  $roleIds
+     * @param array<array-key, mixed> $roleIds
      * @return Collection<int, Role>
      */
     private function rolesFromRequest(array $roleIds): Collection
@@ -228,6 +247,25 @@ final class UserManagementController
         return ! $membership->user?->memberships()
             ->whereKeyNot($membership->getKey())
             ->exists();
+    }
+
+    /**
+     * @param list<int|string> $roleIds
+     * @return array{user_id:int,membership_id:int,name:string|null,email:string|null,is_active:bool,role_ids:list<int>}
+     */
+    private function snapshot(CompanyMembership $membership, ?User $user, array $roleIds): array
+    {
+        $normalizedRoleIds = array_map('intval', $roleIds);
+        sort($normalizedRoleIds);
+
+        return [
+            'user_id' => (int) $membership->user_id,
+            'membership_id' => (int) $membership->getKey(),
+            'name' => $user?->name === null ? null : (string) $user->name,
+            'email' => $user?->email === null ? null : (string) $user->email,
+            'is_active' => (bool) $membership->is_active,
+            'role_ids' => $normalizedRoleIds,
+        ];
     }
 
     private function assertEmailAvailable(string $email, ?int $ignoreUserId = null): void
