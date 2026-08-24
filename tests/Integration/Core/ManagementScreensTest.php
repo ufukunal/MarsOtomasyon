@@ -13,6 +13,10 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
 
+beforeEach(function (): void {
+    $this->withoutVite();
+});
+
 it('requires company-scoped permissions for user management routes', function (): void {
     $company = managementCompany('M1-4-A');
     $allowed = managementActor($company, [PermissionKey::UserView]);
@@ -189,9 +193,13 @@ function managementMembership(Company $company, User $user): CompanyMembership
 /** @param list<PermissionKey> $permissions */
 function managementActor(Company $company, array $permissions): User
 {
-    $user = managementUser(strtolower((string) $company->code).'@manager.test');
+    static $sequence = 0;
+
+    $sequence++;
+    $companyCode = strtolower((string) $company->code);
+    $user = managementUser($companyCode.'-'.$sequence.'@manager.test');
     $membership = managementMembership($company, $user);
-    $role = managementRole($company, 'manager-'.strtolower((string) $company->code), $permissions);
+    $role = managementRole($company, 'manager-'.$companyCode.'-'.$sequence, $permissions);
     app(AssignRoleToMembership::class)->handle($membership, $role);
 
     return $user;
