@@ -1,4 +1,4 @@
-# 24 — Bulk Import / Export Güvenliği V4
+# 24 — Bulk Import / Export Güvenliği V4.2
 
 ## 1. İlke
 CSV/Excel/MT940/API bulk import business validation'ı bypass etmez. Akış:
@@ -22,7 +22,35 @@ Her import type explicit schema taşır:
 
 Dynamic mapping yalnız allow-listed target alanlara yapılır.
 
-## 4. Güvenlik
+## 4. Parser registry seam
+Yeni format eklemek için parser business posting koduyla karışmaz.
+
+Parser contract en az:
+- canonical parser/import type key
+- supported MIME/extensions
+- parser/version
+- source column/schema detection
+- normalized row DTO contract
+- resource limits
+- fixture samples
+- parser error taxonomy
+
+taşır.
+
+Örnek parser family'leri:
+- CSV/XLSX
+- MT940
+- UBL/XML
+- provider settlement exports
+- carrier exports
+- legacy migration files
+- future OCR-reviewed structured output
+
+Parser yalnız normalized DTO üretir; AccountTransaction/StockMovement/TreasuryMovement yazamaz.
+
+Universal “her dosyayı otomatik yorumlayan” parser yoktur. Her business import type kendi allow-listed mapping/validation'ını korur.
+
+## 5. Güvenlik
 - permission + company scope server-side fixed
 - MIME/extension/content sniff
 - file/row/decompression limits
@@ -33,7 +61,7 @@ Dynamic mapping yalnız allow-listed target alanlara yapılır.
 - risk bazlı malware scan
 - temp lifecycle cleanup
 
-## 5. Preview / dry-run
+## 6. Preview / dry-run
 Commit öncesi kullanıcıya:
 - valid rows
 - invalid rows
@@ -46,7 +74,7 @@ sunulur.
 
 Finance/stock import daha katı preview gerektirir.
 
-## 6. Validasyon
+## 7. Validasyon
 Satır bazında:
 - required fields
 - format/precision
@@ -58,7 +86,7 @@ Satır bazında:
 
 Hatalar export edilebilir result file/manifest ile verilir.
 
-## 7. Chunking / transaction
+## 8. Chunking / transaction
 Küçük güvenli import tek transaction olabilir. Büyük import:
 - chunked
 - restartable
@@ -69,7 +97,7 @@ kullanır.
 
 Tek hatalı satır diğer doğruları gereksiz rollback ettirmez; ancak aynı business aggregate'ın atomicity sınırı bölünmez.
 
-## 8. Restart / idempotency
+## 9. Restart / idempotency
 - import batch identity
 - stable source/row/client-operation identity where required
 - processed/error status
@@ -78,21 +106,23 @@ Tek hatalı satır diğer doğruları gereksiz rollback ettirmez; ancak aynı bu
 
 Aynı file hash tek başına her business senaryoda yeterli dedupe değildir.
 
-## 9. Duplicate handling
+## 10. Duplicate handling
 Deterministic identity önceliklidir. Fuzzy match yalnız suggestion'dır; cari/ürün/finans auto-merge yoktur.
 
-## 10. Cari import
+## 11. Cari import
 Cari master/opening/account transaction import company scope + signed balance reconciliation kullanır. OpenItem/settlement target authority değildir.
 
-## 11. Ürün import
+## 12. Ürün import
 Target tek satış + tek alış fiyatı taşır. Import çoklu fiyat kolonları içerirse canonical sale/purchase mapping açıkça seçilir.
 
 Lot/seri input varsa V1 target'a sessiz authority olarak eklenmez; migration/import policy ile raporlanır.
 
-## 12. Stok import
+Future ProductFamily/Variant grouping input'u gerçek family feature aktif değilse Product authority'yi değiştirmez; explicit mapping/review ister.
+
+## 13. Stok import
 Opening/adjustment normal StockMovement use-case'i üzerinden gider. Quantity, warehouse/location, cost, source identity validate edilir.
 
-## 13. Banka ekstresi import
+## 14. Banka ekstresi import
 Akış:
 `Dosya Seç → Önizleme → Eşleştirme → İçe Aktar`.
 
@@ -103,22 +133,27 @@ Formatlar:
 
 Statement row stable identity/fingerprint internal duplicate guard olarak kullanılabilir; kullanıcıya teknik fingerprint gösterilmez.
 
-## 14. Marketplace bulk
+## 15. Marketplace bulk
 External entity identity provider-account scoped tutulur. External order identity ile provider message/event identity ayrıdır. Duplicate event ikinci Mars entity/effect üretmez.
 
-## 15. Bulk fiyat güncelleme
+## 16. Future provider settlement/import files
+Marketplace/payment/shipping/accounting-export gibi gelecekteki provider dosyaları parser registry üzerinden normalized evidence üretir.
+
+Provider settlement file parse edildi diye finance posting otomatik güvenli sayılmaz; external identity + reconcile + Finance use-case gerekir.
+
+## 17. Bulk fiyat güncelleme
 Generic çoklu price-list wizard yoktur. Tek satış/alış fiyatı toplu değişecekse:
 `Filter/Select → Formula/Value → Preview Old/New → Rounding → Confirm → Product/Pricing Business Action`.
 
 Raw table update yoktur.
 
-## 16. Export
+## 18. Export
 Small export synchronous olabilir. Büyük export:
 `Export Request → Job → chunk/stream → storage → ready notification → expiring authorized link`.
 
 Formatlar ihtiyaca göre CSV/XLSX/JSON/PDF.
 
-## 17. Export governance
+## 19. Export governance
 - permission/company scope
 - sensitive field masking/removal
 - filter snapshot
@@ -128,11 +163,11 @@ Formatlar ihtiyaca göre CSV/XLSX/JSON/PDF.
 
 Scheduled export runtime authorization'ı tekrar kontrol eder.
 
-## 18. Rapor export
+## 20. Rapor export
 Rapor Merkezi exportu ready report definition + current filters üzerinden çalışır. User-defined raw SQL export yoktur.
 
-## 19. API bulk
+## 21. API bulk
 Gerçek ihtiyaç varsa batch resource + item-level result kullanılır. HTTP request boyunca tek dev transaction bekletilmez.
 
-## 20. Audit
-Kim, ne zaman, hangi import/export type, file hash/reference, row counts, success/error counts ve output artifact bilgisi audit edilir. Raw sensitive payload gereksiz yere audit/log'a yazılmaz.
+## 22. Audit
+Kim, ne zaman, hangi import/export type, parser/version, file hash/reference, row counts, success/error counts ve output artifact bilgisi audit edilir. Raw sensitive payload gereksiz yere audit/log'a yazılmaz.
