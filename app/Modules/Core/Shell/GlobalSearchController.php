@@ -130,7 +130,8 @@ final readonly class GlobalSearchController
 
     /**
      * @template TModel of \Illuminate\Database\Eloquent\Model
-     * @param Builder<TModel> $builder
+     *
+     * @param  Builder<TModel>  $builder
      * @return Builder<TModel>
      */
     private function ranked(Builder $builder, string $documentSql, string $similarityColumn, string $query): Builder

@@ -204,7 +204,7 @@ final class UserManagementController
     }
 
     /**
-     * @param array<array-key, mixed> $roleIds
+     * @param  array<array-key, mixed>  $roleIds
      * @return Collection<int, Role>
      */
     private function rolesFromRequest(array $roleIds): Collection
@@ -250,7 +250,7 @@ final class UserManagementController
     }
 
     /**
-     * @param array<array-key, int|string> $roleIds
+     * @param  array<array-key, int|string>  $roleIds
      * @return array{user_id:int,membership_id:int,name:string|null,email:string|null,is_active:bool,role_ids:list<int>}
      */
     private function snapshot(CompanyMembership $membership, ?User $user, array $roleIds): array

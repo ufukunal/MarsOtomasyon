@@ -7,6 +7,7 @@ use App\Modules\Core\Company\ActiveCompanyContext;
 use App\Modules\Core\Enums\CompanyStatus;
 use App\Modules\Core\Enums\PermissionKey;
 use App\Modules\Core\Models\Branch;
+use App\Modules\Core\Models\Company;
 use App\Modules\Core\Models\CompanyMembership;
 use App\Modules\Core\Models\User;
 use Illuminate\Http\Request;
@@ -27,7 +28,7 @@ final readonly class ShellContext
      *   navigation:list<array{label:string,route:string}>,
      *   user:User|null,
      *   companies:Collection<int,CompanyMembership>,
-     *   company:\App\Modules\Core\Models\Company|null,
+     *   company:Company|null,
      *   branches:Collection<int,Branch>,
      *   branch:Branch|null
      * }

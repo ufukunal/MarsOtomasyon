@@ -147,7 +147,7 @@ final class RoleManagementController
     }
 
     /**
-     * @param array<array-key, mixed> $rawKeys
+     * @param  array<array-key, mixed>  $rawKeys
      * @return list<string>
      */
     private function normalizePermissionKeys(array $rawKeys): array
