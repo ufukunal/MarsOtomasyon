@@ -22,7 +22,7 @@ final class PostingPeriodGuard
             ->where('company_id', $companyId)
             ->where('starts_on', '<=', $value)
             ->where('ends_on', '>=', $value)
-            ->lockForShare()
+            ->sharedLock()
             ->first();
 
         if (! $period instanceof PostingPeriod) {
