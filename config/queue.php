@@ -1,15 +1,15 @@
 <?php
 
 return [
-    'default' => env('QUEUE_CONNECTION', 'sync'),
+    'default' => env('QUEUE_CONNECTION', 'redis'),
     'connections' => [
         'sync' => [
             'driver' => 'sync',
         ],
         'redis' => [
             'driver' => 'redis',
-            'connection' => 'default',
-            'queue' => env('REDIS_QUEUE', 'default'),
+            'connection' => 'queue',
+            'queue' => env('REDIS_QUEUE', 'mars-default'),
             'retry_after' => (int) env('REDIS_QUEUE_RETRY_AFTER', 90),
             'block_for' => 5,
             'after_commit' => true,

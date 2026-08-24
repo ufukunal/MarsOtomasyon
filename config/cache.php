@@ -3,7 +3,7 @@
 use Illuminate\Support\Str;
 
 return [
-    'default' => env('CACHE_STORE', 'file'),
+    'default' => env('CACHE_STORE', 'redis'),
     'stores' => [
         'array' => [
             'driver' => 'array',
@@ -20,5 +20,5 @@ return [
             'lock_connection' => 'default',
         ],
     ],
-    'prefix' => env('CACHE_PREFIX', Str::slug((string) env('APP_NAME', 'marsotomasyon')).'-cache-'),
+    'prefix' => env('CACHE_PREFIX', Str::slug((string) env('APP_NAME', 'marsotomasyon')).'-cache:'),
 ];
