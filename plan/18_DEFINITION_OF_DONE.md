@@ -45,7 +45,7 @@ Bir provider/marketplace adapterı ancak aşağıdakiler tamamlandığında haz�
 - API version/deprecation referansı kayıtlı
 - production secret CI/log/audit payload'a sızmıyor
 
-Marketplace adapter seti:
+**V1 doğrulanmış marketplace adapter seti:**
 - WooCommerce
 - Trendyol
 - Hepsiburada
@@ -53,13 +53,7 @@ Marketplace adapter seti:
 - n11
 - PttAVM
 - idefix
-- Çiçeksepeti
-- Pazarama
-- Koçtaş
-- Teknosa
-- Temu Türkiye
 - Allesgo
-- Boyner
 
 Bir adapter yalnız ürün bağlayabildiği için “tam entegre” sayılmaz. Hangi capability'lerin gerçekten çalıştığı kanal kartında/diagnostics'te görülebilir olmalıdır.
 
@@ -88,19 +82,17 @@ Provider desteklemiyorsa aynı aksiyon UI'da sessiz no-op olmaz; disabled/unsupp
 - FBA/FBM capability farkı tanımlı
 - report/settlement import idempotent
 
-## Temu Türkiye ekstra DoD
-- marketplace/region Türkiye scope açık
-- seller authorization lifecycle güvenli
-- ürün/listing ve order/fulfillment normalization testli
-- diğer region/global capability'leri Türkiye kanalına istemeden açılmıyor
+## Deferred marketplace kabul kuralı
+Çiçeksepeti, Pazarama, Koçtaş, Teknosa, Temu Türkiye ve Boyner V1 DoD kapsamı değildir.
 
-## Yeni marketplace adapterları ekstra DoD
-Pazarama, Koçtaş, Teknosa, Allesgo ve Boyner için:
-- gerçek seller/API veya yetkili entegratör erişim modeli doğrulanmış
-- provider-specific external IDs/statuslar normalize edilmiş
-- capability matrix provider sözleşmesine göre kilitlenmiş
-- panelde manuel kalması gereken operasyonlar `manual` olarak gösterilmiş
-- en az connection + product/listing + stock/price + order akışında erişilebilen capability'ler fixture/sandbox/test-account ile doğrulanmış
+Bu kanallardan biri ancak aşağıdaki önkoşullar sağlandıktan sonra aktif adapter setine alınır:
+- güncel resmî API dokümanı veya gerçek seller/partner erişimi doğrulanmış
+- authentication ve endpoint contract'ları net
+- capability matrix çıkarılmış
+- rate-limit/pagination/status davranışı belgelenmiş
+- fixture/contract testleri hazırlanabilir durumda
+
+Bu doğrulama olmadan kanal için “tam entegre”, “hazır” veya production destekli etiketi kullanılmaz.
 
 ## UI ekstra DoD
 - gerçek backend verisi
