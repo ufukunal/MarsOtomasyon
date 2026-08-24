@@ -7,7 +7,7 @@ use JsonException;
 
 final class OutboxPayload
 {
-    /** @param array<string, mixed> $payload */
+    /** @param array<array-key, mixed> $payload */
     public static function validate(array $payload, OutboxEventDefinition $definition): void
     {
         $keys = array_keys($payload);
@@ -32,7 +32,7 @@ final class OutboxPayload
         self::canonicalJson($payload);
     }
 
-    /** @param array<string, mixed> $payload */
+    /** @param array<array-key, mixed> $payload */
     public static function canonicalJson(array $payload): string
     {
         try {
@@ -45,7 +45,7 @@ final class OutboxPayload
         }
     }
 
-    /** @param array<string, mixed> $payload */
+    /** @param array<array-key, mixed> $payload */
     private static function assertNoSensitiveKeys(array $payload): void
     {
         foreach ($payload as $key => $value) {

@@ -10,7 +10,11 @@ final readonly class RequestFingerprint implements Stringable
 {
     private function __construct(public string $value) {}
 
-    /** @throws JsonException */
+    /**
+     * @param array<array-key, mixed> $payload
+     *
+     * @throws JsonException
+     */
     public static function fromPayload(array $payload): self
     {
         $json = json_encode(
