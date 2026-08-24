@@ -14,6 +14,10 @@
             <h1 class="settings-title">@yield('heading', 'Ayarlar')</h1>
         </div>
         <nav class="settings-nav" aria-label="Ayarlar">
+            @can('core.settings.view')
+                <a href="{{ route('settings.company.show') }}">Firma / Sistem</a>
+                <a href="{{ route('settings.numbering.index') }}">Numaralandırma</a>
+            @endcan
             @can('core.user.view')
                 <a href="{{ route('settings.users.index') }}">Kullanıcılar</a>
             @endcan
