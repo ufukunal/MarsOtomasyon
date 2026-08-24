@@ -137,7 +137,7 @@ Kullanıcı-visible çalışma alanı:
 - Entegrasyon Sorunları
 - Kanal Ayarları
 
-Tek Integration Core + adapter seti:
+**Aktif V1 adapter seti:**
 - WooCommerce
 - Trendyol
 - Hepsiburada
@@ -145,14 +145,18 @@ Tek Integration Core + adapter seti:
 - n11
 - PttAVM
 - idefix
+- Allesgo
+- Mars B2B
+
+**Deferred marketplace adayları:**
 - Çiçeksepeti
 - Pazarama
 - Koçtaş
 - Teknosa
 - Temu Türkiye
-- Allesgo
 - Boyner
-- Mars B2B
+
+Deferred kanal, güncel resmî API dokümanı veya gerçek seller/partner erişimi doğrulanmadan Kanal Merkezi'nde aktif adapter olarak açılmaz.
 
 Yeni pazaryeri ayrı ana modül/menu oluşturmaz. Kanal Merkezi ve ortak listelerde kanal filtresi/kartı olarak görünür.
 
@@ -228,6 +232,7 @@ Normal kullanıcı menüsünde teknik state/jargon şişkinliği oluşturulmaz.
 - aynı iş için duplicate ekran yok
 - her liste için ayrı teknik modül yok
 - her pazaryeri için duplicate order/stock/invoice engine yok
+- doğrulanmamış marketplace API'si için tahmini adapter yok
 - provider/queue/internal state normal kullanıcı menüsüne çıkmaz
 - generic ERP/QMS/PLM menu yok
 - SaaS billing/tier yok
