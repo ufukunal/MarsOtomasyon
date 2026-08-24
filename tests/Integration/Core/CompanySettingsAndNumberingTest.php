@@ -12,11 +12,11 @@ use App\Modules\Core\Models\Role;
 use App\Modules\Core\Models\User;
 use App\Modules\Core\Numbering\DocumentNumberIssuer;
 use DomainException;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
 
-uses(RefreshDatabase::class);
+uses(DatabaseMigrations::class);
 
 it('enforces company scoped settings permissions', function (): void {
     $this->withoutVite();
