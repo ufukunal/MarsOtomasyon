@@ -1,17 +1,36 @@
-# 11 — Finans, Satınalma ve İade
+# 11 — Finans, Satınalma ve İade V4
 
-## Cari finans
-Authority `account_transactions`.
+## 1. Satınalma quantity authority
+PurchaseOrderLine:
+- ordered
+- cancelled
+- received
+- invoiced
+- remaining_to_receive
+- remaining_to_invoice
 
-- satış faturası: müşteri bakiyesini artırır
-- tahsilat: müşteri bakiyesini azaltır
-- alış faturası: tedarikçi borcunu artırır
-- ödeme: tedarikçi borcunu azaltır
+Formüller:
+`remaining_to_receive = ordered - cancelled - received_not_reversed`
+`remaining_to_invoice = ordered - cancelled - invoiced_not_reversed`
 
-Fatura bazlı settlement/open-item core değildir.
+Over-receipt ve over-invoice default BLOCK. Kısmi kabul/faturalama normaldir.
 
-## Tahsilat / Ödeme
-V16.3 ödeme türleri:
+## 2. Satınalma akışı
+`Satınalma Siparişi → Mal Kabul ve/veya Alış Faturası → Ödeme → İade`.
+
+Mal Kabul fiziksel stock-in authority'sidir. Alış faturası cari financial effect authority'sidir. Aynı quantity iki kez stock IN üretemez.
+
+## 3. Cari finans authority
+`account_transactions`.
+- satış faturası müşteri bakiyesini artırır
+- tahsilat azaltır
+- alış faturası tedarikçi borcunu artırır
+- ödeme azaltır
+
+OpenItem/fatura bazlı settlement core değildir.
+
+## 4. Tahsilat / Ödeme
+V16.3 kullanıcı-visible tipleri:
 - Nakit
 - Banka Havale/EFT
 - POS
@@ -20,55 +39,120 @@ V16.3 ödeme türleri:
 - Senet
 - Diğer
 
-Seçilen tipe göre alanlar açılır. Ekran işlem öncesi ve sonrası cari bakiyeyi gösterir.
+PaymentMethod/PaymentType tanımları kontrollü config ile genişletilebilir. Seçilen type kendi alanlarını/validation'ını açar. Ekran işlem öncesi ve sonrası cari bakiyeyi gösterir.
 
-## POS
-Gross tahsilat cari borcunu azaltır. Komisyon gross tutardan gizlice düşülmez; ayrı gider/treasury etkisi olarak muhasebeleştirilir.
+## 5. Nakit
+Nakit işlem ilgili CashAccount movement'ını üretir. Makbuz/referans tutulabilir. Cari + kasa etkisi aynı transaction'dadır.
 
-## Kasa
-Kasa Hareketleri ana çalışma ekranıdır. Kasalar ve Kasa Sayımı buradan açılır.
+## 6. Banka
+Banka tahsilat/ödeme ilgili BankAccount movement'ını üretir. Havale/EFT için gerektiğinde:
+- banka/hesap
+- referans
+- valör
+- karşı taraf
+- açıklama
+snapshot tutulur.
 
-Kasa sayımı:
+## 7. POS / Sanal POS
+POS tahsilatında:
+- cari effect = gross tahsilat
+- komisyon = ayrı gider/POS effect
+- net banka settlement = bank movement
+
+Net settlement cariyi ikinci kez etkilemez. Sanal POS kanal/sipariş referansı taşıyabilir.
+
+## 8. Treasury account currency
+Her Cash/Bank hesabı bir book currency taşır. Gerekirse transaction:
+- account currency amount
+- company base amount
+- exchange-rate snapshot
+
+tutar.
+
+Cross-currency işlem explicit FX policy olmadan silent çevrilmez.
+
+## 9. Virman
+Same-currency: kaynak çıkış + hedef giriş atomik çift hareket; toplam değer korunur ve aynı hesap seçilemez.
+
+Cross-currency ihtiyaç varsa kur kaynağı, rounding ve FX difference kuralı `19_ACIK_KARARLAR.md` kapanmadan uygulanmaz.
+
+## 10. Gider
+Basic gider:
+- kategori
+- kasa/banka/POS source account
+- belge/referans/ek
+- tarih/açıklama
+
+taşıyabilir. Cari zorunlu değildir.
+
+## 11. Kasa Sayımı
+Ekran:
+- kasa
+- tarih
+- sayımı yapan
 - sistem bakiyesi
-- banknot/bozuk para adetleri
+- kupür/adet
 - sayılan toplam
 - fark
-- fark açıklaması
-- taslak/tamamlama
+- açıklama
 
-## Banka
-Banka Hareketleri içinden hesaplar, ekstre import ve mutabakat açılır.
+Fark varsa açıklama zorunlu. Taslak effect yaratmaz; Tamamla exactly-once adjustment yazar.
 
-Ekstre akışı:
+## 12. Banka ekstresi import
+Canlı banka API V1'de yoktur.
+
+Formatlar:
+- Excel
+- CSV
+- MT940
+
+Akış:
 `Dosya Seç → Önizleme → Eşleştirme → İçe Aktar`.
 
-V1 formatları: Excel, CSV, MT940.
+Satır alanları:
+- Tarih
+- Valör
+- Açıklama
+- Referans
+- Giriş
+- Çıkış
+- Eşleşme
+- Durum
 
-Duplicate satır fingerprint/reference ile tekrar aktarılmaz.
+Duplicate row stable identity/fingerprint ile ikinci movement oluşturmaz.
 
-## Virman
-Kaynak ve hedef treasury hesabı arasında atomik çift hareket. Aynı hesap seçilemez. Döviz farkı varsa açık kur/fark kuralı uygulanır.
+## 13. Banka mutabakatı
+Statement row existing bank movement ile eşleşirse ikinci movement yaratılmaz. Unmatch/rematch history audit edilir.
 
-## Gider
-Gider treasury çıkışı ve gerekiyorsa cari/masraf kategorisi etkisi üretir. Belge/fiş eki desteklenir.
+## 14. Çek / Senet
+### Alınan
+Müşteriden teslim/posting anında cari bakiyesini azaltır; instrument Portföyde başlar. Bankada tahsil ikinci cari effect değildir.
 
-## Satınalma
-`Sipariş → Mal Kabul → Alış Faturası → Ödeme`.
+### Verilen
+Tedarikçiye teslim/posting anında borcu azaltır. Bankadan ödeme ikinci cari effect değildir.
 
-Mal kabul stock IN; alış faturası cari etkidir. Bu ikisi aynı olay sayılmaz.
+Karşılıksız/ödenmeme/iptal reversal ile bakiyeyi yeniden açar. Front/back scan, physical location ve lifecycle history saklanır.
 
-## Çek/Senet
-Received/issued ayrımı ve tip bazlı state machine vardır. Front/back scan, physical location ve history saklanır. Settlement tek kez finans etkisi üretir.
+## 15. Satınalma maliyeti
+Mal Kabul provisional/known purchase cost ile stock-in yapabilir. SupplierInvoice fiyat farkı gerekiyorsa original receipt/source lineage'a bağlanır.
 
-## İade
+Aynı ekonomik fark hem inventory adjustment hem FX difference olarak double-count edilmez. Ayrıntı `21_MALIYETLENDIRME.md`.
+
+## 16. İade
 ### Satış iadesi
-Kaynak satış belgesini referanslar; kabul edilen miktar kadar ters stok ve ters cari etkisi üretir.
+Kaynak satış belgesini/line'ı referanslar. Eligible quantity aşılmaz. Physical stock return ile financial refund/correction kendi authority'lerinde effect üretir.
 
 ### Alış iadesi
-Tedarikçiye iade edilen miktar kadar stock OUT ve cari düzeltmesi üretir.
+Original receipt/cost/source lineage korunur. Stock OUT ve cari düzeltme duplicate edilmez.
 
 ### E-Ticaret/RMA
-Talep ile fiziksel ürün gelişi ayrılır. İnceleme/karar sonrası stok ve finans etkisi kesinleşir.
+Talep ile fiziksel ürün gelişi ayrıdır. İnceleme/karar sonrası stock/finance effect kesinleşir.
 
-## Reversal
-Posted finans hareketi silinmez. Reversal ters ledger kayıtları oluşturur ve orijinal kayda bağlanır.
+## 17. Reversal
+Posted finans hareketi silinmez. Reversal ters ledger kayıtları oluşturur, original kayda bağlanır ve tekrar çalıştırmada duplicate effect üretmez.
+
+## 18. Müşteri risk / exposure
+Risk limiti cari ticari ayarıdır. Exposure hesaplanırken confirmed order commitment ile invoice balance aynı ekonomik yükümlülük için double-count edilmez. Override ayrı permission + reason + audit gerektirebilir.
+
+## 19. Full Accounting boundary
+TDHP/general ledger/e-Defter Mars V1 core değildir. Mars ön muhasebe ve operational finance correctness sağlar; e-Fatura/e-Arşiv provider integration ayrı lifecycle'dır.
