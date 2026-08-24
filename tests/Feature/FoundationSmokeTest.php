@@ -6,13 +6,12 @@ use Tests\TestCase;
 
 final class FoundationSmokeTest extends TestCase
 {
-    public function test_home_route_is_bootable(): void
+    public function test_application_entry_redirects_guests_to_login(): void
     {
         $this->withoutVite();
 
         $this->get('/')
-            ->assertOk()
-            ->assertSee('MarsOtomasyon');
+            ->assertRedirect('/login');
     }
 
     public function test_framework_health_route_is_bootable(): void
