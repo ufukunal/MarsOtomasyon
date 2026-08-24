@@ -10,6 +10,7 @@ use App\Foundation\Health\ReadinessCheck;
 use App\Foundation\Health\SystemReadinessCheck;
 use App\Foundation\Outbox\OutboxEventCatalog;
 use App\Modules\Core\Authorization\CompanyPermissionAuthorizer;
+use App\Modules\Core\Branch\ActiveBranchContext;
 use App\Modules\Core\Company\ActiveCompanyContext;
 use App\Modules\Core\Enums\PermissionKey;
 use App\Modules\Core\Models\User;
@@ -25,6 +26,7 @@ final class CoreServiceProvider extends ServiceProvider
         $this->app->singleton(Clock::class, SystemClock::class);
         $this->app->scoped(CorrelationContext::class);
         $this->app->scoped(ActiveCompanyContext::class);
+        $this->app->scoped(ActiveBranchContext::class);
         $this->app->scoped(CompanyPermissionAuthorizer::class);
         $this->app->singleton(OutboxEventCatalog::class);
         $this->app->singleton(ReadinessCheck::class, SystemReadinessCheck::class);
