@@ -22,6 +22,9 @@
                 <a href="{{ route('settings.posting-periods.index') }}">Dönemler</a>
                 <a href="{{ route('settings.audit.index') }}">İşlem Geçmişi</a>
             @endcan
+            @can('core.file.view')
+                <a href="{{ route('settings.files.index') }}">Firma Dosyaları</a>
+            @endcan
             @can('core.user.view')
                 <a href="{{ route('settings.users.index') }}">Kullanıcılar</a>
             @endcan

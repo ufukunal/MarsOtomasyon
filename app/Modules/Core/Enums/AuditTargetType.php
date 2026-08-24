@@ -12,6 +12,7 @@ enum AuditTargetType: string
     case TaxZeroReason = 'tax_zero_reason';
     case ExchangeRate = 'exchange_rate';
     case PostingPeriod = 'posting_period';
+    case Attachment = 'attachment';
 
     public function label(): string
     {
@@ -24,6 +25,7 @@ enum AuditTargetType: string
             self::TaxZeroReason => 'KDV Sıfır Nedeni',
             self::ExchangeRate => 'Kur Kaydı',
             self::PostingPeriod => 'Muhasebe Dönemi',
+            self::Attachment => 'Dosya Bağlantısı',
         };
     }
 }

@@ -20,6 +20,8 @@ enum AuditAction: string
     case PostingPeriodCreated = 'core.posting_period.created';
     case PostingPeriodUpdated = 'core.posting_period.updated';
     case PostingPeriodClosed = 'core.posting_period.closed';
+    case FileUploaded = 'core.file.uploaded';
+    case AttachmentDetached = 'core.attachment.detached';
 
     public function label(): string
     {
@@ -40,6 +42,8 @@ enum AuditAction: string
             self::PostingPeriodCreated => 'Muhasebe dönemi oluşturuldu',
             self::PostingPeriodUpdated => 'Muhasebe dönemi güncellendi',
             self::PostingPeriodClosed => 'Muhasebe dönemi kapatıldı',
+            self::FileUploaded => 'Dosya yüklendi',
+            self::AttachmentDetached => 'Dosya bağlantısı kaldırıldı',
         };
     }
 }

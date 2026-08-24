@@ -12,6 +12,8 @@ enum PermissionKey: string
     case RoleManage = 'core.role.manage';
     case SettingsView = 'core.settings.view';
     case SettingsManage = 'core.settings.manage';
+    case FileView = 'core.file.view';
+    case FileManage = 'core.file.manage';
 
     public function label(): string
     {
@@ -24,6 +26,8 @@ enum PermissionKey: string
             self::RoleManage => 'Rol ve yetki yönetimi',
             self::SettingsView => 'Ayarları görüntüleme',
             self::SettingsManage => 'Ayarları yönetme',
+            self::FileView => 'Dosya görüntüleme',
+            self::FileManage => 'Dosya yönetimi',
         };
     }
 }

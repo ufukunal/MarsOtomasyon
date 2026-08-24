@@ -2,6 +2,7 @@
 
 use App\Modules\Core\Auth\AuthenticatedSessionController;
 use App\Modules\Core\Management\AuditTrailController;
+use App\Modules\Core\Management\CompanyFileController;
 use App\Modules\Core\Management\CompanySettingsController;
 use App\Modules\Core\Management\CurrencyExchangeController;
 use App\Modules\Core\Management\DocumentSequenceController;
@@ -152,6 +153,28 @@ Route::prefix('settings')
             ->whereNumber('audit')
             ->middleware('can:core.settings.view')
             ->name('audit.show');
+
+        Route::get('/files', [CompanyFileController::class, 'index'])
+            ->middleware('can:core.file.view')
+            ->name('files.index');
+        Route::get('/files/create', [CompanyFileController::class, 'create'])
+            ->middleware('can:core.file.manage')
+            ->name('files.create');
+        Route::post('/files', [CompanyFileController::class, 'store'])
+            ->middleware('can:core.file.manage')
+            ->name('files.store');
+        Route::get('/files/{attachment}', [CompanyFileController::class, 'show'])
+            ->whereNumber('attachment')
+            ->middleware('can:core.file.view')
+            ->name('files.show');
+        Route::get('/files/{attachment}/download', [CompanyFileController::class, 'download'])
+            ->whereNumber('attachment')
+            ->middleware('can:core.file.view')
+            ->name('files.download');
+        Route::post('/files/{attachment}/detach', [CompanyFileController::class, 'detach'])
+            ->whereNumber('attachment')
+            ->middleware('can:core.file.manage')
+            ->name('files.detach');
 
         Route::get('/users', [UserManagementController::class, 'index'])
             ->middleware('can:core.user.view')
