@@ -122,7 +122,7 @@ B2B hesabı önceden bir Mars carisine bağlıdır. Siparişte cari seçilmez. B
 ### K-028 — E-Ticaret Integration Core ve kanal kapsamı
 Tek **E-Ticaret Integration Core** kullanılır; pazaryerleri ayrı business engine değildir.
 
-İlk resmi adapter seti:
+Resmi adapter seti:
 - WooCommerce
 - Trendyol
 - Hepsiburada
@@ -131,11 +131,17 @@ Tek **E-Ticaret Integration Core** kullanılır; pazaryerleri ayrı business eng
 - PttAVM
 - idefix
 - Çiçeksepeti
+- Pazarama
+- Koçtaş
+- Teknosa
+- Temu Türkiye
+- Allesgo
+- Boyner
 - Mars B2B
 
 Mars ürün/stok/temel fiyat/iç sipariş/fatura authority'sidir; external kanal operasyon/satış kanalıdır. Her adapter ortak mapping, Inbox/idempotency, Outbox, retry/backoff, rate-limit ve problem-center kurallarını kullanır.
 
-Provider capability'leri farklı olabilir. Bir kanalın API'sinde bulunmayan özellik emüle edilip varmış gibi gösterilmez; kanal capability matrix'i üzerinden ilgili aksiyon görünür/aktif olur.
+Provider capability'leri farklı olabilir. Bir kanalın API'sinde bulunmayan özellik emüle edilip varmış gibi gösterilmez; kanal capability matrix'i üzerinden ilgili aksiyon `supported / unsupported / manual` olarak yönetilir.
 
 ### K-029 — Credential yeri ve secret güvenliği
 - Kanal API bilgileri: `E-Ticaret/B2B → Kanal Ayarları → Bağlantı`.
