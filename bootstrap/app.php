@@ -2,6 +2,7 @@
 
 use App\Foundation\Correlation\CorrelationIdMiddleware;
 use App\Foundation\Health\ReadinessController;
+use App\Modules\Core\Company\ResolveActiveCompany;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -19,6 +20,9 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->append(CorrelationIdMiddleware::class);
+        $middleware->alias([
+            'company.context' => ResolveActiveCompany::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(
