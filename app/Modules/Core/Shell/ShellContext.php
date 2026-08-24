@@ -34,12 +34,17 @@ final readonly class ShellContext
     {
         $user = Auth::user();
         if (! $user instanceof User) {
+            /** @var Collection<int, CompanyMembership> $emptyCompanies */
+            $emptyCompanies = collect();
+            /** @var Collection<int, Branch> $emptyBranches */
+            $emptyBranches = collect();
+
             return [
                 'navigation' => [],
                 'user' => null,
-                'companies' => collect(),
+                'companies' => $emptyCompanies,
                 'company' => null,
-                'branches' => collect(),
+                'branches' => $emptyBranches,
                 'branch' => null,
             ];
         }
@@ -56,13 +61,14 @@ final readonly class ShellContext
 
         $company = $this->companyContext->company();
         /** @var Collection<int, Branch> $branches */
-        $branches = $company === null
-            ? collect()
-            : Branch::query()
+        $branches = collect();
+        if ($company !== null) {
+            $branches = Branch::query()
                 ->where('company_id', $company->getKey())
                 ->where('is_active', true)
                 ->orderBy('code')
                 ->get();
+        }
 
         $branch = $this->branchContext->branch();
         if ($branch === null) {
