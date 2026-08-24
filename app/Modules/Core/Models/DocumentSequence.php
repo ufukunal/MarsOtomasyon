@@ -5,6 +5,7 @@ namespace App\Modules\Core\Models;
 use App\Modules\Core\Enums\DocumentType;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use LogicException;
 
 final class DocumentSequence extends Model
 {
@@ -29,6 +30,17 @@ final class DocumentSequence extends Model
             'created_at' => 'immutable_datetime',
             'updated_at' => 'immutable_datetime',
         ];
+    }
+
+    public function documentTypeEnum(): DocumentType
+    {
+        $raw = $this->getRawOriginal('document_type');
+        if (! is_string($raw)) {
+            throw new LogicException('Persisted document sequence type must be a string.');
+        }
+
+        return DocumentType::tryFrom($raw)
+            ?? throw new LogicException('Persisted document sequence type is invalid.');
     }
 
     /** @return BelongsTo<Company, $this> */
