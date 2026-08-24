@@ -63,6 +63,7 @@ final class RoleManagementController
 
         $permissionKeys = $this->normalizePermissionKeys($validated['permission_keys'] ?? []);
         sort($permissionKeys);
+        $permissionKeys = array_values($permissionKeys);
         $this->privilegeGuard->assertCanGrantPermissionKeys($permissionKeys);
         $this->assertCodeAvailable((string) $validated['code']);
 
@@ -96,7 +97,7 @@ final class RoleManagementController
         return view('settings.roles.form', [
             'role' => $role,
             'grantablePermissions' => $this->privilegeGuard->grantablePermissions(),
-            'selectedPermissionKeys' => $role->permissions->pluck('key')->map(static fn (mixed $key): string => (string) $key)->all(),
+            'selectedPermissionKeys' => array_values($role->permissions->pluck('key')->map(static fn (mixed $key): string => (string) $key)->all()),
         ]);
     }
 
@@ -113,9 +114,12 @@ final class RoleManagementController
 
         $permissionKeys = $this->normalizePermissionKeys($validated['permission_keys'] ?? []);
         sort($permissionKeys);
+        $permissionKeys = array_values($permissionKeys);
         $this->privilegeGuard->assertCanGrantPermissionKeys($permissionKeys);
         $this->assertCodeAvailable((string) $validated['code'], (int) $role->getKey());
-        $beforePermissionKeys = $role->permissions->pluck('key')->map(static fn (mixed $key): string => (string) $key)->sort()->values()->all();
+        $beforePermissionKeys = array_values(
+            $role->permissions->pluck('key')->map(static fn (mixed $key): string => (string) $key)->sort()->all(),
+        );
         $before = $this->snapshot($role, $beforePermissionKeys);
 
         DB::transaction(function () use ($role, $validated, $permissionKeys, $before): void {
