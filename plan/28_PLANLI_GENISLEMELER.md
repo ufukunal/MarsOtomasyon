@@ -2,7 +2,7 @@
 
 Bu belge, `27_GELECEK_GENISLEME_ALTYAPISI.md` içindeki adaylardan **resmî roadmap kapsamına alınan** özellikleri tanımlar.
 
-Bu özellikler V1 production gate'i olan M24'ü bloklamaz. Varsayılan geliştirme sırası M24 sonrası M25–M31'dir. Ancak temel extension seam'leri M0–M3 sırasında hazırlanır.
+Bu özellikler V1 production gate'i olan M24'ü bloklamaz. Varsayılan geliştirme sırası M24 sonrası M25–M32'dir. Ancak temel extension seam'leri M0–M3 sırasında hazırlanır.
 
 ## Resmî planlı genişleme seti
 1. Kargo API Adapterları
@@ -12,6 +12,7 @@ Bu özellikler V1 production gate'i olan M24'ü bloklamaz. Varsayılan geliştir
 5. OCR Fatura / Dekont Okuma
 6. Hafif CRM
 7. BI Export
+8. CAD / 3D Viewer
 
 Ana kural: Bu modüllerden hiçbiri yeni cari, stok veya treasury authority kurmaz.
 
@@ -324,11 +325,79 @@ BI dataset/read model hiçbir zaman business ledger değildir. BI'dan gelen writ
 
 ---
 
+## 8. CAD / 3D Viewer
+
+### Amaç
+Ürün, ithalat, üretim, fason ve teknik dosyalardaki CAD/3D kaynaklarını Mars içinde read-only inceleyebilmek.
+
+### Format hedefi
+İlk gerçek kullanım fixture'larına göre önceliklendirilir:
+- DWG / DXF
+- MAX / 3DS
+- FBX / OBJ / STL
+- STEP/STP / IGES
+- IFC/RVT/DWF gerektiğinde provider capability'sine göre
+- web derivative olarak glTF/GLB where suitable
+
+### Mimari
+`Original Attachment → Derivative/Translation Job → Preview Artifact/Manifest → Web Viewer`.
+
+Orijinal dosya authority'dir. Derivative yeniden üretilebilir preview'dır.
+
+### Provider stratejisi
+- Autodesk APS Model Derivative + Viewer SDK ana cloud aday
+- ODA SDK/Web SDK özellikle DWG/DXF ve self-hosted/gizlilik ihtiyacında alternatif
+- seçilmiş interchange formatlarda kontrollü local/server converter + glTF/GLB viewer mümkün
+
+Tek provider hard-code edilmez; `cad_viewer/model_derivative` family + capability contract kullanılır.
+
+### `.MAX` kuralı
+Mars proprietary `.max` parser yazmaz. `.max` preview Autodesk derivative veya kontrollü Autodesk/3ds Max automation/export yoluyla oluşturulur.
+
+### İlk UI
+Attachment yanında `3D/CAD Önizle` action.
+
+2D desteklenirse:
+- pan/zoom
+- sheet/layout
+- layer visibility
+- object properties
+- measure where supported
+
+3D desteklenirse:
+- orbit/pan/zoom
+- fit model
+- object tree
+- hide/isolate
+- property inspect
+- section/measure where supported
+
+### Güvenlik
+- cloud provider'a CAD yükleme company-level explicit policy
+- private attachment authorization
+- derivative access controlled/short-lived
+- source checksum lineage
+- normalized conversion errors
+- provider credential masking/redaction
+
+### Kabul
+- original file derivative failure'dan etkilenmiyor
+- source checksum → derivative mapping deterministic
+- duplicate translation idempotent
+- cross-company viewer access BLOCK
+- gerçek DWG/DXF ve seçilmiş 3D fixture browser viewer'da açılıyor
+- `.max` desteği provider/conversion sonucu olarak ifade ediliyor; native parser iddiası yok
+- editing/authoring yok
+
+Ayrıntı: `30_DOSYA_ONIZLEME_CAD_3D.md`.
+
+---
+
 # Milestone sırası
 
 Varsayılan post-V1 sıra:
 
-`M25 Product Family/Variant → M26 Barkod/Termal Etiket → M27 Mobil Depo/Scanner → M28 Kargo API Adapterları → M29 OCR Belge Okuma → M30 Hafif CRM → M31 BI Export`
+`M25 Product Family/Variant → M26 Barkod/Termal Etiket → M27 Mobil Depo/Scanner → M28 Kargo API Adapterları → M29 OCR Belge Okuma → M30 Hafif CRM → M31 BI Export → M32 CAD/3D Viewer`
 
 Bağımsız bir milestone öne alınabilir; ancak dependency ve `27` activation checklist'i ihlal edilemez.
 
@@ -352,6 +421,9 @@ M2 Account + M5 Quote authority stabil olmalı.
 
 ## M31 önkoşul
 M13 report/read-model registry ve export job altyapısı stabil olmalı.
+
+## M32 önkoşul
+V1 PDF/görsel viewer ve Attachment security stabil olmalı. Kullanılacak CAD/3D provider/lisans modeli, cloud upload policy ve gerçek format fixture'ları doğrulanmış olmalı.
 
 # Ortak DoD
 Her planlı genişleme:
