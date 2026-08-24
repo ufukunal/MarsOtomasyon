@@ -6,6 +6,8 @@ enum PermissionKey: string
 {
     case CompanyView = 'core.company.view';
     case CompanyManage = 'core.company.manage';
+    case BranchView = 'core.branch.view';
+    case BranchManage = 'core.branch.manage';
     case UserView = 'core.user.view';
     case UserManage = 'core.user.manage';
     case RoleView = 'core.role.view';
@@ -20,6 +22,8 @@ enum PermissionKey: string
         return match ($this) {
             self::CompanyView => 'Şirket görüntüleme',
             self::CompanyManage => 'Şirket yönetimi',
+            self::BranchView => 'Şube görüntüleme',
+            self::BranchManage => 'Şube yönetimi',
             self::UserView => 'Kullanıcı görüntüleme',
             self::UserManage => 'Kullanıcı yönetimi',
             self::RoleView => 'Rol ve yetki görüntüleme',
