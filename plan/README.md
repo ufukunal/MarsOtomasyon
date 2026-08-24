@@ -1,4 +1,4 @@
-# MarsOtomasyon — Master Plan V4 — V16.3 Tasarım Uyumlu
+# MarsOtomasyon — Master Plan V4.1 — V16.3 Tasarım Uyumlu
 
 Bu klasör `ufukunal/MarsOtomasyon` için **otoriter geliştirme planıdır**.
 
@@ -10,10 +10,10 @@ Bu klasör `ufukunal/MarsOtomasyon` için **otoriter geliştirme planıdır**.
 - operasyon/güvenlik dersleri
 kaynağıdır.
 
-V4, yeni temiz planın sade mimarisini korurken `MarsEski/plan` içindeki V16.3 ile hâlâ uyumlu ve doğruluk açısından değerli ayrıntıları geri entegre eder.
+V4.1, yeni temiz planın sade mimarisini korurken `MarsEski/plan` içindeki V16.3 ile hâlâ uyumlu doğruluk ayrıntılarını ve code-ready geliştirme gate'lerini birleştirir.
 
 ## Durum
-- Plan: **V4 — V16.3 tasarım uyumlu, legacy useful-rules merged**
+- Plan: **V4.1 — code-ready, V16.3 tasarım uyumlu**
 - UI referansı: **MarsOtomasyon V16.3 — Genel Tasarım Temizliği**
 - PHP 8.5 + Laravel 13
 - PostgreSQL 18 only
@@ -43,16 +43,36 @@ Ana navigasyon:
 
 ## Locked ana ürün kararları
 - Cari: `account_transactions` bakiye ledger; OpenItem/fatura-allocation yok.
+- Cari V1: tek book currency; ham farklı para birimleri tek bakiyede toplanmaz.
 - Stok: `stock_movements` authority; aynı fiziksel olay exactly-once.
+- Negatif stok: V1'de BLOCK.
+- Satış physical stock OUT: sevkiyat/irsaliye authority; irsaliyesiz direct invoice kendi OUT effect'ini üretir.
+- Stok maliyeti: moving weighted average.
 - Kısmi sevk/faturalama/mal kabul first-class.
 - Core lot/seri yok.
 - Ürün başına tek satış + tek alış fiyatı.
-- B2B fiyatı = ürün satış fiyatı + Cari İskontosu kuralı; ayrı price-list truth yok.
+- B2B fiyatı = **ürün satış fiyatı − Cari İskontosu**; ayrı price-list truth yok.
+- Marketplace müşteri snapshot'ı ile finansal clearing counterparty ayrıdır.
+- Treasury bakiye authority `treasury_movements` ledger'ıdır.
 - Basit üretim: `Reçete → Emir → Malzeme Çıkışı → Mamul Girişi → Tamamla`.
 - Generic QMS/MRP/OEE/ECO/Shop Floor platformu yok.
 - Hazır Rapor Merkezi; generic report/document designer yok.
 - Canlı banka API/open-banking V1'de yok.
 - PostgreSQL search; ayrı search daemon yok.
+
+## V4.1 code-ready düzeltmeleri
+- Negatif stok ve reservation/oversell policy kilitlendi.
+- Dispatch/invoice stock authority source-effect matrix kilitlendi.
+- Moving-average costing M4 öncesi karar olarak kilitlendi.
+- KDV dahil/hariç input + net/tax/discount/rounding contract tanımlandı.
+- Cari book currency sınırı tanımlandı.
+- Marketplace clearing/payout/fee modeli tanımlandı.
+- Treasury movement authority netleştirildi.
+- Transfer/fason in-transit custody ve carrying value ilkesi tanımlandı.
+- B2B external auth sınırı internal kullanıcıdan ayrıldı.
+- Milestone entry-gate'leri `19_ACIK_KARARLAR.md` ile bağlandı.
+- M0 gerçek CI/toolchain/branch-protection çıkış kriteriyle güçlendirildi.
+- M12/M13 sequencing ve go-live channel cutover uyumsuzlukları düzeltildi.
 
 ## V4'te eski plandan geri alınan kritik ayrıntılar
 V16.3 ile uyumlu olduğu için korunan başlıca kurallar:
@@ -73,14 +93,6 @@ V16.3 ile uyumlu olduğu için korunan başlıca kurallar:
 - Concurrent-write-safe schema backfill.
 - Gate A/B/C test yaklaşımı ve granular vertical milestones.
 
-## Yeni plandan korunmuş faydalı sadeleştirmeler
-- Tek sunucu/az kullanıcı hedefi; hyperscale yok.
-- Laravel-native ve gereksiz abstraction yok.
-- PaymentMethod/PaymentType kontrollü config ile genişletilebilir.
-- BackupRun/RestoreRun ve ImportJob/ExportJob açık domain operasyonlarıdır.
-- UI shell, accessibility ve keyboard/scanner odaklı kullanım korunur.
-- Proforma non-ledger document olarak tanımlıdır.
-
 ## UI uygulama kuralı
 - Yeni belge ilgili listeden `Yeni` ile açılır.
 - Detail readonly; edit ayrı route.
@@ -93,7 +105,7 @@ V16.3 ile uyumlu olduğu için korunan başlıca kurallar:
 `16_UYGULAMA_SIRASI_MILESTONE.md` küçük dikey dilimler kullanır.
 
 Her teslim:
-`schema → use-case → transaction/invariant → authorization → V16.3 UI → tests → PostgreSQL CI → audit/observability`.
+`entry gate → schema → use-case → transaction/invariant → authorization → V16.3 UI → tests → PostgreSQL CI → audit/observability`.
 
 Büyük modüller tek dev committe yazılmaz; independently test edilebilir vertical slice'lar atomic commitlerle ilerler.
 
@@ -101,9 +113,10 @@ Büyük modüller tek dev committe yazılmaz; independently test edilebilir vert
 Yeni geliştirmeye başlarken:
 1. `00_KARAR_KAYDI.md`
 2. `16_UYGULAMA_SIRASI_MILESTONE.md`
-3. yapılacak modülün owner belgesi
-4. `06_IS_KURALLARI_VE_INVARIANTLAR.md`
-5. `14_TEST_CI_KALITE.md`
-6. `26_V16_3_TASARIM_UYUMU.md`
+3. `19_ACIK_KARARLAR.md` ilgili milestone entry gate'i
+4. yapılacak modülün owner belgesi
+5. `06_IS_KURALLARI_VE_INVARIANTLAR.md`
+6. `14_TEST_CI_KALITE.md`
+7. `26_V16_3_TASARIM_UYUMU.md`
 
-Bu altı kaynak birlikte uygulanmadan modül tamamlanmış sayılmaz.
+Bu kaynaklar birlikte uygulanmadan modül tamamlanmış sayılmaz.
