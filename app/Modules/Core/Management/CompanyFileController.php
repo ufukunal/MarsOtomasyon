@@ -47,7 +47,9 @@ final readonly class CompanyFileController
         ]);
 
         $upload = $request->file('file');
-        abort_if(! $upload instanceof UploadedFile, 422, 'Dosya yükleme isteği geçersiz.');
+        if (! $upload instanceof UploadedFile) {
+            abort(422, 'Dosya yükleme isteği geçersiz.');
+        }
 
         $attachment = $this->files->upload($upload, isset($validated['label']) ? (string) $validated['label'] : null);
 
