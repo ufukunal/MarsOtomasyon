@@ -49,7 +49,10 @@ final class ResolveActiveCompany
 
         abort_if($membership === null, 403, 'Bu şirkete erişim yetkiniz yok.');
 
-        $this->context->set($membership->company);
+        $company = $membership->company;
+        abort_if($company === null, 409, 'Şirket üyeliği geçerli bir şirkete bağlı değil.');
+
+        $this->context->set($company);
 
         try {
             return $next($request);
