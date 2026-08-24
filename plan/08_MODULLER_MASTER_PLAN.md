@@ -127,6 +127,7 @@ Stock ve finance effect aynı source lineage'da, kendi authority'lerinde yürür
 - Yükleme/Ağırlık-Boyut Simülatörü
 
 ## 12. E-Ticaret / B2B
+Kullanıcı-visible çalışma alanı:
 - Kanal Merkezi
 - E-Ticaret Siparişleri
 - Ürün Entegrasyonu
@@ -136,7 +137,36 @@ Stock ve finance effect aynı source lineage'da, kendi authority'lerinde yürür
 - Entegrasyon Sorunları
 - Kanal Ayarları
 
-Tek Integration Core + WooCommerce/Trendyol/Mars B2B adapterları.
+Tek Integration Core + adapter seti:
+- WooCommerce
+- Trendyol
+- Hepsiburada
+- Amazon SP-API
+- n11
+- PttAVM
+- idefix
+- Çiçeksepeti
+- Mars B2B
+
+Yeni pazaryeri ayrı ana modül/menu oluşturmaz. Kanal Merkezi ve ortak listelerde kanal filtresi/kartı olarak görünür.
+
+Ortak Integration Core sahipliği:
+- channel/account
+- encrypted credentials
+- capability matrix
+- product/listing/external-id mapping
+- category/attribute mapping
+- Inbox/dedupe
+- Outbox
+- desired-state stock/price publish
+- order normalization
+- shipment/cancel/return normalization
+- question/invoice capability routing
+- retry/backoff/rate-limit
+- problem center
+- provider version/deprecation metadata
+
+Provider'ın desteklemediği aksiyon core tarafından taklit edilmez; `unsupported/manual` capability olarak ele alınır.
 
 ## 13. İletişim
 - E-Posta
@@ -191,6 +221,7 @@ Normal kullanıcı menüsünde teknik state/jargon şişkinliği oluşturulmaz.
 ## Modül anti-goals
 - aynı iş için duplicate ekran yok
 - her liste için ayrı teknik modül yok
+- her pazaryeri için duplicate order/stock/invoice engine yok
 - provider/queue/internal state normal kullanıcı menüsüne çıkmaz
 - generic ERP/QMS/PLM menu yok
 - SaaS billing/tier yok
