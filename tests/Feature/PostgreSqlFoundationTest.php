@@ -37,4 +37,11 @@ final class PostgreSqlFoundationTest extends TestCase
 
         self::assertSame('read committed', $row->default_transaction_isolation);
     }
+
+    public function test_database_session_timezone_is_utc(): void
+    {
+        $row = DB::selectOne("select current_setting('TimeZone') as timezone");
+
+        self::assertSame('UTC', $row->timezone);
+    }
 }
