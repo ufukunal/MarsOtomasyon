@@ -1,9 +1,9 @@
 # 12 — Entegrasyon, API, B2B ve İletişim V4
 
 ## 1. Integration Core
-WooCommerce, Trendyol, Hepsiburada, Amazon, n11, PttAVM, idefix, Çiçeksepeti, Pazarama, Koçtaş, Teknosa, Temu Türkiye, Allesgo, Boyner ve Mars B2B ayrı business engine değildir. Tek **E-Ticaret Integration Core** üzerine adapter olarak bağlanır.
+WooCommerce, Trendyol, Hepsiburada, Amazon, n11, PttAVM, idefix, Allesgo ve Mars B2B ayrı business engine değildir. Tek **E-Ticaret Integration Core** üzerine adapter olarak bağlanır.
 
-Resmi adapter seti:
+**V1 doğrulanmış adapter seti:**
 - WooCommerce
 - Trendyol
 - Hepsiburada
@@ -11,16 +11,20 @@ Resmi adapter seti:
 - n11
 - PttAVM
 - idefix
+- Allesgo
+- Mars B2B
+
+Amazon için ilk operasyon odağı Türkiye marketplace'idir; adapter marketplace/region kimliğini modelde ayrı taşıyarak SP-API'nin bölgesel yapısına hazır kalır.
+
+**Deferred / API doğrulama bekleyen marketplace adayları:**
 - Çiçeksepeti
 - Pazarama
 - Koçtaş
 - Teknosa
 - Temu Türkiye
-- Allesgo
 - Boyner
-- Mars B2B
 
-Amazon için ilk operasyon odağı Türkiye marketplace'idir; adapter marketplace/region kimliğini modelde ayrı taşıyarak SP-API'nin bölgesel yapısına hazır kalır. Temu adapterı da Türkiye seller/marketplace kapsamını açık region/marketplace metadata ile taşır; global Temu varsayımı yapmaz.
+Deferred provider için güncel resmî API dokümanı veya gerçek seller/partner erişimi doğrulanmadan production adapter yazılmaz, milestone açılmaz ve UI'da aktif kanal gösterilmez.
 
 Mars authority:
 - ürün master
@@ -97,15 +101,13 @@ V16.3 menüsü değişmez:
 - Entegrasyon Sorunları
 - Kanal Ayarları
 
-Yeni pazaryerleri ayrı ana menü oluşturmaz; kanal filtresi/kartı olarak aynı çalışma alanına girer.
+Yeni doğrulanmış pazaryerleri ayrı ana menü oluşturmaz; kanal filtresi/kartı olarak aynı çalışma alanına girer.
 
 ## 6. Kanal ayarları
 Tabs:
 `Bağlantı · Ürün · Sipariş · Fatura · Stok · Görsel`.
 
 Provider credential formu adapter-owned schema ile oluşturulur fakat secret davranışı ortaktır.
-
-Örnekler:
 
 ### WooCommerce
 - Kanal Adı
@@ -141,30 +143,8 @@ Merchant/integrator account bilgileri ve güncel authentication alanları provid
 - API Key
 - API Secret
 
-### Çiçeksepeti
-- seller/supplier identity
-- API Key ve provider tarafından istenen ek connection metadata
-
-### Pazarama
-Seller/merchant identity ve yürürlükteki API credential alanları adapter-owned schema ile tanımlanır.
-
-### Koçtaş
-Marketplace seller/account identity ve entegrasyon erişim bilgileri güncel Koçtaş seller API/entegratör sözleşmesine göre adapter tarafından tanımlanır.
-
-### Teknosa
-Marketplace seller/account identity ve güncel marketplace/entegratör authentication alanları adapter tarafından tanımlanır; varsa platform altyapısı kaynaklı external IDs ayrı mapping olarak tutulur.
-
-### Temu Türkiye
-- marketplace/region = Türkiye
-- seller/account identity
-- seller application/API authorization metadata
-- yürürlükteki token/secret/authorization alanları encrypted storage
-
 ### Allesgo
 Seller/account identity ve yürürlükteki API credentials adapter config schema ile tanımlanır.
-
-### Boyner
-Seller/account identity ve erişime açılan marketplace API/entegratör credential alanları adapter config schema ile tanımlanır.
 
 Mars B2B dahiliyse harici secret istemez.
 
@@ -246,34 +226,28 @@ Target: ürün/listing, stok/fiyat, sipariş ve kargo/fatura/iade gibi provider'
 ### idefix
 Target: ürün/kategori/özellik/marka, stok/fiyat, sipariş/sevkiyat, fatura linki, iade, ürün soruları ve sipariş soruları.
 
-### Çiçeksepeti
-Target: API key tabanlı channel connection; ürün/listing, stok/fiyat, sipariş/kargo ve provider'ın erişime açtığı iade/soru/fatura operasyonları. Provider panelinde kalması gereken operasyon capability matrix'te açıkça `unsupported/manual` gösterilir.
-
-### Pazarama
-Target: provider'ın güncel seller API'sinde erişime açık ürün/listing, kategori/özellik, stok/fiyat, sipariş, sevkiyat, iptal, iade, fatura ve soru/mesaj capability'leri. Eksik operasyonlar panel-manual olarak işaretlenir.
-
-### Koçtaş
-Target: ev/yaşam ve yapı ürünleri için listing/katalog, stok/fiyat, sipariş/sevkiyat ve seller marketplace API'sinin erişime açtığı iade/fatura operasyonları. Provider/entegratör sözleşmesi capability matrix'in kaynağıdır.
-
-### Teknosa
-Target: marketplace seller kanalında listing/katalog, stok/fiyat, sipariş/sevkiyat ve erişime açılan cancellation/return/invoice operasyonları. Provider altyapısına özgü kimlik/status modeli adapter arkasında normalize edilir.
-
-### Temu Türkiye
-Target: Türkiye seller hesabı kapsamında katalog/listing, stok/fiyat, sipariş/fulfillment, iptal/iade ve erişime açılan diğer seller operasyonları. Global Temu davranışı Türkiye adapterına otomatik taşınmaz; region/marketplace capability açık tutulur.
-
 ### Allesgo
 Target: provider'ın API'de sunduğu ürün/listing, stok/fiyat, sipariş, sevkiyat, iade, soru/cevap ve ödeme/settlement evidence operasyonları. Güncel capability provider contract fixture ile doğrulanır.
 
-### Boyner
-Target: seller hesabına ve erişime açılan entegrasyon sözleşmesine göre ürün/listing, stok/fiyat, sipariş/sevkiyat ve varsa iade/fatura operasyonları. Doğrudan API erişimi yerine yetkili entegratör gerekirse adapter contract buna göre uygulanır; core değişmez.
+## 14. Deferred Marketplace Candidates
+Çiçeksepeti, Pazarama, Koçtaş, Teknosa, Temu Türkiye ve Boyner için yalnız aday kaydı tutulur.
 
-## 14. B2B cari bağlantısı
+Adapter açma önkoşulu:
+1. güncel resmî API dokümanı **veya** gerçek seller/partner portal erişimi,
+2. authentication modeli,
+3. en az ürün/listing + stok/fiyat + sipariş capability'lerinin doğrulanması,
+4. rate-limit/pagination/status davranışının belgelenmesi,
+5. gerçek endpoint contract fixture'larının hazırlanabilmesi.
+
+Bu koşullar sağlanmadan tahmine dayalı endpoint/credential kodu yazılmaz.
+
+## 15. B2B cari bağlantısı
 B2B user/account önceden bir Mars carisine bağlıdır:
 `Cari → B2B Kullanıcı → B2B Sipariş → Mars Satış Siparişi`.
 
 Siparişte cari seçilmez. B2B order cari bakiyesini etkilemez; invoice etkiler.
 
-## 15. B2B izinleri
+## 16. B2B izinleri
 Örnek permission'lar:
 - sipariş
 - fiyat görme
@@ -292,7 +266,7 @@ Cari `B2B / Bayi Erişimi` alanları:
 - adres yetkisi
 - stok/fiyat görünürlüğü
 
-## 16. API
+## 17. API
 External API `/api/v1` altında versionlanır.
 
 - session/token/client auth modele göre
@@ -305,7 +279,7 @@ External API `/api/v1` altında versionlanır.
 
 Same idempotency key farklı payload ile conflict'tir. Eloquent public API contract değildir.
 
-## 17. Webhook / polling
+## 18. Webhook / polling
 Webhook destekleyen provider'da:
 - signature/HMAC where available
 - timestamp/replay defense
@@ -316,7 +290,7 @@ Webhook destekleyen provider'da:
 
 Webhook sunmayan veya eksik olay sunan provider için cursor/watermark polling kullanılır. Polling de aynı Inbox/dedupe yoluna girer; ikinci business engine oluşturmaz.
 
-## 18. E-Belge
+## 19. E-Belge
 Mars invoice lifecycle ile provider e-document lifecycle ayrıdır. Provider-neutral adapter:
 - submit
 - query/status
@@ -325,7 +299,7 @@ Mars invoice lifecycle ile provider e-document lifecycle ayrıdır. Provider-neu
 
 Marketplace adapterı e-document authority değildir. Marketplace'e fatura linki/dosyası göndermek e-document provider lifecycle'ının yerine geçmez.
 
-## 19. İletişim provider modeli
+## 20. İletişim provider modeli
 Kanallar:
 - SMS
 - E-Posta
@@ -342,12 +316,12 @@ SMTP/Lark-compatible SMTP, Resend, Brevo, SendGrid, Mailgun adapterları destekl
 ### WhatsApp
 Meta WhatsApp Cloud API veya seçilen provider adapterı.
 
-## 20. Delivery modeli
+## 21. Delivery modeli
 `Notification → Delivery → ProviderAttempt`.
 
 Queue/outbox üzerinden gönderim, retry/backoff ve kalıcı hata kaydı vardır. Business transaction dış servisin cevabını beklemez.
 
-## 21. Template
+## 22. Template
 Versioned şablon:
 - değişken whitelist
 - preview
@@ -357,10 +331,10 @@ Versioned şablon:
 
 destekler.
 
-## 22. Scanner Agent
+## 23. Scanner Agent
 Yerel Mars Scanner Agent browser ile WIA/TWAIN veya işletim sistemi scanner API'si arasında localhost köprüsüdür. Çek/senet/belge taramada kullanılır. Business authority değildir.
 
-## 23. Sistem entegrasyonlarının UI yeri
+## 24. Sistem entegrasyonlarının UI yeri
 `Ayarlar → Entegrasyonlar`:
 - E-Belge
 - SMS
@@ -371,16 +345,16 @@ Yerel Mars Scanner Agent browser ile WIA/TWAIN veya işletim sistemi scanner API
 
 Kanal credentials burada duplicate edilmez.
 
-## 24. Search
+## 25. Search
 B2B/e-ticaret ürün araması ilk sürümde PostgreSQL FTS + `pg_trgm` ile başlar. Search fiyat/stok authority değildir.
 
-## 25. Bank scope
+## 26. Bank scope
 Canlı banka API/open-banking V1 kapsamında yoktur. Statement import/reconciliation Treasury/Finance Core'dadır.
 
-## 26. Provider değişiklik yönetimi
+## 27. Provider değişiklik yönetimi
 Marketplace API'leri version/deprecation açısından dış bağımlılıktır.
 
-Her adapter:
+Her aktif adapter:
 - API version/source documentation reference
 - capability set
 - last compatibility verification date
