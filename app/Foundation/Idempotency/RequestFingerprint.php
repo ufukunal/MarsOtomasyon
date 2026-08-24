@@ -11,7 +11,7 @@ final readonly class RequestFingerprint implements Stringable
     private function __construct(public string $value) {}
 
     /**
-     * @param array<array-key, mixed> $payload
+     * @param  array<array-key, mixed>  $payload
      *
      * @throws JsonException
      */
