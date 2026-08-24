@@ -70,6 +70,7 @@ jobs:
       REDIS_QUEUE_DB: 2
       REDIS_SESSION_DB: 3
       REDIS_QUEUE: mars-ci
+      REDIS_QUEUE_RETRY_AFTER: 90
 
     steps:
       - name: Checkout
