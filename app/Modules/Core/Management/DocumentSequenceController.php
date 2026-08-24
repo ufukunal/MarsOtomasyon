@@ -8,6 +8,7 @@ use App\Modules\Core\Enums\AuditAction;
 use App\Modules\Core\Enums\AuditTargetType;
 use App\Modules\Core\Enums\DocumentType;
 use App\Modules\Core\Models\DocumentSequence;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -62,26 +63,36 @@ final class DocumentSequenceController
         $seriesCode = mb_strtolower(trim((string) $validated['series_code']));
         $this->assertIdentityAvailable($documentType, $seriesCode);
 
-        $sequence = DB::transaction(function () use ($validated, $documentType, $seriesCode): DocumentSequence {
-            $sequence = DocumentSequence::query()->create([
-                'company_id' => $this->companyId(),
-                'document_type' => $documentType,
-                'series_code' => $seriesCode,
-                'prefix' => (string) ($validated['prefix'] ?? ''),
-                'padding' => (int) $validated['padding'],
-                'next_value' => (int) $validated['next_value'],
-                'is_active' => (bool) $validated['is_active'],
+        try {
+            $sequence = DB::transaction(function () use ($validated, $documentType, $seriesCode): DocumentSequence {
+                $sequence = DocumentSequence::query()->create([
+                    'company_id' => $this->companyId(),
+                    'document_type' => $documentType,
+                    'series_code' => $seriesCode,
+                    'prefix' => (string) ($validated['prefix'] ?? ''),
+                    'padding' => (int) $validated['padding'],
+                    'next_value' => (int) $validated['next_value'],
+                    'is_active' => (bool) $validated['is_active'],
+                ]);
+
+                $this->audit->record(
+                    AuditAction::DocumentSequenceCreated,
+                    AuditTargetType::DocumentSequence,
+                    $sequence->getKey(),
+                    after: $this->snapshot($sequence),
+                );
+
+                return $sequence;
+            });
+        } catch (QueryException $exception) {
+            if ((string) $exception->getCode() !== '23505') {
+                throw $exception;
+            }
+
+            throw ValidationException::withMessages([
+                'series_code' => 'Bu belge türü ve seri kodu şirkette zaten kullanılıyor.',
             ]);
-
-            $this->audit->record(
-                AuditAction::DocumentSequenceCreated,
-                AuditTargetType::DocumentSequence,
-                $sequence->getKey(),
-                after: $this->snapshot($sequence),
-            );
-
-            return $sequence;
-        });
+        }
 
         return redirect()->route('settings.numbering.show', $sequence->getKey())
             ->with('status', 'Numara serisi oluşturuldu.');
