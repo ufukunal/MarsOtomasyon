@@ -21,7 +21,7 @@ Route::middleware(['web', 'auth'])->group(function (): void {
         ->middleware('company.context')
         ->name('context.branches.select');
     Route::get('/search', GlobalSearchController::class)
-        ->middleware('company.context')
+        ->middleware(['company.context', 'throttle:60,1'])
         ->name('search');
 
     Route::view('/settings', 'settings.index')
