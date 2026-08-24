@@ -20,6 +20,27 @@ it('redirects unauthenticated root requests to login', function (): void {
     $this->get('/')->assertRedirect('/login');
 });
 
+it('enters the workspace through login and the company context gateway', function (): void {
+    $user = shellUser('login-workspace');
+    $company = shellCompany('SHELL-LOGIN');
+    shellMembership($user, $company);
+    shellBranch($company, 'MAIN');
+
+    $this->post('/login', [
+        'email' => $user->email,
+        'password' => 'correct-password',
+    ])->assertRedirect('/');
+
+    $this->get('/')
+        ->assertRedirect('/workspace')
+        ->assertSessionHas('active_company_id', $company->getKey());
+
+    $this->get('/workspace')
+        ->assertOk()
+        ->assertSee($company->name)
+        ->assertSee('Ana Sayfa');
+});
+
 it('auto selects the only active company before entering workspace', function (): void {
     $user = shellUser('single-company');
     $company = shellCompany('SHELL-A');
