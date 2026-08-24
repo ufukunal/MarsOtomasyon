@@ -1,4 +1,4 @@
-# 16 — Uygulama Sırası ve Milestone'lar V4.1
+# 16 — Uygulama Sırası ve Milestone'lar V4.2
 
 Amaç V16.3 tasarımını gerçek Laravel/PostgreSQL uygulamasına **küçük, çalışan, test edilmiş dikey dilimler** halinde dönüştürmektir. Eski repodaki büyük-bang geliştirme riski tekrar edilmez.
 
@@ -9,6 +9,8 @@ Her teslim:
 `entry gate → schema → domain use-case/action → transaction/invariant → authorization → V16.3 UI → tests → PostgreSQL CI → audit/observability`.
 
 Bir milestone içindeki görünür butonlar gerçek route/action çalıştırmadan tamamlanmış sayılmaz. Future capability için kullanılmayan interface/table/framework önceden kurulmaz.
+
+Gelecek özellik ekleme yolu ayrıca `27_GELECEK_GENISLEME_ALTYAPISI.md` içindeki activation checklist'e uyar.
 
 # Wave A — Foundation
 
@@ -33,6 +35,13 @@ Bir milestone içindeki görünür butonlar gerçek route/action çalıştırmad
 - required status-check isimleri belirlenmiş
 - `main` branch protection/required checks uygulanabiliyorsa aktif; uygulanamıyorsa açık repo-operasyon blocker'ı kayıtlı
 - V16.3 textual contract yanında immutable design/reference artifact veya source/hash referansı versionlanmış
+- provider key/family naming convention
+- typed capability naming convention
+- versioned internal event-name/schema convention
+- stable source-effect/external identity naming convention
+- code/config based `FeatureKey` registry convention
+
+**M0 future-ready sınırı:** Yukarıdaki convention'lar için gerçek consumer yoksa boş DB tabloları/plugin framework/interface ağacı kurulmaz.
 
 **M0 exit:** fresh clone → install → migrate → test → CI green zinciri çalışmadan M1 başlamaz.
 
@@ -46,6 +55,7 @@ Bir milestone içindeki görünür butonlar gerçek route/action çalıştırmad
 - audit
 - Files foundation
 - V16.3 sidebar/topbar/workspace tabs/global search/command palette
+- FeatureKey availability ile henüz tamamlanmamış future modüllerin dead menu/route üretmemesi
 
 ## M2 — Cari Core
 - Account tek book currency
@@ -74,6 +84,7 @@ OpenItem/allocation yok.
 - technical info file
 - media foundation
 - PostgreSQL product search
+- Product identity/SKU modeli ileride `ProductFamily/VariantRelation` additive grouping eklenmesini engellemeyecek; family V1 tablosu zorunlu değil
 
 Lot/serial ve generic price-list yok.
 
@@ -124,7 +135,7 @@ Locked default: physical stock OUT authority.
 - reversal reopens net progress
 - readonly finalized detail
 
-Fiyat/KDV ana odak değildir. Kargo API yalnız A-12 kapanırsa ayrı slice'tır.
+Fiyat/KDV ana odak değildir. Kargo API yalnız A-12 kapanırsa ayrı slice'tır. Gelecek shipping provider family contract'ı `27`ye uyar.
 
 ## M8 — Satış Faturaları
 - invoice list/create/detail
@@ -177,7 +188,7 @@ Zorunlu:
 - Excel/CSV/MT940 import
 - statement matching/reconciliation
 
-Cross-currency yalnız A-07 kapanırsa aynı milestone'a alınır.
+Cross-currency yalnız A-07 kapanırsa aynı milestone'a alınır. Future payment/open-banking providerları source/evidence üretir; treasury authority olmaz.
 
 ## M11 — Çek / Senet
 - received/issued cheque
@@ -203,10 +214,11 @@ Bu milestone marketplace API connector'ı değildir.
 - financial refund/correction
 - source lineage
 
-Provider return/status/cargo implementations M17/M18 adapterlarında eklenir.
+Provider return/status/cargo implementations M17/M18 adapterlarında eklenir. Future warranty/service module M12 Return Core'u source lineage olarak kullanabilir ama aynı şey değildir.
 
 ## M13 — Report Platform + Commercial Core Reports
 - ready-report catalog infrastructure
+- stabil report key registry
 - shared filters/KPI/table workspace
 - Saved Reports
 - Scheduled Reports
@@ -473,6 +485,11 @@ Entry gate: A-16 migration depth; A-13 production identity-validation policy kap
 - backup/restore drill
 - production smoke
 - full V16.3 browser regression
+
+# Post-V1 activation rule
+Kargo adapterları, payment gateway, feed/discovery, OCR/AI, mobil depo, ürün family/variant grouping, CRM, servis/garanti, reorder/forecast, dış muhasebe export veya diğer ileri özellikler **V1 milestone numaralarına gizlice eklenmez**.
+
+Yeni feature önce `27_GELECEK_GENISLEME_ALTYAPISI.md` checklist'ini geçer; sonra yeni `M25+` milestone veya ilgili mevcut modülde açık versioned vertical slice olarak planlanır.
 
 ## Commit büyüklüğü kuralı
 Bir milestone tek commit olmak zorunda değildir. Özellikle Satış, Satınalma, E-Ticaret ve Finans içinde her independently test edilebilir vertical slice ayrı atomic commit olabilir. Ama yarım çalışan aynı use-case main'de bırakılmaz.
