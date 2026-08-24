@@ -221,22 +221,104 @@ No routing/work-center/ECO/OEE/shop-floor platform.
 ## M17 — E-Ticaret Integration Core + WooCommerce
 - Channel Center
 - Channel Settings/Connection
+- adapter capability matrix foundation
 - encrypted/masked secrets
 - connection test
-- product mapping
-- stock/price publish
+- product/listing mapping
+- stock/price desired-state publish
 - external order Inbox/idempotency
+- polling/webhook common ingestion path
 - returns/questions/problems
 - invoice sync foundation
+- provider rate-limit/retry/ambiguous outcome contracts
 
-## M18 — Trendyol
+WooCommerce ilk adapterdır ve ortak contract'ın referans implementasyonlarından biri olur.
+
+## M18 — Marketplace Adapter Pack
+Her provider **ayrı atomic alt-milestone/commit serisi** olarak uygulanır. Bir adapter tamamlanmadan diğerinin provider-specific kodu core'a karıştırılmaz.
+
+### M18-TY — Trendyol
 - Supplier ID/API credentials
 - product/listing mapping
+- category/attribute mapping
 - order/package/cancel/return
 - stock/price publish
 - questions
 - invoice operations
 - retry/problem center
+
+### M18-HB — Hepsiburada
+- merchant/auth connection
+- catalog + listing
+- stock/price
+- orders
+- shipment/package
+- claims/returns
+- seller questions
+- accounting/invoice capability where supported
+- webhook/polling + rate-limit policy
+
+### M18-AMZ — Amazon SP-API
+- Türkiye marketplace first, region-aware account model
+- SP-API authorization/token lifecycle
+- Catalog Items / Product Type Definitions / Listings mapping
+- inventory/price
+- Orders
+- shipment confirmation
+- Reports/settlement evidence
+- returns/refunds where provider capability permits
+- FBA/FBM capability distinction
+- API version/deprecation tracking
+
+### M18-N11 — n11
+- app key/secret connection
+- category/attribute + product/listing
+- async task/result handling
+- stock/price
+- orders/shipment
+- cancellation/returns
+- product questions
+
+### M18-PTT — PttAVM
+- merchant/API Key/token connection
+- product/listing + stock/price according to current API capability
+- orders
+- cargo operations
+- invoice/return capability where supported
+- REST-first adapter; legacy SOAP gerekiyorsa adapter arkasında izole
+
+### M18-IDF — idefix
+- vendor/API key/secret connection
+- category/attribute/brand
+- product create/list/status
+- stock/price
+- orders/shipment/package
+- invoice link
+- cancellation/returns
+- product questions
+- order questions
+
+### M18-CS — Çiçeksepeti
+- seller/supplier API connection
+- product/listing
+- stock/price
+- orders/shipment
+- returns/questions/invoice only where provider API exposes capability
+- provider-panel-only operations explicitly `manual/unsupported`
+
+### M18 ortak çıkış kapısı
+Her adapter için:
+- connection test
+- encrypted/masked credential
+- capability matrix
+- external identity mapping
+- order idempotency
+- stock desired-state stale-retry guard
+- retry/backoff/rate-limit
+- malformed/duplicate fixture tests
+- problem center visibility
+- sandbox/test account smoke where provider offers it
+- production credential olmadan fake "tam entegre" işareti yok
 
 ## M19 — B2B / Bayi Sistemi
 - B2B user pre-bound Account
@@ -292,6 +374,7 @@ Domain-specific builder; generic report/document designer değildir.
 - rate limits
 - provider retry/kill-switch
 - Outbox lease/ambiguous outcome review
+- marketplace API deprecation/version review
 - backup/restore drill
 - Recovery Mode
 - log/secret redaction
@@ -306,6 +389,8 @@ Domain-specific builder; generic report/document designer değildir.
 - balance/stock/cash/bank/instrument reconciliation
 - cutover/delta strategy
 - provider/channel reconciliation
+- marketplace credential/capability smoke tests
+- desired stock/price resync
 - backup/restore drill
 - production smoke
 - full V16.3 browser regression
