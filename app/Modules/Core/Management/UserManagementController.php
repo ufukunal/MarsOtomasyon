@@ -250,7 +250,7 @@ final class UserManagementController
     }
 
     /**
-     * @param list<int|string> $roleIds
+     * @param array<array-key, int|string> $roleIds
      * @return array{user_id:int,membership_id:int,name:string|null,email:string|null,is_active:bool,role_ids:list<int>}
      */
     private function snapshot(CompanyMembership $membership, ?User $user, array $roleIds): array
