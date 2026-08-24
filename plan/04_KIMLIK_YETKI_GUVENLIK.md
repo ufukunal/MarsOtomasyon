@@ -1,6 +1,6 @@
-# 04 — Kimlik, Yetki ve Güvenlik V4
+# 04 — Kimlik, Yetki ve Güvenlik V4.1
 
-## 1. Kimlik
+## 1. Internal kimlik
 Laravel authentication/session altyapısı kullanılır. Kullanıcı aktif/pasif durumu, son giriş, parola yenileme ve gerektiğinde 2FA desteklenir.
 
 User birden fazla company'ye erişebiliyorsa her request/job explicit active-company context taşır. Branch access ayrıca scope edilebilir.
@@ -26,7 +26,7 @@ Gerektiğinde company lifecycle:
 Worker execution anında state tekrar doğrulanır.
 
 ## 4. RBAC / permission
-Temel model:
+Internal temel model:
 - User
 - Role
 - Permission
@@ -57,19 +57,42 @@ Yalnız gerçek kritik ihtiyaçta kullanılır; generic BPM engine kurulmaz. App
 Closed/frozen period override ayrı permission + reason + audit ve gerekiyorsa approval ister.
 
 ## 7. 2FA
-Admin, finans ve entegrasyon yetkili rollerinde 2FA desteklenir; production policy ile zorunlu yapılabilir.
+Admin, finans ve entegrasyon yetkili internal rollerde 2FA desteklenir; production policy ile zorunlu yapılabilir.
 
-## 8. CSRF / XSS / SQLi
-- state-changing web isteklerinde CSRF
+## 8. B2B authentication boundary
+External B2B kullanıcı **internal Mars User değildir** ve internal RBAC/session guard'ını kullanmaz.
+
+B2B auth en az:
+- ayrı auth guard/context
+- Account'a pre-bound B2BUser
+- activation/deactivation
+- password set/reset
+- login/logout
+- session/token revoke
+- brute-force/rate-limit
+- optional 2FA policy if later required
+- last-login/security audit
+
+destekler.
+
+B2B session/token:
+- başka Account seçemez,
+- internal admin route/API'lerine yetki vermez,
+- server-side typed B2B permission allow-list kullanır,
+- company/account scope request body'den güvenilmez.
+
+## 9. CSRF / XSS / SQLi
+- state-changing internal web isteklerinde CSRF
+- B2B auth modeline uygun CSRF/token defense
 - output escaping varsayılan
 - raw HTML allow-list/kontrollü
 - parameterized query/Eloquent
 - dynamic sort/filter/column whitelist
 
-## 9. Rate limit
-Login, OTP, public API, webhook, connection-test ve pahalı search/export endpoint'leri Valkey destekli rate-limit kullanır.
+## 10. Rate limit
+Internal login, B2B login/password reset, OTP, public API, webhook, connection-test ve pahalı search/export endpoint'leri Valkey destekli rate-limit kullanır.
 
-## 10. Secret / credential güvenliği
+## 11. Secret / credential güvenliği
 API key/secret/token/password/private key:
 - source control'a girmez
 - encrypted-at-rest tutulur
@@ -81,10 +104,10 @@ API key/secret/token/password/private key:
 
 Key rotation historical ciphertext'i okunamaz hale getirmemelidir; recovery key politikası backup runbook ile uyumludur.
 
-## 11. Audit + sensitive diff
+## 12. Audit + sensitive diff
 Audit en az:
 - company
-- actor
+- actor veya B2B actor type/id
 - action
 - entity
 - correlation id
@@ -95,10 +118,10 @@ taşır.
 
 Secret raw değeri audit diff'e yazılmaz. Hassas PII policy'ye göre masked/classified/encrypted olabilir. Audit business ledger değildir.
 
-## 12. KVKK / PII
-Cari/yetkili iletişim verileri için classification, masking, retention/anonymization/legal-hold politikası uygulanabilir. Kesinleşmiş legal/business history cascade-delete edilmez.
+## 13. KVKK / PII
+Cari/yetkili/marketplace customer snapshot iletişim verileri için classification, masking, retention/anonymization/legal-hold politikası uygulanabilir. Kesinleşmiş legal/business history cascade-delete edilmez.
 
-## 13. API security
+## 14. API security
 - versioned API (`/api/v1`)
 - scoped auth/company/client permission
 - rate limit
@@ -108,7 +131,8 @@ Cari/yetkili iletişim verileri için classification, masking, retention/anonymi
 
 Eloquent public contract değildir.
 
-## 14. Webhook / inbound security
+## 15. Webhook / inbound security
+Provider destekliyorsa:
 - HMAC/signature doğrulama
 - timestamp/replay kontrolü
 - provider account + message/event identity
@@ -116,7 +140,9 @@ Eloquent public contract değildir.
 - redacted logs
 - audited replay
 
-## 15. Outbound webhook SSRF
+Signature sunmayan provider'da alternative documented authentication + source validation uygulanır; güvenlik yokmuş gibi davranılmaz.
+
+## 16. Outbound webhook SSRF
 Harici URL çağrısı varsa:
 - allowed scheme
 - localhost/private/link-local/metadata/internal range deny
@@ -124,10 +150,10 @@ Harici URL çağrısı varsa:
 - timeout/response-size cap
 uygulanır.
 
-## 16. XML / UBL parser
+## 17. XML / UBL parser
 E-belge/XML parse işlemlerinde XXE/DTD/network default kapalıdır. Size/depth/entity kaynak limitleri uygulanır.
 
-## 17. B2B security
+## 18. B2B data security
 B2B user/account önceden bir Mars carisine bağlıdır. Başka carinin verisini göremez ve siparişte cari değiştiremez.
 
 Permission örnekleri:
@@ -141,10 +167,12 @@ Permission örnekleri:
 
 External B2B/API DTO default-deny allow-list kullanır; internal maliyet/margin/provider secret/admin note/yetkisiz bank-contact verisi dışarı çıkmaz.
 
-## 18. Scanner Agent
+Risk/exposure ve stock availability server-side business policy'dir; B2B request/client bunları bypass edemez.
+
+## 19. Scanner Agent
 Local Scanner Agent yalnız localhost/approved local endpoint üzerinden erişilir. Device identity business permission değildir; browser action yine authenticated user/company permission kontrolünden geçer.
 
-## 19. File upload security
+## 20. File upload security
 - extension/MIME/content sniff allow-list
 - byte/pixel/PDF complexity limitleri
 - randomized non-executable storage
@@ -154,22 +182,22 @@ Local Scanner Agent yalnız localhost/approved local endpoint üzerinden erişil
 
 Async scan kullanılıyorsa `pending/quarantined` dosya normal preview/download/render kaynağı olamaz. Scan failure fail-open değildir.
 
-## 20. Product image security
-Original/derived image metadata ve access scope korunur. Channel/site image destination tenant izolasyonunu bypass edemez.
+## 21. Product image security
+Original/derived image metadata ve access scope korunur. Channel/site image destination tenant izolasyonunu bypass edemez. External provider image publish yalnız authorized channel/account'a yapılır.
 
-## 21. Report security
+## 22. Report security
 Hazır raporlar allow-listed/parameterized source ve company/user permission ile çalışır. Scheduled report runtime authorization'ı tekrar kontrol eder. Kullanıcı-defined raw SQL/JS/PHP execution yüzeyi yoktur.
 
-## 22. Search security
+## 23. Search security
 PostgreSQL FTS/`pg_trgm` company scope'u bypass edemez. Search result ID gerçek entity fetch sırasında permission re-check'ten geçer.
 
-## 23. Dependency güvenliği
+## 24. Dependency güvenliği
 - `composer.lock` commit edilir
 - CI dependency advisory/security scan çalıştırır
 - paket update test geçmeden tamamlanmış sayılmaz
 
-## 24. Recovery Mode
+## 25. Recovery Mode
 Disaster/restore durumunda Recovery Mode normal browser/API/queue/scheduler/outbound mutation'ı fail-closed bloke eder. Entegrasyon backlog'u idempotency/staleness/reconciliation sonrası kontrollü resume edilir.
 
-## 25. Log güvenliği
+## 26. Log güvenliği
 Parola, token, secret, tam kart verisi ve gereksiz kişisel veri loglanmaz. Correlation ID ile finans/stok olayının kaynağı izlenebilir.
