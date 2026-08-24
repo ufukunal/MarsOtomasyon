@@ -1,0 +1,9 @@
+type=repo-operation-blocker
+scope=main-branch-protection
+state=open
+observed_protected=false
+required_checks=quality,postgres-tests,browser-smoke,security
+required_force_push=false
+required_branch_delete=false
+reason=The connected GitHub tool surface in this session exposes no branch-protection or ruleset mutation operation.
+resolution=When repository tooling or permissions expose branch protection, require the four checks above and disable force-push and branch deletion without changing the current direct-main workflow unless explicitly decided.

@@ -1,0 +1,149 @@
+name: M0 Fresh Clone Acceptance
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/m0-fresh-clone.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: m0-fresh-clone
+  cancel-in-progress: true
+
+jobs:
+  fresh-clone-acceptance:
+    name: fresh-clone-acceptance
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    services:
+      postgres:
+        image: postgres:18.6
+        env:
+          POSTGRES_DB: mars_test
+          POSTGRES_USER: mars
+          POSTGRES_PASSWORD: mars
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U mars -d mars_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+      valkey:
+        image: valkey/valkey:9.1.1
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "valkey-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+
+    env:
+      APP_ENV: testing
+      APP_DEBUG: 'false'
+      APP_URL: http://localhost
+      DB_CONNECTION: pgsql
+      DB_HOST: 127.0.0.1
+      DB_PORT: 5432
+      DB_DATABASE: mars_test
+      DB_USERNAME: mars
+      DB_PASSWORD: mars
+      CACHE_STORE: redis
+      QUEUE_CONNECTION: redis
+      SESSION_DRIVER: redis
+      SESSION_CONNECTION: session
+      MAIL_MAILER: array
+      REDIS_CLIENT: phpredis
+      REDIS_HOST: 127.0.0.1
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: null
+      REDIS_PREFIX: 'mars-fresh-clone:'
+      REDIS_DB: 0
+      REDIS_CACHE_DB: 1
+      REDIS_QUEUE_DB: 2
+      REDIS_SESSION_DB: 3
+      REDIS_QUEUE: mars-fresh-clone
+      REDIS_QUEUE_RETRY_AFTER: 90
+
+    steps:
+      - name: Clean checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup PHP 8.5
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          extensions: pdo_pgsql, redis, sockets, intl
+          coverage: none
+          tools: composer:v2
+
+      - name: Setup Node 24
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
+
+      - name: Composer install
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: npm ci
+        run: npm ci
+
+      - name: Copy example environment
+        run: cp .env.example .env
+
+      - name: Generate application key
+        run: php artisan key:generate
+
+      - name: Fresh PostgreSQL schema
+        run: php artisan migrate:fresh --force
+
+      - name: Build frontend assets
+        run: npm run build
+
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Verify formatting
+        run: composer format:check
+
+      - name: Run static analysis
+        run: composer analyse
+
+      - name: Run non-browser tests
+        run: composer test
+
+      - name: Run browser tests
+        run: composer test:browser
+
+      - name: Record fresh-clone result
+        if: always()
+        shell: bash
+        env:
+          ACCEPTANCE_STATUS: ${{ job.status }}
+          ACCEPTANCE_RUN_ID: ${{ github.run_id }}
+          ACCEPTANCE_HEAD_SHA: ${{ github.sha }}
+        run: |
+          mkdir -p .ci
+          printf 'conclusion=%s\nrun_id=%s\nhead_sha=%s\n' "$ACCEPTANCE_STATUS" "$ACCEPTANCE_RUN_ID" "$ACCEPTANCE_HEAD_SHA" > .ci/m0-fresh-clone-result
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .ci/m0-fresh-clone-result
+
+          if git diff --cached --quiet; then
+            exit 0
+          fi
+
+          git commit -m "chore: record M0 fresh-clone result [skip ci]"
+          git fetch origin main
+          git rebase origin/main
+          git push origin HEAD:main
