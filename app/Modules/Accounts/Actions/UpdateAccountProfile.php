@@ -78,7 +78,7 @@ final readonly class UpdateAccountProfile
         });
     }
 
-    /** @param list<array{id?: int, kind: string, label?: string|null, value: string, is_primary?: bool}> $rows */
+    /** @param list<array{id?: int, kind: string, label?: string|null, value: string, is_primary?: bool|string|int}> $rows */
     private function syncContacts(int $companyId, int $accountId, array $rows): void
     {
         /** @var array<int, AccountContact> $existing */
@@ -98,7 +98,7 @@ final readonly class UpdateAccountProfile
                 AccountContactKind::Email => $this->normalizeEmail($row['value'], "contacts.$index.value"),
             };
             $id = $row['id'] ?? null;
-            $contact = $id === null ? new AccountContact() : ($existing[$id] ?? null);
+            $contact = $id === null ? new AccountContact : ($existing[$id] ?? null);
             if (! $contact instanceof AccountContact) {
                 throw ValidationException::withMessages(["contacts.$index.id" => 'İletişim kaydı bu cariye ait değil.']);
             }
@@ -123,7 +123,7 @@ final readonly class UpdateAccountProfile
         }
     }
 
-    /** @param list<array{id?: int, name: string, title?: string|null, phone?: string|null, email?: string|null, is_primary?: bool, note?: string|null}> $rows */
+    /** @param list<array{id?: int, name: string, title?: string|null, phone?: string|null, email?: string|null, is_primary?: bool|string|int, note?: string|null}> $rows */
     private function syncAuthorizedContacts(int $companyId, int $accountId, array $rows): void
     {
         /** @var array<int, AccountAuthorizedContact> $existing */
@@ -143,7 +143,7 @@ final readonly class UpdateAccountProfile
             }
 
             $id = $row['id'] ?? null;
-            $contact = $id === null ? new AccountAuthorizedContact() : ($existing[$id] ?? null);
+            $contact = $id === null ? new AccountAuthorizedContact : ($existing[$id] ?? null);
             if (! $contact instanceof AccountAuthorizedContact) {
                 throw ValidationException::withMessages(["authorized_contacts.$index.id" => 'Yetkili kaydı bu cariye ait değil.']);
             }
@@ -169,7 +169,7 @@ final readonly class UpdateAccountProfile
         }
     }
 
-    /** @param list<array{id?: int, type: string, label: string, recipient_name?: string|null, line1: string, line2?: string|null, district?: string|null, city: string, postal_code?: string|null, country_code: string, is_default?: bool}> $rows */
+    /** @param list<array{id?: int, type: string, label: string, recipient_name?: string|null, line1: string, line2?: string|null, district?: string|null, city: string, postal_code?: string|null, country_code: string, is_default?: bool|string|int}> $rows */
     private function syncAddresses(int $companyId, int $accountId, array $rows): void
     {
         /** @var array<int, AccountAddress> $existing */
@@ -190,7 +190,7 @@ final readonly class UpdateAccountProfile
             }
 
             $id = $row['id'] ?? null;
-            $address = $id === null ? new AccountAddress() : ($existing[$id] ?? null);
+            $address = $id === null ? new AccountAddress : ($existing[$id] ?? null);
             if (! $address instanceof AccountAddress) {
                 throw ValidationException::withMessages(["addresses.$index.id" => 'Adres kaydı bu cariye ait değil.']);
             }
@@ -220,7 +220,7 @@ final readonly class UpdateAccountProfile
         }
     }
 
-    /** @param list<array{id?: int, company_name: string, city: string, branch?: string|null, contact_name?: string|null, phone?: string|null, preference?: string|null, address?: string|null, note?: string|null, is_default?: bool}> $rows */
+    /** @param list<array{id?: int, company_name: string, city: string, branch?: string|null, contact_name?: string|null, phone?: string|null, preference?: string|null, address?: string|null, note?: string|null, is_default?: bool|string|int}> $rows */
     private function syncShippingPreferences(int $companyId, int $accountId, array $rows): void
     {
         /** @var array<int, AccountShippingPreference> $existing */
@@ -234,7 +234,7 @@ final readonly class UpdateAccountProfile
 
         foreach ($rows as $index => $row) {
             $id = $row['id'] ?? null;
-            $preference = $id === null ? new AccountShippingPreference() : ($existing[$id] ?? null);
+            $preference = $id === null ? new AccountShippingPreference : ($existing[$id] ?? null);
             if (! $preference instanceof AccountShippingPreference) {
                 throw ValidationException::withMessages(["shipping_preferences.$index.id" => 'Ambar / nakliye kaydı bu cariye ait değil.']);
             }
