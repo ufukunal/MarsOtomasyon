@@ -33,7 +33,8 @@ final readonly class StockReservationService
         int $warehouseId,
         int $locationId,
         string $quantity,
-    ): StockReservationActionResult {
+    ): StockReservationActionResult
+    {
         $this->assertInsideTransaction();
         $quantity = $this->positiveDecimal($quantity);
 
@@ -118,7 +119,8 @@ final readonly class StockReservationService
         int $reservationId,
         StockReservationStatus $targetStatus,
         string $scope,
-    ): StockReservationActionResult {
+    ): StockReservationActionResult
+    {
         $this->assertInsideTransaction();
 
         $fingerprint = RequestFingerprint::fromPayload([
@@ -175,7 +177,8 @@ final readonly class StockReservationService
         StockReservation $reservation,
         StockReservationStatus $targetStatus,
         SourceEffectIdentity $sourceEffect,
-    ): bool {
+    ): bool
+    {
         if ($reservation->statusEnum() !== $targetStatus) {
             return false;
         }
