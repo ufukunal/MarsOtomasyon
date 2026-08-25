@@ -42,6 +42,7 @@ enum AuditAction: string
     case QuoteCreated = 'quotes.quote.created';
     case QuoteUpdated = 'quotes.quote.updated';
     case QuoteCancelled = 'quotes.quote.cancelled';
+    case QuoteRevisionCreated = 'quotes.revision.created';
 
     public function label(): string
     {
@@ -84,6 +85,7 @@ enum AuditAction: string
             self::QuoteCreated => 'Teklif oluşturuldu',
             self::QuoteUpdated => 'Teklif güncellendi',
             self::QuoteCancelled => 'Teklif iptal edildi',
+            self::QuoteRevisionCreated => 'Teklif revizyonu oluşturuldu',
         };
     }
 }

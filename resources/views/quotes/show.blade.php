@@ -9,6 +9,7 @@
         <a href="{{ route('quotes.index') }}" data-workspace-link>Teklifler</a>
         @can('quotes.manage')
             @if($quote->isDraft())
+                <form method="post" action="{{ route('quotes.revisions.store', $quote->getKey()) }}">@csrf<button type="submit">Revizyon Snapshot</button></form>
                 <a class="button-primary" href="{{ route('quotes.edit', $quote->getKey()) }}" data-workspace-link>Düzenle</a>
                 <form method="post" action="{{ route('quotes.cancel', $quote->getKey()) }}">@csrf<button type="submit">İptal Et</button></form>
             @endif
@@ -34,5 +35,27 @@
 <tfoot><tr><th colspan="6">Toplam</th><th class="amount-cell">{{ $quote->net_total }}</th><th class="amount-cell">{{ $quote->tax_total }}</th><th class="amount-cell">{{ $quote->gross_total }} {{ $quote->currency_code }}</th></tr></tfoot>
 </table>
 </section>
+
+<section class="detail-card statement-table-card">
+    <div class="page-actions"><h2>Revizyon Geçmişi</h2><span></span></div>
+    <table class="data-table">
+        <thead><tr><th>Revizyon</th><th>Snapshot Zamanı</th><th class="amount-cell">Net</th><th class="amount-cell">Vergi</th><th class="amount-cell">Toplam</th><th>İşlem</th></tr></thead>
+        <tbody>
+        @forelse($quote->revisions as $revision)
+            <tr>
+                <td>R{{ $revision->revision_number }}</td>
+                <td>{{ $revision->created_at->format('d.m.Y H:i:s') }}</td>
+                <td class="amount-cell">{{ $revision->net_total }}</td>
+                <td class="amount-cell">{{ $revision->tax_total }}</td>
+                <td class="amount-cell">{{ $revision->gross_total }} {{ $revision->currency_code }}</td>
+                <td><a href="{{ route('quotes.revisions.show', [$quote->getKey(), $revision->getKey()]) }}" data-workspace-link>Snapshot</a></td>
+            </tr>
+        @empty
+            <tr><td colspan="6">Henüz immutable revizyon snapshotı yok.</td></tr>
+        @endforelse
+        </tbody>
+    </table>
+</section>
+
 @if($quote->note)<section class="detail-card"><h2>Not</h2><p>{{ $quote->note }}</p></section>@endif
 @endsection
