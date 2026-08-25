@@ -23,6 +23,9 @@ final class StockBalance extends Model
     {
         return [
             'quantity' => 'decimal:6',
+            'reserved_quantity' => 'decimal:6',
+            'blocked_quantity' => 'decimal:6',
+            'available_quantity' => 'decimal:6',
             'average_unit_cost' => 'decimal:6',
             'inventory_value' => 'decimal:6',
             'created_at' => 'immutable_datetime',
