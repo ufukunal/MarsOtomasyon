@@ -9,6 +9,7 @@ use App\Modules\Core\Models\Company;
 use App\Modules\Core\Models\Currency;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use LogicException;
 
 final class Account extends Model
@@ -82,6 +83,30 @@ final class Account extends Model
     public function bookCurrency(): BelongsTo
     {
         return $this->belongsTo(Currency::class, 'book_currency_code', 'code');
+    }
+
+    /** @return HasMany<AccountContact, $this> */
+    public function contacts(): HasMany
+    {
+        return $this->hasMany(AccountContact::class);
+    }
+
+    /** @return HasMany<AccountAuthorizedContact, $this> */
+    public function authorizedContacts(): HasMany
+    {
+        return $this->hasMany(AccountAuthorizedContact::class);
+    }
+
+    /** @return HasMany<AccountAddress, $this> */
+    public function addresses(): HasMany
+    {
+        return $this->hasMany(AccountAddress::class);
+    }
+
+    /** @return HasMany<AccountShippingPreference, $this> */
+    public function shippingPreferences(): HasMany
+    {
+        return $this->hasMany(AccountShippingPreference::class);
     }
 
     private function rawEnumValue(string $attribute): string
