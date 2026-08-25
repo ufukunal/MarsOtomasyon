@@ -17,7 +17,7 @@ use Illuminate\Foundation\Testing\DatabaseMigrations;
 
 uses(DatabaseMigrations::class);
 
-it('drives the V16.3 product list create readonly detail and separate edit flow without browser errors', function (): void {
+it('drives the V16.3 product list create search readonly detail and separate edit flow without browser errors', function (): void {
     $company = Company::query()->create([
         'code' => 'BROWSER-M3',
         'name' => 'Browser M3 Company',
@@ -106,6 +106,16 @@ it('drives the V16.3 product list create readonly detail and separate edit flow 
     $page->assertPathIs('/inventory/products/'.$product->getKey())
         ->assertCount('input', 0)
         ->assertCount('select', 0)
+        ->click('Ürün/Stok')
+        ->assertPathIs('/inventory')
+        ->fill('q', '8691234567890')
+        ->click('Filtrele')
+        ->assertSee('Browser Avize')
+        ->assertSee('BROWSER-SKU-001')
+        ->assertNoJavaScriptErrors()
+        ->assertNoConsoleLogs()
+        ->click('Detay')
+        ->assertPathIs('/inventory/products/'.$product->getKey())
         ->click('Düzenle')
         ->assertPathIs('/inventory/products/'.$product->getKey().'/edit')
         ->fill('name', 'Browser Avize Güncel')
