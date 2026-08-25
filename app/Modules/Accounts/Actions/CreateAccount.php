@@ -36,7 +36,7 @@ final readonly class CreateAccount
         $riskLimit = $this->normalizeRiskLimit($data->riskLimit);
 
         $this->assertCodeAvailable($companyId, $code);
-        $this->assertTaxIdentityAvailable($companyId, $data->taxIdentityType->value, $taxNumber);
+        $this->assertTaxIdentityAvailable($companyId, $taxNumber);
 
         try {
             return DB::transaction(function () use (
@@ -177,7 +177,7 @@ final readonly class CreateAccount
         }
     }
 
-    private function assertTaxIdentityAvailable(int $companyId, string $type, ?string $number): void
+    private function assertTaxIdentityAvailable(int $companyId, ?string $number): void
     {
         if ($number === null) {
             return;
@@ -185,7 +185,6 @@ final readonly class CreateAccount
 
         if (Account::query()
             ->where('company_id', $companyId)
-            ->where('tax_identity_type', $type)
             ->where('tax_number', $number)
             ->exists()) {
             throw ValidationException::withMessages(['tax_number' => 'Bu vergi kimliği şirkette başka bir caride kullanılıyor.']);
