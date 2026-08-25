@@ -5,7 +5,7 @@ return [
         'foundation' => true,
         'customers' => true,
         'product_stock' => true,
-        'sales' => false,
+        'sales' => true,
         'purchasing' => false,
         'production' => false,
         'treasury' => false,

@@ -11,6 +11,7 @@ use App\Modules\SalesOrders\Enums\SalesOrderStatus;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use LogicException;
 
 final class SalesOrder extends Model
 {
@@ -37,6 +38,30 @@ final class SalesOrder extends Model
             'created_at' => 'immutable_datetime',
             'updated_at' => 'immutable_datetime',
         ];
+    }
+
+    public function statusEnum(): SalesOrderStatus
+    {
+        $raw = $this->getRawOriginal('status');
+        if (! is_string($raw)) {
+            throw new LogicException('Persisted sales order status must be a string.');
+        }
+
+        return SalesOrderStatus::tryFrom($raw)
+            ?? throw new LogicException('Persisted sales order status is invalid.');
+    }
+
+    public function isDraft(): bool
+    {
+        return match ($this->statusEnum()) {
+            SalesOrderStatus::Draft => true,
+        };
+    }
+
+    public function isManual(): bool
+    {
+        return $this->getRawOriginal('source_quote_id') === null
+            && $this->getRawOriginal('source_quote_revision_id') === null;
     }
 
     /** @return BelongsTo<Company, $this> */

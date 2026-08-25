@@ -48,6 +48,7 @@ enum AuditAction: string
     case QuoteConverted = 'quotes.quote.converted';
     case QuoteFinalizedPdfGenerated = 'quotes.finalized_pdf.generated';
     case SalesOrderCreated = 'sales_orders.order.created';
+    case SalesOrderUpdated = 'sales_orders.order.updated';
 
     public function label(): string
     {
@@ -96,6 +97,7 @@ enum AuditAction: string
             self::QuoteConverted => 'Teklif satış siparişine dönüştürüldü',
             self::QuoteFinalizedPdfGenerated => 'Finalized teklif PDF oluşturuldu',
             self::SalesOrderCreated => 'Satış siparişi oluşturuldu',
+            self::SalesOrderUpdated => 'Satış siparişi güncellendi',
         };
     }
 }
