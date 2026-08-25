@@ -35,6 +35,16 @@ final readonly class StockMovementReverser
             throw new DomainException('Bir ters stok hareketi tekrar terslenemez.');
         }
 
+        $existingReversal = StockMovement::query()
+            ->where('reversal_of_movement_id', $originalMovementId)
+            ->first();
+        if ($existingReversal instanceof StockMovement
+            && ($existingReversal->source_type !== $sourceEffect->sourceType
+                || $existingReversal->source_id !== $sourceEffect->sourceId
+                || $existingReversal->effect_type !== $sourceEffect->effectType)) {
+            throw new DomainException('Stok hareketi daha önce ters kayıt ile kapatılmış.');
+        }
+
         return $this->poster->post(new PostStockMovementData(
             sourceEffect: $sourceEffect,
             productId: (int) $original->product_id,
