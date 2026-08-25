@@ -1,0 +1,44 @@
+@extends('layouts.app')
+
+@section('title', 'Sipariş '.$order->number)
+
+@section('app-content')
+<section class="workspace-hero">
+    <div><p class="eyebrow">Satış / Sipariş</p><h1>{{ $order->number }}</h1><p>{{ $order->isManual() ? 'Manuel taslak sipariş' : 'Teklif revizyonundan oluşan immutable sipariş snapshotı' }}</p></div>
+    <div class="page-actions">
+        <a href="{{ route('sales-orders.index') }}">Liste</a>
+        @can('sales_orders.manage')@if($order->isManual() && $order->isDraft())<a class="button-primary" href="{{ route('sales-orders.edit', $order->getKey()) }}">Düzenle</a>@endif @endcan
+    </div>
+</section>
+
+<section class="detail-card">
+    <div class="form-grid">
+        <div><small>Cari</small><strong>{{ $order->account?->legal_name }}</strong></div>
+        <div><small>Tarih</small><strong>{{ $order->order_date?->format('d.m.Y') }}</strong></div>
+        <div><small>Durum</small><strong>{{ $order->statusEnum()->label() }}</strong></div>
+        <div><small>Kaynak</small><strong>{{ $order->isManual() ? 'Manuel' : 'Teklif #'.$order->source_quote_id.' / R'.$order->sourceRevision?->revision_number }}</strong></div>
+        <div><small>Para Birimi</small><strong>{{ $order->currency_code }}</strong></div>
+        <div><small>Belge İskonto</small><strong>%{{ $order->document_discount_rate }}</strong></div>
+    </div>
+</section>
+
+<section class="statement-table-card">
+<table class="data-table"><thead><tr><th>#</th><th>Ürün Snapshot</th><th>Açıklama</th><th>Miktar</th><th>Birim Fiyat</th><th>KDV</th><th>Net</th><th>Genel</th></tr></thead><tbody>
+@foreach($order->lines as $line)
+<tr><td>{{ $line->position }}</td><td>{{ $line->product_code }} — {{ $line->product_name }}</td><td>{{ $line->description }}</td><td>{{ $line->quantity }}</td><td>{{ $line->unit_price }}</td><td>{{ $line->tax_code }} · %{{ $line->tax_rate }}</td><td>{{ $line->net_total }}</td><td>{{ $line->gross_total }}</td></tr>
+@endforeach
+</tbody></table>
+</section>
+
+<section class="detail-card">
+    <div class="form-grid">
+        <div><small>Ara Toplam</small><strong>{{ $order->base_net_total }} {{ $order->currency_code }}</strong></div>
+        <div><small>Satır İskonto</small><strong>{{ $order->line_discount_total }} {{ $order->currency_code }}</strong></div>
+        <div><small>Belge İskonto</small><strong>{{ $order->document_discount_total }} {{ $order->currency_code }}</strong></div>
+        <div><small>Net</small><strong>{{ $order->net_total }} {{ $order->currency_code }}</strong></div>
+        <div><small>KDV</small><strong>{{ $order->tax_total }} {{ $order->currency_code }}</strong></div>
+        <div><small>Genel Toplam</small><strong>{{ $order->gross_total }} {{ $order->currency_code }}</strong></div>
+    </div>
+    @if($order->note)<p>{{ $order->note }}</p>@endif
+</section>
+@endsection

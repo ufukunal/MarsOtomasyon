@@ -25,6 +25,8 @@ enum PermissionKey: string
     case QuoteView = 'quotes.view';
     case QuoteManage = 'quotes.manage';
     case QuoteApprove = 'quotes.approve';
+    case SalesOrderView = 'sales_orders.view';
+    case SalesOrderManage = 'sales_orders.manage';
 
     public function label(): string
     {
@@ -50,6 +52,8 @@ enum PermissionKey: string
             self::QuoteView => 'Teklif görüntüleme',
             self::QuoteManage => 'Teklif yönetimi',
             self::QuoteApprove => 'Teklif ticari onayı ve dönüşümü',
+            self::SalesOrderView => 'Satış siparişi görüntüleme',
+            self::SalesOrderManage => 'Satış siparişi yönetimi',
         };
     }
 }

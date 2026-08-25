@@ -39,6 +39,23 @@ final class SalesOrder extends Model
         ];
     }
 
+    public function statusEnum(): SalesOrderStatus
+    {
+        return $this->status instanceof SalesOrderStatus
+            ? $this->status
+            : SalesOrderStatus::from((string) $this->getRawOriginal('status'));
+    }
+
+    public function isDraft(): bool
+    {
+        return $this->statusEnum() === SalesOrderStatus::Draft;
+    }
+
+    public function isManual(): bool
+    {
+        return $this->source_quote_id === null && $this->source_quote_revision_id === null;
+    }
+
     /** @return BelongsTo<Company, $this> */
     public function company(): BelongsTo
     {
