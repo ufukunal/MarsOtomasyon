@@ -140,7 +140,7 @@ final readonly class StockMovementPoster
                     END,
                     updated_at = ?
                 WHERE id = ?
-                  AND quantity >= CAST(? AS numeric)
+                  AND available_quantity >= CAST(? AS numeric)
                 RETURNING quantity::text AS quantity,
                           average_unit_cost::text AS average_unit_cost,
                           inventory_value::text AS inventory_value
@@ -148,7 +148,7 @@ final readonly class StockMovementPoster
 
             if ($row === null) {
                 throw ValidationException::withMessages([
-                    'quantity' => 'Negatif stok yasaktır. Çıkış miktarı mevcut fiziksel stok miktarını aşamaz.',
+                    'quantity' => 'Stok çıkışı kullanılabilir miktarı aşamaz. Rezerve veya bloke miktar fiziksel çıkışla tüketilemez.',
                 ]);
             }
         }
