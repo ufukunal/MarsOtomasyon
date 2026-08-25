@@ -125,7 +125,7 @@ final readonly class UpdateAccount
             return;
         }
 
-        if ($account->transactions()->exists()) {
+        if ($account->accountTransactions()->exists()) {
             throw ValidationException::withMessages([
                 'book_currency_code' => 'Cari hareketi oluştuktan sonra cari para birimi değiştirilemez.',
             ]);
