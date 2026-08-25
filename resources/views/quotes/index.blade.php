@@ -21,6 +21,9 @@
             <select name="status" data-dirty-ignore>
                 <option value="all" @selected($statusFilter === 'all')>Tümü</option>
                 <option value="draft" @selected($statusFilter === 'draft')>Taslak</option>
+                <option value="approved" @selected($statusFilter === 'approved')>Onaylı</option>
+                <option value="rejected" @selected($statusFilter === 'rejected')>Reddedildi</option>
+                <option value="converted" @selected($statusFilter === 'converted')>Siparişe Dönüştü</option>
                 <option value="cancelled" @selected($statusFilter === 'cancelled')>İptal</option>
             </select>
         </label>

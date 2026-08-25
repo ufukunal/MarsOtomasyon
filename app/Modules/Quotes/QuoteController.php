@@ -33,7 +33,11 @@ final readonly class QuoteController
     {
         $search = trim((string) $request->query('q', ''));
         $status = (string) $request->query('status', 'all');
-        if (! in_array($status, ['all', QuoteStatus::Draft->value, QuoteStatus::Cancelled->value], true)) {
+        $allowedStatuses = array_map(
+            static fn (QuoteStatus $case): string => $case->value,
+            QuoteStatus::cases(),
+        );
+        if ($status !== 'all' && ! in_array($status, $allowedStatuses, true)) {
             $status = 'all';
         }
 
@@ -80,6 +84,9 @@ final readonly class QuoteController
             'lines.tax',
             'lines.taxZeroReason',
             'revisions',
+            'selectedRevision',
+            'decisionBy',
+            'salesOrder',
         ]);
 
         return view('quotes.show', ['quote' => $quoteModel]);
