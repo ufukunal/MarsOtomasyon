@@ -28,7 +28,7 @@ use Illuminate\Foundation\Testing\DatabaseMigrations;
 
 uses(DatabaseMigrations::class);
 
-it('approves an immutable revision and converts it to an order through the browser', function (): void {
+it('approves an immutable revision, opens finalized detail, and converts it to an order through the browser', function (): void {
     $company = Company::query()->create(['code' => 'BROWSER-M54', 'name' => 'Browser M5.4 Company']);
     $user = User::query()->create([
         'name' => 'Browser Quote Approver',
@@ -160,8 +160,19 @@ it('approves an immutable revision and converts it to an order through the brows
         ->click('Onayla')
         ->assertSee('Ticari Otorite')
         ->assertSee('R1 · Onaylı')
+        ->assertSee('Finalized Görünüm')
         ->assertNoJavaScriptErrors()
         ->assertNoConsoleLogs()
+        ->click('Finalized Görünüm')
+        ->assertPathIs('/quotes/'.$quote->getKey().'/finalized')
+        ->assertSee('Readonly immutable ticari snapshot')
+        ->assertSee('Immutable R1')
+        ->assertSee('100.000000')
+        ->assertSee('PDF henüz materialize edilmedi')
+        ->assertNoJavaScriptErrors()
+        ->assertNoConsoleLogs()
+        ->click('Teklife Dön')
+        ->assertPathIs('/quotes/'.$quote->getKey())
         ->click('Siparişe Dönüştür')
         ->assertSee('Siparişe Dönüştü')
         ->assertSee('SO-0001')
