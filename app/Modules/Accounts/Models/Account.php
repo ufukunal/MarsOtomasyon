@@ -45,17 +45,26 @@ final class Account extends Model
 
     public function typeEnum(): AccountType
     {
-        return $this->enumFromRaw('type', AccountType::class);
+        $raw = $this->rawEnumValue('type');
+
+        return AccountType::tryFrom($raw)
+            ?? throw new LogicException('Persisted account type is invalid.');
     }
 
     public function statusEnum(): AccountStatus
     {
-        return $this->enumFromRaw('status', AccountStatus::class);
+        $raw = $this->rawEnumValue('status');
+
+        return AccountStatus::tryFrom($raw)
+            ?? throw new LogicException('Persisted account status is invalid.');
     }
 
     public function taxIdentityTypeEnum(): TaxIdentityType
     {
-        return $this->enumFromRaw('tax_identity_type', TaxIdentityType::class);
+        $raw = $this->rawEnumValue('tax_identity_type');
+
+        return TaxIdentityType::tryFrom($raw)
+            ?? throw new LogicException('Persisted account tax identity type is invalid.');
     }
 
     public function isActive(): bool
@@ -75,19 +84,13 @@ final class Account extends Model
         return $this->belongsTo(Currency::class, 'book_currency_code', 'code');
     }
 
-    /**
-     * @template TEnum of \BackedEnum
-     * @param class-string<TEnum> $enumClass
-     * @return TEnum
-     */
-    private function enumFromRaw(string $attribute, string $enumClass): \BackedEnum
+    private function rawEnumValue(string $attribute): string
     {
         $raw = $this->getRawOriginal($attribute);
         if (! is_string($raw)) {
             throw new LogicException('Persisted account '.$attribute.' must be a string.');
         }
 
-        return $enumClass::tryFrom($raw)
-            ?? throw new LogicException('Persisted account '.$attribute.' is invalid.');
+        return $raw;
     }
 }
