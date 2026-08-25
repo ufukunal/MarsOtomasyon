@@ -78,7 +78,10 @@ final readonly class UpdateProductSuppliers
         });
     }
 
-    /** @param list<int> $desired @param list<int> $existing */
+    /**
+     * @param list<int> $desired
+     * @param list<int> $existing
+     */
     private function assertSupplierAccounts(int $companyId, array $desired, array $existing): void
     {
         if ($desired === []) {
