@@ -69,13 +69,24 @@ final readonly class UpdateAccountB2BPolicy
     /** @return array<string, bool> */
     private function snapshot(?AccountB2BPolicy $policy): array
     {
+        if ($policy === null) {
+            return [
+                'is_enabled' => false,
+                'allow_orders' => false,
+                'show_stock' => false,
+                'show_invoices' => false,
+                'show_statement' => false,
+                'allow_address_management' => false,
+            ];
+        }
+
         return [
-            'is_enabled' => (bool) ($policy?->is_enabled ?? false),
-            'allow_orders' => (bool) ($policy?->allow_orders ?? false),
-            'show_stock' => (bool) ($policy?->show_stock ?? false),
-            'show_invoices' => (bool) ($policy?->show_invoices ?? false),
-            'show_statement' => (bool) ($policy?->show_statement ?? false),
-            'allow_address_management' => (bool) ($policy?->allow_address_management ?? false),
+            'is_enabled' => (bool) $policy->is_enabled,
+            'allow_orders' => (bool) $policy->allow_orders,
+            'show_stock' => (bool) $policy->show_stock,
+            'show_invoices' => (bool) $policy->show_invoices,
+            'show_statement' => (bool) $policy->show_statement,
+            'allow_address_management' => (bool) $policy->allow_address_management,
         ];
     }
 
