@@ -18,6 +18,7 @@ use App\Modules\Products\Models\Unit;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Support\Facades\DB;
+use LogicException;
 
 uses(DatabaseMigrations::class);
 
@@ -35,7 +36,7 @@ it('requires stock effects to post inside the owning business transaction', func
     );
 
     expect(fn () => app(StockMovementPoster::class)->post($data))
-        ->toThrow(\LogicException::class, 'aynı business transaction');
+        ->toThrow(LogicException::class, 'aynı business transaction');
 });
 
 it('posts a source effect exactly once and rejects payload drift on replay', function (): void {
