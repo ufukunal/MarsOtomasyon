@@ -64,7 +64,7 @@ final class StockMovement extends Model
         return $this->belongsTo(Warehouse::class);
     }
 
-    /** @return BelongsTo<WarehouseLocation, $this, 'location_id'> */
+    /** @return BelongsTo<WarehouseLocation, $this> */
     public function location(): BelongsTo
     {
         return $this->belongsTo(WarehouseLocation::class, 'location_id');
