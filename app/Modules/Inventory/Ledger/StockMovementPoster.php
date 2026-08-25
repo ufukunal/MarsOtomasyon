@@ -188,6 +188,15 @@ final readonly class StockMovementPoster
     private function positiveDecimal(string $value, string $field, string $message): string
     {
         $value = trim($value);
+        if (preg_match('/^\d+(?:\.\d{1,6})?$/D', $value) !== 1) {
+            throw ValidationException::withMessages([$field => $message]);
+        }
+
+        $integerPart = explode('.', $value, 2)[0];
+        if (strlen(ltrim($integerPart, '0')) > 14) {
+            throw ValidationException::withMessages([$field => $message]);
+        }
+
         $row = DB::selectOne(
             'SELECT CAST(CAST(? AS numeric) AS numeric(20,6))::text AS value, CAST(? AS numeric) > 0 AS valid',
             [$value, $value],
