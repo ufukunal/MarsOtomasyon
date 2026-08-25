@@ -53,10 +53,6 @@ final readonly class WarehouseTransferService
 
         $normalizedLines = [];
         foreach ($lines as $index => $line) {
-            if (! $line instanceof WarehouseTransferIssueLineData) {
-                throw new LogicException('Warehouse transfer issue lines must use WarehouseTransferIssueLineData.');
-            }
-
             $normalizedLines[] = [
                 'line_number' => $index + 1,
                 'product_id' => $line->productId,
