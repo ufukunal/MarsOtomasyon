@@ -1,6 +1,7 @@
 <?php
 
 use App\Modules\Accounts\AccountController;
+use App\Modules\Accounts\AccountProfileController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('customers')
@@ -16,6 +17,14 @@ Route::prefix('customers')
         Route::post('/', [AccountController::class, 'store'])
             ->middleware('can:accounts.manage')
             ->name('store');
+        Route::get('/{account}/profile/edit', [AccountProfileController::class, 'edit'])
+            ->whereNumber('account')
+            ->middleware('can:accounts.manage')
+            ->name('profile.edit');
+        Route::put('/{account}/profile', [AccountProfileController::class, 'update'])
+            ->whereNumber('account')
+            ->middleware('can:accounts.manage')
+            ->name('profile.update');
         Route::get('/{account}', [AccountController::class, 'show'])
             ->whereNumber('account')
             ->middleware('can:accounts.view')

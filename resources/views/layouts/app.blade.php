@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>@yield('title', 'MarsOtomasyon') · MarsOtomasyon</title>
     @vite(['resources/css/app.css', 'resources/css/search.css', 'resources/js/app.js'])
+    <script src="{{ asset('js/account-profile.js') }}" defer></script>
 </head>
 @php($shell = app(\App\Modules\Core\Shell\ShellContext::class)->state(request()))
 <body class="app-body" data-workspace-title="@yield('title', 'MarsOtomasyon')">

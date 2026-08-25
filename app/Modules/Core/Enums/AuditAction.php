@@ -26,6 +26,7 @@ enum AuditAction: string
     case AttachmentDetached = 'core.attachment.detached';
     case AccountCreated = 'accounts.account.created';
     case AccountUpdated = 'accounts.account.updated';
+    case AccountProfileUpdated = 'accounts.account.profile.updated';
 
     public function label(): string
     {
@@ -52,6 +53,7 @@ enum AuditAction: string
             self::AttachmentDetached => 'Dosya bağlantısı kaldırıldı',
             self::AccountCreated => 'Cari oluşturuldu',
             self::AccountUpdated => 'Cari güncellendi',
+            self::AccountProfileUpdated => 'Cari iletişim / adres bilgileri güncellendi',
         };
     }
 }

@@ -12,6 +12,7 @@
         <div class="page-actions">
             <a href="{{ route('customers.index') }}" data-workspace-link>Listeye Dön</a>
             @can('accounts.manage')
+                <a href="{{ route('customers.profile.edit', $account->getKey()) }}" data-workspace-link>İletişim / Adres</a>
                 <a class="button-primary" href="{{ route('customers.edit', $account->getKey()) }}" data-workspace-link>Düzenle</a>
             @endcan
         </div>
@@ -39,5 +40,69 @@
             <div><dt>Vergi / Kimlik No</dt><dd>{{ $account->tax_number ?: '—' }}</dd></div>
             <div><dt>Vergi Dairesi</dt><dd>{{ $account->tax_office ?: '—' }}</dd></div>
         </dl>
+    </section>
+
+    <section class="detail-card">
+        <h2>İletişim / Yetkililer</h2>
+        @if ($account->contacts->isEmpty() && $account->authorizedContacts->isEmpty())
+            <p>İletişim veya yetkili kaydı yok.</p>
+        @else
+            <dl class="detail-list">
+                @foreach ($account->contacts->sortByDesc('is_primary') as $contact)
+                    <div>
+                        <dt>{{ $contact->kind->label() }}{{ $contact->label ? ' · '.$contact->label : '' }}</dt>
+                        <dd>{{ $contact->value }}{{ $contact->is_primary ? ' · Birincil' : '' }}</dd>
+                    </div>
+                @endforeach
+                @foreach ($account->authorizedContacts->sortByDesc('is_primary') as $contact)
+                    <div>
+                        <dt>{{ $contact->is_primary ? 'Birincil Yetkili' : 'Yetkili' }}</dt>
+                        <dd>{{ $contact->name }}{{ $contact->title ? ' · '.$contact->title : '' }}{{ $contact->phone ? ' · '.$contact->phone : '' }}{{ $contact->email ? ' · '.$contact->email : '' }}</dd>
+                    </div>
+                @endforeach
+            </dl>
+        @endif
+    </section>
+
+    <section class="detail-card">
+        <h2>Fatura / Sevk Adresleri</h2>
+        @if ($account->addresses->isEmpty())
+            <p>Adres kaydı yok.</p>
+        @else
+            <dl class="detail-list">
+                @foreach ($account->addresses->sortBy([['type', 'asc'], ['is_default', 'desc']]) as $address)
+                    <div>
+                        <dt>{{ $address->type->label() }} · {{ $address->label }}{{ $address->is_default ? ' · Varsayılan' : '' }}</dt>
+                        <dd>
+                            {{ $address->recipient_name ? $address->recipient_name.' · ' : '' }}
+                            {{ $address->line1 }}{{ $address->line2 ? ' '.$address->line2 : '' }}{{ $address->district ? ' · '.$address->district : '' }} · {{ $address->city }}{{ $address->postal_code ? ' '.$address->postal_code : '' }} · {{ $address->country_code }}
+                        </dd>
+                    </div>
+                @endforeach
+            </dl>
+        @endif
+    </section>
+
+    <section class="detail-card">
+        <h2>Manuel Ambar / Nakliye</h2>
+        @if ($account->shippingPreferences->isEmpty())
+            <p>Ambar / Nakliye tercihi yok.</p>
+        @else
+            <dl class="detail-list">
+                @foreach ($account->shippingPreferences->sortByDesc('is_default') as $preference)
+                    <div>
+                        <dt>{{ $preference->company_name }}{{ $preference->is_default ? ' · Varsayılan' : '' }}</dt>
+                        <dd>
+                            {{ $preference->city }}{{ $preference->branch ? ' · '.$preference->branch : '' }}
+                            {{ $preference->contact_name ? ' · '.$preference->contact_name : '' }}
+                            {{ $preference->phone ? ' · '.$preference->phone : '' }}
+                            {{ $preference->preference ? ' · '.$preference->preference : '' }}
+                            {{ $preference->address ? ' · '.$preference->address : '' }}
+                            {{ $preference->note ? ' · '.$preference->note : '' }}
+                        </dd>
+                    </div>
+                @endforeach
+            </dl>
+        @endif
     </section>
 @endsection

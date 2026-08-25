@@ -25,6 +25,12 @@ final class SensitiveDataRedactor
             }
 
             if (is_string($value)) {
+                if (is_string($key) && strtolower($key) === 'value' && $this->looksLikeContactValue($value)) {
+                    $values[$key] = self::REDACTED;
+
+                    continue;
+                }
+
                 $values[$key] = $this->redactBearerToken($value);
             }
         }
@@ -47,6 +53,19 @@ final class SensitiveDataRedactor
         }
 
         return false;
+    }
+
+    private function looksLikeContactValue(string $value): bool
+    {
+        $trimmed = trim($value);
+
+        if (filter_var($trimmed, FILTER_VALIDATE_EMAIL) !== false) {
+            return true;
+        }
+
+        $phone = (string) preg_replace('/[^0-9+]/', '', $trimmed);
+
+        return preg_match('/^\+?[0-9]{7,20}$/', $phone) === 1;
     }
 
     private function redactBearerToken(string $value): string

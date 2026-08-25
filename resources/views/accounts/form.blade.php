@@ -12,6 +12,13 @@
         <a href="{{ $account ? route('customers.show', $account->getKey()) : route('customers.index') }}" data-workspace-link>Vazgeç</a>
     </section>
 
+    @if ($account)
+        <nav class="page-actions" aria-label="Cari düzenleme bölümleri">
+            <strong>Firma / Ticari</strong>
+            <a href="{{ route('customers.profile.edit', $account->getKey()) }}" data-workspace-link>İletişim / Yetkililer · Sevk / Adres</a>
+        </nav>
+    @endif
+
     @if ($errors->any())
         <div class="notice-error" role="alert">
             <strong>Kayıt tamamlanamadı.</strong>
