@@ -69,19 +69,19 @@ it('drives category and unit create edit and deactivate flows without browser er
         ->select('status', 'active')
         ->click('Kaydet')
         ->assertSee('Kategori oluşturuldu.')
-        ->assertSee('BROWSER-CAT')
-        ->assertSee('Browser Kategori')
         ->assertNoJavaScriptErrors()
         ->assertNoConsoleLogs();
 
     $category = Category::query()->where('company_id', $company->getKey())->where('code', 'BROWSER-CAT')->firstOrFail();
+    expect($category->name)->toBe('Browser Kategori')
+        ->and($category->is_active)->toBeTrue();
+
     $page->assertPathIs('/inventory/categories/'.$category->getKey().'/edit')
         ->fill('name', 'Browser Kategori Güncel')
         ->select('status', 'inactive')
         ->click('Kaydet')
         ->assertPathIs('/inventory/categories/'.$category->getKey().'/edit')
         ->assertSee('Kategori güncellendi.')
-        ->assertSee('Browser Kategori Güncel')
         ->assertNoJavaScriptErrors()
         ->assertNoConsoleLogs();
 
@@ -91,6 +91,7 @@ it('drives category and unit create edit and deactivate flows without browser er
 
     $page->click('Listeye Dön')
         ->assertPathIs('/inventory/categories')
+        ->assertSee('BROWSER-CAT')
         ->assertSee('Browser Kategori Güncel')
         ->assertSee('Pasif')
         ->click('Birimler')
@@ -102,23 +103,31 @@ it('drives category and unit create edit and deactivate flows without browser er
         ->select('status', 'active')
         ->click('Kaydet')
         ->assertSee('Birim oluşturuldu.')
-        ->assertSee('BROWSER-UNIT')
-        ->assertSee('Browser Birim')
         ->assertNoJavaScriptErrors()
         ->assertNoConsoleLogs();
 
     $unit = Unit::query()->where('company_id', $company->getKey())->where('code', 'BROWSER-UNIT')->firstOrFail();
+    expect($unit->name)->toBe('Browser Birim')
+        ->and($unit->is_active)->toBeTrue();
+
     $page->assertPathIs('/inventory/units/'.$unit->getKey().'/edit')
         ->fill('name', 'Browser Birim Güncel')
         ->select('status', 'inactive')
         ->click('Kaydet')
         ->assertPathIs('/inventory/units/'.$unit->getKey().'/edit')
         ->assertSee('Birim güncellendi.')
-        ->assertSee('Browser Birim Güncel')
         ->assertNoJavaScriptErrors()
         ->assertNoConsoleLogs();
 
     $unit->refresh();
     expect($unit->name)->toBe('Browser Birim Güncel')
         ->and($unit->is_active)->toBeFalse();
+
+    $page->click('Listeye Dön')
+        ->assertPathIs('/inventory/units')
+        ->assertSee('BROWSER-UNIT')
+        ->assertSee('Browser Birim Güncel')
+        ->assertSee('Pasif')
+        ->assertNoJavaScriptErrors()
+        ->assertNoConsoleLogs();
 });
