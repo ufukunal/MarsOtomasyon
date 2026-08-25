@@ -6,8 +6,8 @@ use App\Modules\Core\Models\Tax;
 use App\Modules\Inventory\Enums\StockMovementType;
 use App\Modules\Inventory\Ledger\PostStockMovementData;
 use App\Modules\Inventory\Ledger\StockMovementPoster;
-use App\Modules\Inventory\Ledger\StockMovementReverser;
 use App\Modules\Inventory\Ledger\StockMovementPostingResult;
+use App\Modules\Inventory\Ledger\StockMovementReverser;
 use App\Modules\Inventory\Models\StockBalance;
 use App\Modules\Inventory\Models\StockMovement;
 use App\Modules\Inventory\Models\Warehouse;
@@ -54,7 +54,7 @@ it('reverses an inbound movement with its original carrying cost instead of the 
         ->and($reversal->replayed)->toBeFalse()
         ->and($replay->replayed)->toBeTrue()
         ->and($replay->movement->getKey())->toBe($reversal->movement->getKey())
-        ->and($reversal->movement->movement_type)->toBe(StockMovementType::ReversalOut)
+        ->and($reversal->movement->movement_type)->toBe(StockMovementType::AdjustmentOut)
         ->and($reversal->movement->reversal_of_movement_id)->toBe($second->movement->getKey())
         ->and($reversal->movement->quantity_delta)->toBe('-10.000000')
         ->and($reversal->movement->unit_cost)->toBe('200.000000')
@@ -90,7 +90,7 @@ it('restores an outbound movement at its original outbound carrying cost after t
     ));
 
     $balance = $before->refresh();
-    expect($reversal->movement->movement_type)->toBe(StockMovementType::ReversalIn)
+    expect($reversal->movement->movement_type)->toBe(StockMovementType::AdjustmentIn)
         ->and($reversal->movement->quantity_delta)->toBe('4.000000')
         ->and($reversal->movement->unit_cost)->toBe('100.000000')
         ->and($reversal->movement->value_delta)->toBe('400.000000')
@@ -132,7 +132,7 @@ it('enforces exact reversal lineage at the PostgreSQL boundary', function (): vo
         'product_id' => $product->getKey(),
         'warehouse_id' => $warehouse->getKey(),
         'location_id' => $location->getKey(),
-        'movement_type' => StockMovementType::ReversalOut->value,
+        'movement_type' => StockMovementType::AdjustmentOut->value,
         'quantity_delta' => '-2.000000',
         'unit_cost' => '50.000000',
         'value_delta' => '-99.000000',
@@ -144,24 +144,29 @@ it('enforces exact reversal lineage at the PostgreSQL boundary', function (): vo
         'created_at' => now(),
     ]))->toThrow(QueryException::class);
 
+    $reversal = DB::transaction(fn (): StockMovementPostingResult => app(StockMovementReverser::class)->reverse(
+        originalMovementId: (int) $opening->movement->getKey(),
+        sourceEffect: m44Identity($company, 'opening-db-cancel', 'inventory.reversal'),
+    ));
+
     expect(fn () => DB::table('stock_movements')->insert([
         'company_id' => $company->getKey(),
         'operation_key' => str_repeat('c', 64),
         'request_fingerprint' => str_repeat('d', 64),
         'source_type' => 'inventory.direct',
-        'source_id' => 'missing-lineage',
+        'source_id' => 'reverse-a-reversal',
         'effect_type' => 'inventory.reversal',
-        'reversal_of_movement_id' => null,
+        'reversal_of_movement_id' => $reversal->movement->getKey(),
         'product_id' => $product->getKey(),
         'warehouse_id' => $warehouse->getKey(),
         'location_id' => $location->getKey(),
-        'movement_type' => StockMovementType::ReversalOut->value,
-        'quantity_delta' => '-2.000000',
+        'movement_type' => StockMovementType::AdjustmentIn->value,
+        'quantity_delta' => '2.000000',
         'unit_cost' => '50.000000',
-        'value_delta' => '-100.000000',
-        'balance_quantity_after' => '0.000000',
-        'average_unit_cost_after' => '0.000000',
-        'inventory_value_after' => '0.000000',
+        'value_delta' => '100.000000',
+        'balance_quantity_after' => '2.000000',
+        'average_unit_cost_after' => '50.000000',
+        'inventory_value_after' => '100.000000',
         'note' => null,
         'occurred_at' => now(),
         'created_at' => now(),
