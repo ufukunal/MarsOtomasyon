@@ -25,7 +25,7 @@ Her milestone/alt kırılım:
 | [M1](M01.md) | Core / Company / Users / Settings / UI Shell | ✅ Tamamlandı |
 | [M2](M02.md) | Cari Core | ✅ Tamamlandı |
 | [M3](M03.md) | Ürün / Katalog | ✅ Tamamlandı |
-| [M4](M04.md) | Stok / Depo / Cost Foundation | 🟡 Devam ediyor — M4.1 kapalı, M4.2 aktif |
+| [M4](M04.md) | Stok / Depo / Cost Foundation | 🟡 Devam ediyor — M4.1–M4.2 kapalı, M4.3 aktif |
 | [M5](M05.md) | Teklifler / Tax Calculation Contract | ⏳ Bekliyor |
 | [M6](M06.md) | Satış Siparişleri | ⏳ Bekliyor |
 | [M7](M07.md) | İrsaliye / Sevkiyat | ⏳ Bekliyor |
