@@ -10,6 +10,8 @@
             <p>Aktif firmaya ait SKU, barkod, birim, KDV ve net fiyat kayıtları.</p>
         </div>
         <div class="page-actions">
+            <a href="{{ route('inventory.stock.index') }}" data-workspace-link>Stok Bakiyeleri</a>
+            <a href="{{ route('inventory.warehouses.index') }}" data-workspace-link>Depolar</a>
             <a href="{{ route('inventory.categories.index') }}" data-workspace-link>Kategoriler</a>
             <a href="{{ route('inventory.units.index') }}" data-workspace-link>Birimler</a>
             @can('products.manage')
