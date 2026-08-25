@@ -117,6 +117,11 @@ it('posts opening stock through the V16.3 stock workspace without browser errors
         ->click('Bakiyeler')
         ->assertPathIs('/inventory/stock')
         ->assertSee('Browser Stok Avize')
+        ->assertSee('Fiziksel')
+        ->assertSee('Rezerve')
+        ->assertSee('Bloke')
+        ->assertSee('Kullanılabilir')
+        ->assertSee('4.000000')
         ->assertSee('500.000000')
         ->assertNoJavaScriptErrors()
         ->assertNoConsoleLogs();
