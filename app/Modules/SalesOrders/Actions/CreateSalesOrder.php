@@ -21,6 +21,7 @@ final readonly class CreateSalesOrder
         private SalesOrderDraftResolver $resolver,
         private DocumentNumberIssuer $numbers,
         private AuditRecorder $audit,
+        private SalesOrderAuditSnapshot $auditSnapshot,
     ) {}
 
     public function handle(SalesOrderDraftData $data, string $seriesCode = 'default'): SalesOrder
@@ -64,7 +65,7 @@ final readonly class CreateSalesOrder
                     AuditAction::SalesOrderCreated,
                     AuditTargetType::SalesOrder,
                     $order->getKey(),
-                    after: $this->snapshot($order),
+                    after: $this->auditSnapshot->capture($order),
                 );
 
                 return $order->load('lines');
@@ -103,20 +104,5 @@ final readonly class CreateSalesOrder
                 'gross_total' => $result->gross,
             ]);
         }
-    }
-
-    /** @return array<string, int|string|null> */
-    private function snapshot(SalesOrder $order): array
-    {
-        return [
-            'number' => (string) $order->number,
-            'account_id' => (int) $order->account_id,
-            'status' => $order->statusEnum()->value,
-            'currency_code' => (string) $order->currency_code,
-            'net_total' => (string) $order->net_total,
-            'tax_total' => (string) $order->tax_total,
-            'gross_total' => (string) $order->gross_total,
-            'source_quote_id' => null,
-        ];
     }
 }

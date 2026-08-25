@@ -16,6 +16,7 @@ final readonly class UpdateSalesOrder
         private ActiveCompanyContext $companyContext,
         private SalesOrderDraftResolver $resolver,
         private AuditRecorder $audit,
+        private SalesOrderAuditSnapshot $auditSnapshot,
     ) {}
 
     public function handle(int $salesOrderId, SalesOrderDraftData $data): SalesOrder
@@ -37,7 +38,7 @@ final readonly class UpdateSalesOrder
                 throw ValidationException::withMessages(['sales_order' => 'Yalnız manuel oluşturulmuş taslak siparişler düzenlenebilir.']);
             }
 
-            $before = $this->snapshot($order);
+            $before = $this->auditSnapshot->capture($order);
             $calculation = $draft->calculation;
             $order->fill([
                 'account_id' => $draft->accountId,
@@ -87,25 +88,10 @@ final readonly class UpdateSalesOrder
                 AuditTargetType::SalesOrder,
                 $order->getKey(),
                 before: $before,
-                after: $this->snapshot($order),
+                after: $this->auditSnapshot->capture($order),
             );
 
             return $order->load('lines');
         });
-    }
-
-    /** @return array<string, int|string|null> */
-    private function snapshot(SalesOrder $order): array
-    {
-        return [
-            'number' => (string) $order->number,
-            'account_id' => (int) $order->account_id,
-            'status' => $order->statusEnum()->value,
-            'currency_code' => (string) $order->currency_code,
-            'net_total' => (string) $order->net_total,
-            'tax_total' => (string) $order->tax_total,
-            'gross_total' => (string) $order->gross_total,
-            'source_quote_id' => null,
-        ];
     }
 }
