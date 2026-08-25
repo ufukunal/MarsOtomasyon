@@ -12,7 +12,7 @@
         <div class="page-actions">
             <a href="{{ route('inventory.stock.index') }}" data-workspace-link>Bakiyeler</a>
             <a href="{{ route('inventory.warehouses.index') }}" data-workspace-link>Depolar</a>
-            @can('products.manage')
+            @can('inventory.manage')
                 <a class="button-primary" href="{{ route('inventory.stock.movements.create') }}" data-workspace-link>Yeni Stok Hareketi</a>
             @endcan
         </div>
