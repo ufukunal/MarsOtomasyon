@@ -123,7 +123,7 @@ it('auto selects the only active branch and renders only enabled navigation', fu
 
     $items = app(AppNavigation::class)->items();
     expect(array_column($items, 'label'))->toBe(['Ana Sayfa', 'Ayarlar'])
-        ->and(app(FeatureRegistry::class)->enabled(FeatureKey::Customers))->toBeFalse();
+        ->and(app(FeatureRegistry::class)->enabled(FeatureKey::Customers))->toBeTrue();
 });
 
 it('allows shell branch selection only inside the active company', function (): void {

@@ -16,6 +16,8 @@ enum PermissionKey: string
     case SettingsManage = 'core.settings.manage';
     case FileView = 'core.file.view';
     case FileManage = 'core.file.manage';
+    case AccountView = 'accounts.view';
+    case AccountManage = 'accounts.manage';
 
     public function label(): string
     {
@@ -32,6 +34,8 @@ enum PermissionKey: string
             self::SettingsManage => 'Ayarları yönetme',
             self::FileView => 'Dosya görüntüleme',
             self::FileManage => 'Dosya yönetimi',
+            self::AccountView => 'Cari görüntüleme',
+            self::AccountManage => 'Cari yönetimi',
         };
     }
 }

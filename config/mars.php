@@ -3,7 +3,7 @@
 return [
     'features' => [
         'foundation' => true,
-        'customers' => false,
+        'customers' => true,
         'product_stock' => false,
         'sales' => false,
         'purchasing' => false,
