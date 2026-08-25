@@ -3,6 +3,8 @@
 @section('title', 'Cari Detay')
 
 @section('app-content')
+    @php($b2bPolicy = $account->b2bPolicy)
+
     <section class="workspace-hero">
         <div>
             <p class="eyebrow">Cari Detay</p>
@@ -14,6 +16,7 @@
             @can('accounts.manage')
                 <a href="{{ route('customers.profile.edit', $account->getKey()) }}" data-workspace-link>İletişim / Adres</a>
                 <a href="{{ route('customers.records.edit', $account->getKey()) }}" data-workspace-link>Banka / Not / Dosya</a>
+                <a href="{{ route('customers.b2b.edit', $account->getKey()) }}" data-workspace-link>B2B / Bayi Erişimi</a>
                 <a class="button-primary" href="{{ route('customers.edit', $account->getKey()) }}" data-workspace-link>Düzenle</a>
             @endcan
         </div>
@@ -31,6 +34,18 @@
             <div><dt>Vade</dt><dd>{{ $account->due_days }} gün</dd></div>
             <div><dt>Cari İskontosu</dt><dd>%{{ $account->discount_rate }}</dd></div>
             <div><dt>Risk Limiti</dt><dd>{{ $account->risk_limit }} {{ $account->book_currency_code }}</dd></div>
+        </dl>
+    </section>
+
+    <section class="detail-card">
+        <h2>B2B / Bayi Erişimi</h2>
+        <dl class="detail-list">
+            <div><dt>Erişim</dt><dd>{{ $b2bPolicy?->is_enabled ? 'Aktif' : 'Kapalı' }}</dd></div>
+            <div><dt>Sipariş</dt><dd>{{ $b2bPolicy?->is_enabled && $b2bPolicy?->allow_orders ? 'İzinli' : 'Kapalı' }}</dd></div>
+            <div><dt>Stok Görünürlüğü</dt><dd>{{ $b2bPolicy?->is_enabled && $b2bPolicy?->show_stock ? 'Açık' : 'Kapalı' }}</dd></div>
+            <div><dt>Fatura Görünürlüğü</dt><dd>{{ $b2bPolicy?->is_enabled && $b2bPolicy?->show_invoices ? 'Açık' : 'Kapalı' }}</dd></div>
+            <div><dt>Ekstre Görünürlüğü</dt><dd>{{ $b2bPolicy?->is_enabled && $b2bPolicy?->show_statement ? 'Açık' : 'Kapalı' }}</dd></div>
+            <div><dt>Adres Yönetimi</dt><dd>{{ $b2bPolicy?->is_enabled && $b2bPolicy?->allow_address_management ? 'İzinli' : 'Kapalı' }}</dd></div>
         </dl>
     </section>
 
