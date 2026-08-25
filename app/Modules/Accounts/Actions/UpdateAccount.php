@@ -55,6 +55,7 @@ final readonly class UpdateAccount
 
                 $this->assertCodeAvailable($companyId, $code, $accountId);
                 $this->assertTaxIdentityAvailable($companyId, $taxNumber, $accountId);
+                $this->assertBookCurrencyMutable($account, $currency);
                 $before = $this->snapshot($account);
 
                 $account->fill([
@@ -115,6 +116,19 @@ final readonly class UpdateAccount
         if (preg_match('/^[A-Z]{3}$/', $currency) !== 1
             || ! Currency::query()->whereKey($currency)->where('is_active', true)->exists()) {
             throw ValidationException::withMessages(['book_currency_code' => 'Geçerli ve aktif bir cari para birimi seçilmelidir.']);
+        }
+    }
+
+    private function assertBookCurrencyMutable(Account $account, string $currency): void
+    {
+        if ((string) $account->book_currency_code === $currency) {
+            return;
+        }
+
+        if ($account->transactions()->exists()) {
+            throw ValidationException::withMessages([
+                'book_currency_code' => 'Cari hareketi oluştuktan sonra cari para birimi değiştirilemez.',
+            ]);
         }
     }
 
