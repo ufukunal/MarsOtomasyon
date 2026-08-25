@@ -45,13 +45,13 @@ return new class extends Migration
             $table->index(['company_id', 'account_id', 'posting_date', 'id'], 'account_transactions_statement_index');
         });
 
-        DB::statement("ALTER TABLE account_transactions ADD CONSTRAINT account_transactions_amount_nonzero_check CHECK (signed_amount <> 0)");
-        DB::statement("ALTER TABLE account_transactions ADD CONSTRAINT account_transactions_currency_shape_check CHECK (currency_code ~ '^[A-Z]{3}$')");
-        DB::statement("ALTER TABLE account_transactions ADD CONSTRAINT account_transactions_source_type_check CHECK (source_type ~ '^[a-z0-9]+([._-][a-z0-9]+)*$')");
-        DB::statement("ALTER TABLE account_transactions ADD CONSTRAINT account_transactions_effect_type_check CHECK (effect_type ~ '^[a-z0-9]+([._-][a-z0-9]+)*$')");
-        DB::statement("ALTER TABLE account_transactions ADD CONSTRAINT account_transactions_source_id_check CHECK (char_length(source_id) > 0 AND source_id = btrim(source_id))");
-        DB::statement("ALTER TABLE account_transactions ADD CONSTRAINT account_transactions_effect_fingerprint_check CHECK (effect_fingerprint ~ '^[a-f0-9]{64}$')");
-        DB::statement("ALTER TABLE account_transactions ADD CONSTRAINT account_transactions_account_effect_check CHECK (effect_type LIKE 'account.%')");
+        DB::statement('ALTER TABLE account_transactions ADD CONSTRAINT account_transactions_amount_nonzero_check CHECK (signed_amount <> 0)');
+        DB::statement('ALTER TABLE account_transactions ADD CONSTRAINT account_transactions_currency_shape_check CHECK (currency_code ~ \'^[A-Z]{3}$\')');
+        DB::statement('ALTER TABLE account_transactions ADD CONSTRAINT account_transactions_source_type_check CHECK (source_type ~ \'^[a-z0-9]+([._-][a-z0-9]+)*$\')');
+        DB::statement('ALTER TABLE account_transactions ADD CONSTRAINT account_transactions_effect_type_check CHECK (effect_type ~ \'^[a-z0-9]+([._-][a-z0-9]+)*$\')');
+        DB::statement('ALTER TABLE account_transactions ADD CONSTRAINT account_transactions_source_id_check CHECK (char_length(source_id) > 0 AND source_id = btrim(source_id))');
+        DB::statement('ALTER TABLE account_transactions ADD CONSTRAINT account_transactions_effect_fingerprint_check CHECK (effect_fingerprint ~ \'^[a-f0-9]{64}$\')');
+        DB::statement('ALTER TABLE account_transactions ADD CONSTRAINT account_transactions_account_effect_check CHECK (effect_type LIKE \'account.%\')');
 
         DB::unprepared(<<<'SQL'
 CREATE OR REPLACE FUNCTION enforce_account_transaction_insert()
