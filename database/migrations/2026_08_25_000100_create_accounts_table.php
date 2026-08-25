@@ -32,7 +32,7 @@ return new class extends Migration
         });
 
         DB::statement('CREATE UNIQUE INDEX accounts_company_code_lower_unique ON accounts (company_id, lower(code))');
-        DB::statement('CREATE UNIQUE INDEX accounts_company_tax_identity_unique ON accounts (company_id, tax_identity_type, tax_number) WHERE tax_number IS NOT NULL');
+        DB::statement('CREATE UNIQUE INDEX accounts_company_tax_identity_unique ON accounts (company_id, tax_number) WHERE tax_number IS NOT NULL');
         DB::statement("ALTER TABLE accounts ADD CONSTRAINT accounts_type_check CHECK (type IN ('customer', 'supplier', 'mixed', 'clearing'))");
         DB::statement("ALTER TABLE accounts ADD CONSTRAINT accounts_status_check CHECK (status IN ('active', 'inactive'))");
         DB::statement("ALTER TABLE accounts ADD CONSTRAINT accounts_tax_identity_type_check CHECK (tax_identity_type IN ('none', 'vkn', 'tckn', 'foreign'))");
