@@ -323,6 +323,9 @@ SQL);
             $table->dropForeign('quotes_selected_revision_fk');
         });
         DB::statement('ALTER TABLE quotes DROP CONSTRAINT quotes_decision_shape_check');
+        DB::table('quotes')
+            ->whereIn('status', ['approved', 'rejected', 'converted'])
+            ->update(['status' => 'cancelled']);
         DB::statement('ALTER TABLE quotes DROP CONSTRAINT quotes_status_check');
         DB::statement("ALTER TABLE quotes ADD CONSTRAINT quotes_status_check CHECK (status IN ('draft', 'cancelled'))");
         Schema::table('quotes', function (Blueprint $table): void {
