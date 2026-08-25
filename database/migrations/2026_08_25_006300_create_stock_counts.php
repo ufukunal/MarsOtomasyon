@@ -35,7 +35,7 @@ return new class extends Migration
 
         DB::statement("ALTER TABLE stock_counts ADD CONSTRAINT stock_counts_status_check CHECK (status IN ('draft', 'posted'))");
         DB::statement("ALTER TABLE stock_counts ADD CONSTRAINT stock_counts_posted_shape_check CHECK ((status = 'draft' AND posted_at IS NULL) OR (status = 'posted' AND posted_at IS NOT NULL))");
-        DB::statement("ALTER TABLE stock_counts ADD CONSTRAINT stock_counts_operation_key_check CHECK (operation_key = btrim(operation_key) AND char_length(operation_key) > 0)");
+        DB::statement('ALTER TABLE stock_counts ADD CONSTRAINT stock_counts_operation_key_check CHECK (operation_key = btrim(operation_key) AND char_length(operation_key) > 0)');
 
         Schema::create('stock_count_lines', function (Blueprint $table): void {
             $table->id();
