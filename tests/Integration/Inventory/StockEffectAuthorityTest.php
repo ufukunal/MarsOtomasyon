@@ -18,7 +18,6 @@ use App\Modules\Products\Models\Unit;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Support\Facades\DB;
-use LogicException;
 
 uses(DatabaseMigrations::class);
 
@@ -36,16 +35,16 @@ it('requires stock effects to post inside the owning business transaction', func
     );
 
     expect(fn () => app(StockMovementPoster::class)->post($data))
-        ->toThrow(LogicException::class, 'aynı business transaction');
+        ->toThrow(\LogicException::class, 'aynı business transaction');
 });
 
 it('posts a source effect exactly once and rejects payload drift on replay', function (): void {
     [$company, $product, $warehouse, $location] = m42StockContext('M42-IDEM');
     $identity = new SourceEffectIdentity(
         (int) $company->getKey(),
-        'sales.dispatch',
-        'dispatch-line-42',
-        'inventory.stock_out',
+        'purchase.receipt',
+        'receipt-line-42',
+        'inventory.stock_in',
     );
 
     $data = new PostStockMovementData(
@@ -66,9 +65,9 @@ it('posts a source effect exactly once and rejects payload drift on replay', fun
         ->and($replay->replayed)->toBeTrue()
         ->and($replay->movement->getKey())->toBe($first->movement->getKey())
         ->and(StockMovement::query()->count())->toBe(1)
-        ->and($first->movement->source_type)->toBe('sales.dispatch')
-        ->and($first->movement->source_id)->toBe('dispatch-line-42')
-        ->and($first->movement->effect_type)->toBe('inventory.stock_out');
+        ->and($first->movement->source_type)->toBe('purchase.receipt')
+        ->and($first->movement->source_id)->toBe('receipt-line-42')
+        ->and($first->movement->effect_type)->toBe('inventory.stock_in');
 
     $drifted = new PostStockMovementData(
         sourceEffect: $identity,
@@ -146,7 +145,7 @@ it('enforces canonical source effect identity at PostgreSQL level', function ():
         'company_id' => $company->getKey(),
         'operation_key' => str_repeat('a', 64),
         'request_fingerprint' => str_repeat('b', 64),
-        'source_type' => 'Inventory Bad',
+        'source_type' => 'inventory.valid!',
         'source_id' => 'raw-row',
         'effect_type' => 'inventory.raw',
         'product_id' => $product->getKey(),
