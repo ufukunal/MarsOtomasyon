@@ -7,6 +7,7 @@ use App\Modules\Inventory\Enums\StockMovementType;
 use App\Modules\Products\Models\Product;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 final class StockMovement extends Model
 {
@@ -19,6 +20,7 @@ final class StockMovement extends Model
         'source_type',
         'source_id',
         'effect_type',
+        'reversal_of_movement_id',
         'product_id',
         'warehouse_id',
         'location_id',
@@ -71,5 +73,17 @@ final class StockMovement extends Model
     public function location(): BelongsTo
     {
         return $this->belongsTo(WarehouseLocation::class, 'location_id');
+    }
+
+    /** @return BelongsTo<StockMovement, $this> */
+    public function reversalOf(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'reversal_of_movement_id');
+    }
+
+    /** @return HasOne<StockMovement, $this> */
+    public function reversal(): HasOne
+    {
+        return $this->hasOne(self::class, 'reversal_of_movement_id');
     }
 }
