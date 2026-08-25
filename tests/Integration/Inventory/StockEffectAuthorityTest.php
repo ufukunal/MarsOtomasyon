@@ -1,7 +1,7 @@
 <?php
 
-use App\Foundation\Identity\SourceEffectIdentity;
 use App\Foundation\Idempotency\IdempotencyConflict;
+use App\Foundation\Identity\SourceEffectIdentity;
 use App\Modules\Core\Models\Company;
 use App\Modules\Core\Models\Tax;
 use App\Modules\Inventory\Enums\StockMovementType;
