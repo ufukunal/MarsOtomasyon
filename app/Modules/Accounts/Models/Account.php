@@ -10,6 +10,7 @@ use App\Modules\Core\Models\Currency;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use LogicException;
 
 final class Account extends Model
@@ -119,6 +120,12 @@ final class Account extends Model
     public function notes(): HasMany
     {
         return $this->hasMany(AccountNote::class);
+    }
+
+    /** @return HasOne<AccountB2BPolicy, $this> */
+    public function b2bPolicy(): HasOne
+    {
+        return $this->hasOne(AccountB2BPolicy::class);
     }
 
     private function rawEnumValue(string $attribute): string
