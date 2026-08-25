@@ -14,7 +14,7 @@ use Illuminate\Foundation\Testing\DatabaseMigrations;
 
 uses(DatabaseMigrations::class);
 
-it('drives the V16.3 account list create and readonly detail flow without browser errors', function (): void {
+it('drives the V16.3 account list create readonly detail and profile editor flow without browser errors', function (): void {
     $company = Company::query()->create([
         'code' => 'BROWSER-M2',
         'name' => 'Browser M2 Company',
@@ -73,5 +73,19 @@ it('drives the V16.3 account list create and readonly detail flow without browse
 
     $account = Account::query()->where('company_id', $company->getKey())->firstOrFail();
     $page->assertPathIs('/customers/'.$account->getKey())
-        ->assertCount('input[name="legal_name"]', 0);
+        ->assertCount('input[name="legal_name"]', 0)
+        ->click('İletişim / Adres')
+        ->assertPathIs('/customers/'.$account->getKey().'/profile/edit')
+        ->assertSee('Firma İletişim Kanalları')
+        ->assertSee('Alternatif Firma Ekle')
+        ->click('İletişim Ekle')
+        ->assertCount('input[name="contacts[0][value]"]', 1)
+        ->click('Yetkili Ekle')
+        ->assertCount('input[name="authorized_contacts[0][name]"]', 1)
+        ->click('Adres Ekle')
+        ->assertCount('input[name="addresses[0][line1]"]', 1)
+        ->click('Alternatif Firma Ekle')
+        ->assertCount('input[name="shipping_preferences[0][company_name]"]', 1)
+        ->assertNoJavaScriptErrors()
+        ->assertNoConsoleLogs();
 });
