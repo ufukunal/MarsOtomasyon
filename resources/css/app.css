@@ -166,6 +166,18 @@ th { font-size: .8rem; color: #475569; text-transform: uppercase; letter-spacing
 .command-palette-list a:hover { background: #f1f5f9; }
 .mobile-only { display: none; }
 
+.balance-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-top: 1rem; }
+.balance-card { display: grid; gap: .35rem; padding: 1rem; border: 1px solid #e2e8f0; border-radius: .85rem; background: #ffffff; }
+.balance-card span { color: #64748b; font-size: .82rem; font-weight: 700; }
+.balance-card strong { font-size: 1.35rem; }
+.balance-card small,
+.balance-inline { font-weight: 800; }
+.balance-debtor { color: #991b1b; }
+.balance-creditor { color: #065f46; }
+.balance-zero { color: #475569; }
+.amount-cell { text-align: right; white-space: nowrap; }
+.statement-table-card { overflow-x: auto; margin-top: 1rem; }
+
 @media (max-width: 980px) {
     .app-shell { grid-template-columns: 1fr; }
     .app-sidebar { position: fixed; left: -280px; width: 260px; transition: left .18s ease; box-shadow: 18px 0 40px rgba(15, 23, 42, .24); }
