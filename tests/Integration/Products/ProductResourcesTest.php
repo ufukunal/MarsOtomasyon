@@ -22,6 +22,7 @@ use App\Modules\Core\Models\User;
 use App\Modules\Products\Actions\UpdateProductSuppliers;
 use App\Modules\Products\Enums\ProductFileKind;
 use App\Modules\Products\Enums\ProductStatus;
+use App\Modules\Products\Files\ProductFileManager;
 use App\Modules\Products\Models\Category;
 use App\Modules\Products\Models\Product;
 use App\Modules\Products\Models\ProductFile;
@@ -374,7 +375,7 @@ function m34Product(Company $company, string $code): Product
 
 function m34ProductTechnicalAttachment(Product $product, string $name, string $content): Attachment
 {
-    $file = app(\App\Modules\Products\Files\ProductFileManager::class)->upload(
+    $file = app(ProductFileManager::class)->upload(
         $product->getKey(),
         ProductFileKind::Technical,
         UploadedFile::fake()->createWithContent($name, $content),
