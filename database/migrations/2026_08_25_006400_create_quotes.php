@@ -45,7 +45,7 @@ return new class extends Migration
         });
 
         DB::statement("ALTER TABLE quotes ADD CONSTRAINT quotes_status_check CHECK (status IN ('draft', 'cancelled'))");
-        DB::statement('ALTER TABLE quotes ADD CONSTRAINT quotes_series_code_canonical_check CHECK (series_code = lower(btrim(series_code)) AND series_code ~ ''^[a-z0-9]+(?:[._-][a-z0-9]+)*$'')');
+        DB::statement("ALTER TABLE quotes ADD CONSTRAINT quotes_series_code_canonical_check CHECK (series_code = lower(btrim(series_code)) AND series_code ~ '^[a-z0-9]+(?:[._-][a-z0-9]+)*$')");
         DB::statement('ALTER TABLE quotes ADD CONSTRAINT quotes_date_order_check CHECK (valid_until IS NULL OR quote_date <= valid_until)');
         DB::statement('ALTER TABLE quotes ADD CONSTRAINT quotes_document_discount_rate_check CHECK (document_discount_rate >= 0 AND document_discount_rate <= 100)');
         DB::statement('ALTER TABLE quotes ADD CONSTRAINT quotes_totals_nonnegative_check CHECK (base_net_total >= 0 AND line_discount_total >= 0 AND document_discount_total >= 0 AND net_total >= 0 AND tax_total >= 0 AND gross_total >= 0)');
