@@ -128,6 +128,12 @@ final class Account extends Model
         return $this->hasOne(AccountB2BPolicy::class);
     }
 
+    /** @return HasMany<AccountTransaction, $this> */
+    public function accountTransactions(): HasMany
+    {
+        return $this->hasMany(AccountTransaction::class);
+    }
+
     private function rawEnumValue(string $attribute): string
     {
         $raw = $this->getRawOriginal($attribute);
