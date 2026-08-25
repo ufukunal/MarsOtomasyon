@@ -51,6 +51,8 @@ final readonly class StockMovementPoster
             );
         }
 
+        $carryingValue = $this->normalizeExplicitCarryingValue($data, $original);
+
         $effectKey = $data->sourceEffect->fingerprint();
         $fingerprint = RequestFingerprint::fromPayload([
             'company_id' => $companyId,
@@ -60,6 +62,7 @@ final readonly class StockMovementPoster
             'movement_type' => $data->movementType->value,
             'quantity' => $quantity,
             'unit_cost' => $unitCost,
+            'carrying_value' => $carryingValue,
             'reversal_of_movement_id' => $data->reversalOfMovementId,
             'note' => $note,
         ]);
@@ -120,7 +123,7 @@ final readonly class StockMovementPoster
             $effectiveUnitCost = (string) $unitCost;
             $valueDelta = $original instanceof StockMovement
                 ? $this->absolute((string) $original->value_delta)
-                : $this->multiply($quantity, $effectiveUnitCost);
+                : ($carryingValue ?? $this->multiply($quantity, $effectiveUnitCost));
             $row = DB::selectOne(<<<'SQL'
                 UPDATE stock_balances
                 SET quantity = quantity + CAST(? AS numeric),
@@ -280,6 +283,24 @@ final readonly class StockMovementPoster
         }
 
         return $original;
+    }
+
+    private function normalizeExplicitCarryingValue(PostStockMovementData $data, ?StockMovement $original): ?string
+    {
+        if ($data->carryingValue === null) {
+            return null;
+        }
+        if ($original instanceof StockMovement || $data->movementType !== StockMovementType::TransferIn) {
+            throw ValidationException::withMessages([
+                'carrying_value' => 'Açık taşıma değeri yalnız transfer kabul stok girişinde kullanılabilir.',
+            ]);
+        }
+
+        return $this->positiveDecimal(
+            $data->carryingValue,
+            'carrying_value',
+            'Transfer taşıma değeri sıfırdan büyük olmalıdır.',
+        );
     }
 
     private function positiveDecimal(string $value, string $field, string $message): string
