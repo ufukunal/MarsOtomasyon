@@ -5,6 +5,7 @@ namespace App\Modules\Accounts\Models;
 use App\Modules\Accounts\Enums\AccountAddressType;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use LogicException;
 
 final class AccountAddress extends Model
 {
@@ -31,6 +32,17 @@ final class AccountAddress extends Model
             'created_at' => 'immutable_datetime',
             'updated_at' => 'immutable_datetime',
         ];
+    }
+
+    public function typeEnum(): AccountAddressType
+    {
+        $raw = $this->getRawOriginal('type');
+        if (! is_string($raw)) {
+            throw new LogicException('Persisted account address type must be a string.');
+        }
+
+        return AccountAddressType::tryFrom($raw)
+            ?? throw new LogicException('Persisted account address type is invalid.');
     }
 
     /** @return BelongsTo<Account, $this> */
