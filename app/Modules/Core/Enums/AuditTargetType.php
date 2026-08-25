@@ -18,6 +18,9 @@ enum AuditTargetType: string
     case Product = 'product';
     case Category = 'category';
     case Unit = 'unit';
+    case Warehouse = 'warehouse';
+    case WarehouseLocation = 'warehouse_location';
+    case StockMovement = 'stock_movement';
 
     public function label(): string
     {
@@ -36,6 +39,9 @@ enum AuditTargetType: string
             self::Product => 'Ürün',
             self::Category => 'Kategori',
             self::Unit => 'Birim',
+            self::Warehouse => 'Depo',
+            self::WarehouseLocation => 'Depo Lokasyonu',
+            self::StockMovement => 'Stok Hareketi',
         };
     }
 }
