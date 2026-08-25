@@ -18,6 +18,7 @@ return Application::configure(basePath: dirname(__DIR__))
         then: function (): void {
             require base_path('routes/core-shell.php');
             require base_path('routes/accounts.php');
+            require base_path('routes/products.php');
             Route::get('/health/ready', ReadinessController::class)->name('health.ready');
         },
     )

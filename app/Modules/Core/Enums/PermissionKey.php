@@ -18,6 +18,8 @@ enum PermissionKey: string
     case FileManage = 'core.file.manage';
     case AccountView = 'accounts.view';
     case AccountManage = 'accounts.manage';
+    case ProductView = 'products.view';
+    case ProductManage = 'products.manage';
 
     public function label(): string
     {
@@ -36,6 +38,8 @@ enum PermissionKey: string
             self::FileManage => 'Dosya yönetimi',
             self::AccountView => 'Cari görüntüleme',
             self::AccountManage => 'Cari yönetimi',
+            self::ProductView => 'Ürün görüntüleme',
+            self::ProductManage => 'Ürün yönetimi',
         };
     }
 }
