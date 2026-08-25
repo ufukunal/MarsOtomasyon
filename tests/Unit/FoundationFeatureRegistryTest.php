@@ -8,17 +8,20 @@ use Tests\TestCase;
 
 final class FoundationFeatureRegistryTest extends TestCase
 {
-    public function test_foundation_feature_is_explicitly_enabled(): void
+    public function test_implemented_foundation_and_customers_features_are_enabled(): void
     {
-        self::assertTrue($this->app->make(FeatureRegistry::class)->enabled(FeatureKey::Foundation));
+        $registry = $this->app->make(FeatureRegistry::class);
+
+        self::assertTrue($registry->enabled(FeatureKey::Foundation));
+        self::assertTrue($registry->enabled(FeatureKey::Customers));
     }
 
-    public function test_future_business_features_are_declared_but_disabled_until_implemented(): void
+    public function test_future_business_features_remain_disabled_until_implemented(): void
     {
         $registry = $this->app->make(FeatureRegistry::class);
 
         foreach (FeatureKey::cases() as $feature) {
-            if ($feature === FeatureKey::Foundation) {
+            if (in_array($feature, [FeatureKey::Foundation, FeatureKey::Customers], true)) {
                 continue;
             }
 
