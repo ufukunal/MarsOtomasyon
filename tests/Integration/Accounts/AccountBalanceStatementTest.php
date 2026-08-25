@@ -73,6 +73,17 @@ it('renders a filtered readonly statement with opening closing and running balan
 
     $this->actingAs($viewer)
         ->withSession(['active_company_id' => $company->getKey()])
+        ->get('/customers/'.$account->getKey().'/statement')
+        ->assertOk()
+        ->assertSee('Satış Faturası')
+        ->assertSee('Fatura 001')
+        ->assertSee('Tahsilat')
+        ->assertDontSee('sales.invoice')
+        ->assertDontSee('effect_fingerprint')
+        ->assertDontSee('idempotency');
+
+    $this->actingAs($viewer)
+        ->withSession(['active_company_id' => $company->getKey()])
         ->get('/customers/'.$account->getKey().'/statement?from=2026-08-15&to=2026-08-20')
         ->assertOk()
         ->assertSee('Cari Ekstresi')
@@ -80,7 +91,7 @@ it('renders a filtered readonly statement with opening closing and running balan
         ->assertSee('1.000,00 TRY')
         ->assertSee('Dönem Sonu Bakiyesi')
         ->assertSee('650,00 TRY')
-        ->assertSee('Satış Faturası', false)
+        ->assertDontSee('Satış Faturası')
         ->assertDontSee('Fatura 001')
         ->assertSee('Tahsilat')
         ->assertSee('Tahsilat 001')
