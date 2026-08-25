@@ -37,7 +37,7 @@ final readonly class CancelQuote
             }
 
             $before = ['status' => $quote->statusEnum()->value];
-            $quote->status = QuoteStatus::Cancelled;
+            $quote->status = QuoteStatus::Cancelled->value;
             $quote->save();
 
             $this->audit->record(

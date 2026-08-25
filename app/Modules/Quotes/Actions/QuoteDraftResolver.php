@@ -22,6 +22,9 @@ final readonly class QuoteDraftResolver
     {
         $this->assertAccount($companyId, $data->accountId);
         $quoteDate = $this->date($data->quoteDate, 'quote_date', false);
+        if ($quoteDate === null) {
+            throw ValidationException::withMessages(['quote_date' => 'Geçerli bir teklif tarihi zorunludur.']);
+        }
         $validUntil = $this->date($data->validUntil, 'valid_until', true);
         if ($validUntil !== null && $validUntil < $quoteDate) {
             throw ValidationException::withMessages(['valid_until' => 'Geçerlilik tarihi teklif tarihinden önce olamaz.']);
@@ -39,7 +42,7 @@ final readonly class QuoteDraftResolver
 
         $inputs = [];
         $metadata = [];
-        foreach (array_values($data->lines) as $offset => $line) {
+        foreach ($data->lines as $offset => $line) {
             $position = $offset + 1;
             $product = Product::query()
                 ->with('tax')
@@ -47,12 +50,13 @@ final readonly class QuoteDraftResolver
                 ->whereKey($line->productId)
                 ->where('status', 'active')
                 ->first();
+            $tax = $product?->tax;
 
-            if ($product === null || $product->tax === null || ! (bool) $product->tax->is_active) {
+            if ($product === null || $tax === null || ! (bool) $tax->is_active) {
                 throw ValidationException::withMessages(["lines.$offset.product_id" => 'Aktif şirkete ait, aktif vergi tanımlı bir ürün seçilmelidir.']);
             }
 
-            $taxRate = (string) $product->tax->rate;
+            $taxRate = (string) $tax->rate;
             $zeroReason = null;
             if ($this->isZeroRate($taxRate)) {
                 if ($line->taxZeroReasonId === null) {
@@ -85,7 +89,7 @@ final readonly class QuoteDraftResolver
                 lineDiscountRate: $line->lineDiscountRate,
                 taxZeroReasonCode: $zeroReason === null ? null : (string) $zeroReason->code,
             );
-            $metadata[] = [$product, $zeroReason, $description];
+            $metadata[] = [$product, $tax, $zeroReason, $description];
         }
 
         try {
@@ -96,13 +100,13 @@ final readonly class QuoteDraftResolver
 
         $resolvedLines = [];
         foreach ($calculation->lines as $offset => $lineResult) {
-            [$product, $zeroReason, $description] = $metadata[$offset];
+            [$product, $tax, $zeroReason, $description] = $metadata[$offset];
             $resolvedLines[] = new ResolvedQuoteLine(
                 position: $offset + 1,
                 productId: (int) $product->getKey(),
                 productCode: (string) $product->code,
                 description: $description,
-                taxId: (int) $product->tax->getKey(),
+                taxId: (int) $tax->getKey(),
                 taxZeroReasonId: $zeroReason === null ? null : (int) $zeroReason->getKey(),
                 calculation: $lineResult,
             );
