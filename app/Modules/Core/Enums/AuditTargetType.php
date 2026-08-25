@@ -15,6 +15,7 @@ enum AuditTargetType: string
     case PostingPeriod = 'posting_period';
     case Attachment = 'attachment';
     case Account = 'account';
+    case Product = 'product';
 
     public function label(): string
     {
@@ -30,6 +31,7 @@ enum AuditTargetType: string
             self::PostingPeriod => 'Muhasebe Dönemi',
             self::Attachment => 'Dosya Bağlantısı',
             self::Account => 'Cari',
+            self::Product => 'Ürün',
         };
     }
 }
