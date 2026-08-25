@@ -14,6 +14,7 @@ use App\Modules\Inventory\Models\Warehouse;
 use App\Modules\Inventory\Models\WarehouseLocation;
 use App\Modules\Products\Enums\ProductStatus;
 use App\Modules\Products\Models\Product;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -67,11 +68,15 @@ final readonly class InventoryController
                 ->orderBy('name')
                 ->orderBy('code')
                 ->get(),
-            'warehouses' => Warehouse::query()
+            'locations' => WarehouseLocation::query()
                 ->where('company_id', $this->companyId())
                 ->where('is_active', true)
-                ->with(['locations' => fn ($query) => $query->where('is_active', true)->orderBy('code')])
-                ->orderBy('name')
+                ->whereHas('warehouse', function (Builder $query): void {
+                    $query->where('is_active', true);
+                })
+                ->with('warehouse')
+                ->orderBy('warehouse_id')
+                ->orderBy('code')
                 ->get(),
         ]);
     }
@@ -81,19 +86,21 @@ final readonly class InventoryController
         $validated = $request->validate([
             'operation_key' => ['required', 'string', 'max:64'],
             'product_id' => ['required', 'integer', 'min:1'],
-            'warehouse_id' => ['required', 'integer', 'min:1'],
             'location_id' => ['required', 'integer', 'min:1'],
             'movement_type' => ['required', Rule::enum(ManualStockMovementKind::class)],
             'quantity' => ['required', 'decimal:0,6', 'gt:0'],
             'unit_cost' => ['nullable', 'decimal:0,6', 'gte:0'],
             'note' => ['nullable', 'string', 'max:240'],
         ]);
+        $location = WarehouseLocation::query()
+            ->where('company_id', $this->companyId())
+            ->findOrFail((int) $validated['location_id']);
 
         $movement = $this->postMovement->handle(
             operationKey: (string) $validated['operation_key'],
             productId: (int) $validated['product_id'],
-            warehouseId: (int) $validated['warehouse_id'],
-            locationId: (int) $validated['location_id'],
+            warehouseId: (int) $location->warehouse_id,
+            locationId: $location->getKey(),
             kind: ManualStockMovementKind::from((string) $validated['movement_type']),
             quantity: (string) $validated['quantity'],
             unitCost: isset($validated['unit_cost']) ? (string) $validated['unit_cost'] : null,
@@ -108,7 +115,9 @@ final readonly class InventoryController
     {
         $warehouses = Warehouse::query()
             ->where('company_id', $this->companyId())
-            ->with(['locations' => fn ($query) => $query->orderBy('code')])
+            ->with(['locations' => function (Builder $query): void {
+                $query->orderBy('code');
+            }])
             ->orderByRaw('CASE WHEN is_active THEN 0 ELSE 1 END')
             ->orderBy('name')
             ->get();
