@@ -27,6 +27,7 @@ final class Product extends Model
     protected function casts(): array
     {
         return [
+            'status' => ProductStatus::class,
             'sale_price_net' => 'decimal:6',
             'purchase_price_net' => 'decimal:6',
             'created_at' => 'immutable_datetime',
@@ -43,6 +44,11 @@ final class Product extends Model
 
         return ProductStatus::tryFrom($raw)
             ?? throw new LogicException('Persisted product status is invalid.');
+    }
+
+    public function isActive(): bool
+    {
+        return $this->statusEnum() === ProductStatus::Active;
     }
 
     /** @return BelongsTo<Company, $this> */
