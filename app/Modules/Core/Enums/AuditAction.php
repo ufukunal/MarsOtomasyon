@@ -31,6 +31,7 @@ enum AuditAction: string
     case AccountB2BPolicyUpdated = 'accounts.account.b2b_policy.updated';
     case ProductCreated = 'products.product.created';
     case ProductUpdated = 'products.product.updated';
+    case ProductSuppliersUpdated = 'products.product.suppliers.updated';
     case CategoryCreated = 'products.category.created';
     case CategoryUpdated = 'products.category.updated';
     case UnitCreated = 'products.unit.created';
@@ -66,6 +67,7 @@ enum AuditAction: string
             self::AccountB2BPolicyUpdated => 'Cari B2B / bayi erişim politikası güncellendi',
             self::ProductCreated => 'Ürün oluşturuldu',
             self::ProductUpdated => 'Ürün güncellendi',
+            self::ProductSuppliersUpdated => 'Ürün tedarikçi ilişkileri güncellendi',
             self::CategoryCreated => 'Kategori oluşturuldu',
             self::CategoryUpdated => 'Kategori güncellendi',
             self::UnitCreated => 'Birim oluşturuldu',
