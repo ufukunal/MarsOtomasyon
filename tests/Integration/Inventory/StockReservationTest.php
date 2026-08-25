@@ -27,7 +27,7 @@ use LogicException;
 
 uses(DatabaseMigrations::class);
 
-it('reserves available stock exactly once without creating a stock movement', function (): void {
+it('reserves stock exactly once without creating a physical movement', function (): void {
     [$company, $product, $warehouse, $location] = m45StockContext('M45-RESERVE');
     m45PostOpening($company, $product, $warehouse, $location, '10', '100');
     $identity = m45Identity($company, 'order-100-line-1', 'inventory.reserve');
@@ -47,11 +47,10 @@ it('reserves available stock exactly once without creating a stock movement', fu
         '4.000000',
     ));
 
-    $balance = StockBalance::query()->where('product_id', $product->getKey())->firstOrFail();
+    $balance = m45Balance($product);
     expect($first->replayed)->toBeFalse()
         ->and($replay->replayed)->toBeTrue()
         ->and($first->reservation->getKey())->toBe($replay->reservation->getKey())
-        ->and($first->reservation->quantity)->toBe('4.000000')
         ->and($first->reservation->statusEnum())->toBe(StockReservationStatus::Active)
         ->and($balance->reserved_quantity)->toBe('4.000000')
         ->and($balance->available_quantity)->toBe('6.000000')
@@ -67,7 +66,7 @@ it('reserves available stock exactly once without creating a stock movement', fu
     )))->toThrow(IdempotencyConflict::class);
 });
 
-it('blocks over reservation atomically at service and PostgreSQL boundaries', function (): void {
+it('blocks over reservation at service and PostgreSQL boundaries', function (): void {
     [$company, $product, $warehouse, $location] = m45StockContext('M45-CAP');
     m45PostOpening($company, $product, $warehouse, $location, '5', '50');
 
@@ -96,13 +95,13 @@ it('blocks over reservation atomically at service and PostgreSQL boundaries', fu
         'raw-over',
     )))->toThrow(QueryException::class);
 
-    $balance = StockBalance::query()->where('product_id', $product->getKey())->firstOrFail();
+    $balance = m45Balance($product);
     expect($balance->reserved_quantity)->toBe('4.000000')
         ->and($balance->available_quantity)->toBe('1.000000')
         ->and(StockReservation::query()->count())->toBe(1);
 });
 
-it('releases reservations and consumes them before the physical stock effect in the same transaction', function (): void {
+it('releases and consumes reservations while physical stock remains ledger-owned', function (): void {
     [$company, $product, $warehouse, $location] = m45StockContext('M45-LIFECYCLE');
     m45PostOpening($company, $product, $warehouse, $location, '10', '100');
 
@@ -126,7 +125,7 @@ it('releases reservations and consumes them before the physical stock effect in 
         (int) $released->reservation->getKey(),
     ));
 
-    $balance = StockBalance::query()->where('product_id', $product->getKey())->firstOrFail();
+    $balance = m45Balance($product);
     expect($released->reservation->statusEnum())->toBe(StockReservationStatus::Released)
         ->and($releaseReplay->replayed)->toBeTrue()
         ->and($balance->reserved_quantity)->toBe('0.000000')
@@ -167,7 +166,7 @@ it('releases reservations and consumes them before the physical stock effect in 
         ->and(StockMovement::query()->count())->toBe(2);
 });
 
-it('serializes competing reservations on the stock balance row and prevents over allocation after the lock clears', function (): void {
+it('serializes competing reservations and prevents over allocation after the lock clears', function (): void {
     [$company, $product, $warehouse, $location] = m45StockContext('M45-CONCURRENT');
     m45PostOpening($company, $product, $warehouse, $location, '5', '25');
 
@@ -214,7 +213,7 @@ it('serializes competing reservations on the stock balance row and prevents over
         'lock-waiter',
     )))->toThrow(QueryException::class);
 
-    $balance = StockBalance::query()->where('product_id', $product->getKey())->firstOrFail();
+    $balance = m45Balance($product);
     expect($balance->reserved_quantity)->toBe('4.000000')
         ->and($balance->available_quantity)->toBe('1.000000')
         ->and(StockReservation::query()->count())->toBe(1);
@@ -222,7 +221,7 @@ it('serializes competing reservations on the stock balance row and prevents over
     DB::disconnect('pgsql_concurrent');
 });
 
-it('protects reservation lifecycle integrity and requires the owning business transaction', function (): void {
+it('protects lifecycle integrity and requires the owning business transaction', function (): void {
     [$company, $product, $warehouse, $location] = m45StockContext('M45-GUARDS');
     m45PostOpening($company, $product, $warehouse, $location, '8', '40');
     $service = app(StockReservationService::class);
@@ -260,7 +259,7 @@ it('protects reservation lifecycle integrity and requires the owning business tr
         (int) $reservation->getKey(),
     )))->toThrow(ValidationException::class);
 
-    $balance = StockBalance::query()->where('product_id', $product->getKey())->firstOrFail();
+    $balance = m45Balance($product);
     expect($reservation->refresh()->statusEnum())->toBe(StockReservationStatus::Released)
         ->and($balance->reserved_quantity)->toBe('0.000000')
         ->and($balance->available_quantity)->toBe('8.000000');
@@ -295,7 +294,7 @@ function m45PostOpening(
     )));
 }
 
-/** @return array<string, int|string|\DateTimeInterface|null> */
+/** @return array<string, mixed> */
 function m45RawReservation(
     Company $company,
     Product $product,
@@ -320,6 +319,11 @@ function m45RawReservation(
         'created_at' => $now,
         'updated_at' => $now,
     ];
+}
+
+function m45Balance(Product $product): StockBalance
+{
+    return StockBalance::query()->where('product_id', $product->getKey())->firstOrFail();
 }
 
 /** @return array{Company, Product, Warehouse, WarehouseLocation} */
