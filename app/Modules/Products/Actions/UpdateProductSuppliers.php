@@ -102,10 +102,10 @@ final readonly class UpdateProductSuppliers
 
         foreach ($accounts as $account) {
             $accountId = $account->getKey();
-            if (! is_int($accountId)) {
+            if (is_int($accountId) === false) {
                 throw new LogicException('Supplier account persistence did not return an integer key.');
             }
-            if ($account->statusEnum() === AccountStatus::Inactive && ! in_array($accountId, $existing, true)) {
+            if ($account->statusEnum() === AccountStatus::Inactive && in_array($accountId, $existing, true) === false) {
                 throw ValidationException::withMessages([
                     'supplier_ids' => 'Pasif bir cari yeni tedarikçi ilişkisi olarak eklenemez.',
                 ]);
