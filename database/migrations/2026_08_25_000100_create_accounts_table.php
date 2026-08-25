@@ -37,7 +37,7 @@ return new class extends Migration
         DB::statement("ALTER TABLE accounts ADD CONSTRAINT accounts_status_check CHECK (status IN ('active', 'inactive'))");
         DB::statement("ALTER TABLE accounts ADD CONSTRAINT accounts_tax_identity_type_check CHECK (tax_identity_type IN ('none', 'vkn', 'tckn', 'foreign'))");
         DB::statement("ALTER TABLE accounts ADD CONSTRAINT accounts_tax_identity_presence_check CHECK ((tax_identity_type = 'none' AND tax_number IS NULL) OR (tax_identity_type <> 'none' AND tax_number IS NOT NULL))");
-        DB::statement("ALTER TABLE accounts ADD CONSTRAINT accounts_tax_number_shape_check CHECK ((tax_identity_type = 'none') OR (tax_identity_type = 'vkn' AND tax_number ~ '^\\d{10}$') OR (tax_identity_type = 'tckn' AND tax_number ~ '^\\d{11}$') OR (tax_identity_type = 'foreign' AND char_length(tax_number) BETWEEN 1 AND 32))");
+        DB::statement("ALTER TABLE accounts ADD CONSTRAINT accounts_tax_number_shape_check CHECK ((tax_identity_type = 'none') OR (tax_identity_type = 'vkn' AND tax_number ~ '^\\d{10}$') OR (tax_identity_type = 'tckn' AND tax_number ~ '^\\d{11}$') OR (tax_identity_type = 'foreign' AND tax_number ~ '^[A-Z0-9][A-Z0-9 ._/-]{0,31}$'))");
         DB::statement("ALTER TABLE accounts ADD CONSTRAINT accounts_code_not_blank_check CHECK (char_length(btrim(code)) > 0)");
         DB::statement("ALTER TABLE accounts ADD CONSTRAINT accounts_legal_name_not_blank_check CHECK (char_length(btrim(legal_name)) > 0)");
         DB::statement('ALTER TABLE accounts ADD CONSTRAINT accounts_due_days_check CHECK (due_days >= 0 AND due_days <= 3650)');
