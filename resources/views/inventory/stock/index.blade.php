@@ -10,10 +10,12 @@
             <p>Fiziksel miktar ve moving-average taşıma maliyeti; authority append-only stok hareketleridir.</p>
         </div>
         <div class="page-actions">
-            <a href="{{ route('inventory.index') }}" data-workspace-link>Ürünler</a>
+            @can('products.view')
+                <a href="{{ route('inventory.index') }}" data-workspace-link>Ürünler</a>
+            @endcan
             <a href="{{ route('inventory.warehouses.index') }}" data-workspace-link>Depolar</a>
             <a href="{{ route('inventory.stock.movements') }}" data-workspace-link>Hareketler</a>
-            @can('products.manage')
+            @can('inventory.manage')
                 <a class="button-primary" href="{{ route('inventory.stock.movements.create') }}" data-workspace-link>Yeni Stok Hareketi</a>
             @endcan
         </div>
