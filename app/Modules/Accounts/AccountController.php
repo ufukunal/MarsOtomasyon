@@ -10,6 +10,7 @@ use App\Modules\Accounts\Enums\AccountStatus;
 use App\Modules\Accounts\Enums\AccountType;
 use App\Modules\Accounts\Enums\TaxIdentityType;
 use App\Modules\Accounts\Files\AccountFileManager;
+use App\Modules\Accounts\Ledger\AccountLedgerReader;
 use App\Modules\Accounts\Models\Account;
 use App\Modules\Core\Company\ActiveCompanyContext;
 use App\Modules\Core\Models\Currency;
@@ -28,6 +29,7 @@ final readonly class AccountController
         private CreateAccount $createAccount,
         private UpdateAccount $updateAccount,
         private AccountFileManager $files,
+        private AccountLedgerReader $ledger,
     ) {}
 
     public function index(Request $request): View
@@ -54,13 +56,16 @@ final readonly class AccountController
             $query->where('status', $status);
         }
 
+        $accounts = $query
+            ->orderByRaw("CASE WHEN status = 'active' THEN 0 ELSE 1 END")
+            ->orderBy('legal_name')
+            ->orderBy('code')
+            ->paginate(50)
+            ->withQueryString();
+
         return view('accounts.index', [
-            'accounts' => $query
-                ->orderByRaw("CASE WHEN status = 'active' THEN 0 ELSE 1 END")
-                ->orderBy('legal_name')
-                ->orderBy('code')
-                ->paginate(50)
-                ->withQueryString(),
+            'accounts' => $accounts,
+            'balances' => $this->ledger->balances($accounts->getCollection()),
             'search' => $search,
             'statusFilter' => $status,
         ]);
@@ -109,6 +114,7 @@ final readonly class AccountController
 
         return view('accounts.show', [
             'account' => $accountModel,
+            'balance' => $this->ledger->balance($accountModel),
             'attachments' => $this->files->all($account),
         ]);
     }
