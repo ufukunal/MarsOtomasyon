@@ -32,11 +32,12 @@ final readonly class ProductResourcesController
     {
         $productModel = $this->product($product);
         $productModel->load('supplierRelations.account');
-        $selectedSupplierIds = $productModel->supplierRelations
-            ->pluck('account_id')
-            ->map(static fn (mixed $id): int => (int) $id)
-            ->values()
-            ->all();
+        $selectedSupplierIds = array_values(
+            $productModel->supplierRelations
+                ->pluck('account_id')
+                ->map(static fn (mixed $id): int => (int) $id)
+                ->all(),
+        );
 
         return view('products.resources', [
             'product' => $productModel,
@@ -54,10 +55,10 @@ final readonly class ProductResourcesController
             'supplier_ids' => ['nullable', 'array', 'max:100'],
             'supplier_ids.*' => ['required', 'integer', 'min:1', 'distinct'],
         ]);
-        $supplierIds = array_map(
+        $supplierIds = array_values(array_map(
             static fn (mixed $id): int => (int) $id,
             is_array($validated['supplier_ids'] ?? null) ? $validated['supplier_ids'] : [],
-        );
+        ));
 
         $this->updateSuppliers->handle($product, $supplierIds);
 
@@ -109,7 +110,10 @@ final readonly class ProductResourcesController
             ->findOrFail($id);
     }
 
-    /** @param list<int> $selectedIds @return Collection<int, Account> */
+    /**
+     * @param list<int> $selectedIds
+     * @return Collection<int, Account>
+     */
     private function supplierAccounts(array $selectedIds): Collection
     {
         return Account::query()
