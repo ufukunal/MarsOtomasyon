@@ -2,6 +2,7 @@
 
 use App\Modules\Products\CategoryController;
 use App\Modules\Products\ProductController;
+use App\Modules\Products\ProductResourcesController;
 use App\Modules\Products\UnitController;
 use Illuminate\Support\Facades\Route;
 
@@ -55,6 +56,28 @@ Route::prefix('inventory')
         Route::post('/products', [ProductController::class, 'store'])
             ->middleware('can:products.manage')
             ->name('products.store');
+        Route::get('/products/{product}/resources', [ProductResourcesController::class, 'edit'])
+            ->whereNumber('product')
+            ->middleware('can:products.view')
+            ->name('products.resources.edit');
+        Route::put('/products/{product}/resources/suppliers', [ProductResourcesController::class, 'updateSuppliers'])
+            ->whereNumber('product')
+            ->middleware('can:products.manage')
+            ->name('products.resources.suppliers.update');
+        Route::post('/products/{product}/resources/files', [ProductResourcesController::class, 'uploadFile'])
+            ->whereNumber('product')
+            ->middleware('can:products.manage')
+            ->name('products.resources.files.store');
+        Route::get('/products/{product}/resources/files/{file}/download', [ProductResourcesController::class, 'downloadFile'])
+            ->whereNumber('product')
+            ->whereNumber('file')
+            ->middleware('can:products.view')
+            ->name('products.resources.files.download');
+        Route::post('/products/{product}/resources/files/{file}/detach', [ProductResourcesController::class, 'detachFile'])
+            ->whereNumber('product')
+            ->whereNumber('file')
+            ->middleware('can:products.manage')
+            ->name('products.resources.files.detach');
         Route::get('/products/{product}', [ProductController::class, 'show'])
             ->whereNumber('product')
             ->middleware('can:products.view')
