@@ -13,6 +13,7 @@
         </div>
         <div class="page-actions">
             <a href="{{ route('inventory.index') }}" data-workspace-link>Listeye Dön</a>
+            <a href="{{ route('inventory.products.resources.edit', $product->getKey()) }}" data-workspace-link>Tedarikçi / Dosyalar</a>
             @can('products.manage')
                 <a class="button-primary" href="{{ route('inventory.products.edit', $product->getKey()) }}" data-workspace-link>Düzenle</a>
             @endcan
