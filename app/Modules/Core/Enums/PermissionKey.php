@@ -22,6 +22,8 @@ enum PermissionKey: string
     case ProductManage = 'products.manage';
     case InventoryView = 'inventory.view';
     case InventoryManage = 'inventory.manage';
+    case QuoteView = 'quotes.view';
+    case QuoteManage = 'quotes.manage';
 
     public function label(): string
     {
@@ -44,6 +46,8 @@ enum PermissionKey: string
             self::ProductManage => 'Ürün yönetimi',
             self::InventoryView => 'Stok ve depo görüntüleme',
             self::InventoryManage => 'Stok ve depo yönetimi',
+            self::QuoteView => 'Teklif görüntüleme',
+            self::QuoteManage => 'Teklif yönetimi',
         };
     }
 }
