@@ -15,11 +15,15 @@ final readonly class AppNavigation
     /** @return list<array{label:string,route:string}> */
     public function items(): array
     {
+        $productStockRoute = Gate::allows(PermissionKey::ProductView->value)
+            ? 'inventory.index'
+            : 'inventory.stock.index';
+
         /** @var list<array{label:string,route:string,feature:FeatureKey,permissions:list<PermissionKey>}> $candidates */
         $candidates = [
             ['label' => 'Ana Sayfa', 'route' => 'workspace', 'feature' => FeatureKey::Foundation, 'permissions' => []],
             ['label' => 'Cariler', 'route' => 'customers.index', 'feature' => FeatureKey::Customers, 'permissions' => [PermissionKey::AccountView]],
-            ['label' => 'Ürün/Stok', 'route' => 'inventory.index', 'feature' => FeatureKey::ProductStock, 'permissions' => [PermissionKey::ProductView, PermissionKey::InventoryView]],
+            ['label' => 'Ürün/Stok', 'route' => $productStockRoute, 'feature' => FeatureKey::ProductStock, 'permissions' => [PermissionKey::ProductView, PermissionKey::InventoryView]],
             ['label' => 'Satış', 'route' => 'sales.index', 'feature' => FeatureKey::Sales, 'permissions' => []],
             ['label' => 'Alış', 'route' => 'purchasing.index', 'feature' => FeatureKey::Purchasing, 'permissions' => []],
             ['label' => 'Üretim', 'route' => 'production.index', 'feature' => FeatureKey::Production, 'permissions' => []],
