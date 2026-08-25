@@ -101,19 +101,19 @@ if (! class_exists('CreateAccountProfileTables20260825000300', false)) {
                 $table->index(['company_id', 'account_id']);
             });
 
-            DB::statement("ALTER TABLE account_contacts ADD CONSTRAINT account_contacts_kind_check CHECK (kind IN ('phone', 'email'))");
+            DB::statement('ALTER TABLE account_contacts ADD CONSTRAINT account_contacts_kind_check CHECK (kind IN (\'phone\', \'email\'))');
             DB::statement('ALTER TABLE account_contacts ADD CONSTRAINT account_contacts_value_not_blank_check CHECK (char_length(btrim(value)) > 0 AND char_length(btrim(normalized_value)) > 0)');
             DB::statement('CREATE UNIQUE INDEX account_contacts_one_primary_per_kind ON account_contacts (company_id, account_id, kind) WHERE is_primary');
 
             DB::statement('ALTER TABLE account_authorized_contacts ADD CONSTRAINT account_authorized_contacts_name_not_blank_check CHECK (char_length(btrim(name)) > 0)');
-            DB::statement("ALTER TABLE account_authorized_contacts ADD CONSTRAINT account_authorized_contacts_channel_check CHECK (phone IS NOT NULL OR email IS NOT NULL)");
+            DB::statement('ALTER TABLE account_authorized_contacts ADD CONSTRAINT account_authorized_contacts_channel_check CHECK (phone IS NOT NULL OR email IS NOT NULL)');
             DB::statement('CREATE UNIQUE INDEX account_authorized_contacts_one_primary ON account_authorized_contacts (company_id, account_id) WHERE is_primary');
 
-            DB::statement("ALTER TABLE account_addresses ADD CONSTRAINT account_addresses_type_check CHECK (type IN ('billing', 'shipping'))");
+            DB::statement('ALTER TABLE account_addresses ADD CONSTRAINT account_addresses_type_check CHECK (type IN (\'billing\', \'shipping\'))');
             DB::statement('ALTER TABLE account_addresses ADD CONSTRAINT account_addresses_label_not_blank_check CHECK (char_length(btrim(label)) > 0)');
             DB::statement('ALTER TABLE account_addresses ADD CONSTRAINT account_addresses_line1_not_blank_check CHECK (char_length(btrim(line1)) > 0)');
             DB::statement('ALTER TABLE account_addresses ADD CONSTRAINT account_addresses_city_not_blank_check CHECK (char_length(btrim(city)) > 0)');
-            DB::statement("ALTER TABLE account_addresses ADD CONSTRAINT account_addresses_country_code_check CHECK (country_code ~ '^[A-Z]{2}$')");
+            DB::statement('ALTER TABLE account_addresses ADD CONSTRAINT account_addresses_country_code_check CHECK (country_code ~ \'^[A-Z]{2}$\')');
             DB::statement('CREATE UNIQUE INDEX account_addresses_one_default_per_type ON account_addresses (company_id, account_id, type) WHERE is_default');
 
             DB::statement('ALTER TABLE account_shipping_preferences ADD CONSTRAINT account_shipping_preferences_company_not_blank_check CHECK (char_length(btrim(company_name)) > 0)');
