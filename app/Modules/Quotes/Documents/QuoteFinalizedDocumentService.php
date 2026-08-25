@@ -7,11 +7,13 @@ use App\Modules\Core\Audit\AuditRecorder;
 use App\Modules\Core\Company\ActiveCompanyContext;
 use App\Modules\Core\Enums\AuditAction;
 use App\Modules\Core\Enums\AuditTargetType;
+use App\Modules\Core\Models\Company;
 use App\Modules\Core\Models\FileAsset;
 use App\Modules\Quotes\Enums\QuoteStatus;
 use App\Modules\Quotes\Models\Quote;
 use App\Modules\Quotes\Models\QuoteFinalizedDocument;
 use App\Modules\Quotes\Models\QuoteRevision;
+use DateTimeInterface;
 use Dompdf\Dompdf;
 use Dompdf\Options;
 use Illuminate\Support\Facades\DB;
@@ -131,7 +133,7 @@ final readonly class QuoteFinalizedDocumentService
                 return $document->setRelation('fileAsset', $asset);
             });
         } catch (Throwable $exception) {
-            if (is_string($storedKey) && $storedKey !== '') {
+            if ($storedKey !== null) {
                 Storage::disk('local')->delete($storedKey);
             }
 
@@ -152,6 +154,9 @@ final readonly class QuoteFinalizedDocumentService
         abort_unless(Storage::disk('local')->exists((string) $asset->storage_key), 410, 'Finalized PDF storage object is missing.');
 
         $bytes = Storage::disk('local')->get((string) $asset->storage_key);
+        if (! is_string($bytes)) {
+            abort(410, 'Finalized PDF storage object could not be read.');
+        }
         abort_unless(str_starts_with($bytes, '%PDF-'), 410, 'Finalized PDF signature is invalid.');
 
         $sha256 = hash('sha256', $bytes);
@@ -195,13 +200,23 @@ final readonly class QuoteFinalizedDocumentService
 
     private function sourceFingerprint(Quote $quote, QuoteRevision $revision, string $decisionOutcome): string
     {
+        $company = $quote->company;
+        if (! $company instanceof Company) {
+            throw new LogicException('Finalized PDF requires the quote company relation.');
+        }
+
+        $decisionAt = $quote->getAttribute('decision_at');
+        if ($decisionAt !== null && ! $decisionAt instanceof DateTimeInterface) {
+            throw new LogicException('Finalized PDF requires a valid decision timestamp.');
+        }
+
         $payload = json_encode([
             'renderer_version' => self::RENDERER_VERSION,
             'quote_revision_fingerprint' => (string) $revision->content_fingerprint,
             'quote_revision_id' => (int) $revision->getKey(),
-            'company_name' => (string) $quote->company->name,
+            'company_name' => (string) $company->name,
             'decision_outcome' => $decisionOutcome,
-            'decision_at' => $quote->decision_at?->format('c'),
+            'decision_at' => $decisionAt?->format('c'),
         ], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 
         return hash('sha256', $payload);
