@@ -15,6 +15,7 @@
             @endcan
             <a href="{{ route('inventory.warehouses.index') }}" data-workspace-link>Depolar</a>
             <a href="{{ route('inventory.stock.movements') }}" data-workspace-link>Hareketler</a>
+            <a href="{{ route('inventory.counts.index') }}" data-workspace-link>Stok Sayımı</a>
             @can('inventory.manage')
                 <a class="button-primary" href="{{ route('inventory.stock.movements.create') }}" data-workspace-link>Yeni Stok Hareketi</a>
             @endcan
