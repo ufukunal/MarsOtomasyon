@@ -223,9 +223,28 @@ final readonly class CreateProduct
         throw ValidationException::withMessages(['code' => 'Bu ürün kodu şirkette zaten kullanılıyor.']);
     }
 
-    /** @return array<string, int|string|null|list<string>> */
+    /**
+     * @return array{
+     *     code:string,
+     *     status:string,
+     *     name:string,
+     *     category_id:?int,
+     *     unit_id:int,
+     *     tax_id:int,
+     *     sale_price_net:string,
+     *     purchase_price_net:string,
+     *     barcodes:list<string>
+     * }
+     */
     private function snapshot(Product $product): array
     {
+        /** @var list<string> $barcodes */
+        $barcodes = $product->barcodes
+            ->pluck('barcode')
+            ->map(static fn (mixed $value): string => (string) $value)
+            ->values()
+            ->all();
+
         return [
             'code' => (string) $product->code,
             'status' => $product->statusEnum()->value,
@@ -235,7 +254,7 @@ final readonly class CreateProduct
             'tax_id' => (int) $product->tax_id,
             'sale_price_net' => (string) $product->sale_price_net,
             'purchase_price_net' => (string) $product->purchase_price_net,
-            'barcodes' => $product->barcodes->pluck('barcode')->map(static fn (mixed $value): string => (string) $value)->all(),
+            'barcodes' => $barcodes,
         ];
     }
 }
