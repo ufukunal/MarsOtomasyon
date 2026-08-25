@@ -217,10 +217,14 @@ final readonly class UpdateAccountRecords
         return is_int($id) ? $id : throw new LogicException('Account records update requires a persisted active company.');
     }
 
+    /** @return int<1, max> */
     private function actorId(): int
     {
         $id = Auth::id();
+        if (! is_int($id) || $id < 1) {
+            throw new LogicException('Account records update requires an authenticated actor.');
+        }
 
-        return is_int($id) ? $id : throw new LogicException('Account records update requires an authenticated actor.');
+        return $id;
     }
 }
