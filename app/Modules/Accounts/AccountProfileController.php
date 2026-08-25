@@ -46,12 +46,12 @@ final readonly class AccountProfileController
         /** @var list<array{id?: int, company_name: string, city: string, branch?: string|null, contact_name?: string|null, phone?: string|null, preference?: string|null, address?: string|null, note?: string|null, is_default?: bool|string|int}> $shippingPreferences */
         $shippingPreferences = array_values($validated['shipping_preferences'] ?? []);
 
-        $updated = $this->updateProfile->handle($account, new UpdateAccountProfileData(
-            contacts: $contacts,
-            authorizedContacts: $authorizedContacts,
-            addresses: $addresses,
-            shippingPreferences: $shippingPreferences,
-        ));
+        $updated = $this->updateProfile->handle($account, new UpdateAccountProfileData([
+            'contacts' => $contacts,
+            'authorized_contacts' => $authorizedContacts,
+            'addresses' => $addresses,
+            'shipping_preferences' => $shippingPreferences,
+        ]));
 
         return redirect()->route('customers.show', $updated->getKey())
             ->with('status', 'Cari iletişim ve sevk bilgileri güncellendi.');
