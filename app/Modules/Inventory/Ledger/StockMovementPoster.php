@@ -6,11 +6,13 @@ use App\Foundation\Clock\Clock;
 use App\Foundation\Idempotency\IdempotencyStatus;
 use App\Foundation\Idempotency\IdempotencyStore;
 use App\Foundation\Idempotency\RequestFingerprint;
+use App\Modules\Inventory\Enums\StockMovementType;
 use App\Modules\Inventory\Models\StockBalance;
 use App\Modules\Inventory\Models\StockMovement;
 use App\Modules\Inventory\Models\Warehouse;
 use App\Modules\Inventory\Models\WarehouseLocation;
 use App\Modules\Products\Models\Product;
+use DomainException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use LogicException;
@@ -31,8 +33,12 @@ final readonly class StockMovementPoster
         $companyId = $data->sourceEffect->companyId;
         $quantity = $this->positiveDecimal($data->quantity, 'quantity', 'Miktar sıfırdan büyük olmalıdır.');
         $note = $this->normalizeNote($data->note);
+        $original = $this->reversalTarget($data, $companyId, $quantity);
+
         $unitCost = null;
-        if ($data->movementType->isInbound()) {
+        if ($original instanceof StockMovement) {
+            $unitCost = (string) $original->unit_cost;
+        } elseif ($data->movementType->isInbound()) {
             if ($data->unitCost === null) {
                 throw ValidationException::withMessages([
                     'unit_cost' => 'Pozitif stok girişinde birim maliyet zorunludur.',
@@ -54,6 +60,7 @@ final readonly class StockMovementPoster
             'movement_type' => $data->movementType->value,
             'quantity' => $quantity,
             'unit_cost' => $unitCost,
+            'reversal_of_movement_id' => $data->reversalOfMovementId,
             'note' => $note,
         ]);
         $claim = $this->idempotency->claim(self::IDEMPOTENCY_SCOPE, $effectKey, $fingerprint);
@@ -111,7 +118,9 @@ final readonly class StockMovementPoster
 
         if ($data->movementType->isInbound()) {
             $effectiveUnitCost = (string) $unitCost;
-            $valueDelta = $this->multiply($quantity, $effectiveUnitCost);
+            $valueDelta = $original instanceof StockMovement
+                ? $this->absolute((string) $original->value_delta)
+                : $this->multiply($quantity, $effectiveUnitCost);
             $row = DB::selectOne(<<<'SQL'
                 UPDATE stock_balances
                 SET quantity = quantity + CAST(? AS numeric),
@@ -123,6 +132,51 @@ final readonly class StockMovementPoster
                           average_unit_cost::text AS average_unit_cost,
                           inventory_value::text AS inventory_value
                 SQL, [$quantity, $valueDelta, $valueDelta, $quantity, $now, $balance->getKey()]);
+        } elseif ($original instanceof StockMovement) {
+            $effectiveUnitCost = (string) $original->unit_cost;
+            $absoluteValue = $this->absolute((string) $original->value_delta);
+            $valueDelta = $this->negate($absoluteValue);
+            $row = DB::selectOne(<<<'SQL'
+                UPDATE stock_balances
+                SET quantity = quantity - CAST(? AS numeric),
+                    inventory_value = inventory_value - CAST(? AS numeric),
+                    average_unit_cost = CASE
+                        WHEN quantity - CAST(? AS numeric) = 0 THEN 0
+                        ELSE (inventory_value - CAST(? AS numeric)) / (quantity - CAST(? AS numeric))
+                    END,
+                    updated_at = ?
+                WHERE id = ?
+                  AND available_quantity >= CAST(? AS numeric)
+                  AND inventory_value >= CAST(? AS numeric)
+                  AND (
+                      (quantity - CAST(? AS numeric) = 0 AND inventory_value - CAST(? AS numeric) = 0)
+                      OR
+                      (quantity - CAST(? AS numeric) > 0 AND inventory_value - CAST(? AS numeric) > 0)
+                  )
+                RETURNING quantity::text AS quantity,
+                          average_unit_cost::text AS average_unit_cost,
+                          inventory_value::text AS inventory_value
+                SQL, [
+                    $quantity,
+                    $absoluteValue,
+                    $quantity,
+                    $absoluteValue,
+                    $quantity,
+                    $now,
+                    $balance->getKey(),
+                    $quantity,
+                    $absoluteValue,
+                    $quantity,
+                    $absoluteValue,
+                    $quantity,
+                    $absoluteValue,
+                ]);
+
+            if ($row === null) {
+                throw ValidationException::withMessages([
+                    'quantity' => 'Ters kayıt, orijinal miktar ve taşıma değerini mevcut kullanılabilir stoktan güvenle çıkaramıyor.',
+                ]);
+            }
         } else {
             $effectiveUnitCost = (string) $balance->average_unit_cost;
             $absoluteValue = $this->multiply($quantity, $effectiveUnitCost);
@@ -165,6 +219,7 @@ final readonly class StockMovementPoster
             'source_type' => $data->sourceEffect->sourceType,
             'source_id' => $data->sourceEffect->sourceId,
             'effect_type' => $data->sourceEffect->effectType,
+            'reversal_of_movement_id' => $data->reversalOfMovementId,
             'product_id' => $data->productId,
             'warehouse_id' => $data->warehouseId,
             'location_id' => $data->locationId,
@@ -183,6 +238,50 @@ final readonly class StockMovementPoster
         $this->idempotency->complete($claim);
 
         return new StockMovementPostingResult($movement, false);
+    }
+
+    private function reversalTarget(PostStockMovementData $data, int $companyId, string $quantity): ?StockMovement
+    {
+        if ($data->reversalOfMovementId === null) {
+            if ($data->movementType->isReversal()) {
+                throw new DomainException('Ters stok hareketi orijinal hareket lineage olmadan post edilemez.');
+            }
+
+            return null;
+        }
+
+        $original = StockMovement::query()
+            ->where('company_id', $companyId)
+            ->whereKey($data->reversalOfMovementId)
+            ->sharedLock()
+            ->first();
+
+        if (! $original instanceof StockMovement) {
+            throw new DomainException('Ters stok hareketi hedefi bulunamadı.');
+        }
+        if ($original->reversal_of_movement_id !== null || $original->movement_type->isReversal()) {
+            throw new DomainException('Bir ters stok hareketi tekrar terslenemez.');
+        }
+        if ((int) $original->product_id !== $data->productId
+            || (int) $original->warehouse_id !== $data->warehouseId
+            || (int) $original->location_id !== $data->locationId) {
+            throw new DomainException('Ters stok hareketi orijinal hareket ile aynı stok scope üzerinde olmalıdır.');
+        }
+
+        $expectedType = $original->movement_type->isInbound()
+            ? StockMovementType::ReversalOut
+            : StockMovementType::ReversalIn;
+        if ($data->movementType !== $expectedType) {
+            throw new DomainException('Ters stok hareketinin yönü orijinal hareketin tam tersi olmalıdır.');
+        }
+
+        if ($quantity !== $this->absolute((string) $original->quantity_delta)) {
+            throw ValidationException::withMessages([
+                'quantity' => 'Ters kayıt miktarı orijinal stok hareketi miktarı ile aynı olmalıdır.',
+            ]);
+        }
+
+        return $original;
     }
 
     private function positiveDecimal(string $value, string $field, string $message): string
@@ -217,6 +316,15 @@ final readonly class StockMovementPoster
 
         return $row === null
             ? throw new LogicException('Numeric multiplication did not return a value.')
+            : (string) $row->value;
+    }
+
+    private function absolute(string $value): string
+    {
+        $row = DB::selectOne('SELECT abs(CAST(? AS numeric))::text AS value', [$value]);
+
+        return $row === null
+            ? throw new LogicException('Numeric absolute did not return a value.')
             : (string) $row->value;
     }
 
