@@ -41,6 +41,8 @@ it('posts opening stock through the V16.3 stock workspace without browser errors
     ]);
     app(GrantPermissionToRole::class)->handle($role, PermissionKey::ProductView);
     app(GrantPermissionToRole::class)->handle($role, PermissionKey::ProductManage);
+    app(GrantPermissionToRole::class)->handle($role, PermissionKey::InventoryView);
+    app(GrantPermissionToRole::class)->handle($role, PermissionKey::InventoryManage);
     app(AssignRoleToMembership::class)->handle($membership, $role);
 
     $category = Category::query()->create([
