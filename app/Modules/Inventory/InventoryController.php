@@ -115,9 +115,7 @@ final readonly class InventoryController
     {
         $warehouses = Warehouse::query()
             ->where('company_id', $this->companyId())
-            ->with(['locations' => function (Builder $query): void {
-                $query->orderBy('code');
-            }])
+            ->with('locations')
             ->orderByRaw('CASE WHEN is_active THEN 0 ELSE 1 END')
             ->orderBy('name')
             ->get();
