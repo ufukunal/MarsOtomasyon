@@ -11,8 +11,8 @@ use App\Modules\Products\Models\Product;
 use App\Modules\Quotes\Pricing\DeterministicTaxCalculator;
 use App\Modules\Quotes\Pricing\TaxCalculationLineInput;
 use DateTimeImmutable;
-use InvalidArgumentException;
 use Illuminate\Validation\ValidationException;
+use InvalidArgumentException;
 
 final readonly class QuoteDraftResolver
 {
@@ -142,6 +142,7 @@ final readonly class QuoteDraftResolver
             || $date->format('Y-m-d') !== $value) {
             throw ValidationException::withMessages([$field => 'Tarih YYYY-AA-GG formatında geçerli bir tarih olmalıdır.']);
         }
+
         return $date;
     }
 
@@ -154,6 +155,7 @@ final readonly class QuoteDraftResolver
         if (mb_strlen($value) > 5000) {
             throw ValidationException::withMessages(['note' => 'Teklif notu 5000 karakteri aşamaz.']);
         }
+
         return $value;
     }
 

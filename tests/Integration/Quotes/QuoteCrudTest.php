@@ -169,5 +169,6 @@ function quote52Actor(Company $company, array $permissions, string $suffix): Use
         app(GrantPermissionToRole::class)->handle($role, $permission);
     }
     app(AssignRoleToMembership::class)->handle($membership, $role);
+
     return $user;
 }

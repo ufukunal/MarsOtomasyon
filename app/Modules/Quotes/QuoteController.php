@@ -146,6 +146,7 @@ final readonly class QuoteController
         if ($includeSeries) {
             $rules['series_code'] = ['nullable', 'string', 'max:64'];
         }
+
         return $rules;
     }
 
