@@ -18,34 +18,12 @@ return new class extends Migration
             $table->unique('reversal_of_movement_id', 'stock_movements_one_reversal_unique');
         });
 
-        DB::statement('ALTER TABLE stock_movements DROP CONSTRAINT stock_movements_type_check');
-        DB::statement('ALTER TABLE stock_movements DROP CONSTRAINT stock_movements_direction_check');
-        DB::statement(<<<'SQL'
-            ALTER TABLE stock_movements
-            ADD CONSTRAINT stock_movements_type_check
-            CHECK (movement_type IN ('opening_in', 'adjustment_in', 'adjustment_out', 'transfer_in', 'transfer_out', 'reversal_in', 'reversal_out'))
-            SQL);
-        DB::statement(<<<'SQL'
-            ALTER TABLE stock_movements
-            ADD CONSTRAINT stock_movements_direction_check
-            CHECK (
-                (movement_type IN ('opening_in', 'adjustment_in', 'transfer_in', 'reversal_in') AND quantity_delta > 0 AND value_delta > 0 AND unit_cost > 0)
-                OR
-                (movement_type IN ('adjustment_out', 'transfer_out', 'reversal_out') AND quantity_delta < 0 AND value_delta < 0 AND unit_cost > 0)
-            )
-            SQL);
-
         DB::unprepared(<<<'SQL'
             CREATE OR REPLACE FUNCTION mars_enforce_stock_movement_reversal()
             RETURNS trigger AS $$
             DECLARE
                 original_record stock_movements%ROWTYPE;
             BEGIN
-                IF NEW.movement_type IN ('reversal_in', 'reversal_out') AND NEW.reversal_of_movement_id IS NULL THEN
-                    RAISE EXCEPTION 'stock reversal requires original movement lineage'
-                        USING ERRCODE = '23514';
-                END IF;
-
                 IF NEW.reversal_of_movement_id IS NULL THEN
                     RETURN NEW;
                 END IF;
@@ -72,8 +50,8 @@ return new class extends Migration
                    OR NEW.quantity_delta <> -original_record.quantity_delta
                    OR NEW.value_delta <> -original_record.value_delta
                    OR NEW.unit_cost <> original_record.unit_cost
-                   OR (original_record.quantity_delta > 0 AND NEW.movement_type <> 'reversal_out')
-                   OR (original_record.quantity_delta < 0 AND NEW.movement_type <> 'reversal_in') THEN
+                   OR (original_record.quantity_delta > 0 AND NEW.movement_type <> 'adjustment_out')
+                   OR (original_record.quantity_delta < 0 AND NEW.movement_type <> 'adjustment_in') THEN
                     RAISE EXCEPTION 'stock reversal must exactly negate original quantity and carrying value in the same stock scope'
                         USING ERRCODE = '23514';
                 END IF;
@@ -92,23 +70,6 @@ return new class extends Migration
     {
         DB::statement('DROP TRIGGER IF EXISTS stock_movements_reversal_guard ON stock_movements');
         DB::statement('DROP FUNCTION IF EXISTS mars_enforce_stock_movement_reversal()');
-
-        DB::statement('ALTER TABLE stock_movements DROP CONSTRAINT stock_movements_type_check');
-        DB::statement('ALTER TABLE stock_movements DROP CONSTRAINT stock_movements_direction_check');
-        DB::statement(<<<'SQL'
-            ALTER TABLE stock_movements
-            ADD CONSTRAINT stock_movements_type_check
-            CHECK (movement_type IN ('opening_in', 'adjustment_in', 'adjustment_out', 'transfer_in', 'transfer_out'))
-            SQL);
-        DB::statement(<<<'SQL'
-            ALTER TABLE stock_movements
-            ADD CONSTRAINT stock_movements_direction_check
-            CHECK (
-                (movement_type IN ('opening_in', 'adjustment_in', 'transfer_in') AND quantity_delta > 0 AND value_delta > 0 AND unit_cost > 0)
-                OR
-                (movement_type IN ('adjustment_out', 'transfer_out') AND quantity_delta < 0 AND value_delta <= 0 AND unit_cost >= 0)
-            )
-            SQL);
 
         Schema::table('stock_movements', function (Blueprint $table): void {
             $table->dropUnique('stock_movements_one_reversal_unique');
