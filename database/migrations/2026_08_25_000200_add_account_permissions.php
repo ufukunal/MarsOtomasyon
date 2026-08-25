@@ -30,6 +30,20 @@ if (! class_exists('AddAccountPermissions20260825000200', false)) {
 
         public function down(): void
         {
+            $permissionIds = array_map(
+                'intval',
+                DB::table('permissions')
+                    ->whereIn('key', ['accounts.view', 'accounts.manage'])
+                    ->pluck('id')
+                    ->all(),
+            );
+
+            if ($permissionIds !== []) {
+                DB::table('role_permissions')
+                    ->whereIn('permission_id', $permissionIds)
+                    ->delete();
+            }
+
             DB::table('permissions')
                 ->whereIn('key', ['accounts.view', 'accounts.manage'])
                 ->delete();
