@@ -35,7 +35,7 @@
         </div>
     </form>
 
-    <section class="detail-card">
+    <section class="detail-card statement-table-card">
         <table class="data-table">
             <thead>
             <tr>
@@ -43,23 +43,30 @@
                 <th>Resmi Ünvan</th>
                 <th>Tür</th>
                 <th>Para Birimi</th>
+                <th class="amount-cell">Bakiye</th>
                 <th>Durum</th>
                 <th>İşlem</th>
             </tr>
             </thead>
             <tbody>
             @forelse ($accounts as $account)
+                @php($accountBalance = $balances[$account->getKey()])
                 <tr>
                     <td>{{ $account->code }}</td>
                     <td>{{ $account->legal_name }}</td>
                     <td>{{ $account->typeEnum()->label() }}</td>
                     <td>{{ $account->book_currency_code }}</td>
+                    <td class="amount-cell">
+                        <span class="balance-inline {{ $accountBalance->state()->cssClass() }}">
+                            {{ $accountBalance->formatted() }} · {{ $accountBalance->state()->label() }}
+                        </span>
+                    </td>
                     <td>{{ $account->statusEnum()->label() }}</td>
                     <td><a href="{{ route('customers.show', $account->getKey()) }}" data-workspace-link>Detay</a></td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="6">Filtreye uygun cari kaydı bulunamadı.</td>
+                    <td colspan="7">Filtreye uygun cari kaydı bulunamadı.</td>
                 </tr>
             @endforelse
             </tbody>
