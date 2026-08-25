@@ -74,7 +74,13 @@ final readonly class QuoteController
 
     public function show(int $quote): View
     {
-        $quoteModel = $this->quote($quote)->load(['account', 'lines.product', 'lines.tax', 'lines.taxZeroReason']);
+        $quoteModel = $this->quote($quote)->load([
+            'account',
+            'lines.product',
+            'lines.tax',
+            'lines.taxZeroReason',
+            'revisions',
+        ]);
 
         return view('quotes.show', ['quote' => $quoteModel]);
     }
