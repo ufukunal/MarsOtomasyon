@@ -3,10 +3,10 @@
 namespace App\Modules\Inventory\Reservations;
 
 use App\Foundation\Clock\Clock;
-use App\Foundation\Identity\SourceEffectIdentity;
 use App\Foundation\Idempotency\IdempotencyStatus;
 use App\Foundation\Idempotency\IdempotencyStore;
 use App\Foundation\Idempotency\RequestFingerprint;
+use App\Foundation\Identity\SourceEffectIdentity;
 use App\Modules\Inventory\Enums\StockReservationStatus;
 use App\Modules\Inventory\Models\StockReservation;
 use Illuminate\Database\QueryException;
@@ -33,8 +33,7 @@ final readonly class StockReservationService
         int $warehouseId,
         int $locationId,
         string $quantity,
-    ): StockReservationActionResult
-    {
+    ): StockReservationActionResult {
         $this->assertInsideTransaction();
         $quantity = $this->positiveDecimal($quantity);
 
@@ -119,8 +118,7 @@ final readonly class StockReservationService
         int $reservationId,
         StockReservationStatus $targetStatus,
         string $scope,
-    ): StockReservationActionResult
-    {
+    ): StockReservationActionResult {
         $this->assertInsideTransaction();
 
         $fingerprint = RequestFingerprint::fromPayload([
@@ -177,8 +175,7 @@ final readonly class StockReservationService
         StockReservation $reservation,
         StockReservationStatus $targetStatus,
         SourceEffectIdentity $sourceEffect,
-    ): bool
-    {
+    ): bool {
         if ($reservation->statusEnum() !== $targetStatus) {
             return false;
         }
