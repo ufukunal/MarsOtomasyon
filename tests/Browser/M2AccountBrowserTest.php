@@ -14,7 +14,7 @@ use Illuminate\Foundation\Testing\DatabaseMigrations;
 
 uses(DatabaseMigrations::class);
 
-it('drives the V16.3 account list create readonly detail and profile editor flow without browser errors', function (): void {
+it('drives the V16.3 account list create readonly detail statement and profile editor flow without browser errors', function (): void {
     $company = Company::query()->create([
         'code' => 'BROWSER-M2',
         'name' => 'Browser M2 Company',
@@ -68,12 +68,25 @@ it('drives the V16.3 account list create readonly detail and profile editor flow
         ->click('Kaydet')
         ->assertSee('Browser Cari A.Ş.')
         ->assertSee('Firma / Ticari')
+        ->assertSee('0,00 TRY')
+        ->assertSee('Bakiye Yok')
+        ->assertSee('Ekstre')
         ->assertNoJavaScriptErrors()
         ->assertNoConsoleLogs();
 
     $account = Account::query()->where('company_id', $company->getKey())->firstOrFail();
     $page->assertPathIs('/customers/'.$account->getKey())
         ->assertCount('input[name="legal_name"]', 0)
+        ->click('Ekstre')
+        ->assertPathIs('/customers/'.$account->getKey().'/statement')
+        ->assertSee('Cari Ekstresi')
+        ->assertSee('0,00 TRY')
+        ->assertSee('Bakiye Yok')
+        ->assertSee('Seçilen tarih aralığında cari hareketi yok.')
+        ->assertNoJavaScriptErrors()
+        ->assertNoConsoleLogs()
+        ->click('Cari Detaya Dön')
+        ->assertPathIs('/customers/'.$account->getKey())
         ->click('İletişim / Adres')
         ->assertPathIs('/customers/'.$account->getKey().'/profile/edit')
         ->assertSee('Firma İletişim Kanalları')
