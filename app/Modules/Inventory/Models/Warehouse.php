@@ -34,6 +34,6 @@ final class Warehouse extends Model
     /** @return HasMany<WarehouseLocation, $this> */
     public function locations(): HasMany
     {
-        return $this->hasMany(WarehouseLocation::class);
+        return $this->hasMany(WarehouseLocation::class)->orderBy('code');
     }
 }
