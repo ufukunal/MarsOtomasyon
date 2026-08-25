@@ -95,6 +95,10 @@ final readonly class UpdateAccountRecords
     /** @param list<array<string, mixed>> $rows */
     private function syncNotes(int $companyId, int $accountId, int $actorId, array $rows): void
     {
+        if ($actorId < 1) {
+            throw new LogicException('Account note actor must be a persisted user.');
+        }
+
         $existing = [];
         foreach (AccountNote::query()->where('company_id', $companyId)->where('account_id', $accountId)->get() as $note) {
             $existing[(int) $note->getKey()] = $note;
