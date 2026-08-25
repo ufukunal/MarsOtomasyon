@@ -46,6 +46,7 @@ enum AuditAction: string
     case QuoteApproved = 'quotes.quote.approved';
     case QuoteRejected = 'quotes.quote.rejected';
     case QuoteConverted = 'quotes.quote.converted';
+    case QuoteFinalizedPdfGenerated = 'quotes.finalized_pdf.generated';
     case SalesOrderCreated = 'sales_orders.order.created';
 
     public function label(): string
@@ -93,6 +94,7 @@ enum AuditAction: string
             self::QuoteApproved => 'Teklif revizyonu onaylandı',
             self::QuoteRejected => 'Teklif revizyonu reddedildi',
             self::QuoteConverted => 'Teklif satış siparişine dönüştürüldü',
+            self::QuoteFinalizedPdfGenerated => 'Finalized teklif PDF oluşturuldu',
             self::SalesOrderCreated => 'Satış siparişi oluşturuldu',
         };
     }
