@@ -35,7 +35,7 @@ beforeEach(function (): void {
 });
 
 it('creates company scoped warehouses and locations with audit evidence', function (): void {
-    [$company, $manager] = m41ActorContext('M41-MASTER', [PermissionKey::ProductView, PermissionKey::ProductManage]);
+    [$company, $manager] = m41ActorContext('M41-MASTER', [PermissionKey::InventoryView, PermissionKey::InventoryManage]);
 
     $this->actingAs($manager)
         ->withSession(['active_company_id' => $company->getKey()])
@@ -56,8 +56,8 @@ it('creates company scoped warehouses and locations with audit evidence', functi
         ->and(AuditEntry::query()->where('action', AuditAction::WarehouseLocationCreated->value)->count())->toBe(1);
 });
 
-it('keeps stock viewing separate from management', function (): void {
-    [$company, $viewer] = m41ActorContext('M41-RBAC', [PermissionKey::ProductView]);
+it('keeps stock viewing separate from stock management', function (): void {
+    [$company, $viewer] = m41ActorContext('M41-RBAC', [PermissionKey::InventoryView]);
 
     $this->actingAs($viewer)
         ->withSession(['active_company_id' => $company->getKey()])
@@ -73,6 +73,20 @@ it('keeps stock viewing separate from management', function (): void {
     $this->actingAs($viewer)
         ->withSession(['active_company_id' => $company->getKey()])
         ->post('/inventory/warehouses', ['code' => 'BLOCKED', 'name' => 'Blocked'])
+        ->assertForbidden();
+});
+
+it('does not treat product catalog permission as inventory permission', function (): void {
+    [$company, $productViewer] = m41ActorContext('M41-PRODUCT-ONLY', [PermissionKey::ProductView]);
+
+    $this->actingAs($productViewer)
+        ->withSession(['active_company_id' => $company->getKey()])
+        ->get('/inventory')
+        ->assertOk();
+
+    $this->actingAs($productViewer)
+        ->withSession(['active_company_id' => $company->getKey()])
+        ->get('/inventory/stock')
         ->assertForbidden();
 });
 
@@ -247,7 +261,10 @@ it('prevents silent update and delete of stock ledger rows at PostgreSQL level',
     expect(StockMovement::query()->findOrFail($movement->getKey())->note)->toBeNull();
 });
 
-/** @return array{Company, User} */
+/**
+ * @param  list<PermissionKey>  $permissions
+ * @return array{Company, User}
+ */
 function m41ActorContext(string $code, array $permissions): array
 {
     $company = Company::query()->create(['code' => $code, 'name' => 'Company '.$code]);
@@ -284,7 +301,12 @@ function m41ActorContext(string $code, array $permissions): array
 /** @return array{Company, User, Product, Warehouse, WarehouseLocation} */
 function m41StockContext(string $code): array
 {
-    [$company, $user] = m41ActorContext($code, [PermissionKey::ProductView, PermissionKey::ProductManage]);
+    [$company, $user] = m41ActorContext($code, [
+        PermissionKey::ProductView,
+        PermissionKey::ProductManage,
+        PermissionKey::InventoryView,
+        PermissionKey::InventoryManage,
+    ]);
     $category = Category::query()->create([
         'company_id' => $company->getKey(),
         'code' => 'LIGHT',
