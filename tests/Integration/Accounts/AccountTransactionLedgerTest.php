@@ -188,6 +188,67 @@ it('enforces company currency period source and immutability rules at the Postgr
     )))->toThrow(ModelNotFoundException::class);
 });
 
+it('serializes book currency changes against uncommitted posting and rolls back the complete source effect', function (): void {
+    $company = m26Company('M26-E');
+    $account = m26Account($company, 'M26-CONCURRENT');
+    m26Period($company, '2026-08-01', '2026-08-31');
+    $identity = m26Identity($company, 'rollback-concurrency', 'account.debit');
+
+    config(['database.connections.pgsql_concurrent' => config('database.connections.pgsql')]);
+    DB::purge('pgsql_concurrent');
+    $concurrent = DB::connection('pgsql_concurrent');
+    $concurrent->statement("SET lock_timeout TO '150ms'");
+
+    DB::beginTransaction();
+
+    try {
+        app(AccountTransactionPoster::class)->post(new PostAccountTransactionData(
+            accountId: (int) $account->getKey(),
+            postingDate: '2026-08-25',
+            signedAmount: '42',
+            sourceEffect: $identity,
+            memo: 'Rollback testi',
+        ));
+
+        expect(AccountTransaction::query()->count())->toBe(1);
+
+        expect(fn () => $concurrent->table('accounts')
+            ->where('id', $account->getKey())
+            ->update(['book_currency_code' => 'USD']))
+            ->toThrow(QueryException::class);
+    } finally {
+        if (DB::transactionLevel() > 0) {
+            DB::rollBack();
+        }
+    }
+
+    expect(AccountTransaction::query()->count())->toBe(0);
+
+    expect($concurrent->table('accounts')
+        ->where('id', $account->getKey())
+        ->update(['book_currency_code' => 'USD']))
+        ->toBe(1);
+    expect($concurrent->table('accounts')
+        ->where('id', $account->getKey())
+        ->update(['book_currency_code' => 'TRY']))
+        ->toBe(1);
+
+    $posted = DB::transaction(fn (): AccountTransaction => app(AccountTransactionPoster::class)->post(
+        new PostAccountTransactionData(
+            accountId: (int) $account->getKey(),
+            postingDate: '2026-08-25',
+            signedAmount: '42',
+            sourceEffect: $identity,
+            memo: 'Rollback testi',
+        ),
+    ));
+
+    expect($posted->signed_amount)->toBe('42.000000')
+        ->and(AccountTransaction::query()->count())->toBe(1);
+
+    DB::disconnect('pgsql_concurrent');
+});
+
 function m26Company(string $code): Company
 {
     return Company::query()->create(['code' => $code, 'name' => 'Company '.$code]);
