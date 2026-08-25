@@ -65,8 +65,38 @@ return new class extends Migration
         DB::statement('ALTER TABLE stock_movements DROP CONSTRAINT IF EXISTS stock_movements_source_id_not_blank_check');
         DB::statement('ALTER TABLE stock_movements DROP CONSTRAINT stock_movements_type_check');
         DB::statement('ALTER TABLE stock_movements DROP CONSTRAINT stock_movements_direction_check');
-        DB::statement("ALTER TABLE stock_movements ADD CONSTRAINT stock_movements_type_check CHECK (movement_type IN ('opening_in', 'adjustment_in', 'adjustment_out'))");
-        DB::statement("ALTER TABLE stock_movements ADD CONSTRAINT stock_movements_direction_check CHECK ((movement_type IN ('opening_in', 'adjustment_in') AND quantity_delta > 0 AND value_delta > 0 AND unit_cost > 0) OR (movement_type = 'adjustment_out' AND quantity_delta < 0 AND value_delta <= 0 AND unit_cost >= 0))");
+        DB::unprepared(<<<'SQL'
+            DO $$
+            BEGIN
+                IF EXISTS (
+                    SELECT 1
+                    FROM stock_movements
+                    WHERE movement_type IN ('transfer_in', 'transfer_out')
+                ) THEN
+                    ALTER TABLE stock_movements
+                        ADD CONSTRAINT stock_movements_type_check
+                        CHECK (movement_type IN ('opening_in', 'adjustment_in', 'adjustment_out', 'transfer_in', 'transfer_out'));
+                    ALTER TABLE stock_movements
+                        ADD CONSTRAINT stock_movements_direction_check
+                        CHECK (
+                            (movement_type IN ('opening_in', 'adjustment_in', 'transfer_in') AND quantity_delta > 0 AND value_delta > 0 AND unit_cost > 0)
+                            OR
+                            (movement_type IN ('adjustment_out', 'transfer_out') AND quantity_delta < 0 AND value_delta <= 0 AND unit_cost >= 0)
+                        );
+                ELSE
+                    ALTER TABLE stock_movements
+                        ADD CONSTRAINT stock_movements_type_check
+                        CHECK (movement_type IN ('opening_in', 'adjustment_in', 'adjustment_out'));
+                    ALTER TABLE stock_movements
+                        ADD CONSTRAINT stock_movements_direction_check
+                        CHECK (
+                            (movement_type IN ('opening_in', 'adjustment_in') AND quantity_delta > 0 AND value_delta > 0 AND unit_cost > 0)
+                            OR
+                            (movement_type = 'adjustment_out' AND quantity_delta < 0 AND value_delta <= 0 AND unit_cost >= 0)
+                        );
+                END IF;
+            END $$;
+            SQL);
 
         Schema::table('stock_movements', function (Blueprint $table): void {
             $table->dropColumn(['source_type', 'source_id', 'effect_type']);
