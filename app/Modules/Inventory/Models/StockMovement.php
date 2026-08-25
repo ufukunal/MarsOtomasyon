@@ -3,7 +3,7 @@
 namespace App\Modules\Inventory\Models;
 
 use App\Modules\Core\Models\Company;
-use App\Modules\Inventory\Enums\ManualStockMovementKind;
+use App\Modules\Inventory\Enums\StockMovementType;
 use App\Modules\Products\Models\Product;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -16,6 +16,9 @@ final class StockMovement extends Model
         'company_id',
         'operation_key',
         'request_fingerprint',
+        'source_type',
+        'source_id',
+        'effect_type',
         'product_id',
         'warehouse_id',
         'location_id',
@@ -34,7 +37,7 @@ final class StockMovement extends Model
     protected function casts(): array
     {
         return [
-            'movement_type' => ManualStockMovementKind::class,
+            'movement_type' => StockMovementType::class,
             'quantity_delta' => 'decimal:6',
             'unit_cost' => 'decimal:6',
             'value_delta' => 'decimal:6',

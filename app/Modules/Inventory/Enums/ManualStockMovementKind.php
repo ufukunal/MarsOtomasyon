@@ -10,15 +10,16 @@ enum ManualStockMovementKind: string
 
     public function label(): string
     {
-        return match ($this) {
-            self::OpeningIn => 'Açılış Girişi',
-            self::AdjustmentIn => 'Düzeltme Girişi',
-            self::AdjustmentOut => 'Düzeltme Çıkışı',
-        };
+        return $this->ledgerType()->label();
     }
 
     public function isInbound(): bool
     {
-        return $this !== self::AdjustmentOut;
+        return $this->ledgerType()->isInbound();
+    }
+
+    public function ledgerType(): StockMovementType
+    {
+        return StockMovementType::from($this->value);
     }
 }
