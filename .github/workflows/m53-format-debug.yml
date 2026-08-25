@@ -1,0 +1,25 @@
+name: M53 Format Debug
+
+on:
+  push:
+    branches:
+      - m5-3-quote-revisions
+
+permissions:
+  contents: read
+
+jobs:
+  pint-diff:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          coverage: none
+          tools: composer:v2
+      - run: composer install --no-interaction --prefer-dist --no-progress
+      - name: Apply Pint and print exact diff
+        run: |
+          vendor/bin/pint database/migrations/2026_08_26_006600_create_quote_revisions.php
+          git diff -- database/migrations/2026_08_26_006600_create_quote_revisions.php
