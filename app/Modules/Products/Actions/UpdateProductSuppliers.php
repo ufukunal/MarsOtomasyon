@@ -45,7 +45,7 @@ final readonly class UpdateProductSuppliers
                 ->all();
             sort($existing);
 
-            $this->assertSupplierAccounts($companyId, $desired, $existing);
+            $this->assertSupplierAccounts($companyId, $desired, ...$existing);
 
             if ($desired !== $existing) {
                 $relations = ProductSupplier::query()
@@ -78,11 +78,8 @@ final readonly class UpdateProductSuppliers
         });
     }
 
-    /**
-     * @param list<int> $desired
-     * @param list<int> $existing
-     */
-    private function assertSupplierAccounts(int $companyId, array $desired, array $existing): void
+    /** @param list<int> $desired */
+    private function assertSupplierAccounts(int $companyId, array $desired, int ...$existing): void
     {
         if ($desired === []) {
             return;
@@ -102,10 +99,10 @@ final readonly class UpdateProductSuppliers
 
         foreach ($accounts as $account) {
             $accountId = $account->getKey();
-            if (is_int($accountId) === false) {
+            if (! is_int($accountId)) {
                 throw new LogicException('Supplier account persistence did not return an integer key.');
             }
-            if ($account->statusEnum() === AccountStatus::Inactive && in_array($accountId, $existing, true) === false) {
+            if ($account->statusEnum() === AccountStatus::Inactive && ! in_array($accountId, $existing, true)) {
                 throw ValidationException::withMessages([
                     'supplier_ids' => 'Pasif bir cari yeni tedarikçi ilişkisi olarak eklenemez.',
                 ]);
