@@ -9,9 +9,13 @@
             <h1>Ürünler</h1>
             <p>Aktif firmaya ait SKU, barkod, birim, KDV ve net fiyat kayıtları.</p>
         </div>
-        @can('products.manage')
-            <a class="button-primary" href="{{ route('inventory.products.create') }}" data-workspace-link>Yeni Ürün</a>
-        @endcan
+        <div class="page-actions">
+            <a href="{{ route('inventory.categories.index') }}" data-workspace-link>Kategoriler</a>
+            <a href="{{ route('inventory.units.index') }}" data-workspace-link>Birimler</a>
+            @can('products.manage')
+                <a class="button-primary" href="{{ route('inventory.products.create') }}" data-workspace-link>Yeni Ürün</a>
+            @endcan
+        </div>
     </section>
 
     <form method="get" action="{{ route('inventory.index') }}" class="detail-card">

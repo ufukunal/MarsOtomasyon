@@ -1,6 +1,8 @@
 <?php
 
+use App\Modules\Products\CategoryController;
 use App\Modules\Products\ProductController;
+use App\Modules\Products\UnitController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('inventory')
@@ -10,6 +12,43 @@ Route::prefix('inventory')
         Route::get('/', [ProductController::class, 'index'])
             ->middleware('can:products.view')
             ->name('index');
+
+        Route::get('/categories', [CategoryController::class, 'index'])
+            ->middleware('can:products.view')
+            ->name('categories.index');
+        Route::get('/categories/create', [CategoryController::class, 'create'])
+            ->middleware('can:products.manage')
+            ->name('categories.create');
+        Route::post('/categories', [CategoryController::class, 'store'])
+            ->middleware('can:products.manage')
+            ->name('categories.store');
+        Route::get('/categories/{category}/edit', [CategoryController::class, 'edit'])
+            ->whereNumber('category')
+            ->middleware('can:products.manage')
+            ->name('categories.edit');
+        Route::put('/categories/{category}', [CategoryController::class, 'update'])
+            ->whereNumber('category')
+            ->middleware('can:products.manage')
+            ->name('categories.update');
+
+        Route::get('/units', [UnitController::class, 'index'])
+            ->middleware('can:products.view')
+            ->name('units.index');
+        Route::get('/units/create', [UnitController::class, 'create'])
+            ->middleware('can:products.manage')
+            ->name('units.create');
+        Route::post('/units', [UnitController::class, 'store'])
+            ->middleware('can:products.manage')
+            ->name('units.store');
+        Route::get('/units/{unit}/edit', [UnitController::class, 'edit'])
+            ->whereNumber('unit')
+            ->middleware('can:products.manage')
+            ->name('units.edit');
+        Route::put('/units/{unit}', [UnitController::class, 'update'])
+            ->whereNumber('unit')
+            ->middleware('can:products.manage')
+            ->name('units.update');
+
         Route::get('/products/create', [ProductController::class, 'create'])
             ->middleware('can:products.manage')
             ->name('products.create');
