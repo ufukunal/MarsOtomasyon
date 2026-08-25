@@ -15,5 +15,6 @@ final readonly class UpdateAccountProfileData
         public array $authorizedContacts,
         public array $addresses,
         public array $shippingPreferences,
-    ) {}
+    ) {
+    }
 }
