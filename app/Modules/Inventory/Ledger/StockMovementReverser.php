@@ -31,7 +31,7 @@ final readonly class StockMovementReverser
         if (! $original instanceof StockMovement) {
             throw new DomainException('Ters stok hareketi hedefi bulunamadı.');
         }
-        if ($original->reversal_of_movement_id !== null || $original->movement_type->isReversal()) {
+        if ($original->reversal_of_movement_id !== null) {
             throw new DomainException('Bir ters stok hareketi tekrar terslenemez.');
         }
 
@@ -51,8 +51,8 @@ final readonly class StockMovementReverser
             warehouseId: (int) $original->warehouse_id,
             locationId: (int) $original->location_id,
             movementType: $original->movement_type->isInbound()
-                ? StockMovementType::ReversalOut
-                : StockMovementType::ReversalIn,
+                ? StockMovementType::AdjustmentOut
+                : StockMovementType::AdjustmentIn,
             quantity: ltrim((string) $original->quantity_delta, '-'),
             unitCost: (string) $original->unit_cost,
             note: $note,
