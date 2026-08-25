@@ -39,6 +39,9 @@ enum AuditAction: string
     case WarehouseCreated = 'inventory.warehouse.created';
     case WarehouseLocationCreated = 'inventory.warehouse_location.created';
     case StockMovementPosted = 'inventory.stock_movement.posted';
+    case QuoteCreated = 'quotes.quote.created';
+    case QuoteUpdated = 'quotes.quote.updated';
+    case QuoteCancelled = 'quotes.quote.cancelled';
 
     public function label(): string
     {
@@ -78,6 +81,9 @@ enum AuditAction: string
             self::WarehouseCreated => 'Depo oluşturuldu',
             self::WarehouseLocationCreated => 'Depo lokasyonu oluşturuldu',
             self::StockMovementPosted => 'Stok hareketi işlendi',
+            self::QuoteCreated => 'Teklif oluşturuldu',
+            self::QuoteUpdated => 'Teklif güncellendi',
+            self::QuoteCancelled => 'Teklif iptal edildi',
         };
     }
 }

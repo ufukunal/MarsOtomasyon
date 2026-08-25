@@ -21,6 +21,7 @@ enum AuditTargetType: string
     case Warehouse = 'warehouse';
     case WarehouseLocation = 'warehouse_location';
     case StockMovement = 'stock_movement';
+    case Quote = 'quote';
 
     public function label(): string
     {
@@ -42,6 +43,7 @@ enum AuditTargetType: string
             self::Warehouse => 'Depo',
             self::WarehouseLocation => 'Depo Lokasyonu',
             self::StockMovement => 'Stok Hareketi',
+            self::Quote => 'Teklif',
         };
     }
 }
