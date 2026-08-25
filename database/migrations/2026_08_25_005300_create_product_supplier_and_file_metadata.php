@@ -9,10 +9,6 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('accounts', function (Blueprint $table): void {
-            $table->unique(['company_id', 'id'], 'accounts_company_id_id_unique');
-        });
-
         Schema::table('attachments', function (Blueprint $table): void {
             $table->unique(['company_id', 'id'], 'attachments_company_id_id_unique');
         });
@@ -70,9 +66,6 @@ return new class extends Migration
 
         Schema::table('attachments', function (Blueprint $table): void {
             $table->dropUnique('attachments_company_id_id_unique');
-        });
-        Schema::table('accounts', function (Blueprint $table): void {
-            $table->dropUnique('accounts_company_id_id_unique');
         });
     }
 };
