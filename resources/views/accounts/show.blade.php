@@ -13,6 +13,7 @@
         </div>
         <div class="page-actions">
             <a href="{{ route('customers.index') }}" data-workspace-link>Listeye Dön</a>
+            <a href="{{ route('customers.statement.index', $account->getKey()) }}" data-workspace-link>Ekstre</a>
             @can('accounts.manage')
                 <a href="{{ route('customers.profile.edit', $account->getKey()) }}" data-workspace-link>İletişim / Adres</a>
                 <a href="{{ route('customers.records.edit', $account->getKey()) }}" data-workspace-link>Banka / Not / Dosya</a>
@@ -31,6 +32,14 @@
             <div><dt>Cari Türü</dt><dd>{{ $account->typeEnum()->label() }}</dd></div>
             <div><dt>Durum</dt><dd>{{ $account->statusEnum()->label() }}</dd></div>
             <div><dt>Para Birimi</dt><dd>{{ $account->book_currency_code }}</dd></div>
+            <div>
+                <dt>Bakiye</dt>
+                <dd>
+                    <span class="balance-inline {{ $balance->state()->cssClass() }}">
+                        {{ $balance->formatted() }} · {{ $balance->state()->label() }}
+                    </span>
+                </dd>
+            </div>
             <div><dt>Vade</dt><dd>{{ $account->due_days }} gün</dd></div>
             <div><dt>Cari İskontosu</dt><dd>%{{ $account->discount_rate }}</dd></div>
             <div><dt>Risk Limiti</dt><dd>{{ $account->risk_limit }} {{ $account->book_currency_code }}</dd></div>
