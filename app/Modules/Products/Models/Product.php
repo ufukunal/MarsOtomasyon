@@ -80,4 +80,16 @@ final class Product extends Model
     {
         return $this->hasMany(Barcode::class);
     }
+
+    /** @return HasMany<ProductSupplier, $this> */
+    public function supplierRelations(): HasMany
+    {
+        return $this->hasMany(ProductSupplier::class);
+    }
+
+    /** @return HasMany<ProductFile, $this> */
+    public function productFiles(): HasMany
+    {
+        return $this->hasMany(ProductFile::class);
+    }
 }
