@@ -277,8 +277,8 @@ final readonly class StockCountService
     }
 
     /**
-     * @param Collection<int, StockCountLine> $lines
-     * @param Collection<int, StockBalance> $balances
+     * @param  Collection<int, StockCountLine>  $lines
+     * @param  Collection<int, StockBalance>  $balances
      */
     private function assertFreshSnapshot(Collection $lines, Collection $balances): void
     {
