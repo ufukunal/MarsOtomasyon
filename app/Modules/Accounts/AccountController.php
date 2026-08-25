@@ -104,7 +104,7 @@ final readonly class AccountController
         $accountModel = $this->account($account);
         $accountModel->load([
             'contacts', 'authorizedContacts', 'addresses', 'shippingPreferences',
-            'bankAccounts', 'notes.createdBy', 'notes.updatedBy',
+            'bankAccounts', 'notes.createdBy', 'notes.updatedBy', 'b2bPolicy',
         ]);
 
         return view('accounts.show', [
