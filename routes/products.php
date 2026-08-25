@@ -16,27 +16,27 @@ Route::prefix('inventory')
             ->name('index');
 
         Route::get('/stock', [InventoryController::class, 'stock'])
-            ->middleware('can:products.view')
+            ->middleware('can:inventory.view')
             ->name('stock.index');
         Route::get('/stock/movements', [InventoryController::class, 'movements'])
-            ->middleware('can:products.view')
+            ->middleware('can:inventory.view')
             ->name('stock.movements');
         Route::get('/stock/movements/create', [InventoryController::class, 'createMovement'])
-            ->middleware('can:products.manage')
+            ->middleware('can:inventory.manage')
             ->name('stock.movements.create');
         Route::post('/stock/movements', [InventoryController::class, 'storeMovement'])
-            ->middleware('can:products.manage')
+            ->middleware('can:inventory.manage')
             ->name('stock.movements.store');
 
         Route::get('/warehouses', [InventoryController::class, 'warehouses'])
-            ->middleware('can:products.view')
+            ->middleware('can:inventory.view')
             ->name('warehouses.index');
         Route::post('/warehouses', [InventoryController::class, 'storeWarehouse'])
-            ->middleware('can:products.manage')
+            ->middleware('can:inventory.manage')
             ->name('warehouses.store');
         Route::post('/warehouses/{warehouse}/locations', [InventoryController::class, 'storeLocation'])
             ->whereNumber('warehouse')
-            ->middleware('can:products.manage')
+            ->middleware('can:inventory.manage')
             ->name('warehouses.locations.store');
 
         Route::get('/categories', [CategoryController::class, 'index'])
