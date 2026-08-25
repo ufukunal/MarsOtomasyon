@@ -16,6 +16,8 @@
         <nav class="page-actions" aria-label="Cari düzenleme bölümleri">
             <strong>Firma / Ticari</strong>
             <a href="{{ route('customers.profile.edit', $account->getKey()) }}" data-workspace-link>İletişim / Yetkililer · Sevk / Adres</a>
+            <a href="{{ route('customers.records.edit', $account->getKey()) }}" data-workspace-link>Banka / Not / Dosya</a>
+            <a href="{{ route('customers.b2b.edit', $account->getKey()) }}" data-workspace-link>B2B / Bayi Erişimi</a>
         </nav>
     @endif
 
