@@ -38,8 +38,8 @@ final class SensitiveDataRedactor
 
         foreach ([
             'password', 'passwd', 'secret', 'token', 'authorization', 'apikey', 'privatekey',
-            'credential', 'cookie', 'sessionid', 'tckn', 'vkn', 'iban', 'email', 'phone',
-            'telephone', 'mobile', 'address', 'birthdate',
+            'credential', 'cookie', 'sessionid', 'tckn', 'vkn', 'taxnumber', 'taxidentity', 'iban',
+            'email', 'phone', 'telephone', 'mobile', 'address', 'birthdate',
         ] as $sensitive) {
             if (str_contains($normalized, $sensitive)) {
                 return true;

@@ -14,6 +14,7 @@ enum AuditTargetType: string
     case ExchangeRate = 'exchange_rate';
     case PostingPeriod = 'posting_period';
     case Attachment = 'attachment';
+    case Account = 'account';
 
     public function label(): string
     {
@@ -28,6 +29,7 @@ enum AuditTargetType: string
             self::ExchangeRate => 'Kur Kaydı',
             self::PostingPeriod => 'Muhasebe Dönemi',
             self::Attachment => 'Dosya Bağlantısı',
+            self::Account => 'Cari',
         };
     }
 }
