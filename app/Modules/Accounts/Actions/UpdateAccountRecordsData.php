@@ -13,7 +13,7 @@ final readonly class UpdateAccountRecordsData
     /** @param array{bank_accounts?: list<array<string, mixed>>, notes?: list<array<string, mixed>>} $payload */
     public function __construct(array $payload)
     {
-        $this->bankAccounts = array_values($payload['bank_accounts'] ?? []);
-        $this->notes = array_values($payload['notes'] ?? []);
+        $this->bankAccounts = $payload['bank_accounts'] ?? [];
+        $this->notes = $payload['notes'] ?? [];
     }
 }
