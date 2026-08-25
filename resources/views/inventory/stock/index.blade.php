@@ -7,7 +7,7 @@
         <div>
             <p class="eyebrow">Ürün / Stok</p>
             <h1>Stok Bakiyeleri</h1>
-            <p>Fiziksel miktar ve moving-average taşıma maliyeti; authority append-only stok hareketleridir.</p>
+            <p>Fiziksel, rezerve, bloke ve kullanılabilir miktar. Kullanılabilir = fiziksel - rezerve - bloke; stok authority append-only hareketlerdir.</p>
         </div>
         <div class="page-actions">
             @can('products.view')
@@ -29,7 +29,10 @@
                 <th>Ürün</th>
                 <th>Depo</th>
                 <th>Lokasyon</th>
-                <th class="amount-cell">Fiziksel Miktar</th>
+                <th class="amount-cell">Fiziksel</th>
+                <th class="amount-cell">Rezerve</th>
+                <th class="amount-cell">Bloke</th>
+                <th class="amount-cell">Kullanılabilir</th>
                 <th class="amount-cell">Ort. Birim Maliyet</th>
                 <th class="amount-cell">Stok Değeri</th>
             </tr>
@@ -42,12 +45,15 @@
                     <td>{{ $balance->warehouse->name }}</td>
                     <td>{{ $balance->location->code }} — {{ $balance->location->name }}</td>
                     <td class="amount-cell">{{ $balance->quantity }}</td>
+                    <td class="amount-cell">{{ $balance->reserved_quantity }}</td>
+                    <td class="amount-cell">{{ $balance->blocked_quantity }}</td>
+                    <td class="amount-cell">{{ $balance->available_quantity }}</td>
                     <td class="amount-cell">{{ $balance->average_unit_cost }}</td>
                     <td class="amount-cell">{{ $balance->inventory_value }}</td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="7">Pozitif fiziksel stok bakiyesi bulunmuyor.</td>
+                    <td colspan="10">Pozitif fiziksel stok bakiyesi bulunmuyor.</td>
                 </tr>
             @endforelse
             </tbody>
