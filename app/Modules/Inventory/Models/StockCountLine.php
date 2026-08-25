@@ -6,6 +6,14 @@ use App\Modules\Products\Models\Product;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property string $expected_quantity
+ * @property string $expected_unit_cost
+ * @property string $expected_value
+ * @property string $counted_quantity
+ * @property string|null $valuation_unit_cost
+ * @property-read string $variance_quantity
+ */
 final class StockCountLine extends Model
 {
     protected $fillable = [
@@ -34,16 +42,19 @@ final class StockCountLine extends Model
         ];
     }
 
+    /** @return BelongsTo<StockCount, $this> */
     public function stockCount(): BelongsTo
     {
         return $this->belongsTo(StockCount::class);
     }
 
+    /** @return BelongsTo<Product, $this> */
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
     }
 
+    /** @return BelongsTo<StockMovement, $this> */
     public function adjustmentMovement(): BelongsTo
     {
         return $this->belongsTo(StockMovement::class, 'adjustment_movement_id');
