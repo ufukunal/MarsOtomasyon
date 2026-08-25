@@ -29,6 +29,7 @@ enum AuditAction: string
     case AccountProfileUpdated = 'accounts.account.profile.updated';
     case AccountRecordsUpdated = 'accounts.account.records.updated';
     case AccountB2BPolicyUpdated = 'accounts.account.b2b_policy.updated';
+    case ProductCreated = 'products.product.created';
 
     public function label(): string
     {
@@ -58,6 +59,7 @@ enum AuditAction: string
             self::AccountProfileUpdated => 'Cari iletişim / adres bilgileri güncellendi',
             self::AccountRecordsUpdated => 'Cari banka / not bilgileri güncellendi',
             self::AccountB2BPolicyUpdated => 'Cari B2B / bayi erişim politikası güncellendi',
+            self::ProductCreated => 'Ürün oluşturuldu',
         };
     }
 }
