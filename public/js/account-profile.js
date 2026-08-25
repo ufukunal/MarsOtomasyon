@@ -1,15 +1,47 @@
 (() => {
-    const form = document.querySelector('form[data-account-profile-form]');
+    const firstList = document.querySelector('[data-repeat-list]');
+    const form = firstList instanceof HTMLElement ? firstList.closest('form') : null;
     if (!(form instanceof HTMLFormElement)) {
         return;
     }
 
-    const dirtyAnchor = form.querySelector('[data-profile-dirty-anchor]');
-    const markDirty = () => {
-        if (dirtyAnchor instanceof HTMLInputElement) {
-            dirtyAnchor.value = String(Date.now());
-            dirtyAnchor.dispatchEvent(new Event('input', { bubbles: true }));
+    const tabStorageKey = 'mars.workspace.tabs.v1';
+    const currentUrl = `${window.location.pathname}${window.location.search}`;
+
+    const setWorkspaceDirty = (dirty) => {
+        try {
+            const tabs = JSON.parse(window.sessionStorage.getItem(tabStorageKey) || '[]');
+            if (Array.isArray(tabs)) {
+                const current = tabs.find((tab) => tab && tab.url === currentUrl);
+                if (current) {
+                    current.dirty = Boolean(dirty);
+                    window.sessionStorage.setItem(tabStorageKey, JSON.stringify(tabs));
+                }
+            }
+        } catch {
+            // Workspace state is optional; form behavior must continue even if storage is unavailable.
         }
+
+        const activeTab = document.querySelector('.workspace-tab.is-active');
+        if (!(activeTab instanceof HTMLElement)) {
+            return;
+        }
+
+        const existingDot = activeTab.querySelector('.workspace-dirty-dot');
+        if (!dirty) {
+            existingDot?.remove();
+            return;
+        }
+
+        if (existingDot) {
+            return;
+        }
+
+        const dot = document.createElement('span');
+        dot.className = 'workspace-dirty-dot';
+        dot.title = 'Kaydedilmemiş değişiklik';
+        dot.setAttribute('aria-label', 'Kaydedilmemiş değişiklik');
+        activeTab.insertBefore(dot, activeTab.querySelector('.workspace-tab-close'));
     };
 
     const bindRemove = (row) => {
@@ -19,7 +51,7 @@
         }
         remove.addEventListener('click', () => {
             row.remove();
-            markDirty();
+            setWorkspaceDirty(true);
         });
     };
 
@@ -57,19 +89,12 @@
             list.appendChild(row);
             list.dataset.nextIndex = String(index + 1);
             bindRemove(row);
-            markDirty();
+            setWorkspaceDirty(true);
             row.querySelector('input, select, textarea')?.focus();
         });
     });
 
-    form.addEventListener('input', (event) => {
-        if (event.target !== dirtyAnchor) {
-            markDirty();
-        }
-    });
-    form.addEventListener('change', (event) => {
-        if (event.target !== dirtyAnchor) {
-            markDirty();
-        }
-    });
+    form.addEventListener('input', () => setWorkspaceDirty(true));
+    form.addEventListener('change', () => setWorkspaceDirty(true));
+    form.addEventListener('submit', () => setWorkspaceDirty(false));
 })();
