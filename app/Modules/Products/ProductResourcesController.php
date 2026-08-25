@@ -32,16 +32,15 @@ final readonly class ProductResourcesController
     {
         $productModel = $this->product($product);
         $productModel->load('supplierRelations.account');
-        $selectedSupplierIds = array_values(
-            $productModel->supplierRelations
-                ->pluck('account_id')
-                ->map(static fn (mixed $id): int => (int) $id)
-                ->all(),
-        );
+        $selectedSupplierIds = $productModel->supplierRelations
+            ->pluck('account_id')
+            ->map(static fn (mixed $id): int => (int) $id)
+            ->values()
+            ->all();
 
         return view('products.resources', [
             'product' => $productModel,
-            'supplierAccounts' => $this->supplierAccounts($selectedSupplierIds),
+            'supplierAccounts' => $this->supplierAccounts(...$selectedSupplierIds),
             'selectedSupplierIds' => $selectedSupplierIds,
             'productFiles' => $this->files->all($product),
             'fileKinds' => ProductFileKind::cases(),
@@ -75,7 +74,7 @@ final readonly class ProductResourcesController
             'label' => ['nullable', 'string', 'max:160'],
         ]);
         $upload = $request->file('file');
-        if (($upload instanceof UploadedFile) === false) {
+        if (! $upload instanceof UploadedFile) {
             abort(422, 'Dosya yükleme isteği geçersiz.');
         }
 
@@ -110,11 +109,8 @@ final readonly class ProductResourcesController
             ->findOrFail($id);
     }
 
-    /**
-     * @param list<int> $selectedIds
-     * @return Collection<int, Account>
-     */
-    private function supplierAccounts(array $selectedIds): Collection
+    /** @return Collection<int, Account> */
+    private function supplierAccounts(int ...$selectedIds): Collection
     {
         return Account::query()
             ->where('company_id', $this->companyId())
