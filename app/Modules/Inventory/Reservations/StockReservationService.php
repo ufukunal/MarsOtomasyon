@@ -56,7 +56,7 @@ final readonly class StockReservationService
                 ->where('reserve_effect_type', $sourceEffect->effectType)
                 ->first();
 
-            if (! $existing instanceof StockReservation) {
+            if ($existing === null) {
                 throw new LogicException('Tamamlanmış rezervasyon idempotency kaydının reservation satırı bulunamadı.');
             }
 
@@ -134,7 +134,7 @@ final readonly class StockReservationService
                 ->where('company_id', $sourceEffect->companyId)
                 ->find($reservationId);
 
-            if (! $existing instanceof StockReservation || ! $this->matchesTerminalEffect($existing, $targetStatus, $sourceEffect)) {
+            if ($existing === null || $this->matchesTerminalEffect($existing, $targetStatus, $sourceEffect) === false) {
                 throw new LogicException('Tamamlanmış rezervasyon lifecycle idempotency kaydı ile reservation state uyuşmuyor.');
             }
 
