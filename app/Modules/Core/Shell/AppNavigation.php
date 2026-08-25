@@ -15,22 +15,22 @@ final readonly class AppNavigation
     /** @return list<array{label:string,route:string}> */
     public function items(): array
     {
-        /** @var list<array{label:string,route:string,feature:FeatureKey,permission:?PermissionKey}> $candidates */
+        /** @var list<array{label:string,route:string,feature:FeatureKey,permissions:list<PermissionKey>}> $candidates */
         $candidates = [
-            ['label' => 'Ana Sayfa', 'route' => 'workspace', 'feature' => FeatureKey::Foundation, 'permission' => null],
-            ['label' => 'Cariler', 'route' => 'customers.index', 'feature' => FeatureKey::Customers, 'permission' => PermissionKey::AccountView],
-            ['label' => 'Ürün/Stok', 'route' => 'inventory.index', 'feature' => FeatureKey::ProductStock, 'permission' => PermissionKey::ProductView],
-            ['label' => 'Satış', 'route' => 'sales.index', 'feature' => FeatureKey::Sales, 'permission' => null],
-            ['label' => 'Alış', 'route' => 'purchasing.index', 'feature' => FeatureKey::Purchasing, 'permission' => null],
-            ['label' => 'Üretim', 'route' => 'production.index', 'feature' => FeatureKey::Production, 'permission' => null],
-            ['label' => 'Kasa/Banka', 'route' => 'treasury.index', 'feature' => FeatureKey::Treasury, 'permission' => null],
-            ['label' => 'Çek/Senet', 'route' => 'instruments.index', 'feature' => FeatureKey::Instruments, 'permission' => null],
-            ['label' => 'İadeler', 'route' => 'returns.index', 'feature' => FeatureKey::Returns, 'permission' => null],
-            ['label' => 'İthalat', 'route' => 'import.index', 'feature' => FeatureKey::Import, 'permission' => null],
-            ['label' => 'E-Ticaret/B2B', 'route' => 'commerce.index', 'feature' => FeatureKey::Commerce, 'permission' => null],
-            ['label' => 'İletişim', 'route' => 'communications.index', 'feature' => FeatureKey::Communications, 'permission' => null],
-            ['label' => 'Raporlar', 'route' => 'reports.index', 'feature' => FeatureKey::Reports, 'permission' => null],
-            ['label' => 'Ayarlar', 'route' => 'settings.index', 'feature' => FeatureKey::Foundation, 'permission' => null],
+            ['label' => 'Ana Sayfa', 'route' => 'workspace', 'feature' => FeatureKey::Foundation, 'permissions' => []],
+            ['label' => 'Cariler', 'route' => 'customers.index', 'feature' => FeatureKey::Customers, 'permissions' => [PermissionKey::AccountView]],
+            ['label' => 'Ürün/Stok', 'route' => 'inventory.index', 'feature' => FeatureKey::ProductStock, 'permissions' => [PermissionKey::ProductView, PermissionKey::InventoryView]],
+            ['label' => 'Satış', 'route' => 'sales.index', 'feature' => FeatureKey::Sales, 'permissions' => []],
+            ['label' => 'Alış', 'route' => 'purchasing.index', 'feature' => FeatureKey::Purchasing, 'permissions' => []],
+            ['label' => 'Üretim', 'route' => 'production.index', 'feature' => FeatureKey::Production, 'permissions' => []],
+            ['label' => 'Kasa/Banka', 'route' => 'treasury.index', 'feature' => FeatureKey::Treasury, 'permissions' => []],
+            ['label' => 'Çek/Senet', 'route' => 'instruments.index', 'feature' => FeatureKey::Instruments, 'permissions' => []],
+            ['label' => 'İadeler', 'route' => 'returns.index', 'feature' => FeatureKey::Returns, 'permissions' => []],
+            ['label' => 'İthalat', 'route' => 'import.index', 'feature' => FeatureKey::Import, 'permissions' => []],
+            ['label' => 'E-Ticaret/B2B', 'route' => 'commerce.index', 'feature' => FeatureKey::Commerce, 'permissions' => []],
+            ['label' => 'İletişim', 'route' => 'communications.index', 'feature' => FeatureKey::Communications, 'permissions' => []],
+            ['label' => 'Raporlar', 'route' => 'reports.index', 'feature' => FeatureKey::Reports, 'permissions' => []],
+            ['label' => 'Ayarlar', 'route' => 'settings.index', 'feature' => FeatureKey::Foundation, 'permissions' => []],
         ];
 
         $items = [];
@@ -39,8 +39,18 @@ final readonly class AppNavigation
                 continue;
             }
 
-            if ($candidate['permission'] !== null && Gate::denies($candidate['permission']->value)) {
-                continue;
+            if ($candidate['permissions'] !== []) {
+                $allowed = false;
+                foreach ($candidate['permissions'] as $permission) {
+                    if (Gate::allows($permission->value)) {
+                        $allowed = true;
+                        break;
+                    }
+                }
+
+                if (! $allowed) {
+                    continue;
+                }
             }
 
             $items[] = [
