@@ -6,9 +6,11 @@ use App\Modules\Accounts\Enums\TaxIdentityType;
 use App\Modules\Accounts\Models\Account;
 use App\Modules\Core\Authorization\AssignRoleToMembership;
 use App\Modules\Core\Authorization\GrantPermissionToRole;
+use App\Modules\Core\Enums\AuditAction;
 use App\Modules\Core\Enums\DocumentType;
 use App\Modules\Core\Enums\PermissionKey;
 use App\Modules\Core\Enums\UserStatus;
+use App\Modules\Core\Models\AuditEntry;
 use App\Modules\Core\Models\Company;
 use App\Modules\Core\Models\CompanyMembership;
 use App\Modules\Core\Models\DocumentSequence;
@@ -117,6 +119,80 @@ it('recalculates manual draft edits without changing document identity and prote
     expect(fn () => DB::table('sales_orders')->where('id', $order->getKey())->update(['source_quote_id' => 999, 'source_quote_revision_id' => 999]))
         ->toThrow(QueryException::class);
     expect(fn () => DB::table('sales_order_lines')->where('sales_order_id', $order->getKey())->update(['source_quote_revision_line_id' => 999]))
+        ->toThrow(QueryException::class);
+});
+
+it('keeps immutable full draft snapshots across create and update audit history', function (): void {
+    [$company, $account, $product] = salesOrder61Fixture('SO61-HISTORY');
+    $manager = salesOrder61Actor($company, [PermissionKey::SalesOrderView, PermissionKey::SalesOrderManage], 'history-manager');
+
+    $payload = [
+        'series_code' => 'default',
+        'account_id' => $account->getKey(),
+        'order_date' => '2026-08-26',
+        'currency_code' => 'TRY',
+        'document_discount_rate' => '10',
+        'note' => 'İlk not',
+        'lines' => [[
+            'product_id' => $product->getKey(),
+            'description' => 'İlk satır',
+            'quantity' => '2',
+            'unit_price' => '100',
+            'price_basis' => 'net',
+            'line_discount_rate' => '0',
+            'tax_zero_reason_id' => null,
+        ]],
+    ];
+
+    $this->actingAs($manager)->withSession(['active_company_id' => $company->getKey()])
+        ->post('/sales-orders', $payload)->assertRedirect();
+
+    $order = SalesOrder::query()->where('company_id', $company->getKey())->firstOrFail();
+    $created = AuditEntry::query()
+        ->where('company_id', $company->getKey())
+        ->where('action', AuditAction::SalesOrderCreated->value)
+        ->where('target_id', (string) $order->getKey())
+        ->firstOrFail();
+
+    expect($created->before_state)->toBeNull()
+        ->and($created->after_state['number'])->toBe('SO-0001')
+        ->and($created->after_state['document_discount_rate'])->toBe('10.000000')
+        ->and($created->after_state['net_total'])->toBe('180.000000')
+        ->and($created->after_state['note'])->toBe('İlk not')
+        ->and($created->after_state['lines'])->toHaveCount(1)
+        ->and($created->after_state['lines'][0]['product_code'])->toBe('SKU')
+        ->and($created->after_state['lines'][0]['description'])->toBe('İlk satır')
+        ->and($created->after_state['lines'][0]['quantity'])->toBe('2.000000')
+        ->and($created->after_state['lines'][0]['tax_code'])->toBe('KDV20')
+        ->and($created->after_state['lines'][0]['gross_total'])->toBe('216.000000');
+
+    $payload['note'] = 'Güncel not';
+    $payload['lines'][0]['description'] = 'Güncel satır';
+    $payload['lines'][0]['quantity'] = '3';
+    unset($payload['series_code']);
+
+    $this->actingAs($manager)->withSession(['active_company_id' => $company->getKey()])
+        ->put('/sales-orders/'.$order->getKey(), $payload)->assertRedirect('/sales-orders/'.$order->getKey());
+
+    $updated = AuditEntry::query()
+        ->where('company_id', $company->getKey())
+        ->where('action', AuditAction::SalesOrderUpdated->value)
+        ->where('target_id', (string) $order->getKey())
+        ->firstOrFail();
+    $created->refresh();
+
+    expect($created->after_state['lines'][0]['quantity'])->toBe('2.000000')
+        ->and($created->after_state['lines'][0]['description'])->toBe('İlk satır')
+        ->and($updated->before_state['note'])->toBe('İlk not')
+        ->and($updated->before_state['lines'][0]['quantity'])->toBe('2.000000')
+        ->and($updated->before_state['lines'][0]['description'])->toBe('İlk satır')
+        ->and($updated->after_state['note'])->toBe('Güncel not')
+        ->and($updated->after_state['lines'][0]['quantity'])->toBe('3.000000')
+        ->and($updated->after_state['lines'][0]['description'])->toBe('Güncel satır')
+        ->and($updated->after_state['net_total'])->toBe('270.000000')
+        ->and($updated->after_state['gross_total'])->toBe('324.000000');
+
+    expect(fn () => DB::table('audit_entries')->where('id', $created->getKey())->update(['action' => 'tampered']))
         ->toThrow(QueryException::class);
 });
 
