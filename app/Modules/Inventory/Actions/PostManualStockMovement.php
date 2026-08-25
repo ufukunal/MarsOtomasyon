@@ -71,10 +71,10 @@ final readonly class PostManualStockMovement
                     unitCost: $unitCost,
                     note: $note,
                 ));
-            } catch (IdempotencyConflict $exception) {
+            } catch (IdempotencyConflict) {
                 throw ValidationException::withMessages([
                     'operation_key' => 'Aynı işlem anahtarı farklı stok hareketi verisiyle tekrar kullanılamaz.',
-                ])->setPrevious($exception);
+                ]);
             }
 
             if (! $result->replayed) {
