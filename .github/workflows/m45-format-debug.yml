@@ -1,0 +1,25 @@
+name: M4.5 Format Debug
+
+on:
+  push:
+    branches:
+      - m4-5-stock-reservations
+
+permissions:
+  contents: read
+
+jobs:
+  pint-diff:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          tools: composer:v2
+          coverage: none
+      - run: composer install --no-interaction --prefer-dist --no-progress
+      - name: Show Pint diff
+        run: |
+          vendor/bin/pint app/Modules/Inventory/Reservations/StockReservationService.php
+          git diff -- app/Modules/Inventory/Reservations/StockReservationService.php
