@@ -75,7 +75,7 @@ final readonly class ProductResourcesController
             'label' => ['nullable', 'string', 'max:160'],
         ]);
         $upload = $request->file('file');
-        if (! $upload instanceof UploadedFile) {
+        if (($upload instanceof UploadedFile) === false) {
             abort(422, 'Dosya yükleme isteği geçersiz.');
         }
 
