@@ -27,6 +27,7 @@ enum AuditAction: string
     case AccountCreated = 'accounts.account.created';
     case AccountUpdated = 'accounts.account.updated';
     case AccountProfileUpdated = 'accounts.account.profile.updated';
+    case AccountRecordsUpdated = 'accounts.account.records.updated';
 
     public function label(): string
     {
@@ -54,6 +55,7 @@ enum AuditAction: string
             self::AccountCreated => 'Cari oluşturuldu',
             self::AccountUpdated => 'Cari güncellendi',
             self::AccountProfileUpdated => 'Cari iletişim / adres bilgileri güncellendi',
+            self::AccountRecordsUpdated => 'Cari banka / not bilgileri güncellendi',
         };
     }
 }

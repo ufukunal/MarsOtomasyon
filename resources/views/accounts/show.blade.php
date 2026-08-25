@@ -13,6 +13,7 @@
             <a href="{{ route('customers.index') }}" data-workspace-link>Listeye Dön</a>
             @can('accounts.manage')
                 <a href="{{ route('customers.profile.edit', $account->getKey()) }}" data-workspace-link>İletişim / Adres</a>
+                <a href="{{ route('customers.records.edit', $account->getKey()) }}" data-workspace-link>Banka / Not / Dosya</a>
                 <a class="button-primary" href="{{ route('customers.edit', $account->getKey()) }}" data-workspace-link>Düzenle</a>
             @endcan
         </div>
@@ -99,6 +100,64 @@
                             {{ $preference->preference ? ' · '.$preference->preference : '' }}
                             {{ $preference->address ? ' · '.$preference->address : '' }}
                             {{ $preference->note ? ' · '.$preference->note : '' }}
+                        </dd>
+                    </div>
+                @endforeach
+            </dl>
+        @endif
+    </section>
+
+    <section class="detail-card">
+        <h2>Banka Hesapları</h2>
+        @if ($account->bankAccounts->isEmpty())
+            <p>Banka hesabı kaydı yok.</p>
+        @else
+            <dl class="detail-list">
+                @foreach ($account->bankAccounts->sortByDesc('is_default') as $bank)
+                    <div>
+                        <dt>{{ $bank->bank_name }}{{ $bank->branch_name ? ' · '.$bank->branch_name : '' }}{{ $bank->is_default ? ' · Varsayılan' : '' }}</dt>
+                        <dd>
+                            {{ $bank->currency_code }}
+                            {{ $bank->account_holder ? ' · '.$bank->account_holder : '' }}
+                            {{ $bank->iban ? ' · IBAN '.$bank->iban : '' }}
+                            {{ $bank->account_number ? ' · Hesap '.$bank->account_number : '' }}
+                            {{ $bank->swift_code ? ' · SWIFT '.$bank->swift_code : '' }}
+                            {{ $bank->note ? ' · '.$bank->note : '' }}
+                        </dd>
+                    </div>
+                @endforeach
+            </dl>
+        @endif
+    </section>
+
+    <section class="detail-card">
+        <h2>Dahili Notlar</h2>
+        @if ($account->notes->isEmpty())
+            <p>Not kaydı yok.</p>
+        @else
+            <dl class="detail-list">
+                @foreach ($account->notes->sortByDesc('is_pinned') as $note)
+                    <div>
+                        <dt>{{ $note->is_pinned ? 'Sabit Not' : 'Not' }} · {{ $note->updated_at?->format('d.m.Y H:i') }}</dt>
+                        <dd>{{ $note->body }}{{ $note->updatedBy?->name ? ' · '.$note->updatedBy->name : '' }}</dd>
+                    </div>
+                @endforeach
+            </dl>
+        @endif
+    </section>
+
+    <section class="detail-card">
+        <h2>Cari Dosyaları</h2>
+        @if ($attachments->whereNull('detached_at')->isEmpty())
+            <p>Aktif dosya bağlantısı yok.</p>
+        @else
+            <dl class="detail-list">
+                @foreach ($attachments->whereNull('detached_at') as $attachment)
+                    <div>
+                        <dt>{{ $attachment->label ?: $attachment->fileAsset?->original_name ?: 'Dosya' }}</dt>
+                        <dd>
+                            {{ $attachment->fileAsset?->original_name ?: '—' }}
+                            · <a href="{{ route('customers.files.download', [$account->getKey(), $attachment->getKey()]) }}">İndir</a>
                         </dd>
                     </div>
                 @endforeach

@@ -87,5 +87,17 @@ it('drives the V16.3 account list create readonly detail and profile editor flow
         ->click('Alternatif Firma Ekle')
         ->assertCount('input[name="shipping_preferences[0][company_name]"]', 1)
         ->assertNoJavaScriptErrors()
+        ->assertNoConsoleLogs()
+        ->click('Vazgeç')
+        ->assertPathIs('/customers/'.$account->getKey())
+        ->click('Banka / Not / Dosya')
+        ->assertPathIs('/customers/'.$account->getKey().'/records/edit')
+        ->assertSee('Banka Hesapları')
+        ->assertSee('Cari Dosyaları')
+        ->click('Banka Hesabı Ekle')
+        ->assertCount('input[name="bank_accounts[0][bank_name]"]', 1)
+        ->click('Not Ekle')
+        ->assertCount('textarea[name="notes[0][body]"]', 1)
+        ->assertNoJavaScriptErrors()
         ->assertNoConsoleLogs();
 });

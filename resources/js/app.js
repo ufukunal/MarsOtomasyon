@@ -1,3 +1,5 @@
+import './repeat-fields';
+
 document.documentElement.dataset.marsFoundation = 'ready';
 
 const body = document.body;
@@ -99,6 +101,8 @@ if (body?.classList.contains('app-body')) {
 
     upsertTab(currentUrl, currentTitle);
     renderTabs();
+
+    document.addEventListener('mars:workspace-dirty', () => setDirty(currentUrl, true));
 
     document.addEventListener('click', (event) => {
         const target = event.target instanceof Element ? event.target.closest('[data-workspace-link]') : null;

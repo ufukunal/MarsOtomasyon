@@ -109,6 +109,18 @@ final class Account extends Model
         return $this->hasMany(AccountShippingPreference::class);
     }
 
+    /** @return HasMany<AccountBankAccount, $this> */
+    public function bankAccounts(): HasMany
+    {
+        return $this->hasMany(AccountBankAccount::class);
+    }
+
+    /** @return HasMany<AccountNote, $this> */
+    public function notes(): HasMany
+    {
+        return $this->hasMany(AccountNote::class);
+    }
+
     private function rawEnumValue(string $attribute): string
     {
         $raw = $this->getRawOriginal($attribute);

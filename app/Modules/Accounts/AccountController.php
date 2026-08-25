@@ -9,6 +9,7 @@ use App\Modules\Accounts\Actions\UpdateAccountData;
 use App\Modules\Accounts\Enums\AccountStatus;
 use App\Modules\Accounts\Enums\AccountType;
 use App\Modules\Accounts\Enums\TaxIdentityType;
+use App\Modules\Accounts\Files\AccountFileManager;
 use App\Modules\Accounts\Models\Account;
 use App\Modules\Core\Company\ActiveCompanyContext;
 use App\Modules\Core\Models\Currency;
@@ -26,6 +27,7 @@ final readonly class AccountController
         private ActiveCompanyContext $companyContext,
         private CreateAccount $createAccount,
         private UpdateAccount $updateAccount,
+        private AccountFileManager $files,
     ) {}
 
     public function index(Request $request): View
@@ -36,8 +38,7 @@ final readonly class AccountController
             $status = 'all';
         }
 
-        $query = Account::query()
-            ->where('company_id', $this->companyId());
+        $query = Account::query()->where('company_id', $this->companyId());
 
         if ($search !== '') {
             $like = '%'.$search.'%';
@@ -100,8 +101,15 @@ final readonly class AccountController
 
     public function show(int $account): View
     {
+        $accountModel = $this->account($account);
+        $accountModel->load([
+            'contacts', 'authorizedContacts', 'addresses', 'shippingPreferences',
+            'bankAccounts', 'notes.createdBy', 'notes.updatedBy',
+        ]);
+
         return view('accounts.show', [
-            'account' => $this->account($account),
+            'account' => $accountModel,
+            'attachments' => $this->files->all($account),
         ]);
     }
 
@@ -167,9 +175,7 @@ final readonly class AccountController
 
     private function account(int $id): Account
     {
-        return Account::query()
-            ->where('company_id', $this->companyId())
-            ->findOrFail($id);
+        return Account::query()->where('company_id', $this->companyId())->findOrFail($id);
     }
 
     /** @return Collection<int, Currency> */
@@ -188,11 +194,7 @@ final readonly class AccountController
 
     private function nullableString(mixed $value): ?string
     {
-        if ($value === null) {
-            return null;
-        }
-
-        return (string) $value;
+        return $value === null ? null : (string) $value;
     }
 
     private function companyId(): int
