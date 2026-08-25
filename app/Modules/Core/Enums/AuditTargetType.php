@@ -16,6 +16,8 @@ enum AuditTargetType: string
     case Attachment = 'attachment';
     case Account = 'account';
     case Product = 'product';
+    case Category = 'category';
+    case Unit = 'unit';
 
     public function label(): string
     {
@@ -32,6 +34,8 @@ enum AuditTargetType: string
             self::Attachment => 'Dosya Bağlantısı',
             self::Account => 'Cari',
             self::Product => 'Ürün',
+            self::Category => 'Kategori',
+            self::Unit => 'Birim',
         };
     }
 }
