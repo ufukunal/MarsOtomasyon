@@ -95,9 +95,14 @@ final readonly class AccountLedgerReader
             ->select(['id', 'posting_date', 'signed_amount', 'source_type', 'memo'])
             ->selectRaw('SUM(signed_amount) OVER (ORDER BY posting_date, id ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)::text AS period_running_balance')
             ->where('company_id', $companyId)
-            ->where('account_id', $accountId)
-            ->when($from !== null, fn ($query) => $query->where('posting_date', '>=', $from))
-            ->when($to !== null, fn ($query) => $query->where('posting_date', '<=', $to));
+            ->where('account_id', $accountId);
+
+        if ($from !== null) {
+            $periodRows->where('posting_date', '>=', $from);
+        }
+        if ($to !== null) {
+            $periodRows->where('posting_date', '<=', $to);
+        }
 
         $paginator = DB::query()
             ->fromSub($periodRows, 'account_statement_rows')
@@ -126,18 +131,15 @@ final readonly class AccountLedgerReader
 
     private function balanceBefore(Account $account, string $date): AccountBalance
     {
-        return $this->aggregateBalance($account, static fn ($query) => $query->where('posting_date', '<', $date));
+        return $this->aggregateBalance($account, before: $date, through: null);
     }
 
     private function balanceThrough(Account $account, ?string $date): AccountBalance
     {
-        return $this->aggregateBalance(
-            $account,
-            static fn ($query) => $date === null ? $query : $query->where('posting_date', '<=', $date),
-        );
+        return $this->aggregateBalance($account, before: null, through: $date);
     }
 
-    private function aggregateBalance(Account $account, callable $scope): AccountBalance
+    private function aggregateBalance(Account $account, ?string $before, ?string $through): AccountBalance
     {
         $accountId = $account->getKey();
         if (! is_int($accountId)) {
@@ -147,7 +149,13 @@ final readonly class AccountLedgerReader
         $query = DB::table('account_transactions')
             ->where('company_id', $this->companyId())
             ->where('account_id', $accountId);
-        $scope($query);
+
+        if ($before !== null) {
+            $query->where('posting_date', '<', $before);
+        }
+        if ($through !== null) {
+            $query->where('posting_date', '<=', $through);
+        }
 
         $row = $query
             ->selectRaw('COALESCE(SUM(signed_amount), 0)::text AS signed_balance')
