@@ -5,7 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
-return new class() extends Migration
+final class CreateAccountsTable20260825000100 extends Migration
 {
     public function up(): void
     {
@@ -50,4 +50,6 @@ return new class() extends Migration
     {
         Schema::dropIfExists('accounts');
     }
-};
+}
+
+return new CreateAccountsTable20260825000100;
