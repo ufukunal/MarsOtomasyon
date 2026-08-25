@@ -19,7 +19,7 @@ final readonly class AppNavigation
         $candidates = [
             ['label' => 'Ana Sayfa', 'route' => 'workspace', 'feature' => FeatureKey::Foundation, 'permission' => null],
             ['label' => 'Cariler', 'route' => 'customers.index', 'feature' => FeatureKey::Customers, 'permission' => PermissionKey::AccountView],
-            ['label' => 'Ürün/Stok', 'route' => 'inventory.index', 'feature' => FeatureKey::ProductStock, 'permission' => null],
+            ['label' => 'Ürün/Stok', 'route' => 'inventory.index', 'feature' => FeatureKey::ProductStock, 'permission' => PermissionKey::ProductView],
             ['label' => 'Satış', 'route' => 'sales.index', 'feature' => FeatureKey::Sales, 'permission' => null],
             ['label' => 'Alış', 'route' => 'purchasing.index', 'feature' => FeatureKey::Purchasing, 'permission' => null],
             ['label' => 'Üretim', 'route' => 'production.index', 'feature' => FeatureKey::Production, 'permission' => null],
