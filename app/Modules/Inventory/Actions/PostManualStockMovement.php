@@ -2,6 +2,7 @@
 
 namespace App\Modules\Inventory\Actions;
 
+use App\Foundation\Idempotency\IdempotencyConflict;
 use App\Foundation\Identity\SourceEffectIdentity;
 use App\Modules\Core\Audit\AuditRecorder;
 use App\Modules\Core\Company\ActiveCompanyContext;
@@ -54,21 +55,27 @@ final readonly class PostManualStockMovement
             $unitCost,
             $note,
         ): StockMovement {
-            $result = $this->poster->post(new PostStockMovementData(
-                sourceEffect: new SourceEffectIdentity(
-                    companyId: $companyId,
-                    sourceType: self::SOURCE_TYPE,
-                    sourceId: $operationKey,
-                    effectType: 'inventory.'.$kind->value,
-                ),
-                productId: $productId,
-                warehouseId: $warehouseId,
-                locationId: $locationId,
-                movementType: $kind->ledgerType(),
-                quantity: $quantity,
-                unitCost: $unitCost,
-                note: $note,
-            ));
+            try {
+                $result = $this->poster->post(new PostStockMovementData(
+                    sourceEffect: new SourceEffectIdentity(
+                        companyId: $companyId,
+                        sourceType: self::SOURCE_TYPE,
+                        sourceId: $operationKey,
+                        effectType: 'inventory.'.$kind->value,
+                    ),
+                    productId: $productId,
+                    warehouseId: $warehouseId,
+                    locationId: $locationId,
+                    movementType: $kind->ledgerType(),
+                    quantity: $quantity,
+                    unitCost: $unitCost,
+                    note: $note,
+                ));
+            } catch (IdempotencyConflict $exception) {
+                throw ValidationException::withMessages([
+                    'operation_key' => 'Aynı işlem anahtarı farklı stok hareketi verisiyle tekrar kullanılamaz.',
+                ])->setPrevious($exception);
+            }
 
             if (! $result->replayed) {
                 $movement = $result->movement;
