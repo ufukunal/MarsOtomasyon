@@ -1,5 +1,6 @@
 <?php
 
+use App\Modules\Inventory\InventoryController;
 use App\Modules\Products\CategoryController;
 use App\Modules\Products\ProductController;
 use App\Modules\Products\ProductResourcesController;
@@ -13,6 +14,30 @@ Route::prefix('inventory')
         Route::get('/', [ProductController::class, 'index'])
             ->middleware('can:products.view')
             ->name('index');
+
+        Route::get('/stock', [InventoryController::class, 'stock'])
+            ->middleware('can:inventory.view')
+            ->name('stock.index');
+        Route::get('/stock/movements', [InventoryController::class, 'movements'])
+            ->middleware('can:inventory.view')
+            ->name('stock.movements');
+        Route::get('/stock/movements/create', [InventoryController::class, 'createMovement'])
+            ->middleware('can:inventory.manage')
+            ->name('stock.movements.create');
+        Route::post('/stock/movements', [InventoryController::class, 'storeMovement'])
+            ->middleware('can:inventory.manage')
+            ->name('stock.movements.store');
+
+        Route::get('/warehouses', [InventoryController::class, 'warehouses'])
+            ->middleware('can:inventory.view')
+            ->name('warehouses.index');
+        Route::post('/warehouses', [InventoryController::class, 'storeWarehouse'])
+            ->middleware('can:inventory.manage')
+            ->name('warehouses.store');
+        Route::post('/warehouses/{warehouse}/locations', [InventoryController::class, 'storeLocation'])
+            ->whereNumber('warehouse')
+            ->middleware('can:inventory.manage')
+            ->name('warehouses.locations.store');
 
         Route::get('/categories', [CategoryController::class, 'index'])
             ->middleware('can:products.view')
