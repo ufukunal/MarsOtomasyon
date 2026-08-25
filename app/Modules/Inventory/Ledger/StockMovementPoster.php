@@ -266,9 +266,9 @@ final readonly class StockMovementPoster
             throw new DomainException('Ters stok hareketi orijinal hareket ile aynı stok scope üzerinde olmalıdır.');
         }
 
-        $expectedType = $original->movement_type->isInbound()
-            ? StockMovementType::AdjustmentOut
-            : StockMovementType::AdjustmentIn;
+        $expectedType = str_starts_with((string) $original->quantity_delta, '-')
+            ? StockMovementType::AdjustmentIn
+            : StockMovementType::AdjustmentOut;
         if ($data->movementType !== $expectedType) {
             throw new DomainException('Ters stok hareketinin yönü orijinal hareketin tam tersi olmalıdır.');
         }
