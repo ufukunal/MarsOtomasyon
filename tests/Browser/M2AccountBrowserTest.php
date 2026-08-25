@@ -99,5 +99,14 @@ it('drives the V16.3 account list create readonly detail and profile editor flow
         ->click('Not Ekle')
         ->assertCount('textarea[name="notes[0][body]"]', 1)
         ->assertNoJavaScriptErrors()
+        ->assertNoConsoleLogs()
+        ->click('Vazgeç')
+        ->assertPathIs('/customers/'.$account->getKey())
+        ->click('B2B / Bayi Erişimi')
+        ->assertPathIs('/customers/'.$account->getKey().'/b2b/edit')
+        ->assertSee('B2B Erişim Politikası')
+        ->assertSee('Sipariş Verebilir')
+        ->assertSee('Ekstreyi Görebilir')
+        ->assertNoJavaScriptErrors()
         ->assertNoConsoleLogs();
 });
