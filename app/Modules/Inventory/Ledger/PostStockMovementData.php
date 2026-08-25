@@ -17,5 +17,6 @@ final readonly class PostStockMovementData
         public ?string $unitCost = null,
         public ?string $note = null,
         public ?int $reversalOfMovementId = null,
+        public ?string $carryingValue = null,
     ) {}
 }
