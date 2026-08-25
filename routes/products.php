@@ -1,6 +1,7 @@
 <?php
 
 use App\Modules\Inventory\InventoryController;
+use App\Modules\Inventory\StockCountController;
 use App\Modules\Products\CategoryController;
 use App\Modules\Products\ProductController;
 use App\Modules\Products\ProductResourcesController;
@@ -27,6 +28,32 @@ Route::prefix('inventory')
         Route::post('/stock/movements', [InventoryController::class, 'storeMovement'])
             ->middleware('can:inventory.manage')
             ->name('stock.movements.store');
+
+        Route::get('/stock/counts', [StockCountController::class, 'index'])
+            ->middleware('can:inventory.view')
+            ->name('counts.index');
+        Route::get('/stock/counts/create', [StockCountController::class, 'create'])
+            ->middleware('can:inventory.manage')
+            ->name('counts.create');
+        Route::post('/stock/counts', [StockCountController::class, 'store'])
+            ->middleware('can:inventory.manage')
+            ->name('counts.store');
+        Route::get('/stock/counts/{count}', [StockCountController::class, 'show'])
+            ->whereNumber('count')
+            ->middleware('can:inventory.view')
+            ->name('counts.show');
+        Route::put('/stock/counts/{count}/line', [StockCountController::class, 'setLine'])
+            ->whereNumber('count')
+            ->middleware('can:inventory.manage')
+            ->name('counts.line.update');
+        Route::post('/stock/counts/{count}/scan', [StockCountController::class, 'scan'])
+            ->whereNumber('count')
+            ->middleware('can:inventory.manage')
+            ->name('counts.scan');
+        Route::post('/stock/counts/{count}/post', [StockCountController::class, 'post'])
+            ->whereNumber('count')
+            ->middleware('can:inventory.manage')
+            ->name('counts.post');
 
         Route::get('/warehouses', [InventoryController::class, 'warehouses'])
             ->middleware('can:inventory.view')
