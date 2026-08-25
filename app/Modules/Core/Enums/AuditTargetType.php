@@ -23,6 +23,7 @@ enum AuditTargetType: string
     case StockMovement = 'stock_movement';
     case Quote = 'quote';
     case QuoteRevision = 'quote_revision';
+    case SalesOrder = 'sales_order';
 
     public function label(): string
     {
@@ -46,6 +47,7 @@ enum AuditTargetType: string
             self::StockMovement => 'Stok Hareketi',
             self::Quote => 'Teklif',
             self::QuoteRevision => 'Teklif Revizyonu',
+            self::SalesOrder => 'Satış Siparişi',
         };
     }
 }
