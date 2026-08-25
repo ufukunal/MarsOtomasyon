@@ -87,7 +87,7 @@ final readonly class PostManualStockMovement
                         'source_type' => $movement->source_type,
                         'source_id' => $movement->source_id,
                         'effect_type' => $movement->effect_type,
-                        'movement_type' => $movement->movement_type->value,
+                        'movement_type' => $kind->ledgerType()->value,
                         'product_id' => $movement->product_id,
                         'warehouse_id' => $movement->warehouse_id,
                         'location_id' => $movement->location_id,
