@@ -23,7 +23,7 @@ Her milestone/alt kırılım:
 | Milestone | Başlık | Durum |
 |---|---|---|
 | [M1](M01.md) | Core / Company / Users / Settings / UI Shell | ✅ Tamamlandı |
-| [M2](M02.md) | Cari Core | ▶️ Sıradaki — entry açık |
+| [M2](M02.md) | Cari Core | 🟡 Devam ediyor — M2.1 kapalı, M2.2 aktif |
 | [M3](M03.md) | Ürün / Katalog | ⏳ Bekliyor |
 | [M4](M04.md) | Stok / Depo / Cost Foundation | ⏳ Bekliyor |
 | [M5](M05.md) | Teklifler / Tax Calculation Contract | ⏳ Bekliyor |
