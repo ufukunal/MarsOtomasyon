@@ -183,7 +183,7 @@ final readonly class ProductController
             ->where(function (Builder $query) use ($selected): void {
                 $query->where('is_active', true);
                 if ($selected !== null) {
-                    $query->orWhereKey($selected);
+                    $query->orWhere('id', $selected);
                 }
             })
             ->orderBy('name')
@@ -200,7 +200,7 @@ final readonly class ProductController
             ->where(function (Builder $query) use ($selected): void {
                 $query->where('is_active', true);
                 if ($selected !== null) {
-                    $query->orWhereKey($selected);
+                    $query->orWhere('id', $selected);
                 }
             })
             ->orderBy('name')
@@ -217,7 +217,7 @@ final readonly class ProductController
             ->where(function (Builder $query) use ($selected): void {
                 $query->where('is_active', true);
                 if ($selected !== null) {
-                    $query->orWhereKey($selected);
+                    $query->orWhere('id', $selected);
                 }
             })
             ->orderBy('rate')
