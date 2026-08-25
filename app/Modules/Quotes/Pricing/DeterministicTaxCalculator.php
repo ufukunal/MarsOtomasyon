@@ -22,10 +22,6 @@ final class DeterministicTaxCalculator
         $grossTotal = Decimal6::zero();
 
         foreach ($lines as $line) {
-            if (! $line instanceof TaxCalculationLineInput) {
-                throw new InvalidArgumentException('Tax calculator lines must be TaxCalculationLineInput instances.');
-            }
-
             $key = trim($line->key);
 
             if ($key === '' || strlen($key) > 64) {
