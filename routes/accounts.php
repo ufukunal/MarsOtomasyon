@@ -1,5 +1,6 @@
 <?php
 
+use App\Modules\Accounts\AccountB2BPolicyController;
 use App\Modules\Accounts\AccountController;
 use App\Modules\Accounts\AccountProfileController;
 use App\Modules\Accounts\AccountRecordsController;
@@ -34,6 +35,14 @@ Route::prefix('customers')
             ->whereNumber('account')
             ->middleware('can:accounts.manage')
             ->name('records.update');
+        Route::get('/{account}/b2b/edit', [AccountB2BPolicyController::class, 'edit'])
+            ->whereNumber('account')
+            ->middleware('can:accounts.manage')
+            ->name('b2b.edit');
+        Route::put('/{account}/b2b', [AccountB2BPolicyController::class, 'update'])
+            ->whereNumber('account')
+            ->middleware('can:accounts.manage')
+            ->name('b2b.update');
         Route::post('/{account}/files', [AccountRecordsController::class, 'uploadFile'])
             ->whereNumber('account')
             ->middleware('can:accounts.manage')
