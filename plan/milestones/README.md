@@ -23,9 +23,9 @@ Her milestone/alt kırılım:
 | Milestone | Başlık | Durum |
 |---|---|---|
 | [M1](M01.md) | Core / Company / Users / Settings / UI Shell | ✅ Tamamlandı |
-| [M2](M02.md) | Cari Core | 🟡 Devam ediyor — M2.1–M2.2 kapalı, M2.3 aktif |
-| [M3](M03.md) | Ürün / Katalog | ⏳ Bekliyor |
-| [M4](M04.md) | Stok / Depo / Cost Foundation | ⏳ Bekliyor |
+| [M2](M02.md) | Cari Core | ✅ Tamamlandı |
+| [M3](M03.md) | Ürün / Katalog | ✅ Tamamlandı |
+| [M4](M04.md) | Stok / Depo / Cost Foundation | 🟡 Devam ediyor — M4.1 kapalı, M4.2 aktif |
 | [M5](M05.md) | Teklifler / Tax Calculation Contract | ⏳ Bekliyor |
 | [M6](M06.md) | Satış Siparişleri | ⏳ Bekliyor |
 | [M7](M07.md) | İrsaliye / Sevkiyat | ⏳ Bekliyor |
@@ -57,8 +57,8 @@ Her milestone/alt kırılım:
 
 ## Wave özeti
 
-- **Wave A:** M1–M2 — Core + Cari
-- **Wave B:** M3–M9 — Ürün / Stok / Satış / Alış
+- **Wave A:** M1–M2 — Core + Cari ✅
+- **Wave B:** M3–M9 — Ürün / Stok / Satış / Alış — M3 ✅, M4 aktif
 - **Wave C:** M10–M13 — Finans / Çek-Senet / İade / Rapor
 - **Wave D:** M14–M16 — Üretim / Fason / İthalat
 - **Wave E:** M17–M20 — E-Ticaret / Marketplace / B2B / Communication / API
