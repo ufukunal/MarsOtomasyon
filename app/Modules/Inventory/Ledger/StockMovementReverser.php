@@ -50,9 +50,9 @@ final readonly class StockMovementReverser
             productId: (int) $original->product_id,
             warehouseId: (int) $original->warehouse_id,
             locationId: (int) $original->location_id,
-            movementType: $original->movement_type->isInbound()
-                ? StockMovementType::AdjustmentOut
-                : StockMovementType::AdjustmentIn,
+            movementType: str_starts_with((string) $original->quantity_delta, '-')
+                ? StockMovementType::AdjustmentIn
+                : StockMovementType::AdjustmentOut,
             quantity: ltrim((string) $original->quantity_delta, '-'),
             unitCost: (string) $original->unit_cost,
             note: $note,
