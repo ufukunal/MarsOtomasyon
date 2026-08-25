@@ -375,51 +375,70 @@ final readonly class UpdateAccountProfile
     /** @return array<string, mixed> */
     private function snapshot(Account $account): array
     {
+        $contacts = [];
+        foreach ($account->contacts->sortBy('id') as $contact) {
+            $contacts[] = [
+                'id' => $contact->getKey(),
+                'kind' => $contact->kindEnum()->value,
+                'label' => $contact->label,
+                'value' => $contact->value,
+                'is_primary' => (bool) $contact->is_primary,
+            ];
+        }
+
+        $authorizedContacts = [];
+        foreach ($account->authorizedContacts->sortBy('id') as $contact) {
+            $authorizedContacts[] = [
+                'id' => $contact->getKey(),
+                'name' => $contact->name,
+                'title' => $contact->title,
+                'phone' => $contact->phone,
+                'email' => $contact->email,
+                'is_primary' => (bool) $contact->is_primary,
+                'note' => $contact->note,
+            ];
+        }
+
+        $addresses = [];
+        foreach ($account->addresses->sortBy('id') as $address) {
+            $addresses[] = [
+                'id' => $address->getKey(),
+                'type' => $address->typeEnum()->value,
+                'label' => $address->label,
+                'recipient_name' => $address->recipient_name,
+                'address' => trim(implode(' ', array_filter([
+                    $address->line1,
+                    $address->line2,
+                    $address->district,
+                    $address->city,
+                    $address->postal_code,
+                    $address->country_code,
+                ]))),
+                'is_default' => (bool) $address->is_default,
+            ];
+        }
+
+        $shippingPreferences = [];
+        foreach ($account->shippingPreferences->sortBy('id') as $preference) {
+            $shippingPreferences[] = [
+                'id' => $preference->getKey(),
+                'company_name' => $preference->company_name,
+                'city' => $preference->city,
+                'branch' => $preference->branch,
+                'contact_name' => $preference->contact_name,
+                'phone' => $preference->phone,
+                'preference' => $preference->preference,
+                'address' => $preference->address,
+                'note' => $preference->note,
+                'is_default' => (bool) $preference->is_default,
+            ];
+        }
+
         return [
-            'contacts' => $account->contacts
-                ->sortBy('id')
-                ->map(static fn (AccountContact $contact): array => [
-                    'id' => $contact->getKey(),
-                    'kind' => $contact->kind->value,
-                    'label' => $contact->label,
-                    'value' => $contact->value,
-                    'is_primary' => (bool) $contact->is_primary,
-                ])->values()->all(),
-            'authorized_contacts' => $account->authorizedContacts
-                ->sortBy('id')
-                ->map(static fn (AccountAuthorizedContact $contact): array => [
-                    'id' => $contact->getKey(),
-                    'name' => $contact->name,
-                    'title' => $contact->title,
-                    'phone' => $contact->phone,
-                    'email' => $contact->email,
-                    'is_primary' => (bool) $contact->is_primary,
-                    'note' => $contact->note,
-                ])->values()->all(),
-            'addresses' => $account->addresses
-                ->sortBy('id')
-                ->map(static fn (AccountAddress $address): array => [
-                    'id' => $address->getKey(),
-                    'type' => $address->type->value,
-                    'label' => $address->label,
-                    'recipient_name' => $address->recipient_name,
-                    'address' => trim(implode(' ', array_filter([$address->line1, $address->line2, $address->district, $address->city, $address->postal_code, $address->country_code]))),
-                    'is_default' => (bool) $address->is_default,
-                ])->values()->all(),
-            'shipping_preferences' => $account->shippingPreferences
-                ->sortBy('id')
-                ->map(static fn (AccountShippingPreference $preference): array => [
-                    'id' => $preference->getKey(),
-                    'company_name' => $preference->company_name,
-                    'city' => $preference->city,
-                    'branch' => $preference->branch,
-                    'contact_name' => $preference->contact_name,
-                    'phone' => $preference->phone,
-                    'preference' => $preference->preference,
-                    'address' => $preference->address,
-                    'note' => $preference->note,
-                    'is_default' => (bool) $preference->is_default,
-                ])->values()->all(),
+            'contacts' => $contacts,
+            'authorized_contacts' => $authorizedContacts,
+            'addresses' => $addresses,
+            'shipping_preferences' => $shippingPreferences,
         ];
     }
 
