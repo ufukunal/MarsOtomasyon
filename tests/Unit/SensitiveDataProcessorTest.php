@@ -22,6 +22,8 @@ final class SensitiveDataProcessorTest extends TestCase
             context: [
                 'document_id' => 'INV-1',
                 'password' => 'plain-password',
+                'tax_number' => '10000000146',
+                'tax_identity' => '10000000146',
                 'customer' => [
                     'email' => 'person@example.com',
                     'note' => 'Authorization: Bearer abc.def.ghi',
@@ -34,6 +36,8 @@ final class SensitiveDataProcessorTest extends TestCase
 
         self::assertSame('INV-1', $processed->context['document_id']);
         self::assertSame(SensitiveDataRedactor::REDACTED, $processed->context['password']);
+        self::assertSame(SensitiveDataRedactor::REDACTED, $processed->context['tax_number']);
+        self::assertSame(SensitiveDataRedactor::REDACTED, $processed->context['tax_identity']);
         self::assertSame(SensitiveDataRedactor::REDACTED, $processed->context['customer']['email']);
         self::assertSame('Authorization: Bearer [REDACTED]', $processed->context['customer']['note']);
         self::assertSame(SensitiveDataRedactor::REDACTED, $processed->extra['iban']);
