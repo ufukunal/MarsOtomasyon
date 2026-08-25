@@ -98,7 +98,7 @@ return new class extends Migration
         DB::statement('ALTER TABLE quote_revision_lines ADD CONSTRAINT quote_revision_lines_snapshot_not_blank_check CHECK (char_length(btrim(product_code)) > 0 AND char_length(btrim(product_name)) > 0 AND char_length(btrim(description)) > 0 AND char_length(btrim(tax_code)) > 0)');
         DB::statement('ALTER TABLE quote_revision_lines ADD CONSTRAINT quote_revision_lines_amounts_nonnegative_check CHECK (base_net >= 0 AND line_discount_net >= 0 AND document_discount_net >= 0 AND net_total >= 0 AND tax_total >= 0 AND gross_total >= 0)');
         DB::statement('ALTER TABLE quote_revision_lines ADD CONSTRAINT quote_revision_lines_total_reconciliation_check CHECK (base_net - line_discount_net - document_discount_net = net_total AND net_total + tax_total = gross_total)');
-        DB::statement("ALTER TABLE quote_revision_lines ADD CONSTRAINT quote_revision_lines_zero_reason_shape_check CHECK ((tax_rate = 0 AND tax_zero_reason_id IS NOT NULL AND tax_zero_reason_code IS NOT NULL) OR (tax_rate > 0 AND tax_zero_reason_id IS NULL AND tax_zero_reason_code IS NULL))");
+        DB::statement('ALTER TABLE quote_revision_lines ADD CONSTRAINT quote_revision_lines_zero_reason_shape_check CHECK ((tax_rate = 0 AND tax_zero_reason_id IS NOT NULL AND tax_zero_reason_code IS NOT NULL) OR (tax_rate > 0 AND tax_zero_reason_id IS NULL AND tax_zero_reason_code IS NULL))');
 
         DB::statement(<<<'SQL'
 CREATE OR REPLACE FUNCTION mars_prevent_quote_revision_mutation()
