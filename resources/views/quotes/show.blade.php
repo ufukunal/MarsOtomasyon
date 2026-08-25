@@ -40,7 +40,10 @@
                 <h2>R{{ $commercialRevision->revision_number }} · {{ $quote->statusEnum()->label() }}</h2>
                 <p>Bu teklifin ticari içeriği immutable R{{ $commercialRevision->revision_number }} snapshotıdır. Aşağıdaki tutar ve satırlar bu revizyondan gösterilir.</p>
             </div>
-            <a href="{{ route('quotes.revisions.show', [$quote->getKey(), $commercialRevision->getKey()]) }}" data-workspace-link>Seçili Snapshot</a>
+            <div class="page-actions">
+                <a href="{{ route('quotes.revisions.show', [$quote->getKey(), $commercialRevision->getKey()]) }}" data-workspace-link>Seçili Snapshot</a>
+                <a class="button-primary" href="{{ route('quotes.finalized.show', $quote->getKey()) }}" data-workspace-link>Finalized Görünüm</a>
+            </div>
         </div>
         <dl class="detail-grid">
             <div><dt>Karar Kullanıcısı</dt><dd>{{ $quote->decisionBy?->name ?? '—' }}</dd></div>
@@ -74,15 +77,7 @@
     <table class="data-table">
         <thead>
             <tr>
-                <th>#</th>
-                <th>Ürün</th>
-                <th>Açıklama</th>
-                <th class="amount-cell">Miktar</th>
-                <th class="amount-cell">Birim Fiyat</th>
-                <th>KDV</th>
-                <th class="amount-cell">Net</th>
-                <th class="amount-cell">Vergi</th>
-                <th class="amount-cell">Toplam</th>
+                <th>#</th><th>Ürün</th><th>Açıklama</th><th class="amount-cell">Miktar</th><th class="amount-cell">Birim Fiyat</th><th>KDV</th><th class="amount-cell">Net</th><th class="amount-cell">Vergi</th><th class="amount-cell">Toplam</th>
             </tr>
         </thead>
         <tbody>
@@ -93,12 +88,7 @@
                     <td>{{ $line->description }}</td>
                     <td class="amount-cell">{{ $line->quantity }}</td>
                     <td class="amount-cell">{{ $line->unit_price }}</td>
-                    <td>
-                        %{{ $line->tax_rate }}
-                        @if ($line->tax_zero_reason_code)
-                            · {{ $line->tax_zero_reason_code }}
-                        @endif
-                    </td>
+                    <td>%{{ $line->tax_rate }}@if ($line->tax_zero_reason_code) · {{ $line->tax_zero_reason_code }}@endif</td>
                     <td class="amount-cell">{{ $line->net_total }}</td>
                     <td class="amount-cell">{{ $line->tax_total }}</td>
                     <td class="amount-cell">{{ $line->gross_total }}</td>
@@ -117,30 +107,13 @@
 </section>
 
 <section class="detail-card statement-table-card">
-    <div class="page-actions">
-        <h2>Revizyon Geçmişi</h2>
-        <span></span>
-    </div>
+    <div class="page-actions"><h2>Revizyon Geçmişi</h2><span></span></div>
     <table class="data-table">
-        <thead>
-            <tr>
-                <th>Revizyon</th>
-                <th>Snapshot Zamanı</th>
-                <th class="amount-cell">Net</th>
-                <th class="amount-cell">Vergi</th>
-                <th class="amount-cell">Toplam</th>
-                <th>İşlem</th>
-            </tr>
-        </thead>
+        <thead><tr><th>Revizyon</th><th>Snapshot Zamanı</th><th class="amount-cell">Net</th><th class="amount-cell">Vergi</th><th class="amount-cell">Toplam</th><th>İşlem</th></tr></thead>
         <tbody>
             @forelse ($quote->revisions as $revision)
                 <tr>
-                    <td>
-                        R{{ $revision->revision_number }}
-                        @if ($quote->selected_revision_id === $revision->getKey())
-                            · Seçili
-                        @endif
-                    </td>
+                    <td>R{{ $revision->revision_number }}@if ($quote->selected_revision_id === $revision->getKey()) · Seçili @endif</td>
                     <td>{{ $revision->created_at->format('d.m.Y H:i:s') }}</td>
                     <td class="amount-cell">{{ $revision->net_total }}</td>
                     <td class="amount-cell">{{ $revision->tax_total }}</td>
@@ -149,31 +122,20 @@
                         <a href="{{ route('quotes.revisions.show', [$quote->getKey(), $revision->getKey()]) }}" data-workspace-link>Snapshot</a>
                         @if ($quote->isDraft())
                             @can('quotes.approve')
-                                <form method="post" action="{{ route('quotes.revisions.approve', [$quote->getKey(), $revision->getKey()]) }}" style="display:inline">
-                                    @csrf
-                                    <button type="submit">Onayla</button>
-                                </form>
-                                <form method="post" action="{{ route('quotes.revisions.reject', [$quote->getKey(), $revision->getKey()]) }}" style="display:inline">
-                                    @csrf
-                                    <button type="submit">Reddet</button>
-                                </form>
+                                <form method="post" action="{{ route('quotes.revisions.approve', [$quote->getKey(), $revision->getKey()]) }}" style="display:inline">@csrf<button type="submit">Onayla</button></form>
+                                <form method="post" action="{{ route('quotes.revisions.reject', [$quote->getKey(), $revision->getKey()]) }}" style="display:inline">@csrf<button type="submit">Reddet</button></form>
                             @endcan
                         @endif
                     </td>
                 </tr>
             @empty
-                <tr>
-                    <td colspan="6">Henüz immutable revizyon snapshotı yok.</td>
-                </tr>
+                <tr><td colspan="6">Henüz immutable revizyon snapshotı yok.</td></tr>
             @endforelse
         </tbody>
     </table>
 </section>
 
 @if ($commercialRevision?->note ?? $quote->note)
-    <section class="detail-card">
-        <h2>Not</h2>
-        <p>{{ $commercialRevision?->note ?? $quote->note }}</p>
-    </section>
+    <section class="detail-card"><h2>Not</h2><p>{{ $commercialRevision?->note ?? $quote->note }}</p></section>
 @endif
 @endsection
