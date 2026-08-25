@@ -4,6 +4,7 @@ use App\Modules\Accounts\AccountB2BPolicyController;
 use App\Modules\Accounts\AccountController;
 use App\Modules\Accounts\AccountProfileController;
 use App\Modules\Accounts\AccountRecordsController;
+use App\Modules\Accounts\AccountStatementController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('customers')
@@ -57,6 +58,10 @@ Route::prefix('customers')
             ->whereNumber('attachment')
             ->middleware('can:accounts.manage')
             ->name('files.detach');
+        Route::get('/{account}/statement', [AccountStatementController::class, 'index'])
+            ->whereNumber('account')
+            ->middleware('can:accounts.view')
+            ->name('statement.index');
         Route::get('/{account}', [AccountController::class, 'show'])
             ->whereNumber('account')
             ->middleware('can:accounts.view')
