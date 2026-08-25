@@ -136,7 +136,7 @@ final readonly class StockMovementPoster
             $effectiveUnitCost = (string) $original->unit_cost;
             $absoluteValue = $this->absolute((string) $original->value_delta);
             $valueDelta = $this->negate($absoluteValue);
-            $row = DB::selectOne(<<<'SQL'
+            $reversalSql = <<<'SQL'
                 UPDATE stock_balances
                 SET quantity = quantity - CAST(? AS numeric),
                     inventory_value = inventory_value - CAST(? AS numeric),
@@ -156,21 +156,23 @@ final readonly class StockMovementPoster
                 RETURNING quantity::text AS quantity,
                           average_unit_cost::text AS average_unit_cost,
                           inventory_value::text AS inventory_value
-                SQL, [
-                    $quantity,
-                    $absoluteValue,
-                    $quantity,
-                    $absoluteValue,
-                    $quantity,
-                    $now,
-                    $balance->getKey(),
-                    $quantity,
-                    $absoluteValue,
-                    $quantity,
-                    $absoluteValue,
-                    $quantity,
-                    $absoluteValue,
-                ]);
+                SQL;
+            $reversalBindings = [
+                $quantity,
+                $absoluteValue,
+                $quantity,
+                $absoluteValue,
+                $quantity,
+                $now,
+                $balance->getKey(),
+                $quantity,
+                $absoluteValue,
+                $quantity,
+                $absoluteValue,
+                $quantity,
+                $absoluteValue,
+            ];
+            $row = DB::selectOne($reversalSql, $reversalBindings);
 
             if ($row === null) {
                 throw ValidationException::withMessages([
@@ -243,10 +245,6 @@ final readonly class StockMovementPoster
     private function reversalTarget(PostStockMovementData $data, int $companyId, string $quantity): ?StockMovement
     {
         if ($data->reversalOfMovementId === null) {
-            if ($data->movementType->isReversal()) {
-                throw new DomainException('Ters stok hareketi orijinal hareket lineage olmadan post edilemez.');
-            }
-
             return null;
         }
 
@@ -259,7 +257,7 @@ final readonly class StockMovementPoster
         if (! $original instanceof StockMovement) {
             throw new DomainException('Ters stok hareketi hedefi bulunamadı.');
         }
-        if ($original->reversal_of_movement_id !== null || $original->movement_type->isReversal()) {
+        if ($original->reversal_of_movement_id !== null) {
             throw new DomainException('Bir ters stok hareketi tekrar terslenemez.');
         }
         if ((int) $original->product_id !== $data->productId
@@ -269,8 +267,8 @@ final readonly class StockMovementPoster
         }
 
         $expectedType = $original->movement_type->isInbound()
-            ? StockMovementType::ReversalOut
-            : StockMovementType::ReversalIn;
+            ? StockMovementType::AdjustmentOut
+            : StockMovementType::AdjustmentIn;
         if ($data->movementType !== $expectedType) {
             throw new DomainException('Ters stok hareketinin yönü orijinal hareketin tam tersi olmalıdır.');
         }
