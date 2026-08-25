@@ -10,13 +10,15 @@
             <p>Fiziksel stok hareketlerinin company-scoped depo ve lokasyon master kayıtları.</p>
         </div>
         <div class="page-actions">
-            <a href="{{ route('inventory.index') }}" data-workspace-link>Ürünler</a>
+            @can('products.view')
+                <a href="{{ route('inventory.index') }}" data-workspace-link>Ürünler</a>
+            @endcan
             <a href="{{ route('inventory.stock.index') }}" data-workspace-link>Stok Bakiyeleri</a>
             <a href="{{ route('inventory.stock.movements') }}" data-workspace-link>Hareketler</a>
         </div>
     </section>
 
-    @can('products.manage')
+    @can('inventory.manage')
         <form method="post" action="{{ route('inventory.warehouses.store') }}" class="detail-card">
             @csrf
             <h2>Yeni Depo</h2>
@@ -70,7 +72,7 @@
                 </table>
             </div>
 
-            @can('products.manage')
+            @can('inventory.manage')
                 <form method="post" action="{{ route('inventory.warehouses.locations.store', $warehouse->getKey()) }}">
                     @csrf
                     <h3>Lokasyon Ekle</h3>
