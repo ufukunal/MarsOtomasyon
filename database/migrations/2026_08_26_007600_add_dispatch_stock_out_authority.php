@@ -106,19 +106,34 @@ SQL);
         DB::statement('ALTER TABLE stock_movements DROP CONSTRAINT stock_movements_dispatch_source_check');
         DB::statement('ALTER TABLE stock_movements DROP CONSTRAINT stock_movements_type_check');
         DB::statement('ALTER TABLE stock_movements DROP CONSTRAINT stock_movements_direction_check');
-        DB::statement(<<<'SQL'
-ALTER TABLE stock_movements
-ADD CONSTRAINT stock_movements_type_check
-CHECK (movement_type IN ('opening_in', 'adjustment_in', 'adjustment_out', 'transfer_in', 'transfer_out'))
-SQL);
-        DB::statement(<<<'SQL'
-ALTER TABLE stock_movements
-ADD CONSTRAINT stock_movements_direction_check
-CHECK (
-    (movement_type IN ('opening_in', 'adjustment_in', 'transfer_in') AND quantity_delta > 0 AND value_delta > 0 AND unit_cost > 0)
-    OR
-    (movement_type IN ('adjustment_out', 'transfer_out') AND quantity_delta < 0 AND value_delta <= 0 AND unit_cost >= 0)
-)
+
+        DB::unprepared(<<<'SQL'
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM stock_movements WHERE movement_type = 'dispatch_out') THEN
+        ALTER TABLE stock_movements
+            ADD CONSTRAINT stock_movements_type_check
+            CHECK (movement_type IN ('opening_in', 'adjustment_in', 'adjustment_out', 'transfer_in', 'transfer_out', 'dispatch_out'));
+        ALTER TABLE stock_movements
+            ADD CONSTRAINT stock_movements_direction_check
+            CHECK (
+                (movement_type IN ('opening_in', 'adjustment_in', 'transfer_in') AND quantity_delta > 0 AND value_delta > 0 AND unit_cost > 0)
+                OR
+                (movement_type IN ('adjustment_out', 'transfer_out', 'dispatch_out') AND quantity_delta < 0 AND value_delta <= 0 AND unit_cost >= 0)
+            );
+    ELSE
+        ALTER TABLE stock_movements
+            ADD CONSTRAINT stock_movements_type_check
+            CHECK (movement_type IN ('opening_in', 'adjustment_in', 'adjustment_out', 'transfer_in', 'transfer_out'));
+        ALTER TABLE stock_movements
+            ADD CONSTRAINT stock_movements_direction_check
+            CHECK (
+                (movement_type IN ('opening_in', 'adjustment_in', 'transfer_in') AND quantity_delta > 0 AND value_delta > 0 AND unit_cost > 0)
+                OR
+                (movement_type IN ('adjustment_out', 'transfer_out') AND quantity_delta < 0 AND value_delta <= 0 AND unit_cost >= 0)
+            );
+    END IF;
+END $$;
 SQL);
     }
 };
