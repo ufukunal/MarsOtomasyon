@@ -58,7 +58,8 @@ BEGIN
     SELECT status INTO dispatch_status
     FROM dispatches
     WHERE company_id = NEW.company_id
-      AND id = NEW.dispatch_id;
+      AND id = NEW.dispatch_id
+    FOR UPDATE;
 
     IF dispatch_status IS NULL THEN
         RAISE EXCEPTION 'dispatch quantity contract header not found' USING ERRCODE = '23503';
@@ -88,17 +89,30 @@ BEGIN
       AND sales_order_id = NEW.sales_order_id
       AND sales_order_line_id = NEW.sales_order_line_id;
 
-    SELECT COALESCE(SUM(line.quantity), 0)
-    INTO drafts
-    FROM dispatch_lines AS line
-    INNER JOIN dispatches AS dispatch
-      ON dispatch.company_id = line.company_id
-     AND dispatch.id = line.dispatch_id
-    WHERE line.company_id = NEW.company_id
-      AND line.sales_order_id = NEW.sales_order_id
-      AND line.sales_order_line_id = NEW.sales_order_line_id
-      AND dispatch.status = 'draft'
-      AND (TG_OP <> 'UPDATE' OR line.id <> OLD.id);
+    IF TG_OP = 'UPDATE' THEN
+        SELECT COALESCE(SUM(line.quantity), 0)
+        INTO drafts
+        FROM dispatch_lines AS line
+        INNER JOIN dispatches AS dispatch
+          ON dispatch.company_id = line.company_id
+         AND dispatch.id = line.dispatch_id
+        WHERE line.company_id = NEW.company_id
+          AND line.sales_order_id = NEW.sales_order_id
+          AND line.sales_order_line_id = NEW.sales_order_line_id
+          AND dispatch.status = 'draft'
+          AND line.id <> OLD.id;
+    ELSE
+        SELECT COALESCE(SUM(line.quantity), 0)
+        INTO drafts
+        FROM dispatch_lines AS line
+        INNER JOIN dispatches AS dispatch
+          ON dispatch.company_id = line.company_id
+         AND dispatch.id = line.dispatch_id
+        WHERE line.company_id = NEW.company_id
+          AND line.sales_order_id = NEW.sales_order_id
+          AND line.sales_order_line_id = NEW.sales_order_line_id
+          AND dispatch.status = 'draft';
+    END IF;
 
     IF dispatched + cancelled + drafts + NEW.quantity > ordered THEN
         RAISE EXCEPTION 'dispatch quantity exceeds order line remaining quantity' USING ERRCODE = '23514';
