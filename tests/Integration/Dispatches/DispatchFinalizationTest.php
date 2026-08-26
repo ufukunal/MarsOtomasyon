@@ -9,6 +9,7 @@ use App\Modules\Accounts\Models\Account;
 use App\Modules\Accounts\Models\AccountAddress;
 use App\Modules\Core\Authorization\AssignRoleToMembership;
 use App\Modules\Core\Authorization\GrantPermissionToRole;
+use App\Modules\Core\Company\ActiveCompanyContext;
 use App\Modules\Core\Enums\DocumentType;
 use App\Modules\Core\Enums\PermissionKey;
 use App\Modules\Core\Enums\UserStatus;
@@ -109,6 +110,7 @@ it('rolls stock reservation and progress back when final status cannot commit', 
     DB::statement("ALTER TABLE dispatches ADD CONSTRAINT dispatch74_force_finalization_failure CHECK (status <> 'finalized')");
     $this->actingAs($manager);
     session(['active_company_id' => $company->getKey()]);
+    app(ActiveCompanyContext::class)->set($company);
 
     try {
         expect(fn () => app(FinalizeDispatch::class)->handle((int) $dispatch->getKey()))
@@ -145,6 +147,7 @@ it('rejects incomplete raw finalization and freezes a finalized dispatch header'
 
     $this->actingAs($manager);
     session(['active_company_id' => $company->getKey()]);
+    app(ActiveCompanyContext::class)->set($company);
     app(FinalizeDispatch::class)->handle((int) $dispatch->getKey());
 
     expect(fn () => DB::table('dispatches')->where('id', $dispatch->getKey())->update([
@@ -165,6 +168,7 @@ it('excludes only the source draft line while preserving other draft capacity', 
 
     $this->actingAs($manager);
     session(['active_company_id' => $company->getKey()]);
+    app(ActiveCompanyContext::class)->set($company);
     app(FinalizeDispatch::class)->handle((int) $first->getKey());
 
     $capacity = DispatchOrderLineCapacity::query()
