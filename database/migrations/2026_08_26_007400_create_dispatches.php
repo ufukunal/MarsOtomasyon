@@ -111,8 +111,8 @@ return new class extends Migration
 
         DB::statement('ALTER TABLE dispatch_lines ADD CONSTRAINT dispatch_lines_position_check CHECK (position > 0)');
         DB::statement('ALTER TABLE dispatch_lines ADD CONSTRAINT dispatch_lines_quantity_check CHECK (quantity > 0)');
-        DB::statement("ALTER TABLE dispatch_lines ADD CONSTRAINT dispatch_lines_product_code_not_blank_check CHECK (char_length(btrim(product_code)) > 0)");
-        DB::statement("ALTER TABLE dispatch_lines ADD CONSTRAINT dispatch_lines_product_name_not_blank_check CHECK (char_length(btrim(product_name)) > 0)");
+        DB::statement('ALTER TABLE dispatch_lines ADD CONSTRAINT dispatch_lines_product_code_not_blank_check CHECK (char_length(btrim(product_code)) > 0)');
+        DB::statement('ALTER TABLE dispatch_lines ADD CONSTRAINT dispatch_lines_product_name_not_blank_check CHECK (char_length(btrim(product_name)) > 0)');
 
         DB::unprepared(<<<'SQL'
 CREATE OR REPLACE FUNCTION mars_guard_dispatch_source_order_mutation()
