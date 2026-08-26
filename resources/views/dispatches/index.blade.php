@@ -24,7 +24,13 @@
 <tr>
     <td><a href="{{ route('dispatches.show', $dispatch->getKey()) }}">{{ $dispatch->number }}</a></td>
     <td>{{ $dispatch->dispatch_date?->format('d.m.Y') }}</td>
-    <td><a href="{{ route('sales-orders.show', $dispatch->sales_order_id) }}">{{ $dispatch->salesOrder?->number }}</a></td>
+    <td>
+        @can('sales_orders.view')
+            <a href="{{ route('sales-orders.show', $dispatch->sales_order_id) }}">{{ $dispatch->salesOrder?->number }}</a>
+        @else
+            {{ $dispatch->salesOrder?->number }}
+        @endcan
+    </td>
     <td>{{ $dispatch->account?->legal_name }}</td>
     <td>{{ $dispatch->carrier_name ?? '—' }}</td>
     <td>{{ $dispatch->tracking_number ?? '—' }}</td>
