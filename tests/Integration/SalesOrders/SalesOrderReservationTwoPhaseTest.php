@@ -190,8 +190,7 @@ function m63PhaseOpening(
     Warehouse $warehouse,
     WarehouseLocation $location,
     string $quantity,
-): void
-{
+): void {
     DB::transaction(fn () => app(StockMovementPoster::class)->post(new PostStockMovementData(
         sourceEffect: new SourceEffectIdentity(
             (int) $company->getKey(),
@@ -215,8 +214,7 @@ function m63PhasePayload(
     Warehouse $warehouse,
     WarehouseLocation $location,
     string $logicalLineKey,
-): array
-{
+): array {
     return [
         'series_code' => 'default',
         'account_id' => $account->getKey(),
