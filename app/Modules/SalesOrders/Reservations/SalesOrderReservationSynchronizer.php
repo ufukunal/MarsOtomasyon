@@ -15,7 +15,9 @@ final readonly class SalesOrderReservationSynchronizer
 {
     private const SOURCE_TYPE = 'sales_order';
 
-    public function __construct(private StockReservationService $reservations) {}
+    public function __construct(
+        private StockReservationService $reservations,
+    ) {}
 
     public function sync(SalesOrder $order, ResolvedSalesOrderDraft $draft): void
     {
@@ -33,6 +35,11 @@ final readonly class SalesOrderReservationSynchronizer
             ->get()
             ->keyBy('logical_line_key');
 
+        /** @var list<SalesOrderReservationGeneration> $toRelease */
+        $toRelease = [];
+        /** @var list<ResolvedSalesOrderLine> $toReserve */
+        $toReserve = [];
+
         foreach ($draft->lines as $line) {
             $key = $line->logicalLineKey;
             /** @var SalesOrderReservationGeneration|null $current */
@@ -40,29 +47,39 @@ final readonly class SalesOrderReservationSynchronizer
 
             if ($line->warehouseId === null || $line->locationId === null) {
                 if ($current !== null) {
-                    $this->release($order, $current);
+                    $toRelease[] = $current;
                     $active->forget($key);
                 }
+
                 continue;
             }
 
             if ($current !== null && $this->matches($current, $line)) {
                 $active->forget($key);
+
                 continue;
             }
 
             if ($current !== null) {
-                $this->release($order, $current);
+                $toRelease[] = $current;
                 $active->forget($key);
             }
 
-            $this->reserve($order, $line);
+            $toReserve[] = $line;
         }
 
         foreach ($active as $generation) {
             if ($generation instanceof SalesOrderReservationGeneration) {
-                $this->release($order, $generation);
+                $toRelease[] = $generation;
             }
+        }
+
+        foreach ($toRelease as $generation) {
+            $this->release($order, $generation);
+        }
+
+        foreach ($toReserve as $line) {
+            $this->reserve($order, $line);
         }
     }
 
