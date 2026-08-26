@@ -4,7 +4,7 @@
 
 @section('app-content')
 <section class="workspace-hero">
-    <div><p class="eyebrow">Satış / İrsaliye</p><h1>{{ $dispatch->number }}</h1><p>Satış siparişi kaynaklı taslak irsaliye.</p></div>
+    <div><p class="eyebrow">Satış / İrsaliye</p><h1>{{ $dispatch->number }}</h1><p>Satış siparişi kaynaklı taslak irsaliye. M7.2 miktar contract'ı sipariş ve diğer taslaklarla ortak kapasiteyi gösterir.</p></div>
     <div class="page-actions">
         <a href="{{ route('dispatches.index') }}">Liste</a>
         @can('sales_orders.view')<a href="{{ route('sales-orders.show', $dispatch->sales_order_id) }}">Kaynak Sipariş</a>@endcan
@@ -34,15 +34,19 @@
 </section>
 
 <section class="statement-table-card">
-<table class="data-table"><thead><tr><th>#</th><th>Sipariş Satırı</th><th>Ürün Snapshot</th><th>Açıklama</th><th>Depo / Konum</th><th>Miktar</th></tr></thead><tbody>
+<table class="data-table"><thead><tr><th>#</th><th>Sipariş Satırı</th><th>Ürün Snapshot</th><th>Açıklama</th><th>Depo / Konum</th><th>Sipariş</th><th>Bu İrsaliye</th><th>Sevk/Taslak Toplamı</th><th>Kalan</th></tr></thead><tbody>
 @foreach($dispatch->lines as $line)
+@php($capacity = $capacities->get($line->sales_order_line_id))
 <tr>
     <td>{{ $line->position }}</td>
     <td>#{{ $line->sales_order_line_id }}</td>
     <td>{{ $line->product_code }} — {{ $line->product_name }}</td>
     <td>{{ $line->description }}</td>
     <td>{{ $line->warehouse?->code ?? '—' }} / {{ $line->location?->code ?? '—' }}</td>
+    <td>{{ $capacity?->ordered_quantity ?? $line->salesOrderLine?->quantity ?? '—' }}</td>
     <td>{{ $line->quantity }}</td>
+    <td>{{ $capacity?->previous_quantity ?? '—' }}</td>
+    <td>{{ $capacity?->remaining_quantity ?? '—' }}</td>
 </tr>
 @endforeach
 </tbody></table>
