@@ -38,7 +38,7 @@ beforeEach(function (): void {
     $this->withoutVite();
 });
 
-it('inherits reserved order allocation and rejects dispatch allocation override', function (): void {
+it('inherits reserved order allocation rejects override and locks the source order after dispatch lineage', function (): void {
     [$company, $account, $product, $address, $warehouse, $location] = dispatch71AllocatedFixture('DSP71-INHERIT');
     $alternateWarehouse = Warehouse::query()->create([
         'company_id' => $company->getKey(), 'code' => 'ALT', 'name' => 'Alternatif Depo', 'is_active' => true,
@@ -97,6 +97,17 @@ it('inherits reserved order allocation and rejects dispatch allocation override'
         ->and((int) $dispatchLine->location_id)->toBe((int) $location->getKey())
         ->and(DB::table('stock_movements')->count())->toBe($stockBefore)
         ->and(DB::table('sales_order_line_progress_effects')->count())->toBe($progressBefore);
+
+    $this->actingAs($manager)->withSession(['active_company_id' => $company->getKey()])
+        ->get('/sales-orders/'.$order->getKey().'/edit')
+        ->assertStatus(409);
+    $this->actingAs($manager)->withSession(['active_company_id' => $company->getKey()])
+        ->put('/sales-orders/'.$order->getKey(), [])
+        ->assertStatus(409);
+    $this->actingAs($manager)->withSession(['active_company_id' => $company->getKey()])
+        ->get('/sales-orders/'.$order->getKey())
+        ->assertOk()
+        ->assertDontSee('/sales-orders/'.$order->getKey().'/edit', false);
 });
 
 /** @return array{Company, Account, Product, AccountAddress, Warehouse, WarehouseLocation} */
