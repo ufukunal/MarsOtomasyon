@@ -202,7 +202,7 @@ it('blocks incomplete raw cancellation and stranded source-specific reversals', 
     expect(fn () => DB::transaction(fn () => app(SalesOrderProgressService::class)->reverse(
         new SourceEffectIdentity((int) $company->getKey(), 'dispatch_line', (string) $line->getKey(), 'progress.dispatch.reverse'),
         (int) $progressOriginal->getKey(),
-    )))->toThrow(QueryException::class);
+    )))->toThrow(\PDOException::class);
 
     $stockOriginal = StockMovement::query()
         ->where('source_type', 'dispatch_line')
@@ -212,7 +212,7 @@ it('blocks incomplete raw cancellation and stranded source-specific reversals', 
     expect(fn () => DB::transaction(fn () => app(StockMovementReverser::class)->reverse(
         (int) $stockOriginal->getKey(),
         new SourceEffectIdentity((int) $company->getKey(), 'dispatch_line', (string) $line->getKey(), 'stock.out.reverse'),
-    )))->toThrow(QueryException::class);
+    )))->toThrow(\PDOException::class);
 
     $this->actingAs($manager)
         ->withSession(['active_company_id' => $company->getKey()])
