@@ -6,13 +6,16 @@ use App\Modules\Accounts\Models\Account;
 use App\Modules\Core\Company\ActiveCompanyContext;
 use App\Modules\Core\Models\Currency;
 use App\Modules\Core\Models\TaxZeroReason;
+use App\Modules\Products\Enums\ProductStatus;
 use App\Modules\Products\Models\Product;
+use App\Modules\Products\Search\ProductSearchQuery;
 use App\Modules\Quotes\Pricing\PriceBasis;
 use App\Modules\SalesOrders\Actions\CreateSalesOrder;
 use App\Modules\SalesOrders\Actions\SalesOrderDraftData;
 use App\Modules\SalesOrders\Actions\SalesOrderLineData;
 use App\Modules\SalesOrders\Actions\UpdateSalesOrder;
 use App\Modules\SalesOrders\Models\SalesOrder;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -24,6 +27,7 @@ final readonly class SalesOrderController
         private ActiveCompanyContext $companyContext,
         private CreateSalesOrder $createSalesOrder,
         private UpdateSalesOrder $updateSalesOrder,
+        private ProductSearchQuery $productSearchQuery,
     ) {}
 
     public function index(Request $request): View
@@ -55,9 +59,45 @@ final readonly class SalesOrderController
         ]);
     }
 
-    public function create(): View
+    public function create(Request $request): View
     {
-        return $this->form(null);
+        return $this->form($request, null);
+    }
+
+    public function productSearch(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'q' => ['required', 'string', 'max:128'],
+        ]);
+        $search = trim((string) $validated['q']);
+        if ($search === '') {
+            return response()->json(['data' => []]);
+        }
+
+        $products = $this->productSearchQuery
+            ->build($this->companyId(), $search, ProductStatus::Active)
+            ->with('tax')
+            ->orderBy('name')
+            ->orderBy('code')
+            ->limit(20)
+            ->get();
+
+        $data = $products->map(static function (Product $product): array {
+            $tax = $product->tax;
+
+            return [
+                'id' => (int) $product->getKey(),
+                'code' => (string) $product->code,
+                'name' => (string) $product->name,
+                'label' => (string) $product->code.' — '.(string) $product->name,
+                'sale_price_net' => (string) $product->sale_price_net,
+                'tax_id' => (int) $product->tax_id,
+                'tax_code' => (string) $tax->code,
+                'tax_rate' => (string) $tax->rate,
+            ];
+        })->values()->all();
+
+        return response()->json(['data' => $data]);
     }
 
     public function store(Request $request): RedirectResponse
@@ -85,14 +125,14 @@ final readonly class SalesOrderController
         return view('sales-orders.show', ['order' => $order]);
     }
 
-    public function edit(int $salesOrder): View
+    public function edit(Request $request, int $salesOrder): View
     {
         $order = $this->salesOrder($salesOrder)->load('lines');
         if (! $order->isDraft() || ! $order->isManual()) {
             abort(409, 'Yalnız manuel oluşturulmuş taslak siparişler düzenlenebilir.');
         }
 
-        return $this->form($order);
+        return $this->form($request, $order);
     }
 
     public function update(Request $request, int $salesOrder): RedirectResponse
@@ -104,7 +144,7 @@ final readonly class SalesOrderController
         return redirect()->route('sales-orders.show', $updated->getKey())->with('status', 'Satış siparişi güncellendi.');
     }
 
-    private function form(?SalesOrder $order): View
+    private function form(Request $request, ?SalesOrder $order): View
     {
         $companyId = $this->companyId();
 
@@ -113,13 +153,46 @@ final readonly class SalesOrderController
             'accounts' => Account::query()
                 ->where('company_id', $companyId)->where('status', 'active')
                 ->whereIn('type', ['customer', 'mixed'])->orderBy('legal_name')->get(),
-            'products' => Product::query()->with('tax')
-                ->where('company_id', $companyId)->where('status', 'active')->orderBy('name')->get(),
+            'selectedProductLabels' => $this->selectedProductLabels($request, $order),
             'zeroReasons' => TaxZeroReason::query()
                 ->where('company_id', $companyId)->where('is_active', true)->orderBy('code')->get(),
             'currencies' => Currency::query()->where('is_active', true)->orderBy('code')->get(),
             'priceBases' => PriceBasis::cases(),
         ]);
+    }
+
+    /** @return array<int, string> */
+    private function selectedProductLabels(Request $request, ?SalesOrder $order): array
+    {
+        $productIds = [];
+        $oldLines = $request->old('lines');
+        if (is_array($oldLines)) {
+            foreach ($oldLines as $line) {
+                if (is_array($line) && isset($line['product_id']) && is_numeric($line['product_id'])) {
+                    $productIds[] = (int) $line['product_id'];
+                }
+            }
+        } elseif ($order !== null) {
+            foreach ($order->lines as $line) {
+                $productIds[] = (int) $line->product_id;
+            }
+        }
+
+        $productIds = array_values(array_unique(array_filter($productIds, static fn (int $id): bool => $id > 0)));
+        if ($productIds === []) {
+            return [];
+        }
+
+        $labels = [];
+        $products = Product::query()
+            ->where('company_id', $this->companyId())
+            ->whereIn('id', $productIds)
+            ->get(['id', 'code', 'name']);
+        foreach ($products as $product) {
+            $labels[(int) $product->getKey()] = (string) $product->code.' — '.(string) $product->name;
+        }
+
+        return $labels;
     }
 
     /** @return array<string, mixed> */

@@ -11,7 +11,7 @@
 <section class="detail-card"><strong>Sipariş kaydedilemedi.</strong><ul>@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></section>
 @endif
 
-<form method="post" action="{{ $order === null ? route('sales-orders.store') : route('sales-orders.update', $order->getKey()) }}" class="detail-card" id="sales-order-form">
+<form method="post" action="{{ $order === null ? route('sales-orders.store') : route('sales-orders.update', $order->getKey()) }}" class="detail-card" id="sales-order-form" data-product-search-url="{{ route('sales-orders.product-search') }}">
     @csrf
     @if($order !== null) @method('put') @endif
     <div class="form-grid">
@@ -33,11 +33,22 @@
     <section class="statement-table-card">
         <table class="data-table" id="sales-order-lines"><thead><tr><th>Ürün</th><th>Açıklama</th><th>Miktar</th><th>Fiyat</th><th>Fiyat Tipi</th><th>İskonto %</th><th>KDV 0 Nedeni</th></tr></thead><tbody>
         @foreach($formLines as $i => $line)
+        @php
+            $productId = isset($line['product_id']) && is_numeric($line['product_id']) ? (int) $line['product_id'] : null;
+            $productLabel = $productId === null ? '' : ($selectedProductLabels[$productId] ?? '');
+        @endphp
         <tr>
-            <td><select name="lines[{{ $i }}][product_id]" required><option value="">Seçin</option>@foreach($products as $product)<option value="{{ $product->getKey() }}" @selected((string)($line['product_id'] ?? '') === (string)$product->getKey())>{{ $product->code }} — {{ $product->name }} (KDV %{{ $product->tax->rate }})</option>@endforeach</select></td>
+            <td>
+                <div class="product-search-entry" data-product-search-entry>
+                    <input type="hidden" name="lines[{{ $i }}][product_id]" value="{{ $productId ?? '' }}" data-product-id>
+                    <input type="search" value="{{ $productLabel }}" placeholder="SKU, barkod, QR veya ürün adı" autocomplete="off" data-product-search-input aria-label="Ürün ara" aria-autocomplete="list" aria-expanded="false" required>
+                    <div class="product-search-results" data-product-search-results role="listbox" hidden></div>
+                    <small data-product-search-help>SKU, barkod, QR/scanner metni veya ürün adıyla arayın.</small>
+                </div>
+            </td>
             <td><input name="lines[{{ $i }}][description]" value="{{ $line['description'] ?? '' }}"></td>
             <td><input name="lines[{{ $i }}][quantity]" value="{{ $line['quantity'] ?? '1' }}" required></td>
-            <td><input name="lines[{{ $i }}][unit_price]" value="{{ $line['unit_price'] ?? '0' }}" required></td>
+            <td><input name="lines[{{ $i }}][unit_price]" value="{{ $line['unit_price'] ?? '0' }}" data-product-unit-price required></td>
             <td><select name="lines[{{ $i }}][price_basis]">@foreach($priceBases as $basis)<option value="{{ $basis->value }}" @selected(($line['price_basis'] ?? 'net') === $basis->value)>{{ $basis->value === 'net' ? 'KDV Hariç' : 'KDV Dahil' }}</option>@endforeach</select></td>
             <td><input name="lines[{{ $i }}][line_discount_rate]" value="{{ $line['line_discount_rate'] ?? '0' }}" required></td>
             <td><select name="lines[{{ $i }}][tax_zero_reason_id]"><option value="">—</option>@foreach($zeroReasons as $reason)<option value="{{ $reason->getKey() }}" @selected((string)($line['tax_zero_reason_id'] ?? '') === (string)$reason->getKey())>{{ $reason->code }} — {{ $reason->name }}</option>@endforeach</select></td>
