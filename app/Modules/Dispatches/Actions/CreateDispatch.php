@@ -9,6 +9,8 @@ use App\Modules\Core\Enums\DocumentType;
 use App\Modules\Core\Numbering\DocumentNumberIssuer;
 use App\Modules\Dispatches\Enums\DispatchStatus;
 use App\Modules\Dispatches\Models\Dispatch;
+use App\Modules\Inventory\Models\Warehouse;
+use App\Modules\Inventory\Models\WarehouseLocation;
 use App\Modules\SalesOrders\Models\SalesOrder;
 use App\Modules\SalesOrders\Models\SalesOrderLine;
 use DomainException;
@@ -69,6 +71,8 @@ final readonly class CreateDispatch
                     throw ValidationException::withMessages(['lines' => 'İrsaliye satırlarının tamamı seçilen satış siparişine ait olmalıdır.']);
                 }
 
+                $allocations = $this->resolveAllocations($companyId, $data->lines, $orderLines);
+
                 $number = $this->numbers->issue($companyId, DocumentType::Dispatch, $seriesCode);
                 $dispatch = Dispatch::query()->create([
                     'company_id' => $companyId,
@@ -95,14 +99,15 @@ final readonly class CreateDispatch
 
                 foreach ($data->lines as $index => $lineData) {
                     $source = $orderLines[$lineData->salesOrderLineId];
+                    $allocation = $allocations[$lineData->salesOrderLineId];
                     $dispatch->lines()->create([
                         'company_id' => $companyId,
                         'sales_order_id' => $order->getKey(),
                         'sales_order_line_id' => $source->getKey(),
                         'position' => $index + 1,
                         'product_id' => $source->product_id,
-                        'warehouse_id' => $source->warehouse_id,
-                        'location_id' => $source->location_id,
+                        'warehouse_id' => $allocation['warehouse_id'],
+                        'location_id' => $allocation['location_id'],
                         'product_code' => $source->product_code,
                         'product_name' => $source->product_name,
                         'description' => $source->description,
@@ -115,6 +120,88 @@ final readonly class CreateDispatch
         } catch (DomainException $exception) {
             throw ValidationException::withMessages(['series_code' => $exception->getMessage()]);
         }
+    }
+
+    /**
+     * @param list<DispatchLineData> $lines
+     * @param array<int, SalesOrderLine> $orderLines
+     * @return array<int, array{warehouse_id:int,location_id:int}>
+     */
+    private function resolveAllocations(int $companyId, array $lines, array $orderLines): array
+    {
+        $allocations = [];
+        $warehouseIds = [];
+        $locationIds = [];
+
+        foreach ($lines as $index => $lineData) {
+            $source = $orderLines[$lineData->salesOrderLineId];
+            $sourceWarehouseId = $source->warehouse_id === null ? null : (int) $source->warehouse_id;
+            $sourceLocationId = $source->location_id === null ? null : (int) $source->location_id;
+
+            if (($lineData->warehouseId === null) !== ($lineData->locationId === null)) {
+                throw ValidationException::withMessages([
+                    "lines.$index.allocation_key" => 'Depo ve konum birlikte seçilmelidir.',
+                ]);
+            }
+
+            if ($sourceWarehouseId !== null && $sourceLocationId !== null) {
+                if (($lineData->warehouseId !== null && $lineData->warehouseId !== $sourceWarehouseId)
+                    || ($lineData->locationId !== null && $lineData->locationId !== $sourceLocationId)) {
+                    throw ValidationException::withMessages([
+                        "lines.$index.allocation_key" => 'Rezerve sipariş satırının depo/konum allocation değeri irsaliyede değiştirilemez.',
+                    ]);
+                }
+
+                $warehouseId = $sourceWarehouseId;
+                $locationId = $sourceLocationId;
+            } else {
+                if ($lineData->warehouseId === null || $lineData->locationId === null) {
+                    throw ValidationException::withMessages([
+                        "lines.$index.allocation_key" => 'Depo allocation değeri olmayan sipariş satırı için sevk depo/konumu seçilmelidir.',
+                    ]);
+                }
+
+                $warehouseId = $lineData->warehouseId;
+                $locationId = $lineData->locationId;
+            }
+
+            $allocations[$lineData->salesOrderLineId] = [
+                'warehouse_id' => $warehouseId,
+                'location_id' => $locationId,
+            ];
+            $warehouseIds[$warehouseId] = true;
+            $locationIds[$locationId] = true;
+        }
+
+        $activeWarehouses = [];
+        foreach (Warehouse::query()
+            ->where('company_id', $companyId)
+            ->whereIn('id', array_keys($warehouseIds))
+            ->where('is_active', true)
+            ->get(['id']) as $warehouse) {
+            $activeWarehouses[(int) $warehouse->getKey()] = true;
+        }
+
+        $activeLocations = [];
+        foreach (WarehouseLocation::query()
+            ->where('company_id', $companyId)
+            ->whereIn('warehouse_id', array_keys($warehouseIds))
+            ->whereIn('id', array_keys($locationIds))
+            ->where('is_active', true)
+            ->get(['id', 'warehouse_id']) as $location) {
+            $activeLocations[(int) $location->warehouse_id.':'.(int) $location->getKey()] = true;
+        }
+
+        foreach ($allocations as $lineId => $allocation) {
+            if (! isset($activeWarehouses[$allocation['warehouse_id']])
+                || ! isset($activeLocations[$allocation['warehouse_id'].':'.$allocation['location_id']])) {
+                throw ValidationException::withMessages([
+                    'lines' => "Sipariş satırı #$lineId için seçilen depo/konum aktif şirkete ait ve aktif olmalıdır.",
+                ]);
+            }
+        }
+
+        return $allocations;
     }
 
     private function nullableTrimmed(?string $value): ?string
