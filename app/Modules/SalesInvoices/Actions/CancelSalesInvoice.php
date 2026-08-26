@@ -60,16 +60,18 @@ final readonly class CancelSalesInvoice
                 throw new LogicException('Satış faturası cari effecti bulunamadı.');
             }
 
+            $cancelledAt = $this->clock->now();
+
             $this->accountTransactions->reverse(
                 originalTransactionId: (int) $original->getKey(),
-                postingDate: $this->clock->now()->format('Y-m-d'),
+                postingDate: $cancelledAt->format('Y-m-d'),
                 sourceEffect: $this->identity($invoice, 'account.sales_invoice.reverse'),
                 memo: 'Satış faturası iptali '.$invoice->number,
             );
 
             $invoice->forceFill([
                 'status' => SalesInvoiceStatus::Cancelled,
-                'cancelled_at' => $this->clock->now(),
+                'cancelled_at' => $cancelledAt,
             ])->save();
 
             return $invoice->refresh();
