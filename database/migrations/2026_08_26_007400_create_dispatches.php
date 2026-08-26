@@ -5,8 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     public function up(): void
     {
         $now = now();
@@ -29,9 +28,6 @@ return new class extends Migration
 
         Schema::table('sales_orders', function (Blueprint $table): void {
             $table->unique(['company_id', 'account_id', 'id'], 'sales_orders_company_account_id_unique');
-        });
-        Schema::table('sales_order_lines', function (Blueprint $table): void {
-            $table->unique(['company_id', 'sales_order_id', 'id'], 'sales_order_lines_company_order_id_unique');
         });
         Schema::table('account_addresses', function (Blueprint $table): void {
             $table->unique(['company_id', 'account_id', 'id'], 'account_addresses_company_account_id_unique');
@@ -126,9 +122,6 @@ return new class extends Migration
 
         Schema::table('account_addresses', function (Blueprint $table): void {
             $table->dropUnique('account_addresses_company_account_id_unique');
-        });
-        Schema::table('sales_order_lines', function (Blueprint $table): void {
-            $table->dropUnique('sales_order_lines_company_order_id_unique');
         });
         Schema::table('sales_orders', function (Blueprint $table): void {
             $table->dropUnique('sales_orders_company_account_id_unique');
