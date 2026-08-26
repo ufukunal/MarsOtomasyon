@@ -85,8 +85,8 @@ return new class extends Migration {
             $table->unsignedBigInteger('sales_order_line_id');
             $table->unsignedInteger('position');
             $table->unsignedBigInteger('product_id');
-            $table->unsignedBigInteger('warehouse_id')->nullable();
-            $table->unsignedBigInteger('location_id')->nullable();
+            $table->unsignedBigInteger('warehouse_id');
+            $table->unsignedBigInteger('location_id');
             $table->string('product_code', 64);
             $table->string('product_name', 200);
             $table->string('description', 200)->nullable();
@@ -112,7 +112,6 @@ return new class extends Migration {
         DB::statement('ALTER TABLE dispatch_lines ADD CONSTRAINT dispatch_lines_quantity_check CHECK (quantity > 0)');
         DB::statement("ALTER TABLE dispatch_lines ADD CONSTRAINT dispatch_lines_product_code_not_blank_check CHECK (char_length(btrim(product_code)) > 0)");
         DB::statement("ALTER TABLE dispatch_lines ADD CONSTRAINT dispatch_lines_product_name_not_blank_check CHECK (char_length(btrim(product_name)) > 0)");
-        DB::statement('ALTER TABLE dispatch_lines ADD CONSTRAINT dispatch_lines_allocation_shape_check CHECK ((warehouse_id IS NULL AND location_id IS NULL) OR (warehouse_id IS NOT NULL AND location_id IS NOT NULL))');
     }
 
     public function down(): void
