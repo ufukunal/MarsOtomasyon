@@ -62,6 +62,15 @@ it('keeps order product search active-company scoped and behind sales order mana
     m62Product($companyA, $categoryA, $unitA, $taxA, 'LAMP-INACTIVE', 'Ortak Arama Lambası Pasif', ProductStatus::Inactive);
     m62Product($companyB, $categoryB, $unitB, $taxB, 'LAMP-FOREIGN', 'Ortak Arama Lambası Yabancı');
 
+    $inactiveTax = Tax::query()->create([
+        'company_id' => $companyA->getKey(),
+        'code' => 'KDV18-OFF',
+        'name' => 'KDV %18 Pasif',
+        'rate' => '18.000000',
+        'is_active' => false,
+    ]);
+    m62Product($companyA, $categoryA, $unitA, $inactiveTax, 'LAMP-INACTIVE-TAX', 'Ortak Arama Lambası Pasif Vergi');
+
     $manager = m62Actor($companyA, [PermissionKey::SalesOrderManage], 'scope-manager');
     $viewer = m62Actor($companyA, [PermissionKey::SalesOrderView], 'viewer');
     $productViewer = m62Actor($companyA, [PermissionKey::ProductView], 'product-viewer');

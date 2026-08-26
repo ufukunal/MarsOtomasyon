@@ -5,6 +5,7 @@ namespace App\Modules\SalesOrders;
 use App\Modules\Accounts\Models\Account;
 use App\Modules\Core\Company\ActiveCompanyContext;
 use App\Modules\Core\Models\Currency;
+use App\Modules\Core\Models\Tax;
 use App\Modules\Core\Models\TaxZeroReason;
 use App\Modules\Products\Enums\ProductStatus;
 use App\Modules\Products\Models\Product;
@@ -15,11 +16,13 @@ use App\Modules\SalesOrders\Actions\SalesOrderDraftData;
 use App\Modules\SalesOrders\Actions\SalesOrderLineData;
 use App\Modules\SalesOrders\Actions\UpdateSalesOrder;
 use App\Modules\SalesOrders\Models\SalesOrder;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
+use LogicException;
 
 final readonly class SalesOrderController
 {
@@ -74,8 +77,12 @@ final readonly class SalesOrderController
             return response()->json(['data' => []]);
         }
 
+        $companyId = $this->companyId();
         $products = $this->productSearchQuery
-            ->build($this->companyId(), $search, ProductStatus::Active)
+            ->build($companyId, $search, ProductStatus::Active)
+            ->whereHas('tax', function (Builder $query) use ($companyId): void {
+                $query->where('company_id', $companyId)->where('is_active', true);
+            })
             ->with('tax')
             ->orderBy('name')
             ->orderBy('code')
@@ -84,6 +91,9 @@ final readonly class SalesOrderController
 
         $data = $products->map(static function (Product $product): array {
             $tax = $product->tax;
+            if (! $tax instanceof Tax) {
+                throw new LogicException('Order product search requires a persisted tax relation.');
+            }
 
             return [
                 'id' => (int) $product->getKey(),
