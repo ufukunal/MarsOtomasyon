@@ -63,11 +63,10 @@ final readonly class DispatchStockOutService
     private function postLine(DispatchLine $line): StockMovement
     {
         $companyId = (int) $line->company_id;
-        $sourceId = (string) $line->getKey();
         $existing = StockMovement::query()
             ->where('company_id', $companyId)
             ->where('source_type', self::SOURCE_TYPE)
-            ->where('source_id', $sourceId)
+            ->where('source_id', (string) $line->getKey())
             ->where('effect_type', self::STOCK_EFFECT)
             ->first();
 
@@ -142,6 +141,12 @@ final readonly class DispatchStockOutService
             return $movement;
         }
 
+        if ($orderLine->warehouse_id !== null || $orderLine->location_id !== null) {
+            throw ValidationException::withMessages([
+                'dispatch' => 'Allocation bağlı sipariş satırı için aktif stok rezervasyon generation bulunamadı.',
+            ]);
+        }
+
         return $this->postMovement($line);
     }
 
@@ -174,7 +179,7 @@ final readonly class DispatchStockOutService
 
     private function postMovement(DispatchLine $line): StockMovement
     {
-        $result = $this->stock->post(new PostStockMovementData(
+        return $this->stock->post(new PostStockMovementData(
             sourceEffect: $this->identity($line, self::STOCK_EFFECT),
             productId: (int) $line->product_id,
             warehouseId: (int) $line->warehouse_id,
@@ -182,9 +187,7 @@ final readonly class DispatchStockOutService
             movementType: StockMovementType::DispatchOut,
             quantity: (string) $line->quantity,
             note: 'İrsaliye stok çıkışı #'.(int) $line->dispatch_id,
-        ));
-
-        return $result->movement;
+        ))->movement;
     }
 
     private function identity(DispatchLine $line, string $effectType): SourceEffectIdentity
@@ -219,7 +222,10 @@ final readonly class DispatchStockOutService
 
     private function compare(string $left, string $right): int
     {
-        $row = DB::selectOne('SELECT CASE WHEN CAST(? AS numeric) < CAST(? AS numeric) THEN -1 WHEN CAST(? AS numeric) > CAST(? AS numeric) THEN 1 ELSE 0 END AS value', [$left, $right, $left, $right]);
+        $row = DB::selectOne(
+            'SELECT CASE WHEN CAST(? AS numeric) < CAST(? AS numeric) THEN -1 WHEN CAST(? AS numeric) > CAST(? AS numeric) THEN 1 ELSE 0 END AS value',
+            [$left, $right, $left, $right],
+        );
 
         return $row === null
             ? throw new LogicException('Numeric comparison did not return a value.')
@@ -228,7 +234,10 @@ final readonly class DispatchStockOutService
 
     private function subtract(string $left, string $right): string
     {
-        $row = DB::selectOne('SELECT CAST(CAST(? AS numeric) - CAST(? AS numeric) AS numeric(20,6))::text AS value', [$left, $right]);
+        $row = DB::selectOne(
+            'SELECT CAST(CAST(? AS numeric) - CAST(? AS numeric) AS numeric(20,6))::text AS value',
+            [$left, $right],
+        );
 
         return $row === null
             ? throw new LogicException('Numeric subtraction did not return a value.')
