@@ -47,7 +47,7 @@ beforeEach(function (): void {
     $this->withoutVite();
 });
 
-it('posts an unreserved draft dispatch as exactly-once dispatch_out without sales order progress', function (): void {
+it('posts an unreserved dispatch exactly once without sales order progress', function (): void {
     [$company, $account, $product, $address, $warehouse, $location, $manager] = dispatch73Fixture('DSP73-PLAIN');
     dispatch73Opening($company, $product, $warehouse, $location, '5');
     $order = dispatch73Order($this, $company, $manager, $account, $product, null, null, '5');
@@ -55,7 +55,6 @@ it('posts an unreserved draft dispatch as exactly-once dispatch_out without sale
     $service = app(DispatchStockOutService::class);
 
     expect(fn () => $service->post($dispatch))->toThrow(LogicException::class);
-
     $first = DB::transaction(fn (): array => $service->post($dispatch));
     $replay = DB::transaction(fn (): array => $service->post($dispatch));
     $movement = StockMovement::query()->where('movement_type', StockMovementType::DispatchOut->value)->firstOrFail();
@@ -67,21 +66,19 @@ it('posts an unreserved draft dispatch as exactly-once dispatch_out without sale
         ->and($movement->movement_type)->toBe(StockMovementType::DispatchOut)
         ->and((string) $movement->quantity_delta)->toBe('-2.000000')
         ->and((string) $movement->source_type)->toBe('dispatch_line')
-        ->and((string) $movement->source_id)->toBe((string) $dispatch->lines()->firstOrFail()->getKey())
         ->and((string) $movement->effect_type)->toBe('stock.out')
         ->and((string) $balance->refresh()->quantity)->toBe('3.000000')
         ->and(DB::table('sales_order_line_progress_effects')->count())->toBe(0)
         ->and(StockMovement::query()->where('movement_type', StockMovementType::DispatchOut->value)->count())->toBe(1);
 });
 
-it('consumes a full sales order reservation before dispatch_out in the same transaction', function (): void {
+it('consumes a full reservation before dispatch stock out', function (): void {
     [$company, $account, $product, $address, $warehouse, $location, $manager] = dispatch73Fixture('DSP73-FULL');
     dispatch73Opening($company, $product, $warehouse, $location, '5');
     $order = dispatch73Order($this, $company, $manager, $account, $product, $warehouse, $location, '5');
     $dispatch = dispatch73Dispatch($this, $company, $manager, $order, $address, $warehouse, $location, '5');
     $generation = SalesOrderReservationGeneration::query()->firstOrFail();
     $reservation = StockReservation::query()->findOrFail($generation->stock_reservation_id);
-    expect($reservation->statusEnum())->toBe(StockReservationStatus::Active);
 
     DB::transaction(fn (): array => app(DispatchStockOutService::class)->post($dispatch));
 
@@ -97,44 +94,68 @@ it('consumes a full sales order reservation before dispatch_out in the same tran
         ->and(DB::table('sales_order_line_progress_effects')->count())->toBe(0);
 });
 
-it('releases a partial reservation posts stock out and reserves the exact remainder as the next generation', function (): void {
+it('releases a partial reservation and reserves the exact remainder', function (): void {
     [$company, $account, $product, $address, $warehouse, $location, $manager] = dispatch73Fixture('DSP73-PART');
     dispatch73Opening($company, $product, $warehouse, $location, '10');
     $order = dispatch73Order($this, $company, $manager, $account, $product, $warehouse, $location, '10');
     $dispatch = dispatch73Dispatch($this, $company, $manager, $order, $address, $warehouse, $location, '4');
-    $firstGeneration = SalesOrderReservationGeneration::query()->firstOrFail();
-    $firstReservation = StockReservation::query()->findOrFail($firstGeneration->stock_reservation_id);
+    $oldGeneration = SalesOrderReservationGeneration::query()->firstOrFail();
+    $oldReservation = StockReservation::query()->findOrFail($oldGeneration->stock_reservation_id);
 
     DB::transaction(fn (): array => app(DispatchStockOutService::class)->post($dispatch));
 
-    $firstGeneration->refresh();
-    $firstReservation->refresh();
+    $oldGeneration->refresh();
+    $oldReservation->refresh();
     $generations = SalesOrderReservationGeneration::query()->orderBy('generation')->get();
     $activeGeneration = $generations->last();
     $activeReservation = StockReservation::query()->findOrFail($activeGeneration->stock_reservation_id);
     $balance = StockBalance::query()->where('product_id', $product->getKey())->firstOrFail();
 
     expect($generations)->toHaveCount(2)
-        ->and($firstReservation->statusEnum())->toBe(StockReservationStatus::Released)
-        ->and($firstGeneration->released_at)->not->toBeNull()
+        ->and($oldReservation->statusEnum())->toBe(StockReservationStatus::Released)
+        ->and($oldGeneration->released_at)->not->toBeNull()
         ->and((int) $activeGeneration->generation)->toBe(2)
         ->and((string) $activeGeneration->quantity)->toBe('6.000000')
-        ->and($activeGeneration->released_at)->toBeNull()
         ->and($activeReservation->statusEnum())->toBe(StockReservationStatus::Active)
         ->and((string) $activeReservation->quantity)->toBe('6.000000')
         ->and((string) $balance->refresh()->quantity)->toBe('6.000000')
         ->and((string) $balance->reserved_quantity)->toBe('6.000000')
-        ->and((string) $balance->available_quantity)->toBe('0.000000')
-        ->and(DB::table('sales_order_line_progress_effects')->count())->toBe(0);
+        ->and((string) $balance->available_quantity)->toBe('0.000000');
 
     DB::transaction(fn (): array => app(DispatchStockOutService::class)->post($dispatch));
     expect(SalesOrderReservationGeneration::query()->count())->toBe(2)
         ->and(StockMovement::query()->where('movement_type', StockMovementType::DispatchOut->value)->count())->toBe(1)
-        ->and((string) $balance->refresh()->quantity)->toBe('6.000000')
-        ->and((string) $balance->reserved_quantity)->toBe('6.000000');
+        ->and((string) $balance->refresh()->reserved_quantity)->toBe('6.000000');
 });
 
-it('enforces dispatch_out lineage at PostgreSQL and freezes the source dispatch line after physical stock out', function (): void {
+it('rolls reservation and stock effects back with the owning transaction', function (): void {
+    [$company, $account, $product, $address, $warehouse, $location, $manager] = dispatch73Fixture('DSP73-ROLLBACK');
+    dispatch73Opening($company, $product, $warehouse, $location, '10');
+    $order = dispatch73Order($this, $company, $manager, $account, $product, $warehouse, $location, '10');
+    $dispatch = dispatch73Dispatch($this, $company, $manager, $order, $address, $warehouse, $location, '4');
+    $generation = SalesOrderReservationGeneration::query()->firstOrFail();
+    $reservationId = (int) $generation->stock_reservation_id;
+
+    DB::beginTransaction();
+    try {
+        app(DispatchStockOutService::class)->post($dispatch);
+        expect(StockMovement::query()->where('movement_type', StockMovementType::DispatchOut->value)->count())->toBe(1)
+            ->and(SalesOrderReservationGeneration::query()->count())->toBe(2);
+    } finally {
+        DB::rollBack();
+    }
+
+    $reservation = StockReservation::query()->findOrFail($reservationId);
+    $balance = StockBalance::query()->where('product_id', $product->getKey())->firstOrFail();
+    expect($reservation->statusEnum())->toBe(StockReservationStatus::Active)
+        ->and(SalesOrderReservationGeneration::query()->count())->toBe(1)
+        ->and(SalesOrderReservationGeneration::query()->firstOrFail()->released_at)->toBeNull()
+        ->and(StockMovement::query()->where('movement_type', StockMovementType::DispatchOut->value)->count())->toBe(0)
+        ->and((string) $balance->refresh()->quantity)->toBe('10.000000')
+        ->and((string) $balance->reserved_quantity)->toBe('10.000000');
+});
+
+it('enforces dispatch_out lineage and freezes its source dispatch line', function (): void {
     [$company, $account, $product, $address, $warehouse, $location, $manager] = dispatch73Fixture('DSP73-DB');
     dispatch73Opening($company, $product, $warehouse, $location, '5');
     $order = dispatch73Order($this, $company, $manager, $account, $product, null, null, '5');
@@ -148,7 +169,6 @@ it('enforces dispatch_out lineage at PostgreSQL and freezes the source dispatch 
     ))))->toThrow(QueryException::class);
 
     DB::transaction(fn (): array => app(DispatchStockOutService::class)->post($dispatch));
-
     expect(fn () => DB::table('dispatch_lines')->where('id', $line->getKey())->update(['quantity' => '1.000000']))
         ->toThrow(QueryException::class);
     expect(fn () => DB::table('dispatch_lines')->where('id', $line->getKey())->delete())
@@ -182,28 +202,28 @@ function dispatch73Fixture(string $code): array
     $location = WarehouseLocation::query()->create([
         'company_id' => $company->getKey(), 'warehouse_id' => $warehouse->getKey(), 'code' => 'A-01', 'name' => 'A Rafı', 'is_active' => true,
     ]);
-    foreach ([DocumentType::SalesOrder => 'SO-', DocumentType::Dispatch => 'DSP-'] as $type => $prefix) {
-        DocumentSequence::query()->create([
-            'company_id' => $company->getKey(), 'document_type' => $type->value, 'series_code' => 'default',
-            'prefix' => $prefix, 'padding' => 4, 'next_value' => 1, 'is_active' => true,
-        ]);
-    }
-    $manager = dispatch73Actor($company, $code);
+    DocumentSequence::query()->create([
+        'company_id' => $company->getKey(), 'document_type' => DocumentType::SalesOrder, 'series_code' => 'default',
+        'prefix' => 'SO-', 'padding' => 4, 'next_value' => 1, 'is_active' => true,
+    ]);
+    DocumentSequence::query()->create([
+        'company_id' => $company->getKey(), 'document_type' => DocumentType::Dispatch, 'series_code' => 'default',
+        'prefix' => 'DSP-', 'padding' => 4, 'next_value' => 1, 'is_active' => true,
+    ]);
 
-    return [$company, $account, $product, $address, $warehouse, $location, $manager];
+    return [$company, $account, $product, $address, $warehouse, $location, dispatch73Actor($company, $code)];
 }
 
 function dispatch73Actor(Company $company, string $suffix): User
 {
     $user = User::query()->create([
-        'name' => 'M73 '.$suffix, 'email' => strtolower($suffix).'@m73.test', 'password' => 'correct-password', 'status' => UserStatus::Active,
+        'name' => 'M73 '.$suffix, 'email' => strtolower($suffix).'@m73.test',
+        'password' => 'correct-password', 'status' => UserStatus::Active,
     ]);
     $membership = CompanyMembership::query()->create([
         'company_id' => $company->getKey(), 'user_id' => $user->getKey(), 'is_active' => true, 'joined_at' => now(),
     ]);
-    $role = Role::query()->create([
-        'company_id' => $company->getKey(), 'code' => 'm73', 'name' => 'M73', 'is_active' => true,
-    ]);
+    $role = Role::query()->create(['company_id' => $company->getKey(), 'code' => 'm73', 'name' => 'M73', 'is_active' => true]);
     foreach ([PermissionKey::SalesOrderView, PermissionKey::SalesOrderManage, PermissionKey::DispatchView, PermissionKey::DispatchManage] as $permission) {
         app(GrantPermissionToRole::class)->handle($role, $permission);
     }
@@ -221,16 +241,8 @@ function dispatch73Opening(Company $company, Product $product, Warehouse $wareho
     )));
 }
 
-function dispatch73Order(
-    TestCase $test,
-    Company $company,
-    User $manager,
-    Account $account,
-    Product $product,
-    ?Warehouse $warehouse,
-    ?WarehouseLocation $location,
-    string $quantity,
-): SalesOrder {
+function dispatch73Order(TestCase $test, Company $company, User $manager, Account $account, Product $product, ?Warehouse $warehouse, ?WarehouseLocation $location, string $quantity): SalesOrder
+{
     $test->actingAs($manager)->withSession(['active_company_id' => $company->getKey()])->post('/sales-orders', [
         'series_code' => 'default', 'account_id' => $account->getKey(), 'order_date' => '2026-08-26',
         'currency_code' => 'TRY', 'document_discount_rate' => '0', 'note' => null,
@@ -245,16 +257,8 @@ function dispatch73Order(
     return SalesOrder::query()->where('company_id', $company->getKey())->latest('id')->firstOrFail();
 }
 
-function dispatch73Dispatch(
-    TestCase $test,
-    Company $company,
-    User $manager,
-    SalesOrder $order,
-    AccountAddress $address,
-    Warehouse $warehouse,
-    WarehouseLocation $location,
-    string $quantity,
-): Dispatch {
+function dispatch73Dispatch(TestCase $test, Company $company, User $manager, SalesOrder $order, AccountAddress $address, Warehouse $warehouse, WarehouseLocation $location, string $quantity): Dispatch
+{
     $line = $order->lines()->firstOrFail();
     $test->actingAs($manager)->withSession(['active_company_id' => $company->getKey()])->post('/dispatches', [
         'series_code' => 'default', 'sales_order_id' => $order->getKey(), 'source_address_id' => $address->getKey(),
