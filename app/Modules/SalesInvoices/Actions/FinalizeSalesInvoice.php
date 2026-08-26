@@ -6,6 +6,7 @@ use App\Foundation\Clock\Clock;
 use App\Foundation\Identity\SourceEffectIdentity;
 use App\Modules\Accounts\Ledger\AccountTransactionPoster;
 use App\Modules\Accounts\Ledger\PostAccountTransactionData;
+use App\Modules\Accounts\Models\Account;
 use App\Modules\Core\Company\ActiveCompanyContext;
 use App\Modules\SalesInvoices\Enums\SalesInvoiceStatus;
 use App\Modules\SalesInvoices\Models\SalesInvoice;
@@ -50,6 +51,24 @@ final readonly class FinalizeSalesInvoice
             if ((string) $invoice->gross_total === '0.000000') {
                 throw ValidationException::withMessages([
                     'gross_total' => 'Genel toplamı sıfır olan satış faturası kesinleştirilemez.',
+                ]);
+            }
+
+            $account = Account::query()
+                ->where('company_id', $companyId)
+                ->whereKey($invoice->account_id)
+                ->lockForUpdate()
+                ->first();
+
+            if (! $account instanceof Account) {
+                throw ValidationException::withMessages([
+                    'account_id' => 'Satış faturası carisi aktif şirkette bulunamadı.',
+                ]);
+            }
+
+            if ((string) $invoice->currency_code !== (string) $account->book_currency_code) {
+                throw ValidationException::withMessages([
+                    'currency_code' => 'Cari ledger posting için fatura para birimi cari defter para birimiyle aynı olmalıdır.',
                 ]);
             }
 
