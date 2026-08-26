@@ -108,11 +108,11 @@ it('is replay safe rejects payload drift and requires the owning business transa
     )))->toThrow(IdempotencyConflict::class);
 });
 
-it('blocks over operation and allows reversal effects only while net progress stays valid', function (): void {
+it('blocks over operation and requires explicit reversal lineage', function (): void {
     [$company, $line] = m64Fixture('M64-BOUNDS', '5');
     $service = app(SalesOrderProgressService::class);
 
-    DB::transaction(fn (): SalesOrderLineProgressEffect => $service->record(
+    $dispatch = DB::transaction(fn (): SalesOrderLineProgressEffect => $service->record(
         m64Identity($company, 'dispatch-4', 'progress.dispatch'),
         (int) $line->getKey(),
         SalesOrderProgressType::Dispatched,
@@ -139,30 +139,30 @@ it('blocks over operation and allows reversal effects only while net progress st
         '5',
     )))->toThrow(ValidationException::class);
 
-    DB::transaction(fn (): SalesOrderLineProgressEffect => $service->record(
-        m64Identity($company, 'dispatch-reversal', 'progress.dispatch_reversal'),
-        (int) $line->getKey(),
-        SalesOrderProgressType::Dispatched,
-        '-1',
-    ));
-
-    $progress = $line->fresh()->progress()->firstOrFail();
-    expect((string) $progress->net_dispatched_quantity)->toBe('3.000000')
-        ->and((string) $progress->cancelled_quantity)->toBe('1.000000')
-        ->and((string) $progress->remaining_quantity)->toBe('1.000000');
-
     expect(fn () => DB::transaction(fn (): SalesOrderLineProgressEffect => $service->record(
         m64Identity($company, 'dispatch-negative', 'progress.dispatch_reversal'),
         (int) $line->getKey(),
         SalesOrderProgressType::Dispatched,
-        '-4',
+        '-1',
     )))->toThrow(ValidationException::class);
+
+    $reversal = DB::transaction(fn (): SalesOrderLineProgressEffect => $service->reverse(
+        m64Identity($company, 'dispatch-reversal', 'progress.dispatch_reversal'),
+        (int) $dispatch->getKey(),
+    ));
+
+    $progress = $line->fresh()->progress()->firstOrFail();
+    expect((string) $reversal->quantity_delta)->toBe('-4.000000')
+        ->and($reversal->reversal_of_progress_effect_id)->toBe((int) $dispatch->getKey())
+        ->and((string) $progress->net_dispatched_quantity)->toBe('0.000000')
+        ->and((string) $progress->cancelled_quantity)->toBe('1.000000')
+        ->and((string) $progress->remaining_quantity)->toBe('4.000000');
 
     expect(fn () => DB::table('sales_order_line_progress_effects')->insert(m64RawEffect(
         $company,
         $line,
         'dispatched',
-        '3.000000',
+        '5.000000',
         'raw-over',
     )))->toThrow(QueryException::class);
 });
@@ -216,6 +216,191 @@ it('serializes competing line progress and rejects the waiter after the lock cle
         ->and(SalesOrderLineProgressEffect::query()->count())->toBe(1);
 
     DB::disconnect('pgsql_m64_concurrent');
+});
+
+it('supports partial progress cancellation and reversal-safe reopen', function (): void {
+    [$company, $line] = m64Fixture('M65-PARTIAL', '10');
+    $service = app(SalesOrderProgressService::class);
+
+    DB::transaction(fn (): SalesOrderLineProgressEffect => $service->record(
+        m64Identity($company, 'dispatch-a', 'progress.dispatch'),
+        (int) $line->getKey(),
+        SalesOrderProgressType::Dispatched,
+        '2',
+    ));
+    DB::transaction(fn (): SalesOrderLineProgressEffect => $service->record(
+        m64Identity($company, 'dispatch-b', 'progress.dispatch'),
+        (int) $line->getKey(),
+        SalesOrderProgressType::Dispatched,
+        '3',
+    ));
+    DB::transaction(fn (): SalesOrderLineProgressEffect => $service->record(
+        m64Identity($company, 'invoice-a', 'progress.invoice'),
+        (int) $line->getKey(),
+        SalesOrderProgressType::Invoiced,
+        '4',
+    ));
+    $cancel = DB::transaction(fn (): SalesOrderLineProgressEffect => $service->record(
+        m64Identity($company, 'cancel-a', 'progress.cancel'),
+        (int) $line->getKey(),
+        SalesOrderProgressType::Cancelled,
+        '2',
+    ));
+
+    $before = $line->fresh()->progress()->firstOrFail();
+    expect((string) $before->net_dispatched_quantity)->toBe('5.000000')
+        ->and((string) $before->net_invoiced_quantity)->toBe('4.000000')
+        ->and((string) $before->cancelled_quantity)->toBe('2.000000')
+        ->and((string) $before->remaining_quantity)->toBe('3.000000');
+
+    DB::transaction(fn (): SalesOrderLineProgressEffect => $service->reverse(
+        m64Identity($company, 'cancel-reopen', 'progress.cancel_reversal'),
+        (int) $cancel->getKey(),
+    ));
+
+    $reopened = $line->fresh()->progress()->firstOrFail();
+    expect((string) $reopened->cancelled_quantity)->toBe('0.000000')
+        ->and((string) $reopened->dispatch_remaining_quantity)->toBe('5.000000')
+        ->and((string) $reopened->invoice_remaining_quantity)->toBe('6.000000')
+        ->and((string) $reopened->remaining_quantity)->toBe('5.000000');
+
+    DB::transaction(fn (): SalesOrderLineProgressEffect => $service->record(
+        m64Identity($company, 'cancel-b', 'progress.cancel'),
+        (int) $line->getKey(),
+        SalesOrderProgressType::Cancelled,
+        '1',
+    ));
+
+    expect((string) $line->fresh()->progress()->firstOrFail()->remaining_quantity)->toBe('4.000000');
+});
+
+it('enforces exact one-time reversal lineage with replay and payload-drift protection', function (): void {
+    [$company, $line] = m64Fixture('M65-REVERSAL', '5');
+    $service = app(SalesOrderProgressService::class);
+
+    $first = DB::transaction(fn (): SalesOrderLineProgressEffect => $service->record(
+        m64Identity($company, 'dispatch-first', 'progress.dispatch'),
+        (int) $line->getKey(),
+        SalesOrderProgressType::Dispatched,
+        '2',
+    ));
+    $second = DB::transaction(fn (): SalesOrderLineProgressEffect => $service->record(
+        m64Identity($company, 'dispatch-second', 'progress.dispatch'),
+        (int) $line->getKey(),
+        SalesOrderProgressType::Dispatched,
+        '1',
+    ));
+    $identity = m64Identity($company, 'reverse-first', 'progress.dispatch_reversal');
+
+    expect(fn () => DB::table('sales_order_line_progress_effects')->insert(m64RawEffect(
+        $company,
+        $line,
+        'dispatched',
+        '-1.000000',
+        'raw-partial-reversal',
+        (int) $first->getKey(),
+    )))->toThrow(QueryException::class);
+
+    expect(fn () => DB::table('sales_order_line_progress_effects')->insert(m64RawEffect(
+        $company,
+        $line,
+        'dispatched',
+        '-2.000000',
+        'raw-lineage-free-reversal',
+    )))->toThrow(QueryException::class);
+
+    $reversal = DB::transaction(fn (): SalesOrderLineProgressEffect => $service->reverse(
+        $identity,
+        (int) $first->getKey(),
+    ));
+    $replay = DB::transaction(fn (): SalesOrderLineProgressEffect => $service->reverse(
+        $identity,
+        (int) $first->getKey(),
+    ));
+
+    expect($replay->getKey())->toBe($reversal->getKey())
+        ->and((string) $reversal->quantity_delta)->toBe('-2.000000')
+        ->and($reversal->progress_type)->toBe(SalesOrderProgressType::Dispatched)
+        ->and($reversal->reversal_of_progress_effect_id)->toBe((int) $first->getKey());
+
+    expect(fn () => DB::transaction(fn (): SalesOrderLineProgressEffect => $service->reverse(
+        $identity,
+        (int) $second->getKey(),
+    )))->toThrow(IdempotencyConflict::class);
+
+    expect(fn () => DB::transaction(fn (): SalesOrderLineProgressEffect => $service->reverse(
+        m64Identity($company, 'reverse-first-again', 'progress.dispatch_reversal'),
+        (int) $first->getKey(),
+    )))->toThrow(ValidationException::class);
+
+    expect(fn () => DB::table('sales_order_line_progress_effects')->insert(m64RawEffect(
+        $company,
+        $line,
+        'dispatched',
+        '-2.000000',
+        'raw-reverse-reversal',
+        (int) $reversal->getKey(),
+    )))->toThrow(QueryException::class);
+});
+
+it('serializes competing reversals and allows only one winner', function (): void {
+    [$company, $line] = m64Fixture('M65-CONCURRENT-REVERSAL', '5');
+    $service = app(SalesOrderProgressService::class);
+    $original = DB::transaction(fn (): SalesOrderLineProgressEffect => $service->record(
+        m64Identity($company, 'dispatch-original', 'progress.dispatch'),
+        (int) $line->getKey(),
+        SalesOrderProgressType::Dispatched,
+        '2',
+    ));
+
+    config(['database.connections.pgsql_m65_reversal' => config('database.connections.pgsql')]);
+    DB::purge('pgsql_m65_reversal');
+    $concurrent = DB::connection('pgsql_m65_reversal');
+    $concurrent->statement("SET lock_timeout TO '150ms'");
+
+    DB::beginTransaction();
+
+    try {
+        DB::table('sales_order_line_progress_effects')->insert(m64RawEffect(
+            $company,
+            $line,
+            'dispatched',
+            '-2.000000',
+            'reversal-lock-holder',
+            (int) $original->getKey(),
+        ));
+
+        expect(fn () => $concurrent->table('sales_order_line_progress_effects')->insert(m64RawEffect(
+            $company,
+            $line,
+            'dispatched',
+            '-2.000000',
+            'reversal-lock-waiter',
+            (int) $original->getKey(),
+        )))->toThrow(QueryException::class);
+
+        DB::commit();
+    } finally {
+        if (DB::transactionLevel() > 0) {
+            DB::rollBack();
+        }
+    }
+
+    $concurrent->statement("SET lock_timeout TO '0'");
+    expect(fn () => $concurrent->table('sales_order_line_progress_effects')->insert(m64RawEffect(
+        $company,
+        $line,
+        'dispatched',
+        '-2.000000',
+        'reversal-lock-waiter',
+        (int) $original->getKey(),
+    )))->toThrow(QueryException::class);
+
+    $progress = $line->fresh()->progress()->firstOrFail();
+    expect((string) $progress->net_dispatched_quantity)->toBe('0.000000')
+        ->and(SalesOrderLineProgressEffect::query()->count())->toBe(2);
+
+    DB::disconnect('pgsql_m65_reversal');
 });
 
 /** @return array{Company, SalesOrderLine} */
@@ -282,6 +467,7 @@ function m64RawEffect(
     string $progressType,
     string $quantityDelta,
     string $sourceId,
+    ?int $reversalOfProgressEffectId = null,
 ): array {
     $operationKey = hash('sha256', 'm64-operation-'.$company->getKey().'-'.$sourceId);
 
@@ -291,6 +477,7 @@ function m64RawEffect(
         'sales_order_line_id' => $line->getKey(),
         'progress_type' => $progressType,
         'quantity_delta' => $quantityDelta,
+        'reversal_of_progress_effect_id' => $reversalOfProgressEffectId,
         'operation_key' => $operationKey,
         'request_fingerprint' => hash('sha256', 'm64-request-'.$company->getKey().'-'.$sourceId),
         'source_type' => 'sales_order.test',
