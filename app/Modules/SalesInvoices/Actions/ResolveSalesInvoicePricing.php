@@ -135,8 +135,9 @@ final readonly class ResolveSalesInvoicePricing
                 throw new LogicException('Linked invoice source order line could not be resolved.');
             }
 
-            $priceBasis = $orderLine->price_basis;
-            if (! $priceBasis instanceof PriceBasis) {
+            $priceBasisValue = $orderLine->getRawOriginal('price_basis');
+            $priceBasis = is_string($priceBasisValue) ? PriceBasis::tryFrom($priceBasisValue) : null;
+            if ($priceBasis === null) {
                 throw new LogicException('Source sales order price basis is invalid.');
             }
 
