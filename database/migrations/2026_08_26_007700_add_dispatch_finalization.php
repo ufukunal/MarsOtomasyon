@@ -189,6 +189,7 @@ SQL);
     {
         DB::statement('DROP TRIGGER IF EXISTS dispatch_finalization_guard ON dispatches');
         DB::statement('DROP FUNCTION IF EXISTS mars_guard_dispatch_finalization()');
+        DB::statement("UPDATE dispatches SET status = 'finalized' WHERE status = 'cancelled'");
 
         DB::unprepared(<<<'SQL'
 CREATE OR REPLACE FUNCTION mars_guard_dispatch_draft_capacity_progress()
