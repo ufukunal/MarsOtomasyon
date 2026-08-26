@@ -48,6 +48,7 @@ final readonly class SalesOrderAuditSnapshot
                 'tax_id' => (int) $line->tax_id,
                 'tax_code' => $this->rawString($line, 'tax_code'),
                 'tax_rate' => $this->rawString($line, 'tax_rate'),
+                'tax_is_zeroed' => (bool) $line->tax_is_zeroed,
                 'tax_zero_reason_id' => $line->getRawOriginal('tax_zero_reason_id') === null ? null : (int) $line->tax_zero_reason_id,
                 'tax_zero_reason_code' => $line->getRawOriginal('tax_zero_reason_code') === null ? null : (string) $line->tax_zero_reason_code,
                 'base_net' => $this->rawString($line, 'base_net'),

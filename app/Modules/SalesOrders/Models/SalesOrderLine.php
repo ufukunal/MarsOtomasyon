@@ -20,7 +20,7 @@ final class SalesOrderLine extends Model
         'company_id', 'sales_order_id', 'source_quote_revision_line_id', 'logical_line_key', 'position',
         'product_id', 'warehouse_id', 'location_id', 'product_code', 'product_name', 'description', 'quantity',
         'price_basis', 'unit_price', 'line_discount_rate', 'tax_id', 'tax_code',
-        'tax_rate', 'tax_zero_reason_id', 'tax_zero_reason_code', 'base_net',
+        'tax_rate', 'tax_is_zeroed', 'tax_zero_reason_id', 'tax_zero_reason_code', 'base_net',
         'line_discount_net', 'document_discount_net', 'net_total', 'tax_total', 'gross_total',
     ];
 
@@ -33,6 +33,7 @@ final class SalesOrderLine extends Model
             'unit_price' => 'decimal:6',
             'line_discount_rate' => 'decimal:6',
             'tax_rate' => 'decimal:6',
+            'tax_is_zeroed' => 'boolean',
             'base_net' => 'decimal:6',
             'line_discount_net' => 'decimal:6',
             'document_discount_net' => 'decimal:6',
