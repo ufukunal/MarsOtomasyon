@@ -7,7 +7,7 @@
     <div>
         <p class="eyebrow">Satış / Faturalar</p>
         <h1>{{ $invoice->number }}</h1>
-        <p>Taslak faturanın ticari toplamları M5 deterministik calculator authority'sinden üretilmiştir. Posting etkileri sonraki M8 dilimlerinde eklenecektir.</p>
+        <p>Kesinleştirme genel toplamı cari hesaba borç olarak atomik işler; iptal bu hareketi yeni ve tam ters bir ledger kaydıyla geri alır.</p>
     </div>
     <div class="page-actions">
         <a href="{{ route('sales-invoices.index') }}">Liste</a>
@@ -17,12 +17,27 @@
         @if($invoice->sourceDispatch && auth()->user()?->can('dispatches.view'))
             <a href="{{ route('dispatches.show', $invoice->source_dispatch_id) }}">Kaynak İrsaliye</a>
         @endif
+        @can('sales_invoices.manage')
+            @if($invoice->statusEnum() === \App\Modules\SalesInvoices\Enums\SalesInvoiceStatus::Draft)
+                <form method="POST" action="{{ route('sales-invoices.finalize', $invoice->getKey()) }}">
+                    @csrf
+                    <button type="submit">Faturayı Kesinleştir</button>
+                </form>
+            @elseif($invoice->statusEnum() === \App\Modules\SalesInvoices\Enums\SalesInvoiceStatus::Finalized)
+                <form method="POST" action="{{ route('sales-invoices.cancel', $invoice->getKey()) }}">
+                    @csrf
+                    <button type="submit">Faturayı İptal Et</button>
+                </form>
+            @endif
+        @endcan
     </div>
 </section>
 
 <section class="detail-card">
     <div class="form-grid">
         <div><small>Durum</small><strong>{{ $invoice->statusEnum()->label() }}</strong></div>
+        <div><small>Kesinleşme</small><strong>{{ $invoice->finalized_at?->format('d.m.Y H:i') ?? '—' }}</strong></div>
+        <div><small>İptal</small><strong>{{ $invoice->cancelled_at?->format('d.m.Y H:i') ?? '—' }}</strong></div>
         <div><small>Mod</small><strong>{{ $invoice->modeEnum()->label() }}</strong></div>
         <div><small>Tarih</small><strong>{{ $invoice->invoice_date?->format('d.m.Y') }}</strong></div>
         <div><small>Para Birimi</small><strong>{{ $invoice->currency_code }}</strong></div>
