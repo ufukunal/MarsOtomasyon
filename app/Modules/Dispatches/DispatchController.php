@@ -9,6 +9,7 @@ use App\Modules\Dispatches\Actions\CreateDispatch;
 use App\Modules\Dispatches\Actions\DispatchDraftData;
 use App\Modules\Dispatches\Actions\DispatchLineData;
 use App\Modules\Dispatches\Models\Dispatch;
+use App\Modules\Inventory\Models\Warehouse;
 use App\Modules\SalesOrders\Models\SalesOrder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -76,6 +77,12 @@ final readonly class DispatchController
                 ->get(),
             'selectedOrder' => $selectedOrder,
             'addresses' => $addresses,
+            'warehouses' => Warehouse::query()
+                ->where('company_id', $companyId)
+                ->where('is_active', true)
+                ->with(['locations' => fn ($query) => $query->where('is_active', true)])
+                ->orderBy('code')
+                ->get(),
         ]);
     }
 
@@ -93,13 +100,17 @@ final readonly class DispatchController
             'lines' => ['required', 'array', 'min:1', 'max:200'],
             'lines.*.sales_order_line_id' => ['required', 'integer'],
             'lines.*.quantity' => ['required', 'decimal:0,6', 'gt:0'],
+            'lines.*.allocation_key' => ['nullable', 'string', 'max:64', 'regex:/^[1-9][0-9]*:[1-9][0-9]*$/D'],
         ]);
 
         $lines = [];
         foreach ($validated['lines'] as $line) {
+            [$warehouseId, $locationId] = $this->allocationPair($line['allocation_key'] ?? null);
             $lines[] = new DispatchLineData(
                 salesOrderLineId: (int) $line['sales_order_line_id'],
                 quantity: (string) $line['quantity'],
+                warehouseId: $warehouseId,
+                locationId: $locationId,
             );
         }
 
@@ -126,6 +137,18 @@ final readonly class DispatchController
             ->firstOrFail();
 
         return view('dispatches.show', ['dispatch' => $record]);
+    }
+
+    /** @return array{0:?int,1:?int} */
+    private function allocationPair(mixed $value): array
+    {
+        if (! is_string($value) || $value === '') {
+            return [null, null];
+        }
+
+        [$warehouseId, $locationId] = explode(':', $value, 2);
+
+        return [(int) $warehouseId, (int) $locationId];
     }
 
     private function companyId(): int
