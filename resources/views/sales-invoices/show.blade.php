@@ -7,7 +7,7 @@
     <div>
         <p class="eyebrow">Satış / Faturalar</p>
         <h1>{{ $invoice->number }}</h1>
-        <p>Taslak fatura source lineage ve hukuki müşteri snapshot'ını taşır. Posting etkileri sonraki M8 dilimlerinde eklenecektir.</p>
+        <p>Taslak faturanın ticari toplamları M5 deterministik calculator authority'sinden üretilmiştir. Posting etkileri sonraki M8 dilimlerinde eklenecektir.</p>
     </div>
     <div class="page-actions">
         <a href="{{ route('sales-invoices.index') }}">Liste</a>
@@ -26,8 +26,21 @@
         <div><small>Mod</small><strong>{{ $invoice->modeEnum()->label() }}</strong></div>
         <div><small>Tarih</small><strong>{{ $invoice->invoice_date?->format('d.m.Y') }}</strong></div>
         <div><small>Para Birimi</small><strong>{{ $invoice->currency_code }}</strong></div>
+        <div><small>Belge İndirimi</small><strong>%{{ $invoice->document_discount_rate }}</strong></div>
         <div><small>Kaynak Sipariş</small><strong>{{ $invoice->sourceSalesOrder?->number ?? '—' }}</strong></div>
         <div><small>Kaynak İrsaliye</small><strong>{{ $invoice->sourceDispatch?->number ?? '—' }}</strong></div>
+    </div>
+</section>
+
+<section class="detail-card">
+    <h2>Ticari Toplamlar</h2>
+    <div class="form-grid">
+        <div><small>Baz Net</small><strong>{{ $invoice->base_net_total }} {{ $invoice->currency_code }}</strong></div>
+        <div><small>Satır İndirimi</small><strong>{{ $invoice->line_discount_total }} {{ $invoice->currency_code }}</strong></div>
+        <div><small>Belge İndirimi</small><strong>{{ $invoice->document_discount_total }} {{ $invoice->currency_code }}</strong></div>
+        <div><small>Net</small><strong>{{ $invoice->net_total }} {{ $invoice->currency_code }}</strong></div>
+        <div><small>KDV</small><strong>{{ $invoice->tax_total }} {{ $invoice->currency_code }}</strong></div>
+        <div><small>Genel Toplam</small><strong>{{ $invoice->gross_total }} {{ $invoice->currency_code }}</strong></div>
     </div>
 </section>
 
@@ -54,17 +67,21 @@
 
 <section class="statement-table-card">
 <table class="data-table">
-    <thead><tr><th>#</th><th>Ürün Snapshot</th><th>Açıklama</th><th>Miktar</th><th>Depo / Konum</th><th>Sipariş Satırı</th><th>İrsaliye Satırı</th></tr></thead>
+    <thead><tr><th>#</th><th>Ürün</th><th>Miktar</th><th>Fiyat</th><th>İndirim</th><th>KDV</th><th>Net</th><th>KDV Tutarı</th><th>Brüt</th><th>Depo / Konum</th><th>Lineage</th></tr></thead>
     <tbody>
     @foreach($invoice->lines as $line)
         <tr>
             <td>{{ $line->position }}</td>
-            <td>{{ $line->product_code }} — {{ $line->product_name }}</td>
-            <td>{{ $line->description ?? '—' }}</td>
+            <td>{{ $line->product_code }} — {{ $line->product_name }}@if($line->description)<br><small>{{ $line->description }}</small>@endif</td>
             <td>{{ $line->quantity }}</td>
+            <td>{{ $line->unit_price }} / {{ strtoupper($line->price_basis->value) }}</td>
+            <td>%{{ $line->line_discount_rate }}<br><small>Satır {{ $line->line_discount_net }} / Belge {{ $line->document_discount_net }}</small></td>
+            <td>{{ $line->tax_code }} · %{{ $line->tax_rate }}@if($line->tax_zero_reason_code)<br><small>{{ $line->tax_zero_reason_code }}</small>@endif</td>
+            <td>{{ $line->net_total }}</td>
+            <td>{{ $line->tax_total }}</td>
+            <td>{{ $line->gross_total }}</td>
             <td>{{ $line->warehouse?->code }} / {{ $line->location?->code }}</td>
-            <td>{{ $line->source_sales_order_line_id ? '#'.$line->source_sales_order_line_id : '—' }}</td>
-            <td>{{ $line->source_dispatch_line_id ? '#'.$line->source_dispatch_line_id : '—' }}</td>
+            <td>SO {{ $line->source_sales_order_line_id ? '#'.$line->source_sales_order_line_id : '—' }}<br>DSP {{ $line->source_dispatch_line_id ? '#'.$line->source_dispatch_line_id : '—' }}</td>
         </tr>
     @endforeach
     </tbody>

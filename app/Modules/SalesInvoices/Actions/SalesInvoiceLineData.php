@@ -2,6 +2,8 @@
 
 namespace App\Modules\SalesInvoices\Actions;
 
+use App\Modules\Quotes\Pricing\PriceBasis;
+
 final readonly class SalesInvoiceLineData
 {
     public function __construct(
@@ -11,5 +13,10 @@ final readonly class SalesInvoiceLineData
         public ?int $dispatchLineId = null,
         public ?int $warehouseId = null,
         public ?int $locationId = null,
+        public ?string $unitPrice = null,
+        public ?PriceBasis $priceBasis = null,
+        public ?string $lineDiscountRate = null,
+        public bool $taxIsZeroed = false,
+        public ?int $taxZeroReasonId = null,
     ) {}
 }

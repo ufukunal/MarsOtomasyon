@@ -7,7 +7,7 @@
     <div>
         <p class="eyebrow">Satış / Faturalar</p>
         <h1>Satış Faturaları</h1>
-        <p>Doğrudan, sipariş bağlı ve irsaliye bağlı taslak faturalar; posting etkileri sonraki M8 dilimlerinde devreye alınır.</p>
+        <p>Doğrudan, sipariş bağlı ve irsaliye bağlı taslak faturalar; ticari toplamlar deterministik calculator authority'sinden üretilir.</p>
     </div>
     <div class="page-actions">
         @can('sales_invoices.manage')<a href="{{ route('sales-invoices.create') }}">Yeni Satış Faturası</a>@endcan
@@ -25,7 +25,7 @@
 
 <section class="statement-table-card">
 <table class="data-table">
-    <thead><tr><th>Fatura</th><th>Tarih</th><th>Mod</th><th>Cari</th><th>Kaynak</th><th>Durum</th></tr></thead>
+    <thead><tr><th>Fatura</th><th>Tarih</th><th>Mod</th><th>Cari</th><th>Kaynak</th><th>Net</th><th>KDV</th><th>Toplam</th><th>Durum</th></tr></thead>
     <tbody>
     @forelse($invoices as $invoice)
         <tr>
@@ -39,10 +39,13 @@
                 @else Doğrudan
                 @endif
             </td>
+            <td>{{ $invoice->net_total }} {{ $invoice->currency_code }}</td>
+            <td>{{ $invoice->tax_total }} {{ $invoice->currency_code }}</td>
+            <td>{{ $invoice->gross_total }} {{ $invoice->currency_code }}</td>
             <td>{{ $invoice->statusEnum()->label() }}</td>
         </tr>
     @empty
-        <tr><td colspan="6">Kayıt bulunamadı.</td></tr>
+        <tr><td colspan="9">Kayıt bulunamadı.</td></tr>
     @endforelse
     </tbody>
 </table>

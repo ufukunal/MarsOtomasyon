@@ -8,11 +8,13 @@ use App\Modules\Accounts\Enums\AccountType;
 use App\Modules\Accounts\Models\Account;
 use App\Modules\Accounts\Models\AccountAddress;
 use App\Modules\Core\Company\ActiveCompanyContext;
+use App\Modules\Core\Models\TaxZeroReason;
 use App\Modules\Dispatches\Enums\DispatchStatus;
 use App\Modules\Dispatches\Models\Dispatch;
 use App\Modules\Inventory\Models\Warehouse;
 use App\Modules\Products\Enums\ProductStatus;
 use App\Modules\Products\Models\Product;
+use App\Modules\Quotes\Pricing\PriceBasis;
 use App\Modules\SalesInvoices\Actions\CreateSalesInvoice;
 use App\Modules\SalesInvoices\Actions\SalesInvoiceDraftData;
 use App\Modules\SalesInvoices\Actions\SalesInvoiceLineData;
@@ -96,6 +98,7 @@ final readonly class SalesInvoiceController
             'products' => Product::query()
                 ->where('company_id', $companyId)
                 ->where('status', ProductStatus::Active->value)
+                ->with('tax')
                 ->orderBy('code')
                 ->limit(500)
                 ->get(),
@@ -105,6 +108,12 @@ final readonly class SalesInvoiceController
                 ->with(['locations' => fn ($query) => $query->where('is_active', true)->orderBy('code')])
                 ->orderBy('code')
                 ->get(),
+            'zeroReasons' => TaxZeroReason::query()
+                ->where('company_id', $companyId)
+                ->where('is_active', true)
+                ->orderBy('code')
+                ->get(),
+            'priceBases' => PriceBasis::cases(),
         ]);
     }
 
@@ -130,6 +139,7 @@ final readonly class SalesInvoiceController
             'dispatch_id' => ['nullable', 'integer'],
             'source_billing_address_id' => ['required', 'integer'],
             'invoice_date' => ['required', 'date_format:Y-m-d'],
+            'document_discount_rate' => ['nullable', 'decimal:0,6', 'min:0', 'max:100'],
             'note' => ['nullable', 'string', 'max:5000'],
             'lines' => ['required', 'array', 'min:1', 'max:200'],
             'lines.*.product_id' => ['nullable', 'integer'],
@@ -137,6 +147,11 @@ final readonly class SalesInvoiceController
             'lines.*.dispatch_line_id' => ['nullable', 'integer'],
             'lines.*.quantity' => ['required', 'decimal:0,6', 'gt:0'],
             'lines.*.allocation_key' => ['nullable', 'string', 'max:64', 'regex:/^[1-9][0-9]*:[1-9][0-9]*$/D'],
+            'lines.*.unit_price' => ['nullable', 'decimal:0,6', 'min:0'],
+            'lines.*.price_basis' => ['nullable', Rule::enum(PriceBasis::class)],
+            'lines.*.line_discount_rate' => ['nullable', 'decimal:0,6', 'min:0', 'max:100'],
+            'lines.*.tax_is_zeroed' => ['sometimes', 'boolean'],
+            'lines.*.tax_zero_reason_id' => ['nullable', 'integer'],
         ]);
 
         $lines = [];
@@ -149,6 +164,11 @@ final readonly class SalesInvoiceController
                 dispatchLineId: isset($line['dispatch_line_id']) ? (int) $line['dispatch_line_id'] : null,
                 warehouseId: $warehouseId,
                 locationId: $locationId,
+                unitPrice: isset($line['unit_price']) ? (string) $line['unit_price'] : null,
+                priceBasis: isset($line['price_basis']) ? PriceBasis::from((string) $line['price_basis']) : null,
+                lineDiscountRate: isset($line['line_discount_rate']) ? (string) $line['line_discount_rate'] : null,
+                taxIsZeroed: (bool) ($line['tax_is_zeroed'] ?? false),
+                taxZeroReasonId: isset($line['tax_zero_reason_id']) ? (int) $line['tax_zero_reason_id'] : null,
             );
         }
 
@@ -160,6 +180,7 @@ final readonly class SalesInvoiceController
             accountId: isset($validated['account_id']) ? (int) $validated['account_id'] : null,
             salesOrderId: isset($validated['sales_order_id']) ? (int) $validated['sales_order_id'] : null,
             dispatchId: isset($validated['dispatch_id']) ? (int) $validated['dispatch_id'] : null,
+            documentDiscountRate: isset($validated['document_discount_rate']) ? (string) $validated['document_discount_rate'] : null,
             note: isset($validated['note']) ? (string) $validated['note'] : null,
         ), (string) ($validated['series_code'] ?? 'default'));
 
@@ -174,7 +195,7 @@ final readonly class SalesInvoiceController
             ->whereKey($salesInvoice)
             ->with([
                 'account', 'sourceBillingAddress', 'sourceSalesOrder', 'sourceDispatch',
-                'lines.warehouse', 'lines.location',
+                'lines.warehouse', 'lines.location', 'lines.tax', 'lines.taxZeroReason',
             ])
             ->firstOrFail();
 

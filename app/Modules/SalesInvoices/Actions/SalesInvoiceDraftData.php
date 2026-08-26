@@ -15,6 +15,7 @@ final readonly class SalesInvoiceDraftData
         public ?int $accountId = null,
         public ?int $salesOrderId = null,
         public ?int $dispatchId = null,
+        public ?string $documentDiscountRate = null,
         public ?string $note = null,
     ) {}
 }

@@ -18,6 +18,7 @@ final readonly class CreateSalesInvoice
         private ActiveCompanyContext $companyContext,
         private DocumentNumberIssuer $numbers,
         private ResolveSalesInvoiceSource $sources,
+        private ResolveSalesInvoicePricing $pricing,
     ) {}
 
     public function handle(SalesInvoiceDraftData $data, string $seriesCode = 'default'): SalesInvoice
@@ -38,6 +39,7 @@ final readonly class CreateSalesInvoice
         try {
             return DB::transaction(function () use ($companyId, $data, $seriesCode): SalesInvoice {
                 $source = $this->sources->resolve($companyId, $data);
+                $pricing = $this->pricing->resolve($companyId, $data, $source);
                 $taxIdentityType = $source->account->getRawOriginal('tax_identity_type');
                 if (! is_string($taxIdentityType)) {
                     throw new LogicException('Cari vergi kimlik tipi snapshot değeri geçersiz.');
@@ -57,6 +59,13 @@ final readonly class CreateSalesInvoice
                     'status' => SalesInvoiceStatus::Draft,
                     'invoice_date' => $data->invoiceDate,
                     'currency_code' => $source->currencyCode,
+                    'document_discount_rate' => $pricing->documentDiscountRate,
+                    'base_net_total' => $pricing->calculation->baseNet,
+                    'line_discount_total' => $pricing->calculation->lineDiscountNet,
+                    'document_discount_total' => $pricing->calculation->documentDiscountNet,
+                    'net_total' => $pricing->calculation->net,
+                    'tax_total' => $pricing->calculation->tax,
+                    'gross_total' => $pricing->calculation->gross,
                     'customer_legal_name' => $source->account->legal_name,
                     'customer_trade_name' => $source->account->trade_name,
                     'customer_tax_identity_type' => $taxIdentityType,
@@ -73,6 +82,8 @@ final readonly class CreateSalesInvoice
                 ]);
 
                 foreach ($source->lines as $index => $line) {
+                    $pricedLine = $pricing->lines[$index];
+                    $result = $pricedLine->calculation;
                     $invoice->lines()->create([
                         'company_id' => $companyId,
                         'source_sales_order_id' => $line->sourceSalesOrderId,
@@ -86,7 +97,22 @@ final readonly class CreateSalesInvoice
                         'product_code' => $line->productCode,
                         'product_name' => $line->productName,
                         'description' => $line->description,
-                        'quantity' => $line->quantity,
+                        'quantity' => $result->quantity,
+                        'price_basis' => $result->priceBasis,
+                        'unit_price' => $result->unitPrice,
+                        'line_discount_rate' => $result->lineDiscountRate,
+                        'tax_id' => $pricedLine->taxId,
+                        'tax_code' => $pricedLine->taxCode,
+                        'tax_rate' => $result->taxRate,
+                        'tax_is_zeroed' => $pricedLine->taxIsZeroed,
+                        'tax_zero_reason_id' => $pricedLine->taxZeroReasonId,
+                        'tax_zero_reason_code' => $result->taxZeroReasonCode,
+                        'base_net' => $result->baseNet,
+                        'line_discount_net' => $result->lineDiscountNet,
+                        'document_discount_net' => $result->documentDiscountNet,
+                        'net_total' => $result->net,
+                        'tax_total' => $result->tax,
+                        'gross_total' => $result->gross,
                     ]);
                 }
 
