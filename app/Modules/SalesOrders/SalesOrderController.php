@@ -114,7 +114,7 @@ final readonly class SalesOrderController
         $order = $this->salesOrder($salesOrder)->load([
             'account', 'lines.product', 'lines.warehouse', 'lines.location', 'lines.tax', 'lines.taxZeroReason',
             'lines.progress', 'sourceQuote', 'sourceRevision',
-        ])->loadCount(['progressEffects', 'dispatches']);
+        ])->loadCount(['progressEffects', 'dispatches', 'salesInvoices']);
 
         return view('sales-orders.show', ['order' => $order]);
     }
@@ -131,6 +131,9 @@ final readonly class SalesOrderController
         if ($order->dispatches()->exists()) {
             abort(409, 'İrsaliye lineage kaydı bulunan sipariş artık taslak olarak düzenlenemez.');
         }
+        if ($order->salesInvoices()->exists()) {
+            abort(409, 'Fatura lineage kaydı bulunan sipariş artık taslak olarak düzenlenemez.');
+        }
 
         return $this->form($request, $order);
     }
@@ -140,6 +143,9 @@ final readonly class SalesOrderController
         $order = $this->salesOrder($salesOrder);
         if ($order->dispatches()->exists()) {
             abort(409, 'İrsaliye lineage kaydı bulunan sipariş artık taslak olarak düzenlenemez.');
+        }
+        if ($order->salesInvoices()->exists()) {
+            abort(409, 'Fatura lineage kaydı bulunan sipariş artık taslak olarak düzenlenemez.');
         }
 
         $validated = $request->validate($this->rules(includeSeries: false));

@@ -6,6 +6,7 @@ use App\Modules\Accounts\Models\Account;
 use App\Modules\Accounts\Models\AccountAddress;
 use App\Modules\Core\Models\Company;
 use App\Modules\Dispatches\Enums\DispatchStatus;
+use App\Modules\SalesInvoices\Models\SalesInvoice;
 use App\Modules\SalesOrders\Models\SalesOrder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -73,5 +74,11 @@ final class Dispatch extends Model
     public function lines(): HasMany
     {
         return $this->hasMany(DispatchLine::class)->orderBy('position');
+    }
+
+    /** @return HasMany<SalesInvoice, $this> */
+    public function salesInvoices(): HasMany
+    {
+        return $this->hasMany(SalesInvoice::class, 'source_dispatch_id');
     }
 }

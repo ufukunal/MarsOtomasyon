@@ -14,6 +14,9 @@ Route::middleware(['web', 'auth', 'company.context'])->group(function (): void {
         if (Gate::allows(PermissionKey::DispatchView->value)) {
             return redirect()->route('dispatches.index');
         }
+        if (Gate::allows(PermissionKey::SalesInvoiceView->value)) {
+            return redirect()->route('sales-invoices.index');
+        }
 
         abort(403);
     })->name('sales.index');

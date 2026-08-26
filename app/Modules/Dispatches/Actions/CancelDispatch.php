@@ -59,6 +59,12 @@ final readonly class CancelDispatch
                 ]);
             }
 
+            if ($dispatch->salesInvoices()->exists()) {
+                throw ValidationException::withMessages([
+                    'status' => 'Satış faturası lineage kaydı bulunan irsaliye iptal edilemez.',
+                ]);
+            }
+
             $lines = $dispatch->lines()->lockForUpdate()->get();
             if ($lines->isEmpty()) {
                 throw new LogicException('Kesinleşmiş irsaliye satırsız olamaz.');

@@ -29,6 +29,8 @@ enum PermissionKey: string
     case SalesOrderManage = 'sales_orders.manage';
     case DispatchView = 'dispatches.view';
     case DispatchManage = 'dispatches.manage';
+    case SalesInvoiceView = 'sales_invoices.view';
+    case SalesInvoiceManage = 'sales_invoices.manage';
 
     public function label(): string
     {
@@ -58,6 +60,8 @@ enum PermissionKey: string
             self::SalesOrderManage => 'Satış siparişi yönetimi',
             self::DispatchView => 'İrsaliye görüntüleme',
             self::DispatchManage => 'İrsaliye yönetimi',
+            self::SalesInvoiceView => 'Satış faturası görüntüleme',
+            self::SalesInvoiceManage => 'Satış faturası yönetimi',
         };
     }
 }
