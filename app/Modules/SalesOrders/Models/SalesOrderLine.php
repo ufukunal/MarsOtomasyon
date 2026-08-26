@@ -4,6 +4,7 @@ namespace App\Modules\SalesOrders\Models;
 
 use App\Modules\Core\Models\Tax;
 use App\Modules\Core\Models\TaxZeroReason;
+use App\Modules\Dispatches\Models\DispatchLine;
 use App\Modules\Inventory\Models\Warehouse;
 use App\Modules\Inventory\Models\WarehouseLocation;
 use App\Modules\Products\Models\Product;
@@ -97,5 +98,11 @@ final class SalesOrderLine extends Model
     public function progressEffects(): HasMany
     {
         return $this->hasMany(SalesOrderLineProgressEffect::class, 'sales_order_line_id');
+    }
+
+    /** @return HasMany<DispatchLine, $this> */
+    public function dispatchLines(): HasMany
+    {
+        return $this->hasMany(DispatchLine::class);
     }
 }

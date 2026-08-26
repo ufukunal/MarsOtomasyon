@@ -1,12 +1,21 @@
 <?php
 
+use App\Modules\Core\Enums\PermissionKey;
 use App\Modules\SalesOrders\SalesOrderController;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['web', 'auth', 'company.context'])->group(function (): void {
-    Route::get('/sales', fn () => redirect()->route('sales-orders.index'))
-        ->middleware('can:sales_orders.view')
-        ->name('sales.index');
+    Route::get('/sales', function () {
+        if (Gate::allows(PermissionKey::SalesOrderView->value)) {
+            return redirect()->route('sales-orders.index');
+        }
+        if (Gate::allows(PermissionKey::DispatchView->value)) {
+            return redirect()->route('dispatches.index');
+        }
+
+        abort(403);
+    })->name('sales.index');
 
     Route::prefix('sales-orders')
         ->name('sales-orders.')

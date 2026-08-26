@@ -5,6 +5,7 @@ namespace App\Modules\SalesOrders\Models;
 use App\Modules\Accounts\Models\Account;
 use App\Modules\Core\Models\Company;
 use App\Modules\Core\Models\Currency;
+use App\Modules\Dispatches\Models\Dispatch;
 use App\Modules\Quotes\Models\Quote;
 use App\Modules\Quotes\Models\QuoteRevision;
 use App\Modules\SalesOrders\Enums\SalesOrderStatus;
@@ -104,5 +105,11 @@ final class SalesOrder extends Model
     public function progressEffects(): HasMany
     {
         return $this->hasMany(SalesOrderLineProgressEffect::class);
+    }
+
+    /** @return HasMany<Dispatch, $this> */
+    public function dispatches(): HasMany
+    {
+        return $this->hasMany(Dispatch::class);
     }
 }
