@@ -8,6 +8,7 @@ use App\Modules\Core\Models\Currency;
 use App\Modules\Dispatches\Models\Dispatch;
 use App\Modules\Quotes\Models\Quote;
 use App\Modules\Quotes\Models\QuoteRevision;
+use App\Modules\SalesInvoices\Models\SalesInvoice;
 use App\Modules\SalesOrders\Enums\SalesOrderStatus;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -111,5 +112,11 @@ final class SalesOrder extends Model
     public function dispatches(): HasMany
     {
         return $this->hasMany(Dispatch::class);
+    }
+
+    /** @return HasMany<SalesInvoice, $this> */
+    public function salesInvoices(): HasMany
+    {
+        return $this->hasMany(SalesInvoice::class, 'source_sales_order_id');
     }
 }
