@@ -4,6 +4,8 @@ namespace App\Modules\SalesOrders\Models;
 
 use App\Modules\Core\Models\Tax;
 use App\Modules\Core\Models\TaxZeroReason;
+use App\Modules\Inventory\Models\Warehouse;
+use App\Modules\Inventory\Models\WarehouseLocation;
 use App\Modules\Products\Models\Product;
 use App\Modules\Quotes\Models\QuoteRevisionLine;
 use App\Modules\Quotes\Pricing\PriceBasis;
@@ -13,8 +15,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 final class SalesOrderLine extends Model
 {
     protected $fillable = [
-        'company_id', 'sales_order_id', 'source_quote_revision_line_id', 'position',
-        'product_id', 'product_code', 'product_name', 'description', 'quantity',
+        'company_id', 'sales_order_id', 'source_quote_revision_line_id', 'logical_line_key', 'position',
+        'product_id', 'warehouse_id', 'location_id', 'product_code', 'product_name', 'description', 'quantity',
         'price_basis', 'unit_price', 'line_discount_rate', 'tax_id', 'tax_code',
         'tax_rate', 'tax_zero_reason_id', 'tax_zero_reason_code', 'base_net',
         'line_discount_net', 'document_discount_net', 'net_total', 'tax_total', 'gross_total',
@@ -56,6 +58,18 @@ final class SalesOrderLine extends Model
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
+    }
+
+    /** @return BelongsTo<Warehouse, $this> */
+    public function warehouse(): BelongsTo
+    {
+        return $this->belongsTo(Warehouse::class);
+    }
+
+    /** @return BelongsTo<WarehouseLocation, $this> */
+    public function location(): BelongsTo
+    {
+        return $this->belongsTo(WarehouseLocation::class, 'location_id');
     }
 
     /** @return BelongsTo<Tax, $this> */

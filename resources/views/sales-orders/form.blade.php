@@ -4,7 +4,7 @@
 
 @section('app-content')
 <section class="workspace-hero">
-    <div><p class="eyebrow">Satış / Sipariş</p><h1>{{ $order === null ? 'Yeni Satış Siparişi' : $order->number.' Düzenle' }}</h1><p>Net, KDV ve genel toplam request verisinden alınmaz; M5.1 hesap motorunda yeniden üretilir.</p></div>
+    <div><p class="eyebrow">Satış / Sipariş</p><h1>{{ $order === null ? 'Yeni Satış Siparişi' : $order->number.' Düzenle' }}</h1><p>Net, KDV ve genel toplam request verisinden alınmaz; M5.1 hesap motorunda yeniden üretilir. Depo/lokasyon seçimi stok rezervasyonunu oluşturur.</p></div>
 </section>
 
 @if ($errors->any())
@@ -25,13 +25,15 @@
     @php
         $oldLines = old('lines');
         $formLines = is_array($oldLines) ? $oldLines : ($order?->lines?->map(fn($line) => [
-            'product_id' => $line->product_id, 'description' => $line->description, 'quantity' => $line->quantity,
+            'logical_line_key' => $line->logical_line_key,
+            'product_id' => $line->product_id, 'warehouse_id' => $line->warehouse_id, 'location_id' => $line->location_id,
+            'description' => $line->description, 'quantity' => $line->quantity,
             'unit_price' => $line->unit_price, 'price_basis' => $line->price_basis->value,
             'line_discount_rate' => $line->line_discount_rate, 'tax_zero_reason_id' => $line->tax_zero_reason_id,
-        ])->all() ?? [['product_id'=>'','description'=>'','quantity'=>'1','unit_price'=>'0','price_basis'=>'net','line_discount_rate'=>'0','tax_zero_reason_id'=>'']]);
+        ])->all() ?? [['logical_line_key'=>'','product_id'=>'','warehouse_id'=>'','location_id'=>'','description'=>'','quantity'=>'1','unit_price'=>'0','price_basis'=>'net','line_discount_rate'=>'0','tax_zero_reason_id'=>'']]);
     @endphp
     <section class="statement-table-card">
-        <table class="data-table" id="sales-order-lines"><thead><tr><th>Ürün</th><th>Açıklama</th><th>Miktar</th><th>Fiyat</th><th>Fiyat Tipi</th><th>İskonto %</th><th>KDV 0 Nedeni</th></tr></thead><tbody>
+        <table class="data-table" id="sales-order-lines"><thead><tr><th>Ürün</th><th>Depo</th><th>Lokasyon</th><th>Açıklama</th><th>Miktar</th><th>Fiyat</th><th>Fiyat Tipi</th><th>İskonto %</th><th>KDV 0 Nedeni</th></tr></thead><tbody>
         @foreach($formLines as $i => $line)
         @php
             $productId = isset($line['product_id']) && is_numeric($line['product_id']) ? (int) $line['product_id'] : null;
@@ -40,12 +42,15 @@
         <tr>
             <td>
                 <div class="product-search-entry" data-product-search-entry>
+                    <input type="hidden" name="lines[{{ $i }}][logical_line_key]" value="{{ $line['logical_line_key'] ?? '' }}">
                     <input type="hidden" name="lines[{{ $i }}][product_id]" value="{{ $productId ?? '' }}" data-product-id>
                     <input type="search" value="{{ $productLabel }}" placeholder="SKU, barkod, QR veya ürün adı" autocomplete="off" data-product-search-input aria-label="Ürün ara" aria-autocomplete="list" aria-expanded="false" required>
                     <div class="product-search-results" data-product-search-results role="listbox" hidden></div>
                     <small data-product-search-help>SKU, barkod, QR/scanner metni veya ürün adıyla arayın.</small>
                 </div>
             </td>
+            <td><select name="lines[{{ $i }}][warehouse_id]"><option value="">Seçin</option>@foreach($warehouses as $warehouse)<option value="{{ $warehouse->getKey() }}" @selected((string)($line['warehouse_id'] ?? '') === (string)$warehouse->getKey())>{{ $warehouse->code }} — {{ $warehouse->name }}</option>@endforeach</select></td>
+            <td><select name="lines[{{ $i }}][location_id]"><option value="">Seçin</option>@foreach($warehouses as $warehouse)@foreach($warehouse->locations as $location)<option value="{{ $location->getKey() }}" @selected((string)($line['location_id'] ?? '') === (string)$location->getKey())>{{ $warehouse->code }} / {{ $location->code }} — {{ $location->name }}</option>@endforeach @endforeach</select></td>
             <td><input name="lines[{{ $i }}][description]" value="{{ $line['description'] ?? '' }}"></td>
             <td><input name="lines[{{ $i }}][quantity]" value="{{ $line['quantity'] ?? '1' }}" required></td>
             <td><input name="lines[{{ $i }}][unit_price]" value="{{ $line['unit_price'] ?? '0' }}" data-product-unit-price required></td>

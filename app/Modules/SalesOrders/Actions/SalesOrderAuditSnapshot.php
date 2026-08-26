@@ -34,7 +34,10 @@ final readonly class SalesOrderAuditSnapshot
             'source_quote_revision_id' => $order->getRawOriginal('source_quote_revision_id') === null ? null : (int) $order->source_quote_revision_id,
             'lines' => $order->lines->map(fn (SalesOrderLine $line): array => [
                 'position' => (int) $line->position,
+                'logical_line_key' => $line->logical_line_key === null ? null : (string) $line->logical_line_key,
                 'product_id' => (int) $line->product_id,
+                'warehouse_id' => $line->warehouse_id === null ? null : (int) $line->warehouse_id,
+                'location_id' => $line->location_id === null ? null : (int) $line->location_id,
                 'product_code' => $this->rawString($line, 'product_code'),
                 'product_name' => $this->rawString($line, 'product_name'),
                 'description' => $this->rawString($line, 'description'),

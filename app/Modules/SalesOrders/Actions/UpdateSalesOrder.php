@@ -7,6 +7,7 @@ use App\Modules\Core\Company\ActiveCompanyContext;
 use App\Modules\Core\Enums\AuditAction;
 use App\Modules\Core\Enums\AuditTargetType;
 use App\Modules\SalesOrders\Models\SalesOrder;
+use App\Modules\SalesOrders\Reservations\SalesOrderReservationSynchronizer;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -17,6 +18,7 @@ final readonly class UpdateSalesOrder
         private SalesOrderDraftResolver $resolver,
         private AuditRecorder $audit,
         private SalesOrderAuditSnapshot $auditSnapshot,
+        private SalesOrderReservationSynchronizer $reservations,
     ) {}
 
     public function handle(int $salesOrderId, SalesOrderDraftData $data): SalesOrder
@@ -60,8 +62,11 @@ final readonly class UpdateSalesOrder
                 $order->lines()->create([
                     'company_id' => $companyId,
                     'source_quote_revision_line_id' => null,
+                    'logical_line_key' => $line->logicalLineKey,
                     'position' => $line->position,
                     'product_id' => $line->productId,
+                    'warehouse_id' => $line->warehouseId,
+                    'location_id' => $line->locationId,
                     'product_code' => $line->productCode,
                     'product_name' => $line->productName,
                     'description' => $line->description,
@@ -83,6 +88,7 @@ final readonly class UpdateSalesOrder
                 ]);
             }
 
+            $this->reservations->sync($order, $draft);
             $this->audit->record(
                 AuditAction::SalesOrderUpdated,
                 AuditTargetType::SalesOrder,
