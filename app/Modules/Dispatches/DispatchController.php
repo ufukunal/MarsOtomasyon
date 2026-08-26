@@ -8,6 +8,7 @@ use App\Modules\Core\Company\ActiveCompanyContext;
 use App\Modules\Dispatches\Actions\CreateDispatch;
 use App\Modules\Dispatches\Actions\DispatchDraftData;
 use App\Modules\Dispatches\Actions\DispatchLineData;
+use App\Modules\Dispatches\Actions\FinalizeDispatch;
 use App\Modules\Dispatches\Models\Dispatch;
 use App\Modules\Dispatches\Models\DispatchOrderLineCapacity;
 use App\Modules\Inventory\Models\Warehouse;
@@ -21,6 +22,7 @@ final readonly class DispatchController
     public function __construct(
         private ActiveCompanyContext $companyContext,
         private CreateDispatch $createDispatch,
+        private FinalizeDispatch $finalizeDispatch,
     ) {}
 
     public function index(Request $request): View
@@ -134,6 +136,15 @@ final readonly class DispatchController
         ), (string) ($validated['series_code'] ?? 'default'));
 
         return redirect()->route('dispatches.show', $dispatch->getKey())->with('status', 'Taslak irsaliye oluşturuldu.');
+    }
+
+    public function finalize(int $dispatch): RedirectResponse
+    {
+        $record = $this->finalizeDispatch->handle($dispatch);
+
+        return redirect()
+            ->route('dispatches.show', $record->getKey())
+            ->with('status', 'İrsaliye kesinleştirildi; stok çıkışı ve sipariş sevk miktarı işlendi.');
     }
 
     public function show(int $dispatch): View

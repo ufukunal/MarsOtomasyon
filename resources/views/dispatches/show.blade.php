@@ -4,16 +4,25 @@
 
 @section('app-content')
 <section class="workspace-hero">
-    <div><p class="eyebrow">Satış / İrsaliye</p><h1>{{ $dispatch->number }}</h1><p>Satış siparişi kaynaklı taslak irsaliye. M7.2 miktar contract'ı sipariş ve diğer taslaklarla ortak kapasiteyi gösterir.</p></div>
+    <div><p class="eyebrow">Satış / İrsaliye</p><h1>{{ $dispatch->number }}</h1><p>Satış siparişi kaynaklı irsaliye. Kesinleştirme stok çıkışını ve sipariş sevk progress'ini tek transaction içinde işler.</p></div>
     <div class="page-actions">
         <a href="{{ route('dispatches.index') }}">Liste</a>
         @can('sales_orders.view')<a href="{{ route('sales-orders.show', $dispatch->sales_order_id) }}">Kaynak Sipariş</a>@endcan
+        @can('dispatches.manage')
+            @if($dispatch->statusEnum() === \App\Modules\Dispatches\Enums\DispatchStatus::Draft)
+                <form method="POST" action="{{ route('dispatches.finalize', $dispatch->getKey()) }}">
+                    @csrf
+                    <button type="submit">İrsaliyeyi Kesinleştir</button>
+                </form>
+            @endif
+        @endcan
     </div>
 </section>
 
 <section class="detail-card">
     <div class="form-grid">
         <div><small>Durum</small><strong>{{ $dispatch->statusEnum()->label() }}</strong></div>
+        <div><small>Kesinleşme</small><strong>{{ $dispatch->finalized_at?->format('d.m.Y H:i') ?? '—' }}</strong></div>
         <div><small>Tarih</small><strong>{{ $dispatch->dispatch_date?->format('d.m.Y') }}</strong></div>
         <div><small>Cari</small><strong>{{ $dispatch->account?->legal_name }}</strong></div>
         <div><small>Kaynak Sipariş</small><strong>{{ $dispatch->salesOrder?->number }}</strong></div>

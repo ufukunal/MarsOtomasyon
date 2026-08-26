@@ -16,7 +16,7 @@ final class Dispatch extends Model
 {
     protected $fillable = [
         'company_id', 'account_id', 'sales_order_id', 'source_address_id', 'number', 'series_code',
-        'sequence_value', 'status', 'dispatch_date', 'recipient_name', 'address_line1', 'address_line2',
+        'sequence_value', 'status', 'finalized_at', 'dispatch_date', 'recipient_name', 'address_line1', 'address_line2',
         'district', 'city', 'postal_code', 'country_code', 'carrier_name', 'carrier_service',
         'tracking_number', 'note',
     ];
@@ -27,6 +27,7 @@ final class Dispatch extends Model
             'status' => DispatchStatus::class,
             'sequence_value' => 'integer',
             'dispatch_date' => 'immutable_date',
+            'finalized_at' => 'immutable_datetime',
             'created_at' => 'immutable_datetime',
             'updated_at' => 'immutable_datetime',
         ];
