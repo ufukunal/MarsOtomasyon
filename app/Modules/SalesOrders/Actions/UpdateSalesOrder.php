@@ -39,6 +39,11 @@ final readonly class UpdateSalesOrder
             if (! $order->isDraft() || ! $order->isManual()) {
                 throw ValidationException::withMessages(['sales_order' => 'Yalnız manuel oluşturulmuş taslak siparişler düzenlenebilir.']);
             }
+            if ($order->progressEffects()->exists()) {
+                throw ValidationException::withMessages([
+                    'sales_order' => 'Sevk, fatura veya iptal progress kaydı başlayan sipariş artık taslak düzenleme ile değiştirilemez.',
+                ]);
+            }
 
             $before = $this->auditSnapshot->capture($order);
             $calculation = $draft->calculation;

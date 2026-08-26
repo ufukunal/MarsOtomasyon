@@ -113,8 +113,8 @@ final readonly class SalesOrderController
     {
         $order = $this->salesOrder($salesOrder)->load([
             'account', 'lines.product', 'lines.warehouse', 'lines.location', 'lines.tax', 'lines.taxZeroReason',
-            'sourceQuote', 'sourceRevision',
-        ]);
+            'lines.progress', 'sourceQuote', 'sourceRevision',
+        ])->loadCount('progressEffects');
 
         return view('sales-orders.show', ['order' => $order]);
     }
@@ -124,6 +124,9 @@ final readonly class SalesOrderController
         $order = $this->salesOrder($salesOrder)->load('lines');
         if (! $order->isDraft() || ! $order->isManual()) {
             abort(409, 'Yalnız manuel oluşturulmuş taslak siparişler düzenlenebilir.');
+        }
+        if ($order->progressEffects()->exists()) {
+            abort(409, 'Sevk, fatura veya iptal progress kaydı başlayan sipariş artık taslak olarak düzenlenemez.');
         }
 
         return $this->form($request, $order);

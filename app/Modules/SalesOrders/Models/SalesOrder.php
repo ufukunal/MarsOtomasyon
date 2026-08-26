@@ -99,4 +99,10 @@ final class SalesOrder extends Model
     {
         return $this->hasMany(SalesOrderLine::class)->orderBy('position');
     }
+
+    /** @return HasMany<SalesOrderLineProgressEffect, $this> */
+    public function progressEffects(): HasMany
+    {
+        return $this->hasMany(SalesOrderLineProgressEffect::class);
+    }
 }

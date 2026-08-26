@@ -11,6 +11,8 @@ use App\Modules\Quotes\Models\QuoteRevisionLine;
 use App\Modules\Quotes\Pricing\PriceBasis;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 final class SalesOrderLine extends Model
 {
@@ -82,5 +84,17 @@ final class SalesOrderLine extends Model
     public function taxZeroReason(): BelongsTo
     {
         return $this->belongsTo(TaxZeroReason::class);
+    }
+
+    /** @return HasOne<SalesOrderLineProgress, $this> */
+    public function progress(): HasOne
+    {
+        return $this->hasOne(SalesOrderLineProgress::class, 'sales_order_line_id');
+    }
+
+    /** @return HasMany<SalesOrderLineProgressEffect, $this> */
+    public function progressEffects(): HasMany
+    {
+        return $this->hasMany(SalesOrderLineProgressEffect::class, 'sales_order_line_id');
     }
 }
