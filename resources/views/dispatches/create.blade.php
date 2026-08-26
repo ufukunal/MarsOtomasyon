@@ -4,7 +4,7 @@
 
 @section('app-content')
 <section class="workspace-hero">
-    <div><p class="eyebrow">Satış / İrsaliye</p><h1>Yeni İrsaliye</h1><p>Önce kaynak satış siparişini seçin. M7.1 yalnız taslak belge ve lineage üretir; stok hareketi veya sipariş progress etkisi oluşturmaz.</p></div>
+    <div><p class="eyebrow">Satış / İrsaliye</p><h1>Yeni İrsaliye</h1><p>M7.2 sevk miktarını sipariş progress ve mevcut taslak taahhütleriyle sınırlar. Taslak belge stok hareketi veya dispatched progress üretmez.</p></div>
     <div class="page-actions"><a href="{{ route('dispatches.index') }}">Liste</a></div>
 </section>
 
@@ -53,37 +53,58 @@
     </section>
 
     <section class="statement-table-card">
-        <table class="data-table"><thead><tr><th>#</th><th>Ürün</th><th>Depo / Konum</th><th>Sipariş Miktarı</th><th>İrsaliye Miktarı</th></tr></thead><tbody>
+        <table class="data-table"><thead><tr><th>#</th><th>Ürün</th><th>Depo / Konum</th><th>Sipariş</th><th>Önceki</th><th>Bu İrsaliye</th><th>Kalan Kapasite</th></tr></thead><tbody>
+        @php($shippableLines = 0)
         @foreach($selectedOrder->lines as $index => $line)
+            @php($capacity = $capacities->get($line->getKey()))
+            @php($remaining = (string) ($capacity?->remaining_quantity ?? '0.000000'))
+            @php($hasCapacity = ! str_starts_with($remaining, '-') && $remaining !== '0.000000')
+            @if($hasCapacity) @php($shippableLines++) @endif
             <tr>
-                <td>{{ $line->position }}<input type="hidden" name="lines[{{ $index }}][sales_order_line_id]" value="{{ $line->getKey() }}"></td>
+                <td>
+                    {{ $line->position }}
+                    @if($hasCapacity)<input type="hidden" name="lines[{{ $index }}][sales_order_line_id]" value="{{ $line->getKey() }}">@endif
+                </td>
                 <td>{{ $line->product_code }} — {{ $line->product_name }}@if($line->description)<br><small>{{ $line->description }}</small>@endif</td>
                 <td>
-                    @if($line->warehouse_id !== null && $line->location_id !== null)
-                        {{ $line->warehouse?->code ?? '—' }} / {{ $line->location?->code ?? '—' }}<br><small>Sipariş allocation</small>
-                    @else
-                        <select name="lines[{{ $index }}][allocation_key]" required>
-                            <option value="">Sevk depo / konumu seçin</option>
-                            @foreach($warehouses as $warehouse)
-                                @foreach($warehouse->locations as $location)
-                                    @php($allocationKey = $warehouse->getKey().':'.$location->getKey())
-                                    <option value="{{ $allocationKey }}" @selected((string) old('lines.'.$index.'.allocation_key') === (string) $allocationKey)>{{ $warehouse->code }} — {{ $location->code }} / {{ $location->name }}</option>
+                    @if($hasCapacity)
+                        @if($line->warehouse_id !== null && $line->location_id !== null)
+                            {{ $line->warehouse?->code ?? '—' }} / {{ $line->location?->code ?? '—' }}<br><small>Sipariş allocation</small>
+                        @else
+                            <select name="lines[{{ $index }}][allocation_key]" required>
+                                <option value="">Sevk depo / konumu seçin</option>
+                                @foreach($warehouses as $warehouse)
+                                    @foreach($warehouse->locations as $location)
+                                        @php($allocationKey = $warehouse->getKey().':'.$location->getKey())
+                                        <option value="{{ $allocationKey }}" @selected((string) old('lines.'.$index.'.allocation_key') === (string) $allocationKey)>{{ $warehouse->code }} — {{ $location->code }} / {{ $location->name }}</option>
+                                    @endforeach
                                 @endforeach
-                            @endforeach
-                        </select>
+                            </select>
+                        @endif
+                    @else
+                        <small>Sevk kapasitesi kalmadı.</small>
                     @endif
                 </td>
-                <td>{{ $line->quantity }}</td>
-                <td><input name="lines[{{ $index }}][quantity]" value="{{ old('lines.'.$index.'.quantity', $line->quantity) }}" inputmode="decimal" required></td>
+                <td>{{ $capacity?->ordered_quantity ?? $line->quantity }}</td>
+                <td>{{ $capacity?->previous_quantity ?? '0.000000' }}</td>
+                <td>
+                    @if($hasCapacity)
+                        <input name="lines[{{ $index }}][quantity]" value="{{ old('lines.'.$index.'.quantity', $remaining) }}" inputmode="decimal" required>
+                    @else
+                        —
+                    @endif
+                </td>
+                <td>{{ $remaining }}</td>
             </tr>
         @endforeach
         </tbody></table>
+        <p><small>Önceki = net sevk progress + diğer aktif taslak irsaliye taahhütleri. Kalan kapasite iptal edilmiş miktarı da dikkate alır.</small></p>
     </section>
 
     <section class="detail-card">
         <label>Not<textarea name="note" rows="4" maxlength="5000">{{ old('note') }}</textarea></label>
         @if($errors->any())<div><strong>Form doğrulanamadı.</strong><ul>@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>@endif
-        <div class="page-actions"><button class="button-primary" type="submit" @disabled($addresses->isEmpty())>Taslak İrsaliye Oluştur</button></div>
+        <div class="page-actions"><button class="button-primary" type="submit" @disabled($addresses->isEmpty() || $shippableLines === 0)>Taslak İrsaliye Oluştur</button></div>
     </section>
 </form>
 @endif

@@ -9,11 +9,13 @@ use App\Modules\Core\Enums\DocumentType;
 use App\Modules\Core\Numbering\DocumentNumberIssuer;
 use App\Modules\Dispatches\Enums\DispatchStatus;
 use App\Modules\Dispatches\Models\Dispatch;
+use App\Modules\Dispatches\Models\DispatchOrderLineCapacity;
 use App\Modules\Inventory\Models\Warehouse;
 use App\Modules\Inventory\Models\WarehouseLocation;
 use App\Modules\SalesOrders\Models\SalesOrder;
 use App\Modules\SalesOrders\Models\SalesOrderLine;
 use DomainException;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -62,15 +64,26 @@ final readonly class CreateDispatch
                     throw ValidationException::withMessages(['lines' => 'Aynı sipariş satırı bir irsaliyede yalnız bir kez seçilebilir.']);
                 }
 
+                $quantities = [];
+                foreach ($data->lines as $index => $lineData) {
+                    $quantities[$lineData->salesOrderLineId] = $this->positiveDecimal($lineData->quantity, $index);
+                }
+
                 /** @var array<int, SalesOrderLine> $orderLines */
                 $orderLines = [];
-                foreach ($order->lines()->whereIn('id', $lineIds)->get() as $orderLine) {
+                foreach (SalesOrderLine::query()
+                    ->where('company_id', $companyId)
+                    ->where('sales_order_id', $order->getKey())
+                    ->whereIn('id', $lineIds)
+                    ->lockForUpdate()
+                    ->get() as $orderLine) {
                     $orderLines[(int) $orderLine->getKey()] = $orderLine;
                 }
                 if (count($orderLines) !== count($lineIds)) {
                     throw ValidationException::withMessages(['lines' => 'İrsaliye satırlarının tamamı seçilen satış siparişine ait olmalıdır.']);
                 }
 
+                $this->assertQuantityCapacity($companyId, (int) $order->getKey(), $data->lines, $quantities);
                 $allocations = $this->resolveAllocations($companyId, $data->lines, $orderLines);
 
                 $number = $this->numbers->issue($companyId, DocumentType::Dispatch, $seriesCode);
@@ -111,14 +124,54 @@ final readonly class CreateDispatch
                         'product_code' => $source->product_code,
                         'product_name' => $source->product_name,
                         'description' => $source->description,
-                        'quantity' => $lineData->quantity,
+                        'quantity' => $quantities[$lineData->salesOrderLineId],
                     ]);
                 }
 
                 return $dispatch->load('lines');
             });
+        } catch (QueryException $exception) {
+            if ((string) $exception->getCode() === '23514'
+                && str_contains($exception->getMessage(), 'dispatch quantity exceeds order line remaining quantity')) {
+                throw ValidationException::withMessages([
+                    'lines' => 'İrsaliye miktarı sipariş satırının kalan sevk kapasitesini aşamaz.',
+                ]);
+            }
+
+            throw $exception;
         } catch (DomainException $exception) {
             throw ValidationException::withMessages(['series_code' => $exception->getMessage()]);
+        }
+    }
+
+    /**
+     * @param  list<DispatchLineData>  $lines
+     * @param  array<int, string>  $quantities
+     */
+    private function assertQuantityCapacity(int $companyId, int $salesOrderId, array $lines, array $quantities): void
+    {
+        $lineIds = array_map(static fn (DispatchLineData $line): int => $line->salesOrderLineId, $lines);
+        $capacities = DispatchOrderLineCapacity::query()
+            ->where('company_id', $companyId)
+            ->where('sales_order_id', $salesOrderId)
+            ->whereIn('sales_order_line_id', $lineIds)
+            ->get()
+            ->keyBy('sales_order_line_id');
+
+        if ($capacities->count() !== count($lineIds)) {
+            throw ValidationException::withMessages([
+                'lines' => 'Sipariş satırı sevk kapasitesi hesaplanamadı.',
+            ]);
+        }
+
+        foreach ($lines as $index => $lineData) {
+            $capacity = $capacities->get($lineData->salesOrderLineId);
+            if (! $capacity instanceof DispatchOrderLineCapacity
+                || $this->decimalGreaterThan($quantities[$lineData->salesOrderLineId], (string) $capacity->getAttribute('remaining_quantity'))) {
+                throw ValidationException::withMessages([
+                    "lines.$index.quantity" => 'İrsaliye miktarı sipariş satırının kalan sevk kapasitesini aşamaz.',
+                ]);
+            }
         }
     }
 
@@ -202,6 +255,58 @@ final readonly class CreateDispatch
         }
 
         return $allocations;
+    }
+
+    private function positiveDecimal(string $value, int $index): string
+    {
+        $value = trim($value);
+        if (preg_match('/^\d+(?:\.\d{1,6})?$/D', $value) !== 1) {
+            throw ValidationException::withMessages([
+                "lines.$index.quantity" => 'İrsaliye miktarı pozitif ve en fazla 6 ondalıklı geçerli bir sayı olmalıdır.',
+            ]);
+        }
+
+        [$integer, $fraction] = array_pad(explode('.', $value, 2), 2, '');
+        $integer = ltrim($integer, '0');
+        $integer = $integer === '' ? '0' : $integer;
+        if (strlen($integer) > 14) {
+            throw ValidationException::withMessages([
+                "lines.$index.quantity" => 'İrsaliye miktarı desteklenen sayısal sınırı aşıyor.',
+            ]);
+        }
+
+        $fraction = str_pad($fraction, 6, '0');
+        if ($integer === '0' && $fraction === '000000') {
+            throw ValidationException::withMessages([
+                "lines.$index.quantity" => 'İrsaliye miktarı sıfırdan büyük olmalıdır.',
+            ]);
+        }
+
+        return $integer.'.'.$fraction;
+    }
+
+    private function decimalGreaterThan(string $left, string $right): bool
+    {
+        if (str_starts_with($right, '-')) {
+            return true;
+        }
+
+        $leftScaled = $this->scaledDecimalDigits($left);
+        $rightScaled = $this->scaledDecimalDigits($right);
+
+        if (strlen($leftScaled) !== strlen($rightScaled)) {
+            return strlen($leftScaled) > strlen($rightScaled);
+        }
+
+        return strcmp($leftScaled, $rightScaled) > 0;
+    }
+
+    private function scaledDecimalDigits(string $value): string
+    {
+        [$integer, $fraction] = array_pad(explode('.', $value, 2), 2, '');
+        $digits = ltrim($integer.str_pad($fraction, 6, '0'), '0');
+
+        return $digits === '' ? '0' : $digits;
     }
 
     private function nullableTrimmed(?string $value): ?string
