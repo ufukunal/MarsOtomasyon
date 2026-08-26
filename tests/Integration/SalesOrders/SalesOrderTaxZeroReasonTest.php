@@ -219,8 +219,9 @@ function m66TaxFixture(string $code, string $taxRate): array
     return [$company, $account, $product, $reason, $user, $tax];
 }
 
-/** @param array<string, mixed> $lineOverrides
- *  @return array<string, mixed>
+/**
+ * @param  array<string, mixed>  $lineOverrides
+ * @return array<string, mixed>
  */
 function m66TaxPayload(Account $account, Product $product, array $lineOverrides = []): array
 {
