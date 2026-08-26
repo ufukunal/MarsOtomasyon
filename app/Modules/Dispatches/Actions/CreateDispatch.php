@@ -167,7 +167,7 @@ final readonly class CreateDispatch
         foreach ($lines as $index => $lineData) {
             $capacity = $capacities->get($lineData->salesOrderLineId);
             if (! $capacity instanceof DispatchOrderLineCapacity
-                || $this->decimalGreaterThan($quantities[$lineData->salesOrderLineId], (string) $capacity->remaining_quantity)) {
+                || $this->decimalGreaterThan($quantities[$lineData->salesOrderLineId], (string) $capacity->getAttribute('remaining_quantity'))) {
                 throw ValidationException::withMessages([
                     "lines.$index.quantity" => 'İrsaliye miktarı sipariş satırının kalan sevk kapasitesini aşamaz.',
                 ]);
