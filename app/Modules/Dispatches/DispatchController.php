@@ -9,6 +9,7 @@ use App\Modules\Dispatches\Actions\CreateDispatch;
 use App\Modules\Dispatches\Actions\DispatchDraftData;
 use App\Modules\Dispatches\Actions\DispatchLineData;
 use App\Modules\Dispatches\Models\Dispatch;
+use App\Modules\Dispatches\Models\DispatchOrderLineCapacity;
 use App\Modules\Inventory\Models\Warehouse;
 use App\Modules\SalesOrders\Models\SalesOrder;
 use Illuminate\Http\RedirectResponse;
@@ -51,6 +52,7 @@ final readonly class DispatchController
         $orderId = $request->query('sales_order_id');
         $selectedOrder = null;
         $addresses = collect();
+        $capacities = collect();
 
         if (is_numeric($orderId)) {
             $selectedOrder = SalesOrder::query()
@@ -65,6 +67,11 @@ final readonly class DispatchController
                 ->orderByDesc('is_default')
                 ->orderBy('label')
                 ->get();
+            $capacities = DispatchOrderLineCapacity::query()
+                ->where('company_id', $companyId)
+                ->where('sales_order_id', $selectedOrder->getKey())
+                ->get()
+                ->keyBy('sales_order_line_id');
         }
 
         return view('dispatches.create', [
@@ -77,6 +84,7 @@ final readonly class DispatchController
                 ->get(),
             'selectedOrder' => $selectedOrder,
             'addresses' => $addresses,
+            'capacities' => $capacities,
             'warehouses' => Warehouse::query()
                 ->where('company_id', $companyId)
                 ->where('is_active', true)
@@ -130,13 +138,22 @@ final readonly class DispatchController
 
     public function show(int $dispatch): View
     {
+        $companyId = $this->companyId();
         $record = Dispatch::query()
-            ->where('company_id', $this->companyId())
+            ->where('company_id', $companyId)
             ->whereKey($dispatch)
             ->with(['account', 'salesOrder', 'sourceAddress', 'lines.salesOrderLine', 'lines.warehouse', 'lines.location'])
             ->firstOrFail();
 
-        return view('dispatches.show', ['dispatch' => $record]);
+        return view('dispatches.show', [
+            'dispatch' => $record,
+            'capacities' => DispatchOrderLineCapacity::query()
+                ->where('company_id', $companyId)
+                ->where('sales_order_id', $record->sales_order_id)
+                ->whereIn('sales_order_line_id', $record->lines->pluck('sales_order_line_id'))
+                ->get()
+                ->keyBy('sales_order_line_id'),
+        ]);
     }
 
     /** @return array{0:?int,1:?int} */
