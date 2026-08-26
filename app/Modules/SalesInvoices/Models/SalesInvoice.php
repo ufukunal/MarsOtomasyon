@@ -20,9 +20,10 @@ final class SalesInvoice extends Model
     protected $fillable = [
         'company_id', 'account_id', 'source_billing_address_id', 'source_sales_order_id', 'source_dispatch_id',
         'number', 'series_code', 'sequence_value', 'mode', 'status', 'invoice_date', 'currency_code',
-        'customer_legal_name', 'customer_trade_name', 'customer_tax_identity_type', 'customer_tax_number',
-        'customer_tax_office', 'recipient_name', 'address_line1', 'address_line2', 'district', 'city',
-        'postal_code', 'country_code', 'note',
+        'document_discount_rate', 'base_net_total', 'line_discount_total', 'document_discount_total',
+        'net_total', 'tax_total', 'gross_total', 'customer_legal_name', 'customer_trade_name',
+        'customer_tax_identity_type', 'customer_tax_number', 'customer_tax_office', 'recipient_name',
+        'address_line1', 'address_line2', 'district', 'city', 'postal_code', 'country_code', 'note',
     ];
 
     protected function casts(): array
@@ -32,6 +33,13 @@ final class SalesInvoice extends Model
             'mode' => SalesInvoiceMode::class,
             'status' => SalesInvoiceStatus::class,
             'invoice_date' => 'immutable_date',
+            'document_discount_rate' => 'decimal:6',
+            'base_net_total' => 'decimal:6',
+            'line_discount_total' => 'decimal:6',
+            'document_discount_total' => 'decimal:6',
+            'net_total' => 'decimal:6',
+            'tax_total' => 'decimal:6',
+            'gross_total' => 'decimal:6',
             'created_at' => 'immutable_datetime',
             'updated_at' => 'immutable_datetime',
         ];
