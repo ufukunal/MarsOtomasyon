@@ -44,6 +44,11 @@ final readonly class UpdateSalesOrder
                     'sales_order' => 'Sevk, fatura veya iptal progress kaydı başlayan sipariş artık taslak düzenleme ile değiştirilemez.',
                 ]);
             }
+            if ($order->dispatches()->exists()) {
+                throw ValidationException::withMessages([
+                    'sales_order' => 'İrsaliye lineage kaydı bulunan siparişin satırları artık taslak düzenleme ile değiştirilemez.',
+                ]);
+            }
 
             $before = $this->auditSnapshot->capture($order);
             $calculation = $draft->calculation;
