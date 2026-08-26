@@ -155,7 +155,11 @@ final readonly class CancelDispatch
             throw new LogicException('Sipariş sevk kalan miktar projection satırı bulunamadı.');
         }
 
-        $targetQuantity = (string) $projection->dispatch_remaining_quantity;
+        $targetQuantity = $projection->getAttribute('dispatch_remaining_quantity');
+        if (! is_string($targetQuantity)) {
+            throw new LogicException('Sipariş sevk kalan miktar projection değeri geçersiz.');
+        }
+
         $active = SalesOrderReservationGeneration::query()
             ->where('company_id', $line->company_id)
             ->where('sales_order_id', $line->sales_order_id)
