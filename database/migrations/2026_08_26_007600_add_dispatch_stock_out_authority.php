@@ -103,9 +103,9 @@ SQL);
         DB::statement('DROP FUNCTION IF EXISTS mars_guard_dispatch_line_after_stock_out()');
         DB::statement('DROP TRIGGER IF EXISTS stock_movements_dispatch_out_guard ON stock_movements');
         DB::statement('DROP FUNCTION IF EXISTS mars_guard_dispatch_stock_out()');
-        DB::statement('ALTER TABLE stock_movements DROP CONSTRAINT stock_movements_dispatch_source_check');
-        DB::statement('ALTER TABLE stock_movements DROP CONSTRAINT stock_movements_type_check');
-        DB::statement('ALTER TABLE stock_movements DROP CONSTRAINT stock_movements_direction_check');
+        DB::statement('ALTER TABLE stock_movements DROP CONSTRAINT IF EXISTS stock_movements_dispatch_source_check');
+        DB::statement('ALTER TABLE stock_movements DROP CONSTRAINT IF EXISTS stock_movements_type_check');
+        DB::statement('ALTER TABLE stock_movements DROP CONSTRAINT IF EXISTS stock_movements_direction_check');
 
         DB::unprepared(<<<'SQL'
 DO $$
