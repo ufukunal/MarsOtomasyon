@@ -2,11 +2,12 @@
 
 use App\Modules\Core\Enums\PermissionKey;
 use App\Modules\SalesOrders\SalesOrderController;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['web', 'auth', 'company.context'])->group(function (): void {
-    Route::get('/sales', function () {
+    Route::get('/sales', function (): RedirectResponse {
         if (Gate::allows(PermissionKey::SalesOrderView->value)) {
             return redirect()->route('sales-orders.index');
         }
