@@ -35,6 +35,7 @@ use App\Modules\SalesOrders\Progress\SalesOrderProgressService;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Testing\TestResponse;
 use Illuminate\Validation\ValidationException;
 use Tests\TestCase;
 
@@ -282,7 +283,7 @@ function dispatch72Post(
     Warehouse $warehouse,
     WarehouseLocation $location,
     string $quantity,
-): Illuminate\Testing\TestResponse {
+): TestResponse {
     return $test->actingAs($manager)->withSession(['active_company_id' => $company->getKey()])->post('/dispatches', [
         'series_code' => 'default', 'sales_order_id' => $order->getKey(), 'source_address_id' => $address->getKey(),
         'dispatch_date' => '2026-08-26', 'lines' => [[
