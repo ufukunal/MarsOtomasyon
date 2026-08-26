@@ -42,12 +42,6 @@ final readonly class ResolveSalesInvoicePricing
         $metadata = [];
 
         foreach ($data->lines as $offset => $line) {
-            if ($line->unitPrice === null || $line->priceBasis === null || $line->lineDiscountRate === null) {
-                throw ValidationException::withMessages([
-                    "lines.$offset.unit_price" => 'Doğrudan fatura satırında fiyat, fiyat tipi ve satır indirimi zorunludur.',
-                ]);
-            }
-
             $resolvedLine = $source->lines[$offset];
             $product = Product::query()
                 ->with('tax')
@@ -76,10 +70,10 @@ final readonly class ResolveSalesInvoicePricing
             $inputs[] = new TaxCalculationLineInput(
                 key: (string) ($offset + 1),
                 quantity: $resolvedLine->quantity,
-                unitPrice: $line->unitPrice,
-                priceBasis: $line->priceBasis,
+                unitPrice: $line->unitPrice ?? (string) $product->sale_price_net,
+                priceBasis: $line->priceBasis ?? PriceBasis::Net,
                 taxRate: $taxRate,
-                lineDiscountRate: $line->lineDiscountRate,
+                lineDiscountRate: $line->lineDiscountRate ?? '0',
                 taxZeroReasonCode: $zeroReason === null ? null : (string) $zeroReason->code,
             );
             $metadata[] = [
@@ -190,10 +184,8 @@ final readonly class ResolveSalesInvoicePricing
             );
         }
 
-        $documentRate = $calculation->lines[0]->documentDiscountRate ?? '0.000000';
-
         return new ResolvedSalesInvoicePricing(
-            documentDiscountRate: $documentRate,
+            documentDiscountRate: $calculation->lines[0]->documentDiscountRate,
             lines: $lines,
             calculation: $calculation,
         );
