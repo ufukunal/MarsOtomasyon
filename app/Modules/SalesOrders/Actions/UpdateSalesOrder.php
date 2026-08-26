@@ -27,7 +27,12 @@ final readonly class UpdateSalesOrder
         $draft = $this->resolver->resolve($companyId, $data);
 
         return DB::transaction(function () use ($companyId, $salesOrderId, $draft): SalesOrder {
-            $order = SalesOrder::query()->where('company_id', $companyId)->whereKey($salesOrderId)->lockForUpdate()->first();
+            $order = SalesOrder::query()
+                ->where('company_id', $companyId)
+                ->whereKey($salesOrderId)
+                ->lockForUpdate()
+                ->first();
+
             if ($order === null) {
                 throw ValidationException::withMessages(['sales_order' => 'Sipariş aktif şirkette bulunamadı.']);
             }
@@ -38,32 +43,59 @@ final readonly class UpdateSalesOrder
             $before = $this->auditSnapshot->capture($order);
             $calculation = $draft->calculation;
             $order->fill([
-                'account_id' => $draft->accountId, 'order_date' => $draft->orderDate,
-                'currency_code' => $draft->currencyCode, 'document_discount_rate' => $draft->documentDiscountRate,
-                'base_net_total' => $calculation->baseNet, 'line_discount_total' => $calculation->lineDiscountNet,
-                'document_discount_total' => $calculation->documentDiscountNet, 'net_total' => $calculation->net,
-                'tax_total' => $calculation->tax, 'gross_total' => $calculation->gross, 'note' => $draft->note,
+                'account_id' => $draft->accountId,
+                'order_date' => $draft->orderDate,
+                'currency_code' => $draft->currencyCode,
+                'document_discount_rate' => $draft->documentDiscountRate,
+                'base_net_total' => $calculation->baseNet,
+                'line_discount_total' => $calculation->lineDiscountNet,
+                'document_discount_total' => $calculation->documentDiscountNet,
+                'net_total' => $calculation->net,
+                'tax_total' => $calculation->tax,
+                'gross_total' => $calculation->gross,
+                'note' => $draft->note,
             ])->save();
 
             $order->lines()->delete();
             foreach ($draft->lines as $line) {
                 $result = $line->calculation;
                 $order->lines()->create([
-                    'company_id' => $companyId, 'source_quote_revision_line_id' => null,
-                    'logical_line_key' => $line->logicalLineKey, 'position' => $line->position,
-                    'product_id' => $line->productId, 'warehouse_id' => $line->warehouseId, 'location_id' => $line->locationId,
-                    'product_code' => $line->productCode, 'product_name' => $line->productName, 'description' => $line->description,
-                    'quantity' => $result->quantity, 'price_basis' => $result->priceBasis, 'unit_price' => $result->unitPrice,
-                    'line_discount_rate' => $result->lineDiscountRate, 'tax_id' => $line->taxId, 'tax_code' => $line->taxCode,
-                    'tax_rate' => $result->taxRate, 'tax_zero_reason_id' => $line->taxZeroReasonId,
-                    'tax_zero_reason_code' => $result->taxZeroReasonCode, 'base_net' => $result->baseNet,
-                    'line_discount_net' => $result->lineDiscountNet, 'document_discount_net' => $result->documentDiscountNet,
-                    'net_total' => $result->net, 'tax_total' => $result->tax, 'gross_total' => $result->gross,
+                    'company_id' => $companyId,
+                    'source_quote_revision_line_id' => null,
+                    'logical_line_key' => $line->logicalLineKey,
+                    'position' => $line->position,
+                    'product_id' => $line->productId,
+                    'warehouse_id' => $line->warehouseId,
+                    'location_id' => $line->locationId,
+                    'product_code' => $line->productCode,
+                    'product_name' => $line->productName,
+                    'description' => $line->description,
+                    'quantity' => $result->quantity,
+                    'price_basis' => $result->priceBasis,
+                    'unit_price' => $result->unitPrice,
+                    'line_discount_rate' => $result->lineDiscountRate,
+                    'tax_id' => $line->taxId,
+                    'tax_code' => $line->taxCode,
+                    'tax_rate' => $result->taxRate,
+                    'tax_zero_reason_id' => $line->taxZeroReasonId,
+                    'tax_zero_reason_code' => $result->taxZeroReasonCode,
+                    'base_net' => $result->baseNet,
+                    'line_discount_net' => $result->lineDiscountNet,
+                    'document_discount_net' => $result->documentDiscountNet,
+                    'net_total' => $result->net,
+                    'tax_total' => $result->tax,
+                    'gross_total' => $result->gross,
                 ]);
             }
 
             $this->reservations->sync($order, $draft);
-            $this->audit->record(AuditAction::SalesOrderUpdated, AuditTargetType::SalesOrder, $order->getKey(), before: $before, after: $this->auditSnapshot->capture($order));
+            $this->audit->record(
+                AuditAction::SalesOrderUpdated,
+                AuditTargetType::SalesOrder,
+                $order->getKey(),
+                before: $before,
+                after: $this->auditSnapshot->capture($order),
+            );
 
             return $order->load('lines');
         });
