@@ -24,7 +24,7 @@ final readonly class AppNavigation
             ['label' => 'Ana Sayfa', 'route' => 'workspace', 'feature' => FeatureKey::Foundation, 'permissions' => []],
             ['label' => 'Cariler', 'route' => 'customers.index', 'feature' => FeatureKey::Customers, 'permissions' => [PermissionKey::AccountView]],
             ['label' => 'Ürün/Stok', 'route' => $productStockRoute, 'feature' => FeatureKey::ProductStock, 'permissions' => [PermissionKey::ProductView, PermissionKey::InventoryView]],
-            ['label' => 'Satış', 'route' => 'sales.index', 'feature' => FeatureKey::Sales, 'permissions' => [PermissionKey::SalesOrderView, PermissionKey::DispatchView]],
+            ['label' => 'Satış', 'route' => 'sales.index', 'feature' => FeatureKey::Sales, 'permissions' => [PermissionKey::SalesOrderView, PermissionKey::DispatchView, PermissionKey::SalesInvoiceView]],
             ['label' => 'Alış', 'route' => 'purchasing.index', 'feature' => FeatureKey::Purchasing, 'permissions' => []],
             ['label' => 'Üretim', 'route' => 'production.index', 'feature' => FeatureKey::Production, 'permissions' => []],
             ['label' => 'Kasa/Banka', 'route' => 'treasury.index', 'feature' => FeatureKey::Treasury, 'permissions' => []],
