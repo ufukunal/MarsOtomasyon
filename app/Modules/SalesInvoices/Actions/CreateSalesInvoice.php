@@ -8,6 +8,7 @@ use App\Modules\Core\Numbering\DocumentNumberIssuer;
 use App\Modules\SalesInvoices\Enums\SalesInvoiceStatus;
 use App\Modules\SalesInvoices\Models\SalesInvoice;
 use DomainException;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use LogicException;
@@ -19,6 +20,7 @@ final readonly class CreateSalesInvoice
         private DocumentNumberIssuer $numbers,
         private ResolveSalesInvoiceSource $sources,
         private ResolveSalesInvoicePricing $pricing,
+        private AssertSalesInvoiceOrderCapacity $orderCapacity,
     ) {}
 
     public function handle(SalesInvoiceDraftData $data, string $seriesCode = 'default'): SalesInvoice
@@ -40,6 +42,7 @@ final readonly class CreateSalesInvoice
             return DB::transaction(function () use ($companyId, $data, $seriesCode): SalesInvoice {
                 $source = $this->sources->resolve($companyId, $data);
                 $pricing = $this->pricing->resolve($companyId, $data, $source);
+                $this->orderCapacity->assert($companyId, $source);
                 $taxIdentityType = $source->account->getRawOriginal('tax_identity_type');
                 if (! is_string($taxIdentityType)) {
                     throw new LogicException('Cari vergi kimlik tipi snapshot değeri geçersiz.');
@@ -118,6 +121,15 @@ final readonly class CreateSalesInvoice
 
                 return $invoice->load('lines');
             });
+        } catch (QueryException $exception) {
+            if ((string) $exception->getCode() === '23514'
+                && str_contains($exception->getMessage(), 'sales invoice quantity exceeds order line remaining quantity')) {
+                throw ValidationException::withMessages([
+                    'lines' => 'Fatura miktarı sipariş satırının kalan faturalama kapasitesini aşamaz.',
+                ]);
+            }
+
+            throw $exception;
         } catch (DomainException $exception) {
             throw ValidationException::withMessages([
                 'series_code' => $exception->getMessage(),

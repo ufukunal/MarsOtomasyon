@@ -20,6 +20,7 @@ use App\Modules\SalesInvoices\Actions\SalesInvoiceDraftData;
 use App\Modules\SalesInvoices\Actions\SalesInvoiceLineData;
 use App\Modules\SalesInvoices\Enums\SalesInvoiceMode;
 use App\Modules\SalesInvoices\Models\SalesInvoice;
+use App\Modules\SalesInvoices\Models\SalesInvoiceOrderLineCapacity;
 use App\Modules\SalesOrders\Models\SalesOrder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -68,6 +69,26 @@ final readonly class SalesInvoiceController
             ->orderBy('code')
             ->get();
         $accountIds = $accounts->pluck('id');
+        $orders = SalesOrder::query()
+            ->where('company_id', $companyId)
+            ->with(['account', 'lines'])
+            ->orderByDesc('order_date')
+            ->orderByDesc('id')
+            ->limit(200)
+            ->get();
+        $dispatches = Dispatch::query()
+            ->where('company_id', $companyId)
+            ->where('status', DispatchStatus::Finalized->value)
+            ->with(['account', 'salesOrder', 'lines'])
+            ->orderByDesc('dispatch_date')
+            ->orderByDesc('id')
+            ->limit(200)
+            ->get();
+        $capacityLineIds = $orders->pluck('lines')->flatten()->pluck('id')
+            ->merge($dispatches->pluck('lines')->flatten()->pluck('sales_order_line_id'))
+            ->filter()
+            ->unique()
+            ->values();
 
         return view('sales-invoices.create', [
             'mode' => $mode,
@@ -80,21 +101,13 @@ final readonly class SalesInvoiceController
                 ->orderByDesc('is_default')
                 ->orderBy('label')
                 ->get(),
-            'orders' => SalesOrder::query()
+            'orders' => $orders,
+            'dispatches' => $dispatches,
+            'orderInvoiceCapacities' => SalesInvoiceOrderLineCapacity::query()
                 ->where('company_id', $companyId)
-                ->with(['account', 'lines'])
-                ->orderByDesc('order_date')
-                ->orderByDesc('id')
-                ->limit(200)
-                ->get(),
-            'dispatches' => Dispatch::query()
-                ->where('company_id', $companyId)
-                ->where('status', DispatchStatus::Finalized->value)
-                ->with(['account', 'salesOrder', 'lines'])
-                ->orderByDesc('dispatch_date')
-                ->orderByDesc('id')
-                ->limit(200)
-                ->get(),
+                ->whereIn('sales_order_line_id', $capacityLineIds)
+                ->get()
+                ->keyBy('sales_order_line_id'),
             'products' => Product::query()
                 ->where('company_id', $companyId)
                 ->where('status', ProductStatus::Active->value)
