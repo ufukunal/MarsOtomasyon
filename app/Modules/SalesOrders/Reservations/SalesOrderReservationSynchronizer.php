@@ -69,9 +69,7 @@ final readonly class SalesOrderReservationSynchronizer
         }
 
         foreach ($active as $generation) {
-            if ($generation instanceof SalesOrderReservationGeneration) {
-                $toRelease[] = $generation;
-            }
+            $toRelease[] = $generation;
         }
 
         foreach ($toRelease as $generation) {
