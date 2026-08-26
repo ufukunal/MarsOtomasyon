@@ -35,7 +35,6 @@ use App\Modules\Products\Enums\ProductStatus;
 use App\Modules\Products\Models\Category;
 use App\Modules\Products\Models\Product;
 use App\Modules\Products\Models\Unit;
-use App\Modules\SalesOrders\Enums\SalesOrderProgressType;
 use App\Modules\SalesOrders\Models\SalesOrder;
 use App\Modules\SalesOrders\Models\SalesOrderLineProgress;
 use App\Modules\SalesOrders\Models\SalesOrderLineProgressEffect;
