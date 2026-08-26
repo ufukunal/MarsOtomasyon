@@ -5,6 +5,7 @@ namespace App\Modules\Dispatches;
 use App\Modules\Accounts\Enums\AccountAddressType;
 use App\Modules\Accounts\Models\AccountAddress;
 use App\Modules\Core\Company\ActiveCompanyContext;
+use App\Modules\Dispatches\Actions\CancelDispatch;
 use App\Modules\Dispatches\Actions\CreateDispatch;
 use App\Modules\Dispatches\Actions\DispatchDraftData;
 use App\Modules\Dispatches\Actions\DispatchLineData;
@@ -23,6 +24,7 @@ final readonly class DispatchController
         private ActiveCompanyContext $companyContext,
         private CreateDispatch $createDispatch,
         private FinalizeDispatch $finalizeDispatch,
+        private CancelDispatch $cancelDispatch,
     ) {}
 
     public function index(Request $request): View
@@ -145,6 +147,15 @@ final readonly class DispatchController
         return redirect()
             ->route('dispatches.show', $record->getKey())
             ->with('status', 'İrsaliye kesinleştirildi; stok çıkışı ve sipariş sevk miktarı işlendi.');
+    }
+
+    public function cancel(int $dispatch): RedirectResponse
+    {
+        $record = $this->cancelDispatch->handle($dispatch);
+
+        return redirect()
+            ->route('dispatches.show', $record->getKey())
+            ->with('status', 'İrsaliye iptal edildi; stok çıkışı ve sipariş sevk miktarı terslendi, rezervasyon yeniden uzlaştırıldı.');
     }
 
     public function show(int $dispatch): View

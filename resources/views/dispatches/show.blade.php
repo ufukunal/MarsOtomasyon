@@ -4,7 +4,7 @@
 
 @section('app-content')
 <section class="workspace-hero">
-    <div><p class="eyebrow">Satış / İrsaliye</p><h1>{{ $dispatch->number }}</h1><p>Satış siparişi kaynaklı irsaliye. Kesinleştirme stok çıkışını ve sipariş sevk progress'ini tek transaction içinde işler.</p></div>
+    <div><p class="eyebrow">Satış / İrsaliye</p><h1>{{ $dispatch->number }}</h1><p>Kesinleştirme stok çıkışını ve sipariş sevk progress'ini atomik işler; iptal ise bu etkileri tersleyip sipariş rezervasyonunu yeniden uzlaştırır.</p></div>
     <div class="page-actions">
         <a href="{{ route('dispatches.index') }}">Liste</a>
         @can('sales_orders.view')<a href="{{ route('sales-orders.show', $dispatch->sales_order_id) }}">Kaynak Sipariş</a>@endcan
@@ -13,6 +13,11 @@
                 <form method="POST" action="{{ route('dispatches.finalize', $dispatch->getKey()) }}">
                     @csrf
                     <button type="submit">İrsaliyeyi Kesinleştir</button>
+                </form>
+            @elseif($dispatch->statusEnum() === \App\Modules\Dispatches\Enums\DispatchStatus::Finalized)
+                <form method="POST" action="{{ route('dispatches.cancel', $dispatch->getKey()) }}">
+                    @csrf
+                    <button type="submit">İrsaliyeyi İptal Et</button>
                 </form>
             @endif
         @endcan
@@ -23,6 +28,7 @@
     <div class="form-grid">
         <div><small>Durum</small><strong>{{ $dispatch->statusEnum()->label() }}</strong></div>
         <div><small>Kesinleşme</small><strong>{{ $dispatch->finalized_at?->format('d.m.Y H:i') ?? '—' }}</strong></div>
+        <div><small>İptal</small><strong>{{ $dispatch->cancelled_at?->format('d.m.Y H:i') ?? '—' }}</strong></div>
         <div><small>Tarih</small><strong>{{ $dispatch->dispatch_date?->format('d.m.Y') }}</strong></div>
         <div><small>Cari</small><strong>{{ $dispatch->account?->legal_name }}</strong></div>
         <div><small>Kaynak Sipariş</small><strong>{{ $dispatch->salesOrder?->number }}</strong></div>

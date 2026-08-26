@@ -76,10 +76,38 @@ if (! class_exists('AddStockSourceEffectIdentity20260825', false)) {
                     'stock_movements_source_lookup_index',
                 );
             });
+
+            DB::unprepared(<<<'SQL'
+                DO $$
+                BEGIN
+                    IF EXISTS (
+                        SELECT 1
+                        FROM pg_trigger
+                        WHERE tgrelid = 'stock_movements'::regclass
+                          AND tgname = 'dispatch_stock_reversal_commit_guard'
+                    ) THEN
+                        ALTER TABLE stock_movements ENABLE TRIGGER dispatch_stock_reversal_commit_guard;
+                    END IF;
+                END $$;
+                SQL);
         }
 
         public function down(): void
         {
+            DB::unprepared(<<<'SQL'
+                DO $$
+                BEGIN
+                    IF EXISTS (
+                        SELECT 1
+                        FROM pg_trigger
+                        WHERE tgrelid = 'stock_movements'::regclass
+                          AND tgname = 'dispatch_stock_reversal_commit_guard'
+                    ) THEN
+                        ALTER TABLE stock_movements DISABLE TRIGGER dispatch_stock_reversal_commit_guard;
+                    END IF;
+                END $$;
+                SQL);
+
             Schema::table('stock_movements', function (Blueprint $table): void {
                 $table->dropUnique('stock_movements_source_effect_unique');
                 $table->dropIndex('stock_movements_source_lookup_index');

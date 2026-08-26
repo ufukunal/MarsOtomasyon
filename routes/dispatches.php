@@ -14,5 +14,9 @@ Route::middleware(['web', 'auth', 'company.context'])
             ->whereNumber('dispatch')
             ->middleware('can:dispatches.manage')
             ->name('finalize');
+        Route::post('/{dispatch}/cancel', [DispatchController::class, 'cancel'])
+            ->whereNumber('dispatch')
+            ->middleware('can:dispatches.manage')
+            ->name('cancel');
         Route::get('/{dispatch}', [DispatchController::class, 'show'])->whereNumber('dispatch')->middleware('can:dispatches.view')->name('show');
     });
