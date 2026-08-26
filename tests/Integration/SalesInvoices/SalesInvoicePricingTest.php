@@ -30,7 +30,6 @@ use App\Modules\SalesOrders\Models\SalesOrder;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Support\Facades\DB;
-use Tests\TestCase;
 
 uses(DatabaseMigrations::class);
 
