@@ -207,6 +207,7 @@ final readonly class SalesOrderController
             'lines.*.quantity' => ['required', 'decimal:0,6'], 'lines.*.unit_price' => ['required', 'decimal:0,6'],
             'lines.*.price_basis' => ['required', Rule::enum(PriceBasis::class)],
             'lines.*.line_discount_rate' => ['required', 'decimal:0,6', 'min:0', 'max:100'],
+            'lines.*.tax_is_zeroed' => ['sometimes', 'boolean'],
             'lines.*.tax_zero_reason_id' => ['nullable', 'integer'],
         ];
         if ($includeSeries) {
@@ -230,6 +231,7 @@ final readonly class SalesOrderController
                 logicalLineKey: isset($line['logical_line_key']) && $line['logical_line_key'] !== '' ? (string) $line['logical_line_key'] : null,
                 warehouseId: isset($line['warehouse_id']) && $line['warehouse_id'] !== '' ? (int) $line['warehouse_id'] : null,
                 locationId: isset($line['location_id']) && $line['location_id'] !== '' ? (int) $line['location_id'] : null,
+                taxIsZeroed: (bool) ($line['tax_is_zeroed'] ?? false),
             );
         }
 

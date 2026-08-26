@@ -4,7 +4,7 @@
 
 @section('app-content')
 <section class="workspace-hero">
-    <div><p class="eyebrow">Satış / Sipariş</p><h1>{{ $order === null ? 'Yeni Satış Siparişi' : $order->number.' Düzenle' }}</h1><p>Net, KDV ve genel toplam request verisinden alınmaz; M5.1 hesap motorunda yeniden üretilir. Depo/lokasyon seçimi stok rezervasyonunu oluşturur.</p></div>
+    <div><p class="eyebrow">Satış / Sipariş</p><h1>{{ $order === null ? 'Yeni Satış Siparişi' : $order->number.' Düzenle' }}</h1><p>Net, KDV ve genel toplam request verisinden alınmaz; M5.1 hesap motorunda yeniden üretilir. KDV Sıfırla seçeneği aktif bir nedenle birlikte server-side uygulanır. Depo/lokasyon seçimi stok rezervasyonunu oluşturur.</p></div>
 </section>
 
 @if ($errors->any())
@@ -29,11 +29,12 @@
             'product_id' => $line->product_id, 'warehouse_id' => $line->warehouse_id, 'location_id' => $line->location_id,
             'description' => $line->description, 'quantity' => $line->quantity,
             'unit_price' => $line->unit_price, 'price_basis' => $line->price_basis->value,
-            'line_discount_rate' => $line->line_discount_rate, 'tax_zero_reason_id' => $line->tax_zero_reason_id,
-        ])->all() ?? [['logical_line_key'=>'','product_id'=>'','warehouse_id'=>'','location_id'=>'','description'=>'','quantity'=>'1','unit_price'=>'0','price_basis'=>'net','line_discount_rate'=>'0','tax_zero_reason_id'=>'']]);
+            'line_discount_rate' => $line->line_discount_rate, 'tax_is_zeroed' => $line->tax_is_zeroed,
+            'tax_zero_reason_id' => $line->tax_zero_reason_id,
+        ])->all() ?? [['logical_line_key'=>'','product_id'=>'','warehouse_id'=>'','location_id'=>'','description'=>'','quantity'=>'1','unit_price'=>'0','price_basis'=>'net','line_discount_rate'=>'0','tax_is_zeroed'=>false,'tax_zero_reason_id'=>'']]);
     @endphp
     <section class="statement-table-card">
-        <table class="data-table" id="sales-order-lines"><thead><tr><th>Ürün</th><th>Depo</th><th>Lokasyon</th><th>Açıklama</th><th>Miktar</th><th>Fiyat</th><th>Fiyat Tipi</th><th>İskonto %</th><th>KDV 0 Nedeni</th></tr></thead><tbody>
+        <table class="data-table" id="sales-order-lines"><thead><tr><th>Ürün</th><th>Depo</th><th>Lokasyon</th><th>Açıklama</th><th>Miktar</th><th>Fiyat</th><th>Fiyat Tipi</th><th>İskonto %</th><th>KDV Sıfırla</th><th>KDV 0 Nedeni</th></tr></thead><tbody>
         @foreach($formLines as $i => $line)
         @php
             $productId = isset($line['product_id']) && is_numeric($line['product_id']) ? (int) $line['product_id'] : null;
@@ -56,6 +57,7 @@
             <td><input name="lines[{{ $i }}][unit_price]" value="{{ $line['unit_price'] ?? '0' }}" data-product-unit-price required></td>
             <td><select name="lines[{{ $i }}][price_basis]">@foreach($priceBases as $basis)<option value="{{ $basis->value }}" @selected(($line['price_basis'] ?? 'net') === $basis->value)>{{ $basis->value === 'net' ? 'KDV Hariç' : 'KDV Dahil' }}</option>@endforeach</select></td>
             <td><input name="lines[{{ $i }}][line_discount_rate]" value="{{ $line['line_discount_rate'] ?? '0' }}" required></td>
+            <td><label><input type="checkbox" name="lines[{{ $i }}][tax_is_zeroed]" value="1" @checked((bool)($line['tax_is_zeroed'] ?? false))> Sıfırla</label></td>
             <td><select name="lines[{{ $i }}][tax_zero_reason_id]"><option value="">—</option>@foreach($zeroReasons as $reason)<option value="{{ $reason->getKey() }}" @selected((string)($line['tax_zero_reason_id'] ?? '') === (string)$reason->getKey())>{{ $reason->code }} — {{ $reason->name }}</option>@endforeach</select></td>
         </tr>
         @endforeach

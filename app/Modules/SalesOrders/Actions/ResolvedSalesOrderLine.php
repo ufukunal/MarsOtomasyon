@@ -17,6 +17,7 @@ final readonly class ResolvedSalesOrderLine
         public string $description,
         public int $taxId,
         public string $taxCode,
+        public bool $taxIsZeroed,
         public ?int $taxZeroReasonId,
         public TaxCalculationLineResult $calculation,
     ) {}

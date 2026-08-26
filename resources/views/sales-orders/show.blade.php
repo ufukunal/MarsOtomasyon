@@ -25,7 +25,7 @@
 <section class="statement-table-card">
 <table class="data-table"><thead><tr><th>#</th><th>Ürün Snapshot</th><th>Açıklama</th><th>Sipariş</th><th>Sevk</th><th>Fatura</th><th>İptal</th><th>Kalan</th><th>Birim Fiyat</th><th>KDV</th><th>Net</th><th>Genel</th></tr></thead><tbody>
 @foreach($order->lines as $line)
-<tr><td>{{ $line->position }}</td><td>{{ $line->product_code }} — {{ $line->product_name }}</td><td>{{ $line->description }}</td><td>{{ $line->progress?->ordered_quantity ?? $line->quantity }}</td><td>{{ $line->progress?->net_dispatched_quantity ?? '0.000000' }}</td><td>{{ $line->progress?->net_invoiced_quantity ?? '0.000000' }}</td><td>{{ $line->progress?->cancelled_quantity ?? '0.000000' }}</td><td>{{ $line->progress?->remaining_quantity ?? $line->quantity }}</td><td>{{ $line->unit_price }}</td><td>{{ $line->tax_code }} · %{{ $line->tax_rate }}</td><td>{{ $line->net_total }}</td><td>{{ $line->gross_total }}</td></tr>
+<tr><td>{{ $line->position }}</td><td>{{ $line->product_code }} — {{ $line->product_name }}</td><td>{{ $line->description }}</td><td>{{ $line->progress?->ordered_quantity ?? $line->quantity }}</td><td>{{ $line->progress?->net_dispatched_quantity ?? '0.000000' }}</td><td>{{ $line->progress?->net_invoiced_quantity ?? '0.000000' }}</td><td>{{ $line->progress?->cancelled_quantity ?? '0.000000' }}</td><td>{{ $line->progress?->remaining_quantity ?? $line->quantity }}</td><td>{{ $line->unit_price }}</td><td>{{ $line->tax_code }} · %{{ $line->tax_rate }}@if($line->tax_is_zeroed)<br><small>KDV Sıfırlandı</small>@endif @if($line->tax_zero_reason_code)<br><small>Neden: {{ $line->tax_zero_reason_code }}</small>@endif</td><td>{{ $line->net_total }}</td><td>{{ $line->gross_total }}</td></tr>
 @endforeach
 </tbody></table>
 </section>

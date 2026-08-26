@@ -60,7 +60,12 @@ final readonly class SalesOrderDraftResolver
                 throw ValidationException::withMessages(["lines.$offset.product_id" => 'Aktif şirkete ait, aktif vergi tanımlı bir ürün seçilmelidir.']);
             }
 
-            $taxRate = (string) $tax->rate;
+            $naturalTaxRate = (string) $tax->rate;
+            if ($line->taxIsZeroed && $this->isZeroRate($naturalTaxRate)) {
+                throw ValidationException::withMessages(["lines.$offset.tax_is_zeroed" => 'Doğal yüzde 0 KDV satırında KDV sıfırlama işareti kullanılmaz.']);
+            }
+
+            $taxRate = $line->taxIsZeroed ? '0.000000' : $naturalTaxRate;
             $zeroReason = null;
             if ($this->isZeroRate($taxRate)) {
                 if ($line->taxZeroReasonId === null) {
@@ -93,7 +98,7 @@ final readonly class SalesOrderDraftResolver
                 lineDiscountRate: $line->lineDiscountRate,
                 taxZeroReasonCode: $zeroReason === null ? null : (string) $zeroReason->code,
             );
-            $metadata[] = [$logicalLineKey, $warehouseId, $locationId, $product, $tax, $zeroReason, $description];
+            $metadata[] = [$logicalLineKey, $warehouseId, $locationId, $product, $tax, $line->taxIsZeroed, $zeroReason, $description];
         }
 
         try {
@@ -104,7 +109,7 @@ final readonly class SalesOrderDraftResolver
 
         $resolvedLines = [];
         foreach ($calculation->lines as $offset => $lineResult) {
-            [$logicalLineKey, $warehouseId, $locationId, $product, $tax, $zeroReason, $description] = $metadata[$offset];
+            [$logicalLineKey, $warehouseId, $locationId, $product, $tax, $taxIsZeroed, $zeroReason, $description] = $metadata[$offset];
             $resolvedLines[] = new ResolvedSalesOrderLine(
                 position: $offset + 1,
                 logicalLineKey: $logicalLineKey,
@@ -116,6 +121,7 @@ final readonly class SalesOrderDraftResolver
                 description: $description,
                 taxId: (int) $tax->getKey(),
                 taxCode: (string) $tax->code,
+                taxIsZeroed: $taxIsZeroed,
                 taxZeroReasonId: $zeroReason === null ? null : (int) $zeroReason->getKey(),
                 calculation: $lineResult,
             );

@@ -82,6 +82,7 @@ final readonly class UpdateSalesOrder
                     'tax_id' => $line->taxId,
                     'tax_code' => $line->taxCode,
                     'tax_rate' => $result->taxRate,
+                    'tax_is_zeroed' => $line->taxIsZeroed,
                     'tax_zero_reason_id' => $line->taxZeroReasonId,
                     'tax_zero_reason_code' => $result->taxZeroReasonCode,
                     'base_net' => $result->baseNet,

@@ -17,5 +17,6 @@ final readonly class SalesOrderLineData
         public ?string $logicalLineKey = null,
         public ?int $warehouseId = null,
         public ?int $locationId = null,
+        public bool $taxIsZeroed = false,
     ) {}
 }
