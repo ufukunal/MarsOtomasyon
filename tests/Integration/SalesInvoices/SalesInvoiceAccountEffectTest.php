@@ -152,6 +152,22 @@ it('rolls account effects back with failed lifecycle commits and rejects raw inc
         ->and(AccountTransaction::query()->count())->toBe(1);
 });
 
+it('refuses to post an invoice amount as a different account book currency', function (): void {
+    [$company, $account, $product, $billing, $warehouse, $location, $manager] = invoice83Fixture('INV83-FX');
+    $invoice = invoice83Draft($this, $company, $manager, $account, $product, $billing, $warehouse, $location);
+
+    $account->book_currency_code = 'USD';
+    $account->save();
+
+    $this->actingAs($manager)
+        ->withSession(['active_company_id' => $company->getKey()])
+        ->post(route('sales-invoices.finalize', $invoice->getKey()))
+        ->assertSessionHasErrors('currency_code');
+
+    expect($invoice->refresh()->statusEnum())->toBe(SalesInvoiceStatus::Draft)
+        ->and(AccountTransaction::query()->count())->toBe(0);
+});
+
 /** @return array{Company,Account,Product,AccountAddress,Warehouse,WarehouseLocation,User} */
 function invoice83Fixture(string $code): array
 {
