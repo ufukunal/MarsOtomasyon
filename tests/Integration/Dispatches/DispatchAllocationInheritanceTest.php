@@ -29,6 +29,7 @@ use App\Modules\Products\Models\Category;
 use App\Modules\Products\Models\Product;
 use App\Modules\Products\Models\Unit;
 use App\Modules\SalesOrders\Models\SalesOrder;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Support\Facades\DB;
 
@@ -108,6 +109,13 @@ it('inherits reserved order allocation rejects override and locks the source ord
         ->get('/sales-orders/'.$order->getKey())
         ->assertOk()
         ->assertDontSee('/sales-orders/'.$order->getKey().'/edit', false);
+
+    expect(fn () => DB::table('sales_orders')->where('id', $order->getKey())->update([
+        'note' => 'DB mutation must fail',
+    ]))->toThrow(QueryException::class);
+    expect(fn () => DB::table('sales_order_lines')->where('id', $orderLine->getKey())->update([
+        'description' => 'DB mutation must fail',
+    ]))->toThrow(QueryException::class);
 });
 
 /** @return array{Company, Account, Product, AccountAddress, Warehouse, WarehouseLocation} */
