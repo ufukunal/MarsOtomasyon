@@ -123,8 +123,8 @@ final readonly class CreateDispatch
     }
 
     /**
-     * @param list<DispatchLineData> $lines
-     * @param array<int, SalesOrderLine> $orderLines
+     * @param  list<DispatchLineData>  $lines
+     * @param  array<int, SalesOrderLine>  $orderLines
      * @return array<int, array{warehouse_id:int,location_id:int}>
      */
     private function resolveAllocations(int $companyId, array $lines, array $orderLines): array
