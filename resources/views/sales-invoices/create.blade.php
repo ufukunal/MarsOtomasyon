@@ -7,7 +7,7 @@
     <div>
         <p class="eyebrow">Satış / Faturalar</p>
         <h1>Yeni Satış Faturası</h1>
-        <p>M8.2 fiyat, indirim ve KDV hesaplarını M5 deterministik calculator authority'sinden üretir. Request toplamları dikkate alınmaz.</p>
+        <p>M8.3 sipariş bağlı satırlarda net faturalanan + mevcut taslak commitment üzerinden kalan faturalama kapasitesini korur; fazla faturalama uygulama ve PostgreSQL seviyesinde engellenir.</p>
     </div>
     <div class="page-actions"><a href="{{ route('sales-invoices.index') }}">Liste</a></div>
 </section>
@@ -18,7 +18,7 @@
 
 <section class="detail-card">
     <h2>Kaynak ve Hukuki Müşteri</h2>
-    <p><small><strong>Doğrudan:</strong> cari, fiyat/vergi ve belge indirimi girilir. <strong>Sipariş/İrsaliye bağlı:</strong> fiyat, vergi ve belge indirimi kaynak sipariş snapshotından miras alınır; ticari alanları boş bırakın.</small></p>
+    <p><small><strong>Doğrudan:</strong> cari, fiyat/vergi ve belge indirimi girilir. <strong>Sipariş/İrsaliye bağlı:</strong> fiyat, vergi ve belge indirimi kaynak sipariş snapshotından miras alınır; ticari alanları boş bırakın. Sipariş kaynaklı satırlarda Önceki/Kalan değerleri kesinleşmiş net fatura progress'i ile tüm mevcut taslak fatura commitment'larını birlikte gösterir.</small></p>
     <form method="POST" action="{{ route('sales-invoices.store') }}">
         @csrf
         <div class="form-grid">
@@ -97,7 +97,8 @@
                             <option value="">—</option>
                             @foreach($orders as $order)
                                 @foreach($order->lines as $line)
-                                    <option value="{{ $line->getKey() }}" @selected((string) old("lines.$i.sales_order_line_id") === (string) $line->getKey())>{{ $order->number }} / #{{ $line->position }} · {{ $line->product_code }} · {{ $line->quantity }} · {{ $line->unit_price }} {{ $line->price_basis->value }}</option>
+                                    @php($capacity = $orderInvoiceCapacities->get($line->getKey()))
+                                    <option value="{{ $line->getKey() }}" @selected((string) old("lines.$i.sales_order_line_id") === (string) $line->getKey())>{{ $order->number }} / #{{ $line->position }} · {{ $line->product_code }} · Sipariş {{ $line->quantity }} · Önceki {{ $capacity?->previous_quantity ?? '0.000000' }} · Kalan {{ $capacity?->remaining_quantity ?? $line->quantity }} · {{ $line->unit_price }} {{ $line->price_basis->value }}</option>
                                 @endforeach
                             @endforeach
                         </select>
@@ -106,7 +107,8 @@
                             <option value="">—</option>
                             @foreach($dispatches as $dispatch)
                                 @foreach($dispatch->lines as $line)
-                                    <option value="{{ $line->getKey() }}" @selected((string) old("lines.$i.dispatch_line_id") === (string) $line->getKey())>{{ $dispatch->number }} / #{{ $line->position }} · {{ $line->product_code }} · {{ $line->quantity }}</option>
+                                    @php($capacity = $orderInvoiceCapacities->get($line->sales_order_line_id))
+                                    <option value="{{ $line->getKey() }}" @selected((string) old("lines.$i.dispatch_line_id") === (string) $line->getKey())>{{ $dispatch->number }} / #{{ $line->position }} · {{ $line->product_code }} · İrsaliye {{ $line->quantity }} · Önceki {{ $capacity?->previous_quantity ?? '0.000000' }} · Sipariş Kalan {{ $capacity?->remaining_quantity ?? '?' }}</option>
                                 @endforeach
                             @endforeach
                         </select>
