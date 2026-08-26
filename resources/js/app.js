@@ -1,4 +1,6 @@
 import './repeat-fields';
+import './sales-order-product-search';
+import '../css/sales-order-product-search.css';
 
 document.documentElement.dataset.marsFoundation = 'ready';
 

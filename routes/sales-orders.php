@@ -13,6 +13,7 @@ Route::middleware(['web', 'auth', 'company.context'])->group(function (): void {
         ->group(function (): void {
             Route::get('/', [SalesOrderController::class, 'index'])->middleware('can:sales_orders.view')->name('index');
             Route::get('/create', [SalesOrderController::class, 'create'])->middleware('can:sales_orders.manage')->name('create');
+            Route::get('/product-search', [SalesOrderController::class, 'productSearch'])->middleware('can:sales_orders.manage')->name('product-search');
             Route::post('/', [SalesOrderController::class, 'store'])->middleware('can:sales_orders.manage')->name('store');
             Route::get('/{salesOrder}', [SalesOrderController::class, 'show'])->whereNumber('salesOrder')->middleware('can:sales_orders.view')->name('show');
             Route::get('/{salesOrder}/edit', [SalesOrderController::class, 'edit'])->whereNumber('salesOrder')->middleware('can:sales_orders.manage')->name('edit');
