@@ -44,12 +44,6 @@ final readonly class FinalizeDispatch
                 return $dispatch;
             }
 
-            if ($dispatch->statusEnum() !== DispatchStatus::Draft) {
-                throw ValidationException::withMessages([
-                    'status' => 'Yalnız taslak irsaliye kesinleştirilebilir.',
-                ]);
-            }
-
             $lines = $dispatch->lines()->lockForUpdate()->get();
             if ($lines->isEmpty()) {
                 throw ValidationException::withMessages([
