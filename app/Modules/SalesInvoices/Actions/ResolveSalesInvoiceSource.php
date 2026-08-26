@@ -172,7 +172,7 @@ final class ResolveSalesInvoiceSource
     }
 
     /**
-     * @param list<SalesInvoiceLineData> $lines
+     * @param  list<SalesInvoiceLineData>  $lines
      * @return list<ResolvedSalesInvoiceLine>
      */
     private function resolveDirectLines(int $companyId, array $lines): array
@@ -215,7 +215,7 @@ final class ResolveSalesInvoiceSource
     }
 
     /**
-     * @param list<SalesInvoiceLineData> $lines
+     * @param  list<SalesInvoiceLineData>  $lines
      * @return list<ResolvedSalesInvoiceLine>
      */
     private function resolveOrderLines(int $companyId, ?SalesOrder $order, array $lines): array
@@ -279,7 +279,7 @@ final class ResolveSalesInvoiceSource
     }
 
     /**
-     * @param list<SalesInvoiceLineData> $lines
+     * @param  list<SalesInvoiceLineData>  $lines
      * @return list<ResolvedSalesInvoiceLine>
      */
     private function resolveDispatchLines(
