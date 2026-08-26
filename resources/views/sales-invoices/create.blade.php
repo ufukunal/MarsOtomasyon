@@ -7,7 +7,7 @@
     <div>
         <p class="eyebrow">Satış / Faturalar</p>
         <h1>Yeni Satış Faturası</h1>
-        <p>M8.1 yalnız taslak ve source lineage oluşturur. Fiyat/KDV, posting, cari ve stok etkileri henüz bu ekranda çalışmaz.</p>
+        <p>M8.2 fiyat, indirim ve KDV hesaplarını M5 deterministik calculator authority'sinden üretir. Request toplamları dikkate alınmaz.</p>
     </div>
     <div class="page-actions"><a href="{{ route('sales-invoices.index') }}">Liste</a></div>
 </section>
@@ -18,7 +18,7 @@
 
 <section class="detail-card">
     <h2>Kaynak ve Hukuki Müşteri</h2>
-    <p><small><strong>Doğrudan:</strong> Cari seçin. <strong>Sipariş Bağlı:</strong> yalnız sipariş seçin. <strong>İrsaliye Bağlı:</strong> yalnız kesinleşmiş irsaliye seçin. Her modda cariye ait fatura adresi zorunludur.</small></p>
+    <p><small><strong>Doğrudan:</strong> cari, fiyat/vergi ve belge indirimi girilir. <strong>Sipariş/İrsaliye bağlı:</strong> fiyat, vergi ve belge indirimi kaynak sipariş snapshotından miras alınır; ticari alanları boş bırakın.</small></p>
     <form method="POST" action="{{ route('sales-invoices.store') }}">
         @csrf
         <div class="form-grid">
@@ -35,6 +35,9 @@
             <label>Fatura Tarihi
                 <input type="date" name="invoice_date" value="{{ old('invoice_date', now()->format('Y-m-d')) }}" required>
             </label>
+            <label>Belge İndirimi % (yalnız Direct)
+                <input name="document_discount_rate" value="{{ old('document_discount_rate') }}" inputmode="decimal" placeholder="0">
+            </label>
             <label>Doğrudan Cari
                 <select name="account_id">
                     <option value="">—</option>
@@ -47,7 +50,7 @@
                 <select name="sales_order_id">
                     <option value="">—</option>
                     @foreach($orders as $order)
-                        <option value="{{ $order->getKey() }}" @selected((string) old('sales_order_id') === (string) $order->getKey())>{{ $order->number }} · {{ $order->account?->legal_name }}</option>
+                        <option value="{{ $order->getKey() }}" @selected((string) old('sales_order_id') === (string) $order->getKey())>{{ $order->number }} · {{ $order->account?->legal_name }} · İndirim %{{ $order->document_discount_rate }}</option>
                     @endforeach
                 </select>
             </label>
@@ -73,33 +76,32 @@
         </div>
 
         <h2>Satırlar</h2>
-        <p><small>Modunuza göre yalnız ilgili source alanını doldurun. Doğrudan: Ürün. Sipariş bağlı: Sipariş Satırı. İrsaliye bağlı: İrsaliye Satırı. Depo/Konum direct ve allocation'sız sipariş satırında zorunludur; irsaliye bağlı modda kaynak irsaliyeden miras alınır.</small></p>
+        <p><small>Direct satırda ürün, miktar, allocation, fiyat tipi, birim fiyat ve satır indirimi girin. Ürünün doğal KDV'si server-side alınır. KDV sıfırlanırsa aktif sıfır nedeni zorunludur. Linked satırda yalnız source satır + miktar/allocation sözleşmesini kullanın; ticari şartlar kaynak siparişten gelir.</small></p>
         <section class="statement-table-card">
         <table class="data-table">
-            <thead><tr><th>#</th><th>Ürün (Direct)</th><th>Sipariş Satırı</th><th>İrsaliye Satırı</th><th>Miktar</th><th>Depo / Konum</th></tr></thead>
+            <thead><tr><th>#</th><th>Kaynak</th><th>Miktar / Allocation</th><th>Direct Fiyat</th><th>Direct Vergi</th></tr></thead>
             <tbody>
             @for($i = 0; $i < 5; $i++)
                 <tr>
                     <td>{{ $i + 1 }}</td>
                     <td>
+                        <small>Ürün</small>
                         <select name="lines[{{ $i }}][product_id]">
                             <option value="">—</option>
                             @foreach($products as $product)
-                                <option value="{{ $product->getKey() }}" @selected((string) old("lines.$i.product_id") === (string) $product->getKey())>{{ $product->code }} · {{ $product->name }}</option>
+                                <option value="{{ $product->getKey() }}" @selected((string) old("lines.$i.product_id") === (string) $product->getKey())>{{ $product->code }} · {{ $product->name }} · KDV %{{ $product->tax?->rate ?? '?' }}</option>
                             @endforeach
                         </select>
-                    </td>
-                    <td>
+                        <small>Sipariş Satırı</small>
                         <select name="lines[{{ $i }}][sales_order_line_id]">
                             <option value="">—</option>
                             @foreach($orders as $order)
                                 @foreach($order->lines as $line)
-                                    <option value="{{ $line->getKey() }}" @selected((string) old("lines.$i.sales_order_line_id") === (string) $line->getKey())>{{ $order->number }} / #{{ $line->position }} · {{ $line->product_code }} · {{ $line->quantity }}</option>
+                                    <option value="{{ $line->getKey() }}" @selected((string) old("lines.$i.sales_order_line_id") === (string) $line->getKey())>{{ $order->number }} / #{{ $line->position }} · {{ $line->product_code }} · {{ $line->quantity }} · {{ $line->unit_price }} {{ $line->price_basis->value }}</option>
                                 @endforeach
                             @endforeach
                         </select>
-                    </td>
-                    <td>
+                        <small>İrsaliye Satırı</small>
                         <select name="lines[{{ $i }}][dispatch_line_id]">
                             <option value="">—</option>
                             @foreach($dispatches as $dispatch)
@@ -109,8 +111,8 @@
                             @endforeach
                         </select>
                     </td>
-                    <td><input name="lines[{{ $i }}][quantity]" value="{{ old("lines.$i.quantity") }}" inputmode="decimal"></td>
                     <td>
+                        <input name="lines[{{ $i }}][quantity]" value="{{ old("lines.$i.quantity") }}" inputmode="decimal" placeholder="Miktar">
                         <select name="lines[{{ $i }}][allocation_key]">
                             <option value="">Kaynak allocation / Seçin</option>
                             @foreach($warehouses as $warehouse)
@@ -118,6 +120,25 @@
                                     @php($key = $warehouse->getKey().':'.$location->getKey())
                                     <option value="{{ $key }}" @selected(old("lines.$i.allocation_key") === $key)>{{ $warehouse->code }} / {{ $location->code }}</option>
                                 @endforeach
+                            @endforeach
+                        </select>
+                    </td>
+                    <td>
+                        <select name="lines[{{ $i }}][price_basis]">
+                            <option value="">Kaynak / Seçin</option>
+                            @foreach($priceBases as $basis)
+                                <option value="{{ $basis->value }}" @selected(old("lines.$i.price_basis") === $basis->value)>{{ strtoupper($basis->value) }}</option>
+                            @endforeach
+                        </select>
+                        <input name="lines[{{ $i }}][unit_price]" value="{{ old("lines.$i.unit_price") }}" inputmode="decimal" placeholder="Birim fiyat">
+                        <input name="lines[{{ $i }}][line_discount_rate]" value="{{ old("lines.$i.line_discount_rate") }}" inputmode="decimal" placeholder="Satır indirimi %">
+                    </td>
+                    <td>
+                        <label><input type="checkbox" name="lines[{{ $i }}][tax_is_zeroed]" value="1" @checked(old("lines.$i.tax_is_zeroed"))> KDV'yi sıfırla</label>
+                        <select name="lines[{{ $i }}][tax_zero_reason_id]">
+                            <option value="">KDV sıfır nedeni</option>
+                            @foreach($zeroReasons as $reason)
+                                <option value="{{ $reason->getKey() }}" @selected((string) old("lines.$i.tax_zero_reason_id") === (string) $reason->getKey())>{{ $reason->code }} · {{ $reason->name }}</option>
                             @endforeach
                         </select>
                     </td>
