@@ -202,7 +202,7 @@ final readonly class DispatchStockOutService
 
     private function assertReplayMatches(StockMovement $movement, DispatchLine $line): void
     {
-        if ($movement->movement_type !== StockMovementType::DispatchOut
+        if ((string) $movement->getRawOriginal('movement_type') !== StockMovementType::DispatchOut->value
             || (int) $movement->product_id !== (int) $line->product_id
             || (int) $movement->warehouse_id !== (int) $line->warehouse_id
             || (int) $movement->location_id !== (int) $line->location_id
