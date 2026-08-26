@@ -113,10 +113,54 @@ return new class extends Migration
         DB::statement('ALTER TABLE dispatch_lines ADD CONSTRAINT dispatch_lines_quantity_check CHECK (quantity > 0)');
         DB::statement("ALTER TABLE dispatch_lines ADD CONSTRAINT dispatch_lines_product_code_not_blank_check CHECK (char_length(btrim(product_code)) > 0)");
         DB::statement("ALTER TABLE dispatch_lines ADD CONSTRAINT dispatch_lines_product_name_not_blank_check CHECK (char_length(btrim(product_name)) > 0)");
+
+        DB::unprepared(<<<'SQL'
+CREATE OR REPLACE FUNCTION mars_guard_dispatch_source_order_mutation()
+RETURNS trigger AS $$
+BEGIN
+    IF EXISTS (
+        SELECT 1
+        FROM dispatches
+        WHERE company_id = OLD.company_id
+          AND sales_order_id = OLD.id
+    ) THEN
+        RAISE EXCEPTION 'sales order with dispatch lineage is immutable' USING ERRCODE = '55000';
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+SQL);
+        DB::statement('CREATE TRIGGER dispatch_source_order_mutation_guard BEFORE UPDATE ON sales_orders FOR EACH ROW EXECUTE FUNCTION mars_guard_dispatch_source_order_mutation()');
+
+        DB::unprepared(<<<'SQL'
+CREATE OR REPLACE FUNCTION mars_guard_dispatch_source_order_line_mutation()
+RETURNS trigger AS $$
+BEGIN
+    IF EXISTS (
+        SELECT 1
+        FROM dispatch_lines
+        WHERE company_id = OLD.company_id
+          AND sales_order_id = OLD.sales_order_id
+          AND sales_order_line_id = OLD.id
+    ) THEN
+        RAISE EXCEPTION 'sales order line with dispatch lineage is immutable' USING ERRCODE = '55000';
+    END IF;
+
+    RETURN COALESCE(NEW, OLD);
+END;
+$$ LANGUAGE plpgsql;
+SQL);
+        DB::statement('CREATE TRIGGER dispatch_source_order_line_mutation_guard BEFORE UPDATE OR DELETE ON sales_order_lines FOR EACH ROW EXECUTE FUNCTION mars_guard_dispatch_source_order_line_mutation()');
     }
 
     public function down(): void
     {
+        DB::statement('DROP TRIGGER IF EXISTS dispatch_source_order_line_mutation_guard ON sales_order_lines');
+        DB::statement('DROP TRIGGER IF EXISTS dispatch_source_order_mutation_guard ON sales_orders');
+        DB::statement('DROP FUNCTION IF EXISTS mars_guard_dispatch_source_order_line_mutation()');
+        DB::statement('DROP FUNCTION IF EXISTS mars_guard_dispatch_source_order_mutation()');
+
         Schema::dropIfExists('dispatch_lines');
         Schema::dropIfExists('dispatches');
 
