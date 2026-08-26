@@ -10,6 +10,7 @@ use App\Modules\Core\Enums\DocumentType;
 use App\Modules\Core\Numbering\DocumentNumberIssuer;
 use App\Modules\SalesOrders\Enums\SalesOrderStatus;
 use App\Modules\SalesOrders\Models\SalesOrder;
+use App\Modules\SalesOrders\Reservations\SalesOrderReservationSynchronizer;
 use DomainException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -22,6 +23,7 @@ final readonly class CreateSalesOrder
         private DocumentNumberIssuer $numbers,
         private AuditRecorder $audit,
         private SalesOrderAuditSnapshot $auditSnapshot,
+        private SalesOrderReservationSynchronizer $reservations,
     ) {}
 
     public function handle(SalesOrderDraftData $data, string $seriesCode = 'default'): SalesOrder
@@ -61,6 +63,7 @@ final readonly class CreateSalesOrder
                 ]);
 
                 $this->persistLines($order, $draft);
+                $this->reservations->sync($order, $draft);
                 $this->audit->record(
                     AuditAction::SalesOrderCreated,
                     AuditTargetType::SalesOrder,
@@ -82,8 +85,11 @@ final readonly class CreateSalesOrder
             $order->lines()->create([
                 'company_id' => $order->company_id,
                 'source_quote_revision_line_id' => null,
+                'logical_line_key' => $line->logicalLineKey,
                 'position' => $line->position,
                 'product_id' => $line->productId,
+                'warehouse_id' => $line->warehouseId,
+                'location_id' => $line->locationId,
                 'product_code' => $line->productCode,
                 'product_name' => $line->productName,
                 'description' => $line->description,

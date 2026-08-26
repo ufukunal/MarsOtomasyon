@@ -8,7 +8,10 @@ final readonly class ResolvedSalesOrderLine
 {
     public function __construct(
         public int $position,
+        public string $logicalLineKey,
         public int $productId,
+        public ?int $warehouseId,
+        public ?int $locationId,
         public string $productCode,
         public string $productName,
         public string $description,

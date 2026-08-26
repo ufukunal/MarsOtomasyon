@@ -7,10 +7,13 @@ use App\Modules\Accounts\Enums\AccountType;
 use App\Modules\Accounts\Models\Account;
 use App\Modules\Core\Models\Currency;
 use App\Modules\Core\Models\TaxZeroReason;
+use App\Modules\Inventory\Models\Warehouse;
+use App\Modules\Inventory\Models\WarehouseLocation;
 use App\Modules\Products\Models\Product;
 use App\Modules\Quotes\Pricing\DeterministicTaxCalculator;
 use App\Modules\Quotes\Pricing\TaxCalculationLineInput;
 use DateTimeImmutable;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use InvalidArgumentException;
 
@@ -35,8 +38,16 @@ final readonly class SalesOrderDraftResolver
 
         $inputs = [];
         $metadata = [];
+        $logicalKeys = [];
         foreach ($data->lines as $offset => $line) {
             $position = $offset + 1;
+            $logicalLineKey = $this->logicalLineKey($line->logicalLineKey, $offset);
+            if (isset($logicalKeys[$logicalLineKey])) {
+                throw ValidationException::withMessages(["lines.$offset.logical_line_key" => 'Aynı sipariş satırı kimliği birden fazla kez kullanılamaz.']);
+            }
+            $logicalKeys[$logicalLineKey] = true;
+
+            [$warehouseId, $locationId] = $this->allocation($companyId, $line, $offset);
             $product = Product::query()
                 ->with('tax')
                 ->where('company_id', $companyId)
@@ -82,7 +93,7 @@ final readonly class SalesOrderDraftResolver
                 lineDiscountRate: $line->lineDiscountRate,
                 taxZeroReasonCode: $zeroReason === null ? null : (string) $zeroReason->code,
             );
-            $metadata[] = [$product, $tax, $zeroReason, $description];
+            $metadata[] = [$logicalLineKey, $warehouseId, $locationId, $product, $tax, $zeroReason, $description];
         }
 
         try {
@@ -93,10 +104,13 @@ final readonly class SalesOrderDraftResolver
 
         $resolvedLines = [];
         foreach ($calculation->lines as $offset => $lineResult) {
-            [$product, $tax, $zeroReason, $description] = $metadata[$offset];
+            [$logicalLineKey, $warehouseId, $locationId, $product, $tax, $zeroReason, $description] = $metadata[$offset];
             $resolvedLines[] = new ResolvedSalesOrderLine(
                 position: $offset + 1,
+                logicalLineKey: $logicalLineKey,
                 productId: (int) $product->getKey(),
+                warehouseId: $warehouseId,
+                locationId: $locationId,
                 productCode: (string) $product->code,
                 productName: (string) $product->name,
                 description: $description,
@@ -116,6 +130,51 @@ final readonly class SalesOrderDraftResolver
             lines: $resolvedLines,
             calculation: $calculation,
         );
+    }
+
+    /** @return array{?int, ?int} */
+    private function allocation(int $companyId, SalesOrderLineData $line, int $offset): array
+    {
+        if (($line->warehouseId === null) !== ($line->locationId === null)) {
+            throw ValidationException::withMessages(["lines.$offset.warehouse_id" => 'Depo ve lokasyon birlikte seçilmelidir.']);
+        }
+        if ($line->warehouseId === null) {
+            return [null, null];
+        }
+
+        $warehouse = Warehouse::query()
+            ->where('company_id', $companyId)
+            ->whereKey($line->warehouseId)
+            ->where('is_active', true)
+            ->first();
+        if ($warehouse === null) {
+            throw ValidationException::withMessages(["lines.$offset.warehouse_id" => 'Aktif şirkete ait aktif bir depo seçilmelidir.']);
+        }
+
+        $location = WarehouseLocation::query()
+            ->where('company_id', $companyId)
+            ->where('warehouse_id', $line->warehouseId)
+            ->whereKey($line->locationId)
+            ->where('is_active', true)
+            ->first();
+        if ($location === null) {
+            throw ValidationException::withMessages(["lines.$offset.location_id" => 'Seçilen depoya ait aktif bir lokasyon seçilmelidir.']);
+        }
+
+        return [(int) $warehouse->getKey(), (int) $location->getKey()];
+    }
+
+    private function logicalLineKey(?string $raw, int $offset): string
+    {
+        $value = mb_strtolower(trim((string) $raw));
+        if ($value === '') {
+            return (string) Str::uuid();
+        }
+        if (preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/D', $value) !== 1) {
+            throw ValidationException::withMessages(["lines.$offset.logical_line_key" => 'Sipariş satırı kimliği geçersiz.']);
+        }
+
+        return $value;
     }
 
     private function assertAccount(int $companyId, int $accountId): void
