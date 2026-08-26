@@ -58,7 +58,21 @@
             <tr>
                 <td>{{ $line->position }}<input type="hidden" name="lines[{{ $index }}][sales_order_line_id]" value="{{ $line->getKey() }}"></td>
                 <td>{{ $line->product_code }} — {{ $line->product_name }}@if($line->description)<br><small>{{ $line->description }}</small>@endif</td>
-                <td>{{ $line->warehouse?->code ?? '—' }} / {{ $line->location?->code ?? '—' }}</td>
+                <td>
+                    @if($line->warehouse_id !== null && $line->location_id !== null)
+                        {{ $line->warehouse?->code ?? '—' }} / {{ $line->location?->code ?? '—' }}<br><small>Sipariş allocation</small>
+                    @else
+                        <select name="lines[{{ $index }}][allocation_key]" required>
+                            <option value="">Sevk depo / konumu seçin</option>
+                            @foreach($warehouses as $warehouse)
+                                @foreach($warehouse->locations as $location)
+                                    @php($allocationKey = $warehouse->getKey().':'.$location->getKey())
+                                    <option value="{{ $allocationKey }}" @selected((string) old('lines.'.$index.'.allocation_key') === (string) $allocationKey)>{{ $warehouse->code }} — {{ $location->code }} / {{ $location->name }}</option>
+                                @endforeach
+                            @endforeach
+                        </select>
+                    @endif
+                </td>
                 <td>{{ $line->quantity }}</td>
                 <td><input name="lines[{{ $index }}][quantity]" value="{{ old('lines.'.$index.'.quantity', $line->quantity) }}" inputmode="decimal" required></td>
             </tr>
