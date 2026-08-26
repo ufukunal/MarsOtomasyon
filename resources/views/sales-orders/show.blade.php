@@ -7,7 +7,8 @@
     <div><p class="eyebrow">Satış / Sipariş</p><h1>{{ $order->number }}</h1><p>{{ $order->isManual() ? 'Manuel taslak sipariş' : 'Teklif revizyonundan oluşan immutable sipariş snapshotı' }}</p></div>
     <div class="page-actions">
         <a href="{{ route('sales-orders.index') }}">Liste</a>
-        @can('sales_orders.manage')@if($order->isManual() && $order->isDraft() && (int) $order->progress_effects_count === 0)<a class="button-primary" href="{{ route('sales-orders.edit', $order->getKey()) }}">Düzenle</a>@endif @endcan
+        @can('dispatches.manage')<a href="{{ route('dispatches.create', ['sales_order_id' => $order->getKey()]) }}">İrsaliye Oluştur</a>@endcan
+        @can('sales_orders.manage')@if($order->isManual() && $order->isDraft() && (int) $order->progress_effects_count === 0 && (int) $order->dispatches_count === 0)<a class="button-primary" href="{{ route('sales-orders.edit', $order->getKey()) }}">Düzenle</a>@endif @endcan
     </div>
 </section>
 

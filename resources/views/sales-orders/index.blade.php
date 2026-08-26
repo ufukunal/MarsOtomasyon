@@ -5,7 +5,10 @@
 @section('app-content')
 <section class="workspace-hero">
     <div><p class="eyebrow">Satış / Sipariş</p><h1>Satış Siparişleri</h1><p>Manuel taslaklar ve tekliften oluşan immutable siparişler aynı listede, kaynak bilgisiyle izlenir.</p></div>
-    @can('sales_orders.manage')<a class="button-primary" href="{{ route('sales-orders.create') }}">Yeni Sipariş</a>@endcan
+    <div class="page-actions">
+        @can('dispatches.view')<a href="{{ route('dispatches.index') }}">İrsaliyeler</a>@endcan
+        @can('sales_orders.manage')<a class="button-primary" href="{{ route('sales-orders.create') }}">Yeni Sipariş</a>@endcan
+    </div>
 </section>
 
 <form method="get" class="detail-card">
