@@ -18,6 +18,8 @@ use App\Modules\Core\Models\Role;
 use App\Modules\Core\Models\Tax;
 use App\Modules\Core\Models\User;
 use App\Modules\Dispatches\Models\Dispatch;
+use App\Modules\Inventory\Models\Warehouse;
+use App\Modules\Inventory\Models\WarehouseLocation;
 use App\Modules\Products\Enums\ProductStatus;
 use App\Modules\Products\Models\Category;
 use App\Modules\Products\Models\Product;
@@ -34,8 +36,8 @@ beforeEach(function (): void {
     $this->withoutVite();
 });
 
-it('creates a numbered draft dispatch with immutable order/address snapshots and no stock or progress side effects', function (): void {
-    [$company, $account, $product, $address] = dispatch71Fixture('DSP71-A');
+it('creates a numbered draft dispatch with immutable order address and allocation snapshots and no stock or progress side effects', function (): void {
+    [$company, $account, $product, $address, $warehouse, $location] = dispatch71Fixture('DSP71-A');
     $manager = dispatch71Actor($company, [
         PermissionKey::SalesOrderView,
         PermissionKey::SalesOrderManage,
@@ -62,6 +64,7 @@ it('creates a numbered draft dispatch with immutable order/address snapshots and
             'lines' => [[
                 'sales_order_line_id' => $orderLine->getKey(),
                 'quantity' => '1.500000',
+                'allocation_key' => $warehouse->getKey().':'.$location->getKey(),
             ]],
         ]);
 
@@ -79,6 +82,8 @@ it('creates a numbered draft dispatch with immutable order/address snapshots and
         ->and((string) $dispatch->tracking_number)->toBe('TRK-71-A')
         ->and((int) $line->sales_order_line_id)->toBe((int) $orderLine->getKey())
         ->and((int) $line->product_id)->toBe((int) $product->getKey())
+        ->and((int) $line->warehouse_id)->toBe((int) $warehouse->getKey())
+        ->and((int) $line->location_id)->toBe((int) $location->getKey())
         ->and((string) $line->product_code)->toBe('SKU')
         ->and((string) $line->product_name)->toBe('Ürün DSP71-A')
         ->and((string) $line->quantity)->toBe('1.500000')
@@ -87,12 +92,16 @@ it('creates a numbered draft dispatch with immutable order/address snapshots and
 
     $address->forceFill(['line1' => 'Değişen Adres 99', 'city' => 'Ankara'])->save();
     $product->forceFill(['name' => 'Yeni Ürün Adı'])->save();
+    $warehouse->forceFill(['code' => 'WH-NEW'])->save();
+    $location->forceFill(['code' => 'LOC-NEW'])->save();
     $dispatch->refresh();
     $line->refresh();
 
     expect((string) $dispatch->address_line1)->toBe('Mars Cad. 71')
         ->and((string) $dispatch->city)->toBe('İstanbul')
-        ->and((string) $line->product_name)->toBe('Ürün DSP71-A');
+        ->and((string) $line->product_name)->toBe('Ürün DSP71-A')
+        ->and((int) $line->warehouse_id)->toBe((int) $warehouse->getKey())
+        ->and((int) $line->location_id)->toBe((int) $location->getKey());
 
     $this->actingAs($manager)->withSession(['active_company_id' => $company->getKey()])
         ->get('/dispatches')->assertOk()->assertSee('DSP-0001')->assertSee('SO-0001');
@@ -100,8 +109,54 @@ it('creates a numbered draft dispatch with immutable order/address snapshots and
         ->get('/dispatches/'.$dispatch->getKey())->assertOk()->assertSee('TRK-71-A')->assertSee('Mars Cad. 71');
 });
 
+it('requires an active current-company allocation when the source order line is unallocated', function (): void {
+    [$companyA, $accountA, $productA, $addressA, $warehouseA, $locationA] = dispatch71Fixture('DSP71-ALLOC-A');
+    [, , , , $warehouseB, $locationB] = dispatch71Fixture('DSP71-ALLOC-B');
+    $manager = dispatch71Actor($companyA, [
+        PermissionKey::SalesOrderView,
+        PermissionKey::SalesOrderManage,
+        PermissionKey::DispatchView,
+        PermissionKey::DispatchManage,
+    ], 'allocation-manager');
+    $order = dispatch71CreateOrder($this, $companyA, $manager, $accountA, $productA);
+    $line = $order->lines()->firstOrFail();
+
+    $basePayload = [
+        'series_code' => 'default',
+        'sales_order_id' => $order->getKey(),
+        'source_address_id' => $addressA->getKey(),
+        'dispatch_date' => '2026-08-26',
+        'lines' => [[
+            'sales_order_line_id' => $line->getKey(),
+            'quantity' => '1',
+        ]],
+    ];
+
+    $this->actingAs($manager)->withSession(['active_company_id' => $companyA->getKey()])
+        ->post('/dispatches', $basePayload)
+        ->assertSessionHasErrors('lines.0.allocation_key');
+
+    $foreignPayload = $basePayload;
+    $foreignPayload['lines'][0]['allocation_key'] = $warehouseB->getKey().':'.$locationB->getKey();
+    $this->actingAs($manager)->withSession(['active_company_id' => $companyA->getKey()])
+        ->post('/dispatches', $foreignPayload)
+        ->assertSessionHasErrors('lines');
+
+    expect(Dispatch::query()->where('company_id', $companyA->getKey())->count())->toBe(0);
+
+    $validPayload = $basePayload;
+    $validPayload['lines'][0]['allocation_key'] = $warehouseA->getKey().':'.$locationA->getKey();
+    $this->actingAs($manager)->withSession(['active_company_id' => $companyA->getKey()])
+        ->post('/dispatches', $validPayload)
+        ->assertRedirect();
+
+    $dispatchLine = Dispatch::query()->where('company_id', $companyA->getKey())->firstOrFail()->lines()->firstOrFail();
+    expect((int) $dispatchLine->warehouse_id)->toBe((int) $warehouseA->getKey())
+        ->and((int) $dispatchLine->location_id)->toBe((int) $locationA->getKey());
+});
+
 it('enforces dispatch order account and line lineage at PostgreSQL', function (): void {
-    [$company, $account, $product, $address] = dispatch71Fixture('DSP71-DB');
+    [$company, $account, $product, $address, $warehouse, $location] = dispatch71Fixture('DSP71-DB');
     $manager = dispatch71Actor($company, [
         PermissionKey::SalesOrderView,
         PermissionKey::SalesOrderManage,
@@ -117,6 +172,7 @@ it('enforces dispatch order account and line lineage at PostgreSQL', function ()
         'series_code' => 'default', 'sales_order_id' => $orderA->getKey(), 'source_address_id' => $address->getKey(),
         'dispatch_date' => '2026-08-26', 'lines' => [[
             'sales_order_line_id' => $lineA->getKey(), 'quantity' => '1',
+            'allocation_key' => $warehouse->getKey().':'.$location->getKey(),
         ]],
     ])->assertRedirect();
     $dispatch = Dispatch::query()->firstOrFail();
@@ -150,7 +206,7 @@ it('enforces dispatch order account and line lineage at PostgreSQL', function ()
 
 it('isolates dispatches by company and enforces view/manage permissions including the sales landing route', function (): void {
     [$companyA] = dispatch71Fixture('DSP71-C-A');
-    [$companyB, $accountB, $productB, $addressB] = dispatch71Fixture('DSP71-C-B');
+    [$companyB, $accountB, $productB, $addressB, $warehouseB, $locationB] = dispatch71Fixture('DSP71-C-B');
     $managerA = dispatch71Actor($companyA, [PermissionKey::DispatchView, PermissionKey::DispatchManage], 'manager-a');
     $viewerA = dispatch71Actor($companyA, [PermissionKey::DispatchView], 'viewer-a');
     $noDispatchA = dispatch71Actor($companyA, [PermissionKey::AccountView], 'no-dispatch-a');
@@ -167,6 +223,7 @@ it('isolates dispatches by company and enforces view/manage permissions includin
         'series_code' => 'default', 'sales_order_id' => $orderB->getKey(), 'source_address_id' => $addressB->getKey(),
         'dispatch_date' => '2026-08-26', 'lines' => [[
             'sales_order_line_id' => $lineB->getKey(), 'quantity' => '1',
+            'allocation_key' => $warehouseB->getKey().':'.$locationB->getKey(),
         ]],
     ])->assertRedirect();
     $foreign = Dispatch::query()->where('company_id', $companyB->getKey())->firstOrFail();
@@ -176,6 +233,7 @@ it('isolates dispatches by company and enforces view/manage permissions includin
             'series_code' => 'default', 'sales_order_id' => $orderB->getKey(), 'source_address_id' => $addressB->getKey(),
             'dispatch_date' => '2026-08-26', 'lines' => [[
                 'sales_order_line_id' => $lineB->getKey(), 'quantity' => '1',
+                'allocation_key' => $warehouseB->getKey().':'.$locationB->getKey(),
             ]],
         ])->assertSessionHasErrors('sales_order_id');
 
@@ -193,7 +251,7 @@ it('isolates dispatches by company and enforces view/manage permissions includin
         ->get('/dispatches')->assertForbidden();
 });
 
-/** @return array{Company, Account, Product, AccountAddress} */
+/** @return array{Company, Account, Product, AccountAddress, Warehouse, WarehouseLocation} */
 function dispatch71Fixture(string $code): array
 {
     $company = Company::query()->create(['code' => $code, 'name' => 'Company '.$code]);
@@ -212,6 +270,13 @@ function dispatch71Fixture(string $code): array
         'line1' => 'Mars Cad. 71', 'line2' => 'Kat 1', 'district' => 'Şişli', 'city' => 'İstanbul',
         'postal_code' => '34360', 'country_code' => 'TR', 'is_default' => true,
     ]);
+    $warehouse = Warehouse::query()->create([
+        'company_id' => $company->getKey(), 'code' => 'WH', 'name' => 'Ana Depo', 'is_active' => true,
+    ]);
+    $location = WarehouseLocation::query()->create([
+        'company_id' => $company->getKey(), 'warehouse_id' => $warehouse->getKey(),
+        'code' => 'LOC', 'name' => 'Ana Konum', 'is_active' => true,
+    ]);
     DocumentSequence::query()->create([
         'company_id' => $company->getKey(), 'document_type' => DocumentType::SalesOrder, 'series_code' => 'default',
         'prefix' => 'SO-', 'padding' => 4, 'next_value' => 1, 'is_active' => true,
@@ -221,7 +286,7 @@ function dispatch71Fixture(string $code): array
         'prefix' => 'DSP-', 'padding' => 4, 'next_value' => 1, 'is_active' => true,
     ]);
 
-    return [$company, $account, $product, $address];
+    return [$company, $account, $product, $address, $warehouse, $location];
 }
 
 function dispatch71CreateAccount(Company $company, string $code, string $name): Account
