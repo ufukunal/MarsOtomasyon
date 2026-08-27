@@ -1,0 +1,29 @@
+name: Pint M95 Debug
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  pint-debug:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup PHP 8.5
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          coverage: none
+          tools: composer:v2
+      - name: Install PHP dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+      - name: Show exact Pint patch
+        run: |
+          vendor/bin/pint app/Modules/PurchaseReturns/Actions/FinalizePurchaseReturn.php app/Modules/PurchaseReturns/PurchaseReturnController.php tests/Integration/PurchaseReturns/PurchaseReturnTest.php
+          git --no-pager diff -- app/Modules/PurchaseReturns/Actions/FinalizePurchaseReturn.php app/Modules/PurchaseReturns/PurchaseReturnController.php tests/Integration/PurchaseReturns/PurchaseReturnTest.php
+          exit 1
