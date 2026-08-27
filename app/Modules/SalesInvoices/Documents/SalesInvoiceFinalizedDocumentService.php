@@ -4,6 +4,7 @@ namespace App\Modules\SalesInvoices\Documents;
 
 use App\Foundation\Clock\Clock;
 use App\Modules\Core\Company\ActiveCompanyContext;
+use App\Modules\Core\Models\Company;
 use App\Modules\Core\Models\FileAsset;
 use App\Modules\SalesInvoices\Enums\SalesInvoiceStatus;
 use App\Modules\SalesInvoices\Models\SalesInvoice;
@@ -40,9 +41,13 @@ final readonly class SalesInvoiceFinalizedDocumentService
                     ->with(['company', 'lines'])
                     ->firstOrFail();
 
-                if (! in_array($invoice->statusEnum(), [SalesInvoiceStatus::Finalized, SalesInvoiceStatus::Cancelled], true)
-                    || ! $invoice->finalized_at instanceof DateTimeInterface) {
+                if (! in_array($invoice->statusEnum(), [SalesInvoiceStatus::Finalized, SalesInvoiceStatus::Cancelled], true)) {
                     throw new LogicException('Finalized PDF requires a finalized or cancelled sales invoice.');
+                }
+
+                $finalizedAt = $invoice->getAttribute('finalized_at');
+                if (! $finalizedAt instanceof DateTimeInterface) {
+                    throw new LogicException('Finalized PDF requires a valid finalization timestamp.');
                 }
 
                 $existing = SalesInvoiceFinalizedDocument::query()
@@ -167,7 +172,12 @@ final readonly class SalesInvoiceFinalizedDocumentService
 
     private function sourceFingerprint(SalesInvoice $invoice): string
     {
-        $finalizedAt = $invoice->finalized_at;
+        $company = $invoice->company;
+        if (! $company instanceof Company) {
+            throw new LogicException('Finalized invoice PDF requires the invoice company relation.');
+        }
+
+        $finalizedAt = $invoice->getAttribute('finalized_at');
         if (! $finalizedAt instanceof DateTimeInterface) {
             throw new LogicException('Finalized invoice PDF requires a valid finalization timestamp.');
         }
@@ -196,7 +206,7 @@ final readonly class SalesInvoiceFinalizedDocumentService
 
         $payload = json_encode([
             'renderer_version' => self::RENDERER_VERSION,
-            'company_name' => (string) $invoice->company?->name,
+            'company_name' => (string) $company->name,
             'invoice_id' => (int) $invoice->getKey(),
             'number' => (string) $invoice->number,
             'mode' => (string) $invoice->getRawOriginal('mode'),
@@ -230,7 +240,10 @@ final readonly class SalesInvoiceFinalizedDocumentService
     {
         $safe = preg_replace('/[^A-Za-z0-9._-]+/', '-', $invoiceNumber);
         $safe = is_string($safe) ? trim($safe, '-_.') : '';
+        if ($safe === '') {
+            $safe = 'sales-invoice';
+        }
 
-        return ($safe === '' ? 'sales-invoice' : $safe).'.pdf';
+        return $safe.'.pdf';
     }
 }
