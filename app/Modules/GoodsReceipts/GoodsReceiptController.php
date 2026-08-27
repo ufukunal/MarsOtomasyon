@@ -7,13 +7,17 @@ use App\Modules\GoodsReceipts\Actions\CreateGoodsReceipt;
 use App\Modules\GoodsReceipts\Actions\FinalizeGoodsReceipt;
 use App\Modules\GoodsReceipts\Actions\GoodsReceiptDraftData;
 use App\Modules\GoodsReceipts\Actions\GoodsReceiptLineData;
+use App\Modules\GoodsReceipts\Actions\ReclassifyGoodsReceiptQuality;
 use App\Modules\GoodsReceipts\Actions\UpdateGoodsReceipt;
+use App\Modules\GoodsReceipts\Enums\GoodsReceiptQualityDisposition;
 use App\Modules\GoodsReceipts\Models\GoodsReceipt;
+use App\Modules\GoodsReceipts\Models\GoodsReceiptQualityEffect;
 use App\Modules\Inventory\Models\Warehouse;
 use App\Modules\PurchaseOrders\Models\PurchaseOrder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 final readonly class GoodsReceiptController
@@ -23,6 +27,7 @@ final readonly class GoodsReceiptController
         private CreateGoodsReceipt $createGoodsReceipt,
         private UpdateGoodsReceipt $updateGoodsReceipt,
         private FinalizeGoodsReceipt $finalizeGoodsReceipt,
+        private ReclassifyGoodsReceiptQuality $reclassifyGoodsReceiptQuality,
     ) {}
 
     public function index(Request $request): View
@@ -66,11 +71,27 @@ final readonly class GoodsReceiptController
 
     public function show(int $goodsReceipt): View
     {
+        $companyId = $this->companyId();
         $receipt = $this->receipt($goodsReceipt)->load([
             'account', 'purchaseOrder', 'lines.purchaseOrderLine.progress', 'lines.warehouse', 'lines.location',
         ]);
+        $qualityByLine = DB::table('goods_receipt_line_quality')
+            ->where('company_id', $companyId)
+            ->where('goods_receipt_id', $receipt->getKey())
+            ->get()
+            ->keyBy(fn (object $row): int => (int) $row->goods_receipt_line_id);
+        $qualityEffects = GoodsReceiptQualityEffect::query()
+            ->where('company_id', $companyId)
+            ->where('goods_receipt_id', $receipt->getKey())
+            ->with('line')
+            ->orderByDesc('id')
+            ->get();
 
-        return view('goods-receipts.show', ['receipt' => $receipt]);
+        return view('goods-receipts.show', [
+            'receipt' => $receipt,
+            'qualityByLine' => $qualityByLine,
+            'qualityEffects' => $qualityEffects,
+        ]);
     }
 
     public function edit(Request $request, int $goodsReceipt): View
@@ -98,6 +119,31 @@ final readonly class GoodsReceiptController
 
         return redirect()->route('goods-receipts.show', $receipt->getKey())
             ->with('status', 'Mal kabul kesinleştirildi; accepted miktar stok ve satınalma progress ledgerına işlendi.');
+    }
+
+    public function reclassifyQuality(Request $request, int $goodsReceipt): RedirectResponse
+    {
+        $validated = $request->validate([
+            'goods_receipt_line_id' => ['required', 'integer'],
+            'disposition' => ['required', 'in:accepted,rejected'],
+            'quantity' => ['required', 'decimal:0,6'],
+            'note' => ['nullable', 'string', 'max:1000'],
+        ]);
+        $disposition = GoodsReceiptQualityDisposition::from((string) $validated['disposition']);
+        $effect = $this->reclassifyGoodsReceiptQuality->handle(
+            $goodsReceipt,
+            (int) $validated['goods_receipt_line_id'],
+            $disposition,
+            (string) $validated['quantity'],
+            isset($validated['note']) ? (string) $validated['note'] : null,
+        );
+
+        return redirect()->route('goods-receipts.show', $goodsReceipt)
+            ->with('status', sprintf(
+                'Kalite sınıflandırması işlendi: %s %s.',
+                (string) $effect->quantity,
+                $disposition->label(),
+            ));
     }
 
     private function form(Request $request, ?GoodsReceipt $receipt): View
