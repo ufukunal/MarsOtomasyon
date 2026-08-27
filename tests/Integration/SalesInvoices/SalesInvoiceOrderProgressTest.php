@@ -1,20 +1,25 @@
 <?php
 
+use App\Foundation\Clock\Clock;
 use App\Foundation\Identity\SourceEffectIdentity;
 use App\Modules\Accounts\Enums\AccountAddressType;
 use App\Modules\Accounts\Enums\AccountStatus;
 use App\Modules\Accounts\Enums\AccountType;
 use App\Modules\Accounts\Enums\TaxIdentityType;
+use App\Modules\Accounts\Ledger\AccountTransactionPoster;
+use App\Modules\Accounts\Ledger\PostAccountTransactionData;
 use App\Modules\Accounts\Models\Account;
 use App\Modules\Accounts\Models\AccountAddress;
 use App\Modules\Core\Authorization\AssignRoleToMembership;
 use App\Modules\Core\Authorization\GrantPermissionToRole;
 use App\Modules\Core\Enums\DocumentType;
 use App\Modules\Core\Enums\PermissionKey;
+use App\Modules\Core\Enums\PostingPeriodStatus;
 use App\Modules\Core\Enums\UserStatus;
 use App\Modules\Core\Models\Company;
 use App\Modules\Core\Models\CompanyMembership;
 use App\Modules\Core\Models\DocumentSequence;
+use App\Modules\Core\Models\PostingPeriod;
 use App\Modules\Core\Models\Role;
 use App\Modules\Core\Models\Tax;
 use App\Modules\Core\Models\User;
@@ -25,6 +30,7 @@ use App\Modules\Products\Models\Category;
 use App\Modules\Products\Models\Product;
 use App\Modules\Products\Models\Unit;
 use App\Modules\SalesInvoices\Enums\SalesInvoiceMode;
+use App\Modules\SalesInvoices\Enums\SalesInvoiceStatus;
 use App\Modules\SalesInvoices\Models\SalesInvoice;
 use App\Modules\SalesInvoices\Models\SalesInvoiceOrderLineCapacity;
 use App\Modules\SalesOrders\Enums\SalesOrderProgressType;
@@ -43,6 +49,13 @@ uses(DatabaseMigrations::class);
 
 beforeEach(function (): void {
     $this->withoutVite();
+    app()->instance(Clock::class, new class implements Clock
+    {
+        public function now(): DateTimeImmutable
+        {
+            return new DateTimeImmutable('2026-08-27T12:00:00+00:00');
+        }
+    });
 });
 
 it('projects net invoiced draft previous and remaining quantities across partial invoices without creating draft effects', function (): void {
@@ -176,6 +189,107 @@ it('blocks invoiced or cancelled progress that would invalidate an existing draf
         ->and((string) $capacity->remaining_quantity)->toBe('1.000000');
 });
 
+it('moves linked draft commitment into invoiced progress on finalize and reverses it on cancel', function (): void {
+    [$company, $account, $product, $billing, $warehouse, $location, $manager] = invoice83Fixture('INV83-LIFECYCLE');
+    $order = invoice83CreateOrder($this, $company, $manager, $account, $product, '5');
+    $line = $order->lines()->firstOrFail();
+
+    invoice83Post($this, $company, $manager, $order, $line, $billing, $warehouse, $location, '3')->assertRedirect();
+    $invoice = SalesInvoice::query()->where('company_id', $company->getKey())->latest('id')->firstOrFail();
+    $invoiceLine = $invoice->lines()->firstOrFail();
+
+    $draftCapacity = SalesInvoiceOrderLineCapacity::query()
+        ->where('sales_order_line_id', $line->getKey())
+        ->firstOrFail();
+    expect((string) $draftCapacity->net_invoiced_quantity)->toBe('0.000000')
+        ->and((string) $draftCapacity->draft_quantity)->toBe('3.000000')
+        ->and((string) $draftCapacity->remaining_quantity)->toBe('2.000000');
+
+    $this->actingAs($manager)
+        ->withSession(['active_company_id' => $company->getKey()])
+        ->post(route('sales-invoices.finalize', $invoice->getKey()))
+        ->assertRedirect(route('sales-invoices.show', $invoice->getKey()));
+
+    $finalizedCapacity = SalesInvoiceOrderLineCapacity::query()
+        ->where('sales_order_line_id', $line->getKey())
+        ->firstOrFail();
+    $original = SalesOrderLineProgressEffect::query()
+        ->where('company_id', $company->getKey())
+        ->where('sales_order_line_id', $line->getKey())
+        ->where('source_type', 'sales_invoice_line')
+        ->where('source_id', (string) $invoiceLine->getKey())
+        ->where('effect_type', 'progress.invoice')
+        ->firstOrFail();
+
+    expect($invoice->refresh()->statusEnum())->toBe(SalesInvoiceStatus::Finalized)
+        ->and((string) $finalizedCapacity->net_invoiced_quantity)->toBe('3.000000')
+        ->and((string) $finalizedCapacity->draft_quantity)->toBe('0.000000')
+        ->and((string) $finalizedCapacity->remaining_quantity)->toBe('2.000000')
+        ->and((string) $original->quantity_delta)->toBe('3.000000')
+        ->and(DB::table('stock_movements')->count())->toBe(0);
+
+    $this->actingAs($manager)
+        ->withSession(['active_company_id' => $company->getKey()])
+        ->post(route('sales-invoices.cancel', $invoice->getKey()))
+        ->assertRedirect(route('sales-invoices.show', $invoice->getKey()));
+
+    $cancelledCapacity = SalesInvoiceOrderLineCapacity::query()
+        ->where('sales_order_line_id', $line->getKey())
+        ->firstOrFail();
+    $reversal = SalesOrderLineProgressEffect::query()
+        ->where('reversal_of_progress_effect_id', $original->getKey())
+        ->firstOrFail();
+
+    expect($invoice->refresh()->statusEnum())->toBe(SalesInvoiceStatus::Cancelled)
+        ->and((string) $cancelledCapacity->net_invoiced_quantity)->toBe('0.000000')
+        ->and((string) $cancelledCapacity->draft_quantity)->toBe('0.000000')
+        ->and((string) $cancelledCapacity->remaining_quantity)->toBe('5.000000')
+        ->and((string) $reversal->quantity_delta)->toBe('-3.000000')
+        ->and((string) $reversal->source_type)->toBe('sales_invoice_line')
+        ->and((string) $reversal->source_id)->toBe((string) $invoiceLine->getKey())
+        ->and((string) $reversal->effect_type)->toBe('progress.invoice.reverse')
+        ->and(DB::table('stock_movements')->count())->toBe(0);
+});
+
+it('rejects linked finalization at commit when exact invoice progress is missing', function (): void {
+    [$company, $account, $product, $billing, $warehouse, $location, $manager] = invoice83Fixture('INV83-DB-LIFECYCLE');
+    $order = invoice83CreateOrder($this, $company, $manager, $account, $product, '5');
+    $line = $order->lines()->firstOrFail();
+
+    invoice83Post($this, $company, $manager, $order, $line, $billing, $warehouse, $location, '3')->assertRedirect();
+    $invoice = SalesInvoice::query()->where('company_id', $company->getKey())->latest('id')->firstOrFail();
+
+    expect(fn () => DB::transaction(function () use ($company, $invoice): void {
+        app(AccountTransactionPoster::class)->post(new PostAccountTransactionData(
+            accountId: (int) $invoice->account_id,
+            postingDate: '2026-08-27',
+            signedAmount: (string) $invoice->gross_total,
+            sourceEffect: new SourceEffectIdentity(
+                (int) $company->getKey(),
+                'sales_invoice',
+                (string) $invoice->getKey(),
+                'account.sales_invoice',
+            ),
+            memo: 'DB lifecycle testi',
+        ));
+
+        DB::table('sales_invoices')->where('id', $invoice->getKey())->update([
+            'status' => SalesInvoiceStatus::Finalized->value,
+            'finalized_at' => '2026-08-27 12:00:00+00',
+            'updated_at' => now(),
+        ]);
+    }))->toThrow(QueryException::class);
+
+    $capacity = SalesInvoiceOrderLineCapacity::query()
+        ->where('sales_order_line_id', $line->getKey())
+        ->firstOrFail();
+    expect($invoice->refresh()->statusEnum())->toBe(SalesInvoiceStatus::Draft)
+        ->and((string) $capacity->draft_quantity)->toBe('3.000000')
+        ->and((string) $capacity->remaining_quantity)->toBe('2.000000')
+        ->and(DB::table('account_transactions')->count())->toBe(0)
+        ->and(SalesOrderLineProgressEffect::query()->count())->toBe(0);
+});
+
 /** @return array{Company,Account,Product,AccountAddress,Warehouse,WarehouseLocation,User} */
 function invoice83Fixture(string $code): array
 {
@@ -251,6 +365,16 @@ function invoice83Fixture(string $code): array
             'is_active' => true,
         ]);
     }
+
+    PostingPeriod::query()->create([
+        'company_id' => $company->getKey(),
+        'code' => '2026-08',
+        'name' => 'Ağustos 2026',
+        'starts_on' => '2026-08-01',
+        'ends_on' => '2026-08-31',
+        'status' => PostingPeriodStatus::Open,
+        'closed_at' => null,
+    ]);
 
     return [$company, $account, $product, $billing, $warehouse, $location, invoice83Actor($company)];
 }
