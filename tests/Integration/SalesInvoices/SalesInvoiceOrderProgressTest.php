@@ -226,7 +226,7 @@ it('moves linked draft commitment into invoiced progress on finalize and reverse
         ->and((string) $finalizedCapacity->draft_quantity)->toBe('0.000000')
         ->and((string) $finalizedCapacity->remaining_quantity)->toBe('2.000000')
         ->and((string) $original->quantity_delta)->toBe('3.000000')
-        ->and(DB::table('stock_movements')->count())->toBe(0);
+        ->and(DB::table('stock_movements')->where('movement_type', 'invoice_out')->count())->toBe(1);
 
     $this->actingAs($manager)
         ->withSession(['active_company_id' => $company->getKey()])
@@ -248,7 +248,7 @@ it('moves linked draft commitment into invoiced progress on finalize and reverse
         ->and((string) $reversal->source_type)->toBe('sales_invoice_line')
         ->and((string) $reversal->source_id)->toBe((string) $invoiceLine->getKey())
         ->and((string) $reversal->effect_type)->toBe('progress.invoice.reverse')
-        ->and(DB::table('stock_movements')->count())->toBe(0);
+        ->and(DB::table('stock_movements')->where('source_type', 'sales_invoice_line')->count())->toBe(2);
 });
 
 it('rejects linked finalization at commit when exact invoice progress is missing', function (): void {
@@ -352,6 +352,17 @@ function invoice83Fixture(string $code): array
         'code' => 'LOC',
         'name' => 'Ana Konum',
         'is_active' => true,
+    ]);
+    DB::table('stock_balances')->insert([
+        'company_id' => $company->getKey(),
+        'product_id' => $product->getKey(),
+        'warehouse_id' => $warehouse->getKey(),
+        'location_id' => $location->getKey(),
+        'quantity' => '20.000000',
+        'average_unit_cost' => '60.000000',
+        'inventory_value' => '1200.000000',
+        'created_at' => now(),
+        'updated_at' => now(),
     ]);
 
     foreach ([[DocumentType::SalesOrder, 'SO-'], [DocumentType::SalesInvoice, 'INV-']] as [$type, $prefix]) {
