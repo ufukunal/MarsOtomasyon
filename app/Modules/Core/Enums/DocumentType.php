@@ -11,6 +11,7 @@ enum DocumentType: string
     case PurchaseOrder = 'purchase_order';
     case GoodsReceipt = 'goods_receipt';
     case SupplierInvoice = 'supplier_invoice';
+    case PurchaseReturn = 'purchase_return';
     case Collection = 'collection';
     case Payment = 'payment';
     case Expense = 'expense';
@@ -25,6 +26,7 @@ enum DocumentType: string
             self::PurchaseOrder => 'Satınalma Siparişi',
             self::GoodsReceipt => 'Mal Kabul',
             self::SupplierInvoice => 'Alış Faturası',
+            self::PurchaseReturn => 'Satınalma İadesi',
             self::Collection => 'Tahsilat',
             self::Payment => 'Ödeme',
             self::Expense => 'Gider',
