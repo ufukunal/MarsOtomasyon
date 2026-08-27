@@ -27,15 +27,12 @@ final readonly class SupplierInvoiceThreeWayMatchGuard
                 ]);
             }
 
-            $accepted = $this->acceptedQuantity($companyId, (int) $sourceLine->getKey());
-            $returned = $this->returnedQuantity($companyId, (int) $sourceLine->getKey());
-            $invoiced = $this->invoicedQuantity($companyId, (int) $sourceLine->getKey());
-            $remaining = $this->remainingAcceptedToInvoice($accepted, $returned, $invoiced);
+            $remaining = $this->remainingReceivedToInvoice($companyId, (int) $sourceLine->getKey());
 
             if ($this->greaterThan((string) $line->quantity, $remaining)) {
                 throw ValidationException::withMessages([
                     'quantity_delta' => sprintf(
-                        '3-way match engeli: %s satırında faturalanacak %s miktar için yalnız %s net accepted miktar müsait.',
+                        '3-way match engeli: %s satırında faturalanacak %s miktar için yalnız %s net kabul edilmiş ve henüz faturalanmamış miktar müsait.',
                         (string) $line->product_code,
                         (string) $line->quantity,
                         $remaining,
@@ -45,61 +42,17 @@ final readonly class SupplierInvoiceThreeWayMatchGuard
         }
     }
 
-    private function acceptedQuantity(int $companyId, int $purchaseOrderLineId): string
+    private function remainingReceivedToInvoice(int $companyId, int $purchaseOrderLineId): string
     {
-        $row = DB::table('goods_receipt_line_quality as quality')
-            ->join('goods_receipt_lines as line', function ($join): void {
-                $join->on('line.company_id', '=', 'quality.company_id')
-                    ->on('line.goods_receipt_id', '=', 'quality.goods_receipt_id')
-                    ->on('line.id', '=', 'quality.goods_receipt_line_id');
-            })
-            ->join('goods_receipts as receipt', function ($join): void {
-                $join->on('receipt.company_id', '=', 'line.company_id')
-                    ->on('receipt.id', '=', 'line.goods_receipt_id');
-            })
-            ->where('line.company_id', $companyId)
-            ->where('line.purchase_order_line_id', $purchaseOrderLineId)
-            ->where('receipt.status', 'finalized')
-            ->selectRaw('COALESCE(SUM(quality.accepted_quantity), 0)::numeric(20,6)::text AS quantity')
-            ->first();
-
-        return $row === null ? '0.000000' : (string) $row->quantity;
-    }
-
-    private function returnedQuantity(int $companyId, int $purchaseOrderLineId): string
-    {
-        $row = DB::table('purchase_return_lines as line')
-            ->join('purchase_returns as purchase_return', function ($join): void {
-                $join->on('purchase_return.company_id', '=', 'line.company_id')
-                    ->on('purchase_return.id', '=', 'line.purchase_return_id');
-            })
-            ->where('line.company_id', $companyId)
-            ->where('line.purchase_order_line_id', $purchaseOrderLineId)
-            ->where('purchase_return.status', 'finalized')
-            ->selectRaw('COALESCE(SUM(line.quantity), 0)::numeric(20,6)::text AS quantity')
-            ->first();
-
-        return $row === null ? '0.000000' : (string) $row->quantity;
-    }
-
-    private function invoicedQuantity(int $companyId, int $purchaseOrderLineId): string
-    {
-        $value = DB::table('purchase_order_line_progress')
+        $row = DB::table('purchase_order_line_progress')
             ->where('company_id', $companyId)
             ->where('purchase_order_line_id', $purchaseOrderLineId)
-            ->value('net_invoiced_quantity');
+            ->selectRaw(
+                'GREATEST(CAST(net_received_quantity AS numeric) - CAST(net_invoiced_quantity AS numeric), 0)::numeric(20,6)::text AS quantity'
+            )
+            ->first();
 
-        return $value === null ? '0.000000' : (string) $value;
-    }
-
-    private function remainingAcceptedToInvoice(string $accepted, string $returned, string $invoiced): string
-    {
-        $row = DB::selectOne(
-            'SELECT GREATEST(CAST(? AS numeric) - CAST(? AS numeric) - CAST(? AS numeric), 0)::numeric(20,6)::text AS value',
-            [$accepted, $returned, $invoiced],
-        );
-
-        return $row === null ? '0.000000' : (string) $row->value;
+        return $row === null ? '0.000000' : (string) $row->quantity;
     }
 
     private function greaterThan(string $left, string $right): bool
