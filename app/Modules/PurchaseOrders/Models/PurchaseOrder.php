@@ -51,7 +51,9 @@ final class PurchaseOrder extends Model
 
     public function isDraft(): bool
     {
-        return $this->statusEnum() === PurchaseOrderStatus::Draft;
+        return match ($this->statusEnum()) {
+            PurchaseOrderStatus::Draft => true,
+        };
     }
 
     /** @return BelongsTo<Company, $this> */

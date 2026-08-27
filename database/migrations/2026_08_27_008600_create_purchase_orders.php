@@ -101,8 +101,10 @@ return new class extends Migration
                 ->references(['company_id', 'id'])->on('products')->restrictOnDelete();
             $table->foreign(['company_id', 'warehouse_id'])
                 ->references(['company_id', 'id'])->on('warehouses')->restrictOnDelete();
-            $table->foreign(['company_id', 'location_id'])
-                ->references(['company_id', 'id'])->on('warehouse_locations')->restrictOnDelete();
+            $table->foreign(
+                ['company_id', 'warehouse_id', 'location_id'],
+                'purchase_order_lines_location_fk',
+            )->references(['company_id', 'warehouse_id', 'id'])->on('warehouse_locations')->restrictOnDelete();
             $table->foreign(['company_id', 'tax_id'])
                 ->references(['company_id', 'id'])->on('taxes')->restrictOnDelete();
             $table->foreign(['company_id', 'tax_zero_reason_id'])
