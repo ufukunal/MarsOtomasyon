@@ -31,7 +31,7 @@ final readonly class PurchaseOrderProgressService
         string $quantityDelta,
     ): PurchaseOrderLineProgressEffect {
         $this->assertInsideTransaction();
-        $quantityDelta = $this->positiveDecimal($quantityDelta);
+        $quantityDelta = $this->signedDecimal($quantityDelta);
 
         $line = PurchaseOrderLine::query()
             ->where('company_id', $sourceEffect->companyId)
@@ -77,7 +77,7 @@ final readonly class PurchaseOrderProgressService
         } catch (QueryException $exception) {
             if ((string) $exception->getCode() === '23514') {
                 throw ValidationException::withMessages([
-                    'quantity_delta' => 'Satınalma siparişi progress işlemi sipariş miktarı sınırlarını aşamaz.',
+                    'quantity_delta' => 'Satınalma siparişi progress işlemi net miktar sınırlarını aşamaz.',
                 ]);
             }
             throw $exception;
@@ -102,16 +102,16 @@ final readonly class PurchaseOrderProgressService
         return $existing;
     }
 
-    private function positiveDecimal(string $value): string
+    private function signedDecimal(string $value): string
     {
         $value = trim($value);
-        if (preg_match('/^\d+(?:\.\d{1,6})?$/D', $value) !== 1) {
+        if (preg_match('/^-?\d+(?:\.\d{1,6})?$/D', $value) !== 1) {
             throw ValidationException::withMessages([
-                'quantity_delta' => 'Satınalma siparişi progress miktarı pozitif ve en fazla 6 ondalıklı geçerli bir sayı olmalıdır.',
+                'quantity_delta' => 'Satınalma siparişi progress miktarı sıfırdan farklı ve en fazla 6 ondalıklı geçerli bir sayı olmalıdır.',
             ]);
         }
 
-        $integerPart = explode('.', $value, 2)[0];
+        $integerPart = explode('.', ltrim($value, '-'), 2)[0];
         if (strlen(ltrim($integerPart, '0')) > 14) {
             throw ValidationException::withMessages([
                 'quantity_delta' => 'Satınalma siparişi progress miktarı desteklenen sayısal sınırı aşıyor.',
@@ -119,12 +119,12 @@ final readonly class PurchaseOrderProgressService
         }
 
         $row = DB::selectOne(
-            'SELECT CAST(CAST(? AS numeric) AS numeric(20,6))::text AS value, CAST(? AS numeric) > 0 AS valid',
+            'SELECT CAST(CAST(? AS numeric) AS numeric(20,6))::text AS value, CAST(? AS numeric) <> 0 AS valid',
             [$value, $value],
         );
         if ($row === null || $row->valid !== true) {
             throw ValidationException::withMessages([
-                'quantity_delta' => 'Satınalma siparişi progress miktarı sıfırdan büyük olmalıdır.',
+                'quantity_delta' => 'Satınalma siparişi progress miktarı sıfır olamaz.',
             ]);
         }
 
