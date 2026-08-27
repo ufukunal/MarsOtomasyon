@@ -49,6 +49,7 @@ enum AuditAction: string
     case QuoteFinalizedPdfGenerated = 'quotes.finalized_pdf.generated';
     case SalesOrderCreated = 'sales_orders.order.created';
     case SalesOrderUpdated = 'sales_orders.order.updated';
+    case GoodsReceiptQualityReclassified = 'goods_receipts.quality.reclassified';
 
     public function label(): string
     {
@@ -98,6 +99,7 @@ enum AuditAction: string
             self::QuoteFinalizedPdfGenerated => 'Finalized teklif PDF oluşturuldu',
             self::SalesOrderCreated => 'Satış siparişi oluşturuldu',
             self::SalesOrderUpdated => 'Satış siparişi güncellendi',
+            self::GoodsReceiptQualityReclassified => 'Mal kabul kalite sınıflandırması güncellendi',
         };
     }
 }
