@@ -227,6 +227,17 @@ function invoice84Fixture(string $code): array
         'company_id' => $company->getKey(), 'warehouse_id' => $warehouse->getKey(),
         'code' => 'LOC', 'name' => 'Ana Konum', 'is_active' => true,
     ]);
+    DB::table('stock_balances')->insert([
+        'company_id' => $company->getKey(),
+        'product_id' => $product->getKey(),
+        'warehouse_id' => $warehouse->getKey(),
+        'location_id' => $location->getKey(),
+        'quantity' => '20.000000',
+        'average_unit_cost' => '60.000000',
+        'inventory_value' => '1200.000000',
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
     DocumentSequence::query()->create([
         'company_id' => $company->getKey(), 'document_type' => DocumentType::SalesInvoice,
         'series_code' => 'default', 'prefix' => 'INV-', 'padding' => 4, 'next_value' => 1, 'is_active' => true,
