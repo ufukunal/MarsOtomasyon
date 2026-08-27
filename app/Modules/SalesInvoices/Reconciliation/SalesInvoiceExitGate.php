@@ -50,6 +50,7 @@ final readonly class SalesInvoiceExitGate
         }
 
         $this->assertAccountEffect($locked, $status);
+        $mode = $locked->modeEnum();
 
         /** @var SalesInvoiceLine $line */
         foreach ($lines as $line) {
@@ -57,11 +58,13 @@ final readonly class SalesInvoiceExitGate
                 $this->assertProgressEffect($line, SalesOrderProgressType::Invoiced, 'progress.invoice', $status);
             }
 
-            match ($locked->modeEnum()) {
-                SalesInvoiceMode::Direct => $this->assertInvoiceStockEffect($line, $status),
-                SalesInvoiceMode::OrderLinked => $this->assertOrderLinkedLine($line, $status),
-                SalesInvoiceMode::DispatchLinked => $this->assertDispatchLinkedStockEffect($line),
-            };
+            if ($mode === SalesInvoiceMode::Direct) {
+                $this->assertInvoiceStockEffect($line, $status);
+            } elseif ($mode === SalesInvoiceMode::OrderLinked) {
+                $this->assertOrderLinkedLine($line, $status);
+            } else {
+                $this->assertDispatchLinkedStockEffect($line);
+            }
         }
     }
 
@@ -330,7 +333,12 @@ final readonly class SalesInvoiceExitGate
             throw new LogicException('Order-linked invoice exit gate progress projection is missing.');
         }
 
-        $target = Decimal6::nonNegative((string) $projection->dispatch_remaining_quantity, 'dispatch_remaining_quantity')->value();
+        $targetValue = $projection->getAttribute('dispatch_remaining_quantity');
+        if (! is_string($targetValue)) {
+            throw new LogicException('Order-linked invoice dispatch remaining projection is invalid.');
+        }
+
+        $target = Decimal6::nonNegative($targetValue, 'dispatch_remaining_quantity')->value();
         $activeGenerations = SalesOrderReservationGeneration::query()
             ->where('company_id', $line->company_id)
             ->where('sales_order_id', $line->source_sales_order_id)
