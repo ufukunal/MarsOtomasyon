@@ -2,6 +2,7 @@
 
 namespace App\Modules\SupplierInvoices\Enums;
 
+/** Supplier invoice lifecycle states persisted by M9.4. */
 enum SupplierInvoiceStatus: string
 {
     case Draft = 'draft';
