@@ -125,11 +125,46 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER sales_invoice_account_lifecycle_guard
 BEFORE UPDATE OR DELETE ON sales_invoices
 FOR EACH ROW EXECUTE FUNCTION mars_guard_sales_invoice_account_lifecycle();
+
+CREATE OR REPLACE FUNCTION mars_guard_sales_invoice_line_lifecycle()
+RETURNS trigger AS $$
+DECLARE
+    parent_status text;
+BEGIN
+    IF TG_OP IN ('UPDATE', 'DELETE') THEN
+        SELECT status INTO parent_status
+        FROM sales_invoices
+        WHERE company_id = OLD.company_id AND id = OLD.sales_invoice_id;
+
+        IF parent_status IS DISTINCT FROM 'draft' THEN
+            RAISE EXCEPTION 'finalized sales invoice lines are immutable' USING ERRCODE = '55000';
+        END IF;
+    END IF;
+
+    IF TG_OP IN ('INSERT', 'UPDATE') THEN
+        SELECT status INTO parent_status
+        FROM sales_invoices
+        WHERE company_id = NEW.company_id AND id = NEW.sales_invoice_id;
+
+        IF parent_status IS DISTINCT FROM 'draft' THEN
+            RAISE EXCEPTION 'sales invoice lines may only belong to a draft invoice' USING ERRCODE = '55000';
+        END IF;
+    END IF;
+
+    RETURN COALESCE(NEW, OLD);
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER sales_invoice_line_lifecycle_guard
+BEFORE INSERT OR UPDATE OR DELETE ON sales_invoice_lines
+FOR EACH ROW EXECUTE FUNCTION mars_guard_sales_invoice_line_lifecycle();
 SQL);
     }
 
     public function down(): void
     {
+        DB::statement('DROP TRIGGER IF EXISTS sales_invoice_line_lifecycle_guard ON sales_invoice_lines');
+        DB::statement('DROP FUNCTION IF EXISTS mars_guard_sales_invoice_line_lifecycle()');
         DB::statement('DROP TRIGGER IF EXISTS sales_invoice_account_lifecycle_guard ON sales_invoices');
         DB::statement('DROP FUNCTION IF EXISTS mars_guard_sales_invoice_account_lifecycle()');
         DB::statement('ALTER TABLE sales_invoices DROP CONSTRAINT IF EXISTS sales_invoices_lifecycle_timestamps_check');
