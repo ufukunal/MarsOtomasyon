@@ -317,17 +317,25 @@ DECLARE
     parent_status text;
     parent_mode text;
     invoice_line_id bigint;
+    source_type text;
+    source_id text;
+    effect_type text;
 BEGIN
-    IF NEW.source_type <> 'sales_invoice_line'
-       OR NEW.effect_type NOT IN ('stock.out', 'stock.out.reverse') THEN
+    source_type := to_jsonb(NEW)->>'source_type';
+    source_id := to_jsonb(NEW)->>'source_id';
+    effect_type := to_jsonb(NEW)->>'effect_type';
+
+    IF source_type IS DISTINCT FROM 'sales_invoice_line'
+       OR effect_type IS NULL
+       OR effect_type NOT IN ('stock.out', 'stock.out.reverse') THEN
         RETURN NEW;
     END IF;
 
-    IF NEW.source_id !~ '^[1-9][0-9]*$' THEN
+    IF source_id IS NULL OR source_id !~ '^[1-9][0-9]*$' THEN
         RAISE EXCEPTION 'sales invoice stock effect source id is invalid' USING ERRCODE = '23514';
     END IF;
 
-    invoice_line_id := CAST(NEW.source_id AS bigint);
+    invoice_line_id := CAST(source_id AS bigint);
 
     SELECT invoice.status, invoice.mode INTO parent_status, parent_mode
     FROM sales_invoice_lines AS line
@@ -341,7 +349,7 @@ BEGIN
         RAISE EXCEPTION 'sales invoice stock effect requires a direct/order invoice line' USING ERRCODE = '23514';
     END IF;
 
-    IF NEW.effect_type = 'stock.out' THEN
+    IF effect_type = 'stock.out' THEN
         IF parent_status NOT IN ('finalized', 'cancelled')
            OR NEW.movement_type <> 'invoice_out'
            OR NEW.reversal_of_movement_id IS NOT NULL THEN
@@ -357,7 +365,7 @@ BEGIN
                WHERE original.id = NEW.reversal_of_movement_id
                  AND original.company_id = NEW.company_id
                  AND original.source_type = 'sales_invoice_line'
-                 AND original.source_id = NEW.source_id
+                 AND original.source_id = source_id
                  AND original.effect_type = 'stock.out'
                  AND original.movement_type = 'invoice_out'
            ) THEN
@@ -451,36 +459,26 @@ SQL);
         DB::statement('DROP TRIGGER IF EXISTS stock_movements_invoice_out_guard ON stock_movements');
         DB::statement('DROP FUNCTION IF EXISTS mars_guard_sales_invoice_stock_out()');
         DB::statement('ALTER TABLE stock_movements DROP CONSTRAINT IF EXISTS stock_movements_invoice_source_check');
+
+        DB::statement('ALTER TABLE stock_movements DISABLE TRIGGER stock_movements_immutable_trigger');
+        DB::statement("UPDATE stock_movements SET movement_type = 'adjustment_out' WHERE movement_type = 'invoice_out'");
+        DB::statement('ALTER TABLE stock_movements ENABLE TRIGGER stock_movements_immutable_trigger');
+
         DB::statement('ALTER TABLE stock_movements DROP CONSTRAINT IF EXISTS stock_movements_type_check');
         DB::statement('ALTER TABLE stock_movements DROP CONSTRAINT IF EXISTS stock_movements_direction_check');
-
-        DB::unprepared(<<<'SQL'
-DO $$
-BEGIN
-    IF EXISTS (SELECT 1 FROM stock_movements WHERE movement_type = 'invoice_out') THEN
-        ALTER TABLE stock_movements
-            ADD CONSTRAINT stock_movements_type_check
-            CHECK (movement_type IN ('opening_in', 'adjustment_in', 'adjustment_out', 'transfer_in', 'transfer_out', 'dispatch_out', 'invoice_out'));
-        ALTER TABLE stock_movements
-            ADD CONSTRAINT stock_movements_direction_check
-            CHECK (
-                (movement_type IN ('opening_in', 'adjustment_in', 'transfer_in') AND quantity_delta > 0 AND value_delta > 0 AND unit_cost > 0)
-                OR
-                (movement_type IN ('adjustment_out', 'transfer_out', 'dispatch_out', 'invoice_out') AND quantity_delta < 0 AND value_delta <= 0 AND unit_cost >= 0)
-            );
-    ELSE
-        ALTER TABLE stock_movements
-            ADD CONSTRAINT stock_movements_type_check
-            CHECK (movement_type IN ('opening_in', 'adjustment_in', 'adjustment_out', 'transfer_in', 'transfer_out', 'dispatch_out'));
-        ALTER TABLE stock_movements
-            ADD CONSTRAINT stock_movements_direction_check
-            CHECK (
-                (movement_type IN ('opening_in', 'adjustment_in', 'transfer_in') AND quantity_delta > 0 AND value_delta > 0 AND unit_cost > 0)
-                OR
-                (movement_type IN ('adjustment_out', 'transfer_out', 'dispatch_out') AND quantity_delta < 0 AND value_delta <= 0 AND unit_cost >= 0)
-            );
-    END IF;
-END $$;
+        DB::statement(<<<'SQL'
+ALTER TABLE stock_movements
+ADD CONSTRAINT stock_movements_type_check
+CHECK (movement_type IN ('opening_in', 'adjustment_in', 'adjustment_out', 'transfer_in', 'transfer_out', 'dispatch_out'))
+SQL);
+        DB::statement(<<<'SQL'
+ALTER TABLE stock_movements
+ADD CONSTRAINT stock_movements_direction_check
+CHECK (
+    (movement_type IN ('opening_in', 'adjustment_in', 'transfer_in') AND quantity_delta > 0 AND value_delta > 0 AND unit_cost > 0)
+    OR
+    (movement_type IN ('adjustment_out', 'transfer_out', 'dispatch_out') AND quantity_delta < 0 AND value_delta <= 0 AND unit_cost >= 0)
+)
 SQL);
     }
 };
