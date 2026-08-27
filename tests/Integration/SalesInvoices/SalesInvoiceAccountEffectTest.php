@@ -51,8 +51,8 @@ beforeEach(function (): void {
 });
 
 it('posts and reverses the sales invoice receivable exactly once', function (): void {
-    [$company, $account, $product, $billing, $warehouse, $location, $manager] = invoice83Fixture('INV83-LIFE');
-    $invoice = invoice83Draft($this, $company, $manager, $account, $product, $billing, $warehouse, $location);
+    [$company, $account, $product, $billing, $warehouse, $location, $manager] = invoice84Fixture('INV84-LIFE');
+    $invoice = invoice84Draft($this, $company, $manager, $account, $product, $billing, $warehouse, $location);
 
     expect($invoice->statusEnum())->toBe(SalesInvoiceStatus::Draft)
         ->and(AccountTransaction::query()->count())->toBe(0);
@@ -113,8 +113,8 @@ it('posts and reverses the sales invoice receivable exactly once', function (): 
 });
 
 it('rolls account effects back with failed lifecycle commits and rejects raw incomplete transitions', function (): void {
-    [$company, $account, $product, $billing, $warehouse, $location, $manager] = invoice83Fixture('INV83-ATOMIC');
-    $invoice = invoice83Draft($this, $company, $manager, $account, $product, $billing, $warehouse, $location);
+    [$company, $account, $product, $billing, $warehouse, $location, $manager] = invoice84Fixture('INV84-ATOMIC');
+    $invoice = invoice84Draft($this, $company, $manager, $account, $product, $billing, $warehouse, $location);
 
     $this->actingAs($manager);
     session(['active_company_id' => $company->getKey()]);
@@ -126,12 +126,12 @@ it('rolls account effects back with failed lifecycle commits and rejects raw inc
         'updated_at' => now(),
     ]))->toThrow(QueryException::class);
 
-    DB::statement("ALTER TABLE sales_invoices ADD CONSTRAINT invoice83_force_finalize_failure CHECK (status <> 'finalized')");
+    DB::statement("ALTER TABLE sales_invoices ADD CONSTRAINT invoice84_force_finalize_failure CHECK (status <> 'finalized')");
     try {
         expect(fn () => app(FinalizeSalesInvoice::class)->handle((int) $invoice->getKey()))
             ->toThrow(QueryException::class);
     } finally {
-        DB::statement('ALTER TABLE sales_invoices DROP CONSTRAINT IF EXISTS invoice83_force_finalize_failure');
+        DB::statement('ALTER TABLE sales_invoices DROP CONSTRAINT IF EXISTS invoice84_force_finalize_failure');
     }
 
     expect($invoice->refresh()->statusEnum())->toBe(SalesInvoiceStatus::Draft)
@@ -140,12 +140,17 @@ it('rolls account effects back with failed lifecycle commits and rejects raw inc
     app(FinalizeSalesInvoice::class)->handle((int) $invoice->getKey());
     expect(AccountTransaction::query()->count())->toBe(1);
 
-    DB::statement("ALTER TABLE sales_invoices ADD CONSTRAINT invoice83_force_cancel_failure CHECK (status <> 'cancelled')");
+    expect(fn () => DB::table('sales_invoice_lines')
+        ->where('sales_invoice_id', $invoice->getKey())
+        ->update(['quantity' => '3.000000', 'updated_at' => now()]))
+        ->toThrow(QueryException::class);
+
+    DB::statement("ALTER TABLE sales_invoices ADD CONSTRAINT invoice84_force_cancel_failure CHECK (status <> 'cancelled')");
     try {
         expect(fn () => app(CancelSalesInvoice::class)->handle((int) $invoice->getKey()))
             ->toThrow(QueryException::class);
     } finally {
-        DB::statement('ALTER TABLE sales_invoices DROP CONSTRAINT IF EXISTS invoice83_force_cancel_failure');
+        DB::statement('ALTER TABLE sales_invoices DROP CONSTRAINT IF EXISTS invoice84_force_cancel_failure');
     }
 
     expect($invoice->refresh()->statusEnum())->toBe(SalesInvoiceStatus::Finalized)
@@ -153,8 +158,8 @@ it('rolls account effects back with failed lifecycle commits and rejects raw inc
 });
 
 it('refuses to post an invoice amount as a different account book currency', function (): void {
-    [$company, $account, $product, $billing, $warehouse, $location, $manager] = invoice83Fixture('INV83-FX');
-    $invoice = invoice83Draft($this, $company, $manager, $account, $product, $billing, $warehouse, $location);
+    [$company, $account, $product, $billing, $warehouse, $location, $manager] = invoice84Fixture('INV84-FX');
+    $invoice = invoice84Draft($this, $company, $manager, $account, $product, $billing, $warehouse, $location);
 
     $account->book_currency_code = 'USD';
     $account->save();
@@ -169,7 +174,7 @@ it('refuses to post an invoice amount as a different account book currency', fun
 });
 
 /** @return array{Company,Account,Product,AccountAddress,Warehouse,WarehouseLocation,User} */
-function invoice83Fixture(string $code): array
+function invoice84Fixture(string $code): array
 {
     $company = Company::query()->create(['code' => $code, 'name' => 'Company '.$code]);
     $account = Account::query()->create([
@@ -193,7 +198,7 @@ function invoice83Fixture(string $code): array
         'type' => AccountAddressType::Billing,
         'label' => 'Fatura',
         'recipient_name' => 'Muhasebe',
-        'line1' => 'Mars Cad. 83',
+        'line1' => 'Mars Cad. 84',
         'line2' => null,
         'district' => 'Şişli',
         'city' => 'İstanbul',
@@ -232,10 +237,10 @@ function invoice83Fixture(string $code): array
         'closed_at' => null,
     ]);
 
-    return [$company, $account, $product, $billing, $warehouse, $location, invoice83Actor($company, $code)];
+    return [$company, $account, $product, $billing, $warehouse, $location, invoice84Actor($company, $code)];
 }
 
-function invoice83Draft(
+function invoice84Draft(
     TestCase $test,
     Company $company,
     User $manager,
@@ -267,11 +272,11 @@ function invoice83Draft(
     return SalesInvoice::query()->where('company_id', $company->getKey())->firstOrFail();
 }
 
-function invoice83Actor(Company $company, string $suffix): User
+function invoice84Actor(Company $company, string $suffix): User
 {
     $user = User::query()->create([
         'name' => 'Invoice '.$suffix,
-        'email' => strtolower($suffix).'@invoice83.test',
+        'email' => strtolower($suffix).'@invoice84.test',
         'password' => 'correct-password',
         'status' => UserStatus::Active,
     ]);
@@ -279,7 +284,7 @@ function invoice83Actor(Company $company, string $suffix): User
         'company_id' => $company->getKey(), 'user_id' => $user->getKey(), 'is_active' => true, 'joined_at' => now(),
     ]);
     $role = Role::query()->create([
-        'company_id' => $company->getKey(), 'code' => 'invoice83', 'name' => 'Invoice 83', 'is_active' => true,
+        'company_id' => $company->getKey(), 'code' => 'invoice84', 'name' => 'Invoice 84', 'is_active' => true,
     ]);
     foreach ([PermissionKey::SalesInvoiceView, PermissionKey::SalesInvoiceManage] as $permission) {
         app(GrantPermissionToRole::class)->handle($role, $permission);
