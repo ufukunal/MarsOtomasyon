@@ -325,7 +325,7 @@ BEFORE UPDATE OR DELETE ON stock_movements
 FOR EACH ROW EXECUTE FUNCTION mars_prevent_stock_movement_mutation();
 SQL);
 
-        DB::statement('ALTER TABLE stock_movements DROP CONSTRAINT stock_movements_goods_receipt_source_check');
+        DB::statement('ALTER TABLE stock_movements DROP CONSTRAINT IF EXISTS stock_movements_goods_receipt_source_check');
         DB::statement(<<<'SQL'
 ALTER TABLE stock_movements
 ADD CONSTRAINT stock_movements_goods_receipt_source_check
