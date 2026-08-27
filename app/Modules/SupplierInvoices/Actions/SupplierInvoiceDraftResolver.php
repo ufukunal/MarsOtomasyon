@@ -71,8 +71,9 @@ final readonly class SupplierInvoiceDraftResolver
                 throw ValidationException::withMessages(["lines.$offset.quantity" => 'Fatura miktarı satınalma siparişi kalan faturalama miktarını aşamaz.']);
             }
 
-            $priceBasis = $source->price_basis;
-            if (! $priceBasis instanceof PriceBasis) {
+            $rawPriceBasis = $source->getRawOriginal('price_basis');
+            $priceBasis = is_string($rawPriceBasis) ? PriceBasis::tryFrom($rawPriceBasis) : null;
+            if ($priceBasis === null) {
                 throw ValidationException::withMessages(["lines.$offset.purchase_order_line_id" => 'Kaynak satınalma satırı fiyat tipi geçersiz.']);
             }
 
