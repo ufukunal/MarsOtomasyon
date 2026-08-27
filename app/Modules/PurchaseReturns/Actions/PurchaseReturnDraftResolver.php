@@ -82,8 +82,8 @@ final readonly class PurchaseReturnDraftResolver
                 || (int) $invoiceLine->purchase_order_id !== (int) $order->getKey()
                 || (int) $receiptLine->purchase_order_line_id !== (int) $invoiceLine->purchase_order_line_id
                 || (int) $receiptLine->product_id !== (int) $invoiceLine->product_id
-                || (int) $invoiceLine->supplierInvoice?->account_id !== (int) $order->account_id
-                || (string) $invoiceLine->supplierInvoice?->currency_code !== (string) $order->currency_code) {
+                || (int) $invoiceLine->supplierInvoice->account_id !== (int) $order->account_id
+                || (string) $invoiceLine->supplierInvoice->currency_code !== (string) $order->currency_code) {
                 throw ValidationException::withMessages(["lines.$offset" => 'Mal kabul ve alış faturası lineage aynı sipariş, sipariş satırı, ürün, tedarikçi ve para birimine ait olmalıdır.']);
             }
 
