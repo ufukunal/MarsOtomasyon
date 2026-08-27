@@ -7,6 +7,7 @@
     <div><p class="eyebrow">Alış / Sipariş</p><h1>{{ $order->number }}</h1><p>Tedarikçi siparişi snapshotı; mal kabul ve alış faturası kalanları ayrı authority olarak izlenir.</p></div>
     <div class="page-actions">
         <a href="{{ route('purchase-orders.index') }}">Liste</a>
+        @can('goods_receipts.manage')<a href="{{ route('goods-receipts.create', ['purchase_order_id' => $order->getKey()]) }}">Mal Kabul Oluştur</a>@endcan
         @can('purchase_orders.manage')@if($order->isDraft() && (int) $order->progress_effects_count === 0)<a class="button-primary" href="{{ route('purchase-orders.edit', $order->getKey()) }}">Düzenle</a>@endif @endcan
     </div>
 </section>

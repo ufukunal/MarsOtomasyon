@@ -11,6 +11,7 @@ enum StockMovementType: string
     case TransferOut = 'transfer_out';
     case DispatchOut = 'dispatch_out';
     case InvoiceOut = 'invoice_out';
+    case GoodsReceiptIn = 'goods_receipt_in';
 
     public function label(): string
     {
@@ -22,13 +23,14 @@ enum StockMovementType: string
             self::TransferOut => 'Transfer Çıkışı',
             self::DispatchOut => 'İrsaliye Çıkışı',
             self::InvoiceOut => 'Fatura Çıkışı',
+            self::GoodsReceiptIn => 'Mal Kabul Girişi',
         };
     }
 
     public function isInbound(): bool
     {
         return match ($this) {
-            self::OpeningIn, self::AdjustmentIn, self::TransferIn => true,
+            self::OpeningIn, self::AdjustmentIn, self::TransferIn, self::GoodsReceiptIn => true,
             self::AdjustmentOut, self::TransferOut, self::DispatchOut, self::InvoiceOut => false,
         };
     }
