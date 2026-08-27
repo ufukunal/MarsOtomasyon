@@ -1,6 +1,7 @@
 <?php
 
 use App\Modules\SalesInvoices\SalesInvoiceController;
+use App\Modules\SalesInvoices\SalesInvoiceFinalizedDocumentController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['web', 'auth', 'company.context'])
@@ -18,6 +19,14 @@ Route::middleware(['web', 'auth', 'company.context'])
             ->whereNumber('salesInvoice')
             ->middleware('can:sales_invoices.manage')
             ->name('cancel');
+        Route::get('/{salesInvoice}/finalized', [SalesInvoiceFinalizedDocumentController::class, 'show'])
+            ->whereNumber('salesInvoice')
+            ->middleware('can:sales_invoices.view')
+            ->name('finalized.show');
+        Route::get('/{salesInvoice}/finalized.pdf', [SalesInvoiceFinalizedDocumentController::class, 'download'])
+            ->whereNumber('salesInvoice')
+            ->middleware('can:sales_invoices.view')
+            ->name('finalized.pdf');
         Route::get('/{salesInvoice}', [SalesInvoiceController::class, 'show'])
             ->whereNumber('salesInvoice')
             ->middleware('can:sales_invoices.view')
