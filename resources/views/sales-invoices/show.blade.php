@@ -11,6 +11,9 @@
     </div>
     <div class="page-actions">
         <a href="{{ route('sales-invoices.index') }}">Liste</a>
+        @if($invoice->statusEnum() !== \App\Modules\SalesInvoices\Enums\SalesInvoiceStatus::Draft)
+            <a href="{{ route('sales-invoices.finalized.show', $invoice->getKey()) }}">Finalized Belge</a>
+        @endif
         @if($invoice->sourceSalesOrder && auth()->user()?->can('sales_orders.view'))
             <a href="{{ route('sales-orders.show', $invoice->source_sales_order_id) }}">Kaynak Sipariş</a>
         @endif
