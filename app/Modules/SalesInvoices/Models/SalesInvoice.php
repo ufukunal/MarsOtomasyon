@@ -19,7 +19,7 @@ final class SalesInvoice extends Model
 {
     protected $fillable = [
         'company_id', 'account_id', 'source_billing_address_id', 'source_sales_order_id', 'source_dispatch_id',
-        'number', 'series_code', 'sequence_value', 'mode', 'status', 'invoice_date', 'currency_code',
+        'number', 'series_code', 'sequence_value', 'mode', 'status', 'finalized_at', 'cancelled_at', 'invoice_date', 'currency_code',
         'document_discount_rate', 'base_net_total', 'line_discount_total', 'document_discount_total',
         'net_total', 'tax_total', 'gross_total', 'customer_legal_name', 'customer_trade_name',
         'customer_tax_identity_type', 'customer_tax_number', 'customer_tax_office', 'recipient_name',
@@ -32,6 +32,8 @@ final class SalesInvoice extends Model
             'sequence_value' => 'integer',
             'mode' => SalesInvoiceMode::class,
             'status' => SalesInvoiceStatus::class,
+            'finalized_at' => 'immutable_datetime',
+            'cancelled_at' => 'immutable_datetime',
             'invoice_date' => 'immutable_date',
             'document_discount_rate' => 'decimal:6',
             'base_net_total' => 'decimal:6',

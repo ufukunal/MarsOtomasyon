@@ -15,7 +15,9 @@ use App\Modules\Inventory\Models\Warehouse;
 use App\Modules\Products\Enums\ProductStatus;
 use App\Modules\Products\Models\Product;
 use App\Modules\Quotes\Pricing\PriceBasis;
+use App\Modules\SalesInvoices\Actions\CancelSalesInvoice;
 use App\Modules\SalesInvoices\Actions\CreateSalesInvoice;
+use App\Modules\SalesInvoices\Actions\FinalizeSalesInvoice;
 use App\Modules\SalesInvoices\Actions\SalesInvoiceDraftData;
 use App\Modules\SalesInvoices\Actions\SalesInvoiceLineData;
 use App\Modules\SalesInvoices\Enums\SalesInvoiceMode;
@@ -32,6 +34,8 @@ final readonly class SalesInvoiceController
     public function __construct(
         private ActiveCompanyContext $companyContext,
         private CreateSalesInvoice $createInvoice,
+        private FinalizeSalesInvoice $finalizeInvoice,
+        private CancelSalesInvoice $cancelInvoice,
     ) {}
 
     public function index(Request $request): View
@@ -199,6 +203,22 @@ final readonly class SalesInvoiceController
 
         return redirect()->route('sales-invoices.show', $invoice->getKey())
             ->with('status', 'Taslak satış faturası oluşturuldu.');
+    }
+
+    public function finalize(int $salesInvoice): RedirectResponse
+    {
+        $invoice = $this->finalizeInvoice->handle($salesInvoice);
+
+        return redirect()->route('sales-invoices.show', $invoice->getKey())
+            ->with('status', 'Satış faturası kesinleştirildi ve cari borç hareketi oluşturuldu.');
+    }
+
+    public function cancel(int $salesInvoice): RedirectResponse
+    {
+        $invoice = $this->cancelInvoice->handle($salesInvoice);
+
+        return redirect()->route('sales-invoices.show', $invoice->getKey())
+            ->with('status', 'Satış faturası iptal edildi ve cari hareketi ters kayıtla kapatıldı.');
     }
 
     public function show(int $salesInvoice): View
