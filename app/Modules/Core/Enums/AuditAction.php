@@ -50,6 +50,7 @@ enum AuditAction: string
     case SalesOrderCreated = 'sales_orders.order.created';
     case SalesOrderUpdated = 'sales_orders.order.updated';
     case GoodsReceiptQualityReclassified = 'goods_receipts.quality.reclassified';
+    case GoodsReceiptCostAdjusted = 'goods_receipts.cost.adjusted';
 
     public function label(): string
     {
@@ -100,6 +101,7 @@ enum AuditAction: string
             self::SalesOrderCreated => 'Satış siparişi oluşturuldu',
             self::SalesOrderUpdated => 'Satış siparişi güncellendi',
             self::GoodsReceiptQualityReclassified => 'Mal kabul kalite sınıflandırması güncellendi',
+            self::GoodsReceiptCostAdjusted => 'Mal kabul gerçekleşen maliyet farkı işlendi',
         };
     }
 }
