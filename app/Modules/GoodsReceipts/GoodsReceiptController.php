@@ -112,7 +112,7 @@ final readonly class GoodsReceiptController
 
         $selectedId = $request->old('purchase_order_id');
         if (! is_numeric($selectedId)) {
-            $selectedId = $receipt?->purchase_order_id ?? $request->query('purchase_order_id');
+            $selectedId = $receipt->purchase_order_id ?? $request->query('purchase_order_id');
         }
         $selectedOrderId = is_numeric($selectedId) ? (int) $selectedId : null;
         $selectedOrder = $selectedOrderId === null
