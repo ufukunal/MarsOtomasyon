@@ -126,6 +126,76 @@ CREATE TRIGGER sales_invoice_account_lifecycle_guard
 BEFORE UPDATE OR DELETE ON sales_invoices
 FOR EACH ROW EXECUTE FUNCTION mars_guard_sales_invoice_account_lifecycle();
 
+CREATE OR REPLACE FUNCTION mars_guard_sales_invoice_progress_lifecycle_commit()
+RETURNS trigger AS $$
+BEGIN
+    IF OLD.status = 'draft' AND NEW.status = 'finalized' THEN
+        IF EXISTS (
+            SELECT 1
+            FROM sales_invoice_lines AS line
+            WHERE line.company_id = NEW.company_id
+              AND line.sales_invoice_id = NEW.id
+              AND line.source_sales_order_line_id IS NOT NULL
+              AND NOT EXISTS (
+                  SELECT 1
+                  FROM sales_order_line_progress_effects AS effect
+                  WHERE effect.company_id = line.company_id
+                    AND effect.sales_order_id = line.source_sales_order_id
+                    AND effect.sales_order_line_id = line.source_sales_order_line_id
+                    AND effect.progress_type = 'invoiced'
+                    AND effect.quantity_delta = line.quantity
+                    AND effect.reversal_of_progress_effect_id IS NULL
+                    AND effect.source_type = 'sales_invoice_line'
+                    AND effect.source_id = line.id::text
+                    AND effect.effect_type = 'progress.invoice'
+              )
+        ) THEN
+            RAISE EXCEPTION 'linked sales invoice finalization requires exact order progress effects' USING ERRCODE = '23514';
+        END IF;
+    ELSIF OLD.status = 'finalized' AND NEW.status = 'cancelled' THEN
+        IF EXISTS (
+            SELECT 1
+            FROM sales_invoice_lines AS line
+            WHERE line.company_id = NEW.company_id
+              AND line.sales_invoice_id = NEW.id
+              AND line.source_sales_order_line_id IS NOT NULL
+              AND NOT EXISTS (
+                  SELECT 1
+                  FROM sales_order_line_progress_effects AS original
+                  INNER JOIN sales_order_line_progress_effects AS reversal
+                    ON reversal.reversal_of_progress_effect_id = original.id
+                  WHERE original.company_id = line.company_id
+                    AND original.sales_order_id = line.source_sales_order_id
+                    AND original.sales_order_line_id = line.source_sales_order_line_id
+                    AND original.progress_type = 'invoiced'
+                    AND original.quantity_delta = line.quantity
+                    AND original.reversal_of_progress_effect_id IS NULL
+                    AND original.source_type = 'sales_invoice_line'
+                    AND original.source_id = line.id::text
+                    AND original.effect_type = 'progress.invoice'
+                    AND reversal.company_id = line.company_id
+                    AND reversal.sales_order_id = line.source_sales_order_id
+                    AND reversal.sales_order_line_id = line.source_sales_order_line_id
+                    AND reversal.progress_type = 'invoiced'
+                    AND reversal.quantity_delta = -line.quantity
+                    AND reversal.source_type = 'sales_invoice_line'
+                    AND reversal.source_id = line.id::text
+                    AND reversal.effect_type = 'progress.invoice.reverse'
+              )
+        ) THEN
+            RAISE EXCEPTION 'linked sales invoice cancellation requires exact order progress reversals' USING ERRCODE = '23514';
+        END IF;
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE CONSTRAINT TRIGGER sales_invoice_progress_lifecycle_commit_guard
+AFTER UPDATE ON sales_invoices
+DEFERRABLE INITIALLY DEFERRED
+FOR EACH ROW EXECUTE FUNCTION mars_guard_sales_invoice_progress_lifecycle_commit();
+
 CREATE OR REPLACE FUNCTION mars_guard_sales_invoice_line_lifecycle()
 RETURNS trigger AS $$
 DECLARE
@@ -165,6 +235,8 @@ SQL);
     {
         DB::statement('DROP TRIGGER IF EXISTS sales_invoice_line_lifecycle_guard ON sales_invoice_lines');
         DB::statement('DROP FUNCTION IF EXISTS mars_guard_sales_invoice_line_lifecycle()');
+        DB::statement('DROP TRIGGER IF EXISTS sales_invoice_progress_lifecycle_commit_guard ON sales_invoices');
+        DB::statement('DROP FUNCTION IF EXISTS mars_guard_sales_invoice_progress_lifecycle_commit()');
         DB::statement('DROP TRIGGER IF EXISTS sales_invoice_account_lifecycle_guard ON sales_invoices');
         DB::statement('DROP FUNCTION IF EXISTS mars_guard_sales_invoice_account_lifecycle()');
         DB::statement('ALTER TABLE sales_invoices DROP CONSTRAINT IF EXISTS sales_invoices_lifecycle_timestamps_check');
