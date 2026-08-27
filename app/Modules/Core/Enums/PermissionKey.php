@@ -35,6 +35,8 @@ enum PermissionKey: string
     case PurchaseOrderManage = 'purchase_orders.manage';
     case GoodsReceiptView = 'goods_receipts.view';
     case GoodsReceiptManage = 'goods_receipts.manage';
+    case SupplierInvoiceView = 'supplier_invoices.view';
+    case SupplierInvoiceManage = 'supplier_invoices.manage';
 
     public function label(): string
     {
@@ -70,6 +72,8 @@ enum PermissionKey: string
             self::PurchaseOrderManage => 'Satınalma siparişi yönetimi',
             self::GoodsReceiptView => 'Mal kabul görüntüleme',
             self::GoodsReceiptManage => 'Mal kabul yönetimi',
+            self::SupplierInvoiceView => 'Alış faturası görüntüleme',
+            self::SupplierInvoiceManage => 'Alış faturası yönetimi',
         };
     }
 }
