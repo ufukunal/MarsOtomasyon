@@ -10,14 +10,19 @@ use App\Modules\Accounts\Models\Account;
 use App\Modules\Core\Company\ActiveCompanyContext;
 use App\Modules\SalesInvoices\Enums\SalesInvoiceStatus;
 use App\Modules\SalesInvoices\Models\SalesInvoice;
+use App\Modules\SalesInvoices\Models\SalesInvoiceLine;
+use App\Modules\SalesOrders\Enums\SalesOrderProgressType;
+use App\Modules\SalesOrders\Progress\SalesOrderProgressService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
+use LogicException;
 
 final readonly class FinalizeSalesInvoice
 {
     public function __construct(
         private ActiveCompanyContext $companyContext,
         private AccountTransactionPoster $accountTransactions,
+        private SalesOrderProgressService $progress,
         private Clock $clock,
     ) {}
 
@@ -52,6 +57,11 @@ final readonly class FinalizeSalesInvoice
                 throw ValidationException::withMessages([
                     'gross_total' => 'Genel toplamı sıfır olan satış faturası kesinleştirilemez.',
                 ]);
+            }
+
+            $lines = $invoice->lines()->lockForUpdate()->get();
+            if ($lines->isEmpty()) {
+                throw new LogicException('Kesinleştirilecek satış faturası satırsız olamaz.');
             }
 
             $account = Account::query()
@@ -92,6 +102,20 @@ final readonly class FinalizeSalesInvoice
                 'finalized_at' => $this->clock->now(),
             ])->save();
 
+            /** @var SalesInvoiceLine $line */
+            foreach ($lines as $line) {
+                if ($line->source_sales_order_line_id === null) {
+                    continue;
+                }
+
+                $this->progress->record(
+                    $this->lineIdentity($line, 'progress.invoice'),
+                    (int) $line->source_sales_order_line_id,
+                    SalesOrderProgressType::Invoiced,
+                    (string) $line->quantity,
+                );
+            }
+
             return $invoice->refresh();
         });
     }
@@ -102,6 +126,16 @@ final readonly class FinalizeSalesInvoice
             (int) $invoice->company_id,
             'sales_invoice',
             (string) $invoice->getKey(),
+            $effectType,
+        );
+    }
+
+    private function lineIdentity(SalesInvoiceLine $line, string $effectType): SourceEffectIdentity
+    {
+        return new SourceEffectIdentity(
+            (int) $line->company_id,
+            'sales_invoice_line',
+            (string) $line->getKey(),
             $effectType,
         );
     }
