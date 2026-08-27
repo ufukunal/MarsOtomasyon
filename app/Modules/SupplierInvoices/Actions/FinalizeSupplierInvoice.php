@@ -25,6 +25,7 @@ final readonly class FinalizeSupplierInvoice
         private AccountTransactionPoster $accountTransactions,
         private AccountAmountNormalizer $amounts,
         private PurchaseOrderProgressService $progress,
+        private SupplierInvoiceThreeWayMatchGuard $threeWayMatch,
         private Clock $clock,
     ) {}
 
@@ -64,6 +65,8 @@ final readonly class FinalizeSupplierInvoice
             if ((string) $invoice->currency_code !== (string) $account->book_currency_code) {
                 throw ValidationException::withMessages(['currency_code' => 'Cari ledger posting için fatura para birimi cari defter para birimiyle aynı olmalıdır.']);
             }
+
+            $this->threeWayMatch->assertInvoiceable($companyId, $lines);
 
             $postingDate = $invoice->getRawOriginal('invoice_date');
             if (! is_string($postingDate)) {
