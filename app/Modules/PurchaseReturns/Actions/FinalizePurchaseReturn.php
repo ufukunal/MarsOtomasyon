@@ -14,6 +14,8 @@ use App\Modules\GoodsReceipts\Models\GoodsReceiptLine;
 use App\Modules\Inventory\Enums\StockMovementType;
 use App\Modules\Inventory\Ledger\PostStockMovementData;
 use App\Modules\Inventory\Ledger\StockMovementPoster;
+use App\Modules\PurchaseOrders\Enums\PurchaseOrderProgressType;
+use App\Modules\PurchaseOrders\Progress\PurchaseOrderProgressService;
 use App\Modules\PurchaseReturns\Enums\PurchaseReturnStatus;
 use App\Modules\PurchaseReturns\Models\PurchaseReturn;
 use App\Modules\PurchaseReturns\Models\PurchaseReturnLine;
@@ -31,6 +33,7 @@ final readonly class FinalizePurchaseReturn
         private ActiveCompanyContext $companyContext,
         private AccountTransactionPoster $accountTransactions,
         private StockMovementPoster $stockMovements,
+        private PurchaseOrderProgressService $progress,
         private Clock $clock,
     ) {}
 
@@ -93,11 +96,12 @@ final readonly class FinalizePurchaseReturn
 
             /** @var PurchaseReturnLine $line */
             foreach ($lines as $line) {
+                $sourceId = (string) $line->getKey();
                 $this->stockMovements->post(new PostStockMovementData(
                     sourceEffect: new SourceEffectIdentity(
                         $companyId,
                         'purchase_return_line',
-                        (string) $line->getKey(),
+                        $sourceId,
                         'stock.out',
                     ),
                     productId: (int) $line->product_id,
@@ -107,6 +111,20 @@ final readonly class FinalizePurchaseReturn
                     quantity: (string) $line->quantity,
                     note: 'Satınalma iadesi '.$purchaseReturn->number,
                 ));
+
+                $quantityDelta = '-'.ltrim((string) $line->quantity, '-');
+                $this->progress->record(
+                    new SourceEffectIdentity($companyId, 'purchase_return_line', $sourceId, 'progress.receive.return'),
+                    (int) $line->purchase_order_line_id,
+                    PurchaseOrderProgressType::Received,
+                    $quantityDelta,
+                );
+                $this->progress->record(
+                    new SourceEffectIdentity($companyId, 'purchase_return_line', $sourceId, 'progress.invoice.return'),
+                    (int) $line->purchase_order_line_id,
+                    PurchaseOrderProgressType::Invoiced,
+                    $quantityDelta,
+                );
             }
 
             $purchaseReturn->forceFill([
