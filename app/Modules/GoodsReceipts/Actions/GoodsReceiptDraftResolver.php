@@ -74,14 +74,24 @@ final readonly class GoodsReceiptDraftResolver
                 [$received, $accepted, $pending, $rejected, $received, (string) $line->net_total, (string) $line->quantity],
             );
 
-            if ($row === null || $row->received_positive !== true) {
+            if ($row === null) {
                 throw ValidationException::withMessages([
-                    "lines.$index.received_quantity" => 'Fiziksel teslim miktarı sıfırdan büyük olmalıdır.',
+                    "lines.$index.received_quantity" => 'Fiziksel teslim miktarı doğrulanamadı.',
                 ]);
             }
             if ($row->split_valid !== true) {
                 throw ValidationException::withMessages([
                     "lines.$index.accepted_quantity" => 'Kabul + bekleyen kalite + red miktarı fiziksel teslim miktarına eşit olmalıdır.',
+                ]);
+            }
+
+            if ($row->received_positive !== true) {
+                if ($received === '0.000000' && $accepted === '0.000000' && $pending === '0.000000' && $rejected === '0.000000') {
+                    continue;
+                }
+
+                throw ValidationException::withMessages([
+                    "lines.$index.received_quantity" => 'Fiziksel teslim miktarı sıfırdan büyük olmalıdır.',
                 ]);
             }
 
@@ -124,6 +134,10 @@ final readonly class GoodsReceiptDraftResolver
                 provisionalUnitCost: $unitCost,
                 note: $this->nullableText($lineData->note, 1000, "lines.$index.note"),
             );
+        }
+
+        if ($resolved === []) {
+            throw ValidationException::withMessages(['lines' => 'Mal kabul için en az bir satırda fiziksel teslim miktarı girilmelidir.']);
         }
 
         return new ResolvedGoodsReceiptDraft(
