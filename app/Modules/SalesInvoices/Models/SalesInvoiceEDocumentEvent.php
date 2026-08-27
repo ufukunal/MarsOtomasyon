@@ -38,19 +38,23 @@ final class SalesInvoiceEDocumentEvent extends Model
     public function documentTypeEnum(): SalesInvoiceEDocumentType
     {
         $raw = $this->getRawOriginal('document_type');
+        if (! is_string($raw)) {
+            throw new LogicException('Persisted e-document type must be a string.');
+        }
 
-        return is_string($raw) && SalesInvoiceEDocumentType::tryFrom($raw) instanceof SalesInvoiceEDocumentType
-            ? SalesInvoiceEDocumentType::from($raw)
-            : throw new LogicException('Persisted e-document type is invalid.');
+        return SalesInvoiceEDocumentType::tryFrom($raw)
+            ?? throw new LogicException('Persisted e-document type is invalid.');
     }
 
     public function eventTypeEnum(): SalesInvoiceEDocumentEventType
     {
         $raw = $this->getRawOriginal('event_type');
+        if (! is_string($raw)) {
+            throw new LogicException('Persisted e-document event type must be a string.');
+        }
 
-        return is_string($raw) && SalesInvoiceEDocumentEventType::tryFrom($raw) instanceof SalesInvoiceEDocumentEventType
-            ? SalesInvoiceEDocumentEventType::from($raw)
-            : throw new LogicException('Persisted e-document event type is invalid.');
+        return SalesInvoiceEDocumentEventType::tryFrom($raw)
+            ?? throw new LogicException('Persisted e-document event type is invalid.');
     }
 
     /** @return BelongsTo<Company, $this> */
