@@ -42,9 +42,6 @@ final readonly class FinalizeGoodsReceipt
             if ($receipt->statusEnum() === GoodsReceiptStatus::Finalized) {
                 return $receipt;
             }
-            if ($receipt->statusEnum() !== GoodsReceiptStatus::Draft) {
-                throw ValidationException::withMessages(['status' => 'Yalnız taslak mal kabul kesinleştirilebilir.']);
-            }
 
             $lines = $receipt->lines()->lockForUpdate()->get();
             if ($lines->isEmpty()) {
