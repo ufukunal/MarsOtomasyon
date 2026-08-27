@@ -14,6 +14,7 @@ use App\Modules\SupplierInvoices\Models\SupplierInvoiceLine;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 final readonly class PurchaseReturnController
@@ -85,8 +86,8 @@ final readonly class PurchaseReturnController
                 ->orderBy('position')
                 ->get();
             $acceptedByReceiptLine = collect(
-                
-                \Illuminate\Support\Facades\DB::table('goods_receipt_line_quality')
+
+                DB::table('goods_receipt_line_quality')
                     ->where('company_id', $companyId)
                     ->whereIn('goods_receipt_line_id', $receiptLines->modelKeys())
                     ->pluck('accepted_quantity', 'goods_receipt_line_id')

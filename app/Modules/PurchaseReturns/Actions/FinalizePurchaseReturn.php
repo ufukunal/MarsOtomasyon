@@ -20,6 +20,7 @@ use App\Modules\PurchaseReturns\Models\PurchaseReturnLine;
 use App\Modules\SupplierInvoices\Enums\SupplierInvoiceStatus;
 use App\Modules\SupplierInvoices\Models\SupplierInvoice;
 use App\Modules\SupplierInvoices\Models\SupplierInvoiceLine;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use LogicException;
@@ -117,7 +118,7 @@ final readonly class FinalizePurchaseReturn
         });
     }
 
-    /** @param \Illuminate\Support\Collection<int, PurchaseReturnLine> $lines */
+    /** @param Collection<int, PurchaseReturnLine> $lines */
     private function assertEligibility(int $companyId, PurchaseReturn $purchaseReturn, $lines): void
     {
         $physical = [];
