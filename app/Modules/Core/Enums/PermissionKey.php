@@ -39,45 +39,31 @@ enum PermissionKey: string
     case SupplierInvoiceManage = 'supplier_invoices.manage';
     case PurchaseReturnView = 'purchase_returns.view';
     case PurchaseReturnManage = 'purchase_returns.manage';
+    case TreasuryView = 'treasury.view';
+    case TreasuryManage = 'treasury.manage';
+    case TreasuryReconcile = 'treasury.reconcile';
 
     public function label(): string
     {
         return match ($this) {
-            self::CompanyView => 'Şirket görüntüleme',
-            self::CompanyManage => 'Şirket yönetimi',
-            self::BranchView => 'Şube görüntüleme',
-            self::BranchManage => 'Şube yönetimi',
-            self::UserView => 'Kullanıcı görüntüleme',
-            self::UserManage => 'Kullanıcı yönetimi',
-            self::RoleView => 'Rol ve yetki görüntüleme',
-            self::RoleManage => 'Rol ve yetki yönetimi',
-            self::SettingsView => 'Ayarları görüntüleme',
-            self::SettingsManage => 'Ayarları yönetme',
-            self::FileView => 'Dosya görüntüleme',
-            self::FileManage => 'Dosya yönetimi',
-            self::AccountView => 'Cari görüntüleme',
-            self::AccountManage => 'Cari yönetimi',
-            self::ProductView => 'Ürün görüntüleme',
-            self::ProductManage => 'Ürün yönetimi',
-            self::InventoryView => 'Stok ve depo görüntüleme',
-            self::InventoryManage => 'Stok ve depo yönetimi',
-            self::QuoteView => 'Teklif görüntüleme',
-            self::QuoteManage => 'Teklif yönetimi',
-            self::QuoteApprove => 'Teklif ticari onayı ve dönüşümü',
-            self::SalesOrderView => 'Satış siparişi görüntüleme',
-            self::SalesOrderManage => 'Satış siparişi yönetimi',
-            self::DispatchView => 'İrsaliye görüntüleme',
-            self::DispatchManage => 'İrsaliye yönetimi',
-            self::SalesInvoiceView => 'Satış faturası görüntüleme',
-            self::SalesInvoiceManage => 'Satış faturası yönetimi',
-            self::PurchaseOrderView => 'Satınalma siparişi görüntüleme',
-            self::PurchaseOrderManage => 'Satınalma siparişi yönetimi',
-            self::GoodsReceiptView => 'Mal kabul görüntüleme',
-            self::GoodsReceiptManage => 'Mal kabul yönetimi',
-            self::SupplierInvoiceView => 'Alış faturası görüntüleme',
-            self::SupplierInvoiceManage => 'Alış faturası yönetimi',
-            self::PurchaseReturnView => 'Satınalma iadesi görüntüleme',
-            self::PurchaseReturnManage => 'Satınalma iadesi yönetimi',
+            self::CompanyView => 'Şirket görüntüleme', self::CompanyManage => 'Şirket yönetimi',
+            self::BranchView => 'Şube görüntüleme', self::BranchManage => 'Şube yönetimi',
+            self::UserView => 'Kullanıcı görüntüleme', self::UserManage => 'Kullanıcı yönetimi',
+            self::RoleView => 'Rol ve yetki görüntüleme', self::RoleManage => 'Rol ve yetki yönetimi',
+            self::SettingsView => 'Ayarları görüntüleme', self::SettingsManage => 'Ayarları yönetme',
+            self::FileView => 'Dosya görüntüleme', self::FileManage => 'Dosya yönetimi',
+            self::AccountView => 'Cari görüntüleme', self::AccountManage => 'Cari yönetimi',
+            self::ProductView => 'Ürün görüntüleme', self::ProductManage => 'Ürün yönetimi',
+            self::InventoryView => 'Stok ve depo görüntüleme', self::InventoryManage => 'Stok ve depo yönetimi',
+            self::QuoteView => 'Teklif görüntüleme', self::QuoteManage => 'Teklif yönetimi', self::QuoteApprove => 'Teklif ticari onayı ve dönüşümü',
+            self::SalesOrderView => 'Satış siparişi görüntüleme', self::SalesOrderManage => 'Satış siparişi yönetimi',
+            self::DispatchView => 'İrsaliye görüntüleme', self::DispatchManage => 'İrsaliye yönetimi',
+            self::SalesInvoiceView => 'Satış faturası görüntüleme', self::SalesInvoiceManage => 'Satış faturası yönetimi',
+            self::PurchaseOrderView => 'Satınalma siparişi görüntüleme', self::PurchaseOrderManage => 'Satınalma siparişi yönetimi',
+            self::GoodsReceiptView => 'Mal kabul görüntüleme', self::GoodsReceiptManage => 'Mal kabul yönetimi',
+            self::SupplierInvoiceView => 'Alış faturası görüntüleme', self::SupplierInvoiceManage => 'Alış faturası yönetimi',
+            self::PurchaseReturnView => 'Satınalma iadesi görüntüleme', self::PurchaseReturnManage => 'Satınalma iadesi yönetimi',
+            self::TreasuryView => 'Kasa / banka görüntüleme', self::TreasuryManage => 'Kasa / banka yönetimi', self::TreasuryReconcile => 'Banka mutabakatı',
         };
     }
 }
