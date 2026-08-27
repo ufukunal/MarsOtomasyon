@@ -278,7 +278,7 @@ it('rejects linked finalization at commit when exact invoice progress is missing
             'finalized_at' => '2026-08-27 12:00:00+00',
             'updated_at' => now(),
         ]);
-    }))->toThrow(\PDOException::class);
+    }))->toThrow(PDOException::class);
 
     $capacity = SalesInvoiceOrderLineCapacity::query()
         ->where('sales_order_line_id', $line->getKey())
