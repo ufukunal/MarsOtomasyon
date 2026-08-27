@@ -199,8 +199,8 @@ final readonly class SalesInvoiceFinalizedDocumentService
                 'net_total' => (string) $line->net_total,
                 'tax_total' => (string) $line->tax_total,
                 'gross_total' => (string) $line->gross_total,
-                'warehouse_id' => $line->warehouse_id === null ? null : (int) $line->warehouse_id,
-                'location_id' => $line->location_id === null ? null : (int) $line->location_id,
+                'warehouse_id' => (int) $line->warehouse_id,
+                'location_id' => (int) $line->location_id,
             ];
         })->values()->all();
 
