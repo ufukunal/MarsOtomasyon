@@ -3,6 +3,7 @@
 namespace App\Modules\GoodsReceipts;
 
 use App\Modules\Core\Company\ActiveCompanyContext;
+use App\Modules\GoodsReceipts\Actions\ApplyGoodsReceiptCostAdjustment;
 use App\Modules\GoodsReceipts\Actions\CreateGoodsReceipt;
 use App\Modules\GoodsReceipts\Actions\FinalizeGoodsReceipt;
 use App\Modules\GoodsReceipts\Actions\GoodsReceiptDraftData;
@@ -11,6 +12,7 @@ use App\Modules\GoodsReceipts\Actions\ReclassifyGoodsReceiptQuality;
 use App\Modules\GoodsReceipts\Actions\UpdateGoodsReceipt;
 use App\Modules\GoodsReceipts\Enums\GoodsReceiptQualityDisposition;
 use App\Modules\GoodsReceipts\Models\GoodsReceipt;
+use App\Modules\GoodsReceipts\Models\GoodsReceiptCostAdjustment;
 use App\Modules\GoodsReceipts\Models\GoodsReceiptQualityEffect;
 use App\Modules\Inventory\Models\Warehouse;
 use App\Modules\PurchaseOrders\Models\PurchaseOrder;
@@ -28,6 +30,7 @@ final readonly class GoodsReceiptController
         private UpdateGoodsReceipt $updateGoodsReceipt,
         private FinalizeGoodsReceipt $finalizeGoodsReceipt,
         private ReclassifyGoodsReceiptQuality $reclassifyGoodsReceiptQuality,
+        private ApplyGoodsReceiptCostAdjustment $applyGoodsReceiptCostAdjustment,
     ) {}
 
     public function index(Request $request): View
@@ -86,11 +89,18 @@ final readonly class GoodsReceiptController
             ->with('line')
             ->orderByDesc('id')
             ->get();
+        $costAdjustments = GoodsReceiptCostAdjustment::query()
+            ->where('company_id', $companyId)
+            ->where('goods_receipt_id', $receipt->getKey())
+            ->with('line')
+            ->orderByDesc('id')
+            ->get();
 
         return view('goods-receipts.show', [
             'receipt' => $receipt,
             'qualityByLine' => $qualityByLine,
             'qualityEffects' => $qualityEffects,
+            'costAdjustments' => $costAdjustments,
         ]);
     }
 
@@ -143,6 +153,30 @@ final readonly class GoodsReceiptController
                 'Kalite sınıflandırması işlendi: %s %s.',
                 (string) $effect->quantity,
                 $disposition->label(),
+            ));
+    }
+
+    public function adjustCost(Request $request, int $goodsReceipt): RedirectResponse
+    {
+        $validated = $request->validate([
+            'goods_receipt_line_id' => ['required', 'integer'],
+            'reference' => ['required', 'string', 'max:64'],
+            'total_value_delta' => ['required', 'regex:/^-?\d+(?:\.\d{1,6})?$/'],
+            'note' => ['nullable', 'string', 'max:1000'],
+        ]);
+        $adjustment = $this->applyGoodsReceiptCostAdjustment->handle(
+            $goodsReceipt,
+            (int) $validated['goods_receipt_line_id'],
+            (string) $validated['reference'],
+            (string) $validated['total_value_delta'],
+            isset($validated['note']) ? (string) $validated['note'] : null,
+        );
+
+        return redirect()->route('goods-receipts.show', $goodsReceipt)
+            ->with('status', sprintf(
+                'Maliyet farkı işlendi: stok değeri %s, tüketilmiş maliyet %s.',
+                (string) $adjustment->inventory_value_delta,
+                (string) $adjustment->consumed_cost_delta,
             ));
     }
 
