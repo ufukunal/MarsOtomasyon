@@ -19,6 +19,7 @@ use App\Modules\Core\Models\PostingPeriod;
 use App\Modules\Core\Models\Role;
 use App\Modules\Core\Models\Tax;
 use App\Modules\Core\Models\User;
+use App\Modules\GoodsReceipts\Models\GoodsReceipt;
 use App\Modules\Inventory\Models\Warehouse;
 use App\Modules\Inventory\Models\WarehouseLocation;
 use App\Modules\Products\Enums\ProductStatus;
@@ -35,6 +36,7 @@ use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Tests\TestCase;
 
 uses(DatabaseMigrations::class);
 
@@ -49,10 +51,11 @@ beforeEach(function (): void {
     });
 });
 
-it('finalizes a partial supplier invoice into exactly one creditor effect and purchase order invoice progress without stock', function (): void {
+it('finalizes a partial supplier invoice after accepted receipt into exactly one creditor and invoice progress effect without second stock', function (): void {
     [$company, $supplier, $product, $tax, $warehouse, $location, $manager] = supplierInvoice94Fixture('PINV94-A');
     $order = supplierInvoice94Order($company, $supplier, $product, $tax, $warehouse, $location, '5');
     $line = $order->lines()->firstOrFail();
+    supplierInvoice94ReceiveAccepted($this, $company, $manager, $order, $line, $warehouse, $location, '5');
 
     $this->actingAs($manager)
         ->withSession(['active_company_id' => $company->getKey()])
@@ -65,8 +68,8 @@ it('finalizes a partial supplier invoice into exactly one creditor effect and pu
     expect($invoice->statusEnum())->toBe(SupplierInvoiceStatus::Draft)
         ->and((string) $invoice->gross_total)->toBe('240.000000')
         ->and(AccountTransaction::query()->count())->toBe(0)
-        ->and(DB::table('purchase_order_line_progress_effects')->count())->toBe(0)
-        ->and(DB::table('stock_movements')->count())->toBe(0);
+        ->and(DB::table('purchase_order_line_progress_effects')->where('progress_type', 'invoiced')->count())->toBe(0)
+        ->and(DB::table('stock_movements')->count())->toBe(1);
 
     $this->actingAs($manager)
         ->withSession(['active_company_id' => $company->getKey()])
@@ -96,7 +99,7 @@ it('finalizes a partial supplier invoice into exactly one creditor effect and pu
             ->where('source_id', (string) $invoiceLine->getKey())
             ->where('effect_type', 'progress.invoice')
             ->count())->toBe(1)
-        ->and(DB::table('stock_movements')->count())->toBe(0);
+        ->and(DB::table('stock_movements')->count())->toBe(1);
 
     $this->actingAs($manager)
         ->withSession(['active_company_id' => $company->getKey()])
@@ -104,7 +107,29 @@ it('finalizes a partial supplier invoice into exactly one creditor effect and pu
         ->assertRedirect();
 
     expect(AccountTransaction::query()->count())->toBe(1)
-        ->and(DB::table('purchase_order_line_progress_effects')->count())->toBe(1)
+        ->and(DB::table('purchase_order_line_progress_effects')->where('progress_type', 'invoiced')->count())->toBe(1)
+        ->and(DB::table('stock_movements')->count())->toBe(1);
+});
+
+it('blocks supplier invoice finalization when accepted receipt capacity is missing', function (): void {
+    [$company, $supplier, $product, $tax, $warehouse, $location, $manager] = supplierInvoice94Fixture('PINV94-MATCH');
+    $order = supplierInvoice94Order($company, $supplier, $product, $tax, $warehouse, $location, '5');
+    $line = $order->lines()->firstOrFail();
+
+    $this->actingAs($manager)
+        ->withSession(['active_company_id' => $company->getKey()])
+        ->post(route('supplier-invoices.store'), supplierInvoice94Payload($order, $line, '2'))
+        ->assertRedirect();
+
+    $invoice = SupplierInvoice::query()->firstOrFail();
+    $this->actingAs($manager)
+        ->withSession(['active_company_id' => $company->getKey()])
+        ->post(route('supplier-invoices.finalize', $invoice->getKey()))
+        ->assertSessionHasErrors('quantity_delta');
+
+    expect($invoice->refresh()->statusEnum())->toBe(SupplierInvoiceStatus::Draft)
+        ->and(AccountTransaction::query()->count())->toBe(0)
+        ->and(DB::table('purchase_order_line_progress_effects')->where('progress_type', 'invoiced')->count())->toBe(0)
         ->and(DB::table('stock_movements')->count())->toBe(0);
 });
 
@@ -112,6 +137,7 @@ it('blocks over invoicing on finalization and rolls the supplier account effect 
     [$company, $supplier, $product, $tax, $warehouse, $location, $manager] = supplierInvoice94Fixture('PINV94-B');
     $order = supplierInvoice94Order($company, $supplier, $product, $tax, $warehouse, $location, '5');
     $line = $order->lines()->firstOrFail();
+    supplierInvoice94ReceiveAccepted($this, $company, $manager, $order, $line, $warehouse, $location, '5');
 
     foreach ([1, 2] as $index) {
         $payload = supplierInvoice94Payload($order, $line, '4');
@@ -143,10 +169,10 @@ it('blocks over invoicing on finalization and rolls the supplier account effect 
     expect($invoices[0]->refresh()->statusEnum())->toBe(SupplierInvoiceStatus::Finalized)
         ->and($invoices[1]->refresh()->statusEnum())->toBe(SupplierInvoiceStatus::Draft)
         ->and(AccountTransaction::query()->count())->toBe(1)
-        ->and(DB::table('purchase_order_line_progress_effects')->count())->toBe(1)
+        ->and(DB::table('purchase_order_line_progress_effects')->where('progress_type', 'invoiced')->count())->toBe(1)
         ->and((string) $progress->net_invoiced_quantity)->toBe('4.000000')
         ->and((string) $progress->invoice_remaining_quantity)->toBe('1.000000')
-        ->and(DB::table('stock_movements')->count())->toBe(0);
+        ->and(DB::table('stock_movements')->count())->toBe(1);
 });
 
 it('rejects raw supplier invoice finalization without exact account and purchase order progress effects', function (): void {
@@ -177,6 +203,7 @@ it('freezes finalized supplier invoice header and lines at the database boundary
     [$company, $supplier, $product, $tax, $warehouse, $location, $manager] = supplierInvoice94Fixture('PINV94-D');
     $order = supplierInvoice94Order($company, $supplier, $product, $tax, $warehouse, $location, '5');
     $line = $order->lines()->firstOrFail();
+    supplierInvoice94ReceiveAccepted($this, $company, $manager, $order, $line, $warehouse, $location, '5');
 
     $this->actingAs($manager)
         ->withSession(['active_company_id' => $company->getKey()])
@@ -248,6 +275,15 @@ function supplierInvoice94Fixture(string $code): array
         'document_type' => DocumentType::SupplierInvoice,
         'series_code' => 'default',
         'prefix' => 'PINV-',
+        'padding' => 4,
+        'next_value' => 1,
+        'is_active' => true,
+    ]);
+    DocumentSequence::query()->create([
+        'company_id' => $company->getKey(),
+        'document_type' => DocumentType::GoodsReceipt,
+        'series_code' => 'default',
+        'prefix' => 'GR-',
         'padding' => 4,
         'next_value' => 1,
         'is_active' => true,
@@ -349,6 +385,46 @@ function supplierInvoice94Payload(PurchaseOrder $order, PurchaseOrderLine $line,
     ];
 }
 
+function supplierInvoice94ReceiveAccepted(
+    TestCase $test,
+    Company $company,
+    User $manager,
+    PurchaseOrder $order,
+    PurchaseOrderLine $line,
+    Warehouse $warehouse,
+    WarehouseLocation $location,
+    string $quantity,
+): void {
+    $test->actingAs($manager)
+        ->withSession(['active_company_id' => $company->getKey()])
+        ->post(route('goods-receipts.store'), [
+            'series_code' => 'default',
+            'purchase_order_id' => $order->getKey(),
+            'receipt_date' => '2026-08-27',
+            'note' => null,
+            'lines' => [[
+                'purchase_order_line_id' => $line->getKey(),
+                'warehouse_id' => $warehouse->getKey(),
+                'location_id' => $location->getKey(),
+                'received_quantity' => $quantity,
+                'accepted_quantity' => $quantity,
+                'pending_quantity' => '0',
+                'rejected_quantity' => '0',
+                'note' => null,
+            ]],
+        ])->assertRedirect();
+
+    $receipt = GoodsReceipt::query()
+        ->where('company_id', $company->getKey())
+        ->orderByDesc('id')
+        ->firstOrFail();
+
+    $test->actingAs($manager)
+        ->withSession(['active_company_id' => $company->getKey()])
+        ->post(route('goods-receipts.finalize', $receipt->getKey()))
+        ->assertRedirect(route('goods-receipts.show', $receipt->getKey()));
+}
+
 function supplierInvoice94Actor(Company $company, string $suffix): User
 {
     $user = User::query()->create([
@@ -370,7 +446,13 @@ function supplierInvoice94Actor(Company $company, string $suffix): User
         'is_active' => true,
     ]);
 
-    foreach ([PermissionKey::SupplierInvoiceView, PermissionKey::SupplierInvoiceManage, PermissionKey::PurchaseOrderView] as $permission) {
+    foreach ([
+        PermissionKey::SupplierInvoiceView,
+        PermissionKey::SupplierInvoiceManage,
+        PermissionKey::PurchaseOrderView,
+        PermissionKey::GoodsReceiptView,
+        PermissionKey::GoodsReceiptManage,
+    ] as $permission) {
         app(GrantPermissionToRole::class)->handle($role, $permission);
     }
     app(AssignRoleToMembership::class)->handle($membership, $role);
