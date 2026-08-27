@@ -7,9 +7,11 @@ use App\Foundation\Identity\SourceEffectIdentity;
 use App\Modules\Accounts\Ledger\AccountTransactionReverser;
 use App\Modules\Accounts\Models\AccountTransaction;
 use App\Modules\Core\Company\ActiveCompanyContext;
+use App\Modules\SalesInvoices\Enums\SalesInvoiceMode;
 use App\Modules\SalesInvoices\Enums\SalesInvoiceStatus;
 use App\Modules\SalesInvoices\Models\SalesInvoice;
 use App\Modules\SalesInvoices\Models\SalesInvoiceLine;
+use App\Modules\SalesInvoices\Stock\SalesInvoiceStockEffectService;
 use App\Modules\SalesOrders\Enums\SalesOrderProgressType;
 use App\Modules\SalesOrders\Models\SalesOrderLineProgressEffect;
 use App\Modules\SalesOrders\Progress\SalesOrderProgressService;
@@ -22,6 +24,7 @@ final readonly class CancelSalesInvoice
     public function __construct(
         private ActiveCompanyContext $companyContext,
         private AccountTransactionReverser $accountTransactions,
+        private SalesInvoiceStockEffectService $stockEffects,
         private SalesOrderProgressService $progress,
         private Clock $clock,
     ) {}
@@ -79,29 +82,40 @@ final readonly class CancelSalesInvoice
                 memo: 'Satış faturası iptali '.$invoice->number,
             );
 
+            $this->stockEffects->reverse($invoice);
+
             /** @var SalesInvoiceLine $line */
             foreach ($lines as $line) {
                 if ($line->source_sales_order_line_id === null) {
                     continue;
                 }
 
-                $progressEffect = SalesOrderLineProgressEffect::query()
-                    ->where('company_id', $companyId)
-                    ->where('sales_order_line_id', $line->source_sales_order_line_id)
-                    ->where('source_type', 'sales_invoice_line')
-                    ->where('source_id', (string) $line->getKey())
-                    ->where('effect_type', 'progress.invoice')
-                    ->where('progress_type', SalesOrderProgressType::Invoiced->value)
-                    ->first();
-
-                if (! $progressEffect instanceof SalesOrderLineProgressEffect) {
-                    throw new LogicException('Satış faturası sipariş progress effecti bulunamadı.');
-                }
-
+                $invoiceProgress = $this->progressEffect(
+                    $companyId,
+                    $line,
+                    'progress.invoice',
+                    SalesOrderProgressType::Invoiced,
+                );
                 $this->progress->reverse(
                     $this->lineIdentity($line, 'progress.invoice.reverse'),
-                    (int) $progressEffect->getKey(),
+                    (int) $invoiceProgress->getKey(),
                 );
+
+                if ($invoice->modeEnum() !== SalesInvoiceMode::OrderLinked) {
+                    continue;
+                }
+
+                $dispatchProgress = $this->progressEffect(
+                    $companyId,
+                    $line,
+                    'progress.dispatch',
+                    SalesOrderProgressType::Dispatched,
+                );
+                $this->progress->reverse(
+                    $this->lineIdentity($line, 'progress.dispatch.reverse'),
+                    (int) $dispatchProgress->getKey(),
+                );
+                $this->stockEffects->reconcileOrderReservationAfterReversal($line);
             }
 
             $invoice->forceFill([
@@ -111,6 +125,26 @@ final readonly class CancelSalesInvoice
 
             return $invoice->refresh();
         });
+    }
+
+    private function progressEffect(
+        int $companyId,
+        SalesInvoiceLine $line,
+        string $effectType,
+        SalesOrderProgressType $progressType,
+    ): SalesOrderLineProgressEffect {
+        $effect = SalesOrderLineProgressEffect::query()
+            ->where('company_id', $companyId)
+            ->where('sales_order_line_id', $line->source_sales_order_line_id)
+            ->where('source_type', 'sales_invoice_line')
+            ->where('source_id', (string) $line->getKey())
+            ->where('effect_type', $effectType)
+            ->where('progress_type', $progressType->value)
+            ->first();
+
+        return $effect instanceof SalesOrderLineProgressEffect
+            ? $effect
+            : throw new LogicException('Satış faturası sipariş progress effecti bulunamadı: '.$effectType);
     }
 
     private function identity(SalesInvoice $invoice, string $effectType): SourceEffectIdentity

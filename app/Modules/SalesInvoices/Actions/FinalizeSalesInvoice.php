@@ -8,9 +8,11 @@ use App\Modules\Accounts\Ledger\AccountTransactionPoster;
 use App\Modules\Accounts\Ledger\PostAccountTransactionData;
 use App\Modules\Accounts\Models\Account;
 use App\Modules\Core\Company\ActiveCompanyContext;
+use App\Modules\SalesInvoices\Enums\SalesInvoiceMode;
 use App\Modules\SalesInvoices\Enums\SalesInvoiceStatus;
 use App\Modules\SalesInvoices\Models\SalesInvoice;
 use App\Modules\SalesInvoices\Models\SalesInvoiceLine;
+use App\Modules\SalesInvoices\Stock\SalesInvoiceStockEffectService;
 use App\Modules\SalesOrders\Enums\SalesOrderProgressType;
 use App\Modules\SalesOrders\Progress\SalesOrderProgressService;
 use Illuminate\Support\Facades\DB;
@@ -22,6 +24,7 @@ final readonly class FinalizeSalesInvoice
     public function __construct(
         private ActiveCompanyContext $companyContext,
         private AccountTransactionPoster $accountTransactions,
+        private SalesInvoiceStockEffectService $stockEffects,
         private SalesOrderProgressService $progress,
         private Clock $clock,
     ) {}
@@ -97,6 +100,8 @@ final readonly class FinalizeSalesInvoice
                 memo: 'Satış faturası '.$invoice->number,
             ));
 
+            $this->stockEffects->post($invoice);
+
             $invoice->forceFill([
                 'status' => SalesInvoiceStatus::Finalized,
                 'finalized_at' => $this->clock->now(),
@@ -114,6 +119,15 @@ final readonly class FinalizeSalesInvoice
                     SalesOrderProgressType::Invoiced,
                     (string) $line->quantity,
                 );
+
+                if ($invoice->modeEnum() === SalesInvoiceMode::OrderLinked) {
+                    $this->progress->record(
+                        $this->lineIdentity($line, 'progress.dispatch'),
+                        (int) $line->source_sales_order_line_id,
+                        SalesOrderProgressType::Dispatched,
+                        (string) $line->quantity,
+                    );
+                }
             }
 
             return $invoice->refresh();

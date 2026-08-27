@@ -7,6 +7,7 @@ use App\Modules\SalesOrders\Enums\SalesOrderProgressType;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use LogicException;
 
 final class SalesOrderLineProgressEffect extends Model
 {
@@ -37,6 +38,16 @@ final class SalesOrderLineProgressEffect extends Model
             'occurred_at' => 'immutable_datetime',
             'created_at' => 'immutable_datetime',
         ];
+    }
+
+    public function progressTypeEnum(): SalesOrderProgressType
+    {
+        $progressType = $this->getAttribute('progress_type');
+        if (! $progressType instanceof SalesOrderProgressType) {
+            throw new LogicException('Persisted sales order progress type is invalid.');
+        }
+
+        return $progressType;
     }
 
     /** @return BelongsTo<Company, $this> */

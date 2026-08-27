@@ -122,11 +122,18 @@ final readonly class CreateSalesInvoice
                 return $invoice->load('lines');
             });
         } catch (QueryException $exception) {
-            if ((string) $exception->getCode() === '23514'
-                && str_contains($exception->getMessage(), 'sales invoice quantity exceeds order line remaining quantity')) {
-                throw ValidationException::withMessages([
-                    'lines' => 'Fatura miktarı sipariş satırının kalan faturalama kapasitesini aşamaz.',
-                ]);
+            if ((string) $exception->getCode() === '23514') {
+                if (str_contains($exception->getMessage(), 'sales invoice quantity exceeds order line remaining quantity')) {
+                    throw ValidationException::withMessages([
+                        'lines' => 'Fatura miktarı sipariş satırının kalan faturalama kapasitesini aşamaz.',
+                    ]);
+                }
+
+                if (str_contains($exception->getMessage(), 'sales invoice quantity exceeds source dispatch line quantity')) {
+                    throw ValidationException::withMessages([
+                        'lines' => 'Fatura miktarı kaynak irsaliye satırı miktarını aşamaz.',
+                    ]);
+                }
             }
 
             throw $exception;
