@@ -123,7 +123,7 @@ return new class extends Migration
         DB::statement('ALTER TABLE supplier_invoice_lines ADD CONSTRAINT supplier_invoice_lines_tax_rate_check CHECK (tax_rate >= 0 AND tax_rate <= 100)');
         DB::statement('ALTER TABLE supplier_invoice_lines ADD CONSTRAINT supplier_invoice_lines_amounts_nonnegative_check CHECK (base_net >= 0 AND line_discount_net >= 0 AND document_discount_net >= 0 AND net_total >= 0 AND tax_total >= 0 AND gross_total >= 0)');
         DB::statement('ALTER TABLE supplier_invoice_lines ADD CONSTRAINT supplier_invoice_lines_total_reconciliation_check CHECK (base_net - line_discount_net - document_discount_net = net_total AND net_total + tax_total = gross_total)');
-        DB::statement("ALTER TABLE supplier_invoice_lines ADD CONSTRAINT supplier_invoice_lines_zero_reason_shape_check CHECK ((tax_rate = 0 AND tax_zero_reason_id IS NOT NULL AND tax_zero_reason_code IS NOT NULL) OR (tax_rate > 0 AND tax_zero_reason_id IS NULL AND tax_zero_reason_code IS NULL))");
+        DB::statement('ALTER TABLE supplier_invoice_lines ADD CONSTRAINT supplier_invoice_lines_zero_reason_shape_check CHECK ((tax_rate = 0 AND tax_zero_reason_id IS NOT NULL AND tax_zero_reason_code IS NOT NULL) OR (tax_rate > 0 AND tax_zero_reason_id IS NULL AND tax_zero_reason_code IS NULL))');
 
         DB::unprepared(<<<'SQL'
 CREATE OR REPLACE FUNCTION mars_guard_supplier_invoice_source()
