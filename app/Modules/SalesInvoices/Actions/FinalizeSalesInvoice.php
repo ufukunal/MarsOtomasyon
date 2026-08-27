@@ -12,6 +12,7 @@ use App\Modules\SalesInvoices\Enums\SalesInvoiceMode;
 use App\Modules\SalesInvoices\Enums\SalesInvoiceStatus;
 use App\Modules\SalesInvoices\Models\SalesInvoice;
 use App\Modules\SalesInvoices\Models\SalesInvoiceLine;
+use App\Modules\SalesInvoices\Reconciliation\SalesInvoiceExitGate;
 use App\Modules\SalesInvoices\Stock\SalesInvoiceStockEffectService;
 use App\Modules\SalesOrders\Enums\SalesOrderProgressType;
 use App\Modules\SalesOrders\Progress\SalesOrderProgressService;
@@ -26,6 +27,7 @@ final readonly class FinalizeSalesInvoice
         private AccountTransactionPoster $accountTransactions,
         private SalesInvoiceStockEffectService $stockEffects,
         private SalesOrderProgressService $progress,
+        private SalesInvoiceExitGate $exitGate,
         private Clock $clock,
     ) {}
 
@@ -47,6 +49,8 @@ final readonly class FinalizeSalesInvoice
             }
 
             if ($invoice->statusEnum() === SalesInvoiceStatus::Finalized) {
+                $this->exitGate->assertConsistent($invoice);
+
                 return $invoice;
             }
 
@@ -130,7 +134,10 @@ final readonly class FinalizeSalesInvoice
                 }
             }
 
-            return $invoice->refresh();
+            $finalized = $invoice->refresh();
+            $this->exitGate->assertConsistent($finalized);
+
+            return $finalized;
         });
     }
 

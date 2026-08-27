@@ -11,6 +11,7 @@ use App\Modules\SalesInvoices\Enums\SalesInvoiceMode;
 use App\Modules\SalesInvoices\Enums\SalesInvoiceStatus;
 use App\Modules\SalesInvoices\Models\SalesInvoice;
 use App\Modules\SalesInvoices\Models\SalesInvoiceLine;
+use App\Modules\SalesInvoices\Reconciliation\SalesInvoiceExitGate;
 use App\Modules\SalesInvoices\Stock\SalesInvoiceStockEffectService;
 use App\Modules\SalesOrders\Enums\SalesOrderProgressType;
 use App\Modules\SalesOrders\Models\SalesOrderLineProgressEffect;
@@ -26,6 +27,7 @@ final readonly class CancelSalesInvoice
         private AccountTransactionReverser $accountTransactions,
         private SalesInvoiceStockEffectService $stockEffects,
         private SalesOrderProgressService $progress,
+        private SalesInvoiceExitGate $exitGate,
         private Clock $clock,
     ) {}
 
@@ -47,6 +49,8 @@ final readonly class CancelSalesInvoice
             }
 
             if ($invoice->statusEnum() === SalesInvoiceStatus::Cancelled) {
+                $this->exitGate->assertConsistent($invoice);
+
                 return $invoice;
             }
 
@@ -123,7 +127,10 @@ final readonly class CancelSalesInvoice
                 'cancelled_at' => $cancelledAt,
             ])->save();
 
-            return $invoice->refresh();
+            $cancelled = $invoice->refresh();
+            $this->exitGate->assertConsistent($cancelled);
+
+            return $cancelled;
         });
     }
 
