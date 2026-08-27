@@ -72,9 +72,16 @@ final readonly class FinalizeSalesInvoice
                 ]);
             }
 
+            $postingDate = $invoice->getRawOriginal('invoice_date');
+            if (! is_string($postingDate)) {
+                throw ValidationException::withMessages([
+                    'invoice_date' => 'Satış faturası belge tarihi geçersiz.',
+                ]);
+            }
+
             $this->accountTransactions->post(new PostAccountTransactionData(
                 accountId: (int) $invoice->account_id,
-                postingDate: $invoice->invoice_date->format('Y-m-d'),
+                postingDate: $postingDate,
                 signedAmount: (string) $invoice->gross_total,
                 sourceEffect: $this->identity($invoice, 'account.sales_invoice'),
                 memo: 'Satış faturası '.$invoice->number,
