@@ -14,4 +14,5 @@ Route::middleware(['web', 'auth', 'company.context'])
         Route::get('/{goodsReceipt}/edit', [GoodsReceiptController::class, 'edit'])->whereNumber('goodsReceipt')->middleware('can:goods_receipts.manage')->name('edit');
         Route::put('/{goodsReceipt}', [GoodsReceiptController::class, 'update'])->whereNumber('goodsReceipt')->middleware('can:goods_receipts.manage')->name('update');
         Route::post('/{goodsReceipt}/finalize', [GoodsReceiptController::class, 'finalize'])->whereNumber('goodsReceipt')->middleware('can:goods_receipts.manage')->name('finalize');
+        Route::post('/{goodsReceipt}/quality', [GoodsReceiptController::class, 'reclassifyQuality'])->whereNumber('goodsReceipt')->middleware('can:goods_receipts.manage')->name('quality');
     });
