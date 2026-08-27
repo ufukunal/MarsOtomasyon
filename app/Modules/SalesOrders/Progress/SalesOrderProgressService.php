@@ -116,7 +116,8 @@ final readonly class SalesOrderProgressService
             ]);
         }
 
-        $progressType = $original->progress_type;
+        $rawProgressType = $original->getRawOriginal('progress_type');
+        $progressType = is_string($rawProgressType) ? SalesOrderProgressType::tryFrom($rawProgressType) : null;
         if (! $progressType instanceof SalesOrderProgressType) {
             throw new LogicException('Persisted sales order progress type is invalid.');
         }
