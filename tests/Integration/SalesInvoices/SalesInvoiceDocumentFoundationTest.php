@@ -9,6 +9,7 @@ use App\Modules\Accounts\Models\Account;
 use App\Modules\Accounts\Models\AccountAddress;
 use App\Modules\Core\Authorization\AssignRoleToMembership;
 use App\Modules\Core\Authorization\GrantPermissionToRole;
+use App\Modules\Core\Company\ActiveCompanyContext;
 use App\Modules\Core\Enums\DocumentType;
 use App\Modules\Core\Enums\PermissionKey;
 use App\Modules\Core\Enums\PostingPeriodStatus;
@@ -107,7 +108,8 @@ it('provides an append-only provider-neutral e-document lifecycle seam', functio
     $this->actingAs($manager)->withSession(['active_company_id' => $company->getKey()])
         ->post(route('sales-invoices.finalize', $invoice->getKey()))->assertRedirect();
 
-    $this->actingAs($manager)->withSession(['active_company_id' => $company->getKey()]);
+    $context = app(ActiveCompanyContext::class);
+    $context->set($company);
     $service = app(SalesInvoiceEDocumentLifecycleService::class);
     $prepared = $service->append((int) $invoice->getKey(), SalesInvoiceEDocumentType::EInvoice, SalesInvoiceEDocumentEventType::Prepared);
     $submitted = $service->append((int) $invoice->getKey(), SalesInvoiceEDocumentType::EInvoice, SalesInvoiceEDocumentEventType::Submitted, 'stub.provider', null, str_repeat('a', 64));
@@ -124,11 +126,13 @@ it('provides an append-only provider-neutral e-document lifecycle seam', functio
 
     $this->actingAs($manager)->withSession(['active_company_id' => $company->getKey()])
         ->post(route('sales-invoices.cancel', $invoice->getKey()))->assertRedirect();
-    $this->actingAs($manager)->withSession(['active_company_id' => $company->getKey()]);
+    $context->set($company);
     $cancelled = $service->append((int) $invoice->getKey(), SalesInvoiceEDocumentType::EInvoice, SalesInvoiceEDocumentEventType::Cancelled, 'stub.provider', 'EXT-1');
 
     expect($cancelled->eventTypeEnum())->toBe(SalesInvoiceEDocumentEventType::Cancelled)
         ->and(SalesInvoiceEDocumentEvent::query()->count())->toBe(4);
+
+    $context->clear();
 });
 
 /** @return array{Company,Account,Product,AccountAddress,Warehouse,WarehouseLocation,User} */
