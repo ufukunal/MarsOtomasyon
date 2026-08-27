@@ -175,6 +175,7 @@ BEGIN
         END IF;
     ELSIF NEW.event_type = 'submitted' THEN
         IF invoice_status = 'cancelled'
+           OR previous_event IS NULL
            OR previous_event NOT IN ('prepared', 'rejected')
            OR NEW.provider_key IS NULL
            OR NEW.payload_sha256 IS NULL THEN
@@ -182,7 +183,7 @@ BEGIN
         END IF;
     ELSIF NEW.event_type IN ('accepted', 'rejected') THEN
         IF invoice_status = 'cancelled'
-           OR previous_event <> 'submitted'
+           OR previous_event IS DISTINCT FROM 'submitted'
            OR NEW.provider_key IS NULL
            OR previous_provider IS DISTINCT FROM NEW.provider_key THEN
             RAISE EXCEPTION 'provider result e-document event violates lifecycle contract' USING ERRCODE = '23514';
