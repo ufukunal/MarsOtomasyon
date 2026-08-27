@@ -95,12 +95,12 @@ it('finalizes a partial purchase return into exactly one stock out and positive 
         ->and((string) $movement->value_delta)->toBe('-200.000000')
         ->and((string) $balance->quantity)->toBe('3.000000')
         ->and((string) $balance->inventory_value)->toBe('300.000000')
-        ->and(DB::table('purchase_order_line_progress_effects')->count())->toBe(2);
+        ->and(DB::table('purchase_order_line_progress_effects')->where('source_type', 'purchase_return_line')->count())->toBe(2);
 
     app(FinalizePurchaseReturn::class)->handle((int) $return->getKey());
     expect(AccountTransaction::query()->where('source_type', 'purchase_return')->count())->toBe(1)
         ->and(DB::table('stock_movements')->where('source_type', 'purchase_return_line')->count())->toBe(1)
-        ->and(DB::table('purchase_order_line_progress_effects')->count())->toBe(2);
+        ->and(DB::table('purchase_order_line_progress_effects')->where('source_type', 'purchase_return_line')->count())->toBe(2);
 });
 
 it('rechecks physical and financial return eligibility atomically at finalization', function (): void {
