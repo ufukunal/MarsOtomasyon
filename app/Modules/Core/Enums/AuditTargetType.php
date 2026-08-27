@@ -24,6 +24,7 @@ enum AuditTargetType: string
     case Quote = 'quote';
     case QuoteRevision = 'quote_revision';
     case SalesOrder = 'sales_order';
+    case GoodsReceipt = 'goods_receipt';
 
     public function label(): string
     {
@@ -48,6 +49,7 @@ enum AuditTargetType: string
             self::Quote => 'Teklif',
             self::QuoteRevision => 'Teklif Revizyonu',
             self::SalesOrder => 'Satış Siparişi',
+            self::GoodsReceipt => 'Mal Kabul',
         };
     }
 }
