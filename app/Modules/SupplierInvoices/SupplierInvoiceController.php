@@ -138,7 +138,7 @@ final readonly class SupplierInvoiceController
             'note' => ['nullable', 'string', 'max:5000'],
             'lines' => ['required', 'array', 'min:1', 'max:200'],
             'lines.*.purchase_order_line_id' => ['required', 'integer'],
-            'lines.*.quantity' => ['required', 'decimal:0,6', 'gt:0'],
+            'lines.*.quantity' => ['required', 'decimal:0,6', 'min:0'],
         ];
         if ($includeSeries) {
             $rules['series_code'] = ['nullable', 'string', 'max:64'];
@@ -152,9 +152,14 @@ final readonly class SupplierInvoiceController
     {
         $lines = [];
         foreach ($validated['lines'] as $line) {
+            $quantity = trim((string) $line['quantity']);
+            if (preg_match('/^0+(?:\.0+)?$/D', $quantity) === 1) {
+                continue;
+            }
+
             $lines[] = new SupplierInvoiceLineData(
                 purchaseOrderLineId: (int) $line['purchase_order_line_id'],
-                quantity: (string) $line['quantity'],
+                quantity: $quantity,
             );
         }
 
