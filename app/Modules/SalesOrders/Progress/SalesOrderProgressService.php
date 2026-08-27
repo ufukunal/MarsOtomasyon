@@ -66,7 +66,7 @@ final readonly class SalesOrderProgressService
                 'company_id' => $sourceEffect->companyId,
                 'sales_order_id' => (int) $line->sales_order_id,
                 'sales_order_line_id' => $salesOrderLineId,
-                'progress_type' => $progressType,
+                'progress_type' => $progressType->value,
                 'quantity_delta' => $quantityDelta,
                 'reversal_of_progress_effect_id' => null,
                 'operation_key' => $operationKey,
@@ -116,6 +116,11 @@ final readonly class SalesOrderProgressService
             ]);
         }
 
+        $progressType = $original->progress_type;
+        if (! $progressType instanceof SalesOrderProgressType) {
+            throw new LogicException('Persisted sales order progress type is invalid.');
+        }
+
         $operationKey = $sourceEffect->fingerprint();
         $fingerprint = RequestFingerprint::fromPayload([
             'company_id' => $sourceEffect->companyId,
@@ -143,7 +148,7 @@ final readonly class SalesOrderProgressService
                 'company_id' => (int) $original->company_id,
                 'sales_order_id' => (int) $original->sales_order_id,
                 'sales_order_line_id' => (int) $original->sales_order_line_id,
-                'progress_type' => $original->progress_type,
+                'progress_type' => $progressType->value,
                 'quantity_delta' => '-'.(string) $original->quantity_delta,
                 'reversal_of_progress_effect_id' => (int) $original->getKey(),
                 'operation_key' => $operationKey,
