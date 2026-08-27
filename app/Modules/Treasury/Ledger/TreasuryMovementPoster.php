@@ -37,6 +37,11 @@ final readonly class TreasuryMovementPoster
             ->whereKey($data->treasuryAccountId)
             ->lockForUpdate()
             ->firstOrFail();
+
+        if (! (bool) $account->is_active && $data->reversalOfMovementId === null) {
+            throw new DomainException('Yeni treasury hareketi aktif hesap gerektirir.');
+        }
+
         $currency = (string) $account->currency_code;
         $amount = $this->amounts->normalize($data->signedAmount);
         $period = $this->postingPeriods->assertOpen($companyId, $data->postingDate);
@@ -63,10 +68,14 @@ final readonly class TreasuryMovementPoster
             if ($claim->status !== IdempotencyStatus::Completed) {
                 throw new LogicException('Treasury movement idempotency kaydı tamamlanmamış bırakılamaz.');
             }
-            $existing = TreasuryMovement::query()->where('effect_fingerprint', $fingerprint)->first();
+
+            $existing = TreasuryMovement::query()
+                ->where('effect_fingerprint', $fingerprint)
+                ->first();
             if (! $existing instanceof TreasuryMovement) {
                 throw new LogicException('Tamamlanmış treasury idempotency kaydının ledger satırı bulunamadı.');
             }
+
             return $existing;
         }
 
@@ -77,11 +86,13 @@ final readonly class TreasuryMovementPoster
                 ->whereKey($data->reversalOfMovementId)
                 ->sharedLock()
                 ->first();
+
             if (! $original instanceof TreasuryMovement
                 || (string) $original->currency_code !== $currency
                 || $this->amounts->negate((string) $original->signed_amount) !== $amount) {
                 throw new DomainException('Treasury ters kayıt aynı hesap ve tutarı tam olarak ters çevirmelidir.');
             }
+
             if (TreasuryMovement::query()->where('reversal_of_movement_id', $original->getKey())->exists()) {
                 throw new DomainException('Treasury hareketi daha önce ters kayıt ile kapatılmış.');
             }
@@ -114,9 +125,15 @@ final readonly class TreasuryMovementPoster
 
     private function memo(?string $memo): ?string
     {
-        if ($memo === null || trim($memo) === '') return null;
+        if ($memo === null || trim($memo) === '') {
+            return null;
+        }
+
         $memo = trim($memo);
-        if (mb_strlen($memo) > 500) throw new DomainException('Treasury açıklaması en fazla 500 karakter olabilir.');
+        if (mb_strlen($memo) > 500) {
+            throw new DomainException('Treasury açıklaması en fazla 500 karakter olabilir.');
+        }
+
         return $memo;
     }
 }
