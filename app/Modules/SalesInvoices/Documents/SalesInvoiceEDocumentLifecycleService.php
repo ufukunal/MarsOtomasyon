@@ -122,12 +122,10 @@ final readonly class SalesInvoiceEDocumentLifecycleService
             return;
         }
 
-        if ($eventType === SalesInvoiceEDocumentEventType::Cancelled) {
-            if ($invoice->statusEnum() !== SalesInvoiceStatus::Cancelled
-                || $previousType === SalesInvoiceEDocumentEventType::Cancelled
-                || ($previous->provider_key !== null && $providerKey !== $previous->provider_key)) {
-                throw new LogicException('Cancelled e-document event violates lifecycle contract.');
-            }
+        if ($invoice->statusEnum() !== SalesInvoiceStatus::Cancelled
+            || $previousType === SalesInvoiceEDocumentEventType::Cancelled
+            || ($previous->provider_key !== null && $providerKey !== $previous->provider_key)) {
+            throw new LogicException('Cancelled e-document event violates lifecycle contract.');
         }
     }
 }
