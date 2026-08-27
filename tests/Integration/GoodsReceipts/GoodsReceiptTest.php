@@ -258,9 +258,9 @@ function goodsReceipt92Order(
     string $quantity,
 ): PurchaseOrder {
     $totals = DB::selectOne(
-        "SELECT CAST(CAST(? AS numeric) * 100 AS numeric(20,6))::text AS base, "
-        ."CAST(CAST(? AS numeric) * 20 AS numeric(20,6))::text AS tax, "
-        ."CAST(CAST(? AS numeric) * 120 AS numeric(20,6))::text AS gross",
+        'SELECT CAST(CAST(? AS numeric) * 100 AS numeric(20,6))::text AS base, '
+        .'CAST(CAST(? AS numeric) * 20 AS numeric(20,6))::text AS tax, '
+        .'CAST(CAST(? AS numeric) * 120 AS numeric(20,6))::text AS gross',
         [$quantity, $quantity, $quantity],
     );
     if ($totals === null) {
