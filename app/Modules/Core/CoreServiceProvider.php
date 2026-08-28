@@ -39,9 +39,16 @@ final class CoreServiceProvider extends ServiceProvider
         foreach (PermissionKey::cases() as $permission) {
             Gate::define(
                 $permission->value,
-                fn (User $user): bool => $this->app
-                    ->make(CompanyPermissionAuthorizer::class)
-                    ->allows($user, $permission),
+                function (User $user) use ($permission): bool {
+                    if (in_array($permission, [PermissionKey::BackupView, PermissionKey::BackupManage], true)
+                        && ! $user->isPlatformAdmin()) {
+                        return false;
+                    }
+
+                    return $this->app
+                        ->make(CompanyPermissionAuthorizer::class)
+                        ->allows($user, $permission);
+                },
             );
         }
     }
