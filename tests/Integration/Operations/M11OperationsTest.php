@@ -109,6 +109,7 @@ it('requires approval for configured automation and appends an immutable securit
     expect($run)->not->toBeNull()->and((string) $run->status)->toBe('pending_approval');
     $automation->approve((int) $company->getKey(), (int) $run->id, $userId);
     $automation->execute((int) $run->id, app(NotificationService::class), app(ChannelService::class), app(SecurityCenter::class));
+    $automation->execute((int) $run->id, app(NotificationService::class), app(ChannelService::class), app(SecurityCenter::class));
 
     expect(DB::table('automation_runs')->where('id', $run->id)->value('status'))->toBe('succeeded')
         ->and(DB::table('security_events')->where('event_type', 'automation.order_paid')->count())->toBe(1);
