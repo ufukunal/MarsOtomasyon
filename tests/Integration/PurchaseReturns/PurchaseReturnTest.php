@@ -24,7 +24,6 @@ use App\Modules\Products\Models\Product;
 use App\Modules\Products\Models\Unit;
 use App\Modules\PurchaseOrders\Enums\PurchaseOrderStatus;
 use App\Modules\PurchaseOrders\Models\PurchaseOrder;
-use App\Modules\PurchaseOrders\Models\PurchaseOrderLine;
 use App\Modules\PurchaseReturns\Actions\CreatePurchaseReturn;
 use App\Modules\PurchaseReturns\Actions\FinalizePurchaseReturn;
 use App\Modules\PurchaseReturns\Actions\PurchaseReturnDraftData;
@@ -173,24 +172,7 @@ it('freezes finalized purchase return header and lineage lines at the database b
 });
 
 it('reverses the source supplier invoice discount snapshot instead of later purchase order terms', function (): void {
-    [, $order, $receipt, $invoice] = purchaseReturn95Fixture(
-        'PRET95-E',
-        function (PurchaseOrder $order, PurchaseOrderLine $orderLine): void {
-            $order->forceFill([
-                'document_discount_rate' => '10.000000',
-                'document_discount_total' => '50.000000',
-                'net_total' => '450.000000',
-                'tax_total' => '90.000000',
-                'gross_total' => '540.000000',
-            ])->save();
-            $orderLine->forceFill([
-                'document_discount_net' => '50.000000',
-                'net_total' => '450.000000',
-                'tax_total' => '90.000000',
-                'gross_total' => '540.000000',
-            ])->save();
-        },
-    );
+    [, $order, $receipt, $invoice] = purchaseReturn95Fixture('PRET95-E', true);
 
     $receiptLine = $receipt->lines()->firstOrFail();
     $invoiceLine = $invoice->lines()->firstOrFail();
@@ -210,11 +192,8 @@ it('reverses the source supplier invoice discount snapshot instead of later purc
         ->and((string) $return->gross_total)->toBe('240.000000');
 });
 
-/**
- * @param null|Closure(PurchaseOrder, PurchaseOrderLine, GoodsReceipt, SupplierInvoice):void $beforeFinalize
- * @return array{Company,PurchaseOrder,GoodsReceipt,SupplierInvoice}
- */
-function purchaseReturn95Fixture(string $code, ?Closure $beforeFinalize = null): array
+/** @return array{Company,PurchaseOrder,GoodsReceipt,SupplierInvoice} */
+function purchaseReturn95Fixture(string $code, bool $changeOrderTermsBeforeFinalize = false): array
 {
     $company = Company::query()->create(['code' => $code, 'name' => 'Company '.$code]);
     $supplier = Account::query()->create([
@@ -401,7 +380,21 @@ function purchaseReturn95Fixture(string $code, ?Closure $beforeFinalize = null):
         'gross_total' => '600.000000',
     ]);
 
-    $beforeFinalize?->__invoke($order, $orderLine, $receipt, $invoice);
+    if ($changeOrderTermsBeforeFinalize) {
+        $order->forceFill([
+            'document_discount_rate' => '10.000000',
+            'document_discount_total' => '50.000000',
+            'net_total' => '450.000000',
+            'tax_total' => '90.000000',
+            'gross_total' => '540.000000',
+        ])->save();
+        $orderLine->forceFill([
+            'document_discount_net' => '50.000000',
+            'net_total' => '450.000000',
+            'tax_total' => '90.000000',
+            'gross_total' => '540.000000',
+        ])->save();
+    }
 
     app(ActiveCompanyContext::class)->set($company);
     app(FinalizeGoodsReceipt::class)->handle((int) $receipt->getKey());
