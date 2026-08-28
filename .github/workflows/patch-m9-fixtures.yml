@@ -45,9 +45,24 @@ jobs:
               if receipt_marker not in text:
                   raise SystemExit('purchase return receipt marker missing')
               opener = """    $opener = \\App\\Modules\\Core\\Models\\User::query()->create([\n        'name' => 'Purchase Return Fixture Opener',\n        'email' => strtolower((string) $company->code).'-po-opener-'.$order->getKey().'@purchase-return-fixture.test',\n        'password' => 'not-used-in-test',\n        'status' => 'active',\n    ]);\n    app(\\App\\Modules\\PurchaseOrders\\Actions\\PurchaseOrderLifecycle::class)->open(\n        (int) $company->getKey(),\n        (int) $order->getKey(),\n        (int) $opener->getKey(),\n    );\n\n"""
-              path.write_text(text.replace(receipt_marker, opener + receipt_marker, 1))
+              text = text.replace(receipt_marker, opener + receipt_marker, 1)
+
+          discount_block = """    if ($changeOrderTermsBeforeFinalize) {\n        $order->forceFill([\n            'document_discount_rate' => '10.000000',\n            'document_discount_total' => '50.000000',\n            'net_total' => '450.000000',\n            'tax_total' => '90.000000',\n            'gross_total' => '540.000000',\n        ])->save();\n        $orderLine->forceFill([\n            'document_discount_net' => '50.000000',\n            'net_total' => '450.000000',\n            'tax_total' => '90.000000',\n            'gross_total' => '540.000000',\n        ])->save();\n    }\n\n"""
+          opener_marker = "    $opener = \\App\\Modules\\Core\\Models\\User::query()->create(["
+          if discount_block not in text:
+              raise SystemExit('purchase return discount block missing')
+          current_index = text.index(discount_block)
+          opener_index = text.index(opener_marker)
+          if current_index > opener_index:
+              text = text.replace(discount_block, '', 1)
+              text = text.replace(opener_marker, discount_block + opener_marker, 1)
+              path.write_text(text)
               changed.append(str(path))
-          print('\n'.join(changed))
+          elif 'Purchase Return Fixture Opener' not in path.read_text():
+              path.write_text(text)
+              changed.append(str(path))
+
+          print('\n'.join(sorted(set(changed))))
           PY
       - name: Commit fixture fixes
         run: |
@@ -55,5 +70,5 @@ jobs:
           git config user.name ufukunal
           git config user.email ufuk@ufukunal.com.tr
           git add tests/Integration/GoodsReceipts tests/Integration/SupplierInvoices tests/Integration/PurchaseReturns
-          git commit -m "test: open purchase return order fixture [fixture-patched]"
+          git commit -m "test: fix purchase return discount fixture ordering [fixture-patched]"
           git push origin HEAD:fix/m9-m11-finalize
