@@ -51,6 +51,19 @@ enum AuditAction: string
     case SalesOrderUpdated = 'sales_orders.order.updated';
     case GoodsReceiptQualityReclassified = 'goods_receipts.quality.reclassified';
     case GoodsReceiptCostAdjusted = 'goods_receipts.cost.adjusted';
+    case TreasuryAccountCreated = 'treasury.account.created';
+    case TreasuryPaymentMethodCreated = 'treasury.payment_method.created';
+    case TreasuryPaymentFinalized = 'treasury.payment.finalized';
+    case TreasuryPaymentReversed = 'treasury.payment.reversed';
+    case TreasuryPosSettled = 'treasury.pos.settled';
+    case TreasuryPosChargeback = 'treasury.pos.chargeback';
+    case TreasuryManualMovementFinalized = 'treasury.manual_movement.finalized';
+    case TreasuryTransferFinalized = 'treasury.transfer.finalized';
+    case TreasuryExpenseFinalized = 'treasury.expense.finalized';
+    case TreasuryCashCountFinalized = 'treasury.cash_count.finalized';
+    case BankStatementImported = 'treasury.bank_statement.imported';
+    case BankStatementMatched = 'treasury.bank_statement.matched';
+    case BankStatementIgnored = 'treasury.bank_statement.ignored';
 
     public function label(): string
     {
@@ -102,6 +115,19 @@ enum AuditAction: string
             self::SalesOrderUpdated => 'Satış siparişi güncellendi',
             self::GoodsReceiptQualityReclassified => 'Mal kabul kalite sınıflandırması güncellendi',
             self::GoodsReceiptCostAdjusted => 'Mal kabul gerçekleşen maliyet farkı işlendi',
+            self::TreasuryAccountCreated => 'Kasa / banka hesabı oluşturuldu',
+            self::TreasuryPaymentMethodCreated => 'Ödeme yöntemi oluşturuldu',
+            self::TreasuryPaymentFinalized => 'Tahsilat / ödeme kesinleştirildi',
+            self::TreasuryPaymentReversed => 'Tahsilat / ödeme ters kayıtla kapatıldı',
+            self::TreasuryPosSettled => 'POS tahsilatı bankaya aktarıldı',
+            self::TreasuryPosChargeback => 'POS chargeback işlendi',
+            self::TreasuryManualMovementFinalized => 'Manuel kasa / banka hareketi kesinleştirildi',
+            self::TreasuryTransferFinalized => 'Virman kesinleştirildi',
+            self::TreasuryExpenseFinalized => 'Masraf kesinleştirildi',
+            self::TreasuryCashCountFinalized => 'Kasa sayımı kesinleştirildi',
+            self::BankStatementImported => 'Banka ekstresi içe aktarıldı',
+            self::BankStatementMatched => 'Banka ekstresi satırı eşleştirildi',
+            self::BankStatementIgnored => 'Banka ekstresi satırı yok sayıldı',
         };
     }
 }
