@@ -317,7 +317,19 @@ function goodsReceipt92Order(
         'gross_total' => $gross,
     ]);
 
-    return $order->load('lines.progress');
+    $opener = \App\Modules\Core\Models\User::query()->create([
+        'name' => 'Purchase Order Fixture Opener',
+        'email' => strtolower((string) $company->code).'-po-opener-'.$order->getKey().'@fixture.test',
+        'password' => 'not-used-in-test',
+        'status' => 'active',
+    ]);
+    app(\App\Modules\PurchaseOrders\Actions\PurchaseOrderLifecycle::class)->open(
+        (int) $company->getKey(),
+        (int) $order->getKey(),
+        (int) $opener->getKey(),
+    );
+
+    return $order->refresh()->load('lines.progress');
 }
 
 /** @return array<string, mixed> */
