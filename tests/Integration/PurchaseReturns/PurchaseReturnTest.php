@@ -303,6 +303,18 @@ function purchaseReturn95Fixture(string $code, bool $changeOrderTermsBeforeFinal
         'gross_total' => '600.000000',
     ]);
 
+    $opener = \App\Modules\Core\Models\User::query()->create([
+        'name' => 'Purchase Return Fixture Opener',
+        'email' => strtolower((string) $company->code).'-po-opener-'.$order->getKey().'@purchase-return-fixture.test',
+        'password' => 'not-used-in-test',
+        'status' => 'active',
+    ]);
+    app(\App\Modules\PurchaseOrders\Actions\PurchaseOrderLifecycle::class)->open(
+        (int) $company->getKey(),
+        (int) $order->getKey(),
+        (int) $opener->getKey(),
+    );
+
     $receipt = GoodsReceipt::query()->create([
         'company_id' => $company->getKey(),
         'purchase_order_id' => $order->getKey(),
