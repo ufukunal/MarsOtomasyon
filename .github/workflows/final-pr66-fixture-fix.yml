@@ -2,14 +2,14 @@ name: Final PR66 Fixture Fix
 
 on:
   push:
-    branches: [fix/m9-m11-finalize]
+    branches:
+      - fix/m9-m11-finalize
 
 permissions:
   contents: write
 
 jobs:
   patch:
-    if: ${{ !contains(github.event.head_commit.message, '[final-fixture-fixed]') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -28,12 +28,15 @@ jobs:
 
           path = Path('tests/Integration/PurchaseReturns/PurchaseReturnTest.php')
           text = path.read_text()
+          old_title = "it('reverses the source supplier invoice discount snapshot instead of later purchase order terms', function (): void {\n    [, $order, $receipt, $invoice] = purchaseReturn95Fixture('PRET95-E', true);"
+          new_title = "it('keeps purchase return pricing anchored to the supplier invoice snapshot while purchase order terms are immutable', function (): void {\n    [, $order, $receipt, $invoice] = purchaseReturn95Fixture('PRET95-E');"
 
-          text = text.replace(
-              "it('reverses the source supplier invoice discount snapshot instead of later purchase order terms', function (): void {\n    [, $order, $receipt, $invoice] = purchaseReturn95Fixture('PRET95-E', true);",
-              "it('keeps purchase return pricing anchored to the supplier invoice snapshot while purchase order terms are immutable', function (): void {\n    [, $order, $receipt, $invoice] = purchaseReturn95Fixture('PRET95-E');",
-              1,
-          )
+          if old_title not in text:
+              if new_title in text:
+                  raise SystemExit(0)
+              raise SystemExit('target regression test not found')
+
+          text = text.replace(old_title, new_title, 1)
 
           marker = """    $receiptLine = $receipt->lines()->firstOrFail();
     $invoiceLine = $invoice->lines()->firstOrFail();
@@ -52,7 +55,6 @@ jobs:
 
     $return = app(CreatePurchaseReturn::class)->handle(new PurchaseReturnDraftData(
 """
-          # Replace only the occurrence inside PRET95-E test.
           test_start = text.index("it('keeps purchase return pricing anchored")
           idx = text.index(marker, test_start)
           text = text[:idx] + text[idx:].replace(marker, replacement, 1)
@@ -62,9 +64,6 @@ jobs:
               "expect((string) $order->refresh()->document_discount_rate)->toBe('0.000000')",
               1,
           )
-
-          # The stricter supplier-invoice authority makes a divergent PO/invoice discount snapshot impossible.
-          # Remove the obsolete fixture branch and keep one legal lifecycle fixture.
           text = text.replace(
               "function purchaseReturn95Fixture(string $code, bool $changeOrderTermsBeforeFinalize = false): array",
               "function purchaseReturn95Fixture(string $code): array",
@@ -96,12 +95,12 @@ jobs:
               "'provisional_unit_cost' => '100.000000',",
               1,
           )
-
           path.write_text(text)
           PY
           vendor/bin/pint tests/Integration/PurchaseReturns/PurchaseReturnTest.php
       - name: Commit final fixture correction
         run: |
+          if git diff --quiet; then exit 0; fi
           git config user.name ufukunal
           git config user.email ufuk@ufukunal.com.tr
           git add tests/Integration/PurchaseReturns/PurchaseReturnTest.php
