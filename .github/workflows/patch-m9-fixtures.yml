@@ -20,23 +20,23 @@ jobs:
           python3 - <<'PY'
           from pathlib import Path
 
-          targets = [
-              Path('tests/Integration/GoodsReceipts/GoodsReceiptTest.php'),
-              Path('tests/Integration/GoodsReceipts/GoodsReceiptQualityReclassificationTest.php'),
-              Path('tests/Integration/GoodsReceipts/GoodsReceiptCostAdjustmentTest.php'),
+          roots = [
+              Path('tests/Integration/GoodsReceipts'),
+              Path('tests/Integration/SupplierInvoices'),
+              Path('tests/Integration/PurchaseReturns'),
           ]
           marker = "    return $order->load('lines.progress');"
           replacement = """    $opener = \\App\\Modules\\Core\\Models\\User::query()->create([\n        'name' => 'Purchase Order Fixture Opener',\n        'email' => strtolower((string) $company->code).'-po-opener-'.$order->getKey().'@fixture.test',\n        'password' => 'not-used-in-test',\n        'status' => 'active',\n    ]);\n    app(\\App\\Modules\\PurchaseOrders\\Actions\\PurchaseOrderLifecycle::class)->open(\n        (int) $company->getKey(),\n        (int) $order->getKey(),\n        (int) $opener->getKey(),\n    );\n\n    return $order->refresh()->load('lines.progress');"""
 
           changed = []
-          for path in targets:
-              text = path.read_text()
-              if 'Purchase Order Fixture Opener' in text:
-                  continue
-              if marker not in text:
-                  raise SystemExit(f'expected marker missing: {path}')
-              path.write_text(text.replace(marker, replacement, 1))
-              changed.append(str(path))
+          for root in roots:
+              for path in sorted(root.glob('*.php')):
+                  text = path.read_text()
+                  if marker not in text:
+                      continue
+                  text = text.replace(marker, replacement)
+                  path.write_text(text)
+                  changed.append(str(path))
           print('\n'.join(changed))
           PY
       - name: Commit fixture fixes
@@ -44,6 +44,6 @@ jobs:
           if git diff --quiet; then exit 0; fi
           git config user.name ufukunal
           git config user.email ufuk@ufukunal.com.tr
-          git add tests/Integration/GoodsReceipts
-          git commit -m "test: open goods receipt purchase order fixtures [fixture-patched]"
+          git add tests/Integration/GoodsReceipts tests/Integration/SupplierInvoices tests/Integration/PurchaseReturns
+          git commit -m "test: open remaining m9 downstream fixtures [fixture-patched]"
           git push origin HEAD:fix/m9-m11-finalize
