@@ -2,12 +2,18 @@
 
 namespace App\Modules\Operations;
 
+use App\Foundation\Correlation\CorrelationContext;
+use App\Foundation\Correlation\CorrelationIdFactory;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
 
 final readonly class ChannelDomainEventIngestor
 {
-    public function __construct(private ChannelDomainSync $domainSync) {}
+    public function __construct(
+        private ChannelDomainSync $domainSync,
+        private CorrelationContext $correlation,
+        private CorrelationIdFactory $correlationIds,
+    ) {}
 
     /** @return array{entity_type:string,local_type:string,local_id:int,external_id:string}|null */
     public function process(int $eventId): ?array
@@ -31,6 +37,19 @@ final readonly class ChannelDomainEventIngestor
             throw new RuntimeException('Integration event payload is invalid for domain ingestion.');
         }
 
-        return $this->domainSync->ingest($connection, $event, $payload);
+        $previousCorrelationId = $this->correlation->id();
+        if ($previousCorrelationId === null) {
+            $this->correlation->set($this->correlationIds->resolve(null));
+        }
+
+        try {
+            return $this->domainSync->ingest($connection, $event, $payload);
+        } finally {
+            if ($previousCorrelationId === null) {
+                $this->correlation->clear();
+            } else {
+                $this->correlation->set($previousCorrelationId);
+            }
+        }
     }
 }
