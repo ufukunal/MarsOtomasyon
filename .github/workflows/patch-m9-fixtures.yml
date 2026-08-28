@@ -9,66 +9,32 @@ permissions:
 
 jobs:
   patch:
-    if: ${{ !contains(github.event.head_commit.message, '[fixture-patched]') }}
+    if: ${{ !contains(github.event.head_commit.message, '[pint-formatted]') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           ref: fix/m9-m11-finalize
-      - name: Patch legacy downstream purchase order fixtures
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          coverage: none
+          tools: composer:v2
+      - run: composer install --no-interaction --prefer-dist --no-progress
+      - name: Format lifecycle regression fixtures
         run: |
-          python3 - <<'PY'
-          from pathlib import Path
-
-          roots = [
-              Path('tests/Integration/GoodsReceipts'),
-              Path('tests/Integration/SupplierInvoices'),
-              Path('tests/Integration/PurchaseReturns'),
-          ]
-          marker = "    return $order->load('lines.progress');"
-          replacement = """    $opener = \\App\\Modules\\Core\\Models\\User::query()->create([\n        'name' => 'Purchase Order Fixture Opener',\n        'email' => strtolower((string) $company->code).'-po-opener-'.$order->getKey().'@fixture.test',\n        'password' => 'not-used-in-test',\n        'status' => 'active',\n    ]);\n    app(\\App\\Modules\\PurchaseOrders\\Actions\\PurchaseOrderLifecycle::class)->open(\n        (int) $company->getKey(),\n        (int) $order->getKey(),\n        (int) $opener->getKey(),\n    );\n\n    return $order->refresh()->load('lines.progress');"""
-
-          changed = []
-          for root in roots:
-              for path in sorted(root.glob('*.php')):
-                  text = path.read_text()
-                  if marker not in text:
-                      continue
-                  text = text.replace(marker, replacement)
-                  path.write_text(text)
-                  changed.append(str(path))
-
-          path = Path('tests/Integration/PurchaseReturns/PurchaseReturnTest.php')
-          text = path.read_text()
-          receipt_marker = "    $receipt = GoodsReceipt::query()->create(["
-          if 'Purchase Return Fixture Opener' not in text:
-              if receipt_marker not in text:
-                  raise SystemExit('purchase return receipt marker missing')
-              opener = """    $opener = \\App\\Modules\\Core\\Models\\User::query()->create([\n        'name' => 'Purchase Return Fixture Opener',\n        'email' => strtolower((string) $company->code).'-po-opener-'.$order->getKey().'@purchase-return-fixture.test',\n        'password' => 'not-used-in-test',\n        'status' => 'active',\n    ]);\n    app(\\App\\Modules\\PurchaseOrders\\Actions\\PurchaseOrderLifecycle::class)->open(\n        (int) $company->getKey(),\n        (int) $order->getKey(),\n        (int) $opener->getKey(),\n    );\n\n"""
-              text = text.replace(receipt_marker, opener + receipt_marker, 1)
-
-          discount_block = """    if ($changeOrderTermsBeforeFinalize) {\n        $order->forceFill([\n            'document_discount_rate' => '10.000000',\n            'document_discount_total' => '50.000000',\n            'net_total' => '450.000000',\n            'tax_total' => '90.000000',\n            'gross_total' => '540.000000',\n        ])->save();\n        $orderLine->forceFill([\n            'document_discount_net' => '50.000000',\n            'net_total' => '450.000000',\n            'tax_total' => '90.000000',\n            'gross_total' => '540.000000',\n        ])->save();\n    }\n\n"""
-          opener_marker = "    $opener = \\App\\Modules\\Core\\Models\\User::query()->create(["
-          if discount_block not in text:
-              raise SystemExit('purchase return discount block missing')
-          current_index = text.index(discount_block)
-          opener_index = text.index(opener_marker)
-          if current_index > opener_index:
-              text = text.replace(discount_block, '', 1)
-              text = text.replace(opener_marker, discount_block + opener_marker, 1)
-              path.write_text(text)
-              changed.append(str(path))
-          elif 'Purchase Return Fixture Opener' not in path.read_text():
-              path.write_text(text)
-              changed.append(str(path))
-
-          print('\n'.join(sorted(set(changed))))
-          PY
-      - name: Commit fixture fixes
+          vendor/bin/pint \
+            tests/Integration/GoodsReceipts/GoodsReceiptCostAdjustmentTest.php \
+            tests/Integration/GoodsReceipts/GoodsReceiptQualityReclassificationTest.php \
+            tests/Integration/GoodsReceipts/GoodsReceiptTest.php \
+            tests/Integration/PurchaseOrders/M9CompletionGuardTest.php \
+            tests/Integration/PurchaseReturns/PurchaseReturnTest.php \
+            tests/Integration/SupplierInvoices/SupplierInvoiceTest.php
+      - name: Commit formatting
         run: |
           if git diff --quiet; then exit 0; fi
           git config user.name ufukunal
           git config user.email ufuk@ufukunal.com.tr
-          git add tests/Integration/GoodsReceipts tests/Integration/SupplierInvoices tests/Integration/PurchaseReturns
-          git commit -m "test: fix purchase return discount fixture ordering [fixture-patched]"
+          git add tests/Integration/GoodsReceipts tests/Integration/PurchaseOrders/M9CompletionGuardTest.php tests/Integration/PurchaseReturns/PurchaseReturnTest.php tests/Integration/SupplierInvoices/SupplierInvoiceTest.php
+          git commit -m "style: format m9 lifecycle fixtures [pint-formatted]"
           git push origin HEAD:fix/m9-m11-finalize
