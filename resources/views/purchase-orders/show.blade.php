@@ -4,7 +4,7 @@
 
 @section('app-content')
 <section class="workspace-hero">
-    <div><p class="eyebrow">Alış / Sipariş</p><h1>{{ $order->number }}</h1><p>Tedarikçi siparişi snapshotı; mal kabul ve alış faturası kalanları ayrı authority olarak izlenir.</p></div>
+    <div><p class="eyebrow">Alış / Sipariş</p><h1>{{ $order->number }}</h1><p>Tedarikçi siparişi snapshotı; mal kabul, alış faturası ve iptal miktarları ayrı authority olarak izlenir.</p></div>
     <div class="page-actions">
         <a href="{{ route('purchase-orders.index') }}">Liste</a>
         @can('goods_receipts.manage')<a href="{{ route('goods-receipts.create', ['purchase_order_id' => $order->getKey()]) }}">Mal Kabul Oluştur</a>@endcan
@@ -22,18 +22,41 @@
 </div></section>
 
 <section class="statement-table-card">
-<table class="data-table"><thead><tr><th>#</th><th>Ürün Snapshot</th><th>Açıklama</th><th>Sipariş</th><th>Kabul</th><th>Kabul Kalan</th><th>Fatura</th><th>Fatura Kalan</th><th>Birim Fiyat</th><th>KDV</th><th>Net</th><th>Genel</th></tr></thead><tbody>
+<table class="data-table"><thead><tr><th>#</th><th>Ürün Snapshot</th><th>Açıklama</th><th>Sipariş</th><th>İptal</th><th>Kabul</th><th>Kabul Kalan</th><th>Fatura</th><th>Fatura Kalan</th><th>Birim Fiyat</th><th>KDV</th><th>Net</th><th>Genel</th><th>Açık Miktar İşlemi</th></tr></thead><tbody>
 @foreach($order->lines as $line)
+@php
+    $receiveRemaining = (string) ($line->progress?->receive_remaining_quantity ?? $line->quantity);
+    $invoiceRemaining = (string) ($line->progress?->invoice_remaining_quantity ?? $line->quantity);
+    $canCancelQuantity = (float) $receiveRemaining > 0 && (float) $invoiceRemaining > 0;
+@endphp
 <tr>
     <td>{{ $line->position }}</td><td>{{ $line->product_code }} — {{ $line->product_name }}</td><td>{{ $line->description }}</td>
     <td>{{ $line->progress?->ordered_quantity ?? $line->quantity }}</td>
+    <td>{{ $line->progress?->cancelled_quantity ?? '0.000000' }}</td>
     <td>{{ $line->progress?->net_received_quantity ?? '0.000000' }}</td>
-    <td>{{ $line->progress?->receive_remaining_quantity ?? $line->quantity }}</td>
+    <td>{{ $receiveRemaining }}</td>
     <td>{{ $line->progress?->net_invoiced_quantity ?? '0.000000' }}</td>
-    <td>{{ $line->progress?->invoice_remaining_quantity ?? $line->quantity }}</td>
+    <td>{{ $invoiceRemaining }}</td>
     <td>{{ $line->unit_price }}</td>
     <td>{{ $line->tax_code }} · %{{ $line->tax_rate }}@if($line->tax_is_zeroed)<br><small>KDV Sıfırlandı</small>@endif @if($line->tax_zero_reason_code)<br><small>Neden: {{ $line->tax_zero_reason_code }}</small>@endif</td>
     <td>{{ $line->net_total }}</td><td>{{ $line->gross_total }}</td>
+    <td>
+        @can('purchase_orders.manage')
+            @if($canCancelQuantity)
+                <form method="POST" action="{{ route('purchase-orders.lines.cancel', [$order->getKey(), $line->getKey()]) }}" class="inline-form">
+                    @csrf
+                    <input type="hidden" name="operation_id" value="{{ (string) \Illuminate\Support\Str::uuid() }}">
+                    <input type="number" name="quantity" min="0.000001" step="0.000001" required placeholder="Miktar">
+                    <button type="submit">Miktar İptal Et</button>
+                </form>
+                <small>En fazla hem kabul hem fatura kalanını aşmayacak miktar iptal edilebilir.</small>
+            @else
+                <small>İptal edilebilir açık miktar yok.</small>
+            @endif
+        @else
+            <small>—</small>
+        @endcan
+    </td>
 </tr>
 @endforeach
 </tbody></table>
