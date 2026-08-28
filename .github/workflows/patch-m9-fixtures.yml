@@ -37,6 +37,16 @@ jobs:
                   text = text.replace(marker, replacement)
                   path.write_text(text)
                   changed.append(str(path))
+
+          path = Path('tests/Integration/PurchaseReturns/PurchaseReturnTest.php')
+          text = path.read_text()
+          receipt_marker = "    $receipt = GoodsReceipt::query()->create(["
+          if 'Purchase Return Fixture Opener' not in text:
+              if receipt_marker not in text:
+                  raise SystemExit('purchase return receipt marker missing')
+              opener = """    $opener = \\App\\Modules\\Core\\Models\\User::query()->create([\n        'name' => 'Purchase Return Fixture Opener',\n        'email' => strtolower((string) $company->code).'-po-opener-'.$order->getKey().'@purchase-return-fixture.test',\n        'password' => 'not-used-in-test',\n        'status' => 'active',\n    ]);\n    app(\\App\\Modules\\PurchaseOrders\\Actions\\PurchaseOrderLifecycle::class)->open(\n        (int) $company->getKey(),\n        (int) $order->getKey(),\n        (int) $opener->getKey(),\n    );\n\n"""
+              path.write_text(text.replace(receipt_marker, opener + receipt_marker, 1))
+              changed.append(str(path))
           print('\n'.join(changed))
           PY
       - name: Commit fixture fixes
@@ -45,5 +55,5 @@ jobs:
           git config user.name ufukunal
           git config user.email ufuk@ufukunal.com.tr
           git add tests/Integration/GoodsReceipts tests/Integration/SupplierInvoices tests/Integration/PurchaseReturns
-          git commit -m "test: open remaining m9 downstream fixtures [fixture-patched]"
+          git commit -m "test: open purchase return order fixture [fixture-patched]"
           git push origin HEAD:fix/m9-m11-finalize
