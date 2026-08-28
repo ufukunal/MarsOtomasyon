@@ -7,6 +7,10 @@ use App\Modules\Accounts\AccountRecordsController;
 use App\Modules\Accounts\AccountStatementController;
 use Illuminate\Support\Facades\Route;
 
+Route::get('/accounts', fn () => redirect()->route('customers.index'))
+    ->middleware(['web', 'auth', 'company.context', 'can:accounts.view'])
+    ->name('accounts.legacy');
+
 Route::prefix('customers')
     ->name('customers.')
     ->middleware(['web', 'auth', 'company.context'])
