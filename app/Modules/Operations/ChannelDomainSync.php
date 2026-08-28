@@ -25,7 +25,7 @@ final readonly class ChannelDomainSync
     ) {}
 
     /**
-     * @param array<string,mixed> $payload
+     * @param  array<string,mixed>  $payload
      * @return array{entity_type:string,local_type:string,local_id:int,external_id:string}|null
      */
     public function ingest(object $connection, object $event, array $payload): ?array
@@ -217,6 +217,7 @@ final readonly class ChannelDomainSync
             if ($timestamp > 10_000_000_000) {
                 $timestamp = intdiv($timestamp, 1000);
             }
+
             return CarbonImmutable::createFromTimestampUTC($timestamp)->toDateString();
         }
         if (is_string($raw) && trim($raw) !== '') {
