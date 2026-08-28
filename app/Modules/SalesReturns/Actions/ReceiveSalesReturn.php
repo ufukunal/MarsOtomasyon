@@ -7,7 +7,6 @@ use App\Modules\Core\Company\ActiveCompanyContext;
 use App\Modules\SalesInvoices\Models\SalesInvoiceLine;
 use App\Modules\SalesReturns\Enums\SalesReturnStatus;
 use App\Modules\SalesReturns\Models\SalesReturn;
-use App\Modules\SalesReturns\Models\SalesReturnLine;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -53,14 +52,14 @@ final readonly class ReceiveSalesReturn
             $creditedGrossTotal = '0.000000';
             foreach ($lines as $line) {
                 $row = $inspectionByLine[(int) $line->getKey()] ?? null;
-                if (! $row instanceof SalesReturnInspectionLineData) {
+                if (($row instanceof SalesReturnInspectionLineData) === false) {
                     throw ValidationException::withMessages(['lines' => 'RMA kontrol satırı aktif iadeye ait değildir.']);
                 }
                 $accepted = $this->nonNegativeDecimal($row->acceptedQuantity, 'accepted_quantity');
                 $rejected = $this->nonNegativeDecimal($row->rejectedQuantity, 'rejected_quantity');
                 $restock = $this->nonNegativeDecimal($row->restockQuantity, 'restock_quantity');
                 $inspected = $this->add($accepted, $rejected);
-                if (! $this->equal($inspected, (string) $line->quantity)) {
+                if ($this->equal($inspected, (string) $line->quantity) === false) {
                     throw ValidationException::withMessages(['lines' => sprintf('%s için kabul + red miktarı iade miktarına eşit olmalıdır.', $line->product_code)]);
                 }
                 if ($this->greaterThan($restock, $accepted)) {
@@ -108,7 +107,7 @@ final readonly class ReceiveSalesReturn
 
     private function sourceUnitCost(int $companyId, SalesInvoiceLine $source, string $restock): ?string
     {
-        if (! $this->greaterThan($restock, '0')) {
+        if ($this->greaterThan($restock, '0') === false) {
             return null;
         }
 
@@ -123,7 +122,7 @@ final readonly class ReceiveSalesReturn
             ->where('effect_type', 'stock.out')
             ->where('movement_type', $movementType)
             ->first();
-        if ($movement === null || ! $this->greaterThan((string) $movement->unit_cost, '0')) {
+        if ($movement === null || $this->greaterThan((string) $movement->unit_cost, '0') === false) {
             throw ValidationException::withMessages([
                 'lines' => sprintf('%s için orijinal stok çıkış maliyeti bulunamadı; stoğa dönüş yapılamaz.', $source->product_code),
             ]);
@@ -144,7 +143,7 @@ final readonly class ReceiveSalesReturn
 
     private function proportion(string $amount, string $quantity, string $sourceQuantity): string
     {
-        if (! $this->greaterThan($quantity, '0')) {
+        if ($this->greaterThan($quantity, '0') === false) {
             return '0.000000';
         }
 
