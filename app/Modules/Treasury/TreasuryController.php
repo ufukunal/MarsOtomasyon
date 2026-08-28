@@ -205,7 +205,7 @@ final readonly class TreasuryController
             'treasury_account_id' => ['required', 'integer'],
             'payment_method_id' => ['required', 'integer'],
             'payment_date' => ['required', 'date_format:Y-m-d'],
-            'amount' => ['required', 'decimal:0,6', 'gt:0'],
+            'amount' => ['required', 'decimal:0,6', 'min:0.000001'],
             'reference' => ['nullable', 'string', 'max:120'],
             'note' => ['nullable', 'string', 'max:5000'],
         ]);
@@ -232,7 +232,7 @@ final readonly class TreasuryController
         }
 
         $direction = (string) $data['direction'];
-        $accountType = (string) $account->type;
+        $accountType = $account->typeEnum()->value;
         if ($direction === 'collection' && ! in_array($accountType, ['customer', 'mixed'], true)) {
             abort(422, 'Tahsilat müşteri veya mixed cariden yapılabilir.');
         }
@@ -319,7 +319,7 @@ final readonly class TreasuryController
             'treasury_account_id' => ['required', 'integer'],
             'operation' => ['required', 'in:cash_in,cash_out,bank_in,bank_out'],
             'movement_date' => ['required', 'date_format:Y-m-d'],
-            'amount' => ['required', 'decimal:0,6', 'gt:0'],
+            'amount' => ['required', 'decimal:0,6', 'min:0.000001'],
             'note' => ['nullable', 'string', 'max:5000'],
         ]);
 
@@ -361,7 +361,7 @@ final readonly class TreasuryController
             'from_account_id' => ['required', 'integer', 'different:to_account_id'],
             'to_account_id' => ['required', 'integer'],
             'transfer_date' => ['required', 'date_format:Y-m-d'],
-            'amount' => ['required', 'decimal:0,6', 'gt:0'],
+            'amount' => ['required', 'decimal:0,6', 'min:0.000001'],
             'note' => ['nullable', 'string', 'max:5000'],
         ]);
 
@@ -399,7 +399,7 @@ final readonly class TreasuryController
         $data = $request->validate([
             'treasury_account_id' => ['required', 'integer'],
             'expense_date' => ['required', 'date_format:Y-m-d'],
-            'amount' => ['required', 'decimal:0,6', 'gt:0'],
+            'amount' => ['required', 'decimal:0,6', 'min:0.000001'],
             'category' => ['required', 'string', 'max:120'],
             'note' => ['nullable', 'string', 'max:5000'],
         ]);
@@ -435,7 +435,7 @@ final readonly class TreasuryController
             'count_date' => ['required', 'date_format:Y-m-d'],
             'note' => ['nullable', 'string', 'max:5000'],
             'lines' => ['required', 'array', 'min:1', 'max:50'],
-            'lines.*.denomination' => ['required', 'decimal:0,6', 'gt:0'],
+            'lines.*.denomination' => ['required', 'decimal:0,6', 'min:0.000001'],
             'lines.*.quantity' => ['required', 'integer', 'min:0', 'max:1000000'],
         ]);
 
