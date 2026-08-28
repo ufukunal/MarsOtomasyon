@@ -1,5 +1,6 @@
 name: M9 M11 Diagnostic
 
+# Temporary release diagnostic; removed before merge.
 on:
   push:
     branches: [fix/m9-m11-finalize]
