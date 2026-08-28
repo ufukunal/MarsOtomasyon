@@ -359,7 +359,7 @@ function purchaseReturn95Fixture(string $code, bool $changeOrderTermsBeforeFinal
         'accepted_quantity' => '5.000000',
         'pending_quantity' => '0.000000',
         'rejected_quantity' => '0.000000',
-        'provisional_unit_cost' => '100.000000',
+        'provisional_unit_cost' => $changeOrderTermsBeforeFinalize ? '90.000000' : '100.000000',
         'note' => null,
     ]);
 
