@@ -68,6 +68,9 @@ final class BackupManager
             return false;
         }
         $contents = Storage::disk((string) $artifact->disk)->get((string) $artifact->path);
+        if (! is_string($contents)) {
+            return false;
+        }
         $valid = hash_equals((string) $artifact->sha256, hash('sha256', $contents));
         if ($valid) {
             DB::table('backup_artifacts')->where('id', $id)->update(['verified_at' => now(), 'updated_at' => now()]);
@@ -93,6 +96,9 @@ final class BackupManager
         }
 
         $contents = Storage::disk((string) $artifact->disk)->get((string) $artifact->path);
+        if (! is_string($contents)) {
+            throw new RuntimeException('Backup artifact could not be read.');
+        }
         $wrapper = json_decode($contents, true, flags: JSON_THROW_ON_ERROR);
         if (! is_array($wrapper) || ($wrapper['format'] ?? null) !== 'marsbak-v1' || ! is_string($wrapper['ciphertext'] ?? null)) {
             throw new RuntimeException('Backup artifact format is invalid.');
@@ -117,9 +123,33 @@ final class BackupManager
                 throw new RuntimeException('psql restore failed: '.mb_substr($result->errorOutput(), 0, 2000));
             }
 
-            $this->rehydrateArtifact($artifact, 'restored', $restoreStartedAt, now());
+            $this->rehydrateArtifact(
+                (string) $artifact->id,
+                (string) $artifact->disk,
+                (string) $artifact->path,
+                $artifact->sha256 === null ? null : (string) $artifact->sha256,
+                $artifact->size_bytes === null ? null : (int) $artifact->size_bytes,
+                (bool) $artifact->encrypted,
+                $artifact->created_by_user_id === null ? null : (int) $artifact->created_by_user_id,
+                $artifact->verified_at,
+                $artifact->created_at,
+                'restored',
+                $restoreStartedAt,
+                now(),
+            );
             if ($safetyArtifact !== null) {
-                $this->rehydrateArtifact($safetyArtifact, 'ready');
+                $this->rehydrateArtifact(
+                    (string) $safetyArtifact->id,
+                    (string) $safetyArtifact->disk,
+                    (string) $safetyArtifact->path,
+                    $safetyArtifact->sha256 === null ? null : (string) $safetyArtifact->sha256,
+                    $safetyArtifact->size_bytes === null ? null : (int) $safetyArtifact->size_bytes,
+                    (bool) $safetyArtifact->encrypted,
+                    $safetyArtifact->created_by_user_id === null ? null : (int) $safetyArtifact->created_by_user_id,
+                    $safetyArtifact->verified_at,
+                    $safetyArtifact->created_at,
+                    'ready',
+                );
             }
         } catch (\Throwable $exception) {
             DB::table('backup_artifacts')->where('id', $id)->update([
@@ -144,28 +174,39 @@ final class BackupManager
         return $database;
     }
 
-    private function rehydrateArtifact(object $artifact, string $status, mixed $restoreStartedAt = null, mixed $restoreFinishedAt = null): void
-    {
-        $createdBy = $artifact->created_by_user_id === null ? null : (int) $artifact->created_by_user_id;
+    private function rehydrateArtifact(
+        string $id,
+        string $disk,
+        string $path,
+        ?string $sha256,
+        ?int $sizeBytes,
+        bool $encrypted,
+        ?int $createdBy,
+        mixed $verifiedAt,
+        mixed $createdAt,
+        string $status,
+        mixed $restoreStartedAt = null,
+        mixed $restoreFinishedAt = null,
+    ): void {
         if ($createdBy !== null && ! DB::table('users')->where('id', $createdBy)->exists()) {
             $createdBy = null;
         }
 
         DB::table('backup_artifacts')->updateOrInsert(
-            ['id' => (string) $artifact->id],
+            ['id' => $id],
             [
                 'status' => $status,
-                'disk' => (string) $artifact->disk,
-                'path' => (string) $artifact->path,
-                'sha256' => $artifact->sha256 === null ? null : (string) $artifact->sha256,
-                'size_bytes' => $artifact->size_bytes === null ? null : (int) $artifact->size_bytes,
-                'encrypted' => (bool) $artifact->encrypted,
+                'disk' => $disk,
+                'path' => $path,
+                'sha256' => $sha256,
+                'size_bytes' => $sizeBytes,
+                'encrypted' => $encrypted,
                 'created_by_user_id' => $createdBy,
-                'verified_at' => $artifact->verified_at,
+                'verified_at' => $verifiedAt,
                 'restore_started_at' => $restoreStartedAt,
                 'restore_finished_at' => $restoreFinishedAt,
                 'last_error' => null,
-                'created_at' => $artifact->created_at,
+                'created_at' => $createdAt,
                 'updated_at' => now(),
             ],
         );
