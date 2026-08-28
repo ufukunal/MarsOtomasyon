@@ -25,6 +25,8 @@ final readonly class ChannelDomainSync
     ) {}
 
     /**
+     * @param  object{provider:mixed,credentials_ciphertext?:mixed}  $connection
+     * @param  object{event_type:mixed,company_id:mixed,connection_id:mixed,external_event_id:mixed,payload_sha256:mixed}  $event
      * @param  array<string,mixed>  $payload
      * @return array{entity_type:string,local_type:string,local_id:int,external_id:string}|null
      */
@@ -114,7 +116,10 @@ final readonly class ChannelDomainSync
         }, 3);
     }
 
-    /** @param array<string,mixed> $credentials @param array<string,mixed> $payload */
+    /**
+     * @param  array<string,mixed>  $credentials
+     * @param  array<string,mixed>  $payload
+     */
     private function salesOrderDraft(
         int $companyId,
         string $provider,
@@ -278,7 +283,10 @@ final readonly class ChannelDomainSync
         return (string) $row->value;
     }
 
-    /** @param array<string,mixed> $values @param list<string> $keys */
+    /**
+     * @param  array<string,mixed>  $values
+     * @param  list<string>  $keys
+     */
     private function firstString(array $values, array $keys): string
     {
         foreach ($keys as $key) {
