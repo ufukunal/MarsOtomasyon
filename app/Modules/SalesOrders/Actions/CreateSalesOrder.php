@@ -5,6 +5,7 @@ namespace App\Modules\SalesOrders\Actions;
 use App\Modules\Core\Audit\AuditRecorder;
 use App\Modules\Core\Company\ActiveCompanyContext;
 use App\Modules\Core\Enums\AuditAction;
+use App\Modules\Core\Enums\AuditSource;
 use App\Modules\Core\Enums\AuditTargetType;
 use App\Modules\Core\Enums\DocumentType;
 use App\Modules\Core\Numbering\DocumentNumberIssuer;
@@ -26,8 +27,11 @@ final readonly class CreateSalesOrder
         private SalesOrderReservationSynchronizer $reservations,
     ) {}
 
-    public function handle(SalesOrderDraftData $data, string $seriesCode = 'default'): SalesOrder
-    {
+    public function handle(
+        SalesOrderDraftData $data,
+        string $seriesCode = 'default',
+        AuditSource $auditSource = AuditSource::Web,
+    ): SalesOrder {
         $companyId = (int) $this->companyContext->requireCompany()->getKey();
         $seriesCode = mb_strtolower(trim($seriesCode));
         if (preg_match('/^[a-z0-9]+(?:[._-][a-z0-9]+)*$/D', $seriesCode) !== 1 || strlen($seriesCode) > 64) {
@@ -37,7 +41,7 @@ final readonly class CreateSalesOrder
         $draft = $this->resolver->resolve($companyId, $data);
 
         try {
-            return DB::transaction(function () use ($companyId, $seriesCode, $draft): SalesOrder {
+            return DB::transaction(function () use ($companyId, $seriesCode, $draft, $auditSource): SalesOrder {
                 $number = $this->numbers->issue($companyId, DocumentType::SalesOrder, $seriesCode);
                 $calculation = $draft->calculation;
 
@@ -69,6 +73,7 @@ final readonly class CreateSalesOrder
                     AuditTargetType::SalesOrder,
                     $order->getKey(),
                     after: $this->auditSnapshot->capture($order),
+                    source: $auditSource,
                 );
 
                 return $order->load('lines');
