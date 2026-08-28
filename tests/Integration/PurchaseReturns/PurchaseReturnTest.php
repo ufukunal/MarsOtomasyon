@@ -303,6 +303,22 @@ function purchaseReturn95Fixture(string $code, bool $changeOrderTermsBeforeFinal
         'gross_total' => '600.000000',
     ]);
 
+    if ($changeOrderTermsBeforeFinalize) {
+        $order->forceFill([
+            'document_discount_rate' => '10.000000',
+            'document_discount_total' => '50.000000',
+            'net_total' => '450.000000',
+            'tax_total' => '90.000000',
+            'gross_total' => '540.000000',
+        ])->save();
+        $orderLine->forceFill([
+            'document_discount_net' => '50.000000',
+            'net_total' => '450.000000',
+            'tax_total' => '90.000000',
+            'gross_total' => '540.000000',
+        ])->save();
+    }
+
     $opener = \App\Modules\Core\Models\User::query()->create([
         'name' => 'Purchase Return Fixture Opener',
         'email' => strtolower((string) $company->code).'-po-opener-'.$order->getKey().'@purchase-return-fixture.test',
@@ -391,22 +407,6 @@ function purchaseReturn95Fixture(string $code, bool $changeOrderTermsBeforeFinal
         'tax_total' => '100.000000',
         'gross_total' => '600.000000',
     ]);
-
-    if ($changeOrderTermsBeforeFinalize) {
-        $order->forceFill([
-            'document_discount_rate' => '10.000000',
-            'document_discount_total' => '50.000000',
-            'net_total' => '450.000000',
-            'tax_total' => '90.000000',
-            'gross_total' => '540.000000',
-        ])->save();
-        $orderLine->forceFill([
-            'document_discount_net' => '50.000000',
-            'net_total' => '450.000000',
-            'tax_total' => '90.000000',
-            'gross_total' => '540.000000',
-        ])->save();
-    }
 
     app(ActiveCompanyContext::class)->set($company);
     app(FinalizeGoodsReceipt::class)->handle((int) $receipt->getKey());
