@@ -173,7 +173,7 @@ final class BankStatementParser
             }
 
             $headerRow = array_shift($rawRows);
-            if ($headerRow === null || $headerRow === []) {
+            if ($headerRow === []) {
                 throw new DomainException('XLSX başlık satırı bulunamadı.');
             }
 
