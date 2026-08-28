@@ -15,6 +15,7 @@ final class NotificationService
     /** @param array<string,scalar|null> $variables */
     public function enqueueTemplate(int $companyId, string $templateKey, string $channel, string $recipient, array $variables, ?string $idempotencyKey = null): int
     {
+        $channel = strtolower(trim($channel));
         $template = DB::table('notification_templates')
             ->where('company_id', $companyId)
             ->where('key', $templateKey)
@@ -49,21 +50,13 @@ final class NotificationService
             throw new DomainException('Notification recipient and body are required.');
         }
         $idempotencyKey ??= (string) Str::uuid();
+        if (! Str::isUuid($idempotencyKey)) {
+            throw new DomainException('Notification idempotency key must be a UUID.');
+        }
+        $contextJson = $context === null ? null : json_encode($context, JSON_THROW_ON_ERROR);
 
-        return DB::transaction(function () use ($companyId, $templateId, $idempotencyKey, $channel, $recipient, $subject, $body, $context): int {
-            $existing = DB::table('notification_deliveries')
-                ->where('company_id', $companyId)
-                ->where('idempotency_key', $idempotencyKey)
-                ->lockForUpdate()
-                ->first();
-            if ($existing !== null) {
-                if ((string) $existing->channel !== $channel || (string) $existing->recipient !== $recipient || (string) $existing->body !== $body) {
-                    throw new DomainException('Notification idempotency payload drift detected.');
-                }
-
-                return (int) $existing->id;
-            }
-            $id = (int) DB::table('notification_deliveries')->insertGetId([
+        return DB::transaction(function () use ($companyId, $templateId, $idempotencyKey, $channel, $recipient, $subject, $body, $context, $contextJson): int {
+            $inserted = DB::table('notification_deliveries')->insertOrIgnore([
                 'company_id' => $companyId,
                 'template_id' => $templateId,
                 'idempotency_key' => $idempotencyKey,
@@ -71,16 +64,41 @@ final class NotificationService
                 'recipient' => $recipient,
                 'subject' => $subject,
                 'body' => $body,
-                'context' => $context === null ? null : json_encode($context, JSON_THROW_ON_ERROR),
+                'context' => $contextJson,
                 'status' => 'queued',
                 'attempts' => 0,
                 'available_at' => now(),
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
-            DeliverNotification::dispatch($id)->afterCommit();
 
-            return $id;
+            $delivery = DB::table('notification_deliveries')
+                ->where('company_id', $companyId)
+                ->where('idempotency_key', $idempotencyKey)
+                ->lockForUpdate()
+                ->first();
+            if ($delivery === null) {
+                throw new RuntimeException('Notification delivery could not be persisted.');
+            }
+            $existingContext = $delivery->context === null
+                ? null
+                : json_decode((string) $delivery->context, true, flags: JSON_THROW_ON_ERROR);
+            if (
+                ($delivery->template_id === null ? null : (int) $delivery->template_id) !== $templateId
+                || (string) $delivery->channel !== $channel
+                || (string) $delivery->recipient !== $recipient
+                || ($delivery->subject === null ? null : (string) $delivery->subject) !== $subject
+                || (string) $delivery->body !== $body
+                || $existingContext !== $context
+            ) {
+                throw new DomainException('Notification idempotency payload drift detected.');
+            }
+
+            if ($inserted > 0) {
+                DeliverNotification::dispatch((int) $delivery->id)->afterCommit();
+            }
+
+            return (int) $delivery->id;
         });
     }
 
@@ -88,12 +106,16 @@ final class NotificationService
     {
         $delivery = DB::transaction(function () use ($deliveryId): ?object {
             $delivery = DB::table('notification_deliveries')->where('id', $deliveryId)->lockForUpdate()->first();
-            if ($delivery === null || in_array((string) $delivery->status, ['sent', 'cancelled'], true)) {
+            if ($delivery === null || in_array((string) $delivery->status, ['sending', 'sent', 'cancelled'], true)) {
                 return null;
+            }
+            if (! in_array((string) $delivery->status, ['queued', 'failed'], true)) {
+                throw new DomainException('Notification delivery cannot execute from current status.');
             }
             DB::table('notification_deliveries')->where('id', $deliveryId)->update([
                 'status' => 'sending',
                 'attempts' => (int) $delivery->attempts + 1,
+                'last_error' => null,
                 'updated_at' => now(),
             ]);
 
@@ -110,7 +132,7 @@ final class NotificationService
                 'whatsapp' => $this->sendHttpChannel('whatsapp', $delivery),
                 default => throw new RuntimeException('Unknown notification channel.'),
             };
-            DB::table('notification_deliveries')->where('id', $deliveryId)->update([
+            DB::table('notification_deliveries')->where('id', $deliveryId)->where('status', 'sending')->update([
                 'provider' => $provider['provider'],
                 'provider_message_id' => $provider['message_id'],
                 'status' => 'sent',
@@ -119,7 +141,7 @@ final class NotificationService
                 'updated_at' => now(),
             ]);
         } catch (\Throwable $exception) {
-            DB::table('notification_deliveries')->where('id', $deliveryId)->update([
+            DB::table('notification_deliveries')->where('id', $deliveryId)->where('status', 'sending')->update([
                 'status' => 'failed',
                 'last_error' => mb_substr($exception->getMessage(), 0, 4000),
                 'updated_at' => now(),
@@ -160,7 +182,9 @@ final class NotificationService
         if (! is_string($endpoint) || trim($endpoint) === '') {
             throw new RuntimeException(strtoupper($channel).' endpoint is not configured.');
         }
-        $request = Http::acceptJson()->timeout(20);
+        $request = Http::acceptJson()
+            ->withHeaders(['Idempotency-Key' => (string) $delivery->idempotency_key])
+            ->timeout(20);
         if (is_string($token) && $token !== '') {
             $request = $request->withToken($token);
         }
