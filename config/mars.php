@@ -12,8 +12,10 @@ return [
         'instruments' => false,
         'returns' => false,
         'import' => false,
-        'commerce' => false,
-        'communications' => false,
+        'commerce' => true,
+        'communications' => true,
+        'automation' => true,
+        'operations' => true,
         'reports' => false,
     ],
     'correlation' => [

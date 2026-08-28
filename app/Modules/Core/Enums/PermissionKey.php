@@ -39,6 +39,18 @@ enum PermissionKey: string
     case SupplierInvoiceManage = 'supplier_invoices.manage';
     case PurchaseReturnView = 'purchase_returns.view';
     case PurchaseReturnManage = 'purchase_returns.manage';
+    case IntegrationView = 'integrations.view';
+    case IntegrationManage = 'integrations.manage';
+    case NotificationView = 'notifications.view';
+    case NotificationManage = 'notifications.manage';
+    case AutomationView = 'automation.view';
+    case AutomationManage = 'automation.manage';
+    case OperationsView = 'operations.view';
+    case OperationsManage = 'operations.manage';
+    case BackupView = 'backups.view';
+    case BackupManage = 'backups.manage';
+    case SecurityView = 'security.view';
+    case SecurityManage = 'security.manage';
 
     public function label(): string
     {
@@ -78,6 +90,18 @@ enum PermissionKey: string
             self::SupplierInvoiceManage => 'Alış faturası yönetimi',
             self::PurchaseReturnView => 'Satınalma iadesi görüntüleme',
             self::PurchaseReturnManage => 'Satınalma iadesi yönetimi',
+            self::IntegrationView => 'Entegrasyon görüntüleme',
+            self::IntegrationManage => 'Entegrasyon yönetimi',
+            self::NotificationView => 'Bildirim görüntüleme',
+            self::NotificationManage => 'Bildirim yönetimi',
+            self::AutomationView => 'Otomasyon görüntüleme',
+            self::AutomationManage => 'Otomasyon yönetimi',
+            self::OperationsView => 'Operasyon merkezi görüntüleme',
+            self::OperationsManage => 'Operasyon merkezi yönetimi',
+            self::BackupView => 'Yedek görüntüleme ve doğrulama',
+            self::BackupManage => 'Yedekleme ve geri yükleme yönetimi',
+            self::SecurityView => 'Güvenlik merkezi görüntüleme',
+            self::SecurityManage => 'Güvenlik merkezi yönetimi',
         };
     }
 }

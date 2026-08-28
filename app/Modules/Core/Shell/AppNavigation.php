@@ -31,8 +31,9 @@ final readonly class AppNavigation
             ['label' => 'Çek/Senet', 'route' => 'instruments.index', 'feature' => FeatureKey::Instruments, 'permissions' => []],
             ['label' => 'İadeler', 'route' => 'returns.index', 'feature' => FeatureKey::Returns, 'permissions' => []],
             ['label' => 'İthalat', 'route' => 'import.index', 'feature' => FeatureKey::Import, 'permissions' => []],
-            ['label' => 'E-Ticaret/B2B', 'route' => 'commerce.index', 'feature' => FeatureKey::Commerce, 'permissions' => []],
-            ['label' => 'İletişim', 'route' => 'communications.index', 'feature' => FeatureKey::Communications, 'permissions' => []],
+            ['label' => 'E-Ticaret/B2B', 'route' => 'commerce.index', 'feature' => FeatureKey::Commerce, 'permissions' => [PermissionKey::IntegrationView]],
+            ['label' => 'İletişim', 'route' => 'communications.index', 'feature' => FeatureKey::Communications, 'permissions' => [PermissionKey::NotificationView]],
+            ['label' => 'Operasyon', 'route' => 'operations.index', 'feature' => FeatureKey::Operations, 'permissions' => [PermissionKey::OperationsView]],
             ['label' => 'Raporlar', 'route' => 'reports.index', 'feature' => FeatureKey::Reports, 'permissions' => []],
             ['label' => 'Ayarlar', 'route' => 'settings.index', 'feature' => FeatureKey::Foundation, 'permissions' => []],
         ];
@@ -57,10 +58,7 @@ final readonly class AppNavigation
                 }
             }
 
-            $items[] = [
-                'label' => $candidate['label'],
-                'route' => $candidate['route'],
-            ];
+            $items[] = ['label' => $candidate['label'], 'route' => $candidate['route']];
         }
 
         return $items;

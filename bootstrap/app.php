@@ -4,6 +4,7 @@ use App\Foundation\Correlation\CorrelationIdMiddleware;
 use App\Foundation\Health\ReadinessController;
 use App\Modules\Core\Branch\ResolveActiveBranch;
 use App\Modules\Core\Company\ResolveActiveCompany;
+use App\Modules\Operations\EnforceCompanyIpPolicy;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -27,6 +28,7 @@ return Application::configure(basePath: dirname(__DIR__))
             require base_path('routes/goods-receipts.php');
             require base_path('routes/supplier-invoices.php');
             require base_path('routes/purchase-returns.php');
+            require base_path('routes/operations.php');
             Route::get('/health/ready', ReadinessController::class)->name('health.ready');
         },
     )
@@ -35,6 +37,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'company.context' => ResolveActiveCompany::class,
             'branch.context' => ResolveActiveBranch::class,
+            'security.ip' => EnforceCompanyIpPolicy::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
