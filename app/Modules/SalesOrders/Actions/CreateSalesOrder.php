@@ -13,6 +13,7 @@ use App\Modules\SalesOrders\Enums\SalesOrderStatus;
 use App\Modules\SalesOrders\Models\SalesOrder;
 use App\Modules\SalesOrders\Reservations\SalesOrderReservationSynchronizer;
 use DomainException;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -36,6 +37,9 @@ final readonly class CreateSalesOrder
         $seriesCode = mb_strtolower(trim($seriesCode));
         if (preg_match('/^[a-z0-9]+(?:[._-][a-z0-9]+)*$/D', $seriesCode) !== 1 || strlen($seriesCode) > 64) {
             throw ValidationException::withMessages(['series_code' => 'Sipariş numara serisi canonical ve en fazla 64 karakter olmalıdır.']);
+        }
+        if ($auditSource === AuditSource::Web && ! Auth::check() && app()->runningInConsole()) {
+            $auditSource = AuditSource::Job;
         }
 
         $draft = $this->resolver->resolve($companyId, $data);
