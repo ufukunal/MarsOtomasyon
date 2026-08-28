@@ -45,7 +45,7 @@ final readonly class CompleteSalesReturn
             if ($this->greaterThan((string) $return->credited_gross_total, '0')) {
                 $this->accountTransactions->post(new PostAccountTransactionData(
                     accountId: (int) $return->account_id,
-                    postingDate: $return->return_date->format('Y-m-d'),
+                    postingDate: (string) $return->getRawOriginal('return_date'),
                     signedAmount: $this->negate((string) $return->credited_gross_total),
                     sourceEffect: new SourceEffectIdentity(
                         $companyId,
