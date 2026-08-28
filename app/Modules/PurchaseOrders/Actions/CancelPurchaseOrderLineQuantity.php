@@ -47,6 +47,11 @@ final readonly class CancelPurchaseOrderLineQuantity
                     'purchase_order' => 'Satınalma siparişi aktif şirkette bulunamadı.',
                 ]);
             }
+            if (! $order->isOpen()) {
+                throw ValidationException::withMessages([
+                    'purchase_order' => 'Sipariş miktarı yalnız açık satınalma siparişinde iptal edilebilir.',
+                ]);
+            }
 
             $line = PurchaseOrderLine::query()
                 ->where('company_id', $companyId)
