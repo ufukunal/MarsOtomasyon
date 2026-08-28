@@ -16,5 +16,7 @@ enum FeatureKey: string
     case Import = 'import';
     case Commerce = 'commerce';
     case Communications = 'communications';
+    case Automation = 'automation';
+    case Operations = 'operations';
     case Reports = 'reports';
 }
