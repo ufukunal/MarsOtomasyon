@@ -1,6 +1,6 @@
 name: M9 M11 Diagnostic
 
-# Temporary release diagnostic; removed before merge. Purchase return + M11 verification.
+# Temporary release diagnostic; removed before merge. Final authoritative pre-cleanup verification.
 on:
   push:
     branches: [fix/m9-m11-finalize]
