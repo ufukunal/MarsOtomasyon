@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Process;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use RuntimeException;
@@ -20,8 +21,14 @@ final class BackupManager
         $directory = trim((string) config('m11.backup.directory', 'backups'), '/');
         $path = $directory.'/mars-'.$id.'.marsbak';
         DB::table('backup_artifacts')->insert([
-            'id' => $id, 'status' => 'creating', 'disk' => $disk, 'path' => $path, 'encrypted' => true,
-            'created_by_user_id' => $userId, 'created_at' => now(), 'updated_at' => now(),
+            'id' => $id,
+            'status' => 'creating',
+            'disk' => $disk,
+            'path' => $path,
+            'encrypted' => true,
+            'created_by_user_id' => $userId,
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
 
         try {
@@ -42,22 +49,38 @@ final class BackupManager
             if (! $result->successful()) {
                 throw new RuntimeException('pg_dump failed: '.mb_substr($result->errorOutput(), 0, 2000));
             }
-            $wrapper = json_encode([
-                'format' => 'marsbak-v1',
-                'created_at' => now()->toIso8601String(),
-                'ciphertext' => Crypt::encryptString($result->output()),
+
+            $payload = json_encode([
+                'version' => 2,
+                'sql' => $result->output(),
+                'file_assets' => $this->captureFileAssets(),
             ], JSON_THROW_ON_ERROR);
+            $wrapper = json_encode([
+                'format' => 'marsbak-v2',
+                'created_at' => now()->toIso8601String(),
+                'ciphertext' => Crypt::encryptString($payload),
+            ], JSON_THROW_ON_ERROR);
+
             if (! Storage::disk($disk)->put($path, $wrapper)) {
                 throw new RuntimeException('Backup artifact could not be written.');
             }
             $sha = hash('sha256', $wrapper);
             DB::table('backup_artifacts')->where('id', $id)->update([
-                'status' => 'ready', 'sha256' => $sha, 'size_bytes' => strlen($wrapper), 'verified_at' => now(), 'last_error' => null, 'updated_at' => now(),
+                'status' => 'ready',
+                'sha256' => $sha,
+                'size_bytes' => strlen($wrapper),
+                'verified_at' => now(),
+                'last_error' => null,
+                'updated_at' => now(),
             ]);
 
             return $id;
         } catch (\Throwable $exception) {
-            DB::table('backup_artifacts')->where('id', $id)->update(['status' => 'failed', 'last_error' => mb_substr($exception->getMessage(), 0, 4000), 'updated_at' => now()]);
+            DB::table('backup_artifacts')->where('id', $id)->update([
+                'status' => 'failed',
+                'last_error' => mb_substr($exception->getMessage(), 0, 4000),
+                'updated_at' => now(),
+            ]);
             throw $exception;
         }
     }
@@ -69,15 +92,22 @@ final class BackupManager
             return false;
         }
         $contents = Storage::disk((string) $artifact->disk)->get((string) $artifact->path);
-        if (! is_string($contents)) {
+        if (! is_string($contents) || ! hash_equals((string) $artifact->sha256, hash('sha256', $contents))) {
             return false;
         }
-        $valid = hash_equals((string) $artifact->sha256, hash('sha256', $contents));
-        if ($valid) {
-            DB::table('backup_artifacts')->where('id', $id)->update(['verified_at' => now(), 'updated_at' => now()]);
+
+        try {
+            $this->decodeBackup($contents);
+        } catch (\Throwable) {
+            return false;
         }
 
-        return $valid;
+        DB::table('backup_artifacts')->where('id', $id)->update([
+            'verified_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        return true;
     }
 
     public function restore(string $id, ?int $userId = null, bool $createSafetyBackup = true): void
@@ -100,15 +130,16 @@ final class BackupManager
         if (! is_string($contents)) {
             throw new RuntimeException('Backup artifact could not be read.');
         }
-        $wrapper = json_decode($contents, true, flags: JSON_THROW_ON_ERROR);
-        if (! is_array($wrapper) || ($wrapper['format'] ?? null) !== 'marsbak-v1' || ! is_string($wrapper['ciphertext'] ?? null)) {
-            throw new RuntimeException('Backup artifact format is invalid.');
-        }
-        $sql = Crypt::decryptString($wrapper['ciphertext']);
+        $decoded = $this->decodeBackup($contents);
         $database = $this->postgresConfiguration();
         $restoreStartedAt = now();
-        DB::table('backup_artifacts')->where('id', $id)->update(['status' => 'restoring', 'restore_started_at' => $restoreStartedAt, 'updated_at' => now()]);
+        DB::table('backup_artifacts')->where('id', $id)->update([
+            'status' => 'restoring',
+            'restore_started_at' => $restoreStartedAt,
+            'updated_at' => now(),
+        ]);
         Artisan::call('down', ['--retry' => 60]);
+
         try {
             $command = [
                 (string) config('m11.backup.psql', 'psql'),
@@ -119,10 +150,12 @@ final class BackupManager
                 '--username='.(string) ($database['username'] ?? ''),
                 '--dbname='.(string) ($database['database'] ?? ''),
             ];
-            $result = $this->postgresProcess($database)->input($sql)->timeout(600)->run($command);
+            $result = $this->postgresProcess($database)->input($decoded['sql'])->timeout(600)->run($command);
             if (! $result->successful()) {
                 throw new RuntimeException('psql restore failed: '.mb_substr($result->errorOutput(), 0, 2000));
             }
+
+            $this->restoreFileAssets($decoded['file_assets']);
 
             $this->rehydrateArtifact(
                 (string) $artifact->id,
@@ -153,14 +186,117 @@ final class BackupManager
                 );
             }
         } catch (\Throwable $exception) {
-            DB::table('backup_artifacts')->where('id', $id)->update([
-                'status' => 'ready',
-                'last_error' => mb_substr($exception->getMessage(), 0, 4000),
-                'updated_at' => now(),
-            ]);
+            if (Schema::hasTable('backup_artifacts')) {
+                DB::table('backup_artifacts')->where('id', $id)->update([
+                    'status' => 'ready',
+                    'last_error' => mb_substr($exception->getMessage(), 0, 4000),
+                    'updated_at' => now(),
+                ]);
+            }
             throw $exception;
         } finally {
             Artisan::call('up');
+        }
+    }
+
+    /** @return list<array{disk:string,key:string,sha256:string,size_bytes:int,contents:string}> */
+    private function captureFileAssets(): array
+    {
+        if (! (bool) config('m11.backup.include_file_assets', true) || ! Schema::hasTable('file_assets')) {
+            return [];
+        }
+
+        $limit = max(0, (int) config('m11.backup.max_file_assets_bytes', 1073741824));
+        $total = 0;
+        $files = [];
+
+        foreach (DB::table('file_assets')->orderBy('id')->get(['storage_disk', 'storage_key', 'sha256', 'size_bytes']) as $asset) {
+            $disk = (string) $asset->storage_disk;
+            $key = (string) $asset->storage_key;
+            if (! Storage::disk($disk)->exists($key)) {
+                throw new RuntimeException('Referenced file asset is missing: '.$disk.':'.$key);
+            }
+            $contents = Storage::disk($disk)->get($key);
+            if (! is_string($contents)) {
+                throw new RuntimeException('Referenced file asset could not be read: '.$disk.':'.$key);
+            }
+            $sha = hash('sha256', $contents);
+            if (! hash_equals((string) $asset->sha256, $sha)) {
+                throw new RuntimeException('Referenced file asset checksum mismatch: '.$disk.':'.$key);
+            }
+            $total += strlen($contents);
+            if ($limit > 0 && $total > $limit) {
+                throw new RuntimeException('Backup file assets exceed configured maximum size.');
+            }
+            $files[] = [
+                'disk' => $disk,
+                'key' => $key,
+                'sha256' => $sha,
+                'size_bytes' => strlen($contents),
+                'contents' => base64_encode($contents),
+            ];
+        }
+
+        return $files;
+    }
+
+    /** @return array{sql:string,file_assets:list<array{disk:string,key:string,sha256:string,size_bytes:int,contents:string}>} */
+    private function decodeBackup(string $contents): array
+    {
+        $wrapper = json_decode($contents, true, flags: JSON_THROW_ON_ERROR);
+        if (! is_array($wrapper) || ! is_string($wrapper['format'] ?? null) || ! is_string($wrapper['ciphertext'] ?? null)) {
+            throw new RuntimeException('Backup artifact format is invalid.');
+        }
+
+        if ($wrapper['format'] === 'marsbak-v1') {
+            return ['sql' => Crypt::decryptString($wrapper['ciphertext']), 'file_assets' => []];
+        }
+        if ($wrapper['format'] !== 'marsbak-v2') {
+            throw new RuntimeException('Unsupported backup artifact format.');
+        }
+
+        $payload = json_decode(Crypt::decryptString($wrapper['ciphertext']), true, flags: JSON_THROW_ON_ERROR);
+        if (! is_array($payload) || ($payload['version'] ?? null) !== 2 || ! is_string($payload['sql'] ?? null) || ! is_array($payload['file_assets'] ?? null)) {
+            throw new RuntimeException('Backup payload is invalid.');
+        }
+
+        $files = [];
+        foreach ($payload['file_assets'] as $file) {
+            if (! is_array($file)
+                || ! is_string($file['disk'] ?? null)
+                || ! is_string($file['key'] ?? null)
+                || ! is_string($file['sha256'] ?? null)
+                || ! is_int($file['size_bytes'] ?? null)
+                || ! is_string($file['contents'] ?? null)) {
+                throw new RuntimeException('Backup file manifest is invalid.');
+            }
+            $decoded = base64_decode($file['contents'], true);
+            if (! is_string($decoded)
+                || strlen($decoded) !== $file['size_bytes']
+                || ! hash_equals($file['sha256'], hash('sha256', $decoded))) {
+                throw new RuntimeException('Backup file payload checksum verification failed.');
+            }
+            $files[] = $file;
+        }
+
+        return ['sql' => $payload['sql'], 'file_assets' => $files];
+    }
+
+    /** @param list<array{disk:string,key:string,sha256:string,size_bytes:int,contents:string}> $files */
+    private function restoreFileAssets(array $files): void
+    {
+        foreach ($files as $file) {
+            $contents = base64_decode($file['contents'], true);
+            if (! is_string($contents)) {
+                throw new RuntimeException('Backup file payload could not be decoded.');
+            }
+            if (! Storage::disk($file['disk'])->put($file['key'], $contents)) {
+                throw new RuntimeException('Backup file could not be restored: '.$file['disk'].':'.$file['key']);
+            }
+            $restored = Storage::disk($file['disk'])->get($file['key']);
+            if (! is_string($restored) || ! hash_equals($file['sha256'], hash('sha256', $restored))) {
+                throw new RuntimeException('Restored file checksum verification failed: '.$file['disk'].':'.$file['key']);
+            }
         }
     }
 
