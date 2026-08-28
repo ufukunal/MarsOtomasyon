@@ -17,7 +17,7 @@ final class PurchaseOrder extends Model
         'company_id', 'account_id', 'number', 'series_code', 'sequence_value', 'status',
         'order_date', 'currency_code', 'document_discount_rate', 'base_net_total',
         'line_discount_total', 'document_discount_total', 'net_total', 'tax_total',
-        'gross_total', 'note',
+        'gross_total', 'note', 'opened_at', 'opened_by_user_id', 'closed_at', 'closed_by_user_id',
     ];
 
     protected function casts(): array
@@ -33,6 +33,8 @@ final class PurchaseOrder extends Model
             'net_total' => 'decimal:6',
             'tax_total' => 'decimal:6',
             'gross_total' => 'decimal:6',
+            'opened_at' => 'immutable_datetime',
+            'closed_at' => 'immutable_datetime',
             'created_at' => 'immutable_datetime',
             'updated_at' => 'immutable_datetime',
         ];
@@ -51,9 +53,17 @@ final class PurchaseOrder extends Model
 
     public function isDraft(): bool
     {
-        return match ($this->statusEnum()) {
-            PurchaseOrderStatus::Draft => true,
-        };
+        return $this->statusEnum() === PurchaseOrderStatus::Draft;
+    }
+
+    public function isOpen(): bool
+    {
+        return $this->statusEnum() === PurchaseOrderStatus::Open;
+    }
+
+    public function isClosed(): bool
+    {
+        return $this->statusEnum() === PurchaseOrderStatus::Closed;
     }
 
     /** @return BelongsTo<Company, $this> */
