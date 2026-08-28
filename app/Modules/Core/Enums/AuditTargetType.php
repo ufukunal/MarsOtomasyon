@@ -25,6 +25,15 @@ enum AuditTargetType: string
     case QuoteRevision = 'quote_revision';
     case SalesOrder = 'sales_order';
     case GoodsReceipt = 'goods_receipt';
+    case TreasuryAccount = 'treasury_account';
+    case TreasuryPaymentMethod = 'treasury_payment_method';
+    case TreasuryPayment = 'treasury_payment';
+    case TreasuryMovement = 'treasury_movement';
+    case TreasuryTransfer = 'treasury_transfer';
+    case TreasuryExpense = 'treasury_expense';
+    case TreasuryCashCount = 'treasury_cash_count';
+    case BankStatementImport = 'bank_statement_import';
+    case BankStatementLine = 'bank_statement_line';
 
     public function label(): string
     {
@@ -50,6 +59,15 @@ enum AuditTargetType: string
             self::QuoteRevision => 'Teklif Revizyonu',
             self::SalesOrder => 'Satış Siparişi',
             self::GoodsReceipt => 'Mal Kabul',
+            self::TreasuryAccount => 'Kasa / Banka Hesabı',
+            self::TreasuryPaymentMethod => 'Ödeme Yöntemi',
+            self::TreasuryPayment => 'Tahsilat / Ödeme',
+            self::TreasuryMovement => 'Treasury Hareketi',
+            self::TreasuryTransfer => 'Virman',
+            self::TreasuryExpense => 'Masraf',
+            self::TreasuryCashCount => 'Kasa Sayımı',
+            self::BankStatementImport => 'Banka Ekstresi Aktarımı',
+            self::BankStatementLine => 'Banka Ekstresi Satırı',
         };
     }
 }
