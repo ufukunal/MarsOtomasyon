@@ -355,7 +355,10 @@ final class ChannelService
         return is_array($decoded) ? $decoded : [];
     }
 
-    /** @param array<string,mixed> $credentials @param array<string,mixed> $payload */
+    /**
+     * @param  array<string, mixed>  $credentials
+     * @param  array<string, mixed>  $payload
+     */
     private function sendProviderRequest(string $provider, string $baseUrl, string $operation, string $entityId, string $operationKey, array $credentials, array $payload): Response
     {
         if ($provider === 'woocommerce') {
