@@ -184,10 +184,10 @@ final readonly class TreasuryController
 
             $this->audit->record(
                 AuditAction::TreasuryPaymentMethodCreated,
-                AuditTargetType::TreasuryAccount,
-                $accountId,
+                AuditTargetType::TreasuryPaymentMethod,
+                $method->getKey(),
                 metadata: [
-                    'payment_method_id' => $method->getKey(),
+                    'treasury_account_id' => $accountId,
                     'code' => $method->code,
                     'kind' => $method->kind,
                 ],
