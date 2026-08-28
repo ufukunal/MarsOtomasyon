@@ -46,7 +46,7 @@ it('ingests signed WooCommerce webhooks exactly once and rejects replay drift wh
     $drift = json_encode(['id' => 42, 'status' => 'completed'], JSON_THROW_ON_ERROR);
     $driftSignature = base64_encode(hash_hmac('sha256', $drift, 'webhook-secret-m11', true));
     expect(fn () => $channels->ingestWebhook($connectionId, 'evt-42', 'order.created', $drift, $driftSignature))
-        ->toThrow(\DomainException::class, 'payload drift');
+        ->toThrow(DomainException::class, 'payload drift');
 
     expect(fn () => DB::table('integration_events')->where('id', $first)->update(['payload' => json_encode(['forged' => true], JSON_THROW_ON_ERROR)]))
         ->toThrow(QueryException::class);
@@ -76,7 +76,7 @@ it('deduplicates notification delivery and protects immutable delivery content a
         ->and((int) DB::table('notification_deliveries')->where('id', $first)->value('template_id'))->toBe($templateId);
 
     expect(fn () => $notifications->enqueueRaw((int) $company->getKey(), $templateId, 'email', 'other@example.com', null, 'Changed', null, $key))
-        ->toThrow(\DomainException::class, 'payload drift');
+        ->toThrow(DomainException::class, 'payload drift');
     expect(fn () => DB::table('notification_deliveries')->where('id', $first)->update(['body' => 'forged']))
         ->toThrow(QueryException::class);
 });

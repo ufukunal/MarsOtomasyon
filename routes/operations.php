@@ -9,7 +9,6 @@ Route::post('/api/channels/{connection}/webhook', ChannelWebhookController::clas
     ->middleware('throttle:120,1')
     ->name('channels.webhook');
 
-
 Route::get('/commerce', fn () => redirect()->route('operations.index'))
     ->middleware(['auth', 'company.context', 'can:integrations.view'])
     ->name('commerce.index');

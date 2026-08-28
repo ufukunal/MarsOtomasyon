@@ -324,9 +324,9 @@ SQL);
     public function down(): void
     {
         DB::unprepared('DROP FUNCTION IF EXISTS mars_m11_guard_integration_event() CASCADE; DROP FUNCTION IF EXISTS mars_m11_guard_notification_delivery() CASCADE; DROP FUNCTION IF EXISTS mars_m11_guard_automation_run() CASCADE; DROP FUNCTION IF EXISTS mars_m11_security_append_only() CASCADE;');
-        foreach (['failed_jobs','job_batches','jobs','security_events','security_ip_rules','backup_artifacts','operations_metrics','scheduler_runs','operations_heartbeats','automation_runs','automation_rules','notification_deliveries','notification_templates','integration_sync_effects','integration_events','integration_connections'] as $table) {
+        foreach (['failed_jobs', 'job_batches', 'jobs', 'security_events', 'security_ip_rules', 'backup_artifacts', 'operations_metrics', 'scheduler_runs', 'operations_heartbeats', 'automation_runs', 'automation_rules', 'notification_deliveries', 'notification_templates', 'integration_sync_effects', 'integration_events', 'integration_connections'] as $table) {
             Schema::dropIfExists($table);
         }
-        DB::table('permissions')->whereIn('key', ['integrations.view','integrations.manage','notifications.view','notifications.manage','automation.view','automation.manage','operations.view','operations.manage','backups.view','backups.manage','security.view','security.manage'])->delete();
+        DB::table('permissions')->whereIn('key', ['integrations.view', 'integrations.manage', 'notifications.view', 'notifications.manage', 'automation.view', 'automation.manage', 'operations.view', 'operations.manage', 'backups.view', 'backups.manage', 'security.view', 'security.manage'])->delete();
     }
 };

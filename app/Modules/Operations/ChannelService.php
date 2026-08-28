@@ -5,6 +5,7 @@ namespace App\Modules\Operations;
 use App\Modules\Operations\Jobs\ProcessIntegrationEvent;
 use App\Modules\Operations\Jobs\ProcessIntegrationSync;
 use DomainException;
+use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
@@ -355,7 +356,7 @@ final class ChannelService
     }
 
     /** @param array<string,mixed> $credentials @param array<string,mixed> $payload */
-    private function sendProviderRequest(string $provider, string $baseUrl, string $operation, string $entityId, string $operationKey, array $credentials, array $payload): \Illuminate\Http\Client\Response
+    private function sendProviderRequest(string $provider, string $baseUrl, string $operation, string $entityId, string $operationKey, array $credentials, array $payload): Response
     {
         if ($provider === 'woocommerce') {
             if ($baseUrl === '') {
