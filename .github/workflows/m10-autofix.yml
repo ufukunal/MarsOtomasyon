@@ -2,54 +2,43 @@ name: M10 Autofix
 
 on:
   push:
-    branches:
-      - feat/m10-treasury
 
 permissions:
   contents: write
 
 jobs:
   autofix:
-    if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: feat/m10-treasury
           fetch-depth: 0
-
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
+      - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.3'
           extensions: mbstring, pdo_pgsql, zip
           coverage: none
-
-      - name: Install dependencies
-        run: composer install --no-interaction --prefer-dist --no-progress
-
-      - name: Apply M10 correctness fixes
+      - run: composer install --no-interaction --prefer-dist --no-progress
+      - name: Fix and format M10
         shell: bash
         run: |
           python3 - <<'PY'
           from pathlib import Path
 
-          # Fix XLSX fixture creation on an existing tempnam() file.
           test = Path('tests/Integration/Treasury/TreasuryTest.php')
           text = test.read_text()
           old = "expect($zip->open($xlsxPath, ZipArchive::OVERWRITE))->toBeTrue();"
           new = "expect($zip->open($xlsxPath, ZipArchive::CREATE | ZipArchive::OVERWRITE))->toBeTrue();"
-          if old not in text:
-              raise SystemExit('XLSX open expression not found')
-          text = text.replace(old, new, 1)
+          if old in text:
+              text = text.replace(old, new, 1)
 
-          # Prove finalized authority documents cannot be deleted by raw SQL.
           payment_anchor = """    $this->actingAs($user)->withSession(['active_company_id' => $company->getKey()])
         ->post(route('treasury.payments.finalize', $collection->getKey()))
         ->assertRedirect();
 
     expect((string) DB::table('treasury_movements')"""
-          payment_replacement = """    $this->actingAs($user)->withSession(['active_company_id' => $company->getKey()])
+          if "treasury_payments')->where('id', $collection->getKey())->delete()" not in text:
+              payment_replacement = """    $this->actingAs($user)->withSession(['active_company_id' => $company->getKey()])
         ->post(route('treasury.payments.finalize', $collection->getKey()))
         ->assertRedirect();
 
@@ -57,15 +46,16 @@ jobs:
         ->toThrow(QueryException::class);
 
     expect((string) DB::table('treasury_movements')"""
-          if payment_anchor not in text:
-              raise SystemExit('Payment delete-test anchor not found')
-          text = text.replace(payment_anchor, payment_replacement, 1)
+              if payment_anchor not in text:
+                  raise SystemExit('payment delete-test anchor missing')
+              text = text.replace(payment_anchor, payment_replacement, 1)
 
           manual_anchor = """    $this->actingAs($user)->withSession(['active_company_id' => $company->getKey()])
         ->post(route('treasury.cash-counts.finalize', $countId))->assertRedirect();
 
     expect((string) DB::table('treasury_balances')"""
-          manual_replacement = """    $this->actingAs($user)->withSession(['active_company_id' => $company->getKey()])
+          if "treasury_manual_movements')->where('id', $manualId)->delete()" not in text:
+              manual_replacement = """    $this->actingAs($user)->withSession(['active_company_id' => $company->getKey()])
         ->post(route('treasury.cash-counts.finalize', $countId))->assertRedirect();
 
     expect(fn () => DB::table('treasury_manual_movements')->where('id', $manualId)->delete())
@@ -78,21 +68,16 @@ jobs:
         ->toThrow(QueryException::class);
 
     expect((string) DB::table('treasury_balances')"""
-          if manual_anchor not in text:
-              raise SystemExit('Finalized delete-test anchor not found')
-          text = text.replace(manual_anchor, manual_replacement, 1)
+              if manual_anchor not in text:
+                  raise SystemExit('document delete-test anchor missing')
+              text = text.replace(manual_anchor, manual_replacement, 1)
           test.write_text(text)
 
-          # Give payment-method audits their own target type.
           enum = Path('app/Modules/Core/Enums/AuditTargetType.php')
           text = enum.read_text()
-          case_anchor = "    case TreasuryAccount = 'treasury_account';\n"
-          label_anchor = "            self::TreasuryAccount => 'Kasa / Banka Hesabı',\n"
           if "TreasuryPaymentMethod = 'treasury_payment_method'" not in text:
-              if case_anchor not in text or label_anchor not in text:
-                  raise SystemExit('Audit target anchors not found')
-              text = text.replace(case_anchor, case_anchor + "    case TreasuryPaymentMethod = 'treasury_payment_method';\n", 1)
-              text = text.replace(label_anchor, label_anchor + "            self::TreasuryPaymentMethod => 'Ödeme Yöntemi',\n", 1)
+              text = text.replace("    case TreasuryAccount = 'treasury_account';\n", "    case TreasuryAccount = 'treasury_account';\n    case TreasuryPaymentMethod = 'treasury_payment_method';\n", 1)
+              text = text.replace("            self::TreasuryAccount => 'Kasa / Banka Hesabı',\n", "            self::TreasuryAccount => 'Kasa / Banka Hesabı',\n            self::TreasuryPaymentMethod => 'Ödeme Yöntemi',\n", 1)
           enum.write_text(text)
 
           controller = Path('app/Modules/Treasury/TreasuryController.php')
@@ -105,17 +90,15 @@ jobs:
                 AuditTargetType::TreasuryPaymentMethod,
                 $method->getKey(),
                 metadata: ["""
-          if old not in text:
-              raise SystemExit('Payment-method audit call not found')
-          controller.write_text(text.replace(old, new, 1))
+          if old in text:
+              text = text.replace(old, new, 1)
+          controller.write_text(text)
 
-          # Avoid pseudo-record COALESCE in trigger functions; DELETE returns OLD explicitly.
           migration = Path('database/migrations/2026_08_28_009300_create_treasury.php')
           text = migration.read_text()
           old = "    RETURN COALESCE(NEW, OLD);"
-          if text.count(old) != 2:
-              raise SystemExit(f'Expected 2 pseudo-record returns, found {text.count(old)}')
-          text = text.replace(old, "    IF TG_OP = 'DELETE' THEN\n        RETURN OLD;\n    END IF;\n    RETURN NEW;")
+          if old in text:
+              text = text.replace(old, "    IF TG_OP = 'DELETE' THEN\n        RETURN OLD;\n    END IF;\n    RETURN NEW;")
           migration.write_text(text)
           PY
 
@@ -140,24 +123,15 @@ jobs:
           END;
           $$ LANGUAGE plpgsql;
 
-          CREATE TRIGGER treasury_payments_finalized_delete_guard
-          BEFORE DELETE ON treasury_payments
+          CREATE TRIGGER treasury_payments_finalized_delete_guard BEFORE DELETE ON treasury_payments
           FOR EACH ROW EXECUTE FUNCTION mars_prevent_finalized_treasury_document_delete();
-
-          CREATE TRIGGER treasury_manual_movements_finalized_delete_guard
-          BEFORE DELETE ON treasury_manual_movements
+          CREATE TRIGGER treasury_manual_movements_finalized_delete_guard BEFORE DELETE ON treasury_manual_movements
           FOR EACH ROW EXECUTE FUNCTION mars_prevent_finalized_treasury_document_delete();
-
-          CREATE TRIGGER treasury_transfers_finalized_delete_guard
-          BEFORE DELETE ON treasury_transfers
+          CREATE TRIGGER treasury_transfers_finalized_delete_guard BEFORE DELETE ON treasury_transfers
           FOR EACH ROW EXECUTE FUNCTION mars_prevent_finalized_treasury_document_delete();
-
-          CREATE TRIGGER treasury_expenses_finalized_delete_guard
-          BEFORE DELETE ON treasury_expenses
+          CREATE TRIGGER treasury_expenses_finalized_delete_guard BEFORE DELETE ON treasury_expenses
           FOR EACH ROW EXECUTE FUNCTION mars_prevent_finalized_treasury_document_delete();
-
-          CREATE TRIGGER treasury_cash_counts_finalized_delete_guard
-          BEFORE DELETE ON treasury_cash_counts
+          CREATE TRIGGER treasury_cash_counts_finalized_delete_guard BEFORE DELETE ON treasury_cash_counts
           FOR EACH ROW EXECUTE FUNCTION mars_prevent_finalized_treasury_document_delete();
           SQL);
               }
@@ -174,18 +148,11 @@ jobs:
           };
           PHP
 
-      - name: Format PHP
-        run: ./vendor/bin/pint
-
-      - name: Commit fixes
-        shell: bash
-        run: |
+          ./vendor/bin/pint
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add app database tests
-          if git diff --cached --quiet; then
-            echo 'No M10 fixes to commit.'
-            exit 0
+          if ! git diff --cached --quiet; then
+            git commit -m 'fix: close M10 CI and treasury invariants'
+            git push origin HEAD:feat/m10-treasury
           fi
-          git commit -m 'fix: close M10 CI and treasury invariants'
-          git push origin HEAD:feat/m10-treasury
