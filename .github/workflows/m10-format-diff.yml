@@ -1,0 +1,25 @@
+name: M10 Format Diff
+
+on:
+  push:
+    branches: [feat/m10-treasury-final]
+
+permissions:
+  contents: read
+
+jobs:
+  pint-diff:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          coverage: none
+          tools: composer:v2
+      - run: composer install --no-interaction --prefer-dist --no-progress
+      - name: Render Pint diff
+        run: |
+          ./vendor/bin/pint app/Modules/Treasury/Import/BankStatementParser.php database/migrations/2026_08_28_010100_create_treasury.php
+          git diff --no-color -- app/Modules/Treasury/Import/BankStatementParser.php database/migrations/2026_08_28_010100_create_treasury.php
