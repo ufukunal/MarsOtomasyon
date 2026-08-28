@@ -3,13 +3,29 @@
 @section('title', 'Satınalma '.$order->number)
 
 @section('app-content')
+@php
+    $canCloseOrder = $order->isOpen() && $order->lines->every(function ($line): bool {
+        $receiveRemaining = (float) ($line->progress?->receive_remaining_quantity ?? $line->quantity);
+        $invoiceRemaining = (float) ($line->progress?->invoice_remaining_quantity ?? $line->quantity);
+        return $receiveRemaining <= 0 && $invoiceRemaining <= 0;
+    });
+@endphp
 <section class="workspace-hero">
-    <div><p class="eyebrow">Alış / Sipariş</p><h1>{{ $order->number }}</h1><p>Tedarikçi siparişi snapshotı; mal kabul, alış faturası ve iptal miktarları ayrı authority olarak izlenir.</p></div>
+    <div><p class="eyebrow">Alış / Sipariş</p><h1>{{ $order->number }}</h1><p>Tedarikçi siparişi snapshotı; taslak onaylanıp açıldıktan sonra mal kabul ve alış faturası authority akışı başlar.</p></div>
     <div class="page-actions">
         <a href="{{ route('purchase-orders.index') }}">Liste</a>
-        @can('goods_receipts.manage')<a href="{{ route('goods-receipts.create', ['purchase_order_id' => $order->getKey()]) }}">Mal Kabul Oluştur</a>@endcan
-        @can('supplier_invoices.manage')<a href="{{ route('supplier-invoices.create', ['purchase_order_id' => $order->getKey()]) }}">Alış Faturası Oluştur</a>@endcan
-        @can('purchase_orders.manage')@if($order->isDraft() && (int) $order->progress_effects_count === 0)<a class="button-primary" href="{{ route('purchase-orders.edit', $order->getKey()) }}">Düzenle</a>@endif @endcan
+        @if($order->isOpen())
+            @can('goods_receipts.manage')<a href="{{ route('goods-receipts.create', ['purchase_order_id' => $order->getKey()]) }}">Mal Kabul Oluştur</a>@endcan
+            @can('supplier_invoices.manage')<a href="{{ route('supplier-invoices.create', ['purchase_order_id' => $order->getKey()]) }}">Alış Faturası Oluştur</a>@endcan
+        @endif
+        @can('purchase_orders.manage')
+            @if($order->isDraft() && (int) $order->progress_effects_count === 0)
+                <a href="{{ route('purchase-orders.edit', $order->getKey()) }}">Düzenle</a>
+                <form method="POST" action="{{ route('purchase-orders.open', $order->getKey()) }}" class="inline-form">@csrf<button class="button-primary" type="submit">Siparişi Aç</button></form>
+            @elseif($canCloseOrder)
+                <form method="POST" action="{{ route('purchase-orders.close', $order->getKey()) }}" class="inline-form">@csrf<button class="button-primary" type="submit">Siparişi Kapat</button></form>
+            @endif
+        @endcan
     </div>
 </section>
 
@@ -19,6 +35,8 @@
     <div><small>Durum</small><strong>{{ $order->statusEnum()->label() }}</strong></div>
     <div><small>Para Birimi</small><strong>{{ $order->currency_code }}</strong></div>
     <div><small>Belge İskonto</small><strong>%{{ $order->document_discount_rate }}</strong></div>
+    @if($order->opened_at)<div><small>Açılış</small><strong>{{ $order->opened_at->format('d.m.Y H:i') }}</strong></div>@endif
+    @if($order->closed_at)<div><small>Kapanış</small><strong>{{ $order->closed_at->format('d.m.Y H:i') }}</strong></div>@endif
 </div></section>
 
 <section class="statement-table-card">
@@ -27,7 +45,7 @@
 @php
     $receiveRemaining = (string) ($line->progress?->receive_remaining_quantity ?? $line->quantity);
     $invoiceRemaining = (string) ($line->progress?->invoice_remaining_quantity ?? $line->quantity);
-    $canCancelQuantity = (float) $receiveRemaining > 0 && (float) $invoiceRemaining > 0;
+    $canCancelQuantity = $order->isOpen() && (float) $receiveRemaining > 0 && (float) $invoiceRemaining > 0;
 @endphp
 <tr>
     <td>{{ $line->position }}</td><td>{{ $line->product_code }} — {{ $line->product_name }}</td><td>{{ $line->description }}</td>
