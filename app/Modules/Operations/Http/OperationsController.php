@@ -220,20 +220,23 @@ final readonly class OperationsController
         if ($handle === false) {
             abort(422, 'CSV açılamadı.');
         }
-        $headers = fgetcsv($handle);
-        if (! is_array($headers)) {
+        $headerRow = fgetcsv($handle);
+        if ($headerRow === false) {
             fclose($handle);
             abort(422, 'CSV başlığı yok.');
+        }
+        $headers = array_map(static fn (?string $value): string => trim($value ?? ''), $headerRow);
+        if ($headers === [] || in_array('', $headers, true) || count(array_unique($headers)) !== count($headers)) {
+            fclose($handle);
+            abort(422, 'CSV başlıkları boş veya tekrarlı olamaz.');
         }
         $count = 0;
         while (($row = fgetcsv($handle)) !== false) {
             if (count($row) !== count($headers)) {
                 continue;
             }
-            $data = array_combine($headers, $row);
-            if (! is_array($data)) {
-                continue;
-            }
+            $values = array_map(static fn (?string $value): string => $value ?? '', $row);
+            $data = array_combine($headers, $values);
             $type === 'notification-templates' ? $this->importTemplateRow($data) : $this->importAutomationRow($data);
             $count++;
         }
