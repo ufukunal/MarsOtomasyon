@@ -16,6 +16,7 @@ final readonly class ChannelDomainEventIngestor
         if ($event === null || in_array((string) $event->status, ['processed', 'ignored'], true)) {
             return null;
         }
+        /** @var object{status:mixed,company_id:mixed,connection_id:mixed,event_type:mixed,external_event_id:mixed,payload_sha256:mixed,payload:mixed} $event */
         $connection = DB::table('integration_connections')
             ->where('company_id', $event->company_id)
             ->where('id', $event->connection_id)
@@ -24,6 +25,7 @@ final readonly class ChannelDomainEventIngestor
         if ($connection === null) {
             throw new RuntimeException('Integration connection is not active for domain ingestion.');
         }
+        /** @var object{provider:mixed,credentials_ciphertext?:mixed} $connection */
         $payload = json_decode((string) $event->payload, true, flags: JSON_THROW_ON_ERROR);
         if (! is_array($payload)) {
             throw new RuntimeException('Integration event payload is invalid for domain ingestion.');
