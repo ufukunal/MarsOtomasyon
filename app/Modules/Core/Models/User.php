@@ -37,7 +37,7 @@ final class User extends Authenticatable
 
     public function isPlatformAdmin(): bool
     {
-        return (bool) $this->is_platform_admin;
+        return (bool) ($this->getAttributes()['is_platform_admin'] ?? false);
     }
 
     /** @return HasMany<CompanyMembership, $this> */
