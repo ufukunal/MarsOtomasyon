@@ -136,10 +136,6 @@ final readonly class PurchaseReturnDraftResolver
             $metadata[] = [$receiptLine, $invoiceLine];
         }
 
-        if ($sourceDocumentDiscountRate === null) {
-            throw ValidationException::withMessages(['lines' => 'Satınalma iadesi için kaynak alış faturası iskonto snapshotı bulunamadı.']);
-        }
-
         try {
             $calculation = $this->calculator->calculate($inputs, $sourceDocumentDiscountRate);
         } catch (InvalidArgumentException $exception) {
