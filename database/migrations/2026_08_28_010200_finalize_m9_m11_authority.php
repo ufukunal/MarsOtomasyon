@@ -171,6 +171,7 @@ SQL);
         DB::statement('DROP FUNCTION IF EXISTS mars_guard_goods_receipt_open_purchase_order()');
         Schema::dropIfExists('integration_entity_links');
 
+        DB::statement('DROP TRIGGER IF EXISTS purchase_orders_mutation_guard ON purchase_orders');
         DB::table('purchase_orders')->whereIn('status', ['open', 'closed'])->update([
             'status' => 'draft',
             'opened_at' => null,
@@ -179,6 +180,7 @@ SQL);
             'closed_by_user_id' => null,
             'updated_at' => now(),
         ]);
+
         Schema::table('purchase_orders', function (Blueprint $table): void {
             $table->dropConstrainedForeignId('closed_by_user_id');
             $table->dropColumn('closed_at');
@@ -187,6 +189,43 @@ SQL);
         });
         DB::statement('ALTER TABLE purchase_orders DROP CONSTRAINT IF EXISTS purchase_orders_status_check');
         DB::statement("ALTER TABLE purchase_orders ADD CONSTRAINT purchase_orders_status_check CHECK (status = 'draft')");
+
+        DB::unprepared(<<<'SQL'
+CREATE OR REPLACE FUNCTION mars_guard_purchase_order_mutation()
+RETURNS trigger AS $$
+BEGIN
+    IF TG_OP = 'DELETE' THEN
+        RAISE EXCEPTION 'purchase orders cannot be deleted' USING ERRCODE = '55000';
+    END IF;
+
+    IF EXISTS (
+        SELECT 1
+        FROM purchase_order_line_progress_effects
+        WHERE company_id = OLD.company_id
+          AND purchase_order_id = OLD.id
+    ) THEN
+        RAISE EXCEPTION 'purchase order is immutable after progress starts' USING ERRCODE = '55000';
+    END IF;
+
+    IF OLD.status <> 'draft' OR NEW.status <> 'draft' THEN
+        RAISE EXCEPTION 'only draft purchase orders are mutable' USING ERRCODE = '55000';
+    END IF;
+
+    IF NEW.company_id IS DISTINCT FROM OLD.company_id
+        OR NEW.number IS DISTINCT FROM OLD.number
+        OR NEW.series_code IS DISTINCT FROM OLD.series_code
+        OR NEW.sequence_value IS DISTINCT FROM OLD.sequence_value THEN
+        RAISE EXCEPTION 'purchase order document identity is immutable' USING ERRCODE = '55000';
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER purchase_orders_mutation_guard
+BEFORE UPDATE OR DELETE ON purchase_orders
+FOR EACH ROW EXECUTE FUNCTION mars_guard_purchase_order_mutation();
+SQL);
 
         Schema::table('users', function (Blueprint $table): void {
             $table->dropColumn('is_platform_admin');
