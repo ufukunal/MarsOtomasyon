@@ -121,15 +121,30 @@ final class BankStatementParser
             }
 
             $sheet = new SimpleXMLElement($sheetXml);
-            $namespaces = $sheet->getNamespaces(true);
-            $namespace = $namespaces[''] ?? null;
-            $sheetNodes = $namespace === null ? $sheet : $sheet->children($namespace);
-            $rawRows = [];
+            $namespace = $sheet->getNamespaces(true)[''] ?? null;
+            if ($namespace !== null) {
+                $sheet->registerXPathNamespace('m', $namespace);
+            }
 
-            foreach ($sheetNodes->sheetData->row as $row) {
-                $rowNodes = $namespace === null ? $row : $row->children($namespace);
+            $rowNodes = $sheet->xpath($namespace === null
+                ? '/worksheet/sheetData/row'
+                : '/m:worksheet/m:sheetData/m:row');
+            if ($rowNodes === false || $rowNodes === []) {
+                throw new DomainException('XLSX veri satırı bulunamadı.');
+            }
+
+            $rawRows = [];
+            foreach ($rowNodes as $row) {
+                if ($namespace !== null) {
+                    $row->registerXPathNamespace('m', $namespace);
+                }
+                $cellNodes = $row->xpath($namespace === null ? './c' : './m:c');
+                if ($cellNodes === false) {
+                    throw new DomainException('XLSX hücreleri okunamadı.');
+                }
+
                 $cells = [];
-                foreach ($rowNodes->c as $cell) {
+                foreach ($cellNodes as $cell) {
                     $reference = (string) $cell['r'];
                     preg_match('/^[A-Z]+/', $reference, $columnMatch);
                     $column = $columnMatch[0] ?? '';
@@ -137,14 +152,26 @@ final class BankStatementParser
                         continue;
                     }
 
-                    $cellNodes = $namespace === null ? $cell : $cell->children($namespace);
+                    if ($namespace !== null) {
+                        $cell->registerXPathNamespace('m', $namespace);
+                    }
                     $type = (string) $cell['t'];
                     if ($type === 'inlineStr') {
-                        $inline = $cellNodes->is;
-                        $inlineNodes = $namespace === null ? $inline : $inline->children($namespace);
-                        $value = (string) $inlineNodes->t;
+                        $textNodes = $cell->xpath($namespace === null ? './is//t' : './m:is//m:t');
+                        if ($textNodes === false) {
+                            throw new DomainException('XLSX inline string hücresi okunamadı.');
+                        }
+
+                        $value = '';
+                        foreach ($textNodes as $textNode) {
+                            $value .= (string) $textNode;
+                        }
                     } else {
-                        $value = (string) $cellNodes->v;
+                        $valueNodes = $cell->xpath($namespace === null ? './v' : './m:v');
+                        if ($valueNodes === false) {
+                            throw new DomainException('XLSX hücre değeri okunamadı.');
+                        }
+                        $value = isset($valueNodes[0]) ? (string) $valueNodes[0] : '';
                         if ($type === 's' && ctype_digit($value)) {
                             $value = $shared[(int) $value] ?? '';
                         }
@@ -155,11 +182,10 @@ final class BankStatementParser
                 $rawRows[] = $cells;
             }
 
-            if ($rawRows === []) {
-                throw new DomainException('XLSX veri satırı bulunamadı.');
-            }
-
             $headerRow = array_shift($rawRows);
+            if ($headerRow === null || $headerRow === []) {
+                throw new DomainException('XLSX başlık satırı bulunamadı.');
+            }
 
             $columnKeys = [];
             foreach ($headerRow as $column => $name) {
@@ -194,23 +220,28 @@ final class BankStatementParser
         }
 
         $xml = new SimpleXMLElement($sharedXml);
-        $namespaces = $xml->getNamespaces(true);
-        $namespace = $namespaces[''] ?? null;
-        $nodes = $namespace === null ? $xml : $xml->children($namespace);
+        $namespace = $xml->getNamespaces(true)[''] ?? null;
+        if ($namespace !== null) {
+            $xml->registerXPathNamespace('m', $namespace);
+        }
+        $itemNodes = $xml->xpath($namespace === null ? '/sst/si' : '/m:sst/m:si');
+        if ($itemNodes === false) {
+            throw new DomainException('XLSX shared string tablosu okunamadı.');
+        }
+
         $shared = [];
-
-        foreach ($nodes->si as $item) {
-            $itemNodes = $namespace === null ? $item : $item->children($namespace);
-            if (isset($itemNodes->t)) {
-                $shared[] = (string) $itemNodes->t;
-
-                continue;
+        foreach ($itemNodes as $item) {
+            if ($namespace !== null) {
+                $item->registerXPathNamespace('m', $namespace);
+            }
+            $textNodes = $item->xpath($namespace === null ? './/t' : './/m:t');
+            if ($textNodes === false) {
+                throw new DomainException('XLSX shared string değeri okunamadı.');
             }
 
             $text = '';
-            foreach ($itemNodes->r as $run) {
-                $runNodes = $namespace === null ? $run : $run->children($namespace);
-                $text .= (string) $runNodes->t;
+            foreach ($textNodes as $textNode) {
+                $text .= (string) $textNode;
             }
             $shared[] = $text;
         }
