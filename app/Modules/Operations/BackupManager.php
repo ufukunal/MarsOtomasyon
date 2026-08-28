@@ -2,6 +2,7 @@
 
 namespace App\Modules\Operations;
 
+use Illuminate\Process\PendingProcess;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
@@ -37,7 +38,7 @@ final class BackupManager
                 '--username='.(string) ($database['username'] ?? ''),
                 '--dbname='.(string) ($database['database'] ?? ''),
             ];
-            $result = Process::env(['PGPASSWORD' => (string) ($database['password'] ?? '')])->timeout(300)->run($command);
+            $result = $this->postgresProcess($database)->timeout(300)->run($command);
             if (! $result->successful()) {
                 throw new RuntimeException('pg_dump failed: '.mb_substr($result->errorOutput(), 0, 2000));
             }
@@ -118,7 +119,7 @@ final class BackupManager
                 '--username='.(string) ($database['username'] ?? ''),
                 '--dbname='.(string) ($database['database'] ?? ''),
             ];
-            $result = Process::env(['PGPASSWORD' => (string) ($database['password'] ?? '')])->input($sql)->timeout(600)->run($command);
+            $result = $this->postgresProcess($database)->input($sql)->timeout(600)->run($command);
             if (! $result->successful()) {
                 throw new RuntimeException('psql restore failed: '.mb_substr($result->errorOutput(), 0, 2000));
             }
@@ -172,6 +173,15 @@ final class BackupManager
         }
 
         return $database;
+    }
+
+    /** @param array<string,mixed> $database */
+    private function postgresProcess(array $database): PendingProcess
+    {
+        $process = Process::forever();
+        $environmentMethod = 'env';
+
+        return $process->{$environmentMethod}(['PGPASSWORD' => (string) ($database['password'] ?? '')]);
     }
 
     private function rehydrateArtifact(
