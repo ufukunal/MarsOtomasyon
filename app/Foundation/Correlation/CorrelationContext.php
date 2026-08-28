@@ -13,6 +13,11 @@ final class CorrelationContext
         $this->id = $id;
     }
 
+    public function clear(): void
+    {
+        $this->id = null;
+    }
+
     public function id(): ?string
     {
         return $this->id;

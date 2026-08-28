@@ -9,6 +9,7 @@ use App\Modules\Operations\OperationsHealth;
 use App\Modules\Operations\SecurityCenter;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Route;
@@ -138,7 +139,10 @@ it('verifies encrypted marsbak artifacts by sha256 and detects tampering before 
     Storage::fake('local');
     $id = (string) Str::uuid();
     $path = 'backups/mars-'.$id.'.marsbak';
-    $contents = json_encode(['format' => 'marsbak-v1', 'ciphertext' => 'opaque-encrypted-payload'], JSON_THROW_ON_ERROR);
+    $contents = json_encode([
+        'format' => 'marsbak-v1',
+        'ciphertext' => Crypt::encryptString('-- deterministic postgres dump --'),
+    ], JSON_THROW_ON_ERROR);
     Storage::disk('local')->put($path, $contents);
     DB::table('backup_artifacts')->insert([
         'id' => $id,
