@@ -39,6 +39,9 @@ enum PermissionKey: string
     case SupplierInvoiceManage = 'supplier_invoices.manage';
     case PurchaseReturnView = 'purchase_returns.view';
     case PurchaseReturnManage = 'purchase_returns.manage';
+    case TreasuryView = 'treasury.view';
+    case TreasuryManage = 'treasury.manage';
+    case TreasuryReconcile = 'treasury.reconcile';
     case IntegrationView = 'integrations.view';
     case IntegrationManage = 'integrations.manage';
     case NotificationView = 'notifications.view';
@@ -90,6 +93,9 @@ enum PermissionKey: string
             self::SupplierInvoiceManage => 'Alış faturası yönetimi',
             self::PurchaseReturnView => 'Satınalma iadesi görüntüleme',
             self::PurchaseReturnManage => 'Satınalma iadesi yönetimi',
+            self::TreasuryView => 'Kasa / banka görüntüleme',
+            self::TreasuryManage => 'Kasa / banka yönetimi',
+            self::TreasuryReconcile => 'Banka mutabakatı',
             self::IntegrationView => 'Entegrasyon görüntüleme',
             self::IntegrationManage => 'Entegrasyon yönetimi',
             self::NotificationView => 'Bildirim görüntüleme',
