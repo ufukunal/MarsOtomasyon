@@ -13,6 +13,7 @@ enum StockMovementType: string
     case InvoiceOut = 'invoice_out';
     case GoodsReceiptIn = 'goods_receipt_in';
     case PurchaseReturnOut = 'purchase_return_out';
+    case SalesReturnIn = 'sales_return_in';
 
     public function label(): string
     {
@@ -26,13 +27,14 @@ enum StockMovementType: string
             self::InvoiceOut => 'Fatura Çıkışı',
             self::GoodsReceiptIn => 'Mal Kabul Girişi',
             self::PurchaseReturnOut => 'Satınalma İade Çıkışı',
+            self::SalesReturnIn => 'Satış İade Girişi',
         };
     }
 
     public function isInbound(): bool
     {
         return match ($this) {
-            self::OpeningIn, self::AdjustmentIn, self::TransferIn, self::GoodsReceiptIn => true,
+            self::OpeningIn, self::AdjustmentIn, self::TransferIn, self::GoodsReceiptIn, self::SalesReturnIn => true,
             self::AdjustmentOut, self::TransferOut, self::DispatchOut, self::InvoiceOut, self::PurchaseReturnOut => false,
         };
     }
