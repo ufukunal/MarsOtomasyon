@@ -28,5 +28,7 @@ return [
         'directory' => env('MARS_BACKUP_DIRECTORY', 'backups'),
         'pg_dump' => env('MARS_PG_DUMP_BINARY', 'pg_dump'),
         'psql' => env('MARS_PSQL_BINARY', 'psql'),
+        'include_file_assets' => (bool) env('MARS_BACKUP_INCLUDE_FILE_ASSETS', true),
+        'max_file_assets_bytes' => (int) env('MARS_BACKUP_MAX_FILE_ASSETS_BYTES', 1073741824),
     ],
 ];

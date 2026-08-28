@@ -13,6 +13,7 @@ use App\Modules\Products\Enums\ProductStatus;
 use App\Modules\Products\Models\Category;
 use App\Modules\Products\Models\Product;
 use App\Modules\Products\Models\Unit;
+use App\Modules\PurchaseOrders\Actions\PurchaseOrderLifecycle;
 use App\Modules\PurchaseOrders\Enums\PurchaseOrderProgressType;
 use App\Modules\PurchaseOrders\Enums\PurchaseOrderStatus;
 use App\Modules\PurchaseOrders\Models\PurchaseOrder;
@@ -161,6 +162,16 @@ function m9CompletionOrder(
         throw new RuntimeException('M9 completion fixture totals could not be calculated.');
     }
 
+    $actorId = DB::table('users')->insertGetId([
+        'name' => 'M9 Completion Actor',
+        'email' => strtolower((string) $company->code).'@m9.test',
+        'password' => 'not-used-in-test',
+        'status' => 'active',
+        'is_platform_admin' => false,
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
     $order = PurchaseOrder::query()->create([
         'company_id' => $company->getKey(),
         'account_id' => $supplier->getKey(),
@@ -207,5 +218,11 @@ function m9CompletionOrder(
         'gross_total' => (string) $totals->gross,
     ]);
 
-    return $order->load('lines.progress');
+    app(PurchaseOrderLifecycle::class)->open(
+        (int) $company->getKey(),
+        (int) $order->getKey(),
+        (int) $actorId,
+    );
+
+    return $order->refresh()->load('lines.progress');
 }

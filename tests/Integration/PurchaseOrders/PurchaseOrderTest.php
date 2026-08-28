@@ -19,6 +19,7 @@ use App\Modules\Products\Enums\ProductStatus;
 use App\Modules\Products\Models\Category;
 use App\Modules\Products\Models\Product;
 use App\Modules\Products\Models\Unit;
+use App\Modules\PurchaseOrders\Actions\PurchaseOrderLifecycle;
 use App\Modules\PurchaseOrders\Models\PurchaseOrder;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
@@ -113,6 +114,8 @@ it('tracks receipt and invoice remaining independently and blocks over-progress 
 
     $order = PurchaseOrder::query()->firstOrFail();
     $line = $order->lines()->firstOrFail();
+    app(PurchaseOrderLifecycle::class)->open((int) $company->getKey(), (int) $order->getKey(), (int) $manager->getKey());
+    $order->refresh();
 
     purchaseOrder91Progress($order, (int) $line->getKey(), 'received', '2.000000', 'goods_receipt_line', 'gr-1', 'progress.received', 'a');
     purchaseOrder91Progress($order, (int) $line->getKey(), 'invoiced', '3.000000', 'supplier_invoice_line', 'si-1', 'progress.invoiced', 'b');
@@ -143,6 +146,8 @@ it('freezes header and line mutation after the first progress effect', function 
 
     $order = PurchaseOrder::query()->firstOrFail();
     $line = $order->lines()->firstOrFail();
+    app(PurchaseOrderLifecycle::class)->open((int) $company->getKey(), (int) $order->getKey(), (int) $manager->getKey());
+    $order->refresh();
     purchaseOrder91Progress($order, (int) $line->getKey(), 'received', '1.000000', 'goods_receipt_line', 'gr-lock', 'progress.received', 'e');
 
     expect(fn () => DB::table('purchase_orders')->where('id', $order->getKey())->update(['note' => 'raw tamper']))

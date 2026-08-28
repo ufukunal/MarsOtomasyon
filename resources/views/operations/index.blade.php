@@ -42,7 +42,11 @@
             <label>API Secret<input name="credentials[api_secret]" type="password"></label>
             <label>Woo Consumer Key<input name="credentials[consumer_key]"></label>
             <label>Woo Consumer Secret<input name="credentials[consumer_secret]" type="password"></label>
+            <label>Varsayılan Mars Cari ID<input name="credentials[default_account_id]" type="number" min="1" required></label>
+            <label>Gelen Sipariş Fiyat Bazı<select name="credentials[price_basis]" required><option value="net">Net</option><option value="gross">Brüt</option></select></label>
+            <label>Satış Siparişi Serisi<input name="credentials[order_series]" value="default" required maxlength="64" pattern="[a-z0-9]+([._-][a-z0-9]+)*"></label>
         </div>
+        <p>Gelen WooCommerce/Trendyol siparişleri SKU/barkod ile Mars ürününe eşlenir; varsayılan cari müşteri/karma cari olmalı ve sipariş serisi aktif <code>sales_order</code> serisine karşılık gelmelidir.</p>
         <p>Trendyol özel operasyon endpointleri gerektiğinde <code>credentials[endpoints][operation]</code> API üzerinden tanımlanabilir.</p>
         <button class="button-primary" type="submit">Bağlantıyı Kaydet</button>
     </form>

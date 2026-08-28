@@ -2,8 +2,11 @@
 
 namespace App\Providers;
 
+use App\Modules\Core\Models\User;
 use App\Modules\Operations\OperationsHealth;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
 final class AppServiceProvider extends ServiceProvider
@@ -15,6 +18,13 @@ final class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        View::composer('operations.index', function ($view): void {
+            $user = Auth::user();
+            if (! $user instanceof User || ! $user->isPlatformAdmin()) {
+                $view->with('backups', collect());
+            }
+        });
+
         Queue::looping(function (): void {
             static $lastHeartbeatAt = 0;
             if (time() - $lastHeartbeatAt < 30) {

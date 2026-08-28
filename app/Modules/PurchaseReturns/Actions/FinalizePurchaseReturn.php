@@ -127,6 +127,19 @@ final readonly class FinalizePurchaseReturn
                 );
             }
 
+            DB::table('purchase_orders')
+                ->where('company_id', $companyId)
+                ->where('id', $purchaseReturn->purchase_order_id)
+                ->where('status', 'closed')
+                ->update([
+                    'status' => 'open',
+                    'opened_at' => $this->clock->now(),
+                    'opened_by_user_id' => null,
+                    'closed_at' => null,
+                    'closed_by_user_id' => null,
+                    'updated_at' => $this->clock->now(),
+                ]);
+
             $purchaseReturn->forceFill([
                 'status' => PurchaseReturnStatus::Finalized,
                 'finalized_at' => $this->clock->now(),

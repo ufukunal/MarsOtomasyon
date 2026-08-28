@@ -8,6 +8,7 @@ use App\Foundation\Idempotency\IdempotencyStore;
 use App\Foundation\Idempotency\RequestFingerprint;
 use App\Foundation\Identity\SourceEffectIdentity;
 use App\Modules\PurchaseOrders\Enums\PurchaseOrderProgressType;
+use App\Modules\PurchaseOrders\Models\PurchaseOrder;
 use App\Modules\PurchaseOrders\Models\PurchaseOrderLine;
 use App\Modules\PurchaseOrders\Models\PurchaseOrderLineProgressEffect;
 use Illuminate\Database\QueryException;
@@ -44,6 +45,27 @@ final readonly class PurchaseOrderProgressService
             ]);
         }
 
+        $order = PurchaseOrder::query()
+            ->where('company_id', $sourceEffect->companyId)
+            ->whereKey($line->purchase_order_id)
+            ->lockForUpdate()
+            ->first();
+        if (! $order instanceof PurchaseOrder) {
+            throw ValidationException::withMessages(['purchase_order' => 'Satınalma siparişi bulunamadı.']);
+        }
+
+        $negative = str_starts_with($quantityDelta, '-');
+        if (! $negative && ! $order->isOpen()) {
+            throw ValidationException::withMessages(['purchase_order' => 'Pozitif satınalma progress işlemi açık sipariş gerektirir.']);
+        }
+        if ($negative && (
+            $sourceEffect->sourceType !== 'purchase_return_line'
+            || ! in_array($progressType, [PurchaseOrderProgressType::Received, PurchaseOrderProgressType::Invoiced], true)
+            || (! $order->isOpen() && ! $order->isClosed())
+        )) {
+            throw ValidationException::withMessages(['quantity_delta' => 'Negatif satınalma progress yalnız açık/kapalı siparişte purchase return düzeltmesi olabilir.']);
+        }
+
         $operationKey = $sourceEffect->fingerprint();
         $fingerprint = RequestFingerprint::fromPayload([
             'company_id' => $sourceEffect->companyId,
@@ -77,7 +99,7 @@ final readonly class PurchaseOrderProgressService
         } catch (QueryException $exception) {
             if ((string) $exception->getCode() === '23514') {
                 throw ValidationException::withMessages([
-                    'quantity_delta' => 'Satınalma siparişi progress işlemi net miktar sınırlarını aşamaz.',
+                    'quantity_delta' => 'Satınalma siparişi progress işlemi lifecycle veya net miktar sınırlarını aşamaz.',
                 ]);
             }
             throw $exception;

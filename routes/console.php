@@ -1,5 +1,6 @@
 <?php
 
+use App\Modules\Core\Models\User;
 use App\Modules\Operations\BackupManager;
 use App\Modules\Operations\OperationsHealth;
 use Illuminate\Support\Facades\Artisan;
@@ -9,6 +10,21 @@ use Illuminate\Support\Facades\Schedule;
 Artisan::command('mars:status', function (): void {
     $this->info('MarsOtomasyon foundation is bootable.');
 })->purpose('Show the MarsOtomasyon foundation status');
+
+Artisan::command('mars:platform-admin {email} {--revoke}', function (): void {
+    $emailArgument = $this->argument('email');
+    if (! is_string($emailArgument) || trim($emailArgument) === '') {
+        throw new InvalidArgumentException('User email is required.');
+    }
+    $email = mb_strtolower(trim($emailArgument));
+    $user = User::query()->whereRaw('lower(email) = ?', [$email])->first();
+    if (! $user instanceof User) {
+        throw new InvalidArgumentException('User not found: '.$email);
+    }
+    $enabled = $this->option('revoke') !== true;
+    $user->forceFill(['is_platform_admin' => $enabled])->save();
+    $this->info($enabled ? 'Platform administrator granted.' : 'Platform administrator revoked.');
+})->purpose('Grant or revoke system-wide platform administrator authority');
 
 Artisan::command('mars:ops-status', function (OperationsHealth $health): void {
     $this->line(json_encode($health->snapshot(), JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR));
@@ -27,8 +43,8 @@ Artisan::command('mars:ops-heartbeat {component=scheduler} {--instance=}', funct
 })->purpose('Record worker or scheduler heartbeat');
 
 Artisan::command('mars:ops-recover', function (OperationsHealth $health): void {
-    $this->info((string) $health->recoverStaleWork().' stale operation rows recovered.');
-})->purpose('Recover stale integration, notification and automation processing states');
+    $this->info((string) $health->recoverStaleWork().' stale operation rows reclaimed and requeued.');
+})->purpose('Reclaim stale integration, notification and automation processing states');
 
 Artisan::command('mars:ops-prune', function (OperationsHealth $health): void {
     $this->info((string) $health->prune().' old operations telemetry rows pruned.');
@@ -39,7 +55,7 @@ Artisan::command('mars:backup {--user=}', function (BackupManager $backups): voi
     $userId = (is_string($user) || is_int($user)) && is_numeric($user) ? (int) $user : null;
     $id = $backups->create($userId);
     $this->info('Backup ready: '.$id);
-})->purpose('Create encrypted verified PostgreSQL .marsbak backup');
+})->purpose('Create encrypted verified PostgreSQL + private file .marsbak backup');
 
 Artisan::command('mars:restore {backup} {--user=} {--no-safety}', function (BackupManager $backups): void {
     $user = $this->option('user');

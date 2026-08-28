@@ -2,6 +2,7 @@
 
 namespace App\Modules\SupplierInvoices\Actions;
 
+use App\Modules\PurchaseOrders\Models\PurchaseOrder;
 use App\Modules\PurchaseOrders\Models\PurchaseOrderLine;
 use App\Modules\SupplierInvoices\Models\SupplierInvoiceLine;
 use Illuminate\Support\Collection;
@@ -24,6 +25,17 @@ final readonly class SupplierInvoiceThreeWayMatchGuard
             if (! $sourceLine instanceof PurchaseOrderLine) {
                 throw ValidationException::withMessages([
                     'lines' => 'Alış faturası kaynak satınalma siparişi satırı bulunamadı.',
+                ]);
+            }
+
+            $order = PurchaseOrder::query()
+                ->where('company_id', $companyId)
+                ->whereKey($sourceLine->purchase_order_id)
+                ->lockForUpdate()
+                ->first();
+            if (! $order instanceof PurchaseOrder || ! $order->isOpen()) {
+                throw ValidationException::withMessages([
+                    'lines' => 'Alış faturası yalnız açık satınalma siparişi üzerinden kesinleştirilebilir.',
                 ]);
             }
 

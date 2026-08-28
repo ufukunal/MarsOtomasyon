@@ -13,6 +13,7 @@ use App\Modules\Core\Models\Company;
 use App\Modules\Core\Models\DocumentSequence;
 use App\Modules\Core\Models\PostingPeriod;
 use App\Modules\Core\Models\Tax;
+use App\Modules\Core\Models\User;
 use App\Modules\GoodsReceipts\Actions\FinalizeGoodsReceipt;
 use App\Modules\GoodsReceipts\Enums\GoodsReceiptStatus;
 use App\Modules\GoodsReceipts\Models\GoodsReceipt;
@@ -22,6 +23,7 @@ use App\Modules\Products\Enums\ProductStatus;
 use App\Modules\Products\Models\Category;
 use App\Modules\Products\Models\Product;
 use App\Modules\Products\Models\Unit;
+use App\Modules\PurchaseOrders\Actions\PurchaseOrderLifecycle;
 use App\Modules\PurchaseOrders\Enums\PurchaseOrderStatus;
 use App\Modules\PurchaseOrders\Models\PurchaseOrder;
 use App\Modules\PurchaseReturns\Actions\CreatePurchaseReturn;
@@ -171,11 +173,20 @@ it('freezes finalized purchase return header and lineage lines at the database b
         ->toThrow(QueryException::class);
 });
 
-it('reverses the source supplier invoice discount snapshot instead of later purchase order terms', function (): void {
-    [, $order, $receipt, $invoice] = purchaseReturn95Fixture('PRET95-E', true);
+it('keeps purchase return pricing anchored to the supplier invoice snapshot while purchase order terms are immutable', function (): void {
+    [, $order, $receipt, $invoice] = purchaseReturn95Fixture('PRET95-E');
 
     $receiptLine = $receipt->lines()->firstOrFail();
     $invoiceLine = $invoice->lines()->firstOrFail();
+
+    expect(fn () => DB::table('purchase_orders')->where('id', $order->getKey())->update([
+        'document_discount_rate' => '10.000000',
+        'document_discount_total' => '50.000000',
+        'net_total' => '450.000000',
+        'tax_total' => '90.000000',
+        'gross_total' => '540.000000',
+    ]))->toThrow(QueryException::class);
+
     $return = app(CreatePurchaseReturn::class)->handle(new PurchaseReturnDraftData(
         purchaseOrderId: (int) $order->getKey(),
         returnDate: '2026-08-27',
@@ -183,7 +194,7 @@ it('reverses the source supplier invoice discount snapshot instead of later purc
         lines: [new PurchaseReturnLineData((int) $receiptLine->getKey(), (int) $invoiceLine->getKey(), '2')],
     ));
 
-    expect((string) $order->document_discount_rate)->toBe('10.000000')
+    expect((string) $order->refresh()->document_discount_rate)->toBe('0.000000')
         ->and((string) $invoice->document_discount_rate)->toBe('0.000000')
         ->and((string) $return->document_discount_rate)->toBe('0.000000')
         ->and((string) $return->document_discount_total)->toBe('0.000000')
@@ -193,7 +204,7 @@ it('reverses the source supplier invoice discount snapshot instead of later purc
 });
 
 /** @return array{Company,PurchaseOrder,GoodsReceipt,SupplierInvoice} */
-function purchaseReturn95Fixture(string $code, bool $changeOrderTermsBeforeFinalize = false): array
+function purchaseReturn95Fixture(string $code): array
 {
     $company = Company::query()->create(['code' => $code, 'name' => 'Company '.$code]);
     $supplier = Account::query()->create([
@@ -303,6 +314,18 @@ function purchaseReturn95Fixture(string $code, bool $changeOrderTermsBeforeFinal
         'gross_total' => '600.000000',
     ]);
 
+    $opener = User::query()->create([
+        'name' => 'Purchase Return Fixture Opener',
+        'email' => strtolower((string) $company->code).'-po-opener-'.$order->getKey().'@purchase-return-fixture.test',
+        'password' => 'not-used-in-test',
+        'status' => 'active',
+    ]);
+    app(PurchaseOrderLifecycle::class)->open(
+        (int) $company->getKey(),
+        (int) $order->getKey(),
+        (int) $opener->getKey(),
+    );
+
     $receipt = GoodsReceipt::query()->create([
         'company_id' => $company->getKey(),
         'purchase_order_id' => $order->getKey(),
@@ -379,22 +402,6 @@ function purchaseReturn95Fixture(string $code, bool $changeOrderTermsBeforeFinal
         'tax_total' => '100.000000',
         'gross_total' => '600.000000',
     ]);
-
-    if ($changeOrderTermsBeforeFinalize) {
-        $order->forceFill([
-            'document_discount_rate' => '10.000000',
-            'document_discount_total' => '50.000000',
-            'net_total' => '450.000000',
-            'tax_total' => '90.000000',
-            'gross_total' => '540.000000',
-        ])->save();
-        $orderLine->forceFill([
-            'document_discount_net' => '50.000000',
-            'net_total' => '450.000000',
-            'tax_total' => '90.000000',
-            'gross_total' => '540.000000',
-        ])->save();
-    }
 
     app(ActiveCompanyContext::class)->set($company);
     app(FinalizeGoodsReceipt::class)->handle((int) $receipt->getKey());

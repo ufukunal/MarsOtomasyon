@@ -3,6 +3,7 @@
 namespace App\Modules\Operations\Jobs;
 
 use App\Modules\Operations\AutomationService;
+use App\Modules\Operations\ChannelDomainEventIngestor;
 use App\Modules\Operations\ChannelService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -21,8 +22,9 @@ final class ProcessIntegrationEvent implements ShouldQueue
 
     public function __construct(public readonly int $eventId) {}
 
-    public function handle(ChannelService $channels, AutomationService $automation): void
+    public function handle(ChannelDomainEventIngestor $domain, ChannelService $channels, AutomationService $automation): void
     {
+        $domain->process($this->eventId);
         $channels->processEvent($this->eventId, $automation);
     }
 }

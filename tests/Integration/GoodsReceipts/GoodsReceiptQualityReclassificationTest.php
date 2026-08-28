@@ -23,6 +23,7 @@ use App\Modules\Products\Enums\ProductStatus;
 use App\Modules\Products\Models\Category;
 use App\Modules\Products\Models\Product;
 use App\Modules\Products\Models\Unit;
+use App\Modules\PurchaseOrders\Actions\PurchaseOrderLifecycle;
 use App\Modules\PurchaseOrders\Enums\PurchaseOrderStatus;
 use App\Modules\PurchaseOrders\Models\PurchaseOrder;
 use App\Modules\Quotes\Pricing\PriceBasis;
@@ -331,7 +332,19 @@ function goodsReceipt93Order(
         'gross_total' => (string) $totals->gross,
     ]);
 
-    return $order->load('lines.progress');
+    $opener = User::query()->create([
+        'name' => 'Purchase Order Fixture Opener',
+        'email' => strtolower((string) $company->code).'-po-opener-'.$order->getKey().'@fixture.test',
+        'password' => 'not-used-in-test',
+        'status' => 'active',
+    ]);
+    app(PurchaseOrderLifecycle::class)->open(
+        (int) $company->getKey(),
+        (int) $order->getKey(),
+        (int) $opener->getKey(),
+    );
+
+    return $order->refresh()->load('lines.progress');
 }
 
 function goodsReceipt93Actor(Company $company, string $suffix): User
