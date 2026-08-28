@@ -1,6 +1,6 @@
 name: M9 M11 Diagnostic
 
-# Temporary release diagnostic; removed before merge. Final fixture pass.
+# Temporary release diagnostic; removed before merge. Purchase return + M11 verification.
 on:
   push:
     branches: [fix/m9-m11-finalize]
