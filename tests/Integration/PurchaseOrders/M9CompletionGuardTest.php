@@ -13,6 +13,7 @@ use App\Modules\Products\Enums\ProductStatus;
 use App\Modules\Products\Models\Category;
 use App\Modules\Products\Models\Product;
 use App\Modules\Products\Models\Unit;
+use App\Modules\PurchaseOrders\Actions\PurchaseOrderLifecycle;
 use App\Modules\PurchaseOrders\Enums\PurchaseOrderProgressType;
 use App\Modules\PurchaseOrders\Enums\PurchaseOrderStatus;
 use App\Modules\PurchaseOrders\Models\PurchaseOrder;
@@ -217,7 +218,7 @@ function m9CompletionOrder(
         'gross_total' => (string) $totals->gross,
     ]);
 
-    app(\App\Modules\PurchaseOrders\Actions\PurchaseOrderLifecycle::class)->open(
+    app(PurchaseOrderLifecycle::class)->open(
         (int) $company->getKey(),
         (int) $order->getKey(),
         (int) $actorId,

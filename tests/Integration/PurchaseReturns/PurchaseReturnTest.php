@@ -13,6 +13,7 @@ use App\Modules\Core\Models\Company;
 use App\Modules\Core\Models\DocumentSequence;
 use App\Modules\Core\Models\PostingPeriod;
 use App\Modules\Core\Models\Tax;
+use App\Modules\Core\Models\User;
 use App\Modules\GoodsReceipts\Actions\FinalizeGoodsReceipt;
 use App\Modules\GoodsReceipts\Enums\GoodsReceiptStatus;
 use App\Modules\GoodsReceipts\Models\GoodsReceipt;
@@ -22,6 +23,7 @@ use App\Modules\Products\Enums\ProductStatus;
 use App\Modules\Products\Models\Category;
 use App\Modules\Products\Models\Product;
 use App\Modules\Products\Models\Unit;
+use App\Modules\PurchaseOrders\Actions\PurchaseOrderLifecycle;
 use App\Modules\PurchaseOrders\Enums\PurchaseOrderStatus;
 use App\Modules\PurchaseOrders\Models\PurchaseOrder;
 use App\Modules\PurchaseReturns\Actions\CreatePurchaseReturn;
@@ -319,13 +321,13 @@ function purchaseReturn95Fixture(string $code, bool $changeOrderTermsBeforeFinal
         ])->save();
     }
 
-    $opener = \App\Modules\Core\Models\User::query()->create([
+    $opener = User::query()->create([
         'name' => 'Purchase Return Fixture Opener',
         'email' => strtolower((string) $company->code).'-po-opener-'.$order->getKey().'@purchase-return-fixture.test',
         'password' => 'not-used-in-test',
         'status' => 'active',
     ]);
-    app(\App\Modules\PurchaseOrders\Actions\PurchaseOrderLifecycle::class)->open(
+    app(PurchaseOrderLifecycle::class)->open(
         (int) $company->getKey(),
         (int) $order->getKey(),
         (int) $opener->getKey(),
