@@ -226,7 +226,7 @@ final readonly class OperationsController
             abort(422, 'CSV başlığı yok.');
         }
         $headers = array_map(static fn (?string $value): string => trim($value ?? ''), $headerRow);
-        if ($headers === [] || in_array('', $headers, true) || count(array_unique($headers)) !== count($headers)) {
+        if (in_array('', $headers, true) || count(array_unique($headers)) !== count($headers)) {
             fclose($handle);
             abort(422, 'CSV başlıkları boş veya tekrarlı olamaz.');
         }
