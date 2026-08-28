@@ -48,6 +48,7 @@ RETURNS trigger AS $$
 DECLARE
     has_progress boolean;
     has_remaining boolean;
+    business_changed boolean;
 BEGIN
     IF TG_OP = 'DELETE' THEN
         RAISE EXCEPTION 'purchase orders cannot be deleted' USING ERRCODE = '55000';
@@ -60,33 +61,40 @@ BEGIN
         RAISE EXCEPTION 'purchase order document identity is immutable' USING ERRCODE = '55000';
     END IF;
 
+    business_changed := NEW.account_id IS DISTINCT FROM OLD.account_id
+        OR NEW.order_date IS DISTINCT FROM OLD.order_date
+        OR NEW.currency_code IS DISTINCT FROM OLD.currency_code
+        OR NEW.document_discount_rate IS DISTINCT FROM OLD.document_discount_rate
+        OR NEW.base_net_total IS DISTINCT FROM OLD.base_net_total
+        OR NEW.line_discount_total IS DISTINCT FROM OLD.line_discount_total
+        OR NEW.document_discount_total IS DISTINCT FROM OLD.document_discount_total
+        OR NEW.net_total IS DISTINCT FROM OLD.net_total
+        OR NEW.tax_total IS DISTINCT FROM OLD.tax_total
+        OR NEW.gross_total IS DISTINCT FROM OLD.gross_total
+        OR NEW.note IS DISTINCT FROM OLD.note;
+
     SELECT EXISTS (
         SELECT 1 FROM purchase_order_line_progress_effects
         WHERE company_id = OLD.company_id AND purchase_order_id = OLD.id
     ) INTO has_progress;
 
     IF NEW.status = OLD.status THEN
-        IF OLD.status <> 'draft' OR has_progress THEN
-            IF NEW.account_id IS DISTINCT FROM OLD.account_id
-                OR NEW.order_date IS DISTINCT FROM OLD.order_date
-                OR NEW.currency_code IS DISTINCT FROM OLD.currency_code
-                OR NEW.document_discount_rate IS DISTINCT FROM OLD.document_discount_rate
-                OR NEW.base_net_total IS DISTINCT FROM OLD.base_net_total
-                OR NEW.line_discount_total IS DISTINCT FROM OLD.line_discount_total
-                OR NEW.document_discount_total IS DISTINCT FROM OLD.document_discount_total
-                OR NEW.net_total IS DISTINCT FROM OLD.net_total
-                OR NEW.tax_total IS DISTINCT FROM OLD.tax_total
-                OR NEW.gross_total IS DISTINCT FROM OLD.gross_total
-                OR NEW.note IS DISTINCT FROM OLD.note THEN
-                RAISE EXCEPTION 'purchase order business fields are immutable outside editable draft state' USING ERRCODE = '55000';
-            END IF;
+        IF (OLD.status <> 'draft' OR has_progress) AND business_changed THEN
+            RAISE EXCEPTION 'purchase order business fields are immutable outside editable draft state' USING ERRCODE = '55000';
         END IF;
         RETURN NEW;
+    END IF;
+
+    IF business_changed THEN
+        RAISE EXCEPTION 'purchase order lifecycle transition cannot mutate business fields' USING ERRCODE = '55000';
     END IF;
 
     IF OLD.status = 'draft' AND NEW.status = 'open' THEN
         IF has_progress THEN
             RAISE EXCEPTION 'draft purchase order with progress cannot be opened' USING ERRCODE = '55000';
+        END IF;
+        IF NEW.opened_at IS NULL OR NEW.opened_by_user_id IS NULL OR NEW.closed_at IS NOT NULL OR NEW.closed_by_user_id IS NOT NULL THEN
+            RAISE EXCEPTION 'opening purchase order requires actor/time and clears close metadata' USING ERRCODE = '23514';
         END IF;
         RETURN NEW;
     END IF;
@@ -102,6 +110,9 @@ BEGIN
         IF has_remaining THEN
             RAISE EXCEPTION 'purchase order cannot close while receive or invoice capacity remains' USING ERRCODE = '23514';
         END IF;
+        IF NEW.closed_at IS NULL OR NEW.closed_by_user_id IS NULL THEN
+            RAISE EXCEPTION 'closing purchase order requires actor and time' USING ERRCODE = '23514';
+        END IF;
         RETURN NEW;
     END IF;
 
@@ -115,6 +126,9 @@ BEGIN
         ) INTO has_remaining;
         IF NOT has_remaining THEN
             RAISE EXCEPTION 'closed purchase order can reopen only after capacity is restored' USING ERRCODE = '23514';
+        END IF;
+        IF NEW.opened_at IS NULL OR NEW.closed_at IS NOT NULL OR NEW.closed_by_user_id IS NOT NULL THEN
+            RAISE EXCEPTION 'reopened purchase order must clear close metadata' USING ERRCODE = '23514';
         END IF;
         RETURN NEW;
     END IF;
@@ -157,6 +171,14 @@ SQL);
         DB::statement('DROP FUNCTION IF EXISTS mars_guard_goods_receipt_open_purchase_order()');
         Schema::dropIfExists('integration_entity_links');
 
+        DB::table('purchase_orders')->whereIn('status', ['open', 'closed'])->update([
+            'status' => 'draft',
+            'opened_at' => null,
+            'opened_by_user_id' => null,
+            'closed_at' => null,
+            'closed_by_user_id' => null,
+            'updated_at' => now(),
+        ]);
         Schema::table('purchase_orders', function (Blueprint $table): void {
             $table->dropConstrainedForeignId('closed_by_user_id');
             $table->dropColumn('closed_at');
