@@ -183,7 +183,10 @@ final class AutomationService
         }
     }
 
-    /** @param array<string,mixed> $conditions @param array<string,mixed> $input */
+    /**
+     * @param  array<string, mixed>  $conditions
+     * @param  array<string, mixed>  $input
+     */
     private function matches(array $conditions, array $input): bool
     {
         foreach ($conditions as $path => $expected) {
@@ -195,7 +198,9 @@ final class AutomationService
         return true;
     }
 
-    /** @param mixed $value @param array<string,mixed> $input */
+    /**
+     * @param  array<string, mixed>  $input
+     */
     private function resolveString(mixed $value, array $input): string
     {
         $value = (string) $value;
@@ -208,7 +213,10 @@ final class AutomationService
         return $value;
     }
 
-    /** @param array<string,mixed> $input @return array<string,scalar|null> */
+    /**
+     * @param  array<string, mixed>  $input
+     * @return array<string, scalar|null>
+     */
     private function scalarVariables(array $input): array
     {
         $result = [];
