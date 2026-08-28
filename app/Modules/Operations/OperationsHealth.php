@@ -2,6 +2,10 @@
 
 namespace App\Modules\Operations;
 
+use App\Modules\Operations\Jobs\DeliverNotification;
+use App\Modules\Operations\Jobs\ExecuteAutomationRun;
+use App\Modules\Operations\Jobs\ProcessIntegrationEvent;
+use App\Modules\Operations\Jobs\ProcessIntegrationSync;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\Schema;
@@ -89,13 +93,81 @@ final class OperationsHealth
     public function recoverStaleWork(): int
     {
         $cutoff = now()->subMinutes(15);
-        $count = 0;
-        $count += DB::table('integration_events')->where('status', 'processing')->where('updated_at', '<', $cutoff)->update(['status' => 'failed', 'last_error' => 'Recovered stale integration processing state.', 'updated_at' => now()]);
-        $count += DB::table('integration_sync_effects')->where('status', 'sending')->where('updated_at', '<', $cutoff)->update(['status' => 'failed', 'last_error' => 'Recovered stale integration sync state.', 'updated_at' => now()]);
-        $count += DB::table('notification_deliveries')->where('status', 'sending')->where('updated_at', '<', $cutoff)->update(['status' => 'failed', 'last_error' => 'Recovered stale notification delivery state.', 'updated_at' => now()]);
-        $count += DB::table('automation_runs')->where('status', 'running')->where('updated_at', '<', $cutoff)->update(['status' => 'failed', 'last_error' => 'Recovered stale automation run state.', 'finished_at' => now(), 'updated_at' => now()]);
 
-        return $count;
+        return DB::transaction(function () use ($cutoff): int {
+            $count = 0;
+
+            $eventIds = DB::table('integration_events')
+                ->where('status', 'processing')
+                ->where('updated_at', '<', $cutoff)
+                ->orderBy('id')
+                ->lockForUpdate()
+                ->pluck('id');
+            foreach ($eventIds as $id) {
+                DB::table('integration_events')->where('id', $id)->where('status', 'processing')->update([
+                    'status' => 'received',
+                    'available_at' => now(),
+                    'last_error' => 'Automatically reclaimed stale integration processing state.',
+                    'updated_at' => now(),
+                ]);
+                ProcessIntegrationEvent::dispatch((int) $id)->afterCommit();
+                $count++;
+            }
+
+            $syncIds = DB::table('integration_sync_effects')
+                ->where('status', 'sending')
+                ->where('updated_at', '<', $cutoff)
+                ->orderBy('id')
+                ->lockForUpdate()
+                ->pluck('id');
+            foreach ($syncIds as $id) {
+                DB::table('integration_sync_effects')->where('id', $id)->where('status', 'sending')->update([
+                    'status' => 'queued',
+                    'available_at' => now(),
+                    'last_error' => 'Automatically reclaimed stale integration sync state.',
+                    'updated_at' => now(),
+                ]);
+                ProcessIntegrationSync::dispatch((int) $id)->afterCommit();
+                $count++;
+            }
+
+            $deliveryIds = DB::table('notification_deliveries')
+                ->where('status', 'sending')
+                ->where('updated_at', '<', $cutoff)
+                ->orderBy('id')
+                ->lockForUpdate()
+                ->pluck('id');
+            foreach ($deliveryIds as $id) {
+                DB::table('notification_deliveries')->where('id', $id)->where('status', 'sending')->update([
+                    'status' => 'queued',
+                    'available_at' => now(),
+                    'last_error' => 'Automatically reclaimed stale notification delivery state.',
+                    'updated_at' => now(),
+                ]);
+                DeliverNotification::dispatch((int) $id)->afterCommit();
+                $count++;
+            }
+
+            $automationIds = DB::table('automation_runs')
+                ->where('status', 'running')
+                ->where('updated_at', '<', $cutoff)
+                ->orderBy('id')
+                ->lockForUpdate()
+                ->pluck('id');
+            foreach ($automationIds as $id) {
+                DB::table('automation_runs')->where('id', $id)->where('status', 'running')->update([
+                    'status' => 'queued',
+                    'started_at' => null,
+                    'finished_at' => null,
+                    'last_error' => 'Automatically reclaimed stale automation run state.',
+                    'updated_at' => now(),
+                ]);
+                ExecuteAutomationRun::dispatch((int) $id)->afterCommit();
+                $count++;
+            }
+
+            return $count;
+        });
     }
 
     public function prune(): int
