@@ -17,17 +17,31 @@ final readonly class ChannelWebhookController
         abort_if($row === null, 404);
         $provider = (string) $row->provider;
         $signature = $provider === 'woocommerce'
-            ? (string) $request->header('X-WC-Webhook-Signature', '')
-            : (string) $request->header('X-Mars-Signature', $request->header('X-Trendyol-Signature', ''));
+            ? $this->headerString($request, 'X-WC-Webhook-Signature')
+            : ($this->headerString($request, 'X-Mars-Signature') ?: $this->headerString($request, 'X-Trendyol-Signature'));
         $eventType = $provider === 'woocommerce'
-            ? (string) $request->header('X-WC-Webhook-Topic', $request->input('event_type', 'unknown'))
-            : (string) $request->header('X-Trendyol-Event', $request->input('event_type', 'unknown'));
+            ? ($this->headerString($request, 'X-WC-Webhook-Topic') ?: $this->inputString($request, 'event_type', 'unknown'))
+            : ($this->headerString($request, 'X-Trendyol-Event') ?: $this->inputString($request, 'event_type', 'unknown'));
         $externalId = $provider === 'woocommerce'
-            ? (string) $request->header('X-WC-Webhook-Delivery-ID', $request->header('X-WC-Webhook-ID', ''))
-            : (string) $request->header('X-Trendyol-Event-ID', $request->input('event_id', ''));
+            ? ($this->headerString($request, 'X-WC-Webhook-Delivery-ID') ?: $this->headerString($request, 'X-WC-Webhook-ID'))
+            : ($this->headerString($request, 'X-Trendyol-Event-ID') ?: $this->inputString($request, 'event_id'));
 
         $id = $this->channels->ingestWebhook($connection, $externalId, $eventType, $request->getContent(), $signature);
 
         return response()->json(['accepted' => true, 'event_id' => $id], 202);
+    }
+
+    private function headerString(Request $request, string $name): string
+    {
+        $value = $request->headers->get($name);
+
+        return is_string($value) ? $value : '';
+    }
+
+    private function inputString(Request $request, string $key, string $default = ''): string
+    {
+        $value = $request->input($key, $default);
+
+        return is_scalar($value) ? (string) $value : $default;
     }
 }
