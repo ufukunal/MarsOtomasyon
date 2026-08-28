@@ -11,7 +11,7 @@ final class TreasuryPayment extends Model
     protected function casts(): array
     {
         return [
-            'payment_date' => 'date:Y-m-d',
+            'payment_date' => 'immutable_date',
             'amount' => 'decimal:6',
             'finalized_at' => 'immutable_datetime',
             'reversed_at' => 'immutable_datetime',
