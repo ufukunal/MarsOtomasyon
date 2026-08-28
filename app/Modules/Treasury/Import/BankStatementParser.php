@@ -70,7 +70,7 @@ final class BankStatementParser
 
             while (($values = fgetcsv($handle, separator: $separator)) !== false) {
                 $lineNumber++;
-                if ($values === [null] || $values === []) {
+                if ($values === [null]) {
                     continue;
                 }
 
@@ -160,9 +160,6 @@ final class BankStatementParser
             }
 
             $headerRow = array_shift($rawRows);
-            if ($headerRow === null) {
-                throw new DomainException('XLSX başlık satırı bulunamadı.');
-            }
 
             $columnKeys = [];
             foreach ($headerRow as $column => $name) {
