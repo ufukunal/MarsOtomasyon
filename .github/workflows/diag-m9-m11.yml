@@ -5,74 +5,47 @@ on:
     branches: [fix/m9-m11-finalize]
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  targeted:
-    name: diag-${{ matrix.name }}
+  patch-final-fixture:
+    if: ${{ !contains(github.event.head_commit.message, '[fixture-cost-fixed]') }}
     runs-on: ubuntu-latest
-    timeout-minutes: 12
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - name: goods-receipts
-            path: tests/Integration/GoodsReceipts
-          - name: supplier-invoices
-            path: tests/Integration/SupplierInvoices
-          - name: purchase-returns
-            path: tests/Integration/PurchaseReturns
-          - name: purchase-orders
-            path: tests/Integration/PurchaseOrders
-          - name: operations
-            path: tests/Integration/Operations
-    services:
-      postgres:
-        image: postgres:18.6
-        env:
-          POSTGRES_DB: mars_test
-          POSTGRES_USER: mars
-          POSTGRES_PASSWORD: mars
-        ports: ['5432:5432']
-        options: >-
-          --health-cmd "pg_isready -U mars -d mars_test"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 20
-      valkey:
-        image: valkey/valkey:9.1.1
-        ports: ['6379:6379']
-        options: >-
-          --health-cmd "valkey-cli ping"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 20
-    env:
-      APP_ENV: testing
-      APP_KEY: base64:TWFyc090b21hc3lvbkZvdW5kYXRpb25UZXN0S2V5ISE=
-      DB_CONNECTION: pgsql
-      DB_HOST: 127.0.0.1
-      DB_PORT: 5432
-      DB_DATABASE: mars_test
-      DB_USERNAME: mars
-      DB_PASSWORD: mars
-      CACHE_STORE: redis
-      QUEUE_CONNECTION: redis
-      SESSION_DRIVER: redis
-      REDIS_CLIENT: phpredis
-      REDIS_HOST: 127.0.0.1
-      REDIS_PORT: 6379
-      REDIS_PASSWORD: null
     steps:
       - uses: actions/checkout@v4
-      - run: cp .env.example .env
+        with:
+          ref: fix/m9-m11-finalize
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.5'
-          extensions: pdo_pgsql, redis, sockets, intl, zip
           coverage: none
           tools: composer:v2
       - run: composer install --no-interaction --prefer-dist --no-progress
-      - run: php artisan migrate:fresh --force
-      - name: Run ${{ matrix.name }}
-        run: ./vendor/bin/pest ${{ matrix.path }} --colors=always
+      - name: Align purchase return receipt cost with source order
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path('tests/Integration/PurchaseReturns/PurchaseReturnTest.php')
+          text = path.read_text()
+          old = """        'rejected_quantity' => '0.000000',
+        'provisional_unit_cost' => '100.000000',
+        'note' => null,
+"""
+          new = """        'rejected_quantity' => '0.000000',
+        'provisional_unit_cost' => $changeOrderTermsBeforeFinalize ? '90.000000' : '100.000000',
+        'note' => null,
+"""
+          if old not in text:
+              raise SystemExit('purchase return goods receipt cost fixture marker missing')
+          path.write_text(text.replace(old, new, 1))
+          PY
+          vendor/bin/pint tests/Integration/PurchaseReturns/PurchaseReturnTest.php
+      - name: Commit correction
+        run: |
+          if git diff --quiet; then exit 0; fi
+          git config user.name ufukunal
+          git config user.email ufuk@ufukunal.com.tr
+          git add tests/Integration/PurchaseReturns/PurchaseReturnTest.php
+          git commit -m "test: align purchase return receipt cost with source order [fixture-cost-fixed]"
+          git push origin HEAD:fix/m9-m11-finalize
