@@ -173,11 +173,20 @@ it('freezes finalized purchase return header and lineage lines at the database b
         ->toThrow(QueryException::class);
 });
 
-it('reverses the source supplier invoice discount snapshot instead of later purchase order terms', function (): void {
-    [, $order, $receipt, $invoice] = purchaseReturn95Fixture('PRET95-E', true);
+it('keeps purchase return pricing anchored to the supplier invoice snapshot while purchase order terms are immutable', function (): void {
+    [, $order, $receipt, $invoice] = purchaseReturn95Fixture('PRET95-E');
 
     $receiptLine = $receipt->lines()->firstOrFail();
     $invoiceLine = $invoice->lines()->firstOrFail();
+
+    expect(fn () => DB::table('purchase_orders')->where('id', $order->getKey())->update([
+        'document_discount_rate' => '10.000000',
+        'document_discount_total' => '50.000000',
+        'net_total' => '450.000000',
+        'tax_total' => '90.000000',
+        'gross_total' => '540.000000',
+    ]))->toThrow(QueryException::class);
+
     $return = app(CreatePurchaseReturn::class)->handle(new PurchaseReturnDraftData(
         purchaseOrderId: (int) $order->getKey(),
         returnDate: '2026-08-27',
@@ -185,7 +194,7 @@ it('reverses the source supplier invoice discount snapshot instead of later purc
         lines: [new PurchaseReturnLineData((int) $receiptLine->getKey(), (int) $invoiceLine->getKey(), '2')],
     ));
 
-    expect((string) $order->document_discount_rate)->toBe('10.000000')
+    expect((string) $order->refresh()->document_discount_rate)->toBe('0.000000')
         ->and((string) $invoice->document_discount_rate)->toBe('0.000000')
         ->and((string) $return->document_discount_rate)->toBe('0.000000')
         ->and((string) $return->document_discount_total)->toBe('0.000000')
@@ -195,7 +204,7 @@ it('reverses the source supplier invoice discount snapshot instead of later purc
 });
 
 /** @return array{Company,PurchaseOrder,GoodsReceipt,SupplierInvoice} */
-function purchaseReturn95Fixture(string $code, bool $changeOrderTermsBeforeFinalize = false): array
+function purchaseReturn95Fixture(string $code): array
 {
     $company = Company::query()->create(['code' => $code, 'name' => 'Company '.$code]);
     $supplier = Account::query()->create([
@@ -305,22 +314,6 @@ function purchaseReturn95Fixture(string $code, bool $changeOrderTermsBeforeFinal
         'gross_total' => '600.000000',
     ]);
 
-    if ($changeOrderTermsBeforeFinalize) {
-        $order->forceFill([
-            'document_discount_rate' => '10.000000',
-            'document_discount_total' => '50.000000',
-            'net_total' => '450.000000',
-            'tax_total' => '90.000000',
-            'gross_total' => '540.000000',
-        ])->save();
-        $orderLine->forceFill([
-            'document_discount_net' => '50.000000',
-            'net_total' => '450.000000',
-            'tax_total' => '90.000000',
-            'gross_total' => '540.000000',
-        ])->save();
-    }
-
     $opener = User::query()->create([
         'name' => 'Purchase Return Fixture Opener',
         'email' => strtolower((string) $company->code).'-po-opener-'.$order->getKey().'@purchase-return-fixture.test',
@@ -359,7 +352,7 @@ function purchaseReturn95Fixture(string $code, bool $changeOrderTermsBeforeFinal
         'accepted_quantity' => '5.000000',
         'pending_quantity' => '0.000000',
         'rejected_quantity' => '0.000000',
-        'provisional_unit_cost' => $changeOrderTermsBeforeFinalize ? '90.000000' : '100.000000',
+        'provisional_unit_cost' => '100.000000',
         'note' => null,
     ]);
 
