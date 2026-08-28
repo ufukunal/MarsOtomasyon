@@ -161,13 +161,23 @@ function m9CompletionOrder(
         throw new RuntimeException('M9 completion fixture totals could not be calculated.');
     }
 
+    $actorId = DB::table('users')->insertGetId([
+        'name' => 'M9 Completion Actor',
+        'email' => strtolower((string) $company->code).'@m9.test',
+        'password' => 'not-used-in-test',
+        'status' => 'active',
+        'is_platform_admin' => false,
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
     $order = PurchaseOrder::query()->create([
         'company_id' => $company->getKey(),
         'account_id' => $supplier->getKey(),
         'number' => 'PO-'.$company->code,
         'series_code' => 'default',
         'sequence_value' => 1,
-        'status' => PurchaseOrderStatus::Open,
+        'status' => PurchaseOrderStatus::Draft,
         'order_date' => '2026-08-27',
         'currency_code' => 'TRY',
         'document_discount_rate' => '0.000000',
@@ -178,7 +188,6 @@ function m9CompletionOrder(
         'tax_total' => (string) $totals->tax,
         'gross_total' => (string) $totals->gross,
         'note' => null,
-        'opened_at' => now(),
     ]);
     $order->lines()->create([
         'company_id' => $company->getKey(),
@@ -208,5 +217,11 @@ function m9CompletionOrder(
         'gross_total' => (string) $totals->gross,
     ]);
 
-    return $order->load('lines.progress');
+    app(\App\Modules\PurchaseOrders\Actions\PurchaseOrderLifecycle::class)->open(
+        (int) $company->getKey(),
+        (int) $order->getKey(),
+        (int) $actorId,
+    );
+
+    return $order->refresh()->load('lines.progress');
 }
