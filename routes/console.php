@@ -64,16 +64,16 @@ Schedule::call(function () use ($runScheduled): void {
 
         return ['heartbeat' => true];
     });
-})->everyMinute()->withoutOverlapping()->name('operations.heartbeat');
+})->everyMinute()->name('operations.heartbeat')->withoutOverlapping();
 
 Schedule::call(function () use ($runScheduled): void {
     $runScheduled('operations.metrics', fn (): array => app(OperationsHealth::class)->captureMetrics());
-})->everyFiveMinutes()->withoutOverlapping()->name('operations.metrics');
+})->everyFiveMinutes()->name('operations.metrics')->withoutOverlapping();
 
 Schedule::call(function () use ($runScheduled): void {
     $runScheduled('operations.recover', fn (): array => ['recovered' => app(OperationsHealth::class)->recoverStaleWork()]);
-})->everyFiveMinutes()->withoutOverlapping()->name('operations.recover');
+})->everyFiveMinutes()->name('operations.recover')->withoutOverlapping();
 
 Schedule::call(function () use ($runScheduled): void {
     $runScheduled('operations.prune', fn (): array => ['pruned' => app(OperationsHealth::class)->prune()]);
-})->dailyAt('03:20')->withoutOverlapping()->name('operations.prune');
+})->dailyAt('03:20')->name('operations.prune')->withoutOverlapping();
