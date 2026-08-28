@@ -37,7 +37,8 @@ final readonly class CreateSalesReturn
             if (! $invoice instanceof SalesInvoice || $invoice->statusEnum() !== SalesInvoiceStatus::Finalized) {
                 throw ValidationException::withMessages(['sales_invoice_id' => 'RMA yalnız kesinleşmiş satış faturası üzerinden açılabilir.']);
             }
-            if ($data->returnDate < $invoice->invoice_date->format('Y-m-d')) {
+            $invoiceDate = (string) $invoice->getRawOriginal('invoice_date');
+            if ($data->returnDate < $invoiceDate) {
                 throw ValidationException::withMessages(['return_date' => 'İade tarihi satış faturası tarihinden önce olamaz.']);
             }
 
@@ -54,7 +55,7 @@ final readonly class CreateSalesReturn
             $requestedNet = '0.000000';
             $requestedTax = '0.000000';
             $requestedGross = '0.000000';
-            foreach (array_values($data->lines) as $index => $line) {
+            foreach ($data->lines as $index => $line) {
                 if (isset($seen[$line->salesInvoiceLineId])) {
                     throw ValidationException::withMessages(['lines' => 'Aynı fatura satırı bir RMA içinde yalnız bir kez kullanılabilir.']);
                 }
