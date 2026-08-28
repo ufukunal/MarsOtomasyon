@@ -126,10 +126,15 @@ final class NotificationService
         }
 
         try {
-            $provider = match ((string) $delivery->channel) {
-                'email' => $this->sendEmail($delivery),
-                'sms' => $this->sendHttpChannel('sms', $delivery),
-                'whatsapp' => $this->sendHttpChannel('whatsapp', $delivery),
+            $channel = (string) $delivery->channel;
+            $recipient = (string) $delivery->recipient;
+            $subject = $delivery->subject === null ? null : (string) $delivery->subject;
+            $body = (string) $delivery->body;
+            $idempotencyKey = (string) $delivery->idempotency_key;
+            $provider = match ($channel) {
+                'email' => $this->sendEmail($recipient, $subject, $body),
+                'sms' => $this->sendHttpChannel('sms', $recipient, $body, $idempotencyKey),
+                'whatsapp' => $this->sendHttpChannel('whatsapp', $recipient, $body, $idempotencyKey),
                 default => throw new RuntimeException('Unknown notification channel.'),
             };
             DB::table('notification_deliveries')->where('id', $deliveryId)->where('status', 'sending')->update([
@@ -162,12 +167,12 @@ final class NotificationService
     }
 
     /** @return array{provider:string,message_id:?string} */
-    private function sendEmail(object $delivery): array
+    private function sendEmail(string $recipient, ?string $subject, string $body): array
     {
-        Mail::raw((string) $delivery->body, function ($message) use ($delivery): void {
-            $message->to((string) $delivery->recipient);
-            if ($delivery->subject !== null && (string) $delivery->subject !== '') {
-                $message->subject((string) $delivery->subject);
+        Mail::raw($body, function ($message) use ($recipient, $subject): void {
+            $message->to($recipient);
+            if ($subject !== null && $subject !== '') {
+                $message->subject($subject);
             }
         });
 
@@ -175,7 +180,7 @@ final class NotificationService
     }
 
     /** @return array{provider:string,message_id:?string} */
-    private function sendHttpChannel(string $channel, object $delivery): array
+    private function sendHttpChannel(string $channel, string $recipient, string $body, string $idempotencyKey): array
     {
         $endpoint = config('m11.notifications.'.$channel.'.endpoint');
         $token = config('m11.notifications.'.$channel.'.token');
@@ -183,12 +188,12 @@ final class NotificationService
             throw new RuntimeException(strtoupper($channel).' endpoint is not configured.');
         }
         $request = Http::acceptJson()
-            ->withHeaders(['Idempotency-Key' => (string) $delivery->idempotency_key])
+            ->withHeaders(['Idempotency-Key' => $idempotencyKey])
             ->timeout(20);
         if (is_string($token) && $token !== '') {
             $request = $request->withToken($token);
         }
-        $response = $request->post($endpoint, ['to' => (string) $delivery->recipient, 'message' => (string) $delivery->body]);
+        $response = $request->post($endpoint, ['to' => $recipient, 'message' => $body]);
         if (! $response->successful()) {
             throw new RuntimeException(strtoupper($channel).' provider returned HTTP '.$response->status().'.');
         }
