@@ -1,0 +1,109 @@
+name: Final PR66 Fixture Fix
+
+on:
+  push:
+    branches: [fix/m9-m11-finalize]
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: ${{ !contains(github.event.head_commit.message, '[final-fixture-fixed]') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/m9-m11-finalize
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          coverage: none
+          tools: composer:v2
+      - run: composer install --no-interaction --prefer-dist --no-progress
+      - name: Rewrite obsolete discount divergence regression
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path('tests/Integration/PurchaseReturns/PurchaseReturnTest.php')
+          text = path.read_text()
+
+          text = text.replace(
+              "it('reverses the source supplier invoice discount snapshot instead of later purchase order terms', function (): void {\n    [, $order, $receipt, $invoice] = purchaseReturn95Fixture('PRET95-E', true);",
+              "it('keeps purchase return pricing anchored to the supplier invoice snapshot while purchase order terms are immutable', function (): void {\n    [, $order, $receipt, $invoice] = purchaseReturn95Fixture('PRET95-E');",
+              1,
+          )
+
+          marker = """    $receiptLine = $receipt->lines()->firstOrFail();
+    $invoiceLine = $invoice->lines()->firstOrFail();
+    $return = app(CreatePurchaseReturn::class)->handle(new PurchaseReturnDraftData(
+"""
+          replacement = """    $receiptLine = $receipt->lines()->firstOrFail();
+    $invoiceLine = $invoice->lines()->firstOrFail();
+
+    expect(fn () => DB::table('purchase_orders')->where('id', $order->getKey())->update([
+        'document_discount_rate' => '10.000000',
+        'document_discount_total' => '50.000000',
+        'net_total' => '450.000000',
+        'tax_total' => '90.000000',
+        'gross_total' => '540.000000',
+    ]))->toThrow(QueryException::class);
+
+    $return = app(CreatePurchaseReturn::class)->handle(new PurchaseReturnDraftData(
+"""
+          # Replace only the occurrence inside PRET95-E test.
+          test_start = text.index("it('keeps purchase return pricing anchored")
+          idx = text.index(marker, test_start)
+          text = text[:idx] + text[idx:].replace(marker, replacement, 1)
+
+          text = text.replace(
+              "expect((string) $order->document_discount_rate)->toBe('10.000000')",
+              "expect((string) $order->refresh()->document_discount_rate)->toBe('0.000000')",
+              1,
+          )
+
+          # The stricter supplier-invoice authority makes a divergent PO/invoice discount snapshot impossible.
+          # Remove the obsolete fixture branch and keep one legal lifecycle fixture.
+          text = text.replace(
+              "function purchaseReturn95Fixture(string $code, bool $changeOrderTermsBeforeFinalize = false): array",
+              "function purchaseReturn95Fixture(string $code): array",
+              1,
+          )
+
+          block = """    if ($changeOrderTermsBeforeFinalize) {
+        $order->forceFill([
+            'document_discount_rate' => '10.000000',
+            'document_discount_total' => '50.000000',
+            'net_total' => '450.000000',
+            'tax_total' => '90.000000',
+            'gross_total' => '540.000000',
+        ])->save();
+        $orderLine->forceFill([
+            'document_discount_net' => '50.000000',
+            'net_total' => '450.000000',
+            'tax_total' => '90.000000',
+            'gross_total' => '540.000000',
+        ])->save();
+    }
+
+"""
+          if block not in text:
+              raise SystemExit('obsolete purchase order mutation branch not found')
+          text = text.replace(block, '', 1)
+          text = text.replace(
+              "'provisional_unit_cost' => $changeOrderTermsBeforeFinalize ? '90.000000' : '100.000000',",
+              "'provisional_unit_cost' => '100.000000',",
+              1,
+          )
+
+          path.write_text(text)
+          PY
+          vendor/bin/pint tests/Integration/PurchaseReturns/PurchaseReturnTest.php
+      - name: Commit final fixture correction
+        run: |
+          git config user.name ufukunal
+          git config user.email ufuk@ufukunal.com.tr
+          git add tests/Integration/PurchaseReturns/PurchaseReturnTest.php
+          git commit -m "test: align purchase return snapshot regression with immutable po [final-fixture-fixed]"
+          git push origin HEAD:fix/m9-m11-finalize
