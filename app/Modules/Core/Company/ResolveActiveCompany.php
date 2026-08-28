@@ -4,6 +4,7 @@ namespace App\Modules\Core\Company;
 
 use App\Modules\Core\Models\CompanyMembership;
 use App\Modules\Core\Models\User;
+use App\Modules\Operations\SecurityCenter;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -11,7 +12,10 @@ use Symfony\Component\HttpFoundation\Response;
 
 final class ResolveActiveCompany
 {
-    public function __construct(private readonly ActiveCompanyContext $context) {}
+    public function __construct(
+        private readonly ActiveCompanyContext $context,
+        private readonly SecurityCenter $security,
+    ) {}
 
     public function handle(Request $request, Closure $next): Response
     {
@@ -59,6 +63,20 @@ final class ResolveActiveCompany
         $this->context->set($company);
 
         try {
+            $ip = (string) $request->ip();
+            if (! $this->security->ipAllowed($selectedCompanyId, $ip)) {
+                $this->security->record(
+                    $selectedCompanyId,
+                    (int) $user->getAuthIdentifier(),
+                    'security.ip_blocked',
+                    'warning',
+                    $ip,
+                    $request->userAgent(),
+                    ['path' => $request->path()],
+                );
+                abort(403, 'Bu IP adresinin şirket alanına erişimine izin verilmiyor.');
+            }
+
             return $next($request);
         } finally {
             $this->context->clear();
