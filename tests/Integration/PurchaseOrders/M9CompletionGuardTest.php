@@ -167,7 +167,7 @@ function m9CompletionOrder(
         'number' => 'PO-'.$company->code,
         'series_code' => 'default',
         'sequence_value' => 1,
-        'status' => PurchaseOrderStatus::Draft,
+        'status' => PurchaseOrderStatus::Open,
         'order_date' => '2026-08-27',
         'currency_code' => 'TRY',
         'document_discount_rate' => '0.000000',
@@ -178,6 +178,7 @@ function m9CompletionOrder(
         'tax_total' => (string) $totals->tax,
         'gross_total' => (string) $totals->gross,
         'note' => null,
+        'opened_at' => now(),
     ]);
     $order->lines()->create([
         'company_id' => $company->getKey(),
