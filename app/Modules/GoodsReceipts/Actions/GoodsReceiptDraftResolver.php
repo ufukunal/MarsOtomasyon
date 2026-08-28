@@ -33,6 +33,11 @@ final readonly class GoodsReceiptDraftResolver
                 'purchase_order_id' => 'Satınalma siparişi aktif şirkette bulunamadı.',
             ]);
         }
+        if (! $order->isOpen()) {
+            throw ValidationException::withMessages([
+                'purchase_order_id' => 'Mal kabul yalnız açık satınalma siparişi üzerinden oluşturulabilir.',
+            ]);
+        }
 
         $resolved = [];
         foreach ($data->lines as $index => $lineData) {
