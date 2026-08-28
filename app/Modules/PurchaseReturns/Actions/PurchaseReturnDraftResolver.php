@@ -51,6 +51,7 @@ final readonly class PurchaseReturnDraftResolver
         $usedPairs = [];
         $physicalRequested = [];
         $financialRequested = [];
+        $sourceDocumentDiscountRate = null;
 
         foreach ($data->lines as $offset => $requestedLine) {
             $pairKey = $requestedLine->goodsReceiptLineId.':'.$requestedLine->supplierInvoiceLineId;
@@ -85,6 +86,15 @@ final readonly class PurchaseReturnDraftResolver
                 || (int) $invoiceLine->supplierInvoice->account_id !== (int) $order->account_id
                 || (string) $invoiceLine->supplierInvoice->currency_code !== (string) $order->currency_code) {
                 throw ValidationException::withMessages(["lines.$offset" => 'Mal kabul ve alış faturası lineage aynı sipariş, sipariş satırı, ürün, tedarikçi ve para birimine ait olmalıdır.']);
+            }
+
+            $invoiceDocumentDiscountRate = (string) $invoiceLine->supplierInvoice->document_discount_rate;
+            if ($sourceDocumentDiscountRate === null) {
+                $sourceDocumentDiscountRate = $invoiceDocumentDiscountRate;
+            } elseif ($sourceDocumentDiscountRate !== $invoiceDocumentDiscountRate) {
+                throw ValidationException::withMessages([
+                    "lines.$offset.supplier_invoice_line_id" => 'Tek satınalma iadesindeki kaynak alış faturaları aynı belge iskonto oranını kullanmalıdır.',
+                ]);
             }
 
             $quantity = $this->positiveDecimal($requestedLine->quantity, $offset);
@@ -126,8 +136,12 @@ final readonly class PurchaseReturnDraftResolver
             $metadata[] = [$receiptLine, $invoiceLine];
         }
 
+        if ($sourceDocumentDiscountRate === null) {
+            throw ValidationException::withMessages(['lines' => 'Satınalma iadesi için kaynak alış faturası iskonto snapshotı bulunamadı.']);
+        }
+
         try {
-            $calculation = $this->calculator->calculate($inputs, (string) $order->document_discount_rate);
+            $calculation = $this->calculator->calculate($inputs, $sourceDocumentDiscountRate);
         } catch (InvalidArgumentException $exception) {
             throw ValidationException::withMessages(['lines' => $exception->getMessage()]);
         }
