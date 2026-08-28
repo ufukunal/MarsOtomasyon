@@ -15,8 +15,14 @@ Artisan::command('mars:ops-status', function (OperationsHealth $health): void {
 })->purpose('Show PostgreSQL, Valkey, queue and operations health');
 
 Artisan::command('mars:ops-heartbeat {component=scheduler} {--instance=}', function (OperationsHealth $health): void {
-    $instance = (string) ($this->option('instance') ?: (gethostname() ?: 'mars'));
-    $health->heartbeat((string) $this->argument('component'), $instance, ['pid' => getmypid()]);
+    $instanceOption = $this->option('instance');
+    $hostname = gethostname();
+    $instance = is_string($instanceOption) && $instanceOption !== ''
+        ? $instanceOption
+        : (is_string($hostname) && $hostname !== '' ? $hostname : 'mars');
+    $componentArgument = $this->argument('component');
+    $component = is_string($componentArgument) && $componentArgument !== '' ? $componentArgument : 'scheduler';
+    $health->heartbeat($component, $instance, ['pid' => getmypid()]);
     $this->info('Heartbeat recorded.');
 })->purpose('Record worker or scheduler heartbeat');
 
@@ -30,13 +36,19 @@ Artisan::command('mars:ops-prune', function (OperationsHealth $health): void {
 
 Artisan::command('mars:backup {--user=}', function (BackupManager $backups): void {
     $user = $this->option('user');
-    $id = $backups->create(is_numeric($user) ? (int) $user : null);
+    $userId = (is_string($user) || is_int($user)) && is_numeric($user) ? (int) $user : null;
+    $id = $backups->create($userId);
     $this->info('Backup ready: '.$id);
 })->purpose('Create encrypted verified PostgreSQL .marsbak backup');
 
 Artisan::command('mars:restore {backup} {--user=} {--no-safety}', function (BackupManager $backups): void {
     $user = $this->option('user');
-    $backups->restore((string) $this->argument('backup'), is_numeric($user) ? (int) $user : null, ! (bool) $this->option('no-safety'));
+    $userId = (is_string($user) || is_int($user)) && is_numeric($user) ? (int) $user : null;
+    $backupArgument = $this->argument('backup');
+    if (! is_string($backupArgument) || $backupArgument === '') {
+        throw new InvalidArgumentException('Backup identifier is required.');
+    }
+    $backups->restore($backupArgument, $userId, $this->option('no-safety') !== true);
     $this->info('Restore completed.');
 })->purpose('Restore verified .marsbak with optional safety backup');
 
