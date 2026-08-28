@@ -206,6 +206,7 @@ final class BankStatementParser
             $itemNodes = $namespace === null ? $item : $item->children($namespace);
             if (isset($itemNodes->t)) {
                 $shared[] = (string) $itemNodes->t;
+
                 continue;
             }
 

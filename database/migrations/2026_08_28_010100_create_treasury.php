@@ -126,7 +126,7 @@ return new class extends Migration
         DB::statement("ALTER TABLE treasury_movements ADD CONSTRAINT treasury_movements_currency_check CHECK (currency_code ~ '^[A-Z]{3}$')");
         DB::statement("ALTER TABLE treasury_movements ADD CONSTRAINT treasury_movements_source_type_check CHECK (source_type ~ '^[a-z0-9]+([._-][a-z0-9]+)*$')");
         DB::statement("ALTER TABLE treasury_movements ADD CONSTRAINT treasury_movements_effect_type_check CHECK (effect_type ~ '^treasury[.][a-z0-9]+([._-][a-z0-9]+)*$')");
-        DB::statement("ALTER TABLE treasury_movements ADD CONSTRAINT treasury_movements_source_id_check CHECK (char_length(source_id) > 0 AND source_id = btrim(source_id))");
+        DB::statement('ALTER TABLE treasury_movements ADD CONSTRAINT treasury_movements_source_id_check CHECK (char_length(source_id) > 0 AND source_id = btrim(source_id))');
         DB::statement("ALTER TABLE treasury_movements ADD CONSTRAINT treasury_movements_fingerprint_check CHECK (effect_fingerprint ~ '^[a-f0-9]{64}$')");
         DB::statement("ALTER TABLE treasury_movements ADD CONSTRAINT treasury_movements_type_check CHECK (movement_type IN ('collection','payment','cash_in','cash_out','bank_in','bank_out','expense','transfer_out','transfer_in','pos_pending','pos_settlement_out','pos_settlement_in','pos_reversal','pos_chargeback','cash_count_adjustment'))");
 
