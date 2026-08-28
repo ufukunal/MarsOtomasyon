@@ -13,6 +13,7 @@ final class User extends Authenticatable
         'email',
         'password',
         'status',
+        'is_platform_admin',
         'last_login_at',
     ];
 
@@ -27,10 +28,16 @@ final class User extends Authenticatable
             'email_verified_at' => 'immutable_datetime',
             'password' => 'hashed',
             'status' => UserStatus::class,
+            'is_platform_admin' => 'boolean',
             'last_login_at' => 'immutable_datetime',
             'created_at' => 'immutable_datetime',
             'updated_at' => 'immutable_datetime',
         ];
+    }
+
+    public function isPlatformAdmin(): bool
+    {
+        return (bool) $this->is_platform_admin;
     }
 
     /** @return HasMany<CompanyMembership, $this> */
