@@ -1,0 +1,268 @@
+name: Finalize Repository
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+  actions: read
+  checks: read
+
+jobs:
+  finalize:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Validate PR checks and merge
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+
+          merge_pr () {
+            PR="$1"
+
+            STATE="$(gh api "repos/$REPO/pulls/$PR" --jq '.state')"
+
+            if [ "$STATE" = "closed" ]; then
+              echo "PR #$PR already closed."
+              return
+            fi
+
+            SHA="$(gh api "repos/$REPO/pulls/$PR" --jq '.head.sha')"
+
+            echo "Checking PR #$PR ($SHA)"
+
+            CHECKS="$(
+              gh api \
+                -H "Accept: application/vnd.github+json" \
+                "repos/$REPO/commits/$SHA/check-runs" \
+                --jq '.check_runs[] | [.name,.status,.conclusion] | @tsv'
+            )"
+
+            echo "$CHECKS"
+
+            BAD="$(
+              echo "$CHECKS" |
+              awk -F '\t' '
+                $2 != "completed" ||
+                ($3 != "success" &&
+                 $3 != "neutral" &&
+                 $3 != "skipped") {
+                  print
+                }
+              '
+            )"
+
+            if [ -n "$BAD" ]; then
+              echo
+              echo "PR #$PR is NOT green:"
+              echo "$BAD"
+              exit 1
+            fi
+
+            echo "PR #$PR is green. Merging..."
+
+            gh pr merge "$PR" \
+              --repo "$REPO" \
+              --squash \
+              --delete-branch
+          }
+
+          merge_pr 68
+          merge_pr 69
+
+      - name: Delete all branches except main
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+
+          DEFAULT_BRANCH="$(
+            gh api "repos/$REPO" --jq '.default_branch'
+          )"
+
+          if [ "$DEFAULT_BRANCH" != "main" ]; then
+            echo "Refusing cleanup: default branch is '$DEFAULT_BRANCH', not main."
+            exit 1
+          fi
+
+          BRANCHES="$(
+            gh api \
+              --paginate \
+              "repos/$REPO/branches?per_page=100" \
+              --jq '.[].name'
+          )"
+
+          while IFS= read -r BRANCH; do
+            [ -z "$BRANCH" ] && continue
+
+            if [ "$BRANCH" = "main" ]; then
+              continue
+            fi
+
+            echo "Deleting branch: $BRANCH"
+
+            ENCODED="$(
+              python3 -c \
+                'import sys, urllib.parse; print(urllib.parse.quote(sys.argv[1], safe=""))' \
+                "$BRANCH"
+            )"
+
+            gh api \
+              --method DELETE \
+              "repos/$REPO/git/refs/heads/$ENCODED"
+          done <<< "$BRANCHES"
+
+      - name: Wait for main CI
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+
+          git fetch origin main
+          MAIN_SHA="$(git rev-parse origin/main)"
+
+          echo "Current main: $MAIN_SHA"
+
+          sleep 20
+
+          for attempt in $(seq 1 60); do
+            RUNS="$(
+              gh api \
+                "repos/$REPO/actions/runs?head_sha=$MAIN_SHA&per_page=100" \
+                --jq '
+                  [
+                    .workflow_runs[]
+                    | select(.name != "Finalize Repository")
+                  ]
+                '
+            )"
+
+            COUNT="$(echo "$RUNS" | jq 'length')"
+
+            if [ "$COUNT" -eq 0 ]; then
+              echo "Waiting for main workflows to start..."
+              sleep 10
+              continue
+            fi
+
+            ACTIVE="$(
+              echo "$RUNS" |
+              jq '
+                [
+                  .[]
+                  | select(
+                      .status != "completed"
+                    )
+                ]
+                | length
+              '
+            )"
+
+            if [ "$ACTIVE" -gt 0 ]; then
+              echo "Main CI still running..."
+              sleep 15
+              continue
+            fi
+
+            FAILED="$(
+              echo "$RUNS" |
+              jq '
+                [
+                  .[]
+                  | select(
+                      .conclusion != "success"
+                      and .conclusion != "neutral"
+                      and .conclusion != "skipped"
+                    )
+                ]
+                | length
+              '
+            )"
+
+            echo "$RUNS" |
+            jq -r '
+              .[]
+              | "\(.name): \(.conclusion)"
+            '
+
+            if [ "$FAILED" -ne 0 ]; then
+              echo "main CI FAILED."
+              exit 1
+            fi
+
+            echo "main CI is green."
+            exit 0
+          done
+
+          echo "Timed out waiting for main CI."
+          exit 1
+
+      - name: Final repository verification
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+
+          echo "============================"
+          echo "BRANCHES"
+          echo "============================"
+
+          BRANCHES="$(
+            gh api \
+              --paginate \
+              "repos/$REPO/branches?per_page=100" \
+              --jq '.[].name'
+          )"
+
+          echo "$BRANCHES"
+
+          BRANCH_COUNT="$(echo "$BRANCHES" | grep -c . || true)"
+
+          if [ "$BRANCH_COUNT" -ne 1 ]; then
+            echo "Expected exactly one branch."
+            exit 1
+          fi
+
+          if [ "$BRANCHES" != "main" ]; then
+            echo "Only remaining branch is not main."
+            exit 1
+          fi
+
+          echo
+          echo "============================"
+          echo "OPEN PULL REQUESTS"
+          echo "============================"
+
+          OPEN_PRS="$(
+            gh api \
+              "repos/$REPO/pulls?state=open&per_page=100" \
+              --jq 'length'
+          )"
+
+          echo "$OPEN_PRS"
+
+          if [ "$OPEN_PRS" -ne 0 ]; then
+            echo "There are still open pull requests."
+            exit 1
+          fi
+
+          echo
+          echo "============================"
+          echo "FINAL RESULT"
+          echo "============================"
+          echo "Only branch: main"
+          echo "Open PRs: 0"
+          echo "Repository cleanup: OK"
