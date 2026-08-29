@@ -1,30 +1,11 @@
 
-  [39;41;1m FAIL [39;49;22m[39m Tests\Integration\SalesReturns\M12SalesReturnRmaTest[39m
-  [31;1m⨯[39;22m[90m [39m[90mit completes a partial RMA with exact customer credit and original-[39m[90m…[39m [90m1.89s[39m  
-  [32;1m✓[39;22m[90m [39m[90mit serializes RMA authorization against remaining invoice return ca[39m[90m…[39m [90m2.42s[39m  
-  [32;1m✓[39;22m[90m [39m[90mit closes a rejected RMA without customer credit or stock restorati[39m[90m…[39m [90m2.33s[39m  
-  [32;1m✓[39;22m[90m [39m[90mit enforces RMA lifecycle and tenant lineage at PostgreSQL boundary[39m[90m [39m [90m2.18s[39m  
-  [31m────────────────────────────────────────────────────────────────────────────[39m  
-  [41;1m FAILED [49;22m [1mTests\Integration\SalesReturns\M12SalesReturnRmaT[22m… [41;1m QueryException [49;22m  
-[39;1m  SQLSTATE[P0001]: Raise exception: 7 ERROR:  stock_movements is append-only; use an explicit reversal or adjustment
-CONTEXT:  PL/pgSQL function mars_prevent_stock_movement_mutation() line 3 at RAISE (Connection: pgsql, Host: 127.0.0.1, Port: 5432, Database: mars_test, SQL: delete from "stock_movements" where "movement_type" = sales_return_in)[39;22m
+  [30;42;1m PASS [39;49;22m[39m Tests\Integration\SalesReturns\M12SalesReturnRmaTest[39m
+  [32;1m✓[39;22m[90m [39m[90mit completes a partial RMA with exact customer credit and original-[39m[90m…[39m [90m2.25s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit serializes RMA authorization against remaining invoice return ca[39m[90m…[39m [90m2.01s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit closes a rejected RMA without customer credit or stock restorati[39m[90m…[39m [90m1.98s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit enforces RMA lifecycle and tenant lineage at PostgreSQL boundary[39m[90m [39m [90m1.95s[39m  
 
-  at [32mvendor/laravel/framework/src/Illuminate/Database/Connection.php[39m:[32m626[39m
-    622▕             $statement = $this->getPdo()->prepare($query);
-    623▕ 
-    624▕             $this->bindValues($statement, $this->prepareBindings($bindings));
-    625▕ 
-  ➜ 626▕             $statement->execute();
-    627▕ 
-    628▕             $this->recordsHaveBeenModified(
-    629▕                 ($count = $statement->rowCount()) > 0
-    630▕             );
+  [90mTests:[39m    [32;1m4 passed[39;22m[90m (44 assertions)[39m
+  [90mDuration:[39m [39m8.27s[39m
 
-      [2m+6 vendor frames [22m
-  [33m7   [39m[39;1mdatabase/migrations/2026_08_28_010300_create_m12_sales_returns_rma.php[39;22m:[39;1m565[39;22m
-
-
-  [90mTests:[39m    [31;1m1 failed[39;22m[90m,[39m[39m [39m[32;1m3 passed[39;22m[90m (44 assertions)[39m
-  [90mDuration:[39m [39m8.90s[39m
-
-TEST_EXIT=2
+TEST_EXIT=0
