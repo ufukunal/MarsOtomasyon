@@ -20,7 +20,7 @@ final class ReportService
      */
     public function build(int $companyId, array $filters): array
     {
-        $asOf = CarbonImmutable::createFromFormat('Y-m-d', $filters['as_of'])->startOfDay();
+        $asOf = CarbonImmutable::parse($filters['as_of']);
 
         return [
             'finance' => $this->financeSnapshot($companyId, $filters, $asOf),
@@ -49,7 +49,7 @@ final class ReportService
             })
             ->where('account.company_id', $companyId)
             ->select('account.id', 'account.book_currency_code', 'account.type')
-            ->selectRaw('COALESCE(SUM(tx.amount), 0) AS balance')
+            ->selectRaw('COALESCE(SUM(tx.signed_amount), 0) AS balance')
             ->groupBy('account.id', 'account.book_currency_code', 'account.type');
 
         if ($filters['currency'] !== null) {
@@ -85,8 +85,8 @@ final class ReportService
         }
 
         $rows = [];
-        foreach ($currencies as $currency) {
-            $currency = (string) $currency;
+        foreach ($currencies as $currencyValue) {
+            $currency = (string) $currencyValue;
             $receivable = 0.0;
             $payable = 0.0;
 
@@ -151,13 +151,16 @@ final class ReportService
             ->orderBy('posting_date')
             ->orderBy('created_at')
             ->orderBy('id')
-            ->get(['id', 'account_id', 'posting_date', 'amount'])
+            ->get(['id', 'account_id', 'posting_date', 'signed_amount'])
             ->groupBy('account_id');
 
         $rows = [];
         foreach ($accounts as $account) {
             $accountTransactions = $transactions->get($account->id, collect());
-            $net = round((float) $accountTransactions->sum(fn (object $tx): float => (float) $tx->amount), 6);
+            $net = round((float) $accountTransactions->sum(
+                static fn (object $tx): float => (float) $tx->signed_amount,
+            ), 6);
+
             if (abs($net) < 0.000001) {
                 continue;
             }
@@ -178,7 +181,7 @@ final class ReportService
             ];
 
             foreach ($lots as $lot) {
-                $dueDate = CarbonImmutable::createFromFormat('Y-m-d', $lot['due_date'])->startOfDay();
+                $dueDate = CarbonImmutable::parse($lot['due_date']);
                 $amount = $lot['amount'];
 
                 if ($dueDate->greaterThanOrEqualTo($asOf)) {
@@ -226,7 +229,7 @@ final class ReportService
         $credit = 0.0;
 
         foreach ($transactions as $transaction) {
-            $amount = (float) $transaction->amount * $direction;
+            $amount = (float) $transaction->signed_amount * $direction;
 
             if ($amount > 0.000001) {
                 if ($credit > 0) {
@@ -267,7 +270,7 @@ final class ReportService
             }
         }
 
-        return array_values($lots);
+        return $lots;
     }
 
     /**
@@ -288,7 +291,6 @@ final class ReportService
                 'warehouse_id',
                 'location_id',
                 'balance_quantity_after',
-                'average_unit_cost_after',
                 'inventory_value_after',
             ])
             ->selectRaw('ROW_NUMBER() OVER (PARTITION BY product_id, warehouse_id, location_id ORDER BY occurred_at DESC, id DESC) AS row_number');
