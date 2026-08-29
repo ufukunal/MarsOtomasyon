@@ -1,48 +1,10 @@
 
-  [39;41;1m FAIL [39;49;22m[39m Tests\Integration\Reports\M13ReportsTest[39m
-  [31;1m⨯[39;22m[90m [39m[90mit builds tenant scoped finance snapshot and fifo aging from canoni[39m[90m…[39m [90m2.09s[39m  
-  [31;1m⨯[39;22m[90m [39m[90mit reports as-of stock valuation and exports report sections as csv[39m[90m [39m [90m1.85s[39m  
-  [32;1m✓[39;22m[90m [39m[90mit keeps reports behind reports view permission[39m[90m                     [39m [90m1.93s[39m  
-  [31m────────────────────────────────────────────────────────────────────────────[39m  
-  [41;1m FAILED [49;22m [1mTests\Integration\Reports\M13ReportsTest[22m…  [41;1m ModelNotFoundException [49;22m  
-[39;1m  No query results for model [App\Modules\Core\Models\Permission].[39;22m
+  [30;42;1m PASS [39;49;22m[39m Tests\Integration\Reports\M13ReportsTest[39m
+  [32;1m✓[39;22m[90m [39m[90mit builds tenant scoped finance snapshot and fifo aging from canoni[39m[90m…[39m [90m2.03s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit reports as-of stock valuation and exports report sections as csv[39m[90m [39m [90m1.74s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit keeps reports behind reports view permission[39m[90m                     [39m [90m1.68s[39m  
 
-  at [32mvendor/laravel/framework/src/Illuminate/Database/Eloquent/Builder.php[39m:[32m786[39m
-    782▕         if (! is_null($model = $this->first($columns))) {
-    783▕             return $model;
-    784▕         }
-    785▕ 
-  ➜ 786▕         throw (new ModelNotFoundException)->setModel(get_class($this->model));
-    787▕     }
-    788▕ 
-    789▕     /**
-    790▕      * Execute the query and get the first result or call a callback.
+  [90mTests:[39m    [32;1m3 passed[39;22m[90m (26 assertions)[39m
+  [90mDuration:[39m [39m5.52s[39m
 
-      [2m+1 vendor frames [22m
-  [33m2   [39m[39;1mapp/Modules/Core/Authorization/GrantPermissionToRole.php[39;22m:[39;1m28[39;22m
-  [33m3   [39m[39;1mtests/Integration/Reports/M13ReportsTest.php[39;22m:[39;1m220[39;22m
-
-  [31m────────────────────────────────────────────────────────────────────────────[39m  
-  [41;1m FAILED [49;22m [1mTests\Integration\Reports\M13ReportsTest[22m…  [41;1m ModelNotFoundException [49;22m  
-[39;1m  No query results for model [App\Modules\Core\Models\Permission].[39;22m
-
-  at [32mvendor/laravel/framework/src/Illuminate/Database/Eloquent/Builder.php[39m:[32m786[39m
-    782▕         if (! is_null($model = $this->first($columns))) {
-    783▕             return $model;
-    784▕         }
-    785▕ 
-  ➜ 786▕         throw (new ModelNotFoundException)->setModel(get_class($this->model));
-    787▕     }
-    788▕ 
-    789▕     /**
-    790▕      * Execute the query and get the first result or call a callback.
-
-      [2m+1 vendor frames [22m
-  [33m2   [39m[39;1mapp/Modules/Core/Authorization/GrantPermissionToRole.php[39;22m:[39;1m28[39;22m
-  [33m3   [39m[39;1mtests/Integration/Reports/M13ReportsTest.php[39;22m:[39;1m220[39;22m
-
-
-  [90mTests:[39m    [31;1m2 failed[39;22m[90m,[39m[39m [39m[32;1m1 passed[39;22m[90m (1 assertions)[39m
-  [90mDuration:[39m [39m5.95s[39m
-
-TEST_EXIT=2
+TEST_EXIT=0
