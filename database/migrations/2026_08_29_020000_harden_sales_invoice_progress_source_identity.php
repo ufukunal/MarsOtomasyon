@@ -18,19 +18,19 @@ BEGIN
         RETURN NEW;
     END IF;
 
-    -- Reversals have their own exact lifecycle contract. Guard only original
-    -- invoice progress effects and malformed attempts to impersonate one.
+    -- Reversals have their own exact lifecycle contract. This guard applies
+    -- only to original effects that explicitly claim a sales invoice line as
+    -- their source; generic sales-order progress is allowed to use the
+    -- progress.invoice effect type without impersonating an invoice line.
     IF NEW.reversal_of_progress_effect_id IS NOT NULL THEN
         RETURN NEW;
     END IF;
 
-    IF NEW.effect_type <> 'progress.invoice'
-       AND NOT (NEW.source_type = 'sales_invoice_line' AND NEW.progress_type = 'invoiced') THEN
+    IF NEW.source_type <> 'sales_invoice_line' THEN
         RETURN NEW;
     END IF;
 
     IF NEW.progress_type <> 'invoiced'
-       OR NEW.source_type <> 'sales_invoice_line'
        OR NEW.effect_type <> 'progress.invoice'
        OR NEW.source_id !~ '^[1-9][0-9]*$' THEN
         RAISE EXCEPTION 'sales invoice progress source identity is invalid' USING ERRCODE = '23514';
