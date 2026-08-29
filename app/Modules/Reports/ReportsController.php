@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\View\View;
 use RuntimeException;
+use stdClass;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 final readonly class ReportsController
@@ -84,8 +85,8 @@ final readonly class ReportsController
      *     finance:list<array{currency:string,treasury:float,receivable:float,payable:float,net:float}>,
      *     aging:list<array{id:int,code:string,name:string,type:string,currency:string,current:float,days_1_30:float,days_31_60:float,days_61_90:float,days_90_plus:float,total:float}>,
      *     stock:list<array{product_id:int,product_code:string,product_name:string,warehouse_id:int,warehouse_code:string,warehouse_name:string,quantity:float,unit_cost:float,value:float}>,
-     *     movements:Collection<int, object>,
-     *     warehouses:Collection<int, object>
+     *     movements:Collection<int, stdClass>,
+     *     warehouses:Collection<int, stdClass>
      * }  $data
      * @return array{0:list<string>,1:list<list<string|int|float>>}
      */
@@ -131,7 +132,7 @@ final readonly class ReportsController
             ],
             'movements' => [
                 ['Tarih', 'Ürün Kodu', 'Ürün', 'Depo', 'Hareket', 'Miktar', 'Birim Maliyet', 'Değer', 'Kaynak Tipi', 'Kaynak'],
-                $data['movements']->map(static fn (object $row): array => [
+                $data['movements']->map(static fn (stdClass $row): array => [
                     (string) $row->occurred_at,
                     (string) $row->product_code,
                     (string) $row->product_name,
@@ -142,7 +143,7 @@ final readonly class ReportsController
                     (string) $row->value_delta,
                     (string) $row->source_type,
                     (string) $row->source_id,
-                ])->all(),
+                ])->values()->all(),
             ],
             default => throw new RuntimeException('Unsupported report export section.'),
         };
