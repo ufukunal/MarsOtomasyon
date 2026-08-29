@@ -23,5 +23,3 @@ Resmî post-V1 roadmap:
 `M25 Product Family/Variant → M26 Barkod/Termal Etiket → M27 Mobil Depo/Scanner → M28 Kargo API Adapterları → M29 OCR Fatura/Dekont → M30 Hafif CRM → M31 BI Export`.
 
 `MarsEski` yeni uygulamanın kod tabanı değildir. Eski repo yalnız V16.3 ile uyumlu business correctness, edge-case, test ve migration referansıdır.
-
-<!-- m13-final-ci-refresh -->
