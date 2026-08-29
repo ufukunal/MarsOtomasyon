@@ -8,6 +8,7 @@ enum DocumentType: string
     case SalesOrder = 'sales_order';
     case Dispatch = 'dispatch';
     case SalesInvoice = 'sales_invoice';
+    case SalesReturn = 'sales_return';
     case PurchaseOrder = 'purchase_order';
     case GoodsReceipt = 'goods_receipt';
     case SupplierInvoice = 'supplier_invoice';
@@ -23,6 +24,7 @@ enum DocumentType: string
             self::SalesOrder => 'Satış Siparişi',
             self::Dispatch => 'İrsaliye / Sevkiyat',
             self::SalesInvoice => 'Satış Faturası',
+            self::SalesReturn => 'Satış İadesi / RMA',
             self::PurchaseOrder => 'Satınalma Siparişi',
             self::GoodsReceipt => 'Mal Kabul',
             self::SupplierInvoice => 'Alış Faturası',

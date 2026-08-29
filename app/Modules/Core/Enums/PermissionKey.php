@@ -31,6 +31,8 @@ enum PermissionKey: string
     case DispatchManage = 'dispatches.manage';
     case SalesInvoiceView = 'sales_invoices.view';
     case SalesInvoiceManage = 'sales_invoices.manage';
+    case SalesReturnView = 'sales_returns.view';
+    case SalesReturnManage = 'sales_returns.manage';
     case PurchaseOrderView = 'purchase_orders.view';
     case PurchaseOrderManage = 'purchase_orders.manage';
     case GoodsReceiptView = 'goods_receipts.view';
@@ -86,6 +88,8 @@ enum PermissionKey: string
             self::DispatchManage => 'İrsaliye yönetimi',
             self::SalesInvoiceView => 'Satış faturası görüntüleme',
             self::SalesInvoiceManage => 'Satış faturası yönetimi',
+            self::SalesReturnView => 'Satış iadesi / RMA görüntüleme',
+            self::SalesReturnManage => 'Satış iadesi / RMA yönetimi',
             self::PurchaseOrderView => 'Satınalma siparişi görüntüleme',
             self::PurchaseOrderManage => 'Satınalma siparişi yönetimi',
             self::GoodsReceiptView => 'Mal kabul görüntüleme',

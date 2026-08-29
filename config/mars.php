@@ -10,7 +10,7 @@ return [
         'production' => false,
         'treasury' => true,
         'instruments' => false,
-        'returns' => false,
+        'returns' => true,
         'import' => false,
         'commerce' => true,
         'communications' => true,
