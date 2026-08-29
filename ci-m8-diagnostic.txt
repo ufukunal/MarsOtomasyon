@@ -1,0 +1,37 @@
+
+  [39;41;1m FAIL [39;49;22m[39m Tests\Integration\SalesInvoices\SalesInvoiceOrderProgressTest[39m
+  [32;1m✓[39;22m[90m [39m[90mit projects net invoiced draft previous and remaining quantities ac[39m[90m…[39m [90m2.42s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit blocks over invoice before numbering and keeps the failed draft[39m[90m… [39m [90m2.03s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit enforces over invoice at PostgreSQL when application validation[39m[90m… [39m [90m2.02s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit blocks invoiced or cancelled progress that would invalidate an e[39m[90m…[39m [90m2.00s[39m  
+  [31;1m⨯[39;22m[90m [39m[90mit moves linked draft commitment into invoiced progress on finalize[39m[90m…[39m [90m2.10s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit rejects linked finalization at commit when exact invoice progres[39m[90m…[39m [90m2.03s[39m  
+  [31m────────────────────────────────────────────────────────────────────────────[39m  
+  [41;1m FAILED [49;22m [1mTests\Integration\SalesInvoices\SalesInvoiceOrderProgressTest[22m [90m>[39m i…   
+[39;1m  Failed asserting that two strings are equal.
+
+The following errors occurred during the last request:
+
+Sipariş progress işlemi sipariş miktarı sınırlarını aşamaz.
+
+  [39;22m[31m-'http://localhost/sales-invoices/1'[39m[39;1m
+  [39;22m[32m+'http://localhost'[39m[39;1m
+  [39;22m
+
+  at [32mtests/Integration/SalesInvoices/SalesInvoiceOrderProgressTest.php[39m:[32m211[39m
+    207▕ 
+    208▕     $this->actingAs($manager)
+    209▕         ->withSession(['active_company_id' => $company->getKey()])
+    210▕         ->post(route('sales-invoices.finalize', $invoice->getKey()))
+  ➜ 211▕         ->assertRedirect(route('sales-invoices.show', $invoice->getKey()));
+    212▕ 
+    213▕     $finalizedCapacity = SalesInvoiceOrderLineCapacity::query()
+    214▕         ->where('sales_order_line_id', $line->getKey())
+    215▕         ->firstOrFail();
+
+
+  [90mTests:[39m    [31;1m1 failed[39;22m[90m,[39m[39m [39m[32;1m5 passed[39;22m[90m (53 assertions)[39m
+  [90mDuration:[39m [39m12.68s[39m
+
+
+TEST_EXIT=1
