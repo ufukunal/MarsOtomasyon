@@ -1,0 +1,38 @@
+name: M12 Locate Stale Test
+
+on:
+  push:
+    paths:
+      - '.github/workflows/m12-locate-stale-test.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  locate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/m12-returns-rma
+      - name: Scan tests for M12 enum/table contracts
+        run: |
+          set -euo pipefail
+          {
+            echo '=== candidate filenames ==='
+            find tests -type f | sort | grep -Ei 'enum|table|schema|foundation|stock|movement|contract' || true
+            echo
+            echo '=== exact new values ==='
+            grep -RniE 'SalesReturnIn|sales_return_in|sales_return' app database tests || true
+            echo
+            echo '=== enum/table contract candidates ==='
+            grep -RniE 'StockMovementType|MovementType|::cases\(|array_column\(.*cases|stock_movements|movement.*type|enum.*table|table.*enum' tests || true
+          } > m12-test-scan.txt
+      - name: Commit scan result
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add m12-test-scan.txt
+          git commit -m 'chore(m12): record stale contract scan' || exit 0
+          git push
