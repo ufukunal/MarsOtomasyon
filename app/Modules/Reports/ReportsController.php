@@ -132,7 +132,7 @@ final readonly class ReportsController
             ],
             'movements' => [
                 ['Tarih', 'Ürün Kodu', 'Ürün', 'Depo', 'Hareket', 'Miktar', 'Birim Maliyet', 'Değer', 'Kaynak Tipi', 'Kaynak'],
-                $data['movements']->map(static fn (stdClass $row): array => [
+                array_values($data['movements']->map(static fn (stdClass $row): array => [
                     (string) $row->occurred_at,
                     (string) $row->product_code,
                     (string) $row->product_name,
@@ -143,7 +143,7 @@ final readonly class ReportsController
                     (string) $row->value_delta,
                     (string) $row->source_type,
                     (string) $row->source_id,
-                ])->values()->all(),
+                ])->all()),
             ],
             default => throw new RuntimeException('Unsupported report export section.'),
         };
