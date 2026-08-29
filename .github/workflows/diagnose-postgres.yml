@@ -67,22 +67,20 @@ jobs:
           --health-retries 20
     steps:
       - uses: actions/checkout@v4
-      - name: Patch M12 PostgreSQL trigger ambiguity
+      - name: Patch M12 rollback ordering
         shell: bash
         run: |
           python3 - <<'PY'
           from pathlib import Path
           path = Path('database/migrations/2026_08_28_010300_create_m12_sales_returns_rma.php')
           text = path.read_text()
-          replacements = {
-              "SELECT COALESCE(sum(requested_net),0), COALESCE(sum(requested_tax),0), COALESCE(sum(requested_gross),0)\n          INTO requested_net, requested_tax, requested_gross\n        FROM sales_return_lines WHERE company_id = OLD.company_id AND sales_return_id = OLD.id;":
-              "SELECT COALESCE(sum(srl.requested_net),0), COALESCE(sum(srl.requested_tax),0), COALESCE(sum(srl.requested_gross),0)\n          INTO requested_net, requested_tax, requested_gross\n        FROM sales_return_lines AS srl\n        WHERE srl.company_id = OLD.company_id AND srl.sales_return_id = OLD.id;",
-              "SELECT COALESCE(sum(credited_net),0), COALESCE(sum(credited_tax),0), COALESCE(sum(credited_gross),0)\n          INTO credited_net, credited_tax, credited_gross\n        FROM sales_return_lines\n        WHERE company_id = OLD.company_id AND sales_return_id = OLD.id;":
-              "SELECT COALESCE(sum(srl.credited_net),0), COALESCE(sum(srl.credited_tax),0), COALESCE(sum(srl.credited_gross),0)\n          INTO credited_net, credited_tax, credited_gross\n        FROM sales_return_lines AS srl\n        WHERE srl.company_id = OLD.company_id AND srl.sales_return_id = OLD.id;",
-          }
-          for old, new in replacements.items():
+          stock_old = "        DB::statement('DROP FUNCTION IF EXISTS mars_guard_sales_return_stock_in()');\n        DB::statement('ALTER TABLE stock_movements DROP CONSTRAINT IF EXISTS stock_movements_sales_return_source_check');"
+          stock_new = "        DB::statement('DROP FUNCTION IF EXISTS mars_guard_sales_return_stock_in()');\n        DB::table('stock_movements')->where('movement_type', 'sales_return_in')->delete();\n        DB::statement('ALTER TABLE stock_movements DROP CONSTRAINT IF EXISTS stock_movements_sales_return_source_check');"
+          perm_old = "        DB::table('permissions')->whereIn('key', ['sales_returns.view', 'sales_returns.manage'])->delete();"
+          perm_new = "        $permissionIds = DB::table('permissions')->whereIn('key', ['sales_returns.view', 'sales_returns.manage'])->pluck('id');\n        DB::table('role_permissions')->whereIn('permission_id', $permissionIds)->delete();\n        DB::table('permissions')->whereIn('key', ['sales_returns.view', 'sales_returns.manage'])->delete();"
+          for old, new in ((stock_old, stock_new), (perm_old, perm_new)):
               if old not in text:
-                  raise SystemExit('expected SQL fragment not found')
+                  raise SystemExit('expected rollback fragment not found')
               text = text.replace(old, new, 1)
           path.write_text(text)
           PY
@@ -108,5 +106,5 @@ jobs:
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
           git add database/migrations/2026_08_28_010300_create_m12_sales_returns_rma.php ci-postgres-failure.txt
-          git commit -m 'fix(m12): qualify sales return lifecycle aggregates [skip ci]' || exit 0
+          git commit -m 'fix(m12): make RMA migration rollback safe [skip ci]' || exit 0
           git push
