@@ -327,7 +327,7 @@ final class ReportService
             ->orderBy('warehouse.code')
             ->get();
 
-        return $snapshot->map(static fn (stdClass $row): array => [
+        return array_values($snapshot->map(static fn (stdClass $row): array => [
             'product_id' => (int) $row->product_id,
             'product_code' => (string) $row->product_code,
             'product_name' => (string) $row->product_name,
@@ -337,7 +337,7 @@ final class ReportService
             'quantity' => round((float) $row->quantity, 6),
             'unit_cost' => round((float) $row->unit_cost, 6),
             'value' => round((float) $row->value, 6),
-        ])->values()->all();
+        ])->all());
     }
 
     /**
