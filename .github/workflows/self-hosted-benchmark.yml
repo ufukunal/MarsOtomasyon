@@ -2,10 +2,6 @@ name: Self-Hosted Benchmark
 
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths:
-      - .github/workflows/self-hosted-benchmark.yml
 
 permissions:
   contents: read
@@ -17,8 +13,8 @@ concurrency:
 jobs:
   benchmark:
     name: benchmark-${{ matrix.slot }}
-    # The mars-ci custom label was probed first but did not match an online
-    # runner. Use only built-in labels for the bootstrap benchmark.
+    # mars-ci was probed during bootstrap but did not match either online runner.
+    # Use the built-in labels until the custom label is explicitly configured.
     runs-on: [self-hosted, linux, x64]
     timeout-minutes: 5
     strategy:
