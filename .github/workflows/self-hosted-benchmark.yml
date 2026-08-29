@@ -12,7 +12,7 @@ permissions:
 
 concurrency:
   group: self-hosted-benchmark
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 env:
   APP_NAME: MarsOtomasyon
@@ -24,7 +24,9 @@ env:
 jobs:
   benchmark:
     name: benchmark-${{ matrix.task }}
-    runs-on: [self-hosted, linux, x64, mars-ci]
+    # mars-ci was probed first. Fall back to the built-in labels so runner
+    # identity and health can be verified even if that custom label is absent.
+    runs-on: [self-hosted, linux, x64]
     timeout-minutes: 15
     strategy:
       fail-fast: false
