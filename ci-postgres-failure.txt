@@ -1,0 +1,45 @@
+
+  [39;41;1m FAIL [39;49;22m[39m Tests\Integration\Reports\M13ReportsTest[39m
+  [31;1m⨯[39;22m[90m [39m[90mit builds tenant scoped finance snapshot and fifo aging from canoni[39m[90m…[39m [90m1.78s[39m  
+  [31;1m⨯[39;22m[90m [39m[90mit reports as-of stock valuation and exports report sections as csv[39m[90m [39m [90m1.64s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit keeps reports behind reports view permission[39m[90m                     [39m [90m1.66s[39m  
+  [31m────────────────────────────────────────────────────────────────────────────[39m  
+  [41;1m FAILED [49;22m [1mTests\Integration\Reports\M13ReportsTest[22m [90m>[39m it builds tenan… [41;1m Error [49;22m  
+[39;1m  Undefined constant App\Modules\Core\Enums\PermissionKey::ReportsView[39;22m
+
+  at [32mtests/Integration/Reports/M13ReportsTest.php[39m:[32m42[39m
+     38▕     $this->withoutVite();
+     39▕ });
+     40▕ 
+     41▕ it('builds tenant scoped finance snapshot and fifo aging from canonical ledgers', function (): void {
+  ➜  42▕     [$company, $user] = m13ActorContext('M13-FINANCE', [PermissionKey::ReportsView]);
+     43▕     m13PostingPeriods($company);
+     44▕ 
+     45▕     $customer = m13Account($company, 'CUST-1', 'customer', 'M13 Müşteri');
+     46▕     $supplier = m13Account($company, 'SUP-1', 'supplier', 'M13 Tedarikçi');
+
+  [33m1   [39m[39;1mtests/Integration/Reports/M13ReportsTest.php[39;22m:[39;1m42[39;22m
+
+  [31m────────────────────────────────────────────────────────────────────────────[39m  
+  [41;1m FAILED [49;22m [1mTests\Integration\Reports\M13ReportsTest[22m [90m>[39m it reports as-o… [41;1m Error [49;22m  
+[39;1m  Undefined constant App\Modules\Core\Enums\PermissionKey::ReportsView[39;22m
+
+  at [32mtests/Integration/Reports/M13ReportsTest.php[39m:[32m289[39m
+    285▕ /** @return array{Company, User, Product, Warehouse, WarehouseLocation} */
+    286▕ function m13StockContext(string $code): array
+    287▕ {
+    288▕     [$company, $user] = m13ActorContext($code, [
+  ➜ 289▕         PermissionKey::ReportsView,
+    290▕         PermissionKey::ProductView,
+    291▕         PermissionKey::ProductManage,
+    292▕         PermissionKey::InventoryView,
+    293▕         PermissionKey::InventoryManage,
+
+  [33m1   [39m[39;1mtests/Integration/Reports/M13ReportsTest.php[39;22m:[39;1m289[39;22m
+  [33m2   [39m[39;1mtests/Integration/Reports/M13ReportsTest.php[39;22m:[39;1m138[39;22m
+
+
+  [90mTests:[39m    [31;1m2 failed[39;22m[90m,[39m[39m [39m[32;1m1 passed[39;22m[90m (1 assertions)[39m
+  [90mDuration:[39m [39m5.15s[39m
+
+TEST_EXIT=2
