@@ -6,6 +6,7 @@ on:
     paths:
       - '.github/workflows/diagnose-postgres.yml'
       - 'app/Modules/Core/Enums/PermissionKey.php'
+      - 'database/migrations/2026_08_29_000100_add_reports_permission.php'
 
 permissions:
   contents: write
