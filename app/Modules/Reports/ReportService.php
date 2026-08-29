@@ -186,6 +186,7 @@ final class ReportService
 
                 if ($dueDate->greaterThanOrEqualTo($asOf)) {
                     $buckets['current'] += $amount;
+
                     continue;
                 }
 
