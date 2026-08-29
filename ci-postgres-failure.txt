@@ -1,31 +1,13 @@
 
   [39;41;1m FAIL [39;49;22m[39m Tests\Integration\SalesReturns\M12SalesReturnRmaTest[39m
-  [31;1m⨯[39;22m[90m [39m[90mit completes a partial RMA with exact customer credit and original-[39m[90m…[39m [90m1.80s[39m  
-  [31;1m⨯[39;22m[90m [39m[90mit serializes RMA authorization against remaining invoice return ca[39m[90m…[39m [90m1.72s[39m  
-  [31;1m⨯[39;22m[90m [39m[90mit closes a rejected RMA without customer credit or stock restorati[39m[90m…[39m [90m1.74s[39m  
-  [31;1m⨯[39;22m[90m [39m[90mit enforces RMA lifecycle and tenant lineage at PostgreSQL boundary[39m[90m [39m [90m1.75s[39m  
+  [31;1m⨯[39;22m[90m [39m[90mit completes a partial RMA with exact customer credit and original-[39m[90m…[39m [90m1.89s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit serializes RMA authorization against remaining invoice return ca[39m[90m…[39m [90m2.42s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit closes a rejected RMA without customer credit or stock restorati[39m[90m…[39m [90m2.33s[39m  
+  [32;1m✓[39;22m[90m [39m[90mit enforces RMA lifecycle and tenant lineage at PostgreSQL boundary[39m[90m [39m [90m2.18s[39m  
   [31m────────────────────────────────────────────────────────────────────────────[39m  
   [41;1m FAILED [49;22m [1mTests\Integration\SalesReturns\M12SalesReturnRmaT[22m… [41;1m QueryException [49;22m  
-[39;1m  SQLSTATE[23514]: Check violation: 7 ERROR:  check constraint "stock_movements_type_check" of relation "stock_movements" is violated by some row (Connection: pgsql, Host: 127.0.0.1, Port: 5432, Database: mars_test, SQL: ALTER TABLE stock_movements ADD CONSTRAINT stock_movements_type_check CHECK (movement_type IN ('opening_in', 'adjustment_in', 'adjustment_out', 'transfer_in', 'transfer_out', 'dispatch_out', 'invoice_out', 'goods_receipt_in', 'purchase_return_out')))[39;22m
-
-  at [32mvendor/laravel/framework/src/Illuminate/Database/Connection.php[39m:[32m601[39m
-    597▕             $this->bindValues($statement, $this->prepareBindings($bindings));
-    598▕ 
-    599▕             $this->recordsHaveBeenModified();
-    600▕ 
-  ➜ 601▕             return $statement->execute();
-    602▕         });
-    603▕     }
-    604▕ 
-    605▕     /**
-
-      [2m+6 vendor frames [22m
-  [33m7   [39m[39;1mdatabase/migrations/2026_08_28_010300_create_m12_sales_returns_rma.php[39;22m:[39;1m568[39;22m
-
-  [31m────────────────────────────────────────────────────────────────────────────[39m  
-  [41;1m FAILED [49;22m [1mTests\Integration\SalesReturns\M12SalesReturnRmaT[22m… [41;1m QueryException [49;22m  
-[39;1m  SQLSTATE[23001]: Restrict violation: 7 ERROR:  update or delete on table "permissions" violates RESTRICT setting of foreign key constraint "role_permissions_permission_id_foreign" on table "role_permissions"
-DETAIL:  Key (id)=(51) is referenced from table "role_permissions". (Connection: pgsql, Host: 127.0.0.1, Port: 5432, Database: mars_test, SQL: delete from "permissions" where "key" in (sales_returns.view, sales_returns.manage))[39;22m
+[39;1m  SQLSTATE[P0001]: Raise exception: 7 ERROR:  stock_movements is append-only; use an explicit reversal or adjustment
+CONTEXT:  PL/pgSQL function mars_prevent_stock_movement_mutation() line 3 at RAISE (Connection: pgsql, Host: 127.0.0.1, Port: 5432, Database: mars_test, SQL: delete from "stock_movements" where "movement_type" = sales_return_in)[39;22m
 
   at [32mvendor/laravel/framework/src/Illuminate/Database/Connection.php[39m:[32m626[39m
     622▕             $statement = $this->getPdo()->prepare($query);
@@ -39,48 +21,10 @@ DETAIL:  Key (id)=(51) is referenced from table "role_permissions". (Connection:
     630▕             );
 
       [2m+6 vendor frames [22m
-  [33m7   [39m[39;1mdatabase/migrations/2026_08_28_010300_create_m12_sales_returns_rma.php[39;22m:[39;1m585[39;22m
-
-  [31m────────────────────────────────────────────────────────────────────────────[39m  
-  [41;1m FAILED [49;22m [1mTests\Integration\SalesReturns\M12SalesReturnRmaT[22m… [41;1m QueryException [49;22m  
-[39;1m  SQLSTATE[23001]: Restrict violation: 7 ERROR:  update or delete on table "permissions" violates RESTRICT setting of foreign key constraint "role_permissions_permission_id_foreign" on table "role_permissions"
-DETAIL:  Key (id)=(51) is referenced from table "role_permissions". (Connection: pgsql, Host: 127.0.0.1, Port: 5432, Database: mars_test, SQL: delete from "permissions" where "key" in (sales_returns.view, sales_returns.manage))[39;22m
-
-  at [32mvendor/laravel/framework/src/Illuminate/Database/Connection.php[39m:[32m626[39m
-    622▕             $statement = $this->getPdo()->prepare($query);
-    623▕ 
-    624▕             $this->bindValues($statement, $this->prepareBindings($bindings));
-    625▕ 
-  ➜ 626▕             $statement->execute();
-    627▕ 
-    628▕             $this->recordsHaveBeenModified(
-    629▕                 ($count = $statement->rowCount()) > 0
-    630▕             );
-
-      [2m+6 vendor frames [22m
-  [33m7   [39m[39;1mdatabase/migrations/2026_08_28_010300_create_m12_sales_returns_rma.php[39;22m:[39;1m585[39;22m
-
-  [31m────────────────────────────────────────────────────────────────────────────[39m  
-  [41;1m FAILED [49;22m [1mTests\Integration\SalesReturns\M12SalesReturnRmaT[22m… [41;1m QueryException [49;22m  
-[39;1m  SQLSTATE[23001]: Restrict violation: 7 ERROR:  update or delete on table "permissions" violates RESTRICT setting of foreign key constraint "role_permissions_permission_id_foreign" on table "role_permissions"
-DETAIL:  Key (id)=(51) is referenced from table "role_permissions". (Connection: pgsql, Host: 127.0.0.1, Port: 5432, Database: mars_test, SQL: delete from "permissions" where "key" in (sales_returns.view, sales_returns.manage))[39;22m
-
-  at [32mvendor/laravel/framework/src/Illuminate/Database/Connection.php[39m:[32m626[39m
-    622▕             $statement = $this->getPdo()->prepare($query);
-    623▕ 
-    624▕             $this->bindValues($statement, $this->prepareBindings($bindings));
-    625▕ 
-  ➜ 626▕             $statement->execute();
-    627▕ 
-    628▕             $this->recordsHaveBeenModified(
-    629▕                 ($count = $statement->rowCount()) > 0
-    630▕             );
-
-      [2m+6 vendor frames [22m
-  [33m7   [39m[39;1mdatabase/migrations/2026_08_28_010300_create_m12_sales_returns_rma.php[39;22m:[39;1m585[39;22m
+  [33m7   [39m[39;1mdatabase/migrations/2026_08_28_010300_create_m12_sales_returns_rma.php[39;22m:[39;1m565[39;22m
 
 
-  [90mTests:[39m    [31;1m4 failed[39;22m[90m (44 assertions)[39m
-  [90mDuration:[39m [39m7.09s[39m
+  [90mTests:[39m    [31;1m1 failed[39;22m[90m,[39m[39m [39m[32;1m3 passed[39;22m[90m (44 assertions)[39m
+  [90mDuration:[39m [39m8.90s[39m
 
 TEST_EXIT=2

@@ -562,6 +562,7 @@ SQL);
         DB::statement('DROP FUNCTION IF EXISTS mars_guard_sales_return_account_credit()');
         DB::statement('DROP TRIGGER IF EXISTS stock_movements_sales_return_in_guard ON stock_movements');
         DB::statement('DROP FUNCTION IF EXISTS mars_guard_sales_return_stock_in()');
+        DB::table('stock_movements')->where('movement_type', 'sales_return_in')->delete();
         DB::statement('ALTER TABLE stock_movements DROP CONSTRAINT IF EXISTS stock_movements_sales_return_source_check');
         DB::statement('ALTER TABLE stock_movements DROP CONSTRAINT stock_movements_type_check');
         DB::statement('ALTER TABLE stock_movements DROP CONSTRAINT stock_movements_direction_check');
@@ -582,6 +583,8 @@ SQL);
         Schema::table('sales_invoice_lines', function (Blueprint $table): void {
             $table->dropUnique('sales_invoice_lines_company_id_id_m12_unique');
         });
+        $permissionIds = DB::table('permissions')->whereIn('key', ['sales_returns.view', 'sales_returns.manage'])->pluck('id');
+        DB::table('role_permissions')->whereIn('permission_id', $permissionIds)->delete();
         DB::table('permissions')->whereIn('key', ['sales_returns.view', 'sales_returns.manage'])->delete();
     }
 };
