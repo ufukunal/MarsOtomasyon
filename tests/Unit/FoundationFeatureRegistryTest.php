@@ -22,6 +22,7 @@ final class FoundationFeatureRegistryTest extends TestCase
             FeatureKey::Communications,
             FeatureKey::Automation,
             FeatureKey::Operations,
+            FeatureKey::Returns,
         ] as $feature) {
             self::assertTrue($registry->enabled($feature), $feature->value.' must be enabled.');
         }
@@ -33,7 +34,6 @@ final class FoundationFeatureRegistryTest extends TestCase
         foreach ([
             FeatureKey::Production,
             FeatureKey::Instruments,
-            FeatureKey::Returns,
             FeatureKey::Import,
             FeatureKey::Reports,
         ] as $feature) {
