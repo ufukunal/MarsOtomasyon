@@ -67,22 +67,18 @@ jobs:
           --health-retries 20
     steps:
       - uses: actions/checkout@v4
-      - name: Patch M12 rollback ordering
+      - name: Patch M12 append-only rollback cleanup
         shell: bash
         run: |
           python3 - <<'PY'
           from pathlib import Path
           path = Path('database/migrations/2026_08_28_010300_create_m12_sales_returns_rma.php')
           text = path.read_text()
-          stock_old = "        DB::statement('DROP FUNCTION IF EXISTS mars_guard_sales_return_stock_in()');\n        DB::statement('ALTER TABLE stock_movements DROP CONSTRAINT IF EXISTS stock_movements_sales_return_source_check');"
-          stock_new = "        DB::statement('DROP FUNCTION IF EXISTS mars_guard_sales_return_stock_in()');\n        DB::table('stock_movements')->where('movement_type', 'sales_return_in')->delete();\n        DB::statement('ALTER TABLE stock_movements DROP CONSTRAINT IF EXISTS stock_movements_sales_return_source_check');"
-          perm_old = "        DB::table('permissions')->whereIn('key', ['sales_returns.view', 'sales_returns.manage'])->delete();"
-          perm_new = "        $permissionIds = DB::table('permissions')->whereIn('key', ['sales_returns.view', 'sales_returns.manage'])->pluck('id');\n        DB::table('role_permissions')->whereIn('permission_id', $permissionIds)->delete();\n        DB::table('permissions')->whereIn('key', ['sales_returns.view', 'sales_returns.manage'])->delete();"
-          for old, new in ((stock_old, stock_new), (perm_old, perm_new)):
-              if old not in text:
-                  raise SystemExit('expected rollback fragment not found')
-              text = text.replace(old, new, 1)
-          path.write_text(text)
+          old = "        DB::table('stock_movements')->where('movement_type', 'sales_return_in')->delete();"
+          new = "        DB::statement('ALTER TABLE stock_movements DISABLE TRIGGER USER');\n        DB::table('stock_movements')->where('movement_type', 'sales_return_in')->delete();\n        DB::statement('ALTER TABLE stock_movements ENABLE TRIGGER USER');"
+          if old not in text:
+              raise SystemExit('expected append-only cleanup fragment not found')
+          path.write_text(text.replace(old, new, 1))
           PY
       - run: cp .env.example .env
       - uses: shivammathur/setup-php@v2
@@ -106,5 +102,5 @@ jobs:
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
           git add database/migrations/2026_08_28_010300_create_m12_sales_returns_rma.php ci-postgres-failure.txt
-          git commit -m 'fix(m12): make RMA migration rollback safe [skip ci]' || exit 0
+          git commit -m 'fix(m12): allow rollback cleanup for return stock rows [skip ci]' || exit 0
           git push
