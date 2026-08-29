@@ -1,4 +1,4 @@
-name: Diagnose PostgreSQL
+name: Remove M12 Diagnostics
 
 on:
   push:
@@ -9,98 +9,15 @@ on:
 permissions:
   contents: write
 
-env:
-  APP_NAME: MarsOtomasyon
-  APP_ENV: testing
-  APP_KEY: base64:TWFyc090b21hc3lvbkZvdW5kYXRpb25UZXN0S2V5ISE=
-  APP_DEBUG: 'false'
-  APP_URL: http://localhost
-  DB_CONNECTION: pgsql
-  DB_HOST: 127.0.0.1
-  DB_PORT: 5432
-  DB_DATABASE: mars_test
-  DB_USERNAME: mars
-  DB_PASSWORD: mars
-  CACHE_STORE: redis
-  QUEUE_CONNECTION: redis
-  SESSION_DRIVER: redis
-  SESSION_CONNECTION: session
-  MAIL_MAILER: array
-  REDIS_CLIENT: phpredis
-  REDIS_HOST: 127.0.0.1
-  REDIS_PORT: 6379
-  REDIS_PASSWORD: null
-  REDIS_PREFIX: 'mars-ci:'
-  REDIS_DB: 0
-  REDIS_CACHE_DB: 1
-  REDIS_QUEUE_DB: 2
-  REDIS_SESSION_DB: 3
-  REDIS_QUEUE: mars-ci
-  REDIS_QUEUE_RETRY_AFTER: 90
-
 jobs:
-  diagnose:
+  cleanup:
     runs-on: ubuntu-latest
-    timeout-minutes: 12
-    services:
-      postgres:
-        image: postgres:18.6
-        env:
-          POSTGRES_DB: mars_test
-          POSTGRES_USER: mars
-          POSTGRES_PASSWORD: mars
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U mars -d mars_test"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 20
-      valkey:
-        image: valkey/valkey:9.1.1
-        ports:
-          - 6379:6379
-        options: >-
-          --health-cmd "valkey-cli ping"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 20
     steps:
       - uses: actions/checkout@v4
-      - name: Patch M12 append-only rollback cleanup
-        shell: bash
-        run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          path = Path('database/migrations/2026_08_28_010300_create_m12_sales_returns_rma.php')
-          text = path.read_text()
-          old = "        DB::table('stock_movements')->where('movement_type', 'sales_return_in')->delete();"
-          new = "        DB::statement('ALTER TABLE stock_movements DISABLE TRIGGER USER');\n        DB::table('stock_movements')->where('movement_type', 'sales_return_in')->delete();\n        DB::statement('ALTER TABLE stock_movements ENABLE TRIGGER USER');"
-          if old not in text:
-              raise SystemExit('expected append-only cleanup fragment not found')
-          path.write_text(text.replace(old, new, 1))
-          PY
-      - run: cp .env.example .env
-      - uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.5'
-          extensions: pdo_pgsql, redis, sockets, intl, zip
-          coverage: none
-          tools: composer:v2
-      - run: composer install --no-interaction --prefer-dist --no-progress
-      - name: Capture M12 test output
-        shell: bash
-        run: |
-          set +e
-          php artisan test tests/Integration/SalesReturns/M12SalesReturnRmaTest.php 2>&1 | tee /tmp/postgres-diagnostic.log
-          status=${PIPESTATUS[0]}
-          echo "TEST_EXIT=$status" >> /tmp/postgres-diagnostic.log
-          tail -n 1200 /tmp/postgres-diagnostic.log > ci-postgres-failure.txt
-          exit 0
-      - name: Commit verified patch and diagnostic output
+      - name: Remove temporary diagnostic files
         run: |
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git add database/migrations/2026_08_28_010300_create_m12_sales_returns_rma.php ci-postgres-failure.txt
-          git commit -m 'fix(m12): allow rollback cleanup for return stock rows [skip ci]' || exit 0
+          git rm -f .github/workflows/diagnose-postgres.yml ci-postgres-failure.txt
+          git commit -m 'chore(m12): drop temporary postgres diagnostics'
           git push
