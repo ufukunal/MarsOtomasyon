@@ -1,0 +1,114 @@
+name: Self-Hosted Benchmark
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/self-hosted-benchmark.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: self-hosted-benchmark
+  cancel-in-progress: false
+
+env:
+  APP_NAME: MarsOtomasyon
+  APP_ENV: testing
+  APP_KEY: base64:TWFyc090b21hc3lvbkZvdW5kYXRpb25UZXN0S2V5ISE=
+  APP_DEBUG: 'false'
+  APP_URL: http://localhost
+
+jobs:
+  benchmark:
+    name: benchmark-${{ matrix.task }}
+    runs-on: [self-hosted, linux, x64, mars-ci]
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        task: [quality, security]
+
+    steps:
+      - name: Runner identity and resources
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "runner_name=${{ runner.name }}"
+          echo "runner_os=${{ runner.os }}"
+          echo "runner_arch=${{ runner.arch }}"
+          echo "task=${{ matrix.task }}"
+          echo "logical_cpus=$(nproc)"
+          awk '/MemTotal:/ {print "mem_total_kib=" $2}' /proc/meminfo
+          echo "load_average=$(cut -d ' ' -f1-3 /proc/loadavg)"
+          free -h
+          df -h .
+          for cmd in php composer node npm docker podman psql valkey-cli redis-cli; do
+            if command -v "$cmd" >/dev/null 2>&1; then
+              echo "preinstalled_${cmd}=yes ($(command -v "$cmd"))"
+            else
+              echo "preinstalled_${cmd}=no"
+            fi
+          done
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Prepare Laravel environment
+        run: cp .env.example .env
+
+      - name: Setup PHP 8.5
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          extensions: pdo_pgsql, redis, sockets, intl, zip
+          coverage: none
+          tools: composer:v2
+
+      - name: Setup Node 24
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
+
+      - name: Validate Composer manifest
+        run: composer validate --strict
+
+      - name: Install PHP dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Run quality workload
+        if: matrix.task == 'quality'
+        shell: bash
+        run: |
+          set -euo pipefail
+          composer format:check
+          composer analyse
+          npm run build
+
+      - name: Run security workload
+        if: matrix.task == 'security'
+        shell: bash
+        run: |
+          set -euo pipefail
+          composer audit --no-interaction
+          npm audit --audit-level=high
+          bash scripts/ci/secret-scan.sh
+
+      - name: Final resource snapshot
+        if: always()
+        shell: bash
+        run: |
+          echo "runner_name=${{ runner.name }}"
+          echo "task=${{ matrix.task }}"
+          echo "load_average=$(cut -d ' ' -f1-3 /proc/loadavg)"
+          free -h
+          df -h .
