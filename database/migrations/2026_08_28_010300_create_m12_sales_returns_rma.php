@@ -303,9 +303,10 @@ BEGIN
             RAISE EXCEPTION 'sales return authorization may only change lifecycle fields' USING ERRCODE = '23514';
         END IF;
 
-        SELECT COALESCE(sum(requested_net),0), COALESCE(sum(requested_tax),0), COALESCE(sum(requested_gross),0)
+        SELECT COALESCE(sum(srl.requested_net),0), COALESCE(sum(srl.requested_tax),0), COALESCE(sum(srl.requested_gross),0)
           INTO requested_net, requested_tax, requested_gross
-        FROM sales_return_lines WHERE company_id = OLD.company_id AND sales_return_id = OLD.id;
+        FROM sales_return_lines AS srl
+        WHERE srl.company_id = OLD.company_id AND srl.sales_return_id = OLD.id;
         IF requested_gross <= 0
            OR OLD.requested_net_total IS DISTINCT FROM requested_net
            OR OLD.requested_tax_total IS DISTINCT FROM requested_tax
@@ -346,10 +347,10 @@ BEGIN
         IF NEW.received_at IS NULL THEN
             RAISE EXCEPTION 'sales return receipt timestamp is required' USING ERRCODE = '23514';
         END IF;
-        SELECT COALESCE(sum(credited_net),0), COALESCE(sum(credited_tax),0), COALESCE(sum(credited_gross),0)
+        SELECT COALESCE(sum(srl.credited_net),0), COALESCE(sum(srl.credited_tax),0), COALESCE(sum(srl.credited_gross),0)
           INTO credited_net, credited_tax, credited_gross
-        FROM sales_return_lines
-        WHERE company_id = OLD.company_id AND sales_return_id = OLD.id;
+        FROM sales_return_lines AS srl
+        WHERE srl.company_id = OLD.company_id AND srl.sales_return_id = OLD.id;
 
         IF EXISTS (
             SELECT 1 FROM sales_return_lines
