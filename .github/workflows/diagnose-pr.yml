@@ -1,0 +1,69 @@
+name: Diagnose PR
+
+on:
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: "PR number"
+        required: true
+        default: "68"
+
+permissions:
+  contents: read
+  pull-requests: read
+  actions: read
+  checks: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Find PR head and CI runs
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ inputs.pr_number }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+
+          HEAD_SHA="$(gh api "repos/$REPO/pulls/$PR" --jq '.head.sha')"
+
+          echo "PR: #$PR"
+          echo "HEAD: $HEAD_SHA"
+
+          gh api \
+            "repos/$REPO/actions/runs?head_sha=$HEAD_SHA&per_page=100" \
+            --jq '.workflow_runs[] | [.id,.name,.status,.conclusion,.html_url] | @tsv'
+
+      - name: Print failed job logs
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ inputs.pr_number }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+
+          HEAD_SHA="$(gh api "repos/$REPO/pulls/$PR" --jq '.head.sha')"
+
+          RUN_IDS="$(
+            gh api \
+              "repos/$REPO/actions/runs?head_sha=$HEAD_SHA&per_page=100" \
+              --jq '.workflow_runs[] | select(.conclusion == "failure") | .id'
+          )"
+
+          if [ -z "$RUN_IDS" ]; then
+            echo "No failed workflow runs found."
+            exit 0
+          fi
+
+          for RUN_ID in $RUN_IDS; do
+            echo
+            echo "============================================================"
+            echo "FAILED RUN: $RUN_ID"
+            echo "============================================================"
+
+            gh run view "$RUN_ID" \
+              --repo "$REPO" \
+              --log-failed || true
+          done
