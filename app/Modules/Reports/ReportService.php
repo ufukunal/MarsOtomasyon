@@ -5,6 +5,7 @@ namespace App\Modules\Reports;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use stdClass;
 
 final class ReportService
 {
@@ -14,8 +15,8 @@ final class ReportService
      *     finance:list<array{currency:string,treasury:float,receivable:float,payable:float,net:float}>,
      *     aging:list<array{id:int,code:string,name:string,type:string,currency:string,current:float,days_1_30:float,days_31_60:float,days_61_90:float,days_90_plus:float,total:float}>,
      *     stock:list<array{product_id:int,product_code:string,product_name:string,warehouse_id:int,warehouse_code:string,warehouse_name:string,quantity:float,unit_cost:float,value:float}>,
-     *     movements:Collection<int, object>,
-     *     warehouses:Collection<int, object>
+     *     movements:Collection<int, stdClass>,
+     *     warehouses:Collection<int, stdClass>
      * }
      */
     public function build(int $companyId, array $filters): array
@@ -158,7 +159,7 @@ final class ReportService
         foreach ($accounts as $account) {
             $accountTransactions = $transactions->get($account->id, collect());
             $net = round((float) $accountTransactions->sum(
-                static fn (object $tx): float => (float) $tx->signed_amount,
+                static fn (stdClass $tx): float => (float) $tx->signed_amount,
             ), 6);
 
             if (abs($net) < 0.000001) {
@@ -221,7 +222,7 @@ final class ReportService
     }
 
     /**
-     * @param  Collection<int, object>  $transactions
+     * @param  Collection<int, stdClass>  $transactions
      * @return list<array{amount:float,due_date:string}>
      */
     private function outstandingLots(Collection $transactions, int $direction, int $dueDays): array
@@ -326,7 +327,7 @@ final class ReportService
             ->orderBy('warehouse.code')
             ->get();
 
-        return $snapshot->map(static fn (object $row): array => [
+        return $snapshot->map(static fn (stdClass $row): array => [
             'product_id' => (int) $row->product_id,
             'product_code' => (string) $row->product_code,
             'product_name' => (string) $row->product_name,
@@ -336,12 +337,12 @@ final class ReportService
             'quantity' => round((float) $row->quantity, 6),
             'unit_cost' => round((float) $row->unit_cost, 6),
             'value' => round((float) $row->value, 6),
-        ])->all();
+        ])->values()->all();
     }
 
     /**
      * @param  array{as_of:string,currency:?string,warehouse_id:?int,account_type:?string}  $filters
-     * @return Collection<int, object>
+     * @return Collection<int, stdClass>
      */
     private function stockMovements(int $companyId, array $filters, CarbonImmutable $asOf): Collection
     {
