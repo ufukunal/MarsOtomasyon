@@ -2,7 +2,7 @@
 
 return [
     'integrations' => [
-        'supported_providers' => ['woocommerce', 'trendyol', 'hepsiburada'],
+        'supported_providers' => ['woocommerce', 'trendyol', 'hepsiburada', 'amazon'],
         'supported_operations' => ['order', 'product', 'price', 'stock', 'invoice', 'refund'],
         'max_payload_bytes' => (int) env('MARS_INTEGRATION_MAX_PAYLOAD_BYTES', 1048576),
         'retry_delays' => [60, 300, 900, 3600],
