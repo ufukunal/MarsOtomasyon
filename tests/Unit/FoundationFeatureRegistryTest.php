@@ -17,27 +17,18 @@ final class FoundationFeatureRegistryTest extends TestCase
             FeatureKey::ProductStock,
             FeatureKey::Sales,
             FeatureKey::Purchasing,
+            FeatureKey::Production,
             FeatureKey::Treasury,
+            FeatureKey::Instruments,
+            FeatureKey::Returns,
+            FeatureKey::Import,
             FeatureKey::Commerce,
             FeatureKey::Communications,
             FeatureKey::Automation,
             FeatureKey::Operations,
-            FeatureKey::Returns,
-        ] as $feature) {
-            self::assertTrue($registry->enabled($feature), $feature->value.' must be enabled.');
-        }
-    }
-
-    public function test_unimplemented_business_features_remain_disabled(): void
-    {
-        $registry = $this->app->make(FeatureRegistry::class);
-        foreach ([
-            FeatureKey::Production,
-            FeatureKey::Instruments,
-            FeatureKey::Import,
             FeatureKey::Reports,
         ] as $feature) {
-            self::assertFalse($registry->enabled($feature), $feature->value.' must remain disabled until its milestone is enabled.');
+            self::assertTrue($registry->enabled($feature), $feature->value.' must be enabled.');
         }
     }
 }
