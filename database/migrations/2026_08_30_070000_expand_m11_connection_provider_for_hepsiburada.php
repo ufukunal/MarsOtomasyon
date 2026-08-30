@@ -13,7 +13,7 @@ return new class extends Migration
 
     public function down(): void
     {
-        if (DB::table('integration_connections')->where('provider', 'hepsiburada')->exists()) {
+        if (DB::table('integration_connections')->whereIn('provider', ['hepsiburada', 'amazon', 'n11', 'pttavm', 'idefix', 'allesgo'])->exists()) {
             return;
         }
 
