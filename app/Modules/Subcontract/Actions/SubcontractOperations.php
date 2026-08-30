@@ -170,7 +170,7 @@ final readonly class SubcontractOperations
             }
             $existing = SubcontractReceipt::query()->where('company_id', $companyId)->where('operation_key', $operationKey)->first();
             if ($existing instanceof SubcontractReceipt) {
-                if ((int) $existing->subcontract_order_id !== $orderId || (string) $existing->output_quantity !== $outputQuantity || $existing->consumption_payload !== $payload) {
+                if ((int) $existing->subcontract_order_id !== $orderId || (string) $existing->output_quantity !== $outputQuantity || $this->canonicalConsumptionPayload($existing->consumption_payload) !== $payload) {
                     throw new DomainException('Aynı fason mamul kabul anahtarı farklı payload ile kullanılamaz.');
                 }
 
@@ -251,6 +251,25 @@ final readonly class SubcontractOperations
     private function lockMaterials(int $companyId, int $orderId): Collection
     {
         return SubcontractOrderMaterial::query()->where('company_id', $companyId)->where('subcontract_order_id', $orderId)->orderBy('id')->lockForUpdate()->get();
+    }
+
+    /**
+     * @param  list<array{product_id:int, quantity:string}>  $payload
+     * @return list<array{product_id:int, quantity:string}>
+     */
+    private function canonicalConsumptionPayload(array $payload): array
+    {
+        $normalized = [];
+        foreach ($payload as $row) {
+            $normalized[(int) $row['product_id']] = (string) $row['quantity'];
+        }
+        ksort($normalized);
+
+        return array_map(
+            static fn (int $productId, string $quantity): array => ['product_id' => $productId, 'quantity' => $quantity],
+            array_keys($normalized),
+            array_values($normalized),
+        );
     }
 
     private function remaining(SubcontractOrderMaterial $material): string
