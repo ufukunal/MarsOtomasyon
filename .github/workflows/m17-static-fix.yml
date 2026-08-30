@@ -1,0 +1,78 @@
+name: M17 Static Fix
+
+on:
+  push:
+    branches: [feat/m17-commerce]
+    paths:
+      - '.github/workflows/m17-static-fix.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/m17-commerce
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          coverage: none
+          tools: composer:v2
+      - run: composer install --no-interaction --prefer-dist --no-progress
+      - name: Patch row shapes, format, and self-clean
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          p = Path('app/Modules/Commerce/ChannelCenterService.php')
+          s = p.read_text()
+          replacements = [
+            ("""        $mapping = DB::table('channel_product_mappings')\n""", """        /** @var object{id:int,connection_id:int,external_product_id:mixed}|null $mapping */\n        $mapping = DB::table('channel_product_mappings')\n"""),
+            ("""        $connection = DB::table('integration_connections')\n            ->where('company_id', $companyId)\n            ->where('id', $mapping->connection_id)\n""", """        /** @var object{id:int,provider:mixed}|null $connection */\n        $connection = DB::table('integration_connections')\n            ->where('company_id', $companyId)\n            ->where('id', $mapping->connection_id)\n"""),
+            ("""            $state = DB::table('channel_listing_states')\n""", """            /** @var object{id:int,desired_version:int}|null $state */\n            $state = DB::table('channel_listing_states')\n"""),
+            ("""                $state = DB::table('channel_listing_states')->where('id', $stateId)->lockForUpdate()->first();\n""", """                /** @var object{id:int,desired_version:int}|null $state */\n                $state = DB::table('channel_listing_states')->where('id', $stateId)->lockForUpdate()->first();\n"""),
+            ("""            $inbox = DB::table('channel_order_inbox')\n""", """            /** @var object{id:int,status:mixed,connection_id:int,external_event_id:mixed}|null $inbox */\n            $inbox = DB::table('channel_order_inbox')\n"""),
+            ("""            $event = DB::table('integration_events')\n""", """            /** @var object{id:int}|null $event */\n            $event = DB::table('integration_events')\n"""),
+            ("""            $existing = DB::table('channel_product_mappings')\n""", """            /** @var object{id:int,public_id:string}|null $existing */\n            $existing = DB::table('channel_product_mappings')\n"""),
+            ("""            $row = DB::table('channel_return_events')\n""", """            /** @var object{id:int,external_order_id:mixed,payload_sha256:mixed}|null $row */\n            $row = DB::table('channel_return_events')\n"""),
+            ("""            $row = DB::table('channel_settlement_evidence')\n""", """            /** @var object{id:int,evidence:mixed}|null $row */\n            $row = DB::table('channel_settlement_evidence')\n"""),
+            ("""            $occurred = now()->parse($occurredAt);\n""", """            $occurred = \\Carbon\\CarbonImmutable::parse($occurredAt);\n"""),
+            ("""    private function connection(int $companyId, string $publicId): object\n""", """    /** @return object{id:int,provider:string,base_url:mixed,credentials_ciphertext:mixed,financial_mode:string,default_account_id:mixed,clearing_account_id:mixed} */\n    private function connection(int $companyId, string $publicId): object\n"""),
+            ("""    /** @param list<string> $urls @return list<string> */\n    private function mediaUrls(array $urls): array\n""", """    /**\n     * @param list<string> $urls\n     * @return list<string>\n     */\n    private function mediaUrls(array $urls): array\n"""),
+          ]
+          for old, new in replacements:
+              if old not in s:
+                  raise SystemExit(f'ChannelCenter replacement point missing: {old[:80]!r}')
+              s = s.replace(old, new, 1)
+          p.write_text(s)
+
+          p = Path('app/Modules/Operations/ChannelDomainSync.php')
+          s = p.read_text()
+          replacements = [
+            ("""            $existing = DB::table('integration_entity_links')\n""", """            /** @var object{id:int,local_type:mixed,local_id:int}|null $existing */\n            $existing = DB::table('integration_entity_links')\n"""),
+            ("""    private function upsertInbox(\n""", """    /** @return object{id:int,company_id:int,connection_id:int,external_order_id:string,imported_at:mixed} */\n    private function upsertInbox(\n"""),
+            ("""        $existing = DB::table('channel_order_inbox')\n""", """        /** @var object{id:int,company_id:int,connection_id:int,external_order_id:string,imported_at:mixed,payload_sha256:mixed}|null $existing */\n        $existing = DB::table('channel_order_inbox')\n"""),
+            ("""        $row = DB::table('channel_order_inbox')->where('id', $id)->lockForUpdate()->first();\n""", """        /** @var object{id:int,company_id:int,connection_id:int,external_order_id:string,imported_at:mixed}|null $row */\n        $row = DB::table('channel_order_inbox')->where('id', $id)->lockForUpdate()->first();\n"""),
+            ("""    private function recordProblem(object $inbox, \\Throwable $exception, string $code): void\n""", """    /** @param object{id:int,company_id:int,connection_id:int,external_order_id:string} $inbox */\n    private function recordProblem(object $inbox, \\Throwable $exception, string $code): void\n"""),
+            ("""    /** @param array<string,mixed> $payload @return array<string,mixed> */\n    private function customerSnapshot(array $payload): array\n""", """    /**\n     * @param array<string,mixed> $payload\n     * @return array{billing:array<string,string>,shipping:array<string,string>}\n     */\n    private function customerSnapshot(array $payload): array\n"""),
+          ]
+          for old, new in replacements:
+              if old not in s:
+                  raise SystemExit(f'ChannelDomainSync replacement point missing: {old[:80]!r}')
+              s = s.replace(old, new, 1)
+          p.write_text(s)
+
+          Path('ci-diagnostics/m17-core-probe.txt').unlink(missing_ok=True)
+          Path('.github/workflows/m17-core-probe.yml').unlink(missing_ok=True)
+          Path('.github/workflows/m17-static-fix.yml').unlink()
+          PY
+          vendor/bin/pint app/Modules/Commerce app/Modules/Operations/ChannelDomainSync.php app/Modules/Operations/Jobs/ProcessIntegrationSync.php app/Modules/Operations/Http/ChannelWebhookController.php app/Modules/Commerce/Http/CommerceController.php database/migrations/2026_08_30_060000_create_m17_commerce.php routes/operations.php
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add -A
+          git commit -m "fix(m17): satisfy commerce static contracts"
+          git push origin HEAD:feat/m17-commerce
