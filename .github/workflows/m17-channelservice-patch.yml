@@ -1,0 +1,38 @@
+name: M17 ChannelService Patch
+
+on:
+  push:
+    branches: [feat/m17-commerce]
+    paths:
+      - '.github/workflows/m17-channelservice-patch.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/m17-commerce
+      - name: Patch ChannelService and self-clean
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('app/Modules/Operations/ChannelService.php')
+          s = p.read_text()
+          old = """        return (int) DB::table('integration_connections')->insertGetId([\n            'company_id' => $companyId,\n            'provider' => $provider,"""
+          new = """        return (int) DB::table('integration_connections')->insertGetId([\n            'public_id' => (string) Str::ulid(),\n            'company_id' => $companyId,\n            'provider' => $provider,"""
+          if old not in s:
+              raise SystemExit('ChannelService createConnection insertion point not found')
+          s = s.replace(old, new, 1)
+          p.write_text(s)
+          Path('.github/workflows/m17-channelservice-patch.yml').unlink()
+          PY
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add app/Modules/Operations/ChannelService.php .github/workflows/m17-channelservice-patch.yml
+          git commit -m "feat(m17): generate public id for channel connections"
+          git push origin HEAD:feat/m17-commerce
