@@ -15,10 +15,7 @@ final readonly class AppNavigation
     /** @return list<array{label:string,route:string}> */
     public function items(): array
     {
-        $productStockRoute = Gate::allows(PermissionKey::ProductView->value)
-            ? 'inventory.index'
-            : 'inventory.stock.index';
-
+        $productStockRoute = Gate::allows(PermissionKey::ProductView->value) ? 'inventory.index' : 'inventory.stock.index';
         /** @var list<array{label:string,route:string,feature:FeatureKey,permissions:list<PermissionKey>}> $candidates */
         $candidates = [
             ['label' => 'Ana Sayfa', 'route' => 'workspace', 'feature' => FeatureKey::Foundation, 'permissions' => []],
@@ -28,7 +25,7 @@ final readonly class AppNavigation
             ['label' => 'Alış', 'route' => 'purchasing.index', 'feature' => FeatureKey::Purchasing, 'permissions' => [PermissionKey::PurchaseOrderView]],
             ['label' => 'Üretim', 'route' => 'production.index', 'feature' => FeatureKey::Production, 'permissions' => []],
             ['label' => 'Kasa/Banka', 'route' => 'treasury.index', 'feature' => FeatureKey::Treasury, 'permissions' => [PermissionKey::TreasuryView]],
-            ['label' => 'Çek/Senet', 'route' => 'instruments.index', 'feature' => FeatureKey::Instruments, 'permissions' => []],
+            ['label' => 'Çek/Senet', 'route' => 'instruments.index', 'feature' => FeatureKey::Instruments, 'permissions' => [PermissionKey::InstrumentView]],
             ['label' => 'İadeler', 'route' => 'returns.index', 'feature' => FeatureKey::Returns, 'permissions' => [PermissionKey::SalesReturnView]],
             ['label' => 'İthalat', 'route' => 'import.index', 'feature' => FeatureKey::Import, 'permissions' => []],
             ['label' => 'E-Ticaret/B2B', 'route' => 'commerce.index', 'feature' => FeatureKey::Commerce, 'permissions' => [PermissionKey::IntegrationView]],
@@ -37,30 +34,16 @@ final readonly class AppNavigation
             ['label' => 'Raporlar', 'route' => 'reports.index', 'feature' => FeatureKey::Reports, 'permissions' => []],
             ['label' => 'Ayarlar', 'route' => 'settings.index', 'feature' => FeatureKey::Foundation, 'permissions' => []],
         ];
-
         $items = [];
         foreach ($candidates as $candidate) {
-            if (! $this->features->enabled($candidate['feature']) || ! Route::has($candidate['route'])) {
-                continue;
-            }
-
+            if (! $this->features->enabled($candidate['feature']) || ! Route::has($candidate['route'])) continue;
             if ($candidate['permissions'] !== []) {
                 $allowed = false;
-                foreach ($candidate['permissions'] as $permission) {
-                    if (Gate::allows($permission->value)) {
-                        $allowed = true;
-                        break;
-                    }
-                }
-
-                if (! $allowed) {
-                    continue;
-                }
+                foreach ($candidate['permissions'] as $permission) if (Gate::allows($permission->value)) { $allowed = true; break; }
+                if (! $allowed) continue;
             }
-
             $items[] = ['label' => $candidate['label'], 'route' => $candidate['route']];
         }
-
         return $items;
     }
 }

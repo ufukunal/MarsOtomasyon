@@ -20,6 +20,7 @@ final class Instrument extends Model
         return [
             'amount' => 'decimal:6',
             'issue_date' => 'date:Y-m-d',
+            'delivery_date' => 'date:Y-m-d',
             'due_date' => 'date:Y-m-d',
             'registered_at' => 'immutable_datetime',
             'settled_at' => 'immutable_datetime',
@@ -30,50 +31,19 @@ final class Instrument extends Model
     }
 
     /** @return BelongsTo<Company, $this> */
-    public function company(): BelongsTo
-    {
-        return $this->belongsTo(Company::class);
-    }
-
+    public function company(): BelongsTo { return $this->belongsTo(Company::class); }
     /** @return BelongsTo<Account, $this> */
-    public function account(): BelongsTo
-    {
-        return $this->belongsTo(Account::class);
-    }
-
+    public function account(): BelongsTo { return $this->belongsTo(Account::class); }
     /** @return BelongsTo<Account, $this> */
-    public function currentHolderAccount(): BelongsTo
-    {
-        return $this->belongsTo(Account::class, 'current_holder_account_id');
-    }
-
+    public function currentHolderAccount(): BelongsTo { return $this->belongsTo(Account::class, 'current_holder_account_id'); }
     /** @return BelongsTo<TreasuryAccount, $this> */
-    public function currentTreasuryAccount(): BelongsTo
-    {
-        return $this->belongsTo(TreasuryAccount::class, 'current_treasury_account_id');
-    }
-
+    public function currentTreasuryAccount(): BelongsTo { return $this->belongsTo(TreasuryAccount::class, 'current_treasury_account_id'); }
     /** @return BelongsTo<Account, $this> */
-    public function endorsedToAccount(): BelongsTo
-    {
-        return $this->belongsTo(Account::class, 'endorsed_to_account_id');
-    }
-
+    public function endorsedToAccount(): BelongsTo { return $this->belongsTo(Account::class, 'endorsed_to_account_id'); }
     /** @return BelongsTo<AccountTransaction, $this> */
-    public function deliveryAccountTransaction(): BelongsTo
-    {
-        return $this->belongsTo(AccountTransaction::class, 'delivery_account_transaction_id');
-    }
-
+    public function deliveryAccountTransaction(): BelongsTo { return $this->belongsTo(AccountTransaction::class, 'delivery_account_transaction_id'); }
     /** @return BelongsTo<TreasuryMovement, $this> */
-    public function settlementTreasuryMovement(): BelongsTo
-    {
-        return $this->belongsTo(TreasuryMovement::class, 'settlement_treasury_movement_id');
-    }
-
+    public function settlementTreasuryMovement(): BelongsTo { return $this->belongsTo(TreasuryMovement::class, 'settlement_treasury_movement_id'); }
     /** @return HasMany<InstrumentEvent, $this> */
-    public function events(): HasMany
-    {
-        return $this->hasMany(InstrumentEvent::class)->orderBy('id');
-    }
+    public function events(): HasMany { return $this->hasMany(InstrumentEvent::class)->orderBy('id'); }
 }
