@@ -8,6 +8,7 @@ enum AttachmentTargetType: string
     case Account = 'account';
     case Product = 'product';
     case Instrument = 'instrument';
+    case ProductionOrder = 'production_order';
 
     public function label(): string
     {
@@ -16,6 +17,7 @@ enum AttachmentTargetType: string
             self::Account => 'Cari',
             self::Product => 'Ürün',
             self::Instrument => 'Çek / Senet',
+            self::ProductionOrder => 'Üretim emri',
         };
     }
 }

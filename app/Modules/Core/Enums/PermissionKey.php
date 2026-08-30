@@ -46,6 +46,8 @@ enum PermissionKey: string
     case TreasuryReconcile = 'treasury.reconcile';
     case InstrumentView = 'instruments.view';
     case InstrumentManage = 'instruments.manage';
+    case ProductionView = 'production.view';
+    case ProductionManage = 'production.manage';
     case ReportsView = 'reports.view';
     case IntegrationView = 'integrations.view';
     case IntegrationManage = 'integrations.manage';
@@ -105,6 +107,8 @@ enum PermissionKey: string
             self::TreasuryReconcile => 'Banka mutabakatı',
             self::InstrumentView => 'Çek / senet görüntüleme',
             self::InstrumentManage => 'Çek / senet yönetimi',
+            self::ProductionView => 'Üretim görüntüleme',
+            self::ProductionManage => 'Üretim yönetimi',
             self::ReportsView => 'Raporları görüntüleme',
             self::IntegrationView => 'Entegrasyon görüntüleme',
             self::IntegrationManage => 'Entegrasyon yönetimi',
