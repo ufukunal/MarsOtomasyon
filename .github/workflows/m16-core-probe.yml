@@ -50,6 +50,9 @@ jobs:
           s = p.read_text()
           s = s.replace('use Illuminate\\Support\\Collection;', 'use Illuminate\\Database\\Eloquent\\Collection;')
           s = s.replace("$this->clock->now()->toDateString()", "$this->clock->now()->format('Y-m-d')")
+          needle = '    private function transition(int $fileId, array $from, string $to): ImportFile'
+          replacement = '    /** @param list<string> $from */\n    private function transition(int $fileId, array $from, string $to): ImportFile'
+          s = s.replace(needle, replacement)
           p.write_text(s)
           PY
       - uses: shivammathur/setup-php@v2
@@ -68,8 +71,6 @@ jobs:
         run: vendor/bin/phpstan analyse app/Modules/Imports --no-progress
       - name: Commit verified fixes and remove probe
         if: success()
-        env:
-          GH_TOKEN: ${{ github.token }}
         run: |
           git rm .github/workflows/m16-core-probe.yml
           git config user.name github-actions[bot]
