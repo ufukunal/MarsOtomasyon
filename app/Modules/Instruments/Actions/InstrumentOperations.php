@@ -348,7 +348,7 @@ final readonly class InstrumentOperations
             throw new InvalidArgumentException('Çek/senet yönü received veya issued olmalıdır.');
         }
 
-return $direction;
+        return $direction;
     }
 
     private function kind(string $kind): string
@@ -358,7 +358,7 @@ return $direction;
             throw new InvalidArgumentException('Belge türü cheque veya promissory_note olmalıdır.');
         }
 
-return $kind;
+        return $kind;
     }
 
     private function currency(string $currency): string
@@ -368,7 +368,7 @@ return $kind;
             throw new InvalidArgumentException('Para birimi ISO-4217 üç harf kodu olmalıdır.');
         }
 
-return $currency;
+        return $currency;
     }
 
     private function positiveAmount(string $amount): string
@@ -378,7 +378,7 @@ return $currency;
             throw new InvalidArgumentException('Çek/senet tutarı pozitif olmalıdır.');
         }
 
-return $amount;
+        return $amount;
     }
 
     private function date(string $date, string $label): void
@@ -396,7 +396,7 @@ return $amount;
             throw new InvalidArgumentException($label.' boş olamaz ve en fazla '.$max.' karakter olabilir.');
         }
 
-return $value;
+        return $value;
     }
 
     private function nullableText(?string $value, int $max): ?string
@@ -408,7 +408,7 @@ return $value;
             throw new InvalidArgumentException('Metin alanı en fazla '.$max.' karakter olabilir.');
         }
 
-return $value;
+        return $value;
     }
 
     private function memo(Instrument $instrument): string
