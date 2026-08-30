@@ -2,6 +2,7 @@
 
 namespace App\Modules\Operations\Jobs;
 
+use App\Modules\Commerce\CommerceSyncGuard;
 use App\Modules\Operations\ChannelService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -20,8 +21,16 @@ final class ProcessIntegrationSync implements ShouldQueue
 
     public function __construct(public readonly int $effectId) {}
 
-    public function handle(ChannelService $channels): void
+    public function handle(ChannelService $channels, CommerceSyncGuard $guard): void
     {
-        $channels->processSync($this->effectId);
+        if (! $guard->shouldSend($this->effectId)) {
+            return;
+        }
+
+        try {
+            $channels->processSync($this->effectId);
+        } finally {
+            $guard->reconcile($this->effectId);
+        }
     }
 }
