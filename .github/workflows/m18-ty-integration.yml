@@ -95,6 +95,7 @@ jobs:
           text = acceptance.read_text()
           text = text.replace("'salePrice' => 125.0,", "'salePrice' => 125,", 1)
           text = text.replace("'listPrice' => 125.0,", "'listPrice' => 125,", 1)
+          text = text.replace("->and($pricePayload)->toBe([", "->and($pricePayload)->toEqual([", 1)
           acceptance.write_text(text)
           PY
       - name: Format
