@@ -7,8 +7,8 @@ MarsOtomasyon; şirket içi kullanım odaklı, Türkçe, hızlı ve sade bir **�
 - Resmî V1 roadmap: **M0–M24**.
 - Commercial Functional Gate: **M0–M13**.
 - Kod/plan/PR reconciliation: [`plan/21_MILESTONE_DURUM_MATRISI.md`](plan/21_MILESTONE_DURUM_MATRISI.md).
-- Commercial Functional Gate **M0–M13 tamamlandı**; sonraki resmî açık ana domain milestone'u **M17 — E-Ticaret Integration Core + WooCommerce**.
-- M17/M18/M19/M20/M21/M23 için bazı erken foundation capability'leri vardır; bunlar ilgili milestone'un tamamlandığı anlamına gelmez.
+- Commercial Functional Gate **M0–M13 tamamlandı**; **M14–M17 de tamamlandı**. Sonraki resmî açık ana domain milestone'u **M18 — Verified Marketplace Adapter Pack**.
+- M18/M19/M20/M21/M23 için bazı erken veya kısmi capability'ler vardır; bunlar ilgili milestone'un tamamlandığı anlamına gelmez.
 - Production release gate M23 + M24 tamamlanmadan V1 production-ready sayılmaz.
 
 > Tarihsel PR başlığındaki `Mxx` etiketi resmî V4.2 milestone numarasıyla çakışabilir. Güncel durum için her zaman `plan/16_UYGULAMA_SIRASI_MILESTONE.md` + `plan/21_MILESTONE_DURUM_MATRISI.md` birlikte kullanılır.
@@ -98,7 +98,7 @@ Ayrıntılı karar otoritesi: [`plan/00_KARAR_KAYDI.md`](plan/00_KARAR_KAYDI.md)
 
 Aktif V1 sırası:
 
-`M11 Çek/Senet → M14 Üretim → M15 Fason → M16 İthalat/Konteyner → M17 E-Ticaret Core/WooCommerce → M18 Marketplace Adapter Pack → M19 B2B → M20 Communication/API → M21 Product Image Operations → M22 Installation PDF Builder → M23 Production Candidate Hardening → M24 Migration/Go-Live`
+`M18 Marketplace Adapter Pack → M19 B2B → M20 Communication/API → M21 Product Image Operations → M22 Installation PDF Builder → M23 Production Candidate Hardening → M24 Migration/Go-Live`
 
 Her milestone `entry gate → schema → domain action → transaction/invariant → authorization → UI → tests → PostgreSQL CI → audit/observability` sırasıyla kapanır.
 
