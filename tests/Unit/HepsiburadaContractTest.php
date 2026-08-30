@@ -34,7 +34,7 @@ final class HepsiburadaContractTest extends TestCase
         self::assertTrue($registry->supports('hepsiburada', 'webhook_basic_auth_contract'));
         self::assertFalse($registry->supports('hepsiburada', 'stock_publish'));
         self::assertFalse($registry->supports('hepsiburada', 'price_publish'));
-        self::assertFalse($registry->supports('hepsiburada', 'connection_test'));
+        self::assertTrue($registry->supports('hepsiburada', 'connection_test'));
     }
 
     public function test_sit_listing_order_product_and_inventory_status_contracts_use_official_hosts_and_headers(): void

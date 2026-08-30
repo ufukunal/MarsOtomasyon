@@ -47,6 +47,7 @@ return [
             'label' => 'Hepsiburada',
             'status' => 'contract_verified',
             'capabilities' => [
+                'connection_test',
                 'connection_test_contract',
                 'listing_read_contract',
                 'inventory_upload_status_contract',

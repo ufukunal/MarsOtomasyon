@@ -2,6 +2,7 @@
 
 namespace App\Modules\Commerce;
 
+use App\Modules\Commerce\Providers\Hepsiburada\HepsiburadaClient;
 use App\Modules\Commerce\Providers\Trendyol\TrendyolClient;
 use App\Modules\Operations\ChannelEventStore;
 use App\Modules\Operations\ChannelService;
@@ -21,6 +22,7 @@ final readonly class ChannelCenterService
         private ChannelEventStore $events,
         private ProviderRegistry $providers,
         private TrendyolClient $trendyol,
+        private HepsiburadaClient $hepsiburada,
     ) {}
 
     /**
@@ -103,6 +105,9 @@ final readonly class ChannelCenterService
             } elseif ($provider === 'trendyol') {
                 $response = $this->trendyol->connectionTest($credentials);
                 $label = 'Trendyol';
+            } elseif ($provider === 'hepsiburada') {
+                $response = $this->hepsiburada->connectionTest($credentials);
+                $label = 'Hepsiburada';
             } else {
                 throw new DomainException('Connection test is not implemented for provider.');
             }
