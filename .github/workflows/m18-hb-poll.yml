@@ -75,10 +75,20 @@ jobs:
           coverage: none
           tools: composer:v2
       - run: composer install --no-interaction --prefer-dist --no-progress
+      - name: Normalize guarded patch precondition
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('config/m11.php')
+          text = path.read_text()
+          text = text.replace("'supported_providers' => ['woocommerce', 'trendyol', 'hepsiburada']", "'supported_providers' => ['woocommerce', 'trendyol']")
+          path.write_text(text)
+          PY
       - name: Apply guarded patch
         run: python3 scripts/ci/m18_hb_poll.py
       - name: Format
-        run: vendor/bin/pint app/Modules/Commerce/ChannelCenterService.php app/Modules/Commerce/Providers/Hepsiburada/HepsiburadaClient.php config/commerce.php config/m11.php tests/Unit/HepsiburadaContractTest.php tests/Integration/Commerce/M18HepsiburadaTest.php
+        run: vendor/bin/pint app/Modules/Commerce/ChannelCenterService.php app/Modules/Commerce/Providers/Hepsiburada/HepsiburadaClient.php config/commerce.php config/m11.php tests/Unit/HepsiburadaContractTest.php tests/Integration/Commerce/M18HepsiburadaTest.php database/migrations/2026_08_30_070000_expand_m11_connection_provider_for_hepsiburada.php
       - name: Fresh PostgreSQL schema
         run: php artisan migrate:fresh --force
       - name: Acceptance and regressions
@@ -90,7 +100,7 @@ jobs:
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add app/Modules/Commerce/ChannelCenterService.php config/commerce.php config/m11.php tests/Integration/Commerce/M18HepsiburadaTest.php
+          git add app/Modules/Commerce/ChannelCenterService.php config/commerce.php config/m11.php tests/Integration/Commerce/M18HepsiburadaTest.php database/migrations/2026_08_30_070000_expand_m11_connection_provider_for_hepsiburada.php
           git rm scripts/ci/m18_hb_poll.py .github/workflows/m18-hb-poll.yml
           git commit -m 'feat(m18-hb): normalize Hepsiburada order polling'
           git push origin HEAD:feat/m18-hepsiburada
