@@ -7,7 +7,7 @@ MarsOtomasyon; şirket içi kullanım odaklı, Türkçe, hızlı ve sade bir **�
 - Resmî V1 roadmap: **M0–M24**.
 - Commercial Functional Gate: **M0–M13**.
 - Kod/plan/PR reconciliation: [`plan/21_MILESTONE_DURUM_MATRISI.md`](plan/21_MILESTONE_DURUM_MATRISI.md).
-- Commercial gate içinde açık ana domain milestone'u: **M11 — Çek/Senet**.
+- Commercial Functional Gate **M0–M13 tamamlandı**; sonraki resmî açık ana domain milestone'u **M17 — E-Ticaret Integration Core + WooCommerce**.
 - M17/M18/M19/M20/M21/M23 için bazı erken foundation capability'leri vardır; bunlar ilgili milestone'un tamamlandığı anlamına gelmez.
 - Production release gate M23 + M24 tamamlanmadan V1 production-ready sayılmaz.
 
