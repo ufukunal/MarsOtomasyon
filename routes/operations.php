@@ -6,7 +6,7 @@ use App\Modules\Operations\RequirePlatformAdmin;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/api/channels/{connection}/webhook', ChannelWebhookController::class)
-    ->whereNumber('connection')
+    ->where('connection', '[0-9A-HJKMNP-TV-Z]{26}')
     ->middleware('throttle:120,1')
     ->name('channels.webhook');
 
