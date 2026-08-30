@@ -1,0 +1,52 @@
+name: Temp M18 PHPStan Fix
+
+on:
+  push:
+    branches:
+      - tmp-m18-phpstan-fix
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: tmp-m18-phpstan-fix
+      - name: Apply PHPStan type annotations
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          service = Path('app/Modules/Commerce/MarketplacePack/MarketplacePackService.php')
+          text = service.read_text()
+          marker = '/** @return object{id:mixed,company_id:mixed,provider:mixed,credentials_ciphertext:mixed} */'
+          signature = '    private function connection(int $companyId, string $publicId): object\n'
+          if marker not in text:
+              if signature not in text:
+                  raise SystemExit('connection() signature not found')
+              text = text.replace(signature, f'    {marker}\n{signature}', 1)
+              service.write_text(text)
+
+          amazon = Path('app/Modules/Commerce/Providers/Amazon/AmazonSpApiClient.php')
+          text = amazon.read_text()
+          old = '    /** @param array<string,mixed> $credentials */\n    public function getOrder(array $credentials, string $orderId, array $includedData = []): Response\n'
+          new = '    /**\n     * @param  array<string,mixed>  $credentials\n     * @param  list<string>  $includedData\n     */\n    public function getOrder(array $credentials, string $orderId, array $includedData = []): Response\n'
+          if '@param  list<string>  $includedData' not in text:
+              if old not in text:
+                  raise SystemExit('getOrder() docblock not found')
+              text = text.replace(old, new, 1)
+              amazon.write_text(text)
+          PY
+      - name: Commit fixes
+        run: |
+          git config user.name ufukunal
+          git config user.email ufuk@ufukunal.com.tr
+          git add app/Modules/Commerce/MarketplacePack/MarketplacePackService.php app/Modules/Commerce/Providers/Amazon/AmazonSpApiClient.php
+          if git diff --cached --quiet; then
+            exit 0
+          fi
+          git commit -m "fix(m18): satisfy marketplace static analysis"
+          git push origin HEAD:tmp-m18-phpstan-fix
