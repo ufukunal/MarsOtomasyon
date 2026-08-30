@@ -60,6 +60,18 @@ replacement = '''replace_once(
     "Commerce capability routes",
 )'''
 s = s[:block_start] + replacement + s[block_end:]
+
+# Adapt the UI insertion anchor to the current multiline Sipariş Inbox section.
+section = s.index('# UI.')
+block_start = s.index('replace_once(', section)
+block_end = s.index('\n\n# Acceptance:', block_start)
+old_block = s[block_start:block_end]
+old_marker = "    '<section class=\"statement-table-card\"><h2>Sipariş Inbox / Problem Center</h2>',\n    view_blocks + '<section class=\"statement-table-card\"><h2>Sipariş Inbox / Problem Center</h2>',"
+new_marker = "    '<section class=\"statement-table-card\">\\n<h2>Sipariş Inbox</h2>',\n    view_blocks + '<section class=\"statement-table-card\">\\n<h2>Sipariş Inbox</h2>',"
+if old_marker not in old_block:
+    raise SystemExit('UI patch marker definition not found')
+new_block = old_block.replace(old_marker, new_marker, 1)
+s = s[:block_start] + new_block + s[block_end:]
 patch.write_text(s)
 
 # Record the now-proven M16 exact-main gate in the owner milestone matrix.
