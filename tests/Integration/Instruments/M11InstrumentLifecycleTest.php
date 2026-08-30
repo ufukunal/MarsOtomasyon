@@ -26,7 +26,9 @@ use Illuminate\Support\Facades\Storage;
 
 uses(DatabaseMigrations::class);
 
-beforeEach(function (): void { $this->withoutVite(); });
+beforeEach(function (): void {
+    $this->withoutVite();
+});
 
 it('posts received delivery on the real delivery date and settles through treasury without a second cari effect', function (): void {
     [$company, $customer, , , $bank] = m11Fixture('M11-A');
@@ -115,9 +117,12 @@ function m11Fixture(string $code): array
     $user = User::query()->create(['name' => 'Instrument Manager', 'email' => strtolower($code).'@instrument.test', 'password' => 'correct-password', 'status' => UserStatus::Active]);
     $membership = CompanyMembership::query()->create(['company_id' => $company->getKey(), 'user_id' => $user->getKey(), 'is_active' => true, 'joined_at' => now()]);
     $role = Role::query()->create(['company_id' => $company->getKey(), 'code' => 'instrument-manager', 'name' => 'Instrument Manager', 'is_active' => true]);
-    foreach ([PermissionKey::InstrumentView, PermissionKey::InstrumentManage, PermissionKey::FileView, PermissionKey::FileManage] as $permission) app(GrantPermissionToRole::class)->handle($role, $permission);
+    foreach ([PermissionKey::InstrumentView, PermissionKey::InstrumentManage, PermissionKey::FileView, PermissionKey::FileManage] as $permission) {
+        app(GrantPermissionToRole::class)->handle($role, $permission);
+    }
     app(AssignRoleToMembership::class)->handle($membership, $role);
     $bank = TreasuryAccount::query()->create(['company_id' => $company->getKey(), 'type' => 'bank', 'code' => 'BANK', 'name' => 'Ana Banka', 'currency_code' => 'TRY', 'is_active' => true, 'bank_name' => 'Test Bank']);
+
     return [$company, $customer, $supplier, $user, $bank];
 }
 

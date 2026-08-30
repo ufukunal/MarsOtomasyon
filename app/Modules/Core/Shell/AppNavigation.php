@@ -36,14 +36,24 @@ final readonly class AppNavigation
         ];
         $items = [];
         foreach ($candidates as $candidate) {
-            if (! $this->features->enabled($candidate['feature']) || ! Route::has($candidate['route'])) continue;
+            if (! $this->features->enabled($candidate['feature']) || ! Route::has($candidate['route'])) {
+                continue;
+            }
             if ($candidate['permissions'] !== []) {
                 $allowed = false;
-                foreach ($candidate['permissions'] as $permission) if (Gate::allows($permission->value)) { $allowed = true; break; }
-                if (! $allowed) continue;
+                foreach ($candidate['permissions'] as $permission) {
+                    if (Gate::allows($permission->value)) {
+                        $allowed = true;
+                        break;
+                    }
+                }
+                if (! $allowed) {
+                    continue;
+                }
             }
             $items[] = ['label' => $candidate['label'], 'route' => $candidate['route']];
         }
+
         return $items;
     }
 }

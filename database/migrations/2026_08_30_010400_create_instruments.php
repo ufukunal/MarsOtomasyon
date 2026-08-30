@@ -67,7 +67,7 @@ return new class extends Migration
         DB::statement("ALTER TABLE instruments ADD CONSTRAINT instruments_direction_check CHECK (direction IN ('received','issued'))");
         DB::statement("ALTER TABLE instruments ADD CONSTRAINT instruments_kind_check CHECK (kind IN ('cheque','promissory_note'))");
         DB::statement("ALTER TABLE instruments ADD CONSTRAINT instruments_status_check CHECK (status IN ('draft','portfolio','bank_collection','endorsed','collected','issued','settled','dishonored','unpaid','returned','cancelled'))");
-        DB::statement("ALTER TABLE instruments ADD CONSTRAINT instruments_document_no_check CHECK (document_no = btrim(document_no) AND char_length(document_no) > 0)");
+        DB::statement('ALTER TABLE instruments ADD CONSTRAINT instruments_document_no_check CHECK (document_no = btrim(document_no) AND char_length(document_no) > 0)');
         DB::statement('ALTER TABLE instruments ADD CONSTRAINT instruments_amount_check CHECK (amount > 0)');
         DB::statement("ALTER TABLE instruments ADD CONSTRAINT instruments_currency_check CHECK (currency_code ~ '^[A-Z]{3}$')");
         DB::statement('ALTER TABLE instruments ADD CONSTRAINT instruments_date_check CHECK (issue_date IS NULL OR due_date >= issue_date)');
@@ -88,7 +88,7 @@ ALTER TABLE instruments ADD CONSTRAINT instruments_holder_shape_check CHECK (
 SQL);
         DB::statement("ALTER TABLE instruments ADD CONSTRAINT instruments_settlement_shape_check CHECK ((status IN ('collected','settled') AND settlement_treasury_movement_id IS NOT NULL AND settlement_treasury_account_id IS NOT NULL AND settled_at IS NOT NULL AND reversed_at IS NULL) OR (status NOT IN ('collected','settled') AND settlement_treasury_movement_id IS NULL AND settled_at IS NULL))");
         DB::statement("ALTER TABLE instruments ADD CONSTRAINT instruments_reversal_shape_check CHECK ((status IN ('dishonored','unpaid','returned','cancelled') AND delivery_reversal_account_transaction_id IS NOT NULL AND reversed_at IS NOT NULL AND settled_at IS NULL) OR (status NOT IN ('dishonored','unpaid','returned','cancelled') AND delivery_reversal_account_transaction_id IS NULL AND endorsement_reversal_account_transaction_id IS NULL AND reversed_at IS NULL))");
-        DB::statement("ALTER TABLE instruments ADD CONSTRAINT instruments_endorsement_shape_check CHECK ((endorsement_account_transaction_id IS NULL AND endorsed_to_account_id IS NULL AND endorsement_reversal_account_transaction_id IS NULL) OR (endorsement_account_transaction_id IS NOT NULL AND endorsed_to_account_id IS NOT NULL))");
+        DB::statement('ALTER TABLE instruments ADD CONSTRAINT instruments_endorsement_shape_check CHECK ((endorsement_account_transaction_id IS NULL AND endorsed_to_account_id IS NULL AND endorsement_reversal_account_transaction_id IS NULL) OR (endorsement_account_transaction_id IS NOT NULL AND endorsed_to_account_id IS NOT NULL))');
 
         Schema::create('instrument_events', function (Blueprint $table): void {
             $table->bigIncrements('id');

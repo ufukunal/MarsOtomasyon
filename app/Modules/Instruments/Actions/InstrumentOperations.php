@@ -87,6 +87,7 @@ final readonly class InstrumentOperations
                 'registered_at' => $this->clock->now(),
             ]);
             $this->event($instrument, 'registered', 'draft', $initialStatus, $deliveryDate, $account, null, $posting, null);
+
             return $instrument->refresh();
         }, 3);
     }
@@ -94,6 +95,7 @@ final readonly class InstrumentOperations
     public function sendToBank(int $companyId, int $instrumentId, int $treasuryAccountId, string $eventDate): Instrument
     {
         $this->date($eventDate, 'Bankaya gönderim tarihi');
+
         return DB::transaction(function () use ($companyId, $instrumentId, $treasuryAccountId, $eventDate): Instrument {
             $instrument = $this->lockInstrument($companyId, $instrumentId);
             if ($instrument->status === 'bank_collection' && (int) $instrument->current_treasury_account_id === $treasuryAccountId) {
@@ -103,6 +105,7 @@ final readonly class InstrumentOperations
             $bank = $this->bankAccount($companyId, $treasuryAccountId, (string) $instrument->currency_code);
             $instrument->update(['status' => 'bank_collection', 'current_holder_type' => 'bank', 'current_holder_account_id' => null, 'current_treasury_account_id' => $this->id($bank)]);
             $this->event($instrument, 'sent_to_bank', 'portfolio', 'bank_collection', $eventDate, null, $bank, null, null);
+
             return $instrument->refresh();
         }, 3);
     }
@@ -110,6 +113,7 @@ final readonly class InstrumentOperations
     public function recallFromBank(int $companyId, int $instrumentId, string $eventDate): Instrument
     {
         $this->date($eventDate, 'Bankadan geri alma tarihi');
+
         return DB::transaction(function () use ($companyId, $instrumentId, $eventDate): Instrument {
             $instrument = $this->lockInstrument($companyId, $instrumentId);
             if ($instrument->status === 'portfolio') {
@@ -120,6 +124,7 @@ final readonly class InstrumentOperations
             $bank = TreasuryAccount::query()->where('company_id', $companyId)->findOrFail($bankId);
             $instrument->update(['status' => 'portfolio', 'current_holder_type' => 'company', 'current_holder_account_id' => null, 'current_treasury_account_id' => null]);
             $this->event($instrument, 'recalled_from_bank', 'bank_collection', 'portfolio', $eventDate, null, $bank, null, null);
+
             return $instrument->refresh();
         }, 3);
     }
@@ -127,6 +132,7 @@ final readonly class InstrumentOperations
     public function endorse(int $companyId, int $instrumentId, int $supplierAccountId, string $eventDate): Instrument
     {
         $this->date($eventDate, 'Ciro tarihi');
+
         return DB::transaction(function () use ($companyId, $instrumentId, $supplierAccountId, $eventDate): Instrument {
             $instrument = $this->lockInstrument($companyId, $instrumentId);
             if ($instrument->status === 'endorsed' && (int) $instrument->endorsed_to_account_id === $supplierAccountId) {
@@ -145,6 +151,7 @@ final readonly class InstrumentOperations
                 'endorsement_account_transaction_id' => $this->id($posting),
             ]);
             $this->event($instrument, 'endorsed', 'portfolio', 'endorsed', $eventDate, $supplier, null, $posting, null);
+
             return $instrument->refresh();
         }, 3);
     }
@@ -152,12 +159,14 @@ final readonly class InstrumentOperations
     public function settle(int $companyId, int $instrumentId, int $treasuryAccountId, string $eventDate): Instrument
     {
         $this->date($eventDate, 'Tahsil/ödeme tarihi');
+
         return DB::transaction(function () use ($companyId, $instrumentId, $treasuryAccountId, $eventDate): Instrument {
             $instrument = $this->lockInstrument($companyId, $instrumentId);
             if (in_array($instrument->status, ['collected', 'settled'], true)) {
                 if ((int) $instrument->settlement_treasury_account_id !== $treasuryAccountId) {
                     throw new DomainException('Çek/senet farklı banka hesabında daha önce kapatılmış.');
                 }
+
                 return $instrument;
             }
             $direction = (string) $instrument->direction;
@@ -185,6 +194,7 @@ final readonly class InstrumentOperations
                 'settlement_treasury_movement_id' => $this->id($movement), 'settled_at' => $this->clock->now(),
             ]);
             $this->event($instrument, 'settled', $fromStatus, $targetStatus, $eventDate, null, $bank, null, $movement);
+
             return $instrument->refresh();
         }, 3);
     }
@@ -207,6 +217,7 @@ final readonly class InstrumentOperations
     private function reverseOpenInstrument(int $companyId, int $instrumentId, string $eventDate, string $outcome): Instrument
     {
         $this->date($eventDate, 'Ters kayıt tarihi');
+
         return DB::transaction(function () use ($companyId, $instrumentId, $eventDate, $outcome): Instrument {
             $instrument = $this->lockInstrument($companyId, $instrumentId);
             $direction = (string) $instrument->direction;
@@ -239,7 +250,9 @@ final readonly class InstrumentOperations
                 ));
             }
             $fromStatus = (string) $instrument->status;
-            $holderType = match ($terminal) { 'dishonored' => 'company', 'unpaid', 'returned' => 'account', default => 'none' };
+            $holderType = match ($terminal) {
+                'dishonored' => 'company', 'unpaid', 'returned' => 'account', default => 'none'
+            };
             $holderAccountId = in_array($terminal, ['unpaid', 'returned'], true) ? (int) $instrument->account_id : null;
             $instrument->update([
                 'status' => $terminal, 'current_holder_type' => $holderType, 'current_holder_account_id' => $holderAccountId,
@@ -247,10 +260,13 @@ final readonly class InstrumentOperations
                 'endorsement_reversal_account_transaction_id' => $endorsementReversal === null ? null : $this->id($endorsementReversal),
                 'reversed_at' => $this->clock->now(),
             ]);
-            $eventType = match ($terminal) { 'returned' => 'returned', 'cancelled' => 'cancelled', default => 'dishonored' };
+            $eventType = match ($terminal) {
+                'returned' => 'returned', 'cancelled' => 'cancelled', default => 'dishonored'
+            };
             $counterparty = in_array($terminal, ['returned', 'unpaid'], true) ? $instrument->account()->first() : null;
             $this->event($instrument, $eventType, $fromStatus, $terminal, $eventDate, $counterparty, null, $deliveryReversal, null,
                 $endorsementReversal === null ? null : ['endorsement_reversal_account_transaction_id' => $this->id($endorsementReversal)]);
+
             return $instrument->refresh();
         }, 3);
     }
@@ -258,26 +274,43 @@ final readonly class InstrumentOperations
     private function commercialAccount(int $companyId, int $accountId, string $direction, string $currency): Account
     {
         $account = Account::query()->where('company_id', $companyId)->whereKey($accountId)->sharedLock()->firstOrFail();
-        if (! $account->isActive()) throw new DomainException('Çek/senet aktif cari gerektirir.');
-        if ((string) $account->book_currency_code !== $currency) throw new DomainException('Çek/senet para birimi cari defter para birimiyle aynı olmalıdır.');
+        if (! $account->isActive()) {
+            throw new DomainException('Çek/senet aktif cari gerektirir.');
+        }
+        if ((string) $account->book_currency_code !== $currency) {
+            throw new DomainException('Çek/senet para birimi cari defter para birimiyle aynı olmalıdır.');
+        }
         $allowed = $direction === 'received' ? [AccountType::Customer, AccountType::Mixed] : [AccountType::Supplier, AccountType::Mixed];
-        if (! in_array($account->typeEnum(), $allowed, true)) throw new DomainException($direction === 'received' ? 'Alınan çek/senet müşteri carisi gerektirir.' : 'Verilen çek/senet tedarikçi carisi gerektirir.');
+        if (! in_array($account->typeEnum(), $allowed, true)) {
+            throw new DomainException($direction === 'received' ? 'Alınan çek/senet müşteri carisi gerektirir.' : 'Verilen çek/senet tedarikçi carisi gerektirir.');
+        }
+
         return $account;
     }
 
     private function supplierAccount(int $companyId, int $accountId, string $currency): Account
     {
         $account = Account::query()->where('company_id', $companyId)->whereKey($accountId)->sharedLock()->firstOrFail();
-        if (! $account->isActive() || ! in_array($account->typeEnum(), [AccountType::Supplier, AccountType::Mixed], true)) throw new DomainException('Ciro aktif tedarikçi carisi gerektirir.');
-        if ((string) $account->book_currency_code !== $currency) throw new DomainException('Ciro hedef carisi aynı para biriminde olmalıdır.');
+        if (! $account->isActive() || ! in_array($account->typeEnum(), [AccountType::Supplier, AccountType::Mixed], true)) {
+            throw new DomainException('Ciro aktif tedarikçi carisi gerektirir.');
+        }
+        if ((string) $account->book_currency_code !== $currency) {
+            throw new DomainException('Ciro hedef carisi aynı para biriminde olmalıdır.');
+        }
+
         return $account;
     }
 
     private function bankAccount(int $companyId, int $treasuryAccountId, string $currency): TreasuryAccount
     {
         $bank = TreasuryAccount::query()->where('company_id', $companyId)->whereKey($treasuryAccountId)->lockForUpdate()->firstOrFail();
-        if ((string) $bank->type !== 'bank' || ! (bool) $bank->is_active) throw new DomainException('Çek/senet kapanışı aktif banka hesabı gerektirir.');
-        if ((string) $bank->currency_code !== $currency) throw new DomainException('Banka hesabı çek/senet ile aynı para biriminde olmalıdır.');
+        if ((string) $bank->type !== 'bank' || ! (bool) $bank->is_active) {
+            throw new DomainException('Çek/senet kapanışı aktif banka hesabı gerektirir.');
+        }
+        if ((string) $bank->currency_code !== $currency) {
+            throw new DomainException('Banka hesabı çek/senet ile aynı para biriminde olmalıdır.');
+        }
+
         return $bank;
     }
 
@@ -289,7 +322,9 @@ final readonly class InstrumentOperations
     /** @param list<string> $allowedStatuses */
     private function requireState(Instrument $instrument, string $direction, array $allowedStatuses): void
     {
-        if ((string) $instrument->direction !== $direction || ! in_array((string) $instrument->status, $allowedStatuses, true)) throw new DomainException('Çek/senet bu lifecycle operasyonu için uygun durumda değil.');
+        if ((string) $instrument->direction !== $direction || ! in_array((string) $instrument->status, $allowedStatuses, true)) {
+            throw new DomainException('Çek/senet bu lifecycle operasyonu için uygun durumda değil.');
+        }
     }
 
     /** @param array<string, int>|null $metadata */
@@ -306,13 +341,87 @@ final readonly class InstrumentOperations
         ]);
     }
 
-    private function direction(string $direction): string { $direction = trim($direction); if (! in_array($direction, ['received', 'issued'], true)) throw new InvalidArgumentException('Çek/senet yönü received veya issued olmalıdır.'); return $direction; }
-    private function kind(string $kind): string { $kind = trim($kind); if (! in_array($kind, ['cheque', 'promissory_note'], true)) throw new InvalidArgumentException('Belge türü cheque veya promissory_note olmalıdır.'); return $kind; }
-    private function currency(string $currency): string { $currency = strtoupper(trim($currency)); if (preg_match('/^[A-Z]{3}$/D', $currency) !== 1) throw new InvalidArgumentException('Para birimi ISO-4217 üç harf kodu olmalıdır.'); return $currency; }
-    private function positiveAmount(string $amount): string { $amount = $this->amounts->normalize($amount); if (str_starts_with($amount, '-')) throw new InvalidArgumentException('Çek/senet tutarı pozitif olmalıdır.'); return $amount; }
-    private function date(string $date, string $label): void { $parsed = DateTimeImmutable::createFromFormat('!Y-m-d', $date); if (! $parsed instanceof DateTimeImmutable || $parsed->format('Y-m-d') !== $date) throw new InvalidArgumentException($label.' Y-m-d formatında geçerli bir tarih olmalıdır.'); }
-    private function requiredText(string $value, int $max, string $label): string { $value = trim($value); if ($value === '' || mb_strlen($value) > $max) throw new InvalidArgumentException($label.' boş olamaz ve en fazla '.$max.' karakter olabilir.'); return $value; }
-    private function nullableText(?string $value, int $max): ?string { if ($value === null || trim($value) === '') return null; $value = trim($value); if (mb_strlen($value) > $max) throw new InvalidArgumentException('Metin alanı en fazla '.$max.' karakter olabilir.'); return $value; }
-    private function memo(Instrument $instrument): string { return ($instrument->direction === 'received' ? 'Alınan' : 'Verilen').' '.($instrument->kind === 'cheque' ? 'çek' : 'senet').': '.(string) $instrument->document_no; }
-    private function id(object $model): int { if (! method_exists($model, 'getKey')) throw new LogicException('Persisted model key is required.'); $id = $model->getKey(); return is_int($id) ? $id : throw new LogicException('Persisted model did not return an integer key.'); }
+    private function direction(string $direction): string
+    {
+        $direction = trim($direction);
+        if (! in_array($direction, ['received', 'issued'], true)) {
+            throw new InvalidArgumentException('Çek/senet yönü received veya issued olmalıdır.');
+        }
+
+return $direction;
+    }
+
+    private function kind(string $kind): string
+    {
+        $kind = trim($kind);
+        if (! in_array($kind, ['cheque', 'promissory_note'], true)) {
+            throw new InvalidArgumentException('Belge türü cheque veya promissory_note olmalıdır.');
+        }
+
+return $kind;
+    }
+
+    private function currency(string $currency): string
+    {
+        $currency = strtoupper(trim($currency));
+        if (preg_match('/^[A-Z]{3}$/D', $currency) !== 1) {
+            throw new InvalidArgumentException('Para birimi ISO-4217 üç harf kodu olmalıdır.');
+        }
+
+return $currency;
+    }
+
+    private function positiveAmount(string $amount): string
+    {
+        $amount = $this->amounts->normalize($amount);
+        if (str_starts_with($amount, '-')) {
+            throw new InvalidArgumentException('Çek/senet tutarı pozitif olmalıdır.');
+        }
+
+return $amount;
+    }
+
+    private function date(string $date, string $label): void
+    {
+        $parsed = DateTimeImmutable::createFromFormat('!Y-m-d', $date);
+        if (! $parsed instanceof DateTimeImmutable || $parsed->format('Y-m-d') !== $date) {
+            throw new InvalidArgumentException($label.' Y-m-d formatında geçerli bir tarih olmalıdır.');
+        }
+    }
+
+    private function requiredText(string $value, int $max, string $label): string
+    {
+        $value = trim($value);
+        if ($value === '' || mb_strlen($value) > $max) {
+            throw new InvalidArgumentException($label.' boş olamaz ve en fazla '.$max.' karakter olabilir.');
+        }
+
+return $value;
+    }
+
+    private function nullableText(?string $value, int $max): ?string
+    {
+        if ($value === null || trim($value) === '') {
+            return null;
+        } $value = trim($value);
+        if (mb_strlen($value) > $max) {
+            throw new InvalidArgumentException('Metin alanı en fazla '.$max.' karakter olabilir.');
+        }
+
+return $value;
+    }
+
+    private function memo(Instrument $instrument): string
+    {
+        return ($instrument->direction === 'received' ? 'Alınan' : 'Verilen').' '.($instrument->kind === 'cheque' ? 'çek' : 'senet').': '.(string) $instrument->document_no;
+    }
+
+    private function id(object $model): int
+    {
+        if (! method_exists($model, 'getKey')) {
+            throw new LogicException('Persisted model key is required.');
+        } $id = $model->getKey();
+
+        return is_int($id) ? $id : throw new LogicException('Persisted model did not return an integer key.');
+    }
 }

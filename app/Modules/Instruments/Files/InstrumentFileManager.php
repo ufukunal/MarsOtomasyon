@@ -21,6 +21,7 @@ final readonly class InstrumentFileManager
     public function all(int $instrumentId): Collection
     {
         $id = $this->instrumentId($instrumentId);
+
         return Attachment::query()->where('company_id', $this->companyId())
             ->where('attachable_type', AttachmentTargetType::Instrument->value)->where('attachable_id', $id)
             ->with(['fileAsset', 'attachedBy', 'detachedBy'])->orderByDesc('attached_at')->get();
@@ -29,15 +30,20 @@ final readonly class InstrumentFileManager
     public function upload(int $instrumentId, UploadedFile $upload, string $side): Attachment
     {
         $side = strtolower(trim($side));
-        if (! in_array($side, ['front', 'back'], true)) throw new InvalidArgumentException('Çek/senet görsel yönü front veya back olmalıdır.');
+        if (! in_array($side, ['front', 'back'], true)) {
+            throw new InvalidArgumentException('Çek/senet görsel yönü front veya back olmalıdır.');
+        }
         $id = $this->instrumentId($instrumentId);
         $existing = Attachment::query()->where('company_id', $this->companyId())
             ->where('attachable_type', AttachmentTargetType::Instrument->value)->where('attachable_id', $id)
             ->where('label', $side)->whereNull('detached_at')->get();
         foreach ($existing as $attachment) {
             $key = $attachment->getKey();
-            if (is_int($key)) $this->attachments->detach(AttachmentTargetType::Instrument, $id, $key);
+            if (is_int($key)) {
+                $this->attachments->detach(AttachmentTargetType::Instrument, $id, $key);
+            }
         }
+
         return $this->attachments->upload(AttachmentTargetType::Instrument, $id, $upload, $side);
     }
 
@@ -55,12 +61,14 @@ final readonly class InstrumentFileManager
     {
         $instrument = Instrument::query()->where('company_id', $this->companyId())->findOrFail($instrumentId);
         $id = $instrument->getKey();
+
         return is_int($id) ? $id : throw new LogicException('Instrument file target must be persisted.');
     }
 
     private function companyId(): int
     {
         $id = $this->companyContext->requireCompany()->getKey();
+
         return is_int($id) ? $id : throw new LogicException('Instrument file operation requires a persisted company.');
     }
 }
