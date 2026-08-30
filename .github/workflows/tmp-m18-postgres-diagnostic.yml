@@ -1,0 +1,113 @@
+name: Tmp M18 PostgreSQL Diagnostic
+
+on:
+  push:
+    branches: [tmp/m18-pint-diff]
+    paths-ignore:
+      - '.tmp/m18-postgres-failure.txt'
+
+permissions:
+  contents: write
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-24.04
+    services:
+      postgres:
+        image: postgres:18.6
+        env:
+          POSTGRES_DB: mars_test
+          POSTGRES_USER: mars
+          POSTGRES_PASSWORD: mars
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U mars -d mars_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+      valkey:
+        image: valkey/valkey:9.1.1
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "valkey-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    env:
+      APP_NAME: MarsOtomasyon
+      APP_ENV: testing
+      APP_KEY: base64:TWFyc090b21hc3lvbkZvdW5kYXRpb25UZXN0S2V5ISE=
+      APP_DEBUG: 'false'
+      APP_URL: http://localhost
+      DB_CONNECTION: pgsql
+      DB_HOST: 127.0.0.1
+      DB_PORT: 5432
+      DB_DATABASE: mars_test
+      DB_USERNAME: mars
+      DB_PASSWORD: mars
+      CACHE_STORE: redis
+      QUEUE_CONNECTION: redis
+      SESSION_DRIVER: redis
+      SESSION_CONNECTION: session
+      MAIL_MAILER: array
+      REDIS_CLIENT: phpredis
+      REDIS_HOST: 127.0.0.1
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: null
+      REDIS_PREFIX: 'mars-ci:'
+      REDIS_DB: 0
+      REDIS_CACHE_DB: 1
+      REDIS_QUEUE_DB: 2
+      REDIS_SESSION_DB: 3
+      REDIS_QUEUE: mars-ci
+      REDIS_QUEUE_RETRY_AFTER: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: tmp/m18-pint-diff
+          fetch-depth: 0
+      - run: cp .env.example .env
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          extensions: pdo_pgsql, redis, sockets, intl, zip
+          coverage: none
+          tools: composer:v2
+      - run: composer install --no-interaction --prefer-dist --no-progress
+      - run: php artisan migrate:fresh --force
+      - name: Capture failing test output
+        shell: bash
+        run: |
+          set +e
+          mkdir -p .tmp
+          php artisan test tests/Integration/Commerce/M18MarketplacePackTest.php --colors=never > /tmp/m18-targeted.log 2>&1
+          targeted_status=$?
+          if [ "$targeted_status" -eq 0 ]; then
+            composer test > /tmp/m18-full.log 2>&1
+            full_status=$?
+            {
+              echo "targeted_status=$targeted_status"
+              echo "full_status=$full_status"
+              echo "--- FULL SUITE FAILURE SUMMARY ---"
+              grep -nE 'FAIL|FAILED|Error|Exception|Tests:|Assertion|SQLSTATE|TypeError|DomainException' /tmp/m18-full.log | tail -n 160
+              echo "--- FULL SUITE TAIL ---"
+              tail -n 220 /tmp/m18-full.log
+            } > .tmp/m18-postgres-failure.txt
+          else
+            {
+              echo "targeted_status=$targeted_status"
+              echo "--- TARGETED FAILURE SUMMARY ---"
+              grep -nE 'FAIL|FAILED|Error|Exception|Tests:|Assertion|SQLSTATE|TypeError|DomainException' /tmp/m18-targeted.log | tail -n 160
+              echo "--- TARGETED TAIL ---"
+              tail -n 220 /tmp/m18-targeted.log
+            } > .tmp/m18-postgres-failure.txt
+          fi
+      - name: Commit diagnostic output
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .tmp/m18-postgres-failure.txt
+          git commit -m "tmp: capture M18 PostgreSQL failure" || exit 0
+          git push origin HEAD:tmp/m18-pint-diff
