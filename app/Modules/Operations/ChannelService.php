@@ -2,9 +2,9 @@
 
 namespace App\Modules\Operations;
 
-use App\Modules\Operations\Jobs\ProcessIntegrationEvent;
 use App\Modules\Operations\Jobs\ProcessIntegrationSync;
 use DomainException;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
@@ -14,6 +14,8 @@ use RuntimeException;
 
 final class ChannelService
 {
+    public function __construct(private readonly ChannelEventStore $events) {}
+
     /** @param array<string,mixed> $credentials */
     public function createConnection(int $companyId, string $provider, string $name, ?string $baseUrl, array $credentials, string $webhookSecret): int
     {
@@ -30,6 +32,7 @@ final class ChannelService
         }
 
         return (int) DB::table('integration_connections')->insertGetId([
+            'public_id' => (string) Str::ulid(),
             'company_id' => $companyId,
             'provider' => $provider,
             'name' => $name,
@@ -48,6 +51,7 @@ final class ChannelService
             throw new DomainException('Integration payload exceeds configured limit.');
         }
         $connection = DB::table('integration_connections')->where('id', $connectionId)->first();
+        /** @var object{id:mixed,company_id:mixed,status:mixed,webhook_secret_ciphertext:mixed,provider:mixed}|null $connection */
         if ($connection === null || (string) $connection->status !== 'active') {
             throw new DomainException('Integration connection is not active.');
         }
@@ -64,47 +68,8 @@ final class ChannelService
         if (! is_array($payload)) {
             throw new DomainException('Integration payload must be a JSON object or array.');
         }
-        $eventType = $this->canonicalEventType($eventType);
-        $externalEventId = trim($externalEventId);
-        if ($externalEventId === '') {
-            $externalEventId = hash('sha256', $eventType.'|'.$rawPayload);
-        }
-        $hash = hash('sha256', $rawPayload);
 
-        return DB::transaction(function () use ($connection, $externalEventId, $eventType, $payload, $hash): int {
-            $inserted = DB::table('integration_events')->insertOrIgnore([
-                'company_id' => $connection->company_id,
-                'connection_id' => $connection->id,
-                'external_event_id' => $externalEventId,
-                'event_type' => $eventType,
-                'payload_sha256' => $hash,
-                'payload' => json_encode($payload, JSON_THROW_ON_ERROR),
-                'status' => 'received',
-                'attempts' => 0,
-                'available_at' => now(),
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
-
-            $event = DB::table('integration_events')
-                ->where('company_id', $connection->company_id)
-                ->where('connection_id', $connection->id)
-                ->where('external_event_id', $externalEventId)
-                ->lockForUpdate()
-                ->first();
-            if ($event === null) {
-                throw new RuntimeException('Integration event could not be persisted.');
-            }
-            if ((string) $event->payload_sha256 !== $hash || (string) $event->event_type !== $eventType) {
-                throw new DomainException('Webhook replay payload drift detected.');
-            }
-
-            if ($inserted > 0) {
-                ProcessIntegrationEvent::dispatch((int) $event->id)->afterCommit();
-            }
-
-            return (int) $event->id;
-        });
+        return $this->events->persist($connection, $externalEventId, $eventType, $payload);
     }
 
     /** @param array<string,mixed> $payload */
@@ -245,6 +210,20 @@ final class ChannelService
             if (! in_array((string) $effect->status, ['queued', 'failed'], true)) {
                 throw new DomainException('Integration sync cannot execute from current status.');
             }
+            if ((string) ($effect->guard_type ?? '') === 'listing_state' && $effect->guard_id !== null && $effect->guard_version !== null) {
+                $state = DB::table('channel_listing_states')->where('id', (int) $effect->guard_id)->lockForUpdate()->first(['id', 'desired_version']);
+                if ($state === null || (int) $state->desired_version !== (int) $effect->guard_version) {
+                    DB::table('integration_sync_effects')->where('id', $effectId)->update([
+                        'status' => 'ignored',
+                        'completed_at' => now(),
+                        'ignored_reason' => 'stale desired-state version',
+                        'last_error' => null,
+                        'updated_at' => now(),
+                    ]);
+
+                    return null;
+                }
+            }
             DB::table('integration_sync_effects')->where('id', $effectId)->update([
                 'status' => 'sending',
                 'attempts' => (int) $effect->attempts + 1,
@@ -282,6 +261,11 @@ final class ChannelService
                 $credentials,
                 $payload,
             );
+            if ($response->status() === 429) {
+                $retryAfter = (int) $response->header('Retry-After');
+                $retryAfter = max(60, min($retryAfter > 0 ? $retryAfter : 300, 3600));
+                throw new ProviderRateLimitException('Provider rate limit exceeded.', $retryAfter);
+            }
             if (! $response->successful()) {
                 throw new RuntimeException('Provider returned HTTP '.$response->status().': '.mb_substr($response->body(), 0, 1000));
             }
@@ -294,6 +278,30 @@ final class ChannelService
                 'last_error' => null,
                 'updated_at' => now(),
             ]);
+            if ((string) ($effect->guard_type ?? '') === 'listing_state' && $effect->guard_id !== null && $effect->guard_version !== null) {
+                $state = DB::table('channel_listing_states')
+                    ->where('id', (int) $effect->guard_id)
+                    ->where('desired_version', (int) $effect->guard_version)
+                    ->first(['desired_stock', 'desired_price', 'desired_currency_code', 'desired_media']);
+                if ($state !== null) {
+                    DB::table('channel_listing_states')->where('id', (int) $effect->guard_id)->update([
+                        'published_version' => (int) $effect->guard_version,
+                        'published_stock' => $state->desired_stock,
+                        'published_price' => $state->desired_price,
+                        'published_currency_code' => $state->desired_currency_code,
+                        'published_media' => $state->desired_media,
+                        'status' => 'synced',
+                        'last_error' => null,
+                        'updated_at' => now(),
+                    ]);
+                }
+            }
+            DB::table('channel_invoice_syncs')->where('sync_effect_id', $effectId)->update([
+                'status' => 'synced',
+                'synced_at' => now(),
+                'last_error' => null,
+                'updated_at' => now(),
+            ]);
             DB::table('integration_connections')
                 ->where('company_id', $effect->company_id)
                 ->where('id', $effect->connection_id)
@@ -303,8 +311,53 @@ final class ChannelService
                     'last_error' => null,
                     'updated_at' => now(),
                 ]);
+        } catch (ConnectionException $exception) {
+            $message = 'Ambiguous provider outcome after connection failure: '.mb_substr($exception->getMessage(), 0, 3800);
+            DB::table('integration_sync_effects')->where('id', $effectId)->where('status', 'sending')->update([
+                'status' => 'ambiguous',
+                'last_error' => $message,
+                'updated_at' => now(),
+            ]);
+            DB::table('channel_invoice_syncs')->where('sync_effect_id', $effectId)->update([
+                'status' => 'failed',
+                'last_error' => $message,
+                'updated_at' => now(),
+            ]);
+            if ((string) ($effect->guard_type ?? '') === 'listing_state' && $effect->guard_id !== null && $effect->guard_version !== null) {
+                DB::table('channel_listing_states')
+                    ->where('id', (int) $effect->guard_id)
+                    ->where('desired_version', (int) $effect->guard_version)
+                    ->update([
+                        'status' => 'failed',
+                        'last_error' => $message,
+                        'updated_at' => now(),
+                    ]);
+            }
+            DB::table('integration_connections')
+                ->where('company_id', $effect->company_id)
+                ->where('id', $effect->connection_id)
+                ->update([
+                    'last_error_at' => now(),
+                    'last_error' => $message,
+                    'updated_at' => now(),
+                ]);
         } catch (\Throwable $exception) {
             DB::table('integration_sync_effects')->where('id', $effectId)->where('status', 'sending')->update([
+                'status' => 'failed',
+                'last_error' => mb_substr($exception->getMessage(), 0, 4000),
+                'updated_at' => now(),
+            ]);
+            if ((string) ($effect->guard_type ?? '') === 'listing_state' && $effect->guard_id !== null && $effect->guard_version !== null) {
+                DB::table('channel_listing_states')
+                    ->where('id', (int) $effect->guard_id)
+                    ->where('desired_version', (int) $effect->guard_version)
+                    ->update([
+                        'status' => 'failed',
+                        'last_error' => mb_substr($exception->getMessage(), 0, 4000),
+                        'updated_at' => now(),
+                    ]);
+            }
+            DB::table('channel_invoice_syncs')->where('sync_effect_id', $effectId)->update([
                 'status' => 'failed',
                 'last_error' => mb_substr($exception->getMessage(), 0, 4000),
                 'updated_at' => now(),
@@ -330,18 +383,6 @@ final class ChannelService
         $signature = str_starts_with($signature, 'sha256=') ? substr($signature, 7) : $signature;
 
         return hash_equals(hash_hmac('sha256', $payload, $secret), strtolower($signature));
-    }
-
-    private function canonicalEventType(string $eventType): string
-    {
-        $eventType = strtolower(trim($eventType));
-        $eventType = str_replace(['/', ':', ' '], '.', $eventType);
-        $eventType = preg_replace('/[^a-z0-9._-]+/', '', $eventType) ?? '';
-        if ($eventType === '' || strlen($eventType) > 96) {
-            throw new DomainException('Invalid integration event type.');
-        }
-
-        return $eventType;
     }
 
     /** @return array<string,mixed> */

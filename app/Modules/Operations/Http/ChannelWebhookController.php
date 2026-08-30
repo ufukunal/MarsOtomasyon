@@ -11,9 +11,12 @@ final readonly class ChannelWebhookController
 {
     public function __construct(private ChannelService $channels) {}
 
-    public function __invoke(Request $request, int $connection): JsonResponse
+    public function __invoke(Request $request, string $connection): JsonResponse
     {
-        $row = DB::table('integration_connections')->where('id', $connection)->first(['provider']);
+        $row = DB::table('integration_connections')
+            ->where('public_id', strtoupper(trim($connection)))
+            ->where('status', 'active')
+            ->first(['id', 'provider']);
         abort_if($row === null, 404);
         $provider = (string) $row->provider;
         $signature = $provider === 'woocommerce'
@@ -26,7 +29,7 @@ final readonly class ChannelWebhookController
             ? ($this->headerString($request, 'X-WC-Webhook-Delivery-ID') ?: $this->headerString($request, 'X-WC-Webhook-ID'))
             : ($this->headerString($request, 'X-Trendyol-Event-ID') ?: $this->inputString($request, 'event_id'));
 
-        $id = $this->channels->ingestWebhook($connection, $externalId, $eventType, $request->getContent(), $signature);
+        $id = $this->channels->ingestWebhook((int) $row->id, $externalId, $eventType, $request->getContent(), $signature);
 
         return response()->json(['accepted' => true, 'event_id' => $id], 202);
     }

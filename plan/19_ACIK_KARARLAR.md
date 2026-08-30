@@ -27,14 +27,12 @@ Bu dosya backlog değildir. Yalnız ilgili milestone başlamadan gerçekten kapa
 - M0 QA/toolchain: PHP 8.5 + Laravel 13, PostgreSQL 18, Valkey, Node 24 LTS/npm, Pint, Larastan/PHPStan level 8 no-baseline, Pest 5 + Laravel plugin + Browser/Playwright.
 - M0 execution order: `29_M0_ALTYAPI_UYGULAMA_SIRASI.md` içindeki M0.0→M0.10 gate zinciri.
 - İthalat landed-cost: K-052; provisional masraf carrying value üretmez, final/late cost Goods Receipt cost-adjustment authority ile on-hand/consumed ayrılır; default `line_value`.
+- Public/external identity: K-053; internal bigint PK private kalır, dışarı açılan Mars resource additive immutable ULID `public_id` kullanır; provider external ID ve idempotency key ayrıdır.
 
 ## B. AÇIK — GERÇEK BLOCKER
 
 ### A-03 — Deployment modeli
 Production rollout öncesi native/CyberPanel/Docker nihai kurulum seçilecek. Domain tasarımını değiştirmez.
-
-### A-04 — Public ID strategy
-External API/B2B milestone öncesi public ULID/UUID/public code politikası kapanacak. Internal DB PK ile kullanıcı-visible ID ayrıdır.
 
 ### A-07 — Dövizli virman / cross-currency payment
 Gerekliyse M10 öncesi:
@@ -104,9 +102,9 @@ Bir milestone başlamadan aşağıdaki açık kararlar gerçekten gerekliyse kap
 | M14 | Açık blocker yok |
 | M15 | Açık blocker yok; subcontract custody locked |
 | M16 | K-052 landed-cost posting policy locked; açık blocker yok |
-| M17 | A-04 external/public IDs kullanılmadan önce zorunlu |
+| M17 | K-053 public ULID strategy locked; açık blocker yok |
 | M18 | Provider registry + gerçek API contract doğrulaması her adapter entry gate'idir |
-| M19 | A-04 B2B public ID/token contract öncesi zorunlu |
+| M19 | K-053 public ULID strategy locked; B2B token/auth contract ayrıca M19 scope’unda |
 | M20 | A-08/A-09/A-10/A-11 yalnız ilgili production provider slice'ı için zorunlu |
 | M21 | Açık blocker yok |
 | M22 | Açık blocker yok |

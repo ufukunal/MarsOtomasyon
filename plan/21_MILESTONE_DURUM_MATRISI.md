@@ -31,7 +31,7 @@ Bu belge `16_UYGULAMA_SIRASI_MILESTONE.md` içindeki resmî V4.2 milestone numar
 | M13 | Report Platform + Commercial Core Reports | **DONE** | PR #69: finance snapshot, aging, stock valuation/movement lineage, filters, CSV, RBAC/tests | Future domain raporları kendi milestone'larında eklenir |
 | M14 | Basit Üretim | **DONE** | PR #73; reçete → üretim emri → material issue/fire → mamul receipt → complete, technical file + report; merge `f3b30c059e2294ba2f542ff479cde142725e04b4`; main Foundation run `33287261767` 4/4 | V1 milestone gap yok |
 | M15 | Fason | **DONE** | PR #74; physical OUT → subcontract custody quantity/carrying value → fire/partial finished-goods IN → reconcile/complete + files/report; merge `57173a2678c8a44ae38fd7df7c73e062f9caba41`; main Foundation run `33288273051` 4/4 | V1 milestone gap yok |
-| M16 | İthalat / Konteyner | **PENDING** | K-052 locked; feature branch PostgreSQL acceptance: file/container/package/component/location, finalized GoodsReceipt handoff, landed-cost allocation/posting, reports/lists/simulator | PR merge + exact final `main` Foundation 4/4 doğrulaması |
+| M16 | İthalat / Konteyner | **DONE** | PR #75; file/container/package/component/location, finalized GoodsReceipt handoff, landed-cost allocation/posting, reports/lists/simulator; merge `98de2a0c65f0c2cec63e7aebc10660b6eca7cab9`; exact main Foundation run `33292866739` 4/4 | V1 milestone gap yok |
 | M17 | E-Ticaret Integration Core + WooCommerce | **PARTIAL** | PR #64/#66: encrypted connection vault, webhook inbox/outbox, retry, WooCommerce/Trendyol inbound order mapping | Resmî M17 Channel Center, mapping, desired-state stock/price, return/invoice/settlement contracts ve WooCommerce exit gate tamamlanmalı |
 | M18 | Verified Marketplace Adapter Pack | **PARTIAL** | Trendyol için erken inbound-order capability #64/#66 içinde var | TY tam capability exit gate + HB/AMZ/N11/PTT/IDF/ALG adapter alt-milestone'ları gerçek contract fixture ile tamamlanmalı |
 | M19 | B2B / Bayi Sistemi | **PARTIAL** | M2.5 Account B2B access-policy metadata mevcut | Ayrı B2B auth context, B2BUser, session/reset/rate-limit, catalog/cart/order/history/risk/invoice/statement tamamlanmalı |
@@ -43,15 +43,14 @@ Bu belge `16_UYGULAMA_SIRASI_MILESTONE.md` içindeki resmî V4.2 milestone numar
 
 ## Bir sonraki uygulama sırası
 
-1. **M16 İthalat/Konteyner** — K-052 kilitli; vertical slice merge + exact main gate kapatılır.
-2. **M17 E-Ticaret Core + WooCommerce** — A-04 public ID strategy önce kilitlenir.
-3. **M18 adapter pack** — yalnız gerçek provider contract/fixture doğrulanan adapterlar.
-4. **M19 B2B**.
-5. **M20 Communication / API**.
-6. **M21 Product Image Operations**.
-7. **M22 Installation PDF Builder**.
-8. **M23 Production Candidate hardening**.
-9. **M24 Migration / Go-Live**.
+1. **M17 E-Ticaret Core + WooCommerce** — K-053 public ULID policy kilitli; WooCommerce vertical exit gate kapatılır.
+2. **M18 adapter pack** — yalnız gerçek provider contract/fixture doğrulanan adapterlar.
+3. **M19 B2B**.
+4. **M20 Communication / API**.
+5. **M21 Product Image Operations**.
+6. **M22 Installation PDF Builder**.
+7. **M23 Production Candidate hardening**.
+8. **M24 Migration / Go-Live**.
 
 ## Reconciliation kuralı
 

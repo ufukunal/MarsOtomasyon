@@ -266,6 +266,19 @@ M16 ithalat landed-cost politikası mevcut stok/maliyet authority'sini yeniden k
 - Landed-cost ikinci fiziksel `stock_movement` üretmez ve ayrı stok/maliyet motoru kurmaz; authority `ApplyGoodsReceiptCostAdjustment` üzerinden devam eder.
 
 
+### K-053 — Public ID / external identity boundary
+External API, B2B ve externally callable route/resource kimliklerinde Mars internal numeric PK public contract değildir.
+- Internal relational PK authority mevcut `bigint`/database key olarak kalır; foreign-key graph yeniden yazılmaz.
+- Dışarı açılan Mars resource'larına additive, immutable **26 karakter ULID `public_id`** verilir. ULID server-side üretilir ve ilgili tabloda unique'dir.
+- Tenant-scoped resource lookup her zaman `company_id + public_id` authorization/context sınırı içinde yapılır; public ID güvenlik sınırı değildir.
+- `/api/v1`, B2B ve external callback URL'leri internal numeric PK kabul etmez. Mevcut internal web route'ları public yüzeye dönüşene kadar numeric PK kullanabilir.
+- Provider-owned `external_id`, order/listing/product ID vb. Mars `public_id` değildir; provider + connection + external identity olarak ayrı mapping'de tutulur.
+- Idempotency/request operation key'leri resource identity değildir; UUID/caller key/fingerprint contract'ı ayrı kalır.
+- Existing tablolar yalnız ihtiyaç duyulan milestone'da expand/backfill/switch ile public ID kazanır; toplu destructive PK migration yapılmaz.
+- ULID sıralanabilirliği authorization yerine kullanılmaz ve creation-time bilgisinin yaklaşık görünürlüğü security property sayılmaz.
+
+
+
 ## B. YAPILMAYACAKLAR
 - Mikroservis, Event Sourcing, generic CQRS/BPM/hooks, GraphQL, EAV yok.
 - Fatura bazlı cari settlement/OpenItem UX yok.

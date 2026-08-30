@@ -281,7 +281,7 @@ A-17 landed-cost posting policy cost-posting slice başlamadan kapanır.
 # Wave E — External Commerce / Communication
 
 ## M17 — E-Ticaret Integration Core + WooCommerce
-Entry gate: A-04 public ID gerekiyorsa kapanmış; provider registry contract hazır.
+Entry gate: K-053 public ULID policy locked; provider registry contract hazır.
 
 - Channel Center
 - Channel Settings/Connection
