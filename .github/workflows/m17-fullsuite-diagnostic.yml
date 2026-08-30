@@ -1,0 +1,113 @@
+name: M17 Full Suite Diagnostic
+
+on:
+  push:
+    branches: [feat/m17-commerce]
+
+permissions:
+  contents: write
+
+env:
+  APP_NAME: MarsOtomasyon
+  APP_ENV: testing
+  APP_KEY: base64:TWFyc090b21hc3lvbkZvdW5kYXRpb25UZXN0S2V5ISE=
+  APP_DEBUG: 'false'
+  APP_URL: http://localhost
+  DB_CONNECTION: pgsql
+  DB_HOST: 127.0.0.1
+  DB_PORT: 5432
+  DB_DATABASE: mars_test
+  DB_USERNAME: mars
+  DB_PASSWORD: mars
+  CACHE_STORE: redis
+  QUEUE_CONNECTION: redis
+  SESSION_DRIVER: redis
+  SESSION_CONNECTION: session
+  MAIL_MAILER: array
+  REDIS_CLIENT: phpredis
+  REDIS_HOST: 127.0.0.1
+  REDIS_PORT: 6379
+  REDIS_PASSWORD: null
+  REDIS_PREFIX: 'mars-ci:'
+  REDIS_DB: 0
+  REDIS_CACHE_DB: 1
+  REDIS_QUEUE_DB: 2
+  REDIS_SESSION_DB: 3
+  REDIS_QUEUE: mars-ci
+  REDIS_QUEUE_RETRY_AFTER: 90
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:18.6
+        env:
+          POSTGRES_DB: mars_test
+          POSTGRES_USER: mars
+          POSTGRES_PASSWORD: mars
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U mars -d mars_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+      valkey:
+        image: valkey/valkey:9.1.1
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "valkey-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/m17-commerce
+      - run: cp .env.example .env
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          extensions: pdo_pgsql, redis, sockets, intl, zip
+          coverage: none
+          tools: composer:v2
+      - run: composer install --no-interaction --prefer-dist --no-progress
+      - run: php artisan migrate:fresh --force
+      - name: Capture exact full-suite result
+        shell: bash
+        run: |
+          set +e
+          composer test > /tmp/m17-full.log 2>&1
+          code=$?
+          sed -r 's/\x1B\[[0-9;]*[mK]//g' /tmp/m17-full.log > /tmp/m17-full.clean.log
+          mkdir -p ci
+          if [ "$code" -ne 0 ]; then
+            {
+              echo "M17 full-suite diagnostic"
+              echo "exit_code=$code"
+              echo
+              echo "=== FAILURE MARKERS ==="
+              grep -nEi -C 8 'FAIL|FAILED|ERROR|Exception|Assertion|Tests:' /tmp/m17-full.clean.log | tail -n 500 || true
+              echo
+              echo "=== LOG TAIL ==="
+              tail -n 1200 /tmp/m17-full.clean.log
+            } > ci/m17-fullsuite-failure.txt
+          fi
+          echo "TEST_EXIT_CODE=$code" >> "$GITHUB_ENV"
+      - name: Persist diagnostic and self-clean
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git rm .github/workflows/m17-fullsuite-diagnostic.yml
+          if [ -f ci/m17-fullsuite-failure.txt ]; then
+            git add ci/m17-fullsuite-failure.txt
+            git commit -m 'ci(m17): persist full-suite failure diagnostic'
+          else
+            git commit -m 'ci(m17): remove passing full-suite diagnostic'
+          fi
+          git push origin HEAD:feat/m17-commerce
+          exit "$TEST_EXIT_CODE"
