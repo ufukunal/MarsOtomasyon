@@ -452,6 +452,7 @@ final readonly class MarketplacePackService
         return is_array($decoded) ? $decoded : [];
     }
 
+    /** @return object{id:mixed,company_id:mixed,provider:mixed,credentials_ciphertext:mixed} */
     private function connection(int $companyId, string $publicId): object
     {
         $connection = DB::table('integration_connections')
