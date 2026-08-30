@@ -1,5 +1,5 @@
 name: M17 Capability Contracts
-# rerun after adapting guarded view anchor
+# rerun after static shape cleanup
 
 on:
   push:
