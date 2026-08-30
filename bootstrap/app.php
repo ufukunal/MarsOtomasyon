@@ -30,6 +30,7 @@ return Application::configure(basePath: dirname(__DIR__))
             require base_path('routes/supplier-invoices.php');
             require base_path('routes/purchase-returns.php');
             require base_path('routes/treasury.php');
+            require base_path('routes/instruments.php');
             require base_path('routes/reports.php');
             require base_path('routes/operations.php');
             Route::get('/health/ready', ReadinessController::class)->name('health.ready');
@@ -37,15 +38,9 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->append(CorrelationIdMiddleware::class);
-        $middleware->alias([
-            'company.context' => ResolveActiveCompany::class,
-            'branch.context' => ResolveActiveBranch::class,
-            'security.ip' => EnforceCompanyIpPolicy::class,
-        ]);
+        $middleware->alias(['company.context' => ResolveActiveCompany::class, 'branch.context' => ResolveActiveBranch::class, 'security.ip' => EnforceCompanyIpPolicy::class]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        $exceptions->shouldRenderJsonWhen(
-            fn (Request $request): bool => $request->is('api/*') || $request->expectsJson(),
-        );
+        $exceptions->shouldRenderJsonWhen(fn (Request $request): bool => $request->is('api/*') || $request->expectsJson());
     })
     ->create();
