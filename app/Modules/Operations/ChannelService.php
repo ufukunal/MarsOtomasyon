@@ -246,6 +246,20 @@ final class ChannelService
             if (! in_array((string) $effect->status, ['queued', 'failed'], true)) {
                 throw new DomainException('Integration sync cannot execute from current status.');
             }
+            if ((string) ($effect->guard_type ?? '') === 'listing_state' && $effect->guard_id !== null && $effect->guard_version !== null) {
+                $state = DB::table('channel_listing_states')->where('id', (int) $effect->guard_id)->lockForUpdate()->first(['id', 'desired_version']);
+                if ($state === null || (int) $state->desired_version !== (int) $effect->guard_version) {
+                    DB::table('integration_sync_effects')->where('id', $effectId)->update([
+                        'status' => 'ignored',
+                        'completed_at' => now(),
+                        'ignored_reason' => 'stale desired-state version',
+                        'last_error' => null,
+                        'updated_at' => now(),
+                    ]);
+
+                    return null;
+                }
+            }
             DB::table('integration_sync_effects')->where('id', $effectId)->update([
                 'status' => 'sending',
                 'attempts' => (int) $effect->attempts + 1,
@@ -295,6 +309,24 @@ final class ChannelService
                 'last_error' => null,
                 'updated_at' => now(),
             ]);
+            if ((string) ($effect->guard_type ?? '') === 'listing_state' && $effect->guard_id !== null && $effect->guard_version !== null) {
+                $state = DB::table('channel_listing_states')
+                    ->where('id', (int) $effect->guard_id)
+                    ->where('desired_version', (int) $effect->guard_version)
+                    ->first(['desired_stock', 'desired_price', 'desired_currency_code', 'desired_media']);
+                if ($state !== null) {
+                    DB::table('channel_listing_states')->where('id', (int) $effect->guard_id)->update([
+                        'published_version' => (int) $effect->guard_version,
+                        'published_stock' => $state->desired_stock,
+                        'published_price' => $state->desired_price,
+                        'published_currency_code' => $state->desired_currency_code,
+                        'published_media' => $state->desired_media,
+                        'status' => 'synced',
+                        'last_error' => null,
+                        'updated_at' => now(),
+                    ]);
+                }
+            }
             DB::table('integration_connections')
                 ->where('company_id', $effect->company_id)
                 ->where('id', $effect->connection_id)
@@ -310,6 +342,16 @@ final class ChannelService
                 'last_error' => mb_substr($exception->getMessage(), 0, 4000),
                 'updated_at' => now(),
             ]);
+            if ((string) ($effect->guard_type ?? '') === 'listing_state' && $effect->guard_id !== null && $effect->guard_version !== null) {
+                DB::table('channel_listing_states')
+                    ->where('id', (int) $effect->guard_id)
+                    ->where('desired_version', (int) $effect->guard_version)
+                    ->update([
+                        'status' => 'failed',
+                        'last_error' => mb_substr($exception->getMessage(), 0, 4000),
+                        'updated_at' => now(),
+                    ]);
+            }
             DB::table('integration_connections')
                 ->where('company_id', $effect->company_id)
                 ->where('id', $effect->connection_id)
