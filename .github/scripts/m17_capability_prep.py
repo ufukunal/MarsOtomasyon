@@ -74,6 +74,40 @@ new_block = old_block.replace(old_marker, new_marker, 1)
 s = s[:block_start] + new_block + s[block_end:]
 patch.write_text(s)
 
+# PHPStan shape cleanup for the shared event store handoff.
+center = Path('app/Modules/Commerce/ChannelCenterService.php')
+c = center.read_text()
+c = c.replace(
+    'object{id:int,provider:string,base_url:mixed,credentials_ciphertext:mixed,financial_mode:string,default_account_id:mixed,clearing_account_id:mixed}',
+    'object{id:int,company_id:int,provider:string,base_url:mixed,credentials_ciphertext:mixed,financial_mode:string,default_account_id:mixed,clearing_account_id:mixed}',
+)
+center.write_text(c)
+
+channel = Path('app/Modules/Operations/ChannelService.php')
+c = channel.read_text()
+needle = "        $connection = DB::table('integration_connections')->where('id', $connectionId)->first();\n"
+replacement = needle + "        /** @var object{id:mixed,company_id:mixed,status:mixed,webhook_secret_ciphertext:mixed,provider:mixed}|null $connection */\n"
+if needle not in c:
+    raise SystemExit('ChannelService webhook connection marker not found')
+c = c.replace(needle, replacement, 1)
+dead = '''    private function canonicalEventType(string $eventType): string
+    {
+        $eventType = strtolower(trim($eventType));
+        $eventType = str_replace(['/', ':', ' '], '.', $eventType);
+        $eventType = preg_replace('/[^a-z0-9._-]+/', '', $eventType) ?? '';
+        if ($eventType === '' || strlen($eventType) > 96) {
+            throw new DomainException('Invalid integration event type.');
+        }
+
+        return $eventType;
+    }
+
+'''
+if dead not in c:
+    raise SystemExit('ChannelService dead canonicalEventType method not found')
+c = c.replace(dead, '', 1)
+channel.write_text(c)
+
 # Record the now-proven M16 exact-main gate in the owner milestone matrix.
 matrix = Path('plan/21_MILESTONE_DURUM_MATRISI.md')
 m = matrix.read_text()
