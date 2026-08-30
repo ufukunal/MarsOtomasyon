@@ -14,6 +14,8 @@ use Carbon\CarbonImmutable;
 use DomainException;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Ramsey\Uuid\Uuid;
 use RuntimeException;
 
@@ -25,7 +27,7 @@ final readonly class ChannelDomainSync
     ) {}
 
     /**
-     * @param  object{provider:mixed,credentials_ciphertext?:mixed}  $connection
+     * @param  object{provider:mixed,credentials_ciphertext?:mixed,financial_mode?:mixed,default_account_id?:mixed,clearing_account_id?:mixed}  $connection
      * @param  object{event_type:mixed,company_id:mixed,connection_id:mixed,external_event_id:mixed,payload_sha256:mixed}  $event
      * @param  array<string,mixed>  $payload
      * @return array{entity_type:string,local_type:string,local_id:int,external_id:string}|null
@@ -42,10 +44,23 @@ final readonly class ChannelDomainSync
         $provider = (string) $connection->provider;
         $externalId = $this->externalOrderId($payload, (string) $event->external_event_id);
         $payloadHash = (string) $event->payload_sha256;
-        $lockKey = sprintf('mars:m11:channel:%d:%d:order:%s', $companyId, $connectionId, $externalId);
+        $lockKey = sprintf('mars:m17:channel:%d:%d:order:%s', $companyId, $connectionId, $externalId);
 
-        return DB::transaction(function () use ($companyId, $connectionId, $provider, $externalId, $payloadHash, $payload, $connection, $lockKey): array {
+        return DB::transaction(function () use ($companyId, $connectionId, $provider, $externalId, $payloadHash, $payload, $connection, $event, $lockKey): ?array {
             DB::selectOne('SELECT pg_advisory_xact_lock(hashtextextended(?, 0))', [$lockKey]);
+
+            $credentials = $this->credentials((string) ($connection->credentials_ciphertext ?? ''));
+            [$financialMode, $accountId] = $this->financialIdentity($connection, $credentials);
+            $inbox = $this->upsertInbox(
+                $companyId,
+                $connectionId,
+                $externalId,
+                (string) $event->external_event_id,
+                $payloadHash,
+                $payload,
+                $financialMode,
+                $accountId,
+            );
 
             $existing = DB::table('integration_entity_links')
                 ->where('company_id', $companyId)
@@ -60,6 +75,14 @@ final readonly class ChannelDomainSync
                     'last_synced_at' => now(),
                     'updated_at' => now(),
                 ]);
+                DB::table('channel_order_inbox')->where('id', $inbox->id)->update([
+                    'sales_order_id' => (int) $existing->local_id,
+                    'status' => 'imported',
+                    'problem_code' => null,
+                    'problem_message' => null,
+                    'imported_at' => $inbox->imported_at ?? now(),
+                    'updated_at' => now(),
+                ]);
 
                 return [
                     'entity_type' => 'order',
@@ -69,28 +92,41 @@ final readonly class ChannelDomainSync
                 ];
             }
 
-            $credentials = $this->credentials((string) ($connection->credentials_ciphertext ?? ''));
-            $accountId = (int) ($credentials['default_account_id'] ?? 0);
-            if ($accountId < 1) {
-                throw new DomainException('Inbound channel orders require credentials.default_account_id.');
-            }
-
             $company = Company::query()->whereKey($companyId)->first();
             if (! $company instanceof Company) {
                 throw new RuntimeException('Integration company not found.');
             }
 
-            $previousCompany = $this->companyContext->company();
-            $this->companyContext->set($company);
             try {
-                $draft = $this->salesOrderDraft($companyId, $provider, $externalId, $accountId, $credentials, $payload, $company);
-                $order = $this->createSalesOrder->handle($draft, (string) ($credentials['order_series'] ?? 'default'));
-            } finally {
-                if ($previousCompany instanceof Company) {
-                    $this->companyContext->set($previousCompany);
-                } else {
-                    $this->companyContext->clear();
+                $previousCompany = $this->companyContext->company();
+                $this->companyContext->set($company);
+                try {
+                    $draft = $this->salesOrderDraft(
+                        $companyId,
+                        $connectionId,
+                        $provider,
+                        $externalId,
+                        $accountId,
+                        $credentials,
+                        $payload,
+                        $company,
+                    );
+                    $order = $this->createSalesOrder->handle($draft, (string) ($credentials['order_series'] ?? 'default'));
+                } finally {
+                    if ($previousCompany instanceof Company) {
+                        $this->companyContext->set($previousCompany);
+                    } else {
+                        $this->companyContext->clear();
+                    }
                 }
+            } catch (ValidationException $exception) {
+                $this->recordProblem($inbox, $exception, $this->isStockProblem($exception) ? 'stock_problem' : 'validation_failed');
+
+                return null;
+            } catch (DomainException $exception) {
+                $this->recordProblem($inbox, $exception, 'mapping_failed');
+
+                return null;
             }
 
             $localId = (int) $order->getKey();
@@ -104,6 +140,19 @@ final readonly class ChannelDomainSync
                 'last_payload_sha256' => $payloadHash,
                 'last_synced_at' => now(),
                 'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+            DB::table('channel_order_inbox')->where('id', $inbox->id)->update([
+                'sales_order_id' => $localId,
+                'status' => 'imported',
+                'problem_code' => null,
+                'problem_message' => null,
+                'imported_at' => now(),
+                'updated_at' => now(),
+            ]);
+            DB::table('channel_problems')->where('order_inbox_id', $inbox->id)->where('status', 'open')->update([
+                'status' => 'resolved',
+                'resolved_at' => now(),
                 'updated_at' => now(),
             ]);
 
@@ -122,6 +171,7 @@ final readonly class ChannelDomainSync
      */
     private function salesOrderDraft(
         int $companyId,
+        int $connectionId,
         string $provider,
         string $externalId,
         int $accountId,
@@ -143,20 +193,32 @@ final readonly class ChannelDomainSync
                 throw new DomainException('Inbound channel order line is invalid.');
             }
             $sku = $this->firstString($rawLine, ['sku', 'merchantSku', 'merchant_sku', 'barcode']);
-            if ($sku === '') {
-                throw new DomainException('Inbound channel order line requires a SKU/barcode mapping key.');
+            $externalProductId = $this->firstString($rawLine, ['product_id', 'productId', 'product_id_external']);
+            $externalVariantId = $this->firstString($rawLine, ['variation_id', 'variantId', 'variant_id']);
+            if ($sku === '' && $externalProductId === '' && $externalVariantId === '') {
+                throw new DomainException('Inbound channel order line requires a product mapping key.');
             }
-            $product = Product::query()
-                ->with('tax')
-                ->where('company_id', $companyId)
-                ->where('status', 'active')
-                ->where(function ($query) use ($sku): void {
-                    $query->where('code', $sku)
-                        ->orWhereHas('barcodes', fn ($barcodeQuery) => $barcodeQuery->where('barcode', $sku));
-                })
-                ->first();
+
+            $product = $this->mappedProduct(
+                $companyId,
+                $connectionId,
+                $sku,
+                $externalProductId,
+                $externalVariantId,
+            );
+            if (! $product instanceof Product && $sku !== '') {
+                $product = Product::query()
+                    ->with('tax')
+                    ->where('company_id', $companyId)
+                    ->where('status', 'active')
+                    ->where(function ($query) use ($sku): void {
+                        $query->where('code', $sku)
+                            ->orWhereHas('barcodes', fn ($barcodeQuery) => $barcodeQuery->where('barcode', $sku));
+                    })
+                    ->first();
+            }
             if (! $product instanceof Product || $product->tax === null) {
-                throw new DomainException('Channel SKU could not be mapped to an active Mars product: '.$sku);
+                throw new DomainException('Channel product could not be mapped to an active Mars product: '.($sku ?: $externalProductId ?: $externalVariantId));
             }
 
             $quantity = $this->positiveDecimal($rawLine['quantity'] ?? 0, 'quantity');
@@ -173,6 +235,7 @@ final readonly class ChannelDomainSync
                 }
             }
 
+            $mappingKey = $sku ?: $externalVariantId ?: $externalProductId;
             $lines[] = new SalesOrderLineData(
                 productId: (int) $product->getKey(),
                 quantity: $quantity,
@@ -181,7 +244,7 @@ final readonly class ChannelDomainSync
                 lineDiscountRate: '0',
                 taxZeroReasonId: $zeroReasonId,
                 description: $this->firstString($rawLine, ['name', 'productName', 'description']) ?: (string) $product->name,
-                logicalLineKey: Uuid::uuid5(Uuid::NAMESPACE_URL, 'mars:channel:'.$provider.':'.$externalId.':'.$index.':'.$sku)->toString(),
+                logicalLineKey: Uuid::uuid5(Uuid::NAMESPACE_URL, 'mars:channel:'.$provider.':'.$externalId.':'.$index.':'.$mappingKey)->toString(),
                 taxIsZeroed: false,
             );
         }
@@ -199,6 +262,183 @@ final readonly class ChannelDomainSync
             note: sprintf('%s kanal siparişi %s', ucfirst($provider), $externalId),
             lines: $lines,
         );
+    }
+
+    private function mappedProduct(
+        int $companyId,
+        int $connectionId,
+        string $sku,
+        string $externalProductId,
+        string $externalVariantId,
+    ): ?Product {
+        $query = DB::table('channel_product_mappings')
+            ->where('company_id', $companyId)
+            ->where('connection_id', $connectionId)
+            ->where('status', 'active')
+            ->where(function ($query) use ($sku, $externalProductId, $externalVariantId): void {
+                $hasCondition = false;
+                if ($sku !== '') {
+                    $query->where('external_sku', $sku);
+                    $hasCondition = true;
+                }
+                if ($externalVariantId !== '') {
+                    $method = $hasCondition ? 'orWhere' : 'where';
+                    $query->{$method}('external_variant_id', $externalVariantId);
+                    $hasCondition = true;
+                }
+                if ($externalProductId !== '') {
+                    $method = $hasCondition ? 'orWhere' : 'where';
+                    $query->{$method}('external_product_id', $externalProductId);
+                }
+            });
+        $productId = $query->value('product_id');
+        if (! is_int($productId)) {
+            return null;
+        }
+
+        return Product::query()
+            ->with('tax')
+            ->where('company_id', $companyId)
+            ->where('status', 'active')
+            ->whereKey($productId)
+            ->first();
+    }
+
+    /**
+     * @param array<string,mixed> $credentials
+     * @return array{0:string,1:int}
+     */
+    private function financialIdentity(object $connection, array $credentials): array
+    {
+        $mode = (string) ($connection->financial_mode ?? 'direct_account');
+        if (! in_array($mode, ['direct_account', 'clearing_account'], true)) {
+            throw new DomainException('Channel financial mode is invalid.');
+        }
+        $accountId = $mode === 'clearing_account'
+            ? (int) ($connection->clearing_account_id ?? 0)
+            : (int) ($connection->default_account_id ?? 0);
+        if ($accountId < 1) {
+            $accountId = (int) ($credentials['default_account_id'] ?? 0);
+        }
+        if ($accountId < 1) {
+            throw new DomainException('Inbound channel orders require a configured account.');
+        }
+
+        return [$mode, $accountId];
+    }
+
+    /**
+     * @param array<string,mixed> $payload
+     */
+    private function upsertInbox(
+        int $companyId,
+        int $connectionId,
+        string $externalId,
+        string $externalEventId,
+        string $payloadHash,
+        array $payload,
+        string $financialMode,
+        int $accountId,
+    ): object {
+        $existing = DB::table('channel_order_inbox')
+            ->where('company_id', $companyId)
+            ->where('connection_id', $connectionId)
+            ->where('external_order_id', $externalId)
+            ->lockForUpdate()
+            ->first();
+        if ($existing !== null) {
+            if ((string) $existing->payload_sha256 !== $payloadHash) {
+                throw new DomainException('Channel order replay payload drift detected.');
+            }
+
+            return $existing;
+        }
+
+        $id = (int) DB::table('channel_order_inbox')->insertGetId([
+            'public_id' => (string) Str::ulid(),
+            'company_id' => $companyId,
+            'connection_id' => $connectionId,
+            'external_order_id' => $externalId,
+            'external_event_id' => $externalEventId === '' ? null : $externalEventId,
+            'payload_sha256' => $payloadHash,
+            'normalized_payload' => json_encode($payload, JSON_THROW_ON_ERROR),
+            'customer_snapshot' => json_encode($this->customerSnapshot($payload), JSON_THROW_ON_ERROR),
+            'financial_mode' => $financialMode,
+            'account_id' => $accountId,
+            'status' => 'received',
+            'received_at' => now(),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        $row = DB::table('channel_order_inbox')->where('id', $id)->lockForUpdate()->first();
+        if ($row === null) {
+            throw new RuntimeException('Channel order inbox could not be persisted.');
+        }
+
+        return $row;
+    }
+
+    private function recordProblem(object $inbox, \Throwable $exception, string $code): void
+    {
+        $stockProblem = $code === 'stock_problem';
+        $message = mb_substr($exception->getMessage(), 0, 4000);
+        DB::table('channel_order_inbox')->where('id', $inbox->id)->update([
+            'status' => $stockProblem ? 'stock_problem' : 'failed',
+            'problem_code' => $code,
+            'problem_message' => $message,
+            'updated_at' => now(),
+        ]);
+        DB::table('channel_problems')->insert([
+            'public_id' => (string) Str::ulid(),
+            'company_id' => $inbox->company_id,
+            'connection_id' => $inbox->connection_id,
+            'order_inbox_id' => $inbox->id,
+            'type' => $code,
+            'status' => 'open',
+            'message' => $message,
+            'context' => json_encode(['external_order_id' => $inbox->external_order_id], JSON_THROW_ON_ERROR),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+    }
+
+    private function isStockProblem(ValidationException $exception): bool
+    {
+        $errors = $exception->errors();
+        if (! array_key_exists('quantity', $errors)) {
+            return false;
+        }
+        foreach ($errors['quantity'] as $message) {
+            if (str_contains(mb_strtolower((string) $message), 'kullanılabilir stok')) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /** @param array<string,mixed> $payload @return array<string,mixed> */
+    private function customerSnapshot(array $payload): array
+    {
+        $billing = is_array($payload['billing'] ?? null) ? $payload['billing'] : [];
+        $shipping = is_array($payload['shipping'] ?? null) ? $payload['shipping'] : [];
+        $keys = ['first_name', 'last_name', 'company', 'address_1', 'address_2', 'city', 'state', 'postcode', 'country', 'email', 'phone'];
+        $pick = static function (array $source) use ($keys): array {
+            $result = [];
+            foreach ($keys as $key) {
+                $value = $source[$key] ?? null;
+                if (is_scalar($value) && trim((string) $value) !== '') {
+                    $result[$key] = trim((string) $value);
+                }
+            }
+
+            return $result;
+        };
+
+        return [
+            'billing' => $pick($billing),
+            'shipping' => $pick($shipping),
+        ];
     }
 
     /** @param array<string,mixed> $payload */
