@@ -2,6 +2,7 @@
 
 namespace App\Modules\Operations;
 
+use App\Modules\Commerce\Providers\Trendyol\TrendyolClient;
 use App\Modules\Operations\Jobs\ProcessIntegrationSync;
 use DomainException;
 use Illuminate\Http\Client\ConnectionException;
@@ -14,7 +15,10 @@ use RuntimeException;
 
 final class ChannelService
 {
-    public function __construct(private readonly ChannelEventStore $events) {}
+    public function __construct(
+        private readonly ChannelEventStore $events,
+        private readonly TrendyolClient $trendyol,
+    ) {}
 
     /** @param array<string,mixed> $credentials */
     public function createConnection(int $companyId, string $provider, string $name, ?string $baseUrl, array $credentials, string $webhookSecret): int
@@ -51,7 +55,7 @@ final class ChannelService
             throw new DomainException('Integration payload exceeds configured limit.');
         }
         $connection = DB::table('integration_connections')->where('id', $connectionId)->first();
-        /** @var object{id:mixed,company_id:mixed,status:mixed,webhook_secret_ciphertext:mixed,provider:mixed}|null $connection */
+        /** @var object{id:mixed,company_id:mixed,status:mixed,webhook_secret_ciphertext:mixed,credentials_ciphertext:mixed,provider:mixed}|null $connection */
         if ($connection === null || (string) $connection->status !== 'active') {
             throw new DomainException('Integration connection is not active.');
         }
@@ -60,13 +64,30 @@ final class ChannelService
             throw new DomainException('Integration webhook secret is not configured.');
         }
         $secret = Crypt::decryptString($secretCiphertext);
-        if (! $this->signatureMatches((string) $connection->provider, $rawPayload, $signature, $secret)) {
+        $credentials = $this->decryptCredentials((string) ($connection->credentials_ciphertext ?? ''));
+        if (! $this->signatureMatches((string) $connection->provider, $rawPayload, $signature, $secret, $credentials)) {
             throw new DomainException('Integration webhook signature is invalid.');
         }
 
         $payload = json_decode($rawPayload, true, flags: JSON_THROW_ON_ERROR);
         if (! is_array($payload)) {
             throw new DomainException('Integration payload must be a JSON object or array.');
+        }
+        if ((string) $connection->provider === 'trendyol' && array_key_exists('content', $payload)) {
+            $content = $payload['content'];
+            if (! is_array($content) || ! array_is_list($content) || count($content) !== 1 || ! is_array($content[0])) {
+                throw new DomainException('Trendyol webhook must contain exactly one shipment package.');
+            }
+            $payload = $content[0];
+            $status = isset($payload['status']) && is_scalar($payload['status']) ? strtolower((string) $payload['status']) : 'updated';
+            $eventType = 'order.'.$status;
+            if (trim($externalEventId) === '') {
+                $packageId = isset($payload['shipmentPackageId']) && is_scalar($payload['shipmentPackageId']) ? (string) $payload['shipmentPackageId'] : '';
+                $modified = isset($payload['lastModifiedDate']) && is_scalar($payload['lastModifiedDate']) ? (string) $payload['lastModifiedDate'] : '0';
+                if ($packageId !== '') {
+                    $externalEventId = 'ty-webhook-'.$packageId.'-'.$modified.'-'.$status;
+                }
+            }
         }
 
         return $this->events->persist($connection, $externalEventId, $eventType, $payload);
@@ -224,6 +245,48 @@ final class ChannelService
                     return null;
                 }
             }
+            $provider = (string) DB::table('integration_connections')
+                ->where('company_id', $effect->company_id)
+                ->where('id', $effect->connection_id)
+                ->value('provider');
+            if ($provider === 'trendyol' && in_array((string) $effect->operation, ['stock', 'price'], true)) {
+                $duplicate = DB::table('integration_sync_effects')
+                    ->where('connection_id', $effect->connection_id)
+                    ->where('payload_sha256', $effect->payload_sha256)
+                    ->where('status', 'succeeded')
+                    ->where('completed_at', '>=', now()->subMinutes(15))
+                    ->exists();
+                if ($duplicate) {
+                    DB::table('integration_sync_effects')->where('id', $effectId)->update([
+                        'status' => 'ignored',
+                        'completed_at' => now(),
+                        'ignored_reason' => 'trendyol duplicate stock-price cooldown',
+                        'last_error' => null,
+                        'updated_at' => now(),
+                    ]);
+                    if ((string) ($effect->guard_type ?? '') === 'listing_state' && $effect->guard_id !== null && $effect->guard_version !== null) {
+                        $state = DB::table('channel_listing_states')
+                            ->where('id', (int) $effect->guard_id)
+                            ->where('desired_version', (int) $effect->guard_version)
+                            ->first(['desired_stock', 'desired_price', 'desired_currency_code', 'desired_media']);
+                        if ($state !== null) {
+                            DB::table('channel_listing_states')->where('id', (int) $effect->guard_id)->update([
+                                'published_version' => (int) $effect->guard_version,
+                                'published_stock' => $state->desired_stock,
+                                'published_price' => $state->desired_price,
+                                'published_currency_code' => $state->desired_currency_code,
+                                'published_media' => $state->desired_media,
+                                'status' => 'synced',
+                                'last_error' => null,
+                                'updated_at' => now(),
+                            ]);
+                        }
+                    }
+
+                    return null;
+                }
+            }
+
             DB::table('integration_sync_effects')->where('id', $effectId)->update([
                 'status' => 'sending',
                 'attempts' => (int) $effect->attempts + 1,
@@ -270,7 +333,7 @@ final class ChannelService
                 throw new RuntimeException('Provider returned HTTP '.$response->status().': '.mb_substr($response->body(), 0, 1000));
             }
             $responseData = $response->json();
-            $externalId = is_array($responseData) ? ($responseData['id'] ?? $responseData['shipmentPackageId'] ?? null) : null;
+            $externalId = is_array($responseData) ? ($responseData['batchRequestId'] ?? $responseData['id'] ?? $responseData['shipmentPackageId'] ?? null) : null;
             DB::table('integration_sync_effects')->where('id', $effectId)->where('status', 'sending')->update([
                 'status' => 'succeeded',
                 'completed_at' => now(),
@@ -374,11 +437,29 @@ final class ChannelService
         }
     }
 
-    private function signatureMatches(string $provider, string $payload, string $signature, string $secret): bool
+    /** @param array<string,mixed> $credentials */
+    private function signatureMatches(string $provider, string $payload, string $signature, string $secret, array $credentials): bool
     {
         $signature = trim($signature);
         if ($provider === 'woocommerce') {
             return hash_equals(base64_encode(hash_hmac('sha256', $payload, $secret, true)), $signature);
+        }
+        if ($provider === 'trendyol') {
+            $authType = strtoupper(trim((string) ($credentials['webhook_authentication_type'] ?? 'API_KEY')));
+            if ($authType === 'API_KEY') {
+                return $signature !== '' && hash_equals($secret, $signature);
+            }
+            if ($authType === 'BASIC_AUTHENTICATION') {
+                $username = trim((string) ($credentials['webhook_username'] ?? ''));
+                $password = (string) ($credentials['webhook_password'] ?? '');
+                if ($username === '' || $password === '') {
+                    return false;
+                }
+
+                return hash_equals('Basic '.base64_encode($username.':'.$password), $signature);
+            }
+
+            return false;
         }
         $signature = str_starts_with($signature, 'sha256=') ? substr($signature, 7) : $signature;
 
@@ -427,24 +508,10 @@ final class ChannelService
         }
 
         if ($provider === 'trendyol') {
-            $endpoint = data_get($credentials, 'endpoints.'.$operation);
-            if (! is_string($endpoint) || trim($endpoint) === '') {
-                throw new RuntimeException('Trendyol endpoint is not configured for '.$operation.'.');
-            }
-            $key = (string) ($credentials['api_key'] ?? '');
-            $secret = (string) ($credentials['api_secret'] ?? '');
-            if ($key === '' || $secret === '') {
-                throw new RuntimeException('Trendyol API credentials are missing.');
-            }
-            $request = Http::acceptJson()
-                ->withBasicAuth($key, $secret)
-                ->withHeaders([
-                    'User-Agent' => (string) ($credentials['user_agent'] ?? 'MarsOtomasyon'),
-                    'Idempotency-Key' => $operationKey,
-                ])
-                ->timeout(30);
-
-            return $request->post($endpoint, $payload);
+            return match ($operation) {
+                'stock', 'price' => $this->trendyol->updatePriceAndInventory($credentials, $payload),
+                default => throw new RuntimeException('Unsupported Trendyol sync operation.'),
+            };
         }
 
         throw new RuntimeException('Unsupported integration provider.');

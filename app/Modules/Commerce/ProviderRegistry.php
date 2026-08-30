@@ -34,6 +34,11 @@ final class ProviderRegistry
         return in_array($capability, $definition['capabilities'], true);
     }
 
+    public function isContractVerified(string $provider): bool
+    {
+        return in_array($this->get($provider)['status'], ['contract_verified', 'verified_marketplace'], true);
+    }
+
     public function isMarketplaceVerified(string $provider): bool
     {
         return $this->get($provider)['status'] === 'verified_marketplace';
