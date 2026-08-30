@@ -3,6 +3,9 @@
 use App\Modules\Commerce\MarketplacePack\MarketplacePackGateway;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
+use Tests\TestCase;
+
+uses(TestCase::class);
 
 it('locks n11 REST auth stock-price task and order contracts', function (): void {
     Http::fake([
