@@ -115,6 +115,7 @@ it('auto selects the only active branch and renders only enabled navigation', fu
         ->assertOk()
         ->assertSessionHas('active_branch_id', $branch->getKey())
         ->assertSee('Ana Sayfa')
+        ->assertSee('Raporlar')
         ->assertSee('Ayarlar')
         ->assertDontSee('Cariler')
         ->assertDontSee('Satış')
@@ -122,7 +123,7 @@ it('auto selects the only active branch and renders only enabled navigation', fu
         ->assertSee('data-command-palette', false);
 
     $items = app(AppNavigation::class)->items();
-    expect(array_column($items, 'label'))->toBe(['Ana Sayfa', 'Ayarlar'])
+    expect(array_column($items, 'label'))->toBe(['Ana Sayfa', 'Raporlar', 'Ayarlar'])
         ->and(app(FeatureRegistry::class)->enabled(FeatureKey::Customers))->toBeTrue();
 });
 
