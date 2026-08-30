@@ -164,7 +164,7 @@ return new class extends Migration
 
         DB::statement("ALTER TABLE import_files ADD CONSTRAINT import_files_status_check CHECK (status IN ('draft','in_transit','arrived','receiving','completed','cancelled'))");
         DB::statement("ALTER TABLE import_files ADD CONSTRAINT import_files_currency_check CHECK (currency_code = upper(currency_code) AND currency_code ~ '^[A-Z]{3}$')");
-        DB::statement("ALTER TABLE import_files ADD CONSTRAINT import_files_dates_check CHECK (expected_arrival_date IS NULL OR departure_date IS NULL OR expected_arrival_date >= departure_date)");
+        DB::statement('ALTER TABLE import_files ADD CONSTRAINT import_files_dates_check CHECK (expected_arrival_date IS NULL OR departure_date IS NULL OR expected_arrival_date >= departure_date)');
         DB::statement("ALTER TABLE import_files ADD CONSTRAINT import_files_completed_check CHECK ((status = 'completed' AND completed_at IS NOT NULL) OR (status <> 'completed' AND completed_at IS NULL))");
         DB::statement('ALTER TABLE import_containers ADD CONSTRAINT import_containers_capacity_check CHECK ((max_weight_kg IS NULL OR max_weight_kg > 0) AND (max_volume_m3 IS NULL OR max_volume_m3 > 0))');
         DB::statement('ALTER TABLE import_items ADD CONSTRAINT import_items_quantity_check CHECK (quantity > 0 AND gross_weight_kg >= 0 AND net_weight_kg >= 0 AND volume_m3 >= 0 AND gross_weight_kg >= net_weight_kg)');

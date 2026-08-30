@@ -14,7 +14,7 @@ use App\Modules\Imports\Models\ImportLandedCostAllocation;
 use App\Modules\Imports\Models\ImportLandedCostBatch;
 use App\Modules\Imports\Models\ImportReceiptLink;
 use DomainException;
-use Illuminate\Support\Collection;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use LogicException;
@@ -207,7 +207,7 @@ final readonly class ImportOperations
             if ($file->status !== 'in_transit') {
                 throw new DomainException('İthalat dosyası yalnız yoldayken varışa alınabilir.');
             }
-            $file->forceFill(['status' => 'arrived', 'arrival_date' => $arrivalDate ?? $this->clock->now()->toDateString()])->save();
+            $file->forceFill(['status' => 'arrived', 'arrival_date' => $arrivalDate ?? $this->clock->now()->format('Y-m-d')])->save();
 
             return $file->refresh();
         });
@@ -436,6 +436,7 @@ SQL, [$basis, $companyId, $fileId, $file->currency_code, $expenseTotal, $expense
         return ImportItem::query()->where('company_id', $this->companyId())->where('import_file_id', $fileId)->where('subcontract_collection', true)->orderBy('id')->get();
     }
 
+    /** @param list<string> $from */
     private function transition(int $fileId, array $from, string $to): ImportFile
     {
         $companyId = $this->companyId();
