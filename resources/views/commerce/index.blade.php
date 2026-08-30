@@ -45,6 +45,8 @@
             <label>Finans Modu<select name="financial_mode"><option value="direct_account">Doğrudan Cari</option><option value="clearing_account">Kanal Clearing</option></select></label>
             <label>Varsayılan Cari<select name="default_account_id"><option value="">—</option>@foreach($accounts as $account)<option value="{{ $account->id }}">{{ $account->code }} — {{ $account->legal_name }} ({{ $account->type }})</option>@endforeach</select></label>
             <label>Clearing Cari<select name="clearing_account_id"><option value="">—</option>@foreach($accounts as $account)<option value="{{ $account->id }}">{{ $account->code }} — {{ $account->legal_name }} ({{ $account->type }})</option>@endforeach</select></label>
+            <label>Rezervasyon Deposu<select name="default_warehouse_id"><option value="">Rezervasyonsuz</option>@foreach($warehouses as $warehouse)<option value="{{ $warehouse->id }}">{{ $warehouse->code }} — {{ $warehouse->name }}</option>@endforeach</select></label>
+            <label>Rezervasyon Lokasyonu<select name="default_location_id"><option value="">Rezervasyonsuz</option>@foreach($locations as $location)<option value="{{ $location->id }}">{{ $location->warehouse_code }} / {{ $location->code }} — {{ $location->name }}</option>@endforeach</select></label>
         </div>
         <p>Credential değerleri şifreli saklanır ve bu ekranda geri gösterilmez. Webhook URL dışarıya yalnız 26 karakterlik public ULID ile açılır.</p>
         <button class="button-primary" type="submit">Bağlantı Oluştur</button>

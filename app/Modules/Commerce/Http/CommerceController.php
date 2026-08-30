@@ -26,6 +26,12 @@ final readonly class CommerceController
                 ->orderBy('provider')->orderBy('name')->get(),
             'accounts' => DB::table('accounts')->where('company_id', $companyId)->where('status', 'active')->orderBy('code')->get(['id', 'code', 'legal_name', 'type']),
             'products' => DB::table('products')->where('company_id', $companyId)->where('status', 'active')->orderBy('code')->limit(500)->get(['id', 'code', 'name']),
+            'warehouses' => DB::table('warehouses')->where('company_id', $companyId)->where('is_active', true)->orderBy('code')->get(['id', 'code', 'name']),
+            'locations' => DB::table('warehouse_locations as l')
+                ->join('warehouses as w', 'w.id', '=', 'l.warehouse_id')
+                ->where('l.company_id', $companyId)->where('l.is_active', true)->where('w.is_active', true)
+                ->orderBy('w.code')->orderBy('l.code')
+                ->get(['l.id', 'l.warehouse_id', 'l.code', 'l.name', 'w.code as warehouse_code']),
             'mappings' => DB::table('channel_product_mappings as m')
                 ->join('integration_connections as c', 'c.id', '=', 'm.connection_id')
                 ->join('products as p', 'p.id', '=', 'm.product_id')
@@ -77,6 +83,8 @@ final readonly class CommerceController
             'financial_mode' => ['required', 'in:direct_account,clearing_account'],
             'default_account_id' => ['nullable', 'integer', 'min:1'],
             'clearing_account_id' => ['nullable', 'integer', 'min:1'],
+            'default_warehouse_id' => ['nullable', 'integer', 'min:1', 'required_with:default_location_id'],
+            'default_location_id' => ['nullable', 'integer', 'min:1', 'required_with:default_warehouse_id'],
         ]);
         $publicId = $commerce->createConnection(
             companyId: $this->companyId(),
@@ -88,6 +96,8 @@ final readonly class CommerceController
                 'consumer_secret' => (string) $validated['consumer_secret'],
                 'price_basis' => (string) $validated['price_basis'],
                 'order_series' => (string) $validated['order_series'],
+                'default_warehouse_id' => isset($validated['default_warehouse_id']) ? (int) $validated['default_warehouse_id'] : null,
+                'default_location_id' => isset($validated['default_location_id']) ? (int) $validated['default_location_id'] : null,
             ],
             webhookSecret: (string) $validated['webhook_secret'],
             financialMode: (string) $validated['financial_mode'],

@@ -188,6 +188,7 @@ final readonly class ChannelDomainSync
         $basis = strtolower((string) ($credentials['price_basis'] ?? 'net')) === 'gross'
             ? PriceBasis::Gross
             : PriceBasis::Net;
+        [$warehouseId, $locationId] = $this->reservationAllocation($credentials);
         $lines = [];
         foreach (array_values($rawLines) as $index => $rawLine) {
             if (! is_array($rawLine)) {
@@ -246,6 +247,8 @@ final readonly class ChannelDomainSync
                 taxZeroReasonId: $zeroReasonId,
                 description: $this->firstString($rawLine, ['name', 'productName', 'description']) ?: (string) $product->name,
                 logicalLineKey: Uuid::uuid5(Uuid::NAMESPACE_URL, 'mars:channel:'.$provider.':'.$externalId.':'.$index.':'.$mappingKey)->toString(),
+                warehouseId: $warehouseId,
+                locationId: $locationId,
                 taxIsZeroed: false,
             );
         }
@@ -263,6 +266,24 @@ final readonly class ChannelDomainSync
             note: sprintf('%s kanal siparişi %s', ucfirst($provider), $externalId),
             lines: $lines,
         );
+    }
+
+    /**
+     * @param  array<string,mixed>  $credentials
+     * @return array{0:?int,1:?int}
+     */
+    private function reservationAllocation(array $credentials): array
+    {
+        $warehouseId = (int) ($credentials['default_warehouse_id'] ?? 0);
+        $locationId = (int) ($credentials['default_location_id'] ?? 0);
+        if (($warehouseId > 0) !== ($locationId > 0)) {
+            throw new DomainException('Channel reservation requires warehouse and location together.');
+        }
+        if ($warehouseId < 1) {
+            return [null, null];
+        }
+
+        return [$warehouseId, $locationId];
     }
 
     private function mappedProduct(
