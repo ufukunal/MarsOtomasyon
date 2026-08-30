@@ -290,16 +290,16 @@ final readonly class StockMovementPoster
         if ($data->carryingValue === null) {
             return null;
         }
-        if ($original instanceof StockMovement || $data->movementType !== StockMovementType::TransferIn) {
+        if ($original instanceof StockMovement || ! in_array($data->movementType, [StockMovementType::TransferIn, StockMovementType::ProductionReceiptIn], true)) {
             throw ValidationException::withMessages([
-                'carrying_value' => 'Açık taşıma değeri yalnız transfer kabul stok girişinde kullanılabilir.',
+                'carrying_value' => 'Açık taşıma değeri yalnız doğrulanmış taşıma maliyetli stok girişlerinde kullanılabilir.',
             ]);
         }
 
         return $this->positiveDecimal(
             $data->carryingValue,
             'carrying_value',
-            'Transfer taşıma değeri sıfırdan büyük olmalıdır.',
+            'Taşıma değeri sıfırdan büyük olmalıdır.',
         );
     }
 

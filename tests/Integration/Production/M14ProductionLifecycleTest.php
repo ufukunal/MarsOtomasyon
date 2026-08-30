@@ -16,11 +16,11 @@ use App\Modules\Products\Models\Category;
 use App\Modules\Products\Models\Product;
 use App\Modules\Products\Models\Unit;
 use Illuminate\Database\QueryException;
-use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
-uses(DatabaseMigrations::class);
+uses(RefreshDatabase::class);
 
 it('runs recipe to material issue, loss, finished-goods receipt and completion with carrying-cost allocation exactly once', function (): void {
     [$company, $materialA, $materialB, $finishedGood, $warehouse, $location] = m14Fixture('M14-A');
