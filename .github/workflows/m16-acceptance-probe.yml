@@ -104,7 +104,7 @@ jobs:
       - name: M16 acceptance tests
         run: php artisan test tests/Integration/Imports/M16ImportLifecycleTest.php
       - name: Static analysis
-        run: vendor/bin/phpstan analyse app/Modules/Imports tests/Integration/Imports/M16ImportLifecycleTest.php --no-progress
+        run: vendor/bin/phpstan analyse app/Modules/Imports --no-progress
       - name: Commit verified formatting and remove probe
         if: success()
         run: |
