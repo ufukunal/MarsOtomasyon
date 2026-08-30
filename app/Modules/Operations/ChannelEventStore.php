@@ -11,7 +11,7 @@ final class ChannelEventStore
 {
     /**
      * @param  object{id:mixed,company_id:mixed}  $connection
-     * @param  array<string,mixed>  $payload
+     * @param  array<array-key,mixed>  $payload
      */
     public function persist(object $connection, string $externalEventId, string $eventType, array $payload): int
     {
