@@ -51,6 +51,7 @@ return [
                 'connection_test_contract',
                 'listing_read_contract',
                 'inventory_upload_status_contract',
+                'order_polling',
                 'order_polling_contract',
                 'order_detail_contract',
                 'product_status_contract',
