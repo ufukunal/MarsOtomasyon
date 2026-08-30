@@ -1,0 +1,47 @@
+name: Fix M15 CI
+
+on:
+  push:
+    branches: [feat/m15-subcontract]
+    paths:
+      - '.github/workflows/fix-m15-ci.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/m15-subcontract
+      - name: Fix warehouse-location composite foreign key
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('database/migrations/2026_08_30_040000_create_m15_subcontract.php')
+          text = path.read_text()
+          old = "$table->foreign(['company_id', 'location_id'])->references(['company_id', 'id'])->on('warehouse_locations')->restrictOnDelete();"
+          new = "$table->foreign(['company_id', 'warehouse_id', 'location_id'])->references(['company_id', 'warehouse_id', 'id'])->on('warehouse_locations')->restrictOnDelete();"
+          if old not in text:
+              raise SystemExit('expected subcontract location FK not found')
+          path.write_text(text.replace(old, new, 1))
+          PY
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          extensions: pdo_pgsql, redis, sockets, intl, zip
+          coverage: none
+          tools: composer:v2
+      - run: composer install --no-interaction --prefer-dist --no-progress
+      - name: Format PHP
+        run: composer format
+      - name: Commit fixes
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add app bootstrap database routes tests
+          git commit -m 'fix(m15): correct location scope and format code'
+          git push origin HEAD:feat/m15-subcontract
