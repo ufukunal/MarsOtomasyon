@@ -2,6 +2,8 @@ from pathlib import Path
 
 patch = Path('.github/scripts/m17_capability_patch.py')
 s = patch.read_text()
+
+# Adapt the Retry-After patch to the already-delivered CommerceSyncGuard signature.
 section = s.index('# ProcessIntegrationSync: Retry-After contract.')
 needle = '    """    public function handle(ChannelService $channels): void\n'
 pos = s.index(needle, section)
@@ -40,8 +42,27 @@ replacement = '''replace_once(
     "ProcessIntegrationSync handle",
 )'''
 s = s[:block_start] + replacement + s[block_end:]
+
+# Adapt route insertion to the current M17 publish route and preserve authorization middleware.
+section = s.index('# Routes.')
+block_start = s.index('replace_once(', section)
+block_end = s.index('\n\n# UI.', block_start)
+replacement = '''replace_once(
+    "routes/operations.php",
+    """        Route::post('/publish', [CommerceController::class, 'publish'])->middleware('can:integrations.manage')->name('publish');
+        Route::post('/orders/{order}/retry', [CommerceController::class, 'retryOrder'])->where('order', '[0-9A-HJKMNP-TV-Z]{26}')->middleware('can:integrations.manage')->name('orders.retry');
+""",
+    """        Route::post('/publish', [CommerceController::class, 'publish'])->middleware('can:integrations.manage')->name('publish');
+        Route::post('/poll-orders', [CommerceController::class, 'pollOrders'])->middleware('can:integrations.manage')->name('orders.poll');
+        Route::post('/invoice-syncs', [CommerceController::class, 'queueInvoice'])->middleware('can:integrations.manage')->name('invoice-syncs.store');
+        Route::post('/orders/{order}/retry', [CommerceController::class, 'retryOrder'])->where('order', '[0-9A-HJKMNP-TV-Z]{26}')->middleware('can:integrations.manage')->name('orders.retry');
+""",
+    "Commerce capability routes",
+)'''
+s = s[:block_start] + replacement + s[block_end:]
 patch.write_text(s)
 
+# Record the now-proven M16 exact-main gate in the owner milestone matrix.
 matrix = Path('plan/21_MILESTONE_DURUM_MATRISI.md')
 m = matrix.read_text()
 old = "| M16 | İthalat / Konteyner | **PENDING** | K-052 locked; feature branch PostgreSQL acceptance: file/container/package/component/location, finalized GoodsReceipt handoff, landed-cost allocation/posting, reports/lists/simulator | PR merge + exact final `main` Foundation 4/4 doğrulaması |"
