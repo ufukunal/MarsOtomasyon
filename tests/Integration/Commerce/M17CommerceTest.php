@@ -76,7 +76,7 @@ it('runs WooCommerce public identity desired state order reservation problem ret
     );
 
     expect($connectionPublicId)->toMatch('/^[0-9A-HJKMNP-TV-Z]{26}$/')
-        ->and(app(ProviderRegistry::class)->get('trendyol')['status'])->toBe('transport_only');
+        ->and(app(ProviderRegistry::class)->get('trendyol')['status'])->toBe('contract_verified');
 
     $connection = DB::table('integration_connections')->where('public_id', $connectionPublicId)->first();
     expect($connection)->not->toBeNull()
