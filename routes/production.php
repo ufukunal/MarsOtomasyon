@@ -5,7 +5,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix('production')
     ->name('production.')
-    ->middleware(['auth', 'company.context'])
+    ->middleware(['web', 'auth', 'company.context'])
     ->group(function (): void {
         Route::get('/', [ProductionController::class, 'index'])
             ->middleware('can:production.view')

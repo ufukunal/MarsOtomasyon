@@ -28,7 +28,7 @@ final readonly class AppNavigation
             ['label' => 'Kasa/Banka', 'route' => 'treasury.index', 'feature' => FeatureKey::Treasury, 'permissions' => [PermissionKey::TreasuryView]],
             ['label' => 'Çek/Senet', 'route' => 'instruments.index', 'feature' => FeatureKey::Instruments, 'permissions' => [PermissionKey::InstrumentView]],
             ['label' => 'İadeler', 'route' => 'returns.index', 'feature' => FeatureKey::Returns, 'permissions' => [PermissionKey::SalesReturnView]],
-            ['label' => 'İthalat', 'route' => 'import.index', 'feature' => FeatureKey::Import, 'permissions' => []],
+            ['label' => 'İthalat', 'route' => 'import.index', 'feature' => FeatureKey::Import, 'permissions' => [PermissionKey::ImportView]],
             ['label' => 'E-Ticaret/B2B', 'route' => 'commerce.index', 'feature' => FeatureKey::Commerce, 'permissions' => [PermissionKey::IntegrationView]],
             ['label' => 'İletişim', 'route' => 'communications.index', 'feature' => FeatureKey::Communications, 'permissions' => [PermissionKey::NotificationView]],
             ['label' => 'Operasyon', 'route' => 'operations.index', 'feature' => FeatureKey::Operations, 'permissions' => [PermissionKey::OperationsView]],

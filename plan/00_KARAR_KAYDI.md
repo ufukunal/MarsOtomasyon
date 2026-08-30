@@ -255,6 +255,17 @@ V1 `Product` satılabilir/stoklanabilir SKU authority'sidir. Marketplace parent/
 
 Gerçek ihtiyaçta `ProductFamily/VariantRelation` additive olarak eklenebilir; family yalnız grouping/shared-content capability'sidir. Stock, price, barcode ve cost Product/SKU seviyesinde kalır.
 
+### K-052 — İthalat landed-cost posting authority
+M16 ithalat landed-cost politikası mevcut stok/maliyet authority'sini yeniden kullanır.
+- `provisional` ithalat masrafı analiz/evidence kaydıdır; carrying value'yu değiştirmez.
+- Carrying value etkisi yalnız ilgili ithalat kalemi kesinleşmiş `GoodsReceiptLine` ile reconcile edildikten ve masraf `final` olduktan sonra post edilir.
+- Geç gelen kesin masraf önceki kayıtları UPDATE etmez; yeni append-only landed-cost batch / Goods Receipt cost adjustment olarak eklenir.
+- Maliyet farkının elde kalan miktara düşen payı `stock_balances.inventory_value` ve moving weighted average maliyete gider; tüketilmiş miktara düşen pay `consumed_cost_delta` olarak ayrılır.
+- Varsayılan dağıtım temeli `line_value`; explicit ihtiyaçta `quantity` kullanılabilir. Son satır deterministik rounding residual'ını taşır.
+- M16 V1 cost posting aynı para birimindedir; FX landed-cost politikası ayrıca kilitlenmeden tahmin edilmez.
+- Landed-cost ikinci fiziksel `stock_movement` üretmez ve ayrı stok/maliyet motoru kurmaz; authority `ApplyGoodsReceiptCostAdjustment` üzerinden devam eder.
+
+
 ## B. YAPILMAYACAKLAR
 - Mikroservis, Event Sourcing, generic CQRS/BPM/hooks, GraphQL, EAV yok.
 - Fatura bazlı cari settlement/OpenItem UX yok.
