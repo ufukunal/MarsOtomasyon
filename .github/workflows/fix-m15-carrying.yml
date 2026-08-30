@@ -1,0 +1,38 @@
+name: Fix M15 Carrying
+
+on:
+  push:
+    branches: [feat/m15-subcontract]
+    paths:
+      - '.github/workflows/fix-m15-carrying.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/m15-subcontract
+      - name: Extend verified carrying-value authority
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('app/Modules/Inventory/Ledger/StockMovementPoster.php')
+          text = path.read_text()
+          old = '[StockMovementType::TransferIn, StockMovementType::ProductionReceiptIn]'
+          new = '[StockMovementType::TransferIn, StockMovementType::ProductionReceiptIn, StockMovementType::SubcontractReceiptIn]'
+          if old not in text:
+              raise SystemExit('expected carrying-value whitelist not found')
+          path.write_text(text.replace(old, new, 1))
+          PY
+      - name: Commit fix
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add app/Modules/Inventory/Ledger/StockMovementPoster.php
+          git commit -m 'fix(m15): allow subcontract receipt carrying value'
+          git push origin HEAD:feat/m15-subcontract
