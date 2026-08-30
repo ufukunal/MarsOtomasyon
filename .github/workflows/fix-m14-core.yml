@@ -1,0 +1,49 @@
+name: Fix M14 Core
+
+on:
+  push:
+    branches: [feat/m14-production]
+    paths:
+      - '.github/workflows/fix-m14-core.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/m14-production
+      - name: Apply production carrying-value and test-isolation fixes
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          poster = Path('app/Modules/Inventory/Ledger/StockMovementPoster.php')
+          text = poster.read_text()
+          text = text.replace(
+              "if ($original instanceof StockMovement || $data->movementType !== StockMovementType::TransferIn) {\n            throw ValidationException::withMessages([\n                'carrying_value' => 'Açık taşıma değeri yalnız transfer kabul stok girişinde kullanılabilir.',\n            ]);\n        }",
+              "if ($original instanceof StockMovement || ! in_array($data->movementType, [StockMovementType::TransferIn, StockMovementType::ProductionReceiptIn], true)) {\n            throw ValidationException::withMessages([\n                'carrying_value' => 'Açık taşıma değeri yalnız doğrulanmış taşıma maliyetli stok girişlerinde kullanılabilir.',\n            ]);\n        }"
+          )
+          text = text.replace(
+              "'Transfer taşıma değeri sıfırdan büyük olmalıdır.',",
+              "'Taşıma değeri sıfırdan büyük olmalıdır.',"
+          )
+          poster.write_text(text)
+
+          test = Path('tests/Integration/Production/M14ProductionLifecycleTest.php')
+          text = test.read_text()
+          text = text.replace('use Illuminate\\Foundation\\Testing\\DatabaseMigrations;', 'use Illuminate\\Foundation\\Testing\\RefreshDatabase;')
+          text = text.replace('uses(DatabaseMigrations::class);', 'uses(RefreshDatabase::class);')
+          test.write_text(text)
+          PY
+      - name: Commit fixes
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add app/Modules/Inventory/Ledger/StockMovementPoster.php tests/Integration/Production/M14ProductionLifecycleTest.php
+          git commit -m 'fix(m14): align carrying-value authority and test isolation'
+          git push origin HEAD:feat/m14-production
