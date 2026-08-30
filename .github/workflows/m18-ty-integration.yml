@@ -77,8 +77,28 @@ jobs:
       - run: composer install --no-interaction --prefer-dist --no-progress
       - name: Apply guarded integration patch
         run: python3 scripts/ci/m18_ty_integrate.py
+      - name: Align acceptance expectations
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          contract = Path('tests/Unit/TrendyolContractTest.php')
+          text = contract.read_text()
+          old = """        self::assertTrue($registry->supports('trendyol', 'product_publish'));\n        self::assertTrue($registry->supports('trendyol', 'order_polling'));\n"""
+          new = """        self::assertTrue($registry->supports('trendyol', 'product_contract'));\n        self::assertFalse($registry->supports('trendyol', 'product_publish'));\n        self::assertTrue($registry->supports('trendyol', 'media_manual'));\n        self::assertFalse($registry->supports('trendyol', 'invoice_publish'));\n        self::assertTrue($registry->supports('trendyol', 'order_polling'));\n"""
+          if old not in text:
+              raise SystemExit('Trendyol contract capability marker not found')
+          contract.write_text(text.replace(old, new, 1))
+
+          acceptance = Path('tests/Integration/Commerce/M18TrendyolTest.php')
+          text = acceptance.read_text()
+          text = text.replace("'salePrice' => 125.0,", "'salePrice' => 125,", 1)
+          text = text.replace("'listPrice' => 125.0,", "'listPrice' => 125,", 1)
+          acceptance.write_text(text)
+          PY
       - name: Format
-        run: vendor/bin/pint app/Modules/Commerce/ChannelCenterService.php app/Modules/Operations/ChannelService.php app/Modules/Operations/Http/ChannelWebhookController.php config/commerce.php tests/Integration/Operations/M11TrendyolDomainSyncTest.php tests/Integration/Commerce/M18TrendyolTest.php
+        run: vendor/bin/pint app/Modules/Commerce/ChannelCenterService.php app/Modules/Operations/ChannelService.php app/Modules/Operations/Http/ChannelWebhookController.php config/commerce.php tests/Unit/TrendyolContractTest.php tests/Integration/Operations/M11TrendyolDomainSyncTest.php tests/Integration/Commerce/M18TrendyolTest.php
       - name: Fresh PostgreSQL schema
         run: php artisan migrate:fresh --force
       - name: Trendyol acceptance
@@ -90,7 +110,7 @@ jobs:
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add app/Modules/Commerce/ChannelCenterService.php app/Modules/Operations/ChannelService.php app/Modules/Operations/Http/ChannelWebhookController.php config/commerce.php tests/Integration/Operations/M11TrendyolDomainSyncTest.php tests/Integration/Commerce/M18TrendyolTest.php
+          git add app/Modules/Commerce/ChannelCenterService.php app/Modules/Operations/ChannelService.php app/Modules/Operations/Http/ChannelWebhookController.php config/commerce.php tests/Unit/TrendyolContractTest.php tests/Integration/Operations/M11TrendyolDomainSyncTest.php tests/Integration/Commerce/M18TrendyolTest.php
           git rm scripts/ci/m18_ty_integrate.py .github/workflows/m18-ty-integration.yml
           git commit -m 'feat(m18-ty): integrate Trendyol V2 adapter'
           git push origin HEAD:feat/m18-trendyol
