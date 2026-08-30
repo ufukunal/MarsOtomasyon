@@ -150,7 +150,10 @@ final class AmazonSpApiClient
         return $request->get($baseUrl.'/orders/2026-01-01/orders', $query);
     }
 
-    /** @param array<string,mixed> $credentials */
+    /**
+     * @param  array<string,mixed>  $credentials
+     * @param  list<string>  $includedData
+     */
     public function getOrder(array $credentials, string $orderId, array $includedData = []): Response
     {
         $orderId = $this->identifier($orderId, 'order id');
