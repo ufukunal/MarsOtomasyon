@@ -48,6 +48,8 @@ enum PermissionKey: string
     case InstrumentManage = 'instruments.manage';
     case ProductionView = 'production.view';
     case ProductionManage = 'production.manage';
+    case SubcontractView = 'subcontract.view';
+    case SubcontractManage = 'subcontract.manage';
     case ReportsView = 'reports.view';
     case IntegrationView = 'integrations.view';
     case IntegrationManage = 'integrations.manage';
@@ -109,6 +111,8 @@ enum PermissionKey: string
             self::InstrumentManage => 'Çek / senet yönetimi',
             self::ProductionView => 'Üretim görüntüleme',
             self::ProductionManage => 'Üretim yönetimi',
+            self::SubcontractView => 'Fason görüntüleme',
+            self::SubcontractManage => 'Fason yönetimi',
             self::ReportsView => 'Raporları görüntüleme',
             self::IntegrationView => 'Entegrasyon görüntüleme',
             self::IntegrationManage => 'Entegrasyon yönetimi',
