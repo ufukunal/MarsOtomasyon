@@ -63,15 +63,17 @@ final class AmazonSpApiClient
         }
         [$sellerId, $marketplaceId, $baseUrl, $request] = $this->context($credentials);
 
-        return $request->patch(
-            $baseUrl.'/listings/2021-08-01/items/'.rawurlencode($sellerId).'/'.rawurlencode($sku),
-            $payload + ['marketplaceIds' => $marketplaceId],
-        );
+        return $request
+            ->withQueryParameters(['marketplaceIds' => $marketplaceId])
+            ->patch(
+                $baseUrl.'/listings/2021-08-01/items/'.rawurlencode($sellerId).'/'.rawurlencode($sku),
+                $payload,
+            );
     }
 
     /**
-     * Publish Mars desired stock/price using the Listings Items top-level offer attributes.
-     * FBA inventory is Amazon-authoritative and cannot be overwritten through this helper.
+     * Publish Mars desired stock/price using Listings Items top-level offer attributes.
+     * This helper is merchant-fulfilled inventory only; FBA quantity remains Amazon-authoritative.
      *
      * @param array<string,mixed> $credentials
      */
@@ -93,7 +95,7 @@ final class AmazonSpApiClient
         if ($price !== null && ($currencyCode === null || ! preg_match('/^[A-Z]{3}$/', $currencyCode))) {
             throw new DomainException('Amazon price publishing requires a three-letter currency code.');
         }
-        [, $marketplaceId] = $this->context($credentials);
+        $marketplaceId = $this->identifier((string) ($credentials['marketplace_id'] ?? ''), 'marketplace id');
         $patches = [];
         if ($quantity !== null) {
             $patches[] = [
@@ -218,12 +220,16 @@ final class AmazonSpApiClient
         if ($accessToken === '') {
             $accessToken = $this->exchangeAccessToken($credentials);
         }
+        $userAgent = trim((string) ($credentials['user_agent'] ?? 'MarsOtomasyon/1.0'));
+        if ($userAgent === '' || mb_strlen($userAgent) > 255 || preg_match('/[\r\n]/', $userAgent) === 1) {
+            throw new DomainException('Amazon SP-API user agent is invalid.');
+        }
 
         $request = Http::acceptJson()
             ->asJson()
             ->withHeaders([
                 'x-amz-access-token' => $accessToken,
-                'User-Agent' => trim((string) ($credentials['user_agent'] ?? 'MarsOtomasyon/1.0')),
+                'User-Agent' => $userAgent,
             ])
             ->timeout(30);
 
