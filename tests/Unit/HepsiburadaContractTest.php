@@ -23,17 +23,17 @@ final class HepsiburadaContractTest extends TestCase
         ];
     }
 
-    public function test_registry_exposes_only_verified_read_contracts_without_publish_claims(): void
+    public function test_registry_exposes_verified_hepsiburada_contract_capabilities(): void
     {
         $registry = $this->app->make(ProviderRegistry::class);
 
         self::assertTrue($registry->isContractVerified('hepsiburada'));
         self::assertFalse($registry->isMarketplaceVerified('hepsiburada'));
         self::assertTrue($registry->supports('hepsiburada', 'listing_read_contract'));
-        self::assertTrue($registry->supports('hepsiburada', 'order_polling_contract'));
+        self::assertTrue($registry->supports('hepsiburada', 'order_polling'));
         self::assertTrue($registry->supports('hepsiburada', 'webhook_basic_auth_contract'));
-        self::assertFalse($registry->supports('hepsiburada', 'stock_publish'));
-        self::assertFalse($registry->supports('hepsiburada', 'price_publish'));
+        self::assertTrue($registry->supports('hepsiburada', 'stock_publish'));
+        self::assertTrue($registry->supports('hepsiburada', 'price_publish'));
         self::assertTrue($registry->supports('hepsiburada', 'connection_test'));
     }
 
