@@ -143,7 +143,10 @@ final readonly class SubcontractController
         return $this->back($order, 'Fason teknik/fotoğraf/talimat dosyası arşive kaydedildi.');
     }
 
-    public function download(int $order, int $attachment): StreamedResponse { return $this->files->download($order, $attachment); }
+    public function download(int $order, int $attachment): StreamedResponse
+    {
+        return $this->files->download($order, $attachment);
+    }
 
     public function detach(int $order, int $attachment): RedirectResponse
     {
@@ -159,28 +162,49 @@ final readonly class SubcontractController
         foreach ($rows as $row) {
             $productId = $row['product_id'] ?? null;
             $quantity = $row['quantity'] ?? null;
-            if ($productId === null && $quantity === null) { continue; }
-            if ($productId === null || $quantity === null) { throw ValidationException::withMessages(['materials' => 'Ürün ve miktar birlikte girilmelidir.']); }
+            if ($productId === null && $quantity === null) {
+                continue;
+            }
+            if ($productId === null || $quantity === null) {
+                throw ValidationException::withMessages(['materials' => 'Ürün ve miktar birlikte girilmelidir.']);
+            }
             $result[] = ['product_id' => (int) $productId, 'quantity' => (string) $quantity];
         }
-        if ($result === []) { throw ValidationException::withMessages(['materials' => 'En az bir malzeme/tüketim satırı zorunludur.']); }
+        if ($result === []) {
+            throw ValidationException::withMessages(['materials' => 'En az bir malzeme/tüketim satırı zorunludur.']);
+        }
 
         return $result;
     }
 
-    private function order(int $id): SubcontractOrder { return SubcontractOrder::query()->where('company_id', $this->companyId())->findOrFail($id); }
-    private function back(int $order, string $message): RedirectResponse { return redirect()->route('subcontract.show', $order)->with('status', $message); }
+    private function order(int $id): SubcontractOrder
+    {
+        return SubcontractOrder::query()->where('company_id', $this->companyId())->findOrFail($id);
+    }
+
+    private function back(int $order, string $message): RedirectResponse
+    {
+        return redirect()->route('subcontract.show', $order)->with('status', $message);
+    }
 
     private function perform(callable $operation): mixed
     {
-        try { return $operation(); } catch (DomainException|InvalidArgumentException $exception) { throw ValidationException::withMessages(['subcontract' => $exception->getMessage()]); }
+        try {
+            return $operation();
+        } catch (DomainException|InvalidArgumentException $exception) {
+            throw ValidationException::withMessages(['subcontract' => $exception->getMessage()]);
+        }
     }
 
-    private function nullableString(mixed $value): ?string { return $value === null || trim((string) $value) === '' ? null : trim((string) $value); }
+    private function nullableString(mixed $value): ?string
+    {
+        return $value === null || trim((string) $value) === '' ? null : trim((string) $value);
+    }
 
     private function companyId(): int
     {
         $key = $this->companyContext->requireCompany()->getKey();
+
         return is_int($key) ? $key : throw new LogicException('Subcontract operation requires a persisted active company.');
     }
 }

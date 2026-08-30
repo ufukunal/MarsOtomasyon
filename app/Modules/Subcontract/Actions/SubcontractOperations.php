@@ -122,6 +122,7 @@ final readonly class SubcontractOperations
                 if ((int) $existing->subcontract_order_id !== $orderId || (int) $existing->product_id !== $productId || (string) $existing->quantity !== $quantity || $existing->loss_type !== $lossType || $existing->note !== $note) {
                     throw new DomainException('Aynı fason fire/eksik anahtarı farklı payload ile kullanılamaz.');
                 }
+
                 return $existing;
             }
 
@@ -172,6 +173,7 @@ final readonly class SubcontractOperations
                 if ((int) $existing->subcontract_order_id !== $orderId || (string) $existing->output_quantity !== $outputQuantity || $existing->consumption_payload !== $payload) {
                     throw new DomainException('Aynı fason mamul kabul anahtarı farklı payload ile kullanılamaz.');
                 }
+
                 return $existing;
             }
 
@@ -254,36 +256,42 @@ final readonly class SubcontractOperations
     private function remaining(SubcontractOrderMaterial $material): string
     {
         $row = DB::selectOne('SELECT CAST(CAST(? AS numeric) - CAST(? AS numeric) - CAST(? AS numeric) AS numeric(20,6))::text AS value', [(string) $material->sent_quantity, (string) $material->consumed_quantity, (string) $material->loss_quantity]);
+
         return $row === null ? throw new LogicException('Fason remaining hesaplanamadı.') : (string) $row->value;
     }
 
     private function proportionalValue(string $quantity, string $sentValue, string $sentQuantity): string
     {
         $row = DB::selectOne('SELECT CAST(CAST(? AS numeric) * CAST(? AS numeric) / CAST(? AS numeric) AS numeric(20,6))::text AS value', [$quantity, $sentValue, $sentQuantity]);
+
         return $row === null ? throw new LogicException('Fason taşıma değeri hesaplanamadı.') : (string) $row->value;
     }
 
     private function add(string $left, string $right): string
     {
         $row = DB::selectOne('SELECT CAST(CAST(? AS numeric) + CAST(? AS numeric) AS numeric(20,6))::text AS value', [$left, $right]);
+
         return $row === null ? throw new LogicException('Fason toplama hesaplanamadı.') : (string) $row->value;
     }
 
     private function divide(string $left, string $right): string
     {
         $row = DB::selectOne('SELECT CAST(CAST(? AS numeric) / CAST(? AS numeric) AS numeric(20,6))::text AS value', [$left, $right]);
+
         return $row === null ? throw new LogicException('Fason birim maliyet hesaplanamadı.') : (string) $row->value;
     }
 
     private function absolute(string $value): string
     {
         $row = DB::selectOne('SELECT CAST(abs(CAST(? AS numeric)) AS numeric(20,6))::text AS value', [$value]);
+
         return $row === null ? throw new LogicException('Fason mutlak değer hesaplanamadı.') : (string) $row->value;
     }
 
     private function compare(string $left, string $right): int
     {
         $row = DB::selectOne('SELECT CASE WHEN CAST(? AS numeric) < CAST(? AS numeric) THEN -1 WHEN CAST(? AS numeric) > CAST(? AS numeric) THEN 1 ELSE 0 END AS value', [$left, $right, $left, $right]);
+
         return $row === null ? throw new LogicException('Fason numeric karşılaştırma hesaplanamadı.') : (int) $row->value;
     }
 
@@ -297,6 +305,7 @@ final readonly class SubcontractOperations
         if ($row === null || $row->valid !== true) {
             throw new InvalidArgumentException($label.' sıfırdan büyük olmalıdır.');
         }
+
         return (string) $row->value;
     }
 
@@ -306,14 +315,20 @@ final readonly class SubcontractOperations
         if ($value === '' || mb_strlen($value) > $max) {
             throw new InvalidArgumentException($label.' zorunludur ve en fazla '.$max.' karakter olabilir.');
         }
+
         return $value;
     }
 
     private function nullableText(?string $value, int $max): ?string
     {
-        if ($value === null || trim($value) === '') { return null; }
+        if ($value === null || trim($value) === '') {
+            return null;
+        }
         $value = trim($value);
-        if (mb_strlen($value) > $max) { throw new InvalidArgumentException('Not en fazla '.$max.' karakter olabilir.'); }
+        if (mb_strlen($value) > $max) {
+            throw new InvalidArgumentException('Not en fazla '.$max.' karakter olabilir.');
+        }
+
         return $value;
     }
 
@@ -326,6 +341,7 @@ final readonly class SubcontractOperations
     private function id(Model $model): int
     {
         $id = $model->getKey();
+
         return is_int($id) ? $id : throw new LogicException('Fason kaydı persisted integer id döndürmedi.');
     }
 }

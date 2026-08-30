@@ -16,8 +16,14 @@ final class SubcontractReceipt extends Model
     }
 
     /** @return BelongsTo<SubcontractOrder, $this> */
-    public function order(): BelongsTo { return $this->belongsTo(SubcontractOrder::class, 'subcontract_order_id'); }
+    public function order(): BelongsTo
+    {
+        return $this->belongsTo(SubcontractOrder::class, 'subcontract_order_id');
+    }
 
     /** @return BelongsTo<StockMovement, $this> */
-    public function stockMovement(): BelongsTo { return $this->belongsTo(StockMovement::class); }
+    public function stockMovement(): BelongsTo
+    {
+        return $this->belongsTo(StockMovement::class);
+    }
 }

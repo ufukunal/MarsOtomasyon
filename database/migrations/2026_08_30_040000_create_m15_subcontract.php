@@ -40,7 +40,7 @@ return new class extends Migration
             $table->foreign(['company_id', 'supplier_account_id'])->references(['company_id', 'id'])->on('accounts')->restrictOnDelete();
             $table->foreign(['company_id', 'output_product_id'])->references(['company_id', 'id'])->on('products')->restrictOnDelete();
             $table->foreign(['company_id', 'warehouse_id'])->references(['company_id', 'id'])->on('warehouses')->restrictOnDelete();
-            $table->foreign(['company_id', 'location_id'])->references(['company_id', 'id'])->on('warehouse_locations')->restrictOnDelete();
+            $table->foreign(['company_id', 'warehouse_id', 'location_id'])->references(['company_id', 'warehouse_id', 'id'])->on('warehouse_locations')->restrictOnDelete();
             $table->index(['company_id', 'status', 'id'], 'subcontract_orders_company_status_index');
         });
         DB::statement("ALTER TABLE subcontract_orders ADD CONSTRAINT subcontract_orders_status_check CHECK (status IN ('draft','in_progress','completed'))");

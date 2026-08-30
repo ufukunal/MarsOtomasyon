@@ -16,8 +16,14 @@ final class SubcontractLoss extends Model
     }
 
     /** @return BelongsTo<SubcontractOrder, $this> */
-    public function order(): BelongsTo { return $this->belongsTo(SubcontractOrder::class, 'subcontract_order_id'); }
+    public function order(): BelongsTo
+    {
+        return $this->belongsTo(SubcontractOrder::class, 'subcontract_order_id');
+    }
 
     /** @return BelongsTo<Product, $this> */
-    public function product(): BelongsTo { return $this->belongsTo(Product::class); }
+    public function product(): BelongsTo
+    {
+        return $this->belongsTo(Product::class);
+    }
 }
