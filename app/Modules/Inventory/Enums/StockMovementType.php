@@ -14,6 +14,9 @@ enum StockMovementType: string
     case GoodsReceiptIn = 'goods_receipt_in';
     case PurchaseReturnOut = 'purchase_return_out';
     case SalesReturnIn = 'sales_return_in';
+    case ProductionMaterialOut = 'production_material_out';
+    case ProductionLossOut = 'production_loss_out';
+    case ProductionReceiptIn = 'production_receipt_in';
 
     public function label(): string
     {
@@ -28,14 +31,28 @@ enum StockMovementType: string
             self::GoodsReceiptIn => 'Mal Kabul Girişi',
             self::PurchaseReturnOut => 'Satınalma İade Çıkışı',
             self::SalesReturnIn => 'Satış İade Girişi',
+            self::ProductionMaterialOut => 'Üretim Malzeme Çıkışı',
+            self::ProductionLossOut => 'Üretim Fire / Eksik Çıkışı',
+            self::ProductionReceiptIn => 'Üretim Mamul Girişi',
         };
     }
 
     public function isInbound(): bool
     {
         return match ($this) {
-            self::OpeningIn, self::AdjustmentIn, self::TransferIn, self::GoodsReceiptIn, self::SalesReturnIn => true,
-            self::AdjustmentOut, self::TransferOut, self::DispatchOut, self::InvoiceOut, self::PurchaseReturnOut => false,
+            self::OpeningIn,
+            self::AdjustmentIn,
+            self::TransferIn,
+            self::GoodsReceiptIn,
+            self::SalesReturnIn,
+            self::ProductionReceiptIn => true,
+            self::AdjustmentOut,
+            self::TransferOut,
+            self::DispatchOut,
+            self::InvoiceOut,
+            self::PurchaseReturnOut,
+            self::ProductionMaterialOut,
+            self::ProductionLossOut => false,
         };
     }
 }
