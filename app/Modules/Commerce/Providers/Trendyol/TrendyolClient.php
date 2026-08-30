@@ -46,7 +46,10 @@ final class TrendyolClient
         return $request->get($baseUrl.'/integration/product/categories/'.$categoryId.'/attributes');
     }
 
-    /** @param array<string,mixed> $credentials */
+    /**
+     * @param  array<string,mixed>  $credentials
+     * @param  array<string,mixed>  $query
+     */
     public function categoryAttributeValues(array $credentials, int $categoryId, int $attributeId, array $query = []): Response
     {
         $this->positiveId($categoryId, 'category id');
@@ -56,7 +59,10 @@ final class TrendyolClient
         return $request->get($baseUrl.'/integration/product/categories/'.$categoryId.'/attributes/'.$attributeId.'/values', $query);
     }
 
-    /** @param array<string,mixed> $credentials @param array<string,mixed> $payload */
+    /**
+     * @param  array<string,mixed>  $credentials
+     * @param  array<string,mixed>  $payload
+     */
     public function createProductsV2(array $credentials, array $payload): Response
     {
         $this->boundedItems($payload, 1000, 'Trendyol Product V2 create');
@@ -65,7 +71,10 @@ final class TrendyolClient
         return $request->post($baseUrl.'/integration/product/sellers/'.$sellerId.'/v2/products', $payload);
     }
 
-    /** @param array<string,mixed> $credentials @param array<string,mixed> $payload */
+    /**
+     * @param  array<string,mixed>  $credentials
+     * @param  array<string,mixed>  $payload
+     */
     public function updateUnapprovedProductsV2(array $credentials, array $payload): Response
     {
         $this->boundedItems($payload, 1000, 'Trendyol unapproved product update');
@@ -74,7 +83,10 @@ final class TrendyolClient
         return $request->post($baseUrl.'/integration/product/sellers/'.$sellerId.'/products/unapproved-bulk-update', $payload);
     }
 
-    /** @param array<string,mixed> $credentials @param array<string,mixed> $payload */
+    /**
+     * @param  array<string,mixed>  $credentials
+     * @param  array<string,mixed>  $payload
+     */
     public function updateApprovedProductContentV2(array $credentials, array $payload): Response
     {
         $this->boundedItems($payload, 1000, 'Trendyol approved product content update');
@@ -83,7 +95,10 @@ final class TrendyolClient
         return $request->post($baseUrl.'/integration/product/sellers/'.$sellerId.'/products/content-bulk-update', $payload);
     }
 
-    /** @param array<string,mixed> $credentials @param array<string,mixed> $payload */
+    /**
+     * @param  array<string,mixed>  $credentials
+     * @param  array<string,mixed>  $payload
+     */
     public function updateApprovedProductVariantV2(array $credentials, array $payload): Response
     {
         $this->boundedItems($payload, 1000, 'Trendyol approved product variant update');
@@ -92,7 +107,10 @@ final class TrendyolClient
         return $request->post($baseUrl.'/integration/product/sellers/'.$sellerId.'/products/variant-bulk-update', $payload);
     }
 
-    /** @param array<string,mixed> $credentials @param array<string,mixed> $payload */
+    /**
+     * @param  array<string,mixed>  $credentials
+     * @param  array<string,mixed>  $payload
+     */
     public function updateApprovedProductDeliveryV2(array $credentials, array $payload): Response
     {
         $this->boundedItems($payload, 1000, 'Trendyol approved product delivery update');
@@ -110,7 +128,10 @@ final class TrendyolClient
         return $request->get($baseUrl.'/integration/product/sellers/'.$sellerId.'/products/batch-requests/'.$batchRequestId);
     }
 
-    /** @param array<string,mixed> $credentials @param array<string,mixed> $payload */
+    /**
+     * @param  array<string,mixed>  $credentials
+     * @param  array<string,mixed>  $payload
+     */
     public function updatePriceAndInventory(array $credentials, array $payload): Response
     {
         $this->boundedItems($payload, 1000, 'Trendyol stock and price update');
@@ -119,7 +140,10 @@ final class TrendyolClient
         return $request->post($baseUrl.'/integration/inventory/sellers/'.$sellerId.'/products/price-and-inventory', $payload);
     }
 
-    /** @param array<string,mixed> $credentials @param array<string,mixed> $query */
+    /**
+     * @param  array<string,mixed>  $credentials
+     * @param  array<string,mixed>  $query
+     */
     public function ordersV2(array $credentials, array $query = []): Response
     {
         [$sellerId, $baseUrl, $request] = $this->context($credentials);
@@ -127,7 +151,10 @@ final class TrendyolClient
         return $request->get($baseUrl.'/integration/order/sellers/'.$sellerId.'/v2/orders', $query);
     }
 
-    /** @param array<string,mixed> $credentials @param array<string,mixed> $payload */
+    /**
+     * @param  array<string,mixed>  $credentials
+     * @param  array<string,mixed>  $payload
+     */
     public function cancelPackageItems(array $credentials, int $packageId, array $payload): Response
     {
         $this->positiveId($packageId, 'package id');
@@ -136,7 +163,10 @@ final class TrendyolClient
         return $request->put($baseUrl.'/integration/order/sellers/'.$sellerId.'/shipment-packages/'.$packageId.'/items/unsupplied', $payload);
     }
 
-    /** @param array<string,mixed> $credentials @param array<string,mixed> $query */
+    /**
+     * @param  array<string,mixed>  $credentials
+     * @param  array<string,mixed>  $query
+     */
     public function claims(array $credentials, array $query = []): Response
     {
         [$sellerId, $baseUrl, $request] = $this->context($credentials);
@@ -144,7 +174,10 @@ final class TrendyolClient
         return $request->get($baseUrl.'/integration/order/sellers/'.$sellerId.'/claims', $query);
     }
 
-    /** @param array<string,mixed> $credentials @param array<string,mixed> $payload */
+    /**
+     * @param  array<string,mixed>  $credentials
+     * @param  array<string,mixed>  $payload
+     */
     public function createClaim(array $credentials, array $payload): Response
     {
         [$sellerId, $baseUrl, $request] = $this->context($credentials);
@@ -152,7 +185,10 @@ final class TrendyolClient
         return $request->post($baseUrl.'/integration/order/sellers/'.$sellerId.'/claims/create', $payload);
     }
 
-    /** @param array<string,mixed> $credentials @param array<string,mixed> $query */
+    /**
+     * @param  array<string,mixed>  $credentials
+     * @param  array<string,mixed>  $query
+     */
     public function questions(array $credentials, array $query = []): Response
     {
         [$sellerId, $baseUrl, $request] = $this->context($credentials);
@@ -173,7 +209,10 @@ final class TrendyolClient
         return $request->post($baseUrl.'/integration/qna/sellers/'.$sellerId.'/questions/'.$questionId.'/answers', ['text' => $text]);
     }
 
-    /** @param array<string,mixed> $credentials @param array<string,mixed> $payload */
+    /**
+     * @param  array<string,mixed>  $credentials
+     * @param  array<string,mixed>  $payload
+     */
     public function sendInvoiceLink(array $credentials, array $payload): Response
     {
         [$sellerId, $baseUrl, $request] = $this->context($credentials);
@@ -181,7 +220,10 @@ final class TrendyolClient
         return $request->post($baseUrl.'/integration/sellers/'.$sellerId.'/seller-invoice-links', $payload);
     }
 
-    /** @param array<string,mixed> $credentials @param array<string,mixed> $query */
+    /**
+     * @param  array<string,mixed>  $credentials
+     * @param  array<string,mixed>  $query
+     */
     public function settlements(array $credentials, array $query): Response
     {
         [$sellerId, $baseUrl, $request] = $this->context($credentials);
@@ -189,7 +231,10 @@ final class TrendyolClient
         return $request->get($baseUrl.'/integration/finance/che/sellers/'.$sellerId.'/settlements', $query);
     }
 
-    /** @param array<string,mixed> $credentials @param array<string,mixed> $query */
+    /**
+     * @param  array<string,mixed>  $credentials
+     * @param  array<string,mixed>  $query
+     */
     public function otherFinancials(array $credentials, array $query): Response
     {
         [$sellerId, $baseUrl, $request] = $this->context($credentials);
@@ -197,7 +242,10 @@ final class TrendyolClient
         return $request->get($baseUrl.'/integration/finance/che/sellers/'.$sellerId.'/otherfinancials', $query);
     }
 
-    /** @param array<string,mixed> $credentials @param array<string,mixed> $payload */
+    /**
+     * @param  array<string,mixed>  $credentials
+     * @param  array<string,mixed>  $payload
+     */
     public function registerWebhook(array $credentials, array $payload): Response
     {
         [$sellerId, $baseUrl, $request] = $this->context($credentials);
@@ -205,7 +253,10 @@ final class TrendyolClient
         return $request->post($baseUrl.'/integration/webhook/sellers/'.$sellerId.'/webhooks', $payload);
     }
 
-    /** @param array<string,mixed> $credentials @return array{0:string,1:string,2:PendingRequest} */
+    /**
+     * @param  array<string,mixed>  $credentials
+     * @return array{0:string,1:string,2:PendingRequest}
+     */
     private function context(array $credentials): array
     {
         $sellerId = trim((string) ($credentials['seller_id'] ?? ''));
