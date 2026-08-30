@@ -1,5 +1,5 @@
 name: M17 Capability Contracts
-# rerun after adapting guarded routes
+# rerun after adapting guarded view anchor
 
 on:
   push:
