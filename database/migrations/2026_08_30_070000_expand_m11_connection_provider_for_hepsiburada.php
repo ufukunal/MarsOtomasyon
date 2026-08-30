@@ -2,7 +2,6 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
-use RuntimeException;
 
 return new class extends Migration
 {
@@ -15,7 +14,7 @@ return new class extends Migration
     public function down(): void
     {
         if (DB::table('integration_connections')->where('provider', 'hepsiburada')->exists()) {
-            throw new RuntimeException('Cannot roll back Hepsiburada provider support while Hepsiburada connections exist.');
+            throw new \RuntimeException('Cannot roll back Hepsiburada provider support while Hepsiburada connections exist.');
         }
 
         DB::statement('ALTER TABLE integration_connections DROP CONSTRAINT IF EXISTS m11_connection_provider');
