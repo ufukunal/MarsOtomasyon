@@ -1,5 +1,6 @@
 <?php
 
+use App\Modules\Commerce\Http\CommerceController;
 use App\Modules\Operations\Http\ChannelWebhookController;
 use App\Modules\Operations\Http\OperationsController;
 use App\Modules\Operations\RequirePlatformAdmin;
@@ -10,9 +11,21 @@ Route::post('/api/channels/{connection}/webhook', ChannelWebhookController::clas
     ->middleware('throttle:120,1')
     ->name('channels.webhook');
 
-Route::get('/commerce', fn () => redirect()->route('operations.index'))
-    ->middleware(['auth', 'company.context', 'can:integrations.view'])
-    ->name('commerce.index');
+Route::prefix('commerce')
+    ->name('commerce.')
+    ->middleware(['web', 'auth', 'company.context'])
+    ->group(function (): void {
+        Route::get('/', [CommerceController::class, 'index'])->middleware('can:integrations.view')->name('index');
+        Route::post('/connections', [CommerceController::class, 'storeConnection'])->middleware('can:integrations.manage')->name('connections.store');
+        Route::post('/connections/{connection}/test', [CommerceController::class, 'testConnection'])->where('connection', '[0-9A-HJKMNP-TV-Z]{26}')->middleware('can:integrations.manage')->name('connections.test');
+        Route::post('/mappings', [CommerceController::class, 'storeMapping'])->middleware('can:integrations.manage')->name('mappings.store');
+        Route::post('/publish', [CommerceController::class, 'publish'])->middleware('can:integrations.manage')->name('publish');
+        Route::post('/orders/{order}/retry', [CommerceController::class, 'retryOrder'])->where('order', '[0-9A-HJKMNP-TV-Z]{26}')->middleware('can:integrations.manage')->name('orders.retry');
+        Route::post('/returns', [CommerceController::class, 'storeReturn'])->middleware('can:integrations.manage')->name('returns.store');
+        Route::post('/settlements', [CommerceController::class, 'storeSettlement'])->middleware('can:integrations.manage')->name('settlements.store');
+        Route::post('/settlements/{settlement}/handoff', [CommerceController::class, 'handoffSettlement'])->where('settlement', '[0-9A-HJKMNP-TV-Z]{26}')->middleware('can:integrations.manage')->name('settlements.handoff');
+    });
+
 Route::get('/communications', fn () => redirect()->route('operations.index'))
     ->middleware(['auth', 'company.context', 'can:notifications.view'])
     ->name('communications.index');
