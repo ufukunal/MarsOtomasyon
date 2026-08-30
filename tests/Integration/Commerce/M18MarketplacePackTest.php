@@ -31,6 +31,7 @@ it('runs the verified marketplace pack lifecycle with stale and duplicate guards
         }
         if (str_contains($request->url(), '/ms/product/tasks/price-stock-update')) {
             $publishCalls++;
+
             return Http::response(['id' => 18001, 'type' => 'SKU_UPDATE', 'status' => 'IN_QUEUE'], 200);
         }
         if (str_contains($request->url(), '/rest/delivery/v1/shipmentPackages')) {
@@ -44,6 +45,7 @@ it('runs the verified marketplace pack lifecycle with stale and duplicate guards
                 'totalPages' => 1,
             ], 200);
         }
+
         return Http::response(['unexpected' => $request->url()], 500);
     });
 

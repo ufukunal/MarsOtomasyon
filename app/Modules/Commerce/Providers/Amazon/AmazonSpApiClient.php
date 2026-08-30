@@ -75,7 +75,7 @@ final class AmazonSpApiClient
      * Publish Mars desired stock/price using Listings Items top-level offer attributes.
      * This helper is merchant-fulfilled inventory only; FBA quantity remains Amazon-authoritative.
      *
-     * @param array<string,mixed> $credentials
+     * @param  array<string,mixed>  $credentials
      */
     public function patchDesiredState(
         array $credentials,
@@ -161,8 +161,8 @@ final class AmazonSpApiClient
     }
 
     /**
-     * @param array<string,mixed> $credentials
-     * @param array<string,mixed> $payload
+     * @param  array<string,mixed>  $credentials
+     * @param  array<string,mixed>  $payload
      */
     public function createReport(array $credentials, array $payload): Response
     {

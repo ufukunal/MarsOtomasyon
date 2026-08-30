@@ -123,7 +123,7 @@ final readonly class MarketplacePackService
             'product_type' => isset($metadata['product_type']) ? (string) $metadata['product_type'] : 'PRODUCT',
         ];
 
-        return DB::transaction(function () use ($companyId, $connection, $mapping, $provider, $identity, $payload, $stock, $price, $currencyCode): array {
+        return DB::transaction(function () use ($companyId, $connection, $mapping, $identity, $payload, $stock, $price, $currencyCode): array {
             $state = DB::table('channel_listing_states')
                 ->where('company_id', $companyId)
                 ->where('connection_id', $connection->id)
@@ -202,6 +202,7 @@ final readonly class MarketplacePackService
                     'ignored_reason' => 'stale desired-state version',
                     'updated_at' => now(),
                 ]);
+
                 return null;
             }
             $duplicate = DB::table('integration_sync_effects')
@@ -218,6 +219,7 @@ final readonly class MarketplacePackService
                     'updated_at' => now(),
                 ]);
                 $this->publishState((int) $effect->guard_id, (int) $effect->guard_version);
+
                 return null;
             }
             DB::table('integration_sync_effects')->where('id', $effectId)->update([
@@ -226,6 +228,7 @@ final readonly class MarketplacePackService
                 'last_error' => null,
                 'updated_at' => now(),
             ]);
+
             return $effect;
         });
         if ($effect === null) {
@@ -336,6 +339,7 @@ final readonly class MarketplacePackService
                 $record,
             );
         }
+
         return $eventIds;
     }
 
@@ -355,6 +359,7 @@ final readonly class MarketplacePackService
         if ($identity === '') {
             throw new DomainException('Marketplace mapping is missing provider publish identity.');
         }
+
         return $identity;
     }
 
@@ -375,6 +380,7 @@ final readonly class MarketplacePackService
         if (! is_array($records) || ! array_is_list($records)) {
             throw new RuntimeException('Marketplace order response must contain a list.');
         }
+
         return array_values(array_filter($records, 'is_array'));
     }
 
@@ -397,6 +403,7 @@ final readonly class MarketplacePackService
                 return strtolower(preg_replace('/[^a-zA-Z0-9_-]+/', '_', trim((string) $record[$key])) ?? 'updated');
             }
         }
+
         return 'updated';
     }
 
@@ -423,6 +430,7 @@ final readonly class MarketplacePackService
         if (! is_numeric(trim($value))) {
             throw new DomainException('Marketplace '.$field.' must be numeric.');
         }
+
         return number_format((float) $value, 6, '.', '');
     }
 
@@ -440,6 +448,7 @@ final readonly class MarketplacePackService
             throw new DomainException('Marketplace credentials are not configured.');
         }
         $decoded = json_decode(Crypt::decryptString($ciphertext), true, flags: JSON_THROW_ON_ERROR);
+
         return is_array($decoded) ? $decoded : [];
     }
 
@@ -453,6 +462,7 @@ final readonly class MarketplacePackService
         if ($connection === null) {
             throw new DomainException('Active marketplace connection not found.');
         }
+
         return $connection;
     }
 }

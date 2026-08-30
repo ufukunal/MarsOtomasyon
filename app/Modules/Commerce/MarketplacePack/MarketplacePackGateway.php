@@ -37,8 +37,8 @@ final readonly class MarketplacePackGateway
     }
 
     /**
-     * @param array<string,mixed> $credentials
-     * @param array<string,mixed> $payload
+     * @param  array<string,mixed>  $credentials
+     * @param  array<string,mixed>  $payload
      */
     public function publishDesiredState(string $provider, array $credentials, string $identity, array $payload): Response
     {
@@ -97,8 +97,8 @@ final readonly class MarketplacePackGateway
     }
 
     /**
-     * @param array<string,mixed> $credentials
-     * @param array<string,mixed> $query
+     * @param  array<string,mixed>  $credentials
+     * @param  array<string,mixed>  $query
      */
     public function orders(string $provider, array $credentials, array $query): Response
     {
