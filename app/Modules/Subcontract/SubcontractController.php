@@ -85,7 +85,9 @@ final readonly class SubcontractController
             'note' => ['nullable', 'string', 'max:500'], 'materials' => ['required', 'array', 'min:1', 'max:10'],
             'materials.*.product_id' => ['nullable', 'integer', 'min:1'], 'materials.*.quantity' => ['nullable', 'decimal:0,6', 'gt:0'],
         ]);
-        $materials = $this->materials($data['materials']);
+        /** @var array<int, array<string, mixed>> $materialRows */
+        $materialRows = $data['materials'];
+        $materials = $this->materials($materialRows);
         $order = $this->perform(fn () => $this->operations->createOrder(
             $this->companyId(), (int) $data['supplier_account_id'], (int) $data['output_product_id'], (string) $data['order_no'],
             (string) $data['planned_output_quantity'], (int) $data['warehouse_id'], (int) $data['location_id'], $materials,
@@ -119,7 +121,10 @@ final readonly class SubcontractController
             'operation_key' => ['required', 'string', 'max:64'], 'output_quantity' => ['required', 'decimal:0,6', 'gt:0'],
             'consumption' => ['required', 'array', 'min:1', 'max:10'], 'consumption.*.product_id' => ['nullable', 'integer', 'min:1'], 'consumption.*.quantity' => ['nullable', 'decimal:0,6', 'gt:0'],
         ]);
-        $this->perform(fn () => $this->operations->receiveOutput($this->companyId(), $order, (string) $data['operation_key'], (string) $data['output_quantity'], $this->materials($data['consumption'])));
+        /** @var array<int, array<string, mixed>> $consumptionRows */
+        $consumptionRows = $data['consumption'];
+        $consumption = $this->materials($consumptionRows);
+        $this->perform(fn () => $this->operations->receiveOutput($this->companyId(), $order, (string) $data['operation_key'], (string) $data['output_quantity'], $consumption));
 
         return $this->back($order, 'Fason mamul kabulü stok ve custody üzerinde işlendi.');
     }
@@ -155,7 +160,10 @@ final readonly class SubcontractController
         return $this->back($order, 'Fason dosyası arşivlendi.');
     }
 
-    /** @param array<int, array<string, mixed>> $rows @return list<array{product_id:int,quantity:string}> */
+    /**
+     * @param  array<int, array<string, mixed>>  $rows
+     * @return list<array{product_id:int, quantity:string}>
+     */
     private function materials(array $rows): array
     {
         $result = [];
