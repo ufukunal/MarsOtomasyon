@@ -114,7 +114,7 @@ it('tests the Hepsiburada connection and normalizes paid-order details into one 
         ->and($registry->isMarketplaceVerified('hepsiburada'))->toBeFalse()
         ->and($registry->supports('hepsiburada', 'connection_test'))->toBeTrue()
         ->and($registry->supports('hepsiburada', 'order_polling'))->toBeTrue()
-        ->and($registry->supports('hepsiburada', 'stock_publish'))->toBeFalse();
+        ->and($registry->supports('hepsiburada', 'stock_publish'))->toBeTrue();
 
     expect($commerce->testConnection((int) $company->getKey(), $connectionPublicId))->toBeTrue();
 
