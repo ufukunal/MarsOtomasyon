@@ -6,6 +6,7 @@ use App\Modules\Inventory\Models\StockMovement;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/** @property list<array{product_id:int, quantity:string}> $consumption_payload */
 final class SubcontractReceipt extends Model
 {
     protected $fillable = ['company_id', 'subcontract_order_id', 'operation_key', 'output_quantity', 'carrying_value', 'consumption_payload', 'stock_movement_id', 'occurred_at'];
