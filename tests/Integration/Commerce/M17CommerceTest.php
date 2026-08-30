@@ -1,5 +1,7 @@
 <?php
 
+use App\Foundation\Correlation\CorrelationContext;
+use App\Foundation\Correlation\CorrelationIdFactory;
 use App\Modules\Accounts\Enums\AccountStatus;
 use App\Modules\Accounts\Enums\AccountType;
 use App\Modules\Accounts\Enums\TaxIdentityType;
@@ -22,6 +24,7 @@ use App\Modules\Products\Models\Category;
 use App\Modules\Products\Models\Product;
 use App\Modules\Products\Models\Unit;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
@@ -38,6 +41,16 @@ it('runs WooCommerce public identity desired state order reservation problem ret
 
     [$company, $customer, $clearing, $product, $warehouse, $location] = m17Fixture();
     app(ActiveCompanyContext::class)->set($company);
+    $actorId = (int) DB::table('users')->insertGetId([
+        'name' => 'M17 Acceptance Actor',
+        'email' => 'm17-acceptance@example.test',
+        'password' => 'not-used',
+        'status' => 'active',
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+    Auth::loginUsingId($actorId);
+    app(CorrelationContext::class)->set(app(CorrelationIdFactory::class)->resolve(null));
 
     $commerce = app(ChannelCenterService::class);
     $channels = app(ChannelService::class);
