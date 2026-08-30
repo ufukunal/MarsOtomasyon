@@ -9,12 +9,12 @@ use App\Modules\Inventory\Ledger\PostStockMovementData;
 use App\Modules\Inventory\Ledger\StockMovementPoster;
 use App\Modules\Inventory\Models\Warehouse;
 use App\Modules\Inventory\Models\WarehouseLocation;
-use App\Modules\Products\Models\Product;
 use App\Modules\Production\Models\ProductionLoss;
 use App\Modules\Production\Models\ProductionOrder;
 use App\Modules\Production\Models\ProductionOrderMaterial;
 use App\Modules\Production\Models\ProductionRecipe;
 use App\Modules\Production\Models\ProductionRecipeLine;
+use App\Modules\Products\Models\Product;
 use DomainException;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
@@ -29,7 +29,7 @@ final readonly class ProductionOperations
     ) {}
 
     /**
-     * @param list<array{product_id:int,quantity:string}> $materials
+     * @param  list<array{product_id:int,quantity:string}>  $materials
      */
     public function createRecipe(
         int $companyId,
