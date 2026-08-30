@@ -496,6 +496,7 @@ final readonly class ChannelCenterService
             ->where('public_id', $publicId)
             ->where('status', 'active')
             ->first();
+        /** @var object{id:int,provider:string,base_url:mixed,credentials_ciphertext:mixed,financial_mode:string,default_account_id:mixed,clearing_account_id:mixed}|null $connection */
         if ($connection === null) {
             throw new DomainException('Active channel connection not found.');
         }

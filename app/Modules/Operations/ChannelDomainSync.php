@@ -330,8 +330,8 @@ final readonly class ChannelDomainSync
 
     /**
      * @param  array<string,mixed>  $payload
+     * @return object{id:int,company_id:int,connection_id:int,external_order_id:string,imported_at:mixed}
      */
-    /** @return object{id:int,company_id:int,connection_id:int,external_order_id:string,imported_at:mixed} */
     private function upsertInbox(
         int $companyId,
         int $connectionId,
