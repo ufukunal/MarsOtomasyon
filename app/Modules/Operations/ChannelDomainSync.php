@@ -62,6 +62,7 @@ final readonly class ChannelDomainSync
                 $accountId,
             );
 
+            /** @var object{id:int,local_type:mixed,local_id:int}|null $existing */
             $existing = DB::table('integration_entity_links')
                 ->where('company_id', $companyId)
                 ->where('connection_id', $connectionId)
@@ -305,7 +306,7 @@ final readonly class ChannelDomainSync
     }
 
     /**
-     * @param array<string,mixed> $credentials
+     * @param  array<string,mixed>  $credentials
      * @return array{0:string,1:int}
      */
     private function financialIdentity(object $connection, array $credentials): array
@@ -328,8 +329,9 @@ final readonly class ChannelDomainSync
     }
 
     /**
-     * @param array<string,mixed> $payload
+     * @param  array<string,mixed>  $payload
      */
+    /** @return object{id:int,company_id:int,connection_id:int,external_order_id:string,imported_at:mixed} */
     private function upsertInbox(
         int $companyId,
         int $connectionId,
@@ -340,6 +342,7 @@ final readonly class ChannelDomainSync
         string $financialMode,
         int $accountId,
     ): object {
+        /** @var object{id:int,company_id:int,connection_id:int,external_order_id:string,imported_at:mixed,payload_sha256:mixed}|null $existing */
         $existing = DB::table('channel_order_inbox')
             ->where('company_id', $companyId)
             ->where('connection_id', $connectionId)
@@ -370,6 +373,7 @@ final readonly class ChannelDomainSync
             'created_at' => now(),
             'updated_at' => now(),
         ]);
+        /** @var object{id:int,company_id:int,connection_id:int,external_order_id:string,imported_at:mixed}|null $row */
         $row = DB::table('channel_order_inbox')->where('id', $id)->lockForUpdate()->first();
         if ($row === null) {
             throw new RuntimeException('Channel order inbox could not be persisted.');
@@ -378,6 +382,7 @@ final readonly class ChannelDomainSync
         return $row;
     }
 
+    /** @param object{id:int,company_id:int,connection_id:int,external_order_id:string} $inbox */
     private function recordProblem(object $inbox, \Throwable $exception, string $code): void
     {
         $stockProblem = $code === 'stock_problem';
@@ -417,7 +422,10 @@ final readonly class ChannelDomainSync
         return false;
     }
 
-    /** @param array<string,mixed> $payload @return array<string,mixed> */
+    /**
+     * @param  array<string,mixed>  $payload
+     * @return array{billing:array<string,string>,shipping:array<string,string>}
+     */
     private function customerSnapshot(array $payload): array
     {
         $billing = is_array($payload['billing'] ?? null) ? $payload['billing'] : [];

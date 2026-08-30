@@ -98,7 +98,7 @@ return new class extends Migration
             $table->index(['company_id', 'status', 'updated_at']);
         });
         DB::statement("ALTER TABLE channel_listing_states ADD CONSTRAINT channel_listing_states_status_check CHECK (status IN ('idle', 'queued', 'synced', 'failed'))");
-        DB::statement("ALTER TABLE channel_listing_states ADD CONSTRAINT channel_listing_states_values_check CHECK ((desired_stock IS NULL OR desired_stock >= 0) AND (desired_price IS NULL OR desired_price >= 0) AND (published_stock IS NULL OR published_stock >= 0) AND (published_price IS NULL OR published_price >= 0))");
+        DB::statement('ALTER TABLE channel_listing_states ADD CONSTRAINT channel_listing_states_values_check CHECK ((desired_stock IS NULL OR desired_stock >= 0) AND (desired_price IS NULL OR desired_price >= 0) AND (published_stock IS NULL OR published_stock >= 0) AND (published_price IS NULL OR published_price >= 0))');
         DB::statement("ALTER TABLE channel_listing_states ADD CONSTRAINT channel_listing_states_public_id_shape_check CHECK (public_id ~ '^[0-9A-HJKMNP-TV-Z]{26}$')");
 
         Schema::create('channel_order_inbox', function (Blueprint $table): void {

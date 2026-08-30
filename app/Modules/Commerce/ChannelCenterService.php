@@ -4,6 +4,7 @@ namespace App\Modules\Commerce;
 
 use App\Modules\Operations\ChannelService;
 use App\Modules\Operations\Jobs\ProcessIntegrationEvent;
+use Carbon\CarbonImmutable;
 use DomainException;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
@@ -19,7 +20,7 @@ final readonly class ChannelCenterService
     ) {}
 
     /**
-     * @param array<string,mixed> $credentials
+     * @param  array<string,mixed>  $credentials
      */
     public function createConnection(
         int $companyId,
@@ -150,6 +151,7 @@ final readonly class ChannelCenterService
         }
 
         return DB::transaction(function () use ($companyId, $connection, $productId, $externalProductId, $externalVariantId, $externalSku, $metadata): string {
+            /** @var object{id:int,public_id:string}|null $existing */
             $existing = DB::table('channel_product_mappings')
                 ->where('company_id', $companyId)
                 ->where('connection_id', $connection->id)
@@ -189,7 +191,7 @@ final readonly class ChannelCenterService
     }
 
     /**
-     * @param list<string> $mediaUrls
+     * @param  list<string>  $mediaUrls
      * @return array{state_id:int,effect_id:int,version:int}
      */
     public function queueDesiredState(
@@ -200,6 +202,7 @@ final readonly class ChannelCenterService
         ?string $currencyCode,
         array $mediaUrls = [],
     ): array {
+        /** @var object{id:int,connection_id:int,external_product_id:mixed}|null $mapping */
         $mapping = DB::table('channel_product_mappings')
             ->where('company_id', $companyId)
             ->where('public_id', strtoupper(trim($mappingPublicId)))
@@ -208,6 +211,7 @@ final readonly class ChannelCenterService
         if ($mapping === null) {
             throw new DomainException('Active channel product mapping not found.');
         }
+        /** @var object{id:int,provider:mixed}|null $connection */
         $connection = DB::table('integration_connections')
             ->where('company_id', $companyId)
             ->where('id', $mapping->connection_id)
@@ -232,6 +236,7 @@ final readonly class ChannelCenterService
         $mediaUrls = $this->mediaUrls($mediaUrls);
 
         return DB::transaction(function () use ($companyId, $connection, $mapping, $externalProductId, $stock, $price, $currencyCode, $mediaUrls): array {
+            /** @var object{id:int,desired_version:int}|null $state */
             $state = DB::table('channel_listing_states')
                 ->where('company_id', $companyId)
                 ->where('connection_id', $connection->id)
@@ -250,6 +255,7 @@ final readonly class ChannelCenterService
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]);
+                /** @var object{id:int,desired_version:int}|null $state */
                 $state = DB::table('channel_listing_states')->where('id', $stateId)->lockForUpdate()->first();
             }
             if ($state === null) {
@@ -301,6 +307,7 @@ final readonly class ChannelCenterService
     public function retryOrder(int $companyId, string $inboxPublicId): int
     {
         return DB::transaction(function () use ($companyId, $inboxPublicId): int {
+            /** @var object{id:int,status:mixed,connection_id:int,external_event_id:mixed}|null $inbox */
             $inbox = DB::table('channel_order_inbox')
                 ->where('company_id', $companyId)
                 ->where('public_id', strtoupper(trim($inboxPublicId)))
@@ -309,6 +316,7 @@ final readonly class ChannelCenterService
             if ($inbox === null || ! in_array((string) $inbox->status, ['stock_problem', 'failed'], true)) {
                 throw new DomainException('Channel order is not retryable.');
             }
+            /** @var object{id:int}|null $event */
             $event = DB::table('integration_events')
                 ->where('company_id', $companyId)
                 ->where('connection_id', $inbox->connection_id)
@@ -370,6 +378,7 @@ final readonly class ChannelCenterService
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
+            /** @var object{id:int,external_order_id:mixed,payload_sha256:mixed}|null $row */
             $row = DB::table('channel_return_events')
                 ->where('company_id', $companyId)
                 ->where('connection_id', $connection->id)
@@ -415,7 +424,7 @@ final readonly class ChannelCenterService
             throw new DomainException('Settlement amounts are invalid.');
         }
         try {
-            $occurred = now()->parse($occurredAt);
+            $occurred = CarbonImmutable::parse($occurredAt);
         } catch (\Throwable) {
             throw new DomainException('Settlement occurred-at value is invalid.');
         }
@@ -439,6 +448,7 @@ final readonly class ChannelCenterService
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
+            /** @var object{id:int,evidence:mixed}|null $row */
             $row = DB::table('channel_settlement_evidence')
                 ->where('company_id', $companyId)
                 ->where('connection_id', $connection->id)
@@ -474,6 +484,7 @@ final readonly class ChannelCenterService
         }
     }
 
+    /** @return object{id:int,provider:string,base_url:mixed,credentials_ciphertext:mixed,financial_mode:string,default_account_id:mixed,clearing_account_id:mixed} */
     private function connection(int $companyId, string $publicId): object
     {
         $publicId = strtoupper(trim($publicId));
@@ -553,7 +564,10 @@ final readonly class ChannelCenterService
         return (string) $row->value;
     }
 
-    /** @param list<string> $urls @return list<string> */
+    /**
+     * @param  list<string>  $urls
+     * @return list<string>
+     */
     private function mediaUrls(array $urls): array
     {
         if (count($urls) > 20) {
