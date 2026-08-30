@@ -36,13 +36,27 @@ return new class extends Migration
             BEFORE UPDATE OR DELETE ON subcontract_events
             FOR EACH ROW EXECUTE FUNCTION mars_prevent_subcontract_append_only_mutation();
 
-            CREATE TRIGGER subcontract_receipts_immutable_trigger
-            BEFORE UPDATE OR DELETE ON subcontract_receipts
-            FOR EACH ROW EXECUTE FUNCTION mars_prevent_subcontract_append_only_mutation();
-
             CREATE TRIGGER subcontract_losses_immutable_trigger
             BEFORE UPDATE OR DELETE ON subcontract_losses
             FOR EACH ROW EXECUTE FUNCTION mars_prevent_subcontract_append_only_mutation();
+
+            CREATE OR REPLACE FUNCTION mars_guard_subcontract_receipt_mutation()
+            RETURNS trigger AS $$
+            BEGIN
+                IF TG_OP = 'DELETE' OR OLD.stock_movement_id IS NOT NULL THEN
+                    RAISE EXCEPTION 'posted subcontract receipt is immutable';
+                END IF;
+                IF NEW.stock_movement_id IS NULL
+                    OR (to_jsonb(NEW) - 'stock_movement_id' - 'updated_at') IS DISTINCT FROM (to_jsonb(OLD) - 'stock_movement_id' - 'updated_at') THEN
+                    RAISE EXCEPTION 'subcontract receipt may only finalize stock movement identity';
+                END IF;
+                RETURN NEW;
+            END;
+            $$ LANGUAGE plpgsql;
+
+            CREATE TRIGGER subcontract_receipts_immutable_trigger
+            BEFORE UPDATE OR DELETE ON subcontract_receipts
+            FOR EACH ROW EXECUTE FUNCTION mars_guard_subcontract_receipt_mutation();
 
             CREATE OR REPLACE FUNCTION mars_guard_subcontract_order_mutation()
             RETURNS trigger AS $$
@@ -67,8 +81,9 @@ return new class extends Migration
     {
         DB::statement('DROP TRIGGER IF EXISTS subcontract_orders_mutation_guard_trigger ON subcontract_orders');
         DB::statement('DROP FUNCTION IF EXISTS mars_guard_subcontract_order_mutation()');
-        DB::statement('DROP TRIGGER IF EXISTS subcontract_losses_immutable_trigger ON subcontract_losses');
         DB::statement('DROP TRIGGER IF EXISTS subcontract_receipts_immutable_trigger ON subcontract_receipts');
+        DB::statement('DROP FUNCTION IF EXISTS mars_guard_subcontract_receipt_mutation()');
+        DB::statement('DROP TRIGGER IF EXISTS subcontract_losses_immutable_trigger ON subcontract_losses');
         DB::statement('DROP TRIGGER IF EXISTS subcontract_events_immutable_trigger ON subcontract_events');
         DB::statement('DROP FUNCTION IF EXISTS mars_prevent_subcontract_append_only_mutation()');
 
