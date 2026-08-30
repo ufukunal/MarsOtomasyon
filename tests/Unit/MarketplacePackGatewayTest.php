@@ -3,17 +3,17 @@
 use App\Modules\Commerce\MarketplacePack\MarketplacePackGateway;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
+use Tests\TestCase;
+
+uses(TestCase::class);
 
 it('locks n11 REST auth stock-price task and order contracts', function (): void {
-    Http::fake(function (Request $request) {
-        return match (true) {
-            str_contains($request->url(), '/ms/product-query') => Http::response(['content' => []], 200),
-            $request->url() === 'https://api.n11.com/ms/product/tasks/price-stock-update' => Http::response(['id' => 9001, 'status' => 'IN_QUEUE'], 200),
-            $request->url() === 'https://api.n11.com/ms/product/task-details/page-query' => Http::response(['taskId' => 9001, 'status' => 'PROCESSED'], 200),
-            str_contains($request->url(), '/rest/delivery/v1/shipmentPackages') => Http::response(['content' => []], 200),
-            default => throw new RuntimeException('Unexpected n11 URL: '.$request->url()),
-        };
-    });
+    Http::fake([
+        'https://api.n11.com/ms/product-query*' => Http::response(['content' => []], 200),
+        'https://api.n11.com/ms/product/tasks/price-stock-update' => Http::response(['id' => 9001, 'status' => 'IN_QUEUE'], 200),
+        'https://api.n11.com/ms/product/task-details/page-query' => Http::response(['taskId' => 9001, 'status' => 'PROCESSED'], 200),
+        'https://api.n11.com/rest/delivery/v1/shipmentPackages*' => Http::response(['content' => []], 200),
+    ]);
     $gateway = app(MarketplacePackGateway::class);
     $credentials = ['app_key' => 'key', 'app_secret' => 'secret', 'integrator' => 'MarsOtomasyon'];
 
