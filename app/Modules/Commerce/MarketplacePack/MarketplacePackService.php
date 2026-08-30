@@ -455,6 +455,7 @@ final readonly class MarketplacePackService
     /** @return object{id:mixed,company_id:mixed,provider:mixed,credentials_ciphertext:mixed} */
     private function connection(int $companyId, string $publicId): object
     {
+        /** @var object{id:mixed,company_id:mixed,provider:mixed,credentials_ciphertext:mixed}|null $connection */
         $connection = DB::table('integration_connections')
             ->where('company_id', $companyId)
             ->where('public_id', strtoupper(trim($publicId)))
