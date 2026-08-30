@@ -82,7 +82,7 @@ jobs:
         shell: bash
         run: |
           set +e
-          composer test 2>&1 | tee /tmp/m16-postgres-tests.log
+          vendor/bin/pest tests/Unit tests/Feature tests/Integration tests/Architecture --colors=never --stop-on-failure 2>&1 | tee /tmp/m16-postgres-tests.log
           status=${PIPESTATUS[0]}
           mkdir -p ci-diagnostics
           {
