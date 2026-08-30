@@ -1,0 +1,37 @@
+name: Format M11 Parallel
+
+on:
+  push:
+    branches:
+      - feat/m11-instruments
+    paths:
+      - .github/workflows/format-m11-parallel.yml
+
+permissions:
+  contents: write
+
+jobs:
+  pint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/m11-instruments
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          coverage: none
+          tools: composer:v2
+      - run: composer install --no-interaction --prefer-dist --no-progress
+      - run: vendor/bin/pint --parallel
+      - name: Commit formatter output
+        run: |
+          if git diff --quiet; then
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app database routes tests bootstrap
+          git commit -m "style(m11): align parallel Pint output"
+          git push origin HEAD:feat/m11-instruments
