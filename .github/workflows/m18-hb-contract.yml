@@ -1,0 +1,37 @@
+name: M18 HB Contract
+
+on:
+  push:
+    branches: [feat/m18-hepsiburada]
+
+permissions:
+  contents: write
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/m18-hepsiburada
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          coverage: none
+          tools: composer:v2
+      - run: composer install --no-interaction --prefer-dist --no-progress
+      - name: Format
+        run: vendor/bin/pint app/Modules/Commerce/Providers/Hepsiburada/HepsiburadaClient.php config/commerce.php tests/Unit/HepsiburadaContractTest.php --test
+      - name: Contract tests
+        run: vendor/bin/phpunit tests/Unit/HepsiburadaContractTest.php --colors=never
+      - name: Static analysis
+        run: vendor/bin/phpstan analyse app/Modules/Commerce/Providers/Hepsiburada/HepsiburadaClient.php --no-progress
+      - name: Self clean
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git rm .github/workflows/m18-hb-contract.yml
+          git commit -m 'ci(m18-hb): remove temporary contract gate'
+          git push origin HEAD:feat/m18-hepsiburada
