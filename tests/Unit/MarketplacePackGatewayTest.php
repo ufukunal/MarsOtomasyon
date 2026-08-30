@@ -7,8 +7,8 @@ use Illuminate\Support\Facades\Http;
 it('locks n11 REST auth stock-price task and order contracts', function (): void {
     Http::fake([
         'https://api.n11.com/ms/product-query*' => Http::response(['content' => []], 200),
-        'https://api.n11.com/ms/product/tasks/price-stock-update' => Http::response(['id' => 9001, 'status' => 'IN_QUEUE'], 200),
-        'https://api.n11.com/ms/product/task-details/page-query' => Http::response(['taskId' => 9001, 'status' => 'PROCESSED'], 200),
+        'https://api.n11.com/ms/product/tasks/price-stock-update*' => Http::response(['id' => 9001, 'status' => 'IN_QUEUE'], 200),
+        'https://api.n11.com/ms/product/task-details/page-query*' => Http::response(['taskId' => 9001, 'status' => 'PROCESSED'], 200),
         'https://api.n11.com/rest/delivery/v1/shipmentPackages*' => Http::response(['content' => []], 200),
     ]);
     $gateway = app(MarketplacePackGateway::class);
