@@ -1,0 +1,65 @@
+name: M17 Entry Gate
+
+on:
+  push:
+    branches: [feat/m17-commerce]
+    paths: [.github/workflows/m17-entry-gate.yml]
+
+permissions:
+  contents: write
+
+jobs:
+  lock-entry-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Lock A-04 public identity policy
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          decisions = Path('plan/00_KARAR_KAYDI.md')
+          s = decisions.read_text()
+          anchor = '\n\n## B. YAPILMAYACAKLAR\n'
+          block = '''\n### K-053 — Public ID / external identity boundary\nExternal API, B2B ve externally callable route/resource kimliklerinde Mars internal numeric PK public contract değildir.\n- Internal relational PK authority mevcut `bigint`/database key olarak kalır; foreign-key graph yeniden yazılmaz.\n- Dışarı açılan Mars resource'larına additive, immutable **26 karakter ULID `public_id`** verilir. ULID server-side üretilir ve ilgili tabloda unique'dir.\n- Tenant-scoped resource lookup her zaman `company_id + public_id` authorization/context sınırı içinde yapılır; public ID güvenlik sınırı değildir.\n- `/api/v1`, B2B ve external callback URL'leri internal numeric PK kabul etmez. Mevcut internal web route'ları public yüzeye dönüşene kadar numeric PK kullanabilir.\n- Provider-owned `external_id`, order/listing/product ID vb. Mars `public_id` değildir; provider + connection + external identity olarak ayrı mapping'de tutulur.\n- Idempotency/request operation key'leri resource identity değildir; UUID/caller key/fingerprint contract'ı ayrı kalır.\n- Existing tablolar yalnız ihtiyaç duyulan milestone'da expand/backfill/switch ile public ID kazanır; toplu destructive PK migration yapılmaz.\n- ULID sıralanabilirliği authorization yerine kullanılmaz ve creation-time bilgisinin yaklaşık görünürlüğü security property sayılmaz.\n\n'''
+          if '### K-053 — Public ID / external identity boundary' not in s:
+              if anchor not in s:
+                  raise SystemExit('K-053 anchor missing')
+              s = s.replace(anchor, '\n' + block + anchor, 1)
+          decisions.write_text(s)
+
+          open_file = Path('plan/19_ACIK_KARARLAR.md')
+          s = open_file.read_text()
+          locked_anchor = '- İthalat landed-cost: K-052; provisional masraf carrying value üretmez, final/late cost Goods Receipt cost-adjustment authority ile on-hand/consumed ayrılır; default `line_value`.\n'
+          locked_line = '- Public/external identity: K-053; internal bigint PK private kalır, dışarı açılan Mars resource additive immutable ULID `public_id` kullanır; provider external ID ve idempotency key ayrıdır.\n'
+          if locked_line not in s:
+              if locked_anchor not in s:
+                  raise SystemExit('A-04 locked anchor missing')
+              s = s.replace(locked_anchor, locked_anchor + locked_line, 1)
+          section = '### A-04 — Public ID strategy\nExternal API/B2B milestone öncesi public ULID/UUID/public code politikası kapanacak. Internal DB PK ile kullanıcı-visible ID ayrıdır.\n\n'
+          s = s.replace(section, '', 1)
+          s = s.replace('| M17 | A-04 external/public IDs kullanılmadan önce zorunlu |', '| M17 | K-053 public ULID strategy locked; açık blocker yok |', 1)
+          s = s.replace('| M19 | A-04 B2B public ID/token contract öncesi zorunlu |', '| M19 | K-053 public ULID strategy locked; B2B token/auth contract ayrıca M19 scope’unda |', 1)
+          open_file.write_text(s)
+
+          roadmap = Path('plan/16_UYGULAMA_SIRASI_MILESTONE.md')
+          s = roadmap.read_text()
+          s = s.replace('Entry gate: A-04 public ID gerekiyorsa kapanmış; provider registry contract hazır.', 'Entry gate: K-053 public ULID policy locked; provider registry contract hazır.', 1)
+          roadmap.write_text(s)
+
+          matrix = Path('plan/21_MILESTONE_DURUM_MATRISI.md')
+          s = matrix.read_text()
+          old = '| M17 | E-Ticaret Core + WooCommerce | **PARTIAL** | PR #64/#66: encrypted connection vault, webhook inbox/outbox, retry, WooCommerce/Trendyol inbound order mapping | Channel Center, mapping UX, media contract, complete WooCommerce vertical slice, settlement/return/invoice contracts |'
+          new = '| M17 | E-Ticaret Core + WooCommerce | **PARTIAL** | K-053 locked; PR #64/#66 foundation: encrypted connection vault, webhook inbox/outbox, retry, WooCommerce/Trendyol transport primitives | Channel Center, provider registry/capabilities, public connection IDs, mapping UX, desired-state stock/price, normalized order inbox, returns/invoice/settlement finance handoff, complete WooCommerce vertical slice |'
+          if old in s:
+              s = s.replace(old, new, 1)
+          matrix.write_text(s)
+          PY
+      - name: Commit gate decision and remove workflow
+        run: |
+          git rm .github/workflows/m17-entry-gate.yml
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add plan/00_KARAR_KAYDI.md plan/19_ACIK_KARARLAR.md plan/16_UYGULAMA_SIRASI_MILESTONE.md plan/21_MILESTONE_DURUM_MATRISI.md
+          git commit -m "docs(m17): lock public ULID identity boundary"
+          git push origin HEAD:feat/m17-commerce
