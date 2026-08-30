@@ -44,7 +44,10 @@
             "@php -r \"file_exists('.env') || copy('.env.example', '.env');\""
         ],
         "format": "pint --parallel",
-        "format:check": "pint --parallel --test",
+        "format:check": [
+            "pint --parallel",
+            "git diff --exit-code"
+        ],
         "analyse": "phpstan analyse --ansi --memory-limit=512M",
         "test": "pest tests/Unit tests/Feature tests/Integration tests/Architecture --colors=always",
         "test:unit": "pest tests/Unit --colors=always",
