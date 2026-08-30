@@ -30,6 +30,7 @@ final class ChannelService
         }
 
         return (int) DB::table('integration_connections')->insertGetId([
+            'public_id' => (string) Str::ulid(),
             'company_id' => $companyId,
             'provider' => $provider,
             'name' => $name,
