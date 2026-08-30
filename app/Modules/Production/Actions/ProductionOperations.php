@@ -54,7 +54,7 @@ final readonly class ProductionOperations
             $normalized = [];
 
             foreach ($materials as $material) {
-                $materialProductId = (int) ($material['product_id'] ?? 0);
+                $materialProductId = (int) $material['product_id'];
                 if ($materialProductId <= 0) {
                     throw new InvalidArgumentException('Reçete malzeme ürünü zorunludur.');
                 }
@@ -67,7 +67,7 @@ final readonly class ProductionOperations
 
                 $this->companyProduct($companyId, $materialProductId);
                 $normalized[$materialProductId] = $this->positiveDecimal(
-                    (string) ($material['quantity'] ?? ''),
+                    (string) $material['quantity'],
                     'Reçete malzeme miktarı',
                 );
             }
@@ -454,7 +454,7 @@ final readonly class ProductionOperations
             [$companyId, $productionOrderId],
         );
 
-        return $this->nonNegativeDecimal((string) ($row?->value ?? '0'), 'Toplam fire/eksik maliyeti');
+        return $this->nonNegativeDecimal((string) $row->value, 'Toplam fire/eksik maliyeti');
     }
 
     private function multiplyDivide(string $left, string $right, string $divisor, string $label): string
@@ -464,7 +464,7 @@ final readonly class ProductionOperations
             [$left, $right, $divisor],
         );
 
-        return $this->positiveDecimal((string) ($row?->value ?? ''), $label);
+        return $this->positiveDecimal((string) $row->value, $label);
     }
 
     private function divide(string $value, string $divisor, string $label): string
@@ -474,7 +474,7 @@ final readonly class ProductionOperations
             [$value, $divisor],
         );
 
-        return $this->positiveDecimal((string) ($row?->value ?? ''), $label);
+        return $this->positiveDecimal((string) $row->value, $label);
     }
 
     private function add(string $left, string $right): string
@@ -484,7 +484,7 @@ final readonly class ProductionOperations
             [$left, $right],
         );
 
-        return $this->nonNegativeDecimal((string) ($row?->value ?? ''), 'Üretim maliyeti');
+        return $this->nonNegativeDecimal((string) $row->value, 'Üretim maliyeti');
     }
 
     private function absoluteDecimal(string $value): string
