@@ -1,0 +1,32 @@
+targeted_status=2
+--- TARGETED FAILURE SUMMARY ---
+2:   FAIL  Tests\Integration\Commerce\M18MarketplacePackTest
+5:   FAILED  Tests\Integration\Commerce\M18MarketplacePackTest…  QueryException   
+6:  SQLSTATE[23514]: Check violation: 7 ERROR:  check constraint "m11_connection_provider" of relation "integration_connections" is violated by some row (Connection: pgsql, Host: 127.0.0.1, Port: 5432, Database: mars_test, SQL: ALTER TABLE integration_connections ADD CONSTRAINT m11_connection_provider CHECK (provider IN ('woocommerce','trendyol')))
+23:  Tests:    1 failed (31 assertions)
+--- TARGETED TAIL ---
+
+   FAIL  Tests\Integration\Commerce\M18MarketplacePackTest
+  ⨯ it runs the verified marketplace pack lifecycle with stale and dupl… 2.17s  
+  ────────────────────────────────────────────────────────────────────────────  
+   FAILED  Tests\Integration\Commerce\M18MarketplacePackTest…  QueryException   
+  SQLSTATE[23514]: Check violation: 7 ERROR:  check constraint "m11_connection_provider" of relation "integration_connections" is violated by some row (Connection: pgsql, Host: 127.0.0.1, Port: 5432, Database: mars_test, SQL: ALTER TABLE integration_connections ADD CONSTRAINT m11_connection_provider CHECK (provider IN ('woocommerce','trendyol')))
+
+  at vendor/laravel/framework/src/Illuminate/Database/Connection.php:601
+    597▕             $this->bindValues($statement, $this->prepareBindings($bindings));
+    598▕ 
+    599▕             $this->recordsHaveBeenModified();
+    600▕ 
+  ➜ 601▕             return $statement->execute();
+    602▕         });
+    603▕     }
+    604▕ 
+    605▕     /**
+
+      [2m+6 vendor frames [22m
+  7   database/migrations/2026_08_30_070000_expand_m11_connection_provider_for_hepsiburada.php:21
+
+
+  Tests:    1 failed (31 assertions)
+  Duration: 2.37s
+
