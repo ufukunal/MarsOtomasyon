@@ -31,7 +31,10 @@ final class TrendyolContractTest extends TestCase
         self::assertTrue($registry->isContractVerified('trendyol'));
         self::assertFalse($registry->isMarketplaceVerified('trendyol'));
         self::assertTrue($registry->supports('trendyol', 'connection_test'));
-        self::assertTrue($registry->supports('trendyol', 'product_publish'));
+        self::assertTrue($registry->supports('trendyol', 'product_contract'));
+        self::assertFalse($registry->supports('trendyol', 'product_publish'));
+        self::assertTrue($registry->supports('trendyol', 'media_manual'));
+        self::assertFalse($registry->supports('trendyol', 'invoice_publish'));
         self::assertTrue($registry->supports('trendyol', 'order_polling'));
         self::assertTrue($registry->supports('trendyol', 'settlement_evidence'));
     }

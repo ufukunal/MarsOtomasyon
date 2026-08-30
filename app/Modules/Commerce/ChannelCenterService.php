@@ -2,6 +2,7 @@
 
 namespace App\Modules\Commerce;
 
+use App\Modules\Commerce\Providers\Trendyol\TrendyolClient;
 use App\Modules\Operations\ChannelEventStore;
 use App\Modules\Operations\ChannelService;
 use App\Modules\Operations\Jobs\ProcessIntegrationEvent;
@@ -19,6 +20,7 @@ final readonly class ChannelCenterService
         private ChannelService $channels,
         private ChannelEventStore $events,
         private ProviderRegistry $providers,
+        private TrendyolClient $trendyol,
     ) {}
 
     /**
@@ -85,22 +87,30 @@ final readonly class ChannelCenterService
         }
 
         try {
-            if ($provider !== 'woocommerce') {
+            $credentials = $this->credentials((string) ($connection->credentials_ciphertext ?? ''));
+            if ($provider === 'woocommerce') {
+                $baseUrl = rtrim((string) ($connection->base_url ?? ''), '/');
+                $key = (string) ($credentials['consumer_key'] ?? '');
+                $secret = (string) ($credentials['consumer_secret'] ?? '');
+                if ($baseUrl === '' || $key === '' || $secret === '') {
+                    throw new DomainException('WooCommerce connection settings are incomplete.');
+                }
+                $response = Http::acceptJson()
+                    ->withBasicAuth($key, $secret)
+                    ->timeout(15)
+                    ->get($baseUrl.'/wp-json/wc/v3/system_status');
+                $label = 'WooCommerce';
+            } elseif ($provider === 'trendyol') {
+                $response = $this->trendyol->connectionTest($credentials);
+                $label = 'Trendyol';
+            } else {
                 throw new DomainException('Connection test is not implemented for provider.');
             }
-            $baseUrl = rtrim((string) ($connection->base_url ?? ''), '/');
-            $credentials = $this->credentials((string) ($connection->credentials_ciphertext ?? ''));
-            $key = (string) ($credentials['consumer_key'] ?? '');
-            $secret = (string) ($credentials['consumer_secret'] ?? '');
-            if ($baseUrl === '' || $key === '' || $secret === '') {
-                throw new DomainException('WooCommerce connection settings are incomplete.');
+            if ($response->status() === 429) {
+                throw new DomainException($label.' connection test is rate limited.');
             }
-            $response = Http::acceptJson()
-                ->withBasicAuth($key, $secret)
-                ->timeout(15)
-                ->get($baseUrl.'/wp-json/wc/v3/system_status');
             if (! $response->successful()) {
-                throw new RuntimeException('WooCommerce connection test returned HTTP '.$response->status().'.');
+                throw new RuntimeException($label.' connection test returned HTTP '.$response->status().'.');
             }
 
             DB::table('integration_connections')->where('id', $connection->id)->update([
@@ -204,7 +214,7 @@ final readonly class ChannelCenterService
         ?string $currencyCode,
         array $mediaUrls = [],
     ): array {
-        /** @var object{id:int,connection_id:int,external_product_id:mixed}|null $mapping */
+        /** @var object{id:int,connection_id:int,external_product_id:mixed,external_sku:mixed,metadata:mixed}|null $mapping */
         $mapping = DB::table('channel_product_mappings')
             ->where('company_id', $companyId)
             ->where('public_id', strtoupper(trim($mappingPublicId)))
@@ -222,13 +232,9 @@ final readonly class ChannelCenterService
         if ($connection === null) {
             throw new DomainException('Channel connection is not active.');
         }
-        if (! $this->providers->supports((string) $connection->provider, 'product_publish')) {
-            throw new DomainException('Provider does not support product publishing.');
-        }
+
+        $provider = (string) $connection->provider;
         $externalProductId = trim((string) ($mapping->external_product_id ?? ''));
-        if ($externalProductId === '') {
-            throw new DomainException('Publishing requires an external product id mapping.');
-        }
         $stock = $stock === null ? null : $this->nonNegativeDecimal($stock, 'stock');
         $price = $price === null ? null : $this->nonNegativeDecimal($price, 'price');
         $currencyCode = $currencyCode === null ? null : strtoupper(trim($currencyCode));
@@ -236,8 +242,46 @@ final readonly class ChannelCenterService
             throw new DomainException('Invalid desired-state currency code.');
         }
         $mediaUrls = $this->mediaUrls($mediaUrls);
+        if ($stock === null && $price === null && $mediaUrls === []) {
+            throw new DomainException('Desired-state publish requires stock, price, or media.');
+        }
 
-        return DB::transaction(function () use ($companyId, $connection, $mapping, $externalProductId, $stock, $price, $currencyCode, $mediaUrls): array {
+        $barcode = null;
+        if ($provider === 'woocommerce') {
+            if (! $this->providers->supports($provider, 'product_publish')) {
+                throw new DomainException('Provider does not support product publishing.');
+            }
+            if ($externalProductId === '') {
+                throw new DomainException('Publishing requires an external product id mapping.');
+            }
+        } elseif ($provider === 'trendyol') {
+            if ($mediaUrls !== []) {
+                throw new DomainException('Trendyol media publishing is manual until a complete Product V2 content payload is supplied.');
+            }
+            if ($stock !== null && ! $this->providers->supports($provider, 'stock_publish')) {
+                throw new DomainException('Provider does not support stock publishing.');
+            }
+            if ($price !== null && ! $this->providers->supports($provider, 'price_publish')) {
+                throw new DomainException('Provider does not support price publishing.');
+            }
+            if ($price !== null && $currencyCode !== null && $currencyCode !== 'TRY') {
+                throw new DomainException('Trendyol Türkiye price publishing requires TRY.');
+            }
+            if ($stock !== null && (preg_match('/^\d+\.0{6}$/', $stock) !== 1 || (int) $stock > 20000)) {
+                throw new DomainException('Trendyol sellable stock must be an integer between 0 and 20000.');
+            }
+            $metadata = json_decode((string) ($mapping->metadata ?? ''), true);
+            $barcode = is_array($metadata) && isset($metadata['barcode']) && is_scalar($metadata['barcode'])
+                ? trim((string) $metadata['barcode'])
+                : '';
+            if ($barcode === '') {
+                throw new DomainException('Trendyol stock/price publishing requires mapping metadata.barcode.');
+            }
+        } else {
+            throw new DomainException('Desired-state publishing is not implemented for provider.');
+        }
+
+        return DB::transaction(function () use ($companyId, $connection, $mapping, $provider, $externalProductId, $barcode, $stock, $price, $currencyCode, $mediaUrls): array {
             /** @var object{id:int,desired_version:int}|null $state */
             $state = DB::table('channel_listing_states')
                 ->where('company_id', $companyId)
@@ -276,23 +320,40 @@ final readonly class ChannelCenterService
                 'updated_at' => now(),
             ]);
 
-            $payload = [];
-            if ($stock !== null) {
-                $payload['manage_stock'] = true;
-                $payload['stock_quantity'] = $stock;
+            if ($provider === 'woocommerce') {
+                $payload = [];
+                if ($stock !== null) {
+                    $payload['manage_stock'] = true;
+                    $payload['stock_quantity'] = $stock;
+                }
+                if ($price !== null) {
+                    $payload['regular_price'] = $price;
+                }
+                if ($mediaUrls !== []) {
+                    $payload['images'] = array_map(static fn (string $url): array => ['src' => $url], $mediaUrls);
+                }
+                $operation = 'product';
+                $entityId = $externalProductId;
+            } else {
+                $item = ['barcode' => $barcode];
+                if ($stock !== null) {
+                    $item['quantity'] = (int) $stock;
+                }
+                if ($price !== null) {
+                    $item['salePrice'] = (float) $price;
+                    $item['listPrice'] = (float) $price;
+                }
+                $payload = ['items' => [$item]];
+                $operation = $stock !== null ? 'stock' : 'price';
+                $entityId = (string) $barcode;
             }
-            if ($price !== null) {
-                $payload['regular_price'] = $price;
-            }
-            if ($mediaUrls !== []) {
-                $payload['images'] = array_map(static fn (string $url): array => ['src' => $url], $mediaUrls);
-            }
+
             $effectId = $this->channels->scheduleSync(
                 $companyId,
                 (int) $connection->id,
+                $operation,
                 'product',
-                'product',
-                $externalProductId,
+                $entityId,
                 $payload,
             );
             DB::table('integration_sync_effects')->where('id', $effectId)->update([
@@ -357,48 +418,107 @@ final readonly class ChannelCenterService
     public function pollOrders(int $companyId, string $connectionPublicId, ?string $modifiedAfter = null, int $page = 1, int $perPage = 50): array
     {
         $connection = $this->connection($companyId, $connectionPublicId);
-        if ((string) $connection->provider !== 'woocommerce' || ! $this->providers->supports('woocommerce', 'order_polling')) {
+        $provider = (string) $connection->provider;
+        if (! $this->providers->supports($provider, 'order_polling')) {
             throw new DomainException('Provider does not support order polling.');
         }
         if ($page < 1 || $perPage < 1 || $perPage > 100) {
             throw new DomainException('Invalid polling page window.');
         }
-        $baseUrl = rtrim((string) ($connection->base_url ?? ''), '/');
         $credentials = $this->credentials((string) ($connection->credentials_ciphertext ?? ''));
-        $key = (string) ($credentials['consumer_key'] ?? '');
-        $secret = (string) ($credentials['consumer_secret'] ?? '');
-        if ($baseUrl === '' || $key === '' || $secret === '') {
-            throw new DomainException('WooCommerce polling settings are incomplete.');
+
+        if ($provider === 'woocommerce') {
+            $baseUrl = rtrim((string) ($connection->base_url ?? ''), '/');
+            $key = (string) ($credentials['consumer_key'] ?? '');
+            $secret = (string) ($credentials['consumer_secret'] ?? '');
+            if ($baseUrl === '' || $key === '' || $secret === '') {
+                throw new DomainException('WooCommerce polling settings are incomplete.');
+            }
+            $query = ['page' => $page, 'per_page' => $perPage, 'orderby' => 'date', 'order' => 'asc'];
+            if ($modifiedAfter !== null && trim($modifiedAfter) !== '') {
+                try {
+                    $query['modified_after'] = CarbonImmutable::parse($modifiedAfter)->utc()->toIso8601String();
+                    $query['dates_are_gmt'] = 'true';
+                } catch (\Throwable) {
+                    throw new DomainException('Polling modified-after value is invalid.');
+                }
+            }
+            $response = Http::acceptJson()->withBasicAuth($key, $secret)->timeout(30)
+                ->get($baseUrl.'/wp-json/wc/v3/orders', $query);
+            if ($response->status() === 429) {
+                throw new DomainException('WooCommerce polling is rate limited.');
+            }
+            if (! $response->successful()) {
+                throw new RuntimeException('WooCommerce polling returned HTTP '.$response->status().'.');
+            }
+            $orders = $response->json();
+            if (! is_array($orders) || ! array_is_list($orders)) {
+                throw new RuntimeException('WooCommerce polling response must be an order list.');
+            }
+            $eventIds = [];
+            foreach ($orders as $order) {
+                if (! is_array($order) || ! isset($order['id']) || ! is_scalar($order['id'])) {
+                    throw new RuntimeException('WooCommerce polling returned an order without an id.');
+                }
+                $encoded = json_encode($order, JSON_THROW_ON_ERROR);
+                $externalEventId = 'woo-poll-'.(string) $order['id'].'-'.substr(hash('sha256', $encoded), 0, 32);
+                $eventIds[] = $this->events->persist($connection, $externalEventId, 'order.updated', $order);
+            }
+
+            return $eventIds;
         }
-        $query = ['page' => $page, 'per_page' => $perPage, 'orderby' => 'date', 'order' => 'asc'];
+
+        if ($provider !== 'trendyol') {
+            throw new DomainException('Order polling is not implemented for provider.');
+        }
+        if (($page - 1) * $perPage >= 10000) {
+            throw new DomainException('Trendyol V2 polling window cannot exceed 10000 shipment packages.');
+        }
+        $query = [
+            'page' => $page - 1,
+            'size' => $perPage,
+            'orderByField' => 'PackageLastModifiedDate',
+            'orderByDirection' => 'ASC',
+        ];
         if ($modifiedAfter !== null && trim($modifiedAfter) !== '') {
             try {
-                $query['modified_after'] = CarbonImmutable::parse($modifiedAfter)->utc()->toIso8601String();
-                $query['dates_are_gmt'] = 'true';
+                $start = CarbonImmutable::parse($modifiedAfter);
+                $end = CarbonImmutable::now($start->getTimezone());
             } catch (\Throwable) {
                 throw new DomainException('Polling modified-after value is invalid.');
             }
+            if ($start->isFuture() || $start->diffInDays($end) > 14) {
+                throw new DomainException('Trendyol V2 polling date range must be within fourteen days.');
+            }
+            $query['startDate'] = $start->getTimestampMs();
+            $query['endDate'] = $end->getTimestampMs();
         }
-        $response = Http::acceptJson()->withBasicAuth($key, $secret)->timeout(30)
-            ->get($baseUrl.'/wp-json/wc/v3/orders', $query);
+        $response = $this->trendyol->ordersV2($credentials, $query);
         if ($response->status() === 429) {
-            throw new DomainException('WooCommerce polling is rate limited.');
+            throw new DomainException('Trendyol V2 polling is rate limited.');
         }
         if (! $response->successful()) {
-            throw new RuntimeException('WooCommerce polling returned HTTP '.$response->status().'.');
+            throw new RuntimeException('Trendyol V2 polling returned HTTP '.$response->status().'.');
         }
-        $orders = $response->json();
+        $body = $response->json();
+        $orders = is_array($body) ? ($body['content'] ?? null) : null;
         if (! is_array($orders) || ! array_is_list($orders)) {
-            throw new RuntimeException('WooCommerce polling response must be an order list.');
+            throw new RuntimeException('Trendyol V2 polling response must contain a content list.');
         }
         $eventIds = [];
         foreach ($orders as $order) {
-            if (! is_array($order) || ! isset($order['id']) || ! is_scalar($order['id'])) {
-                throw new RuntimeException('WooCommerce polling returned an order without an id.');
+            if (! is_array($order)) {
+                throw new RuntimeException('Trendyol V2 polling returned an invalid shipment package.');
             }
-            $encoded = json_encode($order, JSON_THROW_ON_ERROR);
-            $externalEventId = 'woo-poll-'.(string) $order['id'].'-'.substr(hash('sha256', $encoded), 0, 32);
-            $eventIds[] = $this->events->persist($connection, $externalEventId, 'order.updated', $order);
+            $packageId = isset($order['shipmentPackageId']) && is_scalar($order['shipmentPackageId']) ? (string) $order['shipmentPackageId'] : '';
+            $orderNumber = isset($order['orderNumber']) && is_scalar($order['orderNumber']) ? (string) $order['orderNumber'] : '';
+            if ($packageId === '' && $orderNumber === '') {
+                throw new RuntimeException('Trendyol V2 polling returned a package without identity.');
+            }
+            $modified = isset($order['lastModifiedDate']) && is_scalar($order['lastModifiedDate']) ? (string) $order['lastModifiedDate'] : '0';
+            $status = isset($order['status']) && is_scalar($order['status']) ? strtolower((string) $order['status']) : 'updated';
+            $externalEventId = 'ty-poll-'.($packageId !== '' ? $packageId : $orderNumber).'-'.$modified.'-'.$status;
+            $eventIds[] = $this->events->persist($connection, $externalEventId, 'order.'.$status, $order);
         }
 
         return $eventIds;

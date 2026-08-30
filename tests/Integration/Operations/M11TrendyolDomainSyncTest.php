@@ -41,6 +41,12 @@ it('maps a Trendyol order into one idempotently linked Mars sales order by merch
         'Trendyol Shop',
         null,
         [
+            'seller_id' => '99999',
+            'api_key' => 'm11-api-key',
+            'api_secret' => 'm11-api-secret',
+            'integration_name' => 'MarsOtomasyon',
+            'environment' => 'stage',
+            'webhook_authentication_type' => 'API_KEY',
             'default_account_id' => (int) $customer->getKey(),
             'price_basis' => 'gross',
             'order_series' => 'trendyol',
@@ -59,7 +65,7 @@ it('maps a Trendyol order into one idempotently linked Mars sales order by merch
         ]],
     ];
     $raw = json_encode($payload, JSON_THROW_ON_ERROR);
-    $signature = hash_hmac('sha256', $raw, 'm11-trendyol-webhook-secret');
+    $signature = 'm11-trendyol-webhook-secret';
     $eventId = $channels->ingestWebhook($connectionId, 'trendyol-order-9002', 'order.created', $raw, $signature);
     $domain = app(ChannelDomainEventIngestor::class);
 

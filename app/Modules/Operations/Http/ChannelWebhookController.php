@@ -19,15 +19,17 @@ final readonly class ChannelWebhookController
             ->first(['id', 'provider']);
         abort_if($row === null, 404);
         $provider = (string) $row->provider;
-        $signature = $provider === 'woocommerce'
-            ? $this->headerString($request, 'X-WC-Webhook-Signature')
-            : ($this->headerString($request, 'X-Mars-Signature') ?: $this->headerString($request, 'X-Trendyol-Signature'));
+        $signature = match ($provider) {
+            'woocommerce' => $this->headerString($request, 'X-WC-Webhook-Signature'),
+            'trendyol' => $this->headerString($request, 'x-api-key') ?: $this->headerString($request, 'Authorization'),
+            default => $this->headerString($request, 'X-Mars-Signature'),
+        };
         $eventType = $provider === 'woocommerce'
             ? ($this->headerString($request, 'X-WC-Webhook-Topic') ?: $this->inputString($request, 'event_type', 'unknown'))
-            : ($this->headerString($request, 'X-Trendyol-Event') ?: $this->inputString($request, 'event_type', 'unknown'));
+            : ($provider === 'trendyol' ? 'order.updated' : $this->inputString($request, 'event_type', 'unknown'));
         $externalId = $provider === 'woocommerce'
             ? ($this->headerString($request, 'X-WC-Webhook-Delivery-ID') ?: $this->headerString($request, 'X-WC-Webhook-ID'))
-            : ($this->headerString($request, 'X-Trendyol-Event-ID') ?: $this->inputString($request, 'event_id'));
+            : ($provider === 'trendyol' ? '' : $this->inputString($request, 'event_id'));
 
         $id = $this->channels->ingestWebhook((int) $row->id, $externalId, $eventType, $request->getContent(), $signature);
 
