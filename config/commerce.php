@@ -43,5 +43,18 @@ return [
                 'webhook_registration_contract',
             ],
         ],
+        'hepsiburada' => [
+            'label' => 'Hepsiburada',
+            'status' => 'contract_verified',
+            'capabilities' => [
+                'connection_test_contract',
+                'listing_read_contract',
+                'inventory_upload_status_contract',
+                'order_polling_contract',
+                'order_detail_contract',
+                'product_status_contract',
+                'webhook_basic_auth_contract',
+            ],
+        ],
     ],
 ];
