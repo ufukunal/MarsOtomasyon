@@ -1,0 +1,48 @@
+name: Temp M18 Reconcile Docs
+
+on:
+  push:
+    branches:
+      - tmp-m18-reconcile-docs
+
+permissions:
+  contents: write
+
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: tmp-m18-reconcile-docs
+      - name: Reconcile milestone docs
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          matrix = Path('plan/21_MILESTONE_DURUM_MATRISI.md')
+          text = matrix.read_text()
+          old = "| M18 | Verified Marketplace Adapter Pack | **PARTIAL** | Trendyol için erken inbound-order capability #64/#66 içinde var | TY tam capability exit gate + HB/AMZ/N11/PTT/IDF/ALG adapter alt-milestone'ları gerçek contract fixture ile tamamlanmalı |"
+          new = "| M18 | Verified Marketplace Adapter Pack | **PARTIAL** | PR #77 Trendyol V2 contract-verified adapter; PR #80 HB/AMZ/N11/PTT/IDF/ALG contract-verified adapter pack + shared lifecycle | Resmî exit için provider-specific media/manual behavior, cancel/return/questions/invoice/settlement capability contracts, malformed/duplicate fixtures, Problem Center coverage ve mevcutsa sandbox/test smoke tamamlanmalı |"
+          if old not in text:
+              raise SystemExit('M18 matrix row not found')
+          matrix.write_text(text.replace(old, new, 1))
+
+          readme = Path('README.md')
+          text = readme.read_text()
+          old = '- Commercial gate içinde açık ana domain milestone\'u: **M11 — Çek/Senet**.'
+          new = '- Commercial Functional Gate **M0–M13 tamamlandı**; sonraki resmî açık ana domain milestone\'u **M17 — E-Ticaret Integration Core + WooCommerce**.'
+          if old not in text:
+              raise SystemExit('README milestone status line not found')
+          readme.write_text(text.replace(old, new, 1))
+          PY
+      - name: Commit docs
+        run: |
+          git config user.name ufukunal
+          git config user.email ufuk@ufukunal.com.tr
+          git add README.md plan/21_MILESTONE_DURUM_MATRISI.md
+          if git diff --cached --quiet; then
+            exit 0
+          fi
+          git commit -m "docs(m18): reconcile official milestone status"
+          git push origin HEAD:tmp-m18-reconcile-docs
