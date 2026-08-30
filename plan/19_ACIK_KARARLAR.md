@@ -26,6 +26,7 @@ Bu dosya backlog değildir. Yalnız ilgili milestone başlamadan gerçekten kapa
 - Belge numarası baseline: company + document type + year/period; branch yalnız gerektiğinde; legal number posting/finalization'da ayrılabilir.
 - M0 QA/toolchain: PHP 8.5 + Laravel 13, PostgreSQL 18, Valkey, Node 24 LTS/npm, Pint, Larastan/PHPStan level 8 no-baseline, Pest 5 + Laravel plugin + Browser/Playwright.
 - M0 execution order: `29_M0_ALTYAPI_UYGULAMA_SIRASI.md` içindeki M0.0→M0.10 gate zinciri.
+- İthalat landed-cost: K-052; provisional masraf carrying value üretmez, final/late cost Goods Receipt cost-adjustment authority ile on-hand/consumed ayrılır; default `line_value`.
 
 ## B. AÇIK — GERÇEK BLOCKER
 
@@ -81,14 +82,6 @@ M24 öncesi veri seti bazında:
 - açılış bakiye/stok + read-only archive
 seçimi yapılır.
 
-### A-17 — İthalat landed-cost posting policy
-M16 İthalat **cost posting slice** başlamadan:
-- landed cost'un carrying value'ya hangi anda geçtiği
-- provisional vs late cost
-- consumed/on-hand ayrımı
-- allocation basis default'u
-kilitlenecek.
-
 ## C. MILESTONE ENTRY-GATE MATRİSİ
 Bir milestone başlamadan aşağıdaki açık kararlar gerçekten gerekliyse kapanmış olmalıdır. Karar gerekmiyorsa milestone scope'u o capability'yi açıkça dışarıda bırakır.
 
@@ -110,7 +103,7 @@ Bir milestone başlamadan aşağıdaki açık kararlar gerçekten gerekliyse kap
 | M13 | Yalnız tamamlanmış domain raporları; future domain raporları ertelenir |
 | M14 | Açık blocker yok |
 | M15 | Açık blocker yok; subcontract custody locked |
-| M16 | A-17 cost posting slice öncesi zorunlu |
+| M16 | K-052 landed-cost posting policy locked; açık blocker yok |
 | M17 | A-04 external/public IDs kullanılmadan önce zorunlu |
 | M18 | Provider registry + gerçek API contract doğrulaması her adapter entry gate'idir |
 | M19 | A-04 B2B public ID/token contract öncesi zorunlu |

@@ -26,12 +26,12 @@ Bu belge `16_UYGULAMA_SIRASI_MILESTONE.md` içindeki resmî V4.2 milestone numar
 | M8 | Satış Faturaları | **DONE** | PR #50–#57 + #71: invoice modes, tax, capacity, account/stock effects, PDF/e-document seam, reconciliation hardening | Production e-document provider M20/provider gate'ine bağlıdır |
 | M9 | Satınalma | **DONE** | PR #58–#62 + #66 hardening: PO, Goods Receipt, quality reclass, Supplier Invoice, Purchase Return, landed-cost revaluation | V1 milestone gap yok |
 | M10 | Tahsilat / Ödeme / Kasa / Banka / Treasury | **DONE** | PR #65: immutable treasury ledger, collection/payment, POS, expense, transfer, cash count, statement import/reconciliation | Cross-currency A-07 kapatılmadıkça same-currency sınırı geçerli |
-| M11 | Çek / Senet | **PENDING** | K-025/K-026 business contract ve treasury payment-method seam'i mevcut | Instrument custody/lifecycle, ciro, settlement/reversal, files/UI/RBAC/DB invariants/tests tamamlanmalı |
+| M11 | Çek / Senet | **DONE** | PR #72; received/issued cheque/senet, custody/ciro, delivery-time cari effect, bank settlement, reversal, files/UI/RBAC/PostgreSQL acceptance; merge `b3d71e0665f76028a6ccb36b5ef0551415427fd1` | V1 milestone gap yok |
 | M12 | Return / RMA Core | **DONE** | PR #68: sales return/RMA lifecycle, stock/account correction, PostgreSQL guards, UI/tests; purchase return M9'da mevcut | Provider-specific return connector'ları M17/M18'e aittir |
 | M13 | Report Platform + Commercial Core Reports | **DONE** | PR #69: finance snapshot, aging, stock valuation/movement lineage, filters, CSV, RBAC/tests | Future domain raporları kendi milestone'larında eklenir |
-| M14 | Basit Üretim | **PENDING** | K-019 contract ve mevcut stock/cost authority yeniden kullanılabilir | Reçete → üretim emri → material issue → mamul receipt → complete vertical slice + raporlar |
-| M15 | Fason | **PENDING** | K-020/K-048 custody contract mevcut | Sent material/subcontract custody/finished goods/fire/remaining/complete vertical slice + raporlar |
-| M16 | İthalat / Konteyner | **PENDING** | M9 landed-cost primitives yeniden kullanılabilir | A-17 kapanışı + import file/shipment/container/mapping/handoff/cost analysis/reports |
+| M14 | Basit Üretim | **DONE** | PR #73; reçete → üretim emri → material issue/fire → mamul receipt → complete, technical file + report; merge `f3b30c059e2294ba2f542ff479cde142725e04b4`; main Foundation run `33287261767` 4/4 | V1 milestone gap yok |
+| M15 | Fason | **DONE** | PR #74; physical OUT → subcontract custody quantity/carrying value → fire/partial finished-goods IN → reconcile/complete + files/report; merge `57173a2678c8a44ae38fd7df7c73e062f9caba41`; main Foundation run `33288273051` 4/4 | V1 milestone gap yok |
+| M16 | İthalat / Konteyner | **PENDING** | K-052 locked; feature branch PostgreSQL acceptance: file/container/package/component/location, finalized GoodsReceipt handoff, landed-cost allocation/posting, reports/lists/simulator | PR merge + exact final `main` Foundation 4/4 doğrulaması |
 | M17 | E-Ticaret Integration Core + WooCommerce | **PARTIAL** | PR #64/#66: encrypted connection vault, webhook inbox/outbox, retry, WooCommerce/Trendyol inbound order mapping | Resmî M17 Channel Center, mapping, desired-state stock/price, return/invoice/settlement contracts ve WooCommerce exit gate tamamlanmalı |
 | M18 | Verified Marketplace Adapter Pack | **PARTIAL** | Trendyol için erken inbound-order capability #64/#66 içinde var | TY tam capability exit gate + HB/AMZ/N11/PTT/IDF/ALG adapter alt-milestone'ları gerçek contract fixture ile tamamlanmalı |
 | M19 | B2B / Bayi Sistemi | **PARTIAL** | M2.5 Account B2B access-policy metadata mevcut | Ayrı B2B auth context, B2BUser, session/reset/rate-limit, catalog/cart/order/history/risk/invoice/statement tamamlanmalı |
@@ -43,18 +43,15 @@ Bu belge `16_UYGULAMA_SIRASI_MILESTONE.md` içindeki resmî V4.2 milestone numar
 
 ## Bir sonraki uygulama sırası
 
-1. **M11 Çek/Senet** — Commercial Functional Gate'in tek açık domain milestone'u.
-2. **M14 Basit Üretim**.
-3. **M15 Fason**.
-4. **M16 İthalat/Konteyner** — cost-posting slice öncesi A-17 kapatılır.
-5. **M17 E-Ticaret Core + WooCommerce**.
-6. **M18 adapter pack** — yalnız gerçek provider contract/fixture doğrulanan adapterlar.
-7. **M19 B2B**.
-8. **M20 Communication / API**.
-9. **M21 Product Image Operations**.
-10. **M22 Installation PDF Builder**.
-11. **M23 Production Candidate hardening**.
-12. **M24 Migration / Go-Live**.
+1. **M16 İthalat/Konteyner** — K-052 kilitli; vertical slice merge + exact main gate kapatılır.
+2. **M17 E-Ticaret Core + WooCommerce** — A-04 public ID strategy önce kilitlenir.
+3. **M18 adapter pack** — yalnız gerçek provider contract/fixture doğrulanan adapterlar.
+4. **M19 B2B**.
+5. **M20 Communication / API**.
+6. **M21 Product Image Operations**.
+7. **M22 Installation PDF Builder**.
+8. **M23 Production Candidate hardening**.
+9. **M24 Migration / Go-Live**.
 
 ## Reconciliation kuralı
 
