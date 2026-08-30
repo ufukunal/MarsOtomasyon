@@ -61,6 +61,12 @@ final readonly class CommerceController
                 ->where('r.company_id', $companyId)
                 ->select(['r.public_id', 'r.external_return_id', 'r.external_order_id', 'r.status', 'r.sales_return_id', 'r.last_error', 'c.name as connection_name'])
                 ->orderByDesc('r.id')->limit(100)->get(),
+            'finalizedInvoices' => DB::table('sales_invoices')->where('company_id', $companyId)->where('status', 'finalized')->latest('id')->limit(200)->get(['id', 'number', 'invoice_date', 'gross_total']),
+            'invoiceSyncs' => DB::table('channel_invoice_syncs as i')
+                ->join('integration_connections as c', 'c.id', '=', 'i.connection_id')
+                ->join('sales_invoices as si', 'si.id', '=', 'i.sales_invoice_id')
+                ->where('i.company_id', $companyId)->latest('i.id')->limit(50)
+                ->get(['i.public_id', 'i.external_order_id', 'i.status', 'i.synced_at', 'i.last_error', 'c.name as connection_name', 'si.number as invoice_number']),
             'settlements' => DB::table('channel_settlement_evidence as s')
                 ->join('integration_connections as c', 'c.id', '=', 's.connection_id')
                 ->where('s.company_id', $companyId)
@@ -159,6 +165,42 @@ final readonly class CommerceController
         );
 
         return back()->with('status', 'Desired-state v'.$result['version'].' kuyruğa alındı.');
+    }
+
+    public function pollOrders(Request $request, ChannelCenterService $commerce): RedirectResponse
+    {
+        $validated = $request->validate([
+            'connection_public_id' => ['required', 'string', 'size:26'],
+            'modified_after' => ['nullable', 'date'],
+            'page' => ['nullable', 'integer', 'min:1'],
+            'per_page' => ['nullable', 'integer', 'between:1,100'],
+        ]);
+        $eventIds = $commerce->pollOrders(
+            $this->companyId(),
+            (string) $validated['connection_public_id'],
+            isset($validated['modified_after']) ? (string) $validated['modified_after'] : null,
+            (int) ($validated['page'] ?? 1),
+            (int) ($validated['per_page'] ?? 50),
+        );
+
+        return back()->with('status', count($eventIds).' WooCommerce siparişi ortak inbox hattına alındı.');
+    }
+
+    public function queueInvoice(Request $request, ChannelCenterService $commerce): RedirectResponse
+    {
+        $validated = $request->validate([
+            'connection_public_id' => ['required', 'string', 'size:26'],
+            'sales_invoice_id' => ['required', 'integer', 'min:1'],
+            'external_order_id' => ['required', 'string', 'max:192'],
+        ]);
+        $commerce->queueInvoiceSync(
+            $this->companyId(),
+            (string) $validated['connection_public_id'],
+            (int) $validated['sales_invoice_id'],
+            (string) $validated['external_order_id'],
+        );
+
+        return back()->with('status', 'Fatura kanal senkronizasyonuna alındı.');
     }
 
     public function retryOrder(string $order, ChannelCenterService $commerce): RedirectResponse

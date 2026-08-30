@@ -20,6 +20,8 @@ Route::prefix('commerce')
         Route::post('/connections/{connection}/test', [CommerceController::class, 'testConnection'])->where('connection', '[0-9A-HJKMNP-TV-Z]{26}')->middleware('can:integrations.manage')->name('connections.test');
         Route::post('/mappings', [CommerceController::class, 'storeMapping'])->middleware('can:integrations.manage')->name('mappings.store');
         Route::post('/publish', [CommerceController::class, 'publish'])->middleware('can:integrations.manage')->name('publish');
+        Route::post('/poll-orders', [CommerceController::class, 'pollOrders'])->middleware('can:integrations.manage')->name('orders.poll');
+        Route::post('/invoice-syncs', [CommerceController::class, 'queueInvoice'])->middleware('can:integrations.manage')->name('invoice-syncs.store');
         Route::post('/orders/{order}/retry', [CommerceController::class, 'retryOrder'])->where('order', '[0-9A-HJKMNP-TV-Z]{26}')->middleware('can:integrations.manage')->name('orders.retry');
         Route::post('/returns', [CommerceController::class, 'storeReturn'])->middleware('can:integrations.manage')->name('returns.store');
         Route::post('/settlements', [CommerceController::class, 'storeSettlement'])->middleware('can:integrations.manage')->name('settlements.store');

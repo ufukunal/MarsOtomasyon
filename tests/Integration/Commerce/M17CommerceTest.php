@@ -37,6 +37,7 @@ it('runs WooCommerce public identity desired state order reservation problem ret
     Http::fake([
         'https://shop.example.test/wp-json/wc/v3/products/*' => Http::response(['id' => 501], 200),
         'https://shop.example.test/wp-json/wc/v3/system_status' => Http::response(['environment' => []], 200),
+        'https://shop.example.test/wp-json/wc/v3/orders*' => Http::response([m17WooOrderPayload(9003, 'WOO-SKU-1', 1, '120.000000', 'poll@example.test')], 200),
     ]);
 
     [$company, $customer, $clearing, $product, $warehouse, $location] = m17Fixture();
@@ -178,6 +179,13 @@ it('runs WooCommerce public identity desired state order reservation problem ret
         ->and(DB::table('stock_reservations')->where('company_id', $company->getKey())->count())->toBe($reservationsBeforeProblem + 1)
         ->and(DB::table('channel_order_inbox')->where('id', $problemInbox->id)->value('status'))->toBe('imported')
         ->and(DB::table('channel_problems')->where('order_inbox_id', $problemInbox->id)->where('status', 'open')->count())->toBe(0);
+
+    $polled = $commerce->pollOrders((int) $company->getKey(), $connectionPublicId, '2026-08-30T00:00:00+03:00', 1, 20);
+    expect($polled)->toHaveCount(1);
+    $pollResult = $domain->process($polled[0]);
+    expect($pollResult)->not->toBeNull()
+        ->and(DB::table('channel_order_inbox')->where('external_order_id', '9003')->value('status'))->toBe('imported')
+        ->and(DB::table('integration_events')->where('id', $polled[0])->value('event_type'))->toBe('order.updated');
 
     $returnId = $commerce->recordReturnEvidence(
         (int) $company->getKey(),

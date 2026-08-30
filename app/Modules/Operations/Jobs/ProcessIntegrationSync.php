@@ -4,6 +4,7 @@ namespace App\Modules\Operations\Jobs;
 
 use App\Modules\Commerce\CommerceSyncGuard;
 use App\Modules\Operations\ChannelService;
+use App\Modules\Operations\ProviderRateLimitException;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -29,6 +30,8 @@ final class ProcessIntegrationSync implements ShouldQueue
 
         try {
             $channels->processSync($this->effectId);
+        } catch (ProviderRateLimitException $exception) {
+            $this->release($exception->retryAfterSeconds);
         } finally {
             $guard->reconcile($this->effectId);
         }

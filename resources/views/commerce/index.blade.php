@@ -118,6 +118,29 @@
 </tbody></table>
 </section>
 
+@can('integrations.manage')
+<section class="detail-card"><h2>WooCommerce Polling</h2>
+<form method="post" action="{{ route('commerce.orders.poll') }}">@csrf
+<div class="form-grid">
+<label>Bağlantı<select name="connection_public_id" required>@foreach($connections as $connection)@if($connection->provider==='woocommerce')<option value="{{ $connection->public_id }}">{{ $connection->name }}</option>@endif @endforeach</select></label>
+<label>Modified After<input name="modified_after" type="datetime-local"></label>
+<label>Sayfa<input name="page" type="number" min="1" value="1"></label>
+<label>Adet<input name="per_page" type="number" min="1" max="100" value="50"></label>
+</div><button class="button-secondary">Siparişleri Ortak Inbox'a Al</button></form>
+</section>
+<section class="detail-card"><h2>Fatura Sync</h2>
+<form method="post" action="{{ route('commerce.invoice-syncs.store') }}">@csrf
+<div class="form-grid">
+<label>Bağlantı<select name="connection_public_id" required>@foreach($connections as $connection)@if($connection->provider==='woocommerce')<option value="{{ $connection->public_id }}">{{ $connection->name }}</option>@endif @endforeach</select></label>
+<label>Mars Fatura<select name="sales_invoice_id" required>@foreach($finalizedInvoices as $invoice)<option value="{{ $invoice->id }}">{{ $invoice->number }} — {{ $invoice->invoice_date }}</option>@endforeach</select></label>
+<label>External Order ID<input name="external_order_id" required maxlength="192"></label>
+</div><button class="button-primary">Faturayı Sync'e Al</button></form>
+</section>
+@endcan
+<section class="statement-table-card"><h2>Fatura Sync Durumu</h2><table class="data-table"><thead><tr><th>Bağlantı</th><th>Mars Fatura</th><th>External Order</th><th>Durum</th><th>Sync</th><th>Hata</th></tr></thead><tbody>
+@forelse($invoiceSyncs as $sync)<tr><td>{{ $sync->connection_name }}</td><td>{{ $sync->invoice_number }}</td><td>{{ $sync->external_order_id }}</td><td>{{ $sync->status }}</td><td>{{ $sync->synced_at }}</td><td>{{ $sync->last_error }}</td></tr>@empty<tr><td colspan="6">Fatura sync kaydı yok.</td></tr>@endforelse
+</tbody></table></section>
+
 <section class="statement-table-card">
 <h2>Sipariş Inbox</h2>
 <table class="data-table"><thead><tr><th>Public ID</th><th>Kanal</th><th>External Sipariş</th><th>Durum</th><th>Mars Sipariş</th><th>Problem</th><th></th></tr></thead><tbody>

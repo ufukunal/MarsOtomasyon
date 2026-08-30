@@ -2,6 +2,7 @@
 
 namespace App\Modules\Commerce;
 
+use App\Modules\Operations\ChannelEventStore;
 use App\Modules\Operations\ChannelService;
 use App\Modules\Operations\Jobs\ProcessIntegrationEvent;
 use Carbon\CarbonImmutable;
@@ -16,6 +17,7 @@ final readonly class ChannelCenterService
 {
     public function __construct(
         private ChannelService $channels,
+        private ChannelEventStore $events,
         private ProviderRegistry $providers,
     ) {}
 
@@ -351,6 +353,121 @@ final readonly class ChannelCenterService
         });
     }
 
+    /** @return list<int> */
+    public function pollOrders(int $companyId, string $connectionPublicId, ?string $modifiedAfter = null, int $page = 1, int $perPage = 50): array
+    {
+        $connection = $this->connection($companyId, $connectionPublicId);
+        if ((string) $connection->provider !== 'woocommerce' || ! $this->providers->supports('woocommerce', 'order_polling')) {
+            throw new DomainException('Provider does not support order polling.');
+        }
+        if ($page < 1 || $perPage < 1 || $perPage > 100) {
+            throw new DomainException('Invalid polling page window.');
+        }
+        $baseUrl = rtrim((string) ($connection->base_url ?? ''), '/');
+        $credentials = $this->credentials((string) ($connection->credentials_ciphertext ?? ''));
+        $key = (string) ($credentials['consumer_key'] ?? '');
+        $secret = (string) ($credentials['consumer_secret'] ?? '');
+        if ($baseUrl === '' || $key === '' || $secret === '') {
+            throw new DomainException('WooCommerce polling settings are incomplete.');
+        }
+        $query = ['page' => $page, 'per_page' => $perPage, 'orderby' => 'date', 'order' => 'asc'];
+        if ($modifiedAfter !== null && trim($modifiedAfter) !== '') {
+            try {
+                $query['modified_after'] = CarbonImmutable::parse($modifiedAfter)->utc()->toIso8601String();
+                $query['dates_are_gmt'] = 'true';
+            } catch (\Throwable) {
+                throw new DomainException('Polling modified-after value is invalid.');
+            }
+        }
+        $response = Http::acceptJson()->withBasicAuth($key, $secret)->timeout(30)
+            ->get($baseUrl.'/wp-json/wc/v3/orders', $query);
+        if ($response->status() === 429) {
+            throw new DomainException('WooCommerce polling is rate limited.');
+        }
+        if (! $response->successful()) {
+            throw new RuntimeException('WooCommerce polling returned HTTP '.$response->status().'.');
+        }
+        $orders = $response->json();
+        if (! is_array($orders) || ! array_is_list($orders)) {
+            throw new RuntimeException('WooCommerce polling response must be an order list.');
+        }
+        $eventIds = [];
+        foreach ($orders as $order) {
+            if (! is_array($order) || ! isset($order['id']) || ! is_scalar($order['id'])) {
+                throw new RuntimeException('WooCommerce polling returned an order without an id.');
+            }
+            $encoded = json_encode($order, JSON_THROW_ON_ERROR);
+            $externalEventId = 'woo-poll-'.(string) $order['id'].'-'.substr(hash('sha256', $encoded), 0, 32);
+            $eventIds[] = $this->events->persist($connection, $externalEventId, 'order.updated', $order);
+        }
+
+        return $eventIds;
+    }
+
+    public function queueInvoiceSync(int $companyId, string $connectionPublicId, int $salesInvoiceId, string $externalOrderId): string
+    {
+        $connection = $this->connection($companyId, $connectionPublicId);
+        if (! $this->providers->supports((string) $connection->provider, 'invoice_publish')) {
+            throw new DomainException('Provider does not support invoice publishing.');
+        }
+        $invoice = DB::table('sales_invoices')
+            ->where('company_id', $companyId)
+            ->where('id', $salesInvoiceId)
+            ->where('status', 'finalized')
+            ->first(['id', 'number']);
+        if ($invoice === null) {
+            throw new DomainException('Finalized Mars sales invoice not found.');
+        }
+        /** @var object{id:mixed,number:mixed} $invoice */
+        $externalOrderId = $this->requiredText($externalOrderId, 192, 'External order id');
+
+        return DB::transaction(function () use ($companyId, $connection, $invoice, $externalOrderId): string {
+            $existing = DB::table('channel_invoice_syncs')
+                ->where('company_id', $companyId)
+                ->where('connection_id', $connection->id)
+                ->where('sales_invoice_id', $invoice->id)
+                ->lockForUpdate()
+                ->first();
+            if ($existing !== null) {
+                /** @var object{public_id:mixed,external_order_id:mixed,sync_effect_id:mixed} $existing */
+                if ((string) $existing->external_order_id !== $externalOrderId) {
+                    throw new DomainException('Invoice sync external-order drift detected.');
+                }
+
+                return (string) $existing->public_id;
+            }
+
+            $publicId = (string) Str::ulid();
+            $rowId = (int) DB::table('channel_invoice_syncs')->insertGetId([
+                'public_id' => $publicId,
+                'company_id' => $companyId,
+                'connection_id' => $connection->id,
+                'sales_invoice_id' => $invoice->id,
+                'external_order_id' => $externalOrderId,
+                'status' => 'queued',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+            $effectId = $this->channels->scheduleSync(
+                $companyId,
+                (int) $connection->id,
+                'invoice',
+                'sales_invoice',
+                $externalOrderId,
+                ['meta_data' => [[
+                    'key' => '_mars_sales_invoice_number',
+                    'value' => (string) $invoice->number,
+                ]]],
+            );
+            DB::table('channel_invoice_syncs')->where('id', $rowId)->update([
+                'sync_effect_id' => $effectId,
+                'updated_at' => now(),
+            ]);
+
+            return $publicId;
+        });
+    }
+
     /** @param array<string,mixed> $evidence */
     public function recordReturnEvidence(
         int $companyId,
@@ -484,7 +601,7 @@ final readonly class ChannelCenterService
         }
     }
 
-    /** @return object{id:int,provider:string,base_url:mixed,credentials_ciphertext:mixed,financial_mode:string,default_account_id:mixed,clearing_account_id:mixed} */
+    /** @return object{id:int,company_id:int,provider:string,base_url:mixed,credentials_ciphertext:mixed,financial_mode:string,default_account_id:mixed,clearing_account_id:mixed} */
     private function connection(int $companyId, string $publicId): object
     {
         $publicId = strtoupper(trim($publicId));
@@ -496,7 +613,7 @@ final readonly class ChannelCenterService
             ->where('public_id', $publicId)
             ->where('status', 'active')
             ->first();
-        /** @var object{id:int,provider:string,base_url:mixed,credentials_ciphertext:mixed,financial_mode:string,default_account_id:mixed,clearing_account_id:mixed}|null $connection */
+        /** @var object{id:int,company_id:int,provider:string,base_url:mixed,credentials_ciphertext:mixed,financial_mode:string,default_account_id:mixed,clearing_account_id:mixed}|null $connection */
         if ($connection === null) {
             throw new DomainException('Active channel connection not found.');
         }
