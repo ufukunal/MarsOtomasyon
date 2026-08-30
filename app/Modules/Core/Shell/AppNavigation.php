@@ -24,6 +24,7 @@ final readonly class AppNavigation
             ['label' => 'Satış', 'route' => 'sales.index', 'feature' => FeatureKey::Sales, 'permissions' => [PermissionKey::SalesOrderView, PermissionKey::DispatchView, PermissionKey::SalesInvoiceView]],
             ['label' => 'Alış', 'route' => 'purchasing.index', 'feature' => FeatureKey::Purchasing, 'permissions' => [PermissionKey::PurchaseOrderView]],
             ['label' => 'Üretim', 'route' => 'production.index', 'feature' => FeatureKey::Production, 'permissions' => [PermissionKey::ProductionView]],
+            ['label' => 'Fason', 'route' => 'subcontract.index', 'feature' => FeatureKey::Production, 'permissions' => [PermissionKey::SubcontractView]],
             ['label' => 'Kasa/Banka', 'route' => 'treasury.index', 'feature' => FeatureKey::Treasury, 'permissions' => [PermissionKey::TreasuryView]],
             ['label' => 'Çek/Senet', 'route' => 'instruments.index', 'feature' => FeatureKey::Instruments, 'permissions' => [PermissionKey::InstrumentView]],
             ['label' => 'İadeler', 'route' => 'returns.index', 'feature' => FeatureKey::Returns, 'permissions' => [PermissionKey::SalesReturnView]],

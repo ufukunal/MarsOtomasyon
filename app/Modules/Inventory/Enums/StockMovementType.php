@@ -17,6 +17,8 @@ enum StockMovementType: string
     case ProductionMaterialOut = 'production_material_out';
     case ProductionLossOut = 'production_loss_out';
     case ProductionReceiptIn = 'production_receipt_in';
+    case SubcontractSendOut = 'subcontract_send_out';
+    case SubcontractReceiptIn = 'subcontract_receipt_in';
 
     public function label(): string
     {
@@ -34,6 +36,8 @@ enum StockMovementType: string
             self::ProductionMaterialOut => 'Üretim Malzeme Çıkışı',
             self::ProductionLossOut => 'Üretim Fire / Eksik Çıkışı',
             self::ProductionReceiptIn => 'Üretim Mamul Girişi',
+            self::SubcontractSendOut => 'Fason Malzeme Çıkışı',
+            self::SubcontractReceiptIn => 'Fason Mamul Girişi',
         };
     }
 
@@ -45,14 +49,16 @@ enum StockMovementType: string
             self::TransferIn,
             self::GoodsReceiptIn,
             self::SalesReturnIn,
-            self::ProductionReceiptIn => true,
+            self::ProductionReceiptIn,
+            self::SubcontractReceiptIn => true,
             self::AdjustmentOut,
             self::TransferOut,
             self::DispatchOut,
             self::InvoiceOut,
             self::PurchaseReturnOut,
             self::ProductionMaterialOut,
-            self::ProductionLossOut => false,
+            self::ProductionLossOut,
+            self::SubcontractSendOut => false,
         };
     }
 }

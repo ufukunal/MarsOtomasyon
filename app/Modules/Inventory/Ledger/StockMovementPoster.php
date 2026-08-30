@@ -290,7 +290,7 @@ final readonly class StockMovementPoster
         if ($data->carryingValue === null) {
             return null;
         }
-        if ($original instanceof StockMovement || ! in_array($data->movementType, [StockMovementType::TransferIn, StockMovementType::ProductionReceiptIn], true)) {
+        if ($original instanceof StockMovement || ! in_array($data->movementType, [StockMovementType::TransferIn, StockMovementType::ProductionReceiptIn, StockMovementType::SubcontractReceiptIn], true)) {
             throw ValidationException::withMessages([
                 'carrying_value' => 'Açık taşıma değeri yalnız doğrulanmış taşıma maliyetli stok girişlerinde kullanılabilir.',
             ]);
