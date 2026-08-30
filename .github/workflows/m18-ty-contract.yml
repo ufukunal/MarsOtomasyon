@@ -30,6 +30,27 @@ jobs:
           coverage: none
           tools: composer:v2
       - run: composer install --no-interaction --prefer-dist --no-progress
+      - name: Normalize PHPDocs
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('app/Modules/Commerce/Providers/Trendyol/TrendyolClient.php')
+          text = path.read_text()
+          text = text.replace(
+              '/** @param array<string,mixed> $credentials @param array<string,mixed> $payload */',
+              '/**\n     * @param  array<string,mixed>  $credentials\n     * @param  array<string,mixed>  $payload\n     */'
+          )
+          text = text.replace(
+              '/** @param array<string,mixed> $credentials @param array<string,mixed> $query */',
+              '/**\n     * @param  array<string,mixed>  $credentials\n     * @param  array<string,mixed>  $query\n     */'
+          )
+          text = text.replace(
+              '/** @param array<string,mixed> $credentials @return array{0:string,1:string,2:PendingRequest} */',
+              '/**\n     * @param  array<string,mixed>  $credentials\n     * @return array{0:string,1:string,2:PendingRequest}\n     */'
+          )
+          path.write_text(text)
+          PY
       - name: Format
         run: vendor/bin/pint app/Modules/Commerce/Providers/Trendyol/TrendyolClient.php app/Modules/Commerce/ProviderRegistry.php config/commerce.php tests/Unit/TrendyolContractTest.php
       - name: Contract fixture
