@@ -1,4 +1,5 @@
 name: M17 Capability Contracts
+# rerun after adapting guarded routes
 
 on:
   push:
