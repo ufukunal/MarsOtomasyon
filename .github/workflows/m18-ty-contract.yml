@@ -49,6 +49,10 @@ jobs:
               '/** @param array<string,mixed> $credentials @return array{0:string,1:string,2:PendingRequest} */',
               '/**\n     * @param  array<string,mixed>  $credentials\n     * @return array{0:string,1:string,2:PendingRequest}\n     */'
           )
+          text = text.replace(
+              '/** @param array<string,mixed> $credentials */\n    public function categoryAttributeValues(',
+              '/**\n     * @param  array<string,mixed>  $credentials\n     * @param  array<string,mixed>  $query\n     */\n    public function categoryAttributeValues('
+          )
           path.write_text(text)
           PY
       - name: Format
