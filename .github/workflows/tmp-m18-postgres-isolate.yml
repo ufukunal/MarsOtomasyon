@@ -74,5 +74,5 @@ jobs:
           tools: composer:v2
       - run: composer install --no-interaction --prefer-dist --no-progress
       - run: php artisan migrate:fresh --force
-      - name: Run isolated M18 MarketplacePack test
-        run: php artisan test tests/Integration/Commerce/M18MarketplacePackTest.php --stop-on-failure
+      - name: Run Commerce integration tests together
+        run: php artisan test tests/Integration/Commerce --stop-on-failure
