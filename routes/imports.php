@@ -3,7 +3,7 @@
 use App\Modules\Imports\ImportController;
 use Illuminate\Support\Facades\Route;
 
-Route::prefix('imports')->name('import.')->middleware(['auth', 'company.context'])->group(function (): void {
+Route::prefix('imports')->name('import.')->middleware(['web', 'auth', 'company.context'])->group(function (): void {
     Route::get('/', [ImportController::class, 'index'])->middleware('can:imports.view')->name('index');
     Route::get('/report', [ImportController::class, 'report'])->middleware('can:imports.view')->name('report');
     Route::post('/', [ImportController::class, 'store'])->middleware('can:imports.manage')->name('store');

@@ -7,7 +7,6 @@ use App\Modules\Core\Company\ActiveCompanyContext;
 use App\Modules\GoodsReceipts\Models\GoodsReceiptLine;
 use App\Modules\Imports\Actions\ImportOperations;
 use App\Modules\Imports\Models\ImportFile;
-use App\Modules\Imports\Models\ImportItem;
 use App\Modules\Products\Models\Product;
 use DomainException;
 use Illuminate\Http\RedirectResponse;
@@ -118,12 +117,14 @@ final readonly class ImportController
     public function finalizeExpense(int $file, int $expense): RedirectResponse
     {
         $this->perform(fn () => $this->operations->finalizeExpense($file, $expense));
+
         return $this->back($file, 'Masraf kesinleştirildi.');
     }
 
     public function inTransit(int $file): RedirectResponse
     {
         $this->perform(fn () => $this->operations->markInTransit($file));
+
         return $this->back($file, 'İthalat dosyası yolda durumuna alındı.');
     }
 
@@ -131,6 +132,7 @@ final readonly class ImportController
     {
         $data = $request->validate(['arrival_date' => ['nullable', 'date']]);
         $this->perform(fn () => $this->operations->markArrived($file, $this->nullable($data['arrival_date'] ?? null)));
+
         return $this->back($file, 'İthalat dosyası varışa alındı.');
     }
 
@@ -138,6 +140,7 @@ final readonly class ImportController
     {
         $data = $request->validate(['import_item_id' => ['required', 'integer', 'min:1'], 'goods_receipt_line_id' => ['required', 'integer', 'min:1']]);
         $this->perform(fn () => $this->operations->linkReceiptLine($file, (int) $data['import_item_id'], (int) $data['goods_receipt_line_id']));
+
         return $this->back($file, 'Mal kabul satırı ithalat kalemine bağlandı.');
     }
 
@@ -145,18 +148,21 @@ final readonly class ImportController
     {
         $data = $request->validate(['operation_key' => ['required', 'string', 'max:64'], 'allocation_basis' => ['required', Rule::in(['line_value', 'quantity'])]]);
         $this->perform(fn () => $this->operations->postLandedCost($file, (string) $data['operation_key'], (string) $data['allocation_basis']));
+
         return $this->back($file, 'Landed-cost stok maliyet otoritesine post edildi.');
     }
 
     public function complete(int $file): RedirectResponse
     {
         $this->perform(fn () => $this->operations->complete($file));
+
         return $this->back($file, 'İthalat dosyası reconcile edilerek tamamlandı.');
     }
 
     public function pickingList(int $file): View
     {
         $model = $this->file($file)->load(['items.product', 'items.container']);
+
         return view('imports.picking-list', ['file' => $model]);
     }
 
@@ -164,6 +170,7 @@ final readonly class ImportController
     {
         $model = $this->file($file);
         $rows = $this->operations->subcontractCollectionRows($file)->load(['product', 'container']);
+
         return view('imports.subcontract-list', ['file' => $model, 'rows' => $rows]);
     }
 
@@ -178,6 +185,7 @@ final readonly class ImportController
             ->selectRaw('CAST(COALESCE(SUM(item.gross_weight_kg),0) AS numeric(20,6))::text AS gross_weight_kg')
             ->selectRaw('CAST(COALESCE(SUM(item.volume_m3),0) AS numeric(20,6))::text AS volume_m3')
             ->orderBy('container.container_no')->get();
+
         return view('imports.loading-simulator', ['file' => $model, 'rows' => $rows]);
     }
 
@@ -189,6 +197,7 @@ final readonly class ImportController
     private function companyId(): int
     {
         $key = $this->companyContext->requireCompany()->getKey();
+
         return is_int($key) ? $key : throw new LogicException('Import operation requires a persisted active company.');
     }
 
@@ -209,6 +218,7 @@ final readonly class ImportController
     private function nullable(mixed $value): ?string
     {
         $text = trim((string) $value);
+
         return $text === '' ? null : $text;
     }
 }

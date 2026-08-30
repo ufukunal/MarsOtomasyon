@@ -3,7 +3,7 @@
 use App\Modules\Subcontract\SubcontractController;
 use Illuminate\Support\Facades\Route;
 
-Route::prefix('subcontract')->name('subcontract.')->middleware(['auth', 'company.context'])->group(function (): void {
+Route::prefix('subcontract')->name('subcontract.')->middleware(['web', 'auth', 'company.context'])->group(function (): void {
     Route::get('/', [SubcontractController::class, 'index'])->middleware('can:subcontract.view')->name('index');
     Route::get('/report', [SubcontractController::class, 'report'])->middleware('can:subcontract.view')->name('report');
     Route::post('/', [SubcontractController::class, 'store'])->middleware('can:subcontract.manage')->name('store');

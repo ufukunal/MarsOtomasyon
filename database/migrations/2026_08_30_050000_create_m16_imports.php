@@ -309,6 +309,8 @@ SQL);
         Schema::dropIfExists('import_containers');
         Schema::dropIfExists('import_files');
         DB::unprepared('DROP FUNCTION IF EXISTS mars_guard_import_expense_mutation() CASCADE; DROP FUNCTION IF EXISTS mars_guard_import_append_only() CASCADE; DROP FUNCTION IF EXISTS mars_guard_import_receipt_link() CASCADE; DROP FUNCTION IF EXISTS mars_guard_import_item_container() CASCADE;');
-        DB::table('permissions')->whereIn('key', ['imports.view', 'imports.manage'])->delete();
+        $permissionIds = DB::table('permissions')->whereIn('key', ['imports.view', 'imports.manage'])->pluck('id');
+        DB::table('role_permissions')->whereIn('permission_id', $permissionIds)->delete();
+        DB::table('permissions')->whereIn('id', $permissionIds)->delete();
     }
 };

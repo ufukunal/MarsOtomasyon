@@ -1,5 +1,6 @@
 <?php
 
+use App\Foundation\Correlation\CorrelationContext;
 use App\Modules\Accounts\Enums\AccountStatus;
 use App\Modules\Accounts\Enums\AccountType;
 use App\Modules\Accounts\Enums\TaxIdentityType;
@@ -36,6 +37,7 @@ uses(DatabaseMigrations::class);
 
 beforeEach(function (): void {
     $this->withoutVite();
+    app(CorrelationContext::class)->set('m16-acceptance');
 });
 
 it('reconciles import receipt and posts final landed cost exactly once through goods receipt cost authority', function (): void {
