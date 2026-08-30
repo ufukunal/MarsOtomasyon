@@ -1,0 +1,96 @@
+name: M18 TY Integration
+
+on:
+  push:
+    branches: [feat/m18-trendyol]
+
+permissions:
+  contents: write
+
+env:
+  APP_NAME: MarsOtomasyon
+  APP_ENV: testing
+  APP_KEY: base64:TWFyc090b21hc3lvbkZvdW5kYXRpb25UZXN0S2V5ISE=
+  APP_DEBUG: 'false'
+  APP_URL: http://localhost
+  DB_CONNECTION: pgsql
+  DB_HOST: 127.0.0.1
+  DB_PORT: 5432
+  DB_DATABASE: mars_test
+  DB_USERNAME: mars
+  DB_PASSWORD: mars
+  CACHE_STORE: redis
+  QUEUE_CONNECTION: redis
+  SESSION_DRIVER: redis
+  SESSION_CONNECTION: session
+  MAIL_MAILER: array
+  REDIS_CLIENT: phpredis
+  REDIS_HOST: 127.0.0.1
+  REDIS_PORT: 6379
+  REDIS_PASSWORD: null
+  REDIS_PREFIX: 'mars-ci:'
+  REDIS_DB: 0
+  REDIS_CACHE_DB: 1
+  REDIS_QUEUE_DB: 2
+  REDIS_SESSION_DB: 3
+  REDIS_QUEUE: mars-ci
+  REDIS_QUEUE_RETRY_AFTER: 90
+
+jobs:
+  acceptance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:18.6
+        env:
+          POSTGRES_DB: mars_test
+          POSTGRES_USER: mars
+          POSTGRES_PASSWORD: mars
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U mars -d mars_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+      valkey:
+        image: valkey/valkey:9.1.1
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "valkey-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/m18-trendyol
+      - run: cp .env.example .env
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          extensions: pdo_pgsql, redis, sockets, intl, zip
+          coverage: none
+          tools: composer:v2
+      - run: composer install --no-interaction --prefer-dist --no-progress
+      - name: Apply guarded integration patch
+        run: python3 scripts/ci/m18_ty_integrate.py
+      - name: Format
+        run: vendor/bin/pint app/Modules/Commerce/ChannelCenterService.php app/Modules/Operations/ChannelService.php app/Modules/Operations/Http/ChannelWebhookController.php config/commerce.php tests/Integration/Operations/M11TrendyolDomainSyncTest.php tests/Integration/Commerce/M18TrendyolTest.php
+      - name: Fresh PostgreSQL schema
+        run: php artisan migrate:fresh --force
+      - name: Trendyol acceptance
+        run: vendor/bin/pest tests/Unit/TrendyolContractTest.php tests/Integration/Operations/M11TrendyolDomainSyncTest.php tests/Integration/Commerce/M18TrendyolTest.php --colors=never
+      - name: Static analysis
+        run: vendor/bin/phpstan analyse app/Modules/Commerce/ChannelCenterService.php app/Modules/Commerce/Providers/Trendyol/TrendyolClient.php app/Modules/Operations/ChannelService.php app/Modules/Operations/Http/ChannelWebhookController.php --no-progress
+      - name: Commit implementation and self-clean
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add app/Modules/Commerce/ChannelCenterService.php app/Modules/Operations/ChannelService.php app/Modules/Operations/Http/ChannelWebhookController.php config/commerce.php tests/Integration/Operations/M11TrendyolDomainSyncTest.php tests/Integration/Commerce/M18TrendyolTest.php
+          git rm scripts/ci/m18_ty_integrate.py .github/workflows/m18-ty-integration.yml
+          git commit -m 'feat(m18-ty): integrate Trendyol V2 adapter'
+          git push origin HEAD:feat/m18-trendyol
