@@ -75,7 +75,7 @@ it('routes marketplace stock reservation failures into Problem Center', function
                 'shipmentPackageStatus' => 'Created',
                 'currency' => 'TRY',
                 'lines' => [[
-                    'sku' => 'M18-HARD-SKU',
+                    'stockCode' => 'M18-HARD-SKU',
                     'name' => 'M18 Hardening Product',
                     'quantity' => 2,
                     'price' => 125,
