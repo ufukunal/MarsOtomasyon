@@ -129,6 +129,40 @@ final class SystemIntegrationService
         })->values();
     }
 
+    public function runtime(int $companyId, string $family): ?SystemIntegrationRuntime
+    {
+        $family = $this->family($family);
+        $row = DB::table('system_integration_settings')
+            ->where('company_id', $companyId)
+            ->where('family', $family)
+            ->first();
+        if ($row === null) {
+            return null;
+        }
+
+        $settings = [];
+        if ($row->settings !== null) {
+            $decoded = json_decode((string) $row->settings, true, flags: JSON_THROW_ON_ERROR);
+            if (is_array($decoded)) {
+                foreach ($decoded as $key => $value) {
+                    if (is_string($key)) {
+                        $settings[$key] = $value;
+                    }
+                }
+            }
+        }
+
+        return new SystemIntegrationRuntime(
+            family: $family,
+            providerKey: $row->provider_key === null ? null : (string) $row->provider_key,
+            isEnabled: (bool) $row->is_enabled,
+            verificationStatus: (string) $row->verification_status,
+            endpointUrl: $row->endpoint_url === null ? null : (string) $row->endpoint_url,
+            settings: $settings,
+            credentials: $this->credentials($companyId, $family),
+        );
+    }
+
     /** @return array<string, mixed> */
     public function credentials(int $companyId, string $family): array
     {
