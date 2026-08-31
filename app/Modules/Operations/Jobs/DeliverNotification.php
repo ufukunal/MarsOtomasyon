@@ -13,10 +13,7 @@ final class DeliverNotification implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public int $tries = 5;
-
-    /** @var list<int> */
-    public array $backoff = [60, 300, 900, 3600];
+    public int $tries = 1;
 
     public function __construct(public readonly int $deliveryId) {}
 
