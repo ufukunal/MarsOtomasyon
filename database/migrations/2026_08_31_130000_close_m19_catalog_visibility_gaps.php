@@ -14,7 +14,7 @@ return new class extends Migration
             $table->index(['company_id', 'brand'], 'products_company_brand_index');
         });
 
-        DB::statement("ALTER TABLE products ADD CONSTRAINT products_brand_shape_check CHECK (brand IS NULL OR (brand = btrim(brand) AND char_length(brand) > 0))");
+        DB::statement('ALTER TABLE products ADD CONSTRAINT products_brand_shape_check CHECK (brand IS NULL OR (brand = btrim(brand) AND char_length(brand) > 0))');
 
         Schema::create('account_b2b_product_visibilities', function (Blueprint $table): void {
             $table->id();
