@@ -3,6 +3,11 @@
 use App\Foundation\Correlation\CorrelationIdMiddleware;
 use App\Foundation\Health\ReadinessController;
 use App\Modules\B2B\Http\Middleware\EnsureB2BAccess;
+use App\Modules\Communication\Http\Middleware\ApiTokenRateLimit;
+use App\Modules\Communication\Http\Middleware\AuthenticateApiAccessToken;
+use App\Modules\Communication\Http\Middleware\AuthenticateScannerAgent;
+use App\Modules\Communication\Http\Middleware\IdempotentApiWrite;
+use App\Modules\Communication\Http\Middleware\RequireApiPermission;
 use App\Modules\Core\Branch\ResolveActiveBranch;
 use App\Modules\Core\Company\ResolveActiveCompany;
 use App\Modules\Operations\EnforceCompanyIpPolicy;
@@ -38,6 +43,7 @@ return Application::configure(basePath: dirname(__DIR__))
             require base_path('routes/imports.php');
             require base_path('routes/operations.php');
             require base_path('routes/b2b.php');
+            Route::middleware('api')->prefix('api/v1')->group(base_path('routes/api-v1.php'));
             Route::get('/health/ready', ReadinessController::class)->name('health.ready');
         },
     )
@@ -48,6 +54,11 @@ return Application::configure(basePath: dirname(__DIR__))
             'branch.context' => ResolveActiveBranch::class,
             'security.ip' => EnforceCompanyIpPolicy::class,
             'b2b.auth' => EnsureB2BAccess::class,
+            'api.token' => AuthenticateApiAccessToken::class,
+            'api.permission' => RequireApiPermission::class,
+            'api.rate' => ApiTokenRateLimit::class,
+            'api.idempotent' => IdempotentApiWrite::class,
+            'scanner.auth' => AuthenticateScannerAgent::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
