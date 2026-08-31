@@ -380,8 +380,13 @@ final readonly class MarketplacePackService
         if (! is_array($records) || ! array_is_list($records)) {
             throw new RuntimeException('Marketplace order response must contain a list.');
         }
+        foreach ($records as $record) {
+            if (! is_array($record)) {
+                throw new RuntimeException('Marketplace order response contains an invalid record.');
+            }
+        }
 
-        return array_values(array_filter($records, 'is_array'));
+        return $records;
     }
 
     /** @param array<string,mixed> $record */
