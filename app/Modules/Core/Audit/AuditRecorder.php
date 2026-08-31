@@ -48,7 +48,7 @@ final readonly class AuditRecorder
             throw new LogicException('Audit recording requires a persisted active company.');
         }
 
-        $actorId = Auth::id();
+        $actorId = Auth::guard('web')->id();
         if ($source === AuditSource::Web && ! is_int($actorId)) {
             throw new LogicException('Web audit recording requires an authenticated actor.');
         }
