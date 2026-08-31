@@ -94,12 +94,21 @@ it('creates a fixed-account discounted B2B order exactly once and never posts ac
         ->assertRedirect();
     $order = SalesOrder::query()->where('company_id', $company->getKey())->where('account_id', $account->getKey())->firstOrFail();
     $line = $order->lines()->firstOrFail();
+    $audit = DB::table('audit_entries')
+        ->where('company_id', $company->getKey())
+        ->where('action', 'sales_orders.order.created')
+        ->firstOrFail();
+    $auditMetadata = json_decode((string) $audit->metadata, true, 512, JSON_THROW_ON_ERROR);
 
     expect((string) $line->unit_price)->toBe('100.000000')
         ->and((string) $line->line_discount_rate)->toBe('10.000000')
         ->and((string) $line->net_total)->toBe('180.000000')
         ->and((string) $order->gross_total)->toBe('216.000000')
-        ->and(DB::table('account_transactions')->where('company_id', $company->getKey())->where('account_id', $account->getKey())->count())->toBe(0);
+        ->and(DB::table('account_transactions')->where('company_id', $company->getKey())->where('account_id', $account->getKey())->count())->toBe(0)
+        ->and($audit->actor_user_id)->toBeNull()
+        ->and($auditMetadata['actor_type'] ?? null)->toBe('b2b_user')
+        ->and($auditMetadata['actor_public_id'] ?? null)->toBe((string) $user->public_id)
+        ->and($auditMetadata['actor_account_id'] ?? null)->toBe((int) $user->account_id);
 
     $this->actingAs($user, 'b2b')->withSession($session)
         ->post('/b2b/orders', ['idempotency_key' => $key])
