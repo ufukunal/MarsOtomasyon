@@ -25,6 +25,7 @@ final readonly class B2BOrderService
         private B2BPortalAccess $access,
         private SalesOrderDraftResolver $resolver,
         private CreateSalesOrder $createOrder,
+        private B2BProductVisibility $visibility,
     ) {}
 
     /** @param array<string, string> $cart */
@@ -127,15 +128,15 @@ final readonly class B2BOrderService
     /** @param array<string, string> $cart */
     private function draft(B2BUser $user, Account $account, array $cart, ?int $defaultWarehouseId): SalesOrderDraftData
     {
-        $products = Product::query()
+        $query = Product::query()
             ->with('tax')
             ->where('company_id', $user->company_id)
             ->whereIn('code', array_keys($cart))
-            ->where('status', 'active')
-            ->get()
-            ->keyBy('code');
+            ->where('status', 'active');
+        $this->visibility->apply($query, (int) $user->company_id, (int) $user->account_id);
+        $products = $query->get()->keyBy('code');
         if ($products->count() !== count($cart)) {
-            throw ValidationException::withMessages(['cart' => 'Sepette artık aktif olmayan veya şirkete ait olmayan ürün var.']);
+            throw ValidationException::withMessages(['cart' => 'Sepette artık aktif, görünür veya şirkete ait olmayan ürün var.']);
         }
 
         $lines = [];

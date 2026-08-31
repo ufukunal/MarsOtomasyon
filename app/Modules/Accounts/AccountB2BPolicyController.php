@@ -12,8 +12,10 @@ use App\Modules\B2B\Enums\B2BUserStatus;
 use App\Modules\B2B\Models\B2BUser;
 use App\Modules\Core\Company\ActiveCompanyContext;
 use App\Modules\Inventory\Models\Warehouse;
+use App\Modules\Products\Models\Product;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 use LogicException;
@@ -35,6 +37,11 @@ final readonly class AccountB2BPolicyController
             'permissions' => B2BPermission::cases(),
             'statuses' => B2BUserStatus::cases(),
             'riskBehaviors' => B2BRiskBehavior::cases(),
+            'products' => Product::query()->where('company_id', $this->companyId())->where('status', 'active')->orderBy('code')->get(),
+            'productVisibilityOverrides' => DB::table('account_b2b_product_visibilities')
+                ->where('company_id', $this->companyId())
+                ->where('account_id', $account)
+                ->pluck('is_visible', 'product_id'),
         ]);
     }
 

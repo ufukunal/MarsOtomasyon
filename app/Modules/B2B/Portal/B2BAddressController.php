@@ -7,6 +7,7 @@ use App\Modules\Accounts\Models\AccountAddress;
 use App\Modules\B2B\Enums\B2BPermission;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
 final readonly class B2BAddressController
@@ -18,10 +19,18 @@ final readonly class B2BAddressController
         $this->access->authorize(B2BPermission::ManageAddresses);
         $validated = $request->validate($this->rules());
         $user = $this->access->user();
-        AccountAddress::query()->create($this->payload($validated) + [
-            'company_id' => $user->company_id,
-            'account_id' => $user->account_id,
-        ]);
+        $type = AccountAddressType::from((string) $validated['type']);
+        $isDefault = (bool) $validated['is_default'] || ! $this->hasDefault($type);
+
+        DB::transaction(function () use ($validated, $user, $type, $isDefault): void {
+            if ($isDefault) {
+                $this->clearDefaults($type);
+            }
+            AccountAddress::query()->create($this->payload($validated, $isDefault) + [
+                'company_id' => $user->company_id,
+                'account_id' => $user->account_id,
+            ]);
+        });
 
         return back()->with('status', 'Adres eklendi.');
     }
@@ -30,7 +39,22 @@ final readonly class B2BAddressController
     {
         $this->access->authorize(B2BPermission::ManageAddresses);
         $validated = $request->validate($this->rules());
-        $this->address($address)->fill($this->payload($validated))->save();
+        $addressModel = $this->address($address);
+        $oldType = $addressModel->typeEnum();
+        $wasDefault = (bool) $addressModel->is_default;
+        $newType = AccountAddressType::from((string) $validated['type']);
+        $isDefault = (bool) $validated['is_default'];
+
+        DB::transaction(function () use ($addressModel, $validated, $oldType, $wasDefault, $newType, $isDefault): void {
+            if ($isDefault) {
+                $this->clearDefaults($newType, (int) $addressModel->getKey());
+            }
+            $addressModel->fill($this->payload($validated, $isDefault))->save();
+
+            if ($wasDefault && ($oldType !== $newType || ! $isDefault)) {
+                $this->promoteDefault($oldType, (int) $addressModel->getKey());
+            }
+        });
 
         return back()->with('status', 'Adres güncellendi.');
     }
@@ -38,7 +62,17 @@ final readonly class B2BAddressController
     public function destroy(string $address): RedirectResponse
     {
         $this->access->authorize(B2BPermission::ManageAddresses);
-        $this->address($address)->delete();
+        $addressModel = $this->address($address);
+        $type = $addressModel->typeEnum();
+        $wasDefault = (bool) $addressModel->is_default;
+        $id = (int) $addressModel->getKey();
+
+        DB::transaction(function () use ($addressModel, $type, $wasDefault, $id): void {
+            $addressModel->delete();
+            if ($wasDefault) {
+                $this->promoteDefault($type, $id);
+            }
+        });
 
         return back()->with('status', 'Adres silindi.');
     }
@@ -48,14 +82,15 @@ final readonly class B2BAddressController
     {
         return [
             'type' => ['required', Rule::enum(AccountAddressType::class)],
-            'label' => ['nullable', 'string', 'max:80'],
+            'label' => ['required', 'string', 'max:80'],
             'recipient_name' => ['nullable', 'string', 'max:160'],
-            'line1' => ['required', 'string', 'max:255'],
-            'line2' => ['nullable', 'string', 'max:255'],
+            'line1' => ['required', 'string', 'max:240'],
+            'line2' => ['nullable', 'string', 'max:240'],
             'district' => ['nullable', 'string', 'max:120'],
             'city' => ['required', 'string', 'max:120'],
-            'postal_code' => ['nullable', 'string', 'max:32'],
+            'postal_code' => ['nullable', 'string', 'max:20'],
             'country_code' => ['required', 'string', 'size:2'],
+            'is_default' => ['required', 'boolean'],
         ];
     }
 
@@ -63,11 +98,11 @@ final readonly class B2BAddressController
      * @param  array<string, mixed>  $validated
      * @return array<string, mixed>
      */
-    private function payload(array $validated): array
+    private function payload(array $validated, bool $isDefault): array
     {
         return [
             'type' => (string) $validated['type'],
-            'label' => $validated['label'] ?? null,
+            'label' => trim((string) $validated['label']),
             'recipient_name' => $validated['recipient_name'] ?? null,
             'line1' => (string) $validated['line1'],
             'line2' => $validated['line2'] ?? null,
@@ -75,8 +110,52 @@ final readonly class B2BAddressController
             'city' => (string) $validated['city'],
             'postal_code' => $validated['postal_code'] ?? null,
             'country_code' => mb_strtoupper((string) $validated['country_code']),
-            'is_default' => false,
+            'is_default' => $isDefault,
         ];
+    }
+
+    private function hasDefault(AccountAddressType $type): bool
+    {
+        $user = $this->access->user();
+
+        return AccountAddress::query()
+            ->where('company_id', $user->company_id)
+            ->where('account_id', $user->account_id)
+            ->where('type', $type->value)
+            ->where('is_default', true)
+            ->exists();
+    }
+
+    private function clearDefaults(AccountAddressType $type, ?int $exceptId = null): void
+    {
+        $user = $this->access->user();
+        $query = AccountAddress::query()
+            ->where('company_id', $user->company_id)
+            ->where('account_id', $user->account_id)
+            ->where('type', $type->value)
+            ->where('is_default', true);
+        if ($exceptId !== null) {
+            $query->whereKeyNot($exceptId);
+        }
+        $query->update(['is_default' => false]);
+    }
+
+    private function promoteDefault(AccountAddressType $type, int $exceptId): void
+    {
+        $user = $this->access->user();
+        if ($this->hasDefault($type)) {
+            return;
+        }
+        $candidate = AccountAddress::query()
+            ->where('company_id', $user->company_id)
+            ->where('account_id', $user->account_id)
+            ->where('type', $type->value)
+            ->whereKeyNot($exceptId)
+            ->orderBy('id')
+            ->first();
+        if ($candidate !== null) {
+            $candidate->forceFill(['is_default' => true])->save();
+        }
     }
 
     private function address(string $publicId): AccountAddress

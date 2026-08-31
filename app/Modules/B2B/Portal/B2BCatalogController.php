@@ -3,14 +3,20 @@
 namespace App\Modules\B2B\Portal;
 
 use App\Modules\B2B\Enums\B2BPermission;
-use App\Modules\Products\Models\Product;
+use App\Modules\Products\Enums\ProductStatus;
+use App\Modules\Products\Search\ProductSearchQuery;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 final readonly class B2BCatalogController
 {
-    public function __construct(private B2BPortalAccess $access, private B2BPriceCalculator $prices) {}
+    public function __construct(
+        private B2BPortalAccess $access,
+        private B2BPriceCalculator $prices,
+        private ProductSearchQuery $productSearch,
+        private B2BProductVisibility $visibility,
+    ) {}
 
     public function index(Request $request): View
     {
@@ -18,13 +24,11 @@ final readonly class B2BCatalogController
         $account = $this->access->account();
         $policy = $this->access->policy();
         $search = trim((string) $request->query('q', ''));
-        $query = Product::query()->where('company_id', $user->company_id)->where('status', 'active')->orderBy('code');
-        if ($search !== '') {
-            $query->where(function ($query) use ($search): void {
-                $query->where('code', 'ilike', '%'.$search.'%')->orWhere('name', 'ilike', '%'.$search.'%');
-            });
-        }
-        $products = $query->paginate(30)->withQueryString();
+        $query = $this->productSearch
+            ->build((int) $user->company_id, $search, ProductStatus::Active)
+            ->with(['category', 'barcodes']);
+        $this->visibility->apply($query, (int) $user->company_id, (int) $user->account_id);
+        $products = $query->orderBy('code')->paginate(30)->withQueryString();
         $showPrice = $this->access->can(B2BPermission::ViewPrices);
         $showStock = $this->access->can(B2BPermission::ViewStock);
         $rows = [];

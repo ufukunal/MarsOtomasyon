@@ -14,17 +14,22 @@ final readonly class B2BCartController
 {
     private const string SESSION_KEY = 'b2b_cart';
 
-    public function __construct(private B2BPortalAccess $access, private B2BPriceCalculator $priceCalculator) {}
+    public function __construct(
+        private B2BPortalAccess $access,
+        private B2BPriceCalculator $priceCalculator,
+        private B2BProductVisibility $visibility,
+    ) {}
 
     public function index(Request $request): View
     {
         $cart = $this->cart($request);
-        $products = Product::query()
-            ->where('company_id', $this->access->user()->company_id)
+        $user = $this->access->user();
+        $query = Product::query()
+            ->where('company_id', $user->company_id)
             ->whereIn('code', array_keys($cart))
-            ->where('status', 'active')
-            ->orderBy('code')
-            ->get();
+            ->where('status', 'active');
+        $this->visibility->apply($query, (int) $user->company_id, (int) $user->account_id);
+        $products = $query->orderBy('code')->get();
         $showPrice = $this->access->can(B2BPermission::ViewPrices);
         $prices = [];
         if ($showPrice) {
@@ -44,7 +49,13 @@ final readonly class B2BCartController
     {
         $validated = $request->validate(['product_code' => ['required', 'string', 'max:64'], 'quantity' => ['required', 'string', 'max:32']]);
         $code = trim((string) $validated['product_code']);
-        Product::query()->where('company_id', $this->access->user()->company_id)->where('code', $code)->where('status', 'active')->firstOrFail();
+        $user = $this->access->user();
+        $query = Product::query()
+            ->where('company_id', $user->company_id)
+            ->where('code', $code)
+            ->where('status', 'active');
+        $this->visibility->apply($query, (int) $user->company_id, (int) $user->account_id);
+        $query->firstOrFail();
         $cart = $this->cart($request);
         $cart[$code] = Decimal6::positive((string) $validated['quantity'], 'quantity')->value();
         ksort($cart);
@@ -58,6 +69,13 @@ final readonly class B2BCartController
         $validated = $request->validate(['quantity' => ['required', 'string', 'max:32']]);
         $cart = $this->cart($request);
         abort_unless(array_key_exists($productCode, $cart), 404);
+        $user = $this->access->user();
+        $query = Product::query()
+            ->where('company_id', $user->company_id)
+            ->where('code', $productCode)
+            ->where('status', 'active');
+        $this->visibility->apply($query, (int) $user->company_id, (int) $user->account_id);
+        $query->firstOrFail();
         $cart[$productCode] = Decimal6::positive((string) $validated['quantity'], 'quantity')->value();
         $request->session()->put(self::SESSION_KEY, $cart);
 

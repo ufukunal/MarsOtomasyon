@@ -33,6 +33,7 @@ Route::prefix('b2b')->name('b2b.')->middleware('web')->group(function (): void {
         Route::get('/orders', [B2BOrderController::class, 'index'])->name('orders.index');
         Route::get('/orders/{order}', [B2BOrderController::class, 'show'])->where('order', '[A-Za-z0-9._-]+')->name('orders.show');
         Route::get('/invoices', [B2BInvoiceController::class, 'index'])->name('invoices.index');
+        Route::get('/invoices/{invoice}', [B2BInvoiceController::class, 'show'])->where('invoice', '[A-Za-z0-9._-]+')->name('invoices.show');
         Route::get('/invoices/{invoice}/download', [B2BInvoiceController::class, 'download'])->where('invoice', '[A-Za-z0-9._-]+')->name('invoices.download');
         Route::get('/statement', B2BStatementController::class)->name('statement');
         Route::post('/addresses', [B2BAddressController::class, 'store'])->name('addresses.store');

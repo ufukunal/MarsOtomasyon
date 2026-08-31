@@ -28,15 +28,17 @@ final readonly class B2BInvoiceController
         return view('b2b.invoices.index', compact('invoices'));
     }
 
+    public function show(string $invoice): View
+    {
+        $invoiceModel = $this->invoice($invoice);
+        $invoiceModel->load('lines');
+
+        return view('b2b.invoices.show', ['invoice' => $invoiceModel]);
+    }
+
     public function download(string $invoice): Response
     {
-        $this->access->authorize(B2BPermission::ViewInvoices);
-        $user = $this->access->user();
-        $invoiceModel = SalesInvoice::query()
-            ->where('company_id', $user->company_id)
-            ->where('account_id', $user->account_id)
-            ->where('number', $invoice)
-            ->firstOrFail();
+        $invoiceModel = $this->invoice($invoice);
         abort_unless(in_array($invoiceModel->statusEnum(), [SalesInvoiceStatus::Finalized, SalesInvoiceStatus::Cancelled], true), 409);
 
         $document = $this->documents->getOrCreate((int) $invoiceModel->getKey());
@@ -54,5 +56,17 @@ final readonly class B2BInvoiceController
             'X-Document-SHA256' => (string) $document->pdf_sha256,
             'Cache-Control' => 'private, no-store, max-age=0',
         ]);
+    }
+
+    private function invoice(string $number): SalesInvoice
+    {
+        $this->access->authorize(B2BPermission::ViewInvoices);
+        $user = $this->access->user();
+
+        return SalesInvoice::query()
+            ->where('company_id', $user->company_id)
+            ->where('account_id', $user->account_id)
+            ->where('number', trim($number))
+            ->firstOrFail();
     }
 }

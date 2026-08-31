@@ -1,6 +1,7 @@
 <?php
 
 use App\Modules\Accounts\AccountB2BPolicyController;
+use App\Modules\Accounts\AccountB2BProductVisibilityController;
 use App\Modules\Accounts\AccountB2BUserController;
 use App\Modules\Accounts\AccountController;
 use App\Modules\Accounts\AccountProfileController;
@@ -27,6 +28,8 @@ Route::prefix('customers')
         Route::put('/{account}/b2b', [AccountB2BPolicyController::class, 'update'])->whereNumber('account')->middleware('can:accounts.manage')->name('b2b.update');
         Route::post('/{account}/b2b/users', [AccountB2BUserController::class, 'store'])->whereNumber('account')->middleware('can:accounts.manage')->name('b2b.users.store');
         Route::put('/{account}/b2b/users/{user}', [AccountB2BUserController::class, 'update'])->whereNumber('account')->where('user', '[0-9A-HJKMNP-TV-Z]{26}')->middleware('can:accounts.manage')->name('b2b.users.update');
+        Route::put('/{account}/b2b/products/{product}/visibility', [AccountB2BProductVisibilityController::class, 'update'])->whereNumber('account')->whereNumber('product')->middleware('can:accounts.manage')->name('b2b.products.visibility.update');
+        Route::delete('/{account}/b2b/products/{product}/visibility', [AccountB2BProductVisibilityController::class, 'destroy'])->whereNumber('account')->whereNumber('product')->middleware('can:accounts.manage')->name('b2b.products.visibility.destroy');
         Route::post('/{account}/files', [AccountRecordsController::class, 'uploadFile'])->whereNumber('account')->middleware('can:accounts.manage')->name('files.store');
         Route::get('/{account}/files/{attachment}/download', [AccountRecordsController::class, 'downloadFile'])->whereNumber('account')->whereNumber('attachment')->middleware('can:accounts.view')->name('files.download');
         Route::post('/{account}/files/{attachment}/detach', [AccountRecordsController::class, 'detachFile'])->whereNumber('account')->whereNumber('attachment')->middleware('can:accounts.manage')->name('files.detach');
