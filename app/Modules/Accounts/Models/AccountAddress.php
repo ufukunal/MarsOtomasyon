@@ -5,24 +5,30 @@ namespace App\Modules\Accounts\Models;
 use App\Modules\Accounts\Enums\AccountAddressType;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Str;
 use LogicException;
 
 final class AccountAddress extends Model
 {
     protected $fillable = [
-        'company_id',
-        'account_id',
-        'type',
-        'label',
-        'recipient_name',
-        'line1',
-        'line2',
-        'district',
-        'city',
-        'postal_code',
-        'country_code',
-        'is_default',
+        'company_id', 'account_id', 'type', 'label', 'recipient_name', 'line1', 'line2', 'district', 'city',
+        'postal_code', 'country_code', 'is_default',
     ];
+
+    protected static function booted(): void
+    {
+        self::creating(function (AccountAddress $address): void {
+            if (! is_string($address->public_id) || $address->public_id === '') {
+                $address->public_id = (string) Str::ulid();
+            }
+        });
+
+        self::updating(function (AccountAddress $address): void {
+            if ($address->isDirty('public_id')) {
+                throw new LogicException('Account address public_id is immutable.');
+            }
+        });
+    }
 
     protected function casts(): array
     {

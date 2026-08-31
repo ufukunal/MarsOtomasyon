@@ -1,81 +1,21 @@
 @extends('layouts.app')
-
 @section('title', 'Cari B2B / Bayi Erişimi')
-
 @section('app-content')
-    @php
-        $policy = $account->b2bPolicy;
-        $value = static fn (string $key, bool $default = false): string => old($key, (bool) ($policy?->{$key} ?? $default)) ? '1' : '0';
-    @endphp
-
-    <section class="workspace-hero">
-        <div>
-            <p class="eyebrow">Cari Düzenle</p>
-            <h1>{{ $account->legal_name }}</h1>
-            <p>Bayi erişiminin account-level sınırlarını yönetin. Cari iskonto ve risk limiti Firma / Ticari alanından tek kaynak olarak kullanılır.</p>
-        </div>
-        <a href="{{ route('customers.show', $account->getKey()) }}" data-workspace-link>Vazgeç</a>
-    </section>
-
-    <nav class="page-actions" aria-label="Cari düzenleme bölümleri">
-        <a href="{{ route('customers.edit', $account->getKey()) }}" data-workspace-link>Firma / Ticari</a>
-        <a href="{{ route('customers.profile.edit', $account->getKey()) }}" data-workspace-link>İletişim / Yetkililer · Sevk / Adres</a>
-        <a href="{{ route('customers.records.edit', $account->getKey()) }}" data-workspace-link>Banka / Not / Dosya</a>
-        <strong>B2B / Bayi Erişimi</strong>
-    </nav>
-
-    @if ($errors->any())
-        <div class="notice-error" role="alert">
-            <strong>Kayıt tamamlanamadı.</strong>
-            <ul>
-                @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-        </div>
-    @endif
-
-    <section class="detail-card">
-        <h2>Ticari Kaynaklar</h2>
-        <p>Bu değerler burada salt okunurdur; B2B fiyat ve risk politikası aynı cari master verisini kullanır.</p>
-        <dl class="detail-list">
-            <div><dt>Cari İskontosu</dt><dd>%{{ $account->discount_rate }}</dd></div>
-            <div><dt>Risk Limiti</dt><dd>{{ $account->risk_limit }} {{ $account->book_currency_code }}</dd></div>
-        </dl>
-        <div class="page-actions">
-            <span></span>
-            <a href="{{ route('customers.edit', $account->getKey()) }}" data-workspace-link>Ticari Değerleri Düzenle</a>
-        </div>
-    </section>
-
-    <form method="post" action="{{ route('customers.b2b.update', $account->getKey()) }}" class="detail-card">
-        @csrf
-        @method('PUT')
-
-        <h2>B2B Erişim Politikası</h2>
-        <p>Erişim kapalıysa aşağıdaki izinler saklanır fakat etkili olmaz. B2B kullanıcıları bağlandığında bu account-level sınırların dışına çıkamaz.</p>
-
-        <div class="form-grid">
-            @foreach ([
-                'is_enabled' => ['B2B / Bayi Erişimi Aktif', 'Bu carinin bayi portalına erişebilmesine izin verir.'],
-                'allow_orders' => ['Sipariş Verebilir', 'B2B üzerinden sipariş oluşturma yetkisini açar.'],
-                'show_stock' => ['Stok Görebilir', 'Ürün stok görünürlüğüne izin verir.'],
-                'show_invoices' => ['Faturaları Görebilir', 'Cari faturalarının B2B görünümüne izin verir.'],
-                'show_statement' => ['Ekstreyi Görebilir', 'Cari hareketleri / ekstre görünürlüğüne izin verir.'],
-                'allow_address_management' => ['Adres Yönetebilir', 'B2B tarafında izin verilen adres işlemlerine temel oluşturur.'],
-            ] as $key => [$label, $help])
-                <label>
-                    <input type="hidden" name="{{ $key }}" value="0">
-                    <input type="checkbox" name="{{ $key }}" value="1" @checked($value($key) === '1')>
-                    {{ $label }}
-                    <small>{{ $help }}</small>
-                </label>
-            @endforeach
-        </div>
-
-        <div class="page-actions">
-            <span></span>
-            <button type="submit">Kaydet</button>
-        </div>
-    </form>
+@php
+$policy = $account->b2bPolicy;
+$value = static fn (string $key, bool $default = false): string => old($key, (bool) ($policy?->{$key} ?? $default)) ? '1' : '0';
+@endphp
+<section class="workspace-hero"><div><p class="eyebrow">Cari Düzenle</p><h1>{{ $account->legal_name }}</h1><p>B2B erişimi, kullanıcıları, fiyat görünürlüğü, stok ve server-side risk davranışı.</p></div><a href="{{ route('customers.show', $account->getKey()) }}">Vazgeç</a></section>
+@if(session('status'))<div class="notice-success">{{ session('status') }}</div>@endif
+@if($errors->any())<div class="notice-error"><ul>@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>@endif
+<section class="detail-card"><h2>Ticari Kaynaklar</h2><dl class="detail-list"><div><dt>Cari İskontosu</dt><dd>%{{ $account->discount_rate }}</dd></div><div><dt>Risk Limiti</dt><dd>{{ $account->risk_limit }} {{ $account->book_currency_code }}</dd></div></dl></section>
+<form method="POST" action="{{ route('customers.b2b.update', $account->getKey()) }}" class="detail-card">@csrf @method('PUT')<h2>B2B Politika</h2><div class="form-grid">
+@foreach(['is_enabled'=>'B2B Aktif','allow_orders'=>'Sipariş Verebilir','show_price'=>'Fiyat Görebilir','show_stock'=>'Stok Görebilir','show_balance'=>'Bakiye Görebilir','show_invoices'=>'Fatura Görebilir','show_statement'=>'Ekstre Görebilir','allow_address_management'=>'Adres Yönetebilir'] as $key=>$label)<label><input type="hidden" name="{{ $key }}" value="0"><input type="checkbox" name="{{ $key }}" value="1" @checked($value($key)==='1')>{{ $label }}</label>@endforeach
+<label>Varsayılan Depo<select name="default_warehouse_id"><option value="">Otomatik kullanılabilir depo/lokasyon</option>@foreach($warehouses as $warehouse)<option value="{{ $warehouse->getKey() }}" @selected((string)old('default_warehouse_id',$policy?->default_warehouse_id)===(string)$warehouse->getKey())>{{ $warehouse->name }}</option>@endforeach</select></label>
+<label>Risk Davranışı<select name="risk_behavior">@foreach($riskBehaviors as $behavior)<option value="{{ $behavior->value }}" @selected(old('risk_behavior',$policy?->risk_behavior?->value ?? 'block')===$behavior->value)>{{ $behavior->value }}</option>@endforeach</select></label>
+</div><button type="submit">Politikayı Kaydet</button></form>
+<section class="detail-card"><h2>B2B Kullanıcıları</h2>
+@foreach($b2bUsers as $user)<form method="POST" action="{{ route('customers.b2b.users.update', [$account->getKey(),$user->public_id]) }}" class="detail-card">@csrf @method('PUT')<div class="form-grid"><label>Ad<input name="name" value="{{ $user->name }}" required></label><label>E-posta<input type="email" name="email" value="{{ $user->email }}" required></label><label>Durum<select name="status">@foreach($statuses as $status)<option value="{{ $status->value }}" @selected($user->statusEnum()===$status)>{{ $status->value }}</option>@endforeach</select></label><label>Rol<select name="role">@foreach($roles as $role)<option value="{{ $role->value }}" @selected($user->roleEnum()===$role)>{{ $role->value }}</option>@endforeach</select></label></div><fieldset><legend>Typed Permissions</legend>@foreach($permissions as $permission)<label><input type="checkbox" name="permissions[]" value="{{ $permission->value }}" @checked($user->hasPermission($permission))>{{ $permission->value }}</label>@endforeach</fieldset><div class="form-grid"><label>Yeni Şifre (opsiyonel)<input type="password" name="password"></label><label>Tekrar<input type="password" name="password_confirmation"></label></div><button type="submit">Kullanıcıyı Güncelle</button></form>@endforeach
+</section>
+<form method="POST" action="{{ route('customers.b2b.users.store',$account->getKey()) }}" class="detail-card">@csrf<h2>Yeni B2B Kullanıcısı</h2><div class="form-grid"><label>Ad<input name="name" required></label><label>E-posta<input type="email" name="email" required></label><label>Durum<select name="status">@foreach($statuses as $status)<option value="{{ $status->value }}">{{ $status->value }}</option>@endforeach</select></label><label>Rol<select name="role">@foreach($roles as $role)<option value="{{ $role->value }}" @selected($role->value==='buyer')>{{ $role->value }}</option>@endforeach</select></label><label>Şifre<input type="password" name="password" required></label><label>Şifre Tekrar<input type="password" name="password_confirmation" required></label></div><fieldset><legend>Typed Permissions</legend>@foreach($permissions as $permission)<label><input type="checkbox" name="permissions[]" value="{{ $permission->value }}">{{ $permission->value }}</label>@endforeach</fieldset><button type="submit">Kullanıcı Oluştur</button></form>
 @endsection

@@ -5,55 +5,68 @@ namespace App\Modules\Accounts;
 use App\Modules\Accounts\Actions\UpdateAccountB2BPolicy;
 use App\Modules\Accounts\Actions\UpdateAccountB2BPolicyData;
 use App\Modules\Accounts\Models\Account;
+use App\Modules\B2B\Enums\B2BPermission;
+use App\Modules\B2B\Enums\B2BRiskBehavior;
+use App\Modules\B2B\Enums\B2BRole;
+use App\Modules\B2B\Enums\B2BUserStatus;
+use App\Modules\B2B\Models\B2BUser;
 use App\Modules\Core\Company\ActiveCompanyContext;
+use App\Modules\Inventory\Models\Warehouse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 use LogicException;
 
 final readonly class AccountB2BPolicyController
 {
-    public function __construct(
-        private ActiveCompanyContext $companyContext,
-        private UpdateAccountB2BPolicy $updatePolicy,
-    ) {}
+    public function __construct(private ActiveCompanyContext $companyContext, private UpdateAccountB2BPolicy $updatePolicy) {}
 
     public function edit(int $account): View
     {
         $accountModel = $this->account($account);
         $accountModel->load('b2bPolicy');
 
-        return view('accounts.b2b-form', ['account' => $accountModel]);
+        return view('accounts.b2b-form', [
+            'account' => $accountModel,
+            'b2bUsers' => B2BUser::query()->where('company_id', $this->companyId())->where('account_id', $account)->orderBy('name')->get(),
+            'warehouses' => Warehouse::query()->where('company_id', $this->companyId())->where('is_active', true)->orderBy('name')->get(),
+            'roles' => B2BRole::cases(),
+            'permissions' => B2BPermission::cases(),
+            'statuses' => B2BUserStatus::cases(),
+            'riskBehaviors' => B2BRiskBehavior::cases(),
+        ]);
     }
 
     public function update(Request $request, int $account): RedirectResponse
     {
-        $validated = $request->validate($this->rules());
+        $validated = $request->validate([
+            'is_enabled' => ['required', 'boolean'],
+            'allow_orders' => ['required', 'boolean'],
+            'show_price' => ['required', 'boolean'],
+            'show_stock' => ['required', 'boolean'],
+            'show_balance' => ['required', 'boolean'],
+            'show_invoices' => ['required', 'boolean'],
+            'show_statement' => ['required', 'boolean'],
+            'allow_address_management' => ['required', 'boolean'],
+            'default_warehouse_id' => ['nullable', 'integer'],
+            'risk_behavior' => ['required', Rule::enum(B2BRiskBehavior::class)],
+        ]);
 
         $updated = $this->updatePolicy->handle($account, new UpdateAccountB2BPolicyData(
             isEnabled: (bool) $validated['is_enabled'],
             allowOrders: (bool) $validated['allow_orders'],
+            showPrice: (bool) $validated['show_price'],
             showStock: (bool) $validated['show_stock'],
+            showBalance: (bool) $validated['show_balance'],
             showInvoices: (bool) $validated['show_invoices'],
             showStatement: (bool) $validated['show_statement'],
             allowAddressManagement: (bool) $validated['allow_address_management'],
+            defaultWarehouseId: isset($validated['default_warehouse_id']) ? (int) $validated['default_warehouse_id'] : null,
+            riskBehavior: B2BRiskBehavior::from((string) $validated['risk_behavior']),
         ));
 
-        return redirect()->route('customers.show', $updated->getKey())
-            ->with('status', 'Cari B2B / bayi erişim politikası güncellendi.');
-    }
-
-    /** @return array<string, list<string>> */
-    private function rules(): array
-    {
-        return [
-            'is_enabled' => ['required', 'boolean'],
-            'allow_orders' => ['required', 'boolean'],
-            'show_stock' => ['required', 'boolean'],
-            'show_invoices' => ['required', 'boolean'],
-            'show_statement' => ['required', 'boolean'],
-            'allow_address_management' => ['required', 'boolean'],
-        ];
+        return redirect()->route('customers.b2b.edit', $updated->getKey())->with('status', 'Cari B2B / bayi erişim politikası güncellendi.');
     }
 
     private function account(int $id): Account

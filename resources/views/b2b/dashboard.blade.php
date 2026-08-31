@@ -1,26 +1,8 @@
-<!DOCTYPE html>
-<html lang="tr">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Bayi Paneli — MarsOtomasyon</title>
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-</head>
-<body>
-    <main class="auth-shell">
-        <section class="auth-card" aria-labelledby="b2b-title">
-            <div>
-                <p class="eyebrow">Mars B2B</p>
-                <h1 id="b2b-title" class="auth-title">Bayi Paneli</h1>
-                <p class="auth-copy">{{ $account->legal_name }}</p>
-                <p class="auth-copy">{{ $b2bUser->name }}</p>
-            </div>
-
-            <form method="POST" action="{{ route('b2b.logout') }}">
-                @csrf
-                <button type="submit" class="auth-submit">Çıkış Yap</button>
-            </form>
-        </section>
-    </main>
-</body>
-</html>
+@extends('b2b.layout')
+@section('title', 'Bayi Paneli — Mars B2B')
+@section('heading', 'Bayi Paneli')
+@section('content')
+<section class="detail-card"><h2>{{ $account->legal_name }}</h2><dl class="detail-list"><div><dt>Cari Kodu</dt><dd>{{ $account->code }}</dd></div><div><dt>Kullanıcı</dt><dd>{{ $b2bUser->name }} · {{ $b2bUser->email }}</dd></div><div><dt>Rol</dt><dd>{{ $b2bUser->roleEnum()->value }}</dd></div>@if($balance)<div><dt>Bakiye</dt><dd>{{ $balance->formatted() }}</dd></div>@endif</dl></section>
+<section class="detail-card"><h2>Adresler</h2>@forelse($addresses as $address)<div class="detail-card"><strong>{{ $address->label ?: $address->typeEnum()->label() }}</strong><p>{{ $address->line1 }} {{ $address->line2 }} · {{ $address->district }} {{ $address->city }} · {{ $address->country_code }}</p>@if($b2bUser->hasPermission(\App\Modules\B2B\Enums\B2BPermission::ManageAddresses) && $policy->allows(\App\Modules\B2B\Enums\B2BPermission::ManageAddresses))<form method="POST" action="{{ route('b2b.addresses.destroy', $address->public_id) }}">@csrf @method('DELETE')<button type="submit">Sil</button></form>@endif</div>@empty<p>Kayıtlı adres yok.</p>@endforelse</section>
+@if($b2bUser->hasPermission(\App\Modules\B2B\Enums\B2BPermission::ManageAddresses) && $policy->allows(\App\Modules\B2B\Enums\B2BPermission::ManageAddresses))<section class="detail-card"><h2>Adres Ekle</h2><form method="POST" action="{{ route('b2b.addresses.store') }}" class="form-grid">@csrf<label>Tip<select name="type"><option value="shipping">Sevk</option><option value="billing">Fatura</option></select></label><label>Etiket<input name="label" maxlength="80"></label><label>Alıcı<input name="recipient_name" maxlength="160"></label><label>Adres<input name="line1" required maxlength="255"></label><label>Adres 2<input name="line2" maxlength="255"></label><label>İlçe<input name="district" maxlength="120"></label><label>Şehir<input name="city" required maxlength="120"></label><label>Posta Kodu<input name="postal_code" maxlength="32"></label><label>Ülke<input name="country_code" value="TR" required maxlength="2"></label><button type="submit">Adres Ekle</button></form></section>@endif
+@endsection

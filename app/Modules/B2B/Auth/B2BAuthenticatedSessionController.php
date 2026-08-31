@@ -15,9 +15,7 @@ use Illuminate\View\View;
 final class B2BAuthenticatedSessionController
 {
     private const int MAX_ATTEMPTS = 5;
-
     private const int DECAY_SECONDS = 60;
-
     private const string DUMMY_PASSWORD_HASH = '$2y$12$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2uheWG/igi.';
 
     public function create(): View|RedirectResponse
@@ -26,7 +24,6 @@ final class B2BAuthenticatedSessionController
         if ($current instanceof B2BUser && $current->canAccessPortal()) {
             return redirect()->route('b2b.home');
         }
-
         if ($current instanceof B2BUser) {
             Auth::guard('b2b')->logout();
         }
@@ -40,7 +37,6 @@ final class B2BAuthenticatedSessionController
         if ($current instanceof B2BUser && $current->canAccessPortal()) {
             return redirect()->route('b2b.home');
         }
-
         if ($current instanceof B2BUser) {
             Auth::guard('b2b')->logout();
         }
@@ -57,20 +53,12 @@ final class B2BAuthenticatedSessionController
         $throttleKey = $this->throttleKey($companyCode, $email, $request->ip());
 
         if (RateLimiter::tooManyAttempts($throttleKey, self::MAX_ATTEMPTS)) {
-            throw ValidationException::withMessages([
-                'email' => 'Çok fazla giriş denemesi. Kısa süre sonra tekrar deneyin.',
-            ]);
+            throw ValidationException::withMessages(['email' => 'Çok fazla giriş denemesi. Kısa süre sonra tekrar deneyin.']);
         }
 
-        $company = Company::query()
-            ->whereRaw('lower(code) = ?', [$companyCode])
-            ->first();
-
+        $company = Company::query()->whereRaw('lower(code) = ?', [$companyCode])->first();
         $user = $company instanceof Company
-            ? B2BUser::query()
-                ->where('company_id', $company->getKey())
-                ->whereRaw('lower(email) = ?', [$email])
-                ->first()
+            ? B2BUser::query()->where('company_id', $company->getKey())->whereRaw('lower(email) = ?', [$email])->first()
             : null;
 
         if (! $user instanceof B2BUser) {
@@ -85,10 +73,9 @@ final class B2BAuthenticatedSessionController
         RateLimiter::clear($throttleKey);
         Auth::guard('b2b')->login($user);
         $request->session()->regenerate();
+        $request->session()->put('b2b_auth_version', (int) $user->auth_version);
 
-        $user->forceFill([
-            'last_login_at' => now(),
-        ])->save();
+        $user->forceFill(['last_login_at' => now()])->save();
 
         return redirect()->intended(route('b2b.home', absolute: false));
     }
@@ -110,9 +97,6 @@ final class B2BAuthenticatedSessionController
     private function rejectLogin(string $throttleKey): never
     {
         RateLimiter::hit($throttleKey, self::DECAY_SECONDS);
-
-        throw ValidationException::withMessages([
-            'email' => 'Giriş bilgileri geçersiz.',
-        ]);
+        throw ValidationException::withMessages(['email' => 'Giriş bilgileri geçersiz.']);
     }
 }
