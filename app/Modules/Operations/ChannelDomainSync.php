@@ -194,7 +194,7 @@ final readonly class ChannelDomainSync
             if (! is_array($rawLine)) {
                 throw new DomainException('Inbound channel order line is invalid.');
             }
-            $sku = $this->firstString($rawLine, ['sku', 'merchantSku', 'merchant_sku', 'barcode']);
+            $sku = $this->firstString($rawLine, ['sku', 'merchantSku', 'merchant_sku', 'stockCode', 'barcode']);
             $externalProductId = $this->firstString($rawLine, ['product_id', 'productId', 'product_id_external']);
             $externalVariantId = $this->firstString($rawLine, ['variation_id', 'variantId', 'variant_id']);
             if ($sku === '' && $externalProductId === '' && $externalVariantId === '') {
