@@ -1,6 +1,7 @@
 <?php
 
 use App\Modules\Commerce\Http\CommerceController;
+use App\Modules\Communication\Http\SystemIntegrationController;
 use App\Modules\Operations\Http\ChannelWebhookController;
 use App\Modules\Operations\Http\OperationsController;
 use App\Modules\Operations\RequirePlatformAdmin;
@@ -31,6 +32,17 @@ Route::prefix('commerce')
 Route::get('/communications', fn () => redirect()->route('operations.index'))
     ->middleware(['auth', 'company.context', 'can:notifications.view'])
     ->name('communications.index');
+
+Route::prefix('settings/integrations')
+    ->name('settings.integrations.')
+    ->middleware(['web', 'auth', 'company.context'])
+    ->group(function (): void {
+        Route::get('/', [SystemIntegrationController::class, 'index'])->middleware('can:integrations.view')->name('index');
+        Route::put('/{family}', [SystemIntegrationController::class, 'update'])->whereIn('family', ['sms', 'email', 'whatsapp', 'e_document', 'scanner_agent'])->middleware('can:integrations.manage')->name('update');
+        Route::post('/{family}/validate', [SystemIntegrationController::class, 'validateConfiguration'])->whereIn('family', ['sms', 'email', 'whatsapp', 'e_document', 'scanner_agent'])->middleware('can:integrations.manage')->name('validate');
+        Route::post('/templates', [SystemIntegrationController::class, 'storeTemplate'])->middleware('can:notifications.manage')->name('templates.store');
+        Route::post('/templates/preview', [SystemIntegrationController::class, 'preview'])->middleware('can:notifications.manage')->name('templates.preview');
+    });
 
 Route::prefix('operations')
     ->name('operations.')

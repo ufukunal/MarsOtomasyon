@@ -2,6 +2,7 @@
 
 namespace App\Modules\Operations\Http;
 
+use App\Modules\Communication\NotificationTemplateService;
 use App\Modules\Core\Company\ActiveCompanyContext;
 use App\Modules\Operations\AutomationService;
 use App\Modules\Operations\BackupManager;
@@ -20,7 +21,10 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 final readonly class OperationsController
 {
-    public function __construct(private ActiveCompanyContext $companyContext) {}
+    public function __construct(
+        private ActiveCompanyContext $companyContext,
+        private NotificationTemplateService $notificationTemplates,
+    ) {}
 
     public function index(OperationsHealth $health): View
     {
@@ -66,12 +70,18 @@ final readonly class OperationsController
             'subject' => ['nullable', 'string', 'max:255'],
             'body' => ['required', 'string', 'max:10000'],
         ]);
-        DB::table('notification_templates')->updateOrInsert(
-            ['company_id' => $this->companyId(), 'key' => $validated['key'], 'channel' => $validated['channel']],
-            ['name' => $validated['name'], 'status' => 'active', 'subject' => $validated['subject'] ?? null, 'body' => $validated['body'], 'created_at' => now(), 'updated_at' => now()],
+        $this->notificationTemplates->store(
+            $this->companyId(),
+            (string) $validated['key'],
+            (string) $validated['channel'],
+            (string) $validated['name'],
+            $validated['subject'] ?? null,
+            (string) $validated['body'],
+            [],
+            $this->userId($request),
         );
 
-        return back()->with('status', 'Bildirim şablonu kaydedildi.');
+        return back()->with('status', 'Bildirim şablonu versiyonlanarak kaydedildi.');
     }
 
     public function storeAutomationRule(Request $request): RedirectResponse
@@ -284,7 +294,7 @@ final readonly class OperationsController
         return null;
     }
 
-    /** @param array<string,string> $row */
+    /** @param array<string, string> $row */
     private function importTemplateRow(array $row): void
     {
         foreach (['key', 'channel', 'name', 'body'] as $required) {
@@ -295,13 +305,18 @@ final readonly class OperationsController
         if (! in_array($row['channel'], ['email', 'sms', 'whatsapp'], true)) {
             return;
         }
-        DB::table('notification_templates')->updateOrInsert(
-            ['company_id' => $this->companyId(), 'key' => $row['key'], 'channel' => $row['channel']],
-            ['name' => $row['name'], 'status' => 'active', 'subject' => $row['subject'] ?? null, 'body' => $row['body'], 'created_at' => now(), 'updated_at' => now()],
+        $this->notificationTemplates->store(
+            $this->companyId(),
+            $row['key'],
+            $row['channel'],
+            $row['name'],
+            ($row['subject'] ?? '') === '' ? null : $row['subject'],
+            $row['body'],
+            [],
         );
     }
 
-    /** @param array<string,string> $row */
+    /** @param array<string, string> $row */
     private function importAutomationRow(array $row): void
     {
         foreach (['key', 'name', 'event_type', 'action_type', 'action_payload'] as $required) {

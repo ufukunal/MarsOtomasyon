@@ -17,6 +17,9 @@
             <a class="settings-tile" href="{{ route('settings.posting-periods.index') }}" data-workspace-link><strong>Dönemler</strong><span>Muhasebe dönemi ve kapanış yönetimi.</span></a>
             <a class="settings-tile" href="{{ route('settings.audit.index') }}" data-workspace-link><strong>İşlem Geçmişi</strong><span>Değiştirilemez yönetim audit kayıtları.</span></a>
         @endcan
+        @can('integrations.view')
+            <a class="settings-tile" href="{{ route('settings.integrations.index') }}" data-workspace-link><strong>Entegrasyonlar</strong><span>SMS, e-posta, WhatsApp, e-belge ve Scanner Agent ayarları.</span></a>
+        @endcan
         @can('core.branch.view')
             <a class="settings-tile" href="{{ route('settings.branches.index') }}" data-workspace-link><strong>Şubeler</strong><span>Şube tanımları ve aktif şube yönetimi.</span></a>
         @endcan
