@@ -15,7 +15,9 @@ use Illuminate\View\View;
 final class B2BAuthenticatedSessionController
 {
     private const int MAX_ATTEMPTS = 5;
+
     private const int DECAY_SECONDS = 60;
+
     private const string DUMMY_PASSWORD_HASH = '$2y$12$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2uheWG/igi.';
 
     public function create(): View|RedirectResponse
