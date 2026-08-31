@@ -22,10 +22,6 @@ return new class extends Migration
             $table->unique(['company_id', 'id']);
             $table->unique(['company_id', 'idempotency_key']);
             $table->foreign(['company_id', 'template_id'])->references(['company_id', 'id'])->on('notification_templates')->restrictOnDelete();
-            $table->foreign(['company_id', 'template_id', 'template_version'], 'notifications_template_version_foreign')
-                ->references(['company_id', 'template_id', 'version'])
-                ->on('notification_template_versions')
-                ->restrictOnDelete();
         });
 
         DB::statement(<<<'SQL'
