@@ -2,7 +2,6 @@
 
 namespace App\Modules\Operations;
 
-use App\Modules\Operations\Jobs\DeliverNotification;
 use App\Modules\Operations\Jobs\ExecuteAutomationRun;
 use App\Modules\Operations\Jobs\ProcessIntegrationEvent;
 use App\Modules\Operations\Jobs\ProcessIntegrationSync;
@@ -34,7 +33,7 @@ final class OperationsHealth
         }
         $failedJobs = Schema::hasTable('failed_jobs') ? DB::table('failed_jobs')->count() : 0;
         $integrationPending = Schema::hasTable('integration_events') ? DB::table('integration_events')->whereIn('status', ['received', 'processing', 'failed'])->count() : 0;
-        $notificationPending = Schema::hasTable('notification_deliveries') ? DB::table('notification_deliveries')->whereIn('status', ['queued', 'sending', 'failed'])->count() : 0;
+        $notificationPending = Schema::hasTable('notification_deliveries') ? DB::table('notification_deliveries')->whereIn('status', ['queued', 'sending', 'failed', 'ambiguous'])->count() : 0;
         $automationPending = Schema::hasTable('automation_runs') ? DB::table('automation_runs')->whereIn('status', ['pending_approval', 'queued', 'approved', 'running', 'failed'])->count() : 0;
         $workerCutoff = now()->subSeconds((int) config('m11.operations.worker_stale_after_seconds', 180));
         $schedulerCutoff = now()->subSeconds((int) config('m11.operations.scheduler_stale_after_seconds', 180));
@@ -138,13 +137,23 @@ final class OperationsHealth
                 ->lockForUpdate()
                 ->pluck('id');
             foreach ($deliveryIds as $id) {
+                DB::table('notification_provider_attempts')
+                    ->where('delivery_id', $id)
+                    ->where('status', 'sending')
+                    ->update([
+                        'status' => 'ambiguous',
+                        'retryable' => false,
+                        'failure_class' => 'stale_sending_ambiguous',
+                        'error' => 'Worker lease expired after provider send began; provider outcome is ambiguous.',
+                        'finished_at' => now(),
+                    ]);
                 DB::table('notification_deliveries')->where('id', $id)->where('status', 'sending')->update([
-                    'status' => 'queued',
-                    'available_at' => now(),
-                    'last_error' => 'Automatically reclaimed stale notification delivery state.',
+                    'status' => 'ambiguous',
+                    'failure_class' => 'stale_sending_ambiguous',
+                    'manual_retry_required' => true,
+                    'last_error' => 'Stale provider send quarantined as ambiguous; automatic retry blocked.',
                     'updated_at' => now(),
                 ]);
-                DeliverNotification::dispatch((int) $id)->afterCommit();
                 $count++;
             }
 
