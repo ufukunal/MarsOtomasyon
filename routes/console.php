@@ -3,6 +3,7 @@
 use App\Modules\Core\Models\User;
 use App\Modules\Operations\BackupManager;
 use App\Modules\Operations\OperationsHealth;
+use App\Modules\Operations\OutboxRelay;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schedule;
@@ -93,6 +94,10 @@ Schedule::call(function () use ($runScheduled): void {
         return ['heartbeat' => true];
     });
 })->everyMinute()->name('operations.heartbeat')->withoutOverlapping();
+
+Schedule::call(function () use ($runScheduled): void {
+    $runScheduled('operations.outbox-relay', fn (): array => ['relayed' => app(OutboxRelay::class)->relay(100)]);
+})->everyMinute()->name('operations.outbox-relay')->withoutOverlapping();
 
 Schedule::call(function () use ($runScheduled): void {
     $runScheduled('operations.metrics', fn (): array => app(OperationsHealth::class)->captureMetrics());
