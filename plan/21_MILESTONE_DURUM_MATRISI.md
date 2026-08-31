@@ -33,7 +33,7 @@ Bu belge `16_UYGULAMA_SIRASI_MILESTONE.md` içindeki resmî V4.2 milestone numar
 | M15 | Fason | **DONE** | PR #74; physical OUT → subcontract custody quantity/carrying value → fire/partial finished-goods IN → reconcile/complete + files/report; merge `57173a2678c8a44ae38fd7df7c73e062f9caba41`; main Foundation run `33288273051` 4/4 | V1 milestone gap yok |
 | M16 | İthalat / Konteyner | **DONE** | PR #75; file/container/package/component/location, finalized GoodsReceipt handoff, landed-cost allocation/posting, reports/lists/simulator; merge `98de2a0c65f0c2cec63e7aebc10660b6eca7cab9`; exact main Foundation run `33292866739` 4/4 | V1 milestone gap yok |
 | M17 | E-Ticaret Integration Core + WooCommerce | **DONE** | PR #76; Channel Center/settings, encrypted credentials, WooCommerce connection test, product mapping/media, versioned stock-price desired state + stale guard, webhook/polling idempotency, stock problem/retry, return/invoice/settlement seams; merge `8bb31c70ae9b3953d2cf477bfa88bba1c3b0464a`; exact main Foundation run `33320300545` 4/4 | V1 milestone gap yok; gerçek merchant credential/production doğrulaması provider/account bazlı operasyon kanıtıdır |
-| M18 | Verified Marketplace Adapter Pack | **PARTIAL** | PR #77 Trendyol V2 contract-verified adapter; PR #80 HB/AMZ/N11/PTT/IDF/ALG contract-verified adapter pack + shared lifecycle | Resmî exit için provider-specific media/manual behavior, cancel/return/questions/invoice/settlement capability contracts, malformed/duplicate fixtures, Problem Center coverage ve mevcutsa sandbox/test smoke tamamlanmalı |
+| M18 | Verified Marketplace Adapter Pack | **DONE** | PR #77 Trendyol contract adapter; PR #80 HB/AMZ/N11/PTT/IDF/ALG pack; PR #83 malformed fixture + Problem Center hardening; PR #84 n11 `stockCode` inbound identity; `MarketplaceCapabilityContract` provider media/operation/smoke boundary'sini fail-closed kilitler; `MarketplaceOrderPollCursor` + PostgreSQL tests restart-safe page/token/window watermark akışını ve Amazon Orders `2026-01-01` `orderId`/`paginationToken` contractını korur | V1 kod milestone gap yok; gerçek merchant credential, whitelist ve SIT/production çağrı kanıtı provider/account bazlı operasyon doğrulamasıdır ve bu kanıt olmadan status `verified_marketplace` yapılmaz |
 | M19 | B2B / Bayi Sistemi | **PARTIAL** | M2.5 Account B2B access-policy metadata mevcut | Ayrı B2B auth context, B2BUser, session/reset/rate-limit, catalog/cart/order/history/risk/invoice/statement tamamlanmalı |
 | M20 | Communication / System Integrations / API | **PARTIAL** | PR #64: notification templates/delivery + async operations foundation; provider-neutral e-document seam M8'de var | `/api/v1`, production provider adapters, template/version/test UX ve ilgili A-08/A-09/A-10/A-11 gates tamamlanmalı |
 | M21 | Product Image Operations | **PARTIAL** | M3.4 private product media/file foundation mevcut | destination sets, main/gallery/order, copy/move/edit/crop/resize/provider metadata/quarantine lifecycle tamamlanmalı |
@@ -43,13 +43,12 @@ Bu belge `16_UYGULAMA_SIRASI_MILESTONE.md` içindeki resmî V4.2 milestone numar
 
 ## Bir sonraki uygulama sırası
 
-1. **M18 adapter pack** — yalnız gerçek provider contract/fixture doğrulanan adapterlar; kalan resmî exit gap'leri kapatılır.
-2. **M19 B2B**.
-3. **M20 Communication / API**.
-4. **M21 Product Image Operations**.
-5. **M22 Installation PDF Builder**.
-6. **M23 Production Candidate hardening**.
-7. **M24 Migration / Go-Live**.
+1. **M19 B2B / Bayi Sistemi**.
+2. **M20 Communication / API**.
+3. **M21 Product Image Operations**.
+4. **M22 Installation PDF Builder**.
+5. **M23 Production Candidate hardening**.
+6. **M24 Migration / Go-Live**.
 
 ## Reconciliation kuralı
 

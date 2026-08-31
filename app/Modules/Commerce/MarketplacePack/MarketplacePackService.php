@@ -21,6 +21,7 @@ final readonly class MarketplacePackService
         private MarketplacePackGateway $gateway,
         private ProviderRegistry $registry,
         private ChannelEventStore $events,
+        private MarketplaceOrderPollCursor $pollCursor,
     ) {}
 
     public function testConnection(int $companyId, string $connectionPublicId): bool
@@ -312,12 +313,14 @@ final readonly class MarketplacePackService
         if ($page < 1 || $perPage < 1 || $perPage > 100) {
             throw new DomainException('Invalid marketplace polling page window.');
         }
-        $start = $modifiedAfter === null || trim($modifiedAfter) === '' ? now()->subDays(7)->toIso8601String() : $modifiedAfter;
+
+        $window = $this->pollCursor->resolve($connection, $modifiedAfter, $page);
         $response = $this->gateway->orders($provider, $this->credentials((string) $connection->credentials_ciphertext), [
-            'page' => $page,
+            'page' => $window['page'],
             'size' => $perPage,
-            'start' => $start,
-            'end' => now()->toIso8601String(),
+            'start' => $window['start'],
+            'end' => $window['end'],
+            'pagination_token' => $window['pagination_token'],
         ]);
         if ($response->status() === 429) {
             throw new DomainException('Marketplace order polling is rate limited.');
@@ -326,7 +329,8 @@ final readonly class MarketplacePackService
             throw new RuntimeException('Marketplace order polling returned HTTP '.$response->status().'.');
         }
 
-        $records = $this->orderRecords($provider, $response->json());
+        $body = $response->json();
+        $records = $this->orderRecords($provider, $body);
         $eventIds = [];
         foreach ($records as $record) {
             $encoded = json_encode($record, JSON_THROW_ON_ERROR);
@@ -339,6 +343,7 @@ final readonly class MarketplacePackService
                 $record,
             );
         }
+        $this->pollCursor->advance($connection, $provider, $window, $body, count($records), $perPage);
 
         return $eventIds;
     }
@@ -370,7 +375,7 @@ final readonly class MarketplacePackService
             throw new RuntimeException('Marketplace order response must be JSON.');
         }
         $records = match ($provider) {
-            'amazon' => $body['payload']['Orders'] ?? $body['Orders'] ?? [],
+            'amazon' => $body['orders'] ?? $body['payload']['Orders'] ?? $body['Orders'] ?? [],
             'n11', 'idefix' => $body['content'] ?? $body['items'] ?? $body['shipments'] ?? [],
             'allesgo' => $body['data'] ?? $body['orders'] ?? [],
             'hepsiburada' => $body['items'] ?? $body,
@@ -392,7 +397,7 @@ final readonly class MarketplacePackService
     /** @param array<string,mixed> $record */
     private function orderIdentity(string $provider, array $record): string
     {
-        foreach (['AmazonOrderId', 'orderNumber', 'siparisNo', 'order_id', 'orderId', 'id', 'shipmentPackageId'] as $key) {
+        foreach (['orderId', 'AmazonOrderId', 'orderNumber', 'siparisNo', 'order_id', 'id', 'shipmentPackageId'] as $key) {
             if (isset($record[$key]) && is_scalar($record[$key]) && trim((string) $record[$key]) !== '') {
                 return trim((string) $record[$key]);
             }
@@ -457,10 +462,10 @@ final readonly class MarketplacePackService
         return is_array($decoded) ? $decoded : [];
     }
 
-    /** @return object{id:mixed,company_id:mixed,provider:mixed,credentials_ciphertext:mixed} */
+    /** @return object{id:mixed,company_id:mixed,provider:mixed,credentials_ciphertext:mixed,order_poll_watermark_at:mixed,order_poll_cursor:mixed} */
     private function connection(int $companyId, string $publicId): object
     {
-        /** @var object{id:mixed,company_id:mixed,provider:mixed,credentials_ciphertext:mixed}|null $connection */
+        /** @var object{id:mixed,company_id:mixed,provider:mixed,credentials_ciphertext:mixed,order_poll_watermark_at:mixed,order_poll_cursor:mixed}|null $connection */
         $connection = DB::table('integration_connections')
             ->where('company_id', $companyId)
             ->where('public_id', strtoupper(trim($publicId)))

@@ -106,10 +106,18 @@ final readonly class MarketplacePackGateway
         $size = max(1, min(100, (int) ($query['size'] ?? 50)));
         $start = isset($query['start']) ? (string) $query['start'] : now()->subDays(7)->toIso8601String();
         $end = isset($query['end']) ? (string) $query['end'] : now()->toIso8601String();
+        $paginationToken = isset($query['pagination_token']) && is_scalar($query['pagination_token'])
+            ? trim((string) $query['pagination_token'])
+            : '';
 
         return match ($provider) {
             'hepsiburada' => $this->hepsiburada->paidOrders($credentials, ['offset' => ($page - 1) * $size, 'limit' => $size]),
-            'amazon' => $this->amazon->searchOrders($credentials, ['lastUpdatedAfter' => $start, 'maxResultsPerPage' => $size]),
+            'amazon' => $this->amazon->searchOrders($credentials, array_filter([
+                'lastUpdatedAfter' => $start,
+                'lastUpdatedBefore' => $end,
+                'maxResultsPerPage' => $size,
+                'paginationToken' => $paginationToken === '' ? null : $paginationToken,
+            ], static fn (mixed $value): bool => $value !== null)),
             'n11' => $this->n11($credentials)->get('https://api.n11.com/rest/delivery/v1/shipmentPackages', [
                 'startDate' => strtotime($start) * 1000,
                 'endDate' => strtotime($end) * 1000,
