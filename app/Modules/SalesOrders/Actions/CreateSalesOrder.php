@@ -28,10 +28,12 @@ final readonly class CreateSalesOrder
         private SalesOrderReservationSynchronizer $reservations,
     ) {}
 
+    /** @param array<string, mixed> $auditMetadata */
     public function handle(
         SalesOrderDraftData $data,
         string $seriesCode = 'default',
         AuditSource $auditSource = AuditSource::Web,
+        array $auditMetadata = [],
     ): SalesOrder {
         $companyId = (int) $this->companyContext->requireCompany()->getKey();
         $seriesCode = mb_strtolower(trim($seriesCode));
@@ -45,7 +47,7 @@ final readonly class CreateSalesOrder
         $draft = $this->resolver->resolve($companyId, $data);
 
         try {
-            return DB::transaction(function () use ($companyId, $seriesCode, $draft, $auditSource): SalesOrder {
+            return DB::transaction(function () use ($companyId, $seriesCode, $draft, $auditSource, $auditMetadata): SalesOrder {
                 $number = $this->numbers->issue($companyId, DocumentType::SalesOrder, $seriesCode);
                 $calculation = $draft->calculation;
 
@@ -77,6 +79,7 @@ final readonly class CreateSalesOrder
                     AuditTargetType::SalesOrder,
                     $order->getKey(),
                     after: $this->auditSnapshot->capture($order),
+                    metadata: $auditMetadata,
                     source: $auditSource,
                 );
 
