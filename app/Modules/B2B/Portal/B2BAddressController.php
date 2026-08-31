@@ -59,8 +59,9 @@ final readonly class B2BAddressController
         ];
     }
 
-    /** @param array<string, mixed> $validated
-     *  @return array<string, mixed>
+    /**
+     * @param  array<string, mixed>  $validated
+     * @return array<string, mixed>
      */
     private function payload(array $validated): array
     {
