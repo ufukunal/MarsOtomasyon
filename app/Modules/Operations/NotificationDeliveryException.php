@@ -3,6 +3,7 @@
 namespace App\Modules\Operations;
 
 use RuntimeException;
+use Throwable;
 
 final class NotificationDeliveryException extends RuntimeException
 {
@@ -13,7 +14,8 @@ final class NotificationDeliveryException extends RuntimeException
         public readonly bool $ambiguous = false,
         public readonly bool $manualRetryRequired = false,
         public readonly ?int $retryAfterSeconds = null,
+        ?Throwable $previous = null,
     ) {
-        parent::__construct($message);
+        parent::__construct($message, previous: $previous);
     }
 }
