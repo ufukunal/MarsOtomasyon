@@ -34,7 +34,7 @@ Bu belge `16_UYGULAMA_SIRASI_MILESTONE.md` içindeki resmî V4.2 milestone numar
 | M16 | İthalat / Konteyner | **DONE** | PR #75; file/container/package/component/location, finalized GoodsReceipt handoff, landed-cost allocation/posting, reports/lists/simulator; merge `98de2a0c65f0c2cec63e7aebc10660b6eca7cab9`; exact main Foundation run `33292866739` 4/4 | V1 milestone gap yok |
 | M17 | E-Ticaret Integration Core + WooCommerce | **DONE** | PR #76; Channel Center/settings, encrypted credentials, WooCommerce connection test, product mapping/media, versioned stock-price desired state + stale guard, webhook/polling idempotency, stock problem/retry, return/invoice/settlement seams; merge `8bb31c70ae9b3953d2cf477bfa88bba1c3b0464a`; exact main Foundation run `33320300545` 4/4 | V1 milestone gap yok; gerçek merchant credential/production doğrulaması provider/account bazlı operasyon kanıtıdır |
 | M18 | Verified Marketplace Adapter Pack | **DONE** | PR #77 Trendyol contract adapter; PR #80 HB/AMZ/N11/PTT/IDF/ALG pack; PR #83 malformed fixture + Problem Center hardening; PR #84 n11 `stockCode` inbound identity; `MarketplaceCapabilityContract` provider media/operation/smoke boundary'sini fail-closed kilitler; `MarketplaceOrderPollCursor` + PostgreSQL tests restart-safe page/token/window watermark akışını ve Amazon Orders `2026-01-01` `orderId`/`paginationToken` contractını korur | V1 kod milestone gap yok; gerçek merchant credential, whitelist ve SIT/production çağrı kanıtı provider/account bazlı operasyon doğrulamasıdır ve bu kanıt olmadan status `verified_marketplace` yapılmaz |
-| M19 | B2B / Bayi Sistemi | **PARTIAL** | M2.5 Account B2B access-policy metadata mevcut | Ayrı B2B auth context, B2BUser, session/reset/rate-limit, catalog/cart/order/history/risk/invoice/statement tamamlanmalı |
+| M19 | B2B / Bayi Sistemi | **DONE** | PR #86 + #87: internal `web` guard'dan ayrı B2B auth/session, Account'a pre-bound immutable ULID `B2BUser`, lifecycle/password reset/auth-version revoke/rate-limit, typed role/permission + account-policy ceiling, readonly cari portalı, catalog/search/account product visibility, stock ve satış fiyatı−Cari İskontosu, cart + mevcut `SalesOrder` reuse, PostgreSQL advisory-lock idempotency, risk/exposure policy, history/invoice/statement, immutable-ULID address management ve external B2B audit actor metadata; `B2BAuthenticationTest`, `B2BPortalExitGateTest`, `B2BCompletionGapTest` | V1 milestone gap yok |
 | M20 | Communication / System Integrations / API | **PARTIAL** | PR #64: notification templates/delivery + async operations foundation; provider-neutral e-document seam M8'de var | `/api/v1`, production provider adapters, template/version/test UX ve ilgili A-08/A-09/A-10/A-11 gates tamamlanmalı |
 | M21 | Product Image Operations | **PARTIAL** | M3.4 private product media/file foundation mevcut | destination sets, main/gallery/order, copy/move/edit/crop/resize/provider metadata/quarantine lifecycle tamamlanmalı |
 | M22 | Product Installation PDF Builder | **PENDING** | Versioned/private PDF/file primitives mevcut fakat domain-specific installation builder exit kanıtı yok | steps/warnings/tools/parts/images/A4 preview/versioned output vertical slice |
@@ -43,12 +43,11 @@ Bu belge `16_UYGULAMA_SIRASI_MILESTONE.md` içindeki resmî V4.2 milestone numar
 
 ## Bir sonraki uygulama sırası
 
-1. **M19 B2B / Bayi Sistemi**.
-2. **M20 Communication / API**.
-3. **M21 Product Image Operations**.
-4. **M22 Installation PDF Builder**.
-5. **M23 Production Candidate hardening**.
-6. **M24 Migration / Go-Live**.
+1. **M20 Communication / API**.
+2. **M21 Product Image Operations**.
+3. **M22 Installation PDF Builder**.
+4. **M23 Production Candidate hardening**.
+5. **M24 Migration / Go-Live**.
 
 ## Reconciliation kuralı
 
