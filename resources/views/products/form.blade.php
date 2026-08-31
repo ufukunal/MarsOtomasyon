@@ -11,7 +11,7 @@
         <div>
             <p class="eyebrow">Ürün / Katalog</p>
             <h1>{{ $product ? 'Ürün Düzenle' : 'Yeni Ürün' }}</h1>
-            <p>{{ $product ? 'SKU kimliği, fiyat, vergi ve barkod bilgilerini güncelleyin.' : 'Aktif firmaya yeni satılabilir / stoklanabilir SKU ekleyin.' }}</p>
+            <p>{{ $product ? 'SKU kimliği, marka, fiyat, vergi ve barkod bilgilerini güncelleyin.' : 'Aktif firmaya yeni satılabilir / stoklanabilir SKU ekleyin.' }}</p>
         </div>
         <a href="{{ $product ? route('inventory.products.show', $product->getKey()) : route('inventory.index') }}" data-workspace-link>Vazgeç</a>
     </section>
@@ -50,6 +50,11 @@
             <label>
                 Ürün Adı
                 <input name="name" maxlength="200" required value="{{ old('name', $product?->name) }}">
+            </label>
+
+            <label>
+                Marka
+                <input name="brand" maxlength="160" value="{{ old('brand', $product?->brand) }}">
             </label>
 
             @if ($product)

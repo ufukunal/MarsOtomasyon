@@ -25,6 +25,7 @@
         <dl class="detail-list">
             <div><dt>SKU Kodu</dt><dd>{{ $product->code }}</dd></div>
             <div><dt>Ürün Adı</dt><dd>{{ $product->name }}</dd></div>
+            <div><dt>Marka</dt><dd>{{ $product->brand ?? '—' }}</dd></div>
             <div><dt>Durum</dt><dd>{{ $product->statusEnum()->label() }}</dd></div>
             <div><dt>Kategori</dt><dd>{{ $product->category?->name ?? '—' }}</dd></div>
             <div><dt>Birim</dt><dd>{{ $product->unit->code }} · {{ $product->unit->name }}</dd></div>

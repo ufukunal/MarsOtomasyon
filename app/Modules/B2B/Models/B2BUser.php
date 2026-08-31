@@ -4,6 +4,8 @@ namespace App\Modules\B2B\Models;
 
 use App\Modules\Accounts\Models\Account;
 use App\Modules\Accounts\Models\AccountB2BPolicy;
+use App\Modules\B2B\Enums\B2BPermission;
+use App\Modules\B2B\Enums\B2BRole;
 use App\Modules\B2B\Enums\B2BUserStatus;
 use App\Modules\Core\Models\Company;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -22,13 +24,14 @@ final class B2BUser extends Authenticatable
         'email',
         'password',
         'status',
+        'role',
+        'permissions',
+        'auth_version',
+        'password_changed_at',
         'last_login_at',
     ];
 
-    protected $hidden = [
-        'password',
-        'remember_token',
-    ];
+    protected $hidden = ['password', 'remember_token'];
 
     protected static function booted(): void
     {
@@ -58,6 +61,10 @@ final class B2BUser extends Authenticatable
         return [
             'password' => 'hashed',
             'status' => B2BUserStatus::class,
+            'role' => B2BRole::class,
+            'permissions' => 'array',
+            'auth_version' => 'integer',
+            'password_changed_at' => 'immutable_datetime',
             'last_login_at' => 'immutable_datetime',
             'created_at' => 'immutable_datetime',
             'updated_at' => 'immutable_datetime',
@@ -75,6 +82,51 @@ final class B2BUser extends Authenticatable
             ?? throw new LogicException('Persisted B2B user status is invalid.');
     }
 
+    public function roleEnum(): B2BRole
+    {
+        $raw = $this->getRawOriginal('role');
+        if (is_string($raw) === false) {
+            throw new LogicException('Persisted B2B user role must be a string.');
+        }
+
+        return B2BRole::tryFrom($raw)
+            ?? throw new LogicException('Persisted B2B user role is invalid.');
+    }
+
+    /** @return list<B2BPermission> */
+    public function typedPermissions(): array
+    {
+        $raw = $this->getAttribute('permissions');
+        if (! is_array($raw)) {
+            throw new LogicException('Persisted B2B permissions must be an array.');
+        }
+
+        $permissions = [];
+        foreach ($raw as $value) {
+            if (! is_string($value)) {
+                throw new LogicException('Persisted B2B permission must be a string.');
+            }
+            $permission = B2BPermission::tryFrom($value);
+            if (! $permission instanceof B2BPermission) {
+                throw new LogicException('Persisted B2B permission is invalid.');
+            }
+            $permissions[$permission->value] = $permission;
+        }
+
+        return array_values($permissions);
+    }
+
+    public function hasPermission(B2BPermission $permission): bool
+    {
+        foreach ($this->typedPermissions() as $granted) {
+            if ($granted === $permission) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public function isActive(): bool
     {
         return $this->statusEnum() === B2BUserStatus::Active;
@@ -89,19 +141,11 @@ final class B2BUser extends Authenticatable
         $company = $this->company()->first();
         $account = $this->account()->first();
 
-        if (($company instanceof Company) === false) {
+        if (! $company instanceof Company || $company->isActive() === false) {
             return false;
         }
 
-        if ($company->isActive() === false) {
-            return false;
-        }
-
-        if (($account instanceof Account) === false) {
-            return false;
-        }
-
-        if ($account->isActive() === false) {
+        if (! $account instanceof Account || $account->isActive() === false) {
             return false;
         }
 
@@ -110,6 +154,14 @@ final class B2BUser extends Authenticatable
             ->where('account_id', $this->getAttribute('account_id'))
             ->where('is_enabled', true)
             ->exists();
+    }
+
+    public function rotateAuthVersion(): void
+    {
+        $this->forceFill([
+            'auth_version' => ((int) $this->auth_version) + 1,
+            'password_changed_at' => now(),
+        ])->save();
     }
 
     /** @return BelongsTo<Company, $this> */

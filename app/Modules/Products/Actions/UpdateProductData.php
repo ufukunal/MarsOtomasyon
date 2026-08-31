@@ -18,5 +18,6 @@ final readonly class UpdateProductData
         public string $purchasePriceNet,
         public ?string $primaryBarcode = null,
         public array $additionalBarcodes = [],
+        public ?string $brand = null,
     ) {}
 }

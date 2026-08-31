@@ -17,5 +17,6 @@ final readonly class CreateProductData
         public string $purchasePriceNet = '0',
         public ?string $primaryBarcode = null,
         public array $additionalBarcodes = [],
+        public ?string $brand = null,
     ) {}
 }

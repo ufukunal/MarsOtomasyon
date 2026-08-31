@@ -17,6 +17,7 @@ final class Product extends Model
         'code',
         'status',
         'name',
+        'brand',
         'category_id',
         'unit_id',
         'tax_id',

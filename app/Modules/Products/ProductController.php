@@ -82,6 +82,7 @@ final readonly class ProductController
             purchasePriceNet: (string) $validated['purchase_price_net'],
             primaryBarcode: $this->nullableString($validated['primary_barcode'] ?? null),
             additionalBarcodes: $this->barcodeLines($validated['additional_barcodes'] ?? null),
+            brand: $this->nullableString($validated['brand'] ?? null),
         ));
 
         return redirect()->route('inventory.products.show', $product->getKey())
@@ -125,6 +126,7 @@ final readonly class ProductController
             purchasePriceNet: (string) $validated['purchase_price_net'],
             primaryBarcode: $this->nullableString($validated['primary_barcode'] ?? null),
             additionalBarcodes: $this->barcodeLines($validated['additional_barcodes'] ?? null),
+            brand: $this->nullableString($validated['brand'] ?? null),
         ));
 
         return redirect()->route('inventory.products.show', $updated->getKey())
@@ -137,6 +139,7 @@ final readonly class ProductController
         $rules = [
             'code' => ['required', 'string', 'max:64'],
             'name' => ['required', 'string', 'max:200'],
+            'brand' => ['nullable', 'string', 'max:160'],
             'category_id' => ['nullable', 'integer', 'min:1'],
             'unit_id' => ['required', 'integer', 'min:1'],
             'tax_id' => ['required', 'integer', 'min:1'],
