@@ -4,6 +4,7 @@ namespace App\Modules\Accounts\Actions;
 
 use App\Modules\Accounts\Models\Account;
 use App\Modules\Accounts\Models\AccountB2BPolicy;
+use App\Modules\B2B\Enums\B2BRiskBehavior;
 use App\Modules\Core\Audit\AuditRecorder;
 use App\Modules\Core\Company\ActiveCompanyContext;
 use App\Modules\Core\Enums\AuditAction;
@@ -79,6 +80,9 @@ final readonly class UpdateAccountB2BPolicy
             ];
         }
 
+        $riskBehavior = B2BRiskBehavior::tryFrom((string) $policy->getRawOriginal('risk_behavior'))
+            ?? throw new LogicException('Persisted B2B risk behavior is invalid.');
+
         return [
             'is_enabled' => (bool) $policy->is_enabled,
             'allow_orders' => (bool) $policy->allow_orders,
@@ -89,7 +93,7 @@ final readonly class UpdateAccountB2BPolicy
             'show_statement' => (bool) $policy->show_statement,
             'allow_address_management' => (bool) $policy->allow_address_management,
             'default_warehouse_id' => $policy->default_warehouse_id === null ? null : (int) $policy->default_warehouse_id,
-            'risk_behavior' => $policy->risk_behavior->value,
+            'risk_behavior' => $riskBehavior->value,
         ];
     }
 
