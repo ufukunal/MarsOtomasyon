@@ -17,6 +17,7 @@ use App\Modules\SalesOrders\Actions\SalesOrderLineData;
 use App\Modules\SalesOrders\Models\SalesOrder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
+use LogicException;
 
 final readonly class B2BOrderService
 {
@@ -102,8 +103,10 @@ final readonly class B2BOrderService
                 'SELECT CASE WHEN (GREATEST(?::numeric, 0) + ?::numeric) > ?::numeric THEN 1 ELSE 0 END AS exceeded',
                 [$balance, $resolved->calculation->gross, (string) $account->risk_limit],
             );
-            $exceeded = (int) ($riskRow?->exceeded ?? 0) === 1;
-            if ($exceeded && $policy->risk_behavior === B2BRiskBehavior::Block) {
+            $exceeded = (int) $riskRow->exceeded === 1;
+            $riskBehavior = B2BRiskBehavior::tryFrom((string) $policy->getRawOriginal('risk_behavior'))
+                ?? throw new LogicException('Persisted B2B risk behavior is invalid.');
+            if ($exceeded && $riskBehavior === B2BRiskBehavior::Block) {
                 throw ValidationException::withMessages(['risk' => 'Cari risk limiti bu siparişi karşılamıyor.']);
             }
             $warning = $exceeded
