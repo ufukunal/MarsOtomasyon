@@ -114,7 +114,16 @@ final readonly class B2BOrderService
                 ? 'Cari risk limiti aşılıyor; politika uyarı modunda olduğu için sipariş oluşturuldu.'
                 : null;
 
-            $order = $this->createOrder->handle($draft, 'b2b', AuditSource::Api);
+            $order = $this->createOrder->handle(
+                $draft,
+                'b2b',
+                AuditSource::Api,
+                [
+                    'actor_type' => 'b2b_user',
+                    'actor_public_id' => (string) $user->public_id,
+                    'actor_account_id' => (int) $user->account_id,
+                ],
+            );
             DB::table('b2b_order_submissions')
                 ->where('company_id', $user->company_id)
                 ->where('b2b_user_id', $user->getKey())
