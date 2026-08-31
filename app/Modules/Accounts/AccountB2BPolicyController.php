@@ -40,33 +40,35 @@ final readonly class AccountB2BPolicyController
 
     public function update(Request $request, int $account): RedirectResponse
     {
+        $this->account($account);
+
         $validated = $request->validate([
             'is_enabled' => ['required', 'boolean'],
             'allow_orders' => ['required', 'boolean'],
-            'show_price' => ['required', 'boolean'],
+            'show_price' => ['sometimes', 'boolean'],
             'show_stock' => ['required', 'boolean'],
-            'show_balance' => ['required', 'boolean'],
+            'show_balance' => ['sometimes', 'boolean'],
             'show_invoices' => ['required', 'boolean'],
             'show_statement' => ['required', 'boolean'],
             'allow_address_management' => ['required', 'boolean'],
             'default_warehouse_id' => ['nullable', 'integer'],
-            'risk_behavior' => ['required', Rule::enum(B2BRiskBehavior::class)],
+            'risk_behavior' => ['sometimes', Rule::enum(B2BRiskBehavior::class)],
         ]);
 
         $updated = $this->updatePolicy->handle($account, new UpdateAccountB2BPolicyData(
             isEnabled: (bool) $validated['is_enabled'],
             allowOrders: (bool) $validated['allow_orders'],
-            showPrice: (bool) $validated['show_price'],
+            showPrice: (bool) ($validated['show_price'] ?? false),
             showStock: (bool) $validated['show_stock'],
-            showBalance: (bool) $validated['show_balance'],
+            showBalance: (bool) ($validated['show_balance'] ?? false),
             showInvoices: (bool) $validated['show_invoices'],
             showStatement: (bool) $validated['show_statement'],
             allowAddressManagement: (bool) $validated['allow_address_management'],
             defaultWarehouseId: isset($validated['default_warehouse_id']) ? (int) $validated['default_warehouse_id'] : null,
-            riskBehavior: B2BRiskBehavior::from((string) $validated['risk_behavior']),
+            riskBehavior: B2BRiskBehavior::from((string) ($validated['risk_behavior'] ?? B2BRiskBehavior::Block->value)),
         ));
 
-        return redirect()->route('customers.b2b.edit', $updated->getKey())->with('status', 'Cari B2B / bayi erişim politikası güncellendi.');
+        return redirect()->route('customers.show', $updated->getKey())->with('status', 'Cari B2B / bayi erişim politikası güncellendi.');
     }
 
     private function account(int $id): Account
