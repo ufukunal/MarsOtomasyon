@@ -2,6 +2,7 @@
 
 use App\Foundation\Correlation\CorrelationIdMiddleware;
 use App\Foundation\Health\ReadinessController;
+use App\Modules\B2B\Http\Middleware\EnsureB2BAccess;
 use App\Modules\Core\Branch\ResolveActiveBranch;
 use App\Modules\Core\Company\ResolveActiveCompany;
 use App\Modules\Operations\EnforceCompanyIpPolicy;
@@ -36,12 +37,18 @@ return Application::configure(basePath: dirname(__DIR__))
             require base_path('routes/subcontract.php');
             require base_path('routes/imports.php');
             require base_path('routes/operations.php');
+            require base_path('routes/b2b.php');
             Route::get('/health/ready', ReadinessController::class)->name('health.ready');
         },
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->append(CorrelationIdMiddleware::class);
-        $middleware->alias(['company.context' => ResolveActiveCompany::class, 'branch.context' => ResolveActiveBranch::class, 'security.ip' => EnforceCompanyIpPolicy::class]);
+        $middleware->alias([
+            'company.context' => ResolveActiveCompany::class,
+            'branch.context' => ResolveActiveBranch::class,
+            'security.ip' => EnforceCompanyIpPolicy::class,
+            'b2b.auth' => EnsureB2BAccess::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(fn (Request $request): bool => $request->is('api/*') || $request->expectsJson());
