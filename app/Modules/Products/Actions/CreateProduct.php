@@ -30,6 +30,7 @@ final readonly class CreateProduct
         $companyId = (int) $this->companyContext->requireCompany()->getKey();
         $code = $this->normalizeCode($data->code);
         $name = $this->normalizeName($data->name);
+        $brand = $this->normalizeBrand($data->brand);
         $salePriceNet = $this->normalizePrice($data->salePriceNet, 'sale_price_net');
         $purchasePriceNet = $this->normalizePrice($data->purchasePriceNet, 'purchase_price_net');
         $barcodes = $this->normalizeBarcodes($data->primaryBarcode, $data->additionalBarcodes);
@@ -45,6 +46,7 @@ final readonly class CreateProduct
                 $companyId,
                 $code,
                 $name,
+                $brand,
                 $data,
                 $salePriceNet,
                 $purchasePriceNet,
@@ -55,6 +57,7 @@ final readonly class CreateProduct
                     'code' => $code,
                     'status' => ProductStatus::Active,
                     'name' => $name,
+                    'brand' => $brand,
                     'category_id' => $data->categoryId,
                     'unit_id' => $data->unitId,
                     'tax_id' => $data->taxId,
@@ -107,6 +110,19 @@ final readonly class CreateProduct
         }
 
         return $name;
+    }
+
+    private function normalizeBrand(?string $raw): ?string
+    {
+        $brand = trim((string) $raw);
+        if ($brand === '') {
+            return null;
+        }
+        if (mb_strlen($brand) > 160) {
+            throw ValidationException::withMessages(['brand' => 'Marka 160 karakteri aşamaz.']);
+        }
+
+        return $brand;
     }
 
     private function normalizePrice(string $raw, string $field): string
@@ -228,6 +244,7 @@ final readonly class CreateProduct
      *     code:string,
      *     status:string,
      *     name:string,
+     *     brand:?string,
      *     category_id:?int,
      *     unit_id:int,
      *     tax_id:int,
@@ -249,6 +266,7 @@ final readonly class CreateProduct
             'code' => (string) $product->code,
             'status' => $product->statusEnum()->value,
             'name' => (string) $product->name,
+            'brand' => $product->brand === null ? null : (string) $product->brand,
             'category_id' => $product->category_id === null ? null : (int) $product->category_id,
             'unit_id' => (int) $product->unit_id,
             'tax_id' => (int) $product->tax_id,
