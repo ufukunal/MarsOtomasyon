@@ -2,6 +2,7 @@
 
 namespace App\Foundation\Health;
 
+use App\Foundation\Operations\ProductionSafetyState;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Redis\RedisManager;
 use Illuminate\Support\Facades\Log;
@@ -12,11 +13,16 @@ final readonly class SystemReadinessCheck implements ReadinessCheck
     public function __construct(
         private DatabaseManager $database,
         private RedisManager $redis,
+        private ProductionSafetyState $safety,
     ) {}
 
     public function check(): ReadinessResult
     {
         $failed = [];
+
+        if ($this->safety->recoveryMode()) {
+            $failed[] = 'recovery-mode';
+        }
 
         try {
             $this->database->connection()->selectOne('SELECT 1 AS ready');

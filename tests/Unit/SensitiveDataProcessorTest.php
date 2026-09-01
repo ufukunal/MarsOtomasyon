@@ -11,14 +11,14 @@ use PHPUnit\Framework\TestCase;
 
 final class SensitiveDataProcessorTest extends TestCase
 {
-    public function test_sensitive_context_and_pii_are_redacted(): void
+    public function test_sensitive_context_pii_and_log_message_are_redacted(): void
     {
         $processor = new SensitiveDataProcessor(new SensitiveDataRedactor);
         $record = new LogRecord(
             datetime: new DateTimeImmutable('2026-08-24T12:00:00Z'),
             channel: 'test',
             level: Level::Info,
-            message: 'test',
+            message: 'Provider failed email=person@example.com Authorization: Bearer abc.def.ghi iban=TR000000000000000000000000',
             context: [
                 'document_id' => 'INV-1',
                 'password' => 'plain-password',
@@ -41,5 +41,8 @@ final class SensitiveDataProcessorTest extends TestCase
         self::assertSame(SensitiveDataRedactor::REDACTED, $processed->context['customer']['email']);
         self::assertSame('Authorization: Bearer [REDACTED]', $processed->context['customer']['note']);
         self::assertSame(SensitiveDataRedactor::REDACTED, $processed->extra['iban']);
+        self::assertStringNotContainsString('person@example.com', $processed->message);
+        self::assertStringNotContainsString('abc.def.ghi', $processed->message);
+        self::assertStringNotContainsString('TR000000000000000000000000', $processed->message);
     }
 }
