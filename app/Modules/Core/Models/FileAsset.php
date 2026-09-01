@@ -20,6 +20,9 @@ final class FileAsset extends Model
         'sha256',
         'archived_at',
         'archived_by_user_id',
+        'quarantined_at',
+        'quarantined_by_user_id',
+        'quarantine_reason',
     ];
 
     protected function casts(): array
@@ -27,6 +30,7 @@ final class FileAsset extends Model
         return [
             'size_bytes' => 'integer',
             'archived_at' => 'immutable_datetime',
+            'quarantined_at' => 'immutable_datetime',
             'created_at' => 'immutable_datetime',
             'updated_at' => 'immutable_datetime',
         ];
@@ -48,6 +52,12 @@ final class FileAsset extends Model
     public function archivedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'archived_by_user_id');
+    }
+
+    /** @return BelongsTo<User, $this> */
+    public function quarantinedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'quarantined_by_user_id');
     }
 
     /** @return HasMany<Attachment, $this> */

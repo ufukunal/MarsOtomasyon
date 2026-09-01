@@ -34,6 +34,7 @@ final readonly class ProductFileManager
             ->whereHas('attachment', static fn ($query) => $query->whereNull('detached_at'))
             ->with(['attachment.fileAsset', 'attachment.attachedBy'])
             ->orderBy('kind')
+            ->orderByDesc('is_main')
             ->orderBy('position')
             ->orderBy('id')
             ->get();
@@ -56,6 +57,7 @@ final readonly class ProductFileManager
         try {
             $productFile = DB::transaction(function () use ($id, $kind, $attachmentId): ProductFile {
                 $position = $this->nextPosition($id, $kind);
+                $isMain = $kind === ProductFileKind::Media && ! $this->hasActiveMainMedia($id);
 
                 return ProductFile::query()->create([
                     'company_id' => $this->companyId(),
@@ -63,6 +65,7 @@ final readonly class ProductFileManager
                     'attachment_id' => $attachmentId,
                     'kind' => $kind,
                     'position' => $position,
+                    'is_main' => $isMain,
                 ]);
             });
         } catch (Throwable $exception) {
@@ -88,13 +91,31 @@ final readonly class ProductFileManager
     public function detach(int $productId, int $productFileId): ProductFile
     {
         $file = $this->file($productId, $productFileId);
-        $this->attachments->detach(
-            AttachmentTargetType::Product,
-            (int) $file->product_id,
-            (int) $file->attachment_id,
-        );
 
-        return $file->refresh();
+        return DB::transaction(function () use ($file): ProductFile {
+            $this->attachments->detach(
+                AttachmentTargetType::Product,
+                (int) $file->product_id,
+                (int) $file->attachment_id,
+            );
+
+            if ($file->kind === ProductFileKind::Media && $file->is_main) {
+                $file->update(['is_main' => false]);
+                $next = ProductFile::query()
+                    ->where('company_id', $this->companyId())
+                    ->where('product_id', $file->product_id)
+                    ->where('kind', ProductFileKind::Media->value)
+                    ->where('id', '<>', $file->getKey())
+                    ->whereHas('attachment', static fn ($query) => $query->whereNull('detached_at'))
+                    ->orderBy('position')
+                    ->orderBy('id')
+                    ->lockForUpdate()
+                    ->first();
+                $next?->update(['is_main' => true]);
+            }
+
+            return $file->refresh();
+        });
     }
 
     private function file(int $productId, int $productFileId): ProductFile
@@ -120,6 +141,17 @@ final readonly class ProductFileManager
                 'file' => 'Medya alanına yalnız doğrulanmış görsel dosyaları yüklenebilir.',
             ]);
         }
+    }
+
+    private function hasActiveMainMedia(int $productId): bool
+    {
+        return ProductFile::query()
+            ->where('company_id', $this->companyId())
+            ->where('product_id', $productId)
+            ->where('kind', ProductFileKind::Media->value)
+            ->where('is_main', true)
+            ->whereHas('attachment', static fn ($query) => $query->whereNull('detached_at'))
+            ->exists();
     }
 
     private function nextPosition(int $productId, ProductFileKind $kind): int

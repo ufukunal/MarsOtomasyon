@@ -72,16 +72,7 @@ final readonly class PrivateAttachmentManager
                     throw new LogicException('File asset persistence did not return an integer key.');
                 }
 
-                $attachment = Attachment::query()->create([
-                    'company_id' => $companyId,
-                    'file_asset_id' => $assetId,
-                    'attachable_type' => $type,
-                    'attachable_id' => $targetId,
-                    'label' => $label === null || trim($label) === '' ? null : trim($label),
-                    'attached_by_user_id' => $actorId,
-                    'attached_at' => $this->clock->now(),
-                ]);
-
+                $attachment = $this->createAttachment($companyId, $actorId, $type, $targetId, $assetId, $label);
                 $attachmentId = $attachment->getKey();
                 if (! is_int($attachmentId)) {
                     throw new LogicException('Attachment persistence did not return an integer key.');
@@ -111,6 +102,30 @@ final readonly class PrivateAttachmentManager
         }
     }
 
+    public function linkExistingAsset(
+        AttachmentTargetType $type,
+        int $targetId,
+        int $fileAssetId,
+        ?string $label = null,
+    ): Attachment {
+        $companyId = $this->companyId();
+        $this->assertCoreTarget($type, $targetId, $companyId);
+        $actorId = $this->actorId();
+
+        return DB::transaction(function () use ($companyId, $actorId, $type, $targetId, $fileAssetId, $label): Attachment {
+            $asset = FileAsset::query()
+                ->where('company_id', $companyId)
+                ->whereNull('archived_at')
+                ->whereNull('quarantined_at')
+                ->lockForUpdate()
+                ->findOrFail($fileAssetId);
+
+            $attachment = $this->createAttachment($companyId, $actorId, $type, $targetId, $fileAssetId, $label);
+
+            return $attachment->setRelation('fileAsset', $asset);
+        });
+    }
+
     public function attachment(AttachmentTargetType $type, int $targetId, int $attachmentId): Attachment
     {
         $companyId = $this->companyId();
@@ -130,7 +145,10 @@ final readonly class PrivateAttachmentManager
         abort_if($attachment->isDetached(), 404);
 
         $asset = $attachment->fileAsset;
-        abort_if(! $asset instanceof FileAsset || $asset->archived_at !== null, 404);
+        abort_if(
+            ! $asset instanceof FileAsset || $asset->archived_at !== null || $asset->quarantined_at !== null,
+            404,
+        );
         abort_unless(Storage::disk((string) $asset->storage_disk)->exists((string) $asset->storage_key), 410, 'Dosya storage alanında bulunamadı.');
 
         return Storage::disk((string) $asset->storage_disk)->download(
@@ -142,6 +160,60 @@ final readonly class PrivateAttachmentManager
                 'Content-Security-Policy' => "default-src 'none'; sandbox",
             ],
         );
+    }
+
+    public function quarantine(int $fileAssetId, string $reason): FileAsset
+    {
+        $companyId = $this->companyId();
+        $actorId = $this->actorId();
+        $reason = trim($reason);
+        if ($reason === '') {
+            throw ValidationException::withMessages(['quarantine_reason' => 'Karantina nedeni zorunludur.']);
+        }
+
+        return DB::transaction(function () use ($companyId, $actorId, $fileAssetId, $reason): FileAsset {
+            $asset = FileAsset::query()
+                ->where('company_id', $companyId)
+                ->whereNull('archived_at')
+                ->lockForUpdate()
+                ->findOrFail($fileAssetId);
+
+            if ($asset->quarantined_at !== null) {
+                return $asset;
+            }
+
+            $asset->update([
+                'quarantined_at' => $this->clock->now(),
+                'quarantined_by_user_id' => $actorId,
+                'quarantine_reason' => mb_substr($reason, 0, 255),
+            ]);
+
+            return $asset->refresh();
+        });
+    }
+
+    public function releaseQuarantine(int $fileAssetId): FileAsset
+    {
+        $companyId = $this->companyId();
+
+        return DB::transaction(function () use ($companyId, $fileAssetId): FileAsset {
+            $asset = FileAsset::query()
+                ->where('company_id', $companyId)
+                ->lockForUpdate()
+                ->findOrFail($fileAssetId);
+
+            if ($asset->quarantined_at === null) {
+                return $asset;
+            }
+
+            $asset->update([
+                'quarantined_at' => null,
+                'quarantined_by_user_id' => null,
+                'quarantine_reason' => null,
+            ]);
+
+            return $asset->refresh();
+        });
     }
 
     public function detach(AttachmentTargetType $type, int $targetId, int $attachmentId): Attachment
@@ -234,6 +306,25 @@ final readonly class PrivateAttachmentManager
             'size_bytes' => $size,
             'sha256' => $sha256,
         ];
+    }
+
+    private function createAttachment(
+        int $companyId,
+        int $actorId,
+        AttachmentTargetType $type,
+        int $targetId,
+        int $fileAssetId,
+        ?string $label,
+    ): Attachment {
+        return Attachment::query()->create([
+            'company_id' => $companyId,
+            'file_asset_id' => $fileAssetId,
+            'attachable_type' => $type,
+            'attachable_id' => $targetId,
+            'label' => $label === null || trim($label) === '' ? null : trim($label),
+            'attached_by_user_id' => $actorId,
+            'attached_at' => $this->clock->now(),
+        ]);
     }
 
     private function assertCoreTarget(AttachmentTargetType $type, int $targetId, int $companyId): void
