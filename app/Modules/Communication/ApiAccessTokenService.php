@@ -8,7 +8,10 @@ use Illuminate\Support\Str;
 
 final class ApiAccessTokenService
 {
-    /** @param list<string> $permissions @return array{token:string,key_id:string} */
+    /**
+     * @param list<string> $permissions
+     * @return array{token:string,key_id:string}
+     */
     public function issue(int $companyId, string $name, array $permissions, ?\DateTimeInterface $expiresAt = null): array
     {
         $name = trim($name);
