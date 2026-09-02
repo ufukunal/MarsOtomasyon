@@ -3,8 +3,10 @@
 use App\Modules\Core\Authorization\AssignRoleToMembership;
 use App\Modules\Core\Authorization\GrantPermissionToRole;
 use App\Modules\Core\Company\ActiveCompanyContext;
+use App\Modules\Core\Enums\AuditAction;
 use App\Modules\Core\Enums\PermissionKey;
 use App\Modules\Core\Enums\UserStatus;
+use App\Modules\Core\Models\AuditEntry;
 use App\Modules\Core\Models\Company;
 use App\Modules\Core\Models\CompanyMembership;
 use App\Modules\Core\Models\Role;
@@ -59,7 +61,8 @@ it('exposes the M21 image workspace to viewers while keeping mutations behind pr
 
     expect(ProductFile::query()->where('product_id', $product->getKey())->where('is_main', true)->value('id'))
         ->toBe($second->getKey())
-        ->and(ProductFile::query()->whereKey($first->getKey())->value('is_main'))->toBeFalse();
+        ->and(ProductFile::query()->whereKey($first->getKey())->value('is_main'))->toBeFalse()
+        ->and(m21HttpAuditOperations((int) $company->getKey(), (int) $product->getKey()))->toContain('set_main');
 });
 
 it('executes destination transform validation order copy and quarantine lifecycle through M21 routes', function (): void {
@@ -136,7 +139,8 @@ it('executes destination transform validation order copy and quarantine lifecycl
         ->assertRedirect();
 
     $copy = ProductFile::query()->where('product_id', $target->getKey())->where('kind', ProductFileKind::Media->value)->firstOrFail();
-    expect($copy->attachment->file_asset_id)->toBe($first->attachment->file_asset_id);
+    expect($copy->attachment->file_asset_id)->toBe($first->attachment->file_asset_id)
+        ->and(m21HttpAuditOperations((int) $company->getKey(), (int) $target->getKey()))->toContain('copy_in');
 
     $this->actingAs($manager)
         ->withSession($session)
@@ -176,8 +180,30 @@ it('executes destination transform validation order copy and quarantine lifecycl
         ])
         ->assertRedirect();
 
-    expect(ProductFile::query()->findOrFail($first->getKey())->destinations)->toBe(['site']);
+    $sourceOperations = m21HttpAuditOperations((int) $company->getKey(), (int) $source->getKey());
+    expect(ProductFile::query()->findOrFail($first->getKey())->destinations)->toBe(['site'])
+        ->and($sourceOperations)->toContain('destinations')
+        ->and($sourceOperations)->toContain('transform')
+        ->and($sourceOperations)->toContain('provider_validation')
+        ->and($sourceOperations)->toContain('reorder')
+        ->and($sourceOperations)->toContain('quarantine')
+        ->and($sourceOperations)->toContain('release_quarantine');
 });
+
+/** @return list<string> */
+function m21HttpAuditOperations(int $companyId, int $productId): array
+{
+    return AuditEntry::query()
+        ->where('company_id', $companyId)
+        ->where('action', AuditAction::ProductMediaUpdated->value)
+        ->where('target_id', (string) $productId)
+        ->orderBy('id')
+        ->get()
+        ->map(static fn (AuditEntry $entry): string => (string) ($entry->metadata['operation'] ?? ''))
+        ->filter(static fn (string $operation): bool => $operation !== '')
+        ->values()
+        ->all();
+}
 
 function m21HttpCompany(string $code): Company
 {
