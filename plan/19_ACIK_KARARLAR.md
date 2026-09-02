@@ -28,6 +28,7 @@ Bu dosya backlog değildir. Yalnız ilgili milestone başlamadan gerçekten kapa
 - M0 execution order: `29_M0_ALTYAPI_UYGULAMA_SIRASI.md` içindeki M0.0→M0.10 gate zinciri.
 - İthalat landed-cost: K-052; provisional masraf carrying value üretmez, final/late cost Goods Receipt cost-adjustment authority ile on-hand/consumed ayrılır; default `line_value`.
 - Public/external identity: K-053; internal bigint PK private kalır, dışarı açılan Mars resource additive immutable ULID `public_id` kullanır; provider external ID ve idempotency key ayrıdır.
+- Product image operations: V1 edit akışı tahribatsızdır; crop/rotate/flip/resize orijinal private byte içeriğini değiştirmeyen metadata reçetesidir. Copy/move aynı `FileAsset` byte varlığını yeni attachment ile yeniden kullanır; quarantine `FileAsset` seviyesinde globaldir ve aktif kullanım/download akışını fail-closed kapatır.
 
 ## B. AÇIK — GERÇEK BLOCKER
 
@@ -106,7 +107,7 @@ Bir milestone başlamadan aşağıdaki açık kararlar gerçekten gerekliyse kap
 | M18 | Provider registry + gerçek API contract doğrulaması her adapter entry gate'idir |
 | M19 | K-053 public ULID strategy locked; B2B token/auth contract ayrıca M19 scope’unda |
 | M20 | A-08/A-09/A-10/A-11 yalnız ilgili production provider slice'ı için zorunlu |
-| M21 | Açık blocker yok |
+| M21 | Açık blocker yok; tahribatsız edit/shared-asset/quarantine semantiği locked |
 | M22 | Açık blocker yok |
 | M23 | A-03, A-14, A-15 production hardening öncesi zorunlu |
 | M24 | A-16 zorunlu; A-13 production policy de kapanmış olmalı |
