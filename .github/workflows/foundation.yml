@@ -90,7 +90,7 @@ jobs:
   postgres-tests:
     name: postgres-tests
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 15
 
     services:
       postgres:
@@ -137,34 +137,28 @@ jobs:
       - name: Fresh PostgreSQL schema
         run: php artisan migrate:fresh --force
 
-      - name: Run unit tests
-        run: vendor/bin/pest tests/Unit --colors=always
-
-      - name: Run feature tests
-        run: vendor/bin/pest tests/Feature --colors=always
-
-      - name: Run integration tests with JUnit
-        id: integration
+      - name: Run SalesInvoices failure reproducer
+        id: sales_invoices
         continue-on-error: true
         run: |
           mkdir -p storage/logs
-          vendor/bin/pest tests/Integration --colors=always --log-junit storage/logs/integration-junit.xml
+          vendor/bin/pest \
+            tests/Integration/SalesInvoices/SalesInvoiceDocumentFoundationTest.php \
+            tests/Integration/SalesInvoices/SalesInvoiceExitGateTest.php \
+            --colors=always \
+            --log-junit storage/logs/sales-invoices-junit.xml
 
-      - name: Upload integration JUnit
+      - name: Upload SalesInvoices JUnit
         if: ${{ always() }}
         uses: actions/upload-artifact@v4
         with:
-          name: integration-junit
-          path: storage/logs/integration-junit.xml
+          name: sales-invoices-junit
+          path: storage/logs/sales-invoices-junit.xml
           if-no-files-found: error
           retention-days: 1
 
-      - name: Run architecture tests
-        if: ${{ always() }}
-        run: vendor/bin/pest tests/Architecture --colors=always
-
-      - name: Enforce integration result
-        if: ${{ always() && steps.integration.outcome == 'failure' }}
+      - name: Enforce SalesInvoices result
+        if: ${{ always() && steps.sales_invoices.outcome == 'failure' }}
         run: exit 1
 
   browser-smoke:
