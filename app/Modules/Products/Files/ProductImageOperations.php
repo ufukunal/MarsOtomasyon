@@ -2,8 +2,11 @@
 
 namespace App\Modules\Products\Files;
 
+use App\Modules\Core\Audit\AuditRecorder;
 use App\Modules\Core\Company\ActiveCompanyContext;
 use App\Modules\Core\Enums\AttachmentTargetType;
+use App\Modules\Core\Enums\AuditAction;
+use App\Modules\Core\Enums\AuditTargetType;
 use App\Modules\Core\Files\PrivateAttachmentManager;
 use App\Modules\Core\Models\Attachment;
 use App\Modules\Core\Models\FileAsset;
@@ -14,7 +17,6 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use LogicException;
-use Throwable;
 
 final readonly class ProductImageOperations
 {
@@ -23,6 +25,7 @@ final readonly class ProductImageOperations
     public function __construct(
         private ActiveCompanyContext $companyContext,
         private PrivateAttachmentManager $attachments,
+        private AuditRecorder $audit,
     ) {}
 
     public function setMain(int $productId, int $productFileId): ProductFile
@@ -31,14 +34,38 @@ final readonly class ProductImageOperations
 
         return DB::transaction(function () use ($id, $productFileId): ProductFile {
             $file = $this->mediaFile($id, $productFileId, true);
+            $currentMain = ProductFile::query()
+                ->where('company_id', $this->companyId())
+                ->where('product_id', $id)
+                ->where('kind', ProductFileKind::Media->value)
+                ->where('is_main', true)
+                ->whereHas('attachment', static fn ($query) => $query->whereNull('detached_at'))
+                ->lockForUpdate()
+                ->first();
+            $currentMainId = $currentMain?->getKey();
+            $nextMainId = $file->getKey();
+            if (! is_int($nextMainId)) {
+                throw new LogicException('Product media main operation requires a persisted media row.');
+            }
+            if ($currentMainId === $nextMainId) {
+                return $file;
+            }
+
             ProductFile::query()
                 ->where('company_id', $this->companyId())
                 ->where('product_id', $id)
                 ->where('kind', ProductFileKind::Media->value)
                 ->where('is_main', true)
-                ->where('id', '<>', $file->getKey())
+                ->where('id', '<>', $nextMainId)
                 ->update(['is_main' => false, 'updated_at' => now()]);
             $file->update(['is_main' => true]);
+
+            $this->auditMedia(
+                $id,
+                'set_main',
+                ['main_product_file_id' => is_int($currentMainId) ? $currentMainId : null],
+                ['main_product_file_id' => $nextMainId],
+            );
 
             return $file->refresh();
         });
@@ -60,21 +87,27 @@ final readonly class ProductImageOperations
         }
 
         DB::transaction(function () use ($id, $ordered): void {
-            $activeIds = ProductFile::query()
+            $beforeOrder = ProductFile::query()
                 ->where('company_id', $this->companyId())
                 ->where('product_id', $id)
                 ->where('kind', ProductFileKind::Media->value)
                 ->whereHas('attachment', static fn ($query) => $query->whereNull('detached_at'))
+                ->orderBy('position')
+                ->orderBy('id')
                 ->lockForUpdate()
                 ->pluck('id')
                 ->map(static fn ($value): int => (int) $value)
-                ->sort()
                 ->values()
                 ->all();
+            $activeIds = $beforeOrder;
+            sort($activeIds);
             $expected = $ordered;
             sort($expected);
             if ($expected !== $activeIds) {
                 throw ValidationException::withMessages(['order' => 'Sıralama aktif medya kümesiyle birebir eşleşmelidir.']);
+            }
+            if ($beforeOrder === $ordered) {
+                return;
             }
 
             foreach ($ordered as $position => $fileId) {
@@ -84,6 +117,13 @@ final readonly class ProductImageOperations
                     ->whereKey($fileId)
                     ->update(['position' => $position, 'updated_at' => now()]);
             }
+
+            $this->auditMedia(
+                $id,
+                'reorder',
+                ['product_file_ids' => $beforeOrder],
+                ['product_file_ids' => $ordered],
+            );
         });
 
         return $this->media($id);
@@ -92,7 +132,7 @@ final readonly class ProductImageOperations
     /** @param list<string> $destinations */
     public function updateDestinations(int $productId, int $productFileId, array $destinations): ProductFile
     {
-        $file = $this->mediaFile($this->productId($productId), $productFileId);
+        $id = $this->productId($productId);
         $normalized = [];
         foreach ($destinations as $destination) {
             $value = trim($destination);
@@ -106,18 +146,47 @@ final readonly class ProductImageOperations
         }
         $values = array_keys($normalized);
         sort($values);
-        $file->update(['destinations' => $values]);
 
-        return $file->refresh();
+        return DB::transaction(function () use ($id, $productFileId, $values): ProductFile {
+            $file = $this->mediaFile($id, $productFileId, true);
+            $before = is_array($file->destinations) ? $file->destinations : [];
+            if ($before === $values) {
+                return $file;
+            }
+            $file->update(['destinations' => $values]);
+            $this->auditMedia(
+                $id,
+                'destinations',
+                ['product_file_id' => $productFileId, 'destinations' => $before],
+                ['product_file_id' => $productFileId, 'destinations' => $values],
+            );
+
+            return $file->refresh();
+        });
     }
 
     /** @param array<string, mixed> $metadata */
     public function updateTransformMetadata(int $productId, int $productFileId, array $metadata): ProductFile
     {
-        $file = $this->mediaFile($this->productId($productId), $productFileId);
-        $file->update(['transform_metadata' => $this->normalizeTransform($metadata)]);
+        $id = $this->productId($productId);
+        $normalized = $this->normalizeTransform($metadata);
 
-        return $file->refresh();
+        return DB::transaction(function () use ($id, $productFileId, $normalized): ProductFile {
+            $file = $this->mediaFile($id, $productFileId, true);
+            $before = is_array($file->transform_metadata) ? $file->transform_metadata : [];
+            if ($before === $normalized) {
+                return $file;
+            }
+            $file->update(['transform_metadata' => $normalized]);
+            $this->auditMedia(
+                $id,
+                'transform',
+                ['product_file_id' => $productFileId, 'transform' => $before],
+                ['product_file_id' => $productFileId, 'transform' => $normalized],
+            );
+
+            return $file->refresh();
+        });
     }
 
     /**
@@ -132,7 +201,7 @@ final readonly class ProductImageOperations
         array $messages = [],
         array $details = [],
     ): ProductFile {
-        $file = $this->mediaFile($this->productId($productId), $productFileId);
+        $id = $this->productId($productId);
         $provider = trim($provider);
         $status = mb_strtolower(trim($status));
         if ($provider === '' || mb_strlen($provider) > 80) {
@@ -151,18 +220,27 @@ final readonly class ProductImageOperations
         if (count($normalizedMessages) > 20) {
             throw ValidationException::withMessages(['messages' => 'En fazla 20 provider doğrulama mesajı kaydedilebilir.']);
         }
+        $next = [
+            'provider' => $provider,
+            'status' => $status,
+            'messages' => $normalizedMessages,
+            'details' => $details,
+            'validated_at' => now()->toIso8601String(),
+        ];
 
-        $file->update([
-            'provider_validation' => [
-                'provider' => $provider,
-                'status' => $status,
-                'messages' => $normalizedMessages,
-                'details' => $details,
-                'validated_at' => now()->toIso8601String(),
-            ],
-        ]);
+        return DB::transaction(function () use ($id, $productFileId, $next): ProductFile {
+            $file = $this->mediaFile($id, $productFileId, true);
+            $before = is_array($file->provider_validation) ? $file->provider_validation : [];
+            $file->update(['provider_validation' => $next]);
+            $this->auditMedia(
+                $id,
+                'provider_validation',
+                ['product_file_id' => $productFileId, 'provider_validation' => $before],
+                ['product_file_id' => $productFileId, 'provider_validation' => $next],
+            );
 
-        return $file->refresh();
+            return $file->refresh();
+        });
     }
 
     public function copy(int $sourceProductId, int $productFileId, int $targetProductId): ProductFile
@@ -173,51 +251,66 @@ final readonly class ProductImageOperations
             throw ValidationException::withMessages(['target_product_id' => 'Görsel aynı ürüne kopyalanamaz.']);
         }
 
-        $source = $this->mediaFile($sourceId, $productFileId);
-        $attachment = $source->attachment;
-        $asset = $attachment?->fileAsset;
-        if (! $attachment instanceof Attachment || ! $asset instanceof FileAsset) {
-            throw new LogicException('Product media requires an active attachment and file asset.');
-        }
+        return DB::transaction(function () use ($sourceId, $productFileId, $targetId): ProductFile {
+            $source = $this->mediaFile($sourceId, $productFileId, true);
+            $attachment = $source->attachment;
+            $asset = $attachment?->fileAsset;
+            if (! $attachment instanceof Attachment || ! $asset instanceof FileAsset) {
+                throw new LogicException('Product media requires an active attachment and file asset.');
+            }
+            $assetId = $asset->getKey();
+            if (! is_int($assetId)) {
+                throw new LogicException('Product media copy requires a persisted file asset.');
+            }
 
-        $linked = $this->attachments->linkExistingAsset(
-            AttachmentTargetType::Product,
-            $targetId,
-            (int) $asset->getKey(),
-            $attachment->label,
-        );
-        $linkedId = $linked->getKey();
-        if (! is_int($linkedId)) {
-            throw new LogicException('Copied product attachment persistence did not return an integer key.');
-        }
+            $linked = $this->attachments->linkExistingAsset(
+                AttachmentTargetType::Product,
+                $targetId,
+                $assetId,
+                $attachment->label,
+            );
+            $linkedId = $linked->getKey();
+            if (! is_int($linkedId)) {
+                throw new LogicException('Copied product attachment persistence did not return an integer key.');
+            }
 
-        try {
-            $copy = DB::transaction(function () use ($source, $targetId, $linkedId): ProductFile {
-                return ProductFile::query()->create([
-                    'company_id' => $this->companyId(),
-                    'product_id' => $targetId,
-                    'attachment_id' => $linkedId,
-                    'kind' => ProductFileKind::Media,
-                    'position' => $this->nextPosition($targetId),
-                    'is_main' => ! $this->hasActiveMain($targetId),
-                    'destinations' => $source->destinations,
-                    'transform_metadata' => $source->transform_metadata,
-                    'provider_validation' => $source->provider_validation,
-                ]);
-            });
-        } catch (Throwable $exception) {
-            $this->attachments->detach(AttachmentTargetType::Product, $targetId, $linkedId);
+            $copy = ProductFile::query()->create([
+                'company_id' => $this->companyId(),
+                'product_id' => $targetId,
+                'attachment_id' => $linkedId,
+                'kind' => ProductFileKind::Media,
+                'position' => $this->nextPosition($targetId),
+                'is_main' => ! $this->hasActiveMain($targetId),
+                'destinations' => $source->destinations,
+                'transform_metadata' => $source->transform_metadata,
+                'provider_validation' => $source->provider_validation,
+            ]);
+            $copyId = $copy->getKey();
+            if (! is_int($copyId)) {
+                throw new LogicException('Copied product media persistence did not return an integer key.');
+            }
 
-            throw $exception;
-        }
+            $this->auditMedia(
+                $targetId,
+                'copy_in',
+                null,
+                [
+                    'product_file_id' => $copyId,
+                    'source_product_id' => $sourceId,
+                    'source_product_file_id' => $productFileId,
+                    'file_asset_id' => $assetId,
+                ],
+            );
 
-        return $copy->load(['attachment.fileAsset', 'attachment.attachedBy']);
+            return $copy->load(['attachment.fileAsset', 'attachment.attachedBy']);
+        });
     }
 
     public function move(int $sourceProductId, int $productFileId, int $targetProductId): ProductFile
     {
         return DB::transaction(function () use ($sourceProductId, $productFileId, $targetProductId): ProductFile {
-            $source = $this->mediaFile($this->productId($sourceProductId), $productFileId, true);
+            $sourceId = $this->productId($sourceProductId);
+            $source = $this->mediaFile($sourceId, $productFileId, true);
             $wasMain = (bool) $source->is_main;
             $copy = $this->copy($sourceProductId, $productFileId, $targetProductId);
             $this->attachments->detach(
@@ -240,22 +333,75 @@ final readonly class ProductImageOperations
                 $next?->update(['is_main' => true]);
             }
 
+            $copyId = $copy->getKey();
+            if (! is_int($copyId)) {
+                throw new LogicException('Moved product media persistence did not return an integer key.');
+            }
+            $this->auditMedia(
+                $sourceId,
+                'move_out',
+                ['product_file_id' => $productFileId, 'was_main' => $wasMain],
+                ['target_product_id' => $targetProductId, 'target_product_file_id' => $copyId],
+            );
+
             return $copy;
         });
     }
 
     public function quarantine(int $productId, int $productFileId, string $reason): FileAsset
     {
-        $file = $this->mediaFile($this->productId($productId), $productFileId);
+        $id = $this->productId($productId);
 
-        return $this->attachments->quarantine($this->assetId($file), $reason);
+        return DB::transaction(function () use ($id, $productFileId, $reason): FileAsset {
+            $file = $this->mediaFile($id, $productFileId, true);
+            $assetId = $this->assetId($file);
+            $asset = $this->attachments->quarantine($assetId, $reason);
+            $this->auditMedia(
+                $id,
+                'quarantine',
+                ['product_file_id' => $productFileId, 'file_asset_id' => $assetId, 'quarantined' => false],
+                [
+                    'product_file_id' => $productFileId,
+                    'file_asset_id' => $assetId,
+                    'quarantined' => true,
+                    'reason' => (string) $asset->quarantine_reason,
+                ],
+            );
+
+            return $asset;
+        });
     }
 
     public function releaseQuarantine(int $productId, int $productFileId): FileAsset
     {
-        $file = $this->mediaFile($this->productId($productId), $productFileId, allowQuarantined: true);
+        $id = $this->productId($productId);
 
-        return $this->attachments->releaseQuarantine($this->assetId($file));
+        return DB::transaction(function () use ($id, $productFileId): FileAsset {
+            $file = $this->mediaFile($id, $productFileId, true, true);
+            $asset = $file->attachment?->fileAsset;
+            if (! $asset instanceof FileAsset) {
+                throw new LogicException('Product media quarantine release requires a file asset.');
+            }
+            $assetId = $this->assetId($file);
+            $beforeReason = $asset->quarantine_reason;
+            $wasQuarantined = $asset->quarantined_at !== null;
+            $released = $this->attachments->releaseQuarantine($assetId);
+            if ($wasQuarantined) {
+                $this->auditMedia(
+                    $id,
+                    'release_quarantine',
+                    [
+                        'product_file_id' => $productFileId,
+                        'file_asset_id' => $assetId,
+                        'quarantined' => true,
+                        'reason' => $beforeReason,
+                    ],
+                    ['product_file_id' => $productFileId, 'file_asset_id' => $assetId, 'quarantined' => false],
+                );
+            }
+
+            return $released;
+        });
     }
 
     /** @return Collection<int, ProductFile> */
@@ -406,6 +552,22 @@ final readonly class ProductImageOperations
             ->where('is_main', true)
             ->whereHas('attachment', static fn ($query) => $query->whereNull('detached_at'))
             ->exists();
+    }
+
+    /**
+     * @param  array<string, mixed>|null  $before
+     * @param  array<string, mixed>|null  $after
+     */
+    private function auditMedia(int $productId, string $operation, ?array $before, ?array $after): void
+    {
+        $this->audit->record(
+            AuditAction::ProductMediaUpdated,
+            AuditTargetType::Product,
+            $productId,
+            before: $before,
+            after: $after,
+            metadata: ['operation' => $operation],
+        );
     }
 
     private function productId(int $productId): int
