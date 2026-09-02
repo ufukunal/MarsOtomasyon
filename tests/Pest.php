@@ -5,6 +5,4 @@ use Tests\TestCase;
 
 pest()->extend(TestCase::class)->in('Feature', 'Integration', 'Browser');
 
-pest()->extend(TestCase::class)
-    ->use(FixedSalesInvoiceClock::class)
-    ->in('Integration/SalesInvoices');
+pest()->use(FixedSalesInvoiceClock::class)->in('Integration/SalesInvoices');
