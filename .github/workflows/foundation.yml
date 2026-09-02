@@ -137,8 +137,17 @@ jobs:
       - name: Fresh PostgreSQL schema
         run: php artisan migrate:fresh --force
 
-      - name: Run non-browser test suites
-        run: composer test
+      - name: Run unit tests
+        run: vendor/bin/pest tests/Unit --colors=always
+
+      - name: Run feature tests
+        run: vendor/bin/pest tests/Feature --colors=always
+
+      - name: Run integration tests
+        run: vendor/bin/pest tests/Integration --colors=always
+
+      - name: Run architecture tests
+        run: vendor/bin/pest tests/Architecture --colors=always
 
   browser-smoke:
     name: browser-smoke
