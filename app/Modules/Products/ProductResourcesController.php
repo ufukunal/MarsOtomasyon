@@ -9,6 +9,7 @@ use App\Modules\Core\Company\ActiveCompanyContext;
 use App\Modules\Products\Actions\UpdateProductSuppliers;
 use App\Modules\Products\Enums\ProductFileKind;
 use App\Modules\Products\Files\ProductFileManager;
+use App\Modules\Products\Files\ProductImageOperations;
 use App\Modules\Products\Models\Product;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -16,6 +17,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 use LogicException;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -26,6 +28,7 @@ final readonly class ProductResourcesController
         private ActiveCompanyContext $companyContext,
         private UpdateProductSuppliers $updateSuppliers,
         private ProductFileManager $files,
+        private ProductImageOperations $images,
     ) {}
 
     public function edit(int $product): View
@@ -44,6 +47,7 @@ final readonly class ProductResourcesController
             'selectedSupplierIds' => $selectedSupplierIds,
             'productFiles' => $this->files->all($product),
             'fileKinds' => ProductFileKind::cases(),
+            'mediaTargetProducts' => $this->mediaTargetProducts($productModel),
         ]);
     }
 
@@ -61,8 +65,7 @@ final readonly class ProductResourcesController
 
         $this->updateSuppliers->handle($product, $supplierIds);
 
-        return redirect()->route('inventory.products.resources.edit', $product)
-            ->with('status', 'Ürün tedarikçi ilişkileri güncellendi.');
+        return $this->resourcesRedirect($product, 'Ürün tedarikçi ilişkileri güncellendi.');
     }
 
     public function uploadFile(Request $request, int $product): RedirectResponse
@@ -85,8 +88,7 @@ final readonly class ProductResourcesController
             isset($validated['label']) ? (string) $validated['label'] : null,
         );
 
-        return redirect()->route('inventory.products.resources.edit', $product)
-            ->with('status', 'Ürün dosyası private storage alanına yüklendi.');
+        return $this->resourcesRedirect($product, 'Ürün dosyası private storage alanına yüklendi.');
     }
 
     public function downloadFile(int $product, int $file): StreamedResponse
@@ -98,8 +100,163 @@ final readonly class ProductResourcesController
     {
         $this->files->detach($product, $file);
 
-        return redirect()->route('inventory.products.resources.edit', $product)
-            ->with('status', 'Ürün dosya bağlantısı kaldırıldı. Orijinal dosya arşivde korunuyor.');
+        return $this->resourcesRedirect($product, 'Ürün dosya bağlantısı kaldırıldı. Orijinal dosya arşivde korunuyor.');
+    }
+
+    public function setMainMedia(int $product, int $file): RedirectResponse
+    {
+        $this->images->setMain($product, $file);
+
+        return $this->resourcesRedirect($product, 'Ana ürün görseli güncellendi.');
+    }
+
+    public function reorderMedia(Request $request, int $product): RedirectResponse
+    {
+        $this->product($product);
+        $validated = $request->validate([
+            'positions' => ['required', 'array', 'min:1', 'max:32768'],
+            'positions.*' => ['required', 'integer', 'min:0', 'max:32767'],
+        ]);
+        $raw = is_array($validated['positions'] ?? null) ? $validated['positions'] : [];
+        $positions = [];
+        foreach ($raw as $fileId => $position) {
+            if (! is_numeric($fileId)) {
+                throw ValidationException::withMessages(['positions' => 'Medya dosya kimliği geçersiz.']);
+            }
+            $positions[(int) $fileId] = (int) $position;
+        }
+        if (count($positions) !== count(array_unique(array_values($positions)))) {
+            throw ValidationException::withMessages(['positions' => 'Her medya görselinin sırası benzersiz olmalıdır.']);
+        }
+        asort($positions, SORT_NUMERIC);
+
+        $this->images->reorder($product, array_keys($positions));
+
+        return $this->resourcesRedirect($product, 'Galeri sırası güncellendi.');
+    }
+
+    public function updateMediaDestinations(Request $request, int $product, int $file): RedirectResponse
+    {
+        $validated = $request->validate([
+            'destinations' => ['nullable', 'string', 'max:4096'],
+        ]);
+        $raw = trim((string) ($validated['destinations'] ?? ''));
+        $destinations = $raw === ''
+            ? []
+            : preg_split('/[\s,;]+/u', $raw, -1, PREG_SPLIT_NO_EMPTY);
+        if (! is_array($destinations)) {
+            $destinations = [];
+        }
+
+        $this->images->updateDestinations($product, $file, array_values($destinations));
+
+        return $this->resourcesRedirect($product, 'Görsel hedef kümeleri güncellendi.');
+    }
+
+    public function updateMediaTransform(Request $request, int $product, int $file): RedirectResponse
+    {
+        $validated = $request->validate([
+            'crop_x' => ['nullable', 'integer', 'min:0', 'max:100000', 'required_with:crop_y,crop_width,crop_height'],
+            'crop_y' => ['nullable', 'integer', 'min:0', 'max:100000', 'required_with:crop_x,crop_width,crop_height'],
+            'crop_width' => ['nullable', 'integer', 'min:1', 'max:100000', 'required_with:crop_x,crop_y,crop_height'],
+            'crop_height' => ['nullable', 'integer', 'min:1', 'max:100000', 'required_with:crop_x,crop_y,crop_width'],
+            'rotate' => ['nullable', 'integer', Rule::in([0, 90, 180, 270])],
+            'flip_horizontal' => ['nullable', 'boolean'],
+            'flip_vertical' => ['nullable', 'boolean'],
+            'resize_width' => ['nullable', 'integer', 'min:1', 'max:100000', 'required_with:resize_height'],
+            'resize_height' => ['nullable', 'integer', 'min:1', 'max:100000', 'required_with:resize_width'],
+            'resize_mode' => ['nullable', Rule::in(['contain', 'cover', 'stretch'])],
+        ]);
+
+        $metadata = [];
+        if (isset($validated['crop_x'], $validated['crop_y'], $validated['crop_width'], $validated['crop_height'])) {
+            $metadata['crop'] = [
+                'x' => (int) $validated['crop_x'],
+                'y' => (int) $validated['crop_y'],
+                'width' => (int) $validated['crop_width'],
+                'height' => (int) $validated['crop_height'],
+            ];
+        }
+        if (array_key_exists('rotate', $validated) && $validated['rotate'] !== null) {
+            $metadata['rotate'] = (int) $validated['rotate'];
+        }
+        if ($request->hasAny(['flip_horizontal', 'flip_vertical', 'flip_present'])) {
+            $metadata['flip'] = [
+                'horizontal' => $request->boolean('flip_horizontal'),
+                'vertical' => $request->boolean('flip_vertical'),
+            ];
+        }
+        if (isset($validated['resize_width'], $validated['resize_height'])) {
+            $metadata['resize'] = [
+                'width' => (int) $validated['resize_width'],
+                'height' => (int) $validated['resize_height'],
+                'mode' => (string) ($validated['resize_mode'] ?? 'contain'),
+            ];
+        }
+
+        $this->images->updateTransformMetadata($product, $file, $metadata);
+
+        return $this->resourcesRedirect($product, 'Tahribatsız görsel dönüşüm reçetesi güncellendi.');
+    }
+
+    public function updateMediaProviderValidation(Request $request, int $product, int $file): RedirectResponse
+    {
+        $validated = $request->validate([
+            'provider' => ['required', 'string', 'max:80'],
+            'status' => ['required', Rule::in(['pending', 'valid', 'warning', 'invalid'])],
+            'messages' => ['nullable', 'string', 'max:10000'],
+        ]);
+        $messages = preg_split('/\r\n|\r|\n/u', trim((string) ($validated['messages'] ?? '')), -1, PREG_SPLIT_NO_EMPTY);
+        if (! is_array($messages)) {
+            $messages = [];
+        }
+
+        $this->images->recordProviderValidation(
+            $product,
+            $file,
+            (string) $validated['provider'],
+            (string) $validated['status'],
+            array_values($messages),
+        );
+
+        return $this->resourcesRedirect($product, 'Provider görsel doğrulama metadata bilgisi güncellendi.');
+    }
+
+    public function copyMedia(Request $request, int $product, int $file): RedirectResponse
+    {
+        $validated = $request->validate([
+            'target_product_id' => ['required', 'integer', 'min:1'],
+        ]);
+        $this->images->copy($product, $file, (int) $validated['target_product_id']);
+
+        return $this->resourcesRedirect($product, 'Görsel hedef ürüne kopyalandı; aynı private dosya varlığı yeniden kullanıldı.');
+    }
+
+    public function moveMedia(Request $request, int $product, int $file): RedirectResponse
+    {
+        $validated = $request->validate([
+            'target_product_id' => ['required', 'integer', 'min:1'],
+        ]);
+        $this->images->move($product, $file, (int) $validated['target_product_id']);
+
+        return $this->resourcesRedirect($product, 'Görsel hedef ürüne taşındı.');
+    }
+
+    public function quarantineMedia(Request $request, int $product, int $file): RedirectResponse
+    {
+        $validated = $request->validate([
+            'reason' => ['required', 'string', 'max:255'],
+        ]);
+        $this->images->quarantine($product, $file, (string) $validated['reason']);
+
+        return $this->resourcesRedirect($product, 'Görsel karantinaya alındı ve kullanım/dosya indirme akışlarından kapatıldı.');
+    }
+
+    public function releaseMediaQuarantine(int $product, int $file): RedirectResponse
+    {
+        $this->images->releaseQuarantine($product, $file);
+
+        return $this->resourcesRedirect($product, 'Görsel karantinadan çıkarıldı.');
     }
 
     private function product(int $id): Product
@@ -125,6 +282,23 @@ final readonly class ProductResourcesController
             ->orderBy('legal_name')
             ->orderBy('code')
             ->get();
+    }
+
+    /** @return Collection<int, Product> */
+    private function mediaTargetProducts(Product $source): Collection
+    {
+        return Product::query()
+            ->where('company_id', $this->companyId())
+            ->whereKeyNot($source->getKey())
+            ->orderBy('code')
+            ->orderBy('name')
+            ->limit(250)
+            ->get(['id', 'code', 'name']);
+    }
+
+    private function resourcesRedirect(int $product, string $status): RedirectResponse
+    {
+        return redirect()->route('inventory.products.resources.edit', $product)->with('status', $status);
     }
 
     private function companyId(): int
