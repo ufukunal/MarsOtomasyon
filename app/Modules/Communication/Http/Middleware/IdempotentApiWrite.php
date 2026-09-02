@@ -36,6 +36,7 @@ final class IdempotentApiWrite
 
                 return new JsonResponse($decoded, (int) $existing->response_status, ['Idempotent-Replay' => 'true']);
             }
+
             return new JsonResponse(['error' => ['code' => 'IDEMPOTENCY_IN_PROGRESS', 'message' => 'Request with this idempotency key is still processing.']], 409);
         }
 
