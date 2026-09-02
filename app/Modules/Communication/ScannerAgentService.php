@@ -104,6 +104,7 @@ final class ScannerAgentService
             if ((string) $existing->operation !== $operation || (string) $existing->payload !== $encoded) {
                 throw new DomainException('Scanner job idempotency payload drift detected.');
             }
+
             return (string) $existing->public_id;
         }
         $publicId = (string) Str::ulid();

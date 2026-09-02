@@ -54,6 +54,7 @@ final class NotificationService
             if ($inserted > 0) {
                 DeliverNotification::dispatch((int) $delivery->id)->afterCommit();
             }
+
             return (int) $delivery->id;
         });
     }
@@ -73,11 +74,13 @@ final class NotificationService
             $disabled = DB::table('system_integration_settings')->where('company_id', $delivery->company_id)->where('family', $channel)->where('is_enabled', false)->exists();
             if ($disabled) {
                 DB::table('notification_deliveries')->where('id', $deliveryId)->update(['status' => 'failed', 'last_error' => 'Provider disabled by integration kill-switch.', 'updated_at' => now()]);
+
                 return null;
             }
             $attemptNo = (int) $delivery->attempts + 1;
             $attemptId = (int) DB::table('notification_provider_attempts')->insertGetId(['company_id' => $delivery->company_id, 'delivery_id' => $deliveryId, 'attempt_no' => $attemptNo, 'provider' => $this->providerForChannel($channel), 'status' => 'sending', 'request_meta' => json_encode(['channel' => $channel, 'recipient_sha256' => hash('sha256', (string) $delivery->recipient)], JSON_THROW_ON_ERROR), 'started_at' => now()]);
             DB::table('notification_deliveries')->where('id', $deliveryId)->update(['status' => 'sending', 'attempts' => $attemptNo, 'last_error' => null, 'updated_at' => now()]);
+
             return ['attempt_id' => $attemptId, 'company_id' => (int) $delivery->company_id, 'channel' => $channel, 'recipient' => (string) $delivery->recipient, 'subject' => $delivery->subject === null ? null : (string) $delivery->subject, 'body' => (string) $delivery->body, 'idempotency_key' => (string) $delivery->idempotency_key];
         });
         if ($claim === null) {
@@ -113,6 +116,7 @@ final class NotificationService
                 $message->subject($subject);
             }
         });
+
         return ['provider' => (string) config('mail.default', 'mail'), 'message_id' => null];
     }
 
@@ -134,6 +138,7 @@ final class NotificationService
         }
         $data = $response->json();
         $messageId = is_array($data) ? ($data['id'] ?? $data['message_id'] ?? null) : null;
+
         return ['provider' => $channel, 'message_id' => $messageId === null ? null : (string) $messageId];
     }
 
