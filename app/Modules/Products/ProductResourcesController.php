@@ -148,7 +148,7 @@ final readonly class ProductResourcesController
             $destinations = [];
         }
 
-        $this->images->updateDestinations($product, $file, array_values($destinations));
+        $this->images->updateDestinations($product, $file, $destinations);
 
         return $this->resourcesRedirect($product, 'Görsel hedef kümeleri güncellendi.');
     }
@@ -216,7 +216,7 @@ final readonly class ProductResourcesController
             $file,
             (string) $validated['provider'],
             (string) $validated['status'],
-            array_values($messages),
+            $messages,
         );
 
         return $this->resourcesRedirect($product, 'Provider görsel doğrulama metadata bilgisi güncellendi.');
