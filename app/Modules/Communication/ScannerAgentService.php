@@ -101,7 +101,8 @@ final class ScannerAgentService
         $existing = DB::table('scanner_agent_jobs')->where('scanner_agent_id', $agent->id)->where('idempotency_key', $idempotencyKey)->first();
         $encoded = json_encode($payload, JSON_THROW_ON_ERROR);
         if ($existing !== null) {
-            if ((string) $existing->operation !== $operation || (string) $existing->payload !== $encoded) {
+            $existingPayload = json_decode((string) $existing->payload, true, flags: JSON_THROW_ON_ERROR);
+            if ((string) $existing->operation !== $operation || ! is_array($existingPayload) || $this->canonicalJson($existingPayload) !== $this->canonicalJson($payload)) {
                 throw new DomainException('Scanner job idempotency payload drift detected.');
             }
 
@@ -163,5 +164,29 @@ final class ScannerAgentService
         if ($updated === 0) {
             throw new DomainException('Scanner job cannot fail from current status.');
         }
+    }
+
+    /** @param array<mixed> $value */
+    private function canonicalJson(array $value): string
+    {
+        return json_encode($this->sortJsonObjectKeys($value), JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    }
+
+    /**
+     * @param  array<mixed>  $value
+     * @return array<mixed>
+     */
+    private function sortJsonObjectKeys(array $value): array
+    {
+        if (! array_is_list($value)) {
+            ksort($value);
+        }
+        foreach ($value as $key => $item) {
+            if (is_array($item)) {
+                $value[$key] = $this->sortJsonObjectKeys($item);
+            }
+        }
+
+        return $value;
     }
 }
