@@ -44,11 +44,14 @@ final readonly class ProductImageOperations
         });
     }
 
-    /** @param list<int> $orderedProductFileIds @return Collection<int, ProductFile> */
+    /**
+     * @param  list<int>  $orderedProductFileIds
+     * @return Collection<int, ProductFile>
+     */
     public function reorder(int $productId, array $orderedProductFileIds): Collection
     {
         $id = $this->productId($productId);
-        $ordered = array_values(array_map('intval', $orderedProductFileIds));
+        $ordered = array_map('intval', $orderedProductFileIds);
         if ($ordered === [] || count($ordered) !== count(array_unique($ordered)) || min($ordered) < 1) {
             throw ValidationException::withMessages(['order' => 'Medya sırası benzersiz ve pozitif dosya kimlikleri içermelidir.']);
         }
@@ -92,9 +95,6 @@ final readonly class ProductImageOperations
         $file = $this->mediaFile($this->productId($productId), $productFileId);
         $normalized = [];
         foreach ($destinations as $destination) {
-            if (! is_string($destination)) {
-                throw ValidationException::withMessages(['destinations' => 'Hedef kümesi yalnız metin kimlikleri içerebilir.']);
-            }
             $value = trim($destination);
             if ($value === '' || mb_strlen($value) > 128) {
                 throw ValidationException::withMessages(['destinations' => 'Hedef kimliği 1-128 karakter arasında olmalıdır.']);
@@ -120,7 +120,10 @@ final readonly class ProductImageOperations
         return $file->refresh();
     }
 
-    /** @param list<string> $messages @param array<string, mixed> $details */
+    /**
+     * @param  list<string>  $messages
+     * @param  array<string, mixed>  $details
+     */
     public function recordProviderValidation(
         int $productId,
         int $productFileId,
@@ -140,7 +143,7 @@ final readonly class ProductImageOperations
         }
         $normalizedMessages = [];
         foreach ($messages as $message) {
-            if (! is_string($message) || trim($message) === '') {
+            if (trim($message) === '') {
                 throw ValidationException::withMessages(['messages' => 'Provider doğrulama mesajları boş olmayan metinlerden oluşmalıdır.']);
             }
             $normalizedMessages[] = mb_substr(trim($message), 0, 500);
@@ -297,7 +300,10 @@ final readonly class ProductImageOperations
         return $file;
     }
 
-    /** @param array<string, mixed> $metadata @return array<string, mixed> */
+    /**
+     * @param  array<string, mixed>  $metadata
+     * @return array<string, mixed>
+     */
     private function normalizeTransform(array $metadata): array
     {
         $unknown = array_diff(array_keys($metadata), ['crop', 'rotate', 'flip', 'resize']);
