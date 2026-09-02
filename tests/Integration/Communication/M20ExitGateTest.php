@@ -53,7 +53,29 @@ it('uses single use scanner enrollment credentials and authenticated job lifecyc
         throw new RuntimeException('Scanner agent authentication failed.');
     }
     $service->heartbeat($auth['id'], ['scan' => true]);
-    $job = $service->enqueue((int) $company->getKey(), $agent['public_id'], 'scan.document', ['document' => 'A'], (string) Str::uuid());
+    $jobKey = (string) Str::uuid();
+    $job = $service->enqueue(
+        (int) $company->getKey(),
+        $agent['public_id'],
+        'scan.document',
+        ['document' => 'A', 'options' => ['duplex' => true, 'dpi' => 300]],
+        $jobKey,
+    );
+    $replayedJob = $service->enqueue(
+        (int) $company->getKey(),
+        $agent['public_id'],
+        'scan.document',
+        ['options' => ['dpi' => 300, 'duplex' => true], 'document' => 'A'],
+        $jobKey,
+    );
+    expect($replayedJob)->toBe($job);
+    expect(fn () => $service->enqueue(
+        (int) $company->getKey(),
+        $agent['public_id'],
+        'scan.document',
+        ['document' => 'B', 'options' => ['duplex' => true, 'dpi' => 300]],
+        $jobKey,
+    ))->toThrow(DomainException::class);
     $claim = $service->claim($auth['id']);
     expect($claim)->not->toBeNull()->and($claim['public_id'] ?? null)->toBe($job);
     $service->complete($auth['id'], $job, ['pages' => 1]);
