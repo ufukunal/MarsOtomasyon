@@ -143,113 +143,29 @@ jobs:
       - name: Run feature tests
         run: vendor/bin/pest tests/Feature --colors=always
 
-      - name: Integration - Accounts
-        if: ${{ always() }}
-        run: vendor/bin/pest tests/Integration/Accounts --colors=always
+      - name: Run integration tests with JUnit
+        id: integration
+        continue-on-error: true
+        run: |
+          mkdir -p storage/logs
+          vendor/bin/pest tests/Integration --colors=always --log-junit storage/logs/integration-junit.xml
 
-      - name: Integration - B2B
+      - name: Upload integration JUnit
         if: ${{ always() }}
-        run: vendor/bin/pest tests/Integration/B2B --colors=always
-
-      - name: Integration - Commerce
-        if: ${{ always() }}
-        run: vendor/bin/pest tests/Integration/Commerce --colors=always
-
-      - name: Integration - Communication core
-        if: ${{ always() }}
-        run: vendor/bin/pest tests/Integration/Communication/M20CommunicationCoreTest.php --colors=always
-
-      - name: Integration - M20 exit gate
-        if: ${{ always() }}
-        run: vendor/bin/pest tests/Integration/Communication/M20ExitGateTest.php --colors=always
-
-      - name: Integration - Core
-        if: ${{ always() }}
-        run: vendor/bin/pest tests/Integration/Core --colors=always
-
-      - name: Integration - Dispatches
-        if: ${{ always() }}
-        run: vendor/bin/pest tests/Integration/Dispatches --colors=always
-
-      - name: Integration - GoodsReceipts
-        if: ${{ always() }}
-        run: vendor/bin/pest tests/Integration/GoodsReceipts --colors=always
-
-      - name: Integration - Imports
-        if: ${{ always() }}
-        run: vendor/bin/pest tests/Integration/Imports --colors=always
-
-      - name: Integration - Instruments
-        if: ${{ always() }}
-        run: vendor/bin/pest tests/Integration/Instruments --colors=always
-
-      - name: Integration - Inventory
-        if: ${{ always() }}
-        run: vendor/bin/pest tests/Integration/Inventory --colors=always
-
-      - name: Integration - Operations
-        if: ${{ always() }}
-        run: vendor/bin/pest tests/Integration/Operations --colors=always
-
-      - name: Integration - PostgreSQL foundation
-        if: ${{ always() }}
-        run: vendor/bin/pest tests/Integration/PostgreSqlFoundationTest.php --colors=always
-
-      - name: Integration - Production
-        if: ${{ always() }}
-        run: vendor/bin/pest tests/Integration/Production --colors=always
-
-      - name: Integration - Products
-        if: ${{ always() }}
-        run: vendor/bin/pest tests/Integration/Products --colors=always
-
-      - name: Integration - PurchaseOrders
-        if: ${{ always() }}
-        run: vendor/bin/pest tests/Integration/PurchaseOrders --colors=always
-
-      - name: Integration - PurchaseReturns
-        if: ${{ always() }}
-        run: vendor/bin/pest tests/Integration/PurchaseReturns --colors=always
-
-      - name: Integration - Quotes
-        if: ${{ always() }}
-        run: vendor/bin/pest tests/Integration/Quotes --colors=always
-
-      - name: Integration - Reports
-        if: ${{ always() }}
-        run: vendor/bin/pest tests/Integration/Reports --colors=always
-
-      - name: Integration - SalesInvoices
-        if: ${{ always() }}
-        run: vendor/bin/pest tests/Integration/SalesInvoices --colors=always
-
-      - name: Integration - SalesOrders
-        if: ${{ always() }}
-        run: vendor/bin/pest tests/Integration/SalesOrders --colors=always
-
-      - name: Integration - SalesReturns
-        if: ${{ always() }}
-        run: vendor/bin/pest tests/Integration/SalesReturns --colors=always
-
-      - name: Integration - Subcontract
-        if: ${{ always() }}
-        run: vendor/bin/pest tests/Integration/Subcontract --colors=always
-
-      - name: Integration - SupplierInvoices
-        if: ${{ always() }}
-        run: vendor/bin/pest tests/Integration/SupplierInvoices --colors=always
-
-      - name: Integration - Treasury
-        if: ${{ always() }}
-        run: vendor/bin/pest tests/Integration/Treasury --colors=always
-
-      - name: Integration - Valkey foundation
-        if: ${{ always() }}
-        run: vendor/bin/pest tests/Integration/ValkeyFoundationTest.php --colors=always
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-junit
+          path: storage/logs/integration-junit.xml
+          if-no-files-found: error
+          retention-days: 1
 
       - name: Run architecture tests
         if: ${{ always() }}
         run: vendor/bin/pest tests/Architecture --colors=always
+
+      - name: Enforce integration result
+        if: ${{ always() && steps.integration.outcome == 'failure' }}
+        run: exit 1
 
   browser-smoke:
     name: browser-smoke
