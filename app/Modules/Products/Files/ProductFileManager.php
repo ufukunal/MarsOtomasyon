@@ -99,7 +99,7 @@ final readonly class ProductFileManager
                 (int) $file->attachment_id,
             );
 
-            if ($file->kind === ProductFileKind::Media && $file->is_main) {
+            if ($file->getRawOriginal('kind') === ProductFileKind::Media->value && $file->is_main) {
                 $file->update(['is_main' => false]);
                 $next = ProductFile::query()
                     ->where('company_id', $this->companyId())
