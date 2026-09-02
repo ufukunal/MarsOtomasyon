@@ -42,7 +42,7 @@ final class ApiAccessTokenService
     /** @return array{id:int,company_id:int,key_id:string,permissions:list<string>}|null */
     public function authenticate(?string $plainToken): ?array
     {
-        if (! is_string($plainToken) || ! str_contains($plainToken, '.')) {
+        if (!is_string($plainToken) || !str_contains($plainToken, '.')) {
             return null;
         }
         [$keyId, $secret] = explode('.', $plainToken, 2);
@@ -53,7 +53,7 @@ final class ApiAccessTokenService
         if ($row === null || $row->revoked_at !== null || ($row->expires_at !== null && now()->greaterThan($row->expires_at))) {
             return null;
         }
-        if (! hash_equals((string) $row->secret_hash, hash('sha256', $secret))) {
+        if (!hash_equals((string) $row->secret_hash, hash('sha256', $secret))) {
             return null;
         }
         $decoded = json_decode((string) $row->permissions, true, flags: JSON_THROW_ON_ERROR);
