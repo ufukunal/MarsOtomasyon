@@ -90,7 +90,7 @@ jobs:
   postgres-tests:
     name: postgres-tests
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 30
 
     services:
       postgres:
@@ -137,29 +137,8 @@ jobs:
       - name: Fresh PostgreSQL schema
         run: php artisan migrate:fresh --force
 
-      - name: Run SalesInvoices failure reproducer
-        id: sales_invoices
-        continue-on-error: true
-        run: |
-          mkdir -p storage/logs
-          vendor/bin/pest \
-            tests/Integration/SalesInvoices/SalesInvoiceDocumentFoundationTest.php \
-            tests/Integration/SalesInvoices/SalesInvoiceExitGateTest.php \
-            --colors=always \
-            --log-junit storage/logs/sales-invoices-junit.xml
-
-      - name: Upload SalesInvoices JUnit
-        if: ${{ always() }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: sales-invoices-junit
-          path: storage/logs/sales-invoices-junit.xml
-          if-no-files-found: error
-          retention-days: 1
-
-      - name: Enforce SalesInvoices result
-        if: ${{ always() && steps.sales_invoices.outcome == 'failure' }}
-        run: exit 1
+      - name: Run non-browser test suites
+        run: composer test
 
   browser-smoke:
     name: browser-smoke
