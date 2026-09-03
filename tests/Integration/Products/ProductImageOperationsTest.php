@@ -1,5 +1,6 @@
 <?php
 
+use App\Foundation\Correlation\CorrelationContext;
 use App\Modules\Core\Company\ActiveCompanyContext;
 use App\Modules\Core\Enums\UserStatus;
 use App\Modules\Core\Models\Attachment;
@@ -24,6 +25,7 @@ uses(DatabaseMigrations::class);
 
 beforeEach(function (): void {
     Storage::fake('local');
+    app(CorrelationContext::class)->set('00000000-0000-4000-8000-000000000021');
 });
 
 it('manages main gallery order destinations transforms and provider validation', function (): void {
