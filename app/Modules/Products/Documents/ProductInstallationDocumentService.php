@@ -318,7 +318,7 @@ final readonly class ProductInstallationDocumentService
     /** @return array<string, mixed> */
     private function snapshot(Product $product, ProductInstallationGuide $guide): array
     {
-        $imageIds = array_values(array_map(static fn (mixed $id): int => (int) $id, $guide->image_product_file_ids));
+        $imageIds = array_map(static fn (mixed $id): int => (int) $id, $guide->image_product_file_ids);
         $images = $this->activeImages($product, $imageIds);
         $imageSnapshot = [];
         foreach ($images as $file) {
@@ -347,10 +347,10 @@ final readonly class ProductInstallationDocumentService
                 'content_revision' => (int) $guide->content_revision,
                 'title' => (string) $guide->title,
                 'intro' => $guide->intro !== null ? (string) $guide->intro : null,
-                'steps' => array_values($guide->steps),
-                'warnings' => array_values($guide->warnings),
-                'tools' => array_values($guide->tools),
-                'parts' => array_values($guide->parts),
+                'steps' => $guide->steps,
+                'warnings' => $guide->warnings,
+                'tools' => $guide->tools,
+                'parts' => $guide->parts,
                 'images' => $imageSnapshot,
             ],
         ];
