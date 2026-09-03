@@ -29,11 +29,11 @@ final readonly class ProductInstallationDocumentService
     ) {}
 
     /**
-     * @param list<string> $steps
-     * @param list<string> $warnings
-     * @param list<string> $tools
-     * @param list<string> $parts
-     * @param list<int> $imageIds
+     * @param  list<string>  $steps
+     * @param  list<string>  $warnings
+     * @param  list<string>  $tools
+     * @param  list<string>  $parts
+     * @param  list<int>  $imageIds
      */
     public function saveDraft(
         int $productId,
@@ -278,7 +278,7 @@ final readonly class ProductInstallationDocumentService
     }
 
     /**
-     * @param list<int> $imageIds
+     * @param  list<int>  $imageIds
      * @return Collection<int, ProductFile>
      */
     private function activeImages(Product $product, array $imageIds): Collection
@@ -394,7 +394,7 @@ final readonly class ProductInstallationDocumentService
     }
 
     /**
-     * @param array<string, mixed> $snapshot
+     * @param  array<string, mixed>  $snapshot
      * @return array<string, mixed>
      */
     private function renderPayload(array $snapshot): array

@@ -12,7 +12,6 @@ use App\Modules\Products\Files\ProductFileManager;
 use App\Modules\Products\Files\ProductImageOperations;
 use App\Modules\Products\Models\Category;
 use App\Modules\Products\Models\Product;
-use App\Modules\Products\Models\ProductInstallationDocument;
 use App\Modules\Products\Models\Unit;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Http\UploadedFile;

@@ -38,11 +38,20 @@ final class ProductInstallationGuide extends Model
     }
 
     /** @return BelongsTo<Company, $this> */
-    public function company(): BelongsTo { return $this->belongsTo(Company::class); }
+    public function company(): BelongsTo
+    {
+        return $this->belongsTo(Company::class);
+    }
 
     /** @return BelongsTo<Product, $this> */
-    public function product(): BelongsTo { return $this->belongsTo(Product::class); }
+    public function product(): BelongsTo
+    {
+        return $this->belongsTo(Product::class);
+    }
 
     /** @return HasMany<ProductInstallationDocument, $this> */
-    public function documents(): HasMany { return $this->hasMany(ProductInstallationDocument::class, 'guide_id'); }
+    public function documents(): HasMany
+    {
+        return $this->hasMany(ProductInstallationDocument::class, 'guide_id');
+    }
 }

@@ -31,14 +31,26 @@ final class ProductInstallationDocument extends Model
     }
 
     /** @return BelongsTo<Company, $this> */
-    public function company(): BelongsTo { return $this->belongsTo(Company::class); }
+    public function company(): BelongsTo
+    {
+        return $this->belongsTo(Company::class);
+    }
 
     /** @return BelongsTo<Product, $this> */
-    public function product(): BelongsTo { return $this->belongsTo(Product::class); }
+    public function product(): BelongsTo
+    {
+        return $this->belongsTo(Product::class);
+    }
 
     /** @return BelongsTo<ProductInstallationGuide, $this> */
-    public function guide(): BelongsTo { return $this->belongsTo(ProductInstallationGuide::class, 'guide_id'); }
+    public function guide(): BelongsTo
+    {
+        return $this->belongsTo(ProductInstallationGuide::class, 'guide_id');
+    }
 
     /** @return BelongsTo<FileAsset, $this> */
-    public function fileAsset(): BelongsTo { return $this->belongsTo(FileAsset::class); }
+    public function fileAsset(): BelongsTo
+    {
+        return $this->belongsTo(FileAsset::class);
+    }
 }
