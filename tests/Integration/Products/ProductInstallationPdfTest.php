@@ -1,5 +1,7 @@
 <?php
 
+use App\Foundation\Correlation\CorrelationContext;
+use App\Foundation\Correlation\CorrelationIdFactory;
 use App\Modules\Core\Company\ActiveCompanyContext;
 use App\Modules\Core\Enums\UserStatus;
 use App\Modules\Core\Models\Company;
@@ -23,6 +25,7 @@ uses(DatabaseMigrations::class);
 
 beforeEach(function (): void {
     Storage::fake('local');
+    app(CorrelationContext::class)->set(app(CorrelationIdFactory::class)->resolve(null));
 });
 
 it('publishes immutable byte-stable installation PDFs and versions changed drafts', function (): void {
