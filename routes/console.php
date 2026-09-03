@@ -1,8 +1,11 @@
 <?php
 
+use App\Foundation\Operations\ProductionCandidateGate;
+use App\Foundation\Operations\ProductionSafetyState;
 use App\Modules\Core\Models\User;
 use App\Modules\Operations\BackupManager;
 use App\Modules\Operations\OperationsHealth;
+use App\Modules\Operations\RestoreDrillService;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schedule;
@@ -26,6 +29,21 @@ Artisan::command('mars:platform-admin {email} {--revoke}', function (): void {
     $this->info($enabled ? 'Platform administrator granted.' : 'Platform administrator revoked.');
 })->purpose('Grant or revoke system-wide platform administrator authority');
 
+Artisan::command('mars:production-candidate', function (ProductionCandidateGate $gate): int {
+    $issues = $gate->issues();
+    if ($issues === []) {
+        $this->info('Production candidate configuration gate is satisfied.');
+
+        return 0;
+    }
+
+    foreach ($issues as $issue) {
+        $this->error($issue);
+    }
+
+    return 1;
+})->purpose('Validate locked M23 production deployment, backup and security decisions');
+
 Artisan::command('mars:ops-status', function (OperationsHealth $health): void {
     $this->line(json_encode($health->snapshot(), JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR));
 })->purpose('Show PostgreSQL, Valkey, queue and operations health');
@@ -42,11 +60,17 @@ Artisan::command('mars:ops-heartbeat {component=scheduler} {--instance=}', funct
     $this->info('Heartbeat recorded.');
 })->purpose('Record worker or scheduler heartbeat');
 
-Artisan::command('mars:ops-recover', function (OperationsHealth $health): void {
+Artisan::command('mars:ops-recover', function (OperationsHealth $health, ProductionSafetyState $safety): void {
+    if (! $safety->asyncWorkEnabled()) {
+        throw new RuntimeException('Recovery mode blocks stale-work mutation and requeue.');
+    }
     $this->info((string) $health->recoverStaleWork().' stale operation rows reclaimed and requeued.');
 })->purpose('Reclaim stale integration, notification and automation processing states');
 
-Artisan::command('mars:ops-prune', function (OperationsHealth $health): void {
+Artisan::command('mars:ops-prune', function (OperationsHealth $health, ProductionSafetyState $safety): void {
+    if (! $safety->schedulerWorkEnabled()) {
+        throw new RuntimeException('Recovery mode blocks scheduler maintenance mutations.');
+    }
     $this->info((string) $health->prune().' old operations telemetry rows pruned.');
 })->purpose('Prune old non-audit operations telemetry');
 
@@ -57,16 +81,16 @@ Artisan::command('mars:backup {--user=}', function (BackupManager $backups): voi
     $this->info('Backup ready: '.$id);
 })->purpose('Create encrypted verified PostgreSQL + private file .marsbak backup');
 
-Artisan::command('mars:restore {backup} {--user=} {--no-safety}', function (BackupManager $backups): void {
+Artisan::command('mars:restore {backup} {--user=} {--no-safety}', function (RestoreDrillService $restores): void {
     $user = $this->option('user');
     $userId = (is_string($user) || is_int($user)) && is_numeric($user) ? (int) $user : null;
     $backupArgument = $this->argument('backup');
     if (! is_string($backupArgument) || $backupArgument === '') {
         throw new InvalidArgumentException('Backup identifier is required.');
     }
-    $backups->restore($backupArgument, $userId, $this->option('no-safety') !== true);
-    $this->info('Restore completed.');
-})->purpose('Restore verified .marsbak with optional safety backup');
+    $runId = $restores->run($backupArgument, $userId, $this->option('no-safety') !== true);
+    $this->info('Restore completed. Run: '.$runId);
+})->purpose('Restore verified .marsbak and record an auditable restore drill run');
 
 $runScheduled = function (string $taskKey, callable $callback): void {
     $id = DB::table('scheduler_runs')->insertGetId([
@@ -95,13 +119,31 @@ Schedule::call(function () use ($runScheduled): void {
 })->everyMinute()->name('operations.heartbeat')->withoutOverlapping();
 
 Schedule::call(function () use ($runScheduled): void {
-    $runScheduled('operations.metrics', fn (): array => app(OperationsHealth::class)->captureMetrics());
+    $runScheduled('operations.metrics', function (): array {
+        if (! app(ProductionSafetyState::class)->schedulerWorkEnabled()) {
+            return ['skipped' => 'production-safety'];
+        }
+
+        return app(OperationsHealth::class)->captureMetrics();
+    });
 })->everyFiveMinutes()->name('operations.metrics')->withoutOverlapping();
 
 Schedule::call(function () use ($runScheduled): void {
-    $runScheduled('operations.recover', fn (): array => ['recovered' => app(OperationsHealth::class)->recoverStaleWork()]);
+    $runScheduled('operations.recover', function (): array {
+        if (! app(ProductionSafetyState::class)->schedulerWorkEnabled()) {
+            return ['skipped' => 'production-safety'];
+        }
+
+        return ['recovered' => app(OperationsHealth::class)->recoverStaleWork()];
+    });
 })->everyFiveMinutes()->name('operations.recover')->withoutOverlapping();
 
 Schedule::call(function () use ($runScheduled): void {
-    $runScheduled('operations.prune', fn (): array => ['pruned' => app(OperationsHealth::class)->prune()]);
+    $runScheduled('operations.prune', function (): array {
+        if (! app(ProductionSafetyState::class)->schedulerWorkEnabled()) {
+            return ['skipped' => 'production-safety'];
+        }
+
+        return ['pruned' => app(OperationsHealth::class)->prune()];
+    });
 })->dailyAt('03:20')->name('operations.prune')->withoutOverlapping();

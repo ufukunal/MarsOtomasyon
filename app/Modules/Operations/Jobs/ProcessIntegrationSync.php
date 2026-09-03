@@ -2,6 +2,7 @@
 
 namespace App\Modules\Operations\Jobs;
 
+use App\Foundation\Operations\ProductionSafetyState;
 use App\Modules\Commerce\CommerceSyncGuard;
 use App\Modules\Operations\ChannelService;
 use App\Modules\Operations\ProviderRateLimitException;
@@ -22,8 +23,13 @@ final class ProcessIntegrationSync implements ShouldQueue
 
     public function __construct(public readonly int $effectId) {}
 
-    public function handle(ChannelService $channels, CommerceSyncGuard $guard): void
+    public function handle(ChannelService $channels, CommerceSyncGuard $guard, ProductionSafetyState $safety): void
     {
+        if (! $safety->asyncWorkEnabled()) {
+            $this->release($safety->retryAfterSeconds());
+
+            return;
+        }
         if (! $guard->shouldSend($this->effectId)) {
             return;
         }

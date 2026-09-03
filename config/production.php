@@ -1,6 +1,8 @@
 <?php
 
 return [
+    'deployment_model' => env('MARS_DEPLOYMENT_MODEL', 'docker-compose'),
+    'primary_file_disk' => env('MARS_PRIMARY_FILE_DISK', 'local'),
     'recovery_mode' => (bool) env('MARS_RECOVERY_MODE', false),
     'outbound_providers_enabled' => (bool) env('MARS_OUTBOUND_PROVIDERS_ENABLED', true),
     'async_work_enabled' => (bool) env('MARS_ASYNC_WORK_ENABLED', true),
@@ -10,4 +12,17 @@ return [
         static fn (string $provider): string => strtolower(trim($provider)),
         explode(',', (string) env('MARS_DISABLED_PROVIDERS', '')),
     ))),
+    'backup' => [
+        'offsite_required' => (bool) env('MARS_BACKUP_OFFSITE_REQUIRED', true),
+        'offsite_target' => env('MARS_BACKUP_OFFSITE_TARGET'),
+        'recovery_key_reference' => env('MARS_BACKUP_RECOVERY_KEY_REFERENCE'),
+        'rpo_hours' => max(1, (int) env('MARS_BACKUP_RPO_HOURS', 24)),
+        'rto_hours' => max(1, (int) env('MARS_BACKUP_RTO_HOURS', 4)),
+        'restore_drill_max_age_days' => max(1, (int) env('MARS_RESTORE_DRILL_MAX_AGE_DAYS', 30)),
+        'retention' => [
+            'daily' => max(1, (int) env('MARS_BACKUP_RETENTION_DAILY', 14)),
+            'weekly' => max(1, (int) env('MARS_BACKUP_RETENTION_WEEKLY', 8)),
+            'monthly' => max(1, (int) env('MARS_BACKUP_RETENTION_MONTHLY', 12)),
+        ],
+    ],
 ];
