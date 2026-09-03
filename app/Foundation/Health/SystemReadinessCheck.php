@@ -2,6 +2,7 @@
 
 namespace App\Foundation\Health;
 
+use App\Foundation\Operations\ProductionCandidateGate;
 use App\Foundation\Operations\ProductionSafetyState;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Redis\RedisManager;
@@ -14,6 +15,7 @@ final readonly class SystemReadinessCheck implements ReadinessCheck
         private DatabaseManager $database,
         private RedisManager $redis,
         private ProductionSafetyState $safety,
+        private ?ProductionCandidateGate $candidateGate = null,
     ) {}
 
     public function check(): ReadinessResult
@@ -22,6 +24,10 @@ final readonly class SystemReadinessCheck implements ReadinessCheck
 
         if ($this->safety->recoveryMode()) {
             $failed[] = 'recovery-mode';
+        }
+
+        if (app()->environment('production') && $this->candidateGate !== null && ! $this->candidateGate->satisfied()) {
+            $failed[] = 'production-candidate';
         }
 
         try {
@@ -38,7 +44,7 @@ final readonly class SystemReadinessCheck implements ReadinessCheck
             $this->logFailure('valkey', $exception);
         }
 
-        return new ReadinessResult($failed === [], $failed);
+        return new ReadinessResult($failed === [], array_values(array_unique($failed)));
     }
 
     private function logFailure(string $dependency, Throwable $exception): void

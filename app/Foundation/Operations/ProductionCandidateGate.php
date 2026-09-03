@@ -42,6 +42,7 @@ final readonly class ProductionCandidateGate
             || (int) config('production.backup.retention.monthly', 0) < 6) {
             $issues[] = 'backup-retention';
         }
+
         if ($this->app->environment('production')) {
             if ((bool) config('app.debug', false)) {
                 $issues[] = 'app-debug';
@@ -49,9 +50,30 @@ final readonly class ProductionCandidateGate
             if (! (bool) config('session.secure', false)) {
                 $issues[] = 'secure-session-cookie';
             }
+
+            $backupDriver = (string) config('filesystems.disks.'.$backupDisk.'.driver', '');
+            if ($offsiteRequired && $backupDriver !== 's3') {
+                $issues[] = 'backup-storage-driver';
+            }
+
+            $cipher = new BackupRecoveryCipher;
+            if (! $cipher->configured()) {
+                $issues[] = 'backup-recovery-key';
+            } elseif ($cipher->sharesApplicationKey()) {
+                $issues[] = 'backup-key-boundary';
+            }
+
+            if ((bool) config('production.backup.allow_legacy_app_key_decryption', true)) {
+                $issues[] = 'backup-legacy-app-key';
+            }
+
+            $recoveryStore = (string) config('production.recovery_state_store', '');
+            if ((string) config('cache.stores.'.$recoveryStore.'.driver', '') !== 'redis') {
+                $issues[] = 'recovery-state-store';
+            }
         }
 
-        return $issues;
+        return array_values(array_unique($issues));
     }
 
     public function satisfied(): bool

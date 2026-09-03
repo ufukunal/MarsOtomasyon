@@ -3,6 +3,8 @@
 namespace Tests\Unit;
 
 use App\Foundation\Operations\ProductionSafetyState;
+use Illuminate\Cache\ArrayStore;
+use Illuminate\Cache\Repository;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 
@@ -44,5 +46,21 @@ final class ProductionSafetyStateTest extends TestCase
 
         $this->expectException(RuntimeException::class);
         $state->assertProviderEnabled('trendyol');
+    }
+
+    public function test_runtime_recovery_mode_is_shared_through_the_safety_store(): void
+    {
+        $store = new Repository(new ArrayStore);
+        $first = new ProductionSafetyState(false, true, true, true, 300, [], $store, 'm23:recovery');
+        $second = new ProductionSafetyState(false, true, true, true, 300, [], $store, 'm23:recovery');
+
+        $first->enterRecoveryMode();
+
+        self::assertTrue($second->recoveryMode());
+        self::assertFalse($second->mutationsAllowed());
+
+        $second->leaveRecoveryMode();
+
+        self::assertFalse($first->recoveryMode());
     }
 }

@@ -16,6 +16,7 @@ use App\Modules\Core\Company\ActiveCompanyContext;
 use App\Modules\Core\Enums\PermissionKey;
 use App\Modules\Core\Models\User;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
@@ -40,6 +41,8 @@ final class CoreServiceProvider extends ServiceProvider
                 (array) config('production.disabled_providers', []),
                 static fn (mixed $provider): bool => is_string($provider) && trim($provider) !== '',
             )),
+            store: Cache::store((string) config('production.recovery_state_store', config('cache.default', 'redis'))),
+            recoveryStateKey: (string) config('production.recovery_state_key', 'mars:production:recovery-mode'),
         ));
         $this->app->singleton(ReadinessCheck::class, SystemReadinessCheck::class);
     }

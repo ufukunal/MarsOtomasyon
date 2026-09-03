@@ -2,10 +2,14 @@
 
 namespace App\Foundation\Operations;
 
+use Illuminate\Contracts\Cache\Repository as CacheRepository;
 use RuntimeException;
+use Throwable;
 
-final readonly class ProductionSafetyState
+final class ProductionSafetyState
 {
+    private bool $runtimeRecoveryMode = false;
+
     /** @param list<string> $disabledProviders */
     public function __construct(
         private bool $recoveryMode,
@@ -14,31 +18,77 @@ final readonly class ProductionSafetyState
         private bool $schedulerWorkEnabled,
         private int $retryAfterSeconds,
         private array $disabledProviders,
+        private ?CacheRepository $store = null,
+        private string $recoveryStateKey = 'mars:production:recovery-mode',
     ) {}
 
     public function recoveryMode(): bool
     {
-        return $this->recoveryMode;
+        if ($this->recoveryMode || $this->runtimeRecoveryMode) {
+            return true;
+        }
+
+        if ($this->store === null) {
+            return false;
+        }
+
+        try {
+            return (bool) $this->store->get($this->recoveryStateKey, false);
+        } catch (Throwable) {
+            // A shared recovery-state read failure must never reopen mutations.
+            return true;
+        }
+    }
+
+    public function enterRecoveryMode(): void
+    {
+        $this->runtimeRecoveryMode = true;
+
+        if ($this->store === null) {
+            return;
+        }
+
+        try {
+            $this->store->forever($this->recoveryStateKey, true);
+        } catch (Throwable $exception) {
+            throw new RuntimeException('Recovery mode could not be persisted to the shared safety store.', 0, $exception);
+        }
+    }
+
+    public function leaveRecoveryMode(): void
+    {
+        if ($this->store !== null) {
+            try {
+                $this->store->forget($this->recoveryStateKey);
+            } catch (Throwable $exception) {
+                // Keep the process-local barrier active if the shared state cannot be cleared safely.
+                $this->runtimeRecoveryMode = true;
+
+                throw new RuntimeException('Recovery mode could not be cleared from the shared safety store.', 0, $exception);
+            }
+        }
+
+        $this->runtimeRecoveryMode = false;
     }
 
     public function mutationsAllowed(): bool
     {
-        return ! $this->recoveryMode;
+        return ! $this->recoveryMode();
     }
 
     public function outboundProvidersEnabled(): bool
     {
-        return ! $this->recoveryMode && $this->outboundProvidersEnabled;
+        return ! $this->recoveryMode() && $this->outboundProvidersEnabled;
     }
 
     public function asyncWorkEnabled(): bool
     {
-        return ! $this->recoveryMode && $this->asyncWorkEnabled;
+        return ! $this->recoveryMode() && $this->asyncWorkEnabled;
     }
 
     public function schedulerWorkEnabled(): bool
     {
-        return ! $this->recoveryMode && $this->schedulerWorkEnabled;
+        return ! $this->recoveryMode() && $this->schedulerWorkEnabled;
     }
 
     public function providerEnabled(string $provider): bool
