@@ -23,7 +23,7 @@ jobs:
           php-version: '8.5'
           tools: composer:v2
       - name: Resolve locked S3 adapter dependency
-        run: composer require league/flysystem-aws-s3-v3:3.35.3 --with-dependencies --no-scripts --no-interaction
+        run: composer require league/flysystem-aws-s3-v3:^3.35.3 --with-dependencies --no-scripts --no-interaction
       - name: Validate resolved dependency graph
         run: composer validate --strict
       - name: Commit resolved lock files
