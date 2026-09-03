@@ -37,15 +37,14 @@ Bu belge `16_UYGULAMA_SIRASI_MILESTONE.md` içindeki resmî V4.2 milestone numar
 | M19 | B2B / Bayi Sistemi | **DONE** | PR #86 + #87: internal `web` guard'dan ayrı B2B auth/session, Account'a pre-bound immutable ULID `B2BUser`, lifecycle/password reset/auth-version revoke/rate-limit, typed role/permission + account-policy ceiling, readonly cari portalı, catalog/search/account product visibility, stock ve satış fiyatı−Cari İskontosu, cart + mevcut `SalesOrder` reuse, PostgreSQL advisory-lock idempotency, risk/exposure policy, history/invoice/statement, immutable-ULID address management ve external B2B audit actor metadata; `B2BAuthenticationTest`, `B2BPortalExitGateTest`, `B2BCompletionGapTest` | V1 milestone gap yok |
 | M20 | Communication / System Integrations / API | **DONE** | PR #90; hashed bearer credentials, typed permissions, per-token rate limiting, write idempotency/replay/drift guard, versioned `/api/v1` + OpenAPI, scanner enrollment/auth/job lifecycle, integration kill-switch; merge `43244e9b6e33975ae67a11195ccc5eef0cded074`; exact post-merge Foundation run `33694583085` 4/4 | V1 kod milestone gap yok; A-08/A-09/A-10/A-11 gerçek production provider seçim/credential kanıtı ilgili deployment slice'ının operasyon gate'idir |
 | M21 | Product Image Operations | **DONE** | PR #91; private media foundation üzerine tek ana görsel + galeri sırası, site/kanal destination set kimlikleri, aynı FileAsset'i yeniden kullanan copy/move, tahribatsız crop/rotate/flip/resize reçetesi, provider validation metadata, global file quarantine/release, V16.3 resources UI + `products.manage` authorization, PostgreSQL `jsonb`/partial-unique/check invariantları; `ProductImageOperationsTest` + `M21ProductImageHttpExitGateTest` | V1 milestone gap yok; binary image mutation zorunlu değildir, edit reçetesi orijinal private dosyayı değiştirmeden metadata olarak saklanır |
-| M22 | Product Installation PDF Builder | **PENDING** | Versioned/private PDF/file primitives mevcut fakat domain-specific installation builder exit kanıtı yok | steps/warnings/tools/parts/images/A4 preview/versioned output vertical slice |
+| M22 | Product Installation PDF Builder | **DONE** | `ProductInstallationDocumentService`; steps/warnings/tools/parts/images taslağı; aynı ürün/tenant aktif medya doğrulaması; A4 preview; `product-installation-pdf.v1` immutable private PDF + SHA-256 + source fingerprint + idempotent same-content publish + monotonik versiyon; PostgreSQL mutation guards; `ProductInstallationPdfTest` | V1 milestone gap yok; published PDF versiyonu draft ve kaynak görsel lifecycle değişikliklerinden bağımsız private artifact olarak korunur |
 | M23 | Security / Backup / Operational Hardening / Production Candidate | **PARTIAL** | PR #64/#66: security events/IP rules, health/worker heartbeat, encrypted backup/restore implementation; current Foundation security gate | A-03/A-14/A-15; restore drill, recovery barrier, full auth/isolation review, performance/query-plan hardening ve `main` protection verification |
 | M24 | Migration / Go-Live | **PENDING** | Migration/ledger/idempotency primitives hazır | A-16 + production identity policy; migration rehearsal/reconciliation/cutover/full enabled-channel regression/go-live gate |
 
 ## Bir sonraki uygulama sırası
 
-1. **M22 Installation PDF Builder**.
-2. **M23 Production Candidate hardening**.
-3. **M24 Migration / Go-Live**.
+1. **M23 Production Candidate hardening**.
+2. **M24 Migration / Go-Live**.
 
 ## Reconciliation kuralı
 
