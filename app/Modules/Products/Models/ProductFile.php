@@ -8,6 +8,11 @@ use App\Modules\Products\Enums\ProductFileKind;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property list<string>|null $destinations
+ * @property array<string, mixed>|null $transform_metadata
+ * @property array<string, mixed>|null $provider_validation
+ */
 final class ProductFile extends Model
 {
     protected $fillable = [
