@@ -6,7 +6,7 @@ Bu kayıt `08_MODULLER_MASTER_PLAN.md` içindeki **Ürün / Stok → Kurulum Kı
 
 - Kurulum rehberi taslağı `steps`, `warnings`, `tools`, `parts` ve seçilmiş ürün `images` alanlarını taşır.
 - Görseller yalnız aktif company/product boundary içindeki `ProductFile(kind=media)` kayıtlarından seçilir; detached, archived veya quarantined varlık fail-closed reddedilir.
-- Önizleme A4 page contractını kullanır.
+- Önizleme A4 page contractını kullanır ve yayın ile aynı tenant/media snapshot doğrulama kurallarından geçer.
 - Yayın `product-installation-pdf.v1` renderer kimliği, canonical source fingerprint ve SHA-256 ile private `FileAsset` üretir.
 - Aynı renderer + aynı source fingerprint tekrar yayınlanırsa yeni artifact üretilmez; mevcut versiyon döner.
 - İçerik değişirse ürün bazında monotonik yeni versiyon oluşur.
