@@ -15,6 +15,7 @@ use App\Modules\Products\Files\ProductImageOperations;
 use App\Modules\Products\Models\Category;
 use App\Modules\Products\Models\Product;
 use App\Modules\Products\Models\Unit;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
@@ -78,7 +79,7 @@ it('publishes immutable byte-stable installation PDFs and versions changed draft
         ->and($service->verifiedBytes($v1))->toBe($v1Bytes);
 
     expect(fn () => DB::table('product_installation_documents')->where('id', $v1->getKey())->update(['version' => 9]))
-        ->toThrow(Throwable::class);
+        ->toThrow(QueryException::class);
 });
 
 it('rejects foreign or quarantined media from installation guides', function (): void {
