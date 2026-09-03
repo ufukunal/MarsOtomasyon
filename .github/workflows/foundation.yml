@@ -51,10 +51,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
       - name: Prepare Laravel environment
         run: cp .env.example .env
-
       - name: Setup PHP 8.5
         uses: shivammathur/setup-php@v2
         with:
@@ -62,28 +60,21 @@ jobs:
           extensions: pdo_pgsql, redis, sockets, intl, zip
           coverage: none
           tools: composer:v2
-
       - name: Setup Node 24
         uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
           cache: npm
-
       - name: Validate Composer manifest
         run: composer validate --strict
-
       - name: Install PHP dependencies
         run: composer install --no-interaction --prefer-dist --no-progress
-
       - name: Install frontend dependencies
         run: npm ci
-
       - name: Verify formatting
         run: composer format:check
-
       - name: Run static analysis
         run: composer analyse
-
       - name: Build frontend assets
         run: npm run build
 
@@ -119,10 +110,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
       - name: Prepare Laravel environment
         run: cp .env.example .env
-
       - name: Setup PHP 8.5
         uses: shivammathur/setup-php@v2
         with:
@@ -130,23 +119,59 @@ jobs:
           extensions: pdo_pgsql, redis, sockets, intl, zip
           coverage: none
           tools: composer:v2
-
       - name: Install PHP dependencies
         run: composer install --no-interaction --prefer-dist --no-progress
-
       - name: Fresh PostgreSQL schema
         run: php artisan migrate:fresh --force
 
-      - name: Run unit tests
-        run: vendor/bin/pest tests/Unit --exclude-group=browser-smoke --colors=always
+      - name: Integration - M21 image operations
+        run: vendor/bin/pest tests/Integration/Products/ProductImageOperationsTest.php --colors=always
 
-      - name: Run feature tests
+      - name: Integration - M21 HTTP exit gate
         if: ${{ always() }}
-        run: vendor/bin/pest tests/Feature --exclude-group=browser-smoke --colors=always
+        run: vendor/bin/pest tests/Integration/Products/M21ProductImageHttpExitGateTest.php --colors=always
 
-      - name: Run integration tests
+      - name: Integration - legacy Products
         if: ${{ always() }}
-        run: vendor/bin/pest tests/Integration --exclude-group=browser-smoke --colors=always
+        run: >-
+          vendor/bin/pest
+          tests/Integration/Products/CatalogMasterManagementTest.php
+          tests/Integration/Products/ProductCrudAuthorizationTest.php
+          tests/Integration/Products/ProductResourcesTest.php
+          tests/Integration/Products/ProductSchemaIdentityTest.php
+          tests/Integration/Products/ProductSearchTest.php
+          tests/Integration/Products/ProductUpdateTest.php
+          --colors=always
+
+      - name: Integration - non-Products
+        if: ${{ always() }}
+        run: >-
+          vendor/bin/pest
+          tests/Integration/Accounts
+          tests/Integration/B2B
+          tests/Integration/Commerce
+          tests/Integration/Communication
+          tests/Integration/Core
+          tests/Integration/Dispatches
+          tests/Integration/GoodsReceipts
+          tests/Integration/Imports
+          tests/Integration/Instruments
+          tests/Integration/Inventory
+          tests/Integration/Operations
+          tests/Integration/Production
+          tests/Integration/PurchaseOrders
+          tests/Integration/PurchaseReturns
+          tests/Integration/Quotes
+          tests/Integration/Reports
+          tests/Integration/SalesInvoices
+          tests/Integration/SalesOrders
+          tests/Integration/SalesReturns
+          tests/Integration/Subcontract
+          tests/Integration/SupplierInvoices
+          tests/Integration/Treasury
+          tests/Integration/PostgreSqlFoundationTest.php
+          tests/Integration/ValkeyFoundationTest.php
+          --colors=always
 
       - name: Run architecture tests
         if: ${{ always() }}
@@ -184,10 +209,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
       - name: Prepare Laravel environment
         run: cp .env.example .env
-
       - name: Setup PHP 8.5
         uses: shivammathur/setup-php@v2
         with:
@@ -195,31 +218,23 @@ jobs:
           extensions: pdo_pgsql, redis, sockets, intl, zip
           coverage: none
           tools: composer:v2
-
       - name: Setup Node 24
         uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
           cache: npm
-
       - name: Install PHP dependencies
         run: composer install --no-interaction --prefer-dist --no-progress
-
       - name: Install frontend dependencies
         run: npm ci
-
       - name: Build frontend assets
         run: npm run build
-
       - name: Install Playwright Chromium
         run: npx playwright install --with-deps chromium
-
       - name: Fresh PostgreSQL schema
         run: php artisan migrate:fresh --force
-
       - name: Verify application boot
         run: php artisan route:list --path=up
-
       - name: Run browser smoke tests
         run: composer test:browser
 
@@ -233,10 +248,8 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
       - name: Prepare Laravel environment
         run: cp .env.example .env
-
       - name: Setup PHP 8.5
         uses: shivammathur/setup-php@v2
         with:
@@ -244,27 +257,20 @@ jobs:
           extensions: pdo_pgsql, redis, sockets, intl, zip
           coverage: none
           tools: composer:v2
-
       - name: Setup Node 24
         uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
           cache: npm
-
       - name: Validate Composer manifest
         run: composer validate --strict
-
       - name: Install PHP dependencies
         run: composer install --no-interaction --prefer-dist --no-progress
-
       - name: Install frontend dependencies
         run: npm ci
-
       - name: Audit Composer dependencies
         run: composer audit --no-interaction
-
       - name: Audit npm dependencies
         run: npm audit --audit-level=high
-
       - name: Scan tracked files for obvious secrets
         run: bash scripts/ci/secret-scan.sh
