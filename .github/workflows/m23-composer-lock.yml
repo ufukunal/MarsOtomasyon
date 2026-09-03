@@ -1,0 +1,38 @@
+name: M23 Composer Lock Helper
+
+on:
+  push:
+    branches:
+      - feat/m23-production-candidate-hardening
+    paths:
+      - .github/workflows/m23-composer-lock.yml
+
+permissions:
+  contents: write
+
+jobs:
+  resolve-s3-adapter:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/m23-production-candidate-hardening
+          fetch-depth: 0
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          tools: composer:v2
+      - name: Resolve locked S3 adapter dependency
+        run: composer require league/flysystem-aws-s3-v3:3.35.3 --with-dependencies --no-scripts --no-interaction
+      - name: Validate resolved dependency graph
+        run: composer validate --strict
+      - name: Commit resolved lock files
+        run: |
+          if git diff --quiet -- composer.json composer.lock; then
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add composer.json composer.lock
+          git commit -m 'build(m23): add locked s3 backup adapter'
+          git push origin HEAD:feat/m23-production-candidate-hardening
