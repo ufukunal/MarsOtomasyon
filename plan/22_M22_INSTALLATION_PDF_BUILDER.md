@@ -18,4 +18,6 @@ Bu kayıt `08_MODULLER_MASTER_PLAN.md` içindeki **Ürün / Stok → Kurulum Kı
 
 Representative contract testi: `tests/Integration/Products/ProductInstallationPdfTest.php`.
 
+Canonical `quality` gate içinde Pint ve Larastan/PHPStan temiz olmalıdır; milestone-specific kod için static-analysis suppression eklenmez.
+
 Final kapanış kanıtı yalnız exact PR head canonical Foundation 4/4, merge ve exact merged `main` Foundation 4/4 yeşil olduğunda geçerlidir.
