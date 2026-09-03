@@ -10,7 +10,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: foundation-${{ github.ref }}-${{ github.sha }}
+  group: foundation-${{ github.ref }}
   cancel-in-progress: true
 
 env:
@@ -47,11 +47,14 @@ jobs:
     name: quality
     runs-on: ubuntu-latest
     timeout-minutes: 15
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
       - name: Prepare Laravel environment
         run: cp .env.example .env
+
       - name: Setup PHP 8.5
         uses: shivammathur/setup-php@v2
         with:
@@ -59,28 +62,36 @@ jobs:
           extensions: pdo_pgsql, redis, sockets, intl, zip
           coverage: none
           tools: composer:v2
+
       - name: Setup Node 24
         uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
           cache: npm
+
       - name: Validate Composer manifest
         run: composer validate --strict
+
       - name: Install PHP dependencies
         run: composer install --no-interaction --prefer-dist --no-progress
+
       - name: Install frontend dependencies
         run: npm ci
+
       - name: Verify formatting
         run: composer format:check
+
       - name: Run static analysis
         run: composer analyse
+
       - name: Build frontend assets
         run: npm run build
 
   postgres-tests:
     name: postgres-tests
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 30
+
     services:
       postgres:
         image: postgres:18.6
@@ -104,11 +115,14 @@ jobs:
           --health-interval 5s
           --health-timeout 5s
           --health-retries 20
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
       - name: Prepare Laravel environment
         run: cp .env.example .env
+
       - name: Setup PHP 8.5
         uses: shivammathur/setup-php@v2
         with:
@@ -116,20 +130,21 @@ jobs:
           extensions: pdo_pgsql, redis, sockets, intl, zip
           coverage: none
           tools: composer:v2
+
       - name: Install PHP dependencies
         run: composer install --no-interaction --prefer-dist --no-progress
+
       - name: Fresh PostgreSQL schema
         run: php artisan migrate:fresh --force
-      - name: Integration - M21 image operations
-        run: vendor/bin/pest tests/Integration/Products/ProductImageOperationsTest.php --colors=always
-      - name: Integration - M21 HTTP exit gate
-        if: ${{ always() }}
-        run: vendor/bin/pest tests/Integration/Products/M21ProductImageHttpExitGateTest.php --colors=always
+
+      - name: Run non-browser test suites
+        run: composer test
 
   browser-smoke:
     name: browser-smoke
     runs-on: ubuntu-latest
     timeout-minutes: 20
+
     services:
       postgres:
         image: postgres:18.6
@@ -153,11 +168,14 @@ jobs:
           --health-interval 5s
           --health-timeout 5s
           --health-retries 20
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
       - name: Prepare Laravel environment
         run: cp .env.example .env
+
       - name: Setup PHP 8.5
         uses: shivammathur/setup-php@v2
         with:
@@ -165,23 +183,31 @@ jobs:
           extensions: pdo_pgsql, redis, sockets, intl, zip
           coverage: none
           tools: composer:v2
+
       - name: Setup Node 24
         uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
           cache: npm
+
       - name: Install PHP dependencies
         run: composer install --no-interaction --prefer-dist --no-progress
+
       - name: Install frontend dependencies
         run: npm ci
+
       - name: Build frontend assets
         run: npm run build
+
       - name: Install Playwright Chromium
         run: npx playwright install --with-deps chromium
+
       - name: Fresh PostgreSQL schema
         run: php artisan migrate:fresh --force
+
       - name: Verify application boot
         run: php artisan route:list --path=up
+
       - name: Run browser smoke tests
         run: composer test:browser
 
@@ -189,13 +215,16 @@ jobs:
     name: security
     runs-on: ubuntu-latest
     timeout-minutes: 15
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
       - name: Prepare Laravel environment
         run: cp .env.example .env
+
       - name: Setup PHP 8.5
         uses: shivammathur/setup-php@v2
         with:
@@ -203,20 +232,27 @@ jobs:
           extensions: pdo_pgsql, redis, sockets, intl, zip
           coverage: none
           tools: composer:v2
+
       - name: Setup Node 24
         uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
           cache: npm
+
       - name: Validate Composer manifest
         run: composer validate --strict
+
       - name: Install PHP dependencies
         run: composer install --no-interaction --prefer-dist --no-progress
+
       - name: Install frontend dependencies
         run: npm ci
+
       - name: Audit Composer dependencies
         run: composer audit --no-interaction
+
       - name: Audit npm dependencies
         run: npm audit --audit-level=high
+
       - name: Scan tracked files for obvious secrets
         run: bash scripts/ci/secret-scan.sh
