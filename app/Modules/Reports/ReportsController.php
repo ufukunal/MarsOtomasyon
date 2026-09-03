@@ -3,6 +3,7 @@
 namespace App\Modules\Reports;
 
 use App\Modules\Core\Company\ActiveCompanyContext;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\View\View;
@@ -15,6 +16,7 @@ final readonly class ReportsController
     public function __construct(
         private ActiveCompanyContext $companyContext,
         private ReportService $reports,
+        private OperationalReportCatalog $catalog,
     ) {}
 
     public function index(Request $request): View
@@ -25,12 +27,28 @@ final readonly class ReportsController
         return view('reports.index', $data + ['filters' => $filters]);
     }
 
+    public function catalog(): JsonResponse
+    {
+        return response()->json(['reports' => $this->catalog->definitions()]);
+    }
+
+    public function show(Request $request, string $reportKey): JsonResponse
+    {
+        $validated = $request->validate(['limit' => ['nullable', 'integer', 'min:1', 'max:5000']]);
+        $key = strtoupper(trim($reportKey));
+        abort_unless(in_array($key, $this->catalog->keys(), true), 404);
+
+        return response()->json([
+            'report_key' => $key,
+            'definition' => $this->catalog->definitions()[$key],
+            'rows' => $this->catalog->run($key, $this->companyId(), (int) ($validated['limit'] ?? 500)),
+        ]);
+    }
+
     public function export(Request $request): StreamedResponse
     {
         $filters = $this->filters($request);
-        $section = (string) $request->validate([
-            'section' => ['required', 'in:finance,aging,stock,movements'],
-        ])['section'];
+        $section = (string) $request->validate(['section' => ['required', 'in:finance,aging,stock,movements']])['section'];
         $data = $this->reports->build($this->companyId(), $filters);
         [$headers, $rows] = $this->exportRows($section, $data);
 
@@ -46,9 +64,7 @@ final readonly class ReportsController
                 fputcsv($output, $row, ';');
             }
             fclose($output);
-        }, 'mars-report-'.$section.'-'.$filters['as_of'].'.csv', [
-            'Content-Type' => 'text/csv; charset=UTF-8',
-        ]);
+        }, 'mars-report-'.$section.'-'.$filters['as_of'].'.csv', ['Content-Type' => 'text/csv; charset=UTF-8']);
     }
 
     /** @return array{as_of:string,currency:?string,warehouse_id:?int,account_type:?string} */
@@ -93,58 +109,10 @@ final readonly class ReportsController
     private function exportRows(string $section, array $data): array
     {
         return match ($section) {
-            'finance' => [
-                ['Para Birimi', 'Treasury', 'Alacak', 'Borç', 'Net Pozisyon'],
-                array_map(static fn (array $row): array => [
-                    $row['currency'],
-                    $row['treasury'],
-                    $row['receivable'],
-                    $row['payable'],
-                    $row['net'],
-                ], $data['finance']),
-            ],
-            'aging' => [
-                ['Cari Kodu', 'Cari', 'Tip', 'Para Birimi', 'Vadesi Gelmemiş', '1-30', '31-60', '61-90', '90+', 'Toplam'],
-                array_map(static fn (array $row): array => [
-                    $row['code'],
-                    $row['name'],
-                    $row['type'],
-                    $row['currency'],
-                    $row['current'],
-                    $row['days_1_30'],
-                    $row['days_31_60'],
-                    $row['days_61_90'],
-                    $row['days_90_plus'],
-                    $row['total'],
-                ], $data['aging']),
-            ],
-            'stock' => [
-                ['Ürün Kodu', 'Ürün', 'Depo Kodu', 'Depo', 'Miktar', 'Ort. Maliyet', 'Stok Değeri'],
-                array_map(static fn (array $row): array => [
-                    $row['product_code'],
-                    $row['product_name'],
-                    $row['warehouse_code'],
-                    $row['warehouse_name'],
-                    $row['quantity'],
-                    $row['unit_cost'],
-                    $row['value'],
-                ], $data['stock']),
-            ],
-            'movements' => [
-                ['Tarih', 'Ürün Kodu', 'Ürün', 'Depo', 'Hareket', 'Miktar', 'Birim Maliyet', 'Değer', 'Kaynak Tipi', 'Kaynak'],
-                array_values($data['movements']->map(static fn (stdClass $row): array => [
-                    (string) $row->occurred_at,
-                    (string) $row->product_code,
-                    (string) $row->product_name,
-                    (string) $row->warehouse_code,
-                    (string) $row->movement_type,
-                    (string) $row->quantity_delta,
-                    (string) $row->unit_cost,
-                    (string) $row->value_delta,
-                    (string) $row->source_type,
-                    (string) $row->source_id,
-                ])->all()),
-            ],
+            'finance' => [['Para Birimi', 'Treasury', 'Alacak', 'Borç', 'Net Pozisyon'], array_map(static fn (array $row): array => [$row['currency'], $row['treasury'], $row['receivable'], $row['payable'], $row['net']], $data['finance'])],
+            'aging' => [['Cari Kodu', 'Cari', 'Tip', 'Para Birimi', 'Vadesi Gelmemiş', '1-30', '31-60', '61-90', '90+', 'Toplam'], array_map(static fn (array $row): array => [$row['code'], $row['name'], $row['type'], $row['currency'], $row['current'], $row['days_1_30'], $row['days_31_60'], $row['days_61_90'], $row['days_90_plus'], $row['total']], $data['aging'])],
+            'stock' => [['Ürün Kodu', 'Ürün', 'Depo Kodu', 'Depo', 'Miktar', 'Ort. Maliyet', 'Stok Değeri'], array_map(static fn (array $row): array => [$row['product_code'], $row['product_name'], $row['warehouse_code'], $row['warehouse_name'], $row['quantity'], $row['unit_cost'], $row['value']], $data['stock'])],
+            'movements' => [['Tarih', 'Ürün Kodu', 'Ürün', 'Depo', 'Hareket', 'Miktar', 'Birim Maliyet', 'Değer', 'Kaynak Tipi', 'Kaynak'], array_values($data['movements']->map(static fn (stdClass $row): array => [(string) $row->occurred_at, (string) $row->product_code, (string) $row->product_name, (string) $row->warehouse_code, (string) $row->movement_type, (string) $row->quantity_delta, (string) $row->unit_cost, (string) $row->value_delta, (string) $row->source_type, (string) $row->source_id])->all())],
             default => throw new RuntimeException('Unsupported report export section.'),
         };
     }
