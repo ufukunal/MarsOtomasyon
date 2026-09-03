@@ -1,5 +1,6 @@
 <?php
 
+use App\Foundation\Correlation\CorrelationContext;
 use App\Modules\Core\Authorization\AssignRoleToMembership;
 use App\Modules\Core\Authorization\GrantPermissionToRole;
 use App\Modules\Core\Company\ActiveCompanyContext;
@@ -28,6 +29,7 @@ uses(DatabaseMigrations::class);
 beforeEach(function (): void {
     $this->withoutVite();
     Storage::fake('local');
+    app(CorrelationContext::class)->set('00000000-0000-4000-8000-000000000021');
 });
 
 it('exposes the M21 image workspace to viewers while keeping mutations behind product management', function (): void {
