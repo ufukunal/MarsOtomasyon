@@ -2,6 +2,7 @@
 
 namespace App\Modules\Operations;
 
+use App\Foundation\Operations\ProductionSafetyState;
 use App\Modules\Communication\NotificationTemplateService;
 use App\Modules\Operations\Jobs\DeliverNotification;
 use DomainException;
@@ -13,7 +14,10 @@ use RuntimeException;
 
 final class NotificationService
 {
-    public function __construct(private readonly NotificationTemplateService $templates) {}
+    public function __construct(
+        private readonly NotificationTemplateService $templates,
+        private readonly ProductionSafetyState $safety,
+    ) {}
 
     /** @param array<string, scalar|null> $variables */
     public function enqueueTemplate(int $companyId, string $templateKey, string $channel, string $recipient, array $variables, ?string $idempotencyKey = null): int
@@ -77,8 +81,18 @@ final class NotificationService
 
                 return null;
             }
+            $provider = $this->providerForChannel($channel);
+            if (! $this->safety->providerEnabled($provider)) {
+                DB::table('notification_deliveries')->where('id', $deliveryId)->update([
+                    'status' => 'failed',
+                    'last_error' => 'Provider disabled by production safety controls: '.$provider,
+                    'updated_at' => now(),
+                ]);
+
+                return null;
+            }
             $attemptNo = (int) $delivery->attempts + 1;
-            $attemptId = (int) DB::table('notification_provider_attempts')->insertGetId(['company_id' => $delivery->company_id, 'delivery_id' => $deliveryId, 'attempt_no' => $attemptNo, 'provider' => $this->providerForChannel($channel), 'status' => 'sending', 'request_meta' => json_encode(['channel' => $channel, 'recipient_sha256' => hash('sha256', (string) $delivery->recipient)], JSON_THROW_ON_ERROR), 'started_at' => now()]);
+            $attemptId = (int) DB::table('notification_provider_attempts')->insertGetId(['company_id' => $delivery->company_id, 'delivery_id' => $deliveryId, 'attempt_no' => $attemptNo, 'provider' => $provider, 'status' => 'sending', 'request_meta' => json_encode(['channel' => $channel, 'recipient_sha256' => hash('sha256', (string) $delivery->recipient)], JSON_THROW_ON_ERROR), 'started_at' => now()]);
             DB::table('notification_deliveries')->where('id', $deliveryId)->update(['status' => 'sending', 'attempts' => $attemptNo, 'last_error' => null, 'updated_at' => now()]);
 
             return ['attempt_id' => $attemptId, 'company_id' => (int) $delivery->company_id, 'channel' => $channel, 'recipient' => (string) $delivery->recipient, 'subject' => $delivery->subject === null ? null : (string) $delivery->subject, 'body' => (string) $delivery->body, 'idempotency_key' => (string) $delivery->idempotency_key];

@@ -2,6 +2,7 @@
 
 use App\Foundation\Correlation\CorrelationIdMiddleware;
 use App\Foundation\Health\ReadinessController;
+use App\Foundation\Operations\EnforceProductionSafety;
 use App\Modules\B2B\Http\Middleware\EnsureB2BAccess;
 use App\Modules\Communication\Http\Middleware\ApiTokenRateLimit;
 use App\Modules\Communication\Http\Middleware\AuthenticateApiAccessToken;
@@ -50,6 +51,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->append(CorrelationIdMiddleware::class);
+        $middleware->append(EnforceProductionSafety::class);
         $middleware->alias([
             'company.context' => ResolveActiveCompany::class,
             'branch.context' => ResolveActiveBranch::class,

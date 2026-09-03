@@ -31,11 +31,33 @@ final class SensitiveDataRedactor
                     continue;
                 }
 
-                $values[$key] = $this->redactBearerToken($value);
+                $values[$key] = $this->redactText($value);
             }
         }
 
         return $values;
+    }
+
+    public function redactText(string $value): string
+    {
+        $value = $this->redactBearerToken($value);
+        $value = (string) preg_replace(
+            '/\b(password|passwd|secret|token|api[_-]?key|private[_-]?key|recovery[_-]?key|encryption[_-]?key|tckn|vkn|iban|email|phone|telephone|mobile)\s*[:=]\s*([^\s,;]+)/i',
+            '$1='.self::REDACTED,
+            $value,
+        );
+        $value = (string) preg_replace(
+            '/\b[A-Z0-9._%+\-]+@[A-Z0-9.\-]+\.[A-Z]{2,}\b/i',
+            self::REDACTED,
+            $value,
+        );
+        $value = (string) preg_replace(
+            '/\bTR[0-9]{24}\b/i',
+            self::REDACTED,
+            $value,
+        );
+
+        return $value;
     }
 
     private function isSensitiveKey(string $key): bool
@@ -44,8 +66,9 @@ final class SensitiveDataRedactor
 
         foreach ([
             'password', 'passwd', 'secret', 'token', 'authorization', 'apikey', 'privatekey',
-            'credential', 'cookie', 'sessionid', 'tckn', 'vkn', 'taxnumber', 'taxidentity', 'iban',
-            'accountnumber', 'email', 'phone', 'telephone', 'mobile', 'address', 'birthdate',
+            'recoverykey', 'encryptionkey', 'credential', 'cookie', 'sessionid', 'tckn', 'vkn',
+            'taxnumber', 'taxidentity', 'iban', 'accountnumber', 'email', 'phone', 'telephone',
+            'mobile', 'address', 'birthdate',
         ] as $sensitive) {
             if (str_contains($normalized, $sensitive)) {
                 return true;
