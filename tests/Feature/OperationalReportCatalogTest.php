@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Modules\Reports\OperationalReportCatalog;
+use Illuminate\Support\Collection;
 use Tests\TestCase;
 
 final class OperationalReportCatalogTest extends TestCase
@@ -33,7 +34,11 @@ final class OperationalReportCatalogTest extends TestCase
         foreach (self::EXPECTED_KEYS as $key) {
             $query = $catalog->query($key, $tenantId);
             self::assertContains($tenantId, $query->getBindings(), $key.' must bind the active company id.');
-            self::assertCount(0, $catalog->run($key, $tenantId, 1), $key.' should execute cleanly against the migrated schema.');
+            self::assertInstanceOf(
+                Collection::class,
+                $catalog->run($key, $tenantId, 1),
+                $key.' should execute cleanly against the migrated PostgreSQL schema.',
+            );
         }
     }
 }
