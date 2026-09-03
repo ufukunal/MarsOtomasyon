@@ -1,0 +1,40 @@
+name: M22 Format Diagnostic
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  format-artifact:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          extensions: pdo_pgsql, redis, sockets, intl, zip
+          coverage: none
+          tools: composer:v2
+      - name: Install PHP dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+      - name: Apply Pint
+        run: vendor/bin/pint
+      - name: Archive formatted files
+        run: |
+          mkdir -p /tmp/m22-formatted
+          cp --parents app/Modules/Products/Documents/ProductInstallationDocumentService.php /tmp/m22-formatted/
+          cp --parents app/Modules/Products/Models/ProductInstallationDocument.php /tmp/m22-formatted/
+          cp --parents app/Modules/Products/Models/ProductInstallationGuide.php /tmp/m22-formatted/
+          cp --parents app/Modules/Products/ProductInstallationController.php /tmp/m22-formatted/
+          cp --parents bootstrap/app.php /tmp/m22-formatted/
+          cp --parents database/migrations/2026_09_03_000100_create_m22_product_installation_pdfs.php /tmp/m22-formatted/
+          cp --parents routes/product-installation.php /tmp/m22-formatted/
+          cp --parents tests/Integration/Products/ProductInstallationPdfTest.php /tmp/m22-formatted/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: m22-formatted-files
+          path: /tmp/m22-formatted
