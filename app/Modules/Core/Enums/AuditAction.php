@@ -32,6 +32,7 @@ enum AuditAction: string
     case ProductCreated = 'products.product.created';
     case ProductUpdated = 'products.product.updated';
     case ProductSuppliersUpdated = 'products.product.suppliers.updated';
+    case ProductMediaUpdated = 'products.product.media.updated';
     case CategoryCreated = 'products.category.created';
     case CategoryUpdated = 'products.category.updated';
     case UnitCreated = 'products.unit.created';
@@ -96,6 +97,7 @@ enum AuditAction: string
             self::ProductCreated => 'Ürün oluşturuldu',
             self::ProductUpdated => 'Ürün güncellendi',
             self::ProductSuppliersUpdated => 'Ürün tedarikçi ilişkileri güncellendi',
+            self::ProductMediaUpdated => 'Ürün görsel operasyonu güncellendi',
             self::CategoryCreated => 'Kategori oluşturuldu',
             self::CategoryUpdated => 'Kategori güncellendi',
             self::UnitCreated => 'Birim oluşturuldu',

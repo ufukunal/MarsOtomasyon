@@ -130,6 +130,52 @@ Route::prefix('inventory')
             ->whereNumber('file')
             ->middleware('can:products.manage')
             ->name('products.resources.files.detach');
+
+        Route::post('/products/{product}/resources/media/{file}/main', [ProductResourcesController::class, 'setMainMedia'])
+            ->whereNumber('product')
+            ->whereNumber('file')
+            ->middleware('can:products.manage')
+            ->name('products.resources.media.main');
+        Route::put('/products/{product}/resources/media-order', [ProductResourcesController::class, 'reorderMedia'])
+            ->whereNumber('product')
+            ->middleware('can:products.manage')
+            ->name('products.resources.media.order');
+        Route::put('/products/{product}/resources/media/{file}/destinations', [ProductResourcesController::class, 'updateMediaDestinations'])
+            ->whereNumber('product')
+            ->whereNumber('file')
+            ->middleware('can:products.manage')
+            ->name('products.resources.media.destinations');
+        Route::put('/products/{product}/resources/media/{file}/transform', [ProductResourcesController::class, 'updateMediaTransform'])
+            ->whereNumber('product')
+            ->whereNumber('file')
+            ->middleware('can:products.manage')
+            ->name('products.resources.media.transform');
+        Route::put('/products/{product}/resources/media/{file}/provider-validation', [ProductResourcesController::class, 'updateMediaProviderValidation'])
+            ->whereNumber('product')
+            ->whereNumber('file')
+            ->middleware('can:products.manage')
+            ->name('products.resources.media.provider-validation');
+        Route::post('/products/{product}/resources/media/{file}/copy', [ProductResourcesController::class, 'copyMedia'])
+            ->whereNumber('product')
+            ->whereNumber('file')
+            ->middleware('can:products.manage')
+            ->name('products.resources.media.copy');
+        Route::post('/products/{product}/resources/media/{file}/move', [ProductResourcesController::class, 'moveMedia'])
+            ->whereNumber('product')
+            ->whereNumber('file')
+            ->middleware('can:products.manage')
+            ->name('products.resources.media.move');
+        Route::post('/products/{product}/resources/media/{file}/quarantine', [ProductResourcesController::class, 'quarantineMedia'])
+            ->whereNumber('product')
+            ->whereNumber('file')
+            ->middleware('can:products.manage')
+            ->name('products.resources.media.quarantine');
+        Route::post('/products/{product}/resources/media/{file}/release-quarantine', [ProductResourcesController::class, 'releaseMediaQuarantine'])
+            ->whereNumber('product')
+            ->whereNumber('file')
+            ->middleware('can:products.manage')
+            ->name('products.resources.media.release-quarantine');
+
         Route::get('/products/{product}', [ProductController::class, 'show'])
             ->whereNumber('product')
             ->middleware('can:products.view')

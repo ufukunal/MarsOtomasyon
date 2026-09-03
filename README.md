@@ -7,9 +7,9 @@ MarsOtomasyon; şirket içi kullanım odaklı, Türkçe, hızlı ve sade bir **�
 - Resmî V1 roadmap: **M0–M24**.
 - Commercial Functional Gate: **M0–M13**.
 - Kod/plan/PR reconciliation: [`plan/21_MILESTONE_DURUM_MATRISI.md`](plan/21_MILESTONE_DURUM_MATRISI.md).
-- Commercial Functional Gate **M0–M13 tamamlandı**; **M14–M19 da tamamlandı**. Sonraki resmî açık ana domain milestone'u **M20 — Communication / System Integrations / API**.
-- M20/M21/M23 için bazı erken veya kısmi capability'ler vardır; bunlar ilgili milestone'un tamamlandığı anlamına gelmez.
+- Commercial Functional Gate **M0–M13 tamamlandı**; **M14–M21 de tamamlandı**. Sonraki resmî açık milestone **M22 — Installation PDF Builder**.
 - M18 provider registry status'larının `contract_verified` olması gerçek merchant hesabının doğrulandığı anlamına gelmez; `verified_marketplace` yalnız gerçek merchant/SIT/production kanıtı ile kullanılabilir.
+- M21 görsel düzenleme contract'ı tahribatsızdır: crop/rotate/flip/resize reçetesi metadata olarak saklanır; orijinal private dosya değiştirilmez.
 - Production release gate M23 + M24 tamamlanmadan V1 production-ready sayılmaz.
 
 > Tarihsel PR başlığındaki `Mxx` etiketi resmî V4.2 milestone numarasıyla çakışabilir. Güncel durum için her zaman `plan/16_UYGULAMA_SIRASI_MILESTONE.md` + `plan/21_MILESTONE_DURUM_MATRISI.md` birlikte kullanılır.
@@ -99,7 +99,7 @@ Ayrıntılı karar otoritesi: [`plan/00_KARAR_KAYDI.md`](plan/00_KARAR_KAYDI.md)
 
 Aktif V1 sırası:
 
-`M20 Communication/API → M21 Product Image Operations → M22 Installation PDF Builder → M23 Production Candidate Hardening → M24 Migration/Go-Live`
+`M22 Installation PDF Builder → M23 Production Candidate Hardening → M24 Migration/Go-Live`
 
 Her milestone `entry gate → schema → domain action → transaction/invariant → authorization → UI → tests → PostgreSQL CI → audit/observability` sırasıyla kapanır.
 
