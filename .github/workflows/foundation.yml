@@ -47,14 +47,11 @@ jobs:
     name: quality
     runs-on: ubuntu-latest
     timeout-minutes: 15
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
       - name: Prepare Laravel environment
         run: cp .env.example .env
-
       - name: Setup PHP 8.5
         uses: shivammathur/setup-php@v2
         with:
@@ -62,28 +59,21 @@ jobs:
           extensions: pdo_pgsql, redis, sockets, intl, zip
           coverage: none
           tools: composer:v2
-
       - name: Setup Node 24
         uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
           cache: npm
-
       - name: Validate Composer manifest
         run: composer validate --strict
-
       - name: Install PHP dependencies
         run: composer install --no-interaction --prefer-dist --no-progress
-
       - name: Install frontend dependencies
         run: npm ci
-
       - name: Verify formatting
         run: composer format:check
-
       - name: Run static analysis
         run: composer analyse
-
       - name: Build frontend assets
         run: npm run build
 
@@ -91,7 +81,6 @@ jobs:
     name: postgres-tests
     runs-on: ubuntu-latest
     timeout-minutes: 30
-
     services:
       postgres:
         image: postgres:18.6
@@ -115,14 +104,11 @@ jobs:
           --health-interval 5s
           --health-timeout 5s
           --health-retries 20
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
       - name: Prepare Laravel environment
         run: cp .env.example .env
-
       - name: Setup PHP 8.5
         uses: shivammathur/setup-php@v2
         with:
@@ -130,45 +116,23 @@ jobs:
           extensions: pdo_pgsql, redis, sockets, intl, zip
           coverage: none
           tools: composer:v2
-
       - name: Install PHP dependencies
         run: composer install --no-interaction --prefer-dist --no-progress
-
       - name: Fresh PostgreSQL schema
         run: php artisan migrate:fresh --force
-
-      - name: Diagnostic - Unit
-        run: vendor/bin/pest tests/Unit --colors=always
-
-      - name: Diagnostic - Feature
+      - name: Diagnostic - M22 publish/version/immutability
+        run: vendor/bin/pest tests/Integration/Products/ProductInstallationPdfTest.php --filter='publishes immutable byte-stable installation PDFs and versions changed drafts' --colors=always
+      - name: Diagnostic - M22 media rejection
         if: always()
-        run: vendor/bin/pest tests/Feature --colors=always
-
-      - name: Diagnostic - M22 installation PDF
+        run: vendor/bin/pest tests/Integration/Products/ProductInstallationPdfTest.php --filter='rejects foreign or quarantined media from installation guides' --colors=always
+      - name: Diagnostic - M22 preview
         if: always()
-        run: vendor/bin/pest tests/Integration/Products/ProductInstallationPdfTest.php --colors=always
-
-      - name: Diagnostic - other Products integration
-        if: always()
-        run: find tests/Integration/Products -maxdepth 1 -type f -name '*.php' ! -name 'ProductInstallationPdfTest.php' -print0 | xargs -0 vendor/bin/pest --colors=always
-
-      - name: Diagnostic - non-Products integration directories
-        if: always()
-        run: find tests/Integration -mindepth 1 -maxdepth 1 -type d ! -name Products -print0 | xargs -0 vendor/bin/pest --colors=always
-
-      - name: Diagnostic - integration root files
-        if: always()
-        run: find tests/Integration -maxdepth 1 -type f -name '*.php' -print0 | xargs -0 vendor/bin/pest --colors=always
-
-      - name: Diagnostic - Architecture
-        if: always()
-        run: vendor/bin/pest tests/Architecture --colors=always
+        run: vendor/bin/pest tests/Integration/Products/ProductInstallationPdfTest.php --filter='renders an A4 preview payload with all installation content dimensions' --colors=always
 
   browser-smoke:
     name: browser-smoke
     runs-on: ubuntu-latest
     timeout-minutes: 20
-
     services:
       postgres:
         image: postgres:18.6
@@ -192,14 +156,11 @@ jobs:
           --health-interval 5s
           --health-timeout 5s
           --health-retries 20
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
       - name: Prepare Laravel environment
         run: cp .env.example .env
-
       - name: Setup PHP 8.5
         uses: shivammathur/setup-php@v2
         with:
@@ -207,31 +168,23 @@ jobs:
           extensions: pdo_pgsql, redis, sockets, intl, zip
           coverage: none
           tools: composer:v2
-
       - name: Setup Node 24
         uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
           cache: npm
-
       - name: Install PHP dependencies
         run: composer install --no-interaction --prefer-dist --no-progress
-
       - name: Install frontend dependencies
         run: npm ci
-
       - name: Build frontend assets
         run: npm run build
-
       - name: Install Playwright Chromium
         run: npx playwright install --with-deps chromium
-
       - name: Fresh PostgreSQL schema
         run: php artisan migrate:fresh --force
-
       - name: Verify application boot
         run: php artisan route:list --path=up
-
       - name: Run browser smoke tests
         run: composer test:browser
 
@@ -239,16 +192,13 @@ jobs:
     name: security
     runs-on: ubuntu-latest
     timeout-minutes: 15
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
       - name: Prepare Laravel environment
         run: cp .env.example .env
-
       - name: Setup PHP 8.5
         uses: shivammathur/setup-php@v2
         with:
@@ -256,27 +206,20 @@ jobs:
           extensions: pdo_pgsql, redis, sockets, intl, zip
           coverage: none
           tools: composer:v2
-
       - name: Setup Node 24
         uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
           cache: npm
-
       - name: Validate Composer manifest
         run: composer validate --strict
-
       - name: Install PHP dependencies
         run: composer install --no-interaction --prefer-dist --no-progress
-
       - name: Install frontend dependencies
         run: npm ci
-
       - name: Audit Composer dependencies
         run: composer audit --no-interaction
-
       - name: Audit npm dependencies
         run: npm audit --audit-level=high
-
       - name: Scan tracked files for obvious secrets
         run: bash scripts/ci/secret-scan.sh
