@@ -137,8 +137,32 @@ jobs:
       - name: Fresh PostgreSQL schema
         run: php artisan migrate:fresh --force
 
-      - name: Run non-browser test suites
-        run: composer test
+      - name: Diagnostic - Unit
+        run: vendor/bin/pest tests/Unit --colors=always
+
+      - name: Diagnostic - Feature
+        if: always()
+        run: vendor/bin/pest tests/Feature --colors=always
+
+      - name: Diagnostic - M22 installation PDF
+        if: always()
+        run: vendor/bin/pest tests/Integration/Products/ProductInstallationPdfTest.php --colors=always
+
+      - name: Diagnostic - other Products integration
+        if: always()
+        run: find tests/Integration/Products -maxdepth 1 -type f -name '*.php' ! -name 'ProductInstallationPdfTest.php' -print0 | xargs -0 vendor/bin/pest --colors=always
+
+      - name: Diagnostic - non-Products integration directories
+        if: always()
+        run: find tests/Integration -mindepth 1 -maxdepth 1 -type d ! -name Products -print0 | xargs -0 vendor/bin/pest --colors=always
+
+      - name: Diagnostic - integration root files
+        if: always()
+        run: find tests/Integration -maxdepth 1 -type f -name '*.php' -print0 | xargs -0 vendor/bin/pest --colors=always
+
+      - name: Diagnostic - Architecture
+        if: always()
+        run: vendor/bin/pest tests/Architecture --colors=always
 
   browser-smoke:
     name: browser-smoke
