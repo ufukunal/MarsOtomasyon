@@ -37,9 +37,9 @@ final readonly class ProductionCandidateGate
         if ((int) config('production.backup.rto_hours', 4) > 4) {
             $issues[] = 'backup-rto';
         }
-        if ((int) config('production.backup.retention.daily', 0) < 7
-            || (int) config('production.backup.retention.weekly', 0) < 4
-            || (int) config('production.backup.retention.monthly', 0) < 6) {
+        if ((int) config('production.backup.retention.daily', 0) < 14
+            || (int) config('production.backup.retention.weekly', 0) < 8
+            || (int) config('production.backup.retention.monthly', 0) < 12) {
             $issues[] = 'backup-retention';
         }
 
