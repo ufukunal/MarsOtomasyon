@@ -4,7 +4,7 @@ namespace Tests\Unit;
 
 use App\Foundation\Operations\ProductionCandidateGate;
 use Illuminate\Foundation\Application;
-use PHPUnit\Framework\TestCase;
+use Tests\TestCase;
 
 final class ProductionCandidateGateTest extends TestCase
 {
