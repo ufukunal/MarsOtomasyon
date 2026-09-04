@@ -42,15 +42,21 @@ final class ProductionSafetyState
 
     public function enterRecoveryMode(): void
     {
-        $this->runtimeRecoveryMode = true;
-
         if ($this->store === null) {
+            $this->runtimeRecoveryMode = true;
+
             return;
         }
 
         try {
             $this->store->forever($this->recoveryStateKey, true);
+            // With a shared store, that store is authoritative so another process
+            // can intentionally clear recovery mode for every instance.
+            $this->runtimeRecoveryMode = false;
         } catch (Throwable $exception) {
+            // Preserve a process-local fail-closed barrier when persistence fails.
+            $this->runtimeRecoveryMode = true;
+
             throw new RuntimeException('Recovery mode could not be persisted to the shared safety store.', 0, $exception);
         }
     }
