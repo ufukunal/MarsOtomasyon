@@ -13,9 +13,9 @@ final class OperationalReportCatalogTest extends TestCase
         'SAL-01', 'SAL-02', 'SAL-03', 'SAL-04', 'SAL-05',
         'PUR-01', 'PUR-02', 'PUR-03', 'PUR-04', 'PUR-05',
         'STK-01', 'STK-02', 'STK-03', 'STK-04', 'STK-05',
-        'PRD-01', 'PRD-02', 'PRD-03', 'PRD-04', 'SUB-01',
+        'PRD-01', 'PRD-02', 'PRD-03', 'PRD-04', 'PRD-05',
         'IMP-01', 'IMP-02', 'IMP-03', 'IMP-04', 'IMP-05',
-        'COM-01', 'COM-02', 'COM-03', 'COM-04', 'COM-05',
+        'AUT-01', 'AUT-02', 'AUT-03', 'AUT-04', 'AUT-05',
         'MGT-01', 'MGT-02', 'MGT-03', 'MGT-04', 'MGT-05',
     ];
 
