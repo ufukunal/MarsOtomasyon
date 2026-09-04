@@ -307,7 +307,7 @@ final class BackupManager
     }
 
     /**
-     * @param array<mixed> $manifest
+     * @param  array<mixed>  $manifest
      * @return list<array{disk:string,key:string,sha256:string,size_bytes:int,contents:string}>
      */
     private function verifiedFiles(array $manifest): array

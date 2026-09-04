@@ -6,9 +6,7 @@ use Illuminate\Contracts\Foundation\Application;
 
 final readonly class ProductionCandidateGate
 {
-    public function __construct(private Application $app)
-    {
-    }
+    public function __construct(private Application $app) {}
 
     /** @return list<string> */
     public function issues(): array
