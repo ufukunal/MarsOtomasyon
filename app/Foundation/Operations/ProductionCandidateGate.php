@@ -6,7 +6,9 @@ use Illuminate\Contracts\Foundation\Application;
 
 final readonly class ProductionCandidateGate
 {
-    public function __construct(private Application $app) {}
+    public function __construct(private Application $app)
+    {
+    }
 
     /** @return list<string> */
     public function issues(): array
@@ -39,7 +41,8 @@ final readonly class ProductionCandidateGate
         }
         if ((int) config('production.backup.retention.daily', 0) < 14
             || (int) config('production.backup.retention.weekly', 0) < 8
-            || (int) config('production.backup.retention.monthly', 0) < 12) {
+            || (int) config('production.backup.retention.monthly', 0) < 12
+        ) {
             $issues[] = 'backup-retention';
         }
 
