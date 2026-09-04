@@ -115,7 +115,7 @@ final class OperationalReportCatalog
         };
     }
 
-    /** @return Collection<int, object> */
+    /** @return Collection<int, \stdClass> */
     public function run(string $reportKey, int $companyId, int $limit = 500): Collection
     {
         return $this->query($reportKey, $companyId)->limit(max(1, min(5000, $limit)))->get();
