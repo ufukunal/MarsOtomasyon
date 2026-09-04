@@ -7,6 +7,15 @@ x-mars-app: &mars-app
     target: app
   env_file:
     - .env.production
+  environment:
+    DB_HOST: postgres
+    DB_PORT: 5432
+    REDIS_HOST: valkey
+    REDIS_PORT: 6379
+    CACHE_STORE: redis
+    QUEUE_CONNECTION: redis
+    SESSION_DRIVER: redis
+    SESSION_CONNECTION: session
   restart: unless-stopped
   volumes:
     - mars_storage:/var/www/html/storage
