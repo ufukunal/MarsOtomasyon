@@ -44,6 +44,36 @@ Artisan::command('mars:production-candidate', function (ProductionCandidateGate 
     return 1;
 })->purpose('Validate locked M23 production deployment, backup and security decisions');
 
+Artisan::command('mars:recovery-mode {action=status}', function (ProductionSafetyState $safety): int {
+    $actionArgument = $this->argument('action');
+    $action = is_string($actionArgument) ? strtolower(trim($actionArgument)) : 'status';
+
+    return match ($action) {
+        'status' => (function () use ($safety): int {
+            $this->line($safety->recoveryMode() ? 'recovery-mode:on' : 'recovery-mode:off');
+
+            return 0;
+        })(),
+        'on' => (function () use ($safety): int {
+            $safety->enterRecoveryMode();
+            $this->warn('Recovery mode enabled. HTTP mutations, async workers, scheduler mutations and outbound providers are blocked.');
+
+            return 0;
+        })(),
+        'off' => (function () use ($safety): int {
+            $safety->leaveRecoveryMode();
+            $this->info('Recovery mode disabled.');
+
+            return 0;
+        })(),
+        default => (function (): int {
+            $this->error('Action must be one of: status, on, off.');
+
+            return 2;
+        })(),
+    };
+})->purpose('Inspect or change the shared M23 production Recovery Mode barrier');
+
 Artisan::command('mars:ops-status', function (OperationsHealth $health): void {
     $this->line(json_encode($health->snapshot(), JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR));
 })->purpose('Show PostgreSQL, Valkey, queue and operations health');
