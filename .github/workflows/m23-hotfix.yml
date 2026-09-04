@@ -1,0 +1,35 @@
+name: M23 Hotfix
+
+on:
+  push:
+    branches: [feat/m23-production-candidate-hardening]
+    paths:
+      - .github/workflows/m23-hotfix.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/m23-production-candidate-hardening
+      - name: Fix report catalog PHPStan type
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('app/Modules/Reports/OperationalReportCatalog.php')
+          s = p.read_text()
+          old = '/** @return Collection<int, object> */'
+          new = '/** @return Collection<int, \\stdClass> */'
+          if old not in s:
+              raise SystemExit('expected docblock not found')
+          p.write_text(s.replace(old, new, 1))
+          PY
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add app/Modules/Reports/OperationalReportCatalog.php
+          git commit -m "fix(m23): align report collection static type"
+          git push
