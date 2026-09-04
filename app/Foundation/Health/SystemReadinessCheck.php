@@ -16,18 +16,26 @@ final readonly class SystemReadinessCheck implements ReadinessCheck
         private RedisManager $redis,
         private ProductionSafetyState $safety,
         private ?ProductionCandidateGate $candidateGate = null,
+        private ?OffsiteBackupReadinessCheck $offsiteBackup = null,
     ) {}
 
     public function check(): ReadinessResult
     {
         $failed = [];
+        $production = app()->environment('production');
 
         if ($this->safety->recoveryMode()) {
             $failed[] = 'recovery-mode';
         }
 
-        if (app()->environment('production') && $this->candidateGate !== null && ! $this->candidateGate->satisfied()) {
+        if ($production && $this->candidateGate !== null && ! $this->candidateGate->satisfied()) {
             $failed[] = 'production-candidate';
+        }
+
+        if ($production && (bool) config('production.backup.offsite_required', true)) {
+            if ($this->offsiteBackup === null || ! $this->offsiteBackup->check()) {
+                $failed[] = 'offsite-backup';
+            }
         }
 
         try {
