@@ -57,12 +57,20 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Enable PHP GD on local runner
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          extensions: gd
+          coverage: none
+
       - name: Verify local toolchain and shared services
         run: |
           php -v
           composer --version
           node --version
           npm --version
+          php -m | grep -E 'pdo_pgsql|redis|sockets|intl|zip|gd'
           PGPASSWORD="$DB_PASSWORD" pg_isready -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USERNAME"
           redis-cli -h "$REDIS_HOST" -p "$REDIS_PORT" ping | grep -qx PONG
 
