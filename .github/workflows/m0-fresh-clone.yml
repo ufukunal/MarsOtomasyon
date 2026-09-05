@@ -8,7 +8,7 @@ on:
       - .github/workflows/m0-fresh-clone.yml
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: m0-fresh-clone
@@ -116,18 +116,10 @@ jobs:
           ACCEPTANCE_RUN_ID: ${{ github.run_id }}
           ACCEPTANCE_HEAD_SHA: ${{ github.sha }}
         run: |
-          mkdir -p .ci
-          printf 'conclusion=%s\nrun_id=%s\nhead_sha=%s\n' "$ACCEPTANCE_STATUS" "$ACCEPTANCE_RUN_ID" "$ACCEPTANCE_HEAD_SHA" > .ci/m0-fresh-clone-result
-
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add .ci/m0-fresh-clone-result
-
-          if git diff --cached --quiet; then
-            exit 0
-          fi
-
-          git commit -m "chore: record M0 fresh-clone result [skip ci]"
-          git fetch origin main
-          git rebase origin/main
-          git push origin HEAD:main
+          {
+            echo '## M0 fresh-clone acceptance'
+            echo
+            echo "- conclusion: $ACCEPTANCE_STATUS"
+            echo "- run_id: $ACCEPTANCE_RUN_ID"
+            echo "- head_sha: $ACCEPTANCE_HEAD_SHA"
+          } >> "$GITHUB_STEP_SUMMARY"
