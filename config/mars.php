@@ -5,7 +5,7 @@ return [
         'foundation' => true,
         'customers' => true,
         'product_stock' => true,
-        'product_family_variant' => (bool) env('FEATURE_PRODUCT_FAMILY_VARIANT', false),
+        'product_family_variant' => true,
         'sales' => true,
         'purchasing' => true,
         'production' => true,
