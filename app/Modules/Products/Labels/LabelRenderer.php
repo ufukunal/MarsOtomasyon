@@ -15,9 +15,9 @@ final readonly class LabelRenderer
     }
 
     /**
-     * @param array<string, mixed> $payload
-     * @param array<string, mixed> $template
-     * @param array<string, mixed>|null $printer
+     * @param  array<string, mixed>  $payload
+     * @param  array<string, mixed>  $template
+     * @param  array<string, mixed>|null  $printer
      */
     public function render(array $payload, array $template, ?array $printer): string
     {
@@ -32,7 +32,10 @@ final readonly class LabelRenderer
         };
     }
 
-    /** @param array<string, mixed> $template @param array<string, mixed>|null $printer */
+    /**
+     * @param  array<string, mixed>  $template
+     * @param  array<string, mixed>|null  $printer
+     */
     private function pdf(string $plain, array $template, ?array $printer): string
     {
         $dompdf = new Dompdf;
@@ -63,7 +66,10 @@ final readonly class LabelRenderer
         return "^XA\n^FO20,20^A0N,28,28^FH\\^FD{$escaped}^FS\n^XZ\n";
     }
 
-    /** @param array<string, mixed> $template @param array<string, mixed>|null $printer */
+    /**
+     * @param  array<string, mixed>  $template
+     * @param  array<string, mixed>|null  $printer
+     */
     private function tspl(string $plain, array $template, ?array $printer): string
     {
         $width = (float) ($printer['width_mm'] ?? $template['width_mm'] ?? 50);
