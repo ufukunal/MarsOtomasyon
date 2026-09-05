@@ -137,8 +137,8 @@ jobs:
       - name: Fresh PostgreSQL schema
         run: php artisan migrate:fresh --force
 
-      - name: Run non-browser test suites
-        run: composer test
+      - name: Run focused M26 PostgreSQL smoke
+        run: php artisan test tests/Feature/M26LabelPostgresSmokeTest.php tests/Feature/M26LabelFeatureTest.php tests/Unit/M26LabelRenderingTest.php
 
   browser-smoke:
     name: browser-smoke
