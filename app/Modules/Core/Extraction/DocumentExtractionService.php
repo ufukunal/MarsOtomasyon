@@ -11,8 +11,7 @@ use RuntimeException;
 final class DocumentExtractionService
 {
     public function __construct(private readonly DocumentExtractionRegistry $providers)
-    {
-    }
+    {}
 
     /** @return array{id:int,status:string,document_type:?string,requires_review:bool} */
     public function extract(int $companyId, int $attachmentId, string $provider, float $confidenceThreshold = 0.85): array
