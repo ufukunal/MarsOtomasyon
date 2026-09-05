@@ -14,6 +14,10 @@ final readonly class RestoreDrillService
 
     public function run(string $backupId, ?int $userId = null, bool $createSafetyBackup = true): string
     {
+        if (! Str::isUuid($backupId)) {
+            throw new RuntimeException('Backup verification failed before restore drill.');
+        }
+
         $runId = (string) Str::uuid();
         $this->persist($runId, $backupId, $userId, $createSafetyBackup, 'running', null, null);
 
