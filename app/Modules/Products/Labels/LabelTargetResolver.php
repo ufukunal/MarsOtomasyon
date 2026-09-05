@@ -7,6 +7,7 @@ use App\Modules\Inventory\Models\Warehouse;
 use App\Modules\Inventory\Models\WarehouseLocation;
 use App\Modules\Products\Models\Barcode;
 use App\Modules\Products\Models\Product;
+use DateTimeInterface;
 use Illuminate\Validation\ValidationException;
 
 final class LabelTargetResolver
@@ -56,7 +57,7 @@ final class LabelTargetResolver
             'payload' => [
                 'product' => [
                     'id' => $product->getKey(),
-                    'sku' => $product->sku,
+                    'sku' => $product->code,
                     'name' => $product->name,
                 ],
                 'barcode' => $barcode->barcode,
@@ -109,13 +110,14 @@ final class LabelTargetResolver
     private function shipment(int $companyId, int $dispatchId): array
     {
         $dispatch = Dispatch::query()->whereKey($dispatchId)->where('company_id', $companyId)->firstOrFail();
+        $dispatchDate = $dispatch->getAttribute('dispatch_date');
 
         return [
             'payload' => [
                 'shipment' => [
                     'id' => $dispatch->getKey(),
                     'number' => $dispatch->number,
-                    'date' => $dispatch->dispatch_date?->format('Y-m-d'),
+                    'date' => $dispatchDate instanceof DateTimeInterface ? $dispatchDate->format('Y-m-d') : null,
                     'status' => $dispatch->statusEnum()->value,
                 ],
             ],

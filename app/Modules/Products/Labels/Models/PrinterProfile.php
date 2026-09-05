@@ -24,11 +24,13 @@ final class PrinterProfile extends Model
         ];
     }
 
+    /** @return BelongsTo<Company, $this> */
     public function company(): BelongsTo
     {
         return $this->belongsTo(Company::class);
     }
 
+    /** @return HasMany<LabelPrint, $this> */
     public function prints(): HasMany
     {
         return $this->hasMany(LabelPrint::class);
