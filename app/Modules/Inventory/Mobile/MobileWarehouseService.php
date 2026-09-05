@@ -116,7 +116,7 @@ final readonly class MobileWarehouseService
     }
 
     /**
-     * @param array<string, mixed> $payload
+     * @param  array<string, mixed>  $payload
      * @return array{replay:bool,data:array<string,mixed>}
      */
     public function execute(
