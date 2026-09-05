@@ -40,8 +40,7 @@ final class LabelTargetResolver
 
         $barcodeQuery = Barcode::query()
             ->where('company_id', $companyId)
-            ->where('product_id', $product->getKey())
-            ->where('is_active', true);
+            ->where('product_id', $product->getKey());
 
         $barcode = $barcodeId !== null
             ? (clone $barcodeQuery)->whereKey($barcodeId)->firstOrFail()
@@ -49,7 +48,7 @@ final class LabelTargetResolver
 
         if ($barcode === null) {
             throw ValidationException::withMessages([
-                'barcode_id' => 'An active canonical product barcode is required for product labels.',
+                'barcode_id' => 'A canonical product barcode is required for product labels.',
             ]);
         }
 
