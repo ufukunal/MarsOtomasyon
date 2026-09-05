@@ -2,6 +2,7 @@
 
 namespace App\Modules\Operations\Jobs;
 
+use App\Foundation\Operations\ProductionSafetyState;
 use App\Modules\Operations\AutomationService;
 use App\Modules\Operations\ChannelDomainEventIngestor;
 use App\Modules\Operations\ChannelService;
@@ -22,8 +23,14 @@ final class ProcessIntegrationEvent implements ShouldQueue
 
     public function __construct(public readonly int $eventId) {}
 
-    public function handle(ChannelDomainEventIngestor $domain, ChannelService $channels, AutomationService $automation): void
+    public function handle(ChannelDomainEventIngestor $domain, ChannelService $channels, AutomationService $automation, ProductionSafetyState $safety): void
     {
+        if (! $safety->asyncWorkEnabled()) {
+            $this->release($safety->retryAfterSeconds());
+
+            return;
+        }
+
         $domain->process($this->eventId);
         $channels->processEvent($this->eventId, $automation);
     }

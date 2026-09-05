@@ -29,11 +29,11 @@ Bu dosya backlog değildir. Yalnız ilgili milestone başlamadan gerçekten kapa
 - İthalat landed-cost: K-052; provisional masraf carrying value üretmez, final/late cost Goods Receipt cost-adjustment authority ile on-hand/consumed ayrılır; default `line_value`.
 - Public/external identity: K-053; internal bigint PK private kalır, dışarı açılan Mars resource additive immutable ULID `public_id` kullanır; provider external ID ve idempotency key ayrıdır.
 - Product image operations: V1 edit akışı tahribatsızdır; crop/rotate/flip/resize orijinal private byte içeriğini değiştirmeyen metadata reçetesidir. Copy/move aynı `FileAsset` byte varlığını yeni attachment ile yeniden kullanır; quarantine `FileAsset` seviyesinde globaldir ve aktif kullanım/download akışını fail-closed kapatır.
+- **A-03 Deployment modeli:** production deployment modeli Docker Compose olarak kilitlendi; ayrı `postgres`, `valkey`, `app`, `worker`, `scheduler`, `web` süreçleri kullanılır.
+- **A-14 Harici dosya storage:** V1 primary application file storage local/private olarak kilitlendi; public webroot storage kullanılmaz. `FileAsset` quarantine globaldir, quarantined asset link/download akışında fail-closed kapanır. Backup offsite sınırı application primary storage kararından ayrıdır.
+- **A-15 Backup/RPO/RTO/storage:** offsite backup zorunlu; dedicated `mars_backup` S3-compatible disk; RPO 24 saat, RTO 4 saat, restore-drill max age 30 gün, retention 14 daily / 8 weekly / 12 monthly; backup recovery key APP_KEY'den ayrıdır ve legacy APP_KEY decrypt production'da varsayılan kapalıdır.
 
 ## B. AÇIK — GERÇEK BLOCKER
-
-### A-03 — Deployment modeli
-Production rollout öncesi native/CyberPanel/Docker nihai kurulum seçilecek. Domain tasarımını değiştirmez.
 
 ### A-07 — Dövizli virman / cross-currency payment
 Gerekliyse M10 öncesi:
@@ -61,18 +61,6 @@ M7 manuel sevkiyat için blocker değildir. M28 gerçek Kargo API Adapterları b
 
 ### A-13 — TCKN/VKN doğrulama derinliği
 Cari/form tarafında yalnız format/checksum mı, harici resmi doğrulama mı yapılacağı go-live öncesi netleşir. Internal checksum validation bu kararı beklemez.
-
-### A-14 — Harici dosya storage
-İlk deploy local/private storage olabilir. Offsite/S3-compatible live storage gerekip gerekmediği M23 öncesi seçilir. Backup offsite zorunluluğundan bağımsız değerlendirilir.
-
-### A-15 — Backup RPO/RTO ve storage
-M23 öncesi:
-- RPO
-- RTO
-- retention
-- offsite target
-- encryption/recovery key boundary
-kesinleştirilir.
 
 ### A-16 — Legacy migration depth
 M24 öncesi veri seti bazında:
@@ -109,7 +97,7 @@ Bir milestone başlamadan aşağıdaki açık kararlar gerçekten gerekliyse kap
 | M20 | A-08/A-09/A-10/A-11 yalnız ilgili production provider slice'ı için zorunlu |
 | M21 | Açık blocker yok; tahribatsız edit/shared-asset/quarantine semantiği locked |
 | M22 | Açık blocker yok |
-| M23 | A-03, A-14, A-15 production hardening öncesi zorunlu |
+| M23 | A-03, A-14, A-15 kapalı; production hardening exit testleri canonical Foundation ile doğrulanır |
 | M24 | A-16 zorunlu; A-13 production policy de kapanmış olmalı |
 | M25 | Product/SKU authority ve additive family migration contract hazır; ek provider kararı yok |
 | M26 | Printer/output format gerçek hedefi doğrulanır; barcode authority Product/Barcode olarak kalır |

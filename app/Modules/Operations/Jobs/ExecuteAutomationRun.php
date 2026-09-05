@@ -2,6 +2,7 @@
 
 namespace App\Modules\Operations\Jobs;
 
+use App\Foundation\Operations\ProductionSafetyState;
 use App\Modules\Operations\AutomationService;
 use App\Modules\Operations\ChannelService;
 use App\Modules\Operations\NotificationService;
@@ -23,8 +24,14 @@ final class ExecuteAutomationRun implements ShouldQueue
 
     public function __construct(public readonly int $runId) {}
 
-    public function handle(AutomationService $automation, NotificationService $notifications, ChannelService $channels, SecurityCenter $security): void
+    public function handle(AutomationService $automation, NotificationService $notifications, ChannelService $channels, SecurityCenter $security, ProductionSafetyState $safety): void
     {
+        if (! $safety->asyncWorkEnabled()) {
+            $this->release($safety->retryAfterSeconds());
+
+            return;
+        }
+
         $automation->execute($this->runId, $notifications, $channels, $security);
     }
 }

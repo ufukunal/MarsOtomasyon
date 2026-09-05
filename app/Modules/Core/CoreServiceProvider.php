@@ -8,6 +8,7 @@ use App\Foundation\Correlation\CorrelationContext;
 use App\Foundation\Features\FeatureRegistry;
 use App\Foundation\Health\ReadinessCheck;
 use App\Foundation\Health\SystemReadinessCheck;
+use App\Foundation\Operations\ProductionSafetyState;
 use App\Foundation\Outbox\OutboxEventCatalog;
 use App\Modules\Core\Authorization\CompanyPermissionAuthorizer;
 use App\Modules\Core\Branch\ActiveBranchContext;
@@ -15,6 +16,7 @@ use App\Modules\Core\Company\ActiveCompanyContext;
 use App\Modules\Core\Enums\PermissionKey;
 use App\Modules\Core\Models\User;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
@@ -29,6 +31,19 @@ final class CoreServiceProvider extends ServiceProvider
         $this->app->scoped(ActiveBranchContext::class);
         $this->app->scoped(CompanyPermissionAuthorizer::class);
         $this->app->singleton(OutboxEventCatalog::class);
+        $this->app->singleton(ProductionSafetyState::class, static fn (): ProductionSafetyState => new ProductionSafetyState(
+            recoveryMode: (bool) config('production.recovery_mode', false),
+            outboundProvidersEnabled: (bool) config('production.outbound_providers_enabled', true),
+            asyncWorkEnabled: (bool) config('production.async_work_enabled', true),
+            schedulerWorkEnabled: (bool) config('production.scheduler_work_enabled', true),
+            retryAfterSeconds: (int) config('production.recovery_retry_after_seconds', 300),
+            disabledProviders: array_values(array_filter(
+                (array) config('production.disabled_providers', []),
+                static fn (mixed $provider): bool => is_string($provider) && trim($provider) !== '',
+            )),
+            store: Cache::store((string) config('production.recovery_state_store', config('cache.default', 'redis'))),
+            recoveryStateKey: (string) config('production.recovery_state_key', 'mars:production:recovery-mode'),
+        ));
         $this->app->singleton(ReadinessCheck::class, SystemReadinessCheck::class);
     }
 

@@ -2,6 +2,9 @@
 
 namespace App\Modules\Operations;
 
+use App\Foundation\Operations\BackupRecoveryCipher;
+use App\Foundation\Operations\ProductionCandidateGate;
+use App\Foundation\Operations\ProductionSafetyState;
 use Illuminate\Process\PendingProcess;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Crypt;
@@ -14,8 +17,15 @@ use RuntimeException;
 
 final class BackupManager
 {
+    public function __construct(
+        private readonly BackupRecoveryCipher $recoveryCipher,
+        private readonly ProductionSafetyState $safety,
+    ) {}
+
     public function create(?int $userId = null): string
     {
+        $this->assertProductionBackupConfiguration();
+
         $id = (string) Str::uuid();
         $disk = (string) config('m11.backup.disk', 'local');
         $directory = trim((string) config('m11.backup.directory', 'backups'), '/');
@@ -51,14 +61,15 @@ final class BackupManager
             }
 
             $payload = json_encode([
-                'version' => 2,
+                'version' => 3,
                 'sql' => $result->output(),
                 'file_assets' => $this->captureFileAssets(),
             ], JSON_THROW_ON_ERROR);
             $wrapper = json_encode([
-                'format' => 'marsbak-v2',
+                'format' => 'marsbak-v3',
                 'created_at' => now()->toIso8601String(),
-                'ciphertext' => Crypt::encryptString($payload),
+                'key_reference' => (string) config('production.backup.recovery_key_reference', ''),
+                'ciphertext' => $this->recoveryCipher->encryptString($payload),
             ], JSON_THROW_ON_ERROR);
 
             if (! Storage::disk($disk)->put($path, $wrapper)) {
@@ -112,90 +123,108 @@ final class BackupManager
 
     public function restore(string $id, ?int $userId = null, bool $createSafetyBackup = true): void
     {
+        $this->assertProductionBackupConfiguration();
+
         $artifact = DB::table('backup_artifacts')->where('id', $id)->first();
         if ($artifact === null || (string) $artifact->status !== 'ready' || ! $this->verify($id)) {
             throw new RuntimeException('Backup artifact is not ready or checksum verification failed.');
         }
 
-        $safetyArtifact = null;
-        if ($createSafetyBackup) {
-            $safetyId = $this->create($userId);
-            $safetyArtifact = DB::table('backup_artifacts')->where('id', $safetyId)->first();
-            if ($safetyArtifact === null) {
-                throw new RuntimeException('Safety backup metadata could not be loaded.');
-            }
-        }
-
-        $contents = Storage::disk((string) $artifact->disk)->get((string) $artifact->path);
-        if (! is_string($contents)) {
-            throw new RuntimeException('Backup artifact could not be read.');
-        }
-        $decoded = $this->decodeBackup($contents);
-        $database = $this->postgresConfiguration();
-        $restoreStartedAt = now();
-        DB::table('backup_artifacts')->where('id', $id)->update([
-            'status' => 'restoring',
-            'restore_started_at' => $restoreStartedAt,
-            'updated_at' => now(),
-        ]);
-        Artisan::call('down', ['--retry' => 60]);
+        $this->safety->enterRecoveryMode();
+        $maintenanceEnabled = false;
+        $restoreSucceeded = false;
 
         try {
-            $command = [
-                (string) config('m11.backup.psql', 'psql'),
-                '--set=ON_ERROR_STOP=1',
-                '--single-transaction',
-                '--host='.(string) ($database['host'] ?? '127.0.0.1'),
-                '--port='.(string) ($database['port'] ?? 5432),
-                '--username='.(string) ($database['username'] ?? ''),
-                '--dbname='.(string) ($database['database'] ?? ''),
-            ];
-            $result = $this->postgresProcess($database)->input($decoded['sql'])->timeout(600)->run($command);
-            if (! $result->successful()) {
-                throw new RuntimeException('psql restore failed: '.mb_substr($result->errorOutput(), 0, 2000));
+            $safetyArtifact = null;
+            if ($createSafetyBackup) {
+                $safetyId = $this->create($userId);
+                $safetyArtifact = DB::table('backup_artifacts')->where('id', $safetyId)->first();
+                if ($safetyArtifact === null) {
+                    throw new RuntimeException('Safety backup metadata could not be loaded.');
+                }
             }
 
-            $this->restoreFileAssets($decoded['file_assets']);
+            $contents = Storage::disk((string) $artifact->disk)->get((string) $artifact->path);
+            if (! is_string($contents)) {
+                throw new RuntimeException('Backup artifact could not be read.');
+            }
+            $decoded = $this->decodeBackup($contents);
+            $database = $this->postgresConfiguration();
+            $restoreStartedAt = now();
+            DB::table('backup_artifacts')->where('id', $id)->update([
+                'status' => 'restoring',
+                'restore_started_at' => $restoreStartedAt,
+                'updated_at' => now(),
+            ]);
+            Artisan::call('down', ['--retry' => $this->safety->retryAfterSeconds()]);
+            $maintenanceEnabled = true;
 
-            $this->rehydrateArtifact(
-                (string) $artifact->id,
-                (string) $artifact->disk,
-                (string) $artifact->path,
-                $artifact->sha256 === null ? null : (string) $artifact->sha256,
-                $artifact->size_bytes === null ? null : (int) $artifact->size_bytes,
-                (bool) $artifact->encrypted,
-                $artifact->created_by_user_id === null ? null : (int) $artifact->created_by_user_id,
-                $artifact->verified_at,
-                $artifact->created_at,
-                'restored',
-                $restoreStartedAt,
-                now(),
-            );
-            if ($safetyArtifact !== null) {
+            try {
+                $command = [
+                    (string) config('m11.backup.psql', 'psql'),
+                    '--set=ON_ERROR_STOP=1',
+                    '--single-transaction',
+                    '--host='.(string) ($database['host'] ?? '127.0.0.1'),
+                    '--port='.(string) ($database['port'] ?? 5432),
+                    '--username='.(string) ($database['username'] ?? ''),
+                    '--dbname='.(string) ($database['database'] ?? ''),
+                ];
+                $result = $this->postgresProcess($database)->input($decoded['sql'])->timeout(600)->run($command);
+                if (! $result->successful()) {
+                    throw new RuntimeException('psql restore failed: '.mb_substr($result->errorOutput(), 0, 2000));
+                }
+
+                $this->restoreFileAssets($decoded['file_assets']);
+
                 $this->rehydrateArtifact(
-                    (string) $safetyArtifact->id,
-                    (string) $safetyArtifact->disk,
-                    (string) $safetyArtifact->path,
-                    $safetyArtifact->sha256 === null ? null : (string) $safetyArtifact->sha256,
-                    $safetyArtifact->size_bytes === null ? null : (int) $safetyArtifact->size_bytes,
-                    (bool) $safetyArtifact->encrypted,
-                    $safetyArtifact->created_by_user_id === null ? null : (int) $safetyArtifact->created_by_user_id,
-                    $safetyArtifact->verified_at,
-                    $safetyArtifact->created_at,
-                    'ready',
+                    (string) $artifact->id,
+                    (string) $artifact->disk,
+                    (string) $artifact->path,
+                    $artifact->sha256 === null ? null : (string) $artifact->sha256,
+                    $artifact->size_bytes === null ? null : (int) $artifact->size_bytes,
+                    (bool) $artifact->encrypted,
+                    $artifact->created_by_user_id === null ? null : (int) $artifact->created_by_user_id,
+                    $artifact->verified_at,
+                    $artifact->created_at,
+                    'restored',
+                    $restoreStartedAt,
+                    now(),
                 );
+                if ($safetyArtifact !== null) {
+                    $this->rehydrateArtifact(
+                        (string) $safetyArtifact->id,
+                        (string) $safetyArtifact->disk,
+                        (string) $safetyArtifact->path,
+                        $safetyArtifact->sha256 === null ? null : (string) $safetyArtifact->sha256,
+                        $safetyArtifact->size_bytes === null ? null : (int) $safetyArtifact->size_bytes,
+                        (bool) $safetyArtifact->encrypted,
+                        $safetyArtifact->created_by_user_id === null ? null : (int) $safetyArtifact->created_by_user_id,
+                        $safetyArtifact->verified_at,
+                        $safetyArtifact->created_at,
+                        'ready',
+                    );
+                }
+
+                $restoreSucceeded = true;
+            } catch (\Throwable $exception) {
+                if (Schema::hasTable('backup_artifacts')) {
+                    DB::table('backup_artifacts')->where('id', $id)->update([
+                        'status' => 'ready',
+                        'last_error' => mb_substr($exception->getMessage(), 0, 4000),
+                        'updated_at' => now(),
+                    ]);
+                }
+                throw $exception;
             }
-        } catch (\Throwable $exception) {
-            if (Schema::hasTable('backup_artifacts')) {
-                DB::table('backup_artifacts')->where('id', $id)->update([
-                    'status' => 'ready',
-                    'last_error' => mb_substr($exception->getMessage(), 0, 4000),
-                    'updated_at' => now(),
-                ]);
-            }
-            throw $exception;
         } finally {
-            Artisan::call('up');
+            if ($maintenanceEnabled) {
+                Artisan::call('up');
+            }
+
+            // A failed or ambiguous restore intentionally leaves Recovery Mode active.
+            if ($restoreSucceeded) {
+                $this->safety->leaveRecoveryMode();
+            }
         }
     }
 
@@ -248,20 +277,43 @@ final class BackupManager
             throw new RuntimeException('Backup artifact format is invalid.');
         }
 
-        if ($wrapper['format'] === 'marsbak-v1') {
-            return ['sql' => Crypt::decryptString($wrapper['ciphertext']), 'file_assets' => []];
+        if (in_array($wrapper['format'], ['marsbak-v1', 'marsbak-v2'], true)) {
+            if (! (bool) config('production.backup.allow_legacy_app_key_decryption', true)) {
+                throw new RuntimeException('Legacy APP_KEY-encrypted backup artifacts are disabled.');
+            }
+
+            if ($wrapper['format'] === 'marsbak-v1') {
+                return ['sql' => Crypt::decryptString($wrapper['ciphertext']), 'file_assets' => []];
+            }
+
+            $payload = json_decode(Crypt::decryptString($wrapper['ciphertext']), true, flags: JSON_THROW_ON_ERROR);
+            if (! is_array($payload) || ($payload['version'] ?? null) !== 2 || ! is_string($payload['sql'] ?? null) || ! is_array($payload['file_assets'] ?? null)) {
+                throw new RuntimeException('Backup payload is invalid.');
+            }
+
+            return ['sql' => $payload['sql'], 'file_assets' => $this->verifiedFiles($payload['file_assets'])];
         }
-        if ($wrapper['format'] !== 'marsbak-v2') {
+
+        if ($wrapper['format'] !== 'marsbak-v3') {
             throw new RuntimeException('Unsupported backup artifact format.');
         }
 
-        $payload = json_decode(Crypt::decryptString($wrapper['ciphertext']), true, flags: JSON_THROW_ON_ERROR);
-        if (! is_array($payload) || ($payload['version'] ?? null) !== 2 || ! is_string($payload['sql'] ?? null) || ! is_array($payload['file_assets'] ?? null)) {
+        $payload = json_decode($this->recoveryCipher->decryptString($wrapper['ciphertext']), true, flags: JSON_THROW_ON_ERROR);
+        if (! is_array($payload) || ($payload['version'] ?? null) !== 3 || ! is_string($payload['sql'] ?? null) || ! is_array($payload['file_assets'] ?? null)) {
             throw new RuntimeException('Backup payload is invalid.');
         }
 
+        return ['sql' => $payload['sql'], 'file_assets' => $this->verifiedFiles($payload['file_assets'])];
+    }
+
+    /**
+     * @param  array<mixed>  $manifest
+     * @return list<array{disk:string,key:string,sha256:string,size_bytes:int,contents:string}>
+     */
+    private function verifiedFiles(array $manifest): array
+    {
         $files = [];
-        foreach ($payload['file_assets'] as $file) {
+        foreach ($manifest as $file) {
             if (! is_array($file)
                 || ! is_string($file['disk'] ?? null)
                 || ! is_string($file['key'] ?? null)
@@ -276,10 +328,16 @@ final class BackupManager
                 || ! hash_equals($file['sha256'], hash('sha256', $decoded))) {
                 throw new RuntimeException('Backup file payload checksum verification failed.');
             }
-            $files[] = $file;
+            $files[] = [
+                'disk' => $file['disk'],
+                'key' => $file['key'],
+                'sha256' => $file['sha256'],
+                'size_bytes' => $file['size_bytes'],
+                'contents' => $file['contents'],
+            ];
         }
 
-        return ['sql' => $payload['sql'], 'file_assets' => $files];
+        return $files;
     }
 
     /** @param list<array{disk:string,key:string,sha256:string,size_bytes:int,contents:string}> $files */
@@ -297,6 +355,21 @@ final class BackupManager
             if (! is_string($restored) || ! hash_equals($file['sha256'], hash('sha256', $restored))) {
                 throw new RuntimeException('Restored file checksum verification failed: '.$file['disk'].':'.$file['key']);
             }
+        }
+    }
+
+    private function assertProductionBackupConfiguration(): void
+    {
+        if (! app()->environment('production')) {
+            return;
+        }
+
+        $issues = array_values(array_filter(
+            app(ProductionCandidateGate::class)->issues(),
+            static fn (string $issue): bool => str_starts_with($issue, 'backup-'),
+        ));
+        if ($issues !== []) {
+            throw new RuntimeException('Unsafe production backup configuration: '.implode(', ', $issues));
         }
     }
 

@@ -2,6 +2,7 @@
 
 namespace App\Modules\Operations\Jobs;
 
+use App\Foundation\Operations\ProductionSafetyState;
 use App\Modules\Operations\NotificationService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -20,8 +21,14 @@ final class DeliverNotification implements ShouldQueue
 
     public function __construct(public readonly int $deliveryId) {}
 
-    public function handle(NotificationService $notifications): void
+    public function handle(NotificationService $notifications, ProductionSafetyState $safety): void
     {
+        if (! $safety->asyncWorkEnabled()) {
+            $this->release($safety->retryAfterSeconds());
+
+            return;
+        }
+
         $notifications->deliver($this->deliveryId);
     }
 }

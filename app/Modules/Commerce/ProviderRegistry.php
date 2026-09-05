@@ -6,16 +6,16 @@ use DomainException;
 
 final class ProviderRegistry
 {
-    /** @return array<string,array{label:string,status:string,capabilities:list<string>}> */
+    /** @return array<string,array{label:string,status:string,contract_version:string,deprecated_after:?string,capabilities:list<string>}> */
     public function all(): array
     {
-        /** @var array<string,array{label:string,status:string,capabilities:list<string>}> $providers */
+        /** @var array<string,array{label:string,status:string,contract_version:string,deprecated_after:?string,capabilities:list<string>}> $providers */
         $providers = config('commerce.providers', []);
 
         return $providers;
     }
 
-    /** @return array{label:string,status:string,capabilities:list<string>} */
+    /** @return array{label:string,status:string,contract_version:string,deprecated_after:?string,capabilities:list<string>} */
     public function get(string $provider): array
     {
         $provider = strtolower(trim($provider));
@@ -25,6 +25,17 @@ final class ProviderRegistry
         }
 
         return $definition;
+    }
+
+    /** @return array{contract_version:string,deprecated_after:?string} */
+    public function lifecycle(string $provider): array
+    {
+        $definition = $this->get($provider);
+
+        return [
+            'contract_version' => $definition['contract_version'],
+            'deprecated_after' => $definition['deprecated_after'],
+        ];
     }
 
     public function supports(string $provider, string $capability): bool

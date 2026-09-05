@@ -277,7 +277,17 @@ External API, B2B ve externally callable route/resource kimliklerinde Mars inter
 - Existing tablolar yalnız ihtiyaç duyulan milestone'da expand/backfill/switch ile public ID kazanır; toplu destructive PK migration yapılmaz.
 - ULID sıralanabilirliği authorization yerine kullanılmaz ve creation-time bilgisinin yaklaşık görünürlüğü security property sayılmaz.
 
+### K-054 — M23 production deployment contract
+Production başlangıcı **Docker Compose** ile tek sunucuda çalışır. `postgres`, `valkey`, `app`, `worker`, `scheduler` ve `web` ayrı servis/process sınırlarıdır. Kubernetes, multi-region veya ayrı mikroservis deployment modeli M23 production candidate kapsamına eklenmez.
 
+### K-055 — M23 primary file, quarantine ve storage boundary
+V1 primary application file storage **local/private** olarak kilitlidir; public webroot application file authority değildir. `FileAsset` quarantine globaldir ve quarantined asset link/download kullanımında fail-closed kapanır. Application primary file storage kararı ile backup offsite storage sınırı birbirinden ayrıdır.
+
+### K-056 — M23 backup/recovery objectives ve key boundary
+Production backup için dedicated `mars_backup` S3-compatible disk kullanılır ve offsite target zorunludur. RPO **24 saat**, RTO **4 saat**, başarılı restore-drill maksimum yaşı **30 gün**, retention **14 daily / 8 weekly / 12 monthly** olarak kilitlidir. Backup recovery key `APP_KEY`'den ayrıdır; legacy `APP_KEY` decrypt production'da varsayılan olarak kapalıdır. Backup doğrulaması veya restore safety gate başarısızsa operasyon fail-closed davranır.
+
+### K-057 — M23 marketplace lifecycle ve settlement integrity
+Mars-owned commerce provider lifecycle metadata'sı `contract_version` ve `deprecated_after` ile explicit tutulur; bu metadata upstream provider API version'ı değildir. Marketplace settlement evidence aynı company'ye ait, active ve exact `clearing` tipindeki hesaba bağlanmak zorundadır. Aynı external settlement için birebir payload replay idempotent'tir; payload drift ve tenant/type ihlali fail-closed reddedilir.
 
 ## B. YAPILMAYACAKLAR
 - Mikroservis, Event Sourcing, generic CQRS/BPM/hooks, GraphQL, EAV yok.

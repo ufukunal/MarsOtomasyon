@@ -1,0 +1,101 @@
+name: marsotomasyon
+
+x-mars-app: &mars-app
+  build:
+    context: .
+    dockerfile: Dockerfile.production
+    target: app
+  env_file:
+    - .env.production
+  environment:
+    DB_HOST: postgres
+    DB_PORT: 5432
+    REDIS_HOST: valkey
+    REDIS_PORT: 6379
+    CACHE_STORE: redis
+    QUEUE_CONNECTION: redis
+    SESSION_DRIVER: redis
+    SESSION_CONNECTION: session
+  restart: unless-stopped
+  volumes:
+    - mars_storage:/var/www/html/storage
+  depends_on:
+    postgres:
+      condition: service_healthy
+    valkey:
+      condition: service_healthy
+
+services:
+  postgres:
+    image: postgres:18-bookworm
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_DATABASE:?DB_DATABASE is required}
+      POSTGRES_USER: ${DB_USERNAME:?DB_USERNAME is required}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    networks:
+      - backend
+
+  valkey:
+    image: valkey/valkey:8-alpine
+    restart: unless-stopped
+    command: ["valkey-server", "--appendonly", "yes", "--save", "60", "1"]
+    volumes:
+      - valkey_data:/data
+    healthcheck:
+      test: ["CMD", "valkey-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+    networks:
+      - backend
+
+  app:
+    <<: *mars-app
+    command: ["php-fpm", "-F"]
+    networks:
+      - backend
+
+  worker:
+    <<: *mars-app
+    command: ["php", "artisan", "queue:work", "redis", "--queue=mars-default", "--sleep=1", "--tries=1", "--timeout=120", "--max-time=3600"]
+    stop_grace_period: 2m
+    networks:
+      - backend
+
+  scheduler:
+    <<: *mars-app
+    command: ["php", "artisan", "schedule:work"]
+    stop_grace_period: 1m
+    networks:
+      - backend
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.production
+      target: web
+    restart: unless-stopped
+    depends_on:
+      - app
+    ports:
+      - "${MARS_HTTP_PORT:-8080}:80"
+    networks:
+      - backend
+
+volumes:
+  postgres_data:
+  valkey_data:
+  mars_storage:
+
+networks:
+  backend:
+    driver: bridge

@@ -2,6 +2,8 @@
 
 namespace App\Foundation\Health;
 
+use App\Foundation\Operations\ProductionCandidateGate;
+use App\Foundation\Operations\ProductionSafetyState;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Redis\RedisManager;
 use Illuminate\Support\Facades\Log;
@@ -12,11 +14,29 @@ final readonly class SystemReadinessCheck implements ReadinessCheck
     public function __construct(
         private DatabaseManager $database,
         private RedisManager $redis,
+        private ProductionSafetyState $safety,
+        private ?ProductionCandidateGate $candidateGate = null,
+        private ?OffsiteBackupReadinessCheck $offsiteBackup = null,
     ) {}
 
     public function check(): ReadinessResult
     {
         $failed = [];
+        $production = app()->environment('production');
+
+        if ($this->safety->recoveryMode()) {
+            $failed[] = 'recovery-mode';
+        }
+
+        if ($production && $this->candidateGate !== null && ! $this->candidateGate->satisfied()) {
+            $failed[] = 'production-candidate';
+        }
+
+        if ($production && (bool) config('production.backup.offsite_required', true)) {
+            if ($this->offsiteBackup === null || ! $this->offsiteBackup->check()) {
+                $failed[] = 'offsite-backup';
+            }
+        }
 
         try {
             $this->database->connection()->selectOne('SELECT 1 AS ready');
@@ -32,7 +52,7 @@ final readonly class SystemReadinessCheck implements ReadinessCheck
             $this->logFailure('valkey', $exception);
         }
 
-        return new ReadinessResult($failed === [], $failed);
+        return new ReadinessResult($failed === [], array_values(array_unique($failed)));
     }
 
     private function logFailure(string $dependency, Throwable $exception): void
