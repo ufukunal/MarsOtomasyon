@@ -3,6 +3,8 @@
 @section('title', 'Ürün/Stok')
 
 @section('app-content')
+    @php($productFamilyVariantEnabled = app(\App\Foundation\Features\FeatureRegistry::class)->enabled(\App\Foundation\Features\FeatureKey::ProductFamilyVariant))
+
     <section class="workspace-hero">
         <div>
             <p class="eyebrow">Ürün / Katalog</p>
@@ -14,6 +16,9 @@
                 <a href="{{ route('inventory.stock.index') }}" data-workspace-link>Stok Bakiyeleri</a>
                 <a href="{{ route('inventory.warehouses.index') }}" data-workspace-link>Depolar</a>
             @endcan
+            @if ($productFamilyVariantEnabled)
+                <a href="{{ route('inventory.product-families.index') }}" data-workspace-link>Ürün Aileleri</a>
+            @endif
             <a href="{{ route('inventory.categories.index') }}" data-workspace-link>Kategoriler</a>
             <a href="{{ route('inventory.units.index') }}" data-workspace-link>Birimler</a>
             @can('products.manage')
