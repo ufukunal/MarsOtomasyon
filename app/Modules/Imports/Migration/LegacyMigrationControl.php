@@ -5,6 +5,7 @@ namespace App\Modules\Imports\Migration;
 use DomainException;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
+use stdClass;
 
 final class LegacyMigrationControl
 {
@@ -44,7 +45,7 @@ final class LegacyMigrationControl
         });
     }
 
-    /** @param array<string,mixed> $payload */
+    /** @param  array<string, mixed>  $payload */
     public function stageRecord(
         int $companyId,
         int $sourceId,
@@ -136,7 +137,7 @@ final class LegacyMigrationControl
         });
     }
 
-    /** @param array<string,mixed> $details */
+    /** @param  array<string, mixed>  $details */
     public function recordReconciliation(
         int $companyId,
         int $sourceId,
@@ -266,7 +267,7 @@ final class LegacyMigrationControl
         return (clone $checks)->exists() && ! (clone $checks)->where('passed', false)->exists();
     }
 
-    private function assertSource(int $companyId, int $sourceId): object
+    private function assertSource(int $companyId, int $sourceId): stdClass
     {
         $source = DB::table('migration_sources')
             ->where('company_id', $companyId)
@@ -279,7 +280,7 @@ final class LegacyMigrationControl
         return $source;
     }
 
-    /** @param array<string,mixed> $payload */
+    /** @param  array<string, mixed>  $payload */
     private function payloadHash(array $payload): string
     {
         return hash('sha256', json_encode(
