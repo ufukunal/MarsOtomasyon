@@ -10,7 +10,7 @@ interface ShippingProviderGateway
     public function capabilities(): array;
 
     /**
-     * @param array<string, mixed> $request
+     * @param  array<string, mixed>  $request
      * @return array{external_id:string,tracking_number:?string,label_reference:?string,status:string}
      */
     public function createShipment(string $idempotencyKey, array $request): array;
