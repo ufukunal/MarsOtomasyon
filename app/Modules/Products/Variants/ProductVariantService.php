@@ -51,7 +51,14 @@ final class ProductVariantService
     public function deleteFamily(int $companyId, int $familyId): void
     {
         DB::transaction(function () use ($companyId, $familyId): void {
-            $this->family($companyId, $familyId, true)->delete();
+            $family = $this->family($companyId, $familyId, true);
+
+            ProductVariantRelation::query()
+                ->where('company_id', $companyId)
+                ->where('product_family_id', $familyId)
+                ->delete();
+
+            $family->delete();
         });
     }
 
