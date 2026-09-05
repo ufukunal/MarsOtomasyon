@@ -7,7 +7,9 @@ use Illuminate\Validation\ValidationException;
 
 final readonly class LabelRenderer
 {
-    public function __construct(private LabelTemplateEngine $engine) {}
+    public function __construct(private LabelTemplateEngine $engine)
+    {
+    }
 
     /**
      * @param array<string, mixed> $payload
