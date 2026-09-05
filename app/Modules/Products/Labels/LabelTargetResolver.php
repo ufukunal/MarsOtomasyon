@@ -115,9 +115,9 @@ final class LabelTargetResolver
             'payload' => [
                 'shipment' => [
                     'id' => $dispatch->getKey(),
-                    'number' => $dispatch->dispatch_no,
+                    'number' => $dispatch->number,
                     'date' => $dispatch->dispatch_date?->format('Y-m-d'),
-                    'status' => $dispatch->status,
+                    'status' => $dispatch->statusEnum()->value,
                 ],
             ],
             'barcode_id' => null,
