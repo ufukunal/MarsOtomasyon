@@ -17,7 +17,7 @@ return [
         'automation' => true,
         'operations' => true,
         'reports' => true,
-        'barcode_thermal_labels' => (bool) env('MARS_FEATURE_BARCODE_THERMAL_LABELS', false),
+        'barcode_thermal_labels' => true,
     ],
     'correlation' => [
         'header' => 'X-Correlation-ID',
