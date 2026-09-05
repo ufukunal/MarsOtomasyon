@@ -2,15 +2,16 @@
 
 use App\Modules\Core\Company\ActiveCompanyContext;
 use App\Modules\Core\Enums\AttachmentTargetType;
+use App\Modules\Core\Models\Company;
 use App\Modules\Core\Models\FileAsset;
 use App\Modules\Products\Files\ProductFamilyMediaManager;
 use App\Modules\Products\Models\ProductFile;
 use App\Modules\Products\Variants\ProductVariantService;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
-use LogicException;
 
 uses(DatabaseMigrations::class);
 
@@ -38,7 +39,7 @@ it('blocks cross-company family media linkage', function (): void {
     $foreignAsset = m25MediaAsset((int) $foreign->getKey(), 'foreign.jpg');
 
     expect(fn () => app(ProductFamilyMediaManager::class)->linkExistingAsset((int) $family->getKey(), (int) $foreignAsset->getKey()))
-        ->toThrow(Illuminate\Database\Eloquent\ModelNotFoundException::class);
+        ->toThrow(ModelNotFoundException::class);
 });
 
 it('falls back deterministically to active child product media and then placeholder', function (): void {
@@ -74,7 +75,7 @@ it('falls back deterministically to active child product media and then placehol
     expect($manager->hero((int) $family->getKey()))->toBeNull();
 });
 
-function m25MediaActorAndContext(App\Modules\Core\Models\Company $company): void
+function m25MediaActorAndContext(Company $company): void
 {
     app(ActiveCompanyContext::class)->set($company);
     $actorId = (int) DB::table('users')->insertGetId([
