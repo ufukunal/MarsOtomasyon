@@ -13,22 +13,28 @@ use Illuminate\Foundation\Testing\DatabaseMigrations;
 
 uses(DatabaseMigrations::class);
 
-it('keeps product family HTTP surface hidden while the feature is disabled', function (): void {
+it('keeps product family HTTP surface and navigation hidden while the feature is disabled', function (): void {
     [$company, $user] = m25HttpActor(PermissionKey::ProductView, 'm25-off@example.test');
     config()->set('mars.features.product_family_variant', false);
 
     $this->actingAs($user)->withSession(['active_company_id' => $company->getKey()])
         ->get(route('inventory.product-families.index'))
         ->assertNotFound();
+    $this->actingAs($user)->withSession(['active_company_id' => $company->getKey()])
+        ->get(route('inventory.index'))
+        ->assertOk()
+        ->assertDontSee('Ürün Aileleri');
 });
 
-it('enforces product permissions and company scope on family HTTP routes', function (): void {
+it('enforces product permissions company scope and feature-gated navigation on family HTTP routes', function (): void {
     [$company, $viewer] = m25HttpActor(PermissionKey::ProductView, 'm25-view@example.test');
     [$foreignCompany] = m25HttpActor(PermissionKey::ProductView, 'm25-foreign@example.test');
     $family = ProductFamily::query()->create(['company_id' => $company->getKey(), 'code' => 'HTTP-A', 'name' => 'HTTP A']);
     $foreignFamily = ProductFamily::query()->create(['company_id' => $foreignCompany->getKey(), 'code' => 'HTTP-F', 'name' => 'HTTP F']);
     config()->set('mars.features.product_family_variant', true);
 
+    $this->actingAs($viewer)->withSession(['active_company_id' => $company->getKey()])
+        ->get(route('inventory.index'))->assertOk()->assertSee('Ürün Aileleri');
     $this->actingAs($viewer)->withSession(['active_company_id' => $company->getKey()])
         ->get(route('inventory.product-families.index'))->assertOk()->assertSee('Ürün Aileleri');
     $this->actingAs($viewer)->withSession(['active_company_id' => $company->getKey()])
