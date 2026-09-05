@@ -120,7 +120,7 @@ final class DocumentExtractionService
     }
 
     /**
-     * @param array<string, mixed> $corrections
+     * @param  array<string, mixed>  $corrections
      * @return array{document_type:string,fields:array<string,mixed>,source_attachment_id:int,extraction_job_id:int}
      */
     public function review(int $companyId, int $jobId, int $reviewedByUserId, array $corrections = []): array
