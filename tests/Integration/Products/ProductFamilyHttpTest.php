@@ -10,8 +10,13 @@ use App\Modules\Core\Models\Role;
 use App\Modules\Core\Models\User;
 use App\Modules\Products\Models\ProductFamily;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Tests\Fixtures\Products\M25ProductFamilyFixture;
 
 uses(DatabaseMigrations::class);
+
+beforeEach(function (): void {
+    $this->withoutVite();
+});
 
 it('keeps product family HTTP surface and navigation hidden while the feature is disabled', function (): void {
     [$company, $user] = m25HttpActor(PermissionKey::ProductView, 'm25-off@example.test');
@@ -46,7 +51,7 @@ it('enforces product permissions company scope and feature-gated navigation on f
 it('serves server-side catalog rows for family simple and variant filters', function (): void {
     [$company, $user] = m25HttpActor(PermissionKey::ProductView, 'm25-data@example.test');
     ProductFamily::query()->create(['company_id' => $company->getKey(), 'code' => 'HTTP-DATA', 'name' => 'HTTP Data']);
-    m25SchemaProduct($company, 'SKU-HTTP-SIMPLE');
+    M25ProductFamilyFixture::product($company, 'SKU-HTTP-SIMPLE');
     config()->set('mars.features.product_family_variant', true);
 
     $this->actingAs($user)->withSession(['active_company_id' => $company->getKey()])
