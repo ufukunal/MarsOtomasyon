@@ -44,7 +44,7 @@ printf 'deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.gpg]
 
 apt-get update
 apt-get install -y \
-    php8.5-cli php8.5-curl php8.5-intl php8.5-mbstring php8.5-pgsql \
+    php8.5-cli php8.5-curl php8.5-gd php8.5-intl php8.5-mbstring php8.5-pgsql \
     php8.5-redis php8.5-sockets php8.5-xml php8.5-zip \
     postgresql-18 postgresql-client-18
 
