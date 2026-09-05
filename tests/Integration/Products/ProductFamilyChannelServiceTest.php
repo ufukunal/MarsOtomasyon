@@ -7,13 +7,14 @@ use DomainException;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Tests\Fixtures\Products\M25ProductFamilyFixture;
 
 uses(DatabaseMigrations::class);
 
 it('maps one marketplace parent idempotently while preserving product child mappings', function (): void {
-    $company = m25SchemaCompany('M25-MAP');
-    $productA = m25SchemaProduct($company, 'SKU-MAP-A');
-    $productB = m25SchemaProduct($company, 'SKU-MAP-B');
+    $company = M25ProductFamilyFixture::company('M25-MAP');
+    $productA = M25ProductFamilyFixture::product($company, 'SKU-MAP-A');
+    $productB = M25ProductFamilyFixture::product($company, 'SKU-MAP-B');
     $variants = app(ProductVariantService::class);
     $family = $variants->createFamily((int) $company->getKey(), 'MAP', 'Mapped Family');
     $dimension = $variants->addDimension((int) $company->getKey(), (int) $family->getKey(), 'color', 'Color');
@@ -49,8 +50,8 @@ it('maps one marketplace parent idempotently while preserving product child mapp
 });
 
 it('fails closed for parent identity drift collisions provider mismatch and tenant attacks', function (): void {
-    $company = m25SchemaCompany('M25-MAP-G');
-    $foreign = m25SchemaCompany('M25-MAP-F');
+    $company = M25ProductFamilyFixture::company('M25-MAP-G');
+    $foreign = M25ProductFamilyFixture::company('M25-MAP-F');
     $variants = app(ProductVariantService::class);
     $familyA = $variants->createFamily((int) $company->getKey(), 'MAP-A', 'Map A');
     $familyB = $variants->createFamily((int) $company->getKey(), 'MAP-B', 'Map B');
