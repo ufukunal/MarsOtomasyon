@@ -7,12 +7,13 @@ use DomainException;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Support\Facades\DB;
+use Tests\Fixtures\Products\M25ProductFamilyFixture;
 
 uses(DatabaseMigrations::class);
 
 it('creates families dimensions values and assigns a product deterministically', function (): void {
-    $company = m25SchemaCompany('M25-DOM');
-    $product = m25SchemaProduct($company, 'SKU-DOM');
+    $company = M25ProductFamilyFixture::company('M25-DOM');
+    $product = M25ProductFamilyFixture::product($company, 'SKU-DOM');
     $service = app(ProductVariantService::class);
     $family = $service->createFamily((int) $company->getKey(), ' tshirt ', 'T Shirt');
     $color = $service->addDimension((int) $company->getKey(), (int) $family->getKey(), 'Color', 'Color', 0);
@@ -33,8 +34,8 @@ it('creates families dimensions values and assigns a product deterministically',
 });
 
 it('allows only exact persisted-state replay', function (): void {
-    $company = m25SchemaCompany('M25-REPLAY');
-    $product = m25SchemaProduct($company, 'SKU-REPLAY');
+    $company = M25ProductFamilyFixture::company('M25-REPLAY');
+    $product = M25ProductFamilyFixture::product($company, 'SKU-REPLAY');
     $service = app(ProductVariantService::class);
     $family = $service->createFamily((int) $company->getKey(), 'REPLAY', 'Replay');
     $dimension = $service->addDimension((int) $company->getKey(), (int) $family->getKey(), 'color', 'Color');
@@ -51,11 +52,11 @@ it('allows only exact persisted-state replay', function (): void {
 });
 
 it('fails closed for duplicate combinations reassignment wrong dimension and cross-company inputs', function (): void {
-    $company = m25SchemaCompany('M25-GUARD');
-    $otherCompany = m25SchemaCompany('M25-GUARD2');
-    $firstProduct = m25SchemaProduct($company, 'SKU-G1');
-    $secondProduct = m25SchemaProduct($company, 'SKU-G2');
-    $foreignProduct = m25SchemaProduct($otherCompany, 'SKU-G3');
+    $company = M25ProductFamilyFixture::company('M25-GUARD');
+    $otherCompany = M25ProductFamilyFixture::company('M25-GUARD2');
+    $firstProduct = M25ProductFamilyFixture::product($company, 'SKU-G1');
+    $secondProduct = M25ProductFamilyFixture::product($company, 'SKU-G2');
+    $foreignProduct = M25ProductFamilyFixture::product($otherCompany, 'SKU-G3');
     $service = app(ProductVariantService::class);
     $family = $service->createFamily((int) $company->getKey(), 'GUARD', 'Guard');
     $otherFamily = $service->createFamily((int) $company->getKey(), 'GUARD2', 'Guard 2');
@@ -78,9 +79,9 @@ it('fails closed for duplicate combinations reassignment wrong dimension and cro
 });
 
 it('uses a PostgreSQL unique backstop for a concurrent combination race loser', function (): void {
-    $company = m25SchemaCompany('M25-RACE');
-    $firstProduct = m25SchemaProduct($company, 'SKU-RACE-1');
-    $secondProduct = m25SchemaProduct($company, 'SKU-RACE-2');
+    $company = M25ProductFamilyFixture::company('M25-RACE');
+    $firstProduct = M25ProductFamilyFixture::product($company, 'SKU-RACE-1');
+    $secondProduct = M25ProductFamilyFixture::product($company, 'SKU-RACE-2');
     $service = app(ProductVariantService::class);
     $family = $service->createFamily((int) $company->getKey(), 'RACE', 'Race');
     $dimension = $service->addDimension((int) $company->getKey(), (int) $family->getKey(), 'color', 'Color');
@@ -101,8 +102,8 @@ it('uses a PostgreSQL unique backstop for a concurrent combination race loser', 
 });
 
 it('preserves canonical products when a family is updated and deleted', function (): void {
-    $company = m25SchemaCompany('M25-LIFE');
-    $product = m25SchemaProduct($company, 'SKU-LIFE');
+    $company = M25ProductFamilyFixture::company('M25-LIFE');
+    $product = M25ProductFamilyFixture::product($company, 'SKU-LIFE');
     $productId = (int) $product->getKey();
     $service = app(ProductVariantService::class);
     $family = $service->createFamily((int) $company->getKey(), 'LIFE', 'Life');
