@@ -17,6 +17,7 @@ return [
         'automation' => true,
         'operations' => true,
         'reports' => true,
+        'mobile_warehouse' => false,
     ],
     'correlation' => [
         'header' => 'X-Correlation-ID',

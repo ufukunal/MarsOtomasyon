@@ -19,4 +19,5 @@ enum FeatureKey: string
     case Automation = 'automation';
     case Operations = 'operations';
     case Reports = 'reports';
+    case MobileWarehouse = 'mobile_warehouse';
 }
