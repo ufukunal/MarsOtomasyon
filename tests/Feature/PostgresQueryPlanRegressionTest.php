@@ -54,7 +54,7 @@ final class PostgresQueryPlanRegressionTest extends TestCase
     public function test_product_full_text_and_trigram_search_use_gin_indexes(): void
     {
         $this->assertUsesIndex(
-            "SELECT id FROM products WHERE to_tsvector('simple', coalesce(name, '') || ' ' || coalesce(sku, '')) @@ plainto_tsquery('simple', ?)",
+            "SELECT id FROM products WHERE to_tsvector('simple', coalesce(code, '') || ' ' || coalesce(name, '')) @@ plainto_tsquery('simple', ?)",
             ['mars'],
         );
         $this->assertUsesIndex(
