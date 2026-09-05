@@ -5,6 +5,7 @@ use App\Modules\Core\Enums\AttachmentTargetType;
 use App\Modules\Core\Files\PrivateAttachmentManager;
 use App\Modules\Core\Models\Company;
 use App\Modules\Core\Models\FileAsset;
+use App\Modules\Products\Enums\ProductStatus;
 use App\Modules\Products\Files\ProductFamilyMediaManager;
 use App\Modules\Products\Models\ProductFile;
 use App\Modules\Products\Variants\ProductVariantService;
@@ -43,6 +44,16 @@ it('blocks cross-company family media linkage', function (): void {
         ->toThrow(ModelNotFoundException::class);
 });
 
+it('rejects non-image assets from family media linkage', function (): void {
+    $company = m25SchemaCompany('M25-MEDIA-TYPE');
+    m25MediaActorAndContext($company);
+    $family = app(ProductVariantService::class)->createFamily((int) $company->getKey(), 'MEDIA-TYPE', 'Media Type');
+    $asset = m25MediaAsset((int) $company->getKey(), 'manual.pdf', 'application/pdf', 'pdf');
+
+    expect(fn () => app(ProductFamilyMediaManager::class)->linkExistingAsset((int) $family->getKey(), (int) $asset->getKey()))
+        ->toThrow(LogicException::class, 'must be an image');
+});
+
 it('falls back deterministically to active child product media and then placeholder', function (): void {
     $company = m25SchemaCompany('M25-MEDIA-FB');
     m25MediaActorAndContext($company);
@@ -72,6 +83,12 @@ it('falls back deterministically to active child product media and then placehol
 
     $manager = app(ProductFamilyMediaManager::class);
     expect($manager->hero((int) $family->getKey())?->getKey())->toBe($attachmentId);
+
+    $product->update(['status' => ProductStatus::Inactive]);
+    expect($manager->hero((int) $family->getKey()))->toBeNull();
+    $product->update(['status' => ProductStatus::Active]);
+    expect($manager->hero((int) $family->getKey())?->getKey())->toBe($attachmentId);
+
     app(PrivateAttachmentManager::class)->quarantine((int) $asset->getKey(), 'blocked');
     expect($manager->hero((int) $family->getKey()))->toBeNull();
 });
@@ -90,7 +107,7 @@ function m25MediaActorAndContext(Company $company): void
     Auth::loginUsingId($actorId);
 }
 
-function m25MediaAsset(int $companyId, string $name): FileAsset
+function m25MediaAsset(int $companyId, string $name, string $mime = 'image/jpeg', string $extension = 'jpg'): FileAsset
 {
     return FileAsset::query()->create([
         'company_id' => $companyId,
@@ -98,8 +115,8 @@ function m25MediaAsset(int $companyId, string $name): FileAsset
         'storage_disk' => 'local',
         'storage_key' => 'companies/'.$companyId.'/files/'.Str::ulid(),
         'original_name' => $name,
-        'mime_type' => 'image/jpeg',
-        'client_extension' => 'jpg',
+        'mime_type' => $mime,
+        'client_extension' => $extension,
         'size_bytes' => 128,
         'sha256' => hash('sha256', $name.Str::random(8)),
     ]);
