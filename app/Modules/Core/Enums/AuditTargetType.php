@@ -34,6 +34,7 @@ enum AuditTargetType: string
     case TreasuryCashCount = 'treasury_cash_count';
     case BankStatementImport = 'bank_statement_import';
     case BankStatementLine = 'bank_statement_line';
+    case LabelPrint = 'label_print';
 
     public function label(): string
     {
@@ -68,6 +69,7 @@ enum AuditTargetType: string
             self::TreasuryCashCount => 'Kasa Sayımı',
             self::BankStatementImport => 'Banka Ekstresi Aktarımı',
             self::BankStatementLine => 'Banka Ekstresi Satırı',
+            self::LabelPrint => 'Etiket Baskısı',
         };
     }
 }
