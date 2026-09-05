@@ -141,8 +141,11 @@ function m28ShippingService(M28FakeShippingProvider $provider): ShippingService
 final class M28FakeShippingProvider implements ShippingProviderGateway
 {
     public int $createCalls = 0;
+
     public int $findCalls = 0;
+
     public int $cancelCalls = 0;
+
     public bool $ambiguousNextCreate = false;
 
     /** @var array{external_id:string,tracking_number:?string,label_reference:?string,status:string}|null */
