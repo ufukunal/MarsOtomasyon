@@ -138,18 +138,7 @@ jobs:
         run: php artisan migrate:fresh --force
 
       - name: Run non-browser test suites
-        shell: bash
-        run: |
-          set -o pipefail
-          composer test 2>&1 | tee /tmp/postgres-tests.log
-
-      - name: Upload PostgreSQL test diagnostics
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: postgres-test-diagnostics
-          path: /tmp/postgres-tests.log
-          retention-days: 1
+        run: composer test
 
   browser-smoke:
     name: browser-smoke
