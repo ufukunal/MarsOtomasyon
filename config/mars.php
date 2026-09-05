@@ -18,6 +18,7 @@ return [
         'automation' => true,
         'operations' => true,
         'reports' => true,
+        'barcode_thermal_labels' => true,
     ],
     'correlation' => [
         'header' => 'X-Correlation-ID',
