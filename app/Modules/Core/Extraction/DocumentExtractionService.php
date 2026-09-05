@@ -7,6 +7,7 @@ use App\Modules\Core\Models\FileAsset;
 use DomainException;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
+use stdClass;
 
 final class DocumentExtractionService
 {
@@ -173,7 +174,7 @@ final class DocumentExtractionService
     }
 
     /** @return array{id:int,status:string,document_type:?string,requires_review:bool} */
-    private function jobSummary(object $job): array
+    private function jobSummary(stdClass $job): array
     {
         $requiresReview = DB::table('document_extracted_fields')
             ->where('extraction_job_id', $job->id)
