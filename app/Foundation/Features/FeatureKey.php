@@ -7,6 +7,7 @@ enum FeatureKey: string
     case Foundation = 'foundation';
     case Customers = 'customers';
     case ProductStock = 'product_stock';
+    case ProductFamilyVariant = 'product_family_variant';
     case Sales = 'sales';
     case Purchasing = 'purchasing';
     case Production = 'production';
