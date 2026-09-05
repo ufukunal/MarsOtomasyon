@@ -64,7 +64,10 @@ final readonly class ProductFamilyMediaManager
     {
         $family = $this->family($familyId);
         $attachment = $this->activeFamilyAttachment((int) $family->getKey(), $attachmentId);
-        $content = is_array($family->shared_content) ? $family->shared_content : [];
+        if (! $attachment instanceof Attachment) {
+            throw new LogicException('Active product family media attachment was not found.');
+        }
+        $content = $this->sharedContent($family);
         $content['hero_attachment_id'] = (int) $attachment->getKey();
         $family->update(['shared_content' => $content]);
 
@@ -79,7 +82,7 @@ final readonly class ProductFamilyMediaManager
             (int) $family->getKey(),
             $attachmentId,
         );
-        $content = is_array($family->shared_content) ? $family->shared_content : [];
+        $content = $this->sharedContent($family);
         if ((int) ($content['hero_attachment_id'] ?? 0) === $attachmentId) {
             unset($content['hero_attachment_id']);
             $family->update(['shared_content' => $content === [] ? null : $content]);
@@ -95,7 +98,7 @@ final readonly class ProductFamilyMediaManager
     public function hero(int $familyId): ?Attachment
     {
         $family = $this->family($familyId);
-        $content = is_array($family->shared_content) ? $family->shared_content : [];
+        $content = $this->sharedContent($family);
         $explicitId = (int) ($content['hero_attachment_id'] ?? 0);
         if ($explicitId > 0) {
             $explicit = $this->activeFamilyAttachment((int) $family->getKey(), $explicitId, false);
@@ -147,6 +150,14 @@ final readonly class ProductFamilyMediaManager
         }
 
         return $attachment;
+    }
+
+    /** @return array<string,mixed> */
+    private function sharedContent(ProductFamily $family): array
+    {
+        $content = $family->getAttribute('shared_content');
+
+        return is_array($content) ? $content : [];
     }
 
     private function family(int $familyId): ProductFamily
