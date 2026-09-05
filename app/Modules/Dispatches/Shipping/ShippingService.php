@@ -12,7 +12,12 @@ use stdClass;
 
 final class ShippingService
 {
-    public function __construct(private readonly ShippingProviderRegistry $providers) {}
+    private readonly ShippingProviderRegistry $providers;
+
+    public function __construct(ShippingProviderRegistry $providers)
+    {
+        $this->providers = $providers;
+    }
 
     /** @param array<string, scalar|null> $credentials */
     public function configureConnection(int $companyId, string $provider, string $label, array $credentials): int
@@ -47,7 +52,7 @@ final class ShippingService
     }
 
     /**
-     * @param array<string, mixed> $shipment
+     * @param  array<string, mixed>  $shipment
      * @return array{id:int,dispatch_id:int,provider:string,external_shipment_id:string,tracking_number:?string,label_reference:?string,status:string}
      */
     public function createShipment(int $companyId, int $dispatchId, string $provider, string $idempotencyKey, array $shipment = []): array
@@ -284,7 +289,7 @@ final class ShippingService
     }
 
     /**
-     * @param array{external_id:string,tracking_number:?string,label_reference:?string,status:string} $result
+     * @param  array{external_id:string,tracking_number:?string,label_reference:?string,status:string}  $result
      * @return array{id:int,dispatch_id:int,provider:string,external_shipment_id:string,tracking_number:?string,label_reference:?string,status:string}
      */
     private function persistCreatedShipment(int $companyId, int $dispatchId, int $connectionId, string $provider, string $requestHash, int $attemptId, array $result): array
@@ -404,7 +409,10 @@ final class ShippingService
         return json_encode($value, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     }
 
-    /** @param array<array-key, mixed> $value @return array<array-key, mixed> */
+    /**
+     * @param  array<array-key, mixed>  $value
+     * @return array<array-key, mixed>
+     */
     private function sortRecursive(array $value): array
     {
         ksort($value);
