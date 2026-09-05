@@ -108,7 +108,7 @@ final class ProductVariantService
     }
 
     /**
-     * @param  array<int,int>  $dimensionValues  dimension_id => value_id
+     * @param  array<array-key,mixed>  $dimensionValues  dimension_id => value_id
      */
     public function assignProduct(int $companyId, int $familyId, int $productId, array $dimensionValues): ProductVariantRelation
     {
@@ -207,7 +207,7 @@ final class ProductVariantService
     }
 
     /**
-     * @param  array<int,int>  $dimensionValues
+     * @param  array<array-key,mixed>  $dimensionValues
      * @return array{0:array<int,int>,1:string}
      */
     private function canonicalSelection(int $companyId, int $familyId, array $dimensionValues): array
