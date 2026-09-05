@@ -13,15 +13,13 @@ concurrency:
 jobs:
   benchmark:
     name: benchmark-${{ matrix.slot }}
-    # mars-ci was probed during bootstrap but did not match either online runner.
-    # Use the built-in labels until the custom label is explicitly configured.
-    runs-on: [self-hosted, linux, x64]
+    runs-on: [self-hosted, linux, x64, mars, ci]
     timeout-minutes: 5
     strategy:
       fail-fast: false
-      max-parallel: 2
+      max-parallel: 3
       matrix:
-        slot: [1, 2]
+        slot: [1, 2, 3]
 
     steps:
       - name: Runner identity and resources
@@ -31,6 +29,7 @@ jobs:
           echo "runner_name=${{ runner.name }}"
           echo "runner_os=${{ runner.os }}"
           echo "runner_arch=${{ runner.arch }}"
+          echo "hostname=$(hostname)"
           echo "slot=${{ matrix.slot }}"
           echo "logical_cpus=$(nproc)"
           awk '/MemTotal:/ {print "mem_total_kib=" $2}' /proc/meminfo
