@@ -188,7 +188,10 @@ final readonly class MobileWarehouseService
         }, 3);
     }
 
-    /** @param array<string,mixed> $payload @return array<string,mixed> */
+    /**
+     * @param  array<string, mixed>  $payload
+     * @return array<string, mixed>
+     */
     private function perform(int $companyId, string $operationId, string $operationType, array $payload): array
     {
         $source = new SourceEffectIdentity($companyId, 'mobile.client_operation', $operationId, $operationType);
@@ -210,7 +213,10 @@ final readonly class MobileWarehouseService
         };
     }
 
-    /** @param array<string,mixed> $payload @return array<string,mixed> */
+    /**
+     * @param  array<string, mixed>  $payload
+     * @return array<string, mixed>
+     */
     private function verifyGoodsReceipt(int $companyId, array $payload): array
     {
         $receiptId = $this->positiveInt($payload, 'goods_receipt_id');
@@ -230,7 +236,10 @@ final readonly class MobileWarehouseService
         ];
     }
 
-    /** @param array<string,mixed> $payload @return array<string,mixed> */
+    /**
+     * @param  array<string, mixed>  $payload
+     * @return array<string, mixed>
+     */
     private function finalizeGoodsReceipt(array $payload): array
     {
         $receipt = $this->finalizeGoodsReceipt->handle($this->positiveInt($payload, 'goods_receipt_id'));
@@ -238,7 +247,10 @@ final readonly class MobileWarehouseService
         return ['goods_receipt_id' => (int) $receipt->getKey(), 'status' => $receipt->statusEnum()->value];
     }
 
-    /** @param array<string,mixed> $payload @return array<string,mixed> */
+    /**
+     * @param  array<string, mixed>  $payload
+     * @return array<string, mixed>
+     */
     private function consumePicking(SourceEffectIdentity $source, array $payload): array
     {
         $result = $this->reservations->consume($source, $this->positiveInt($payload, 'reservation_id'));
@@ -250,7 +262,10 @@ final readonly class MobileWarehouseService
         ];
     }
 
-    /** @param array<string,mixed> $payload @return array<string,mixed> */
+    /**
+     * @param  array<string, mixed>  $payload
+     * @return array<string, mixed>
+     */
     private function verifyDispatch(int $companyId, array $payload): array
     {
         $dispatchId = $this->positiveInt($payload, 'dispatch_id');
@@ -270,7 +285,10 @@ final readonly class MobileWarehouseService
         ];
     }
 
-    /** @param array<string,mixed> $payload @return array<string,mixed> */
+    /**
+     * @param  array<string, mixed>  $payload
+     * @return array<string, mixed>
+     */
     private function finalizeDispatch(array $payload): array
     {
         $dispatch = $this->finalizeDispatch->handle($this->positiveInt($payload, 'dispatch_id'));
@@ -278,7 +296,10 @@ final readonly class MobileWarehouseService
         return ['dispatch_id' => (int) $dispatch->getKey(), 'status' => $dispatch->statusEnum()->value];
     }
 
-    /** @param array<string,mixed> $payload @return array<string,mixed> */
+    /**
+     * @param  array<string, mixed>  $payload
+     * @return array<string, mixed>
+     */
     private function issueTransfer(SourceEffectIdentity $source, array $payload): array
     {
         $rawLines = $payload['lines'] ?? null;
@@ -307,7 +328,10 @@ final readonly class MobileWarehouseService
         return ['transfer_id' => (int) $result->transfer->getKey(), 'domain_replay' => $result->replayed];
     }
 
-    /** @param array<string,mixed> $payload @return array<string,mixed> */
+    /**
+     * @param  array<string, mixed>  $payload
+     * @return array<string, mixed>
+     */
     private function receiveTransfer(SourceEffectIdentity $source, array $payload): array
     {
         $result = $this->transfers->receive(
@@ -324,7 +348,10 @@ final readonly class MobileWarehouseService
         ];
     }
 
-    /** @param array<string,mixed> $payload @return array<string,mixed> */
+    /**
+     * @param  array<string, mixed>  $payload
+     * @return array<string, mixed>
+     */
     private function startCount(int $companyId, string $operationId, array $payload): array
     {
         $count = $this->stockCounts->start($companyId, $this->positiveInt($payload, 'location_id'), 'mobile:'.$operationId);
@@ -332,7 +359,10 @@ final readonly class MobileWarehouseService
         return ['stock_count_id' => (int) $count->getKey(), 'status' => (string) $count->status];
     }
 
-    /** @param array<string,mixed> $payload @return array<string,mixed> */
+    /**
+     * @param  array<string, mixed>  $payload
+     * @return array<string, mixed>
+     */
     private function scanCount(int $companyId, array $payload): array
     {
         $line = $this->stockCounts->scanBarcode(
@@ -350,7 +380,10 @@ final readonly class MobileWarehouseService
         ];
     }
 
-    /** @param array<string,mixed> $payload @return array<string,mixed> */
+    /**
+     * @param  array<string, mixed>  $payload
+     * @return array<string, mixed>
+     */
     private function postCount(int $companyId, array $payload): array
     {
         $count = $this->stockCounts->post($companyId, $this->positiveInt($payload, 'stock_count_id'));
@@ -358,7 +391,10 @@ final readonly class MobileWarehouseService
         return ['stock_count_id' => (int) $count->getKey(), 'status' => (string) $count->status];
     }
 
-    /** @param array<string,mixed> $payload @return array<string,mixed> */
+    /**
+     * @param  array<string, mixed>  $payload
+     * @return array<string, mixed>
+     */
     private function sendSubcontract(int $companyId, array $payload): array
     {
         $order = $this->subcontract->sendMaterials($companyId, $this->positiveInt($payload, 'order_id'));
@@ -366,7 +402,10 @@ final readonly class MobileWarehouseService
         return ['order_id' => (int) $order->getKey(), 'status' => (string) $order->status];
     }
 
-    /** @param array<string,mixed> $payload @return array<string,mixed> */
+    /**
+     * @param  array<string, mixed>  $payload
+     * @return array<string, mixed>
+     */
     private function receiveSubcontract(int $companyId, string $operationId, array $payload): array
     {
         $rawConsumption = $payload['consumption'] ?? null;
