@@ -2,7 +2,6 @@
 
 use App\Modules\Core\Enums\AttachmentTargetType;
 use App\Modules\Core\Enums\UserStatus;
-use App\Modules\Core\Extraction\DocumentExtractionProvider;
 use App\Modules\Core\Extraction\DocumentExtractionRegistry;
 use App\Modules\Core\Extraction\DocumentExtractionService;
 use App\Modules\Core\Models\Attachment;
@@ -11,6 +10,7 @@ use App\Modules\Core\Models\FileAsset;
 use App\Modules\Core\Models\User;
 use DomainException;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Tests\Fixtures\Core\M29FixtureExtractor;
 
 uses(DatabaseMigrations::class);
 
@@ -66,36 +66,3 @@ it('deduplicates extraction by source and requires human review before returning
     expect(fn () => $service->extract((int) $company->getKey() + 999, (int) $attachment->getKey(), 'fixture'))
         ->toThrow(DomainException::class, 'not found for company');
 });
-
-final class M29FixtureExtractor implements DocumentExtractionProvider
-{
-    public int $calls = 0;
-
-    public function provider(): string
-    {
-        return 'fixture';
-    }
-
-    public function model(): string
-    {
-        return 'fixture-ocr';
-    }
-
-    public function version(): string
-    {
-        return '1';
-    }
-
-    public function extract(Attachment $attachment): array
-    {
-        $this->calls++;
-
-        return [
-            'document_type' => 'supplier_invoice',
-            'fields' => [
-                ['key' => 'invoice_no', 'value' => 'INV-29', 'confidence' => 0.99],
-                ['key' => 'total', 'value' => '12O.00', 'confidence' => 0.61],
-            ],
-        ];
-    }
-}
