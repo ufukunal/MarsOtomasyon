@@ -6,7 +6,7 @@ use App\Modules\Products\Labels\LabelRenderer;
 use App\Modules\Products\Labels\LabelTargetResolver;
 use App\Modules\Products\Labels\LabelTemplateEngine;
 use Illuminate\Validation\ValidationException;
-use PHPUnit\Framework\TestCase;
+use Tests\TestCase;
 
 final class M26LabelRenderingTest extends TestCase
 {
