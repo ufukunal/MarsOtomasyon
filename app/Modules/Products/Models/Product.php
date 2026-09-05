@@ -8,6 +8,7 @@ use App\Modules\Products\Enums\ProductStatus;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use LogicException;
 
 final class Product extends Model
@@ -92,5 +93,11 @@ final class Product extends Model
     public function productFiles(): HasMany
     {
         return $this->hasMany(ProductFile::class);
+    }
+
+    /** @return HasOne<ProductVariantRelation, $this> */
+    public function variantRelation(): HasOne
+    {
+        return $this->hasOne(ProductVariantRelation::class);
     }
 }
