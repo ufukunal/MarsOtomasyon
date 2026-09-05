@@ -14,11 +14,12 @@ use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Tests\Fixtures\Products\M25ProductFamilyFixture;
 
 uses(DatabaseMigrations::class);
 
 it('reuses private attachments for same-company family media and excludes quarantined assets', function (): void {
-    $company = m25SchemaCompany('M25-MEDIA');
+    $company = M25ProductFamilyFixture::company('M25-MEDIA');
     m25MediaActorAndContext($company);
     $family = app(ProductVariantService::class)->createFamily((int) $company->getKey(), 'MEDIA', 'Media');
     $asset = m25MediaAsset((int) $company->getKey(), 'family.jpg');
@@ -34,8 +35,8 @@ it('reuses private attachments for same-company family media and excludes quaran
 });
 
 it('blocks cross-company family media linkage', function (): void {
-    $company = m25SchemaCompany('M25-MEDIA-A');
-    $foreign = m25SchemaCompany('M25-MEDIA-B');
+    $company = M25ProductFamilyFixture::company('M25-MEDIA-A');
+    $foreign = M25ProductFamilyFixture::company('M25-MEDIA-B');
     m25MediaActorAndContext($company);
     $family = app(ProductVariantService::class)->createFamily((int) $company->getKey(), 'MEDIA-A', 'Media A');
     $foreignAsset = m25MediaAsset((int) $foreign->getKey(), 'foreign.jpg');
@@ -45,7 +46,7 @@ it('blocks cross-company family media linkage', function (): void {
 });
 
 it('rejects non-image assets from family media linkage', function (): void {
-    $company = m25SchemaCompany('M25-MEDIA-TYPE');
+    $company = M25ProductFamilyFixture::company('M25-MEDIA-TYPE');
     m25MediaActorAndContext($company);
     $family = app(ProductVariantService::class)->createFamily((int) $company->getKey(), 'MEDIA-TYPE', 'Media Type');
     $asset = m25MediaAsset((int) $company->getKey(), 'manual.pdf', 'application/pdf', 'pdf');
@@ -55,9 +56,9 @@ it('rejects non-image assets from family media linkage', function (): void {
 });
 
 it('falls back deterministically to active child product media and then placeholder', function (): void {
-    $company = m25SchemaCompany('M25-MEDIA-FB');
+    $company = M25ProductFamilyFixture::company('M25-MEDIA-FB');
     m25MediaActorAndContext($company);
-    $product = m25SchemaProduct($company, 'SKU-MEDIA-FB');
+    $product = M25ProductFamilyFixture::product($company, 'SKU-MEDIA-FB');
     $variants = app(ProductVariantService::class);
     $family = $variants->createFamily((int) $company->getKey(), 'MEDIA-FB', 'Media Fallback');
     $dimension = $variants->addDimension((int) $company->getKey(), (int) $family->getKey(), 'color', 'Color');
