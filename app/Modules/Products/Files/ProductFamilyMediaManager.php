@@ -6,7 +6,9 @@ use App\Modules\Core\Company\ActiveCompanyContext;
 use App\Modules\Core\Enums\AttachmentTargetType;
 use App\Modules\Core\Files\PrivateAttachmentManager;
 use App\Modules\Core\Models\Attachment;
+use App\Modules\Core\Models\FileAsset;
 use App\Modules\Products\Enums\ProductFileKind;
+use App\Modules\Products\Enums\ProductStatus;
 use App\Modules\Products\Models\ProductFamily;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\UploadedFile;
@@ -34,6 +36,14 @@ final readonly class ProductFamilyMediaManager
     public function linkExistingAsset(int $familyId, int $fileAssetId, ?string $label = null): Attachment
     {
         $family = $this->family($familyId);
+        $asset = FileAsset::query()
+            ->where('company_id', $this->companyId())
+            ->whereNull('archived_at')
+            ->whereNull('quarantined_at')
+            ->findOrFail($fileAssetId);
+        if (! str_starts_with(mb_strtolower((string) $asset->mime_type), 'image/')) {
+            throw new LogicException('Product family media must be an image.');
+        }
 
         return $this->attachments->linkExistingAsset(
             AttachmentTargetType::ProductFamily,
@@ -108,6 +118,9 @@ final readonly class ProductFamilyMediaManager
         }
 
         $attachmentId = DB::table('product_variant_relations as pvr')
+            ->join('products as p', function ($join): void {
+                $join->on('p.company_id', '=', 'pvr.company_id')->on('p.id', '=', 'pvr.product_id');
+            })
             ->join('product_files as pf', function ($join): void {
                 $join->on('pf.company_id', '=', 'pvr.company_id')->on('pf.product_id', '=', 'pvr.product_id');
             })
@@ -119,6 +132,7 @@ final readonly class ProductFamilyMediaManager
             })
             ->where('pvr.company_id', $this->companyId())
             ->where('pvr.product_family_id', $family->getKey())
+            ->where('p.status', ProductStatus::Active->value)
             ->where('pf.kind', ProductFileKind::Media->value)
             ->whereNull('a.detached_at')
             ->whereNull('fa.archived_at')
