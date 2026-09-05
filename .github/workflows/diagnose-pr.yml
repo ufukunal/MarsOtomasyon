@@ -16,9 +16,12 @@ permissions:
 
 jobs:
   diagnose:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64, mars, ci]
 
     steps:
+      - name: Runner identity
+        run: echo "runner=${{ runner.name }} host=$(hostname)"
+
       - name: Find PR head and CI runs
         env:
           GH_TOKEN: ${{ github.token }}
