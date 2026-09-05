@@ -2,6 +2,7 @@
 
 use App\Modules\Core\Company\ActiveCompanyContext;
 use App\Modules\Core\Enums\AttachmentTargetType;
+use App\Modules\Core\Files\PrivateAttachmentManager;
 use App\Modules\Core\Models\Company;
 use App\Modules\Core\Models\FileAsset;
 use App\Modules\Products\Files\ProductFamilyMediaManager;
@@ -26,7 +27,7 @@ it('reuses private attachments for same-company family media and excludes quaran
     $manager->setHero((int) $family->getKey(), (int) $attachment->getKey());
     expect($manager->hero((int) $family->getKey())?->getKey())->toBe($attachment->getKey());
 
-    $asset->update(['quarantined_at' => now(), 'quarantine_reason' => 'test quarantine']);
+    app(PrivateAttachmentManager::class)->quarantine((int) $asset->getKey(), 'test quarantine');
     expect($manager->all((int) $family->getKey()))->toHaveCount(0)
         ->and($manager->hero((int) $family->getKey()))->toBeNull();
 });
@@ -71,7 +72,7 @@ it('falls back deterministically to active child product media and then placehol
 
     $manager = app(ProductFamilyMediaManager::class);
     expect($manager->hero((int) $family->getKey())?->getKey())->toBe($attachmentId);
-    $asset->update(['quarantined_at' => now(), 'quarantine_reason' => 'blocked']);
+    app(PrivateAttachmentManager::class)->quarantine((int) $asset->getKey(), 'blocked');
     expect($manager->hero((int) $family->getKey()))->toBeNull();
 });
 
