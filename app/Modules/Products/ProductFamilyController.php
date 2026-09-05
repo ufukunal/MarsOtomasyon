@@ -208,10 +208,11 @@ final readonly class ProductFamilyController
         $validated = $request->validate(['product_id' => ['required', 'integer', 'min:1'], 'dimension_values' => ['required', 'array', 'min:1'], 'dimension_values.*' => ['required', 'integer', 'min:1']]);
         $pairs = [];
         foreach ((array) $validated['dimension_values'] as $dimensionId => $valueId) {
-            if (! is_int($dimensionId) && ! (is_string($dimensionId) && ctype_digit($dimensionId))) {
+            $dimensionKey = (string) $dimensionId;
+            if (! ctype_digit($dimensionKey) || (int) $dimensionKey < 1) {
                 throw ValidationException::withMessages(['dimension_values' => 'Boyut kimliği geçersiz.']);
             }
-            $pairs[(int) $dimensionId] = (int) $valueId;
+            $pairs[(int) $dimensionKey] = (int) $valueId;
         }
         $this->domain(fn () => $this->variants->assignProduct($this->companyId(), $family, (int) $validated['product_id'], $pairs));
 
