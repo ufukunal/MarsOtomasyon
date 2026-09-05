@@ -7,9 +7,12 @@ use Illuminate\Validation\ValidationException;
 
 final readonly class LabelRenderer
 {
-    public function __construct(
-        private LabelTemplateEngine $engine,
-    ) {}
+    private LabelTemplateEngine $engine;
+
+    public function __construct(LabelTemplateEngine $engine)
+    {
+        $this->engine = $engine;
+    }
 
     /**
      * @param array<string, mixed> $payload
