@@ -56,6 +56,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Prepare isolated CI toolchain
+        run: bash scripts/ci/prepare-ci-toolchain.sh
+
       - name: Prepare Laravel environment
         run: cp .env.example .env
 
@@ -65,7 +68,7 @@ jobs:
           composer --version
           node --version
           npm --version
-          php -m | grep -E 'pdo_pgsql|redis|sockets|intl|zip'
+          php -m | grep -E 'pdo_pgsql|redis|sockets|intl|zip|gd'
 
       - name: Validate Composer manifest
         run: composer validate --strict
@@ -101,15 +104,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Prepare isolated CI toolchain
+        run: bash scripts/ci/prepare-ci-toolchain.sh
+
       - name: Prepare Laravel environment
         run: cp .env.example .env
-
-      - name: Enable PHP GD on local runner
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.5'
-          extensions: gd
-          coverage: none
 
       - name: Verify shared PostgreSQL and Valkey
         run: |
@@ -150,6 +149,9 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Prepare isolated CI toolchain
+        run: bash scripts/ci/prepare-ci-toolchain.sh
 
       - name: Prepare Laravel environment
         run: cp .env.example .env
@@ -202,6 +204,9 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      - name: Prepare isolated CI toolchain
+        run: bash scripts/ci/prepare-ci-toolchain.sh
 
       - name: Prepare Laravel environment
         run: cp .env.example .env

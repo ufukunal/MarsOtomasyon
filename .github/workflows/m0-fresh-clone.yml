@@ -6,6 +6,7 @@ on:
     branches: [main]
     paths:
       - .github/workflows/m0-fresh-clone.yml
+      - scripts/ci/prepare-ci-toolchain.sh
 
 permissions:
   contents: read
@@ -57,12 +58,8 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Enable PHP GD on local runner
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.5'
-          extensions: gd
-          coverage: none
+      - name: Prepare isolated CI toolchain
+        run: bash scripts/ci/prepare-ci-toolchain.sh
 
       - name: Verify local toolchain and shared services
         run: |
