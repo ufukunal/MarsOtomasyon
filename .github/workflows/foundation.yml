@@ -10,7 +10,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: foundation-v2-${{ github.ref }}
+  group: foundation-v3-local-${{ github.ref }}
   cancel-in-progress: true
 
 env:
@@ -45,29 +45,26 @@ env:
 jobs:
   quality:
     name: quality
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64, mars, ci]
     timeout-minutes: 15
 
     steps:
+      - name: Runner identity
+        run: echo "runner=${{ runner.name }} host=$(hostname)"
+
       - name: Checkout
         uses: actions/checkout@v4
 
       - name: Prepare Laravel environment
         run: cp .env.example .env
 
-      - name: Setup PHP 8.5
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.5'
-          extensions: pdo_pgsql, redis, sockets, intl, zip
-          coverage: none
-          tools: composer:v2
-
-      - name: Setup Node 24
-        uses: actions/setup-node@v4
-        with:
-          node-version-file: '.nvmrc'
-          cache: npm
+      - name: Verify local toolchain
+        run: |
+          php -v
+          composer --version
+          node --version
+          npm --version
+          php -m | grep -E 'pdo_pgsql|redis|sockets|intl|zip'
 
       - name: Validate Composer manifest
         run: composer validate --strict
@@ -89,47 +86,32 @@ jobs:
 
   postgres-tests:
     name: postgres-tests
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64, mars, ci]
     timeout-minutes: 30
-
-    services:
-      postgres:
-        image: postgres:18.6
-        env:
-          POSTGRES_DB: mars_test
-          POSTGRES_USER: mars
-          POSTGRES_PASSWORD: mars
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U mars -d mars_test"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 20
-      valkey:
-        image: valkey/valkey:9.1.1
-        ports:
-          - 6379:6379
-        options: >-
-          --health-cmd "valkey-cli ping"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 20
+    env:
+      DB_DATABASE: mars_ci_${{ github.run_id }}_${{ github.run_attempt }}_pg
+      REDIS_PREFIX: 'mars-ci:${{ github.run_id }}:pg:'
+      REDIS_QUEUE: mars-ci-${{ github.run_id }}-pg
 
     steps:
+      - name: Runner identity
+        run: echo "runner=${{ runner.name }} host=$(hostname)"
+
       - name: Checkout
         uses: actions/checkout@v4
 
       - name: Prepare Laravel environment
         run: cp .env.example .env
 
-      - name: Setup PHP 8.5
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.5'
-          extensions: pdo_pgsql, redis, sockets, intl, zip
-          coverage: none
-          tools: composer:v2
+      - name: Verify shared PostgreSQL and Valkey
+        run: |
+          PGPASSWORD="$DB_PASSWORD" pg_isready -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USERNAME"
+          redis-cli -h "$REDIS_HOST" -p "$REDIS_PORT" ping | grep -qx PONG
+
+      - name: Prepare isolated PostgreSQL database
+        run: |
+          PGPASSWORD="$DB_PASSWORD" dropdb --if-exists -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USERNAME" "$DB_DATABASE"
+          PGPASSWORD="$DB_PASSWORD" createdb -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USERNAME" "$DB_DATABASE"
 
       - name: Install PHP dependencies
         run: composer install --no-interaction --prefer-dist --no-progress
@@ -140,55 +122,38 @@ jobs:
       - name: Run non-browser test suites
         run: composer test
 
+      - name: Cleanup isolated PostgreSQL database
+        if: always()
+        run: PGPASSWORD="$DB_PASSWORD" dropdb --if-exists -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USERNAME" "$DB_DATABASE"
+
   browser-smoke:
     name: browser-smoke
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-
-    services:
-      postgres:
-        image: postgres:18.6
-        env:
-          POSTGRES_DB: mars_test
-          POSTGRES_USER: mars
-          POSTGRES_PASSWORD: mars
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U mars -d mars_test"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 20
-      valkey:
-        image: valkey/valkey:9.1.1
-        ports:
-          - 6379:6379
-        options: >-
-          --health-cmd "valkey-cli ping"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 20
+    runs-on: [self-hosted, linux, x64, mars, ci]
+    timeout-minutes: 25
+    env:
+      DB_DATABASE: mars_ci_${{ github.run_id }}_${{ github.run_attempt }}_browser
+      REDIS_PREFIX: 'mars-ci:${{ github.run_id }}:browser:'
+      REDIS_QUEUE: mars-ci-${{ github.run_id }}-browser
 
     steps:
+      - name: Runner identity
+        run: echo "runner=${{ runner.name }} host=$(hostname)"
+
       - name: Checkout
         uses: actions/checkout@v4
 
       - name: Prepare Laravel environment
         run: cp .env.example .env
 
-      - name: Setup PHP 8.5
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.5'
-          extensions: pdo_pgsql, redis, sockets, intl, zip
-          coverage: none
-          tools: composer:v2
+      - name: Verify shared PostgreSQL and Valkey
+        run: |
+          PGPASSWORD="$DB_PASSWORD" pg_isready -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USERNAME"
+          redis-cli -h "$REDIS_HOST" -p "$REDIS_PORT" ping | grep -qx PONG
 
-      - name: Setup Node 24
-        uses: actions/setup-node@v4
-        with:
-          node-version-file: '.nvmrc'
-          cache: npm
+      - name: Prepare isolated PostgreSQL database
+        run: |
+          PGPASSWORD="$DB_PASSWORD" dropdb --if-exists -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USERNAME" "$DB_DATABASE"
+          PGPASSWORD="$DB_PASSWORD" createdb -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USERNAME" "$DB_DATABASE"
 
       - name: Install PHP dependencies
         run: composer install --no-interaction --prefer-dist --no-progress
@@ -211,12 +176,19 @@ jobs:
       - name: Run browser smoke tests
         run: composer test:browser
 
+      - name: Cleanup isolated PostgreSQL database
+        if: always()
+        run: PGPASSWORD="$DB_PASSWORD" dropdb --if-exists -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USERNAME" "$DB_DATABASE"
+
   security:
     name: security
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64, mars, ci]
     timeout-minutes: 15
 
     steps:
+      - name: Runner identity
+        run: echo "runner=${{ runner.name }} host=$(hostname)"
+
       - name: Checkout
         uses: actions/checkout@v4
         with:
@@ -225,19 +197,12 @@ jobs:
       - name: Prepare Laravel environment
         run: cp .env.example .env
 
-      - name: Setup PHP 8.5
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.5'
-          extensions: pdo_pgsql, redis, sockets, intl, zip
-          coverage: none
-          tools: composer:v2
-
-      - name: Setup Node 24
-        uses: actions/setup-node@v4
-        with:
-          node-version-file: '.nvmrc'
-          cache: npm
+      - name: Verify local toolchain
+        run: |
+          php -v
+          composer --version
+          node --version
+          npm --version
 
       - name: Validate Composer manifest
         run: composer validate --strict
