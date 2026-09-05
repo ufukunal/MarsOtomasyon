@@ -30,7 +30,7 @@ final readonly class LabelRenderer
     /** @param array<string, mixed> $template @param array<string, mixed>|null $printer */
     private function pdf(string $plain, array $template, ?array $printer): string
     {
-        $dompdf = new Dompdf();
+        $dompdf = new Dompdf;
         $escaped = htmlspecialchars($plain, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
         $dompdf->loadHtml('<!doctype html><html><meta charset="utf-8"><body><pre style="font-family:DejaVu Sans,sans-serif;white-space:pre-wrap">'.$escaped.'</pre></body></html>');
 
@@ -50,7 +50,7 @@ final readonly class LabelRenderer
     private function zpl(string $plain): string
     {
         $escaped = str_replace(
-            ["\\", '^', '~', "\r", "\n"],
+            ['\\', '^', '~', "\r", "\n"],
             ['\\5C', '\\5E', '\\7E', '', '\\0A'],
             $plain,
         );
@@ -63,7 +63,7 @@ final readonly class LabelRenderer
     {
         $width = (float) ($printer['width_mm'] ?? $template['width_mm'] ?? 50);
         $height = (float) ($printer['height_mm'] ?? $template['height_mm'] ?? 30);
-        $escaped = str_replace(["\\", '"', "\r", "\n"], ['\\\\', '\\"', '', '\\n'], $plain);
+        $escaped = str_replace(['\\', '"', "\r", "\n"], ['\\\\', '\\"', '', '\\n'], $plain);
 
         return "SIZE {$width} mm,{$height} mm\nCLS\nTEXT 20,20,\"0\",0,1,1,\"{$escaped}\"\nPRINT 1\n";
     }

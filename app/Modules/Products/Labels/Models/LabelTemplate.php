@@ -2,10 +2,10 @@
 
 namespace App\Modules\Products\Labels\Models;
 
+use App\Modules\Core\Models\Company;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use App\Modules\Core\Models\Company;
 
 final class LabelTemplate extends Model
 {
