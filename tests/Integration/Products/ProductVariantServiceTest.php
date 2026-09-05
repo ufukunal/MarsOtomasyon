@@ -1,8 +1,10 @@
 <?php
 
+use App\Modules\Products\Models\ProductVariantRelation;
 use App\Modules\Products\Models\ProductVariantValueAssignment;
 use App\Modules\Products\Variants\ProductVariantService;
 use DomainException;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Support\Facades\DB;
 
@@ -73,6 +75,29 @@ it('fails closed for duplicate combinations reassignment wrong dimension and cro
         ->toThrow(DomainException::class, 'does not belong');
     expect(fn () => $service->assignProduct((int) $company->getKey(), (int) $family->getKey(), (int) $foreignProduct->getKey(), $selection))
         ->toThrow(DomainException::class, 'not found for company');
+});
+
+it('uses a PostgreSQL unique backstop for a concurrent combination race loser', function (): void {
+    $company = m25SchemaCompany('M25-RACE');
+    $firstProduct = m25SchemaProduct($company, 'SKU-RACE-1');
+    $secondProduct = m25SchemaProduct($company, 'SKU-RACE-2');
+    $service = app(ProductVariantService::class);
+    $family = $service->createFamily((int) $company->getKey(), 'RACE', 'Race');
+    $dimension = $service->addDimension((int) $company->getKey(), (int) $family->getKey(), 'color', 'Color');
+    $red = $service->addValue((int) $company->getKey(), (int) $family->getKey(), (int) $dimension->getKey(), 'red', 'Red');
+    $relation = $service->assignProduct(
+        (int) $company->getKey(),
+        (int) $family->getKey(),
+        (int) $firstProduct->getKey(),
+        [(int) $dimension->getKey() => (int) $red->getKey()],
+    );
+
+    expect(fn () => ProductVariantRelation::query()->create([
+        'company_id' => $company->getKey(),
+        'product_family_id' => $family->getKey(),
+        'product_id' => $secondProduct->getKey(),
+        'variant_signature' => $relation->variant_signature,
+    ]))->toThrow(QueryException::class);
 });
 
 it('preserves canonical products when a family is updated and deleted', function (): void {
