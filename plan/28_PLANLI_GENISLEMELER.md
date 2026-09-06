@@ -4,6 +4,19 @@ Bu belge, `27_GELECEK_GENISLEME_ALTYAPISI.md` içindeki adaylardan **resmî road
 
 Bu özellikler V1 production gate'i olan M24'ü bloklamaz. Varsayılan geliştirme sırası M24 sonrası M25–M32'dir. Ancak temel extension seam'leri M0–M3 sırasında hazırlanır.
 
+## Kapanış durumu
+
+Bu owner planındaki **M25–M32 business milestone'larının tamamı `main` üzerine merge edilmiş ve exact-main Foundation gate'i ile doğrulanmıştır.**
+
+Son üç milestone kanıtı:
+- **M30 Hafif CRM:** PR #109 → `c5b3cedd030015d9a0c7c797ed8a8921d16dcad3` → Foundation `34043752661` success.
+- **M31 BI Export:** PR #111 → `11c0b5c5365d131b90b4141afe3451f9ea442b21` → Foundation `34053943586` success.
+- **M32 CAD / 3D Viewer:** PR #112 → `039a8075502090ce0d1b22b89dbc7a48d8f2b8a9` → Foundation `34060544368` success.
+
+Bu belgede açık business milestone kalmamıştır. Yeni kapsam, karar/entry-gate süreciyle ayrıca roadmap'e alınır.
+
+`main` branch protection/required Foundation enforcement Issue #2'de izlenen ayrı M0 **OPS BLOCKER**'ıdır; bu planın tamamlanmış business milestone durumunu değiştirmez.
+
 ## Resmî planlı genişleme seti
 1. Kargo API Adapterları
 2. Mobil Depo / Scanner
@@ -309,7 +322,6 @@ Gerçek ölçülmüş ihtiyaçta:
 - materialized analytics views
 - read replica
 - object-storage dataset
-
 eklenebilir.
 
 ### Authority
@@ -385,7 +397,8 @@ Attachment yanında `3D/CAD Önizle` action.
 - source checksum → derivative mapping deterministic
 - duplicate translation idempotent
 - cross-company viewer access BLOCK
-- gerçek DWG/DXF ve seçilmiş 3D fixture browser viewer'da açılıyor
+- gerçek local fixture kabulü DXF + seçilmiş 3D interchange formatında browser renderer ile doğrulanır
+- DWG gibi cloud/provider-controlled formatlarda kod milestone'u gerçek provider adapter contract'ı, explicit cloud opt-in, checksum lineage, normalized failure ve viewer-token sınırı ile kapanır; canlı DWG render kanıtı provider credential/lisans/deployment operasyon gate'idir
 - `.max` desteği provider/conversion sonucu olarak ifade ediliyor; native parser iddiası yok
 - editing/authoring yok
 
@@ -399,7 +412,7 @@ Varsayılan post-V1 sıra:
 
 `M25 Product Family/Variant → M26 Barkod/Termal Etiket → M27 Mobil Depo/Scanner → M28 Kargo API Adapterları → M29 OCR Belge Okuma → M30 Hafif CRM → M31 BI Export → M32 CAD/3D Viewer`
 
-Bağımsız bir milestone öne alınabilir; ancak dependency ve `27` activation checklist'i ihlal edilemez.
+Bu sıra tamamlanmıştır. Yeni milestone ancak dependency ve `27` activation checklist'i korunarak ayrıca planlanır.
 
 ## M25 önkoşul
 M3 Product/SKU identity ve M17 marketplace mapping stabil olmalı.
