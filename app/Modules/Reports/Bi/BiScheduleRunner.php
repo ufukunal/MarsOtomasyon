@@ -23,6 +23,7 @@ final readonly class BiScheduleRunner
         }
 
         $counts = ['succeeded' => 0, 'failed' => 0, 'skipped' => 0];
+        /** @var \Illuminate\Support\Collection<int, stdClass> $schedules */
         $schedules = DB::table('bi_export_schedules')
             ->where('is_enabled', true)
             ->whereNotNull('next_run_at')
@@ -31,10 +32,6 @@ final readonly class BiScheduleRunner
             ->get();
 
         foreach ($schedules as $schedule) {
-            if (! $schedule instanceof stdClass) {
-                continue;
-            }
-
             $companyId = (int) $schedule->company_id;
             $userId = (int) $schedule->created_by_user_id;
             $includePii = (bool) $schedule->include_pii;
@@ -45,6 +42,7 @@ final readonly class BiScheduleRunner
                 $this->recordAuthorizationFailure($schedule);
                 $this->advance($scheduleId, $intervalMinutes);
                 $counts['failed']++;
+
                 continue;
             }
 
