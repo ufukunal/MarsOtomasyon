@@ -29,6 +29,12 @@ enum AuditAction: string
     case AccountProfileUpdated = 'accounts.account.profile.updated';
     case AccountRecordsUpdated = 'accounts.account.records.updated';
     case AccountB2BPolicyUpdated = 'accounts.account.b2b_policy.updated';
+    case CrmLeadCreated = 'crm.lead.created';
+    case CrmOpportunityCreated = 'crm.opportunity.created';
+    case CrmOpportunityStageChanged = 'crm.opportunity.stage_changed';
+    case CrmActivityCreated = 'crm.activity.created';
+    case CrmLeadConverted = 'crm.lead.converted';
+    case CrmCommercialLinksUpdated = 'crm.opportunity.commercial_links_updated';
     case ProductCreated = 'products.product.created';
     case ProductUpdated = 'products.product.updated';
     case ProductSuppliersUpdated = 'products.product.suppliers.updated';
@@ -96,6 +102,12 @@ enum AuditAction: string
             self::AccountProfileUpdated => 'Cari iletişim / adres bilgileri güncellendi',
             self::AccountRecordsUpdated => 'Cari banka / not bilgileri güncellendi',
             self::AccountB2BPolicyUpdated => 'Cari B2B / bayi erişim politikası güncellendi',
+            self::CrmLeadCreated => 'CRM lead oluşturuldu',
+            self::CrmOpportunityCreated => 'CRM fırsat oluşturuldu',
+            self::CrmOpportunityStageChanged => 'CRM fırsat aşaması değiştirildi',
+            self::CrmActivityCreated => 'CRM aktivitesi oluşturuldu',
+            self::CrmLeadConverted => 'CRM lead cariye dönüştürüldü',
+            self::CrmCommercialLinksUpdated => 'CRM fırsat ticari bağlantıları güncellendi',
             self::ProductCreated => 'Ürün oluşturuldu',
             self::ProductUpdated => 'Ürün güncellendi',
             self::ProductSuppliersUpdated => 'Ürün tedarikçi ilişkileri güncellendi',
