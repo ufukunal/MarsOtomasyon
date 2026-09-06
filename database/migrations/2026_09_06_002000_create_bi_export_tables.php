@@ -21,9 +21,11 @@ return new class extends Migration
             $table->boolean('include_pii')->default(false);
             $table->string('watermark', 191)->nullable();
             $table->string('schedule_key', 128);
+            $table->unsignedInteger('interval_minutes')->default(1440);
             $table->boolean('is_enabled')->default(true);
             $table->timestampTz('next_run_at')->nullable();
             $table->timestampTz('last_run_at')->nullable();
+            $table->text('last_error')->nullable();
             $table->timestampsTz();
             $table->unique(['company_id', 'schedule_key'], 'bi_export_schedule_identity_unique');
         });
@@ -59,6 +61,7 @@ return new class extends Migration
         ]);
 
         DB::statement("ALTER TABLE bi_export_runs ADD CONSTRAINT bi_export_runs_status_check CHECK (status IN ('running','succeeded','partial','failed'))");
+        DB::statement('ALTER TABLE bi_export_schedules ADD CONSTRAINT bi_export_schedules_interval_check CHECK (interval_minutes >= 5)');
     }
 
     public function down(): void
