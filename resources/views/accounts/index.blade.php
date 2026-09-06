@@ -9,9 +9,16 @@
             <h1>Cariler</h1>
             <p>Aktif firmaya ait müşteri, tedarikçi ve karma cari kayıtları.</p>
         </div>
-        @can('accounts.manage')
-            <a class="button-primary" href="{{ route('customers.create') }}" data-workspace-link>Yeni Cari</a>
-        @endcan
+        <div class="page-actions">
+            @if (app(\App\Foundation\Features\FeatureRegistry::class)->enabled(\App\Foundation\Features\FeatureKey::LightCrm))
+                @can('crm.view')
+                    <a href="{{ route('crm.index') }}" data-workspace-link>CRM / Fırsatlar</a>
+                @endcan
+            @endif
+            @can('accounts.manage')
+                <a class="button-primary" href="{{ route('customers.create') }}" data-workspace-link>Yeni Cari</a>
+            @endcan
+        </div>
     </section>
 
     <form method="get" action="{{ route('customers.index') }}" class="detail-card">
