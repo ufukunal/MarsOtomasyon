@@ -49,6 +49,7 @@ return Application::configure(basePath: dirname(__DIR__))
             require base_path('routes/b2b.php');
             require base_path('routes/labels.php');
             require base_path('routes/mobile-warehouse.php');
+            require base_path('routes/cad.php');
             Route::middleware('api')->prefix('api/v1')->group(base_path('routes/api-v1.php'));
             Route::get('/health/ready', ReadinessController::class)->name('health.ready');
         },

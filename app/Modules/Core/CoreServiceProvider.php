@@ -15,6 +15,9 @@ use App\Modules\Core\Branch\ActiveBranchContext;
 use App\Modules\Core\Company\ActiveCompanyContext;
 use App\Modules\Core\Enums\PermissionKey;
 use App\Modules\Core\Models\User;
+use App\Modules\Core\Preview\AutodeskApsCadProvider;
+use App\Modules\Core\Preview\CadDerivativeProviderRegistry;
+use App\Modules\Core\Preview\LocalBrowserCadProvider;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Gate;
@@ -31,6 +34,13 @@ final class CoreServiceProvider extends ServiceProvider
         $this->app->scoped(ActiveBranchContext::class);
         $this->app->scoped(CompanyPermissionAuthorizer::class);
         $this->app->singleton(OutboxEventCatalog::class);
+        $this->app->singleton(CadDerivativeProviderRegistry::class, function (): CadDerivativeProviderRegistry {
+            $registry = new CadDerivativeProviderRegistry;
+            $registry->register($this->app->make(LocalBrowserCadProvider::class));
+            $registry->register($this->app->make(AutodeskApsCadProvider::class));
+
+            return $registry;
+        });
         $this->app->singleton(ProductionSafetyState::class, static fn (): ProductionSafetyState => new ProductionSafetyState(
             recoveryMode: (bool) config('production.recovery_mode', false),
             outboundProvidersEnabled: (bool) config('production.outbound_providers_enabled', true),

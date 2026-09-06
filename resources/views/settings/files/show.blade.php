@@ -5,6 +5,8 @@
 
 @section('content')
     @php($asset = $attachment->fileAsset)
+    @php($extension = mb_strtolower((string) ($asset?->client_extension ?? '')))
+    @php($cadEnabled = app(\App\Foundation\Features\FeatureRegistry::class)->enabled(\App\Foundation\Features\FeatureKey::Cad3dViewer))
 
     <div class="page-actions">
         <p>Dosya kaydı salt okunur görünümü.</p>
@@ -12,6 +14,9 @@
             <a href="{{ route('settings.files.index') }}">Listeye Dön</a>
             @if (! $attachment->isDetached())
                 · <a href="{{ route('settings.files.download', $attachment->getKey()) }}">İndir</a>
+                @if ($cadEnabled && in_array($extension, ['dwg', 'dxf', 'obj', 'max'], true))
+                    · <a href="{{ route('settings.files.cad.show', $attachment->getKey()) }}">CAD/3D Önizle</a>
+                @endif
             @endif
         </div>
     </div>
