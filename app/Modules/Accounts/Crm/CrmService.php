@@ -5,7 +5,6 @@ namespace App\Modules\Accounts\Crm;
 use DomainException;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
-use RuntimeException;
 
 final class CrmService
 {
@@ -206,7 +205,7 @@ final class CrmService
             throw new DomainException('CRM activity type and subject are required.');
         }
 
-        $id = DB::table('crm_activities')->insertGetId([
+        return DB::table('crm_activities')->insertGetId([
             'company_id' => $companyId,
             'lead_id' => $leadId,
             'opportunity_id' => $opportunityId,
@@ -218,11 +217,6 @@ final class CrmService
             'created_at' => now(),
             'updated_at' => now(),
         ]);
-        if (! is_int($id) && ! is_numeric($id)) {
-            throw new RuntimeException('CRM activity could not be persisted.');
-        }
-
-        return (int) $id;
     }
 
     /** @return list<int> */
@@ -242,7 +236,12 @@ final class CrmService
             });
         }
 
-        return array_map('intval', $query->orderBy('id')->limit(10)->pluck('id')->all());
+        $ids = [];
+        foreach ($query->orderBy('id')->limit(10)->pluck('id') as $id) {
+            $ids[] = (int) $id;
+        }
+
+        return $ids;
     }
 
     private function assertOwner(int $companyId, ?int $userId): void
