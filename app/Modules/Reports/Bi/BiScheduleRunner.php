@@ -3,6 +3,8 @@
 namespace App\Modules\Reports\Bi;
 
 use App\Foundation\Operations\ProductionSafetyState;
+use DomainException;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use stdClass;
 use Throwable;
@@ -23,7 +25,7 @@ final readonly class BiScheduleRunner
         }
 
         $counts = ['succeeded' => 0, 'failed' => 0, 'skipped' => 0];
-        /** @var \Illuminate\Support\Collection<int, stdClass> $schedules */
+        /** @var Collection<int, stdClass> $schedules */
         $schedules = DB::table('bi_export_schedules')
             ->where('is_enabled', true)
             ->whereNotNull('next_run_at')
@@ -49,7 +51,7 @@ final readonly class BiScheduleRunner
             try {
                 $fields = json_decode((string) $schedule->fields, true, flags: JSON_THROW_ON_ERROR);
                 if (! is_array($fields) || $fields === []) {
-                    throw new \DomainException('Scheduled BI export fields are invalid.');
+                    throw new DomainException('Scheduled BI export fields are invalid.');
                 }
 
                 /** @var list<string> $fields */
