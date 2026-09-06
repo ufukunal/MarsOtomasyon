@@ -1,6 +1,6 @@
 # 21 — Milestone Durum / Capability Matrisi
 
-Bu belge `16_UYGULAMA_SIRASI_MILESTONE.md` içindeki resmî V4.2 milestone numaralarını mevcut `main` implementasyonu ile reconcile eder.
+Bu belge `16_UYGULAMA_SIRASI_MILESTONE.md` içindeki resmî V4.2 milestone numaralarını mevcut `main` implementasyonu ile reconcile eder. Post-V1 M25–M32 için owner plan `28_PLANLI_GENISLEMELER.md`'dir.
 
 ## Durum sözlüğü
 
@@ -15,7 +15,7 @@ Bu belge `16_UYGULAMA_SIRASI_MILESTONE.md` içindeki resmî V4.2 milestone numar
 
 | Milestone | Resmî kapsam | Durum | Mevcut kanıt | Kalan exit gap |
 |---|---|---|---|---|
-| M0 | Repository / Laravel / PostgreSQL / CI Foundation | **DONE + OPS BLOCKER** | Foundation workflow, PostgreSQL/Valkey CI, quality/security/browser gates, local self-hosted benchmark workflow | `main` branch protection/required-check enforcement uygulanmış değil; açık operasyon issue'su tutulur |
+| M0 | Repository / Laravel / PostgreSQL / CI Foundation | **DONE + OPS BLOCKER** | Foundation workflow, PostgreSQL/Valkey CI, quality/security/browser gates, local self-hosted benchmark workflow | `main` branch protection/required-check enforcement uygulanmış değil; Issue #2 açık tutulur |
 | M1 | Core / Company / Users / Settings / UI Shell | **DONE** | M1 exit/hardening PR'ları #3–#5 ve mevcut Core/Company altyapısı | V1 milestone gap yok |
 | M2 | Cari Core | **DONE** | PR #6–#13: Account, CRUD, profile, B2B policy metadata, ledger, statement, exit audit | V1 milestone gap yok |
 | M3 | Ürün / Katalog | **DONE** | PR #14–#18: SKU identity, CRUD, masters, supplier/files, PostgreSQL search | V1 milestone gap yok |
@@ -37,14 +37,32 @@ Bu belge `16_UYGULAMA_SIRASI_MILESTONE.md` içindeki resmî V4.2 milestone numar
 | M19 | B2B / Bayi Sistemi | **DONE** | PR #86 + #87: internal `web` guard'dan ayrı B2B auth/session, Account'a pre-bound immutable ULID `B2BUser`, lifecycle/password reset/auth-version revoke/rate-limit, typed role/permission + account-policy ceiling, readonly cari portalı, catalog/search/account product visibility, stock ve satış fiyatı−Cari İskontosu, cart + mevcut `SalesOrder` reuse, PostgreSQL advisory-lock idempotency, risk/exposure policy, history/invoice/statement, immutable-ULID address management ve external B2B audit actor metadata; `B2BAuthenticationTest`, `B2BPortalExitGateTest`, `B2BCompletionGapTest` | V1 milestone gap yok |
 | M20 | Communication / System Integrations / API | **DONE** | PR #90; hashed bearer credentials, typed permissions, per-token rate limiting, write idempotency/replay/drift guard, versioned `/api/v1` + OpenAPI, scanner enrollment/auth/job lifecycle, integration kill-switch; merge `43244e9b6e33975ae67a11195ccc5eef0cded074`; exact post-merge Foundation run `33694583085` 4/4 | V1 kod milestone gap yok; A-08/A-09/A-10/A-11 gerçek production provider seçim/credential kanıtı ilgili deployment slice'ının operasyon gate'idir |
 | M21 | Product Image Operations | **DONE** | PR #91; private media foundation üzerine tek ana görsel + galeri sırası, site/kanal destination set kimlikleri, aynı FileAsset'i yeniden kullanan copy/move, tahribatsız crop/rotate/flip/resize reçetesi, provider validation metadata, global file quarantine/release, V16.3 resources UI + `products.manage` authorization, PostgreSQL `jsonb`/partial-unique/check invariantları; `ProductImageOperationsTest` + `M21ProductImageHttpExitGateTest` | V1 milestone gap yok; binary image mutation zorunlu değildir, edit reçetesi orijinal private dosyayı değiştirmeden metadata olarak saklanır |
-| M22 | Product Installation PDF Builder | **DONE** | `ProductInstallationDocumentService`; steps/warnings/tools/parts/images taslağı; aynı ürün/tenant aktif medya doğrulaması; A4 preview; `product-installation-pdf.v1` immutable private PDF + SHA-256 + source fingerprint + idempotent same-content publish + monotonik versiyon; PostgreSQL mutation guards; `ProductInstallationPdfTest` | V1 milestone gap yok; published PDF versiyonu draft ve kaynak görsel lifecycle değişikliklerinden bağımsız private artifact olarak korunur |
-| M23 | Security / Backup / Operational Hardening / Production Candidate | **PARTIAL** | PR #64/#66: security events/IP rules, health/worker heartbeat, encrypted backup/restore implementation; current Foundation security gate | A-03/A-14/A-15; restore drill, recovery barrier, full auth/isolation review, performance/query-plan hardening ve `main` protection verification |
-| M24 | Migration / Go-Live | **PENDING** | Migration/ledger/idempotency primitives hazır | A-16 + production identity policy; migration rehearsal/reconciliation/cutover/full enabled-channel regression/go-live gate |
+| M22 | Product Installation PDF Builder | **DONE** | PR #92; `ProductInstallationDocumentService`; steps/warnings/tools/parts/images taslağı; immutable private PDF + SHA-256 + source fingerprint + idempotent publish; exact-main Foundation run `33760236708` success | V1 milestone gap yok |
+| M23 | Security / Backup / Operational Hardening / Production Candidate | **DONE** | PR #93 merged as `be99ca9b4bda082069c66c9d4c4ed2dbd12f8a94`; security/backup/recovery/operational/report/query-plan/deployment hardening; exact-main Foundation run `33937385421` success | Business milestone gap yok; `main` branch protection enforcement M0 OPS BLOCKER / Issue #2 olarak ayrıca açık |
+| M24 | Migration / Go-Live | **DONE** | PR #100 clean integration merged as `3a57d25295047e80c091ba9bdb43424bcd137f56`; stable legacy source identity, fingerprint drift guard, staged payload hash, dry-run→live, reconciliation/cutover gates; exact-main Foundation run `33995672807` success | V1 milestone gap yok |
+
+## Post-V1 planlı genişlemeler
+
+Owner plan: `28_PLANLI_GENISLEMELER.md`.
+
+| Milestone | Resmî kapsam | Durum | Mevcut kanıt | Kalan exit gap |
+|---|---|---|---|---|
+| M25 | Product Family / Variant | **DONE** | PR #107 merged as `3a9697eb23c5a2e762304104c9339812f07c8d18`; exact-main Foundation run `33999013819` success | Post-V1 milestone gap yok |
+| M26 | Barkod / Termal Etiket | **DONE** | PR #105 aggregate final integration içinde merge edildi; final exact-main `22e914ca321c7b3a3c4843a0865b8ee106a7da58`; Foundation run `34032970676` success | Post-V1 milestone gap yok |
+| M27 | Mobil Depo / Scanner | **DONE** | PR #105 aggregate final integration içinde merge edildi; client-operation/idempotency ve mobile warehouse flow; Foundation run `34032970676` success | Post-V1 milestone gap yok |
+| M28 | Kargo API Adapterları | **DONE** | PR #105 aggregate final integration içinde merge edildi; shipping provider adapters + canonical dispatch source-address fixture hardening; Foundation run `34032970676` success | Post-V1 milestone gap yok |
+| M29 | OCR Belge Okuma | **DONE** | PR #105 aggregate final integration içinde merge edildi; reviewed document extraction pipeline; Foundation run `34032970676` success | Post-V1 milestone gap yok |
+| M30 | Hafif CRM | **PENDING** | Eski stacked `feat/m30-light-crm` branch'inde yalnız erken core taslağı var; current `main` üzerine merge edilmiş exit kanıtı yok | Ortak DoD + full M30 acceptance, clean integration, exact-head/exact-main Foundation |
+| M31 | BI Export | **PENDING** | Eski stacked `feat/m31-bi-export` branch'inde erken core taslağı var; current `main` üzerine merge edilmiş exit kanıtı yok | Ortak DoD + full M31 acceptance, clean integration, exact-head/exact-main Foundation |
+| M32 | CAD / 3D Viewer | **PENDING** | Eski stacked `feat/m32-cad-3d-viewer` branch'inde erken core taslağı var; current `main` üzerine merge edilmiş exit kanıtı yok | Ortak DoD + full M32 acceptance, provider/fixture gate, clean integration, exact-head/exact-main Foundation |
 
 ## Bir sonraki uygulama sırası
 
-1. **M23 Production Candidate hardening**.
-2. **M24 Migration / Go-Live**.
+1. **M30 Hafif CRM**.
+2. **M31 BI Export**.
+3. **M32 CAD / 3D Viewer**.
+
+Eski M30–M32 stacked branch'leri güncel `main`'den ciddi biçimde ayrıştığı için doğrudan merge authority değildir; her milestone güncel exact `main` üzerine temiz port + hardening olarak ele alınır.
 
 ## Reconciliation kuralı
 
@@ -55,4 +73,4 @@ Bundan sonra milestone kapatılırken aynı değişiklik setinde:
 3. representative test/CI kanıtı kaydedilir,
 4. exact final `main` HEAD Foundation sonucu doğrulanır.
 
-`PARTIAL` bir capability'nin var olduğunu söyler; milestone'un tamamlandığını söylemez.
+`PARTIAL` bir capability'nin var olduğunu söyler; milestone'un tamamlandığını söylemez. `OPS BLOCKER` ise tamamlanmış business milestone'ını yeniden açmaz; kendi operasyon kabul kriteriyle ayrıca kapanır.
