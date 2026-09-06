@@ -7,12 +7,13 @@ MarsOtomasyon; şirket içi kullanım odaklı, Türkçe, hızlı ve sade bir **�
 - Resmî V1 roadmap: **M0–M24**.
 - Commercial Functional Gate: **M0–M13**.
 - Kod/plan/PR reconciliation: [`plan/21_MILESTONE_DURUM_MATRISI.md`](plan/21_MILESTONE_DURUM_MATRISI.md).
-- Commercial Functional Gate **M0–M13 tamamlandı**; **M14–M21 de tamamlandı**. Sonraki resmî açık milestone **M22 — Installation PDF Builder**.
+- V1 uygulama milestone'ları **M0–M24 tamamlandı**; M23 Production Candidate ve M24 Migration/Go-Live merge sonrası exact-main Foundation gate'lerinden geçti.
+- Planlı post-V1 genişlemelerde **M25–M29 tamamlandı**. Sonraki açık milestone **M30 — Hafif CRM**; ardından **M31 BI Export → M32 CAD/3D Viewer** gelir.
+- M0 için `main` branch protection/required-check enforcement ayrı bir **OPS BLOCKER** olarak Issue #2'de açık tutulur; bu operasyon açığı tamamlanmış business milestone'larını yeniden `PARTIAL` yapmaz.
 - M18 provider registry status'larının `contract_verified` olması gerçek merchant hesabının doğrulandığı anlamına gelmez; `verified_marketplace` yalnız gerçek merchant/SIT/production kanıtı ile kullanılabilir.
 - M21 görsel düzenleme contract'ı tahribatsızdır: crop/rotate/flip/resize reçetesi metadata olarak saklanır; orijinal private dosya değiştirilmez.
-- Production release gate M23 + M24 tamamlanmadan V1 production-ready sayılmaz.
 
-> Tarihsel PR başlığındaki `Mxx` etiketi resmî V4.2 milestone numarasıyla çakışabilir. Güncel durum için her zaman `plan/16_UYGULAMA_SIRASI_MILESTONE.md` + `plan/21_MILESTONE_DURUM_MATRISI.md` birlikte kullanılır.
+> Tarihsel PR başlığındaki `Mxx` etiketi resmî V4.2 milestone numarasıyla çakışabilir. Güncel durum için her zaman `plan/16_UYGULAMA_SIRASI_MILESTONE.md` + `plan/21_MILESTONE_DURUM_MATRISI.md` + post-V1 için `plan/28_PLANLI_GENISLEMELER.md` birlikte kullanılır.
 
 ## Stack
 
@@ -97,9 +98,9 @@ Ayrıntılı karar otoritesi: [`plan/00_KARAR_KAYDI.md`](plan/00_KARAR_KAYDI.md)
 
 ## Geliştirme sırası
 
-Aktif V1 sırası:
+V1 `M0–M24` kapalıdır. Aktif planlı post-V1 sıra:
 
-`M22 Installation PDF Builder → M23 Production Candidate Hardening → M24 Migration/Go-Live`
+`M30 Hafif CRM → M31 BI Export → M32 CAD/3D Viewer`
 
 Her milestone `entry gate → schema → domain action → transaction/invariant → authorization → UI → tests → PostgreSQL CI → audit/observability` sırasıyla kapanır.
 
