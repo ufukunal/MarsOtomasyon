@@ -8,7 +8,8 @@ MarsOtomasyon; şirket içi kullanım odaklı, Türkçe, hızlı ve sade bir **�
 - Commercial Functional Gate: **M0–M13**.
 - Kod/plan/PR reconciliation: [`plan/21_MILESTONE_DURUM_MATRISI.md`](plan/21_MILESTONE_DURUM_MATRISI.md).
 - V1 uygulama milestone'ları **M0–M24 tamamlandı**; M23 Production Candidate ve M24 Migration/Go-Live merge sonrası exact-main Foundation gate'lerinden geçti.
-- Planlı post-V1 genişlemelerde **M25–M29 tamamlandı**. Sonraki açık milestone **M30 — Hafif CRM**; ardından **M31 BI Export → M32 CAD/3D Viewer** gelir.
+- Planlı post-V1 genişlemelerin **M25–M32 tamamı tamamlandı**. Bu owner planında açık business milestone kalmadı.
+- Son post-V1 zinciri: **M30 Hafif CRM → M31 BI Export → M32 CAD/3D Viewer**; her üçü de güncel `main` üzerine clean integration olarak merge edildi ve exact-main Foundation ile doğrulandı.
 - M0 için `main` branch protection/required-check enforcement ayrı bir **OPS BLOCKER** olarak Issue #2'de açık tutulur; bu operasyon açığı tamamlanmış business milestone'larını yeniden `PARTIAL` yapmaz.
 - M18 provider registry status'larının `contract_verified` olması gerçek merchant hesabının doğrulandığı anlamına gelmez; `verified_marketplace` yalnız gerçek merchant/SIT/production kanıtı ile kullanılabilir.
 - M21 görsel düzenleme contract'ı tahribatsızdır: crop/rotate/flip/resize reçetesi metadata olarak saklanır; orijinal private dosya değiştirilmez.
@@ -98,11 +99,9 @@ Ayrıntılı karar otoritesi: [`plan/00_KARAR_KAYDI.md`](plan/00_KARAR_KAYDI.md)
 
 ## Geliştirme sırası
 
-V1 `M0–M24` kapalıdır. Aktif planlı post-V1 sıra:
+V1 `M0–M24` ve planlı post-V1 `M25–M32` business milestone'ları kapalıdır. **Aktif planlı business milestone yoktur.**
 
-`M30 Hafif CRM → M31 BI Export → M32 CAD/3D Viewer`
-
-Her milestone `entry gate → schema → domain action → transaction/invariant → authorization → UI → tests → PostgreSQL CI → audit/observability` sırasıyla kapanır.
+Yeni kapsam ancak karar/entry-gate süreciyle roadmap'e alınır; geçmiş stacked branch'ler veya PR başlıkları kendiliğinden yeni milestone authority'si oluşturmaz.
 
 ## Plan ve kabul referansları
 

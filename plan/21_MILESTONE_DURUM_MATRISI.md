@@ -52,17 +52,17 @@ Owner plan: `28_PLANLI_GENISLEMELER.md`.
 | M27 | Mobil Depo / Scanner | **DONE** | PR #105 aggregate final integration içinde merge edildi; client-operation/idempotency ve mobile warehouse flow; Foundation run `34032970676` success | Post-V1 milestone gap yok |
 | M28 | Kargo API Adapterları | **DONE** | PR #105 aggregate final integration içinde merge edildi; shipping provider adapters + canonical dispatch source-address fixture hardening; Foundation run `34032970676` success | Post-V1 milestone gap yok |
 | M29 | OCR Belge Okuma | **DONE** | PR #105 aggregate final integration içinde merge edildi; reviewed document extraction pipeline; Foundation run `34032970676` success | Post-V1 milestone gap yok |
-| M30 | Hafif CRM | **PENDING** | Eski stacked `feat/m30-light-crm` branch'inde yalnız erken core taslağı var; current `main` üzerine merge edilmiş exit kanıtı yok | Ortak DoD + full M30 acceptance, clean integration, exact-head/exact-main Foundation |
-| M31 | BI Export | **PENDING** | Eski stacked `feat/m31-bi-export` branch'inde erken core taslağı var; current `main` üzerine merge edilmiş exit kanıtı yok | Ortak DoD + full M31 acceptance, clean integration, exact-head/exact-main Foundation |
-| M32 | CAD / 3D Viewer | **PENDING** | Eski stacked `feat/m32-cad-3d-viewer` branch'inde erken core taslağı var; current `main` üzerine merge edilmiş exit kanıtı yok | Ortak DoD + full M32 acceptance, provider/fixture gate, clean integration, exact-head/exact-main Foundation |
+| M30 | Hafif CRM | **DONE** | PR #109 merged as `c5b3cedd030015d9a0c7c797ed8a8921d16dcad3`; CRM lifecycle/company-owner scope/RBAC/audit/commercial links/private attachments; exact-main Foundation run `34043752661` success | Post-V1 milestone gap yok |
+| M31 | BI Export | **DONE** | PR #111 merged as `11c0b5c5365d131b90b4141afe3451f9ea442b21`; curated datasets/PII policy/scheduled runtime reauthorization/read-only BI workspace; exact-main Foundation run `34053943586` success | Post-V1 milestone gap yok |
+| M32 | CAD / 3D Viewer | **DONE** | PR #112 merged as `039a8075502090ce0d1b22b89dbc7a48d8f2b8a9`; provider-agnostic derivative contract, cloud opt-in, local DXF/OBJ read-only render, DWG provider contract, normalized failures, real DXF+OBJ browser fixture coverage; exact-main Foundation run `34060544368` success | Post-V1 milestone gap yok; production cloud provider credential/lisans doğrulaması deployment/provider operasyon kanıtıdır |
 
-## Bir sonraki uygulama sırası
+## Aktif uygulama sırası
 
-1. **M30 Hafif CRM**.
-2. **M31 BI Export**.
-3. **M32 CAD / 3D Viewer**.
+**Yok.** Resmî V1 `M0–M24` business kapsamı ve owner-planlı post-V1 `M25–M32` kapsamı tamamlandı.
 
-Eski M30–M32 stacked branch'leri güncel `main`'den ciddi biçimde ayrıştığı için doğrudan merge authority değildir; her milestone güncel exact `main` üzerine temiz port + hardening olarak ele alınır.
+Yeni bir business milestone ancak karar/entry-gate süreciyle roadmap'e alınır. Tarihsel stacked branch'ler yeni roadmap authority'si değildir.
+
+M0 için `main` branch protection + required Foundation enforcement ise business roadmap'den ayrı **OPS BLOCKER** olarak Issue #2'de açık kalır.
 
 ## Reconciliation kuralı
 
