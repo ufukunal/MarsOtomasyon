@@ -5,7 +5,7 @@ namespace App\Modules\Core\Preview;
 use App\Modules\Core\Models\Attachment;
 use App\Modules\Core\Models\CadDerivativeJob;
 use App\Modules\Core\Models\FileAsset;
-use DateTimeImmutable;
+use Carbon\CarbonImmutable;
 
 final class LocalBrowserCadProvider implements CadDerivativeProvider
 {
@@ -53,15 +53,18 @@ final class LocalBrowserCadProvider implements CadDerivativeProvider
 
     public function refresh(CadDerivativeJob $job): CadDerivativeResult
     {
+        $manifestValue = $job->getAttribute('manifest');
+        $expiresAtValue = $job->getAttribute('expires_at');
+
         return new CadDerivativeResult(
             status: 'ready',
             providerJobId: $job->provider_job_id === null ? null : (string) $job->provider_job_id,
             previewKind: $job->preview_kind === null ? null : (string) $job->preview_kind,
-            manifest: is_array($job->manifest) ? $job->manifest : [],
+            manifest: is_array($manifestValue) ? $manifestValue : [],
             derivativeSha256: $job->derivative_sha256 === null ? null : (string) $job->derivative_sha256,
-            expiresAt: $job->expires_at === null
+            expiresAt: $expiresAtValue === null
                 ? null
-                : new DateTimeImmutable($job->expires_at->toIso8601String()),
+                : CarbonImmutable::parse((string) $expiresAtValue)->toDateTimeImmutable(),
         );
     }
 
