@@ -9,6 +9,7 @@ use App\Modules\Dispatches\Models\Dispatch;
 use App\Modules\Dispatches\Shipping\AmbiguousShippingOutcome;
 use App\Modules\Dispatches\Shipping\ShippingProviderRegistry;
 use App\Modules\Dispatches\Shipping\ShippingService;
+use App\Modules\SalesOrders\Models\SalesOrder;
 use DomainException;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Support\Facades\DB;
@@ -104,10 +105,30 @@ function m28ShippingFixture(string $code): array
         'discount_rate' => '0.000000',
         'risk_limit' => '0.000000',
     ]);
+    $order = SalesOrder::query()->create([
+        'company_id' => $company->getKey(),
+        'account_id' => $account->getKey(),
+        'number' => 'SO-'.$code,
+        'series_code' => 'default',
+        'sequence_value' => 1,
+        'status' => 'draft',
+        'source_quote_id' => null,
+        'source_quote_revision_id' => null,
+        'order_date' => '2026-09-02',
+        'currency_code' => 'TRY',
+        'document_discount_rate' => '0.000000',
+        'base_net_total' => '0.000000',
+        'line_discount_total' => '0.000000',
+        'document_discount_total' => '0.000000',
+        'net_total' => '0.000000',
+        'tax_total' => '0.000000',
+        'gross_total' => '0.000000',
+        'note' => null,
+    ]);
     $dispatch = Dispatch::query()->create([
         'company_id' => $company->getKey(),
         'account_id' => $account->getKey(),
-        'sales_order_id' => null,
+        'sales_order_id' => $order->getKey(),
         'source_address_id' => null,
         'number' => 'DSP-'.$code,
         'series_code' => 'default',

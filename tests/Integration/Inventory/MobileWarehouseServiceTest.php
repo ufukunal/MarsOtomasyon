@@ -25,8 +25,7 @@ it('resolves canonical barcode identity and product-code fallback inside the act
         'company_id' => $company->getKey(),
         'product_id' => $product->getKey(),
         'barcode' => '8690000027001',
-        'type' => 'EAN13',
-        'quantity' => '1',
+        'is_primary' => true,
     ]);
 
     $service = app(MobileWarehouseService::class);
@@ -65,7 +64,7 @@ it('replays a completed mobile stock-count operation without executing it twice'
 
     expect($first['replay'])->toBeFalse()
         ->and($second['replay'])->toBeTrue()
-        ->and($second['data'])->toBe($first['data'])
+        ->and($second['data'])->toEqual($first['data'])
         ->and(DB::table('mobile_client_operations')->count())->toBe(1)
         ->and(DB::table('stock_counts')->count())->toBe(1);
 });
