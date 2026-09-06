@@ -59,7 +59,7 @@ final readonly class BiScheduleRunner
                     companyId: $companyId,
                     datasetKey: (string) $schedule->dataset_key,
                     format: (string) $schedule->format,
-                    requestedFields: array_values($fields),
+                    requestedFields: $fields,
                     watermark: $schedule->watermark === null ? null : (string) $schedule->watermark,
                     includePii: $includePii,
                     branchId: $schedule->branch_id === null ? null : (int) $schedule->branch_id,
