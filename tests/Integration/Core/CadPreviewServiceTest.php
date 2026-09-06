@@ -111,7 +111,9 @@ function m32CadFixture(string $code, string $extension): array
 final class M32CloudFixtureProvider implements CadDerivativeProvider
 {
     public int $starts = 0;
+
     public int $refreshes = 0;
+
     public bool $failNext = false;
 
     public function provider(): string
