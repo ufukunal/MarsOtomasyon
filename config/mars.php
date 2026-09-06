@@ -20,6 +20,7 @@ return [
         'reports' => true,
         'barcode_thermal_labels' => true,
         'mobile_warehouse' => true,
+        'light_crm' => true,
     ],
     'correlation' => [
         'header' => 'X-Correlation-ID',
