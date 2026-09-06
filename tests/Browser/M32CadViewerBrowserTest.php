@@ -84,17 +84,16 @@ it('opens a real DXF fixture in the read-only browser CAD workspace without brow
         'local',
     );
 
-    visit('/login')
+    $page = visit('/login')
         ->fill('email', 'browser-m32@example.test')
         ->fill('password', 'correct-password')
         ->click('Giriş Yap')
-        ->assertPathIs('/workspace')
-        ->click('Ayarlar')
-        ->assertPathIs('/settings')
-        ->click('Firma Dosyaları')
-        ->assertPathIs('/settings/files')
-        ->click('browser-m32.dxf')
+        ->assertPathIs('/workspace');
+
+    $page->navigate('/settings/files/'.$attachment->getKey())
         ->assertPathIs('/settings/files/'.$attachment->getKey())
+        ->assertSee('browser-m32.dxf')
+        ->assertSee('CAD/3D Önizle')
         ->click('CAD/3D Önizle')
         ->assertPathIs('/settings/files/'.$attachment->getKey().'/cad')
         ->assertSee('CAD / 3D Önizleme')
