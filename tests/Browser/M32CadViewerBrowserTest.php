@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\Storage;
 
 uses(DatabaseMigrations::class);
 
-it('opens a real DXF fixture in the read-only browser CAD workspace without browser errors', function (): void {
+it('renders real DXF and OBJ fixtures in the read-only browser CAD workspace without browser errors', function (): void {
     $company = Company::query()->create([
         'code' => 'BROWSER-M32',
         'name' => 'Browser M32 Company',
@@ -51,13 +51,16 @@ it('opens a real DXF fixture in the read-only browser CAD workspace without brow
         'is_active' => true,
     ]);
 
-    $fixture = file_get_contents(base_path('tests/Fixtures/m32/sample.dxf'));
-    if (! is_string($fixture)) {
-        throw new RuntimeException('M32 DXF fixture could not be read.');
+    $dxfFixture = file_get_contents(base_path('tests/Fixtures/m32/sample.dxf'));
+    $objFixture = file_get_contents(base_path('tests/Fixtures/m32/sample.obj'));
+    if (! is_string($dxfFixture) || ! is_string($objFixture)) {
+        throw new RuntimeException('M32 browser fixtures could not be read.');
     }
-    Storage::disk('local')->put('cad/browser-m32.dxf', $fixture);
 
-    $asset = FileAsset::query()->create([
+    Storage::disk('local')->put('cad/browser-m32.dxf', $dxfFixture);
+    Storage::disk('local')->put('cad/browser-m32.obj', $objFixture);
+
+    $dxfAsset = FileAsset::query()->create([
         'company_id' => $company->getKey(),
         'uploaded_by_user_id' => $user->getKey(),
         'storage_disk' => 'local',
@@ -65,12 +68,12 @@ it('opens a real DXF fixture in the read-only browser CAD workspace without brow
         'original_name' => 'browser-m32.dxf',
         'mime_type' => 'application/dxf',
         'client_extension' => 'dxf',
-        'size_bytes' => strlen($fixture),
-        'sha256' => hash('sha256', $fixture),
+        'size_bytes' => strlen($dxfFixture),
+        'sha256' => hash('sha256', $dxfFixture),
     ]);
-    $attachment = Attachment::query()->create([
+    $dxfAttachment = Attachment::query()->create([
         'company_id' => $company->getKey(),
-        'file_asset_id' => $asset->getKey(),
+        'file_asset_id' => $dxfAsset->getKey(),
         'attachable_type' => AttachmentTargetType::Company,
         'attachable_id' => $company->getKey(),
         'label' => 'M32 DXF',
@@ -78,11 +81,30 @@ it('opens a real DXF fixture in the read-only browser CAD workspace without brow
         'attached_at' => now(),
     ]);
 
-    app(CadPreviewService::class)->requestPreview(
-        (int) $company->getKey(),
-        (int) $attachment->getKey(),
-        'local',
-    );
+    $objAsset = FileAsset::query()->create([
+        'company_id' => $company->getKey(),
+        'uploaded_by_user_id' => $user->getKey(),
+        'storage_disk' => 'local',
+        'storage_key' => 'cad/browser-m32.obj',
+        'original_name' => 'browser-m32.obj',
+        'mime_type' => 'model/obj',
+        'client_extension' => 'obj',
+        'size_bytes' => strlen($objFixture),
+        'sha256' => hash('sha256', $objFixture),
+    ]);
+    $objAttachment = Attachment::query()->create([
+        'company_id' => $company->getKey(),
+        'file_asset_id' => $objAsset->getKey(),
+        'attachable_type' => AttachmentTargetType::Company,
+        'attachable_id' => $company->getKey(),
+        'label' => 'M32 OBJ',
+        'attached_by_user_id' => $user->getKey(),
+        'attached_at' => now(),
+    ]);
+
+    $service = app(CadPreviewService::class);
+    $service->requestPreview((int) $company->getKey(), (int) $dxfAttachment->getKey(), 'local');
+    $service->requestPreview((int) $company->getKey(), (int) $objAttachment->getKey(), 'local');
 
     $page = visit('/login')
         ->fill('email', 'browser-m32@example.test')
@@ -90,16 +112,23 @@ it('opens a real DXF fixture in the read-only browser CAD workspace without brow
         ->click('Giriş Yap')
         ->assertPathIs('/workspace');
 
-    $page->navigate('/settings/files/'.$attachment->getKey())
-        ->assertPathIs('/settings/files/'.$attachment->getKey())
+    $page->navigate('/settings/files/'.$dxfAttachment->getKey())
         ->assertSee('browser-m32.dxf')
-        ->assertSee('CAD/3D Önizle')
         ->click('CAD/3D Önizle')
-        ->assertPathIs('/settings/files/'.$attachment->getKey().'/cad')
-        ->assertSee('CAD / 3D Önizleme')
-        ->assertSee('browser-m32.dxf')
+        ->assertPathIs('/settings/files/'.$dxfAttachment->getKey().'/cad')
+        ->assertSee('2D CAD')
         ->assertSee('Mars Local Viewer')
-        ->assertSee('Read-only teknik önizleme')
+        ->assertSee('Hazır')
+        ->assertNoJavaScriptErrors()
+        ->assertNoConsoleLogs();
+
+    $page->navigate('/settings/files/'.$objAttachment->getKey())
+        ->assertSee('browser-m32.obj')
+        ->click('CAD/3D Önizle')
+        ->assertPathIs('/settings/files/'.$objAttachment->getKey().'/cad')
+        ->assertSee('3D Model')
+        ->assertSee('Mars Local Viewer')
+        ->assertSee('Hazır')
         ->assertNoJavaScriptErrors()
         ->assertNoConsoleLogs();
 });
