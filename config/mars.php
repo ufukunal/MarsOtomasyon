@@ -21,6 +21,7 @@ return [
         'barcode_thermal_labels' => true,
         'mobile_warehouse' => true,
         'light_crm' => true,
+        'bi_exports' => true,
     ],
     'correlation' => [
         'header' => 'X-Correlation-ID',
