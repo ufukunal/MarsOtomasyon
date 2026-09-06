@@ -125,11 +125,27 @@ function m28ShippingFixture(string $code): array
         'gross_total' => '0.000000',
         'note' => null,
     ]);
+    $sourceAddressId = DB::table('account_addresses')->insertGetId([
+        'company_id' => $company->getKey(),
+        'account_id' => $account->getKey(),
+        'type' => 'shipping',
+        'label' => 'M28 shipping fixture',
+        'recipient_name' => 'Warehouse Receiver',
+        'line1' => 'Mars Cad. 28',
+        'line2' => null,
+        'district' => 'Şişli',
+        'city' => 'İstanbul',
+        'postal_code' => '34360',
+        'country_code' => 'TR',
+        'is_default' => true,
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
     $dispatch = Dispatch::query()->create([
         'company_id' => $company->getKey(),
         'account_id' => $account->getKey(),
         'sales_order_id' => $order->getKey(),
-        'source_address_id' => null,
+        'source_address_id' => $sourceAddressId,
         'number' => 'DSP-'.$code,
         'series_code' => 'default',
         'sequence_value' => 1,
