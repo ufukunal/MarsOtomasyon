@@ -14,7 +14,9 @@ Route::middleware(['web', 'auth', 'company.context'])
         Route::get('/export', [ReportsController::class, 'export'])->middleware('can:reports.view')->name('export');
 
         Route::middleware(['branch.context', 'can:reports.bi.export'])->prefix('bi')->name('bi.')->group(function (): void {
+            Route::get('/', [BiController::class, 'index'])->name('index');
             Route::get('/catalog', [BiController::class, 'catalog'])->name('catalog');
+            Route::post('/schedules', [BiController::class, 'storeSchedule'])->name('schedules.store');
             Route::post('/{datasetKey}/export', [BiController::class, 'export'])
                 ->where('datasetKey', '[a-z0-9_\-]+')
                 ->name('export');
