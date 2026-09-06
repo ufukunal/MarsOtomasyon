@@ -23,4 +23,5 @@ enum FeatureKey: string
     case BarcodeThermalLabels = 'barcode_thermal_labels';
     case MobileWarehouse = 'mobile_warehouse';
     case LightCrm = 'light_crm';
+    case BiExports = 'bi_exports';
 }
