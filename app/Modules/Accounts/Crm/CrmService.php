@@ -3,6 +3,7 @@
 namespace App\Modules\Accounts\Crm;
 
 use DomainException;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
 
@@ -235,7 +236,7 @@ final class CrmService
         $name = trim((string) ($lead->company_name ?: $lead->name));
         $query = DB::table('accounts')->where('company_id', $companyId);
         if ($name !== '') {
-            $query->where(function ($builder) use ($name): void {
+            $query->where(function (Builder $builder) use ($name): void {
                 $like = '%'.$name.'%';
                 $builder->whereRaw('legal_name ILIKE ?', [$like])->orWhereRaw('trade_name ILIKE ?', [$like]);
             });
