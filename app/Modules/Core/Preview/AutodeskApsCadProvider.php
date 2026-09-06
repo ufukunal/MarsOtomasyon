@@ -80,7 +80,8 @@ final class AutodeskApsCadProvider implements CadDerivativeProvider
     {
         $this->assertConfigured();
 
-        $manifest = is_array($job->manifest) ? $job->manifest : [];
+        $manifestValue = $job->getAttribute('manifest');
+        $manifest = is_array($manifestValue) ? $manifestValue : [];
         $urn = $manifest['urn'] ?? $job->provider_job_id;
         if (! is_string($urn) || trim($urn) === '') {
             throw new DomainException('APS derivative URN is missing.');
@@ -138,7 +139,7 @@ final class AutodeskApsCadProvider implements CadDerivativeProvider
         );
     }
 
-    public function viewerToken(CadDerivativeJob $job): ?array
+    public function viewerToken(CadDerivativeJob $job): array
     {
         $this->assertConfigured();
 
@@ -173,6 +174,9 @@ final class AutodeskApsCadProvider implements CadDerivativeProvider
         }
 
         $bytes = Storage::disk((string) $asset->storage_disk)->get((string) $asset->storage_key);
+        if (! is_string($bytes)) {
+            throw new RuntimeException('CAD source content could not be read.');
+        }
         Http::withBody($bytes, 'application/octet-stream')->put($signedUrl)->throw();
 
         $finalized = Http::withToken($token)
