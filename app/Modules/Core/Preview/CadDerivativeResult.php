@@ -7,7 +7,7 @@ use DateTimeImmutable;
 final readonly class CadDerivativeResult
 {
     /**
-     * @param array<string, mixed> $manifest
+     * @param  array<string, mixed>  $manifest
      */
     public function __construct(
         public string $status,
