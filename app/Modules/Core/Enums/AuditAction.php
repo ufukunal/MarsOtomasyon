@@ -65,6 +65,8 @@ enum AuditAction: string
     case BankStatementImported = 'treasury.bank_statement.imported';
     case BankStatementMatched = 'treasury.bank_statement.matched';
     case BankStatementIgnored = 'treasury.bank_statement.ignored';
+    case LabelRendered = 'labels.label.rendered';
+    case LabelReprinted = 'labels.label.reprinted';
 
     public function label(): string
     {
@@ -130,6 +132,8 @@ enum AuditAction: string
             self::BankStatementImported => 'Banka ekstresi içe aktarıldı',
             self::BankStatementMatched => 'Banka ekstresi satırı eşleştirildi',
             self::BankStatementIgnored => 'Banka ekstresi satırı yok sayıldı',
+            self::LabelRendered => 'Etiket oluşturuldu',
+            self::LabelReprinted => 'Etiket yeniden basıldı',
         };
     }
 }

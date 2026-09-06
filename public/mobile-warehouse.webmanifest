@@ -1,0 +1,9 @@
+{
+  "name": "Mars Mobil Depo",
+  "short_name": "Mobil Depo",
+  "start_url": "/mobile/warehouse",
+  "scope": "/mobile/warehouse",
+  "display": "standalone",
+  "background_color": "#111827",
+  "theme_color": "#111827"
+}
