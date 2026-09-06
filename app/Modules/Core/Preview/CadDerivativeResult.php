@@ -16,5 +16,7 @@ final readonly class CadDerivativeResult
         public array $manifest,
         public ?string $derivativeSha256,
         public ?DateTimeImmutable $expiresAt,
-    ) {}
+    ) {
+        // Constructor property promotion only.
+    }
 }
