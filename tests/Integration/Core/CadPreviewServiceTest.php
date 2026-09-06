@@ -40,7 +40,71 @@ it('keeps the original source immutable and maps local derivatives deterministic
 
 it('enforces cloud opt-in, company scope, format policy and normalized provider failures', function (): void {
     [$company, , , $attachment] = m32CadFixture('M32CLOUD', 'dwg');
-    $provider = new M32CloudFixtureProvider;
+    $provider = new class implements CadDerivativeProvider
+    {
+        public int $starts = 0;
+
+        public int $refreshes = 0;
+
+        public bool $failNext = false;
+
+        public function provider(): string
+        {
+            return 'aps-test';
+        }
+
+        public function version(): string
+        {
+            return '1';
+        }
+
+        public function isCloud(): bool
+        {
+            return true;
+        }
+
+        public function supportedExtensions(): array
+        {
+            return ['dwg', 'dxf', 'obj'];
+        }
+
+        public function start(Attachment $attachment, FileAsset $asset): CadDerivativeResult
+        {
+            $this->starts++;
+            if ($this->failNext) {
+                $this->failNext = false;
+                throw new RuntimeException('secret=must-not-persist');
+            }
+
+            return new CadDerivativeResult(
+                'processing',
+                'urn-fixture',
+                null,
+                ['urn' => 'urn-fixture'],
+                null,
+                null,
+            );
+        }
+
+        public function refresh(CadDerivativeJob $job): CadDerivativeResult
+        {
+            $this->refreshes++;
+
+            return new CadDerivativeResult(
+                'ready',
+                'urn-fixture',
+                'cad_2d',
+                ['urn' => 'urn-fixture', 'renderer' => 'fixture'],
+                hash('sha256', (string) $job->source_sha256.'|fixture'),
+                new DateTimeImmutable('+1 day'),
+            );
+        }
+
+        public function viewerToken(CadDerivativeJob $job): ?array
+        {
+            return ['access_token' => 'viewer-fixture', 'expires_in' => 300];
+        }
+    };
     $registry = (new CadDerivativeProviderRegistry)->register($provider);
     $service = new CadPreviewService($registry);
 
@@ -106,70 +170,4 @@ function m32CadFixture(string $code, string $extension): array
     ]);
 
     return [$company, $user, $asset, $attachment];
-}
-
-final class M32CloudFixtureProvider implements CadDerivativeProvider
-{
-    public int $starts = 0;
-
-    public int $refreshes = 0;
-
-    public bool $failNext = false;
-
-    public function provider(): string
-    {
-        return 'aps-test';
-    }
-
-    public function version(): string
-    {
-        return '1';
-    }
-
-    public function isCloud(): bool
-    {
-        return true;
-    }
-
-    public function supportedExtensions(): array
-    {
-        return ['dwg', 'dxf', 'obj'];
-    }
-
-    public function start(Attachment $attachment, FileAsset $asset): CadDerivativeResult
-    {
-        $this->starts++;
-        if ($this->failNext) {
-            $this->failNext = false;
-            throw new RuntimeException('secret=must-not-persist');
-        }
-
-        return new CadDerivativeResult(
-            'processing',
-            'urn-fixture',
-            null,
-            ['urn' => 'urn-fixture'],
-            null,
-            null,
-        );
-    }
-
-    public function refresh(CadDerivativeJob $job): CadDerivativeResult
-    {
-        $this->refreshes++;
-
-        return new CadDerivativeResult(
-            'ready',
-            'urn-fixture',
-            'cad_2d',
-            ['urn' => 'urn-fixture', 'renderer' => 'fixture'],
-            hash('sha256', (string) $job->source_sha256.'|fixture'),
-            new DateTimeImmutable('+1 day'),
-        );
-    }
-
-    public function viewerToken(CadDerivativeJob $job): ?array
-    {
-        return ['access_token' => 'viewer-fixture', 'expires_in' => 300];
-    }
 }
