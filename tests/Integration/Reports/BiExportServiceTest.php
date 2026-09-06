@@ -12,7 +12,44 @@ uses(DatabaseMigrations::class);
 
 it('exports allow-listed company rows with masking, watermark and artifact evidence', function (): void {
     $company = Company::query()->create(['code' => 'M31', 'name' => 'M31 Company']);
-    $dataset = new M31FixtureDataset((int) $company->getKey());
+    $dataset = new class((int) $company->getKey()) implements BiDataset
+    {
+        public bool $emitForeignCompany = false;
+
+        public function __construct(private readonly int $companyId) {}
+
+        public function key(): string
+        {
+            return 'sales_fact';
+        }
+
+        public function schemaVersion(): int
+        {
+            return 2;
+        }
+
+        public function fields(): array
+        {
+            return [
+                'document_no' => ['pii' => false],
+                'customer_email' => ['pii' => true],
+            ];
+        }
+
+        public function rows(int $companyId, ?string $watermark = null): iterable
+        {
+            yield [
+                'company_id' => $this->emitForeignCompany ? $this->companyId + 1 : $companyId,
+                'document_no' => 'INV-31',
+                'customer_email' => 'customer@example.test',
+            ];
+        }
+
+        public function nextWatermark(): ?string
+        {
+            return '101';
+        }
+    };
     $registry = (new BiDatasetRegistry)->register($dataset);
     $service = new BiExportService($registry);
 
@@ -51,42 +88,3 @@ it('exports allow-listed company rows with masking, watermark and artifact evide
         ->toThrow(DomainException::class, 'cross-company');
     expect((string) DB::table('bi_export_runs')->orderByDesc('id')->value('status'))->toBe('failed');
 });
-
-final class M31FixtureDataset implements BiDataset
-{
-    public bool $emitForeignCompany = false;
-
-    public function __construct(private readonly int $companyId) {}
-
-    public function key(): string
-    {
-        return 'sales_fact';
-    }
-
-    public function schemaVersion(): int
-    {
-        return 2;
-    }
-
-    public function fields(): array
-    {
-        return [
-            'document_no' => ['pii' => false],
-            'customer_email' => ['pii' => true],
-        ];
-    }
-
-    public function rows(int $companyId, ?string $watermark = null): iterable
-    {
-        yield [
-            'company_id' => $this->emitForeignCompany ? $this->companyId + 1 : $companyId,
-            'document_no' => 'INV-31',
-            'customer_email' => 'customer@example.test',
-        ];
-    }
-
-    public function nextWatermark(): ?string
-    {
-        return '101';
-    }
-}
