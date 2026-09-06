@@ -4,6 +4,8 @@ namespace App\Providers;
 
 use App\Modules\Core\Models\User;
 use App\Modules\Operations\OperationsHealth;
+use App\Modules\Reports\Bi\BiDatasetRegistry;
+use App\Modules\Reports\Bi\SalesInvoiceDataset;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\View;
@@ -13,7 +15,10 @@ final class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        // Foundation and module services are container-autowireable.
+        $this->app->singleton(BiDatasetRegistry::class, static function (): BiDatasetRegistry {
+            return (new BiDatasetRegistry)
+                ->register(new SalesInvoiceDataset);
+        });
     }
 
     public function boot(): void
