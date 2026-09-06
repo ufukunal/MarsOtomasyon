@@ -24,4 +24,5 @@ enum FeatureKey: string
     case MobileWarehouse = 'mobile_warehouse';
     case LightCrm = 'light_crm';
     case BiExports = 'bi_exports';
+    case Cad3dViewer = 'cad_3d_viewer';
 }

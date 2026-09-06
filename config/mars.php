@@ -22,6 +22,12 @@ return [
         'mobile_warehouse' => true,
         'light_crm' => true,
         'bi_exports' => true,
+        'cad_3d_viewer' => true,
+    ],
+    'cad' => [
+        'max_file_size_bytes' => 52_428_800,
+        'timeout_seconds' => 300,
+        'retention_days' => 1,
     ],
     'correlation' => [
         'header' => 'X-Correlation-ID',
