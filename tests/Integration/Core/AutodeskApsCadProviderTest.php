@@ -115,12 +115,8 @@ it('uses OAuth v2, direct S3 upload, SVF2 translation and a viewables-only brows
         ->and($ready->previewKind)->toBe('cad_2d')
         ->and($viewerToken)->toMatchArray(['access_token' => 'aps-token']);
 
-    Http::assertSent(fn (Request $request): bool =>
-        str_ends_with($request->url(), '/modelderivative/v2/designdata/job')
-        && str_contains($request->body(), '"type":"svf2"')
-    );
-    Http::assertSent(fn (Request $request): bool =>
-        str_ends_with($request->url(), '/authentication/v2/token')
-        && str_contains($request->body(), 'scope=viewables%3Aread')
-    );
+    Http::assertSent(fn (Request $request): bool => str_ends_with($request->url(), '/modelderivative/v2/designdata/job')
+        && str_contains($request->body(), '"type":"svf2"'));
+    Http::assertSent(fn (Request $request): bool => str_ends_with($request->url(), '/authentication/v2/token')
+        && str_contains($request->body(), 'scope=viewables%3Aread'));
 });
