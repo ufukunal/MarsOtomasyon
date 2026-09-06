@@ -91,14 +91,14 @@ if (! class_exists('CreateLightCrmTables20260901000900', false)) {
                 $table->foreign('owner_user_id')->references('id')->on('users')->nullOnDelete();
             });
 
-            DB::statement("ALTER TABLE crm_leads ADD CONSTRAINT crm_leads_name_not_blank CHECK (char_length(btrim(name)) > 0)");
+            DB::statement('ALTER TABLE crm_leads ADD CONSTRAINT crm_leads_name_not_blank CHECK (char_length(btrim(name)) > 0)');
             DB::statement("ALTER TABLE crm_leads ADD CONSTRAINT crm_leads_status_check CHECK (status IN ('open', 'converted', 'closed'))");
-            DB::statement("ALTER TABLE crm_opportunities ADD CONSTRAINT crm_opportunities_name_not_blank CHECK (char_length(btrim(name)) > 0)");
+            DB::statement('ALTER TABLE crm_opportunities ADD CONSTRAINT crm_opportunities_name_not_blank CHECK (char_length(btrim(name)) > 0)');
             DB::statement("ALTER TABLE crm_opportunities ADD CONSTRAINT crm_opportunities_stage_check CHECK (stage IN ('new', 'qualified', 'proposal', 'won', 'lost', 'cancelled'))");
             DB::statement("ALTER TABLE crm_opportunities ADD CONSTRAINT crm_opportunities_status_check CHECK (status IN ('open', 'closed'))");
             DB::statement("ALTER TABLE crm_opportunities ADD CONSTRAINT crm_opportunities_currency_check CHECK (currency_code IS NULL OR currency_code ~ '^[A-Z]{3}$')");
-            DB::statement("ALTER TABLE crm_activities ADD CONSTRAINT crm_activities_target_check CHECK (lead_id IS NOT NULL OR opportunity_id IS NOT NULL)");
-            DB::statement("ALTER TABLE crm_activities ADD CONSTRAINT crm_activities_subject_not_blank CHECK (char_length(btrim(subject)) > 0)");
+            DB::statement('ALTER TABLE crm_activities ADD CONSTRAINT crm_activities_target_check CHECK (lead_id IS NOT NULL OR opportunity_id IS NOT NULL)');
+            DB::statement('ALTER TABLE crm_activities ADD CONSTRAINT crm_activities_subject_not_blank CHECK (char_length(btrim(subject)) > 0)');
         }
 
         public function down(): void
