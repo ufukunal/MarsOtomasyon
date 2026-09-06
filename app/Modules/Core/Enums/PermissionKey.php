@@ -55,6 +55,8 @@ enum PermissionKey: string
     case ImportView = 'imports.view';
     case ImportManage = 'imports.manage';
     case ReportsView = 'reports.view';
+    case ReportsBiExport = 'reports.bi.export';
+    case ReportsBiPii = 'reports.bi.pii';
     case IntegrationView = 'integrations.view';
     case IntegrationManage = 'integrations.manage';
     case NotificationView = 'notifications.view';
@@ -122,6 +124,8 @@ enum PermissionKey: string
             self::ImportView => 'İthalat görüntüleme',
             self::ImportManage => 'İthalat yönetimi',
             self::ReportsView => 'Raporları görüntüleme',
+            self::ReportsBiExport => 'BI dışa aktarım',
+            self::ReportsBiPii => 'BI PII erişimi',
             self::IntegrationView => 'Entegrasyon görüntüleme',
             self::IntegrationManage => 'Entegrasyon yönetimi',
             self::NotificationView => 'Bildirim görüntüleme',
