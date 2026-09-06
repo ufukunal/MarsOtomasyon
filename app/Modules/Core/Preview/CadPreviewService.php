@@ -6,6 +6,7 @@ use App\Modules\Core\Models\Attachment;
 use App\Modules\Core\Models\CadDerivativeJob;
 use App\Modules\Core\Models\CadViewerPolicy;
 use App\Modules\Core\Models\FileAsset;
+use Carbon\CarbonImmutable;
 use DomainException;
 use Illuminate\Database\QueryException;
 use RuntimeException;
@@ -93,7 +94,9 @@ final readonly class CadPreviewService
                 ->firstOrFail();
         }
 
-        if ($job->isReady() && ($job->expires_at === null || $job->expires_at->isFuture())) {
+        $expiresAtValue = $job->getAttribute('expires_at');
+        $expiresAt = $expiresAtValue === null ? null : CarbonImmutable::parse((string) $expiresAtValue);
+        if ($job->isReady() && ($expiresAt === null || $expiresAt->isFuture())) {
             return $job;
         }
         if ($job->isProcessing()) {
@@ -195,8 +198,8 @@ final readonly class CadPreviewService
             throw new DomainException('Cloud CAD upload is disabled by company policy.');
         }
 
-        $maxBytes = $policy?->max_file_size_bytes ?? self::DEFAULT_MAX_BYTES;
-        if ((int) $asset->size_bytes > (int) $maxBytes) {
+        $maxBytes = $policy === null ? self::DEFAULT_MAX_BYTES : (int) $policy->max_file_size_bytes;
+        if ((int) $asset->size_bytes > $maxBytes) {
             throw new DomainException('CAD preview source exceeds company file-size policy.');
         }
     }
