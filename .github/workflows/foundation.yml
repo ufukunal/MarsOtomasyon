@@ -3,14 +3,14 @@ name: Foundation
 on:
   push:
     branches: [main]
-  pull_request:
+  pull_request_target:
     branches: [main]
 
 permissions:
   contents: read
 
 concurrency:
-  group: foundation-v3-local-${{ github.ref }}
+  group: foundation-v4-local-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 env:
@@ -42,6 +42,7 @@ env:
   REDIS_QUEUE: mars-ci
   REDIS_QUEUE_RETRY_AFTER: 90
   COMPOSER_PROCESS_TIMEOUT: 1800
+  FOUNDATION_CHECKOUT_REF: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
 
 jobs:
   quality:
@@ -50,11 +51,19 @@ jobs:
     timeout-minutes: 15
 
     steps:
+      - name: Reject untrusted fork PR
+        if: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.repo.full_name != github.repository }}
+        run: |
+          echo '::error::Foundation will not execute fork PR code on self-hosted runners.'
+          exit 1
+
       - name: Runner identity
         run: echo "runner=${{ runner.name }} host=$(hostname)"
 
-      - name: Checkout
+      - name: Checkout trusted head
         uses: actions/checkout@v4
+        with:
+          ref: ${{ env.FOUNDATION_CHECKOUT_REF }}
 
       - name: Prepare isolated CI toolchain
         run: bash scripts/ci/prepare-ci-toolchain.sh
@@ -98,11 +107,19 @@ jobs:
       REDIS_QUEUE: mars-ci-${{ github.run_id }}-pg
 
     steps:
+      - name: Reject untrusted fork PR
+        if: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.repo.full_name != github.repository }}
+        run: |
+          echo '::error::Foundation will not execute fork PR code on self-hosted runners.'
+          exit 1
+
       - name: Runner identity
         run: echo "runner=${{ runner.name }} host=$(hostname)"
 
-      - name: Checkout
+      - name: Checkout trusted head
         uses: actions/checkout@v4
+        with:
+          ref: ${{ env.FOUNDATION_CHECKOUT_REF }}
 
       - name: Prepare isolated CI toolchain
         run: bash scripts/ci/prepare-ci-toolchain.sh
@@ -144,11 +161,19 @@ jobs:
       REDIS_QUEUE: mars-ci-${{ github.run_id }}-browser
 
     steps:
+      - name: Reject untrusted fork PR
+        if: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.repo.full_name != github.repository }}
+        run: |
+          echo '::error::Foundation will not execute fork PR code on self-hosted runners.'
+          exit 1
+
       - name: Runner identity
         run: echo "runner=${{ runner.name }} host=$(hostname)"
 
-      - name: Checkout
+      - name: Checkout trusted head
         uses: actions/checkout@v4
+        with:
+          ref: ${{ env.FOUNDATION_CHECKOUT_REF }}
 
       - name: Prepare isolated CI toolchain
         run: bash scripts/ci/prepare-ci-toolchain.sh
@@ -197,12 +222,19 @@ jobs:
     timeout-minutes: 15
 
     steps:
+      - name: Reject untrusted fork PR
+        if: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.repo.full_name != github.repository }}
+        run: |
+          echo '::error::Foundation will not execute fork PR code on self-hosted runners.'
+          exit 1
+
       - name: Runner identity
         run: echo "runner=${{ runner.name }} host=$(hostname)"
 
-      - name: Checkout
+      - name: Checkout trusted head
         uses: actions/checkout@v4
         with:
+          ref: ${{ env.FOUNDATION_CHECKOUT_REF }}
           fetch-depth: 0
 
       - name: Prepare isolated CI toolchain
