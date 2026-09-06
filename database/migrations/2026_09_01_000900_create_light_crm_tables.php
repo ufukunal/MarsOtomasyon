@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -34,6 +35,7 @@ return new class extends Migration
             $table->unsignedBigInteger('account_id')->nullable();
             $table->unsignedBigInteger('owner_user_id')->nullable();
             $table->unsignedBigInteger('quote_id')->nullable();
+            $table->unsignedBigInteger('sales_order_id')->nullable();
             $table->string('name', 191);
             $table->string('stage', 64)->default('new');
             $table->decimal('expected_value', 20, 6)->nullable();
@@ -43,11 +45,13 @@ return new class extends Migration
             $table->timestampsTz();
 
             $table->index(['company_id', 'stage', 'owner_user_id'], 'crm_opportunities_scope_index');
+            $table->index(['company_id', 'quote_id', 'sales_order_id'], 'crm_opportunities_commercial_index');
             $table->foreign('company_id')->references('id')->on('companies')->cascadeOnDelete();
             $table->foreign('lead_id')->references('id')->on('crm_leads')->nullOnDelete();
             $table->foreign('account_id')->references('id')->on('accounts')->nullOnDelete();
             $table->foreign('owner_user_id')->references('id')->on('users')->nullOnDelete();
             $table->foreign('quote_id')->references('id')->on('quotes')->nullOnDelete();
+            $table->foreign('sales_order_id')->references('id')->on('sales_orders')->nullOnDelete();
         });
 
         Schema::create('crm_opportunity_stage_history', function (Blueprint $table): void {
@@ -60,6 +64,7 @@ return new class extends Migration
             $table->timestampTz('changed_at');
             $table->timestampsTz();
 
+            $table->index(['company_id', 'opportunity_id', 'changed_at'], 'crm_stage_history_scope_index');
             $table->foreign('company_id')->references('id')->on('companies')->cascadeOnDelete();
             $table->foreign('opportunity_id')->references('id')->on('crm_opportunities')->cascadeOnDelete();
             $table->foreign('changed_by_user_id')->references('id')->on('users')->nullOnDelete();
@@ -84,6 +89,15 @@ return new class extends Migration
             $table->foreign('opportunity_id')->references('id')->on('crm_opportunities')->cascadeOnDelete();
             $table->foreign('owner_user_id')->references('id')->on('users')->nullOnDelete();
         });
+
+        DB::statement("ALTER TABLE crm_leads ADD CONSTRAINT crm_leads_name_not_blank CHECK (char_length(btrim(name)) > 0)");
+        DB::statement("ALTER TABLE crm_leads ADD CONSTRAINT crm_leads_status_check CHECK (status IN ('open', 'converted', 'closed'))");
+        DB::statement("ALTER TABLE crm_opportunities ADD CONSTRAINT crm_opportunities_name_not_blank CHECK (char_length(btrim(name)) > 0)");
+        DB::statement("ALTER TABLE crm_opportunities ADD CONSTRAINT crm_opportunities_stage_check CHECK (stage IN ('new', 'qualified', 'proposal', 'won', 'lost', 'cancelled'))");
+        DB::statement("ALTER TABLE crm_opportunities ADD CONSTRAINT crm_opportunities_status_check CHECK (status IN ('open', 'closed'))");
+        DB::statement("ALTER TABLE crm_opportunities ADD CONSTRAINT crm_opportunities_currency_check CHECK (currency_code IS NULL OR currency_code ~ '^[A-Z]{3}$')");
+        DB::statement("ALTER TABLE crm_activities ADD CONSTRAINT crm_activities_target_check CHECK (lead_id IS NOT NULL OR opportunity_id IS NOT NULL)");
+        DB::statement("ALTER TABLE crm_activities ADD CONSTRAINT crm_activities_subject_not_blank CHECK (char_length(btrim(subject)) > 0)");
     }
 
     public function down(): void
