@@ -128,6 +128,7 @@ function m28ShippingFixture(string $code): array
     $sourceAddressId = DB::table('account_addresses')->insertGetId([
         'company_id' => $company->getKey(),
         'account_id' => $account->getKey(),
+        'public_id' => (string) Str::ulid(),
         'type' => 'shipping',
         'label' => 'M28 shipping fixture',
         'recipient_name' => 'Warehouse Receiver',
