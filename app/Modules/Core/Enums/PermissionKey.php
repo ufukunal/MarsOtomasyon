@@ -18,6 +18,8 @@ enum PermissionKey: string
     case FileManage = 'core.file.manage';
     case AccountView = 'accounts.view';
     case AccountManage = 'accounts.manage';
+    case CrmView = 'crm.view';
+    case CrmManage = 'crm.manage';
     case ProductView = 'products.view';
     case ProductManage = 'products.manage';
     case InventoryView = 'inventory.view';
@@ -83,6 +85,8 @@ enum PermissionKey: string
             self::FileManage => 'Dosya yönetimi',
             self::AccountView => 'Cari görüntüleme',
             self::AccountManage => 'Cari yönetimi',
+            self::CrmView => 'CRM görüntüleme',
+            self::CrmManage => 'CRM yönetimi',
             self::ProductView => 'Ürün görüntüleme',
             self::ProductManage => 'Ürün yönetimi',
             self::InventoryView => 'Stok ve depo görüntüleme',

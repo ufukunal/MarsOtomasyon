@@ -15,6 +15,9 @@ enum AuditTargetType: string
     case PostingPeriod = 'posting_period';
     case Attachment = 'attachment';
     case Account = 'account';
+    case CrmLead = 'crm_lead';
+    case CrmOpportunity = 'crm_opportunity';
+    case CrmActivity = 'crm_activity';
     case Product = 'product';
     case Category = 'category';
     case Unit = 'unit';
@@ -50,6 +53,9 @@ enum AuditTargetType: string
             self::PostingPeriod => 'Muhasebe Dönemi',
             self::Attachment => 'Dosya Bağlantısı',
             self::Account => 'Cari',
+            self::CrmLead => 'CRM Lead',
+            self::CrmOpportunity => 'CRM Fırsat',
+            self::CrmActivity => 'CRM Aktivite',
             self::Product => 'Ürün',
             self::Category => 'Kategori',
             self::Unit => 'Birim',

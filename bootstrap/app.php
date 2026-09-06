@@ -26,6 +26,7 @@ return Application::configure(basePath: dirname(__DIR__))
         then: function (): void {
             require base_path('routes/core-shell.php');
             require base_path('routes/accounts.php');
+            require base_path('routes/crm.php');
             require base_path('routes/products.php');
             require base_path('routes/product-families.php');
             require base_path('routes/product-installation.php');
