@@ -120,7 +120,10 @@ final class BiExportService
         }
     }
 
-    /** @param list<string> $fields @param list<array<string, mixed>> $rows */
+    /**
+     * @param  list<string>  $fields
+     * @param  list<array<string, mixed>>  $rows
+     */
     private function csv(array $fields, array $rows): string
     {
         $stream = fopen('php://temp', 'w+');
