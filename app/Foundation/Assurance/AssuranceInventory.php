@@ -15,67 +15,43 @@ final class AssuranceInventory
 {
     private const MUTATING_METHODS = ['POST', 'PUT', 'PATCH', 'DELETE'];
 
-    /** @return array<string, mixed> */
+    /**
+     * @return array<string, mixed>
+     */
     public function build(): array
     {
         $tests = $this->testCorpus();
-        $http = [];
 
+        /** @var list<array<string, mixed>> $http */
+        $http = [];
         foreach (Route::getRoutes() as $route) {
             $http[] = $this->httpSurface($route, $tests);
         }
 
-        usort($http, static fn (array $left, array $right): int => [$left['uri'], $left['methods']] <=> [$right['uri'], $right['methods']]);
+        usort($http, static fn (array $left, array $right): int => [(string) $left['uri'], (array) $left['methods']] <=> [(string) $right['uri'], (array) $right['methods']]);
 
         $cli = $this->cliSurfaces($tests);
         $async = $this->asyncSurfaces($tests);
         $data = $this->dataSurfaces($tests);
         $external = $this->externalSurfaces($tests);
         $operations = $this->operationalSurfaces($tests);
-
-        $coverageMap = array_values(array_merge(
-            $this->coverageRows($http),
-            $this->coverageRows($cli),
-            $this->coverageRows($async),
-            $this->coverageRows($data),
-            $this->coverageRows($external),
-            $this->coverageRows($operations),
-        ));
+        $coverageMap = array_values(array_merge($http, $cli, $async, $data, $external, $operations));
 
         $criticalGaps = array_values(array_filter(
             $coverageMap,
-            static fn (array $row): bool => $row['risk_level'] === 'critical' && $row['coverage_status'] === 'uncovered',
+            static fn (array $row): bool => (string) $row['risk_level'] === 'critical' && (string) $row['coverage_status'] === 'uncovered',
         ));
 
-        $trustGaps = array_values(array_filter(
-            $http,
-            static fn (array $row): bool => $row['mutates_state'] === true && $row['trust_boundary'] === 'missing',
-        ));
-
-        $criticalGaps = array_values(array_merge(
-            $criticalGaps,
-            array_map(
-                static fn (array $route): array => [
-                    'component' => $route['name'] ?: $route['uri'],
+        foreach ($http as $route) {
+            if ((bool) $route['mutates_state'] && (string) $route['trust_boundary'] === 'missing') {
+                $criticalGaps[] = [
+                    ...$route,
                     'type' => 'http-trust-gap',
-                    'path/class' => $route['action'],
-                    'mutates_state' => true,
-                    'financial_effect' => $route['financial_effect'],
-                    'tenant_scoped' => $route['tenant_scoped'],
-                    'requires_auth' => false,
-                    'required_permission' => $route['required_permission'],
-                    'unit_test' => $route['unit_test'],
-                    'feature_test' => $route['feature_test'],
-                    'integration_test' => $route['integration_test'],
-                    'browser_test' => $route['browser_test'],
-                    'concurrency_test' => $route['concurrency_test'],
-                    'recovery_test' => $route['recovery_test'],
                     'risk_level' => 'critical',
                     'coverage_status' => 'trust-boundary-missing',
-                ],
-                $trustGaps,
-            ),
-        ));
+                ];
+            }
+        }
 
         return [
             'schema_version' => 1,
@@ -90,53 +66,35 @@ final class AssuranceInventory
                 'operations' => $operations,
             ],
             'coverage_map' => $coverageMap,
-            'route_authorization_map' => array_map(
-                static fn (array $row): array => [
-                    'methods' => $row['methods'],
-                    'uri' => $row['uri'],
-                    'name' => $row['name'],
-                    'action' => $row['action'],
-                    'middleware' => $row['middleware'],
-                    'mutates_state' => $row['mutates_state'],
-                    'tenant_scoped' => $row['tenant_scoped'],
-                    'requires_auth' => $row['requires_auth'],
-                    'required_permission' => $row['required_permission'],
-                    'trust_boundary' => $row['trust_boundary'],
-                    'risk_level' => $row['risk_level'],
-                    'coverage_status' => $row['coverage_status'],
-                ],
-                $http,
-            ),
+            'route_authorization_map' => array_map($this->authorizationRow(...), $http),
             'critical_gaps' => $criticalGaps,
             'summary' => [
                 'http_routes' => count($http),
-                'mutating_routes' => count(array_filter($http, static fn (array $row): bool => $row['mutates_state'])),
-                'tenant_scoped_routes' => count(array_filter($http, static fn (array $row): bool => $row['tenant_scoped'])),
+                'mutating_routes' => count(array_filter($http, static fn (array $row): bool => (bool) $row['mutates_state'])),
+                'tenant_scoped_routes' => count(array_filter($http, static fn (array $row): bool => (bool) $row['tenant_scoped'])),
                 'cli_commands' => count($cli),
                 'async_components' => count($async),
                 'data_components' => count($data),
                 'external_boundaries' => count($external),
                 'operational_primitives' => count($operations),
-                'critical_surfaces' => count(array_filter($coverageMap, static fn (array $row): bool => $row['risk_level'] === 'critical')),
+                'critical_surfaces' => count(array_filter($coverageMap, static fn (array $row): bool => (string) $row['risk_level'] === 'critical')),
                 'critical_gaps' => count($criticalGaps),
             ],
         ];
     }
 
-    /** @param list<array{path:string,content:string}> $tests
-     *  @return array<string, mixed>
+    /**
+     * @param  list<array{path:string,content:string}>  $tests
+     * @return array<string, mixed>
      */
     private function httpSurface(LaravelRoute $route, array $tests): array
     {
-        $methods = array_values(array_intersect($route->methods(), ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']));
-        $middleware = array_values($route->gatherMiddleware());
+        $methods = array_values(array_intersect($route->methods(), self::MUTATING_METHODS + ['GET']));
+        $middleware = array_values(array_filter($route->gatherMiddleware(), 'is_string'));
         $name = $route->getName();
         $uri = $route->uri();
         $action = $route->getActionName();
         $mutates = array_intersect($methods, self::MUTATING_METHODS) !== [];
-        $permission = $this->permissionFromMiddleware($middleware);
-        $requiresAuth = $this->requiresAuthentication($middleware);
-        $trustBoundary = $this->trustBoundary($middleware, $name, $uri);
         $tenantScoped = $this->hasTenantBoundary($middleware);
         $financial = $this->matchesRiskTerm($uri.' '.$action, [
             'invoice', 'payment', 'treasury', 'cash', 'bank', 'account', 'stock', 'inventory',
@@ -145,7 +103,6 @@ final class AssuranceInventory
         $criticalOperation = $this->matchesRiskTerm($uri.' '.$action, [
             'backup', 'restore', 'recovery', 'update', 'platform-admin', 'security', 'webhook',
         ]);
-        $risk = $mutates && ($financial || $criticalOperation || $tenantScoped) ? 'critical' : ($mutates ? 'high' : 'medium');
         $coverage = $this->coverageFor($tests, $this->httpNeedles($name, $uri, $action));
 
         return [
@@ -160,23 +117,23 @@ final class AssuranceInventory
             'mutates_state' => $mutates,
             'financial_effect' => $financial,
             'tenant_scoped' => $tenantScoped,
-            'requires_auth' => $requiresAuth,
-            'required_permission' => $permission,
-            'trust_boundary' => $mutates ? $trustBoundary : ($trustBoundary === 'missing' ? 'public-read' : $trustBoundary),
-            'risk_level' => $risk,
+            'requires_auth' => $this->requiresAuthentication($middleware),
+            'required_permission' => $this->permissionFromMiddleware($middleware),
+            'trust_boundary' => $mutates ? $this->trustBoundary($middleware, $name, $uri) : 'public-read',
+            'risk_level' => $mutates && ($financial || $criticalOperation || $tenantScoped) ? 'critical' : ($mutates ? 'high' : 'medium'),
             ...$coverage,
         ];
     }
 
-    /** @param list<array{path:string,content:string}> $tests
-     *  @return list<array<string, mixed>>
+    /**
+     * @param  list<array{path:string,content:string}>  $tests
+     * @return list<array<string, mixed>>
      */
     private function cliSurfaces(array $tests): array
     {
         $surfaces = [];
 
         foreach (Artisan::all() as $name => $command) {
-            $description = $command->getDescription();
             $mutates = $this->matchesRiskTerm($name, [
                 'migrate', 'seed', 'prune', 'clear', 'flush', 'delete', 'restore', 'backup',
                 'recover', 'recovery-mode', 'platform-admin', 'queue:work', 'schedule:run',
@@ -184,30 +141,31 @@ final class AssuranceInventory
             $critical = str_starts_with($name, 'mars:') && $this->matchesRiskTerm($name, [
                 'restore', 'backup', 'recover', 'recovery-mode', 'platform-admin', 'production',
             ]);
-            $coverage = $this->coverageFor($tests, [$name]);
 
             $surfaces[] = [
                 'component' => $name,
                 'type' => 'cli',
                 'path/class' => $command::class,
-                'description' => $description,
+                'description' => $command->getDescription(),
                 'mutates_state' => $mutates,
                 'financial_effect' => false,
                 'tenant_scoped' => false,
                 'requires_auth' => false,
                 'required_permission' => null,
+                'trust_boundary' => 'local-cli',
                 'risk_level' => $critical ? 'critical' : ($mutates ? 'high' : 'low'),
-                ...$coverage,
+                ...$this->coverageFor($tests, [$name]),
             ];
         }
 
-        usort($surfaces, static fn (array $left, array $right): int => $left['component'] <=> $right['component']);
+        usort($surfaces, static fn (array $left, array $right): int => (string) $left['component'] <=> (string) $right['component']);
 
         return $surfaces;
     }
 
-    /** @param list<array{path:string,content:string}> $tests
-     *  @return list<array<string, mixed>>
+    /**
+     * @param  list<array{path:string,content:string}>  $tests
+     * @return list<array<string, mixed>>
      */
     private function asyncSurfaces(array $tests): array
     {
@@ -225,9 +183,7 @@ final class AssuranceInventory
             }
 
             $component = pathinfo($file, PATHINFO_FILENAME);
-            $coverage = $this->coverageFor($tests, [$component, $relative]);
             $financial = $this->matchesRiskTerm($relative.' '.$content, ['invoice', 'payment', 'stock', 'inventory', 'dispatch']);
-
             $surfaces[] = [
                 'component' => $component,
                 'type' => str_contains($relative, '/Listeners/') ? 'listener' : 'job',
@@ -237,17 +193,19 @@ final class AssuranceInventory
                 'tenant_scoped' => str_contains($content, 'company_id') || str_contains($content, 'companyId'),
                 'requires_auth' => false,
                 'required_permission' => null,
+                'trust_boundary' => 'queue-runtime',
                 'retry_policy' => $this->retryPolicy($content),
                 'risk_level' => $financial ? 'critical' : 'high',
-                ...$coverage,
+                ...$this->coverageFor($tests, [$component, $relative]),
             ];
         }
 
         return $surfaces;
     }
 
-    /** @param list<array{path:string,content:string}> $tests
-     *  @return list<array<string, mixed>>
+    /**
+     * @param  list<array{path:string,content:string}>  $tests
+     * @return list<array<string, mixed>>
      */
     private function dataSurfaces(array $tests): array
     {
@@ -260,31 +218,31 @@ final class AssuranceInventory
             }
 
             preg_match_all("/Schema::create\\('([^']+)'/", $content, $matches);
-            $tables = $matches[1] ?? [];
+            $tables = array_values(array_filter($matches[1] ?? [], 'is_string'));
             if ($tables === []) {
                 $tables = [pathinfo($file, PATHINFO_FILENAME)];
             }
 
             foreach ($tables as $table) {
-                $coverage = $this->coverageFor($tests, [$table, pathinfo($file, PATHINFO_FILENAME)]);
-
+                $financial = $this->matchesRiskTerm($table, ['invoice', 'payment', 'account', 'stock', 'inventory', 'ledger', 'treasury']);
                 $surfaces[] = [
                     'component' => $table,
                     'type' => 'table',
                     'path/class' => $this->relativePath($file),
                     'mutates_state' => true,
-                    'financial_effect' => $this->matchesRiskTerm($table, ['invoice', 'payment', 'account', 'stock', 'inventory', 'ledger', 'treasury']),
+                    'financial_effect' => $financial,
                     'tenant_scoped' => str_contains($content, 'company_id'),
                     'requires_auth' => false,
                     'required_permission' => null,
+                    'trust_boundary' => 'database',
                     'constraints' => [
                         'foreign_keys' => substr_count($content, 'foreignId(') + substr_count($content, 'foreign('),
                         'unique' => substr_count($content, 'unique('),
                         'checks' => substr_count($content, 'check('),
                         'indexes' => substr_count($content, 'index('),
                     ],
-                    'risk_level' => $this->matchesRiskTerm($table, ['invoice', 'payment', 'account', 'stock', 'inventory', 'ledger', 'treasury']) ? 'critical' : 'medium',
-                    ...$coverage,
+                    'risk_level' => $financial ? 'critical' : 'medium',
+                    ...$this->coverageFor($tests, [$table, pathinfo($file, PATHINFO_FILENAME)]),
                 ];
             }
         }
@@ -292,8 +250,9 @@ final class AssuranceInventory
         return $surfaces;
     }
 
-    /** @param list<array{path:string,content:string}> $tests
-     *  @return list<array<string, mixed>>
+    /**
+     * @param  list<array{path:string,content:string}>  $tests
+     * @return list<array<string, mixed>>
      */
     private function externalSurfaces(array $tests): array
     {
@@ -305,7 +264,7 @@ final class AssuranceInventory
                 continue;
             }
 
-            $matched = [];
+            $kinds = [];
             foreach ([
                 'http' => ['Http::', 'Illuminate\\Http\\Client', 'GuzzleHttp'],
                 'storage' => ['Storage::', 'Filesystem'],
@@ -314,42 +273,44 @@ final class AssuranceInventory
                 'provider' => ['Provider', 'Marketplace', 'Channel'],
             ] as $kind => $needles) {
                 if ($this->containsAny($content, $needles)) {
-                    $matched[] = $kind;
+                    $kinds[] = $kind;
                 }
             }
 
-            if ($matched === []) {
+            if ($kinds === []) {
                 continue;
             }
 
             $relative = $this->relativePath($file);
             $component = pathinfo($file, PATHINFO_FILENAME);
-            $coverage = $this->coverageFor($tests, [$component, $relative]);
-
+            $financial = $this->matchesRiskTerm($relative, ['payment', 'bank', 'invoice', 'marketplace', 'channel']);
             $surfaces[] = [
                 'component' => $component,
-                'type' => 'external:'.implode('+', array_unique($matched)),
+                'type' => 'external:'.implode('+', array_unique($kinds)),
                 'path/class' => $relative,
                 'mutates_state' => $this->containsAny($content, ['post(', 'put(', 'patch(', 'delete(', 'write', 'send(', 'dispatch(']),
-                'financial_effect' => $this->matchesRiskTerm($relative, ['payment', 'bank', 'invoice', 'marketplace', 'channel']),
+                'financial_effect' => $financial,
                 'tenant_scoped' => str_contains($content, 'company_id') || str_contains($content, 'companyId'),
                 'requires_auth' => false,
                 'required_permission' => null,
-                'risk_level' => $this->matchesRiskTerm($relative, ['payment', 'bank', 'invoice', 'marketplace', 'update']) ? 'critical' : 'high',
-                ...$coverage,
+                'trust_boundary' => 'external-integration',
+                'risk_level' => $financial || str_contains(strtolower($relative), 'update') ? 'critical' : 'high',
+                ...$this->coverageFor($tests, [$component, $relative]),
             ];
         }
 
         return $surfaces;
     }
 
-    /** @param list<array{path:string,content:string}> $tests
-     *  @return list<array<string, mixed>>
+    /**
+     * @param  list<array{path:string,content:string}>  $tests
+     * @return list<array<string, mixed>>
      */
     private function operationalSurfaces(array $tests): array
     {
         $surfaces = [];
-        $names = [
+
+        foreach ([
             'BackupManager',
             'BackupDrillRunner',
             'ProductionSafetyState',
@@ -360,16 +321,8 @@ final class AssuranceInventory
             'ProductionOperationalPrimitiveExecutor',
             'ProductionPromotionService',
             'ProductionStabilizationService',
-        ];
-
-        foreach ($names as $name) {
-            $matches = glob(base_path('app').'/**/'.$name.'.php', GLOB_NOSORT) ?: [];
-            if ($matches === []) {
-                $matches = $this->findNamedPhpFile(base_path('app'), $name.'.php');
-            }
-
-            foreach ($matches as $file) {
-                $coverage = $this->coverageFor($tests, [$name, $this->relativePath($file)]);
+        ] as $name) {
+            foreach ($this->findNamedPhpFile(base_path('app'), $name.'.php') as $file) {
                 $surfaces[] = [
                     'component' => $name,
                     'type' => 'operational-primitive',
@@ -379,8 +332,9 @@ final class AssuranceInventory
                     'tenant_scoped' => false,
                     'requires_auth' => false,
                     'required_permission' => null,
+                    'trust_boundary' => 'operations-control-plane',
                     'risk_level' => 'critical',
-                    ...$coverage,
+                    ...$this->coverageFor($tests, [$name, $this->relativePath($file)]),
                 ];
             }
         }
@@ -388,32 +342,31 @@ final class AssuranceInventory
         return $surfaces;
     }
 
-    /** @param list<array<string, mixed>> $surfaces
-     *  @return list<array<string, mixed>>
+    /**
+     * @param  array<string, mixed>  $row
+     * @return array<string, mixed>
      */
-    private function coverageRows(array $surfaces): array
+    private function authorizationRow(array $row): array
     {
-        return array_map(static fn (array $surface): array => [
-            'component' => $surface['component'],
-            'type' => $surface['type'],
-            'path/class' => $surface['path/class'],
-            'mutates_state' => $surface['mutates_state'],
-            'financial_effect' => $surface['financial_effect'],
-            'tenant_scoped' => $surface['tenant_scoped'],
-            'requires_auth' => $surface['requires_auth'],
-            'required_permission' => $surface['required_permission'],
-            'unit_test' => $surface['unit_test'],
-            'feature_test' => $surface['feature_test'],
-            'integration_test' => $surface['integration_test'],
-            'browser_test' => $surface['browser_test'],
-            'concurrency_test' => $surface['concurrency_test'],
-            'recovery_test' => $surface['recovery_test'],
-            'risk_level' => $surface['risk_level'],
-            'coverage_status' => $surface['coverage_status'],
-        ], $surfaces);
+        return [
+            'methods' => $row['methods'],
+            'uri' => $row['uri'],
+            'name' => $row['name'],
+            'action' => $row['action'],
+            'middleware' => $row['middleware'],
+            'mutates_state' => $row['mutates_state'],
+            'tenant_scoped' => $row['tenant_scoped'],
+            'requires_auth' => $row['requires_auth'],
+            'required_permission' => $row['required_permission'],
+            'trust_boundary' => $row['trust_boundary'],
+            'risk_level' => $row['risk_level'],
+            'coverage_status' => $row['coverage_status'],
+        ];
     }
 
-    /** @param list<string> $middleware */
+    /**
+     * @param  list<string>  $middleware
+     */
     private function permissionFromMiddleware(array $middleware): ?string
     {
         foreach ($middleware as $entry) {
@@ -428,11 +381,13 @@ final class AssuranceInventory
         return null;
     }
 
-    /** @param list<string> $middleware */
+    /**
+     * @param  list<string>  $middleware
+     */
     private function requiresAuthentication(array $middleware): bool
     {
         foreach ($middleware as $entry) {
-            if ($entry === 'auth' || $entry === 'b2b.auth' || $entry === 'api.token' || $entry === 'scanner.auth' || str_contains($entry, 'RequirePlatformAdmin')) {
+            if (in_array($entry, ['auth', 'b2b.auth', 'api.token', 'scanner.auth'], true) || str_contains($entry, 'RequirePlatformAdmin')) {
                 return true;
             }
         }
@@ -440,7 +395,9 @@ final class AssuranceInventory
         return false;
     }
 
-    /** @param list<string> $middleware */
+    /**
+     * @param  list<string>  $middleware
+     */
     private function trustBoundary(array $middleware, ?string $name, string $uri): string
     {
         foreach ($middleware as $entry) {
@@ -467,26 +424,24 @@ final class AssuranceInventory
         if ($name === 'channels.webhook') {
             return 'external-webhook';
         }
-        if (str_starts_with($uri, 'scanner/enroll')) {
+        if (str_contains($uri, 'scanner/enroll')) {
             return 'scanner-enrollment';
         }
 
         return 'missing';
     }
 
-    /** @param list<string> $middleware */
+    /**
+     * @param  list<string>  $middleware
+     */
     private function hasTenantBoundary(array $middleware): bool
     {
-        foreach ($middleware as $entry) {
-            if ($entry === 'company.context' || $entry === 'b2b.auth' || $entry === 'api.token' || $entry === 'scanner.auth') {
-                return true;
-            }
-        }
-
-        return false;
+        return array_intersect($middleware, ['company.context', 'b2b.auth', 'api.token', 'scanner.auth']) !== [];
     }
 
-    /** @return list<string> */
+    /**
+     * @return list<string>
+     */
     private function httpNeedles(?string $name, string $uri, string $action): array
     {
         $needles = [];
@@ -494,39 +449,28 @@ final class AssuranceInventory
             $needles[] = $name;
         }
 
-        $actionParts = explode('@', $action);
-        $class = $actionParts[0] ?? '';
-        $classParts = explode('\\', $class);
-        $basename = end($classParts);
-        if (is_string($basename) && $basename !== '' && $basename !== 'Closure') {
+        $class = explode('@', $action)[0] ?? '';
+        $basename = basename(str_replace('\\', '/', $class));
+        if ($basename !== '' && $basename !== 'Closure') {
             $needles[] = $basename;
         }
 
-        $module = $this->moduleFromAction($action);
-        if ($module !== null) {
-            $needles[] = '/'.$module.'/';
+        if (preg_match('/^App\\\\Modules\\\\([^\\\\]+)/', $action, $match) === 1) {
+            $needles[] = '/'.$match[1].'/';
         }
 
-        $segments = explode('/', $uri);
-        if (($segments[0] ?? '') !== '' && ! str_contains($segments[0], '{')) {
-            $needles[] = $segments[0];
+        $firstSegment = explode('/', $uri)[0] ?? '';
+        if ($firstSegment !== '' && ! str_contains($firstSegment, '{')) {
+            $needles[] = $firstSegment;
         }
 
         return array_values(array_unique($needles));
     }
 
-    private function moduleFromAction(string $action): ?string
-    {
-        if (preg_match('/^App\\\\Modules\\\\([^\\\\]+)/', $action, $match) !== 1) {
-            return null;
-        }
-
-        return $match[1];
-    }
-
-    /** @param list<array{path:string,content:string}> $tests
-     *  @param list<string> $needles
-     *  @return array{unit_test:bool,feature_test:bool,integration_test:bool,browser_test:bool,concurrency_test:bool,recovery_test:bool,coverage_status:string}
+    /**
+     * @param  list<array{path:string,content:string}>  $tests
+     * @param  list<string>  $needles
+     * @return array{unit_test:bool,feature_test:bool,integration_test:bool,browser_test:bool,concurrency_test:bool,recovery_test:bool,coverage_status:string}
      */
     private function coverageFor(array $tests, array $needles): array
     {
@@ -540,44 +484,28 @@ final class AssuranceInventory
         ];
 
         foreach ($tests as $test) {
-            $matches = false;
-            foreach ($needles as $needle) {
-                if ($needle !== '' && (str_contains($test['content'], $needle) || str_contains($test['path'], $needle))) {
-                    $matches = true;
-                    break;
-                }
-            }
-
-            if (! $matches) {
+            if (! $this->containsAny($test['content'].' '.$test['path'], $needles)) {
                 continue;
             }
 
-            if (str_contains($test['path'], '/Unit/')) {
-                $covered['unit_test'] = true;
-            }
-            if (str_contains($test['path'], '/Feature/')) {
-                $covered['feature_test'] = true;
-            }
-            if (str_contains($test['path'], '/Integration/')) {
-                $covered['integration_test'] = true;
-            }
-            if (str_contains($test['path'], '/Browser/')) {
-                $covered['browser_test'] = true;
-            }
-            if (preg_match('/concurr|race|lock|idempoten/i', $test['path'].' '.$test['content']) === 1) {
-                $covered['concurrency_test'] = true;
-            }
-            if (preg_match('/backup|restore|recovery|rollback/i', $test['path'].' '.$test['content']) === 1) {
-                $covered['recovery_test'] = true;
-            }
+            $path = $test['path'];
+            $covered['unit_test'] = $covered['unit_test'] || str_contains($path, '/Unit/');
+            $covered['feature_test'] = $covered['feature_test'] || str_contains($path, '/Feature/');
+            $covered['integration_test'] = $covered['integration_test'] || str_contains($path, '/Integration/');
+            $covered['browser_test'] = $covered['browser_test'] || str_contains($path, '/Browser/');
+            $covered['concurrency_test'] = $covered['concurrency_test'] || preg_match('/concurr|race|lock|idempoten/i', $path.' '.$test['content']) === 1;
+            $covered['recovery_test'] = $covered['recovery_test'] || preg_match('/backup|restore|recovery|rollback/i', $path.' '.$test['content']) === 1;
         }
 
-        $covered['coverage_status'] = in_array(true, $covered, true) ? 'covered' : 'uncovered';
-
-        return $covered;
+        return [
+            ...$covered,
+            'coverage_status' => in_array(true, $covered, true) ? 'covered' : 'uncovered',
+        ];
     }
 
-    /** @return list<array{path:string,content:string}> */
+    /**
+     * @return list<array{path:string,content:string}>
+     */
     private function testCorpus(): array
     {
         $tests = [];
@@ -591,7 +519,9 @@ final class AssuranceInventory
         return $tests;
     }
 
-    /** @return list<string> */
+    /**
+     * @return list<string>
+     */
     private function phpFiles(string $directory): array
     {
         if (! is_dir($directory)) {
@@ -605,13 +535,14 @@ final class AssuranceInventory
                 $files[] = $file->getPathname();
             }
         }
-
         sort($files);
 
         return $files;
     }
 
-    /** @return list<string> */
+    /**
+     * @return list<string>
+     */
     private function findNamedPhpFile(string $directory, string $filename): array
     {
         return array_values(array_filter(
@@ -627,11 +558,13 @@ final class AssuranceInventory
         return str_replace(DIRECTORY_SEPARATOR, '/', str_starts_with($path, $base) ? substr($path, strlen($base)) : $path);
     }
 
-    /** @param list<string> $needles */
+    /**
+     * @param  list<string>  $needles
+     */
     private function containsAny(string $haystack, array $needles): bool
     {
         foreach ($needles as $needle) {
-            if (str_contains($haystack, $needle)) {
+            if ($needle !== '' && str_contains($haystack, $needle)) {
                 return true;
             }
         }
@@ -639,7 +572,9 @@ final class AssuranceInventory
         return false;
     }
 
-    /** @param list<string> $terms */
+    /**
+     * @param  list<string>  $terms
+     */
     private function matchesRiskTerm(string $value, array $terms): bool
     {
         $value = strtolower($value);
@@ -652,7 +587,9 @@ final class AssuranceInventory
         return false;
     }
 
-    /** @return array{tries:?int,backoff:?int} */
+    /**
+     * @return array{tries:?int,backoff:?int}
+     */
     private function retryPolicy(string $content): array
     {
         $tries = null;
