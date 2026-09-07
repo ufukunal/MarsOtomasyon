@@ -7,6 +7,7 @@ $reportDir = $root.'/storage/app/assurance';
 
 if (! is_dir($reportDir) && ! mkdir($reportDir, 0775, true) && ! is_dir($reportDir)) {
     fwrite(STDERR, "Unable to create assurance report directory.\n");
+
     exit(2);
 }
 
@@ -62,6 +63,7 @@ foreach ($files as $file) {
     $contents = file_get_contents($file);
     if ($contents === false) {
         $blockers[] = finding('unreadable-source', 'Critical', $relative, 'Source file could not be read.');
+
         continue;
     }
 
@@ -118,5 +120,6 @@ if ($blockers !== []) {
     foreach ($blockers as $blocker) {
         fwrite(STDERR, sprintf("[%s] %s: %s\n", $blocker['severity'], $blocker['path'], $blocker['message']));
     }
+
     exit(1);
 }
