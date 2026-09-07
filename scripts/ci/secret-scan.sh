@@ -22,7 +22,7 @@ scan_pattern() {
     local pattern="$2"
     local matches
 
-    matches="$(git grep -I -l -E "${pattern}" -- . \
+    matches="$(git grep -I -l -E -e "${pattern}" -- . \
         ':(exclude)scripts/ci/secret-scan.sh' \
         ':(exclude)composer.lock' \
         ':(exclude)package-lock.json' || true)"
