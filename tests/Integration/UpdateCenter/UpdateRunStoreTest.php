@@ -34,6 +34,21 @@ it('rejects request key replay drift', function (): void {
         ->toThrow(DomainException::class, 'payload drift');
 });
 
+it('rejects malformed control-plane request fields before persistence', function (): void {
+    $store = app(UpdateRunStore::class);
+
+    expect(fn () => $store->request('latest', 'stable', str_repeat('a', 64), str_repeat('b', 64)))
+        ->toThrow(DomainException::class, 'target version');
+
+    expect(fn () => $store->request('1.6.0', 'nightly', str_repeat('a', 64), str_repeat('b', 64)))
+        ->toThrow(DomainException::class, 'channel');
+
+    expect(fn () => $store->request('1.6.0', 'stable', 'bad-hash', str_repeat('b', 64)))
+        ->toThrow(DomainException::class, 'SHA-256');
+
+    expect(DB::table('update_runs')->count())->toBe(0);
+});
+
 it('persists forward state transitions and terminal timestamps', function (): void {
     $store = app(UpdateRunStore::class);
     $run = $store->request('1.6.0', 'stable', str_repeat('a', 64), str_repeat('b', 64));
