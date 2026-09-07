@@ -2,6 +2,7 @@
 
 namespace App\Modules\UpdateCenter;
 
+use DateTimeImmutable;
 use InvalidArgumentException;
 use RuntimeException;
 
@@ -24,10 +25,15 @@ final class UpdateManifestVerifier
         'signature',
     ];
 
-    /** @param array<string, mixed> $payload */
-    public function verify(array $payload, string $publicKeyPath): UpdateManifest
+    public function __construct(private readonly UpdateUrlPolicy $urlPolicy) {}
+
+    /**
+     * @param  array<string, mixed>  $payload
+     * @param  array<int, mixed>  $allowedHosts
+     */
+    public function verify(array $payload, string $publicKeyPath, array $allowedHosts): UpdateManifest
     {
-        $this->assertPayloadShape($payload);
+        $this->assertPayloadShape($payload, $allowedHosts);
         $this->assertPublicKeyPath($publicKeyPath);
 
         $signature = base64_decode((string) $payload['signature'], true);
@@ -43,6 +49,13 @@ final class UpdateManifestVerifier
         $publicKey = openssl_pkey_get_public($publicKeyContents);
         if ($publicKey === false) {
             throw new RuntimeException('Update manifest public key is invalid.');
+        }
+
+        $keyDetails = openssl_pkey_get_details($publicKey);
+        if (! is_array($keyDetails)
+            || ($keyDetails['type'] ?? null) !== OPENSSL_KEYTYPE_RSA
+            || (int) ($keyDetails['bits'] ?? 0) < 2048) {
+            throw new RuntimeException('Update manifest public key must be RSA with at least 2048 bits.');
         }
 
         $signedPayload = $payload;
@@ -72,8 +85,11 @@ final class UpdateManifestVerifier
         );
     }
 
-    /** @param array<string, mixed> $payload */
-    private function assertPayloadShape(array $payload): void
+    /**
+     * @param  array<string, mixed>  $payload
+     * @param  array<int, mixed>  $allowedHosts
+     */
+    private function assertPayloadShape(array $payload, array $allowedHosts): void
     {
         $unknown = array_diff(array_keys($payload), self::ALLOWED_KEYS);
         if ($unknown !== []) {
@@ -102,36 +118,31 @@ final class UpdateManifestVerifier
             }
         }
 
-        if (! preg_match('/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/', (string) $payload['version'])) {
-            throw new InvalidArgumentException('Update manifest version is invalid.');
-        }
+        SemanticVersion::assertValid((string) $payload['version'], 'manifest version');
 
         if (! in_array($payload['channel'], self::ALLOWED_CHANNELS, true)) {
             throw new InvalidArgumentException('Update manifest channel is invalid.');
         }
 
-        $this->assertHttpsUrl((string) $payload['package_url'], 'package_url');
+        $this->urlPolicy->assertAllowedHttpsUrl((string) $payload['package_url'], 'package_url', $allowedHosts);
 
         if ($payload['release_notes_url'] !== null && $payload['release_notes_url'] !== '') {
-            $this->assertHttpsUrl((string) $payload['release_notes_url'], 'release_notes_url');
+            $this->urlPolicy->assertAllowedHttpsUrl((string) $payload['release_notes_url'], 'release_notes_url', $allowedHosts);
         }
 
-        if (! preg_match('/^[a-fA-F0-9]{64}$/', (string) $payload['package_sha256'])) {
+        if (! preg_match('/^[a-fA-F0-9]{64}$/D', (string) $payload['package_sha256'])) {
             throw new InvalidArgumentException('Update manifest package_sha256 is invalid.');
         }
 
-        if (! preg_match('/^\d+\.\d+(?:\.\d+)?$/', (string) $payload['min_php'])) {
+        if (! preg_match('/^(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)(?:\.(?:0|[1-9][0-9]*))?$/D', (string) $payload['min_php'])) {
             throw new InvalidArgumentException('Update manifest min_php is invalid.');
         }
 
-        if ($payload['min_app_version'] !== null && $payload['min_app_version'] !== ''
-            && ! preg_match('/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/', (string) $payload['min_app_version'])) {
-            throw new InvalidArgumentException('Update manifest min_app_version is invalid.');
+        if ($payload['min_app_version'] !== null && $payload['min_app_version'] !== '') {
+            SemanticVersion::assertValid((string) $payload['min_app_version'], 'manifest min_app_version');
         }
 
-        if (strtotime((string) $payload['released_at']) === false) {
-            throw new InvalidArgumentException('Update manifest released_at is invalid.');
-        }
+        $this->assertReleasedAt((string) $payload['released_at']);
     }
 
     private function assertPublicKeyPath(string $publicKeyPath): void
@@ -145,10 +156,21 @@ final class UpdateManifestVerifier
         }
     }
 
-    private function assertHttpsUrl(string $url, string $field): void
+    private function assertReleasedAt(string $releasedAt): void
     {
-        if (filter_var($url, FILTER_VALIDATE_URL) === false || parse_url($url, PHP_URL_SCHEME) !== 'https') {
-            throw new InvalidArgumentException("Update manifest field [{$field}] must use HTTPS.");
+        if (preg_match('/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?(?:Z|[+-]\d{2}:\d{2})$/D', $releasedAt) !== 1) {
+            throw new InvalidArgumentException('Update manifest released_at is invalid.');
+        }
+
+        $candidate = str_ends_with($releasedAt, 'Z')
+            ? substr($releasedAt, 0, -1).'+00:00'
+            : $releasedAt;
+        $format = str_contains($candidate, '.') ? '!Y-m-d\TH:i:s.uP' : '!Y-m-d\TH:i:sP';
+        $parsed = DateTimeImmutable::createFromFormat($format, $candidate);
+        $errors = DateTimeImmutable::getLastErrors();
+
+        if ($parsed === false || (is_array($errors) && ($errors['warning_count'] > 0 || $errors['error_count'] > 0))) {
+            throw new InvalidArgumentException('Update manifest released_at is invalid.');
         }
     }
 
