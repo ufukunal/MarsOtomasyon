@@ -12,12 +12,17 @@ it('builds a machine-readable full surface inventory with authorization metadata
         ->and($inventory['surfaces']['cli'])->not->toBeEmpty()
         ->and($inventory['surfaces']['data'])->not->toBeEmpty()
         ->and($inventory['coverage_map'])->not->toBeEmpty()
-        ->and($inventory['route_authorization_map'])->not->toBeEmpty();
+        ->and($inventory['route_authorization_map'])->not->toBeEmpty()
+        ->and($inventory['critical_gaps'])->toBe([]);
 
-    $finalize = collect($inventory['surfaces']['http'])
-        ->firstWhere('name', 'sales-invoices.finalize');
+    $routes = collect($inventory['surfaces']['http']);
+    $index = $routes->firstWhere('name', 'sales-invoices.index');
+    $finalize = $routes->firstWhere('name', 'sales-invoices.finalize');
 
-    expect($finalize)->toBeArray()
+    expect($index)->toBeArray()
+        ->and($index['methods'])->toContain('GET')
+        ->and($finalize)->toBeArray()
+        ->and($finalize['methods'])->toContain('POST')
         ->and($finalize['mutates_state'])->toBeTrue()
         ->and($finalize['financial_effect'])->toBeTrue()
         ->and($finalize['tenant_scoped'])->toBeTrue()
