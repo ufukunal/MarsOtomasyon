@@ -7,7 +7,7 @@
     <div>
         <p class="eyebrow">M33 / Release Management</p>
         <h1>Mars Güncelleme Merkezi</h1>
-        <p>Yeni sürümleri imzalı release manifesti üzerinden doğrular. Bu ilk güven katmanı uygulama dosyalarını, veritabanını veya servisleri değiştirmez.</p>
+        <p>Yeni sürümleri imzalı release manifesti üzerinden doğrular. Kurulum motoru açılmadan önce tüm update talepleri kalıcı ve denetlenebilir bir lifecycle üzerinden ilerler.</p>
     </div>
     <div class="page-actions">
         <a class="button-secondary" href="{{ route('operations.index') }}">Operasyon Merkezi</a>
@@ -59,8 +59,43 @@
     @endif
 
     @if($checkResult['update_available'] && $checkResult['compatible'])
-        <p>Release güven zincirini geçti. Kurulum/rollback motoru M33'ün sonraki diliminde etkinleştirilecektir.</p>
+        <p>Release güven zincirini geçti. Kurulum/rollback motoru ayrı execution diliminde etkinleştirilecektir.</p>
     @endif
 </section>
 @endif
+
+<section class="detail-card">
+    <h2>Güncelleme Geçmişi</h2>
+
+    @if(count($updateRuns) === 0)
+        <p>Henüz kalıcı update talebi oluşturulmadı.</p>
+    @else
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Hedef</th>
+                        <th>Kanal</th>
+                        <th>Durum</th>
+                        <th>Hata</th>
+                        <th>Oluşturma</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($updateRuns as $run)
+                        <tr>
+                            <td>{{ $run->id }}</td>
+                            <td><code>{{ $run->target_version }}</code></td>
+                            <td>{{ $run->channel }}</td>
+                            <td>{{ $run->status }}</td>
+                            <td>{{ $run->failure_code ?? '—' }}</td>
+                            <td>{{ $run->created_at }}</td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+    @endif
+</section>
 @endsection
