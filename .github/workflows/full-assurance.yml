@@ -44,6 +44,8 @@ env:
   FULL_ASSURANCE_CHECKOUT_REF: ${{ github.sha }}
 
 jobs:
+  # Report-only workflow. Test execution is owned exclusively by Foundation's
+  # security, quality, and browser-smoke jobs.
   assurance-report:
     name: assurance-report
     runs-on: [self-hosted, linux, x64, mars, ci]
