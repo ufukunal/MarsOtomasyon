@@ -27,17 +27,18 @@
         <div><strong>Release kanalı</strong><br>{{ $updateStatus['channel'] }}</div>
         <div><strong>Manifest kaynağı</strong><br>{{ $updateStatus['manifest_configured'] ? 'Hazır' : 'Yapılandırılmadı' }}</div>
         <div><strong>İmza anahtarı</strong><br>{{ $updateStatus['public_key_configured'] ? 'Hazır' : 'Yapılandırılmadı' }}</div>
+        <div><strong>Güvenilen host listesi</strong><br>{{ $updateStatus['allowed_hosts_configured'] ? 'Hazır' : 'Yapılandırılmadı' }}</div>
         <div><strong>Kurulum motoru</strong><br>{{ $updateStatus['install_enabled'] ? 'Aktif' : 'Bu aşamada kapalı' }}</div>
     </div>
 
     <form method="post" action="{{ route('operations.updates.check') }}">
         @csrf
-        <button class="button-primary" type="submit" @disabled(! $updateStatus['manifest_configured'] || ! $updateStatus['public_key_configured'])>
+        <button class="button-primary" type="submit" @disabled(! $updateStatus['manifest_configured'] || ! $updateStatus['public_key_configured'] || ! $updateStatus['allowed_hosts_configured'])>
             Güncellemeleri Güvenli Kontrol Et
         </button>
     </form>
 
-    <p><strong>Güvenlik sınırı:</strong> Bu işlem yalnız HTTPS manifestini indirir, allowlist şemasını ve RSA/SHA-256 imzasını doğrular, ardından sürüm uyumluluğunu hesaplar. Paket indirme veya komut çalıştırma yoktur.</p>
+    <p><strong>Güvenlik sınırı:</strong> Bu işlem yalnız allowlist içindeki HTTPS hostlarından manifest indirir; redirect takip etmez, allowlist şemasını ve RSA/SHA-256 imzasını doğrular, ardından SemVer uyumluluğunu hesaplar. Paket indirme veya komut çalıştırma yoktur.</p>
 </section>
 
 @if($checkResult)
