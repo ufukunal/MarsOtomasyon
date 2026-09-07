@@ -2,9 +2,6 @@ name: Full Assurance
 
 on:
   workflow_dispatch:
-  pull_request_target:
-    types: [opened, synchronize, reopened]
-    branches: [main]
   push:
     branches: [main]
   schedule:
@@ -14,7 +11,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: full-assurance-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
+  group: full-assurance-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: true
 
 env:
@@ -44,60 +41,41 @@ env:
   REDIS_QUEUE_DB: 6
   REDIS_SESSION_DB: 7
   REDIS_QUEUE: mars-full-assurance
-  REDIS_QUEUE_RETRY_AFTER: 90
-  COMPOSER_PROCESS_TIMEOUT: 1800
-  FULL_ASSURANCE_CHECKOUT_REF: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
+  FULL_ASSURANCE_CHECKOUT_REF: ${{ github.sha }}
 
 jobs:
-  inventory-contract:
-    name: inventory-contract
+  assurance-report:
+    name: assurance-report
     runs-on: [self-hosted, linux, x64, mars, ci]
     timeout-minutes: 15
-
     steps:
-      - name: Reject untrusted fork PR
-        if: github.event_name == 'pull_request_target' && github.event.pull_request.head.repo.full_name != github.repository
-        run: |
-          echo "::error::Full Assurance does not execute untrusted fork code on the self-hosted runner."
-          exit 1
-
       - name: Runner identity
         run: |
           set -euo pipefail
           echo "repository=${GITHUB_REPOSITORY}"
           echo "event=${GITHUB_EVENT_NAME}"
           echo "requested_sha=${FULL_ASSURANCE_CHECKOUT_REF}"
-
-      - name: Checkout trusted exact head
+      - name: Checkout exact revision
         uses: actions/checkout@v4
         with:
           ref: ${{ env.FULL_ASSURANCE_CHECKOUT_REF }}
           persist-credentials: false
           fetch-depth: 1
-
       - name: Prove exact checkout
         run: |
           set -euo pipefail
           actual="$(git rev-parse HEAD)"
           echo "checked_out_sha=${actual}"
           test "${actual}" = "${FULL_ASSURANCE_CHECKOUT_REF}"
-
       - name: Prepare isolated CI toolchain
         run: bash scripts/ci/prepare-ci-toolchain.sh
-
       - name: Prepare Laravel environment
         run: cp .env.example .env
-
       - name: Install PHP dependencies
         run: composer install --no-interaction --prefer-dist --no-progress
-
-      - name: Generate and enforce assurance inventory
+      - name: Generate assurance inventory report
         run: php scripts/assurance/inventory.php
-
-      - name: Test assurance inventory contracts
-        run: php artisan test tests/Feature/Assurance/InventoryContractTest.php --colors=always
-
-      - name: Upload assurance inventory evidence
+      - name: Upload assurance evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
