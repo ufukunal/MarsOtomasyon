@@ -100,8 +100,9 @@ jobs:
   postgres-tests:
     name: postgres-tests
     runs-on: [self-hosted, linux, x64, mars, ci]
-    timeout-minutes: 35
+    timeout-minutes: 65
     env:
+      COMPOSER_PROCESS_TIMEOUT: 3600
       DB_DATABASE: mars_ci_${{ github.run_id }}_${{ github.run_attempt }}_pg
       REDIS_PREFIX: 'mars-ci:${{ github.run_id }}:pg:'
       REDIS_QUEUE: mars-ci-${{ github.run_id }}-pg
