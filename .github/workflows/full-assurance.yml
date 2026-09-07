@@ -32,27 +32,34 @@ env:
   CACHE_STORE: redis
   QUEUE_CONNECTION: redis
   SESSION_DRIVER: redis
+  SESSION_CONNECTION: session
   MAIL_MAILER: array
   REDIS_CLIENT: phpredis
   REDIS_HOST: 127.0.0.1
   REDIS_PORT: 6379
   REDIS_PASSWORD: null
+  REDIS_PREFIX: 'mars-full-assurance:'
+  REDIS_DB: 4
+  REDIS_CACHE_DB: 5
+  REDIS_QUEUE_DB: 6
+  REDIS_SESSION_DB: 7
+  REDIS_QUEUE: mars-full-assurance
+  REDIS_QUEUE_RETRY_AFTER: 90
   COMPOSER_PROCESS_TIMEOUT: 1800
   FULL_ASSURANCE_CHECKOUT_REF: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
 
 jobs:
   inventory-contract:
     name: inventory-contract
-    if: >-
-      github.event_name != 'pull_request_target' ||
-      github.event.pull_request.head.repo.full_name == github.repository
     runs-on: [self-hosted, linux, x64, mars, ci]
     timeout-minutes: 15
 
     steps:
       - name: Reject untrusted fork PR
         if: github.event_name == 'pull_request_target' && github.event.pull_request.head.repo.full_name != github.repository
-        run: exit 1
+        run: |
+          echo "::error::Full Assurance does not execute untrusted fork code on the self-hosted runner."
+          exit 1
 
       - name: Runner identity
         run: |
