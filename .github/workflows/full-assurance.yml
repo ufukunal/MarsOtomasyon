@@ -1,0 +1,103 @@
+name: Full Assurance
+
+on:
+  workflow_dispatch:
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+    branches: [main]
+  push:
+    branches: [main]
+  schedule:
+    - cron: '17 2 * * 0'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: full-assurance-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  APP_NAME: MarsOtomasyon
+  APP_ENV: testing
+  APP_KEY: base64:TWFyc090b21hc3lvbkZvdW5kYXRpb25UZXN0S2V5ISE=
+  APP_DEBUG: 'false'
+  APP_URL: http://localhost
+  DB_CONNECTION: pgsql
+  DB_HOST: 127.0.0.1
+  DB_PORT: 5432
+  DB_DATABASE: mars_test
+  DB_USERNAME: mars
+  DB_PASSWORD: mars
+  CACHE_STORE: redis
+  QUEUE_CONNECTION: redis
+  SESSION_DRIVER: redis
+  MAIL_MAILER: array
+  REDIS_CLIENT: phpredis
+  REDIS_HOST: 127.0.0.1
+  REDIS_PORT: 6379
+  REDIS_PASSWORD: null
+  COMPOSER_PROCESS_TIMEOUT: 1800
+  FULL_ASSURANCE_CHECKOUT_REF: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
+
+jobs:
+  inventory-contract:
+    name: inventory-contract
+    if: >-
+      github.event_name != 'pull_request_target' ||
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: [self-hosted, linux, x64, mars, ci]
+    timeout-minutes: 15
+
+    steps:
+      - name: Reject untrusted fork PR
+        if: github.event_name == 'pull_request_target' && github.event.pull_request.head.repo.full_name != github.repository
+        run: exit 1
+
+      - name: Runner identity
+        run: |
+          set -euo pipefail
+          echo "repository=${GITHUB_REPOSITORY}"
+          echo "event=${GITHUB_EVENT_NAME}"
+          echo "requested_sha=${FULL_ASSURANCE_CHECKOUT_REF}"
+
+      - name: Checkout trusted exact head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.FULL_ASSURANCE_CHECKOUT_REF }}
+          persist-credentials: false
+          fetch-depth: 1
+
+      - name: Prove exact checkout
+        run: |
+          set -euo pipefail
+          actual="$(git rev-parse HEAD)"
+          echo "checked_out_sha=${actual}"
+          test "${actual}" = "${FULL_ASSURANCE_CHECKOUT_REF}"
+
+      - name: Prepare isolated CI toolchain
+        run: bash scripts/ci/prepare-ci-toolchain.sh
+
+      - name: Prepare Laravel environment
+        run: cp .env.example .env
+
+      - name: Install PHP dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Generate and enforce assurance inventory
+        run: php scripts/assurance/inventory.php
+
+      - name: Test assurance inventory contracts
+        run: php artisan test tests/Feature/Assurance/InventoryContractTest.php --colors=always
+
+      - name: Upload assurance inventory evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: assurance-inventory-${{ env.FULL_ASSURANCE_CHECKOUT_REF }}
+          path: |
+            storage/app/assurance/inventory.json
+            storage/app/assurance/coverage-map.json
+            storage/app/assurance/route-authorization-map.json
+          if-no-files-found: error
+          retention-days: 30
