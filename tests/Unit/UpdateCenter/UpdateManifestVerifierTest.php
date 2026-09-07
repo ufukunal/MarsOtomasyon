@@ -3,11 +3,15 @@
 namespace Tests\Unit\UpdateCenter;
 
 use App\Modules\UpdateCenter\UpdateManifestVerifier;
+use App\Modules\UpdateCenter\UpdateUrlPolicy;
 use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
+use RuntimeException;
 
 final class UpdateManifestVerifierTest extends TestCase
 {
+    private const ALLOWED_HOSTS = ['updates.example.test'];
+
     private string $publicKeyPath;
 
     private string $privateKey;
@@ -48,7 +52,7 @@ final class UpdateManifestVerifierTest extends TestCase
     {
         $manifest = $this->signedManifest();
 
-        $verified = (new UpdateManifestVerifier)->verify($manifest, $this->publicKeyPath);
+        $verified = $this->verifier()->verify($manifest, $this->publicKeyPath, self::ALLOWED_HOSTS);
 
         self::assertSame('1.5.0', $verified->version);
         self::assertSame('stable', $verified->channel);
@@ -63,7 +67,7 @@ final class UpdateManifestVerifierTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('signature verification failed');
 
-        (new UpdateManifestVerifier)->verify($manifest, $this->publicKeyPath);
+        $this->verifier()->verify($manifest, $this->publicKeyPath, self::ALLOWED_HOSTS);
     }
 
     public function test_it_rejects_unknown_manifest_fields(): void
@@ -74,7 +78,7 @@ final class UpdateManifestVerifierTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('unsupported fields');
 
-        (new UpdateManifestVerifier)->verify($manifest, $this->publicKeyPath);
+        $this->verifier()->verify($manifest, $this->publicKeyPath, self::ALLOWED_HOSTS);
     }
 
     public function test_it_rejects_non_https_package_urls(): void
@@ -84,7 +88,71 @@ final class UpdateManifestVerifierTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('must use HTTPS');
 
-        (new UpdateManifestVerifier)->verify($manifest, $this->publicKeyPath);
+        $this->verifier()->verify($manifest, $this->publicKeyPath, self::ALLOWED_HOSTS);
+    }
+
+    public function test_it_rejects_package_hosts_outside_the_allowlist(): void
+    {
+        $manifest = $this->signedManifest(['package_url' => 'https://evil.example.test/mars-1.5.0.tar.gz']);
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('host is not allowlisted');
+
+        $this->verifier()->verify($manifest, $this->publicKeyPath, self::ALLOWED_HOSTS);
+    }
+
+    public function test_it_rejects_url_credentials(): void
+    {
+        $manifest = $this->signedManifest(['package_url' => 'https://user:secret@updates.example.test/mars-1.5.0.tar.gz']);
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('must not contain URL credentials');
+
+        $this->verifier()->verify($manifest, $this->publicKeyPath, self::ALLOWED_HOSTS);
+    }
+
+    public function test_it_rejects_invalid_semver_identifiers(): void
+    {
+        $manifest = $this->signedManifest(['version' => '1.5.0-01']);
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('semantic versioning');
+
+        $this->verifier()->verify($manifest, $this->publicKeyPath, self::ALLOWED_HOSTS);
+    }
+
+    public function test_it_rejects_non_rfc3339_release_timestamps(): void
+    {
+        $manifest = $this->signedManifest(['released_at' => 'next Thursday']);
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('released_at is invalid');
+
+        $this->verifier()->verify($manifest, $this->publicKeyPath, self::ALLOWED_HOSTS);
+    }
+
+    public function test_it_rejects_rsa_keys_below_2048_bits(): void
+    {
+        $key = openssl_pkey_new([
+            'private_key_bits' => 1024,
+            'private_key_type' => OPENSSL_KEYTYPE_RSA,
+        ]);
+        self::assertNotFalse($key);
+
+        $details = openssl_pkey_get_details($key);
+        self::assertIsArray($details);
+        self::assertArrayHasKey('key', $details);
+        self::assertNotFalse(file_put_contents($this->publicKeyPath, $details['key']));
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('at least 2048 bits');
+
+        $this->verifier()->verify($this->signedManifest(), $this->publicKeyPath, self::ALLOWED_HOSTS);
+    }
+
+    private function verifier(): UpdateManifestVerifier
+    {
+        return new UpdateManifestVerifier(new UpdateUrlPolicy);
     }
 
     /**
