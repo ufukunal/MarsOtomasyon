@@ -92,7 +92,7 @@ final class SemanticVersion
         }
 
         return [
-            'core' => array_values($core),
+            'core' => $core,
             'pre_release' => $preRelease,
         ];
     }
@@ -112,7 +112,7 @@ final class SemanticVersion
             }
         }
 
-        return array_values($identifiers);
+        return $identifiers;
     }
 
     private static function isValidNumericIdentifier(string $identifier): bool
