@@ -55,4 +55,4 @@ Aggregate machine-readable evidence and three-gate results into a final release 
 
 ## Final policy
 
-Critical findings block release. High findings block release unless a narrow, documented, expiring waiver exists. Suppressions must be scoped, owned, expiring, and auditable.
+Critical findings block release. High findings block release unless a narrow, documented, expiring waiver exists. Suppressions must be scoped, owned, expiring, and auditable. No M34 slice introduces a fourth real test job beyond the three Foundation gates.
