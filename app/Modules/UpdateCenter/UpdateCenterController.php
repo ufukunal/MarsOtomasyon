@@ -8,7 +8,10 @@ use Throwable;
 
 final class UpdateCenterController
 {
-    public function __construct(private readonly UpdateCenterService $service) {}
+    public function __construct(
+        private readonly UpdateCenterService $service,
+        private readonly UpdateRunStore $runs,
+    ) {}
 
     public function index(): View
     {
@@ -16,6 +19,7 @@ final class UpdateCenterController
             'updateStatus' => $this->service->status(),
             'checkResult' => session('update_check_result'),
             'checkError' => session('update_check_error'),
+            'updateRuns' => $this->runs->latest(),
         ]);
     }
 
