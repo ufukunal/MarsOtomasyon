@@ -88,7 +88,7 @@ final class UpdateManifestVerifierTest extends TestCase
     }
 
     /**
-     * @param array<string, mixed> $overrides
+     * @param  array<string, mixed>  $overrides
      * @return array<string, mixed>
      */
     private function signedManifest(array $overrides = []): array
