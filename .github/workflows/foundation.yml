@@ -178,6 +178,8 @@ jobs:
       - name: Scan tracked files for obvious secrets
         run: bash scripts/ci/secret-scan.sh
 
+  # Compatibility-only status name required by the repository rule.
+  # It executes no database or test suite and mirrors the three real gates above.
   postgres-tests:
     name: postgres-tests
     needs: [quality, browser-smoke, security]
