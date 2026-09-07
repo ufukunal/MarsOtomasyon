@@ -5,6 +5,7 @@ use App\Modules\Communication\Http\SystemIntegrationController;
 use App\Modules\Operations\Http\ChannelWebhookController;
 use App\Modules\Operations\Http\OperationsController;
 use App\Modules\Operations\RequirePlatformAdmin;
+use App\Modules\UpdateCenter\UpdateCenterController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/api/channels/{connection}/webhook', ChannelWebhookController::class)
@@ -49,6 +50,8 @@ Route::prefix('operations')
     ->middleware(['auth', 'company.context'])
     ->group(function (): void {
         Route::get('/', [OperationsController::class, 'index'])->middleware('can:operations.view')->name('index');
+        Route::get('/updates', [UpdateCenterController::class, 'index'])->middleware(RequirePlatformAdmin::class)->name('updates.index');
+        Route::post('/updates/check', [UpdateCenterController::class, 'check'])->middleware([RequirePlatformAdmin::class, 'throttle:10,1'])->name('updates.check');
         Route::post('/connections', [OperationsController::class, 'storeConnection'])->middleware('can:integrations.manage')->name('connections.store');
         Route::post('/templates', [OperationsController::class, 'storeTemplate'])->middleware('can:notifications.manage')->name('templates.store');
         Route::post('/automation-rules', [OperationsController::class, 'storeAutomationRule'])->middleware('can:automation.manage')->name('automation-rules.store');
