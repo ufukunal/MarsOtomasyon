@@ -3,7 +3,6 @@
 namespace App\Modules\UpdateCenter;
 
 use InvalidArgumentException;
-use JsonException;
 use RuntimeException;
 
 final class UpdateManifestVerifier
@@ -153,11 +152,7 @@ final class UpdateManifestVerifier
         }
     }
 
-    /**
-     * @param array<string, mixed> $payload
-     *
-     * @throws JsonException
-     */
+    /** @param array<string, mixed> $payload */
     private function canonicalJson(array $payload): string
     {
         $this->sortRecursively($payload);
