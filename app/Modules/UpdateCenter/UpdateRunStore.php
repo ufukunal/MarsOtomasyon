@@ -9,6 +9,18 @@ use stdClass;
 
 final class UpdateRunStore
 {
+    /** @return array<int, stdClass> */
+    public function latest(int $limit = 20): array
+    {
+        $limit = max(1, min(100, $limit));
+
+        return DB::table('update_runs')
+            ->latest('id')
+            ->limit($limit)
+            ->get()
+            ->all();
+    }
+
     /** @param array<string, mixed> $metadata */
     public function request(
         string $targetVersion,
