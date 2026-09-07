@@ -46,7 +46,10 @@
         ],
         "format": "pint --parallel",
         "format:check": "pint --parallel --test",
-        "analyse": "phpstan analyse --ansi --memory-limit=512M",
+        "analyse": [
+            "phpstan analyse --ansi --memory-limit=512M",
+            "@php scripts/assurance/architecture.php"
+        ],
         "test": "@php scripts/ci/test-entry.php",
         "test:unit": "pest tests/Unit --colors=always",
         "test:integration": "pest tests/Integration --colors=always",
