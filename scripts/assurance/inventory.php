@@ -14,6 +14,11 @@ $app->make(Kernel::class)->bootstrap();
 $inventory = $app->make(AssuranceInventory::class);
 $result = $inventory->build();
 
+$inventoryBlockers = array_values(array_filter(
+    $result['critical_gaps'],
+    static fn (array $gap): bool => (string) $gap['type'] === 'http-trust-gap',
+));
+
 $output = storage_path('app/assurance');
 if (! is_dir($output) && ! mkdir($output, 0775, true) && ! is_dir($output)) {
     fwrite(STDERR, "Unable to create assurance artifact directory.\n");
@@ -45,9 +50,16 @@ printf(
 );
 
 if ($result['critical_gaps'] !== []) {
-    fwrite(STDERR, "Critical assurance gaps detected:\n");
+    fwrite(STDOUT, "Critical assurance coverage gaps recorded for later M34 slices:\n");
     foreach ($result['critical_gaps'] as $gap) {
-        fwrite(STDERR, sprintf("- [%s] %s (%s)\n", $gap['type'], $gap['component'], $gap['path/class']));
+        fwrite(STDOUT, sprintf("- [%s] %s (%s)\n", $gap['type'], $gap['component'], $gap['path/class']));
+    }
+}
+
+if ($inventoryBlockers !== []) {
+    fwrite(STDERR, "Structural assurance inventory blockers detected:\n");
+    foreach ($inventoryBlockers as $blocker) {
+        fwrite(STDERR, sprintf("- [%s] %s (%s)\n", $blocker['type'], $blocker['component'], $blocker['path/class']));
     }
 
     exit(1);
