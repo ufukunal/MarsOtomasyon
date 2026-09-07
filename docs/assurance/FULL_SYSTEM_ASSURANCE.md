@@ -56,7 +56,7 @@ Each coverage row contains at least:
 - `risk_level`
 - `coverage_status`
 
-Critical uncovered surfaces and unclassified mutating trust boundaries make the inventory command fail. Scanner failure is therefore fail-closed; the workflow still uploads any generated evidence with `if: always()`.
+Critical uncovered surfaces remain machine-readable in `critical_gaps`; Slice A intentionally records that coverage debt for the later M34 slices instead of pretending it is already closed. An unclassified mutating trust boundary is a structural inventory blocker and makes the inventory command fail. Final M34 release policy still blocks unresolved Critical findings.
 
 ### Explicit trust classes
 
@@ -113,7 +113,7 @@ If `inventory-contract` fails:
 1. confirm the reported checked-out SHA is the expected PR/main SHA;
 2. download the inventory artifact even on failure;
 3. distinguish `coverage_status=uncovered` from `trust-boundary-missing`;
-4. add a real regression test for a true coverage gap;
+4. add a real regression test for a true coverage gap in the M34 slice that owns that risk;
 5. only classify a new trust boundary when it is an intentional application contract.
 
 Do not change the detector to `|| true`, globally exclude a module, or downgrade a Critical route merely to make CI green.
