@@ -10,7 +10,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: foundation-v4-local-${{ github.event.pull_request.number || github.ref }}
+  group: foundation-v5-local-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 env:
@@ -49,28 +49,23 @@ jobs:
     name: quality
     runs-on: [self-hosted, linux, x64, mars, ci]
     timeout-minutes: 15
-
     steps:
       - name: Reject untrusted fork PR
         if: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.repo.full_name != github.repository }}
         run: |
           echo '::error::Foundation will not execute fork PR code on self-hosted runners.'
           exit 1
-
       - name: Runner identity
         run: echo "runner=${{ runner.name }} host=$(hostname)"
-
       - name: Checkout trusted head
         uses: actions/checkout@v4
         with:
           ref: ${{ env.FOUNDATION_CHECKOUT_REF }}
-
+          persist-credentials: false
       - name: Prepare isolated CI toolchain
         run: bash scripts/ci/prepare-ci-toolchain.sh
-
       - name: Prepare Laravel environment
         run: cp .env.example .env
-
       - name: Verify local toolchain
         run: |
           php -v
@@ -78,79 +73,18 @@ jobs:
           node --version
           npm --version
           php -m | grep -E 'pdo_pgsql|redis|sockets|intl|zip|gd'
-
       - name: Validate Composer manifest
         run: composer validate --strict
-
       - name: Install PHP dependencies
         run: composer install --no-interaction --prefer-dist --no-progress
-
       - name: Install frontend dependencies
         run: npm ci
-
       - name: Verify formatting
         run: composer format:check
-
       - name: Run static analysis
         run: composer analyse
-
       - name: Build frontend assets
         run: npm run build
-
-  postgres-tests:
-    name: postgres-tests
-    runs-on: [self-hosted, linux, x64, mars, ci]
-    timeout-minutes: 65
-    env:
-      COMPOSER_PROCESS_TIMEOUT: 3600
-      DB_DATABASE: mars_ci_${{ github.run_id }}_${{ github.run_attempt }}_pg
-      REDIS_PREFIX: 'mars-ci:${{ github.run_id }}:pg:'
-      REDIS_QUEUE: mars-ci-${{ github.run_id }}-pg
-
-    steps:
-      - name: Reject untrusted fork PR
-        if: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.repo.full_name != github.repository }}
-        run: |
-          echo '::error::Foundation will not execute fork PR code on self-hosted runners.'
-          exit 1
-
-      - name: Runner identity
-        run: echo "runner=${{ runner.name }} host=$(hostname)"
-
-      - name: Checkout trusted head
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ env.FOUNDATION_CHECKOUT_REF }}
-
-      - name: Prepare isolated CI toolchain
-        run: bash scripts/ci/prepare-ci-toolchain.sh
-
-      - name: Prepare Laravel environment
-        run: cp .env.example .env
-
-      - name: Verify shared PostgreSQL and Valkey
-        run: |
-          php -m | grep -E 'pdo_pgsql|redis|sockets|intl|zip|gd'
-          PGPASSWORD="$DB_PASSWORD" pg_isready -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USERNAME"
-          redis-cli -h "$REDIS_HOST" -p "$REDIS_PORT" ping | grep -qx PONG
-
-      - name: Prepare isolated PostgreSQL database
-        run: |
-          PGPASSWORD="$DB_PASSWORD" dropdb --if-exists --force -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USERNAME" "$DB_DATABASE"
-          PGPASSWORD="$DB_PASSWORD" createdb -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USERNAME" "$DB_DATABASE"
-
-      - name: Install PHP dependencies
-        run: composer install --no-interaction --prefer-dist --no-progress
-
-      - name: Fresh PostgreSQL schema
-        run: php artisan migrate:fresh --force
-
-      - name: Run non-browser test suites
-        run: composer test
-
-      - name: Cleanup isolated PostgreSQL database
-        if: always()
-        run: PGPASSWORD="$DB_PASSWORD" dropdb --if-exists --force -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USERNAME" "$DB_DATABASE"
 
   browser-smoke:
     name: browser-smoke
@@ -160,59 +94,45 @@ jobs:
       DB_DATABASE: mars_ci_${{ github.run_id }}_${{ github.run_attempt }}_browser
       REDIS_PREFIX: 'mars-ci:${{ github.run_id }}:browser:'
       REDIS_QUEUE: mars-ci-${{ github.run_id }}-browser
-
     steps:
       - name: Reject untrusted fork PR
         if: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.repo.full_name != github.repository }}
         run: |
           echo '::error::Foundation will not execute fork PR code on self-hosted runners.'
           exit 1
-
       - name: Runner identity
         run: echo "runner=${{ runner.name }} host=$(hostname)"
-
       - name: Checkout trusted head
         uses: actions/checkout@v4
         with:
           ref: ${{ env.FOUNDATION_CHECKOUT_REF }}
-
+          persist-credentials: false
       - name: Prepare isolated CI toolchain
         run: bash scripts/ci/prepare-ci-toolchain.sh
-
       - name: Prepare Laravel environment
         run: cp .env.example .env
-
       - name: Verify shared PostgreSQL and Valkey
         run: |
           PGPASSWORD="$DB_PASSWORD" pg_isready -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USERNAME"
           redis-cli -h "$REDIS_HOST" -p "$REDIS_PORT" ping | grep -qx PONG
-
       - name: Prepare isolated PostgreSQL database
         run: |
           PGPASSWORD="$DB_PASSWORD" dropdb --if-exists --force -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USERNAME" "$DB_DATABASE"
           PGPASSWORD="$DB_PASSWORD" createdb -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USERNAME" "$DB_DATABASE"
-
       - name: Install PHP dependencies
         run: composer install --no-interaction --prefer-dist --no-progress
-
       - name: Install frontend dependencies
         run: npm ci
-
       - name: Build frontend assets
         run: npm run build
-
       - name: Install Playwright Chromium
         run: npx playwright install --with-deps chromium
-
       - name: Fresh PostgreSQL schema
         run: php artisan migrate:fresh --force
-
       - name: Verify application boot
         run: php artisan route:list --path=up
-
       - name: Run browser smoke tests
         run: composer test:browser
-
       - name: Cleanup isolated PostgreSQL database
         if: always()
         run: PGPASSWORD="$DB_PASSWORD" dropdb --if-exists --force -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USERNAME" "$DB_DATABASE"
@@ -221,50 +141,61 @@ jobs:
     name: security
     runs-on: [self-hosted, linux, x64, mars, ci]
     timeout-minutes: 15
-
     steps:
       - name: Reject untrusted fork PR
         if: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.repo.full_name != github.repository }}
         run: |
           echo '::error::Foundation will not execute fork PR code on self-hosted runners.'
           exit 1
-
       - name: Runner identity
         run: echo "runner=${{ runner.name }} host=$(hostname)"
-
       - name: Checkout trusted head
         uses: actions/checkout@v4
         with:
           ref: ${{ env.FOUNDATION_CHECKOUT_REF }}
           fetch-depth: 0
-
+          persist-credentials: false
       - name: Prepare isolated CI toolchain
         run: bash scripts/ci/prepare-ci-toolchain.sh
-
       - name: Prepare Laravel environment
         run: cp .env.example .env
-
       - name: Verify local toolchain
         run: |
           php -v
           composer --version
           node --version
           npm --version
-
       - name: Validate Composer manifest
         run: composer validate --strict
-
       - name: Install PHP dependencies
         run: composer install --no-interaction --prefer-dist --no-progress
-
       - name: Install frontend dependencies
         run: npm ci
-
       - name: Audit Composer dependencies
         run: composer audit --no-interaction
-
       - name: Audit npm dependencies
         run: npm audit --audit-level=high
-
       - name: Scan tracked files for obvious secrets
         run: bash scripts/ci/secret-scan.sh
+
+  postgres-tests:
+    name: postgres-tests
+    needs: [quality, browser-smoke, security]
+    if: ${{ always() }}
+    runs-on: [self-hosted, linux, x64, mars, ci]
+    timeout-minutes: 5
+    steps:
+      - name: Required-check compatibility gate
+        env:
+          QUALITY_RESULT: ${{ needs.quality.result }}
+          BROWSER_RESULT: ${{ needs.browser-smoke.result }}
+          SECURITY_RESULT: ${{ needs.security.result }}
+        run: |
+          set -euo pipefail
+          echo "quality=${QUALITY_RESULT}"
+          echo "browser-smoke=${BROWSER_RESULT}"
+          echo "security=${SECURITY_RESULT}"
+          test "${QUALITY_RESULT}" = success
+          test "${BROWSER_RESULT}" = success
+          test "${SECURITY_RESULT}" = success
+          echo 'postgres-tests is a compatibility check name only; project validation runs security, quality, and browser-smoke.'
