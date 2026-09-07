@@ -24,7 +24,7 @@ final class AssuranceInventory
 
         /** @var list<array<string, mixed>> $http */
         $http = [];
-        foreach (Route::getRoutes() as $route) {
+        foreach (Route::getRoutes()->getRoutes() as $route) {
             $http[] = $this->httpSurface($route, $tests);
         }
 
@@ -35,7 +35,7 @@ final class AssuranceInventory
         $data = $this->dataSurfaces($tests);
         $external = $this->externalSurfaces($tests);
         $operations = $this->operationalSurfaces($tests);
-        $coverageMap = array_values(array_merge($http, $cli, $async, $data, $external, $operations));
+        $coverageMap = array_merge($http, $cli, $async, $data, $external, $operations);
 
         $criticalGaps = array_values(array_filter(
             $coverageMap,
@@ -89,7 +89,7 @@ final class AssuranceInventory
      */
     private function httpSurface(LaravelRoute $route, array $tests): array
     {
-        $methods = array_values(array_intersect($route->methods(), self::MUTATING_METHODS + ['GET']));
+        $methods = array_values(array_intersect($route->methods(), array_merge(['GET'], self::MUTATING_METHODS)));
         $middleware = array_values(array_filter($route->gatherMiddleware(), 'is_string'));
         $name = $route->getName();
         $uri = $route->uri();
@@ -131,6 +131,7 @@ final class AssuranceInventory
      */
     private function cliSurfaces(array $tests): array
     {
+        /** @var list<array<string, mixed>> $surfaces */
         $surfaces = [];
 
         foreach (Artisan::all() as $name => $command) {
@@ -158,8 +159,6 @@ final class AssuranceInventory
             ];
         }
 
-        usort($surfaces, static fn (array $left, array $right): int => (string) $left['component'] <=> (string) $right['component']);
-
         return $surfaces;
     }
 
@@ -169,6 +168,7 @@ final class AssuranceInventory
      */
     private function asyncSurfaces(array $tests): array
     {
+        /** @var list<array<string, mixed>> $surfaces */
         $surfaces = [];
 
         foreach ($this->phpFiles(base_path('app')) as $file) {
@@ -209,6 +209,7 @@ final class AssuranceInventory
      */
     private function dataSurfaces(array $tests): array
     {
+        /** @var list<array<string, mixed>> $surfaces */
         $surfaces = [];
 
         foreach ($this->phpFiles(base_path('database/migrations')) as $file) {
@@ -218,7 +219,7 @@ final class AssuranceInventory
             }
 
             preg_match_all("/Schema::create\\('([^']+)'/", $content, $matches);
-            $tables = array_values(array_filter($matches[1] ?? [], 'is_string'));
+            $tables = array_values(array_filter($matches[1], 'is_string'));
             if ($tables === []) {
                 $tables = [pathinfo($file, PATHINFO_FILENAME)];
             }
@@ -256,6 +257,7 @@ final class AssuranceInventory
      */
     private function externalSurfaces(array $tests): array
     {
+        /** @var list<array<string, mixed>> $surfaces */
         $surfaces = [];
 
         foreach ($this->phpFiles(base_path('app')) as $file) {
@@ -308,6 +310,7 @@ final class AssuranceInventory
      */
     private function operationalSurfaces(array $tests): array
     {
+        /** @var list<array<string, mixed>> $surfaces */
         $surfaces = [];
 
         foreach ([
@@ -449,7 +452,7 @@ final class AssuranceInventory
             $needles[] = $name;
         }
 
-        $class = explode('@', $action)[0] ?? '';
+        $class = explode('@', $action)[0];
         $basename = basename(str_replace('\\', '/', $class));
         if ($basename !== '' && $basename !== 'Closure') {
             $needles[] = $basename;
@@ -459,7 +462,7 @@ final class AssuranceInventory
             $needles[] = '/'.$match[1].'/';
         }
 
-        $firstSegment = explode('/', $uri)[0] ?? '';
+        $firstSegment = explode('/', $uri)[0];
         if ($firstSegment !== '' && ! str_contains($firstSegment, '{')) {
             $needles[] = $firstSegment;
         }
