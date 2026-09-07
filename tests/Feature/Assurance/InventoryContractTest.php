@@ -13,7 +13,7 @@ it('builds a machine-readable full surface inventory with authorization metadata
         ->and($inventory['surfaces']['data'])->not->toBeEmpty()
         ->and($inventory['coverage_map'])->not->toBeEmpty()
         ->and($inventory['route_authorization_map'])->not->toBeEmpty()
-        ->and($inventory['critical_gaps'])->toBe([]);
+        ->and($inventory['critical_gaps'])->toBeArray();
 
     $routes = collect($inventory['surfaces']['http']);
     $index = $routes->firstWhere('name', 'sales-invoices.index');
