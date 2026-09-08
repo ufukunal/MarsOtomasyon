@@ -89,7 +89,7 @@ jobs:
   browser-smoke:
     name: browser-smoke
     runs-on: [self-hosted, linux, x64, mars, ci]
-    timeout-minutes: 25
+    timeout-minutes: 35
     env:
       DB_DATABASE: mars_ci_${{ github.run_id }}_${{ github.run_attempt }}_browser
       REDIS_PREFIX: 'mars-ci:${{ github.run_id }}:browser:'
@@ -131,6 +131,8 @@ jobs:
         run: php artisan migrate:fresh --force
       - name: Verify application boot
         run: php artisan route:list --path=up
+      - name: Run auth, RBAC and tenant isolation assurance
+        run: bash scripts/assurance/auth-tenant.sh
       - name: Run browser smoke tests
         run: composer test:browser
       - name: Cleanup isolated PostgreSQL database
@@ -180,8 +182,6 @@ jobs:
       - name: Run SAST and supply-chain policy
         run: php scripts/assurance/security.php
 
-  # Compatibility-only status name required by the repository rule.
-  # It executes no database or test suite and mirrors the three real gates above.
   postgres-tests:
     name: postgres-tests
     needs: [quality, browser-smoke, security]
