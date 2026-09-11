@@ -177,6 +177,8 @@ jobs:
         run: npm audit --audit-level=high
       - name: Scan tracked files for obvious secrets
         run: bash scripts/ci/secret-scan.sh
+      - name: Run SAST and supply-chain policy
+        run: php scripts/assurance/security.php
 
   # Compatibility-only status name required by the repository rule.
   # It executes no database or test suite and mirrors the three real gates above.
