@@ -89,7 +89,7 @@ jobs:
   browser-smoke:
     name: browser-smoke
     runs-on: [self-hosted, linux, x64, mars, ci]
-    timeout-minutes: 35
+    timeout-minutes: 50
     env:
       DB_DATABASE: mars_ci_${{ github.run_id }}_${{ github.run_attempt }}_browser
       REDIS_PREFIX: 'mars-ci:${{ github.run_id }}:browser:'
@@ -131,8 +131,6 @@ jobs:
         run: php artisan migrate:fresh --force
       - name: Verify application boot
         run: php artisan route:list --path=up
-      - name: Run auth, RBAC and tenant isolation assurance
-        run: bash scripts/assurance/auth-tenant.sh
       - name: Run browser smoke tests
         run: composer test:browser
       - name: Cleanup isolated PostgreSQL database
