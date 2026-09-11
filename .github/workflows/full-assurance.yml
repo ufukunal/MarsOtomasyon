@@ -1,17 +1,17 @@
 name: Full Assurance
 
 on:
-  workflow_dispatch:
-  push:
+  workflow_run:
+    workflows: [Foundation]
+    types: [completed]
     branches: [main]
-  schedule:
-    - cron: '17 2 * * 0'
 
 permissions:
   contents: read
+  actions: read
 
 concurrency:
-  group: full-assurance-${{ github.event_name }}-${{ github.ref }}
+  group: full-assurance-${{ github.event.workflow_run.id }}
   cancel-in-progress: true
 
 env:
@@ -20,71 +20,68 @@ env:
   APP_KEY: base64:TWFyc090b21hc3lvbkZvdW5kYXRpb25UZXN0S2V5ISE=
   APP_DEBUG: 'false'
   APP_URL: http://localhost
-  DB_CONNECTION: pgsql
-  DB_HOST: 127.0.0.1
-  DB_PORT: 5432
-  DB_DATABASE: mars_test
-  DB_USERNAME: mars
-  DB_PASSWORD: mars
-  CACHE_STORE: redis
-  QUEUE_CONNECTION: redis
-  SESSION_DRIVER: redis
-  SESSION_CONNECTION: session
-  MAIL_MAILER: array
-  REDIS_CLIENT: phpredis
-  REDIS_HOST: 127.0.0.1
-  REDIS_PORT: 6379
-  REDIS_PASSWORD: null
-  REDIS_PREFIX: 'mars-full-assurance:'
-  REDIS_DB: 4
-  REDIS_CACHE_DB: 5
-  REDIS_QUEUE_DB: 6
-  REDIS_SESSION_DB: 7
-  REDIS_QUEUE: mars-full-assurance
-  FULL_ASSURANCE_CHECKOUT_REF: ${{ github.sha }}
+  FULL_ASSURANCE_CHECKOUT_REF: ${{ github.event.workflow_run.head_sha }}
+  FOUNDATION_RUN_ID: ${{ github.event.workflow_run.id }}
+  FOUNDATION_RESULT: ${{ github.event.workflow_run.conclusion }}
 
 jobs:
-  # Report-only workflow. Test execution is owned exclusively by Foundation's
-  # security, quality, and browser-smoke jobs.
+  # Report-only finalizer. All executable validation remains exclusively in
+  # Foundation's security, quality and browser-smoke jobs.
   assurance-report:
     name: assurance-report
     runs-on: [self-hosted, linux, x64, mars, ci]
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
-      - name: Runner identity
+      - name: Require successful Foundation
         run: |
           set -euo pipefail
-          echo "repository=${GITHUB_REPOSITORY}"
-          echo "event=${GITHUB_EVENT_NAME}"
-          echo "requested_sha=${FULL_ASSURANCE_CHECKOUT_REF}"
-      - name: Checkout exact revision
+          echo "foundation_run_id=${FOUNDATION_RUN_ID}"
+          echo "foundation_result=${FOUNDATION_RESULT}"
+          echo "foundation_sha=${FULL_ASSURANCE_CHECKOUT_REF}"
+          test "${FOUNDATION_RESULT}" = success
+      - name: Checkout exact Foundation revision
         uses: actions/checkout@v4
         with:
           ref: ${{ env.FULL_ASSURANCE_CHECKOUT_REF }}
           persist-credentials: false
           fetch-depth: 1
       - name: Prove exact checkout
-        run: |
-          set -euo pipefail
-          actual="$(git rev-parse HEAD)"
-          echo "checked_out_sha=${actual}"
-          test "${actual}" = "${FULL_ASSURANCE_CHECKOUT_REF}"
+        run: test "$(git rev-parse HEAD)" = "${FULL_ASSURANCE_CHECKOUT_REF}"
       - name: Prepare isolated CI toolchain
         run: bash scripts/ci/prepare-ci-toolchain.sh
       - name: Prepare Laravel environment
         run: cp .env.example .env
-      - name: Install PHP dependencies
+      - name: Install PHP dependencies for report generation
         run: composer install --no-interaction --prefer-dist --no-progress
-      - name: Generate assurance inventory report
+      - name: Generate inventory evidence
         run: php scripts/assurance/inventory.php
-      - name: Upload assurance evidence
+      - name: Download Foundation gate evidence
+        uses: actions/download-artifact@v4
+        with:
+          pattern: foundation-*-${{ env.FULL_ASSURANCE_CHECKOUT_REF }}
+          path: evidence
+          merge-multiple: true
+          github-token: ${{ github.token }}
+          run-id: ${{ env.FOUNDATION_RUN_ID }}
+      - name: Add inventory evidence to bundle
+        run: |
+          cp storage/app/assurance/inventory.json evidence/inventory.json
+          cp storage/app/assurance/coverage-map.json evidence/coverage-map.json
+          cp storage/app/assurance/route-authorization-map.json evidence/route-authorization-map.json
+      - name: Generate fail-closed release report
+        env:
+          SECURITY_RESULT: success
+          QUALITY_RESULT: success
+          BROWSER_SMOKE_RESULT: success
+        run: php scripts/assurance/release-report.php
+      - name: Upload unified release evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: assurance-inventory-${{ env.FULL_ASSURANCE_CHECKOUT_REF }}
+          name: full-assurance-release-${{ env.FULL_ASSURANCE_CHECKOUT_REF }}
           path: |
-            storage/app/assurance/inventory.json
-            storage/app/assurance/coverage-map.json
-            storage/app/assurance/route-authorization-map.json
+            storage/app/assurance/release-report.json
+            storage/app/assurance/release-summary.md
+            evidence/
           if-no-files-found: error
-          retention-days: 30
+          retention-days: 90

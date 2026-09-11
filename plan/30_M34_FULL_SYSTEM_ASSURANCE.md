@@ -12,14 +12,14 @@ M34 is closed in eight sequential slices. A slice is complete only after its PR 
 
 The historical required status name `postgres-tests` remains only as a compatibility gate. It performs no checkout, PostgreSQL setup, migration, or Pest execution and succeeds only when the three real jobs succeed.
 
-- [ ] Slice A — Assurance inventory & coverage map
-- [ ] Slice B — Deep code quality & architecture enforcement
-- [ ] Slice C — SAST, secrets & supply-chain security
-- [ ] Slice D — Authorization, RBAC & tenant isolation
-- [ ] Slice E — Functional accounting/operations verification
-- [ ] Slice F — Database, lifecycle & concurrency integrity
-- [ ] Slice G — Browser, DAST, resilience & recovery verification
-- [ ] Slice H — Unified Full Assurance pipeline, policy & evidence
+- [x] Slice A — Assurance inventory & coverage map
+- [x] Slice B — Deep code quality & architecture enforcement
+- [x] Slice C — SAST, secrets & supply-chain security
+- [x] Slice D — Authorization, RBAC & tenant isolation
+- [x] Slice E — Functional accounting/operations verification
+- [x] Slice F — Database, lifecycle & concurrency integrity
+- [x] Slice G — Browser, DAST, resilience & recovery verification
+- [x] Slice H — Unified Full Assurance pipeline, policy & evidence
 
 ## Slice A
 
@@ -35,23 +35,23 @@ Strengthen dependency auditing, secret detection, static security rules, workflo
 
 ## Slice D
 
-Strengthen authorization and tenant attack-surface checks for session, B2B, API token, scanner, platform-admin, permissions, tenant context, and idempotent writes. Static assurance runs in `security`; runtime user-visible abuse cases run in `browser-smoke`.
+Strengthen authorization and tenant attack-surface checks for session, B2B, API token, scanner, platform-admin, permissions, tenant context, and idempotent writes. Runtime attack cases execute inside `browser-smoke`.
 
 ## Slice E
 
-Add executable inspection of financial and stock mutation invariants and browser coverage for critical accounting flows. Static invariants run in `quality`; runtime flows remain in `browser-smoke`.
+Execute financial and stock mutation invariants inside `browser-smoke` against isolated PostgreSQL and retain accounting evidence.
 
 ## Slice F
 
-Add migration/schema integrity inspection to `quality` and exercise database lifecycle/concurrency only through the isolated PostgreSQL environment already used by `browser-smoke`. No separate PostgreSQL test lane is introduced.
+Exercise migration/schema lifecycle, PostgreSQL integrity, transaction boundaries, idempotency, query plans, leases, reservations, and concurrency inside the isolated PostgreSQL environment already used by `browser-smoke`. No separate PostgreSQL test lane is introduced.
 
 ## Slice G
 
-Strengthen browser security headers, DAST-style assertions, failure/recovery paths, backup/update/recovery controls, and failure injection inside `browser-smoke` with supporting static checks in `security`.
+Exercise readiness, recovery mode and safety, offsite backup readiness, Update Center stability, production-provider kill switches, and the existing Playwright regression suite inside `browser-smoke`.
 
 ## Slice H
 
-Aggregate machine-readable evidence and three-gate results into a final release report and artifacts. `Full Assurance` is report-only and does not execute an additional test suite.
+Aggregate machine-readable evidence from the three Foundation gates into a final release report and artifact. `Full Assurance` is report-only and does not execute an additional test suite.
 
 ## Final policy
 
