@@ -56,6 +56,7 @@
         "test:architecture": "pest tests/Architecture --colors=always",
         "test:browser": [
             "bash scripts/assurance/auth-tenant.sh",
+            "bash scripts/assurance/accounting-invariants.sh",
             "pest tests/Browser --colors=always"
         ],
         "ci": [
