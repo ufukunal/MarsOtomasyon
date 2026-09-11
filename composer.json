@@ -57,6 +57,7 @@
         "test:browser": [
             "bash scripts/assurance/auth-tenant.sh",
             "bash scripts/assurance/accounting-invariants.sh",
+            "bash scripts/assurance/database-lifecycle.sh",
             "pest tests/Browser --colors=always"
         ],
         "ci": [
