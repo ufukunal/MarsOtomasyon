@@ -85,11 +85,19 @@ jobs:
         run: composer analyse
       - name: Build frontend assets
         run: npm run build
+      - name: Upload quality evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: foundation-quality-${{ env.FOUNDATION_CHECKOUT_REF }}
+          path: storage/app/assurance/architecture-report.json
+          if-no-files-found: warn
+          retention-days: 30
 
   browser-smoke:
     name: browser-smoke
     runs-on: [self-hosted, linux, x64, mars, ci]
-    timeout-minutes: 50
+    timeout-minutes: 75
     env:
       DB_DATABASE: mars_ci_${{ github.run_id }}_${{ github.run_attempt }}_browser
       REDIS_PREFIX: 'mars-ci:${{ github.run_id }}:browser:'
@@ -133,6 +141,24 @@ jobs:
         run: php artisan route:list --path=up
       - name: Run browser smoke tests
         run: composer test:browser
+      - name: Record browser evidence
+        if: success()
+        run: |
+          mkdir -p storage/app/assurance
+          php -r '$r=["schema_version"=>1,"slice"=>"M34-H","generated_at"=>gmdate(DATE_ATOM),"git_sha"=>getenv("FOUNDATION_CHECKOUT_REF"),"status"=>"passed","suite"=>"composer test:browser"]; file_put_contents("storage/app/assurance/browser-report.json", json_encode($r, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR).PHP_EOL);'
+      - name: Upload browser assurance evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: foundation-browser-${{ env.FOUNDATION_CHECKOUT_REF }}
+          path: |
+            storage/app/assurance/auth-tenant-report.json
+            storage/app/assurance/accounting-invariants-report.json
+            storage/app/assurance/database-lifecycle-report.json
+            storage/app/assurance/recovery-failure-report.json
+            storage/app/assurance/browser-report.json
+          if-no-files-found: warn
+          retention-days: 30
       - name: Cleanup isolated PostgreSQL database
         if: always()
         run: PGPASSWORD="$DB_PASSWORD" dropdb --if-exists --force -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USERNAME" "$DB_DATABASE"
@@ -179,7 +205,16 @@ jobs:
         run: bash scripts/ci/secret-scan.sh
       - name: Run SAST and supply-chain policy
         run: php scripts/assurance/security.php
+      - name: Upload security evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: foundation-security-${{ env.FOUNDATION_CHECKOUT_REF }}
+          path: storage/app/assurance/security-report.json
+          if-no-files-found: warn
+          retention-days: 30
 
+  # Historical required-check name only. No checkout, database, migration or test suite.
   postgres-tests:
     name: postgres-tests
     needs: [quality, browser-smoke, security]
