@@ -48,4 +48,7 @@ if [[ "${failed}" -ne 0 ]]; then
 fi
 
 echo 'Basic tracked-secret scan passed.'
+
+# pull_request_target evaluates workflow YAML from main. Invoke the slice-C
+# assurance from this head-controlled script so the exact PR head is validated.
 php scripts/assurance/security.php
