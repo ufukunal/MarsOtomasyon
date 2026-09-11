@@ -48,3 +48,4 @@ if [[ "${failed}" -ne 0 ]]; then
 fi
 
 echo 'Basic tracked-secret scan passed.'
+php scripts/assurance/security.php
