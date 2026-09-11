@@ -54,7 +54,10 @@
         "test:unit": "pest tests/Unit --colors=always",
         "test:integration": "pest tests/Integration --colors=always",
         "test:architecture": "pest tests/Architecture --colors=always",
-        "test:browser": "pest tests/Browser --colors=always",
+        "test:browser": [
+            "bash scripts/assurance/auth-tenant.sh",
+            "pest tests/Browser --colors=always"
+        ],
         "ci": [
             "@format:check",
             "@analyse",
