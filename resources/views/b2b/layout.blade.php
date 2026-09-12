@@ -5,15 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>@yield('title', 'Mars B2B')</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <style>
+        .b2b-body{min-height:100vh;background:var(--bg)}
+        .b2b-shell{width:min(1180px,calc(100% - 24px));margin:12px auto 28px}
+        .b2b-shell>.workspace-hero{border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow-sm)}
+        .b2b-shell>.page-actions{justify-content:flex-start;margin:8px 0;padding:8px;border:1px solid var(--line);border-radius:var(--radius);background:#fff;box-shadow:var(--shadow-sm)}
+        .b2b-shell>.detail-card,.b2b-shell>.statement-table-card{margin-left:0;margin-right:0}
+        @media(max-width:720px){.b2b-shell{width:calc(100% - 16px);margin:8px auto 20px}}
+    </style>
 </head>
-<body>
-<main class="workspace-shell">
+<body class="b2b-body">
+<main class="b2b-shell">
     <section class="workspace-hero">
         <div>
             <p class="eyebrow">Mars B2B / Bayi Portalı</p>
             <h1>@yield('heading', 'Bayi Portalı')</h1>
         </div>
-        <form method="POST" action="{{ route('b2b.logout') }}">@csrf<button type="submit">Çıkış</button></form>
+        <form method="POST" action="{{ route('b2b.logout') }}">@csrf<button type="submit" class="button-secondary">Çıkış</button></form>
     </section>
     <nav class="page-actions" aria-label="B2B menüsü">
         <a href="{{ route('b2b.home') }}">Hesabım</a>

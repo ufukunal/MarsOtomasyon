@@ -88,19 +88,13 @@
             </div>
             <script src="{{ asset('js/cad-local-viewer.js') }}" defer></script>
         @elseif ($job->status === 'ready' && $provider === 'aps')
-            @php($urn = is_array($job->manifest) ? ($job->manifest['urn'] ?? null) : null)
-            <link rel="stylesheet" href="https://developer.api.autodesk.com/modelderivative/v2/viewers/7.*/style.min.css">
-            <div
-                class="detail-card"
-                data-cad-aps-viewer
-                data-urn="{{ $urn }}"
-                data-token-url="{{ route('settings.files.cad.viewer-token', [$attachment->getKey(), $job->getKey()]) }}"
-                style="height: 640px"
-            >
-                <div id="mars-aps-viewer" style="height: 100%"></div>
+            <div class="notice-info" data-cad-aps-ready>
+                <strong>APS derivative hazır.</strong>
+                <p>
+                    Güvenlik politikası gereği tarayıcı üçüncü taraf CDN kodu yüklemez. Provider translation sonucu kaydedildi;
+                    orijinal private dosya ve işlem kaydı değişmeden korunur.
+                </p>
             </div>
-            <script src="https://developer.api.autodesk.com/modelderivative/v2/viewers/7.*/viewer3D.min.js"></script>
-            <script src="{{ asset('js/cad-aps-viewer.js') }}" defer></script>
         @endif
     @endif
 

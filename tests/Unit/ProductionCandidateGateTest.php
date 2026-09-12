@@ -17,8 +17,10 @@ final class ProductionCandidateGateTest extends TestCase
         config()->set('production.deployment_model', 'docker-compose');
         config()->set('production.primary_file_disk', 'local');
         config()->set('m11.backup.disk', 'offsite-backup');
+        config()->set('filesystems.disks.offsite-backup.driver', 'local');
+        config()->set('filesystems.disks.offsite-backup.root', '/mnt/mars-backup');
         config()->set('production.backup.offsite_required', true);
-        config()->set('production.backup.offsite_target', 's3://mars-backup-prod');
+        config()->set('production.backup.offsite_target', 'mount:///mnt/mars-backup');
         config()->set('production.backup.recovery_key_reference', 'vault://mars/backup/recovery/v1');
         config()->set('production.backup.rpo_hours', 24);
         config()->set('production.backup.rto_hours', 4);
@@ -43,7 +45,7 @@ final class ProductionCandidateGateTest extends TestCase
         config()->set('production.primary_file_disk', 'local');
         config()->set('m11.backup.disk', 'mars_backup');
         config()->set('production.backup.offsite_required', true);
-        config()->set('production.backup.offsite_target', 's3://mars-backup-prod');
+        config()->set('production.backup.offsite_target', 'mount:///mnt/mars-backup');
         config()->set('production.backup.recovery_key_reference', 'vault://mars/backup/recovery/v1');
         config()->set('production.backup.rpo_hours', 24);
         config()->set('production.backup.rto_hours', 4);

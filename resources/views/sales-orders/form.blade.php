@@ -2,6 +2,14 @@
 
 @section('title', $order === null ? 'Yeni Satış Siparişi' : 'Sipariş Düzenle')
 
+@push('styles')
+    @vite('resources/css/sales-order-product-search.css')
+@endpush
+
+@push('scripts')
+    @vite('resources/js/sales-order-product-search.js')
+@endpush
+
 @section('app-content')
 <section class="workspace-hero">
     <div><p class="eyebrow">Satış / Sipariş</p><h1>{{ $order === null ? 'Yeni Satış Siparişi' : $order->number.' Düzenle' }}</h1><p>Net, KDV ve genel toplam request verisinden alınmaz; M5.1 hesap motorunda yeniden üretilir. KDV Sıfırla seçeneği aktif bir nedenle birlikte server-side uygulanır. Depo/lokasyon seçimi stok rezervasyonunu oluşturur.</p></div>

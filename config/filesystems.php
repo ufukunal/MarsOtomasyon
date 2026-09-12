@@ -18,6 +18,14 @@ return [
             'throw' => false,
             'report' => false,
         ],
+        'mars_backup_local' => [
+            'driver' => 'local',
+            'root' => env('MARS_BACKUP_LOCAL_PATH', '/mnt/mars-backup'),
+            'serve' => false,
+            'throw' => true,
+            'report' => false,
+        ],
+        // Backward-compatible S3-compatible option. Production is not required to use it.
         'mars_backup' => [
             'driver' => 's3',
             'key' => env('MARS_BACKUP_S3_ACCESS_KEY_ID'),

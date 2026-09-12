@@ -2,6 +2,15 @@
 
 @section('title', 'Kanal Merkezi')
 
+@push('styles')
+<style>
+.commerce-provider-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;max-width:none}
+.commerce-provider-grid>div{min-height:82px;padding:10px 11px;border:1px solid var(--line);border-radius:8px;background:linear-gradient(180deg,#fff,#f7fafb);box-shadow:var(--shadow-sm)}
+.commerce-provider-grid>div strong{display:block;margin-bottom:5px;font-size:11.5px;color:#173947}
+.commerce-provider-grid>div small{display:block;margin-top:5px;color:var(--muted);line-height:1.45}
+</style>
+@endpush
+
 @section('app-content')
 <section class="workspace-hero">
     <div>
@@ -17,7 +26,7 @@
 
 <section class="detail-card">
     <h2>Provider Capability Registry</h2>
-    <div class="form-grid">
+    <div class="commerce-provider-grid">
         @foreach($providers as $key => $provider)
             <div>
                 <strong>{{ $provider['label'] }}</strong><br>

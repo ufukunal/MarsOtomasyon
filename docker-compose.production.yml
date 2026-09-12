@@ -1,12 +1,13 @@
 name: marsotomasyon
 
 x-mars-app: &mars-app
+  image: marsotomasyon-app:${MARS_IMAGE_TAG:-current}
   build:
     context: .
     dockerfile: Dockerfile.production
     target: app
   env_file:
-    - .env.production
+    - ${MARS_ENV_FILE:-.env.production}
   environment:
     DB_HOST: postgres
     DB_PORT: 5432
@@ -19,6 +20,7 @@ x-mars-app: &mars-app
   restart: unless-stopped
   volumes:
     - mars_storage:/var/www/html/storage
+    - ${MARS_BACKUP_LOCAL_PATH:-/mnt/mars-backup}:${MARS_BACKUP_LOCAL_PATH:-/mnt/mars-backup}
   depends_on:
     postgres:
       condition: service_healthy
@@ -34,7 +36,7 @@ services:
       POSTGRES_USER: ${DB_USERNAME:?DB_USERNAME is required}
       POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
       interval: 10s
@@ -79,6 +81,7 @@ services:
       - backend
 
   web:
+    image: marsotomasyon-web:${MARS_IMAGE_TAG:-current}
     build:
       context: .
       dockerfile: Dockerfile.production
@@ -87,7 +90,7 @@ services:
     depends_on:
       - app
     ports:
-      - "${MARS_HTTP_PORT:-8080}:80"
+      - "127.0.0.1:${MARS_HTTP_PORT:-8080}:80"
     networks:
       - backend
 

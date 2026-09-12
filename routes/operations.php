@@ -31,7 +31,7 @@ Route::prefix('commerce')
     });
 
 Route::get('/communications', fn () => redirect()->route('operations.index'))
-    ->middleware(['auth', 'company.context', 'can:notifications.view'])
+    ->middleware(['web', 'auth', 'company.context', 'can:notifications.view'])
     ->name('communications.index');
 
 Route::prefix('settings/integrations')
@@ -47,11 +47,14 @@ Route::prefix('settings/integrations')
 
 Route::prefix('operations')
     ->name('operations.')
-    ->middleware(['auth', 'company.context'])
+    ->middleware(['web', 'auth', 'company.context'])
     ->group(function (): void {
         Route::get('/', [OperationsController::class, 'index'])->middleware('can:operations.view')->name('index');
         Route::get('/updates', [UpdateCenterController::class, 'index'])->middleware(RequirePlatformAdmin::class)->name('updates.index');
         Route::post('/updates/check', [UpdateCenterController::class, 'check'])->middleware([RequirePlatformAdmin::class, 'throttle:10,1'])->name('updates.check');
+        Route::post('/updates/prepare', [UpdateCenterController::class, 'prepare'])->middleware([RequirePlatformAdmin::class, 'throttle:5,1'])->name('updates.prepare');
+        Route::post('/updates/{run}/apply', [UpdateCenterController::class, 'apply'])->whereNumber('run')->middleware([RequirePlatformAdmin::class, 'throttle:5,1'])->name('updates.apply');
+        Route::post('/updates/{run}/rollback', [UpdateCenterController::class, 'rollback'])->whereNumber('run')->middleware([RequirePlatformAdmin::class, 'throttle:5,1'])->name('updates.rollback');
         Route::post('/connections', [OperationsController::class, 'storeConnection'])->middleware('can:integrations.manage')->name('connections.store');
         Route::post('/templates', [OperationsController::class, 'storeTemplate'])->middleware('can:notifications.manage')->name('templates.store');
         Route::post('/automation-rules', [OperationsController::class, 'storeAutomationRule'])->middleware('can:automation.manage')->name('automation-rules.store');

@@ -1,0 +1,207 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+umask 027
+
+ACTION="${1:-once}"
+ROOT="${MARS_ROOT:-$(pwd)}"
+ENV_FILE="${MARS_ENV_FILE:-$ROOT/.env.production}"
+COMPOSE_FILE="$ROOT/docker-compose.production.yml"
+LOCK_FILE="${MARS_UPDATE_LOCK_FILE:-/var/lock/mars-update-executor.lock}"
+
+fail() { printf 'mars-update-executor: %s\n' "$*" >&2; exit 1; }
+[[ -f "$COMPOSE_FILE" ]] || fail "production compose file not found"
+[[ -f "$ENV_FILE" ]] || fail "production environment file not found"
+command -v docker >/dev/null 2>&1 || fail "docker is required"
+command -v flock >/dev/null 2>&1 || fail "flock is required"
+
+compose() {
+    docker compose --env-file "$ENV_FILE" -f "$COMPOSE_FILE" "$@"
+}
+
+artisan() {
+    compose exec -T app php artisan "$@"
+}
+
+release_compose() {
+    local release="$1" tag="$2"; shift 2
+    MARS_ENV_FILE="$ENV_FILE" MARS_IMAGE_TAG="$tag" \
+        docker compose --env-file "$ENV_FILE" -f "$release/docker-compose.production.yml" "$@"
+}
+
+field() {
+    artisan mars:update-executor show "$1" --field="$2" | tr -d '\r' | tail -n 1
+}
+
+wait_http() {
+    local release="$1" tag="$2" port attempt
+    for attempt in $(seq 1 45); do
+        port="$(release_compose "$release" "$tag" port web 80 2>/dev/null | tail -n 1 | awk -F: '{print $NF}')"
+        if [[ "$port" =~ ^[0-9]+$ ]] && curl -fsS --max-time 3 "http://127.0.0.1:${port}/login" >/dev/null; then
+            return 0
+        fi
+        sleep 2
+    done
+    return 1
+}
+
+wait_health() {
+    local release="$1" tag="$2" attempt snapshot
+    wait_http "$release" "$tag" || return 1
+    release_compose "$release" "$tag" exec -T app php artisan mars:status >/dev/null
+    for attempt in $(seq 1 45); do
+        snapshot="$(release_compose "$release" "$tag" exec -T app php artisan mars:ops-status 2>/dev/null || true)"
+        if grep -q '"database_ok": true' <<<"$snapshot" \
+            && grep -q '"valkey_ok": true' <<<"$snapshot" \
+            && grep -q '"worker_alive": true' <<<"$snapshot" \
+            && grep -q '"scheduler_alive": true' <<<"$snapshot"; then
+            return 0
+        fi
+        sleep 2
+    done
+    return 1
+}
+
+rollback_run() {
+    local run="$1" release="$2" backup_id status
+    status="$(field "$run" status)"
+    if [[ "$status" != "rollback_requested" ]]; then
+        artisan mars:update-executor rollback-requested "$run" >/dev/null || true
+    fi
+
+    docker image inspect "marsotomasyon-app:rollback-$run" >/dev/null 2>&1 || fail "rollback app image is missing"
+    docker image inspect "marsotomasyon-web:rollback-$run" >/dev/null 2>&1 || fail "rollback web image is missing"
+    docker image tag "marsotomasyon-app:rollback-$run" marsotomasyon-app:current
+    docker image tag "marsotomasyon-web:rollback-$run" marsotomasyon-web:current
+
+    MARS_IMAGE_TAG=current compose up -d --force-recreate app worker scheduler web
+    backup_id="$(field "$run" safety_backup_id)"
+    [[ "$backup_id" =~ ^[0-9a-fA-F-]{36}$ ]] || fail "safety backup id is unavailable"
+    MARS_IMAGE_TAG=current compose exec -T app php artisan mars:restore "$backup_id" --no-safety >/dev/null
+    MARS_IMAGE_TAG=current compose exec -T app php artisan up >/dev/null || true
+    artisan mars:update-executor rolled-back "$run" >/dev/null
+}
+
+apply_run() {
+    local run="$1" stage_path release tag backup_output backup_id
+    stage_path="$(field "$run" stage_path)"
+    [[ "$stage_path" == "/var/www/html/storage/app/update-center/$run/release" ]] || fail "unexpected staging path"
+
+    release="$ROOT/.mars-updates/$run/release"
+    rm -rf "$ROOT/.mars-updates/$run"
+    install -d -m 0750 "$release"
+    compose cp "app:${stage_path}/." "$release/"
+    for required in artisan composer.json Dockerfile.production docker-compose.production.yml; do
+        [[ -f "$release/$required" ]] || fail "staged release missing $required"
+    done
+
+    backup_output="$(artisan mars:backup)"
+    backup_id="$(sed -nE 's/^Backup ready: ([0-9a-fA-F-]{36})$/\1/p' <<<"$backup_output" | tail -n 1)"
+    [[ "$backup_id" =~ ^[0-9a-fA-F-]{36}$ ]] || fail "safety backup could not be confirmed"
+    artisan mars:update-executor backup "$run" --backup-id="$backup_id" >/dev/null
+
+    docker image inspect marsotomasyon-app:current >/dev/null 2>&1 || fail "current app image is missing"
+    docker image inspect marsotomasyon-web:current >/dev/null 2>&1 || fail "current web image is missing"
+    docker image tag marsotomasyon-app:current "marsotomasyon-app:rollback-$run"
+    docker image tag marsotomasyon-web:current "marsotomasyon-web:rollback-$run"
+
+    tag="update-$run"
+    release_compose "$release" "$tag" build app web
+    artisan mars:update-executor applying "$run" >/dev/null
+    artisan down --retry=180 >/dev/null || true
+
+    if ! release_compose "$release" "$tag" run --rm app php artisan migrate --force; then
+        rollback_run "$run" "$release"
+        return 1
+    fi
+    release_compose "$release" "$tag" run --rm app php artisan optimize
+    release_compose "$release" "$tag" up -d --force-recreate app worker scheduler web
+    release_compose "$release" "$tag" exec -T app php artisan mars:update-executor health "$run" >/dev/null
+
+    if ! wait_health "$release" "$tag"; then
+        rollback_run "$run" "$release"
+        return 1
+    fi
+
+    release_compose "$release" "$tag" exec -T app php artisan up >/dev/null || true
+    release_compose "$release" "$tag" exec -T app php artisan mars:update-executor activate "$run" >/dev/null
+    docker image tag "marsotomasyon-app:$tag" marsotomasyon-app:current
+    docker image tag "marsotomasyon-web:$tag" marsotomasyon-web:current
+}
+
+run_once() {
+    local run status apply_requested stage_path release
+    run="$(artisan mars:update-executor next | tr -d '\r' | tail -n 1)"
+    [[ -n "$run" ]] || return 0
+    [[ "$run" =~ ^[0-9]+$ ]] || fail "invalid update run id"
+    status="$(field "$run" status)"
+
+    case "$status" in
+        verified)
+            artisan mars:update-executor stage "$run" >/dev/null
+            ;;
+        staged)
+            apply_requested="$(field "$run" apply_requested_at)"
+            [[ -n "$apply_requested" ]] && apply_run "$run"
+            ;;
+        rollback_requested)
+            stage_path="$(field "$run" stage_path)"
+            release="$ROOT/.mars-updates/$run/release"
+            [[ -d "$release" || -n "$stage_path" ]] || fail "rollback release context missing"
+            rollback_run "$run" "$release"
+            ;;
+        requested|applying|health_check)
+            ;;
+        activated|rolled_back|failed)
+            ;;
+        *) fail "unknown update lifecycle state" ;;
+    esac
+}
+
+install_service() {
+    [[ "${EUID:-$(id -u)}" -eq 0 ]] || fail "install requires root"
+    local executor=/usr/local/libexec/mars-update-executor
+    install -D -m 0755 "$0" "$executor"
+    cat >/etc/systemd/system/mars-update-executor.service <<EOF
+[Unit]
+Description=MarsOtomasyon trusted update executor
+After=docker.service network-online.target
+Requires=docker.service
+
+[Service]
+Type=oneshot
+Environment=MARS_ROOT=$ROOT
+Environment=MARS_ENV_FILE=$ENV_FILE
+ExecStart=$executor once
+User=root
+Group=root
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=$ROOT /var/lock /var/lib/docker /run/docker.sock
+EOF
+    cat >/etc/systemd/system/mars-update-executor.timer <<'EOF'
+[Unit]
+Description=Poll MarsOtomasyon update intents
+
+[Timer]
+OnBootSec=45s
+OnUnitActiveSec=60s
+AccuracySec=5s
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+EOF
+    systemctl daemon-reload
+    systemctl enable --now mars-update-executor.timer
+}
+
+exec 9>"$LOCK_FILE"
+flock -n 9 || exit 0
+
+case "$ACTION" in
+    once) run_once ;;
+    install) install_service ;;
+    *) fail "usage: $0 [once|install]" ;;
+esac

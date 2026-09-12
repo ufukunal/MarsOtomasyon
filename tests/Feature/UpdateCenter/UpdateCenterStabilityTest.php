@@ -220,7 +220,7 @@ final class UpdateCenterStabilityTest extends TestCase
         app(UpdateCenterService::class)->check();
     }
 
-    public function test_repeated_checks_are_deterministic_and_remain_check_only(): void
+    public function test_repeated_checks_are_deterministic_and_enable_install_for_a_compatible_update(): void
     {
         $manifest = $this->signedManifest();
         Http::fake([
@@ -233,11 +233,11 @@ final class UpdateCenterStabilityTest extends TestCase
         self::assertSame($first, $second);
         self::assertTrue($first['update_available']);
         self::assertTrue($first['compatible']);
-        self::assertFalse($first['install_enabled']);
+        self::assertTrue($first['install_enabled']);
         Http::assertSentCount(2);
     }
 
-    public function test_matching_beta_channel_is_accepted_without_enabling_install(): void
+    public function test_matching_beta_channel_is_accepted_and_enables_install_for_a_compatible_update(): void
     {
         config()->set('update-center.channel', 'beta');
         Http::fake([
@@ -251,7 +251,7 @@ final class UpdateCenterStabilityTest extends TestCase
 
         self::assertSame('beta', $result['channel']);
         self::assertTrue($result['update_available']);
-        self::assertFalse($result['install_enabled']);
+        self::assertTrue($result['install_enabled']);
     }
 
     /**

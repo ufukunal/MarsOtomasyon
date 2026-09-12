@@ -1,6 +1,4 @@
 import './repeat-fields';
-import './sales-order-product-search';
-import '../css/sales-order-product-search.css';
 
 document.documentElement.dataset.marsFoundation = 'ready';
 
@@ -15,7 +13,9 @@ if (body?.classList.contains('app-body')) {
     const loadTabs = () => {
         try {
             const stored = JSON.parse(window.sessionStorage.getItem(tabStorageKey) || '[]');
-            return Array.isArray(stored) ? stored.filter((tab) => tab && typeof tab.url === 'string' && typeof tab.title === 'string') : [];
+            return Array.isArray(stored)
+                ? stored.filter((tab) => tab && typeof tab.url === 'string' && typeof tab.title === 'string')
+                : [];
         } catch {
             return [];
         }
@@ -111,10 +111,12 @@ if (body?.classList.contains('app-body')) {
         if (!(target instanceof HTMLAnchorElement)) {
             return;
         }
+
         const url = new URL(target.href, window.location.origin);
         if (url.origin !== window.location.origin) {
             return;
         }
+
         upsertTab(`${url.pathname}${url.search}`, target.textContent?.trim() || 'MarsOtomasyon');
     });
 
@@ -162,6 +164,21 @@ if (body?.classList.contains('app-body')) {
     const sidebarToggle = document.querySelector('[data-sidebar-toggle]');
     if (sidebar instanceof HTMLElement && sidebarToggle instanceof HTMLButtonElement) {
         sidebarToggle.addEventListener('click', () => sidebar.classList.toggle('is-open'));
+    }
+
+    const navSearch = document.querySelector('[data-nav-search]');
+    const navItems = [...document.querySelectorAll('[data-nav-item]')];
+    if (navSearch instanceof HTMLInputElement) {
+        navSearch.addEventListener('input', () => {
+            const query = navSearch.value.trim().toLocaleLowerCase('tr-TR');
+            navItems.forEach((item) => {
+                if (!(item instanceof HTMLElement)) {
+                    return;
+                }
+                const text = item.dataset.navText || item.textContent?.toLocaleLowerCase('tr-TR') || '';
+                item.classList.toggle('is-filtered', query !== '' && !text.includes(query));
+            });
+        });
     }
 
     const palette = document.querySelector('[data-command-palette]');

@@ -66,7 +66,7 @@ final class UpdateCenterServiceTest extends TestCase
 
         self::assertTrue($result['update_available']);
         self::assertTrue($result['compatible']);
-        self::assertFalse($result['install_enabled']);
+        self::assertTrue($result['install_enabled']);
         self::assertSame('1.5.0', $result['version']);
         self::assertSame('1.4.2', $result['current_version']);
 

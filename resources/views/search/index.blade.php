@@ -2,6 +2,10 @@
 
 @section('title', 'Arama')
 
+@push('styles')
+    @vite('resources/css/search.css')
+@endpush
+
 @section('app-content')
     <section class="search-workspace">
         <div class="page-actions">
