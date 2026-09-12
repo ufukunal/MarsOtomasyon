@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - ops/prod-probe-f8e1f2f1
+    paths:
+      - .github/workflows/prod-ferry-key.yml
 
 permissions:
   contents: read
@@ -17,15 +19,16 @@ jobs:
     runs-on: [self-hosted, linux, x64, mars, ci]
     timeout-minutes: 3
     steps:
-      - name: Generate ephemeral RSA key on mars-ci
+      - name: Preserve or generate ephemeral RSA key on mars-ci
         shell: bash
         run: |
           set -euo pipefail
           umask 077
           key_dir=/var/tmp/mars-prod-ferry-f8e1f2f1
           install -d -m 0700 "$key_dir"
-          rm -f "$key_dir/private.pem" "$key_dir/public.pem"
-          openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:3072 -out "$key_dir/private.pem" >/dev/null 2>&1
+          if [ ! -s "$key_dir/private.pem" ]; then
+            openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:3072 -out "$key_dir/private.pem" >/dev/null 2>&1
+          fi
           openssl pkey -in "$key_dir/private.pem" -pubout -out "$key_dir/public.pem" >/dev/null 2>&1
           chmod 0600 "$key_dir/private.pem"
           chmod 0644 "$key_dir/public.pem"
