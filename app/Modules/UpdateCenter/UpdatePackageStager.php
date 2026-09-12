@@ -96,6 +96,7 @@ final class UpdatePackageStager
             return $runId;
         } catch (Throwable $exception) {
             $this->files->delete($partialPath);
+
             try {
                 $this->runs->fail($runId, 'staging_failed', $exception->getMessage());
             } catch (Throwable) {
