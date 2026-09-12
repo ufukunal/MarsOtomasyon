@@ -6,6 +6,7 @@ use DomainException;
 use Illuminate\Http\Client\Factory as HttpFactory;
 use Illuminate\Support\Facades\File;
 use RuntimeException;
+use stdClass;
 use ZipArchive;
 
 final class UpdateArtifactStager
@@ -16,7 +17,7 @@ final class UpdateArtifactStager
         private readonly UpdateRunStore $runs,
     ) {}
 
-    public function stage(int $runId): object
+    public function stage(int $runId): stdClass
     {
         $run = $this->runs->find($runId);
         if ((string) $run->status !== UpdateRunState::Verified->value) {
@@ -78,7 +79,7 @@ final class UpdateArtifactStager
             ->get($url)
             ->throw();
 
-        $declaredLength = (int) $response->header('Content-Length', '0');
+        $declaredLength = (int) ($response->header('Content-Length') ?? 0);
         if ($declaredLength > $maximum) {
             throw new RuntimeException('Update package exceeds the configured size limit.');
         }
@@ -171,7 +172,7 @@ final class UpdateArtifactStager
     }
 
     /** @return array<string, mixed> */
-    private function metadata(object $run): array
+    private function metadata(stdClass $run): array
     {
         $value = json_decode((string) ($run->metadata ?? '{}'), true, flags: JSON_THROW_ON_ERROR);
 
