@@ -1,0 +1,47 @@
+.detail-card > .form-grid:has(> div) {
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    max-width: none;
+}
+
+.detail-card > .form-grid > div {
+    min-width: 0;
+    padding: 9px 10px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: #f8fafb;
+    color: #526873;
+    font-size: 10px;
+    line-height: 1.5;
+}
+
+.detail-card > .form-grid > div strong {
+    display: block;
+    margin-bottom: 3px;
+    color: #263b45;
+    font-size: 11px;
+}
+
+.detail-card > .form-grid > div code {
+    display: inline-block;
+    margin: 2px 0 4px;
+    border: 1px solid #cfe0e7;
+    background: #edf6f9;
+    color: var(--blue-dark);
+    font-weight: 800;
+}
+
+.detail-card > .form-grid > div small {
+    display: block;
+    overflow-wrap: anywhere;
+    color: #6d818b;
+    line-height: 1.45;
+}
+
+body[data-workspace-title="Kanal Merkezi"] .detail-card,
+body[data-workspace-title="Kanal Merkezi"] .statement-table-card {
+    margin-bottom: 9px;
+}
+
+body[data-workspace-title="Kanal Merkezi"] .detail-card form > .form-grid {
+    margin-bottom: 9px;
+}

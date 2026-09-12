@@ -12,6 +12,7 @@ use App\Modules\Reports\ReportService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Schedule;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
@@ -28,6 +29,10 @@ final class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        if ($this->app->environment('production')) {
+            URL::forceScheme('https');
+        }
+
         View::composer('operations.index', function ($view): void {
             $user = Auth::user();
             if (! $user instanceof User || ! $user->isPlatformAdmin()) {
