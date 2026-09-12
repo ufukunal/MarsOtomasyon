@@ -80,7 +80,7 @@ final class UpdateArtifactStager
             ->get($url)
             ->throw();
 
-        $declaredLength = (int) ($response->header('Content-Length') ?? 0);
+        $declaredLength = (int) $response->header('Content-Length');
         if ($declaredLength > $maximum) {
             throw new RuntimeException('Update package exceeds the configured size limit.');
         }
