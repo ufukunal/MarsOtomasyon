@@ -15,8 +15,8 @@ final class UpdatePackageStager
         private readonly Filesystem $files,
         private readonly UpdateUrlPolicy $urlPolicy,
         private readonly UpdateRunStore $runs,
-    ) {
-    }
+    )
+    {}
 
     /**
      * @param array<string, bool|int|string|null> $release
