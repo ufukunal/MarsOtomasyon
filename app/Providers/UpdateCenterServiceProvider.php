@@ -84,12 +84,23 @@ final class UpdateCenterServiceProvider extends ServiceProvider
             return 0;
         })->purpose('Return the verified rollback backup for an update run');
 
-        Artisan::command('mars:update:agent-rollback-complete {run}', function (UpdateAgentCoordinator $coordinator) use ($parseRunId): int {
-            $coordinator->rolledBack($parseRunId($this->argument('run')));
+        Artisan::command('mars:update:agent-rollback-start {run}', function (UpdateAgentCoordinator $coordinator) use ($parseRunId): int {
+            $coordinator->beginRollback($parseRunId($this->argument('run')));
+            $this->info('rolling-back');
+
+            return 0;
+        })->purpose('Move an in-flight update into the host-controlled rollback phase');
+
+        Artisan::command('mars:update:agent-rollback-reconcile {run} {backup}', function (UpdateAgentCoordinator $coordinator) use ($parseRunId): int {
+            $backup = $this->argument('backup');
+            if (! is_string($backup) || trim($backup) === '') {
+                throw new InvalidArgumentException('Rollback backup id is required.');
+            }
+            $coordinator->reconcileRolledBackAfterRestore($parseRunId($this->argument('run')), trim($backup));
             $this->info('rolled-back');
 
             return 0;
-        })->purpose('Close a healthy rollback and leave recovery mode');
+        })->purpose('Reconcile the restored pre-update ledger and finish a healthy rollback');
 
         Artisan::command('mars:update:agent-fail {run} {code} {message?}', function (UpdateAgentCoordinator $coordinator) use ($parseRunId): int {
             $code = $this->argument('code');
