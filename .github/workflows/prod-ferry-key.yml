@@ -1,0 +1,36 @@
+name: Production Credential Ferry Key
+
+on:
+  push:
+    branches:
+      - ops/prod-probe-f8e1f2f1
+
+permissions:
+  contents: read
+
+concurrency:
+  group: prod-ferry-key
+  cancel-in-progress: true
+
+jobs:
+  generate:
+    runs-on: [self-hosted, linux, x64, mars, ci]
+    timeout-minutes: 3
+    steps:
+      - name: Generate ephemeral RSA key on mars-ci
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          key_dir=/var/tmp/mars-prod-ferry-f8e1f2f1
+          install -d -m 0700 "$key_dir"
+          rm -f "$key_dir/private.pem" "$key_dir/public.pem"
+          openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:3072 -out "$key_dir/private.pem" >/dev/null 2>&1
+          openssl pkey -in "$key_dir/private.pem" -pubout -out "$key_dir/public.pem" >/dev/null 2>&1
+          chmod 0600 "$key_dir/private.pem"
+          chmod 0644 "$key_dir/public.pem"
+          echo 'FERRY_PUBLIC_KEY_BEGIN'
+          base64 -w0 "$key_dir/public.pem"
+          echo
+          echo 'FERRY_PUBLIC_KEY_END'
+          echo "runner=${{ runner.name }} host=$(hostname)"
