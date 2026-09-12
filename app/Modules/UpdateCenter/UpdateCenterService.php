@@ -30,7 +30,7 @@ final class UpdateCenterService
 
         return [
             'current_version' => (string) config('update-center.current_version', '0.0.0-dev'),
-            'current_build' => (string) config('update-center.current_build', env('MARS_BUILD_SHA', 'unknown')),
+            'current_build' => (string) config('update-center.current_build', 'unknown'),
             'channel' => (string) config('update-center.channel', 'stable'),
             'manifest_url' => $manifestUrl,
             'manifest_configured' => $manifestUrl !== '',
@@ -47,7 +47,7 @@ final class UpdateCenterService
         $operations = $this->health->snapshot();
         $freeBytes = @disk_free_space(storage_path());
         $minimumFree = max(268435456, (int) config('update-center.min_free_bytes', 1073741824));
-        $diskReady = is_float($freeBytes) || is_int($freeBytes) ? $freeBytes >= $minimumFree : false;
+        $diskReady = is_float($freeBytes) && $freeBytes >= $minimumFree;
         $backup = $this->backupReadiness();
         $systemReady = (bool) ($operations['database_ok'] ?? false)
             && (bool) ($operations['valkey_ok'] ?? false)
@@ -61,7 +61,7 @@ final class UpdateCenterService
             'worker_ready' => (bool) ($operations['worker_alive'] ?? false),
             'scheduler_ready' => (bool) ($operations['scheduler_alive'] ?? false),
             'disk_ready' => $diskReady,
-            'disk_free_bytes' => is_float($freeBytes) || is_int($freeBytes) ? (int) $freeBytes : null,
+            'disk_free_bytes' => is_float($freeBytes) ? (int) $freeBytes : null,
             'backup_ready' => $backup['ready'],
             'backup_reason' => $backup['reason'],
             'backup_offsite_required' => $backup['offsite_required'],
