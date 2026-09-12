@@ -64,6 +64,7 @@ final class UpdateArtifactStager
             } catch (\Throwable) {
                 // Preserve the original staging error; lifecycle may already be terminal.
             }
+
             throw $exception;
         }
     }
@@ -115,7 +116,7 @@ final class UpdateArtifactStager
 
     private function extractSafeZip(string $archive, string $release): void
     {
-        $zip = new ZipArchive();
+        $zip = new ZipArchive;
         if ($zip->open($archive, ZipArchive::RDONLY) !== true) {
             throw new RuntimeException('Update package is not a readable ZIP archive.');
         }
