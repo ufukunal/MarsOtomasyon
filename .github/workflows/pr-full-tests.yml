@@ -69,7 +69,7 @@ jobs:
           set -euo pipefail
           cp app/Modules/UpdateCenter/UpdateArtifactStager.php /tmp/UpdateArtifactStager.php.before
           ./vendor/bin/pint app/Modules/UpdateCenter/UpdateArtifactStager.php >/dev/null
-          diff -u /tmp/UpdateArtifactStager.php.before app/Modules/UpdateCenter/UpdateArtifactStager.php || true
+          diff -u /tmp/UpdateArtifactStager.php.before app/Modules/UpdateCenter/UpdateArtifactStager.php
 
       - name: Run Unit Feature Integration and Architecture suites
         run: composer test
