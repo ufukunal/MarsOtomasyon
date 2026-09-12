@@ -1,4 +1,4 @@
-name: Production Drift Inspect
+name: Production State Inspect
 
 on:
   push:
@@ -15,7 +15,7 @@ jobs:
     env:
       PASSWORD_CIPHERTEXT_B64: Cv1uG1W2vAzAoKZhXJxytSMyDJfJNVlDobXrPFXpEzwP46oTsJ/S58RMxEmF7qIHoE6aKYba82bntEjeZh8hEnhZvaHRjlzfyM8HfCUIR4/DFlNWzs4rZMYYuMga977EFXcNGWOi2jJzQAfrvUeGppMjfFFn6NemHgvSOHH5N+bEGAMFNk1jR6yT8BpZ7Ijzgih/88XLMh6OPED0hm6NE1GKGqzCNgIcUBRuxX68Fh93Sl4NhhINC/FfTOgvzkNvsx/HfHA6g2VdMmRk95JoRH7rO/b4v1t5QC4QXQcIqa75dtYhpAfGfcRRGIzXP8YcEN+b7gEcxb5Sr2JOuc554uVMY7HPVzfIGdXNWkdGg7afeW/U0R4gqlcXpohiSTvxA+Ps5q78020BNO4YAFdUuGmm02/LRYP97nIBC2ekGcWzjFCeNQYQnlqpn+kK/7qrf/Wk2VgVa+JCTrCxhQYU3vE/IAQfKsGpOT2BrlhePUxQ/+m+5ew5d/1bg5Z7Gyce
     steps:
-      - name: Read production git drift
+      - name: Read deployed state
         shell: bash
         run: |
           set -euo pipefail
@@ -33,4 +33,24 @@ jobs:
           chmod 0700 "$tmp/askpass"
           ssh-keyscan -T 5 -t ed25519 mars-prod.taila20365.ts.net > "$tmp/known_hosts" 2>/dev/null
           export DISPLAY=:0 SSH_ASKPASS="$tmp/askpass" SSH_ASKPASS_REQUIRE=force
-          setsid -w ssh -o PreferredAuthentications=password -o PubkeyAuthentication=no -o NumberOfPasswordPrompts=1 -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$tmp/known_hosts" ufuk@mars-prod.taila20365.ts.net 'cd /opt/marsotomasyon && echo "--- STATUS ---" && git status --short --untracked-files=no && echo "--- DIFF ---" && git diff -- Dockerfile.production app/Providers/AppServiceProvider.php docker-compose.production.yml'
+          setsid -w ssh -o PreferredAuthentications=password -o PubkeyAuthentication=no -o NumberOfPasswordPrompts=1 -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$tmp/known_hosts" ufuk@mars-prod.taila20365.ts.net 'bash -s' <<'REMOTE'
+          set -eu
+          cd /opt/marsotomasyon
+          echo "GIT_SHA=$(git rev-parse HEAD)"
+          if [ -n "$(git status --porcelain --untracked-files=no)" ]; then echo GIT_DIRTY=yes; else echo GIT_DIRTY=no; fi
+          echo "RECORDED_SHA=$(cat "$HOME/.mars/deployed-sha" 2>/dev/null || true)"
+          echo "WEB_BIND=$(docker compose --env-file .env.production -f docker-compose.production.yml port web 80 | tail -n1)"
+          echo "PHP_VERSION=$(docker exec marsotomasyon-app-1 php -r 'echo PHP_VERSION;')"
+          docker exec marsotomasyon-web-1 nginx -v 2>&1 | sed 's/^/NGINX_/'
+          docker exec marsotomasyon-postgres-1 postgres --version | sed 's/^/POSTGRES_/'
+          docker exec marsotomasyon-valkey-1 valkey-server --version | sed 's/^/VALKEY_/'
+          echo "WORKER=$(docker inspect -f '{{.State.Status}}' marsotomasyon-worker-1)"
+          echo "SCHEDULER=$(docker inspect -f '{{.State.Status}}' marsotomasyon-scheduler-1)"
+          echo "UPDATE_TIMER_ENABLED=$(systemctl is-enabled mars-update-executor.timer 2>/dev/null || true)"
+          echo "UPDATE_TIMER_ACTIVE=$(systemctl is-active mars-update-executor.timer 2>/dev/null || true)"
+          echo "USER_LINGER=$(loginctl show-user "$(id -un)" -p Linger --value 2>/dev/null || true)"
+          echo '--- OPS_STATUS ---'
+          docker compose --env-file .env.production -f docker-compose.production.yml exec -T app php artisan mars:ops-status || true
+          echo '--- TAILSCALE ---'
+          tailscale serve status 2>/dev/null || true
+          REMOTE
