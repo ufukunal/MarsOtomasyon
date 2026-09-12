@@ -1,0 +1,151 @@
+name: Production Exact Deploy V2
+
+on:
+  push:
+    branches: [ops/prod-probe-f8e1f2f1]
+    paths: [.github/workflows/prod-exact-deploy-v2.yml]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mars-prod-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: [self-hosted, linux, x64, mars, ci]
+    timeout-minutes: 45
+    env:
+      TARGET_SHA: f8e1f2f1ad71a0811edbf5f716619df9d9d181bc
+      PASSWORD_CIPHERTEXT_B64: Cv1uG1W2vAzAoKZhXJxytSMyDJfJNVlDobXrPFXpEzwP46oTsJ/S58RMxEmF7qIHoE6aKYba82bntEjeZh8hEnhZvaHRjlzfyM8HfCUIR4/DFlNWzs4rZMYYuMga977EFXcNGWOi2jJzQAfrvUeGppMjfFFn6NemHgvSOHH5N+bEGAMFNk1jR6yT8BpZ7Ijzgih/88XLMh6OPED0hm6NE1GKGqzCNgIcUBRuxX68Fh93Sl4NhhINC/FfTOgvzkNvsx/HfHA6g2VdMmRk95JoRH7rO/b4v1t5QC4QXQcIqa75dtYhpAfGfcRRGIzXP8YcEN+b7gEcxb5Sr2JOuc554uVMY7HPVzfIGdXNWkdGg7afeW/U0R4gqlcXpohiSTvxA+Ps5q78020BNO4YAFdUuGmm02/LRYP97nIBC2ekGcWzjFCeNQYQnlqpn+kK/7qrf/Wk2VgVa+JCTrCxhQYU3vE/IAQfKsGpOT2BrlhePUxQ/+m+5ew5d/1bg5Z7Gyce
+    steps:
+      - name: Deploy exact assured revision
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          key_dir=/var/tmp/mars-prod-ferry-f8e1f2f1
+          tmp="$(mktemp -d)"
+          trap 'rm -rf "$tmp"; unset MARS_DEPLOY_PASSWORD' EXIT
+          printf '%s' "$PASSWORD_CIPHERTEXT_B64" | base64 -d > "$tmp/password.bin"
+          MARS_DEPLOY_PASSWORD="$(openssl pkeyutl -decrypt -inkey "$key_dir/private.pem" -in "$tmp/password.bin" -pkeyopt rsa_padding_mode:oaep -pkeyopt rsa_oaep_md:sha256)"
+          export MARS_DEPLOY_PASSWORD
+          cat > "$tmp/askpass" <<'ASKPASS'
+          #!/bin/sh
+          printf '%s\n' "$MARS_DEPLOY_PASSWORD"
+          ASKPASS
+          chmod 0700 "$tmp/askpass"
+          ssh-keyscan -T 5 -t ed25519 mars-prod.taila20365.ts.net > "$tmp/known_hosts" 2>/dev/null
+          export DISPLAY=:0 SSH_ASKPASS="$tmp/askpass" SSH_ASKPASS_REQUIRE=force
+          setsid -w ssh -o PreferredAuthentications=password -o PubkeyAuthentication=no -o NumberOfPasswordPrompts=1 -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$tmp/known_hosts" ufuk@mars-prod.taila20365.ts.net "TARGET_SHA=$TARGET_SHA bash -s" <<'REMOTE'
+          set -Eeuo pipefail
+          cd /opt/marsotomasyon
+          env_file=.env.production
+          target="$TARGET_SHA"
+          old_sha="$(git rev-parse HEAD)"
+          old_short="${old_sha:0:12}"
+          release_tag="release-${target:0:12}"
+          rollback_tag="rollback-${old_short}"
+          backup_dir="$HOME/.mars-deploy-backups/$(date -u +%Y%m%dT%H%M%SZ)-$old_short"
+          mkdir -p "$backup_dir" "$HOME/.mars"
+          chmod 700 "$HOME/.mars-deploy-backups" "$backup_dir" "$HOME/.mars"
+
+          dirty_paths="$(git status --porcelain --untracked-files=no | awk '{print $2}' | sort)"
+          expected_dirty="$(printf '%s\n' Dockerfile.production app/Providers/AppServiceProvider.php docker-compose.production.yml | sort)"
+          if [ -n "$dirty_paths" ] && [ "$dirty_paths" != "$expected_dirty" ]; then
+            echo 'UNEXPECTED_DIRTY_TREE' >&2
+            git status --short --untracked-files=no >&2
+            exit 20
+          fi
+          git diff > "$backup_dir/predeploy-local.patch"
+          printf '%s\n' "$old_sha" > "$backup_dir/source-sha.txt"
+          cp "$env_file" "$backup_dir/env.production.snapshot"
+          chmod 600 "$backup_dir/env.production.snapshot"
+
+          db_before="$(docker inspect -f '{{.Id}}' marsotomasyon-postgres-1)"
+          valkey_before="$(docker inspect -f '{{.Id}}' marsotomasyon-valkey-1)"
+          old_app_image="$(docker inspect -f '{{.Image}}' marsotomasyon-app-1)"
+          old_web_image="$(docker inspect -f '{{.Image}}' marsotomasyon-web-1)"
+          docker image tag "$old_app_image" "marsotomasyon-app:$rollback_tag"
+          docker image tag "$old_web_image" "marsotomasyon-web:$rollback_tag"
+
+          echo 'SAFETY_DB_DUMP=start'
+          docker compose --env-file "$env_file" -f docker-compose.production.yml exec -T postgres sh -lc 'pg_dump -U "$POSTGRES_USER" "$POSTGRES_DB"' | gzip -1 > "$backup_dir/database.sql.gz"
+          test -s "$backup_dir/database.sql.gz"
+          echo 'SAFETY_STORAGE_ARCHIVE=start'
+          docker compose --env-file "$env_file" -f docker-compose.production.yml exec -T app tar -C /var/www/html/storage -czf - . > "$backup_dir/storage.tar.gz"
+          test -s "$backup_dir/storage.tar.gz"
+          echo "SAFETY_BACKUP_DIR=$backup_dir"
+
+          git fetch --prune origin main
+          git cat-file -e "$target^{commit}"
+          git checkout -q main
+          git reset --hard "$target" >/dev/null
+          test "$(git rev-parse HEAD)" = "$target"
+          echo "CHECKED_OUT_SHA=$target"
+
+          docker compose --env-file "$env_file" -f docker-compose.production.yml config --quiet
+          MARS_IMAGE_TAG="$release_tag" docker compose --env-file "$env_file" -f docker-compose.production.yml build app web
+          docker image inspect "marsotomasyon-app:$release_tag" >/dev/null
+          docker image inspect "marsotomasyon-web:$release_tag" >/dev/null
+
+          rollback_needed=1
+          rollback() {
+            rc=$?
+            if [ "$rollback_needed" -eq 1 ]; then
+              echo "ROLLBACK_START rc=$rc"
+              MARS_IMAGE_TAG="$rollback_tag" docker compose --env-file "$env_file" -f docker-compose.production.yml up -d --no-deps --force-recreate app worker scheduler web || true
+              MARS_IMAGE_TAG="$rollback_tag" docker compose --env-file "$env_file" -f docker-compose.production.yml exec -T app php artisan up >/dev/null 2>&1 || true
+              echo "ROLLBACK_IMAGES=$rollback_tag"
+            fi
+            exit "$rc"
+          }
+          trap rollback EXIT
+
+          docker compose --env-file "$env_file" -f docker-compose.production.yml exec -T app php artisan down --retry=180 >/dev/null || true
+          MARS_IMAGE_TAG="$release_tag" docker compose --env-file "$env_file" -f docker-compose.production.yml run --rm --no-deps app php artisan migrate --force
+          MARS_IMAGE_TAG="$release_tag" docker compose --env-file "$env_file" -f docker-compose.production.yml run --rm --no-deps app php artisan optimize
+          MARS_IMAGE_TAG="$release_tag" docker compose --env-file "$env_file" -f docker-compose.production.yml up -d --no-deps --force-recreate app worker scheduler web
+
+          for attempt in $(seq 1 60); do
+            if curl -fsS --max-time 3 http://127.0.0.1:8080/login >/dev/null; then break; fi
+            [ "$attempt" -lt 60 ] || exit 31
+            sleep 2
+          done
+          MARS_IMAGE_TAG="$release_tag" docker compose --env-file "$env_file" -f docker-compose.production.yml exec -T app php artisan up >/dev/null || true
+
+          port="$(MARS_IMAGE_TAG="$release_tag" docker compose --env-file "$env_file" -f docker-compose.production.yml port web 80 | tail -n1)"
+          test "$port" = '127.0.0.1:8080'
+          test "$db_before" = "$(docker inspect -f '{{.Id}}' marsotomasyon-postgres-1)"
+          test "$valkey_before" = "$(docker inspect -f '{{.Id}}' marsotomasyon-valkey-1)"
+          test "$(git rev-parse HEAD)" = "$target"
+
+          echo '--- MARS_STATUS ---'
+          MARS_IMAGE_TAG="$release_tag" docker compose --env-file "$env_file" -f docker-compose.production.yml exec -T app php artisan mars:status || true
+          echo '--- OPS_STATUS ---'
+          MARS_IMAGE_TAG="$release_tag" docker compose --env-file "$env_file" -f docker-compose.production.yml exec -T app php artisan mars:ops-status || true
+
+          docker image tag "marsotomasyon-app:$release_tag" marsotomasyon-app:current
+          docker image tag "marsotomasyon-web:$release_tag" marsotomasyon-web:current
+          printf '%s\n' "$target" > "$HOME/.mars/deployed-sha"
+          chmod 600 "$HOME/.mars/deployed-sha"
+          rollback_needed=0
+          trap - EXIT
+          echo "DEPLOYED_SHA=$target"
+          echo "WEB_BIND=$port"
+          echo 'DATA_SERVICES_UNCHANGED=yes'
+          echo "APP_IMAGE=$(docker inspect -f '{{.Config.Image}}' marsotomasyon-app-1)"
+          echo "WEB_IMAGE=$(docker inspect -f '{{.Config.Image}}' marsotomasyon-web-1)"
+          echo -n 'NGINX_VERSION='; docker exec marsotomasyon-web-1 nginx -v 2>&1 || true
+          echo -n 'UPDATE_TIMER_ENABLED='; systemctl is-enabled mars-update-executor.timer 2>/dev/null || true
+          echo -n 'UPDATE_TIMER_ACTIVE='; systemctl is-active mars-update-executor.timer 2>/dev/null || true
+          tailscale serve status 2>/dev/null || true
+          REMOTE
+
+      - name: Verify Tailscale HTTPS endpoint
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fsS --max-time 20 https://mars-prod.taila20365.ts.net/login >/dev/null
+          echo 'TAILSCALE_HTTPS_SMOKE=pass'
