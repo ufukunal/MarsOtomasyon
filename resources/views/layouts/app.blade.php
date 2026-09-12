@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>@yield('title', 'MarsOtomasyon') · MarsOtomasyon</title>
-    @vite(['resources/css/app.css', 'resources/css/search.css', 'resources/css/reference-ui.css', 'resources/js/app.js'])
+    @vite(['resources/css/app.css', 'resources/css/search.css', 'resources/css/reference-ui.css', 'resources/css/reference-commerce.css', 'resources/js/app.js'])
     <script src="{{ asset('js/account-profile.js') }}" defer></script>
 </head>
 @php($shell = app(\App\Modules\Core\Shell\ShellContext::class)->state(request()))
