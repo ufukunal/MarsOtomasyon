@@ -164,8 +164,22 @@ if (body?.classList.contains('app-body')) {
         sidebarToggle.addEventListener('click', () => sidebar.classList.toggle('is-open'));
     }
 
+    const menuSearch = document.querySelector('[data-menu-search]');
+    const navItems = [...document.querySelectorAll('[data-nav-item]')];
+    const navSections = [...document.querySelectorAll('[data-nav-section]')];
+    if (menuSearch instanceof HTMLInputElement) {
+        menuSearch.addEventListener('input', () => {
+            const query = menuSearch.value.trim().toLocaleLowerCase('tr-TR');
+            navItems.forEach((item) => {
+                const text = item.getAttribute('data-nav-text') || '';
+                item.toggleAttribute('hidden', query !== '' && !text.includes(query));
+            });
+            navSections.forEach((section) => section.toggleAttribute('hidden', query !== ''));
+        });
+    }
+
     const palette = document.querySelector('[data-command-palette]');
-    const paletteOpen = document.querySelector('[data-command-open]');
+    const paletteOpens = [...document.querySelectorAll('[data-command-open]')];
     const paletteClose = document.querySelector('[data-command-close]');
     const paletteSearch = document.querySelector('[data-command-search]');
     const options = [...document.querySelectorAll('[data-command-option]')];
@@ -182,9 +196,11 @@ if (body?.classList.contains('app-body')) {
         }
     };
 
-    if (paletteOpen instanceof HTMLButtonElement) {
-        paletteOpen.addEventListener('click', openPalette);
-    }
+    paletteOpens.forEach((button) => {
+        if (button instanceof HTMLButtonElement) {
+            button.addEventListener('click', openPalette);
+        }
+    });
     if (paletteClose instanceof HTMLButtonElement && palette instanceof HTMLDialogElement) {
         paletteClose.addEventListener('click', () => palette.close());
     }
