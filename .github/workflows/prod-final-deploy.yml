@@ -1,4 +1,4 @@
-name: Production Runtime Verify
+name: Production Final Verification
 
 on:
   push:
@@ -14,7 +14,7 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
-      - name: Verify exact production runtime
+      - name: Verify exact release and seal production marker
         shell: bash
         run: |
           set -Eeuo pipefail
@@ -37,39 +37,75 @@ jobs:
           export MARS_ENV_FILE="$ENV" MARS_IMAGE_TAG="$TAG"
           COMPOSE=(docker compose --env-file "$ENV" -f "$REL/docker-compose.production.yml")
 
-          echo "RELEASE_WORKTREE_SHA=$(git -C "$REL" rev-parse HEAD)"
-          echo "RELEASE_WORKTREE_DIRTY=$(test -n "$(git -C "$REL" status --porcelain)" && echo yes || echo no)"
+          test -d "$REL"
+          test "$(git -C "$REL" rev-parse HEAD)" = "$RELEASE"
+          test -z "$(git -C "$REL" status --porcelain)"
+
           TARGET_APP_ID="$(docker image inspect "marsotomasyon-app:$TAG" --format '{{.Id}}')"
           TARGET_WEB_ID="$(docker image inspect "marsotomasyon-web:$TAG" --format '{{.Id}}')"
           APP_CID="$(${COMPOSE[@]} ps -q app)"
           WORKER_CID="$(${COMPOSE[@]} ps -q worker)"
           SCHED_CID="$(${COMPOSE[@]} ps -q scheduler)"
           WEB_CID="$(${COMPOSE[@]} ps -q web)"
-          echo "APP_TARGET_MATCH=$(test "$(docker inspect "$APP_CID" --format '{{.Image}}')" = "$TARGET_APP_ID" && echo yes || echo no)"
-          echo "WORKER_TARGET_MATCH=$(test "$(docker inspect "$WORKER_CID" --format '{{.Image}}')" = "$TARGET_APP_ID" && echo yes || echo no)"
-          echo "SCHEDULER_TARGET_MATCH=$(test "$(docker inspect "$SCHED_CID" --format '{{.Image}}')" = "$TARGET_APP_ID" && echo yes || echo no)"
-          echo "WEB_TARGET_MATCH=$(test "$(docker inspect "$WEB_CID" --format '{{.Image}}')" = "$TARGET_WEB_ID" && echo yes || echo no)"
+          test -n "$APP_CID"
+          test -n "$WORKER_CID"
+          test -n "$SCHED_CID"
+          test -n "$WEB_CID"
+          test "$(docker inspect "$APP_CID" --format '{{.Image}}')" = "$TARGET_APP_ID"
+          test "$(docker inspect "$WORKER_CID" --format '{{.Image}}')" = "$TARGET_APP_ID"
+          test "$(docker inspect "$SCHED_CID" --format '{{.Image}}')" = "$TARGET_APP_ID"
+          test "$(docker inspect "$WEB_CID" --format '{{.Image}}')" = "$TARGET_WEB_ID"
+          test "$(docker inspect "$APP_CID" --format '{{.State.Running}}')" = true
+          test "$(docker inspect "$WORKER_CID" --format '{{.State.Running}}')" = true
+          test "$(docker inspect "$SCHED_CID" --format '{{.State.Running}}')" = true
+          test "$(docker inspect "$WEB_CID" --format '{{.State.Running}}')" = true
 
           "${COMPOSE[@]}" exec -T app php artisan mars:ops-status </dev/null
-          echo 'DASHBOARD_ROUTES_BEGIN'
-          "${COMPOSE[@]}" exec -T app php artisan route:list --path=dashboard </dev/null || true
-          echo 'DASHBOARD_ROUTES_END'
+          WORKSPACE_ROUTES="$(${COMPOSE[@]} exec -T app php artisan route:list --path=workspace </dev/null)"
+          printf '%s\n' "$WORKSPACE_ROUTES" | grep -q 'workspace'
 
           APP_URL_VALUE="$(${COMPOSE[@]} exec -T app sh -lc 'printf %s "$APP_URL"' </dev/null)"
           APP_HOST="$(printf '%s' "$APP_URL_VALUE" | sed -E 's#^[a-zA-Z]+://([^/:]+).*#\1#')"
+          test -n "$APP_HOST"
+
           LOGIN_IP_CODE="$(curl -sS -o /dev/null -w '%{http_code}' http://127.0.0.1:8080/login)"
-          DASH_IP_CODE="$(curl -sS -o /dev/null -w '%{http_code}' http://127.0.0.1:8080/dashboard)"
           LOGIN_HOST_CODE="$(curl -sS -H "Host: $APP_HOST" -o /dev/null -w '%{http_code}' http://127.0.0.1:8080/login)"
-          DASH_HOST_CODE="$(curl -sS -H "Host: $APP_HOST" -o /dev/null -w '%{http_code}' http://127.0.0.1:8080/dashboard)"
-          echo "LOGIN_IP_HTTP=$LOGIN_IP_CODE"
-          echo "DASHBOARD_IP_HTTP=$DASH_IP_CODE"
-          echo "LOGIN_HOST_HTTP=$LOGIN_HOST_CODE"
-          echo "DASHBOARD_HOST_HTTP=$DASH_HOST_CODE"
+          WORKSPACE_IP_CODE="$(curl -sS -o /dev/null -w '%{http_code}' http://127.0.0.1:8080/workspace)"
+          WORKSPACE_HOST_CODE="$(curl -sS -H "Host: $APP_HOST" -o /dev/null -w '%{http_code}' http://127.0.0.1:8080/workspace)"
+          test "$LOGIN_IP_CODE" = 200
+          test "$LOGIN_HOST_CODE" = 200
+          case "$WORKSPACE_IP_CODE" in 200|301|302|303|307|308) ;; *) exit 1 ;; esac
+          case "$WORKSPACE_HOST_CODE" in 200|301|302|303|307|308) ;; *) exit 1 ;; esac
 
           POSTGRES_CID="$(${COMPOSE[@]} ps -q postgres)"
           VALKEY_CID="$(${COMPOSE[@]} ps -q valkey)"
-          echo "POSTGRES_HEALTH=$(docker inspect "$POSTGRES_CID" --format '{{if .State.Health}}{{.State.Health.Status}}{{end}}')"
-          echo "VALKEY_HEALTH=$(docker inspect "$VALKEY_CID" --format '{{if .State.Health}}{{.State.Health.Status}}{{end}}')"
+          test -n "$POSTGRES_CID"
+          test -n "$VALKEY_CID"
+          POSTGRES_HEALTH="$(docker inspect "$POSTGRES_CID" --format '{{if .State.Health}}{{.State.Health.Status}}{{end}}')"
+          VALKEY_HEALTH="$(docker inspect "$VALKEY_CID" --format '{{if .State.Health}}{{.State.Health.Status}}{{end}}')"
+          test "$POSTGRES_HEALTH" = healthy
+          test "$VALKEY_HEALTH" = healthy
+
+          printf '%s\n' "$RELEASE" > "$ROOT/.mars-production-release"
+          test "$(cat "$ROOT/.mars-production-release")" = "$RELEASE"
+
+          echo "PRODUCTION_RELEASE=$RELEASE"
+          echo "RELEASE_WORKTREE_SHA=$(git -C "$REL" rev-parse HEAD)"
+          echo "RELEASE_WORKTREE_DIRTY=no"
+          echo "APP_TARGET_MATCH=yes"
+          echo "WORKER_TARGET_MATCH=yes"
+          echo "SCHEDULER_TARGET_MATCH=yes"
+          echo "WEB_TARGET_MATCH=yes"
+          echo "LOGIN_IP_HTTP=$LOGIN_IP_CODE"
+          echo "LOGIN_HOST_HTTP=$LOGIN_HOST_CODE"
+          echo "WORKSPACE_IP_HTTP=$WORKSPACE_IP_CODE"
+          echo "WORKSPACE_HOST_HTTP=$WORKSPACE_HOST_CODE"
+          echo "POSTGRES_HEALTH=$POSTGRES_HEALTH"
+          echo "VALKEY_HEALTH=$VALKEY_HEALTH"
+          echo "PRODUCTION_MARKER=$(cat "$ROOT/.mars-production-release")"
+          echo 'ROOT_STATUS_BEGIN'
+          git -C "$ROOT" status --porcelain || true
+          echo 'ROOT_STATUS_END'
           echo 'SERVICES_BEGIN'
           "${COMPOSE[@]}" ps
           echo 'SERVICES_END'
