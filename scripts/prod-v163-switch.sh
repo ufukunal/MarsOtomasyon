@@ -7,14 +7,31 @@ TAG=release-${RELEASE:0:12}
 REL="$ROOT/.mars-releases/$RELEASE"
 ENV="$ROOT/.env.production"
 ROLLBACK_TAG=rollback-pre-v163-$(date -u +%Y%m%dT%H%M%SZ)
+DEPLOY_STARTED=0
+DEPLOY_OK=0
 
 export MARS_ENV_FILE="$ENV"
 COMPOSE=(docker compose --env-file "$ENV" -f "$REL/docker-compose.production.yml")
 
 fail() {
   echo "ERROR: $*" >&2
-  exit 1
+  return 1
 }
+
+on_exit() {
+  rc=$?
+  trap - EXIT
+  if [ "$DEPLOY_STARTED" -eq 1 ] && [ "$DEPLOY_OK" -ne 1 ]; then
+    echo "ROLLBACK_BEGIN rc=$rc tag=$ROLLBACK_TAG"
+    export MARS_IMAGE_TAG="$ROLLBACK_TAG"
+    "${COMPOSE[@]}" up -d --no-build --no-deps app worker scheduler web </dev/null || true
+    "${COMPOSE[@]}" ps || true
+    "${COMPOSE[@]}" exec -T app php artisan mars:ops-status </dev/null || true
+    echo "ROLLBACK_END tag=$ROLLBACK_TAG"
+  fi
+  exit "$rc"
+}
+trap on_exit EXIT
 
 [ -d "$REL" ] || fail "release worktree missing: $REL"
 [ -f "$ENV" ] || fail "production env missing: $ENV"
@@ -45,19 +62,7 @@ echo 'PRE_DEPLOY_ROOT_STATUS_BEGIN'
 git -C "$ROOT" status --porcelain 2>/dev/null || true
 echo 'PRE_DEPLOY_ROOT_STATUS_END'
 
-do_rollback() {
-  rc=$?
-  trap - ERR
-  echo "ROLLBACK_BEGIN rc=$rc tag=$ROLLBACK_TAG"
-  export MARS_IMAGE_TAG="$ROLLBACK_TAG"
-  "${COMPOSE[@]}" up -d --no-build --no-deps app worker scheduler web </dev/null || true
-  "${COMPOSE[@]}" ps || true
-  "${COMPOSE[@]}" exec -T app php artisan mars:ops-status </dev/null || true
-  echo "ROLLBACK_END tag=$ROLLBACK_TAG"
-  exit "$rc"
-}
-trap do_rollback ERR
-
+DEPLOY_STARTED=1
 export MARS_IMAGE_TAG="$TAG"
 "${COMPOSE[@]}" up -d --no-build --no-deps app worker scheduler web </dev/null
 
@@ -90,16 +95,17 @@ TARGET_WEB_ID="$(docker image inspect "marsotomasyon-web:$TAG" --format '{{.Id}}
 
 "${COMPOSE[@]}" exec -T app php artisan optimize </dev/null
 "${COMPOSE[@]}" exec -T app php artisan mars:ops-status </dev/null
+"${COMPOSE[@]}" exec -T app php artisan route:list --path=workspace </dev/null | grep -q 'workspace' || fail "workspace route missing"
 
 LOGIN_CODE="$(curl -sS -o /tmp/mars-v163-login.html -w '%{http_code}' http://127.0.0.1:8080/login)"
 [ "$LOGIN_CODE" = 200 ] || fail "login HTTP status is $LOGIN_CODE"
 grep -Eq 'Oturum Aç|Giriş|login' /tmp/mars-v163-login.html || fail "login page marker missing"
 rm -f /tmp/mars-v163-login.html
 
-DASH_CODE="$(curl -sS -o /dev/null -w '%{http_code}' http://127.0.0.1:8080/dashboard)"
-case "$DASH_CODE" in
+WORKSPACE_CODE="$(curl -sS -o /dev/null -w '%{http_code}' http://127.0.0.1:8080/workspace)"
+case "$WORKSPACE_CODE" in
   200|301|302|303|307|308) ;;
-  *) fail "dashboard HTTP status is $DASH_CODE" ;;
+  *) fail "workspace HTTP status is $WORKSPACE_CODE" ;;
 esac
 
 POSTGRES_CID="$(${COMPOSE[@]} ps -q postgres)"
@@ -111,13 +117,13 @@ VALKEY_CID="$(${COMPOSE[@]} ps -q valkey)"
 [ "$(docker inspect "$POSTGRES_CID" --format '{{if .State.Health}}{{.State.Health.Status}}{{end}}')" = healthy ] || fail "postgres not healthy"
 [ "$(docker inspect "$VALKEY_CID" --format '{{if .State.Health}}{{.State.Health.Status}}{{end}}')" = healthy ] || fail "valkey not healthy"
 
-trap - ERR
 printf '%s\n' "$RELEASE" > "$ROOT/.mars-production-release"
+DEPLOY_OK=1
 
 echo "PRODUCTION_RELEASE=$RELEASE"
 echo "PRODUCTION_TAG=$TAG"
 echo "LOGIN_HTTP=$LOGIN_CODE"
-echo "DASHBOARD_HTTP=$DASH_CODE"
+echo "WORKSPACE_HTTP=$WORKSPACE_CODE"
 echo "APP_IMAGE_ID=$TARGET_APP_ID"
 echo "WEB_IMAGE_ID=$TARGET_WEB_ID"
 echo "POSTGRES_HEALTH=healthy"
