@@ -46,7 +46,7 @@
                 <span class="subtle">{{ $accounts->total() }} kayıt</span>
                 <div class="grow"></div>
                 @can('accounts.manage')
-                    <a class="button-primary" href="{{ route('customers.create') }}" data-workspace-link>＋ Yeni Cari</a>
+                    <a class="button-primary" href="{{ route('customers.create') }}" data-workspace-link>Yeni Cari</a>
                 @endcan
             </div>
             <div class="statement-table-card">
@@ -76,7 +76,7 @@
                                 </span>
                             </td>
                             <td>{{ $account->statusEnum()->label() }}</td>
-                            <td><a href="{{ route('customers.show', $account->getKey()) }}" data-workspace-link>Detay ↗</a></td>
+                            <td><a href="{{ route('customers.show', $account->getKey()) }}" data-workspace-link>Detay</a></td>
                         </tr>
                     @empty
                         <tr>
