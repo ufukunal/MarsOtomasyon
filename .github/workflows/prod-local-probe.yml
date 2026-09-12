@@ -1,0 +1,39 @@
+name: Production Local Probe
+
+on:
+  push:
+    branches:
+      - ops/prod-local-deploy-20260913
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: [self-hosted, linux, x64, mars, ci]
+    timeout-minutes: 5
+    steps:
+      - name: Probe runner production locality
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          echo "HOSTNAME=$(hostname)"
+          echo "USER=$(id -un)"
+          if [ -d /opt/marsotomasyon ]; then
+            echo "PROD_ROOT=present"
+            echo "ROOT_SHA=$(git -C /opt/marsotomasyon rev-parse HEAD 2>/dev/null || echo unavailable)"
+            echo 'ROOT_STATUS_BEGIN'
+            git -C /opt/marsotomasyon status --porcelain 2>/dev/null || true
+            echo 'ROOT_STATUS_END'
+          else
+            echo "PROD_ROOT=absent"
+          fi
+          if command -v docker >/dev/null 2>&1; then
+            echo "DOCKER=present"
+            docker version --format 'DOCKER_SERVER={{.Server.Version}}' 2>/dev/null || echo 'DOCKER_SERVER=unavailable'
+            echo 'DOCKER_PS_BEGIN'
+            docker ps --format '{{.Names}}|{{.Image}}|{{.Status}}' 2>/dev/null || true
+            echo 'DOCKER_PS_END'
+          else
+            echo "DOCKER=absent"
+          fi
