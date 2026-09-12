@@ -1,4 +1,4 @@
-name: Production Transport Prepare
+name: Production Hotfix Diff
 
 on:
   push:
@@ -9,19 +9,50 @@ permissions:
   contents: read
 
 jobs:
-  prepare:
+  diff:
     runs-on: [self-hosted, linux, x64, mars, ci]
-    timeout-minutes: 5
+    timeout-minutes: 10
     steps:
-      - name: Generate ephemeral transport key
+      - uses: actions/checkout@v4
+      - name: Capture production hotfix diff
         shell: bash
         run: |
           set -euo pipefail
           key=/tmp/mars-prod-transport-20260913.pem
-          umask 077
-          rm -f "$key"
-          openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:3072 -out "$key" >/dev/null 2>&1
-          chmod 600 "$key"
-          echo 'PUBLIC_KEY_BEGIN'
-          openssl pkey -in "$key" -pubout
-          echo 'PUBLIC_KEY_END'
+          pass=/tmp/mars-prod-pass-20260913
+          cipher=/tmp/mars-prod-pass-20260913.bin
+          askpass=/tmp/mars-prod-askpass-20260913
+          known=/tmp/mars-prod-known-hosts-20260913
+          cleanup() { rm -f "$pass" "$cipher" "$askpass" "$known"; }
+          trap cleanup EXIT
+          test -s "$key"
+          base64 -d .ops/prod-pass.enc > "$cipher"
+          openssl pkeyutl -decrypt -inkey "$key" -in "$cipher" -out "$pass" -pkeyopt rsa_padding_mode:oaep -pkeyopt rsa_oaep_md:sha256
+          chmod 600 "$pass"
+          secret="$(cat "$pass")"
+          echo "::add-mask::$secret"
+          unset secret
+          cat > "$askpass" <<'EOF'
+          #!/usr/bin/env bash
+          cat /tmp/mars-prod-pass-20260913
+          EOF
+          chmod 700 "$askpass"
+          ssh-keyscan -T 5 -t ed25519 mars-prod.taila20365.ts.net > "$known" 2>/dev/null
+          fp="$(ssh-keygen -lf "$known" -E sha256 | awk '{print $2}')"
+          test "$fp" = 'SHA256:HBjgtjY+qIJiw00Cf7uzej/UIKWANYIjVe0VSz6Uh2I'
+          export SSH_ASKPASS="$askpass" SSH_ASKPASS_REQUIRE=force DISPLAY=:0
+          setsid ssh -o UserKnownHostsFile="$known" -o StrictHostKeyChecking=yes -o PreferredAuthentications=password -o PubkeyAuthentication=no -o NumberOfPasswordPrompts=1 -o ConnectTimeout=10 ufuk@mars-prod.taila20365.ts.net 'bash -se' <<'REMOTE'
+          set -euo pipefail
+          cd /opt/marsotomasyon
+          echo 'PROD_DIFF_BEGIN'
+          git diff --no-ext-diff --no-color -- Dockerfile.production app/Providers/AppServiceProvider.php docker-compose.production.yml
+          echo 'PROD_DIFF_END'
+          echo 'UNTRACKED_META_BEGIN'
+          for f in Dockerfile.production.before-php85-fix app/Providers/AppServiceProvider.php.before-https-fix docker-compose.production.yml.before-pg18-fix docker-compose.tailscale.yml; do
+            if [ -e "$f" ]; then
+              printf '%s\t' "$f"
+              wc -c < "$f" | tr -d ' '
+            fi
+          done
+          echo 'UNTRACKED_META_END'
+          REMOTE
