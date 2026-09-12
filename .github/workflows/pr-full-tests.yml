@@ -15,7 +15,7 @@ concurrency:
 jobs:
   full-php-tests:
     runs-on: [self-hosted, linux, x64, mars, ci]
-    timeout-minutes: 30
+    timeout-minutes: 60
     env:
       APP_NAME: MarsOtomasyon
       APP_ENV: testing
@@ -42,6 +42,7 @@ jobs:
       REDIS_QUEUE_DB: 2
       REDIS_SESSION_DB: 3
       REDIS_QUEUE: mars-full-${{ github.run_id }}
+      COMPOSER_PROCESS_TIMEOUT: 3600
     steps:
       - uses: actions/checkout@v4
         with:
