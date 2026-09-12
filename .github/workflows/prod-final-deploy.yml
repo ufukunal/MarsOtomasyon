@@ -1,4 +1,4 @@
-name: Production Final Deploy
+name: Production Runtime Verify
 
 on:
   push:
@@ -9,12 +9,12 @@ permissions:
   contents: read
 
 jobs:
-  deploy:
+  verify:
     runs-on: [self-hosted, linux, x64, mars, ci]
-    timeout-minutes: 20
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
-      - name: Deploy prepared exact release and verify production
+      - name: Verify exact production runtime
         shell: bash
         run: |
           set -Eeuo pipefail
@@ -27,4 +27,50 @@ jobs:
           ' .github/workflows/diagnose-pr.yml > "$bootstrap"
           grep -Fq 'export SSH_ASKPASS=' "$bootstrap"
           source "$bootstrap"
-          setsid ssh -o UserKnownHostsFile="$known" -o StrictHostKeyChecking=yes -o PreferredAuthentications=password -o PubkeyAuthentication=no -o NumberOfPasswordPrompts=1 ufuk@mars-prod.taila20365.ts.net 'bash -se' < scripts/prod-v163-switch.sh
+          setsid ssh -o UserKnownHostsFile="$known" -o StrictHostKeyChecking=yes -o PreferredAuthentications=password -o PubkeyAuthentication=no -o NumberOfPasswordPrompts=1 ufuk@mars-prod.taila20365.ts.net 'bash -se' <<'REMOTE'
+          set -Eeuo pipefail
+          ROOT=/opt/marsotomasyon
+          RELEASE=6e5a91b74f1bac3fede949f8479b17367e04c71c
+          TAG=release-${RELEASE:0:12}
+          REL="$ROOT/.mars-releases/$RELEASE"
+          ENV="$ROOT/.env.production"
+          export MARS_ENV_FILE="$ENV" MARS_IMAGE_TAG="$TAG"
+          COMPOSE=(docker compose --env-file "$ENV" -f "$REL/docker-compose.production.yml")
+
+          echo "RELEASE_WORKTREE_SHA=$(git -C "$REL" rev-parse HEAD)"
+          echo "RELEASE_WORKTREE_DIRTY=$(test -n "$(git -C "$REL" status --porcelain)" && echo yes || echo no)"
+          TARGET_APP_ID="$(docker image inspect "marsotomasyon-app:$TAG" --format '{{.Id}}')"
+          TARGET_WEB_ID="$(docker image inspect "marsotomasyon-web:$TAG" --format '{{.Id}}')"
+          APP_CID="$(${COMPOSE[@]} ps -q app)"
+          WORKER_CID="$(${COMPOSE[@]} ps -q worker)"
+          SCHED_CID="$(${COMPOSE[@]} ps -q scheduler)"
+          WEB_CID="$(${COMPOSE[@]} ps -q web)"
+          echo "APP_TARGET_MATCH=$(test "$(docker inspect "$APP_CID" --format '{{.Image}}')" = "$TARGET_APP_ID" && echo yes || echo no)"
+          echo "WORKER_TARGET_MATCH=$(test "$(docker inspect "$WORKER_CID" --format '{{.Image}}')" = "$TARGET_APP_ID" && echo yes || echo no)"
+          echo "SCHEDULER_TARGET_MATCH=$(test "$(docker inspect "$SCHED_CID" --format '{{.Image}}')" = "$TARGET_APP_ID" && echo yes || echo no)"
+          echo "WEB_TARGET_MATCH=$(test "$(docker inspect "$WEB_CID" --format '{{.Image}}')" = "$TARGET_WEB_ID" && echo yes || echo no)"
+
+          "${COMPOSE[@]}" exec -T app php artisan mars:ops-status </dev/null
+          echo 'DASHBOARD_ROUTES_BEGIN'
+          "${COMPOSE[@]}" exec -T app php artisan route:list --path=dashboard </dev/null || true
+          echo 'DASHBOARD_ROUTES_END'
+
+          APP_URL_VALUE="$(${COMPOSE[@]} exec -T app sh -lc 'printf %s "$APP_URL"' </dev/null)"
+          APP_HOST="$(printf '%s' "$APP_URL_VALUE" | sed -E 's#^[a-zA-Z]+://([^/:]+).*#\1#')"
+          LOGIN_IP_CODE="$(curl -sS -o /dev/null -w '%{http_code}' http://127.0.0.1:8080/login)"
+          DASH_IP_CODE="$(curl -sS -o /dev/null -w '%{http_code}' http://127.0.0.1:8080/dashboard)"
+          LOGIN_HOST_CODE="$(curl -sS -H "Host: $APP_HOST" -o /dev/null -w '%{http_code}' http://127.0.0.1:8080/login)"
+          DASH_HOST_CODE="$(curl -sS -H "Host: $APP_HOST" -o /dev/null -w '%{http_code}' http://127.0.0.1:8080/dashboard)"
+          echo "LOGIN_IP_HTTP=$LOGIN_IP_CODE"
+          echo "DASHBOARD_IP_HTTP=$DASH_IP_CODE"
+          echo "LOGIN_HOST_HTTP=$LOGIN_HOST_CODE"
+          echo "DASHBOARD_HOST_HTTP=$DASH_HOST_CODE"
+
+          POSTGRES_CID="$(${COMPOSE[@]} ps -q postgres)"
+          VALKEY_CID="$(${COMPOSE[@]} ps -q valkey)"
+          echo "POSTGRES_HEALTH=$(docker inspect "$POSTGRES_CID" --format '{{if .State.Health}}{{.State.Health.Status}}{{end}}')"
+          echo "VALKEY_HEALTH=$(docker inspect "$VALKEY_CID" --format '{{if .State.Health}}{{.State.Health.Status}}{{end}}')"
+          echo 'SERVICES_BEGIN'
+          "${COMPOSE[@]}" ps
+          echo 'SERVICES_END'
+          REMOTE
