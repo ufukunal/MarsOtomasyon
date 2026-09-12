@@ -6,6 +6,7 @@ export default defineConfig({
         laravel({
             input: [
                 'resources/css/app.css',
+                'resources/css/v16-3-reference.css',
                 'resources/js/app.js',
                 'resources/css/search.css',
                 'resources/css/sales-order-product-search.css',
