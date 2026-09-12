@@ -132,7 +132,7 @@ final class UpdatePackageStager
     /** @return array{int,int} */
     private function extractVerifiedZip(string $packagePath, string $releasePath): array
     {
-        $zip = new ZipArchive();
+        $zip = new ZipArchive;
         if ($zip->open($packagePath) !== true) {
             throw new RuntimeException('Update package is not a valid ZIP archive.');
         }
