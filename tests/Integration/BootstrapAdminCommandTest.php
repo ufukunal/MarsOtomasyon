@@ -27,10 +27,10 @@ it('bootstraps the first admin company branch membership and permissions idempot
         ->and(DB::table('companies')->where('code', 'MARS')->count())->toBe(1)
         ->and(DB::table('branches')->where('code', 'MERKEZ')->count())->toBe(1)
         ->and(DB::table('company_memberships')->where('user_id', $user->id)->count())->toBe(1)
-        ->and(DB::table('roles')->where('code', 'PLATFORM_ADMIN')->count())->toBe(1);
+        ->and(DB::table('roles')->where('code', 'platform_admin')->count())->toBe(1);
 
     $permissionCount = DB::table('permissions')->count();
-    $roleId = (int) DB::table('roles')->where('code', 'PLATFORM_ADMIN')->value('id');
+    $roleId = (int) DB::table('roles')->where('code', 'platform_admin')->value('id');
     expect(DB::table('role_permissions')->where('role_id', $roleId)->count())->toBe($permissionCount);
 
     $this->artisan('mars:bootstrap-admin', [
