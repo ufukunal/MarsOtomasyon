@@ -19,7 +19,7 @@ RUN set -eux; \
     apt-get update; \
     apt-get install -y --no-install-recommends \
         ca-certificates curl gnupg unzip git \
-        libicu-dev libonig-dev libpq-dev libxml2-dev libzip-dev \
+        libicu-dev libpq-dev libzip-dev \
         $PHPIZE_DEPS; \
     install -d /usr/share/postgresql-common/pgdg; \
     curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc; \
@@ -27,7 +27,7 @@ RUN set -eux; \
     echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt ${VERSION_CODENAME}-pgdg main" > /etc/apt/sources.list.d/pgdg.list; \
     apt-get update; \
     apt-get install -y --no-install-recommends postgresql-client-18; \
-    docker-php-ext-install -j"$(nproc)" bcmath dom intl mbstring opcache pcntl pdo_pgsql zip; \
+    docker-php-ext-install -j"$(nproc)" bcmath intl pcntl pdo_pgsql zip; \
     pecl install redis; \
     docker-php-ext-enable redis; \
     apt-get purge -y --auto-remove $PHPIZE_DEPS; \
@@ -43,6 +43,7 @@ COPY . .
 COPY --from=assets /src/public/build ./public/build
 
 RUN composer dump-autoload --no-dev --classmap-authoritative --no-scripts; \
+    chmod -R a+rX /var/www/html; \
     mkdir -p storage/app/private storage/framework/cache storage/framework/sessions storage/framework/views storage/logs bootstrap/cache; \
     chown -R www-data:www-data storage bootstrap/cache
 
