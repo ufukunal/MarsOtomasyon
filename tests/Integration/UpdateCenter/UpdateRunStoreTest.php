@@ -3,8 +3,11 @@
 use App\Modules\UpdateCenter\UpdateRunState;
 use App\Modules\UpdateCenter\UpdateRunStore;
 use DomainException;
+use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+
+uses(DatabaseMigrations::class);
 
 beforeEach(function (): void {
     DB::table('update_runs')->delete();
