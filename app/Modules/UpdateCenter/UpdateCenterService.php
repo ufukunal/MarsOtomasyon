@@ -66,7 +66,7 @@ final class UpdateCenterService
             ->get($manifestUrl);
 
         if ($response->redirect()) {
-            throw new InvalidArgumentException('Update manifest redirects are not allowed.');
+            throw new InvalidArgumentException('Update manifest redirects are not allowed; response must be a JSON object.');
         }
         $response->throw();
 
