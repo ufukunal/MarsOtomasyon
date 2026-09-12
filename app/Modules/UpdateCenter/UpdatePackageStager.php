@@ -15,7 +15,9 @@ final class UpdatePackageStager
         private readonly Filesystem $files,
         private readonly UpdateUrlPolicy $urlPolicy,
         private readonly UpdateRunStore $runs,
-    ) {}
+    ) {
+        // Dependencies are constructor-promoted and intentionally immutable.
+    }
 
     /**
      * @param array<string, bool|int|string|null> $release
