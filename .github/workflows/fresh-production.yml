@@ -62,6 +62,19 @@ jobs:
           $compose run --rm app test -r artisan
           $compose run --rm app php artisan --version
 
+      - name: Verify Nginx 1.28 Alpine production image contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          compose='docker compose --env-file .env.production -f docker-compose.production.yml'
+          grep -Eq '^FROM nginx:1\.28-alpine AS web$' Dockerfile.production
+          version="$($compose run --rm --no-deps web nginx -v 2>&1)"
+          printf '%s\n' "$version"
+          grep -Eq 'nginx/1\.28\.[0-9]+' <<<"$version"
+          alpine="$($compose run --rm --no-deps web cat /etc/alpine-release)"
+          printf 'Alpine %s\n' "$alpine"
+          test -n "$alpine"
+
       - name: Boot fresh PostgreSQL 18 and Valkey
         shell: bash
         run: |
