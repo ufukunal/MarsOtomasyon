@@ -53,8 +53,8 @@ it('drives the authenticated V16.3 shell tabs and command palette without browse
         ->assertNoJavaScriptErrors();
 
     $page->click('[data-command-close]')
-        ->click('[data-nav-group]:last-of-type > summary')
-        ->click('Ayarlar')
+        ->click('[data-nav-group]:has(a[href="/settings"]) > summary')
+        ->click('[data-nav-group] a[href="/settings"]')
         ->assertPathIs('/settings')
         ->assertCount('.workspace-tab', 2)
         ->assertNoJavaScriptErrors()
