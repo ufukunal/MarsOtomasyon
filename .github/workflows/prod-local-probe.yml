@@ -1,4 +1,4 @@
-name: Production Local Probe
+name: Production SSH Probe
 
 on:
   push:
@@ -13,27 +13,12 @@ jobs:
     runs-on: [self-hosted, linux, x64, mars, ci]
     timeout-minutes: 5
     steps:
-      - name: Probe runner production locality
+      - name: Probe direct production SSH access
         shell: bash
         run: |
           set -Eeuo pipefail
-          echo "HOSTNAME=$(hostname)"
-          echo "USER=$(id -un)"
-          if [ -d /opt/marsotomasyon ]; then
-            echo "PROD_ROOT=present"
-            echo "ROOT_SHA=$(git -C /opt/marsotomasyon rev-parse HEAD 2>/dev/null || echo unavailable)"
-            echo 'ROOT_STATUS_BEGIN'
-            git -C /opt/marsotomasyon status --porcelain 2>/dev/null || true
-            echo 'ROOT_STATUS_END'
-          else
-            echo "PROD_ROOT=absent"
-          fi
-          if command -v docker >/dev/null 2>&1; then
-            echo "DOCKER=present"
-            docker version --format 'DOCKER_SERVER={{.Server.Version}}' 2>/dev/null || echo 'DOCKER_SERVER=unavailable'
-            echo 'DOCKER_PS_BEGIN'
-            docker ps --format '{{.Names}}|{{.Image}}|{{.Status}}' 2>/dev/null || true
-            echo 'DOCKER_PS_END'
-          else
-            echo "DOCKER=absent"
-          fi
+          known="$(mktemp)"
+          trap 'rm -f "$known"' EXIT
+          ssh-keyscan -T 5 -t ed25519 mars-prod.taila20365.ts.net > "$known" 2>/dev/null
+          test "$(ssh-keygen -lf "$known" -E sha256 | awk '{print $2}')" = 'SHA256:HBjgtjY+qIJiw00Cf7uzej/UIKWANYIjVe0VSz6Uh2I'
+          ssh -o BatchMode=yes -o ConnectTimeout=5 -o UserKnownHostsFile="$known" -o StrictHostKeyChecking=yes ufuk@mars-prod.taila20365.ts.net 'hostname; test -d /opt/marsotomasyon && echo PROD_ROOT=present; git -C /opt/marsotomasyon rev-parse HEAD; docker ps --format "{{.Names}}|{{.Image}}|{{.Status}}"'
