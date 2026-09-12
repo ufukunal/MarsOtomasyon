@@ -6,7 +6,6 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use InvalidArgumentException;
-use RuntimeException;
 
 final class BootstrapAdminCommand extends Command
 {
@@ -41,7 +40,9 @@ final class BootstrapAdminCommand extends Command
 
         $existingUser = DB::table('users')->whereRaw('lower(email) = ?', [$email])->first();
         if ($existingUser === null && DB::table('users')->exists()) {
-            throw new RuntimeException('Bootstrap creation is only allowed when no users exist. Use the existing administration flow for additional users.');
+            $this->error('Bootstrap creation is only allowed when no users exist. Use the existing administration flow for additional users.');
+
+            return self::FAILURE;
         }
 
         $passwordHash = null;
