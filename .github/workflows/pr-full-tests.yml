@@ -63,14 +63,6 @@ jobs:
       - name: Install PHP dependencies
         run: composer install --no-interaction --prefer-dist --no-progress
 
-      - name: Diagnose Pint formatting diff
-        shell: bash
-        run: |
-          set -euo pipefail
-          cp app/Modules/UpdateCenter/UpdateArtifactStager.php /tmp/UpdateArtifactStager.php.before
-          ./vendor/bin/pint app/Modules/UpdateCenter/UpdateArtifactStager.php >/dev/null
-          diff -u /tmp/UpdateArtifactStager.php.before app/Modules/UpdateCenter/UpdateArtifactStager.php
-
       - name: Run Unit Feature Integration and Architecture suites
         run: composer test
 
