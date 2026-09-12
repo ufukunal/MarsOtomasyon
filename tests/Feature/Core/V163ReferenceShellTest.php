@@ -13,7 +13,7 @@ final class V163ReferenceShellTest extends TestCase
 
         self::assertIsString($layout);
         self::assertIsString($css);
-        self::assertStringContainsString("resources/css/v16-3-reference.css", $layout);
+        self::assertStringContainsString('resources/css/v16-3-reference.css', $layout);
         self::assertStringContainsString('Kişiler / Firmalar', $layout);
         self::assertStringContainsString('Ürünler ve Hizmetler', $layout);
         self::assertStringContainsString('Satış Yönetimi', $layout);
