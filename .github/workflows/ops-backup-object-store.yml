@@ -1,0 +1,65 @@
+name: Ops Backup Object Store
+
+on:
+  push:
+    branches: [ops/prod-probe-f8e1f2f1]
+    paths: [.github/workflows/ops-backup-object-store.yml]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mars-backup-object-store
+  cancel-in-progress: false
+
+jobs:
+  provision:
+    runs-on: [self-hosted, linux, x64, mars, ci]
+    timeout-minutes: 10
+    steps:
+      - name: Provision Tailnet-only SeaweedFS S3 endpoint
+        shell: bash
+        run: |
+          set -euo pipefail
+          ci_ip="$(tailscale ip -4 | head -n1)"
+          test -n "$ci_ip"
+
+          access_key=''
+          secret_key=''
+          if docker container inspect mars-backup-s3 >/dev/null 2>&1; then
+            while IFS= read -r env_line; do
+              case "$env_line" in
+                AWS_ACCESS_KEY_ID=*) access_key="${env_line#AWS_ACCESS_KEY_ID=}" ;;
+                AWS_SECRET_ACCESS_KEY=*) secret_key="${env_line#AWS_SECRET_ACCESS_KEY=}" ;;
+              esac
+            done < <(docker inspect -f '{{range .Config.Env}}{{println .}}{{end}}' mars-backup-s3)
+          fi
+          if [ -z "$access_key" ]; then access_key="mars$(openssl rand -hex 12)"; fi
+          if [ -z "$secret_key" ]; then secret_key="$(openssl rand -hex 32)"; fi
+
+          docker volume create mars-backup-s3-data >/dev/null
+          docker pull chrislusf/seaweedfs:4.46 >/dev/null
+          docker rm -f mars-backup-s3 >/dev/null 2>&1 || true
+          docker run -d \
+            --name mars-backup-s3 \
+            --restart unless-stopped \
+            -p "${ci_ip}:8333:8333" \
+            -e AWS_ACCESS_KEY_ID="$access_key" \
+            -e AWS_SECRET_ACCESS_KEY="$secret_key" \
+            -e S3_BUCKET=mars-backup \
+            -v mars-backup-s3-data:/data \
+            chrislusf/seaweedfs:4.46 >/dev/null
+
+          for attempt in $(seq 1 30); do
+            code="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 2 "http://${ci_ip}:8333/" || true)"
+            if [ "$code" != '000' ]; then break; fi
+            [ "$attempt" -lt 30 ] || { docker logs --tail 80 mars-backup-s3; exit 1; }
+            sleep 2
+          done
+
+          echo "BACKUP_HOST=$(hostname)"
+          echo "BACKUP_ENDPOINT=http://${ci_ip}:8333"
+          echo 'BACKUP_BUCKET=mars-backup'
+          echo "BACKUP_IMAGE=$(docker inspect -f '{{.Config.Image}}' mars-backup-s3)"
+          echo "BACKUP_RESTART=$(docker inspect -f '{{.HostConfig.RestartPolicy.Name}}' mars-backup-s3)"
+          echo "BACKUP_VOLUME=$(docker inspect -f '{{range .Mounts}}{{if eq .Destination \"/data\"}}{{.Name}}{{end}}{{end}}' mars-backup-s3)"
