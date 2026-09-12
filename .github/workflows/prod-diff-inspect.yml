@@ -1,0 +1,36 @@
+name: Production Drift Inspect
+
+on:
+  push:
+    branches: [ops/prod-probe-f8e1f2f1]
+    paths: [.github/workflows/prod-diff-inspect.yml]
+
+permissions:
+  contents: read
+
+jobs:
+  inspect:
+    runs-on: [self-hosted, linux, x64, mars, ci]
+    timeout-minutes: 5
+    env:
+      PASSWORD_CIPHERTEXT_B64: Cv1uG1W2vAzAoKZhXJxytSMyDJfJNVlDobXrPFXpEzwP46oTsJ/S58RMxEmF7qIHoE6aKYba82bntEjeZh8hEnhZvaHRjlzfyM8HfCUIR4/DFlNWzs4rZMYYuMga977EFXcNGWOi2jJzQAfrvUeGppMjfFFn6NemHgvSOHH5N+bEGAMFNk1jR6yT8BpZ7Ijzgih/88XLMh6OPED0hm6NE1GKGqzCNgIcUBRuxX68Fh93Sl4NhhINC/FfTOgvzkNvsx/HfHA6g2VdMmRk95JoRH7rO/b4v1t5QC4QXQcIqa75dtYhpAfGfcRRGIzXP8YcEN+b7gEcxb5Sr2JOuc554uVMY7HPVzfIGdXNWkdGg7afeW/U0R4gqlcXpohiSTvxA+Ps5q78020BNO4YAFdUuGmm02/LRYP97nIBC2ekGcWzjFCeNQYQnlqpn+kK/7qrf/Wk2VgVa+JCTrCxhQYU3vE/IAQfKsGpOT2BrlhePUxQ/+m+5ew5d/1bg5Z7Gyce
+    steps:
+      - name: Read production git drift
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          key_dir=/var/tmp/mars-prod-ferry-f8e1f2f1
+          tmp="$(mktemp -d)"
+          trap 'rm -rf "$tmp"; unset MARS_DEPLOY_PASSWORD' EXIT
+          printf '%s' "$PASSWORD_CIPHERTEXT_B64" | base64 -d > "$tmp/password.bin"
+          MARS_DEPLOY_PASSWORD="$(openssl pkeyutl -decrypt -inkey "$key_dir/private.pem" -in "$tmp/password.bin" -pkeyopt rsa_padding_mode:oaep -pkeyopt rsa_oaep_md:sha256)"
+          export MARS_DEPLOY_PASSWORD
+          cat > "$tmp/askpass" <<'ASKPASS'
+          #!/bin/sh
+          printf '%s\n' "$MARS_DEPLOY_PASSWORD"
+          ASKPASS
+          chmod 0700 "$tmp/askpass"
+          ssh-keyscan -T 5 -t ed25519 mars-prod.taila20365.ts.net > "$tmp/known_hosts" 2>/dev/null
+          export DISPLAY=:0 SSH_ASKPASS="$tmp/askpass" SSH_ASKPASS_REQUIRE=force
+          setsid -w ssh -o PreferredAuthentications=password -o PubkeyAuthentication=no -o NumberOfPasswordPrompts=1 -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$tmp/known_hosts" ufuk@mars-prod.taila20365.ts.net 'cd /opt/marsotomasyon && echo "--- STATUS ---" && git status --short --untracked-files=no && echo "--- DIFF ---" && git diff -- Dockerfile.production app/Providers/AppServiceProvider.php docker-compose.production.yml'
