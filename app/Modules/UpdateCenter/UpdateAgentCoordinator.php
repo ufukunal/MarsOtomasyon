@@ -122,6 +122,23 @@ final class UpdateAgentCoordinator
         ]);
     }
 
+    public function beginRollback(int $runId): void
+    {
+        $run = $this->runs->find($runId);
+        $current = UpdateRunState::from((string) $run->status);
+        if ($current === UpdateRunState::RollingBack) {
+            return;
+        }
+        if ($current !== UpdateRunState::RollbackRequested) {
+            $this->runs->transition($runId, UpdateRunState::RollbackRequested, [
+                'rollback_started_at' => now()->toIso8601String(),
+            ]);
+        }
+        $this->runs->transition($runId, UpdateRunState::RollingBack, [
+            'rollback_agent_started_at' => now()->toIso8601String(),
+        ]);
+    }
+
     public function complete(int $runId): void
     {
         $this->assertState($runId, UpdateRunState::HealthChecking);
@@ -136,18 +153,45 @@ final class UpdateAgentCoordinator
         $this->safety->leaveRecoveryMode();
     }
 
-    public function rolledBack(int $runId): void
+    /**
+     * Backup restore returns the database to the point before migration/activation,
+     * including the update_runs row. Reconcile that deliberately reverted ledger
+     * to an explicit rolled_back terminal record after the old release is healthy.
+     */
+    public function reconcileRolledBackAfterRestore(int $runId, string $backupId): void
     {
-        $this->assertState($runId, UpdateRunState::RollingBack);
         $health = $this->health->snapshot();
         if (($health['database_ok'] ?? false) !== true || ($health['valkey_ok'] ?? false) !== true) {
             throw new RuntimeException('Rollback health gate failed.');
         }
 
-        $this->runs->transition($runId, UpdateRunState::RolledBack, [
-            'rolled_back_at' => now()->toIso8601String(),
-        ]);
-        $this->safety->leaveRecoveryMode();
+        DB::transaction(function () use ($runId, $backupId): void {
+            $run = DB::table('update_runs')->where('id', $runId)->lockForUpdate()->first();
+            if ($run === null) {
+                throw new DomainException('Restored update run ledger row is missing.');
+            }
+            $metadata = json_decode((string) ($run->metadata ?? '{}'), true, flags: JSON_THROW_ON_ERROR);
+            if (! is_array($metadata)) {
+                $metadata = [];
+            }
+
+            DB::table('update_runs')->where('id', $runId)->update([
+                'status' => UpdateRunState::RolledBack->value,
+                'metadata' => json_encode([
+                    ...$metadata,
+                    'backup_id' => $backupId,
+                    'rollback_reconciled_at' => now()->toIso8601String(),
+                ], JSON_THROW_ON_ERROR),
+                'failure_code' => null,
+                'failure_message' => null,
+                'finished_at' => now(),
+                'updated_at' => now(),
+            ]);
+        });
+
+        if ($this->safety->recoveryMode()) {
+            $this->safety->leaveRecoveryMode();
+        }
     }
 
     public function backupId(int $runId): string
