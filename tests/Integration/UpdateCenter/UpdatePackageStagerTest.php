@@ -15,7 +15,7 @@ it('extracts regular files without allowing archive paths to escape staging', fu
     $releasePath = $root.'/release';
     mkdir($root, 0700, true);
 
-    $zip = new ZipArchive();
+    $zip = new ZipArchive;
     expect($zip->open($zipPath, ZipArchive::CREATE))->toBeTrue();
     $zip->addFromString('artisan', '#!/usr/bin/env php');
     $zip->addFromString('composer.json', '{}');
@@ -43,7 +43,7 @@ it('rejects zip slip traversal before an escaping file is written', function ():
     $escapePath = $root.'/escape.php';
     mkdir($root, 0700, true);
 
-    $zip = new ZipArchive();
+    $zip = new ZipArchive;
     expect($zip->open($zipPath, ZipArchive::CREATE))->toBeTrue();
     $zip->addFromString('../escape.php', '<?php echo "bad";');
     $zip->close();
