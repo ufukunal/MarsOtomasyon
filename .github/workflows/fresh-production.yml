@@ -72,16 +72,42 @@ jobs:
           printf '%s\n' "$version"
           grep -Eq 'PostgreSQL\)?[[:space:]]+18([.[:space:]]|$)' <<<"$version"
 
-      - name: Migrate optimize and verify bootstrap command
+      - name: Run production migrations
         shell: bash
         run: |
           set -euo pipefail
           compose='docker compose --env-file .env.production -f docker-compose.production.yml'
           $compose run --rm app php artisan migrate --force
+
+      - name: Optimize production application
+        shell: bash
+        run: |
+          set -euo pipefail
+          compose='docker compose --env-file .env.production -f docker-compose.production.yml'
           $compose run --rm app php artisan optimize
+
+      - name: Verify production status command
+        shell: bash
+        run: |
+          set -euo pipefail
+          compose='docker compose --env-file .env.production -f docker-compose.production.yml'
           $compose run --rm app php artisan mars:status
-          $compose run --rm app php artisan mars:bootstrap-admin --help | grep -q 'Create or complete the first platform administrator'
-          $compose run --rm app php artisan mars:update-executor --help | grep -q 'Trusted host-side Update Center executor control plane'
+
+      - name: Verify bootstrap command contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          compose='docker compose --env-file .env.production -f docker-compose.production.yml'
+          help="$($compose run --rm app php artisan mars:bootstrap-admin --help)"
+          grep -Fq 'Create or complete the first platform administrator' <<<"$help"
+
+      - name: Verify Update Center executor command contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          compose='docker compose --env-file .env.production -f docker-compose.production.yml'
+          help="$($compose run --rm app php artisan mars:update-executor --help)"
+          grep -Fq 'Trusted host-side Update Center executor control plane' <<<"$help"
 
       - name: Boot full application stack
         shell: bash
