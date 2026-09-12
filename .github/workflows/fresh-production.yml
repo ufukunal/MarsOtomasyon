@@ -7,6 +7,10 @@ on:
       - 'docker-compose.production.yml'
       - 'docker/nginx/**'
       - '.env.production.example'
+      - 'app/Console/Commands/BootstrapAdminCommand.php'
+      - 'app/Providers/AppServiceProvider.php'
+      - 'app/Modules/UpdateCenter/**'
+      - 'scripts/mars-update-executor'
       - '.github/workflows/fresh-production.yml'
   workflow_dispatch:
 
@@ -19,8 +23,8 @@ concurrency:
 
 jobs:
   fresh-production:
-    runs-on: self-hosted
-    timeout-minutes: 30
+    runs-on: [self-hosted, linux, x64, mars, ci]
+    timeout-minutes: 35
     env:
       COMPOSE_PROJECT_NAME: mars-fresh-${{ github.run_id }}
       DB_DATABASE: marsotomasyon
@@ -43,46 +47,92 @@ jobs:
           sed -i 's|^MARS_HTTP_PORT=.*|MARS_HTTP_PORT=18081|' .env.production
 
       - name: Validate compose and build production images
-        run: |
-          docker compose -f docker-compose.production.yml config >/dev/null
-          docker compose -f docker-compose.production.yml build app web
-
-      - name: Boot fresh PostgreSQL and Valkey
-        run: docker compose -f docker-compose.production.yml up -d postgres valkey
-
-      - name: Run production migrations and application boot checks
-        run: |
-          docker compose -f docker-compose.production.yml run --rm app php artisan migrate --force
-          docker compose -f docker-compose.production.yml run --rm app php artisan mars:status
-
-      - name: Boot web stack and verify login
         shell: bash
         run: |
           set -euo pipefail
-          docker compose -f docker-compose.production.yml up -d app web
-          for attempt in $(seq 1 30); do
+          docker compose --env-file .env.production -f docker-compose.production.yml config >/dev/null
+          docker compose --env-file .env.production -f docker-compose.production.yml build app web
+
+      - name: Verify PHP 8.5 production image contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          compose='docker compose --env-file .env.production -f docker-compose.production.yml'
+          $compose run --rm app php -r 'foreach (["bcmath","intl","pcntl","pdo_pgsql","zip","dom"] as $e) { if (!extension_loaded($e)) { fwrite(STDERR, "missing:$e\n"); exit(1); } }'
+          $compose run --rm app test -r artisan
+          $compose run --rm app php artisan --version
+
+      - name: Boot fresh PostgreSQL 18 and Valkey
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker compose --env-file .env.production -f docker-compose.production.yml up -d postgres valkey
+          docker compose --env-file .env.production -f docker-compose.production.yml exec -T postgres postgres --version | grep -q 'PostgreSQL 18'
+
+      - name: Migrate optimize and verify bootstrap command
+        shell: bash
+        run: |
+          set -euo pipefail
+          compose='docker compose --env-file .env.production -f docker-compose.production.yml'
+          $compose run --rm app php artisan migrate --force
+          $compose run --rm app php artisan optimize
+          $compose run --rm app php artisan mars:status
+          $compose run --rm app php artisan mars:bootstrap-admin --help | grep -q 'Create or complete the first platform administrator'
+          $compose run --rm app php artisan mars:update-executor --help | grep -q 'Trusted host-side Update Center executor control plane'
+
+      - name: Boot full application stack
+        shell: bash
+        run: |
+          set -euo pipefail
+          compose='docker compose --env-file .env.production -f docker-compose.production.yml'
+          $compose up -d app worker scheduler web
+          for attempt in $(seq 1 45); do
             if curl -fsS http://127.0.0.1:18081/login >/dev/null; then
-              exit 0
+              break
             fi
             sleep 2
           done
-          docker compose -f docker-compose.production.yml ps
-          exit 1
+          curl -fsS http://127.0.0.1:18081/login >/dev/null
+          $compose exec -T app php artisan mars:ops-heartbeat worker --instance=fresh-ci-worker >/dev/null
+          $compose exec -T app php artisan mars:ops-heartbeat scheduler --instance=fresh-ci-scheduler >/dev/null
+          health="$($compose exec -T app php artisan mars:ops-status)"
+          grep -q '"database_ok": true' <<<"$health"
+          grep -q '"valkey_ok": true' <<<"$health"
+          grep -q '"worker_alive": true' <<<"$health"
+          grep -q '"scheduler_alive": true' <<<"$health"
+
+      - name: Verify HTTPS reverse-proxy URL generation
+        shell: bash
+        run: |
+          set -euo pipefail
+          html="$(curl -fsS -H 'X-Forwarded-Proto: https' -H 'Host: mars.example.test' http://127.0.0.1:18081/login)"
+          if grep -Eiq 'action="http://|href="http://mars\.example\.test' <<<"$html"; then
+            echo 'HTTP URL leaked behind HTTPS reverse proxy' >&2
+            exit 1
+          fi
 
       - name: Verify nginx survives app recreation
         shell: bash
         run: |
           set -euo pipefail
-          docker compose -f docker-compose.production.yml up -d --force-recreate app
+          compose='docker compose --env-file .env.production -f docker-compose.production.yml'
+          $compose up -d --force-recreate app
           for attempt in $(seq 1 30); do
             if curl -fsS http://127.0.0.1:18081/login >/dev/null; then
               exit 0
             fi
             sleep 2
           done
-          docker compose -f docker-compose.production.yml ps
+          $compose ps
           exit 1
+
+      - name: Verify update executor script is shell-safe
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash -n scripts/mars-update-executor
+          ! grep -Eq 'docker\.sock.*volumes|/var/run/docker\.sock' docker-compose.production.yml
 
       - name: Cleanup
         if: always()
-        run: docker compose -f docker-compose.production.yml down -v --remove-orphans
+        run: docker compose --env-file .env.production -f docker-compose.production.yml down -v --remove-orphans
