@@ -76,8 +76,8 @@ it('creates, opens, and edits a manual sales order through the browser without c
         ->assertNoJavaScriptErrors()
         ->assertNoConsoleLogs();
 
-    $page->click('[data-nav-group]:has(a[href$="/sales-orders"]) > summary')
-        ->click('[data-nav-group] a[href$="/sales-orders"]')
+    $page->click('[data-nav-group]:has(a[href$="/sales"]) > summary')
+        ->click('[data-nav-group] a[href$="/sales"]')
         ->assertPathIs('/sales-orders')
         ->assertSee('Satış Siparişleri')
         ->click('Yeni Sipariş')
