@@ -1,0 +1,30 @@
+name: Production Final Deploy
+
+on:
+  push:
+    branches:
+      - ops/prod-final-deploy-20260913
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: [self-hosted, linux, x64, mars, ci]
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deploy prepared exact release and verify production
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          bootstrap="$(mktemp)"
+          trap 'rm -f "$bootstrap"' EXIT
+          awk '
+            /^          set -Eeuo pipefail$/ { if (!capture) capture=1 }
+            capture && /^          setsid ssh / { exit }
+            capture { sub(/^          /, ""); print }
+          ' .github/workflows/diagnose-pr.yml > "$bootstrap"
+          grep -Fq 'export SSH_ASKPASS=' "$bootstrap"
+          source "$bootstrap"
+          setsid ssh -o UserKnownHostsFile="$known" -o StrictHostKeyChecking=yes -o PreferredAuthentications=password -o PubkeyAuthentication=no -o NumberOfPasswordPrompts=1 ufuk@mars-prod.taila20365.ts.net 'bash -se' < scripts/prod-v163-switch.sh
