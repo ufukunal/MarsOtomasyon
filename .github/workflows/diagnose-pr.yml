@@ -1,72 +1,27 @@
-name: Diagnose PR
+name: Production Transport Prepare
 
 on:
-  workflow_dispatch:
-    inputs:
-      pr_number:
-        description: "PR number"
-        required: true
-        default: "68"
+  push:
+    branches:
+      - ops/prod-probe-20260913
 
 permissions:
   contents: read
-  pull-requests: read
-  actions: read
-  checks: read
 
 jobs:
-  diagnose:
+  prepare:
     runs-on: [self-hosted, linux, x64, mars, ci]
-
+    timeout-minutes: 5
     steps:
-      - name: Runner identity
-        run: echo "runner=${{ runner.name }} host=$(hostname)"
-
-      - name: Find PR head and CI runs
-        env:
-          GH_TOKEN: ${{ github.token }}
-          PR: ${{ inputs.pr_number }}
-          REPO: ${{ github.repository }}
+      - name: Generate ephemeral transport key
+        shell: bash
         run: |
           set -euo pipefail
-
-          HEAD_SHA="$(gh api "repos/$REPO/pulls/$PR" --jq '.head.sha')"
-
-          echo "PR: #$PR"
-          echo "HEAD: $HEAD_SHA"
-
-          gh api \
-            "repos/$REPO/actions/runs?head_sha=$HEAD_SHA&per_page=100" \
-            --jq '.workflow_runs[] | [.id,.name,.status,.conclusion,.html_url] | @tsv'
-
-      - name: Print failed job logs
-        env:
-          GH_TOKEN: ${{ github.token }}
-          PR: ${{ inputs.pr_number }}
-          REPO: ${{ github.repository }}
-        run: |
-          set -euo pipefail
-
-          HEAD_SHA="$(gh api "repos/$REPO/pulls/$PR" --jq '.head.sha')"
-
-          RUN_IDS="$(
-            gh api \
-              "repos/$REPO/actions/runs?head_sha=$HEAD_SHA&per_page=100" \
-              --jq '.workflow_runs[] | select(.conclusion == "failure") | .id'
-          )"
-
-          if [ -z "$RUN_IDS" ]; then
-            echo "No failed workflow runs found."
-            exit 0
-          fi
-
-          for RUN_ID in $RUN_IDS; do
-            echo
-            echo "============================================================"
-            echo "FAILED RUN: $RUN_ID"
-            echo "============================================================"
-
-            gh run view "$RUN_ID" \
-              --repo "$REPO" \
-              --log-failed || true
-          done
+          key=/tmp/mars-prod-transport-20260913.pem
+          umask 077
+          rm -f "$key"
+          openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:3072 -out "$key" >/dev/null 2>&1
+          chmod 600 "$key"
+          echo 'PUBLIC_KEY_BEGIN'
+          openssl pkey -in "$key" -pubout
+          echo 'PUBLIC_KEY_END'
