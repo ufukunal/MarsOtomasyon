@@ -1,12 +1,13 @@
 name: marsotomasyon
 
 x-mars-app: &mars-app
+  image: marsotomasyon-app:${MARS_IMAGE_TAG:-current}
   build:
     context: .
     dockerfile: Dockerfile.production
     target: app
   env_file:
-    - .env.production
+    - ${MARS_ENV_FILE:-.env.production}
   environment:
     DB_HOST: postgres
     DB_PORT: 5432
@@ -79,6 +80,7 @@ services:
       - backend
 
   web:
+    image: marsotomasyon-web:${MARS_IMAGE_TAG:-current}
     build:
       context: .
       dockerfile: Dockerfile.production
