@@ -59,7 +59,7 @@
             "bash scripts/assurance/accounting-invariants.sh",
             "bash scripts/assurance/database-lifecycle.sh",
             "bash scripts/assurance/recovery-failure.sh",
-            "pest tests/Browser --colors=always"
+            "bash -o pipefail -c 'mkdir -p storage/app/assurance; pest tests/Browser --colors=always 2>&1 | tee storage/app/assurance/browser-report.json'"
         ],
         "ci": [
             "@format:check",
