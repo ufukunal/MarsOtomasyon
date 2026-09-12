@@ -145,6 +145,7 @@ final class UpdatePackageStager
         $maxExtractedBytes = max(1, (int) config('update-center.max_extracted_bytes', 1073741824));
         if ($zip->numFiles < 1 || $zip->numFiles > $maxFiles) {
             $zip->close();
+
             throw new RuntimeException('Update package file count is outside the configured limit.');
         }
 
@@ -173,6 +174,7 @@ final class UpdatePackageStager
                 $target = $releasePath.'/'.$name;
                 if ($isDirectory) {
                     $this->files->ensureDirectoryExists($target, 0700, true);
+
                     continue;
                 }
 
@@ -193,6 +195,7 @@ final class UpdatePackageStager
                 $output = fopen($target, 'xb');
                 if (! is_resource($output)) {
                     fclose($stream);
+
                     throw new RuntimeException('Update package entry could not be written.');
                 }
                 $copied = stream_copy_to_stream($stream, $output, $size + 1);
