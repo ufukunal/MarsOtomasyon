@@ -1,4 +1,4 @@
-name: Production Release Prepare Verify
+name: Production Release Prepare
 
 on:
   push:
@@ -9,12 +9,12 @@ permissions:
   contents: read
 
 jobs:
-  verify_prepare:
+  prepare_release:
     runs-on: [self-hosted, linux, x64, mars, ci]
-    timeout-minutes: 10
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
-      - name: Verify production release preparation
+      - name: Prepare exact green release on production
         shell: bash
         run: |
           set -Eeuo pipefail
@@ -39,17 +39,32 @@ jobs:
           test "$(ssh-keygen -lf "$known" -E sha256 | awk '{print $2}')" = 'SHA256:HBjgtjY+qIJiw00Cf7uzej/UIKWANYIjVe0VSz6Uh2I'
           export SSH_ASKPASS="$askpass" SSH_ASKPASS_REQUIRE=force DISPLAY=:0
           setsid ssh -o UserKnownHostsFile="$known" -o StrictHostKeyChecking=yes -o PreferredAuthentications=password -o PubkeyAuthentication=no -o NumberOfPasswordPrompts=1 ufuk@mars-prod.taila20365.ts.net 'bash -se' <<'REMOTE'
-          set -euo pipefail
+          set -Eeuo pipefail
           ROOT=/opt/marsotomasyon
           RELEASE=6e5a91b74f1bac3fede949f8479b17367e04c71c
           TAG=release-${RELEASE:0:12}
           REL="$ROOT/.mars-releases/$RELEASE"
-          echo "REL_EXISTS=$(test -d "$REL" && echo yes || echo no)"
-          if test -d "$REL"; then echo "REL_SHA=$(git -C "$REL" rev-parse HEAD)"; fi
-          if docker image inspect "marsotomasyon-app:$TAG" >/dev/null 2>&1; then echo "APP_IMAGE_PRESENT=yes"; else echo "APP_IMAGE_PRESENT=no"; fi
-          if docker image inspect "marsotomasyon-web:$TAG" >/dev/null 2>&1; then echo "WEB_IMAGE_PRESENT=yes"; else echo "WEB_IMAGE_PRESENT=no"; fi
-          echo "ROOT_SHA=$(git -C "$ROOT" rev-parse HEAD)"
-          echo 'OPS_BEGIN'
-          docker compose --env-file "$ROOT/.env.production" -f "$ROOT/docker-compose.production.yml" exec -T app php artisan mars:ops-status
-          echo 'OPS_END'
+          ENV="$ROOT/.env.production"
+          cd "$ROOT"
+          docker compose --env-file "$ENV" -f "$ROOT/docker-compose.production.yml" exec -T app php artisan mars:ops-status < /dev/null
+          echo 'SAFETY_BACKUP_BEGIN'
+          docker compose --env-file "$ENV" -f "$ROOT/docker-compose.production.yml" exec -T app php artisan mars:backup < /dev/null
+          echo 'SAFETY_BACKUP_END'
+          git fetch --no-tags origin "$RELEASE"
+          mkdir -p "$ROOT/.mars-releases"
+          test ! -e "$REL"
+          git worktree add --detach "$REL" "$RELEASE"
+          test "$(git -C "$REL" rev-parse HEAD)" = "$RELEASE"
+          test -z "$(git -C "$REL" status --porcelain)"
+          grep -Fq 'docker-php-ext-install -j"$(nproc)" bcmath intl pcntl pdo_pgsql zip' "$REL/Dockerfile.production"
+          grep -Fq "URL::forceScheme('https')" "$REL/app/Providers/AppServiceProvider.php"
+          grep -Fq 'postgres_data:/var/lib/postgresql' "$REL/docker-compose.production.yml"
+          export MARS_ENV_FILE="$ENV" MARS_IMAGE_TAG="$TAG"
+          docker compose --env-file "$ENV" -f "$REL/docker-compose.production.yml" build app web < /dev/null
+          docker compose --env-file "$ENV" -f "$REL/docker-compose.production.yml" run --rm -T app php artisan migrate --force < /dev/null
+          docker compose --env-file "$ENV" -f "$REL/docker-compose.production.yml" run --rm -T app php artisan optimize < /dev/null
+          echo "PREPARED_RELEASE=$RELEASE"
+          echo "PREPARED_TAG=$TAG"
+          docker image inspect "marsotomasyon-app:$TAG" --format 'APP_IMAGE_ID={{.Id}}'
+          docker image inspect "marsotomasyon-web:$TAG" --format 'WEB_IMAGE_ID={{.Id}}'
           REMOTE
