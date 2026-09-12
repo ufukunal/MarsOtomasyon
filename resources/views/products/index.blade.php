@@ -13,7 +13,7 @@
         </div>
         <div class="page-actions">
             @can('inventory.view')
-                <a href="{{ route('inventory.stock.index') }}" data-workspace-link>Stok Durumu</a>
+                <a href="{{ route('inventory.stock.index') }}" data-workspace-link>Stok Bakiyeleri</a>
                 <a href="{{ route('inventory.warehouses.index') }}" data-workspace-link>Depolar</a>
             @endcan
             @if ($productFamilyVariantEnabled)
@@ -52,7 +52,7 @@
                 <span class="subtle">{{ $products->total() }} kayıt</span>
                 <div class="grow"></div>
                 @can('products.manage')
-                    <a class="button-primary" href="{{ route('inventory.products.create') }}" data-workspace-link>＋ Yeni Ürün</a>
+                    <a class="button-primary" href="{{ route('inventory.products.create') }}" data-workspace-link>Yeni Ürün</a>
                 @endcan
             </div>
             <div class="statement-table-card">
@@ -84,7 +84,7 @@
                             <td class="amount-cell">{{ $product->purchase_price_net }}</td>
                             <td>%{{ $product->tax->rate }}</td>
                             <td>{{ $product->statusEnum()->label() }}</td>
-                            <td><a href="{{ route('inventory.products.show', $product->getKey()) }}" data-workspace-link>Detay ↗</a></td>
+                            <td><a href="{{ route('inventory.products.show', $product->getKey()) }}" data-workspace-link>Detay</a></td>
                         </tr>
                     @empty
                         <tr>
