@@ -149,6 +149,7 @@ final class UpdateArtifactStager
                 $target = $release.'/'.implode('/', $segments);
                 if (str_ends_with($name, '/')) {
                     File::ensureDirectoryExists($target, 0750, true);
+
                     continue;
                 }
 
