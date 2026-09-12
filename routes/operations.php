@@ -52,6 +52,9 @@ Route::prefix('operations')
         Route::get('/', [OperationsController::class, 'index'])->middleware('can:operations.view')->name('index');
         Route::get('/updates', [UpdateCenterController::class, 'index'])->middleware(RequirePlatformAdmin::class)->name('updates.index');
         Route::post('/updates/check', [UpdateCenterController::class, 'check'])->middleware([RequirePlatformAdmin::class, 'throttle:10,1'])->name('updates.check');
+        Route::post('/updates/stage', [UpdateCenterController::class, 'stage'])->middleware([RequirePlatformAdmin::class, 'throttle:3,1'])->name('updates.stage');
+        Route::post('/updates/{run}/apply', [UpdateCenterController::class, 'apply'])->whereNumber('run')->middleware([RequirePlatformAdmin::class, 'throttle:3,1'])->name('updates.apply');
+        Route::post('/updates/{run}/rollback', [UpdateCenterController::class, 'rollback'])->whereNumber('run')->middleware([RequirePlatformAdmin::class, 'throttle:3,1'])->name('updates.rollback');
         Route::post('/connections', [OperationsController::class, 'storeConnection'])->middleware('can:integrations.manage')->name('connections.store');
         Route::post('/templates', [OperationsController::class, 'storeTemplate'])->middleware('can:notifications.manage')->name('templates.store');
         Route::post('/automation-rules', [OperationsController::class, 'storeAutomationRule'])->middleware('can:automation.manage')->name('automation-rules.store');

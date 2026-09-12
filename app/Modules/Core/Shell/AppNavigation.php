@@ -5,6 +5,7 @@ namespace App\Modules\Core\Shell;
 use App\Foundation\Features\FeatureKey;
 use App\Foundation\Features\FeatureRegistry;
 use App\Modules\Core\Enums\PermissionKey;
+use App\Modules\Core\Models\User;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 
@@ -53,6 +54,11 @@ final readonly class AppNavigation
                 }
             }
             $items[] = ['label' => $candidate['label'], 'route' => $candidate['route']];
+        }
+
+        $user = request()->user();
+        if ($user instanceof User && $user->isPlatformAdmin() && Route::has('operations.updates.index')) {
+            $items[] = ['label' => 'Güncelleme Merkezi', 'route' => 'operations.updates.index'];
         }
 
         return $items;
