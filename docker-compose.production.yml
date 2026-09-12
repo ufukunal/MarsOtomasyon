@@ -90,7 +90,7 @@ services:
     depends_on:
       - app
     ports:
-      - "${MARS_HTTP_PORT:-8080}:80"
+      - "127.0.0.1:${MARS_HTTP_PORT:-8080}:80"
     networks:
       - backend
 
