@@ -11,9 +11,9 @@ use InvalidArgumentException;
 final class MarsUpdateExecutorCommand extends Command
 {
     protected $signature = 'mars:update-executor
-        {action : show|stage|applying|health|activate|rollback-requested|rolled-back|backup|fail}
-        {run : Update run id}
-        {--field= : For show, one of status,target_version,channel,stage_path,apply_requested_at}
+        {action : next|show|stage|applying|health|activate|rollback-requested|rolled-back|backup|fail}
+        {run? : Update run id}
+        {--field= : For show, one of status,target_version,channel,stage_path,apply_requested_at,safety_backup_id}
         {--backup-id= : Safety backup identifier for backup action}
         {--failure-code=executor_failed : Normalized failure code}
         {--failure-message=Trusted update executor failed. : Normalized failure message}';
@@ -22,12 +22,19 @@ final class MarsUpdateExecutorCommand extends Command
 
     public function handle(UpdateRunStore $runs, UpdateArtifactStager $stager): int
     {
+        $action = strtolower(trim((string) $this->argument('action')));
+        if ($action === 'next') {
+            $active = $runs->active();
+            $this->line($active === null ? '' : (string) $active->id);
+
+            return self::SUCCESS;
+        }
+
         $runId = (int) $this->argument('run');
         if ($runId < 1) {
             throw new InvalidArgumentException('Update run id must be a positive integer.');
         }
 
-        $action = strtolower(trim((string) $this->argument('action')));
         match ($action) {
             'show' => $this->showRun($runs, $runId),
             'stage' => $stager->stage($runId),
@@ -66,6 +73,7 @@ final class MarsUpdateExecutorCommand extends Command
             'channel' => (string) $run->channel,
             'stage_path' => (string) ($metadata['stage_path'] ?? ''),
             'apply_requested_at' => (string) ($metadata['apply_requested_at'] ?? ''),
+            'safety_backup_id' => (string) ($metadata['safety_backup_id'] ?? ''),
             default => throw new InvalidArgumentException('A supported --field is required for show.'),
         };
 
