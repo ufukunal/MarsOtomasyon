@@ -45,12 +45,9 @@ jobs:
           printf '%s\n' "$MARS_DEPLOY_PASSWORD"
           ASKPASS
           chmod 0700 "$tmp/askpass"
-          install -d -m 0700 "$HOME/.ssh"
           ssh-keyscan -T 5 -t ed25519 mars-prod.taila20365.ts.net > "$tmp/known_hosts" 2>/dev/null
           chmod 0600 "$tmp/known_hosts"
-          export DISPLAY=:0
-          export SSH_ASKPASS="$tmp/askpass"
-          export SSH_ASKPASS_REQUIRE=force
+          export DISPLAY=:0 SSH_ASKPASS="$tmp/askpass" SSH_ASKPASS_REQUIRE=force
           setsid -w ssh \
             -o PreferredAuthentications=password \
             -o PubkeyAuthentication=no \
@@ -71,6 +68,14 @@ jobs:
           if sudo -n true >/dev/null 2>&1; then echo 'SUDO_NOPASSWD=yes'; else echo 'SUDO_NOPASSWD=no'; fi
           echo '--- APP_ROOTS ---'
           find /opt /srv /var/www /home/ufuk -maxdepth 5 -type f -name docker-compose.production.yml -print 2>/dev/null | head -20 || true
+          echo '--- BLOCK_DEVICES ---'
+          lsblk -o NAME,PATH,SIZE,TYPE,FSTYPE,FSVER,LABEL,UUID,MOUNTPOINTS 2>/dev/null || true
+          echo '--- FILESYSTEMS ---'
+          df -hT 2>/dev/null || true
+          echo '--- MOUNTS ---'
+          findmnt -o TARGET,SOURCE,FSTYPE,OPTIONS 2>/dev/null || true
+          echo '--- STORAGE_DIRS ---'
+          find /mnt /srv /opt -maxdepth 2 -mindepth 1 -type d -printf '%p\n' 2>/dev/null | head -100 || true
           echo '--- BACKUP_PATH ---'
           if [ -e /mnt/mars-backup ]; then
             ls -ld /mnt/mars-backup
