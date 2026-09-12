@@ -31,7 +31,7 @@ Route::prefix('commerce')
     });
 
 Route::get('/communications', fn () => redirect()->route('operations.index'))
-    ->middleware(['auth', 'company.context', 'can:notifications.view'])
+    ->middleware(['web', 'auth', 'company.context', 'can:notifications.view'])
     ->name('communications.index');
 
 Route::prefix('settings/integrations')
@@ -47,7 +47,7 @@ Route::prefix('settings/integrations')
 
 Route::prefix('operations')
     ->name('operations.')
-    ->middleware(['auth', 'company.context'])
+    ->middleware(['web', 'auth', 'company.context'])
     ->group(function (): void {
         Route::get('/', [OperationsController::class, 'index'])->middleware('can:operations.view')->name('index');
         Route::get('/updates', [UpdateCenterController::class, 'index'])->middleware(RequirePlatformAdmin::class)->name('updates.index');
