@@ -1,9 +1,12 @@
 <?php
 
+use App\Modules\Core\Enums\PermissionKey;
 use App\Modules\Core\Enums\UserStatus;
 use App\Modules\Core\Models\Branch;
 use App\Modules\Core\Models\Company;
 use App\Modules\Core\Models\CompanyMembership;
+use App\Modules\Core\Models\Permission;
+use App\Modules\Core\Models\Role;
 use App\Modules\Core\Models\User;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 
@@ -20,11 +23,31 @@ it('drives the authenticated V16.3 shell tabs and command palette without browse
         'password' => 'correct-password',
         'status' => UserStatus::Active,
     ]);
-    CompanyMembership::query()->create([
+    $membership = CompanyMembership::query()->create([
         'company_id' => $company->getKey(),
         'user_id' => $user->getKey(),
         'is_active' => true,
         'joined_at' => now(),
+    ]);
+    $role = Role::query()->create([
+        'company_id' => $company->getKey(),
+        'code' => 'BROWSER-SHELL',
+        'name' => 'Browser Shell Role',
+        'is_active' => true,
+    ]);
+    $role->permissions()->sync(
+        Permission::query()
+            ->whereIn('key', [
+                PermissionKey::BranchView->value,
+                PermissionKey::AccountView->value,
+                PermissionKey::ProductView->value,
+            ])
+            ->pluck('id')
+            ->all(),
+    );
+    $membership->roles()->attach($role->getKey(), [
+        'company_id' => $company->getKey(),
+        'assigned_at' => now(),
     ]);
     Branch::query()->create([
         'company_id' => $company->getKey(),
@@ -40,6 +63,8 @@ it('drives the authenticated V16.3 shell tabs and command palette without browse
         ->assertPathIs('/workspace')
         ->assertSee('Browser Shell Company')
         ->assertSee('Merkez')
+        ->assertSee('Kişiler / Firmalar')
+        ->assertSee('Ürünler ve Hizmetler')
         ->assertCount('.workspace-tab', 1)
         ->assertNoJavaScriptErrors()
         ->assertNoConsoleLogs();
@@ -51,7 +76,8 @@ it('drives the authenticated V16.3 shell tabs and command palette without browse
         ->assertNoJavaScriptErrors();
 
     $page->click('[data-command-close]')
-        ->click('Ayarlar')
+        ->click('[data-nav-group]:has(a[href$="/settings"]) > summary')
+        ->click('[data-nav-group] a[href$="/settings"]')
         ->assertPathIs('/settings')
         ->assertCount('.workspace-tab', 2)
         ->assertNoJavaScriptErrors()

@@ -4,31 +4,42 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>@yield('title', 'MarsOtomasyon') · MarsOtomasyon</title>
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @vite(['resources/css/app.css', 'resources/css/v16-3-reference.css', 'resources/js/app.js'])
     @stack('styles')
 </head>
 @php
     $shell = app(\App\Modules\Core\Shell\ShellContext::class)->state(request());
-    $navIcons = [
-        'Ana Sayfa' => '⌂',
-        'Cariler' => '◉',
-        'Ürün/Stok' => '◈',
-        'Satış' => '◴',
-        'Alış' => '◉',
-        'Üretim' => '⚙',
-        'Fason' => '⇄',
-        'Kasa/Banka' => '₺',
-        'Çek/Senet' => '◇',
-        'İadeler' => '↩',
-        'İthalat' => '▧',
-        'E-Ticaret/B2B' => '⇆',
-        'İletişim' => '✉',
-        'Operasyon' => '✓',
-        'Raporlar' => '▥',
-        'Ayarlar' => '⚙',
+    $availableNavigation = collect($shell['navigation'])->keyBy('label');
+    $menuBlueprint = [
+        ['label' => 'Ana Sayfa', 'icon' => '⌂', 'items' => ['Ana Sayfa']],
+        ['label' => 'Kişiler / Firmalar', 'icon' => '◉', 'items' => ['Cariler']],
+        ['label' => 'Ürünler ve Hizmetler', 'icon' => '◈', 'items' => ['Ürün/Stok']],
+        ['label' => 'Satış Yönetimi', 'icon' => '◴', 'items' => ['Satış']],
+        ['label' => 'Satınalma Yönetimi', 'icon' => '◉', 'items' => ['Alış']],
+        ['label' => 'Üretim Yönetimi', 'icon' => '⚙', 'items' => ['Üretim']],
+        ['label' => 'Fason Yönetimi', 'icon' => '⇄', 'items' => ['Fason']],
+        ['label' => 'Finans İşlemleri', 'icon' => '₺', 'items' => ['Kasa/Banka', 'Çek/Senet']],
+        ['label' => 'İade / RMA', 'icon' => '↩', 'items' => ['İadeler']],
+        ['label' => 'İthalat Yönetimi', 'icon' => '▧', 'items' => ['İthalat']],
+        ['label' => 'E-Ticaret / B2B / API', 'icon' => '⇆', 'items' => ['E-Ticaret/B2B']],
+        ['label' => 'İletişim / Dosyalar', 'icon' => '✉', 'items' => ['İletişim']],
+        ['label' => 'Operasyon', 'icon' => '✓', 'items' => ['Operasyon', 'Güncelleme Merkezi']],
+        ['label' => 'Raporlar / Tasarım', 'icon' => '▥', 'items' => ['Raporlar']],
+        ['label' => 'Ayarlar / Sistem', 'icon' => '⚙', 'items' => ['Ayarlar']],
     ];
+    $isNavigationActive = static function (array $item): bool {
+        $routeName = $item['route'];
+        if (request()->routeIs($routeName)) {
+            return true;
+        }
+
+        $prefix = \Illuminate\Support\Str::before($routeName, '.');
+
+        return request()->routeIs($prefix.'.*')
+            || ($routeName === 'settings.index' && request()->routeIs('settings.*'));
+    };
 @endphp
-<body class="app-body" data-workspace-title="@yield('title', 'MarsOtomasyon')">
+<body class="app-body preacc-simple" data-workspace-title="@yield('title', 'MarsOtomasyon')">
 <div class="app-shell">
     <aside class="app-sidebar" data-app-sidebar>
         <div class="app-brand">
@@ -45,15 +56,36 @@
         </div>
 
         <nav class="app-navigation" aria-label="Ana menü" data-app-navigation>
-            @foreach ($shell['navigation'] as $item)
-                <a
-                    href="{{ route($item['route']) }}"
-                    class="{{ request()->routeIs($item['route']) || ($item['route'] === 'settings.index' && request()->routeIs('settings.*')) ? 'is-active' : '' }}"
-                    data-workspace-link
-                    data-command-item
-                    data-nav-item
-                    data-nav-text="{{ mb_strtolower($item['label']) }}"
-                ><span class="app-nav-icon" aria-hidden="true">{{ $navIcons[$item['label']] ?? '•' }}</span><span>{{ $item['label'] }}</span></a>
+            @foreach ($menuBlueprint as $group)
+                @php
+                    $groupItems = collect($group['items'])
+                        ->map(fn (string $label) => $availableNavigation->get($label))
+                        ->filter()
+                        ->values();
+                    $groupActive = $groupItems->contains(fn (array $item): bool => $isNavigationActive($item));
+                @endphp
+                @continue($groupItems->isEmpty())
+
+                <details class="app-nav-group {{ $groupActive ? 'is-active' : '' }}" @if ($groupActive) open @endif data-nav-group>
+                    <summary>
+                        <span class="app-nav-group-icon" aria-hidden="true">{{ $group['icon'] }}</span>
+                        <span>{{ $group['label'] }}</span>
+                        <span class="app-nav-chevron" aria-hidden="true">›</span>
+                    </summary>
+                    <div class="app-nav-children">
+                        @foreach ($groupItems as $item)
+                            @php($itemActive = $isNavigationActive($item))
+                            <a
+                                href="{{ route($item['route']) }}"
+                                class="app-nav-child {{ $itemActive ? 'is-active' : '' }}"
+                                data-workspace-link
+                                data-command-item
+                                data-nav-item
+                                data-nav-text="{{ mb_strtolower($group['label'].' '.$item['label']) }}"
+                            ><span>{{ $item['label'] }}</span></a>
+                        @endforeach
+                    </div>
+                </details>
             @endforeach
         </nav>
 
@@ -84,7 +116,7 @@
                             value="{{ request()->routeIs('search') ? request('q') : '' }}"
                             minlength="2"
                             maxlength="120"
-                            placeholder="Global ara: kayıt, kullanıcı, rol…"
+                            placeholder="Global ara: ürün, cari, belge... (Ctrl+K)"
                             aria-label="Global arama"
                             data-dirty-ignore
                         >

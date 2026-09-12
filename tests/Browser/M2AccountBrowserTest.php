@@ -52,11 +52,12 @@ it('drives the V16.3 account list create readonly detail statement and profile e
         ->fill('password', 'correct-password')
         ->click('Giriş Yap')
         ->assertPathIs('/workspace')
+        ->click('[data-nav-group]:has(a[href$="/customers"]) > summary')
         ->assertSee('Cariler')
         ->assertNoJavaScriptErrors()
         ->assertNoConsoleLogs();
 
-    $page->click('Cariler')
+    $page->click('[data-nav-group] a[href$="/customers"]')
         ->assertPathIs('/customers')
         ->assertSee('Yeni Cari')
         ->assertNoJavaScriptErrors();

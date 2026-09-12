@@ -168,6 +168,7 @@ if (body?.classList.contains('app-body')) {
 
     const navSearch = document.querySelector('[data-nav-search]');
     const navItems = [...document.querySelectorAll('[data-nav-item]')];
+    const navGroups = [...document.querySelectorAll('[data-nav-group]')];
     if (navSearch instanceof HTMLInputElement) {
         navSearch.addEventListener('input', () => {
             const query = navSearch.value.trim().toLocaleLowerCase('tr-TR');
@@ -177,6 +178,18 @@ if (body?.classList.contains('app-body')) {
                 }
                 const text = item.dataset.navText || item.textContent?.toLocaleLowerCase('tr-TR') || '';
                 item.classList.toggle('is-filtered', query !== '' && !text.includes(query));
+            });
+
+            navGroups.forEach((group) => {
+                if (!(group instanceof HTMLDetailsElement)) {
+                    return;
+                }
+                const visibleItems = [...group.querySelectorAll('[data-nav-item]')]
+                    .filter((item) => item instanceof HTMLElement && !item.classList.contains('is-filtered'));
+                group.hidden = query !== '' && visibleItems.length === 0;
+                if (query !== '' && visibleItems.length > 0) {
+                    group.open = true;
+                }
             });
         });
     }

@@ -74,11 +74,12 @@ it('drives the V16.3 product list create search readonly detail and separate edi
         ->fill('password', 'correct-password')
         ->click('Giriş Yap')
         ->assertPathIs('/workspace')
+        ->click('[data-nav-group]:has(a[href$="/inventory"]) > summary')
         ->assertSee('Ürün/Stok')
         ->assertNoJavaScriptErrors()
         ->assertNoConsoleLogs();
 
-    $page->click('Ürün/Stok')
+    $page->click('[data-nav-group] a[href$="/inventory"]')
         ->assertPathIs('/inventory')
         ->assertSee('Yeni Ürün')
         ->assertNoJavaScriptErrors();
