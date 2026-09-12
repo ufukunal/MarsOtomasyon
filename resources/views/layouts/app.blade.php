@@ -113,7 +113,7 @@
                     </form>
                 @endif
                 <button type="button" class="button-secondary" data-command-open>Ekranlar</button>
-                <button type="button" class="button-secondary" data-command-open>İşlemler</button>
+                <button type="button" class="button-secondary">İşlemler</button>
                 <div class="context-pill"><span>Kullanıcı</span><strong>{{ $shell['user']?->name }}</strong></div>
             </div>
         </header>
