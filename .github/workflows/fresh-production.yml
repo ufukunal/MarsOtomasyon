@@ -1,0 +1,85 @@
+name: Fresh Production Smoke
+
+on:
+  pull_request:
+    paths:
+      - 'Dockerfile.production'
+      - 'docker-compose.production.yml'
+      - 'docker/nginx/**'
+      - '.env.production.example'
+      - '.github/workflows/fresh-production.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: fresh-production-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  fresh-production:
+    runs-on: self-hosted
+    timeout-minutes: 30
+    env:
+      COMPOSE_PROJECT_NAME: mars-fresh-${{ github.run_id }}
+      MARS_HTTP_PORT: '18081'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Prepare isolated production environment
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp .env.production.example .env.production
+          sed -i 's|^APP_KEY=.*|APP_KEY=base64:TWFyc090b21hc3lvbkZvdW5kYXRpb25UZXN0S2V5ISE=|' .env.production
+          sed -i 's|^DB_PASSWORD=.*|DB_PASSWORD=mars-fresh-ci|' .env.production
+          sed -i 's|^MARS_BACKUP_OFFSITE_REQUIRED=.*|MARS_BACKUP_OFFSITE_REQUIRED=false|' .env.production
+          sed -i 's|^MARS_BACKUP_DISK=.*|MARS_BACKUP_DISK=local|' .env.production
+          sed -i 's|^MARS_BACKUP_OFFSITE_TARGET=.*|MARS_BACKUP_OFFSITE_TARGET=|' .env.production
+          sed -i 's|^MARS_HTTP_PORT=.*|MARS_HTTP_PORT=18081|' .env.production
+
+      - name: Validate compose and build production images
+        run: |
+          docker compose -f docker-compose.production.yml config >/dev/null
+          docker compose -f docker-compose.production.yml build app web
+
+      - name: Boot fresh PostgreSQL and Valkey
+        run: docker compose -f docker-compose.production.yml up -d postgres valkey
+
+      - name: Run production migrations and application boot checks
+        run: |
+          docker compose -f docker-compose.production.yml run --rm app php artisan migrate --force
+          docker compose -f docker-compose.production.yml run --rm app php artisan mars:status
+
+      - name: Boot web stack and verify login
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker compose -f docker-compose.production.yml up -d app web
+          for attempt in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:18081/login >/dev/null; then
+              exit 0
+            fi
+            sleep 2
+          done
+          docker compose -f docker-compose.production.yml ps
+          exit 1
+
+      - name: Verify nginx survives app recreation
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker compose -f docker-compose.production.yml up -d --force-recreate app
+          for attempt in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:18081/login >/dev/null; then
+              exit 0
+            fi
+            sleep 2
+          done
+          docker compose -f docker-compose.production.yml ps
+          exit 1
+
+      - name: Cleanup
+        if: always()
+        run: docker compose -f docker-compose.production.yml down -v --remove-orphans
