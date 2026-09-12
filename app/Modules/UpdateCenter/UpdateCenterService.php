@@ -131,7 +131,7 @@ final class UpdateCenterService
             'php_compatible' => $phpCompatible,
             'app_compatible' => $appCompatible,
             'compatible' => $phpCompatible && $appCompatible,
-            'install_enabled' => true,
+            'install_enabled' => $comparison > 0 && $phpCompatible && $appCompatible,
         ];
     }
 
