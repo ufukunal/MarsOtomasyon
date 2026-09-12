@@ -101,6 +101,7 @@ final class UpdatePackageStager
             } catch (Throwable) {
                 // Preserve the original staging exception.
             }
+
             throw $exception;
         }
     }
