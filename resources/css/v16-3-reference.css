@@ -82,9 +82,6 @@
 .app-navigation .app-nav-child:hover { background: rgba(255,255,255,.05); color: #fff; }
 .app-navigation .app-nav-child.is-active { background: #214150; color: #fff; box-shadow: none; font-weight: 650; }
 
-/* Final cleanup hides prototype-only top actions. */
-.app-topbar [data-command-open] { display: none; }
-
 .app-topbar {
     gap: 6px;
 }
