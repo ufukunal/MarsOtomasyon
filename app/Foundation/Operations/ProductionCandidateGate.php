@@ -18,12 +18,22 @@ final readonly class ProductionCandidateGate
         $offsiteRequired = (bool) config('production.backup.offsite_required', true);
         $offsiteTarget = trim((string) config('production.backup.offsite_target', ''));
         $recoveryKeyReference = trim((string) config('production.backup.recovery_key_reference', ''));
+        $backupDriver = trim((string) config('filesystems.disks.'.$backupDisk.'.driver', ''));
 
         if ($deploymentModel !== 'docker-compose') {
             $issues[] = 'deployment-model';
         }
         if ($offsiteRequired && ($backupDisk === $primaryDisk || $backupDisk === 'local')) {
             $issues[] = 'backup-storage-boundary';
+        }
+        if ($offsiteRequired && $backupDriver === '') {
+            $issues[] = 'backup-storage-driver';
+        }
+        if ($offsiteRequired && $backupDriver === 'local') {
+            $backupRoot = (string) config('filesystems.disks.'.$backupDisk.'.root', '');
+            if (! $this->isExternalLocalBackupPath($backupRoot)) {
+                $issues[] = 'backup-storage-boundary';
+            }
         }
         if ($offsiteRequired && $offsiteTarget === '') {
             $issues[] = 'backup-offsite-target';
@@ -52,11 +62,6 @@ final readonly class ProductionCandidateGate
                 $issues[] = 'secure-session-cookie';
             }
 
-            $backupDriver = (string) config('filesystems.disks.'.$backupDisk.'.driver', '');
-            if ($offsiteRequired && $backupDriver !== 's3') {
-                $issues[] = 'backup-storage-driver';
-            }
-
             $cipher = new BackupRecoveryCipher;
             if (! $cipher->configured()) {
                 $issues[] = 'backup-recovery-key';
@@ -80,5 +85,44 @@ final readonly class ProductionCandidateGate
     public function satisfied(): bool
     {
         return $this->issues() === [];
+    }
+
+    private function isExternalLocalBackupPath(string $path): bool
+    {
+        $root = $this->normalizeAbsolutePath($path);
+        $applicationRoot = $this->normalizeAbsolutePath(base_path());
+
+        if ($root === null || $root === '/' || $applicationRoot === null) {
+            return false;
+        }
+
+        return $root !== $applicationRoot && ! str_starts_with($root, $applicationRoot.'/');
+    }
+
+    private function normalizeAbsolutePath(string $path): ?string
+    {
+        $path = str_replace('\\', '/', trim($path));
+        if ($path === '' || ! str_starts_with($path, '/')) {
+            return null;
+        }
+
+        $segments = [];
+        foreach (explode('/', $path) as $segment) {
+            if ($segment === '' || $segment === '.') {
+                continue;
+            }
+            if ($segment === '..') {
+                if ($segments === []) {
+                    return null;
+                }
+                array_pop($segments);
+
+                continue;
+            }
+
+            $segments[] = $segment;
+        }
+
+        return '/'.implode('/', $segments);
     }
 }
