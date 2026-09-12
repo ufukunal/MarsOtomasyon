@@ -17,6 +17,14 @@ final class UpdateCenterServiceProvider extends ServiceProvider
             return;
         }
 
+        $parseRunId = static function (mixed $value): int {
+            if ((! is_string($value) && ! is_int($value)) || ! is_numeric($value) || (int) $value < 1) {
+                throw new InvalidArgumentException('A positive update run id is required.');
+            }
+
+            return (int) $value;
+        };
+
         Artisan::command('mars:update:agent-claim', function (UpdateAgentCoordinator $coordinator): int {
             $claim = $coordinator->claim();
             $this->line(json_encode($claim ?? ['action' => 'none'], JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR));
@@ -24,27 +32,29 @@ final class UpdateCenterServiceProvider extends ServiceProvider
             return 0;
         })->purpose('Atomically claim the next queued Update Center apply or rollback run');
 
-        Artisan::command('mars:update:agent-artifact {run}', function (UpdateAgentCoordinator $coordinator): int {
-            $runId = $this->positiveRunId();
-            $this->line(json_encode($coordinator->artifact($runId), JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR));
+        Artisan::command('mars:update:agent-artifact {run}', function (UpdateAgentCoordinator $coordinator) use ($parseRunId): int {
+            $this->line(json_encode(
+                $coordinator->artifact($parseRunId($this->argument('run'))),
+                JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR,
+            ));
 
             return 0;
         })->purpose('Return verified staged artifact metadata for the host deploy agent');
 
-        Artisan::command('mars:update:agent-backup {run}', function (UpdateAgentCoordinator $coordinator): int {
-            $this->line($coordinator->createBackup($this->positiveRunId()));
+        Artisan::command('mars:update:agent-backup {run}', function (UpdateAgentCoordinator $coordinator) use ($parseRunId): int {
+            $this->line($coordinator->createBackup($parseRunId($this->argument('run'))));
 
             return 0;
         })->purpose('Create and verify the mandatory pre-update rollback backup');
 
-        Artisan::command('mars:update:agent-maintenance {run}', function (UpdateAgentCoordinator $coordinator): int {
-            $coordinator->enterMaintenance($this->positiveRunId());
+        Artisan::command('mars:update:agent-maintenance {run}', function (UpdateAgentCoordinator $coordinator) use ($parseRunId): int {
+            $coordinator->enterMaintenance($parseRunId($this->argument('run')));
             $this->info('maintenance-ready');
 
             return 0;
         })->purpose('Run apply preflight and enter shared recovery/maintenance mode');
 
-        Artisan::command('mars:update:agent-state {run} {state}', function (UpdateAgentCoordinator $coordinator): int {
+        Artisan::command('mars:update:agent-state {run} {state}', function (UpdateAgentCoordinator $coordinator) use ($parseRunId): int {
             $stateArgument = $this->argument('state');
             if (! is_string($stateArgument)) {
                 throw new InvalidArgumentException('Update state is required.');
@@ -55,33 +65,33 @@ final class UpdateCenterServiceProvider extends ServiceProvider
                 throw new InvalidArgumentException('Host agent may only mark migrating, activating or health_checking through this command.');
             }
 
-            $coordinator->transition($this->positiveRunId(), $state);
+            $coordinator->transition($parseRunId($this->argument('run')), $state);
             $this->info($state->value);
 
             return 0;
         })->purpose('Advance the host-controlled migration/activation lifecycle');
 
-        Artisan::command('mars:update:agent-complete {run}', function (UpdateAgentCoordinator $coordinator): int {
-            $coordinator->complete($this->positiveRunId());
+        Artisan::command('mars:update:agent-complete {run}', function (UpdateAgentCoordinator $coordinator) use ($parseRunId): int {
+            $coordinator->complete($parseRunId($this->argument('run')));
             $this->info('completed');
 
             return 0;
         })->purpose('Close a healthy update run and leave recovery mode');
 
-        Artisan::command('mars:update:agent-backup-id {run}', function (UpdateAgentCoordinator $coordinator): int {
-            $this->line($coordinator->backupId($this->positiveRunId()));
+        Artisan::command('mars:update:agent-backup-id {run}', function (UpdateAgentCoordinator $coordinator) use ($parseRunId): int {
+            $this->line($coordinator->backupId($parseRunId($this->argument('run'))));
 
             return 0;
         })->purpose('Return the verified rollback backup for an update run');
 
-        Artisan::command('mars:update:agent-rollback-complete {run}', function (UpdateAgentCoordinator $coordinator): int {
-            $coordinator->rolledBack($this->positiveRunId());
+        Artisan::command('mars:update:agent-rollback-complete {run}', function (UpdateAgentCoordinator $coordinator) use ($parseRunId): int {
+            $coordinator->rolledBack($parseRunId($this->argument('run')));
             $this->info('rolled-back');
 
             return 0;
         })->purpose('Close a healthy rollback and leave recovery mode');
 
-        Artisan::command('mars:update:agent-fail {run} {code} {message?}', function (UpdateAgentCoordinator $coordinator): int {
+        Artisan::command('mars:update:agent-fail {run} {code} {message?}', function (UpdateAgentCoordinator $coordinator) use ($parseRunId): int {
             $code = $this->argument('code');
             $message = $this->argument('message');
             if (! is_string($code) || trim($code) === '') {
@@ -90,7 +100,7 @@ final class UpdateCenterServiceProvider extends ServiceProvider
 
             try {
                 $coordinator->fail(
-                    $this->positiveRunId(),
+                    $parseRunId($this->argument('run')),
                     trim($code),
                     is_string($message) && $message !== '' ? $message : 'Host deploy agent failed.',
                 );
