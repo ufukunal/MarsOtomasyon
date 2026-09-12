@@ -1,0 +1,71 @@
+name: PR Full PHP Tests
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr-full-tests-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  full-php-tests:
+    runs-on: [self-hosted, linux, x64, mars, ci]
+    timeout-minutes: 30
+    env:
+      APP_NAME: MarsOtomasyon
+      APP_ENV: testing
+      APP_KEY: base64:TWFyc090b21hc3lvbkZvdW5kYXRpb25UZXN0S2V5ISE=
+      APP_DEBUG: 'false'
+      APP_URL: http://localhost
+      DB_CONNECTION: pgsql
+      DB_HOST: 127.0.0.1
+      DB_PORT: 5432
+      DB_DATABASE: mars_full_${{ github.run_id }}_${{ github.run_attempt }}
+      DB_USERNAME: mars
+      DB_PASSWORD: mars
+      CACHE_STORE: redis
+      QUEUE_CONNECTION: redis
+      SESSION_DRIVER: redis
+      SESSION_CONNECTION: session
+      REDIS_CLIENT: phpredis
+      REDIS_HOST: 127.0.0.1
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: null
+      REDIS_PREFIX: 'mars-full:${{ github.run_id }}:'
+      REDIS_DB: 0
+      REDIS_CACHE_DB: 1
+      REDIS_QUEUE_DB: 2
+      REDIS_SESSION_DB: 3
+      REDIS_QUEUE: mars-full-${{ github.run_id }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Prepare local CI toolchain
+        run: bash scripts/ci/prepare-ci-toolchain.sh
+
+      - name: Prepare application and isolated database
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp .env.example .env
+          PGPASSWORD="$DB_PASSWORD" pg_isready -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USERNAME"
+          redis-cli -h "$REDIS_HOST" -p "$REDIS_PORT" ping | grep -qx PONG
+          PGPASSWORD="$DB_PASSWORD" dropdb --if-exists --force -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USERNAME" "$DB_DATABASE"
+          PGPASSWORD="$DB_PASSWORD" createdb -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USERNAME" "$DB_DATABASE"
+
+      - name: Install PHP dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Run Unit Feature Integration and Architecture suites
+        run: composer test
+
+      - name: Cleanup isolated database
+        if: always()
+        run: PGPASSWORD="$DB_PASSWORD" dropdb --if-exists --force -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USERNAME" "$DB_DATABASE"
