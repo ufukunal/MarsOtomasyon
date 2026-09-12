@@ -66,8 +66,11 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          docker compose --env-file .env.production -f docker-compose.production.yml up -d postgres valkey
-          docker compose --env-file .env.production -f docker-compose.production.yml exec -T postgres postgres --version | grep -q 'PostgreSQL 18'
+          compose='docker compose --env-file .env.production -f docker-compose.production.yml'
+          $compose up -d postgres valkey
+          version="$($compose exec -T postgres postgres --version)"
+          printf '%s\n' "$version"
+          grep -Eq 'PostgreSQL\)?[[:space:]]+18([.[:space:]]|$)' <<<"$version"
 
       - name: Migrate optimize and verify bootstrap command
         shell: bash
