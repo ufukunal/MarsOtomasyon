@@ -40,6 +40,8 @@ it('drives the authenticated V16.3 shell tabs and command palette without browse
         ->assertPathIs('/workspace')
         ->assertSee('Browser Shell Company')
         ->assertSee('Merkez')
+        ->assertSee('Kişiler / Firmalar')
+        ->assertSee('Ürünler ve Hizmetler')
         ->assertCount('.workspace-tab', 1)
         ->assertNoJavaScriptErrors()
         ->assertNoConsoleLogs();
@@ -51,6 +53,7 @@ it('drives the authenticated V16.3 shell tabs and command palette without browse
         ->assertNoJavaScriptErrors();
 
     $page->click('[data-command-close]')
+        ->click('Ayarlar / Sistem')
         ->click('Ayarlar')
         ->assertPathIs('/settings')
         ->assertCount('.workspace-tab', 2)
