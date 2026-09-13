@@ -37,8 +37,9 @@ final class V163ReferenceShellTest extends TestCase
         $quote = file_get_contents(resource_path('views/quotes/form.blade.php'));
         $salesOrder = file_get_contents(resource_path('views/sales-orders/form.blade.php'));
         $dispatch = file_get_contents(resource_path('views/dispatches/create.blade.php'));
+        $salesInvoice = file_get_contents(resource_path('views/sales-invoices/create.blade.php'));
 
-        foreach ([$quote, $salesOrder, $dispatch] as $view) {
+        foreach ([$quote, $salesOrder, $dispatch, $salesInvoice] as $view) {
             self::assertIsString($view);
             self::assertStringContainsString('v163-doc', $view);
             self::assertStringContainsString('v163-section', $view);
@@ -48,5 +49,6 @@ final class V163ReferenceShellTest extends TestCase
         self::assertStringContainsString('Teklif Kalemleri', $quote);
         self::assertStringContainsString('Sipariş Kalemleri', $salesOrder);
         self::assertStringContainsString('Sevk Kalemleri', $dispatch);
+        self::assertStringContainsString('Fatura Kalemleri', $salesInvoice);
     }
 }
