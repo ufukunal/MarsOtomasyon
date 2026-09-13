@@ -24,7 +24,8 @@ final readonly class AppNavigation
             ['label' => 'Cariler', 'route' => 'customers.index', 'feature' => FeatureKey::Customers, 'permissions' => [PermissionKey::AccountView]],
             ['label' => 'Ürün/Stok', 'route' => $productStockRoute, 'feature' => FeatureKey::ProductStock, 'permissions' => [PermissionKey::ProductView, PermissionKey::InventoryView]],
 
-            // V16.3 sales navigation is intentionally document-first instead of a single redirect entry.
+            // Keep the legacy redirect as a compatibility shortcut, but expose the real V16.3 document entries.
+            ['label' => 'Satış', 'route' => 'sales.index', 'feature' => FeatureKey::Sales, 'permissions' => [PermissionKey::SalesOrderView, PermissionKey::DispatchView, PermissionKey::SalesInvoiceView]],
             ['label' => 'Teklifler', 'route' => 'quotes.index', 'feature' => FeatureKey::Sales, 'permissions' => [PermissionKey::QuoteView]],
             ['label' => 'Yeni Teklif', 'route' => 'quotes.create', 'feature' => FeatureKey::Sales, 'permissions' => [PermissionKey::QuoteManage]],
             ['label' => 'Satış Siparişleri', 'route' => 'sales-orders.index', 'feature' => FeatureKey::Sales, 'permissions' => [PermissionKey::SalesOrderView]],
