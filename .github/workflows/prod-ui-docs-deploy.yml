@@ -1,0 +1,186 @@
+name: Production UI Docs Deploy
+
+on:
+  push:
+    branches:
+      - ops/prod-ui-docs-20260913
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: [self-hosted, linux, x64, mars, ci]
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Bootstrap authenticated production SSH
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          key=/tmp/mars-prod-transport-20260913.pem
+          pass=/tmp/mars-prod-pass-20260913
+          cipher=/tmp/mars-prod-pass-20260913.bin
+          askpass=/tmp/mars-prod-askpass-20260913
+          known=/tmp/mars-prod-known-hosts-20260913
+          test -s "$key"
+          base64 -d .ops/prod-pass.enc > "$cipher"
+          openssl pkeyutl -decrypt -inkey "$key" -in "$cipher" -out "$pass" -pkeyopt rsa_padding_mode:oaep -pkeyopt rsa_oaep_md:sha256
+          chmod 600 "$pass"
+          secret="$(cat "$pass")"; echo "::add-mask::$secret"; unset secret
+          cat > "$askpass" <<'EOF'
+          #!/usr/bin/env bash
+          cat /tmp/mars-prod-pass-20260913
+          EOF
+          chmod 700 "$askpass"
+          ssh-keyscan -T 5 -t ed25519 mars-prod.taila20365.ts.net > "$known" 2>/dev/null
+          test "$(ssh-keygen -lf "$known" -E sha256 | awk '{print $2}')" = 'SHA256:HBjgtjY+qIJiw00Cf7uzej/UIKWANYIjVe0VSz6Uh2I'
+          echo "SSH_ASKPASS=$askpass" >> "$GITHUB_ENV"
+          echo "SSH_ASKPASS_REQUIRE=force" >> "$GITHUB_ENV"
+          echo "DISPLAY=:0" >> "$GITHUB_ENV"
+          echo "MARS_PROD_KNOWN=$known" >> "$GITHUB_ENV"
+
+      - name: Prepare immutable exact release and safety backup
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          setsid ssh -o UserKnownHostsFile="$MARS_PROD_KNOWN" -o StrictHostKeyChecking=yes -o PreferredAuthentications=password -o PubkeyAuthentication=no -o NumberOfPasswordPrompts=1 ufuk@mars-prod.taila20365.ts.net 'bash -se' <<'REMOTE'
+          set -Eeuo pipefail
+          ROOT=/opt/marsotomasyon
+          RELEASE=3efbf2050427c8698696d14e067b43a58e0313d6
+          TAG=release-${RELEASE:0:12}
+          REL="$ROOT/.mars-releases/$RELEASE"
+          ENV="$ROOT/.env.production"
+          test -d "$ROOT"
+          test -f "$ENV"
+
+          CURRENT="$(cat "$ROOT/.mars-production-release" 2>/dev/null || true)"
+          test -n "$CURRENT"
+          CURRENT_REL="$ROOT/.mars-releases/$CURRENT"
+          test -f "$CURRENT_REL/docker-compose.production.yml"
+          export MARS_ENV_FILE="$ENV" MARS_IMAGE_TAG="release-${CURRENT:0:12}"
+          CURRENT_COMPOSE=(docker compose --env-file "$ENV" -f "$CURRENT_REL/docker-compose.production.yml")
+          "${CURRENT_COMPOSE[@]}" exec -T app php artisan mars:ops-status </dev/null
+
+          echo 'SAFETY_BACKUP_BEGIN'
+          "${CURRENT_COMPOSE[@]}" exec -T app php artisan mars:backup </dev/null
+          echo 'SAFETY_BACKUP_END'
+
+          git -C "$ROOT" fetch --no-tags origin "$RELEASE"
+          mkdir -p "$ROOT/.mars-releases"
+          if [ -e "$REL" ]; then
+            test -d "$REL/.git" -o -f "$REL/.git"
+            test "$(git -C "$REL" rev-parse HEAD)" = "$RELEASE"
+            test -z "$(git -C "$REL" status --porcelain)"
+          else
+            git -C "$ROOT" worktree add --detach "$REL" "$RELEASE"
+          fi
+          test "$(git -C "$REL" rev-parse HEAD)" = "$RELEASE"
+          test -z "$(git -C "$REL" status --porcelain)"
+          grep -Fq 'docker-php-ext-install -j"$(nproc)" bcmath intl pcntl pdo_pgsql zip' "$REL/Dockerfile.production"
+          grep -Fq "URL::forceScheme('https')" "$REL/app/Providers/AppServiceProvider.php"
+          grep -Fq 'postgres_data:/var/lib/postgresql' "$REL/docker-compose.production.yml"
+          grep -Fq 'Teklifler' "$REL/app/Modules/Core/Shell/AppNavigation.php"
+          grep -Fq 'Satış Siparişleri' "$REL/app/Modules/Core/Shell/AppNavigation.php"
+          grep -Fq 'Sevkiyat / İrsaliye' "$REL/app/Modules/Core/Shell/AppNavigation.php"
+          grep -Fq 'Satış Faturaları' "$REL/app/Modules/Core/Shell/AppNavigation.php"
+
+          export MARS_ENV_FILE="$ENV" MARS_IMAGE_TAG="$TAG"
+          TARGET_COMPOSE=(docker compose --env-file "$ENV" -f "$REL/docker-compose.production.yml")
+          "${TARGET_COMPOSE[@]}" build app web </dev/null
+          "${TARGET_COMPOSE[@]}" run --rm -T app php artisan migrate --force </dev/null
+          "${TARGET_COMPOSE[@]}" run --rm -T app php artisan optimize </dev/null
+          echo "PREPARED_RELEASE=$RELEASE"
+          echo "PREPARED_TAG=$TAG"
+          docker image inspect "marsotomasyon-app:$TAG" --format 'APP_IMAGE_ID={{.Id}}'
+          docker image inspect "marsotomasyon-web:$TAG" --format 'WEB_IMAGE_ID={{.Id}}'
+          REMOTE
+
+      - name: Switch production with automatic rollback guard
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          setsid ssh -o UserKnownHostsFile="$MARS_PROD_KNOWN" -o StrictHostKeyChecking=yes -o PreferredAuthentications=password -o PubkeyAuthentication=no -o NumberOfPasswordPrompts=1 ufuk@mars-prod.taila20365.ts.net 'bash -se' < scripts/prod-v163-switch.sh
+
+      - name: Verify exact production release
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          setsid ssh -o UserKnownHostsFile="$MARS_PROD_KNOWN" -o StrictHostKeyChecking=yes -o PreferredAuthentications=password -o PubkeyAuthentication=no -o NumberOfPasswordPrompts=1 ufuk@mars-prod.taila20365.ts.net 'bash -se' <<'REMOTE'
+          set -Eeuo pipefail
+          ROOT=/opt/marsotomasyon
+          RELEASE=3efbf2050427c8698696d14e067b43a58e0313d6
+          TAG=release-${RELEASE:0:12}
+          REL="$ROOT/.mars-releases/$RELEASE"
+          ENV="$ROOT/.env.production"
+          export MARS_ENV_FILE="$ENV" MARS_IMAGE_TAG="$TAG"
+          COMPOSE=(docker compose --env-file "$ENV" -f "$REL/docker-compose.production.yml")
+
+          test "$(cat "$ROOT/.mars-production-release")" = "$RELEASE"
+          test "$(git -C "$REL" rev-parse HEAD)" = "$RELEASE"
+          test -z "$(git -C "$REL" status --porcelain)"
+
+          TARGET_APP_ID="$(docker image inspect "marsotomasyon-app:$TAG" --format '{{.Id}}')"
+          TARGET_WEB_ID="$(docker image inspect "marsotomasyon-web:$TAG" --format '{{.Id}}')"
+          APP_CID="$(${COMPOSE[@]} ps -q app)"
+          WORKER_CID="$(${COMPOSE[@]} ps -q worker)"
+          SCHED_CID="$(${COMPOSE[@]} ps -q scheduler)"
+          WEB_CID="$(${COMPOSE[@]} ps -q web)"
+          test -n "$APP_CID"; test -n "$WORKER_CID"; test -n "$SCHED_CID"; test -n "$WEB_CID"
+          test "$(docker inspect "$APP_CID" --format '{{.Image}}')" = "$TARGET_APP_ID"
+          test "$(docker inspect "$WORKER_CID" --format '{{.Image}}')" = "$TARGET_APP_ID"
+          test "$(docker inspect "$SCHED_CID" --format '{{.Image}}')" = "$TARGET_APP_ID"
+          test "$(docker inspect "$WEB_CID" --format '{{.Image}}')" = "$TARGET_WEB_ID"
+          test "$(docker inspect "$APP_CID" --format '{{.State.Running}}')" = true
+          test "$(docker inspect "$WORKER_CID" --format '{{.State.Running}}')" = true
+          test "$(docker inspect "$SCHED_CID" --format '{{.State.Running}}')" = true
+          test "$(docker inspect "$WEB_CID" --format '{{.State.Running}}')" = true
+
+          "${COMPOSE[@]}" exec -T app php artisan mars:ops-status </dev/null
+          ROUTES="$(${COMPOSE[@]} exec -T app php artisan route:list </dev/null)"
+          printf '%s\n' "$ROUTES" | grep -q 'quotes.index'
+          printf '%s\n' "$ROUTES" | grep -q 'sales-orders.index'
+          printf '%s\n' "$ROUTES" | grep -q 'dispatches.index'
+          printf '%s\n' "$ROUTES" | grep -q 'sales-invoices.index'
+
+          APP_URL_VALUE="$(${COMPOSE[@]} exec -T app sh -lc 'printf %s "$APP_URL"' </dev/null)"
+          APP_HOST="$(printf '%s' "$APP_URL_VALUE" | sed -E 's#^[a-zA-Z]+://([^/:]+).*#\1#')"
+          test -n "$APP_HOST"
+          LOGIN_IP_CODE="$(curl -sS -o /dev/null -w '%{http_code}' http://127.0.0.1:8080/login)"
+          LOGIN_HOST_CODE="$(curl -sS -H "Host: $APP_HOST" -o /dev/null -w '%{http_code}' http://127.0.0.1:8080/login)"
+          WORKSPACE_HOST_CODE="$(curl -sS -H "Host: $APP_HOST" -o /dev/null -w '%{http_code}' http://127.0.0.1:8080/workspace)"
+          test "$LOGIN_IP_CODE" = 200
+          test "$LOGIN_HOST_CODE" = 200
+          case "$WORKSPACE_HOST_CODE" in 200|301|302|303|307|308) ;; *) exit 1 ;; esac
+
+          POSTGRES_CID="$(${COMPOSE[@]} ps -q postgres)"
+          VALKEY_CID="$(${COMPOSE[@]} ps -q valkey)"
+          POSTGRES_HEALTH="$(docker inspect "$POSTGRES_CID" --format '{{if .State.Health}}{{.State.Health.Status}}{{end}}')"
+          VALKEY_HEALTH="$(docker inspect "$VALKEY_CID" --format '{{if .State.Health}}{{.State.Health.Status}}{{end}}')"
+          test "$POSTGRES_HEALTH" = healthy
+          test "$VALKEY_HEALTH" = healthy
+
+          echo "PRODUCTION_RELEASE=$RELEASE"
+          echo "PRODUCTION_MARKER=$(cat "$ROOT/.mars-production-release")"
+          echo "RELEASE_WORKTREE_SHA=$(git -C "$REL" rev-parse HEAD)"
+          echo "RELEASE_WORKTREE_DIRTY=no"
+          echo "APP_TARGET_MATCH=yes"
+          echo "WORKER_TARGET_MATCH=yes"
+          echo "SCHEDULER_TARGET_MATCH=yes"
+          echo "WEB_TARGET_MATCH=yes"
+          echo "LOGIN_IP_HTTP=$LOGIN_IP_CODE"
+          echo "LOGIN_HOST_HTTP=$LOGIN_HOST_CODE"
+          echo "WORKSPACE_HOST_HTTP=$WORKSPACE_HOST_CODE"
+          echo "POSTGRES_HEALTH=$POSTGRES_HEALTH"
+          echo "VALKEY_HEALTH=$VALKEY_HEALTH"
+          echo 'SERVICES_BEGIN'
+          "${COMPOSE[@]}" ps
+          echo 'SERVICES_END'
+          REMOTE
+
+      - name: Cleanup SSH bootstrap
+        if: always()
+        shell: bash
+        run: |
+          rm -f /tmp/mars-prod-pass-20260913 /tmp/mars-prod-pass-20260913.bin /tmp/mars-prod-askpass-20260913 /tmp/mars-prod-known-hosts-20260913
