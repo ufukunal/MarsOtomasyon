@@ -14,7 +14,7 @@
         ['label' => 'Ana Sayfa', 'icon' => '⌂', 'items' => ['Ana Sayfa']],
         ['label' => 'Kişiler / Firmalar', 'icon' => '◉', 'items' => ['Cariler']],
         ['label' => 'Ürünler ve Hizmetler', 'icon' => '◈', 'items' => ['Ürün/Stok']],
-        ['label' => 'Satış Yönetimi', 'icon' => '◴', 'items' => ['Teklifler', 'Yeni Teklif', 'Satış Siparişleri', 'Yeni Satış Siparişi', 'Sevkiyat / İrsaliye', 'Yeni Sevkiyat', 'Satış Faturaları', 'Yeni Satış Faturası']],
+        ['label' => 'Satış Yönetimi', 'icon' => '◴', 'items' => ['Satış', 'Teklifler', 'Yeni Teklif', 'Satış Siparişleri', 'Yeni Satış Siparişi', 'Sevkiyat / İrsaliye', 'Yeni Sevkiyat', 'Satış Faturaları', 'Yeni Satış Faturası']],
         ['label' => 'Satınalma Yönetimi', 'icon' => '◉', 'items' => ['Alış']],
         ['label' => 'Üretim Yönetimi', 'icon' => '⚙', 'items' => ['Üretim']],
         ['label' => 'Fason Yönetimi', 'icon' => '⇄', 'items' => ['Fason']],
