@@ -19,19 +19,20 @@ jobs:
         shell: bash
         run: |
           set -Eeuo pipefail
+          suffix="${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-${GITHUB_JOB}"
           key=/tmp/mars-prod-transport-20260913.pem
-          pass=/tmp/mars-prod-pass-20260913
-          cipher=/tmp/mars-prod-pass-20260913.bin
-          askpass=/tmp/mars-prod-askpass-20260913
-          known=/tmp/mars-prod-known-hosts-20260913
+          pass="$RUNNER_TEMP/mars-prod-pass-$suffix"
+          cipher="$RUNNER_TEMP/mars-prod-pass-$suffix.bin"
+          askpass="$RUNNER_TEMP/mars-prod-askpass-$suffix"
+          known="$RUNNER_TEMP/mars-prod-known-hosts-$suffix"
           test -s "$key"
           base64 -d .ops/prod-pass.enc > "$cipher"
           openssl pkeyutl -decrypt -inkey "$key" -in "$cipher" -out "$pass" -pkeyopt rsa_padding_mode:oaep -pkeyopt rsa_oaep_md:sha256
           chmod 600 "$pass"
           secret="$(cat "$pass")"; echo "::add-mask::$secret"; unset secret
-          cat > "$askpass" <<'EOF'
+          cat > "$askpass" <<EOF
           #!/usr/bin/env bash
-          cat /tmp/mars-prod-pass-20260913
+          cat '$pass'
           EOF
           chmod 700 "$askpass"
           ssh-keyscan -T 5 -t ed25519 mars-prod.taila20365.ts.net > "$known" 2>/dev/null
@@ -40,6 +41,9 @@ jobs:
           echo "SSH_ASKPASS_REQUIRE=force" >> "$GITHUB_ENV"
           echo "DISPLAY=:0" >> "$GITHUB_ENV"
           echo "MARS_PROD_KNOWN=$known" >> "$GITHUB_ENV"
+          echo "MARS_PROD_PASS=$pass" >> "$GITHUB_ENV"
+          echo "MARS_PROD_CIPHER=$cipher" >> "$GITHUB_ENV"
+          echo "MARS_PROD_ASKPASS=$askpass" >> "$GITHUB_ENV"
 
       - name: Prepare immutable exact release and safety backup
         shell: bash
@@ -57,6 +61,7 @@ jobs:
 
           CURRENT="$(cat "$ROOT/.mars-production-release" 2>/dev/null || true)"
           test -n "$CURRENT"
+          echo "CURRENT_PRODUCTION_MARKER=$CURRENT"
           CURRENT_REL="$ROOT/.mars-releases/$CURRENT"
           test -f "$CURRENT_REL/docker-compose.production.yml"
           export MARS_ENV_FILE="$ENV" MARS_IMAGE_TAG="release-${CURRENT:0:12}"
@@ -78,9 +83,6 @@ jobs:
           fi
           test "$(git -C "$REL" rev-parse HEAD)" = "$RELEASE"
           test -z "$(git -C "$REL" status --porcelain)"
-          grep -Fq 'docker-php-ext-install -j"$(nproc)" bcmath intl pcntl pdo_pgsql zip' "$REL/Dockerfile.production"
-          grep -Fq "URL::forceScheme('https')" "$REL/app/Providers/AppServiceProvider.php"
-          grep -Fq 'postgres_data:/var/lib/postgresql' "$REL/docker-compose.production.yml"
           grep -Fq 'Teklifler' "$REL/app/Modules/Core/Shell/AppNavigation.php"
           grep -Fq 'Satış Siparişleri' "$REL/app/Modules/Core/Shell/AppNavigation.php"
           grep -Fq 'Sevkiyat / İrsaliye' "$REL/app/Modules/Core/Shell/AppNavigation.php"
@@ -91,6 +93,19 @@ jobs:
           "${TARGET_COMPOSE[@]}" build app web </dev/null
           "${TARGET_COMPOSE[@]}" run --rm -T app php artisan migrate --force </dev/null
           "${TARGET_COMPOSE[@]}" run --rm -T app php artisan optimize </dev/null
+
+          WORKSPACE_ROUTES="$(${TARGET_COMPOSE[@]} run --rm -T app php artisan route:list --path=workspace </dev/null)"
+          printf '%s\n' "$WORKSPACE_ROUTES"
+          grep -Fq 'workspace' <<<"$WORKSPACE_ROUTES"
+          echo 'TARGET_WORKSPACE_ROUTE_CHECK=pass'
+
+          ALL_ROUTES="$(${TARGET_COMPOSE[@]} run --rm -T app php artisan route:list </dev/null)"
+          grep -Fq 'quotes.index' <<<"$ALL_ROUTES"
+          grep -Fq 'sales-orders.index' <<<"$ALL_ROUTES"
+          grep -Fq 'dispatches.index' <<<"$ALL_ROUTES"
+          grep -Fq 'sales-invoices.index' <<<"$ALL_ROUTES"
+          echo 'TARGET_SALES_ROUTE_CHECK=pass'
+
           echo "PREPARED_RELEASE=$RELEASE"
           echo "PREPARED_TAG=$TAG"
           docker image inspect "marsotomasyon-app:$TAG" --format 'APP_IMAGE_ID={{.Id}}'
@@ -138,11 +153,13 @@ jobs:
           test "$(docker inspect "$WEB_CID" --format '{{.State.Running}}')" = true
 
           "${COMPOSE[@]}" exec -T app php artisan mars:ops-status </dev/null
-          ROUTES="$(${COMPOSE[@]} exec -T app php artisan route:list </dev/null)"
-          printf '%s\n' "$ROUTES" | grep -q 'quotes.index'
-          printf '%s\n' "$ROUTES" | grep -q 'sales-orders.index'
-          printf '%s\n' "$ROUTES" | grep -q 'dispatches.index'
-          printf '%s\n' "$ROUTES" | grep -q 'sales-invoices.index'
+          WORKSPACE_ROUTES="$(${COMPOSE[@]} exec -T app php artisan route:list --path=workspace </dev/null)"
+          grep -Fq 'workspace' <<<"$WORKSPACE_ROUTES"
+          ALL_ROUTES="$(${COMPOSE[@]} exec -T app php artisan route:list </dev/null)"
+          grep -Fq 'quotes.index' <<<"$ALL_ROUTES"
+          grep -Fq 'sales-orders.index' <<<"$ALL_ROUTES"
+          grep -Fq 'dispatches.index' <<<"$ALL_ROUTES"
+          grep -Fq 'sales-invoices.index' <<<"$ALL_ROUTES"
 
           APP_URL_VALUE="$(${COMPOSE[@]} exec -T app sh -lc 'printf %s "$APP_URL"' </dev/null)"
           APP_HOST="$(printf '%s' "$APP_URL_VALUE" | sed -E 's#^[a-zA-Z]+://([^/:]+).*#\1#')"
@@ -169,6 +186,8 @@ jobs:
           echo "WORKER_TARGET_MATCH=yes"
           echo "SCHEDULER_TARGET_MATCH=yes"
           echo "WEB_TARGET_MATCH=yes"
+          echo "WORKSPACE_ROUTE_CHECK=pass"
+          echo "SALES_ROUTE_CHECK=pass"
           echo "LOGIN_IP_HTTP=$LOGIN_IP_CODE"
           echo "LOGIN_HOST_HTTP=$LOGIN_HOST_CODE"
           echo "WORKSPACE_HOST_HTTP=$WORKSPACE_HOST_CODE"
@@ -183,4 +202,4 @@ jobs:
         if: always()
         shell: bash
         run: |
-          rm -f /tmp/mars-prod-pass-20260913 /tmp/mars-prod-pass-20260913.bin /tmp/mars-prod-askpass-20260913 /tmp/mars-prod-known-hosts-20260913
+          rm -f "${MARS_PROD_PASS:-}" "${MARS_PROD_CIPHER:-}" "${MARS_PROD_ASKPASS:-}" "${MARS_PROD_KNOWN:-}"

@@ -95,7 +95,9 @@ TARGET_WEB_ID="$(docker image inspect "marsotomasyon-web:$TAG" --format '{{.Id}}
 
 "${COMPOSE[@]}" exec -T app php artisan optimize </dev/null
 "${COMPOSE[@]}" exec -T app php artisan mars:ops-status </dev/null
-"${COMPOSE[@]}" exec -T app php artisan route:list --path=workspace </dev/null | grep -q 'workspace' || fail "workspace route missing"
+WORKSPACE_ROUTES="$(${COMPOSE[@]} exec -T app php artisan route:list --path=workspace </dev/null)"
+grep -Fq 'workspace' <<<"$WORKSPACE_ROUTES" || fail "workspace route missing"
+echo "WORKSPACE_ROUTE_CHECK=pass"
 
 LOGIN_CODE="$(curl -sS -o /tmp/mars-v163-login.html -w '%{http_code}' http://127.0.0.1:8080/login)"
 [ "$LOGIN_CODE" = 200 ] || fail "login HTTP status is $LOGIN_CODE"
