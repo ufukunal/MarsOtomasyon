@@ -1,4 +1,5 @@
 import './repeat-fields';
+import '../css/v16-3-category-system.css';
 
 document.documentElement.dataset.marsFoundation = 'ready';
 
