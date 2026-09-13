@@ -1,0 +1,416 @@
+/* MarsOtomasyon V16.3 category/list/form normalization.
+ * Applies the reference density and hierarchy to legacy category screens
+ * without changing routes, permissions, controllers or form semantics.
+ */
+
+:root {
+    --v163-page-pad: 14px;
+    --v163-control-border: #b8c8d0;
+    --v163-control-bg: #ffffff;
+    --v163-head-bg: #f4f7f9;
+    --v163-row-hover: #eef8fc;
+    --v163-section-line: #d6e0e5;
+}
+
+/* Category headers: one compact, deliberate header language everywhere. */
+.workspace-hero {
+    min-height: 64px;
+    padding: 10px var(--v163-page-pad);
+    border-bottom-color: var(--v163-section-line);
+    background: #fff;
+}
+
+.workspace-hero h1,
+.settings-title,
+.search-workspace h1 {
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: -.015em;
+}
+
+.workspace-hero p:not(.eyebrow) {
+    margin-top: 3px;
+    color: #6b7d86;
+    font-size: 10px;
+}
+
+.eyebrow {
+    margin-bottom: 3px;
+    color: #55717f;
+    font-size: 8.5px;
+    letter-spacing: .075em;
+}
+
+.page-actions {
+    gap: 5px;
+}
+
+.page-actions > a,
+.button-primary,
+.button-secondary,
+.auth-submit,
+.detail-card button,
+.statement-table-card button,
+.settings-content button,
+.filters-panel button {
+    min-height: 31px;
+    padding: 0 10px;
+    border-radius: 6px;
+    box-shadow: none;
+    font-size: 10.5px;
+    font-weight: 750;
+}
+
+/* List pages: filters are a compact top band, not a disconnected left rail. */
+.list-layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 9px;
+    padding: 10px var(--v163-page-pad) 18px;
+}
+
+.filters-panel {
+    position: static;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: stretch;
+    overflow: visible;
+    border-color: var(--v163-section-line);
+    border-radius: 8px;
+    box-shadow: none;
+}
+
+.filters-panel-title {
+    min-width: 112px;
+    min-height: 42px;
+    padding: 0 12px;
+    border-right: 1px solid var(--v163-section-line);
+    border-bottom: 0;
+    background: var(--v163-head-bg);
+    color: #304955;
+    font-size: 10px;
+    font-weight: 850;
+}
+
+.filters-panel-body {
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    align-items: end;
+    gap: 7px 10px;
+    padding: 8px 10px;
+}
+
+.filters-panel label {
+    gap: 3px;
+    color: #50656f;
+    font-size: 8.8px;
+    font-weight: 800;
+    letter-spacing: .01em;
+}
+
+.filters-panel input,
+.filters-panel select {
+    height: 32px;
+    padding: 0 9px;
+    border-color: var(--v163-control-border);
+    border-radius: 6px;
+    background: var(--v163-control-bg);
+    color: #172730;
+    font-size: 10.5px;
+}
+
+.filters-panel input::placeholder {
+    color: #98a7ae;
+}
+
+.filters-panel input:focus,
+.filters-panel select:focus {
+    border-color: #288fbd;
+    box-shadow: 0 0 0 2px rgba(40,143,189,.10);
+}
+
+.filters-panel-actions {
+    display: flex;
+    align-items: end;
+    gap: 6px;
+    padding: 8px 9px;
+    border-top: 0;
+    border-left: 1px solid var(--v163-section-line);
+    background: #fbfcfd;
+}
+
+.filters-panel-actions > * {
+    min-width: 78px;
+    min-height: 32px;
+    border: 1px solid #c7d3d9;
+    border-radius: 6px;
+}
+
+.filters-panel-actions .button-primary {
+    border-radius: 6px;
+}
+
+/* Tables: dense accounting grid with a clear toolbar and sticky header. */
+.table-card,
+.statement-table-card {
+    border-color: var(--v163-section-line);
+    border-radius: 8px;
+    box-shadow: none;
+}
+
+.table-toolbar {
+    min-height: 43px;
+    padding: 0 10px;
+    border-bottom-color: var(--v163-section-line);
+    background: #fff;
+}
+
+.table-toolbar .subtle {
+    color: #657983;
+    font-size: 9.5px;
+    font-weight: 700;
+}
+
+.data-table th,
+table th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    height: 34px;
+    padding: 6px 8px;
+    border-bottom: 1px solid #cfdbe1;
+    border-right: 1px solid #e0e7eb;
+    background: var(--v163-head-bg);
+    color: #4b626d;
+    font-size: 9px;
+    font-weight: 850;
+    letter-spacing: .012em;
+}
+
+.data-table td,
+table td {
+    height: 36px;
+    padding: 6px 8px;
+    border-bottom: 1px solid #e3e9ec;
+    border-right: 1px solid #edf1f3;
+    color: #263942;
+    font-size: 10.5px;
+}
+
+.data-table tbody tr:nth-child(even) td,
+table tbody tr:nth-child(even) td {
+    background: #fbfcfd;
+}
+
+.data-table tbody tr:hover td,
+table tbody tr:hover td {
+    background: var(--v163-row-hover);
+}
+
+.data-table a,
+table a {
+    color: #126f9a;
+    font-weight: 750;
+}
+
+/* Legacy forms: make field names and controls visually unambiguous. */
+.detail-card,
+.form-card {
+    border-color: var(--v163-section-line);
+    border-radius: 8px;
+    box-shadow: none;
+}
+
+.detail-card > h2,
+.form-card > h2 {
+    min-height: 38px;
+    border-bottom-color: var(--v163-section-line);
+    border-radius: 8px 8px 0 0;
+    background: var(--v163-head-bg);
+    color: #243943;
+    font-size: 10.5px;
+    font-weight: 850;
+}
+
+.form-grid {
+    max-width: none;
+    gap: 0;
+    overflow: hidden;
+    border: 1px solid var(--v163-section-line);
+    border-radius: 8px;
+    background: #fff;
+}
+
+.form-grid > label {
+    min-height: 42px;
+    grid-template-columns: 176px minmax(0, 1fr);
+    gap: 0;
+    padding: 5px 7px 5px 0;
+    border-bottom: 1px solid #e4eaed;
+    background: #fff;
+    color: #465d68;
+    font-size: 9.5px;
+    font-weight: 800;
+}
+
+.form-grid > label:last-of-type {
+    border-bottom: 0;
+}
+
+.form-grid > label::first-line {
+    color: #465d68;
+}
+
+.form-grid > label > input,
+.form-grid > label > select,
+.form-grid > label > textarea,
+.detail-card > label > input,
+.detail-card > label > select,
+.settings-content input,
+.settings-content select,
+.settings-content textarea,
+.statement-table-card input,
+.statement-table-card select,
+.statement-table-card textarea {
+    min-height: 33px;
+    border-color: var(--v163-control-border);
+    border-radius: 6px;
+    background: #fff;
+    color: #172730;
+    font-size: 10.5px;
+}
+
+.form-grid > label > input,
+.form-grid > label > select,
+.form-grid > label > textarea {
+    margin-left: 7px;
+    width: calc(100% - 7px);
+}
+
+.form-grid > label > textarea {
+    min-height: 78px;
+}
+
+.form-grid input:focus,
+.form-grid select:focus,
+.form-grid textarea:focus,
+.detail-card input:focus,
+.detail-card select:focus,
+.detail-card textarea:focus,
+.settings-content input:focus,
+.settings-content select:focus,
+.settings-content textarea:focus {
+    border-color: #288fbd;
+    box-shadow: 0 0 0 2px rgba(40,143,189,.10);
+}
+
+.form-grid > div:not(.product-search-entry) {
+    min-height: 46px;
+    margin: 0;
+    padding: 8px 10px;
+    border: 0;
+    border-bottom: 1px solid #e4eaed;
+    border-radius: 0;
+    background: #f8fafb;
+}
+
+/* Detail/KPI cards: remove floating-card noise and align with document sections. */
+.detail-grid {
+    gap: 1px;
+    overflow: hidden;
+    border: 1px solid var(--v163-section-line);
+    border-radius: 8px;
+    background: var(--v163-section-line);
+}
+
+.detail-grid div {
+    min-height: 52px;
+    padding: 8px 9px;
+    border: 0;
+    border-radius: 0;
+    background: #fff;
+}
+
+.detail-grid dt {
+    color: #6e818b;
+    font-size: 8.5px;
+}
+
+.detail-grid dd {
+    margin-top: 4px;
+    color: #233841;
+    font-size: 10.5px;
+}
+
+.dashboard-grid,
+.settings-grid,
+.balance-grid {
+    gap: 8px;
+}
+
+.dashboard-card,
+.settings-tile,
+.balance-card {
+    border-color: var(--v163-section-line);
+    border-radius: 8px;
+    box-shadow: none;
+}
+
+.dashboard-card:hover,
+.settings-tile:hover {
+    transform: none;
+    border-color: #9bbdcd;
+    box-shadow: none;
+    background: #f7fbfd;
+}
+
+/* Keep V16.3 document screens sovereign: their explicit primitives win. */
+.v163-doc-form .v163-field input,
+.v163-doc-form .v163-field select,
+.v163-doc-form .v163-field textarea,
+.v163-doc-form .v163-table input,
+.v163-doc-form .v163-table select {
+    font-size: inherit;
+}
+
+@media (max-width: 1050px) {
+    .filters-panel {
+        grid-template-columns: 1fr;
+    }
+
+    .filters-panel-title {
+        min-height: 34px;
+        border-right: 0;
+        border-bottom: 1px solid var(--v163-section-line);
+    }
+
+    .filters-panel-actions {
+        justify-content: flex-end;
+        border-left: 0;
+        border-top: 1px solid var(--v163-section-line);
+    }
+}
+
+@media (max-width: 720px) {
+    :root { --v163-page-pad: 8px; }
+
+    .workspace-hero {
+        min-height: auto;
+        padding: 9px var(--v163-page-pad);
+    }
+
+    .filters-panel-body {
+        grid-template-columns: 1fr;
+    }
+
+    .form-grid > label {
+        grid-template-columns: 1fr;
+        gap: 4px;
+        padding: 8px;
+    }
+
+    .form-grid > label > input,
+    .form-grid > label > select,
+    .form-grid > label > textarea {
+        width: 100%;
+        margin-left: 0;
+    }
+}
