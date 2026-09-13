@@ -17,11 +17,36 @@ final class V163ReferenceShellTest extends TestCase
         self::assertStringContainsString('Kişiler / Firmalar', $layout);
         self::assertStringContainsString('Ürünler ve Hizmetler', $layout);
         self::assertStringContainsString('Satış Yönetimi', $layout);
+        self::assertStringContainsString('Teklifler', $layout);
+        self::assertStringContainsString('Satış Siparişleri', $layout);
+        self::assertStringContainsString('Sevkiyat / İrsaliye', $layout);
+        self::assertStringContainsString('Satış Faturaları', $layout);
         self::assertStringContainsString('Finans İşlemleri', $layout);
         self::assertStringContainsString('Ayarlar / Sistem', $layout);
         self::assertStringContainsString('preacc-simple', $layout);
         self::assertStringContainsString('.app-nav-group', $css);
         self::assertStringContainsString('.v163-doc', $css);
+        self::assertStringContainsString('.v163-doc-form', $css);
+        self::assertStringContainsString('.v163-section', $css);
+        self::assertStringContainsString('.v163-table', $css);
         self::assertStringContainsString('.fin-clean', $css);
+    }
+
+    public function test_sales_document_forms_use_v163_document_sections(): void
+    {
+        $quote = file_get_contents(resource_path('views/quotes/form.blade.php'));
+        $salesOrder = file_get_contents(resource_path('views/sales-orders/form.blade.php'));
+        $dispatch = file_get_contents(resource_path('views/dispatches/create.blade.php'));
+
+        foreach ([$quote, $salesOrder, $dispatch] as $view) {
+            self::assertIsString($view);
+            self::assertStringContainsString('v163-doc', $view);
+            self::assertStringContainsString('v163-section', $view);
+            self::assertStringContainsString('v163-footer', $view);
+        }
+
+        self::assertStringContainsString('Teklif Kalemleri', $quote);
+        self::assertStringContainsString('Sipariş Kalemleri', $salesOrder);
+        self::assertStringContainsString('Sevk Kalemleri', $dispatch);
     }
 }
