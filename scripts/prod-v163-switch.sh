@@ -2,7 +2,7 @@
 set -Eeuo pipefail
 
 ROOT=/opt/marsotomasyon
-RELEASE=6e5a91b74f1bac3fede949f8479b17367e04c71c
+RELEASE=3efbf2050427c8698696d14e067b43a58e0313d6
 TAG=release-${RELEASE:0:12}
 REL="$ROOT/.mars-releases/$RELEASE"
 ENV="$ROOT/.env.production"
