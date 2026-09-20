@@ -77,7 +77,10 @@ The test PostgreSQL container will be used for:
 
 Rules:
 - persistent volume must be defined before important test data is relied upon
-- credentials must not be committed to Git
+- By explicit project-owner decision, TEST-ONLY credentials may be stored in this private repository in a dedicated tracked credentials file.
+- This exception applies only to the local MarsOtomasyon test environment; production credentials remain forbidden in Git.
+- Credential values must never be echoed in logs, build output, test output, screenshots, or assistant final reports.
+- If repository visibility/access changes, test credentials must be rotated immediately and the historical Git exposure must be treated as compromised.
 - PostgreSQL version must be pinned once verified
 - backup/restore procedure must be defined before destructive migration rehearsal
 - container recreation must not silently destroy needed test data
@@ -117,3 +120,25 @@ Verified from explicit project owner statement in the current planning session:
 - PostgreSQL Docker is installed/available on the test server/infrastructure
 
 No additional infrastructure facts should be inferred from that statement.
+
+
+## Test credential storage decision
+Project-owner decision:
+- Repository is private.
+- Human repository access is currently limited to the project owner; connected AI tooling may access it only through the authorized repository connection.
+- Plaintext storage of TEST-ONLY server/PostgreSQL credentials in the repository is explicitly permitted by the owner for this environment.
+- Production secrets are excluded from this exception.
+
+Dedicated tracked file:
+`config/test/test-server.credentials.env`
+
+Rules:
+- Only TEST environment credentials belong in this file.
+- Do not reuse these values for production.
+- Do not print the values in logs or final reports.
+- Do not copy credentials into multiple documentation files.
+- The credential file is the single repository location for these values.
+- When credentials change, replace them in the same file and record only that a rotation occurred; do not repeat the old values in documentation.
+- If the repository is ever shared, made public, transferred, or additional collaborators are added, rotate the credentials before/at that change.
+
+The actual credential values remain UNKNOWN until explicitly supplied by the project owner.

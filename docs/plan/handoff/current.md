@@ -29,6 +29,13 @@ PLAN-001 established:
 - Hostname/IP and remaining topology details are still UNKNOWN.
 - Source file: `docs/plan/01-foundation/test-environment.md`
 
+## Test credential policy
+- Project owner explicitly permits TEST-ONLY credentials to be stored in this private repository.
+- Dedicated path: `config/test/test-server.credentials.env`
+- Production credentials must never be stored there.
+- Actual credential values are still pending owner input and must not be invented.
+- Credential values must not be repeated in logs or assistant final reports.
+
 ## Active task
 `PLAN-002 — Detail Sales domain workflows before database schema`
 

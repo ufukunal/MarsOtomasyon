@@ -91,6 +91,11 @@ test_environment:
   postgresql_version: UNKNOWN
   valkey_status: UNKNOWN
   application_deployment_status: UNKNOWN
+  credential_storage:
+    test_plaintext_repo_storage_allowed_by_owner: true
+    path: config/test/test-server.credentials.env
+    production_credentials_in_repo_forbidden: true
+    actual_values_status: UNKNOWN
 
 known_constraints:
   - Application core is not yet implemented.
