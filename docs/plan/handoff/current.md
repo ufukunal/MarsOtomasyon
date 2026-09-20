@@ -22,6 +22,13 @@ PLAN-001 established:
 - Foundation plan
 - initial DB dictionary/principles
 
+## Verified test infrastructure
+- Dedicated MarsOtomasyon/pre-accounting test environment exists.
+- Local runner is available.
+- PostgreSQL is available in Docker.
+- Hostname/IP and remaining topology details are still UNKNOWN.
+- Source file: `docs/plan/01-foundation/test-environment.md`
+
 ## Active task
 `PLAN-002 — Detail Sales domain workflows before database schema`
 

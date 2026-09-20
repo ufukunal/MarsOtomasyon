@@ -243,7 +243,25 @@ Before adding a package:
 - security checked
 - lock-in assessed
 
-## 24. UNKNOWN / decisions still required
+## 24. Test environment baseline
+A dedicated test environment is available.
+
+Verified:
+- local runner exists
+- PostgreSQL is available in Docker
+- test environment is planned separately from production
+
+Full verified/unknown inventory is maintained in:
+`docs/plan/01-foundation/test-environment.md`
+
+Do not infer hostname, IP, PostgreSQL version, runner provider, Valkey status or deployed application services until verified.
+
+The normal development deployment path may use:
+`main -> local runner -> targeted checks -> test deployment -> small smoke`
+
+Heavy/full suites remain Full Test Day only.
+
+## 25. UNKNOWN / decisions still required
 These are not to be invented during implementation:
 - exact auth/identity provider and token/session implementation
 - exact Desktop shell technology
@@ -255,5 +273,5 @@ These are not to be invented during implementation:
 
 These must be resolved when implementation reaches them or when an ADR is deliberately created.
 
-## 25. Next dependency
+## 26. Next dependency
 After Foundation plan acceptance, Sales workflow planning starts before DB schema.
