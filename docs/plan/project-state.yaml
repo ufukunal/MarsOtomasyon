@@ -13,6 +13,7 @@ repository_state:
   branch_creation_forbidden: true
   pull_request_workflow_forbidden: true
   force_push_forbidden: true
+  repository_private: true
 
 current_phase:
   id: P2
@@ -82,10 +83,13 @@ test_environment:
   exists: true
   role: pre-accounting/MarsOtomasyon test environment
   local_runner_available: true
+  runner_host: mars-ci
+  runner_is_separate_server: true
   postgresql_docker_available: true
+  postgresql_location: test_server
   production_separate: true
   details_file: docs/plan/01-foundation/test-environment.md
-  hostname: UNKNOWN
+  hostname: mars-prod.taila20365.ts.net
   ip: UNKNOWN
   runner_implementation: UNKNOWN
   postgresql_version: UNKNOWN
@@ -102,7 +106,8 @@ known_constraints:
   - Database logical/schema design is intentionally deferred until core workflows are sufficiently frozen.
   - Most module folders still require detailed plans.
   - Business rules must not be inferred from generic ERP conventions when project sources are silent.
-  - Test infrastructure details beyond verified local runner and Dockerized PostgreSQL must remain UNKNOWN until checked.
+  - Runner VM and test server are separate machines; never conflate runner-local results with test-server results.
+  - Test infrastructure details beyond verified topology, test hostname, local runner and Dockerized PostgreSQL must remain UNKNOWN until checked.
 
 blocked_items: []
 

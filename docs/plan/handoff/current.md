@@ -23,10 +23,12 @@ PLAN-001 established:
 - initial DB dictionary/principles
 
 ## Verified test infrastructure
-- Dedicated MarsOtomasyon/pre-accounting test environment exists.
-- Local runner is available.
-- PostgreSQL is available in Docker.
-- Hostname/IP and remaining topology details are still UNKNOWN.
+- Dedicated MarsOtomasyon/pre-accounting test server exists at `mars-prod.taila20365.ts.net`.
+- Self-hosted/local runner runs on a separate server/VM: `mars-ci`.
+- Runner VM and test server are NOT the same machine.
+- PostgreSQL Docker is on the test server.
+- Test server IP and remaining unverified topology details remain UNKNOWN unless explicitly checked.
+- Repository visibility is verified as private.
 - Source file: `docs/plan/01-foundation/test-environment.md`
 
 ## Test credential policy

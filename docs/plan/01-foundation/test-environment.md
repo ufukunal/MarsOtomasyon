@@ -5,30 +5,36 @@ This document records only verified facts about the MarsOtomasyon test environme
 
 ## Verified facts
 - A dedicated test server exists for the pre-accounting / MarsOtomasyon project.
-- A local runner is available on that test infrastructure.
-- PostgreSQL is available as a Docker container on the test server/infrastructure.
+- A dedicated self-hosted/local runner exists on a separate Runner VM/server.
+- The Runner VM and the test server are two different machines.
+- PostgreSQL is available as a Docker container on the test server.
 - The test environment is separate from production in project planning.
 
 ## Current verified topology
 ```
-GitHub / repository
+Private GitHub repository
         |
         v
-Local runner on test infrastructure
+Runner VM / self-hosted runner (mars-ci)
         |
-        +--> test deployment / commands
+        | Tailscale / network path
+        v
+Test server (mars-prod.taila20365.ts.net)
         |
-        +--> PostgreSQL Docker container
+        +--> application test deployment target
+        |
+        +--> PostgreSQL Docker
 ```
+
+The Runner VM is NOT the test server. Commands executed by GitHub Actions run on the Runner VM first; any remote test-server operation must then cross the network/Tailscale boundary to the separate test server.
 
 This diagram does not imply that every future Mars service already exists or is already deployed.
 
 ## UNKNOWN — do not invent
 The following are not yet verified in repository sources:
-- test server hostname
 - test server IP
 - operating system/version
-- runner implementation/provider and exact version
+- runner service configuration details not yet recorded in this document
 - whether runner executes directly on host or inside a container
 - Docker version
 - Docker Compose availability/version
@@ -100,9 +106,9 @@ Promotion from test to production is a separate controlled step and is not autom
 
 ## Required future verification
 Before application deployment starts, verify and record:
-1. test server hostname/IP
-2. OS/version
-3. runner type/version/service account
+1. test server IP
+2. test server OS/version
+3. Runner VM OS/version, runner type/version/service account
 4. Docker/Compose versions
 5. PostgreSQL image/version/container/volume
 6. test database/database user naming
@@ -116,8 +122,11 @@ Before application deployment starts, verify and record:
 ## Source
 Verified from explicit project owner statement in the current planning session:
 - test server exists
-- local runner exists
-- PostgreSQL Docker is installed/available on the test server/infrastructure
+- self-hosted/local runner exists on a separate Runner VM/server
+- Runner VM and test server are distinct machines
+- PostgreSQL Docker is installed/available on the test server
+- test server address is mars-prod.taila20365.ts.net
+- repository visibility is private
 
 No additional infrastructure facts should be inferred from that statement.
 
@@ -142,3 +151,17 @@ Rules:
 - If the repository is ever shared, made public, transferred, or additional collaborators are added, rotate the credentials before/at that change.
 
 The actual credential values remain UNKNOWN until explicitly supplied by the project owner.
+
+
+## Machine separation rule
+This separation is mandatory in all future plans and diagnostics:
+
+- **Runner VM:** `mars-ci` / self-hosted GitHub Actions execution host.
+- **Test server:** `mars-prod.taila20365.ts.net`.
+- These are separate servers.
+- A successful runner job does not by itself prove SSH/authentication to the test server.
+- Test-server facts must come from an explicit remote check against the test server, not from commands executed locally on the Runner VM.
+- PostgreSQL Docker belongs to the test server unless later evidence says otherwise.
+
+## Repository visibility
+GitHub repository visibility is currently verified as **private**.
