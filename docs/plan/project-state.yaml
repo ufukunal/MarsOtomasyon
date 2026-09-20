@@ -90,16 +90,26 @@ test_environment:
   production_separate: true
   details_file: docs/plan/01-foundation/test-environment.md
   hostname: mars-prod.taila20365.ts.net
-  ip: UNKNOWN
-  runner_implementation: UNKNOWN
-  postgresql_version: UNKNOWN
-  valkey_status: UNKNOWN
-  application_deployment_status: UNKNOWN
+  ip: 100.88.237.117
+  runner_implementation: GitHub Actions self-hosted runner 2.337.0
+  postgresql_version: 18
+  postgresql_image: postgres:18-bookworm
+  postgresql_container: marsotomasyon-postgres-1
+  postgresql_status: running_healthy
+  valkey_status: running_healthy
+  valkey_image: valkey/valkey:8-alpine
+  valkey_container: marsotomasyon-valkey-1
+  application_deployment_status: containers_running
+  ssh_connectivity_verified: true
+  ssh_remote_user: ufuk
+  remote_hostname: mars-prod
+  remote_kernel: 6.8.0-139-generic
+  mars_path_present: true
   credential_storage:
     test_plaintext_repo_storage_allowed_by_owner: true
-    path: config/test/test-server.credentials.env
+    path: config/test/test-server.md
     production_credentials_in_repo_forbidden: true
-    actual_values_status: UNKNOWN
+    actual_values_status: SSH_CONFIGURED_AND_VERIFIED_POSTGRES_UNKNOWN
 
 known_constraints:
   - Application core is not yet implemented.

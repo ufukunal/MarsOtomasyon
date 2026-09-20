@@ -27,15 +27,31 @@ PLAN-001 established:
 - Self-hosted/local runner runs on a separate server/VM: `mars-ci`.
 - Runner VM and test server are NOT the same machine.
 - PostgreSQL Docker is on the test server.
-- Test server IP and remaining unverified topology details remain UNKNOWN unless explicitly checked.
+- Test server Tailscale IP is verified as `100.88.237.117`; remaining unverified topology details stay UNKNOWN.
 - Repository visibility is verified as private.
 - Source file: `docs/plan/01-foundation/test-environment.md`
 
+## Verified SSH diagnostic
+- Runner machine: `mars-ci`
+- Runner user: `actions`
+- Tailscale/MagicDNS: PASS
+- Test server Tailscale IP: `100.88.237.117`
+- TCP/22: PASS
+- SSH authentication: PASS
+- Remote user: `ufuk`
+- Remote hostname: `mars-prod`
+- Remote kernel: `6.8.0-139-generic`
+- Docker: `29.8.0`
+- PostgreSQL container: `marsotomasyon-postgres-1`, image `postgres:18-bookworm`, running/healthy
+- Valkey container: `marsotomasyon-valkey-1`, image `valkey/valkey:8-alpine`, running/healthy
+- `/opt/marsotomasyon`: present
+- These are remote test-server facts, not Runner VM facts.
+
 ## Test credential policy
 - Project owner explicitly permits TEST-ONLY credentials to be stored in this private repository.
-- Dedicated path: `config/test/test-server.credentials.env`
+- Dedicated path: `config/test/test-server.md`
 - Production credentials must never be stored there.
-- Actual credential values are still pending owner input and must not be invented.
+- SSH test-server credentials are configured in the dedicated Markdown file and were verified by successful remote login; PostgreSQL credentials remain UNKNOWN.
 - Credential values must not be repeated in logs or assistant final reports.
 
 ## Active task

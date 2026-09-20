@@ -32,23 +32,17 @@ This diagram does not imply that every future Mars service already exists or is 
 
 ## UNKNOWN — do not invent
 The following are not yet verified in repository sources:
-- test server IP
 - operating system/version
 - runner service configuration details not yet recorded in this document
 - whether runner executes directly on host or inside a container
-- Docker version
 - Docker Compose availability/version
-- PostgreSQL image/tag/version
-- PostgreSQL container name
 - database name
 - database user
 - published/internal PostgreSQL port
 - volume path/name
 - backup location
-- Valkey deployment status on the test server
-- Mars API/Web/Worker deployment status
+- application functional health beyond the verified running container state
 - reverse proxy / tunnel details for test
-- DNS hostname for test
 - TLS termination details
 - monitoring/logging stack
 
@@ -139,7 +133,7 @@ Project-owner decision:
 - Production secrets are excluded from this exception.
 
 Dedicated tracked file:
-`config/test/test-server.credentials.env`
+`config/test/test-server.md`
 
 Rules:
 - Only TEST environment credentials belong in this file.
@@ -150,7 +144,7 @@ Rules:
 - When credentials change, replace them in the same file and record only that a rotation occurred; do not repeat the old values in documentation.
 - If the repository is ever shared, made public, transferred, or additional collaborators are added, rotate the credentials before/at that change.
 
-The actual credential values remain UNKNOWN until explicitly supplied by the project owner.
+SSH test-server credentials are configured in the dedicated Markdown credential file and were successfully used for remote authentication. PostgreSQL credentials remain UNKNOWN.
 
 
 ## Machine separation rule
@@ -165,3 +159,54 @@ This separation is mandatory in all future plans and diagnostics:
 
 ## Repository visibility
 GitHub repository visibility is currently verified as **private**.
+
+
+## Verified connectivity diagnostic
+Read-only verification was executed from the separate self-hosted Runner VM to the separate test server.
+
+### Runner VM
+- machine: `mars-ci`
+- workflow user: `actions`
+- GitHub Actions runner version observed: `2.337.0`
+- Tailscale client: available
+
+### Network path
+- Tailscale peer: `mars-prod`
+- resolved Tailscale IP: `100.88.237.117`
+- MagicDNS: PASS
+- Tailscale ping: PASS
+- TCP/22: PASS
+
+### SSH
+- password authentication from Runner VM to test server: PASS
+- remote user: `ufuk`
+- remote hostname: `mars-prod`
+
+### Remote test server
+- kernel: `Linux 6.8.0-139-generic x86_64`
+- exact OS distribution/release remains UNKNOWN until separately queried
+- `/opt/marsotomasyon`: present
+
+### Docker on test server
+- Docker: PASS
+- version: `29.8.0`
+- `marsotomasyon-web-1`: running
+- `marsotomasyon-worker-1`: running
+- `marsotomasyon-app-1`: running
+- `marsotomasyon-scheduler-1`: running
+- `marsotomasyon-postgres-1`: running, healthy
+- `marsotomasyon-valkey-1`: running, healthy
+
+### PostgreSQL container
+- container: `marsotomasyon-postgres-1`
+- image: `postgres:18-bookworm`
+- state: `running`
+- health: `healthy`
+
+### Valkey container
+- container: `marsotomasyon-valkey-1`
+- image: `valkey/valkey:8-alpine`
+- state observed: running
+- health observed: healthy
+
+This verification proves connectivity/authentication and container state only. It does not prove application business health, database integrity, migration correctness, backup/restore, performance, or Full Test Day acceptance.
