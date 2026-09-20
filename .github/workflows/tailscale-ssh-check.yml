@@ -14,34 +14,14 @@ jobs:
     runs-on: self-hosted
     timeout-minutes: 5
     steps:
-      - name: Direct Tailscale SSH check with temporary runner known_hosts
+      - name: Direct Tailscale SSH check
         shell: bash
         run: |
           set +e
           echo "RUNNER_HOST=$(hostname)"
           tailscale ping --timeout=5s mars-prod.taila20365.ts.net
-
-          mkdir -p "$HOME/.ssh"
-          chmod 700 "$HOME/.ssh"
-          BACKUP="$RUNNER_TEMP/known_hosts.backup"
-          HAD_KNOWN_HOSTS=0
-          if [ -f "$HOME/.ssh/known_hosts" ]; then
-            cp "$HOME/.ssh/known_hosts" "$BACKUP"
-            HAD_KNOWN_HOSTS=1
-          fi
-
-          ssh-keyscan -T 5 -H mars-prod.taila20365.ts.net >> "$HOME/.ssh/known_hosts" 2>/dev/null
-          chmod 600 "$HOME/.ssh/known_hosts"
-
-          tailscale ssh ufuk@mars-prod 'echo TS_SSH_AUTH=PASS; printf "REMOTE_USER="; whoami; printf "REMOTE_HOST="; hostname; printf "REMOTE_KERNEL="; uname -a; test -d /opt/marsotomasyon && echo REPO_PATH=PASS || echo REPO_PATH=FAIL'
+          tailscale ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o BatchMode=yes ufuk@mars-prod 'echo TS_SSH_AUTH=PASS; printf "REMOTE_USER="; whoami; printf "REMOTE_HOST="; hostname; printf "REMOTE_KERNEL="; uname -a; test -d /opt/marsotomasyon && echo REPO_PATH=PASS || echo REPO_PATH=FAIL'
           rc=$?
-
-          if [ "$HAD_KNOWN_HOSTS" -eq 1 ]; then
-            mv "$BACKUP" "$HOME/.ssh/known_hosts"
-          else
-            rm -f "$HOME/.ssh/known_hosts"
-          fi
-
           if [ "$rc" -ne 0 ]; then
             echo "TS_SSH_AUTH=FAIL"
           fi
