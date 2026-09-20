@@ -1,0 +1,90 @@
+project:
+  name: MarsOtomasyon
+  repository: ufukunal/MarsOtomasyon
+  source_of_truth: repository
+  branch_policy: main-only
+
+repository_state:
+  target_branch: main
+  current_head: VERIFY_AT_RUNTIME
+  baseline_head_for_this_plan: f15a89bf94280f0990291037037436d3dd283bbe
+  branches_allowed:
+    - main
+  branch_creation_forbidden: true
+  pull_request_workflow_forbidden: true
+  force_push_forbidden: true
+
+current_phase:
+  id: P0
+  name: Planning and Foundation Definition
+  status: active
+
+architecture:
+  style: modular-monolith
+  backend: ASP.NET Core / C#
+  api: /api/v1
+  database: PostgreSQL
+  cache: Valkey
+  background_jobs: .NET Worker
+  async_side_effects: transactional outbox
+  realtime: SignalR
+  frontend: HTML + CSS + TypeScript + ES Modules + Vite
+  ui_system: Mars.UI
+  deployment: Linux + Docker + Docker Compose
+  authoritative_store: PostgreSQL
+
+planning_policy:
+  workflow_first: true
+  database_after_domain_workflows: true
+  code_after_workflow_and_db_contract: true
+  module_plan_required_before_implementation: true
+  undocumented_business_rule_policy: BLOCKED
+
+test_policy:
+  normal_development:
+    - build
+    - targeted-unit-or-invariant
+    - small-smoke-when-needed
+    - migration-contract-check
+  heavy_tests: FULL_TEST_DAY_ONLY
+
+active_task:
+  id: PLAN-001
+  title: Establish project planning backbone and Foundation plan
+  status: active
+  file: docs/plan/active-task.yaml
+
+locked_decisions:
+  - Only main branch is allowed.
+  - No PR-based development workflow.
+  - PostgreSQL is the authoritative source of truth.
+  - Valkey is cache/session/lock only, not accounting truth.
+  - Ledger-based stock and financial truth.
+  - Posted records are corrected by reversal, not silent mutation.
+  - Heavy test suites are deferred to Full Test Day.
+  - No React, Vue, Angular, Bootstrap, Tailwind or jQuery in core frontend.
+  - Mars uses its own UI/component system.
+  - Web, Desktop and Mobile share a common client core with thin platform shells.
+  - Architecture starts as modular monolith, not microservices.
+
+known_constraints:
+  - Repo currently contains planning documentation but no implemented application core.
+  - docs/db is only beginning to be defined.
+  - Module folders exist but most are not yet detailed.
+  - Business rules must be written before schema/code where they affect transactional behavior.
+
+blocked_items: []
+
+next_action:
+  id: PLAN-002
+  title: Detail core commercial workflow beginning with Sales
+  target: docs/plan/05-satis/
+  prerequisites:
+    - docs/plan/01-foundation/plan.md
+    - docs/plan/planning-standard.md
+
+state_rules:
+  - current_head must be verified from Git at every session start; embedded SHA is never authoritative.
+  - repo content overrides chat memory when they conflict.
+  - next_action may be changed only after active task evidence is recorded.
+  - DONE requires a real repository change or explicit read-only verification evidence.

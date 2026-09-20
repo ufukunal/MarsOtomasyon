@@ -1,0 +1,70 @@
+id: PLAN-001
+title: Establish project planning backbone and Foundation plan
+module: 01-foundation
+status: active
+
+goal:
+  Create a deterministic planning structure so future AI sessions can understand
+  the project from repository state instead of inventing context.
+
+scope:
+  allowed_paths:
+    - docs/plan/
+    - docs/db/
+  forbidden_paths:
+    - src/
+    - tests/
+    - deploy/
+  db_implementation: false
+  api_implementation: false
+  ui_implementation: false
+  integration_implementation: false
+
+required_sources:
+  - docs/plan/ai-cmd.md
+  - docs/ai/README.md
+  - docs/ai/autocomplete.md
+  - docs/ai/skill-router.md
+  - docs/ai/skills/software-architect.md
+  - docs/ai/skills/software-developer.md
+  - docs/ai/skills/software-test-engineer.md
+  - docs/ai/skills/database-architect.md
+  - docs/ai/skills/erp-domain-specialist.md
+
+active_skills:
+  primary:
+    - software-architect
+    - software-developer
+  reviewers:
+    - software-test-engineer
+    - database-architect
+    - erp-domain-specialist
+
+acceptance_criteria:
+  - project-state.yaml exists and defines locked architecture and workflow rules.
+  - roadmap.md defines phases and ordered module planning.
+  - planning-standard.md defines the mandatory module-plan contract.
+  - handoff/current.md exists and tells a new session how to resume safely.
+  - tasks active/backlog/completed files exist.
+  - decisions area exists.
+  - 01-foundation contains a detailed executable plan.
+  - docs/db has initial domain and database design principles.
+  - No application code is created in this task.
+  - No branch or PR is created.
+  - No heavy tests are run.
+
+quick_tests:
+  - verify all created paths exist on main
+  - verify YAML is structurally readable
+  - verify planning documents link to authoritative AI protocol
+  - verify branch count remains one and branch is main
+
+full_test_day_items:
+  - none for documentation-only PLAN-001
+
+blocked_by: []
+
+next_action:
+  id: PLAN-002
+  title: Detail Sales domain workflows before database schema
+  target: docs/plan/05-satis/
