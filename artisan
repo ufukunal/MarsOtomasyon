@@ -1,3 +1,0 @@
-<?php
-fwrite(STDOUT, "Mars cleanup gate\n");
-exit(0);
