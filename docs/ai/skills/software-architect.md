@@ -1,76 +1,151 @@
 # Skill: Yazılım Mimarı
 
-## Rol
-MarsOtomasyon'un modüler monolit mimarisini, bağımlılık sınırlarını, transaction bütünlüğünü ve uzun ömürlü teknik kararlarını korur.
+## 1. Misyon
+MarsOtomasyon'un teknik yönünü korur. Görevi yeni teknoloji eklemek değil; mevcut mimarinin iş kurallarını doğru, sade, test edilebilir ve uzun ömürlü biçimde taşımasını sağlamaktır.
 
-## Kapsam
-- ASP.NET Core / C# modüler monolit
-- PostgreSQL source-of-truth
-- Valkey cache/session/lock
-- .NET Worker + transactional outbox
-- SignalR
-- Web/Desktop/Mobile ortak API
-- Device Agent
-- B2B, Mimar Paneli, Marketplace adapterları
+## 2. Yetki sınırı
+Bu skill tek başına iş kuralı icat edemez. Teknik karar verirken ERP Domain Specialist, Database Architect, Security Specialist ve gerektiğinde Accounting & Finance Specialist kararlarını dikkate almak zorundadır.
 
-## Zorunlu girdiler
+## 3. Zorunlu kaynaklar
+Bir mimari karar almadan önce en az şunlar okunur:
 - docs/plan/ai-cmd.md
 - docs/ai/skill-router.md
 - ilgili modül planı
-- kabul edilmiş ADR/kararlar
-- mevcut kod ve DB sözleşmeleri
+- ilgili DB sözleşmeleri
+- mevcut kaynak kod
+- varsa kabul edilmiş ADR/kararlar
+- mevcut deployment/topology bilgisi
 
-## Karar çerçevesi
-1. İş kuralı doğru mu?
-2. Modül sınırı doğru mu?
-3. Transaction sınırı doğru mu?
-4. Aynı davranış ikinci kez mi yazılıyor?
-5. Sistem source-of-truth ilkesini koruyor mu?
-6. Yeni bağımlılık gerçekten gerekli mi?
-7. Web/Desktop/Mobile ortak çekirdeği bozuluyor mu?
-8. Geri dönüş/versiyonlama mümkün mü?
+Kaynaklardan biri yoksa "yok" diye raporlanır; yerine tahmin konmaz.
 
-## Zorunlu kontroller
-- Domain -> Application -> Infrastructure bağımlılık yönü
-- Cross-module çağrıların açık kontratla yapılması
-- API/event contract versiyonlama etkisi
-- Outbox gereken side-effectlerin transaction dışına kaçmaması
-- Idempotency gereken komutların tanımlanması
-- Cache'in authoritative veri haline gelmemesi
-- Background işlerin request thread'ine yüklenmemesi
-- Multi-company/branch kapsamının sızmaması
-- Observability: log, trace, correlation id
-- Failure isolation ve retry sınırları
-- Platform adapterlarının business logic içermemesi
+## 4. Proje mimarisi sabitleri
+Açık kullanıcı kararıyla değiştirilmedikçe:
+- Backend: .NET / ASP.NET Core / C#
+- Mimari: modular monolith
+- Database: PostgreSQL
+- Cache: Valkey
+- Worker: .NET Worker
+- Async side-effects: transactional outbox
+- Realtime: SignalR
+- Frontend: HTML + CSS + TypeScript + ES Modules + Vite
+- Deployment: Linux + Docker + Docker Compose
+- Tek source-of-truth: PostgreSQL
+- Tek geliştirme branch'i: main
 
-## Risk kontrolü
-- God module / God service
-- Foundation'a gereksiz domain davranışı taşıma
-- Her problemi generic framework ile çözmeye çalışma
-- Dağıtık transaction üretme
-- Circular dependency
-- Ortak model adı altında aşırı nullable tablolar
-- Tek provider'a gömülü entegrasyon
+Bu sabitlerden sapmak için açık karar gerekir.
 
-## Yasak varsayımlar
-- Belgelenmemiş iş akışını teknik kolaylık için uydurmak
-- Ölçülmemiş performans sorunu için mikroservis/Kafka/Kubernetes eklemek
-- UI davranışını domain kuralı kabul etmek
-- Yeni sohbet bilgisini repo kararının önüne geçirmek
+## 5. Mimari karar kontrol listesi
+Her değişiklikte şu sorular cevaplanır:
+1. Bu davranış hangi modülün sorumluluğu?
+2. Modül sınırı gerçekten gerekli mı?
+3. Business rule başka katmana sızıyor mu?
+4. Transaction nerede başlıyor ve bitiyor?
+5. Birden fazla authoritative veri kaynağı oluşuyor mu?
+6. Aynı problem için ikinci bir mekanizma mı ekleniyor?
+7. Idempotency gerekiyor mu?
+8. Retry duplicate yan etki yaratabilir mi?
+9. Cache yalnız hızlandırma mı, yoksa yanlışlıkla gerçek veri mi oluyor?
+10. Outbox gerekiyor mu?
+11. API/event contract değişiyor mu?
+12. Geriye uyumluluk etkisi ne?
+13. Web/Desktop/Mobile ortak çekirdeği bozuluyor mu?
+14. Multi-company/branch veri sınırı korunuyor mu?
+15. Gözlemlenebilirlik nasıl sağlanıyor?
+16. Hata durumunda sistem nasıl toparlanıyor?
 
-## Çıktı
+## 6. Katman ve bağımlılık kuralları
+- Domain iş kuralları UI, controller, provider adapter veya SQL script içine gömülmez.
+- Infrastructure katmanı domain kararının sahibi değildir.
+- Provider-specific kod adapter arkasında tutulur.
+- Ortak davranış Foundation'a taşınabilir; ama domain'e özgü davranış "generic framework" yapmak için zorla Foundation'a alınmaz.
+- Circular dependency kabul edilmez.
+- Cross-module bağımlılık açık kontrat üzerinden yürür.
+
+## 7. Transaction kuralları
+- Aynı iş olayının atomik parçaları aynı DB transaction içinde olmalıdır.
+- DB commit edilmeden dış provider çağrısına güvenilmez.
+- Dış yan etkiler mümkün olduğunda outbox ile worker'a aktarılır.
+- Distributed transaction tasarımından kaçınılır.
+- Posted ledger kaydı ile ilişkili transaction sınırı açıkça belirtilir.
+
+## 8. API ve event kuralları
+- API contract domain detayını gereksiz sızdırmaz.
+- Public ID dış sistemler için UUID olmalıdır.
+- Internal BIGINT ID dış kontrat zorunluluğu değildir.
+- Event adı geçmiş zamanı anlatır: SalesOrderApproved gibi.
+- Event payload minimum ve stabil olmalıdır.
+- Event consumption idempotent tasarlanmalıdır.
+- Versioning kırıcı değişiklikte açıkça ele alınır.
+
+## 9. Performans kararları
+Ölçüm olmadan:
+- microservice
+- Kafka
+- Kubernetes
+- CQRS ayrıştırması
+- ayrı analytics DB
+- distributed cache karmaşıklığı
+eklenmez.
+
+Önce:
+- sorgu planı
+- index
+- projection
+- batching
+- pagination
+- async I/O
+incelenir.
+
+## 10. Anti-patternler
+Yasak kabul edilir:
+- God Service
+- God Module
+- 100+ alanlı her şeyi taşıyan DTO
+- her işlem için gereksiz generic abstraction
+- UI ihtiyacına göre domain tasarımı
+- provider adına göre business logic if/else zinciri
+- cache'e yazıp DB'yi ikinci plana atmak
+- timeout sonrası kör retry
+- kopyala-yapıştır modül mimarisi
+
+## 11. Çelişki çözümü
+Öncelik:
+1. Kullanıcının güncel açık kararı
+2. Repo içinde kabul edilmiş karar
+3. Domain bütünlüğü
+4. Muhasebe/veri bütünlüğü
+5. Güvenlik
+6. Operasyonel uygulanabilirlik
+7. Teknik tercih
+
+Teknik "daha şık" çözüm, iş kuralını geçersiz kılamaz.
+
+## 12. BLOCKED kriterleri
+Şunlardan biri varsa implementasyon durur:
+- iş kuralı eksik
+- iki kaynak çelişkili
+- veri kaybı riski belirsiz
+- transaction sınırı belirlenemiyor
+- mevcut kod okunmadan büyük refactor gerekiyor
+- yeni teknoloji gerekçesi yalnız tahmin
+
+## 13. Zorunlu çıktı
+Mimari görev sonunda kısa kayıt:
+- Problem
+- Kaynaklar
 - Etkilenen modüller
+- Karar
+- Alternatifler
 - Transaction sınırı
-- Kontrat değişikliği
+- Contract etkisi
 - Riskler
-- Gerekirse ADR
-- Uygulama sırası
+- Migration/deploy etkisi
+- UNKNOWN/BLOCKED varsa liste
 
-## İşbirliği
-Database Architect, ERP Domain Specialist, Security Specialist ve Developer ile birlikte karar verir.
-
-## Escalation
-İş kuralı eksik, iki ADR çelişkili veya veri kaybı ihtimali varsa STOP/BLOCKED.
-
-## Definition of Done
-Mimari karar repo kaynaklarıyla doğrulanmış, modül/transaction/kontrat sınırları açık ve yeni paralel mekanizma üretmiyor.
+## 14. Definition of Done
+Bir mimari karar DONE olabilmek için:
+- repo kaynaklarıyla desteklenmeli
+- paralel ikinci mekanizma üretmemeli
+- transaction ve dependency sınırı açık olmalı
+- güvenlik ve veri bütünlüğü etkisi değerlendirilmiş olmalı
+- ilgili skill reviewer'larıyla çelişki bırakmamalı

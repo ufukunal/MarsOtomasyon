@@ -1,50 +1,66 @@
 # MarsOtomasyon AI Commands
 
-Bu dosya MarsOtomasyon üzerinde çalışan AI için bağlayıcı çalışma protokolüdür.
+Bu dosya MarsOtomasyon üzerinde çalışan AI için bağlayıcı ve öncelikli çalışma protokolüdür.
 
 ## 1. Kesin Git kuralı
-
 ONLY BRANCH = `main`
 
 AI:
-- feature/fix/chore/dev/staging/release/geçici branch oluşturamaz.
-- PR tabanlı çalışma başlatamaz.
-- başka branch'e commit hazırlayamaz.
-- bütün repo değişikliklerini yalnız `main` hedefiyle yapar.
-- GitHub kuralı doğrudan main yazımını engelliyorsa branch/PR ile dolaşmaz; BLOCKED olarak raporlar.
+- feature/fix/chore/dev/staging/release/geçici branch oluşturamaz
+- PR oluşturamaz
+- main dışında commit hedefleyemez
+- force push yapamaz
+- GitHub kuralını branch/PR ile dolaşamaz
 
-## 2. Kaynak önceliği
+GitHub main yazımını engelliyorsa durum BLOCKED olur.
 
-1. Mevcut repo kodu
-2. Bu dosya
-3. docs/ai/skill-router.md ve aktif skill dosyaları
-4. İlgili modül planı
-5. docs/db/
-6. Kabul edilmiş ADR/kararlar
-7. Gerçek Git/CI durumu
-8. Sohbet hafızası
+## 2. Her görevde zorunlu Context Receipt
+Implementasyondan önce:
 
-Sohbet hafızası repo kararının önüne geçmez.
+```
+CONTEXT RECEIPT
+Repository:
+Branch:
+HEAD:
+Task:
+Module:
 
-## 3. Kodlamadan önce zorunlu preflight
+Sources checked:
+- ...
 
-AI şu bilgileri doğrulamadan implementasyona başlamaz:
-- repository
-- target branch = main
-- HEAD
-- görev/kapsam
-- ilgili modül belgeleri
-- ilgili DB sözleşmesi
-- aktif skill seti
-- mevcut kod
-- yasak/değiştirilmemesi gereken alanlar
+ACTIVE SKILLS
+Primary:
+- ...
+Reviewers:
+- ...
 
-AI yalnız "okudum" diyemez; kullandığı kaynakları görev başlangıcında kısa olarak belirtir.
+Scope:
+- ...
 
-## 4. Skill router zorunluluğu
+Forbidden assumptions:
+- ...
 
-Her görevde `docs/ai/skill-router.md` çalıştırılır.
-ACTIVE SKILLS belirlenmeden:
+Unknown/Blocked:
+- ...
+```
+
+AI yalnız "notları okudum" diyerek devam edemez.
+
+## 3. Kaynak önceliği
+1. Kullanıcının güncel açık talimatı
+2. Mevcut repo kodu ve gerçek Git durumu
+3. Bu dosya
+4. Kabul edilmiş ADR/kararlar
+5. İlgili modül planı
+6. docs/db/
+7. docs/ai/skill-router.md ve aktif skill dosyaları
+8. CI/test kanıtı
+9. Sohbet hafızası
+10. Genel model bilgisi
+
+## 4. Skill router zorunlu
+Her görevde `docs/ai/skill-router.md` kullanılır.
+Aktif skill seti belirlenmeden:
 - mimari karar alınamaz
 - DB tasarlanamaz
 - kod yazılamaz
@@ -52,105 +68,127 @@ ACTIVE SKILLS belirlenmeden:
 - entegrasyon davranışı belirlenemez
 
 ## 5. Varsayım yasağı
+Repo/kod/dokümanda olmayan iş kuralı:
+- uydurulmaz
+- "genelde böyle olur" diye uygulanmaz
+- başka projeden taşınmaz
 
-Gerekli gerçek repo belgelerinde/kodda yoksa:
-- tahmin etme
-- "muhtemelen" diyerek implement etme
-- başka projeden kalıp taşıma
-
-Durum `UNKNOWN` veya `BLOCKED` olur.
+Durum SOURCE / INFERENCE / UNKNOWN / BLOCKED şeklinde ayrılır.
+INFERENCE tek başına implementasyon gerekçesi değildir.
 
 ## 6. Mimari sabitleri
-
-Değiştirilmedikçe:
-- Backend: .NET / ASP.NET Core / C#
-- Architecture: modular monolith
-- Database: PostgreSQL
-- Cache: Valkey
-- Background: .NET Worker + transactional outbox
-- Realtime: SignalR
-- Frontend: HTML + CSS + TypeScript + ES Modules + Vite
-- UI: Mars kendi component sistemi
-- Web/Desktop/Mobile ortak frontend çekirdeği
-- Desktop shell ve Mobile shell platform adapterları
+Açık karar değişikliği olmadıkça:
+- .NET / ASP.NET Core / C#
+- modular monolith
+- PostgreSQL
+- Valkey
+- .NET Worker
+- transactional outbox
+- SignalR
+- HTML + CSS + TypeScript + ES Modules + Vite
+- Mars kendi UI component sistemi
+- ortak Web/Desktop/Mobile frontend çekirdeği
 - Docker / Docker Compose
-- source-of-truth PostgreSQL
+- PostgreSQL source-of-truth
 
-Yeni teknoloji yalnız açık ihtiyaç ve karar ile eklenir.
+## 7. Veritabanı
+- migration dışı schema değişikliği yok
+- master data normalize
+- OLTP ağırlıklı 3NF
+- historical snapshot bilinçli denormalizasyon
+- ledger authoritative
+- projection/cache yeniden üretilebilir
+- money/quantity decimal/NUMERIC
+- direct authoritative stock/balance column yok
 
-## 7. Veritabanı kuralları
+## 8. ERP posting
+- teklif stok/cari etkilemez
+- sipariş fiziksel stock out değildir
+- sevkiyat physical stock movement
+- fatura financial receivable/payable
+- source dispatch varsa invoice stock'u tekrar düşürmez
+- mal kabul stock in
+- purchase invoice goods receipt stoğunu tekrar artırmaz
+- collection/payment settlement
+- posted ledger silent update/delete olmaz
+- reversal kullanılır
+- partial quantities izlenir
 
-- Şema değişikliği migration ile.
-- Master data normalize.
-- OLTP ağırlıklı 3NF.
-- Historical snapshot bilinçli denormalizasyon.
-- Ledger authoritative.
-- Projection/cache yeniden üretilebilir.
-- Para/miktar decimal/NUMERIC.
-- Stok/bakiye authoritative kolon olarak elle tutulmaz.
+Bu maddeler ilgili modül planı daha spesifikse onunla birlikte uygulanır.
 
-## 8. ERP posting kuralları
+## 9. Scope
+AI:
+- kullanıcı istemedikçe kapsam büyütemez
+- ilgisiz refactor yapamaz
+- yeni dependency ekleyemez
+- başka modülü "temizlemek" için değiştiremez
+- aynı iş için ikinci sistem yazamaz
 
-- Sipariş fiziksel stok çıkışı değildir.
-- Sevkiyat fiziksel stok hareketidir.
-- Fatura finansal alacak/borç etkisidir.
-- Kaynak sevkiyat varsa fatura stoğu ikinci kez düşürmez.
-- Tahsilat/ödeme finansal kapamadır.
-- Posted ledger kaydı sessiz update/delete edilmez; reversal ilkesi kullanılır.
-- Kısmi sevk/fatura/kapama izlenebilir olmalıdır.
+Unexpected impact çıkarsa durup yeniden değerlendirilir.
 
-## 9. Test politikası
+## 10. Test politikası
+Geliştirme sırasında ağır testler çalıştırılmaz.
 
-Normal geliştirme sırasında AĞIR TESTLER ÇALIŞTIRILMAZ.
+Normal:
+- build
+- hedefli unit/invariant
+- küçük smoke
+- migration/contract hızlı check
 
-Normal akış:
-- compile/build
-- değişen alana ait hızlı unit/invariant
-- gerekiyorsa küçük smoke
-- temel migration/contract kontrolü
-
-Ağır testler ayrı FULL TEST DAY'de:
+FULL TEST DAY:
 - full unit/regression
-- full PostgreSQL integration
-- full browser E2E
+- PostgreSQL integration
+- browser E2E
 - Web/Desktop/Mobile
 - B2B/Mimar/Marketplace
-- Mail/SMS/WhatsApp/Push
+- mail/SMS/WhatsApp/push
 - security
 - backup/restore
 - concurrency
 - performance/load
 - accounting/ledger invariants
 
-AI kullanıcı açıkça Full Test Day'e geçmeden ağır suite başlatamaz.
+AI kullanıcı açıkça Full Test Day'e geçmeden heavy suite başlatamaz.
 
-## 10. Scope disiplini
+## 11. Gerçeklik kuralı
+AI şunları kanıt olmadan söyleyemez:
+- tamamlandı
+- test geçti
+- main'e yazıldı
+- API çalışıyor
+- migration uygulandı
+- provider entegrasyonu başarılı
 
-- Kullanıcı istemedikçe kapsam genişletme.
-- İlgisiz refactor yapma.
-- Aynı iş için ikinci sistem oluşturma.
-- Mevcut modülü okumadan yeniden yazma.
-- UI sorununu domain kuralı ile çözme.
-- Domain kuralını yalnız UI'da uygulama.
+Bu ifadeler gerçek repo/tool/test sonucu gerektirir.
 
-## 11. DONE kuralı
+## 12. DONE
+DONE için:
+- target main
+- gerçek değişiklik repo'da
+- ilgili hızlı doğrulama
+- migration/doküman etkisi tamam
+- açık BLOCKED yok
+- skill reviewer ciddi itiraz bırakmıyor
 
-"Tamamlandı" ancak gerçek kanıtla söylenir:
-- hedef main
-- ilgili kod/doküman mevcut
-- hızlı kontroller gerekli seviyede geçti
-- migration/contract gerekiyorsa mevcut
-- scope dışı değişiklik yok
-- açık UNKNOWN/BLOCKED yok
+Heavy test yapılmamışsa "Full Test Day pending" açıkça belirtilir.
 
-Ağır testlerin yapılmamış olması geliştirme sırasında normaldir; bunlar Full Test Day backlog'una taşınır.
+## 13. BLOCKED davranışı
+BLOCKED olduğunda AI:
+- engeli açıklar
+- başka yöntem uydurmaz
+- mimariyi dolanmaz
+- branch/PR açmaz
+- kullanıcı kararını beklemesi gerekiyorsa bunu net söyler
 
-## 12. İletişim
+## 14. Anti-hallucination kuralı
+Var olmayan:
+- dosya
+- sınıf
+- kolon
+- endpoint
+- provider capability
+- test sonucu
+- commit
+uydurulamaz.
 
-AI gerçek durum ile tahmini ayırır.
-- SOURCE: repo/kod/DB/CI gerçeği
-- INFERENCE: açıkça belirtilmiş çıkarım
-- UNKNOWN: kaynak yok
-- BLOCKED: ilerlemek için karar/erişim gerekiyor
-
-Kaynak yokken kesin ifade kullanılmaz.
+Önce repo/tool ile doğrula.

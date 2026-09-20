@@ -1,70 +1,139 @@
 # Skill: Yazılım Geliştirici
 
-## Rol
-Onaylanmış iş kuralları ve mimariyi sade, okunabilir, test edilebilir ve geri alınabilir koda dönüştürür.
+## 1. Misyon
+Onaylanmış iş kurallarını ve mimariyi en küçük doğru değişiklikle çalışan koda dönüştürür. Görevi tasarımı kafasına göre değiştirmek değil, repo gerçeklerine bağlı uygulama yapmaktır.
 
-## Zorunlu çalışma sırası
-1. Mevcut kodu oku.
-2. İlgili plan/DB sözleşmesini oku.
-3. Aktif skill setini doğrula.
-4. Değişiklik kapsamını belirle.
-5. En küçük doğru değişikliği yap.
-6. Hızlı kontrolleri çalıştır.
-7. Doküman/migration etkisini güncelle.
-8. Doğrudan main için commit hazırla.
+## 2. Kod yazmadan önce zorunlu sıra
+1. docs/plan/ai-cmd.md oku.
+2. docs/ai/skill-router.md oku.
+3. İlgili skill dosyalarını oku.
+4. İlgili modül planını oku.
+5. İlgili DB belgelerini oku.
+6. Değiştirilecek mevcut kodu oku.
+7. Target branch'in main olduğunu doğrula.
+8. Görev kapsamını yaz.
+9. UNKNOWN/BLOCKED var mı kontrol et.
+10. Sonra kod yaz.
 
-## Kod ilkeleri
-- C# nullable/reference kurallarına uy
-- money/quantity için decimal
-- async I/O zincirini bozma
-- exception yutma
-- magic string/number azalt
-- domain invariant'ını handler/controller/UI'ya dağıtma
-- transaction içinde gerekli atomik kayıtları birlikte yaz
-- external side-effect'i outbox/worker'a çıkar
-- idempotency key gereken işlemlerde unique constraint + davranış tanımla
-- source document bağlantısını koru
+Bu sıra atlanamaz.
 
-## API ilkeleri
-- resource/command semantiği açık
-- authorization server-side
-- validation mesajı deterministik
-- duplicate request davranışı tanımlı
-- public id dış kontratta
-- iç bigint id dışarı sızdırılmamalı
-- versioning /api/v1
+## 3. Kapsam disiplini
+- Kullanıcının istemediği refactor yapılmaz.
+- Aynı anda ilgisiz modül değiştirilmez.
+- "hazır buradayken" mantığıyla kapsam genişletilmez.
+- Aynı işi yapan ikinci servis/helper oluşturulmaz.
+- Mevcut abstraction okunmadan yenisi yazılmaz.
 
-## DB ilkeleri
-- schema değişikliği migration ile
-- elle prod schema müdahalesi yok
-- authoritative balance/stock kolonları üretme
-- snapshot/ledger/projection ayrımını koru
+## 4. C# kuralları
+- Nullable reference type semantiğine uy.
+- Para/miktar için decimal kullan.
+- float/double muhasebe hesaplarında kullanma.
+- async I/O zincirini sync-over-async ile bozma.
+- CancellationToken gerektiği yerde geçir.
+- exception yutma.
+- generic Exception fırlatmayı varsayılan yapma.
+- domain exception ile teknik exception'ı ayır.
+- magic string/number azalt.
+- immutable/value object gereken yerde düşün.
+- DateTime/DateTimeOffset kullanımını açıklaştır.
 
-## Hızlı test politikası
-Normal geliştirmede:
+## 5. Domain uygulama kuralları
+- Invariant UI'da değil domain/application tarafında zorlanır.
+- Handler yalnız orchestration yapmalı; domain hesabı helper/controller'a dağılmamalı.
+- Kaynak belge ilişkileri korunmalı.
+- Kısmi işlem miktarları açıkça takip edilmeli.
+- Posted kayıt sessizce update/delete edilmemeli.
+- Cancellation ile reversal karıştırılmamalı.
+
+## 6. Transaction ve side-effect
+- Atomik DB değişiklikleri tek transaction.
+- Dış provider çağrısı transaction'ın gerçeği değildir.
+- Mail/SMS/WhatsApp/marketplace gibi yan etkiler outbox/worker ile ayrılmalı.
+- Idempotency gereken işlemlerde unique constraint veya eşdeğer DB garantisi kullanılmalı.
+- Retry duplicate kayıt üretememeli.
+
+## 7. API kuralları
+- /api/v1
+- server-side authorization
+- deterministik validation
+- idempotent komutlarda duplicate davranışı tanımlı
+- public UUID kullanımı
+- internal ID gereksiz sızdırılmaz
+- pagination/filter contract açık
+- error response tutarlı
+- 404/409/422/403 gibi statüler anlamsal kullanılır
+
+## 8. DB kuralları
+- Schema sadece migration ile değişir.
+- Migration adı amacı anlatır.
+- Destructive migration açıkça işaretlenir.
+- Authoritative stock/balance kolonları yaratılmaz.
+- Snapshot, ledger, projection ayrımı korunur.
+- Index körlemesine değil sorguya göre eklenir.
+
+## 9. Frontend kuralları
+- Mars.UI bileşenleri yeniden kullanılır.
+- Inline CSS/JS yığını oluşturulmaz.
+- Aynı veri için çoklu network request azaltılır.
+- UI validation server validation yerine geçmez.
+- F2/lookup ve keyboard davranışı standartlara uyar.
+- Mobile görünüm desktop'ın küçültülmüş hali değildir.
+
+## 10. Error handling
+Her hata için:
+- kullanıcıya ne gösterilir?
+- log'a ne yazılır?
+- retry olur mu?
+- transaction rollback olur mu?
+- audit/outbox etkisi var mı?
+belirlenir.
+
+## 11. Hızlı test politikası
+Normal geliştirmede yalnız:
 - compile/build
 - değişen alan unit/invariant
-- gerekiyorsa küçük smoke
-Ağır full-suite YOK.
+- gerekli küçük smoke
+- migration/contract hızlı kontrol
+çalıştırılır.
 
-## Edge-case listesi
+Full suite, E2E, load, uzun security testleri FULL TEST DAY'e bırakılır.
+
+## 12. Edge-case checklist
 - null/empty
+- zero/negative
+- max precision
 - duplicate submit
 - concurrent update
 - stale state
 - partial quantity
-- cancellation/reversal
-- timezone/date boundary
-- decimal rounding
+- over-processing
+- cancel/reverse
+- retry after timeout
+- timezone/day boundary
 - unauthorized tenant/company
+- deleted/inactive master reference
 
-## Yasaklar
-- feature/fix/chore branch oluşturma
-- PR tabanlı geliştirme başlatma
+## 13. Yasaklar
+- main dışında branch oluşturma
+- PR oluşturma
 - TODO'yu done sayma
-- fake/mocked sonucu gerçek entegrasyon diye raporlama
-- kapsam dışı refactor
-- repo okumadan yeni sınıf/tablo uydurma
+- mock sonucu gerçek provider sonucu diye raporlama
+- var olmayan field/table/API uydurma
+- compile etmeden "çalışıyor" deme
+- başka projeden kör kod taşıma
 
-## Definition of Done
-Kod mevcut mimariye uyuyor, hızlı kontroller geçiyor, scope dışı değişiklik yok, migration/doküman gerekiyorsa birlikte güncel.
+## 14. Zorunlu çıktı
+Değişiklik sonunda:
+- değişen dosyalar
+- neden değişti
+- hızlı kontroller
+- kalan heavy-test maddeleri
+- UNKNOWN/BLOCKED
+- migration/contract etkisi
+
+## 15. Definition of Done
+- kod mevcut mimariye uyuyor
+- scope dışı değişiklik yok
+- hızlı kontroller geçti
+- gerekli migration/doküman güncel
+- gerçek repo durumu raporlandı

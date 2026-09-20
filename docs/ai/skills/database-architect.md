@@ -1,73 +1,166 @@
 # Skill: Veritabanı Mimarı
 
-## Rol
-PostgreSQL şemasında normalizasyon, veri bütünlüğü, tarihsel doğruluk, ledger ilkeleri ve performans dengesini korur.
+## 1. Misyon
+PostgreSQL veri modelini doğru normalize edilmiş, tarihsel olarak güvenilir, constraint'lerle korunan ve performans açısından sürdürülebilir tutar.
 
-## Temel model
-- Master data: normalize
-- Transaction: normalize + immutable/posting mantığı
-- Historical snapshot: bilinçli denormalizasyon
-- Projection/read model: yeniden üretilebilir
-- Cache: authoritative değil
+## 2. Source-of-truth kuralları
+Authoritative:
+- inventory_ledger
+- account_ledger
+- cash_ledger
+- bank_ledger
+- ana document/transaction tabloları
 
-## Kimlik
-- internal id: BIGINT
-- public id: UUID
-- tenant/company/branch scope açık
-- external provider id mapping ayrı
-
-## Sayısal tipler
-- money: NUMERIC/decimal
-- quantity: NUMERIC/decimal
-- float/double muhasebe hesaplarında kullanılmaz
-- precision/scale use-case'e göre açık tanımlanır
-
-## Zorunlu kontroller
-- PK/FK
-- unique constraints
-- check constraints
-- nullability
-- delete/restrict/cascade davranışı
-- index sorgu kalıbına göre
-- optimistic/concurrency ihtiyacı
-- created/posted/reversed timestamps
-- source document reference
-- currency/exchange rate
-- audit/reversal izlenebilirliği
-
-## Normalizasyon
-- 1NF: hücrede çoklu değer yok
-- 2NF: satır bağımlılıkları doğru
-- 3NF: transitif tekrarlar ayrılır
-- gerekirse BCNF
-- aşırı EAV/JSON ile gerçek ilişki saklanmaz
-- comma-separated id yasak
-
-## Ledger ilkeleri
-- inventory_ledger authoritative
-- account_ledger authoritative
-- cash_ledger authoritative
-- bank_ledger authoritative
-- posted kayıt mümkün olduğunca update/delete edilmez
-- düzeltme reversal + yeni posting
-
-## Snapshot ilkeleri
-Belge tarihindeki müşteri/ürün/adres/vergi/kur bilgisi, master değişse de geçmiş belgeyi değiştirmemeli.
-
-## Performance
-Önce doğru model. Sonra ölçüm. Gerekirse:
+Authoritative olmayan:
+- cache
 - projection
 - materialized view
-- covering index
-- partitioning
-Ama source-of-truth değişmez.
+- dashboard aggregate
+- UI state
 
-## Yasaklar
+## 3. Normalizasyon hedefi
+OLTP için varsayılan hedef 3NF'tir.
+
+### 1NF
+- hücrede liste yok
+- comma-separated ID yok
+- tekrar eden kolon grubu yok
+
+### 2NF
+- ilişki/junction tablolarında alan anahtarın tamamına bağlı
+
+### 3NF
+- transitif master tekrarları ayrılır
+- category_name gibi türetilebilir alan gereksiz tutulmaz
+
+### Bilinçli denormalizasyon
+Yalnız:
+- historical snapshot
+- projection/read model
+- performans ölçümle kanıtlandığında
+kabul edilir.
+
+## 4. Kimlik stratejisi
+- internal PK: BIGINT
+- public_id: UUID
+- external provider ID ayrı mapping
+- doğal anahtar varsa unique constraint olabilir ama PK olmak zorunda değil
+
+## 5. Sayısal veri
+- money: NUMERIC uygun precision/scale
+- quantity: NUMERIC uygun precision/scale
+- exchange rate daha yüksek scale gerekebilir
+- float/double yasak
+- rounding kuralı uygulama/domain ile uyumlu olmalı
+
+## 6. Constraint checklist
+Her tabloda değerlendir:
+- primary key
+- foreign key
+- unique
+- check
+- not null
+- default
+- delete behavior
+- status validity
+- positive/non-negative quantity
+- date ordering
+- source uniqueness
+
+Uygulama validation'ı DB constraint'in yerine geçmez.
+
+## 7. Ledger tasarımı
+- append ağırlıklı
+- posted movement update/delete edilmez
+- source_type/source_id/source_line_id izlenebilir
+- reversal_of_id veya eşdeğer bağ
+- posting date
+- company/branch/warehouse/account scope
+- currency ve amount ayrımı
+- audit actor
+
+## 8. Snapshot tasarımı
+Belge tarihindeki:
+- cari unvanı
+- vergi bilgisi
+- adres
+- ürün kod/ad
+- birim
+- vergi oranı
+- kur
+master değişse de eski belgeyi değiştirmemelidir.
+
+Snapshot "normalizasyon hatası" olarak görülmez; tarihsel doğruluk kararıdır.
+
+## 9. Document engine
+Ortak alanlar commercial_documents / lines gibi çekirdekte olabilir.
+Belgeye özel alanlar:
+- subtype/extension tablo
+- gerekirse ayrı bounded context tablosu
+ile tutulur.
+Tek dev nullable tablo yasaktır.
+
+## 10. Multi-company
+Her entity için gerçekten gerekli scope belirlenir:
+- tenant
+- company
+- branch
+- warehouse
+Scope belirsiz bırakılmaz.
+
+## 11. Index stratejisi
+Index eklemeden:
+- sorgu paterni
+- cardinality
+- filter/order
+- join
+- write cost
+düşünülür.
+
+Her FK otomatik olarak doğru index değildir; gerçek erişim paterni incelenir.
+
+## 12. Migration kuralları
+- yalnız migration
+- destructive değişiklik açık işaretlenir
+- rename ile drop+add farkı dikkatle ele alınır
+- backfill planı
+- rollback/forward-fix kararı
+- production data volume etkisi
+- lock süresi
+
+## 13. Concurrency
+Değerlendir:
+- optimistic token
+- unique constraint
+- SELECT FOR UPDATE gerekebilir mi
+- oversell/over-reservation riski
+
+## 14. JSON kullanım kuralı
+JSONB kullanılabilir ama:
+- gerçek relational ilişki saklamak için kaçış yolu değildir
+- sık filtrelenen alanlar yapılandırılmış kolon olabilir
+- schema-less alanın ownership'i açık olmalı
+
+## 15. Anti-patternler
 - products.stock_quantity authoritative
 - customers.current_balance authoritative
-- tek dev tablo + yüzlerce nullable kolon
-- UI ekranını birebir tablo tasarımı yapmak
-- migration dışı schema değişikliği
+- EAV her yerde
+- comma-separated IDs
+- hard delete ile muhasebe geçmişi silmek
+- nullable mega table
+- "performans" bahanesiyle constraint kaldırmak
 
-## Definition of Done
-Entity ilişkileri, normal form, constraint, snapshot/ledger/projection ayrımı ve migration etkisi açıklanabilir.
+## 16. Zorunlu çıktı
+Yeni/degisen DB tasarımında:
+- entity
+- relationships
+- normal form kararı
+- PK/FK/unique/check
+- indexes
+- snapshot/ledger/projection ayrımı
+- migration etkisi
+- data backfill
+- risk
+
+## 17. Definition of Done
+Model veri tekrarını ve update anomaly'lerini önler, tarihsel doğruluğu korur ve DB constraint'leri kritik invariant'ları destekler.

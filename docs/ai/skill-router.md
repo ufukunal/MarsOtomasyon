@@ -1,28 +1,38 @@
 # MarsOtomasyon AI Skill Router
 
-## Amaç
-Her görev başlamadan önce hangi uzmanlıkların ana karar verici, hangi uzmanlıkların reviewer olacağını belirlemek.
+## 1. Amaç
+Her göreve başlamadan önce hangi uzmanlıkların karar verici ve hangi uzmanlıkların reviewer olacağını belirlemek.
 
-## Zorunlu başlangıç çıktısı
+## 2. Zorunlu başlangıç formatı
 
 ```
 ACTIVE SKILLS
-Primary:
-- ...
-
-Reviewers:
-- ...
 
 Task:
-- ...
+Module:
+
+Primary:
+- skill-name: neden aktif
+
+Reviewers:
+- skill-name: hangi riski kontrol edecek
 
 Sources checked:
+- file/path
+- file/path
+
+Forbidden assumptions:
+- ...
+
+Unknown/Blocked:
 - ...
 ```
 
-## Genel aktivasyon kuralları
+Bu çıktı olmadan kod, DB veya UI değişikliği yapılmaz.
 
-### Mimari / Foundation / API
+## 3. Aktivasyon matrisi
+
+### Mimari / Foundation / API / shared infrastructure
 Primary:
 - software-architect
 - software-developer
@@ -31,7 +41,7 @@ Reviewers:
 - security-specialist
 - system-devops-specialist
 
-### Veritabanı / normalizasyon / migration
+### Veritabanı / migration / normalizasyon / ledger schema
 Primary:
 - database-architect
 - erp-domain-specialist
@@ -39,8 +49,9 @@ Reviewers:
 - software-architect
 - software-developer
 - accounting-finance-specialist
+- security-specialist gerektiğinde
 
-### Cari / satış / satınalma / ticari belgeler
+### Cari / satış / satınalma / belge motoru
 Primary:
 - erp-domain-specialist
 - accounting-finance-specialist
@@ -50,7 +61,7 @@ Reviewers:
 - software-developer
 - software-test-engineer
 
-### Stok / depo / sevkiyat / sayım
+### Stok / depo / sevkiyat / sayım / transfer
 Primary:
 - warehouse-operations-shipping-specialist
 - erp-domain-specialist
@@ -59,6 +70,7 @@ Reviewers:
 - accounting-finance-specialist
 - software-developer
 - software-test-engineer
+- ux-ui-specialist depo ekranı varsa
 
 ### Üretim / MRP / kapasite / fason
 Primary:
@@ -69,6 +81,7 @@ Reviewers:
 - database-architect
 - accounting-finance-specialist
 - software-architect
+- software-test-engineer
 
 ### B2B / Mimar Paneli / Marketplace
 Primary:
@@ -80,8 +93,9 @@ Reviewers:
 - security-specialist
 - statistics-analysis-specialist
 - ux-ui-specialist
+- accounting-finance-specialist fiyat/ödeme varsa
 
-### Finans / kasa / banka / çek-senet
+### Finans / banka / kasa / çek-senet
 Primary:
 - accounting-finance-specialist
 - erp-domain-specialist
@@ -89,17 +103,19 @@ Reviewers:
 - database-architect
 - security-specialist
 - software-test-engineer
+- software-architect gerektiğinde
 
-### UI / Web / Dashboard
+### UI / Web / Form / Grid
 Primary:
 - ux-ui-specialist
 - web-design-specialist
 Reviewers:
 - graphic-design-specialist
 - software-developer
-- statistics-analysis-specialist
+- erp-domain-specialist
+- statistics-analysis-specialist dashboard ise
 
-### Rapor / KPI / analiz
+### Rapor / KPI / BI
 Primary:
 - statistics-analysis-specialist
 - mba-business-manager
@@ -107,8 +123,9 @@ Reviewers:
 - accounting-finance-specialist
 - erp-domain-specialist
 - web-design-specialist
+- graphic-design-specialist
 
-### Güvenlik / auth / permission / webhook / secret
+### Güvenlik / auth / permission / secret / webhook
 Primary:
 - security-specialist
 - software-architect
@@ -116,8 +133,9 @@ Reviewers:
 - software-developer
 - system-devops-specialist
 - database-architect
+- ecommerce-integration-specialist webhook/provider ise
 
-### Deployment / backup / restore / update
+### Deployment / backup / restore / update center
 Primary:
 - system-devops-specialist
 - software-architect
@@ -125,6 +143,7 @@ Reviewers:
 - security-specialist
 - database-architect
 - software-developer
+- software-test-engineer
 
 ### Bug fix
 Primary:
@@ -132,31 +151,57 @@ Primary:
 - software-test-engineer
 Reviewers:
 - bug'ın ait olduğu domain skill'i
-- gerekiyorsa security/database/architect
+- database/security/architect yalnız gerçekten etkileniyorsa
 
-## Her aktif skill için zorunlu dört soru
+## 4. Reviewer veto kriteri
+Reviewer şu durumlarda BLOCKED diyebilir:
+- veri kaybı
+- yanlış muhasebe posting
+- tenant/security ihlali
+- stock double-post
+- idempotency eksikliği
+- historical snapshot bozulması
+- documented requirement ile çelişki
+
+Kozmetik veya kişisel teknik tercih veto nedeni değildir.
+
+## 5. Her aktif skill için zorunlu dört soru
 1. Bu görevde hangi riski kontrol ediyorum?
-2. Hangi repo/doküman/kodu doğrulamam gerekiyor?
+2. Hangi repo/doküman/kod kaynaklarını doğruladım?
 3. Hangi varsayımı yapmam yasak?
-4. DONE için hangi somut kanıt gerekli?
+4. DONE için hangi somut kanıt gerekir?
 
-## Çelişki çözüm önceliği
-1. Kullanıcının açık ve güncel talimatı
-2. Repo içindeki kabul edilmiş proje kararı / ADR
-3. İş/domain bütünlüğü
-4. Muhasebe ve veri bütünlüğü
+## 6. Çelişki çözüm önceliği
+1. Kullanıcının güncel açık kararı
+2. Mevcut repo gerçeği
+3. Kabul edilmiş ADR
+4. Domain/muhasebe/veri bütünlüğü
 5. Güvenlik
 6. Operasyonel uygulanabilirlik
-7. UX/görsel tercih
-8. Model varsayımı
+7. UX
+8. Teknik estetik
 
-Model varsayımı hiçbir üst maddeyi geçersiz kılamaz.
+## 7. Fail-closed
+Gerekli karar yoksa:
+- implementasyon yapılmaz
+- uygun placeholder gerçek kod gibi sunulmaz
+- UNKNOWN/BLOCKED yazılır
 
-## Fail-closed
-Gerekli iş kuralı veya kaynak bulunamazsa ilgili implementasyon yapılmaz. Durum UNKNOWN/BLOCKED olarak raporlanır.
+## 8. Scope gate
+Görev başlamadan:
+- allowed module
+- expected files
+- DB impact
+- API impact
+- integration impact
+belirlenir.
 
-## Test kuralı
-Normal geliştirmede ağır test yok. Ağır senaryolar FULL TEST DAY backlog'una yazılır.
+Beklenmeyen başka modül etkilenirse dur ve tekrar değerlendir.
 
-## Git kuralı
-Tek geliştirme branch'i `main`dir. AI branch/PR oluşturamaz.
+## 9. Test gate
+Normal geliştirmede heavy test yok.
+Reviewer heavy risk tespit ederse FULL TEST DAY backlog'una ekler.
+
+## 10. Git gate
+Target = main olmalıdır.
+main dışında branch veya PR üretmek yasaktır.
