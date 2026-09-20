@@ -14,42 +14,25 @@ jobs:
     runs-on: self-hosted
     timeout-minutes: 5
     steps:
-      - name: Runner layer
+      - name: Runner and network
         shell: bash
         run: |
           set +e
-          echo "LAYER=RUNNER"
           echo "RUNNER_HOSTNAME=$(hostname)"
           echo "RUNNER_USER=$(whoami)"
-          echo "TAILSCALE_BIN=$(command -v tailscale || true)"
-          echo "SSH_BIN=$(command -v ssh || true)"
-          echo "SSHPASS_BIN=$(command -v sshpass || true)"
-          if [ -d "$HOME/.ssh" ]; then
-            echo "SSH_DIR=PRESENT"
-            find "$HOME/.ssh" -maxdepth 1 -type f -printf 'SSH_FILE=%f\n' 2>/dev/null | sort
-          else
-            echo "SSH_DIR=ABSENT"
-          fi
-
-      - name: Network layer
-        shell: bash
-        run: |
-          set +e
-          echo "LAYER=NETWORK"
           tailscale status || true
           tailscale ping --timeout=5s mars-prod.taila20365.ts.net || true
           getent hosts mars-prod.taila20365.ts.net || true
           timeout 5 bash -c '</dev/tcp/mars-prod.taila20365.ts.net/22' && echo "TCP22=PASS" || echo "TCP22=FAIL"
 
-      - name: SSH authentication layer
+      - name: Tailscale SSH authentication via node IP
         shell: bash
         run: |
           set +e
-          echo "LAYER=SSH_AUTH"
-          ssh             -o BatchMode=yes             -o PreferredAuthentications=publickey             -o PasswordAuthentication=no             -o StrictHostKeyChecking=no             -o UserKnownHostsFile=/dev/null             -o ConnectTimeout=7             ufuk@mars-prod.taila20365.ts.net             'echo SSH_AUTH=PASS; printf "REMOTE_USER="; whoami; printf "REMOTE_HOSTNAME="; hostname; printf "REMOTE_KERNEL="; uname -a; printf "REMOTE_UPTIME="; uptime -p; if command -v docker >/dev/null 2>&1; then echo DOCKER=PASS; docker --version; docker ps --format "CONTAINER={{.Names}}|IMAGE={{.Image}}|STATUS={{.Status}}" 2>/dev/null || echo DOCKER_PS=DENIED; else echo DOCKER=FAIL; fi; test -d /opt/marsotomasyon && echo MARS_PATH=PASS || echo MARS_PATH=FAIL'
+          TARGET_IP="$(getent hosts mars-prod.taila20365.ts.net | awk 'NR==1 {print $1}')"
+          echo "TARGET_IP=$TARGET_IP"
+          timeout 15 tailscale ssh ufuk@"$TARGET_IP"             'echo TS_SSH_AUTH=PASS; printf "REMOTE_USER="; whoami; printf "REMOTE_HOSTNAME="; hostname; printf "REMOTE_KERNEL="; uname -a; printf "REMOTE_UPTIME="; uptime -p; if command -v docker >/dev/null 2>&1; then echo DOCKER=PASS; docker --version; docker ps --format "CONTAINER={{.Names}}|IMAGE={{.Image}}|STATUS={{.Status}}" 2>/dev/null || echo DOCKER_PS=DENIED; else echo DOCKER=FAIL; fi; test -d /opt/marsotomasyon && echo MARS_PATH=PASS || echo MARS_PATH=FAIL'
           rc=$?
-          echo "SSH_RC=$rc"
-          if [ "$rc" -ne 0 ]; then
-            echo "SSH_AUTH=FAIL"
-          fi
+          echo "TS_SSH_RC=$rc"
+          if [ "$rc" -ne 0 ]; then echo "TS_SSH_AUTH=FAIL"; fi
           exit 0
