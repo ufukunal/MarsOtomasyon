@@ -1,12 +1,12 @@
 # MarsOtomasyon Project Roadmap
 
 ## Planning principle
-The roadmap is ordered by dependency and business truth, not by menu order. Each phase must reach its own acceptance criteria before downstream implementation relies on it.
+The roadmap is ordered by dependency and business truth, not by menu order. Each phase must reach its acceptance criteria before downstream implementation relies on it.
 
 ## Phase P0 — Governance and planning backbone
-**Status:** ACTIVE
+**Status:** COMPLETED
 
-Deliverables:
+Delivered:
 - AI operating protocol
 - detailed skill system
 - autocomplete/NEXT PROMPT protocol
@@ -18,17 +18,13 @@ Deliverables:
 - decision log structure
 - planning standard
 
-Exit criteria:
-- a new session can resume from repo only
-- no undocumented next action is needed
-- main-only workflow is explicit and technically enforced
-
 ## Phase P1 — Foundation contracts
+**Status:** PLANNING BASELINE ESTABLISHED
+
 Target: `docs/plan/01-foundation/`
 
-Define:
+Baseline now defines:
 - modular-monolith boundaries
-- solution/package layout
 - command/query conventions
 - transactions
 - outbox
@@ -36,24 +32,20 @@ Define:
 - audit
 - numbering
 - permissions
-- tenancy/company/branch scope
+- company/branch scope
 - error model
-- file/document abstractions
-- notification foundation
-- API versioning
-- client platform abstraction
-- observability
-- configuration/secrets
-- migration policy
+- files/notifications abstractions
+- API/client/cache/observability/migration policies
 
-Exit criteria:
-- implementation can start without inventing shared infrastructure rules
+Implementation-specific unresolved choices remain explicitly UNKNOWN and are not to be invented.
 
 ## Phase P2 — Core commercial workflows
-Order:
-1. `03-cariler`
-2. `04-urun-stok`
-3. `05-satis`
+**Status:** ACTIVE
+
+Planning order:
+1. `05-satis` — active first because it anchors reservation, stock-out, receivable and partial document linking
+2. `03-cariler`
+3. `04-urun-stok`
 4. `07-satinalma`
 5. `06-ambar-depo`
 6. `09-finans-kasa-banka`
@@ -73,6 +65,8 @@ Exit criteria:
 - no double stock/accounting posting ambiguity
 
 ## Phase P3 — Database logical model and schema
+**Status:** NOT STARTED
+
 Target: `docs/db/`
 
 Produce:
@@ -93,6 +87,8 @@ Exit criteria:
 - source-of-truth vs projection explicit
 
 ## Phase P4 — Core application implementation
+**Status:** NOT STARTED
+
 Build in dependency order:
 - Foundation
 - Accounts/Parties
@@ -106,6 +102,8 @@ Build in dependency order:
 Normal development tests stay targeted. Heavy tests remain deferred.
 
 ## Phase P5 — Operations
+**Status:** NOT STARTED
+
 Modules:
 - `08-kalite`
 - `12-uretim`
@@ -121,6 +119,8 @@ Modules:
 - `27-tasiyici-performansi`
 
 ## Phase P6 — Commerce and external channels
+**Status:** NOT STARTED
+
 Target: `15-e-ticaret-b2b-api`
 
 Subdomains:
@@ -142,6 +142,8 @@ Subdomains:
 Provider capabilities must be verified against current provider documentation before implementation.
 
 ## Phase P7 — Communications and device layer
+**Status:** NOT STARTED
+
 Targets:
 - `16-iletisim-dosyalar`
 - `29-device-layer`
@@ -163,6 +165,8 @@ Define:
 - ZPL/TSPL/RAW
 
 ## Phase P8 — Reporting, management and control
+**Status:** NOT STARTED
+
 Targets:
 - `02-ana-sayfa`
 - `17-raporlar-bi`
@@ -181,6 +185,8 @@ Includes:
 - segregation of duties
 
 ## Phase P9 — Full Test Day
+**Status:** DEFERRED BY POLICY
+
 Run only when explicitly started.
 
 Includes:
@@ -197,6 +203,8 @@ Includes:
 - accounting/ledger invariants
 
 ## Phase P10 — Release hardening
+**Status:** NOT STARTED
+
 - deployment reproducibility
 - backup/restore evidence
 - migration rehearsal
@@ -205,5 +213,5 @@ Includes:
 - operational runbooks
 - release checklist
 
-## Current next planning action
-After P0/P1 planning backbone, detail the Sales chain first because it anchors reservation, stock, receivable, partial processing and downstream document linking.
+## Current active planning task
+`PLAN-002 — Sales workflow contract`

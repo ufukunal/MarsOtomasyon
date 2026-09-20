@@ -1,20 +1,23 @@
-id: PLAN-001
-title: Establish project planning backbone and Foundation plan
-module: 01-foundation
+id: PLAN-002
+title: Detail Sales domain workflows before database schema
+module: 05-satis
 status: active
 
 goal:
-  Create a deterministic planning structure so future AI sessions can understand
-  the project from repository state instead of inventing context.
+  Freeze the Sales workflow contract before any Sales database schema or application
+  implementation is designed.
 
 scope:
   allowed_paths:
-    - docs/plan/
-    - docs/db/
+    - docs/plan/05-satis/
+    - docs/plan/project-state.yaml
+    - docs/plan/active-task.yaml
+    - docs/plan/handoff/current.md
+    - docs/plan/tasks/
   forbidden_paths:
     - src/
     - tests/
-    - deploy/
+    - docs/db/schema/
   db_implementation: false
   api_implementation: false
   ui_implementation: false
@@ -25,46 +28,93 @@ required_sources:
   - docs/ai/README.md
   - docs/ai/autocomplete.md
   - docs/ai/skill-router.md
-  - docs/ai/skills/software-architect.md
-  - docs/ai/skills/software-developer.md
-  - docs/ai/skills/software-test-engineer.md
-  - docs/ai/skills/database-architect.md
+  - docs/plan/planning-standard.md
+  - docs/plan/roadmap.md
+  - docs/plan/01-foundation/plan.md
+  - docs/db/00-domain-dictionary.md
+  - docs/db/01-design-principles.md
   - docs/ai/skills/erp-domain-specialist.md
+  - docs/ai/skills/accounting-finance-specialist.md
+  - docs/ai/skills/warehouse-operations-shipping-specialist.md
+  - docs/ai/skills/database-architect.md
+  - docs/ai/skills/software-architect.md
+  - docs/ai/skills/software-test-engineer.md
 
 active_skills:
   primary:
-    - software-architect
-    - software-developer
-  reviewers:
-    - software-test-engineer
-    - database-architect
     - erp-domain-specialist
+    - accounting-finance-specialist
+  reviewers:
+    - warehouse-operations-shipping-specialist
+    - database-architect
+    - software-architect
+    - software-test-engineer
+    - ux-ui-specialist
+
+workflow_scope:
+  - quote
+  - sales_order
+  - reservation
+  - dispatch
+  - invoice
+  - collection_link
+  - sales_return_link
+
+mandatory_questions_per_document:
+  - purpose
+  - source_document
+  - target_document
+  - states
+  - allowed_transitions
+  - DOC_effect
+  - RES_effect
+  - STOCK_effect
+  - ACCOUNT_effect
+  - CASH_BANK_effect
+  - COST_effect
+  - partial_processing
+  - line_quantity_tracking
+  - approval
+  - cancellation
+  - reversal
+  - audit
+  - outbox_or_integration_effect
 
 acceptance_criteria:
-  - project-state.yaml exists and defines locked architecture and workflow rules.
-  - roadmap.md defines phases and ordered module planning.
-  - planning-standard.md defines the mandatory module-plan contract.
-  - handoff/current.md exists and tells a new session how to resume safely.
-  - tasks active/backlog/completed files exist.
-  - decisions area exists.
-  - 01-foundation contains a detailed executable plan.
-  - docs/db has initial domain and database design principles.
-  - No application code is created in this task.
+  - Quote effect contract is explicit.
+  - Sales Order effect and reservation rules are explicit.
+  - Dispatch physical stock-out point is explicit.
+  - Invoice financial recognition is explicit.
+  - Dispatch-sourced invoice cannot double-post stock.
+  - Ordered, shipped, invoiced and remaining quantity behavior is explicit.
+  - Partial shipment and partial invoicing are explicit.
+  - Collection is linked without being incorrectly embedded into invoice posting.
+  - Return physical and financial effects are separated.
+  - State machines are documented.
+  - Source/target document links are documented.
+  - Cancellation/reversal rules are documented.
+  - Unknown business choices remain UNKNOWN/BLOCKED instead of guessed.
+  - No SQL schema and no application code is created in PLAN-002.
   - No branch or PR is created.
   - No heavy tests are run.
 
 quick_tests:
-  - verify all created paths exist on main
-  - verify YAML is structurally readable
-  - verify planning documents link to authoritative AI protocol
-  - verify branch count remains one and branch is main
+  - verify required Sales planning files exist on main
+  - verify all workflow objects have effect matrices
+  - verify no document flow contains a documented double stock posting
+  - verify UNKNOWN/BLOCKED sections exist where decisions are unresolved
+  - verify branch remains main-only
 
 full_test_day_items:
-  - none for documentation-only PLAN-001
+  - Sales end-to-end browser/API workflow
+  - concurrent reservation and dispatch
+  - duplicate posting/idempotency
+  - partial shipment/invoice regression
+  - cancellation/reversal accounting and stock invariants
 
 blocked_by: []
 
-next_action:
-  id: PLAN-002
-  title: Detail Sales domain workflows before database schema
-  target: docs/plan/05-satis/
+next_action_after_completion:
+  id: PLAN-003
+  title: Detail Party / Customer / Supplier model
+  target: docs/plan/03-cariler/

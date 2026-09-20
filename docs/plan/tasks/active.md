@@ -1,18 +1,27 @@
 # Active Tasks
 
-## PLAN-001 — Planning backbone and Foundation plan
+## PLAN-002 — Sales workflow contract
 **Status:** ACTIVE
 
-### Scope
-- project-state
-- active-task
-- roadmap
-- planning standard
-- handoff
-- task tracking
-- decisions structure
-- Foundation plan
-- initial DB principles
+Target: `docs/plan/05-satis/`
 
-### Definition of Done
-See `docs/plan/active-task.yaml`.
+### Goal
+Freeze Quote → Sales Order → Reservation → Dispatch → Invoice → Collection/Return links before database schema or code.
+
+### Required output
+- README/purpose
+- workflows
+- document state machines
+- form/effect matrix
+- quantity/partial-processing contract
+- cancellation/reversal contract
+- UI/form behavior at planning level
+- acceptance criteria
+- Full Test Day backlog
+
+### Restrictions
+- no SQL schema
+- no application code
+- no branch
+- no PR
+- no heavy tests

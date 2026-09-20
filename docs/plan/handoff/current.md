@@ -4,66 +4,72 @@
 - Repository: `ufukunal/MarsOtomasyon`
 - Allowed branch: `main`
 - Current HEAD: **verify from Git at session start**
-- Baseline used to start this planning task: `f15a89bf94280f0990291037037436d3dd283bbe`
+- Last completed planning commit: `3a36a50a2978a7307ff395f79f00497ccc2ed59b`
 
 ## Current phase
-P0 — Planning and Foundation Definition
+P2 — Core Commercial Workflow Planning
 
-## Current task
-`PLAN-001 — Establish project planning backbone and Foundation plan`
+## Last completed task
+`PLAN-001 — Planning backbone and Foundation plan`
 
-## Completed before this task
-- main-only Git workflow
-- AI command protocol
-- 16 detailed AI skills
-- skill router
-- mandatory autocomplete/NEXT PROMPT protocol
-- 29 module planning folders
-
-## Work being established
-- structured project state
-- active task
+PLAN-001 established:
+- project-state
+- active-task mechanism
 - roadmap
 - planning standard
-- task lists
-- decisions directory
+- task tracking
+- decision record area
 - Foundation plan
-- initial DB planning principles
+- initial DB dictionary/principles
 
-## Rules that must not be lost
-- only `main`
-- no branch
-- no PR
-- no force push
-- PostgreSQL source-of-truth
-- Valkey is non-authoritative
-- modular monolith
-- ledger-based stock/finance truth
-- reversal instead of silent posted-record mutation
-- no heavy test suite during normal development
-- no undocumented business-rule assumptions
+## Active task
+`PLAN-002 — Detail Sales domain workflows before database schema`
 
-## Next exact action
-After PLAN-001 is verified, start `PLAN-002`:
-Detail the Sales workflow in `docs/plan/05-satis/` before designing its database schema.
+Target:
+`docs/plan/05-satis/`
 
-Start with:
-- Quote
-- Sales Order
-- Reservation
-- Dispatch
-- Invoice
-- Collection link
-- Return link
+Required chain:
+```
+Quote
+→ Sales Order
+→ Reservation
+→ Dispatch
+→ Invoice
+→ Collection link
+→ Return link
+```
 
-For each, define:
+For each document/action define:
+- purpose
 - states
-- form/effect matrix
-- line quantity tracking
-- partial operation
-- source/target documents
+- source/target links
+- DOC/RES/STOCK/ACCOUNT/CASH-BANK/COST effects
+- line quantities
+- partial operations
+- approval
 - cancel/reversal
-- stock/accounting effects
+- audit
+- outbox/integration effects
+
+## Existing locked rules
+- Quote has no stock/accounting effect.
+- Sales Order may reserve stock but does not physically issue it.
+- Dispatch is the normal physical stock-out point.
+- Invoice creates the financial receivable.
+- If invoice is sourced from dispatch, stock must not be posted a second time.
+- Collection is a separate financial settlement event.
+- Return physical disposition and financial credit/refund are separate concerns.
+- Posted history is reversed, not silently overwritten.
+
+These rules can be refined by explicit project decisions but must not be silently contradicted.
+
+## Do not do during PLAN-002
+- do not create SQL schema
+- do not create application code
+- do not invent unresolved commercial policy
+- do not start Purchase workflow
+- do not run heavy tests
+- do not create branch/PR
 
 ## Heavy tests
-None should run during planning.
+Sales heavy scenarios belong to Full Test Day backlog only.
