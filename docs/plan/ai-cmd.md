@@ -192,3 +192,21 @@ Var olmayan:
 uydurulamaz.
 
 Önce repo/tool ile doğrula.
+
+## 15. Zorunlu Autocomplete / NEXT PROMPT protokolü
+Her işlem tamamlandığında AI cevabının en sonunda ayrıntılı bir `NEXT PROMPT — KOPYALA / YAPIŞTIR` bölümü üretmek zorundadır.
+
+Bağlayıcı detaylar:
+- Tam protokol: `docs/ai/autocomplete.md`
+- Bir sonraki prompt yeni bir sohbete tek başına yapıştırıldığında anlaşılabilir olmalıdır.
+- Sadece "devam et", "sonraki modüle geç" veya benzeri kısa talimat geçersizdir.
+- Prompt gerçek repo/HEAD durumuna göre hazırlanmalıdır.
+- İlgili source dosyaları tam path ile yazılmalıdır.
+- ACTIVE SKILLS Primary/Reviewer olarak taşınmalıdır.
+- Scope, yasaklar, kabul kriterleri ve hızlı test politikası yazılmalıdır.
+- `main` dışında branch, PR ve force push yasağı açıkça tekrar edilmelidir.
+- Heavy testler Full Test Day'e ertelenmelidir.
+- Bir sonraki AI'dan implementasyondan önce CONTEXT RECEIPT istenmelidir.
+- Görev BLOCKED bittiyse prompt yalnız blocker'ın çözümünü tarif eder; sonraki işi uydurmaz.
+- Sonraki iş repo planında belli değilse AI yeni iş icat etmez; plan/backlog üzerinden güvenli sonraki adımı doğrulatır.
+- Bir cevap, NEXT PROMPT üretilmeden tam bitmiş sayılmaz.

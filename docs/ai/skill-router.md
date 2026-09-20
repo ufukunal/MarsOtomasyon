@@ -205,3 +205,16 @@ Reviewer heavy risk tespit ederse FULL TEST DAY backlog'una ekler.
 ## 10. Git gate
 Target = main olmalıdır.
 main dışında branch veya PR üretmek yasaktır.
+
+## 11. Completion / Autocomplete Gate
+Her görev sonunda skill-router çalışmasının son aşaması `docs/ai/autocomplete.md` protokolüdür.
+
+Primary skill:
+- bir sonraki güvenli hedefi belirler
+- mevcut görevin gerçek sonucunu prompta taşır
+
+Reviewer skill'ler:
+- sonraki promptun kendi disiplinlerinde yanlış varsayım içermediğini kontrol eder
+- açık risk veya blocker varsa promptun sonraki implementasyona atlamasını engeller
+
+Final cevapta ayrıntılı NEXT PROMPT yoksa görev completion gate'i geçmemiş sayılır.

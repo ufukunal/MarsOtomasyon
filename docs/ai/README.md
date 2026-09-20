@@ -163,3 +163,29 @@ Her skill mümkün olduğunca şu bölümleri içerir:
 ## Son ilke
 AI'nın hafızası güven kaynağı değildir.
 Repo + structured kararlar + kod + DB + test kanıtı güven kaynağıdır.
+
+### 11. Zorunlu Autocomplete
+Her AI işleminin sonunda bir sonraki kullanıcı mesajı AI tarafından hazırlanır.
+
+Bağlayıcı belge:
+- `docs/ai/autocomplete.md`
+
+Final cevap mutlaka:
+```
+NEXT PROMPT — KOPYALA / YAPIŞTIR
+...
+```
+ile biter.
+
+Bu prompt:
+- yeni sohbete tek başına yapıştırılabilir
+- repo/branch/HEAD bilgisini taşır
+- okunacak kaynakları tam path ile verir
+- ACTIVE SKILLS'i taşır
+- scope ve yasakları kilitler
+- kabul kriterlerini yazar
+- yalnız hızlı test politikasını tekrarlar
+- ağır testleri Full Test Day'e bırakır
+- bitişte tekrar yeni NEXT PROMPT üretilmesini ister
+
+Kısa "devam et" türü autocomplete geçersizdir.
