@@ -1,0 +1,7 @@
+{
+  "name": "playwright",
+  "version": "1.55.1",
+  "bin": {
+    "playwright": "cli.js"
+  }
+}
