@@ -1,16 +1,13 @@
 # Planning Backlog
 
-## PLAN-002-DECISIONS — Resolve Sales owner decision gates
-Target: docs/plan/05-satis/
-
-Resolve SALES-B001 through SALES-B008, update all affected Sales contracts, run document consistency checks and only then mark PLAN-002 completed.
-
 ## PLAN-003 — Party / Customer / Supplier model
 Target: docs/plan/03-cariler/
 
+Status: READY / NEXT.
+
 Define party roles, contacts, addresses, billing/shipping identity, account behavior and historical snapshots.
 
-Blocked until PLAN-002 is frozen.
+PLAN-002 dependency is satisfied. Start only in the next dedicated planning work package.
 
 ## PLAN-004 — Product / Inventory master model
 Target: docs/plan/04-urun-stok/
