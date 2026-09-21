@@ -9,7 +9,7 @@ project:
 repository_state:
   target_branch: main
   current_head: VERIFY_AT_RUNTIME
-  last_verified_planning_head: f0933c9992e16f4336e0f06d55fafbaa44da489f
+  last_verified_planning_head: 55079aeda8b7345b392f55c8bc13d366b3a32a0c
   branches_allowed:
     - main
   branch_creation_forbidden: true
@@ -25,13 +25,13 @@ current_phase:
 planning_progress:
   counting_basis: master-project-plan section 8; completed/frozen work packages only
   master_sequence:
-    completed: 6
+    completed: 7
     total: 30
-    percent: 20.0
+    percent: 23.3
   p2_core_commercial:
-    completed: 5
+    completed: 6
     total: 8
-    percent: 62.5
+    percent: 75.0
   reporting_rule: report master and active-phase percentages during long planning sessions and in SESSION REPORT
 
 phase_status:
@@ -83,11 +83,11 @@ test_policy:
   heavy_tests: FULL_TEST_DAY_ONLY
 
 active_task:
-  id: PLAN-007
-  title: Detail Finance / Treasury workflow contract
+  id: PLAN-008
+  title: Detail Checks / Promissory Notes workflow contract
   status: ready
   file: docs/plan/active-task.yaml
-  progress: ready_after_warehouse_plan_freeze
+  progress: ready_after_finance_treasury_plan_freeze
 
 completed_planning_tasks:
   - PLAN-001
@@ -97,6 +97,7 @@ completed_planning_tasks:
   - PLAN-004
   - PLAN-005
   - PLAN-006
+  - PLAN-007
 
 locked_decisions:
   - Only main branch is allowed.
@@ -179,6 +180,27 @@ locked_decisions:
   - Warehouse/Location deactivation is blocked while stock, Reservation, Transit or open work remains.
   - Scrap/disposal is explicit approved STOCK OUT from eligible non-available quantity; financial value/write-off remains Finance-owned.
   - Offline Warehouse mutations use durable client operation identity; retries are idempotent and stale conflicts never silently overwrite server truth.
+  - Account Ledger is authoritative Party financial-balance truth with separate CUSTOMER_RECEIVABLE and SUPPLIER_PAYABLE roles.
+  - Customer receivable uses debit-increase/credit-decrease semantics; supplier payable uses credit-increase/debit-decrease semantics.
+  - Customer and Supplier role balances never auto-net; explicit same-Party role netting requires permission, reason, approval and SoD.
+  - Collection is balance-only CUSTOMER credit plus Cash/Bank IN; no Invoice allocation/open-item authority.
+  - Supplier Payment is balance-only SUPPLIER debit plus Cash/Bank OUT; no Supplier Invoice allocation authority.
+  - Customer/Supplier advances are explicit opposite-sign role positions, not Invoice allocations.
+  - Cash Ledger and Bank Ledger are authoritative money truth; mutable account balance fields are forbidden as authority.
+  - Same-currency treasury transfer posts paired source OUT and target IN atomically; fees are explicit.
+  - FX transfer snapshots exact source/target amounts, actual executed rate/base values and fees; manual override is permissioned/audited/approved.
+  - Realized FX uses weighted carrying base for balance-only foreign-currency positions; original commercial FX snapshots remain immutable.
+  - Unrealized FX is a separate period-end revaluation workflow controlled by versioned Finance revaluation policy.
+  - Bank statement import is evidence/staging only and never directly changes Bank Ledger.
+  - Bank reconciliation links statement evidence to posted Bank Ledger; suggestions/confidence are non-authoritative and overmatch is forbidden.
+  - Finance Posting Period states are OPEN, FROZEN and CLOSED; historical corrections use linked reversal/correction rather than silent back-edit.
+  - Inventory valuation uses perpetual moving weighted average at company + Product/Variant valuation-pool grain.
+  - Internal Warehouse transfer does not revalue inventory; Goods Receipt increases provisional carrying value.
+  - Sales Dispatch removes inventory carrying value and creates a dispatched-not-invoiced cost bridge; Sales Invoice recognizes COGS from that bridge without second stock/value reduction.
+  - Supplier Invoice/landed-cost late deltas are source-linked and apportioned across on-hand valuation, dispatch cost bridge and recognized COGS as applicable.
+  - Positive Count Adjustment without a valid moving-average basis requires explicit approved unit valuation; silent zero-cost inventory is forbidden.
+  - Scrap/write-off physical effect remains Warehouse-owned while Finance owns carrying-value removal/write-off classification.
+  - Finance owns customer credit limit/risk/hold signal; Sales consumes but does not author it.
 
 framework_decision_gates:
   - exact .NET SDK/runtime version
@@ -241,13 +263,15 @@ known_constraints:
   - PLAN-004 Product / Inventory master planning is frozen.
   - PLAN-005 Purchasing workflow planning is frozen.
   - PLAN-006 Warehouse operational planning is frozen.
-  - PLAN-007 Finance / Treasury workflow planning is the next ready work package.
+  - PLAN-007 Finance / Treasury workflow planning is frozen.
+  - PLAN-008 Checks / Promissory Notes workflow planning is the next ready P2 work package.
+  - PLAN-009 Returns / RMA must follow Checks / Promissory Notes before logical database planning.
 
 blocked_items: []
 next_action:
-  id: PLAN-007
-  title: Detail Finance / Treasury workflow contract
-  target: docs/plan/09-finans-kasa-banka/
+  id: PLAN-008
+  title: Detail Checks / Promissory Notes workflow contract
+  target: docs/plan/10-cek-senet/
 
 state_rules:
   - current_head must be verified from Git at every session start; embedded SHA is never authoritative.
