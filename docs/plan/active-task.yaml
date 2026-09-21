@@ -1,7 +1,8 @@
 id: PLAN-002
 title: Detail Sales domain workflows before database schema
 module: 05-satis
-status: active
+status: blocked
+progress: core_contracts_documented_owner_decisions_required
 
 goal:
   Freeze the Sales workflow contract before any Sales database schema or application
@@ -23,96 +24,74 @@ scope:
   ui_implementation: false
   integration_implementation: false
 
-required_sources:
-  - docs/plan/ai-cmd.md
-  - docs/ai/README.md
-  - docs/ai/autocomplete.md
-  - docs/ai/skill-router.md
-  - docs/plan/planning-standard.md
-  - docs/plan/roadmap.md
-  - docs/plan/01-foundation/plan.md
-  - docs/db/00-domain-dictionary.md
-  - docs/db/01-design-principles.md
-  - docs/ai/skills/erp-domain-specialist.md
-  - docs/ai/skills/accounting-finance-specialist.md
-  - docs/ai/skills/warehouse-operations-shipping-specialist.md
-  - docs/ai/skills/database-architect.md
-  - docs/ai/skills/software-architect.md
-  - docs/ai/skills/software-test-engineer.md
+planning_outputs:
+  - docs/plan/05-satis/README.md
+  - docs/plan/05-satis/plan.md
+  - docs/plan/05-satis/workflows.md
+  - docs/plan/05-satis/forms.md
+  - docs/plan/05-satis/data-contract.md
+  - docs/plan/05-satis/permissions.md
+  - docs/plan/05-satis/integrations.md
+  - docs/plan/05-satis/reports.md
+  - docs/plan/05-satis/acceptance-criteria.md
+  - docs/plan/05-satis/full-test-day.md
 
 active_skills:
   primary:
     - erp-domain-specialist
     - accounting-finance-specialist
   reviewers:
+    - mba-business-manager
     - warehouse-operations-shipping-specialist
     - database-architect
     - software-architect
     - software-test-engineer
     - ux-ui-specialist
 
-workflow_scope:
-  - quote
-  - sales_order
-  - reservation
-  - dispatch
-  - invoice
-  - collection_link
-  - sales_return_link
+locked_contracts:
+  - Quote does not post reservation, stock, account or cash/bank effects.
+  - Sales Order is commercial demand and is not physical stock-out or receivable posting.
+  - Reservation is a non-physical commitment linked to Sales Order lines.
+  - Dispatch POST/finalization is the normal physical stock-out point.
+  - Dispatch consumes/releases related reservation quantity.
+  - Sales Invoice POST/finalization creates customer receivable.
+  - Dispatch-sourced invoice cannot post stock a second time.
+  - Collection is a separate Finance event.
+  - Physical return and financial credit/refund are separate.
+  - Partial shipment/invoicing use line-level source-target traceability.
+  - Posted history is reversed/compensated, never silently overwritten.
 
-mandatory_questions_per_document:
-  - purpose
-  - source_document
-  - target_document
-  - states
-  - allowed_transitions
-  - DOC_effect
-  - RES_effect
-  - STOCK_effect
-  - ACCOUNT_effect
-  - CASH_BANK_effect
-  - COST_effect
-  - partial_processing
-  - line_quantity_tracking
-  - approval
-  - cancellation
-  - reversal
-  - audit
-  - outbox_or_integration_effect
+blocked_by:
+  - SALES-B001: Collection allocation model
+  - SALES-B002: Source-less/direct Sales Invoice stock behavior
+  - SALES-B003: Quote full vs partial conversion
+  - SALES-B004: Reservation trigger policy
+  - SALES-B005: Cost/COGS recognition point
+  - SALES-B006: Sales tax/discount/rounding/FX calculation policy
+  - SALES-B007: Quote/Order approval policy and thresholds
+  - SALES-B008: Confirmed-order amendment policy
 
-acceptance_criteria:
-  - Quote effect contract is explicit.
-  - Sales Order effect and reservation rules are explicit.
-  - Dispatch physical stock-out point is explicit.
-  - Invoice financial recognition is explicit.
-  - Dispatch-sourced invoice cannot double-post stock.
-  - Ordered, shipped, invoiced and remaining quantity behavior is explicit.
-  - Partial shipment and partial invoicing are explicit.
-  - Collection is linked without being incorrectly embedded into invoice posting.
-  - Return physical and financial effects are separated.
-  - State machines are documented.
-  - Source/target document links are documented.
-  - Cancellation/reversal rules are documented.
-  - Unknown business choices remain UNKNOWN/BLOCKED instead of guessed.
-  - No SQL schema and no application code is created in PLAN-002.
-  - No branch or PR is created.
-  - No heavy tests are run.
+acceptance_status:
+  contracts_documented: true
+  state_machines_documented: true
+  effect_matrix_documented: true
+  quantity_contract_documented: true
+  v38_mapping_documented: true
+  full_test_day_backlog_documented: true
+  owner_decisions_resolved: false
+  plan_frozen: false
 
 quick_tests:
   - verify required Sales planning files exist on main
-  - verify all workflow objects have effect matrices
-  - verify no document flow contains a documented double stock posting
-  - verify UNKNOWN/BLOCKED sections exist where decisions are unresolved
-  - verify branch remains main-only
+  - verify all workflow objects appear in effect matrix
+  - verify no dispatch-sourced invoice double stock posting path
+  - verify quantity and source-target link contracts exist
+  - verify owner-decision blockers are explicit
+  - verify no SQL/application implementation was created
 
-full_test_day_items:
-  - Sales end-to-end browser/API workflow
-  - concurrent reservation and dispatch
-  - duplicate posting/idempotency
-  - partial shipment/invoice regression
-  - cancellation/reversal accounting and stock invariants
-
-blocked_by: []
+next_action:
+  id: PLAN-002-DECISIONS
+  title: Resolve SALES-B001 through SALES-B008 with explicit owner decisions
 
 next_action_after_completion:
   id: PLAN-003
