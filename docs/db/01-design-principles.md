@@ -1,83 +1,119 @@
-# PostgreSQL Design Principles
+# PostgreSQL Logical Design Principles
+
+Status: FROZEN — PLAN-010 logical model.
 
 ## 1. Workflow before schema
-Do not design a transactional table merely from a screen. Start from accepted workflow, state and effect contracts.
+Every authoritative entity must trace to an accepted frozen workflow. Screen layout alone is never a schema requirement.
 
-## 2. Normalization
-Default OLTP target: 3NF.
+## 2. Bounded-context ownership
+Party, Product/Inventory, Sales, Purchasing, Warehouse, Finance, Checks/Notes, Returns and Foundation own distinct logical records. Shared technical primitives do not erase domain ownership.
 
-Allowed intentional denormalization:
-- historical snapshots
-- read projections
-- measured performance optimizations
+Avoid:
+- one universal nullable document table;
+- one universal ledger table;
+- duplicate stock/balance authorities across modules.
 
-## 3. IDs
+## 3. Normalization
+Default OLTP target is 3NF.
+
+Intentional denormalization is limited to:
+- immutable historical snapshots;
+- projections/read models;
+- later measured performance optimizations.
+
+No comma-separated IDs or JSONB used to avoid normal relational links.
+
+## 4. Identity
 Planning default:
-- internal PK: BIGINT
-- public ID: UUID
-- provider IDs: separate mapping
+- internal identity: BIGINT-style surrogate intent where useful;
+- public identity: UUID intent for externally addressable aggregate/entity;
+- business/document number: separate scoped natural/business identity;
+- provider ID: separate External Mapping;
+- idempotency identity: separate logical-operation identity.
 
-Do not treat this as permission to add both blindly to every table; review per entity.
+Not every leaf/junction requires a public UUID.
 
-## 4. Numeric values
-- money: NUMERIC/decimal
-- quantity: NUMERIC/decimal
-- exchange rates may need higher scale
-- float/double is forbidden for accounting quantities
+## 5. Numeric values
+Money, quantity, exchange rate and cost use decimal/NUMERIC semantics.
+Exact precision/scale is a physical-schema decision driven by frozen business ranges and currency/UOM needs.
+Floating-point accounting truth is forbidden.
 
-Precision/scale is chosen from business requirements, not guesswork.
+## 6. Authoritative truth
+Authoritative:
+- domain master/document records;
+- Inventory Ledger;
+- Reservation records;
+- Account/Cash/Bank ledgers;
+- Finance valuation/cost records;
+- instrument movement history;
+- return authorization/source lineage;
+- Foundation outbox/idempotency/approval/audit evidence where applicable.
 
-## 5. Source of truth
-Do not create authoritative mutable:
-- customer balance columns
-- supplier balance columns
-- product stock columns
+Not authoritative:
+- mutable Product/Warehouse stock totals;
+- mutable Party/Cash/Bank balance fields;
+- Invoice paid/open fields;
+- aging/open-item allocation;
+- dashboard/read projections;
+- Valkey/cache.
 
-Truth derives from posted ledgers/documents. Projections may cache calculated state.
+## 7. Posted history
+Posted physical/financial/instrument effects are append/reversal oriented.
+Silent update/delete of posted history is forbidden.
 
-## 6. Posted history
-Posted financial/inventory history is not silently updated or deleted.
-Corrections use reversal/compensating entries according to workflow.
+## 8. Historical snapshots
+Live master normalization and historical correctness coexist.
+Frozen documents preserve required Party, Product/UOM, tax, commercial and FX values.
+Snapshots do not become alternate live master records.
 
-## 7. Constraints
-Critical invariants should be protected with DB constraints where relationally expressible:
-- PK
-- FK
-- unique
-- check
-- not null
+## 9. Scope
+Company is explicit on every company-authoritative aggregate and ledger effect.
+Branch/Warehouse are stored only when required by ownership/invariant.
+Cross-company transactional relations are forbidden.
 
-Application validation does not replace DB integrity.
+## 10. Source-target lineage
+Quantity/value-bearing workflow relations are normalized explicit records.
+They reference exact source/target line/version/movement where required.
+Cumulative eligibility is computed from authoritative sources + net active links/effects.
 
-## 8. Multi-company scope
-Scope is explicit and minimal:
-- tenant if required
-- company
-- branch where required
-- warehouse where required
+## 11. Constraints
+Future physical schema must use relational guarantees where expressible:
+- PK/FK;
+- unique;
+- not-null;
+- check;
+- scoped business uniqueness;
+- reversal/idempotency uniqueness;
+- valid same-company ownership.
 
-Do not scatter all scope fields onto every table without ownership analysis.
+Cross-row cumulative caps and availability checks may require transactional locking/version strategies in addition to constraints.
 
-## 9. Concurrency
-Where oversell/double-post/duplicate callback is possible, design a durable concurrency/idempotency guarantee.
+## 12. Concurrency
+Correctness is durable in PostgreSQL, not Valkey.
+Risk areas define locking/version/unique/idempotency requirements before implementation:
+Reservation, Dispatch, Receipt/Invoice, returns, serial movement, finance posting, reconciliation, instrument settlement and reversal.
 
-## 10. Snapshots
-Freeze historical values needed for correctness. Master-data normalization does not override legal/operational historical accuracy.
+## 13. Transaction boundaries
+One business POST that creates multiple authoritative effects must commit atomically in PostgreSQL.
+Examples:
+- Collection → Account + Cash/Bank;
+- Payment → Account + Cash/Bank;
+- Dispatch → Dispatch posting + Inventory effect + Reservation consume/release + valuation effect references;
+- Goods Receipt → receipt posting + Inventory IN + valuation input/reference;
+- refund → Account + Cash/Bank.
+External side effects occur through outbox after durable commit.
 
-## 11. JSONB
-JSONB is permitted for genuinely flexible provider metadata or non-relational payloads. It is not an escape hatch for normal relationships.
+## 14. Projections
+Stock, balances, aging, risk, progress, maturity and dashboards are rebuildable.
+A projection failure cannot change authoritative ledger/document truth.
 
-## 12. Indexes
-Indexes derive from access patterns and constraints. Do not add broad indexes by habit.
+## 15. Indexing
+Logical index intent follows actual access patterns and constraints.
+Do not add every FK/index combination by habit.
 
-## 13. Migrations
-All schema changes use migrations.
-Every migration must consider:
-- lock risk
-- data backfill
-- destructive change
-- deployment order
-- rollback/forward-fix strategy
+## 16. Migration
+Physical schema changes later use migrations only.
+Every migration reviews lock duration, backfill, destructive change, forward-fix/rollback and deployment ordering.
 
-## 14. Next step
-Detailed entities and schema are deferred until core Sales/Purchasing/Warehouse/Finance workflows are accepted.
+## 17. Technology decision gates
+PLAN-010 does not select ORM, physical schema naming, exact NUMERIC precision/scale or PostgreSQL locking syntax unless required by logical correctness.
