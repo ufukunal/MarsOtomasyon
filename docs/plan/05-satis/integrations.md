@@ -1,165 +1,132 @@
 # Sales Integration Contract
 
-Status: planning only. No provider capability is assumed unless verified later.
+Status: FROZEN planning contract. Provider capabilities remain implementation-time verification items.
 
 ## 1. General rule
 
-External effects do not determine the local authoritative transaction outcome.
+Reliable external effects follow:
+business transaction → PostgreSQL state/outbox → Worker → provider adapter → delivery/result state.
 
-Flow where reliability matters:
+Provider state never becomes authoritative Sales/Inventory/Finance truth.
 
-Sales/Application transaction
-→ PostgreSQL business state
-→ Outbox in same transaction
-→ Worker
-→ provider adapter
-→ delivery/result state
-→ retry/reconciliation/error visibility
+## 2. Quote and approval events
 
-Provider-specific code does not own Sales business rules.
-
-## 2. Quote communication
-
-Potential triggers:
-- Quote sent to customer
-- New revision sent
-- expiry/reminder communication if later approved
-
-Outbox candidate events:
+Candidate internal/outbox events:
+- QuoteApprovalRequested
+- QuoteApproved
 - QuoteCustomerSendRequested
 - QuoteRevisionCustomerSendRequested
+- QuotePartiallyConverted
+- QuoteConverted
 
-Requirements:
-- stable Quote revision reference;
-- channel/template reference;
-- recipient resolved through authorized Communications contract;
-- duplicate-safe consumption;
-- delivery failure visible separately from Quote business state.
+Rules:
+- event references exact Quote revision;
+- communication failure does not change Quote acceptance;
+- approval binds exact revision and exception reasons.
 
-A failed email/WhatsApp does not mutate Quote to a false accepted/rejected state.
+## 3. Sales Order events
 
-## 3. Sales Order downstream events
-
-Potential internal/integration events:
+Candidate events:
+- SalesOrderApprovalRequested
+- SalesOrderApproved
 - SalesOrderConfirmed
 - SalesOrderHeld
+- SalesOrderAmendmentSubmitted
+- SalesOrderAmendmentActivated
 - SalesOrderRemainderCancelled
 - SalesOrderCompleted
 
-Consumers may include:
-- Inventory reservation workflow
-- Warehouse work queue
-- Commerce channel adapter
-- notifications
+Reservation:
+- Order confirmation does not automatically request Reservation.
+- manual Reservation is an explicit command/integration boundary with Inventory.
+- amendment quantity decrease may require explicit Reservation release before activation.
+- quantity increase does not auto-reserve.
 
-Whether confirmation automatically requests reservation is SALES-B004.
+## 4. Dispatch
 
-## 4. Dispatch integrations
-
-Potential events:
+Candidate:
 - DispatchPosted
 - DispatchHandedOver
 - DispatchReversed
 
-Possible consumers:
-- carrier/tracking adapter
-- customer notification
-- Commerce channel shipment update
-- internal realtime/work queue
-
 Rules:
-- provider timeout cannot cause a second dispatch posting;
-- provider retry is idempotent;
-- carrier handoff update cannot post stock again;
-- tracking/provider state is not authoritative stock truth.
-
-Exact carrier capabilities are verified when provider implementation begins.
+- provider timeout/retry cannot create second Dispatch posting;
+- carrier/tracking state cannot post stock;
+- only local authoritative Dispatch POST changes physical inventory.
 
 ## 5. Sales Invoice / e-document
 
-Potential events:
+Candidate:
 - SalesInvoicePosted
+- SalesInvoiceReversed
 - EDocumentSendRequested
-- SalesInvoiceReversed / correction event according to legal integration contract
 
-Rules:
-- local POSTED financial state and provider e-document send state are separate.
-- if provider send fails after invoice commit, invoice remains locally posted and integration enters retry/error state.
-- provider retry must not repost account ledger.
-- invoice payload uses historical snapshot, not current mutable customer/product master.
-- legal cancellation/reversal provider semantics must be verified against current provider documentation before implementation.
+Posted event/payload must use immutable calculation snapshot:
+- KDV-exclusive prices;
+- discounts;
+- rounded line/tax totals;
+- currency;
+- FX source/date/rate;
+- source document/version.
 
-Exact e-Fatura/e-Arşiv provider is UNKNOWN.
+Provider failure after local POST:
+- Invoice remains POSTED;
+- ACCOUNT/COGS are not repeated;
+- integration enters retry/error state.
 
-## 6. Collection
+Direct Invoice:
+- STOCK effect is always NONE.
 
-Collection provider effects, if any, belong Finance/Payment integrations.
+## 6. FX source
 
-Sales only provides contextual link/deep-link.
+Default Sales Invoice rate source is TCMB döviz alış for invoice/tax-event date, with latest prior published business day fallback when no rate is published for that date.
 
-SALES-B001 must be decided before any invoice-allocation event contract is created.
+Manual override:
+- permission + reason + audit;
+- B007 approval exception;
+- source rate and override both preserved.
 
-## 7. Return linkage
+Provider or external FX services must not silently replace the accepted project rate policy.
 
-Sales may emit/consume references such as:
+## 7. Collection
+
+Collection integration belongs Finance.
+
+Frozen Sales behavior:
+- customer balance context only;
+- no Invoice allocation/open-item event;
+- no Invoice paid/open-state event derived from Collection.
+
+## 8. Returns
+
+Physical and financial return events remain separate.
+
+Candidate references:
 - SalesReturnRequested
 - ReturnReceived
 - ReturnCreditPosted
 
-Full event ownership and semantics are frozen in Returns/RMA planning.
+Full ownership is frozen in Returns/RMA planning.
 
-Physical and financial return events remain separate.
+## 9. Commerce ingest
 
-## 8. Commerce channel order ingestion
-
-Commerce Core contract from existing project rules:
-
-external order
-→ staging/mapping
-→ Mars Sales Order
-→ normal reservation/dispatch/invoice/collection flow.
+external order → staging/mapping → Mars Sales Order → normal Mars flow.
 
 Requirements:
-- external channel/account + external_order_id unique logical identity;
-- duplicate ingest cannot create a second Mars Sales Order;
-- raw provider state and normalized Mars state are distinguishable;
-- provider-specific accounting/stock engines are forbidden.
-
-Exact provider APIs are outside PLAN-002.
-
-## 9. Reconciliation
-
-Any integration relying on webhook delivery should also define later reconciliation/polling where provider characteristics require it.
-
-No blind retry:
-- timeout/5xx/429 may be retryable by provider policy;
-- validation/auth/business errors are classified separately.
+- external logical identity duplicate-safe;
+- no provider-specific stock/accounting engine;
+- imported Order still obeys approval, manual Reservation, Dispatch stock-out and Invoice financial rules.
 
 ## 10. Observability
 
-Every integration attempt should be traceable by:
-- correlation/event id
-- company
-- Sales entity/document reference
-- provider/account where relevant
-- direction
-- attempt
-- status
-- provider request/external id where safe
-- retry count
-- timestamps
+Trace:
+- correlation/event id;
+- company;
+- document/version;
+- provider/account where relevant;
+- attempt/status;
+- external id where safe;
+- retry count;
 - redacted error metadata.
 
-Secrets/payload PII must not leak to logs.
-
-## 11. Integration decision gates
-
-- exact communication providers
-- e-document provider/capabilities
-- carrier providers
-- Commerce provider capabilities
-- webhook verification mechanism per provider
-- retry/reconciliation intervals
-- retention/redaction policy for provider payloads
-
-These are intentionally deferred until their implementation/module plan.
+Secrets and sensitive PII are not logged.
