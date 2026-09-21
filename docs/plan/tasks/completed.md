@@ -259,3 +259,49 @@ Not implemented:
 - no TypeScript/UI
 - no deployment
 - Full Test Day pending
+
+## PLAN-007 — Finance / Treasury workflow contract
+**Status:** COMPLETED / FROZEN (PLANNING ONLY)
+
+Frozen:
+- Account Ledger authority with separate CUSTOMER_RECEIVABLE / SUPPLIER_PAYABLE roles;
+- balance-only Collection and Supplier Payment with no authoritative Invoice allocation/open-item state;
+- explicit advances/refunds and permissioned dual-role Party netting;
+- authoritative Cash Ledger / Bank Ledger;
+- same-currency treasury transfer and FX transfer semantics;
+- weighted-carrying realized FX and separate unrealized revaluation workflow;
+- Bank statement evidence/import separated from Bank Ledger;
+- explicit partial/many-to-many reconciliation matched amounts;
+- OPEN / FROZEN / CLOSED Finance posting-period controls;
+- perpetual moving weighted-average inventory valuation;
+- Dispatch carrying-value removal + dispatched-not-invoiced cost bridge;
+- Sales Invoice COGS recognition without second stock/value reduction;
+- Supplier Invoice / landed-cost late cost source allocation;
+- positive-count manual valuation protection and scrap write-off boundary;
+- Finance-owned customer credit/risk/hold.
+
+Planning outputs:
+- `docs/plan/09-finans-kasa-banka/README.md`
+- `docs/plan/09-finans-kasa-banka/plan.md`
+- `docs/plan/09-finans-kasa-banka/workflows.md`
+- `docs/plan/09-finans-kasa-banka/forms.md`
+- `docs/plan/09-finans-kasa-banka/data-contract.md`
+- `docs/plan/09-finans-kasa-banka/permissions.md`
+- `docs/plan/09-finans-kasa-banka/integrations.md`
+- `docs/plan/09-finans-kasa-banka/reports.md`
+- `docs/plan/09-finans-kasa-banka/acceptance-criteria.md`
+- `docs/plan/09-finans-kasa-banka/full-test-day.md`
+
+Acceptance evidence:
+- `55079aeda8b7345b392f55c8bc13d366b3a32a0c`
+
+Planning progress after completion:
+- master sequence: 7 / 30 = 23.3%
+- P2 core commercial: 6 / 8 = 75.0%
+
+Not implemented:
+- no SQL/migration
+- no C#/API
+- no TypeScript/UI
+- no deployment
+- Full Test Day pending
