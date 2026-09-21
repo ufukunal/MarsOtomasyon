@@ -27,3 +27,31 @@ Evidence commit:
 - Mandatory NEXT PROMPT/autocomplete protocol created
 
 This file records planning milestones, not application implementation.
+
+
+## FRAMEWORK-001 — Foundation / Framework contract
+**Status:** COMPLETED (PLANNING ONLY)
+
+Created:
+- `docs/plan/master-project-plan.md`
+- `docs/plan/01-foundation/framework-plan.md`
+- `docs/ai/session-execution-protocol.md`
+
+Updated:
+- `docs/ai/autocomplete.md`
+- `docs/plan/ai-cmd.md`
+- project state/handoff records
+
+Locked:
+- V38 remains product/UI reference, not production codebase.
+- Foundation owns shared infrastructure, not domain policy.
+- Modular-monolith dependency/transaction/API/UI framework boundaries are documented.
+- Every session must produce SESSION REPORT and role-driven standalone NEXT PROMPT.
+
+Not implemented:
+- no application source code
+- no domain SQL schema
+- no framework runtime implementation
+
+Evidence:
+- master/framework/protocol commits are recorded in main history.
