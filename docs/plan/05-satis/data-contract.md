@@ -1,319 +1,183 @@
 # Sales Conceptual Data Contract
 
-Status: logical/domain planning only. No SQL schema, column type or index is defined here.
+Status: FROZEN logical/domain planning only. No physical SQL schema, column type or index is defined here.
 
-## 1. Ownership boundaries
+## 1. Ownership
 
 Sales owns:
-- Quote and Quote Revision
-- Quote Line
-- Sales Order
-- Sales Order Line
-- source/target commercial links owned by Sales
-- Proforma and its source link
+- Quote, Quote Revision, Quote Line;
+- Sales Order, Sales Order Line and amendment/version history;
+- Sales-owned source/target commercial links;
+- Proforma.
 
 Inventory/Warehouse owns:
-- Reservation authoritative records
-- physical inventory ledger
-- warehouse/location/lot/serial movement truth
-- Dispatch physical posting implementation may be coordinated with Sales document context, but inventory truth remains Inventory/Warehouse authoritative.
+- authoritative Reservation records;
+- inventory ledger and physical STOCK truth;
+- warehouse/location/lot/serial movement truth.
 
 Finance owns:
-- account ledger
-- collection/cash/bank ledger
-- financial credit/refund posting
-- settlement/allocation model once SALES-B001 is decided.
+- account ledger;
+- cash/bank ledgers;
+- customer balance;
+- financial COGS posting;
+- Collection event;
+- financial credit/refund.
 
-Returns/RMA owns:
-- return authorization/process
-- physical receipt/inspection/disposition workflow
-- return-specific state machine.
+No Invoice↔Collection allocation entity is required by the frozen B001 model.
 
-Foundation owns shared technical primitives:
-- audit
-- idempotency
-- outbox
-- actor/company context
-- public identity convention.
+## 2. Core conceptual relations
 
-## 2. Conceptual entities
+Quote
+- has revisions and lines;
+- one exact revision line may convert to many Sales Order lines through quantity-bearing conversion links.
 
-### Quote
-Identity and scope:
-- internal identity
-- public identity
-- company
-- branch if business numbering/scope requires it
+Quote conversion link
+- source Quote revision/line;
+- target Sales Order/version/line;
+- converted quantity;
+- cumulative quantity cannot exceed effective offered quantity.
 
-Relationships:
-- customer/party reference
-- current/latest revision relation
-- source opportunity/project/architect context if supplied by upstream workflow
-- target Sales Order conversion links
+Sales Order
+- has immutable historical versions/amendments;
+- current effective version determines active commercial demand;
+- downstream records preserve exact effective line/version source.
 
-Classification:
-- authoritative commercial document.
+Sales Order amendment
+- references prior effective order version;
+- stores proposed/activated delta;
+- reason, actor/time, approval evidence;
+- never deletes processed history.
 
-### Quote Revision
-Purpose:
-- preserve each externally/operationally meaningful version.
+Reservation reference
+- Sales Order effective line/version → Inventory Reservation record(s);
+- reserved totals are derived, not independent Sales authority.
 
-Contains conceptually:
-- revision sequence/identity
-- quote reference
-- state
-- validity period
-- commercial terms
-- customer/product/price/tax/currency snapshots
-- requirement/configuration snapshot where relevant
-- actor/timestamps
+Dispatch
+- source Sales Order effective line/version;
+- physical inventory-ledger movement reference;
+- reversal relation.
 
-Rule:
-- a new revision does not silently mutate a prior historical revision.
+Sales Invoice
+- source may be Dispatch, Sales Order or direct/source-less;
+- direct/source-less Invoice has no inventory movement relation;
+- all modes have account-ledger posting and financial COGS relation at POST;
+- posted commercial/tax/FX calculations are immutable snapshot.
 
-### Quote Line
-Contains:
-- product/variant/configuration reference
-- snapshot identity fields required historically
-- UOM
-- offered quantity
-- unit price
-- discounts/tax/currency context after policy is defined
+Collection
+- Finance-owned balance event linked to customer context only;
+- no authoritative per-invoice allocation/open item.
 
-Relations:
-- revision
-- conversion link(s) to Sales Order lines.
+## 3. Authoritative vs derived
 
-### Sales Order
-Relationships:
-- customer
-- originating Quote revision when applicable
-- order lines
-- reservations
-- dispatches
-- invoices
-- return/RMA links
-
-Classification:
-- authoritative commercial demand document.
-- not stock ledger.
-- not account ledger.
-
-### Sales Order Line
 Authoritative:
-- ordered commercial quantity for accepted order revision/state.
+- Quote revision content/history.
+- conversion link quantities.
+- Sales Order base/version/amendment history and effective ordered quantity.
+- Inventory Reservation records.
+- posted Dispatch quantities + inventory ledger.
+- posted Invoice quantities/amounts + account ledger + COGS posting.
+- Finance Collection and cash/bank/account ledgers.
+- return physical/financial records in their owning modules.
 
-Derived from linked authoritative records:
-- reserved
-- shipped
-- invoiced
-- returned/credited
-- remaining-to-ship
-- remaining-to-invoice
+Derived:
+- Quote remaining conversion qty.
+- order reserved/shipped/invoiced/returned totals.
+- remaining-to-ship / remaining-to-invoice.
+- customer current balance projection from account ledger.
+- product current stock projection from inventory ledger.
+- dashboards/reports.
 
-Must preserve:
-- product/UOM/commercial snapshot
-- line state/cancelled remainder
-- source Quote line if converted.
+Forbidden derived authority:
+- invoice paid/open status;
+- mutable customer.current_balance;
+- mutable product.stock_quantity;
+- copied Sales reservation total disconnected from Inventory.
 
-### Reservation Reference
-Owned by Inventory.
-Sales needs a stable relation from:
-Sales Order Line → Reservation record(s).
+## 4. Calculation and snapshot contract
 
-Sales may display reservation state but may not store an independent authoritative reservation total disconnected from Inventory truth.
+Posted Invoice snapshot includes as applicable:
+- customer legal/tax/address data;
+- product/UOM identity;
+- quantity;
+- KDV-exclusive unit price;
+- line discount;
+- allocated document discount;
+- taxable base;
+- tax rate/treatment and line tax;
+- transaction currency;
+- currency minor-unit policy;
+- FX source/type/date/rate;
+- base-currency calculated values;
+- source document identities/versions.
 
-### Dispatch
-Conceptual commercial/shipping document associated with Inventory posting.
+Rounding:
+- decimal arithmetic only;
+- posted amounts use currency minor unit;
+- TRY = 2 decimals;
+- midpoint away from zero;
+- document totals sum rounded lines;
+- discount-allocation residual uses deterministic largest-base/stable-line rule.
 
-Relations:
-- customer
-- source Sales Order
-- dispatch lines
-- warehouse
-- packages/carrier metadata
-- inventory ledger posting reference
-- invoice source links
-- reversal link where posted dispatch is corrected.
+FX:
+- default TCMB döviz alış by invoice/tax-event date;
+- latest prior published business day when no rate exists for date;
+- manual override preserves suggested and override metadata plus reason/actor/time.
 
-### Dispatch Line
-Relations:
-- Sales Order Line
-- product/UOM snapshot
-- posted dispatch quantity
-- warehouse/location/lot/serial references where Inventory rules require
-- inventory ledger movement reference(s)
-- invoice line link(s)
-- return line link(s)
+Snapshots are historical denormalization and never become live master authority.
 
-### Sales Invoice
-Finance-relevant commercial document.
+## 5. Controlled amendment data rules
 
-Relations:
-- customer
-- optional Sales Order source
-- optional Dispatch source
-- invoice lines
-- account-ledger posting reference
-- e-document integration state
-- reversal/replacement relationship
-- collection relation depends on SALES-B001
-- return/credit relation
+- confirmed order history is append/version oriented;
+- current effective order is derived from accepted base + active deltas;
+- processed quantity cannot be erased by amendment;
+- quantity decrease floor = max(net shipped, net invoiced);
+- excess active Reservation must be released before reduced amendment activates;
+- quantity increase creates new unprocessed eligible scope and does not auto-reserve;
+- processed-line product/UOM identity is immutable;
+- changed commercial terms for future scope use a new amendment line when processed scope exists;
+- cancelled remainder is represented explicitly, not hard delete.
 
-### Sales Invoice Line
-Relations:
-- source Dispatch Line and/or Sales Order Line according to invoice source mode
-- product/UOM/commercial snapshot
-- invoice quantity
-- money/tax/currency values once SALES-B006 is frozen
-- financial posting traceability.
+## 6. Approval data rules
 
-### Collection Link
-Finance-owned authoritative event.
+Approval binds exact document revision/amendment snapshot.
 
-Sales may store/reference:
-- customer
-- collection public reference
-- invoice/order context only according to approved SALES-B001 policy.
+Store conceptually:
+- approval-required reason(s);
+- policy source/version;
+- submitter;
+- approver;
+- timestamps;
+- result.
 
-Sales must not create its own competing collection ledger.
+SoD invariant:
+creator != approver.
 
-### Sales Return Link
-Sales stores source relation to a Returns/RMA record.
+A material document change after approval invalidates/requires re-evaluation of prior approval.
 
-Conceptual relations:
-- customer
-- Sales Order Line
-- Dispatch Line
-- Sales Invoice Line
-- RMA/return record
-- physical returned quantity
-- financial credited quantity as separately derived/linked concepts.
+## 7. Concurrency and uniqueness risks for P3
 
-### Proforma
-Informational Sales document.
+Future durable DB strategy must protect:
+- repeated Quote conversion over source remaining;
+- concurrent Reservation;
+- concurrent Dispatch against remaining;
+- concurrent Invoice against eligible source;
+- duplicate post/reverse;
+- amendment activation against stale order version;
+- Reservation release racing with Dispatch;
+- duplicate external order ingest.
 
-Relations:
-- Quote or Sales Order source
-- customer
-- source lines
-- generated PDF/output history where needed.
+Exact PK/FK/unique/index/locking strategy belongs P3.
 
-It is not authoritative inventory/account/cash truth.
-
-## 3. Authoritative vs derived values
-
-### Authoritative
-- Quote revision content/status/history.
-- Sales Order line ordered quantity and explicit cancellation/amendment records.
-- posted Dispatch line quantities as physical document source.
-- Inventory ledger movement generated by dispatch posting.
-- posted Sales Invoice line/amount values.
-- Account ledger movement generated by invoice posting.
-- Finance Collection event and cash/bank/account ledger movements.
-- Returns physical/financial records owned by their modules.
-
-### Derived / projection
-- order reserved total
-- order shipped total
-- order invoiced total
-- order returned total
-- order remaining-to-ship
-- order remaining-to-invoice
-- invoice collection/paid status if SALES-B001 later adopts allocation
-- customer current balance
-- product current stock
-- dashboards/reports
-
-Derived values may be cached/projected but must remain rebuildable.
-
-## 4. Historical snapshots
-
-Required candidate snapshots at the appropriate accepted freeze/posting point:
-- customer legal/trade name
-- tax ID/tax office as legally required
-- invoice address
-- shipping address
-- contact/recipient delivery data needed for historical document
-- product code/name
-- variant/configuration
-- requirement snapshot where quote/configurator creates custom specification
-- UOM
-- quantity
-- unit price
-- discount data
-- tax rate/treatment
-- currency
-- exchange rate and source/date metadata after SALES-B006
-- source document visible number and immutable source identity
-- project/architect attribution when supplied.
-
-Snapshot fields are deliberate historical denormalization, not master duplicates used as live authority.
-
-## 5. Source/target relation rules
-
-Every quantity-bearing conversion needs line-level traceability.
-
-Required conceptual uniqueness/safety:
-- one posted downstream quantity cannot be counted twice against the same source basis;
-- repeated command/provider callback cannot create duplicate source-target link;
-- reversal links to the original effect rather than deleting it;
-- source and target must share permitted company scope;
-- a cancelled/terminal source scope cannot create new downstream quantity.
-
-Exact PK/FK/unique constraints belong to P3.
-
-## 6. Concurrency risks for P3
-
-Must receive durable DB strategy later:
-- two users reserve the same remaining availability;
-- two users post dispatches against the same order remainder;
-- two users invoice the same eligible dispatch/order quantity;
-- duplicate invoice Post command;
-- duplicate dispatch Post command;
-- duplicate external order ingest;
-- reversal racing with downstream creation.
-
-Potential mechanisms (not selected here):
-- optimistic concurrency/version
-- unique constraints
-- transactional re-check
-- row locking where justified.
-
-P3 selects the minimum correct mechanism based on actual model/access pattern.
-
-## 7. Multi-company / branch / warehouse scope
+## 8. Scope
 
 Company:
-- mandatory on Sales transactional authority.
+- mandatory transactional authority boundary.
 
 Branch:
-- required where numbering, ownership, permission or accounting policy makes branch significant; exact per-entity placement belongs to P3.
+- only where numbering/ownership/accounting policy requires; P3 decides placement.
 
 Warehouse:
-- Reservation and Dispatch physical scope.
-- Quote and Invoice do not receive warehouse scope merely because a screen shows warehouse context.
+- Reservation/Dispatch physical scope.
+- Quote/Invoice do not gain warehouse authority merely from UI context.
 
-Cross-company source/target links are forbidden.
-
-## 8. Numbering
-
-Human-visible numbers are separate from internal identity.
-
-Required future series:
-- Quote
-- Sales Order
-- Dispatch/İrsaliye
-- Sales Invoice
-- Proforma
-
-Number assignment/freeze point and branch/period series rules are Settings/Numbering decisions and must not be guessed in PLAN-002.
-
-## 9. Data blockers
-
-- SALES-B001 controls whether Invoice ↔ Collection Allocation becomes a first-class relationship.
-- SALES-B002 controls direct invoice relationship to inventory posting.
-- SALES-B003 controls conversion quantity/cardinality Quote Line → Sales Order Line.
-- SALES-B005 controls financial cost/COGS relation.
-- SALES-B006 controls final money/tax/FX value contract.
-- SALES-B008 controls amendment/version relation for confirmed orders.
+Cross-company source-target links are forbidden.
