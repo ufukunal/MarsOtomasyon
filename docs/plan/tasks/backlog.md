@@ -1,18 +1,19 @@
 # Planning Backlog
 
-## PLAN-006 — Warehouse operational contract
-Target: docs/plan/06-ambar-depo/
-
-Status: READY / NEXT.
-
-Define receiving, put-away, reservation, picking, packing, transfer, transit, counts and shipping verification.
-
-PLAN-005 dependency is satisfied. Start only in the next dedicated planning work package.
-
 ## PLAN-007 — Finance / Treasury workflow contract
 Target: docs/plan/09-finans-kasa-banka/
 
+Status: READY / NEXT.
+
 Define account, cash, bank ledgers, settlement, transfer, reconciliation and FX behavior.
+
+PLAN-006 dependency is satisfied.
+
+Planning progress:
+- master sequence: 6 / 30 = 20.0%
+- P2 core commercial: 5 / 8 = 62.5%
+
+Start only in the next dedicated planning work package.
 
 ## PLAN-008 — Logical database model
 Target: docs/db/
