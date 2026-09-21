@@ -1,24 +1,34 @@
 # Planning Backlog
 
-## PLAN-009 — Returns / RMA workflow contract
-Target: docs/plan/11-iadeler-rma/
-
-Status: READY / NEXT.
-
-Freeze customer/supplier returns, RMA authorization/receipt/QC/disposition, physical vs financial correction/refund, partial processing, reversal and source-document traceability.
-
-PLAN-008 Checks / Promissory Notes dependency is satisfied.
-
-Planning progress:
-- master sequence: 8 / 30 = 26.7%
-- P2 core commercial: 7 / 8 = 87.5%
-
 ## PLAN-010 — Logical database model
 Target: docs/db/
 
-Status: BLOCKED BY PLAN-009.
+Status: READY / NEXT.
 
-Begins only after Returns / RMA is sufficiently frozen.
+P2 workflow dependency is satisfied after PLAN-009 freeze.
+
+Produce:
+- domain dictionary v2;
+- entity catalog;
+- relationship model;
+- module/schema ownership;
+- commercial document strategy;
+- Inventory/Account/Cash/Bank ledger logical models;
+- Reservation;
+- historical snapshots;
+- projections/read models;
+- outbox/idempotency/audit;
+- key/public-id strategy;
+- logical constraints;
+- indexes from access patterns;
+- concurrency rules;
+- migration conventions.
+
+Planning progress:
+- master sequence: 9 / 30 = 30.0%
+- P2 core commercial: 8 / 8 = 100.0%
+
+No physical SQL/migration or application implementation in PLAN-010 unless explicitly authorized.
 
 ## PLAN-011 — Commerce/B2B/Architect/Marketplace planning
 Target: docs/plan/15-e-ticaret-b2b-api/
