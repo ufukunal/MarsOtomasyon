@@ -288,3 +288,32 @@ Bir AI cevabı, işlem tamamlanmış olsa bile geçerli final sayılmaz eğer so
 - prompt mevcut gerçek durumla çelişiyorsa
 - branch/PR yasağını taşımıyorsa
 - skill/source/scope/test kurallarını taşımıyorsa
+
+
+## 12. Role-driven session prompt
+
+The detailed binding session/bootstrap rules are defined in:
+- `docs/ai/session-execution-protocol.md`
+
+Every NEXT PROMPT must comply with that file in addition to this protocol.
+
+Additional mandatory requirements:
+- every active skill must include its exact responsibility in the next task;
+- the prompt must distinguish planning, implementation, verification and deployment scope;
+- it must carry forward known/locked decisions without converting UNKNOWN items into assumptions;
+- it must name the exact allowed repository paths when the task is narrow;
+- it must state whether DB/API/UI/integration/deployment changes are allowed;
+- it must require project-state/handoff updates when status changes;
+- it must require a SESSION REPORT before the next NEXT PROMPT;
+- it must be generated from the final verified main HEAD, not from the starting HEAD.
+
+## 13. Project-manager continuity
+
+For end-to-end planning or prioritization tasks, activate:
+Primary:
+- `mba-business-manager` for business objective, process ownership, KPI/control and priority
+- `software-architect` for dependency order, architecture boundaries and technical sequencing
+
+Domain, finance, database, security, DevOps, UX and specialist roles are reviewers or co-primary only when their discipline owns a real decision in that work package.
+
+The next prompt must say who owns which decision. Listing role names without responsibilities is invalid.
