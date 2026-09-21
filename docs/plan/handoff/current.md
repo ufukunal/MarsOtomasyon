@@ -14,63 +14,67 @@ P2 — Core Commercial Workflow Planning
 
 ## Completed predecessor
 
-PLAN-002 — Sales Domain Workflow Contract
+PLAN-003 — Party / Customer / Supplier model
 
 Status: COMPLETED / FROZEN
 
 Primary completion evidence:
-- `a5f56208b44847cf74feba43934f6d25412e93ad` — PLAN-002 acceptance criteria completed after Sales owner decisions were frozen.
+- `52628746f484919f370feae5cf7be3ab6c87d8ef` — PLAN-003 acceptance criteria completed after Party identity/role/lifecycle contracts were frozen.
 
-Sales planning contracts:
-- docs/plan/05-satis/README.md
-- docs/plan/05-satis/plan.md
-- docs/plan/05-satis/workflows.md
-- docs/plan/05-satis/forms.md
-- docs/plan/05-satis/data-contract.md
-- docs/plan/05-satis/permissions.md
-- docs/plan/05-satis/integrations.md
-- docs/plan/05-satis/reports.md
-- docs/plan/05-satis/acceptance-criteria.md
-- docs/plan/05-satis/full-test-day.md
+Party planning contracts:
+- docs/plan/03-cariler/README.md
+- docs/plan/03-cariler/plan.md
+- docs/plan/03-cariler/workflows.md
+- docs/plan/03-cariler/forms.md
+- docs/plan/03-cariler/data-contract.md
+- docs/plan/03-cariler/permissions.md
+- docs/plan/03-cariler/integrations.md
+- docs/plan/03-cariler/reports.md
+- docs/plan/03-cariler/acceptance-criteria.md
+- docs/plan/03-cariler/full-test-day.md
 
-No application code, SQL schema/migration, deployment or heavy test was created/run by PLAN-002.
+No SQL schema/migration, application code, deployment or heavy tests were created/run by PLAN-003.
 
-## Frozen Sales decisions
+## Frozen Party decisions
 
-- B001: balance-only customer current account; no Invoice allocation/open-item authority.
-- B002: direct/source-less Sales Invoice is financial-only; STOCK = NONE.
-- B003: partial/repeated Quote conversion with line/quantity source-target links; all-zero remaining conversion → CONVERTED.
-- B004: Reservation is manual explicit action.
-- B005: COGS recognized at Sales Invoice POST; physical STOCK OUT remains Dispatch POST.
-- B006: KDV-exclusive; line discount → document discount → taxable base; currency-minor-unit rounding; TCMB döviz alış default FX with audited approval-triggering override; posted calculations immutable.
-- B007: conditional commercial-policy exception approval; creator != approver.
-- B008: audited controlled-delta/versioned amendment over unprocessed scope.
+- Party is the company-scoped authoritative live counterparty master.
+- Party kind is PERSON or ORGANIZATION.
+- CUSTOMER and SUPPLIER are roles and may coexist on one Party.
+- canonical Party Code is company-scoped and role-neutral; numbering format is Settings/Numbering-owned.
+- legal identity vs display/trade identity is explicit.
+- contacts, communication points, addresses and tax identities are normalized Party-owned master data.
+- Turkish VKN/TCKN structural schemes are represented as 10/11-digit identity types; downstream legal-document validation follows current official rules.
+- live master changes never rewrite posted/frozen document snapshots.
+- Party states are ACTIVE / INACTIVE / MERGED; role state is independently ACTIVE / INACTIVE.
+- fuzzy duplicate matching is warning-only; deterministic identity collision is conflict.
+- merge is logical/audited with source→survivor lineage and no historical hard delete.
+- customer/supplier current balance, credit/risk/hold and settlement/netting remain Finance-owned.
+- no automatic customer/supplier balance netting is introduced.
+- cross-company Party sharing is forbidden in PLAN-003; each company owns its Party master.
+- exact credit formula, netting, numbering string format, e-document enrollment/checksum and payment-term precedence are delegated to their owning later plans and are not Party-core blockers.
 
-Locked invariants remain:
-- Quote no RES/STOCK/ACCOUNT/CASH posting.
-- Sales Order no STOCK/ACCOUNT posting.
-- Reservation non-physical.
-- Dispatch POST normal physical STOCK OUT.
-- Invoice POST receivable + financial COGS; no STOCK.
-- Collection separate Finance balance event.
-- posted history reversed/compensated, never silently rewritten.
-- PostgreSQL/ledgers authoritative; Valkey not business truth.
+## Preserved Sales dependencies
+
+- Sales Quote/Order/Invoice use current eligible Customer role but freeze historical Party identity/address/tax snapshots.
+- customer current balance remains Finance-ledger-derived.
+- Sales Collection remains balance-only and is not Invoice allocation.
+- Party deactivation/merge does not mutate posted Sales history.
 
 ## Next safe work package
 
-PLAN-003 — Party / Customer / Supplier model
+PLAN-004 — Product / Inventory master model
 
 Target:
-`docs/plan/03-cariler/`
+`docs/plan/04-urun-stok/`
 
-PLAN-003 is READY but content work has not started in this handoff.
+PLAN-004 is READY but content work has not started in this handoff.
 
 Before work:
 - verify real main HEAD;
 - read governance/master/state/handoff;
-- read frozen Sales contracts because Party snapshots/account relations are downstream dependencies;
-- inspect current 03-cariler files;
+- read frozen Sales and Party contracts;
+- inspect current 04-urun-stok files;
 - route skills through skill-router;
 - produce CONTEXT RECEIPT.
 
-Do not jump to SQL schema, application code, Purchasing or Full Test Day.
+Do not jump to Purchasing, Warehouse implementation, logical SQL schema, application code or Full Test Day.
