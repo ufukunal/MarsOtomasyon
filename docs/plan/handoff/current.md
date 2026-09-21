@@ -8,51 +8,54 @@
 - Session protocol: docs/ai/session-execution-protocol.md
 
 ## Current phase
-P2 — Core Commercial Workflow Planning
+P2 — Core Commercial Workflow Planning: COMPLETED / FROZEN
+P3 — Logical Database Model: READY
 
 ## Planning progress
 Counting basis: master-project-plan section 8; only COMPLETED / FROZEN packages count.
-- Master planning sequence: 8 / 30 = 26.7%
-- P2 core commercial planning: 7 / 8 = 87.5%
+- Master planning sequence: 9 / 30 = 30.0%
+- P2 core commercial planning: 8 / 8 = 100.0%
 
 ## Completed predecessor
-PLAN-008 — Checks / Promissory Notes workflow contract
+PLAN-009 — Returns / RMA workflow contract
 Status: COMPLETED / FROZEN
 
 Canonical contracts:
-- docs/plan/10-cek-senet/README.md
-- docs/plan/10-cek-senet/plan.md
-- docs/plan/10-cek-senet/workflows.md
-- docs/plan/10-cek-senet/forms.md
-- docs/plan/10-cek-senet/data-contract.md
-- docs/plan/10-cek-senet/permissions.md
-- docs/plan/10-cek-senet/integrations.md
-- docs/plan/10-cek-senet/reports.md
-- docs/plan/10-cek-senet/acceptance-criteria.md
-- docs/plan/10-cek-senet/full-test-day.md
+- docs/plan/11-iadeler-rma/README.md
+- docs/plan/11-iadeler-rma/plan.md
+- docs/plan/11-iadeler-rma/workflows.md
+- docs/plan/11-iadeler-rma/forms.md
+- docs/plan/11-iadeler-rma/data-contract.md
+- docs/plan/11-iadeler-rma/permissions.md
+- docs/plan/11-iadeler-rma/integrations.md
+- docs/plan/11-iadeler-rma/reports.md
+- docs/plan/11-iadeler-rma/acceptance-criteria.md
+- docs/plan/11-iadeler-rma/full-test-day.md
 
-## Frozen PLAN-008 decisions
-- Checks/Notes owns instrument identity, lifecycle, custody and movement history.
-- Finance remains authority for Account/Cash/Bank and instrument monetary positions.
-- Incoming accepted receipt: CUSTOMER CREDIT + instrument receivable; Cash/Bank NONE.
-- Actual incoming settlement: instrument receivable decrease + Cash/Bank IN; no second Customer credit.
-- Outgoing accepted delivery: SUPPLIER DEBIT + instrument payable; Cash/Bank NONE.
-- Actual clearing: instrument payable decrease + Cash/Bank OUT; no second Supplier debit.
-- Bank handoff is custody-only.
-- Whole-remaining-amount endorsement only in core; partial endorsement is forbidden.
-- Endorsement to eligible Supplier: SUPPLIER DEBIT, no Cash/Bank.
-- Partial collection/payment may occur only against accepted evidence and cannot exceed remaining.
-- Bounce/unpaid/return restores the affected Party position by explicit compensation; protest is additional evidence/status, not duplicate posting.
-- Original nominal amount/currency and snapshots are immutable.
-- Posted history is append/reversal; no Invoice allocation/open-item authority; no STOCK effect.
-- FX follows PLAN-007 carrying/realized FX ownership.
+## Frozen PLAN-009 decisions
+- Returns owns case/authorization/source-target coordination, not Inventory or Finance ledgers.
+- Customer return receipt POST is STOCK IN and starts QUARANTINE; it does not automatically credit/refund.
+- Customer financial credit is CUSTOMER CREDIT; customer refund is separate Finance CUSTOMER DEBIT + Cash/Bank OUT.
+- Supplier return shipment POST is STOCK OUT; it does not automatically adjust supplier balance.
+- Supplier financial adjustment is SUPPLIER DEBIT; supplier refund is separate Finance SUPPLIER CREDIT + Cash/Bank IN.
+- Physical, QC/disposition, financial adjustment and refund progress are separate dimensions.
+- Source-linked is normal; source-less is an approved evidence-based exception and never fabricates a source.
+- Partial return is supported; normal cumulative return cannot exceed eligible source quantity.
+- Product/Variant/UOM/lot/serial/company/source compatibility is mandatory.
+- Customer returns use Sales Dispatch physical lineage and Sales Invoice financial context where applicable.
+- Supplier returns use Goods Receipt physical lineage and Supplier Invoice financial context where applicable.
+- Purchase-return valuation follows current moving-average Finance policy.
+- Customer-return cost/COGS correction remains Finance-owned and source-linked; source-less inbound cannot silently use zero valuation.
+- Replacement/exchange is return + linked normal Sales workflow, not a second sales engine.
+- Posted effects use reversal/compensation.
+- No Invoice allocation/open-item authority or automatic Customer/Supplier role netting.
 
 No external web research was required.
 No SQL, migration, C#/API/TypeScript, deployment or heavy tests were added/run.
 
 ## Next safe work package
-PLAN-009 — Returns / RMA workflow contract
-Target: docs/plan/11-iadeler-rma/
+PLAN-010 — Logical database model
+Target: docs/db/
 
-Logical database planning remains blocked until PLAN-009 is sufficiently frozen.
-Do not start logical SQL schema, application code or Full Test Day in PLAN-009.
+P2 dependency gate is satisfied. P3 logical modeling may begin.
+Do not write physical SQL migrations or application code in PLAN-010 unless a later explicit task authorizes them.
