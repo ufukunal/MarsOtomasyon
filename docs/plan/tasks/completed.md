@@ -213,3 +213,49 @@ Not implemented:
 - no TypeScript/UI
 - no deployment
 - Full Test Day pending
+
+## PLAN-006 — Warehouse operational contract
+**Status:** COMPLETED / FROZEN (PLANNING ONLY)
+
+Frozen:
+- normal negative physical stock is blocked;
+- AVAILABLE-only normal pick eligibility;
+- FEFO for expiry-tracked stock, FIFO otherwise;
+- audited strategy override without making expired/blocked stock eligible;
+- Pick/Pack/Stage/Load are operational work states with no Sales stock posting;
+- Sales Dispatch POST remains the single Sales STOCK OUT point;
+- Goods Receipt POST remains the single Purchasing STOCK IN point;
+- put-away/replenishment are internal location moves;
+- Transfer ISSUE → TRANSIT → RECEIVE with partial receive and explicit loss reconciliation;
+- ledger-snapshot stock count with intervening movement reconciliation;
+- approved COUNT_ADJUSTMENT delta instead of stock overwrite;
+- hard lot/serial/barcode mismatch blocking;
+- Warehouse/Location deactivation blockers;
+- approved scrap/disposal STOCK OUT with Finance-owned valuation;
+- durable offline operation identity and idempotent retry/conflict handling.
+
+Planning outputs:
+- `docs/plan/06-ambar-depo/README.md`
+- `docs/plan/06-ambar-depo/plan.md`
+- `docs/plan/06-ambar-depo/workflows.md`
+- `docs/plan/06-ambar-depo/forms.md`
+- `docs/plan/06-ambar-depo/data-contract.md`
+- `docs/plan/06-ambar-depo/permissions.md`
+- `docs/plan/06-ambar-depo/integrations.md`
+- `docs/plan/06-ambar-depo/reports.md`
+- `docs/plan/06-ambar-depo/acceptance-criteria.md`
+- `docs/plan/06-ambar-depo/full-test-day.md`
+
+Acceptance evidence:
+- `f0933c9992e16f4336e0f06d55fafbaa44da489f`
+
+Planning progress after completion:
+- master sequence: 6 / 30 = 20.0%
+- P2 core commercial: 5 / 8 = 62.5%
+
+Not implemented:
+- no SQL/migration
+- no C#/API
+- no TypeScript/UI
+- no deployment
+- Full Test Day pending
