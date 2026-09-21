@@ -9,7 +9,7 @@ project:
 repository_state:
   target_branch: main
   current_head: VERIFY_AT_RUNTIME
-  last_verified_planning_head: a5f56208b44847cf74feba43934f6d25412e93ad
+  last_verified_planning_head: 52628746f484919f370feae5cf7be3ab6c87d8ef
   branches_allowed:
     - main
   branch_creation_forbidden: true
@@ -71,16 +71,17 @@ test_policy:
   heavy_tests: FULL_TEST_DAY_ONLY
 
 active_task:
-  id: PLAN-003
-  title: Detail Party / Customer / Supplier model
+  id: PLAN-004
+  title: Detail Product / Inventory master model
   status: ready
   file: docs/plan/active-task.yaml
-  progress: ready_after_sales_plan_freeze
+  progress: ready_after_party_plan_freeze
 
 completed_planning_tasks:
   - PLAN-001
   - FRAMEWORK-001
   - PLAN-002
+  - PLAN-003
 
 locked_decisions:
   - Only main branch is allowed.
@@ -117,6 +118,15 @@ locked_decisions:
   - Sales Invoice default FX source is TCMB doviz alis by invoice/tax-event date with prior-business-day fallback; controlled manual override is audited and approval-triggering.
   - Sales approval is conditional on commercial-policy exceptions; creator cannot approve own document/amendment.
   - Confirmed Sales Order amendments use audited controlled delta/versioning over unprocessed scope only.
+  - Party is the company-scoped authoritative live counterparty master.
+  - Party kind is PERSON or ORGANIZATION; CUSTOMER and SUPPLIER are roles and may coexist on one Party.
+  - Party Code is company-scoped and role-neutral; exact numbering format remains Settings/Numbering-owned.
+  - Party current balance, credit/risk/hold and settlement are not Party authority; Finance owns them.
+  - Live Party edits/deactivation/merge never rewrite historical document snapshots.
+  - Party duplicate fuzzy matching never auto-merges; deterministic identity collisions are conflicts.
+  - Party merge is logical/audited with survivor/source lineage; merged history is retained.
+  - INACTIVE and MERGED Parties are unavailable for new selection by default while history remains readable.
+  - Party is company-scoped; silent cross-company Party sharing is forbidden.
 
 framework_decision_gates:
   - exact .NET SDK/runtime version
@@ -175,13 +185,14 @@ known_constraints:
   - Business rules must not be inferred from generic ERP conventions when project sources are silent.
   - Runner VM and test server are separate machines; never conflate runner-local results with test-server results.
   - PLAN-002 Sales planning is frozen; Sales implementation/DB work must still follow the master sequence and P3/P4 gates.
-  - PLAN-003 Party / Customer / Supplier planning is the next ready work package.
+  - PLAN-003 Party / Customer / Supplier planning is frozen.
+  - PLAN-004 Product / Inventory master planning is the next ready work package.
 
 blocked_items: []
 next_action:
-  id: PLAN-003
-  title: Detail Party / Customer / Supplier model
-  target: docs/plan/03-cariler/
+  id: PLAN-004
+  title: Detail Product / Inventory master model
+  target: docs/plan/04-urun-stok/
 
 state_rules:
   - current_head must be verified from Git at every session start; embedded SHA is never authoritative.
