@@ -1,20 +1,25 @@
-id: PLAN-009
-title: Detail Returns / RMA workflow contract
-module: 11-iadeler-rma
+id: PLAN-010
+title: Logical database model
+module: db
 status: ready
 progress: not_started
 
 predecessor:
-  id: PLAN-008
+  id: PLAN-009
   status: completed_frozen
-  plan: docs/plan/10-cek-senet/
+  plan: docs/plan/11-iadeler-rma/
+
+phase:
+  id: P3
+  name: Logical Database Model
+  status: ready
 
 goal:
-  Freeze customer/supplier returns, RMA authorization/receipt/QC/disposition, physical vs financial correction/refund and source-document traceability before logical database planning.
+  Convert the completed/frozen P2 workflow contracts into a normalized logical PostgreSQL domain model without writing physical SQL migrations or application code.
 
 scope:
   allowed_paths:
-    - docs/plan/11-iadeler-rma/
+    - docs/db/
     - docs/plan/project-state.yaml
     - docs/plan/active-task.yaml
     - docs/plan/handoff/current.md
@@ -22,34 +27,32 @@ scope:
   forbidden_paths:
     - src/
     - tests/
-    - docs/db/schema/
-  db_implementation: false
+  physical_sql_implementation: false
+  migration_implementation: false
   api_implementation: false
   ui_implementation: false
 
 known_dependencies:
-  - PLAN-008 Checks / Promissory Notes is COMPLETED / FROZEN.
-  - physical return and financial credit/refund remain separate effects.
-  - Inventory/Warehouse owns physical stock truth.
-  - Finance owns Account/Cash/Bank truth and refunds.
-  - no Invoice allocation/open-item authority.
-  - logical DB remains blocked until PLAN-009 is frozen.
+  - P2 Core Commercial Workflow Planning is COMPLETED / FROZEN.
+  - PLAN-009 Returns / RMA is COMPLETED / FROZEN.
+  - authoritative ledgers, snapshots, source-target lineage and reversal rules from PLAN-002 through PLAN-009 must be preserved.
+  - logical model must trace every authoritative entity to accepted workflow requirements.
 
 planning_progress:
   counting_basis: master-project-plan section 8; completed/frozen packages only
   master_sequence:
-    completed: 8
+    completed: 9
     total: 30
-    percent: 26.7
+    percent: 30.0
   p2_core_commercial:
-    completed: 7
+    completed: 8
     total: 8
-    percent: 87.5
+    percent: 100.0
 
 next_action:
-  id: PLAN-009
-  title: Detail Returns / RMA workflow contract
+  id: PLAN-010
+  title: Logical database model
 
 test_policy:
   heavy_tests: FULL_TEST_DAY_ONLY
-  normal_session: documentation consistency checks only
+  normal_session: documentation/model consistency checks only
