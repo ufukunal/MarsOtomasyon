@@ -55,3 +55,38 @@ Not implemented:
 
 Evidence:
 - master/framework/protocol commits are recorded in main history.
+
+## PLAN-002 — Sales Domain Workflow Contract
+**Status:** COMPLETED / FROZEN (PLANNING ONLY)
+
+Frozen:
+- Quote → partial/repeated Order conversion.
+- Manual Reservation.
+- Dispatch-only physical STOCK OUT.
+- Invoice receivable + COGS; Invoice STOCK = NONE.
+- Balance-only Collection without Invoice allocation.
+- KDV-exclusive calculation sequence and deterministic rounding/FX snapshots.
+- Conditional commercial-policy approval with creator != approver.
+- Controlled-delta confirmed-order amendment with immutable processed history.
+
+Planning outputs:
+- `docs/plan/05-satis/README.md`
+- `docs/plan/05-satis/plan.md`
+- `docs/plan/05-satis/workflows.md`
+- `docs/plan/05-satis/forms.md`
+- `docs/plan/05-satis/data-contract.md`
+- `docs/plan/05-satis/permissions.md`
+- `docs/plan/05-satis/integrations.md`
+- `docs/plan/05-satis/reports.md`
+- `docs/plan/05-satis/acceptance-criteria.md`
+- `docs/plan/05-satis/full-test-day.md`
+
+Acceptance evidence:
+- `a5f56208b44847cf74feba43934f6d25412e93ad`
+
+Not implemented:
+- no SQL/migration
+- no C#/API
+- no TypeScript/UI
+- no deployment
+- Full Test Day pending
