@@ -1,21 +1,21 @@
-id: PLAN-006
-title: Detail Warehouse operational contract
-module: 06-ambar-depo
+id: PLAN-007
+title: Detail Finance / Treasury workflow contract
+module: 09-finans-kasa-banka
 status: ready
 progress: not_started
 
 predecessor:
-  id: PLAN-005
+  id: PLAN-006
   status: completed_frozen
-  evidence_commit: a8ef551310d910bcc38c8a383f2a5d86839621d1
-  purchasing_plan: docs/plan/07-satinalma/
+  evidence_commit: f0933c9992e16f4336e0f06d55fafbaa44da489f
+  warehouse_plan: docs/plan/06-ambar-depo/
 
 goal:
-  Freeze Warehouse operational workflows for receiving, put-away, reservation execution, picking, packing, transfer, transit, counts and shipping verification before logical database design or application implementation.
+  Freeze Finance / Treasury workflows for account, cash, bank, settlement, transfers, reconciliation, FX and financial reversal behavior before logical database design or application implementation.
 
 scope:
   allowed_paths:
-    - docs/plan/06-ambar-depo/
+    - docs/plan/09-finans-kasa-banka/
     - docs/plan/project-state.yaml
     - docs/plan/active-task.yaml
     - docs/plan/handoff/current.md
@@ -32,24 +32,37 @@ scope:
 required_start:
   - verify current main HEAD
   - read governance and master planning sources
-  - read frozen Sales, Party, Product/Inventory and Purchasing contracts
-  - inspect existing docs/plan/06-ambar-depo/ before planning
+  - read frozen Sales, Party, Product/Inventory, Purchasing and Warehouse contracts
+  - inspect existing docs/plan/09-finans-kasa-banka/ before planning
   - route exact primary/reviewer skills before changing files
   - use V38 repository HTML as product-flow reference before external research
+  - report master-sequence and P2 planning percentages during long sessions and in final SESSION REPORT
 
 known_dependencies:
-  - Inventory Ledger remains authoritative physical quantity truth.
-  - Reservation is non-physical and separate from physical disposition.
-  - Sales Dispatch POST is physical STOCK OUT.
-  - Purchasing Goods Receipt POST is physical STOCK IN to QUARANTINE.
-  - Goods Receipt release to AVAILABLE is a separate disposition effect.
-  - Supplier Invoice and Sales Invoice do not post physical stock.
-  - lot/serial/location/status semantics follow frozen PLAN-004.
-  - negative-stock, FEFO override and operational tolerance policy belong Warehouse planning.
+  - account, cash and bank ledgers are authoritative financial truth.
+  - customer/supplier mutable balance fields are forbidden.
+  - Sales Collection is balance-only and has no authoritative Invoice allocation/open-item model.
+  - Supplier Payment is Finance-owned; Purchasing does not own settlement/allocation.
+  - Sales Invoice creates receivable and financial COGS.
+  - Supplier Invoice creates payable.
+  - physical stock effects remain Inventory/Warehouse-owned.
+  - inventory valuation/costing method and positive count/scrap value consequences require Finance ownership.
+  - posted financial history uses reversal/compensation, not silent mutation.
+
+planning_progress:
+  counting_basis: master-project-plan section 8; completed/frozen packages only
+  master_sequence:
+    completed: 6
+    total: 30
+    percent: 20.0
+  p2_core_commercial:
+    completed: 5
+    total: 8
+    percent: 62.5
 
 next_action:
-  id: PLAN-006
-  title: Detail Warehouse operational contract
+  id: PLAN-007
+  title: Detail Finance / Treasury workflow contract
 
 test_policy:
   heavy_tests: FULL_TEST_DAY_ONLY
