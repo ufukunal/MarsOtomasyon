@@ -19,89 +19,125 @@ Counting basis:
 - only COMPLETED / FROZEN work packages count.
 
 Current:
-- Master planning sequence: 6 / 30 = 20.0%
-- P2 core commercial planning: 5 / 8 = 62.5%
+- Master planning sequence: 7 / 30 = 23.3%
+- P2 core commercial planning: 6 / 8 = 75.0%
 
-Long planning sessions and final SESSION REPORT must include these two progress metrics.
+Long planning sessions and final SESSION REPORT must include these metrics.
 
 ## Completed predecessor
 
-PLAN-006 — Warehouse operational contract
+PLAN-007 — Finance / Treasury workflow contract
 
 Status: COMPLETED / FROZEN
 
 Primary completion evidence:
-- `f0933c9992e16f4336e0f06d55fafbaa44da489f` — PLAN-006 acceptance criteria completed.
+- `55079aeda8b7345b392f55c8bc13d366b3a32a0c` — PLAN-007 acceptance criteria completed.
 
-Warehouse planning contracts:
-- docs/plan/06-ambar-depo/README.md
-- docs/plan/06-ambar-depo/plan.md
-- docs/plan/06-ambar-depo/workflows.md
-- docs/plan/06-ambar-depo/forms.md
-- docs/plan/06-ambar-depo/data-contract.md
-- docs/plan/06-ambar-depo/permissions.md
-- docs/plan/06-ambar-depo/integrations.md
-- docs/plan/06-ambar-depo/reports.md
-- docs/plan/06-ambar-depo/acceptance-criteria.md
-- docs/plan/06-ambar-depo/full-test-day.md
+Finance planning contracts:
+- docs/plan/09-finans-kasa-banka/README.md
+- docs/plan/09-finans-kasa-banka/plan.md
+- docs/plan/09-finans-kasa-banka/workflows.md
+- docs/plan/09-finans-kasa-banka/forms.md
+- docs/plan/09-finans-kasa-banka/data-contract.md
+- docs/plan/09-finans-kasa-banka/permissions.md
+- docs/plan/09-finans-kasa-banka/integrations.md
+- docs/plan/09-finans-kasa-banka/reports.md
+- docs/plan/09-finans-kasa-banka/acceptance-criteria.md
+- docs/plan/09-finans-kasa-banka/full-test-day.md
 
-No SQL schema/migration, application code, deployment or heavy tests were created/run by PLAN-006.
+No SQL schema/migration, application code, deployment or heavy tests were created/run by PLAN-007.
 
-## Frozen Warehouse decisions
+## Frozen Finance / Treasury decisions
 
-- normal Warehouse operations cannot create negative authoritative physical stock.
-- only AVAILABLE stock is normal pick eligible.
-- expiry-tracked stock uses FEFO; other stock uses FIFO.
-- FEFO/FIFO override requires permission, reason and still-eligible stock.
-- pick/pack/stage/load are operational work states and do not post Sales STOCK OUT.
-- Sales Dispatch POST remains the single authoritative Sales STOCK OUT point.
-- Reservation remains non-physical; Dispatch POST consumes/releases accepted related Reservation.
-- Goods Receipt POST remains the Purchasing inbound STOCK IN point and enters QUARANTINE.
-- put-away/replenishment are internal location movements and do not duplicate receipt stock.
-- transfer ISSUE moves source AVAILABLE → TRANSIT; RECEIVE moves TRANSIT → target.
-- partial transfer receive is allowed and unresolved quantity stays TRANSIT.
-- damaged receipt remains on-hand in DAMAGED/QUALITY_HOLD; transit shortage/loss requires explicit approved adjustment.
-- count starts from ledger snapshot and incorporates intervening movements.
-- first count is blind by default.
-- any non-zero count discrepancy requires approval/SoD before COUNT_ADJUSTMENT.
-- no direct stock = counted quantity behavior.
-- lot/serial/barcode mismatch is a hard block.
-- Warehouse/Location deactivation is blocked while stock, Reservation, Transit or open work remains.
-- scrap/disposal is explicit approved STOCK OUT; valuation/write-off stays Finance-owned.
-- offline mutations use durable client operation identity; retry is idempotent, stale conflict is visible and never silently overwrites server truth.
+- Account Ledger is authoritative Party financial truth.
+- CUSTOMER_RECEIVABLE and SUPPLIER_PAYABLE are separate financial roles.
+- CUSTOMER DEBIT increases receivable; CUSTOMER CREDIT decreases it / creates customer credit.
+- SUPPLIER CREDIT increases payable; SUPPLIER DEBIT decreases it / creates supplier advance.
+- Customer and Supplier role balances never auto-net.
+- explicit same-Party role netting requires same company/Party/currency, eligible balances, reason, approval and creator != approver.
+- Collection is balance-only CUSTOMER CREDIT + Cash/Bank IN.
+- Supplier Payment is balance-only SUPPLIER DEBIT + Cash/Bank OUT.
+- no authoritative Invoice allocation, Invoice paid/open balance or open-item settlement state exists.
+- customer/supplier advances are explicit opposite-sign role positions rather than invoice allocations.
+- Cash Ledger and Bank Ledger are authoritative money truth; mutable current-balance fields are not authority.
+- Cash normal negative balance is blocked.
+- Bank negative book balance requires explicit account overdraft policy; absent policy is blocked.
+- same-currency Treasury transfer is paired source OUT + target IN atomically; fees are explicit.
+- FX Transfer freezes exact source/target amounts, actual executed rate/base values and fees.
+- commercial document FX remains the frozen TCMB default; actual treasury conversion rate is the FX Transfer transaction authority.
+- realized FX uses weighted carrying base of the foreign-currency monetary position and does not require Invoice allocation.
+- unrealized FX/revaluation is a separate period-end process under versioned Finance Revaluation Policy.
+- Bank statement import is evidence/staging only and never posts Bank Ledger.
+- reconciliation links statement evidence to posted Bank movements; suggestions are non-authoritative and partial/many-to-many matched amounts cannot overmatch.
+- Account/Cash/Bank posted history uses reversal/compensation.
+- Finance Posting Period states are OPEN / FROZEN / CLOSED.
+- perpetual moving weighted average is the frozen inventory valuation method for current core planning.
+- valuation pool is company + Product/Variant + Base UOM + company base currency; Warehouse transfers do not revalue.
+- Goods Receipt introduces provisional inventory value without payable.
+- Sales Dispatch removes carrying value and creates dispatched-not-invoiced cost bridge.
+- Sales Invoice recognizes COGS from the bridge and cannot reduce inventory value again.
+- Supplier Invoice / landed-cost late delta is source-linked and split across on-hand valuation, dispatch bridge and recognized COGS as applicable.
+- positive Count Adjustment with no valid moving average requires explicit approved unit valuation; silent zero-cost inventory is forbidden.
+- physical scrap remains Warehouse-owned; Finance owns carrying-value write-off.
+- Finance owns customer credit/risk/hold; Sales consumes the signal.
 
-## V38 reference used
+## V38 migration outcome
 
-Repository HTML directly supported:
-- Warehouses and Locations
-- Reservations
-- Warehouse Transfers with Issue / Partial Receive / Receive / Reconcile / Close / Reverse
-- Stock Counts with Snapshot / Intervening Movements / Review / Approval / Posting
-- Lot / Serial
-- Quarantine / Blocked
-- Barcode / Scan Console
-- Sales Dispatch picking/package/pre-shipment workflow
-- negative-stock display as "Engelle"
+KEEP / ADAPT:
+- Balance List / Detailed Party Statement
+- Collection / Payment / Refund
+- Cash Accounts / Cash Movements / Cash Count
+- Advances
+- Bank Accounts / Bank Movements
+- Virman / FX Transfer
+- Statement Import
+- Bank Reconciliation
+- Risk / Credit Limits
+- Inventory Cost
 
-No external web research was required for PLAN-006.
+SUPERSEDED AS AUTHORITY:
+- V38 Open Items invoice-settlement model
+- V38 settlement workspace invoice allocation
+
+Reason:
+frozen Sales B001 has higher authority and mandates balance-only Collection with no Invoice allocation/open-item truth.
+
+No external web research was required for PLAN-007.
+
+## Repository dependency correction
+
+Repository directory tree confirms:
+- Checks / Promissory Notes canonical target: `docs/plan/10-cek-senet/`
+- Returns / RMA canonical target: `docs/plan/11-iadeler-rma/`
+
+Master P2 dependency order requires:
+Finance
+→ Checks / Promissory Notes
+→ Returns / RMA
+→ then logical database phase may begin.
+
+The older compact backlog entry that placed Logical DB immediately after PLAN-007 is not dependency-safe and is corrected by current state/task records.
 
 ## Next safe work package
 
-PLAN-007 — Finance / Treasury workflow contract
+PLAN-008 — Checks / Promissory Notes workflow contract
 
 Target:
-`docs/plan/09-finans-kasa-banka/`
+`docs/plan/10-cek-senet/`
 
-PLAN-007 is READY but content work has not started.
+PLAN-008 is READY but content work has not started.
 
 Before work:
 - verify real main HEAD;
 - read governance/master/state/handoff;
-- read frozen Sales, Party, Product/Inventory, Purchasing and Warehouse contracts;
-- inspect current Finance planning files;
-- route skills;
-- use repository V38 HTML as default product reference;
-- report master and P2 planning percentages during work;
+- read frozen Party, Sales and Finance contracts in particular;
+- inspect current 10-cek-senet files;
+- route Accounting/Finance + ERP skills and reviewers;
+- use V38 incoming/outgoing checks/notes screens and instrument detail as product reference;
+- preserve balance-only account settlement and avoid duplicate Cash/Bank effects;
+- report master/P2 percentages during work;
 - produce CONTEXT RECEIPT.
 
-Do not jump to logical SQL schema, application code or Full Test Day.
+After PLAN-008, PLAN-009 Returns/RMA at `docs/plan/11-iadeler-rma/` remains required before logical DB planning.
+
+Do not start Returns, logical SQL schema, application code or Full Test Day in PLAN-008.
