@@ -3,11 +3,13 @@ project:
   repository: ufukunal/MarsOtomasyon
   source_of_truth: repository
   branch_policy: main-only
+  master_plan: docs/plan/master-project-plan.md
+  session_protocol: docs/ai/session-execution-protocol.md
 
 repository_state:
   target_branch: main
   current_head: VERIFY_AT_RUNTIME
-  last_verified_planning_head: 3a36a50a2978a7307ff395f79f00497ccc2ed59b
+  last_verified_planning_head: 527e6891368af62b1bc57f94d23955fa5b8b9730
   branches_allowed:
     - main
   branch_creation_forbidden: true
@@ -22,10 +24,18 @@ current_phase:
 
 phase_status:
   P0_governance_planning_backbone: completed
-  P1_foundation_planning_baseline: established
+  P1_foundation_framework_contract: completed
   P2_core_commercial_workflows: active
   P3_database_logical_model: not_started
-  P4_core_application_implementation: not_started
+  P4_foundation_implementation: not_started
+  P5_core_application_implementation: not_started
+  P6_operations: not_started
+  P7_commerce_external_channels: not_started
+  P8_communications_files_devices: not_started
+  P9_reporting_management_control: not_started
+  P10_cross_platform_shells: not_started
+  P11_full_test_day: deferred
+  P12_release_hardening: not_started
 
 architecture:
   style: modular-monolith
@@ -40,6 +50,8 @@ architecture:
   ui_system: Mars.UI
   deployment: Linux + Docker + Docker Compose
   authoritative_store: PostgreSQL
+  ui_reference: docs/reference/ui/marsotomasyon_ui_v38_cari_bakiye_sadelestirildi.html
+  framework_plan: docs/plan/01-foundation/framework-plan.md
 
 planning_policy:
   workflow_first: true
@@ -47,6 +59,8 @@ planning_policy:
   code_after_workflow_and_db_contract: true
   module_plan_required_before_implementation: true
   undocumented_business_rule_policy: BLOCKED
+  v38_is_product_reference_not_production_code: true
+  every_session_requires_report_and_next_prompt: true
 
 test_policy:
   normal_development:
@@ -64,6 +78,7 @@ active_task:
 
 completed_planning_tasks:
   - PLAN-001
+  - FRAMEWORK-001
 
 locked_decisions:
   - Only main branch is allowed.
@@ -78,6 +93,22 @@ locked_decisions:
   - Web, Desktop and Mobile share a common client core with thin platform shells.
   - Architecture starts as modular monolith, not microservices.
   - Transactional module planning follows workflow -> effects -> state -> data -> API/UI order.
+  - V38 is preserved as product/UI reference but its patch architecture is not production architecture.
+  - Framework is shared infrastructure only; domain rules remain module-owned.
+  - Every session ends with SESSION REPORT and standalone NEXT PROMPT.
+
+framework_decision_gates:
+  - exact .NET SDK/runtime version
+  - exact ORM/data-access library
+  - exact auth/identity provider
+  - exact OpenAPI tooling
+  - exact logging/metrics stack
+  - exact object/file storage backend
+  - exact Desktop shell technology
+  - exact Mobile shell technology
+  - optional scheduling library
+  - production secret store
+  - production reverse proxy/tunnel details
 
 test_environment:
   exists: true
@@ -105,29 +136,36 @@ test_environment:
   remote_hostname: mars-prod
   remote_kernel: 6.8.0-139-generic
   mars_path_present: true
+  postgresql_roles:
+    owner_admin_role: mars_master
+    application_runtime_role: mars_app
+    login_verified: true
+    application_role_superuser: false
   credential_storage:
     test_plaintext_repo_storage_allowed_by_owner: true
     path: config/test/test-server.md
     production_credentials_in_repo_forbidden: true
-    actual_values_status: SSH_CONFIGURED_AND_VERIFIED_POSTGRES_UNKNOWN
+    actual_values_status: SSH_AND_POSTGRES_ROLES_CONFIGURED
 
 known_constraints:
   - Application core is not yet implemented.
+  - Framework contract is planned but not implemented.
   - Database logical/schema design is intentionally deferred until core workflows are sufficiently frozen.
   - Most module folders still require detailed plans.
   - Business rules must not be inferred from generic ERP conventions when project sources are silent.
   - Runner VM and test server are separate machines; never conflate runner-local results with test-server results.
-  - Test infrastructure details beyond verified topology, test hostname, local runner and Dockerized PostgreSQL must remain UNKNOWN until checked.
+  - Framework decision gates remain UNKNOWN until explicitly resolved at their implementation step.
 
 blocked_items: []
 
 next_action:
   id: PLAN-002
-  title: Define Quote -> Sales Order -> Dispatch -> Invoice -> Collection/Return links
+  title: Define Quote -> Sales Order -> Reservation -> Dispatch -> Invoice -> Collection/Return links
   target: docs/plan/05-satis/
 
 state_rules:
   - current_head must be verified from Git at every session start; embedded SHA is never authoritative.
   - repo content overrides chat memory when they conflict.
-  - next_action may be changed only after active task evidence is recorded.
+  - explicit current owner instruction can reprioritize work; paused tasks are not falsely marked completed.
   - DONE requires a real repository change or explicit read-only verification evidence.
+  - every completed work package requires SESSION REPORT and NEXT PROMPT.
