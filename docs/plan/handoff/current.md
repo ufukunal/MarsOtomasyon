@@ -1,144 +1,101 @@
 # Current Handoff
 
 ## Repository
-- Repository: `ufukunal/MarsOtomasyon`
-- Allowed branch: `main`
-- Current HEAD: **verify from Git at session start**
-- Master plan: `docs/plan/master-project-plan.md`
-- Session protocol: `docs/ai/session-execution-protocol.md`
+- Repository: ufukunal/MarsOtomasyon
+- Allowed branch: main
+- Current HEAD: verify from Git at session start
+- Master plan: docs/plan/master-project-plan.md
+- Session protocol: docs/ai/session-execution-protocol.md
 
 ## Current phase
 P2 — Core Commercial Workflow Planning
 
-## Last completed work package
-`FRAMEWORK-001 — Foundation / Framework contract`
+## Current task
+PLAN-002 — Sales Domain Workflow Contract
 
-This planning work package established:
-- end-to-end master project plan
-- Foundation/framework architecture contract
-- solution/project topology target
-- modular-monolith dependency rules
-- command/query/transaction/error/context contracts
-- idempotency/audit/outbox/worker contracts
-- API and migration framework boundaries
-- PostgreSQL/Valkey authority boundaries
-- Mars.Web/Mars.UI architecture
-- V38 preservation vs technical-debt rules
-- Docker/test deployment model
-- role-driven SESSION REPORT and NEXT PROMPT protocol
+Status: BLOCKED FOR OWNER DECISIONS
 
-Important: this is planning evidence only. No application framework code has been implemented yet.
+The known Sales workflow has been documented under:
+docs/plan/05-satis/
 
-## Canonical UI/product reference
-`docs/reference/ui/marsotomasyon_ui_v38_cari_bakiye_sadelestirildi.html`
+Created planning contracts:
+- README.md
+- plan.md
+- workflows.md
+- forms.md
+- data-contract.md
+- permissions.md
+- integrations.md
+- reports.md
+- acceptance-criteria.md
+- full-test-day.md
 
-Rule:
-- preserve validated product/UX behavior and visual character,
-- do not use the V38 patch chain as production architecture,
-- classify module screens as KEEP / ADAPT / MERGE / REMOVE / BLOCKED during module planning.
+No application code, SQL schema, migration or UI implementation was created.
 
-## Verified test infrastructure
-- Dedicated MarsOtomasyon/pre-accounting test server exists at `mars-prod.taila20365.ts.net`.
-- Self-hosted runner executes on separate host `mars-ci`.
-- Runner and test server are different machines.
-- PostgreSQL 18 Docker container is running/healthy on the test server.
-- Valkey 8 Docker container is running/healthy on the test server.
-- SSH path from runner to test server has been verified.
-- `mars_master` PostgreSQL administrative role exists and login was verified.
-- `mars_app` restricted application role exists and login was verified.
-- `mars_app` is not SUPERUSER/CREATEDB/CREATEROLE/REPLICATION.
-- Credential values must never be repeated in final reports or workflow logs.
+## Locked Sales contracts
 
-## Framework decision gates still UNKNOWN
-These are not to be guessed:
-- exact .NET SDK/runtime version
-- ORM/data-access library
-- auth/identity provider
-- OpenAPI tooling
-- logging/metrics stack
-- object/file storage backend
-- Desktop shell technology
-- Mobile shell technology
-- optional scheduler library
-- production secret store
-- production reverse proxy/tunnel details
+- Quote has no reservation/stock/account/cash posting effect.
+- Sales Order is not physical stock-out and does not create receivable.
+- Reservation is a non-physical commitment linked to Sales Order lines.
+- Dispatch POST/finalization is the normal physical STOCK OUT point.
+- Dispatch consumes/releases reservation quantity.
+- Sales Invoice POST/finalization creates customer receivable.
+- Dispatch-sourced invoice cannot post stock again.
+- Collection is a separate Finance event.
+- Physical return and financial credit/refund are separate.
+- Partial shipment and partial invoicing preserve line-level source/target traceability.
+- Posted history uses reversal/compensation instead of silent edit/delete.
+- V38 Sales lists/details remain product/UX reference; V38 patch code is not production architecture.
+- Sales Returns route is merged into the canonical Returns Center in V38.
+- Sales reports are centralized through the Report Center in V38.
 
-These do not block Sales workflow planning unless a Sales decision directly depends on them.
+## Owner decisions required before PLAN-002 can be frozen
 
-## Active task
-`PLAN-002 — Detail Sales domain workflows before database schema`
+SALES-B001 — Collection allocation model
+Choose balance-only current account vs invoice/open-item allocation capability vs explicit hybrid.
 
-Target:
-`docs/plan/05-satis/`
+SALES-B002 — Source-less/direct Sales Invoice stock behavior
+Choose financial-only direct invoice vs combined stock+financial direct invoice under rules vs forbid source-less posting.
 
-Required business chain:
+SALES-B003 — Quote conversion
+Choose full conversion only vs line/quantity partial/repeated conversion.
 
-```
-Quote
-→ Sales Order
-→ Reservation
-→ Dispatch
-→ Invoice
-→ Collection link
-→ Return link
-```
+SALES-B004 — Reservation trigger
+Choose explicit user action vs automatic transition vs configurable policy.
 
-For each document/action define:
-- business purpose and process owner
-- states / allowed and forbidden transitions
-- source/target document links
-- DOC effect
-- RES effect
-- STOCK effect
-- ACCOUNT effect
-- CASH/BANK effect
-- COST effect
-- ordered/reserved/shipped/invoiced/returned/remaining quantities
-- partial operation behavior
-- approval
-- cancellation vs reversal
-- audit
-- outbox/integration effect
-- UI behavior at planning level
-- KPI/control impact where relevant
+SALES-B005 — Cost/COGS recognition
+Choose financial cost recognition point; do not confuse inventory stock-out valuation with COGS.
 
-## Locked Sales rules already present in repository
-- Quote has no stock/accounting effect.
-- Sales Order may reserve stock but is not physical stock-out.
-- Dispatch is the normal physical stock-out point.
-- Invoice creates financial receivable.
-- Dispatch-sourced invoice must not post stock a second time.
-- Collection is a separate financial settlement event.
-- Return physical disposition and financial credit/refund are separate concerns.
-- Posted history is corrected by reversal, not silent overwrite.
+SALES-B006 — Sales tax/discount/rounding/FX
+Define tax-inclusive/exclusive sequence, discount order, rounding, precision and exchange-rate source/date/type.
 
-## Required roles for PLAN-002
+SALES-B007 — Approval policy
+Define whether Quote/Sales Order approval is mandatory and any thresholds/SoD rules.
+
+SALES-B008 — Confirmed-order amendment
+Choose amendment/version vs cancel remainder + new order vs another explicit controlled rule.
+
+## Next safe work package
+
+PLAN-002-DECISIONS — resolve SALES-B001 through SALES-B008 with the project owner.
+
+Do not begin PLAN-003, database schema or application code before PLAN-002 is frozen.
+
+## Required roles for decision session
+
 Primary:
-- erp-domain-specialist — commercial workflow/effect/state ownership
-- accounting-finance-specialist — financial recognition/settlement/reversal ownership
+- erp-domain-specialist — convert owner choices into Sales document/state/quantity rules.
+- accounting-finance-specialist — validate B001/B002/B005/B006 financial consequences.
 
 Reviewers:
-- mba-business-manager — process owner/business value/control review
-- warehouse-operations-shipping-specialist — reservation/dispatch/return physical-flow review
-- database-architect — future data-model/invariant feasibility review without creating schema
-- software-architect — module/transaction/contract boundary review
-- software-test-engineer — acceptance/invariant/edge-case review
-- ux-ui-specialist — partial/state/action visibility review
+- mba-business-manager — operational impact and control burden.
+- warehouse-operations-shipping-specialist — B002/B004/B008 stock/warehouse consequences.
+- database-architect — ensure choices can be represented without duplicate truth.
+- software-architect — transaction/module boundaries.
+- software-test-engineer — ensure decisions become verifiable invariants.
+- ux-ui-specialist — action/state visibility implications.
 
-## Do not do during PLAN-002
-- do not create application code
-- do not create SQL schema/migrations
-- do not start Purchasing
-- do not invent unresolved commercial policy
-- do not redesign V38 globally
-- do not run heavy tests
-- do not create branch/PR or force push
-- do not expose credentials
+## Test policy
 
-## Completion protocol
-Every session must follow:
-- `docs/ai/session-execution-protocol.md`
-- produce CONTEXT RECEIPT before changes
-- produce SESSION REPORT after changes
-- update state/handoff if status changes
-- end with standalone role-driven NEXT PROMPT generated from final verified HEAD
+No heavy tests. PLAN-002 remains planning-only.
+Full Test Day scenarios are already listed in docs/plan/05-satis/full-test-day.md.
