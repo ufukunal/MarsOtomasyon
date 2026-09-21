@@ -31,9 +31,7 @@ scope:
 
 required_start:
   - verify current main HEAD
-  - read docs/plan/ai-cmd.md
-  - read docs/ai/skill-router.md
-  - read docs/plan/master-project-plan.md
+  - read governance and master planning sources
   - read frozen Sales contracts under docs/plan/05-satis/
   - inspect existing docs/plan/03-cariler/ before planning
   - route exact primary/reviewer skills before changing files
