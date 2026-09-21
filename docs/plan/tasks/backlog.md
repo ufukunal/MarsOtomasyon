@@ -1,18 +1,13 @@
 # Planning Backlog
 
-## PLAN-003 — Party / Customer / Supplier model
-Target: docs/plan/03-cariler/
-
-Status: READY / NEXT.
-
-Define party roles, contacts, addresses, billing/shipping identity, account behavior and historical snapshots.
-
-PLAN-002 dependency is satisfied. Start only in the next dedicated planning work package.
-
 ## PLAN-004 — Product / Inventory master model
 Target: docs/plan/04-urun-stok/
 
+Status: READY / NEXT.
+
 Define products, variants, UOM, barcode, categories, technical files, warehouses, locations, stock statuses, lot/serial.
+
+PLAN-003 dependency is satisfied. Start only in the next dedicated planning work package.
 
 ## PLAN-005 — Purchasing workflow contract
 Target: docs/plan/07-satinalma/
