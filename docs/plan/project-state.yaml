@@ -9,7 +9,7 @@ project:
 repository_state:
   target_branch: main
   current_head: VERIFY_AT_RUNTIME
-  last_verified_planning_head: 96c1855f200512d50009d1499aeaf7e4f96d88bb
+  last_verified_planning_head: a8ef551310d910bcc38c8a383f2a5d86839621d1
   branches_allowed:
     - main
   branch_creation_forbidden: true
@@ -71,11 +71,11 @@ test_policy:
   heavy_tests: FULL_TEST_DAY_ONLY
 
 active_task:
-  id: PLAN-005
-  title: Detail Purchasing workflow contract
+  id: PLAN-006
+  title: Detail Warehouse operational contract
   status: ready
   file: docs/plan/active-task.yaml
-  progress: ready_after_product_inventory_plan_freeze
+  progress: ready_after_purchasing_plan_freeze
 
 completed_planning_tasks:
   - PLAN-001
@@ -83,6 +83,7 @@ completed_planning_tasks:
   - PLAN-002
   - PLAN-003
   - PLAN-004
+  - PLAN-005
 
 locked_decisions:
   - Only main branch is allowed.
@@ -140,6 +141,17 @@ locked_decisions:
   - Product tracking strategies are NONE, LOT, SERIAL and LOT_SERIAL; lot/serial quantity/position derives from posted Inventory Ledger history.
   - Live Product/Variant/UOM/barcode changes never rewrite frozen commercial or inventory document snapshots.
   - Product master does not own authoritative inventory valuation/current cost/COGS truth; Finance/Costing owns valuation policy.
+  - Purchase Order is commercial commitment only and creates no physical stock or supplier payable.
+  - Goods Receipt POST is Purchasing physical STOCK IN for stockable quantity and initially places it in QUARANTINE.
+  - Goods Receipt alone creates no supplier payable; usable release is a separate disposition action.
+  - Supplier Invoice POST creates supplier payable and never posts physical stock.
+  - Stockable Supplier Invoice requires posted Goods Receipt evidence and 3-way PO/Receipt/Invoice match.
+  - Service/non-stock PO invoice uses 2-way match; controlled direct source-less invoice is financial-only and cannot acquire stockable goods.
+  - Over-receipt and over-invoice default to BLOCK; configured tolerance use requires explicit exception approval.
+  - Purchase price variance defaults to zero tolerance unless Purchasing Match Policy defines a maximum; non-zero accepted variance requires approval.
+  - Purchasing calculation/FX policy mirrors frozen Mars central KDV-exclusive/minor-unit/TCMB-doviz-alis convention.
+  - Purchase physical return STOCK OUT and financial supplier adjustment are separate linked effects.
+  - Supplier Payment is Finance-owned; Purchasing does not own settlement/allocation.
 
 framework_decision_gates:
   - exact .NET SDK/runtime version
@@ -200,13 +212,14 @@ known_constraints:
   - PLAN-002 Sales planning is frozen; Sales implementation/DB work must still follow the master sequence and P3/P4 gates.
   - PLAN-003 Party / Customer / Supplier planning is frozen.
   - PLAN-004 Product / Inventory master planning is frozen.
-  - PLAN-005 Purchasing workflow planning is the next ready work package.
+  - PLAN-005 Purchasing workflow planning is frozen.
+  - PLAN-006 Warehouse operational planning is the next ready work package.
 
 blocked_items: []
 next_action:
-  id: PLAN-005
-  title: Detail Purchasing workflow contract
-  target: docs/plan/07-satinalma/
+  id: PLAN-006
+  title: Detail Warehouse operational contract
+  target: docs/plan/06-ambar-depo/
 
 state_rules:
   - current_head must be verified from Git at every session start; embedded SHA is never authoritative.
