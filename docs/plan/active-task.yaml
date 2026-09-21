@@ -1,21 +1,20 @@
-id: PLAN-008
-title: Detail Checks / Promissory Notes workflow contract
-module: 10-cek-senet
+id: PLAN-009
+title: Detail Returns / RMA workflow contract
+module: 11-iadeler-rma
 status: ready
 progress: not_started
 
 predecessor:
-  id: PLAN-007
+  id: PLAN-008
   status: completed_frozen
-  evidence_commit: 55079aeda8b7345b392f55c8bc13d366b3a32a0c
-  finance_plan: docs/plan/09-finans-kasa-banka/
+  plan: docs/plan/10-cek-senet/
 
 goal:
-  Freeze incoming/outgoing check and promissory-note lifecycle, custody, endorsement, bank handoff, collection/payment, bounce/protest/return, partial processing and Finance ledger effects before logical database design or application implementation.
+  Freeze customer/supplier returns, RMA authorization/receipt/QC/disposition, physical vs financial correction/refund and source-document traceability before logical database planning.
 
 scope:
   allowed_paths:
-    - docs/plan/10-cek-senet/
+    - docs/plan/11-iadeler-rma/
     - docs/plan/project-state.yaml
     - docs/plan/active-task.yaml
     - docs/plan/handoff/current.md
@@ -27,40 +26,29 @@ scope:
   db_implementation: false
   api_implementation: false
   ui_implementation: false
-  integration_implementation: false
-
-required_start:
-  - verify current main HEAD
-  - read governance and master planning sources
-  - read frozen Sales, Party, Product/Inventory, Purchasing, Warehouse and Finance contracts
-  - inspect every existing file under docs/plan/10-cek-senet/
-  - route exact primary/reviewer skills before changing files
-  - use V38 repository HTML as product-flow reference before external research
-  - report master-sequence and P2 planning percentages during long sessions and in final SESSION REPORT
 
 known_dependencies:
-  - Account/Cash/Bank ledgers remain Finance authority.
-  - CUSTOMER and SUPPLIER role balances remain separate and balance-only; no Invoice allocation/open-item authority.
-  - Collection/Payment Cash/Bank effects are Finance-owned.
-  - Checks/Promissory Notes must not create a second Party balance or Cash/Bank truth.
-  - instrument custody/lifecycle may change before monetary realization; recognition points must be explicit.
-  - posted financial history uses reversal/compensation, not silent mutation.
-  - PLAN-009 Returns/RMA must follow this task before logical database planning.
+  - PLAN-008 Checks / Promissory Notes is COMPLETED / FROZEN.
+  - physical return and financial credit/refund remain separate effects.
+  - Inventory/Warehouse owns physical stock truth.
+  - Finance owns Account/Cash/Bank truth and refunds.
+  - no Invoice allocation/open-item authority.
+  - logical DB remains blocked until PLAN-009 is frozen.
 
 planning_progress:
   counting_basis: master-project-plan section 8; completed/frozen packages only
   master_sequence:
-    completed: 7
+    completed: 8
     total: 30
-    percent: 23.3
+    percent: 26.7
   p2_core_commercial:
-    completed: 6
+    completed: 7
     total: 8
-    percent: 75.0
+    percent: 87.5
 
 next_action:
-  id: PLAN-008
-  title: Detail Checks / Promissory Notes workflow contract
+  id: PLAN-009
+  title: Detail Returns / RMA workflow contract
 
 test_policy:
   heavy_tests: FULL_TEST_DAY_ONLY
