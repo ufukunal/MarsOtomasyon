@@ -343,3 +343,43 @@ Not implemented:
 - no C#/API/TypeScript
 - no deployment
 - Full Test Day pending
+
+
+## PLAN-009 — Returns / RMA workflow contract
+**Status:** COMPLETED / FROZEN (PLANNING ONLY)
+
+Frozen:
+- customer/supplier return case lifecycle and source lineage;
+- source-linked normal path plus controlled approved source-less exception;
+- customer receipt STOCK IN → QUARANTINE with separate financial credit/refund;
+- supplier return shipment STOCK OUT with separate supplier adjustment/refund;
+- independent physical/QC/financial/refund progress;
+- partial return and cumulative source cap;
+- Product/UOM/lot/serial validation;
+- reversal/compensation and dependency handling;
+- replacement as linked normal Sales flow;
+- Finance-owned valuation/FX/refunds and Inventory-owned physical truth;
+- no Invoice allocation/open-item or automatic cross-role netting;
+- permissions/SoD/company/warehouse scope and concurrency/idempotency boundaries.
+
+Planning outputs:
+- `docs/plan/11-iadeler-rma/README.md`
+- `docs/plan/11-iadeler-rma/plan.md`
+- `docs/plan/11-iadeler-rma/workflows.md`
+- `docs/plan/11-iadeler-rma/forms.md`
+- `docs/plan/11-iadeler-rma/data-contract.md`
+- `docs/plan/11-iadeler-rma/permissions.md`
+- `docs/plan/11-iadeler-rma/integrations.md`
+- `docs/plan/11-iadeler-rma/reports.md`
+- `docs/plan/11-iadeler-rma/acceptance-criteria.md`
+- `docs/plan/11-iadeler-rma/full-test-day.md`
+
+Planning progress after completion:
+- master sequence: 9 / 30 = 30.0%
+- P2 core commercial: 8 / 8 = 100.0%
+
+Not implemented:
+- no SQL/migration
+- no C#/API/TypeScript
+- no deployment
+- Full Test Day pending
