@@ -1,21 +1,21 @@
-id: PLAN-005
-title: Detail Purchasing workflow contract
-module: 07-satinalma
+id: PLAN-006
+title: Detail Warehouse operational contract
+module: 06-ambar-depo
 status: ready
 progress: not_started
 
 predecessor:
-  id: PLAN-004
+  id: PLAN-005
   status: completed_frozen
-  evidence_commit: 96c1855f200512d50009d1499aeaf7e4f96d88bb
-  product_inventory_plan: docs/plan/04-urun-stok/
+  evidence_commit: a8ef551310d910bcc38c8a383f2a5d86839621d1
+  purchasing_plan: docs/plan/07-satinalma/
 
 goal:
-  Freeze Purchase Order → Goods Receipt → Supplier Invoice → Payment and 3-way-match workflow contracts before logical database design or application implementation.
+  Freeze Warehouse operational workflows for receiving, put-away, reservation execution, picking, packing, transfer, transit, counts and shipping verification before logical database design or application implementation.
 
 scope:
   allowed_paths:
-    - docs/plan/07-satinalma/
+    - docs/plan/06-ambar-depo/
     - docs/plan/project-state.yaml
     - docs/plan/active-task.yaml
     - docs/plan/handoff/current.md
@@ -32,23 +32,24 @@ scope:
 required_start:
   - verify current main HEAD
   - read governance and master planning sources
-  - read frozen Sales contracts
-  - read frozen Party contracts
-  - read frozen Product / Inventory contracts
-  - inspect existing docs/plan/07-satinalma/ before planning
+  - read frozen Sales, Party, Product/Inventory and Purchasing contracts
+  - inspect existing docs/plan/06-ambar-depo/ before planning
   - route exact primary/reviewer skills before changing files
+  - use V38 repository HTML as product-flow reference before external research
 
 known_dependencies:
-  - Supplier is a Party role; Purchasing must not create duplicate supplier master truth.
-  - Product/Variant/UOM/barcode identity follows frozen PLAN-004 contracts.
-  - Goods Receipt is physical STOCK IN; Purchase Order is not stock or payable.
-  - Supplier Invoice creates payable and must not second-post stock after Goods Receipt.
-  - inventory quantity truth remains Inventory Ledger-derived.
-  - financial valuation/cost method remains Finance/Costing-owned unless Purchasing needs a specific sourced contract.
+  - Inventory Ledger remains authoritative physical quantity truth.
+  - Reservation is non-physical and separate from physical disposition.
+  - Sales Dispatch POST is physical STOCK OUT.
+  - Purchasing Goods Receipt POST is physical STOCK IN to QUARANTINE.
+  - Goods Receipt release to AVAILABLE is a separate disposition effect.
+  - Supplier Invoice and Sales Invoice do not post physical stock.
+  - lot/serial/location/status semantics follow frozen PLAN-004.
+  - negative-stock, FEFO override and operational tolerance policy belong Warehouse planning.
 
 next_action:
-  id: PLAN-005
-  title: Detail Purchasing workflow contract
+  id: PLAN-006
+  title: Detail Warehouse operational contract
 
 test_policy:
   heavy_tests: FULL_TEST_DAY_ONLY
