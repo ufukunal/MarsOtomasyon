@@ -1,6 +1,7 @@
 # Current Handoff
 
 ## Repository
+
 - Repository: ufukunal/MarsOtomasyon
 - Allowed branch: main
 - Current HEAD: verify from Git at session start
@@ -8,94 +9,68 @@
 - Session protocol: docs/ai/session-execution-protocol.md
 
 ## Current phase
+
 P2 — Core Commercial Workflow Planning
 
-## Current task
+## Completed predecessor
+
 PLAN-002 — Sales Domain Workflow Contract
 
-Status: BLOCKED FOR OWNER DECISIONS
+Status: COMPLETED / FROZEN
 
-The known Sales workflow has been documented under:
-docs/plan/05-satis/
+Primary completion evidence:
+- `a5f56208b44847cf74feba43934f6d25412e93ad` — PLAN-002 acceptance criteria completed after Sales owner decisions were frozen.
 
-Created planning contracts:
-- README.md
-- plan.md
-- workflows.md
-- forms.md
-- data-contract.md
-- permissions.md
-- integrations.md
-- reports.md
-- acceptance-criteria.md
-- full-test-day.md
+Sales planning contracts:
+- docs/plan/05-satis/README.md
+- docs/plan/05-satis/plan.md
+- docs/plan/05-satis/workflows.md
+- docs/plan/05-satis/forms.md
+- docs/plan/05-satis/data-contract.md
+- docs/plan/05-satis/permissions.md
+- docs/plan/05-satis/integrations.md
+- docs/plan/05-satis/reports.md
+- docs/plan/05-satis/acceptance-criteria.md
+- docs/plan/05-satis/full-test-day.md
 
-No application code, SQL schema, migration or UI implementation was created.
+No application code, SQL schema/migration, deployment or heavy test was created/run by PLAN-002.
 
-## Locked Sales contracts
+## Frozen Sales decisions
 
-- Quote has no reservation/stock/account/cash posting effect.
-- Sales Order is not physical stock-out and does not create receivable.
-- Reservation is a non-physical commitment linked to Sales Order lines.
-- Dispatch POST/finalization is the normal physical STOCK OUT point.
-- Dispatch consumes/releases reservation quantity.
-- Sales Invoice POST/finalization creates customer receivable.
-- Dispatch-sourced invoice cannot post stock again.
-- Collection is a separate Finance event.
-- Physical return and financial credit/refund are separate.
-- Partial shipment and partial invoicing preserve line-level source/target traceability.
-- Posted history uses reversal/compensation instead of silent edit/delete.
-- V38 Sales lists/details remain product/UX reference; V38 patch code is not production architecture.
-- Sales Returns route is merged into the canonical Returns Center in V38.
-- Sales reports are centralized through the Report Center in V38.
+- B001: balance-only customer current account; no Invoice allocation/open-item authority.
+- B002: direct/source-less Sales Invoice is financial-only; STOCK = NONE.
+- B003: partial/repeated Quote conversion with line/quantity source-target links; all-zero remaining conversion → CONVERTED.
+- B004: Reservation is manual explicit action.
+- B005: COGS recognized at Sales Invoice POST; physical STOCK OUT remains Dispatch POST.
+- B006: KDV-exclusive; line discount → document discount → taxable base; currency-minor-unit rounding; TCMB döviz alış default FX with audited approval-triggering override; posted calculations immutable.
+- B007: conditional commercial-policy exception approval; creator != approver.
+- B008: audited controlled-delta/versioned amendment over unprocessed scope.
 
-## Owner decisions required before PLAN-002 can be frozen
-
-SALES-B001 — Collection allocation model
-Choose balance-only current account vs invoice/open-item allocation capability vs explicit hybrid.
-
-SALES-B002 — Source-less/direct Sales Invoice stock behavior
-Choose financial-only direct invoice vs combined stock+financial direct invoice under rules vs forbid source-less posting.
-
-SALES-B003 — Quote conversion
-Choose full conversion only vs line/quantity partial/repeated conversion.
-
-SALES-B004 — Reservation trigger
-Choose explicit user action vs automatic transition vs configurable policy.
-
-SALES-B005 — Cost/COGS recognition
-Choose financial cost recognition point; do not confuse inventory stock-out valuation with COGS.
-
-SALES-B006 — Sales tax/discount/rounding/FX
-Define tax-inclusive/exclusive sequence, discount order, rounding, precision and exchange-rate source/date/type.
-
-SALES-B007 — Approval policy
-Define whether Quote/Sales Order approval is mandatory and any thresholds/SoD rules.
-
-SALES-B008 — Confirmed-order amendment
-Choose amendment/version vs cancel remainder + new order vs another explicit controlled rule.
+Locked invariants remain:
+- Quote no RES/STOCK/ACCOUNT/CASH posting.
+- Sales Order no STOCK/ACCOUNT posting.
+- Reservation non-physical.
+- Dispatch POST normal physical STOCK OUT.
+- Invoice POST receivable + financial COGS; no STOCK.
+- Collection separate Finance balance event.
+- posted history reversed/compensated, never silently rewritten.
+- PostgreSQL/ledgers authoritative; Valkey not business truth.
 
 ## Next safe work package
 
-PLAN-002-DECISIONS — resolve SALES-B001 through SALES-B008 with the project owner.
+PLAN-003 — Party / Customer / Supplier model
 
-Do not begin PLAN-003, database schema or application code before PLAN-002 is frozen.
+Target:
+`docs/plan/03-cariler/`
 
-## Required roles for decision session
+PLAN-003 is READY but content work has not started in this handoff.
 
-Primary:
-- erp-domain-specialist — convert owner choices into Sales document/state/quantity rules.
-- accounting-finance-specialist — validate B001/B002/B005/B006 financial consequences.
+Before work:
+- verify real main HEAD;
+- read governance/master/state/handoff;
+- read frozen Sales contracts because Party snapshots/account relations are downstream dependencies;
+- inspect current 03-cariler files;
+- route skills through skill-router;
+- produce CONTEXT RECEIPT.
 
-Reviewers:
-- mba-business-manager — operational impact and control burden.
-- warehouse-operations-shipping-specialist — B002/B004/B008 stock/warehouse consequences.
-- database-architect — ensure choices can be represented without duplicate truth.
-- software-architect — transaction/module boundaries.
-- software-test-engineer — ensure decisions become verifiable invariants.
-- ux-ui-specialist — action/state visibility implications.
-
-## Test policy
-
-No heavy tests. PLAN-002 remains planning-only.
-Full Test Day scenarios are already listed in docs/plan/05-satis/full-test-day.md.
+Do not jump to SQL schema, application code, Purchasing or Full Test Day.
