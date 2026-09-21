@@ -129,3 +129,44 @@ Not implemented:
 - no TypeScript/UI
 - no deployment
 - Full Test Day pending
+
+## PLAN-004 — Product / Inventory master model
+**Status:** COMPLETED / FROZEN (PLANNING ONLY)
+
+Frozen:
+- company-scoped Product master;
+- GOODS / SERVICE distinction;
+- SELLABLE / PURCHASABLE / STOCKABLE capabilities;
+- optional Variant identity;
+- deterministic Base/alternate UOM conversions;
+- unambiguous barcode/GTIN mapping;
+- normalized category/classification;
+- company-scoped Warehouse and hierarchical Location masters;
+- Inventory Ledger as physical quantity authority;
+- non-physical Reservation separate from physical disposition;
+- explicit on-hand / available / reserved / available-to-reserve semantics;
+- NONE / LOT / SERIAL / LOT_SERIAL tracking;
+- immutable historical Product/UOM snapshots;
+- Finance-owned inventory valuation/cost policy.
+
+Planning outputs:
+- `docs/plan/04-urun-stok/README.md`
+- `docs/plan/04-urun-stok/plan.md`
+- `docs/plan/04-urun-stok/workflows.md`
+- `docs/plan/04-urun-stok/forms.md`
+- `docs/plan/04-urun-stok/data-contract.md`
+- `docs/plan/04-urun-stok/permissions.md`
+- `docs/plan/04-urun-stok/integrations.md`
+- `docs/plan/04-urun-stok/reports.md`
+- `docs/plan/04-urun-stok/acceptance-criteria.md`
+- `docs/plan/04-urun-stok/full-test-day.md`
+
+Acceptance evidence:
+- `96c1855f200512d50009d1499aeaf7e4f96d88bb`
+
+Not implemented:
+- no SQL/migration
+- no C#/API
+- no TypeScript/UI
+- no deployment
+- Full Test Day pending
