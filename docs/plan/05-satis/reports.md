@@ -1,160 +1,104 @@
 # Sales Reporting Contract
 
-Status: planning-level catalog. KPI formulas are not finalized unless source rules are sufficient.
+Status: FROZEN planning semantics for PLAN-002. Reports remain projections/read models.
 
-Reports are projections/read models. They are never authoritative mutable Sales state.
+## 1. Accounting and operational separation
 
-## 1. V38 report mapping
+Operational:
+- Quote conversion progress;
+- Order reserved/shipped/invoiced/remaining;
+- Dispatch state.
 
-V38 centralizes Sales reporting in the Report Center.
+Financial:
+- posted Invoice revenue/receivable context;
+- COGS at Sales Invoice POST;
+- customer current-account balance from Finance ledger.
 
-Mapped concepts:
-- sales_report → central sales_summary report
-- Sales Summary
-- Customer-based Sales
-- Product-based Sales
-- Order Status
-- Dispatch Report
-- Sales Return Report
-- Contact annual performance
-- Product Sales / Top Customers / Annual Performance
+Do not use Dispatch as revenue or COGS recognition by default.
 
-Decision:
-MERGE repeated module-level Sales report links into canonical Reporting views while preserving deep-links from Sales/Contact/Product contexts.
+## 2. Collection reporting — B001
 
-## 2. Required report contracts for later Reporting phase
+Frozen balance-only model:
+- customer current-account balance is authoritative Finance-derived result;
+- no authoritative Invoice paid/unpaid/open-amount report;
+- no settlement/open-item aging by Invoice allocation.
 
-### Sales Summary
-Purpose:
-- period commercial/financial Sales overview.
+If future reporting needs invoice-age analytics, it must be explicitly defined as analytical inference, not settlement truth.
 
-Potential grain:
-- invoice or invoice line, depending final KPI.
+## 3. Sales Summary
 
-BLOCKED formula details:
-- whether revenue grain is posted invoice line only;
-- return/credit treatment;
-- FX conversion method;
-- period/date dimension.
-
-Do not use dispatch as revenue recognition without an explicit accounting decision.
-
-### Customer-based Sales
-Potential grain:
-- posted invoice line grouped by customer snapshot/master mapping.
-
-Needs:
-- return/credit treatment;
-- currency conversion;
-- active/inactive customer handling.
-
-### Product-based Sales
-Potential grain:
-- posted invoice line grouped by product snapshot/master identity.
-
-Needs:
-- returned quantity/credit policy;
-- UOM normalization;
-- currency conversion.
-
-### Order Status
-Operational, not accounting.
-
-Required measures:
-- order line ordered quantity
-- reserved quantity
-- shipped quantity
-- invoiced quantity
-- remaining-to-ship
-- remaining-to-invoice
-- order dates/due dates/status.
-
-Source:
-authoritative Sales documents plus linked Reservation/Dispatch/Invoice data or projection.
-
-### Dispatch Report
-Operational.
-
-Measures:
-- dispatch count
-- shipped quantity
-- package count
-- carrier/handoff/delivery status
-- dispatch delay candidates.
-
-Revenue must not be derived from dispatch by default.
-
-### Sales Return Report
-Cross-module read model.
+Preferred financial grain:
+- posted Sales Invoice / Invoice line.
 
 Must distinguish:
-- physically returned quantity
-- disposition
-- financially credited quantity/value
-- refunded amount/state
+- transaction currency;
+- base currency;
+- immutable posted FX rate/source/date;
+- returns/credits;
+- reversed documents.
 
-Physical return and financial credit cannot be collapsed into one boolean.
+COGS:
+- recognized at Invoice POST under B005.
+- gross-margin reporting must source revenue and COGS from compatible posted financial records.
 
-## 3. KPI candidates
+## 4. Customer/Product Sales
 
-These are future contract candidates only.
+Use posted Invoice line as financial sales basis unless a future Reporting plan explicitly defines another KPI.
 
-### Quote conversion
-Need owner/reporting decision:
-- numerator: accepted/converted quote count or value?
-- denominator: all eligible quotes or only sent quotes?
-- revision grain?
-No formula frozen in PLAN-002.
+Master changes do not rewrite historical snapshots.
 
-### Order cycle time
-Potential:
-confirmed order timestamp → completion/delivery timestamp.
-Exact endpoint and treatment of partial orders remain Reporting decision.
+## 5. Order Status
 
-### Fill rate
-Potential quantity-based fulfilment metric.
-Exact numerator/denominator and timing remain Reporting decision.
+Required line measures:
+- effective ordered quantity;
+- reserved;
+- shipped;
+- invoiced;
+- cancelled remainder;
+- remaining-to-ship;
+- remaining-to-invoice;
+- effective order version/amendment state.
 
-### OTIF
-Requires promised date, delivery completion and full quantity rules.
-Formula not frozen here.
+Source:
+Sales authority + linked Inventory/Dispatch/Invoice authority or rebuildable projection.
 
-### Return rate
-Requires physical/financial population definition.
-Formula not frozen here.
+## 6. Quote conversion
 
-### Gross margin
-Requires SALES-B005 cost recognition/cost source plus revenue/return/FX rules.
-BLOCKED until Finance/Costing contracts exist.
+PLAN-002 freezes operational quantity behavior:
+- repeated partial conversion allowed;
+- line remaining conversion quantity is deterministic;
+- fully converted when all lines remaining = 0.
 
-## 4. Currency and time rules
+Exact management KPI formula (count/value denominator) remains Reporting-phase decision.
 
-Every financial report later must define:
-- transaction currency
-- company base currency
-- conversion date/rate source
-- timezone
-- document date vs posting date
-- partial current period handling.
+## 7. Currency/FX
 
-No mixed-currency naked totals.
+Financial reports:
+- preserve transaction currency;
+- preserve posted FX source/date/rate;
+- base-currency conversion for posted Invoice uses its immutable snapshot;
+- do not revalue historical posted Sales using today's rate.
 
-## 5. Excluded statuses
+Default Sales Invoice FX policy:
+- TCMB döviz alış;
+- invoice/tax-event document date;
+- latest prior published business day when no rate exists;
+- audited override where permitted/approved.
 
-Reporting contracts must explicitly state exclusions such as:
-- draft
-- cancelled
-- reversed
-- superseded quote revisions
+## 8. Rounding
 
-Exact status filtering is report-specific and cannot be globally guessed.
+Report totals must aggregate posted rounded line/tax amounts, not independently recalculate using binary floating point or current policy.
 
-## 6. Access
+TRY posted money uses 2 decimals.
+Other currencies use configured/ISO minor unit.
 
-Reports honor:
-- company scope
-- branch scope where relevant
-- actor permissions
-- Sales vs Finance data sensitivity.
+## 9. Exclusions
 
-Saved views/filters do not become new authoritative datasets.
+Each final report contract explicitly handles:
+- DRAFT;
+- CANCELLED;
+- REVERSED;
+- superseded Quote revisions;
+- inactive/cancelled Order remainder.
+
+Saved views/caches remain non-authoritative.
