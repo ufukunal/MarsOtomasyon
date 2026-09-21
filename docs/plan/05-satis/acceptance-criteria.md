@@ -1,70 +1,69 @@
 # PLAN-002 Acceptance Criteria
 
+Status: COMPLETED / FROZEN — planning only.
+
 ## 1. Contract coverage
 
-- [x] Quote purpose/effect contract documented.
-- [x] Sales Order purpose/effect contract documented.
-- [x] Reservation contract documented as non-physical commitment.
-- [x] Dispatch physical stock-out recognition documented at POSTED/finalization.
-- [x] Invoice financial receivable recognition documented at POSTED/finalization.
-- [x] Dispatch-sourced invoice explicitly prohibited from second stock posting.
-- [x] Ordered/reserved/shipped/invoiced/returned/remaining planning semantics documented.
-- [x] Partial shipment documented.
-- [x] Partial invoicing documented.
-- [x] Source/target line relations documented.
-- [x] State machines documented.
-- [x] Cancellation vs reversal documented.
-- [x] Posted immutability documented.
-- [x] Historical snapshot contract documented.
-- [x] Collection documented as a separate financial event.
-- [x] Physical return and financial credit/refund separated.
-- [x] V38 Sales screen mapping documented.
-- [x] Planning-level permissions documented.
-- [x] Audit/outbox/idempotency needs documented.
-- [x] Report/KPI future contracts documented.
-- [x] Full Test Day heavy scenarios documented.
-- [x] No SQL/application implementation included.
+- [x] Quote purpose/effect and revision contract.
+- [x] Sales Order purpose/effect contract.
+- [x] Reservation is non-physical commitment.
+- [x] Dispatch POST is physical STOCK OUT.
+- [x] Sales Invoice POST creates receivable.
+- [x] Sales Invoice POST recognizes financial COGS.
+- [x] Dispatch-sourced/direct Invoice cannot second-post stock.
+- [x] Ordered/reserved/shipped/invoiced/returned/remaining semantics.
+- [x] Partial shipment and invoicing.
+- [x] Partial/repeated Quote conversion with line-level traceability.
+- [x] Source-target relations and reversal.
+- [x] State machines and controlled amendments.
+- [x] Posted immutability and snapshots.
+- [x] Balance-only Collection as separate Finance event.
+- [x] Physical return vs financial credit/refund separation.
+- [x] Planning-level permissions/approval/SoD.
+- [x] Integration/outbox/idempotency needs.
+- [x] Reporting semantics.
+- [x] Full Test Day heavy scenarios.
+- [x] No SQL/application implementation.
 
-## 2. Unresolved mandatory owner decisions
+## 2. Owner decisions resolved
 
-PLAN-002 cannot be marked fully frozen/DONE while the following decisions remain open:
+- [x] SALES-B001 — balance-only Collection; no Invoice allocation/open-item authority.
+- [x] SALES-B002 — direct/source-less Invoice financial-only; STOCK = NONE.
+- [x] SALES-B003 — line/quantity partial + repeated Quote conversion; all-zero remaining → CONVERTED.
+- [x] SALES-B004 — manual Reservation.
+- [x] SALES-B005 — COGS at Sales Invoice POST.
+- [x] SALES-B006 — KDV-exclusive; line discount → document discount → taxable base; deterministic minor-unit rounding; TCMB döviz alış default FX with audited override; immutable posted snapshot.
+- [x] SALES-B007 — conditional policy-exception approval; creator != approver.
+- [x] SALES-B008 — audited controlled-delta confirmed-order amendment.
 
-- [ ] SALES-B001 — Collection allocation model.
-- [ ] SALES-B002 — Source-less/direct Sales Invoice stock behavior.
-- [ ] SALES-B003 — Quote full vs partial conversion.
-- [ ] SALES-B004 — Reservation trigger policy.
-- [ ] SALES-B005 — Cost/COGS recognition point.
-- [ ] SALES-B006 — Tax/discount/rounding/FX calculation policy.
-- [ ] SALES-B007 — Quote/Order approval policy and thresholds.
-- [ ] SALES-B008 — Confirmed-order amendment policy.
+## 3. Completion checks
 
-## 3. Completion status
+- [x] Direct Invoice behavior deterministic.
+- [x] Collection behavior deterministic.
+- [x] COGS recognition deterministic.
+- [x] tax/discount/rounding/FX deterministic.
+- [x] Quote conversion deterministic.
+- [x] Reservation trigger deterministic.
+- [x] confirmed-order amendment deterministic.
+- [x] no STOCK double-post path.
+- [x] no second authoritative balance/settlement truth.
+- [x] partial/source-target/reversal deterministic.
+- [x] implementation no longer requires a material Sales owner-policy guess.
 
-Current status: PARTIAL / BLOCKED FOR OWNER DECISIONS.
+## 4. Fast verification contract
 
-Reason:
-The workflow architecture and known invariants are documented, but implementation would still require guessing material Sales/Finance policies. Repository protocol forbids that.
-
-## 4. Quick verification checklist
-
-Before final PLAN-002 completion:
-- all required files exist;
-- no file is an empty placeholder;
+Before handoff:
+- all ten Sales planning files exist/non-empty;
 - effect matrix covers Quote/Order/Reservation/Dispatch/Invoice/Collection/Return/Proforma;
-- every transactional object has state/lifecycle contract or explicit external ownership;
-- no dispatch-sourced invoice double-stock path exists;
-- partial quantity semantics are explicit;
-- blocker IDs are consistent across files;
-- V38 mapping is present;
-- no CREATE TABLE/migration/C#/TypeScript implementation was added;
-- main HEAD is re-verified.
+- B001/B002/B006/B007/B008 text is consistent across planning docs;
+- Reservation is non-physical;
+- Dispatch-sourced/direct Invoice has no STOCK effect;
+- controlled amendment cannot rewrite processed history;
+- no SQL/migration/C#/TypeScript implementation was added;
+- final main HEAD is verified.
 
 ## 5. Exit condition
 
-After owner resolves SALES-B001..B008:
-1. update affected Sales plan files;
-2. remove/close blockers;
-3. rerun document consistency checks;
-4. mark PLAN-002 completed;
-5. update project-state/task/handoff;
-6. only then prepare PLAN-003 — Party / Customer / Supplier model.
+PLAN-002 planning is frozen.
+Next planned work package is PLAN-003 — Party / Customer / Supplier model.
+PLAN-003 content work starts only in a separate task/session.
