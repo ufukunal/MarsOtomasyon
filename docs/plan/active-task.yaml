@@ -1,21 +1,21 @@
-id: PLAN-007
-title: Detail Finance / Treasury workflow contract
-module: 09-finans-kasa-banka
+id: PLAN-008
+title: Detail Checks / Promissory Notes workflow contract
+module: 10-cek-senet
 status: ready
 progress: not_started
 
 predecessor:
-  id: PLAN-006
+  id: PLAN-007
   status: completed_frozen
-  evidence_commit: f0933c9992e16f4336e0f06d55fafbaa44da489f
-  warehouse_plan: docs/plan/06-ambar-depo/
+  evidence_commit: 55079aeda8b7345b392f55c8bc13d366b3a32a0c
+  finance_plan: docs/plan/09-finans-kasa-banka/
 
 goal:
-  Freeze Finance / Treasury workflows for account, cash, bank, settlement, transfers, reconciliation, FX and financial reversal behavior before logical database design or application implementation.
+  Freeze incoming/outgoing check and promissory-note lifecycle, custody, endorsement, bank handoff, collection/payment, bounce/protest/return, partial processing and Finance ledger effects before logical database design or application implementation.
 
 scope:
   allowed_paths:
-    - docs/plan/09-finans-kasa-banka/
+    - docs/plan/10-cek-senet/
     - docs/plan/project-state.yaml
     - docs/plan/active-task.yaml
     - docs/plan/handoff/current.md
@@ -32,37 +32,35 @@ scope:
 required_start:
   - verify current main HEAD
   - read governance and master planning sources
-  - read frozen Sales, Party, Product/Inventory, Purchasing and Warehouse contracts
-  - inspect existing docs/plan/09-finans-kasa-banka/ before planning
+  - read frozen Sales, Party, Product/Inventory, Purchasing, Warehouse and Finance contracts
+  - inspect every existing file under docs/plan/10-cek-senet/
   - route exact primary/reviewer skills before changing files
   - use V38 repository HTML as product-flow reference before external research
   - report master-sequence and P2 planning percentages during long sessions and in final SESSION REPORT
 
 known_dependencies:
-  - account, cash and bank ledgers are authoritative financial truth.
-  - customer/supplier mutable balance fields are forbidden.
-  - Sales Collection is balance-only and has no authoritative Invoice allocation/open-item model.
-  - Supplier Payment is Finance-owned; Purchasing does not own settlement/allocation.
-  - Sales Invoice creates receivable and financial COGS.
-  - Supplier Invoice creates payable.
-  - physical stock effects remain Inventory/Warehouse-owned.
-  - inventory valuation/costing method and positive count/scrap value consequences require Finance ownership.
+  - Account/Cash/Bank ledgers remain Finance authority.
+  - CUSTOMER and SUPPLIER role balances remain separate and balance-only; no Invoice allocation/open-item authority.
+  - Collection/Payment Cash/Bank effects are Finance-owned.
+  - Checks/Promissory Notes must not create a second Party balance or Cash/Bank truth.
+  - instrument custody/lifecycle may change before monetary realization; recognition points must be explicit.
   - posted financial history uses reversal/compensation, not silent mutation.
+  - PLAN-009 Returns/RMA must follow this task before logical database planning.
 
 planning_progress:
   counting_basis: master-project-plan section 8; completed/frozen packages only
   master_sequence:
-    completed: 6
+    completed: 7
     total: 30
-    percent: 20.0
+    percent: 23.3
   p2_core_commercial:
-    completed: 5
+    completed: 6
     total: 8
-    percent: 62.5
+    percent: 75.0
 
 next_action:
-  id: PLAN-007
-  title: Detail Finance / Treasury workflow contract
+  id: PLAN-008
+  title: Detail Checks / Promissory Notes workflow contract
 
 test_policy:
   heavy_tests: FULL_TEST_DAY_ONLY
