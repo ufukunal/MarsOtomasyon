@@ -1,19 +1,18 @@
 # Sales Permissions and Scope
 
-Status: planning-level permission contract. Authentication provider and storage are Foundation decision gates.
+Status: FROZEN planning-level permission contract.
 
 ## 1. Principles
 
-- Authorization is server-side.
-- UI button visibility is UX only.
-- Every state-changing command checks actor, company scope and required permission.
-- Branch/warehouse scope is checked where the action operates on that scope.
-- Historical read permission does not imply post/reverse permission.
-- Approval and creator/approver separation are applied only when an approved policy requires them; thresholds are not invented.
+- Authorization is server-side; UI visibility is not security.
+- Every state-changing command validates actor, company and relevant branch/warehouse scope.
+- Read permission does not imply post/reverse/approve/amend permission.
+- Approval is exception-based under B007.
+- SoD invariant: creator != approver for every approval-required Quote, Sales Order or Order Amendment.
 
-## 2. Proposed permission namespace
+## 2. Permission namespace
 
-### Quote
+Quote:
 - sales.quote.read
 - sales.quote.create
 - sales.quote.edit_draft
@@ -25,28 +24,26 @@ Status: planning-level permission contract. Authentication provider and storage 
 - sales.quote.cancel
 - sales.quote.export
 
-### Sales Order
+Sales Order:
 - sales.order.read
 - sales.order.create
 - sales.order.edit_draft
 - sales.order.submit_approval
 - sales.order.approve
 - sales.order.confirm
+- sales.order.amend
+- sales.order.activate_amendment
 - sales.order.hold
 - sales.order.release_hold
 - sales.order.cancel_remaining
 - sales.order.close
 - sales.order.export
 
-### Reservation initiation from Sales
-Inventory/Warehouse may own the final permission name. Sales planning requires an action permission equivalent to:
-- inventory.reservation.create
-- inventory.reservation.release
+Reservation:
+- authoritative permission namespace belongs Inventory/Warehouse.
+- Sales requires equivalent create/release permissions before exposing manual Reservation actions.
 
-The Sales UI may expose these actions only if actor also has the Inventory permission and source order is eligible.
-
-### Dispatch
-Warehouse/Shipping should own operational permission names. Required capabilities:
+Dispatch:
 - sales.dispatch.read
 - sales.dispatch.create
 - sales.dispatch.edit_draft
@@ -57,131 +54,92 @@ Warehouse/Shipping should own operational permission names. Required capabilitie
 - sales.dispatch.reverse
 - sales.dispatch.export
 
-Final module namespace can be normalized with Warehouse planning; do not duplicate equivalent permissions in two modules.
-
-### Sales Invoice
+Sales Invoice:
 - sales.invoice.read
 - sales.invoice.create
 - sales.invoice.edit_draft
 - sales.invoice.post
 - sales.invoice.reverse
+- sales.invoice.fx_override
 - sales.invoice.send_edocument
 - sales.invoice.export
 
-### Proforma
-- sales.proforma.read
-- sales.proforma.create_from_source
-- sales.proforma.send
-- sales.proforma.export
+Collection remains Finance-owned:
+- finance.collection.read/create/post/reverse.
 
-### Returns linkage
-Full Returns permissions belong to Returns/RMA.
-Sales needs:
-- sales.return.read_link
-- permission to initiate return only if Returns/RMA plan explicitly adopts it.
+## 3. Conditional approval policy
 
-### Collection
-Finance owns:
-- finance.collection.read
-- finance.collection.create
-- finance.collection.post
-- finance.collection.reverse
+Policy owner/source:
+- company-scoped Sales Commercial Policy in Settings/configuration.
+- numeric/tolerance values are configuration; they are not hard-coded in Sales.
+- if an applicable policy record is absent, any manual commercial deviation is treated as approval-required.
 
-Sales Invoice's Tahsilat action is a deep-link/start-context action and never grants Finance permission.
+Quote approval is required when:
+- unit price is manually overridden outside active policy;
+- line/document discount is manually overridden outside active policy tolerance;
+- payment terms are outside active policy;
+- manual FX override is used.
 
-## 3. Role capabilities
+Sales Order approval is required when:
+- price/discount/currency/payment terms deviate from accepted Quote;
+- a direct/source-less Order contains a commercial-policy exception;
+- manual FX override is used;
+- a controlled post-confirmation amendment increases commercial exposure or changes commercial terms.
 
-Role names are descriptive personas, not hard-coded security roles.
+No mandatory approval is required for:
+- policy-compliant standard Quote;
+- unchanged Sales Order generated from accepted Quote;
+- operational amendment that changes only non-commercial notes/contact/delivery metadata and does not increase exposure, subject to normal amend permission.
 
-### Sales user
-Typical need:
-- read/create/edit/revise quote;
-- create/edit order;
-- view reservation/shipping/invoice state;
-- initiate downstream actions only with additional permission.
+SoD:
+- creator cannot approve own document/amendment;
+- approver must hold explicit approve permission;
+- approval binds exact revision/amendment;
+- material change invalidates/re-evaluates approval.
 
-Cannot automatically:
-- post invoice;
-- post/reverse dispatch;
-- post collection;
-- approve own transaction if future SoD forbids it.
+## 4. FX override control
 
-### Sales manager
-Potential:
-- approval capability according to SALES-B007;
-- hold/release/cancel remaining;
-- review exception reports.
+Manual FX override:
+- requires `sales.invoice.fx_override`;
+- mandatory reason;
+- suggested source/date/rate and overridden rate are audited;
+- triggers B007 approval;
+- after Invoice POST it is immutable.
 
-Exact monetary/discount thresholds are UNKNOWN.
+## 5. Controlled amendment permissions
 
-### Warehouse operator
-- view eligible order source;
-- create/edit picking/dispatch draft;
-- pick/pack;
-- no finance posting authority by default.
+`sales.order.amend`:
+- create amendment draft only.
 
-### Warehouse manager
-- dispatch posting/reversal may require this permission depending future Warehouse policy.
+`sales.order.activate_amendment`:
+- activate when validation/reservation release and approval requirements are satisfied.
 
-### Finance/Accounting
-- invoice post/reverse;
-- collection post/reverse;
-- e-document send;
-- read source Sales documents.
+Amendment cannot bypass:
+- processed quantity floor;
+- Reservation release requirement;
+- stale-version conflict;
+- creator/approver SoD when approval required.
 
-### Administrator
-Administrative capability is not a shortcut around audit or posted-history invariants.
+## 6. High-risk commands
 
-## 4. Scope rules
+Distinct permissions required for:
+- approval;
+- controlled amendment activation;
+- Dispatch POST/reverse;
+- Invoice POST/reverse;
+- FX override;
+- Collection POST/reverse;
+- financial credit/refund.
 
-Company:
-- every read/write constrained to allowed company.
+## 7. Audit
 
-Branch:
-- Quote/Order/Invoice branch access follows future branch ownership/numbering rules.
-- actor cannot switch branch in client to bypass server scope.
-
-Warehouse:
-- Reservation/Dispatch must validate actor access to selected warehouse.
-- source order belonging to company A cannot dispatch from company B warehouse.
-
-Customer:
-- access to customer data remains Parties permission/scoping concern.
-
-## 5. High-risk commands
-
-Require explicit distinct permission:
-- Quote approval if adopted.
-- Order approval/confirmation if adopted.
-- Dispatch POST.
-- Dispatch reverse.
-- Invoice POST.
-- Invoice reverse.
-- Financial credit/refund.
-- Collection POST/reverse.
-
-Confirmation UX is appropriate for Post/Reverse/destructive cancel operations.
-
-## 6. Audit expectations
-
-For privileged transitions record:
-- actor
-- effective company/branch/warehouse context
-- command/action
-- document public reference
-- prior/new state
-- reason where required
-- timestamp
-- correlation id
-- source/target references.
-
-## 7. Permission blockers
-
-SALES-B007:
-- mandatory approval and SoD policy are not yet selected.
-
-Warehouse planning:
-- final ownership/namespace for reservation/dispatch permissions must avoid duplicate parallel permission systems.
-
-Finance planning:
-- collection and refund permission details remain Finance-owned.
+Privileged transitions record:
+- actor;
+- company/branch/warehouse context;
+- action;
+- document/version;
+- prior/new state;
+- reason;
+- source-target references;
+- approval policy/reason where relevant;
+- timestamp/correlation id.
