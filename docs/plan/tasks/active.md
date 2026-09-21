@@ -1,24 +1,17 @@
 # Active Tasks
 
-## PLAN-010 — Logical database model
-**Status:** READY — NOT STARTED
+## Post-P3 execution order normalization
+**Status:** BLOCKED — repository planning sources conflict.
 
-Target:
-`docs/db/`
+PLAN-010 Logical Database Model is COMPLETED / FROZEN.
 
-Predecessor:
-- PLAN-009 Returns / RMA is COMPLETED / FROZEN.
-- P2 Core Commercial Workflow Planning is 8 / 8 = 100.0%.
+Conflicting next-task sources:
+- master-project-plan phase map → P4 Foundation implementation;
+- master-project-plan section 8 → Quality as conceptual item 10 (`docs/plan/08-kalite/`);
+- tasks/backlog.md → PLAN-011 Commerce/B2B/Architect/Marketplace planning.
 
-Planning progress:
-- master sequence: 9 / 30 = 30.0%
-- P2 core commercial: 8 / 8 = 100.0%
+No new numbered work package is activated until this conflict is normalized in repository state/tasks.
 
-Next session converts accepted workflow contracts into the normalized logical database model: domain dictionary v2, entity catalog, relationships, module/schema ownership, ledgers, reservations, snapshots, projections, outbox/idempotency/audit, keys, constraints, indexes from access patterns and concurrency rules.
-
-Restrictions:
-- main only
-- no branch / PR / force push
-- no application code
-- no physical SQL migration/schema implementation
-- no heavy tests
+Exact planning progress:
+- master section-8 sequence: 9 / 30 = 30.0%
+- P2: 8 / 8 = 100.0%
