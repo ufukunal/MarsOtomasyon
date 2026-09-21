@@ -1,217 +1,99 @@
 # MarsOtomasyon Project Roadmap
 
-## Planning principle
-The roadmap is ordered by dependency and business truth, not by menu order. Each phase must reach its acceptance criteria before downstream implementation relies on it.
+The canonical end-to-end roadmap is now:
+- `docs/plan/master-project-plan.md`
 
-## Phase P0 — Governance and planning backbone
-**Status:** COMPLETED
+This file remains a compact phase index. If this file conflicts with the master plan, the master plan wins unless a newer explicit owner decision says otherwise.
 
-Delivered:
-- AI operating protocol
-- detailed skill system
-- autocomplete/NEXT PROMPT protocol
-- project-state
-- active-task
-- roadmap
-- handoff
-- task tracking
-- decision log structure
+## P0 — Governance and execution protocol
+Status: COMPLETED
+
+Includes:
+- AI commands
+- skill system/router
 - planning standard
+- task/state/handoff
+- role-driven session execution
+- SESSION REPORT
+- standalone NEXT PROMPT protocol
 
-## Phase P1 — Foundation contracts
-**Status:** PLANNING BASELINE ESTABLISHED
+## P1 — Foundation / Framework contract
+Status: COMPLETED — PLANNING ONLY
 
-Target: `docs/plan/01-foundation/`
+Canonical:
+- `docs/plan/01-foundation/framework-plan.md`
 
-Baseline now defines:
-- modular-monolith boundaries
-- command/query conventions
-- transactions
-- outbox
-- idempotency
-- audit
-- numbering
-- permissions
-- company/branch scope
-- error model
-- files/notifications abstractions
-- API/client/cache/observability/migration policies
+No application framework code has been implemented yet.
 
-Implementation-specific unresolved choices remain explicitly UNKNOWN and are not to be invented.
+## P2 — Core commercial workflow planning
+Status: ACTIVE
 
-## Phase P2 — Core commercial workflows
-**Status:** ACTIVE
+Order:
+1. Sales
+2. Parties/Cariler
+3. Product/Inventory Master
+4. Purchasing
+5. Warehouse
+6. Finance/Treasury
+7. Checks/Notes
+8. Returns/RMA
 
-Planning order:
-1. `05-satis` — active first because it anchors reservation, stock-out, receivable and partial document linking
-2. `03-cariler`
-3. `04-urun-stok`
-4. `07-satinalma`
-5. `06-ambar-depo`
-6. `09-finans-kasa-banka`
-7. `10-cek-senet`
-8. `11-iadeler-rma`
+Current:
+- `PLAN-002 — Sales workflow contract`
 
-Critical end-to-end chains:
-- Quote → Sales Order → Dispatch → Invoice → Collection → Return
-- Purchase Order → Goods Receipt → Supplier Invoice → Payment → Purchase Return
-- Transfer → Transit → Receipt
-- Count → Difference Approval → Adjustment
+## P3 — Logical database model
+Status: NOT STARTED
 
-Exit criteria:
-- form/effect matrices complete
-- partial/cancel/reversal behavior explicit
-- ledger ownership explicit
-- no double stock/accounting posting ambiguity
+Begins only after core workflows are sufficiently frozen.
 
-## Phase P3 — Database logical model and schema
-**Status:** NOT STARTED
+## P4 — Foundation implementation
+Status: NOT STARTED
 
-Target: `docs/db/`
+Implements accepted framework contract.
 
-Produce:
-- domain dictionary
-- entity model
-- relationships
-- normalization decisions
-- ledgers
-- document engine
-- snapshots
-- projections
-- migration conventions
-- PostgreSQL schema plan
+## P5 — Core application implementation
+Status: NOT STARTED
 
-Exit criteria:
-- every critical table derives from an accepted workflow
-- constraints/invariants documented
-- source-of-truth vs projection explicit
+Parties → Products → Inventory → Sales → Purchasing → Warehouse → Finance → Returns → Checks/Notes.
 
-## Phase P4 — Core application implementation
-**Status:** NOT STARTED
+## P6 — Operations
+Status: NOT STARTED
 
-Build in dependency order:
-- Foundation
-- Accounts/Parties
-- Products
-- Inventory
-- Sales
-- Purchasing
-- Finance/Treasury
-- Returns
+Quality, Production, Subcontracting, Import/Container, MRP, Capacity, Maintenance, Service/Warranty, Sample/Consignment, Contracts/Periodic, Fixed Assets, Carrier Performance.
 
-Normal development tests stay targeted. Heavy tests remain deferred.
+## P7 — Commerce and external channels
+Status: NOT STARTED
 
-## Phase P5 — Operations
-**Status:** NOT STARTED
+Commerce Core, B2B, Architect Portal, WooCommerce and marketplaces. Provider capabilities must be verified at implementation time.
 
-Modules:
-- `08-kalite`
-- `12-uretim`
-- `13-fason`
-- `14-ithalat-konteyner`
-- `19-mrp-planlama`
-- `20-kapasite-planlama`
-- `21-bakim`
-- `22-servis-garanti`
-- `23-numune-konsinye`
-- `24-sozlesmeler-periyodik`
-- `25-sabit-kiymet`
-- `27-tasiyici-performansi`
+## P8 — Communications / Files / Device
+Status: NOT STARTED
 
-## Phase P6 — Commerce and external channels
-**Status:** NOT STARTED
+Email, SMS, WhatsApp, Push, files, scanner, barcode, printer/device routing.
 
-Target: `15-e-ticaret-b2b-api`
+## P9 — Reporting / BI / Management / Control
+Status: NOT STARTED
 
-Subdomains:
-- Commerce Core
-- B2B Portal
-- Architect Portal
-- WooCommerce
-- Trendyol
-- Hepsiburada
-- N11
-- ÇiçekSepeti
-- Idefix
-- pricing
-- inventory sync
-- order sync
-- returns
-- integration monitoring
+Dashboards, KPI contracts, Mars.Reporting, report designer, CRM, SoD.
 
-Provider capabilities must be verified against current provider documentation before implementation.
+## P10 — Cross-platform shells
+Status: NOT STARTED
 
-## Phase P7 — Communications and device layer
-**Status:** NOT STARTED
+Web/Desktop/Mobile common client core and platform adapters.
 
-Targets:
-- `16-iletisim-dosyalar`
-- `29-device-layer`
+## P11 — Full Test Day
+Status: DEFERRED BY POLICY
 
-Define:
-- Email
-- SMS
-- WhatsApp
-- Push
-- notification center
-- templates
-- provider routing
-- webhooks
-- device registrations
-- scanner
-- barcode/label
-- printer routing
-- ESC/POS
-- ZPL/TSPL/RAW
+Full regression, PostgreSQL integration, browser E2E, cross-platform, provider, security, backup/restore, concurrency, performance and ledger/accounting invariants.
 
-## Phase P8 — Reporting, management and control
-**Status:** NOT STARTED
+## P12 — Release hardening
+Status: NOT STARTED
 
-Targets:
-- `02-ana-sayfa`
-- `17-raporlar-bi`
-- `18-ayarlar-sistem`
-- `26-crm`
-- `28-sod`
+Production deployment reproducibility, migration rehearsal, backup/restore evidence, rollback, observability, capacity and operational runbooks.
 
-Includes:
-- dashboards
-- KPI contracts
-- Mars.Reporting
-- report designer
-- charts
-- permissions/settings
-- CRM
-- segregation of duties
+## Current next action
 
-## Phase P9 — Full Test Day
-**Status:** DEFERRED BY POLICY
+`PLAN-002 — Define Quote → Sales Order → Reservation → Dispatch → Invoice → Collection/Return links`
 
-Run only when explicitly started.
-
-Includes:
-- full unit/regression
-- PostgreSQL integration
-- browser E2E
-- desktop/mobile
-- B2B/Architect/Marketplace
-- communications
-- security
-- backup/restore
-- concurrency
-- performance/load
-- accounting/ledger invariants
-
-## Phase P10 — Release hardening
-**Status:** NOT STARTED
-
-- deployment reproducibility
-- backup/restore evidence
-- migration rehearsal
-- rollback rehearsal
-- observability
-- operational runbooks
-- release checklist
-
-## Current active planning task
-`PLAN-002 — Sales workflow contract`
+Target:
+`docs/plan/05-satis/`
