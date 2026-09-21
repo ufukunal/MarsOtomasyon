@@ -1,205 +1,187 @@
 # Sales UI / Form Contract
 
+Status: FROZEN — PLAN-002
+
 ## 1. UX principles
 
-- V38 is the visual/product reference.
-- Production UI is rebuilt in Mars.UI/TypeScript, not by copying chained V38 scripts.
-- Lists are canonical operational homes; New actions live inside list/detail context instead of duplicating every New route in the sidebar.
-- Status, source document, processed quantity and remaining quantity must be visible.
-- Posted/finalized documents are read-only; correction uses explicit reversal/correction actions.
-- F2/lookup and keyboard-first ERP behavior are preserved in future implementation.
+- V38 is product/visual reference; production UI is Mars.UI/TypeScript later.
+- Lists remain canonical operational homes.
+- State, exact source, original/processed/remaining quantities and amendment version are visible.
+- Posted/finalized documents are read-only; correction uses explicit reversal/correction.
 - UI restrictions never replace server authorization.
+- Keyboard-first ERP behavior remains a requirement.
 
-## 2. V38 Sales screen mapping
-
-| V38 route/concept | Decision | Reason / production contract |
-|---|---|---|
-| quote_list | KEEP | canonical Quote operational home; revision/status/date/value list is useful |
-| quote_new | ADAPT | keep create workflow but launch from quote_list; remove sidebar duplicate |
-| quote_detail | ADAPT | keep revision, requirement snapshot, approval/customer-review and convert-to-order concepts; state machine becomes explicit |
-| sales_order_list | KEEP | canonical order home; reservation/sevk/faturalanan/kalan visibility is core |
-| sales_order_new | ADAPT | keep creation from list; no duplicate sidebar route |
-| sales_order_detail | ADAPT | keep hold/reservation/dispatch/invoice/cancel-remaining/close actions, but actions are permission/state driven |
-| dispatch_list | KEEP | canonical shipment home with order/customer/warehouse/package/carrier/status |
-| dispatch_new | ADAPT | creation preferably from eligible order context or list action; source relation required for normal Sales dispatch |
-| dispatch_detail | KEEP/ADAPT | V38 v16.3 quantity layout strongly matches domain: order, previous shipped, this shipment, remaining; posted detail must be read-only |
-| sales_invoice_list | KEEP/ADAPT | canonical invoice home; V14 removal of per-invoice Tahsilat/Kalan columns aligns with unresolved balance-only/allocation model |
-| sales_invoice_new | ADAPT/BLOCKED | draft UI exists; source-less post behavior blocked by SALES-B002 |
-| sales_invoice_detail | ADAPT | keep balance effect, e-document, correction, files/PDF/timeline; posted record read-only |
-| proforma_list | KEEP | useful informational list |
-| proforma standalone new | MERGE | V38 final UX says create Proforma from Quote or Sales Order source, not as an unrelated standalone document |
-| proforma_detail | KEEP/ADAPT | read-only informational/source-linked document; no ledger effect |
-| sales_returns | MERGE | V38 routes Sales Returns into returns_center; full return processing belongs Returns/RMA module |
-| returns_center Sales tab | KEEP as future cross-module target | Sales module links to it but does not own full RMA behavior |
-| sales_report | MERGE | V38 aliases to report_view:sales_summary / central report center |
-| contact_detail Faturalar/Siparişler/Teklifler tabs | KEEP | cross-navigation/read view; New actions route to canonical list-first homes |
-| product_detail Satışlar/En Çok Alan Cariler/Yıllık Performans | KEEP as read/report views | not authoritative transactional screens |
-| dashboard sales/order widgets | ADAPT | retain operational navigation, but KPI formula/status source must come from Reporting contracts |
-
-## 3. Quote list/detail
+## 2. Quote UI
 
 List:
-- search/filter by quote number, customer, date, status;
-- show revision, validity, total/currency, status;
-- primary action: New Quote.
+- number, customer, revision, validity, total/currency, state, conversion progress.
 
 Detail:
-- customer;
-- quote date/validity;
-- commercial lines;
-- revision identifier/history;
-- requirement/configuration snapshot where used;
-- notes/files;
+- exact revision;
+- lines and remaining conversion quantity;
+- commercial terms;
 - approval/customer-send history;
-- source/target links;
-- actions based on state: save draft, submit internal review if policy applies, send customer, accept/record acceptance, new revision, convert to order, cancel.
+- source-target Sales Orders.
 
-Must not:
-- reserve stock;
-- show receivable/cash effect as if posted;
-- overwrite externally reviewed prior revision.
+Conversion:
+- user can select eligible lines/quantities;
+- repeated partial conversion is allowed;
+- UI prevents cumulative conversion above offered quantity;
+- state/progress shows PARTIALLY_CONVERTED until every line remaining is zero;
+- then CONVERTED.
 
-Quote partial conversion UI is BLOCKED by SALES-B003.
+Approval:
+- standard policy-compliant Quote proceeds without mandatory approval;
+- policy exception/manual FX override shows PENDING_APPROVAL and exception reason;
+- creator cannot approve own Quote.
 
-## 4. Sales Order list/detail
+## 3. Sales Order UI
 
-List must expose:
-- order number/customer/date/due date;
-- total;
-- reservation status;
-- shipping progress;
-- invoicing progress;
-- remaining;
-- business status.
+List exposes:
+- order/customer/date;
+- effective version;
+- reservation/shipping/invoicing progress;
+- remaining-to-ship and remaining-to-invoice;
+- approval/hold/amendment state.
 
-Detail must expose line-level:
-- ordered;
+Detail exposes per line:
+- ordered effective quantity;
 - reserved;
 - shipped;
 - invoiced;
+- cancelled remainder;
 - remaining-to-ship;
-- remaining-to-invoice where relevant.
+- remaining-to-invoice;
+- source Quote revision/line;
+- active amendment/version.
 
 Actions:
-- confirm/approval according to SALES-B007;
+- confirm / submit approval where required;
+- manual Reserve;
+- create Dispatch;
+- create Invoice;
+- controlled Amendment;
+- cancel remainder;
 - hold/release;
-- reserve according to SALES-B004;
-- create dispatch;
-- create invoice from eligible order quantity;
-- cancel remaining;
-- close when explicit completion criteria are met.
+- close when no eligible remainder exists.
 
-Do not hide the distinction between shipping-complete and invoicing-complete.
+### Controlled Amendment UI
 
-## 5. Reservation UI
+Do not edit confirmed history inline.
 
-Reservation is visible from Sales Order and Inventory/Warehouse views.
+Amendment screen shows:
+- current effective version;
+- proposed delta;
+- before/after quantity and commercial fields;
+- processed floor (shipped/invoiced);
+- active reservation impact;
+- approval requirement/reason;
+- mandatory amendment reason.
+
+Rules surfaced in UI:
+- decrease below processed floor blocked;
+- excess Reservation must be released before activation;
+- product/UOM change on processed line uses cancel eligible remainder + new line;
+- commercial term change for processed scope is blocked; future scope uses new amendment line;
+- quantity increase does not auto-reserve.
+
+## 4. Reservation UI
+
+Reservation action is explicit/manual.
 
 Show:
-- source order/line;
-- product/variant;
-- warehouse;
+- source Order/version/line;
 - requested/active/consumed/released quantity;
-- availability conflict;
-- status;
-- actor/time.
+- warehouse;
+- availability/conflict;
+- actor/time/state.
 
-Do not present reservation as physical stock movement.
+Do not present Reservation as physical movement.
 
-## 6. Dispatch UI
+## 5. Dispatch UI
 
-V38 v16.3 pattern is preferred:
-- customer;
-- source Sales Order;
-- source warehouse;
-- ship date;
-- transport/carrier mode;
-- package count;
-- delivery/ambar information;
-- line grid with Order / Previously Shipped / This Dispatch / Remaining / UOM.
+Keep V38-style quantity grid:
+Order / Previously Shipped / This Dispatch / Remaining / UOM.
 
-Primary pre-post action:
-- Sevkiyatı Kesinleştir.
+Primary risk action:
+`Sevkiyatı Kesinleştir / POST`.
 
-Before POSTED:
-- draft/picking fields may be edited subject to state and permissions.
+After POST:
+- line quantities read-only;
+- correction uses Reverse;
+- carrier handoff/delivery status does not post stock again.
 
-After POSTED:
-- line quantities are read-only;
-- correction uses Düzelt / İptal or Reverse workflow;
-- Kargoya/Ambara Teslim changes handoff status only and cannot post stock again.
-
-## 7. Sales Invoice UI
+## 6. Sales Invoice UI
 
 List:
-- invoice no, customer, date, due date, subtotal, tax, total, e-document, state.
-- Do not add invoice paid/unpaid/open-amount columns until SALES-B001 is decided.
+- invoice no, customer, date/due date, currency, net, tax, gross, e-document state, POST state.
+
+Do not show authoritative:
+- invoice paid/unpaid;
+- invoice open amount;
+- collection allocation status.
+
+Customer account total/context may be shown when clearly labelled as current-account balance, not invoice settlement.
 
 Detail:
-- source references: dispatch/order/direct;
-- customer legal/billing snapshot;
-- lines, price, discount, tax, currency;
+- source Dispatch/Order/direct;
+- immutable customer/product/tax/currency snapshot;
+- KDV-exclusive line pricing;
+- line/document discount allocation;
+- line tax and totals;
+- FX source/date/type/rate;
 - balance effect;
-- e-document;
-- correction/reversal;
-- files/PDF;
-- timeline/audit.
+- COGS recognition at POST;
+- files/PDF/timeline;
+- reversal.
 
-POST action:
-- Kesinleştir / Post.
-- Once POSTED, financial fields are read-only.
+Direct Invoice:
+- may POST receivable and COGS;
+- must display that STOCK effect is NONE;
+- physical shipment requires Dispatch.
 
-Tahsilat action:
-- opens/links Finance collection flow;
-- does not mutate invoice directly;
-- invoice allocation display remains BLOCKED until SALES-B001.
+FX override:
+- only actors with `sales.invoice.fx_override`;
+- reason required;
+- suggested source rate and override shown;
+- override triggers approval;
+- after POST values are immutable.
 
-Direct new invoice:
-- may be drafted from V38 list action;
-- final posting behavior is blocked if physical stock semantics would be required and SALES-B002 is unresolved.
+## 7. Calculation visibility
 
-## 8. Proforma UI
+At draft/review show:
+- unit price;
+- line discount;
+- allocated document discount;
+- taxable base;
+- KDV;
+- line gross;
+- currency;
+- FX source/date/rate where relevant.
 
-- informational;
-- generated from Quote or Sales Order;
-- carries source reference;
-- printable/PDF/customer communication;
-- no stock/account/cash posting;
-- conversion to Sales Invoice is allowed only as a source link; final invoice still follows Sales Invoice posting rules.
+Posted totals are currency-minor-unit values and equal the sum of rounded lines. Hidden header balancing is forbidden.
 
-## 9. Sales return linkage UI
+## 8. Proforma and Return links
 
-Sales-side views expose:
-- source order/dispatch/invoice;
-- return/RMA reference;
-- product/quantity;
-- physical receipt state;
-- QC/disposition;
-- financial credit/refund status.
+Proforma:
+- sourced from Quote/Order;
+- informational only;
+- no ledger effect.
 
-Full actions live in Returns/RMA module. Sales should deep-link rather than duplicate the return engine.
+Sales Return link:
+- show physical return state separately from financial credit/refund state;
+- full actions remain Returns/RMA-owned.
 
-## 10. Loading/error/empty/stale states
+## 9. Loading/error/stale states
 
-Every future async Sales screen must distinguish:
+Distinguish:
 - loading;
-- no data;
+- empty/filter-empty;
 - no permission;
-- filter returned zero rows;
-- stale/concurrency conflict;
+- stale version/concurrency conflict;
+- reservation release conflict;
 - provider/e-document pending/error;
-- local posted state vs external send state.
+- approval pending/rejected;
+- local POSTED vs external send state.
 
-On validation failure, preserve user-entered draft data where safe.
-
-## 11. Keyboard/accessibility
-
-Future Mars.UI implementation:
-- F2 for customer/product lookups;
-- predictable Tab/Enter flow;
-- Escape for dialog close where safe;
-- optional Ctrl+S only for draft save;
-- visible focus;
-- status text/icon plus color;
-- dialogs with focus lifecycle;
-- dense desktop grid; mobile uses task-focused views, not compressed desktop tables.
+User draft input is preserved on recoverable validation/conflict where safe.
