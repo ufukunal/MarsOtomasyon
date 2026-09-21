@@ -14,101 +14,81 @@ jobs:
     runs-on: self-hosted
     timeout-minutes: 5
     steps:
-      - name: Checkout repository
+      - name: Checkout private repository
         uses: actions/checkout@v4
 
-      - name: Runner and remote connectivity diagnostic
+      - name: Runner and network layer
+        shell: bash
+        run: |
+          set +e
+          echo "RUNNER_HOSTNAME=$(hostname)"
+          echo "RUNNER_USER=$(whoami)"
+          tailscale status || true
+          tailscale ping --timeout=5s mars-prod.taila20365.ts.net || true
+          getent hosts mars-prod.taila20365.ts.net || true
+          timeout 5 bash -c '</dev/tcp/mars-prod.taila20365.ts.net/22' && echo "TCP22=PASS" || echo "TCP22=FAIL"
+
+      - name: Password SSH and remote read-only verification
         shell: bash
         run: |
           set +e
 
-          echo "RUNNER_HOST=$(hostname)"
-          echo "RUNNER_USER=$(whoami)"
-
-          if command -v tailscale >/dev/null 2>&1; then
-            echo "TAILSCALE_BIN=PASS"
-            tailscale status
-            tailscale ping --timeout=5s mars-prod.taila20365.ts.net
-            TS_RC=$?
-            [ "$TS_RC" -eq 0 ] && echo "TAILSCALE_PING=PASS" || echo "TAILSCALE_PING=FAIL"
-          else
-            echo "TAILSCALE_BIN=FAIL"
-          fi
-
-          RESOLVED="$(getent hosts mars-prod.taila20365.ts.net | awk 'NR==1{print $1}')"
-          if [ -n "$RESOLVED" ]; then
-            echo "DNS=PASS"
-            echo "RESOLVED_IP=$RESOLVED"
-          else
-            echo "DNS=FAIL"
-          fi
-
-          timeout 5 bash -c '</dev/tcp/mars-prod.taila20365.ts.net/22' >/dev/null 2>&1
-          TCP_RC=$?
-          [ "$TCP_RC" -eq 0 ] && echo "TCP22=PASS" || echo "TCP22=FAIL"
-
-          if ! command -v sshpass >/dev/null 2>&1; then
-            echo "SSHPASS=NOT_AVAILABLE"
-            echo "SSH_AUTH=NOT_TESTED"
-            exit 0
-          fi
-
           CRED_FILE="config/test/test-server.md"
           if [ ! -f "$CRED_FILE" ]; then
-            echo "CREDENTIAL_FILE=MISSING"
-            echo "SSH_AUTH=NOT_TESTED"
+            echo "SSH_AUTH=BLOCKED_CREDENTIAL_FILE_MISSING"
             exit 0
           fi
 
-          SSH_USER="$(awk -F'`' '/^- Kullanıcı:/ {print $2; exit}' "$CRED_FILE")"
-          SSH_PASS="$(awk -F'`' '/^- Şifre:/ {print $2; exit}' "$CRED_FILE")"
+          SSH_USER="$(sed -n 's/^- Kullanıcı: `\([^`]*\)`$/\1/p' "$CRED_FILE" | head -n1)"
+          SSH_PASS="$(sed -n 's/^- Şifre: `\([^`]*\)`$/\1/p' "$CRED_FILE" | head -n1)"
 
-          if [ -z "$SSH_USER" ] || [ -z "$SSH_PASS" ] || [ "$SSH_PASS" = "UNKNOWN" ]; then
-            echo "CREDENTIALS=INCOMPLETE"
-            echo "SSH_AUTH=NOT_TESTED"
+          if [ -z "$SSH_USER" ] || [ -z "$SSH_PASS" ]; then
+            echo "SSH_AUTH=BLOCKED_CREDENTIAL_FIELDS_EMPTY"
             exit 0
           fi
 
           echo "::add-mask::$SSH_PASS"
 
-          REMOTE_CMD='
-            printf "REMOTE_USER="; whoami
-            printf "REMOTE_HOSTNAME="; hostname
-            printf "REMOTE_KERNEL="; uname -a
-            printf "REMOTE_UPTIME="; uptime -p 2>/dev/null || uptime
-            if command -v docker >/dev/null 2>&1; then
-              echo "REMOTE_DOCKER=PASS"
-              printf "REMOTE_DOCKER_VERSION="; docker --version
-              echo "REMOTE_CONTAINERS_BEGIN"
-              docker ps --format "{{.Names}}|{{.Image}}|{{.Status}}"
-              echo "REMOTE_CONTAINERS_END"
-              PG_LINE="$(docker ps --format "{{.Names}}|{{.Image}}|{{.Status}}" | awk -F"|" "tolower(\$1) ~ /postgres/ || tolower(\$2) ~ /postgres/ {print; exit}")"
-              if [ -n "$PG_LINE" ]; then
-                echo "REMOTE_POSTGRES=PASS"
-                echo "REMOTE_POSTGRES_LINE=$PG_LINE"
-              else
-                echo "REMOTE_POSTGRES=FAIL"
-              fi
-            else
-              echo "REMOTE_DOCKER=FAIL"
-              echo "REMOTE_POSTGRES=NOT_TESTED"
-            fi
-            if [ -d /opt/marsotomasyon ]; then
-              echo "REMOTE_MARS_PATH=PASS"
-            else
-              echo "REMOTE_MARS_PATH=FAIL"
-            fi
-          '
+          ASKPASS="$RUNNER_TEMP/mars-ssh-askpass.sh"
+          cat > "$ASKPASS" <<'ASK'
+          #!/bin/sh
+          printf '%s\n' "$MARS_SSH_PASSWORD"
+          ASK
+          chmod 700 "$ASKPASS"
 
-          sshpass -p "$SSH_PASS" ssh             -o StrictHostKeyChecking=accept-new             -o UserKnownHostsFile="$RUNNER_TEMP/mars-test-known-hosts"             -o ConnectTimeout=7             "$SSH_USER@mars-prod.taila20365.ts.net"             "$REMOTE_CMD"
-          SSH_RC=$?
+          export MARS_SSH_PASSWORD="$SSH_PASS"
+          export SSH_ASKPASS="$ASKPASS"
+          export SSH_ASKPASS_REQUIRE=force
+          export DISPLAY=:99
 
-          if [ "$SSH_RC" -eq 0 ]; then
-            echo "SSH_AUTH=PASS"
-          else
+          setsid -w ssh             -o PubkeyAuthentication=no             -o PreferredAuthentications=password             -o PasswordAuthentication=yes             -o NumberOfPasswordPrompts=1             -o StrictHostKeyChecking=no             -o UserKnownHostsFile=/dev/null             -o ConnectTimeout=7             "$SSH_USER"@mars-prod.taila20365.ts.net             'echo SSH_AUTH=PASS;
+             printf "REMOTE_USER="; whoami;
+             printf "REMOTE_HOSTNAME="; hostname;
+             printf "REMOTE_KERNEL="; uname -a;
+             printf "REMOTE_UPTIME="; uptime -p;
+             if command -v docker >/dev/null 2>&1; then
+               echo DOCKER=PASS;
+               docker --version;
+               docker ps --format "CONTAINER={{.Names}}|IMAGE={{.Image}}|STATUS={{.Status}}" 2>/dev/null || echo DOCKER_PS=DENIED;
+               PG_NAME=$(docker ps --format "{{.Names}} {{.Image}}" 2>/dev/null | awk "tolower(\$0) ~ /postgres/ {print \$1; exit}");
+               if [ -n "$PG_NAME" ]; then
+                 echo POSTGRES_CONTAINER=PASS;
+                 docker inspect --format "PG_NAME={{.Name}}|PG_IMAGE={{.Config.Image}}|PG_STATE={{.State.Status}}|PG_HEALTH={{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}}" "$PG_NAME" 2>/dev/null || true;
+               else
+                 echo POSTGRES_CONTAINER=FAIL;
+               fi;
+             else
+               echo DOCKER=FAIL;
+               echo POSTGRES_CONTAINER=NOT_TESTED;
+             fi;
+             test -d /opt/marsotomasyon && echo MARS_PATH=PASS || echo MARS_PATH=FAIL'
+
+          rc=$?
+          rm -f "$ASKPASS"
+          unset MARS_SSH_PASSWORD SSH_PASS SSH_ASKPASS SSH_ASKPASS_REQUIRE DISPLAY
+
+          echo "SSH_RC=$rc"
+          if [ "$rc" -ne 0 ]; then
             echo "SSH_AUTH=FAIL"
           fi
-
-          rm -f "$RUNNER_TEMP/mars-test-known-hosts"
-          unset SSH_PASS
           exit 0
