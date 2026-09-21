@@ -9,7 +9,7 @@ project:
 repository_state:
   target_branch: main
   current_head: VERIFY_AT_RUNTIME
-  last_verified_planning_head: a8ef551310d910bcc38c8a383f2a5d86839621d1
+  last_verified_planning_head: f0933c9992e16f4336e0f06d55fafbaa44da489f
   branches_allowed:
     - main
   branch_creation_forbidden: true
@@ -21,6 +21,18 @@ current_phase:
   id: P2
   name: Core Commercial Workflow Planning
   status: active
+
+planning_progress:
+  counting_basis: master-project-plan section 8; completed/frozen work packages only
+  master_sequence:
+    completed: 6
+    total: 30
+    percent: 20.0
+  p2_core_commercial:
+    completed: 5
+    total: 8
+    percent: 62.5
+  reporting_rule: report master and active-phase percentages during long planning sessions and in SESSION REPORT
 
 phase_status:
   P0_governance_planning_backbone: completed
@@ -71,11 +83,11 @@ test_policy:
   heavy_tests: FULL_TEST_DAY_ONLY
 
 active_task:
-  id: PLAN-006
-  title: Detail Warehouse operational contract
+  id: PLAN-007
+  title: Detail Finance / Treasury workflow contract
   status: ready
   file: docs/plan/active-task.yaml
-  progress: ready_after_purchasing_plan_freeze
+  progress: ready_after_warehouse_plan_freeze
 
 completed_planning_tasks:
   - PLAN-001
@@ -84,6 +96,7 @@ completed_planning_tasks:
   - PLAN-003
   - PLAN-004
   - PLAN-005
+  - PLAN-006
 
 locked_decisions:
   - Only main branch is allowed.
@@ -152,6 +165,20 @@ locked_decisions:
   - Purchasing calculation/FX policy mirrors frozen Mars central KDV-exclusive/minor-unit/TCMB-doviz-alis convention.
   - Purchase physical return STOCK OUT and financial supplier adjustment are separate linked effects.
   - Supplier Payment is Finance-owned; Purchasing does not own settlement/allocation.
+  - Normal Warehouse operations cannot create negative authoritative physical stock.
+  - Warehouse pick eligibility requires AVAILABLE stock, valid source scope and valid lot/serial; expired stock is not normal-pick eligible.
+  - Expiry-tracked stock uses FEFO recommendation; other stock uses FIFO; override requires permission, reason and eligible stock.
+  - Pick, pack, stage and load are operational work states and do not post Sales stock out.
+  - Sales Dispatch POST remains the single authoritative Sales STOCK OUT point and consumes/releases related Reservation.
+  - Goods Receipt POST remains the single Purchasing inbound STOCK IN point; put-away cannot duplicate it.
+  - Put-away/replenishment are internal location movements with zero company net quantity effect.
+  - Warehouse Transfer ISSUE moves AVAILABLE source quantity to TRANSIT; RECEIVE moves TRANSIT to target; unresolved partial quantity remains TRANSIT.
+  - Transfer loss/shortage requires explicit approved adjustment; received damage remains on-hand in a non-available disposition.
+  - Stock Count uses a ledger snapshot plus intervening movements; approved discrepancy posts COUNT_ADJUSTMENT and never direct stock overwrite.
+  - Lot/serial/barcode mismatch is a hard Warehouse block; no generic accept-anyway override.
+  - Warehouse/Location deactivation is blocked while stock, Reservation, Transit or open work remains.
+  - Scrap/disposal is explicit approved STOCK OUT from eligible non-available quantity; financial value/write-off remains Finance-owned.
+  - Offline Warehouse mutations use durable client operation identity; retries are idempotent and stale conflicts never silently overwrite server truth.
 
 framework_decision_gates:
   - exact .NET SDK/runtime version
@@ -213,13 +240,14 @@ known_constraints:
   - PLAN-003 Party / Customer / Supplier planning is frozen.
   - PLAN-004 Product / Inventory master planning is frozen.
   - PLAN-005 Purchasing workflow planning is frozen.
-  - PLAN-006 Warehouse operational planning is the next ready work package.
+  - PLAN-006 Warehouse operational planning is frozen.
+  - PLAN-007 Finance / Treasury workflow planning is the next ready work package.
 
 blocked_items: []
 next_action:
-  id: PLAN-006
-  title: Detail Warehouse operational contract
-  target: docs/plan/06-ambar-depo/
+  id: PLAN-007
+  title: Detail Finance / Treasury workflow contract
+  target: docs/plan/09-finans-kasa-banka/
 
 state_rules:
   - current_head must be verified from Git at every session start; embedded SHA is never authoritative.
@@ -227,3 +255,4 @@ state_rules:
   - explicit current owner instruction can reprioritize work; paused tasks are not falsely marked completed.
   - DONE requires a real repository change or explicit read-only verification evidence.
   - every completed work package requires SESSION REPORT and NEXT PROMPT.
+  - long planning sessions and final SESSION REPORT must report completed-only master-sequence and active-phase planning percentages.
