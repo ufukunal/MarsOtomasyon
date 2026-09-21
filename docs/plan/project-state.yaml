@@ -9,7 +9,7 @@ project:
 repository_state:
   target_branch: main
   current_head: VERIFY_AT_RUNTIME
-  last_verified_planning_head: 527e6891368af62b1bc57f94d23955fa5b8b9730
+  last_verified_planning_head: 015f547a689cbee4755ef3f466f5f0c832c6a6f0
   branches_allowed:
     - main
   branch_creation_forbidden: true
@@ -73,8 +73,9 @@ test_policy:
 active_task:
   id: PLAN-002
   title: Detail Sales domain workflows before database schema
-  status: active
+  status: blocked
   file: docs/plan/active-task.yaml
+  progress: core_contracts_documented_owner_decisions_required
 
 completed_planning_tasks:
   - PLAN-001
@@ -96,6 +97,16 @@ locked_decisions:
   - V38 is preserved as product/UI reference but its patch architecture is not production architecture.
   - Framework is shared infrastructure only; domain rules remain module-owned.
   - Every session ends with SESSION REPORT and standalone NEXT PROMPT.
+  - Sales Quote has no reservation, stock, account or cash/bank posting effect.
+  - Sales Order is not physical stock-out and does not create receivable.
+  - Reservation is a non-physical inventory commitment linked to Sales Order lines.
+  - Dispatch POST/finalization is the normal physical Sales stock-out point.
+  - Dispatch consumes/releases related reservation quantity.
+  - Sales Invoice POST/finalization creates customer receivable.
+  - Dispatch-sourced Sales Invoice cannot post stock a second time.
+  - Collection is a separate Finance event from Sales Invoice posting.
+  - Physical sales return and financial credit/refund are separate concerns.
+  - Sales partial shipment and partial invoicing require line-level source/target traceability.
 
 framework_decision_gates:
   - exact .NET SDK/runtime version
@@ -151,17 +162,32 @@ known_constraints:
   - Application core is not yet implemented.
   - Framework contract is planned but not implemented.
   - Database logical/schema design is intentionally deferred until core workflows are sufficiently frozen.
-  - Most module folders still require detailed plans.
   - Business rules must not be inferred from generic ERP conventions when project sources are silent.
   - Runner VM and test server are separate machines; never conflate runner-local results with test-server results.
-  - Framework decision gates remain UNKNOWN until explicitly resolved at their implementation step.
+  - Sales implementation and Sales DB design are blocked until PLAN-002 owner decision gates are resolved.
 
-blocked_items: []
+blocked_items:
+  - id: SALES-B001
+    title: Collection allocation model
+  - id: SALES-B002
+    title: Source-less/direct Sales Invoice stock behavior
+  - id: SALES-B003
+    title: Quote full vs partial conversion
+  - id: SALES-B004
+    title: Reservation trigger policy
+  - id: SALES-B005
+    title: Cost/COGS recognition point
+  - id: SALES-B006
+    title: Sales tax/discount/rounding/FX calculation policy
+  - id: SALES-B007
+    title: Quote/Order approval policy
+  - id: SALES-B008
+    title: Confirmed-order amendment policy
 
 next_action:
-  id: PLAN-002
-  title: Define Quote -> Sales Order -> Reservation -> Dispatch -> Invoice -> Collection/Return links
-  target: docs/plan/05-satis/
+  id: PLAN-002-DECISIONS
+  title: Resolve Sales owner decision gates SALES-B001 through SALES-B008
+  target: docs/plan/05-satis/plan.md
 
 state_rules:
   - current_head must be verified from Git at every session start; embedded SHA is never authoritative.
