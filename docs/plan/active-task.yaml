@@ -1,21 +1,21 @@
-id: PLAN-003
-title: Detail Party / Customer / Supplier model
-module: 03-cariler
+id: PLAN-004
+title: Detail Product / Inventory master model
+module: 04-urun-stok
 status: ready
 progress: not_started
 
 predecessor:
-  id: PLAN-002
+  id: PLAN-003
   status: completed_frozen
-  evidence_commit: a5f56208b44847cf74feba43934f6d25412e93ad
-  sales_plan: docs/plan/05-satis/
+  evidence_commit: 52628746f484919f370feae5cf7be3ab6c87d8ef
+  party_plan: docs/plan/03-cariler/
 
 goal:
-  Freeze the Party / Customer / Supplier domain model and workflows before logical database design or application implementation.
+  Freeze Product / Inventory master concepts and workflows before Purchasing, Warehouse and logical database design.
 
 scope:
   allowed_paths:
-    - docs/plan/03-cariler/
+    - docs/plan/04-urun-stok/
     - docs/plan/project-state.yaml
     - docs/plan/active-task.yaml
     - docs/plan/handoff/current.md
@@ -32,19 +32,20 @@ scope:
 required_start:
   - verify current main HEAD
   - read governance and master planning sources
-  - read frozen Sales contracts under docs/plan/05-satis/
-  - inspect existing docs/plan/03-cariler/ before planning
+  - read frozen Sales contracts
+  - read frozen Party contracts
+  - inspect existing docs/plan/04-urun-stok/ before planning
   - route exact primary/reviewer skills before changing files
 
-known_dependency_from_sales:
-  - Party/customer identity must support immutable historical snapshots in Quote, Order and Invoice.
-  - Customer account balance remains Finance-ledger-derived; no mutable customer balance authority.
-  - Sales Collection is balance-only, not Invoice allocation.
-  - Sales approval may consume authoritative customer/policy risk signals when later defined, but PLAN-003 must not invent Finance policy.
+known_dependencies:
+  - product master edits must not rewrite historical Sales document snapshots.
+  - inventory truth must remain ledger-based; no authoritative mutable product stock field.
+  - Party/customer/supplier identity remains external to Product authority.
+  - Product / Inventory master planning must precede Purchasing and Warehouse detail planning.
 
 next_action:
-  id: PLAN-003
-  title: Detail Party / Customer / Supplier model
+  id: PLAN-004
+  title: Detail Product / Inventory master model
 
 test_policy:
   heavy_tests: FULL_TEST_DAY_ONLY
