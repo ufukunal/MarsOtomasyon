@@ -210,3 +210,24 @@ Bağlayıcı detaylar:
 - Görev BLOCKED bittiyse prompt yalnız blocker'ın çözümünü tarif eder; sonraki işi uydurmaz.
 - Sonraki iş repo planında belli değilse AI yeni iş icat etmez; plan/backlog üzerinden güvenli sonraki adımı doğrulatır.
 - Bir cevap, NEXT PROMPT üretilmeden tam bitmiş sayılmaz.
+
+
+## 16. Zorunlu Session Report / Handoff
+
+Her çalışma oturumu `docs/ai/session-execution-protocol.md` kurallarına uyar.
+
+Final cevap sırası:
+1. SESSION REPORT
+2. yapılan işin gerçek sonucu
+3. UNKNOWN/BLOCKED ve ertelenen heavy-test maddeleri
+4. NEXT PROMPT — KOPYALA / YAPIŞTIR
+
+NEXT PROMPT:
+- final doğrulanmış main HEAD'den üretilir,
+- yeni sohbette önceki chat olmadan anlaşılır,
+- her Primary/Reviewer rolünün görevdeki sorumluluğunu yazar,
+- exact source path'leri taşır,
+- scope/forbidden/acceptance/test/state-update talimatlarını taşır,
+- kullanıcı önceliği değiştiyse repo state/handoff'un bunu kaydetmesini ister.
+
+Planlama görevinde kod/SQL implementasyonu, implementasyon görevinde kabul edilmemiş iş kuralı üretmek yasaktır.
