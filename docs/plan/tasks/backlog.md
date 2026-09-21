@@ -1,18 +1,13 @@
 # Planning Backlog
 
-## PLAN-005 — Purchasing workflow contract
-Target: docs/plan/07-satinalma/
-
-Status: READY / NEXT.
-
-Define Purchase Order → Goods Receipt → Supplier Invoice → Payment and 3-way match.
-
-PLAN-004 dependency is satisfied. Start only in the next dedicated planning work package.
-
 ## PLAN-006 — Warehouse operational contract
 Target: docs/plan/06-ambar-depo/
 
+Status: READY / NEXT.
+
 Define receiving, put-away, reservation, picking, packing, transfer, transit, counts and shipping verification.
+
+PLAN-005 dependency is satisfied. Start only in the next dedicated planning work package.
 
 ## PLAN-007 — Finance / Treasury workflow contract
 Target: docs/plan/09-finans-kasa-banka/
