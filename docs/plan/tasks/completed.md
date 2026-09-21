@@ -90,3 +90,42 @@ Not implemented:
 - no TypeScript/UI
 - no deployment
 - Full Test Day pending
+
+## PLAN-003 — Party / Customer / Supplier model
+**Status:** COMPLETED / FROZEN (PLANNING ONLY)
+
+Frozen:
+- one company-scoped Party master;
+- PERSON / ORGANIZATION kinds;
+- CUSTOMER and SUPPLIER multi-role model;
+- legal/display identity, tax identity, contact and address ownership;
+- Party Code role-neutral identity with Settings-owned numbering format;
+- ACTIVE / INACTIVE / MERGED lifecycle;
+- deterministic identity collision + warning-only fuzzy duplicate detection;
+- logical audited merge with survivor/source lineage;
+- Finance-owned balances, credit/risk/hold and settlement;
+- historical document snapshot immutability;
+- no automatic customer/supplier balance netting;
+- no cross-company Party sharing.
+
+Planning outputs:
+- `docs/plan/03-cariler/README.md`
+- `docs/plan/03-cariler/plan.md`
+- `docs/plan/03-cariler/workflows.md`
+- `docs/plan/03-cariler/forms.md`
+- `docs/plan/03-cariler/data-contract.md`
+- `docs/plan/03-cariler/permissions.md`
+- `docs/plan/03-cariler/integrations.md`
+- `docs/plan/03-cariler/reports.md`
+- `docs/plan/03-cariler/acceptance-criteria.md`
+- `docs/plan/03-cariler/full-test-day.md`
+
+Acceptance evidence:
+- `52628746f484919f370feae5cf7be3ab6c87d8ef`
+
+Not implemented:
+- no SQL/migration
+- no C#/API
+- no TypeScript/UI
+- no deployment
+- Full Test Day pending
