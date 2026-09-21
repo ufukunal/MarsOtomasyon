@@ -25,20 +25,20 @@ current_phase:
 planning_progress:
   counting_basis: master-project-plan section 8; completed/frozen work packages only
   master_sequence:
-    completed: 8
+    completed: 9
     total: 30
-    percent: 26.7
+    percent: 30.0
   p2_core_commercial:
-    completed: 7
+    completed: 8
     total: 8
-    percent: 87.5
+    percent: 100.0
   reporting_rule: report master and active-phase percentages during long planning sessions and in SESSION REPORT
 
 phase_status:
   P0_governance_planning_backbone: completed
   P1_foundation_framework_contract: completed
-  P2_core_commercial_workflows: active
-  P3_database_logical_model: not_started
+  P2_core_commercial_workflows: completed
+  P3_database_logical_model: ready
   P4_foundation_implementation: not_started
   P5_core_application_implementation: not_started
   P6_operations: not_started
@@ -83,11 +83,11 @@ test_policy:
   heavy_tests: FULL_TEST_DAY_ONLY
 
 active_task:
-  id: PLAN-009
-  title: Detail Returns / RMA workflow contract
+  id: PLAN-010
+  title: Logical database model
   status: ready
   file: docs/plan/active-task.yaml
-  progress: ready_after_checks_notes_plan_freeze
+  progress: ready_after_p2_freeze
 
 completed_planning_tasks:
   - PLAN-001
@@ -99,6 +99,7 @@ completed_planning_tasks:
   - PLAN-006
   - PLAN-007
   - PLAN-008
+  - PLAN-009
 
 locked_decisions:
   - Only main branch is allowed.
@@ -269,13 +270,18 @@ known_constraints:
   - Incoming receipt settles Customer role into a Finance-owned instrument receivable position; Cash/Bank waits for actual settlement.
   - Outgoing delivery settles Supplier role into a Finance-owned instrument payable obligation; Cash/Bank waits for actual clearing.
   - Instrument custody and financial state are separate; bank handoff is custody-only; partial endorsement is forbidden in core PLAN-008.
-  - PLAN-009 Returns / RMA must follow Checks / Promissory Notes before logical database planning.
+  - PLAN-009 Returns / RMA workflow planning is frozen.
+  - Customer return physical receipt posts STOCK IN to QUARANTINE; financial credit/refund is separate.
+  - Supplier return shipment posts STOCK OUT; supplier financial adjustment/refund is separate.
+  - Source-linked return is normal; source-less return is an approved exception with no fabricated source.
+  - Returns preserves source/lot/serial/UOM lineage; Inventory and Finance remain authoritative.
+  - P2 Core Commercial Workflow Planning is complete; logical database planning is now dependency-eligible.
 
 blocked_items: []
 next_action:
-  id: PLAN-009
-  title: Detail Returns / RMA workflow contract
-  target: docs/plan/11-iadeler-rma/
+  id: PLAN-010
+  title: Logical database model
+  target: docs/db/
 
 state_rules:
   - current_head must be verified from Git at every session start; embedded SHA is never authoritative.
