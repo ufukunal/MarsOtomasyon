@@ -383,3 +383,49 @@ Not implemented:
 - no C#/API/TypeScript
 - no deployment
 - Full Test Day pending
+
+
+## PLAN-010 — Logical Database Model
+**Status:** COMPLETED / FROZEN (LOGICAL PLANNING ONLY)
+
+Frozen:
+- domain dictionary v2;
+- bounded-context module/data ownership;
+- logical entity catalog;
+- normalized source-target relationships;
+- separate Inventory/Account/Cash/Bank/Valuation ledger families;
+- Reservation separate from physical disposition;
+- Party multi-role and no automatic role netting;
+- Sales/Purchasing/Returns quantity lineage;
+- Checks/Notes custody vs Finance position separation;
+- Finance transaction/FX/period/reconciliation/valuation model;
+- immutable snapshots and rebuildable projections;
+- keys/identity roles;
+- logical constraints and concurrency/idempotency outcomes;
+- access-pattern-driven index intent;
+- migration/backfill/lock conventions.
+
+Outputs:
+- `docs/db/00-domain-dictionary.md`
+- `docs/db/01-design-principles.md`
+- `docs/db/02-module-ownership.md`
+- `docs/db/03-entity-catalog.md`
+- `docs/db/04-relationships.md`
+- `docs/db/05-ledgers-and-finance.md`
+- `docs/db/06-snapshots-and-projections.md`
+- `docs/db/07-constraints-and-concurrency.md`
+- `docs/db/08-index-access-patterns.md`
+- `docs/db/09-migration-conventions.md`
+- `docs/db/acceptance-criteria.md`
+- `docs/db/full-test-day.md`
+
+Exact section-8 planning metric remains:
+- 9 / 30 = 30.0%
+because section-8 item 10 is Quality, not PLAN-010 Logical Database Model.
+
+Not implemented:
+- no physical SQL/DDL
+- no migration/EF model
+- no C#/API/TypeScript
+- no deployment
+- Full Test Day pending
