@@ -9,7 +9,7 @@ project:
 repository_state:
   target_branch: main
   current_head: VERIFY_AT_RUNTIME
-  last_verified_planning_head: 015f547a689cbee4755ef3f466f5f0c832c6a6f0
+  last_verified_planning_head: a5f56208b44847cf74feba43934f6d25412e93ad
   branches_allowed:
     - main
   branch_creation_forbidden: true
@@ -71,15 +71,16 @@ test_policy:
   heavy_tests: FULL_TEST_DAY_ONLY
 
 active_task:
-  id: PLAN-002
-  title: Detail Sales domain workflows before database schema
-  status: blocked
+  id: PLAN-003
+  title: Detail Party / Customer / Supplier model
+  status: ready
   file: docs/plan/active-task.yaml
-  progress: core_contracts_documented_owner_decisions_required
+  progress: ready_after_sales_plan_freeze
 
 completed_planning_tasks:
   - PLAN-001
   - FRAMEWORK-001
+  - PLAN-002
 
 locked_decisions:
   - Only main branch is allowed.
@@ -107,6 +108,15 @@ locked_decisions:
   - Collection is a separate Finance event from Sales Invoice posting.
   - Physical sales return and financial credit/refund are separate concerns.
   - Sales partial shipment and partial invoicing require line-level source/target traceability.
+  - Sales Collection uses balance-only current-account settlement; no Invoice allocation/open-item authority.
+  - Direct/source-less Sales Invoice is financial-only and never posts STOCK OUT.
+  - Quote conversion is partial/repeated at line/quantity level; all-zero remaining conversion marks Quote CONVERTED.
+  - Sales Reservation is manually initiated from eligible Order context.
+  - Sales financial COGS recognition occurs at Sales Invoice POST; physical STOCK OUT remains Dispatch POST.
+  - Sales prices are KDV-exclusive; line discount -> document discount -> taxable base; posted monetary rounding follows currency minor unit and midpoint-away-from-zero.
+  - Sales Invoice default FX source is TCMB doviz alis by invoice/tax-event date with prior-business-day fallback; controlled manual override is audited and approval-triggering.
+  - Sales approval is conditional on commercial-policy exceptions; creator cannot approve own document/amendment.
+  - Confirmed Sales Order amendments use audited controlled delta/versioning over unprocessed scope only.
 
 framework_decision_gates:
   - exact .NET SDK/runtime version
@@ -164,30 +174,14 @@ known_constraints:
   - Database logical/schema design is intentionally deferred until core workflows are sufficiently frozen.
   - Business rules must not be inferred from generic ERP conventions when project sources are silent.
   - Runner VM and test server are separate machines; never conflate runner-local results with test-server results.
-  - Sales implementation and Sales DB design are blocked until PLAN-002 owner decision gates are resolved.
+  - PLAN-002 Sales planning is frozen; Sales implementation/DB work must still follow the master sequence and P3/P4 gates.
+  - PLAN-003 Party / Customer / Supplier planning is the next ready work package.
 
-blocked_items:
-  - id: SALES-B001
-    title: Collection allocation model
-  - id: SALES-B002
-    title: Source-less/direct Sales Invoice stock behavior
-  - id: SALES-B003
-    title: Quote full vs partial conversion
-  - id: SALES-B004
-    title: Reservation trigger policy
-  - id: SALES-B005
-    title: Cost/COGS recognition point
-  - id: SALES-B006
-    title: Sales tax/discount/rounding/FX calculation policy
-  - id: SALES-B007
-    title: Quote/Order approval policy
-  - id: SALES-B008
-    title: Confirmed-order amendment policy
-
+blocked_items: []
 next_action:
-  id: PLAN-002-DECISIONS
-  title: Resolve Sales owner decision gates SALES-B001 through SALES-B008
-  target: docs/plan/05-satis/plan.md
+  id: PLAN-003
+  title: Detail Party / Customer / Supplier model
+  target: docs/plan/03-cariler/
 
 state_rules:
   - current_head must be verified from Git at every session start; embedded SHA is never authoritative.
