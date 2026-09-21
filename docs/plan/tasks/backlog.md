@@ -1,18 +1,13 @@
 # Planning Backlog
 
-## PLAN-004 — Product / Inventory master model
-Target: docs/plan/04-urun-stok/
-
-Status: READY / NEXT.
-
-Define products, variants, UOM, barcode, categories, technical files, warehouses, locations, stock statuses, lot/serial.
-
-PLAN-003 dependency is satisfied. Start only in the next dedicated planning work package.
-
 ## PLAN-005 — Purchasing workflow contract
 Target: docs/plan/07-satinalma/
 
+Status: READY / NEXT.
+
 Define Purchase Order → Goods Receipt → Supplier Invoice → Payment and 3-way match.
+
+PLAN-004 dependency is satisfied. Start only in the next dedicated planning work package.
 
 ## PLAN-006 — Warehouse operational contract
 Target: docs/plan/06-ambar-depo/
