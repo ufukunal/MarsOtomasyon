@@ -18,9 +18,9 @@ repository_state:
   repository_private: true
 
 current_phase:
-  id: P2
-  name: Core Commercial Workflow Planning
-  status: active
+  id: P3
+  name: Logical Database Model
+  status: ready
 
 planning_progress:
   counting_basis: master-project-plan section 8; completed/frozen work packages only
