@@ -14,88 +14,79 @@ P2 — Core Commercial Workflow Planning
 
 ## Completed predecessor
 
-PLAN-004 — Product / Inventory master model
+PLAN-005 — Purchasing workflow contract
 
 Status: COMPLETED / FROZEN
 
 Primary completion evidence:
-- `96c1855f200512d50009d1499aeaf7e4f96d88bb` — PLAN-004 acceptance criteria completed after Product / Inventory master contracts were frozen.
+- `a8ef551310d910bcc38c8a383f2a5d86839621d1` — PLAN-005 acceptance criteria completed.
 
-Product / Inventory planning contracts:
-- docs/plan/04-urun-stok/README.md
-- docs/plan/04-urun-stok/plan.md
-- docs/plan/04-urun-stok/workflows.md
-- docs/plan/04-urun-stok/forms.md
-- docs/plan/04-urun-stok/data-contract.md
-- docs/plan/04-urun-stok/permissions.md
-- docs/plan/04-urun-stok/integrations.md
-- docs/plan/04-urun-stok/reports.md
-- docs/plan/04-urun-stok/acceptance-criteria.md
-- docs/plan/04-urun-stok/full-test-day.md
+Purchasing planning contracts:
+- docs/plan/07-satinalma/README.md
+- docs/plan/07-satinalma/plan.md
+- docs/plan/07-satinalma/workflows.md
+- docs/plan/07-satinalma/forms.md
+- docs/plan/07-satinalma/data-contract.md
+- docs/plan/07-satinalma/permissions.md
+- docs/plan/07-satinalma/integrations.md
+- docs/plan/07-satinalma/reports.md
+- docs/plan/07-satinalma/acceptance-criteria.md
+- docs/plan/07-satinalma/full-test-day.md
 
-No SQL schema/migration, application code, deployment or heavy tests were created/run by PLAN-004.
+No SQL schema/migration, application code, deployment or heavy tests were created/run by PLAN-005.
 
-## Frozen Product / Inventory decisions
+## Frozen Purchasing decisions
 
-- Product is company-scoped authoritative live master.
-- Product kind is GOODS or SERVICE.
-- SELLABLE / PURCHASABLE / STOCKABLE capabilities are explicit; SERVICE cannot be STOCKABLE.
-- Variant is optional and represents an operationally meaningful Product-specific trade/stock identity.
-- Base UOM is the authoritative quantity normalization basis.
-- alternate Product-UOM conversions are positive decimal and historically snapshotted.
-- barcode lookup must resolve unambiguously to one active Product/Variant/UOM/package mapping.
-- GS1 GTIN is treated as an external trade-item identifier; materially different trade items require distinct GTIN under current GS1 rules.
-- Product/Warehouse/Location mutable stock totals are not authoritative.
-- Inventory Ledger is authoritative physical quantity truth.
-- Reservation is non-physical and is not a physical RESERVED status.
-- Location and physical inventory status/disposition are separate dimensions.
-- physical dispositions frozen for current planning are AVAILABLE, QUARANTINE, QUALITY_HOLD, REWORK, DAMAGED and TRANSIT.
-- on-hand, available physical, reserved and available-to-reserve are separate derived quantities.
-- tracking strategies are NONE / LOT / SERIAL / LOT_SERIAL.
-- lot quantity and serial current position derive from posted Inventory Ledger history.
-- expired lot is not normal AVAILABLE-to-pick; FEFO is the default recommendation where expiry tracking applies.
-- live Product/Variant/UOM/barcode changes never rewrite historical document snapshots.
-- Product master does not own authoritative inventory valuation/current cost/COGS truth; Finance/Costing owns valuation policy.
-- cross-company Product sharing is not introduced.
+- Purchase Order is commitment only: no STOCK, payable or CASH/BANK effect.
+- conditional Purchasing approval applies to commercial/tolerance exceptions; creator != approver.
+- partial/short Goods Receipt is allowed.
+- over-receipt default BLOCK; configured tolerance use requires exception approval.
+- stockable Goods Receipt POST is physical STOCK IN and enters QUARANTINE.
+- AVAILABLE release is a separate QC/disposition effect.
+- Goods Receipt alone creates no supplier payable.
+- Supplier Invoice POST creates payable and STOCK = NONE in every source mode.
+- STOCKABLE goods require posted Receipt + 3-way match before normal Supplier Invoice POST.
+- SERVICE/NON-STOCK PO invoice uses 2-way match.
+- direct/source-less Supplier Invoice is controlled financial-only SERVICE/NON-STOCK flow and requires approval.
+- over-invoice default BLOCK.
+- price variance default tolerance is zero; configured non-zero accepted variance requires approval.
+- KDV/discount/rounding and FX follow the frozen Mars project central convention.
+- Payment is Finance-owned and Purchasing does not own settlement/allocation.
+- Purchase Return physical STOCK OUT and financial supplier adjustment are separate linked effects.
+- posted PO/Receipt/Invoice history is never silently rewritten.
 
-## Preserved upstream dependencies
+## V38 reference used
 
-Sales:
-- Reservation remains manual/non-physical.
-- Dispatch POST is physical Sales STOCK OUT.
-- Sales Invoice does not post stock.
-- Product/UOM snapshots remain immutable.
+Repository HTML showed:
+- Satınalma Siparişleri
+- Mal Kabul
+- Alış Faturaları
+- 3-Way Match
+- Alış İadeleri
+- Tedarikçi Performansı
 
-Party:
-- Supplier and Customer are Party roles.
-- Product/Purchasing must not duplicate Party identity truth.
+and explicit notes:
+- over-receipt/over-invoice default BLOCK with explicit tolerance policy/approval;
+- physical receipt posts to quarantine, usable release after QC/disposition.
 
-## Explicit non-blocking delegations
-
-- exact Product/SKU numbering format → Settings/Numbering.
-- exact quantity decimal scale → UOM/P3, constrained to decimal deterministic semantics.
-- negative-inventory exception policy → PLAN-006 Warehouse.
-- safety stock/reorder/ATP/MRP → later planning.
-- inventory valuation/cost method → Finance/Costing.
-- FEFO override/tolerance → PLAN-006 Warehouse.
-- receiving tolerance → PLAN-005 Purchasing.
-- provider-specific product sync → Commerce/integration.
+No external web research was required for PLAN-005.
 
 ## Next safe work package
 
-PLAN-005 — Purchasing workflow contract
+PLAN-006 — Warehouse operational contract
 
 Target:
-`docs/plan/07-satinalma/`
+`docs/plan/06-ambar-depo/`
 
-PLAN-005 is READY but content work has not started in this handoff.
+PLAN-006 is READY but content work has not started.
 
 Before work:
 - verify real main HEAD;
 - read governance/master/state/handoff;
-- read frozen Sales, Party and Product/Inventory contracts;
-- inspect current 07-satinalma files;
-- route skills through skill-router;
+- read frozen Sales, Party, Product/Inventory and Purchasing contracts;
+- inspect current Warehouse planning files;
+- route skills;
+- use repository V38 HTML as the default product reference;
 - produce CONTEXT RECEIPT.
 
-Do not jump to Warehouse implementation, logical SQL schema, application code or Full Test Day.
+Do not jump to Finance implementation, logical SQL schema, application code or Full Test Day.
