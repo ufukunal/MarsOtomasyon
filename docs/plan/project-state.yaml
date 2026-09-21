@@ -9,7 +9,7 @@ project:
 repository_state:
   target_branch: main
   current_head: VERIFY_AT_RUNTIME
-  last_verified_planning_head: 52628746f484919f370feae5cf7be3ab6c87d8ef
+  last_verified_planning_head: 96c1855f200512d50009d1499aeaf7e4f96d88bb
   branches_allowed:
     - main
   branch_creation_forbidden: true
@@ -71,17 +71,18 @@ test_policy:
   heavy_tests: FULL_TEST_DAY_ONLY
 
 active_task:
-  id: PLAN-004
-  title: Detail Product / Inventory master model
+  id: PLAN-005
+  title: Detail Purchasing workflow contract
   status: ready
   file: docs/plan/active-task.yaml
-  progress: ready_after_party_plan_freeze
+  progress: ready_after_product_inventory_plan_freeze
 
 completed_planning_tasks:
   - PLAN-001
   - FRAMEWORK-001
   - PLAN-002
   - PLAN-003
+  - PLAN-004
 
 locked_decisions:
   - Only main branch is allowed.
@@ -127,6 +128,18 @@ locked_decisions:
   - Party merge is logical/audited with survivor/source lineage; merged history is retained.
   - INACTIVE and MERGED Parties are unavailable for new selection by default while history remains readable.
   - Party is company-scoped; silent cross-company Party sharing is forbidden.
+  - Product is the company-scoped authoritative live item/service master; silent cross-company Product sharing is forbidden.
+  - Product kind is GOODS or SERVICE; capabilities SELLABLE/PURCHASABLE/STOCKABLE are explicit and SERVICE cannot be STOCKABLE.
+  - Variant is optional and represents an operationally meaningful Product-specific trade/stock identity.
+  - Product Base UOM is the quantity normalization basis; alternate UOM conversions are positive decimal and historically snapshotted.
+  - Active barcode mappings must resolve unambiguously to one Product/Variant/UOM trade identity; GS1 GTIN remains an external trade-item identifier.
+  - Inventory Ledger is authoritative physical stock truth; Product/Warehouse/Location mutable stock totals are not authoritative.
+  - Reservation remains a separate non-physical commitment; RESERVED is not a physical stock disposition.
+  - Inventory Location and physical disposition/status are separate dimensions.
+  - Physical statuses currently frozen are AVAILABLE, QUARANTINE, QUALITY_HOLD, REWORK, DAMAGED and TRANSIT.
+  - Product tracking strategies are NONE, LOT, SERIAL and LOT_SERIAL; lot/serial quantity/position derives from posted Inventory Ledger history.
+  - Live Product/Variant/UOM/barcode changes never rewrite frozen commercial or inventory document snapshots.
+  - Product master does not own authoritative inventory valuation/current cost/COGS truth; Finance/Costing owns valuation policy.
 
 framework_decision_gates:
   - exact .NET SDK/runtime version
@@ -186,13 +199,14 @@ known_constraints:
   - Runner VM and test server are separate machines; never conflate runner-local results with test-server results.
   - PLAN-002 Sales planning is frozen; Sales implementation/DB work must still follow the master sequence and P3/P4 gates.
   - PLAN-003 Party / Customer / Supplier planning is frozen.
-  - PLAN-004 Product / Inventory master planning is the next ready work package.
+  - PLAN-004 Product / Inventory master planning is frozen.
+  - PLAN-005 Purchasing workflow planning is the next ready work package.
 
 blocked_items: []
 next_action:
-  id: PLAN-004
-  title: Detail Product / Inventory master model
-  target: docs/plan/04-urun-stok/
+  id: PLAN-005
+  title: Detail Purchasing workflow contract
+  target: docs/plan/07-satinalma/
 
 state_rules:
   - current_head must be verified from Git at every session start; embedded SHA is never authoritative.
