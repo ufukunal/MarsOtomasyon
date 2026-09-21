@@ -1,16 +1,21 @@
-id: PLAN-002
-title: Detail Sales domain workflows before database schema
-module: 05-satis
-status: blocked
-progress: core_contracts_documented_owner_decisions_required
+id: PLAN-003
+title: Detail Party / Customer / Supplier model
+module: 03-cariler
+status: ready
+progress: not_started
+
+predecessor:
+  id: PLAN-002
+  status: completed_frozen
+  evidence_commit: a5f56208b44847cf74feba43934f6d25412e93ad
+  sales_plan: docs/plan/05-satis/
 
 goal:
-  Freeze the Sales workflow contract before any Sales database schema or application
-  implementation is designed.
+  Freeze the Party / Customer / Supplier domain model and workflows before logical database design or application implementation.
 
 scope:
   allowed_paths:
-    - docs/plan/05-satis/
+    - docs/plan/03-cariler/
     - docs/plan/project-state.yaml
     - docs/plan/active-task.yaml
     - docs/plan/handoff/current.md
@@ -24,76 +29,25 @@ scope:
   ui_implementation: false
   integration_implementation: false
 
-planning_outputs:
-  - docs/plan/05-satis/README.md
-  - docs/plan/05-satis/plan.md
-  - docs/plan/05-satis/workflows.md
-  - docs/plan/05-satis/forms.md
-  - docs/plan/05-satis/data-contract.md
-  - docs/plan/05-satis/permissions.md
-  - docs/plan/05-satis/integrations.md
-  - docs/plan/05-satis/reports.md
-  - docs/plan/05-satis/acceptance-criteria.md
-  - docs/plan/05-satis/full-test-day.md
+required_start:
+  - verify current main HEAD
+  - read docs/plan/ai-cmd.md
+  - read docs/ai/skill-router.md
+  - read docs/plan/master-project-plan.md
+  - read frozen Sales contracts under docs/plan/05-satis/
+  - inspect existing docs/plan/03-cariler/ before planning
+  - route exact primary/reviewer skills before changing files
 
-active_skills:
-  primary:
-    - erp-domain-specialist
-    - accounting-finance-specialist
-  reviewers:
-    - mba-business-manager
-    - warehouse-operations-shipping-specialist
-    - database-architect
-    - software-architect
-    - software-test-engineer
-    - ux-ui-specialist
-
-locked_contracts:
-  - Quote does not post reservation, stock, account or cash/bank effects.
-  - Sales Order is commercial demand and is not physical stock-out or receivable posting.
-  - Reservation is a non-physical commitment linked to Sales Order lines.
-  - Dispatch POST/finalization is the normal physical stock-out point.
-  - Dispatch consumes/releases related reservation quantity.
-  - Sales Invoice POST/finalization creates customer receivable.
-  - Dispatch-sourced invoice cannot post stock a second time.
-  - Collection is a separate Finance event.
-  - Physical return and financial credit/refund are separate.
-  - Partial shipment/invoicing use line-level source-target traceability.
-  - Posted history is reversed/compensated, never silently overwritten.
-
-blocked_by:
-  - SALES-B001: Collection allocation model
-  - SALES-B002: Source-less/direct Sales Invoice stock behavior
-  - SALES-B003: Quote full vs partial conversion
-  - SALES-B004: Reservation trigger policy
-  - SALES-B005: Cost/COGS recognition point
-  - SALES-B006: Sales tax/discount/rounding/FX calculation policy
-  - SALES-B007: Quote/Order approval policy and thresholds
-  - SALES-B008: Confirmed-order amendment policy
-
-acceptance_status:
-  contracts_documented: true
-  state_machines_documented: true
-  effect_matrix_documented: true
-  quantity_contract_documented: true
-  v38_mapping_documented: true
-  full_test_day_backlog_documented: true
-  owner_decisions_resolved: false
-  plan_frozen: false
-
-quick_tests:
-  - verify required Sales planning files exist on main
-  - verify all workflow objects appear in effect matrix
-  - verify no dispatch-sourced invoice double stock posting path
-  - verify quantity and source-target link contracts exist
-  - verify owner-decision blockers are explicit
-  - verify no SQL/application implementation was created
+known_dependency_from_sales:
+  - Party/customer identity must support immutable historical snapshots in Quote, Order and Invoice.
+  - Customer account balance remains Finance-ledger-derived; no mutable customer balance authority.
+  - Sales Collection is balance-only, not Invoice allocation.
+  - Sales approval may consume authoritative customer/policy risk signals when later defined, but PLAN-003 must not invent Finance policy.
 
 next_action:
-  id: PLAN-002-DECISIONS
-  title: Resolve SALES-B001 through SALES-B008 with explicit owner decisions
-
-next_action_after_completion:
   id: PLAN-003
   title: Detail Party / Customer / Supplier model
-  target: docs/plan/03-cariler/
+
+test_policy:
+  heavy_tests: FULL_TEST_DAY_ONLY
+  normal_session: documentation consistency checks only
