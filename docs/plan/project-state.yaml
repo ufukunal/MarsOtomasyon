@@ -20,7 +20,7 @@ repository_state:
 current_phase:
   id: P3
   name: Logical Database Model
-  status: ready
+  status: completed
 
 planning_progress:
   counting_basis: master-project-plan section 8; completed/frozen work packages only
@@ -38,7 +38,7 @@ phase_status:
   P0_governance_planning_backbone: completed
   P1_foundation_framework_contract: completed
   P2_core_commercial_workflows: completed
-  P3_database_logical_model: ready
+  P3_database_logical_model: completed
   P4_foundation_implementation: not_started
   P5_core_application_implementation: not_started
   P6_operations: not_started
@@ -85,9 +85,9 @@ test_policy:
 active_task:
   id: PLAN-010
   title: Logical database model
-  status: ready
+  status: completed_frozen
   file: docs/plan/active-task.yaml
-  progress: ready_after_p2_freeze
+  progress: completed
 
 completed_planning_tasks:
   - PLAN-001
@@ -100,6 +100,7 @@ completed_planning_tasks:
   - PLAN-007
   - PLAN-008
   - PLAN-009
+  - PLAN-010
 
 locked_decisions:
   - Only main branch is allowed.
@@ -275,13 +276,27 @@ known_constraints:
   - Supplier return shipment posts STOCK OUT; supplier financial adjustment/refund is separate.
   - Source-linked return is normal; source-less return is an approved exception with no fabricated source.
   - Returns preserves source/lot/serial/UOM lineage; Inventory and Finance remain authoritative.
-  - P2 Core Commercial Workflow Planning is complete; logical database planning is now dependency-eligible.
+  - P2 Core Commercial Workflow Planning is complete.
+  - PLAN-010 Logical Database Model is COMPLETED / FROZEN.
+  - Logical DB uses bounded-context document ownership rather than one nullable universal document table.
+  - Inventory, Account, Cash, Bank and Inventory Valuation remain separate authoritative ledger families.
+  - Source-target quantity/value relations are normalized and exact; projections never become authority.
+  - Durable idempotency/concurrency correctness is PostgreSQL-owned; Valkey is not sufficient authority.
 
-blocked_items: []
+blocked_items:
+  - Post-P3 execution order is contradictory in repository planning sources: master phase map points to P4 Foundation implementation, master section 8 points to Quality as conceptual item 10, while tasks/backlog names PLAN-011 Commerce. Next task ID/order must be normalized before execution.
 next_action:
-  id: PLAN-010
-  title: Logical database model
-  target: docs/db/
+  status: BLOCKED_BY_PLANNING_ORDER_CONFLICT
+  candidates:
+    - source: master-project-plan phase map
+      task: P4 Foundation implementation
+    - source: master-project-plan section 8
+      task: Quality
+      target: docs/plan/08-kalite/
+    - source: tasks/backlog.md
+      task: PLAN-011 Commerce/B2B/Architect/Marketplace planning
+      target: docs/plan/15-e-ticaret-b2b-api/
+  required_action: normalize repository-defined post-P3 execution order before starting the next work package
 
 state_rules:
   - current_head must be verified from Git at every session start; embedded SHA is never authoritative.
