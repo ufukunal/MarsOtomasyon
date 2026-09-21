@@ -305,3 +305,41 @@ Not implemented:
 - no TypeScript/UI
 - no deployment
 - Full Test Day pending
+
+
+## PLAN-008 — Checks / Promissory Notes workflow contract
+**Status:** COMPLETED / FROZEN (PLANNING ONLY)
+
+Frozen:
+- incoming receipt CUSTOMER CREDIT + Finance instrument receivable; Cash/Bank only at actual settlement;
+- outgoing delivery SUPPLIER DEBIT + Finance instrument payable; Cash/Bank only at actual clearing;
+- custody and financial state separation;
+- bank handoff custody-only;
+- whole-remaining endorsement to eligible Supplier; partial endorsement forbidden in core;
+- partial collection/payment with cumulative cap;
+- bounce/protest/return and reversal compensation;
+- immutable nominal amount/currency and snapshots;
+- no Invoice allocation/open-item, no duplicate Account/Cash/Bank truth, no STOCK effect;
+- permissions/SoD/company scope, FX and concurrency/idempotency boundaries.
+
+Planning outputs:
+- `docs/plan/10-cek-senet/README.md`
+- `docs/plan/10-cek-senet/plan.md`
+- `docs/plan/10-cek-senet/workflows.md`
+- `docs/plan/10-cek-senet/forms.md`
+- `docs/plan/10-cek-senet/data-contract.md`
+- `docs/plan/10-cek-senet/permissions.md`
+- `docs/plan/10-cek-senet/integrations.md`
+- `docs/plan/10-cek-senet/reports.md`
+- `docs/plan/10-cek-senet/acceptance-criteria.md`
+- `docs/plan/10-cek-senet/full-test-day.md`
+
+Planning progress after completion:
+- master sequence: 8 / 30 = 26.7%
+- P2 core commercial: 7 / 8 = 87.5%
+
+Not implemented:
+- no SQL/migration
+- no C#/API/TypeScript
+- no deployment
+- Full Test Day pending
