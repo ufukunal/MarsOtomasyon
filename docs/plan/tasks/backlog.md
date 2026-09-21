@@ -1,39 +1,39 @@
 # Planning Backlog
 
-## PLAN-010 — Logical database model
-Target: docs/db/
+## POST-P3 ORDER NORMALIZATION
+Status: BLOCKED / NEXT GOVERNANCE ACTION.
 
-Status: READY / NEXT.
+PLAN-010 Logical Database Model is COMPLETED / FROZEN.
 
-P2 workflow dependency is satisfied after PLAN-009 freeze.
+Repository conflict to resolve:
+- master phase map says P4 Foundation implementation follows P3;
+- master section 8 says the next conceptual planning package is Quality;
+- prior backlog assigned PLAN-011 to Commerce.
 
-Produce:
-- domain dictionary v2;
-- entity catalog;
-- relationship model;
-- module/schema ownership;
-- commercial document strategy;
-- Inventory/Account/Cash/Bank ledger logical models;
-- Reservation;
-- historical snapshots;
-- projections/read models;
-- outbox/idempotency/audit;
-- key/public-id strategy;
-- logical constraints;
-- indexes from access patterns;
-- concurrency rules;
-- migration conventions.
+Do not start implementation or another module until the repository order is normalized.
 
-Planning progress:
-- master sequence: 9 / 30 = 30.0%
-- P2 core commercial: 8 / 8 = 100.0%
+## Quality — master sequence item 10
+Target: docs/plan/08-kalite/
+Status: REPOSITORY-DEFINED CANDIDATE / ID NOT NORMALIZED.
 
-No physical SQL/migration or application implementation in PLAN-010 unless explicitly authorized.
+The folder currently contains only .gitkeep.
+Master section 8 places Quality before Production, Subcontracting, Import/Container and Commerce.
+
+## P4 Foundation implementation
+Status: REPOSITORY-DEFINED CANDIDATE.
+Master phase map places P4 after P3.
+Implementation still requires accepted Framework decision gates to be checked before code.
 
 ## PLAN-011 — Commerce/B2B/Architect/Marketplace planning
 Target: docs/plan/15-e-ticaret-b2b-api/
+Status: DEFER UNTIL ORDER CONFLICT IS NORMALIZED.
 
 Provider capabilities must be verified before implementation.
 
 ## PLAN-012 — Full Test Day plan consolidation
-Collect heavy scenarios from all modules. Do not execute until explicitly requested.
+Status: DEFERRED BY POLICY.
+Collect heavy scenarios only; do not execute until explicitly requested.
+
+Exact section-8 planning progress:
+- master: 9 / 30 = 30.0%
+- P2: 8 / 8 = 100.0%
