@@ -170,3 +170,46 @@ Not implemented:
 - no TypeScript/UI
 - no deployment
 - Full Test Day pending
+
+## PLAN-005 — Purchasing workflow contract
+**Status:** COMPLETED / FROZEN (PLANNING ONLY)
+
+Frozen:
+- Purchase Order commitment only; no stock/payable.
+- conditional exception-based approval with creator != approver.
+- partial/short Goods Receipt.
+- default-block over-receipt with explicit tolerance policy/approval.
+- stockable Goods Receipt POST → STOCK IN → QUARANTINE.
+- separate QC/disposition release to AVAILABLE.
+- Goods Receipt no supplier payable.
+- Supplier Invoice POST → payable; STOCK = NONE.
+- stockable 3-way PO/Receipt/Invoice match.
+- service/non-stock 2-way match.
+- controlled direct service/non-stock financial-only invoice.
+- default-block over-invoice and zero-default price variance tolerance.
+- Purchasing calculation/FX aligned with frozen Mars central policy.
+- Finance-owned Payment/settlement.
+- physical Purchase Return vs financial supplier adjustment separation.
+- immutable posted history/reversal model.
+
+Planning outputs:
+- `docs/plan/07-satinalma/README.md`
+- `docs/plan/07-satinalma/plan.md`
+- `docs/plan/07-satinalma/workflows.md`
+- `docs/plan/07-satinalma/forms.md`
+- `docs/plan/07-satinalma/data-contract.md`
+- `docs/plan/07-satinalma/permissions.md`
+- `docs/plan/07-satinalma/integrations.md`
+- `docs/plan/07-satinalma/reports.md`
+- `docs/plan/07-satinalma/acceptance-criteria.md`
+- `docs/plan/07-satinalma/full-test-day.md`
+
+Acceptance evidence:
+- `a8ef551310d910bcc38c8a383f2a5d86839621d1`
+
+Not implemented:
+- no SQL/migration
+- no C#/API
+- no TypeScript/UI
+- no deployment
+- Full Test Day pending
