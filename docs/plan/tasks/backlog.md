@@ -1,20 +1,20 @@
 # Planning Backlog
 
-## Immediate — FW-IMP-001 repository solution skeleton
+## Immediate — FW-IMP-002 configuration/context/error primitives
 Status: READY.
 
-Prerequisites:
-- .NET 10 LTS — ACCEPTED (`ADR-0001`)
-- EF Core 10 + Npgsql — ACCEPTED (`ADR-0002`)
+Predecessor:
+- FW-IMP-001 repository solution skeleton — COMPLETED.
 
 Scope:
-- create solution/projects/directories;
-- lock dependency direction;
-- minimal build.
+- typed configuration/startup validation primitives;
+- correlation context primitive;
+- actor/company context interfaces;
+- result/error contracts;
+- targeted tests.
 
 ## Subsequent Foundation implementation sequence
 Repository-defined sequence in `docs/plan/01-foundation/framework-plan.md`:
-- FW-IMP-002 — configuration/context/error primitives
 - FW-IMP-003 — persistence/migration baseline
 - FW-IMP-004 — audit/idempotency/outbox foundations
 - FW-IMP-005 — API foundation
