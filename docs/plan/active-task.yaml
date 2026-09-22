@@ -1,13 +1,13 @@
 id: P4
 title: Foundation implementation readiness / decision-gate resolution
 module: foundation
-status: ready_for_governance_decisions
-progress: not_started
+status: blocked_on_owner_decisions
+progress: gate_classification_complete
 
 phase:
   id: P4
   name: Foundation implementation
-  status: readiness_decision_gates
+  status: blocked_on_owner_decisions
 
 predecessor:
   id: PLAN-010
@@ -15,39 +15,34 @@ predecessor:
   status: completed_frozen
   phase: P3
 
-goal:
-  Resolve only the Foundation technology decisions required to safely begin the first P4 implementation slice. Do not implement code in this readiness task.
+classification_source:
+  - docs/plan/01-foundation/p4-readiness-decision-gates.md
 
-authoritative_order_resolution:
-  next_execution_phase: P4
-  reasoning:
-    - master-project-plan phase map explicitly orders P3 -> P4 -> P5 -> P6 -> P7
-    - master-project-plan section 8 is the full module planning sequence and does not override phase execution order
-    - Quality is section-8 item 10 but operational execution belongs P6
-    - Commerce belongs P7; prior immediate PLAN-011 Commerce backlog entry was stale
-  task_numbering:
-    - do not invent a new PLAN number for this readiness work
-    - use existing phase ID P4 until repository assigns an implementation work-package ID
+required_now:
+  - gate: exact .NET SDK/runtime version
+    owner_decision: required
+    technical_recommendation: .NET 10 LTS
+  - gate: exact ORM/data-access strategy
+    owner_decision: required
+    technical_recommendation: EF Core 10 + Npgsql as default persistence/migration baseline; targeted raw SQL only for explicit measured/specialized need
 
-required_readiness_work:
-  - review Foundation decision gates in docs/plan/01-foundation/framework-plan.md and master-project-plan.md
-  - classify each gate as required for first P4 thin slice vs safely deferrable
-  - obtain and record explicit owner decisions for required-now gates
-  - update Foundation contract and ADR/state only after decisions are explicit
-  - only then prepare a separate implementation task
-
-known_decision_gates:
-  - exact .NET SDK/runtime version
-  - exact ORM/data-access library
+deferrable:
   - exact auth/identity provider
   - exact OpenAPI tooling
-  - exact logging/metrics stack
+  - exact structured logging/metrics stack
   - exact object/file storage backend
+  - optional scheduling library
+
+not_required_for_p4_first_slice:
   - exact Desktop shell technology
   - exact Mobile shell technology
-  - optional scheduling library
   - production secret store
   - production reverse proxy/tunnel details
+
+readiness:
+  implementation: blocked
+  blocker_count: 2
+  rule: do not create implementation task or accepted ADR until owner explicitly resolves both required-now choices
 
 scope:
   allowed_paths:
@@ -57,28 +52,30 @@ scope:
     - docs/plan/active-task.yaml
     - docs/plan/handoff/current.md
     - docs/plan/tasks/
-    - docs/plan/roadmap.md
   forbidden_paths:
     - src/
     - tests/
-  physical_sql_implementation: false
-  migration_implementation: false
-  api_implementation: false
-  ui_implementation: false
+  code: false
+  sql: false
+  migration: false
   deployment: false
 
 planning_progress:
-  counting_basis: master-project-plan section 8; completed/frozen section-8 packages only
   master_sequence:
     completed: 9
     total: 30
     percent: 30.0
-    note: Quality is section-8 item 10; P4 readiness/implementation does not increment this planning metric.
   p2_core_commercial:
     completed: 8
     total: 8
     percent: 100.0
 
+next_action:
+  type: owner_decision
+  required:
+    - choose exact .NET SDK/runtime baseline
+    - choose exact ORM/data-access baseline
+
 test_policy:
   heavy_tests: FULL_TEST_DAY_ONLY
-  readiness_session: documentation/decision consistency checks only
+  current_session: documentation/decision consistency only
