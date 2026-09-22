@@ -20,7 +20,7 @@ repository_state:
 current_phase:
   id: P4
   name: Foundation implementation
-  status: blocked_on_owner_decisions
+  status: ready_for_implementation
 
 planning_progress:
   counting_basis: master-project-plan section 8; completed/frozen work packages only
@@ -39,7 +39,7 @@ phase_status:
   P1_foundation_framework_contract: completed
   P2_core_commercial_workflows: completed
   P3_database_logical_model: completed
-  P4_foundation_implementation: blocked_on_owner_decisions
+  P4_foundation_implementation: ready_for_implementation
   P5_core_application_implementation: not_started
   P6_operations: not_started
   P7_commerce_external_channels: not_started
@@ -83,11 +83,11 @@ test_policy:
   heavy_tests: FULL_TEST_DAY_ONLY
 
 active_task:
-  id: P4
-  title: Foundation implementation readiness / decision-gate resolution
-  status: blocked_on_owner_decisions
+  id: FW-IMP-001
+  title: repository solution skeleton
+  status: ready
   file: docs/plan/active-task.yaml
-  progress: gate_classification_complete
+  progress: not_started
 
 completed_planning_tasks:
   - PLAN-001
@@ -206,8 +206,8 @@ locked_decisions:
   - Finance owns customer credit limit/risk/hold signal; Sales consumes but does not author it.
 
 framework_decision_gates:
-  - exact .NET SDK/runtime version
-  - exact ORM/data-access library
+  - exact .NET SDK/runtime version — RESOLVED: .NET 10 LTS via ADR-0001
+  - exact ORM/data-access library — RESOLVED: EF Core 10 + Npgsql via ADR-0002
   - exact auth/identity provider
   - exact OpenAPI tooling
   - exact logging/metrics stack
@@ -288,21 +288,25 @@ known_constraints:
   - Durable idempotency/concurrency correctness is PostgreSQL-owned; Valkey is not sufficient authority.
 
 blocked_items:
-  - Owner decision required: exact .NET SDK/runtime baseline for P4 first thin slice.
-  - Owner decision required: exact ORM/data-access baseline for P4 first thin slice.
+  - None for FW-IMP-001 readiness. Deferred Foundation technology gates remain gated at their relevant later implementation steps.
 
 next_action:
-  id: P4
-  title: Resolve two required Foundation technology choices
+  id: FW-IMP-001
+  title: repository solution skeleton
   phase: P4
-  status: BLOCKED_ON_OWNER_DECISIONS
-  source: docs/plan/01-foundation/p4-readiness-decision-gates.md
-  required_owner_decisions:
-    - exact .NET SDK/runtime baseline
-    - exact ORM/data-access baseline
+  status: READY
+  source: docs/plan/01-foundation/framework-plan.md
+  accepted_decisions:
+    - docs/plan/decisions/ADR-0001-dotnet-10-lts-baseline.md
+    - docs/plan/decisions/ADR-0002-ef-core-npgsql-baseline.md
+  scope_intent:
+    - create solution/projects/directories
+    - lock dependency direction in project references
+    - establish .NET 10 SDK/runtime baseline
+    - minimal build only
   restrictions:
-    - no Foundation implementation until both choices are explicit
-    - do not create ADRs claiming acceptance before owner decision
+    - no domain schema or business workflow implementation
+    - no Quality or Commerce planning
     - exact master planning metric remains 9 / 30 = 30.0
 
 state_rules:
