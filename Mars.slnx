@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Mars.Domain/Mars.Domain.csproj" />
+    <Project Path="src/Mars.Contracts/Mars.Contracts.csproj" />
+    <Project Path="src/Mars.Application/Mars.Application.csproj" />
+    <Project Path="src/Mars.Infrastructure/Mars.Infrastructure.csproj" />
+    <Project Path="src/Mars.Api/Mars.Api.csproj" />
+    <Project Path="src/Mars.Worker/Mars.Worker.csproj" />
+    <Project Path="src/Mars.Device/Mars.Device.csproj" />
+  </Folder>
+</Solution>

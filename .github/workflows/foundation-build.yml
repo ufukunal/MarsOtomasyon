@@ -1,0 +1,46 @@
+name: Foundation Build
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "Mars.slnx"
+      - "Directory.Build.props"
+      - ".gitignore"
+      - "src/**"
+      - ".github/workflows/foundation-build.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: dotnet-10-skeleton
+    runs-on: self-hosted
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Verify SDK
+        run: dotnet --info
+
+      - name: Restore
+        run: dotnet restore Mars.slnx
+
+      - name: Build
+        run: dotnet build Mars.slnx --configuration Release --no-restore
+
+      - name: Project references
+        shell: bash
+        run: |
+          set -euo pipefail
+          dotnet list src/Mars.Application/Mars.Application.csproj reference
+          dotnet list src/Mars.Infrastructure/Mars.Infrastructure.csproj reference
+          dotnet list src/Mars.Api/Mars.Api.csproj reference
+          dotnet list src/Mars.Worker/Mars.Worker.csproj reference
