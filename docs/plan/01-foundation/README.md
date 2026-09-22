@@ -54,7 +54,9 @@ Readiness decisions are resolved:
 Implementation status:
 - `FW-IMP-001 — repository solution skeleton`: COMPLETED
 - `FW-IMP-002 — configuration/context/error primitives`: COMPLETED
+- `FW-IMP-003 — persistence/migration baseline`: COMPLETED
 - evidence:
   - `docs/plan/01-foundation/fw-imp-001-implementation.md`
   - `docs/plan/01-foundation/fw-imp-002-implementation.md`
-- next: `FW-IMP-003 — persistence/migration baseline`
+  - `docs/plan/01-foundation/fw-imp-003-implementation.md`
+- next: `FW-IMP-004 — audit/idempotency/outbox foundations`
