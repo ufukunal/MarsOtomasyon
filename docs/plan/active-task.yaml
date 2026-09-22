@@ -1,5 +1,5 @@
-id: FW-IMP-005
-title: API foundation implementation
+id: FW-IMP-006
+title: Mars.Web + Mars.UI foundation
 module: foundation
 status: ready
 progress: not_started
@@ -10,57 +10,76 @@ phase:
   status: implementation_in_progress
 
 predecessor:
-  id: FW-IMP-004
-  title: audit/idempotency/outbox foundations
+  id: FW-IMP-005
+  title: API foundation implementation
   status: completed
   evidence:
-    commit: 06109051f530dff60774dc43d369986b343f4158
-    workflow_run: 35713295141
+    implementation_commit: 22f31b087f887270bb43f4a39038d7c9a9e07b87
+    workflow_run: 35722169157
     build: success
-    targeted_tests: 19_passed
+    targeted_tests: 26_passed
     migration_contract: success
+    model_drift: success
+    api_smoke: success
+    openapi_generation: success
     project_references: success
     sdk: 10.0.401
     runtime: 10.0.12
+    canonical_report: docs/plan/01-foundation/fw-imp-005-implementation.md
 
 goal:
-  Implement the FW-IMP-005 API foundation using the accepted authentication/identity and OpenAPI baselines.
-
-accepted_decisions:
-  authentication_identity:
-    baseline: ASP.NET Core Identity (.NET 10) + OpenIddict 7.7.1 stable
-    adr: docs/plan/decisions/ADR-0003-identity-openiddict-baseline.md
-  openapi:
-    baseline: Microsoft.AspNetCore.OpenApi 10.0.12
-    adr: docs/plan/decisions/ADR-0004-aspnet-openapi-baseline.md
+  Implement the repository-defined Mars.Web + Mars.UI Foundation without introducing ERP business-screen semantics or selecting later platform/deployment technologies.
 
 source_basis:
-  - docs/plan/01-foundation/framework-plan.md section 42: auth integration after provider decision
-  - docs/plan/01-foundation/framework-plan.md section 42: OpenAPI after tooling decision
-  - docs/plan/01-foundation/framework-plan.md section 44: block implementation at the relevant step until resolved
+  - docs/plan/01-foundation/framework-plan.md section 42: FW-IMP-006 Mars.Web + Mars.UI foundation
+  - docs/plan/master-project-plan.md frontend architecture baseline
+  - docs/reference/ui/marsotomasyon_ui_v38_cari_bakiye_sadelestirildi.html as product/UI reference, not production architecture
+
+accepted_baseline:
+  frontend:
+    - HTML + CSS + TypeScript + ES Modules + Vite
+    - Mars.UI is the project-owned UI/component system
+    - no React, Vue, Angular, Bootstrap, Tailwind or jQuery in core frontend
+  api:
+    - /api/v1 remains the server contract baseline
+    - OpenAPI generator remains Microsoft.AspNetCore.OpenApi 10.0.12
+  authentication:
+    - web prefers secure HttpOnly cookie/session semantics where appropriate
+    - no localStorage token baseline
+    - ERP permission/company/branch semantics remain server-side and Mars-owned
 
 scope:
   include:
-    - middleware/pipeline
-    - ASP.NET Core Identity + OpenIddict integration
-    - deterministic error mapping
-    - Microsoft.AspNetCore.OpenApi integration
-    - health/readiness
-    - targeted tests
+    - create Mars.Web Foundation project/tooling as required
+    - Vite + TypeScript baseline
+    - web shell
+    - client-side router boundary
+    - API client boundary
+    - design-token baseline
+    - Mars.UI Button baseline
+    - Mars.UI Field baseline
+    - Mars.UI Dialog baseline
+    - Mars.UI Tabs baseline
+    - Mars.UI Lookup baseline
+    - Mars.UI Grid baseline
+    - targeted build/component/static verification
   exclude:
-    - unrelated Foundation technology gates
-    - domain module schema or business rules
-    - Mars.Web/Mars.UI implementation
-    - deployment
+    - ERP business screens or business rules
+    - Sales/Party/Product/etc. workflow implementation
+    - Desktop shell technology selection
+    - Mobile shell technology selection
+    - production deployment
+    - Docker/test deployment baseline
+    - production secret store
+    - production reverse proxy/tunnel details
+    - unrelated logging/metrics, file-storage or scheduling decisions
 
-non_blocking_deferred_gates:
-  - structured logging/metrics stack
-  - object/file storage backend
-  - optional scheduling library
-  - Desktop shell technology
-  - Mobile shell technology
-  - production secret store
-  - production reverse proxy/tunnel details
+decision_gate_review:
+  fw_imp_006_specific_blocker: none_identified
+  note:
+    - Desktop/Mobile shell technology remains a later P10 decision and must not be selected here.
+    - Deployment and production ingress decisions remain later work.
+    - If implementation exposes a genuinely new FW-IMP-006-specific owner decision, mark only that narrow point BLOCKED instead of guessing.
 
 planning_progress:
   master_sequence:
@@ -73,8 +92,8 @@ planning_progress:
     percent: 100.0
 
 test_policy:
-  decision_session_only:
-    - documentation consistency
-    - ADR consistency if decisions are accepted
-    - state/handoff consistency
+  normal_development:
+    - frontend build
+    - targeted component/static checks
+    - small smoke only where justified
   heavy_tests: FULL_TEST_DAY_ONLY
