@@ -1,7 +1,7 @@
 # Planning Backlog
 
-## Immediate — FW-IMP-005 API foundation technology decision-gate resolution
-Status: BLOCKED ON OWNER DECISIONS.
+## Immediate — FW-IMP-005 API foundation implementation
+Status: READY.
 
 Predecessors:
 - FW-IMP-001 repository solution skeleton — COMPLETED.
@@ -16,11 +16,9 @@ Repository-defined FW-IMP-005 package:
 - OpenAPI after tooling decision;
 - health/readiness.
 
-Two gates are now relevant and must be explicitly resolved before full FW-IMP-005 implementation:
-1. exact authentication/identity provider;
-2. exact OpenAPI tooling.
-
-Do not silently select either technology.
+Resolved technology gates:
+1. authentication/identity — ASP.NET Core Identity (.NET 10) + OpenIddict 7.7.1 stable via ADR-0003;
+2. OpenAPI — Microsoft.AspNetCore.OpenApi 10.0.12 via ADR-0004.
 
 Do not pull these still-deferred gates forward:
 - structured logging/metrics stack;
@@ -31,7 +29,7 @@ Do not pull these still-deferred gates forward:
 - production secret store;
 - production reverse proxy/tunnel details.
 
-After both FW-IMP-005 gates are accepted and recorded, FW-IMP-005 implementation may be activated.
+FW-IMP-005 implementation is activated as the immediate Foundation work package.
 
 ## Subsequent Foundation implementation sequence
 Repository-defined sequence in `docs/plan/01-foundation/framework-plan.md`:
