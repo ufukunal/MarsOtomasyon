@@ -11,42 +11,49 @@
 - P2 Core Commercial Workflow Planning: COMPLETED / FROZEN
 - P3 Logical Database Model: COMPLETED / FROZEN
 
+## Current phase
+P4 — Foundation implementation
+Status: BLOCKED ON TWO OWNER TECHNOLOGY DECISIONS
+
 ## Planning progress
-Counting basis: master-project-plan section 8; only COMPLETED / FROZEN section-8 packages count.
-- Master planning sequence: 9 / 30 = 30.0%
-- P2 core commercial planning: 8 / 8 = 100.0%
-- PLAN-010 Logical Database Model is complete but is not section-8 item 10, so it does not increment the 30-package metric.
+- Master section-8 sequence: 9 / 30 = 30.0%
+- P2 core commercial: 8 / 8 = 100.0%
+- P4 readiness does not increment the exact section-8 planning metric.
 
-## Post-P3 order resolution
-The execution-order conflict is resolved from the authoritative master plan structure:
+## Gate classification
+Canonical classification:
+- docs/plan/01-foundation/p4-readiness-decision-gates.md
 
-1. Section 7 is the delivery phase map and explicitly orders:
-   P3 Logical Database Model → P4 Foundation implementation → P5 Core application implementation → P6 Operations → P7 Commerce.
-2. Section 8 is explicitly the module planning sequence. Its item 10 is Quality and remains the next item that can increment the exact 30-package planning metric.
-3. Quality execution belongs to P6 Operations in the phase map; it is not a dependency that blocks entering P4.
-4. Commerce belongs P7 and therefore the prior immediate PLAN-011 Commerce backlog entry was stale for execution order.
-5. Directory numbering remains canonical where it differs from conceptual sequence; conceptual sequence number 10 does not imply task ID PLAN-010.
+REQUIRED NOW:
+1. exact .NET SDK/runtime version;
+2. exact ORM/data-access strategy.
 
-No completed historical task was renumbered.
+DEFERRABLE:
+- auth/identity provider;
+- OpenAPI tooling;
+- structured logging/metrics stack;
+- object/file storage backend;
+- optional scheduling library.
 
-## Next authoritative execution phase
-P4 — Foundation implementation.
+NOT REQUIRED FOR P4 FIRST SLICE:
+- Desktop shell technology;
+- Mobile shell technology;
+- production secret store;
+- production reverse proxy/tunnel details.
 
-## Immediate readiness gate
-Do not start Foundation code yet.
+## Technical recommendations awaiting owner acceptance
+- .NET 10 LTS for runtime/SDK baseline.
+- EF Core 10 + Npgsql for default PostgreSQL persistence/migrations; targeted raw Npgsql/SQL only for explicit specialized/measured need.
 
-The accepted Foundation/master contracts still list unresolved technology decision gates. The next safe work is:
-- review which decision gates are required for the first P4 thin framework slice;
-- obtain/record explicit owner decisions for required-now gates;
-- defer gates not needed by the first slice;
-- only after that create/activate an implementation work package.
+These are recommendations, not accepted project decisions.
 
-Use existing phase ID P4. Do not invent a new PLAN number merely to label readiness.
+## Owner decision required
+P4 implementation remains BLOCKED until the owner explicitly chooses:
+- runtime baseline;
+- persistence/ORM baseline.
 
-## Exact metric rule
-Until Quality (section-8 item 10) is genuinely COMPLETED / FROZEN:
-- master exact remains 9 / 30 = 30.0%.
+Do not create accepted ADRs or implementation code before both choices are explicit.
 
-Starting or completing P4 implementation does not itself count as completing section-8 Quality.
-
-No SQL, migration, C#/API/TypeScript, deployment or heavy tests were performed in the sequencing-normalization session.
+## Scope evidence
+Repository root currently has no src/ or tests/ implementation tree.
+No SQL, migration, C#/API/TypeScript, package installation, deployment or heavy test was performed during readiness classification.
