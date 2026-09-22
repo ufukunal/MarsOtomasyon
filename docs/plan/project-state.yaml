@@ -103,6 +103,8 @@ completed_planning_tasks:
   - PLAN-010
 
 locked_decisions:
+  - .NET 10 LTS is the accepted Foundation runtime/SDK baseline.
+  - EF Core 10 + Npgsql is the default PostgreSQL persistence/migration baseline; targeted raw Npgsql/SQL is exception-only.
   - Only main branch is allowed.
   - No PR-based development workflow.
   - PostgreSQL is the authoritative source of truth.
