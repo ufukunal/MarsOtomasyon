@@ -1,0 +1,39 @@
+:root {
+  color-scheme: light;
+
+  --mars-font-family: Inter, "Segoe UI", Arial, sans-serif;
+  --mars-font-size-xs: 0.6875rem;
+  --mars-font-size-sm: 0.75rem;
+  --mars-font-size-md: 0.8125rem;
+  --mars-font-size-lg: 0.9375rem;
+
+  --mars-space-1: 0.25rem;
+  --mars-space-2: 0.5rem;
+  --mars-space-3: 0.75rem;
+  --mars-space-4: 1rem;
+  --mars-space-5: 1.25rem;
+  --mars-space-6: 1.5rem;
+
+  --mars-radius-control: 0;
+  --mars-radius-surface: 0;
+
+  --mars-surface-page: #f2f5f7;
+  --mars-surface-default: #ffffff;
+  --mars-surface-muted: #f8fafb;
+  --mars-border-default: #d7e0e5;
+  --mars-border-subtle: #e9eef1;
+  --mars-text-default: #263741;
+  --mars-text-muted: #6f818b;
+  --mars-interactive: #1677a8;
+  --mars-interactive-hover: #0f648e;
+  --mars-danger: #dc4c44;
+  --mars-success: #0e9f6e;
+  --mars-warning: #d18a00;
+  --mars-focus: #2d8cff;
+  --mars-focus-ring: 0 0 0 3px rgba(45, 140, 255, 0.2);
+
+  --mars-control-height: 2.25rem;
+  --mars-grid-row-height: 2.25rem;
+  --mars-shell-side-width: 15.75rem;
+  --mars-shell-header-height: 3rem;
+}
