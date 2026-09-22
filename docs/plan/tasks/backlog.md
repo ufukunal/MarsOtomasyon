@@ -1,28 +1,25 @@
 # Planning Backlog
 
-## Immediate — FW-IMP-003 persistence/migration baseline
+## Immediate — FW-IMP-004 audit/idempotency/outbox foundations
 Status: READY.
 
 Predecessors:
 - FW-IMP-001 repository solution skeleton — COMPLETED.
 - FW-IMP-002 configuration/context/error primitives — COMPLETED.
-
-Accepted persistence baseline:
-- EF Core 10 + Npgsql.
-- targeted raw Npgsql/SQL is allowed only for explicitly justified specialized cases and must not become a second default persistence architecture.
+- FW-IMP-003 persistence/migration baseline — COMPLETED.
 
 Scope:
-- establish EF Core/Npgsql package and PostgreSQL persistence baseline;
-- create connection/migration mechanism;
-- preserve explicit migration/runtime privilege and transaction boundaries;
-- create only Foundation-owned persistence baseline structures where FW-IMP-003 requires them;
-- targeted persistence/migration contract tests.
+- Foundation audit persistence primitive;
+- durable PostgreSQL idempotency primitive;
+- transactional outbox persistence primitive;
+- application interfaces;
+- minimum worker/outbox processing skeleton;
+- targeted tests and migration checks.
 
-Do not pull domain module schema/mappings or FW-IMP-004 audit/idempotency/outbox implementation into this package.
+Do not pull domain module schema/business rules or FW-IMP-005 API/auth/OpenAPI work into this package.
 
 ## Subsequent Foundation implementation sequence
 Repository-defined sequence in `docs/plan/01-foundation/framework-plan.md`:
-- FW-IMP-004 — audit/idempotency/outbox foundations
 - FW-IMP-005 — API foundation
 - FW-IMP-006 — Mars.Web + Mars.UI foundation
 - FW-IMP-007 — Docker/test deployment baseline
