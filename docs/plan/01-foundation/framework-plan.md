@@ -906,3 +906,15 @@ BLOCK implementation at the relevant step until explicitly resolved:
 - production reverse proxy/tunnel details
 
 These do not block documentation of domain workflows unless that workflow directly depends on the missing choice.
+
+
+## P4 readiness status
+
+The current implementation-readiness classification is maintained in:
+`docs/plan/01-foundation/p4-readiness-decision-gates.md`
+
+Current status:
+- REQUIRED NOW: exact .NET SDK/runtime; exact ORM/data-access strategy.
+- other listed Foundation technology gates are deferrable or later-phase for the first thin slice.
+- no unresolved required technology is selected implicitly.
+- no Foundation implementation starts until the two required-now owner decisions are explicit.
