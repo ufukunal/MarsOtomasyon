@@ -429,3 +429,38 @@ Not implemented:
 - no C#/API/TypeScript
 - no deployment
 - Full Test Day pending
+
+
+## FW-IMP-001 — Repository solution skeleton
+**Status:** COMPLETED
+
+Implemented:
+- `Mars.slnx` using the .NET 10 SLNX solution format;
+- central `net10.0` target in `Directory.Build.props`;
+- `Mars.Domain`, `Mars.Contracts`, `Mars.Application`, `Mars.Infrastructure`, `Mars.Api`, `Mars.Worker`, `Mars.Device` project skeletons;
+- project references encoding the accepted dependency DAG;
+- targeted self-hosted Foundation build workflow.
+
+Dependency evidence:
+- Application -> Domain + Contracts
+- Infrastructure -> Domain + Application
+- Api -> Application + Contracts + Infrastructure
+- Worker -> Application + Infrastructure
+- Domain / Contracts / Device have no project references.
+
+Deliberately deferred:
+- Mars.Web to FW-IMP-006;
+- test projects until meaningful behavior exists;
+- EF Core/Npgsql packages, DbContext, SQL and migrations to FW-IMP-003;
+- API host behavior to later API Foundation work.
+
+Build evidence:
+- verified commit: `212022601c177ec6bc8e8438c6188e747cbee2c5`
+- workflow run: `35702737435`
+- .NET SDK: `10.0.401`
+- runtime: `10.0.12`
+- restore: PASS
+- Release build: PASS — 0 warnings, 0 errors
+- project-reference verification: PASS
+
+Full Test Day pending.
