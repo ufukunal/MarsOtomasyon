@@ -895,8 +895,8 @@ BLOCK implementation at the relevant step until explicitly resolved:
 
 - .NET SDK/runtime version — RESOLVED: .NET 10 LTS (`ADR-0001`)
 - ORM/data-access library — RESOLVED: EF Core 10 + Npgsql (`ADR-0002`)
-- auth/identity provider
-- OpenAPI tooling
+- auth/identity provider — RESOLVED: ASP.NET Core Identity + OpenIddict 7.7.1 (`ADR-0003`)
+- OpenAPI tooling — RESOLVED: Microsoft.AspNetCore.OpenApi 10.0.12 (`ADR-0004`)
 - logging/metrics stack
 - object/file storage backend
 - Desktop shell technology
@@ -923,7 +923,7 @@ Current status:
 - `FW-IMP-002 — configuration/context/error primitives` is COMPLETED.
 - `FW-IMP-003 — persistence/migration baseline` is COMPLETED.
 - `FW-IMP-004 — audit/idempotency/outbox foundations` is COMPLETED.
-- next repository-defined implementation package is `FW-IMP-005 — API foundation`, currently blocked on its auth/identity provider and OpenAPI tooling decision gates.
+- next repository-defined implementation package is `FW-IMP-005 — API foundation`; its relevant auth/identity and OpenAPI gates are resolved and implementation is READY.
 
 
 ## FW-IMP-001 implementation evidence
@@ -940,7 +940,7 @@ Verified:
 - no domain logic, persistence schema/migration, auth provider, OpenAPI tooling, UI implementation or deployment was introduced.
 
 Current next package:
-- `FW-IMP-005 — API foundation` (technology decision gates must close before implementation)
+- `FW-IMP-005 — API foundation implementation` (READY)
 
 
 ## FW-IMP-002 implementation evidence
@@ -1001,8 +1001,8 @@ Verified:
 Next repository-defined package:
 - `FW-IMP-005 — API foundation`.
 
-Relevant decision gates before full FW-IMP-005 implementation:
-- exact authentication/identity provider;
-- exact OpenAPI tooling.
+FW-IMP-005 technology decisions:
+- authentication/identity — ASP.NET Core Identity (.NET 10) + OpenIddict 7.7.1 stable via ADR-0003;
+- OpenAPI — Microsoft.AspNetCore.OpenApi 10.0.12 via ADR-0004.
 
-These two gates are now at their relevant implementation step and must not be guessed.
+Both are owner-approved and resolved. Provider/tool-specific details must remain behind Mars-owned authorization/API contract boundaries so a future infrastructure change can be handled by superseding ADRs rather than rewriting ERP semantics.
