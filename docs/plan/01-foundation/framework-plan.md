@@ -924,7 +924,8 @@ Current status:
 - `FW-IMP-003 — persistence/migration baseline` is COMPLETED.
 - `FW-IMP-004 — audit/idempotency/outbox foundations` is COMPLETED.
 - `FW-IMP-005 — API foundation` is COMPLETED.
-- next repository-defined implementation package is `FW-IMP-006 — Mars.Web + Mars.UI foundation`; implementation is READY.
+- `FW-IMP-006 — Mars.Web + Mars.UI foundation` is COMPLETED.
+- next repository-defined implementation package is `FW-IMP-007 — Docker/test deployment baseline`; implementation is READY after test-environment preflight verification.
 
 
 ## FW-IMP-001 implementation evidence
@@ -1033,7 +1034,38 @@ Final tested implementation:
 - commit `22f31b087f887270bb43f4a39038d7c9a9e07b87`;
 - GitHub Actions run `35722169157`.
 
-Current next package:
-- `FW-IMP-006 — Mars.Web + Mars.UI foundation` (READY).
+Historical handoff after FW-IMP-005:
+- `FW-IMP-006 — Mars.Web + Mars.UI foundation` (then READY; now COMPLETED).
 
-FW-IMP-006 uses the already planned Vite/TypeScript + Mars.UI web baseline. No FW-IMP-006-specific unresolved owner technology gate is currently identified. Desktop/Mobile shell technology remains later P10 work and deployment decisions remain later Foundation work.
+## FW-IMP-006 implementation evidence
+
+Status: COMPLETED
+
+Canonical evidence:
+- `docs/plan/01-foundation/fw-imp-006-implementation.md`
+
+Verified:
+- Mars.Web uses HTML/CSS/TypeScript/ES Modules/Vite without React/Vue/Angular/Bootstrap/Tailwind/jQuery;
+- package graph is locked and CI uses npm ci on Node 24 LTS;
+- application shell and Mars-owned History API router exist;
+- generic /api/v1 API client preserves same-origin cookie/session transport, deterministic errors, correlation id and cancellation;
+- semantic Mars.UI tokens exist;
+- Button/Field/Dialog/Tabs/Lookup/Grid baseline primitives exist;
+- no localStorage/sessionStorage token baseline or ERP business screen/rule was introduced;
+- V38 product character is adapted without copying single-file patch architecture;
+- 10 targeted frontend tests, TypeScript, production Vite build and static architecture checks passed;
+- existing .NET build/26 Foundation tests/migration/API/project-reference gates remain green.
+
+Final tested implementation:
+- commit `1264981655329099a086c7048c0890caf04dc9f2`;
+- GitHub Actions run `35729371845`.
+
+Current next package:
+- `FW-IMP-007 — Docker/test deployment baseline` (READY).
+
+FW-IMP-007 gate review:
+- production secret-store selection remains deferred;
+- production reverse-proxy/tunnel details remain deferred;
+- structured logging/metrics technology remains deferred;
+- test deployment must verify Docker/Compose, deployment/service layout and relevant test ingress/TLS facts before mutation;
+- test-environment choices must not be described as accepted production architecture.
