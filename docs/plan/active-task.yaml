@@ -1,5 +1,5 @@
-id: FW-IMP-006
-title: Mars.Web + Mars.UI foundation
+id: FW-IMP-007
+title: Docker/test deployment baseline
 module: foundation
 status: ready
 progress: not_started
@@ -10,76 +10,60 @@ phase:
   status: implementation_in_progress
 
 predecessor:
-  id: FW-IMP-005
-  title: API foundation implementation
+  id: FW-IMP-006
+  title: Mars.Web + Mars.UI foundation
   status: completed
   evidence:
-    implementation_commit: 22f31b087f887270bb43f4a39038d7c9a9e07b87
-    workflow_run: 35722169157
-    build: success
-    targeted_tests: 26_passed
-    migration_contract: success
-    model_drift: success
-    api_smoke: success
-    openapi_generation: success
-    project_references: success
-    sdk: 10.0.401
-    runtime: 10.0.12
-    canonical_report: docs/plan/01-foundation/fw-imp-005-implementation.md
+    implementation_commit: 1264981655329099a086c7048c0890caf04dc9f2
+    workflow_run: 35729371845
+    frontend_tests: 10_passed
+    frontend_typecheck: success
+    frontend_build: success
+    static_architecture_checks: success
+    dotnet_build: success
+    dotnet_targeted_tests: 26_passed
+    canonical_report: docs/plan/01-foundation/fw-imp-006-implementation.md
 
 goal:
-  Implement the repository-defined Mars.Web + Mars.UI Foundation without introducing ERP business-screen semantics or selecting later platform/deployment technologies.
+  Implement the repository-defined Docker/test deployment baseline against the separate MarsOtomasyon test server without turning test-environment choices into production architecture.
 
 source_basis:
-  - docs/plan/01-foundation/framework-plan.md section 42: FW-IMP-006 Mars.Web + Mars.UI foundation
-  - docs/plan/master-project-plan.md frontend architecture baseline
-  - docs/reference/ui/marsotomasyon_ui_v38_cari_bakiye_sadelestirildi.html as product/UI reference, not production architecture
-
-accepted_baseline:
-  frontend:
-    - HTML + CSS + TypeScript + ES Modules + Vite
-    - Mars.UI is the project-owned UI/component system
-    - no React, Vue, Angular, Bootstrap, Tailwind or jQuery in core frontend
-  api:
-    - /api/v1 remains the server contract baseline
-    - OpenAPI generator remains Microsoft.AspNetCore.OpenApi 10.0.12
-  authentication:
-    - web prefers secure HttpOnly cookie/session semantics where appropriate
-    - no localStorage token baseline
-    - ERP permission/company/branch semantics remain server-side and Mars-owned
+  - docs/plan/01-foundation/framework-plan.md sections 39-42
+  - docs/plan/01-foundation/test-environment.md
+  - docs/plan/01-foundation/p4-readiness-decision-gates.md
 
 scope:
   include:
-    - create Mars.Web Foundation project/tooling as required
-    - Vite + TypeScript baseline
-    - web shell
-    - client-side router boundary
-    - API client boundary
-    - design-token baseline
-    - Mars.UI Button baseline
-    - Mars.UI Field baseline
-    - Mars.UI Dialog baseline
-    - Mars.UI Tabs baseline
-    - Mars.UI Lookup baseline
-    - Mars.UI Grid baseline
-    - targeted build/component/static verification
+    - application images/containers required by current Foundation
+    - Docker Compose test baseline
+    - migration/startup policy
+    - test-server deployment
+    - readiness checks
+    - small smoke evidence
   exclude:
-    - ERP business screens or business rules
-    - Sales/Party/Product/etc. workflow implementation
-    - Desktop shell technology selection
-    - Mobile shell technology selection
     - production deployment
-    - Docker/test deployment baseline
-    - production secret store
-    - production reverse proxy/tunnel details
-    - unrelated logging/metrics, file-storage or scheduling decisions
+    - production secret-store selection
+    - production reverse-proxy/tunnel selection
+    - structured logging/metrics technology selection unless a narrow test-deployment blocker is proven
+    - Desktop/Mobile shell technology
+    - ERP domain feature implementation
+
+preflight_required:
+  - verify current test Docker version
+  - verify current test Docker Compose version
+  - verify deployment/service layout
+  - verify test URL/DNS/TLS facts relevant to the selected test path
+  - read test credentials only from the canonical source and never echo values
 
 decision_gate_review:
-  fw_imp_006_specific_blocker: none_identified
+  blocking_owner_decision: none_identified
+  deferred:
+    - production secret store
+    - production reverse proxy/tunnel
+    - structured logging/metrics stack
   note:
-    - Desktop/Mobile shell technology remains a later P10 decision and must not be selected here.
-    - Deployment and production ingress decisions remain later work.
-    - If implementation exposes a genuinely new FW-IMP-006-specific owner decision, mark only that narrow point BLOCKED instead of guessing.
+    - Unknown test-environment facts must be verified at runtime rather than guessed.
+    - Test architecture must not be described as accepted production architecture.
 
 planning_progress:
   master_sequence:
@@ -93,7 +77,10 @@ planning_progress:
 
 test_policy:
   normal_development:
-    - frontend build
-    - targeted component/static checks
-    - small smoke only where justified
+    - image/build checks
+    - compose/config validation
+    - migration/startup safety checks
+    - deploy to test
+    - readiness
+    - small smoke
   heavy_tests: FULL_TEST_DAY_ONLY
