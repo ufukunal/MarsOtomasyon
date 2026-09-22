@@ -464,3 +464,39 @@ Build evidence:
 - project-reference verification: PASS
 
 Full Test Day pending.
+
+
+## FW-IMP-002 — Configuration/context/error primitives
+**Status:** COMPLETED
+
+Implemented:
+- typed startup configuration validation contracts in `Mars.Application.Foundation.Configuration`;
+- immutable correlation id and execution context carrying ActorId, CompanyId, optional BranchId and CorrelationId;
+- deterministic Foundation error categories and success/failure result contracts;
+- zero-external-dependency targeted test harness under `tests/Mars.Foundation.Tests`;
+- Foundation build workflow now runs targeted FW-IMP-002 verification.
+
+No new NuGet package was added.
+
+Deliberately not implemented:
+- EF Core/Npgsql persistence wiring;
+- DbContext, SQL or migrations;
+- authentication/identity provider;
+- OpenAPI tooling;
+- logging/metrics backend;
+- Mars.Web/Mars.UI;
+- deployment.
+
+Verification:
+- tested commit: `a74e1083790aaf652dcac7dc0d735f759fc765e7`
+- workflow run: `35704843486`
+- .NET SDK: `10.0.401`
+- runtime: `10.0.12`
+- restore: PASS
+- Release build: PASS — 0 warnings, 0 errors
+- targeted tests: PASS — 8 / 8
+- project-reference verification: PASS
+
+The first implementation run exposed a C# syntax error in `ConfigurationValidationIssue`; it was corrected in-scope and the final verification run passed.
+
+Full Test Day pending.
