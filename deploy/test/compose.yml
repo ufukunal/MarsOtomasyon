@@ -1,0 +1,49 @@
+name: mars-foundation
+
+services:
+  api:
+    image: mars-foundation-api:${MARS_RELEASE_TAG:?MARS_RELEASE_TAG is required}
+    environment:
+      ASPNETCORE_ENVIRONMENT: Test
+      ASPNETCORE_URLS: http://+:8080
+      PostgreSql__RuntimeConnectionString: ${MARS_RUNTIME_CONNECTION_STRING:?MARS_RUNTIME_CONNECTION_STRING is required}
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp
+    volumes:
+      - mars-foundation-dataprotection:/home/app/.aspnet/DataProtection-Keys
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    networks:
+      - mars-data
+
+  web:
+    image: mars-foundation-web:${MARS_RELEASE_TAG:?MARS_RELEASE_TAG is required}
+    environment:
+      MARS_WEB_PORT: "8080"
+      MARS_API_ORIGIN: http://api:8080
+    ports:
+      - "${MARS_WEB_BIND:-0.0.0.0}:${MARS_WEB_PORT:-5080}:8080"
+    depends_on:
+      - api
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    networks:
+      - mars-data
+
+networks:
+  mars-data:
+    external: true
+    name: ${MARS_TEST_NETWORK:?MARS_TEST_NETWORK is required}
+
+volumes:
+  mars-foundation-dataprotection:

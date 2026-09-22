@@ -1,0 +1,11 @@
+.git
+.github
+docs
+config/test
+**/bin
+**/obj
+**/node_modules
+**/dist
+**/coverage
+*.user
+*.suo

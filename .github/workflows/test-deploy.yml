@@ -1,0 +1,195 @@
+name: Foundation Test Deploy
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".config/dotnet-tools.json"
+      - ".dockerignore"
+      - ".github/workflows/test-deploy.yml"
+      - "Directory.Build.props"
+      - "Mars.slnx"
+      - "deploy/**"
+      - "src/**"
+      - "tests/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mars-foundation-test-deploy
+  cancel-in-progress: false
+
+jobs:
+  test-deploy:
+    name: verify-preflight-deploy-smoke
+    runs-on: self-hosted
+    timeout-minutes: 35
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node 24 LTS
+        uses: actions/setup-node@v6
+        with:
+          node-version: "24.21.0"
+
+      - name: Frontend verification
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm ci --prefix src/Mars.Web
+          npm run verify --prefix src/Mars.Web
+
+      - name: Select writable .NET install directory
+        shell: bash
+        run: echo "DOTNET_INSTALL_DIR=$HOME/.dotnet" >> "$GITHUB_ENV"
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Restore and build Foundation
+        shell: bash
+        run: |
+          set -euo pipefail
+          dotnet tool restore
+          dotnet restore Mars.slnx
+          dotnet build Mars.slnx --configuration Release --no-restore
+          dotnet run --project tests/Mars.Foundation.Tests/Mars.Foundation.Tests.csproj --configuration Release --no-build
+
+      - name: Migration safety and model drift
+        shell: bash
+        env:
+          MARS_MIGRATION_CONNECTION_STRING: "Host=localhost;Database=mars_design_time_probe"
+        run: |
+          set -euo pipefail
+
+          python3 - <<'PY'
+          from pathlib import Path
+
+          roots = [
+              Path("src/Mars.Infrastructure/Persistence/Migrations/Foundation"),
+              Path("src/Mars.Infrastructure/Persistence/Migrations/Identity"),
+          ]
+          forbidden = (
+              "DropTable(",
+              "DropColumn(",
+              "DropSchema(",
+              "RenameTable(",
+              "RenameColumn(",
+              "AlterColumn(",
+              "DeleteData(",
+              "migrationBuilder.Sql(",
+          )
+
+          checked = 0
+          for root in roots:
+              for path in sorted(root.glob("*.cs")):
+                  if path.name.endswith(".Designer.cs") or path.name.endswith("ModelSnapshot.cs"):
+                      continue
+                  text = path.read_text(encoding="utf-8")
+                  if "protected override void Up" not in text or "protected override void Down" not in text:
+                      continue
+                  up = text.split("protected override void Up", 1)[1].split("protected override void Down", 1)[0]
+                  hits = [token for token in forbidden if token in up]
+                  if hits:
+                      raise SystemExit(f"Unsafe migration Up() operation in {path}: {hits}")
+                  print(f"PASS_MIGRATION_UP={path}")
+                  checked += 1
+
+          if checked == 0:
+              raise SystemExit("No committed migrations were checked.")
+          print(f"PASS_MIGRATION_UP_COUNT={checked}")
+          PY
+
+          dotnet tool run dotnet-ef migrations has-pending-model-changes             --project src/Mars.Infrastructure/Mars.Infrastructure.csproj             --startup-project src/Mars.Infrastructure/Mars.Infrastructure.csproj             --configuration Release             --no-build
+
+      - name: Configure masked TEST SSH access
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          CRED_FILE="config/test/test-server.md"
+          test -f "$CRED_FILE"
+
+          SSH_HOST="$(awk -F'`' '/^- Adres:/ {print $2; exit}' "$CRED_FILE")"
+          SSH_USER="$(awk -F'`' '/^- Kullanıcı:/ {print $2; exit}' "$CRED_FILE")"
+          SSH_PASS="$(awk -F'`' '/^- Şifre:/ {print $2; exit}' "$CRED_FILE")"
+
+          test -n "$SSH_HOST"
+          test -n "$SSH_USER"
+          test -n "$SSH_PASS"
+
+          echo "::add-mask::$SSH_USER"
+          echo "::add-mask::$SSH_PASS"
+
+          {
+            echo "MARS_TEST_SSH_HOST=$SSH_HOST"
+            echo "MARS_TEST_SSH_USER=$SSH_USER"
+            echo "MARS_TEST_SSH_PASSWORD=$SSH_PASS"
+          } >> "$GITHUB_ENV"
+
+      - name: Remote TEST preflight
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          ASKPASS="$RUNNER_TEMP/mars-fwimp007-askpass.sh"
+          trap 'rm -f "$ASKPASS"' EXIT
+          cat > "$ASKPASS" <<'ASK'
+          #!/bin/sh
+          printf '%s
+' "$MARS_TEST_SSH_PASSWORD"
+          ASK
+          chmod 700 "$ASKPASS"
+
+          export SSH_ASKPASS="$ASKPASS"
+          export SSH_ASKPASS_REQUIRE=force
+          export DISPLAY=:99
+
+          setsid -w ssh             -o BatchMode=no             -o PubkeyAuthentication=no             -o PreferredAuthentications=password             -o PasswordAuthentication=yes             -o NumberOfPasswordPrompts=1             -o StrictHostKeyChecking=accept-new             -o ConnectTimeout=7             "$MARS_TEST_SSH_USER@$MARS_TEST_SSH_HOST"             'bash -s' < deploy/test/preflight.sh
+
+      - name: Transfer release and deploy to TEST
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          ASKPASS="$RUNNER_TEMP/mars-fwimp007-askpass.sh"
+          ARCHIVE="$RUNNER_TEMP/mars-foundation-$GITHUB_SHA.tgz"
+          REMOTE_ARCHIVE="/tmp/mars-foundation-$GITHUB_SHA.tgz"
+          trap 'rm -f "$ASKPASS" "$ARCHIVE"' EXIT
+
+          cat > "$ASKPASS" <<'ASK'
+          #!/bin/sh
+          printf '%s
+' "$MARS_TEST_SSH_PASSWORD"
+          ASK
+          chmod 700 "$ASKPASS"
+
+          export SSH_ASKPASS="$ASKPASS"
+          export SSH_ASKPASS_REQUIRE=force
+          export DISPLAY=:99
+
+          tar -czf "$ARCHIVE"             .config             Directory.Build.props             Mars.slnx             deploy             src
+
+          setsid -w scp             -o BatchMode=no             -o PubkeyAuthentication=no             -o PreferredAuthentications=password             -o PasswordAuthentication=yes             -o NumberOfPasswordPrompts=1             -o StrictHostKeyChecking=accept-new             -o ConnectTimeout=7             "$ARCHIVE" "$MARS_TEST_SSH_USER@$MARS_TEST_SSH_HOST:$REMOTE_ARCHIVE"
+
+          setsid -w ssh             -o BatchMode=no             -o PubkeyAuthentication=no             -o PreferredAuthentications=password             -o PasswordAuthentication=yes             -o NumberOfPasswordPrompts=1             -o StrictHostKeyChecking=accept-new             -o ConnectTimeout=7             "$MARS_TEST_SSH_USER@$MARS_TEST_SSH_HOST"             "set -euo pipefail
+             ROOT=\$HOME/.marsotomasyon/foundation
+             RELEASE=\$ROOT/releases/$GITHUB_SHA
+             mkdir -p \"\$RELEASE\"
+             tar -xzf '$REMOTE_ARCHIVE' -C \"\$RELEASE\"
+             rm -f '$REMOTE_ARCHIVE'
+             cd \"\$RELEASE\"
+             RELEASE_SHA='$GITHUB_SHA' bash deploy/test/deploy.sh
+             ln -sfn \"\$RELEASE\" \"\$ROOT/current\""
+
+      - name: Runner-to-TEST smoke
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash deploy/test/smoke.sh "http://$MARS_TEST_SSH_HOST:5080"
