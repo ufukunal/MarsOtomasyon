@@ -50,6 +50,8 @@ Planning started. See `plan.md` and `acceptance-criteria.md`.
 Readiness decisions are resolved:
 - `docs/plan/decisions/ADR-0001-dotnet-10-lts-baseline.md`
 - `docs/plan/decisions/ADR-0002-ef-core-npgsql-baseline.md`
+- `docs/plan/decisions/ADR-0003-identity-openiddict-baseline.md`
+- `docs/plan/decisions/ADR-0004-aspnet-openapi-baseline.md`
 
 Implementation status:
 - `FW-IMP-001 — repository solution skeleton`: COMPLETED
@@ -61,7 +63,7 @@ Implementation status:
   - `docs/plan/01-foundation/fw-imp-002-implementation.md`
   - `docs/plan/01-foundation/fw-imp-003-implementation.md`
   - `docs/plan/01-foundation/fw-imp-004-implementation.md`
-- next: `FW-IMP-005 — API foundation`; implementation is blocked until the exact auth/identity provider and OpenAPI tooling gates are explicitly resolved.
+- next: `FW-IMP-005 — API foundation implementation`; READY.
 
 
 ## FW-IMP-004 current status
@@ -79,8 +81,8 @@ The committed Foundation migration owns only:
 Next repository-defined package:
 - `FW-IMP-005 — API foundation`
 
-Before full FW-IMP-005 implementation, explicitly resolve:
-- authentication/identity provider;
-- OpenAPI tooling.
+FW-IMP-005 relevant gates are resolved:
+- authentication/identity: ASP.NET Core Identity + OpenIddict 7.7.1 (ADR-0003);
+- OpenAPI: Microsoft.AspNetCore.OpenApi 10.0.12 (ADR-0004).
 
 Other deferred Foundation technology gates do not become blockers merely because FW-IMP-005 is next.
