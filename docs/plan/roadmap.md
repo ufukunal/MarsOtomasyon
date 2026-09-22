@@ -26,7 +26,7 @@ Canonical:
 No application framework code has been implemented yet.
 
 ## P2 — Core commercial workflow planning
-Status: ACTIVE
+Status: COMPLETED / FROZEN
 
 Order:
 1. Sales
@@ -38,16 +38,15 @@ Order:
 7. Checks/Notes
 8. Returns/RMA
 
-Current:
-- `PLAN-002 — Sales workflow contract`
+Completed through Returns/RMA; see project-state and completed tasks.
 
 ## P3 — Logical database model
-Status: NOT STARTED
+Status: COMPLETED / FROZEN
 
 Begins only after core workflows are sufficiently frozen.
 
 ## P4 — Foundation implementation
-Status: NOT STARTED
+Status: READINESS DECISION GATES
 
 Implements accepted framework contract.
 
@@ -93,7 +92,12 @@ Production deployment reproducibility, migration rehearsal, backup/restore evide
 
 ## Current next action
 
-`PLAN-002 — Define Quote → Sales Order → Reservation → Dispatch → Invoice → Collection/Return links`
+P4 — Foundation implementation readiness / decision-gate resolution.
 
-Target:
-`docs/plan/05-satis/`
+Before code:
+- classify Foundation technology gates required for the first thin framework slice;
+- record explicit owner decisions for required-now gates;
+- keep deferrable gates explicit;
+- then activate a separate implementation work package.
+
+Exact section-8 planning metric remains 9 / 30 = 30.0% until Quality (conceptual item 10) is COMPLETED / FROZEN.
