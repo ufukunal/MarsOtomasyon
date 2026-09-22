@@ -73,6 +73,11 @@ jobs:
             echo "===FWIMP005_FILE_END:$file==="
           done
 
+          SNAPSHOT="src/Mars.Infrastructure/Persistence/Migrations/Foundation/MarsDbContextModelSnapshot.cs"
+          echo "===FWIMP005_FILE_BEGIN:$SNAPSHOT==="
+          cat "$SNAPSHOT"
+          echo "===FWIMP005_FILE_END:$SNAPSHOT==="
+
       - name: FW-IMP-005 API smoke
         shell: bash
         env:
