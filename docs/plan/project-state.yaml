@@ -84,8 +84,8 @@ test_policy:
 
 active_task:
   id: FW-IMP-005
-  title: API foundation technology decision-gate resolution
-  status: blocked_on_owner_decisions
+  title: API foundation implementation
+  status: ready
   file: docs/plan/active-task.yaml
   progress: not_started
 
@@ -109,6 +109,8 @@ completed_implementation_tasks:
   - FW-IMP-004
 
 locked_decisions:
+  - ASP.NET Core Identity + OpenIddict 7.7.1 is the accepted authentication/identity baseline.
+  - Microsoft.AspNetCore.OpenApi 10.0.12 is the accepted OpenAPI generation baseline.
   - .NET 10 LTS is the accepted Foundation runtime/SDK baseline.
   - EF Core 10 + Npgsql is the default PostgreSQL persistence/migration baseline; targeted raw Npgsql/SQL is exception-only.
   - Only main branch is allowed.
@@ -216,8 +218,8 @@ locked_decisions:
 framework_decision_gates:
   - exact .NET SDK/runtime version — RESOLVED: .NET 10 LTS via ADR-0001
   - exact ORM/data-access library — RESOLVED: EF Core 10 + Npgsql via ADR-0002
-  - exact auth/identity provider
-  - exact OpenAPI tooling
+  - exact auth/identity provider — RESOLVED: ASP.NET Core Identity + OpenIddict 7.7.1 via ADR-0003
+  - exact OpenAPI tooling — RESOLVED: Microsoft.AspNetCore.OpenApi 10.0.12 via ADR-0004
   - exact logging/metrics stack
   - exact object/file storage backend
   - exact Desktop shell technology
@@ -266,7 +268,7 @@ test_environment:
 known_constraints:
   - Application core is not yet implemented.
   - FW-IMP-001 repository solution skeleton, FW-IMP-002 configuration/context/error primitives, FW-IMP-003 persistence/migration baseline and FW-IMP-004 audit/idempotency/outbox foundations are implemented.
-  - FW-IMP-005 API foundation is the next repository-defined package but its auth/identity provider and OpenAPI tooling gates are now relevant and unresolved.
+  - FW-IMP-005 API foundation is READY; its auth/identity and OpenAPI technology gates are resolved by ADR-0003 and ADR-0004.
   - Database logical/schema design is intentionally deferred until core workflows are sufficiently frozen.
   - Business rules must not be inferred from generic ERP conventions when project sources are silent.
   - Runner VM and test server are separate machines; never conflate runner-local results with test-server results.
@@ -297,34 +299,36 @@ known_constraints:
   - Durable idempotency/concurrency correctness is PostgreSQL-owned; Valkey is not sufficient authority.
 
 blocked_items:
-  - FW-IMP-005 implementation is blocked until the exact authentication/identity provider is explicitly resolved for auth integration.
-  - FW-IMP-005 implementation is blocked until the exact OpenAPI tooling is explicitly resolved for OpenAPI generation.
-  - Other deferred Foundation technology gates remain non-blocking until their own relevant implementation steps.
+  - None for FW-IMP-005 readiness. Other deferred Foundation technology gates remain non-blocking until their relevant implementation steps.
 
 next_action:
   id: FW-IMP-005
-  title: API foundation technology decision-gate resolution
+  title: API foundation implementation
   phase: P4
-  status: BLOCKED_ON_OWNER_DECISIONS
+  status: READY
   source: docs/plan/01-foundation/framework-plan.md
   predecessor:
     id: FW-IMP-004
     status: completed
     evidence_commit: 06109051f530dff60774dc43d369986b343f4158
     evidence_workflow_run: 35713295141
-  required_owner_decisions:
-    - exact authentication/identity provider for FW-IMP-005 auth integration
-    - exact OpenAPI tooling for FW-IMP-005 OpenAPI generation
-  rationale:
-    - framework-plan FW-IMP-005 explicitly sequences auth integration after provider decision
-    - framework-plan FW-IMP-005 explicitly sequences OpenAPI after tooling decision
-    - section 44 blocks implementation at the relevant step until these gates are resolved
+  accepted_decisions:
+    - docs/plan/decisions/ADR-0003-identity-openiddict-baseline.md
+    - docs/plan/decisions/ADR-0004-aspnet-openapi-baseline.md
+  scope_intent:
+    - middleware/pipeline
+    - ASP.NET Core Identity + OpenIddict integration
+    - deterministic error mapping
+    - Microsoft.AspNetCore.OpenApi integration
+    - health/readiness
+    - targeted API/auth/OpenAPI verification
   restrictions:
-    - no FW-IMP-005 implementation until both relevant owner technology decisions are resolved
-    - do not silently choose auth/identity or OpenAPI technologies
-    - do not pull logging/metrics, file storage, scheduling, shell, production secret-store or reverse-proxy decisions forward
+    - no unrelated Foundation technology decisions
+    - no domain business rules or domain module schema
+    - no Mars.Web/Mars.UI implementation
     - no deployment
     - exact master planning metric remains 9 / 30 = 30.0
+
 state_rules:
   - current_head must be verified from Git at every session start; embedded SHA is never authoritative.
   - repo content overrides chat memory when they conflict.
