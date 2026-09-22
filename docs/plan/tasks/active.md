@@ -1,26 +1,29 @@
 # Active Tasks
 
-## P4 — Resolve required Foundation technology choices
-**Status:** BLOCKED ON OWNER DECISIONS — NO CODE
+## FW-IMP-001 — repository solution skeleton
+**Status:** READY — IMPLEMENTATION NOT STARTED
 
-Gate classification is complete:
-`docs/plan/01-foundation/p4-readiness-decision-gates.md`
+Prerequisites resolved:
+- .NET 10 LTS accepted in `ADR-0001`.
+- EF Core 10 + Npgsql baseline accepted in `ADR-0002`.
 
-Only two choices block the first P4 implementation slice:
+Scope intent from Foundation framework plan:
+- create solution/projects/directories;
+- encode dependency direction in project references;
+- establish runtime/SDK baseline;
+- obtain minimal build evidence.
 
-1. Exact .NET SDK/runtime baseline
-   - technical recommendation: .NET 10 LTS
-   - owner acceptance required.
+Do not expand this work package into:
+- domain schema/business implementation;
+- persistence migrations beyond the separately sequenced persistence package;
+- auth provider selection;
+- OpenAPI tooling;
+- Mars.UI implementation;
+- deployment;
+- Quality/Commerce planning.
 
-2. Exact ORM/data-access baseline
-   - technical recommendation: EF Core 10 + Npgsql as default persistence/migration stack;
-   - targeted raw SQL remains an explicit escape hatch, not a competing default.
-   - owner acceptance required.
-
-All other listed technology gates are classified as deferrable or not required for the first P4 slice.
-
-Do not start src/, tests/, SQL/migrations, dependencies or deployment until both owner choices are explicit.
-
-Exact planning progress remains:
+Exact planning progress:
 - master: 9 / 30 = 30.0%
 - P2: 8 / 8 = 100.0%
+
+Heavy tests remain Full Test Day only.
