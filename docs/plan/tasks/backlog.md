@@ -1,6 +1,6 @@
 # Planning Backlog
 
-## Immediate — FW-IMP-005 API foundation implementation
+## Immediate — FW-IMP-006 Mars.Web + Mars.UI foundation
 Status: READY.
 
 Predecessors:
@@ -8,32 +8,35 @@ Predecessors:
 - FW-IMP-002 configuration/context/error primitives — COMPLETED.
 - FW-IMP-003 persistence/migration baseline — COMPLETED.
 - FW-IMP-004 audit/idempotency/outbox foundations — COMPLETED.
+- FW-IMP-005 API foundation implementation — COMPLETED.
 
-Repository-defined FW-IMP-005 package:
-- middleware/pipeline;
-- auth integration after provider decision;
-- error mapping;
-- OpenAPI after tooling decision;
-- health/readiness.
+FW-IMP-005 evidence:
+- canonical report: `docs/plan/01-foundation/fw-imp-005-implementation.md`
+- tested implementation commit: `22f31b087f887270bb43f4a39038d7c9a9e07b87`
+- successful workflow run: `35722169157`
+- 26 / 26 targeted Foundation tests;
+- migration scope/model drift, API smoke, OpenAPI generation and project references passed.
 
-Resolved technology gates:
-1. authentication/identity — ASP.NET Core Identity (.NET 10) + OpenIddict 7.7.1 stable via ADR-0003;
-2. OpenAPI — Microsoft.AspNetCore.OpenApi 10.0.12 via ADR-0004.
+Repository-defined FW-IMP-006 package:
+- Vite/TypeScript;
+- shell/router/API client;
+- design tokens;
+- Button/Field/Dialog/Tabs/Lookup/Grid baseline.
 
-Do not pull these still-deferred gates forward:
+No FW-IMP-006-specific unresolved owner technology gate is currently identified.
+
+Do not pull these later/deferred choices forward:
 - structured logging/metrics stack;
 - object/file storage backend;
 - optional scheduling library;
 - Desktop shell technology;
 - Mobile shell technology;
 - production secret store;
-- production reverse proxy/tunnel details.
-
-FW-IMP-005 implementation is activated as the immediate Foundation work package.
+- production reverse proxy/tunnel details;
+- Docker/test deployment baseline.
 
 ## Subsequent Foundation implementation sequence
 Repository-defined sequence in `docs/plan/01-foundation/framework-plan.md`:
-- FW-IMP-006 — Mars.Web + Mars.UI foundation
 - FW-IMP-007 — Docker/test deployment baseline
 - FW-IMP-008 — thin vertical framework proof
 
