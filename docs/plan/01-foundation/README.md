@@ -45,10 +45,13 @@ Reviewers:
 Planning started. See `plan.md` and `acceptance-criteria.md`.
 
 
-## P4 readiness
-Technology decision-gate classification:
-- `docs/plan/01-foundation/p4-readiness-decision-gates.md`
+## P4 implementation
 
-Current implementation readiness is BLOCKED only on explicit owner decisions for:
-- exact .NET SDK/runtime baseline;
-- exact ORM/data-access baseline.
+Readiness decisions are resolved:
+- `docs/plan/decisions/ADR-0001-dotnet-10-lts-baseline.md`
+- `docs/plan/decisions/ADR-0002-ef-core-npgsql-baseline.md`
+
+Implementation status:
+- `FW-IMP-001 — repository solution skeleton`: COMPLETED
+- evidence: `docs/plan/01-foundation/fw-imp-001-implementation.md`
+- next: `FW-IMP-002 — configuration/context/error primitives`
