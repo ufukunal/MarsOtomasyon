@@ -1,26 +1,27 @@
 # Active Tasks
 
-## FW-IMP-003 — persistence/migration baseline
+## FW-IMP-004 — audit/idempotency/outbox foundations
 **Status:** READY — IMPLEMENTATION NOT STARTED
 
 Predecessor:
-- FW-IMP-002 — COMPLETED
-- build/test evidence: GitHub Actions run `35704843486`
+- FW-IMP-003 — COMPLETED
+- build/test/migration evidence: GitHub Actions run `35708370550`
 
-Accepted persistence decision:
+Accepted persistence baseline:
 - EF Core 10 + Npgsql is the default PostgreSQL persistence/migration architecture.
 - targeted raw Npgsql/SQL is exception-only.
+- exact committed versions are recorded in FW-IMP-003 evidence.
 
 Scope from Foundation framework plan:
-- create PostgreSQL connection/persistence baseline;
-- establish migration mechanism;
-- preserve explicit transaction and migration/runtime boundaries;
-- no domain schema beyond Foundation-owned baseline structures;
-- targeted persistence/migration contract tests.
+- audit persistence primitive;
+- durable PostgreSQL idempotency primitive;
+- transactional outbox persistence primitive;
+- application interfaces;
+- minimum worker/outbox processing skeleton;
+- targeted tests and migration checks.
 
 Do not expand into:
-- Sales/Party/Product/Inventory/Purchasing/Warehouse/Finance schema or mappings;
-- audit/idempotency/outbox implementation owned by FW-IMP-004;
+- domain module schema or business posting rules;
 - auth provider;
 - OpenAPI tooling;
 - Mars.Web/Mars.UI;
