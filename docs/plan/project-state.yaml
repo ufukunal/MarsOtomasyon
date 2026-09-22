@@ -83,8 +83,8 @@ test_policy:
   heavy_tests: FULL_TEST_DAY_ONLY
 
 active_task:
-  id: FW-IMP-002
-  title: configuration/context/error primitives
+  id: FW-IMP-003
+  title: persistence/migration baseline
   status: ready
   file: docs/plan/active-task.yaml
   progress: not_started
@@ -104,6 +104,7 @@ completed_planning_tasks:
 
 completed_implementation_tasks:
   - FW-IMP-001
+  - FW-IMP-002
 
 locked_decisions:
   - .NET 10 LTS is the accepted Foundation runtime/SDK baseline.
@@ -262,7 +263,7 @@ test_environment:
 
 known_constraints:
   - Application core is not yet implemented.
-  - FW-IMP-001 repository solution skeleton is implemented; Foundation behavior remains sequenced through FW-IMP-002 and later packages.
+  - FW-IMP-001 repository solution skeleton and FW-IMP-002 configuration/context/error primitives are implemented; Foundation behavior remains sequenced through FW-IMP-003 and later packages.
   - Database logical/schema design is intentionally deferred until core workflows are sufficiently frozen.
   - Business rules must not be inferred from generic ERP conventions when project sources are silent.
   - Runner VM and test server are separate machines; never conflate runner-local results with test-server results.
@@ -293,27 +294,28 @@ known_constraints:
   - Durable idempotency/concurrency correctness is PostgreSQL-owned; Valkey is not sufficient authority.
 
 blocked_items:
-  - None for FW-IMP-002 readiness. Deferred Foundation technology gates remain gated at their relevant later implementation steps.
+  - None for FW-IMP-003 readiness. Deferred Foundation technology gates remain gated at their relevant later implementation steps.
 
 next_action:
-  id: FW-IMP-002
-  title: configuration/context/error primitives
+  id: FW-IMP-003
+  title: persistence/migration baseline
   phase: P4
   status: READY
   source: docs/plan/01-foundation/framework-plan.md
   predecessor:
-    id: FW-IMP-001
+    id: FW-IMP-002
     status: completed
-    evidence_commit: 212022601c177ec6bc8e8438c6188e747cbee2c5
-    evidence_workflow_run: 35702737435
+    evidence_commit: a74e1083790aaf652dcac7dc0d735f759fc765e7
+    evidence_workflow_run: 35704843486
+  accepted_decisions:
+    - docs/plan/decisions/ADR-0002-ef-core-npgsql-baseline.md
   scope_intent:
-    - typed configuration and startup validation primitives
-    - correlation context primitive
-    - actor/company context interfaces
-    - result/error contracts
+    - add EF Core 10 + Npgsql persistence packages consistent with accepted baseline
+    - create PostgreSQL connection and migration mechanism
+    - establish migration ownership/runtime privilege boundaries
+    - no domain schema beyond Foundation-owned baseline structures
   restrictions:
-    - no domain business rules
-    - no persistence/migration implementation
+    - no Sales/Party/Product/Inventory/Purchasing/Warehouse/Finance domain schema
     - no auth provider selection
     - no OpenAPI tooling selection
     - no deployment
