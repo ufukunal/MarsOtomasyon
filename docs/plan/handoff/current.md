@@ -7,53 +7,42 @@
 - Master plan: docs/plan/master-project-plan.md
 - Session protocol: docs/ai/session-execution-protocol.md
 
-## Completed phases
+## Completed
 - P2 Core Commercial Workflow Planning: COMPLETED / FROZEN
 - P3 Logical Database Model: COMPLETED / FROZEN
+- P4 Foundation readiness gate classification: COMPLETED
+- Required owner technology decisions: RESOLVED
+
+## Accepted technology decisions
+1. .NET 10 LTS runtime/SDK baseline
+   - `docs/plan/decisions/ADR-0001-dotnet-10-lts-baseline.md`
+2. EF Core 10 + Npgsql default PostgreSQL persistence/migration baseline
+   - `docs/plan/decisions/ADR-0002-ef-core-npgsql-baseline.md`
+   - targeted raw Npgsql/SQL only for explicitly justified specialized cases.
+
+These decisions do not choose auth/identity, OpenAPI tooling, observability backend, file storage, scheduler, Desktop/Mobile shells, production secret store or production ingress.
 
 ## Current phase
 P4 — Foundation implementation
-Status: BLOCKED ON TWO OWNER TECHNOLOGY DECISIONS
+Status: READY FOR IMPLEMENTATION
+
+## Next work package
+`FW-IMP-001 — repository solution skeleton`
+
+Repository-defined intent:
+- create solution/projects/directories;
+- lock dependency direction;
+- establish the accepted .NET 10 baseline;
+- perform a minimal build.
+
+Do not pull later FW-IMP persistence, auth, OpenAPI, UI or deployment work into FW-IMP-001 unless its implementation task explicitly expands scope.
 
 ## Planning progress
 - Master section-8 sequence: 9 / 30 = 30.0%
 - P2 core commercial: 8 / 8 = 100.0%
-- P4 readiness does not increment the exact section-8 planning metric.
 
-## Gate classification
-Canonical classification:
-- docs/plan/01-foundation/p4-readiness-decision-gates.md
+P4 implementation does not increment section-8 completion.
 
-REQUIRED NOW:
-1. exact .NET SDK/runtime version;
-2. exact ORM/data-access strategy.
-
-DEFERRABLE:
-- auth/identity provider;
-- OpenAPI tooling;
-- structured logging/metrics stack;
-- object/file storage backend;
-- optional scheduling library.
-
-NOT REQUIRED FOR P4 FIRST SLICE:
-- Desktop shell technology;
-- Mobile shell technology;
-- production secret store;
-- production reverse proxy/tunnel details.
-
-## Technical recommendations awaiting owner acceptance
-- .NET 10 LTS for runtime/SDK baseline.
-- EF Core 10 + Npgsql for default PostgreSQL persistence/migrations; targeted raw Npgsql/SQL only for explicit specialized/measured need.
-
-These are recommendations, not accepted project decisions.
-
-## Owner decision required
-P4 implementation remains BLOCKED until the owner explicitly chooses:
-- runtime baseline;
-- persistence/ORM baseline.
-
-Do not create accepted ADRs or implementation code before both choices are explicit.
-
-## Scope evidence
-Repository root currently has no src/ or tests/ implementation tree.
-No SQL, migration, C#/API/TypeScript, package installation, deployment or heavy test was performed during readiness classification.
+## Verification policy
+Decision-closing session performed documentation/ADR/state consistency only.
+No source code, SQL, migration, package installation, deployment or heavy tests were performed.
