@@ -52,14 +52,23 @@ Failed verification history is preserved in canonical FW-IMP-004 evidence.
 P4 — Foundation implementation
 Status: IN PROGRESS
 
+## Accepted FW-IMP-005 technology decisions
+- Authentication/identity: ASP.NET Core Identity (.NET 10) + OpenIddict 7.7.1 stable
+  - ADR: `docs/plan/decisions/ADR-0003-identity-openiddict-baseline.md`
+- OpenAPI: Microsoft.AspNetCore.OpenApi 10.0.12
+  - ADR: `docs/plan/decisions/ADR-0004-aspnet-openapi-baseline.md`
+
+Portability rule:
+- ERP authorization/company/branch semantics remain Mars-owned, not provider-owned.
+- client auth uses standard OAuth/OIDC boundaries where applicable.
+- OpenAPI contract semantics remain Mars-owned and are not coupled to Swagger UI/client generator tooling.
+
 ## Next repository-defined package
-`FW-IMP-005 — API foundation`
+`FW-IMP-005 — API foundation implementation`
 
-Full FW-IMP-005 implementation is currently BLOCKED on two technology decisions that have reached their relevant implementation step:
-1. exact authentication/identity provider;
-2. exact OpenAPI tooling.
+Status: READY.
 
-Do not silently select either technology. Do not pull unrelated deferred Foundation gates forward.
+Do not pull unrelated deferred Foundation gates forward.
 
 ## Planning progress
 - Master section-8 sequence: 9 / 30 = 30.0%
