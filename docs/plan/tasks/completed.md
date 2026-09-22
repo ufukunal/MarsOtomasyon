@@ -645,3 +645,52 @@ Failed intermediate CI checks and their corrections are recorded in:
 
 Full Test Day pending.
 
+
+
+## FW-IMP-006 — Mars.Web + Mars.UI foundation
+**Status:** COMPLETED
+
+Implemented:
+- Vite + TypeScript Mars.Web project;
+- committed npm lockfile and Node 24 LTS CI baseline;
+- Mars.Web shell and Mars-owned History API router;
+- generic /api/v1 fetch client with same-origin cookie/session semantics, deterministic errors, correlation id and AbortSignal;
+- semantic Mars.UI tokens;
+- Button, Field, Dialog, Tabs, Lookup and Grid primitives;
+- targeted browserless DOM/API/router/component tests;
+- static checks preventing forbidden frontend frameworks, token storage, V38 source coupling and unsafe innerHTML.
+
+Exact frontend versions:
+- Vite 8.3.0
+- TypeScript 7.0.2
+- tsx 4.23.15
+- happy-dom 20.14.5
+- Node.js 24.21.0
+- npm 11.19.0
+
+Verification:
+- tested implementation commit: `1264981655329099a086c7048c0890caf04dc9f2`
+- workflow run: `35729371845`
+- npm ci: PASS
+- TypeScript: PASS
+- targeted frontend tests: PASS — 10 / 10
+- Vite production build: PASS
+- static architecture checks: PASS
+- .NET Release build: PASS — 0 warnings, 0 errors
+- existing Foundation tests: PASS — 26 / 26
+- migration/model drift: PASS
+- API smoke/OpenAPI: PASS
+- project references: PASS
+
+Boundaries preserved:
+- no React/Vue/Angular/Bootstrap/Tailwind/jQuery;
+- no localStorage/sessionStorage token baseline;
+- no ERP business screen/rule;
+- no Desktop/Mobile shell selection;
+- no deployment implementation;
+- V38 product behavior adapted without copying its single-file patch architecture.
+
+Failed intermediate CI checks and corrections:
+- `docs/plan/01-foundation/fw-imp-006-implementation.md`
+
+Full Test Day pending.
