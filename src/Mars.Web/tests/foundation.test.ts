@@ -139,10 +139,13 @@ test("dialog traps focus, closes with Escape and returns focus", async () => {
   content.append(first, last);
 
   const dialog = createDialog({ title: "Foundation dialog", content });
-  document.body.append(dialog.element);
+  const nestedHost = document.createElement("div");
+  nestedHost.append(dialog.element);
+  document.body.append(nestedHost);
 
   dialog.open();
   await Promise.resolve();
+  assert.equal(dialog.element.parentElement, document.body);
   assert.equal(dialog.isOpen(), true);
   assert.equal(document.activeElement, first);
 
@@ -180,7 +183,10 @@ test("lookup remains generic, async and identity-aware", async () => {
       assert.equal(pageSize, 20);
       assert.equal(signal.aborted, false);
       return {
-        items: [{ key: "entity-1", label: `Result ${query}` }],
+        items: [
+          { key: "entity-1", label: `Result ${query} 1` },
+          { key: "entity-2", label: `Result ${query} 2` }
+        ],
         hasMore: false
       };
     },
@@ -192,12 +198,16 @@ test("lookup remains generic, async and identity-aware", async () => {
   lookup.input.value = "A";
   await lookup.searchNow();
 
-  const option = lookup.element.querySelector<HTMLButtonElement>("[role='option']");
-  assert.ok(option);
-  option.click();
+  const options = lookup.element.querySelectorAll<HTMLButtonElement>("[role='option']");
+  assert.equal(options.length, 2);
 
-  assert.equal(lookup.getSelected()?.key, "entity-1");
-  assert.equal(lookup.input.value, "Result A");
+  lookup.input.focus();
+  lookup.input.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true }));
+  assert.equal(document.activeElement, options[1]);
+
+  options[1]?.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
+  assert.equal(lookup.getSelected()?.key, "entity-2");
+  assert.equal(lookup.input.value, "Result A 2");
 
   lookup.element.dispatchEvent(new KeyboardEvent("keydown", { key: "F2", bubbles: true }));
   assert.equal(document.activeElement, lookup.input);
