@@ -923,7 +923,8 @@ Current status:
 - `FW-IMP-002 — configuration/context/error primitives` is COMPLETED.
 - `FW-IMP-003 — persistence/migration baseline` is COMPLETED.
 - `FW-IMP-004 — audit/idempotency/outbox foundations` is COMPLETED.
-- next repository-defined implementation package is `FW-IMP-005 — API foundation`; its relevant auth/identity and OpenAPI gates are resolved and implementation is READY.
+- `FW-IMP-005 — API foundation` is COMPLETED.
+- next repository-defined implementation package is `FW-IMP-006 — Mars.Web + Mars.UI foundation`; implementation is READY.
 
 
 ## FW-IMP-001 implementation evidence
@@ -998,11 +999,41 @@ Verified:
 - no ERP domain schema or provider integration was introduced;
 - restore/build/19 targeted tests/migration-model drift/project-reference checks passed on .NET 10.
 
-Next repository-defined package:
+Next repository-defined package after FW-IMP-004:
 - `FW-IMP-005 — API foundation`.
 
 FW-IMP-005 technology decisions:
 - authentication/identity — ASP.NET Core Identity (.NET 10) + OpenIddict 7.7.1 stable via ADR-0003;
 - OpenAPI — Microsoft.AspNetCore.OpenApi 10.0.12 via ADR-0004.
 
-Both are owner-approved and resolved. Provider/tool-specific details must remain behind Mars-owned authorization/API contract boundaries so a future infrastructure change can be handled by superseding ADRs rather than rewriting ERP semantics.
+Both are owner-approved and resolved. Provider/tool-specific details remain behind Mars-owned authorization/API contract boundaries so a future infrastructure change can be handled by superseding ADRs rather than rewriting ERP semantics.
+
+## FW-IMP-005 implementation evidence
+
+Status: COMPLETED
+
+Canonical evidence:
+- `docs/plan/01-foundation/fw-imp-005-implementation.md`
+
+Verified:
+- ASP.NET Core API host/pipeline runs on the accepted .NET 10 baseline;
+- ASP.NET Core Identity + OpenIddict 7.7.1 implements the accepted account/protocol boundary;
+- Identity/OpenIddict physical structures are EF Core/Npgsql-backed and Foundation-owned;
+- authenticated principal maps at the API boundary into the existing Mars execution context;
+- client-supplied company/branch scope cannot silently replace the trusted authenticated scope;
+- ERP permission/company/branch semantics remain Mars-owned;
+- deterministic Foundation error-to-HTTP mapping exists;
+- Microsoft.AspNetCore.OpenApi 10.0.12 generates the v1 OpenAPI document;
+- `/api/v1` convention, liveness and readiness baselines are implemented;
+- Swagger UI/client-generator technology was not introduced;
+- committed Identity/OpenIddict migration contains no ERP domain schema;
+- final Release build/26 targeted tests/model-drift/API smoke/OpenAPI/project-reference checks passed.
+
+Final tested implementation:
+- commit `22f31b087f887270bb43f4a39038d7c9a9e07b87`;
+- GitHub Actions run `35722169157`.
+
+Current next package:
+- `FW-IMP-006 — Mars.Web + Mars.UI foundation` (READY).
+
+FW-IMP-006 uses the already planned Vite/TypeScript + Mars.UI web baseline. No FW-IMP-006-specific unresolved owner technology gate is currently identified. Desktop/Mobile shell technology remains later P10 work and deployment decisions remain later Foundation work.
