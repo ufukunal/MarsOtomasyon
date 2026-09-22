@@ -18,7 +18,7 @@ SOURCE:
 - `docs/plan/01-foundation/test-environment.md`
 - `docs/db/` frozen logical model
 - current repository root: no `src/` or `tests/` tree exists yet
-- `docs/plan/decisions/` contains no accepted technology ADR yet
+- `docs/plan/decisions/ADR-0001-dotnet-10-lts-baseline.md` and `ADR-0002-ef-core-npgsql-baseline.md` now record the accepted required-now technology decisions
 
 INFERENCE:
 - a gate is REQUIRED NOW only when the first P4 slice cannot create a stable project/runtime/persistence contract without choosing it.
