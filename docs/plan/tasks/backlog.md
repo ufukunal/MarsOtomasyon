@@ -1,46 +1,40 @@
 # Planning Backlog
 
-## Immediate — P4 Foundation implementation readiness
-Status: READY FOR GOVERNANCE DECISIONS.
+## Immediate — P4 owner decisions
+Status: BLOCKED / OWNER INPUT REQUIRED.
 
-Why next:
-- master-project-plan phase map explicitly places P4 after completed P3;
-- P3 logical DB is COMPLETED / FROZEN;
-- Foundation implementation is still blocked by unresolved technology decision gates required by the first implementation slice.
+Classification is complete:
+- docs/plan/01-foundation/p4-readiness-decision-gates.md
 
-Next readiness session:
-- classify Foundation decision gates required-now vs deferrable;
-- record explicit owner decisions/ADRs for required-now gates;
-- do not implement code until those gates are closed.
+Required decisions:
+1. exact .NET SDK/runtime baseline;
+2. exact ORM/data-access baseline.
 
-No new PLAN number is assigned; use phase ID P4.
+Technical recommendations:
+- .NET 10 LTS;
+- EF Core 10 + Npgsql default persistence/migration baseline, with targeted raw SQL only when explicitly justified.
 
-## P4 — Foundation implementation
-Status: BLOCKED UNTIL REQUIRED READINESS GATES CLOSE.
+Do not record these as accepted until owner confirms.
 
-After gate closure:
-- create/activate the smallest repository-supported implementation work package;
-- implement Foundation thin slice according to accepted framework contract;
-- targeted tests only; heavy suites remain deferred.
+## P4 — Foundation first thin implementation slice
+Status: BLOCKED UNTIL THE TWO REQUIRED OWNER DECISIONS CLOSE.
+
+After closure:
+- create accepted ADR(s);
+- update Foundation contract/state;
+- activate the smallest implementation work package;
+- then implementation may create the solution/project skeleton and targeted Foundation primitives according to that task's explicit scope.
 
 ## Quality — master planning sequence item 10
 Target: docs/plan/08-kalite/
 Status: PLANNING BACKLOG / NOT STARTED.
 
-Important:
-- Quality is the next section-8 item that can raise exact planning completion from 9/30.
-- Its conceptual sequence number is not a PLAN task ID.
-- Its operational execution belongs P6 Operations, after P4 Foundation and P5 Core application implementation according to the phase map.
-
-## Production / Subcontracting / Import
-Status: later section-8 planning items and P6 operational modules.
+Quality remains the next section-8 item that can raise exact planning completion from 9/30.
+Operational execution belongs P6.
 
 ## Commerce/B2B/Architect/Marketplace
 Target: docs/plan/15-e-ticaret-b2b-api/
 Status: P7 / NOT IMMEDIATE.
-
-The prior immediate label “PLAN-011 Commerce” is retired as stale sequencing metadata. No completed historical task is renumbered.
-Provider capabilities must be verified at implementation time.
 
 ## Full Test Day
 Status: DEFERRED BY POLICY.
