@@ -22,8 +22,7 @@ public static class MarsIdentityServiceCollectionExtensions
             {
                 options.User.RequireUniqueEmail = true;
             })
-            .AddEntityFrameworkStores<MarsDbContext>()
-            .AddSignInManager();
+            .AddEntityFrameworkStores<MarsDbContext>();
 
         services
             .AddOpenIddict()
