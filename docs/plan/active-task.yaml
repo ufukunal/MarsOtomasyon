@@ -1,5 +1,5 @@
-id: FW-IMP-002
-title: configuration/context/error primitives
+id: FW-IMP-003
+title: persistence/migration baseline
 module: foundation
 status: ready
 progress: not_started
@@ -10,39 +10,39 @@ phase:
   status: implementation_in_progress
 
 predecessor:
-  id: FW-IMP-001
-  title: repository solution skeleton
+  id: FW-IMP-002
+  title: configuration/context/error primitives
   status: completed
   evidence:
-    commit: 212022601c177ec6bc8e8438c6188e747cbee2c5
-    workflow_run: 35702737435
+    commit: a74e1083790aaf652dcac7dc0d735f759fc765e7
+    workflow_run: 35704843486
     build: success
+    targeted_tests: 8_passed
     sdk: 10.0.401
     runtime: 10.0.12
 
 goal:
-  Implement only the Foundation configuration, request/job context and result/error primitives defined by the accepted framework contract.
+  Implement only the accepted EF Core 10 + Npgsql PostgreSQL persistence and migration baseline required by Foundation.
 
 scope:
   include:
-    - typed configuration primitives and startup validation contracts
-    - correlation context primitive
-    - actor/company context interfaces
-    - result/error contracts
-    - targeted unit tests for implemented primitives
+    - EF Core 10 + Npgsql package baseline
+    - PostgreSQL connection/persistence composition primitives
+    - migration mechanism and conventions
+    - migration/runtime role boundary support where required by existing Foundation contract
+    - targeted persistence/migration contract tests
   exclude:
-    - domain business rules
-    - PostgreSQL/EF Core mappings or migrations
-    - auth/identity provider selection or implementation
+    - domain business schema for Sales/Party/Product/Inventory/Purchasing/Warehouse/Finance
+    - domain entities and mappings
+    - auth/identity provider
     - OpenAPI tooling
-    - production logging/metrics provider
-    - file storage
     - Mars.Web/Mars.UI
     - deployment
 
 accepted_baselines:
   runtime: .NET 10 LTS
-  persistence: EF Core 10 + Npgsql for later persistence package
+  persistence: EF Core 10 + Npgsql
+  raw_sql_policy: targeted raw Npgsql/SQL is exception-only and not a second default persistence architecture
 
 planning_progress:
   master_sequence:
@@ -56,6 +56,7 @@ planning_progress:
 
 test_policy:
   normal:
+    - restore
     - build
-    - targeted unit tests for FW-IMP-002 only
+    - targeted persistence/migration contract tests
   heavy_tests: FULL_TEST_DAY_ONLY
