@@ -3,11 +3,10 @@
 FROM mcr.microsoft.com/dotnet/sdk:10.0.401-noble
 WORKDIR /src
 
-COPY .config ./.config
 COPY Directory.Build.props ./
 COPY src ./src
 
-RUN dotnet tool restore
+RUN dotnet tool install dotnet-ef --tool-path /tools --version 10.0.12
 RUN dotnet restore src/Mars.Infrastructure/Mars.Infrastructure.csproj
 RUN dotnet build src/Mars.Infrastructure/Mars.Infrastructure.csproj \
     --configuration Release \
@@ -16,5 +15,5 @@ RUN dotnet build src/Mars.Infrastructure/Mars.Infrastructure.csproj \
 ENV DOTNET_CLI_HOME=/tmp
 USER $APP_UID
 
-ENTRYPOINT ["dotnet", "tool", "run", "dotnet-ef"]
+ENTRYPOINT ["/tools/dotnet-ef"]
 CMD ["--help"]
