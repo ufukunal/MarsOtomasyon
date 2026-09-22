@@ -1,6 +1,8 @@
 using Mars.Application.Foundation.Configuration;
 using Mars.Application.Foundation.Context;
 using Mars.Application.Foundation.Results;
+using Mars.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
 using MarsExecutionContext = Mars.Application.Foundation.Context.ExecutionContext;
 
 var tests = new (string Name, Action Test)[]
@@ -12,7 +14,10 @@ var tests = new (string Name, Action Test)[]
     ("Result<T> carries success value", GenericResultCarriesValue),
     ("Error categories match Foundation contract", ErrorCategoriesMatchContract),
     ("Startup configuration validation aggregates issues", StartupValidationAggregatesIssues),
-    ("Startup configuration exception does not include option secret", StartupExceptionDoesNotIncludeSecret)
+    ("Startup configuration exception does not include option secret", StartupExceptionDoesNotIncludeSecret),
+    ("PostgreSQL runtime options require a connection string", PostgreSqlRuntimeOptionsRequireConnectionString),
+    ("MarsDbContext uses Npgsql without domain entities", MarsDbContextUsesNpgsqlWithoutDomainEntities),
+    ("Migration factory requires migration-specific configuration", MigrationFactoryRequiresMigrationConfiguration)
 };
 
 var failures = new List<string>();
@@ -43,7 +48,7 @@ if (failures.Count > 0)
 }
 
 Console.WriteLine();
-Console.WriteLine($"All {tests.Length} targeted FW-IMP-002 tests passed.");
+Console.WriteLine($"All {tests.Length} targeted Foundation tests passed.");
 return 0;
 
 static void CorrelationIdRejectsEmptyValues()
@@ -144,6 +149,57 @@ static void StartupExceptionDoesNotIncludeSecret()
             new IStartupConfigurationValidator<SampleOptions>[] { new FailingValidator() }));
 
     AssertTrue(!exception.Message.Contains(secret, StringComparison.Ordinal));
+}
+
+static void PostgreSqlRuntimeOptionsRequireConnectionString()
+{
+    var validator = new PostgreSqlRuntimeOptionsValidator();
+    var issues = validator.Validate(new PostgreSqlRuntimeOptions("   "));
+
+    AssertEqual(1, issues.Count);
+    AssertEqual("PostgreSql:RuntimeConnectionString", issues[0].Key);
+    AssertEqual("required", issues[0].Code);
+}
+
+static void MarsDbContextUsesNpgsqlWithoutDomainEntities()
+{
+    const string nonSecretConnectionString = "Host=localhost;Database=mars_model_probe";
+
+    var options = MarsDbContextOptions.CreateRuntime(
+        new PostgreSqlRuntimeOptions(nonSecretConnectionString));
+
+    using var context = new MarsDbContext(options);
+
+    AssertEqual("Npgsql.EntityFrameworkCore.PostgreSQL", context.Database.ProviderName);
+    AssertEqual(0, context.Model.GetEntityTypes().Count());
+}
+
+static void MigrationFactoryRequiresMigrationConfiguration()
+{
+    var existing = Environment.GetEnvironmentVariable(
+        MarsDesignTimeDbContextFactory.MigrationConnectionStringEnvironmentVariable);
+
+    try
+    {
+        Environment.SetEnvironmentVariable(
+            MarsDesignTimeDbContextFactory.MigrationConnectionStringEnvironmentVariable,
+            null);
+
+        var factory = new MarsDesignTimeDbContextFactory();
+        var exception = AssertThrows<InvalidOperationException>(
+            () => factory.CreateDbContext(Array.Empty<string>()));
+
+        AssertTrue(
+            exception.Message.Contains(
+                MarsDesignTimeDbContextFactory.MigrationConnectionStringEnvironmentVariable,
+                StringComparison.Ordinal));
+    }
+    finally
+    {
+        Environment.SetEnvironmentVariable(
+            MarsDesignTimeDbContextFactory.MigrationConnectionStringEnvironmentVariable,
+            existing);
+    }
 }
 
 static TException AssertThrows<TException>(Action action)

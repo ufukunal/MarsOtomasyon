@@ -7,6 +7,7 @@ on:
       - "Mars.slnx"
       - "Directory.Build.props"
       - ".gitignore"
+      - ".config/dotnet-tools.json"
       - "src/**"
       - "tests/**"
       - ".github/workflows/foundation-build.yml"
@@ -35,14 +36,34 @@ jobs:
       - name: Verify SDK
         run: dotnet --info
 
+      - name: Restore tools
+        run: dotnet tool restore
+
       - name: Restore
         run: dotnet restore Mars.slnx
 
       - name: Build
         run: dotnet build Mars.slnx --configuration Release --no-restore
 
-      - name: FW-IMP-002 targeted tests
+      - name: Foundation targeted tests
         run: dotnet run --project tests/Mars.Foundation.Tests/Mars.Foundation.Tests.csproj --configuration Release --no-build
+
+      - name: FW-IMP-003 migration mechanism probe
+        shell: bash
+        env:
+          MARS_MIGRATION_CONNECTION_STRING: "Host=localhost;Database=mars_design_time_probe"
+        run: |
+          set -euo pipefail
+          PROBE_DIR="src/Mars.Infrastructure/Persistence/Migrations/FwImp003Probe"
+          rm -rf "$PROBE_DIR"
+          dotnet tool run dotnet-ef migrations add FwImp003Probe             --project src/Mars.Infrastructure/Mars.Infrastructure.csproj             --startup-project src/Mars.Infrastructure/Mars.Infrastructure.csproj             --output-dir Persistence/Migrations/FwImp003Probe             --no-build
+
+          if grep -R "CreateTable" "$PROBE_DIR"; then
+            echo "FW-IMP-003 probe unexpectedly generated a table."
+            exit 1
+          fi
+
+          rm -rf "$PROBE_DIR"
 
       - name: Project references
         shell: bash

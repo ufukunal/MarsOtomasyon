@@ -5,5 +5,6 @@
 
   <ItemGroup>
     <ProjectReference Include="../../src/Mars.Application/Mars.Application.csproj" />
+    <ProjectReference Include="../../src/Mars.Infrastructure/Mars.Infrastructure.csproj" />
   </ItemGroup>
 </Project>
