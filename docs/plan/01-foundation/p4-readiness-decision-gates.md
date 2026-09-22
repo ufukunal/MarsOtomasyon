@@ -107,7 +107,7 @@ Accepted owner decision:
 
 ### G3 — Exact authentication / identity provider
 
-Classification: **DEFERRABLE**
+Classification: **RESOLVED FOR FW-IMP-005**
 
 Repository source:
 - Foundation already freezes server-side authorization, permission hooks, company/branch scope and immutable actor context.
@@ -117,23 +117,26 @@ Why deferrable:
 - the first thin infrastructure slice can define authentication/authorization interfaces and request context without committing to the final human identity provider.
 - an actual authenticated business/API vertical slice must not ship before this gate is closed.
 
-Must be resolved before:
-- first real login/session flow or authenticated business endpoint intended beyond internal scaffold/testing.
+Accepted owner decision:
+- ASP.NET Core Identity (.NET 10) + OpenIddict 7.7.1 stable.
+- Mars ERP authorization/company/branch semantics remain Mars-owned.
+- Decision record: `docs/plan/decisions/ADR-0003-identity-openiddict-baseline.md`.
 
-Owner decision required now: **NO**
+Owner decision required now: **RESOLVED — APPROVED**
 
 ### G4 — Exact OpenAPI tooling
 
-Classification: **DEFERRABLE**
+Classification: **RESOLVED FOR FW-IMP-005**
 
 Repository source:
 - OpenAPI generation is required; exact package/tool is a decision gate.
 
-Why deferrable:
-- API host, error model, routing and DTO conventions can be established before committing to a specific generator/package.
-- close this gate before API contract publication/tooling becomes part of CI/client generation.
+Accepted owner decision:
+- Microsoft.AspNetCore.OpenApi 10.0.12.
+- Swagger UI and client-generation tooling remain separate decisions.
+- Decision record: `docs/plan/decisions/ADR-0004-aspnet-openapi-baseline.md`.
 
-Owner decision required now: **NO**
+Owner decision required now: **RESOLVED — APPROVED**
 
 ### G5 — Exact structured logging / metrics stack
 
@@ -242,9 +245,11 @@ Owner decision required now: **NO**
 - G1 Exact .NET SDK/runtime version.
 - G2 Exact ORM/data-access strategy.
 
+### RESOLVED AT RELEVANT P4 STEP
+- G3 Authentication/identity provider — ADR-0003.
+- G4 OpenAPI tooling — ADR-0004.
+
 ### DEFERRABLE
-- G3 Authentication/identity provider.
-- G4 OpenAPI tooling.
 - G5 Structured logging/metrics stack.
 - G6 Object/file storage backend.
 - G9 Optional scheduling library.
