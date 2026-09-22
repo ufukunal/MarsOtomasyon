@@ -1,7 +1,7 @@
 id: FW-IMP-005
-title: API foundation technology decision-gate resolution
+title: API foundation implementation
 module: foundation
-status: blocked_on_owner_decisions
+status: ready
 progress: not_started
 
 phase:
@@ -24,11 +24,15 @@ predecessor:
     runtime: 10.0.12
 
 goal:
-  Close only the two technology decision gates that now block full FW-IMP-005 API foundation implementation.
+  Implement the FW-IMP-005 API foundation using the accepted authentication/identity and OpenAPI baselines.
 
-required_owner_decisions:
-  - exact authentication/identity provider for auth integration
-  - exact OpenAPI tooling for OpenAPI generation
+accepted_decisions:
+  authentication_identity:
+    baseline: ASP.NET Core Identity (.NET 10) + OpenIddict 7.7.1 stable
+    adr: docs/plan/decisions/ADR-0003-identity-openiddict-baseline.md
+  openapi:
+    baseline: Microsoft.AspNetCore.OpenApi 10.0.12
+    adr: docs/plan/decisions/ADR-0004-aspnet-openapi-baseline.md
 
 source_basis:
   - docs/plan/01-foundation/framework-plan.md section 42: auth integration after provider decision
@@ -37,16 +41,16 @@ source_basis:
 
 scope:
   include:
-    - repository/source-backed classification of the two FW-IMP-005 gates
-    - targeted official current-source verification where needed
-    - explicit owner technology decisions
-    - accepted ADRs if owner decisions are supplied
-    - state/handoff normalization after decisions
+    - middleware/pipeline
+    - ASP.NET Core Identity + OpenIddict integration
+    - deterministic error mapping
+    - Microsoft.AspNetCore.OpenApi integration
+    - health/readiness
+    - targeted tests
   exclude:
-    - FW-IMP-005 source implementation
     - unrelated Foundation technology gates
     - domain module schema or business rules
-    - UI
+    - Mars.Web/Mars.UI implementation
     - deployment
 
 non_blocking_deferred_gates:
