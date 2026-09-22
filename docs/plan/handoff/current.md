@@ -15,60 +15,76 @@
 - FW-IMP-002 — configuration/context/error primitives: COMPLETED
 - FW-IMP-003 — persistence/migration baseline: COMPLETED
 - FW-IMP-004 — audit/idempotency/outbox foundations: COMPLETED
+- FW-IMP-005 — API foundation implementation: COMPLETED
 
-## FW-IMP-004 evidence
+## FW-IMP-005 evidence
+
+Canonical report:
+- `docs/plan/01-foundation/fw-imp-005-implementation.md`
+
 Implementation:
-- persistence-neutral audit, idempotency and outbox contracts exist in Mars.Application
-- EF Core persistence records/mappings/stores are owned by Mars.Infrastructure
-- committed Foundation schema contains only:
-  - foundation.audit_events
-  - foundation.idempotency_operations
-  - foundation.outbox_messages
-- durable idempotency uniqueness is company-neutral logical scope + operation key as defined by the Foundation contract
-- outbox event identity is unique and delivery state is durable in PostgreSQL
-- minimum bounded/cancellation-aware outbox batch processor exists in Mars.Worker
-- no ERP domain schema, auth provider, OpenAPI tooling, UI or deployment was introduced
-- no real PostgreSQL migration was applied in this package
+- ASP.NET Core API host/pipeline runs on .NET 10;
+- ASP.NET Core Identity + OpenIddict 7.7.1 implements the accepted identity/protocol boundary;
+- Identity/OpenIddict persistence is EF Core/Npgsql-backed in schema `identity`;
+- authenticated principal is adapted at the API boundary into Mars `IExecutionContext`;
+- client-provided company/branch headers do not override trusted principal scope;
+- ERP permission/company/branch semantics remain Mars-owned;
+- deterministic Foundation error-to-HTTP mapping exists;
+- Microsoft.AspNetCore.OpenApi 10.0.12 produces the v1 document;
+- `/api/v1` convention is proven by a Foundation-only protected context endpoint;
+- liveness and PostgreSQL-backed readiness are separate;
+- Swagger UI, Swashbuckle, NSwag and client-generator technology were not introduced;
+- no ERP business endpoint/schema/rule was introduced.
 
 Migration:
-- src/Mars.Infrastructure/Persistence/Migrations/Foundation/20260922095311_FwImp004FoundationPrimitives.cs
-- generated through EF Core tooling, not hand-authored as parallel DDL
-- committed model snapshot has no pending model changes
+- `src/Mars.Infrastructure/Persistence/Migrations/Identity/20260922113226_FwImp005IdentityProtocol.cs`
+- EF Core generated;
+- creates only Foundation Identity/OpenIddict structures in schema `identity`;
+- shared model snapshot has no pending changes;
+- no production migration was applied by FW-IMP-005.
 
 Verification:
-- tested commit: `06109051f530dff60774dc43d369986b343f4158`
-- GitHub Actions run: `35713295141`
+- final tested implementation commit: `22f31b087f887270bb43f4a39038d7c9a9e07b87`
+- GitHub Actions run: `35722169157`
 - .NET SDK: `10.0.401`
 - runtime: `10.0.12`
 - restore: PASS
 - Release build: PASS — 0 warnings, 0 errors
-- targeted Foundation tests: PASS — 19 / 19
+- targeted Foundation tests: PASS — 26 / 26
 - committed migration scope/model-drift verification: PASS
+- API liveness/readiness/protected-route smoke: PASS
+- OpenAPI generation and expected `/api/v1` proof route: PASS
+- Swagger UI absence: PASS
 - project-reference verification: PASS
 
-Failed verification history is preserved in canonical FW-IMP-004 evidence.
+Failed intermediate verification history and corrections are preserved in the canonical FW-IMP-005 evidence.
 
 ## Current phase
 P4 — Foundation implementation
 Status: IN PROGRESS
 
-## Accepted FW-IMP-005 technology decisions
-- Authentication/identity: ASP.NET Core Identity (.NET 10) + OpenIddict 7.7.1 stable
-  - ADR: `docs/plan/decisions/ADR-0003-identity-openiddict-baseline.md`
-- OpenAPI: Microsoft.AspNetCore.OpenApi 10.0.12
-  - ADR: `docs/plan/decisions/ADR-0004-aspnet-openapi-baseline.md`
-
-Portability rule:
-- ERP authorization/company/branch semantics remain Mars-owned, not provider-owned.
-- client auth uses standard OAuth/OIDC boundaries where applicable.
-- OpenAPI contract semantics remain Mars-owned and are not coupled to Swagger UI/client generator tooling.
-
-## Next repository-defined package
-`FW-IMP-005 — API foundation implementation`
+## Current package
+`FW-IMP-006 — Mars.Web + Mars.UI foundation`
 
 Status: READY.
 
-Do not pull unrelated deferred Foundation gates forward.
+Planned repository-defined scope:
+- Vite/TypeScript;
+- web shell/router/API client;
+- design tokens;
+- Button/Field/Dialog/Tabs/Lookup/Grid baseline.
+
+Decision-gate review:
+- no FW-IMP-006-specific unresolved owner gate is currently identified;
+- Desktop/Mobile shell technology remains deferred to later P10 work;
+- Docker/test deployment and production ingress decisions are not pulled into FW-IMP-006.
+
+## Preserved architecture boundaries
+- Mars ERP authorization remains server-side and Mars-owned.
+- Web authentication must not establish a localStorage-token baseline.
+- `/api/v1` remains the public API version baseline.
+- V38 remains a product/UI reference, not production code architecture.
+- No ERP business screen/rule should be invented merely to prove the UI framework.
 
 ## Planning progress
 - Master section-8 sequence: 9 / 30 = 30.0%
