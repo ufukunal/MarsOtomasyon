@@ -69,6 +69,10 @@ builder.Services
     .AddServer(options =>
     {
         options
+            .SetAuthorizationEndpointUris("connect/authorize")
+            .SetTokenEndpointUris("connect/token")
+            .AllowAuthorizationCodeFlow()
+            .RequireProofKeyForCodeExchange()
             .AddEphemeralEncryptionKey()
             .AddEphemeralSigningKey();
 
