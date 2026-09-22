@@ -576,3 +576,72 @@ Failed intermediate CI checks and their corrections are recorded in:
 - `docs/plan/01-foundation/fw-imp-004-implementation.md`
 
 Full Test Day pending.
+
+
+## FW-IMP-005 — API foundation implementation
+**Status:** COMPLETED
+
+Implemented:
+- ASP.NET Core API host/pipeline on .NET 10;
+- ASP.NET Core Identity + OpenIddict 7.7.1 authentication/protocol baseline;
+- PostgreSQL/EF Core Identity/OpenIddict persistence in Foundation-owned `identity` schema;
+- trusted authenticated-principal to Mars execution-context adaptation;
+- server-side authorization hooks without ERP permission invention;
+- deterministic Foundation error-to-HTTP mapping;
+- Microsoft.AspNetCore.OpenApi 10.0.12 document generation;
+- `/api/v1` Foundation-only protected proof route;
+- separate liveness/readiness endpoints;
+- targeted auth/API/OpenAPI/health/model verification.
+
+Identity/protocol physical structures:
+- `identity.users`
+- `identity.user_claims`
+- `identity.user_logins`
+- `identity.user_tokens`
+- `identity.OpenIddictApplications`
+- `identity.OpenIddictAuthorizations`
+- `identity.OpenIddictScopes`
+- `identity.OpenIddictTokens`
+
+Migration:
+- `src/Mars.Infrastructure/Persistence/Migrations/Identity/20260922113226_FwImp005IdentityProtocol.cs`
+- EF Core generated; no parallel manual DDL architecture introduced.
+- migration scope is Foundation Identity/OpenIddict only; no ERP domain tables.
+- final model-drift check reports no pending changes.
+- no production migration was applied in this package.
+
+Packages added:
+- Microsoft.AspNetCore.OpenApi 10.0.12
+- OpenIddict.AspNetCore 7.7.1
+- Microsoft.AspNetCore.Identity.EntityFrameworkCore 10.0.12
+- OpenIddict.EntityFrameworkCore 7.7.1
+
+Verification:
+- tested implementation commit: `22f31b087f887270bb43f4a39038d7c9a9e07b87`
+- workflow run: `35722169157`
+- .NET SDK: `10.0.401`
+- runtime: `10.0.12`
+- restore: PASS
+- Release build: PASS — 0 warnings, 0 errors
+- targeted Foundation tests: PASS — 26 / 26
+- committed migration scope/model-drift check: PASS
+- API liveness/readiness/protected-route smoke: PASS
+- OpenAPI generation/expected `/api/v1` route: PASS
+- Swagger UI absence: PASS
+- project-reference verification: PASS
+
+Boundaries preserved:
+- ERP authorization/company/branch semantics remain Mars-owned;
+- `Mars.Application` / `Mars.Domain` do not depend on OpenIddict persistence types;
+- client request scope does not override trusted authenticated context;
+- no password or implicit OAuth flow;
+- no localStorage token baseline;
+- no Swagger UI/Swashbuckle/NSwag/client generator;
+- no ERP business endpoint/schema/rule;
+- production signing/encryption secret storage remains deferred.
+
+Failed intermediate CI checks and their corrections are recorded in:
+- `docs/plan/01-foundation/fw-imp-005-implementation.md`
+
+Full Test Day pending.
+
