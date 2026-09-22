@@ -1,25 +1,35 @@
 namespace Mars.Application.Foundation.Configuration;
 
-public sealed record ConfigurationValidationIssue(
-    string Key,
-    string Code,
-    string Message)
+public sealed record ConfigurationValidationIssue
 {
-    public ConfigurationValidationIssue
+    public ConfigurationValidationIssue(
+        string key,
+        string code,
+        string message)
     {
-        if (string.IsNullOrWhiteSpace(Key))
+        if (string.IsNullOrWhiteSpace(key))
         {
-            throw new ArgumentException("Configuration key is required.", nameof(Key));
+            throw new ArgumentException("Configuration key is required.", nameof(key));
         }
 
-        if (string.IsNullOrWhiteSpace(Code))
+        if (string.IsNullOrWhiteSpace(code))
         {
-            throw new ArgumentException("Configuration validation code is required.", nameof(Code));
+            throw new ArgumentException("Configuration validation code is required.", nameof(code));
         }
 
-        if (string.IsNullOrWhiteSpace(Message))
+        if (string.IsNullOrWhiteSpace(message))
         {
-            throw new ArgumentException("Configuration validation message is required.", nameof(Message));
+            throw new ArgumentException("Configuration validation message is required.", nameof(message));
         }
+
+        Key = key.Trim();
+        Code = code.Trim();
+        Message = message.Trim();
     }
+
+    public string Key { get; }
+
+    public string Code { get; }
+
+    public string Message { get; }
 }
