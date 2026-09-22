@@ -53,5 +53,8 @@ Readiness decisions are resolved:
 
 Implementation status:
 - `FW-IMP-001 — repository solution skeleton`: COMPLETED
-- evidence: `docs/plan/01-foundation/fw-imp-001-implementation.md`
-- next: `FW-IMP-002 — configuration/context/error primitives`
+- `FW-IMP-002 — configuration/context/error primitives`: COMPLETED
+- evidence:
+  - `docs/plan/01-foundation/fw-imp-001-implementation.md`
+  - `docs/plan/01-foundation/fw-imp-002-implementation.md`
+- next: `FW-IMP-003 — persistence/migration baseline`
