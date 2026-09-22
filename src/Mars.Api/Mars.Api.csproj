@@ -1,7 +1,12 @@
-<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk.Web">
   <ItemGroup>
     <ProjectReference Include="../Mars.Application/Mars.Application.csproj" />
     <ProjectReference Include="../Mars.Contracts/Mars.Contracts.csproj" />
     <ProjectReference Include="../Mars.Infrastructure/Mars.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.12" />
+    <PackageReference Include="OpenIddict.AspNetCore" Version="7.7.1" />
   </ItemGroup>
 </Project>

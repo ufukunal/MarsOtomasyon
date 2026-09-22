@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using OpenIddict.EntityFrameworkCore;
 
 namespace Mars.Infrastructure.Persistence;
 
@@ -34,14 +35,30 @@ public static class MarsDbContextOptions
         return Create(options.ConnectionString);
     }
 
-    private static DbContextOptions<MarsDbContext> Create(string connectionString)
+    public static void Configure(
+        DbContextOptionsBuilder optionsBuilder,
+        string connectionString)
     {
-        var builder = new DbContextOptionsBuilder<MarsDbContext>();
+        ArgumentNullException.ThrowIfNull(optionsBuilder);
 
-        builder.UseNpgsql(
+        if (string.IsNullOrWhiteSpace(connectionString))
+        {
+            throw new ArgumentException(
+                "A PostgreSQL connection string is required.",
+                nameof(connectionString));
+        }
+
+        optionsBuilder.UseNpgsql(
             connectionString,
             npgsql => npgsql.MigrationsAssembly(typeof(MarsDbContext).Assembly.FullName));
 
+        optionsBuilder.UseOpenIddict();
+    }
+
+    private static DbContextOptions<MarsDbContext> Create(string connectionString)
+    {
+        var builder = new DbContextOptionsBuilder<MarsDbContext>();
+        Configure(builder, connectionString);
         return builder.Options;
     }
 }
