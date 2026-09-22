@@ -233,12 +233,11 @@ test("grid renders semantic headers/rows and supports keyboard row movement", ()
 function installDom(): void {
   const window = new Window({ url: "https://mars.test/" });
 
-  Object.assign(globalThis, {
+  const globals: Record<string, unknown> = {
     window,
     document: window.document,
     history: window.history,
     location: window.location,
-    navigator: window.navigator,
     HTMLElement: window.HTMLElement,
     HTMLButtonElement: window.HTMLButtonElement,
     HTMLInputElement: window.HTMLInputElement,
@@ -250,10 +249,14 @@ function installDom(): void {
     Event: window.Event,
     MouseEvent: window.MouseEvent,
     KeyboardEvent: window.KeyboardEvent,
-    DOMException: window.DOMException,
-    Headers: window.Headers,
-    Response: window.Response,
-    Request: window.Request,
     customElements: window.customElements
-  });
+  };
+
+  for (const [name, value] of Object.entries(globals)) {
+    Object.defineProperty(globalThis, name, {
+      configurable: true,
+      writable: true,
+      value
+    });
+  }
 }
