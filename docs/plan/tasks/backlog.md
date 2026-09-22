@@ -1,46 +1,44 @@
 # Planning Backlog
 
-## Immediate — FW-IMP-006 Mars.Web + Mars.UI foundation
+## Immediate — FW-IMP-007 Docker/test deployment baseline
 Status: READY.
 
 Predecessors:
-- FW-IMP-001 repository solution skeleton — COMPLETED.
-- FW-IMP-002 configuration/context/error primitives — COMPLETED.
-- FW-IMP-003 persistence/migration baseline — COMPLETED.
-- FW-IMP-004 audit/idempotency/outbox foundations — COMPLETED.
-- FW-IMP-005 API foundation implementation — COMPLETED.
+- FW-IMP-001 through FW-IMP-006 — COMPLETED.
 
-FW-IMP-005 evidence:
-- canonical report: `docs/plan/01-foundation/fw-imp-005-implementation.md`
-- tested implementation commit: `22f31b087f887270bb43f4a39038d7c9a9e07b87`
-- successful workflow run: `35722169157`
-- 26 / 26 targeted Foundation tests;
-- migration scope/model drift, API smoke, OpenAPI generation and project references passed.
+FW-IMP-006 evidence:
+- canonical report: `docs/plan/01-foundation/fw-imp-006-implementation.md`
+- tested implementation commit: `1264981655329099a086c7048c0890caf04dc9f2`
+- successful workflow run: `35729371845`
+- 10 / 10 frontend targeted tests;
+- Vite production build and static architecture checks passed;
+- existing .NET build/tests/migration/API gates remain green.
 
-Repository-defined FW-IMP-006 package:
-- Vite/TypeScript;
-- shell/router/API client;
-- design tokens;
-- Button/Field/Dialog/Tabs/Lookup/Grid baseline.
+Repository-defined FW-IMP-007 package:
+- images/compose;
+- migration/startup policy;
+- deploy to separate test environment;
+- readiness;
+- small smoke evidence.
 
-No FW-IMP-006-specific unresolved owner technology gate is currently identified.
+Preflight facts to verify:
+- Docker version;
+- Docker Compose version;
+- deployment/service layout;
+- test URL/DNS/TLS facts needed by the chosen route;
+- canonical test credential availability without logging values.
 
-Do not pull these later/deferred choices forward:
+Deferred technology gates that must not be silently selected:
 - structured logging/metrics stack;
-- object/file storage backend;
-- optional scheduling library;
-- Desktop shell technology;
-- Mobile shell technology;
 - production secret store;
 - production reverse proxy/tunnel details;
-- Docker/test deployment baseline.
+- Desktop shell technology;
+- Mobile shell technology.
+
+Test deployment decisions remain separate from production architecture.
 
 ## Subsequent Foundation implementation sequence
-Repository-defined sequence in `docs/plan/01-foundation/framework-plan.md`:
-- FW-IMP-007 — Docker/test deployment baseline
 - FW-IMP-008 — thin vertical framework proof
-
-Deferred technology gates are resolved only when their relevant implementation step requires them.
 
 ## Quality — master planning sequence item 10
 Target: docs/plan/08-kalite/
