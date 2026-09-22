@@ -141,6 +141,30 @@ if [ "$APP_FLAGS" != "false,false,false,false" ]; then
 fi
 echo "PREFLIGHT_POSTGRES_APP_PRIVILEGE_MODEL=PASS"
 
+if docker run --rm \
+  --network "$TEST_NETWORK" \
+  -e PGPASSWORD="$MARS_PG_MASTER_PASSWORD" \
+  postgres:18-bookworm \
+  psql -h "$PG_CONTAINER" -U "$MARS_PG_MASTER_USER" -d "$MARS_PG_DATABASE" -Atqc 'select 1' \
+  2>/dev/null | grep -qx '1'; then
+  echo "PREFLIGHT_POSTGRES_MASTER_NETWORK_LOGIN=PASS"
+else
+  echo "PREFLIGHT_POSTGRES_MASTER_NETWORK_LOGIN=FAIL"
+  exit 1
+fi
+
+if docker run --rm \
+  --network "$TEST_NETWORK" \
+  -e PGPASSWORD="$MARS_PG_APP_PASSWORD" \
+  postgres:18-bookworm \
+  psql -h "$PG_CONTAINER" -U "$MARS_PG_APP_USER" -d "$MARS_PG_DATABASE" -Atqc 'select 1' \
+  2>/dev/null | grep -qx '1'; then
+  echo "PREFLIGHT_POSTGRES_APP_NETWORK_LOGIN=PASS"
+else
+  echo "PREFLIGHT_POSTGRES_APP_NETWORK_LOGIN=FAIL"
+  exit 1
+fi
+
 MIGRATION_HISTORY_EXISTS="$(docker exec -e PGPASSWORD="$MARS_PG_MASTER_PASSWORD" "$PG_CONTAINER" \
   psql -h 127.0.0.1 -U "$MARS_PG_MASTER_USER" -d "$MARS_PG_DATABASE" -Atqc \
   "select case when to_regclass('public.\"__EFMigrationsHistory\"') is null then 'NO' else 'YES' end")"
