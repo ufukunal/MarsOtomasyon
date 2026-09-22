@@ -56,7 +56,7 @@ jobs:
           set -euo pipefail
           PROBE_DIR="src/Mars.Infrastructure/Persistence/Migrations/FwImp003Probe"
           rm -rf "$PROBE_DIR"
-          dotnet tool run dotnet-ef migrations add FwImp003Probe             --project src/Mars.Infrastructure/Mars.Infrastructure.csproj             --startup-project src/Mars.Infrastructure/Mars.Infrastructure.csproj             --output-dir Persistence/Migrations/FwImp003Probe             --no-build
+          dotnet tool run dotnet-ef migrations add FwImp003Probe --project src/Mars.Infrastructure/Mars.Infrastructure.csproj --startup-project src/Mars.Infrastructure/Mars.Infrastructure.csproj --output-dir Persistence/Migrations/FwImp003Probe --configuration Release --no-build
 
           if grep -R "CreateTable" "$PROBE_DIR"; then
             echo "FW-IMP-003 probe unexpectedly generated a table."
