@@ -20,7 +20,7 @@ repository_state:
 current_phase:
   id: P4
   name: Foundation implementation
-  status: readiness_decision_gates
+  status: blocked_on_owner_decisions
 
 planning_progress:
   counting_basis: master-project-plan section 8; completed/frozen work packages only
