@@ -13,50 +13,49 @@
 - P4 Foundation readiness: COMPLETED
 - FW-IMP-001 — repository solution skeleton: COMPLETED
 - FW-IMP-002 — configuration/context/error primitives: COMPLETED
+- FW-IMP-003 — persistence/migration baseline: COMPLETED
 
-## FW-IMP-002 evidence
+## FW-IMP-003 evidence
 Implementation:
-- typed startup configuration validation contracts in `Mars.Application`
-- immutable correlation + actor/company/optional-branch execution context
-- deterministic Foundation result/error categories and result shapes
-- zero-external-dependency targeted test harness under `tests/Mars.Foundation.Tests`
-- Foundation CI includes targeted FW-IMP-002 verification
+- EF Core 10 / Npgsql persistence baseline is owned by `Mars.Infrastructure`
+- `MarsDbContext` exists with no ERP domain entities
+- runtime and migration connection configuration are represented by distinct types
+- design-time migration tooling uses only `MARS_MIGRATION_CONNECTION_STRING`
+- local `dotnet-ef` tool is pinned
+- migration location/rules are documented
+- no committed domain schema migration was created
 
-Boundaries preserved:
-- no NuGet dependency was added
-- no EF Core/Npgsql package, DbContext, SQL or migration was introduced
-- no authentication provider or client trust was implemented
-- no OpenAPI/logging/file/UI/deployment technology was selected
+Exact package/tool baseline:
+- Microsoft.EntityFrameworkCore 10.0.12
+- Microsoft.EntityFrameworkCore.Relational 10.0.12
+- Microsoft.EntityFrameworkCore.Design 10.0.12
+- Npgsql.EntityFrameworkCore.PostgreSQL 10.0.3
+- dotnet-ef 10.0.12
 
 Verification:
-- tested commit: `a74e1083790aaf652dcac7dc0d735f759fc765e7`
-- GitHub Actions run: `35704843486`
-- runner: self-hosted `mars-ci`
+- tested commit: `63734a34b1c86437504cc304cac1315b3d182ee1`
+- GitHub Actions run: `35708370550`
 - .NET SDK: `10.0.401`
 - runtime: `10.0.12`
 - restore: PASS
 - Release build: PASS — 0 warnings, 0 errors
-- targeted tests: PASS — 8 / 8
+- targeted tests: PASS — 11 / 11
+- EF migration mechanism probe: PASS; generated probe contained no CreateTable operation and was removed from the CI workspace
 - project-reference check: PASS
 
-## Accepted technology decisions
-- .NET 10 LTS — ADR-0001
-- EF Core 10 + Npgsql — ADR-0002; targeted raw Npgsql/SQL remains exception-only
+Failed verification history retained:
+- run `35708147597`: build passed but targeted test exposed EF relational patch-version conflict
+- run `35708251674`: build + tests passed; migration probe targeted Debug output while only Release was built
+- both issues were corrected in scope before the successful run
 
 ## Current phase
 P4 — Foundation implementation
 Status: IN PROGRESS
 
 ## Next work package
-`FW-IMP-003 — persistence/migration baseline`
+`FW-IMP-004 — audit/idempotency/outbox foundations`
 
-Scope:
-- accepted EF Core 10 + Npgsql package/persistence baseline
-- PostgreSQL connection and migration mechanism
-- Foundation migration/runtime boundary
-- targeted persistence/migration contract verification
-
-Do not introduce domain module schema or mappings in FW-IMP-003.
+Do not introduce ERP domain rules or domain module schema in FW-IMP-004.
 
 ## Planning progress
 - Master section-8 sequence: 9 / 30 = 30.0%
