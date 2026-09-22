@@ -1,29 +1,28 @@
 # Planning Backlog
 
-## Immediate — P4 owner decisions
-Status: BLOCKED / OWNER INPUT REQUIRED.
+## Immediate — FW-IMP-001 repository solution skeleton
+Status: READY.
 
-Classification is complete:
-- docs/plan/01-foundation/p4-readiness-decision-gates.md
+Prerequisites:
+- .NET 10 LTS — ACCEPTED (`ADR-0001`)
+- EF Core 10 + Npgsql — ACCEPTED (`ADR-0002`)
 
-Required decisions:
-1. exact .NET SDK/runtime baseline;
-2. exact ORM/data-access baseline.
+Scope:
+- create solution/projects/directories;
+- lock dependency direction;
+- minimal build.
 
-Technical recommendations:
-- .NET 10 LTS;
-- EF Core 10 + Npgsql default persistence/migration baseline, with targeted raw SQL only when explicitly justified.
+## Subsequent Foundation implementation sequence
+Repository-defined sequence in `docs/plan/01-foundation/framework-plan.md`:
+- FW-IMP-002 — configuration/context/error primitives
+- FW-IMP-003 — persistence/migration baseline
+- FW-IMP-004 — audit/idempotency/outbox foundations
+- FW-IMP-005 — API foundation
+- FW-IMP-006 — Mars.Web + Mars.UI foundation
+- FW-IMP-007 — Docker/test deployment baseline
+- FW-IMP-008 — thin vertical framework proof
 
-Do not record these as accepted until owner confirms.
-
-## P4 — Foundation first thin implementation slice
-Status: BLOCKED UNTIL THE TWO REQUIRED OWNER DECISIONS CLOSE.
-
-After closure:
-- create accepted ADR(s);
-- update Foundation contract/state;
-- activate the smallest implementation work package;
-- then implementation may create the solution/project skeleton and targeted Foundation primitives according to that task's explicit scope.
+Deferred technology gates must be resolved only when their relevant implementation step requires them.
 
 ## Quality — master planning sequence item 10
 Target: docs/plan/08-kalite/
