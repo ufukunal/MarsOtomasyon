@@ -12,29 +12,32 @@
 - P3 Logical Database Model: COMPLETED / FROZEN
 - P4 Foundation readiness: COMPLETED
 - FW-IMP-001 — repository solution skeleton: COMPLETED
+- FW-IMP-002 — configuration/context/error primitives: COMPLETED
 
-## FW-IMP-001 evidence
+## FW-IMP-002 evidence
 Implementation:
-- `Mars.slnx`
-- `Directory.Build.props` targeting `net10.0`
-- seven minimal .NET projects under `src/`
-- project references encode the accepted dependency direction
-- `.github/workflows/foundation-build.yml` performs targeted .NET 10 build verification
+- typed startup configuration validation contracts in `Mars.Application`
+- immutable correlation + actor/company/optional-branch execution context
+- deterministic Foundation result/error categories and result shapes
+- zero-external-dependency targeted test harness under `tests/Mars.Foundation.Tests`
+- Foundation CI includes targeted FW-IMP-002 verification
 
-Intentional omissions:
-- Mars.Web is deferred to FW-IMP-006 where TypeScript/Vite/Mars.UI are owned.
-- no test project was created because FW-IMP-001 contains no testable behavior; targeted tests begin with implemented primitives.
-- no EF Core/Npgsql package, DbContext, SQL or migration was introduced.
+Boundaries preserved:
+- no NuGet dependency was added
+- no EF Core/Npgsql package, DbContext, SQL or migration was introduced
+- no authentication provider or client trust was implemented
+- no OpenAPI/logging/file/UI/deployment technology was selected
 
-Build evidence:
-- verified commit: `212022601c177ec6bc8e8438c6188e747cbee2c5`
-- GitHub Actions run: `35702737435`
+Verification:
+- tested commit: `a74e1083790aaf652dcac7dc0d735f759fc765e7`
+- GitHub Actions run: `35704843486`
 - runner: self-hosted `mars-ci`
 - .NET SDK: `10.0.401`
 - runtime: `10.0.12`
 - restore: PASS
 - Release build: PASS — 0 warnings, 0 errors
-- project-reference listing: PASS
+- targeted tests: PASS — 8 / 8
+- project-reference check: PASS
 
 ## Accepted technology decisions
 - .NET 10 LTS — ADR-0001
@@ -45,22 +48,21 @@ P4 — Foundation implementation
 Status: IN PROGRESS
 
 ## Next work package
-`FW-IMP-002 — configuration/context/error primitives`
+`FW-IMP-003 — persistence/migration baseline`
 
 Scope:
-- typed configuration/startup validation primitives
-- correlation context
-- actor/company context interfaces
-- result/error contracts
-- targeted tests for these primitives
+- accepted EF Core 10 + Npgsql package/persistence baseline
+- PostgreSQL connection and migration mechanism
+- Foundation migration/runtime boundary
+- targeted persistence/migration contract verification
 
-Do not pull persistence/migrations, auth provider, OpenAPI tooling, Mars.Web/Mars.UI or deployment into FW-IMP-002.
+Do not introduce domain module schema or mappings in FW-IMP-003.
 
 ## Planning progress
 - Master section-8 sequence: 9 / 30 = 30.0%
 - P2 core commercial: 8 / 8 = 100.0%
 
-FW-IMP completion is implementation progress and does not increment the section-8 planning metric.
+Implementation completion does not increment section-8 planning completion.
 
 ## Full Test Day
 Still deferred by policy.
