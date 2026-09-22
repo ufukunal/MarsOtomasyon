@@ -1,43 +1,39 @@
 # Active Tasks
 
-## FW-IMP-006 — Mars.Web + Mars.UI foundation
+## FW-IMP-007 — Docker/test deployment baseline
 **Status:** READY — IMPLEMENTATION NOT STARTED
 
 Predecessor:
-- FW-IMP-005 — COMPLETED
-- canonical evidence: `docs/plan/01-foundation/fw-imp-005-implementation.md`
-- tested implementation commit: `22f31b087f887270bb43f4a39038d7c9a9e07b87`
-- build/test/migration/API/OpenAPI evidence: GitHub Actions run `35722169157`
+- FW-IMP-006 — COMPLETED
+- canonical evidence: `docs/plan/01-foundation/fw-imp-006-implementation.md`
+- tested implementation commit: `1264981655329099a086c7048c0890caf04dc9f2`
+- successful workflow run: `35729371845`
 
-Repository-defined FW-IMP-006 scope:
-- Vite/TypeScript;
-- web shell;
-- router boundary;
-- API client boundary;
-- design tokens;
-- Mars.UI Button/Field/Dialog/Tabs/Lookup/Grid baseline;
-- targeted frontend build/component/static verification.
+Repository-defined scope:
+- application images;
+- Docker Compose test baseline;
+- migration/startup policy;
+- deploy to separate test server;
+- readiness;
+- small smoke evidence.
 
-Inherited constraints:
-- core frontend remains HTML + CSS + TypeScript + ES Modules + Vite;
-- Mars.UI remains the project-owned component system;
-- do not add React, Vue, Angular, Bootstrap, Tailwind or jQuery to the core frontend;
-- web auth must preserve secure HttpOnly cookie/session semantics where appropriate;
-- localStorage token is not the baseline;
-- no ERP business screen/rule merely to prove the framework.
+Mandatory preflight before mutation:
+- verify test Docker version;
+- verify test Docker Compose version;
+- verify test deployment/service layout;
+- verify test URL/DNS/TLS facts needed for the chosen path;
+- read test credentials only from canonical source and never expose values.
 
-Decision-gate review:
-- no FW-IMP-006-specific unresolved owner technology gate is currently identified;
-- Desktop/Mobile shell technologies remain later P10 decisions;
-- deployment/production ingress decisions remain later work.
+No current owner-decision blocker is identified for beginning the test-deployment baseline.
 
-Do not expand into:
-- domain module implementation;
-- Desktop/Mobile shell technology selection;
-- Docker/test deployment baseline;
+Do not silently select:
 - production secret store;
 - production reverse proxy/tunnel;
-- unrelated logging/metrics, file-storage or scheduling decisions.
+- structured logging/metrics stack;
+- Desktop shell technology;
+- Mobile shell technology.
+
+Do not describe test deployment choices as accepted production architecture.
 
 Exact planning progress:
 - master: 9 / 30 = 30.0%
