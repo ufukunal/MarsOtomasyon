@@ -1,32 +1,71 @@
-id: PLAN-010
-title: Logical database model
-module: db
-status: completed_frozen
-progress: completed
-
-predecessor:
-  id: PLAN-009
-  status: completed_frozen
-  plan: docs/plan/11-iadeler-rma/
+id: P4
+title: Foundation implementation readiness / decision-gate resolution
+module: foundation
+status: ready_for_governance_decisions
+progress: not_started
 
 phase:
-  id: P3
-  name: Logical Database Model
-  status: completed
+  id: P4
+  name: Foundation implementation
+  status: readiness_decision_gates
 
-outputs:
-  - docs/db/00-domain-dictionary.md
-  - docs/db/01-design-principles.md
-  - docs/db/02-module-ownership.md
-  - docs/db/03-entity-catalog.md
-  - docs/db/04-relationships.md
-  - docs/db/05-ledgers-and-finance.md
-  - docs/db/06-snapshots-and-projections.md
-  - docs/db/07-constraints-and-concurrency.md
-  - docs/db/08-index-access-patterns.md
-  - docs/db/09-migration-conventions.md
-  - docs/db/acceptance-criteria.md
-  - docs/db/full-test-day.md
+predecessor:
+  id: PLAN-010
+  title: Logical database model
+  status: completed_frozen
+  phase: P3
+
+goal:
+  Resolve only the Foundation technology decisions required to safely begin the first P4 implementation slice. Do not implement code in this readiness task.
+
+authoritative_order_resolution:
+  next_execution_phase: P4
+  reasoning:
+    - master-project-plan phase map explicitly orders P3 -> P4 -> P5 -> P6 -> P7
+    - master-project-plan section 8 is the full module planning sequence and does not override phase execution order
+    - Quality is section-8 item 10 but operational execution belongs P6
+    - Commerce belongs P7; prior immediate PLAN-011 Commerce backlog entry was stale
+  task_numbering:
+    - do not invent a new PLAN number for this readiness work
+    - use existing phase ID P4 until repository assigns an implementation work-package ID
+
+required_readiness_work:
+  - review Foundation decision gates in docs/plan/01-foundation/framework-plan.md and master-project-plan.md
+  - classify each gate as required for first P4 thin slice vs safely deferrable
+  - obtain and record explicit owner decisions for required-now gates
+  - update Foundation contract and ADR/state only after decisions are explicit
+  - only then prepare a separate implementation task
+
+known_decision_gates:
+  - exact .NET SDK/runtime version
+  - exact ORM/data-access library
+  - exact auth/identity provider
+  - exact OpenAPI tooling
+  - exact logging/metrics stack
+  - exact object/file storage backend
+  - exact Desktop shell technology
+  - exact Mobile shell technology
+  - optional scheduling library
+  - production secret store
+  - production reverse proxy/tunnel details
+
+scope:
+  allowed_paths:
+    - docs/plan/01-foundation/
+    - docs/plan/decisions/
+    - docs/plan/project-state.yaml
+    - docs/plan/active-task.yaml
+    - docs/plan/handoff/current.md
+    - docs/plan/tasks/
+    - docs/plan/roadmap.md
+  forbidden_paths:
+    - src/
+    - tests/
+  physical_sql_implementation: false
+  migration_implementation: false
+  api_implementation: false
+  ui_implementation: false
+  deployment: false
 
 planning_progress:
   counting_basis: master-project-plan section 8; completed/frozen section-8 packages only
@@ -34,20 +73,12 @@ planning_progress:
     completed: 9
     total: 30
     percent: 30.0
-    note: PLAN-010 Logical Database Model is not section-8 item 10; section-8 item 10 is Quality, so exact master percentage does not increment.
+    note: Quality is section-8 item 10; P4 readiness/implementation does not increment this planning metric.
   p2_core_commercial:
     completed: 8
     total: 8
     percent: 100.0
 
-next_action:
-  status: blocked_by_repository_order_conflict
-  reason:
-    - master phase map points to P4 Foundation implementation after P3
-    - master section 8 points to Quality as next conceptual planning item
-    - tasks/backlog.md points to PLAN-011 Commerce
-  required: normalize post-P3 execution order before starting next work package
-
 test_policy:
   heavy_tests: FULL_TEST_DAY_ONLY
-  verification: documentation/model consistency only
+  readiness_session: documentation/decision consistency checks only
