@@ -919,4 +919,22 @@ Current status:
   - EF Core 10 + Npgsql — `docs/plan/decisions/ADR-0002-ef-core-npgsql-baseline.md`
 - other listed Foundation technology gates remain deferrable or later-phase for the first thin slice.
 - P4 Foundation implementation readiness is READY.
-- next repository-defined implementation package is `FW-IMP-001 — repository solution skeleton`.
+- `FW-IMP-001 — repository solution skeleton` is COMPLETED.
+- next repository-defined implementation package is `FW-IMP-002 — configuration/context/error primitives`.
+
+
+## FW-IMP-001 implementation evidence
+
+Status: COMPLETED
+
+Canonical evidence:
+- `docs/plan/01-foundation/fw-imp-001-implementation.md`
+
+Verified:
+- .NET 10 solution skeleton exists;
+- project-reference dependency direction is encoded;
+- restore/build passed on self-hosted runner;
+- no domain logic, persistence schema/migration, auth provider, OpenAPI tooling, UI implementation or deployment was introduced.
+
+Current next package:
+- `FW-IMP-002 — configuration/context/error primitives`
