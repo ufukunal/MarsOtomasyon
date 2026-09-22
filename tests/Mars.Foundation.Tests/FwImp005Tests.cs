@@ -8,6 +8,7 @@ using Mars.Application.Foundation.Results;
 using Mars.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging.Abstractions;
 using OpenIddict.Abstractions;
 
 internal static class FwImp005Tests
@@ -96,7 +97,8 @@ internal static class FwImp005Tests
     {
         const string secret = "sql-password-or-stack-detail";
         var middleware = new SafeExceptionMiddleware(
-            _ => throw new InvalidOperationException(secret));
+            _ => throw new InvalidOperationException(secret),
+            NullLogger<SafeExceptionMiddleware>.Instance);
 
         var context = new DefaultHttpContext();
         context.Items[CorrelationIdMiddleware.ItemKey] = new CorrelationId("corr-safe");
