@@ -32,16 +32,12 @@ jobs:
       - name: Verify Node
         run: node --version && npm --version
 
-      - name: FW-IMP-006 bootstrap frontend dependencies
+      - name: FW-IMP-006 frontend verification
         shell: bash
         run: |
           set -euo pipefail
-          npm install --prefix src/Mars.Web
+          npm ci --prefix src/Mars.Web
           npm run verify --prefix src/Mars.Web
-          echo "===FWIMP006_PACKAGE_LOCK_BASE64_BEGIN==="
-          base64 -w0 src/Mars.Web/package-lock.json
-          echo
-          echo "===FWIMP006_PACKAGE_LOCK_BASE64_END==="
 
       - name: Select writable .NET install directory
         shell: bash
