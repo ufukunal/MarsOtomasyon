@@ -48,31 +48,35 @@ jobs:
       - name: Foundation targeted tests
         run: dotnet run --project tests/Mars.Foundation.Tests/Mars.Foundation.Tests.csproj --configuration Release --no-build
 
-      - name: FW-IMP-004 generate and inspect migration
+      - name: FW-IMP-004 committed migration verification
         shell: bash
         env:
           MARS_MIGRATION_CONNECTION_STRING: "Host=localhost;Database=mars_design_time_probe"
         run: |
           set -euo pipefail
-          OUT_DIR="src/Mars.Infrastructure/Persistence/Migrations/Foundation"
-          rm -rf "$OUT_DIR"
+          MIG_DIR="src/Mars.Infrastructure/Persistence/Migrations/Foundation"
+          MIG_FILE="$MIG_DIR/20260922095311_FwImp004FoundationPrimitives.cs"
 
-          dotnet tool run dotnet-ef migrations add FwImp004FoundationPrimitives             --project src/Mars.Infrastructure/Mars.Infrastructure.csproj             --startup-project src/Mars.Infrastructure/Mars.Infrastructure.csproj             --output-dir Persistence/Migrations/Foundation             --configuration Release             --no-build
+          test -f "$MIG_FILE"
+          test -f "$MIG_DIR/20260922095311_FwImp004FoundationPrimitives.Designer.cs"
+          test -f "$MIG_DIR/MarsDbContextModelSnapshot.cs"
 
-          grep -R 'name: "audit_events"' "$OUT_DIR"
-          grep -R 'name: "idempotency_operations"' "$OUT_DIR"
-          grep -R 'name: "outbox_messages"' "$OUT_DIR"
+          grep -F 'name: "audit_events"' "$MIG_FILE"
+          grep -F 'name: "idempotency_operations"' "$MIG_FILE"
+          grep -F 'name: "outbox_messages"' "$MIG_FILE"
 
-          if grep -RE 'name: "(party|product|variant|reservation|inventory|sales|purchase|warehouse|finance|return|quality)' "$OUT_DIR"; then
+          if grep -E 'name: "(party|product|variant|reservation|inventory|sales|purchase|warehouse|finance|return|quality)' "$MIG_FILE"; then
             echo "FW-IMP-004 migration contains prohibited domain table creation."
             exit 1
           fi
 
-          for file in "$OUT_DIR"/*.cs; do
-            echo "===FWIMP004_FILE_BEGIN:$file==="
-            cat "$file"
-            echo "===FWIMP004_FILE_END:$file==="
-          done
+          dotnet tool run dotnet-ef migrations has-pending-model-changes             --project src/Mars.Infrastructure/Mars.Infrastructure.csproj             --startup-project src/Mars.Infrastructure/Mars.Infrastructure.csproj             --configuration Release             --no-build
+
+          dotnet tool run dotnet-ef migrations script 0 20260922095311_FwImp004FoundationPrimitives             --project src/Mars.Infrastructure/Mars.Infrastructure.csproj             --startup-project src/Mars.Infrastructure/Mars.Infrastructure.csproj             --configuration Release             --no-build             --idempotent             --output /tmp/fwimp004-foundation.sql
+
+          grep -F '"foundation"."audit_events"' /tmp/fwimp004-foundation.sql
+          grep -F '"foundation"."idempotency_operations"' /tmp/fwimp004-foundation.sql
+          grep -F '"foundation"."outbox_messages"' /tmp/fwimp004-foundation.sql
 
       - name: Project references
         shell: bash
