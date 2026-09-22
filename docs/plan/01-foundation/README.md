@@ -59,42 +59,36 @@ Implementation status:
 - `FW-IMP-003 — persistence/migration baseline`: COMPLETED
 - `FW-IMP-004 — audit/idempotency/outbox foundations`: COMPLETED
 - `FW-IMP-005 — API foundation implementation`: COMPLETED
+- `FW-IMP-006 — Mars.Web + Mars.UI foundation`: COMPLETED
 - evidence:
   - `docs/plan/01-foundation/fw-imp-001-implementation.md`
   - `docs/plan/01-foundation/fw-imp-002-implementation.md`
   - `docs/plan/01-foundation/fw-imp-003-implementation.md`
   - `docs/plan/01-foundation/fw-imp-004-implementation.md`
   - `docs/plan/01-foundation/fw-imp-005-implementation.md`
-- next: `FW-IMP-006 — Mars.Web + Mars.UI foundation`; READY.
+  - `docs/plan/01-foundation/fw-imp-006-implementation.md`
+- next: `FW-IMP-007 — Docker/test deployment baseline`; READY.
 
 
-## FW-IMP-005 current status
+## FW-IMP-006 current status
 
-`FW-IMP-005 — API foundation implementation` is COMPLETED.
+`FW-IMP-006 — Mars.Web + Mars.UI foundation` is COMPLETED.
 
 Canonical evidence:
-- `docs/plan/01-foundation/fw-imp-005-implementation.md`
+- `docs/plan/01-foundation/fw-imp-006-implementation.md`
 
 Verified:
-- Identity + OpenIddict follows ADR-0003 while ERP authorization remains Mars-owned;
-- trusted principal maps to the existing actor/company/optional-branch/correlation context;
-- Identity/OpenIddict persistence is Foundation-owned EF Core/Npgsql schema;
-- Microsoft.AspNetCore.OpenApi 10.0.12 generates the v1 document;
-- `/api/v1`, deterministic error mapping and separate liveness/readiness baselines exist;
-- final Release build passed with 0 warnings / 0 errors;
-- 26 / 26 targeted Foundation tests passed;
-- committed migration scope/model drift, API smoke, OpenAPI generation and project references passed;
-- no ERP business endpoint/schema/rule was introduced.
+- Vite/TypeScript Mars.Web foundation with committed npm lockfile;
+- Mars-owned shell/router/API client;
+- semantic Mars.UI design tokens;
+- Button/Field/Dialog/Tabs/Lookup/Grid primitives;
+- no forbidden frontend framework or local/session storage token baseline;
+- 10 / 10 targeted frontend tests;
+- production Vite build;
+- static architecture checks;
+- existing .NET build/tests/migration/API verification remain green.
 
 Next repository-defined package:
-- `FW-IMP-006 — Mars.Web + Mars.UI foundation` — READY.
+- `FW-IMP-007 — Docker/test deployment baseline` — READY.
 
-FW-IMP-006 planned scope:
-- Vite/TypeScript;
-- shell/router/API client;
-- design tokens;
-- Button/Field/Dialog/Tabs/Lookup/Grid baseline.
-
-No FW-IMP-006-specific unresolved owner gate is currently identified.
-Desktop/Mobile shell technology remains later P10 work; deployment remains later Foundation work.
-
+Production secret-store, production reverse-proxy/tunnel and logging/metrics technologies remain deferred. FW-IMP-007 must verify test-environment Docker/Compose/deployment facts before mutation and must not promote test choices into production architecture.
