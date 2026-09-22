@@ -63,8 +63,8 @@ jobs:
           grep -R 'name: "idempotency_operations"' "$OUT_DIR"
           grep -R 'name: "outbox_messages"' "$OUT_DIR"
 
-          if grep -RE 'Party|Product|Inventory|Sales|Purchase|Warehouse|Finance|Return|Quality' "$OUT_DIR"; then
-            echo "FW-IMP-004 migration contains prohibited domain schema."
+          if grep -RE 'name: "(party|product|variant|reservation|inventory|sales|purchase|warehouse|finance|return|quality)' "$OUT_DIR"; then
+            echo "FW-IMP-004 migration contains prohibited domain table creation."
             exit 1
           fi
 
