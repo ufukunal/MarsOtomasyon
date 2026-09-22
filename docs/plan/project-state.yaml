@@ -39,7 +39,7 @@ phase_status:
   P1_foundation_framework_contract: completed
   P2_core_commercial_workflows: completed
   P3_database_logical_model: completed
-  P4_foundation_implementation: readiness_decision_gates
+  P4_foundation_implementation: blocked_on_owner_decisions
   P5_core_application_implementation: not_started
   P6_operations: not_started
   P7_commerce_external_channels: not_started
@@ -85,9 +85,9 @@ test_policy:
 active_task:
   id: P4
   title: Foundation implementation readiness / decision-gate resolution
-  status: ready_for_governance_decisions
+  status: blocked_on_owner_decisions
   file: docs/plan/active-task.yaml
-  progress: not_started
+  progress: gate_classification_complete
 
 completed_planning_tasks:
   - PLAN-001
@@ -288,22 +288,22 @@ known_constraints:
   - Durable idempotency/concurrency correctness is PostgreSQL-owned; Valkey is not sufficient authority.
 
 blocked_items:
-  - P4 Foundation implementation cannot begin coding until the Foundation technology decision gates required by the first implementation slice are explicitly resolved.
+  - Owner decision required: exact .NET SDK/runtime baseline for P4 first thin slice.
+  - Owner decision required: exact ORM/data-access baseline for P4 first thin slice.
 
 next_action:
   id: P4
-  title: Foundation implementation readiness / decision-gate resolution
+  title: Resolve two required Foundation technology choices
   phase: P4
-  status: ready_for_governance_decisions
-  target: docs/plan/01-foundation/
-  rationale:
-    - master-project-plan phase map makes P4 Foundation implementation the next execution phase after completed P3
-    - section 8 is the conceptual module planning sequence, not an override of phase execution order
-    - Quality remains conceptual master planning item 10 and the next item that can increment the 30-package planning metric, but Quality execution belongs P6 Operations
-    - Commerce belongs P7 and is not immediate next execution work
+  status: BLOCKED_ON_OWNER_DECISIONS
+  source: docs/plan/01-foundation/p4-readiness-decision-gates.md
+  required_owner_decisions:
+    - exact .NET SDK/runtime baseline
+    - exact ORM/data-access baseline
   restrictions:
-    - do not implement Foundation until required technology decision gates are resolved
-    - do not start Quality or Commerce execution during P4 readiness
+    - no Foundation implementation until both choices are explicit
+    - do not create ADRs claiming acceptance before owner decision
+    - exact master planning metric remains 9 / 30 = 30.0
 
 state_rules:
   - current_head must be verified from Git at every session start; embedded SHA is never authoritative.
