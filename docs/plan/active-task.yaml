@@ -1,64 +1,52 @@
-id: P4
-title: Foundation implementation readiness / decision-gate resolution
+id: FW-IMP-001
+title: repository solution skeleton
 module: foundation
-status: blocked_on_owner_decisions
-progress: gate_classification_complete
+status: ready
+progress: not_started
 
 phase:
   id: P4
   name: Foundation implementation
-  status: blocked_on_owner_decisions
+  status: ready_for_implementation
 
 predecessor:
-  id: PLAN-010
-  title: Logical database model
-  status: completed_frozen
-  phase: P3
+  id: P4-READINESS
+  title: Foundation implementation readiness / decision-gate resolution
+  status: completed
+  decisions:
+    - docs/plan/decisions/ADR-0001-dotnet-10-lts-baseline.md
+    - docs/plan/decisions/ADR-0002-ef-core-npgsql-baseline.md
 
-classification_source:
-  - docs/plan/01-foundation/p4-readiness-decision-gates.md
+goal:
+  Create the smallest .NET 10 repository solution/project skeleton defined by the Foundation contract, with dependency direction encoded in project references and a minimal successful build.
 
-required_now:
-  - gate: exact .NET SDK/runtime version
-    owner_decision: required
-    technical_recommendation: .NET 10 LTS
-  - gate: exact ORM/data-access strategy
-    owner_decision: required
-    technical_recommendation: EF Core 10 + Npgsql as default persistence/migration baseline; targeted raw SQL only for explicit measured/specialized need
+accepted_baselines:
+  runtime:
+    framework: .NET 10 LTS
+    adr: docs/plan/decisions/ADR-0001-dotnet-10-lts-baseline.md
+  persistence:
+    default: EF Core 10 + Npgsql
+    raw_sql_policy: targeted raw Npgsql/SQL only for explicitly justified specialized cases
+    adr: docs/plan/decisions/ADR-0002-ef-core-npgsql-baseline.md
 
-deferrable:
-  - exact auth/identity provider
-  - exact OpenAPI tooling
-  - exact structured logging/metrics stack
-  - exact object/file storage backend
-  - optional scheduling library
-
-not_required_for_p4_first_slice:
-  - exact Desktop shell technology
-  - exact Mobile shell technology
-  - production secret store
-  - production reverse proxy/tunnel details
-
-readiness:
-  implementation: blocked
-  blocker_count: 2
-  rule: do not create implementation task or accepted ADR until owner explicitly resolves both required-now choices
-
-scope:
-  allowed_paths:
-    - docs/plan/01-foundation/
-    - docs/plan/decisions/
-    - docs/plan/project-state.yaml
-    - docs/plan/active-task.yaml
-    - docs/plan/handoff/current.md
-    - docs/plan/tasks/
-  forbidden_paths:
-    - src/
-    - tests/
-  code: false
-  sql: false
-  migration: false
-  deployment: false
+implementation_scope_hint:
+  include:
+    - Mars.sln or repository-supported .NET solution format
+    - minimal Foundation project skeleton under src/
+    - minimal targeted test project structure only where meaningful
+    - project references enforcing accepted dependency direction
+    - SDK/runtime pinning as appropriate
+    - minimal build verification
+  exclude:
+    - domain business rules
+    - physical domain SQL/schema
+    - migrations unless separately activated by a later FW-IMP package
+    - auth provider selection
+    - OpenAPI tooling selection
+    - logging/metrics backend selection
+    - file storage backend selection
+    - Desktop/Mobile shell selection
+    - production deployment
 
 planning_progress:
   master_sequence:
@@ -70,12 +58,6 @@ planning_progress:
     total: 8
     percent: 100.0
 
-next_action:
-  type: owner_decision
-  required:
-    - choose exact .NET SDK/runtime baseline
-    - choose exact ORM/data-access baseline
-
 test_policy:
+  normal: minimal build and targeted project-reference checks
   heavy_tests: FULL_TEST_DAY_ONLY
-  current_session: documentation/decision consistency only
