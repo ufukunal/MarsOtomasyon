@@ -142,7 +142,7 @@ jobs:
           trap 'rm -f "$ASKPASS"' EXIT
           cat > "$ASKPASS" <<'ASK'
           #!/bin/sh
-          printf '%s\\n' "$MARS_TEST_SSH_PASSWORD"
+          printf '%s\n' "$MARS_TEST_SSH_PASSWORD"
           ASK
           chmod 700 "$ASKPASS"
 
@@ -164,7 +164,7 @@ jobs:
 
           cat > "$ASKPASS" <<'ASK'
           #!/bin/sh
-          printf '%s\\n' "$MARS_TEST_SSH_PASSWORD"
+          printf '%s\n' "$MARS_TEST_SSH_PASSWORD"
           ASK
           chmod 700 "$ASKPASS"
 
