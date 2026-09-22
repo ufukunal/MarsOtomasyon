@@ -1,5 +1,5 @@
-id: FW-IMP-001
-title: repository solution skeleton
+id: FW-IMP-002
+title: configuration/context/error primitives
 module: foundation
 status: ready
 progress: not_started
@@ -7,46 +7,42 @@ progress: not_started
 phase:
   id: P4
   name: Foundation implementation
-  status: ready_for_implementation
+  status: implementation_in_progress
 
 predecessor:
-  id: P4-READINESS
-  title: Foundation implementation readiness / decision-gate resolution
+  id: FW-IMP-001
+  title: repository solution skeleton
   status: completed
-  decisions:
-    - docs/plan/decisions/ADR-0001-dotnet-10-lts-baseline.md
-    - docs/plan/decisions/ADR-0002-ef-core-npgsql-baseline.md
+  evidence:
+    commit: 212022601c177ec6bc8e8438c6188e747cbee2c5
+    workflow_run: 35702737435
+    build: success
+    sdk: 10.0.401
+    runtime: 10.0.12
 
 goal:
-  Create the smallest .NET 10 repository solution/project skeleton defined by the Foundation contract, with dependency direction encoded in project references and a minimal successful build.
+  Implement only the Foundation configuration, request/job context and result/error primitives defined by the accepted framework contract.
 
-accepted_baselines:
-  runtime:
-    framework: .NET 10 LTS
-    adr: docs/plan/decisions/ADR-0001-dotnet-10-lts-baseline.md
-  persistence:
-    default: EF Core 10 + Npgsql
-    raw_sql_policy: targeted raw Npgsql/SQL only for explicitly justified specialized cases
-    adr: docs/plan/decisions/ADR-0002-ef-core-npgsql-baseline.md
-
-implementation_scope_hint:
+scope:
   include:
-    - Mars.sln or repository-supported .NET solution format
-    - minimal Foundation project skeleton under src/
-    - minimal targeted test project structure only where meaningful
-    - project references enforcing accepted dependency direction
-    - SDK/runtime pinning as appropriate
-    - minimal build verification
+    - typed configuration primitives and startup validation contracts
+    - correlation context primitive
+    - actor/company context interfaces
+    - result/error contracts
+    - targeted unit tests for implemented primitives
   exclude:
     - domain business rules
-    - physical domain SQL/schema
-    - migrations unless separately activated by a later FW-IMP package
-    - auth provider selection
-    - OpenAPI tooling selection
-    - logging/metrics backend selection
-    - file storage backend selection
-    - Desktop/Mobile shell selection
-    - production deployment
+    - PostgreSQL/EF Core mappings or migrations
+    - auth/identity provider selection or implementation
+    - OpenAPI tooling
+    - production logging/metrics provider
+    - file storage
+    - Mars.Web/Mars.UI
+    - deployment
+
+accepted_baselines:
+  runtime: .NET 10 LTS
+  persistence: EF Core 10 + Npgsql for later persistence package
 
 planning_progress:
   master_sequence:
@@ -59,5 +55,7 @@ planning_progress:
     percent: 100.0
 
 test_policy:
-  normal: minimal build and targeted project-reference checks
+  normal:
+    - build
+    - targeted unit tests for FW-IMP-002 only
   heavy_tests: FULL_TEST_DAY_ONLY
