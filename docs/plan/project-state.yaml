@@ -18,9 +18,9 @@ repository_state:
   repository_private: true
 
 current_phase:
-  id: P3
-  name: Logical Database Model
-  status: completed
+  id: P4
+  name: Foundation implementation
+  status: readiness_decision_gates
 
 planning_progress:
   counting_basis: master-project-plan section 8; completed/frozen work packages only
@@ -83,11 +83,11 @@ test_policy:
   heavy_tests: FULL_TEST_DAY_ONLY
 
 active_task:
-  id: PLAN-010
-  title: Logical database model
-  status: completed_frozen
+  id: P4
+  title: Foundation implementation readiness / decision-gate resolution
+  status: ready_for_governance_decisions
   file: docs/plan/active-task.yaml
-  progress: completed
+  progress: not_started
 
 completed_planning_tasks:
   - PLAN-001
