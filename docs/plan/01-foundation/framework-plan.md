@@ -940,8 +940,8 @@ Verified:
 - restore/build passed on self-hosted runner;
 - no domain logic, persistence schema/migration, auth provider, OpenAPI tooling, UI implementation or deployment was introduced.
 
-Current next package:
-- `FW-IMP-005 — API foundation implementation` (READY)
+Historical handoff recorded when this package completed:
+- `FW-IMP-005 — API foundation implementation` (then READY; now COMPLETED)
 
 
 ## FW-IMP-002 implementation evidence
@@ -958,7 +958,7 @@ Verified:
 - no domain rules, persistence schema/migration, auth provider, OpenAPI tooling, UI implementation or deployment was introduced;
 - targeted verification passed on .NET 10.
 
-Current next package:
+Historical handoff recorded when this package completed:
 - `FW-IMP-005 — API foundation` (technology decision gates must close before implementation)
 
 
@@ -977,7 +977,7 @@ Verified:
 - a targeted probe migration was generated without table creation and removed;
 - restore/build/targeted tests/project references passed on .NET 10.
 
-Current next package:
+Historical handoff recorded when this package completed:
 - `FW-IMP-005 — API foundation` (technology decision gates must close before implementation)
 
 
