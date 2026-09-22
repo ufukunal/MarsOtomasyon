@@ -35,15 +35,15 @@ NEW_MASTER_PASSWORD="$(generate_secret)"
 NEW_APP_PASSWORD="$(generate_secret)"
 
 docker exec -e PGPASSWORD="$MARS_PG_MASTER_PASSWORD" \
-  -e NEW_MASTER_PASSWORD="$NEW_MASTER_PASSWORD" \
-  -e NEW_APP_PASSWORD="$NEW_APP_PASSWORD" \
   "$PG_CONTAINER" \
   psql -h 127.0.0.1 -U "$MARS_PG_MASTER_USER" -d "$MARS_PG_DATABASE" \
   -v ON_ERROR_STOP=1 \
   -v master_role="$MARS_PG_MASTER_USER" \
-  -v app_role="$MARS_PG_APP_USER" <<'SQL' >/dev/null
-SELECT format('ALTER ROLE %I PASSWORD %L', :'master_role', :'ENV.NEW_MASTER_PASSWORD') \gexec
-SELECT format('ALTER ROLE %I PASSWORD %L', :'app_role', :'ENV.NEW_APP_PASSWORD') \gexec
+  -v app_role="$MARS_PG_APP_USER" \
+  -v new_master_password="$NEW_MASTER_PASSWORD" \
+  -v new_app_password="$NEW_APP_PASSWORD" <<'SQL' >/dev/null
+SELECT format('ALTER ROLE %I PASSWORD %L', :'master_role', :'new_master_password') \gexec
+SELECT format('ALTER ROLE %I PASSWORD %L', :'app_role', :'new_app_password') \gexec
 SQL
 
 TMP_FILE="$(mktemp "$HOME/.marsotomasyon/postgresql-roles.env.XXXXXX")"
