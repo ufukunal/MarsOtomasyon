@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.7
 
-FROM mcr.microsoft.com/dotnet/sdk:10.0.12-noble
+FROM mcr.microsoft.com/dotnet/sdk:10.0.401-noble
 WORKDIR /src
 
 COPY .config ./.config
