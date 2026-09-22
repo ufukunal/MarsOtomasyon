@@ -8,6 +8,7 @@ on:
       - "Directory.Build.props"
       - ".gitignore"
       - "src/**"
+      - "tests/**"
       - ".github/workflows/foundation-build.yml"
   workflow_dispatch:
 
@@ -16,7 +17,7 @@ permissions:
 
 jobs:
   build:
-    name: dotnet-10-skeleton
+    name: dotnet-10-foundation
     runs-on: self-hosted
     steps:
       - name: Checkout
@@ -40,6 +41,9 @@ jobs:
       - name: Build
         run: dotnet build Mars.slnx --configuration Release --no-restore
 
+      - name: FW-IMP-002 targeted tests
+        run: dotnet run --project tests/Mars.Foundation.Tests/Mars.Foundation.Tests.csproj --configuration Release --no-build
+
       - name: Project references
         shell: bash
         run: |
@@ -48,3 +52,4 @@ jobs:
           dotnet list src/Mars.Infrastructure/Mars.Infrastructure.csproj reference
           dotnet list src/Mars.Api/Mars.Api.csproj reference
           dotnet list src/Mars.Worker/Mars.Worker.csproj reference
+          dotnet list tests/Mars.Foundation.Tests/Mars.Foundation.Tests.csproj reference
