@@ -1,7 +1,7 @@
-id: FW-IMP-004
-title: audit/idempotency/outbox foundations
+id: FW-IMP-005
+title: API foundation technology decision-gate resolution
 module: foundation
-status: ready
+status: blocked_on_owner_decisions
 progress: not_started
 
 phase:
@@ -10,44 +10,53 @@ phase:
   status: implementation_in_progress
 
 predecessor:
-  id: FW-IMP-003
-  title: persistence/migration baseline
+  id: FW-IMP-004
+  title: audit/idempotency/outbox foundations
   status: completed
   evidence:
-    commit: 63734a34b1c86437504cc304cac1315b3d182ee1
-    workflow_run: 35708370550
+    commit: 06109051f530dff60774dc43d369986b343f4158
+    workflow_run: 35713295141
     build: success
-    targeted_tests: 11_passed
-    migration_probe: success
+    targeted_tests: 19_passed
+    migration_contract: success
+    project_references: success
     sdk: 10.0.401
     runtime: 10.0.12
 
 goal:
-  Implement only the accepted Foundation audit, durable idempotency and transactional outbox foundations plus the minimum worker skeleton required by the framework plan.
+  Close only the two technology decision gates that now block full FW-IMP-005 API foundation implementation.
+
+required_owner_decisions:
+  - exact authentication/identity provider for auth integration
+  - exact OpenAPI tooling for OpenAPI generation
+
+source_basis:
+  - docs/plan/01-foundation/framework-plan.md section 42: auth integration after provider decision
+  - docs/plan/01-foundation/framework-plan.md section 42: OpenAPI after tooling decision
+  - docs/plan/01-foundation/framework-plan.md section 44: block implementation at the relevant step until resolved
 
 scope:
   include:
-    - Foundation-owned audit persistence primitive
-    - durable PostgreSQL idempotency persistence primitive
-    - transactional outbox persistence primitive
-    - EF Core mappings and migration for those Foundation-owned structures
-    - application interfaces
-    - minimum worker/outbox processing skeleton
-    - targeted tests
+    - repository/source-backed classification of the two FW-IMP-005 gates
+    - targeted official current-source verification where needed
+    - explicit owner technology decisions
+    - accepted ADRs if owner decisions are supplied
+    - state/handoff normalization after decisions
   exclude:
-    - Sales/Party/Product/Inventory/Purchasing/Warehouse/Finance domain schema
-    - domain posting rules
-    - auth/identity provider
-    - OpenAPI tooling
-    - Mars.Web/Mars.UI
+    - FW-IMP-005 source implementation
+    - unrelated Foundation technology gates
+    - domain module schema or business rules
+    - UI
     - deployment
 
-accepted_baselines:
-  runtime: .NET 10 LTS
-  persistence: EF Core 10 + Npgsql
-  ef_core_packages: 10.0.12
-  npgsql_ef_provider: 10.0.3
-  dotnet_ef_tool: 10.0.12
+non_blocking_deferred_gates:
+  - structured logging/metrics stack
+  - object/file storage backend
+  - optional scheduling library
+  - Desktop shell technology
+  - Mobile shell technology
+  - production secret store
+  - production reverse proxy/tunnel details
 
 planning_progress:
   master_sequence:
@@ -60,9 +69,8 @@ planning_progress:
     percent: 100.0
 
 test_policy:
-  normal:
-    - restore
-    - build
-    - targeted unit/invariant
-    - targeted migration/contract checks
+  decision_session_only:
+    - documentation consistency
+    - ADR consistency if decisions are accepted
+    - state/handoff consistency
   heavy_tests: FULL_TEST_DAY_ONLY

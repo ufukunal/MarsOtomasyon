@@ -14,48 +14,52 @@
 - FW-IMP-001 — repository solution skeleton: COMPLETED
 - FW-IMP-002 — configuration/context/error primitives: COMPLETED
 - FW-IMP-003 — persistence/migration baseline: COMPLETED
+- FW-IMP-004 — audit/idempotency/outbox foundations: COMPLETED
 
-## FW-IMP-003 evidence
+## FW-IMP-004 evidence
 Implementation:
-- EF Core 10 / Npgsql persistence baseline is owned by `Mars.Infrastructure`
-- `MarsDbContext` exists with no ERP domain entities
-- runtime and migration connection configuration are represented by distinct types
-- design-time migration tooling uses only `MARS_MIGRATION_CONNECTION_STRING`
-- local `dotnet-ef` tool is pinned
-- migration location/rules are documented
-- no committed domain schema migration was created
+- persistence-neutral audit, idempotency and outbox contracts exist in Mars.Application
+- EF Core persistence records/mappings/stores are owned by Mars.Infrastructure
+- committed Foundation schema contains only:
+  - foundation.audit_events
+  - foundation.idempotency_operations
+  - foundation.outbox_messages
+- durable idempotency uniqueness is company-neutral logical scope + operation key as defined by the Foundation contract
+- outbox event identity is unique and delivery state is durable in PostgreSQL
+- minimum bounded/cancellation-aware outbox batch processor exists in Mars.Worker
+- no ERP domain schema, auth provider, OpenAPI tooling, UI or deployment was introduced
+- no real PostgreSQL migration was applied in this package
 
-Exact package/tool baseline:
-- Microsoft.EntityFrameworkCore 10.0.12
-- Microsoft.EntityFrameworkCore.Relational 10.0.12
-- Microsoft.EntityFrameworkCore.Design 10.0.12
-- Npgsql.EntityFrameworkCore.PostgreSQL 10.0.3
-- dotnet-ef 10.0.12
+Migration:
+- src/Mars.Infrastructure/Persistence/Migrations/Foundation/20260922095311_FwImp004FoundationPrimitives.cs
+- generated through EF Core tooling, not hand-authored as parallel DDL
+- committed model snapshot has no pending model changes
 
 Verification:
-- tested commit: `63734a34b1c86437504cc304cac1315b3d182ee1`
-- GitHub Actions run: `35708370550`
+- tested commit: `06109051f530dff60774dc43d369986b343f4158`
+- GitHub Actions run: `35713295141`
 - .NET SDK: `10.0.401`
 - runtime: `10.0.12`
 - restore: PASS
 - Release build: PASS — 0 warnings, 0 errors
-- targeted tests: PASS — 11 / 11
-- EF migration mechanism probe: PASS; generated probe contained no CreateTable operation and was removed from the CI workspace
-- project-reference check: PASS
+- targeted Foundation tests: PASS — 19 / 19
+- committed migration scope/model-drift verification: PASS
+- project-reference verification: PASS
 
-Failed verification history retained:
-- run `35708147597`: build passed but targeted test exposed EF relational patch-version conflict
-- run `35708251674`: build + tests passed; migration probe targeted Debug output while only Release was built
-- both issues were corrected in scope before the successful run
+Failed verification history is preserved in canonical FW-IMP-004 evidence.
 
 ## Current phase
 P4 — Foundation implementation
 Status: IN PROGRESS
 
-## Next work package
-`FW-IMP-004 — audit/idempotency/outbox foundations`
+## Next repository-defined package
+`FW-IMP-005 — API foundation`
 
-Do not introduce ERP domain rules or domain module schema in FW-IMP-004.
+Full FW-IMP-005 implementation is currently BLOCKED on two technology decisions that have reached their relevant implementation step:
+1. exact authentication/identity provider;
+2. exact OpenAPI tooling.
+
+Do not silently select either technology. Do not pull unrelated deferred Foundation gates forward.
 
 ## Planning progress
 - Master section-8 sequence: 9 / 30 = 30.0%

@@ -922,7 +922,8 @@ Current status:
 - `FW-IMP-001 — repository solution skeleton` is COMPLETED.
 - `FW-IMP-002 — configuration/context/error primitives` is COMPLETED.
 - `FW-IMP-003 — persistence/migration baseline` is COMPLETED.
-- next repository-defined implementation package is `FW-IMP-004 — audit/idempotency/outbox foundations`.
+- `FW-IMP-004 — audit/idempotency/outbox foundations` is COMPLETED.
+- next repository-defined implementation package is `FW-IMP-005 — API foundation`, currently blocked on its auth/identity provider and OpenAPI tooling decision gates.
 
 
 ## FW-IMP-001 implementation evidence
@@ -939,7 +940,7 @@ Verified:
 - no domain logic, persistence schema/migration, auth provider, OpenAPI tooling, UI implementation or deployment was introduced.
 
 Current next package:
-- `FW-IMP-004 — audit/idempotency/outbox foundations`
+- `FW-IMP-005 — API foundation` (technology decision gates must close before implementation)
 
 
 ## FW-IMP-002 implementation evidence
@@ -957,7 +958,7 @@ Verified:
 - targeted verification passed on .NET 10.
 
 Current next package:
-- `FW-IMP-004 — audit/idempotency/outbox foundations`
+- `FW-IMP-005 — API foundation` (technology decision gates must close before implementation)
 
 
 ## FW-IMP-003 implementation evidence
@@ -976,4 +977,32 @@ Verified:
 - restore/build/targeted tests/project references passed on .NET 10.
 
 Current next package:
-- `FW-IMP-004 — audit/idempotency/outbox foundations`
+- `FW-IMP-005 — API foundation` (technology decision gates must close before implementation)
+
+
+## FW-IMP-004 implementation evidence
+
+Status: COMPLETED
+
+Canonical evidence:
+- `docs/plan/01-foundation/fw-imp-004-implementation.md`
+
+Verified:
+- Foundation audit persistence exists without becoming business-ledger authority;
+- durable PostgreSQL idempotency uses a unique scope + operation-key contract;
+- transactional outbox persistence and claim/retry state exist in PostgreSQL;
+- Mars.Application remains persistence-neutral;
+- Mars.Infrastructure owns EF Core mappings and persistence;
+- Mars.Worker contains the minimum bounded/cancellation-aware outbox processor;
+- the first committed Foundation migration creates only audit/idempotency/outbox structures;
+- no ERP domain schema or provider integration was introduced;
+- restore/build/19 targeted tests/migration-model drift/project-reference checks passed on .NET 10.
+
+Next repository-defined package:
+- `FW-IMP-005 — API foundation`.
+
+Relevant decision gates before full FW-IMP-005 implementation:
+- exact authentication/identity provider;
+- exact OpenAPI tooling.
+
+These two gates are now at their relevant implementation step and must not be guessed.

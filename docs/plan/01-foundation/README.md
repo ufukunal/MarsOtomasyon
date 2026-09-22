@@ -55,8 +55,32 @@ Implementation status:
 - `FW-IMP-001 — repository solution skeleton`: COMPLETED
 - `FW-IMP-002 — configuration/context/error primitives`: COMPLETED
 - `FW-IMP-003 — persistence/migration baseline`: COMPLETED
+- `FW-IMP-004 — audit/idempotency/outbox foundations`: COMPLETED
 - evidence:
   - `docs/plan/01-foundation/fw-imp-001-implementation.md`
   - `docs/plan/01-foundation/fw-imp-002-implementation.md`
   - `docs/plan/01-foundation/fw-imp-003-implementation.md`
-- next: `FW-IMP-004 — audit/idempotency/outbox foundations`
+  - `docs/plan/01-foundation/fw-imp-004-implementation.md`
+- next: `FW-IMP-005 — API foundation`; implementation is blocked until the exact auth/identity provider and OpenAPI tooling gates are explicitly resolved.
+
+
+## FW-IMP-004 current status
+
+`FW-IMP-004 — audit/idempotency/outbox foundations` is COMPLETED.
+
+Canonical evidence:
+- `docs/plan/01-foundation/fw-imp-004-implementation.md`
+
+The committed Foundation migration owns only:
+- `foundation.audit_events`
+- `foundation.idempotency_operations`
+- `foundation.outbox_messages`
+
+Next repository-defined package:
+- `FW-IMP-005 — API foundation`
+
+Before full FW-IMP-005 implementation, explicitly resolve:
+- authentication/identity provider;
+- OpenAPI tooling.
+
+Other deferred Foundation technology gates do not become blockers merely because FW-IMP-005 is next.

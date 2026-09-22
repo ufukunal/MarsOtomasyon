@@ -83,9 +83,9 @@ test_policy:
   heavy_tests: FULL_TEST_DAY_ONLY
 
 active_task:
-  id: FW-IMP-004
-  title: audit/idempotency/outbox foundations
-  status: ready
+  id: FW-IMP-005
+  title: API foundation technology decision-gate resolution
+  status: blocked_on_owner_decisions
   file: docs/plan/active-task.yaml
   progress: not_started
 
@@ -106,6 +106,7 @@ completed_implementation_tasks:
   - FW-IMP-001
   - FW-IMP-002
   - FW-IMP-003
+  - FW-IMP-004
 
 locked_decisions:
   - .NET 10 LTS is the accepted Foundation runtime/SDK baseline.
@@ -264,7 +265,8 @@ test_environment:
 
 known_constraints:
   - Application core is not yet implemented.
-  - FW-IMP-001 repository solution skeleton, FW-IMP-002 configuration/context/error primitives and FW-IMP-003 persistence/migration baseline are implemented; Foundation behavior remains sequenced through FW-IMP-004 and later packages.
+  - FW-IMP-001 repository solution skeleton, FW-IMP-002 configuration/context/error primitives, FW-IMP-003 persistence/migration baseline and FW-IMP-004 audit/idempotency/outbox foundations are implemented.
+  - FW-IMP-005 API foundation is the next repository-defined package but its auth/identity provider and OpenAPI tooling gates are now relevant and unresolved.
   - Database logical/schema design is intentionally deferred until core workflows are sufficiently frozen.
   - Business rules must not be inferred from generic ERP conventions when project sources are silent.
   - Runner VM and test server are separate machines; never conflate runner-local results with test-server results.
@@ -295,32 +297,34 @@ known_constraints:
   - Durable idempotency/concurrency correctness is PostgreSQL-owned; Valkey is not sufficient authority.
 
 blocked_items:
-  - None for FW-IMP-004 readiness. Deferred Foundation technology gates remain gated at their relevant later implementation steps.
+  - FW-IMP-005 implementation is blocked until the exact authentication/identity provider is explicitly resolved for auth integration.
+  - FW-IMP-005 implementation is blocked until the exact OpenAPI tooling is explicitly resolved for OpenAPI generation.
+  - Other deferred Foundation technology gates remain non-blocking until their own relevant implementation steps.
 
 next_action:
-  id: FW-IMP-004
-  title: audit/idempotency/outbox foundations
+  id: FW-IMP-005
+  title: API foundation technology decision-gate resolution
   phase: P4
-  status: READY
+  status: BLOCKED_ON_OWNER_DECISIONS
   source: docs/plan/01-foundation/framework-plan.md
   predecessor:
-    id: FW-IMP-003
+    id: FW-IMP-004
     status: completed
-    evidence_commit: 63734a34b1c86437504cc304cac1315b3d182ee1
-    evidence_workflow_run: 35708370550
-  scope_intent:
-    - Foundation audit persistence primitive
-    - durable PostgreSQL idempotency primitive
-    - transactional outbox persistence primitive
-    - application interfaces and worker skeleton required by the accepted framework contract
-    - targeted tests
+    evidence_commit: 06109051f530dff60774dc43d369986b343f4158
+    evidence_workflow_run: 35713295141
+  required_owner_decisions:
+    - exact authentication/identity provider for FW-IMP-005 auth integration
+    - exact OpenAPI tooling for FW-IMP-005 OpenAPI generation
+  rationale:
+    - framework-plan FW-IMP-005 explicitly sequences auth integration after provider decision
+    - framework-plan FW-IMP-005 explicitly sequences OpenAPI after tooling decision
+    - section 44 blocks implementation at the relevant step until these gates are resolved
   restrictions:
-    - no domain business rules or domain module schema
-    - no auth provider selection
-    - no OpenAPI tooling selection
+    - no FW-IMP-005 implementation until both relevant owner technology decisions are resolved
+    - do not silently choose auth/identity or OpenAPI technologies
+    - do not pull logging/metrics, file storage, scheduling, shell, production secret-store or reverse-proxy decisions forward
     - no deployment
     - exact master planning metric remains 9 / 30 = 30.0
-
 state_rules:
   - current_head must be verified from Git at every session start; embedded SHA is never authoritative.
   - repo content overrides chat memory when they conflict.
