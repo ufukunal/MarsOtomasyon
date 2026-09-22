@@ -58,31 +58,43 @@ Implementation status:
 - `FW-IMP-002 — configuration/context/error primitives`: COMPLETED
 - `FW-IMP-003 — persistence/migration baseline`: COMPLETED
 - `FW-IMP-004 — audit/idempotency/outbox foundations`: COMPLETED
+- `FW-IMP-005 — API foundation implementation`: COMPLETED
 - evidence:
   - `docs/plan/01-foundation/fw-imp-001-implementation.md`
   - `docs/plan/01-foundation/fw-imp-002-implementation.md`
   - `docs/plan/01-foundation/fw-imp-003-implementation.md`
   - `docs/plan/01-foundation/fw-imp-004-implementation.md`
-- next: `FW-IMP-005 — API foundation implementation`; READY.
+  - `docs/plan/01-foundation/fw-imp-005-implementation.md`
+- next: `FW-IMP-006 — Mars.Web + Mars.UI foundation`; READY.
 
 
-## FW-IMP-004 current status
+## FW-IMP-005 current status
 
-`FW-IMP-004 — audit/idempotency/outbox foundations` is COMPLETED.
+`FW-IMP-005 — API foundation implementation` is COMPLETED.
 
 Canonical evidence:
-- `docs/plan/01-foundation/fw-imp-004-implementation.md`
+- `docs/plan/01-foundation/fw-imp-005-implementation.md`
 
-The committed Foundation migration owns only:
-- `foundation.audit_events`
-- `foundation.idempotency_operations`
-- `foundation.outbox_messages`
+Verified:
+- Identity + OpenIddict follows ADR-0003 while ERP authorization remains Mars-owned;
+- trusted principal maps to the existing actor/company/optional-branch/correlation context;
+- Identity/OpenIddict persistence is Foundation-owned EF Core/Npgsql schema;
+- Microsoft.AspNetCore.OpenApi 10.0.12 generates the v1 document;
+- `/api/v1`, deterministic error mapping and separate liveness/readiness baselines exist;
+- final Release build passed with 0 warnings / 0 errors;
+- 26 / 26 targeted Foundation tests passed;
+- committed migration scope/model drift, API smoke, OpenAPI generation and project references passed;
+- no ERP business endpoint/schema/rule was introduced.
 
 Next repository-defined package:
-- `FW-IMP-005 — API foundation`
+- `FW-IMP-006 — Mars.Web + Mars.UI foundation` — READY.
 
-FW-IMP-005 relevant gates are resolved:
-- authentication/identity: ASP.NET Core Identity + OpenIddict 7.7.1 (ADR-0003);
-- OpenAPI: Microsoft.AspNetCore.OpenApi 10.0.12 (ADR-0004).
+FW-IMP-006 planned scope:
+- Vite/TypeScript;
+- shell/router/API client;
+- design tokens;
+- Button/Field/Dialog/Tabs/Lookup/Grid baseline.
 
-Other deferred Foundation technology gates do not become blockers merely because FW-IMP-005 is next.
+No FW-IMP-006-specific unresolved owner gate is currently identified.
+Desktop/Mobile shell technology remains later P10 work; deployment remains later Foundation work.
+
