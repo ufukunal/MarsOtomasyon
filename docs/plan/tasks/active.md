@@ -1,24 +1,26 @@
 # Active Tasks
 
-## P4 — Foundation implementation readiness / decision-gate resolution
-**Status:** READY FOR GOVERNANCE DECISIONS — NO CODE
+## P4 — Resolve required Foundation technology choices
+**Status:** BLOCKED ON OWNER DECISIONS — NO CODE
 
-Predecessor:
-- P3 Logical Database Model / PLAN-010: COMPLETED / FROZEN.
+Gate classification is complete:
+`docs/plan/01-foundation/p4-readiness-decision-gates.md`
 
-Authoritative sequencing:
-- P4 Foundation implementation is the next execution phase.
-- Quality is conceptual master planning item 10 but belongs P6 Operations for execution.
-- Commerce belongs P7 and is not the immediate next task.
+Only two choices block the first P4 implementation slice:
 
-Immediate objective:
-Classify the Foundation technology decision gates as required-now vs deferrable for the first thin P4 slice, then record explicit owner decisions for the required-now gates.
+1. Exact .NET SDK/runtime baseline
+   - technical recommendation: .NET 10 LTS
+   - owner acceptance required.
 
-Do not invent a new PLAN task number.
-Do not implement src/, tests/, SQL/migrations, deployment or provider integrations during readiness.
+2. Exact ORM/data-access baseline
+   - technical recommendation: EF Core 10 + Npgsql as default persistence/migration stack;
+   - targeted raw SQL remains an explicit escape hatch, not a competing default.
+   - owner acceptance required.
 
-Exact planning progress:
-- master section-8 sequence: 9 / 30 = 30.0%
+All other listed technology gates are classified as deferrable or not required for the first P4 slice.
+
+Do not start src/, tests/, SQL/migrations, dependencies or deployment until both owner choices are explicit.
+
+Exact planning progress remains:
+- master: 9 / 30 = 30.0%
 - P2: 8 / 8 = 100.0%
-
-Heavy tests remain Full Test Day only.
