@@ -36,7 +36,7 @@ internal static class FwImp005Tests
 
         AssertEqual(actorId, executionContext.ActorId);
         AssertEqual(companyId, executionContext.CompanyId);
-        AssertEqual(branchId, executionContext.BranchId);
+        AssertEqual<Guid?>(branchId, executionContext.BranchId);
         AssertEqual("corr-fwimp005", executionContext.CorrelationId.Value);
     }
 
