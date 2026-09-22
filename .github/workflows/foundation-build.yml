@@ -54,10 +54,10 @@ jobs:
           MARS_MIGRATION_CONNECTION_STRING: "Host=localhost;Database=mars_design_time_probe"
         run: |
           set -euo pipefail
-          OUT_DIR="src/Mars.Infrastructure/Persistence/Migrations/FwImp004Generated"
+          OUT_DIR="src/Mars.Infrastructure/Persistence/Migrations/Foundation"
           rm -rf "$OUT_DIR"
 
-          dotnet tool run dotnet-ef migrations add FwImp004FoundationPrimitives             --project src/Mars.Infrastructure/Mars.Infrastructure.csproj             --startup-project src/Mars.Infrastructure/Mars.Infrastructure.csproj             --output-dir Persistence/Migrations/FwImp004Generated             --configuration Release             --no-build
+          dotnet tool run dotnet-ef migrations add FwImp004FoundationPrimitives             --project src/Mars.Infrastructure/Mars.Infrastructure.csproj             --startup-project src/Mars.Infrastructure/Mars.Infrastructure.csproj             --output-dir Persistence/Migrations/Foundation             --configuration Release             --no-build
 
           grep -R 'name: "audit_events"' "$OUT_DIR"
           grep -R 'name: "idempotency_operations"' "$OUT_DIR"
