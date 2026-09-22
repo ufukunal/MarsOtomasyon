@@ -19,6 +19,8 @@ ENV ASPNETCORE_URLS=http://+:8080 \
     DOTNET_EnableDiagnostics=0
 
 COPY --from=build --chown=$APP_UID:$APP_UID /out ./
+RUN mkdir -p /home/app/.aspnet/DataProtection-Keys \
+    && chown -R $APP_UID:$APP_UID /home/app/.aspnet
 
 USER $APP_UID
 

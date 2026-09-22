@@ -133,6 +133,34 @@ jobs:
             echo "MARS_TEST_SSH_PASSWORD=$SSH_PASS"
           } >> "$GITHUB_ENV"
 
+      - name: Rotate compromised TEST PostgreSQL role credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          ASKPASS="$RUNNER_TEMP/mars-fwimp007-askpass.sh"
+          trap 'rm -f "$ASKPASS"' EXIT
+          cat > "$ASKPASS" <<'ASK'
+          #!/bin/sh
+          printf '%s\n' "$MARS_TEST_SSH_PASSWORD"
+          ASK
+          chmod 700 "$ASKPASS"
+
+          export SSH_ASKPASS="$ASKPASS"
+          export SSH_ASKPASS_REQUIRE=force
+          export DISPLAY=:99
+
+          setsid -w ssh \
+            -o BatchMode=no \
+            -o PubkeyAuthentication=no \
+            -o PreferredAuthentications=password \
+            -o PasswordAuthentication=yes \
+            -o NumberOfPasswordPrompts=1 \
+            -o StrictHostKeyChecking=accept-new \
+            -o ConnectTimeout=7 \
+            "$MARS_TEST_SSH_USER@$MARS_TEST_SSH_HOST" \
+            'bash -s' < deploy/test/rotate-postgres-roles.sh
+
       - name: Remote TEST preflight
         shell: bash
         run: |

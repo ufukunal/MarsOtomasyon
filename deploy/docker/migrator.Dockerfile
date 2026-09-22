@@ -13,5 +13,8 @@ RUN dotnet build src/Mars.Infrastructure/Mars.Infrastructure.csproj \
     --configuration Release \
     --no-restore
 
+ENV DOTNET_CLI_HOME=/tmp
+USER $APP_UID
+
 ENTRYPOINT ["dotnet", "tool", "run", "dotnet-ef"]
 CMD ["--help"]

@@ -104,16 +104,14 @@ if [ "$ROLE_MODE" != "600" ]; then
   exit 1
 fi
 
-set +x
+# Never enable xtrace while role credentials are in scope.
 # shellcheck disable=SC1090
 source "$ROLE_FILE"
-set -x
 : "${MARS_PG_DATABASE:?}"
 : "${MARS_PG_MASTER_USER:?}"
 : "${MARS_PG_MASTER_PASSWORD:?}"
 : "${MARS_PG_APP_USER:?}"
 : "${MARS_PG_APP_PASSWORD:?}"
-set +x
 
 if docker exec -e PGPASSWORD="$MARS_PG_MASTER_PASSWORD" "$PG_CONTAINER" \
   psql -h 127.0.0.1 -U "$MARS_PG_MASTER_USER" -d "$MARS_PG_DATABASE" -Atqc 'select 1' |
@@ -143,9 +141,19 @@ if [ "$APP_FLAGS" != "false,false,false,false" ]; then
 fi
 echo "PREFLIGHT_POSTGRES_APP_PRIVILEGE_MODEL=PASS"
 
-MIGRATION_COUNT="$(docker exec -e PGPASSWORD="$MARS_PG_MASTER_PASSWORD" "$PG_CONTAINER" \
+MIGRATION_HISTORY_EXISTS="$(docker exec -e PGPASSWORD="$MARS_PG_MASTER_PASSWORD" "$PG_CONTAINER" \
   psql -h 127.0.0.1 -U "$MARS_PG_MASTER_USER" -d "$MARS_PG_DATABASE" -Atqc \
-  "select case when to_regclass('public.\"__EFMigrationsHistory\"') is null then 0 else (select count(*) from public.\"__EFMigrationsHistory\") end")"
+  "select case when to_regclass('public.\"__EFMigrationsHistory\"') is null then 'NO' else 'YES' end")"
+
+if [ "$MIGRATION_HISTORY_EXISTS" = "YES" ]; then
+  MIGRATION_COUNT="$(docker exec -e PGPASSWORD="$MARS_PG_MASTER_PASSWORD" "$PG_CONTAINER" \
+    psql -h 127.0.0.1 -U "$MARS_PG_MASTER_USER" -d "$MARS_PG_DATABASE" -Atqc \
+    'select count(*) from public."__EFMigrationsHistory"')"
+else
+  MIGRATION_COUNT=0
+fi
+
+echo "PREFLIGHT_EF_MIGRATION_HISTORY=$MIGRATION_HISTORY_EXISTS"
 echo "PREFLIGHT_EF_MIGRATION_COUNT=$MIGRATION_COUNT"
 
 FOUNDATION_SCHEMA="$(docker exec -e PGPASSWORD="$MARS_PG_MASTER_PASSWORD" "$PG_CONTAINER" \

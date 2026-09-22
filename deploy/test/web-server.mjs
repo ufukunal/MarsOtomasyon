@@ -104,7 +104,8 @@ async function serveStatic(method, requestPath, accept, res) {
     info = await tryStat(candidate);
   }
 
-  if (!info?.isFile() && accept.includes("text/html")) {
+  const isClientRoute = extname(decoded) === "";
+  if (!info?.isFile() && (accept.includes("text/html") || isClientRoute)) {
     candidate = resolve(root, "index.html");
     info = await tryStat(candidate);
   }
