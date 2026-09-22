@@ -17,6 +17,7 @@ export function createButton(options: ButtonOptions): HTMLButtonElement {
 
   if (options.loading === true) {
     button.setAttribute("aria-busy", "true");
+    button.setAttribute("aria-label", options.label);
   }
 
   const label = document.createElement("span");
@@ -171,6 +172,10 @@ export function createDialog(options: DialogOptions): DialogController {
   const open = (): void => {
     if (!overlay.hidden) return;
     returnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+
+    if (overlay.parentElement !== document.body) {
+      document.body.append(overlay);
+    }
     overlay.hidden = false;
 
     for (const child of Array.from(document.body.children)) {
@@ -397,8 +402,9 @@ export function createLookup<T>(options: LookupOptions<T>): LookupController<T> 
       option.type = "button";
       option.className = "mars-lookup__option";
       option.setAttribute("role", "option");
-      option.dataset.key = options.getKey(item);
+      option.setAttribute("aria-label", options.getLabel(item));
       option.textContent = options.getLabel(item);
+      option.addEventListener("focus", () => { activeIndex = index; });
       option.addEventListener("click", () => choose(index));
       list.append(option);
     }
@@ -442,7 +448,7 @@ export function createLookup<T>(options: LookupOptions<T>): LookupController<T> 
       return;
     }
 
-    if (document.activeElement !== input || currentItems.length === 0) return;
+    if (currentItems.length === 0) return;
 
     if (event.key === "ArrowDown") {
       event.preventDefault();
