@@ -921,7 +921,8 @@ Current status:
 - P4 Foundation implementation readiness is READY.
 - `FW-IMP-001 — repository solution skeleton` is COMPLETED.
 - `FW-IMP-002 — configuration/context/error primitives` is COMPLETED.
-- next repository-defined implementation package is `FW-IMP-003 — persistence/migration baseline`.
+- `FW-IMP-003 — persistence/migration baseline` is COMPLETED.
+- next repository-defined implementation package is `FW-IMP-004 — audit/idempotency/outbox foundations`.
 
 
 ## FW-IMP-001 implementation evidence
@@ -938,7 +939,7 @@ Verified:
 - no domain logic, persistence schema/migration, auth provider, OpenAPI tooling, UI implementation or deployment was introduced.
 
 Current next package:
-- `FW-IMP-003 — persistence/migration baseline`
+- `FW-IMP-004 — audit/idempotency/outbox foundations`
 
 
 ## FW-IMP-002 implementation evidence
@@ -956,4 +957,23 @@ Verified:
 - targeted verification passed on .NET 10.
 
 Current next package:
-- `FW-IMP-003 — persistence/migration baseline`
+- `FW-IMP-004 — audit/idempotency/outbox foundations`
+
+
+## FW-IMP-003 implementation evidence
+
+Status: COMPLETED
+
+Canonical evidence:
+- `docs/plan/01-foundation/fw-imp-003-implementation.md`
+
+Verified:
+- EF Core/Npgsql remains Infrastructure-owned;
+- runtime and migration connection-purpose configuration is separated;
+- `MarsDbContext` contains no ERP domain entity mappings;
+- local EF migration tooling is pinned and functional;
+- a targeted probe migration was generated without table creation and removed;
+- restore/build/targeted tests/project references passed on .NET 10.
+
+Current next package:
+- `FW-IMP-004 — audit/idempotency/outbox foundations`
