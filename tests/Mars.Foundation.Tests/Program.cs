@@ -1,8 +1,13 @@
+using Mars.Application.Foundation.Auditing;
 using Mars.Application.Foundation.Configuration;
 using Mars.Application.Foundation.Context;
+using Mars.Application.Foundation.Idempotency;
+using Mars.Application.Foundation.Outbox;
 using Mars.Application.Foundation.Results;
 using Mars.Infrastructure.Persistence;
+using Mars.Worker.Foundation.Outbox;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata;
 using MarsExecutionContext = Mars.Application.Foundation.Context.ExecutionContext;
 
 var tests = new (string Name, Action Test)[]
@@ -16,8 +21,16 @@ var tests = new (string Name, Action Test)[]
     ("Startup configuration validation aggregates issues", StartupValidationAggregatesIssues),
     ("Startup configuration exception does not include option secret", StartupExceptionDoesNotIncludeSecret),
     ("PostgreSQL runtime options require a connection string", PostgreSqlRuntimeOptionsRequireConnectionString),
-    ("MarsDbContext uses Npgsql without domain entities", MarsDbContextUsesNpgsqlWithoutDomainEntities),
-    ("Migration factory requires migration-specific configuration", MigrationFactoryRequiresMigrationConfiguration)
+    ("Foundation model contains only audit idempotency outbox", FoundationModelContainsOnlyAllowedEntities),
+    ("Idempotency scope and key are uniquely constrained", IdempotencyScopeAndKeyAreUnique),
+    ("Outbox event id is uniquely constrained", OutboxEventIdIsUnique),
+    ("Outbox payload uses PostgreSQL jsonb", OutboxPayloadUsesJsonb),
+    ("Audit entry rejects missing scope identities", AuditEntryRejectsMissingScope),
+    ("Idempotency operation rejects missing logical identity", IdempotencyOperationRejectsMissingIdentity),
+    ("Outbox message rejects invalid schema version", OutboxMessageRejectsInvalidSchemaVersion),
+    ("Migration factory requires migration-specific configuration", MigrationFactoryRequiresMigrationConfiguration),
+    ("Outbox processor records success retry and terminal failure", OutboxProcessorRecordsOutcomes),
+    ("Outbox processor honors cancellation", OutboxProcessorHonorsCancellation)
 };
 
 var failures = new List<string>();
@@ -161,17 +174,89 @@ static void PostgreSqlRuntimeOptionsRequireConnectionString()
     AssertEqual("required", issues[0].Code);
 }
 
-static void MarsDbContextUsesNpgsqlWithoutDomainEntities()
+static MarsDbContext CreateModelContext()
 {
-    const string nonSecretConnectionString = "Host=localhost;Database=mars_model_probe";
-
     var options = MarsDbContextOptions.CreateRuntime(
-        new PostgreSqlRuntimeOptions(nonSecretConnectionString));
+        new PostgreSqlRuntimeOptions("Host=localhost;Database=mars_model_probe"));
+    return new MarsDbContext(options);
+}
 
-    using var context = new MarsDbContext(options);
+static void FoundationModelContainsOnlyAllowedEntities()
+{
+    using var context = CreateModelContext();
+    var tables = context.Model.GetEntityTypes()
+        .Select(x => $"{x.GetSchema()}.{x.GetTableName()}")
+        .OrderBy(x => x, StringComparer.Ordinal)
+        .ToArray();
 
-    AssertEqual("Npgsql.EntityFrameworkCore.PostgreSQL", context.Database.ProviderName);
-    AssertEqual(0, context.Model.GetEntityTypes().Count());
+    AssertSequenceEqual(
+        new[]
+        {
+            "foundation.audit_events",
+            "foundation.idempotency_operations",
+            "foundation.outbox_messages"
+        },
+        tables);
+}
+
+static void IdempotencyScopeAndKeyAreUnique()
+{
+    using var context = CreateModelContext();
+    var entity = FindTable(context.Model, "idempotency_operations");
+    AssertTrue(entity.GetIndexes().Any(index =>
+        index.IsUnique &&
+        index.Properties.Select(property => property.GetColumnName()).SequenceEqual(
+            new[] { "scope", "operation_key" })));
+}
+
+static void OutboxEventIdIsUnique()
+{
+    using var context = CreateModelContext();
+    var entity = FindTable(context.Model, "outbox_messages");
+    AssertTrue(entity.GetIndexes().Any(index =>
+        index.IsUnique &&
+        index.Properties.Count == 1 &&
+        index.Properties[0].GetColumnName() == "event_id"));
+}
+
+static void OutboxPayloadUsesJsonb()
+{
+    using var context = CreateModelContext();
+    var entity = FindTable(context.Model, "outbox_messages");
+    AssertEqual("jsonb", entity.FindProperty("Payload")?.GetColumnType());
+}
+
+static void AuditEntryRejectsMissingScope()
+{
+    var now = DateTimeOffset.UtcNow;
+    var valid = Guid.NewGuid();
+
+    AssertThrows<ArgumentException>(() =>
+        _ = new AuditEntry(Guid.Empty, valid, null, "c", "Foundation", "Action", null, null, null, now));
+    AssertThrows<ArgumentException>(() =>
+        _ = new AuditEntry(valid, Guid.Empty, null, "c", "Foundation", "Action", null, null, null, now));
+}
+
+static void IdempotencyOperationRejectsMissingIdentity()
+{
+    AssertThrows<ArgumentException>(() =>
+        _ = new IdempotencyOperation(" ", "key", null, DateTimeOffset.UtcNow));
+    AssertThrows<ArgumentException>(() =>
+        _ = new IdempotencyOperation("scope", " ", null, DateTimeOffset.UtcNow));
+}
+
+static void OutboxMessageRejectsInvalidSchemaVersion()
+{
+    AssertThrows<ArgumentOutOfRangeException>(() =>
+        _ = new OutboxMessage(
+            Guid.NewGuid(),
+            "Foundation.Sample",
+            "Foundation",
+            null,
+            0,
+            "{}",
+            DateTimeOffset.UtcNow,
+            DateTimeOffset.UtcNow));
 }
 
 static void MigrationFactoryRequiresMigrationConfiguration()
@@ -202,6 +287,51 @@ static void MigrationFactoryRequiresMigrationConfiguration()
     }
 }
 
+static void OutboxProcessorRecordsOutcomes()
+{
+    var now = DateTimeOffset.Parse("2026-09-22T09:00:00+00:00");
+    var retryAt = now.AddMinutes(5);
+    var items = new[]
+    {
+        NewWorkItem("Success"),
+        NewWorkItem("Retry"),
+        NewWorkItem("Fail")
+    };
+
+    var store = new FakeOutboxWorkStore(items);
+    var dispatcher = new FakeOutboxDispatcher(retryAt);
+    var processor = new OutboxBatchProcessor(store, dispatcher, 10, TimeSpan.FromMinutes(1));
+
+    var count = processor.ProcessOnceAsync(now, CancellationToken.None).GetAwaiter().GetResult();
+
+    AssertEqual(3, count);
+    AssertEqual(1, store.Processed.Count);
+    AssertEqual(1, store.Retried.Count);
+    AssertEqual(1, store.Failed.Count);
+    AssertEqual(retryAt, store.Retried[0].AvailableAt);
+    AssertEqual("retry.test", store.Retried[0].ErrorCode);
+    AssertEqual("failed.test", store.Failed[0].ErrorCode);
+}
+
+static void OutboxProcessorHonorsCancellation()
+{
+    var item = NewWorkItem("Success");
+    var store = new FakeOutboxWorkStore(new[] { item });
+    var dispatcher = new FakeOutboxDispatcher(DateTimeOffset.UtcNow);
+    var processor = new OutboxBatchProcessor(store, dispatcher, 1, TimeSpan.FromMinutes(1));
+    using var cancellation = new CancellationTokenSource();
+    cancellation.Cancel();
+
+    AssertThrows<OperationCanceledException>(() =>
+        processor.ProcessOnceAsync(DateTimeOffset.UtcNow, cancellation.Token).GetAwaiter().GetResult());
+}
+
+static OutboxWorkItem NewWorkItem(string eventType) =>
+    new(Guid.NewGuid(), Guid.NewGuid(), eventType, "Foundation", null, 1, "{}", 1);
+
+static IEntityType FindTable(IModel model, string tableName) =>
+    model.GetEntityTypes().Single(entity => entity.GetTableName() == tableName);
+
 static TException AssertThrows<TException>(Action action)
     where TException : Exception
 {
@@ -219,10 +349,7 @@ static TException AssertThrows<TException>(Action action)
 
 static void AssertTrue(bool condition)
 {
-    if (!condition)
-    {
-        throw new InvalidOperationException("Assertion failed.");
-    }
+    if (!condition) throw new InvalidOperationException("Assertion failed.");
 }
 
 static void AssertEqual<T>(T expected, T actual)
@@ -266,4 +393,72 @@ internal sealed class FailingValidator : IStartupConfigurationValidator<SampleOp
             new ConfigurationValidationIssue("Sample", "missing", "A required setting is missing."),
             new ConfigurationValidationIssue("Other", "invalid", "Another setting is invalid.")
         };
+}
+
+internal sealed class FakeOutboxDispatcher(DateTimeOffset retryAt) : IOutboxDispatcher
+{
+    public Task<OutboxDispatchResult> DispatchAsync(
+        OutboxWorkItem workItem,
+        CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        return Task.FromResult(workItem.EventType switch
+        {
+            "Success" => OutboxDispatchResult.Success(),
+            "Retry" => OutboxDispatchResult.RetryLater(retryAt, "retry.test"),
+            _ => OutboxDispatchResult.Failed("failed.test")
+        });
+    }
+}
+
+internal sealed class FakeOutboxWorkStore(IReadOnlyList<OutboxWorkItem> items) : IOutboxWorkStore
+{
+    public List<(Guid EventId, Guid ClaimToken)> Processed { get; } = [];
+    public List<(Guid EventId, Guid ClaimToken, DateTimeOffset AvailableAt, string ErrorCode)> Retried { get; } = [];
+    public List<(Guid EventId, Guid ClaimToken, string ErrorCode)> Failed { get; } = [];
+
+    public Task<IReadOnlyList<OutboxWorkItem>> ClaimAsync(
+        int maxBatchSize,
+        DateTimeOffset now,
+        TimeSpan leaseDuration,
+        CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        return Task.FromResult<IReadOnlyList<OutboxWorkItem>>(items.Take(maxBatchSize).ToArray());
+    }
+
+    public Task<bool> MarkProcessedAsync(
+        Guid eventId,
+        Guid claimToken,
+        DateTimeOffset processedAt,
+        CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        Processed.Add((eventId, claimToken));
+        return Task.FromResult(true);
+    }
+
+    public Task<bool> MarkRetryAsync(
+        Guid eventId,
+        Guid claimToken,
+        DateTimeOffset availableAt,
+        string errorCode,
+        CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        Retried.Add((eventId, claimToken, availableAt, errorCode));
+        return Task.FromResult(true);
+    }
+
+    public Task<bool> MarkFailedAsync(
+        Guid eventId,
+        Guid claimToken,
+        string errorCode,
+        CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        Failed.Add((eventId, claimToken, errorCode));
+        return Task.FromResult(true);
+    }
 }

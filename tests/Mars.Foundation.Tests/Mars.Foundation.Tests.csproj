@@ -6,5 +6,6 @@
   <ItemGroup>
     <ProjectReference Include="../../src/Mars.Application/Mars.Application.csproj" />
     <ProjectReference Include="../../src/Mars.Infrastructure/Mars.Infrastructure.csproj" />
+    <ProjectReference Include="../../src/Mars.Worker/Mars.Worker.csproj" />
   </ItemGroup>
 </Project>

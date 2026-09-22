@@ -48,22 +48,31 @@ jobs:
       - name: Foundation targeted tests
         run: dotnet run --project tests/Mars.Foundation.Tests/Mars.Foundation.Tests.csproj --configuration Release --no-build
 
-      - name: FW-IMP-003 migration mechanism probe
+      - name: FW-IMP-004 generate and inspect migration
         shell: bash
         env:
           MARS_MIGRATION_CONNECTION_STRING: "Host=localhost;Database=mars_design_time_probe"
         run: |
           set -euo pipefail
-          PROBE_DIR="src/Mars.Infrastructure/Persistence/Migrations/FwImp003Probe"
-          rm -rf "$PROBE_DIR"
-          dotnet tool run dotnet-ef migrations add FwImp003Probe --project src/Mars.Infrastructure/Mars.Infrastructure.csproj --startup-project src/Mars.Infrastructure/Mars.Infrastructure.csproj --output-dir Persistence/Migrations/FwImp003Probe --configuration Release --no-build
+          OUT_DIR="src/Mars.Infrastructure/Persistence/Migrations/FwImp004Generated"
+          rm -rf "$OUT_DIR"
 
-          if grep -R "CreateTable" "$PROBE_DIR"; then
-            echo "FW-IMP-003 probe unexpectedly generated a table."
+          dotnet tool run dotnet-ef migrations add FwImp004FoundationPrimitives             --project src/Mars.Infrastructure/Mars.Infrastructure.csproj             --startup-project src/Mars.Infrastructure/Mars.Infrastructure.csproj             --output-dir Persistence/Migrations/FwImp004Generated             --configuration Release             --no-build
+
+          grep -R 'name: "audit_events"' "$OUT_DIR"
+          grep -R 'name: "idempotency_operations"' "$OUT_DIR"
+          grep -R 'name: "outbox_messages"' "$OUT_DIR"
+
+          if grep -RE 'Party|Product|Inventory|Sales|Purchase|Warehouse|Finance|Return|Quality' "$OUT_DIR"; then
+            echo "FW-IMP-004 migration contains prohibited domain schema."
             exit 1
           fi
 
-          rm -rf "$PROBE_DIR"
+          for file in "$OUT_DIR"/*.cs; do
+            echo "===FWIMP004_FILE_BEGIN:$file==="
+            cat "$file"
+            echo "===FWIMP004_FILE_END:$file==="
+          done
 
       - name: Project references
         shell: bash
