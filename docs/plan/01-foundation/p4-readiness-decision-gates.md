@@ -1,6 +1,6 @@
 # P4 Foundation Readiness — Technology Decision Gates
 
-Status: BLOCKED ON OWNER DECISIONS
+Status: READY — REQUIRED OWNER DECISIONS RESOLVED
 Scope: readiness classification only; no implementation, package installation, SQL, migration, deployment or heavy test.
 
 ## 1. Purpose
@@ -71,10 +71,11 @@ Realistic options:
 Technical recommendation:
 - .NET 10 LTS is the lowest-risk baseline consistent with a new long-lived ERP and current Microsoft support status.
 
-Owner decision required: **YES**
+Owner decision required: **RESOLVED — APPROVED**
 
-Required owner choice:
-- approve `.NET 10 LTS` as the P4 runtime/SDK baseline; or specify another exact supported version.
+Accepted owner decision:
+- `.NET 10 LTS` is the P4 runtime/SDK baseline.
+- Decision record: `docs/plan/decisions/ADR-0001-dotnet-10-lts-baseline.md`.
 
 ### G2 — Exact ORM / data-access strategy
 
@@ -97,10 +98,12 @@ Realistic options:
 Technical recommendation:
 - use EF Core 10 + Npgsql as the default transactional/migration mapping baseline; allow targeted raw Npgsql/SQL only behind explicit measured need. This best matches the repository's migration, normalized model, transaction and smallest-correct-framework goals without creating two default persistence systems.
 
-Owner decision required: **YES**
+Owner decision required: **RESOLVED — APPROVED**
 
-Required owner choice:
-- approve `EF Core 10 + Npgsql` as default persistence/migration baseline with targeted raw SQL escape hatch; or specify another exact strategy.
+Accepted owner decision:
+- `EF Core 10 + Npgsql` is the default persistence/migration baseline.
+- targeted raw Npgsql/SQL is allowed only for explicitly justified specialized cases.
+- Decision record: `docs/plan/decisions/ADR-0002-ef-core-npgsql-baseline.md`.
 
 ### G3 — Exact authentication / identity provider
 
@@ -254,13 +257,16 @@ Owner decision required now: **NO**
 
 ## 6. Readiness state
 
-P4 implementation readiness: **BLOCKED**
+P4 implementation readiness: **READY**
 
-Only two owner decisions block activation of the first implementation work package:
-1. exact .NET SDK/runtime baseline;
-2. exact ORM/data-access baseline.
+Both required-now owner decisions are resolved and captured as Accepted ADRs:
+1. .NET 10 LTS;
+2. EF Core 10 + Npgsql default persistence/migration baseline with targeted raw Npgsql/SQL escape hatch.
 
-No ADR is created for either choice until the owner explicitly accepts it.
+Next repository-defined implementation package:
+- `FW-IMP-001 — repository solution skeleton`
+
+No code, package installation, SQL, migration or deployment was performed in the decision-closing session.
 
 ## 7. Exact planning metric
 
