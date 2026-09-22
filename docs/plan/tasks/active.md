@@ -1,27 +1,30 @@
 # Active Tasks
 
-## FW-IMP-002 — configuration/context/error primitives
+## FW-IMP-003 — persistence/migration baseline
 **Status:** READY — IMPLEMENTATION NOT STARTED
 
 Predecessor:
-- FW-IMP-001 — COMPLETED
-- build evidence: GitHub Actions run `35702737435`
+- FW-IMP-002 — COMPLETED
+- build/test evidence: GitHub Actions run `35704843486`
+
+Accepted persistence decision:
+- EF Core 10 + Npgsql is the default PostgreSQL persistence/migration architecture.
+- targeted raw Npgsql/SQL is exception-only.
 
 Scope from Foundation framework plan:
-- typed configuration/startup validation primitives;
-- correlation context;
-- actor/company context interfaces;
-- result/error contracts;
-- targeted tests for implemented primitives.
+- create PostgreSQL connection/persistence baseline;
+- establish migration mechanism;
+- preserve explicit transaction and migration/runtime boundaries;
+- no domain schema beyond Foundation-owned baseline structures;
+- targeted persistence/migration contract tests.
 
 Do not expand into:
-- persistence/EF Core/DbContext/migrations;
+- Sales/Party/Product/Inventory/Purchasing/Warehouse/Finance schema or mappings;
+- audit/idempotency/outbox implementation owned by FW-IMP-004;
 - auth provider;
 - OpenAPI tooling;
-- logging/metrics provider;
 - Mars.Web/Mars.UI;
-- deployment;
-- Quality/Commerce planning.
+- deployment.
 
 Exact planning progress:
 - master: 9 / 30 = 30.0%
