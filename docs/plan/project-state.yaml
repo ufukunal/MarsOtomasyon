@@ -83,8 +83,8 @@ test_policy:
   heavy_tests: FULL_TEST_DAY_ONLY
 
 active_task:
-  id: FW-IMP-005
-  title: API foundation implementation
+  id: FW-IMP-006
+  title: Mars.Web + Mars.UI foundation
   status: ready
   file: docs/plan/active-task.yaml
   progress: not_started
@@ -107,6 +107,7 @@ completed_implementation_tasks:
   - FW-IMP-002
   - FW-IMP-003
   - FW-IMP-004
+  - FW-IMP-005
 
 locked_decisions:
   - ASP.NET Core Identity + OpenIddict 7.7.1 is the accepted authentication/identity baseline.
@@ -267,8 +268,9 @@ test_environment:
 
 known_constraints:
   - Application core is not yet implemented.
-  - FW-IMP-001 repository solution skeleton, FW-IMP-002 configuration/context/error primitives, FW-IMP-003 persistence/migration baseline and FW-IMP-004 audit/idempotency/outbox foundations are implemented.
-  - FW-IMP-005 API foundation is READY; its auth/identity and OpenAPI technology gates are resolved by ADR-0003 and ADR-0004.
+  - FW-IMP-001 through FW-IMP-005 are implemented.
+  - FW-IMP-005 API foundation is COMPLETED with canonical evidence at docs/plan/01-foundation/fw-imp-005-implementation.md and successful workflow run 35722169157.
+  - FW-IMP-006 Mars.Web + Mars.UI foundation is READY; no FW-IMP-006-specific unresolved owner technology gate is currently identified.
   - Database logical/schema design is intentionally deferred until core workflows are sufficiently frozen.
   - Business rules must not be inferred from generic ERP conventions when project sources are silent.
   - Runner VM and test server are separate machines; never conflate runner-local results with test-server results.
@@ -302,31 +304,33 @@ blocked_items:
   - None for FW-IMP-005 readiness. Other deferred Foundation technology gates remain non-blocking until their relevant implementation steps.
 
 next_action:
-  id: FW-IMP-005
-  title: API foundation implementation
+  id: FW-IMP-006
+  title: Mars.Web + Mars.UI foundation
   phase: P4
   status: READY
   source: docs/plan/01-foundation/framework-plan.md
   predecessor:
-    id: FW-IMP-004
+    id: FW-IMP-005
     status: completed
-    evidence_commit: 06109051f530dff60774dc43d369986b343f4158
-    evidence_workflow_run: 35713295141
-  accepted_decisions:
-    - docs/plan/decisions/ADR-0003-identity-openiddict-baseline.md
-    - docs/plan/decisions/ADR-0004-aspnet-openapi-baseline.md
+    evidence_commit: 22f31b087f887270bb43f4a39038d7c9a9e07b87
+    evidence_workflow_run: 35722169157
+    canonical_report: docs/plan/01-foundation/fw-imp-005-implementation.md
   scope_intent:
-    - middleware/pipeline
-    - ASP.NET Core Identity + OpenIddict integration
-    - deterministic error mapping
-    - Microsoft.AspNetCore.OpenApi integration
-    - health/readiness
-    - targeted API/auth/OpenAPI verification
+    - Vite/TypeScript
+    - web shell/router/API client
+    - design tokens
+    - Mars.UI Button/Field/Dialog/Tabs/Lookup/Grid baseline
+    - targeted frontend build/component/static verification
+  decision_gate_review:
+    - no FW-IMP-006-specific unresolved owner technology gate currently identified
+    - Desktop/Mobile shell technology remains later P10 work
+    - deployment and production ingress decisions remain later work
   restrictions:
-    - no unrelated Foundation technology decisions
-    - no domain business rules or domain module schema
-    - no Mars.Web/Mars.UI implementation
-    - no deployment
+    - no ERP business screens or domain business rules
+    - no Desktop/Mobile shell technology selection
+    - no Docker/test deployment baseline
+    - no production secret-store or reverse-proxy/tunnel selection
+    - no unrelated logging/metrics, file-storage or scheduling decision
     - exact master planning metric remains 9 / 30 = 30.0
 
 state_rules:
