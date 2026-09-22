@@ -301,7 +301,7 @@ known_constraints:
   - Durable idempotency/concurrency correctness is PostgreSQL-owned; Valkey is not sufficient authority.
 
 blocked_items:
-  - None for FW-IMP-005 readiness. Other deferred Foundation technology gates remain non-blocking until their relevant implementation steps.
+  - None for FW-IMP-006 readiness. Other deferred Foundation technology gates remain non-blocking until their relevant implementation steps.
 
 next_action:
   id: FW-IMP-006
