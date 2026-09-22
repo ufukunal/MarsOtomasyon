@@ -3,7 +3,9 @@ using Mars.Api.Foundation.Context;
 
 namespace Mars.Api.Foundation.Errors;
 
-public sealed class SafeExceptionMiddleware(RequestDelegate next)
+public sealed class SafeExceptionMiddleware(
+    RequestDelegate next,
+    ILogger<SafeExceptionMiddleware> logger)
 {
     public async Task InvokeAsync(HttpContext context)
     {
@@ -18,6 +20,11 @@ public sealed class SafeExceptionMiddleware(RequestDelegate next)
                 throw;
             }
 
+            logger.LogWarning(
+                "Trusted execution context rejected request with code {ErrorCode} and correlation {CorrelationId}.",
+                exception.Code,
+                TryGetCorrelationId(context));
+
             context.Response.StatusCode = StatusCodes.Status403Forbidden;
             context.Response.ContentType = "application/json";
 
@@ -30,12 +37,17 @@ public sealed class SafeExceptionMiddleware(RequestDelegate next)
                     correlationId),
                 context.RequestAborted);
         }
-        catch (Exception)
+        catch (Exception exception)
         {
             if (context.Response.HasStarted)
             {
                 throw;
             }
+
+            logger.LogError(
+                exception,
+                "Unhandled API exception for correlation {CorrelationId}.",
+                TryGetCorrelationId(context));
 
             context.Response.StatusCode = StatusCodes.Status500InternalServerError;
             context.Response.ContentType = "application/json";
