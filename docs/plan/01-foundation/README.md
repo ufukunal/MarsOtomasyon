@@ -43,3 +43,12 @@ Reviewers:
 
 ## Status
 Planning started. See `plan.md` and `acceptance-criteria.md`.
+
+
+## P4 readiness
+Technology decision-gate classification:
+- `docs/plan/01-foundation/p4-readiness-decision-gates.md`
+
+Current implementation readiness is BLOCKED only on explicit owner decisions for:
+- exact .NET SDK/runtime baseline;
+- exact ORM/data-access baseline.
