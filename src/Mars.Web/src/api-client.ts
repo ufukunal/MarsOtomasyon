@@ -37,7 +37,9 @@ export class ApiClient {
   public constructor(private readonly baseUrl = "/api/v1") {}
 
   public get<T>(path: string, signal?: AbortSignal): Promise<ApiResponse<T>> {
-    return this.request<T>(path, { method: "GET", signal });
+    const init: RequestInit = { method: "GET" };
+    if (signal) init.signal = signal;
+    return this.request<T>(path, init);
   }
 
   public sendJson<T>(
@@ -46,12 +48,13 @@ export class ApiClient {
     value: unknown,
     signal?: AbortSignal): Promise<ApiResponse<T>>
   {
-    return this.request<T>(path, {
+    const init: RequestInit = {
       method,
-      signal,
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(value)
-    });
+    };
+    if (signal) init.signal = signal;
+    return this.request<T>(path, init);
   }
 
   public async request<T>(
