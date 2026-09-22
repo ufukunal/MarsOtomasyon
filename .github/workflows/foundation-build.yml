@@ -48,35 +48,31 @@ jobs:
       - name: Foundation targeted tests
         run: dotnet run --project tests/Mars.Foundation.Tests/Mars.Foundation.Tests.csproj --configuration Release --no-build
 
-      - name: FW-IMP-005 generate Identity/OpenIddict migration
+      - name: FW-IMP-005 committed Identity/OpenIddict migration verification
         shell: bash
         env:
           MARS_MIGRATION_CONNECTION_STRING: "Host=localhost;Database=mars_design_time_probe"
         run: |
           set -euo pipefail
-          OUT_DIR="src/Mars.Infrastructure/Persistence/Migrations/Identity"
-          rm -rf "$OUT_DIR"
+          MIG_DIR="src/Mars.Infrastructure/Persistence/Migrations/Identity"
+          MIG_FILE="$MIG_DIR/20260922113226_FwImp005IdentityProtocol.cs"
 
-          dotnet tool run dotnet-ef migrations add FwImp005IdentityProtocol             --project src/Mars.Infrastructure/Mars.Infrastructure.csproj             --startup-project src/Mars.Infrastructure/Mars.Infrastructure.csproj             --output-dir Persistence/Migrations/Identity             --configuration Release             --no-build
+          test -f "$MIG_FILE"
+          test -f "$MIG_DIR/20260922113226_FwImp005IdentityProtocol.Designer.cs"
+          test -f "src/Mars.Infrastructure/Persistence/Migrations/Foundation/MarsDbContextModelSnapshot.cs"
 
-          grep -R 'name: "users"' "$OUT_DIR"
-          grep -R 'OpenIddictApplications' "$OUT_DIR"
+          grep -F 'name: "users"' "$MIG_FILE"
+          grep -F 'name: "OpenIddictApplications"' "$MIG_FILE"
+          grep -F 'name: "OpenIddictAuthorizations"' "$MIG_FILE"
+          grep -F 'name: "OpenIddictScopes"' "$MIG_FILE"
+          grep -F 'name: "OpenIddictTokens"' "$MIG_FILE"
 
-          if grep -RE 'name: "(party|product|variant|reservation|inventory|sales|purchase|warehouse|finance|return|quality)' "$OUT_DIR"; then
+          if grep -E 'name: "(party|product|variant|reservation|inventory|sales|purchase|warehouse|finance|return|quality)' "$MIG_FILE"; then
             echo "FW-IMP-005 migration contains prohibited ERP domain table creation."
             exit 1
           fi
 
-          for file in "$OUT_DIR"/*.cs; do
-            echo "===FWIMP005_FILE_BEGIN:$file==="
-            cat "$file"
-            echo "===FWIMP005_FILE_END:$file==="
-          done
-
-          SNAPSHOT="src/Mars.Infrastructure/Persistence/Migrations/Foundation/MarsDbContextModelSnapshot.cs"
-          echo "===FWIMP005_FILE_BEGIN:$SNAPSHOT==="
-          cat "$SNAPSHOT"
-          echo "===FWIMP005_FILE_END:$SNAPSHOT==="
+          dotnet tool run dotnet-ef migrations has-pending-model-changes             --project src/Mars.Infrastructure/Mars.Infrastructure.csproj             --startup-project src/Mars.Infrastructure/Mars.Infrastructure.csproj             --configuration Release             --no-build
 
       - name: FW-IMP-005 API smoke
         shell: bash
