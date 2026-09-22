@@ -1,38 +1,49 @@
 # Planning Backlog
 
-## POST-P3 ORDER NORMALIZATION
-Status: BLOCKED / NEXT GOVERNANCE ACTION.
+## Immediate — P4 Foundation implementation readiness
+Status: READY FOR GOVERNANCE DECISIONS.
 
-PLAN-010 Logical Database Model is COMPLETED / FROZEN.
+Why next:
+- master-project-plan phase map explicitly places P4 after completed P3;
+- P3 logical DB is COMPLETED / FROZEN;
+- Foundation implementation is still blocked by unresolved technology decision gates required by the first implementation slice.
 
-Repository conflict to resolve:
-- master phase map says P4 Foundation implementation follows P3;
-- master section 8 says the next conceptual planning package is Quality;
-- prior backlog assigned PLAN-011 to Commerce.
+Next readiness session:
+- classify Foundation decision gates required-now vs deferrable;
+- record explicit owner decisions/ADRs for required-now gates;
+- do not implement code until those gates are closed.
 
-Do not start implementation or another module until the repository order is normalized.
+No new PLAN number is assigned; use phase ID P4.
 
-## Quality — master sequence item 10
+## P4 — Foundation implementation
+Status: BLOCKED UNTIL REQUIRED READINESS GATES CLOSE.
+
+After gate closure:
+- create/activate the smallest repository-supported implementation work package;
+- implement Foundation thin slice according to accepted framework contract;
+- targeted tests only; heavy suites remain deferred.
+
+## Quality — master planning sequence item 10
 Target: docs/plan/08-kalite/
-Status: REPOSITORY-DEFINED CANDIDATE / ID NOT NORMALIZED.
+Status: PLANNING BACKLOG / NOT STARTED.
 
-The folder currently contains only .gitkeep.
-Master section 8 places Quality before Production, Subcontracting, Import/Container and Commerce.
+Important:
+- Quality is the next section-8 item that can raise exact planning completion from 9/30.
+- Its conceptual sequence number is not a PLAN task ID.
+- Its operational execution belongs P6 Operations, after P4 Foundation and P5 Core application implementation according to the phase map.
 
-## P4 Foundation implementation
-Status: REPOSITORY-DEFINED CANDIDATE.
-Master phase map places P4 after P3.
-Implementation still requires accepted Framework decision gates to be checked before code.
+## Production / Subcontracting / Import
+Status: later section-8 planning items and P6 operational modules.
 
-## PLAN-011 — Commerce/B2B/Architect/Marketplace planning
+## Commerce/B2B/Architect/Marketplace
 Target: docs/plan/15-e-ticaret-b2b-api/
-Status: DEFER UNTIL ORDER CONFLICT IS NORMALIZED.
+Status: P7 / NOT IMMEDIATE.
 
-Provider capabilities must be verified before implementation.
+The prior immediate label “PLAN-011 Commerce” is retired as stale sequencing metadata. No completed historical task is renumbered.
+Provider capabilities must be verified at implementation time.
 
-## PLAN-012 — Full Test Day plan consolidation
+## Full Test Day
 Status: DEFERRED BY POLICY.
-Collect heavy scenarios only; do not execute until explicitly requested.
 
 Exact section-8 planning progress:
 - master: 9 / 30 = 30.0%
