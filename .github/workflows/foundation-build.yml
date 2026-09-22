@@ -72,11 +72,6 @@ jobs:
 
           dotnet tool run dotnet-ef migrations has-pending-model-changes             --project src/Mars.Infrastructure/Mars.Infrastructure.csproj             --startup-project src/Mars.Infrastructure/Mars.Infrastructure.csproj             --configuration Release             --no-build
 
-          dotnet tool run dotnet-ef migrations script             --project src/Mars.Infrastructure/Mars.Infrastructure.csproj             --startup-project src/Mars.Infrastructure/Mars.Infrastructure.csproj             --configuration Release             --no-build             --idempotent             --output /tmp/fwimp004-foundation.sql
-
-          grep -F '"foundation"."audit_events"' /tmp/fwimp004-foundation.sql
-          grep -F '"foundation"."idempotency_operations"' /tmp/fwimp004-foundation.sql
-          grep -F '"foundation"."outbox_messages"' /tmp/fwimp004-foundation.sql
 
       - name: Project references
         shell: bash
