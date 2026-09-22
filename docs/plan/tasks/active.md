@@ -1,7 +1,7 @@
 # Active Tasks
 
-## FW-IMP-005 — API foundation technology decision-gate resolution
-**Status:** BLOCKED ON OWNER DECISIONS — IMPLEMENTATION NOT STARTED
+## FW-IMP-005 — API foundation implementation
+**Status:** READY — IMPLEMENTATION NOT STARTED
 
 Predecessor:
 - FW-IMP-004 — COMPLETED
@@ -14,12 +14,11 @@ Repository-defined FW-IMP-005 scope includes:
 - OpenAPI after tooling decision;
 - health/readiness.
 
-Required decisions before full FW-IMP-005 implementation:
-1. exact authentication/identity provider;
-2. exact OpenAPI tooling.
+Accepted decisions:
+1. ASP.NET Core Identity (.NET 10) + OpenIddict 7.7.1 stable — ADR-0003.
+2. Microsoft.AspNetCore.OpenApi 10.0.12 — ADR-0004.
 
-This task is only to resolve those two gates and record accepted decisions.
-Do not implement FW-IMP-005 in the same decision-closing session unless the owner explicitly requests combining the tasks.
+FW-IMP-005 implementation may now begin in a separate implementation session.
 
 Do not expand into:
 - logging/metrics provider selection;
