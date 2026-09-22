@@ -500,3 +500,38 @@ Verification:
 The first implementation run exposed a C# syntax error in `ConfigurationValidationIssue`; it was corrected in-scope and the final verification run passed.
 
 Full Test Day pending.
+
+
+## FW-IMP-003 — Persistence/migration baseline
+**Status:** COMPLETED
+
+Implemented:
+- EF Core/Npgsql persistence baseline in `Mars.Infrastructure`;
+- explicit runtime vs migration connection-option types;
+- `MarsDbContext` with no domain entity mappings;
+- design-time migration factory using `MARS_MIGRATION_CONNECTION_STRING`;
+- local `dotnet-ef` tool manifest;
+- canonical migration directory/policy;
+- targeted persistence/model/migration verification.
+
+Exact versions:
+- Microsoft.EntityFrameworkCore 10.0.12
+- Microsoft.EntityFrameworkCore.Relational 10.0.12
+- Microsoft.EntityFrameworkCore.Design 10.0.12
+- Npgsql.EntityFrameworkCore.PostgreSQL 10.0.3
+- dotnet-ef 10.0.12
+
+No domain schema or committed domain migration was introduced.
+
+Verification:
+- tested commit: `63734a34b1c86437504cc304cac1315b3d182ee1`
+- workflow run: `35708370550`
+- restore: PASS
+- Release build: PASS — 0 warnings, 0 errors
+- targeted tests: PASS — 11 / 11
+- migration mechanism probe: PASS
+- project-reference verification: PASS
+
+Earlier verification failures were retained in canonical evidence and fixed in-scope.
+
+Full Test Day pending.
