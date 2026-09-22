@@ -920,7 +920,8 @@ Current status:
 - other listed Foundation technology gates remain deferrable or later-phase for the first thin slice.
 - P4 Foundation implementation readiness is READY.
 - `FW-IMP-001 — repository solution skeleton` is COMPLETED.
-- next repository-defined implementation package is `FW-IMP-002 — configuration/context/error primitives`.
+- `FW-IMP-002 — configuration/context/error primitives` is COMPLETED.
+- next repository-defined implementation package is `FW-IMP-003 — persistence/migration baseline`.
 
 
 ## FW-IMP-001 implementation evidence
@@ -937,4 +938,22 @@ Verified:
 - no domain logic, persistence schema/migration, auth provider, OpenAPI tooling, UI implementation or deployment was introduced.
 
 Current next package:
-- `FW-IMP-002 — configuration/context/error primitives`
+- `FW-IMP-003 — persistence/migration baseline`
+
+
+## FW-IMP-002 implementation evidence
+
+Status: COMPLETED
+
+Canonical evidence:
+- `docs/plan/01-foundation/fw-imp-002-implementation.md`
+
+Verified:
+- typed startup configuration validation contracts exist;
+- immutable actor/company/optional-branch/correlation execution context exists;
+- deterministic Foundation result/error contracts exist;
+- no domain rules, persistence schema/migration, auth provider, OpenAPI tooling, UI implementation or deployment was introduced;
+- targeted verification passed on .NET 10.
+
+Current next package:
+- `FW-IMP-003 — persistence/migration baseline`
