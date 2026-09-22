@@ -86,14 +86,22 @@ jobs:
           PID=$!
           trap 'kill "$PID" 2>/dev/null || true' EXIT
 
+          STARTED=false
           for attempt in {1..30}; do
             if curl --silent --fail http://127.0.0.1:5085/health/live >/tmp/live.json; then
+              STARTED=true
+              break
+            fi
+            if ! kill -0 "$PID" 2>/dev/null; then
               break
             fi
             sleep 1
           done
 
-          curl --silent --fail http://127.0.0.1:5085/health/live >/tmp/live.json
+          if [ "$STARTED" != "true" ]; then
+            cat "$LOG"
+            exit 1
+          fi
 
           READY_STATUS=$(curl --silent --output /tmp/ready.json --write-out '%{http_code}' http://127.0.0.1:5085/health/ready)
           test "$READY_STATUS" = "503"
