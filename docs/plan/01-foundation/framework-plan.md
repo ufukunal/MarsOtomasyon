@@ -484,7 +484,7 @@ Framework forbids:
 - silent update/delete of posted ledger history
 - schema changes outside migrations
 
-Exact ORM/data-access library is UNKNOWN and requires an explicit decision before implementation.
+Default ORM/data-access baseline is **EF Core 10 + Npgsql**, accepted by `docs/plan/decisions/ADR-0002-ef-core-npgsql-baseline.md`. Targeted raw Npgsql/SQL is permitted only for explicitly justified specialized cases and must not become a second default persistence architecture.
 
 ## 26. PostgreSQL role/ownership model
 
@@ -889,12 +889,12 @@ Framework planning is accepted when:
 
 Framework implementation is accepted only after real code/build/deploy evidence exists; this plan alone does not satisfy implementation.
 
-## 44. UNKNOWN / decision gates before implementation
+## 44. Decision gates before implementation
 
 BLOCK implementation at the relevant step until explicitly resolved:
 
-- .NET SDK/runtime version
-- ORM/data-access library
+- .NET SDK/runtime version — RESOLVED: .NET 10 LTS (`ADR-0001`)
+- ORM/data-access library — RESOLVED: EF Core 10 + Npgsql (`ADR-0002`)
 - auth/identity provider
 - OpenAPI tooling
 - logging/metrics stack
@@ -914,7 +914,9 @@ The current implementation-readiness classification is maintained in:
 `docs/plan/01-foundation/p4-readiness-decision-gates.md`
 
 Current status:
-- REQUIRED NOW: exact .NET SDK/runtime; exact ORM/data-access strategy.
-- other listed Foundation technology gates are deferrable or later-phase for the first thin slice.
-- no unresolved required technology is selected implicitly.
-- no Foundation implementation starts until the two required-now owner decisions are explicit.
+- REQUIRED NOW gates are RESOLVED:
+  - .NET 10 LTS — `docs/plan/decisions/ADR-0001-dotnet-10-lts-baseline.md`
+  - EF Core 10 + Npgsql — `docs/plan/decisions/ADR-0002-ef-core-npgsql-baseline.md`
+- other listed Foundation technology gates remain deferrable or later-phase for the first thin slice.
+- P4 Foundation implementation readiness is READY.
+- next repository-defined implementation package is `FW-IMP-001 — repository solution skeleton`.
