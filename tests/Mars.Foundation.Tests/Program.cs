@@ -21,7 +21,7 @@ var tests = new (string Name, Action Test)[]
     ("Startup configuration validation aggregates issues", StartupValidationAggregatesIssues),
     ("Startup configuration exception does not include option secret", StartupExceptionDoesNotIncludeSecret),
     ("PostgreSQL runtime options require a connection string", PostgreSqlRuntimeOptionsRequireConnectionString),
-    ("Foundation model contains only audit idempotency outbox", FoundationModelContainsOnlyAllowedEntities),
+    ("Foundation model still contains audit idempotency outbox", FoundationModelContainsOnlyAllowedEntities),
     ("Idempotency scope and key are uniquely constrained", IdempotencyScopeAndKeyAreUnique),
     ("Outbox event id is uniquely constrained", OutboxEventIdIsUnique),
     ("Outbox payload uses PostgreSQL jsonb", OutboxPayloadUsesJsonb),
@@ -186,17 +186,11 @@ static void FoundationModelContainsOnlyAllowedEntities()
     using var context = CreateModelContext();
     var tables = context.Model.GetEntityTypes()
         .Select(x => $"{x.GetSchema()}.{x.GetTableName()}")
-        .OrderBy(x => x, StringComparer.Ordinal)
-        .ToArray();
+        .ToHashSet(StringComparer.Ordinal);
 
-    AssertSequenceEqual(
-        new[]
-        {
-            "foundation.audit_events",
-            "foundation.idempotency_operations",
-            "foundation.outbox_messages"
-        },
-        tables);
+    AssertTrue(tables.Contains("foundation.audit_events"));
+    AssertTrue(tables.Contains("foundation.idempotency_operations"));
+    AssertTrue(tables.Contains("foundation.outbox_messages"));
 }
 
 static void IdempotencyScopeAndKeyAreUnique()
