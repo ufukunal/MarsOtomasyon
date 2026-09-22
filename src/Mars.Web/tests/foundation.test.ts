@@ -220,7 +220,7 @@ test("grid renders semantic headers/rows and supports keyboard row movement", ()
   document.body.append(grid.element);
 
   assert.equal(grid.table.querySelectorAll("th[scope='col']").length, 2);
-  assert.equal(grid.table.tBodies[0]?.rows.length, 2);
+  assert.equal(grid.table.querySelectorAll("tbody tr").length, 2);
 
   grid.element.dispatchEvent(new KeyboardEvent("keydown", { key: "End", bubbles: true }));
   grid.element.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
