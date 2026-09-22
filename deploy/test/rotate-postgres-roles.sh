@@ -58,6 +58,43 @@ if [ -f "$ROTATION_MARKER" ]; then
   fi
 
   echo "ROTATE_POSTGRES_ROLES=REPAIR_FAIL"
+
+  echo "ROTATE_POSTGRES_AUTH_DIAGNOSTIC_BEGIN"
+  docker exec -e PGPASSWORD="$MARS_PG_MASTER_PASSWORD" "$PG_CONTAINER" \
+    psql -h 127.0.0.1 -U "$MARS_PG_MASTER_USER" -d "$MARS_PG_DATABASE" \
+    -v ON_ERROR_STOP=0 \
+    -v master_role="$MARS_PG_MASTER_USER" \
+    -v app_role="$MARS_PG_APP_USER" \
+    -AtF'|' <<'SQL' || true
+SHOW password_encryption;
+SELECT rolname,
+       rolcanlogin::text,
+       COALESCE(rolvaliduntil::text, 'infinity'),
+       CASE
+         WHEN rolpassword IS NULL THEN 'none'
+         WHEN rolpassword LIKE 'SCRAM-SHA-256$%' THEN 'scram-sha-256'
+         WHEN rolpassword LIKE 'md5%' THEN 'md5'
+         ELSE 'other'
+       END
+FROM pg_authid
+WHERE rolname IN (:'master_role', :'app_role')
+ORDER BY rolname;
+SELECT line_number,
+       type,
+       array_to_string(database, ','),
+       array_to_string(user_name, ','),
+       COALESCE(address, ''),
+       auth_method,
+       COALESCE(error, '')
+FROM pg_hba_file_rules
+WHERE error IS NOT NULL
+   OR user_name IS NULL
+   OR :'master_role' = ANY(user_name)
+   OR :'app_role' = ANY(user_name)
+   OR 'all' = ANY(user_name)
+ORDER BY line_number;
+SQL
+  echo "ROTATE_POSTGRES_AUTH_DIAGNOSTIC_END"
   exit 1
 fi
 
