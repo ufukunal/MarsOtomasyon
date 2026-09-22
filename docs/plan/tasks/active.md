@@ -1,24 +1,25 @@
 # Active Tasks
 
-## FW-IMP-001 — repository solution skeleton
+## FW-IMP-002 — configuration/context/error primitives
 **Status:** READY — IMPLEMENTATION NOT STARTED
 
-Prerequisites resolved:
-- .NET 10 LTS accepted in `ADR-0001`.
-- EF Core 10 + Npgsql baseline accepted in `ADR-0002`.
+Predecessor:
+- FW-IMP-001 — COMPLETED
+- build evidence: GitHub Actions run `35702737435`
 
-Scope intent from Foundation framework plan:
-- create solution/projects/directories;
-- encode dependency direction in project references;
-- establish runtime/SDK baseline;
-- obtain minimal build evidence.
+Scope from Foundation framework plan:
+- typed configuration/startup validation primitives;
+- correlation context;
+- actor/company context interfaces;
+- result/error contracts;
+- targeted tests for implemented primitives.
 
-Do not expand this work package into:
-- domain schema/business implementation;
-- persistence migrations beyond the separately sequenced persistence package;
-- auth provider selection;
+Do not expand into:
+- persistence/EF Core/DbContext/migrations;
+- auth provider;
 - OpenAPI tooling;
-- Mars.UI implementation;
+- logging/metrics provider;
+- Mars.Web/Mars.UI;
 - deployment;
 - Quality/Commerce planning.
 
