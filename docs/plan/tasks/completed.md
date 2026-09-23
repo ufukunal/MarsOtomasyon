@@ -835,3 +835,48 @@ Deferred:
 - authenticated browser role mutation and heavy concurrency/security coverage.
 
 Planning metrics remain 9 / 30 = 30.0% master and 8 / 8 = 100.0% P2.
+
+
+## PARTY-IMP-003 — Add Turkish Tax Identity
+**Status:** COMPLETED
+
+Implemented:
+- TR VKN/TCKN Tax Identity authoritative child persistence;
+- VKN 10-digit / TCKN 11-digit structural validation only;
+- `party.tax_identity.manage` via ADR-0005 permission authority;
+- trusted-company Party lookup and composite Party/company FK;
+- deterministic active company + jurisdiction + scheme + value conflict;
+- public Tax Identity UUID;
+- protected `POST /api/v1/parties/{partyPublicId}/tax-identities`;
+- Tax Identity add section on `/parties/new`;
+- audit excluding raw VKN/TCKN;
+- durable idempotency;
+- generated additive EF migration;
+- targeted build/test/privacy/model verification;
+- remote TEST deployment/smoke.
+
+Evidence:
+- canonical report: `docs/plan/03-cariler/party-imp-003-implementation.md`
+- migration commit: `70876a0fcb84368d9b3ec9d305eaf8eacf0c19b2`
+- Foundation Build run: `35894175633` — SUCCESS
+- Foundation Test Deploy run: `35894175558` — SUCCESS
+- frontend tests: 14 / 14 PASS
+- Foundation targeted tests: 45 / 45 PASS
+- migration/model drift: PASS
+- TEST Tax Identity migration applied; migration count 5
+- TEST /parties/new: 200
+- unauthenticated Tax Identity POST: 401
+- live/ready: 200 / 200
+- runner-to-TEST smoke: PASS
+
+Deferred:
+- checksum/provider/GİB verification;
+- generic non-TR schemes;
+- read/read_full/list/edit/deactivate;
+- fuzzy duplicate review;
+- contacts/addresses;
+- role/Party lifecycle and merge;
+- Finance/Sales/Purchasing integration;
+- authenticated browser mutation and heavy concurrency/privacy coverage.
+
+Planning metrics remain 9 / 30 = 30.0% master planning coverage and 8 / 8 = 100.0% P2 planning.
