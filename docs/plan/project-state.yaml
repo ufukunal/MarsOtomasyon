@@ -20,7 +20,7 @@ repository_state:
 current_phase:
   id: P5
   name: Core application implementation
-  status: blocked_decision_required
+  status: implementation_ready
 
 planning_progress:
   counting_basis: master-project-plan section 8; completed/frozen work packages only
@@ -40,7 +40,7 @@ phase_status:
   P2_core_commercial_workflows: completed
   P3_database_logical_model: completed
   P4_foundation_implementation: completed
-  P5_core_application_implementation: blocked_decision_required
+  P5_core_application_implementation: implementation_ready
   P6_operations: not_started
   P7_commerce_external_channels: not_started
   P8_communications_files_devices: not_started
@@ -83,11 +83,11 @@ test_policy:
   heavy_tests: FULL_TEST_DAY_ONLY
 
 active_task:
-  id: P5
-  title: Parties first vertical slice — Create Party Core Identity
-  status: blocked_decision_required
+  id: PARTY-IMP-001
+  title: Create Party Core Identity
+  status: ready
   file: docs/plan/active-task.yaml
-  progress: scope_defined_implementation_not_started
+  progress: not_started
 
 completed_planning_tasks:
   - PLAN-001
@@ -287,7 +287,8 @@ known_constraints:
   - FW-IMP-007 Docker/test deployment baseline is COMPLETED with canonical evidence at docs/plan/01-foundation/fw-imp-007-implementation.md and successful TEST deployment workflow run 35865600657.
   - FW-IMP-008 thin vertical framework proof is COMPLETED with canonical evidence at docs/plan/01-foundation/fw-imp-008-implementation.md and successful TEST deployment workflow run 35868151531.
   - P5 Parties first vertical slice scope is defined as Create Party Core Identity; canonical readiness analysis is docs/plan/03-cariler/p5-first-slice-readiness.md.
-  - No dedicated Parties implementation work-package ID is assigned because implementation remains blocked on permission authority, Party Code assignment authority and fuzzy duplicate-warning contract.
+  - PARTY-IMP-001 is the dedicated first Parties implementation work package: Create Party Core Identity.
+  - ADR-0005 freezes Mars-owned PostgreSQL permission authority/evaluation; Party Code is required caller input for the first slice; soft duplicate warnings are explicitly deferred; Party stores trusted CompanyId without a Company FK in this slice.
   - Database logical/schema design is intentionally deferred until core workflows are sufficiently frozen.
   - Business rules must not be inferred from generic ERP conventions when project sources are silent.
   - Runner VM and test server are separate machines; never conflate runner-local results with test-server results.
@@ -318,41 +319,42 @@ known_constraints:
   - Durable idempotency/concurrency correctness is PostgreSQL-owned; Valkey is not sufficient authority.
 
 blocked_items:
-  - P5 Parties first slice is scoped as Create Party Core Identity; implementation is not started.
-  - BLOCKER: server-side party.create is frozen, but current Foundation source has no accepted Mars permission authority/evaluator/grant/claim contract. Do not equate authentication with permission.
-  - BLOCKER: Party Code is mandatory/company-scoped/role-neutral and Settings/Numbering-owned, but the initial runtime assignment authority is not defined; do not silently choose manual entry or invent an auto-number format.
-  - BLOCKER: Create Party requires soft duplicate candidate warnings, but normalization/matching/threshold/candidate contract is not frozen; do not invent fuzzy matching or silently omit the warning gate.
-  - Logical Company 1->N Party exists, but no physical Company table currently exists; first-slice resolution must state whether company authority remains trusted-context-only for this migration or whether a separate Foundation Company physical model is required.
+  - No unresolved blocker remains for PARTY-IMP-001 start.
+  - Soft/fuzzy duplicate candidate detection is explicitly deferred from PARTY-IMP-001 and remains required before full PLAN-003 Create Party workflow completion.
+  - Permission administration UI/role-group model remains deferred; ADR-0005 defines evaluation authority only.
+  - Physical Company master/FK remains deferred; PARTY-IMP-001 uses trusted required CompanyId UUID without FK.
   - Production secret-store, production reverse-proxy/tunnel, production ingress/TLS and structured logging/metrics choices remain deferred.
 next_action:
-  id: P5
-  title: Resolve Parties Create Party Core Identity blockers
+  id: PARTY-IMP-001
+  title: Create Party Core Identity
   phase: P5
   module: parties
-  status: BLOCKED_DECISION_REQUIRED
-  work_package_id: NOT_ASSIGNED
+  status: READY
   readiness_report: docs/plan/03-cariler/p5-first-slice-readiness.md
-  selected_slice:
-    name: Create Party Core Identity
-    implementation_started: false
-    entities_now:
-      - Party
-    deferred_entities:
-      - Party Role
-      - Tax Identity
-      - Contact Person
-      - Communication Point
-      - Address
-      - Party External Mapping
-      - Party Merge Lineage
-  decisions_required:
-    - define Mars-owned permission authority/evaluation contract sufficient for server-side party.create
-    - define initial Party Code assignment authority without inventing Settings/Numbering behavior
-    - freeze minimum fuzzy duplicate-warning contract or explicitly approve deferral from the first slice
-    - clarify physical Company reference strategy if a Party company FK is required before Foundation Company persistence exists
+  authorization_decision: docs/plan/decisions/ADR-0005-mars-erp-permission-authority.md
+  scope:
+    - implement Foundation Mars Permission Grant evaluator/persistence sufficient for party.create
+    - implement Parties-owned Party aggregate/persistence for core identity only
+    - create additive EF migration
+    - implement authenticated POST /api/v1/parties with server-side party.create and trusted CompanyId
+    - implement /parties/new identity-only Mars.Web flow
+    - reuse Foundation idempotency and audit
+    - deploy to TEST and run targeted smoke when ready
+  deferred:
+    - Party Role
+    - Tax Identity
+    - Contact Person
+    - Communication Point
+    - Address
+    - Party External Mapping
+    - Party Merge Lineage
+    - soft/fuzzy duplicate candidate detection
+    - Settings/Numbering allocator
+    - permission administration UI/role-group model
   restrictions:
-    - no Party C#/EF migration/API/TypeScript implementation until the blockers above are resolved
-    - no dedicated Parties implementation work-package ID until the acceptance contract is complete
+    - Party Code is required caller input; do not invent numbering format or allocator
+    - no client-authoritative CompanyId
+    - no Company master table/FK in this package
     - no Sales/Product/Inventory/Purchasing/Warehouse/Finance implementation
     - no production deployment
     - no Full Test Day
