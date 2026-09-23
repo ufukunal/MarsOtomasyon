@@ -18,9 +18,9 @@ repository_state:
   repository_private: true
 
 current_phase:
-  id: P4
-  name: Foundation implementation
-  status: implementation_in_progress
+  id: P5
+  name: Core application implementation
+  status: scope_definition_required
 
 planning_progress:
   counting_basis: master-project-plan section 8; completed/frozen work packages only
@@ -39,8 +39,8 @@ phase_status:
   P1_foundation_framework_contract: completed
   P2_core_commercial_workflows: completed
   P3_database_logical_model: completed
-  P4_foundation_implementation: implementation_in_progress
-  P5_core_application_implementation: not_started
+  P4_foundation_implementation: completed
+  P5_core_application_implementation: scope_definition_required
   P6_operations: not_started
   P7_commerce_external_channels: not_started
   P8_communications_files_devices: not_started
@@ -83,8 +83,8 @@ test_policy:
   heavy_tests: FULL_TEST_DAY_ONLY
 
 active_task:
-  id: FW-IMP-008
-  title: thin vertical framework proof
+  id: P5
+  title: Core application implementation — Parties first vertical slice definition
   status: scope_definition_required
   file: docs/plan/active-task.yaml
   progress: not_started
@@ -110,6 +110,7 @@ completed_implementation_tasks:
   - FW-IMP-005
   - FW-IMP-006
   - FW-IMP-007
+  - FW-IMP-008
 
 locked_decisions:
   - ASP.NET Core Identity + OpenIddict 7.7.1 is the accepted authentication/identity baseline.
@@ -264,8 +265,8 @@ test_environment:
   foundation_test_health_live: 200
   foundation_test_health_ready: 200
   foundation_test_smoke: PASS
-  foundation_test_workflow_run: 35865600657
-  foundation_test_implementation_commit: 2821c98bbd04b81dcbb10e99ddb0a4974ca7a517
+  foundation_test_workflow_run: 35868151531
+  foundation_test_implementation_commit: bf9b3882dbc91ee801d169a62587c7658baaa63b
   mars_path_present: true
   postgresql_roles:
     owner_admin_role: mars_master
@@ -279,12 +280,13 @@ test_environment:
     actual_values_status: SSH_AND_POSTGRES_ROLES_CONFIGURED
 
 known_constraints:
-  - Application core is not yet implemented.
-  - FW-IMP-001 through FW-IMP-007 are implemented.
+  - Core ERP application modules are not yet implemented.
+  - FW-IMP-001 through FW-IMP-008 are implemented and P4 Foundation implementation is completed.
   - FW-IMP-005 API foundation is COMPLETED with canonical evidence at docs/plan/01-foundation/fw-imp-005-implementation.md and successful workflow run 35722169157.
   - FW-IMP-006 Mars.Web + Mars.UI foundation is COMPLETED with canonical evidence at docs/plan/01-foundation/fw-imp-006-implementation.md and successful workflow run 35729371845.
   - FW-IMP-007 Docker/test deployment baseline is COMPLETED with canonical evidence at docs/plan/01-foundation/fw-imp-007-implementation.md and successful TEST deployment workflow run 35865600657.
-  - FW-IMP-008 thin vertical framework proof is next, but repository sources do not yet define its exact implementation scope; scope definition is required before mutation so no ERP/domain behavior is invented.
+  - FW-IMP-008 thin vertical framework proof is COMPLETED with canonical evidence at docs/plan/01-foundation/fw-imp-008-implementation.md and successful TEST deployment workflow run 35868151531.
+  - P5 Core application implementation is next; the master dependency order starts with Parties, but no dedicated first Parties implementation work-package ID/scope is yet assigned.
   - Database logical/schema design is intentionally deferred until core workflows are sufficiently frozen.
   - Business rules must not be inferred from generic ERP conventions when project sources are silent.
   - Runner VM and test server are separate machines; never conflate runner-local results with test-server results.
@@ -305,7 +307,7 @@ known_constraints:
   - Returns preserves source/lot/serial/UOM lineage; Inventory and Finance remain authoritative.
   - P2 Core Commercial Workflow Planning is complete.
   - PLAN-010 Logical Database Model is COMPLETED / FROZEN.
-  - Post-P3 order is normalized: P4 Foundation implementation is the next execution phase.
+  - P4 Foundation implementation is completed; P5 Core application implementation is the current phase and begins with Parties after its first implementation work package is explicitly defined.
   - Section-8 Quality remains conceptual master planning item 10 for exact planning percentage, but Quality execution belongs P6 Operations.
   - Commerce belongs P7 and is not immediate next execution work.
   - No new PLAN number is assigned to P4 readiness; existing phase ID P4 is used.
@@ -315,41 +317,39 @@ known_constraints:
   - Durable idempotency/concurrency correctness is PostgreSQL-owned; Valkey is not sufficient authority.
 
 blocked_items:
-  - No unresolved blocker remains for FW-IMP-007; it is completed.
-  - FW-IMP-008 implementation scope is not yet exact in repository sources. Define the smallest non-domain or deliberately minimal vertical proof and measurable acceptance criteria before implementation.
+  - No unresolved blocker remains for FW-IMP-008; P4 Foundation implementation is completed.
+  - P5 starts with Parties by master-plan dependency order, but the repository does not yet assign a dedicated implementation work-package ID or exact first vertical-slice scope.
+  - Define that first Parties work package from frozen PLAN-003 and frozen logical DB contracts before schema/code mutation; do not invent an ID merely for convenience.
   - Production secret-store, production reverse-proxy/tunnel, production ingress/TLS and structured logging/metrics choices remain deferred.
-
 next_action:
-  id: FW-IMP-008
-  title: thin vertical framework proof
-  phase: P4
+  id: P5
+  title: Core application implementation — define first Parties vertical slice
+  phase: P5
+  module: parties
   status: SCOPE_DEFINITION_REQUIRED
-  source: docs/plan/01-foundation/framework-plan.md
+  work_package_id: NOT_ASSIGNED
+  source: docs/plan/master-project-plan.md
   predecessor:
-    id: FW-IMP-007
+    id: FW-IMP-008
     status: completed
-    evidence_commit: 2821c98bbd04b81dcbb10e99ddb0a4974ca7a517
-    evidence_workflow_run: 35865600657
-    canonical_report: docs/plan/01-foundation/fw-imp-007-implementation.md
+    evidence_commit: bf9b3882dbc91ee801d169a62587c7658baaa63b
+    evidence_foundation_build_run: 35868005913
+    evidence_test_deploy_run: 35868151531
+    canonical_report: docs/plan/01-foundation/fw-imp-008-implementation.md
   scope_intent:
-    - define the exact smallest vertical Foundation proof before mutation
-    - keep the proof non-domain or deliberately minimal
-    - prove accepted Foundation boundaries end-to-end without inventing ERP rules
-    - define measurable targeted acceptance evidence
+    - derive the first Parties implementation vertical slice from frozen PLAN-003 contracts
+    - map the chosen slice to the frozen logical DB model before physical schema/migration
+    - define exact domain/application/API/UI/persistence boundaries and measurable targeted acceptance evidence
+    - assign a repository work-package ID only when the scope is explicitly recorded
   preflight_required:
     - verify current main HEAD
-    - read FW-IMP-007 evidence and current Foundation contracts
-    - establish exact FW-IMP-008 scope and expected files
-    - determine whether any new owner decision is genuinely required
-  deferred_not_selected:
-    - production secret store
-    - production reverse proxy/tunnel details
-    - production DNS/ingress/TLS
-    - structured logging/metrics stack
-    - Desktop shell technology
-    - Mobile shell technology
+    - read frozen Party planning and logical DB contracts
+    - verify P5 Parties-first dependency order
+    - identify unresolved business/legal/authorization details that genuinely block the first slice
   restrictions:
-    - no ERP business rule invention
+    - no undocumented Party business rule
+    - no SQL/migration before the first vertical slice data contract is mapped to frozen logical DB sources
+    - no Sales/Product/Inventory/Purchasing/Finance implementation in the same work package
     - no production deployment
     - no Full Test Day
     - exact master planning metric remains 9 / 30 = 30.0
