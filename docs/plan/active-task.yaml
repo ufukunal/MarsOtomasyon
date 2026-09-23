@@ -1,63 +1,97 @@
 id: P5
-title: Core application implementation — Parties first vertical slice definition
+title: Parties first vertical slice — Create Party Core Identity
 module: parties
-status: scope_definition_required
-progress: not_started
+status: blocked_decision_required
+progress: scope_defined_implementation_not_started
 work_package_id: not_assigned
+readiness_report: docs/plan/03-cariler/p5-first-slice-readiness.md
 
 phase:
   id: P5
   name: Core application implementation
-  status: scope_definition_required
+  status: blocked_decision_required
 
-predecessor:
-  id: FW-IMP-008
-  title: thin vertical framework proof
-  status: completed
-  evidence:
-    implementation_commit: bf9b3882dbc91ee801d169a62587c7658baaa63b
-    foundation_build_run: 35868005913
-    foundation_build_job: 107204452548
-    test_deploy_run: 35868151531
-    test_deploy_job: 107205339908
-    frontend_tests: 11_passed
-    foundation_tests: 30_passed
-    remote_test_deployment: success
-    health_live: 200
-    health_ready: 200
-    proof_page: 200
-    proof_endpoint_unauthenticated: 401
-    canonical_report: docs/plan/01-foundation/fw-imp-008-implementation.md
+selected_slice:
+  name: Create Party Core Identity
+  purpose: create one company-scoped PERSON/ORGANIZATION Party before optional commercial role activation
+  authoritative_entities:
+    - Party
+  deferred_entities:
+    - Party Role
+    - Tax Identity
+    - Contact Person
+    - Communication Point
+    - Address
+    - Party External Mapping
+    - Party Merge Lineage
+  effects:
+    master: CREATE
+    reservation: NONE
+    stock: NONE
+    account: NONE
+    cash_bank: NONE
+    cost: NONE
+    audit: REQUIRED
+    outbox: OPTIONAL_NOT_REQUIRED_WITHOUT_ACCEPTED_CONSUMER
 
-goal:
-  Define the first Parties implementation vertical slice from frozen PLAN-003 and the frozen logical database model before any Party schema/code mutation.
+candidate_contract:
+  db:
+    internal_key: BIGINT-style
+    public_id: UUID
+    company_scope: trusted execution context CompanyId
+    party_code: required_company_scoped_unique
+    kind: PERSON_OR_ORGANIZATION
+    legal_name: required
+    display_name: optional
+    initial_state: ACTIVE
+    optimistic_version: required
+  api:
+    candidate_route: POST /api/v1/parties
+    authentication: required
+    permission: party.create
+    client_company_authority: forbidden
+    idempotency_key: required_candidate
+  ui:
+    candidate_route: /parties/new
+    scope: identity-only create form using Mars.UI
 
-source_basis:
-  - docs/plan/master-project-plan.md P5 dependency order
-  - docs/plan/03-cariler/
-  - docs/db/
-  - docs/plan/01-foundation/fw-imp-008-implementation.md
+blockers:
+  - id: PARTY-BLK-001
+    area: authorization
+    status: BLOCKED
+    decision: define Mars-owned permission authority/evaluation/grant contract for server-side party.create
+    reason: current Foundation source has authentication and trusted scope but no accepted permission evaluator/grant/claim implementation
+  - id: PARTY-BLK-002
+    area: numbering
+    status: BLOCKED
+    decision: define initial Party Code assignment authority
+    reason: Party Code is mandatory and Settings/Numbering-owned, but repository does not say manual vs allocated runtime assignment
+  - id: PARTY-BLK-003
+    area: duplicate_detection
+    status: BLOCKED
+    decision: freeze minimum soft duplicate-warning contract or explicitly approve first-slice deferral
+    reason: Create Party requires candidate warnings but matching/normalization/threshold/query contract is absent
+  - id: PARTY-BLK-004
+    area: company_reference
+    status: DECISION_REQUIRED
+    decision: state whether first Party physical model uses trusted company UUID without FK until Company persistence exists, or requires Foundation Company persistence first
+    reason: logical Company 1->N Party exists but current physical model has no Company table
 
-scope_gate:
-  dedicated_work_package_id: not_assigned
-  exact_first_vertical_slice: not_yet_defined
-  required_before_mutation:
-    - select the smallest coherent Parties use case from frozen PLAN-003
-    - map its entities/relationships/constraints to frozen logical DB sources
-    - define company scope and authorization requirements without inventing permissions beyond frozen Party contracts
-    - define migration/domain/application/API/UI boundaries
-    - define targeted verification and TEST smoke
-    - record a dedicated implementation work-package ID only with the explicit scope
-
-scope:
-  include:
-    - P5 Parties first-slice scope/readiness definition
-  exclude:
-    - Party SQL/migration until scope/data mapping is explicit
-    - Sales/Product/Inventory/Purchasing/Warehouse/Finance implementation
-    - production deployment
-    - production secret-store/ingress decisions
-    - Full Test Day
+implementation_gate:
+  allowed_now:
+    - blocker-resolution documentation/decision records
+    - state/handoff updates
+  forbidden_now:
+    - Party domain implementation
+    - Party EF mapping/migration
+    - Party API endpoint
+    - Party Web screen
+    - dedicated implementation work-package ID
+  unblock_when:
+    - PARTY-BLK-001 resolved
+    - PARTY-BLK-002 resolved
+    - PARTY-BLK-003 resolved
+    - PARTY-BLK-004 resolved or explicitly documented as non-blocking physical strategy
 
 planning_progress:
   master_sequence:
