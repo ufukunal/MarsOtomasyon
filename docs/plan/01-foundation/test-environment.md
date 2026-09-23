@@ -210,3 +210,51 @@ Read-only verification was executed from the separate self-hosted Runner VM to t
 - health observed: healthy
 
 This verification proves connectivity/authentication and container state only. It does not prove application business health, database integrity, migration correctness, backup/restore, performance, or Full Test Day acceptance.
+
+
+## FW-IMP-007 deployment verification — 2026-09-23
+
+Verified by GitHub Actions run `35865600657` against the separate TEST server:
+
+- remote OS: Ubuntu 24.04.5 LTS
+- remote kernel: `6.8.0-139-generic`
+- Docker: `29.8.0`
+- Docker Compose: `5.5.1`
+- existing PostgreSQL/Valkey Compose project: `marsotomasyon`
+- existing Compose workdir: `/opt/marsotomasyon`
+- existing Compose files:
+  - `/opt/marsotomasyon/docker-compose.production.yml`
+  - `/opt/marsotomasyon/docker-compose.tailscale.yml`
+- shared Docker network used by the existing data services: `marsotomasyon_backend`
+- PostgreSQL: `marsotomasyon-postgres-1` / `postgres:18-bookworm` / healthy
+- Valkey: `marsotomasyon-valkey-1` / `valkey/valkey:8-alpine` / healthy
+- TEST Foundation port `5080` was free before deployment
+- port 80 had no listener response during preflight
+- the pre-existing HTTPS 443 route returned 302; FW-IMP-007 does not claim ownership of this route
+- TEST PostgreSQL migration/admin and restricted runtime roles both passed SCRAM-authenticated network login
+- runtime role remained non-superuser/non-createdb/non-createrole/non-replication
+- before deployment, Foundation/Identity schemas and EF migration history were absent
+- after deployment, two committed EF migrations were applied successfully
+- new Foundation TEST containers:
+  - `mars-foundation-api-1`
+  - `mars-foundation-web-1`
+- actual TEST `/health/live`: 200
+- actual TEST `/health/ready`: 200
+- actual TEST protected Foundation API without authentication: 401
+- actual TEST OpenAPI endpoint: 200
+- runner-to-TEST smoke: PASS
+
+The existing data-service Compose topology was not recreated or replaced. The new Foundation Compose project attaches to its verified external network.
+
+### TEST credential ownership after FW-IMP-007
+
+- canonical SSH credential source remains `config/test/test-server.md`;
+- TEST PostgreSQL role credentials are maintained only in the protected remote file `$HOME/.marsotomasyon/postgresql-roles.env` with mode `600`;
+- credential values must not be copied into documentation, workflow logs, Docker images or generated repository env files;
+- production secret-store technology remains deferred.
+
+### TEST-only deployment mechanism
+
+The FW-IMP-007 Web host on port 5080 is a TEST-only static/proxy mechanism for the Vite production assets and API path forwarding.
+
+It is not an accepted production reverse proxy, DNS/ingress, TLS-termination or production Web-serving architecture decision.
