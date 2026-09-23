@@ -19,10 +19,12 @@ assert_status() {
 assert_status 200 "/"
 assert_status 200 "/components"
 assert_status 200 "/proof"
+assert_status 200 "/parties/new"
 assert_status 200 "/health/live"
 assert_status 200 "/health/ready"
 assert_status 401 "/api/v1/foundation/context"
 assert_status 401 "/api/v1/foundation/proof" POST
+assert_status 401 "/api/v1/parties" POST
 assert_status 200 "/openapi/v1.json"
 
 echo "SMOKE_RESULT=PASS"
