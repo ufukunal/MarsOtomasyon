@@ -1,22 +1,31 @@
-id: P5
-title: Parties first vertical slice — Create Party Core Identity
+id: PARTY-IMP-001
+title: Create Party Core Identity
 module: parties
-status: blocked_decision_required
-progress: scope_defined_implementation_not_started
-work_package_id: not_assigned
+status: ready
+progress: not_started
 readiness_report: docs/plan/03-cariler/p5-first-slice-readiness.md
+authorization_decision: docs/plan/decisions/ADR-0005-mars-erp-permission-authority.md
 
 phase:
   id: P5
   name: Core application implementation
-  status: blocked_decision_required
+  status: implementation_ready
 
-selected_slice:
-  name: Create Party Core Identity
-  purpose: create one company-scoped PERSON/ORGANIZATION Party before optional commercial role activation
-  authoritative_entities:
-    - Party
-  deferred_entities:
+goal:
+  Implement the first real Parties vertical slice: create one company-scoped PERSON/ORGANIZATION Party identity before optional role activation.
+
+scope:
+  include:
+    - Foundation Mars Permission Grant persistence/evaluator sufficient for party.create
+    - Party core aggregate and persistence
+    - additive EF migration
+    - POST /api/v1/parties
+    - /parties/new Mars.Web identity-only flow
+    - audit
+    - durable idempotency
+    - targeted tests
+    - TEST deploy/smoke when deployable
+  exclude:
     - Party Role
     - Tax Identity
     - Contact Person
@@ -24,21 +33,44 @@ selected_slice:
     - Address
     - Party External Mapping
     - Party Merge Lineage
-  effects:
-    master: CREATE
-    reservation: NONE
-    stock: NONE
-    account: NONE
-    cash_bank: NONE
-    cost: NONE
-    audit: REQUIRED
-    outbox: OPTIONAL_NOT_REQUIRED_WITHOUT_ACCEPTED_CONSUMER
+    - soft/fuzzy duplicate candidate detection
+    - Settings/Numbering allocator
+    - permission administration UI/role-group model
+    - Sales/Product/Inventory/Purchasing/Warehouse/Finance implementation
+    - production deployment
+    - Full Test Day
+
+locked_decisions:
+  permission:
+    authority: Mars-owned PostgreSQL Permission Grant
+    grain: ActorId + CompanyId + PermissionCode
+    required_permission: party.create
+    identity_or_token_claim_is_authority: false
+    command_handler_enforcement: required
+    endpoint_policy_enforcement: required_defense_in_depth
+  party_code:
+    source: required caller input
+    allocator_in_scope: false
+    exact_format_in_scope: false
+    uniqueness: exact stored Party Code within trusted CompanyId
+    leading_trailing_whitespace: reject
+    case_normalization: none_invented
+  duplicate_detection:
+    deterministic_first_slice:
+      - company-scoped Party Code uniqueness
+      - public UUID uniqueness
+      - idempotency uniqueness
+    soft_fuzzy_warning: explicitly_deferred
+  company_reference:
+    source: trusted IExecutionContext CompanyId
+    request_company_field: forbidden
+    physical_company_fk: not_in_this_slice
 
 candidate_contract:
   db:
     internal_key: BIGINT-style
     public_id: UUID
-    company_scope: trusted execution context CompanyId
+    company_id: UUID_required_no_fk
     party_code: required_company_scoped_unique
     kind: PERSON_OR_ORGANIZATION
     legal_name: required
@@ -46,52 +78,17 @@ candidate_contract:
     initial_state: ACTIVE
     optimistic_version: required
   api:
-    candidate_route: POST /api/v1/parties
+    route: POST /api/v1/parties
     authentication: required
     permission: party.create
-    client_company_authority: forbidden
-    idempotency_key: required_candidate
+    idempotency_key: required
   ui:
-    candidate_route: /parties/new
-    scope: identity-only create form using Mars.UI
-
-blockers:
-  - id: PARTY-BLK-001
-    area: authorization
-    status: BLOCKED
-    decision: define Mars-owned permission authority/evaluation/grant contract for server-side party.create
-    reason: current Foundation source has authentication and trusted scope but no accepted permission evaluator/grant/claim implementation
-  - id: PARTY-BLK-002
-    area: numbering
-    status: BLOCKED
-    decision: define initial Party Code assignment authority
-    reason: Party Code is mandatory and Settings/Numbering-owned, but repository does not say manual vs allocated runtime assignment
-  - id: PARTY-BLK-003
-    area: duplicate_detection
-    status: BLOCKED
-    decision: freeze minimum soft duplicate-warning contract or explicitly approve first-slice deferral
-    reason: Create Party requires candidate warnings but matching/normalization/threshold/query contract is absent
-  - id: PARTY-BLK-004
-    area: company_reference
-    status: DECISION_REQUIRED
-    decision: state whether first Party physical model uses trusted company UUID without FK until Company persistence exists, or requires Foundation Company persistence first
-    reason: logical Company 1->N Party exists but current physical model has no Company table
-
-implementation_gate:
-  allowed_now:
-    - blocker-resolution documentation/decision records
-    - state/handoff updates
-  forbidden_now:
-    - Party domain implementation
-    - Party EF mapping/migration
-    - Party API endpoint
-    - Party Web screen
-    - dedicated implementation work-package ID
-  unblock_when:
-    - PARTY-BLK-001 resolved
-    - PARTY-BLK-002 resolved
-    - PARTY-BLK-003 resolved
-    - PARTY-BLK-004 resolved or explicitly documented as non-blocking physical strategy
+    route: /parties/new
+    fields:
+      - Party Code
+      - Kind
+      - Legal Name
+      - Display Name optional
 
 planning_progress:
   master_sequence:
@@ -105,8 +102,11 @@ planning_progress:
 
 test_policy:
   normal_development:
-    - build
-    - targeted-unit-or-invariant
-    - small-smoke-when-needed
-    - migration-contract-check
+    - release-build
+    - targeted-party-tests
+    - targeted-authorization-tests
+    - migration-model-check
+    - frontend-typecheck-test-build
+    - small-api-smoke
+    - test-deploy-smoke-when-deployable
   heavy_tests: FULL_TEST_DAY_ONLY
