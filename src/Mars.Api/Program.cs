@@ -4,8 +4,13 @@ using Mars.Api.Foundation.Errors;
 using Mars.Api.Foundation.Health;
 using Mars.Application.Foundation.Configuration;
 using Mars.Application.Foundation.Context;
+using Mars.Application.Foundation.Auditing;
+using Mars.Application.Foundation.Idempotency;
+using Mars.Application.Foundation.Outbox;
+using Mars.Application.Foundation.Proof;
 using Mars.Infrastructure.Identity;
 using Mars.Infrastructure.Persistence;
+using Mars.Infrastructure.Persistence.Foundation;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Identity;
@@ -21,6 +26,12 @@ StartupConfigurationValidation.ThrowIfInvalid(
     new[] { new PostgreSqlRuntimeOptionsValidator() });
 
 builder.Services.AddMarsIdentityPersistence(runtimeOptions.ConnectionString);
+
+builder.Services.AddScoped<IAuditWriter, EfAuditWriter>();
+builder.Services.AddScoped<IIdempotencyStore, EfIdempotencyStore>();
+builder.Services.AddScoped<IOutboxWriter, EfOutboxStore>();
+builder.Services.AddScoped<IFoundationProofPersistence, EfFoundationProofPersistence>();
+builder.Services.AddScoped<FoundationProofHandler>();
 
 builder.Services.AddOpenApi("v1");
 
@@ -141,6 +152,32 @@ app.MapGet(
     .RequireAuthorization()
     .WithName("GetFoundationExecutionContext")
     .WithSummary("Returns the trusted Mars execution context for an authenticated request.");
+
+app.MapPost(
+        "/api/v1/foundation/proof",
+        async (
+            HttpRequest request,
+            IExecutionContext executionContext,
+            FoundationProofHandler handler,
+            CancellationToken cancellationToken) =>
+        {
+            var result = await handler.ExecuteAsync(
+                new FoundationProofCommand(request.Headers["Idempotency-Key"].ToString()),
+                executionContext,
+                cancellationToken);
+
+            if (result.IsFailure)
+            {
+                return ApplicationErrorHttpMapper.ToResult(
+                    result.Error!,
+                    executionContext.CorrelationId.Value);
+            }
+
+            return Results.Ok(result.Value);
+        })
+    .RequireAuthorization()
+    .WithName("ExecuteFoundationVerticalProof")
+    .WithSummary("Executes the non-domain Foundation request/application/DB/audit/outbox proof.");
 
 app.Run();
 

@@ -94,6 +94,7 @@ export function createAppShell(): AppShell {
   navigation.setAttribute("aria-label", "Foundation gezinme");
   navigation.append(
     routeLink("/", "Foundation"),
+    routeLink("/proof", "Vertical Proof"),
     routeLink("/components", "Mars.UI"));
 
   side.append(brand, navigation);

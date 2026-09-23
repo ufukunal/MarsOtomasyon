@@ -5,6 +5,7 @@ import { Window } from "happy-dom";
 installDom();
 
 const { ApiClient, ApiClientError } = await import("../src/api-client.ts");
+const { createFoundationProofPage } = await import("../src/foundation-proof.ts");
 const { MarsRouter, createAppShell } = await import("../src/app.ts");
 const {
   createButton,
@@ -238,6 +239,41 @@ test("grid renders semantic headers/rows and supports keyboard row movement", ()
 
   grid.setRows([], { kind: "empty", message: "No rows" });
   assert.match(grid.element.textContent ?? "", /No rows/);
+});
+
+test("vertical proof page sends idempotency-key request through the shared API client contract", async () => {
+  let capturedPath = "";
+  let capturedInit: RequestInit | undefined;
+
+  const api = {
+    request: async <T>(path: string, init?: RequestInit) => {
+      capturedPath = path;
+      capturedInit = init;
+      return {
+        data: {
+          eventId: "11111111-1111-1111-1111-111111111111",
+          operationKey: "proof-op-1",
+          correlationId: "corr-proof"
+        } as T,
+        correlationId: "corr-proof",
+        status: 200
+      };
+    }
+  };
+
+  const page = createFoundationProofPage(api, () => "proof-op-1");
+  document.body.replaceChildren(page);
+
+  const button = page.querySelector<HTMLButtonElement>("button");
+  assert.ok(button);
+  button.click();
+  await Promise.resolve();
+  await Promise.resolve();
+
+  assert.equal(capturedPath, "/foundation/proof");
+  assert.equal(capturedInit?.method, "POST");
+  assert.equal(new Headers(capturedInit?.headers).get("Idempotency-Key"), "proof-op-1");
+  assert.match(page.textContent ?? "", /corr-proof/);
 });
 
 function installDom(): void {

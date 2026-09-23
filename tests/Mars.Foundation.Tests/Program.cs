@@ -31,7 +31,7 @@ var tests = new (string Name, Action Test)[]
     ("Migration factory requires migration-specific configuration", MigrationFactoryRequiresMigrationConfiguration),
     ("Outbox processor records success retry and terminal failure", OutboxProcessorRecordsOutcomes),
     ("Outbox processor honors cancellation", OutboxProcessorHonorsCancellation)
-}.Concat(FwImp005Tests.Cases).ToArray();
+}.Concat(FwImp005Tests.Cases).Concat(FwImp008Tests.Cases).ToArray();
 
 var failures = new List<string>();
 
