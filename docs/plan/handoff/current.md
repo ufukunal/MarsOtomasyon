@@ -87,20 +87,37 @@ P5 — Core application implementation
 Status: IMPLEMENTATION IN PROGRESS
 
 ## Current task
-Define the next smallest coherent Parties vertical slice.
+PARTY-IMP-006 — Party Master Completion Tranche.
 
-Work-package ID:
-- NOT ASSIGNED.
+Status:
+- READY FOR IMPLEMENTATION.
 
-Repository follow-up candidates:
-- Party reactivate with duplicate/legal identity validation gate;
-- accepted soft duplicate candidate/review;
-- Contact Person / Communication Point / Address;
+Canonical readiness:
+- `docs/plan/03-cariler/p5-party-master-completion-readiness.md`
+
+Owner direction:
+- broaden Party implementation scope instead of one package per small capability;
+- normal technical implementation choices belong to active skills unless they introduce a new business rule.
+
+Included:
+- Party list/detail/read and legal/display identity edit;
+- Contact Person / Communication Point;
+- Address lifecycle/default-by-purpose;
+- existing TR VKN/TCKN read/masking/lifecycle;
 - Party External Mapping;
-- Party Merge;
-- broader Tax Identity lifecycle/provider/non-TR support.
+- explicit same-company Party Merge + lineage;
+- required permission/API/UI/persistence/migration/audit/idempotency/concurrency/targeted tests.
 
-Do not invent PARTY-IMP-006 before exact scope is frozen.
+Deferred:
+- fuzzy candidate generation/scoring/thresholds;
+- Party Reactivation until duplicate/legal-identity rerun prerequisite is resolved;
+- provider/GIB and non-TR tax behavior;
+- Communications consent/preferences;
+- Sales/Purchasing/Finance implementation;
+- production deployment;
+- Full Test Day.
+
+The unresolved Reactivation question does not block PARTY-IMP-006 because Reactivation is outside this package.
 
 ## Planning progress
 - Master section-8 planning coverage: 9 / 30 = 30.0%
