@@ -267,7 +267,7 @@ export function createPartyCreatePage(
       ? roleReason.input.value.trim()
       : null;
 
-    if (targetState === "INACTIVE" && reason.length === 0) {
+    if (targetState === "INACTIVE" && (reason === null || reason.length === 0)) {
       roleStatus.textContent = "Rolü devre dışı bırakmak için neden girin.";
       roleReason.input.focus();
       return;
