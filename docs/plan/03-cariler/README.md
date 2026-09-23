@@ -78,21 +78,28 @@ PLAN-003 does not define:
 
 ## P5 first implementation readiness
 
-Current first-slice analysis:
+Canonical readiness:
 - `docs/plan/03-cariler/p5-first-slice-readiness.md`
 
-Selected candidate:
-- Create Party Core Identity.
+Selected first slice:
+- PARTY-IMP-001 — Create Party Core Identity.
 
 Status:
-- SCOPE DEFINED;
-- IMPLEMENTATION BLOCKED;
-- dedicated implementation work-package ID NOT ASSIGNED.
+- READY FOR IMPLEMENTATION;
+- implementation NOT STARTED.
 
-Blocking decisions:
-- Mars-owned permission authority/evaluation for server-side `party.create`;
-- initial Party Code assignment authority;
-- minimum soft duplicate-warning contract or explicit first-slice deferral;
-- physical Company reference strategy while Foundation has no Company table.
+Resolved:
+- Mars-owned permission authority via ADR-0005;
+- first-slice Party Code required caller input with no invented allocator/format;
+- soft/fuzzy duplicate warning explicitly deferred;
+- trusted CompanyId persisted without a physical Company FK in this slice.
 
-No Party C#/EF migration/API/TypeScript implementation may start until these blockers are resolved.
+Deferred first-slice data:
+- Party Role;
+- Tax Identity;
+- Contact/Communication;
+- Address;
+- External Mapping;
+- Merge Lineage.
+
+Full PLAN-003 Create Party parity is not claimed until later Party slices add the deferred duplicate/tax/role/contact/address behavior.
