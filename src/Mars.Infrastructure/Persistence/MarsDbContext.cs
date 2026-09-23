@@ -1,5 +1,6 @@
 using Mars.Infrastructure.Identity;
 using Mars.Infrastructure.Persistence.Foundation;
+using Mars.Infrastructure.Persistence.Parties;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -23,5 +24,7 @@ public sealed class MarsDbContext(DbContextOptions<MarsDbContext> options)
         modelBuilder.ApplyConfiguration(new AuditEventConfiguration());
         modelBuilder.ApplyConfiguration(new IdempotencyOperationConfiguration());
         modelBuilder.ApplyConfiguration(new OutboxMessageConfiguration());
+        modelBuilder.ApplyConfiguration(new PermissionGrantConfiguration());
+        modelBuilder.ApplyConfiguration(new PartyConfiguration());
     }
 }
