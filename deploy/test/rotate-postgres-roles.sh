@@ -37,7 +37,7 @@ apply_passwords() {
   local master_password="$1"
   local app_password="$2"
 
-  docker exec -e PGPASSWORD="$MARS_PG_MASTER_PASSWORD"     "$PG_CONTAINER"     psql -h 127.0.0.1 -U "$MARS_PG_MASTER_USER" -d "$MARS_PG_DATABASE"     -v ON_ERROR_STOP=1     -v master_role="$MARS_PG_MASTER_USER"     -v app_role="$MARS_PG_APP_USER"     -v new_master_password="$master_password"     -v new_app_password="$app_password" <<'SQL' >/dev/null
+  docker exec -e PGPASSWORD="$MARS_PG_MASTER_PASSWORD" -i     "$PG_CONTAINER"     psql -h 127.0.0.1 -U "$MARS_PG_MASTER_USER" -d "$MARS_PG_DATABASE"     -v ON_ERROR_STOP=1     -v master_role="$MARS_PG_MASTER_USER"     -v app_role="$MARS_PG_APP_USER"     -v new_master_password="$master_password"     -v new_app_password="$app_password" <<'SQL' >/dev/null
 SELECT format('ALTER ROLE %I PASSWORD %L', :'master_role', :'new_master_password') \gexec
 SELECT format('ALTER ROLE %I PASSWORD %L', :'app_role', :'new_app_password') \gexec
 SQL
