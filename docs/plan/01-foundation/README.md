@@ -90,10 +90,10 @@ Verified:
 - static architecture checks;
 - existing .NET build/tests/migration/API verification remain green.
 
-Next repository-defined package:
-- `FW-IMP-007 — Docker/test deployment baseline` — READY.
+Historical handoff after FW-IMP-006:
+- `FW-IMP-007 — Docker/test deployment baseline` was the next package and is now COMPLETED.
 
-Production secret-store, production reverse-proxy/tunnel and logging/metrics technologies remain deferred. FW-IMP-007 must verify test-environment Docker/Compose/deployment facts before mutation and must not promote test choices into production architecture.
+Its completion evidence is recorded below. Production secret-store, production reverse-proxy/tunnel and logging/metrics technologies remain deferred.
 
 
 ## FW-IMP-007 current status
