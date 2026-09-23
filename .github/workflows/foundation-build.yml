@@ -76,6 +76,9 @@ jobs:
           test -f "$MIG_DIR/20260922113226_FwImp005IdentityProtocol.Designer.cs"
           test -f "src/Mars.Infrastructure/Persistence/Migrations/Foundation/MarsDbContextModelSnapshot.cs"
 
+          PARTY_MIG_COUNT="$(find src/Mars.Infrastructure/Persistence/Migrations/Parties -maxdepth 1 -name '*_PartyImp001CoreIdentity.cs' ! -name '*.Designer.cs' 2>/dev/null | wc -l)"
+          test "$PARTY_MIG_COUNT" = "1"
+
           grep -F 'name: "users"' "$MIG_FILE"
           grep -F 'name: "OpenIddictApplications"' "$MIG_FILE"
           grep -F 'name: "OpenIddictAuthorizations"' "$MIG_FILE"
