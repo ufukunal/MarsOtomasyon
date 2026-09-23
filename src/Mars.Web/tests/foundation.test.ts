@@ -427,7 +427,8 @@ test("Party create page activates role through Party-scoped endpoint without cli
   const roleBody = JSON.parse(String(requests[1]?.init?.body)) as Record<string, unknown>;
   assert.deepEqual(roleBody, { role: "CUSTOMER" });
   assert.equal("companyId" in roleBody, false);
-  assert.equal(customerButton.disabled, true);
+  assert.equal(customerButton.disabled, false);
+  assert.match(customerButton.textContent ?? "", /devre dışı bırak/);
   assert.match(page.textContent ?? "", /CUSTOMER rolü ACTIVE/);
 });
 
@@ -514,4 +515,133 @@ test("Party create page adds Turkish tax identity without client company authori
   assert.equal(value.value, "");
   assert.match(page.textContent ?? "", /VKN kimliği ACTIVE/);
   assert.equal((page.textContent ?? "").includes("1234567890"), false);
+});
+
+
+test("Party create page manages role ACTIVE INACTIVE lifecycle with expected version and no client company authority", async () => {
+  const requests: Array<{ path: string; init?: RequestInit }> = [];
+  const operationKeys = [
+    "party-op-lifecycle",
+    "role-op-lifecycle",
+    "role-state-deactivate",
+    "role-state-reactivate"
+  ];
+
+  const api = {
+    request: async <T>(path: string, init?: RequestInit) => {
+      requests.push({ path, init });
+
+      if (path === "/parties") {
+        return {
+          data: {
+            publicId: "55555555-5555-5555-5555-555555555555",
+            partyCode: "P-204",
+            kind: "ORGANIZATION",
+            legalName: "Mars Lifecycle",
+            displayName: null,
+            state: "ACTIVE",
+            version: 1,
+            correlationId: "corr-party-lifecycle-create"
+          } as T,
+          correlationId: "corr-party-lifecycle-create",
+          status: 201
+        };
+      }
+
+      if (path === "/parties/55555555-5555-5555-5555-555555555555/roles") {
+        return {
+          data: {
+            partyPublicId: "55555555-5555-5555-5555-555555555555",
+            role: "CUSTOMER",
+            state: "ACTIVE",
+            version: 1,
+            correlationId: "corr-role-activate"
+          } as T,
+          correlationId: "corr-role-activate",
+          status: 201
+        };
+      }
+
+      const body = JSON.parse(String(init?.body)) as { state: "ACTIVE" | "INACTIVE" };
+      return {
+        data: {
+          partyPublicId: "55555555-5555-5555-5555-555555555555",
+          role: "CUSTOMER",
+          state: body.state,
+          version: body.state === "INACTIVE" ? 2 : 3,
+          correlationId: body.state === "INACTIVE"
+            ? "corr-role-deactivate"
+            : "corr-role-reactivate"
+        } as T,
+        correlationId: "corr-role-state",
+        status: 200
+      };
+    }
+  };
+
+  const page = createPartyCreatePage(api, () => operationKeys.shift() ?? "unexpected-op");
+  document.body.replaceChildren(page);
+
+  page.querySelector<HTMLInputElement>("#party-code")!.value = "P-204";
+  page.querySelector<HTMLSelectElement>("#party-kind")!.value = "ORGANIZATION";
+  page.querySelector<HTMLInputElement>("#party-legal-name")!.value = "Mars Lifecycle";
+
+  page.querySelector<HTMLFormElement>("form")!
+    .dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+  await Promise.resolve();
+  await Promise.resolve();
+
+  const customerButton = Array.from(page.querySelectorAll<HTMLButtonElement>("button"))
+    .find((button) => button.textContent?.includes("CUSTOMER rolünü"));
+  assert.ok(customerButton);
+
+  customerButton.click();
+  await Promise.resolve();
+  await Promise.resolve();
+
+  const reason = page.querySelector<HTMLInputElement>("#party-role-reason")!;
+  reason.value = "Temporary commercial stop";
+
+  customerButton.click();
+  await Promise.resolve();
+  await Promise.resolve();
+
+  assert.equal(requests.length, 3);
+  assert.equal(
+    requests[2]?.path,
+    "/parties/55555555-5555-5555-5555-555555555555/roles/CUSTOMER/state");
+  assert.equal(requests[2]?.init?.method, "POST");
+  assert.equal(
+    new Headers(requests[2]?.init?.headers).get("Idempotency-Key"),
+    "role-state-deactivate");
+
+  const deactivateBody = JSON.parse(String(requests[2]?.init?.body)) as Record<string, unknown>;
+  assert.deepEqual(deactivateBody, {
+    state: "INACTIVE",
+    version: 1,
+    reason: "Temporary commercial stop"
+  });
+  assert.equal("companyId" in deactivateBody, false);
+  assert.equal(reason.value, "");
+  assert.match(customerButton.textContent ?? "", /yeniden etkinleştir/);
+  assert.match(page.textContent ?? "", /CUSTOMER rolü INACTIVE/);
+
+  customerButton.click();
+  await Promise.resolve();
+  await Promise.resolve();
+
+  assert.equal(requests.length, 4);
+  assert.equal(
+    new Headers(requests[3]?.init?.headers).get("Idempotency-Key"),
+    "role-state-reactivate");
+
+  const reactivateBody = JSON.parse(String(requests[3]?.init?.body)) as Record<string, unknown>;
+  assert.deepEqual(reactivateBody, {
+    state: "ACTIVE",
+    version: 2,
+    reason: null
+  });
+  assert.equal("companyId" in reactivateBody, false);
+  assert.match(customerButton.textContent ?? "", /devre dışı bırak/);
+  assert.match(page.textContent ?? "", /CUSTOMER rolü ACTIVE/);
 });

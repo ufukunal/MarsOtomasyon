@@ -14,6 +14,7 @@ using Mars.Application.Foundation.Proof;
 using Mars.Application.Parties;
 using Mars.Application.Parties.CreateParty;
 using Mars.Application.Parties.ActivatePartyRole;
+using Mars.Application.Parties.ChangePartyRoleState;
 using Mars.Application.Parties.AddPartyTaxIdentity;
 using Mars.Infrastructure.Identity;
 using Mars.Infrastructure.Persistence;
@@ -46,6 +47,8 @@ builder.Services.AddScoped<IPartyCreatePersistence, EfPartyCreatePersistence>();
 builder.Services.AddScoped<CreatePartyHandler>();
 builder.Services.AddScoped<IPartyRoleActivationPersistence, EfPartyRoleActivationPersistence>();
 builder.Services.AddScoped<ActivatePartyRoleHandler>();
+builder.Services.AddScoped<IPartyRoleStatePersistence, EfPartyRoleStatePersistence>();
+builder.Services.AddScoped<ChangePartyRoleStateHandler>();
 builder.Services.AddScoped<IPartyTaxIdentityAddPersistence, EfPartyTaxIdentityAddPersistence>();
 builder.Services.AddScoped<AddPartyTaxIdentityHandler>();
 builder.Services.AddScoped<IAuthorizationHandler, MarsPermissionAuthorizationHandler>();
@@ -261,6 +264,41 @@ app.MapPost(
     .RequireAuthorization(PartyPermissions.RoleManage)
     .WithName("ActivatePartyRole")
     .WithSummary("Activates one CUSTOMER or SUPPLIER role on an existing company-scoped Party.");
+
+app.MapPost(
+        "/api/v1/parties/{partyPublicId:guid}/roles/{role}/state",
+        async (
+            Guid partyPublicId,
+            string role,
+            ChangePartyRoleStateRequest request,
+            HttpRequest httpRequest,
+            IExecutionContext executionContext,
+            ChangePartyRoleStateHandler handler,
+            CancellationToken cancellationToken) =>
+        {
+            var result = await handler.ExecuteAsync(
+                new ChangePartyRoleStateCommand(
+                    partyPublicId,
+                    role,
+                    request.State,
+                    request.Version,
+                    request.Reason,
+                    httpRequest.Headers["Idempotency-Key"].ToString()),
+                executionContext,
+                cancellationToken);
+
+            if (result.IsFailure)
+            {
+                return ApplicationErrorHttpMapper.ToResult(
+                    result.Error!,
+                    executionContext.CorrelationId.Value);
+            }
+
+            return Results.Ok(result.Value);
+        })
+    .RequireAuthorization(PartyPermissions.RoleManage)
+    .WithName("ChangePartyRoleState")
+    .WithSummary("Changes an existing CUSTOMER or SUPPLIER Party role between ACTIVE and INACTIVE.");
 
 app.MapPost(
         "/api/v1/parties/{partyPublicId:guid}/tax-identities",

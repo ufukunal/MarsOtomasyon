@@ -119,6 +119,7 @@ PROTECTED_STATUS="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 3 "http:/
 PROOF_PROTECTED_STATUS="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 3 -X POST "http://127.0.0.1:$WEB_PORT/api/v1/foundation/proof")"
 PARTY_PROTECTED_STATUS="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 3 -X POST -H 'Content-Type: application/json' -d '{"partyCode":"SMOKE","kind":"PERSON","legalName":"Smoke"}' "http://127.0.0.1:$WEB_PORT/api/v1/parties")"
 PARTY_ROLE_PROTECTED_STATUS="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 3 -X POST -H 'Content-Type: application/json' -d '{"role":"CUSTOMER"}' "http://127.0.0.1:$WEB_PORT/api/v1/parties/00000000-0000-0000-0000-000000000001/roles")"
+PARTY_ROLE_STATE_PROTECTED_STATUS="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 3 -X POST -H 'Content-Type: application/json' -d '{"state":"INACTIVE","version":1,"reason":"smoke"}' "http://127.0.0.1:$WEB_PORT/api/v1/parties/00000000-0000-0000-0000-000000000001/roles/CUSTOMER/state")"
 PARTY_TAX_IDENTITY_PROTECTED_STATUS="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 3 -X POST -H 'Content-Type: application/json' -d '{"jurisdiction":"TR","scheme":"VKN","value":"1234567890"}' "http://127.0.0.1:$WEB_PORT/api/v1/parties/00000000-0000-0000-0000-000000000001/tax-identities")"
 OPENAPI_STATUS="$(curl -sS -o /tmp/mars-foundation-openapi.json -w '%{http_code}' --max-time 3 "http://127.0.0.1:$WEB_PORT/openapi/v1.json")"
 
@@ -130,12 +131,14 @@ test "$PROTECTED_STATUS" = "401"
 test "$PROOF_PROTECTED_STATUS" = "401"
 test "$PARTY_PROTECTED_STATUS" = "401"
 test "$PARTY_ROLE_PROTECTED_STATUS" = "401"
+test "$PARTY_ROLE_STATE_PROTECTED_STATUS" = "401"
 test "$PARTY_TAX_IDENTITY_PROTECTED_STATUS" = "401"
 test "$OPENAPI_STATUS" = "200"
 grep -F '/api/v1/foundation/context' /tmp/mars-foundation-openapi.json >/dev/null
 grep -F '/api/v1/foundation/proof' /tmp/mars-foundation-openapi.json >/dev/null
 grep -F '/api/v1/parties' /tmp/mars-foundation-openapi.json >/dev/null
 grep -F '/api/v1/parties/{partyPublicId}/roles' /tmp/mars-foundation-openapi.json >/dev/null
+grep -F '/api/v1/parties/{partyPublicId}/roles/{role}/state' /tmp/mars-foundation-openapi.json >/dev/null
 grep -F '/api/v1/parties/{partyPublicId}/tax-identities' /tmp/mars-foundation-openapi.json >/dev/null
 rm -f /tmp/mars-foundation-openapi.json
 
@@ -151,6 +154,7 @@ echo "DEPLOY_PROTECTED_STATUS=$PROTECTED_STATUS"
 echo "DEPLOY_PROOF_PROTECTED_STATUS=$PROOF_PROTECTED_STATUS"
 echo "DEPLOY_PARTY_PROTECTED_STATUS=$PARTY_PROTECTED_STATUS"
 echo "DEPLOY_PARTY_ROLE_PROTECTED_STATUS=$PARTY_ROLE_PROTECTED_STATUS"
+echo "DEPLOY_PARTY_ROLE_STATE_PROTECTED_STATUS=$PARTY_ROLE_STATE_PROTECTED_STATUS"
 echo "DEPLOY_PARTY_TAX_IDENTITY_PROTECTED_STATUS=$PARTY_TAX_IDENTITY_PROTECTED_STATUS"
 echo "DEPLOY_OPENAPI_STATUS=$OPENAPI_STATUS"
 echo "DEPLOY_EF_MIGRATION_COUNT=$MIGRATION_COUNT"

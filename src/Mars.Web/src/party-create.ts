@@ -20,6 +20,14 @@ export interface ActivatePartyRoleReceipt {
   correlationId: string;
 }
 
+export interface ChangePartyRoleStateReceipt {
+  partyPublicId: string;
+  role: "CUSTOMER" | "SUPPLIER";
+  state: "ACTIVE" | "INACTIVE";
+  version: number;
+  correlationId: string;
+}
+
 export interface AddPartyTaxIdentityReceipt {
   publicId: string;
   partyPublicId: string;
@@ -101,6 +109,12 @@ export function createPartyCreatePage(
   rolesHelp.textContent =
     "Oluşturulan Party aynı kimlik üzerinde CUSTOMER ve/veya SUPPLIER rolü alabilir. Rol aktivasyonu finansal hareket oluşturmaz.";
 
+  const roleReason = createField({
+    id: "party-role-reason",
+    label: "Rol pasife alma nedeni",
+    help: "Bir rolü INACTIVE yaparken neden zorunludur."
+  });
+
   const roleStatus = document.createElement("p");
   roleStatus.setAttribute("role", "status");
   roleStatus.setAttribute("aria-live", "polite");
@@ -114,7 +128,13 @@ export function createPartyCreatePage(
     type: "button"
   });
 
-  roles.append(rolesHeading, rolesHelp, customerRole, supplierRole, roleStatus);
+  roles.append(
+    rolesHeading,
+    rolesHelp,
+    customerRole,
+    supplierRole,
+    roleReason.element,
+    roleStatus);
 
   const taxIdentities = document.createElement("section");
   taxIdentities.className = "mars-component-stack";
@@ -176,6 +196,19 @@ export function createPartyCreatePage(
     taxStatus);
 
   let createdPartyPublicId: string | null = null;
+  const roleStates = new Map<
+    "CUSTOMER" | "SUPPLIER",
+    { state: "ACTIVE" | "INACTIVE"; version: number }
+  >();
+
+  const updateRoleButton = (
+    role: "CUSTOMER" | "SUPPLIER",
+    button: HTMLButtonElement,
+    state: "ACTIVE" | "INACTIVE"): void => {
+    button.textContent = state === "ACTIVE"
+      ? `${role} rolünü devre dışı bırak`
+      : `${role} rolünü yeniden etkinleştir`;
+  };
 
   const activateRole = async (
     role: "CUSTOMER" | "SUPPLIER",
@@ -197,6 +230,12 @@ export function createPartyCreatePage(
           body: JSON.stringify({ role })
         });
 
+      roleStates.set(response.data.role, {
+        state: response.data.state,
+        version: response.data.version
+      });
+      updateRoleButton(role, button, response.data.state);
+      button.disabled = false;
       roleStatus.textContent =
         `${response.data.role} rolü ACTIVE. Correlation: ${response.data.correlationId}.`;
     } catch (error) {
@@ -217,11 +256,86 @@ export function createPartyCreatePage(
     }
   };
 
+  const changeRoleState = async (
+    role: "CUSTOMER" | "SUPPLIER",
+    button: HTMLButtonElement,
+    current: { state: "ACTIVE" | "INACTIVE"; version: number }): Promise<void> => {
+    if (!createdPartyPublicId) return;
+
+    const targetState = current.state === "ACTIVE" ? "INACTIVE" : "ACTIVE";
+    const reason = targetState === "INACTIVE"
+      ? roleReason.input.value.trim()
+      : null;
+
+    if (targetState === "INACTIVE" && reason.length === 0) {
+      roleStatus.textContent = "Rolü devre dışı bırakmak için neden girin.";
+      roleReason.input.focus();
+      return;
+    }
+
+    button.disabled = true;
+    roleStatus.textContent = `${role} rolü ${targetState} yapılıyor.`;
+
+    try {
+      const response = await api.request<ChangePartyRoleStateReceipt>(
+        `/parties/${createdPartyPublicId}/roles/${role}/state`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Idempotency-Key": createOperationKey()
+          },
+          body: JSON.stringify({
+            state: targetState,
+            version: current.version,
+            reason
+          })
+        });
+
+      roleStates.set(role, {
+        state: response.data.state,
+        version: response.data.version
+      });
+      updateRoleButton(role, button, response.data.state);
+      roleReason.input.value = "";
+      roleStatus.textContent =
+        `${response.data.role} rolü ${response.data.state}. Correlation: ${response.data.correlationId}.`;
+    } catch (error) {
+      if (error instanceof ApiClientError && error.status === 401) {
+        roleStatus.textContent = "Rol durumunu değiştirmek için kimliği doğrulanmış oturum gerekiyor.";
+      } else if (error instanceof ApiClientError && error.status === 403) {
+        roleStatus.textContent = "Bu işlem için party.role.manage yetkisi gerekiyor.";
+      } else if (error instanceof ApiClientError && error.status === 404) {
+        roleStatus.textContent = "Party veya rol mevcut şirket kapsamında bulunamadı.";
+      } else if (error instanceof ApiClientError && error.status === 409) {
+        roleStatus.textContent = "Rol durumu değişti, zaten hedef durumda veya işlem anahtarı daha önce kullanıldı.";
+      } else if (error instanceof ApiClientError) {
+        roleStatus.textContent = error.message;
+      } else {
+        roleStatus.textContent = "Party rol durumu değiştirilemedi.";
+      }
+    } finally {
+      button.disabled = false;
+    }
+  };
+
+  const handleRoleAction = async (
+    role: "CUSTOMER" | "SUPPLIER",
+    button: HTMLButtonElement): Promise<void> => {
+    const current = roleStates.get(role);
+    if (!current) {
+      await activateRole(role, button);
+      return;
+    }
+
+    await changeRoleState(role, button, current);
+  };
+
   customerRole.addEventListener("click", () => {
-    void activateRole("CUSTOMER", customerRole);
+    void handleRoleAction("CUSTOMER", customerRole);
   });
   supplierRole.addEventListener("click", () => {
-    void activateRole("SUPPLIER", supplierRole);
+    void handleRoleAction("SUPPLIER", supplierRole);
   });
 
   const addTaxIdentityToParty = async (): Promise<void> => {
@@ -301,6 +415,10 @@ export function createPartyCreatePage(
       });
 
       createdPartyPublicId = response.data.publicId;
+      roleStates.clear();
+      customerRole.textContent = "CUSTOMER rolünü etkinleştir";
+      supplierRole.textContent = "SUPPLIER rolünü etkinleştir";
+      roleReason.input.value = "";
       roles.hidden = false;
       taxIdentities.hidden = false;
       customerRole.disabled = false;
