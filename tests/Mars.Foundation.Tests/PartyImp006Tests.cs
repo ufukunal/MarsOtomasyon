@@ -241,7 +241,7 @@ internal static class PartyImp006Tests
     private static MarsDbContext CreateModelContext()
     {
         var options = MarsDbContextOptions.CreateRuntime(
-            new Mars.Application.Foundation.Configuration.PostgreSqlRuntimeOptions(
+            new PostgreSqlRuntimeOptions(
                 "Host=localhost;Database=mars_party_imp_006_model_probe"));
         return new MarsDbContext(options);
     }

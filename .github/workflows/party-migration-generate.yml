@@ -63,6 +63,8 @@ jobs:
               exit 1
             }
 
+          dotnet build src/Mars.Infrastructure/Mars.Infrastructure.csproj --configuration Release --no-restore
+
           dotnet tool run dotnet-ef migrations has-pending-model-changes \
             --project src/Mars.Infrastructure/Mars.Infrastructure.csproj \
             --startup-project src/Mars.Infrastructure/Mars.Infrastructure.csproj \
