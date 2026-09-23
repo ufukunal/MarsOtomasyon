@@ -1,6 +1,6 @@
 # P5 Parties — Fifth Vertical Slice Readiness
 
-Status: READY FOR IMPLEMENTATION
+Status: IMPLEMENTED / COMPLETED
 Date: 2026-09-24
 Phase: P5 — Core application implementation
 Module: Parties
@@ -305,6 +305,11 @@ The next dependency-minimal Parties implementation work package is:
 **PARTY-IMP-005 — Deactivate Party**
 
 Status:
-- READY FOR IMPLEMENTATION.
+- IMPLEMENTED / COMPLETED.
+
+Canonical completion evidence:
+- `docs/plan/03-cariler/party-imp-005-implementation.md`
+- Foundation Build run `35922536747` — SUCCESS
+- Foundation Test Deploy run `35922536768` — SUCCESS
 
 Party reactivation, fuzzy duplicate review, Contact/Communication/Address, Merge, External Mapping, Tax Identity follow-up and Finance/Sales/Purchasing behavior remain outside this slice.

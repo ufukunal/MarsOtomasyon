@@ -83,9 +83,9 @@ test_policy:
   heavy_tests: FULL_TEST_DAY_ONLY
 
 active_task:
-  id: PARTY-IMP-005
-  title: Deactivate Party
-  status: ready
+  id: P5
+  title: Parties next vertical slice definition
+  status: scope_definition_required
   file: docs/plan/active-task.yaml
   progress: not_started
 
@@ -115,6 +115,7 @@ completed_implementation_tasks:
   - PARTY-IMP-002
   - PARTY-IMP-003
   - PARTY-IMP-004
+  - PARTY-IMP-005
 
 locked_decisions:
   - ASP.NET Core Identity + OpenIddict 7.7.1 is the accepted authentication/identity baseline.
@@ -256,7 +257,7 @@ test_environment:
   valkey_status: running_healthy
   valkey_image: valkey/valkey:8-alpine
   valkey_container: marsotomasyon-valkey-1
-  application_deployment_status: party_imp_004_test_deployed_and_smoke_passed
+  application_deployment_status: party_imp_005_test_deployed_and_smoke_passed
   ssh_connectivity_verified: true
   ssh_remote_user: ufuk
   remote_hostname: mars-prod
@@ -270,13 +271,14 @@ test_environment:
   foundation_test_health_ready: 200
   foundation_test_party_page: 200
   foundation_test_party_unauthenticated_post: 401
+  foundation_test_party_deactivate_unauthenticated_post: 401
   foundation_test_party_role_unauthenticated_post: 401
   foundation_test_party_role_state_unauthenticated_post: 401
   foundation_test_party_tax_identity_unauthenticated_post: 401
   foundation_test_migration_count: 5
   foundation_test_smoke: PASS
-  foundation_test_workflow_run: 35910331820
-  foundation_test_implementation_commit: f746139981d79941d414e318ebcab017f8ae4df8
+  foundation_test_workflow_run: 35922536768
+  foundation_test_implementation_commit: 4ab2a30bfffdf64c9e5b7634708ad4cdacdde33a
   mars_path_present: true
   postgresql_roles:
     owner_admin_role: mars_master
@@ -301,6 +303,7 @@ known_constraints:
   - PARTY-IMP-002 Activate Party Role is COMPLETED with canonical evidence at docs/plan/03-cariler/party-imp-002-implementation.md, successful Foundation Build run 35889499695 and successful TEST deploy run 35889499708.
   - PARTY-IMP-003 Add Turkish Tax Identity is COMPLETED with canonical evidence at docs/plan/03-cariler/party-imp-003-implementation.md, successful Foundation Build run 35894175633 and successful TEST deploy run 35894175558.
   - PARTY-IMP-004 Manage Party Role Lifecycle is COMPLETED with canonical evidence at docs/plan/03-cariler/party-imp-004-implementation.md, successful Foundation Build run 35910331829 and successful TEST deploy run 35910331820.
+  - PARTY-IMP-005 Deactivate Party is COMPLETED with canonical evidence at docs/plan/03-cariler/party-imp-005-implementation.md, successful Foundation Build run 35922536747 and successful TEST deploy run 35922536768.
   - ADR-0005 freezes Mars-owned PostgreSQL permission authority/evaluation; Party Code is required caller input for the first slice; soft duplicate warnings are explicitly deferred; Party stores trusted CompanyId without a Company FK in this slice.
   - Database logical/schema design is intentionally deferred until core workflows are sufficiently frozen.
   - Business rules must not be inferred from generic ERP conventions when project sources are silent.
@@ -333,46 +336,45 @@ known_constraints:
   - Durable idempotency/concurrency correctness is PostgreSQL-owned; Valkey is not sufficient authority.
 
 blocked_items:
-  - No unresolved blocker remains for PARTY-IMP-004; Manage Party Role Lifecycle is completed.
-  - PARTY-IMP-005 Deactivate Party is READY FOR IMPLEMENTATION with canonical readiness at docs/plan/03-cariler/p5-fifth-slice-readiness.md.
-  - PARTY-IMP-005 is limited to ACTIVE → INACTIVE with party.deactivate, expected-version concurrency, mandatory reason, audit and idempotency.
-  - Party reactivation remains deferred because PLAN-003 requires duplicate/legal identity validation rerun and soft duplicate review is not implementation-ready.
-  - Soft duplicate review, Contact/Communication/Address, Merge, External Mapping and broader Tax Identity lifecycle remain deferred.
+  - No unresolved blocker remains for PARTY-IMP-005; Deactivate Party is completed.
+  - Party reactivation remains deferred because frozen PLAN-003 requires duplicate/legal identity validation rerun and soft duplicate review is not implementation-ready.
+  - Full PLAN-003 Party parity remains incomplete because soft duplicate review, Contact/Communication/Address, Party Reactivate, External Mapping, Merge and broader Tax Identity lifecycle remain deferred.
+  - Repository does not assign the next implementation order or a dedicated PARTY-IMP-006 scope.
+  - Define the next smallest coherent Parties vertical slice before schema/code mutation; do not invent PARTY-IMP-006 merely for sequence continuity.
   - Production secret-store, production reverse-proxy/tunnel, production ingress/TLS and structured logging/metrics choices remain deferred.
 next_action:
-  id: PARTY-IMP-005
-  title: Deactivate Party
+  id: P5
+  title: Define next Parties vertical slice
   phase: P5
   module: parties
-  status: READY
-  readiness_report: docs/plan/03-cariler/p5-fifth-slice-readiness.md
+  status: SCOPE_DEFINITION_REQUIRED
+  work_package_id: NOT_ASSIGNED
   predecessor:
-    id: PARTY-IMP-004
+    id: PARTY-IMP-005
     status: completed
-    canonical_report: docs/plan/03-cariler/party-imp-004-implementation.md
-    tested_deploy_commit: f746139981d79941d414e318ebcab017f8ae4df8
-    test_deploy_run: 35910331820
-  scope:
-    - existing Party ACTIVE to INACTIVE only
-    - party.deactivate
-    - trusted-company Party lookup
-    - expected-version optimistic concurrency
-    - mandatory reason
-    - audit + durable idempotency
-    - POST /api/v1/parties/{partyPublicId}/deactivate
-    - deactivation control on existing /parties/new journey
-    - no EF model change; migration count remains 5
-    - targeted verification + TEST deploy/smoke
-  deferred:
-    - Party reactivate
-    - soft duplicate candidate/review
-    - Contact/Communication/Address
-    - Party Merge
+    canonical_report: docs/plan/03-cariler/party-imp-005-implementation.md
+    readiness_report: docs/plan/03-cariler/p5-fifth-slice-readiness.md
+    readiness_commit: 73cf3921becc615ef56e8c871b67882fa8ef411b
+    implementation_commit: 4ab2a30bfffdf64c9e5b7634708ad4cdacdde33a
+    foundation_build_run: 35922536747
+    test_deploy_run: 35922536768
+    tested_deploy_commit: 4ab2a30bfffdf64c9e5b7634708ad4cdacdde33a
+  repository_follow_up_candidates:
+    - Party reactivate with required duplicate/legal identity validation
+    - accepted soft duplicate candidate/review flow
+    - Contact Person / Communication Point / Address
     - Party External Mapping
-    - Tax Identity read/edit/deactivate/provider/non-TR
-    - Sales/Purchasing eligibility implementation
+    - Party Merge
+    - broader Tax Identity read/lifecycle/provider/non-TR support where required
+  scope_intent:
+    - select the next smallest coherent Parties vertical slice from frozen PLAN-003 and PLAN-010
+    - preserve PARTY-IMP-001 through PARTY-IMP-005 company/permission/privacy/idempotency/audit/concurrency boundaries
+    - map exact entity/constraint/API/UI/migration effects before mutation
+    - assign a dedicated work-package ID only after scope is explicit
   restrictions:
-    - no Finance/Sales/Purchasing authority
+    - do not assume backlog order is implementation order
+    - do not invent fuzzy algorithms, provider rules or generic ERP behavior
+    - no Sales/Product/Inventory/Purchasing/Warehouse/Finance implementation
     - no production deployment
     - no Full Test Day
     - exact master planning metric remains 9 / 30 = 30.0

@@ -203,23 +203,29 @@ Still deferred:
 - broader Tax Identity lifecycle/provider/non-TR.
 
 Fifth implementation work package:
-- PARTY-IMP-005 — Deactivate Party.
+- PARTY-IMP-005 — Deactivate Party — COMPLETED.
 
 Readiness:
 - `docs/plan/03-cariler/p5-fifth-slice-readiness.md`
 
-Status:
-- READY FOR IMPLEMENTATION;
-- implementation NOT STARTED.
+Canonical implementation evidence:
+- `docs/plan/03-cariler/party-imp-005-implementation.md`
 
-Selected scope:
-- existing Party ACTIVE → INACTIVE only;
-- `party.deactivate`;
-- expected-version concurrency;
-- mandatory reason;
-- audit + durable idempotency;
-- protected deactivate API;
-- deactivation control on /parties/new;
-- no EF model change/migration expected.
+Verification:
+- Foundation Build `35922536747` — SUCCESS;
+- Foundation Test Deploy `35922536768` — SUCCESS;
+- frontend tests 16 / 16;
+- Foundation targeted tests 55 / 55;
+- no EF model change; migration count remains 5;
+- /parties/new 200;
+- unauthenticated Party deactivate POST 401;
+- live/ready 200 / 200;
+- runner-to-TEST smoke PASS.
 
-Party reactivation remains a later slice because it must rerun current duplicate/legal identity validation.
+PARTY-IMP-005 implements ACTIVE → INACTIVE only and preserves Party roles, Tax Identities, history and Finance separation.
+
+Party reactivation remains deferred because frozen PLAN-003 requires current duplicate/legal identity validation rerun.
+
+Next:
+- define the next smallest coherent Parties vertical slice;
+- no PARTY-IMP-006 ID is assigned yet.

@@ -1,10 +1,9 @@
-id: PARTY-IMP-005
-title: Deactivate Party
+id: P5
+title: Parties next vertical slice definition
 module: parties
-status: ready
+status: scope_definition_required
 progress: not_started
-readiness_report: docs/plan/03-cariler/p5-fifth-slice-readiness.md
-authorization_decision: docs/plan/decisions/ADR-0005-mars-erp-permission-authority.md
+work_package_id: not_assigned
 
 phase:
   id: P5
@@ -12,54 +11,60 @@ phase:
   status: implementation_in_progress
 
 predecessor:
-  id: PARTY-IMP-004
-  title: Manage Party Role Lifecycle
+  id: PARTY-IMP-005
+  title: Deactivate Party
   status: completed
-  canonical_report: docs/plan/03-cariler/party-imp-004-implementation.md
-  tested_deploy_commit: f746139981d79941d414e318ebcab017f8ae4df8
-  test_deploy_run: 35910331820
+  evidence:
+    canonical_report: docs/plan/03-cariler/party-imp-005-implementation.md
+    readiness_report: docs/plan/03-cariler/p5-fifth-slice-readiness.md
+    readiness_commit: 73cf3921becc615ef56e8c871b67882fa8ef411b
+    implementation_commit: 4ab2a30bfffdf64c9e5b7634708ad4cdacdde33a
+    foundation_build_run: 35922536747
+    foundation_build_job: 107389743246
+    test_deploy_run: 35922536768
+    test_deploy_job: 107389744421
+    tested_deploy_commit: 4ab2a30bfffdf64c9e5b7634708ad4cdacdde33a
+    frontend_tests: 16_passed
+    foundation_tests: 55_passed
+    migration_count: 5
+    model_change: none
+    remote_test_deployment: success
+    health_live: 200
+    health_ready: 200
+    party_page: 200
+    party_deactivate_post_unauthenticated: 401
+    smoke: pass
 
 goal:
-  Change one existing trusted-company Party from ACTIVE to INACTIVE with expected-version concurrency, mandatory reason, audit and durable idempotency.
+  Define the next smallest coherent Parties vertical slice from frozen PLAN-003 and PLAN-010 without inventing package order, fuzzy matching, provider/legal behavior or generic ERP fields.
+
+repository_follow_up_candidates:
+  - Party reactivate with duplicate/legal identity validation gate
+  - accepted soft duplicate candidate/review flow
+  - Contact Person / Communication Point / Address
+  - Party External Mapping
+  - Party Merge
+  - broader Tax Identity read/lifecycle/provider/non-TR support where later required
+
+scope_gate:
+  dedicated_work_package_id: not_assigned
+  exact_next_vertical_slice: not_yet_defined
+  required_before_mutation:
+    - review PARTY-IMP-001 through PARTY-IMP-005 completion boundaries
+    - compare remaining PLAN-003 capabilities and dependencies
+    - select the smallest coherent next Party use case
+    - map entities/constraints/migration/API/UI/permissions/privacy/concurrency
+    - define targeted acceptance evidence
+    - assign a dedicated work-package ID only with explicit scope
 
 scope:
   include:
-    - Party ACTIVE to INACTIVE
-    - party.deactivate authorization
-    - trusted-company Party lookup
-    - positive expected-version concurrency contract
-    - mandatory deactivation reason
-    - durable idempotency and audit
-    - POST /api/v1/parties/{partyPublicId}/deactivate
-    - deactivation control on /parties/new after Party creation
-    - targeted verification
-    - TEST deploy/smoke
+    - P5 Parties next-slice scope/readiness definition
   exclude:
-    - Party reactivate
-    - soft/fuzzy duplicate review
-    - Contact/Communication/Address
-    - Merge
-    - Party External Mapping
-    - Tax Identity follow-up
-    - Sales/Purchasing eligibility enforcement
-    - Finance posting or balance authority
+    - new Party schema/code until next slice is explicit
+    - Sales/Product/Inventory/Purchasing/Warehouse/Finance implementation
     - production deployment
     - Full Test Day
-
-physical_model:
-  new_entity: none
-  new_table: none
-  migration_required: false
-  authority: existing parties.parties state + version
-
-api:
-  method: POST
-  route: /api/v1/parties/{partyPublicId}/deactivate
-  idempotency_key_required: true
-  body:
-    version: positive_expected_version
-    reason: required
-  company_id_in_request: forbidden
 
 planning_progress:
   master_sequence:
@@ -73,11 +78,8 @@ planning_progress:
 
 test_policy:
   normal_development:
-    - release-build
-    - targeted-party-deactivation-tests
-    - targeted-authorization-company-scope-concurrency-tests
-    - pending-model-check-no-migration
-    - frontend-typecheck-test-build
-    - small-api-openapi-smoke
-    - test-deploy-smoke
+    - build
+    - targeted-unit-or-invariant
+    - small-smoke-when-needed
+    - migration-contract-check
   heavy_tests: FULL_TEST_DAY_ONLY

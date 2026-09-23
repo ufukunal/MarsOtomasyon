@@ -16,68 +16,70 @@
 - PARTY-IMP-002 — Activate Party Role: COMPLETED
 - PARTY-IMP-003 — Add Turkish Tax Identity: COMPLETED
 - PARTY-IMP-004 — Manage Party Role Lifecycle: COMPLETED
+- PARTY-IMP-005 — Deactivate Party: COMPLETED
 
-## PARTY-IMP-004 evidence
+## PARTY-IMP-005 evidence
 Canonical report:
-- `docs/plan/03-cariler/party-imp-004-implementation.md`
+- `docs/plan/03-cariler/party-imp-005-implementation.md`
 
 Readiness:
-- `docs/plan/03-cariler/p5-fourth-slice-readiness.md`
+- `docs/plan/03-cariler/p5-fifth-slice-readiness.md`
 
 Implementation:
-- implementation commit `f640fceae01fe734a273c1f3adc4136d497be28d`
-- tested deploy commit `f746139981d79941d414e318ebcab017f8ae4df8`
+- readiness commit `73cf3921becc615ef56e8c871b67882fa8ef411b`
+- tested implementation/deploy commit `4ab2a30bfffdf64c9e5b7634708ad4cdacdde33a`
 
 Foundation Build:
-- run `35910331829`
-- job `107348248484`
+- run `35922536747`
+- job `107389743246`
 - SUCCESS
-- frontend tests 15 / 15 PASS
+- frontend tests 16 / 16 PASS
 - .NET Release build PASS, 0 warnings / 0 errors
-- Foundation targeted tests 50 / 50 PASS
-- EF pending model PASS; no model change
+- Foundation targeted tests 55 / 55 PASS
+- migration safety count 5
+- EF pending-model PASS; no model change
 - API smoke PASS
 - project references PASS
 
 Foundation Test Deploy:
-- run `35910331820`
-- job `107348248383`
+- run `35922536768`
+- job `107389744421`
 - SUCCESS
-- migration safety PASS for 5 committed migrations
+- migration safety PASS for 5 migrations
 - EF model drift PASS
 - remote TEST preflight PASS
-- no new PARTY-IMP-004 migration
+- no new PARTY-IMP-005 migration
 - migration count remains 5
 - runtime grants PASS
 - health/readiness PASS
 - TEST /parties/new = 200
-- unauthenticated Party Role lifecycle POST = 401
+- unauthenticated Party deactivate POST = 401
 - OpenAPI = 200
 - runner-to-TEST smoke PASS
 
-A real authenticated TEST role lifecycle mutation is not claimed.
+A real authenticated TEST Party deactivation is not claimed.
 
-## PARTY-IMP-004 boundary
+## PARTY-IMP-005 boundary
 Implemented:
-- existing CUSTOMER/SUPPLIER role ACTIVE ↔ INACTIVE
-- party.role.manage
-- trusted-company Party/role lookup
+- Party ACTIVE → INACTIVE only
+- party.deactivate
+- trusted-company Party lookup
 - expected-version optimistic concurrency
-- same-state conflict
-- mandatory reason for deactivation
+- mandatory reason
+- already INACTIVE/MERGED conflicts
 - audit + durable idempotency
-- protected role-state API
-- lifecycle controls on /parties/new
+- protected deactivate API
+- deactivation control on /parties/new
 - no EF model/schema change
 
 Deferred:
+- Party reactivate
 - soft/fuzzy duplicate review
 - Contact/Communication/Address
-- Party deactivate/reactivate
-- Party Merge
 - Party External Mapping
-- Tax Identity read/edit/deactivate/provider/non-TR
-- Sales/Purchasing role eligibility enforcement
+- Party Merge
+- Tax Identity follow-up
+- consuming Sales/Purchasing Party eligibility
 - Finance integration
 
 ## Current phase
@@ -85,29 +87,20 @@ P5 — Core application implementation
 Status: IMPLEMENTATION IN PROGRESS
 
 ## Current task
-- PARTY-IMP-005 — Deactivate Party
-- status: READY / IMPLEMENTATION NOT STARTED
-- canonical readiness: docs/plan/03-cariler/p5-fifth-slice-readiness.md
+Define the next smallest coherent Parties vertical slice.
 
-Frozen scope:
-- existing Party ACTIVE → INACTIVE only;
-- party.deactivate;
-- trusted-company Party lookup;
-- expected-version optimistic concurrency;
-- mandatory reason;
-- audit + durable idempotency;
-- POST /api/v1/parties/{partyPublicId}/deactivate;
-- deactivation control on existing /parties/new journey;
-- no EF model change/migration expected.
+Work-package ID:
+- NOT ASSIGNED.
 
-Explicitly deferred:
-- Party reactivate because duplicate/legal identity validation must rerun;
-- soft duplicate candidate/review;
-- Contact/Communication/Address;
-- Merge;
+Repository follow-up candidates:
+- Party reactivate with duplicate/legal identity validation gate;
+- accepted soft duplicate candidate/review;
+- Contact Person / Communication Point / Address;
 - Party External Mapping;
-- broader Tax Identity lifecycle/provider/non-TR;
-- Sales/Purchasing eligibility implementation.
+- Party Merge;
+- broader Tax Identity lifecycle/provider/non-TR support.
+
+Do not invent PARTY-IMP-006 before exact scope is frozen.
 
 ## Planning progress
 - Master section-8 planning coverage: 9 / 30 = 30.0%
@@ -118,13 +111,13 @@ These are planning metrics, not implementation-progress metrics.
 ## Full Test Day
 Still deferred:
 - concurrent Party Code creation
-- concurrent Party Role first activation
-- concurrent role lifecycle transitions
+- concurrent role activation/lifecycle transitions
 - concurrent deterministic Tax Identity collision
+- concurrent Party deactivation and related mutation races
 - cross-company identity/IDOR matrix
 - broad permission matrix
 - authenticated browser Party lifecycle E2E
-- consuming Sales/Purchasing role-state eligibility
+- consuming Sales/Purchasing eligibility
 - provider verification reconciliation
 - high-volume duplicate/identity search
 - PII/security regression

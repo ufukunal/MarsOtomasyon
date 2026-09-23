@@ -923,3 +923,46 @@ Deferred:
 - authenticated browser mutation and heavy concurrency/security coverage.
 
 Planning metrics remain 9 / 30 = 30.0% master planning coverage and 8 / 8 = 100.0% P2 planning.
+
+
+## PARTY-IMP-005 — Deactivate Party
+**Status:** COMPLETED
+
+Implemented:
+- existing Party ACTIVE → INACTIVE transition;
+- `party.deactivate` via ADR-0005 permission authority;
+- trusted-company Party lookup;
+- expected-version stale-write protection;
+- mandatory reason;
+- already INACTIVE/MERGED conflict handling;
+- audit + durable PostgreSQL idempotency;
+- protected `POST /api/v1/parties/{partyPublicId}/deactivate`;
+- deactivation control on `/parties/new`;
+- no EF model change or new migration;
+- targeted build/tests and remote TEST deploy/smoke.
+
+Evidence:
+- canonical report: `docs/plan/03-cariler/party-imp-005-implementation.md`
+- readiness commit: `73cf3921becc615ef56e8c871b67882fa8ef411b`
+- tested implementation commit: `4ab2a30bfffdf64c9e5b7634708ad4cdacdde33a`
+- Foundation Build run: `35922536747` — SUCCESS
+- Foundation Test Deploy run: `35922536768` — SUCCESS
+- frontend tests: 16 / 16 PASS
+- Foundation targeted tests: 55 / 55 PASS
+- EF pending-model: PASS; migration count remains 5
+- TEST /parties/new: 200
+- unauthenticated Party deactivate POST: 401
+- live/ready: 200 / 200
+- runner-to-TEST smoke: PASS
+
+Deferred:
+- Party reactivate;
+- soft/fuzzy duplicate review;
+- Contact/Communication/Address;
+- External Mapping;
+- Merge;
+- Tax Identity follow-up;
+- consuming module eligibility;
+- authenticated browser mutation and heavy concurrency/security coverage.
+
+Planning metrics remain 9 / 30 = 30.0% master planning coverage and 8 / 8 = 100.0% P2 planning.
