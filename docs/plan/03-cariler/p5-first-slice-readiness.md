@@ -1,6 +1,6 @@
 # P5 Parties — First Vertical Slice Readiness
 
-Status: READY FOR IMPLEMENTATION
+Status: IMPLEMENTED / COMPLETED
 Date: 2026-09-23
 Phase: P5 — Core application implementation
 Module: Parties
@@ -383,9 +383,14 @@ Dedicated implementation work package:
 - **PARTY-IMP-001 — Create Party Core Identity**
 
 Status:
-- READY FOR IMPLEMENTATION.
+- IMPLEMENTED / COMPLETED.
 
-No Party implementation code or migration was written by the blocker-resolution session that froze this contract.
+The blocker-resolution session itself wrote no Party implementation. Subsequent PARTY-IMP-001 work implemented and verified this frozen contract.
+
+Canonical completion evidence:
+- `docs/plan/03-cariler/party-imp-001-implementation.md`
+- Foundation Build run `35885316247` — SUCCESS
+- Foundation Test Deploy run `35885323206` — SUCCESS
 
 ## Full Test Day pending
 
