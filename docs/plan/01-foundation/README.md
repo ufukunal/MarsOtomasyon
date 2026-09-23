@@ -60,6 +60,7 @@ Implementation status:
 - `FW-IMP-004 — audit/idempotency/outbox foundations`: COMPLETED
 - `FW-IMP-005 — API foundation implementation`: COMPLETED
 - `FW-IMP-006 — Mars.Web + Mars.UI foundation`: COMPLETED
+- `FW-IMP-007 — Docker/test deployment baseline`: COMPLETED
 - evidence:
   - `docs/plan/01-foundation/fw-imp-001-implementation.md`
   - `docs/plan/01-foundation/fw-imp-002-implementation.md`
@@ -67,7 +68,8 @@ Implementation status:
   - `docs/plan/01-foundation/fw-imp-004-implementation.md`
   - `docs/plan/01-foundation/fw-imp-005-implementation.md`
   - `docs/plan/01-foundation/fw-imp-006-implementation.md`
-- next: `FW-IMP-007 — Docker/test deployment baseline`; READY.
+  - `docs/plan/01-foundation/fw-imp-007-implementation.md`
+- next: `FW-IMP-008 — thin vertical framework proof`; exact scope definition required before implementation.
 
 
 ## FW-IMP-006 current status
@@ -92,3 +94,32 @@ Next repository-defined package:
 - `FW-IMP-007 — Docker/test deployment baseline` — READY.
 
 Production secret-store, production reverse-proxy/tunnel and logging/metrics technologies remain deferred. FW-IMP-007 must verify test-environment Docker/Compose/deployment facts before mutation and must not promote test choices into production architecture.
+
+
+## FW-IMP-007 current status
+
+`FW-IMP-007 — Docker/test deployment baseline` is COMPLETED.
+
+Canonical evidence:
+- `docs/plan/01-foundation/fw-imp-007-implementation.md`
+
+Verified:
+- Docker API/migrator/Web image builds;
+- TEST Compose baseline preserving existing PostgreSQL/Valkey ownership;
+- separate migration/runtime PostgreSQL authority;
+- remote TEST preflight and deployment;
+- actual TEST liveness/readiness;
+- protected API unauthenticated behavior;
+- OpenAPI;
+- runner-to-TEST smoke.
+
+Final tested implementation:
+- commit `2821c98bbd04b81dcbb10e99ddb0a4974ca7a517`;
+- workflow run `35865600657`.
+
+Next repository-tracked package:
+- `FW-IMP-008 — thin vertical framework proof`.
+
+Its exact implementation scope is not yet defined in repository sources. Define the smallest non-domain or deliberately minimal proof and acceptance criteria before mutation.
+
+Production secret-store, production reverse-proxy/tunnel, production ingress/TLS and logging/metrics technologies remain deferred.
