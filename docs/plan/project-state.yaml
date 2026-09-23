@@ -20,7 +20,7 @@ repository_state:
 current_phase:
   id: P5
   name: Core application implementation
-  status: scope_definition_required
+  status: blocked_decision_required
 
 planning_progress:
   counting_basis: master-project-plan section 8; completed/frozen work packages only
@@ -40,7 +40,7 @@ phase_status:
   P2_core_commercial_workflows: completed
   P3_database_logical_model: completed
   P4_foundation_implementation: completed
-  P5_core_application_implementation: scope_definition_required
+  P5_core_application_implementation: blocked_decision_required
   P6_operations: not_started
   P7_commerce_external_channels: not_started
   P8_communications_files_devices: not_started
@@ -84,10 +84,10 @@ test_policy:
 
 active_task:
   id: P5
-  title: Core application implementation — Parties first vertical slice definition
-  status: scope_definition_required
+  title: Parties first vertical slice — Create Party Core Identity
+  status: blocked_decision_required
   file: docs/plan/active-task.yaml
-  progress: not_started
+  progress: scope_defined_implementation_not_started
 
 completed_planning_tasks:
   - PLAN-001
@@ -286,7 +286,8 @@ known_constraints:
   - FW-IMP-006 Mars.Web + Mars.UI foundation is COMPLETED with canonical evidence at docs/plan/01-foundation/fw-imp-006-implementation.md and successful workflow run 35729371845.
   - FW-IMP-007 Docker/test deployment baseline is COMPLETED with canonical evidence at docs/plan/01-foundation/fw-imp-007-implementation.md and successful TEST deployment workflow run 35865600657.
   - FW-IMP-008 thin vertical framework proof is COMPLETED with canonical evidence at docs/plan/01-foundation/fw-imp-008-implementation.md and successful TEST deployment workflow run 35868151531.
-  - P5 Core application implementation is next; the master dependency order starts with Parties, but no dedicated first Parties implementation work-package ID/scope is yet assigned.
+  - P5 Parties first vertical slice scope is defined as Create Party Core Identity; canonical readiness analysis is docs/plan/03-cariler/p5-first-slice-readiness.md.
+  - No dedicated Parties implementation work-package ID is assigned because implementation remains blocked on permission authority, Party Code assignment authority and fuzzy duplicate-warning contract.
   - Database logical/schema design is intentionally deferred until core workflows are sufficiently frozen.
   - Business rules must not be inferred from generic ERP conventions when project sources are silent.
   - Runner VM and test server are separate machines; never conflate runner-local results with test-server results.
@@ -307,7 +308,7 @@ known_constraints:
   - Returns preserves source/lot/serial/UOM lineage; Inventory and Finance remain authoritative.
   - P2 Core Commercial Workflow Planning is complete.
   - PLAN-010 Logical Database Model is COMPLETED / FROZEN.
-  - P4 Foundation implementation is completed; P5 Core application implementation is the current phase and begins with Parties after its first implementation work package is explicitly defined.
+  - P4 Foundation implementation is completed; P5 Core application implementation is current. The first Parties slice is scoped but implementation is blocked pending explicit first-slice decisions.
   - Section-8 Quality remains conceptual master planning item 10 for exact planning percentage, but Quality execution belongs P6 Operations.
   - Commerce belongs P7 and is not immediate next execution work.
   - No new PLAN number is assigned to P4 readiness; existing phase ID P4 is used.
@@ -317,39 +318,42 @@ known_constraints:
   - Durable idempotency/concurrency correctness is PostgreSQL-owned; Valkey is not sufficient authority.
 
 blocked_items:
-  - No unresolved blocker remains for FW-IMP-008; P4 Foundation implementation is completed.
-  - P5 starts with Parties by master-plan dependency order, but the repository does not yet assign a dedicated implementation work-package ID or exact first vertical-slice scope.
-  - Define that first Parties work package from frozen PLAN-003 and frozen logical DB contracts before schema/code mutation; do not invent an ID merely for convenience.
+  - P5 Parties first slice is scoped as Create Party Core Identity; implementation is not started.
+  - BLOCKER: server-side party.create is frozen, but current Foundation source has no accepted Mars permission authority/evaluator/grant/claim contract. Do not equate authentication with permission.
+  - BLOCKER: Party Code is mandatory/company-scoped/role-neutral and Settings/Numbering-owned, but the initial runtime assignment authority is not defined; do not silently choose manual entry or invent an auto-number format.
+  - BLOCKER: Create Party requires soft duplicate candidate warnings, but normalization/matching/threshold/candidate contract is not frozen; do not invent fuzzy matching or silently omit the warning gate.
+  - Logical Company 1->N Party exists, but no physical Company table currently exists; first-slice resolution must state whether company authority remains trusted-context-only for this migration or whether a separate Foundation Company physical model is required.
   - Production secret-store, production reverse-proxy/tunnel, production ingress/TLS and structured logging/metrics choices remain deferred.
 next_action:
   id: P5
-  title: Core application implementation — define first Parties vertical slice
+  title: Resolve Parties Create Party Core Identity blockers
   phase: P5
   module: parties
-  status: SCOPE_DEFINITION_REQUIRED
+  status: BLOCKED_DECISION_REQUIRED
   work_package_id: NOT_ASSIGNED
-  source: docs/plan/master-project-plan.md
-  predecessor:
-    id: FW-IMP-008
-    status: completed
-    evidence_commit: bf9b3882dbc91ee801d169a62587c7658baaa63b
-    evidence_foundation_build_run: 35868005913
-    evidence_test_deploy_run: 35868151531
-    canonical_report: docs/plan/01-foundation/fw-imp-008-implementation.md
-  scope_intent:
-    - derive the first Parties implementation vertical slice from frozen PLAN-003 contracts
-    - map the chosen slice to the frozen logical DB model before physical schema/migration
-    - define exact domain/application/API/UI/persistence boundaries and measurable targeted acceptance evidence
-    - assign a repository work-package ID only when the scope is explicitly recorded
-  preflight_required:
-    - verify current main HEAD
-    - read frozen Party planning and logical DB contracts
-    - verify P5 Parties-first dependency order
-    - identify unresolved business/legal/authorization details that genuinely block the first slice
+  readiness_report: docs/plan/03-cariler/p5-first-slice-readiness.md
+  selected_slice:
+    name: Create Party Core Identity
+    implementation_started: false
+    entities_now:
+      - Party
+    deferred_entities:
+      - Party Role
+      - Tax Identity
+      - Contact Person
+      - Communication Point
+      - Address
+      - Party External Mapping
+      - Party Merge Lineage
+  decisions_required:
+    - define Mars-owned permission authority/evaluation contract sufficient for server-side party.create
+    - define initial Party Code assignment authority without inventing Settings/Numbering behavior
+    - freeze minimum fuzzy duplicate-warning contract or explicitly approve deferral from the first slice
+    - clarify physical Company reference strategy if a Party company FK is required before Foundation Company persistence exists
   restrictions:
-    - no undocumented Party business rule
-    - no SQL/migration before the first vertical slice data contract is mapped to frozen logical DB sources
-    - no Sales/Product/Inventory/Purchasing/Finance implementation in the same work package
+    - no Party C#/EF migration/API/TypeScript implementation until the blockers above are resolved
+    - no dedicated Parties implementation work-package ID until the acceptance contract is complete
+    - no Sales/Product/Inventory/Purchasing/Warehouse/Finance implementation
     - no production deployment
     - no Full Test Day
     - exact master planning metric remains 9 / 30 = 30.0
