@@ -5,6 +5,7 @@ using Mars.Application.Parties;
 using Mars.Application.Parties.CreateParty;
 using Mars.Domain.Parties;
 using Mars.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
 using MarsExecutionContext = Mars.Application.Foundation.Context.ExecutionContext;
 
 internal static class PartyImp001Tests
