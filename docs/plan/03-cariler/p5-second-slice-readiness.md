@@ -1,6 +1,6 @@
 # P5 Parties — Second Vertical Slice Readiness
 
-Status: READY FOR IMPLEMENTATION
+Status: IMPLEMENTED / COMPLETED
 Date: 2026-09-23
 Phase: P5 — Core application implementation
 Module: Parties
@@ -305,6 +305,11 @@ The next dependency-minimal Parties implementation work package is:
 **PARTY-IMP-002 — Activate Party Role**
 
 Status:
-- READY FOR IMPLEMENTATION.
+- IMPLEMENTED / COMPLETED.
+
+Canonical completion evidence:
+- `docs/plan/03-cariler/party-imp-002-implementation.md`
+- Foundation Build run `35889499695` — SUCCESS
+- Foundation Test Deploy run `35889499708` — SUCCESS
 
 No Party Tax Identity, Contact, Address, duplicate-review, merge, lifecycle or Finance behavior is included.
