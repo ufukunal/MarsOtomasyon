@@ -1,9 +1,10 @@
-id: P5
-title: Parties next vertical slice definition
+id: PARTY-IMP-004
+title: Manage Party Role Lifecycle
 module: parties
-status: scope_definition_required
+status: ready
 progress: not_started
-work_package_id: not_assigned
+readiness_report: docs/plan/03-cariler/p5-fourth-slice-readiness.md
+authorization_decision: docs/plan/decisions/ADR-0005-mars-erp-permission-authority.md
 
 phase:
   id: P5
@@ -14,55 +15,52 @@ predecessor:
   id: PARTY-IMP-003
   title: Add Turkish Tax Identity
   status: completed
-  evidence:
-    canonical_report: docs/plan/03-cariler/party-imp-003-implementation.md
-    readiness_report: docs/plan/03-cariler/p5-third-slice-readiness.md
-    implementation_commit: cb22e1fca1d1cd0ebeab98acbd3db1644297c0f8
-    migration_commit: 70876a0fcb84368d9b3ec9d305eaf8eacf0c19b2
-    foundation_build_run: 35894175633
-    foundation_build_job: 107293838961
-    test_deploy_run: 35894175558
-    test_deploy_job: 107293839344
-    tested_deploy_commit: ec5f2c932da8f717e7e56d1e612ea0ba2dbaa36c
-    frontend_tests: 14_passed
-    foundation_tests: 45_passed
-    migration_count: 5
-    remote_test_deployment: success
-    health_live: 200
-    health_ready: 200
-    party_page: 200
-    party_tax_identity_post_unauthenticated: 401
-    smoke: pass
+  canonical_report: docs/plan/03-cariler/party-imp-003-implementation.md
+  test_deploy_run: 35894175558
 
 goal:
-  Define the next smallest coherent Parties vertical slice from frozen PLAN-003 and PLAN-010 without inventing package order, fuzzy matching or provider/legal behavior.
-
-repository_follow_up_candidates:
-  - accepted soft duplicate candidate/review flow
-  - contacts/addresses
-  - role lifecycle after activation
-  - Party lifecycle/merge
-  - broader Tax Identity lifecycle/provider/non-TR support where later required
-
-scope_gate:
-  dedicated_work_package_id: not_assigned
-  exact_next_vertical_slice: not_yet_defined
-  required_before_mutation:
-    - review PARTY-IMP-001 through PARTY-IMP-003 completion boundaries
-    - compare remaining PLAN-003 capabilities and dependencies
-    - select the smallest coherent next Party use case
-    - map entities/constraints/migration/API/UI/permissions/privacy
-    - define targeted acceptance evidence
-    - assign a dedicated work-package ID only with explicit scope
+  Complete the existing CUSTOMER/SUPPLIER Party Role ACTIVE/INACTIVE state machine without creating a second Party identity or Finance effect.
 
 scope:
   include:
-    - P5 Parties next-slice scope/readiness definition
+    - existing Party Role ACTIVE to INACTIVE transition
+    - existing Party Role INACTIVE to ACTIVE transition
+    - party.role.manage authorization
+    - trusted-company Party and Role lookup
+    - positive expected-version concurrency contract
+    - mandatory deactivation reason
+    - durable idempotency and audit
+    - POST /api/v1/parties/{partyPublicId}/roles/{role}/state
+    - lifecycle controls on /parties/new after role activation
+    - targeted verification
+    - TEST deploy/smoke
   exclude:
-    - new Party schema/code until next slice is explicit
-    - Sales/Product/Inventory/Purchasing/Warehouse/Finance implementation
+    - new role types
+    - Party deactivate/reactivate
+    - soft/fuzzy duplicate review
+    - Contact/Communication/Address
+    - Merge
+    - Tax Identity follow-up
+    - Sales/Purchasing eligibility enforcement
+    - Finance posting or balance authority
     - production deployment
     - Full Test Day
+
+physical_model:
+  new_entity: none
+  new_table: none
+  migration_required: false
+  authority: existing parties.party_roles state + version
+
+api:
+  method: POST
+  route: /api/v1/parties/{partyPublicId}/roles/{role}/state
+  idempotency_key_required: true
+  body:
+    state: ACTIVE_or_INACTIVE
+    version: positive_expected_version
+    reason: required_only_for_INACTIVE
+  company_id_in_request: forbidden
 
 planning_progress:
   master_sequence:
@@ -76,8 +74,11 @@ planning_progress:
 
 test_policy:
   normal_development:
-    - build
-    - targeted-unit-or-invariant
-    - small-smoke-when-needed
-    - migration-contract-check
+    - release-build
+    - targeted-role-lifecycle-tests
+    - targeted-authorization-company-scope-concurrency-tests
+    - pending-model-check-no-migration
+    - frontend-typecheck-test-build
+    - small-api-openapi-smoke
+    - test-deploy-smoke
   heavy_tests: FULL_TEST_DAY_ONLY
