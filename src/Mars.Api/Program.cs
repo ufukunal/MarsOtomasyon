@@ -1,17 +1,24 @@
 using Mars.Api.Foundation.Authentication;
+using Mars.Api.Foundation.Authorization;
 using Mars.Api.Foundation.Context;
+using Mars.Api.Parties;
 using Mars.Api.Foundation.Errors;
 using Mars.Api.Foundation.Health;
 using Mars.Application.Foundation.Configuration;
 using Mars.Application.Foundation.Context;
 using Mars.Application.Foundation.Auditing;
+using Mars.Application.Foundation.Authorization;
 using Mars.Application.Foundation.Idempotency;
 using Mars.Application.Foundation.Outbox;
 using Mars.Application.Foundation.Proof;
+using Mars.Application.Parties;
+using Mars.Application.Parties.CreateParty;
 using Mars.Infrastructure.Identity;
 using Mars.Infrastructure.Persistence;
 using Mars.Infrastructure.Persistence.Foundation;
+using Mars.Infrastructure.Persistence.Parties;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Identity;
 using OpenIddict.Validation.AspNetCore;
@@ -32,6 +39,10 @@ builder.Services.AddScoped<IIdempotencyStore, EfIdempotencyStore>();
 builder.Services.AddScoped<IOutboxWriter, EfOutboxStore>();
 builder.Services.AddScoped<IFoundationProofPersistence, EfFoundationProofPersistence>();
 builder.Services.AddScoped<FoundationProofHandler>();
+builder.Services.AddScoped<IPermissionEvaluator, EfPermissionEvaluator>();
+builder.Services.AddScoped<IPartyCreatePersistence, EfPartyCreatePersistence>();
+builder.Services.AddScoped<CreatePartyHandler>();
+builder.Services.AddScoped<IAuthorizationHandler, MarsPermissionAuthorizationHandler>();
 
 builder.Services.AddOpenApi("v1");
 
@@ -77,7 +88,16 @@ builder.Services
             };
         });
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy(
+        PartyPermissions.Create,
+        policy =>
+        {
+            policy.RequireAuthenticatedUser();
+            policy.AddRequirements(new MarsPermissionRequirement(PartyPermissions.Create));
+        });
+});
 
 if (builder.Environment.IsProduction())
 {
@@ -152,6 +172,40 @@ app.MapGet(
     .RequireAuthorization()
     .WithName("GetFoundationExecutionContext")
     .WithSummary("Returns the trusted Mars execution context for an authenticated request.");
+
+app.MapPost(
+        "/api/v1/parties",
+        async (
+            CreatePartyRequest request,
+            HttpRequest httpRequest,
+            IExecutionContext executionContext,
+            CreatePartyHandler handler,
+            CancellationToken cancellationToken) =>
+        {
+            var result = await handler.ExecuteAsync(
+                new CreatePartyCommand(
+                    request.PartyCode,
+                    request.Kind,
+                    request.LegalName,
+                    request.DisplayName,
+                    httpRequest.Headers["Idempotency-Key"].ToString()),
+                executionContext,
+                cancellationToken);
+
+            if (result.IsFailure)
+            {
+                return ApplicationErrorHttpMapper.ToResult(
+                    result.Error!,
+                    executionContext.CorrelationId.Value);
+            }
+
+            return Results.Created(
+                $"/api/v1/parties/{result.Value!.PublicId:D}",
+                result.Value);
+        })
+    .RequireAuthorization(PartyPermissions.Create)
+    .WithName("CreateParty")
+    .WithSummary("Creates one company-scoped Party core identity.");
 
 app.MapPost(
         "/api/v1/foundation/proof",
