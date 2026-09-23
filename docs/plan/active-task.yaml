@@ -1,94 +1,66 @@
-id: PARTY-IMP-001
-title: Create Party Core Identity
+id: P5
+title: Parties next vertical slice definition
 module: parties
-status: ready
+status: scope_definition_required
 progress: not_started
-readiness_report: docs/plan/03-cariler/p5-first-slice-readiness.md
-authorization_decision: docs/plan/decisions/ADR-0005-mars-erp-permission-authority.md
+work_package_id: not_assigned
 
 phase:
   id: P5
   name: Core application implementation
-  status: implementation_ready
+  status: implementation_in_progress
+
+predecessor:
+  id: PARTY-IMP-001
+  title: Create Party Core Identity
+  status: completed
+  evidence:
+    canonical_report: docs/plan/03-cariler/party-imp-001-implementation.md
+    migration_commit: 1c6983bea3f046522183a2a5f366f2b868a721f0
+    foundation_build_run: 35885316247
+    foundation_build_job: 107263853019
+    test_deploy_run: 35885323206
+    test_deploy_job: 107263878180
+    tested_deploy_commit: b1305ad0d48b6ef6e5522a9f6f66a46a2926902c
+    frontend_tests: 12_passed
+    foundation_tests: 35_passed
+    migration_count: 3
+    remote_test_deployment: success
+    health_live: 200
+    health_ready: 200
+    party_page: 200
+    party_post_unauthenticated: 401
+    smoke: pass
 
 goal:
-  Implement the first real Parties vertical slice: create one company-scoped PERSON/ORGANIZATION Party identity before optional role activation.
+  Define the next smallest coherent Parties vertical slice from frozen PLAN-003 and PLAN-010 without inventing package order or business rules.
+
+repository_follow_up_candidates:
+  - soft duplicate candidate/review flow
+  - Tax Identity records and deterministic collision rules
+  - Party Role activation
+  - contacts/addresses
+  - lifecycle/merge in later slices
+
+scope_gate:
+  dedicated_work_package_id: not_assigned
+  exact_next_vertical_slice: not_yet_defined
+  required_before_mutation:
+    - review PARTY-IMP-001 completion boundary
+    - compare deferred PLAN-003 capabilities and dependency order
+    - select the smallest coherent next Party use case
+    - map entities/constraints/migration/API/UI/permissions
+    - define targeted acceptance evidence
+    - assign a dedicated work-package ID only with the explicit scope
 
 scope:
   include:
-    - Foundation Mars Permission Grant persistence/evaluator sufficient for party.create
-    - Party core aggregate and persistence
-    - additive EF migration
-    - POST /api/v1/parties
-    - /parties/new Mars.Web identity-only flow
-    - audit
-    - durable idempotency
-    - targeted tests
-    - TEST deploy/smoke when deployable
+    - P5 Parties next-slice scope/readiness definition
   exclude:
-    - Party Role
-    - Tax Identity
-    - Contact Person
-    - Communication Point
-    - Address
-    - Party External Mapping
-    - Party Merge Lineage
-    - soft/fuzzy duplicate candidate detection
-    - Settings/Numbering allocator
-    - permission administration UI/role-group model
+    - new Party schema/code until the next slice is explicit
     - Sales/Product/Inventory/Purchasing/Warehouse/Finance implementation
     - production deployment
     - Full Test Day
-
-locked_decisions:
-  permission:
-    authority: Mars-owned PostgreSQL Permission Grant
-    grain: ActorId + CompanyId + PermissionCode
-    required_permission: party.create
-    identity_or_token_claim_is_authority: false
-    command_handler_enforcement: required
-    endpoint_policy_enforcement: required_defense_in_depth
-  party_code:
-    source: required caller input
-    allocator_in_scope: false
-    exact_format_in_scope: false
-    uniqueness: exact stored Party Code within trusted CompanyId
-    leading_trailing_whitespace: reject
-    case_normalization: none_invented
-  duplicate_detection:
-    deterministic_first_slice:
-      - company-scoped Party Code uniqueness
-      - public UUID uniqueness
-      - idempotency uniqueness
-    soft_fuzzy_warning: explicitly_deferred
-  company_reference:
-    source: trusted IExecutionContext CompanyId
-    request_company_field: forbidden
-    physical_company_fk: not_in_this_slice
-
-candidate_contract:
-  db:
-    internal_key: BIGINT-style
-    public_id: UUID
-    company_id: UUID_required_no_fk
-    party_code: required_company_scoped_unique
-    kind: PERSON_OR_ORGANIZATION
-    legal_name: required
-    display_name: optional
-    initial_state: ACTIVE
-    optimistic_version: required
-  api:
-    route: POST /api/v1/parties
-    authentication: required
-    permission: party.create
-    idempotency_key: required
-  ui:
-    route: /parties/new
-    fields:
-      - Party Code
-      - Kind
-      - Legal Name
-      - Display Name optional
 
 planning_progress:
   master_sequence:
@@ -102,11 +74,8 @@ planning_progress:
 
 test_policy:
   normal_development:
-    - release-build
-    - targeted-party-tests
-    - targeted-authorization-tests
-    - migration-model-check
-    - frontend-typecheck-test-build
-    - small-api-smoke
-    - test-deploy-smoke-when-deployable
+    - build
+    - targeted-unit-or-invariant
+    - small-smoke-when-needed
+    - migration-contract-check
   heavy_tests: FULL_TEST_DAY_ONLY
