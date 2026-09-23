@@ -61,6 +61,7 @@ Implementation status:
 - `FW-IMP-005 — API foundation implementation`: COMPLETED
 - `FW-IMP-006 — Mars.Web + Mars.UI foundation`: COMPLETED
 - `FW-IMP-007 — Docker/test deployment baseline`: COMPLETED
+- `FW-IMP-008 — thin vertical framework proof`: COMPLETED
 - evidence:
   - `docs/plan/01-foundation/fw-imp-001-implementation.md`
   - `docs/plan/01-foundation/fw-imp-002-implementation.md`
@@ -69,7 +70,9 @@ Implementation status:
   - `docs/plan/01-foundation/fw-imp-005-implementation.md`
   - `docs/plan/01-foundation/fw-imp-006-implementation.md`
   - `docs/plan/01-foundation/fw-imp-007-implementation.md`
-- next: `FW-IMP-008 — thin vertical framework proof`; exact scope definition required before implementation.
+  - `docs/plan/01-foundation/fw-imp-008-implementation.md`
+- P4 Foundation implementation: COMPLETED.
+- next phase: P5 Core application implementation; first dependency/module is Parties, with its first implementation work package still requiring explicit scope definition.
 
 
 ## FW-IMP-006 current status
@@ -123,3 +126,36 @@ Next repository-tracked package:
 Its exact implementation scope is not yet defined in repository sources. Define the smallest non-domain or deliberately minimal proof and acceptance criteria before mutation.
 
 Production secret-store, production reverse-proxy/tunnel, production ingress/TLS and logging/metrics technologies remain deferred.
+
+
+## FW-IMP-008 current status
+
+`FW-IMP-008 — thin vertical framework proof` is COMPLETED.
+
+Canonical evidence:
+- `docs/plan/01-foundation/fw-imp-008-implementation.md`
+
+Final tested implementation:
+- commit `bf9b3882dbc91ee801d169a62587c7658baaa63b`;
+- Foundation Build run `35868005913`;
+- Foundation Test Deploy run `35868151531`.
+
+Verified:
+- request/Application/persistence/API/Web technical proof is implemented without ERP domain semantics;
+- existing idempotency/audit/outbox tables are composed in one PostgreSQL transaction;
+- no new migration or package was added;
+- 11 / 11 frontend targeted tests passed;
+- 30 / 30 Foundation targeted tests passed;
+- remote TEST deploy/readiness/smoke passed;
+- TEST `/proof` returns 200;
+- unauthenticated proof POST returns 401;
+- OpenAPI contains the proof route.
+
+A live authenticated browser-to-DB proof mutation is not claimed; no TEST auth bypass was introduced. That E2E path remains deferred.
+
+P4 Foundation implementation exit is satisfied.
+
+Next phase:
+- P5 Core application implementation;
+- first dependency/module: Parties;
+- dedicated first Parties implementation work-package ID/scope must be defined from frozen PLAN-003 + logical DB contracts before mutation.
