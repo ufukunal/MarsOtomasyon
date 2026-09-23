@@ -91,9 +91,10 @@ export function createAppShell(): AppShell {
 
   const navigation = document.createElement("nav");
   navigation.className = "mars-shell__nav";
-  navigation.setAttribute("aria-label", "Foundation gezinme");
+  navigation.setAttribute("aria-label", "Uygulama gezinme");
   navigation.append(
     routeLink("/", "Foundation"),
+    routeLink("/parties/new", "Yeni Party"),
     routeLink("/proof", "Vertical Proof"),
     routeLink("/components", "Mars.UI"));
 
