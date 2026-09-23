@@ -925,7 +925,8 @@ Current status:
 - `FW-IMP-004 — audit/idempotency/outbox foundations` is COMPLETED.
 - `FW-IMP-005 — API foundation` is COMPLETED.
 - `FW-IMP-006 — Mars.Web + Mars.UI foundation` is COMPLETED.
-- next repository-defined implementation package is `FW-IMP-007 — Docker/test deployment baseline`; implementation is READY after test-environment preflight verification.
+- `FW-IMP-007 — Docker/test deployment baseline` is COMPLETED with remote TEST deployment evidence.
+- next repository-tracked package is `FW-IMP-008 — thin vertical framework proof`; its exact scope must be defined before implementation so the proof remains non-domain or deliberately minimal.
 
 
 ## FW-IMP-001 implementation evidence
@@ -1060,12 +1061,20 @@ Final tested implementation:
 - commit `1264981655329099a086c7048c0890caf04dc9f2`;
 - GitHub Actions run `35729371845`.
 
-Current next package:
-- `FW-IMP-007 — Docker/test deployment baseline` (READY).
+FW-IMP-007 completion evidence:
+- canonical report: `docs/plan/01-foundation/fw-imp-007-implementation.md`;
+- tested implementation commit: `2821c98bbd04b81dcbb10e99ddb0a4974ca7a517`;
+- successful TEST deployment workflow run: `35865600657`;
+- remote TEST preflight/deployment/readiness/smoke: PASS.
 
-FW-IMP-007 gate review:
+Current next package:
+- `FW-IMP-008 — thin vertical framework proof`.
+
+FW-IMP-008 gate:
+- exact implementation scope is not yet defined in repository sources;
+- define the smallest non-domain or deliberately minimal vertical proof before mutation;
+- do not invent ERP rules;
 - production secret-store selection remains deferred;
-- production reverse-proxy/tunnel details remain deferred;
+- production reverse-proxy/tunnel and ingress/TLS details remain deferred;
 - structured logging/metrics technology remains deferred;
-- test deployment must verify Docker/Compose, deployment/service layout and relevant test ingress/TLS facts before mutation;
-- test-environment choices must not be described as accepted production architecture.
+- Desktop/Mobile shell technology remains deferred.
