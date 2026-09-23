@@ -74,3 +74,25 @@ PLAN-003 does not define:
 - Purchasing workflow;
 - CRM opportunity/activity engine;
 - files/notes/tags without a later source-backed requirement.
+
+
+## P5 first implementation readiness
+
+Current first-slice analysis:
+- `docs/plan/03-cariler/p5-first-slice-readiness.md`
+
+Selected candidate:
+- Create Party Core Identity.
+
+Status:
+- SCOPE DEFINED;
+- IMPLEMENTATION BLOCKED;
+- dedicated implementation work-package ID NOT ASSIGNED.
+
+Blocking decisions:
+- Mars-owned permission authority/evaluation for server-side `party.create`;
+- initial Party Code assignment authority;
+- minimum soft duplicate-warning contract or explicit first-slice deferral;
+- physical Company reference strategy while Foundation has no Company table.
+
+No Party C#/EF migration/API/TypeScript implementation may start until these blockers are resolved.
