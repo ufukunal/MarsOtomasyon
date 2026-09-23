@@ -1,9 +1,10 @@
-id: P5
-title: Parties next vertical slice definition
+id: PARTY-IMP-006
+title: Party Master Completion Tranche
 module: parties
-status: scope_definition_required
+status: ready_for_implementation
 progress: not_started
-work_package_id: not_assigned
+work_package_id: PARTY-IMP-006
+readiness_report: docs/plan/03-cariler/p5-party-master-completion-readiness.md
 
 phase:
   id: P5
@@ -14,57 +15,51 @@ predecessor:
   id: PARTY-IMP-005
   title: Deactivate Party
   status: completed
-  evidence:
-    canonical_report: docs/plan/03-cariler/party-imp-005-implementation.md
-    readiness_report: docs/plan/03-cariler/p5-fifth-slice-readiness.md
-    readiness_commit: 73cf3921becc615ef56e8c871b67882fa8ef411b
-    implementation_commit: 4ab2a30bfffdf64c9e5b7634708ad4cdacdde33a
-    foundation_build_run: 35922536747
-    foundation_build_job: 107389743246
-    test_deploy_run: 35922536768
-    test_deploy_job: 107389744421
-    tested_deploy_commit: 4ab2a30bfffdf64c9e5b7634708ad4cdacdde33a
-    frontend_tests: 16_passed
-    foundation_tests: 55_passed
-    migration_count: 5
-    model_change: none
-    remote_test_deployment: success
-    health_live: 200
-    health_ready: 200
-    party_page: 200
-    party_deactivate_post_unauthenticated: 401
-    smoke: pass
+  canonical_report: docs/plan/03-cariler/party-imp-005-implementation.md
+  implementation_commit: 4ab2a30bfffdf64c9e5b7634708ad4cdacdde33a
+  foundation_build_run: 35922536747
+  test_deploy_run: 35922536768
+  tested_deploy_commit: 4ab2a30bfffdf64c9e5b7634708ad4cdacdde33a
 
-goal:
-  Define the next smallest coherent Parties vertical slice from frozen PLAN-003 and PLAN-010 without inventing package order, fuzzy matching, provider/legal behavior or generic ERP fields.
-
-repository_follow_up_candidates:
-  - Party reactivate with duplicate/legal identity validation gate
-  - accepted soft duplicate candidate/review flow
-  - Contact Person / Communication Point / Address
-  - Party External Mapping
-  - Party Merge
-  - broader Tax Identity read/lifecycle/provider/non-TR support where later required
-
-scope_gate:
-  dedicated_work_package_id: not_assigned
-  exact_next_vertical_slice: not_yet_defined
-  required_before_mutation:
-    - review PARTY-IMP-001 through PARTY-IMP-005 completion boundaries
-    - compare remaining PLAN-003 capabilities and dependencies
-    - select the smallest coherent next Party use case
-    - map entities/constraints/migration/API/UI/permissions/privacy/concurrency
-    - define targeted acceptance evidence
-    - assign a dedicated work-package ID only with explicit scope
+owner_direction:
+  - broaden Party implementation scope instead of creating one work package per small capability
+  - group coherent source-backed Party master capabilities into one implementation tranche
+  - normal technical implementation choices are owned by active skills unless they introduce a new business rule
 
 scope:
   include:
-    - P5 Parties next-slice scope/readiness definition
+    - Party directory/list/detail/read surface
+    - edit Party legal/display identity with optimistic concurrency
+    - Contact Person and Communication Point persistence/read/manage/lifecycle
+    - Address persistence/read/manage/lifecycle and source-backed purpose/default semantics
+    - existing TR VKN/TCKN Tax Identity read/masking and lifecycle
+    - Party External Mapping read/manage/lifecycle with deterministic scoped uniqueness
+    - explicit same-company Party Merge with source-to-survivor lineage and conflict resolution
+    - required permissions/API/Mars.Web/audit/idempotency/concurrency/targeted tests
+    - additive EF model/migration work required by these capabilities
   exclude:
-    - new Party schema/code until next slice is explicit
-    - Sales/Product/Inventory/Purchasing/Warehouse/Finance implementation
+    - soft/fuzzy duplicate candidate generation/scoring/thresholds
+    - Party Reactivation until duplicate/legal-identity rerun prerequisite is resolved
+    - provider/GIB verification or enrollment
+    - non-TR Tax Identity schemes
+    - Communications consent/channel-preference policy
+    - Sales/Purchasing consuming eligibility implementation
+    - Finance ledger/risk/settlement behavior
     - production deployment
     - Full Test Day
+
+scope_rules:
+  - preserve PARTY-IMP-001 through PARTY-IMP-005 behavior
+  - company scope applies to every Party read and mutation
+  - deterministic Party Code, active Tax Identity and External Mapping collisions are hard conflicts
+  - fuzzy matching never becomes authority and never auto-merges
+  - live master changes and merge never rewrite historical document snapshots
+  - merge creates no Finance/stock/account/cash-bank/cost posting and no automatic netting
+  - MERGED is terminal for new Party selection
+  - mutable master records use stale-write protection
+  - retryable mutations use durable PostgreSQL idempotency
+  - sensitive Tax Identity reads respect party.tax_identity.read_full
+  - no provider-specific or new business semantics are invented
 
 planning_progress:
   master_sequence:
