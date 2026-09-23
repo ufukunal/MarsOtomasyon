@@ -83,9 +83,9 @@ test_policy:
   heavy_tests: FULL_TEST_DAY_ONLY
 
 active_task:
-  id: PARTY-IMP-002
-  title: Activate Party Role
-  status: ready
+  id: P5
+  title: Parties next vertical slice definition
+  status: scope_definition_required
   file: docs/plan/active-task.yaml
   progress: not_started
 
@@ -112,6 +112,7 @@ completed_implementation_tasks:
   - FW-IMP-007
   - FW-IMP-008
   - PARTY-IMP-001
+  - PARTY-IMP-002
 
 locked_decisions:
   - ASP.NET Core Identity + OpenIddict 7.7.1 is the accepted authentication/identity baseline.
@@ -253,7 +254,7 @@ test_environment:
   valkey_status: running_healthy
   valkey_image: valkey/valkey:8-alpine
   valkey_container: marsotomasyon-valkey-1
-  application_deployment_status: party_imp_001_test_deployed_and_smoke_passed
+  application_deployment_status: party_imp_002_test_deployed_and_smoke_passed
   ssh_connectivity_verified: true
   ssh_remote_user: ufuk
   remote_hostname: mars-prod
@@ -267,10 +268,11 @@ test_environment:
   foundation_test_health_ready: 200
   foundation_test_party_page: 200
   foundation_test_party_unauthenticated_post: 401
-  foundation_test_migration_count: 3
+  foundation_test_party_role_unauthenticated_post: 401
+  foundation_test_migration_count: 4
   foundation_test_smoke: PASS
-  foundation_test_workflow_run: 35885323206
-  foundation_test_implementation_commit: b1305ad0d48b6ef6e5522a9f6f66a46a2926902c
+  foundation_test_workflow_run: 35889499708
+  foundation_test_implementation_commit: 09e1eed87edf23da4002127337185f13dc3a6366
   mars_path_present: true
   postgresql_roles:
     owner_admin_role: mars_master
@@ -292,6 +294,7 @@ known_constraints:
   - FW-IMP-008 thin vertical framework proof is COMPLETED with canonical evidence at docs/plan/01-foundation/fw-imp-008-implementation.md and successful TEST deployment workflow run 35868151531.
   - P5 Parties first vertical slice scope is defined as Create Party Core Identity; canonical readiness analysis is docs/plan/03-cariler/p5-first-slice-readiness.md.
   - PARTY-IMP-001 Create Party Core Identity is COMPLETED with canonical evidence at docs/plan/03-cariler/party-imp-001-implementation.md, successful Foundation Build run 35885316247 and successful TEST deploy run 35885323206.
+  - PARTY-IMP-002 Activate Party Role is COMPLETED with canonical evidence at docs/plan/03-cariler/party-imp-002-implementation.md, successful Foundation Build run 35889499695 and successful TEST deploy run 35889499708.
   - ADR-0005 freezes Mars-owned PostgreSQL permission authority/evaluation; Party Code is required caller input for the first slice; soft duplicate warnings are explicitly deferred; Party stores trusted CompanyId without a Company FK in this slice.
   - Database logical/schema design is intentionally deferred until core workflows are sufficiently frozen.
   - Business rules must not be inferred from generic ERP conventions when project sources are silent.
@@ -324,34 +327,43 @@ known_constraints:
   - Durable idempotency/concurrency correctness is PostgreSQL-owned; Valkey is not sufficient authority.
 
 blocked_items:
-  - No unresolved blocker remains for PARTY-IMP-002 Activate Party Role.
-  - Tax Identity, contacts/addresses, soft duplicate review, Party/role lifecycle and merge remain later Parties slices.
+  - No unresolved blocker remains for PARTY-IMP-002; Activate Party Role is completed.
+  - Full PLAN-003 Create Party parity remains incomplete because Tax Identity, accepted soft duplicate review, contacts/addresses, role lifecycle and later Party lifecycle/merge remain deferred.
+  - Repository backlog lists these follow-up requirements but does not assign their implementation order or a dedicated next work-package ID.
+  - Define the next smallest coherent Parties vertical slice from frozen PLAN-003 + PLAN-010 before schema/code mutation; do not invent PARTY-IMP-003 merely for convenience.
   - Production secret-store, production reverse-proxy/tunnel, production ingress/TLS and structured logging/metrics choices remain deferred.
 next_action:
-  id: PARTY-IMP-002
-  title: Activate Party Role
+  id: P5
+  title: Define next Parties vertical slice
   phase: P5
   module: parties
-  status: READY
-  readiness_report: docs/plan/03-cariler/p5-second-slice-readiness.md
+  status: SCOPE_DEFINITION_REQUIRED
+  work_package_id: NOT_ASSIGNED
   predecessor:
-    id: PARTY-IMP-001
+    id: PARTY-IMP-002
     status: completed
-    canonical_report: docs/plan/03-cariler/party-imp-001-implementation.md
-  scope:
-    - add Parties-owned Party Role persistence for CUSTOMER/SUPPLIER activation
-    - enforce party.role.manage via existing ADR-0005 permission authority
-    - add protected POST /api/v1/parties/{partyPublicId}/roles
-    - extend /parties/new with post-create role activation actions
-    - reuse Foundation audit/idempotency transaction primitives
-    - add generated additive EF migration
-    - run targeted build/tests/model/migration/API/Web verification
-    - deploy/smoke on TEST when deployable
+    canonical_report: docs/plan/03-cariler/party-imp-002-implementation.md
+    scope_commit: e3052ecfc67a0831a745354eb94d4ca1f08c5c6f
+    implementation_commit: 41c1015fceb1ff1c6efef3b55d35338fb4c64f88
+    migration_commit: b540589291d9e115175649f29fab4ef37c943ebf
+    foundation_build_run: 35889499695
+    test_deploy_run: 35889499708
+    tested_deploy_commit: 09e1eed87edf23da4002127337185f13dc3a6366
+  repository_follow_up_candidates:
+    - Tax Identity records and deterministic collision rules
+    - accepted soft duplicate candidate/review flow
+    - contacts/addresses
+    - role lifecycle after activation
+    - lifecycle/merge in later slices
+  scope_intent:
+    - select the next smallest coherent Parties vertical slice from frozen PLAN-003 and PLAN-010
+    - preserve PARTY-IMP-001 and PARTY-IMP-002 company/permission/idempotency/audit boundaries
+    - map exact entity/constraint/API/UI/migration effects before mutation
+    - assign a dedicated work-package ID only after scope is explicit
   restrictions:
-    - no role deactivate/reactivate in this slice
-    - no Tax Identity/contact/address/duplicate-review/merge
-    - no Finance ledger/balance/risk behavior
-    - no Sales/Product/Inventory/Purchasing/Warehouse implementation
+    - do not assume backlog order is implementation order
+    - no generic ERP rule filling
+    - no Sales/Product/Inventory/Purchasing/Warehouse/Finance implementation
     - no production deployment
     - no Full Test Day
     - exact master planning metric remains 9 / 30 = 30.0
