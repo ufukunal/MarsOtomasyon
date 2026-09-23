@@ -728,3 +728,32 @@ Not selected:
 - Desktop/Mobile shell technology.
 
 Full Test Day remains pending.
+
+
+## FW-IMP-008 — Thin vertical framework proof
+**Status:** COMPLETED
+
+Implemented:
+- non-domain Foundation proof handler and persistence boundary;
+- company-scoped durable idempotency;
+- audit + outbox write-set in one PostgreSQL transaction;
+- protected `POST /api/v1/foundation/proof`;
+- Foundation-only Mars.Web `/proof` route;
+- targeted .NET/Web proof tests;
+- expanded TEST deploy/smoke verification.
+
+Evidence:
+- canonical report: `docs/plan/01-foundation/fw-imp-008-implementation.md`
+- final tested implementation commit: `bf9b3882dbc91ee801d169a62587c7658baaa63b`
+- Foundation Build run: `35868005913` — SUCCESS
+- Foundation Test Deploy run: `35868151531` — SUCCESS
+- frontend tests: 11 / 11 PASS
+- Foundation tests: 30 / 30 PASS
+- TEST /proof: 200
+- TEST live/ready: 200 / 200
+- unauthenticated proof POST: 401
+- runner-to-TEST smoke: PASS
+
+No new ERP schema, migration, business rule, package, production deployment or authentication bypass was introduced.
+
+P4 Foundation implementation exit is satisfied. Next phase is P5 Core application implementation, starting with Parties after the first implementation work package is explicitly defined.
