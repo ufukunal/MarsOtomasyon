@@ -6,7 +6,7 @@ Logical ownership does not require one PostgreSQL schema per module; physical sc
 
 | Module | Authoritative logical records | Must not own |
 |---|---|---|
-| Foundation | Company/Branch context references, operation idempotency, outbox, approval evidence, audit primitives | domain balances, stock, document policy |
+| Foundation | Company/Branch context references, Mars ERP Permission Grant authority/evaluation, operation idempotency, outbox, approval evidence, audit primitives | domain balances, stock, document policy |
 | Parties | Party, Role, Tax Identity, Contact, Communication Point, Address, Merge Lineage, Party External Mapping | receivable/payable balance, credit/risk ledger |
 | Product | Product, Variant, UOM/Product-UOM, Barcode/External Mapping, categories/classification | stock balance, average cost |
 | Inventory/Warehouse | Warehouse, Location, disposition definitions, Lot, Serial, Reservation, Inventory Ledger, transfer/count/work physical records | Party balance, cash/bank, valuation authority |
@@ -49,3 +49,13 @@ Use bounded-context document aggregates with consistent shared conventions:
 - reversal/original references where relevant.
 
 Where future implementation extracts a reusable technical document base, it must not centralize domain-specific state machines or effects.
+
+
+## P5 authorization amendment
+
+Accepted by ADR-0005:
+- ERP permission semantics remain Mars-owned and separate from Identity/OpenIddict authentication/protocol authority;
+- Foundation owns the logical Permission Grant authority and evaluation contract;
+- initial effective grant grain is Actor + Company + PermissionCode;
+- domain modules own concrete permission names such as `party.create`;
+- a future role/group administration model may feed the same evaluator without moving ERP authorization authority into the identity provider.
