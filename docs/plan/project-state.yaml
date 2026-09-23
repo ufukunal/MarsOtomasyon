@@ -83,10 +83,11 @@ test_policy:
   heavy_tests: FULL_TEST_DAY_ONLY
 
 active_task:
-  id: P5
-  title: Parties next vertical slice definition
-  status: scope_definition_required
+  id: PARTY-IMP-006
+  title: Party Master Completion Tranche
+  status: ready_for_implementation
   file: docs/plan/active-task.yaml
+  readiness_report: docs/plan/03-cariler/p5-party-master-completion-readiness.md
   progress: not_started
 
 completed_planning_tasks:
@@ -336,48 +337,46 @@ known_constraints:
   - Durable idempotency/concurrency correctness is PostgreSQL-owned; Valkey is not sufficient authority.
 
 blocked_items:
-  - No unresolved blocker remains for PARTY-IMP-005; Deactivate Party is completed.
-  - Party reactivation remains deferred because frozen PLAN-003 requires duplicate/legal identity validation rerun and soft duplicate review is not implementation-ready.
-  - Full PLAN-003 Party parity remains incomplete because soft duplicate review, Contact/Communication/Address, Party Reactivate, External Mapping, Merge and broader Tax Identity lifecycle remain deferred.
-  - Repository does not assign the next implementation order or a dedicated PARTY-IMP-006 scope.
-  - Define the next smallest coherent Parties vertical slice before schema/code mutation; do not invent PARTY-IMP-006 merely for sequence continuity.
+  - PARTY-IMP-006 itself has no unresolved scope blocker; owner explicitly broadened the package to group coherent Party master capabilities.
+  - Party Reactivation remains deferred outside PARTY-IMP-006 because frozen PLAN-003 requires duplicate/legal identity validation rerun and repository sources do not resolve whether deterministic/local validation alone is sufficient.
+  - Soft/fuzzy duplicate candidate generation remains deferred because no accepted normalization/similarity/score/threshold exists.
+  - Provider/GIB verification, non-TR Tax Identity, Communications consent/preferences, consuming Sales/Purchasing eligibility and Finance behavior remain deferred.
   - Production secret-store, production reverse-proxy/tunnel, production ingress/TLS and structured logging/metrics choices remain deferred.
 next_action:
-  id: P5
-  title: Define next Parties vertical slice
+  id: PARTY-IMP-006
+  title: Party Master Completion Tranche
   phase: P5
   module: parties
-  status: SCOPE_DEFINITION_REQUIRED
-  work_package_id: NOT_ASSIGNED
+  status: READY_FOR_IMPLEMENTATION
+  work_package_id: PARTY-IMP-006
+  readiness_report: docs/plan/03-cariler/p5-party-master-completion-readiness.md
   predecessor:
     id: PARTY-IMP-005
     status: completed
     canonical_report: docs/plan/03-cariler/party-imp-005-implementation.md
-    readiness_report: docs/plan/03-cariler/p5-fifth-slice-readiness.md
-    readiness_commit: 73cf3921becc615ef56e8c871b67882fa8ef411b
     implementation_commit: 4ab2a30bfffdf64c9e5b7634708ad4cdacdde33a
     foundation_build_run: 35922536747
     test_deploy_run: 35922536768
     tested_deploy_commit: 4ab2a30bfffdf64c9e5b7634708ad4cdacdde33a
-  repository_follow_up_candidates:
-    - Party reactivate with required duplicate/legal identity validation
-    - accepted soft duplicate candidate/review flow
-    - Contact Person / Communication Point / Address
+  scope:
+    - Party list/detail/read and legal/display identity edit
+    - Contact Person / Communication Point
+    - Address lifecycle and purpose/default semantics
+    - existing TR VKN/TCKN read/masking/lifecycle
     - Party External Mapping
-    - Party Merge
-    - broader Tax Identity read/lifecycle/provider/non-TR support where required
-  scope_intent:
-    - select the next smallest coherent Parties vertical slice from frozen PLAN-003 and PLAN-010
-    - preserve PARTY-IMP-001 through PARTY-IMP-005 company/permission/privacy/idempotency/audit/concurrency boundaries
-    - map exact entity/constraint/API/UI/migration effects before mutation
-    - assign a dedicated work-package ID only after scope is explicit
+    - explicit Party Merge and merge lineage
+  exclusions:
+    - soft/fuzzy duplicate candidate generation
+    - Party Reactivation until duplicate/legal-identity rerun prerequisite is resolved
+    - provider/GIB verification and non-TR tax schemes
+    - Communications consent/preferences
+    - Sales/Purchasing/Finance implementation
+    - production deployment
+    - Full Test Day
   restrictions:
-    - do not assume backlog order is implementation order
-    - do not invent fuzzy algorithms, provider rules or generic ERP behavior
-    - no Sales/Product/Inventory/Purchasing/Warehouse/Finance implementation
-    - no production deployment
-    - no Full Test Day
-    - exact master planning metric remains 9 / 30 = 30.0
+    - do not split included scope into more PARTY-IMP packages merely for implementation convenience
+    - do not invent fuzzy algorithms, provider rules or cross-module business rules
+    - exact master planning metric remains 9 / 30 = 30.0 pending separate metric normalization
 state_rules:
   - current_head must be verified from Git at every session start; embedded SHA is never authoritative.
   - repo content overrides chat memory when they conflict.
