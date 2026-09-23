@@ -111,21 +111,26 @@ Still deferred:
 - Settings/Numbering allocator.
 
 Second implementation work package:
-- PARTY-IMP-002 — Activate Party Role.
+- PARTY-IMP-002 — Activate Party Role — COMPLETED.
 
 Readiness:
 - `docs/plan/03-cariler/p5-second-slice-readiness.md`
 
-Status:
-- READY FOR IMPLEMENTATION;
-- implementation NOT STARTED.
+Canonical implementation evidence:
+- `docs/plan/03-cariler/party-imp-002-implementation.md`
 
-Selected because CUSTOMER/SUPPLIER role activation is the smallest independent frozen Party capability after core identity:
-- one normalized child authority;
-- existing `party.role.manage` permission;
-- no Finance posting;
-- no tax/legal/provider dependency;
-- no contact/address dependency.
+Verification:
+- Foundation Build `35889499695` — SUCCESS;
+- Foundation Test Deploy `35889499708` — SUCCESS;
+- frontend tests 13 / 13;
+- Foundation targeted tests 40 / 40;
+- committed Party Role migration applied to TEST;
+- /parties/new 200;
+- unauthenticated role POST 401;
+- live/ready 200 / 200;
+- runner-to-TEST smoke PASS.
+
+PARTY-IMP-002 preserves the one-Party/multi-role model and creates no Finance posting.
 
 Still deferred:
 - role deactivate/reactivate;
@@ -136,3 +141,7 @@ Still deferred:
 - Merge Lineage;
 - soft/fuzzy duplicate review;
 - Settings/Numbering allocator.
+
+Next:
+- define the next smallest coherent Parties vertical slice;
+- no PARTY-IMP-003 ID is assigned yet.
