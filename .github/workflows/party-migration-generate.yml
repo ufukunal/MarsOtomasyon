@@ -58,15 +58,12 @@ jobs:
             src/Mars.Infrastructure/Persistence/Migrations/Parties/
             src/Mars.Infrastructure/Persistence/Migrations/Foundation/MarsDbContextModelSnapshot.cs
 
-      - name: Commit generated migration to main and disable helper
+      - name: Commit generated migration to main
         shell: bash
         run: |
           set -euo pipefail
 
-          python3 -c "from pathlib import Path; p=Path('.github/workflows/party-migration-generate.yml'); s=p.read_text(encoding='utf-8'); a=s.index('on:\\n  push:'); b=s.index('\\n\\npermissions:', a); p.write_text(s[:a]+'on:\\n  workflow_dispatch:\\n'+s[b:], encoding='utf-8')"
-
           git add \
-            .github/workflows/party-migration-generate.yml \
             src/Mars.Infrastructure/Persistence/Migrations/Parties/ \
             src/Mars.Infrastructure/Persistence/Migrations/Foundation/MarsDbContextModelSnapshot.cs
 
