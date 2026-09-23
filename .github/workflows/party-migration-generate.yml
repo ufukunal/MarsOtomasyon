@@ -1,13 +1,10 @@
 name: PARTY-IMP-001 Migration Generate
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - ".github/workflows/party-migration-generate.yml"
+  workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   generate:
@@ -41,7 +38,12 @@ jobs:
           MARS_MIGRATION_CONNECTION_STRING: "Host=localhost;Database=mars_design_time_probe"
         run: |
           set -euo pipefail
-          dotnet tool run dotnet-ef migrations add PartyImp001CoreIdentity             --project src/Mars.Infrastructure/Mars.Infrastructure.csproj             --startup-project src/Mars.Infrastructure/Mars.Infrastructure.csproj             --configuration Release             --no-build             --output-dir Persistence/Migrations/Parties
+          dotnet tool run dotnet-ef migrations add PartyImp001CoreIdentity \
+            --project src/Mars.Infrastructure/Mars.Infrastructure.csproj \
+            --startup-project src/Mars.Infrastructure/Mars.Infrastructure.csproj \
+            --configuration Release \
+            --no-build \
+            --output-dir Persistence/Migrations/Parties
           test -d src/Mars.Infrastructure/Persistence/Migrations/Parties
 
       - name: Upload generated migration
@@ -52,3 +54,22 @@ jobs:
           path: |
             src/Mars.Infrastructure/Persistence/Migrations/Parties/
             src/Mars.Infrastructure/Persistence/Migrations/Foundation/MarsDbContextModelSnapshot.cs
+
+      - name: Commit generated migration to main
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          git add \
+            src/Mars.Infrastructure/Persistence/Migrations/Parties/ \
+            src/Mars.Infrastructure/Persistence/Migrations/Foundation/MarsDbContextModelSnapshot.cs
+
+          if git diff --cached --quiet; then
+            echo "No generated migration changes were produced."
+            exit 1
+          fi
+
+          git config user.name "mars-ci"
+          git config user.email "mars-ci@users.noreply.github.com"
+          git commit -m "db: add PARTY-IMP-001 migration"
+          git push origin HEAD:main
