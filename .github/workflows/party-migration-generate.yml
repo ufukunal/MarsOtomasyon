@@ -63,7 +63,7 @@ jobs:
         run: |
           set -euo pipefail
 
-          python3 -c 'from pathlib import Path; p=Path(".github/workflows/party-migration-generate.yml"); s=p.read_text(encoding="utf-8"); old="on:\\n  push:\\n    branches: [main]\\n    paths:\\n      - \\".github/workflows/party-migration-generate.yml\\"\\n"; new="on:\\n  workflow_dispatch:\\n"; assert old in s, "Expected one-shot push trigger not found."; p.write_text(s.replace(old,new,1), encoding="utf-8")'
+          python3 -c "from pathlib import Path; p=Path('.github/workflows/party-migration-generate.yml'); s=p.read_text(encoding='utf-8'); a=s.index('on:\\n  push:'); b=s.index('\\n\\npermissions:', a); p.write_text(s[:a]+'on:\\n  workflow_dispatch:\\n'+s[b:], encoding='utf-8')"
 
           git add \
             .github/workflows/party-migration-generate.yml \
