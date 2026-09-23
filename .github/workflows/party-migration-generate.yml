@@ -1,14 +1,17 @@
-name: PARTY-IMP-002 Migration Generate
+name: PARTY-IMP-003 Migration Generate
 
 on:
-  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/party-migration-generate.yml"
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   generate:
-    name: generate-party-role-migration
+    name: generate-party-tax-identity-migration
     runs-on: self-hosted
     timeout-minutes: 15
     steps:
@@ -32,13 +35,13 @@ jobs:
           dotnet restore src/Mars.Infrastructure/Mars.Infrastructure.csproj
           dotnet build src/Mars.Infrastructure/Mars.Infrastructure.csproj --configuration Release --no-restore
 
-      - name: Generate PARTY-IMP-002 migration
+      - name: Generate PARTY-IMP-003 migration
         shell: bash
         env:
           MARS_MIGRATION_CONNECTION_STRING: "Host=localhost;Database=mars_design_time_probe"
         run: |
           set -euo pipefail
-          dotnet tool run dotnet-ef migrations add PartyImp002RoleActivation \
+          dotnet tool run dotnet-ef migrations add PartyImp003TurkishTaxIdentity \
             --project src/Mars.Infrastructure/Mars.Infrastructure.csproj \
             --startup-project src/Mars.Infrastructure/Mars.Infrastructure.csproj \
             --configuration Release \
@@ -49,8 +52,27 @@ jobs:
       - name: Upload generated migration
         uses: actions/upload-artifact@v4
         with:
-          name: party-imp-002-migration
+          name: party-imp-003-migration
           if-no-files-found: error
           path: |
             src/Mars.Infrastructure/Persistence/Migrations/Parties/
             src/Mars.Infrastructure/Persistence/Migrations/Foundation/MarsDbContextModelSnapshot.cs
+
+      - name: Commit generated migration to main
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          git add \
+            src/Mars.Infrastructure/Persistence/Migrations/Parties/ \
+            src/Mars.Infrastructure/Persistence/Migrations/Foundation/MarsDbContextModelSnapshot.cs
+
+          if git diff --cached --quiet; then
+            echo "No generated migration changes were produced."
+            exit 1
+          fi
+
+          git config user.name "mars-ci"
+          git config user.email "mars-ci@users.noreply.github.com"
+          git commit -m "db: add PARTY-IMP-003 tax identity migration"
+          git push origin HEAD:main
