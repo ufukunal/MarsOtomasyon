@@ -1,33 +1,30 @@
 # Active Tasks
 
-## PARTY-IMP-001 — Create Party Core Identity
-**Status:** READY — IMPLEMENTATION NOT STARTED
+## P5 — Parties next vertical slice definition
+**Status:** SCOPE DEFINITION REQUIRED — IMPLEMENTATION NOT STARTED
 
-Canonical readiness:
-- `docs/plan/03-cariler/p5-first-slice-readiness.md`
+Predecessor:
+- PARTY-IMP-001 — Create Party Core Identity — COMPLETED
+- canonical evidence: `docs/plan/03-cariler/party-imp-001-implementation.md`
+- Foundation Build run `35885316247` — SUCCESS
+- Foundation Test Deploy run `35885323206` — SUCCESS
 
-Authorization decision:
-- `docs/plan/decisions/ADR-0005-mars-erp-permission-authority.md`
+Repository-defined follow-up requirements before full PLAN-003 Create Party parity:
+- soft duplicate candidate/review flow;
+- Tax Identity records and deterministic collision rules;
+- Party Role activation;
+- contacts/addresses;
+- lifecycle/merge in later slices.
 
-Implement:
-- Mars-owned PostgreSQL Permission Grant evaluator for `party.create`;
-- Party core identity aggregate/persistence;
-- additive EF migration;
-- protected `POST /api/v1/parties`;
-- `/parties/new` Mars.Web form;
-- audit + durable idempotency;
-- targeted build/tests/migration/API/Web verification;
-- TEST deploy/smoke when ready.
-
-Locked:
-- Party Code is required caller input; no allocator/format invented.
-- CompanyId comes only from trusted execution context and has no Company FK in this slice.
-- soft/fuzzy duplicate warning is explicitly deferred.
-- Party Role/Tax/Contact/Address/Mapping/Merge are deferred.
-- no Finance/Stock/Account/Cash authority enters Parties.
+Current gate:
+- repository does not assign an order among these follow-up capabilities;
+- no dedicated next implementation work-package ID exists;
+- choose the smallest coherent next Party vertical slice from frozen PLAN-003 + PLAN-010;
+- map DB/API/UI/permission/migration/test effects before mutation;
+- do not invent PARTY-IMP-002 merely to continue coding.
 
 Exact planning progress:
 - master: 9 / 30 = 30.0%
 - P2: 8 / 8 = 100.0%
 
-Heavy suites remain Full Test Day only.
+Heavy tests remain Full Test Day only.
