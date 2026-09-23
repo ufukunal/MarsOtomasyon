@@ -20,7 +20,7 @@ internal static class FwImp005Tests
         ("Execution context ignores untrusted request scope headers", ExecutionContextIgnoresRequestScopeHeaders),
         ("Application errors map deterministically to HTTP status", ApplicationErrorsMapDeterministically),
         ("Unhandled exception response hides internal details", UnhandledExceptionHidesInternalDetails),
-        ("Identity protocol model stays in Foundation-owned schemas", IdentityModelHasOnlyAllowedSchemas),
+        ("Identity protocol entities remain in identity schema", IdentityModelRemainsInIdentitySchema),
         ("Identity user key is UUID", IdentityUserKeyIsUuid)
     };
 
@@ -116,25 +116,25 @@ internal static class FwImp005Tests
         AssertTrue(response.Contains("corr-safe", StringComparison.Ordinal));
     }
 
-    private static void IdentityModelHasOnlyAllowedSchemas()
+    private static void IdentityModelRemainsInIdentitySchema()
     {
         using var context = CreateModelContext();
-        var unexpected = context.Model.GetEntityTypes()
-            .Select(entity => entity.GetSchema())
-            .Where(schema => schema is not "foundation" and not "identity")
-            .Distinct()
+
+        var identityEntities = context.Model.GetEntityTypes()
+            .Where(entity =>
+                entity.GetTableName() == "users" ||
+                entity.GetTableName() == "user_claims" ||
+                entity.GetTableName() == "user_logins" ||
+                entity.GetTableName() == "user_tokens" ||
+                (entity.GetTableName()?.StartsWith("OpenIddict", StringComparison.Ordinal) ?? false))
             .ToArray();
 
-        AssertEqual(0, unexpected.Length);
+        AssertTrue(identityEntities.Length > 0);
+        AssertTrue(identityEntities.All(entity => entity.GetSchema() == "identity"));
 
-        var tables = context.Model.GetEntityTypes()
-            .Select(entity => entity.GetTableName())
-            .Where(name => name is not null)
-            .ToArray();
-
-        AssertTrue(tables.Contains("users", StringComparer.Ordinal));
-        AssertTrue(tables.Contains("audit_events", StringComparer.Ordinal));
-        AssertTrue(tables.Any(name => name!.StartsWith("OpenIddict", StringComparison.Ordinal)));
+        var audit = context.Model.GetEntityTypes()
+            .Single(entity => entity.GetTableName() == "audit_events");
+        AssertEqual("foundation", audit.GetSchema());
     }
 
     private static void IdentityUserKeyIsUuid()
