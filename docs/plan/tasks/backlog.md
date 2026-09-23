@@ -1,31 +1,29 @@
 # Planning Backlog
 
-## Immediate — FW-IMP-008 thin vertical framework proof
+## Immediate — P5 Parties first vertical slice definition
 Status: SCOPE DEFINITION REQUIRED / NOT STARTED.
 
 Predecessor:
-- FW-IMP-007 — COMPLETED.
-- canonical report: `docs/plan/01-foundation/fw-imp-007-implementation.md`
-- tested implementation commit: `2821c98bbd04b81dcbb10e99ddb0a4974ca7a517`
-- successful TEST deploy run: `35865600657`
+- FW-IMP-008 — COMPLETED.
+- canonical report: `docs/plan/01-foundation/fw-imp-008-implementation.md`
+- final tested implementation commit: `bf9b3882dbc91ee801d169a62587c7658baaa63b`
+- successful Foundation Build run: `35868005913`
+- successful TEST deploy/smoke run: `35868151531`
+
+Repository-defined direction:
+- P5 Core application implementation;
+- first dependency/module: Parties.
 
 Before implementation:
-- define the exact smallest vertical proof from accepted Foundation contracts;
-- keep it non-domain or deliberately minimal;
-- do not invent ERP business rules;
-- define measurable acceptance criteria and targeted verification;
-- verify whether any new owner decision is genuinely required.
+- read all frozen PLAN-003 Party contracts;
+- read relevant frozen logical DB model files;
+- select the smallest coherent Party vertical slice;
+- map conceptual Party entities/constraints to the logical DB model before physical schema;
+- define exact migration/domain/application/API/UI/test scope;
+- identify genuine blockers rather than filling gaps with generic ERP conventions;
+- assign a dedicated implementation work-package ID only when the scope is explicitly recorded.
 
-Deferred technology gates that must not be silently selected:
-- structured logging/metrics stack;
-- production secret store;
-- production reverse proxy/tunnel details;
-- production DNS/ingress/TLS;
-- Desktop shell technology;
-- Mobile shell technology.
-
-## Subsequent Foundation implementation sequence
-- FW-IMP-008 — thin vertical framework proof — scope definition required before implementation
+Do not combine Product/Sales/Inventory/Purchasing/Warehouse/Finance implementation into the first Party slice.
 
 ## Quality — master planning sequence item 10
 Target: docs/plan/08-kalite/
