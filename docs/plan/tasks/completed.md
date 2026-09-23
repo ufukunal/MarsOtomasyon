@@ -694,3 +694,37 @@ Failed intermediate CI checks and corrections:
 - `docs/plan/01-foundation/fw-imp-006-implementation.md`
 
 Full Test Day pending.
+
+
+## FW-IMP-007 — Docker/test deployment baseline
+**Status:** COMPLETED
+
+Implemented:
+- API, migrator and Web Docker images;
+- TEST-only Foundation Docker Compose project;
+- preservation of existing PostgreSQL/Valkey Compose ownership;
+- separate TEST migration/runtime PostgreSQL roles;
+- migration-before-startup policy;
+- readiness failure on pending migrations;
+- remote TEST preflight/deployment/readiness/smoke automation;
+- TEST-only static/proxy Web serving for Vite production assets.
+
+Evidence:
+- canonical report: `docs/plan/01-foundation/fw-imp-007-implementation.md`
+- tested implementation commit: `2821c98bbd04b81dcbb10e99ddb0a4974ca7a517`
+- successful workflow run: `35865600657`
+- remote TEST deployment: PASS
+- /health/live: 200
+- /health/ready: 200
+- protected API unauthenticated: 401
+- OpenAPI: 200
+- runner-to-TEST smoke: PASS
+
+Not selected:
+- production deployment;
+- production secret store;
+- production ingress/reverse proxy/TLS;
+- structured logging/metrics backend;
+- Desktop/Mobile shell technology.
+
+Full Test Day remains pending.
