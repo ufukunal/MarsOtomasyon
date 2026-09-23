@@ -1,33 +1,31 @@
 # Planning Backlog
 
-## Immediate — P5 Parties next vertical slice definition
-Status: SCOPE DEFINITION REQUIRED / NOT STARTED.
+## Immediate — PARTY-IMP-003 Add Turkish Tax Identity
+Status: READY / IMPLEMENTATION NOT STARTED.
 
-Predecessors:
-- PARTY-IMP-001 — Create Party Core Identity — COMPLETED.
-- PARTY-IMP-002 — Activate Party Role — COMPLETED.
-- PARTY-IMP-002 canonical report: `docs/plan/03-cariler/party-imp-002-implementation.md`
-- Foundation Build run `35889499695` — SUCCESS.
-- Foundation Test Deploy run `35889499708` — SUCCESS.
+Readiness:
+- `docs/plan/03-cariler/p5-third-slice-readiness.md`
 
-Repository-defined Parties follow-up requirements before full PLAN-003 parity:
-- Tax Identity records and deterministic collision rules;
-- accepted soft duplicate candidate/review flow;
+Scope:
+- existing Party + trusted company;
+- TR jurisdiction;
+- VKN = exactly 10 ASCII digits;
+- TCKN = exactly 11 ASCII digits;
+- `party.tax_identity.manage`;
+- deterministic active company/scheme/value collision;
+- additive Tax Identity persistence/migration;
+- protected API + /parties/new add flow;
+- audit without raw VKN/TCKN;
+- durable idempotency.
+
+Explicitly deferred:
+- checksum/provider/GİB enrollment verification;
+- generic non-TR schemes;
+- read/read_full/list/edit/deactivate;
+- fuzzy duplicate review;
 - contacts/addresses;
-- role lifecycle after activation;
-- lifecycle/merge in later slices.
-
-No exact order or dedicated next work-package ID is frozen.
-
-Before implementation:
-- reread frozen PLAN-003 and PLAN-010 contracts;
-- compare dependency value and minimum authoritative entity/migration surface of the remaining candidates;
-- select the smallest independently coherent Party use case;
-- preserve PARTY-IMP-001/002 company, permission, audit and idempotency boundaries;
-- define exact DB/API/UI/permission/test impact;
-- assign a dedicated implementation work-package ID only after scope is explicit.
-
-Do not assume list order is implementation order.
+- lifecycle/merge;
+- Finance/Sales/Purchasing integration.
 
 ## Quality — master planning sequence item 10
 Target: docs/plan/08-kalite/
