@@ -280,7 +280,7 @@ test_environment:
 
 known_constraints:
   - Application core is not yet implemented.
-  - FW-IMP-001 through FW-IMP-005 are implemented.
+  - FW-IMP-001 through FW-IMP-007 are implemented.
   - FW-IMP-005 API foundation is COMPLETED with canonical evidence at docs/plan/01-foundation/fw-imp-005-implementation.md and successful workflow run 35722169157.
   - FW-IMP-006 Mars.Web + Mars.UI foundation is COMPLETED with canonical evidence at docs/plan/01-foundation/fw-imp-006-implementation.md and successful workflow run 35729371845.
   - FW-IMP-007 Docker/test deployment baseline is COMPLETED with canonical evidence at docs/plan/01-foundation/fw-imp-007-implementation.md and successful TEST deployment workflow run 35865600657.
