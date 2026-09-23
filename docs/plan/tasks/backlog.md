@@ -1,37 +1,41 @@
 # Planning Backlog
 
-## Immediate — P5 Parties next vertical slice definition
-Status: SCOPE DEFINITION REQUIRED / NOT STARTED.
+## Immediate — PARTY-IMP-006 Party Master Completion Tranche
+Status: READY FOR IMPLEMENTATION.
 
-Predecessors:
-- PARTY-IMP-001 — COMPLETED.
-- PARTY-IMP-002 — COMPLETED.
-- PARTY-IMP-003 — COMPLETED.
-- PARTY-IMP-004 — COMPLETED.
+Owner direction:
+- broaden Party implementation scope;
+- do not create a separate implementation package for each small capability.
+
+Predecessor:
 - PARTY-IMP-005 — COMPLETED.
-- PARTY-IMP-005 canonical report: `docs/plan/03-cariler/party-imp-005-implementation.md`
-- Foundation Build run `35922536747` — SUCCESS.
-- Foundation Test Deploy run `35922536768` — SUCCESS.
+- canonical report: `docs/plan/03-cariler/party-imp-005-implementation.md`
+- Build `35922536747` — SUCCESS.
+- Test Deploy `35922536768` — SUCCESS.
 
-Repository-defined remaining Parties work includes:
-- Party reactivate with current duplicate/legal identity validation;
-- accepted soft duplicate candidate/review flow;
-- Contact Person / Communication Point / Address;
+Readiness:
+- `docs/plan/03-cariler/p5-party-master-completion-readiness.md`
+
+Single broad tranche:
+- Party directory/detail/read;
+- Party legal/display identity edit;
+- Contact Person / Communication Point;
+- Address lifecycle/default-by-purpose;
+- current TR VKN/TCKN read/masking/lifecycle;
 - Party External Mapping;
-- Party Merge;
-- broader Tax Identity read/lifecycle/provider/non-TR support where later required.
+- explicit Party Merge + lineage;
+- required permission/API/UI/persistence/migration/audit/idempotency/concurrency/targeted-test work.
 
-No exact order or dedicated PARTY-IMP-006 ID is frozen.
+Deferred outside PARTY-IMP-006:
+- fuzzy duplicate candidate generation;
+- Party Reactivation;
+- provider/GIB and non-TR tax behavior;
+- Communications consent/preferences;
+- Sales/Purchasing/Finance implementation;
+- production deployment;
+- Full Test Day.
 
-Before implementation:
-- reread frozen PLAN-003 and PLAN-010 contracts;
-- compare dependency value and minimum authoritative entity/migration surface;
-- preserve PARTY-IMP-001 through PARTY-IMP-005 company, permission, audit, idempotency, privacy and concurrency boundaries;
-- do not invent fuzzy matching thresholds, provider/legal semantics or generic ERP fields;
-- define exact DB/API/UI/permission/privacy/test impact;
-- assign a dedicated implementation work-package ID only after scope is explicit.
-
-Do not assume list order is implementation order.
+Do not split included scope into additional PARTY-IMP work packages merely for implementation convenience. Internal sequencing is allowed inside PARTY-IMP-006.
 
 ## Quality — master planning sequence item 10
 Target: docs/plan/08-kalite/
