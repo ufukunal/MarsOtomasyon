@@ -142,6 +142,21 @@ Still deferred:
 - soft/fuzzy duplicate review;
 - Settings/Numbering allocator.
 
-Next:
-- define the next smallest coherent Parties vertical slice;
-- no PARTY-IMP-003 ID is assigned yet.
+Third implementation work package:
+- PARTY-IMP-003 — Add Turkish Tax Identity.
+
+Readiness:
+- `docs/plan/03-cariler/p5-third-slice-readiness.md`
+
+Status:
+- READY FOR IMPLEMENTATION;
+- implementation NOT STARTED.
+
+Selected scope:
+- existing trusted-company Party;
+- TR jurisdiction only;
+- VKN 10-digit / TCKN 11-digit structural identity;
+- deterministic active company-level collision;
+- `party.tax_identity.manage`;
+- no checksum/provider/GİB enrollment claim;
+- no raw tax identity audit/result disclosure.
