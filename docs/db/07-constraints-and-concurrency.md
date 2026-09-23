@@ -4,6 +4,7 @@ Status: FROZEN — PLAN-010. This file defines required outcomes, not DDL or loc
 
 ## 1. Identity and scope
 Future physical schema must guarantee:
+- active/effective ERP permission grant uniqueness for Actor + Company + PermissionCode;
 - Party Code unique in accepted company scope;
 - deterministic active tax identity collision prevention;
 - Product/SKU/code and Barcode mapping uniqueness in accepted company/namespace scope;
@@ -89,3 +90,16 @@ Exact token/column strategy remains physical design.
 ## 13. Reviewer testability
 Every invariant above maps to a future duplicate, stale-state, boundary or concurrency test.
 Heavy concurrency/PostgreSQL proof is deferred to Full Test Day.
+
+
+## 14. ERP permission grants
+
+ADR-0005 requires:
+- current PostgreSQL grant state is authoritative;
+- authentication/token claims alone cannot authorize an ERP command;
+- permission checks combine Actor + trusted Company + PermissionCode;
+- duplicate active effective grants for the same scope are durably prevented;
+- revoke/disable state takes effect on subsequent authoritative evaluations;
+- branch scope is not added until a concrete module requires it.
+
+Heavy authorization concurrency/security regression remains Full Test Day scope.
