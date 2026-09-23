@@ -795,3 +795,43 @@ Deferred:
 - broad auth/browser/PostgreSQL concurrency evidence.
 
 Planning metrics remain 9 / 30 = 30.0% master and 8 / 8 = 100.0% P2.
+
+
+## PARTY-IMP-002 — Activate Party Role
+**Status:** COMPLETED
+
+Implemented:
+- normalized Party Role persistence for CUSTOMER/SUPPLIER activation;
+- `party.role.manage` via Mars-owned PostgreSQL permission authority;
+- trusted-company Party lookup;
+- additive EF migration;
+- protected `POST /api/v1/parties/{partyPublicId}/roles`;
+- post-create CUSTOMER/SUPPLIER activation on `/parties/new`;
+- audit + durable idempotency;
+- targeted build/test/model/migration/API/Web verification;
+- remote TEST deployment/smoke.
+
+Evidence:
+- canonical report: `docs/plan/03-cariler/party-imp-002-implementation.md`
+- scope commit: `e3052ecfc67a0831a745354eb94d4ca1f08c5c6f`
+- implementation commit: `41c1015fceb1ff1c6efef3b55d35338fb4c64f88`
+- migration commit: `b540589291d9e115175649f29fab4ef37c943ebf`
+- Foundation Build run: `35889499695` — SUCCESS
+- Foundation Test Deploy run: `35889499708` — SUCCESS
+- frontend tests: 13 / 13 PASS
+- Foundation targeted tests: 40 / 40 PASS
+- migration/model drift: PASS
+- TEST Party Role migration applied; migration count 4
+- TEST /parties/new: 200
+- unauthenticated role POST: 401
+- live/ready: 200 / 200
+- runner-to-TEST smoke: PASS
+
+Deferred:
+- role deactivate/reactivate;
+- Tax Identity/contact/address/duplicate-review/merge;
+- role-specific defaults/codes;
+- Finance/Sales/Purchasing integration;
+- authenticated browser role mutation and heavy concurrency/security coverage.
+
+Planning metrics remain 9 / 30 = 30.0% master and 8 / 8 = 100.0% P2.
