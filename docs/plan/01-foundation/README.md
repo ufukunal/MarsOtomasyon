@@ -120,12 +120,10 @@ Final tested implementation:
 - commit `2821c98bbd04b81dcbb10e99ddb0a4974ca7a517`;
 - workflow run `35865600657`.
 
-Next repository-tracked package:
-- `FW-IMP-008 — thin vertical framework proof`.
+Historical handoff after FW-IMP-007:
+- `FW-IMP-008 — thin vertical framework proof` was the next package and is now COMPLETED.
 
-Its exact implementation scope is not yet defined in repository sources. Define the smallest non-domain or deliberately minimal proof and acceptance criteria before mutation.
-
-Production secret-store, production reverse-proxy/tunnel, production ingress/TLS and logging/metrics technologies remain deferred.
+Its completion evidence is recorded below. Production secret-store, production reverse-proxy/tunnel, production ingress/TLS and logging/metrics technologies remain deferred.
 
 
 ## FW-IMP-008 current status
