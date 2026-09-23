@@ -83,9 +83,9 @@ test_policy:
   heavy_tests: FULL_TEST_DAY_ONLY
 
 active_task:
-  id: P5
-  title: Parties next vertical slice definition
-  status: scope_definition_required
+  id: PARTY-IMP-003
+  title: Add Turkish Tax Identity
+  status: ready
   file: docs/plan/active-task.yaml
   progress: not_started
 
@@ -328,42 +328,42 @@ known_constraints:
 
 blocked_items:
   - No unresolved blocker remains for PARTY-IMP-002; Activate Party Role is completed.
-  - Full PLAN-003 Create Party parity remains incomplete because Tax Identity, accepted soft duplicate review, contacts/addresses, role lifecycle and later Party lifecycle/merge remain deferred.
-  - Repository backlog lists these follow-up requirements but does not assign their implementation order or a dedicated next work-package ID.
-  - Define the next smallest coherent Parties vertical slice from frozen PLAN-003 + PLAN-010 before schema/code mutation; do not invent PARTY-IMP-003 merely for convenience.
+  - PARTY-IMP-003 Add Turkish Tax Identity is READY FOR IMPLEMENTATION with canonical readiness at docs/plan/03-cariler/p5-third-slice-readiness.md.
+  - PARTY-IMP-003 is limited to TR VKN/TCKN structural identity + deterministic company collision; checksum/provider/GİB enrollment and generic non-TR schemes remain deferred.
+  - Full PLAN-003 Party parity remains incomplete because soft duplicate review, contacts/addresses, role lifecycle and later Party lifecycle/merge remain deferred.
   - Production secret-store, production reverse-proxy/tunnel, production ingress/TLS and structured logging/metrics choices remain deferred.
 next_action:
-  id: P5
-  title: Define next Parties vertical slice
+  id: PARTY-IMP-003
+  title: Add Turkish Tax Identity
   phase: P5
   module: parties
-  status: SCOPE_DEFINITION_REQUIRED
-  work_package_id: NOT_ASSIGNED
+  status: READY
+  readiness_report: docs/plan/03-cariler/p5-third-slice-readiness.md
   predecessor:
     id: PARTY-IMP-002
     status: completed
     canonical_report: docs/plan/03-cariler/party-imp-002-implementation.md
-    scope_commit: e3052ecfc67a0831a745354eb94d4ca1f08c5c6f
-    implementation_commit: 41c1015fceb1ff1c6efef3b55d35338fb4c64f88
-    migration_commit: b540589291d9e115175649f29fab4ef37c943ebf
-    foundation_build_run: 35889499695
-    test_deploy_run: 35889499708
-    tested_deploy_commit: 09e1eed87edf23da4002127337185f13dc3a6366
-  repository_follow_up_candidates:
-    - Tax Identity records and deterministic collision rules
-    - accepted soft duplicate candidate/review flow
+  scope:
+    - add one ACTIVE TR VKN/TCKN identity to an existing trusted-company Party
+    - party.tax_identity.manage
+    - deterministic active company + jurisdiction + scheme + value collision
+    - additive EF migration
+    - POST /api/v1/parties/{partyPublicId}/tax-identities
+    - tax-identity add UI on /parties/new
+    - audit without raw tax value
+    - durable idempotency
+    - targeted verification + TEST deploy/smoke
+  deferred:
+    - generic non-TR tax schemes
+    - checksum/provider/GİB enrollment verification
+    - tax identity read/read_full/list
+    - tax identity edit/deactivate
+    - soft duplicate review
     - contacts/addresses
-    - role lifecycle after activation
-    - lifecycle/merge in later slices
-  scope_intent:
-    - select the next smallest coherent Parties vertical slice from frozen PLAN-003 and PLAN-010
-    - preserve PARTY-IMP-001 and PARTY-IMP-002 company/permission/idempotency/audit boundaries
-    - map exact entity/constraint/API/UI/migration effects before mutation
-    - assign a dedicated work-package ID only after scope is explicit
+    - Party/role lifecycle
+    - merge
   restrictions:
-    - do not assume backlog order is implementation order
-    - no generic ERP rule filling
-    - no Sales/Product/Inventory/Purchasing/Warehouse/Finance implementation
+    - no Finance/Sales/Purchasing authority
     - no production deployment
     - no Full Test Day
     - exact master planning metric remains 9 / 30 = 30.0
