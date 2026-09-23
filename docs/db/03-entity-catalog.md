@@ -9,6 +9,7 @@ Status: FROZEN — PLAN-010. Names are conceptual, not physical table names.
 - Outbox Message — pending/published asynchronous event evidence.
 - Approval Decision — exact snapshot/version/action approval evidence.
 - Audit Event — actor/scope/action/reason/correlation evidence.
+- Permission Grant — Mars-owned effective Actor + Company + PermissionCode authorization state, independent from Identity/OpenIddict token/session authority.
 
 ## Parties
 - Party — company-scoped PERSON/ORGANIZATION.
@@ -110,3 +111,18 @@ Examples only, rebuildable:
 
 ## Authority rule
 A projection or work-state record cannot be promoted to authoritative physical/financial truth merely because it is convenient for a UI query.
+
+
+### P5 authorization amendment
+
+The Permission Grant logical record was added when P5 required the first concrete ERP permission (`party.create`).
+
+Required semantics:
+- Actor identity;
+- Company scope;
+- PermissionCode;
+- active/revoked state;
+- grant/revoke audit metadata;
+- durable prevention of duplicate active effective grants for the same Actor + Company + PermissionCode.
+
+This does not introduce a role/group administration model. That remains a later source-backed concern.
