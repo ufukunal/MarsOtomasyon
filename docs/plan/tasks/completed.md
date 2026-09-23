@@ -757,3 +757,41 @@ Evidence:
 No new ERP schema, migration, business rule, package, production deployment or authentication bypass was introduced.
 
 P4 Foundation implementation exit is satisfied. Next phase is P5 Core application implementation, starting with Parties after the first implementation work package is explicitly defined.
+
+
+## PARTY-IMP-001 — Create Party Core Identity
+**Status:** COMPLETED
+
+Implemented:
+- Mars-owned PostgreSQL Permission Grant authority/evaluator for `party.create`;
+- company-scoped Party core identity with PERSON / ORGANIZATION;
+- caller-supplied company-scoped Party Code;
+- legal/display identity, ACTIVE initial state and optimistic version;
+- additive Parties/Foundation EF migration;
+- protected `POST /api/v1/parties`;
+- Mars.Web `/parties/new`;
+- audit + durable idempotency;
+- targeted Party/Web/security/model tests;
+- TEST migration/deployment/smoke.
+
+Evidence:
+- canonical report: `docs/plan/03-cariler/party-imp-001-implementation.md`
+- migration commit: `1c6983bea3f046522183a2a5f366f2b868a721f0`
+- Foundation Build run: `35885316247` — SUCCESS
+- Foundation Test Deploy run: `35885323206` — SUCCESS
+- frontend tests: 12 / 12 PASS
+- Foundation targeted tests: 35 / 35 PASS
+- migration/model drift: PASS
+- TEST Party migration applied; migration count 3
+- TEST /parties/new: 200
+- unauthenticated Party POST: 401
+- live/ready: 200 / 200
+- runner-to-TEST smoke: PASS
+
+Deferred:
+- Party Role/Tax Identity/Contact/Address/Mapping/Merge;
+- soft duplicate review;
+- Settings/Numbering allocator;
+- broad auth/browser/PostgreSQL concurrency evidence.
+
+Planning metrics remain 9 / 30 = 30.0% master and 8 / 8 = 100.0% P2.
