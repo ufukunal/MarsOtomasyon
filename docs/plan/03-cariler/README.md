@@ -76,30 +76,40 @@ PLAN-003 does not define:
 - files/notes/tags without a later source-backed requirement.
 
 
-## P5 first implementation readiness
+## P5 implementation status
+
+First implementation work package:
+- PARTY-IMP-001 — Create Party Core Identity — COMPLETED.
 
 Canonical readiness:
 - `docs/plan/03-cariler/p5-first-slice-readiness.md`
 
-Selected first slice:
-- PARTY-IMP-001 — Create Party Core Identity.
+Canonical implementation evidence:
+- `docs/plan/03-cariler/party-imp-001-implementation.md`
 
-Status:
-- READY FOR IMPLEMENTATION;
-- implementation NOT STARTED.
+Verification:
+- Foundation Build `35885316247` — SUCCESS;
+- Foundation Test Deploy `35885323206` — SUCCESS;
+- frontend tests 12 / 12;
+- Foundation targeted tests 35 / 35;
+- committed Party migration applied to TEST;
+- /parties/new 200;
+- unauthenticated POST /api/v1/parties 401;
+- live/ready 200 / 200;
+- runner-to-TEST smoke PASS.
 
-Resolved:
-- Mars-owned permission authority via ADR-0005;
-- first-slice Party Code required caller input with no invented allocator/format;
-- soft/fuzzy duplicate warning explicitly deferred;
-- trusted CompanyId persisted without a physical Company FK in this slice.
+PARTY-IMP-001 intentionally remains narrower than full PLAN-003 Create Party parity.
 
-Deferred first-slice data:
+Still deferred:
 - Party Role;
 - Tax Identity;
 - Contact/Communication;
 - Address;
 - External Mapping;
-- Merge Lineage.
+- Merge Lineage;
+- soft/fuzzy duplicate review;
+- Settings/Numbering allocator.
 
-Full PLAN-003 Create Party parity is not claimed until later Party slices add the deferred duplicate/tax/role/contact/address behavior.
+Next:
+- define the next smallest coherent Parties vertical slice from these repository-defined follow-up requirements;
+- no dedicated next implementation ID is assigned yet.
