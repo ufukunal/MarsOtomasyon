@@ -918,7 +918,7 @@ Current status:
   - .NET 10 LTS — `docs/plan/decisions/ADR-0001-dotnet-10-lts-baseline.md`
   - EF Core 10 + Npgsql — `docs/plan/decisions/ADR-0002-ef-core-npgsql-baseline.md`
 - other listed Foundation technology gates remain deferrable or later-phase for the first thin slice.
-- P4 Foundation implementation readiness is READY.
+- P4 Foundation implementation readiness was satisfied; the repository-defined FW-IMP-001 through FW-IMP-008 sequence is now COMPLETED.
 - `FW-IMP-001 — repository solution skeleton` is COMPLETED.
 - `FW-IMP-002 — configuration/context/error primitives` is COMPLETED.
 - `FW-IMP-003 — persistence/migration baseline` is COMPLETED.
