@@ -25,6 +25,7 @@ assert_status 200 "/health/ready"
 assert_status 401 "/api/v1/foundation/context"
 assert_status 401 "/api/v1/foundation/proof" POST
 assert_status 401 "/api/v1/parties" POST
+assert_status 401 "/api/v1/parties/00000000-0000-0000-0000-000000000001/roles" POST
 assert_status 200 "/openapi/v1.json"
 
 echo "SMOKE_RESULT=PASS"

@@ -13,6 +13,7 @@ using Mars.Application.Foundation.Outbox;
 using Mars.Application.Foundation.Proof;
 using Mars.Application.Parties;
 using Mars.Application.Parties.CreateParty;
+using Mars.Application.Parties.ActivatePartyRole;
 using Mars.Infrastructure.Identity;
 using Mars.Infrastructure.Persistence;
 using Mars.Infrastructure.Persistence.Foundation;
@@ -42,6 +43,8 @@ builder.Services.AddScoped<FoundationProofHandler>();
 builder.Services.AddScoped<IPermissionEvaluator, EfPermissionEvaluator>();
 builder.Services.AddScoped<IPartyCreatePersistence, EfPartyCreatePersistence>();
 builder.Services.AddScoped<CreatePartyHandler>();
+builder.Services.AddScoped<IPartyRoleActivationPersistence, EfPartyRoleActivationPersistence>();
+builder.Services.AddScoped<ActivatePartyRoleHandler>();
 builder.Services.AddScoped<IAuthorizationHandler, MarsPermissionAuthorizationHandler>();
 
 builder.Services.AddOpenApi("v1");
@@ -96,6 +99,14 @@ builder.Services.AddAuthorization(options =>
         {
             policy.RequireAuthenticatedUser();
             policy.AddRequirements(new MarsPermissionRequirement(PartyPermissions.Create));
+        });
+
+    options.AddPolicy(
+        PartyPermissions.RoleManage,
+        policy =>
+        {
+            policy.RequireAuthenticatedUser();
+            policy.AddRequirements(new MarsPermissionRequirement(PartyPermissions.RoleManage));
         });
 });
 
@@ -206,6 +217,39 @@ app.MapPost(
     .RequireAuthorization(PartyPermissions.Create)
     .WithName("CreateParty")
     .WithSummary("Creates one company-scoped Party core identity.");
+
+app.MapPost(
+        "/api/v1/parties/{partyPublicId:guid}/roles",
+        async (
+            Guid partyPublicId,
+            ActivatePartyRoleRequest request,
+            HttpRequest httpRequest,
+            IExecutionContext executionContext,
+            ActivatePartyRoleHandler handler,
+            CancellationToken cancellationToken) =>
+        {
+            var result = await handler.ExecuteAsync(
+                new ActivatePartyRoleCommand(
+                    partyPublicId,
+                    request.Role,
+                    httpRequest.Headers["Idempotency-Key"].ToString()),
+                executionContext,
+                cancellationToken);
+
+            if (result.IsFailure)
+            {
+                return ApplicationErrorHttpMapper.ToResult(
+                    result.Error!,
+                    executionContext.CorrelationId.Value);
+            }
+
+            return Results.Created(
+                $"/api/v1/parties/{partyPublicId:D}/roles/{result.Value!.Role}",
+                result.Value);
+        })
+    .RequireAuthorization(PartyPermissions.RoleManage)
+    .WithName("ActivatePartyRole")
+    .WithSummary("Activates one CUSTOMER or SUPPLIER role on an existing company-scoped Party.");
 
 app.MapPost(
         "/api/v1/foundation/proof",

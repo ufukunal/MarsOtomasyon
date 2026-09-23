@@ -118,6 +118,7 @@ PARTY_PAGE_STATUS="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 3 "http:
 PROTECTED_STATUS="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 3 "http://127.0.0.1:$WEB_PORT/api/v1/foundation/context")"
 PROOF_PROTECTED_STATUS="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 3 -X POST "http://127.0.0.1:$WEB_PORT/api/v1/foundation/proof")"
 PARTY_PROTECTED_STATUS="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 3 -X POST -H 'Content-Type: application/json' -d '{"partyCode":"SMOKE","kind":"PERSON","legalName":"Smoke"}' "http://127.0.0.1:$WEB_PORT/api/v1/parties")"
+PARTY_ROLE_PROTECTED_STATUS="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 3 -X POST -H 'Content-Type: application/json' -d '{"role":"CUSTOMER"}' "http://127.0.0.1:$WEB_PORT/api/v1/parties/00000000-0000-0000-0000-000000000001/roles")"
 OPENAPI_STATUS="$(curl -sS -o /tmp/mars-foundation-openapi.json -w '%{http_code}' --max-time 3 "http://127.0.0.1:$WEB_PORT/openapi/v1.json")"
 
 test "$WEB_STATUS" = "200"
@@ -127,10 +128,12 @@ test "$PARTY_PAGE_STATUS" = "200"
 test "$PROTECTED_STATUS" = "401"
 test "$PROOF_PROTECTED_STATUS" = "401"
 test "$PARTY_PROTECTED_STATUS" = "401"
+test "$PARTY_ROLE_PROTECTED_STATUS" = "401"
 test "$OPENAPI_STATUS" = "200"
 grep -F '/api/v1/foundation/context' /tmp/mars-foundation-openapi.json >/dev/null
 grep -F '/api/v1/foundation/proof' /tmp/mars-foundation-openapi.json >/dev/null
 grep -F '/api/v1/parties' /tmp/mars-foundation-openapi.json >/dev/null
+grep -F '/api/v1/parties/{partyPublicId}/roles' /tmp/mars-foundation-openapi.json >/dev/null
 rm -f /tmp/mars-foundation-openapi.json
 
 MIGRATION_COUNT="$(docker exec -e PGPASSWORD="$MARS_PG_MASTER_PASSWORD" "$PG_CONTAINER" \
@@ -144,6 +147,7 @@ echo "DEPLOY_PARTY_PAGE_STATUS=$PARTY_PAGE_STATUS"
 echo "DEPLOY_PROTECTED_STATUS=$PROTECTED_STATUS"
 echo "DEPLOY_PROOF_PROTECTED_STATUS=$PROOF_PROTECTED_STATUS"
 echo "DEPLOY_PARTY_PROTECTED_STATUS=$PARTY_PROTECTED_STATUS"
+echo "DEPLOY_PARTY_ROLE_PROTECTED_STATUS=$PARTY_ROLE_PROTECTED_STATUS"
 echo "DEPLOY_OPENAPI_STATUS=$OPENAPI_STATUS"
 echo "DEPLOY_EF_MIGRATION_COUNT=$MIGRATION_COUNT"
 echo "DEPLOY_RESULT=PASS"

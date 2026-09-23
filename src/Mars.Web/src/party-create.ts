@@ -12,6 +12,14 @@ export interface CreatePartyReceipt {
   correlationId: string;
 }
 
+export interface ActivatePartyRoleReceipt {
+  partyPublicId: string;
+  role: "CUSTOMER" | "SUPPLIER";
+  state: "ACTIVE";
+  version: number;
+  correlationId: string;
+}
+
 export interface PartyCreateApi {
   request<T>(path: string, init?: RequestInit): Promise<ApiResponse<T>>;
 }
@@ -72,6 +80,81 @@ export function createPartyCreatePage(
   status.setAttribute("role", "status");
   status.setAttribute("aria-live", "polite");
 
+  const roles = document.createElement("section");
+  roles.className = "mars-component-stack";
+  roles.hidden = true;
+
+  const rolesHeading = document.createElement("h2");
+  rolesHeading.textContent = "Roller";
+
+  const rolesHelp = document.createElement("p");
+  rolesHelp.textContent =
+    "Oluşturulan Party aynı kimlik üzerinde CUSTOMER ve/veya SUPPLIER rolü alabilir. Rol aktivasyonu finansal hareket oluşturmaz.";
+
+  const roleStatus = document.createElement("p");
+  roleStatus.setAttribute("role", "status");
+  roleStatus.setAttribute("aria-live", "polite");
+
+  const customerRole = createButton({
+    label: "CUSTOMER rolünü etkinleştir",
+    type: "button"
+  });
+  const supplierRole = createButton({
+    label: "SUPPLIER rolünü etkinleştir",
+    type: "button"
+  });
+
+  roles.append(rolesHeading, rolesHelp, customerRole, supplierRole, roleStatus);
+
+  let createdPartyPublicId: string | null = null;
+
+  const activateRole = async (
+    role: "CUSTOMER" | "SUPPLIER",
+    button: HTMLButtonElement): Promise<void> => {
+    if (!createdPartyPublicId) return;
+
+    button.disabled = true;
+    roleStatus.textContent = `${role} rolü etkinleştiriliyor.`;
+
+    try {
+      const response = await api.request<ActivatePartyRoleReceipt>(
+        `/parties/${createdPartyPublicId}/roles`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Idempotency-Key": createOperationKey()
+          },
+          body: JSON.stringify({ role })
+        });
+
+      roleStatus.textContent =
+        `${response.data.role} rolü ACTIVE. Correlation: ${response.data.correlationId}.`;
+    } catch (error) {
+      button.disabled = false;
+      if (error instanceof ApiClientError && error.status === 401) {
+        roleStatus.textContent = "Rol etkinleştirmek için kimliği doğrulanmış oturum gerekiyor.";
+      } else if (error instanceof ApiClientError && error.status === 403) {
+        roleStatus.textContent = "Bu işlem için party.role.manage yetkisi gerekiyor.";
+      } else if (error instanceof ApiClientError && error.status === 404) {
+        roleStatus.textContent = "Party mevcut şirket kapsamında bulunamadı.";
+      } else if (error instanceof ApiClientError && error.status === 409) {
+        roleStatus.textContent = "Rol zaten mevcut veya işlem anahtarı daha önce kullanıldı.";
+      } else if (error instanceof ApiClientError) {
+        roleStatus.textContent = error.message;
+      } else {
+        roleStatus.textContent = "Party rolü etkinleştirilemedi.";
+      }
+    }
+  };
+
+  customerRole.addEventListener("click", () => {
+    void activateRole("CUSTOMER", customerRole);
+  });
+  supplierRole.addEventListener("click", () => {
+    void activateRole("SUPPLIER", supplierRole);
+  });
+
   const submit = createButton({
     label: "Party oluştur",
     variant: "primary",
@@ -100,6 +183,11 @@ export function createPartyCreatePage(
         })
       });
 
+      createdPartyPublicId = response.data.publicId;
+      roles.hidden = false;
+      customerRole.disabled = false;
+      supplierRole.disabled = false;
+      roleStatus.textContent = "İsteğe bağlı CUSTOMER veya SUPPLIER rolünü etkinleştirebilirsiniz.";
       status.textContent =
         `Party oluşturuldu: ${response.data.partyCode}. Correlation: ${response.data.correlationId}.`;
     } catch (error) {
@@ -119,6 +207,6 @@ export function createPartyCreatePage(
     }
   });
 
-  panel.append(heading, explanation, form);
+  panel.append(heading, explanation, form, roles);
   return panel;
 }

@@ -26,5 +26,6 @@ public sealed class MarsDbContext(DbContextOptions<MarsDbContext> options)
         modelBuilder.ApplyConfiguration(new OutboxMessageConfiguration());
         modelBuilder.ApplyConfiguration(new PermissionGrantConfiguration());
         modelBuilder.ApplyConfiguration(new PartyConfiguration());
+        modelBuilder.ApplyConfiguration(new PartyRoleConfiguration());
     }
 }

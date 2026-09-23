@@ -357,3 +357,76 @@ test("Party create page sends only first-slice fields and no client company auth
   assert.equal("companyId" in body, false);
   assert.match(page.textContent ?? "", /P-200/);
 });
+
+
+test("Party create page activates role through Party-scoped endpoint without client company authority", async () => {
+  const requests: Array<{ path: string; init?: RequestInit }> = [];
+  const operationKeys = ["party-op-role", "role-op-customer"];
+
+  const api = {
+    request: async <T>(path: string, init?: RequestInit) => {
+      requests.push({ path, init });
+
+      if (path === "/parties") {
+        return {
+          data: {
+            publicId: "22222222-2222-2222-2222-222222222222",
+            partyCode: "P-201",
+            kind: "PERSON",
+            legalName: "Ada Role",
+            displayName: null,
+            state: "ACTIVE",
+            version: 1,
+            correlationId: "corr-party-role-create"
+          } as T,
+          correlationId: "corr-party-role-create",
+          status: 201
+        };
+      }
+
+      return {
+        data: {
+          partyPublicId: "22222222-2222-2222-2222-222222222222",
+          role: "CUSTOMER",
+          state: "ACTIVE",
+          version: 1,
+          correlationId: "corr-party-role"
+        } as T,
+        correlationId: "corr-party-role",
+        status: 201
+      };
+    }
+  };
+
+  const page = createPartyCreatePage(api, () => operationKeys.shift() ?? "unexpected-op");
+  document.body.replaceChildren(page);
+
+  page.querySelector<HTMLInputElement>("#party-code")!.value = "P-201";
+  page.querySelector<HTMLSelectElement>("#party-kind")!.value = "PERSON";
+  page.querySelector<HTMLInputElement>("#party-legal-name")!.value = "Ada Role";
+
+  page.querySelector<HTMLFormElement>("form")!
+    .dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+  await Promise.resolve();
+  await Promise.resolve();
+
+  const customerButton = Array.from(page.querySelectorAll<HTMLButtonElement>("button"))
+    .find((button) => button.textContent?.includes("CUSTOMER rolünü"));
+  assert.ok(customerButton);
+  assert.equal(customerButton.disabled, false);
+
+  customerButton.click();
+  await Promise.resolve();
+  await Promise.resolve();
+
+  assert.equal(requests.length, 2);
+  assert.equal(requests[1]?.path, "/parties/22222222-2222-2222-2222-222222222222/roles");
+  assert.equal(requests[1]?.init?.method, "POST");
+  assert.equal(new Headers(requests[1]?.init?.headers).get("Idempotency-Key"), "role-op-customer");
+
+  const roleBody = JSON.parse(String(requests[1]?.init?.body)) as Record<string, unknown>;
+  assert.deepEqual(roleBody, { role: "CUSTOMER" });
+  assert.equal("companyId" in roleBody, false);
+  assert.equal(customerButton.disabled, true);
+  assert.match(page.textContent ?? "", /CUSTOMER rolü ACTIVE/);
+});
