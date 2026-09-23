@@ -88,19 +88,28 @@ P5 — Core application implementation
 Status: IMPLEMENTATION IN PROGRESS
 
 ## Current task
-Define the next smallest coherent Parties vertical slice.
+- PARTY-IMP-004 — Manage Party Role Lifecycle
+- status: READY / IMPLEMENTATION NOT STARTED
+- canonical readiness: docs/plan/03-cariler/p5-fourth-slice-readiness.md
 
-Work-package ID:
-- NOT ASSIGNED.
+Frozen scope:
+- existing CUSTOMER/SUPPLIER role ACTIVE ↔ INACTIVE only;
+- party.role.manage;
+- trusted-company Party/role lookup;
+- expected-version optimistic concurrency;
+- mandatory reason for deactivation;
+- reactivation does not invent a mandatory reason;
+- audit + durable idempotency;
+- POST /api/v1/parties/{partyPublicId}/roles/{role}/state;
+- lifecycle control on existing /parties/new journey;
+- no EF model change/migration expected.
 
-Repository follow-up candidates:
-- accepted soft duplicate candidate/review flow;
+Still deferred:
+- soft duplicate candidate/review;
 - contacts/addresses;
-- role lifecycle after activation;
 - Party lifecycle/merge;
-- broader Tax Identity lifecycle/provider/non-TR support where later required.
-
-Do not invent PARTY-IMP-004 before exact scope is frozen.
+- Tax Identity lifecycle/provider/non-TR;
+- Sales/Purchasing eligibility implementation.
 
 ## Planning progress
 - Master section-8 planning coverage: 9 / 30 = 30.0%
