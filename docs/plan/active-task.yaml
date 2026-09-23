@@ -1,7 +1,7 @@
-id: FW-IMP-007
-title: Docker/test deployment baseline
+id: FW-IMP-008
+title: thin vertical framework proof
 module: foundation
-status: ready
+status: scope_definition_required
 progress: not_started
 
 phase:
@@ -10,60 +10,49 @@ phase:
   status: implementation_in_progress
 
 predecessor:
-  id: FW-IMP-006
-  title: Mars.Web + Mars.UI foundation
+  id: FW-IMP-007
+  title: Docker/test deployment baseline
   status: completed
   evidence:
-    implementation_commit: 1264981655329099a086c7048c0890caf04dc9f2
-    workflow_run: 35729371845
-    frontend_tests: 10_passed
-    frontend_typecheck: success
-    frontend_build: success
-    static_architecture_checks: success
-    dotnet_build: success
-    dotnet_targeted_tests: 26_passed
-    canonical_report: docs/plan/01-foundation/fw-imp-006-implementation.md
+    implementation_commit: 2821c98bbd04b81dcbb10e99ddb0a4974ca7a517
+    workflow_run: 35865600657
+    workflow_job: 107196252913
+    remote_test_deployment: success
+    health_live: 200
+    health_ready: 200
+    protected_api_unauthenticated: 401
+    openapi: 200
+    canonical_report: docs/plan/01-foundation/fw-imp-007-implementation.md
 
 goal:
-  Implement the repository-defined Docker/test deployment baseline against the separate MarsOtomasyon test server without turning test-environment choices into production architecture.
+  Define and then implement the smallest repository-consistent thin vertical framework proof without inventing ERP/domain behavior.
 
 source_basis:
-  - docs/plan/01-foundation/framework-plan.md sections 39-42
-  - docs/plan/01-foundation/test-environment.md
-  - docs/plan/01-foundation/p4-readiness-decision-gates.md
+  - docs/plan/01-foundation/framework-plan.md
+  - docs/plan/01-foundation/fw-imp-007-implementation.md
+  - docs/plan/master-project-plan.md
+  - docs/plan/01-foundation/acceptance-criteria.md
+
+scope_gate:
+  exact_implementation_scope_in_repository: not_yet_defined
+  required_before_mutation:
+    - identify the exact vertical proof boundary from accepted Foundation contracts
+    - keep the proof non-domain or deliberately minimal
+    - define measurable acceptance criteria
+    - define targeted verification
+    - confirm no ERP business rule must be invented
 
 scope:
   include:
-    - application images/containers required by current Foundation
-    - Docker Compose test baseline
-    - migration/startup policy
-    - test-server deployment
-    - readiness checks
-    - small smoke evidence
+    - FW-IMP-008 scope definition
+    - non-domain/minimal vertical proof only after scope is explicit
   exclude:
+    - invented ERP business behavior
     - production deployment
     - production secret-store selection
     - production reverse-proxy/tunnel selection
-    - structured logging/metrics technology selection unless a narrow test-deployment blocker is proven
-    - Desktop/Mobile shell technology
-    - ERP domain feature implementation
-
-preflight_required:
-  - verify current test Docker version
-  - verify current test Docker Compose version
-  - verify deployment/service layout
-  - verify test URL/DNS/TLS facts relevant to the selected test path
-  - read test credentials only from the canonical source and never echo values
-
-decision_gate_review:
-  blocking_owner_decision: none_identified
-  deferred:
-    - production secret store
-    - production reverse proxy/tunnel
-    - structured logging/metrics stack
-  note:
-    - Unknown test-environment facts must be verified at runtime rather than guessed.
-    - Test architecture must not be described as accepted production architecture.
+    - Desktop/Mobile shell selection
+    - Full Test Day
 
 planning_progress:
   master_sequence:
@@ -77,10 +66,8 @@ planning_progress:
 
 test_policy:
   normal_development:
-    - image/build checks
-    - compose/config validation
-    - migration/startup safety checks
-    - deploy to test
-    - readiness
-    - small smoke
+    - build
+    - targeted-unit-or-invariant
+    - small-smoke-when-needed
+    - migration-contract-check
   heavy_tests: FULL_TEST_DAY_ONLY
