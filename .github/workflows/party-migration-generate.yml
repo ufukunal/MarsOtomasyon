@@ -1,4 +1,5 @@
 name: PARTY-IMP-003 Migration Generate
+# PARTY-IMP-003 clean regeneration
 
 on:
   push:
