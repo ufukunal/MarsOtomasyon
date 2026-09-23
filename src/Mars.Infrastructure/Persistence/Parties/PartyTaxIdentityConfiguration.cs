@@ -32,9 +32,6 @@ internal sealed class PartyTaxIdentityConfiguration : IEntityTypeConfiguration<P
             .IsUnique()
             .HasDatabaseName("ux_tax_identities_public_id");
 
-        builder.HasIndex(x => x.PartyId)
-            .HasDatabaseName("ix_tax_identities_party_id");
-
         builder.HasIndex(x => new { x.CompanyId, x.Jurisdiction, x.Scheme, x.Value })
             .IsUnique()
             .HasFilter("\"state\" = 'Active'")

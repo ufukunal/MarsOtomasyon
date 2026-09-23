@@ -421,9 +421,6 @@ namespace Mars.Infrastructure.Persistence.Migrations.Foundation
                     b.HasKey("Id")
                         .HasName("pk_parties");
 
-                    b.HasAlternateKey("Id", "CompanyId")
-                        .HasName("ak_parties_id_company");
-
                     b.HasIndex("PublicId")
                         .IsUnique()
                         .HasDatabaseName("ux_parties_public_id");
@@ -496,91 +493,6 @@ namespace Mars.Infrastructure.Persistence.Migrations.Foundation
                             t.HasCheckConstraint("ck_party_roles_state", "state IN ('Active', 'Inactive')");
 
                             t.HasCheckConstraint("ck_party_roles_version", "version > 0");
-                        });
-                });
-
-            modelBuilder.Entity("Mars.Infrastructure.Persistence.Parties.PartyTaxIdentityRecord", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasColumnName("id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
-
-                    b.Property<Guid>("CompanyId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("company_id");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
-
-                    b.Property<string>("Jurisdiction")
-                        .IsRequired()
-                        .HasMaxLength(8)
-                        .HasColumnType("character varying(8)")
-                        .HasColumnName("jurisdiction");
-
-                    b.Property<long>("PartyId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("party_id");
-
-                    b.Property<Guid>("PublicId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("public_id");
-
-                    b.Property<string>("Scheme")
-                        .IsRequired()
-                        .HasMaxLength(16)
-                        .HasColumnType("character varying(16)")
-                        .HasColumnName("scheme");
-
-                    b.Property<string>("State")
-                        .IsRequired()
-                        .HasMaxLength(16)
-                        .HasColumnType("character varying(16)")
-                        .HasColumnName("state");
-
-                    b.Property<string>("Value")
-                        .IsRequired()
-                        .HasMaxLength(32)
-                        .HasColumnType("character varying(32)")
-                        .HasColumnName("value");
-
-                    b.Property<long>("Version")
-                        .IsConcurrencyToken()
-                        .HasColumnType("bigint")
-                        .HasColumnName("version");
-
-                    b.HasKey("Id")
-                        .HasName("pk_tax_identities");
-
-                    b.HasIndex("PartyId")
-                        .HasDatabaseName("ix_tax_identities_party_id");
-
-                    b.HasIndex("PublicId")
-                        .IsUnique()
-                        .HasDatabaseName("ux_tax_identities_public_id");
-
-                    b.HasIndex("PartyId", "CompanyId");
-
-                    b.HasIndex("CompanyId", "Jurisdiction", "Scheme", "Value")
-                        .IsUnique()
-                        .HasDatabaseName("ux_tax_identities_active_company_identity")
-                        .HasFilter("\"state\" = 'Active'");
-
-                    b.ToTable("tax_identities", "parties", t =>
-                        {
-                            t.HasCheckConstraint("ck_tax_identities_jurisdiction", "jurisdiction = 'TR'");
-
-                            t.HasCheckConstraint("ck_tax_identities_scheme", "scheme IN ('Vkn', 'Tckn')");
-
-                            t.HasCheckConstraint("ck_tax_identities_state", "state IN ('Active', 'Inactive')");
-
-                            t.HasCheckConstraint("ck_tax_identities_value", "(scheme = 'Vkn' AND value ~ '^[0-9]{10}$') OR (scheme = 'Tckn' AND value ~ '^[0-9]{11}$')");
-
-                            t.HasCheckConstraint("ck_tax_identities_version", "version > 0");
                         });
                 });
 
@@ -864,17 +776,6 @@ namespace Mars.Infrastructure.Persistence.Migrations.Foundation
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
                         .HasConstraintName("fk_party_roles_party");
-                });
-
-            modelBuilder.Entity("Mars.Infrastructure.Persistence.Parties.PartyTaxIdentityRecord", b =>
-                {
-                    b.HasOne("Mars.Infrastructure.Persistence.Parties.PartyRecord", null)
-                        .WithMany()
-                        .HasForeignKey("PartyId", "CompanyId")
-                        .HasPrincipalKey("Id", "CompanyId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("fk_tax_identities_party_company");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<System.Guid>", b =>
