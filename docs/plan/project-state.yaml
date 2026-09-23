@@ -309,7 +309,7 @@ known_constraints:
   - Returns preserves source/lot/serial/UOM lineage; Inventory and Finance remain authoritative.
   - P2 Core Commercial Workflow Planning is complete.
   - PLAN-010 Logical Database Model is COMPLETED / FROZEN.
-  - P4 Foundation implementation is completed; P5 Core application implementation is current. The first Parties slice is scoped but implementation is blocked pending explicit first-slice decisions.
+  - P4 Foundation implementation is completed; P5 Core application implementation is current. PARTY-IMP-001 Create Party Core Identity is READY for implementation with its first-slice decisions frozen.
   - Section-8 Quality remains conceptual master planning item 10 for exact planning percentage, but Quality execution belongs P6 Operations.
   - Commerce belongs P7 and is not immediate next execution work.
   - No new PLAN number is assigned to P4 readiness; existing phase ID P4 is used.
