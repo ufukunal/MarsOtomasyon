@@ -2,13 +2,10 @@ name: PARTY-IMP-003 Migration Generate
 # PARTY-IMP-003 clean regeneration
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - ".github/workflows/party-migration-generate.yml"
+  workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   generate:
@@ -59,21 +56,3 @@ jobs:
             src/Mars.Infrastructure/Persistence/Migrations/Parties/
             src/Mars.Infrastructure/Persistence/Migrations/Foundation/MarsDbContextModelSnapshot.cs
 
-      - name: Commit generated migration to main
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          git add \
-            src/Mars.Infrastructure/Persistence/Migrations/Parties/ \
-            src/Mars.Infrastructure/Persistence/Migrations/Foundation/MarsDbContextModelSnapshot.cs
-
-          if git diff --cached --quiet; then
-            echo "No generated migration changes were produced."
-            exit 1
-          fi
-
-          git config user.name "mars-ci"
-          git config user.email "mars-ci@users.noreply.github.com"
-          git commit -m "db: add PARTY-IMP-003 tax identity migration"
-          git push origin HEAD:main
