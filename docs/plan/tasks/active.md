@@ -1,34 +1,39 @@
 # Active Tasks
 
-## PARTY-IMP-002 — Activate Party Role
-**Status:** READY — IMPLEMENTATION NOT STARTED
+## P5 — Parties next vertical slice definition
+**Status:** SCOPE DEFINITION REQUIRED — IMPLEMENTATION NOT STARTED
 
-Canonical readiness:
-- `docs/plan/03-cariler/p5-second-slice-readiness.md`
-
-Predecessor:
+Predecessors:
 - PARTY-IMP-001 — Create Party Core Identity — COMPLETED
-- `docs/plan/03-cariler/party-imp-001-implementation.md`
+- PARTY-IMP-002 — Activate Party Role — COMPLETED
 
-Implement:
-- Party Role persistence for CUSTOMER/SUPPLIER activation;
-- `party.role.manage` using existing Mars PostgreSQL permission authority;
-- trusted-company Party lookup;
-- additive EF migration;
-- POST `/api/v1/parties/{partyPublicId}/roles`;
-- post-create CUSTOMER/SUPPLIER activation on `/parties/new`;
-- audit + durable idempotency;
-- targeted build/test/model/migration/API/Web verification;
-- TEST deploy/smoke when deployable.
+PARTY-IMP-002 evidence:
+- canonical report: `docs/plan/03-cariler/party-imp-002-implementation.md`
+- Foundation Build run `35889499695` — SUCCESS
+- Foundation Test Deploy run `35889499708` — SUCCESS
+- frontend tests 13 / 13 PASS
+- Foundation targeted tests 40 / 40 PASS
+- TEST Party Role migration applied; migration count 4
+- role endpoint unauthenticated 401
+- live/ready 200 / 200
+- runner-to-TEST smoke PASS
 
-Do not implement:
-- role deactivate/reactivate;
-- role-specific defaults/codes;
-- Tax Identity/contact/address/duplicate-review/merge;
-- Finance/Sales/Purchasing behavior;
-- production deployment;
-- Full Test Day.
+Repository-defined follow-up requirements:
+- Tax Identity records and deterministic collision rules;
+- accepted soft duplicate candidate/review flow;
+- contacts/addresses;
+- role lifecycle after activation;
+- lifecycle/merge in later slices.
+
+Current gate:
+- no dedicated next implementation ID exists;
+- repository does not freeze an order among these remaining capabilities;
+- choose the smallest coherent next Party vertical slice from frozen PLAN-003 + PLAN-010;
+- map DB/API/UI/permission/migration/test effects before mutation;
+- assign a dedicated work-package ID only after exact scope is explicit.
 
 Exact planning progress:
 - master: 9 / 30 = 30.0%
 - P2: 8 / 8 = 100.0%
+
+Heavy tests remain Full Test Day only.
