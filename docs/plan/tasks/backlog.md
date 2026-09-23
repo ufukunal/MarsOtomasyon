@@ -1,36 +1,31 @@
 # Planning Backlog
 
-## Immediate — P5 Parties next vertical slice definition
-Status: SCOPE DEFINITION REQUIRED / NOT STARTED.
+## Immediate — PARTY-IMP-005 Deactivate Party
+Status: READY / IMPLEMENTATION NOT STARTED.
 
-Predecessors:
-- PARTY-IMP-001 — COMPLETED.
-- PARTY-IMP-002 — COMPLETED.
-- PARTY-IMP-003 — COMPLETED.
-- PARTY-IMP-004 — COMPLETED.
-- PARTY-IMP-004 canonical report: `docs/plan/03-cariler/party-imp-004-implementation.md`
-- Foundation Build run `35910331829` — SUCCESS.
-- Foundation Test Deploy run `35910331820` — SUCCESS.
+Readiness:
+- docs/plan/03-cariler/p5-fifth-slice-readiness.md
 
-Repository-defined remaining Parties work includes:
-- accepted soft duplicate candidate/review flow;
-- Contact Person / Communication Point / Address;
-- Party deactivate/reactivate;
-- Party Merge;
-- Party External Mapping;
-- broader Tax Identity read/lifecycle/provider/non-TR support where later required.
+Scope:
+- existing Party ACTIVE → INACTIVE;
+- party.deactivate;
+- trusted-company Party lookup;
+- expected-version optimistic concurrency;
+- mandatory reason;
+- audit + durable idempotency;
+- protected deactivate endpoint;
+- /parties/new deactivation UX;
+- no EF model change/migration expected.
 
-No exact order or dedicated PARTY-IMP-005 ID is frozen.
-
-Before implementation:
-- reread frozen PLAN-003 and PLAN-010 contracts;
-- compare dependency value and minimum authoritative entity/migration surface;
-- preserve PARTY-IMP-001/002/003/004 company, permission, audit, idempotency, privacy and concurrency boundaries;
-- do not invent fuzzy matching thresholds, provider/legal semantics or generic ERP fields;
-- define exact DB/API/UI/permission/privacy/test impact;
-- assign a dedicated implementation work-package ID only after scope is explicit.
-
-Do not assume list order is implementation order.
+Explicitly deferred:
+- Party reactivate;
+- fuzzy duplicate review;
+- Contact/Communication/Address;
+- Merge;
+- External Mapping;
+- Tax Identity follow-up;
+- Sales/Purchasing eligibility;
+- Finance integration.
 
 ## Quality — master planning sequence item 10
 Target: docs/plan/08-kalite/

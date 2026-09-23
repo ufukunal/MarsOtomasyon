@@ -85,20 +85,29 @@ P5 — Core application implementation
 Status: IMPLEMENTATION IN PROGRESS
 
 ## Current task
-Define the next smallest coherent Parties vertical slice.
+- PARTY-IMP-005 — Deactivate Party
+- status: READY / IMPLEMENTATION NOT STARTED
+- canonical readiness: docs/plan/03-cariler/p5-fifth-slice-readiness.md
 
-Work-package ID:
-- NOT ASSIGNED.
+Frozen scope:
+- existing Party ACTIVE → INACTIVE only;
+- party.deactivate;
+- trusted-company Party lookup;
+- expected-version optimistic concurrency;
+- mandatory reason;
+- audit + durable idempotency;
+- POST /api/v1/parties/{partyPublicId}/deactivate;
+- deactivation control on existing /parties/new journey;
+- no EF model change/migration expected.
 
-Repository follow-up candidates:
-- accepted soft duplicate candidate/review flow;
-- Contact Person / Communication Point / Address;
-- Party deactivate/reactivate;
-- Party Merge;
+Explicitly deferred:
+- Party reactivate because duplicate/legal identity validation must rerun;
+- soft duplicate candidate/review;
+- Contact/Communication/Address;
+- Merge;
 - Party External Mapping;
-- broader Tax Identity read/lifecycle/provider/non-TR support where later required.
-
-Do not invent PARTY-IMP-005 before exact scope is frozen.
+- broader Tax Identity lifecycle/provider/non-TR;
+- Sales/Purchasing eligibility implementation.
 
 ## Planning progress
 - Master section-8 planning coverage: 9 / 30 = 30.0%

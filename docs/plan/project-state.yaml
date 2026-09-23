@@ -83,9 +83,9 @@ test_policy:
   heavy_tests: FULL_TEST_DAY_ONLY
 
 active_task:
-  id: P5
-  title: Parties next vertical slice definition
-  status: scope_definition_required
+  id: PARTY-IMP-005
+  title: Deactivate Party
+  status: ready
   file: docs/plan/active-task.yaml
   progress: not_started
 
@@ -334,42 +334,45 @@ known_constraints:
 
 blocked_items:
   - No unresolved blocker remains for PARTY-IMP-004; Manage Party Role Lifecycle is completed.
-  - Full PLAN-003 Party parity remains incomplete because soft duplicate review, Contact/Communication/Address, Party lifecycle, Merge, External Mapping and broader Tax Identity lifecycle remain deferred.
-  - Repository does not assign the next implementation order or a dedicated PARTY-IMP-005 scope.
-  - Define the next smallest coherent Parties vertical slice from frozen PLAN-003 + PLAN-010 before schema/code mutation; do not invent PARTY-IMP-005 merely for convenience.
+  - PARTY-IMP-005 Deactivate Party is READY FOR IMPLEMENTATION with canonical readiness at docs/plan/03-cariler/p5-fifth-slice-readiness.md.
+  - PARTY-IMP-005 is limited to ACTIVE → INACTIVE with party.deactivate, expected-version concurrency, mandatory reason, audit and idempotency.
+  - Party reactivation remains deferred because PLAN-003 requires duplicate/legal identity validation rerun and soft duplicate review is not implementation-ready.
+  - Soft duplicate review, Contact/Communication/Address, Merge, External Mapping and broader Tax Identity lifecycle remain deferred.
   - Production secret-store, production reverse-proxy/tunnel, production ingress/TLS and structured logging/metrics choices remain deferred.
 next_action:
-  id: P5
-  title: Define next Parties vertical slice
+  id: PARTY-IMP-005
+  title: Deactivate Party
   phase: P5
   module: parties
-  status: SCOPE_DEFINITION_REQUIRED
-  work_package_id: NOT_ASSIGNED
+  status: READY
+  readiness_report: docs/plan/03-cariler/p5-fifth-slice-readiness.md
   predecessor:
     id: PARTY-IMP-004
     status: completed
     canonical_report: docs/plan/03-cariler/party-imp-004-implementation.md
-    readiness_report: docs/plan/03-cariler/p5-fourth-slice-readiness.md
-    implementation_commit: f640fceae01fe734a273c1f3adc4136d497be28d
     tested_deploy_commit: f746139981d79941d414e318ebcab017f8ae4df8
-    foundation_build_run: 35910331829
     test_deploy_run: 35910331820
-  repository_follow_up_candidates:
-    - accepted soft duplicate candidate/review flow
-    - Contact Person / Communication Point / Address
-    - Party deactivate/reactivate
+  scope:
+    - existing Party ACTIVE to INACTIVE only
+    - party.deactivate
+    - trusted-company Party lookup
+    - expected-version optimistic concurrency
+    - mandatory reason
+    - audit + durable idempotency
+    - POST /api/v1/parties/{partyPublicId}/deactivate
+    - deactivation control on existing /parties/new journey
+    - no EF model change; migration count remains 5
+    - targeted verification + TEST deploy/smoke
+  deferred:
+    - Party reactivate
+    - soft duplicate candidate/review
+    - Contact/Communication/Address
     - Party Merge
     - Party External Mapping
-    - broader Tax Identity read/lifecycle/provider/non-TR support where required
-  scope_intent:
-    - select the next smallest coherent Parties vertical slice from frozen PLAN-003 and PLAN-010
-    - preserve PARTY-IMP-001 through PARTY-IMP-004 company/permission/privacy/idempotency/audit/concurrency boundaries
-    - map exact entity/constraint/API/UI/migration effects before mutation
-    - assign a dedicated work-package ID only after scope is explicit
+    - Tax Identity read/edit/deactivate/provider/non-TR
+    - Sales/Purchasing eligibility implementation
   restrictions:
-    - do not assume backlog order is implementation order
-    - do not invent fuzzy algorithms, provider rules or generic ERP behavior
-    - no Sales/Product/Inventory/Purchasing/Warehouse/Finance implementation
+    - no Finance/Sales/Purchasing authority
     - no production deployment
     - no Full Test Day
     - exact master planning metric remains 9 / 30 = 30.0

@@ -202,6 +202,24 @@ Still deferred:
 - Party External Mapping;
 - broader Tax Identity lifecycle/provider/non-TR.
 
-Next:
-- define the next smallest coherent Parties vertical slice;
-- no PARTY-IMP-005 ID is assigned yet.
+Fifth implementation work package:
+- PARTY-IMP-005 — Deactivate Party.
+
+Readiness:
+- `docs/plan/03-cariler/p5-fifth-slice-readiness.md`
+
+Status:
+- READY FOR IMPLEMENTATION;
+- implementation NOT STARTED.
+
+Selected scope:
+- existing Party ACTIVE → INACTIVE only;
+- `party.deactivate`;
+- expected-version concurrency;
+- mandatory reason;
+- audit + durable idempotency;
+- protected deactivate API;
+- deactivation control on /parties/new;
+- no EF model change/migration expected.
+
+Party reactivation remains a later slice because it must rerun current duplicate/legal identity validation.
