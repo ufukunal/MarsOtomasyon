@@ -6,6 +6,7 @@ installDom();
 
 const { ApiClient, ApiClientError } = await import("../src/api-client.ts");
 const { createFoundationProofPage } = await import("../src/foundation-proof.ts");
+const { createPartyCreatePage } = await import("../src/party-create.ts");
 const { MarsRouter, createAppShell } = await import("../src/app.ts");
 const {
   createButton,
@@ -306,3 +307,53 @@ function installDom(): void {
     });
   }
 }
+
+
+test("Party create page sends only first-slice fields and no client company authority", async () => {
+  let capturedPath = "";
+  let capturedInit: RequestInit | undefined;
+
+  const api = {
+    request: async <T>(path: string, init?: RequestInit) => {
+      capturedPath = path;
+      capturedInit = init;
+      return {
+        data: {
+          publicId: "11111111-1111-1111-1111-111111111111",
+          partyCode: "P-200",
+          kind: "ORGANIZATION",
+          legalName: "Mars Organization",
+          displayName: "Mars",
+          state: "ACTIVE",
+          version: 1,
+          correlationId: "corr-party-web"
+        } as T,
+        correlationId: "corr-party-web",
+        status: 201
+      };
+    }
+  };
+
+  const page = createPartyCreatePage(api, () => "party-op-1");
+  document.body.replaceChildren(page);
+
+  page.querySelector<HTMLInputElement>("#party-code")!.value = "P-200";
+  page.querySelector<HTMLSelectElement>("#party-kind")!.value = "ORGANIZATION";
+  page.querySelector<HTMLInputElement>("#party-legal-name")!.value = "Mars Organization";
+  page.querySelector<HTMLInputElement>("#party-display-name")!.value = "Mars";
+
+  const form = page.querySelector<HTMLFormElement>("form");
+  assert.ok(form);
+  form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+  await Promise.resolve();
+  await Promise.resolve();
+
+  assert.equal(capturedPath, "/parties");
+  assert.equal(capturedInit?.method, "POST");
+  assert.equal(new Headers(capturedInit?.headers).get("Idempotency-Key"), "party-op-1");
+
+  const body = JSON.parse(String(capturedInit?.body)) as Record<string, unknown>;
+  assert.deepEqual(Object.keys(body).sort(), ["displayName", "kind", "legalName", "partyCode"]);
+  assert.equal("companyId" in body, false);
+  assert.match(page.textContent ?? "", /P-200/);
+});
