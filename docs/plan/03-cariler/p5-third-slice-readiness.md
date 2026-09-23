@@ -1,6 +1,6 @@
 # P5 Parties — Third Vertical Slice Readiness
 
-Status: READY FOR IMPLEMENTATION
+Status: IMPLEMENTED / COMPLETED
 Date: 2026-09-23
 Phase: P5 — Core application implementation
 Module: Parties
@@ -358,6 +358,11 @@ The next dependency-minimal Parties implementation work package is:
 **PARTY-IMP-003 — Add Turkish Tax Identity**
 
 Status:
-- READY FOR IMPLEMENTATION.
+- IMPLEMENTED / COMPLETED.
+
+Canonical completion evidence:
+- `docs/plan/03-cariler/party-imp-003-implementation.md`
+- Foundation Build run `35894175633` — SUCCESS
+- Foundation Test Deploy run `35894175558` — SUCCESS
 
 No generic non-TR tax scheme, checksum/provider verification, tax-identity read/full-value endpoint, contact, address, fuzzy duplicate review, lifecycle/merge or Finance behavior is included.
