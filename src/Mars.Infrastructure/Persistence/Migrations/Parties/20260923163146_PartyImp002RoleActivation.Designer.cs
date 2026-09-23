@@ -3,17 +3,20 @@ using System;
 using Mars.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace Mars.Infrastructure.Persistence.Migrations.Foundation
+namespace Mars.Infrastructure.Persistence.Migrations.Parties
 {
     [DbContext(typeof(MarsDbContext))]
-    partial class MarsDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260923163146_PartyImp002RoleActivation")]
+    partial class PartyImp002RoleActivation
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
