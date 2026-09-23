@@ -1,5 +1,5 @@
 name: Foundation Build
-# PARTY-IMP-001 migration verification trigger
+# PARTY-IMP-002 committed migration verification trigger
 
 on:
   push:

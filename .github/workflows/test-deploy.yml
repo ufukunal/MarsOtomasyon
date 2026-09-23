@@ -1,5 +1,5 @@
 name: Foundation Test Deploy
-# PARTY-IMP-001 migration verification trigger
+# PARTY-IMP-002 committed migration deployment trigger
 
 on:
   push:
