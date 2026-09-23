@@ -1,44 +1,31 @@
 # Planning Backlog
 
-## Immediate — FW-IMP-007 Docker/test deployment baseline
-Status: READY.
+## Immediate — FW-IMP-008 thin vertical framework proof
+Status: SCOPE DEFINITION REQUIRED / NOT STARTED.
 
-Predecessors:
-- FW-IMP-001 through FW-IMP-006 — COMPLETED.
+Predecessor:
+- FW-IMP-007 — COMPLETED.
+- canonical report: `docs/plan/01-foundation/fw-imp-007-implementation.md`
+- tested implementation commit: `2821c98bbd04b81dcbb10e99ddb0a4974ca7a517`
+- successful TEST deploy run: `35865600657`
 
-FW-IMP-006 evidence:
-- canonical report: `docs/plan/01-foundation/fw-imp-006-implementation.md`
-- tested implementation commit: `1264981655329099a086c7048c0890caf04dc9f2`
-- successful workflow run: `35729371845`
-- 10 / 10 frontend targeted tests;
-- Vite production build and static architecture checks passed;
-- existing .NET build/tests/migration/API gates remain green.
-
-Repository-defined FW-IMP-007 package:
-- images/compose;
-- migration/startup policy;
-- deploy to separate test environment;
-- readiness;
-- small smoke evidence.
-
-Preflight facts to verify:
-- Docker version;
-- Docker Compose version;
-- deployment/service layout;
-- test URL/DNS/TLS facts needed by the chosen route;
-- canonical test credential availability without logging values.
+Before implementation:
+- define the exact smallest vertical proof from accepted Foundation contracts;
+- keep it non-domain or deliberately minimal;
+- do not invent ERP business rules;
+- define measurable acceptance criteria and targeted verification;
+- verify whether any new owner decision is genuinely required.
 
 Deferred technology gates that must not be silently selected:
 - structured logging/metrics stack;
 - production secret store;
 - production reverse proxy/tunnel details;
+- production DNS/ingress/TLS;
 - Desktop shell technology;
 - Mobile shell technology.
 
-Test deployment decisions remain separate from production architecture.
-
 ## Subsequent Foundation implementation sequence
-- FW-IMP-008 — thin vertical framework proof
+- FW-IMP-008 — thin vertical framework proof — scope definition required before implementation
 
 ## Quality — master planning sequence item 10
 Target: docs/plan/08-kalite/
