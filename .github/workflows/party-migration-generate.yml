@@ -1,7 +1,10 @@
 name: PARTY-IMP-001 Migration Generate
 
 on:
-  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/party-migration-generate.yml"
 
 permissions:
   contents: write
@@ -55,12 +58,31 @@ jobs:
             src/Mars.Infrastructure/Persistence/Migrations/Parties/
             src/Mars.Infrastructure/Persistence/Migrations/Foundation/MarsDbContextModelSnapshot.cs
 
-      - name: Commit generated migration to main
+      - name: Commit generated migration to main and disable helper
         shell: bash
         run: |
           set -euo pipefail
 
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path(".github/workflows/party-migration-generate.yml")
+          text = path.read_text(encoding="utf-8")
+          old = '''on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/party-migration-generate.yml"
+'''
+          new = '''on:
+  workflow_dispatch:
+'''
+          if old not in text:
+              raise SystemExit("Expected one-shot push trigger not found.")
+          path.write_text(text.replace(old, new, 1), encoding="utf-8")
+          PY
+
           git add \
+            .github/workflows/party-migration-generate.yml \
             src/Mars.Infrastructure/Persistence/Migrations/Parties/ \
             src/Mars.Infrastructure/Persistence/Migrations/Foundation/MarsDbContextModelSnapshot.cs
 
