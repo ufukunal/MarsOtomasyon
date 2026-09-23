@@ -317,7 +317,7 @@ known_constraints:
   - P2 Core Commercial Workflow Planning is complete.
   - PLAN-010 Logical Database Model is COMPLETED / FROZEN.
   - P4 Foundation implementation is completed; P5 Core application implementation is current. PARTY-IMP-001 Create Party Core Identity is COMPLETED.
-  - PARTY-IMP-002 Activate Party Role is the selected next dependency-minimal Parties vertical slice and is READY FOR IMPLEMENTATION; canonical readiness is docs/plan/03-cariler/p5-second-slice-readiness.md.
+  - PARTY-IMP-002 Activate Party Role is COMPLETED; canonical readiness is docs/plan/03-cariler/p5-second-slice-readiness.md and canonical implementation evidence is docs/plan/03-cariler/party-imp-002-implementation.md.
   - Section-8 Quality remains conceptual master planning item 10 for exact planning percentage, but Quality execution belongs P6 Operations.
   - Commerce belongs P7 and is not immediate next execution work.
   - No new PLAN number is assigned to P4 readiness; existing phase ID P4 is used.
