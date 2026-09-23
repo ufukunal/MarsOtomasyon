@@ -1,57 +1,62 @@
-id: FW-IMP-008
-title: thin vertical framework proof
-module: foundation
+id: P5
+title: Core application implementation — Parties first vertical slice definition
+module: parties
 status: scope_definition_required
 progress: not_started
+work_package_id: not_assigned
 
 phase:
-  id: P4
-  name: Foundation implementation
-  status: implementation_in_progress
+  id: P5
+  name: Core application implementation
+  status: scope_definition_required
 
 predecessor:
-  id: FW-IMP-007
-  title: Docker/test deployment baseline
+  id: FW-IMP-008
+  title: thin vertical framework proof
   status: completed
   evidence:
-    implementation_commit: 2821c98bbd04b81dcbb10e99ddb0a4974ca7a517
-    workflow_run: 35865600657
-    workflow_job: 107196252913
+    implementation_commit: bf9b3882dbc91ee801d169a62587c7658baaa63b
+    foundation_build_run: 35868005913
+    foundation_build_job: 107204452548
+    test_deploy_run: 35868151531
+    test_deploy_job: 107205339908
+    frontend_tests: 11_passed
+    foundation_tests: 30_passed
     remote_test_deployment: success
     health_live: 200
     health_ready: 200
-    protected_api_unauthenticated: 401
-    openapi: 200
-    canonical_report: docs/plan/01-foundation/fw-imp-007-implementation.md
+    proof_page: 200
+    proof_endpoint_unauthenticated: 401
+    canonical_report: docs/plan/01-foundation/fw-imp-008-implementation.md
 
 goal:
-  Define and then implement the smallest repository-consistent thin vertical framework proof without inventing ERP/domain behavior.
+  Define the first Parties implementation vertical slice from frozen PLAN-003 and the frozen logical database model before any Party schema/code mutation.
 
 source_basis:
-  - docs/plan/01-foundation/framework-plan.md
-  - docs/plan/01-foundation/fw-imp-007-implementation.md
-  - docs/plan/master-project-plan.md
-  - docs/plan/01-foundation/acceptance-criteria.md
+  - docs/plan/master-project-plan.md P5 dependency order
+  - docs/plan/03-cariler/
+  - docs/db/
+  - docs/plan/01-foundation/fw-imp-008-implementation.md
 
 scope_gate:
-  exact_implementation_scope_in_repository: not_yet_defined
+  dedicated_work_package_id: not_assigned
+  exact_first_vertical_slice: not_yet_defined
   required_before_mutation:
-    - identify the exact vertical proof boundary from accepted Foundation contracts
-    - keep the proof non-domain or deliberately minimal
-    - define measurable acceptance criteria
-    - define targeted verification
-    - confirm no ERP business rule must be invented
+    - select the smallest coherent Parties use case from frozen PLAN-003
+    - map its entities/relationships/constraints to frozen logical DB sources
+    - define company scope and authorization requirements without inventing permissions beyond frozen Party contracts
+    - define migration/domain/application/API/UI boundaries
+    - define targeted verification and TEST smoke
+    - record a dedicated implementation work-package ID only with the explicit scope
 
 scope:
   include:
-    - FW-IMP-008 scope definition
-    - non-domain/minimal vertical proof only after scope is explicit
+    - P5 Parties first-slice scope/readiness definition
   exclude:
-    - invented ERP business behavior
+    - Party SQL/migration until scope/data mapping is explicit
+    - Sales/Product/Inventory/Purchasing/Warehouse/Finance implementation
     - production deployment
-    - production secret-store selection
-    - production reverse-proxy/tunnel selection
-    - Desktop/Mobile shell selection
+    - production secret-store/ingress decisions
     - Full Test Day
 
 planning_progress:
