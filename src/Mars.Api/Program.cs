@@ -14,6 +14,7 @@ using Mars.Application.Foundation.Proof;
 using Mars.Application.Parties;
 using Mars.Application.Parties.CreateParty;
 using Mars.Application.Parties.ActivatePartyRole;
+using Mars.Application.Parties.AddPartyTaxIdentity;
 using Mars.Infrastructure.Identity;
 using Mars.Infrastructure.Persistence;
 using Mars.Infrastructure.Persistence.Foundation;
@@ -45,6 +46,8 @@ builder.Services.AddScoped<IPartyCreatePersistence, EfPartyCreatePersistence>();
 builder.Services.AddScoped<CreatePartyHandler>();
 builder.Services.AddScoped<IPartyRoleActivationPersistence, EfPartyRoleActivationPersistence>();
 builder.Services.AddScoped<ActivatePartyRoleHandler>();
+builder.Services.AddScoped<IPartyTaxIdentityAddPersistence, EfPartyTaxIdentityAddPersistence>();
+builder.Services.AddScoped<AddPartyTaxIdentityHandler>();
 builder.Services.AddScoped<IAuthorizationHandler, MarsPermissionAuthorizationHandler>();
 
 builder.Services.AddOpenApi("v1");
@@ -107,6 +110,14 @@ builder.Services.AddAuthorization(options =>
         {
             policy.RequireAuthenticatedUser();
             policy.AddRequirements(new MarsPermissionRequirement(PartyPermissions.RoleManage));
+        });
+
+    options.AddPolicy(
+        PartyPermissions.TaxIdentityManage,
+        policy =>
+        {
+            policy.RequireAuthenticatedUser();
+            policy.AddRequirements(new MarsPermissionRequirement(PartyPermissions.TaxIdentityManage));
         });
 });
 
@@ -250,6 +261,41 @@ app.MapPost(
     .RequireAuthorization(PartyPermissions.RoleManage)
     .WithName("ActivatePartyRole")
     .WithSummary("Activates one CUSTOMER or SUPPLIER role on an existing company-scoped Party.");
+
+app.MapPost(
+        "/api/v1/parties/{partyPublicId:guid}/tax-identities",
+        async (
+            Guid partyPublicId,
+            AddPartyTaxIdentityRequest request,
+            HttpRequest httpRequest,
+            IExecutionContext executionContext,
+            AddPartyTaxIdentityHandler handler,
+            CancellationToken cancellationToken) =>
+        {
+            var result = await handler.ExecuteAsync(
+                new AddPartyTaxIdentityCommand(
+                    partyPublicId,
+                    request.Jurisdiction,
+                    request.Scheme,
+                    request.Value,
+                    httpRequest.Headers["Idempotency-Key"].ToString()),
+                executionContext,
+                cancellationToken);
+
+            if (result.IsFailure)
+            {
+                return ApplicationErrorHttpMapper.ToResult(
+                    result.Error!,
+                    executionContext.CorrelationId.Value);
+            }
+
+            return Results.Created(
+                $"/api/v1/parties/{partyPublicId:D}/tax-identities/{result.Value!.PublicId:D}",
+                result.Value);
+        })
+    .RequireAuthorization(PartyPermissions.TaxIdentityManage)
+    .WithName("AddPartyTaxIdentity")
+    .WithSummary("Adds one ACTIVE Turkish VKN or TCKN identity to an existing company-scoped Party.");
 
 app.MapPost(
         "/api/v1/foundation/proof",

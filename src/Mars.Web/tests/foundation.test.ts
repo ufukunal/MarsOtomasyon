@@ -430,3 +430,88 @@ test("Party create page activates role through Party-scoped endpoint without cli
   assert.equal(customerButton.disabled, true);
   assert.match(page.textContent ?? "", /CUSTOMER rolü ACTIVE/);
 });
+
+
+test("Party create page adds Turkish tax identity without client company authority and clears sensitive input", async () => {
+  const requests: Array<{ path: string; init?: RequestInit }> = [];
+  const operationKeys = ["party-op-tax", "tax-op-vkn"];
+
+  const api = {
+    request: async <T>(path: string, init?: RequestInit) => {
+      requests.push({ path, init });
+
+      if (path === "/parties") {
+        return {
+          data: {
+            publicId: "33333333-3333-3333-3333-333333333333",
+            partyCode: "P-202",
+            kind: "ORGANIZATION",
+            legalName: "Mars Tax Organization",
+            displayName: null,
+            state: "ACTIVE",
+            version: 1,
+            correlationId: "corr-party-tax-create"
+          } as T,
+          correlationId: "corr-party-tax-create",
+          status: 201
+        };
+      }
+
+      return {
+        data: {
+          publicId: "44444444-4444-4444-4444-444444444444",
+          partyPublicId: "33333333-3333-3333-3333-333333333333",
+          jurisdiction: "TR",
+          scheme: "VKN",
+          state: "ACTIVE",
+          version: 1,
+          correlationId: "corr-party-tax"
+        } as T,
+        correlationId: "corr-party-tax",
+        status: 201
+      };
+    }
+  };
+
+  const page = createPartyCreatePage(api, () => operationKeys.shift() ?? "unexpected-op");
+  document.body.replaceChildren(page);
+
+  page.querySelector<HTMLInputElement>("#party-code")!.value = "P-202";
+  page.querySelector<HTMLSelectElement>("#party-kind")!.value = "ORGANIZATION";
+  page.querySelector<HTMLInputElement>("#party-legal-name")!.value = "Mars Tax Organization";
+
+  page.querySelector<HTMLFormElement>("form")!
+    .dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+  await Promise.resolve();
+  await Promise.resolve();
+
+  const scheme = page.querySelector<HTMLSelectElement>("#party-tax-scheme")!;
+  const value = page.querySelector<HTMLInputElement>("#party-tax-value")!;
+  scheme.value = "VKN";
+  value.value = "1234567890";
+
+  const addButton = Array.from(page.querySelectorAll<HTMLButtonElement>("button"))
+    .find((button) => button.textContent?.includes("Vergi kimliği ekle"));
+  assert.ok(addButton);
+  addButton.click();
+  await Promise.resolve();
+  await Promise.resolve();
+
+  assert.equal(requests.length, 2);
+  assert.equal(
+    requests[1]?.path,
+    "/parties/33333333-3333-3333-3333-333333333333/tax-identities");
+  assert.equal(requests[1]?.init?.method, "POST");
+  assert.equal(new Headers(requests[1]?.init?.headers).get("Idempotency-Key"), "tax-op-vkn");
+
+  const body = JSON.parse(String(requests[1]?.init?.body)) as Record<string, unknown>;
+  assert.deepEqual(body, {
+    jurisdiction: "TR",
+    scheme: "VKN",
+    value: "1234567890"
+  });
+  assert.equal("companyId" in body, false);
+  assert.equal(value.value, "");
+  assert.match(page.textContent ?? "", /VKN kimliği ACTIVE/);
+  assert.equal((page.textContent ?? "").includes("1234567890"), false);
+});

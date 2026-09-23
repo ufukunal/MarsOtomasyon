@@ -21,6 +21,9 @@ internal sealed class PartyConfiguration : IEntityTypeConfiguration<PartyRecord>
         builder.Property(x => x.Version).HasColumnName("version").IsConcurrencyToken();
         builder.Property(x => x.CreatedAt).HasColumnName("created_at");
 
+        builder.HasAlternateKey(x => new { x.Id, x.CompanyId })
+            .HasName("ak_parties_id_company");
+
         builder.HasIndex(x => x.PublicId)
             .IsUnique()
             .HasDatabaseName("ux_parties_public_id");

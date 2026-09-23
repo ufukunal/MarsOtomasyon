@@ -20,6 +20,16 @@ export interface ActivatePartyRoleReceipt {
   correlationId: string;
 }
 
+export interface AddPartyTaxIdentityReceipt {
+  publicId: string;
+  partyPublicId: string;
+  jurisdiction: "TR";
+  scheme: "VKN" | "TCKN";
+  state: "ACTIVE";
+  version: number;
+  correlationId: string;
+}
+
 export interface PartyCreateApi {
   request<T>(path: string, init?: RequestInit): Promise<ApiResponse<T>>;
 }
@@ -36,7 +46,7 @@ export function createPartyCreatePage(
 
   const explanation = document.createElement("p");
   explanation.textContent =
-    "İlk Parties dilimi yalnız şirket kapsamlı ana kimliği oluşturur. Rol, vergi, adres ve iletişim bilgileri bu adımda oluşturulmaz.";
+    "Önce şirket kapsamlı Party kimliği oluşturulur; ardından aynı kimlikte rol ve Türkiye vergi kimliği eklenebilir.";
 
   const form = document.createElement("form");
   form.className = "mars-component-stack";
@@ -106,6 +116,65 @@ export function createPartyCreatePage(
 
   roles.append(rolesHeading, rolesHelp, customerRole, supplierRole, roleStatus);
 
+  const taxIdentities = document.createElement("section");
+  taxIdentities.className = "mars-component-stack";
+  taxIdentities.hidden = true;
+
+  const taxHeading = document.createElement("h2");
+  taxHeading.textContent = "Vergi Kimliği";
+
+  const taxHelp = document.createElement("p");
+  taxHelp.textContent =
+    "Bu dilim yalnız TR VKN/TCKN yapısal kontrolü yapar; yerel doğruluk GİB/e-belge kayıt veya provider doğrulaması anlamına gelmez.";
+
+  const jurisdiction = document.createElement("p");
+  jurisdiction.textContent = "Ülke / jurisdiction: TR";
+
+  const schemeField = document.createElement("div");
+  schemeField.className = "mars-field";
+  const schemeLabel = document.createElement("label");
+  schemeLabel.className = "mars-field__label";
+  schemeLabel.htmlFor = "party-tax-scheme";
+  schemeLabel.textContent = "Vergi kimliği türü *";
+  const scheme = document.createElement("select");
+  scheme.id = "party-tax-scheme";
+  scheme.className = "mars-field__control";
+  for (const value of ["VKN", "TCKN"] as const) {
+    const option = document.createElement("option");
+    option.value = value;
+    option.textContent = value;
+    scheme.append(option);
+  }
+  schemeField.append(schemeLabel, scheme);
+
+  const taxValue = createField({
+    id: "party-tax-value",
+    label: "Vergi kimliği değeri",
+    required: true,
+    help: "VKN 10, TCKN 11 rakam olmalıdır."
+  });
+  taxValue.input.inputMode = "numeric";
+  taxValue.input.autocomplete = "off";
+  taxValue.input.maxLength = 11;
+
+  const taxStatus = document.createElement("p");
+  taxStatus.setAttribute("role", "status");
+  taxStatus.setAttribute("aria-live", "polite");
+
+  const addTaxIdentity = createButton({
+    label: "Vergi kimliği ekle",
+    type: "button"
+  });
+
+  taxIdentities.append(
+    taxHeading,
+    taxHelp,
+    jurisdiction,
+    schemeField,
+    taxValue.element,
+    addTaxIdentity,
+    taxStatus);
+
   let createdPartyPublicId: string | null = null;
 
   const activateRole = async (
@@ -155,6 +224,54 @@ export function createPartyCreatePage(
     void activateRole("SUPPLIER", supplierRole);
   });
 
+  const addTaxIdentityToParty = async (): Promise<void> => {
+    if (!createdPartyPublicId) return;
+
+    addTaxIdentity.disabled = true;
+    taxStatus.textContent = "Vergi kimliği ekleniyor.";
+
+    try {
+      const response = await api.request<AddPartyTaxIdentityReceipt>(
+        `/parties/${createdPartyPublicId}/tax-identities`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Idempotency-Key": createOperationKey()
+          },
+          body: JSON.stringify({
+            jurisdiction: "TR",
+            scheme: scheme.value,
+            value: taxValue.input.value
+          })
+        });
+
+      taxValue.input.value = "";
+      taxStatus.textContent =
+        `${response.data.scheme} kimliği ACTIVE. Correlation: ${response.data.correlationId}.`;
+    } catch (error) {
+      if (error instanceof ApiClientError && error.status === 401) {
+        taxStatus.textContent = "Vergi kimliği eklemek için kimliği doğrulanmış oturum gerekiyor.";
+      } else if (error instanceof ApiClientError && error.status === 403) {
+        taxStatus.textContent = "Bu işlem için party.tax_identity.manage yetkisi gerekiyor.";
+      } else if (error instanceof ApiClientError && error.status === 404) {
+        taxStatus.textContent = "Party mevcut şirket kapsamında bulunamadı.";
+      } else if (error instanceof ApiClientError && error.status === 409) {
+        taxStatus.textContent = "Vergi kimliği veya işlem anahtarı mevcut kayıtla çakışıyor.";
+      } else if (error instanceof ApiClientError) {
+        taxStatus.textContent = error.message;
+      } else {
+        taxStatus.textContent = "Vergi kimliği eklenemedi.";
+      }
+    } finally {
+      addTaxIdentity.disabled = false;
+    }
+  };
+
+  addTaxIdentity.addEventListener("click", () => {
+    void addTaxIdentityToParty();
+  });
+
   const submit = createButton({
     label: "Party oluştur",
     variant: "primary",
@@ -185,9 +302,11 @@ export function createPartyCreatePage(
 
       createdPartyPublicId = response.data.publicId;
       roles.hidden = false;
+      taxIdentities.hidden = false;
       customerRole.disabled = false;
       supplierRole.disabled = false;
       roleStatus.textContent = "İsteğe bağlı CUSTOMER veya SUPPLIER rolünü etkinleştirebilirsiniz.";
+      taxStatus.textContent = "İsteğe bağlı TR VKN veya TCKN ekleyebilirsiniz.";
       status.textContent =
         `Party oluşturuldu: ${response.data.partyCode}. Correlation: ${response.data.correlationId}.`;
     } catch (error) {
@@ -207,6 +326,6 @@ export function createPartyCreatePage(
     }
   });
 
-  panel.append(heading, explanation, form, roles);
+  panel.append(heading, explanation, form, roles, taxIdentities);
   return panel;
 }
