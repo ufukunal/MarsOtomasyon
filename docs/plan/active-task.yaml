@@ -1,10 +1,9 @@
-id: PARTY-IMP-004
-title: Manage Party Role Lifecycle
+id: P5
+title: Parties next vertical slice definition
 module: parties
-status: ready
+status: scope_definition_required
 progress: not_started
-readiness_report: docs/plan/03-cariler/p5-fourth-slice-readiness.md
-authorization_decision: docs/plan/decisions/ADR-0005-mars-erp-permission-authority.md
+work_package_id: not_assigned
 
 phase:
   id: P5
@@ -12,55 +11,59 @@ phase:
   status: implementation_in_progress
 
 predecessor:
-  id: PARTY-IMP-003
-  title: Add Turkish Tax Identity
+  id: PARTY-IMP-004
+  title: Manage Party Role Lifecycle
   status: completed
-  canonical_report: docs/plan/03-cariler/party-imp-003-implementation.md
-  test_deploy_run: 35894175558
+  evidence:
+    canonical_report: docs/plan/03-cariler/party-imp-004-implementation.md
+    readiness_report: docs/plan/03-cariler/p5-fourth-slice-readiness.md
+    implementation_commit: f640fceae01fe734a273c1f3adc4136d497be28d
+    tested_deploy_commit: f746139981d79941d414e318ebcab017f8ae4df8
+    foundation_build_run: 35910331829
+    foundation_build_job: 107348248484
+    test_deploy_run: 35910331820
+    test_deploy_job: 107348248383
+    frontend_tests: 15_passed
+    foundation_tests: 50_passed
+    migration_count: 5
+    model_change: none
+    remote_test_deployment: success
+    health_live: 200
+    health_ready: 200
+    party_page: 200
+    party_role_state_post_unauthenticated: 401
+    smoke: pass
 
 goal:
-  Complete the existing CUSTOMER/SUPPLIER Party Role ACTIVE/INACTIVE state machine without creating a second Party identity or Finance effect.
+  Define the next smallest coherent Parties vertical slice from frozen PLAN-003 and PLAN-010 without inventing package order, fuzzy matching, provider/legal behavior or generic ERP fields.
+
+repository_follow_up_candidates:
+  - accepted soft duplicate candidate/review flow
+  - Contact Person / Communication Point / Address
+  - Party deactivate/reactivate
+  - Party Merge
+  - Party External Mapping
+  - broader Tax Identity read/lifecycle/provider/non-TR support where later required
+
+scope_gate:
+  dedicated_work_package_id: not_assigned
+  exact_next_vertical_slice: not_yet_defined
+  required_before_mutation:
+    - review PARTY-IMP-001 through PARTY-IMP-004 completion boundaries
+    - compare remaining PLAN-003 capabilities and dependencies
+    - select the smallest coherent next Party use case
+    - map entities/constraints/migration/API/UI/permissions/privacy/concurrency
+    - define targeted acceptance evidence
+    - assign a dedicated work-package ID only with explicit scope
 
 scope:
   include:
-    - existing Party Role ACTIVE to INACTIVE transition
-    - existing Party Role INACTIVE to ACTIVE transition
-    - party.role.manage authorization
-    - trusted-company Party and Role lookup
-    - positive expected-version concurrency contract
-    - mandatory deactivation reason
-    - durable idempotency and audit
-    - POST /api/v1/parties/{partyPublicId}/roles/{role}/state
-    - lifecycle controls on /parties/new after role activation
-    - targeted verification
-    - TEST deploy/smoke
+    - P5 Parties next-slice scope/readiness definition
   exclude:
-    - new role types
-    - Party deactivate/reactivate
-    - soft/fuzzy duplicate review
-    - Contact/Communication/Address
-    - Merge
-    - Tax Identity follow-up
-    - Sales/Purchasing eligibility enforcement
-    - Finance posting or balance authority
+    - new Party schema/code until next slice is explicit
+    - Sales/Product/Inventory/Purchasing/Warehouse/Finance implementation
     - production deployment
     - Full Test Day
-
-physical_model:
-  new_entity: none
-  new_table: none
-  migration_required: false
-  authority: existing parties.party_roles state + version
-
-api:
-  method: POST
-  route: /api/v1/parties/{partyPublicId}/roles/{role}/state
-  idempotency_key_required: true
-  body:
-    state: ACTIVE_or_INACTIVE
-    version: positive_expected_version
-    reason: required_only_for_INACTIVE
-  company_id_in_request: forbidden
 
 planning_progress:
   master_sequence:
@@ -74,11 +77,8 @@ planning_progress:
 
 test_policy:
   normal_development:
-    - release-build
-    - targeted-role-lifecycle-tests
-    - targeted-authorization-company-scope-concurrency-tests
-    - pending-model-check-no-migration
-    - frontend-typecheck-test-build
-    - small-api-openapi-smoke
-    - test-deploy-smoke
+    - build
+    - targeted-unit-or-invariant
+    - small-smoke-when-needed
+    - migration-contract-check
   heavy_tests: FULL_TEST_DAY_ONLY

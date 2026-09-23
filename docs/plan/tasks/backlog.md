@@ -1,29 +1,36 @@
 # Planning Backlog
 
-## Immediate — PARTY-IMP-004 Manage Party Role Lifecycle
-Status: READY / IMPLEMENTATION NOT STARTED.
+## Immediate — P5 Parties next vertical slice definition
+Status: SCOPE DEFINITION REQUIRED / NOT STARTED.
 
-Readiness:
-- docs/plan/03-cariler/p5-fourth-slice-readiness.md
+Predecessors:
+- PARTY-IMP-001 — COMPLETED.
+- PARTY-IMP-002 — COMPLETED.
+- PARTY-IMP-003 — COMPLETED.
+- PARTY-IMP-004 — COMPLETED.
+- PARTY-IMP-004 canonical report: `docs/plan/03-cariler/party-imp-004-implementation.md`
+- Foundation Build run `35910331829` — SUCCESS.
+- Foundation Test Deploy run `35910331820` — SUCCESS.
 
-Scope:
-- existing Party Role ACTIVE ↔ INACTIVE;
-- CUSTOMER/SUPPLIER only;
-- party.role.manage;
-- expected-version optimistic concurrency;
-- deactivation reason required;
-- audit + durable idempotency;
-- protected role-state endpoint;
-- /parties/new lifecycle UX;
-- no EF model change/migration expected.
+Repository-defined remaining Parties work includes:
+- accepted soft duplicate candidate/review flow;
+- Contact Person / Communication Point / Address;
+- Party deactivate/reactivate;
+- Party Merge;
+- Party External Mapping;
+- broader Tax Identity read/lifecycle/provider/non-TR support where later required.
 
-Explicitly deferred:
-- fuzzy duplicate review;
-- Contact/Communication/Address;
-- Party lifecycle/merge;
-- Tax Identity follow-up;
-- Sales/Purchasing eligibility;
-- Finance integration.
+No exact order or dedicated PARTY-IMP-005 ID is frozen.
+
+Before implementation:
+- reread frozen PLAN-003 and PLAN-010 contracts;
+- compare dependency value and minimum authoritative entity/migration surface;
+- preserve PARTY-IMP-001/002/003/004 company, permission, audit, idempotency, privacy and concurrency boundaries;
+- do not invent fuzzy matching thresholds, provider/legal semantics or generic ERP fields;
+- define exact DB/API/UI/permission/privacy/test impact;
+- assign a dedicated implementation work-package ID only after scope is explicit.
+
+Do not assume list order is implementation order.
 
 ## Quality — master planning sequence item 10
 Target: docs/plan/08-kalite/
@@ -41,15 +48,16 @@ Status: DEFERRED BY POLICY.
 
 Party heavy risks include:
 - concurrent Party Code create;
-- concurrent role activation;
+- concurrent role activation/lifecycle transition;
 - concurrent deterministic Tax Identity collision;
 - stale Party/role/tax identity state;
 - cross-company IDOR;
 - broad permission matrix;
 - authenticated browser Party lifecycle E2E;
+- consuming module eligibility races;
 - provider reconciliation when introduced;
 - high-volume duplicate/identity search;
-- PII logging/export/security regression;
+- PII/security regression;
 - snapshot persistence integration.
 
 Exact section-8 planning progress:

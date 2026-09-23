@@ -173,6 +173,35 @@ Still deferred:
 - Contact/Communication/Address;
 - Party/role lifecycle and merge.
 
+Fourth implementation work package:
+- PARTY-IMP-004 — Manage Party Role Lifecycle — COMPLETED.
+
+Readiness:
+- `docs/plan/03-cariler/p5-fourth-slice-readiness.md`
+
+Canonical implementation evidence:
+- `docs/plan/03-cariler/party-imp-004-implementation.md`
+
+Verification:
+- Foundation Build `35910331829` — SUCCESS;
+- Foundation Test Deploy `35910331820` — SUCCESS;
+- frontend tests 15 / 15;
+- Foundation targeted tests 50 / 50;
+- no EF model change; migration count remains 5;
+- /parties/new 200;
+- unauthenticated role lifecycle POST 401;
+- live/ready 200 / 200;
+- runner-to-TEST smoke PASS.
+
+PARTY-IMP-004 completes the current CUSTOMER/SUPPLIER role ACTIVE/INACTIVE state machine without Finance effects.
+
+Still deferred:
+- soft/fuzzy duplicate review;
+- Contact/Communication/Address;
+- Party lifecycle/merge;
+- Party External Mapping;
+- broader Tax Identity lifecycle/provider/non-TR.
+
 Next:
 - define the next smallest coherent Parties vertical slice;
-- no PARTY-IMP-004 ID is assigned yet.
+- no PARTY-IMP-005 ID is assigned yet.

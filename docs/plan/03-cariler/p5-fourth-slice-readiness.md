@@ -1,6 +1,6 @@
 # P5 Parties — Fourth Vertical Slice Readiness
 
-Status: READY FOR IMPLEMENTATION
+Status: IMPLEMENTED / COMPLETED
 Date: 2026-09-23
 Phase: P5 — Core application implementation
 Module: Parties
@@ -287,6 +287,11 @@ A real authenticated role lifecycle mutation is not required for normal TEST smo
 
 The next dependency-minimal Parties implementation work package is **PARTY-IMP-004 — Manage Party Role Lifecycle**.
 
-Status: READY FOR IMPLEMENTATION.
+Status: IMPLEMENTED / COMPLETED.
+
+Canonical completion evidence:
+- `docs/plan/03-cariler/party-imp-004-implementation.md`
+- Foundation Build run `35910331829` — SUCCESS
+- Foundation Test Deploy run `35910331820` — SUCCESS
 
 No Contact/Address, Party lifecycle, Merge, fuzzy duplicate engine, Tax Identity disclosure/lifecycle, provider/legal integration or Finance behavior is included.

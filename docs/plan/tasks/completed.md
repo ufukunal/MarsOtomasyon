@@ -880,3 +880,46 @@ Deferred:
 - authenticated browser mutation and heavy concurrency/privacy coverage.
 
 Planning metrics remain 9 / 30 = 30.0% master planning coverage and 8 / 8 = 100.0% P2 planning.
+
+
+## PARTY-IMP-004 — Manage Party Role Lifecycle
+**Status:** COMPLETED
+
+Implemented:
+- existing CUSTOMER/SUPPLIER Party Role ACTIVE ↔ INACTIVE lifecycle;
+- `party.role.manage` via ADR-0005 permission authority;
+- trusted-company Party/role lookup;
+- expected-version stale-write protection;
+- same-state conflict handling;
+- mandatory deactivation reason;
+- audit + durable PostgreSQL idempotency;
+- protected `POST /api/v1/parties/{partyPublicId}/roles/{role}/state`;
+- lifecycle controls on `/parties/new`;
+- no EF model change or new migration;
+- targeted build/tests and remote TEST deploy/smoke.
+
+Evidence:
+- canonical report: `docs/plan/03-cariler/party-imp-004-implementation.md`
+- implementation commit: `f640fceae01fe734a273c1f3adc4136d497be28d`
+- tested deploy commit: `f746139981d79941d414e318ebcab017f8ae4df8`
+- Foundation Build run: `35910331829` — SUCCESS
+- Foundation Test Deploy run: `35910331820` — SUCCESS
+- frontend tests: 15 / 15 PASS
+- Foundation targeted tests: 50 / 50 PASS
+- EF pending-model: PASS; migration count remains 5
+- TEST /parties/new: 200
+- unauthenticated Party Role lifecycle POST: 401
+- live/ready: 200 / 200
+- runner-to-TEST smoke: PASS
+
+Deferred:
+- soft/fuzzy duplicate review;
+- Contact/Communication/Address;
+- Party lifecycle;
+- Merge;
+- External Mapping;
+- Tax Identity follow-up;
+- Sales/Purchasing eligibility implementation;
+- authenticated browser mutation and heavy concurrency/security coverage.
+
+Planning metrics remain 9 / 30 = 30.0% master planning coverage and 8 / 8 = 100.0% P2 planning.
