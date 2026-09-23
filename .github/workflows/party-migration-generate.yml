@@ -32,8 +32,8 @@ jobs:
         run: |
           set -euo pipefail
           dotnet tool restore
-          dotnet restore Mars.slnx
-          dotnet build Mars.slnx --configuration Release --no-restore
+          dotnet restore src/Mars.Infrastructure/Mars.Infrastructure.csproj
+          dotnet build src/Mars.Infrastructure/Mars.Infrastructure.csproj --configuration Release --no-restore
 
       - name: Generate PARTY-IMP-001 migration
         shell: bash
