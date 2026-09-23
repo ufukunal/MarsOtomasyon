@@ -2,6 +2,7 @@ import "./ui/base.css";
 import { createAppShell, MarsRouter } from "./app";
 import { ApiClient } from "./api-client";
 import { createFoundationProofPage } from "./foundation-proof";
+import { createPartyCreatePage } from "./party-create";
 import {
   createButton,
   createField,
@@ -23,6 +24,11 @@ const router = new MarsRouter(shell.outlet, [
     path: "/",
     title: "Foundation",
     render: renderFoundation
+  },
+  {
+    path: "/parties/new",
+    title: "Yeni Party",
+    render: () => createPartyCreatePage(api)
   },
   {
     path: "/proof",
