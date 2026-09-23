@@ -926,7 +926,8 @@ Current status:
 - `FW-IMP-005 — API foundation` is COMPLETED.
 - `FW-IMP-006 — Mars.Web + Mars.UI foundation` is COMPLETED.
 - `FW-IMP-007 — Docker/test deployment baseline` is COMPLETED with remote TEST deployment evidence.
-- next repository-tracked package is `FW-IMP-008 — thin vertical framework proof`; its exact scope must be defined before implementation so the proof remains non-domain or deliberately minimal.
+- `FW-IMP-008 — thin vertical framework proof` is COMPLETED with build, targeted-test and TEST deployment evidence.
+- P4 Foundation implementation exit is COMPLETED; the next master phase is P5 Core application implementation, starting with Parties after its first implementation work package is explicitly scoped.
 
 
 ## FW-IMP-001 implementation evidence
@@ -1067,14 +1068,26 @@ FW-IMP-007 completion evidence:
 - successful TEST deployment workflow run: `35865600657`;
 - remote TEST preflight/deployment/readiness/smoke: PASS.
 
-Current next package:
-- `FW-IMP-008 — thin vertical framework proof`.
+FW-IMP-008 completion evidence:
+- canonical report: `docs/plan/01-foundation/fw-imp-008-implementation.md`;
+- final tested implementation commit: `bf9b3882dbc91ee801d169a62587c7658baaa63b`;
+- Foundation Build run: `35868005913` — PASS;
+- Foundation Test Deploy run: `35868151531` — PASS;
+- frontend tests: 11 / 11 PASS;
+- Foundation targeted tests: 30 / 30 PASS;
+- no new schema/migration/package;
+- TEST proof page/health/readiness/OpenAPI/auth boundary smoke: PASS.
 
-FW-IMP-008 gate:
-- exact implementation scope is not yet defined in repository sources;
-- define the smallest non-domain or deliberately minimal vertical proof before mutation;
-- do not invent ERP rules;
-- production secret-store selection remains deferred;
-- production reverse-proxy/tunnel and ingress/TLS details remain deferred;
-- structured logging/metrics technology remains deferred;
-- Desktop/Mobile shell technology remains deferred.
+P4 Foundation implementation:
+- COMPLETED.
+
+Next master phase:
+- P5 — Core application implementation;
+- first dependency/module: Parties;
+- exact first Parties implementation work-package ID/scope must be defined from the frozen Party and logical DB contracts before mutation.
+
+Deferred choices remain:
+- production secret store;
+- production reverse proxy/tunnel and ingress/TLS;
+- structured logging/metrics technology;
+- Desktop/Mobile shell technology.
