@@ -13,6 +13,7 @@ using Mars.Application.Foundation.Outbox;
 using Mars.Application.Foundation.Proof;
 using Mars.Application.Parties;
 using Mars.Application.Parties.CreateParty;
+using Mars.Application.Parties.DeactivateParty;
 using Mars.Application.Parties.ActivatePartyRole;
 using Mars.Application.Parties.ChangePartyRoleState;
 using Mars.Application.Parties.AddPartyTaxIdentity;
@@ -45,6 +46,8 @@ builder.Services.AddScoped<FoundationProofHandler>();
 builder.Services.AddScoped<IPermissionEvaluator, EfPermissionEvaluator>();
 builder.Services.AddScoped<IPartyCreatePersistence, EfPartyCreatePersistence>();
 builder.Services.AddScoped<CreatePartyHandler>();
+builder.Services.AddScoped<IPartyDeactivatePersistence, EfPartyDeactivatePersistence>();
+builder.Services.AddScoped<DeactivatePartyHandler>();
 builder.Services.AddScoped<IPartyRoleActivationPersistence, EfPartyRoleActivationPersistence>();
 builder.Services.AddScoped<ActivatePartyRoleHandler>();
 builder.Services.AddScoped<IPartyRoleStatePersistence, EfPartyRoleStatePersistence>();
@@ -105,6 +108,14 @@ builder.Services.AddAuthorization(options =>
         {
             policy.RequireAuthenticatedUser();
             policy.AddRequirements(new MarsPermissionRequirement(PartyPermissions.Create));
+        });
+
+    options.AddPolicy(
+        PartyPermissions.Deactivate,
+        policy =>
+        {
+            policy.RequireAuthenticatedUser();
+            policy.AddRequirements(new MarsPermissionRequirement(PartyPermissions.Deactivate));
         });
 
     options.AddPolicy(
@@ -231,6 +242,38 @@ app.MapPost(
     .RequireAuthorization(PartyPermissions.Create)
     .WithName("CreateParty")
     .WithSummary("Creates one company-scoped Party core identity.");
+
+app.MapPost(
+        "/api/v1/parties/{partyPublicId:guid}/deactivate",
+        async (
+            Guid partyPublicId,
+            DeactivatePartyRequest request,
+            HttpRequest httpRequest,
+            IExecutionContext executionContext,
+            DeactivatePartyHandler handler,
+            CancellationToken cancellationToken) =>
+        {
+            var result = await handler.ExecuteAsync(
+                new DeactivatePartyCommand(
+                    partyPublicId,
+                    request.Version,
+                    request.Reason,
+                    httpRequest.Headers["Idempotency-Key"].ToString()),
+                executionContext,
+                cancellationToken);
+
+            if (result.IsFailure)
+            {
+                return ApplicationErrorHttpMapper.ToResult(
+                    result.Error!,
+                    executionContext.CorrelationId.Value);
+            }
+
+            return Results.Ok(result.Value);
+        })
+    .RequireAuthorization(PartyPermissions.Deactivate)
+    .WithName("DeactivateParty")
+    .WithSummary("Changes one ACTIVE company-scoped Party to INACTIVE with a mandatory reason.");
 
 app.MapPost(
         "/api/v1/parties/{partyPublicId:guid}/roles",

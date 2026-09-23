@@ -645,3 +645,85 @@ test("Party create page manages role ACTIVE INACTIVE lifecycle with expected ver
   assert.match(customerButton.textContent ?? "", /devre dışı bırak/);
   assert.match(page.textContent ?? "", /CUSTOMER rolü ACTIVE/);
 });
+
+
+test("Party create page deactivates created Party with expected version reason and no client company authority", async () => {
+  const requests: Array<{ path: string; init?: RequestInit }> = [];
+  const operationKeys = ["party-op-deactivate", "party-state-deactivate"];
+
+  const api = {
+    request: async <T>(path: string, init?: RequestInit) => {
+      requests.push({ path, init });
+
+      if (path === "/parties") {
+        return {
+          data: {
+            publicId: "66666666-6666-6666-6666-666666666666",
+            partyCode: "P-205",
+            kind: "ORGANIZATION",
+            legalName: "Mars Inactive",
+            displayName: null,
+            state: "ACTIVE",
+            version: 1,
+            correlationId: "corr-party-deactivate-create"
+          } as T,
+          correlationId: "corr-party-deactivate-create",
+          status: 201
+        };
+      }
+
+      return {
+        data: {
+          partyPublicId: "66666666-6666-6666-6666-666666666666",
+          state: "INACTIVE",
+          version: 2,
+          correlationId: "corr-party-deactivate"
+        } as T,
+        correlationId: "corr-party-deactivate",
+        status: 200
+      };
+    }
+  };
+
+  const page = createPartyCreatePage(api, () => operationKeys.shift() ?? "unexpected-op");
+  document.body.replaceChildren(page);
+
+  page.querySelector<HTMLInputElement>("#party-code")!.value = "P-205";
+  page.querySelector<HTMLSelectElement>("#party-kind")!.value = "ORGANIZATION";
+  page.querySelector<HTMLInputElement>("#party-legal-name")!.value = "Mars Inactive";
+
+  page.querySelector<HTMLFormElement>("form")!
+    .dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+  await Promise.resolve();
+  await Promise.resolve();
+
+  const reason = page.querySelector<HTMLInputElement>("#party-deactivate-reason")!;
+  reason.value = "Commercial relationship ended";
+
+  const button = Array.from(page.querySelectorAll<HTMLButtonElement>("button"))
+    .find((item) => item.textContent?.includes("Party'yi devre dışı bırak"));
+  assert.ok(button);
+  button.click();
+
+  await Promise.resolve();
+  await Promise.resolve();
+
+  assert.equal(requests.length, 2);
+  assert.equal(
+    requests[1]?.path,
+    "/parties/66666666-6666-6666-6666-666666666666/deactivate");
+  assert.equal(requests[1]?.init?.method, "POST");
+  assert.equal(
+    new Headers(requests[1]?.init?.headers).get("Idempotency-Key"),
+    "party-state-deactivate");
+
+  const body = JSON.parse(String(requests[1]?.init?.body)) as Record<string, unknown>;
+  assert.deepEqual(body, {
+    version: 1,
+    reason: "Commercial relationship ended"
+  });
+  assert.equal("companyId" in body, false);
+  assert.equal(reason.value, "");
+  assert.equal(button.disabled, true);
+  assert.match(page.textContent ?? "", /Party INACTIVE/);
+});

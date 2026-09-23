@@ -12,6 +12,13 @@ export interface CreatePartyReceipt {
   correlationId: string;
 }
 
+export interface DeactivatePartyReceipt {
+  partyPublicId: string;
+  state: "INACTIVE";
+  version: number;
+  correlationId: string;
+}
+
 export interface ActivatePartyRoleReceipt {
   partyPublicId: string;
   role: "CUSTOMER" | "SUPPLIER";
@@ -97,6 +104,39 @@ export function createPartyCreatePage(
   const status = document.createElement("p");
   status.setAttribute("role", "status");
   status.setAttribute("aria-live", "polite");
+
+  const partyLifecycle = document.createElement("section");
+  partyLifecycle.className = "mars-component-stack";
+  partyLifecycle.hidden = true;
+
+  const partyLifecycleHeading = document.createElement("h2");
+  partyLifecycleHeading.textContent = "Party Durumu";
+
+  const partyLifecycleHelp = document.createElement("p");
+  partyLifecycleHelp.textContent =
+    "Party pasife alma geçmişi silmez ve mevcut işlemleri geri almaz. Bu dilimde yeniden etkinleştirme yoktur.";
+
+  const partyDeactivateReason = createField({
+    id: "party-deactivate-reason",
+    label: "Party pasife alma nedeni",
+    required: true
+  });
+
+  const partyDeactivateButton = createButton({
+    label: "Party'yi devre dışı bırak",
+    type: "button"
+  });
+
+  const partyLifecycleStatus = document.createElement("p");
+  partyLifecycleStatus.setAttribute("role", "status");
+  partyLifecycleStatus.setAttribute("aria-live", "polite");
+
+  partyLifecycle.append(
+    partyLifecycleHeading,
+    partyLifecycleHelp,
+    partyDeactivateReason.element,
+    partyDeactivateButton,
+    partyLifecycleStatus);
 
   const roles = document.createElement("section");
   roles.className = "mars-component-stack";
@@ -196,6 +236,7 @@ export function createPartyCreatePage(
     taxStatus);
 
   let createdPartyPublicId: string | null = null;
+  let createdPartyVersion: number | null = null;
   const roleStates = new Map<
     "CUSTOMER" | "SUPPLIER",
     { state: "ACTIVE" | "INACTIVE"; version: number }
@@ -338,6 +379,61 @@ export function createPartyCreatePage(
     void handleRoleAction("SUPPLIER", supplierRole);
   });
 
+  const deactivateCreatedParty = async (): Promise<void> => {
+    if (!createdPartyPublicId || createdPartyVersion === null) return;
+
+    const reason = partyDeactivateReason.input.value.trim();
+    if (reason.length === 0) {
+      partyLifecycleStatus.textContent = "Party'yi devre dışı bırakmak için neden girin.";
+      partyDeactivateReason.input.focus();
+      return;
+    }
+
+    partyDeactivateButton.disabled = true;
+    partyLifecycleStatus.textContent = "Party devre dışı bırakılıyor.";
+
+    try {
+      const response = await api.request<DeactivatePartyReceipt>(
+        `/parties/${createdPartyPublicId}/deactivate`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Idempotency-Key": createOperationKey()
+          },
+          body: JSON.stringify({
+            version: createdPartyVersion,
+            reason
+          })
+        });
+
+      createdPartyVersion = response.data.version;
+      partyDeactivateReason.input.value = "";
+      partyLifecycleStatus.textContent =
+        `Party INACTIVE. Correlation: ${response.data.correlationId}.`;
+      partyDeactivateButton.disabled = true;
+    } catch (error) {
+      if (error instanceof ApiClientError && error.status === 401) {
+        partyLifecycleStatus.textContent = "Party durumunu değiştirmek için kimliği doğrulanmış oturum gerekiyor.";
+      } else if (error instanceof ApiClientError && error.status === 403) {
+        partyLifecycleStatus.textContent = "Bu işlem için party.deactivate yetkisi gerekiyor.";
+      } else if (error instanceof ApiClientError && error.status === 404) {
+        partyLifecycleStatus.textContent = "Party mevcut şirket kapsamında bulunamadı.";
+      } else if (error instanceof ApiClientError && error.status === 409) {
+        partyLifecycleStatus.textContent = "Party durumu değişti, zaten INACTIVE/MERGED veya işlem anahtarı daha önce kullanıldı.";
+      } else if (error instanceof ApiClientError) {
+        partyLifecycleStatus.textContent = error.message;
+      } else {
+        partyLifecycleStatus.textContent = "Party devre dışı bırakılamadı.";
+      }
+      partyDeactivateButton.disabled = false;
+    }
+  };
+
+  partyDeactivateButton.addEventListener("click", () => {
+    void deactivateCreatedParty();
+  });
+
   const addTaxIdentityToParty = async (): Promise<void> => {
     if (!createdPartyPublicId) return;
 
@@ -415,10 +511,15 @@ export function createPartyCreatePage(
       });
 
       createdPartyPublicId = response.data.publicId;
+      createdPartyVersion = response.data.version;
       roleStates.clear();
       customerRole.textContent = "CUSTOMER rolünü etkinleştir";
       supplierRole.textContent = "SUPPLIER rolünü etkinleştir";
       roleReason.input.value = "";
+      partyLifecycle.hidden = false;
+      partyDeactivateReason.input.value = "";
+      partyDeactivateButton.disabled = false;
+      partyLifecycleStatus.textContent = "Party ACTIVE.";
       roles.hidden = false;
       taxIdentities.hidden = false;
       customerRole.disabled = false;
@@ -444,6 +545,6 @@ export function createPartyCreatePage(
     }
   });
 
-  panel.append(heading, explanation, form, roles, taxIdentities);
+  panel.append(heading, explanation, form, partyLifecycle, roles, taxIdentities);
   return panel;
 }
