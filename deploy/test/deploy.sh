@@ -69,6 +69,8 @@ SELECT format('GRANT USAGE ON SCHEMA parties TO %I', :'app_role') \gexec
 SELECT format('GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA foundation TO %I', :'app_role') \gexec
 SELECT format('GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA identity TO %I', :'app_role') \gexec
 SELECT format('GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA parties TO %I', :'app_role') \gexec
+SELECT format('REVOKE INSERT, UPDATE, DELETE ON TABLE foundation.permission_grants FROM %I', :'app_role') \gexec
+SELECT format('GRANT SELECT ON TABLE foundation.permission_grants TO %I', :'app_role') \gexec
 SELECT format('GRANT USAGE, SELECT, UPDATE ON ALL SEQUENCES IN SCHEMA foundation TO %I', :'app_role') \gexec
 SELECT format('GRANT USAGE, SELECT, UPDATE ON ALL SEQUENCES IN SCHEMA identity TO %I', :'app_role') \gexec
 SELECT format('GRANT USAGE, SELECT, UPDATE ON ALL SEQUENCES IN SCHEMA parties TO %I', :'app_role') \gexec
