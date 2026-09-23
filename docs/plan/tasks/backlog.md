@@ -1,34 +1,29 @@
 # Planning Backlog
 
-## Immediate — P5 Parties next vertical slice definition
-Status: SCOPE DEFINITION REQUIRED / NOT STARTED.
+## Immediate — PARTY-IMP-004 Manage Party Role Lifecycle
+Status: READY / IMPLEMENTATION NOT STARTED.
 
-Predecessors:
-- PARTY-IMP-001 — COMPLETED.
-- PARTY-IMP-002 — COMPLETED.
-- PARTY-IMP-003 — COMPLETED.
-- PARTY-IMP-003 canonical report: `docs/plan/03-cariler/party-imp-003-implementation.md`
-- Foundation Build run `35894175633` — SUCCESS.
-- Foundation Test Deploy run `35894175558` — SUCCESS.
+Readiness:
+- docs/plan/03-cariler/p5-fourth-slice-readiness.md
 
-Repository-defined remaining Parties work includes:
-- accepted soft duplicate candidate/review flow;
-- contacts/addresses;
-- role lifecycle after activation;
+Scope:
+- existing Party Role ACTIVE ↔ INACTIVE;
+- CUSTOMER/SUPPLIER only;
+- party.role.manage;
+- expected-version optimistic concurrency;
+- deactivation reason required;
+- audit + durable idempotency;
+- protected role-state endpoint;
+- /parties/new lifecycle UX;
+- no EF model change/migration expected.
+
+Explicitly deferred:
+- fuzzy duplicate review;
+- Contact/Communication/Address;
 - Party lifecycle/merge;
-- broader Tax Identity lifecycle/provider/non-TR support where later required.
-
-No exact order or dedicated next work-package ID is frozen.
-
-Before implementation:
-- reread frozen PLAN-003 and PLAN-010 contracts;
-- compare dependency value and minimum authoritative entity/migration surface;
-- preserve PARTY-IMP-001/002/003 company, permission, audit, idempotency and privacy boundaries;
-- do not invent fuzzy matching thresholds or current provider/legal semantics;
-- define exact DB/API/UI/permission/test impact;
-- assign a dedicated implementation work-package ID only after scope is explicit.
-
-Do not assume list order is implementation order.
+- Tax Identity follow-up;
+- Sales/Purchasing eligibility;
+- Finance integration.
 
 ## Quality — master planning sequence item 10
 Target: docs/plan/08-kalite/
