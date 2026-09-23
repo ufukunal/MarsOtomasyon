@@ -92,19 +92,33 @@ P5 — Core application implementation
 Status: IMPLEMENTATION IN PROGRESS
 
 ## Current task
-Define the next smallest coherent Parties vertical slice.
+- PARTY-IMP-003 — Add Turkish Tax Identity
+- status: READY / IMPLEMENTATION NOT STARTED
+- canonical readiness: `docs/plan/03-cariler/p5-third-slice-readiness.md`
 
-Work-package ID:
-- NOT ASSIGNED.
+Scope decision:
+- Tax Identity is the smallest missing authoritative Party child after core identity + role activation;
+- first slice is intentionally Turkey-only: TR + VKN/TCKN;
+- VKN structural shape = exactly 10 ASCII digits;
+- TCKN structural shape = exactly 11 ASCII digits;
+- no checksum/provider/GİB enrollment semantics;
+- `party.tax_identity.manage` via ADR-0005;
+- company comes from trusted execution context/owning Party;
+- deterministic active company + jurisdiction + scheme + value collision is PostgreSQL authority;
+- API: POST `/api/v1/parties/{partyPublicId}/tax-identities`;
+- UI: tax identity add section on `/parties/new`;
+- audit excludes raw tax value;
+- durable idempotency required;
+- no outbox consumer required.
 
-Repository follow-up requirements remain:
-- Tax Identity records and deterministic collision rules;
-- accepted soft duplicate candidate/review flow;
+Still deferred:
+- generic non-TR tax identities;
+- tax identity read/read_full/list/edit/deactivate;
+- fuzzy duplicate review;
 - contacts/addresses;
-- role lifecycle after activation;
-- lifecycle/merge in later slices.
-
-Repository does not freeze their implementation order. Do not invent PARTY-IMP-003 before exact scope is defined from frozen PLAN-003 + PLAN-010.
+- role lifecycle;
+- Party lifecycle/merge;
+- Finance/Sales/Purchasing integration.
 
 ## Planning progress
 - Master section-8 sequence: 9 / 30 = 30.0%
