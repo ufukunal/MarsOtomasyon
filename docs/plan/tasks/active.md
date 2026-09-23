@@ -1,27 +1,33 @@
 # Active Tasks
 
-## FW-IMP-008 — thin vertical framework proof
+## P5 — Core application implementation — Parties first vertical slice definition
 **Status:** SCOPE DEFINITION REQUIRED — IMPLEMENTATION NOT STARTED
 
 Predecessor:
-- FW-IMP-007 — COMPLETED
-- canonical evidence: `docs/plan/01-foundation/fw-imp-007-implementation.md`
-- tested implementation commit: `2821c98bbd04b81dcbb10e99ddb0a4974ca7a517`
-- successful TEST deploy workflow run: `35865600657`
+- FW-IMP-008 — COMPLETED
+- canonical evidence: `docs/plan/01-foundation/fw-imp-008-implementation.md`
+- tested implementation commit: `bf9b3882dbc91ee801d169a62587c7658baaa63b`
+- Foundation Build run: `35868005913` — SUCCESS
+- Foundation Test Deploy run: `35868151531` — SUCCESS
+
+Repository-defined next phase:
+- P5 — Core application implementation
+- dependency order starts with Parties.
 
 Current gate:
-- repository tracking names the package but does not yet define its exact implementation scope;
-- define the smallest non-domain or deliberately minimal vertical proof before mutation;
-- do not invent ERP business rules;
-- define measurable acceptance criteria and targeted verification first.
+- no dedicated first Parties implementation work-package ID exists yet;
+- exact first vertical slice is not yet recorded;
+- define it from frozen PLAN-003 and frozen logical DB contracts before mutation;
+- do not invent business rules or a work-package ID merely to start coding.
 
-Deferred technology choices remain:
-- production secret store;
-- production reverse proxy/tunnel;
-- production DNS/ingress/TLS;
-- structured logging/metrics stack;
-- Desktop shell technology;
-- Mobile shell technology.
+Scope-definition outputs required:
+- selected Party use case;
+- exact entity/relationship/constraint mapping;
+- company/authorization boundary;
+- migration impact;
+- domain/application/API/UI contract;
+- targeted tests and TEST smoke;
+- genuine UNKNOWN/BLOCKED decisions.
 
 Exact planning progress:
 - master: 9 / 30 = 30.0%
