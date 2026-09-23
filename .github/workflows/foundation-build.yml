@@ -1,6 +1,6 @@
 name: Foundation Build
-# PARTY-IMP-003 committed migration verification
-# PARTY-IMP-002 committed migration verification trigger
+# PARTY-IMP-006 committed Party master migration verification
+# PARTY-IMP-006 final verification trigger
 
 on:
   push:

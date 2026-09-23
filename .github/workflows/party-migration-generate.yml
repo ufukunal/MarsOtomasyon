@@ -1,31 +1,20 @@
-name: PARTY-IMP-006 Migration Generate
+name: PARTY-IMP-003 Migration Generate
+# PARTY-IMP-003 clean regeneration
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - "src/Mars.Domain/Parties/PartyMasterData.cs"
-      - "src/Mars.Infrastructure/Persistence/Parties/PartyMasterRecords.cs"
-      - "src/Mars.Infrastructure/Persistence/Parties/PartyMasterConfigurations.cs"
-      - "src/Mars.Infrastructure/Persistence/MarsDbContext.cs"
-      - ".github/workflows/party-migration-generate.yml"
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   generate:
-    name: generate-party-master-completion-migration
-    if: "!contains(github.event.head_commit.message, 'db: add PARTY-IMP-006 Party master migration')"
+    name: generate-party-tax-identity-migration
     runs-on: self-hosted
     timeout-minutes: 15
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          ref: main
-          fetch-depth: 0
 
       - name: Select writable .NET install directory
         shell: bash
@@ -44,40 +33,26 @@ jobs:
           dotnet restore src/Mars.Infrastructure/Mars.Infrastructure.csproj
           dotnet build src/Mars.Infrastructure/Mars.Infrastructure.csproj --configuration Release --no-restore
 
-      - name: Generate PARTY-IMP-006 migration
+      - name: Generate PARTY-IMP-003 migration
         shell: bash
         env:
           MARS_MIGRATION_CONNECTION_STRING: "Host=localhost;Database=mars_design_time_probe"
         run: |
           set -euo pipefail
-          dotnet tool run dotnet-ef migrations add PartyImp006PartyMasterCompletion \
+          dotnet tool run dotnet-ef migrations add PartyImp003TurkishTaxIdentity \
             --project src/Mars.Infrastructure/Mars.Infrastructure.csproj \
             --startup-project src/Mars.Infrastructure/Mars.Infrastructure.csproj \
             --configuration Release \
             --no-build \
             --output-dir Persistence/Migrations/Parties
+          test -d src/Mars.Infrastructure/Persistence/Migrations/Parties
 
-          git diff --exit-code -- src/Mars.Infrastructure/Persistence/Migrations/Parties \
-            src/Mars.Infrastructure/Persistence/Migrations/Foundation/MarsDbContextModelSnapshot.cs && {
-              echo "PARTY-IMP-006 model change generated no migration."
-              exit 1
-            }
-
-          dotnet build src/Mars.Infrastructure/Mars.Infrastructure.csproj --configuration Release --no-restore
-
-          dotnet tool run dotnet-ef migrations has-pending-model-changes \
-            --project src/Mars.Infrastructure/Mars.Infrastructure.csproj \
-            --startup-project src/Mars.Infrastructure/Mars.Infrastructure.csproj \
-            --configuration Release \
-            --no-build
-
-      - name: Commit generated migration to main
-        shell: bash
-        run: |
-          set -euo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src/Mars.Infrastructure/Persistence/Migrations/Parties \
+      - name: Upload generated migration
+        uses: actions/upload-artifact@v4
+        with:
+          name: party-imp-003-migration
+          if-no-files-found: error
+          path: |
+            src/Mars.Infrastructure/Persistence/Migrations/Parties/
             src/Mars.Infrastructure/Persistence/Migrations/Foundation/MarsDbContextModelSnapshot.cs
-          git commit -m "db: add PARTY-IMP-006 Party master migration (run ${GITHUB_RUN_ID})"
-          git push origin HEAD:main
+

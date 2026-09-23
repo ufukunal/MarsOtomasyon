@@ -1,6 +1,6 @@
 name: Foundation Test Deploy
-# PARTY-IMP-003 committed migration verification
-# PARTY-IMP-002 committed migration deployment trigger
+# PARTY-IMP-006 committed Party master migration deployment verification
+# PARTY-IMP-006 final deployment trigger
 
 on:
   push:
