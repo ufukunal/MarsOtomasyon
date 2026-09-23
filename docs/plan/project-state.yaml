@@ -83,9 +83,9 @@ test_policy:
   heavy_tests: FULL_TEST_DAY_ONLY
 
 active_task:
-  id: P5
-  title: Parties next vertical slice definition
-  status: scope_definition_required
+  id: PARTY-IMP-002
+  title: Activate Party Role
+  status: ready
   file: docs/plan/active-task.yaml
   progress: not_started
 
@@ -313,7 +313,8 @@ known_constraints:
   - Returns preserves source/lot/serial/UOM lineage; Inventory and Finance remain authoritative.
   - P2 Core Commercial Workflow Planning is complete.
   - PLAN-010 Logical Database Model is COMPLETED / FROZEN.
-  - P4 Foundation implementation is completed; P5 Core application implementation is current. PARTY-IMP-001 Create Party Core Identity is COMPLETED and the next Parties slice requires scope definition.
+  - P4 Foundation implementation is completed; P5 Core application implementation is current. PARTY-IMP-001 Create Party Core Identity is COMPLETED.
+  - PARTY-IMP-002 Activate Party Role is the selected next dependency-minimal Parties vertical slice and is READY FOR IMPLEMENTATION; canonical readiness is docs/plan/03-cariler/p5-second-slice-readiness.md.
   - Section-8 Quality remains conceptual master planning item 10 for exact planning percentage, but Quality execution belongs P6 Operations.
   - Commerce belongs P7 and is not immediate next execution work.
   - No new PLAN number is assigned to P4 readiness; existing phase ID P4 is used.
@@ -323,41 +324,34 @@ known_constraints:
   - Durable idempotency/concurrency correctness is PostgreSQL-owned; Valkey is not sufficient authority.
 
 blocked_items:
-  - No unresolved blocker remains for PARTY-IMP-001; Create Party Core Identity is completed.
-  - Full PLAN-003 Create Party parity remains incomplete because soft duplicate review, Tax Identity, Party Role, contacts/addresses and later lifecycle/merge are deferred to later Parties slices.
-  - Repository backlog lists these Parties follow-up requirements but does not assign their implementation order or a dedicated next work-package ID.
-  - Define the next smallest coherent Parties vertical slice from frozen PLAN-003 + PLAN-010 before schema/code mutation; do not invent PARTY-IMP-002 merely for convenience.
+  - No unresolved blocker remains for PARTY-IMP-002 Activate Party Role.
+  - Tax Identity, contacts/addresses, soft duplicate review, Party/role lifecycle and merge remain later Parties slices.
   - Production secret-store, production reverse-proxy/tunnel, production ingress/TLS and structured logging/metrics choices remain deferred.
 next_action:
-  id: P5
-  title: Define next Parties vertical slice
+  id: PARTY-IMP-002
+  title: Activate Party Role
   phase: P5
   module: parties
-  status: SCOPE_DEFINITION_REQUIRED
-  work_package_id: NOT_ASSIGNED
+  status: READY
+  readiness_report: docs/plan/03-cariler/p5-second-slice-readiness.md
   predecessor:
     id: PARTY-IMP-001
     status: completed
     canonical_report: docs/plan/03-cariler/party-imp-001-implementation.md
-    migration_commit: 1c6983bea3f046522183a2a5f366f2b868a721f0
-    foundation_build_run: 35885316247
-    test_deploy_run: 35885323206
-    tested_deploy_commit: b1305ad0d48b6ef6e5522a9f6f66a46a2926902c
-  repository_follow_up_candidates:
-    - soft duplicate candidate/review flow
-    - Tax Identity records and deterministic collision rules
-    - Party Role activation
-    - contacts/addresses
-    - lifecycle/merge in later slices
-  scope_intent:
-    - select the next smallest coherent Parties vertical slice from frozen PLAN-003 and PLAN-010
-    - preserve PARTY-IMP-001 permission/company/idempotency/audit boundaries
-    - map exact entity/constraint/API/UI/migration effects before mutation
-    - assign a dedicated work-package ID only after scope is explicit
+  scope:
+    - add Parties-owned Party Role persistence for CUSTOMER/SUPPLIER activation
+    - enforce party.role.manage via existing ADR-0005 permission authority
+    - add protected POST /api/v1/parties/{partyPublicId}/roles
+    - extend /parties/new with post-create role activation actions
+    - reuse Foundation audit/idempotency transaction primitives
+    - add generated additive EF migration
+    - run targeted build/tests/model/migration/API/Web verification
+    - deploy/smoke on TEST when deployable
   restrictions:
-    - do not assume the first backlog bullet is automatically the next package
-    - no generic ERP rule filling
-    - no Sales/Product/Inventory/Purchasing/Warehouse/Finance implementation
+    - no role deactivate/reactivate in this slice
+    - no Tax Identity/contact/address/duplicate-review/merge
+    - no Finance ledger/balance/risk behavior
+    - no Sales/Product/Inventory/Purchasing/Warehouse implementation
     - no production deployment
     - no Full Test Day
     - exact master planning metric remains 9 / 30 = 30.0

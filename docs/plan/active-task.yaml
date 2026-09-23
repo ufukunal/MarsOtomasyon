@@ -1,9 +1,10 @@
-id: P5
-title: Parties next vertical slice definition
+id: PARTY-IMP-002
+title: Activate Party Role
 module: parties
-status: scope_definition_required
+status: ready
 progress: not_started
-work_package_id: not_assigned
+readiness_report: docs/plan/03-cariler/p5-second-slice-readiness.md
+authorization_decision: docs/plan/decisions/ADR-0005-mars-erp-permission-authority.md
 
 phase:
   id: P5
@@ -14,53 +15,66 @@ predecessor:
   id: PARTY-IMP-001
   title: Create Party Core Identity
   status: completed
-  evidence:
-    canonical_report: docs/plan/03-cariler/party-imp-001-implementation.md
-    migration_commit: 1c6983bea3f046522183a2a5f366f2b868a721f0
-    foundation_build_run: 35885316247
-    foundation_build_job: 107263853019
-    test_deploy_run: 35885323206
-    test_deploy_job: 107263878180
-    tested_deploy_commit: b1305ad0d48b6ef6e5522a9f6f66a46a2926902c
-    frontend_tests: 12_passed
-    foundation_tests: 35_passed
-    migration_count: 3
-    remote_test_deployment: success
-    health_live: 200
-    health_ready: 200
-    party_page: 200
-    party_post_unauthenticated: 401
-    smoke: pass
+  canonical_report: docs/plan/03-cariler/party-imp-001-implementation.md
 
 goal:
-  Define the next smallest coherent Parties vertical slice from frozen PLAN-003 and PLAN-010 without inventing package order or business rules.
-
-repository_follow_up_candidates:
-  - soft duplicate candidate/review flow
-  - Tax Identity records and deterministic collision rules
-  - Party Role activation
-  - contacts/addresses
-  - lifecycle/merge in later slices
-
-scope_gate:
-  dedicated_work_package_id: not_assigned
-  exact_next_vertical_slice: not_yet_defined
-  required_before_mutation:
-    - review PARTY-IMP-001 completion boundary
-    - compare deferred PLAN-003 capabilities and dependency order
-    - select the smallest coherent next Party use case
-    - map entities/constraints/migration/API/UI/permissions
-    - define targeted acceptance evidence
-    - assign a dedicated work-package ID only with the explicit scope
+  Activate one CUSTOMER or SUPPLIER role on an existing company-scoped Party without creating a duplicate Party identity or any Finance posting.
 
 scope:
   include:
-    - P5 Parties next-slice scope/readiness definition
+    - Parties-owned Party Role authoritative persistence
+    - CUSTOMER and SUPPLIER activation
+    - party.role.manage authorization
+    - additive EF migration
+    - POST /api/v1/parties/{partyPublicId}/roles
+    - post-create role activation actions on /parties/new
+    - audit
+    - durable idempotency
+    - targeted tests
+    - TEST deploy/smoke when deployable
   exclude:
-    - new Party schema/code until the next slice is explicit
-    - Sales/Product/Inventory/Purchasing/Warehouse/Finance implementation
+    - role deactivate/reactivate
+    - role-specific defaults or role codes
+    - Tax Identity
+    - Contact Person / Communication Point
+    - Address
+    - soft/fuzzy duplicate review
+    - External Mapping
+    - Merge
+    - Finance balance/risk/ledger
+    - Sales/Purchasing eligibility integration
     - production deployment
     - Full Test Day
+
+locked_decisions:
+  role:
+    types:
+      - CUSTOMER
+      - SUPPLIER
+    activation_state: ACTIVE
+    duplicate_master_identity: forbidden
+    finance_posting_effect: none
+  company_scope:
+    authority: owning Party
+    request_company_field: forbidden
+    lookup: trusted CompanyId + Party public UUID
+  authorization:
+    permission: party.role.manage
+    authority: Mars-owned PostgreSQL Permission Grant via ADR-0005
+    handler_enforcement: required
+    endpoint_policy_enforcement: required
+  persistence:
+    role_company_id_column: not_required
+    role_public_uuid: not_required_in_this_slice
+    unique: Party + RoleType
+    party_fk_delete: restrict
+    optimistic_version: required
+  api:
+    route: POST /api/v1/parties/{partyPublicId}/roles
+    idempotency_key: required
+  outbox:
+    required: false
+    reason: no accepted PartyRoleActivated consumer in current slice
 
 planning_progress:
   master_sequence:
@@ -74,8 +88,11 @@ planning_progress:
 
 test_policy:
   normal_development:
-    - build
-    - targeted-unit-or-invariant
-    - small-smoke-when-needed
-    - migration-contract-check
+    - release-build
+    - targeted-party-role-tests
+    - targeted-authorization-company-scope-tests
+    - migration-model-check
+    - frontend-typecheck-test-build
+    - small-api-openapi-smoke
+    - test-deploy-smoke-when-deployable
   heavy_tests: FULL_TEST_DAY_ONLY

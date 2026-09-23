@@ -110,6 +110,29 @@ Still deferred:
 - soft/fuzzy duplicate review;
 - Settings/Numbering allocator.
 
-Next:
-- define the next smallest coherent Parties vertical slice from these repository-defined follow-up requirements;
-- no dedicated next implementation ID is assigned yet.
+Second implementation work package:
+- PARTY-IMP-002 — Activate Party Role.
+
+Readiness:
+- `docs/plan/03-cariler/p5-second-slice-readiness.md`
+
+Status:
+- READY FOR IMPLEMENTATION;
+- implementation NOT STARTED.
+
+Selected because CUSTOMER/SUPPLIER role activation is the smallest independent frozen Party capability after core identity:
+- one normalized child authority;
+- existing `party.role.manage` permission;
+- no Finance posting;
+- no tax/legal/provider dependency;
+- no contact/address dependency.
+
+Still deferred:
+- role deactivate/reactivate;
+- Tax Identity;
+- Contact/Communication;
+- Address;
+- External Mapping;
+- Merge Lineage;
+- soft/fuzzy duplicate review;
+- Settings/Numbering allocator.

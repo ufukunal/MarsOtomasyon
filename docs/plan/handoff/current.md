@@ -90,19 +90,31 @@ P5 — Core application implementation
 Status: IMPLEMENTATION IN PROGRESS
 
 ## Current task
-Define the next smallest coherent Parties vertical slice.
+- PARTY-IMP-002 — Activate Party Role
+- status: READY / IMPLEMENTATION NOT STARTED
+- canonical readiness: `docs/plan/03-cariler/p5-second-slice-readiness.md`
 
-Work-package ID:
-- NOT ASSIGNED.
+Scope decision:
+- CUSTOMER/SUPPLIER role activation is dependency-minimal after Party core identity;
+- one Party may hold both roles;
+- activation does not create another Party identity;
+- no Finance/stock/account/cash/cost effect;
+- `party.role.manage` uses the existing ADR-0005 PostgreSQL permission authority;
+- role company scope is inherited from Party; API resolves trusted CompanyId + Party public UUID;
+- additive Party Role table with Party FK + unique Party/RoleType;
+- API: POST `/api/v1/parties/{partyPublicId}/roles`;
+- UI: post-create role activation actions on `/parties/new`;
+- audit + durable idempotency required;
+- no outbox consumer required.
 
-Repository backlog identifies follow-up requirements but does not freeze their order:
-- soft duplicate candidate/review flow;
-- Tax Identity records and deterministic collision rules;
-- Party Role activation;
+Still deferred:
+- role deactivate/reactivate;
+- Tax Identity;
 - contacts/addresses;
-- lifecycle/merge in later slices.
-
-Do not invent PARTY-IMP-002 before the exact next scope is defined from frozen PLAN-003 + PLAN-010.
+- duplicate review;
+- merge;
+- role-specific defaults/codes;
+- Finance/Sales/Purchasing integration.
 
 ## Planning progress
 - Master section-8 sequence: 9 / 30 = 30.0%

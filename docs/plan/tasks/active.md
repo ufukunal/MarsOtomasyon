@@ -1,30 +1,34 @@
 # Active Tasks
 
-## P5 — Parties next vertical slice definition
-**Status:** SCOPE DEFINITION REQUIRED — IMPLEMENTATION NOT STARTED
+## PARTY-IMP-002 — Activate Party Role
+**Status:** READY — IMPLEMENTATION NOT STARTED
+
+Canonical readiness:
+- `docs/plan/03-cariler/p5-second-slice-readiness.md`
 
 Predecessor:
 - PARTY-IMP-001 — Create Party Core Identity — COMPLETED
-- canonical evidence: `docs/plan/03-cariler/party-imp-001-implementation.md`
-- Foundation Build run `35885316247` — SUCCESS
-- Foundation Test Deploy run `35885323206` — SUCCESS
+- `docs/plan/03-cariler/party-imp-001-implementation.md`
 
-Repository-defined follow-up requirements before full PLAN-003 Create Party parity:
-- soft duplicate candidate/review flow;
-- Tax Identity records and deterministic collision rules;
-- Party Role activation;
-- contacts/addresses;
-- lifecycle/merge in later slices.
+Implement:
+- Party Role persistence for CUSTOMER/SUPPLIER activation;
+- `party.role.manage` using existing Mars PostgreSQL permission authority;
+- trusted-company Party lookup;
+- additive EF migration;
+- POST `/api/v1/parties/{partyPublicId}/roles`;
+- post-create CUSTOMER/SUPPLIER activation on `/parties/new`;
+- audit + durable idempotency;
+- targeted build/test/model/migration/API/Web verification;
+- TEST deploy/smoke when deployable.
 
-Current gate:
-- repository does not assign an order among these follow-up capabilities;
-- no dedicated next implementation work-package ID exists;
-- choose the smallest coherent next Party vertical slice from frozen PLAN-003 + PLAN-010;
-- map DB/API/UI/permission/migration/test effects before mutation;
-- do not invent PARTY-IMP-002 merely to continue coding.
+Do not implement:
+- role deactivate/reactivate;
+- role-specific defaults/codes;
+- Tax Identity/contact/address/duplicate-review/merge;
+- Finance/Sales/Purchasing behavior;
+- production deployment;
+- Full Test Day.
 
 Exact planning progress:
 - master: 9 / 30 = 30.0%
 - P2: 8 / 8 = 100.0%
-
-Heavy tests remain Full Test Day only.
