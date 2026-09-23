@@ -1,32 +1,40 @@
 # Planning Backlog
 
-## Immediate — Resolve P5 Parties Create Party Core Identity blockers
-Status: BLOCKED DECISION REQUIRED.
+## Immediate — PARTY-IMP-001 Create Party Core Identity
+Status: READY / NOT STARTED.
 
-Readiness report:
+Readiness:
 - `docs/plan/03-cariler/p5-first-slice-readiness.md`
 
-Selected first slice:
-- Create Party Core Identity.
+Authorization ADR:
+- `docs/plan/decisions/ADR-0005-mars-erp-permission-authority.md`
 
-Resolve only:
-1. Mars permission authority/evaluation contract for server-side `party.create`.
-2. Initial Party Code assignment authority.
-3. Minimum fuzzy duplicate-warning contract or explicit first-slice deferral.
-4. Physical Company reference strategy for Party persistence while no Company table exists.
+Scope:
+- implement Foundation Permission Grant authority/evaluator for `party.create`;
+- implement Party core identity persistence;
+- additive migration;
+- POST `/api/v1/parties`;
+- Mars.Web `/parties/new`;
+- audit/idempotency;
+- targeted verification + TEST smoke.
 
-After all four are resolved:
-- record the dedicated first Parties implementation work-package ID;
-- implement only Create Party Core Identity;
-- keep role/tax/contact/address/merge and other modules out of scope.
+Explicitly deferred:
+- Party roles;
+- tax identities;
+- contacts;
+- addresses;
+- mappings;
+- merge;
+- soft/fuzzy duplicate warning;
+- Settings/Numbering allocator;
+- permission administration UI/roles.
 
-Do not start implementation by:
-- treating authentication as authorization;
-- inventing permission tables/claims;
-- inventing Party numbering format;
-- silently choosing manual Party Code entry;
-- inventing fuzzy matching thresholds;
-- silently skipping frozen duplicate-warning behavior.
+## Parties follow-up required before full PLAN-003 Create Party parity
+- accepted soft duplicate candidate/review flow;
+- tax identity records and deterministic collision rules;
+- role activation;
+- contacts/addresses;
+- lifecycle/merge in later slices.
 
 ## Quality — master planning sequence item 10
 Target: docs/plan/08-kalite/
@@ -41,17 +49,6 @@ Status: P7 / NOT IMMEDIATE.
 
 ## Full Test Day
 Status: DEFERRED BY POLICY.
-
-Party heavy risks now explicitly include:
-- concurrent Party Code allocation;
-- deterministic duplicate concurrency;
-- stale Party edit;
-- cross-company IDOR;
-- broad permission matrix;
-- browser lifecycle E2E;
-- high-volume duplicate-candidate search;
-- snapshot persistence integration;
-- security/privacy audit.
 
 Exact section-8 planning progress:
 - master: 9 / 30 = 30.0%
