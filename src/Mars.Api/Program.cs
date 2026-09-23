@@ -17,6 +17,7 @@ using Mars.Application.Parties.DeactivateParty;
 using Mars.Application.Parties.ActivatePartyRole;
 using Mars.Application.Parties.ChangePartyRoleState;
 using Mars.Application.Parties.AddPartyTaxIdentity;
+using Mars.Application.Parties.PartyMaster;
 using Mars.Infrastructure.Identity;
 using Mars.Infrastructure.Persistence;
 using Mars.Infrastructure.Persistence.Foundation;
@@ -54,6 +55,13 @@ builder.Services.AddScoped<IPartyRoleStatePersistence, EfPartyRoleStatePersisten
 builder.Services.AddScoped<ChangePartyRoleStateHandler>();
 builder.Services.AddScoped<IPartyTaxIdentityAddPersistence, EfPartyTaxIdentityAddPersistence>();
 builder.Services.AddScoped<AddPartyTaxIdentityHandler>();
+builder.Services.AddScoped<EfPartyMasterPersistence>();
+builder.Services.AddScoped<IPartyMasterReadPersistence>(
+    services => services.GetRequiredService<EfPartyMasterPersistence>());
+builder.Services.AddScoped<IPartyMasterMutationPersistence>(
+    services => services.GetRequiredService<EfPartyMasterPersistence>());
+builder.Services.AddScoped<PartyMasterQueryHandler>();
+builder.Services.AddScoped<PartyMasterCommandHandler>();
 builder.Services.AddScoped<IAuthorizationHandler, MarsPermissionAuthorizationHandler>();
 
 builder.Services.AddOpenApi("v1");
@@ -102,38 +110,18 @@ builder.Services
 
 builder.Services.AddAuthorization(options =>
 {
-    options.AddPolicy(
-        PartyPermissions.Create,
-        policy =>
-        {
-            policy.RequireAuthenticatedUser();
-            policy.AddRequirements(new MarsPermissionRequirement(PartyPermissions.Create));
-        });
-
-    options.AddPolicy(
-        PartyPermissions.Deactivate,
-        policy =>
-        {
-            policy.RequireAuthenticatedUser();
-            policy.AddRequirements(new MarsPermissionRequirement(PartyPermissions.Deactivate));
-        });
-
-    options.AddPolicy(
-        PartyPermissions.RoleManage,
-        policy =>
-        {
-            policy.RequireAuthenticatedUser();
-            policy.AddRequirements(new MarsPermissionRequirement(PartyPermissions.RoleManage));
-        });
-
-    options.AddPolicy(
-        PartyPermissions.TaxIdentityManage,
-        policy =>
-        {
-            policy.RequireAuthenticatedUser();
-            policy.AddRequirements(new MarsPermissionRequirement(PartyPermissions.TaxIdentityManage));
-        });
+    foreach (var permission in PartyPermissions.All)
+    {
+        options.AddPolicy(
+            permission,
+            policy =>
+            {
+                policy.RequireAuthenticatedUser();
+                policy.AddRequirements(new MarsPermissionRequirement(permission));
+            });
+    }
 });
+
 
 if (builder.Environment.IsProduction())
 {
@@ -377,6 +365,419 @@ app.MapPost(
     .RequireAuthorization(PartyPermissions.TaxIdentityManage)
     .WithName("AddPartyTaxIdentity")
     .WithSummary("Adds one ACTIVE Turkish VKN or TCKN identity to an existing company-scoped Party.");
+
+app.MapGet(
+        "/api/v1/parties",
+        async (
+            string? search,
+            IExecutionContext executionContext,
+            PartyMasterQueryHandler handler,
+            CancellationToken cancellationToken) =>
+        {
+            var result = await handler.ListAsync(search, executionContext, cancellationToken);
+            return result.IsFailure
+                ? ApplicationErrorHttpMapper.ToResult(result.Error!, executionContext.CorrelationId.Value)
+                : Results.Ok(result.Value);
+        })
+    .RequireAuthorization(PartyPermissions.Read)
+    .WithName("ListParties")
+    .WithSummary("Lists company-scoped Parties visible to the current actor.");
+
+app.MapGet(
+        "/api/v1/parties/{partyPublicId:guid}",
+        async (
+            Guid partyPublicId,
+            IExecutionContext executionContext,
+            PartyMasterQueryHandler handler,
+            CancellationToken cancellationToken) =>
+        {
+            var result = await handler.GetAsync(
+                partyPublicId,
+                executionContext,
+                cancellationToken);
+            return result.IsFailure
+                ? ApplicationErrorHttpMapper.ToResult(result.Error!, executionContext.CorrelationId.Value)
+                : Results.Ok(result.Value);
+        })
+    .RequireAuthorization(PartyPermissions.Read)
+    .WithName("GetParty")
+    .WithSummary("Returns one company-scoped Party master detail with child sections filtered by permission.");
+
+app.MapPut(
+        "/api/v1/parties/{partyPublicId:guid}",
+        async (
+            Guid partyPublicId,
+            EditPartyIdentityRequest request,
+            HttpRequest httpRequest,
+            IExecutionContext executionContext,
+            PartyMasterCommandHandler handler,
+            CancellationToken cancellationToken) =>
+        {
+            var result = await handler.EditIdentityAsync(
+                new EditPartyIdentityCommand(
+                    partyPublicId,
+                    request.Version,
+                    request.LegalName,
+                    request.DisplayName,
+                    httpRequest.Headers["Idempotency-Key"].ToString()),
+                executionContext,
+                cancellationToken);
+
+            return result.IsFailure
+                ? ApplicationErrorHttpMapper.ToResult(result.Error!, executionContext.CorrelationId.Value)
+                : Results.Ok(result.Value);
+        })
+    .RequireAuthorization(PartyPermissions.Edit)
+    .WithName("EditPartyIdentity")
+    .WithSummary("Edits the live legal/display identity of an existing Party using optimistic concurrency.");
+
+app.MapPost(
+        "/api/v1/parties/{partyPublicId:guid}/contacts",
+        async (
+            Guid partyPublicId,
+            CreatePartyContactRequest request,
+            HttpRequest httpRequest,
+            IExecutionContext executionContext,
+            PartyMasterCommandHandler handler,
+            CancellationToken cancellationToken) =>
+        {
+            var result = await handler.CreateContactAsync(
+                new CreatePartyContactCommand(
+                    partyPublicId,
+                    request.Name,
+                    request.Title,
+                    request.Purpose,
+                    httpRequest.Headers["Idempotency-Key"].ToString()),
+                executionContext,
+                cancellationToken);
+
+            return result.IsFailure
+                ? ApplicationErrorHttpMapper.ToResult(result.Error!, executionContext.CorrelationId.Value)
+                : Results.Created(
+                    $"/api/v1/parties/{partyPublicId:D}/contacts/{result.Value!.EntityPublicId:D}",
+                    result.Value);
+        })
+    .RequireAuthorization(PartyPermissions.ContactManage)
+    .WithName("CreatePartyContact")
+    .WithSummary("Adds an ACTIVE Contact Person to a Party.");
+
+app.MapPost(
+        "/api/v1/parties/{partyPublicId:guid}/contacts/{contactPublicId:guid}/state",
+        async (
+            Guid partyPublicId,
+            Guid contactPublicId,
+            ChangePartyMasterStateRequest request,
+            HttpRequest httpRequest,
+            IExecutionContext executionContext,
+            PartyMasterCommandHandler handler,
+            CancellationToken cancellationToken) =>
+        {
+            var result = await handler.ChangeContactStateAsync(
+                new ChangePartyContactStateCommand(
+                    partyPublicId,
+                    contactPublicId,
+                    request.Version,
+                    request.State,
+                    httpRequest.Headers["Idempotency-Key"].ToString()),
+                executionContext,
+                cancellationToken);
+
+            return result.IsFailure
+                ? ApplicationErrorHttpMapper.ToResult(result.Error!, executionContext.CorrelationId.Value)
+                : Results.Ok(result.Value);
+        })
+    .RequireAuthorization(PartyPermissions.ContactManage)
+    .WithName("ChangePartyContactState")
+    .WithSummary("Changes a Party Contact Person between ACTIVE and INACTIVE.");
+
+app.MapPost(
+        "/api/v1/parties/{partyPublicId:guid}/contacts/{contactPublicId:guid}/communications",
+        async (
+            Guid partyPublicId,
+            Guid contactPublicId,
+            CreatePartyCommunicationPointRequest request,
+            HttpRequest httpRequest,
+            IExecutionContext executionContext,
+            PartyMasterCommandHandler handler,
+            CancellationToken cancellationToken) =>
+        {
+            var result = await handler.CreateCommunicationPointAsync(
+                new CreatePartyCommunicationPointCommand(
+                    partyPublicId,
+                    contactPublicId,
+                    request.Type,
+                    request.Value,
+                    request.Purpose,
+                    request.IsPrimary,
+                    httpRequest.Headers["Idempotency-Key"].ToString()),
+                executionContext,
+                cancellationToken);
+
+            return result.IsFailure
+                ? ApplicationErrorHttpMapper.ToResult(result.Error!, executionContext.CorrelationId.Value)
+                : Results.Created(
+                    $"/api/v1/parties/{partyPublicId:D}/contacts/{contactPublicId:D}/communications/{result.Value!.EntityPublicId:D}",
+                    result.Value);
+        })
+    .RequireAuthorization(PartyPermissions.ContactManage)
+    .WithName("CreatePartyCommunicationPoint")
+    .WithSummary("Adds an ACTIVE communication point to a Party contact.");
+
+app.MapPost(
+        "/api/v1/parties/{partyPublicId:guid}/contacts/{contactPublicId:guid}/communications/{communicationPublicId:guid}/state",
+        async (
+            Guid partyPublicId,
+            Guid contactPublicId,
+            Guid communicationPublicId,
+            ChangePartyMasterStateRequest request,
+            HttpRequest httpRequest,
+            IExecutionContext executionContext,
+            PartyMasterCommandHandler handler,
+            CancellationToken cancellationToken) =>
+        {
+            var result = await handler.ChangeCommunicationPointStateAsync(
+                new ChangePartyCommunicationPointStateCommand(
+                    partyPublicId,
+                    contactPublicId,
+                    communicationPublicId,
+                    request.Version,
+                    request.State,
+                    httpRequest.Headers["Idempotency-Key"].ToString()),
+                executionContext,
+                cancellationToken);
+
+            return result.IsFailure
+                ? ApplicationErrorHttpMapper.ToResult(result.Error!, executionContext.CorrelationId.Value)
+                : Results.Ok(result.Value);
+        })
+    .RequireAuthorization(PartyPermissions.ContactManage)
+    .WithName("ChangePartyCommunicationPointState")
+    .WithSummary("Changes a Party communication point between ACTIVE and INACTIVE.");
+
+app.MapPost(
+        "/api/v1/parties/{partyPublicId:guid}/addresses",
+        async (
+            Guid partyPublicId,
+            CreatePartyAddressRequest request,
+            HttpRequest httpRequest,
+            IExecutionContext executionContext,
+            PartyMasterCommandHandler handler,
+            CancellationToken cancellationToken) =>
+        {
+            var result = await handler.CreateAddressAsync(
+                new CreatePartyAddressCommand(
+                    partyPublicId,
+                    request.Purpose,
+                    request.Country,
+                    request.City,
+                    request.District,
+                    request.PostalCode,
+                    request.Line1,
+                    request.Line2,
+                    request.Label,
+                    request.IsDefault,
+                    httpRequest.Headers["Idempotency-Key"].ToString()),
+                executionContext,
+                cancellationToken);
+
+            return result.IsFailure
+                ? ApplicationErrorHttpMapper.ToResult(result.Error!, executionContext.CorrelationId.Value)
+                : Results.Created(
+                    $"/api/v1/parties/{partyPublicId:D}/addresses/{result.Value!.EntityPublicId:D}",
+                    result.Value);
+        })
+    .RequireAuthorization(PartyPermissions.AddressManage)
+    .WithName("CreatePartyAddress")
+    .WithSummary("Adds an ACTIVE structured address to a Party.");
+
+app.MapPut(
+        "/api/v1/parties/{partyPublicId:guid}/addresses/{addressPublicId:guid}",
+        async (
+            Guid partyPublicId,
+            Guid addressPublicId,
+            UpdatePartyAddressRequest request,
+            HttpRequest httpRequest,
+            IExecutionContext executionContext,
+            PartyMasterCommandHandler handler,
+            CancellationToken cancellationToken) =>
+        {
+            var result = await handler.UpdateAddressAsync(
+                new UpdatePartyAddressCommand(
+                    partyPublicId,
+                    addressPublicId,
+                    request.Version,
+                    request.Purpose,
+                    request.Country,
+                    request.City,
+                    request.District,
+                    request.PostalCode,
+                    request.Line1,
+                    request.Line2,
+                    request.Label,
+                    request.IsDefault,
+                    httpRequest.Headers["Idempotency-Key"].ToString()),
+                executionContext,
+                cancellationToken);
+
+            return result.IsFailure
+                ? ApplicationErrorHttpMapper.ToResult(result.Error!, executionContext.CorrelationId.Value)
+                : Results.Ok(result.Value);
+        })
+    .RequireAuthorization(PartyPermissions.AddressManage)
+    .WithName("UpdatePartyAddress")
+    .WithSummary("Edits a Party address for future use without rewriting historical document snapshots.");
+
+app.MapPost(
+        "/api/v1/parties/{partyPublicId:guid}/addresses/{addressPublicId:guid}/state",
+        async (
+            Guid partyPublicId,
+            Guid addressPublicId,
+            ChangePartyMasterStateRequest request,
+            HttpRequest httpRequest,
+            IExecutionContext executionContext,
+            PartyMasterCommandHandler handler,
+            CancellationToken cancellationToken) =>
+        {
+            var result = await handler.ChangeAddressStateAsync(
+                new ChangePartyAddressStateCommand(
+                    partyPublicId,
+                    addressPublicId,
+                    request.Version,
+                    request.State,
+                    httpRequest.Headers["Idempotency-Key"].ToString()),
+                executionContext,
+                cancellationToken);
+
+            return result.IsFailure
+                ? ApplicationErrorHttpMapper.ToResult(result.Error!, executionContext.CorrelationId.Value)
+                : Results.Ok(result.Value);
+        })
+    .RequireAuthorization(PartyPermissions.AddressManage)
+    .WithName("ChangePartyAddressState")
+    .WithSummary("Changes a Party address between ACTIVE and INACTIVE.");
+
+app.MapPost(
+        "/api/v1/parties/{partyPublicId:guid}/tax-identities/{taxIdentityPublicId:guid}/state",
+        async (
+            Guid partyPublicId,
+            Guid taxIdentityPublicId,
+            ChangePartyMasterStateRequest request,
+            HttpRequest httpRequest,
+            IExecutionContext executionContext,
+            PartyMasterCommandHandler handler,
+            CancellationToken cancellationToken) =>
+        {
+            var result = await handler.ChangeTaxIdentityStateAsync(
+                new ChangePartyTaxIdentityStateCommand(
+                    partyPublicId,
+                    taxIdentityPublicId,
+                    request.Version,
+                    request.State,
+                    httpRequest.Headers["Idempotency-Key"].ToString()),
+                executionContext,
+                cancellationToken);
+
+            return result.IsFailure
+                ? ApplicationErrorHttpMapper.ToResult(result.Error!, executionContext.CorrelationId.Value)
+                : Results.Ok(result.Value);
+        })
+    .RequireAuthorization(PartyPermissions.TaxIdentityManage)
+    .WithName("ChangePartyTaxIdentityState")
+    .WithSummary("Changes an existing TR VKN/TCKN Tax Identity between ACTIVE and INACTIVE.");
+
+app.MapPost(
+        "/api/v1/parties/{partyPublicId:guid}/external-mappings",
+        async (
+            Guid partyPublicId,
+            CreatePartyExternalMappingRequest request,
+            HttpRequest httpRequest,
+            IExecutionContext executionContext,
+            PartyMasterCommandHandler handler,
+            CancellationToken cancellationToken) =>
+        {
+            var result = await handler.CreateExternalMappingAsync(
+                new CreatePartyExternalMappingCommand(
+                    partyPublicId,
+                    request.SystemCode,
+                    request.AccountScope,
+                    request.ExternalIdentity,
+                    httpRequest.Headers["Idempotency-Key"].ToString()),
+                executionContext,
+                cancellationToken);
+
+            return result.IsFailure
+                ? ApplicationErrorHttpMapper.ToResult(result.Error!, executionContext.CorrelationId.Value)
+                : Results.Created(
+                    $"/api/v1/parties/{partyPublicId:D}/external-mappings/{result.Value!.EntityPublicId:D}",
+                    result.Value);
+        })
+    .RequireAuthorization(PartyPermissions.ExternalMappingManage)
+    .WithName("CreatePartyExternalMapping")
+    .WithSummary("Adds a provider/system identity mapping without changing canonical Party identity.");
+
+app.MapPost(
+        "/api/v1/parties/{partyPublicId:guid}/external-mappings/{mappingPublicId:guid}/state",
+        async (
+            Guid partyPublicId,
+            Guid mappingPublicId,
+            ChangePartyMasterStateRequest request,
+            HttpRequest httpRequest,
+            IExecutionContext executionContext,
+            PartyMasterCommandHandler handler,
+            CancellationToken cancellationToken) =>
+        {
+            var result = await handler.ChangeExternalMappingStateAsync(
+                new ChangePartyExternalMappingStateCommand(
+                    partyPublicId,
+                    mappingPublicId,
+                    request.Version,
+                    request.State,
+                    httpRequest.Headers["Idempotency-Key"].ToString()),
+                executionContext,
+                cancellationToken);
+
+            return result.IsFailure
+                ? ApplicationErrorHttpMapper.ToResult(result.Error!, executionContext.CorrelationId.Value)
+                : Results.Ok(result.Value);
+        })
+    .RequireAuthorization(PartyPermissions.ExternalMappingManage)
+    .WithName("ChangePartyExternalMappingState")
+    .WithSummary("Changes an External Mapping between ACTIVE and INACTIVE.");
+
+app.MapPost(
+        "/api/v1/parties/{sourcePartyPublicId:guid}/merge",
+        async (
+            Guid sourcePartyPublicId,
+            MergePartyRequest request,
+            HttpRequest httpRequest,
+            IExecutionContext executionContext,
+            PartyMasterCommandHandler handler,
+            CancellationToken cancellationToken) =>
+        {
+            var result = await handler.MergeAsync(
+                new MergePartyCommand(
+                    sourcePartyPublicId,
+                    request.SurvivorPartyPublicId,
+                    request.SourceVersion,
+                    request.SurvivorVersion,
+                    request.UseSourceIdentity,
+                    request.MoveSourceRoles,
+                    request.MoveSourceContacts,
+                    request.MoveSourceAddresses,
+                    request.MoveSourceTaxIdentities,
+                    request.MoveSourceExternalMappings,
+                    request.Reason,
+                    httpRequest.Headers["Idempotency-Key"].ToString()),
+                executionContext,
+                cancellationToken);
+
+            return result.IsFailure
+                ? ApplicationErrorHttpMapper.ToResult(result.Error!, executionContext.CorrelationId.Value)
+                : Results.Ok(result.Value);
+        })
+    .RequireAuthorization(PartyPermissions.Merge)
+    .WithName("MergeParty")
+    .WithSummary("Logically merges an explicitly selected same-company source Party into a survivor Party.");
 
 app.MapPost(
         "/api/v1/foundation/proof",

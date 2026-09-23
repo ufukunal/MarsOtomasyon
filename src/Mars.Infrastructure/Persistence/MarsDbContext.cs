@@ -28,5 +28,10 @@ public sealed class MarsDbContext(DbContextOptions<MarsDbContext> options)
         modelBuilder.ApplyConfiguration(new PartyConfiguration());
         modelBuilder.ApplyConfiguration(new PartyRoleConfiguration());
         modelBuilder.ApplyConfiguration(new PartyTaxIdentityConfiguration());
+        modelBuilder.ApplyConfiguration(new PartyContactConfiguration());
+        modelBuilder.ApplyConfiguration(new PartyCommunicationPointConfiguration());
+        modelBuilder.ApplyConfiguration(new PartyAddressConfiguration());
+        modelBuilder.ApplyConfiguration(new PartyExternalMappingConfiguration());
+        modelBuilder.ApplyConfiguration(new PartyMergeLineageConfiguration());
     }
 }

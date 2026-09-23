@@ -19,12 +19,20 @@ assert_status() {
 assert_status 200 "/"
 assert_status 200 "/components"
 assert_status 200 "/proof"
+assert_status 200 "/parties"
 assert_status 200 "/parties/new"
 assert_status 200 "/health/live"
 assert_status 200 "/health/ready"
 assert_status 401 "/api/v1/foundation/context"
 assert_status 401 "/api/v1/foundation/proof" POST
+assert_status 401 "/api/v1/parties"
 assert_status 401 "/api/v1/parties" POST
+assert_status 401 "/api/v1/parties/00000000-0000-0000-0000-000000000001"
+assert_status 401 "/api/v1/parties/00000000-0000-0000-0000-000000000001" PUT
+assert_status 401 "/api/v1/parties/00000000-0000-0000-0000-000000000001/contacts" POST
+assert_status 401 "/api/v1/parties/00000000-0000-0000-0000-000000000001/addresses" POST
+assert_status 401 "/api/v1/parties/00000000-0000-0000-0000-000000000001/external-mappings" POST
+assert_status 401 "/api/v1/parties/00000000-0000-0000-0000-000000000001/merge" POST
 assert_status 401 "/api/v1/parties/00000000-0000-0000-0000-000000000001/deactivate" POST
 assert_status 401 "/api/v1/parties/00000000-0000-0000-0000-000000000001/roles" POST
 assert_status 401 "/api/v1/parties/00000000-0000-0000-0000-000000000001/roles/CUSTOMER/state" POST

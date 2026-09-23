@@ -94,6 +94,7 @@ export function createAppShell(): AppShell {
   navigation.setAttribute("aria-label", "Uygulama gezinme");
   navigation.append(
     routeLink("/", "Foundation"),
+    routeLink("/parties", "Cari / Party Master"),
     routeLink("/parties/new", "Yeni Party"),
     routeLink("/proof", "Vertical Proof"),
     routeLink("/components", "Mars.UI"));

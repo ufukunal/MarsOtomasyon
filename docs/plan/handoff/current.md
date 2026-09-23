@@ -90,7 +90,7 @@ Status: IMPLEMENTATION IN PROGRESS
 PARTY-IMP-006 — Party Master Completion Tranche.
 
 Status:
-- READY FOR IMPLEMENTATION.
+- IMPLEMENTATION IN PROGRESS.
 
 Canonical readiness:
 - `docs/plan/03-cariler/p5-party-master-completion-readiness.md`

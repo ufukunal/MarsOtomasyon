@@ -1,8 +1,8 @@
 id: PARTY-IMP-006
 title: Party Master Completion Tranche
 module: parties
-status: ready_for_implementation
-progress: not_started
+status: implementation_in_progress
+progress: implementation_in_progress
 work_package_id: PARTY-IMP-006
 readiness_report: docs/plan/03-cariler/p5-party-master-completion-readiness.md
 

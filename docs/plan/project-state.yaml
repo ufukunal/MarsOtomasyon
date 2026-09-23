@@ -85,7 +85,7 @@ test_policy:
 active_task:
   id: PARTY-IMP-006
   title: Party Master Completion Tranche
-  status: ready_for_implementation
+  status: implementation_in_progress
   file: docs/plan/active-task.yaml
   readiness_report: docs/plan/03-cariler/p5-party-master-completion-readiness.md
   progress: not_started
@@ -347,7 +347,7 @@ next_action:
   title: Party Master Completion Tranche
   phase: P5
   module: parties
-  status: READY_FOR_IMPLEMENTATION
+  status: IMPLEMENTATION_IN_PROGRESS
   work_package_id: PARTY-IMP-006
   readiness_report: docs/plan/03-cariler/p5-party-master-completion-readiness.md
   predecessor:
