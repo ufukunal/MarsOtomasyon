@@ -143,20 +143,36 @@ Still deferred:
 - Settings/Numbering allocator.
 
 Third implementation work package:
-- PARTY-IMP-003 — Add Turkish Tax Identity.
+- PARTY-IMP-003 — Add Turkish Tax Identity — COMPLETED.
 
 Readiness:
 - `docs/plan/03-cariler/p5-third-slice-readiness.md`
 
-Status:
-- READY FOR IMPLEMENTATION;
-- implementation NOT STARTED.
+Canonical implementation evidence:
+- `docs/plan/03-cariler/party-imp-003-implementation.md`
 
-Selected scope:
-- existing trusted-company Party;
-- TR jurisdiction only;
-- VKN 10-digit / TCKN 11-digit structural identity;
-- deterministic active company-level collision;
-- `party.tax_identity.manage`;
-- no checksum/provider/GİB enrollment claim;
-- no raw tax identity audit/result disclosure.
+Verification:
+- Foundation Build `35894175633` — SUCCESS;
+- Foundation Test Deploy `35894175558` — SUCCESS;
+- frontend tests 14 / 14;
+- Foundation targeted tests 45 / 45;
+- committed Tax Identity migration applied to TEST;
+- migration count 5;
+- /parties/new 200;
+- unauthenticated Tax Identity POST 401;
+- live/ready 200 / 200;
+- runner-to-TEST smoke PASS.
+
+PARTY-IMP-003 is intentionally limited to TR VKN/TCKN structural identity and deterministic local collision authority.
+
+Still deferred:
+- checksum/provider/GİB verification;
+- generic non-TR Tax Identity;
+- Tax Identity read/edit/deactivate lifecycle;
+- soft/fuzzy duplicate review;
+- Contact/Communication/Address;
+- Party/role lifecycle and merge.
+
+Next:
+- define the next smallest coherent Parties vertical slice;
+- no PARTY-IMP-004 ID is assigned yet.
