@@ -143,8 +143,8 @@ public sealed record TransferReverseLinePlan(
     Guid UomPublicId,
     decimal ConversionFactorSnapshot,
     decimal Quantity,
-    InventoryPosition Source,
-    InventoryPosition Target,
+    InventoryPosition? Source,
+    InventoryPosition? Target,
     Guid OriginalInventoryMovementPublicId);
 
 public sealed record TransferReversePlan(
