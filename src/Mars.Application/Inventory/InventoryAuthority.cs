@@ -4,6 +4,7 @@ using Mars.Application.Foundation.Context;
 using Mars.Application.Foundation.Idempotency;
 using Mars.Application.Foundation.Results;
 using Mars.Domain.Inventory;
+using InventoryWarehouse = Mars.Domain.Inventory.Warehouse;
 
 namespace Mars.Application.Inventory;
 
@@ -213,7 +214,7 @@ public interface IInventoryReadPersistence
         CancellationToken cancellationToken);
 }
 
-public sealed record CreateWarehouseWrite(Warehouse Warehouse, InventoryWriteContext Context);
+public sealed record CreateWarehouseWrite(InventoryWarehouse Warehouse, InventoryWriteContext Context);
 public sealed record EditWarehouseWrite(
     Guid WarehousePublicId,
     long ExpectedVersion,
@@ -550,7 +551,7 @@ public sealed class InventoryMasterCommandHandler(
         if (writeContext.Error is not null)
             return Result<InventoryMutationReceipt>.Failure(writeContext.Error);
 
-        var warehouse = Warehouse.Create(
+        var warehouse = InventoryWarehouse.Create(
             publicId,
             context.CompanyId,
             normalizedCode,
