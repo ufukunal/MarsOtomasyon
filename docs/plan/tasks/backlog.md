@@ -2,19 +2,31 @@
 
 ## Current P5 implementation
 
-WAREHOUSE-IMP-001 — Warehouse Execution & Inventory Control Authority Tranche
+Finance / Treasury broad implementation tranche definition
 
-Status: READY FOR IMPLEMENTATION.
+Status: SCOPE DEFINITION REQUIRED.
 
-Readiness:
-- docs/plan/06-ambar-depo/p5-warehouse-execution-readiness.md
+Implementation work-package ID:
+- UNASSIGNED until exact broad scope is frozen.
 
-Predecessor PURCHASING-IMP-001 is completed and runtime-verified.
+Planning source:
+- frozen PLAN-007
+- docs/plan/09-finans-kasa-banka/
 
-No Warehouse micro-package IDs are permitted for the frozen broad tranche.
+Completed predecessor:
+- WAREHOUSE-IMP-001 — COMPLETED / RUNTIME VERIFIED
+- docs/plan/06-ambar-depo/warehouse-imp-001-implementation.md
+- tested commit 81efd9c347118db24d8945f4d49e63bf99baaf70
+- Foundation Build 36068722249 — SUCCESS
+- Foundation Test Deploy 36068722239 — SUCCESS
+- migration baseline 13
 
-Next dependency after runtime closure of WAREHOUSE-IMP-001:
-- Finance / Treasury broad implementation tranche definition from frozen PLAN-007, subject to repository reconciliation.
+Next action:
+- reconcile current Finance-related cross-module authority;
+- freeze one broad coherent Finance / Treasury implementation tranche;
+- assign the implementation package ID only after exact scope freeze.
+
+No global/module replanning is required.
 
 ## Portfolio planning
 
