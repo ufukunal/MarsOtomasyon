@@ -44,7 +44,8 @@ public enum SupplierInvoiceSourceMode
 public enum PurchaseMatchKind
 {
     TwoWay = 1,
-    ThreeWay = 2
+    ThreeWay = 2,
+    Direct = 3
 }
 
 public enum PurchaseMatchState
