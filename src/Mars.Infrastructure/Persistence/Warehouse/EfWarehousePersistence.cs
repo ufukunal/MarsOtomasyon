@@ -582,32 +582,94 @@ public sealed class EfWarehousePersistence(
             return Success(transfer.PublicId,transfer.State.ToString().ToUpperInvariant(),transfer.Version,context);
         },ct);
 
+    public async Task<Result<WarehouseMutationReceipt>> CloseTransferAsync(
+        Guid id,long expectedVersion,string operationKey,IExecutionContext context,CancellationToken ct)=>
+        await Mutate("warehouse.transfer.close",operationKey,"WarehouseTransferClosed","WarehouseTransfer",context,async inner=>{
+            var transfer=await LockTransfer(context.CompanyId,id,inner);
+            if(transfer is null)return Invalid("warehouse.transfer.not_found","Transfer was not found.");
+            if(transfer.Version!=expectedVersion)return ConflictReceipt("warehouse.transfer.stale","Transfer version is stale.");
+            var lines=await dbContext.Set<WarehouseTransferLineRecord>().AsNoTracking()
+                .Where(x=>x.CompanyId==context.CompanyId&&x.TransferId==transfer.Id).ToArrayAsync(inner);
+            var unresolved=lines.Sum(x=>x.IssuedQuantity-x.ReceivedQuantity-x.ResolvedLossQuantity);
+            if(unresolved!=0m)return Invalid("warehouse.transfer.unresolved_transit","Transfer cannot close while TRANSIT remains unresolved.");
+            if(transfer.State is not (TransferState.Received or TransferState.ReconciliationRequired))
+                return Invalid("warehouse.transfer.close_state","Transfer is not close-eligible.");
+            transfer.State=TransferState.Closed;transfer.Version++;transfer.ClosedAt=DateTimeOffset.UtcNow;
+            return Success(transfer.PublicId,"CLOSED",transfer.Version,context);
+        },ct);
+
     public async Task<Result<TransferReversePlan>> PrepareTransferReverseAsync(
         Guid id,long expectedVersion,IExecutionContext context,CancellationToken ct)
     {
         var transfer=await LockTransfer(context.CompanyId,id,ct);
         if(transfer is null)return Fail<TransferReversePlan>("warehouse.transfer.not_found","Transfer was not found.");
         if(transfer.Version!=expectedVersion)return Conflict<TransferReversePlan>("warehouse.transfer.stale","Transfer version is stale.");
-        if(transfer.State!=TransferState.Issued)
-            return Fail<TransferReversePlan>("warehouse.transfer.reverse_state","Only fully unreceived ISSUED Transfer can be reversed in this tranche.");
-        var source=await dbContext.Set<WarehouseRecord>().AsNoTracking().SingleAsync(x=>x.CompanyId==context.CompanyId&&x.Id==transfer.SourceWarehouseId,ct);
-        var target=await dbContext.Set<WarehouseRecord>().AsNoTracking().SingleAsync(x=>x.CompanyId==context.CompanyId&&x.Id==transfer.TargetWarehouseId,ct);
-        var lines=await dbContext.Set<WarehouseTransferLineRecord>().AsNoTracking().Where(x=>x.CompanyId==context.CompanyId&&x.TransferId==transfer.Id).ToArrayAsync(ct);
+        if(transfer.State is TransferState.Draft or TransferState.Cancelled or TransferState.Reversed)
+            return Fail<TransferReversePlan>("warehouse.transfer.reverse_state","Transfer has no posted physical effect to reverse.");
+
+        var source=await dbContext.Set<WarehouseRecord>().AsNoTracking()
+            .SingleAsync(x=>x.CompanyId==context.CompanyId&&x.Id==transfer.SourceWarehouseId,ct);
+        var target=await dbContext.Set<WarehouseRecord>().AsNoTracking()
+            .SingleAsync(x=>x.CompanyId==context.CompanyId&&x.Id==transfer.TargetWarehouseId,ct);
+        var lines=await dbContext.Set<WarehouseTransferLineRecord>().AsNoTracking()
+            .Where(x=>x.CompanyId==context.CompanyId&&x.TransferId==transfer.Id).ToArrayAsync(ct);
+        var lineIds=lines.Select(x=>x.Id).ToArray();
         var effects=await dbContext.Set<WarehouseTransferEffectRecord>().AsNoTracking()
-            .Where(x=>x.CompanyId==context.CompanyId&&lines.Select(l=>l.Id).Contains(x.TransferLineId)&&x.EffectKind=="ISSUE").ToArrayAsync(ct);
+            .Where(x=>x.CompanyId==context.CompanyId&&lineIds.Contains(x.TransferLineId))
+            .OrderByDescending(x=>x.Id).ToArrayAsync(ct);
+        if(effects.Any(x=>x.EffectKind=="LOSS"))
+            return Fail<TransferReversePlan>("warehouse.transfer.reverse_loss",
+                "Transfer with posted loss adjustment requires a later Finance-aware correction workflow.");
+
         var result=new List<TransferReverseLinePlan>();
-        foreach(var line in lines){
-            if(line.ReceivedQuantity!=0m||line.ResolvedLossQuantity!=0m)return Fail<TransferReversePlan>("warehouse.transfer.reverse_processed","Received/loss-resolved Transfer cannot use ISSUE reversal.");
-            var issue=effects.Single(x=>x.TransferLineId==line.Id);
-            var ids=await PublicTrade(context.CompanyId,line,ct);
-            var srcLoc=line.SourceLocationId.HasValue?await dbContext.Set<LocationRecord>().AsNoTracking().SingleAsync(x=>x.CompanyId==context.CompanyId&&x.Id==line.SourceLocationId,ct):null;
-            var lot=line.LotId.HasValue?await dbContext.Set<InventoryLotRecord>().AsNoTracking().SingleAsync(x=>x.CompanyId==context.CompanyId&&x.Id==line.LotId,ct):null;
-            var serial=line.SerialId.HasValue?await dbContext.Set<InventorySerialRecord>().AsNoTracking().SingleAsync(x=>x.CompanyId==context.CompanyId&&x.Id==line.SerialId,ct):null;
-            result.Add(new(line.PublicId,ids.Product,ids.Variant,ids.Uom,line.ConversionFactorSnapshot,line.IssuedQuantity,
-                new InventoryPosition(target.PublicId,null,InventoryDispositionCode.Transit,lot?.PublicId,serial?.PublicId),
-                new InventoryPosition(source.PublicId,srcLoc?.PublicId,InventoryDispositionCode.Available,lot?.PublicId,serial?.PublicId),
-                issue.InventoryMovementPublicId));
+        foreach(var effect in effects.Where(x=>x.EffectKind is "RECEIVE" or "ISSUE"))
+        {
+            var line=lines.Single(x=>x.Id==effect.TransferLineId);
+            var movement=await dbContext.Set<InventoryMovementRecord>().AsNoTracking()
+                .SingleAsync(x=>x.CompanyId==context.CompanyId&&x.PublicId==effect.InventoryMovementPublicId,ct);
+            var product=await dbContext.Set<ProductRecord>().AsNoTracking().SingleAsync(x=>x.CompanyId==context.CompanyId&&x.Id==movement.ProductId,ct);
+            var variant=movement.VariantId.HasValue
+                ? await dbContext.Set<ProductVariantRecord>().AsNoTracking().SingleAsync(x=>x.CompanyId==context.CompanyId&&x.Id==movement.VariantId,ct)
+                : null;
+            var uom=await dbContext.Set<UnitOfMeasureRecord>().AsNoTracking().SingleAsync(x=>x.CompanyId==context.CompanyId&&x.Id==movement.UomId,ct);
+            var lot=movement.LotId.HasValue
+                ? await dbContext.Set<InventoryLotRecord>().AsNoTracking().SingleAsync(x=>x.CompanyId==context.CompanyId&&x.Id==movement.LotId,ct)
+                : null;
+            var serial=movement.SerialId.HasValue
+                ? await dbContext.Set<InventorySerialRecord>().AsNoTracking().SingleAsync(x=>x.CompanyId==context.CompanyId&&x.Id==movement.SerialId,ct)
+                : null;
+
+            InventoryPosition? originalSource=null,originalTarget=null;
+            if(movement.SourceWarehouseId.HasValue)
+            {
+                var wh=await dbContext.Set<WarehouseRecord>().AsNoTracking().SingleAsync(x=>x.CompanyId==context.CompanyId&&x.Id==movement.SourceWarehouseId,ct);
+                var loc=movement.SourceLocationId.HasValue
+                    ? await dbContext.Set<LocationRecord>().AsNoTracking().SingleAsync(x=>x.CompanyId==context.CompanyId&&x.Id==movement.SourceLocationId,ct)
+                    : null;
+                var disp=movement.SourceDispositionId.HasValue
+                    ? await dbContext.Set<InventoryDispositionRecord>().AsNoTracking().SingleAsync(x=>x.Id==movement.SourceDispositionId,ct)
+                    : null;
+                originalSource=new InventoryPosition(wh.PublicId,loc?.PublicId,disp!.Code,lot?.PublicId,serial?.PublicId);
+            }
+            if(movement.TargetWarehouseId.HasValue)
+            {
+                var wh=await dbContext.Set<WarehouseRecord>().AsNoTracking().SingleAsync(x=>x.CompanyId==context.CompanyId&&x.Id==movement.TargetWarehouseId,ct);
+                var loc=movement.TargetLocationId.HasValue
+                    ? await dbContext.Set<LocationRecord>().AsNoTracking().SingleAsync(x=>x.CompanyId==context.CompanyId&&x.Id==movement.TargetLocationId,ct)
+                    : null;
+                var disp=movement.TargetDispositionId.HasValue
+                    ? await dbContext.Set<InventoryDispositionRecord>().AsNoTracking().SingleAsync(x=>x.Id==movement.TargetDispositionId,ct)
+                    : null;
+                originalTarget=new InventoryPosition(wh.PublicId,loc?.PublicId,disp!.Code,lot?.PublicId,serial?.PublicId);
+            }
+            if(originalTarget is null)
+                return Fail<TransferReversePlan>("warehouse.transfer.reverse_shape","Transfer movement target is missing.");
+
+            result.Add(new TransferReverseLinePlan(
+                line.PublicId,product.PublicId,variant?.PublicId,uom.PublicId,movement.ConversionFactorSnapshot,
+                movement.EnteredQuantity,originalTarget,originalSource!,movement.PublicId));
         }
+        if(result.Count==0)return Fail<TransferReversePlan>("warehouse.transfer.reverse_effects","No posted Transfer effects were found.");
         return Result<TransferReversePlan>.Success(new(transfer.PublicId,source.PublicId,target.PublicId,result));
     }
 
