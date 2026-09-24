@@ -298,7 +298,7 @@ test_environment:
     actual_values_status: SSH_AND_POSTGRES_ROLES_CONFIGURED
 
 known_constraints:
-  - Core ERP application modules are not yet implemented.
+  - Core ERP application implementation is partial: Parties, Products and Inventory broad tranches are completed; Sales and later dependencies remain.
   - FW-IMP-001 through FW-IMP-008 are implemented and P4 Foundation implementation is completed.
   - FW-IMP-005 API foundation is COMPLETED with canonical evidence at docs/plan/01-foundation/fw-imp-005-implementation.md and successful workflow run 35722169157.
   - FW-IMP-006 Mars.Web + Mars.UI foundation is COMPLETED with canonical evidence at docs/plan/01-foundation/fw-imp-006-implementation.md and successful workflow run 35729371845.
@@ -312,6 +312,7 @@ known_constraints:
   - PARTY-IMP-005 Deactivate Party is COMPLETED with canonical evidence at docs/plan/03-cariler/party-imp-005-implementation.md, successful Foundation Build run 35922536747 and successful TEST deploy run 35922536768.
   - PARTY-IMP-006 Party Master Completion Tranche is COMPLETED with canonical evidence at docs/plan/03-cariler/party-imp-006-implementation.md, successful Foundation Build run 35934312246 and successful TEST deploy run 35934312470.
   - PRODUCT-IMP-001 Product Master Completion Tranche is COMPLETED with canonical evidence at docs/plan/04-urun-stok/product-imp-001-implementation.md, successful Foundation Build run 35981641268 and successful TEST deploy run 35981641137.
+  - INVENTORY-IMP-001 Inventory Authority & Traceability Tranche is COMPLETED with canonical evidence at docs/plan/04-urun-stok/inventory-imp-001-implementation.md, successful Foundation Build run 35998315605 and successful TEST deploy run 35998315582.
   - ADR-0005 freezes Mars-owned PostgreSQL permission authority/evaluation; Party Code is required caller input for the first slice; soft duplicate warnings are explicitly deferred; Party stores trusted CompanyId without a Company FK in this slice.
   - Database logical/schema design is intentionally deferred until core workflows are sufficiently frozen.
   - Business rules must not be inferred from generic ERP conventions when project sources are silent.
@@ -345,7 +346,7 @@ known_constraints:
 
 blocked_items:
   - PRODUCT-IMP-001 has no unresolved completion blocker; Product Master Completion Tranche is completed.
-  - Base UOM replacement and post-use STOCKABLE/tracking-strategy transitions remain deferred until Inventory/Reservation/open-process authority exists.
+  - Base UOM replacement and post-use STOCKABLE/tracking-strategy transitions remain deferred pending an explicit safe transition procedure that consumes implemented Inventory/Reservation/open-process authority.
   - UOM-specific transaction scale/fraction policy remains deferred.
   - Generic Variant EAV and provider/marketplace/GS1 behavior remain deferred.
   - Party Reactivation and fuzzy duplicate candidate generation remain deferred independently.
