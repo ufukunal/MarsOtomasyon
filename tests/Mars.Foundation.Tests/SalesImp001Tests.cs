@@ -19,7 +19,8 @@ internal static class SalesImp001Tests
         ("SALES-IMP-001 model contains approval and Warehouse access scope primitives", ModelContainsSupportingPrimitives),
         ("SALES-IMP-001 model contains normalized Sales authority tables", ModelContainsSalesAuthorityTables),
         ("SALES-IMP-001 persistence implements broad authority contracts", PersistenceImplementsBroadContracts),
-        ("Inventory reservation permissions are canonical actions", ReservationPermissionsAreCanonical)
+        ("Inventory reservation permissions are canonical actions", ReservationPermissionsAreCanonical),
+        ("Sales Proforma is informational and source-backed", ProformaIsInformationalAndSourceBacked)
     ];
 
     private static void CalculationUsesFrozenOrder()
@@ -212,18 +213,16 @@ internal sealed class FakeSalesApprovalPersistence : IApprovalDecisionPersistenc
         long snapshotVersion,
         CancellationToken cancellationToken) =>
         Task.FromResult(false);
-    [Fact]
-    public void Sales_proforma_is_informational_and_source_backed()
+    private static void ProformaIsInformationalAndSourceBacked()
     {
-        Assert.Equal("sales.proforma.read", SalesPermissions.ProformaRead);
-        Assert.Equal("sales.proforma.create", SalesPermissions.ProformaCreate);
-        Assert.Equal("sales.proforma.cancel", SalesPermissions.ProformaCancel);
-        Assert.Equal("sales.proforma.export", SalesPermissions.ProformaExport);
-
-        Assert.Equal(1, (int)SalesProformaSourceMode.Quote);
-        Assert.Equal(2, (int)SalesProformaSourceMode.Order);
-        Assert.Equal(1, (int)SalesProformaState.Draft);
-        Assert.Equal(2, (int)SalesProformaState.Cancelled);
+        TestAssert.Equal("sales.proforma.read", SalesPermissions.ProformaRead, "Proforma read permission must remain Sales-owned.");
+        TestAssert.Equal("sales.proforma.create", SalesPermissions.ProformaCreate, "Proforma create permission must remain Sales-owned.");
+        TestAssert.Equal("sales.proforma.cancel", SalesPermissions.ProformaCancel, "Proforma cancel permission must remain Sales-owned.");
+        TestAssert.Equal("sales.proforma.export", SalesPermissions.ProformaExport, "Proforma export permission must remain Sales-owned.");
+        TestAssert.Equal(1, (int)SalesProformaSourceMode.Quote, "Quote must remain a valid Proforma source.");
+        TestAssert.Equal(2, (int)SalesProformaSourceMode.Order, "Order must remain a valid Proforma source.");
+        TestAssert.Equal(1, (int)SalesProformaState.Draft, "Proforma starts as DRAFT.");
+        TestAssert.Equal(2, (int)SalesProformaState.Cancelled, "Proforma supports pre-effect cancellation only.");
     }
 
 }
