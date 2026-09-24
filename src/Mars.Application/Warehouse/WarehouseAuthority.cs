@@ -194,6 +194,7 @@ public sealed record RecordPickCommand(
 
 public sealed record PickPlan(
     Guid PickWorkPublicId,
+    string OperationKey,
     Guid DispatchPublicId,
     Guid DispatchLinePublicId,
     Guid ProductPublicId,
@@ -373,21 +374,21 @@ public interface IWarehousePersistence : IWarehouseOpenWorkBlocker
     Task<Result<TransferIssuePlan>> PrepareTransferIssueAsync(
         Guid transferPublicId,long expectedVersion,IExecutionContext context,CancellationToken ct);
     Task<Result<WarehouseMutationReceipt>> CompleteTransferIssueAsync(
-        Guid transferPublicId,IReadOnlyList<WarehouseInventoryEffect> effects,IExecutionContext context,CancellationToken ct);
+        Guid transferPublicId,IReadOnlyList<WarehouseInventoryEffect> effects,string operationKey,IExecutionContext context,CancellationToken ct);
     Task<Result<TransferReceivePlan>> PrepareTransferReceiveAsync(
         TransferReceiveCommand command,IExecutionContext context,CancellationToken ct);
     Task<Result<WarehouseMutationReceipt>> CompleteTransferReceiveAsync(
-        Guid transferPublicId,IReadOnlyList<WarehouseInventoryEffect> effects,IExecutionContext context,CancellationToken ct);
+        Guid transferPublicId,IReadOnlyList<WarehouseInventoryEffect> effects,string operationKey,IExecutionContext context,CancellationToken ct);
     Task<Result<TransferLossPlan>> PrepareTransferLossAsync(
         Guid transferPublicId,Guid transferLinePublicId,decimal quantity,string reason,IExecutionContext context,CancellationToken ct);
     Task<Result<WarehouseMutationReceipt>> MarkTransferLossApprovalAsync(
         Guid transferPublicId,Guid transferLinePublicId,Guid approvalPublicId,IExecutionContext context,CancellationToken ct);
     Task<Result<WarehouseMutationReceipt>> CompleteTransferLossAsync(
-        Guid transferPublicId,Guid transferLinePublicId,decimal quantity,Guid movementPublicId,IExecutionContext context,CancellationToken ct);
+        Guid transferPublicId,Guid transferLinePublicId,decimal quantity,Guid movementPublicId,string operationKey,IExecutionContext context,CancellationToken ct);
     Task<Result<TransferReversePlan>> PrepareTransferReverseAsync(
         Guid transferPublicId,long expectedVersion,IExecutionContext context,CancellationToken ct);
     Task<Result<WarehouseMutationReceipt>> CompleteTransferReverseAsync(
-        Guid transferPublicId,IReadOnlyList<WarehouseInventoryEffect> effects,IExecutionContext context,CancellationToken ct);
+        Guid transferPublicId,IReadOnlyList<WarehouseInventoryEffect> effects,string operationKey,IExecutionContext context,CancellationToken ct);
 
     Task<Result<WarehouseMutationReceipt>> CreateCountAsync(
         CreateCountCommand command,IExecutionContext context,CancellationToken ct);
@@ -402,7 +403,7 @@ public interface IWarehousePersistence : IWarehouseOpenWorkBlocker
     Task<Result<WarehouseMutationReceipt>> MarkCountApprovalAsync(
         Guid countPublicId,Guid approvalPublicId,IExecutionContext context,CancellationToken ct);
     Task<Result<WarehouseMutationReceipt>> CompleteCountPostAsync(
-        Guid countPublicId,IReadOnlyList<WarehouseInventoryEffect> effects,IExecutionContext context,CancellationToken ct);
+        Guid countPublicId,IReadOnlyList<WarehouseInventoryEffect> effects,string operationKey,IExecutionContext context,CancellationToken ct);
 
     Task<Result<WarehouseMutationReceipt>> RequestScrapAsync(
         ScrapRequestCommand command,IExecutionContext context,CancellationToken ct);
@@ -411,7 +412,7 @@ public interface IWarehousePersistence : IWarehouseOpenWorkBlocker
     Task<Result<WarehouseMutationReceipt>> MarkScrapApprovalAsync(
         Guid scrapPublicId,Guid approvalPublicId,IExecutionContext context,CancellationToken ct);
     Task<Result<WarehouseMutationReceipt>> CompleteScrapPostAsync(
-        Guid scrapPublicId,Guid movementPublicId,IExecutionContext context,CancellationToken ct);
+        Guid scrapPublicId,Guid movementPublicId,string operationKey,IExecutionContext context,CancellationToken ct);
 
     Task<Result<WarehouseMutationReceipt>> RecordOfflineAsync(
         OfflineOperationCommand command,IExecutionContext context,CancellationToken ct);
@@ -581,7 +582,7 @@ public sealed class WarehouseCommandHandler(
                 if(m.IsFailure)return Result<WarehouseMutationReceipt>.Failure(m.Error!);
                 effects.Add(new(line.TransferLinePublicId,m.Value!.MovementPublicId,null,false));
             }
-            return await persistence.CompleteTransferIssueAsync(transferPublicId,effects,c,innerCt);
+            return await persistence.CompleteTransferIssueAsync(transferPublicId,effects,operationKey,c,innerCt);
         },ct);
     }
 
@@ -604,7 +605,7 @@ public sealed class WarehouseCommandHandler(
                 if(m.IsFailure)return Result<WarehouseMutationReceipt>.Failure(m.Error!);
                 effects.Add(new(line.TransferLinePublicId,m.Value!.MovementPublicId,null,false));
             }
-            return await persistence.CompleteTransferReceiveAsync(command.TransferPublicId,effects,c,innerCt);
+            return await persistence.CompleteTransferReceiveAsync(command.TransferPublicId,effects,command.OperationKey,c,innerCt);
         },ct);
     }
 
@@ -652,7 +653,7 @@ public sealed class WarehouseCommandHandler(
                 null,operationKey+".inventory"),c,innerCt);
             if(movement.IsFailure)return Result<WarehouseMutationReceipt>.Failure(movement.Error!);
             return await persistence.CompleteTransferLossAsync(
-                transferPublicId,transferLinePublicId,quantity,movement.Value!.MovementPublicId,c,innerCt);
+                transferPublicId,transferLinePublicId,quantity,movement.Value!.MovementPublicId,operationKey,c,innerCt);
         },ct);
     }
 
@@ -676,7 +677,7 @@ public sealed class WarehouseCommandHandler(
                 if(movement.IsFailure)return Result<WarehouseMutationReceipt>.Failure(movement.Error!);
                 effects.Add(new(line.TransferLinePublicId,movement.Value!.MovementPublicId,line.OriginalInventoryMovementPublicId,true));
             }
-            return await persistence.CompleteTransferReverseAsync(transferPublicId,effects,c,innerCt);
+            return await persistence.CompleteTransferReverseAsync(transferPublicId,effects,operationKey,c,innerCt);
         },ct);
     }
 
@@ -749,7 +750,7 @@ public sealed class WarehouseCommandHandler(
                 if(m.IsFailure)return Result<WarehouseMutationReceipt>.Failure(m.Error!);
                 effects.Add(new(line.CountLinePublicId,m.Value!.MovementPublicId,null,false));
             }
-            return await persistence.CompleteCountPostAsync(id,effects,c,innerCt);
+            return await persistence.CompleteCountPostAsync(id,effects,operationKey,c,innerCt);
         },ct);
     }
 
@@ -792,7 +793,7 @@ public sealed class WarehouseCommandHandler(
                 p.Source,null,InventorySourceIdentity.Create("Warehouse","Scrap",p.ScrapPublicId,null),
                 null,operationKey+".inventory"),c,innerCt);
             if(movement.IsFailure)return Result<WarehouseMutationReceipt>.Failure(movement.Error!);
-            return await persistence.CompleteScrapPostAsync(id,movement.Value!.MovementPublicId,c,innerCt);
+            return await persistence.CompleteScrapPostAsync(id,movement.Value!.MovementPublicId,operationKey,c,innerCt);
         },ct);
     }
 
