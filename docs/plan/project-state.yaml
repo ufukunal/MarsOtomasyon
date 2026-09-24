@@ -83,10 +83,11 @@ test_policy:
   heavy_tests: FULL_TEST_DAY_ONLY
 
 active_task:
-  id: P5
-  title: Inventory broad implementation tranche definition
-  status: scope_definition_required
+  id: INVENTORY-IMP-001
+  title: Inventory Authority & Traceability Tranche
+  status: ready_for_implementation
   file: docs/plan/active-task.yaml
+  readiness_report: docs/plan/04-urun-stok/p5-inventory-authority-traceability-readiness.md
   progress: not_started
 
 completed_planning_tasks:
@@ -347,37 +348,43 @@ blocked_items:
   - UOM-specific transaction scale/fraction policy remains deferred.
   - Generic Variant EAV and provider/marketplace/GS1 behavior remain deferred.
   - Party Reactivation and fuzzy duplicate candidate generation remain deferred independently.
-  - Inventory broad tranche scope is not yet frozen; do not assign an Inventory implementation package ID before source reconciliation.
+  - INVENTORY-IMP-001 scope is frozen and ready for implementation; Warehouse operational workflows and Finance valuation remain explicitly deferred.
   - Planning metric inconsistency remains: active state 9 / 30 = 30.0% vs docs/db/acceptance-criteria.md 10 / 30 = 33.3%.
   - Production deployment and Full Test Day remain deferred.
 next_action:
-  id: P5
-  title: Define Inventory broad implementation tranche
+  id: INVENTORY-IMP-001
+  title: Inventory Authority & Traceability Tranche
   phase: P5
   module: inventory
-  status: SCOPE_DEFINITION_REQUIRED
-  work_package_id: NOT_ASSIGNED
+  status: READY_FOR_IMPLEMENTATION
+  work_package_id: INVENTORY-IMP-001
+  readiness_report: docs/plan/04-urun-stok/p5-inventory-authority-traceability-readiness.md
   predecessor:
     id: PRODUCT-IMP-001
     status: completed
     canonical_report: docs/plan/04-urun-stok/product-imp-001-implementation.md
-    readiness_report: docs/plan/04-urun-stok/p5-product-master-completion-readiness.md
-    implementation_commit: 817dfea81acbf1e93586b030412bd492f8a3ba20
-    migration_commit: 9b0731792a8641b632c612b7abb6f74799dd2aa4
     tested_commit: ac92911a8f5fcda070622b084216a43a70ad7d77
     foundation_build_run: 35981641268
     test_deploy_run: 35981641137
-  source_direction:
-    - master P5 order places Inventory after Products
-    - use frozen PLAN-004 Inventory contracts and PLAN-010
-    - define one broad coherent Inventory tranche rather than micro-packages
+  included_authority:
+    - Warehouse and Location master
+    - controlled physical dispositions
+    - Lot and Serial trace identity
+    - append-oriented Inventory Ledger
+    - append-oriented non-physical Reservation authority
+    - stock availability and trace read surfaces
+  exclusions:
+    - Warehouse operational workflows
+    - Sales/Purchasing/Returns source documents
+    - arbitrary public physical movement posting
+    - Finance valuation/current-cost/COGS
+    - production deployment
+    - Full Test Day
   restrictions:
     - Inventory Ledger remains physical quantity authority
-    - Warehouse operations remain separate workflow ownership unless a posting boundary is explicitly source-backed
-    - Finance/Costing remains valuation/current-cost/COGS authority
-    - do not invent negative-stock exceptions or lot-serial bypasses
-    - no production deployment
-    - no Full Test Day
+    - Reservation remains non-physical and RESERVED is not a disposition
+    - normal posting cannot produce negative physical stock
+    - posted history is corrected by linked reversal/compensation
     - exact active master planning metric remains 9 / 30 = 30.0 pending explicit metric normalization
 state_rules:
   - current_head must be verified from Git at every session start; embedded SHA is never authoritative.
