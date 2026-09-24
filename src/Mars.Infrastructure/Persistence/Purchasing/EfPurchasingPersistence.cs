@@ -70,7 +70,8 @@ public sealed class EfPurchasingPersistence(
         var processed=await NetReceivedAsync(companyId,order.Id,lines.Select(x=>x.LinePublicId).ToArray(),ct);
         return new PurchasingDocumentDetailView(
             order.PublicId,order.Number,OrderStateCode(order.State),
-            order.SupplierCodeSnapshot,order.SupplierNameSnapshot,order.CurrencyCode,order.PaymentTerms,order.Version,
+            order.SupplierCodeSnapshot,order.SupplierNameSnapshot,order.CurrencyCode,order.PaymentTerms,
+            order.Version,order.CurrentVersionNumber,
             lines.Select(x=>{
                 var done=processed.GetValueOrDefault(x.LinePublicId);
                 return new PurchasingDocumentLineView(
