@@ -1,6 +1,6 @@
 # Warehouse Operations Module Plan
 
-Status: PLAN-006 COMPLETED / FROZEN — planning only.
+Status: PLAN-006 COMPLETED / FROZEN — WAREHOUSE-IMP-001 IMPLEMENTATION COMPLETED.
 
 ## Purpose
 
@@ -125,3 +125,33 @@ Frozen implementation boundary:
 - Quality inspection/result, provider integrations, Device Layer, production and Full Test Day remain excluded.
 
 No Warehouse micro-package IDs are created.
+
+
+## WAREHOUSE-IMP-001 implementation closure
+
+Status: COMPLETED / RUNTIME VERIFIED.
+
+Canonical implementation:
+- docs/plan/06-ambar-depo/warehouse-imp-001-implementation.md
+
+Final tested implementation:
+- 81efd9c347118db24d8945f4d49e63bf99baaf70
+
+Evidence:
+- Foundation Build 36068722249 — SUCCESS
+- Foundation Test Deploy 36068722239 — SUCCESS
+- frontend 23 / 23 PASS
+- targeted Foundation 108 / 108 PASS
+- Release 0 warnings / 0 errors
+- EF pending-model clean
+- migration safety/deployed migration count 13
+- /warehouse and regression module pages 200 on TEST
+- live/ready 200
+- protected Warehouse routes 401 unauthenticated
+- expected Warehouse OpenAPI surface present
+- Warehouse Dispatch POST / Goods Receipt POST authority absent
+
+No real authenticated TEST Warehouse mutation is claimed.
+
+Next P5 action:
+- Finance / Treasury broad tranche scope definition from frozen PLAN-007.
