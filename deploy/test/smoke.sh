@@ -77,4 +77,39 @@ assert_status 401 "/api/v1/parties/00000000-0000-0000-0000-000000000001/roles/CU
 assert_status 401 "/api/v1/parties/00000000-0000-0000-0000-000000000001/tax-identities" POST
 assert_status 200 "/openapi/v1.json"
 
+OPENAPI_FILE="$(mktemp)"
+trap 'rm -f "$OPENAPI_FILE"' EXIT
+curl -fsS --connect-timeout 3 --max-time 8 "$BASE_URL/openapi/v1.json" -o "$OPENAPI_FILE"
+python3 - "$OPENAPI_FILE" <<'PY'
+import json
+import sys
+
+with open(sys.argv[1], encoding="utf-8") as handle:
+    doc = json.load(handle)
+
+paths = doc.get("paths", {})
+required = {
+    "/api/v1/sales/quotes",
+    "/api/v1/sales/orders",
+    "/api/v1/sales/dispatches",
+    "/api/v1/sales/invoices",
+}
+missing = sorted(required.difference(paths))
+if missing:
+    raise SystemExit(f"SMOKE_FAIL|OPENAPI_MISSING_SALES_PATHS={missing}")
+
+forbidden = [
+    "/api/v1/sales/invoices/{id}/post",
+    "/api/v1/sales/invoices/{id}/reverse",
+    "/api/v1/sales/invoices/{id:guid}/post",
+    "/api/v1/sales/invoices/{id:guid}/reverse",
+]
+present = [path for path in forbidden if path in paths]
+if present:
+    raise SystemExit(f"SMOKE_FAIL|OPENAPI_FORBIDDEN_INVOICE_AUTHORITY={present}")
+
+print("SMOKE_PASS|OPENAPI_SALES_SURFACE=EXPECTED")
+print("SMOKE_PASS|OPENAPI_INVOICE_POST_REVERSE=ABSENT")
+PY
+
 echo "SMOKE_RESULT=PASS"
