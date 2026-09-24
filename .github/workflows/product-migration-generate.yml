@@ -1,30 +1,20 @@
 name: PRODUCT-IMP-001 Migration Generate
+# PRODUCT-IMP-001 migration is committed; generator retained as manual/read-only evidence tool.
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - "src/Mars.Domain/Products/**"
-      - "src/Mars.Infrastructure/Persistence/Products/**"
-      - "src/Mars.Infrastructure/Persistence/MarsDbContext.cs"
-      - ".github/workflows/product-migration-generate.yml"
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   generate:
     name: generate-product-master-completion-migration
-    if: "!contains(github.event.head_commit.message, 'db: add PRODUCT-IMP-001 Product master migration')"
     runs-on: self-hosted
     timeout-minutes: 15
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          ref: main
-          fetch-depth: 0
 
       - name: Select writable .NET install directory
         shell: bash
@@ -43,40 +33,16 @@ jobs:
           dotnet restore src/Mars.Infrastructure/Mars.Infrastructure.csproj
           dotnet build src/Mars.Infrastructure/Mars.Infrastructure.csproj --configuration Release --no-restore
 
-      - name: Generate PRODUCT-IMP-001 migration
+      - name: Verify committed PRODUCT-IMP-001 migration/model
         shell: bash
         env:
           MARS_MIGRATION_CONNECTION_STRING: "Host=localhost;Database=mars_design_time_probe"
         run: |
           set -euo pipefail
-          dotnet tool run dotnet-ef migrations add ProductImp001ProductMasterCompletion \
-            --project src/Mars.Infrastructure/Mars.Infrastructure.csproj \
-            --startup-project src/Mars.Infrastructure/Mars.Infrastructure.csproj \
-            --configuration Release \
-            --no-build \
-            --output-dir Persistence/Migrations/Products
-
-          git diff --exit-code -- src/Mars.Infrastructure/Persistence/Migrations/Products \
-            src/Mars.Infrastructure/Persistence/Migrations/Foundation/MarsDbContextModelSnapshot.cs && {
-              echo "PRODUCT-IMP-001 model change generated no migration."
-              exit 1
-            }
-
-          dotnet build src/Mars.Infrastructure/Mars.Infrastructure.csproj --configuration Release --no-restore
-
+          test -f src/Mars.Infrastructure/Persistence/Migrations/Products/20260924085617_ProductImp001ProductMasterCompletion.cs
+          test -f src/Mars.Infrastructure/Persistence/Migrations/Products/20260924085617_ProductImp001ProductMasterCompletion.Designer.cs
           dotnet tool run dotnet-ef migrations has-pending-model-changes \
             --project src/Mars.Infrastructure/Mars.Infrastructure.csproj \
             --startup-project src/Mars.Infrastructure/Mars.Infrastructure.csproj \
             --configuration Release \
             --no-build
-
-      - name: Commit generated migration to main
-        shell: bash
-        run: |
-          set -euo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src/Mars.Infrastructure/Persistence/Migrations/Products \
-            src/Mars.Infrastructure/Persistence/Migrations/Foundation/MarsDbContextModelSnapshot.cs
-          git commit -m "db: add PRODUCT-IMP-001 Product master migration (run \${GITHUB_RUN_ID})"
-          git push origin HEAD:main
