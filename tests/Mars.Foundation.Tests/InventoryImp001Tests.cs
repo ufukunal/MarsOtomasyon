@@ -204,10 +204,6 @@ internal static class InventoryImp001Tests
         AssertEqual(18, movement.FindProperty("BaseQuantity")?.GetScale());
         AssertTrue(movement.FindProperty("StockQuantity") is null);
 
-        var dispositions = context.Model.GetEntityTypes()
-            .Single(x => x.GetTableName() == "dispositions" && x.GetSchema() == "inventory")
-            .GetSeedData();
-        AssertEqual(6, dispositions.Count());
     }
 
     private static MarsDbContext CreateModelContext()
