@@ -277,6 +277,22 @@ public sealed record CountAdjustmentPlanLine(
     decimal DiscrepancyQuantity,
     InventoryPosition Position);
 
+public sealed record CountReverseLinePlan(
+    Guid CountLinePublicId,
+    Guid ProductPublicId,
+    Guid? VariantPublicId,
+    Guid UomPublicId,
+    decimal ConversionFactorSnapshot,
+    decimal Quantity,
+    InventoryPosition Source,
+    InventoryPosition Target,
+    Guid OriginalInventoryMovementPublicId);
+
+public sealed record CountReversePlan(
+    Guid CountPublicId,
+    Guid WarehousePublicId,
+    IReadOnlyList<CountReverseLinePlan> Lines);
+
 public sealed record CountAdjustmentPlan(
     Guid CountPublicId,
     Guid WarehousePublicId,
@@ -406,6 +422,12 @@ public interface IWarehousePersistence : IWarehouseOpenWorkBlocker
         Guid countPublicId,Guid approvalPublicId,IExecutionContext context,CancellationToken ct);
     Task<Result<WarehouseMutationReceipt>> CompleteCountPostAsync(
         Guid countPublicId,IReadOnlyList<WarehouseInventoryEffect> effects,string operationKey,IExecutionContext context,CancellationToken ct);
+    Task<Result<WarehouseMutationReceipt>> CloseCountAsync(
+        Guid countPublicId,long expectedVersion,string operationKey,IExecutionContext context,CancellationToken ct);
+    Task<Result<CountReversePlan>> PrepareCountReverseAsync(
+        Guid countPublicId,long expectedVersion,IExecutionContext context,CancellationToken ct);
+    Task<Result<WarehouseMutationReceipt>> CompleteCountReverseAsync(
+        Guid countPublicId,IReadOnlyList<WarehouseInventoryEffect> effects,string operationKey,IExecutionContext context,CancellationToken ct);
 
     Task<Result<WarehouseMutationReceipt>> RequestScrapAsync(
         ScrapRequestCommand command,IExecutionContext context,CancellationToken ct);
@@ -507,6 +529,32 @@ public sealed class WarehouseCommandHandler(
                 command.ProductPublicId,command.VariantPublicId,command.UomPublicId,command.Quantity,
                 command.ConversionFactorSnapshot,command.Source,command.Target,
                 InventorySourceIdentity.Create("Warehouse","Disposition",command.SourceDocumentPublicId??OperationIdentity(command.OperationKey),command.SourceLinePublicId),
+                null,command.OperationKey+".inventory"),c,innerCt);
+            if(movement.IsFailure)return Result<WarehouseMutationReceipt>.Failure(movement.Error!);
+            return await persistence.CompleteDispositionAsync(command,movement.Value!.MovementPublicId,c,innerCt);
+        },ct);
+    }
+
+    public async Task<Result<WarehouseMutationReceipt>> RecordDamageAsync(
+        ChangeDispositionCommand command,IExecutionContext c,CancellationToken ct)
+    {
+        if(command.Target.Disposition is not (InventoryDispositionCode.Damaged or InventoryDispositionCode.QualityHold))
+            return Invalid("warehouse.damage.target","Damage recording must target DAMAGED or QUALITY_HOLD.");
+        if(!await Authorized(WarehousePermissions.DamageRecord,command.Source.WarehousePublicId,c,ct))return Denied();
+        if(command.Source.WarehousePublicId!=command.Target.WarehousePublicId||
+           command.Source.LocationPublicId!=command.Target.LocationPublicId||
+           command.Source.LotPublicId!=command.Target.LotPublicId||
+           command.Source.SerialPublicId!=command.Target.SerialPublicId||
+           command.Source.Disposition==command.Target.Disposition||
+           command.Source.Disposition==InventoryDispositionCode.Transit||
+           command.Target.Disposition==InventoryDispositionCode.Transit)
+            return Invalid("warehouse.damage.invalid","Damage recording must preserve exact physical identity/location and cannot use TRANSIT.");
+
+        return await transactions.ExecuteAsync(async innerCt=>{
+            var movement=await inventory.PostAsync(new InventoryMovementCommand(
+                command.ProductPublicId,command.VariantPublicId,command.UomPublicId,command.Quantity,
+                command.ConversionFactorSnapshot,command.Source,command.Target,
+                InventorySourceIdentity.Create("Warehouse","Damage",command.SourceDocumentPublicId??OperationIdentity(command.OperationKey),command.SourceLinePublicId),
                 null,command.OperationKey+".inventory"),c,innerCt);
             if(movement.IsFailure)return Result<WarehouseMutationReceipt>.Failure(movement.Error!);
             return await persistence.CompleteDispositionAsync(command,movement.Value!.MovementPublicId,c,innerCt);
@@ -795,6 +843,36 @@ public sealed class WarehouseCommandHandler(
                 effects.Add(new(line.CountLinePublicId,m.Value!.MovementPublicId,null,false));
             }
             return await persistence.CompleteCountPostAsync(id,effects,operationKey,c,innerCt);
+        },ct);
+    }
+
+    public async Task<Result<WarehouseMutationReceipt>> CloseCountAsync(
+        Guid id,long version,string operationKey,IExecutionContext c,CancellationToken ct)
+    {
+        var warehouse=await persistence.GetCountWarehouseAsync(c.CompanyId,id,ct);
+        if(!warehouse.HasValue||!await Authorized(WarehousePermissions.CountReview,warehouse.Value,c,ct))return Denied();
+        return await persistence.CloseCountAsync(id,version,operationKey,c,ct);
+    }
+
+    public async Task<Result<WarehouseMutationReceipt>> ReverseCountAsync(
+        Guid id,long version,string operationKey,IExecutionContext c,CancellationToken ct)
+    {
+        var warehouse=await persistence.GetCountWarehouseAsync(c.CompanyId,id,ct);
+        if(!warehouse.HasValue||!await Authorized(WarehousePermissions.CountReverse,warehouse.Value,c,ct))return Denied();
+        return await transactions.ExecuteAsync(async innerCt=>{
+            var plan=await persistence.PrepareCountReverseAsync(id,version,c,innerCt);
+            if(plan.IsFailure)return Result<WarehouseMutationReceipt>.Failure(plan.Error!);
+            var effects=new List<WarehouseInventoryEffect>();
+            foreach(var line in plan.Value!.Lines){
+                var m=await inventory.PostAsync(new InventoryMovementCommand(
+                    line.ProductPublicId,line.VariantPublicId,line.UomPublicId,line.Quantity,line.ConversionFactorSnapshot,
+                    line.Source,line.Target,
+                    InventorySourceIdentity.Create("Warehouse","StockCountReverse",id,line.CountLinePublicId),
+                    line.OriginalInventoryMovementPublicId,$"{operationKey}:count-reverse:{line.CountLinePublicId:D}"),c,innerCt);
+                if(m.IsFailure)return Result<WarehouseMutationReceipt>.Failure(m.Error!);
+                effects.Add(new(line.CountLinePublicId,m.Value!.MovementPublicId,line.OriginalInventoryMovementPublicId,true));
+            }
+            return await persistence.CompleteCountReverseAsync(id,effects,operationKey,c,innerCt);
         },ct);
     }
 
