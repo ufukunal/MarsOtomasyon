@@ -898,7 +898,13 @@ public sealed class EfWarehousePersistence(
             result.Add(new(l.PublicId,p.PublicId,v?.PublicId,u.PublicId,l.ConversionFactorSnapshot,l.DiscrepancyQuantity,
                 new InventoryPosition(wh.PublicId,loc.PublicId,d.Code,lot?.PublicId,serial?.PublicId)));
         }
-        return Result<CountAdjustmentPlan>.Success(new(count.PublicId,wh.PublicId,count.CreatorActorId,count.Version,result));
+        var counterActors=await (
+            from o in dbContext.Set<StockCountObservationRecord>().AsNoTracking()
+            join l in dbContext.Set<StockCountLineRecord>().AsNoTracking() on o.CountLineId equals l.Id
+            where o.CompanyId==companyId&&l.CompanyId==companyId&&l.CountSessionId==count.Id
+            select o.ActorId).Distinct().ToArrayAsync(ct);
+        return Result<CountAdjustmentPlan>.Success(new(
+            count.PublicId,wh.PublicId,count.CreatorActorId,counterActors,count.Version,result));
     }
 
     private async Task<decimal> NetMovementAfter(Guid companyId,StockCountLineRecord line,long snapshot,CancellationToken ct)
