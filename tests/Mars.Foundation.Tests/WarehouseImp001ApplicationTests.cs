@@ -170,7 +170,7 @@ internal static class WarehouseImp001ApplicationTests
             Guid.NewGuid(),null,Guid.NewGuid(),1m,1m,
             new InventoryPosition(wh,loc,InventoryDispositionCode.Available,null,null),
             new InventoryPosition(wh,loc,InventoryDispositionCode.Available,null,null),
-            "damage","",null,"damage-1"),NewContext(),CancellationToken.None).GetAwaiter().GetResult();
+            "damage",null,null,"damage-1"),NewContext(),CancellationToken.None).GetAwaiter().GetResult();
 
         AssertTrue(result.IsFailure);
         AssertEqual("warehouse.damage.target",result.Error!.Code);
