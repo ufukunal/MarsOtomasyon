@@ -570,23 +570,26 @@ public sealed class PurchasingCommandHandler(
             return Result<ApprovalDecisionReceipt>.Failure(
                 new ApplicationError(ErrorCategory.Authorization,"purchasing.permission.denied","The required Purchasing permission is not granted."));
 
-        var target = await persistence.GetMatchApprovalTargetAsync(matchPublicId, context, ct);
-        if (target.IsFailure)
-            return Result<ApprovalDecisionReceipt>.Failure(target.Error!);
+        return await transactions.ExecuteAsync(async innerCt =>
+        {
+            var target = await persistence.GetMatchApprovalTargetAsync(matchPublicId, context, innerCt);
+            if (target.IsFailure)
+                return Result<ApprovalDecisionReceipt>.Failure(target.Error!);
 
-        var approval = await approvals.DecideAsync(
-            new ApprovalDecisionCommand(
-                "Purchasing","PurchaseMatchException",target.Value!.MatchPublicId,
-                target.Value.SnapshotVersion,target.Value.CreatorActorId,decision,reason,operationKey),
-            context,ct);
-        if (approval.IsFailure)
-            return approval;
+            var approval = await approvals.DecideAsync(
+                new ApprovalDecisionCommand(
+                    "Purchasing","PurchaseMatchException",target.Value!.MatchPublicId,
+                    target.Value.SnapshotVersion,target.Value.CreatorActorId,decision,reason,operationKey),
+                context,innerCt);
+            if (approval.IsFailure)
+                return approval;
 
-        var completed = await persistence.CompleteMatchDecisionAsync(
-            matchPublicId,approval.Value!.PublicId,decision,context,ct);
-        return completed.IsFailure
-            ? Result<ApprovalDecisionReceipt>.Failure(completed.Error!)
-            : approval;
+            var completed = await persistence.CompleteMatchDecisionAsync(
+                matchPublicId,approval.Value!.PublicId,decision,context,innerCt);
+            return completed.IsFailure
+                ? Result<ApprovalDecisionReceipt>.Failure(completed.Error!)
+                : approval;
+        }, ct);
     }
 
     private async Task<Result<PurchasingMutationReceipt>> WithPermission(
