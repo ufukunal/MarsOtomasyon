@@ -4,6 +4,7 @@ using Mars.Application.Sales;
 using Mars.Domain.Inventory;
 using Mars.Domain.Sales;
 using Mars.Infrastructure.Persistence.Inventory;
+using Mars.Infrastructure.Persistence.Products;
 using Microsoft.EntityFrameworkCore;
 
 namespace Mars.Infrastructure.Persistence.Sales;
@@ -510,9 +511,9 @@ public sealed partial class EfSalesPersistence
         var already=await ActiveReservedForOrderLineAsync(context.CompanyId,order.PublicId,line.LinePublicId,ct);
         if(shipped+already+command.Quantity>line.Quantity)
             return Business<SalesReservationPlan>("sales.reservation.cap","Reservation exceeds eligible Order remainder.");
-        var product=await dbContext.Set<Products.ProductRecord>().AsNoTracking().SingleAsync(x=>x.Id==line.ProductId,ct);
-        var variant=line.VariantId.HasValue?await dbContext.Set<Products.ProductVariantRecord>().AsNoTracking().SingleAsync(x=>x.Id==line.VariantId.Value,ct):null;
-        var uom=await dbContext.Set<Products.UnitOfMeasureRecord>().AsNoTracking().SingleAsync(x=>x.Id==line.UomId,ct);
+        var product=await dbContext.Set<ProductRecord>().AsNoTracking().SingleAsync(x=>x.Id==line.ProductId,ct);
+        var variant=line.VariantId.HasValue?await dbContext.Set<ProductVariantRecord>().AsNoTracking().SingleAsync(x=>x.Id==line.VariantId.Value,ct):null;
+        var uom=await dbContext.Set<UnitOfMeasureRecord>().AsNoTracking().SingleAsync(x=>x.Id==line.UomId,ct);
         return Result<SalesReservationPlan>.Success(new(order.PublicId,order.CurrentVersionNumber,line.LinePublicId,
             product.PublicId,variant?.PublicId,uom.PublicId,line.ConversionFactorSnapshot,warehouse.PublicId,command.Quantity));
     }
