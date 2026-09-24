@@ -417,51 +417,94 @@ Deferred:
 - Full Test Day
 
 
+## WAREHOUSE-IMP-001 closure
+
+Canonical implementation:
+- docs/plan/06-ambar-depo/warehouse-imp-001-implementation.md
+
+Runtime-tested commit:
+- 81efd9c347118db24d8945f4d49e63bf99baaf70
+
+Migrations:
+- 20260924220511_WarehouseImp001ExecutionInventoryControlAuthority
+- 20260924223900_WarehouseImp001SalesDispatchSourceAllocations
+- final deployed migration count 13
+
+Foundation Build:
+- run 36068722249
+- job 107864429802
+- SUCCESS
+- frontend 23 / 23 PASS
+- targeted Foundation 108 / 108 PASS
+- Release 0 warnings / 0 errors
+- EF pending-model clean
+- Warehouse protected API/OpenAPI smoke PASS
+
+Foundation Test Deploy:
+- run 36068722239
+- job 107864430160
+- SUCCESS
+- migration safety count 13
+- deployed migration count 13
+- /warehouse /sales /purchasing /inventory /products /parties = 200
+- health live/ready = 200
+- protected Warehouse routes unauthenticated = 401
+- OpenAPI Warehouse surface expected
+- Warehouse Dispatch POST / Goods Receipt POST authority absent
+- smoke PASS
+
+No real authenticated TEST Warehouse mutation is claimed.
+
+Completed authority:
+- receiving/quarantine read;
+- disposition/damage/put-away/replenishment;
+- FEFO/FIFO pick with controlled override;
+- Pick/Pack/Stage/Load STOCK = NONE;
+- Sales-owned multi-source Dispatch source allocation;
+- allocation-aware Sales Dispatch physical POST/reversal;
+- transfer ISSUE/TRANSIT/partial RECEIVE/reconcile/close/reverse;
+- Stock Count snapshot/intervening/recount/approval/negative adjustment/close/reverse;
+- positive Count fail-closed without Finance valuation;
+- scrap approval/SoD + physical OUT;
+- Warehouse/Location open-work deactivation blocker;
+- offline operation journal;
+- protected API and Mars.Web /warehouse.
+
+Deferred:
+- Finance valuation/account/COGS/write-off authority;
+- Quality implementation;
+- providers / Device Layer / scanner drivers;
+- production;
+- Full Test Day.
+
 ## Current task
 
-WAREHOUSE-IMP-001 — Warehouse Execution & Inventory Control Authority Tranche
+Finance / Treasury Broad Implementation Tranche Definition
 
 Status:
-- READY FOR IMPLEMENTATION
+- SCOPE DEFINITION REQUIRED
 - NOT STARTED
+- implementation work-package ID UNASSIGNED
 
-Canonical readiness:
-- docs/plan/06-ambar-depo/p5-warehouse-execution-readiness.md
+Planning source:
+- frozen PLAN-007
+- docs/plan/09-finans-kasa-banka/
 
-Predecessor:
-- PURCHASING-IMP-001 — COMPLETED
-- tested commit 50ec242e5471743bbdc9ad43bc69626166b1679f
-- Foundation Build 36054248023 — SUCCESS
-- Foundation Test Deploy 36054247926 — SUCCESS
-- migration baseline 11
+Required next action:
+- perform repository reconciliation;
+- inspect current Sales / Purchasing / Inventory / Warehouse financial handoff points;
+- freeze one broad coherent Finance / Treasury implementation tranche;
+- define exact Account Ledger, Cash/Bank, settlement, posting-period, valuation and Dispatch cost-bridge authority;
+- define how currently fail-closed Sales Invoice POST, Supplier Invoice POST and positive Count Adjustment become Finance-integrated;
+- assign the Finance implementation package ID only after exact scope freeze.
 
-Broad scope:
-- receiving/quarantine read queue
-- physical disposition/release
-- put-away
-- manual replenishment
-- pick + FEFO/FIFO recommendation/override
-- Sales-owned pre-POST Dispatch source binding
-- pack/package/stage/load
-- transfer ISSUE/TRANSIT/RECEIVE/reconcile/reverse
-- Stock Count snapshot/intervening/review/approval
-- negative count adjustment
-- positive count adjustment valuation blocker
-- damage/scrap
-- Warehouse/Location operational deactivation blockers
-- offline/client-operation journal
-- protected API/Mars.Web
-- additive migration and TEST deployment
+Do not:
+- repeat global/module planning;
+- create Finance micro-package IDs before scope freeze;
+- implement before exact broad scope is frozen;
+- run production;
+- run Full Test Day.
 
-Frozen boundaries:
-- Inventory Ledger remains physical quantity truth.
-- Pick/Pack/Stage/Load STOCK = NONE.
-- Sales owns Dispatch POST and outbound STOCK OUT.
-- Purchasing owns Goods Receipt POST and inbound STOCK IN.
-- Finance owns valuation/write-off accounting.
-- Quality inspection authority remains separate.
-- no negative-stock override.
-- no production.
-- no Full Test Day.
-
-Implementation should proceed as one broad coherent package; do not create Warehouse micro IDs.
+## Planning progress
+- portfolio planning: 30 / 30 = 100.0%
+- detailed master planning: 30 / 30 = 100.0%
