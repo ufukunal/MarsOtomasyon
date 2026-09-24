@@ -2,31 +2,26 @@
 
 ## Current P5 implementation
 
-Finance / Treasury broad implementation tranche definition
+FINANCE-IMP-001 — Finance/Treasury Ledger, Settlement & Inventory Valuation Authority Tranche
 
-Status: SCOPE DEFINITION REQUIRED.
+Status:
+- SCOPE FROZEN
+- READY FOR IMPLEMENTATION
 
-Implementation work-package ID:
-- UNASSIGNED until exact broad scope is frozen.
+Canonical readiness:
+- docs/plan/09-finans-kasa-banka/p5-finance-treasury-readiness.md
 
-Planning source:
-- frozen PLAN-007
-- docs/plan/09-finans-kasa-banka/
+Implementation remains one broad package. Do not split Finance capabilities into micro work-package IDs.
 
-Completed predecessor:
-- WAREHOUSE-IMP-001 — COMPLETED / RUNTIME VERIFIED
-- docs/plan/06-ambar-depo/warehouse-imp-001-implementation.md
-- tested commit 81efd9c347118db24d8945f4d49e63bf99baaf70
-- Foundation Build 36068722249 — SUCCESS
-- Foundation Test Deploy 36068722239 — SUCCESS
-- migration baseline 13
-
-Next action:
-- reconcile current Finance-related cross-module authority;
-- freeze one broad coherent Finance / Treasury implementation tranche;
-- assign the implementation package ID only after exact scope freeze.
-
-No global/module replanning is required.
+Explicit deferred/fail-closed dependencies:
+- non-TRY Finance posting, FX transfer, realized/unrealized FX until company base-currency/rate authority exists;
+- provider-specific bank/file adapters;
+- standalone landed-cost policy/document engine;
+- Returns/RMA-dependent refund entitlement;
+- statutory General Ledger/Chart of Accounts/e-ledger/tax filing;
+- Checks/Promissory Notes;
+- production deployment;
+- Full Test Day.
 
 ## Portfolio planning
 
@@ -35,33 +30,19 @@ Status: COMPLETED / FROZEN.
 Canonical:
 - docs/plan/project-plan-completion.md
 
-All 30 master planning items now have frozen portfolio and detailed planning coverage.
-Future sessions must not recreate global/module planning; only active-module repository reconciliation and implementation readiness are required.
-
-## Commerce/B2B/Architect/Marketplace
-Target: docs/plan/15-e-ticaret-b2b-api/
-Status: PORTFOLIO-PLANNED / P7 IMPLEMENTATION NOT STARTED.
+All 30 master planning items have frozen portfolio and detailed planning coverage.
+Do not recreate global/module planning.
 
 ## Full Test Day
+
 Status: DEFERRED BY POLICY.
 
-Party heavy risks include:
-- concurrent Party Code create;
-- concurrent role activation/lifecycle transition;
-- concurrent deterministic Tax Identity collision;
-- concurrent Party deactivation/state mutation;
-- stale Party/role/tax identity state;
-- cross-company IDOR;
-- broad permission matrix;
-- authenticated browser Party lifecycle E2E;
-- consuming module eligibility races;
-- provider reconciliation when introduced;
-- high-volume duplicate/identity search;
-- PII/security regression;
-- snapshot persistence integration.
+Finance heavy backlog is already frozen in:
+- docs/plan/09-finans-kasa-banka/full-test-day.md
+
+Normal FINANCE-IMP-001 development runs only targeted build/unit/invariant/migration/API smoke evidence.
 
 Planning progress:
 - master portfolio: 30 / 30 = 100.0%
 - master detailed planning: 30 / 30 = 100.0%
-- P2 detailed core commercial: 8 / 8 = 100.0%
 - implementation progress is tracked separately.

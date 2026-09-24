@@ -1,10 +1,10 @@
-id: UNASSIGNED
-title: Finance / Treasury Broad Implementation Tranche Definition
+id: FINANCE-IMP-001
+title: Finance/Treasury Ledger, Settlement & Inventory Valuation Authority Tranche
 module: finance
-status: scope_definition_required
-progress: not_started
-work_package_id: UNASSIGNED
-readiness_report: null
+status: ready_for_implementation
+progress: scope_frozen
+work_package_id: FINANCE-IMP-001
+readiness_report: docs/plan/09-finans-kasa-banka/p5-finance-treasury-readiness.md
 
 phase:
   id: P5
@@ -20,25 +20,40 @@ predecessor:
   foundation_build_run: 36068722249
   test_deploy_run: 36068722239
 
-owner_direction:
-  - define Finance / Treasury as one broad coherent implementation tranche from frozen PLAN-007
-  - do not repeat global or module planning
-  - do not assign an implementation work-package id until exact broad scope is frozen
-  - repository truth overrides prior prompts
-  - ordinary technical decisions belong to active skills unless they introduce new business, legal, provider or cross-module authority semantics
-
 scope:
   include:
-    - reconcile existing Sales, Purchasing, Inventory and Warehouse authority against frozen PLAN-007
-    - freeze one broad Finance / Treasury implementation tranche
-    - establish exact Account Ledger, Cash/Bank Ledger, settlement, posting-period, valuation and cost-bridge implementation boundary that can be delivered coherently
-    - identify required cross-module contracts for currently fail-closed financial posting paths
-    - define normal acceptance evidence and migration baseline
+    - Finance transaction authority plus Account, Cash, Bank and Inventory Valuation ledgers
+    - Collection, Supplier Payment, explicit advances/refunds and approved same-Party role netting
+    - Cash/Bank masters, Cash Count and same-currency treasury transfers
+    - posting periods, durable idempotency and compensating reversal
+    - normalized bank statement evidence and reconciliation
+    - customer credit limit, manual hold and risk exposure projection consumed by Sales
+    - moving weighted-average valuation and exact Dispatch cost bridge
+    - Goods Receipt provisional valuation integrated atomically with physical receipt
+    - Sales Invoice POST/REVERSE with receivable and eligible bridge-to-COGS recognition
+    - Supplier Invoice POST/REVERSE with payable and receipt-linked late price-cost allocation
+    - Warehouse Count/Scrap valuation handoff including controlled positive Count valuation
+    - protected Finance API and Mars.Web finance workspace
   exclude:
-    - implementation mutation before exact scope freeze
-    - micro Finance implementation package IDs
+    - non-TRY authoritative posting, FX transfer, realized FX and unrealized revaluation until base-currency/rate authority exists
+    - provider-specific bank/file adapters and outbound provider payment
+    - standalone landed-cost document/custom allocation-policy administration
+    - RMA-based refund entitlement until Returns authority exists
+    - statutory General Ledger, Chart of Accounts, e-ledger and production tax filing
+    - Checks/Promissory Notes implementation
     - production deployment
     - Full Test Day
+
+currency_gate:
+  authoritative_posting: TRY_only
+  reason: company base-currency and authoritative FX/rate authority are absent in the repository
+  behavior: non_TRY_finance_posting_fail_closed
+
+migration:
+  baseline: 13
+  strategy: additive
+  next_expected: 14
+  owner: finance
 
 planning_progress:
   master_sequence:

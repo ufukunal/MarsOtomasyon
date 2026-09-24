@@ -508,3 +508,46 @@ Do not:
 ## Planning progress
 - portfolio planning: 30 / 30 = 100.0%
 - detailed master planning: 30 / 30 = 100.0%
+
+## FINANCE-IMP-001 scope freeze / current handoff
+
+This trailing section supersedes stale earlier "Current task" text retained for historical session evidence.
+
+Current task:
+- FINANCE-IMP-001 — Finance/Treasury Ledger, Settlement & Inventory Valuation Authority Tranche
+- status: READY FOR IMPLEMENTATION / SCOPE FROZEN
+- canonical readiness: docs/plan/09-finans-kasa-banka/p5-finance-treasury-readiness.md
+- scope-freeze baseline: 35eb688cc2f96d5128c24dc14fe4e6d040d28c34
+- migration baseline: 13
+
+Repository reconciliation:
+- Warehouse runtime-tested source position remains 81efd9c347118db24d8945f4d49e63bf99baaf70;
+- all commits between that tested source position and scope-freeze baseline are documentation-only;
+- no source/migration drift was found;
+- latest relevant Warehouse Build 36068722249 and Test Deploy 36068722239 are SUCCESS.
+
+Frozen broad authority:
+- Account/Cash/Bank/Inventory Valuation ledgers;
+- Finance transactions, settlement/advances/refunds/role netting;
+- posting periods and immutable reversal;
+- same-currency treasury;
+- statement evidence/reconciliation;
+- customer risk/credit/hold;
+- Goods Receipt provisional valuation;
+- Dispatch value-out + dispatched-not-invoiced bridge;
+- Sales Invoice AR + COGS POST/REVERSE;
+- Supplier Invoice AP + late price-cost delta POST/REVERSE;
+- Count/Scrap valuation integration;
+- protected Finance API and Mars.Web.
+
+Current repository gate:
+- Company base-currency/rate authority is absent;
+- authoritative FINANCE-IMP-001 posting is TRY-only;
+- non-TRY/FX transfer/realized FX/unrealized revaluation remains fail-closed rather than fabricated.
+
+Next action:
+- continue implementation on main inside FINANCE-IMP-001;
+- first Finance migration is additive from baseline 13;
+- run normal targeted build/test/migration/API smoke only;
+- do not run production deployment or Full Test Day.
+

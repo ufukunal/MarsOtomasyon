@@ -87,12 +87,12 @@ test_policy:
   heavy_tests: FULL_TEST_DAY_ONLY
 
 active_task:
-  id: UNASSIGNED
-  title: Finance / Treasury Broad Implementation Tranche Definition
-  status: scope_definition_required
+  id: FINANCE-IMP-001
+  title: Finance/Treasury Ledger, Settlement & Inventory Valuation Authority Tranche
+  status: ready_for_implementation
   file: docs/plan/active-task.yaml
-  readiness_report: null
-  progress: not_started
+  readiness_report: docs/plan/09-finans-kasa-banka/p5-finance-treasury-readiness.md
+  progress: scope_frozen
 
 completed_planning_tasks:
   - PLAN-001
@@ -289,10 +289,10 @@ test_environment:
   foundation_test_party_role_unauthenticated_post: 401
   foundation_test_party_role_state_unauthenticated_post: 401
   foundation_test_party_tax_identity_unauthenticated_post: 401
-  foundation_test_migration_count: 11
+  foundation_test_migration_count: 13
   foundation_test_smoke: PASS
-  foundation_test_workflow_run: 36054247926
-  foundation_test_implementation_commit: 50ec242e5471743bbdc9ad43bc69626166b1679f
+  foundation_test_workflow_run: 36068722239
+  foundation_test_implementation_commit: 81efd9c347118db24d8945f4d49e63bf99baaf70
   mars_path_present: true
   postgresql_roles:
     owner_admin_role: mars_master
@@ -306,7 +306,7 @@ test_environment:
     actual_values_status: SSH_AND_POSTGRES_ROLES_CONFIGURED
 
 known_constraints:
-  - Core ERP application implementation is partial: Parties, Products, Inventory, Sales and Purchasing broad tranches are completed; Warehouse tranche definition is current.
+  - Core ERP application implementation is partial: Parties, Products, Inventory, Sales, Purchasing and Warehouse broad tranches are completed; FINANCE-IMP-001 scope is frozen and ready for implementation.
   - FW-IMP-001 through FW-IMP-008 are implemented and P4 Foundation implementation is completed.
   - FW-IMP-005 API foundation is COMPLETED with canonical evidence at docs/plan/01-foundation/fw-imp-005-implementation.md and successful workflow run 35722169157.
   - FW-IMP-006 Mars.Web + Mars.UI foundation is COMPLETED with canonical evidence at docs/plan/01-foundation/fw-imp-006-implementation.md and successful workflow run 35729371845.
@@ -363,26 +363,28 @@ blocked_items:
   - Historical planning metric inconsistency is superseded by docs/plan/project-plan-completion.md: portfolio and detailed master planning are 30 / 30 = 100%; implementation completion remains separate.
   - Production deployment and Full Test Day remain deferred.
 next_action:
-  id: WAREHOUSE-IMP-001
-  title: Warehouse Execution & Inventory Control Authority Tranche
+  id: FINANCE-IMP-001
+  title: Finance/Treasury Ledger, Settlement & Inventory Valuation Authority Tranche
   phase: P5
-  module: warehouse
+  module: finance
   status: READY_FOR_IMPLEMENTATION
-  work_package_id: WAREHOUSE-IMP-001
-  readiness_report: docs/plan/06-ambar-depo/p5-warehouse-execution-readiness.md
+  work_package_id: FINANCE-IMP-001
+  readiness_report: docs/plan/09-finans-kasa-banka/p5-finance-treasury-readiness.md
   predecessor:
-    id: PURCHASING-IMP-001
+    id: WAREHOUSE-IMP-001
     status: completed
-    canonical_report: docs/plan/07-satinalma/purchasing-imp-001-implementation.md
-    tested_commit: 50ec242e5471743bbdc9ad43bc69626166b1679f
-    foundation_build_run: 36054248023
-    test_deploy_run: 36054247926
+    canonical_report: docs/plan/06-ambar-depo/warehouse-imp-001-implementation.md
+    tested_commit: 81efd9c347118db24d8945f4d49e63bf99baaf70
+    foundation_build_run: 36068722249
+    test_deploy_run: 36068722239
+  migration_baseline: 13
   restrictions:
-    - implement WAREHOUSE-IMP-001 as one broad coherent tranche; no Warehouse micro-package IDs
-    - do not duplicate Sales Dispatch STOCK OUT
-    - do not duplicate Purchasing Goods Receipt STOCK IN
-    - Finance valuation remains external authority
-    - Quality implementation remains external authority
+    - implement FINANCE-IMP-001 as one broad coherent tranche; no Finance micro-package IDs
+    - Inventory Ledger remains physical quantity truth; Finance Valuation Ledger is value truth
+    - no second stock-out at Sales Invoice and no second stock-in at Supplier Invoice
+    - non-TRY authoritative Finance posting remains fail-closed until company base-currency/rate authority exists
+    - provider-specific bank behavior is not fabricated
+    - production deployment and Full Test Day remain excluded
     - portfolio and detailed planning remain 30 / 30 = 100%
 
 state_rules:

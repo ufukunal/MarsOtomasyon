@@ -1,6 +1,6 @@
 # Finance / Treasury Module Plan
 
-Status: PLAN-007 COMPLETED / FROZEN — planning only.
+Status: PLAN-007 COMPLETED / FROZEN — FINANCE-IMP-001 implementation scope frozen.
 
 ## Purpose
 
@@ -104,3 +104,17 @@ On successful PLAN-007 completion:
 - Returns/RMA workflow;
 - production tax filing/legal reporting;
 - Full Test Day execution.
+
+
+## P5 implementation readiness
+
+Canonical implementation readiness:
+- `docs/plan/09-finans-kasa-banka/p5-finance-treasury-readiness.md`
+
+Work package:
+- `FINANCE-IMP-001 — Finance/Treasury Ledger, Settlement & Inventory Valuation Authority Tranche`
+
+Current implementation gate:
+- authoritative Finance POST is TRY-only until repository-owned Company base-currency and FX/rate authority exists;
+- non-TRY/FX/revaluation paths remain fail-closed;
+- implementation is one broad package, not micro-package IDs.
