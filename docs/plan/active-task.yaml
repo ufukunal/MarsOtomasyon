@@ -1,10 +1,10 @@
-id: PURCHASING-IMP-001
-title: Purchasing Commercial Receipt & Supplier Invoice Authority Tranche
-module: purchasing
-status: implementation_in_progress
-progress: in_progress
-work_package_id: PURCHASING-IMP-001
-readiness_report: docs/plan/07-satinalma/p5-purchasing-authority-readiness.md
+id: WAREHOUSE-TRANCHE-DEFINITION
+title: Warehouse Broad Implementation Tranche Scope & Readiness
+module: warehouse
+status: scope_definition_required
+progress: not_started
+work_package_id: null
+readiness_report: null
 
 phase:
   id: P5
@@ -12,47 +12,38 @@ phase:
   status: implementation_in_progress
 
 predecessor:
-  id: SALES-IMP-001
-  title: Sales Commercial & Fulfillment Authority Tranche
+  id: PURCHASING-IMP-001
+  title: Purchasing Commercial Receipt & Supplier Invoice Authority Tranche
   status: completed
-  canonical_report: docs/plan/05-satis/sales-imp-001-implementation.md
-  tested_commit: c99b1a3191fc5c6823734bd27f074ef10a8094a3
-  foundation_build_run: 36026678334
-  foundation_build_job: 107724878496
-  test_deploy_run: 36026678557
-  test_deploy_job: 107724879932
+  canonical_report: docs/plan/07-satinalma/purchasing-imp-001-implementation.md
+  tested_commit: 50ec242e5471743bbdc9ad43bc69626166b1679f
+  foundation_build_run: 36054248023
+  foundation_build_job: 107817148334
+  test_deploy_run: 36054247926
+  test_deploy_job: 107818562329
 
 owner_direction:
   - broad coherent implementation tranches
-  - do not split Purchase Order, Goods Receipt, matching and Supplier Invoice preparation into micro package IDs
-  - preserve Inventory, Quality and Finance ownership boundaries
+  - do not split Warehouse capabilities into micro package IDs
+  - do not assign WAREHOUSE-IMP package id until exact broad scope is frozen
   - ordinary technical decisions belong to active skills unless they introduce new business/legal/provider/cross-module semantics
 
-scope:
-  include:
-    - Purchase Order commercial authority and controlled versions/amendments
-    - supplier and Product/UOM eligibility
-    - Goods Receipt physical STOCK IN through Inventory authority
-    - stockable receipt initial QUARANTINE disposition
-    - partial receipt and source quantity caps
-    - lot/serial receipt lineage
-    - 2-way and 3-way matching evidence
-    - over-receipt and over-invoice fail-closed behavior
-    - explicit exception approval evidence when policy later permits tolerance
-    - Supplier Invoice DRAFT/source/calculation authority
-    - Finance-dependent Supplier Invoice POST remains fail-closed until Finance authority exists
-    - Purchase Return source preparation/lineage without duplicating Returns/Finance authority
-    - protected API/Mars.Web/read projections
-    - additive EF migration and TEST deployment
-  exclude:
-    - Finance Supplier Payable posting
-    - Supplier Payment/settlement/allocation
-    - Inventory Valuation/landed-cost accounting
-    - Quality implementation itself
-    - Warehouse operational put-away
-    - provider/tax/e-document integrations
-    - production deployment
-    - Full Test Day
+scope_definition_basis:
+  - frozen PLAN-006 Warehouse operational contract
+  - implemented Inventory physical ledger and Reservation authority
+  - implemented Sales Dispatch POST physical STOCK OUT boundary
+  - implemented Purchasing Goods Receipt POST physical STOCK IN to QUARANTINE boundary
+  - Warehouse operations must not duplicate Sales/Purchasing stock effects
+  - Finance valuation remains external authority
+  - Quality implementation remains external authority
+
+required_first_action:
+  - reconcile repository main HEAD and intervening commits
+  - read PLAN-006 Warehouse plan/workflows/data-contract/permissions/acceptance
+  - inspect implemented Inventory/Sales/Purchasing contracts and current Warehouse-related source
+  - define one broad coherent Warehouse implementation tranche
+  - freeze exact includes/excludes, authority boundaries, migrations, API/Web and normal-test evidence
+  - only then assign WAREHOUSE-IMP work_package_id and readiness report
 
 planning_progress:
   master_sequence:
@@ -63,3 +54,10 @@ planning_progress:
     completed: 30
     total: 30
     percent: 100.0
+
+restrictions:
+  - no duplicate Sales Dispatch STOCK OUT
+  - no duplicate Purchasing Goods Receipt STOCK IN
+  - no Finance valuation authority
+  - no production deployment
+  - no Full Test Day
