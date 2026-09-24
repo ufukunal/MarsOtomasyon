@@ -1,46 +1,36 @@
 # Active Tasks
 
-## WAREHOUSE-IMP-001 — Warehouse Execution & Inventory Control Authority Tranche
+## Finance / Treasury Broad Implementation Tranche Definition
 
-**Status:** READY FOR IMPLEMENTATION / NOT STARTED
+**Status:** SCOPE DEFINITION REQUIRED / NOT STARTED
 
-Canonical readiness:
-- docs/plan/06-ambar-depo/p5-warehouse-execution-readiness.md
+Implementation work-package ID:
+- UNASSIGNED until the exact broad scope is frozen.
 
-Predecessor:
-- PURCHASING-IMP-001 — COMPLETED
-- canonical report: docs/plan/07-satinalma/purchasing-imp-001-implementation.md
-- tested commit: 50ec242e5471743bbdc9ad43bc69626166b1679f
-- Foundation Build 36054248023 — SUCCESS
-- Foundation Test Deploy 36054247926 — SUCCESS
-- migration baseline 11
+Planning source:
+- frozen PLAN-007
+- docs/plan/09-finans-kasa-banka/
 
-Broad included authority:
-- Warehouse permission catalog and Warehouse access scope
-- receiving/quarantine read queue
-- disposition and release through Inventory physical authority
-- put-away and manual replenishment
-- pick work + FEFO/FIFO recommendation + controlled override
-- Sales-owned pre-POST Dispatch source binding
-- package/packing/staging/loading work
-- transfer ISSUE -> TRANSIT -> partial/full RECEIVE -> reconcile/reverse
-- Stock Count snapshot/intervening/review/approval
-- negative COUNT_ADJUSTMENT posting
-- positive COUNT_ADJUSTMENT fail-closed until Finance valuation authority
-- damage/scrap physical workflow
-- Warehouse/Location deactivation operational blockers
-- offline/client-operation idempotency/conflict journal
-- protected API/Mars.Web/read projections
-- additive migration and TEST deployment
+Completed predecessor:
+- WAREHOUSE-IMP-001 — COMPLETED / RUNTIME VERIFIED
+- canonical report: docs/plan/06-ambar-depo/warehouse-imp-001-implementation.md
+- tested commit: 81efd9c347118db24d8945f4d49e63bf99baaf70
+- Foundation Build 36068722249 — SUCCESS
+- Foundation Test Deploy 36068722239 — SUCCESS
+- migration baseline 13
 
-Hard boundaries:
-- no duplicate Sales Dispatch STOCK OUT
-- no duplicate Purchasing Goods Receipt STOCK IN
-- no Finance valuation/account posting
-- no Quality inspection authority
-- no negative-stock override
-- no production
-- no Full Test Day
+Required next action:
+- reconcile existing Sales / Purchasing / Inventory / Warehouse implementation against PLAN-007;
+- freeze one broad coherent Finance / Treasury implementation tranche;
+- define Account Ledger, Cash/Bank, settlement, posting-period, valuation, Dispatch cost bridge and currently fail-closed financial-posting boundaries;
+- assign the Finance implementation package ID only after exact scope freeze.
+
+Do not:
+- repeat portfolio/module planning;
+- split Finance into micro implementation packages during scope definition;
+- begin implementation mutation before the broad boundary is frozen;
+- run Full Test Day;
+- deploy production.
 
 Planning:
 - portfolio 30 / 30 = 100.0%
