@@ -24,6 +24,7 @@ assert_status 200 "/parties/new"
 assert_status 200 "/products"
 assert_status 200 "/inventory"
 assert_status 200 "/sales"
+assert_status 200 "/purchasing"
 assert_status 200 "/health/live"
 assert_status 200 "/health/ready"
 assert_status 401 "/api/v1/foundation/context"
@@ -68,6 +69,17 @@ assert_status 401 "/api/v1/sales/invoices" POST
 assert_status 401 "/api/v1/sales/proformas"
 assert_status 401 "/api/v1/sales/proformas" POST
 assert_status 401 "/api/v1/sales/proformas/00000000-0000-0000-0000-000000000001/export"
+assert_status 401 "/api/v1/purchasing/orders"
+assert_status 401 "/api/v1/purchasing/orders" POST
+assert_status 401 "/api/v1/purchasing/orders/00000000-0000-0000-0000-000000000001/confirm" POST
+assert_status 401 "/api/v1/purchasing/receipts"
+assert_status 401 "/api/v1/purchasing/receipts" POST
+assert_status 401 "/api/v1/purchasing/receipts/00000000-0000-0000-0000-000000000001/post" POST
+assert_status 401 "/api/v1/purchasing/receipts/00000000-0000-0000-0000-000000000001/reverse" POST
+assert_status 401 "/api/v1/purchasing/invoices"
+assert_status 401 "/api/v1/purchasing/invoices" POST
+assert_status 401 "/api/v1/purchasing/match-preview?mode=1&sourceDocumentPublicId=00000000-0000-0000-0000-000000000001"
+assert_status 401 "/api/v1/purchasing/return-source-preview?goodsReceiptPublicId=00000000-0000-0000-0000-000000000001"
 assert_status 401 "/api/v1/parties/00000000-0000-0000-0000-000000000001"
 assert_status 401 "/api/v1/parties/00000000-0000-0000-0000-000000000001" PUT
 assert_status 401 "/api/v1/parties/00000000-0000-0000-0000-000000000001/contacts" POST
@@ -97,6 +109,11 @@ required = {
     "/api/v1/sales/dispatches",
     "/api/v1/sales/invoices",
     "/api/v1/sales/proformas",
+    "/api/v1/purchasing/orders",
+    "/api/v1/purchasing/receipts",
+    "/api/v1/purchasing/invoices",
+    "/api/v1/purchasing/match-preview",
+    "/api/v1/purchasing/return-source-preview",
 }
 missing = sorted(required.difference(paths))
 if missing:
@@ -108,11 +125,18 @@ forbidden = [
     "/api/v1/sales/invoices/{id:guid}/post",
     "/api/v1/sales/invoices/{id:guid}/reverse",
 ]
+forbidden += [
+    "/api/v1/purchasing/invoices/{id}/post",
+    "/api/v1/purchasing/invoices/{id}/reverse",
+    "/api/v1/purchasing/invoices/{id:guid}/post",
+    "/api/v1/purchasing/invoices/{id:guid}/reverse",
+]
 present = [path for path in forbidden if path in paths]
 if present:
     raise SystemExit(f"SMOKE_FAIL|OPENAPI_FORBIDDEN_INVOICE_AUTHORITY={present}")
 
 print("SMOKE_PASS|OPENAPI_SALES_SURFACE=EXPECTED")
+print("SMOKE_PASS|OPENAPI_PURCHASING_SURFACE=EXPECTED")
 print("SMOKE_PASS|OPENAPI_INVOICE_POST_REVERSE=ABSENT")
 PY
 
