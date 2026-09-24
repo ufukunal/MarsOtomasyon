@@ -433,10 +433,12 @@ public sealed partial class EfSalesPersistence
         decimal sourceQty;
         if(mode==SalesInvoiceSourceMode.Dispatch)
         {
-            var dispatch=await dbContext.Set<DispatchRecord>().AsNoTracking()
-                .SingleOrDefaultAsync(x=>x.CompanyId==companyId&&x.PublicId==input.SourceDocumentPublicId.Value&&
-                    (x.State==DispatchState.Posted||x.State==DispatchState.HandedOver||x.State==DispatchState.Delivered),ct);
-            if(dispatch is null)return new(ErrorCategory.BusinessRule,"sales.invoice.dispatch_source","Dispatch source must be physically posted and unreversed.");
+            var dispatch=await dbContext.Set<DispatchRecord>()
+                .FromSqlInterpolated(
+                    $"SELECT * FROM sales.dispatches WHERE company_id = {companyId} AND public_id = {input.SourceDocumentPublicId.Value} FOR UPDATE")
+                .SingleOrDefaultAsync(ct);
+            if(dispatch is null || dispatch.State is not (DispatchState.Posted or DispatchState.HandedOver or DispatchState.Delivered))
+                return new(ErrorCategory.BusinessRule,"sales.invoice.dispatch_source","Dispatch source must be physically posted and unreversed.");
             var line=await dbContext.Set<DispatchLineRecord>().AsNoTracking()
                 .SingleOrDefaultAsync(x=>x.CompanyId==companyId&&x.DispatchId==dispatch.Id&&x.PublicId==input.SourceLinePublicId.Value,ct);
             if(line is null)return new(ErrorCategory.NotFound,"sales.invoice.source_line","Dispatch source line was not found.");
@@ -444,8 +446,10 @@ public sealed partial class EfSalesPersistence
         }
         else
         {
-            var order=await dbContext.Set<SalesOrderRecord>().AsNoTracking()
-                .SingleOrDefaultAsync(x=>x.CompanyId==companyId&&x.PublicId==input.SourceDocumentPublicId.Value,ct);
+            var order=await dbContext.Set<SalesOrderRecord>()
+                .FromSqlInterpolated(
+                    $"SELECT * FROM sales.sales_orders WHERE company_id = {companyId} AND public_id = {input.SourceDocumentPublicId.Value} FOR UPDATE")
+                .SingleOrDefaultAsync(ct);
             if(order is null)return new(ErrorCategory.NotFound,"sales.invoice.order_source","Order source was not found.");
             if(input.SourceVersion.HasValue&&input.SourceVersion.Value!=order.CurrentVersionNumber)
                 return new(ErrorCategory.Concurrency,"sales.invoice.order_version","Invoice requires exact effective Order version.");
