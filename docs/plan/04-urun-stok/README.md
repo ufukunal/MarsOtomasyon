@@ -129,7 +129,7 @@ Still deferred:
 - generic Variant EAV
 - provider/marketplace/GS1 behavior
 
-Inventory Ledger, Reservation, Lot/Serial physical truth, Warehouse operations and Finance/Costing valuation remain separate future authorities.
+PRODUCT-IMP-001 does not own Inventory Ledger, Reservation, Lot/Serial physical truth, Warehouse operations or Finance/Costing valuation; those authorities remain separated by their owning modules.
 
 ### INVENTORY-IMP-001 — Inventory Authority & Traceability Tranche
 Status: READY FOR IMPLEMENTATION.
