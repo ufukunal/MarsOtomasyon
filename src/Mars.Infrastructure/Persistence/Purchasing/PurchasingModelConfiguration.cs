@@ -13,6 +13,8 @@ internal static class PurchasingModelConfiguration
         PurchaseOrder(m);
         PurchaseOrderVersion(m);
         PurchaseOrderLine(m);
+        PurchaseOrderAmendment(m);
+        PurchaseOrderAmendmentDelta(m);
         GoodsReceipt(m);
         GoodsReceiptLine(m);
         GoodsReceiptEffect(m);
@@ -20,6 +22,7 @@ internal static class PurchasingModelConfiguration
         SupplierInvoiceLine(m);
         SupplierInvoiceSource(m);
         PurchaseMatch(m);
+        PurchaseMatchException(m);
     }
 
     private static void PurchaseOrder(ModelBuilder m)
@@ -88,6 +91,41 @@ internal static class PurchasingModelConfiguration
             .HasPrincipalKey(x=>new{x.Id,x.CompanyId}).OnDelete(DeleteBehavior.Restrict);
         TradeForeignKeys(b);
         LineChecks(b,"order_lines");
+    }
+
+    private static void PurchaseOrderAmendment(ModelBuilder m)
+    {
+        var b=m.Entity<PurchaseOrderAmendmentRecord>();
+        b.ToTable("purchase_order_amendments","purchasing"); Id(b); Public(b); Company(b);
+        b.Property(x=>x.PurchaseOrderId).HasColumnName("purchase_order_id");
+        b.Property(x=>x.BaseVersionNumber).HasColumnName("base_version_number");
+        b.Property(x=>x.ResultVersionNumber).HasColumnName("result_version_number");
+        Enum(b.Property(x=>x.State).HasColumnName("state"),16);
+        b.Property(x=>x.Reason).HasColumnName("reason").HasMaxLength(512).IsRequired();
+        b.Property(x=>x.CreatorActorId).HasColumnName("creator_actor_id");
+        b.Property(x=>x.CreatedAt).HasColumnName("created_at");
+        b.Property(x=>x.ActivatedAt).HasColumnName("activated_at");
+        b.HasAlternateKey(x=>new{x.Id,x.CompanyId});
+        b.HasIndex(x=>new{x.PurchaseOrderId,x.ResultVersionNumber}).IsUnique();
+        b.HasOne<PurchaseOrderRecord>().WithMany().HasForeignKey(x=>new{x.PurchaseOrderId,x.CompanyId})
+            .HasPrincipalKey(x=>new{x.Id,x.CompanyId}).OnDelete(DeleteBehavior.Restrict);
+        b.ToTable(t=>{
+            t.HasCheckConstraint("ck_purchasing_order_amendment_versions","base_version_number > 0 AND result_version_number > base_version_number");
+            t.HasCheckConstraint("ck_purchasing_order_amendment_reason","length(btrim(reason)) > 0 AND reason = btrim(reason)");
+        });
+    }
+
+    private static void PurchaseOrderAmendmentDelta(ModelBuilder m)
+    {
+        var b=m.Entity<PurchaseOrderAmendmentDeltaRecord>();
+        b.ToTable("purchase_order_amendment_deltas","purchasing"); Id(b); Public(b); Company(b);
+        b.Property(x=>x.AmendmentId).HasColumnName("amendment_id");
+        b.Property(x=>x.PurchaseOrderLinePublicId).HasColumnName("purchase_order_line_public_id");
+        Qty(b.Property(x=>x.QuantityDelta).HasColumnName("quantity_delta"));
+        b.HasIndex(x=>new{x.AmendmentId,x.PurchaseOrderLinePublicId}).IsUnique();
+        b.HasOne<PurchaseOrderAmendmentRecord>().WithMany().HasForeignKey(x=>new{x.AmendmentId,x.CompanyId})
+            .HasPrincipalKey(x=>new{x.Id,x.CompanyId}).OnDelete(DeleteBehavior.Restrict);
+        b.ToTable(t=>t.HasCheckConstraint("ck_purchasing_order_amendment_delta_decrease","quantity_delta < 0"));
     }
 
     private static void GoodsReceipt(ModelBuilder m)
@@ -269,6 +307,22 @@ internal static class PurchasingModelConfiguration
         b.Property(x=>x.EvaluatedAt).HasColumnName("evaluated_at");
         b.Property(x=>x.EvaluatedByActorId).HasColumnName("evaluated_by_actor_id");
         b.HasIndex(x=>new{x.CompanyId,x.SupplierInvoicePublicId,x.Kind}).IsUnique();
+    }
+
+    private static void PurchaseMatchException(ModelBuilder m)
+    {
+        var b=m.Entity<PurchaseMatchExceptionRecord>();
+        b.ToTable("purchase_match_exceptions","purchasing"); Id(b); Public(b); Company(b);
+        b.Property(x=>x.PurchaseMatchResultId).HasColumnName("purchase_match_result_id");
+        b.Property(x=>x.Reason).HasColumnName("reason").HasMaxLength(512).IsRequired();
+        b.Property(x=>x.CreatorActorId).HasColumnName("creator_actor_id");
+        b.Property(x=>x.ApprovalDecisionPublicId).HasColumnName("approval_decision_public_id");
+        b.Property(x=>x.CreatedAt).HasColumnName("created_at");
+        b.Property(x=>x.DecidedAt).HasColumnName("decided_at");
+        b.HasIndex(x=>x.PurchaseMatchResultId).IsUnique();
+        b.HasOne<PurchaseMatchResultRecord>().WithMany().HasForeignKey(x=>new{x.PurchaseMatchResultId,x.CompanyId})
+            .HasPrincipalKey(x=>new{x.Id,x.CompanyId}).OnDelete(DeleteBehavior.Restrict);
+        b.ToTable(t=>t.HasCheckConstraint("ck_purchasing_match_exception_reason","length(btrim(reason)) > 0 AND reason = btrim(reason)"));
     }
 
     private static void Trade<T>(Microsoft.EntityFrameworkCore.Metadata.Builders.EntityTypeBuilder<T> b) where T:class
