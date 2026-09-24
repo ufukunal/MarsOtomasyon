@@ -144,7 +144,7 @@ Status: IMPLEMENTATION IN PROGRESS
 PRODUCT-IMP-001 — Product Master Completion Tranche.
 
 Status:
-- READY FOR IMPLEMENTATION.
+- IMPLEMENTATION IN PROGRESS.
 
 Canonical readiness:
 - `docs/plan/04-urun-stok/p5-product-master-completion-readiness.md`

@@ -4,6 +4,7 @@ import { ApiClient } from "./api-client";
 import { createFoundationProofPage } from "./foundation-proof";
 import { createPartyCreatePage } from "./party-create";
 import { createPartyMasterPage } from "./party-master";
+import { createProductMasterPage } from "./product-master";
 import {
   createButton,
   createField,
@@ -35,6 +36,11 @@ const router = new MarsRouter(shell.outlet, [
     path: "/parties/new",
     title: "Yeni Party",
     render: () => createPartyCreatePage(api)
+  },
+  {
+    path: "/products",
+    title: "Ürün / Product Master",
+    render: () => createProductMasterPage(api)
   },
   {
     path: "/proof",

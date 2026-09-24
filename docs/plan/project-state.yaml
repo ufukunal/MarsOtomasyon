@@ -85,10 +85,10 @@ test_policy:
 active_task:
   id: PRODUCT-IMP-001
   title: Product Master Completion Tranche
-  status: ready_for_implementation
+  status: implementation_in_progress
   file: docs/plan/active-task.yaml
   readiness_report: docs/plan/04-urun-stok/p5-product-master-completion-readiness.md
-  progress: not_started
+  progress: implementation_in_progress
 
 completed_planning_tasks:
   - PLAN-001
@@ -352,7 +352,7 @@ next_action:
   title: Product Master Completion Tranche
   phase: P5
   module: products
-  status: READY_FOR_IMPLEMENTATION
+  status: IMPLEMENTATION_IN_PROGRESS
   work_package_id: PRODUCT-IMP-001
   readiness_report: docs/plan/04-urun-stok/p5-product-master-completion-readiness.md
   predecessor:

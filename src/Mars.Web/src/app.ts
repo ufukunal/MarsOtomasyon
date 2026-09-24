@@ -96,6 +96,7 @@ export function createAppShell(): AppShell {
     routeLink("/", "Foundation"),
     routeLink("/parties", "Cari / Party Master"),
     routeLink("/parties/new", "Yeni Party"),
+    routeLink("/products", "Ürün / Product Master"),
     routeLink("/proof", "Vertical Proof"),
     routeLink("/components", "Mars.UI"));
 

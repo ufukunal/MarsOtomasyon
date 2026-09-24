@@ -1,6 +1,7 @@
 using Mars.Infrastructure.Identity;
 using Mars.Infrastructure.Persistence.Foundation;
 using Mars.Infrastructure.Persistence.Parties;
+using Mars.Infrastructure.Persistence.Products;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -33,5 +34,13 @@ public sealed class MarsDbContext(DbContextOptions<MarsDbContext> options)
         modelBuilder.ApplyConfiguration(new PartyAddressConfiguration());
         modelBuilder.ApplyConfiguration(new PartyExternalMappingConfiguration());
         modelBuilder.ApplyConfiguration(new PartyMergeLineageConfiguration());
+        modelBuilder.ApplyConfiguration(new ProductConfiguration());
+        modelBuilder.ApplyConfiguration(new UnitOfMeasureConfiguration());
+        modelBuilder.ApplyConfiguration(new ProductVariantConfiguration());
+        modelBuilder.ApplyConfiguration(new ProductUomConfiguration());
+        modelBuilder.ApplyConfiguration(new ProductBarcodeConfiguration());
+        modelBuilder.ApplyConfiguration(new ProductCategoryConfiguration());
+        modelBuilder.ApplyConfiguration(new ProductCategoryLinkConfiguration());
+        modelBuilder.ApplyConfiguration(new ProductExternalMappingConfiguration());
     }
 }
