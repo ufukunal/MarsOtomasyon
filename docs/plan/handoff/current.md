@@ -416,25 +416,52 @@ Deferred:
 - production
 - Full Test Day
 
+
 ## Current task
 
-Warehouse broad implementation tranche scope/readiness definition.
+WAREHOUSE-IMP-001 — Warehouse Execution & Inventory Control Authority Tranche
 
 Status:
-- SCOPE DEFINITION REQUIRED
-- formal WAREHOUSE-IMP ID not assigned
+- READY FOR IMPLEMENTATION
+- NOT STARTED
 
-Canonical basis:
-- docs/plan/06-ambar-depo/plan.md
-- docs/plan/06-ambar-depo/workflows.md
-- docs/plan/06-ambar-depo/data-contract.md
-- docs/plan/06-ambar-depo/permissions.md
-- docs/plan/06-ambar-depo/acceptance-criteria.md
+Canonical readiness:
+- docs/plan/06-ambar-depo/p5-warehouse-execution-readiness.md
 
-First action:
-- full repository reconciliation if continuation prompt is older than 60 minutes or elapsed time is uncertain
-- reconcile Inventory/Sales/Purchasing implemented authority
-- freeze one broad coherent Warehouse tranche
-- only then assign WAREHOUSE-IMP ID and readiness report
+Predecessor:
+- PURCHASING-IMP-001 — COMPLETED
+- tested commit 50ec242e5471743bbdc9ad43bc69626166b1679f
+- Foundation Build 36054248023 — SUCCESS
+- Foundation Test Deploy 36054247926 — SUCCESS
+- migration baseline 11
 
-Do not repeat global/module planning.
+Broad scope:
+- receiving/quarantine read queue
+- physical disposition/release
+- put-away
+- manual replenishment
+- pick + FEFO/FIFO recommendation/override
+- Sales-owned pre-POST Dispatch source binding
+- pack/package/stage/load
+- transfer ISSUE/TRANSIT/RECEIVE/reconcile/reverse
+- Stock Count snapshot/intervening/review/approval
+- negative count adjustment
+- positive count adjustment valuation blocker
+- damage/scrap
+- Warehouse/Location operational deactivation blockers
+- offline/client-operation journal
+- protected API/Mars.Web
+- additive migration and TEST deployment
+
+Frozen boundaries:
+- Inventory Ledger remains physical quantity truth.
+- Pick/Pack/Stage/Load STOCK = NONE.
+- Sales owns Dispatch POST and outbound STOCK OUT.
+- Purchasing owns Goods Receipt POST and inbound STOCK IN.
+- Finance owns valuation/write-off accounting.
+- Quality inspection authority remains separate.
+- no negative-stock override.
+- no production.
+- no Full Test Day.
+
+Implementation should proceed as one broad coherent package; do not create Warehouse micro IDs.
