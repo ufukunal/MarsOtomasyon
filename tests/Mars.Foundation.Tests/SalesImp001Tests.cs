@@ -212,4 +212,18 @@ internal sealed class FakeSalesApprovalPersistence : IApprovalDecisionPersistenc
         long snapshotVersion,
         CancellationToken cancellationToken) =>
         Task.FromResult(false);
+    [Fact]
+    public void Sales_proforma_is_informational_and_source_backed()
+    {
+        Assert.Equal("sales.proforma.read", SalesPermissions.ProformaRead);
+        Assert.Equal("sales.proforma.create", SalesPermissions.ProformaCreate);
+        Assert.Equal("sales.proforma.cancel", SalesPermissions.ProformaCancel);
+        Assert.Equal("sales.proforma.export", SalesPermissions.ProformaExport);
+
+        Assert.Equal(1, (int)SalesProformaSourceMode.Quote);
+        Assert.Equal(2, (int)SalesProformaSourceMode.Order);
+        Assert.Equal(1, (int)SalesProformaState.Draft);
+        Assert.Equal(2, (int)SalesProformaState.Cancelled);
+    }
+
 }
