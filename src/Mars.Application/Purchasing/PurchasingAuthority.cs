@@ -512,10 +512,10 @@ public sealed class PurchasingCommandHandler(
     public async Task<Result<PurchasingMutationReceipt>> CreateInvoiceDraftAsync(
         CreateSupplierInvoiceDraftCommand command, IExecutionContext context, CancellationToken ct)
     {
-        var required = command.SourceMode == SupplierInvoiceSourceMode.Direct
-            ? PurchasingPermissions.InvoiceDirectCreate
-            : PurchasingPermissions.InvoiceCreate;
-        if (!await Granted(required, context, ct))
+        if (!await Granted(PurchasingPermissions.InvoiceCreate, context, ct))
+            return Denied<PurchasingMutationReceipt>();
+        if (command.SourceMode == SupplierInvoiceSourceMode.Direct &&
+            !await Granted(PurchasingPermissions.InvoiceDirectCreate, context, ct))
             return Denied<PurchasingMutationReceipt>();
         return await persistence.CreateInvoiceDraftAsync(command, context, ct);
     }
@@ -523,10 +523,10 @@ public sealed class PurchasingCommandHandler(
     public async Task<Result<PurchasingMutationReceipt>> ReplaceInvoiceDraftAsync(
         Guid id,long version,CreateSupplierInvoiceDraftCommand command,IExecutionContext context,CancellationToken ct)
     {
-        var required = command.SourceMode == SupplierInvoiceSourceMode.Direct
-            ? PurchasingPermissions.InvoiceDirectCreate
-            : PurchasingPermissions.InvoiceEditDraft;
-        if (!await Granted(required, context, ct))
+        if (!await Granted(PurchasingPermissions.InvoiceEditDraft, context, ct))
+            return Denied<PurchasingMutationReceipt>();
+        if (command.SourceMode == SupplierInvoiceSourceMode.Direct &&
+            !await Granted(PurchasingPermissions.InvoiceDirectCreate, context, ct))
             return Denied<PurchasingMutationReceipt>();
         return await persistence.ReplaceInvoiceDraftAsync(id,version,command,context,ct);
     }
