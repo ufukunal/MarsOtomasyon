@@ -1,10 +1,10 @@
 # Planning Backlog
 
-## Next dependency after active Sales tranche definition — Purchasing broad implementation tranche definition
-Status: BLOCKED BY ACTIVE SALES SCOPE/IMPLEMENTATION.
+## Next dependency after active SALES-IMP-001 — Purchasing broad implementation tranche definition
+Status: BLOCKED BY ACTIVE SALES IMPLEMENTATION.
 
 Dependency:
-- the Sales broad tranche must be frozen and implemented according to P5 dependency order before Purchasing becomes current.
+- SALES-IMP-001 must be implemented and runtime-verified before Purchasing becomes current in the P5 dependency order.
 
 Direction when unblocked:
 - reconcile frozen PLAN-005 + PLAN-010 against implemented Product/Inventory/Sales contracts
