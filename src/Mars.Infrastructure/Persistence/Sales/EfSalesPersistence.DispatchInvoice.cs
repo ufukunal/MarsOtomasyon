@@ -296,7 +296,6 @@ public sealed partial class EfSalesPersistence
                 }
                 var now=DateTimeOffset.UtcNow;
                 reversal.State=DispatchState.Reversed;reversal.PostedAt=now;reversal.Version++;
-                original.State=DispatchState.Reversed;original.Version++;
 
                 var order=await LockOrderByIdAsync(original.SalesOrderId,context.CompanyId,innerCt);
                 if(order is not null&&order.State==SalesOrderState.Completed)
