@@ -386,6 +386,8 @@ public interface IWarehousePersistence : IWarehouseOpenWorkBlocker
         Guid transferPublicId,Guid transferLinePublicId,Guid approvalPublicId,IExecutionContext context,CancellationToken ct);
     Task<Result<WarehouseMutationReceipt>> CompleteTransferLossAsync(
         Guid transferPublicId,Guid transferLinePublicId,decimal quantity,Guid movementPublicId,string operationKey,IExecutionContext context,CancellationToken ct);
+    Task<Result<WarehouseMutationReceipt>> CloseTransferAsync(
+        Guid transferPublicId,long expectedVersion,string operationKey,IExecutionContext context,CancellationToken ct);
     Task<Result<TransferReversePlan>> PrepareTransferReverseAsync(
         Guid transferPublicId,long expectedVersion,IExecutionContext context,CancellationToken ct);
     Task<Result<WarehouseMutationReceipt>> CompleteTransferReverseAsync(
@@ -658,6 +660,18 @@ public sealed class WarehouseCommandHandler(
         },ct);
     }
 
+    public async Task<Result<WarehouseMutationReceipt>> CloseTransferAsync(
+        Guid transferPublicId,long expectedVersion,string operationKey,IExecutionContext c,CancellationToken ct)
+    {
+        if(!await Granted(WarehousePermissions.TransferReconcile,c,ct))return Denied();
+        var source=await persistence.GetTransferWarehouseAsync(c.CompanyId,transferPublicId,false,ct);
+        var target=await persistence.GetTransferWarehouseAsync(c.CompanyId,transferPublicId,true,ct);
+        if(!source.HasValue||!target.HasValue||
+           !await warehouseAccess.IsGrantedAsync(c.ActorId,c.CompanyId,source.Value,ct)||
+           !await warehouseAccess.IsGrantedAsync(c.ActorId,c.CompanyId,target.Value,ct))return Denied();
+        return await persistence.CloseTransferAsync(transferPublicId,expectedVersion,operationKey,c,ct);
+    }
+
     public async Task<Result<WarehouseMutationReceipt>> ReverseTransferAsync(
         Guid transferPublicId,long expectedVersion,string operationKey,IExecutionContext c,CancellationToken ct)
     {
@@ -674,7 +688,7 @@ public sealed class WarehouseCommandHandler(
                     line.ProductPublicId,line.VariantPublicId,line.UomPublicId,line.Quantity,line.ConversionFactorSnapshot,
                     line.Source,line.Target,
                     InventorySourceIdentity.Create("Warehouse","TransferReverse",transferPublicId,line.TransferLinePublicId),
-                    line.OriginalInventoryMovementPublicId,$"{operationKey}:reverse:{line.TransferLinePublicId:D}"),c,innerCt);
+                    line.OriginalInventoryMovementPublicId,$"{operationKey}:reverse:{line.TransferLinePublicId:D}:{line.OriginalInventoryMovementPublicId:D}"),c,innerCt);
                 if(movement.IsFailure)return Result<WarehouseMutationReceipt>.Failure(movement.Error!);
                 effects.Add(new(line.TransferLinePublicId,movement.Value!.MovementPublicId,line.OriginalInventoryMovementPublicId,true));
             }
