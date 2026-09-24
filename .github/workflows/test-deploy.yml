@@ -60,7 +60,7 @@ jobs:
           set -euo pipefail
           dotnet tool restore
           dotnet restore Mars.slnx
-          dotnet build Mars.slnx --configuration Release --no-restore
+          dotnet build Mars.slnx --configuration Release --no-restore -m:1
           dotnet run --project tests/Mars.Foundation.Tests/Mars.Foundation.Tests.csproj --configuration Release --no-build
 
       - name: Migration safety and model drift
@@ -80,6 +80,7 @@ jobs:
               Path("src/Mars.Infrastructure/Persistence/Migrations/Products"),
               Path("src/Mars.Infrastructure/Persistence/Migrations/Inventory"),
               Path("src/Mars.Infrastructure/Persistence/Migrations/Sales"),
+              Path("src/Mars.Infrastructure/Persistence/Migrations/Purchasing"),
           ]
           forbidden = (
               "DropTable(",
