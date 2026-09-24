@@ -26,6 +26,7 @@ test("Sales Web exposes broad pre-post authority without Finance or stock overwr
   assert.match(page.textContent ?? "", /Quote → Order → explicit Reservation → Dispatch/);
   assert.match(page.textContent ?? "", /Invoice DRAFT/);
   assert.match(page.textContent ?? "", /Inventory authority/);
+  assert.match(page.textContent ?? "", /Proforma/);
   assert.equal((page.textContent ?? "").includes("paid amount"), false);
   assert.equal((page.textContent ?? "").includes("open amount"), false);
   assert.equal(page.querySelector("[name='stockQuantity']"), null);
@@ -35,7 +36,8 @@ test("Sales Web exposes broad pre-post authority without Finance or stock overwr
     "/sales/quotes",
     "/sales/orders",
     "/sales/dispatches",
-    "/sales/invoices"
+    "/sales/invoices",
+    "/sales/proformas"
   ]) {
     assert.ok(gets.includes(path), "Expected GET " + path);
   }
