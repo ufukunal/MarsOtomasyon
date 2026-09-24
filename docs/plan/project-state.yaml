@@ -83,11 +83,10 @@ test_policy:
   heavy_tests: FULL_TEST_DAY_ONLY
 
 active_task:
-  id: PARTY-IMP-006
-  title: Party Master Completion Tranche
-  status: implementation_in_progress
+  id: P5
+  title: Products broad implementation tranche definition
+  status: scope_definition_required
   file: docs/plan/active-task.yaml
-  readiness_report: docs/plan/03-cariler/p5-party-master-completion-readiness.md
   progress: not_started
 
 completed_planning_tasks:
@@ -117,6 +116,7 @@ completed_implementation_tasks:
   - PARTY-IMP-003
   - PARTY-IMP-004
   - PARTY-IMP-005
+  - PARTY-IMP-006
 
 locked_decisions:
   - ASP.NET Core Identity + OpenIddict 7.7.1 is the accepted authentication/identity baseline.
@@ -258,7 +258,7 @@ test_environment:
   valkey_status: running_healthy
   valkey_image: valkey/valkey:8-alpine
   valkey_container: marsotomasyon-valkey-1
-  application_deployment_status: party_imp_005_test_deployed_and_smoke_passed
+  application_deployment_status: party_imp_006_test_deployed_and_smoke_passed
   ssh_connectivity_verified: true
   ssh_remote_user: ufuk
   remote_hostname: mars-prod
@@ -271,15 +271,16 @@ test_environment:
   foundation_test_health_live: 200
   foundation_test_health_ready: 200
   foundation_test_party_page: 200
+  foundation_test_party_directory: 200
   foundation_test_party_unauthenticated_post: 401
   foundation_test_party_deactivate_unauthenticated_post: 401
   foundation_test_party_role_unauthenticated_post: 401
   foundation_test_party_role_state_unauthenticated_post: 401
   foundation_test_party_tax_identity_unauthenticated_post: 401
-  foundation_test_migration_count: 5
+  foundation_test_migration_count: 6
   foundation_test_smoke: PASS
-  foundation_test_workflow_run: 35922536768
-  foundation_test_implementation_commit: 4ab2a30bfffdf64c9e5b7634708ad4cdacdde33a
+  foundation_test_workflow_run: 35934312470
+  foundation_test_implementation_commit: 55b7e78bc2eabcf986e8318f60296f0f3f9cd223
   mars_path_present: true
   postgresql_roles:
     owner_admin_role: mars_master
@@ -337,46 +338,40 @@ known_constraints:
   - Durable idempotency/concurrency correctness is PostgreSQL-owned; Valkey is not sufficient authority.
 
 blocked_items:
-  - PARTY-IMP-006 itself has no unresolved scope blocker; owner explicitly broadened the package to group coherent Party master capabilities.
-  - Party Reactivation remains deferred outside PARTY-IMP-006 because frozen PLAN-003 requires duplicate/legal identity validation rerun and repository sources do not resolve whether deterministic/local validation alone is sufficient.
+  - No unresolved blocker remains for PARTY-IMP-006; the broad Party Master Completion Tranche is completed.
+  - Party Reactivation remains deferred because frozen PLAN-003 requires duplicate/legal identity validation rerun and repository sources do not resolve whether deterministic/local validation alone is sufficient.
   - Soft/fuzzy duplicate candidate generation remains deferred because no accepted normalization/similarity/score/threshold exists.
   - Provider/GIB verification, non-TR Tax Identity, Communications consent/preferences, consuming Sales/Purchasing eligibility and Finance behavior remain deferred.
+  - Planning metric inconsistency remains: active state reports 9 / 30 = 30.0% while docs/db/acceptance-criteria.md records 10 / 30 = 33.3%; do not silently normalize it.
   - Production secret-store, production reverse-proxy/tunnel, production ingress/TLS and structured logging/metrics choices remain deferred.
 next_action:
-  id: PARTY-IMP-006
-  title: Party Master Completion Tranche
+  id: P5
+  title: Define Products broad implementation tranche
   phase: P5
-  module: parties
-  status: IMPLEMENTATION_IN_PROGRESS
-  work_package_id: PARTY-IMP-006
-  readiness_report: docs/plan/03-cariler/p5-party-master-completion-readiness.md
+  module: products
+  status: SCOPE_DEFINITION_REQUIRED
+  work_package_id: NOT_ASSIGNED
   predecessor:
-    id: PARTY-IMP-005
+    id: PARTY-IMP-006
     status: completed
-    canonical_report: docs/plan/03-cariler/party-imp-005-implementation.md
-    implementation_commit: 4ab2a30bfffdf64c9e5b7634708ad4cdacdde33a
-    foundation_build_run: 35922536747
-    test_deploy_run: 35922536768
-    tested_deploy_commit: 4ab2a30bfffdf64c9e5b7634708ad4cdacdde33a
-  scope:
-    - Party list/detail/read and legal/display identity edit
-    - Contact Person / Communication Point
-    - Address lifecycle and purpose/default semantics
-    - existing TR VKN/TCKN read/masking/lifecycle
-    - Party External Mapping
-    - explicit Party Merge and merge lineage
-  exclusions:
-    - soft/fuzzy duplicate candidate generation
-    - Party Reactivation until duplicate/legal-identity rerun prerequisite is resolved
-    - provider/GIB verification and non-TR tax schemes
-    - Communications consent/preferences
-    - Sales/Purchasing/Finance implementation
-    - production deployment
-    - Full Test Day
+    canonical_report: docs/plan/03-cariler/party-imp-006-implementation.md
+    readiness_report: docs/plan/03-cariler/p5-party-master-completion-readiness.md
+    implementation_commit: d3b21ab936bfb3b9c6d602d799e8ab587ea4ee05
+    migration_commit: 2a4bb99e12e65c0a4c121755d764e7bca7feda85
+    tested_commit: 55b7e78bc2eabcf986e8318f60296f0f3f9cd223
+    foundation_build_run: 35934312246
+    test_deploy_run: 35934312470
+  source_direction:
+    - master P5 order places Products after Parties
+    - use frozen PLAN-004 and PLAN-010
+    - define one broad coherent Product tranche rather than micro-packages
   restrictions:
-    - do not split included scope into more PARTY-IMP packages merely for implementation convenience
-    - do not invent fuzzy algorithms, provider rules or cross-module business rules
-    - exact master planning metric remains 9 / 30 = 30.0 pending separate metric normalization
+    - do not invent generic attribute/EAV fields or provider-specific sync behavior
+    - Product master cannot become authoritative stock quantity or inventory valuation/cost truth
+    - preserve Product/Inventory/Warehouse/Finance module boundaries
+    - no production deployment
+    - no Full Test Day
+    - exact active master planning metric remains 9 / 30 = 30.0 pending explicit metric normalization
 state_rules:
   - current_head must be verified from Git at every session start; embedded SHA is never authoritative.
   - repo content overrides chat memory when they conflict.
