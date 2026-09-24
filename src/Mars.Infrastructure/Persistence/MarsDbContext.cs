@@ -55,5 +55,6 @@ public sealed class MarsDbContext(DbContextOptions<MarsDbContext> options)
         modelBuilder.ApplyConfiguration(new InventoryReservationMovementConfiguration());
         modelBuilder.ApplyConfiguration(new WarehouseAccessGrantConfiguration());
         SalesModelConfiguration.Configure(modelBuilder);
+        ProformaModelConfiguration.Configure(modelBuilder);
     }
 }
