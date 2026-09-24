@@ -1,26 +1,21 @@
 name: WAREHOUSE-IMP-001 Migration Generate
+# WAREHOUSE-IMP-001 migration is committed; retained as manual/read-only evidence tooling.
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - ".github/workflows/warehouse-migration-generate.yml"
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  generate:
-    name: generate-warehouse-authority-migration
+  verify:
+    name: verify-warehouse-authority-migration
     runs-on: self-hosted
     timeout-minutes: 15
 
     steps:
-      - name: Checkout main
+      - name: Checkout
         uses: actions/checkout@v4
-        with:
-          ref: main
 
       - name: Select writable .NET install directory
         shell: bash
@@ -39,32 +34,24 @@ jobs:
           dotnet restore src/Mars.Infrastructure/Mars.Infrastructure.csproj
           dotnet build src/Mars.Infrastructure/Mars.Infrastructure.csproj --configuration Release --no-restore -m:1
 
-      - name: Generate additive WAREHOUSE-IMP-001 migration
+      - name: Verify committed WAREHOUSE-IMP-001 migration/model
         shell: bash
         env:
           MARS_MIGRATION_CONNECTION_STRING: "Host=localhost;Database=mars_design_time_probe"
         run: |
           set -euo pipefail
-          test ! -d src/Mars.Infrastructure/Persistence/Migrations/Warehouse
+          MIG_DIR="src/Mars.Infrastructure/Persistence/Migrations/Warehouse"
+          MIG_FILE="$MIG_DIR/20260924220511_WarehouseImp001ExecutionInventoryControlAuthority.cs"
 
-          dotnet tool run dotnet-ef migrations add WarehouseImp001ExecutionInventoryControlAuthority \
+          test -f "$MIG_FILE"
+          test -f "$MIG_DIR/20260924220511_WarehouseImp001ExecutionInventoryControlAuthority.Designer.cs"
+
+          for table in operations disposition_effects pick_works packages package_items stage_load_works stage_load_packages transfers transfer_lines transfer_effect_links stock_count_sessions stock_count_scopes stock_count_lines stock_count_observations stock_count_effect_links scrap_requests offline_operations; do
+            grep -F "name: \"$table\"" "$MIG_FILE"
+          done
+
+          dotnet tool run dotnet-ef migrations has-pending-model-changes \
             --project src/Mars.Infrastructure/Mars.Infrastructure.csproj \
             --startup-project src/Mars.Infrastructure/Mars.Infrastructure.csproj \
             --configuration Release \
-            --no-build \
-            --output-dir Persistence/Migrations/Warehouse
-
-          test -d src/Mars.Infrastructure/Persistence/Migrations/Warehouse
-          git status --short
-          git diff --check
-
-      - name: Commit generated migration to main
-        shell: bash
-        run: |
-          set -euo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src/Mars.Infrastructure/Persistence/Migrations
-          git diff --cached --quiet && { echo "No migration changes generated."; exit 1; }
-          git commit -m "feat: add WAREHOUSE-IMP-001 migration"
-          git push origin HEAD:main
+            --no-build
