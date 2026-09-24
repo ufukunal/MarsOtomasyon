@@ -1,3 +1,4 @@
+// WAREHOUSE-IMP-001 final verification trigger
 namespace Mars.Application.Warehouse;
 
 public static class WarehousePermissions
