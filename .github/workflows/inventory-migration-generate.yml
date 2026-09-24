@@ -1,0 +1,75 @@
+name: INVENTORY-IMP-001 Migration Generate
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src/Mars.Domain/Inventory/**"
+      - "src/Mars.Application/Inventory/**"
+      - "src/Mars.Infrastructure/Persistence/Inventory/**"
+      - "src/Mars.Infrastructure/Persistence/MarsDbContext.cs"
+      - ".github/workflows/inventory-migration-generate.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  generate:
+    name: generate-inventory-authority-migration
+    if: "!contains(github.event.head_commit.message, 'db: add INVENTORY-IMP-001 Inventory authority migration')"
+    runs-on: self-hosted
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Select writable .NET install directory
+        shell: bash
+        run: echo "DOTNET_INSTALL_DIR=$HOME/.dotnet" >> "$GITHUB_ENV"
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Restore and build
+        shell: bash
+        run: |
+          set -euo pipefail
+          dotnet tool restore
+          dotnet restore src/Mars.Infrastructure/Mars.Infrastructure.csproj
+          dotnet build src/Mars.Infrastructure/Mars.Infrastructure.csproj --configuration Release --no-restore
+
+      - name: Generate INVENTORY-IMP-001 migration
+        shell: bash
+        env:
+          MARS_MIGRATION_CONNECTION_STRING: "Host=localhost;Database=mars_design_time_probe"
+        run: |
+          set -euo pipefail
+          test ! -d src/Mars.Infrastructure/Persistence/Migrations/Inventory ||             test -z "$(find src/Mars.Infrastructure/Persistence/Migrations/Inventory -maxdepth 1 -name '*_InventoryImp001AuthorityTraceability.cs' ! -name '*.Designer.cs' -print -quit)"
+
+          dotnet tool run dotnet-ef migrations add InventoryImp001AuthorityTraceability             --project src/Mars.Infrastructure/Mars.Infrastructure.csproj             --startup-project src/Mars.Infrastructure/Mars.Infrastructure.csproj             --configuration Release             --no-build             --output-dir Persistence/Migrations/Inventory
+
+          git diff --exit-code -- src/Mars.Infrastructure/Persistence/Migrations/Inventory             src/Mars.Infrastructure/Persistence/Migrations/Foundation/MarsDbContextModelSnapshot.cs && {
+              echo "INVENTORY-IMP-001 model change generated no migration."
+              exit 1
+            }
+
+          dotnet build src/Mars.Infrastructure/Mars.Infrastructure.csproj --configuration Release --no-restore
+
+          dotnet tool run dotnet-ef migrations has-pending-model-changes             --project src/Mars.Infrastructure/Mars.Infrastructure.csproj             --startup-project src/Mars.Infrastructure/Mars.Infrastructure.csproj             --configuration Release             --no-build
+
+      - name: Commit generated migration to main
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/Mars.Infrastructure/Persistence/Migrations/Inventory             src/Mars.Infrastructure/Persistence/Migrations/Foundation/MarsDbContextModelSnapshot.cs
+          git commit -m "db: add INVENTORY-IMP-001 Inventory authority migration (run ${GITHUB_RUN_ID})"
+          git push origin HEAD:main
