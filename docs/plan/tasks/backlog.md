@@ -18,8 +18,8 @@ Status: COMPLETED / FROZEN.
 Canonical:
 - docs/plan/project-plan-completion.md
 
-All 30 master planning items now have a frozen portfolio envelope.
-Future sessions should not create repetitive global planning tasks; only active-module implementation readiness is required.
+All 30 master planning items now have frozen portfolio and detailed planning coverage.
+Future sessions must not recreate global/module planning; only active-module repository reconciliation and implementation readiness are required.
 
 ## Commerce/B2B/Architect/Marketplace
 Target: docs/plan/15-e-ticaret-b2b-api/
@@ -45,5 +45,6 @@ Party heavy risks include:
 
 Planning progress:
 - master portfolio: 30 / 30 = 100.0%
+- master detailed planning: 30 / 30 = 100.0%
 - P2 detailed core commercial: 8 / 8 = 100.0%
 - implementation progress is tracked separately.
