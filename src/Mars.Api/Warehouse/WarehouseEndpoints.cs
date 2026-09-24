@@ -56,6 +56,12 @@ public static class WarehouseEndpoints
                 Position(r.Source),Position(r.Target),r.Reason,r.SourceDocumentPublicId,r.SourceLinePublicId,Key(http)),c,ct),c))
             .WithName("ChangeWarehouseDisposition");
 
+        warehouse.MapPost("/damage",async(WarehouseDispositionRequest r,HttpRequest http,IExecutionContext c,WarehouseCommandHandler h,CancellationToken ct)=>
+            Map(await h.RecordDamageAsync(new ChangeDispositionCommand(
+                r.ProductPublicId,r.VariantPublicId,r.UomPublicId,r.Quantity,r.ConversionFactorSnapshot,
+                Position(r.Source),Position(r.Target),r.Reason,r.SourceDocumentPublicId,r.SourceLinePublicId,Key(http)),c,ct),c))
+            .WithName("RecordWarehouseDamage");
+
         warehouse.MapPost("/putaway",async(WarehouseInternalMoveRequest r,HttpRequest http,IExecutionContext c,WarehouseCommandHandler h,CancellationToken ct)=>
             Map(await h.ExecuteInternalMoveAsync(new InternalMoveCommand(
                 InternalMoveKind.PutAway,r.ProductPublicId,r.VariantPublicId,r.UomPublicId,r.Quantity,r.ConversionFactorSnapshot,
@@ -147,6 +153,12 @@ public static class WarehouseEndpoints
 
         warehouse.MapPost("/counts/{id:guid}/post",async(Guid id,HttpRequest http,IExecutionContext c,WarehouseCommandHandler h,CancellationToken ct)=>
             Map(await h.PostCountAsync(id,Key(http),c,ct),c)).WithName("PostWarehouseCount");
+
+        warehouse.MapPost("/counts/{id:guid}/close",async(Guid id,WarehouseVersionRequest r,HttpRequest http,IExecutionContext c,WarehouseCommandHandler h,CancellationToken ct)=>
+            Map(await h.CloseCountAsync(id,r.Version,Key(http),c,ct),c)).WithName("CloseWarehouseCount");
+
+        warehouse.MapPost("/counts/{id:guid}/reverse",async(Guid id,WarehouseVersionRequest r,HttpRequest http,IExecutionContext c,WarehouseCommandHandler h,CancellationToken ct)=>
+            Map(await h.ReverseCountAsync(id,r.Version,Key(http),c,ct),c)).WithName("ReverseWarehouseCount");
 
         warehouse.MapPost("/scrap",async(CreateWarehouseScrapRequest r,HttpRequest http,IExecutionContext c,WarehouseCommandHandler h,CancellationToken ct)=>
             Created("/api/v1/warehouse/scrap",await h.RequestScrapAsync(new ScrapRequestCommand(
