@@ -1,10 +1,9 @@
-id: INVENTORY-IMP-001
-title: Inventory Authority & Traceability Tranche
-module: inventory
-status: ready_for_implementation
+id: P5
+title: Sales broad implementation tranche definition
+module: sales
+status: scope_definition_required
 progress: not_started
-work_package_id: INVENTORY-IMP-001
-readiness_report: docs/plan/04-urun-stok/p5-inventory-authority-traceability-readiness.md
+work_package_id: not_assigned
 
 phase:
   id: P5
@@ -12,69 +11,47 @@ phase:
   status: implementation_in_progress
 
 predecessor:
-  id: PRODUCT-IMP-001
-  title: Product Master Completion Tranche
+  id: INVENTORY-IMP-001
+  title: Inventory Authority & Traceability Tranche
   status: completed
-  canonical_report: docs/plan/04-urun-stok/product-imp-001-implementation.md
-  readiness_report: docs/plan/04-urun-stok/p5-product-master-completion-readiness.md
-  implementation_commit: 817dfea81acbf1e93586b030412bd492f8a3ba20
-  migration_commit: 9b0731792a8641b632c612b7abb6f74799dd2aa4
-  tested_commit: ac92911a8f5fcda070622b084216a43a70ad7d77
-  foundation_build_run: 35981641268
-  foundation_build_job: 107574669148
-  test_deploy_run: 35981641137
-  test_deploy_job: 107574851341
-  frontend_tests: 19_passed
-  foundation_tests: 66_passed
-  migration_count: 7
+  canonical_report: docs/plan/04-urun-stok/inventory-imp-001-implementation.md
+  readiness_report: docs/plan/04-urun-stok/p5-inventory-authority-traceability-readiness.md
+  migration_commit: f4dc4cdf60bff8b5845347b6c50fbac5d64e3206
+  tested_commit: edcc24f1200b70aad102fc510ad7bec60c4515e7
+  foundation_build_run: 35998315605
+  foundation_build_job: 107628488066
+  test_deploy_run: 35998315582
+  test_deploy_job: 107628488098
+  frontend_tests: 20_passed
+  foundation_tests: 74_passed
+  migration_count: 8
   remote_test_deployment: success
 
 owner_direction:
-  - broad coherent implementation tranches
-  - do not split Inventory authority capabilities into separate INVENTORY-IMP IDs merely for implementation convenience
-  - normal technical implementation choices are owned by active skills unless they introduce new business/legal/provider/cross-module semantics
+  - prefer broad coherent implementation tranches over one package per small capability
+  - do not return to micro-slice sequencing without a genuine dependency or business-rule boundary
 
-scope:
-  include:
-    - Warehouse master and lifecycle without mutable stock totals
-    - Location hierarchy/master/lifecycle with stock-bearing semantics
-    - controlled physical dispositions AVAILABLE/QUARANTINE/QUALITY_HOLD/REWORK/DAMAGED/TRANSIT
-    - Lot identity and metadata with ledger-derived quantity
-    - Serial identity and ledger-derived single physical position
-    - append-oriented authoritative Inventory Ledger
-    - Inventory-owned non-physical Reservation authority and history
-    - Product/Variant/UOM/tracking enforcement and movement snapshots
-    - stock/availability/movement/reservation/lot/serial read surfaces
-    - permissions/API/Mars.Web/audit/idempotency/concurrency/targeted tests
-    - additive EF model/migration and TEST deployment
-  exclude:
-    - Sales Order/Dispatch workflow
-    - Purchase Order/Goods Receipt workflow
-    - Returns workflow
-    - receiving/put-away/pick/pack/stage/load operational work
-    - Warehouse Transfer workflow/state machine
-    - Stock Count workflow/session/approval
-    - replenishment/damage/scrap operational workflows
-    - offline/mobile Warehouse work execution
-    - arbitrary public physical movement posting
-    - free-form Reservation mutation disconnected from Sales Order line/version
-    - arbitrary user-created physical dispositions
-    - inventory valuation/current cost/moving average/cost layers/COGS
-    - Product Base UOM replacement or post-use STOCKABLE/tracking transitions
-    - transaction UOM fraction/scale business policy
-    - production deployment
-    - Full Test Day
+goal:
+  Define one broad Sales implementation tranche from frozen PLAN-002 and PLAN-010 using the completed Inventory Ledger and Reservation authority without stealing Inventory, Warehouse or Finance ownership.
 
-implementation_decisions:
-  schema: inventory
-  warehouse_permissions: later frozen PLAN-006 warehouse.* namespace
-  stock_read_permission: inventory.stock.read
-  inventory_trace_permission: inventory.trace.read
-  physical_posting_surface: internal Inventory contract only until an owning source workflow exists
-  reservation_mutation_surface: internal Inventory contract; externally initiated by later Sales workflow
-  stock_authority: posted Inventory Ledger only
-  reservation_authority: append-oriented Inventory Reservation history
-  valuation_authority: Finance/Costing only
+required_before_mutation:
+  - reread docs/plan/05-satis/ frozen contracts
+  - reread relevant PLAN-010 Sales source-target/constraints/access-pattern contracts
+  - inspect current Sales source baseline
+  - inspect implemented Inventory internal posting and Reservation authority contracts
+  - distinguish Sales commercial document ownership from Inventory physical authority and Finance account/COGS authority
+  - define one broad source-backed Sales capability set and explicit exclusions
+  - map entity/constraint/migration/API/UI/permission/idempotency/concurrency/test impact
+  - assign a Sales implementation package ID only after broad scope is explicit
+
+restrictions:
+  - do not split Sales into micro-packages merely for implementation convenience
+  - do not duplicate Reservation or physical stock authority inside Sales
+  - do not introduce Finance settlement/account-ledger authority into Sales
+  - preserve Dispatch POST as the frozen normal Sales physical stock-out point
+  - preserve Sales Invoice POST as receivable/COGS recognition point without second stock-out
+  - no production deployment
+  - no Full Test Day
 
 planning_progress:
   master_sequence:
@@ -87,4 +64,4 @@ planning_progress:
     percent: 100.0
 
 metric_note:
-  docs/db/acceptance-criteria.md independently records 10 / 30 = 33.3%; no silent normalization in INVENTORY-IMP-001.
+  docs/db/acceptance-criteria.md independently records 10 / 30 = 33.3%; normalize only as an explicit separate correction.
