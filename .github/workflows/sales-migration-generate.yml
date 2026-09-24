@@ -1,27 +1,21 @@
 name: SALES-IMP-001 Migration Generate
+# SALES-IMP-001 migrations are committed; retained as manual/read-only evidence tooling.
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - ".github/workflows/sales-migration-generate.yml"
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  generate:
-    name: generate-sales-proforma-migration
+  verify:
+    name: verify-sales-commercial-fulfillment-migrations
     runs-on: self-hosted
     timeout-minutes: 15
 
     steps:
-      - name: Checkout main
+      - name: Checkout
         uses: actions/checkout@v4
-        with:
-          ref: main
-          fetch-depth: 0
 
       - name: Select writable .NET install directory
         shell: bash
@@ -40,33 +34,30 @@ jobs:
           dotnet restore src/Mars.Infrastructure/Mars.Infrastructure.csproj
           dotnet build src/Mars.Infrastructure/Mars.Infrastructure.csproj --configuration Release --no-restore -m:1
 
-      - name: Generate additive Proforma migration
+      - name: Verify committed SALES-IMP-001 migrations/model
         shell: bash
         env:
           MARS_MIGRATION_CONNECTION_STRING: "Host=localhost;Database=mars_design_time_probe"
         run: |
           set -euo pipefail
-          test -f src/Mars.Infrastructure/Persistence/Migrations/Sales/20260924152928_SalesImp001CommercialFulfillmentAuthority.cs
+          MIG_DIR="src/Mars.Infrastructure/Persistence/Migrations/Sales"
+          CORE="$MIG_DIR/20260924152928_SalesImp001CommercialFulfillmentAuthority.cs"
+          PROFORMA="$MIG_DIR/20260924161902_SalesImp001ProformaAuthority.cs"
 
-          dotnet tool run dotnet-ef migrations add SalesImp001ProformaAuthority \
+          test -f "$CORE"
+          test -f "$MIG_DIR/20260924152928_SalesImp001CommercialFulfillmentAuthority.Designer.cs"
+          test -f "$PROFORMA"
+          test -f "$MIG_DIR/20260924161902_SalesImp001ProformaAuthority.Designer.cs"
+
+          grep -F 'name: "quotes"' "$CORE"
+          grep -F 'name: "sales_orders"' "$CORE"
+          grep -F 'name: "dispatches"' "$CORE"
+          grep -F 'name: "sales_invoices"' "$CORE"
+          grep -F 'name: "proformas"' "$PROFORMA"
+          grep -F 'name: "proforma_lines"' "$PROFORMA"
+
+          dotnet tool run dotnet-ef migrations has-pending-model-changes \
             --project src/Mars.Infrastructure/Mars.Infrastructure.csproj \
             --startup-project src/Mars.Infrastructure/Mars.Infrastructure.csproj \
             --configuration Release \
-            --no-build \
-            --output-dir Persistence/Migrations/Sales
-
-          git status --short
-          git diff --check
-
-      - name: Commit generated migration to main
-        shell: bash
-        run: |
-          set -euo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src/Mars.Infrastructure/Persistence/Migrations/Sales \
-            src/Mars.Infrastructure/Persistence/Migrations/Foundation/MarsDbContextModelSnapshot.cs
-          git diff --cached --quiet && { echo "No migration changes generated."; exit 1; }
-          git commit -m "feat: add SALES-IMP-001 Proforma migration"
-          git pull --rebase origin main
-          git push origin HEAD:main
+            --no-build
