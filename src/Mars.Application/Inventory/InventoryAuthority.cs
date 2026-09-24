@@ -335,6 +335,12 @@ public sealed record ChangeReservationWrite(
     ChangeReservationCommand Command,
     InventoryWriteContext Context);
 
+public interface IInventoryOperationalBlocker
+{
+    Task<bool> HasOpenWarehouseWorkAsync(Guid companyId,Guid warehousePublicId,CancellationToken cancellationToken);
+    Task<bool> HasOpenLocationWorkAsync(Guid companyId,Guid locationPublicId,CancellationToken cancellationToken);
+}
+
 public interface IInventoryAuthorityPersistence
 {
     Task<InventoryMutationPersistenceResult> PostMovementAsync(
@@ -513,7 +519,8 @@ public sealed class InventoryQueryHandler(
 
 public sealed class InventoryMasterCommandHandler(
     IPermissionEvaluator permissionEvaluator,
-    IInventoryMutationPersistence persistence)
+    IInventoryMutationPersistence persistence,
+    IInventoryOperationalBlocker? operationalBlocker = null)
 {
     private const int MaxOperationKeyLength = 128;
 
@@ -621,6 +628,10 @@ public sealed class InventoryMasterCommandHandler(
             return Denied(target == InventoryMasterState.Inactive ? "deactivate Warehouses" : "reactivate Warehouses");
         if (warehousePublicId == Guid.Empty || expectedVersion <= 0)
             return Validation("inventory.warehouse.identity_invalid", "Warehouse id and positive expected version are required.");
+        if (target == InventoryMasterState.Inactive &&
+            operationalBlocker is not null &&
+            await operationalBlocker.HasOpenWarehouseWorkAsync(context.CompanyId,warehousePublicId,cancellationToken))
+            return Validation("inventory.warehouse.open_work","Warehouse cannot be deactivated while Warehouse operational work remains open.");
 
         var writeContext = CreateContext(
             "inventory.warehouse.state",
@@ -761,6 +772,10 @@ public sealed class InventoryMasterCommandHandler(
             return Denied(target == InventoryMasterState.Inactive ? "deactivate Warehouse Locations" : "reactivate Warehouse Locations");
         if (locationPublicId == Guid.Empty || expectedVersion <= 0)
             return Validation("inventory.location.identity_invalid", "Location id and positive expected version are required.");
+        if (target == InventoryMasterState.Inactive &&
+            operationalBlocker is not null &&
+            await operationalBlocker.HasOpenLocationWorkAsync(context.CompanyId,locationPublicId,cancellationToken))
+            return Validation("inventory.location.open_work","Location cannot be deactivated while Warehouse operational work remains open.");
 
         var writeContext = CreateContext(
             "inventory.location.state",
