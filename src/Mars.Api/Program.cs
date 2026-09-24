@@ -25,6 +25,7 @@ using Mars.Application.Parties.PartyMaster;
 using Mars.Application.Products;
 using Mars.Application.Products.ProductMaster;
 using Mars.Application.Inventory;
+using Mars.Application.Purchasing;
 using Mars.Application.Sales;
 using Mars.Infrastructure.Identity;
 using Mars.Infrastructure.Persistence;
@@ -156,7 +157,7 @@ builder.Services
 
 builder.Services.AddAuthorization(options =>
 {
-    foreach (var permission in PartyPermissions.All.Concat(ProductPermissions.All).Concat(InventoryPermissions.All).Concat(SalesPermissions.All))
+    foreach (var permission in PartyPermissions.All.Concat(ProductPermissions.All).Concat(InventoryPermissions.All).Concat(SalesPermissions.All).Concat(PurchasingPermissions.All))
     {
         options.AddPolicy(
             permission,
