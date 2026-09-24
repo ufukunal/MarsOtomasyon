@@ -60,7 +60,7 @@ jobs:
         run: dotnet restore Mars.slnx
 
       - name: Build
-        run: dotnet build Mars.slnx --configuration Release --no-restore
+        run: dotnet build Mars.slnx --configuration Release --no-restore -m:1
 
       - name: Foundation targeted tests
         run: dotnet run --project tests/Mars.Foundation.Tests/Mars.Foundation.Tests.csproj --configuration Release --no-build
@@ -133,10 +133,20 @@ jobs:
           INVENTORY_PROTECTED_STATUS=$(curl --silent --output /tmp/inventory-protected.json --write-out '%{http_code}' http://127.0.0.1:5085/api/v1/inventory/stock)
           test "$INVENTORY_PROTECTED_STATUS" = "401"
 
+          PURCHASING_PROTECTED_STATUS=$(curl --silent --output /tmp/purchasing-protected.json --write-out '%{http_code}' http://127.0.0.1:5085/api/v1/purchasing/orders)
+          test "$PURCHASING_PROTECTED_STATUS" = "401"
+
           curl --silent --fail http://127.0.0.1:5085/openapi/v1.json >/tmp/openapi.json
           grep -F '/api/v1/foundation/context' /tmp/openapi.json
           grep -F '/api/v1/inventory/stock' /tmp/openapi.json
           grep -F '/api/v1/inventory/warehouses' /tmp/openapi.json
+          grep -F '/api/v1/purchasing/orders' /tmp/openapi.json
+          grep -F '/api/v1/purchasing/receipts' /tmp/openapi.json
+          grep -F '/api/v1/purchasing/invoices' /tmp/openapi.json
+          if grep -E '/api/v1/purchasing/invoices/\{[^}]+\}/(post|reverse)' /tmp/openapi.json; then
+            echo "Supplier Invoice POST/REVERSE must remain absent in PURCHASING-IMP-001."
+            exit 1
+          fi
 
           SWAGGER_STATUS=$(curl --silent --output /tmp/swagger.txt --write-out '%{http_code}' http://127.0.0.1:5085/swagger)
           test "$SWAGGER_STATUS" = "404"
