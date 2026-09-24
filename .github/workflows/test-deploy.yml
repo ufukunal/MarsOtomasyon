@@ -79,6 +79,7 @@ jobs:
               Path("src/Mars.Infrastructure/Persistence/Migrations/Parties"),
               Path("src/Mars.Infrastructure/Persistence/Migrations/Products"),
               Path("src/Mars.Infrastructure/Persistence/Migrations/Inventory"),
+              Path("src/Mars.Infrastructure/Persistence/Migrations/Sales"),
           ]
           forbidden = (
               "DropTable(",
