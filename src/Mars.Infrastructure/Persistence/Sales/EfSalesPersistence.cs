@@ -24,7 +24,7 @@ public sealed partial class EfSalesPersistence(
     IAuditWriter auditWriter,
     IIdempotencyStore idempotencyStore,
     IOutboxWriter outboxWriter)
-    : ISalesPersistence
+    : ISalesPersistence, ISalesProformaPersistence
 {
     private sealed record ResolvedCustomer(
         long Id,
