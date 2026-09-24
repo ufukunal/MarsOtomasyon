@@ -21,6 +21,7 @@ internal static class SalesModelConfiguration
         AmendmentDelta(m);
         Dispatch(m);
         DispatchLine(m);
+        DispatchSourceAllocation(m);
         DispatchEffect(m);
         Invoice(m);
         InvoiceLine(m);
@@ -334,6 +335,37 @@ internal static class SalesModelConfiguration
             t.HasCheckConstraint("ck_sales_dispatch_lines_quantity","quantity > 0");
             t.HasCheckConstraint("ck_sales_dispatch_lines_conversion","conversion_factor_snapshot > 0");
         });
+    }
+
+    private static void DispatchSourceAllocation(ModelBuilder m)
+    {
+        var b=m.Entity<DispatchSourceAllocationRecord>();
+        b.ToTable("dispatch_source_allocations","sales"); Id(b); Public(b); Company(b);
+        b.Property(x=>x.DispatchLineId).HasColumnName("dispatch_line_id");
+        b.Property(x=>x.WarehouseId).HasColumnName("warehouse_id");
+        b.Property(x=>x.LocationId).HasColumnName("location_id");
+        b.Property(x=>x.LotId).HasColumnName("lot_id");
+        b.Property(x=>x.SerialId).HasColumnName("serial_id");
+        Money(b.Property(x=>x.Quantity).HasColumnName("quantity"));
+        b.Property(x=>x.CreatorActorId).HasColumnName("creator_actor_id");
+        b.Property(x=>x.CreatedAt).HasColumnName("created_at");
+        b.HasIndex(x=>new{x.DispatchLineId,x.CreatedAt}).HasDatabaseName("ix_sales_dispatch_allocations_line");
+        b.HasOne<DispatchLineRecord>().WithMany().HasForeignKey(x=>new{x.DispatchLineId,x.CompanyId})
+            .HasPrincipalKey(x=>new{x.Id,x.CompanyId}).OnDelete(DeleteBehavior.Restrict)
+            .HasConstraintName("fk_sales_dispatch_allocations_line_company");
+        b.HasOne<WarehouseRecord>().WithMany().HasForeignKey(x=>new{x.WarehouseId,x.CompanyId})
+            .HasPrincipalKey(x=>new{x.Id,x.CompanyId}).OnDelete(DeleteBehavior.Restrict)
+            .HasConstraintName("fk_sales_dispatch_allocations_warehouse_company");
+        b.HasOne<LocationRecord>().WithMany().HasForeignKey(x=>new{x.LocationId,x.WarehouseId,x.CompanyId})
+            .HasPrincipalKey(x=>new{x.Id,x.WarehouseId,x.CompanyId}).OnDelete(DeleteBehavior.Restrict)
+            .HasConstraintName("fk_sales_dispatch_allocations_location_company");
+        b.HasOne<InventoryLotRecord>().WithMany().HasForeignKey(x=>new{x.LotId,x.CompanyId})
+            .HasPrincipalKey(x=>new{x.Id,x.CompanyId]).OnDelete(DeleteBehavior.Restrict)
+            .HasConstraintName("fk_sales_dispatch_allocations_lot_company");
+        b.HasOne<InventorySerialRecord>().WithMany().HasForeignKey(x=>new{x.SerialId,x.CompanyId})
+            .HasPrincipalKey(x=>new{x.Id,x.CompanyId]).OnDelete(DeleteBehavior.Restrict)
+            .HasConstraintName("fk_sales_dispatch_allocations_serial_company");
+        b.ToTable(t=>t.HasCheckConstraint("ck_sales_dispatch_allocations_quantity","quantity > 0"));
     }
 
     private static void DispatchEffect(ModelBuilder m)
