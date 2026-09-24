@@ -103,3 +103,25 @@ V38 also shows Warehouse negative-stock setting as "Engelle". PLAN-006 freezes B
 - carrier/provider implementation;
 - replenishment/MRP optimization;
 - automated robotics/WMS provider orchestration.
+
+
+## WAREHOUSE-IMP-001 implementation readiness
+
+Status: READY FOR IMPLEMENTATION.
+
+Assigned broad tranche:
+WAREHOUSE-IMP-001 — Warehouse Execution & Inventory Control Authority Tranche
+
+Canonical readiness:
+- docs/plan/06-ambar-depo/p5-warehouse-execution-readiness.md
+
+Frozen implementation boundary:
+- reuse Inventory physical authority; no second stock ledger;
+- Sales Dispatch POST remains Sales STOCK OUT;
+- Purchasing Goods Receipt POST remains Purchasing STOCK IN;
+- Warehouse owns disposition/put-away/replenishment and operational pick/pack/stage/load work;
+- Warehouse owns transfer/count/scrap operational authority;
+- positive Count Adjustment POST is fail-closed until Finance valuation authority exists;
+- Quality inspection/result, provider integrations, Device Layer, production and Full Test Day remain excluded.
+
+No Warehouse micro-package IDs are created.
