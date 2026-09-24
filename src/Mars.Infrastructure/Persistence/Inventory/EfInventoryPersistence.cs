@@ -474,10 +474,12 @@ public sealed partial class EfInventoryPersistence :
                 if (positions.Outcome != InventoryMutationOutcome.Succeeded)
                     return Outcome(positions.Outcome);
 
+                var resolvedPositions = positions.Value!;
+
                 foreach (var warehouseId in new[]
                          {
-                             positions.Source?.WarehouseId,
-                             positions.Target?.WarehouseId
+                             resolvedPositions.Source?.WarehouseId,
+                             resolvedPositions.Target?.WarehouseId
                          }
                          .Where(x => x.HasValue)
                          .Select(x => x!.Value)
@@ -493,10 +495,10 @@ public sealed partial class EfInventoryPersistence :
                     }
                 }
 
-                if (positions.SerialId.HasValue)
+                if (resolvedPositions.SerialId.HasValue)
                 {
                     var serial = await LockSerialAsync(
-                        positions.SerialId.Value,
+                        resolvedPositions.SerialId.Value,
                         write.Context.CompanyId,
                         cancellationToken);
                     if (serial is null)
@@ -508,7 +510,7 @@ public sealed partial class EfInventoryPersistence :
                         serial.Id,
                         write.Context.CompanyId,
                         cancellationToken);
-                    if (positions.Source is null)
+                    if (resolvedPositions.Source is null)
                     {
                         if (serialOnHand != 0m)
                             return Outcome(InventoryMutationOutcome.TrackingConflict);
@@ -522,24 +524,24 @@ public sealed partial class EfInventoryPersistence :
                             write.Context.CompanyId,
                             trade.Value!.ProductId,
                             trade.Value.VariantId,
-                            positions.Source,
-                            positions.LotId,
-                            positions.SerialId,
+                            resolvedPositions.Source,
+                            resolvedPositions.LotId,
+                            resolvedPositions.SerialId,
                             cancellationToken);
                         if (exactSerialSource != 1m)
                             return Outcome(InventoryMutationOutcome.TrackingConflict);
                     }
                 }
 
-                if (positions.Source is not null)
+                if (resolvedPositions.Source is not null)
                 {
                     var sourceOnHand = await GetPositionOnHandAsync(
                         write.Context.CompanyId,
                         trade.Value!.ProductId,
                         trade.Value.VariantId,
-                        positions.Source,
-                        positions.LotId,
-                        positions.SerialId,
+                        resolvedPositions.Source,
+                        resolvedPositions.LotId,
+                        resolvedPositions.SerialId,
                         cancellationToken);
                     if (sourceOnHand < baseQuantity)
                         return Outcome(InventoryMutationOutcome.InsufficientStock);
@@ -559,7 +561,7 @@ public sealed partial class EfInventoryPersistence :
                             original,
                             trade.Value!,
                             write.Command,
-                            positions,
+                            resolvedPositions,
                             baseQuantity))
                         return Outcome(InventoryMutationOutcome.BusinessConflict);
                     reversalId = original.Id;
@@ -575,14 +577,14 @@ public sealed partial class EfInventoryPersistence :
                     EnteredQuantity = write.Command.EnteredQuantity,
                     ConversionFactorSnapshot = write.Command.ConversionFactorSnapshot,
                     BaseQuantity = baseQuantity,
-                    SourceWarehouseId = positions.Source?.WarehouseId,
-                    SourceLocationId = positions.Source?.LocationId,
-                    SourceDispositionId = positions.Source?.DispositionId,
-                    TargetWarehouseId = positions.Target?.WarehouseId,
-                    TargetLocationId = positions.Target?.LocationId,
-                    TargetDispositionId = positions.Target?.DispositionId,
-                    LotId = positions.LotId,
-                    SerialId = positions.SerialId,
+                    SourceWarehouseId = resolvedPositions.Source?.WarehouseId,
+                    SourceLocationId = resolvedPositions.Source?.LocationId,
+                    SourceDispositionId = resolvedPositions.Source?.DispositionId,
+                    TargetWarehouseId = resolvedPositions.Target?.WarehouseId,
+                    TargetLocationId = resolvedPositions.Target?.LocationId,
+                    TargetDispositionId = resolvedPositions.Target?.DispositionId,
+                    LotId = resolvedPositions.LotId,
+                    SerialId = resolvedPositions.SerialId,
                     SourceModule = write.Command.SourceIdentity.Module,
                     SourceEntityType = write.Command.SourceIdentity.EntityType,
                     SourceDocumentPublicId = write.Command.SourceIdentity.DocumentPublicId,
