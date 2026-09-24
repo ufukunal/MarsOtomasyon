@@ -12,6 +12,13 @@ public enum PurchaseOrderState
     Cancelled = 8
 }
 
+public enum PurchaseOrderAmendmentState
+{
+    Draft = 1,
+    Active = 2,
+    Cancelled = 3
+}
+
 public enum GoodsReceiptState
 {
     Draft = 1,
