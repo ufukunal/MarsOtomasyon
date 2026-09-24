@@ -550,23 +550,28 @@ public sealed class SalesCommandHandler(
     {
         if (!await Granted(InventoryPermissions.ReservationCreate,context,ct))
             return Result<InventoryReservationReceipt>.Failure(DeniedError());
-        var plan=await persistence.GetReservationCreatePlanAsync(command,context,ct);
-        if (plan.IsFailure) return Result<InventoryReservationReceipt>.Failure(plan.Error!);
-        if (!await warehouseAccess.IsGrantedAsync(context.ActorId,context.CompanyId,plan.Value!.WarehousePublicId,ct))
-            return Result<InventoryReservationReceipt>.Failure(WarehouseDenied());
-        return await reservations.CreateAsync(
-            new CreateReservationCommand(
-                plan.Value.SalesOrderPublicId,
-                plan.Value.SalesOrderVersion,
-                plan.Value.SalesOrderLinePublicId,
-                plan.Value.ProductPublicId,
-                plan.Value.VariantPublicId,
-                plan.Value.WarehousePublicId,
-                plan.Value.UomPublicId,
-                plan.Value.RequestedQuantity,
-                plan.Value.ConversionFactorSnapshot,
-                command.OperationKey),
-            context,ct);
+        return await transactions.ExecuteAsync(
+            async innerCt =>
+            {
+                var plan=await persistence.GetReservationCreatePlanAsync(command,context,innerCt);
+                if (plan.IsFailure) return Result<InventoryReservationReceipt>.Failure(plan.Error!);
+                if (!await warehouseAccess.IsGrantedAsync(context.ActorId,context.CompanyId,plan.Value!.WarehousePublicId,innerCt))
+                    return Result<InventoryReservationReceipt>.Failure(WarehouseDenied());
+                return await reservations.CreateAsync(
+                    new CreateReservationCommand(
+                        plan.Value.SalesOrderPublicId,
+                        plan.Value.SalesOrderVersion,
+                        plan.Value.SalesOrderLinePublicId,
+                        plan.Value.ProductPublicId,
+                        plan.Value.VariantPublicId,
+                        plan.Value.WarehousePublicId,
+                        plan.Value.UomPublicId,
+                        plan.Value.RequestedQuantity,
+                        plan.Value.ConversionFactorSnapshot,
+                        command.OperationKey),
+                    context,innerCt);
+            },
+            ct);
     }
 
     public async Task<Result<InventoryReservationReceipt>> IncreaseReservationAsync(ChangeSalesReservationCommand command,IExecutionContext context,CancellationToken ct) =>
@@ -683,17 +688,22 @@ public sealed class SalesCommandHandler(
     {
         if(!await Granted(permission,context,ct))
             return Result<InventoryReservationReceipt>.Failure(DeniedError());
-        var plan=await persistence.GetReservationChangePlanAsync(command.ReservationPublicId,command.Quantity,increase,context,ct);
-        if(plan.IsFailure) return Result<InventoryReservationReceipt>.Failure(plan.Error!);
-        if(!await warehouseAccess.IsGrantedAsync(context.ActorId,context.CompanyId,plan.Value!.WarehousePublicId,ct))
-            return Result<InventoryReservationReceipt>.Failure(WarehouseDenied());
-        var inventoryCommand=new ChangeReservationCommand(
-            command.ReservationPublicId,command.Quantity,
-            InventorySourceIdentity.Create("Sales","SalesOrder",plan.Value.SalesOrderPublicId,plan.Value.SalesOrderLinePublicId),
-            command.OperationKey);
-        return increase
-            ? await reservations.IncreaseAsync(inventoryCommand,context,ct)
-            : await reservations.ReleaseAsync(inventoryCommand,context,ct);
+        return await transactions.ExecuteAsync(
+            async innerCt =>
+            {
+                var plan=await persistence.GetReservationChangePlanAsync(command.ReservationPublicId,command.Quantity,increase,context,innerCt);
+                if(plan.IsFailure) return Result<InventoryReservationReceipt>.Failure(plan.Error!);
+                if(!await warehouseAccess.IsGrantedAsync(context.ActorId,context.CompanyId,plan.Value!.WarehousePublicId,innerCt))
+                    return Result<InventoryReservationReceipt>.Failure(WarehouseDenied());
+                var inventoryCommand=new ChangeReservationCommand(
+                    command.ReservationPublicId,command.Quantity,
+                    InventorySourceIdentity.Create("Sales","SalesOrder",plan.Value.SalesOrderPublicId,plan.Value.SalesOrderLinePublicId),
+                    command.OperationKey);
+                return increase
+                    ? await reservations.IncreaseAsync(inventoryCommand,context,innerCt)
+                    : await reservations.ReleaseAsync(inventoryCommand,context,innerCt);
+            },
+            ct);
     }
 
     private async Task<Result<ApprovalDecisionReceipt>> Decide(
