@@ -38,6 +38,18 @@ interface DocumentLine {
   taxPercent: number;
 }
 
+interface MatchItem {
+  publicId: string;
+  kind: string;
+  state: string;
+  supplierInvoicePublicId: string;
+  purchaseOrderPublicId: string | null;
+  goodsReceiptPublicId: string | null;
+  quantityVariance: number;
+  priceVariance: number;
+  reason: string | null;
+}
+
 interface DocumentDetail {
   publicId: string;
   number: string;
@@ -158,6 +170,12 @@ export function createPurchasingPage(
   const invoiceCancelReason = createField({ id: "purchasing-invoice-cancel-reason", label: "Invoice cancel reason" });
   const cancelInvoice = createButton({ label: "Invoice DRAFT iptal", onClick: () => { void cancelInvoiceAsync(); } });
   const matchPreview = createButton({ label: "2-way / 3-way match preview", onClick: () => { void previewMatchAsync(); } });
+  const matchEvidence = document.createElement("pre");
+  matchEvidence.className = "mars-proof-output";
+  const matchId = createField({ id: "purchasing-match-id", label: "Match Public ID" });
+  const matchApprovalReason = createField({ id: "purchasing-match-approval-reason", label: "Match approval reason" });
+  const approveMatch = createButton({ label: "Match exception approve", onClick: () => { void decideMatchAsync("APPROVED"); } });
+  const rejectMatch = createButton({ label: "Match exception reject", onClick: () => { void decideMatchAsync("REJECTED"); } });
 
   const poPanel = panel([
     supplier.element, orderNumber.element, currency.element, productId.element, uomId.element,
@@ -176,7 +194,8 @@ export function createPurchasingPage(
     invoiceGrid.element, invoiceNumber.element, invoiceMode.root, invoiceSourceDoc.element,
     invoiceSourceLine.element, invoiceProduct.element, invoiceUom.element, invoiceQty.element,
     invoicePrice.element, invoiceTax.element, directReason.element, createInvoice,
-    invoiceVersion.element, replaceInvoice, invoiceCancelReason.element, cancelInvoice, matchPreview
+    invoiceVersion.element, replaceInvoice, invoiceCancelReason.element, cancelInvoice, matchPreview,
+    matchEvidence, matchId.element, matchApprovalReason.element, approveMatch, rejectMatch
   ]);
 
   const tabs = createTabs([
@@ -208,7 +227,8 @@ export function createPurchasingPage(
     await Promise.all([
       load("/purchasing/orders", orderGrid),
       load("/purchasing/receipts", receiptGrid),
-      load("/purchasing/invoices", invoiceGrid)
+      load("/purchasing/invoices", invoiceGrid),
+      loadMatchEvidence()
     ]);
   }
 
@@ -389,6 +409,29 @@ export function createPurchasingPage(
       version: number(invoiceVersion.input.value),
       reason: invoiceCancelReason.input.value.trim()
     }, "Supplier Invoice DRAFT iptal edildi.");
+  }
+
+  async function loadMatchEvidence(): Promise<void> {
+    try {
+      const response = await api.get<MatchItem[]>("/purchasing/matches");
+      matchEvidence.textContent = response.data.length
+        ? response.data.map(x =>
+            x.kind + " / " + x.state + " / invoice " + x.supplierInvoicePublicId +
+            " / match " + x.publicId +
+            (x.reason ? " / " + x.reason : "")).join("\n")
+        : "Match evidence yok.";
+    } catch (error) {
+      matchEvidence.textContent = message(error);
+    }
+  }
+
+  async function decideMatchAsync(decision: "APPROVED" | "REJECTED"): Promise<void> {
+    const id = matchId.input.value.trim();
+    if (!id) return setStatus("Match Public ID girin.");
+    await mutate("/purchasing/matches/" + id + "/approval", "POST", {
+      decision,
+      reason: matchApprovalReason.input.value.trim() || null
+    }, "Match exception kararı kaydedildi.");
   }
 
   async function previewMatchAsync(): Promise<void> {
