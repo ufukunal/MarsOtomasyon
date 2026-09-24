@@ -294,6 +294,7 @@ public sealed record InventoryMovementCommand(
     Guid? VariantPublicId,
     Guid UomPublicId,
     decimal EnteredQuantity,
+    decimal ConversionFactorSnapshot,
     InventoryPosition? Source,
     InventoryPosition? Target,
     InventorySourceIdentity SourceIdentity,
@@ -314,6 +315,7 @@ public sealed record CreateReservationCommand(
     Guid WarehousePublicId,
     Guid UomPublicId,
     decimal EnteredQuantity,
+    decimal ConversionFactorSnapshot,
     string OperationKey);
 
 public sealed record ChangeReservationCommand(
@@ -1096,6 +1098,7 @@ public sealed class InventoryAuthorityService(IInventoryAuthorityPersistence per
             command.VariantPublicId == Guid.Empty ||
             command.UomPublicId == Guid.Empty ||
             command.EnteredQuantity <= 0m ||
+            command.ConversionFactorSnapshot <= 0m ||
             (command.Source is null && command.Target is null) ||
             command.ReversalOfMovementPublicId == Guid.Empty)
             return Result<InventoryMovementReceipt>.Failure(
@@ -1196,7 +1199,8 @@ public sealed class InventoryAuthorityService(IInventoryAuthorityPersistence per
             command.VariantPublicId == Guid.Empty ||
             command.WarehousePublicId == Guid.Empty ||
             command.UomPublicId == Guid.Empty ||
-            command.EnteredQuantity <= 0m)
+            command.EnteredQuantity <= 0m ||
+            command.ConversionFactorSnapshot <= 0m)
             return Result<InventoryReservationReceipt>.Failure(
                 new ApplicationError(
                     ErrorCategory.Validation,
