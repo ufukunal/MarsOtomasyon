@@ -1,4 +1,5 @@
 name: PURCHASING-IMP-001 Migration Generate
+# Retry after final Purchasing model/compile reconciliation.
 
 on:
   push:
