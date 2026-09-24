@@ -317,3 +317,45 @@ Still deferred:
 - performance/load
 - security regression
 - backup/restore
+
+
+## SALES-IMP-001 closure
+
+Canonical implementation:
+- docs/plan/05-satis/sales-imp-001-implementation.md
+
+Tested commit:
+- c99b1a3191fc5c6823734bd27f074ef10a8094a3
+
+Foundation Build:
+- run 36026678334
+- job 107724878496
+- SUCCESS
+- frontend 21 / 21 PASS
+- targeted Foundation 87 / 87 PASS
+- Release 0 warnings / 0 errors
+- migration safety 10 PASS
+- EF pending model PASS
+
+Foundation Test Deploy:
+- run 36026678557
+- job 107724879932
+- SUCCESS
+- deployed migration count 10
+- /sales 200
+- /parties /products /inventory 200
+- live/ready 200
+- protected Sales routes 401 unauthenticated
+- OpenAPI Sales surface expected
+- Invoice POST/REVERSE absent
+- smoke PASS
+
+No authenticated TEST Sales mutation is claimed.
+
+## Current task
+
+PURCHASING-IMP-001 — Purchasing Commercial Receipt & Supplier Invoice Authority Tranche
+Status: READY FOR IMPLEMENTATION
+
+Use frozen PLAN-005 plus current implemented Party/Product/Inventory/Sales contracts.
+Do not repeat global/module planning.
