@@ -1,15 +1,15 @@
 # Planning Backlog
 
-## Next dependency after active INVENTORY-IMP-001 — Sales broad implementation tranche definition
-Status: BLOCKED BY ACTIVE INVENTORY IMPLEMENTATION.
+## Next dependency after active Sales tranche definition — Purchasing broad implementation tranche definition
+Status: BLOCKED BY ACTIVE SALES SCOPE/IMPLEMENTATION.
 
 Dependency:
-- INVENTORY-IMP-001 must establish the Inventory Ledger / Reservation authority and required master/trace contracts first.
+- the Sales broad tranche must be frozen and implemented according to P5 dependency order before Purchasing becomes current.
 
 Direction when unblocked:
-- reconcile frozen PLAN-002 + PLAN-010 against the implemented Inventory contract
-- define one broad coherent Sales implementation tranche
-- do not assign the Sales implementation package ID before repository reconciliation and scope freeze
+- reconcile frozen PLAN-005 + PLAN-010 against implemented Product/Inventory/Sales contracts
+- define one broad coherent Purchasing implementation tranche
+- do not assign the Purchasing implementation package ID before repository reconciliation and scope freeze
 
 ## Quality — master planning sequence item 10
 Target: docs/plan/08-kalite/
