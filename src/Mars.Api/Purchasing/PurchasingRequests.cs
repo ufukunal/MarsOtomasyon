@@ -21,6 +21,16 @@ public sealed record CreatePurchaseOrderRequest(
     IReadOnlyList<PurchasingTradeLineRequest> Lines);
 
 public sealed record PurchasingVersionRequest(long Version);
+public sealed record PurchasingReasonVersionRequest(long Version, string Reason);
+
+public sealed record PurchaseOrderAmendmentDeltaRequest(
+    Guid PurchaseOrderLinePublicId,
+    decimal QuantityDelta);
+
+public sealed record AmendPurchaseOrderRequest(
+    long Version,
+    string Reason,
+    IReadOnlyList<PurchaseOrderAmendmentDeltaRequest> Deltas);
 
 public sealed record CreateGoodsReceiptLineRequest(
     int Sequence,
@@ -58,4 +68,21 @@ public sealed record CreateSupplierInvoiceDraftRequest(
     DateOnly DueDate,
     string CurrencyCode,
     decimal DocumentDiscountPercent,
-    IReadOnlyList<CreateSupplierInvoiceDraftLineRequest> Lines);
+    IReadOnlyList<CreateSupplierInvoiceDraftLineRequest> Lines,
+    string? DirectReason);
+
+public sealed record ReplaceSupplierInvoiceDraftRequest(
+    long Version,
+    string Number,
+    Guid SupplierPartyPublicId,
+    SupplierInvoiceSourceMode SourceMode,
+    DateOnly DocumentDate,
+    DateOnly DueDate,
+    string CurrencyCode,
+    decimal DocumentDiscountPercent,
+    IReadOnlyList<CreateSupplierInvoiceDraftLineRequest> Lines,
+    string? DirectReason);
+
+public sealed record PurchaseMatchApprovalRequest(
+    string Decision,
+    string? Reason);
