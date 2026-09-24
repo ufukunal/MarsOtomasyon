@@ -1,6 +1,6 @@
 # MarsOtomasyon — Master Project Plan
 
-Status: PORTFOLIO PLANNING COMPLETED / IMPLEMENTATION ACTIVE
+Status: DETAILED MASTER PLANNING COMPLETED / IMPLEMENTATION ACTIVE
 Owner: Project Owner
 Repository: `ufukunal/MarsOtomasyon`
 Target branch: `main`
@@ -578,12 +578,16 @@ Canonical portfolio completion:
 
 `docs/plan/project-plan-completion.md`
 
-Master planning coverage:
+Master portfolio planning coverage:
 
 - 30 / 30 = 100%
 
-Detailed planning remains authoritative where already frozen for Foundation, core commercial modules and PLAN-010.
+Master detailed planning coverage:
 
-For later modules, the portfolio envelopes in the canonical completion document are sufficient until that module becomes current. At that point only a short implementation-readiness pass is required.
+- 30 / 30 = 100%
+
+Foundation/core-commercial/PLAN-010 plans remain authoritative. Later-module detailed plans are frozen in their canonical module directories, with explicit UNKNOWN/implementation gates where V38/repository sources do not define policy.
+
+When a module becomes current, only a short repository reconciliation/readiness pass is required; global or module planning must not be repeated.
 
 This completion does not mark future implementation, Full Test Day or Release Hardening execution as done.
