@@ -479,6 +479,9 @@ public sealed class EfPurchasingPersistence(
             .SingleAsync(ct);
         if(order.CurrentVersionNumber!=receipt.PurchaseOrderVersionNumber)
             return Conflict<GoodsReceiptPostPlan>("purchasing.receipt.order_version","Goods Receipt source version is stale.",true);
+        if(order.State is not (PurchaseOrderState.Confirmed or PurchaseOrderState.PartiallyReceived))
+            return Business<GoodsReceiptPostPlan>("purchasing.receipt.order_state",
+                "Goods Receipt cannot POST after Purchase Order remainder cancellation or closure.");
 
         var lines=await dbContext.Set<GoodsReceiptLineRecord>().AsNoTracking()
             .Where(x=>x.CompanyId==context.CompanyId&&x.GoodsReceiptId==receipt.Id)
