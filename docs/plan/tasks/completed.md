@@ -1013,3 +1013,50 @@ Deferred:
 - authenticated broad Party E2E and heavy concurrency/security coverage.
 
 Planning metrics were not changed by implementation closure.
+
+
+## PRODUCT-IMP-001 — Product Master Completion Tranche
+**Status:** COMPLETED
+
+Implemented:
+- Product core/list/detail/edit/lifecycle
+- UOM master and Product-UOM
+- Variant
+- Barcode Mapping
+- Category/Product Category
+- Product External Mapping
+- protected API/Mars.Web
+- audit/idempotency/concurrency
+- generated EF migration
+
+Evidence:
+- readiness: docs/plan/04-urun-stok/p5-product-master-completion-readiness.md
+- canonical implementation: docs/plan/04-urun-stok/product-imp-001-implementation.md
+- implementation commit: 817dfea81acbf1e93586b030412bd492f8a3ba20
+- migration commit: 9b0731792a8641b632c612b7abb6f74799dd2aa4
+- tested commit: ac92911a8f5fcda070622b084216a43a70ad7d77
+- Foundation Build 35981641268 — SUCCESS
+- Foundation Test Deploy 35981641137 — SUCCESS
+- frontend 19 / 19
+- Foundation 66 / 66
+- Release 0 warnings / 0 errors
+- migration safety count 7
+- EF pending-model PASS
+- TEST migration count 7
+- /products 200
+- live/ready 200 / 200
+- protected Product routes 401 unauthenticated
+- OpenAPI 200
+- smoke PASS
+
+Deferred:
+- Base UOM replacement
+- post-use STOCKABLE/tracking transition
+- UOM transaction scale/fraction policy
+- generic Variant EAV
+- provider/marketplace/GS1 behavior
+- Inventory physical authority
+- Finance valuation/cost
+- broad authenticated Product E2E and heavy concurrency/security coverage
+
+Planning metrics unchanged by implementation closure.
