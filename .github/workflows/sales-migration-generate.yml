@@ -1,21 +1,27 @@
 name: SALES-IMP-001 Migration Generate
-# SALES-IMP-001 migration is committed; generator retained as manual/read-only evidence tool.
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/sales-migration-generate.yml"
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   generate:
-    name: verify-sales-commercial-fulfillment-migration
+    name: generate-sales-proforma-migration
     runs-on: self-hosted
     timeout-minutes: 15
 
     steps:
-      - name: Checkout
+      - name: Checkout main
         uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
 
       - name: Select writable .NET install directory
         shell: bash
@@ -34,30 +40,32 @@ jobs:
           dotnet restore src/Mars.Infrastructure/Mars.Infrastructure.csproj
           dotnet build src/Mars.Infrastructure/Mars.Infrastructure.csproj --configuration Release --no-restore
 
-      - name: Verify committed SALES-IMP-001 migration/model
+      - name: Generate additive Proforma migration
         shell: bash
         env:
           MARS_MIGRATION_CONNECTION_STRING: "Host=localhost;Database=mars_design_time_probe"
         run: |
           set -euo pipefail
-          MIG_DIR="src/Mars.Infrastructure/Persistence/Migrations/Sales"
-          MIG_FILE="$MIG_DIR/20260924152928_SalesImp001CommercialFulfillmentAuthority.cs"
+          test -f src/Mars.Infrastructure/Persistence/Migrations/Sales/20260924152928_SalesImp001CommercialFulfillmentAuthority.cs
 
-          test -f "$MIG_FILE"
-          test -f "$MIG_DIR/20260924152928_SalesImp001CommercialFulfillmentAuthority.Designer.cs"
-          grep -F 'name: "quotes"' "$MIG_FILE"
-          grep -F 'name: "quote_revisions"' "$MIG_FILE"
-          grep -F 'name: "quote_lines"' "$MIG_FILE"
-          grep -F 'name: "sales_orders"' "$MIG_FILE"
-          grep -F 'name: "sales_order_versions"' "$MIG_FILE"
-          grep -F 'name: "sales_order_lines"' "$MIG_FILE"
-          grep -F 'name: "dispatches"' "$MIG_FILE"
-          grep -F 'name: "dispatch_lines"' "$MIG_FILE"
-          grep -F 'name: "sales_invoices"' "$MIG_FILE"
-          grep -F 'name: "sales_invoice_lines"' "$MIG_FILE"
-
-          dotnet tool run dotnet-ef migrations has-pending-model-changes \
+          dotnet tool run dotnet-ef migrations add SalesImp001ProformaAuthority \
             --project src/Mars.Infrastructure/Mars.Infrastructure.csproj \
             --startup-project src/Mars.Infrastructure/Mars.Infrastructure.csproj \
             --configuration Release \
-            --no-build
+            --no-build \
+            --output-dir Persistence/Migrations/Sales
+
+          git status --short
+          git diff --check
+
+      - name: Commit generated migration to main
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/Mars.Infrastructure/Persistence/Migrations/Sales
+          git diff --cached --quiet && { echo "No migration changes generated."; exit 1; }
+          git commit -m "feat: add SALES-IMP-001 Proforma migration"
+          git pull --rebase origin main
+          git push origin HEAD:main
