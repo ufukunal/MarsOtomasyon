@@ -1107,3 +1107,49 @@ Deferred:
 - Full Test Day heavy concurrency/security/performance/browser coverage.
 
 Planning metrics unchanged by implementation closure.
+
+
+## PURCHASING-IMP-001 — Purchasing Commercial Receipt & Supplier Invoice Authority Tranche
+**Status:** COMPLETED
+
+Canonical implementation:
+- `docs/plan/07-satinalma/purchasing-imp-001-implementation.md`
+
+Tested commit:
+- `50ec242e5471743bbdc9ad43bc69626166b1679f`
+
+Foundation Build:
+- run `36054248023`
+- job `107817148334`
+- SUCCESS
+- frontend 22 / 22 PASS
+- targeted Foundation 97 / 97 PASS
+- Release 0 warnings / 0 errors
+- EF pending model PASS
+
+Foundation Test Deploy:
+- run `36054247926`
+- job `107818562329`
+- SUCCESS
+- migration safety 11 PASS
+- deployed migration count 11
+- `/purchasing` = 200
+- regression pages `/sales`, `/inventory`, `/products`, `/parties` = 200
+- live/ready = 200
+- protected Purchasing routes = 401 unauthenticated
+- OpenAPI Purchasing surface expected
+- Supplier Invoice POST/REVERSE absent
+- runner-to-TEST smoke PASS
+
+Explicitly deferred:
+- Finance Supplier Payable / Supplier Invoice POST/REVERSE
+- Payment/settlement
+- Inventory valuation/landed cost
+- Quality implementation
+- Warehouse operational implementation
+- Purchase Return execution
+- provider integrations
+- production
+- Full Test Day
+
+No authenticated TEST Purchasing mutation is claimed.
