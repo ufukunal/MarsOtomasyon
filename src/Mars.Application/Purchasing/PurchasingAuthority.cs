@@ -75,6 +75,7 @@ public sealed record PurchasingDocumentDetailView(
     string CurrencyCode,
     string? PaymentTerms,
     long Version,
+    long EffectiveVersion,
     IReadOnlyList<PurchasingDocumentLineView> Lines);
 
 public sealed record CreateGoodsReceiptLineInput(
