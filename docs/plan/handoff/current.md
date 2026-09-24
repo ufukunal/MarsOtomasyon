@@ -136,56 +136,91 @@ Still deferred:
 - Sales/Purchasing eligibility;
 - Finance behavior.
 
+## PRODUCT-IMP-001 evidence
+
+Canonical readiness:
+- docs/plan/04-urun-stok/p5-product-master-completion-readiness.md
+
+Canonical implementation:
+- docs/plan/04-urun-stok/product-imp-001-implementation.md
+
+Commits:
+- implementation 817dfea81acbf1e93586b030412bd492f8a3ba20
+- migration 9b0731792a8641b632c612b7abb6f74799dd2aa4
+- tested commit ac92911a8f5fcda070622b084216a43a70ad7d77
+
+Foundation Build:
+- run 35981641268
+- job 107574669148
+- SUCCESS
+- frontend 19 / 19
+- Foundation 66 / 66
+- Release 0 warnings / 0 errors
+- EF pending-model PASS
+
+Foundation Test Deploy:
+- run 35981641137
+- job 107574851341
+- SUCCESS
+- migration safety count 7
+- TEST migration 6 -> 7
+- /products 200
+- live/ready 200 / 200
+- protected Product routes 401 unauthenticated
+- OpenAPI 200
+- smoke PASS
+
+No real authenticated TEST Product mutation is claimed.
+
+Completed Product master:
+- Product core/list/detail/edit/lifecycle
+- UOM/Product-UOM
+- Variant
+- Barcode
+- Category/Product Category
+- Product External Mapping
+- protected API/Mars.Web
+- generated Product migration
+
+Still deferred:
+- Base UOM replacement
+- post-use STOCKABLE/tracking transitions
+- UOM transaction scale/fraction policy
+- generic Variant EAV
+- provider/GS1 behavior
+- Inventory physical authority
+- Finance valuation/cost
+
 ## Current phase
 P5 — Core application implementation
 Status: IMPLEMENTATION IN PROGRESS
 
 ## Current task
-PRODUCT-IMP-001 — Product Master Completion Tranche.
+Define one broad Inventory implementation tranche from frozen PLAN-004 + PLAN-010.
 
-Status:
-- IMPLEMENTATION IN PROGRESS.
-
-Canonical readiness:
-- `docs/plan/04-urun-stok/p5-product-master-completion-readiness.md`
+Work-package ID:
+- NOT ASSIGNED.
 
 Owner direction:
-- broad coherent Product package;
-- do not split Product/Variant/UOM/Barcode/Category/External Mapping into micro-packages.
+- broad coherent packages; do not return to one-package-per-small-capability sequencing.
 
-Included:
-- Product core create/list/detail/edit/lifecycle;
-- UOM + initial Base UOM + alternate Product/Variant UOM;
-- Variant lifecycle;
-- Barcode lifecycle;
-- normalized Category hierarchy/assignments;
-- generic Product External Mapping;
-- protected API/Mars.Web/persistence/migration/audit/idempotency/concurrency/targeted tests.
-
-Deferred:
-- Warehouse/Location/Inventory Ledger/Reservation/Lot/Serial;
-- stock/value/cost authority;
-- Base UOM replacement;
-- post-use STOCKABLE/tracking changes;
-- Variant EAV attributes;
-- provider-specific sync/GS1 verification;
-- production deployment;
-- Full Test Day.
-
-Implementation decision:
-- conversion factor physical storage numeric(28,9);
-- Product External Mapping read uses product.read and mutation uses product.edit; no new permission namespace invented.
+Before mutation:
+- reconcile Inventory workflow/data/permission contracts
+- inspect current Inventory source baseline
+- distinguish Inventory Ledger/Reservation/Lot-Serial authority from Warehouse operational workflows
+- preserve Finance/Costing valuation authority
+- assign an Inventory implementation ID only after broad scope is explicit
 
 ## Planning progress
 - Active state metric: Master 9 / 30 = 30.0%
 - P2 core commercial planning: 8 / 8 = 100.0%
-- `docs/db/acceptance-criteria.md` separately records 10 / 30 = 33.3%; this inconsistency remains for explicit normalization.
+- docs/db/acceptance-criteria.md separately records 10 / 30 = 33.3%; inconsistency remains for explicit normalization.
 
 ## Full Test Day
 Still deferred:
-- Party broad authenticated E2E / permission matrix / concurrency;
-- Product future heavy tests after Product implementation;
-- high-volume search;
-- PII/security regression;
-- performance/load;
-- backup/restore.
+- broad authenticated Product E2E / permission matrix / concurrency
+- Inventory future heavy tests after implementation
+- high-volume lookup
+- performance/load
+- security regression
+- backup/restore
