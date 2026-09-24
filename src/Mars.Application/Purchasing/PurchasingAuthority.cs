@@ -180,6 +180,17 @@ public sealed record PurchaseReturnSourceLineView(
     Guid? LotPublicId,
     Guid? SerialPublicId);
 
+public sealed record PurchaseMatchListItem(
+    Guid PublicId,
+    string Kind,
+    string State,
+    Guid SupplierInvoicePublicId,
+    Guid? PurchaseOrderPublicId,
+    Guid? GoodsReceiptPublicId,
+    decimal QuantityVariance,
+    decimal PriceVariance,
+    string? Reason);
+
 public sealed record PurchaseMatchPreview(
     PurchaseMatchKind Kind,
     PurchaseMatchState State,
@@ -196,6 +207,7 @@ public interface IPurchasingPersistence
     Task<IReadOnlyList<PurchasingDocumentListItem>> ListReceiptsAsync(Guid companyId, CancellationToken ct);
     Task<PurchasingDocumentDetailView?> GetReceiptAsync(Guid companyId, Guid publicId, CancellationToken ct);
     Task<IReadOnlyList<PurchasingDocumentListItem>> ListInvoicesAsync(Guid companyId, CancellationToken ct);
+    Task<IReadOnlyList<PurchaseMatchListItem>> ListMatchesAsync(Guid companyId, CancellationToken ct);
 
     Task<Result<PurchasingMutationReceipt>> CreateOrderAsync(
         CreatePurchaseOrderCommand command, IExecutionContext context, CancellationToken ct);
@@ -281,6 +293,15 @@ public sealed class PurchasingQueryHandler(
     public async Task<Result<IReadOnlyList<PurchasingDocumentListItem>>> ListInvoicesAsync(
         IExecutionContext context, CancellationToken ct) =>
         await ReadAsync(PurchasingPermissions.InvoiceRead, () => persistence.ListInvoicesAsync(context.CompanyId, ct), context, ct);
+
+    public async Task<Result<IReadOnlyList<PurchaseMatchListItem>>> ListMatchesAsync(
+        IExecutionContext context, CancellationToken ct)
+    {
+        if (!await Granted(PurchasingPermissions.MatchRead, context, ct))
+            return Result<IReadOnlyList<PurchaseMatchListItem>>.Failure(Denied());
+        return Result<IReadOnlyList<PurchaseMatchListItem>>.Success(
+            await persistence.ListMatchesAsync(context.CompanyId, ct));
+    }
 
     public async Task<Result<IReadOnlyList<PurchaseReturnSourceLineView>>> PreviewReturnSourceAsync(
         Guid goodsReceiptPublicId,
