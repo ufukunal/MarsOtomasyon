@@ -131,7 +131,9 @@ export function createProductMasterPage(
   });
 
   createProduct.addEventListener("click", async () => {
-    if (!baseUom.select.value) {
+    const selectedBaseUom =
+      baseUom.select.value || uoms.find(item => item.state === "ACTIVE")?.publicId || "";
+    if (!selectedBaseUom) {
       status.textContent = "Önce ACTIVE bir UOM oluşturun/seçin.";
       return;
     }
@@ -146,7 +148,7 @@ export function createProductMasterPage(
         purchasable: purchasable.input.checked,
         stockable: stockable.input.checked,
         trackingStrategy: tracking.select.value,
-        baseUomPublicId: baseUom.select.value
+        baseUomPublicId: selectedBaseUom
       },
       "Product oluşturuldu.");
     await loadList();

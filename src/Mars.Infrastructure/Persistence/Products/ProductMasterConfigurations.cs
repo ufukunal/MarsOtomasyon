@@ -84,7 +84,7 @@ internal sealed class ProductVariantConfiguration : IEntityTypeConfiguration<Pro
         b.Property(x=>x.CreatedAt).HasColumnName("created_at");
         b.HasAlternateKey(x=>new{x.Id,x.CompanyId}).HasName("ak_product_variants_id_company");
         b.HasIndex(x=>x.PublicId).IsUnique().HasDatabaseName("ux_product_variants_public_id");
-        b.HasIndex(x=>new{x.CompanyId,x.VariantCode}).IsUnique().HasDatabaseName("ux_product_variants_company_code").HasFilter(""variant_code" IS NOT NULL");
+        b.HasIndex(x=>new{x.CompanyId,x.VariantCode}).IsUnique().HasDatabaseName("ux_product_variants_company_code").HasFilter("variant_code IS NOT NULL");
         b.HasOne<ProductRecord>().WithMany()
             .HasForeignKey(x=>new{x.ProductId,x.CompanyId})
             .HasPrincipalKey(x=>new{x.Id,x.CompanyId})
@@ -119,11 +119,11 @@ internal sealed class ProductUomConfiguration : IEntityTypeConfiguration<Product
         b.HasAlternateKey(x=>new{x.Id,x.CompanyId}).HasName("ak_product_uoms_id_company");
         b.HasIndex(x=>x.PublicId).IsUnique().HasDatabaseName("ux_product_uoms_public_id");
         b.HasIndex(x=>x.ProductId).IsUnique().HasDatabaseName("ux_product_uoms_active_base")
-            .HasFilter(""role" = 'Base' AND "state" = 'Active'");
+            .HasFilter("role = 'Base' AND state = 'Active'");
         b.HasIndex(x=>new{x.ProductId,x.UomId}).IsUnique().HasDatabaseName("ux_product_uoms_active_product")
-            .HasFilter(""variant_id" IS NULL AND "state" = 'Active'");
+            .HasFilter("variant_id IS NULL AND state = 'Active'");
         b.HasIndex(x=>new{x.ProductId,x.VariantId,x.UomId}).IsUnique().HasDatabaseName("ux_product_uoms_active_variant")
-            .HasFilter(""variant_id" IS NOT NULL AND "state" = 'Active'");
+            .HasFilter("variant_id IS NOT NULL AND state = 'Active'");
         b.HasOne<ProductRecord>().WithMany()
             .HasForeignKey(x=>new{x.ProductId,x.CompanyId})
             .HasPrincipalKey(x=>new{x.Id,x.CompanyId})
@@ -165,7 +165,7 @@ internal sealed class ProductBarcodeConfiguration : IEntityTypeConfiguration<Pro
         b.Property(x=>x.CreatedAt).HasColumnName("created_at");
         b.HasIndex(x=>x.PublicId).IsUnique().HasDatabaseName("ux_product_barcodes_public_id");
         b.HasIndex(x=>new{x.CompanyId,x.Namespace,x.Value}).IsUnique()
-            .HasDatabaseName("ux_product_barcodes_active_code").HasFilter(""state" = 'Active'");
+            .HasDatabaseName("ux_product_barcodes_active_code").HasFilter("state = 'Active'");
         b.HasOne<ProductRecord>().WithMany()
             .HasForeignKey(x=>new{x.ProductId,x.CompanyId})
             .HasPrincipalKey(x=>new{x.Id,x.CompanyId})
@@ -230,7 +230,7 @@ internal sealed class ProductCategoryLinkConfiguration : IEntityTypeConfiguratio
         b.Property(x=>x.IsPrimary).HasColumnName("is_primary");
         b.Property(x=>x.CreatedAt).HasColumnName("created_at");
         b.HasIndex(x=>new{x.ProductId,x.CategoryId}).IsUnique().HasDatabaseName("ux_product_category_links_product_category");
-        b.HasIndex(x=>x.ProductId).IsUnique().HasDatabaseName("ux_product_category_links_primary").HasFilter(""is_primary" = TRUE");
+        b.HasIndex(x=>x.ProductId).IsUnique().HasDatabaseName("ux_product_category_links_primary").HasFilter("is_primary = TRUE");
         b.HasOne<ProductRecord>().WithMany()
             .HasForeignKey(x=>new{x.ProductId,x.CompanyId})
             .HasPrincipalKey(x=>new{x.Id,x.CompanyId})
@@ -261,7 +261,7 @@ internal sealed class ProductExternalMappingConfiguration : IEntityTypeConfigura
         b.Property(x=>x.CreatedAt).HasColumnName("created_at");
         b.HasIndex(x=>x.PublicId).IsUnique().HasDatabaseName("ux_product_external_mappings_public_id");
         b.HasIndex(x=>new{x.CompanyId,x.SystemCode,x.AccountScope,x.ExternalIdentity}).IsUnique()
-            .HasDatabaseName("ux_product_external_mappings_active_scope").HasFilter(""state" = 'Active'");
+            .HasDatabaseName("ux_product_external_mappings_active_scope").HasFilter("state = 'Active'");
         b.HasOne<ProductRecord>().WithMany()
             .HasForeignKey(x=>new{x.ProductId,x.CompanyId})
             .HasPrincipalKey(x=>new{x.Id,x.CompanyId})
