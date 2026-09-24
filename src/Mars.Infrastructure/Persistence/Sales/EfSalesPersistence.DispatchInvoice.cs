@@ -114,10 +114,13 @@ public sealed partial class EfSalesPersistence
             .SingleAsync(x=>x.Id==dispatch.WarehouseId&&x.CompanyId==context.CompanyId,ct);
         var ov=await CurrentOrderVersionAsync(order,ct);
         var sourceLines=await dbContext.Set<SalesOrderLineRecord>().AsNoTracking()
-            .Where(x=>x.CompanyId==context.CompanyId&&x.SalesOrderVersionId==ov.Id).ToDictionaryAsync(x=>x.LinePublicId,ct);
+            .Where(x=>x.CompanyId==context.CompanyId&&x.SalesOrderVersionId==ov.Id)
+            .ToDictionaryAsync(x=>x.LinePublicId,ct);
         var lines=await dbContext.Set<DispatchLineRecord>()
-            .Where(x=>x.CompanyId==context.CompanyId&&x.DispatchId==dispatch.Id).OrderBy(x=>x.Sequence).ToArrayAsync(ct);
-        var shipped=await GetNetDispatchedByOrderLineAsync(context.CompanyId,order.Id,lines.Select(x=>x.SalesOrderLinePublicId).Distinct().ToArray(),ct);
+            .Where(x=>x.CompanyId==context.CompanyId&&x.DispatchId==dispatch.Id)
+            .OrderBy(x=>x.Sequence).ToArrayAsync(ct);
+        var shipped=await GetNetDispatchedByOrderLineAsync(
+            context.CompanyId,order.Id,lines.Select(x=>x.SalesOrderLinePublicId).Distinct().ToArray(),ct);
 
         foreach(var group in lines.GroupBy(x=>x.SalesOrderLinePublicId))
         {
@@ -127,16 +130,25 @@ public sealed partial class EfSalesPersistence
                 return Business<SalesDispatchPostPlan>("sales.dispatch.cap","Cumulative Dispatch quantity exceeds eligible Order remainder.");
         }
 
-        var plans=new List<SalesDispatchPostLinePlan>(lines.Length);
+        var lineIds=lines.Select(x=>x.Id).ToArray();
+        var allocations=await dbContext.Set<DispatchSourceAllocationRecord>().AsNoTracking()
+            .Where(x=>x.CompanyId==context.CompanyId&&lineIds.Contains(x.DispatchLineId))
+            .OrderBy(x=>x.Id).ToArrayAsync(ct);
+        var allocationsByLine=allocations.GroupBy(x=>x.DispatchLineId)
+            .ToDictionary(x=>x.Key,x=>x.ToArray());
+
+        var plans=new List<SalesDispatchPostLinePlan>();
         foreach(var line in lines)
         {
-            var product=await dbContext.Set<ProductRecord>().AsNoTracking().SingleAsync(x=>x.Id==line.ProductId&&x.CompanyId==context.CompanyId,ct);
+            var product=await dbContext.Set<ProductRecord>().AsNoTracking()
+                .SingleAsync(x=>x.Id==line.ProductId&&x.CompanyId==context.CompanyId,ct);
             ProductVariantRecord? variant=line.VariantId.HasValue
-                ? await dbContext.Set<ProductVariantRecord>().AsNoTracking().SingleAsync(x=>x.Id==line.VariantId.Value&&x.CompanyId==context.CompanyId,ct):null;
-            var uom=await dbContext.Set<UnitOfMeasureRecord>().AsNoTracking().SingleAsync(x=>x.Id==line.UomId&&x.CompanyId==context.CompanyId,ct);
-            var location=line.LocationId.HasValue?await dbContext.Set<LocationRecord>().AsNoTracking().SingleAsync(x=>x.Id==line.LocationId.Value&&x.CompanyId==context.CompanyId,ct):null;
-            var lot=line.LotId.HasValue?await dbContext.Set<InventoryLotRecord>().AsNoTracking().SingleAsync(x=>x.Id==line.LotId.Value&&x.CompanyId==context.CompanyId,ct):null;
-            var serial=line.SerialId.HasValue?await dbContext.Set<InventorySerialRecord>().AsNoTracking().SingleAsync(x=>x.Id==line.SerialId.Value&&x.CompanyId==context.CompanyId,ct):null;
+                ? await dbContext.Set<ProductVariantRecord>().AsNoTracking()
+                    .SingleAsync(x=>x.Id==line.VariantId.Value&&x.CompanyId==context.CompanyId,ct)
+                :null;
+            var uom=await dbContext.Set<UnitOfMeasureRecord>().AsNoTracking()
+                .SingleAsync(x=>x.Id==line.UomId&&x.CompanyId==context.CompanyId,ct);
+
             if(line.ReservationPublicId.HasValue)
             {
                 var reservation=await dbContext.Set<InventoryReservationRecord>().AsNoTracking()
@@ -146,12 +158,65 @@ public sealed partial class EfSalesPersistence
                    await ReservationBalanceAsync(reservation.Id,context.CompanyId,ct)<line.Quantity)
                     return Business<SalesDispatchPostPlan>("sales.dispatch.reservation","Linked Reservation is not consumable for this Dispatch line.");
             }
-            plans.Add(new(line.PublicId,line.SalesOrderLinePublicId,product.PublicId,variant?.PublicId,uom.PublicId,
-                line.ConversionFactorSnapshot,line.Quantity,
-                InventoryPosition.Create(warehouse.PublicId,location?.PublicId,InventoryDispositionCode.Available,lot?.PublicId,serial?.PublicId),
+
+            if(allocationsByLine.TryGetValue(line.Id,out var selected)&&selected.Length>0)
+            {
+                if(selected.Sum(x=>x.Quantity)!=line.Quantity)
+                    return Business<SalesDispatchPostPlan>(
+                        "sales.dispatch.source_allocation_incomplete",
+                        "Warehouse source allocations must exactly cover the Dispatch line quantity before POST.");
+
+                foreach(var allocation in selected)
+                {
+                    var allocationWarehouse=await dbContext.Set<WarehouseRecord>().AsNoTracking()
+                        .SingleAsync(x=>x.Id==allocation.WarehouseId&&x.CompanyId==context.CompanyId,ct);
+                    if(allocationWarehouse.Id!=warehouse.Id)
+                        return Business<SalesDispatchPostPlan>("sales.dispatch.source_warehouse","Source allocation Warehouse must match Dispatch Warehouse.");
+                    var location=await dbContext.Set<LocationRecord>().AsNoTracking()
+                        .SingleAsync(x=>x.Id==allocation.LocationId&&x.CompanyId==context.CompanyId,ct);
+                    var lot=allocation.LotId.HasValue
+                        ? await dbContext.Set<InventoryLotRecord>().AsNoTracking()
+                            .SingleAsync(x=>x.Id==allocation.LotId.Value&&x.CompanyId==context.CompanyId,ct)
+                        :null;
+                    var serial=allocation.SerialId.HasValue
+                        ? await dbContext.Set<InventorySerialRecord>().AsNoTracking()
+                            .SingleAsync(x=>x.Id==allocation.SerialId.Value&&x.CompanyId==context.CompanyId,ct)
+                        :null;
+
+                    plans.Add(new(
+                        line.PublicId,allocation.PublicId,line.SalesOrderLinePublicId,
+                        product.PublicId,variant?.PublicId,uom.PublicId,line.ConversionFactorSnapshot,allocation.Quantity,
+                        InventoryPosition.Create(
+                            allocationWarehouse.PublicId,location.PublicId,InventoryDispositionCode.Available,
+                            lot?.PublicId,serial?.PublicId),
+                        line.ReservationPublicId));
+                }
+                continue;
+            }
+
+            var fallbackLocation=line.LocationId.HasValue
+                ?await dbContext.Set<LocationRecord>().AsNoTracking()
+                    .SingleAsync(x=>x.Id==line.LocationId.Value&&x.CompanyId==context.CompanyId,ct)
+                :null;
+            var fallbackLot=line.LotId.HasValue
+                ?await dbContext.Set<InventoryLotRecord>().AsNoTracking()
+                    .SingleAsync(x=>x.Id==line.LotId.Value&&x.CompanyId==context.CompanyId,ct)
+                :null;
+            var fallbackSerial=line.SerialId.HasValue
+                ?await dbContext.Set<InventorySerialRecord>().AsNoTracking()
+                    .SingleAsync(x=>x.Id==line.SerialId.Value&&x.CompanyId==context.CompanyId,ct)
+                :null;
+
+            plans.Add(new(
+                line.PublicId,line.PublicId,line.SalesOrderLinePublicId,
+                product.PublicId,variant?.PublicId,uom.PublicId,line.ConversionFactorSnapshot,line.Quantity,
+                InventoryPosition.Create(
+                    warehouse.PublicId,fallbackLocation?.PublicId,InventoryDispositionCode.Available,
+                    fallbackLot?.PublicId,fallbackSerial?.PublicId),
                 line.ReservationPublicId));
         }
-        return Result<SalesDispatchPostPlan>.Success(new(dispatch.PublicId,order.PublicId,warehouse.PublicId,plans));
+        return Result<SalesDispatchPostPlan>.Success(
+            new(dispatch.PublicId,order.PublicId,warehouse.PublicId,plans));
     }
 
     public Task<Result<SalesMutationReceipt>> CompleteDispatchPostAsync(
@@ -164,9 +229,11 @@ public sealed partial class EfSalesPersistence
                 if(dispatch.State!=DispatchState.Ready)return Business<SalesMutationReceipt>("sales.dispatch.state","Only READY Dispatch can complete posting.");
                 var lines=await dbContext.Set<DispatchLineRecord>()
                     .Where(x=>x.CompanyId==context.CompanyId&&x.DispatchId==dispatch.Id).ToArrayAsync(innerCt);
-                if(effects.Count!=lines.Length||effects.Any(e=>lines.All(l=>l.PublicId!=e.DispatchLinePublicId))||
-                   effects.Any(e=>e.IsReversal||e.OriginalInventoryMovementPublicId.HasValue))
-                    return Conflict<SalesMutationReceipt>("sales.dispatch.effects","Inventory effects do not exactly match Dispatch lines.");
+                if(effects.Count<lines.Length||
+                   effects.Any(e=>lines.All(l=>l.PublicId!=e.DispatchLinePublicId))||
+                   effects.Any(e=>e.IsReversal||e.OriginalInventoryMovementPublicId.HasValue)||
+                   lines.Any(l=>effects.All(e=>e.DispatchLinePublicId!=l.PublicId)))
+                    return Conflict<SalesMutationReceipt>("sales.dispatch.effects","Inventory effects do not exactly cover Dispatch lines.");
                 foreach(var e in effects)
                 {
                     var line=lines.Single(x=>x.PublicId==e.DispatchLinePublicId);
@@ -226,49 +293,92 @@ public sealed partial class EfSalesPersistence
         if(original is null)return NotFound<SalesDispatchReversePlan>("sales.dispatch.not_found","Dispatch was not found.");
         if(original.State is not (DispatchState.Posted or DispatchState.HandedOver or DispatchState.Delivered))
             return Business<SalesDispatchReversePlan>("sales.dispatch.reverse.state","Only posted physical Dispatch can be reversed.");
-        if(await dbContext.Set<DispatchRecord>().AsNoTracking().AnyAsync(x=>x.CompanyId==context.CompanyId&&x.ReversalOfDispatchId==original.Id,ct))
+        if(await dbContext.Set<DispatchRecord>().AsNoTracking()
+            .AnyAsync(x=>x.CompanyId==context.CompanyId&&x.ReversalOfDispatchId==original.Id,ct))
             return Conflict<SalesDispatchReversePlan>("sales.dispatch.reverse.exists","Dispatch already has an explicit reversal.");
 
         var order=await LockOrderByIdAsync(original.SalesOrderId,context.CompanyId,ct);
         if(order is null)return NotFound<SalesDispatchReversePlan>("sales.order.not_found","Sales Order was not found.");
-        var warehouse=await dbContext.Set<WarehouseRecord>().AsNoTracking().SingleAsync(x=>x.Id==original.WarehouseId&&x.CompanyId==context.CompanyId,ct);
+        var warehouse=await dbContext.Set<WarehouseRecord>().AsNoTracking()
+            .SingleAsync(x=>x.Id==original.WarehouseId&&x.CompanyId==context.CompanyId,ct);
         var originalLines=await dbContext.Set<DispatchLineRecord>()
-            .Where(x=>x.CompanyId==context.CompanyId&&x.DispatchId==original.Id).OrderBy(x=>x.Sequence).ToArrayAsync(ct);
-        var effects=await dbContext.Set<DispatchInventoryEffectLinkRecord>().AsNoTracking()
-            .Where(x=>x.CompanyId==context.CompanyId&&originalLines.Select(l=>l.Id).Contains(x.DispatchLineId)&&!x.IsReversal)
-            .ToDictionaryAsync(x=>x.DispatchLineId,ct);
-        if(effects.Count!=originalLines.Length)
+            .Where(x=>x.CompanyId==context.CompanyId&&x.DispatchId==original.Id)
+            .OrderBy(x=>x.Sequence).ToArrayAsync(ct);
+        var originalLineIds=originalLines.Select(x=>x.Id).ToArray();
+        var effectLinks=await dbContext.Set<DispatchInventoryEffectLinkRecord>().AsNoTracking()
+            .Where(x=>x.CompanyId==context.CompanyId&&originalLineIds.Contains(x.DispatchLineId)&&!x.IsReversal)
+            .OrderBy(x=>x.Id).ToArrayAsync(ct);
+        if(originalLines.Any(l=>effectLinks.All(e=>e.DispatchLineId!=l.Id)))
             return Conflict<SalesDispatchReversePlan>("sales.dispatch.reverse.effects","Original Dispatch inventory effect links are incomplete.");
 
         var reversal=new DispatchRecord {
-            PublicId=Guid.NewGuid(),CompanyId=context.CompanyId,Number=command.ReversalNumber.Trim(),SalesOrderId=original.SalesOrderId,
-            SalesOrderVersionNumber=original.SalesOrderVersionNumber,WarehouseId=original.WarehouseId,State=DispatchState.Ready,
-            Version=1,CreatorActorId=context.ActorId,ReversalOfDispatchId=original.Id,CreatedAt=DateTimeOffset.UtcNow,ReadyAt=DateTimeOffset.UtcNow
+            PublicId=Guid.NewGuid(),CompanyId=context.CompanyId,Number=command.ReversalNumber.Trim(),
+            SalesOrderId=original.SalesOrderId,SalesOrderVersionNumber=original.SalesOrderVersionNumber,
+            WarehouseId=original.WarehouseId,State=DispatchState.Ready,Version=1,
+            CreatorActorId=context.ActorId,ReversalOfDispatchId=original.Id,
+            CreatedAt=DateTimeOffset.UtcNow,ReadyAt=DateTimeOffset.UtcNow
         };
-        dbContext.Add(reversal);await dbContext.SaveChangesAsync(ct);
+        dbContext.Add(reversal);
+        await dbContext.SaveChangesAsync(ct);
 
-        var plans=new List<SalesDispatchReverseLinePlan>(originalLines.Length);
-        foreach(var line in originalLines)
+        var plans=new List<SalesDispatchReverseLinePlan>(effectLinks.Length);
+        var sequence=0;
+        foreach(var effect in effectLinks)
         {
+            var originalLine=originalLines.Single(x=>x.Id==effect.DispatchLineId);
+            var movement=await dbContext.Set<InventoryMovementRecord>().AsNoTracking()
+                .SingleOrDefaultAsync(x=>x.CompanyId==context.CompanyId&&x.PublicId==effect.InventoryMovementPublicId,ct);
+            if(movement is null||movement.SourceWarehouseId is null||movement.SourceDispositionId is null)
+                return Conflict<SalesDispatchReversePlan>("sales.dispatch.reverse.movement","Original physical movement lineage is incomplete.");
+
             var reversalLine=new DispatchLineRecord {
-                PublicId=Guid.NewGuid(),DispatchId=reversal.Id,CompanyId=context.CompanyId,Sequence=line.Sequence,
-                SalesOrderLinePublicId=line.SalesOrderLinePublicId,ProductId=line.ProductId,VariantId=line.VariantId,UomId=line.UomId,
-                ConversionFactorSnapshot=line.ConversionFactorSnapshot,Quantity=line.Quantity,WarehouseId=line.WarehouseId,
-                LocationId=line.LocationId,LotId=line.LotId,SerialId=line.SerialId,ReservationPublicId=null
+                PublicId=Guid.NewGuid(),DispatchId=reversal.Id,CompanyId=context.CompanyId,Sequence=++sequence,
+                SalesOrderLinePublicId=originalLine.SalesOrderLinePublicId,
+                ProductId=originalLine.ProductId,VariantId=originalLine.VariantId,UomId=originalLine.UomId,
+                ConversionFactorSnapshot=originalLine.ConversionFactorSnapshot,Quantity=movement.EnteredQuantity,
+                WarehouseId=originalLine.WarehouseId,LocationId=movement.SourceLocationId,
+                LotId=movement.LotId,SerialId=movement.SerialId,ReservationPublicId=null
             };
-            dbContext.Add(reversalLine);await dbContext.SaveChangesAsync(ct);
-            var product=await dbContext.Set<ProductRecord>().AsNoTracking().SingleAsync(x=>x.Id==line.ProductId&&x.CompanyId==context.CompanyId,ct);
-            ProductVariantRecord? variant=line.VariantId.HasValue?await dbContext.Set<ProductVariantRecord>().AsNoTracking().SingleAsync(x=>x.Id==line.VariantId.Value&&x.CompanyId==context.CompanyId,ct):null;
-            var uom=await dbContext.Set<UnitOfMeasureRecord>().AsNoTracking().SingleAsync(x=>x.Id==line.UomId&&x.CompanyId==context.CompanyId,ct);
-            var location=line.LocationId.HasValue?await dbContext.Set<LocationRecord>().AsNoTracking().SingleAsync(x=>x.Id==line.LocationId.Value&&x.CompanyId==context.CompanyId,ct):null;
-            var lot=line.LotId.HasValue?await dbContext.Set<InventoryLotRecord>().AsNoTracking().SingleAsync(x=>x.Id==line.LotId.Value&&x.CompanyId==context.CompanyId,ct):null;
-            var serial=line.SerialId.HasValue?await dbContext.Set<InventorySerialRecord>().AsNoTracking().SingleAsync(x=>x.Id==line.SerialId.Value&&x.CompanyId==context.CompanyId,ct):null;
-            plans.Add(new(reversalLine.PublicId,line.PublicId,line.SalesOrderLinePublicId,product.PublicId,variant?.PublicId,uom.PublicId,
-                line.ConversionFactorSnapshot,line.Quantity,
-                InventoryPosition.Create(warehouse.PublicId,location?.PublicId,InventoryDispositionCode.Available,lot?.PublicId,serial?.PublicId),
-                effects[line.Id].InventoryMovementPublicId));
+            dbContext.Add(reversalLine);
+            await dbContext.SaveChangesAsync(ct);
+
+            var product=await dbContext.Set<ProductRecord>().AsNoTracking()
+                .SingleAsync(x=>x.Id==originalLine.ProductId&&x.CompanyId==context.CompanyId,ct);
+            ProductVariantRecord? variant=originalLine.VariantId.HasValue
+                ?await dbContext.Set<ProductVariantRecord>().AsNoTracking()
+                    .SingleAsync(x=>x.Id==originalLine.VariantId.Value&&x.CompanyId==context.CompanyId,ct)
+                :null;
+            var uom=await dbContext.Set<UnitOfMeasureRecord>().AsNoTracking()
+                .SingleAsync(x=>x.Id==originalLine.UomId&&x.CompanyId==context.CompanyId,ct);
+            var sourceWarehouse=await dbContext.Set<WarehouseRecord>().AsNoTracking()
+                .SingleAsync(x=>x.Id==movement.SourceWarehouseId.Value&&x.CompanyId==context.CompanyId,ct);
+            var sourceLocation=movement.SourceLocationId.HasValue
+                ?await dbContext.Set<LocationRecord>().AsNoTracking()
+                    .SingleAsync(x=>x.Id==movement.SourceLocationId.Value&&x.CompanyId==context.CompanyId,ct)
+                :null;
+            var sourceDisposition=await dbContext.Set<InventoryDispositionRecord>().AsNoTracking()
+                .SingleAsync(x=>x.Id==movement.SourceDispositionId.Value,ct);
+            var lot=movement.LotId.HasValue
+                ?await dbContext.Set<InventoryLotRecord>().AsNoTracking()
+                    .SingleAsync(x=>x.Id==movement.LotId.Value&&x.CompanyId==context.CompanyId,ct)
+                :null;
+            var serial=movement.SerialId.HasValue
+                ?await dbContext.Set<InventorySerialRecord>().AsNoTracking()
+                    .SingleAsync(x=>x.Id==movement.SerialId.Value&&x.CompanyId==context.CompanyId,ct)
+                :null;
+
+            plans.Add(new(
+                reversalLine.PublicId,originalLine.PublicId,originalLine.SalesOrderLinePublicId,
+                product.PublicId,variant?.PublicId,uom.PublicId,originalLine.ConversionFactorSnapshot,
+                movement.EnteredQuantity,
+                InventoryPosition.Create(
+                    sourceWarehouse.PublicId,sourceLocation?.PublicId,sourceDisposition.Code,
+                    lot?.PublicId,serial?.PublicId),
+                movement.PublicId));
         }
-        return Result<SalesDispatchReversePlan>.Success(new(original.PublicId,reversal.PublicId,order.PublicId,warehouse.PublicId,plans));
+
+        return Result<SalesDispatchReversePlan>.Success(
+            new(original.PublicId,reversal.PublicId,order.PublicId,warehouse.PublicId,plans));
     }
 
     public Task<Result<SalesMutationReceipt>> CompleteDispatchReverseAsync(
