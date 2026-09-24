@@ -226,6 +226,37 @@ PARTY-IMP-005 implements ACTIVE → INACTIVE only and preserves Party roles, Tax
 
 Party reactivation remains deferred because frozen PLAN-003 requires current duplicate/legal identity validation rerun.
 
-Next:
-- define the next smallest coherent Parties vertical slice;
-- no PARTY-IMP-006 ID is assigned yet.
+Sixth implementation work package:
+- PARTY-IMP-006 — Party Master Completion Tranche — COMPLETED.
+
+Readiness:
+- `docs/plan/03-cariler/p5-party-master-completion-readiness.md`
+
+Canonical implementation evidence:
+- `docs/plan/03-cariler/party-imp-006-implementation.md`
+
+Verification:
+- tested commit `55b7e78bc2eabcf986e8318f60296f0f3f9cd223`;
+- Foundation Build `35934312246` — SUCCESS;
+- Foundation Test Deploy `35934312470` — SUCCESS;
+- frontend tests 18 / 18;
+- Foundation targeted tests 61 / 61;
+- generated PARTY-IMP-006 migration committed and applied to TEST;
+- migration count 6;
+- EF pending-model PASS;
+- TEST /parties 200;
+- live/ready 200 / 200;
+- protected Party master routes unauthenticated 401;
+- runner-to-TEST smoke PASS.
+
+PARTY-IMP-006 completed the broad source-backed Party master tranche: list/detail/edit, Contact/Communication, Address, current TR Tax Identity read/lifecycle, External Mapping and explicit Merge/lineage.
+
+Still deferred outside Party implementation completion:
+- soft/fuzzy duplicate candidate generation;
+- Party Reactivation;
+- provider/GİB/non-TR Tax Identity behavior;
+- Communications consent/preferences;
+- consuming Sales/Purchasing eligibility;
+- Finance integration.
+
+P5 next repository-defined module direction is Products.
