@@ -352,15 +352,16 @@ public sealed partial class EfSalesPersistence
             var r=await ResolveTradeAsync(context.CompanyId,x.ProductPublicId,x.VariantPublicId,x.UomPublicId,ct);
             if(r.IsFailure)return Result<SalesMutationReceipt>.Failure(r.Error!);
             resolved.Add(r.Value!);
-            var sourceCheck=await ValidateInvoiceSourceAsync(command.SourceMode,x,context.CompanyId,ct);
+            var sourceCheck=await ValidateInvoiceSourceAsync(command.SourceMode,x,context.CompanyId,existingId,ct);
             if(sourceCheck is not null)return Result<SalesMutationReceipt>.Failure(sourceCheck);
         }
 
         SalesInvoiceRecord invoice;
         if(existingId.HasValue)
         {
-            invoice=await dbContext.Set<SalesInvoiceRecord>().SingleOrDefaultAsync(x=>x.CompanyId==context.CompanyId&&x.PublicId==existingId.Value,ct)
-                ?? throw new InvalidOperationException("invoice-not-found-sentinel");
+            var existing=await dbContext.Set<SalesInvoiceRecord>().SingleOrDefaultAsync(x=>x.CompanyId==context.CompanyId&&x.PublicId==existingId.Value,ct);
+            if(existing is null)return NotFound<SalesMutationReceipt>("sales.invoice.not_found","Invoice draft was not found.");
+            invoice=existing;
             if(invoice.Version!=expectedVersion)return Conflict<SalesMutationReceipt>("sales.invoice.stale","Invoice draft version is stale.",true);
             if(invoice.State!=SalesInvoiceState.Draft)return Business<SalesMutationReceipt>("sales.invoice.state","Only DRAFT Invoice can be edited.");
             var oldLines=await dbContext.Set<SalesInvoiceLineRecord>().Where(x=>x.CompanyId==context.CompanyId&&x.SalesInvoiceId==invoice.Id).ToArrayAsync(ct);
@@ -419,7 +420,7 @@ public sealed partial class EfSalesPersistence
     }
 
     private async Task<ApplicationError?> ValidateInvoiceSourceAsync(
-        SalesInvoiceSourceMode mode,CreateInvoiceDraftLineInput input,Guid companyId,CancellationToken ct)
+        SalesInvoiceSourceMode mode,CreateInvoiceDraftLineInput input,Guid companyId,Guid? excludeInvoicePublicId,CancellationToken ct)
     {
         if(mode==SalesInvoiceSourceMode.Direct)
         {
@@ -462,6 +463,7 @@ public sealed partial class EfSalesPersistence
             join invoiceLine in dbContext.Set<SalesInvoiceLineRecord>().AsNoTracking() on link.SalesInvoiceLineId equals invoiceLine.Id
             join invoice in dbContext.Set<SalesInvoiceRecord>().AsNoTracking() on invoiceLine.SalesInvoiceId equals invoice.Id
             where link.CompanyId==companyId&&invoice.CompanyId==companyId&&invoice.State==SalesInvoiceState.Draft&&
+                  (!excludeInvoicePublicId.HasValue || invoice.PublicId!=excludeInvoicePublicId.Value)&&
                   link.SourceMode==mode&&link.SourceDocumentPublicId==input.SourceDocumentPublicId&&link.SourceLinePublicId==input.SourceLinePublicId
             select (decimal?)link.Quantity).SumAsync(ct)??0m;
         if(used+input.Quantity>sourceQty)
