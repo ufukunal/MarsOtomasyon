@@ -157,7 +157,9 @@ internal static class SalesImp001Tests
             "sales.dispatch_inventory_effect_links",
             "sales.sales_invoices",
             "sales.sales_invoice_lines",
-            "sales.sales_invoice_source_links"
+            "sales.sales_invoice_source_links",
+            "sales.proformas",
+            "sales.proforma_lines"
         })
         {
             AssertTrue(tables.Contains(table));
