@@ -1,21 +1,20 @@
 # Planning Backlog
 
-## Current P5 implementation dependency
+## Current P5 implementation
 
-Warehouse broad implementation tranche scope/readiness definition.
+WAREHOUSE-IMP-001 — Warehouse Execution & Inventory Control Authority Tranche
 
-Status: SCOPE DEFINITION REQUIRED.
+Status: READY FOR IMPLEMENTATION.
 
-Formal WAREHOUSE-IMP package ID is intentionally deferred until the exact broad coherent tranche is frozen.
+Readiness:
+- docs/plan/06-ambar-depo/p5-warehouse-execution-readiness.md
 
-Predecessor PURCHASING-IMP-001 is completed and runtime-verified:
-- canonical report: docs/plan/07-satinalma/purchasing-imp-001-implementation.md
-- tested commit: 50ec242e5471743bbdc9ad43bc69626166b1679f
-- Foundation Build 36054248023 — SUCCESS
-- Foundation Test Deploy 36054247926 — SUCCESS
+Predecessor PURCHASING-IMP-001 is completed and runtime-verified.
 
-Use frozen PLAN-006 and current Inventory/Sales/Purchasing implementation truth.
-Do not repeat global/module planning.
+No Warehouse micro-package IDs are permitted for the frozen broad tranche.
+
+Next dependency after runtime closure of WAREHOUSE-IMP-001:
+- Finance / Treasury broad implementation tranche definition from frozen PLAN-007, subject to repository reconciliation.
 
 ## Portfolio planning
 
