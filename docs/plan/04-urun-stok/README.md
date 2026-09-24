@@ -132,12 +132,33 @@ Still deferred:
 PRODUCT-IMP-001 does not own Inventory Ledger, Reservation, Lot/Serial physical truth, Warehouse operations or Finance/Costing valuation; those authorities remain separated by their owning modules.
 
 ### INVENTORY-IMP-001 — Inventory Authority & Traceability Tranche
-Status: READY FOR IMPLEMENTATION.
+Status: COMPLETED.
 
 Readiness:
 - docs/plan/04-urun-stok/p5-inventory-authority-traceability-readiness.md
 
-Broad scope:
+Canonical implementation:
+- docs/plan/04-urun-stok/inventory-imp-001-implementation.md
+
+Verification:
+- tested commit edcc24f1200b70aad102fc510ad7bec60c4515e7
+- Foundation Build 35998315605 — SUCCESS
+- Foundation Test Deploy 35998315582 — SUCCESS
+- frontend 20 / 20 PASS
+- Foundation targeted 74 PASS
+- Release 0 warnings / 0 errors
+- Inventory migration applied to TEST
+- migration count 8
+- EF pending-model PASS
+- TEST /inventory 200
+- /products 200
+- /parties 200
+- live/ready 200 / 200
+- protected Inventory routes 401 unauthenticated
+- OpenAPI 200
+- smoke PASS
+
+Completed Inventory authority:
 - Warehouse / Location master
 - controlled physical dispositions
 - Lot / Serial trace identity
@@ -147,9 +168,12 @@ Broad scope:
 - protected API / Mars.Web / audit / idempotency / concurrency
 - additive Inventory migration and TEST deployment
 
-Boundary:
+Boundary remains:
 - Warehouse operational workflows remain separate
 - no arbitrary public movement post
 - no free-form Reservation mutation without real Sales Order line/version
 - Finance/Costing remains valuation/current-cost/COGS authority
 - no production deployment or Full Test Day
+
+P5 next module direction:
+- Sales broad implementation tranche definition.
