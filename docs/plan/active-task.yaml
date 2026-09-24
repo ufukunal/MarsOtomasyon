@@ -1,10 +1,10 @@
-id: WAREHOUSE-TRANCHE-DEFINITION
-title: Warehouse Broad Implementation Tranche Scope & Readiness
+id: WAREHOUSE-IMP-001
+title: Warehouse Execution & Inventory Control Authority Tranche
 module: warehouse
-status: scope_definition_required
+status: ready_for_implementation
 progress: not_started
-work_package_id: null
-readiness_report: null
+work_package_id: WAREHOUSE-IMP-001
+readiness_report: docs/plan/06-ambar-depo/p5-warehouse-execution-readiness.md
 
 phase:
   id: P5
@@ -18,32 +18,58 @@ predecessor:
   canonical_report: docs/plan/07-satinalma/purchasing-imp-001-implementation.md
   tested_commit: 50ec242e5471743bbdc9ad43bc69626166b1679f
   foundation_build_run: 36054248023
-  foundation_build_job: 107817148334
   test_deploy_run: 36054247926
-  test_deploy_job: 107818562329
 
 owner_direction:
-  - broad coherent implementation tranches
-  - do not split Warehouse capabilities into micro package IDs
-  - do not assign WAREHOUSE-IMP package id until exact broad scope is frozen
+  - implement Warehouse as one broad coherent tranche
+  - do not split disposition, put-away, pick-pack-stage-load, transfer, count, scrap or offline journal into micro package IDs
+  - preserve Inventory Ledger authority and Sales/Purchasing posting ownership
   - ordinary technical decisions belong to active skills unless they introduce new business/legal/provider/cross-module semantics
 
-scope_definition_basis:
-  - frozen PLAN-006 Warehouse operational contract
-  - implemented Inventory physical ledger and Reservation authority
-  - implemented Sales Dispatch POST physical STOCK OUT boundary
-  - implemented Purchasing Goods Receipt POST physical STOCK IN to QUARANTINE boundary
-  - Warehouse operations must not duplicate Sales/Purchasing stock effects
-  - Finance valuation remains external authority
-  - Quality implementation remains external authority
+scope:
+  include:
+    - PLAN-006 Warehouse permission catalog
+    - Warehouse receiving/quarantine read queue over Purchasing Goods Receipt
+    - physical disposition commands through Inventory authority
+    - put-away and manual replenishment internal movements
+    - Warehouse pick work linked to Sales Dispatch
+    - FEFO/FIFO recommendation projection and controlled override
+    - narrow Sales-owned pre-POST Dispatch source-binding contract
+    - packing/package structures
+    - staging/loading operational work
+    - Warehouse Transfer ISSUE/TRANSIT/partial RECEIVE/reconciliation/reversal
+    - Stock Count snapshot/intervening/review/approval workflow
+    - negative Count Adjustment posting through Inventory
+    - positive Count Adjustment fail-closed until Finance valuation authority exists
+    - damage and scrap physical authority with approval/SoD
+    - Warehouse/Location deactivation operational blocker integration
+    - server-side offline/client-operation journal and conflict evidence
+    - protected API, Mars.Web /warehouse and rebuildable read projections
+    - additive EF migration and TEST deployment
+  exclude:
+    - duplicate Sales Dispatch POST
+    - duplicate Purchasing Goods Receipt POST
+    - Finance valuation/COGS/write-off postings
+    - positive Count Adjustment physical POST before Finance valuation authority
+    - full Quality inspection/result module
+    - automatic replenishment/slotting optimizer
+    - MRP
+    - carrier/label/tracking provider implementation
+    - robotics/WMS provider
+    - Device Layer/mobile/Desktop shell
+    - exact capacity policy administration
+    - production deployment
+    - Full Test Day
 
-required_first_action:
-  - reconcile repository main HEAD and intervening commits
-  - read PLAN-006 Warehouse plan/workflows/data-contract/permissions/acceptance
-  - inspect implemented Inventory/Sales/Purchasing contracts and current Warehouse-related source
-  - define one broad coherent Warehouse implementation tranche
-  - freeze exact includes/excludes, authority boundaries, migrations, API/Web and normal-test evidence
-  - only then assign WAREHOUSE-IMP work_package_id and readiness report
+implementation_decisions:
+  - Inventory physical authority is reused for every Warehouse movement; no second stock ledger
+  - existing Inventory persistence joins ambient MarsDbContext transactions
+  - TRANSIT physical position is represented in target Warehouse with null Location and TRANSIT disposition
+  - pick/pack/stage/load have no Inventory movement
+  - Sales owns Dispatch tables and POST; Warehouse may use a narrow Sales-owned source-binding contract only before POST
+  - Purchasing owns Goods Receipt POST; Warehouse begins from posted receipt lineage
+  - positive count adjustment is blocked with valuation-required outcome until Finance/Costing authority exists
+  - manual capacity checks are limited to existing active/stock-bearing Location rules until capacity configuration exists
 
 planning_progress:
   master_sequence:
@@ -54,10 +80,3 @@ planning_progress:
     completed: 30
     total: 30
     percent: 100.0
-
-restrictions:
-  - no duplicate Sales Dispatch STOCK OUT
-  - no duplicate Purchasing Goods Receipt STOCK IN
-  - no Finance valuation authority
-  - no production deployment
-  - no Full Test Day
