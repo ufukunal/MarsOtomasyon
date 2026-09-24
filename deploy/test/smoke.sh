@@ -78,6 +78,8 @@ assert_status 401 "/api/v1/purchasing/receipts/00000000-0000-0000-0000-000000000
 assert_status 401 "/api/v1/purchasing/receipts/00000000-0000-0000-0000-000000000001/reverse" POST
 assert_status 401 "/api/v1/purchasing/invoices"
 assert_status 401 "/api/v1/purchasing/invoices" POST
+assert_status 401 "/api/v1/purchasing/matches"
+assert_status 401 "/api/v1/purchasing/matches/00000000-0000-0000-0000-000000000001/approval" POST
 assert_status 401 "/api/v1/purchasing/match-preview?mode=1&sourceDocumentPublicId=00000000-0000-0000-0000-000000000001"
 assert_status 401 "/api/v1/purchasing/return-source-preview?goodsReceiptPublicId=00000000-0000-0000-0000-000000000001"
 assert_status 401 "/api/v1/parties/00000000-0000-0000-0000-000000000001"
@@ -112,6 +114,7 @@ required = {
     "/api/v1/purchasing/orders",
     "/api/v1/purchasing/receipts",
     "/api/v1/purchasing/invoices",
+    "/api/v1/purchasing/matches",
     "/api/v1/purchasing/match-preview",
     "/api/v1/purchasing/return-source-preview",
 }
