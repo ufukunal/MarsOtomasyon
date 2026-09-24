@@ -1,27 +1,21 @@
 name: PURCHASING-IMP-001 Migration Generate
-# Retry after final Purchasing model/compile reconciliation.
+# PURCHASING-IMP-001 migration is committed; retained as manual/read-only evidence tooling.
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - ".github/workflows/purchasing-migration-generate.yml"
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  generate:
-    name: generate-purchasing-authority-migration
+  verify:
+    name: verify-purchasing-authority-migration
     runs-on: self-hosted
     timeout-minutes: 15
 
     steps:
-      - name: Checkout main
+      - name: Checkout
         uses: actions/checkout@v4
-        with:
-          ref: main
 
       - name: Select writable .NET install directory
         shell: bash
@@ -40,32 +34,34 @@ jobs:
           dotnet restore src/Mars.Infrastructure/Mars.Infrastructure.csproj
           dotnet build src/Mars.Infrastructure/Mars.Infrastructure.csproj --configuration Release --no-restore -m:1
 
-      - name: Generate additive PURCHASING-IMP-001 migration
+      - name: Verify committed PURCHASING-IMP-001 migration/model
         shell: bash
         env:
           MARS_MIGRATION_CONNECTION_STRING: "Host=localhost;Database=mars_design_time_probe"
         run: |
           set -euo pipefail
-          test ! -d src/Mars.Infrastructure/Persistence/Migrations/Purchasing
+          MIG_DIR="src/Mars.Infrastructure/Persistence/Migrations/Purchasing"
+          MIG_FILE="$MIG_DIR/20260924201517_PurchasingImp001CommercialReceiptInvoiceAuthority.cs"
 
-          dotnet tool run dotnet-ef migrations add PurchasingImp001CommercialReceiptInvoiceAuthority \
+          test -f "$MIG_FILE"
+          test -f "$MIG_DIR/20260924201517_PurchasingImp001CommercialReceiptInvoiceAuthority.Designer.cs"
+
+          grep -F 'name: "purchase_orders"' "$MIG_FILE"
+          grep -F 'name: "purchase_order_versions"' "$MIG_FILE"
+          grep -F 'name: "purchase_order_lines"' "$MIG_FILE"
+          grep -F 'name: "purchase_order_amendments"' "$MIG_FILE"
+          grep -F 'name: "purchase_order_amendment_deltas"' "$MIG_FILE"
+          grep -F 'name: "goods_receipts"' "$MIG_FILE"
+          grep -F 'name: "goods_receipt_lines"' "$MIG_FILE"
+          grep -F 'name: "goods_receipt_inventory_effect_links"' "$MIG_FILE"
+          grep -F 'name: "supplier_invoices"' "$MIG_FILE"
+          grep -F 'name: "supplier_invoice_lines"' "$MIG_FILE"
+          grep -F 'name: "supplier_invoice_source_links"' "$MIG_FILE"
+          grep -F 'name: "purchase_match_results"' "$MIG_FILE"
+          grep -F 'name: "purchase_match_exceptions"' "$MIG_FILE"
+
+          dotnet tool run dotnet-ef migrations has-pending-model-changes \
             --project src/Mars.Infrastructure/Mars.Infrastructure.csproj \
             --startup-project src/Mars.Infrastructure/Mars.Infrastructure.csproj \
             --configuration Release \
-            --no-build \
-            --output-dir Persistence/Migrations/Purchasing
-
-          test -d src/Mars.Infrastructure/Persistence/Migrations/Purchasing
-          git status --short
-          git diff --check
-
-      - name: Commit generated migration to main
-        shell: bash
-        run: |
-          set -euo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src/Mars.Infrastructure/Persistence/Migrations
-          git diff --cached --quiet && { echo "No migration changes generated."; exit 1; }
-          git commit -m "feat: add PURCHASING-IMP-001 migration"
-          git push origin HEAD:main
+            --no-build
