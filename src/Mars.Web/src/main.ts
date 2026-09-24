@@ -7,6 +7,7 @@ import { createPartyMasterPage } from "./party-master";
 import { createProductMasterPage } from "./product-master";
 import { createInventoryPage } from "./inventory";
 import { createSalesPage } from "./sales";
+import { createPurchasingPage } from "./purchasing";
 import {
   createButton,
   createField,
@@ -53,6 +54,11 @@ const router = new MarsRouter(shell.outlet, [
     path: "/sales",
     title: "Sales",
     render: () => createSalesPage(api)
+  },
+  {
+    path: "/purchasing",
+    title: "Purchasing",
+    render: () => createPurchasingPage(api)
   },
   {
     path: "/proof",
