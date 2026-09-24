@@ -1,18 +1,21 @@
 # Planning Backlog
 
-## Current P5 implementation
+## Current P5 implementation dependency
 
-PURCHASING-IMP-001 — Purchasing Commercial Receipt & Supplier Invoice Authority Tranche
+Warehouse broad implementation tranche scope/readiness definition.
 
-Status: READY FOR IMPLEMENTATION.
+Status: SCOPE DEFINITION REQUIRED.
 
-Readiness:
-- docs/plan/07-satinalma/p5-purchasing-authority-readiness.md
+Formal WAREHOUSE-IMP package ID is intentionally deferred until the exact broad coherent tranche is frozen.
 
-Predecessor SALES-IMP-001 is completed and runtime-verified.
+Predecessor PURCHASING-IMP-001 is completed and runtime-verified:
+- canonical report: docs/plan/07-satinalma/purchasing-imp-001-implementation.md
+- tested commit: 50ec242e5471743bbdc9ad43bc69626166b1679f
+- Foundation Build 36054248023 — SUCCESS
+- Foundation Test Deploy 36054247926 — SUCCESS
 
-Next dependency after Purchasing:
-- Warehouse broad implementation tranche, only after Purchasing runtime closure.
+Use frozen PLAN-006 and current Inventory/Sales/Purchasing implementation truth.
+Do not repeat global/module planning.
 
 ## Portfolio planning
 
