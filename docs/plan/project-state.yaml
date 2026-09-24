@@ -83,11 +83,10 @@ test_policy:
   heavy_tests: FULL_TEST_DAY_ONLY
 
 active_task:
-  id: INVENTORY-IMP-001
-  title: Inventory Authority & Traceability Tranche
-  status: ready_for_implementation
+  id: P5
+  title: Sales broad implementation tranche definition
+  status: scope_definition_required
   file: docs/plan/active-task.yaml
-  readiness_report: docs/plan/04-urun-stok/p5-inventory-authority-traceability-readiness.md
   progress: not_started
 
 completed_planning_tasks:
@@ -119,6 +118,7 @@ completed_implementation_tasks:
   - PARTY-IMP-005
   - PARTY-IMP-006
   - PRODUCT-IMP-001
+  - INVENTORY-IMP-001
 
 locked_decisions:
   - ASP.NET Core Identity + OpenIddict 7.7.1 is the accepted authentication/identity baseline.
@@ -260,7 +260,7 @@ test_environment:
   valkey_status: running_healthy
   valkey_image: valkey/valkey:8-alpine
   valkey_container: marsotomasyon-valkey-1
-  application_deployment_status: product_imp_001_test_deployed_and_smoke_passed
+  application_deployment_status: inventory_imp_001_test_deployed_and_smoke_passed
   ssh_connectivity_verified: true
   ssh_remote_user: ufuk
   remote_hostname: mars-prod
@@ -275,15 +275,16 @@ test_environment:
   foundation_test_party_page: 200
   foundation_test_party_directory: 200
   foundation_test_product_directory: 200
+  foundation_test_inventory_directory: 200
   foundation_test_party_unauthenticated_post: 401
   foundation_test_party_deactivate_unauthenticated_post: 401
   foundation_test_party_role_unauthenticated_post: 401
   foundation_test_party_role_state_unauthenticated_post: 401
   foundation_test_party_tax_identity_unauthenticated_post: 401
-  foundation_test_migration_count: 7
+  foundation_test_migration_count: 8
   foundation_test_smoke: PASS
-  foundation_test_workflow_run: 35981641137
-  foundation_test_implementation_commit: ac92911a8f5fcda070622b084216a43a70ad7d77
+  foundation_test_workflow_run: 35998315582
+  foundation_test_implementation_commit: edcc24f1200b70aad102fc510ad7bec60c4515e7
   mars_path_present: true
   postgresql_roles:
     owner_admin_role: mars_master
@@ -348,43 +349,37 @@ blocked_items:
   - UOM-specific transaction scale/fraction policy remains deferred.
   - Generic Variant EAV and provider/marketplace/GS1 behavior remain deferred.
   - Party Reactivation and fuzzy duplicate candidate generation remain deferred independently.
-  - INVENTORY-IMP-001 scope is frozen and ready for implementation; Warehouse operational workflows and Finance valuation remain explicitly deferred.
+  - INVENTORY-IMP-001 is completed; Warehouse operational workflows and Finance valuation remain explicitly deferred.
   - Planning metric inconsistency remains: active state 9 / 30 = 30.0% vs docs/db/acceptance-criteria.md 10 / 30 = 33.3%.
   - Production deployment and Full Test Day remain deferred.
 next_action:
-  id: INVENTORY-IMP-001
-  title: Inventory Authority & Traceability Tranche
+  id: P5
+  title: Define Sales broad implementation tranche
   phase: P5
-  module: inventory
-  status: READY_FOR_IMPLEMENTATION
-  work_package_id: INVENTORY-IMP-001
-  readiness_report: docs/plan/04-urun-stok/p5-inventory-authority-traceability-readiness.md
+  module: sales
+  status: SCOPE_DEFINITION_REQUIRED
+  work_package_id: NOT_ASSIGNED
   predecessor:
-    id: PRODUCT-IMP-001
+    id: INVENTORY-IMP-001
     status: completed
-    canonical_report: docs/plan/04-urun-stok/product-imp-001-implementation.md
-    tested_commit: ac92911a8f5fcda070622b084216a43a70ad7d77
-    foundation_build_run: 35981641268
-    test_deploy_run: 35981641137
-  included_authority:
-    - Warehouse and Location master
-    - controlled physical dispositions
-    - Lot and Serial trace identity
-    - append-oriented Inventory Ledger
-    - append-oriented non-physical Reservation authority
-    - stock availability and trace read surfaces
-  exclusions:
-    - Warehouse operational workflows
-    - Sales/Purchasing/Returns source documents
-    - arbitrary public physical movement posting
-    - Finance valuation/current-cost/COGS
-    - production deployment
-    - Full Test Day
+    canonical_report: docs/plan/04-urun-stok/inventory-imp-001-implementation.md
+    readiness_report: docs/plan/04-urun-stok/p5-inventory-authority-traceability-readiness.md
+    migration_commit: f4dc4cdf60bff8b5845347b6c50fbac5d64e3206
+    tested_commit: edcc24f1200b70aad102fc510ad7bec60c4515e7
+    foundation_build_run: 35998315605
+    test_deploy_run: 35998315582
+  source_direction:
+    - master P5 order places Sales after Inventory
+    - use frozen PLAN-002 Sales contracts and PLAN-010
+    - consume implemented Inventory Ledger and Reservation authority through explicit application contracts
+    - define one broad coherent Sales tranche rather than micro-packages
   restrictions:
-    - Inventory Ledger remains physical quantity authority
-    - Reservation remains non-physical and RESERVED is not a disposition
-    - normal posting cannot produce negative physical stock
-    - posted history is corrected by linked reversal/compensation
+    - Sales must not duplicate Reservation or physical stock authority
+    - Dispatch POST remains the normal physical Sales STOCK OUT point
+    - Sales Invoice POST remains receivable and COGS recognition without second stock-out
+    - Finance settlement/account-ledger authority remains outside Sales
+    - no production deployment
+    - no Full Test Day
     - exact active master planning metric remains 9 / 30 = 30.0 pending explicit metric normalization
 state_rules:
   - current_head must be verified from Git at every session start; embedded SHA is never authoritative.
