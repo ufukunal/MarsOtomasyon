@@ -639,14 +639,14 @@ public sealed class EfPurchasingPersistence(
         CreateSupplierInvoiceDraftCommand command,IExecutionContext context,CancellationToken ct) =>
         MutateAsync("purchasing.invoice.create",command.OperationKey,"SupplierInvoiceDraftCreated","SupplierInvoice",
             "purchasing.invoice.create.completed",context,
-            innerCt=>UpsertInvoiceDraftCoreAsync(null,null,command,context,innerCt));
+            innerCt=>UpsertInvoiceDraftCoreAsync(null,null,command,context,innerCt),ct);
 
     public Task<Result<PurchasingMutationReceipt>> ReplaceInvoiceDraftAsync(
         Guid invoicePublicId,long expectedVersion,CreateSupplierInvoiceDraftCommand command,
         IExecutionContext context,CancellationToken ct) =>
         MutateAsync("purchasing.invoice.edit_draft",command.OperationKey,"SupplierInvoiceDraftReplaced","SupplierInvoice",
             "purchasing.invoice.edit_draft.completed",context,
-            innerCt=>UpsertInvoiceDraftCoreAsync(invoicePublicId,expectedVersion,command,context,innerCt));
+            innerCt=>UpsertInvoiceDraftCoreAsync(invoicePublicId,expectedVersion,command,context,innerCt),ct);
 
     public Task<Result<PurchasingMutationReceipt>> CancelInvoiceDraftAsync(
         Guid invoicePublicId,long expectedVersion,string reason,string operationKey,IExecutionContext context,CancellationToken ct) =>
