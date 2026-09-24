@@ -4,6 +4,7 @@ using Mars.Api.Foundation.Context;
 using Mars.Api.Parties;
 using Mars.Api.Products;
 using Mars.Api.Inventory;
+using Mars.Api.Purchasing;
 using Mars.Api.Sales;
 using Mars.Api.Foundation.Errors;
 using Mars.Api.Foundation.Health;
@@ -33,6 +34,7 @@ using Mars.Infrastructure.Persistence.Foundation;
 using Mars.Infrastructure.Persistence.Parties;
 using Mars.Infrastructure.Persistence.Products;
 using Mars.Infrastructure.Persistence.Inventory;
+using Mars.Infrastructure.Persistence.Purchasing;
 using Mars.Infrastructure.Persistence.Sales;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
@@ -109,6 +111,12 @@ builder.Services.AddScoped<SalesQueryHandler>();
 builder.Services.AddScoped<SalesCommandHandler>();
 builder.Services.AddScoped<SalesProformaQueryHandler>();
 builder.Services.AddScoped<SalesProformaCommandHandler>();
+builder.Services.AddScoped<EfPurchasingPersistence>();
+builder.Services.AddScoped<IPurchasingPersistence>(
+    services => services.GetRequiredService<EfPurchasingPersistence>());
+builder.Services.AddScoped<IPurchasingTransactionCoordinator, EfPurchasingTransactionCoordinator>();
+builder.Services.AddScoped<PurchasingQueryHandler>();
+builder.Services.AddScoped<PurchasingCommandHandler>();
 builder.Services.AddScoped<IAuthorizationHandler, MarsPermissionAuthorizationHandler>();
 
 builder.Services.AddOpenApi("v1");
@@ -830,6 +838,7 @@ app.MapProductEndpoints();
 app.MapInventoryEndpoints();
 app.MapSalesEndpoints();
 app.MapSalesProformaEndpoints();
+app.MapPurchasingEndpoints();
 
 app.MapPost(
         "/api/v1/foundation/proof",
