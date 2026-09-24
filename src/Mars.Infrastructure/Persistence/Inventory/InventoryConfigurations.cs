@@ -213,7 +213,7 @@ internal sealed class InventoryMovementConfiguration : IEntityTypeConfiguration<
         b.Property(x => x.UomId).HasColumnName("uom_id");
         b.Property(x => x.EnteredQuantity).HasColumnName("entered_quantity").HasPrecision(28, 9);
         b.Property(x => x.ConversionFactorSnapshot).HasColumnName("conversion_factor_snapshot").HasPrecision(28, 9);
-        b.Property(x => x.BaseQuantity).HasColumnName("base_quantity").HasPrecision(28, 9);
+        b.Property(x => x.BaseQuantity).HasColumnName("base_quantity").HasPrecision(38, 18);
         b.Property(x => x.SourceWarehouseId).HasColumnName("source_warehouse_id");
         b.Property(x => x.SourceLocationId).HasColumnName("source_location_id");
         b.Property(x => x.SourceDispositionId).HasColumnName("source_disposition_id");
