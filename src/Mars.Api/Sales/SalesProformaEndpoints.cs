@@ -11,7 +11,7 @@ public static class SalesProformaEndpoints
     {
         var proformas = app.MapGroup("/api/v1/sales/proformas").RequireAuthorization();
 
-        proformas.MapGet("/", async (
+        proformas.MapGet("", async (
                 IExecutionContext context,
                 SalesProformaQueryHandler handler,
                 CancellationToken ct) =>
@@ -34,7 +34,7 @@ public static class SalesProformaEndpoints
             Map(await handler.GetAsync(id, context, ct, export: true), context))
             .WithName("ExportSalesProforma");
 
-        proformas.MapPost("/", async (
+        proformas.MapPost("", async (
                 CreateSalesProformaRequest request,
                 HttpRequest http,
                 IExecutionContext context,
