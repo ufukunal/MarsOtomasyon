@@ -23,6 +23,7 @@ assert_status 200 "/parties"
 assert_status 200 "/parties/new"
 assert_status 200 "/products"
 assert_status 200 "/inventory"
+assert_status 200 "/sales"
 assert_status 200 "/health/live"
 assert_status 200 "/health/ready"
 assert_status 401 "/api/v1/foundation/context"
@@ -51,6 +52,19 @@ assert_status 401 "/api/v1/inventory/lots"
 assert_status 401 "/api/v1/inventory/lots" POST
 assert_status 401 "/api/v1/inventory/serials/00000000-0000-0000-0000-000000000001"
 assert_status 401 "/api/v1/inventory/reservations"
+assert_status 401 "/api/v1/inventory/warehouses/00000000-0000-0000-0000-000000000001/access-grants" POST
+assert_status 401 "/api/v1/inventory/warehouses/00000000-0000-0000-0000-000000000001/access-grants/revoke" POST
+assert_status 401 "/api/v1/sales/quotes"
+assert_status 401 "/api/v1/sales/quotes" POST
+assert_status 401 "/api/v1/sales/orders"
+assert_status 401 "/api/v1/sales/orders" POST
+assert_status 401 "/api/v1/sales/reservations" POST
+assert_status 401 "/api/v1/sales/dispatches"
+assert_status 401 "/api/v1/sales/dispatches" POST
+assert_status 401 "/api/v1/sales/dispatches/00000000-0000-0000-0000-000000000001/post" POST
+assert_status 401 "/api/v1/sales/dispatches/00000000-0000-0000-0000-000000000001/reverse" POST
+assert_status 401 "/api/v1/sales/invoices"
+assert_status 401 "/api/v1/sales/invoices" POST
 assert_status 401 "/api/v1/parties/00000000-0000-0000-0000-000000000001"
 assert_status 401 "/api/v1/parties/00000000-0000-0000-0000-000000000001" PUT
 assert_status 401 "/api/v1/parties/00000000-0000-0000-0000-000000000001/contacts" POST
