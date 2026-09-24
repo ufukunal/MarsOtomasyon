@@ -374,11 +374,18 @@ public sealed partial class EfSalesPersistence
 
                 var requires=Normalize(command.NewPaymentTerms)!=order.PaymentTerms ||
                     command.Deltas.Any(d=>d.QuantityDelta>0m||d.NewUnitPrice.HasValue||d.NewLineDiscountPercent.HasValue||d.NewTaxPercent.HasValue);
+                var shipped=await GetNetDispatchedByOrderLineAsync(
+                    context.CompanyId,order.Id,currentLines.Select(x=>x.LinePublicId).ToArray(),innerCt);
                 foreach(var delta in command.Deltas)
                 {
                     var line=currentLines.Single(x=>x.LinePublicId==delta.SalesOrderLinePublicId);
-                    if(line.Quantity+delta.QuantityDelta<0m)
+                    var nextQuantity=line.Quantity+delta.QuantityDelta;
+                    if(nextQuantity<0m)
                         return Business<SalesMutationReceipt>("sales.order.amendment.quantity","Amendment cannot make Order quantity negative.");
+                    if(nextQuantity<shipped.GetValueOrDefault(line.LinePublicId))
+                        return Business<SalesMutationReceipt>(
+                            "sales.order.amendment.shipped_floor",
+                            "Amendment cannot reduce Order quantity below the net quantity already dispatched.");
                 }
                 var now=DateTimeOffset.UtcNow;
                 var a=new SalesOrderAmendmentRecord {
