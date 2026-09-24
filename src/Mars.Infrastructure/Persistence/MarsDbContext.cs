@@ -5,6 +5,7 @@ using Mars.Infrastructure.Persistence.Parties;
 using Mars.Infrastructure.Persistence.Products;
 using Mars.Infrastructure.Persistence.Purchasing;
 using Mars.Infrastructure.Persistence.Sales;
+using Mars.Infrastructure.Persistence.Warehouse;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -58,5 +59,6 @@ public sealed class MarsDbContext(DbContextOptions<MarsDbContext> options)
         SalesModelConfiguration.Configure(modelBuilder);
         ProformaModelConfiguration.Configure(modelBuilder);
         PurchasingModelConfiguration.Configure(modelBuilder);
+        WarehouseModelConfiguration.Configure(modelBuilder);
     }
 }
