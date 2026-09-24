@@ -57,6 +57,31 @@ internal sealed class PurchaseOrderLineRecord
     public decimal TaxPercent { get; set; }
 }
 
+internal sealed class PurchaseOrderAmendmentRecord
+{
+    public long Id { get; set; }
+    public Guid PublicId { get; set; }
+    public long PurchaseOrderId { get; set; }
+    public Guid CompanyId { get; set; }
+    public long BaseVersionNumber { get; set; }
+    public long ResultVersionNumber { get; set; }
+    public PurchaseOrderAmendmentState State { get; set; }
+    public string Reason { get; set; } = string.Empty;
+    public Guid CreatorActorId { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
+    public DateTimeOffset? ActivatedAt { get; set; }
+}
+
+internal sealed class PurchaseOrderAmendmentDeltaRecord
+{
+    public long Id { get; set; }
+    public Guid PublicId { get; set; }
+    public long AmendmentId { get; set; }
+    public Guid CompanyId { get; set; }
+    public Guid PurchaseOrderLinePublicId { get; set; }
+    public decimal QuantityDelta { get; set; }
+}
+
 internal sealed class GoodsReceiptRecord
 {
     public long Id { get; set; }
@@ -168,6 +193,19 @@ internal sealed class SupplierInvoiceSourceLinkRecord
     public Guid? SourceLinePublicId { get; set; }
     public long? SourceVersion { get; set; }
     public decimal Quantity { get; set; }
+}
+
+internal sealed class PurchaseMatchExceptionRecord
+{
+    public long Id { get; set; }
+    public Guid PublicId { get; set; }
+    public Guid CompanyId { get; set; }
+    public long PurchaseMatchResultId { get; set; }
+    public string Reason { get; set; } = string.Empty;
+    public Guid CreatorActorId { get; set; }
+    public Guid? ApprovalDecisionPublicId { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
+    public DateTimeOffset? DecidedAt { get; set; }
 }
 
 internal sealed class PurchaseMatchResultRecord
