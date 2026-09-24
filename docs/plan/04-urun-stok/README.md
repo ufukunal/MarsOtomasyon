@@ -87,3 +87,49 @@ PLAN-004 does not define:
 - exact Product/SKU numbering string format;
 - provider-specific product sync behavior;
 - technical files/attributes without an accepted later requirement.
+
+
+## P5 implementation status
+
+### PRODUCT-IMP-001 — Product Master Completion Tranche
+Status: COMPLETED.
+
+Readiness:
+- docs/plan/04-urun-stok/p5-product-master-completion-readiness.md
+
+Canonical implementation:
+- docs/plan/04-urun-stok/product-imp-001-implementation.md
+
+Verification:
+- tested commit ac92911a8f5fcda070622b084216a43a70ad7d77
+- Foundation Build 35981641268 — SUCCESS
+- Foundation Test Deploy 35981641137 — SUCCESS
+- frontend 19 / 19
+- Foundation 66 / 66
+- generated Product migration applied to TEST
+- migration count 7
+- EF pending-model PASS
+- TEST /products 200
+- live/ready 200 / 200
+- protected Product routes 401 unauthenticated
+- smoke PASS
+
+Completed Product master surface:
+- Product core/list/detail/edit/lifecycle
+- UOM/Product-UOM
+- Variant
+- Barcode
+- Category/Product Category
+- Product External Mapping
+
+Still deferred:
+- Base UOM replacement
+- post-use STOCKABLE/tracking transitions
+- UOM transaction fraction/scale policy
+- generic Variant EAV
+- provider/marketplace/GS1 behavior
+
+Inventory Ledger, Reservation, Lot/Serial physical truth, Warehouse operations and Finance/Costing valuation remain separate future authorities.
+
+P5 next module direction:
+- Inventory broad implementation tranche definition.
