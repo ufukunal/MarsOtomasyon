@@ -1,5 +1,6 @@
 using Mars.Infrastructure.Identity;
 using Mars.Infrastructure.Persistence.Foundation;
+using Mars.Infrastructure.Persistence.Finance;
 using Mars.Infrastructure.Persistence.Inventory;
 using Mars.Infrastructure.Persistence.Parties;
 using Mars.Infrastructure.Persistence.Products;
@@ -31,6 +32,7 @@ public sealed class MarsDbContext(DbContextOptions<MarsDbContext> options)
         modelBuilder.ApplyConfiguration(new IdempotencyOperationConfiguration());
         modelBuilder.ApplyConfiguration(new OutboxMessageConfiguration());
         modelBuilder.ApplyConfiguration(new PermissionGrantConfiguration());
+        FinanceModelConfiguration.Configure(modelBuilder);
         modelBuilder.ApplyConfiguration(new PartyConfiguration());
         modelBuilder.ApplyConfiguration(new PartyRoleConfiguration());
         modelBuilder.ApplyConfiguration(new PartyTaxIdentityConfiguration());

@@ -1,0 +1,93 @@
+name: FINANCE-IMP-001 Migration Generate
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/finance-migration-generate.yml"
+      - "src/Mars.Infrastructure/Persistence/Finance/**"
+      - "src/Mars.Infrastructure/Persistence/MarsDbContext.cs"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  generate:
+    name: generate-finance-authority-migration
+    runs-on: self-hosted
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Select writable .NET install directory
+        shell: bash
+        run: echo "DOTNET_INSTALL_DIR=$HOME/.dotnet" >> "$GITHUB_ENV"
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Restore and build
+        shell: bash
+        run: |
+          set -euo pipefail
+          dotnet tool restore
+          dotnet restore src/Mars.Infrastructure/Mars.Infrastructure.csproj
+          dotnet build src/Mars.Infrastructure/Mars.Infrastructure.csproj --configuration Release --no-restore -m:1
+
+      - name: Generate or verify FINANCE-IMP-001 migration
+        shell: bash
+        env:
+          MARS_MIGRATION_CONNECTION_STRING: "Host=localhost;Database=mars_design_time_probe"
+        run: |
+          set -euo pipefail
+          MIG_DIR="src/Mars.Infrastructure/Persistence/Migrations/Finance"
+          EXISTING="$(find "$MIG_DIR" -maxdepth 1 -name '*_FinanceImp001LedgerSettlementValuationAuthority.cs' ! -name '*.Designer.cs' 2>/dev/null | head -n 1 || true)"
+
+          if [ -z "$EXISTING" ]; then
+            dotnet tool run dotnet-ef migrations add FinanceImp001LedgerSettlementValuationAuthority \
+              --project src/Mars.Infrastructure/Mars.Infrastructure.csproj \
+              --startup-project src/Mars.Infrastructure/Mars.Infrastructure.csproj \
+              --configuration Release \
+              --no-build \
+              --output-dir Persistence/Migrations/Finance
+
+            NEW_FILE="$(find "$MIG_DIR" -maxdepth 1 -name '*_FinanceImp001LedgerSettlementValuationAuthority.cs' ! -name '*.Designer.cs' | head -n 1)"
+            test -n "$NEW_FILE"
+            for table in transactions account_ledger_entries cash_accounts cash_ledger_entries bank_accounts bank_ledger_entries posting_periods inventory_valuation_pools inventory_valuation_entries dispatch_cost_bridge_entries dispatch_cost_bridge_consumptions statement_import_batches statement_lines reconciliation_matches customer_risk_controls cash_counts; do
+              grep -F "name: \"$table\"" "$NEW_FILE"
+            done
+            if grep -E 'Drop(Table|Column|Schema)|Rename(Table|Column)|AlterColumn|DeleteData|migrationBuilder.Sql' "$NEW_FILE"; then
+              echo "Generated Finance migration contains non-additive Up() operation."
+              exit 1
+            fi
+          else
+            dotnet tool run dotnet-ef migrations has-pending-model-changes \
+              --project src/Mars.Infrastructure/Mars.Infrastructure.csproj \
+              --startup-project src/Mars.Infrastructure/Mars.Infrastructure.csproj \
+              --configuration Release \
+              --no-build
+          fi
+
+          git status --short
+          git diff --check
+
+      - name: Commit generated migration to main when needed
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/Mars.Infrastructure/Persistence/Migrations
+          if git diff --cached --quiet; then
+            echo "Committed Finance migration already matches the model."
+            exit 0
+          fi
+          git commit -m "feat: add FINANCE-IMP-001 migration"
+          git push origin HEAD:main

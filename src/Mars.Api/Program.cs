@@ -1,4 +1,5 @@
 using Mars.Api.Foundation.Authentication;
+using Mars.Api.Finance;
 using Mars.Api.Foundation.Authorization;
 using Mars.Api.Foundation.Context;
 using Mars.Api.Parties;
@@ -10,6 +11,7 @@ using Mars.Api.Warehouse;
 using Mars.Api.Foundation.Errors;
 using Mars.Api.Foundation.Health;
 using Mars.Application.Foundation.Configuration;
+using Mars.Application.Finance;
 using Mars.Application.Foundation.Approvals;
 using Mars.Application.Foundation.Context;
 using Mars.Application.Foundation.Auditing;
@@ -31,6 +33,7 @@ using Mars.Application.Purchasing;
 using Mars.Application.Sales;
 using Mars.Application.Warehouse;
 using Mars.Infrastructure.Identity;
+using Mars.Infrastructure.Persistence.Finance;
 using Mars.Infrastructure.Persistence;
 using Mars.Infrastructure.Persistence.Foundation;
 using Mars.Infrastructure.Persistence.Parties;
@@ -57,6 +60,11 @@ StartupConfigurationValidation.ThrowIfInvalid(
 builder.Services.AddMarsIdentityPersistence(runtimeOptions.ConnectionString);
 
 builder.Services.AddScoped<IAuditWriter, EfAuditWriter>();
+builder.Services.AddScoped<EfFinancePersistence>();
+builder.Services.AddScoped<IFinancePersistence>(services => services.GetRequiredService<EfFinancePersistence>());
+builder.Services.AddScoped<IFinanceValuationAuthority>(services => services.GetRequiredService<EfFinancePersistence>());
+builder.Services.AddScoped<FinanceQueryHandler>();
+builder.Services.AddScoped<FinanceCommandHandler>();
 builder.Services.AddScoped<IIdempotencyStore, EfIdempotencyStore>();
 builder.Services.AddScoped<IOutboxWriter, EfOutboxStore>();
 builder.Services.AddScoped<IApprovalDecisionPersistence, EfApprovalDecisionPersistence>();
@@ -186,6 +194,7 @@ builder.Services.AddAuthorization(options =>
         .Concat(SalesPermissions.All)
         .Concat(PurchasingPermissions.All)
         .Concat(WarehousePermissions.All)
+        .Concat(FinancePermissions.All)
         .Distinct(StringComparer.Ordinal))
     {
         options.AddPolicy(
@@ -861,6 +870,7 @@ app.MapSalesEndpoints();
 app.MapSalesProformaEndpoints();
 app.MapPurchasingEndpoints();
 app.MapWarehouseEndpoints();
+app.MapFinanceEndpoints();
 
 app.MapPost(
         "/api/v1/foundation/proof",
