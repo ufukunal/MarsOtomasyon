@@ -118,7 +118,38 @@ public sealed record WarehouseInventoryEffect(
     Guid WorkLinePublicId,
     Guid InventoryMovementPublicId,
     Guid? OriginalInventoryMovementPublicId,
-    bool IsReversal);
+    bool IsReversal,
+    string? Detail = null);
+
+public sealed record TransferLossPlan(
+    Guid TransferPublicId,
+    Guid TransferLinePublicId,
+    Guid WarehousePublicId,
+    Guid CreatorActorId,
+    long SnapshotVersion,
+    Guid ProductPublicId,
+    Guid? VariantPublicId,
+    Guid UomPublicId,
+    decimal ConversionFactorSnapshot,
+    decimal Quantity,
+    InventoryPosition TransitSource);
+
+public sealed record TransferReverseLinePlan(
+    Guid TransferLinePublicId,
+    Guid ProductPublicId,
+    Guid? VariantPublicId,
+    Guid UomPublicId,
+    decimal ConversionFactorSnapshot,
+    decimal Quantity,
+    InventoryPosition Source,
+    InventoryPosition Target,
+    Guid OriginalInventoryMovementPublicId);
+
+public sealed record TransferReversePlan(
+    Guid TransferPublicId,
+    Guid SourceWarehousePublicId,
+    Guid TargetWarehousePublicId,
+    IReadOnlyList<TransferReverseLinePlan> Lines);
 
 public sealed record ChangeDispositionCommand(
     Guid ProductPublicId,
@@ -345,10 +376,16 @@ public interface IWarehousePersistence : IWarehouseOpenWorkBlocker
         TransferReceiveCommand command,IExecutionContext context,CancellationToken ct);
     Task<Result<WarehouseMutationReceipt>> CompleteTransferReceiveAsync(
         Guid transferPublicId,IReadOnlyList<WarehouseInventoryEffect> effects,IExecutionContext context,CancellationToken ct);
-    Task<Result<ScrapPostPlan>> PrepareTransferLossAsync(
+    Task<Result<TransferLossPlan>> PrepareTransferLossAsync(
         Guid transferPublicId,Guid transferLinePublicId,decimal quantity,string reason,IExecutionContext context,CancellationToken ct);
+    Task<Result<WarehouseMutationReceipt>> MarkTransferLossApprovalAsync(
+        Guid transferPublicId,Guid transferLinePublicId,Guid approvalPublicId,IExecutionContext context,CancellationToken ct);
     Task<Result<WarehouseMutationReceipt>> CompleteTransferLossAsync(
         Guid transferPublicId,Guid transferLinePublicId,decimal quantity,Guid movementPublicId,IExecutionContext context,CancellationToken ct);
+    Task<Result<TransferReversePlan>> PrepareTransferReverseAsync(
+        Guid transferPublicId,long expectedVersion,IExecutionContext context,CancellationToken ct);
+    Task<Result<WarehouseMutationReceipt>> CompleteTransferReverseAsync(
+        Guid transferPublicId,IReadOnlyList<WarehouseInventoryEffect> effects,IExecutionContext context,CancellationToken ct);
 
     Task<Result<WarehouseMutationReceipt>> CreateCountAsync(
         CreateCountCommand command,IExecutionContext context,CancellationToken ct);
@@ -566,6 +603,78 @@ public sealed class WarehouseCommandHandler(
                 effects.Add(new(line.TransferLinePublicId,m.Value!.MovementPublicId,null,false));
             }
             return await persistence.CompleteTransferReceiveAsync(command.TransferPublicId,effects,c,innerCt);
+        },ct);
+    }
+
+    public async Task<Result<ApprovalDecisionReceipt>> ApproveTransferLossAsync(
+        Guid transferPublicId,Guid transferLinePublicId,decimal quantity,string reason,
+        ApprovalDecisionKind decision,string approvalReason,string operationKey,IExecutionContext c,CancellationToken ct)
+    {
+        if(!await Granted(WarehousePermissions.TransferLossAdjust,c,ct))
+            return Result<ApprovalDecisionReceipt>.Failure(DeniedError());
+        var plan=await persistence.PrepareTransferLossAsync(
+            transferPublicId,transferLinePublicId,quantity,reason,c,ct);
+        if(plan.IsFailure)return Result<ApprovalDecisionReceipt>.Failure(plan.Error!);
+        if(!await warehouseAccess.IsGrantedAsync(c.ActorId,c.CompanyId,plan.Value!.WarehousePublicId,ct))
+            return Result<ApprovalDecisionReceipt>.Failure(DeniedError());
+        var approval=await approvals.DecideAsync(new ApprovalDecisionCommand(
+            "Warehouse","TransferLoss",transferLinePublicId,plan.Value.SnapshotVersion,
+            plan.Value.CreatorActorId,decision,approvalReason,operationKey),c,ct);
+        if(approval.IsFailure)return approval;
+        if(decision==ApprovalDecisionKind.Approved){
+            var marked=await persistence.MarkTransferLossApprovalAsync(
+                transferPublicId,transferLinePublicId,approval.Value!.PublicId,c,ct);
+            if(marked.IsFailure)return Result<ApprovalDecisionReceipt>.Failure(marked.Error!);
+        }
+        return approval;
+    }
+
+    public async Task<Result<WarehouseMutationReceipt>> PostTransferLossAsync(
+        Guid transferPublicId,Guid transferLinePublicId,decimal quantity,string reason,
+        string operationKey,IExecutionContext c,CancellationToken ct)
+    {
+        if(!await Granted(WarehousePermissions.TransferLossAdjust,c,ct))return Denied();
+        return await transactions.ExecuteAsync(async innerCt=>{
+            var plan=await persistence.PrepareTransferLossAsync(
+                transferPublicId,transferLinePublicId,quantity,reason,c,innerCt);
+            if(plan.IsFailure)return Result<WarehouseMutationReceipt>.Failure(plan.Error!);
+            if(!await warehouseAccess.IsGrantedAsync(c.ActorId,c.CompanyId,plan.Value!.WarehousePublicId,innerCt))
+                return Denied();
+            if(!await approvals.IsApprovedAsync(c.CompanyId,"Warehouse","TransferLoss",
+                transferLinePublicId,plan.Value.SnapshotVersion,innerCt))
+                return Invalid("warehouse.transfer.loss.approval_required","Transfer loss requires approval for the exact transfer-line snapshot.");
+            var p=plan.Value;
+            var movement=await inventory.PostAsync(new InventoryMovementCommand(
+                p.ProductPublicId,p.VariantPublicId,p.UomPublicId,p.Quantity,p.ConversionFactorSnapshot,
+                p.TransitSource,null,InventorySourceIdentity.Create("Warehouse","TransferLoss",transferPublicId,transferLinePublicId),
+                null,operationKey+".inventory"),c,innerCt);
+            if(movement.IsFailure)return Result<WarehouseMutationReceipt>.Failure(movement.Error!);
+            return await persistence.CompleteTransferLossAsync(
+                transferPublicId,transferLinePublicId,quantity,movement.Value!.MovementPublicId,c,innerCt);
+        },ct);
+    }
+
+    public async Task<Result<WarehouseMutationReceipt>> ReverseTransferAsync(
+        Guid transferPublicId,long expectedVersion,string operationKey,IExecutionContext c,CancellationToken ct)
+    {
+        if(!await Granted(WarehousePermissions.TransferReverse,c,ct))return Denied();
+        return await transactions.ExecuteAsync(async innerCt=>{
+            var plan=await persistence.PrepareTransferReverseAsync(transferPublicId,expectedVersion,c,innerCt);
+            if(plan.IsFailure)return Result<WarehouseMutationReceipt>.Failure(plan.Error!);
+            if(!await warehouseAccess.IsGrantedAsync(c.ActorId,c.CompanyId,plan.Value!.SourceWarehousePublicId,innerCt)||
+               !await warehouseAccess.IsGrantedAsync(c.ActorId,c.CompanyId,plan.Value.TargetWarehousePublicId,innerCt))
+                return Denied();
+            var effects=new List<WarehouseInventoryEffect>();
+            foreach(var line in plan.Value.Lines){
+                var movement=await inventory.PostAsync(new InventoryMovementCommand(
+                    line.ProductPublicId,line.VariantPublicId,line.UomPublicId,line.Quantity,line.ConversionFactorSnapshot,
+                    line.Source,line.Target,
+                    InventorySourceIdentity.Create("Warehouse","TransferReverse",transferPublicId,line.TransferLinePublicId),
+                    line.OriginalInventoryMovementPublicId,$"{operationKey}:reverse:{line.TransferLinePublicId:D}"),c,innerCt);
+                if(movement.IsFailure)return Result<WarehouseMutationReceipt>.Failure(movement.Error!);
+                effects.Add(new(line.TransferLinePublicId,movement.Value!.MovementPublicId,line.OriginalInventoryMovementPublicId,true));
+            }
+            return await persistence.CompleteTransferReverseAsync(transferPublicId,effects,c,innerCt);
         },ct);
     }
 
