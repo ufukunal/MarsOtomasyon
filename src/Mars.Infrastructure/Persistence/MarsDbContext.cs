@@ -2,7 +2,7 @@ using Mars.Infrastructure.Identity;
 using Mars.Infrastructure.Persistence.Foundation;
 using Mars.Infrastructure.Persistence.Inventory;
 using Mars.Infrastructure.Persistence.Parties;
-using Mars.Infrastructure.Persistence.Products;
+using Mars.Infrastructure.Persistence.Products;\nusing Mars.Infrastructure.Persistence.Sales;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -53,5 +53,6 @@ public sealed class MarsDbContext(DbContextOptions<MarsDbContext> options)
         modelBuilder.ApplyConfiguration(new InventoryReservationConfiguration());
         modelBuilder.ApplyConfiguration(new InventoryReservationMovementConfiguration());
         modelBuilder.ApplyConfiguration(new WarehouseAccessGrantConfiguration());
+        SalesModelConfiguration.Configure(modelBuilder);
     }
 }
