@@ -87,12 +87,12 @@ test_policy:
   heavy_tests: FULL_TEST_DAY_ONLY
 
 active_task:
-  id: PURCHASING-IMP-001
-  title: Purchasing Commercial Receipt & Supplier Invoice Authority Tranche
-  status: implementation_in_progress
+  id: WAREHOUSE-TRANCHE-DEFINITION
+  title: Warehouse Broad Implementation Tranche Scope & Readiness
+  status: scope_definition_required
   file: docs/plan/active-task.yaml
-  readiness_report: docs/plan/07-satinalma/p5-purchasing-authority-readiness.md
-  progress: in_progress
+  readiness_report: null
+  progress: not_started
 
 completed_planning_tasks:
   - PLAN-001
@@ -124,6 +124,8 @@ completed_implementation_tasks:
   - PARTY-IMP-006
   - PRODUCT-IMP-001
   - INVENTORY-IMP-001
+  - SALES-IMP-001
+  - PURCHASING-IMP-001
 
 locked_decisions:
   - ASP.NET Core Identity + OpenIddict 7.7.1 is the accepted authentication/identity baseline.
@@ -265,7 +267,7 @@ test_environment:
   valkey_status: running_healthy
   valkey_image: valkey/valkey:8-alpine
   valkey_container: marsotomasyon-valkey-1
-  application_deployment_status: inventory_imp_001_test_deployed_and_smoke_passed
+  application_deployment_status: purchasing_imp_001_test_deployed_and_smoke_passed
   ssh_connectivity_verified: true
   ssh_remote_user: ufuk
   remote_hostname: mars-prod
@@ -286,10 +288,10 @@ test_environment:
   foundation_test_party_role_unauthenticated_post: 401
   foundation_test_party_role_state_unauthenticated_post: 401
   foundation_test_party_tax_identity_unauthenticated_post: 401
-  foundation_test_migration_count: 8
+  foundation_test_migration_count: 11
   foundation_test_smoke: PASS
-  foundation_test_workflow_run: 35998315582
-  foundation_test_implementation_commit: edcc24f1200b70aad102fc510ad7bec60c4515e7
+  foundation_test_workflow_run: 36054247926
+  foundation_test_implementation_commit: 50ec242e5471743bbdc9ad43bc69626166b1679f
   mars_path_present: true
   postgresql_roles:
     owner_admin_role: mars_master
@@ -303,7 +305,7 @@ test_environment:
     actual_values_status: SSH_AND_POSTGRES_ROLES_CONFIGURED
 
 known_constraints:
-  - Core ERP application implementation is partial: Parties, Products and Inventory broad tranches are completed; Sales and later dependencies remain.
+  - Core ERP application implementation is partial: Parties, Products, Inventory, Sales and Purchasing broad tranches are completed; Warehouse tranche definition is current.
   - FW-IMP-001 through FW-IMP-008 are implemented and P4 Foundation implementation is completed.
   - FW-IMP-005 API foundation is COMPLETED with canonical evidence at docs/plan/01-foundation/fw-imp-005-implementation.md and successful workflow run 35722169157.
   - FW-IMP-006 Mars.Web + Mars.UI foundation is COMPLETED with canonical evidence at docs/plan/01-foundation/fw-imp-006-implementation.md and successful workflow run 35729371845.
@@ -356,29 +358,30 @@ blocked_items:
   - Generic Variant EAV and provider/marketplace/GS1 behavior remain deferred.
   - Party Reactivation and fuzzy duplicate candidate generation remain deferred independently.
   - INVENTORY-IMP-001 is completed; Warehouse operational workflows and Finance valuation remain explicitly deferred.
-  - SALES-IMP-001 is completed; Finance-dependent Sales Invoice POST/REVERSE remains deferred until Finance authority. PURCHASING-IMP-001 is current.
+  - SALES-IMP-001 and PURCHASING-IMP-001 are completed; Finance-dependent Sales/Supplier Invoice POST/REVERSE remain deferred until Finance authority. Warehouse tranche definition is current.
   - Historical planning metric inconsistency is superseded by docs/plan/project-plan-completion.md: portfolio and detailed master planning are 30 / 30 = 100%; implementation completion remains separate.
   - Production deployment and Full Test Day remain deferred.
 next_action:
-  id: PURCHASING-IMP-001
-  title: Purchasing Commercial Receipt & Supplier Invoice Authority Tranche
+  id: WAREHOUSE-TRANCHE-DEFINITION
+  title: Warehouse Broad Implementation Tranche Scope & Readiness
   phase: P5
-  module: purchasing
-  status: IMPLEMENTATION_IN_PROGRESS
-  work_package_id: PURCHASING-IMP-001
-  readiness_report: docs/plan/07-satinalma/p5-purchasing-authority-readiness.md
+  module: warehouse
+  status: SCOPE_DEFINITION_REQUIRED
+  work_package_id: null
+  readiness_report: null
   predecessor:
-    id: SALES-IMP-001
+    id: PURCHASING-IMP-001
     status: completed
-    canonical_report: docs/plan/05-satis/sales-imp-001-implementation.md
-    tested_commit: c99b1a3191fc5c6823734bd27f074ef10a8094a3
-    foundation_build_run: 36026678334
-    test_deploy_run: 36026678557
+    canonical_report: docs/plan/07-satinalma/purchasing-imp-001-implementation.md
+    tested_commit: 50ec242e5471743bbdc9ad43bc69626166b1679f
+    foundation_build_run: 36054248023
+    test_deploy_run: 36054247926
   restrictions:
-    - Purchase Order has no STOCK/ACCOUNT effect
-    - Goods Receipt POST uses Inventory physical authority and stockable receipt enters QUARANTINE
-    - Supplier Invoice POST remains fail-closed until Finance authority exists
-    - Purchasing never owns Supplier Payment/settlement
+    - do not assign WAREHOUSE-IMP id until exact broad coherent scope is frozen
+    - do not duplicate Sales Dispatch STOCK OUT
+    - do not duplicate Purchasing Goods Receipt STOCK IN
+    - Finance valuation remains external authority
+    - Quality implementation remains external authority
     - portfolio and detailed planning remain 30 / 30 = 100%
 
 state_rules:
