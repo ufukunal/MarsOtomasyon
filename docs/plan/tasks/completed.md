@@ -1153,3 +1153,72 @@ Explicitly deferred:
 - Full Test Day
 
 No authenticated TEST Purchasing mutation is claimed.
+
+
+## WAREHOUSE-IMP-001 — Warehouse Execution & Inventory Control Authority Tranche
+
+**Status:** COMPLETED / RUNTIME VERIFIED
+
+Canonical implementation:
+- `docs/plan/06-ambar-depo/warehouse-imp-001-implementation.md`
+
+Runtime-tested commit:
+- `81efd9c347118db24d8945f4d49e63bf99baaf70`
+
+Migrations:
+- `20260924220511_WarehouseImp001ExecutionInventoryControlAuthority`
+- `20260924223900_WarehouseImp001SalesDispatchSourceAllocations`
+- final deployed migration count: 13
+
+Foundation Build:
+- run `36068722249`
+- job `107864429802`
+- SUCCESS
+- frontend 23 / 23 PASS
+- Release 0 warnings / 0 errors
+- targeted Foundation 108 / 108 PASS
+- EF pending-model clean
+- Warehouse protected API/OpenAPI smoke PASS
+- Warehouse Dispatch POST / Goods Receipt POST authority absent
+
+Foundation Test Deploy:
+- run `36068722239`
+- job `107864430160`
+- SUCCESS
+- migration safety count 13
+- deployed migration count 13
+- `/warehouse`, `/sales`, `/purchasing`, `/inventory`, `/products`, `/parties` = 200
+- health live/ready = 200
+- protected Warehouse routes unauthenticated = 401
+- OpenAPI Warehouse surface expected
+- Warehouse commercial POST authority absent
+- smoke PASS
+
+Completed authority:
+- receiving/quarantine operational read;
+- disposition/release through Inventory physical authority;
+- damage disposition;
+- put-away and manual replenishment;
+- FEFO/FIFO pick recommendation and controlled override;
+- Warehouse pick work with STOCK = NONE;
+- Sales-owned append-oriented multi-source Dispatch source allocations;
+- Sales Dispatch physical POST/reversal allocation-aware composition;
+- packages / pack / stage / load work with STOCK = NONE;
+- Warehouse Transfer ISSUE / TRANSIT / partial RECEIVE / reconciliation / close / reversal;
+- Stock Count snapshot / intervening movement / observation / approval / negative adjustment / close / reversal;
+- positive Count Adjustment fail-closed pending valuation authority;
+- scrap approval/SoD + physical OUT;
+- Warehouse/Location operational deactivation blockers;
+- offline/client-operation journal;
+- protected API and Mars.Web `/warehouse`.
+
+No real authenticated TEST Warehouse mutation is claimed.
+
+Deferred:
+- Finance valuation/current cost/COGS/write-off;
+- positive Count Adjustment posting until Finance valuation authority exists;
+- Quality inspection/result implementation;
+- providers, Device Layer and scanner drivers;
+- automatic replenishment/MRP;
+- production;
+- Full Test Day.
