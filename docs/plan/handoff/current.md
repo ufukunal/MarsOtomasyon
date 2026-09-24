@@ -352,10 +352,89 @@ Foundation Test Deploy:
 
 No authenticated TEST Sales mutation is claimed.
 
+
+## PURCHASING-IMP-001 closure
+
+Canonical implementation:
+- docs/plan/07-satinalma/purchasing-imp-001-implementation.md
+
+Tested commit:
+- 50ec242e5471743bbdc9ad43bc69626166b1679f
+
+Migration:
+- 20260924201517_PurchasingImp001CommercialReceiptInvoiceAuthority
+- migration commit cb00a419241ead9f925731fe7db0c1e808125170
+- migration safety count 11
+- EF pending-model PASS
+
+Foundation Build:
+- run 36054248023
+- job 107817148334
+- SUCCESS
+- frontend 22 / 22 PASS
+- targeted Foundation 97 / 97 PASS
+- Release 0 warnings / 0 errors
+- Purchasing protected API/OpenAPI smoke PASS
+- Supplier Invoice POST/REVERSE absent
+
+Foundation Test Deploy:
+- run 36054247926
+- job 107818562329
+- SUCCESS
+- deployed migration count 11
+- /purchasing /sales /inventory /products /parties = 200
+- health live/ready = 200
+- protected Purchasing routes unauthenticated = 401
+- OpenAPI Purchasing surface expected
+- Supplier Invoice POST/REVERSE absent
+- smoke PASS
+
+No real authenticated TEST Purchasing mutation is claimed.
+
+Completed authority:
+- Purchase Order lifecycle + controlled remainder-decrease version amendment
+- Goods Receipt DRAFT/READY/POST/cancel/reversal
+- Warehouse scope guard for receipt mutations
+- stockable receipt Inventory STOCK IN to QUARANTINE
+- service/non-stock receipt no physical movement
+- cumulative receipt source caps
+- Supplier Invoice DRAFT create/replace/cancel
+- 2-way / 3-way match evidence
+- direct financial-only invoice guard + exception approval evidence
+- cumulative active Invoice DRAFT source caps
+- Purchase Return source preview boundary
+- protected API and Mars.Web /purchasing
+
+Deferred:
+- Supplier Invoice POST/REVERSE and Supplier Payable
+- Payment/settlement
+- Inventory valuation/landed cost
+- Quality implementation
+- Warehouse operations
+- Purchase Return execution
+- providers
+- production
+- Full Test Day
+
 ## Current task
 
-PURCHASING-IMP-001 — Purchasing Commercial Receipt & Supplier Invoice Authority Tranche
-Status: READY FOR IMPLEMENTATION
+Warehouse broad implementation tranche scope/readiness definition.
 
-Use frozen PLAN-005 plus current implemented Party/Product/Inventory/Sales contracts.
+Status:
+- SCOPE DEFINITION REQUIRED
+- formal WAREHOUSE-IMP ID not assigned
+
+Canonical basis:
+- docs/plan/06-ambar-depo/plan.md
+- docs/plan/06-ambar-depo/workflows.md
+- docs/plan/06-ambar-depo/data-contract.md
+- docs/plan/06-ambar-depo/permissions.md
+- docs/plan/06-ambar-depo/acceptance-criteria.md
+
+First action:
+- full repository reconciliation if continuation prompt is older than 60 minutes or elapsed time is uncertain
+- reconcile Inventory/Sales/Purchasing implemented authority
+- freeze one broad coherent Warehouse tranche
+- only then assign WAREHOUSE-IMP ID and readiness report
+
 Do not repeat global/module planning.
