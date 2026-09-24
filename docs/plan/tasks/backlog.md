@@ -11,16 +11,19 @@ Direction when unblocked:
 - define one broad coherent Purchasing implementation tranche
 - do not assign the Purchasing implementation package ID before repository reconciliation and scope freeze
 
-## Quality — master planning sequence item 10
-Target: docs/plan/08-kalite/
-Status: PLANNING BACKLOG / NOT STARTED.
+## Portfolio planning
 
-Quality remains the next section-8 planning item that can raise exact planning coverage from 9/30.
-Operational execution belongs P6.
+Status: COMPLETED / FROZEN.
+
+Canonical:
+- docs/plan/project-plan-completion.md
+
+All 30 master planning items now have a frozen portfolio envelope.
+Future sessions should not create repetitive global planning tasks; only active-module implementation readiness is required.
 
 ## Commerce/B2B/Architect/Marketplace
 Target: docs/plan/15-e-ticaret-b2b-api/
-Status: P7 / NOT IMMEDIATE.
+Status: PORTFOLIO-PLANNED / P7 IMPLEMENTATION NOT STARTED.
 
 ## Full Test Day
 Status: DEFERRED BY POLICY.
@@ -40,6 +43,7 @@ Party heavy risks include:
 - PII/security regression;
 - snapshot persistence integration.
 
-Exact section-8 planning progress:
-- master: 9 / 30 = 30.0%
-- P2: 8 / 8 = 100.0%
+Planning progress:
+- master portfolio: 30 / 30 = 100.0%
+- P2 detailed core commercial: 8 / 8 = 100.0%
+- implementation progress is tracked separately.
