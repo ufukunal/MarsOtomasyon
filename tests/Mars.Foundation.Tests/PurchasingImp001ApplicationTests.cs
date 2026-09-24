@@ -15,7 +15,9 @@ internal static class PurchasingImp001ApplicationTests
         ("PURCHASING-IMP-001 receipt create requires Warehouse scope", ReceiptCreateRequiresWarehouseScope),
         ("PURCHASING-IMP-001 stockable receipt POST delegates QUARANTINE movement", StockableReceiptPostsQuarantine),
         ("PURCHASING-IMP-001 service receipt POST has no physical stock movement", ServiceReceiptHasNoPhysicalMovement),
-        ("PURCHASING-IMP-001 receipt POST stops completion when Inventory fails", ReceiptPostStopsOnInventoryFailure)
+        ("PURCHASING-IMP-001 receipt POST stops completion when Inventory fails", ReceiptPostStopsOnInventoryFailure),
+        ("PURCHASING-IMP-001 receipt reversal delegates compensating Inventory movement", ReceiptReversalDelegatesCompensation),
+        ("PURCHASING-IMP-001 direct Supplier Invoice requires direct-create permission", DirectInvoiceRequiresExplicitPermission)
     ];
 
     private static void ReceiptCreateRequiresWarehouseScope()
@@ -155,6 +157,74 @@ internal static class PurchasingImp001ApplicationTests
         AssertTrue(result.IsFailure);
         AssertEqual(1,physical.PostCalls);
         AssertEqual(0,completeCalls);
+    }
+
+    private static void ReceiptReversalDelegatesCompensation()
+    {
+        var receiptId=Guid.NewGuid();
+        var warehouseId=Guid.NewGuid();
+        var lineId=Guid.NewGuid();
+        var originalMovementId=Guid.NewGuid();
+        var completed=0;
+        var plan=new GoodsReceiptReversePlan(
+            receiptId,warehouseId,
+            [new GoodsReceiptReverseLinePlan(
+                lineId,Guid.NewGuid(),null,Guid.NewGuid(),1m,1m,
+                warehouseId,null,null,null,originalMovementId,true)]);
+
+        var persistence=Proxy<IPurchasingPersistence>((method,args)=>{
+            if(method.Name==nameof(IPurchasingPersistence.GetReceiptWarehousePublicIdAsync))
+                return Task.FromResult<Guid?>(warehouseId);
+            if(method.Name==nameof(IPurchasingPersistence.PrepareReceiptReverseAsync))
+                return Task.FromResult(Result<GoodsReceiptReversePlan>.Success(plan));
+            if(method.Name==nameof(IPurchasingPersistence.CompleteReceiptReverseAsync)){
+                completed++;
+                var effects=(IReadOnlyList<GoodsReceiptInventoryEffect>)args![1]!;
+                AssertEqual(1,effects.Count);
+                return Task.FromResult(Result<PurchasingMutationReceipt>.Success(
+                    new PurchasingMutationReceipt(receiptId,"REVERSED",3,"corr-purchasing-app")));
+            }
+            throw new InvalidOperationException("Unexpected call: "+method.Name);
+        });
+        var physical=new FakePhysicalAuthority();
+        var handler=Handler(
+            new FakePermissionEvaluator(PurchasingPermissions.ReceiptReverse),
+            persistence,physical,new FakeWarehouseAccessEvaluator(true));
+
+        var result=handler.ReverseReceiptAsync(receiptId,"receipt-reverse",NewContext(),CancellationToken.None)
+            .GetAwaiter().GetResult();
+
+        AssertTrue(result.IsSuccess);
+        AssertEqual(1,physical.PostCalls);
+        AssertTrue(physical.LastCommand?.Source?.Disposition==InventoryDispositionCode.Quarantine);
+        AssertTrue(physical.LastCommand?.Target is null);
+        AssertEqual(originalMovementId,physical.LastCommand!.ReversalOfMovementPublicId);
+        AssertEqual(1,completed);
+    }
+
+    private static void DirectInvoiceRequiresExplicitPermission()
+    {
+        var calls=0;
+        var persistence=Proxy<IPurchasingPersistence>((method,_)=>{
+            calls++;
+            throw new InvalidOperationException("Persistence must not be reached: "+method.Name);
+        });
+        var handler=Handler(
+            new FakePermissionEvaluator(PurchasingPermissions.InvoiceCreate),
+            persistence,new FakePhysicalAuthority(),new FakeWarehouseAccessEvaluator(true));
+
+        var result=handler.CreateInvoiceDraftAsync(
+            new CreateSupplierInvoiceDraftCommand(
+                "PI-1",Guid.NewGuid(),Mars.Domain.Purchasing.SupplierInvoiceSourceMode.Direct,
+                new DateOnly(2026,9,24),new DateOnly(2026,9,24),"TRY",0m,
+                [new CreateSupplierInvoiceDraftLineInput(
+                    1,Guid.NewGuid(),null,Guid.NewGuid(),1m,100m,0m,20m,null,null,null)],
+                "Controlled direct financial-only invoice","direct-invoice"),
+            NewContext(),CancellationToken.None).GetAwaiter().GetResult();
+
+        AssertTrue(result.IsFailure);
+        AssertEqual(ErrorCategory.Authorization,result.Error!.Category);
+        AssertEqual(0,calls);
     }
 
     private static PurchasingCommandHandler Handler(
