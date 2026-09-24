@@ -1,40 +1,32 @@
 # Planning Backlog
 
-## Immediate — P5 Products broad implementation tranche definition
-Status: SCOPE DEFINITION REQUIRED / NOT STARTED.
+## Immediate — PRODUCT-IMP-001 Product Master Completion Tranche
+Status: READY FOR IMPLEMENTATION.
 
-Predecessor:
-- PARTY-IMP-006 — COMPLETED.
-- canonical report: `docs/plan/03-cariler/party-imp-006-implementation.md`
-- tested commit: `55b7e78bc2eabcf986e8318f60296f0f3f9cd223`
-- Foundation Build `35934312246` — SUCCESS.
-- Foundation Test Deploy `35934312470` — SUCCESS.
-- migration count 6.
+Readiness:
+- `docs/plan/04-urun-stok/p5-product-master-completion-readiness.md`
 
-Direction:
-- master P5 order moves from Parties to Products;
-- use frozen PLAN-004 + PLAN-010;
-- define one broad Product implementation tranche, not many small slices.
+Single broad tranche:
+- Product core create/list/detail/edit/lifecycle;
+- UOM and Product-UOM;
+- Variant;
+- Barcode Mapping;
+- Category/Product Category;
+- generic Product External Mapping;
+- protected API/Mars.Web;
+- persistence/migration/audit/idempotency/concurrency/targeted tests.
 
-Before implementation:
-- inspect current Product implementation state;
-- freeze Product master scope and explicit exclusions;
-- preserve Product vs Inventory/Warehouse/Finance authority;
-- define exact DB/API/UI/permission/concurrency/test effect;
-- assign a Product implementation ID only after broad scope is explicit.
+Do not split these into additional PRODUCT-IMP work packages merely for implementation convenience.
 
-Do not invent:
-- generic EAV/attribute model;
-- provider-specific product sync;
-- authoritative mutable stock or inventory value on Product;
-- Warehouse workflows not owned by Product.
-
-Remaining Party deferrals do not block moving to Products:
-- fuzzy duplicate candidate generation;
-- Party Reactivation;
-- provider/GİB/non-TR identity;
-- Communications consent/preferences;
-- consuming-module eligibility / Finance integration.
+Deferred:
+- Inventory/Warehouse/Lot/Serial physical authority;
+- stock/value/cost authority;
+- Base UOM replacement;
+- inventory-dependent STOCKABLE/tracking transitions;
+- Variant EAV attributes;
+- provider-specific sync/verification;
+- production deployment;
+- Full Test Day.
 
 ## Quality — master planning sequence item 10
 Target: docs/plan/08-kalite/
