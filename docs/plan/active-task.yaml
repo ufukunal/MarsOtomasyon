@@ -1,8 +1,8 @@
 id: PURCHASING-IMP-001
 title: Purchasing Commercial Receipt & Supplier Invoice Authority Tranche
 module: purchasing
-status: ready_for_implementation
-progress: not_started
+status: implementation_in_progress
+progress: in_progress
 work_package_id: PURCHASING-IMP-001
 readiness_report: docs/plan/07-satinalma/p5-purchasing-authority-readiness.md
 
