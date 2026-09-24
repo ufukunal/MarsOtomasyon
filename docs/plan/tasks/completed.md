@@ -966,3 +966,50 @@ Deferred:
 - authenticated browser mutation and heavy concurrency/security coverage.
 
 Planning metrics remain 9 / 30 = 30.0% master planning coverage and 8 / 8 = 100.0% P2 planning.
+
+
+## PARTY-IMP-006 — Party Master Completion Tranche
+**Status:** COMPLETED
+
+Implemented:
+- Party list/detail/read and legal/display identity edit;
+- Contact Person / Communication Point normalized master lifecycle;
+- Address create/update/read/state/default-by-purpose;
+- TR VKN/TCKN read, masked/full visibility and ACTIVE/INACTIVE lifecycle;
+- Party External Mapping lifecycle and scoped uniqueness;
+- explicit same-company Party Merge + durable source/survivor lineage;
+- expanded Party permission/API/Mars.Web surface;
+- audit, durable idempotency and optimistic concurrency;
+- additive generated EF migration.
+
+Evidence:
+- readiness: `docs/plan/03-cariler/p5-party-master-completion-readiness.md`
+- canonical implementation: `docs/plan/03-cariler/party-imp-006-implementation.md`
+- implementation commit: `d3b21ab936bfb3b9c6d602d799e8ab587ea4ee05`
+- migration commit: `2a4bb99e12e65c0a4c121755d764e7bca7feda85`
+- tested commit: `55b7e78bc2eabcf986e8318f60296f0f3f9cd223`
+- Foundation Build run `35934312246` — SUCCESS
+- Foundation Test Deploy run `35934312470` — SUCCESS
+- frontend tests 18 / 18 PASS
+- Foundation targeted tests 61 / 61 PASS
+- Release build 0 warnings / 0 errors
+- migration safety count 6
+- EF pending-model PASS
+- TEST migration count 6
+- /parties 200
+- /parties/new 200
+- live/ready 200 / 200
+- protected Party master routes unauthenticated 401
+- OpenAPI 200
+- runner-to-TEST smoke PASS
+
+Deferred:
+- fuzzy duplicate candidate generation;
+- Party Reactivation;
+- provider/GİB and non-TR identity;
+- Communications consent/preferences;
+- consuming Sales/Purchasing eligibility;
+- Finance integration;
+- authenticated broad Party E2E and heavy concurrency/security coverage.
+
+Planning metrics were not changed by implementation closure.
