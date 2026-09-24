@@ -87,11 +87,11 @@ test_policy:
   heavy_tests: FULL_TEST_DAY_ONLY
 
 active_task:
-  id: WAREHOUSE-IMP-001
-  title: Warehouse Execution & Inventory Control Authority Tranche
-  status: ready_for_implementation
+  id: FINANCE-SCOPE
+  title: Finance / Treasury Broad Implementation Tranche Definition
+  status: scope_definition_required
   file: docs/plan/active-task.yaml
-  readiness_report: docs/plan/06-ambar-depo/p5-warehouse-execution-readiness.md
+  readiness_report: null
   progress: not_started
 
 completed_planning_tasks:
@@ -126,6 +126,7 @@ completed_implementation_tasks:
   - INVENTORY-IMP-001
   - SALES-IMP-001
   - PURCHASING-IMP-001
+  - WAREHOUSE-IMP-001
 
 locked_decisions:
   - ASP.NET Core Identity + OpenIddict 7.7.1 is the accepted authentication/identity baseline.
@@ -267,7 +268,7 @@ test_environment:
   valkey_status: running_healthy
   valkey_image: valkey/valkey:8-alpine
   valkey_container: marsotomasyon-valkey-1
-  application_deployment_status: purchasing_imp_001_test_deployed_and_smoke_passed
+  application_deployment_status: warehouse_imp_001_test_deployed_and_smoke_passed
   ssh_connectivity_verified: true
   ssh_remote_user: ufuk
   remote_hostname: mars-prod
