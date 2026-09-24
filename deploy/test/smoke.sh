@@ -22,6 +22,7 @@ assert_status 200 "/proof"
 assert_status 200 "/parties"
 assert_status 200 "/parties/new"
 assert_status 200 "/products"
+assert_status 200 "/inventory"
 assert_status 200 "/health/live"
 assert_status 200 "/health/ready"
 assert_status 401 "/api/v1/foundation/context"
@@ -39,6 +40,17 @@ assert_status 401 "/api/v1/products/00000000-0000-0000-0000-000000000001/variant
 assert_status 401 "/api/v1/products/00000000-0000-0000-0000-000000000001/uoms" POST
 assert_status 401 "/api/v1/products/00000000-0000-0000-0000-000000000001/barcodes" POST
 assert_status 401 "/api/v1/products/00000000-0000-0000-0000-000000000001/external-mappings" POST
+assert_status 401 "/api/v1/inventory/warehouses"
+assert_status 401 "/api/v1/inventory/warehouses" POST
+assert_status 401 "/api/v1/inventory/locations"
+assert_status 401 "/api/v1/inventory/locations" POST
+assert_status 401 "/api/v1/inventory/stock"
+assert_status 401 "/api/v1/inventory/positions"
+assert_status 401 "/api/v1/inventory/movements"
+assert_status 401 "/api/v1/inventory/lots"
+assert_status 401 "/api/v1/inventory/lots" POST
+assert_status 401 "/api/v1/inventory/serials/00000000-0000-0000-0000-000000000001"
+assert_status 401 "/api/v1/inventory/reservations"
 assert_status 401 "/api/v1/parties/00000000-0000-0000-0000-000000000001"
 assert_status 401 "/api/v1/parties/00000000-0000-0000-0000-000000000001" PUT
 assert_status 401 "/api/v1/parties/00000000-0000-0000-0000-000000000001/contacts" POST
