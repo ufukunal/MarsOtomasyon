@@ -65,6 +65,9 @@ assert_status 401 "/api/v1/sales/dispatches/00000000-0000-0000-0000-000000000001
 assert_status 401 "/api/v1/sales/dispatches/00000000-0000-0000-0000-000000000001/reverse" POST
 assert_status 401 "/api/v1/sales/invoices"
 assert_status 401 "/api/v1/sales/invoices" POST
+assert_status 401 "/api/v1/sales/proformas"
+assert_status 401 "/api/v1/sales/proformas" POST
+assert_status 401 "/api/v1/sales/proformas/00000000-0000-0000-0000-000000000001/export"
 assert_status 401 "/api/v1/parties/00000000-0000-0000-0000-000000000001"
 assert_status 401 "/api/v1/parties/00000000-0000-0000-0000-000000000001" PUT
 assert_status 401 "/api/v1/parties/00000000-0000-0000-0000-000000000001/contacts" POST
@@ -93,6 +96,7 @@ required = {
     "/api/v1/sales/orders",
     "/api/v1/sales/dispatches",
     "/api/v1/sales/invoices",
+    "/api/v1/sales/proformas",
 }
 missing = sorted(required.difference(paths))
 if missing:
