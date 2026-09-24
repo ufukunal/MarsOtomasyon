@@ -110,7 +110,7 @@ public sealed class EfPurchasingPersistence(
             .ToDictionaryAsync(x=>x.Id,ct);
         return new PurchasingDocumentDetailView(
             receipt.PublicId,receipt.Number,ReceiptStateCode(receipt.State),
-            order.SupplierCodeSnapshot,order.SupplierNameSnapshot,order.CurrencyCode,order.PaymentTerms,receipt.Version,
+            order.SupplierCodeSnapshot,order.SupplierNameSnapshot,order.CurrencyCode,order.PaymentTerms,receipt.Version,receipt.PurchaseOrderVersionNumber,
             lines.Select(x=>new PurchasingDocumentLineView(
                 x.PublicId,x.Sequence,products[x.ProductId].ProductCode,products[x.ProductId].Name,uoms[x.UomId].Code,
                 x.Quantity,receipt.State==GoodsReceiptState.Posted?x.Quantity:0m,
