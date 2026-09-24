@@ -81,3 +81,41 @@ PLAN-005 adopts those product semantics while keeping production architecture mo
 - exact tolerance numeric values
 - tax/legal provider implementation
 - supplier portal/provider specifics
+
+
+## PURCHASING-IMP-001 implementation closure
+
+Status: COMPLETED.
+
+Canonical implementation:
+- docs/plan/07-satinalma/purchasing-imp-001-implementation.md
+
+Tested commit:
+- 50ec242e5471743bbdc9ad43bc69626166b1679f
+
+Foundation Build:
+- run 36054248023
+- job 107817148334
+- SUCCESS
+- frontend 22 / 22 PASS
+- targeted Foundation 97 / 97 PASS
+- Release 0 warnings / 0 errors
+- EF pending model PASS
+
+Foundation Test Deploy:
+- run 36054247926
+- job 107818562329
+- SUCCESS
+- migration safety 11 PASS
+- deployed migration count 11
+- /purchasing 200
+- /sales /inventory /products /parties 200
+- live/ready 200
+- protected Purchasing routes 401 unauthenticated
+- OpenAPI Purchasing surface expected
+- Supplier Invoice POST/REVERSE absent
+- smoke PASS
+
+No authenticated TEST Purchasing mutation is claimed.
+
+Deferred boundaries remain Finance Supplier Payable/Payment/valuation, Quality implementation, Warehouse operations, Purchase Return execution, providers, production and Full Test Day.
