@@ -204,6 +204,21 @@ internal sealed class DispatchLineRecord
     public Guid? ReservationPublicId { get; set; }
 }
 
+internal sealed class DispatchSourceAllocationRecord
+{
+    public long Id { get; set; }
+    public Guid PublicId { get; set; }
+    public long DispatchLineId { get; set; }
+    public Guid CompanyId { get; set; }
+    public long WarehouseId { get; set; }
+    public long LocationId { get; set; }
+    public long? LotId { get; set; }
+    public long? SerialId { get; set; }
+    public decimal Quantity { get; set; }
+    public Guid CreatorActorId { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
+}
+
 internal sealed class DispatchInventoryEffectLinkRecord
 {
     public long Id { get; set; }
