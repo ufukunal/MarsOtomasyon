@@ -1,32 +1,30 @@
 # Planning Backlog
 
-## Immediate — PRODUCT-IMP-001 Product Master Completion Tranche
-Status: READY FOR IMPLEMENTATION.
+## Immediate — P5 Inventory broad implementation tranche definition
+Status: SCOPE DEFINITION REQUIRED / NOT STARTED.
 
-Readiness:
-- `docs/plan/04-urun-stok/p5-product-master-completion-readiness.md`
+Predecessor:
+- PRODUCT-IMP-001 — COMPLETED.
+- canonical report: docs/plan/04-urun-stok/product-imp-001-implementation.md
+- tested commit: ac92911a8f5fcda070622b084216a43a70ad7d77
+- Foundation Build 35981641268 — SUCCESS.
+- Foundation Test Deploy 35981641137 — SUCCESS.
+- migration count 7.
 
-Single broad tranche:
-- Product core create/list/detail/edit/lifecycle;
-- UOM and Product-UOM;
-- Variant;
-- Barcode Mapping;
-- Category/Product Category;
-- generic Product External Mapping;
-- protected API/Mars.Web;
-- persistence/migration/audit/idempotency/concurrency/targeted tests.
+Direction:
+- master P5 order moves from Products to Inventory
+- use frozen PLAN-004 Inventory contracts + PLAN-010
+- define one broad Inventory implementation tranche, not many small slices
 
-Do not split these into additional PRODUCT-IMP work packages merely for implementation convenience.
+Before implementation:
+- inspect current Inventory source
+- freeze Inventory Ledger / Reservation / status / lot-serial boundary from accepted sources
+- distinguish Warehouse operational ownership
+- preserve Finance/Costing valuation ownership
+- define DB/API/UI/permission/idempotency/concurrency/test effects
+- assign Inventory implementation ID only after broad scope is explicit
 
-Deferred:
-- Inventory/Warehouse/Lot/Serial physical authority;
-- stock/value/cost authority;
-- Base UOM replacement;
-- inventory-dependent STOCKABLE/tracking transitions;
-- Variant EAV attributes;
-- provider-specific sync/verification;
-- production deployment;
-- Full Test Day.
+Do not invent negative-stock exceptions, lot/serial bypasses, mutable stock totals, Warehouse workflow ownership or Finance valuation authority.
 
 ## Quality — master planning sequence item 10
 Target: docs/plan/08-kalite/
