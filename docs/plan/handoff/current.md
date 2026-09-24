@@ -82,61 +82,89 @@ Deferred:
 - consuming Sales/Purchasing Party eligibility
 - Finance integration
 
+## PARTY-IMP-006 evidence
+
+Canonical readiness:
+- `docs/plan/03-cariler/p5-party-master-completion-readiness.md`
+
+Canonical implementation:
+- `docs/plan/03-cariler/party-imp-006-implementation.md`
+
+Commits:
+- implementation `d3b21ab936bfb3b9c6d602d799e8ab587ea4ee05`
+- migration-verification fix `20f9635d58ff0289e0aea098f4ec0e47399c7d93`
+- generated migration `2a4bb99e12e65c0a4c121755d764e7bca7feda85`
+- final tested commit `55b7e78bc2eabcf986e8318f60296f0f3f9cd223`
+
+Foundation Build:
+- run `35934312246`
+- job `107427788711`
+- SUCCESS
+- frontend tests 18 / 18 PASS
+- Foundation targeted tests 61 / 61 PASS
+- Release build 0 warnings / 0 errors
+- EF pending-model PASS
+
+Foundation Test Deploy:
+- run `35934312470`
+- job `107427788946`
+- SUCCESS
+- migration safety count 6
+- TEST migration applied; deployed migration count 6
+- /parties 200
+- /parties/new 200
+- live/ready 200 / 200
+- protected Party master endpoints unauthenticated 401
+- OpenAPI 200
+- runner-to-TEST smoke PASS
+
+No real authenticated TEST Party master mutation is claimed.
+
+PARTY-IMP-006 completed the frozen broad tranche:
+- Party list/detail/edit;
+- Contact/Communication;
+- Address;
+- TR Tax Identity read/masking/lifecycle;
+- External Mapping;
+- explicit Merge/lineage.
+
+Still deferred:
+- fuzzy duplicate candidate generation;
+- Party Reactivation;
+- provider/GİB/non-TR identity;
+- Communications consent/preferences;
+- Sales/Purchasing eligibility;
+- Finance behavior.
+
 ## Current phase
 P5 — Core application implementation
 Status: IMPLEMENTATION IN PROGRESS
 
 ## Current task
-PARTY-IMP-006 — Party Master Completion Tranche.
+Define one broad Products implementation tranche from frozen PLAN-004 + PLAN-010.
 
-Status:
-- IMPLEMENTATION IN PROGRESS.
-
-Canonical readiness:
-- `docs/plan/03-cariler/p5-party-master-completion-readiness.md`
+Work-package ID:
+- NOT ASSIGNED.
 
 Owner direction:
-- broaden Party implementation scope instead of one package per small capability;
-- normal technical implementation choices belong to active skills unless they introduce a new business rule.
+- broad coherent packages; do not return to one-package-per-small-capability sequencing.
 
-Included:
-- Party list/detail/read and legal/display identity edit;
-- Contact Person / Communication Point;
-- Address lifecycle/default-by-purpose;
-- existing TR VKN/TCKN read/masking/lifecycle;
-- Party External Mapping;
-- explicit same-company Party Merge + lineage;
-- required permission/API/UI/persistence/migration/audit/idempotency/concurrency/targeted tests.
-
-Deferred:
-- fuzzy candidate generation/scoring/thresholds;
-- Party Reactivation until duplicate/legal-identity rerun prerequisite is resolved;
-- provider/GIB and non-TR tax behavior;
-- Communications consent/preferences;
-- Sales/Purchasing/Finance implementation;
-- production deployment;
-- Full Test Day.
-
-The unresolved Reactivation question does not block PARTY-IMP-006 because Reactivation is outside this package.
+Before mutation:
+- inspect current Product source;
+- freeze broad Product master scope and exclusions;
+- preserve Product vs Inventory/Warehouse/Finance authority;
+- assign the Product implementation package ID only after exact broad scope is explicit.
 
 ## Planning progress
-- Master section-8 planning coverage: 9 / 30 = 30.0%
+- Active state metric: Master 9 / 30 = 30.0%
 - P2 core commercial planning: 8 / 8 = 100.0%
-
-These are planning metrics, not implementation-progress metrics.
+- `docs/db/acceptance-criteria.md` separately records 10 / 30 = 33.3%; this inconsistency remains for explicit normalization.
 
 ## Full Test Day
 Still deferred:
-- concurrent Party Code creation
-- concurrent role activation/lifecycle transitions
-- concurrent deterministic Tax Identity collision
-- concurrent Party deactivation and related mutation races
-- cross-company identity/IDOR matrix
-- broad permission matrix
-- authenticated browser Party lifecycle E2E
-- consuming Sales/Purchasing eligibility
-- provider verification reconciliation
-- high-volume duplicate/identity search
-- PII/security regression
-- performance/load
-- backup/restore
+- Party broad authenticated E2E / permission matrix / concurrency;
+- Product future heavy tests after Product implementation;
+- high-volume search;
+- PII/security regression;
+- performance/load;
+- backup/restore.
