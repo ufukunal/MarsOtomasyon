@@ -25,6 +25,7 @@ assert_status 200 "/products"
 assert_status 200 "/inventory"
 assert_status 200 "/sales"
 assert_status 200 "/purchasing"
+assert_status 200 "/warehouse"
 assert_status 200 "/health/live"
 assert_status 200 "/health/ready"
 assert_status 401 "/api/v1/foundation/context"
@@ -82,6 +83,20 @@ assert_status 401 "/api/v1/purchasing/matches"
 assert_status 401 "/api/v1/purchasing/matches/00000000-0000-0000-0000-000000000001/approval" POST
 assert_status 401 "/api/v1/purchasing/match-preview?mode=1&sourceDocumentPublicId=00000000-0000-0000-0000-000000000001"
 assert_status 401 "/api/v1/purchasing/return-source-preview?goodsReceiptPublicId=00000000-0000-0000-0000-000000000001"
+assert_status 401 "/api/v1/warehouse/receiving"
+assert_status 401 "/api/v1/warehouse/dispositions" POST
+assert_status 401 "/api/v1/warehouse/putaway" POST
+assert_status 401 "/api/v1/warehouse/picks"
+assert_status 401 "/api/v1/warehouse/picks" POST
+assert_status 401 "/api/v1/warehouse/packages" POST
+assert_status 401 "/api/v1/warehouse/transfers"
+assert_status 401 "/api/v1/warehouse/transfers" POST
+assert_status 401 "/api/v1/warehouse/counts"
+assert_status 401 "/api/v1/warehouse/counts" POST
+assert_status 401 "/api/v1/warehouse/scrap"
+assert_status 401 "/api/v1/warehouse/scrap" POST
+assert_status 401 "/api/v1/warehouse/offline-operations"
+assert_status 401 "/api/v1/warehouse/trace"
 assert_status 401 "/api/v1/parties/00000000-0000-0000-0000-000000000001"
 assert_status 401 "/api/v1/parties/00000000-0000-0000-0000-000000000001" PUT
 assert_status 401 "/api/v1/parties/00000000-0000-0000-0000-000000000001/contacts" POST
@@ -117,6 +132,19 @@ required = {
     "/api/v1/purchasing/matches",
     "/api/v1/purchasing/match-preview",
     "/api/v1/purchasing/return-source-preview",
+    "/api/v1/warehouse/receiving",
+    "/api/v1/warehouse/dispositions",
+    "/api/v1/warehouse/putaway",
+    "/api/v1/warehouse/replenishment",
+    "/api/v1/warehouse/picks",
+    "/api/v1/warehouse/packages",
+    "/api/v1/warehouse/staging",
+    "/api/v1/warehouse/loading",
+    "/api/v1/warehouse/transfers",
+    "/api/v1/warehouse/counts",
+    "/api/v1/warehouse/scrap",
+    "/api/v1/warehouse/offline-operations",
+    "/api/v1/warehouse/trace",
 }
 missing = sorted(required.difference(paths))
 if missing:
@@ -134,13 +162,21 @@ forbidden += [
     "/api/v1/purchasing/invoices/{id:guid}/post",
     "/api/v1/purchasing/invoices/{id:guid}/reverse",
 ]
+forbidden += [
+    "/api/v1/warehouse/dispatches/{id}/post",
+    "/api/v1/warehouse/dispatches/{id:guid}/post",
+    "/api/v1/warehouse/receipts/{id}/post",
+    "/api/v1/warehouse/receipts/{id:guid}/post",
+]
 present = [path for path in forbidden if path in paths]
 if present:
-    raise SystemExit(f"SMOKE_FAIL|OPENAPI_FORBIDDEN_INVOICE_AUTHORITY={present}")
+    raise SystemExit(f"SMOKE_FAIL|OPENAPI_FORBIDDEN_AUTHORITY={present}")
 
 print("SMOKE_PASS|OPENAPI_SALES_SURFACE=EXPECTED")
 print("SMOKE_PASS|OPENAPI_PURCHASING_SURFACE=EXPECTED")
+print("SMOKE_PASS|OPENAPI_WAREHOUSE_SURFACE=EXPECTED")
 print("SMOKE_PASS|OPENAPI_INVOICE_POST_REVERSE=ABSENT")
+print("SMOKE_PASS|OPENAPI_WAREHOUSE_COMMERCIAL_POST=ABSENT")
 PY
 
 echo "SMOKE_RESULT=PASS"
