@@ -110,6 +110,10 @@ public sealed partial class EfSalesPersistence
         var quote=await dbContext.Set<QuoteRecord>().AsNoTracking()
             .SingleOrDefaultAsync(x=>x.CompanyId==context.CompanyId&&x.PublicId==quotePublicId,ct);
         if(quote is null)return NotFound<SalesApprovalTarget>("sales.quote.not_found","Quote was not found.");
+        if(quote.State is not (QuoteState.PendingInternalApproval or QuoteState.CustomerReview))
+            return Business<SalesApprovalTarget>(
+                "sales.quote.approval.state",
+                "Quote approval target is available only after submission and for the approved customer-review snapshot.");
         var revision=await dbContext.Set<QuoteRevisionRecord>().AsNoTracking()
             .SingleAsync(x=>x.CompanyId==context.CompanyId&&x.QuoteId==quote.Id&&x.RevisionNumber==quote.CurrentRevisionNumber,ct);
         return Result<SalesApprovalTarget>.Success(new(revision.PublicId,revision.RevisionNumber,revision.CreatorActorId,"QuoteRevision"));
@@ -283,6 +287,10 @@ public sealed partial class EfSalesPersistence
         var order=await dbContext.Set<SalesOrderRecord>().AsNoTracking()
             .SingleOrDefaultAsync(x=>x.CompanyId==context.CompanyId&&x.PublicId==id,ct);
         if(order is null)return NotFound<SalesApprovalTarget>("sales.order.not_found","Sales Order was not found.");
+        if(!order.ApprovalInheritedFromAcceptedQuote && order.State!=SalesOrderState.PendingApproval)
+            return Business<SalesApprovalTarget>(
+                "sales.order.approval.state",
+                "Direct or commercially changed Sales Order must be submitted before approval or confirmation.");
         var type=order.ApprovalInheritedFromAcceptedQuote?"SalesOrderInheritedApproval":"SalesOrder";
         return Result<SalesApprovalTarget>.Success(new(order.PublicId,order.CurrentVersionNumber,order.CreatorActorId,type));
     }
@@ -406,6 +414,14 @@ public sealed partial class EfSalesPersistence
         var a=await dbContext.Set<SalesOrderAmendmentRecord>().AsNoTracking()
             .SingleOrDefaultAsync(x=>x.CompanyId==context.CompanyId&&x.PublicId==id,ct);
         if(a is null)return NotFound<SalesApprovalTarget>("sales.order.amendment.not_found","Amendment was not found.");
+        if(!a.RequiresApproval)
+            return Business<SalesApprovalTarget>(
+                "sales.order.amendment.approval.not_required",
+                "This amendment does not require an approval decision.");
+        if(a.State!=SalesOrderAmendmentState.PendingApproval)
+            return Business<SalesApprovalTarget>(
+                "sales.order.amendment.approval.state",
+                "Approval-required amendment must be submitted before approval.");
         return Result<SalesApprovalTarget>.Success(new(a.PublicId,a.BaseVersionNumber,a.CreatorActorId,"SalesOrderAmendment"));
     }
 
