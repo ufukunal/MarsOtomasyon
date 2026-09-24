@@ -784,28 +784,29 @@ public sealed class EfWarehousePersistence(
             return Success(count.PublicId,"COUNTING",count.Version,context);
         },ct);
 
-    public async Task<Result<CountAdjustmentPlan>> ReviewCountAsync(
-        Guid id,long expectedVersion,string operationKey,IExecutionContext context,CancellationToken ct)
-    {
-        var count=await LockCount(context.CompanyId,id,ct);
-        if(count is null)return Fail<CountAdjustmentPlan>("warehouse.count.not_found","Count was not found.");
-        if(count.Version!=expectedVersion)return Conflict<CountAdjustmentPlan>("warehouse.count.stale","Count version is stale.");
-        if(count.State!=StockCountState.Counting)return Fail<CountAdjustmentPlan>("warehouse.count.state","Count is not COUNTING.");
-        var lines=await dbContext.Set<StockCountLineRecord>().Where(x=>x.CompanyId==context.CompanyId&&x.CountSessionId==count.Id).ToArrayAsync(ct);
-        if(lines.Any(x=>!x.AcceptedCountQuantity.HasValue))return Fail<CountAdjustmentPlan>("warehouse.count.incomplete","Every Count line requires an observation.");
-        var snapshot=count.SnapshotMovementId??0;
-        foreach(var line in lines){
-            var net=await NetMovementAfter(context.CompanyId,line,snapshot,ct);
-            line.NetInterveningQuantity=net;
-            line.ExpectedReconciliationQuantity=line.ExpectedStartQuantity+net;
-            line.DiscrepancyQuantity=line.AcceptedCountQuantity!.Value-line.ExpectedReconciliationQuantity;
-        }
-        count.ReviewedAt=DateTimeOffset.UtcNow;
-        count.State=lines.Any(x=>x.DiscrepancyQuantity!=0m)?StockCountState.PendingApproval:StockCountState.Closed;
-        count.Version++;
-        await dbContext.SaveChangesAsync(ct);
-        return await BuildCountPlan(count,lines,context.CompanyId,ct);
-    }
+    public Task<Result<CountAdjustmentPlan>> ReviewCountAsync(
+        Guid id,long expectedVersion,string operationKey,IExecutionContext context,CancellationToken ct)=>
+        MutateValue("warehouse.count.review",operationKey,"WarehouseCountReviewed","StockCount",id,context,async inner=>{
+            var count=await LockCount(context.CompanyId,id,inner);
+            if(count is null)return Fail<CountAdjustmentPlan>("warehouse.count.not_found","Count was not found.");
+            if(count.Version!=expectedVersion)return Conflict<CountAdjustmentPlan>("warehouse.count.stale","Count version is stale.");
+            if(count.State!=StockCountState.Counting)return Fail<CountAdjustmentPlan>("warehouse.count.state","Count is not COUNTING.");
+            var lines=await dbContext.Set<StockCountLineRecord>()
+                .Where(x=>x.CompanyId==context.CompanyId&&x.CountSessionId==count.Id).ToArrayAsync(inner);
+            if(lines.Any(x=>!x.AcceptedCountQuantity.HasValue))
+                return Fail<CountAdjustmentPlan>("warehouse.count.incomplete","Every Count line requires an observation.");
+            var snapshot=count.SnapshotMovementId??0;
+            foreach(var line in lines){
+                var net=await NetMovementAfter(context.CompanyId,line,snapshot,inner);
+                line.NetInterveningQuantity=net;
+                line.ExpectedReconciliationQuantity=line.ExpectedStartQuantity+net;
+                line.DiscrepancyQuantity=line.AcceptedCountQuantity!.Value-line.ExpectedReconciliationQuantity;
+            }
+            count.ReviewedAt=DateTimeOffset.UtcNow;
+            count.State=lines.Any(x=>x.DiscrepancyQuantity!=0m)?StockCountState.PendingApproval:StockCountState.Closed;
+            count.Version++;
+            return await BuildCountPlan(count,lines,context.CompanyId,inner);
+        },ct);
 
     public async Task<Result<CountAdjustmentPlan>> GetCountPostPlanAsync(Guid id,IExecutionContext context,CancellationToken ct)
     {
@@ -1209,6 +1210,48 @@ public sealed class EfWarehousePersistence(
         var set=ids.Distinct().ToArray();if(set.Length==0)return [];
         var p=typeof(T).GetProperty("CompanyId")!;
         return (await dbContext.Set<T>().AsNoTracking().Where(x=>EF.Property<Guid>(x,"CompanyId")==companyId&&set.Contains(EF.Property<long>(x,"Id"))).ToArrayAsync(ct)).ToDictionary(key);
+    }
+
+    private async Task<Result<T>> MutateValue<T>(
+        string scope,string key,string action,string entityType,Guid entityPublicId,IExecutionContext context,
+        Func<CancellationToken,Task<Result<T>>> mutation,CancellationToken ct)
+    {
+        if(string.IsNullOrWhiteSpace(key))
+            return Result<T>.Failure(new ApplicationError(ErrorCategory.Validation,"warehouse.operation_key.required","Idempotency operation key is required."));
+        var owns=dbContext.Database.CurrentTransaction is null;
+        IDbContextTransaction? tx=null;
+        if(owns)tx=await dbContext.Database.BeginTransactionAsync(ct);
+        try{
+            var result=await mutation(ct);
+            if(result.IsFailure){
+                if(tx is not null)await tx.RollbackAsync(ct);
+                dbContext.ChangeTracker.Clear();
+                return result;
+            }
+            var now=DateTimeOffset.UtcNow;
+            idempotencyStore.Add(new IdempotencyOperation(scope,key,null,now));
+            auditWriter.Append(new AuditEntry(
+                context.ActorId,context.CompanyId,context.BranchId,context.CorrelationId.Value,
+                "Warehouse",action,entityType,entityPublicId,null,now));
+            outboxWriter.Enqueue(new OutboxMessage(
+                Guid.NewGuid(),"Warehouse."+action,"Warehouse",entityPublicId,1,
+                JsonSerializer.Serialize(new{entityType,entityPublicId}),now,now));
+            await dbContext.SaveChangesAsync(ct);
+            if(!await idempotencyStore.MarkSucceededAsync(scope,key,scope+".completed",now,ct))
+                throw new InvalidOperationException("Warehouse idempotency state could not be completed.");
+            if(tx is not null)await tx.CommitAsync(ct);
+            return result;
+        }catch(DbUpdateConcurrencyException){
+            if(tx is not null)await tx.RollbackAsync(ct);
+            dbContext.ChangeTracker.Clear();
+            return Result<T>.Failure(new ApplicationError(ErrorCategory.Concurrency,"warehouse.concurrency.stale","Warehouse work changed concurrently."));
+        }catch(DbUpdateException ex) when(ex.InnerException is PostgresException pg&&pg.SqlState==PostgresErrorCodes.UniqueViolation){
+            if(tx is not null)await tx.RollbackAsync(ct);
+            dbContext.ChangeTracker.Clear();
+            return Result<T>.Failure(new ApplicationError(ErrorCategory.Conflict,"warehouse.unique.conflict","Warehouse operation conflicts with an existing deterministic record."));
+        }finally{
+            if(tx is not null)await tx.DisposeAsync();
+        }
     }
 
     private async Task<Result<WarehouseMutationReceipt>> Mutate(
