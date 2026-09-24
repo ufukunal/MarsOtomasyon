@@ -6,6 +6,7 @@ using Mars.Api.Products;
 using Mars.Api.Inventory;
 using Mars.Api.Purchasing;
 using Mars.Api.Sales;
+using Mars.Api.Warehouse;
 using Mars.Api.Foundation.Errors;
 using Mars.Api.Foundation.Health;
 using Mars.Application.Foundation.Configuration;
@@ -28,6 +29,7 @@ using Mars.Application.Products.ProductMaster;
 using Mars.Application.Inventory;
 using Mars.Application.Purchasing;
 using Mars.Application.Sales;
+using Mars.Application.Warehouse;
 using Mars.Infrastructure.Identity;
 using Mars.Infrastructure.Persistence;
 using Mars.Infrastructure.Persistence.Foundation;
@@ -36,6 +38,7 @@ using Mars.Infrastructure.Persistence.Products;
 using Mars.Infrastructure.Persistence.Inventory;
 using Mars.Infrastructure.Persistence.Purchasing;
 using Mars.Infrastructure.Persistence.Sales;
+using Mars.Infrastructure.Persistence.Warehouse;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
@@ -107,6 +110,8 @@ builder.Services.AddScoped<ISalesPersistence>(
 builder.Services.AddScoped<ISalesProformaPersistence>(
     services => services.GetRequiredService<EfSalesPersistence>());
 builder.Services.AddScoped<ISalesTransactionCoordinator, EfSalesTransactionCoordinator>();
+builder.Services.AddScoped<ISalesWarehouseDispatchAuthority>(
+    services => services.GetRequiredService<EfSalesPersistence>());
 builder.Services.AddScoped<SalesQueryHandler>();
 builder.Services.AddScoped<SalesCommandHandler>();
 builder.Services.AddScoped<SalesProformaQueryHandler>();
@@ -117,6 +122,16 @@ builder.Services.AddScoped<IPurchasingPersistence>(
 builder.Services.AddScoped<IPurchasingTransactionCoordinator, EfPurchasingTransactionCoordinator>();
 builder.Services.AddScoped<PurchasingQueryHandler>();
 builder.Services.AddScoped<PurchasingCommandHandler>();
+builder.Services.AddScoped<EfWarehousePersistence>();
+builder.Services.AddScoped<IWarehousePersistence>(
+    services => services.GetRequiredService<EfWarehousePersistence>());
+builder.Services.AddScoped<IWarehouseOpenWorkBlocker>(
+    services => services.GetRequiredService<EfWarehousePersistence>());
+builder.Services.AddScoped<IInventoryOperationalBlocker>(
+    services => services.GetRequiredService<EfWarehousePersistence>());
+builder.Services.AddScoped<IWarehouseTransactionCoordinator, EfWarehouseTransactionCoordinator>();
+builder.Services.AddScoped<WarehouseQueryHandler>();
+builder.Services.AddScoped<WarehouseCommandHandler>();
 builder.Services.AddScoped<IAuthorizationHandler, MarsPermissionAuthorizationHandler>();
 
 builder.Services.AddOpenApi("v1");
@@ -165,7 +180,13 @@ builder.Services
 
 builder.Services.AddAuthorization(options =>
 {
-    foreach (var permission in PartyPermissions.All.Concat(ProductPermissions.All).Concat(InventoryPermissions.All).Concat(SalesPermissions.All).Concat(PurchasingPermissions.All))
+    foreach (var permission in PartyPermissions.All
+        .Concat(ProductPermissions.All)
+        .Concat(InventoryPermissions.All)
+        .Concat(SalesPermissions.All)
+        .Concat(PurchasingPermissions.All)
+        .Concat(WarehousePermissions.All)
+        .Distinct(StringComparer.Ordinal))
     {
         options.AddPolicy(
             permission,
@@ -839,6 +860,7 @@ app.MapInventoryEndpoints();
 app.MapSalesEndpoints();
 app.MapSalesProformaEndpoints();
 app.MapPurchasingEndpoints();
+app.MapWarehouseEndpoints();
 
 app.MapPost(
         "/api/v1/foundation/proof",
