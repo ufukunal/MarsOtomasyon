@@ -928,21 +928,69 @@ public sealed class EfWarehousePersistence(
 
     public async Task<bool> HasOpenWarehouseWorkAsync(Guid companyId,Guid warehousePublicId,CancellationToken ct)
     {
-        var wh=await dbContext.Set<WarehouseRecord>().AsNoTracking().SingleOrDefaultAsync(x=>x.CompanyId==companyId&&x.PublicId==warehousePublicId,ct);
+        var wh=await dbContext.Set<WarehouseRecord>().AsNoTracking()
+            .SingleOrDefaultAsync(x=>x.CompanyId==companyId&&x.PublicId==warehousePublicId,ct);
         if(wh is null)return false;
-        return await dbContext.Set<PickWorkRecord>().AsNoTracking().AnyAsync(x=>x.CompanyId==companyId&&x.WarehouseId==wh.Id&&x.State != PickWorkState.Closed && x.State != PickWorkState.Cancelled,ct)
-            ||await dbContext.Set<WarehouseTransferRecord>().AsNoTracking().AnyAsync(x=>x.CompanyId==companyId&&(x.SourceWarehouseId==wh.Id||x.TargetWarehouseId==wh.Id)&&x.State != TransferState.Closed && x.State != TransferState.Cancelled && x.State != TransferState.Reversed,ct)
-            ||await dbContext.Set<StockCountSessionRecord>().AsNoTracking().AnyAsync(x=>x.CompanyId==companyId&&x.WarehouseId==wh.Id&&x.State != StockCountState.Closed && x.State != StockCountState.Cancelled && x.State != StockCountState.Reversed,ct)
-            ||await dbContext.Set<WarehouseScrapRecord>().AsNoTracking().AnyAsync(x=>x.CompanyId==companyId&&x.WarehouseId==wh.Id&&x.State != ScrapState.Posted && x.State != ScrapState.Cancelled && x.State != ScrapState.Reversed,ct);
+
+        var openPick=await (
+            from pick in dbContext.Set<PickWorkRecord>().AsNoTracking()
+            join dispatch in dbContext.Set<DispatchRecord>().AsNoTracking()
+                on pick.DispatchPublicId equals dispatch.PublicId
+            where pick.CompanyId==companyId&&dispatch.CompanyId==companyId&&pick.WarehouseId==wh.Id&&
+                  pick.State!=PickWorkState.Cancelled&&
+                  dispatch.State!=DispatchState.Posted&&dispatch.State!=DispatchState.HandedOver&&
+                  dispatch.State!=DispatchState.Delivered&&dispatch.State!=DispatchState.Cancelled&&
+                  dispatch.State!=DispatchState.Reversed
+            select pick.Id).AnyAsync(ct);
+
+        if(openPick)return true;
+
+        return await dbContext.Set<WarehouseTransferRecord>().AsNoTracking()
+                .AnyAsync(x=>x.CompanyId==companyId&&(x.SourceWarehouseId==wh.Id||x.TargetWarehouseId==wh.Id)&&
+                    x.State!=TransferState.Closed&&x.State!=TransferState.Cancelled&&x.State!=TransferState.Reversed,ct)
+            ||await dbContext.Set<StockCountSessionRecord>().AsNoTracking()
+                .AnyAsync(x=>x.CompanyId==companyId&&x.WarehouseId==wh.Id&&
+                    x.State!=StockCountState.Closed&&x.State!=StockCountState.Cancelled&&x.State!=StockCountState.Reversed,ct)
+            ||await dbContext.Set<WarehouseScrapRecord>().AsNoTracking()
+                .AnyAsync(x=>x.CompanyId==companyId&&x.WarehouseId==wh.Id&&
+                    x.State!=ScrapState.Posted&&x.State!=ScrapState.Cancelled&&x.State!=ScrapState.Reversed,ct);
     }
 
     public async Task<bool> HasOpenLocationWorkAsync(Guid companyId,Guid locationPublicId,CancellationToken ct)
     {
-        var loc=await dbContext.Set<LocationRecord>().AsNoTracking().SingleOrDefaultAsync(x=>x.CompanyId==companyId&&x.PublicId==locationPublicId,ct);
+        var loc=await dbContext.Set<LocationRecord>().AsNoTracking()
+            .SingleOrDefaultAsync(x=>x.CompanyId==companyId&&x.PublicId==locationPublicId,ct);
         if(loc is null)return false;
-        return await dbContext.Set<PickWorkRecord>().AsNoTracking().AnyAsync(x=>x.CompanyId==companyId&&x.LocationId==loc.Id&&x.State != PickWorkState.Closed && x.State != PickWorkState.Cancelled,ct)
-            ||await dbContext.Set<WarehouseTransferLineRecord>().AsNoTracking().AnyAsync(x=>x.CompanyId==companyId&&(x.SourceLocationId==loc.Id||x.TargetLocationId==loc.Id),ct)
-            ||await dbContext.Set<StockCountScopeRecord>().AsNoTracking().AnyAsync(x=>x.CompanyId==companyId&&x.LocationId==loc.Id,ct);
+
+        var openPick=await (
+            from pick in dbContext.Set<PickWorkRecord>().AsNoTracking()
+            join dispatch in dbContext.Set<DispatchRecord>().AsNoTracking()
+                on pick.DispatchPublicId equals dispatch.PublicId
+            where pick.CompanyId==companyId&&dispatch.CompanyId==companyId&&pick.LocationId==loc.Id&&
+                  pick.State!=PickWorkState.Cancelled&&
+                  dispatch.State!=DispatchState.Posted&&dispatch.State!=DispatchState.HandedOver&&
+                  dispatch.State!=DispatchState.Delivered&&dispatch.State!=DispatchState.Cancelled&&
+                  dispatch.State!=DispatchState.Reversed
+            select pick.Id).AnyAsync(ct);
+        if(openPick)return true;
+
+        var openTransfer=await (
+            from line in dbContext.Set<WarehouseTransferLineRecord>().AsNoTracking()
+            join transfer in dbContext.Set<WarehouseTransferRecord>().AsNoTracking()
+                on line.TransferId equals transfer.Id
+            where line.CompanyId==companyId&&transfer.CompanyId==companyId&&
+                  (line.SourceLocationId==loc.Id||line.TargetLocationId==loc.Id)&&
+                  transfer.State!=TransferState.Closed&&transfer.State!=TransferState.Cancelled&&transfer.State!=TransferState.Reversed
+            select line.Id).AnyAsync(ct);
+        if(openTransfer)return true;
+
+        return await (
+            from scope in dbContext.Set<StockCountScopeRecord>().AsNoTracking()
+            join count in dbContext.Set<StockCountSessionRecord>().AsNoTracking()
+                on scope.CountSessionId equals count.Id
+            where scope.CompanyId==companyId&&count.CompanyId==companyId&&scope.LocationId==loc.Id&&
+                  count.State!=StockCountState.Closed&&count.State!=StockCountState.Cancelled&&count.State!=StockCountState.Reversed
+            select scope.Id).AnyAsync(ct);
     }
 
     private async Task<IReadOnlyList<WarehouseWorkListItem>> ListOperations(Guid companyId,CancellationToken ct)
