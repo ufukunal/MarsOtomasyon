@@ -426,6 +426,53 @@ public static class InventoryEndpoints
             .WithName("ListInventoryReservations");
     }
 
+        app.MapPost(
+                "/api/v1/inventory/warehouses/{warehousePublicId:guid}/access-grants",
+                async (
+                    Guid warehousePublicId,
+                    WarehouseAccessGrantRequest request,
+                    HttpRequest http,
+                    IExecutionContext context,
+                    IWarehouseAccessGrantAuthority authority,
+                    CancellationToken ct) =>
+                {
+                    var result = await authority.GrantAsync(
+                        request.ActorId,
+                        warehousePublicId,
+                        Key(http),
+                        context,
+                        ct);
+                    return result.IsFailure
+                        ? ApplicationErrorHttpMapper.ToResult(result.Error!, context.CorrelationId.Value)
+                        : Results.Created(
+                            "/api/v1/inventory/warehouses/" + warehousePublicId.ToString("D") +
+                            "/access-grants/" + result.Value!.PublicId.ToString("D"),
+                            result.Value);
+                })
+            .RequireAuthorization(InventoryPermissions.WarehouseManage)
+            .WithName("GrantWarehouseAccess");
+
+        app.MapPost(
+                "/api/v1/inventory/warehouses/{warehousePublicId:guid}/access-grants/revoke",
+                async (
+                    Guid warehousePublicId,
+                    WarehouseAccessGrantRequest request,
+                    HttpRequest http,
+                    IExecutionContext context,
+                    IWarehouseAccessGrantAuthority authority,
+                    CancellationToken ct) =>
+                {
+                    var result = await authority.RevokeAsync(
+                        request.ActorId,
+                        warehousePublicId,
+                        Key(http),
+                        context,
+                        ct);
+                    return Map(result, context);
+                })
+            .RequireAuthorization(InventoryPermissions.WarehouseManage)
+            .WithName("RevokeWarehouseAccess");
+
     private static IResult Map<T>(
         Mars.Application.Foundation.Results.Result<T> result,
         IExecutionContext context) =>
