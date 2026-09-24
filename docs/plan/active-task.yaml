@@ -1,10 +1,10 @@
-id: SALES-IMP-001
-title: Sales Commercial & Fulfillment Authority Tranche
-module: sales
+id: PURCHASING-IMP-001
+title: Purchasing Commercial Receipt & Supplier Invoice Authority Tranche
+module: purchasing
 status: ready_for_implementation
 progress: not_started
-work_package_id: SALES-IMP-001
-readiness_report: docs/plan/05-satis/p5-sales-commercial-fulfillment-readiness.md
+work_package_id: PURCHASING-IMP-001
+readiness_report: docs/plan/07-satinalma/p5-purchasing-authority-readiness.md
 
 phase:
   id: P5
@@ -12,86 +12,54 @@ phase:
   status: implementation_in_progress
 
 predecessor:
-  id: INVENTORY-IMP-001
-  title: Inventory Authority & Traceability Tranche
+  id: SALES-IMP-001
+  title: Sales Commercial & Fulfillment Authority Tranche
   status: completed
-  canonical_report: docs/plan/04-urun-stok/inventory-imp-001-implementation.md
-  readiness_report: docs/plan/04-urun-stok/p5-inventory-authority-traceability-readiness.md
-  migration_commit: f4dc4cdf60bff8b5845347b6c50fbac5d64e3206
-  tested_commit: edcc24f1200b70aad102fc510ad7bec60c4515e7
-  foundation_build_run: 35998315605
-  foundation_build_job: 107628488066
-  test_deploy_run: 35998315582
-  test_deploy_job: 107628488098
-  frontend_tests: 20_passed
-  foundation_tests: 74_passed
-  migration_count: 8
-  remote_test_deployment: success
+  canonical_report: docs/plan/05-satis/sales-imp-001-implementation.md
+  tested_commit: c99b1a3191fc5c6823734bd27f074ef10a8094a3
+  foundation_build_run: 36026678334
+  foundation_build_job: 107724878496
+  test_deploy_run: 36026678557
+  test_deploy_job: 107724879932
 
 owner_direction:
   - broad coherent implementation tranches
-  - do not split Quote/Order/Reservation integration/Dispatch/Invoice pre-post authority into separate SALES-IMP IDs merely for implementation convenience
-  - ordinary technical implementation decisions belong to active skills unless they introduce new business/legal/provider/cross-module semantics
+  - do not split Purchase Order, Goods Receipt, matching and Supplier Invoice preparation into micro package IDs
+  - preserve Inventory, Quality and Finance ownership boundaries
+  - ordinary technical decisions belong to active skills unless they introduce new business/legal/provider/cross-module semantics
 
 scope:
   include:
-    - Quote/revision/line authority and lifecycle
-    - partial/repeated Quote conversion with durable source caps
-    - Sales Order/effective version/line authority
-    - controlled Order amendment and activation
-    - approval evidence/SoD required by Sales
-    - explicit Inventory Reservation create/increase/release integration
-    - Warehouse resource-scope authorization required for Dispatch actions
-    - Dispatch commercial authority
-    - atomic Dispatch POST with Inventory STOCK OUT and Reservation consume
-    - Dispatch reversal with linked compensating Inventory movement
-    - handed-over/delivered post-operational states
-    - Sales Invoice DRAFT/commercial/source/calculation authority
-    - optional Proforma inside the same package
-    - Sales read/projection surfaces
-    - permissions/API/Mars.Web/audit/idempotency/concurrency/targeted tests
-    - additive EF model/migration and TEST deployment
+    - Purchase Order commercial authority and controlled versions/amendments
+    - supplier and Product/UOM eligibility
+    - Goods Receipt physical STOCK IN through Inventory authority
+    - stockable receipt initial QUARANTINE disposition
+    - partial receipt and source quantity caps
+    - lot/serial receipt lineage
+    - 2-way and 3-way matching evidence
+    - over-receipt and over-invoice fail-closed behavior
+    - explicit exception approval evidence when policy later permits tolerance
+    - Supplier Invoice DRAFT/source/calculation authority
+    - Finance-dependent Supplier Invoice POST remains fail-closed until Finance authority exists
+    - Purchase Return source preparation/lineage without duplicating Returns/Finance authority
+    - protected API/Mars.Web/read projections
+    - additive EF migration and TEST deployment
   exclude:
-    - Sales Invoice POST/REVERSE
-    - Finance Account Ledger
-    - Inventory Valuation/Dispatch Cost Bridge/COGS
-    - Collection/settlement/open-item allocation
-    - Invoice paid/open-balance authority
-    - TCMB/provider FX acquisition and manual FX posting
-    - e-Invoice/e-Archive provider transmission
-    - Sales Return/RMA workflow
-    - Warehouse Pick/Pack/Stage/Load work
-    - carrier/shipping provider integration
-    - Sales Commercial Policy/price-list Settings administration
-    - automatic document numbering allocator
+    - Finance Supplier Payable posting
+    - Supplier Payment/settlement/allocation
+    - Inventory Valuation/landed-cost accounting
+    - Quality implementation itself
+    - Warehouse operational put-away
+    - provider/tax/e-document integrations
     - production deployment
     - Full Test Day
 
-implementation_decisions:
-  schema: sales
-  inventory_stock_authority: Inventory Ledger only
-  reservation_authority: Inventory only
-  dispatch_stock_effect: Dispatch POST only
-  dispatch_post_transaction: Sales state plus Inventory movement plus linked Reservation consume in one PostgreSQL transaction
-  dispatch_operational_work: Warehouse-owned and excluded
-  invoice_post_surface: fail_closed_until_finance_authority
-  collection_authority: Finance only
-  approval_policy_without_settings: fail_closed
-  document_numbering: caller_supplied_until_Settings_Numbering
-  warehouse_scope_authority: Inventory/Warehouse-owned resource access grant plus Sales action permission
-  posted_history: reversal_or_compensation_only
-  try_minor_unit: 2
-  non_try_finalization: fail_closed_until_currency_fx_authority
-
 planning_progress:
   master_sequence:
-    completed: 9
+    completed: 30
     total: 30
-    percent: 30.0
-  p2_core_commercial:
-    completed: 8
-    total: 8
     percent: 100.0
-
-metric_note:
-  docs/db/acceptance-criteria.md independently records 10 / 30 = 33.3%; do not silently normalize.
+  detailed_master_sequence:
+    completed: 30
+    total: 30
+    percent: 100.0
