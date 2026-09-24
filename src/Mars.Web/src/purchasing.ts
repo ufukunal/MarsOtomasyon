@@ -47,6 +47,7 @@ interface DocumentDetail {
   currencyCode: string;
   paymentTerms: string | null;
   version: number;
+  effectiveVersion: number;
   lines: DocumentLine[];
 }
 
@@ -294,7 +295,7 @@ export function createPurchasingPage(
     await mutate("/purchasing/receipts", "POST", {
       number: receiptNumber.input.value.trim(),
       purchaseOrderPublicId: selectedOrder.publicId,
-      purchaseOrderVersion: selectedOrderDetail?.version ?? selectedOrder.version,
+      purchaseOrderVersion: selectedOrderDetail?.effectiveVersion ?? 1,
       warehousePublicId: receiptWarehouse.input.value.trim(),
       lines: [{
         sequence: 1,
