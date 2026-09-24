@@ -711,6 +711,16 @@ public sealed class EfWarehousePersistence(
             return Success(count.PublicId,"DRAFT",count.Version,context);
         },ct);
 
+    public async Task<Guid?> GetCountWarehouseAsync(Guid companyId,Guid countPublicId,CancellationToken ct)
+    {
+        var row=await dbContext.Set<StockCountSessionRecord>().AsNoTracking()
+            .SingleOrDefaultAsync(x=>x.CompanyId==companyId&&x.PublicId==countPublicId,ct);
+        if(row is null)return null;
+        return await dbContext.Set<WarehouseRecord>().AsNoTracking()
+            .Where(x=>x.CompanyId==companyId&&x.Id==row.WarehouseId)
+            .Select(x=>(Guid?)x.PublicId).SingleAsync(ct);
+    }
+
     public async Task<Result<WarehouseMutationReceipt>> StartCountAsync(
         Guid id,long expectedVersion,string operationKey,IExecutionContext context,CancellationToken ct)=>
         await Mutate("warehouse.count.start",operationKey,"WarehouseCountStarted","StockCount",context,async inner=>{
