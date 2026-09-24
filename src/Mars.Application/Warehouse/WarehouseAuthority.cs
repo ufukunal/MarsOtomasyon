@@ -1,3 +1,5 @@
+using System.Security.Cryptography;
+using System.Text;
 using Mars.Application.Foundation.Approvals;
 using Mars.Application.Foundation.Authorization;
 using Mars.Application.Foundation.Context;
@@ -484,7 +486,7 @@ public sealed class WarehouseCommandHandler(
             var movement=await inventory.PostAsync(new InventoryMovementCommand(
                 command.ProductPublicId,command.VariantPublicId,command.UomPublicId,command.Quantity,
                 command.ConversionFactorSnapshot,command.Source,command.Target,
-                InventorySourceIdentity.Create("Warehouse","Disposition",command.SourceDocumentPublicId??Guid.NewGuid(),command.SourceLinePublicId),
+                InventorySourceIdentity.Create("Warehouse","Disposition",command.SourceDocumentPublicId??OperationIdentity(command.OperationKey),command.SourceLinePublicId),
                 null,command.OperationKey+".inventory"),c,innerCt);
             if(movement.IsFailure)return Result<WarehouseMutationReceipt>.Failure(movement.Error!);
             return await persistence.CompleteDispositionAsync(command,movement.Value!.MovementPublicId,c,innerCt);
@@ -506,7 +508,7 @@ public sealed class WarehouseCommandHandler(
             var movement=await inventory.PostAsync(new InventoryMovementCommand(
                 command.ProductPublicId,command.VariantPublicId,command.UomPublicId,command.Quantity,
                 command.ConversionFactorSnapshot,command.Source,command.Target,
-                InventorySourceIdentity.Create("Warehouse",command.Kind.ToString(),command.SourceDocumentPublicId??Guid.NewGuid(),command.SourceLinePublicId),
+                InventorySourceIdentity.Create("Warehouse",command.Kind.ToString(),command.SourceDocumentPublicId??OperationIdentity(command.OperationKey),command.SourceLinePublicId),
                 null,command.OperationKey+".inventory"),c,innerCt);
             if(movement.IsFailure)return Result<WarehouseMutationReceipt>.Failure(movement.Error!);
             return await persistence.CompleteInternalMoveAsync(command,movement.Value!.MovementPublicId,c,innerCt);
@@ -810,4 +812,10 @@ public sealed class WarehouseCommandHandler(
     private static ApplicationError DeniedError()=>new(ErrorCategory.Authorization,"authorization.permission_denied","Warehouse permission or scope denied.");
     private static Result<WarehouseMutationReceipt> Invalid(string code,string message)=>Result<WarehouseMutationReceipt>.Failure(
         new ApplicationError(ErrorCategory.BusinessRule,code,message));
+
+    private static Guid OperationIdentity(string operationKey)
+    {
+        var bytes=SHA256.HashData(Encoding.UTF8.GetBytes("warehouse:"+operationKey));
+        return new Guid(bytes.AsSpan(0,16));
+    }
 }
