@@ -1047,7 +1047,6 @@ public sealed partial class EfInventoryPersistence :
             : await ResolvePositionSideAsync(
                 companyId,
                 source,
-                targetSide: false,
                 allowInactive: true,
                 cancellationToken);
         if (sourceResolved.Item1 != InventoryMutationOutcome.Succeeded)
@@ -1058,7 +1057,6 @@ public sealed partial class EfInventoryPersistence :
             : await ResolvePositionSideAsync(
                 companyId,
                 target,
-                targetSide: true,
                 allowInactive: isReversal,
                 cancellationToken);
         if (targetResolved.Item1 != InventoryMutationOutcome.Succeeded)
@@ -1076,7 +1074,6 @@ public sealed partial class EfInventoryPersistence :
     private async Task<(InventoryMutationOutcome, ResolvedPosition?)> ResolvePositionSideAsync(
         Guid companyId,
         InventoryPosition position,
-        bool targetSide,
         bool allowInactive,
         CancellationToken cancellationToken)
     {
