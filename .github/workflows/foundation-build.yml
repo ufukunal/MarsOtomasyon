@@ -136,6 +136,9 @@ jobs:
           PURCHASING_PROTECTED_STATUS=$(curl --silent --output /tmp/purchasing-protected.json --write-out '%{http_code}' http://127.0.0.1:5085/api/v1/purchasing/orders)
           test "$PURCHASING_PROTECTED_STATUS" = "401"
 
+          WAREHOUSE_PROTECTED_STATUS=$(curl --silent --output /tmp/warehouse-protected.json --write-out '%{http_code}' http://127.0.0.1:5085/api/v1/warehouse/receiving)
+          test "$WAREHOUSE_PROTECTED_STATUS" = "401"
+
           curl --silent --fail http://127.0.0.1:5085/openapi/v1.json >/tmp/openapi.json
           grep -F '/api/v1/foundation/context' /tmp/openapi.json
           grep -F '/api/v1/inventory/stock' /tmp/openapi.json
@@ -143,8 +146,18 @@ jobs:
           grep -F '/api/v1/purchasing/orders' /tmp/openapi.json
           grep -F '/api/v1/purchasing/receipts' /tmp/openapi.json
           grep -F '/api/v1/purchasing/invoices' /tmp/openapi.json
+          grep -F '/api/v1/warehouse/receiving' /tmp/openapi.json
+          grep -F '/api/v1/warehouse/dispositions' /tmp/openapi.json
+          grep -F '/api/v1/warehouse/picks' /tmp/openapi.json
+          grep -F '/api/v1/warehouse/transfers' /tmp/openapi.json
+          grep -F '/api/v1/warehouse/counts' /tmp/openapi.json
+          grep -F '/api/v1/warehouse/scrap' /tmp/openapi.json
           if grep -E '/api/v1/purchasing/invoices/\{[^}]+\}/(post|reverse)' /tmp/openapi.json; then
             echo "Supplier Invoice POST/REVERSE must remain absent in PURCHASING-IMP-001."
+            exit 1
+          fi
+          if grep -E '/api/v1/warehouse/(dispatches|receipts)/[^"]*/post' /tmp/openapi.json; then
+            echo "Warehouse must not expose Dispatch POST or Goods Receipt POST."
             exit 1
           fi
 
