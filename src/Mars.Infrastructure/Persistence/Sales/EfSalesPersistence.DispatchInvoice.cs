@@ -439,6 +439,9 @@ public sealed partial class EfSalesPersistence
                 .SingleOrDefaultAsync(ct);
             if(dispatch is null || dispatch.State is not (DispatchState.Posted or DispatchState.HandedOver or DispatchState.Delivered))
                 return new(ErrorCategory.BusinessRule,"sales.invoice.dispatch_source","Dispatch source must be physically posted and unreversed.");
+            if(await dbContext.Set<DispatchRecord>().AsNoTracking()
+                .AnyAsync(x=>x.CompanyId==companyId&&x.ReversalOfDispatchId==dispatch.Id&&x.State==DispatchState.Reversed,ct))
+                return new(ErrorCategory.BusinessRule,"sales.invoice.dispatch_reversed","Reversed Dispatch cannot be used as Invoice source.");
             var line=await dbContext.Set<DispatchLineRecord>().AsNoTracking()
                 .SingleOrDefaultAsync(x=>x.CompanyId==companyId&&x.DispatchId==dispatch.Id&&x.PublicId==input.SourceLinePublicId.Value,ct);
             if(line is null)return new(ErrorCategory.NotFound,"sales.invoice.source_line","Dispatch source line was not found.");
