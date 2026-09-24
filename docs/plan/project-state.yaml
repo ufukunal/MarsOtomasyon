@@ -89,10 +89,10 @@ test_policy:
 active_task:
   id: PURCHASING-IMP-001
   title: Purchasing Commercial Receipt & Supplier Invoice Authority Tranche
-  status: ready_for_implementation
+  status: implementation_in_progress
   file: docs/plan/active-task.yaml
   readiness_report: docs/plan/07-satinalma/p5-purchasing-authority-readiness.md
-  progress: not_started
+  progress: in_progress
 
 completed_planning_tasks:
   - PLAN-001
@@ -364,7 +364,7 @@ next_action:
   title: Purchasing Commercial Receipt & Supplier Invoice Authority Tranche
   phase: P5
   module: purchasing
-  status: READY_FOR_IMPLEMENTATION
+  status: IMPLEMENTATION_IN_PROGRESS
   work_package_id: PURCHASING-IMP-001
   readiness_report: docs/plan/07-satinalma/p5-purchasing-authority-readiness.md
   predecessor:
