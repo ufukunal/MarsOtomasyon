@@ -70,3 +70,39 @@ V38 supplies product/UX evidence, not production architecture. Preserve list-fir
 ## Out of scope
 
 PLAN-002 does not create SQL schema/migrations, C#/API, TypeScript UI, provider adapters, deployment changes or full Returns/Purchasing implementation.
+
+
+## P5 implementation status
+
+### SALES-IMP-001 — Sales Commercial & Fulfillment Authority Tranche
+Status: READY FOR IMPLEMENTATION.
+
+Canonical readiness:
+- docs/plan/05-satis/p5-sales-commercial-fulfillment-readiness.md
+
+Broad scope:
+- Quote/revision/line authority
+- partial/repeated Quote conversion
+- Sales Order/effective version/amendment authority
+- approval evidence/SoD
+- explicit Inventory Reservation integration
+- Warehouse resource-scope authorization for Dispatch
+- Dispatch POST/reversal integrated with Inventory
+- Sales Invoice DRAFT/source/calculation commercial authority
+- optional Proforma within the same package
+- protected API/Mars.Web/read projections
+- additive migration and TEST deployment
+
+Boundary:
+- Sales Invoice POST/REVERSE remains outside SALES-IMP-001 until Finance Account/Valuation/Dispatch Cost Bridge authority exists
+- Collection/settlement remains Finance-owned
+- Pick/Pack/Stage/Load remains Warehouse-owned
+- no Sales-owned Reservation or physical stock authority
+- no TCMB/e-document/provider implementation
+- no production deployment or Full Test Day
+
+Current migration baseline before Sales implementation:
+- 8 committed/deployed migrations
+
+Latest predecessor runtime-tested SHA:
+- edcc24f1200b70aad102fc510ad7bec60c4515e7
