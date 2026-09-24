@@ -100,6 +100,10 @@ public static class PurchasingEndpoints
             Map(await h.CancelInvoiceDraftAsync(id,r.Version,r.Reason,Key(http),c,ct),c))
             .WithName("CancelSupplierInvoiceDraft");
 
+        purchasing.MapGet("/matches",async(IExecutionContext c,PurchasingQueryHandler h,CancellationToken ct)=>
+            Map(await h.ListMatchesAsync(c,ct),c))
+            .WithName("ListPurchaseMatches");
+
         purchasing.MapGet("/match-preview",async(
             SupplierInvoiceSourceMode mode,Guid sourceDocumentPublicId,IExecutionContext c,PurchasingQueryHandler h,CancellationToken ct)=>
             Map(await h.PreviewMatchAsync(mode,sourceDocumentPublicId,c,ct),c))
