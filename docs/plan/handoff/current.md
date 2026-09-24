@@ -191,52 +191,79 @@ Still deferred:
 - Inventory physical authority
 - Finance valuation/cost
 
+## INVENTORY-IMP-001 evidence
+
+Canonical readiness:
+- docs/plan/04-urun-stok/p5-inventory-authority-traceability-readiness.md
+
+Canonical implementation:
+- docs/plan/04-urun-stok/inventory-imp-001-implementation.md
+
+Commits:
+- implementation sequence begins fcafae3e28c2d347f27f6dfa4379033f8e66991a
+- migration f4dc4cdf60bff8b5845347b6c50fbac5d64e3206
+- final tested commit edcc24f1200b70aad102fc510ad7bec60c4515e7
+
+Foundation Build:
+- run 35998315605
+- job 107628488066
+- SUCCESS
+- frontend 20 / 20
+- Foundation targeted 74 PASS
+- Release 0 warnings / 0 errors
+- EF pending-model PASS
+- Inventory protected API/OpenAPI smoke PASS
+
+Foundation Test Deploy:
+- run 35998315582
+- job 107628488098
+- SUCCESS
+- migration safety count 8
+- deployed migration count 8
+- /parties 200
+- /products 200
+- /inventory 200
+- live/ready 200 / 200
+- protected Inventory routes unauthenticated 401
+- OpenAPI 200
+- runner-to-TEST smoke PASS
+
+No real authenticated TEST Inventory mutation is claimed.
+
+Completed Inventory authority:
+- Warehouse / Location master and lifecycle
+- controlled AVAILABLE / QUARANTINE / QUALITY_HOLD / REWORK / DAMAGED / TRANSIT dispositions
+- Lot / Serial trace identity
+- append-oriented Inventory Ledger
+- append-oriented non-physical Reservation authority
+- stock / position / movement / reservation / trace reads
+- protected API and Mars.Web /inventory
+- Inventory migration applied to TEST
+
+Still deferred:
+- Warehouse receiving/put-away/pick/pack/stage/load/transfer/count/replenishment/damage/scrap/offline workflows
+- Sales/Purchasing/Returns source-document implementations
+- Finance valuation/current-cost/COGS
+- Product Base UOM replacement and post-use STOCKABLE/tracking transition
+- broad authenticated Inventory E2E and heavy concurrency/security/performance coverage
+
 ## Current phase
 P5 — Core application implementation
 Status: IMPLEMENTATION IN PROGRESS
 
 ## Current task
-INVENTORY-IMP-001 — Inventory Authority & Traceability Tranche.
+Define one broad Sales implementation tranche from frozen PLAN-002 + PLAN-010 using the completed Inventory authority.
 
-Status:
-- READY FOR IMPLEMENTATION
-- implementation not started
+Work-package ID:
+- NOT ASSIGNED.
 
-Canonical readiness:
-- docs/plan/04-urun-stok/p5-inventory-authority-traceability-readiness.md
-
-Scope freeze baseline:
-- repository HEAD before readiness mutation: f6a15146b68f1ec6016c14437ad7d11159ea1a7f
-- readiness commit: c13fac0612c6b0894d2ffcabf766dcf52f3e4003
-- no pre-existing Inventory Domain/Application/Persistence/API/Web implementation
-- no pre-existing Inventory migration
-- committed migration baseline: 7
-
-Broad included authority:
-- Warehouse master
-- Location master/hierarchy
-- controlled dispositions AVAILABLE / QUARANTINE / QUALITY_HOLD / REWORK / DAMAGED / TRANSIT
-- Lot / Serial trace identity
-- append-oriented Inventory Ledger
-- append-oriented non-physical Reservation authority
-- Product/Variant/UOM/tracking enforcement
-- stock/availability/movement/reservation/trace read surfaces
-- protected API/Mars.Web, audit, idempotency, concurrency and additive Inventory migration
-
-Explicit boundary:
-- no generic public movement-post endpoint
-- no free-form Reservation mutation disconnected from Sales Order line/version
-- Warehouse receiving/put-away/pick/pack/stage/load/transfer/count/replenishment/damage/scrap/offline workflows remain Warehouse-owned
-- Finance/Costing retains valuation/current-cost/COGS authority
-- no production deployment
-- no Full Test Day
-
-Permission reconciliation:
-- Warehouse/Location uses later frozen PLAN-006 warehouse.* / warehouse.location.* namespace
-- Inventory quantity read keeps inventory.stock.read
-- Inventory-owned trace read keeps inventory.trace.read
-- Foundation Permission Grant remains Actor + trusted Company + PermissionCode
-- no separate actor-to-Warehouse assignment model is invented in this tranche
+Before mutation:
+- reconcile Sales workflow/data/permission contracts
+- inspect current Sales source baseline
+- inspect Inventory physical posting and Reservation authority contracts
+- preserve Inventory/Warehouse physical ownership
+- preserve Finance account/COGS/settlement ownership
+- assign a Sales implementation ID only after broad scope is explicit
 
 ## Planning progress
 - Active state metric: Master 9 / 30 = 30.0%
