@@ -38,7 +38,7 @@ internal static class FinanceModelConfiguration
         Money(b.Property(x=>x.Amount).HasColumnName("amount"));
         Money(b.Property(x=>x.BaseAmount).HasColumnName("base_amount"));
         b.Property(x=>x.PartyId).HasColumnName("party_id");
-        Enum(b.Property(x=>x.PartyRole).HasColumnName("party_role"),16);
+        b.Property(x=>x.PartyRole).HasColumnName("party_role").HasConversion<string>().HasMaxLength(16);
         b.Property(x=>x.DocumentDate).HasColumnName("document_date");
         b.Property(x=>x.PostingDate).HasColumnName("posting_date");
         b.Property(x=>x.SourceModule).HasColumnName("source_module").HasMaxLength(64);
