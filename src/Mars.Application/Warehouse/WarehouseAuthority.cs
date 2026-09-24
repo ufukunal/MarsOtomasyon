@@ -284,8 +284,8 @@ public sealed record CountReverseLinePlan(
     Guid UomPublicId,
     decimal ConversionFactorSnapshot,
     decimal Quantity,
-    InventoryPosition Source,
-    InventoryPosition Target,
+    InventoryPosition? Source,
+    InventoryPosition? Target,
     Guid OriginalInventoryMovementPublicId);
 
 public sealed record CountReversePlan(
