@@ -83,7 +83,7 @@ internal static class SalesImp001Tests
     private static void ApprovalPrimitiveEnforcesSod()
     {
         var actor = Guid.NewGuid();
-        var authority = new ApprovalDecisionAuthority(new FakeApprovalPersistence());
+        var authority = new ApprovalDecisionAuthority(new FakeSalesApprovalPersistence());
         var context = new MarsExecutionContext(
             actor,
             Guid.NewGuid(),
@@ -135,4 +135,23 @@ internal static class SalesImp001Tests
         if (!EqualityComparer<T>.Default.Equals(expected, actual))
             throw new InvalidOperationException($"Expected '{expected}', actual '{actual}'.");
     }
+}
+
+internal sealed class FakeSalesApprovalPersistence : IApprovalDecisionPersistence
+{
+    public Task<ApprovalDecisionPersistenceResult> RecordAsync(
+        ApprovalDecisionWrite write,
+        CancellationToken cancellationToken) =>
+        Task.FromResult(new ApprovalDecisionPersistenceResult(
+            ApprovalDecisionPersistenceOutcome.Succeeded,
+            write.PublicId));
+
+    public Task<bool> IsApprovedAsync(
+        Guid companyId,
+        string module,
+        string entityType,
+        Guid entityPublicId,
+        long snapshotVersion,
+        CancellationToken cancellationToken) =>
+        Task.FromResult(false);
 }
