@@ -25,7 +25,8 @@ test("Warehouse Web preserves physical authority and operational boundaries", as
   assert.match(text,/QUARANTINE/);
   assert.match(text,/TRANSIT/);
   assert.match(text,/Positive adjustment Finance valuation/);
-  assert.equal(text.includes("Set Stock"),false);
+  assert.equal(page.querySelector("[name='stockQuantity']"),null);
+  assert.equal(page.querySelector("[name='setStock']"),null);
   assert.equal(text.includes("Warehouse Dispatch POST"),false);
   assert.equal(text.includes("Warehouse Goods Receipt POST"),false);
 
