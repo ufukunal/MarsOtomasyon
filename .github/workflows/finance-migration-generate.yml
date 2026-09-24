@@ -63,8 +63,16 @@ jobs:
             for table in transactions account_ledger_entries cash_accounts cash_ledger_entries bank_accounts bank_ledger_entries posting_periods inventory_valuation_pools inventory_valuation_entries dispatch_cost_bridge_entries dispatch_cost_bridge_consumptions statement_import_batches statement_lines reconciliation_matches customer_risk_controls cash_counts; do
               grep -F "name: \"$table\"" "$NEW_FILE"
             done
-            if grep -E 'Drop(Table|Column|Schema)|Rename(Table|Column)|AlterColumn|DeleteData|migrationBuilder.Sql' "$NEW_FILE"; then
+            UP_FILE="$(mktemp)"
+            awk '
+              /protected override void Up\(MigrationBuilder migrationBuilder\)/ { in_up=1 }
+              /protected override void Down\(MigrationBuilder migrationBuilder\)/ { in_up=0 }
+              in_up { print }
+            ' "$NEW_FILE" > "$UP_FILE"
+
+            if grep -E 'Drop(Table|Column|Schema)|Rename(Table|Column)|AlterColumn|DeleteData|migrationBuilder.Sql' "$UP_FILE"; then
               echo "Generated Finance migration contains non-additive Up() operation."
+              cat "$UP_FILE"
               exit 1
             fi
           else
