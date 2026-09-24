@@ -16,6 +16,7 @@ internal static class SalesImp001ApplicationTests
         ("SALES-IMP-001 inherited Quote approval avoids duplicate Order approval", InheritedApprovalConfirmsWithoutDuplicateDecision),
         ("SALES-IMP-001 Dispatch create requires Warehouse scope", DispatchCreateRequiresWarehouseScope),
         ("SALES-IMP-001 Dispatch POST delegates physical effect and Reservation consume to Inventory", DispatchPostDelegatesInventoryAuthority),
+        ("WAREHOUSE-IMP-001 multi-source pick drives multiple Sales physical effects", MultiSourceDispatchPostDelegatesEachAllocation),
         ("SALES-IMP-001 Dispatch POST stops atomically before consume/completion when Inventory fails", DispatchPostStopsOnInventoryFailure)
     ];
 
@@ -194,6 +195,62 @@ internal static class SalesImp001ApplicationTests
         AssertEqual(lineId, completedEffects[0].DispatchLinePublicId);
         AssertEqual(movementId, completedEffects[0].InventoryMovementPublicId);
         AssertTrue(!completedEffects[0].IsReversal);
+    }
+
+    private static void MultiSourceDispatchPostDelegatesEachAllocation()
+    {
+        var dispatchId=Guid.NewGuid();
+        var dispatchLineId=Guid.NewGuid();
+        var reservationId=Guid.NewGuid();
+        var warehouseId=Guid.NewGuid();
+        var productId=Guid.NewGuid();
+        var uomId=Guid.NewGuid();
+        var orderLineId=Guid.NewGuid();
+        IReadOnlyList<SalesDispatchEffect>? completed=null;
+
+        var plan=new SalesDispatchPostPlan(
+            dispatchId,Guid.NewGuid(),warehouseId,
+            [
+                new SalesDispatchPostLinePlan(
+                    dispatchLineId,Guid.NewGuid(),orderLineId,productId,null,uomId,1m,1m,
+                    InventoryPosition.Create(warehouseId,Guid.NewGuid(),InventoryDispositionCode.Available,null,null),
+                    reservationId),
+                new SalesDispatchPostLinePlan(
+                    dispatchLineId,Guid.NewGuid(),orderLineId,productId,null,uomId,1m,2m,
+                    InventoryPosition.Create(warehouseId,Guid.NewGuid(),InventoryDispositionCode.Available,null,null),
+                    reservationId)
+            ]);
+
+        var persistence=Proxy<ISalesPersistence>((method,args)=>{
+            if(method.Name==nameof(ISalesPersistence.PrepareDispatchPostAsync))
+                return Task.FromResult(Result<SalesDispatchPostPlan>.Success(plan));
+            if(method.Name==nameof(ISalesPersistence.CompleteDispatchPostAsync))
+            {
+                completed=(IReadOnlyList<SalesDispatchEffect>)args![1]!;
+                return Task.FromResult(Result<SalesMutationReceipt>.Success(
+                    new SalesMutationReceipt(dispatchId,"POSTED",2,"corr-sales-app")));
+            }
+            throw new InvalidOperationException("Unexpected persistence call: "+method.Name);
+        });
+
+        var physical=new FakePhysicalAuthority();
+        var reservations=new FakeReservationAuthority();
+        var handler=Handler(
+            new FakePermissionEvaluator(SalesPermissions.DispatchPost),
+            persistence,new FakeApprovalAuthority(false),reservations,physical,
+            new FakeWarehouseAccessEvaluator(true));
+
+        var result=handler.PostDispatchAsync(
+            dispatchId,"dispatch-multi-source",NewContext(),CancellationToken.None)
+            .GetAwaiter().GetResult();
+
+        AssertTrue(result.IsSuccess);
+        AssertEqual(2,physical.PostCalls);
+        AssertEqual(2,reservations.ConsumeCalls);
+        AssertTrue(completed is not null);
+        AssertEqual(2,completed!.Count);
+        AssertTrue(completed.All(x=>x.DispatchLinePublicId==dispatchLineId));
+        AssertEqual(2,completed.Select(x=>x.InventoryMovementPublicId).Distinct().Count());
     }
 
     private static void DispatchPostStopsOnInventoryFailure()
