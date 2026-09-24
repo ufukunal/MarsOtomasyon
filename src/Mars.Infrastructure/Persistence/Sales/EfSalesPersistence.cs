@@ -76,7 +76,7 @@ public sealed partial class EfSalesPersistence(
                 .Select(g => new ValueTuple<Guid, decimal>(g.Key, g.Sum(x => x.Quantity)))
                 .ToArrayAsync(ct);
 
-        var processed = converted.ToDictionary(x => x.Line, x => x.Qty);
+        var processed = converted.ToDictionary(x => x.Item1, x => x.Item2);
         return new SalesDocumentDetailView(
             quote.PublicId, quote.Number, QuoteStateCode(quote.State),
             quote.CustomerCodeSnapshot, quote.CustomerNameSnapshot,
@@ -259,7 +259,7 @@ public sealed partial class EfSalesPersistence(
                 group link by link.SourceLinePublicId!.Value into g
                 select new ValueTuple<Guid, decimal>(g.Key, g.Sum(x => x.Quantity)))
                 .ToArrayAsync(ct);
-        var byLine = drafted.ToDictionary(x => x.Line, x => x.Qty);
+        var byLine = drafted.ToDictionary(x => x.Item1, x => x.Item2);
         return sourceLines.Select(x =>
         {
             var used = byLine.GetValueOrDefault(x.LineId);
