@@ -226,13 +226,13 @@ internal static class PartyImp006Tests
         }
 
         var mapping = context.Model.GetEntityTypes()
-            .Single(x => x.GetTableName() == "external_mappings");
+            .Single(x => x.GetSchema() == "parties" && x.GetTableName() == "external_mappings");
         AssertTrue(mapping.GetIndexes().Any(x =>
             x.IsUnique &&
             x.GetDatabaseName() == "ux_party_external_mappings_active_scope"));
 
         var lineage = context.Model.GetEntityTypes()
-            .Single(x => x.GetTableName() == "merge_lineage");
+            .Single(x => x.GetSchema() == "parties" && x.GetTableName() == "merge_lineage");
         AssertTrue(lineage.GetIndexes().Any(x =>
             x.IsUnique &&
             x.GetDatabaseName() == "ux_party_merge_lineage_source"));
