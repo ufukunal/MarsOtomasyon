@@ -1,41 +1,40 @@
 # Planning Backlog
 
-## Immediate — PARTY-IMP-006 Party Master Completion Tranche
-Status: READY FOR IMPLEMENTATION.
-
-Owner direction:
-- broaden Party implementation scope;
-- do not create a separate implementation package for each small capability.
+## Immediate — P5 Products broad implementation tranche definition
+Status: SCOPE DEFINITION REQUIRED / NOT STARTED.
 
 Predecessor:
-- PARTY-IMP-005 — COMPLETED.
-- canonical report: `docs/plan/03-cariler/party-imp-005-implementation.md`
-- Build `35922536747` — SUCCESS.
-- Test Deploy `35922536768` — SUCCESS.
+- PARTY-IMP-006 — COMPLETED.
+- canonical report: `docs/plan/03-cariler/party-imp-006-implementation.md`
+- tested commit: `55b7e78bc2eabcf986e8318f60296f0f3f9cd223`
+- Foundation Build `35934312246` — SUCCESS.
+- Foundation Test Deploy `35934312470` — SUCCESS.
+- migration count 6.
 
-Readiness:
-- `docs/plan/03-cariler/p5-party-master-completion-readiness.md`
+Direction:
+- master P5 order moves from Parties to Products;
+- use frozen PLAN-004 + PLAN-010;
+- define one broad Product implementation tranche, not many small slices.
 
-Single broad tranche:
-- Party directory/detail/read;
-- Party legal/display identity edit;
-- Contact Person / Communication Point;
-- Address lifecycle/default-by-purpose;
-- current TR VKN/TCKN read/masking/lifecycle;
-- Party External Mapping;
-- explicit Party Merge + lineage;
-- required permission/API/UI/persistence/migration/audit/idempotency/concurrency/targeted-test work.
+Before implementation:
+- inspect current Product implementation state;
+- freeze Product master scope and explicit exclusions;
+- preserve Product vs Inventory/Warehouse/Finance authority;
+- define exact DB/API/UI/permission/concurrency/test effect;
+- assign a Product implementation ID only after broad scope is explicit.
 
-Deferred outside PARTY-IMP-006:
+Do not invent:
+- generic EAV/attribute model;
+- provider-specific product sync;
+- authoritative mutable stock or inventory value on Product;
+- Warehouse workflows not owned by Product.
+
+Remaining Party deferrals do not block moving to Products:
 - fuzzy duplicate candidate generation;
 - Party Reactivation;
-- provider/GIB and non-TR tax behavior;
+- provider/GİB/non-TR identity;
 - Communications consent/preferences;
-- Sales/Purchasing/Finance implementation;
-- production deployment;
-- Full Test Day.
-
-Do not split included scope into additional PARTY-IMP work packages merely for implementation convenience. Internal sequencing is allowed inside PARTY-IMP-006.
+- consuming-module eligibility / Finance integration.
 
 ## Quality — master planning sequence item 10
 Target: docs/plan/08-kalite/
