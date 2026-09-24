@@ -131,5 +131,25 @@ Still deferred:
 
 Inventory Ledger, Reservation, Lot/Serial physical truth, Warehouse operations and Finance/Costing valuation remain separate future authorities.
 
-P5 next module direction:
-- Inventory broad implementation tranche definition.
+### INVENTORY-IMP-001 — Inventory Authority & Traceability Tranche
+Status: READY FOR IMPLEMENTATION.
+
+Readiness:
+- docs/plan/04-urun-stok/p5-inventory-authority-traceability-readiness.md
+
+Broad scope:
+- Warehouse / Location master
+- controlled physical dispositions
+- Lot / Serial trace identity
+- append-oriented Inventory Ledger
+- append-oriented non-physical Reservation authority
+- stock / availability / movement / reservation / trace read surfaces
+- protected API / Mars.Web / audit / idempotency / concurrency
+- additive Inventory migration and TEST deployment
+
+Boundary:
+- Warehouse operational workflows remain separate
+- no arbitrary public movement post
+- no free-form Reservation mutation without real Sales Order line/version
+- Finance/Costing remains valuation/current-cost/COGS authority
+- no production deployment or Full Test Day
