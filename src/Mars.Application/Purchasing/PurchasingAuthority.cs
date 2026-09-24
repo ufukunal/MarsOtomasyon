@@ -83,8 +83,7 @@ public sealed record CreateGoodsReceiptLineInput(
     decimal Quantity,
     Guid? LocationPublicId,
     Guid? LotPublicId,
-    Guid? SerialPublicId,
-    bool Stockable);
+    Guid? SerialPublicId);
 
 public sealed record CreateGoodsReceiptCommand(
     string Number,
@@ -104,7 +103,8 @@ public sealed record GoodsReceiptPostLinePlan(
     Guid WarehousePublicId,
     Guid? LocationPublicId,
     Guid? LotPublicId,
-    Guid? SerialPublicId);
+    Guid? SerialPublicId,
+    bool Stockable);
 
 public sealed record GoodsReceiptPostPlan(
     Guid GoodsReceiptPublicId,
