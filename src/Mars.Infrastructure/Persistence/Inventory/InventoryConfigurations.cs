@@ -402,7 +402,7 @@ internal sealed class InventoryReservationMovementConfiguration : IEntityTypeCon
         b.Property(x => x.CompanyId).HasColumnName("company_id");
         b.Property(x => x.Kind).HasColumnName("kind").HasConversion<string>().HasMaxLength(16).IsRequired();
         b.Property(x => x.EnteredQuantity).HasColumnName("entered_quantity").HasPrecision(28, 9);
-        b.Property(x => x.BaseQuantity).HasColumnName("base_quantity").HasPrecision(28, 9);
+        b.Property(x => x.BaseQuantity).HasColumnName("base_quantity").HasPrecision(38, 18);
         b.Property(x => x.SourceModule).HasColumnName("source_module").HasMaxLength(64);
         b.Property(x => x.SourceDocumentPublicId).HasColumnName("source_document_public_id");
         b.Property(x => x.SourceLinePublicId).HasColumnName("source_line_public_id");
