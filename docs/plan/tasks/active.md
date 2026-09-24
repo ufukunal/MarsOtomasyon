@@ -1,7 +1,10 @@
 # Active Tasks
 
-## P5 — Sales broad implementation tranche definition
-**Status:** SCOPE DEFINITION REQUIRED / NOT STARTED
+## SALES-IMP-001 — Sales Commercial & Fulfillment Authority Tranche
+**Status:** READY FOR IMPLEMENTATION / NOT STARTED
+
+Canonical readiness:
+- docs/plan/05-satis/p5-sales-commercial-fulfillment-readiness.md
 
 Predecessor:
 - INVENTORY-IMP-001 — COMPLETED
@@ -9,36 +12,50 @@ Predecessor:
 - tested commit: edcc24f1200b70aad102fc510ad7bec60c4515e7
 - Foundation Build 35998315605 — SUCCESS
 - Foundation Test Deploy 35998315582 — SUCCESS
-- frontend 20 / 20
-- Foundation targeted 74 PASS
 - migration count 8
-- TEST /inventory 200
-- /products 200
-- /parties 200
-- live/ready 200 / 200
-- smoke PASS
 
-Direction:
-- P5 order moves from Inventory to Sales
-- use frozen PLAN-002 Sales contracts and PLAN-010
-- define one broad coherent Sales tranche
-- do not split every Sales capability into micro-packages merely for implementation convenience
+Broad included authority:
+- Quote/revision/line lifecycle
+- partial/repeated Quote conversion with durable cumulative cap
+- Sales Order/effective version/line lifecycle
+- controlled Order amendment
+- approval evidence/SoD
+- explicit Inventory Reservation create/increase/release integration
+- Warehouse resource-scope authorization required for Dispatch
+- Dispatch create/read/state
+- atomic Dispatch POST with Inventory physical STOCK OUT and Reservation consume
+- Dispatch reversal
+- Sales Invoice DRAFT/source/calculation commercial authority
+- optional Proforma inside the same SALES-IMP-001 package
+- protected API/Mars.Web/read projections
+- audit/idempotency/concurrency/targeted tests
+- additive migration and TEST deployment
 
-Before implementation:
-- inspect current Sales source
-- reconcile Quote / Order / Reservation / Dispatch / Invoice ownership
-- consume Inventory Reservation and physical-posting authority without duplicating it
-- preserve Finance account-ledger / COGS / settlement ownership
-- map entities/constraints/migration/API/UI/permissions/idempotency/concurrency/tests
-- assign a Sales implementation package ID only after scope is explicit
+Explicit exclusions:
+- Sales Invoice POST/REVERSE
+- Finance Account Ledger/Inventory Valuation/Dispatch Cost Bridge/COGS
+- Collection/settlement/open-item
+- Invoice paid/open amount
+- Warehouse Pick/Pack/Stage/Load
+- TCMB/provider FX acquisition
+- e-Invoice/e-Archive provider transmission
+- Sales Return/RMA
+- Sales Commercial Policy/price-list Settings administration
+- automatic document numbering allocator
+- production deployment
+- Full Test Day
 
-Do not invent:
-- Sales-owned mutable reservation totals
-- Sales-owned physical stock balance
-- Invoice stock-out when Dispatch already owns physical movement
-- Invoice payment/open-item authority
-- Collection settlement inside Sales
-- Warehouse operational workflow ownership
+Implementation constraints:
+- Quote has no RES/STOCK/ACCOUNT/CASH-BANK effect
+- Order confirm is DOC only and never auto-reserves
+- Inventory remains Reservation and physical quantity authority
+- Dispatch POST is the Sales physical STOCK OUT point
+- Dispatch POST composes Sales state + Inventory movement + linked Reservation consume atomically
+- posted history uses reversal/compensation
+- Invoice POST remains fail-closed until Finance authority exists
+- no copied mutable reserved/shipped/invoiced totals become authority
+- no client-supplied company/Warehouse authorization truth
+- non-TRY final authoritative rounding/FX remains fail-closed until server-side policy exists
 
 Planning:
 - master 9 / 30 = 30.0%
