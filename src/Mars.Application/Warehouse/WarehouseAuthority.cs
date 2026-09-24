@@ -421,7 +421,8 @@ public interface IWarehousePersistence : IWarehouseOpenWorkBlocker
 
 public sealed class WarehouseQueryHandler(
     IPermissionEvaluator permissions,
-    IWarehousePersistence persistence)
+    IWarehousePersistence persistence,
+    IInventoryReadPersistence inventoryReads)
 {
     public Task<Result<IReadOnlyList<ReceivingQueueItem>>> ListReceivingAsync(IExecutionContext c,CancellationToken ct)=>
         Read(WarehousePermissions.ReceivingRead,()=>persistence.ListReceivingAsync(c.CompanyId,ct),c,ct);
@@ -437,6 +438,22 @@ public sealed class WarehouseQueryHandler(
         Read(WarehousePermissions.TraceRead,()=>persistence.ListScrapAsync(c.CompanyId,ct),c,ct);
     public Task<Result<IReadOnlyList<OfflineOperationView>>> ListOfflineAsync(IExecutionContext c,CancellationToken ct)=>
         Read(WarehousePermissions.TraceRead,()=>persistence.ListOfflineAsync(c.CompanyId,ct),c,ct);
+
+    public async Task<Result<IReadOnlyList<ReservationView>>> ListReservationsAsync(
+        Guid? warehousePublicId,IExecutionContext c,CancellationToken ct)
+    {
+        if(!await Granted(WarehousePermissions.PickRead,c,ct))return Denied<IReadOnlyList<ReservationView>>();
+        return Result<IReadOnlyList<ReservationView>>.Success(
+            await inventoryReads.ListReservationsAsync(c.CompanyId,null,warehousePublicId,ct));
+    }
+
+    public async Task<Result<IReadOnlyList<InventoryMovementView>>> ListTraceAsync(
+        InventoryReadFilter filter,IExecutionContext c,CancellationToken ct)
+    {
+        if(!await Granted(WarehousePermissions.TraceRead,c,ct))return Denied<IReadOnlyList<InventoryMovementView>>();
+        return Result<IReadOnlyList<InventoryMovementView>>.Success(
+            await inventoryReads.ListMovementsAsync(c.CompanyId,filter,ct));
+    }
 
     public async Task<Result<IReadOnlyList<PickCandidateView>>> RecommendPickAsync(
         Guid dispatchPublicId,Guid dispatchLinePublicId,IExecutionContext c,CancellationToken ct)
