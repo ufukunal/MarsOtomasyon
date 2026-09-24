@@ -83,10 +83,11 @@ test_policy:
   heavy_tests: FULL_TEST_DAY_ONLY
 
 active_task:
-  id: P5
-  title: Products broad implementation tranche definition
-  status: scope_definition_required
+  id: PRODUCT-IMP-001
+  title: Product Master Completion Tranche
+  status: ready_for_implementation
   file: docs/plan/active-task.yaml
+  readiness_report: docs/plan/04-urun-stok/p5-product-master-completion-readiness.md
   progress: not_started
 
 completed_planning_tasks:
@@ -338,40 +339,44 @@ known_constraints:
   - Durable idempotency/concurrency correctness is PostgreSQL-owned; Valkey is not sufficient authority.
 
 blocked_items:
-  - No unresolved blocker remains for PARTY-IMP-006; the broad Party Master Completion Tranche is completed.
-  - Party Reactivation remains deferred because frozen PLAN-003 requires duplicate/legal identity validation rerun and repository sources do not resolve whether deterministic/local validation alone is sufficient.
-  - Soft/fuzzy duplicate candidate generation remains deferred because no accepted normalization/similarity/score/threshold exists.
-  - Provider/GIB verification, non-TR Tax Identity, Communications consent/preferences, consuming Sales/Purchasing eligibility and Finance behavior remain deferred.
-  - Planning metric inconsistency remains: active state reports 9 / 30 = 30.0% while docs/db/acceptance-criteria.md records 10 / 30 = 33.3%; do not silently normalize it.
-  - Production secret-store, production reverse-proxy/tunnel, production ingress/TLS and structured logging/metrics choices remain deferred.
+  - PRODUCT-IMP-001 itself has no unresolved scope blocker; broad Product master scope is frozen.
+  - Base UOM replacement and post-use STOCKABLE/tracking-strategy changes are deferred until Inventory/Reservation/open-process authority exists.
+  - UOM-specific transaction quantity scale/fraction policy is deferred; conversion-factor storage is a separate physical decision fixed at numeric(28,9).
+  - Generic Variant attribute/EAV taxonomy is not accepted and is excluded.
+  - Provider/marketplace sync and GS1/provider verification remain deferred.
+  - Party Reactivation and fuzzy duplicate candidate generation remain deferred independently and do not block Products.
+  - Planning metric inconsistency remains: active state 9 / 30 = 30.0% vs docs/db/acceptance-criteria.md 10 / 30 = 33.3%.
+  - Production deployment and Full Test Day remain deferred.
 next_action:
-  id: P5
-  title: Define Products broad implementation tranche
+  id: PRODUCT-IMP-001
+  title: Product Master Completion Tranche
   phase: P5
   module: products
-  status: SCOPE_DEFINITION_REQUIRED
-  work_package_id: NOT_ASSIGNED
+  status: READY_FOR_IMPLEMENTATION
+  work_package_id: PRODUCT-IMP-001
+  readiness_report: docs/plan/04-urun-stok/p5-product-master-completion-readiness.md
   predecessor:
     id: PARTY-IMP-006
     status: completed
     canonical_report: docs/plan/03-cariler/party-imp-006-implementation.md
-    readiness_report: docs/plan/03-cariler/p5-party-master-completion-readiness.md
-    implementation_commit: d3b21ab936bfb3b9c6d602d799e8ab587ea4ee05
-    migration_commit: 2a4bb99e12e65c0a4c121755d764e7bca7feda85
     tested_commit: 55b7e78bc2eabcf986e8318f60296f0f3f9cd223
     foundation_build_run: 35934312246
     test_deploy_run: 35934312470
-  source_direction:
-    - master P5 order places Products after Parties
-    - use frozen PLAN-004 and PLAN-010
-    - define one broad coherent Product tranche rather than micro-packages
-  restrictions:
-    - do not invent generic attribute/EAV fields or provider-specific sync behavior
-    - Product master cannot become authoritative stock quantity or inventory valuation/cost truth
-    - preserve Product/Inventory/Warehouse/Finance module boundaries
-    - no production deployment
-    - no Full Test Day
-    - exact active master planning metric remains 9 / 30 = 30.0 pending explicit metric normalization
+  scope:
+    - Product core read/create/edit/lifecycle
+    - UOM and Product-UOM
+    - Variant
+    - Barcode Mapping
+    - Category/Product Category
+    - Product External Mapping
+    - protected API and Mars.Web
+    - additive Product EF migration
+  exclusions:
+    - Inventory/Warehouse physical authority and lot/serial records
+    - current stock/value/cost authority
+    - Base UOM replacement and inventory-dependent capability/tracking transitions
+    - generic EAV/attributes and provider-specific sync
+    - production deployment and Full Test Day
 state_rules:
   - current_head must be verified from Git at every session start; embedded SHA is never authoritative.
   - repo content overrides chat memory when they conflict.
