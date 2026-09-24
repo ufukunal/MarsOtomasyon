@@ -1,10 +1,9 @@
-id: PARTY-IMP-006
-title: Party Master Completion Tranche
-module: parties
-status: implementation_in_progress
-progress: implementation_in_progress
-work_package_id: PARTY-IMP-006
-readiness_report: docs/plan/03-cariler/p5-party-master-completion-readiness.md
+id: P5
+title: Products broad implementation tranche definition
+module: products
+status: scope_definition_required
+progress: not_started
+work_package_id: not_assigned
 
 phase:
   id: P5
@@ -12,54 +11,46 @@ phase:
   status: implementation_in_progress
 
 predecessor:
-  id: PARTY-IMP-005
-  title: Deactivate Party
+  id: PARTY-IMP-006
+  title: Party Master Completion Tranche
   status: completed
-  canonical_report: docs/plan/03-cariler/party-imp-005-implementation.md
-  implementation_commit: 4ab2a30bfffdf64c9e5b7634708ad4cdacdde33a
-  foundation_build_run: 35922536747
-  test_deploy_run: 35922536768
-  tested_deploy_commit: 4ab2a30bfffdf64c9e5b7634708ad4cdacdde33a
+  canonical_report: docs/plan/03-cariler/party-imp-006-implementation.md
+  readiness_report: docs/plan/03-cariler/p5-party-master-completion-readiness.md
+  implementation_commit: d3b21ab936bfb3b9c6d602d799e8ab587ea4ee05
+  migration_commit: 2a4bb99e12e65c0a4c121755d764e7bca7feda85
+  tested_commit: 55b7e78bc2eabcf986e8318f60296f0f3f9cd223
+  foundation_build_run: 35934312246
+  foundation_build_job: 107427788711
+  test_deploy_run: 35934312470
+  test_deploy_job: 107427788946
+  frontend_tests: 18_passed
+  foundation_tests: 61_passed
+  migration_count: 6
+  remote_test_deployment: success
 
 owner_direction:
-  - broaden Party implementation scope instead of creating one work package per small capability
-  - group coherent source-backed Party master capabilities into one implementation tranche
-  - normal technical implementation choices are owned by active skills unless they introduce a new business rule
+  - prefer broad coherent implementation tranches over one work package per small capability
+  - do not return to micro-slice package sequencing without a genuine dependency or business-rule boundary
 
-scope:
-  include:
-    - Party directory/list/detail/read surface
-    - edit Party legal/display identity with optimistic concurrency
-    - Contact Person and Communication Point persistence/read/manage/lifecycle
-    - Address persistence/read/manage/lifecycle and source-backed purpose/default semantics
-    - existing TR VKN/TCKN Tax Identity read/masking and lifecycle
-    - Party External Mapping read/manage/lifecycle with deterministic scoped uniqueness
-    - explicit same-company Party Merge with source-to-survivor lineage and conflict resolution
-    - required permissions/API/Mars.Web/audit/idempotency/concurrency/targeted tests
-    - additive EF model/migration work required by these capabilities
-  exclude:
-    - soft/fuzzy duplicate candidate generation/scoring/thresholds
-    - Party Reactivation until duplicate/legal-identity rerun prerequisite is resolved
-    - provider/GIB verification or enrollment
-    - non-TR Tax Identity schemes
-    - Communications consent/channel-preference policy
-    - Sales/Purchasing consuming eligibility implementation
-    - Finance ledger/risk/settlement behavior
-    - production deployment
-    - Full Test Day
+goal:
+  Define one broad Products implementation tranche from frozen PLAN-004 and PLAN-010, preserving the Product versus Inventory/Finance/Warehouse authority boundaries and avoiding arbitrary product attributes or provider behavior.
 
-scope_rules:
-  - preserve PARTY-IMP-001 through PARTY-IMP-005 behavior
-  - company scope applies to every Party read and mutation
-  - deterministic Party Code, active Tax Identity and External Mapping collisions are hard conflicts
-  - fuzzy matching never becomes authority and never auto-merges
-  - live master changes and merge never rewrite historical document snapshots
-  - merge creates no Finance/stock/account/cash-bank/cost posting and no automatic netting
-  - MERGED is terminal for new Party selection
-  - mutable master records use stale-write protection
-  - retryable mutations use durable PostgreSQL idempotency
-  - sensitive Tax Identity reads respect party.tax_identity.read_full
-  - no provider-specific or new business semantics are invented
+required_before_mutation:
+  - reread docs/plan/04-urun-stok/ planning contracts
+  - reread relevant PLAN-010 Product logical model/constraints/access patterns
+  - inspect current source to confirm no Product implementation already exists
+  - define broad source-backed Product master capability set and explicit exclusions
+  - map entity/constraint/migration/API/UI/permission/concurrency/test impact
+  - assign PRODUCT implementation package ID only after the broad scope is explicit
+
+restrictions:
+  - do not split the next Product tranche into micro-packages merely for implementation convenience
+  - do not invent generic attribute/EAV behavior
+  - do not make Product master authoritative for stock quantity or inventory valuation/cost
+  - do not implement Warehouse operational workflows inside Product master unless source-backed
+  - do not invent provider-specific product sync behavior
+  - no production deployment
+  - no Full Test Day
 
 planning_progress:
   master_sequence:
@@ -71,10 +62,5 @@ planning_progress:
     total: 8
     percent: 100.0
 
-test_policy:
-  normal_development:
-    - build
-    - targeted-unit-or-invariant
-    - small-smoke-when-needed
-    - migration-contract-check
-  heavy_tests: FULL_TEST_DAY_ONLY
+metric_note:
+  docs/db/acceptance-criteria.md independently records 10 / 30 = 33.3%; normalize this inconsistency only as an explicit separate correction.
