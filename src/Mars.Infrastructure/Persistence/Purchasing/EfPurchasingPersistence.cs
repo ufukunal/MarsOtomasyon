@@ -129,6 +129,28 @@ public sealed class EfPurchasingPersistence(
                 x.SupplierCodeSnapshot,x.SupplierLegalNameSnapshot,x.Version,x.CreatedAt))
             .ToArrayAsync(ct);
 
+    public async Task<IReadOnlyList<PurchaseMatchListItem>> ListMatchesAsync(
+        Guid companyId,CancellationToken ct)
+    {
+        var rows=await dbContext.Set<PurchaseMatchResultRecord>().AsNoTracking()
+            .Where(x=>x.CompanyId==companyId)
+            .OrderByDescending(x=>x.EvaluatedAt).ThenByDescending(x=>x.Id)
+            .Take(250)
+            .ToArrayAsync(ct);
+        var ids=rows.Select(x=>x.Id).ToArray();
+        var exceptions=ids.Length==0
+            ? new Dictionary<long,string>()
+            : await dbContext.Set<PurchaseMatchExceptionRecord>().AsNoTracking()
+                .Where(x=>x.CompanyId==companyId&&ids.Contains(x.PurchaseMatchResultId))
+                .ToDictionaryAsync(x=>x.PurchaseMatchResultId,x=>x.Reason,ct);
+
+        return rows.Select(x=>new PurchaseMatchListItem(
+            x.PublicId,x.Kind.ToString().ToUpperInvariant(),x.State.ToString().ToUpperInvariant(),
+            x.SupplierInvoicePublicId,x.PurchaseOrderPublicId,x.GoodsReceiptPublicId,
+            x.QuantityVariance,x.PriceVariance,
+            x.BlockReason??exceptions.GetValueOrDefault(x.Id))).ToArray();
+    }
+
     public Task<Result<PurchasingMutationReceipt>> CreateOrderAsync(
         CreatePurchaseOrderCommand command,IExecutionContext context,CancellationToken ct) =>
         MutateAsync("purchasing.order.create",command.OperationKey,"PurchaseOrderCreated","PurchaseOrder",
