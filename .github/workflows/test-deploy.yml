@@ -1,6 +1,6 @@
 name: Foundation Test Deploy
-# PARTY-IMP-006 committed Party master migration deployment verification
-# PARTY-IMP-006 final deployment trigger
+# PRODUCT-IMP-001 committed Product master migration deployment verification
+# PRODUCT-IMP-001 final deployment verification
 
 on:
   push:
@@ -77,6 +77,7 @@ jobs:
               Path("src/Mars.Infrastructure/Persistence/Migrations/Foundation"),
               Path("src/Mars.Infrastructure/Persistence/Migrations/Identity"),
               Path("src/Mars.Infrastructure/Persistence/Migrations/Parties"),
+              Path("src/Mars.Infrastructure/Persistence/Migrations/Products"),
           ]
           forbidden = (
               "DropTable(",
