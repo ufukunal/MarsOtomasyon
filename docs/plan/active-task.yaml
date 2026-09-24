@@ -1,9 +1,10 @@
-id: P5
-title: Sales broad implementation tranche definition
+id: SALES-IMP-001
+title: Sales Commercial & Fulfillment Authority Tranche
 module: sales
-status: scope_definition_required
+status: ready_for_implementation
 progress: not_started
-work_package_id: not_assigned
+work_package_id: SALES-IMP-001
+readiness_report: docs/plan/05-satis/p5-sales-commercial-fulfillment-readiness.md
 
 phase:
   id: P5
@@ -28,30 +29,59 @@ predecessor:
   remote_test_deployment: success
 
 owner_direction:
-  - prefer broad coherent implementation tranches over one package per small capability
-  - do not return to micro-slice sequencing without a genuine dependency or business-rule boundary
+  - broad coherent implementation tranches
+  - do not split Quote/Order/Reservation integration/Dispatch/Invoice pre-post authority into separate SALES-IMP IDs merely for implementation convenience
+  - ordinary technical implementation decisions belong to active skills unless they introduce new business/legal/provider/cross-module semantics
 
-goal:
-  Define one broad Sales implementation tranche from frozen PLAN-002 and PLAN-010 using the completed Inventory Ledger and Reservation authority without stealing Inventory, Warehouse or Finance ownership.
+scope:
+  include:
+    - Quote/revision/line authority and lifecycle
+    - partial/repeated Quote conversion with durable source caps
+    - Sales Order/effective version/line authority
+    - controlled Order amendment and activation
+    - approval evidence/SoD required by Sales
+    - explicit Inventory Reservation create/increase/release integration
+    - Warehouse resource-scope authorization required for Dispatch actions
+    - Dispatch commercial authority
+    - atomic Dispatch POST with Inventory STOCK OUT and Reservation consume
+    - Dispatch reversal with linked compensating Inventory movement
+    - handed-over/delivered post-operational states
+    - Sales Invoice DRAFT/commercial/source/calculation authority
+    - optional Proforma inside the same package
+    - Sales read/projection surfaces
+    - permissions/API/Mars.Web/audit/idempotency/concurrency/targeted tests
+    - additive EF model/migration and TEST deployment
+  exclude:
+    - Sales Invoice POST/REVERSE
+    - Finance Account Ledger
+    - Inventory Valuation/Dispatch Cost Bridge/COGS
+    - Collection/settlement/open-item allocation
+    - Invoice paid/open-balance authority
+    - TCMB/provider FX acquisition and manual FX posting
+    - e-Invoice/e-Archive provider transmission
+    - Sales Return/RMA workflow
+    - Warehouse Pick/Pack/Stage/Load work
+    - carrier/shipping provider integration
+    - Sales Commercial Policy/price-list Settings administration
+    - automatic document numbering allocator
+    - production deployment
+    - Full Test Day
 
-required_before_mutation:
-  - reread docs/plan/05-satis/ frozen contracts
-  - reread relevant PLAN-010 Sales source-target/constraints/access-pattern contracts
-  - inspect current Sales source baseline
-  - inspect implemented Inventory internal posting and Reservation authority contracts
-  - distinguish Sales commercial document ownership from Inventory physical authority and Finance account/COGS authority
-  - define one broad source-backed Sales capability set and explicit exclusions
-  - map entity/constraint/migration/API/UI/permission/idempotency/concurrency/test impact
-  - assign a Sales implementation package ID only after broad scope is explicit
-
-restrictions:
-  - do not split Sales into micro-packages merely for implementation convenience
-  - do not duplicate Reservation or physical stock authority inside Sales
-  - do not introduce Finance settlement/account-ledger authority into Sales
-  - preserve Dispatch POST as the frozen normal Sales physical stock-out point
-  - preserve Sales Invoice POST as receivable/COGS recognition point without second stock-out
-  - no production deployment
-  - no Full Test Day
+implementation_decisions:
+  schema: sales
+  inventory_stock_authority: Inventory Ledger only
+  reservation_authority: Inventory only
+  dispatch_stock_effect: Dispatch POST only
+  dispatch_post_transaction: Sales state plus Inventory movement plus linked Reservation consume in one PostgreSQL transaction
+  dispatch_operational_work: Warehouse-owned and excluded
+  invoice_post_surface: fail_closed_until_finance_authority
+  collection_authority: Finance only
+  approval_policy_without_settings: fail_closed
+  document_numbering: caller_supplied_until_Settings_Numbering
+  warehouse_scope_authority: Inventory/Warehouse-owned resource access grant plus Sales action permission
+  posted_history: reversal_or_compensation_only
+  try_minor_unit: 2
+  non_try_finalization: fail_closed_until_currency_fx_authority
 
 planning_progress:
   master_sequence:
@@ -64,4 +94,4 @@ planning_progress:
     percent: 100.0
 
 metric_note:
-  docs/db/acceptance-criteria.md independently records 10 / 30 = 33.3%; normalize only as an explicit separate correction.
+  docs/db/acceptance-criteria.md independently records 10 / 30 = 33.3%; do not silently normalize.
