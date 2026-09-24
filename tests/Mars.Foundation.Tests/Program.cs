@@ -40,6 +40,7 @@ var tests = new (string Name, Action Test)[]
     .Concat(PartyImp005Tests.Cases)
     .Concat(PartyImp006Tests.Cases)
     .Concat(ProductImp001Tests.Cases)
+    .Concat(InventoryImp001Tests.Cases)
     .ToArray();
 
 var failures = new List<string>();
