@@ -145,17 +145,17 @@ internal static class PurchasingModelConfiguration
         b.HasOne<ProductRecord>().WithMany().HasForeignKey(x=>new{x.ProductId,x.CompanyId})
             .HasPrincipalKey(x=>new{x.Id,x.CompanyId}).OnDelete(DeleteBehavior.Restrict);
         b.HasOne<ProductVariantRecord>().WithMany().HasForeignKey(x=>new{x.VariantId,x.CompanyId})
-            .HasPrincipalKey(x=>new{x.Id,x.CompanyId]).OnDelete(DeleteBehavior.Restrict);
+            .HasPrincipalKey(x=>new{x.Id,x.CompanyId}).OnDelete(DeleteBehavior.Restrict);
         b.HasOne<UnitOfMeasureRecord>().WithMany().HasForeignKey(x=>new{x.UomId,x.CompanyId})
-            .HasPrincipalKey(x=>new{x.Id,x.CompanyId]).OnDelete(DeleteBehavior.Restrict);
+            .HasPrincipalKey(x=>new{x.Id,x.CompanyId}).OnDelete(DeleteBehavior.Restrict);
         b.HasOne<WarehouseRecord>().WithMany().HasForeignKey(x=>new{x.WarehouseId,x.CompanyId})
-            .HasPrincipalKey(x=>new{x.Id,x.CompanyId]).OnDelete(DeleteBehavior.Restrict);
+            .HasPrincipalKey(x=>new{x.Id,x.CompanyId}).OnDelete(DeleteBehavior.Restrict);
         b.HasOne<LocationRecord>().WithMany().HasForeignKey(x=>new{x.LocationId,x.WarehouseId,x.CompanyId})
-            .HasPrincipalKey(x=>new{x.Id,x.WarehouseId,x.CompanyId]).OnDelete(DeleteBehavior.Restrict);
+            .HasPrincipalKey(x=>new{x.Id,x.WarehouseId,x.CompanyId}).OnDelete(DeleteBehavior.Restrict);
         b.HasOne<InventoryLotRecord>().WithMany().HasForeignKey(x=>new{x.LotId,x.CompanyId})
-            .HasPrincipalKey(x=>new{x.Id,x.CompanyId]).OnDelete(DeleteBehavior.Restrict);
+            .HasPrincipalKey(x=>new{x.Id,x.CompanyId}).OnDelete(DeleteBehavior.Restrict);
         b.HasOne<InventorySerialRecord>().WithMany().HasForeignKey(x=>new{x.SerialId,x.CompanyId})
-            .HasPrincipalKey(x=>new{x.Id,x.CompanyId]).OnDelete(DeleteBehavior.Restrict);
+            .HasPrincipalKey(x=>new{x.Id,x.CompanyId}).OnDelete(DeleteBehavior.Restrict);
         b.ToTable(t=>{
             t.HasCheckConstraint("ck_purchasing_receipt_lines_sequence","sequence > 0");
             t.HasCheckConstraint("ck_purchasing_receipt_lines_quantity","quantity > 0");
@@ -174,7 +174,7 @@ internal static class PurchasingModelConfiguration
         b.Property(x=>x.CreatedAt).HasColumnName("created_at");
         b.HasIndex(x=>x.InventoryMovementPublicId).IsUnique();
         b.HasOne<GoodsReceiptLineRecord>().WithMany().HasForeignKey(x=>new{x.GoodsReceiptLineId,x.CompanyId})
-            .HasPrincipalKey(x=>new{x.Id,x.CompanyId]).OnDelete(DeleteBehavior.Restrict);
+            .HasPrincipalKey(x=>new{x.Id,x.CompanyId}).OnDelete(DeleteBehavior.Restrict);
     }
 
     private static void SupplierInvoice(ModelBuilder m)
@@ -201,7 +201,7 @@ internal static class PurchasingModelConfiguration
         b.HasAlternateKey(x=>new{x.Id,x.CompanyId});
         b.HasIndex(x=>new{x.CompanyId,x.Number}).IsUnique();
         b.HasOne<PartyRecord>().WithMany().HasForeignKey(x=>new{x.SupplierPartyId,x.CompanyId})
-            .HasPrincipalKey(x=>new{x.Id,x.CompanyId]).OnDelete(DeleteBehavior.Restrict);
+            .HasPrincipalKey(x=>new{x.Id,x.CompanyId}).OnDelete(DeleteBehavior.Restrict);
         b.ToTable(t=>{
             t.HasCheckConstraint("ck_purchasing_supplier_invoices_dates","due_date >= document_date");
             t.HasCheckConstraint("ck_purchasing_supplier_invoices_currency","currency_code ~ '^[A-Z]{3}$'");
@@ -228,7 +228,7 @@ internal static class PurchasingModelConfiguration
         Qty(b.Property(x=>x.LineTotal).HasColumnName("line_total"));
         b.HasIndex(x=>new{x.SupplierInvoiceId,x.Sequence}).IsUnique();
         b.HasOne<SupplierInvoiceRecord>().WithMany().HasForeignKey(x=>new{x.SupplierInvoiceId,x.CompanyId})
-            .HasPrincipalKey(x=>new{x.Id,x.CompanyId]).OnDelete(DeleteBehavior.Restrict);
+            .HasPrincipalKey(x=>new{x.Id,x.CompanyId}).OnDelete(DeleteBehavior.Restrict);
         TradeForeignKeys(b);
         LineChecks(b,"invoice_lines");
     }
@@ -245,7 +245,7 @@ internal static class PurchasingModelConfiguration
         Qty(b.Property(x=>x.Quantity).HasColumnName("quantity"));
         b.HasIndex(x=>new{x.CompanyId,x.SourceMode,x.SourceDocumentPublicId,x.SourceLinePublicId});
         b.HasOne<SupplierInvoiceLineRecord>().WithMany().HasForeignKey(x=>new{x.SupplierInvoiceLineId,x.CompanyId})
-            .HasPrincipalKey(x=>new{x.Id,x.CompanyId]).OnDelete(DeleteBehavior.Restrict);
+            .HasPrincipalKey(x=>new{x.Id,x.CompanyId}).OnDelete(DeleteBehavior.Restrict);
         b.ToTable(t=>{
             t.HasCheckConstraint("ck_purchasing_invoice_source_quantity","quantity > 0");
             t.HasCheckConstraint("ck_purchasing_invoice_source_shape",
