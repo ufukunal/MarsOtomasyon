@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Mars.Application.Foundation.Approvals;
 using Mars.Application.Foundation.Auditing;
 using Mars.Application.Foundation.Context;
 using Mars.Application.Foundation.Idempotency;
