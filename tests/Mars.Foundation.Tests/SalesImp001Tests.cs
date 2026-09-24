@@ -1,4 +1,9 @@
+using Mars.Application.Foundation.Approvals;
+using Mars.Application.Foundation.Context;
 using Mars.Application.Sales;
+using Mars.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
+using MarsExecutionContext = Mars.Application.Foundation.Context.ExecutionContext;
 using Mars.Domain.Sales;
 
 internal static class SalesImp001Tests
@@ -7,7 +12,9 @@ internal static class SalesImp001Tests
     [
         ("SALES-IMP-001 calculation uses frozen discount/tax/rounding order", CalculationUsesFrozenOrder),
         ("SALES-IMP-001 document discount residual is deterministic", DocumentDiscountResidualIsDeterministic),
-        ("SALES-IMP-001 tranche does not expose deferred Invoice or Warehouse work permissions", DeferredPermissionsAreAbsent)
+        ("SALES-IMP-001 tranche does not expose deferred Invoice or Warehouse work permissions", DeferredPermissionsAreAbsent),
+        ("Foundation approval primitive enforces creator approver SoD", ApprovalPrimitiveEnforcesSod),
+        ("SALES-IMP-001 model contains approval and Warehouse access scope primitives", ModelContainsSupportingPrimitives)
     ];
 
     private static void CalculationUsesFrozenOrder()
@@ -71,6 +78,51 @@ internal static class SalesImp001Tests
         AssertTrue(!SalesPermissions.All.Contains("sales.invoice.reverse", StringComparer.Ordinal));
         AssertTrue(!SalesPermissions.All.Contains("sales.dispatch.pick", StringComparer.Ordinal));
         AssertTrue(!SalesPermissions.All.Contains("sales.dispatch.pack", StringComparer.Ordinal));
+    }
+
+    private static void ApprovalPrimitiveEnforcesSod()
+    {
+        var actor = Guid.NewGuid();
+        var authority = new ApprovalDecisionAuthority(new FakeApprovalPersistence());
+        var context = new MarsExecutionContext(
+            actor,
+            Guid.NewGuid(),
+            null,
+            new CorrelationId("corr-sales-approval"));
+
+        var result = authority.DecideAsync(
+            new ApprovalDecisionCommand(
+                "Sales",
+                "QuoteRevision",
+                Guid.NewGuid(),
+                1,
+                actor,
+                ApprovalDecisionKind.Approved,
+                null,
+                "approval-op"),
+            context,
+            CancellationToken.None).GetAwaiter().GetResult();
+
+        AssertTrue(result.IsFailure);
+        AssertEqual("approval.sod.creator_cannot_approve", result.Error?.Code);
+    }
+
+    private static void ModelContainsSupportingPrimitives()
+    {
+        var options = MarsDbContextOptions.CreateRuntime(
+            new PostgreSqlRuntimeOptions("Host=localhost;Database=mars_sales_imp_001_model_probe"));
+        using var context = new MarsDbContext(options);
+
+        var tables = context.Model.GetEntityTypes()
+            .Select(x => $"{x.GetSchema()}.{x.GetTableName()}")
+            .ToHashSet(StringComparer.Ordinal);
+
+        AssertTrue(tables.Contains("foundation.approval_decisions"));
+        AssertTrue(tables.Contains("inventory.warehouse_access_grants"));
+
+        var grant = context.Model.GetEntityTypes().Single(
+            x => x.GetSchema() == "inventory" && x.GetTableName() == "warehouse_access_grants");
+        AssertTrue(grant.GetIndexes().Any(x => x.IsUnique));
     }
 
     private static void AssertTrue(bool value)

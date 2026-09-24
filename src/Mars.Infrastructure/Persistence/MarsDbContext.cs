@@ -24,6 +24,7 @@ public sealed class MarsDbContext(DbContextOptions<MarsDbContext> options)
         modelBuilder.Entity<IdentityUserToken<Guid>>().ToTable("user_tokens", "identity");
 
         modelBuilder.ApplyConfiguration(new AuditEventConfiguration());
+        modelBuilder.ApplyConfiguration(new ApprovalDecisionConfiguration());
         modelBuilder.ApplyConfiguration(new IdempotencyOperationConfiguration());
         modelBuilder.ApplyConfiguration(new OutboxMessageConfiguration());
         modelBuilder.ApplyConfiguration(new PermissionGrantConfiguration());
@@ -51,5 +52,6 @@ public sealed class MarsDbContext(DbContextOptions<MarsDbContext> options)
         modelBuilder.ApplyConfiguration(new InventoryMovementConfiguration());
         modelBuilder.ApplyConfiguration(new InventoryReservationConfiguration());
         modelBuilder.ApplyConfiguration(new InventoryReservationMovementConfiguration());
+        modelBuilder.ApplyConfiguration(new WarehouseAccessGrantConfiguration());
     }
 }

@@ -13,6 +13,9 @@ public static class InventoryPermissions
     public const string TraceRead = "inventory.trace.read";
     public const string LotManageMetadata = "inventory.lot.manage_metadata";
     public const string SerialManageMetadata = "inventory.serial.manage_metadata";
+    public const string ReservationCreate = "inventory.reservation.create";
+    public const string ReservationIncrease = "inventory.reservation.increase";
+    public const string ReservationRelease = "inventory.reservation.release";
 
     public static IReadOnlyList<string> All { get; } =
     [
