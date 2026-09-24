@@ -739,6 +739,8 @@ public sealed class EfPurchasingPersistence(
         var resolved=await ResolveLinesAsync(context.CompanyId,lineInputs,innerCt);
         if(resolved.IsFailure)return Result<PurchasingMutationReceipt>.Failure(resolved.Error!);
 
+        await LockInvoiceSourcesAsync(command,context.CompanyId,innerCt);
+
         decimal priceVariance=0m;
         Guid? matchPoPublicId=null;
         Guid? matchReceiptPublicId=null;
@@ -955,6 +957,36 @@ public sealed class EfPurchasingPersistence(
                 x.LocationId.HasValue?locations[x.LocationId.Value].PublicId:null,
                 x.LotId.HasValue?lots[x.LotId.Value].PublicId:null,
                 x.SerialId.HasValue?serials[x.SerialId.Value].PublicId:null)).ToArray());
+    }
+
+    private async Task LockInvoiceSourcesAsync(
+        CreateSupplierInvoiceDraftCommand command,
+        Guid companyId,
+        CancellationToken ct)
+    {
+        var sources=command.Lines
+            .Where(x=>x.SourceDocumentPublicId.HasValue)
+            .Select(x=>new { Mode=command.SourceMode, Id=x.SourceDocumentPublicId!.Value })
+            .Distinct()
+            .OrderBy(x=>(int)x.Mode)
+            .ThenBy(x=>x.Id)
+            .ToArray();
+
+        foreach(var source in sources)
+        {
+            if(source.Mode==SupplierInvoiceSourceMode.PurchaseOrder)
+            {
+                _=await dbContext.Set<PurchaseOrderRecord>()
+                    .FromSqlInterpolated($@"SELECT * FROM purchasing.purchase_orders WHERE company_id={companyId} AND public_id={source.Id} FOR UPDATE")
+                    .SingleOrDefaultAsync(ct);
+            }
+            else if(source.Mode==SupplierInvoiceSourceMode.GoodsReceipt)
+            {
+                _=await dbContext.Set<GoodsReceiptRecord>()
+                    .FromSqlInterpolated($@"SELECT * FROM purchasing.goods_receipts WHERE company_id={companyId} AND public_id={source.Id} FOR UPDATE")
+                    .SingleOrDefaultAsync(ct);
+            }
+        }
     }
 
     private async Task<decimal> ActiveDraftSourceQuantityAsync(
