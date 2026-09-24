@@ -363,7 +363,7 @@ internal static class SalesModelConfiguration
             .HasPrincipalKey(x=>new{x.Id,x.CompanyId}).OnDelete(DeleteBehavior.Restrict)
             .HasConstraintName("fk_sales_dispatch_allocations_lot_company");
         b.HasOne<InventorySerialRecord>().WithMany().HasForeignKey(x=>new{x.SerialId,x.CompanyId})
-            .HasPrincipalKey(x=>new{x.Id,x.CompanyId]).OnDelete(DeleteBehavior.Restrict)
+            .HasPrincipalKey(x=>new{x.Id,x.CompanyId}).OnDelete(DeleteBehavior.Restrict)
             .HasConstraintName("fk_sales_dispatch_allocations_serial_company");
         b.ToTable(t=>t.HasCheckConstraint("ck_sales_dispatch_allocations_quantity","quantity > 0"));
     }
