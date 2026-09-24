@@ -71,7 +71,7 @@ public sealed partial class EfSalesPersistence
                 if(converted) return Business<SalesMutationReceipt>("sales.quote.revision.converted","A revision with conversion history is immutable.");
 
                 var now=DateTimeOffset.UtcNow;
-                previous.AcceptedAt=null;
+                quote.AcceptedAt=null;
                 quote.CurrentRevisionNumber=checked(quote.CurrentRevisionNumber+1);
                 quote.PaymentTerms=Normalize(command.PaymentTerms);
                 quote.State=QuoteState.Draft;
