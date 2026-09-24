@@ -146,6 +146,7 @@ internal static class SalesImp001ApplicationTests
                     lineId,
                     Guid.NewGuid(),
                     Guid.NewGuid(),
+                    Guid.NewGuid(),
                     null,
                     Guid.NewGuid(),
                     1m,
@@ -263,6 +264,7 @@ internal static class SalesImp001ApplicationTests
             warehouseId,
             [
                 new SalesDispatchPostLinePlan(
+                    Guid.NewGuid(),
                     Guid.NewGuid(),
                     Guid.NewGuid(),
                     Guid.NewGuid(),
