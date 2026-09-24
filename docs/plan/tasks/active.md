@@ -1,50 +1,44 @@
 # Active Tasks
 
-## INVENTORY-IMP-001 — Inventory Authority & Traceability Tranche
-**Status:** READY FOR IMPLEMENTATION / NOT STARTED
-
-Canonical readiness:
-- docs/plan/04-urun-stok/p5-inventory-authority-traceability-readiness.md
+## P5 — Sales broad implementation tranche definition
+**Status:** SCOPE DEFINITION REQUIRED / NOT STARTED
 
 Predecessor:
-- PRODUCT-IMP-001 — COMPLETED
-- canonical report: docs/plan/04-urun-stok/product-imp-001-implementation.md
-- tested commit: ac92911a8f5fcda070622b084216a43a70ad7d77
-- Foundation Build 35981641268 — SUCCESS
-- Foundation Test Deploy 35981641137 — SUCCESS
-- migration count 7
+- INVENTORY-IMP-001 — COMPLETED
+- canonical report: docs/plan/04-urun-stok/inventory-imp-001-implementation.md
+- tested commit: edcc24f1200b70aad102fc510ad7bec60c4515e7
+- Foundation Build 35998315605 — SUCCESS
+- Foundation Test Deploy 35998315582 — SUCCESS
+- frontend 20 / 20
+- Foundation targeted 74 PASS
+- migration count 8
+- TEST /inventory 200
+- /products 200
+- /parties 200
+- live/ready 200 / 200
+- smoke PASS
 
-Broad included authority:
-- Warehouse master and Location hierarchy/lifecycle
-- fixed physical dispositions AVAILABLE / QUARANTINE / QUALITY_HOLD / REWORK / DAMAGED / TRANSIT
-- Lot and Serial trace identity
-- append-oriented Inventory Ledger physical quantity authority
-- append-oriented non-physical Reservation authority
-- Product/Variant/UOM/tracking enforcement
-- stock/availability/movement/reservation/trace read surfaces
-- permissions/API/Mars.Web/audit/idempotency/concurrency/targeted tests
-- additive Inventory EF migration and TEST deployment
+Direction:
+- P5 order moves from Inventory to Sales
+- use frozen PLAN-002 Sales contracts and PLAN-010
+- define one broad coherent Sales tranche
+- do not split every Sales capability into micro-packages merely for implementation convenience
 
-Explicit exclusions:
-- Warehouse operational receiving/put-away/pick/pack/stage/load/transfer/count/replenishment/damage/scrap/offline workflows
-- Sales/Purchasing/Returns source documents and state machines
-- arbitrary public physical movement posting
-- free-form Reservation mutation disconnected from Sales Order effective line/version
-- mutable stock totals
-- Finance valuation/current-cost/COGS
-- Product Base UOM replacement and post-use STOCKABLE/tracking transitions
-- production deployment
-- Full Test Day
+Before implementation:
+- inspect current Sales source
+- reconcile Quote / Order / Reservation / Dispatch / Invoice ownership
+- consume Inventory Reservation and physical-posting authority without duplicating it
+- preserve Finance account-ledger / COGS / settlement ownership
+- map entities/constraints/migration/API/UI/permissions/idempotency/concurrency/tests
+- assign a Sales implementation package ID only after scope is explicit
 
-Implementation constraints:
-- Inventory Ledger is the only physical quantity authority
-- Reservation is non-physical; RESERVED is not a physical disposition
-- normal posting cannot produce negative physical stock
-- posted movement history is never silently updated/deleted
-- reversal/compensation preserves original linkage
-- Warehouse/Location permissions use later frozen PLAN-006 namespace
-- TEST migration-safety must include Migrations/Inventory
-- do not claim authenticated TEST Inventory mutation without direct evidence
+Do not invent:
+- Sales-owned mutable reservation totals
+- Sales-owned physical stock balance
+- Invoice stock-out when Dispatch already owns physical movement
+- Invoice payment/open-item authority
+- Collection settlement inside Sales
+- Warehouse operational workflow ownership
 
 Planning:
 - master 9 / 30 = 30.0%
