@@ -1,26 +1,21 @@
-name: WAREHOUSE-IMP-001 Sales Allocation Migration Generate
+name: WAREHOUSE-IMP-001 Sales Allocation Migration Verify
+# Migration is committed; retained as manual/read-only evidence tooling.
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - ".github/workflows/warehouse-sales-allocation-migration-generate.yml"
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  generate:
-    name: generate-sales-dispatch-source-allocation-migration
+  verify:
+    name: verify-sales-dispatch-source-allocation-migration
     runs-on: self-hosted
     timeout-minutes: 15
 
     steps:
-      - name: Checkout main
+      - name: Checkout
         uses: actions/checkout@v4
-        with:
-          ref: main
 
       - name: Select writable .NET install directory
         shell: bash
@@ -39,56 +34,31 @@ jobs:
           dotnet restore src/Mars.Infrastructure/Mars.Infrastructure.csproj
           dotnet build src/Mars.Infrastructure/Mars.Infrastructure.csproj --configuration Release --no-restore -m:1
 
-      - name: Generate additive Sales Dispatch source allocation migration
+      - name: Verify committed Sales source allocation migration/model
         shell: bash
         env:
           MARS_MIGRATION_CONNECTION_STRING: "Host=localhost;Database=mars_design_time_probe"
         run: |
           set -euo pipefail
+          MIG_FILE="src/Mars.Infrastructure/Persistence/Migrations/Sales/20260924223900_WarehouseImp001SalesDispatchSourceAllocations.cs"
 
-          dotnet tool run dotnet-ef migrations add WarehouseImp001SalesDispatchSourceAllocations \
-            --project src/Mars.Infrastructure/Mars.Infrastructure.csproj \
-            --startup-project src/Mars.Infrastructure/Mars.Infrastructure.csproj \
-            --configuration Release \
-            --no-build \
-            --output-dir Persistence/Migrations/Sales
+          test -f "$MIG_FILE"
+          grep -F 'name: "dispatch_source_allocations"' "$MIG_FILE"
 
-          NEW_FILE="$(find src/Mars.Infrastructure/Persistence/Migrations/Sales -maxdepth 1 -name '*_WarehouseImp001SalesDispatchSourceAllocations.cs' ! -name '*.Designer.cs' | head -n 1)"
-          test -n "$NEW_FILE"
-          grep -F 'name: "dispatch_source_allocations"' "$NEW_FILE"
-          python3 - "$NEW_FILE" <<'PY'
+          python3 - "$MIG_FILE" <<'PY'
           from pathlib import Path
           import sys
-
-          path = Path(sys.argv[1])
-          text = path.read_text(encoding="utf-8")
+          text = Path(sys.argv[1]).read_text(encoding="utf-8")
           up = text.split("protected override void Up", 1)[1].split("protected override void Down", 1)[0]
-          forbidden = (
-              "DropTable(",
-              "DropColumn(",
-              "DropSchema(",
-              "RenameTable(",
-              "RenameColumn(",
-              "AlterColumn(",
-              "DeleteData(",
-              "migrationBuilder.Sql(",
-          )
+          forbidden = ("DropTable(","DropColumn(","DropSchema(","RenameTable(","RenameColumn(","AlterColumn(","DeleteData(","migrationBuilder.Sql(")
           hits = [token for token in forbidden if token in up]
           if hits:
-              raise SystemExit(f"Generated migration contains non-additive Up() operation: {hits}")
+              raise SystemExit(f"Non-additive Up(): {hits}")
           print("PASS_SALES_SOURCE_ALLOCATION_MIGRATION_UP=ADDITIVE")
           PY
 
-          git status --short
-          git diff --check
-
-      - name: Commit generated migration to main
-        shell: bash
-        run: |
-          set -euo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src/Mars.Infrastructure/Persistence/Migrations
-          git diff --cached --quiet && { echo "No migration changes generated."; exit 1; }
-          git commit -m "feat: add Warehouse Sales source allocation migration"
-          git push origin HEAD:main
+          dotnet tool run dotnet-ef migrations has-pending-model-changes \
+            --project src/Mars.Infrastructure/Mars.Infrastructure.csproj \
+            --startup-project src/Mars.Infrastructure/Mars.Infrastructure.csproj \
+            --configuration Release \
+            --no-build
