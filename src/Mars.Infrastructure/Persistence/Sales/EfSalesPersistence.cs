@@ -174,6 +174,15 @@ public sealed partial class EfSalesPersistence(
             }).ToArray());
     }
 
+    public async Task<Guid?> GetDispatchWarehousePublicIdAsync(
+        Guid companyId, Guid dispatchPublicId, CancellationToken ct) =>
+        await (
+            from d in dbContext.Set<DispatchRecord>().AsNoTracking()
+            join w in dbContext.Set<WarehouseRecord>().AsNoTracking() on d.WarehouseId equals w.Id
+            where d.CompanyId == companyId && w.CompanyId == companyId && d.PublicId == dispatchPublicId
+            select (Guid?)w.PublicId)
+            .SingleOrDefaultAsync(ct);
+
     public async Task<IReadOnlyList<SalesDocumentListItem>> ListInvoicesAsync(Guid companyId, CancellationToken ct) =>
         await dbContext.Set<SalesInvoiceRecord>().AsNoTracking()
             .Where(x => x.CompanyId == companyId)
