@@ -393,6 +393,7 @@ public interface IWarehousePersistence : IWarehouseOpenWorkBlocker
 
     Task<Result<WarehouseMutationReceipt>> CreateCountAsync(
         CreateCountCommand command,IExecutionContext context,CancellationToken ct);
+    Task<Guid?> GetCountWarehouseAsync(Guid companyId,Guid countPublicId,CancellationToken ct);
     Task<Result<WarehouseMutationReceipt>> StartCountAsync(
         Guid countPublicId,long expectedVersion,string operationKey,IExecutionContext context,CancellationToken ct);
     Task<Result<WarehouseMutationReceipt>> RecordCountAsync(
@@ -721,23 +722,26 @@ public sealed class WarehouseCommandHandler(
     }
 
     public async Task<Result<WarehouseMutationReceipt>> StartCountAsync(
-        Guid id,long version,string operationKey,Guid warehousePublicId,IExecutionContext c,CancellationToken ct)
+        Guid id,long version,string operationKey,IExecutionContext c,CancellationToken ct)
     {
-        if(!await Authorized(WarehousePermissions.CountExecute,warehousePublicId,c,ct))return Denied();
+        var warehousePublicId=await persistence.GetCountWarehouseAsync(c.CompanyId,id,ct);
+        if(!warehousePublicId.HasValue||!await Authorized(WarehousePermissions.CountExecute,warehousePublicId.Value,c,ct))return Denied();
         return await persistence.StartCountAsync(id,version,operationKey,c,ct);
     }
 
     public async Task<Result<WarehouseMutationReceipt>> RecordCountAsync(
-        RecordCountObservationCommand command,Guid warehousePublicId,IExecutionContext c,CancellationToken ct)
+        RecordCountObservationCommand command,IExecutionContext c,CancellationToken ct)
     {
-        if(!await Authorized(WarehousePermissions.CountExecute,warehousePublicId,c,ct))return Denied();
+        var warehousePublicId=await persistence.GetCountWarehouseAsync(c.CompanyId,command.CountPublicId,ct);
+        if(!warehousePublicId.HasValue||!await Authorized(WarehousePermissions.CountExecute,warehousePublicId.Value,c,ct))return Denied();
         return await persistence.RecordCountAsync(command,c,ct);
     }
 
     public async Task<Result<WarehouseMutationReceipt>> ReviewCountAsync(
-        Guid id,long version,string operationKey,Guid warehousePublicId,IExecutionContext c,CancellationToken ct)
+        Guid id,long version,string operationKey,IExecutionContext c,CancellationToken ct)
     {
-        if(!await Authorized(WarehousePermissions.CountReview,warehousePublicId,c,ct))return Denied();
+        var warehousePublicId=await persistence.GetCountWarehouseAsync(c.CompanyId,id,ct);
+        if(!warehousePublicId.HasValue||!await Authorized(WarehousePermissions.CountReview,warehousePublicId.Value,c,ct))return Denied();
         var plan=await persistence.ReviewCountAsync(id,version,operationKey,c,ct);
         if(plan.IsFailure)return Result<WarehouseMutationReceipt>.Failure(plan.Error!);
         return Result<WarehouseMutationReceipt>.Success(new(id,
@@ -746,9 +750,10 @@ public sealed class WarehouseCommandHandler(
     }
 
     public async Task<Result<ApprovalDecisionReceipt>> ApproveCountAsync(
-        Guid id,ApprovalDecisionKind decision,string? reason,string operationKey,Guid warehousePublicId,IExecutionContext c,CancellationToken ct)
+        Guid id,ApprovalDecisionKind decision,string? reason,string operationKey,IExecutionContext c,CancellationToken ct)
     {
-        if(!await Authorized(WarehousePermissions.CountApprove,warehousePublicId,c,ct))
+        var warehousePublicId=await persistence.GetCountWarehouseAsync(c.CompanyId,id,ct);
+        if(!warehousePublicId.HasValue||!await Authorized(WarehousePermissions.CountApprove,warehousePublicId.Value,c,ct))
             return Result<ApprovalDecisionReceipt>.Failure(DeniedError());
         return await transactions.ExecuteAsync(async innerCt=>{
             var plan=await persistence.GetCountPostPlanAsync(id,c,innerCt);
@@ -769,9 +774,10 @@ public sealed class WarehouseCommandHandler(
     }
 
     public async Task<Result<WarehouseMutationReceipt>> PostCountAsync(
-        Guid id,string operationKey,Guid warehousePublicId,IExecutionContext c,CancellationToken ct)
+        Guid id,string operationKey,IExecutionContext c,CancellationToken ct)
     {
-        if(!await Authorized(WarehousePermissions.CountPost,warehousePublicId,c,ct))return Denied();
+        var warehousePublicId=await persistence.GetCountWarehouseAsync(c.CompanyId,id,ct);
+        if(!warehousePublicId.HasValue||!await Authorized(WarehousePermissions.CountPost,warehousePublicId.Value,c,ct))return Denied();
         return await transactions.ExecuteAsync(async innerCt=>{
             var plan=await persistence.GetCountPostPlanAsync(id,c,innerCt);
             if(plan.IsFailure)return Result<WarehouseMutationReceipt>.Failure(plan.Error!);
@@ -795,6 +801,8 @@ public sealed class WarehouseCommandHandler(
     public async Task<Result<WarehouseMutationReceipt>> RequestScrapAsync(
         ScrapRequestCommand command,IExecutionContext c,CancellationToken ct)
     {
+        if(command.WarehousePublicId!=command.Source.WarehousePublicId)
+            return Invalid("warehouse.scrap.warehouse","Scrap Warehouse must match exact source position.");
         if(!await Authorized(WarehousePermissions.ScrapRequest,command.WarehousePublicId,c,ct))return Denied();
         if(command.Source.Disposition is not (InventoryDispositionCode.Damaged or InventoryDispositionCode.Rework or InventoryDispositionCode.QualityHold))
             return Invalid("warehouse.scrap.source","Scrap source must be DAMAGED, REWORK or QUALITY_HOLD.");
