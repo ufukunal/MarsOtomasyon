@@ -1,30 +1,15 @@
 # Planning Backlog
 
-## Immediate — P5 Inventory broad implementation tranche definition
-Status: SCOPE DEFINITION REQUIRED / NOT STARTED.
+## Next dependency after active INVENTORY-IMP-001 — Sales broad implementation tranche definition
+Status: BLOCKED BY ACTIVE INVENTORY IMPLEMENTATION.
 
-Predecessor:
-- PRODUCT-IMP-001 — COMPLETED.
-- canonical report: docs/plan/04-urun-stok/product-imp-001-implementation.md
-- tested commit: ac92911a8f5fcda070622b084216a43a70ad7d77
-- Foundation Build 35981641268 — SUCCESS.
-- Foundation Test Deploy 35981641137 — SUCCESS.
-- migration count 7.
+Dependency:
+- INVENTORY-IMP-001 must establish the Inventory Ledger / Reservation authority and required master/trace contracts first.
 
-Direction:
-- master P5 order moves from Products to Inventory
-- use frozen PLAN-004 Inventory contracts + PLAN-010
-- define one broad Inventory implementation tranche, not many small slices
-
-Before implementation:
-- inspect current Inventory source
-- freeze Inventory Ledger / Reservation / status / lot-serial boundary from accepted sources
-- distinguish Warehouse operational ownership
-- preserve Finance/Costing valuation ownership
-- define DB/API/UI/permission/idempotency/concurrency/test effects
-- assign Inventory implementation ID only after broad scope is explicit
-
-Do not invent negative-stock exceptions, lot/serial bypasses, mutable stock totals, Warehouse workflow ownership or Finance valuation authority.
+Direction when unblocked:
+- reconcile frozen PLAN-002 + PLAN-010 against the implemented Inventory contract
+- define one broad coherent Sales implementation tranche
+- do not assign the Sales implementation package ID before repository reconciliation and scope freeze
 
 ## Quality — master planning sequence item 10
 Target: docs/plan/08-kalite/
