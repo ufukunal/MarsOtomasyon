@@ -1,3 +1,4 @@
+using Mars.Application.Foundation.Approvals;
 using Mars.Application.Foundation.Authorization;
 using Mars.Application.Foundation.Context;
 using Mars.Application.Foundation.Results;
@@ -24,6 +25,17 @@ public sealed record CreatePurchaseOrderCommand(
     string? PaymentTerms,
     decimal DocumentDiscountPercent,
     IReadOnlyList<PurchasingTradeLineInput> Lines,
+    string OperationKey);
+
+public sealed record PurchaseOrderAmendmentDeltaInput(
+    Guid PurchaseOrderLinePublicId,
+    decimal QuantityDelta);
+
+public sealed record AmendPurchaseOrderCommand(
+    Guid PurchaseOrderPublicId,
+    long ExpectedVersion,
+    string Reason,
+    IReadOnlyList<PurchaseOrderAmendmentDeltaInput> Deltas,
     string OperationKey);
 
 public sealed record PurchasingMutationReceipt(
@@ -71,7 +83,8 @@ public sealed record CreateGoodsReceiptLineInput(
     decimal Quantity,
     Guid? LocationPublicId,
     Guid? LotPublicId,
-    Guid? SerialPublicId);
+    Guid? SerialPublicId,
+    bool Stockable);
 
 public sealed record CreateGoodsReceiptCommand(
     string Number,
@@ -95,7 +108,27 @@ public sealed record GoodsReceiptPostLinePlan(
 
 public sealed record GoodsReceiptPostPlan(
     Guid GoodsReceiptPublicId,
+    Guid WarehousePublicId,
     IReadOnlyList<GoodsReceiptPostLinePlan> Lines);
+
+public sealed record GoodsReceiptReverseLinePlan(
+    Guid GoodsReceiptLinePublicId,
+    Guid ProductPublicId,
+    Guid? VariantPublicId,
+    Guid UomPublicId,
+    decimal Quantity,
+    decimal ConversionFactorSnapshot,
+    Guid WarehousePublicId,
+    Guid? LocationPublicId,
+    Guid? LotPublicId,
+    Guid? SerialPublicId,
+    Guid OriginalMovementPublicId,
+    bool Stockable);
+
+public sealed record GoodsReceiptReversePlan(
+    Guid GoodsReceiptPublicId,
+    Guid WarehousePublicId,
+    IReadOnlyList<GoodsReceiptReverseLinePlan> Lines);
 
 public sealed record GoodsReceiptInventoryEffect(
     Guid GoodsReceiptLinePublicId,
@@ -123,7 +156,28 @@ public sealed record CreateSupplierInvoiceDraftCommand(
     string CurrencyCode,
     decimal DocumentDiscountPercent,
     IReadOnlyList<CreateSupplierInvoiceDraftLineInput> Lines,
+    string? DirectReason,
     string OperationKey);
+
+public sealed record PurchaseMatchApprovalTarget(
+    Guid MatchPublicId,
+    Guid InvoicePublicId,
+    long SnapshotVersion,
+    Guid CreatorActorId);
+
+public sealed record PurchaseReturnSourceLineView(
+    Guid GoodsReceiptPublicId,
+    Guid GoodsReceiptLinePublicId,
+    Guid PurchaseOrderPublicId,
+    Guid PurchaseOrderLinePublicId,
+    Guid ProductPublicId,
+    Guid? VariantPublicId,
+    Guid UomPublicId,
+    decimal EligibleQuantity,
+    Guid WarehousePublicId,
+    Guid? LocationPublicId,
+    Guid? LotPublicId,
+    Guid? SerialPublicId);
 
 public sealed record PurchaseMatchPreview(
     PurchaseMatchKind Kind,
@@ -146,9 +200,20 @@ public interface IPurchasingPersistence
         CreatePurchaseOrderCommand command, IExecutionContext context, CancellationToken ct);
     Task<Result<PurchasingMutationReceipt>> ConfirmOrderAsync(
         Guid orderPublicId, long expectedVersion, string operationKey, IExecutionContext context, CancellationToken ct);
+    Task<Result<PurchasingMutationReceipt>> AmendOrderAsync(
+        AmendPurchaseOrderCommand command, IExecutionContext context, CancellationToken ct);
+    Task<Result<PurchasingMutationReceipt>> CancelOrderRemainderAsync(
+        Guid orderPublicId, long expectedVersion, string reason, string operationKey, IExecutionContext context, CancellationToken ct);
+    Task<Result<PurchasingMutationReceipt>> CloseOrderAsync(
+        Guid orderPublicId, long expectedVersion, string operationKey, IExecutionContext context, CancellationToken ct);
 
     Task<Result<PurchasingMutationReceipt>> CreateReceiptAsync(
         CreateGoodsReceiptCommand command, IExecutionContext context, CancellationToken ct);
+    Task<Guid?> GetReceiptWarehousePublicIdAsync(Guid companyId, Guid receiptPublicId, CancellationToken ct);
+    Task<Result<PurchasingMutationReceipt>> ReadyReceiptAsync(
+        Guid receiptPublicId, long expectedVersion, string operationKey, IExecutionContext context, CancellationToken ct);
+    Task<Result<PurchasingMutationReceipt>> CancelReceiptAsync(
+        Guid receiptPublicId, long expectedVersion, string reason, string operationKey, IExecutionContext context, CancellationToken ct);
     Task<Result<GoodsReceiptPostPlan>> PrepareReceiptPostAsync(
         Guid receiptPublicId, IExecutionContext context, CancellationToken ct);
     Task<Result<PurchasingMutationReceipt>> CompleteReceiptPostAsync(
@@ -157,14 +222,32 @@ public interface IPurchasingPersistence
         string operationKey,
         IExecutionContext context,
         CancellationToken ct);
+    Task<Result<GoodsReceiptReversePlan>> PrepareReceiptReverseAsync(
+        Guid receiptPublicId, IExecutionContext context, CancellationToken ct);
+    Task<Result<PurchasingMutationReceipt>> CompleteReceiptReverseAsync(
+        Guid receiptPublicId,
+        IReadOnlyList<GoodsReceiptInventoryEffect> effects,
+        string operationKey,
+        IExecutionContext context,
+        CancellationToken ct);
 
     Task<Result<PurchasingMutationReceipt>> CreateInvoiceDraftAsync(
         CreateSupplierInvoiceDraftCommand command, IExecutionContext context, CancellationToken ct);
+    Task<Result<PurchasingMutationReceipt>> ReplaceInvoiceDraftAsync(
+        Guid invoicePublicId, long expectedVersion, CreateSupplierInvoiceDraftCommand command, IExecutionContext context, CancellationToken ct);
+    Task<Result<PurchasingMutationReceipt>> CancelInvoiceDraftAsync(
+        Guid invoicePublicId, long expectedVersion, string reason, string operationKey, IExecutionContext context, CancellationToken ct);
+    Task<Result<PurchaseMatchApprovalTarget>> GetMatchApprovalTargetAsync(
+        Guid matchPublicId, IExecutionContext context, CancellationToken ct);
+    Task<Result<PurchasingMutationReceipt>> CompleteMatchDecisionAsync(
+        Guid matchPublicId, Guid approvalDecisionPublicId, ApprovalDecisionKind decision, IExecutionContext context, CancellationToken ct);
     Task<Result<PurchaseMatchPreview>> PreviewMatchAsync(
         SupplierInvoiceSourceMode sourceMode,
         Guid sourceDocumentPublicId,
         IExecutionContext context,
         CancellationToken ct);
+    Task<Result<IReadOnlyList<PurchaseReturnSourceLineView>>> PreviewReturnSourceAsync(
+        Guid goodsReceiptPublicId, IExecutionContext context, CancellationToken ct);
 }
 
 public interface IPurchasingTransactionCoordinator
@@ -197,6 +280,19 @@ public sealed class PurchasingQueryHandler(
     public async Task<Result<IReadOnlyList<PurchasingDocumentListItem>>> ListInvoicesAsync(
         IExecutionContext context, CancellationToken ct) =>
         await ReadAsync(PurchasingPermissions.InvoiceRead, () => persistence.ListInvoicesAsync(context.CompanyId, ct), context, ct);
+
+    public async Task<Result<IReadOnlyList<PurchaseReturnSourceLineView>>> PreviewReturnSourceAsync(
+        Guid goodsReceiptPublicId,
+        IExecutionContext context,
+        CancellationToken ct)
+    {
+        if (!await Granted(PurchasingPermissions.ReturnRead, context, ct))
+            return Result<IReadOnlyList<PurchaseReturnSourceLineView>>.Failure(Denied());
+        if (goodsReceiptPublicId == Guid.Empty)
+            return Result<IReadOnlyList<PurchaseReturnSourceLineView>>.Failure(
+                new ApplicationError(ErrorCategory.Validation, "purchasing.return.source.invalid", "Goods Receipt id is required."));
+        return await persistence.PreviewReturnSourceAsync(goodsReceiptPublicId, context, ct);
+    }
 
     public async Task<Result<PurchaseMatchPreview>> PreviewMatchAsync(
         SupplierInvoiceSourceMode mode,
@@ -234,7 +330,9 @@ public sealed class PurchasingQueryHandler(
 public sealed class PurchasingCommandHandler(
     IPermissionEvaluator permissions,
     IPurchasingPersistence persistence,
+    IApprovalDecisionAuthority approvals,
     IInventoryPhysicalAuthority inventory,
+    IWarehouseAccessEvaluator warehouseAccess,
     IPurchasingTransactionCoordinator transactions)
 {
     public Task<Result<PurchasingMutationReceipt>> CreateOrderAsync(
@@ -245,9 +343,47 @@ public sealed class PurchasingCommandHandler(
         Guid id, long version, string key, IExecutionContext context, CancellationToken ct) =>
         WithPermission(PurchasingPermissions.OrderConfirm, () => persistence.ConfirmOrderAsync(id, version, key, context, ct), context, ct);
 
-    public Task<Result<PurchasingMutationReceipt>> CreateReceiptAsync(
-        CreateGoodsReceiptCommand command, IExecutionContext context, CancellationToken ct) =>
-        WithPermission(PurchasingPermissions.ReceiptCreate, () => persistence.CreateReceiptAsync(command, context, ct), context, ct);
+    public Task<Result<PurchasingMutationReceipt>> AmendOrderAsync(
+        AmendPurchaseOrderCommand command, IExecutionContext context, CancellationToken ct) =>
+        WithPermission(PurchasingPermissions.OrderAmend, () => persistence.AmendOrderAsync(command, context, ct), context, ct);
+
+    public Task<Result<PurchasingMutationReceipt>> CancelOrderRemainderAsync(
+        Guid id, long version, string reason, string key, IExecutionContext context, CancellationToken ct) =>
+        WithPermission(PurchasingPermissions.OrderCancelRemaining,
+            () => persistence.CancelOrderRemainderAsync(id, version, reason, key, context, ct), context, ct);
+
+    public Task<Result<PurchasingMutationReceipt>> CloseOrderAsync(
+        Guid id, long version, string key, IExecutionContext context, CancellationToken ct) =>
+        WithPermission(PurchasingPermissions.OrderClose, () => persistence.CloseOrderAsync(id, version, key, context, ct), context, ct);
+
+    public async Task<Result<PurchasingMutationReceipt>> CreateReceiptAsync(
+        CreateGoodsReceiptCommand command, IExecutionContext context, CancellationToken ct)
+    {
+        if (!await Granted(PurchasingPermissions.ReceiptCreate, context, ct))
+            return Denied<PurchasingMutationReceipt>();
+        if (!await warehouseAccess.IsGrantedAsync(context.ActorId, context.CompanyId, command.WarehousePublicId, ct))
+            return WarehouseDenied<PurchasingMutationReceipt>();
+        return await persistence.CreateReceiptAsync(command, context, ct);
+    }
+
+    public async Task<Result<PurchasingMutationReceipt>> ReadyReceiptAsync(
+        Guid id, long version, string key, IExecutionContext context, CancellationToken ct)
+    {
+        if (!await Granted(PurchasingPermissions.ReceiptEditDraft, context, ct))
+            return Denied<PurchasingMutationReceipt>();
+        var warehouse = await persistence.GetReceiptWarehousePublicIdAsync(context.CompanyId, id, ct);
+        if (!warehouse.HasValue)
+            return Result<PurchasingMutationReceipt>.Failure(
+                new ApplicationError(ErrorCategory.NotFound, "purchasing.receipt.not_found", "Goods Receipt was not found."));
+        if (!await warehouseAccess.IsGrantedAsync(context.ActorId, context.CompanyId, warehouse.Value, ct))
+            return WarehouseDenied<PurchasingMutationReceipt>();
+        return await persistence.ReadyReceiptAsync(id, version, key, context, ct);
+    }
+
+    public Task<Result<PurchasingMutationReceipt>> CancelReceiptAsync(
+        Guid id,long version,string reason,string key,IExecutionContext context,CancellationToken ct) =>
+        WithPermission(PurchasingPermissions.ReceiptEditDraft,
+            () => persistence.CancelReceiptAsync(id,version,reason,key,context,ct),context,ct);
 
     public async Task<Result<PurchasingMutationReceipt>> PostReceiptAsync(
         Guid receiptPublicId,
@@ -257,6 +393,12 @@ public sealed class PurchasingCommandHandler(
     {
         if (!await Granted(PurchasingPermissions.ReceiptPost, context, ct))
             return Denied<PurchasingMutationReceipt>();
+        var warehouse = await persistence.GetReceiptWarehousePublicIdAsync(context.CompanyId, receiptPublicId, ct);
+        if (!warehouse.HasValue)
+            return Result<PurchasingMutationReceipt>.Failure(
+                new ApplicationError(ErrorCategory.NotFound, "purchasing.receipt.not_found", "Goods Receipt was not found."));
+        if (!await warehouseAccess.IsGrantedAsync(context.ActorId, context.CompanyId, warehouse.Value, ct))
+            return WarehouseDenied<PurchasingMutationReceipt>();
 
         return await transactions.ExecuteAsync(async innerCt =>
         {
@@ -265,7 +407,7 @@ public sealed class PurchasingCommandHandler(
 
             var effects = new List<GoodsReceiptInventoryEffect>();
             var index = 0;
-            foreach (var line in plan.Value!.Lines)
+            foreach (var line in plan.Value!.Lines.Where(x => x.Stockable))
             {
                 var target = InventoryPosition.Create(
                     line.WarehousePublicId,
@@ -308,9 +450,122 @@ public sealed class PurchasingCommandHandler(
         }, ct);
     }
 
-    public Task<Result<PurchasingMutationReceipt>> CreateInvoiceDraftAsync(
-        CreateSupplierInvoiceDraftCommand command, IExecutionContext context, CancellationToken ct) =>
-        WithPermission(PurchasingPermissions.InvoiceCreate, () => persistence.CreateInvoiceDraftAsync(command, context, ct), context, ct);
+    public async Task<Result<PurchasingMutationReceipt>> ReverseReceiptAsync(
+        Guid receiptPublicId,
+        string operationKey,
+        IExecutionContext context,
+        CancellationToken ct)
+    {
+        if (!await Granted(PurchasingPermissions.ReceiptReverse, context, ct))
+            return Denied<PurchasingMutationReceipt>();
+        var warehouse = await persistence.GetReceiptWarehousePublicIdAsync(context.CompanyId, receiptPublicId, ct);
+        if (!warehouse.HasValue)
+            return Result<PurchasingMutationReceipt>.Failure(
+                new ApplicationError(ErrorCategory.NotFound, "purchasing.receipt.not_found", "Goods Receipt was not found."));
+        if (!await warehouseAccess.IsGrantedAsync(context.ActorId, context.CompanyId, warehouse.Value, ct))
+            return WarehouseDenied<PurchasingMutationReceipt>();
+
+        return await transactions.ExecuteAsync(async innerCt =>
+        {
+            var plan = await persistence.PrepareReceiptReverseAsync(receiptPublicId, context, innerCt);
+            if (plan.IsFailure) return Result<PurchasingMutationReceipt>.Failure(plan.Error!);
+
+            var effects = new List<GoodsReceiptInventoryEffect>();
+            var index = 0;
+            foreach (var line in plan.Value!.Lines.Where(x => x.Stockable))
+            {
+                var sourcePosition = InventoryPosition.Create(
+                    line.WarehousePublicId,
+                    line.LocationPublicId,
+                    InventoryDispositionCode.Quarantine,
+                    line.LotPublicId,
+                    line.SerialPublicId);
+                var source = InventorySourceIdentity.Create(
+                    "Purchasing",
+                    "GoodsReceiptReversal",
+                    plan.Value.GoodsReceiptPublicId,
+                    line.GoodsReceiptLinePublicId);
+                var movement = await inventory.PostAsync(
+                    new InventoryMovementCommand(
+                        line.ProductPublicId,
+                        line.VariantPublicId,
+                        line.UomPublicId,
+                        line.Quantity,
+                        line.ConversionFactorSnapshot,
+                        sourcePosition,
+                        null,
+                        source,
+                        line.OriginalMovementPublicId,
+                        operationKey + ":inventory-reverse:" + index++),
+                    context,
+                    innerCt);
+                if (movement.IsFailure)
+                    return Result<PurchasingMutationReceipt>.Failure(movement.Error!);
+                effects.Add(new GoodsReceiptInventoryEffect(line.GoodsReceiptLinePublicId, movement.Value!.MovementPublicId));
+            }
+
+            return await persistence.CompleteReceiptReverseAsync(
+                receiptPublicId, effects, operationKey + ":complete", context, innerCt);
+        }, ct);
+    }
+
+    public async Task<Result<PurchasingMutationReceipt>> CreateInvoiceDraftAsync(
+        CreateSupplierInvoiceDraftCommand command, IExecutionContext context, CancellationToken ct)
+    {
+        var required = command.SourceMode == SupplierInvoiceSourceMode.Direct
+            ? PurchasingPermissions.InvoiceDirectCreate
+            : PurchasingPermissions.InvoiceCreate;
+        if (!await Granted(required, context, ct))
+            return Denied<PurchasingMutationReceipt>();
+        return await persistence.CreateInvoiceDraftAsync(command, context, ct);
+    }
+
+    public async Task<Result<PurchasingMutationReceipt>> ReplaceInvoiceDraftAsync(
+        Guid id,long version,CreateSupplierInvoiceDraftCommand command,IExecutionContext context,CancellationToken ct)
+    {
+        var required = command.SourceMode == SupplierInvoiceSourceMode.Direct
+            ? PurchasingPermissions.InvoiceDirectCreate
+            : PurchasingPermissions.InvoiceEditDraft;
+        if (!await Granted(required, context, ct))
+            return Denied<PurchasingMutationReceipt>();
+        return await persistence.ReplaceInvoiceDraftAsync(id,version,command,context,ct);
+    }
+
+    public Task<Result<PurchasingMutationReceipt>> CancelInvoiceDraftAsync(
+        Guid id,long version,string reason,string key,IExecutionContext context,CancellationToken ct) =>
+        WithPermission(PurchasingPermissions.InvoiceEditDraft,
+            () => persistence.CancelInvoiceDraftAsync(id,version,reason,key,context,ct),context,ct);
+
+    public async Task<Result<ApprovalDecisionReceipt>> ApproveMatchExceptionAsync(
+        Guid matchPublicId,
+        ApprovalDecisionKind decision,
+        string? reason,
+        string operationKey,
+        IExecutionContext context,
+        CancellationToken ct)
+    {
+        if (!await Granted(PurchasingPermissions.MatchApproveException, context, ct))
+            return Result<ApprovalDecisionReceipt>.Failure(
+                new ApplicationError(ErrorCategory.Authorization,"purchasing.permission.denied","The required Purchasing permission is not granted."));
+
+        var target = await persistence.GetMatchApprovalTargetAsync(matchPublicId, context, ct);
+        if (target.IsFailure)
+            return Result<ApprovalDecisionReceipt>.Failure(target.Error!);
+
+        var approval = await approvals.DecideAsync(
+            new ApprovalDecisionCommand(
+                "Purchasing","PurchaseMatchException",target.Value!.MatchPublicId,
+                target.Value.SnapshotVersion,target.Value.CreatorActorId,decision,reason,operationKey),
+            context,ct);
+        if (approval.IsFailure)
+            return approval;
+
+        var completed = await persistence.CompleteMatchDecisionAsync(
+            matchPublicId,approval.Value!.PublicId,decision,context,ct);
+        return completed.IsFailure
+            ? Result<ApprovalDecisionReceipt>.Failure(completed.Error!)
+            : approval;
+    }
 
     private async Task<Result<PurchasingMutationReceipt>> WithPermission(
         string permission,
@@ -331,4 +586,10 @@ public sealed class PurchasingCommandHandler(
             ErrorCategory.Authorization,
             "purchasing.permission.denied",
             "The required Purchasing permission is not granted."));
+
+    private static Result<T> WarehouseDenied<T>() =>
+        Result<T>.Failure(new ApplicationError(
+            ErrorCategory.Authorization,
+            "purchasing.warehouse.scope_denied",
+            "The current actor is not authorized for this Warehouse."));
 }
