@@ -4,9 +4,11 @@ using Mars.Api.Foundation.Context;
 using Mars.Api.Parties;
 using Mars.Api.Products;
 using Mars.Api.Inventory;
+using Mars.Api.Sales;
 using Mars.Api.Foundation.Errors;
 using Mars.Api.Foundation.Health;
 using Mars.Application.Foundation.Configuration;
+using Mars.Application.Foundation.Approvals;
 using Mars.Application.Foundation.Context;
 using Mars.Application.Foundation.Auditing;
 using Mars.Application.Foundation.Authorization;
@@ -23,12 +25,14 @@ using Mars.Application.Parties.PartyMaster;
 using Mars.Application.Products;
 using Mars.Application.Products.ProductMaster;
 using Mars.Application.Inventory;
+using Mars.Application.Sales;
 using Mars.Infrastructure.Identity;
 using Mars.Infrastructure.Persistence;
 using Mars.Infrastructure.Persistence.Foundation;
 using Mars.Infrastructure.Persistence.Parties;
 using Mars.Infrastructure.Persistence.Products;
 using Mars.Infrastructure.Persistence.Inventory;
+using Mars.Infrastructure.Persistence.Sales;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
@@ -49,6 +53,8 @@ builder.Services.AddMarsIdentityPersistence(runtimeOptions.ConnectionString);
 builder.Services.AddScoped<IAuditWriter, EfAuditWriter>();
 builder.Services.AddScoped<IIdempotencyStore, EfIdempotencyStore>();
 builder.Services.AddScoped<IOutboxWriter, EfOutboxStore>();
+builder.Services.AddScoped<IApprovalDecisionPersistence, EfApprovalDecisionPersistence>();
+builder.Services.AddScoped<IApprovalDecisionAuthority, ApprovalDecisionAuthority>();
 builder.Services.AddScoped<IFoundationProofPersistence, EfFoundationProofPersistence>();
 builder.Services.AddScoped<FoundationProofHandler>();
 builder.Services.AddScoped<IPermissionEvaluator, EfPermissionEvaluator>();
@@ -90,6 +96,13 @@ builder.Services.AddScoped<IInventoryPhysicalAuthority>(
     services => services.GetRequiredService<InventoryAuthorityService>());
 builder.Services.AddScoped<IInventoryReservationAuthority>(
     services => services.GetRequiredService<InventoryAuthorityService>());
+builder.Services.AddScoped<IWarehouseAccessEvaluator, EfWarehouseAccessEvaluator>();
+builder.Services.AddScoped<EfSalesPersistence>();
+builder.Services.AddScoped<ISalesPersistence>(
+    services => services.GetRequiredService<EfSalesPersistence>());
+builder.Services.AddScoped<ISalesTransactionCoordinator, EfSalesTransactionCoordinator>();
+builder.Services.AddScoped<SalesQueryHandler>();
+builder.Services.AddScoped<SalesCommandHandler>();
 builder.Services.AddScoped<IAuthorizationHandler, MarsPermissionAuthorizationHandler>();
 
 builder.Services.AddOpenApi("v1");
@@ -138,7 +151,7 @@ builder.Services
 
 builder.Services.AddAuthorization(options =>
 {
-    foreach (var permission in PartyPermissions.All.Concat(ProductPermissions.All).Concat(InventoryPermissions.All))
+    foreach (var permission in PartyPermissions.All.Concat(ProductPermissions.All).Concat(InventoryPermissions.All).Concat(SalesPermissions.All))
     {
         options.AddPolicy(
             permission,
@@ -809,6 +822,7 @@ app.MapPost(
 
 app.MapProductEndpoints();
 app.MapInventoryEndpoints();
+app.MapSalesEndpoints();
 
 app.MapPost(
         "/api/v1/foundation/proof",
