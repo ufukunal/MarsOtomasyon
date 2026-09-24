@@ -195,7 +195,9 @@ internal static class SalesImp001Tests
         AssertEqual(1, (int)SalesProformaState.Draft);
         AssertEqual(2, (int)SalesProformaState.Cancelled);
 
-        using var context = CreateContext();
+        var options = MarsDbContextOptions.CreateRuntime(
+            new PostgreSqlRuntimeOptions("Host=localhost;Database=mars_sales_imp_001_proforma_probe"));
+        using var context = new MarsDbContext(options);
         var tables = context.Model.GetEntityTypes()
             .Select(x => $"{x.GetSchema()}.{x.GetTableName()}")
             .ToHashSet(StringComparer.Ordinal);
