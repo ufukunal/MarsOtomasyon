@@ -767,8 +767,11 @@ public sealed class EfPurchasingPersistence(
                            o.State==PurchaseOrderState.Completed||o.State==PurchaseOrderState.CancelledRemainder)
                     select new{o.PublicId,l.Quantity,l.UnitPrice}).SingleOrDefaultAsync(innerCt);
                 if(source is null)return Business<PurchasingMutationReceipt>("purchasing.invoice.po_source","Purchase Order source line is not eligible.");
-                if(input.Quantity>source.Quantity)
-                    return Business<PurchasingMutationReceipt>("purchasing.invoice.over_invoice","Over-invoice is blocked without an authoritative tolerance policy.");
+                var alreadyAllocated=await ActiveDraftSourceQuantityAsync(
+                    context.CompanyId,SupplierInvoiceSourceMode.PurchaseOrder,
+                    input.SourceDocumentPublicId.Value,input.SourceLinePublicId.Value,invoicePublicId,innerCt);
+                if(alreadyAllocated+input.Quantity>source.Quantity)
+                    return Business<PurchasingMutationReceipt>("purchasing.invoice.over_invoice","Cumulative active Invoice DRAFT quantity cannot exceed eligible Purchase Order quantity.");
                 matchPoPublicId=matchPoPublicId is null||matchPoPublicId==source.PublicId?source.PublicId:null;
                 priceVariance+=input.UnitPrice-source.UnitPrice;
             }else{
@@ -786,8 +789,11 @@ public sealed class EfPurchasingPersistence(
                     select new{GoodsReceiptPublicId=gr.PublicId,PurchaseOrderPublicId=po.PublicId,gl.Quantity,pl.UnitPrice})
                     .SingleOrDefaultAsync(innerCt);
                 if(source is null)return Business<PurchasingMutationReceipt>("purchasing.invoice.receipt_source","Goods Receipt source line must be POSTED and match Product/UOM.");
-                if(input.Quantity>source.Quantity)
-                    return Business<PurchasingMutationReceipt>("purchasing.invoice.over_invoice","Over-invoice is blocked without an authoritative tolerance policy.");
+                var alreadyAllocated=await ActiveDraftSourceQuantityAsync(
+                    context.CompanyId,SupplierInvoiceSourceMode.GoodsReceipt,
+                    input.SourceDocumentPublicId.Value,input.SourceLinePublicId.Value,invoicePublicId,innerCt);
+                if(alreadyAllocated+input.Quantity>source.Quantity)
+                    return Business<PurchasingMutationReceipt>("purchasing.invoice.over_invoice","Cumulative active Invoice DRAFT quantity cannot exceed eligible POSTED Goods Receipt quantity.");
                 matchReceiptPublicId=matchReceiptPublicId is null||matchReceiptPublicId==source.GoodsReceiptPublicId?source.GoodsReceiptPublicId:null;
                 matchPoPublicId=matchPoPublicId is null||matchPoPublicId==source.PurchaseOrderPublicId?source.PurchaseOrderPublicId:null;
                 priceVariance+=input.UnitPrice-source.UnitPrice;
@@ -948,6 +954,27 @@ public sealed class EfPurchasingPersistence(
                 x.LocationId.HasValue?locations[x.LocationId.Value].PublicId:null,
                 x.LotId.HasValue?lots[x.LotId.Value].PublicId:null,
                 x.SerialId.HasValue?serials[x.SerialId.Value].PublicId:null)).ToArray());
+    }
+
+    private async Task<decimal> ActiveDraftSourceQuantityAsync(
+        Guid companyId,
+        SupplierInvoiceSourceMode mode,
+        Guid sourceDocumentPublicId,
+        Guid sourceLinePublicId,
+        Guid? excludeInvoicePublicId,
+        CancellationToken ct)
+    {
+        var query=
+            from link in dbContext.Set<SupplierInvoiceSourceLinkRecord>().AsNoTracking()
+            join line in dbContext.Set<SupplierInvoiceLineRecord>().AsNoTracking() on link.SupplierInvoiceLineId equals line.Id
+            join invoice in dbContext.Set<SupplierInvoiceRecord>().AsNoTracking() on line.SupplierInvoiceId equals invoice.Id
+            where link.CompanyId==companyId&&line.CompanyId==companyId&&invoice.CompanyId==companyId&&
+                  invoice.State==SupplierInvoiceState.Draft&&link.SourceMode==mode&&
+                  link.SourceDocumentPublicId==sourceDocumentPublicId&&link.SourceLinePublicId==sourceLinePublicId&&
+                  (!excludeInvoicePublicId.HasValue||invoice.PublicId!=excludeInvoicePublicId.Value)
+            select (decimal?)link.Quantity;
+
+        return await query.SumAsync(ct)??0m;
     }
 
     private async Task<ResolvedSupplier?> ResolveSupplierAsync(Guid companyId,Guid publicId,CancellationToken ct)
