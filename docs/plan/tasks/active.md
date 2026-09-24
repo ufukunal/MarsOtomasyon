@@ -1,7 +1,10 @@
 # Active Tasks
 
-## P5 — Inventory broad implementation tranche definition
-**Status:** SCOPE DEFINITION REQUIRED / NOT STARTED
+## INVENTORY-IMP-001 — Inventory Authority & Traceability Tranche
+**Status:** READY FOR IMPLEMENTATION / NOT STARTED
+
+Canonical readiness:
+- docs/plan/04-urun-stok/p5-inventory-authority-traceability-readiness.md
 
 Predecessor:
 - PRODUCT-IMP-001 — COMPLETED
@@ -9,34 +12,39 @@ Predecessor:
 - tested commit: ac92911a8f5fcda070622b084216a43a70ad7d77
 - Foundation Build 35981641268 — SUCCESS
 - Foundation Test Deploy 35981641137 — SUCCESS
-- frontend 19 / 19
-- Foundation 66 / 66
 - migration count 7
-- TEST /products 200
-- live/ready 200 / 200
-- smoke PASS
 
-Direction:
-- P5 order moves from Products to Inventory
-- use frozen PLAN-004 Inventory contracts and PLAN-010
-- define one broad coherent Inventory tranche
-- do not split every Inventory capability into micro-packages merely for implementation convenience
+Broad included authority:
+- Warehouse master and Location hierarchy/lifecycle
+- fixed physical dispositions AVAILABLE / QUARANTINE / QUALITY_HOLD / REWORK / DAMAGED / TRANSIT
+- Lot and Serial trace identity
+- append-oriented Inventory Ledger physical quantity authority
+- append-oriented non-physical Reservation authority
+- Product/Variant/UOM/tracking enforcement
+- stock/availability/movement/reservation/trace read surfaces
+- permissions/API/Mars.Web/audit/idempotency/concurrency/targeted tests
+- additive Inventory EF migration and TEST deployment
 
-Before implementation:
-- inspect current Inventory source
-- freeze Inventory authority and explicit exclusions
-- distinguish Inventory from Warehouse operational workflows
-- preserve Finance/Costing valuation authority
-- map entities/constraints/migration/API/UI/permissions/idempotency/concurrency/tests
-- assign an Inventory implementation package ID only after scope is explicit
+Explicit exclusions:
+- Warehouse operational receiving/put-away/pick/pack/stage/load/transfer/count/replenishment/damage/scrap/offline workflows
+- Sales/Purchasing/Returns source documents and state machines
+- arbitrary public physical movement posting
+- free-form Reservation mutation disconnected from Sales Order effective line/version
+- mutable stock totals
+- Finance valuation/current-cost/COGS
+- Product Base UOM replacement and post-use STOCKABLE/tracking transitions
+- production deployment
+- Full Test Day
 
-Do not invent:
-- mutable stock-total authority
-- negative-stock exception
-- lot/serial bypass
-- reservation semantics
-- Warehouse workflow ownership
-- Finance valuation/current-cost/COGS authority
+Implementation constraints:
+- Inventory Ledger is the only physical quantity authority
+- Reservation is non-physical; RESERVED is not a physical disposition
+- normal posting cannot produce negative physical stock
+- posted movement history is never silently updated/deleted
+- reversal/compensation preserves original linkage
+- Warehouse/Location permissions use later frozen PLAN-006 namespace
+- TEST migration-safety must include Migrations/Inventory
+- do not claim authenticated TEST Inventory mutation without direct evidence
 
 Planning:
 - master 9 / 30 = 30.0%
