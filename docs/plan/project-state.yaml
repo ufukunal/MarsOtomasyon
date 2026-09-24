@@ -83,12 +83,11 @@ test_policy:
   heavy_tests: FULL_TEST_DAY_ONLY
 
 active_task:
-  id: PRODUCT-IMP-001
-  title: Product Master Completion Tranche
-  status: implementation_in_progress
+  id: P5
+  title: Inventory broad implementation tranche definition
+  status: scope_definition_required
   file: docs/plan/active-task.yaml
-  readiness_report: docs/plan/04-urun-stok/p5-product-master-completion-readiness.md
-  progress: implementation_in_progress
+  progress: not_started
 
 completed_planning_tasks:
   - PLAN-001
@@ -118,6 +117,7 @@ completed_implementation_tasks:
   - PARTY-IMP-004
   - PARTY-IMP-005
   - PARTY-IMP-006
+  - PRODUCT-IMP-001
 
 locked_decisions:
   - ASP.NET Core Identity + OpenIddict 7.7.1 is the accepted authentication/identity baseline.
@@ -259,7 +259,7 @@ test_environment:
   valkey_status: running_healthy
   valkey_image: valkey/valkey:8-alpine
   valkey_container: marsotomasyon-valkey-1
-  application_deployment_status: party_imp_006_test_deployed_and_smoke_passed
+  application_deployment_status: product_imp_001_test_deployed_and_smoke_passed
   ssh_connectivity_verified: true
   ssh_remote_user: ufuk
   remote_hostname: mars-prod
@@ -273,15 +273,16 @@ test_environment:
   foundation_test_health_ready: 200
   foundation_test_party_page: 200
   foundation_test_party_directory: 200
+  foundation_test_product_directory: 200
   foundation_test_party_unauthenticated_post: 401
   foundation_test_party_deactivate_unauthenticated_post: 401
   foundation_test_party_role_unauthenticated_post: 401
   foundation_test_party_role_state_unauthenticated_post: 401
   foundation_test_party_tax_identity_unauthenticated_post: 401
-  foundation_test_migration_count: 6
+  foundation_test_migration_count: 7
   foundation_test_smoke: PASS
-  foundation_test_workflow_run: 35934312470
-  foundation_test_implementation_commit: 55b7e78bc2eabcf986e8318f60296f0f3f9cd223
+  foundation_test_workflow_run: 35981641137
+  foundation_test_implementation_commit: ac92911a8f5fcda070622b084216a43a70ad7d77
   mars_path_present: true
   postgresql_roles:
     owner_admin_role: mars_master
@@ -307,6 +308,8 @@ known_constraints:
   - PARTY-IMP-003 Add Turkish Tax Identity is COMPLETED with canonical evidence at docs/plan/03-cariler/party-imp-003-implementation.md, successful Foundation Build run 35894175633 and successful TEST deploy run 35894175558.
   - PARTY-IMP-004 Manage Party Role Lifecycle is COMPLETED with canonical evidence at docs/plan/03-cariler/party-imp-004-implementation.md, successful Foundation Build run 35910331829 and successful TEST deploy run 35910331820.
   - PARTY-IMP-005 Deactivate Party is COMPLETED with canonical evidence at docs/plan/03-cariler/party-imp-005-implementation.md, successful Foundation Build run 35922536747 and successful TEST deploy run 35922536768.
+  - PARTY-IMP-006 Party Master Completion Tranche is COMPLETED with canonical evidence at docs/plan/03-cariler/party-imp-006-implementation.md, successful Foundation Build run 35934312246 and successful TEST deploy run 35934312470.
+  - PRODUCT-IMP-001 Product Master Completion Tranche is COMPLETED with canonical evidence at docs/plan/04-urun-stok/product-imp-001-implementation.md, successful Foundation Build run 35981641268 and successful TEST deploy run 35981641137.
   - ADR-0005 freezes Mars-owned PostgreSQL permission authority/evaluation; Party Code is required caller input for the first slice; soft duplicate warnings are explicitly deferred; Party stores trusted CompanyId without a Company FK in this slice.
   - Database logical/schema design is intentionally deferred until core workflows are sufficiently frozen.
   - Business rules must not be inferred from generic ERP conventions when project sources are silent.
@@ -339,44 +342,43 @@ known_constraints:
   - Durable idempotency/concurrency correctness is PostgreSQL-owned; Valkey is not sufficient authority.
 
 blocked_items:
-  - PRODUCT-IMP-001 itself has no unresolved scope blocker; broad Product master scope is frozen.
-  - Base UOM replacement and post-use STOCKABLE/tracking-strategy changes are deferred until Inventory/Reservation/open-process authority exists.
-  - UOM-specific transaction quantity scale/fraction policy is deferred; conversion-factor storage is a separate physical decision fixed at numeric(28,9).
-  - Generic Variant attribute/EAV taxonomy is not accepted and is excluded.
-  - Provider/marketplace sync and GS1/provider verification remain deferred.
-  - Party Reactivation and fuzzy duplicate candidate generation remain deferred independently and do not block Products.
+  - PRODUCT-IMP-001 has no unresolved completion blocker; Product Master Completion Tranche is completed.
+  - Base UOM replacement and post-use STOCKABLE/tracking-strategy transitions remain deferred until Inventory/Reservation/open-process authority exists.
+  - UOM-specific transaction scale/fraction policy remains deferred.
+  - Generic Variant EAV and provider/marketplace/GS1 behavior remain deferred.
+  - Party Reactivation and fuzzy duplicate candidate generation remain deferred independently.
+  - Inventory broad tranche scope is not yet frozen; do not assign an Inventory implementation package ID before source reconciliation.
   - Planning metric inconsistency remains: active state 9 / 30 = 30.0% vs docs/db/acceptance-criteria.md 10 / 30 = 33.3%.
   - Production deployment and Full Test Day remain deferred.
 next_action:
-  id: PRODUCT-IMP-001
-  title: Product Master Completion Tranche
+  id: P5
+  title: Define Inventory broad implementation tranche
   phase: P5
-  module: products
-  status: IMPLEMENTATION_IN_PROGRESS
-  work_package_id: PRODUCT-IMP-001
-  readiness_report: docs/plan/04-urun-stok/p5-product-master-completion-readiness.md
+  module: inventory
+  status: SCOPE_DEFINITION_REQUIRED
+  work_package_id: NOT_ASSIGNED
   predecessor:
-    id: PARTY-IMP-006
+    id: PRODUCT-IMP-001
     status: completed
-    canonical_report: docs/plan/03-cariler/party-imp-006-implementation.md
-    tested_commit: 55b7e78bc2eabcf986e8318f60296f0f3f9cd223
-    foundation_build_run: 35934312246
-    test_deploy_run: 35934312470
-  scope:
-    - Product core read/create/edit/lifecycle
-    - UOM and Product-UOM
-    - Variant
-    - Barcode Mapping
-    - Category/Product Category
-    - Product External Mapping
-    - protected API and Mars.Web
-    - additive Product EF migration
-  exclusions:
-    - Inventory/Warehouse physical authority and lot/serial records
-    - current stock/value/cost authority
-    - Base UOM replacement and inventory-dependent capability/tracking transitions
-    - generic EAV/attributes and provider-specific sync
-    - production deployment and Full Test Day
+    canonical_report: docs/plan/04-urun-stok/product-imp-001-implementation.md
+    readiness_report: docs/plan/04-urun-stok/p5-product-master-completion-readiness.md
+    implementation_commit: 817dfea81acbf1e93586b030412bd492f8a3ba20
+    migration_commit: 9b0731792a8641b632c612b7abb6f74799dd2aa4
+    tested_commit: ac92911a8f5fcda070622b084216a43a70ad7d77
+    foundation_build_run: 35981641268
+    test_deploy_run: 35981641137
+  source_direction:
+    - master P5 order places Inventory after Products
+    - use frozen PLAN-004 Inventory contracts and PLAN-010
+    - define one broad coherent Inventory tranche rather than micro-packages
+  restrictions:
+    - Inventory Ledger remains physical quantity authority
+    - Warehouse operations remain separate workflow ownership unless a posting boundary is explicitly source-backed
+    - Finance/Costing remains valuation/current-cost/COGS authority
+    - do not invent negative-stock exceptions or lot-serial bypasses
+    - no production deployment
+    - no Full Test Day
+    - exact active master planning metric remains 9 / 30 = 30.0 pending explicit metric normalization
 state_rules:
   - current_head must be verified from Git at every session start; embedded SHA is never authoritative.
   - repo content overrides chat memory when they conflict.
