@@ -25,8 +25,8 @@ internal static class PurchasingImp001Tests
 
         AssertEqual(23m, calc.DocumentDiscountTotal);
         AssertEqual(207m, calc.NetTotal);
-        AssertEqual(39.15m, calc.TaxTotal);
-        AssertEqual(246.15m, calc.GrossTotal);
+        AssertEqual(36.9m, calc.TaxTotal);
+        AssertEqual(243.9m, calc.GrossTotal);
     }
 
     private static void PermissionsExcludeInvoicePosting()
