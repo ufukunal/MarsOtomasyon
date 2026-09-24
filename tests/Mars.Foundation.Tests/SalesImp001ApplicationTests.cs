@@ -389,12 +389,12 @@ internal static class SalesImp001ApplicationTests
 
     private sealed class FakePhysicalAuthority : IInventoryPhysicalAuthority
     {
-        private readonly Guid movementId;
+        private readonly Guid? fixedMovementId;
         private readonly bool fail;
 
         public FakePhysicalAuthority(Guid? movementId = null, bool fail = false)
         {
-            this.movementId = movementId ?? Guid.NewGuid();
+            fixedMovementId = movementId;
             this.fail = fail;
         }
 
@@ -415,7 +415,7 @@ internal static class SalesImp001ApplicationTests
                             "Test Inventory failure."))
                     : Result<InventoryMovementReceipt>.Success(
                         new InventoryMovementReceipt(
-                            movementId,
+                            fixedMovementId ?? Guid.NewGuid(),
                             command.EnteredQuantity * command.ConversionFactorSnapshot,
                             context.CorrelationId.Value)));
         }
