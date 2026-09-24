@@ -101,9 +101,13 @@ builder.Services.AddScoped<IWarehouseAccessGrantAuthority, EfWarehouseAccessGran
 builder.Services.AddScoped<EfSalesPersistence>();
 builder.Services.AddScoped<ISalesPersistence>(
     services => services.GetRequiredService<EfSalesPersistence>());
+builder.Services.AddScoped<ISalesProformaPersistence>(
+    services => services.GetRequiredService<EfSalesPersistence>());
 builder.Services.AddScoped<ISalesTransactionCoordinator, EfSalesTransactionCoordinator>();
 builder.Services.AddScoped<SalesQueryHandler>();
 builder.Services.AddScoped<SalesCommandHandler>();
+builder.Services.AddScoped<SalesProformaQueryHandler>();
+builder.Services.AddScoped<SalesProformaCommandHandler>();
 builder.Services.AddScoped<IAuthorizationHandler, MarsPermissionAuthorizationHandler>();
 
 builder.Services.AddOpenApi("v1");
@@ -824,6 +828,7 @@ app.MapPost(
 app.MapProductEndpoints();
 app.MapInventoryEndpoints();
 app.MapSalesEndpoints();
+app.MapSalesProformaEndpoints();
 
 app.MapPost(
         "/api/v1/foundation/proof",
