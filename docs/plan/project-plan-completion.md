@@ -1,6 +1,6 @@
 # MarsOtomasyon — Project Planning Completion Baseline
 
-Status: COMPLETED / FROZEN — PORTFOLIO PLANNING
+Status: COMPLETED / FROZEN — DETAILED MASTER PLANNING
 
 Repository: ufukunal/MarsOtomasyon
 Branch: main
@@ -20,7 +20,7 @@ Implementation remains evidence-driven and each active module still requires a c
 The following planning levels are now distinguished:
 
 1. Portfolio planning — complete for all 30 master items.
-2. Frozen detailed domain planning — already complete for Foundation and P2 commercial core plus PLAN-010 logical database.
+2. Detailed planning — complete/frozen for all 30 master items; later-module detailed plans live in docs/plan/08-kalite and docs/plan/12-uretim through docs/plan/29-device-layer, plus Full Test Day and Release Hardening plans.
 3. Implementation readiness — created only when a module becomes active.
 4. Implementation — requires code, migration, tests and runtime evidence.
 5. Full Test Day / Release Hardening — remain future execution phases.
@@ -43,7 +43,7 @@ Already frozen in repository:
 
 These detailed plans remain authoritative.
 
-## Remaining master sequence — frozen portfolio envelopes
+## Remaining master sequence — detailed planning baseline
 
 ### 10 Quality
 
@@ -435,6 +435,12 @@ They must be resolved only when an active implementation depends on them.
 Master portfolio planning coverage:
 
 30 / 30 = 100%
+
+Master detailed planning coverage:
+
+30 / 30 = 100%
+
+Detailed completion means workflow/ownership/effects/data/API-UI/security/concurrency/acceptance boundaries are frozen to the extent supported by repository and V38 sources. Explicit UNKNOWN/implementation gates remain valid and must not be guessed.
 
 P2 detailed core commercial planning:
 
