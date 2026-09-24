@@ -1,0 +1,70 @@
+name: PURCHASING-IMP-001 Migration Generate
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/purchasing-migration-generate.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  generate:
+    name: generate-purchasing-authority-migration
+    runs-on: self-hosted
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Select writable .NET install directory
+        shell: bash
+        run: echo "DOTNET_INSTALL_DIR=$HOME/.dotnet" >> "$GITHUB_ENV"
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Restore and build
+        shell: bash
+        run: |
+          set -euo pipefail
+          dotnet tool restore
+          dotnet restore src/Mars.Infrastructure/Mars.Infrastructure.csproj
+          dotnet build src/Mars.Infrastructure/Mars.Infrastructure.csproj --configuration Release --no-restore -m:1
+
+      - name: Generate additive PURCHASING-IMP-001 migration
+        shell: bash
+        env:
+          MARS_MIGRATION_CONNECTION_STRING: "Host=localhost;Database=mars_design_time_probe"
+        run: |
+          set -euo pipefail
+          test ! -d src/Mars.Infrastructure/Persistence/Migrations/Purchasing
+
+          dotnet tool run dotnet-ef migrations add PurchasingImp001CommercialReceiptInvoiceAuthority \
+            --project src/Mars.Infrastructure/Mars.Infrastructure.csproj \
+            --startup-project src/Mars.Infrastructure/Mars.Infrastructure.csproj \
+            --configuration Release \
+            --no-build \
+            --output-dir Persistence/Migrations/Purchasing
+
+          test -d src/Mars.Infrastructure/Persistence/Migrations/Purchasing
+          git status --short
+          git diff --check
+
+      - name: Commit generated migration to main
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/Mars.Infrastructure/Persistence/Migrations
+          git diff --cached --quiet && { echo "No migration changes generated."; exit 1; }
+          git commit -m "feat: add PURCHASING-IMP-001 migration"
+          git push origin HEAD:main
