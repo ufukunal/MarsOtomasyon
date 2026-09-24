@@ -37,7 +37,8 @@ test("Purchasing Web preserves PO receipt quarantine and Invoice DRAFT authority
   for (const path of [
     "/purchasing/orders",
     "/purchasing/receipts",
-    "/purchasing/invoices"
+    "/purchasing/invoices",
+    "/purchasing/matches"
   ]) {
     assert.ok(gets.includes(path), "Expected GET " + path);
   }
