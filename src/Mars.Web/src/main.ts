@@ -8,6 +8,7 @@ import { createProductMasterPage } from "./product-master";
 import { createInventoryPage } from "./inventory";
 import { createSalesPage } from "./sales";
 import { createPurchasingPage } from "./purchasing";
+import { createWarehousePage } from "./warehouse";
 import {
   createButton,
   createField,
@@ -59,6 +60,11 @@ const router = new MarsRouter(shell.outlet, [
     path: "/purchasing",
     title: "Purchasing",
     render: () => createPurchasingPage(api)
+  },
+  {
+    path: "/warehouse",
+    title: "Warehouse",
+    render: () => createWarehousePage(api)
   },
   {
     path: "/proof",
