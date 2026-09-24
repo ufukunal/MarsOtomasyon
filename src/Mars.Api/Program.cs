@@ -3,6 +3,7 @@ using Mars.Api.Foundation.Authorization;
 using Mars.Api.Foundation.Context;
 using Mars.Api.Parties;
 using Mars.Api.Products;
+using Mars.Api.Inventory;
 using Mars.Api.Foundation.Errors;
 using Mars.Api.Foundation.Health;
 using Mars.Application.Foundation.Configuration;
@@ -21,11 +22,13 @@ using Mars.Application.Parties.AddPartyTaxIdentity;
 using Mars.Application.Parties.PartyMaster;
 using Mars.Application.Products;
 using Mars.Application.Products.ProductMaster;
+using Mars.Application.Inventory;
 using Mars.Infrastructure.Identity;
 using Mars.Infrastructure.Persistence;
 using Mars.Infrastructure.Persistence.Foundation;
 using Mars.Infrastructure.Persistence.Parties;
 using Mars.Infrastructure.Persistence.Products;
+using Mars.Infrastructure.Persistence.Inventory;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
@@ -73,6 +76,20 @@ builder.Services.AddScoped<IProductMasterMutationPersistence>(
     services => services.GetRequiredService<EfProductMasterPersistence>());
 builder.Services.AddScoped<ProductMasterQueryHandler>();
 builder.Services.AddScoped<ProductMasterCommandHandler>();
+builder.Services.AddScoped<EfInventoryPersistence>();
+builder.Services.AddScoped<IInventoryReadPersistence>(
+    services => services.GetRequiredService<EfInventoryPersistence>());
+builder.Services.AddScoped<IInventoryMutationPersistence>(
+    services => services.GetRequiredService<EfInventoryPersistence>());
+builder.Services.AddScoped<IInventoryAuthorityPersistence>(
+    services => services.GetRequiredService<EfInventoryPersistence>());
+builder.Services.AddScoped<InventoryQueryHandler>();
+builder.Services.AddScoped<InventoryMasterCommandHandler>();
+builder.Services.AddScoped<InventoryAuthorityService>();
+builder.Services.AddScoped<IInventoryPhysicalAuthority>(
+    services => services.GetRequiredService<InventoryAuthorityService>());
+builder.Services.AddScoped<IInventoryReservationAuthority>(
+    services => services.GetRequiredService<InventoryAuthorityService>());
 builder.Services.AddScoped<IAuthorizationHandler, MarsPermissionAuthorizationHandler>();
 
 builder.Services.AddOpenApi("v1");
@@ -121,7 +138,7 @@ builder.Services
 
 builder.Services.AddAuthorization(options =>
 {
-    foreach (var permission in PartyPermissions.All.Concat(ProductPermissions.All))
+    foreach (var permission in PartyPermissions.All.Concat(ProductPermissions.All).Concat(InventoryPermissions.All))
     {
         options.AddPolicy(
             permission,
@@ -791,6 +808,7 @@ app.MapPost(
     .WithSummary("Logically merges an explicitly selected same-company source Party into a survivor Party.");
 
 app.MapProductEndpoints();
+app.MapInventoryEndpoints();
 
 app.MapPost(
         "/api/v1/foundation/proof",
