@@ -64,7 +64,7 @@ export function createSalesPage(
 
   const authority = document.createElement("p");
   authority.textContent =
-    "Quote → Order → explicit Reservation → Dispatch fiziksel akışı; Invoice burada yalnız DRAFT commercial/source authority taşır. Paid/open, Account Ledger, COGS ve editable stock authority bu ekranda yoktur.";
+    "Quote → Order → explicit Reservation → Dispatch fiziksel akışı Inventory authority üzerinden yürür; Invoice burada yalnız DRAFT commercial/source authority taşır. Paid/open, Account Ledger, COGS ve editable stock authority bu ekranda yoktur.";
 
   const status = document.createElement("p");
   status.setAttribute("role", "status");
