@@ -64,7 +64,8 @@ jobs:
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src/Mars.Infrastructure/Persistence/Migrations/Sales
+          git add src/Mars.Infrastructure/Persistence/Migrations/Sales \
+            src/Mars.Infrastructure/Persistence/Migrations/Foundation/MarsDbContextModelSnapshot.cs
           git diff --cached --quiet && { echo "No migration changes generated."; exit 1; }
           git commit -m "feat: add SALES-IMP-001 Proforma migration"
           git pull --rebase origin main
