@@ -337,7 +337,7 @@ public interface IWarehouseTransactionCoordinator
         CancellationToken cancellationToken);
 }
 
-public interface IWarehouseOpenWorkBlocker
+public interface IWarehouseOpenWorkBlocker : IInventoryOperationalBlocker
 {
     Task<bool> HasOpenWarehouseWorkAsync(Guid companyId,Guid warehousePublicId,CancellationToken ct);
     Task<bool> HasOpenLocationWorkAsync(Guid companyId,Guid locationPublicId,CancellationToken ct);
