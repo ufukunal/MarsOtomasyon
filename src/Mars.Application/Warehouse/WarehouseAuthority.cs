@@ -618,21 +618,23 @@ public sealed class WarehouseCommandHandler(
     {
         if(!await Granted(WarehousePermissions.TransferLossAdjust,c,ct))
             return Result<ApprovalDecisionReceipt>.Failure(DeniedError());
-        var plan=await persistence.PrepareTransferLossAsync(
-            transferPublicId,transferLinePublicId,quantity,reason,c,ct);
-        if(plan.IsFailure)return Result<ApprovalDecisionReceipt>.Failure(plan.Error!);
-        if(!await warehouseAccess.IsGrantedAsync(c.ActorId,c.CompanyId,plan.Value!.WarehousePublicId,ct))
-            return Result<ApprovalDecisionReceipt>.Failure(DeniedError());
-        var approval=await approvals.DecideAsync(new ApprovalDecisionCommand(
-            "Warehouse","TransferLoss",transferLinePublicId,plan.Value.SnapshotVersion,
-            plan.Value.CreatorActorId,decision,approvalReason,operationKey),c,ct);
-        if(approval.IsFailure)return approval;
-        if(decision==ApprovalDecisionKind.Approved){
-            var marked=await persistence.MarkTransferLossApprovalAsync(
-                transferPublicId,transferLinePublicId,approval.Value!.PublicId,c,ct);
-            if(marked.IsFailure)return Result<ApprovalDecisionReceipt>.Failure(marked.Error!);
-        }
-        return approval;
+        return await transactions.ExecuteAsync(async innerCt=>{
+            var plan=await persistence.PrepareTransferLossAsync(
+                transferPublicId,transferLinePublicId,quantity,reason,c,innerCt);
+            if(plan.IsFailure)return Result<ApprovalDecisionReceipt>.Failure(plan.Error!);
+            if(!await warehouseAccess.IsGrantedAsync(c.ActorId,c.CompanyId,plan.Value!.WarehousePublicId,innerCt))
+                return Result<ApprovalDecisionReceipt>.Failure(DeniedError());
+            var approval=await approvals.DecideAsync(new ApprovalDecisionCommand(
+                "Warehouse","TransferLoss",transferLinePublicId,plan.Value.SnapshotVersion,
+                plan.Value.CreatorActorId,decision,approvalReason,operationKey),c,innerCt);
+            if(approval.IsFailure)return approval;
+            if(decision==ApprovalDecisionKind.Approved){
+                var marked=await persistence.MarkTransferLossApprovalAsync(
+                    transferPublicId,transferLinePublicId,approval.Value!.PublicId,c,innerCt);
+                if(marked.IsFailure)return Result<ApprovalDecisionReceipt>.Failure(marked.Error!);
+            }
+            return approval;
+        },ct);
     }
 
     public async Task<Result<WarehouseMutationReceipt>> PostTransferLossAsync(
@@ -733,20 +735,22 @@ public sealed class WarehouseCommandHandler(
     {
         if(!await Authorized(WarehousePermissions.CountApprove,warehousePublicId,c,ct))
             return Result<ApprovalDecisionReceipt>.Failure(DeniedError());
-        var plan=await persistence.GetCountPostPlanAsync(id,c,ct);
-        if(plan.IsFailure)return Result<ApprovalDecisionReceipt>.Failure(plan.Error!);
-        if(decision==ApprovalDecisionKind.Approved&&plan.Value!.CounterActorIds.Contains(c.ActorId))
-            return Result<ApprovalDecisionReceipt>.Failure(new ApplicationError(
-                ErrorCategory.Authorization,"warehouse.count.sod.counter_cannot_approve",
-                "An actor who counted the physical quantity cannot approve the same non-zero Count adjustment."));
-        var approval=await approvals.DecideAsync(new ApprovalDecisionCommand(
-            "Warehouse","StockCount",id,plan.Value!.SnapshotVersion,plan.Value.CreatorActorId,decision,reason,operationKey),c,ct);
-        if(approval.IsFailure)return approval;
-        if(decision==ApprovalDecisionKind.Approved){
-            var marked=await persistence.MarkCountApprovalAsync(id,approval.Value!.PublicId,c,ct);
-            if(marked.IsFailure)return Result<ApprovalDecisionReceipt>.Failure(marked.Error!);
-        }
-        return approval;
+        return await transactions.ExecuteAsync(async innerCt=>{
+            var plan=await persistence.GetCountPostPlanAsync(id,c,innerCt);
+            if(plan.IsFailure)return Result<ApprovalDecisionReceipt>.Failure(plan.Error!);
+            if(decision==ApprovalDecisionKind.Approved&&plan.Value!.CounterActorIds.Contains(c.ActorId))
+                return Result<ApprovalDecisionReceipt>.Failure(new ApplicationError(
+                    ErrorCategory.Authorization,"warehouse.count.sod.counter_cannot_approve",
+                    "An actor who counted the physical quantity cannot approve the same non-zero Count adjustment."));
+            var approval=await approvals.DecideAsync(new ApprovalDecisionCommand(
+                "Warehouse","StockCount",id,plan.Value!.SnapshotVersion,plan.Value.CreatorActorId,decision,reason,operationKey),c,innerCt);
+            if(approval.IsFailure)return approval;
+            if(decision==ApprovalDecisionKind.Approved){
+                var marked=await persistence.MarkCountApprovalAsync(id,approval.Value!.PublicId,c,innerCt);
+                if(marked.IsFailure)return Result<ApprovalDecisionReceipt>.Failure(marked.Error!);
+            }
+            return approval;
+        },ct);
     }
 
     public async Task<Result<WarehouseMutationReceipt>> PostCountAsync(
@@ -785,18 +789,20 @@ public sealed class WarehouseCommandHandler(
     public async Task<Result<ApprovalDecisionReceipt>> ApproveScrapAsync(
         Guid id,ApprovalDecisionKind decision,string? reason,string operationKey,IExecutionContext c,CancellationToken ct)
     {
-        var plan=await persistence.GetScrapPostPlanAsync(id,c,ct);
-        if(plan.IsFailure)return Result<ApprovalDecisionReceipt>.Failure(plan.Error!);
-        if(!await Authorized(WarehousePermissions.ScrapApprove,plan.Value!.WarehousePublicId,c,ct))
-            return Result<ApprovalDecisionReceipt>.Failure(DeniedError());
-        var approval=await approvals.DecideAsync(new ApprovalDecisionCommand(
-            "Warehouse","Scrap",id,plan.Value.SnapshotVersion,plan.Value.CreatorActorId,decision,reason,operationKey),c,ct);
-        if(approval.IsFailure)return approval;
-        if(decision==ApprovalDecisionKind.Approved){
-            var marked=await persistence.MarkScrapApprovalAsync(id,approval.Value!.PublicId,c,ct);
-            if(marked.IsFailure)return Result<ApprovalDecisionReceipt>.Failure(marked.Error!);
-        }
-        return approval;
+        return await transactions.ExecuteAsync(async innerCt=>{
+            var plan=await persistence.GetScrapPostPlanAsync(id,c,innerCt);
+            if(plan.IsFailure)return Result<ApprovalDecisionReceipt>.Failure(plan.Error!);
+            if(!await Authorized(WarehousePermissions.ScrapApprove,plan.Value!.WarehousePublicId,c,innerCt))
+                return Result<ApprovalDecisionReceipt>.Failure(DeniedError());
+            var approval=await approvals.DecideAsync(new ApprovalDecisionCommand(
+                "Warehouse","Scrap",id,plan.Value.SnapshotVersion,plan.Value.CreatorActorId,decision,reason,operationKey),c,innerCt);
+            if(approval.IsFailure)return approval;
+            if(decision==ApprovalDecisionKind.Approved){
+                var marked=await persistence.MarkScrapApprovalAsync(id,approval.Value!.PublicId,c,innerCt);
+                if(marked.IsFailure)return Result<ApprovalDecisionReceipt>.Failure(marked.Error!);
+            }
+            return approval;
+        },ct);
     }
 
     public async Task<Result<WarehouseMutationReceipt>> PostScrapAsync(
