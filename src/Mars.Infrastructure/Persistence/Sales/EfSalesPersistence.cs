@@ -237,6 +237,11 @@ public sealed partial class EfSalesPersistence(
                 .SingleOrDefaultAsync(x => x.CompanyId == companyId && x.PublicId == sourceDocumentPublicId &&
                     (x.State == DispatchState.Posted || x.State == DispatchState.HandedOver || x.State == DispatchState.Delivered), ct);
             if (dispatch is null) return Array.Empty<InvoiceSourceEligibilityView>();
+            if (await dbContext.Set<DispatchRecord>().AsNoTracking()
+                .AnyAsync(x => x.CompanyId == companyId &&
+                               x.ReversalOfDispatchId == dispatch.Id &&
+                               x.State == DispatchState.Reversed, ct))
+                return Array.Empty<InvoiceSourceEligibilityView>();
             var lines = await dbContext.Set<DispatchLineRecord>().AsNoTracking()
                 .Where(x => x.CompanyId == companyId && x.DispatchId == dispatch.Id).ToArrayAsync(ct);
             return await BuildInvoiceEligibilityAsync(companyId, mode, sourceDocumentPublicId,
