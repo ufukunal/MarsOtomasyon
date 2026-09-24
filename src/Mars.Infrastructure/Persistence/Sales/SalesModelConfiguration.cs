@@ -444,28 +444,26 @@ internal static class SalesModelConfiguration
     private static void Trade<T>(Microsoft.EntityFrameworkCore.Metadata.Builders.EntityTypeBuilder<T> b)
         where T:class
     {
-        dynamic d=b;
-        d.Property("ProductId").HasColumnName("product_id");
-        d.Property("VariantId").HasColumnName("variant_id");
-        d.Property("UomId").HasColumnName("uom_id");
-        d.Property("ConversionFactorSnapshot").HasColumnName("conversion_factor_snapshot").HasPrecision(28,9);
-        d.Property("ProductCodeSnapshot").HasColumnName("product_code_snapshot").IsRequired();
-        d.Property("ProductNameSnapshot").HasColumnName("product_name_snapshot").IsRequired();
-        d.Property("VariantCodeSnapshot").HasColumnName("variant_code_snapshot");
-        d.Property("VariantNameSnapshot").HasColumnName("variant_name_snapshot");
-        d.Property("UomCodeSnapshot").HasColumnName("uom_code_snapshot").IsRequired();
-        d.Property("UomNameSnapshot").HasColumnName("uom_name_snapshot").IsRequired();
+        b.Property("ProductId").HasColumnName("product_id");
+        b.Property("VariantId").HasColumnName("variant_id");
+        b.Property("UomId").HasColumnName("uom_id");
+        b.Property("ConversionFactorSnapshot").HasColumnName("conversion_factor_snapshot").HasPrecision(28,9);
+        b.Property("ProductCodeSnapshot").HasColumnName("product_code_snapshot").IsRequired();
+        b.Property("ProductNameSnapshot").HasColumnName("product_name_snapshot").IsRequired();
+        b.Property("VariantCodeSnapshot").HasColumnName("variant_code_snapshot");
+        b.Property("VariantNameSnapshot").HasColumnName("variant_name_snapshot");
+        b.Property("UomCodeSnapshot").HasColumnName("uom_code_snapshot").IsRequired();
+        b.Property("UomNameSnapshot").HasColumnName("uom_name_snapshot").IsRequired();
     }
 
     private static void TradeForeignKeys<T>(Microsoft.EntityFrameworkCore.Metadata.Builders.EntityTypeBuilder<T> b)
         where T:class
     {
-        dynamic d=b;
-        d.HasOne<ProductRecord>().WithMany().HasForeignKey("ProductId","CompanyId")
+        b.HasOne(typeof(ProductRecord)).WithMany().HasForeignKey("ProductId","CompanyId")
             .HasPrincipalKey("Id","CompanyId").OnDelete(DeleteBehavior.Restrict);
-        d.HasOne<ProductVariantRecord>().WithMany().HasForeignKey("VariantId","CompanyId")
+        b.HasOne(typeof(ProductVariantRecord)).WithMany().HasForeignKey("VariantId","CompanyId")
             .HasPrincipalKey("Id","CompanyId").OnDelete(DeleteBehavior.Restrict);
-        d.HasOne<UnitOfMeasureRecord>().WithMany().HasForeignKey("UomId","CompanyId")
+        b.HasOne(typeof(UnitOfMeasureRecord)).WithMany().HasForeignKey("UomId","CompanyId")
             .HasPrincipalKey("Id","CompanyId").OnDelete(DeleteBehavior.Restrict);
     }
 
