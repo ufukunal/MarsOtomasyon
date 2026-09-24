@@ -1,7 +1,9 @@
 using Mars.Application.Foundation.Approvals;
 using Mars.Application.Foundation.Context;
 using Mars.Application.Sales;
+using Mars.Application.Inventory;
 using Mars.Infrastructure.Persistence;
+using Mars.Infrastructure.Persistence.Sales;
 using Microsoft.EntityFrameworkCore;
 using MarsExecutionContext = Mars.Application.Foundation.Context.ExecutionContext;
 using Mars.Domain.Sales;
@@ -14,7 +16,10 @@ internal static class SalesImp001Tests
         ("SALES-IMP-001 document discount residual is deterministic", DocumentDiscountResidualIsDeterministic),
         ("SALES-IMP-001 tranche does not expose deferred Invoice or Warehouse work permissions", DeferredPermissionsAreAbsent),
         ("Foundation approval primitive enforces creator approver SoD", ApprovalPrimitiveEnforcesSod),
-        ("SALES-IMP-001 model contains approval and Warehouse access scope primitives", ModelContainsSupportingPrimitives)
+        ("SALES-IMP-001 model contains approval and Warehouse access scope primitives", ModelContainsSupportingPrimitives),
+        ("SALES-IMP-001 model contains normalized Sales authority tables", ModelContainsSalesAuthorityTables),
+        ("SALES-IMP-001 persistence implements broad authority contracts", PersistenceImplementsBroadContracts),
+        ("Inventory reservation permissions are canonical actions", ReservationPermissionsAreCanonical)
     ];
 
     private static void CalculationUsesFrozenOrder()
@@ -123,6 +128,59 @@ internal static class SalesImp001Tests
         var grant = context.Model.GetEntityTypes().Single(
             x => x.GetSchema() == "inventory" && x.GetTableName() == "warehouse_access_grants");
         AssertTrue(grant.GetIndexes().Any(x => x.IsUnique));
+    }
+
+    private static void ModelContainsSalesAuthorityTables()
+    {
+        var options = MarsDbContextOptions.CreateRuntime(
+            new PostgreSqlRuntimeOptions("Host=localhost;Database=mars_sales_imp_001_model_probe"));
+        using var context = new MarsDbContext(options);
+
+        var tables = context.Model.GetEntityTypes()
+            .Select(x => $"{x.GetSchema()}.{x.GetTableName()}")
+            .ToHashSet(StringComparer.Ordinal);
+
+        foreach (var table in new[]
+        {
+            "sales.quotes",
+            "sales.quote_revisions",
+            "sales.quote_lines",
+            "sales.quote_conversion_links",
+            "sales.sales_orders",
+            "sales.sales_order_versions",
+            "sales.sales_order_lines",
+            "sales.sales_order_amendments",
+            "sales.sales_order_amendment_deltas",
+            "sales.dispatches",
+            "sales.dispatch_lines",
+            "sales.dispatch_inventory_effect_links",
+            "sales.sales_invoices",
+            "sales.sales_invoice_lines",
+            "sales.sales_invoice_source_links"
+        })
+        {
+            AssertTrue(tables.Contains(table));
+        }
+    }
+
+    private static void PersistenceImplementsBroadContracts()
+    {
+        AssertTrue(typeof(ISalesPersistence).IsAssignableFrom(typeof(EfSalesPersistence)));
+        AssertTrue(typeof(ISalesTransactionCoordinator).IsAssignableFrom(typeof(EfSalesTransactionCoordinator)));
+        AssertTrue(typeof(EfSalesPersistence).GetMethod(nameof(ISalesPersistence.CreateQuoteAsync)) is not null);
+        AssertTrue(typeof(EfSalesPersistence).GetMethod(nameof(ISalesPersistence.ConvertQuoteAsync)) is not null);
+        AssertTrue(typeof(EfSalesPersistence).GetMethod(nameof(ISalesPersistence.PrepareDispatchPostAsync)) is not null);
+        AssertTrue(typeof(EfSalesPersistence).GetMethod(nameof(ISalesPersistence.CompleteDispatchReverseAsync)) is not null);
+        AssertTrue(typeof(EfSalesPersistence).GetMethod(nameof(ISalesPersistence.CreateInvoiceDraftAsync)) is not null);
+        AssertTrue(typeof(EfSalesPersistence).GetMethod("PostInvoiceAsync") is null);
+        AssertTrue(typeof(EfSalesPersistence).GetMethod("ReverseInvoiceAsync") is null);
+    }
+
+    private static void ReservationPermissionsAreCanonical()
+    {
+        AssertTrue(InventoryPermissions.All.Contains(InventoryPermissions.ReservationCreate, StringComparer.Ordinal));
+        AssertTrue(InventoryPermissions.All.Contains(InventoryPermissions.ReservationIncrease, StringComparer.Ordinal));
+        AssertTrue(InventoryPermissions.All.Contains(InventoryPermissions.ReservationRelease, StringComparer.Ordinal));
     }
 
     private static void AssertTrue(bool value)
