@@ -25,8 +25,7 @@ public sealed partial class EfSalesPersistence : ISalesWarehouseDispatchAuthorit
             context,
             async innerCt=>
             {
-                var dispatch=await dbContext.Set<DispatchRecord>()
-                    .SingleOrDefaultAsync(x=>x.CompanyId==context.CompanyId&&x.PublicId==command.DispatchPublicId,innerCt);
+                var dispatch=await LockDispatchAsync(command.DispatchPublicId,context.CompanyId,innerCt);
                 if(dispatch is null)
                     return NotFound<SalesMutationReceipt>("sales.dispatch.not_found","Dispatch was not found.");
                 if(dispatch.Version!=command.ExpectedVersion)
@@ -43,8 +42,13 @@ public sealed partial class EfSalesPersistence : ISalesWarehouseDispatchAuthorit
                     .SingleOrDefaultAsync(x=>x.CompanyId==context.CompanyId&&x.DispatchId==dispatch.Id&&x.PublicId==command.DispatchLinePublicId,innerCt);
                 if(line is null)
                     return NotFound<SalesMutationReceipt>("sales.dispatch.line_not_found","Dispatch line was not found.");
-                if(command.PickedQuantity<=0m||command.PickedQuantity>line.Quantity)
-                    return Business<SalesMutationReceipt>("sales.dispatch.pick_quantity","Picked quantity is invalid for Dispatch line.");
+                if(command.PickedQuantity<=0m)
+                    return Business<SalesMutationReceipt>("sales.dispatch.pick_quantity","Picked quantity must be positive.");
+                var allocated=await dbContext.Set<DispatchSourceAllocationRecord>().AsNoTracking()
+                    .Where(x=>x.CompanyId==context.CompanyId&&x.DispatchLineId==line.Id)
+                    .SumAsync(x=>(decimal?)x.Quantity,innerCt)??0m;
+                if(allocated+command.PickedQuantity>line.Quantity)
+                    return Business<SalesMutationReceipt>("sales.dispatch.pick_quantity","Cumulative picked source allocation cannot exceed Dispatch line quantity.");
 
                 var location=await dbContext.Set<LocationRecord>().AsNoTracking()
                     .SingleOrDefaultAsync(x=>x.CompanyId==context.CompanyId&&x.WarehouseId==dispatch.WarehouseId&&x.PublicId==command.LocationPublicId,innerCt);
@@ -66,14 +70,26 @@ public sealed partial class EfSalesPersistence : ISalesWarehouseDispatchAuthorit
                 {
                     var serial=await dbContext.Set<InventorySerialRecord>().AsNoTracking()
                         .SingleOrDefaultAsync(x=>x.CompanyId==context.CompanyId&&x.PublicId==command.SerialPublicId.Value&&x.ProductId==line.ProductId&&x.VariantId==line.VariantId,innerCt);
-                    if(serial is null)
-                        return Business<SalesMutationReceipt>("sales.dispatch.serial","Serial does not match Dispatch Product/Variant.");
+                    if(serial is null||serial.LotId!=lotId)
+                        return Business<SalesMutationReceipt>("sales.dispatch.serial","Serial does not match Dispatch Product/Variant/Lot.");
+                    if(command.PickedQuantity*line.ConversionFactorSnapshot!=1m)
+                        return Business<SalesMutationReceipt>("sales.dispatch.serial_quantity","Serial source allocation must equal exactly one base unit.");
                     serialId=serial.Id;
                 }
 
-                line.LocationId=location.Id;
-                line.LotId=lotId;
-                line.SerialId=serialId;
+                dbContext.Add(new DispatchSourceAllocationRecord
+                {
+                    PublicId=Guid.NewGuid(),
+                    DispatchLineId=line.Id,
+                    CompanyId=context.CompanyId,
+                    WarehouseId=warehouse.Id,
+                    LocationId=location.Id,
+                    LotId=lotId,
+                    SerialId=serialId,
+                    Quantity=command.PickedQuantity,
+                    CreatorActorId=context.ActorId,
+                    CreatedAt=DateTimeOffset.UtcNow
+                });
                 dispatch.Version++;
 
                 return Result<SalesMutationReceipt>.Success(
