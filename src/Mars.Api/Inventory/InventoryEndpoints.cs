@@ -424,7 +424,6 @@ public static class InventoryEndpoints
                 })
             .RequireAuthorization(InventoryPermissions.TraceRead)
             .WithName("ListInventoryReservations");
-    }
 
         app.MapPost(
                 "/api/v1/inventory/warehouses/{warehousePublicId:guid}/access-grants",
@@ -472,6 +471,7 @@ public static class InventoryEndpoints
                 })
             .RequireAuthorization(InventoryPermissions.WarehouseManage)
             .WithName("RevokeWarehouseAccess");
+    }
 
     private static IResult Map<T>(
         Mars.Application.Foundation.Results.Result<T> result,
