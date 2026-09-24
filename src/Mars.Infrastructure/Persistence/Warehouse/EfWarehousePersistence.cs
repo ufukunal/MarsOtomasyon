@@ -845,6 +845,94 @@ public sealed class EfWarehousePersistence(
             return Success(count.PublicId,"POSTED",count.Version,context);
         },ct);
 
+    public async Task<Result<WarehouseMutationReceipt>> CloseCountAsync(
+        Guid id,long expectedVersion,string operationKey,IExecutionContext context,CancellationToken ct)=>
+        await Mutate("warehouse.count.close",operationKey,"WarehouseCountClosed","StockCount",context,async inner=>{
+            var count=await LockCount(context.CompanyId,id,inner);
+            if(count is null)return Invalid("warehouse.count.not_found","Count was not found.");
+            if(count.Version!=expectedVersion)return ConflictReceipt("warehouse.count.stale","Count version is stale.");
+            if(count.State!=StockCountState.Posted)return Invalid("warehouse.count.close_state","Only POSTED Count can be closed.");
+            count.State=StockCountState.Closed;count.Version++;
+            return Success(count.PublicId,"CLOSED",count.Version,context);
+        },ct);
+
+    public async Task<Result<CountReversePlan>> PrepareCountReverseAsync(
+        Guid id,long expectedVersion,IExecutionContext context,CancellationToken ct)
+    {
+        var count=await LockCount(context.CompanyId,id,ct);
+        if(count is null)return Fail<CountReversePlan>("warehouse.count.not_found","Count was not found.");
+        if(count.Version!=expectedVersion)return Conflict<CountReversePlan>("warehouse.count.stale","Count version is stale.");
+        if(count.State is not (StockCountState.Posted or StockCountState.Closed))
+            return Fail<CountReversePlan>("warehouse.count.reverse_state","Only POSTED/CLOSED Count can be reversed.");
+
+        var lines=await dbContext.Set<StockCountLineRecord>().AsNoTracking()
+            .Where(x=>x.CompanyId==context.CompanyId&&x.CountSessionId==count.Id).ToArrayAsync(ct);
+        var lineIds=lines.Select(x=>x.Id).ToArray();
+        var effects=await dbContext.Set<StockCountEffectRecord>().AsNoTracking()
+            .Where(x=>x.CompanyId==context.CompanyId&&lineIds.Contains(x.CountLineId)&&!x.IsReversal)
+            .OrderByDescending(x=>x.Id).ToArrayAsync(ct);
+        if(effects.Length==0)return Fail<CountReversePlan>("warehouse.count.reverse_effects","No posted Count adjustment effect exists.");
+
+        var wh=await dbContext.Set<WarehouseRecord>().AsNoTracking()
+            .SingleAsync(x=>x.CompanyId==context.CompanyId&&x.Id==count.WarehouseId,ct);
+        var result=new List<CountReverseLinePlan>();
+        foreach(var effect in effects)
+        {
+            var line=lines.Single(x=>x.Id==effect.CountLineId);
+            var original=await dbContext.Set<InventoryMovementRecord>().AsNoTracking()
+                .SingleAsync(x=>x.CompanyId==context.CompanyId&&x.PublicId==effect.InventoryMovementPublicId,ct);
+            if(original.SourceWarehouseId is null||original.TargetWarehouseId is not null)
+                return Fail<CountReversePlan>("warehouse.count.reverse_shape","Count adjustment effect is not source-only.");
+
+            var product=await dbContext.Set<ProductRecord>().AsNoTracking().SingleAsync(x=>x.CompanyId==context.CompanyId&&x.Id==original.ProductId,ct);
+            var variant=original.VariantId.HasValue
+                ? await dbContext.Set<ProductVariantRecord>().AsNoTracking().SingleAsync(x=>x.CompanyId==context.CompanyId&&x.Id==original.VariantId.Value,ct)
+                : null;
+            var uom=await dbContext.Set<UnitOfMeasureRecord>().AsNoTracking().SingleAsync(x=>x.CompanyId==context.CompanyId&&x.Id==original.UomId,ct);
+            var sourceWh=await dbContext.Set<WarehouseRecord>().AsNoTracking().SingleAsync(x=>x.CompanyId==context.CompanyId&&x.Id==original.SourceWarehouseId.Value,ct);
+            var sourceLoc=original.SourceLocationId.HasValue
+                ? await dbContext.Set<LocationRecord>().AsNoTracking().SingleAsync(x=>x.CompanyId==context.CompanyId&&x.Id==original.SourceLocationId.Value,ct)
+                : null;
+            var sourceDisp=original.SourceDispositionId.HasValue
+                ? await dbContext.Set<InventoryDispositionRecord>().AsNoTracking().SingleAsync(x=>x.Id==original.SourceDispositionId.Value,ct)
+                : null;
+            var lot=original.LotId.HasValue
+                ? await dbContext.Set<InventoryLotRecord>().AsNoTracking().SingleAsync(x=>x.CompanyId==context.CompanyId&&x.Id==original.LotId.Value,ct)
+                : null;
+            var serial=original.SerialId.HasValue
+                ? await dbContext.Set<InventorySerialRecord>().AsNoTracking().SingleAsync(x=>x.CompanyId==context.CompanyId&&x.Id==original.SerialId.Value,ct)
+                : null;
+
+            var target=new InventoryPosition(
+                sourceWh.PublicId,sourceLoc?.PublicId,sourceDisp!.Code,lot?.PublicId,serial?.PublicId);
+            result.Add(new CountReverseLinePlan(
+                line.PublicId,product.PublicId,variant?.PublicId,uom.PublicId,original.ConversionFactorSnapshot,
+                original.EnteredQuantity,null,target,original.PublicId));
+        }
+        return Result<CountReversePlan>.Success(new(count.PublicId,wh.PublicId,result));
+    }
+
+    public async Task<Result<WarehouseMutationReceipt>> CompleteCountReverseAsync(
+        Guid id,IReadOnlyList<WarehouseInventoryEffect> effects,string operationKey,IExecutionContext context,CancellationToken ct)=>
+        await Mutate("warehouse.count.reverse",operationKey,"WarehouseCountAdjustmentReversed","StockCount",context,async inner=>{
+            var count=await LockCount(context.CompanyId,id,inner);
+            if(count is null||count.State is not (StockCountState.Posted or StockCountState.Closed))
+                return Invalid("warehouse.count.reverse_state","Count is not reversible.");
+            var lines=await dbContext.Set<StockCountLineRecord>().AsNoTracking()
+                .Where(x=>x.CompanyId==context.CompanyId&&x.CountSessionId==count.Id).ToArrayAsync(inner);
+            foreach(var effect in effects)
+            {
+                var line=lines.SingleOrDefault(x=>x.PublicId==effect.WorkLinePublicId);
+                if(line is null)return Invalid("warehouse.count.reverse_effect","Count reversal effect line is invalid.");
+                dbContext.Add(new StockCountEffectRecord{
+                    PublicId=Guid.NewGuid(),CountLineId=line.Id,CompanyId=context.CompanyId,
+                    InventoryMovementPublicId=effect.InventoryMovementPublicId,IsReversal=true,CreatedAt=DateTimeOffset.UtcNow
+                });
+            }
+            count.State=StockCountState.Reversed;count.Version++;
+            return Success(count.PublicId,"REVERSED",count.Version,context);
+        },ct);
+
     public async Task<Result<WarehouseMutationReceipt>> RequestScrapAsync(
         ScrapRequestCommand command,IExecutionContext context,CancellationToken ct)=>
         await Mutate("warehouse.scrap.request",command.OperationKey,"WarehouseScrapRequested","WarehouseScrap",context,async inner=>{
