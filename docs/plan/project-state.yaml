@@ -23,16 +23,16 @@ current_phase:
   status: implementation_in_progress
 
 planning_progress:
-  counting_basis: master-project-plan section 8; completed/frozen work packages only
+  counting_basis: canonical portfolio coverage in docs/plan/project-plan-completion.md
   master_sequence:
-    completed: 9
+    completed: 30
     total: 30
-    percent: 30.0
+    percent: 100.0
   p2_core_commercial:
     completed: 8
     total: 8
     percent: 100.0
-  reporting_rule: report master and active-phase percentages during long planning sessions and in SESSION REPORT
+  reporting_rule: portfolio planning is complete; report implementation phase progress separately from planning coverage
 
 phase_status:
   P0_governance_planning_backbone: completed
@@ -353,7 +353,7 @@ blocked_items:
   - Party Reactivation and fuzzy duplicate candidate generation remain deferred independently.
   - INVENTORY-IMP-001 is completed; Warehouse operational workflows and Finance valuation remain explicitly deferred.
   - SALES-IMP-001 scope is frozen and ready for implementation; Finance-dependent Sales Invoice POST/REVERSE remains explicitly outside this tranche.
-  - Planning metric inconsistency remains: active state 9 / 30 = 30.0% vs docs/db/acceptance-criteria.md 10 / 30 = 33.3%.
+  - Historical planning metric inconsistency is superseded for portfolio coverage by docs/plan/project-plan-completion.md: 30 / 30 = 100%; implementation completion remains separate.
   - Production deployment and Full Test Day remain deferred.
 next_action:
   id: SALES-IMP-001
@@ -394,7 +394,7 @@ next_action:
     - Dispatch POST is the only Sales physical STOCK OUT point in this tranche
     - Invoice POST remains fail-closed until Finance authority exists
     - no mutable copied reserved/shipped/invoiced totals as authority
-    - exact active master planning metric remains 9 / 30 = 30.0 pending explicit metric normalization
+    - portfolio planning is complete at 30 / 30 = 100%; do not confuse this with implementation completion
 state_rules:
   - current_head must be verified from Git at every session start; embedded SHA is never authoritative.
   - repo content overrides chat memory when they conflict.
