@@ -281,6 +281,7 @@ public sealed record CountAdjustmentPlan(
     Guid CountPublicId,
     Guid WarehousePublicId,
     Guid CreatorActorId,
+    IReadOnlyList<Guid> CounterActorIds,
     long SnapshotVersion,
     IReadOnlyList<CountAdjustmentPlanLine> Lines);
 
@@ -720,6 +721,10 @@ public sealed class WarehouseCommandHandler(
             return Result<ApprovalDecisionReceipt>.Failure(DeniedError());
         var plan=await persistence.GetCountPostPlanAsync(id,c,ct);
         if(plan.IsFailure)return Result<ApprovalDecisionReceipt>.Failure(plan.Error!);
+        if(decision==ApprovalDecisionKind.Approved&&plan.Value!.CounterActorIds.Contains(c.ActorId))
+            return Result<ApprovalDecisionReceipt>.Failure(new ApplicationError(
+                ErrorCategory.Authorization,"warehouse.count.sod.counter_cannot_approve",
+                "An actor who counted the physical quantity cannot approve the same non-zero Count adjustment."));
         var approval=await approvals.DecideAsync(new ApprovalDecisionCommand(
             "Warehouse","StockCount",id,plan.Value!.SnapshotVersion,plan.Value.CreatorActorId,decision,reason,operationKey),c,ct);
         if(approval.IsFailure)return approval;
