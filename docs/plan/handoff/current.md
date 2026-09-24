@@ -196,20 +196,47 @@ P5 — Core application implementation
 Status: IMPLEMENTATION IN PROGRESS
 
 ## Current task
-Define one broad Inventory implementation tranche from frozen PLAN-004 + PLAN-010.
+INVENTORY-IMP-001 — Inventory Authority & Traceability Tranche.
 
-Work-package ID:
-- NOT ASSIGNED.
+Status:
+- READY FOR IMPLEMENTATION
+- implementation not started
 
-Owner direction:
-- broad coherent packages; do not return to one-package-per-small-capability sequencing.
+Canonical readiness:
+- docs/plan/04-urun-stok/p5-inventory-authority-traceability-readiness.md
 
-Before mutation:
-- reconcile Inventory workflow/data/permission contracts
-- inspect current Inventory source baseline
-- distinguish Inventory Ledger/Reservation/Lot-Serial authority from Warehouse operational workflows
-- preserve Finance/Costing valuation authority
-- assign an Inventory implementation ID only after broad scope is explicit
+Scope freeze baseline:
+- repository HEAD before readiness mutation: f6a15146b68f1ec6016c14437ad7d11159ea1a7f
+- readiness commit: c13fac0612c6b0894d2ffcabf766dcf52f3e4003
+- no pre-existing Inventory Domain/Application/Persistence/API/Web implementation
+- no pre-existing Inventory migration
+- committed migration baseline: 7
+
+Broad included authority:
+- Warehouse master
+- Location master/hierarchy
+- controlled dispositions AVAILABLE / QUARANTINE / QUALITY_HOLD / REWORK / DAMAGED / TRANSIT
+- Lot / Serial trace identity
+- append-oriented Inventory Ledger
+- append-oriented non-physical Reservation authority
+- Product/Variant/UOM/tracking enforcement
+- stock/availability/movement/reservation/trace read surfaces
+- protected API/Mars.Web, audit, idempotency, concurrency and additive Inventory migration
+
+Explicit boundary:
+- no generic public movement-post endpoint
+- no free-form Reservation mutation disconnected from Sales Order line/version
+- Warehouse receiving/put-away/pick/pack/stage/load/transfer/count/replenishment/damage/scrap/offline workflows remain Warehouse-owned
+- Finance/Costing retains valuation/current-cost/COGS authority
+- no production deployment
+- no Full Test Day
+
+Permission reconciliation:
+- Warehouse/Location uses later frozen PLAN-006 warehouse.* / warehouse.location.* namespace
+- Inventory quantity read keeps inventory.stock.read
+- Inventory-owned trace read keeps inventory.trace.read
+- Foundation Permission Grant remains Actor + trusted Company + PermissionCode
+- no separate actor-to-Warehouse assignment model is invented in this tranche
 
 ## Planning progress
 - Active state metric: Master 9 / 30 = 30.0%
