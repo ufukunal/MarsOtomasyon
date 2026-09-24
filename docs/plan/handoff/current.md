@@ -252,18 +252,57 @@ P5 — Core application implementation
 Status: IMPLEMENTATION IN PROGRESS
 
 ## Current task
-Define one broad Sales implementation tranche from frozen PLAN-002 + PLAN-010 using the completed Inventory authority.
+SALES-IMP-001 — Sales Commercial & Fulfillment Authority Tranche.
 
-Work-package ID:
-- NOT ASSIGNED.
+Status:
+- READY FOR IMPLEMENTATION
+- implementation not started
 
-Before mutation:
-- reconcile Sales workflow/data/permission contracts
-- inspect current Sales source baseline
-- inspect Inventory physical posting and Reservation authority contracts
-- preserve Inventory/Warehouse physical ownership
-- preserve Finance account/COGS/settlement ownership
-- assign a Sales implementation ID only after broad scope is explicit
+Canonical readiness:
+- docs/plan/05-satis/p5-sales-commercial-fulfillment-readiness.md
+
+Scope-freeze baseline:
+- main HEAD before readiness mutation: 7422aea2f5f750b53187578992fe64fdc5e4f7d4
+- readiness commit: 2b2a0629bf8cc0726a3fce65b2ed9065f428f6f7
+- no pre-existing Sales Domain/Application/Persistence/API/Web implementation
+- no Migrations/Sales
+- no Finance Account Ledger/Valuation implementation
+- no Warehouse Pick/Pack/Stage/Load implementation
+- committed migration baseline: 8
+
+Broad included authority:
+- Quote/revision/line lifecycle
+- partial/repeated Quote conversion
+- Sales Order/effective version/line lifecycle
+- controlled Order amendment
+- approval evidence/SoD
+- explicit Inventory Reservation integration
+- Warehouse resource-scope authorization required for Dispatch
+- Dispatch commercial authority
+- atomic Dispatch POST + Inventory STOCK OUT + Reservation consume
+- Dispatch reversal
+- Invoice DRAFT/source/calculation commercial authority
+- optional Proforma inside the same package
+- protected API/Mars.Web/read projections
+- additive Sales/cross-support migration and TEST deployment
+
+Explicit boundary:
+- Invoice POST/REVERSE is not in SALES-IMP-001 because Finance Account/Valuation/Dispatch Cost Bridge authority is absent
+- Collection/settlement remains Finance-owned
+- Pick/Pack/Stage/Load remains Warehouse-owned
+- no generic stock mechanism inside Sales
+- no Sales Reservation truth
+- no TCMB/e-document/provider implementation
+- no production deployment
+- no Full Test Day
+
+Key reconciliation decisions:
+- later PLAN-006 Warehouse operational permissions supersede PLAN-002 sales.dispatch.pick/pack ownership
+- Dispatch POST remains Sales-owned and must also validate Warehouse access scope
+- existing Inventory persistence can join an ambient MarsDbContext transaction
+- no-policy commercial approval is fail-closed
+- caller-supplied Sales document number is temporary until Settings/Numbering exists
+- TRY minor unit is 2; non-TRY finalization remains fail-closed until server-side currency/FX authority exists
 
 ## Planning progress
 - Active state metric: Master 9 / 30 = 30.0%
