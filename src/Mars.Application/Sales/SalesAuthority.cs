@@ -286,6 +286,7 @@ public interface ISalesPersistence
     Task<SalesDocumentDetailView?> GetOrderAsync(Guid companyId, Guid publicId, CancellationToken ct);
     Task<IReadOnlyList<SalesDocumentListItem>> ListDispatchesAsync(Guid companyId, CancellationToken ct);
     Task<SalesDocumentDetailView?> GetDispatchAsync(Guid companyId, Guid publicId, CancellationToken ct);
+    Task<Guid?> GetDispatchWarehousePublicIdAsync(Guid companyId, Guid dispatchPublicId, CancellationToken ct);
     Task<IReadOnlyList<SalesDocumentListItem>> ListInvoicesAsync(Guid companyId, CancellationToken ct);
     Task<SalesInvoiceDraftView?> GetInvoiceAsync(Guid companyId, Guid publicId, CancellationToken ct);
     Task<IReadOnlyList<InvoiceSourceEligibilityView>> PreviewInvoiceSourceAsync(
@@ -574,11 +575,18 @@ public sealed class SalesCommandHandler(
     public async Task<Result<InventoryReservationReceipt>> ReleaseReservationAsync(ChangeSalesReservationCommand command,IExecutionContext context,CancellationToken ct) =>
         await ChangeReservation(command,false,InventoryPermissions.ReservationRelease,context,ct);
 
-    public Task<Result<SalesMutationReceipt>> CreateDispatchAsync(CreateDispatchCommand command,IExecutionContext context,CancellationToken ct) =>
-        WithPermission(SalesPermissions.DispatchCreate,()=>persistence.CreateDispatchAsync(command,context,ct),context,ct);
+    public async Task<Result<SalesMutationReceipt>> CreateDispatchAsync(CreateDispatchCommand command,IExecutionContext context,CancellationToken ct)
+    {
+        if (!await Granted(SalesPermissions.DispatchCreate,context,ct)) return Denied<SalesMutationReceipt>();
+        if (!await warehouseAccess.IsGrantedAsync(context.ActorId,context.CompanyId,command.WarehousePublicId,ct))
+            return Result<SalesMutationReceipt>.Failure(WarehouseDenied());
+        return await persistence.CreateDispatchAsync(command,context,ct);
+    }
 
     public Task<Result<SalesMutationReceipt>> ReadyDispatchAsync(Guid id,long version,string key,IExecutionContext context,CancellationToken ct) =>
-        WithPermission(SalesPermissions.DispatchEditDraft,()=>persistence.ReadyDispatchAsync(id,version,key,context,ct),context,ct);
+        WithDispatchPermissionAndWarehouse(
+            SalesPermissions.DispatchEditDraft,id,
+            ()=>persistence.ReadyDispatchAsync(id,version,key,context,ct),context,ct);
 
     public async Task<Result<SalesMutationReceipt>> PostDispatchAsync(Guid id,string key,IExecutionContext context,CancellationToken ct)
     {
@@ -621,11 +629,17 @@ public sealed class SalesCommandHandler(
     }
 
     public Task<Result<SalesMutationReceipt>> HandoffDispatchAsync(Guid id,long version,string key,IExecutionContext context,CancellationToken ct) =>
-        WithPermission(SalesPermissions.DispatchHandoff,()=>persistence.HandoffDispatchAsync(id,version,key,context,ct),context,ct);
+        WithDispatchPermissionAndWarehouse(
+            SalesPermissions.DispatchHandoff,id,
+            ()=>persistence.HandoffDispatchAsync(id,version,key,context,ct),context,ct);
     public Task<Result<SalesMutationReceipt>> DeliverDispatchAsync(Guid id,long version,string key,IExecutionContext context,CancellationToken ct) =>
-        WithPermission(SalesPermissions.DispatchHandoff,()=>persistence.DeliverDispatchAsync(id,version,key,context,ct),context,ct);
+        WithDispatchPermissionAndWarehouse(
+            SalesPermissions.DispatchHandoff,id,
+            ()=>persistence.DeliverDispatchAsync(id,version,key,context,ct),context,ct);
     public Task<Result<SalesMutationReceipt>> CancelDispatchAsync(Guid id,long version,string reason,string key,IExecutionContext context,CancellationToken ct) =>
-        WithPermission(SalesPermissions.DispatchEditDraft,()=>persistence.CancelDispatchAsync(id,version,reason,key,context,ct),context,ct);
+        WithDispatchPermissionAndWarehouse(
+            SalesPermissions.DispatchEditDraft,id,
+            ()=>persistence.CancelDispatchAsync(id,version,reason,key,context,ct),context,ct);
 
     public async Task<Result<SalesMutationReceipt>> ReverseDispatchAsync(ReverseDispatchCommand command,IExecutionContext context,CancellationToken ct)
     {
@@ -700,6 +714,25 @@ public sealed class SalesCommandHandler(
                 "Sales",target.Value!.EntityType,target.Value.EntityPublicId,target.Value.SnapshotVersion,
                 target.Value.CreatorActorId,decision,reason,operationKey),
             context,ct);
+    }
+
+    private async Task<Result<T>> WithDispatchPermissionAndWarehouse<T>(
+        string permission,
+        Guid dispatchPublicId,
+        Func<Task<Result<T>>> action,
+        IExecutionContext context,
+        CancellationToken ct)
+    {
+        if(!await Granted(permission,context,ct)) return Denied<T>();
+        var warehousePublicId=await persistence.GetDispatchWarehousePublicIdAsync(
+            context.CompanyId,dispatchPublicId,ct);
+        if(!warehousePublicId.HasValue)
+            return Result<T>.Failure(
+                new ApplicationError(ErrorCategory.NotFound,"sales.dispatch.not_found","Dispatch was not found."));
+        if(!await warehouseAccess.IsGrantedAsync(
+               context.ActorId,context.CompanyId,warehousePublicId.Value,ct))
+            return Result<T>.Failure(WarehouseDenied());
+        return await action();
     }
 
     private async Task<Result<T>> WithPermission<T>(
