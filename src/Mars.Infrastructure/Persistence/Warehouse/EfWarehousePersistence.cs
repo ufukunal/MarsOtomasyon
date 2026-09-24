@@ -321,9 +321,9 @@ public sealed class EfWarehousePersistence(
                     .SumAsync(x=>(decimal?)x.Quantity,inner)??0m;
                 var packed=await (
                     from item in dbContext.Set<PackageItemRecord>().AsNoTracking()
-                    join pkg in dbContext.Set<PackageRecord>().AsNoTracking() on item.PackageId equals pkg.Id
-                    where item.CompanyId==context.CompanyId&&pkg.CompanyId==context.CompanyId&&pkg.DispatchPublicId==dispatch.PublicId&&
-                          item.DispatchLinePublicId==line.PublicId&&pkg.State!=PackageState.Cancelled
+                    join packageRow in dbContext.Set<PackageRecord>().AsNoTracking() on item.PackageId equals packageRow.Id
+                    where item.CompanyId==context.CompanyId&&packageRow.CompanyId==context.CompanyId&&packageRow.DispatchPublicId==dispatch.PublicId&&
+                          item.DispatchLinePublicId==line.PublicId&&packageRow.State!=PackageState.Cancelled
                     select (decimal?)item.Quantity).SumAsync(inner)??0m;
                 if(packed+input.Quantity>picked)return Invalid("warehouse.package.over_pack","Cumulative packed quantity cannot exceed picked quantity.");
             }
@@ -930,17 +930,17 @@ public sealed class EfWarehousePersistence(
     {
         var wh=await dbContext.Set<WarehouseRecord>().AsNoTracking().SingleOrDefaultAsync(x=>x.CompanyId==companyId&&x.PublicId==warehousePublicId,ct);
         if(wh is null)return false;
-        return await dbContext.Set<PickWorkRecord>().AsNoTracking().AnyAsync(x=>x.CompanyId==companyId&&x.WarehouseId==wh.Id&&x.State is not (PickWorkState.Closed or PickWorkState.Cancelled),ct)
-            ||await dbContext.Set<WarehouseTransferRecord>().AsNoTracking().AnyAsync(x=>x.CompanyId==companyId&&(x.SourceWarehouseId==wh.Id||x.TargetWarehouseId==wh.Id)&&x.State is not (TransferState.Closed or TransferState.Cancelled or TransferState.Reversed),ct)
-            ||await dbContext.Set<StockCountSessionRecord>().AsNoTracking().AnyAsync(x=>x.CompanyId==companyId&&x.WarehouseId==wh.Id&&x.State is not (StockCountState.Closed or StockCountState.Cancelled or StockCountState.Reversed),ct)
-            ||await dbContext.Set<WarehouseScrapRecord>().AsNoTracking().AnyAsync(x=>x.CompanyId==companyId&&x.WarehouseId==wh.Id&&x.State is not (ScrapState.Posted or ScrapState.Cancelled or ScrapState.Reversed),ct);
+        return await dbContext.Set<PickWorkRecord>().AsNoTracking().AnyAsync(x=>x.CompanyId==companyId&&x.WarehouseId==wh.Id&&x.State != PickWorkState.Closed && x.State != PickWorkState.Cancelled,ct)
+            ||await dbContext.Set<WarehouseTransferRecord>().AsNoTracking().AnyAsync(x=>x.CompanyId==companyId&&(x.SourceWarehouseId==wh.Id||x.TargetWarehouseId==wh.Id)&&x.State != TransferState.Closed && x.State != TransferState.Cancelled && x.State != TransferState.Reversed,ct)
+            ||await dbContext.Set<StockCountSessionRecord>().AsNoTracking().AnyAsync(x=>x.CompanyId==companyId&&x.WarehouseId==wh.Id&&x.State != StockCountState.Closed && x.State != StockCountState.Cancelled && x.State != StockCountState.Reversed,ct)
+            ||await dbContext.Set<WarehouseScrapRecord>().AsNoTracking().AnyAsync(x=>x.CompanyId==companyId&&x.WarehouseId==wh.Id&&x.State != ScrapState.Posted && x.State != ScrapState.Cancelled && x.State != ScrapState.Reversed,ct);
     }
 
     public async Task<bool> HasOpenLocationWorkAsync(Guid companyId,Guid locationPublicId,CancellationToken ct)
     {
         var loc=await dbContext.Set<LocationRecord>().AsNoTracking().SingleOrDefaultAsync(x=>x.CompanyId==companyId&&x.PublicId==locationPublicId,ct);
         if(loc is null)return false;
-        return await dbContext.Set<PickWorkRecord>().AsNoTracking().AnyAsync(x=>x.CompanyId==companyId&&x.LocationId==loc.Id&&x.State is not (PickWorkState.Closed or PickWorkState.Cancelled),ct)
+        return await dbContext.Set<PickWorkRecord>().AsNoTracking().AnyAsync(x=>x.CompanyId==companyId&&x.LocationId==loc.Id&&x.State != PickWorkState.Closed && x.State != PickWorkState.Cancelled,ct)
             ||await dbContext.Set<WarehouseTransferLineRecord>().AsNoTracking().AnyAsync(x=>x.CompanyId==companyId&&(x.SourceLocationId==loc.Id||x.TargetLocationId==loc.Id),ct)
             ||await dbContext.Set<StockCountScopeRecord>().AsNoTracking().AnyAsync(x=>x.CompanyId==companyId&&x.LocationId==loc.Id,ct);
     }
