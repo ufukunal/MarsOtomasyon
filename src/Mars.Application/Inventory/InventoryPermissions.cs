@@ -29,6 +29,9 @@ public static class InventoryPermissions
         StockRead,
         TraceRead,
         LotManageMetadata,
-        SerialManageMetadata
+        SerialManageMetadata,
+        ReservationCreate,
+        ReservationIncrease,
+        ReservationRelease
     ];
 }
