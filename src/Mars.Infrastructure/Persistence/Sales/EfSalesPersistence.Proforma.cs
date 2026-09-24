@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Mars.Infrastructure.Persistence.Sales;
 
-public sealed partial class EfSalesPersistence : ISalesProformaPersistence
+public sealed partial class EfSalesPersistence
 {
     public async Task<IReadOnlyList<SalesDocumentListItem>> ListAsync(Guid companyId, CancellationToken ct) =>
         await dbContext.Set<SalesProformaRecord>().AsNoTracking()
