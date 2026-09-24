@@ -99,6 +99,7 @@ export function createSalesPage(
   let selectedOrder: DocumentItem | null = null;
   let selectedOrderDetail: DocumentDetail | null = null;
   let selectedDispatch: DocumentItem | null = null;
+  let selectedProforma: DocumentItem | null = null;
 
   const quoteGrid = grid("Quotes", row => {
     selectedQuote = row;
@@ -112,6 +113,11 @@ export function createSalesPage(
   });
   const invoiceGrid = grid("Invoice drafts", row => {
     status.textContent = "Invoice draft seçildi: " + row.number + " / " + row.state;
+  });
+  const proformaGrid = grid("Proformas", row => {
+    selectedProforma = row;
+    proformaVersion.input.value = String(row.version);
+    status.textContent = "Proforma seçildi: " + row.number + " / " + row.state;
   });
 
   const convertOrderNumber = createField({ id: "sales-convert-order-no", label: "Yeni Order no" });
@@ -161,6 +167,16 @@ export function createSalesPage(
   invoiceTax.input.type = "number"; invoiceTax.input.value = "20";
   const createInvoice = createButton({ label: "Invoice DRAFT oluştur", variant: "primary", onClick: () => { void createInvoiceAsync(); } });
 
+  const proformaNumber = createField({ id: "sales-proforma-number", label: "Proforma no" });
+  const proformaSourceMode = select("sales-proforma-source-mode", "Source mode", ["QUOTE", "ORDER"]);
+  const proformaSourceDocument = createField({ id: "sales-proforma-source-document", label: "Source document Public ID" });
+  const createProforma = createButton({ label: "Proforma oluştur", onClick: () => { void createProformaAsync(); } });
+  const proformaVersion = createField({ id: "sales-proforma-version", label: "Proforma version" });
+  proformaVersion.input.type = "number";
+  const proformaCancelReason = createField({ id: "sales-proforma-cancel-reason", label: "Cancel reason" });
+  const cancelProforma = createButton({ label: "Proforma iptal", onClick: () => { void cancelProformaAsync(); } });
+  const exportProforma = createButton({ label: "Proforma export", onClick: () => { void exportProformaAsync(); } });
+
   const quotePanel = panel([
     customer.element, quoteNumber.element, currency.element, productId.element, uomId.element,
     quantity.element, unitPrice.element, tax.element, createQuote, quoteGrid.element,
@@ -180,12 +196,18 @@ export function createSalesPage(
     invoiceSourceLine.element, invoiceProduct.element, invoiceUom.element, invoiceQty.element,
     invoicePrice.element, invoiceTax.element, createInvoice
   ]);
+  const proformaPanel = panel([
+    proformaGrid.element, proformaNumber.element, proformaSourceMode.root,
+    proformaSourceDocument.element, createProforma, proformaVersion.element,
+    proformaCancelReason.element, cancelProforma, exportProforma
+  ]);
 
   const tabs = createTabs([
     { id: "sales-quotes", label: "Quotes", panel: quotePanel },
     { id: "sales-orders", label: "Orders / Reservations", panel: orderPanel },
     { id: "sales-dispatches", label: "Dispatch", panel: dispatchPanel },
-    { id: "sales-invoices", label: "Invoice DRAFT", panel: invoicePanel }
+    { id: "sales-invoices", label: "Invoice DRAFT", panel: invoicePanel },
+    { id: "sales-proformas", label: "Proforma", panel: proformaPanel }
   ]);
 
   root.append(heading, authority, status, tabs.element);
@@ -212,7 +234,8 @@ export function createSalesPage(
       load("/sales/quotes", quoteGrid),
       load("/sales/orders", orderGrid),
       load("/sales/dispatches", dispatchGrid),
-      load("/sales/invoices", invoiceGrid)
+      load("/sales/invoices", invoiceGrid),
+      load("/sales/proformas", proformaGrid)
     ]);
   }
 
@@ -354,6 +377,33 @@ export function createSalesPage(
         sourceVersion: null
       }]
     }, "Invoice DRAFT oluşturuldu. Posting authority bu tranche'ta yok.");
+  }
+
+  async function createProformaAsync(): Promise<void> {
+    const sourceMode = proformaSourceMode.select.value;
+    await mutate("/sales/proformas", "POST", {
+      number: proformaNumber.input.value.trim(),
+      sourceMode: sourceMode === "ORDER" ? 2 : 1,
+      sourceDocumentPublicId: proformaSourceDocument.input.value.trim()
+    }, "Proforma oluşturuldu. Informational authority; RES/STOCK/ACCOUNT/CASH-BANK/COGS etkisi yok.");
+  }
+
+  async function cancelProformaAsync(): Promise<void> {
+    if (!selectedProforma) return setStatus("Proforma seçin.");
+    await mutate("/sales/proformas/" + selectedProforma.publicId + "/cancel", "POST", {
+      version: number(proformaVersion.input.value),
+      reason: proformaCancelReason.input.value.trim()
+    }, "Proforma iptal edildi; hiçbir ledger etkisi oluşmadı.");
+  }
+
+  async function exportProformaAsync(): Promise<void> {
+    if (!selectedProforma) return setStatus("Proforma seçin.");
+    try {
+      await api.get("/sales/proformas/" + selectedProforma.publicId + "/export");
+      setStatus("Proforma export verisi hazırlandı.");
+    } catch (error) {
+      setStatus(message(error));
+    }
   }
 
   async function mutate(path: string, method: "POST" | "PUT", body: unknown, success: string): Promise<void> {
