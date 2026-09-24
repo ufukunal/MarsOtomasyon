@@ -360,7 +360,7 @@ internal static class SalesModelConfiguration
             .HasPrincipalKey(x=>new{x.Id,x.WarehouseId,x.CompanyId}).OnDelete(DeleteBehavior.Restrict)
             .HasConstraintName("fk_sales_dispatch_allocations_location_company");
         b.HasOne<InventoryLotRecord>().WithMany().HasForeignKey(x=>new{x.LotId,x.CompanyId})
-            .HasPrincipalKey(x=>new{x.Id,x.CompanyId]).OnDelete(DeleteBehavior.Restrict)
+            .HasPrincipalKey(x=>new{x.Id,x.CompanyId}).OnDelete(DeleteBehavior.Restrict)
             .HasConstraintName("fk_sales_dispatch_allocations_lot_company");
         b.HasOne<InventorySerialRecord>().WithMany().HasForeignKey(x=>new{x.SerialId,x.CompanyId})
             .HasPrincipalKey(x=>new{x.Id,x.CompanyId]).OnDelete(DeleteBehavior.Restrict)
