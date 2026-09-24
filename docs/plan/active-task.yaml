@@ -1,10 +1,9 @@
-id: PRODUCT-IMP-001
-title: Product Master Completion Tranche
-module: products
-status: implementation_in_progress
-progress: implementation_in_progress
-work_package_id: PRODUCT-IMP-001
-readiness_report: docs/plan/04-urun-stok/p5-product-master-completion-readiness.md
+id: P5
+title: Inventory broad implementation tranche definition
+module: inventory
+status: scope_definition_required
+progress: not_started
+work_package_id: not_assigned
 
 phase:
   id: P5
@@ -12,51 +11,47 @@ phase:
   status: implementation_in_progress
 
 predecessor:
-  id: PARTY-IMP-006
-  title: Party Master Completion Tranche
+  id: PRODUCT-IMP-001
+  title: Product Master Completion Tranche
   status: completed
-  canonical_report: docs/plan/03-cariler/party-imp-006-implementation.md
-  tested_commit: 55b7e78bc2eabcf986e8318f60296f0f3f9cd223
-  foundation_build_run: 35934312246
-  test_deploy_run: 35934312470
-  migration_count: 6
+  canonical_report: docs/plan/04-urun-stok/product-imp-001-implementation.md
+  readiness_report: docs/plan/04-urun-stok/p5-product-master-completion-readiness.md
+  implementation_commit: 817dfea81acbf1e93586b030412bd492f8a3ba20
+  migration_commit: 9b0731792a8641b632c612b7abb6f74799dd2aa4
+  tested_commit: ac92911a8f5fcda070622b084216a43a70ad7d77
+  foundation_build_run: 35981641268
+  foundation_build_job: 107574669148
+  test_deploy_run: 35981641137
+  test_deploy_job: 107574851341
+  frontend_tests: 19_passed
+  foundation_tests: 66_passed
+  migration_count: 7
+  remote_test_deployment: success
 
 owner_direction:
-  - broad coherent implementation tranches
-  - do not split Product, Variant, UOM, Barcode, Category and External Mapping into separate PRODUCT-IMP IDs merely for implementation convenience
-  - normal technical implementation choices are owned by active skills unless they introduce new business/legal/provider/cross-module semantics
+  - prefer broad coherent implementation tranches over one package per small capability
+  - do not return to micro-slice sequencing without a genuine dependency or business-rule boundary
 
-scope:
-  include:
-    - Product core create/list/detail/read/edit
-    - Product ACTIVE/INACTIVE lifecycle
-    - UOM master and initial Base UOM
-    - alternate Product/Variant UOM assignments and conversion lifecycle
-    - optional Variant create/edit/lifecycle
-    - Barcode Mapping create/read/lifecycle
-    - normalized Category hierarchy and Product assignments
-    - generic Product External Mapping read/manage/lifecycle
-    - permissions/API/Mars.Web/audit/idempotency/concurrency/targeted tests
-    - additive EF model/migration
-  exclude:
-    - Warehouse/Location/Inventory Ledger/Reservation/Lot/Serial physical authority
-    - stock/available quantity authority
-    - inventory valuation/current cost/COGS
-    - Base UOM replacement
-    - post-use STOCKABLE or tracking-strategy changes
-    - generic Variant attribute/EAV model
-    - provider/marketplace synchronization or GS1 verification
-    - Product numbering generator
-    - files/media/technical attributes
-    - export
-    - production deployment
-    - Full Test Day
+goal:
+  Define one broad Inventory implementation tranche from frozen PLAN-004 and PLAN-010 while preserving Warehouse operational ownership and Finance/Costing valuation ownership.
 
-implementation_decisions:
-  conversion_factor_storage: PostgreSQL numeric(28,9) / .NET decimal
-  product_external_mapping_authorization:
-    read: product.read
-    mutate: product.edit
+required_before_mutation:
+  - reread Inventory sections of docs/plan/04-urun-stok/
+  - reread relevant PLAN-010 Inventory ledger/reservation/lot-serial/constraint/access-pattern contracts
+  - inspect current Inventory source baseline
+  - distinguish Inventory authority from Product master and Warehouse operational workflows
+  - define one broad source-backed Inventory capability set and explicit exclusions
+  - map entity/constraint/migration/API/UI/permission/idempotency/concurrency/test impact
+  - assign an Inventory implementation package ID only after broad scope is explicit
+
+restrictions:
+  - do not split Inventory into micro-packages merely for implementation convenience
+  - do not introduce mutable stock-total authority outside Inventory Ledger/projections
+  - do not absorb Warehouse operational workflows without source-backed boundary analysis
+  - do not introduce Finance valuation/current-cost/COGS authority
+  - do not invent negative-stock exceptions, lot-serial bypasses or reservation semantics
+  - no production deployment
+  - no Full Test Day
 
 planning_progress:
   master_sequence:
@@ -69,4 +64,4 @@ planning_progress:
     percent: 100.0
 
 metric_note:
-  docs/db/acceptance-criteria.md independently records 10 / 30 = 33.3%; no silent normalization in PRODUCT-IMP-001.
+  docs/db/acceptance-criteria.md independently records 10 / 30 = 33.3%; normalize only as an explicit separate correction.
