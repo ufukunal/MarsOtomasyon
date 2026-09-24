@@ -97,6 +97,7 @@ builder.Services.AddScoped<IInventoryPhysicalAuthority>(
 builder.Services.AddScoped<IInventoryReservationAuthority>(
     services => services.GetRequiredService<InventoryAuthorityService>());
 builder.Services.AddScoped<IWarehouseAccessEvaluator, EfWarehouseAccessEvaluator>();
+builder.Services.AddScoped<IWarehouseAccessGrantAuthority, EfWarehouseAccessGrantAuthority>();
 builder.Services.AddScoped<EfSalesPersistence>();
 builder.Services.AddScoped<ISalesPersistence>(
     services => services.GetRequiredService<EfSalesPersistence>());
