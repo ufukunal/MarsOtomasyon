@@ -328,8 +328,9 @@ public sealed class EfPurchasingPersistence(
                    command.Lines.Any(x=>x.Sequence<=0||x.PurchaseOrderLinePublicId==Guid.Empty||x.Quantity<=0m))
                     return Validation<PurchasingMutationReceipt>("purchasing.receipt.invalid","Receipt identity, source and positive lines are required.");
 
-                var order=await dbContext.Set<PurchaseOrderRecord>().AsNoTracking()
-                    .SingleOrDefaultAsync(x=>x.CompanyId==context.CompanyId&&x.PublicId==command.PurchaseOrderPublicId,innerCt);
+                var order=await dbContext.Set<PurchaseOrderRecord>()
+                    .FromSqlInterpolated($@"SELECT * FROM purchasing.purchase_orders WHERE company_id={context.CompanyId} AND public_id={command.PurchaseOrderPublicId} FOR UPDATE")
+                    .SingleOrDefaultAsync(innerCt);
                 if(order is null)return NotFound<PurchasingMutationReceipt>("purchasing.order.not_found","Purchase Order was not found.");
                 if(order.State is not (PurchaseOrderState.Confirmed or PurchaseOrderState.PartiallyReceived))
                     return Business<PurchasingMutationReceipt>("purchasing.receipt.order_state","Receipt requires a confirmed Purchase Order.");
@@ -545,6 +546,17 @@ public sealed class EfPurchasingPersistence(
         if(receipt is null)return NotFound<GoodsReceiptReversePlan>("purchasing.receipt.not_found","Goods Receipt was not found.");
         if(receipt.State!=GoodsReceiptState.Posted)
             return Business<GoodsReceiptReversePlan>("purchasing.receipt.reverse.state","Only POSTED Goods Receipt can be reversed.");
+        var downstreamDraft=await (
+            from link in dbContext.Set<SupplierInvoiceSourceLinkRecord>().AsNoTracking()
+            join line in dbContext.Set<SupplierInvoiceLineRecord>().AsNoTracking() on link.SupplierInvoiceLineId equals line.Id
+            join invoice in dbContext.Set<SupplierInvoiceRecord>().AsNoTracking() on line.SupplierInvoiceId equals invoice.Id
+            where link.CompanyId==context.CompanyId&&line.CompanyId==context.CompanyId&&invoice.CompanyId==context.CompanyId&&
+                  link.SourceMode==SupplierInvoiceSourceMode.GoodsReceipt&&
+                  link.SourceDocumentPublicId==receipt.PublicId&&invoice.State==SupplierInvoiceState.Draft
+            select invoice.Id).AnyAsync(ct);
+        if(downstreamDraft)
+            return Business<GoodsReceiptReversePlan>("purchasing.receipt.reverse.downstream_invoice",
+                "Cancel or replace downstream Supplier Invoice DRAFT source links before reversing the Goods Receipt.");
 
         var lines=await dbContext.Set<GoodsReceiptLineRecord>().AsNoTracking()
             .Where(x=>x.CompanyId==context.CompanyId&&x.GoodsReceiptId==receipt.Id).OrderBy(x=>x.Sequence).ToArrayAsync(ct);
@@ -850,7 +862,11 @@ public sealed class EfPurchasingPersistence(
             : priceVariance==0m?PurchaseMatchState.Matched:PurchaseMatchState.Blocked;
         var match=new PurchaseMatchResultRecord{
             PublicId=Guid.NewGuid(),CompanyId=context.CompanyId,
-            Kind=command.SourceMode==SupplierInvoiceSourceMode.GoodsReceipt?PurchaseMatchKind.ThreeWay:PurchaseMatchKind.TwoWay,
+            Kind=command.SourceMode==SupplierInvoiceSourceMode.GoodsReceipt
+                ? PurchaseMatchKind.ThreeWay
+                : command.SourceMode==SupplierInvoiceSourceMode.PurchaseOrder
+                    ? PurchaseMatchKind.TwoWay
+                    : PurchaseMatchKind.Direct,
             State=matchState,SupplierInvoicePublicId=invoice.PublicId,PurchaseOrderPublicId=matchPoPublicId,
             GoodsReceiptPublicId=matchReceiptPublicId,QuantityVariance=0m,PriceVariance=priceVariance,
             BlockReason=matchState==PurchaseMatchState.Blocked?"Zero-tolerance price variance.":null,
