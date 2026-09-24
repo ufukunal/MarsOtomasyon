@@ -278,8 +278,23 @@ public sealed partial class EfSalesPersistence
 
     public Task<Result<SalesMutationReceipt>> SubmitOrderApprovalAsync(
         Guid id,long version,string key,IExecutionContext context,CancellationToken ct) =>
-        ChangeOrderState(id,version,key,context,SalesOrderState.Draft,SalesOrderState.PendingApproval,
-            "sales.order.submit_approval","SalesOrderApprovalSubmitted","PENDING_APPROVAL",ct);
+        MutateAsync("sales.order.submit_approval",key,"SalesOrderApprovalSubmitted","SalesOrder",
+            "sales.order.submit_approval.completed",context,
+            async innerCt =>
+            {
+                var order=await LockOrderAsync(id,context.CompanyId,innerCt);
+                if(order is null)return NotFound<SalesMutationReceipt>("sales.order.not_found","Sales Order was not found.");
+                if(order.Version!=version)return Conflict<SalesMutationReceipt>("sales.order.stale","Sales Order version is stale.",true);
+                if(order.State!=SalesOrderState.Draft)
+                    return Business<SalesMutationReceipt>("sales.order.state","Only DRAFT Sales Order can be submitted.");
+                if(order.ApprovalInheritedFromAcceptedQuote)
+                    return Business<SalesMutationReceipt>(
+                        "sales.order.approval.inherited",
+                        "Unchanged Sales Order converted from an accepted approved Quote inherits approval and must not enter duplicate approval.");
+                order.State=SalesOrderState.PendingApproval;order.Version++;
+                return Result<SalesMutationReceipt>.Success(
+                    new(order.PublicId,"PENDING_APPROVAL",order.Version,context.CorrelationId.Value));
+            },ct);
 
     public async Task<Result<SalesApprovalTarget>> GetOrderApprovalTargetAsync(
         Guid id,IExecutionContext context,CancellationToken ct)
@@ -411,6 +426,10 @@ public sealed partial class EfSalesPersistence
                     .SingleOrDefaultAsync(x=>x.CompanyId==context.CompanyId&&x.PublicId==id,innerCt);
                 if(a is null)return NotFound<SalesMutationReceipt>("sales.order.amendment.not_found","Amendment was not found.");
                 if(a.State!=SalesOrderAmendmentState.Draft)return Business<SalesMutationReceipt>("sales.order.amendment.state","Only DRAFT amendment can be submitted.");
+                if(!a.RequiresApproval)
+                    return Business<SalesMutationReceipt>(
+                        "sales.order.amendment.approval.not_required",
+                        "This amendment does not require approval and can be activated directly.");
                 a.State=SalesOrderAmendmentState.PendingApproval;
                 return Result<SalesMutationReceipt>.Success(new(a.PublicId,"PENDING_APPROVAL",1,context.CorrelationId.Value));
             },ct);
