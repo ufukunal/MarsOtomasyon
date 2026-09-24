@@ -231,6 +231,7 @@ public sealed record SalesAmendmentActivationPlan(
 
 public sealed record SalesDispatchPostLinePlan(
     Guid DispatchLinePublicId,
+    Guid PhysicalSourcePublicId,
     Guid SalesOrderLinePublicId,
     Guid ProductPublicId,
     Guid? VariantPublicId,
@@ -611,7 +612,7 @@ public sealed class SalesCommandHandler(
                     new InventoryMovementCommand(
                         line.ProductPublicId,line.VariantPublicId,line.UomPublicId,line.Quantity,
                         line.ConversionFactorSnapshot,line.SourcePosition,null,
-                        InventorySourceIdentity.Create("Sales","Dispatch",plan.Value.DispatchPublicId,line.DispatchLinePublicId),
+                        InventorySourceIdentity.Create("Sales","Dispatch",plan.Value.DispatchPublicId,line.PhysicalSourcePublicId),
                         null,DerivedKey(key,$"stock-{++index}")),
                     context,innerCt);
                 if(movement.IsFailure) return Result<SalesMutationReceipt>.Failure(movement.Error!);
