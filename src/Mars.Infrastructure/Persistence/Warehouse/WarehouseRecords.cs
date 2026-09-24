@@ -114,11 +114,18 @@ internal sealed class StageLoadWorkRecord
     public Guid DispatchPublicId { get; set; }
     public long WarehouseId { get; set; }
     public StageLoadKind Kind { get; set; }
-    public string PackagePublicIdsSnapshot { get; set; } = string.Empty;
     public WarehouseWorkState State { get; set; }
     public long Version { get; set; }
     public Guid CreatorActorId { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
+}
+
+internal sealed class StageLoadPackageRecord
+{
+    public long Id { get; set; }
+    public long StageLoadWorkId { get; set; }
+    public Guid CompanyId { get; set; }
+    public long PackageId { get; set; }
 }
 
 internal sealed class WarehouseTransferRecord
