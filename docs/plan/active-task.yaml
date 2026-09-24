@@ -1,9 +1,10 @@
-id: P5
-title: Inventory broad implementation tranche definition
+id: INVENTORY-IMP-001
+title: Inventory Authority & Traceability Tranche
 module: inventory
-status: scope_definition_required
+status: ready_for_implementation
 progress: not_started
-work_package_id: not_assigned
+work_package_id: INVENTORY-IMP-001
+readiness_report: docs/plan/04-urun-stok/p5-inventory-authority-traceability-readiness.md
 
 phase:
   id: P5
@@ -29,29 +30,51 @@ predecessor:
   remote_test_deployment: success
 
 owner_direction:
-  - prefer broad coherent implementation tranches over one package per small capability
-  - do not return to micro-slice sequencing without a genuine dependency or business-rule boundary
+  - broad coherent implementation tranches
+  - do not split Inventory authority capabilities into separate INVENTORY-IMP IDs merely for implementation convenience
+  - normal technical implementation choices are owned by active skills unless they introduce new business/legal/provider/cross-module semantics
 
-goal:
-  Define one broad Inventory implementation tranche from frozen PLAN-004 and PLAN-010 while preserving Warehouse operational ownership and Finance/Costing valuation ownership.
+scope:
+  include:
+    - Warehouse master and lifecycle without mutable stock totals
+    - Location hierarchy/master/lifecycle with stock-bearing semantics
+    - controlled physical dispositions AVAILABLE/QUARANTINE/QUALITY_HOLD/REWORK/DAMAGED/TRANSIT
+    - Lot identity and metadata with ledger-derived quantity
+    - Serial identity and ledger-derived single physical position
+    - append-oriented authoritative Inventory Ledger
+    - Inventory-owned non-physical Reservation authority and history
+    - Product/Variant/UOM/tracking enforcement and movement snapshots
+    - stock/availability/movement/reservation/lot/serial read surfaces
+    - permissions/API/Mars.Web/audit/idempotency/concurrency/targeted tests
+    - additive EF model/migration and TEST deployment
+  exclude:
+    - Sales Order/Dispatch workflow
+    - Purchase Order/Goods Receipt workflow
+    - Returns workflow
+    - receiving/put-away/pick/pack/stage/load operational work
+    - Warehouse Transfer workflow/state machine
+    - Stock Count workflow/session/approval
+    - replenishment/damage/scrap operational workflows
+    - offline/mobile Warehouse work execution
+    - arbitrary public physical movement posting
+    - free-form Reservation mutation disconnected from Sales Order line/version
+    - arbitrary user-created physical dispositions
+    - inventory valuation/current cost/moving average/cost layers/COGS
+    - Product Base UOM replacement or post-use STOCKABLE/tracking transitions
+    - transaction UOM fraction/scale business policy
+    - production deployment
+    - Full Test Day
 
-required_before_mutation:
-  - reread Inventory sections of docs/plan/04-urun-stok/
-  - reread relevant PLAN-010 Inventory ledger/reservation/lot-serial/constraint/access-pattern contracts
-  - inspect current Inventory source baseline
-  - distinguish Inventory authority from Product master and Warehouse operational workflows
-  - define one broad source-backed Inventory capability set and explicit exclusions
-  - map entity/constraint/migration/API/UI/permission/idempotency/concurrency/test impact
-  - assign an Inventory implementation package ID only after broad scope is explicit
-
-restrictions:
-  - do not split Inventory into micro-packages merely for implementation convenience
-  - do not introduce mutable stock-total authority outside Inventory Ledger/projections
-  - do not absorb Warehouse operational workflows without source-backed boundary analysis
-  - do not introduce Finance valuation/current-cost/COGS authority
-  - do not invent negative-stock exceptions, lot-serial bypasses or reservation semantics
-  - no production deployment
-  - no Full Test Day
+implementation_decisions:
+  schema: inventory
+  warehouse_permissions: later frozen PLAN-006 warehouse.* namespace
+  stock_read_permission: inventory.stock.read
+  inventory_trace_permission: inventory.trace.read
+  physical_posting_surface: internal Inventory contract only until an owning source workflow exists
+  reservation_mutation_surface: internal Inventory contract; externally initiated by later Sales workflow
+  stock_authority: posted Inventory Ledger only
+  reservation_authority: append-oriented Inventory Reservation history
+  valuation_authority: Finance/Costing only
 
 planning_progress:
   master_sequence:
@@ -64,4 +87,4 @@ planning_progress:
     percent: 100.0
 
 metric_note:
-  docs/db/acceptance-criteria.md independently records 10 / 30 = 33.3%; normalize only as an explicit separate correction.
+  docs/db/acceptance-criteria.md independently records 10 / 30 = 33.3%; no silent normalization in INVENTORY-IMP-001.
