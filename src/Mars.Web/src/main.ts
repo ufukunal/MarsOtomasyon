@@ -5,6 +5,7 @@ import { createFoundationProofPage } from "./foundation-proof";
 import { createPartyCreatePage } from "./party-create";
 import { createPartyMasterPage } from "./party-master";
 import { createProductMasterPage } from "./product-master";
+import { createInventoryPage } from "./inventory";
 import {
   createButton,
   createField,
@@ -41,6 +42,11 @@ const router = new MarsRouter(shell.outlet, [
     path: "/products",
     title: "Ürün / Product Master",
     render: () => createProductMasterPage(api)
+  },
+  {
+    path: "/inventory",
+    title: "Inventory",
+    render: () => createInventoryPage(api)
   },
   {
     path: "/proof",
