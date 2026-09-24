@@ -298,9 +298,26 @@ public sealed partial class EfSalesPersistence
                 reversal.State=DispatchState.Reversed;reversal.PostedAt=now;reversal.Version++;
 
                 var order=await LockOrderByIdAsync(original.SalesOrderId,context.CompanyId,innerCt);
-                if(order is not null&&order.State==SalesOrderState.Completed)
+                if(order is not null&&order.State is (SalesOrderState.Completed or SalesOrderState.PartiallyCompleted))
                 {
-                    order.State=SalesOrderState.PartiallyCompleted;order.ClosedAt=null;order.Version++;
+                    var effective=await CurrentOrderVersionAsync(order,innerCt);
+                    var sourceLines=await dbContext.Set<SalesOrderLineRecord>().AsNoTracking()
+                        .Where(x=>x.CompanyId==context.CompanyId&&x.SalesOrderVersionId==effective.Id)
+                        .ToArrayAsync(innerCt);
+                    var net=await GetNetDispatchedByOrderLineAsync(
+                        context.CompanyId,order.Id,sourceLines.Select(x=>x.LinePublicId).ToArray(),innerCt);
+                    foreach(var line in lines)
+                        net[line.SalesOrderLinePublicId]=net.GetValueOrDefault(line.SalesOrderLinePublicId)-line.Quantity;
+
+                    var anyShipped=sourceLines.Any(x=>net.GetValueOrDefault(x.LinePublicId)>0m);
+                    var allShipped=sourceLines.All(x=>net.GetValueOrDefault(x.LinePublicId)>=x.Quantity);
+                    order.State=allShipped
+                        ? SalesOrderState.Completed
+                        : anyShipped
+                            ? SalesOrderState.PartiallyCompleted
+                            : SalesOrderState.Confirmed;
+                    order.ClosedAt=order.State==SalesOrderState.Completed?DateTimeOffset.UtcNow:null;
+                    order.Version++;
                 }
                 return Result<SalesMutationReceipt>.Success(new(reversal.PublicId,"REVERSED",reversal.Version,context.CorrelationId.Value));
             },ct);
