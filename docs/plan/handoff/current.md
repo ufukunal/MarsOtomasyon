@@ -141,19 +141,40 @@ P5 — Core application implementation
 Status: IMPLEMENTATION IN PROGRESS
 
 ## Current task
-Define one broad Products implementation tranche from frozen PLAN-004 + PLAN-010.
+PRODUCT-IMP-001 — Product Master Completion Tranche.
 
-Work-package ID:
-- NOT ASSIGNED.
+Status:
+- READY FOR IMPLEMENTATION.
+
+Canonical readiness:
+- `docs/plan/04-urun-stok/p5-product-master-completion-readiness.md`
 
 Owner direction:
-- broad coherent packages; do not return to one-package-per-small-capability sequencing.
+- broad coherent Product package;
+- do not split Product/Variant/UOM/Barcode/Category/External Mapping into micro-packages.
 
-Before mutation:
-- inspect current Product source;
-- freeze broad Product master scope and exclusions;
-- preserve Product vs Inventory/Warehouse/Finance authority;
-- assign the Product implementation package ID only after exact broad scope is explicit.
+Included:
+- Product core create/list/detail/edit/lifecycle;
+- UOM + initial Base UOM + alternate Product/Variant UOM;
+- Variant lifecycle;
+- Barcode lifecycle;
+- normalized Category hierarchy/assignments;
+- generic Product External Mapping;
+- protected API/Mars.Web/persistence/migration/audit/idempotency/concurrency/targeted tests.
+
+Deferred:
+- Warehouse/Location/Inventory Ledger/Reservation/Lot/Serial;
+- stock/value/cost authority;
+- Base UOM replacement;
+- post-use STOCKABLE/tracking changes;
+- Variant EAV attributes;
+- provider-specific sync/GS1 verification;
+- production deployment;
+- Full Test Day.
+
+Implementation decision:
+- conversion factor physical storage numeric(28,9);
+- Product External Mapping read uses product.read and mutation uses product.edit; no new permission namespace invented.
 
 ## Planning progress
 - Active state metric: Master 9 / 30 = 30.0%
