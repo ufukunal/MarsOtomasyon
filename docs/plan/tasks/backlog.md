@@ -1,15 +1,18 @@
 # Planning Backlog
 
-## Next dependency after active SALES-IMP-001 — Purchasing broad implementation tranche definition
-Status: BLOCKED BY ACTIVE SALES IMPLEMENTATION.
+## Current P5 implementation
 
-Dependency:
-- SALES-IMP-001 must be implemented and runtime-verified before Purchasing becomes current in the P5 dependency order.
+PURCHASING-IMP-001 — Purchasing Commercial Receipt & Supplier Invoice Authority Tranche
 
-Direction when unblocked:
-- reconcile frozen PLAN-005 + PLAN-010 against implemented Product/Inventory/Sales contracts
-- define one broad coherent Purchasing implementation tranche
-- do not assign the Purchasing implementation package ID before repository reconciliation and scope freeze
+Status: READY FOR IMPLEMENTATION.
+
+Readiness:
+- docs/plan/07-satinalma/p5-purchasing-authority-readiness.md
+
+Predecessor SALES-IMP-001 is completed and runtime-verified.
+
+Next dependency after Purchasing:
+- Warehouse broad implementation tranche, only after Purchasing runtime closure.
 
 ## Portfolio planning
 
