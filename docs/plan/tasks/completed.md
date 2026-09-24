@@ -1060,3 +1060,50 @@ Deferred:
 - broad authenticated Product E2E and heavy concurrency/security coverage
 
 Planning metrics unchanged by implementation closure.
+
+
+## INVENTORY-IMP-001 — Inventory Authority & Traceability Tranche
+**Status:** COMPLETED
+
+Implemented:
+- Warehouse / Location master and lifecycle;
+- fixed physical Inventory dispositions;
+- Lot / Serial trace identity;
+- append-oriented Inventory Ledger physical quantity authority;
+- append-oriented non-physical Reservation authority;
+- stock / position / movement / reservation / trace read surfaces;
+- protected Inventory API and Mars.Web /inventory;
+- audit, durable idempotency and concurrency controls;
+- additive Inventory EF migration.
+
+Evidence:
+- readiness: docs/plan/04-urun-stok/p5-inventory-authority-traceability-readiness.md
+- canonical implementation: docs/plan/04-urun-stok/inventory-imp-001-implementation.md
+- migration commit: f4dc4cdf60bff8b5845347b6c50fbac5d64e3206
+- tested commit: edcc24f1200b70aad102fc510ad7bec60c4515e7
+- Foundation Build 35998315605 — SUCCESS
+- Foundation Test Deploy 35998315582 — SUCCESS
+- frontend 20 / 20 PASS
+- Foundation targeted 74 PASS
+- Release build 0 warnings / 0 errors
+- migration safety count 8
+- EF pending-model PASS
+- TEST migration count 8
+- /inventory 200
+- /products 200
+- /parties 200
+- live/ready 200 / 200
+- protected Inventory routes 401 unauthenticated
+- OpenAPI 200
+- runner-to-TEST smoke PASS
+
+No authenticated TEST Inventory mutation is claimed.
+
+Deferred:
+- Warehouse operational workflows;
+- Sales/Purchasing/Returns source-document workflows;
+- Finance valuation/current-cost/COGS;
+- Product Base UOM and post-use STOCKABLE/tracking transitions;
+- Full Test Day heavy concurrency/security/performance/browser coverage.
+
+Planning metrics unchanged by implementation closure.
