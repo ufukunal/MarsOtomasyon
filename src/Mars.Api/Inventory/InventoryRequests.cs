@@ -35,3 +35,5 @@ public sealed record CreateInventorySerialRequest(
     Guid? VariantPublicId,
     Guid? LotPublicId,
     string Value);
+
+public sealed record WarehouseAccessGrantRequest(Guid ActorId);
