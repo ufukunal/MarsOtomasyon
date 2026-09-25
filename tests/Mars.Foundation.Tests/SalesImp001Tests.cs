@@ -14,7 +14,7 @@ internal static class SalesImp001Tests
     [
         ("SALES-IMP-001 calculation uses frozen discount/tax/rounding order", CalculationUsesFrozenOrder),
         ("SALES-IMP-001 document discount residual is deterministic", DocumentDiscountResidualIsDeterministic),
-        ("SALES-IMP-001 tranche does not expose deferred Invoice or Warehouse work permissions", DeferredPermissionsAreAbsent),
+        ("FINANCE-IMP-001 exposes Sales Invoice financial posting while Warehouse work permissions remain outside Sales", FinanceInvoicePermissionsArePresent),
         ("Foundation approval primitive enforces creator approver SoD", ApprovalPrimitiveEnforcesSod),
         ("SALES-IMP-001 model contains approval and Warehouse access scope primitives", ModelContainsSupportingPrimitives),
         ("SALES-IMP-001 model contains normalized Sales authority tables", ModelContainsSalesAuthorityTables),
@@ -78,10 +78,10 @@ internal static class SalesImp001Tests
         AssertEqual(0.01m, tie.Lines.Single(x => x.Sequence == 2).DocumentDiscount);
     }
 
-    private static void DeferredPermissionsAreAbsent()
+    private static void FinanceInvoicePermissionsArePresent()
     {
-        AssertTrue(!SalesPermissions.All.Contains("sales.invoice.post", StringComparer.Ordinal));
-        AssertTrue(!SalesPermissions.All.Contains("sales.invoice.reverse", StringComparer.Ordinal));
+        AssertTrue(SalesPermissions.All.Contains(SalesPermissions.InvoicePost, StringComparer.Ordinal));
+        AssertTrue(SalesPermissions.All.Contains(SalesPermissions.InvoiceReverse, StringComparer.Ordinal));
         AssertTrue(!SalesPermissions.All.Contains("sales.dispatch.pick", StringComparer.Ordinal));
         AssertTrue(!SalesPermissions.All.Contains("sales.dispatch.pack", StringComparer.Ordinal));
     }
