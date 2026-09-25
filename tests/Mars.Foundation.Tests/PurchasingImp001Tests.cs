@@ -9,7 +9,7 @@ internal static class PurchasingImp001Tests
     public static IReadOnlyList<(string Name, Action Test)> Cases { get; } =
     [
         ("PURCHASING-IMP-001 calculation uses frozen discount tax rounding order", CalculationUsesFrozenOrder),
-        ("PURCHASING-IMP-001 permissions exclude Supplier Invoice posting authority", PermissionsExcludeInvoicePosting),
+        ("FINANCE-IMP-001 exposes Supplier Invoice financial posting authority", PermissionsExposeInvoicePosting),
         ("PURCHASING-IMP-001 model contains normalized authority tables", ModelContainsAuthorityTables),
         ("PURCHASING-IMP-001 persistence implements broad authority contract", PersistenceImplementsContract)
     ];
@@ -30,12 +30,12 @@ internal static class PurchasingImp001Tests
         AssertEqual(243.9m, calc.GrossTotal);
     }
 
-    private static void PermissionsExcludeInvoicePosting()
+    private static void PermissionsExposeInvoicePosting()
     {
         AssertTrue(PurchasingPermissions.All.Contains(PurchasingPermissions.InvoiceCreate));
         AssertTrue(PurchasingPermissions.All.Contains(PurchasingPermissions.InvoiceDirectCreate));
-        AssertTrue(!PurchasingPermissions.All.Contains("purchasing.invoice.post"));
-        AssertTrue(!PurchasingPermissions.All.Contains("purchasing.invoice.reverse"));
+        AssertTrue(PurchasingPermissions.All.Contains(PurchasingPermissions.InvoicePost));
+        AssertTrue(PurchasingPermissions.All.Contains(PurchasingPermissions.InvoiceReverse));
     }
 
     private static void ModelContainsAuthorityTables()

@@ -658,6 +658,58 @@ public sealed class EfFinancePersistence(
             return Success(reversal.PublicId,"POSTED",1,c);
         },ct);
 
+    public Task<Result<FinanceMutationReceipt>> PostSupplierInvoiceAsync(
+        FinanceSupplierInvoicePostCommand command,IExecutionContext c,CancellationToken ct) =>
+        Mutate("finance.supplier_invoice.post",command.OperationKey,"SupplierInvoicePosted","SupplierInvoice",c,async innerCt=>{
+            if(command.SupplierInvoicePublicId==Guid.Empty||command.SupplierPartyPublicId==Guid.Empty||
+               command.GrossAmount<0m||command.DueDate<command.DocumentDate||!ValidTry(command.CurrencyCode))
+                return Validation("finance.supplier_invoice.invalid","Supplier Invoice Finance posting snapshot is invalid.");
+
+            var gate=await GatePeriod(c.CompanyId,command.PostingDate,innerCt);
+            if(gate is not null)return Result<FinanceMutationReceipt>.Failure(gate);
+            if(await SourceTransactionExists(c.CompanyId,FinanceTransactionKind.SupplierInvoice,command.SupplierInvoicePublicId,innerCt))
+                return Conflict("finance.supplier_invoice.duplicate","Supplier Invoice financial effects are already posted.");
+
+            var supplier=await ResolveParty(c.CompanyId,command.SupplierPartyPublicId,PartyRoleType.Supplier,innerCt);
+            if(supplier is null)return Business("finance.supplier.not_eligible","Supplier must be ACTIVE with an ACTIVE SUPPLIER role.");
+
+            var amount=FinanceAmount.RoundTry(command.GrossAmount);
+            var tx=NewTransaction(c,FinanceTransactionKind.SupplierInvoice,amount,command.DocumentDate,command.PostingDate,
+                supplier.Id,FinancePartyRole.Supplier,"Purchasing","SupplierInvoice",command.SupplierInvoicePublicId,null);
+            dbContext.Add(tx);
+            await dbContext.SaveChangesAsync(innerCt);
+            if(amount>0m)
+                AddAccountEntry(tx.Id,c.CompanyId,supplier.Id,FinancePartyRole.Supplier,FinanceLedgerDirection.Credit,
+                    amount,command.DueDate,DateTimeOffset.UtcNow);
+            return Success(tx.PublicId,"POSTED",1,c);
+        },ct);
+
+    public Task<Result<FinanceMutationReceipt>> ReverseSupplierInvoiceAsync(
+        Guid supplierInvoicePublicId,DateOnly postingDate,string operationKey,IExecutionContext c,CancellationToken ct) =>
+        Mutate("finance.supplier_invoice.reverse",operationKey,"SupplierInvoiceReversed","SupplierInvoice",c,async innerCt=>{
+            var gate=await GatePeriod(c.CompanyId,postingDate,innerCt);
+            if(gate is not null)return Result<FinanceMutationReceipt>.Failure(gate);
+            var original=await dbContext.Set<FinanceTransactionRecord>()
+                .FromSqlInterpolated($@"SELECT * FROM finance.transactions WHERE company_id={c.CompanyId} AND kind='SupplierInvoice' AND source_document_public_id={supplierInvoicePublicId} FOR UPDATE")
+                .SingleOrDefaultAsync(innerCt);
+            if(original is null)return NotFound("finance.supplier_invoice.not_posted","Supplier Invoice financial posting was not found.");
+            if(original.State!=FinanceTransactionState.Posted)return Business("finance.supplier_invoice.reverse_state","Supplier Invoice financial posting is not POSTED.");
+
+            var reversal=NewTransaction(c,FinanceTransactionKind.Reversal,original.Amount,postingDate,postingDate,
+                original.PartyId,original.PartyRole,"Purchasing","SupplierInvoiceReversal",supplierInvoicePublicId,null);
+            reversal.ReversalOfTransactionId=original.Id;
+            dbContext.Add(reversal);
+            await dbContext.SaveChangesAsync(innerCt);
+            foreach(var e in await dbContext.Set<AccountLedgerEntryRecord>().AsNoTracking()
+                        .Where(x=>x.CompanyId==c.CompanyId&&x.TransactionId==original.Id).ToArrayAsync(innerCt))
+                AddAccountEntry(reversal.Id,c.CompanyId,e.PartyId,e.PartyRole,Opposite(e.Direction),e.Amount,e.DueDate,DateTimeOffset.UtcNow);
+
+            original.State=FinanceTransactionState.Reversed;
+            original.ReversedAt=DateTimeOffset.UtcNow;
+            original.Version++;
+            return Success(reversal.PublicId,"POSTED",1,c);
+        },ct);
+
     public Task<Result<FinanceMutationReceipt>> PostCountAdjustmentAsync(FinanceCountValuationCommand command,IExecutionContext c,CancellationToken ct) =>
         Mutate("finance.valuation.count.post",command.OperationKey,"StockCountValued","StockCount",c,async innerCt=>{
             if(command.CountPublicId==Guid.Empty||command.Lines.Count==0||command.Lines.Any(x=>x.BaseQuantityEffect==0m))

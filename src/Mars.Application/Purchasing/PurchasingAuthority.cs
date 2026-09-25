@@ -162,6 +162,15 @@ public sealed record CreateSupplierInvoiceDraftCommand(
     string? DirectReason,
     string OperationKey);
 
+public sealed record SupplierInvoicePostPlan(
+    Guid SupplierInvoicePublicId,
+    Guid SupplierPartyPublicId,
+    string CurrencyCode,
+    DateOnly DocumentDate,
+    DateOnly DueDate,
+    decimal GrossTotal,
+    long Version);
+
 public sealed record PurchaseMatchApprovalTarget(
     Guid MatchPublicId,
     Guid InvoicePublicId,
@@ -252,6 +261,14 @@ public interface IPurchasingPersistence
         Guid invoicePublicId, long expectedVersion, CreateSupplierInvoiceDraftCommand command, IExecutionContext context, CancellationToken ct);
     Task<Result<PurchasingMutationReceipt>> CancelInvoiceDraftAsync(
         Guid invoicePublicId, long expectedVersion, string reason, string operationKey, IExecutionContext context, CancellationToken ct);
+    Task<Result<SupplierInvoicePostPlan>> PrepareInvoicePostAsync(
+        Guid invoicePublicId, long expectedVersion, IExecutionContext context, CancellationToken ct);
+    Task<Result<PurchasingMutationReceipt>> CompleteInvoicePostAsync(
+        Guid invoicePublicId, string operationKey, IExecutionContext context, CancellationToken ct);
+    Task<Result<SupplierInvoicePostPlan>> PrepareInvoiceReverseAsync(
+        Guid invoicePublicId, long expectedVersion, IExecutionContext context, CancellationToken ct);
+    Task<Result<PurchasingMutationReceipt>> CompleteInvoiceReverseAsync(
+        Guid invoicePublicId, string operationKey, IExecutionContext context, CancellationToken ct);
     Task<Result<PurchaseMatchApprovalTarget>> GetMatchApprovalTargetAsync(
         Guid matchPublicId, IExecutionContext context, CancellationToken ct);
     Task<Result<PurchasingMutationReceipt>> CompleteMatchDecisionAsync(
@@ -591,6 +608,41 @@ public sealed class PurchasingCommandHandler(
         Guid id,long version,string reason,string key,IExecutionContext context,CancellationToken ct) =>
         WithPermission(PurchasingPermissions.InvoiceEditDraft,
             () => persistence.CancelInvoiceDraftAsync(id,version,reason,key,context,ct),context,ct);
+
+    public async Task<Result<PurchasingMutationReceipt>> PostInvoiceAsync(
+        Guid id,long version,string key,IExecutionContext context,CancellationToken ct)
+    {
+        if(!await Granted(PurchasingPermissions.InvoicePost,context,ct))
+            return Denied<PurchasingMutationReceipt>();
+        return await transactions.ExecuteAsync(async innerCt=>{
+            var plan=await persistence.PrepareInvoicePostAsync(id,version,context,innerCt);
+            if(plan.IsFailure)return Result<PurchasingMutationReceipt>.Failure(plan.Error!);
+            var financeResult=await finance.PostSupplierInvoiceAsync(
+                new FinanceSupplierInvoicePostCommand(
+                    plan.Value!.SupplierInvoicePublicId,plan.Value.SupplierPartyPublicId,plan.Value.CurrencyCode,
+                    plan.Value.GrossTotal,plan.Value.DocumentDate,plan.Value.DueDate,
+                    DateOnly.FromDateTime(DateTime.UtcNow),key+":finance"),
+                context,innerCt);
+            if(financeResult.IsFailure)return Result<PurchasingMutationReceipt>.Failure(financeResult.Error!);
+            return await persistence.CompleteInvoicePostAsync(id,key,context,innerCt);
+        },ct);
+    }
+
+    public async Task<Result<PurchasingMutationReceipt>> ReverseInvoiceAsync(
+        Guid id,long version,string key,IExecutionContext context,CancellationToken ct)
+    {
+        if(!await Granted(PurchasingPermissions.InvoiceReverse,context,ct))
+            return Denied<PurchasingMutationReceipt>();
+        return await transactions.ExecuteAsync(async innerCt=>{
+            var plan=await persistence.PrepareInvoiceReverseAsync(id,version,context,innerCt);
+            if(plan.IsFailure)return Result<PurchasingMutationReceipt>.Failure(plan.Error!);
+            var financeResult=await finance.ReverseSupplierInvoiceAsync(
+                plan.Value!.SupplierInvoicePublicId,DateOnly.FromDateTime(DateTime.UtcNow),
+                key+":finance",context,innerCt);
+            if(financeResult.IsFailure)return Result<PurchasingMutationReceipt>.Failure(financeResult.Error!);
+            return await persistence.CompleteInvoiceReverseAsync(id,key,context,innerCt);
+        },ct);
+    }
 
     public async Task<Result<ApprovalDecisionReceipt>> ApproveMatchExceptionAsync(
         Guid matchPublicId,

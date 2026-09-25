@@ -22,6 +22,8 @@ public static class PurchasingPermissions
     public const string InvoiceCreate = "purchasing.invoice.create";
     public const string InvoiceEditDraft = "purchasing.invoice.edit_draft";
     public const string InvoiceDirectCreate = "purchasing.invoice.direct_create";
+    public const string InvoicePost = "purchasing.invoice.post";
+    public const string InvoiceReverse = "purchasing.invoice.reverse";
     public const string ReturnRead = "purchasing.return.read";
     public const string Export = "purchasing.export";
 
@@ -31,7 +33,7 @@ public static class PurchasingPermissions
         OrderConfirm, OrderAmend, OrderCancelRemaining, OrderClose,
         ReceiptRead, ReceiptCreate, ReceiptEditDraft, ReceiptPost, ReceiptReverse,
         MatchRead, MatchApproveException,
-        InvoiceRead, InvoiceCreate, InvoiceEditDraft, InvoiceDirectCreate,
+        InvoiceRead, InvoiceCreate, InvoiceEditDraft, InvoiceDirectCreate, InvoicePost, InvoiceReverse,
         ReturnRead, Export
     ];
 }

@@ -249,6 +249,16 @@ public sealed record FinanceSalesInvoicePostCommand(
     IReadOnlyList<FinanceSalesInvoiceCogsLine> DispatchLines,
     string OperationKey);
 
+public sealed record FinanceSupplierInvoicePostCommand(
+    Guid SupplierInvoicePublicId,
+    Guid SupplierPartyPublicId,
+    string CurrencyCode,
+    decimal GrossAmount,
+    DateOnly DocumentDate,
+    DateOnly DueDate,
+    DateOnly PostingDate,
+    string OperationKey);
+
 public sealed record FinanceCountValuationLine(
     Guid CountLinePublicId,
     Guid InventoryMovementPublicId,
@@ -312,6 +322,10 @@ public interface IFinanceValuationAuthority
         FinanceSalesInvoicePostCommand command, IExecutionContext context, CancellationToken ct);
     Task<Result<FinanceMutationReceipt>> ReverseSalesInvoiceAsync(
         Guid salesInvoicePublicId, DateOnly postingDate, string operationKey, IExecutionContext context, CancellationToken ct);
+    Task<Result<FinanceMutationReceipt>> PostSupplierInvoiceAsync(
+        FinanceSupplierInvoicePostCommand command, IExecutionContext context, CancellationToken ct);
+    Task<Result<FinanceMutationReceipt>> ReverseSupplierInvoiceAsync(
+        Guid supplierInvoicePublicId, DateOnly postingDate, string operationKey, IExecutionContext context, CancellationToken ct);
     Task<Result<FinanceMutationReceipt>> PostCountAdjustmentAsync(
         FinanceCountValuationCommand command, IExecutionContext context, CancellationToken ct);
     Task<Result<FinanceMutationReceipt>> ReverseCountAdjustmentAsync(

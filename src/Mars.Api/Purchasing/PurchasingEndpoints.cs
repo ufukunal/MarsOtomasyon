@@ -100,6 +100,14 @@ public static class PurchasingEndpoints
             Map(await h.CancelInvoiceDraftAsync(id,r.Version,r.Reason,Key(http),c,ct),c))
             .WithName("CancelSupplierInvoiceDraft");
 
+        purchasing.MapPost("/invoices/{id:guid}/post",async(Guid id,PurchasingVersionRequest r,HttpRequest http,IExecutionContext c,PurchasingCommandHandler h,CancellationToken ct)=>
+            Map(await h.PostInvoiceAsync(id,r.Version,Key(http),c,ct),c))
+            .WithName("PostSupplierInvoice");
+
+        purchasing.MapPost("/invoices/{id:guid}/reverse",async(Guid id,PurchasingVersionRequest r,HttpRequest http,IExecutionContext c,PurchasingCommandHandler h,CancellationToken ct)=>
+            Map(await h.ReverseInvoiceAsync(id,r.Version,Key(http),c,ct),c))
+            .WithName("ReverseSupplierInvoice");
+
         purchasing.MapGet("/matches",async(IExecutionContext c,PurchasingQueryHandler h,CancellationToken ct)=>
             Map(await h.ListMatchesAsync(c,ct),c))
             .WithName("ListPurchaseMatches");

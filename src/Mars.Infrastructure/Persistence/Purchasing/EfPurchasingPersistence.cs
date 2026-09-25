@@ -718,6 +718,194 @@ public sealed class EfPurchasingPersistence(
                 return Result<PurchasingMutationReceipt>.Success(new(invoice.PublicId,"CANCELLED",invoice.Version,context.CorrelationId.Value));
             },ct);
 
+    public async Task<Result<SupplierInvoicePostPlan>> PrepareInvoicePostAsync(
+        Guid invoicePublicId,long expectedVersion,IExecutionContext context,CancellationToken ct)
+    {
+        var invoice=await dbContext.Set<SupplierInvoiceRecord>()
+            .FromSqlInterpolated($@"SELECT * FROM purchasing.supplier_invoices WHERE company_id={context.CompanyId} AND public_id={invoicePublicId} FOR UPDATE")
+            .SingleOrDefaultAsync(ct);
+        if(invoice is null)return NotFound<SupplierInvoicePostPlan>("purchasing.invoice.not_found","Supplier Invoice was not found.");
+        if(invoice.Version!=expectedVersion)return Conflict<SupplierInvoicePostPlan>("purchasing.invoice.stale","Supplier Invoice version is stale.",true);
+        if(invoice.State!=SupplierInvoiceState.Draft)
+            return Business<SupplierInvoicePostPlan>("purchasing.invoice.state","Only DRAFT Supplier Invoice can be POSTED.");
+        if(!string.Equals(invoice.CurrencyCode,"TRY",StringComparison.Ordinal))
+            return Business<SupplierInvoicePostPlan>("purchasing.invoice.currency_policy","Authoritative Supplier Invoice POST is TRY-only.");
+
+        var match=await dbContext.Set<PurchaseMatchResultRecord>().AsNoTracking()
+            .Where(x=>x.CompanyId==context.CompanyId&&x.SupplierInvoicePublicId==invoice.PublicId)
+            .OrderByDescending(x=>x.Id).FirstOrDefaultAsync(ct);
+        if(match is null)return Business<SupplierInvoicePostPlan>("purchasing.invoice.match_required","Supplier Invoice requires current match evidence.");
+        if(invoice.SourceMode==SupplierInvoiceSourceMode.Direct)
+        {
+            if(match.State!=PurchaseMatchState.ExceptionApproved)
+                return Business<SupplierInvoicePostPlan>("purchasing.invoice.direct_approval","Direct Supplier Invoice requires approved exception evidence.");
+        }
+        else if(match.State!=PurchaseMatchState.Matched)
+        {
+            if(match.State==PurchaseMatchState.Blocked&&match.PriceVariance!=0m)
+                return Business<SupplierInvoicePostPlan>("purchasing.invoice.price_variance_policy_required",
+                    "Non-zero price variance cannot POST because no authoritative Purchasing Match Policy tolerance is implemented.");
+            return Business<SupplierInvoicePostPlan>("purchasing.invoice.match_state","Supplier Invoice requires MATCHED or approved exception evidence before POST.");
+        }
+
+        var supplier=await dbContext.Set<PartyRecord>().AsNoTracking()
+            .SingleAsync(x=>x.CompanyId==context.CompanyId&&x.Id==invoice.SupplierPartyId,ct);
+        var lines=await dbContext.Set<SupplierInvoiceLineRecord>().AsNoTracking()
+            .Where(x=>x.CompanyId==context.CompanyId&&x.SupplierInvoiceId==invoice.Id)
+            .OrderBy(x=>x.Sequence).ToArrayAsync(ct);
+        if(lines.Length==0)return Business<SupplierInvoicePostPlan>("purchasing.invoice.lines","Supplier Invoice has no lines.");
+        var lineIds=lines.Select(x=>x.Id).ToArray();
+        var links=await dbContext.Set<SupplierInvoiceSourceLinkRecord>().AsNoTracking()
+            .Where(x=>x.CompanyId==context.CompanyId&&lineIds.Contains(x.SupplierInvoiceLineId)).ToArrayAsync(ct);
+        if(links.Length!=lines.Length)return Conflict<SupplierInvoicePostPlan>("purchasing.invoice.source_snapshot","Supplier Invoice source snapshot is incomplete.");
+
+        if(invoice.SourceMode!=SupplierInvoiceSourceMode.Direct)
+        {
+            var linkByLine=links.ToDictionary(x=>x.SupplierInvoiceLineId);
+            var sourceTotals=links.Where(x=>x.SourceDocumentPublicId.HasValue&&x.SourceLinePublicId.HasValue)
+                .GroupBy(x=>(x.SourceMode,x.SourceDocumentPublicId!.Value,x.SourceLinePublicId!.Value))
+                .ToDictionary(g=>g.Key,g=>g.Sum(x=>x.Quantity));
+
+            foreach(var line in lines)
+            {
+                var link=linkByLine[line.Id];
+                if(!link.SourceDocumentPublicId.HasValue||!link.SourceLinePublicId.HasValue)
+                    return Business<SupplierInvoicePostPlan>("purchasing.invoice.source","Sourced Supplier Invoice requires exact source document and line.");
+
+                decimal sourceQuantity;
+                decimal sourceUnitPrice;
+                decimal sourceLineDiscount;
+                decimal sourceTax;
+                decimal sourceDocumentDiscount;
+                decimal? provisionalForInvoice=null;
+
+                if(link.SourceMode==SupplierInvoiceSourceMode.GoodsReceipt)
+                {
+                    var receipt=await dbContext.Set<GoodsReceiptRecord>()
+                        .FromSqlInterpolated($@"SELECT * FROM purchasing.goods_receipts WHERE company_id={context.CompanyId} AND public_id={link.SourceDocumentPublicId.Value} FOR UPDATE")
+                        .SingleOrDefaultAsync(ct);
+                    if(receipt is null||receipt.State!=GoodsReceiptState.Posted)
+                        return Business<SupplierInvoicePostPlan>("purchasing.invoice.receipt_source","Goods Receipt source must remain POSTED.");
+
+                    var receiptLine=await dbContext.Set<GoodsReceiptLineRecord>().AsNoTracking()
+                        .SingleOrDefaultAsync(x=>x.CompanyId==context.CompanyId&&x.GoodsReceiptId==receipt.Id&&x.PublicId==link.SourceLinePublicId.Value,ct);
+                    if(receiptLine is null||receiptLine.ProductId!=line.ProductId||receiptLine.VariantId!=line.VariantId||receiptLine.UomId!=line.UomId)
+                        return Business<SupplierInvoicePostPlan>("purchasing.invoice.receipt_source","Goods Receipt source line no longer matches the Invoice snapshot.");
+
+                    var order=await dbContext.Set<PurchaseOrderRecord>().AsNoTracking()
+                        .SingleAsync(x=>x.CompanyId==context.CompanyId&&x.Id==receipt.PurchaseOrderId,ct);
+                    if(order.SupplierPartyId!=invoice.SupplierPartyId)
+                        return Business<SupplierInvoicePostPlan>("purchasing.invoice.supplier_mismatch","Supplier Invoice and source Purchase Order supplier must match.");
+                    var version=await dbContext.Set<PurchaseOrderVersionRecord>().AsNoTracking()
+                        .SingleAsync(x=>x.CompanyId==context.CompanyId&&x.PurchaseOrderId==order.Id&&x.VersionNumber==receipt.PurchaseOrderVersionNumber,ct);
+                    var sourceLine=await dbContext.Set<PurchaseOrderLineRecord>().AsNoTracking()
+                        .SingleAsync(x=>x.CompanyId==context.CompanyId&&x.PurchaseOrderVersionId==version.Id&&x.LinePublicId==receiptLine.PurchaseOrderLinePublicId,ct);
+                    var all=await dbContext.Set<PurchaseOrderLineRecord>().AsNoTracking()
+                        .Where(x=>x.CompanyId==context.CompanyId&&x.PurchaseOrderVersionId==version.Id).OrderBy(x=>x.Sequence).ToArrayAsync(ct);
+                    var calc=PurchaseCommercialCalculator.Calculate(
+                        all.Select(x=>new PurchaseCommercialLineInput(x.Sequence,x.Quantity,x.UnitPrice,x.LineDiscountPercent,x.TaxPercent)).ToArray(),
+                        version.DocumentDiscountPercent,2);
+                    var sourceCalc=calc.Lines.Single(x=>x.Sequence==sourceLine.Sequence);
+
+                    sourceQuantity=receiptLine.Quantity;
+                    sourceUnitPrice=sourceLine.UnitPrice;
+                    sourceLineDiscount=sourceLine.LineDiscountPercent;
+                    sourceTax=sourceLine.TaxPercent;
+                    sourceDocumentDiscount=version.DocumentDiscountPercent;
+                    provisionalForInvoice=Math.Round(sourceCalc.TaxableBase/sourceLine.Quantity*line.Quantity,2,MidpointRounding.AwayFromZero);
+                }
+                else
+                {
+                    var order=await dbContext.Set<PurchaseOrderRecord>()
+                        .FromSqlInterpolated($@"SELECT * FROM purchasing.purchase_orders WHERE company_id={context.CompanyId} AND public_id={link.SourceDocumentPublicId.Value} FOR UPDATE")
+                        .SingleOrDefaultAsync(ct);
+                    if(order is null||order.SupplierPartyId!=invoice.SupplierPartyId)
+                        return Business<SupplierInvoicePostPlan>("purchasing.invoice.order_source","Purchase Order source is not eligible for this Supplier Invoice.");
+                    var versionNumber=link.SourceVersion??order.CurrentVersionNumber;
+                    var version=await dbContext.Set<PurchaseOrderVersionRecord>().AsNoTracking()
+                        .SingleOrDefaultAsync(x=>x.CompanyId==context.CompanyId&&x.PurchaseOrderId==order.Id&&x.VersionNumber==versionNumber,ct);
+                    if(version is null)return Business<SupplierInvoicePostPlan>("purchasing.invoice.order_version","Source Purchase Order version was not found.");
+                    var sourceLine=await dbContext.Set<PurchaseOrderLineRecord>().AsNoTracking()
+                        .SingleOrDefaultAsync(x=>x.CompanyId==context.CompanyId&&x.PurchaseOrderVersionId==version.Id&&x.LinePublicId==link.SourceLinePublicId.Value,ct);
+                    if(sourceLine is null||sourceLine.ProductId!=line.ProductId||sourceLine.VariantId!=line.VariantId||sourceLine.UomId!=line.UomId)
+                        return Business<SupplierInvoicePostPlan>("purchasing.invoice.order_source","Purchase Order source line no longer matches the Invoice snapshot.");
+
+                    sourceQuantity=sourceLine.Quantity;
+                    sourceUnitPrice=sourceLine.UnitPrice;
+                    sourceLineDiscount=sourceLine.LineDiscountPercent;
+                    sourceTax=sourceLine.TaxPercent;
+                    sourceDocumentDiscount=version.DocumentDiscountPercent;
+                }
+
+                if(line.UnitPrice!=sourceUnitPrice||line.LineDiscountPercent!=sourceLineDiscount||
+                   line.TaxPercent!=sourceTax||invoice.DocumentDiscountPercent!=sourceDocumentDiscount)
+                    return Business<SupplierInvoicePostPlan>("purchasing.invoice.price_variance_policy_required",
+                        "Non-zero commercial variance cannot POST because no authoritative Purchasing Match Policy tolerance is implemented.");
+
+                var key=(link.SourceMode,link.SourceDocumentPublicId.Value,link.SourceLinePublicId.Value);
+                var other=await ActiveDraftSourceQuantityAsync(
+                    context.CompanyId,link.SourceMode,key.Item2,key.Item3,invoice.PublicId,ct);
+                if(other+sourceTotals[key]>sourceQuantity)
+                    return Business<SupplierInvoicePostPlan>("purchasing.invoice.over_invoice","DRAFT/POSTED source quantity exceeds current eligible source quantity.");
+
+                if(provisionalForInvoice.HasValue&&line.TaxableBase!=provisionalForInvoice.Value)
+                    return Business<SupplierInvoicePostPlan>("finance.cost.late_adjust.lineage_required",
+                        "Supplier Invoice creates a late-cost delta, but authoritative source-receipt quantity lineage to on-hand/bridge/COGS is not implemented.");
+            }
+        }
+
+        return Result<SupplierInvoicePostPlan>.Success(new(
+            invoice.PublicId,supplier.PublicId,invoice.CurrencyCode,invoice.DocumentDate,invoice.DueDate,
+            invoice.GrossTotal,invoice.Version));
+    }
+
+    public Task<Result<PurchasingMutationReceipt>> CompleteInvoicePostAsync(
+        Guid invoicePublicId,string operationKey,IExecutionContext context,CancellationToken ct) =>
+        MutateAsync("purchasing.invoice.post",operationKey,"SupplierInvoicePosted","SupplierInvoice",
+            "purchasing.invoice.post.completed",context,
+            async innerCt=>{
+                var invoice=await dbContext.Set<SupplierInvoiceRecord>().SingleOrDefaultAsync(
+                    x=>x.CompanyId==context.CompanyId&&x.PublicId==invoicePublicId,innerCt);
+                if(invoice is null)return NotFound<PurchasingMutationReceipt>("purchasing.invoice.not_found","Supplier Invoice was not found.");
+                if(invoice.State!=SupplierInvoiceState.Draft)
+                    return Business<PurchasingMutationReceipt>("purchasing.invoice.state","Only DRAFT Supplier Invoice can be POSTED.");
+                invoice.State=SupplierInvoiceState.Posted;
+                invoice.Version++;
+                return Result<PurchasingMutationReceipt>.Success(new(invoice.PublicId,"POSTED",invoice.Version,context.CorrelationId.Value));
+            },ct);
+
+    public async Task<Result<SupplierInvoicePostPlan>> PrepareInvoiceReverseAsync(
+        Guid invoicePublicId,long expectedVersion,IExecutionContext context,CancellationToken ct)
+    {
+        var invoice=await dbContext.Set<SupplierInvoiceRecord>()
+            .FromSqlInterpolated($@"SELECT * FROM purchasing.supplier_invoices WHERE company_id={context.CompanyId} AND public_id={invoicePublicId} FOR UPDATE")
+            .SingleOrDefaultAsync(ct);
+        if(invoice is null)return NotFound<SupplierInvoicePostPlan>("purchasing.invoice.not_found","Supplier Invoice was not found.");
+        if(invoice.Version!=expectedVersion)return Conflict<SupplierInvoicePostPlan>("purchasing.invoice.stale","Supplier Invoice version is stale.",true);
+        if(invoice.State!=SupplierInvoiceState.Posted)
+            return Business<SupplierInvoicePostPlan>("purchasing.invoice.reverse_state","Only POSTED Supplier Invoice can be REVERSED.");
+        var supplier=await dbContext.Set<PartyRecord>().AsNoTracking()
+            .SingleAsync(x=>x.CompanyId==context.CompanyId&&x.Id==invoice.SupplierPartyId,ct);
+        return Result<SupplierInvoicePostPlan>.Success(new(
+            invoice.PublicId,supplier.PublicId,invoice.CurrencyCode,invoice.DocumentDate,invoice.DueDate,
+            invoice.GrossTotal,invoice.Version));
+    }
+
+    public Task<Result<PurchasingMutationReceipt>> CompleteInvoiceReverseAsync(
+        Guid invoicePublicId,string operationKey,IExecutionContext context,CancellationToken ct) =>
+        MutateAsync("purchasing.invoice.reverse",operationKey,"SupplierInvoiceReversed","SupplierInvoice",
+            "purchasing.invoice.reverse.completed",context,
+            async innerCt=>{
+                var invoice=await dbContext.Set<SupplierInvoiceRecord>().SingleOrDefaultAsync(
+                    x=>x.CompanyId==context.CompanyId&&x.PublicId==invoicePublicId,innerCt);
+                if(invoice is null)return NotFound<PurchasingMutationReceipt>("purchasing.invoice.not_found","Supplier Invoice was not found.");
+                if(invoice.State!=SupplierInvoiceState.Posted)
+                    return Business<PurchasingMutationReceipt>("purchasing.invoice.reverse_state","Only POSTED Supplier Invoice can be REVERSED.");
+                invoice.State=SupplierInvoiceState.Reversed;
+                invoice.Version++;
+                return Result<PurchasingMutationReceipt>.Success(new(invoice.PublicId,"REVERSED",invoice.Version,context.CorrelationId.Value));
+            },ct);
+
     public async Task<Result<PurchaseMatchApprovalTarget>> GetMatchApprovalTargetAsync(
         Guid matchPublicId,IExecutionContext context,CancellationToken ct)
     {
@@ -1042,7 +1230,7 @@ public sealed class EfPurchasingPersistence(
             join line in dbContext.Set<SupplierInvoiceLineRecord>().AsNoTracking() on link.SupplierInvoiceLineId equals line.Id
             join invoice in dbContext.Set<SupplierInvoiceRecord>().AsNoTracking() on line.SupplierInvoiceId equals invoice.Id
             where link.CompanyId==companyId&&line.CompanyId==companyId&&invoice.CompanyId==companyId&&
-                  invoice.State==SupplierInvoiceState.Draft&&link.SourceMode==mode&&
+                  (invoice.State==SupplierInvoiceState.Draft||invoice.State==SupplierInvoiceState.Posted)&&link.SourceMode==mode&&
                   link.SourceDocumentPublicId==sourceDocumentPublicId&&link.SourceLinePublicId==sourceLinePublicId&&
                   (!excludeInvoicePublicId.HasValue||invoice.PublicId!=excludeInvoicePublicId.Value)
             select (decimal?)link.Quantity;
@@ -1209,7 +1397,9 @@ public sealed class EfPurchasingPersistence(
     private static string ReceiptStateCode(GoodsReceiptState s)=>s switch{
         GoodsReceiptState.Draft=>"DRAFT",GoodsReceiptState.Ready=>"READY",GoodsReceiptState.Posted=>"POSTED",
         GoodsReceiptState.Reversed=>"REVERSED",_=>"CANCELLED"};
-    private static string InvoiceStateCode(SupplierInvoiceState s)=>s==SupplierInvoiceState.Draft?"DRAFT":"CANCELLED";
+    private static string InvoiceStateCode(SupplierInvoiceState s)=>s switch{
+        SupplierInvoiceState.Draft=>"DRAFT",SupplierInvoiceState.Posted=>"POSTED",
+        SupplierInvoiceState.Reversed=>"REVERSED",_=>"CANCELLED"};
 }
 
 public sealed class EfPurchasingTransactionCoordinator(MarsDbContext dbContext):IPurchasingTransactionCoordinator
