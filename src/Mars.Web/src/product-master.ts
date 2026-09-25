@@ -62,7 +62,7 @@ export function createProductMasterPage(
   root.className = "mars-component-stack";
 
   const heading = document.createElement("h1");
-  heading.textContent = "Ürün / Product Master";
+  heading.textContent = "Ürünler ve Hizmetler";
   const note = info(
     "Product master stok miktarı veya maliyet otoritesi değildir. Inventory Ledger ve Finance ayrı kalır.");
   const status = info("");
@@ -99,7 +99,7 @@ export function createProductMasterPage(
   });
   const refresh = createButton({ label: "Listeyi yenile" });
   const grid = createGrid<ProductListItem>({
-    caption: "Ürünler",
+    caption: "Ürün Listesi",
     columns: [
       { key: "code", header: "Kod", value: row => row.productCode },
       { key: "name", header: "Ad", value: row => row.name },

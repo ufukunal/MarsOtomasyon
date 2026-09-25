@@ -57,7 +57,7 @@ export function createPartyCreatePage(
   panel.className = "mars-foundation-panel mars-component-stack";
 
   const heading = document.createElement("h1");
-  heading.textContent = "Yeni Cari / Party";
+  heading.textContent = "Yeni Kişi/Firma";
 
   const explanation = document.createElement("p");
   explanation.textContent =

@@ -96,7 +96,7 @@ export function createPartyMasterPage(
   root.className = "mars-foundation-panel mars-component-stack";
 
   const heading = document.createElement("h1");
-  heading.textContent = "Cari / Party Master";
+  heading.textContent = "Kişi/Firma Listesi";
 
   const note = document.createElement("p");
   note.textContent =
@@ -116,7 +116,7 @@ export function createPartyMasterPage(
   let selected: PartyDetail | null = null;
 
   const grid = createGrid<PartyListItem>({
-    caption: "Party listesi",
+    caption: "Kişi/Firma Listesi",
     columns: [
       { key: "code", header: "Kod", value: row => row.partyCode },
       { key: "name", header: "Yasal ad", value: row => row.legalName },

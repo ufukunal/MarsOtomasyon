@@ -34,12 +34,12 @@ const router = new MarsRouter(shell.outlet, [
   },
   {
     path: "/parties",
-    title: "Cari / Party Master",
+    title: "Kişi/Firma Listesi",
     render: () => createPartyMasterPage(api)
   },
   {
     path: "/parties/new",
-    title: "Yeni Party",
+    title: "Yeni Kişi/Firma",
     render: () => createPartyCreatePage(api)
   },
   {
