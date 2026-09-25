@@ -466,21 +466,24 @@ public sealed class PurchasingCommandHandler(
                     movement.Value!.MovementPublicId));
             }
 
-            var valuation = await finance.PostGoodsReceiptAsync(
-                new FinanceGoodsReceiptValuationCommand(
-                    plan.Value.GoodsReceiptPublicId,
-                    DateOnly.FromDateTime(DateTime.UtcNow),
-                    plan.Value.Lines.Where(x=>x.Stockable).Select(line=>{
-                        var effect=effects.Single(x=>x.GoodsReceiptLinePublicId==line.GoodsReceiptLinePublicId);
-                        return new FinanceReceiptValuationLine(
-                            line.GoodsReceiptLinePublicId,effect.MovementPublicId,line.ProductPublicId,line.VariantPublicId,
-                            line.UomPublicId,line.Quantity*line.ConversionFactorSnapshot,line.ProvisionalBaseValue);
-                    }).ToArray(),
-                    operationKey + ":finance"),
-                context,
-                innerCt);
-            if(valuation.IsFailure)
-                return Result<PurchasingMutationReceipt>.Failure(valuation.Error!);
+            if(effects.Count>0)
+            {
+                var valuation = await finance.PostGoodsReceiptAsync(
+                    new FinanceGoodsReceiptValuationCommand(
+                        plan.Value.GoodsReceiptPublicId,
+                        DateOnly.FromDateTime(DateTime.UtcNow),
+                        plan.Value.Lines.Where(x=>x.Stockable).Select(line=>{
+                            var effect=effects.Single(x=>x.GoodsReceiptLinePublicId==line.GoodsReceiptLinePublicId);
+                            return new FinanceReceiptValuationLine(
+                                line.GoodsReceiptLinePublicId,effect.MovementPublicId,line.ProductPublicId,line.VariantPublicId,
+                                line.UomPublicId,line.Quantity*line.ConversionFactorSnapshot,line.ProvisionalBaseValue);
+                        }).ToArray(),
+                        operationKey + ":finance"),
+                    context,
+                    innerCt);
+                if(valuation.IsFailure)
+                    return Result<PurchasingMutationReceipt>.Failure(valuation.Error!);
+            }
 
             return await persistence.CompleteReceiptPostAsync(
                 receiptPublicId,
@@ -545,14 +548,17 @@ public sealed class PurchasingCommandHandler(
                 effects.Add(new GoodsReceiptInventoryEffect(line.GoodsReceiptLinePublicId, movement.Value!.MovementPublicId));
             }
 
-            var valuation = await finance.ReverseGoodsReceiptAsync(
-                plan.Value.GoodsReceiptPublicId,
-                DateOnly.FromDateTime(DateTime.UtcNow),
-                operationKey + ":finance",
-                context,
-                innerCt);
-            if(valuation.IsFailure)
-                return Result<PurchasingMutationReceipt>.Failure(valuation.Error!);
+            if(effects.Count>0)
+            {
+                var valuation = await finance.ReverseGoodsReceiptAsync(
+                    plan.Value.GoodsReceiptPublicId,
+                    DateOnly.FromDateTime(DateTime.UtcNow),
+                    operationKey + ":finance",
+                    context,
+                    innerCt);
+                if(valuation.IsFailure)
+                    return Result<PurchasingMutationReceipt>.Failure(valuation.Error!);
+            }
 
             return await persistence.CompleteReceiptReverseAsync(
                 receiptPublicId, effects, operationKey + ":complete", context, innerCt);

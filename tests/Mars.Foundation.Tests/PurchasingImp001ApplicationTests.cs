@@ -1,4 +1,5 @@
 using System.Reflection;
+using Mars.Application.Finance;
 using Mars.Application.Foundation.Approvals;
 using Mars.Application.Foundation.Authorization;
 using Mars.Application.Foundation.Context;
@@ -56,7 +57,7 @@ internal static class PurchasingImp001ApplicationTests
             receiptId,warehouseId,
             [new GoodsReceiptPostLinePlan(
                 lineId,Guid.NewGuid(),null,Guid.NewGuid(),2m,3m,
-                warehouseId,null,null,null,true)]);
+                warehouseId,null,null,null,100m,true)]);
 
         var persistence=Proxy<IPurchasingPersistence>((method,args)=>{
             if(method.Name==nameof(IPurchasingPersistence.GetReceiptWarehousePublicIdAsync))
@@ -96,7 +97,7 @@ internal static class PurchasingImp001ApplicationTests
             receiptId,warehouseId,
             [new GoodsReceiptPostLinePlan(
                 lineId,Guid.NewGuid(),null,Guid.NewGuid(),1m,1m,
-                warehouseId,null,null,null,false)]);
+                warehouseId,null,null,null,0m,false)]);
 
         var persistence=Proxy<IPurchasingPersistence>((method,args)=>{
             if(method.Name==nameof(IPurchasingPersistence.GetReceiptWarehousePublicIdAsync))
@@ -133,7 +134,7 @@ internal static class PurchasingImp001ApplicationTests
             receiptId,warehouseId,
             [new GoodsReceiptPostLinePlan(
                 Guid.NewGuid(),Guid.NewGuid(),null,Guid.NewGuid(),1m,1m,
-                warehouseId,null,null,null,true)]);
+                warehouseId,null,null,null,100m,true)]);
 
         var persistence=Proxy<IPurchasingPersistence>((method,_)=>{
             if(method.Name==nameof(IPurchasingPersistence.GetReceiptWarehousePublicIdAsync))
@@ -237,6 +238,7 @@ internal static class PurchasingImp001ApplicationTests
             persistence,
             new FakeApprovalAuthority(),
             physical,
+            new FakeFinanceValuationAuthority(),
             warehouse,
             new PassthroughTransactions());
 

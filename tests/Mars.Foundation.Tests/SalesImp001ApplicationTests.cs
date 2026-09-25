@@ -1,4 +1,5 @@
 using System.Reflection;
+using Mars.Application.Finance;
 using Mars.Application.Foundation.Approvals;
 using Mars.Application.Foundation.Authorization;
 using Mars.Application.Foundation.Context;
@@ -326,6 +327,7 @@ internal static class SalesImp001ApplicationTests
             approvals,
             reservations,
             physical,
+            new FakeFinanceValuationAuthority(),
             warehouse,
             new PassthroughTransactions());
 

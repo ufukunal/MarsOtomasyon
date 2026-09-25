@@ -1,4 +1,5 @@
 using System.Reflection;
+using Mars.Application.Finance;
 using Mars.Application.Foundation.Approvals;
 using Mars.Application.Foundation.Authorization;
 using Mars.Application.Foundation.Context;
@@ -17,7 +18,7 @@ internal static class WarehouseImp001ApplicationTests
         ("WAREHOUSE-IMP-001 pick requires Warehouse scope", PickRequiresWarehouseScope),
         ("WAREHOUSE-IMP-001 pick binds Sales source without physical Inventory posting", PickHasNoPhysicalPosting),
         ("WAREHOUSE-IMP-001 Transfer ISSUE composes AVAILABLE to TRANSIT movement", TransferIssueComposesTransit),
-        ("WAREHOUSE-IMP-001 positive Count adjustment fails closed without valuation", PositiveCountFailsClosed),
+        ("FINANCE-IMP-001 positive Count delegates valuation and fails closed without a Finance basis", PositiveCountFailsClosed),
         ("WAREHOUSE-IMP-001 damage permission cannot target AVAILABLE", DamageCannotTargetAvailable)
     ];
 
@@ -146,15 +147,17 @@ internal static class WarehouseImp001ApplicationTests
                 return Task.FromResult(Result<CountAdjustmentPlan>.Success(plan));
             throw new InvalidOperationException("Unexpected persistence call: "+method.Name);
         });
+        var finance=new FakeFinanceValuationAuthority(failCount:true);
         var handler=Handler(new FakePermissionEvaluator(WarehousePermissions.CountPost),
-            new FakeWarehouseAccessEvaluator(true),physical,new FakeSalesDispatchAuthority(),persistence);
+            new FakeWarehouseAccessEvaluator(true),physical,new FakeSalesDispatchAuthority(),persistence,finance);
 
         var result=handler.PostCountAsync(count,"count-post",NewContext(),CancellationToken.None)
             .GetAwaiter().GetResult();
 
         AssertTrue(result.IsFailure);
-        AssertEqual("warehouse.count.positive_valuation_required",result.Error!.Code);
-        AssertEqual(0,physical.PostCalls);
+        AssertEqual("finance.count.positive_valuation_required",result.Error!.Code);
+        AssertEqual(1,physical.PostCalls);
+        AssertEqual(1,finance.CountPostCalls);
     }
 
     private static void DamageCannotTargetAvailable()
@@ -179,8 +182,9 @@ internal static class WarehouseImp001ApplicationTests
 
     private static WarehouseCommandHandler Handler(
         IPermissionEvaluator permissions,IWarehouseAccessEvaluator access,
-        IInventoryPhysicalAuthority physical,ISalesWarehouseDispatchAuthority sales,IWarehousePersistence persistence)=>
-        new(permissions,access,physical,sales,new FakeApprovalAuthority(),persistence,new PassthroughTransactions());
+        IInventoryPhysicalAuthority physical,ISalesWarehouseDispatchAuthority sales,IWarehousePersistence persistence,
+        IFinanceValuationAuthority? finance=null)=>
+        new(permissions,access,physical,finance??new FakeFinanceValuationAuthority(),sales,new FakeApprovalAuthority(),persistence,new PassthroughTransactions());
 
     private static T Proxy<T>(Func<MethodInfo,object?[]?,object?> handler) where T:class
     {
