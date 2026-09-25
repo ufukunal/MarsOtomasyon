@@ -76,6 +76,8 @@ planning_policy:
   module_plan_required_before_implementation: true
   undocumented_business_rule_policy: BLOCKED
   v38_is_product_reference_not_production_code: true
+  v38_visual_contract_required: true
+  v38_visual_contract: docs/plan/ui-v38-parity-contract.md
   every_session_requires_report_and_next_prompt: true
 
 test_policy:
@@ -129,6 +131,7 @@ completed_implementation_tasks:
   - WAREHOUSE-IMP-001
 
 locked_decisions:
+  - V38 is the canonical visual/product contract: production code is reimplemented, but discretionary redesign of the visible shell/screens is forbidden; required deviations must be traceable to accepted domain/security/accessibility/responsive rules.
   - ASP.NET Core Identity + OpenIddict 7.7.1 is the accepted authentication/identity baseline.
   - Microsoft.AspNetCore.OpenApi 10.0.12 is the accepted OpenAPI generation baseline.
   - .NET 10 LTS is the accepted Foundation runtime/SDK baseline.

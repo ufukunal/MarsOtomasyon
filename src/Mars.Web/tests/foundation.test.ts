@@ -8,6 +8,7 @@ const { ApiClient, ApiClientError } = await import("../src/api-client.ts");
 const { createFoundationProofPage } = await import("../src/foundation-proof.ts");
 const { createPartyCreatePage } = await import("../src/party-create.ts");
 const { MarsRouter, createAppShell } = await import("../src/app.ts");
+const { V38_MENU, V38_MENU_ITEM_COUNT, V38_REFERENCE_SCREEN_COUNT } = await import("../src/v38-navigation.ts");
 const {
   createButton,
   createDialog,
@@ -726,4 +727,21 @@ test("Party create page deactivates created Party with expected version reason a
   assert.equal(reason.value, "");
   assert.equal(button.disabled, true);
   assert.match(page.textContent ?? "", /Party INACTIVE/);
+});
+
+
+test("V38 canonical visual contract keeps the full menu surface and shell anchors", () => {
+  assert.equal(V38_MENU.length, 17);
+  assert.equal(V38_MENU_ITEM_COUNT, 178);
+  assert.equal(V38_REFERENCE_SCREEN_COUNT, 260);
+  assert.ok(V38_MENU.some(group => group.label === "Finans İşlemleri"));
+  assert.ok(V38_MENU.some(group => group.label === "Üretim Yönetimi"));
+  assert.ok(V38_MENU.some(group => group.label === "E-Ticaret / B2B / API"));
+  const shell=createAppShell(); document.body.replaceChildren(shell.element);
+  assert.ok(shell.element.querySelector("#menuSearch"));
+  assert.ok(shell.element.querySelector("#globalSearch"));
+  assert.ok(shell.element.querySelector(".mars-shell__worktabs"));
+  assert.ok(shell.element.querySelector(".mars-shell__navfoot"));
+  assert.equal(shell.element.querySelectorAll(".mars-nav-group").length,17);
+  assert.equal(shell.element.querySelectorAll(".mars-nav-item").length,178);
 });

@@ -14,8 +14,8 @@
   --mars-space-5: 1.25rem;
   --mars-space-6: 1.5rem;
 
-  --mars-radius-control: 0;
-  --mars-radius-surface: 0;
+  --mars-radius-control: 6px;
+  --mars-radius-surface: 8px;
 
   --mars-surface-page: #f2f5f7;
   --mars-surface-default: #ffffff;
@@ -23,12 +23,12 @@
   --mars-border-default: #d7e0e5;
   --mars-border-subtle: #e9eef1;
   --mars-text-default: #263741;
-  --mars-text-muted: #6f818b;
-  --mars-interactive: #1677a8;
-  --mars-interactive-hover: #0f648e;
+  --mars-text-muted: #75858d;
+  --mars-interactive: #1f8ac8;
+  --mars-interactive-hover: #1673aa;
   --mars-danger: #dc4c44;
   --mars-success: #0e9f6e;
-  --mars-warning: #d18a00;
+  --mars-warning: #f3a000;
   --mars-focus: #2d8cff;
   --mars-focus-ring: 0 0 0 3px rgba(45, 140, 255, 0.2);
 

@@ -25,7 +25,7 @@ The canonical UI/product reference is:
 
 `docs/reference/ui/marsotomasyon_ui_v38_cari_bakiye_sadelestirildi.html`
 
-The V38 HTML is a product/UX reference, not the production codebase. It may contain historical patches and deprecated concepts. A V38 screen or behavior becomes a production requirement only when it is consistent with the current module plan and accepted business decisions.
+The V38 HTML is the canonical visual/product contract, not the production source architecture. Production code must be reimplemented in the accepted Mars.Web/Mars.UI architecture, but the user-visible shell, navigation hierarchy, information density, page composition, grid/form patterns, tabs, primary controls, visual proportions and user journeys must preserve V38 with high fidelity. Historical patch code, local persistence hacks and superseded business semantics are not copied. A user-visible deviation is allowed only when an accepted domain/security/accessibility/responsive rule requires it, and the deviation must be explicit and traceable; discretionary redesign is not an accepted reason.
 
 Source priority:
 
@@ -503,13 +503,16 @@ Directory numbers already present in the repository remain canonical where they 
 
 For every module, V38 screens are classified as:
 
-- KEEP — product/UX behavior remains valid
-- ADAPT — visual/workflow idea remains but domain contract changes
-- MERGE — duplicate screens collapse into one canonical workflow
-- REMOVE — deprecated/obsolete concept
-- BLOCKED — requires owner/domain decision
+- KEEP — visual/product behavior remains valid and is reproduced with high fidelity.
+- ADAPT — accepted domain/security/accessibility/responsive rules require a bounded change; visual continuity is preserved and the deviation is documented.
+- MERGE — only genuinely duplicate/superseded workflows may collapse; the resulting surface must preserve the recognizable V38 information architecture.
+- REMOVE — only explicitly deprecated/obsolete behavior may be removed, with an owner/plan decision.
+- BLOCKED — requires owner/domain decision.
 
-Production code is never copied from V38 patch chains without re-deriving it into the accepted architecture.
+Production code is never copied from V38 patch chains without re-deriving it into the accepted architecture. This architecture rule is not permission to redesign the visible product. Backend/API completion never counts as UI parity completion.
+
+Canonical parity contract:
+`docs/plan/ui-v38-parity-contract.md`
 
 ## 10. Test policy
 

@@ -613,18 +613,19 @@ Business truth does not live in DOM or localStorage.
 
 ## 33. V38 UI continuity
 
-V38 remains the canonical visual/product reference.
+V38 remains the canonical visual/product contract.
 
-Framework should preserve its useful product character:
-- dense ERP information layout
-- white surfaces
-- controlled blue accent
-- square/hard-edge controls
-- clear grid lines
-- work tabs where useful
-- list/filter/detail workflow
-- keyboard-efficient operation
-- professional document density
+Framework must preserve with high fidelity:
+- the white left navigation shell and its hierarchy;
+- the 252px-class sidebar / 48px-class top workspace proportions unless responsive constraints require adaptation;
+- menu search, global-search placement, work tabs and action affordances;
+- dense ERP information layout and document density;
+- white surfaces, controlled blue accent, clear grid lines and compact controls;
+- V38's visible corner/radius language instead of imposing a new square-only design;
+- list/filter/detail workflow, tabs, toolbars and keyboard-efficient operation;
+- recognizable screen composition for each implemented V38 route.
+
+A production implementation may change V38 only for an accepted business/domain/security/accessibility/responsive reason. "Cleaner", "more modern" or developer preference is not a valid redesign reason. Every material visual/workflow deviation must be documented and traceable.
 
 Framework must not preserve:
 - chained render monkey patches

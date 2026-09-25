@@ -9,6 +9,7 @@ import { createInventoryPage } from "./inventory";
 import { createSalesPage } from "./sales";
 import { createPurchasingPage } from "./purchasing";
 import { createWarehousePage } from "./warehouse";
+import { createV38ScreenMapPage } from "./v38-navigation";
 import {
   createButton,
   createField,
@@ -67,6 +68,11 @@ const router = new MarsRouter(shell.outlet, [
     render: () => createWarehousePage(api)
   },
   {
+    path: "/screen-map",
+    title: "Ekran Haritası / UI Onay",
+    render: createV38ScreenMapPage
+  },
+  {
     path: "/proof",
     title: "Vertical Proof",
     render: () => createFoundationProofPage(api)
@@ -76,7 +82,7 @@ const router = new MarsRouter(shell.outlet, [
     title: "Mars.UI",
     render: renderComponents
   }
-]);
+], shell.setActiveRoute);
 
 router.start();
 

@@ -1,143 +1,36 @@
-export interface RouteDefinition {
-  path: string;
-  title: string;
-  render: () => HTMLElement;
-}
-
+import { V38_MENU } from "./v38-navigation";
+export interface RouteDefinition { path:string; title:string; render:()=>HTMLElement; }
 export class MarsRouter {
-  private readonly routes = new Map<string, RouteDefinition>();
-  private started = false;
-
-  public constructor(
-    private readonly outlet: HTMLElement,
-    definitions: readonly RouteDefinition[])
-  {
-    for (const definition of definitions) {
-      this.routes.set(normalizePath(definition.path), definition);
-    }
-  }
-
-  public start(): void {
-    if (this.started) return;
-    this.started = true;
-
-    window.addEventListener("popstate", this.renderCurrent);
-    document.addEventListener("click", this.handleDocumentClick);
-    this.renderCurrent();
-  }
-
-  public stop(): void {
-    if (!this.started) return;
-    this.started = false;
-    window.removeEventListener("popstate", this.renderCurrent);
-    document.removeEventListener("click", this.handleDocumentClick);
-  }
-
-  public navigate(path: string, replace = false): void {
-    const normalized = normalizePath(path);
-    if (replace) {
-      history.replaceState(null, "", normalized);
-    } else {
-      history.pushState(null, "", normalized);
-    }
-    this.renderCurrent();
-  }
-
-  private readonly handleDocumentClick = (event: MouseEvent): void => {
-    const target = event.target;
-    if (!(target instanceof Element)) return;
-
-    const anchor = target.closest<HTMLAnchorElement>("a[data-mars-route]");
-    if (!anchor || anchor.target || event.defaultPrevented || event.button !== 0 ||
-        event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
-      return;
-    }
-
-    const url = new URL(anchor.href, window.location.href);
-    if (url.origin !== window.location.origin) return;
-
-    event.preventDefault();
-    this.navigate(url.pathname);
-  };
-
-  private readonly renderCurrent = (): void => {
-    const path = normalizePath(window.location.pathname);
-    const definition = this.routes.get(path) ?? this.routes.get("/");
-    if (!definition) {
-      throw new Error("MarsRouter requires a '/' fallback route.");
-    }
-
-    document.title = `${definition.title} — MarsOtomasyon`;
-    this.outlet.replaceChildren(definition.render());
-  };
+  private readonly routes=new Map<string,RouteDefinition>(); private started=false;
+  public constructor(private readonly outlet:HTMLElement,definitions:readonly RouteDefinition[],private readonly onRouteRendered?:(title:string,path:string)=>void){for(const d of definitions)this.routes.set(normalizePath(d.path),d);}
+  public start():void{if(this.started)return;this.started=true;window.addEventListener("popstate",this.renderCurrent);document.addEventListener("click",this.handleDocumentClick);this.renderCurrent();}
+  public stop():void{if(!this.started)return;this.started=false;window.removeEventListener("popstate",this.renderCurrent);document.removeEventListener("click",this.handleDocumentClick);}
+  public navigate(path:string,replace=false):void{const n=normalizePath(path);if(replace)history.replaceState(null,"",n);else history.pushState(null,"",n);this.renderCurrent();}
+  private readonly handleDocumentClick=(event:MouseEvent):void=>{const target=event.target;if(!(target instanceof Element))return;const anchor=target.closest<HTMLAnchorElement>("a[data-mars-route]");if(!anchor||anchor.target||event.defaultPrevented||event.button!==0||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey)return;const url=new URL(anchor.href,window.location.href);if(url.origin!==window.location.origin)return;event.preventDefault();this.navigate(url.pathname);};
+  private readonly renderCurrent=():void=>{const path=normalizePath(window.location.pathname);const d=this.routes.get(path)??this.routes.get("/");if(!d)throw new Error("MarsRouter requires a '/' fallback route.");document.title=`${d.title} — MarsOtomasyon`;this.outlet.replaceChildren(d.render());this.onRouteRendered?.(d.title,d.path);this.outlet.focus({preventScroll:true});};
 }
-
-export interface AppShell {
-  element: HTMLElement;
-  outlet: HTMLElement;
+export interface AppShell { element:HTMLElement; outlet:HTMLElement; setActiveRoute:(title:string,path:string)=>void; }
+export function createAppShell():AppShell{
+  const shell=document.createElement("div");shell.className="mars-shell";
+  const side=document.createElement("aside");side.className="mars-shell__side";side.setAttribute("aria-label","Uygulama");
+  const brand=document.createElement("div");brand.className="mars-shell__brand";const mark=document.createElement("span");mark.className="mars-shell__mark";mark.textContent="M";const copy=document.createElement("span"),bn=document.createElement("b"),bs=document.createElement("small");bn.textContent="MarsOtomasyon";bs.textContent="Ön Muhasebe · Operasyon";copy.append(bn,bs);brand.append(mark,copy);
+  const msw=document.createElement("label");msw.className="mars-menu-search";const menuSearch=document.createElement("input");menuSearch.id="menuSearch";menuSearch.type="search";menuSearch.placeholder="Menüde Ara";menuSearch.setAttribute("aria-label","Menüde Ara");const msi=document.createElement("span");msi.textContent="⌕";msw.append(menuSearch,msi);
+  const nav=document.createElement("nav");nav.className="mars-shell__nav";nav.setAttribute("aria-label","Uygulama gezinme");
+  const groupElements:Array<{element:HTMLElement;children:HTMLElement;labels:string}>=[];
+  for(const group of V38_MENU){const section=document.createElement("section");section.className="mars-nav-group";const gb=document.createElement("button");gb.type="button";gb.className="mars-nav-group__head";gb.setAttribute("aria-expanded",group.key==="home"?"true":"false");const icon=document.createElement("span");icon.className="mars-nav-group__icon";icon.textContent=group.icon;const label=document.createElement("span");label.textContent=group.label;const arrow=document.createElement("span");arrow.className="mars-nav-group__arrow";arrow.textContent="›";gb.append(icon,label,arrow);const children=document.createElement("div");children.className="mars-nav-group__children";children.hidden=group.key!=="home";for(const item of group.items){if(item.path){const a=routeLink(item.path,item.label);a.dataset.v38Key=item.key;a.classList.add("mars-nav-item");children.append(a);}else{const p=document.createElement("span");p.className="mars-nav-item mars-nav-item--planned";p.textContent=item.label;p.dataset.v38Key=item.key;p.setAttribute("aria-disabled","true");p.title="Planlı ekran — production implementasyonu henüz tamamlanmadı";children.append(p);}}gb.addEventListener("click",()=>{children.hidden=!children.hidden;gb.setAttribute("aria-expanded",String(!children.hidden));});section.append(gb,children);nav.append(section);groupElements.push({element:section,children,labels:(group.label+" "+group.items.map(i=>i.label).join(" ")).toLocaleLowerCase("tr-TR")});}
+  const foot=document.createElement("div");foot.className="mars-shell__navfoot";foot.append(routeLink("/screen-map","☷ Ekran Haritası / UI Onay"));side.append(brand,msw,nav,foot);
+  const workspace=document.createElement("div");workspace.className="mars-shell__workspace";const header=document.createElement("header");header.className="mars-shell__header";const crumb=document.createElement("div");crumb.className="mars-shell__crumb";crumb.textContent="MarsOtomasyon";const grow=document.createElement("div");grow.className="mars-grow";
+  const gw=document.createElement("label");gw.className="mars-global-search";const gs=document.createElement("input");gs.id="globalSearch";gs.type="search";gs.placeholder="Global ara: ürün, cari, belge... (Ctrl+K)";gs.setAttribute("aria-label","Global ara");const gi=document.createElement("span");gi.textContent="⌕";gw.append(gs,gi);
+  const screens=routeLink("/screen-map","☷ Ekranlar");screens.classList.add("mars-top-action");const drawerButton=actionButton("☷ İşlemler"),company=actionButton("Noya Aydınlatma ▾"),user=actionButton("Ufuk Ünal ▾");header.append(crumb,grow,gw,screens,drawerButton,company,user);
+  const worktabs=document.createElement("div");worktabs.className="mars-shell__worktabs";const tab=document.createElement("span");tab.className="mars-worktab mars-worktab--active";tab.textContent="Ana Sayfa";worktabs.append(tab);
+  const outlet=document.createElement("main");outlet.className="mars-shell__main";outlet.id="mars-route-outlet";outlet.tabIndex=-1;
+  const overlay=document.createElement("button");overlay.type="button";overlay.className="mars-drawer-overlay";overlay.hidden=true;overlay.setAttribute("aria-label","İşlemler panelini kapat");const drawer=document.createElement("aside");drawer.className="mars-drawer";drawer.hidden=true;drawer.setAttribute("aria-label","İşlemler");const dt=document.createElement("div");dt.className="mars-drawer__title";dt.textContent="İşlemler";const close=actionButton("➜ Kapat");drawer.append(dt,close);for(const text of ["＋ Ekle / Yeni","⎙ Yazdır","⌕ Önizleme","▤ PDF","▧ Excel / CSV","⚙ Ekran Ayarları","◷ Timeline","⌁ Audit"]){const a=actionButton(text);a.classList.add("mars-drawer__item");if(text.includes("Yazdır"))a.addEventListener("click",()=>window.print());drawer.append(a);}const setDrawer=(open:boolean)=>{drawer.hidden=!open;overlay.hidden=!open;drawerButton.setAttribute("aria-expanded",String(open));};drawerButton.setAttribute("aria-expanded","false");drawerButton.addEventListener("click",()=>setDrawer(drawer.hidden));close.addEventListener("click",()=>setDrawer(false));overlay.addEventListener("click",()=>setDrawer(false));
+  menuSearch.addEventListener("input",()=>{const q=menuSearch.value.trim().toLocaleLowerCase("tr-TR");for(const g of groupElements){const visible=!q||g.labels.includes(q);g.element.hidden=!visible;if(q&&visible)g.children.hidden=false;}});
+  document.addEventListener("keydown",e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="k"){e.preventDefault();gs.focus();}});
+  workspace.append(header,worktabs,outlet);shell.append(side,workspace,overlay,drawer);
+  const setActiveRoute=(title:string,path:string):void=>{crumb.textContent=title;tab.textContent=title;for(const item of nav.querySelectorAll<HTMLElement>(".mars-nav-item")){const active=item instanceof HTMLAnchorElement&&normalizePath(item.pathname)===normalizePath(path);item.classList.toggle("active",active);if(active){const children=item.closest<HTMLElement>(".mars-nav-group__children");if(children){children.hidden=false;const button=children.previousElementSibling;if(button instanceof HTMLButtonElement)button.setAttribute("aria-expanded","true");}}}};
+  return{element:shell,outlet,setActiveRoute};
 }
-
-export function createAppShell(): AppShell {
-  const shell = document.createElement("div");
-  shell.className = "mars-shell";
-
-  const side = document.createElement("aside");
-  side.className = "mars-shell__side";
-  side.setAttribute("aria-label", "Uygulama");
-
-  const brand = document.createElement("div");
-  brand.className = "mars-shell__brand";
-  brand.textContent = "MarsOtomasyon";
-
-  const navigation = document.createElement("nav");
-  navigation.className = "mars-shell__nav";
-  navigation.setAttribute("aria-label", "Uygulama gezinme");
-  navigation.append(
-    routeLink("/", "Foundation"),
-    routeLink("/parties", "Cari / Party Master"),
-    routeLink("/parties/new", "Yeni Party"),
-    routeLink("/products", "Ürün / Product Master"),
-    routeLink("/inventory", "Inventory"),
-    routeLink("/sales", "Sales"),
-    routeLink("/proof", "Vertical Proof"),
-    routeLink("/components", "Mars.UI"));
-
-  side.append(brand, navigation);
-
-  const workspace = document.createElement("div");
-  workspace.className = "mars-shell__workspace";
-
-  const header = document.createElement("header");
-  header.className = "mars-shell__header";
-
-  const heading = document.createElement("strong");
-  heading.textContent = "Foundation";
-  const context = document.createElement("span");
-  context.className = "mars-shell__context";
-  context.textContent = "Web + UI baseline";
-  header.append(heading, context);
-
-  const outlet = document.createElement("main");
-  outlet.className = "mars-shell__main";
-  outlet.id = "mars-route-outlet";
-  outlet.tabIndex = -1;
-
-  workspace.append(header, outlet);
-  shell.append(side, workspace);
-
-  return { element: shell, outlet };
-}
-
-function routeLink(path: string, label: string): HTMLAnchorElement {
-  const anchor = document.createElement("a");
-  anchor.href = path;
-  anchor.dataset.marsRoute = "true";
-  anchor.textContent = label;
-  return anchor;
-}
-
-function normalizePath(path: string): string {
-  const clean = path.split(/[?#]/, 1)[0] || "/";
-  if (clean === "/") return "/";
-  return `/${clean.replace(/^\/+|\/+$/g, "")}`;
-}
+function actionButton(label:string):HTMLButtonElement{const b=document.createElement("button");b.type="button";b.className="mars-top-action";b.textContent=label;return b;}
+function routeLink(path:string,label:string):HTMLAnchorElement{const a=document.createElement("a");a.href=path;a.dataset.marsRoute="true";a.textContent=label;return a;}
+function normalizePath(path:string):string{const clean=path.split(/[?#]/,1)[0]||"/";if(clean==="/")return"/";return `/${clean.replace(/^\/+|\/+$/g,"")}`;}
