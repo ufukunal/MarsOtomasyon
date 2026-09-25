@@ -65,13 +65,14 @@ interface DocumentDetail {
 
 export function createPurchasingPage(
   api: PurchasingApi,
-  operationKey: () => string = () => crypto.randomUUID()): HTMLElement
+  operationKey: () => string = () => crypto.randomUUID(),
+  initialTabId?: string): HTMLElement
 {
   const root = document.createElement("section");
   root.className = "mars-foundation-panel mars-component-stack";
 
   const heading = document.createElement("h1");
-  heading.textContent = "Purchasing";
+  heading.textContent = "Satınalma Yönetimi";
 
   const authority = document.createElement("p");
   authority.textContent =
@@ -199,11 +200,12 @@ export function createPurchasingPage(
   ]);
 
   const tabs = createTabs([
-    { id: "purchasing-orders", label: "Purchase Orders", panel: poPanel },
-    { id: "purchasing-receipts", label: "Goods Receipt", panel: receiptPanel },
-    { id: "purchasing-invoices", label: "Supplier Invoice DRAFT / Match", panel: invoicePanel }
+    { id: "purchasing-orders", label: "Satınalma Siparişleri", panel: poPanel },
+    { id: "purchasing-receipts", label: "Mal Kabul", panel: receiptPanel },
+    { id: "purchasing-invoices", label: "Alış Faturaları / 3-Way Match", panel: invoicePanel }
   ]);
 
+  if (initialTabId) tabs.activate(initialTabId);
   root.append(heading, authority, status, tabs.element);
   queueMicrotask(() => { void refreshAll(); });
   return root;

@@ -69,13 +69,14 @@ interface ReservationView {
 
 export function createInventoryPage(
   api: Pick<ApiClient, "get" | "request">,
-  operationKey: () => string = defaultOperationKey): HTMLElement
+  operationKey: () => string = defaultOperationKey,
+  initialTabId?: string): HTMLElement
 {
   const root = document.createElement("section");
   root.className = "mars-foundation-panel mars-component-stack";
 
   const heading = document.createElement("h1");
-  heading.textContent = "Inventory";
+  heading.textContent = "Stok ve Depo";
 
   const authority = document.createElement("p");
   authority.textContent =
@@ -268,11 +269,12 @@ export function createInventoryPage(
     serialResult);
 
   const tabs = createTabs([
-    { id: "inventory-stock", label: "Stock", panel: stockPanel },
-    { id: "inventory-master", label: "Warehouse / Location", panel: masterPanel },
-    { id: "inventory-trace", label: "Trace / Reservation", panel: tracePanel }
+    { id: "inventory-stock", label: "Stok Durumu", panel: stockPanel },
+    { id: "inventory-master", label: "Depolar / Lokasyonlar", panel: masterPanel },
+    { id: "inventory-trace", label: "Hareketler / Rezervasyonlar", panel: tracePanel }
   ]);
 
+  if (initialTabId) tabs.activate(initialTabId);
   root.append(heading, authority, status, tabs.element);
 
   queueMicrotask(() => {

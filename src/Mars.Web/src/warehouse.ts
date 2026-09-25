@@ -53,13 +53,14 @@ interface OfflineItem {
 
 export function createWarehousePage(
   api: WarehouseApi,
-  operationKey: () => string = () => crypto.randomUUID()): HTMLElement
+  operationKey: () => string = () => crypto.randomUUID(),
+  initialTabId?: string): HTMLElement
 {
   const root=document.createElement("section");
   root.className="mars-foundation-panel mars-component-stack";
 
   const h=document.createElement("h1");
-  h.textContent="Warehouse Execution";
+  h.textContent="Stok ve Depo · Operasyon";
 
   const authority=document.createElement("p");
   authority.textContent=
@@ -112,6 +113,7 @@ export function createWarehousePage(
     {id:"warehouse-offline",label:"Offline / Scan",panel:panel([boundary("Aynı client_operation_id retry idempotent; stale conflict sessiz overwrite edilmez."),offlinePanel,offlineGrid.element])}
   ]);
 
+  if(initialTabId) tabs.activate(initialTabId);
   root.append(h,authority,status,tabs.element);
   queueMicrotask(()=>{void refreshAll();});
   return root;

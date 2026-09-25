@@ -54,13 +54,14 @@ interface InvoiceItem extends DocumentItem {}
 
 export function createSalesPage(
   api: SalesApi,
-  operationKey: () => string = () => crypto.randomUUID()): HTMLElement
+  operationKey: () => string = () => crypto.randomUUID(),
+  initialTabId?: string): HTMLElement
 {
   const root = document.createElement("section");
   root.className = "mars-foundation-panel mars-component-stack";
 
   const heading = document.createElement("h1");
-  heading.textContent = "Sales";
+  heading.textContent = "Satış Yönetimi";
 
   const authority = document.createElement("p");
   authority.textContent =
@@ -203,13 +204,14 @@ export function createSalesPage(
   ]);
 
   const tabs = createTabs([
-    { id: "sales-quotes", label: "Quotes", panel: quotePanel },
-    { id: "sales-orders", label: "Orders / Reservations", panel: orderPanel },
-    { id: "sales-dispatches", label: "Dispatch", panel: dispatchPanel },
-    { id: "sales-invoices", label: "Invoice DRAFT", panel: invoicePanel },
-    { id: "sales-proformas", label: "Proforma", panel: proformaPanel }
+    { id: "sales-quotes", label: "Teklifler", panel: quotePanel },
+    { id: "sales-orders", label: "Satış Siparişleri / Rezervasyon", panel: orderPanel },
+    { id: "sales-dispatches", label: "Sevkiyat / İrsaliye", panel: dispatchPanel },
+    { id: "sales-invoices", label: "Satış Faturaları", panel: invoicePanel },
+    { id: "sales-proformas", label: "Proforma Faturalar", panel: proformaPanel }
   ]);
 
+  if (initialTabId) tabs.activate(initialTabId);
   root.append(heading, authority, status, tabs.element);
   queueMicrotask(() => { void refreshAll(); });
   return root;

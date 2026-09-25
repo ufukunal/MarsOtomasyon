@@ -1,8 +1,8 @@
-export interface V38NavigationItem { key: string; label: string; path: string | null; }
-export interface V38NavigationGroup { key: string; label: string; icon: string; items: readonly V38NavigationItem[]; }
-export const V38_REFERENCE_SCREEN_COUNT = 260;
-export const V38_MENU_ITEM_COUNT = 178;
-export const V38_MENU: readonly V38NavigationGroup[] = [
+export interface V38NavigationItem { key:string; label:string; path:string|null; }
+export interface V38NavigationGroup { key:string; label:string; icon:string; items:readonly V38NavigationItem[]; }
+export const V38_REFERENCE_SCREEN_COUNT=260;
+export const V38_MENU_ITEM_COUNT=178;
+export const V38_MENU:readonly V38NavigationGroup[]=[
   {
     "key": "home",
     "label": "Ana Sayfa",
@@ -90,7 +90,7 @@ export const V38_MENU: readonly V38NavigationGroup[] = [
       {
         "key": "product_new",
         "label": "Yeni Ürün",
-        "path": "/products"
+        "path": "/products/new"
       },
       {
         "key": "categories",
@@ -157,47 +157,47 @@ export const V38_MENU: readonly V38NavigationGroup[] = [
       {
         "key": "quote_list",
         "label": "Teklifler",
-        "path": "/sales"
+        "path": "/sales/quotes"
       },
       {
         "key": "quote_new",
         "label": "Yeni Teklif",
-        "path": "/sales"
+        "path": "/sales/quotes/new"
       },
       {
         "key": "sales_order_list",
         "label": "Satış Siparişleri",
-        "path": "/sales"
+        "path": "/sales/orders"
       },
       {
         "key": "sales_order_new",
         "label": "Yeni Satış Siparişi",
-        "path": "/sales"
+        "path": "/sales/orders/new"
       },
       {
         "key": "dispatch_list",
         "label": "Sevkiyat / İrsaliye",
-        "path": "/sales"
+        "path": "/sales/dispatches"
       },
       {
         "key": "dispatch_new",
         "label": "Yeni Sevkiyat",
-        "path": "/sales"
+        "path": "/sales/dispatches/new"
       },
       {
         "key": "sales_invoice_list",
         "label": "Satış Faturaları",
-        "path": "/sales"
+        "path": "/sales/invoices"
       },
       {
         "key": "sales_invoice_new",
         "label": "Yeni Satış Faturası",
-        "path": "/sales"
+        "path": "/sales/invoices/new"
       },
       {
         "key": "proforma_list",
         "label": "Proforma Faturalar",
-        "path": "/sales"
+        "path": "/sales/proformas"
       },
       {
         "key": "sales_returns",
@@ -219,37 +219,37 @@ export const V38_MENU: readonly V38NavigationGroup[] = [
       {
         "key": "purchase_order_list",
         "label": "Satınalma Siparişleri",
-        "path": "/purchasing"
+        "path": "/purchasing/orders"
       },
       {
         "key": "purchase_order_new",
         "label": "Yeni Satınalma Siparişi",
-        "path": "/purchasing"
+        "path": "/purchasing/orders/new"
       },
       {
         "key": "goods_receipt_list",
         "label": "Mal Kabul",
-        "path": "/purchasing"
+        "path": "/purchasing/receipts"
       },
       {
         "key": "goods_receipt_new",
         "label": "Yeni Mal Kabul",
-        "path": "/purchasing"
+        "path": "/purchasing/receipts/new"
       },
       {
         "key": "supplier_invoice_list",
         "label": "Alış Faturaları",
-        "path": "/purchasing"
+        "path": "/purchasing/invoices"
       },
       {
         "key": "supplier_invoice_new",
         "label": "Yeni Alış Faturası",
-        "path": "/purchasing"
+        "path": "/purchasing/invoices/new"
       },
       {
         "key": "three_way_match",
         "label": "3-Way Match",
-        "path": "/purchasing"
+        "path": "/purchasing/match"
       },
       {
         "key": "purchase_returns",
@@ -276,57 +276,57 @@ export const V38_MENU: readonly V38NavigationGroup[] = [
       {
         "key": "stock_status",
         "label": "Stok Durumu",
-        "path": "/inventory"
+        "path": "/inventory/stock"
       },
       {
         "key": "stock_movements",
         "label": "Stok Hareketleri",
-        "path": "/inventory"
+        "path": "/inventory/movements"
       },
       {
         "key": "warehouses",
         "label": "Depolar",
-        "path": "/inventory"
+        "path": "/inventory/warehouses"
       },
       {
         "key": "locations",
         "label": "Lokasyonlar",
-        "path": "/inventory"
+        "path": "/inventory/locations"
       },
       {
         "key": "reservations",
         "label": "Rezervasyonlar",
-        "path": "/inventory"
+        "path": "/inventory/reservations"
       },
       {
         "key": "transfer_list",
         "label": "Depo Transferleri",
-        "path": "/warehouse"
+        "path": "/warehouse/transfers"
       },
       {
         "key": "transfer_new",
         "label": "Yeni Depo Transferi",
-        "path": "/warehouse"
+        "path": "/warehouse/transfers/new"
       },
       {
         "key": "count_list",
         "label": "Stok Sayımları",
-        "path": "/warehouse"
+        "path": "/warehouse/counts"
       },
       {
         "key": "count_new",
         "label": "Yeni Stok Sayımı",
-        "path": "/warehouse"
+        "path": "/warehouse/counts/new"
       },
       {
         "key": "lots_serials",
         "label": "Lot / Seri",
-        "path": "/inventory"
+        "path": "/inventory/movements"
       },
       {
         "key": "quarantine",
         "label": "Karantina / Bloke",
-        "path": "/warehouse"
+        "path": "/warehouse/quarantine"
       },
       {
         "key": "inventory_cost",
@@ -336,7 +336,7 @@ export const V38_MENU: readonly V38NavigationGroup[] = [
       {
         "key": "scan_console",
         "label": "Barkod / Scan Console",
-        "path": "/warehouse"
+        "path": "/warehouse/scan"
       }
     ]
   },
@@ -1013,22 +1013,5 @@ export const V38_MENU: readonly V38NavigationGroup[] = [
     ]
   }
 ] as const;
-
-export function createV38ScreenMapPage(): HTMLElement {
-  const root=document.createElement("section"); root.className="mars-page mars-component-stack";
-  const head=document.createElement("div"); head.className="mars-page-head";
-  const tw=document.createElement("div"), h=document.createElement("h1"), p=document.createElement("p");
-  h.textContent="Ekran Haritası / UI Onay";
-  p.textContent=`Canonical V38 yüzeyi: ${V38_MENU.length} ana grup, ${V38_MENU_ITEM_COUNT} menü öğesi, ${V38_REFERENCE_SCREEN_COUNT} referans ekran. Uygulanmamış yüzeyler gizlenmez ve uygulanmış gibi gösterilmez.`;
-  tw.append(h,p); head.append(tw);
-  const summary=document.createElement("div"); summary.className="mars-kpi-strip";
-  const implemented=V38_MENU.flatMap(g=>g.items).filter(i=>i.path!==null).length;
-  summary.append(metric("V38 ekran tanımı",String(V38_REFERENCE_SCREEN_COUNT)),metric("Menü öğesi",String(V38_MENU_ITEM_COUNT)),metric("Bağlı production yüzeyi",String(implemented)),metric("Durum","Parity aktif"));
-  const wrap=document.createElement("div"); wrap.className="mars-grid"; const table=document.createElement("table"); table.className="mars-grid__table";
-  const thead=document.createElement("thead"), hr=document.createElement("tr");
-  for(const label of ["Grup","V38 ekran","Production route","Durum"]){const th=document.createElement("th");th.scope="col";th.textContent=label;hr.append(th);} thead.append(hr);
-  const tbody=document.createElement("tbody");
-  for(const group of V38_MENU) for(const item of group.items){const tr=document.createElement("tr");for(const value of [group.label,item.label,item.path??"—"]){const td=document.createElement("td");td.textContent=value;tr.append(td);}const td=document.createElement("td"),badge=document.createElement("span");badge.className=item.path?"mars-status mars-status--ok":"mars-status mars-status--planned";badge.textContent=item.path?"Bağlı":"Planlı";td.append(badge);tr.append(td);tbody.append(tr);}
-  table.append(thead,tbody); wrap.append(table); root.append(head,summary,wrap); return root;
-}
+export function createV38ScreenMapPage():HTMLElement{const root=document.createElement("section");root.className="mars-page mars-component-stack";const head=document.createElement("div");head.className="mars-page-head";const tw=document.createElement("div"),h=document.createElement("h1"),p=document.createElement("p");h.textContent="Ekran Haritası / UI Onay";p.textContent=`Canonical V38 yüzeyi: ${V38_MENU.length} ana grup, ${V38_MENU_ITEM_COUNT} menü öğesi, ${V38_REFERENCE_SCREEN_COUNT} referans ekran. Uygulanmamış yüzeyler gizlenmez ve uygulanmış gibi gösterilmez.`;tw.append(h,p);head.append(tw);const summary=document.createElement("div");summary.className="mars-kpi-strip";const implemented=V38_MENU.flatMap(g=>g.items).filter(i=>i.path!==null).length;summary.append(metric("V38 ekran tanımı",String(V38_REFERENCE_SCREEN_COUNT)),metric("Menü öğesi",String(V38_MENU_ITEM_COUNT)),metric("Bağlı production yüzeyi",String(implemented)),metric("Durum","Parity aktif"));const wrap=document.createElement("div");wrap.className="mars-grid";const table=document.createElement("table");table.className="mars-grid__table";const thead=document.createElement("thead"),hr=document.createElement("tr");for(const label of ["Grup","V38 ekran","Production route","Durum"]){const th=document.createElement("th");th.scope="col";th.textContent=label;hr.append(th);}thead.append(hr);const tbody=document.createElement("tbody");for(const group of V38_MENU)for(const item of group.items){const tr=document.createElement("tr");for(const value of [group.label,item.label,item.path??"—"]){const td=document.createElement("td");td.textContent=value;tr.append(td);}const td=document.createElement("td"),badge=document.createElement("span");badge.className=item.path?"mars-status mars-status--ok":"mars-status mars-status--planned";badge.textContent=item.path?"Bağlı":"Planlı";td.append(badge);tr.append(td);tbody.append(tr);}table.append(thead,tbody);wrap.append(table);root.append(head,summary,wrap);return root;}
 function metric(label:string,value:string):HTMLElement{const c=document.createElement("div");c.className="mars-kpi";const s=document.createElement("small"),b=document.createElement("strong");s.textContent=label;b.textContent=value;c.append(s,b);return c;}
