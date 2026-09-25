@@ -11,6 +11,8 @@ internal sealed class FakeFinanceValuationAuthority(
     public int GoodsReceiptReverseCalls { get; private set; }
     public int DispatchPostCalls { get; private set; }
     public int DispatchReverseCalls { get; private set; }
+    public int SalesInvoicePostCalls { get; private set; }
+    public int SalesInvoiceReverseCalls { get; private set; }
     public int CountPostCalls { get; private set; }
     public int CountReverseCalls { get; private set; }
     public int ScrapPostCalls { get; private set; }
@@ -41,6 +43,20 @@ internal sealed class FakeFinanceValuationAuthority(
         FinanceDispatchReversalCommand command,IExecutionContext context,CancellationToken ct)
     {
         DispatchReverseCalls++;
+        return Success(context);
+    }
+
+    public Task<Result<FinanceMutationReceipt>> PostSalesInvoiceAsync(
+        FinanceSalesInvoicePostCommand command,IExecutionContext context,CancellationToken ct)
+    {
+        SalesInvoicePostCalls++;
+        return Success(context);
+    }
+
+    public Task<Result<FinanceMutationReceipt>> ReverseSalesInvoiceAsync(
+        Guid salesInvoicePublicId,DateOnly postingDate,string operationKey,IExecutionContext context,CancellationToken ct)
+    {
+        SalesInvoiceReverseCalls++;
         return Success(context);
     }
 

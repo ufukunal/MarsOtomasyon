@@ -35,6 +35,8 @@ public static class SalesPermissions
     public const string InvoiceRead = "sales.invoice.read";
     public const string InvoiceCreate = "sales.invoice.create";
     public const string InvoiceEditDraft = "sales.invoice.edit_draft";
+    public const string InvoicePost = "sales.invoice.post";
+    public const string InvoiceReverse = "sales.invoice.reverse";
 
     public const string ProformaRead = "sales.proforma.read";
     public const string ProformaCreate = "sales.proforma.create";
@@ -51,7 +53,7 @@ public static class SalesPermissions
         OrderHold, OrderReleaseHold, OrderCancelRemaining, OrderClose,
         DispatchRead, DispatchCreate, DispatchEditDraft, DispatchPost,
         DispatchHandoff, DispatchReverse,
-        InvoiceRead, InvoiceCreate, InvoiceEditDraft,
+        InvoiceRead, InvoiceCreate, InvoiceEditDraft, InvoicePost, InvoiceReverse,
         ProformaRead, ProformaCreate, ProformaCancel, ProformaExport
     ];
 }

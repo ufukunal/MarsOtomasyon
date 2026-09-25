@@ -458,6 +458,131 @@ public sealed partial class EfSalesPersistence
                 return Result<SalesMutationReceipt>.Success(new(invoice.PublicId,"CANCELLED",invoice.Version,context.CorrelationId.Value));
             },ct);
 
+    public async Task<Result<SalesInvoicePostPlan>> PrepareInvoicePostAsync(
+        Guid id,long expectedVersion,IExecutionContext context,CancellationToken ct)
+    {
+        var invoice=await dbContext.Set<SalesInvoiceRecord>()
+            .FromSqlInterpolated($@"SELECT * FROM sales.sales_invoices WHERE company_id={context.CompanyId} AND public_id={id} FOR UPDATE")
+            .SingleOrDefaultAsync(ct);
+        if(invoice is null)return NotFound<SalesInvoicePostPlan>("sales.invoice.not_found","Sales Invoice was not found.");
+        if(invoice.Version!=expectedVersion)return Conflict<SalesInvoicePostPlan>("sales.invoice.stale","Sales Invoice version is stale.",true);
+        if(invoice.State!=SalesInvoiceState.Draft)return Business<SalesInvoicePostPlan>("sales.invoice.state","Only DRAFT Sales Invoice can be POSTED.");
+        if(!string.Equals(invoice.CurrencyCode,"TRY",StringComparison.Ordinal))
+            return Business<SalesInvoicePostPlan>("sales.invoice.currency_policy","Authoritative Sales Invoice POST is TRY-only.");
+
+        var customer=await dbContext.Set<PartyRecord>().AsNoTracking()
+            .SingleAsync(x=>x.CompanyId==context.CompanyId&&x.Id==invoice.CustomerPartyId,ct);
+        var lines=await dbContext.Set<SalesInvoiceLineRecord>().AsNoTracking()
+            .Where(x=>x.CompanyId==context.CompanyId&&x.SalesInvoiceId==invoice.Id)
+            .OrderBy(x=>x.Sequence).ToArrayAsync(ct);
+        if(lines.Length==0)return Business<SalesInvoicePostPlan>("sales.invoice.lines","Sales Invoice has no lines.");
+        var lineIds=lines.Select(x=>x.Id).ToArray();
+        var links=await dbContext.Set<SalesInvoiceSourceLinkRecord>().AsNoTracking()
+            .Where(x=>x.CompanyId==context.CompanyId&&lineIds.Contains(x.SalesInvoiceLineId)).ToArrayAsync(ct);
+        if(links.Length!=lines.Length)return Conflict<SalesInvoicePostPlan>("sales.invoice.source_snapshot","Invoice source snapshot is incomplete.");
+
+        foreach(var group in links.Where(x=>x.SourceMode!=SalesInvoiceSourceMode.Direct)
+                     .GroupBy(x=>new{x.SourceMode,x.SourceDocumentPublicId,x.SourceLinePublicId,x.SourceVersion}))
+        {
+            if(!group.Key.SourceDocumentPublicId.HasValue||!group.Key.SourceLinePublicId.HasValue)
+                return Business<SalesInvoicePostPlan>("sales.invoice.source.required","Sourced Invoice requires exact source document and line.");
+
+            decimal sourceQuantity;
+            if(group.Key.SourceMode==SalesInvoiceSourceMode.Dispatch)
+            {
+                var dispatch=await dbContext.Set<DispatchRecord>()
+                    .FromSqlInterpolated($@"SELECT * FROM sales.dispatches WHERE company_id={context.CompanyId} AND public_id={group.Key.SourceDocumentPublicId.Value} FOR UPDATE")
+                    .SingleOrDefaultAsync(ct);
+                if(dispatch is null||dispatch.State is not (DispatchState.Posted or DispatchState.HandedOver or DispatchState.Delivered))
+                    return Business<SalesInvoicePostPlan>("sales.invoice.dispatch_source","Dispatch source must remain physically posted and unreversed.");
+                if(await dbContext.Set<DispatchRecord>().AsNoTracking().AnyAsync(
+                    x=>x.CompanyId==context.CompanyId&&x.ReversalOfDispatchId==dispatch.Id&&x.State==DispatchState.Reversed,ct))
+                    return Business<SalesInvoicePostPlan>("sales.invoice.dispatch_reversed","Reversed Dispatch cannot be invoiced.");
+                var sourceLine=await dbContext.Set<DispatchLineRecord>().AsNoTracking()
+                    .SingleOrDefaultAsync(x=>x.CompanyId==context.CompanyId&&x.DispatchId==dispatch.Id&&x.PublicId==group.Key.SourceLinePublicId.Value,ct);
+                if(sourceLine is null)return NotFound<SalesInvoicePostPlan>("sales.invoice.source_line","Dispatch source line was not found.");
+                sourceQuantity=sourceLine.Quantity;
+            }
+            else
+            {
+                var order=await dbContext.Set<SalesOrderRecord>()
+                    .FromSqlInterpolated($@"SELECT * FROM sales.sales_orders WHERE company_id={context.CompanyId} AND public_id={group.Key.SourceDocumentPublicId.Value} FOR UPDATE")
+                    .SingleOrDefaultAsync(ct);
+                if(order is null)return NotFound<SalesInvoicePostPlan>("sales.invoice.order_source","Order source was not found.");
+                if(group.Key.SourceVersion.HasValue&&group.Key.SourceVersion.Value!=order.CurrentVersionNumber)
+                    return Conflict<SalesInvoicePostPlan>("sales.invoice.order_version","Invoice source Order version is no longer current.",true);
+                var ov=await dbContext.Set<SalesOrderVersionRecord>().AsNoTracking()
+                    .SingleAsync(x=>x.CompanyId==context.CompanyId&&x.SalesOrderId==order.Id&&x.VersionNumber==order.CurrentVersionNumber,ct);
+                var sourceLine=await dbContext.Set<SalesOrderLineRecord>().AsNoTracking()
+                    .SingleOrDefaultAsync(x=>x.CompanyId==context.CompanyId&&x.SalesOrderVersionId==ov.Id&&x.LinePublicId==group.Key.SourceLinePublicId.Value,ct);
+                if(sourceLine is null)return NotFound<SalesInvoicePostPlan>("sales.invoice.source_line","Order source line was not found.");
+                sourceQuantity=sourceLine.Quantity;
+            }
+
+            var otherUsed=await (
+                from link in dbContext.Set<SalesInvoiceSourceLinkRecord>().AsNoTracking()
+                join invoiceLine in dbContext.Set<SalesInvoiceLineRecord>().AsNoTracking() on link.SalesInvoiceLineId equals invoiceLine.Id
+                join other in dbContext.Set<SalesInvoiceRecord>().AsNoTracking() on invoiceLine.SalesInvoiceId equals other.Id
+                where link.CompanyId==context.CompanyId&&other.CompanyId==context.CompanyId&&other.PublicId!=invoice.PublicId&&
+                      (other.State==SalesInvoiceState.Draft||other.State==SalesInvoiceState.Posted)&&
+                      link.SourceMode==group.Key.SourceMode&&link.SourceDocumentPublicId==group.Key.SourceDocumentPublicId&&
+                      link.SourceLinePublicId==group.Key.SourceLinePublicId
+                select (decimal?)link.Quantity).SumAsync(ct)??0m;
+            if(otherUsed+group.Sum(x=>x.Quantity)>sourceQuantity)
+                return Business<SalesInvoicePostPlan>("sales.invoice.source_cap","Active DRAFT/POSTED Invoice quantity exceeds source quantity.");
+        }
+
+        var linkByLine=links.ToDictionary(x=>x.SalesInvoiceLineId);
+        return Result<SalesInvoicePostPlan>.Success(new(
+            invoice.PublicId,customer.PublicId,invoice.CurrencyCode,invoice.DocumentDate,invoice.DueDate,invoice.GrossTotal,invoice.Version,
+            lines.Select(line=>{
+                var link=linkByLine[line.Id];
+                return new SalesInvoicePostLinePlan(
+                    line.PublicId,line.Quantity,line.ConversionFactorSnapshot,link.SourceMode,
+                    link.SourceDocumentPublicId,link.SourceLinePublicId);
+            }).ToArray()));
+    }
+
+    public Task<Result<SalesMutationReceipt>> CompleteInvoicePostAsync(
+        Guid id,string key,IExecutionContext context,CancellationToken ct) =>
+        MutateAsync("sales.invoice.post",key,"InvoicePosted","SalesInvoice","sales.invoice.post.completed",context,
+            async innerCt=>{
+                var invoice=await dbContext.Set<SalesInvoiceRecord>().SingleOrDefaultAsync(
+                    x=>x.CompanyId==context.CompanyId&&x.PublicId==id,innerCt);
+                if(invoice is null)return NotFound<SalesMutationReceipt>("sales.invoice.not_found","Sales Invoice was not found.");
+                if(invoice.State!=SalesInvoiceState.Draft)return Business<SalesMutationReceipt>("sales.invoice.state","Only DRAFT Sales Invoice can be POSTED.");
+                invoice.State=SalesInvoiceState.Posted;invoice.Version++;
+                return Result<SalesMutationReceipt>.Success(new(invoice.PublicId,"POSTED",invoice.Version,context.CorrelationId.Value));
+            },ct);
+
+    public async Task<Result<SalesInvoicePostPlan>> PrepareInvoiceReverseAsync(
+        Guid id,long expectedVersion,IExecutionContext context,CancellationToken ct)
+    {
+        var invoice=await dbContext.Set<SalesInvoiceRecord>()
+            .FromSqlInterpolated($@"SELECT * FROM sales.sales_invoices WHERE company_id={context.CompanyId} AND public_id={id} FOR UPDATE")
+            .SingleOrDefaultAsync(ct);
+        if(invoice is null)return NotFound<SalesInvoicePostPlan>("sales.invoice.not_found","Sales Invoice was not found.");
+        if(invoice.Version!=expectedVersion)return Conflict<SalesInvoicePostPlan>("sales.invoice.stale","Sales Invoice version is stale.",true);
+        if(invoice.State!=SalesInvoiceState.Posted)return Business<SalesInvoicePostPlan>("sales.invoice.reverse_state","Only POSTED Sales Invoice can be REVERSED.");
+        var customer=await dbContext.Set<PartyRecord>().AsNoTracking()
+            .SingleAsync(x=>x.CompanyId==context.CompanyId&&x.Id==invoice.CustomerPartyId,ct);
+        return Result<SalesInvoicePostPlan>.Success(new(
+            invoice.PublicId,customer.PublicId,invoice.CurrencyCode,invoice.DocumentDate,invoice.DueDate,invoice.GrossTotal,invoice.Version,
+            Array.Empty<SalesInvoicePostLinePlan>()));
+    }
+
+    public Task<Result<SalesMutationReceipt>> CompleteInvoiceReverseAsync(
+        Guid id,string key,IExecutionContext context,CancellationToken ct) =>
+        MutateAsync("sales.invoice.reverse",key,"InvoiceReversed","SalesInvoice","sales.invoice.reverse.completed",context,
+            async innerCt=>{
+                var invoice=await dbContext.Set<SalesInvoiceRecord>().SingleOrDefaultAsync(
+                    x=>x.CompanyId==context.CompanyId&&x.PublicId==id,innerCt);
+                if(invoice is null)return NotFound<SalesMutationReceipt>("sales.invoice.not_found","Sales Invoice was not found.");
+                if(invoice.State!=SalesInvoiceState.Posted)return Business<SalesMutationReceipt>("sales.invoice.reverse_state","Only POSTED Sales Invoice can be REVERSED.");
+                invoice.State=SalesInvoiceState.Reversed;invoice.Version++;
+                return Result<SalesMutationReceipt>.Success(new(invoice.PublicId,"REVERSED",invoice.Version,context.CorrelationId.Value));
+            },ct);
+
     private async Task<Result<SalesMutationReceipt>> BuildInvoiceAsync(
         Guid? existingId,long expectedVersion,CreateInvoiceDraftCommand command,IExecutionContext context,CancellationToken ct)
     {
@@ -595,7 +720,7 @@ public sealed partial class EfSalesPersistence
             from link in dbContext.Set<SalesInvoiceSourceLinkRecord>().AsNoTracking()
             join invoiceLine in dbContext.Set<SalesInvoiceLineRecord>().AsNoTracking() on link.SalesInvoiceLineId equals invoiceLine.Id
             join invoice in dbContext.Set<SalesInvoiceRecord>().AsNoTracking() on invoiceLine.SalesInvoiceId equals invoice.Id
-            where link.CompanyId==companyId&&invoice.CompanyId==companyId&&invoice.State==SalesInvoiceState.Draft&&
+            where link.CompanyId==companyId&&invoice.CompanyId==companyId&&(invoice.State==SalesInvoiceState.Draft||invoice.State==SalesInvoiceState.Posted)&&
                   (!excludeInvoicePublicId.HasValue || invoice.PublicId!=excludeInvoicePublicId.Value)&&
                   link.SourceMode==mode&&link.SourceDocumentPublicId==input.SourceDocumentPublicId&&link.SourceLinePublicId==input.SourceLinePublicId
             select (decimal?)link.Quantity).SumAsync(ct)??0m;

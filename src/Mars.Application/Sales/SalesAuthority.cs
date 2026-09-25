@@ -230,6 +230,24 @@ public sealed record SalesAmendmentActivationPlan(
     SalesApprovalTarget ApprovalTarget,
     IReadOnlyList<SalesReservationReleaseInstruction> ReservationReleases);
 
+public sealed record SalesInvoicePostLinePlan(
+    Guid SalesInvoiceLinePublicId,
+    decimal Quantity,
+    decimal ConversionFactorSnapshot,
+    SalesInvoiceSourceMode SourceMode,
+    Guid? SourceDocumentPublicId,
+    Guid? SourceLinePublicId);
+
+public sealed record SalesInvoicePostPlan(
+    Guid SalesInvoicePublicId,
+    Guid CustomerPartyPublicId,
+    string CurrencyCode,
+    DateOnly DocumentDate,
+    DateOnly DueDate,
+    decimal GrossTotal,
+    long Version,
+    IReadOnlyList<SalesInvoicePostLinePlan> Lines);
+
 public sealed record SalesDispatchPostLinePlan(
     Guid DispatchLinePublicId,
     Guid PhysicalSourcePublicId,
@@ -338,6 +356,10 @@ public interface ISalesPersistence
     Task<Result<SalesMutationReceipt>> CreateInvoiceDraftAsync(CreateInvoiceDraftCommand command, IExecutionContext context, CancellationToken ct);
     Task<Result<SalesMutationReceipt>> ReplaceInvoiceDraftAsync(Guid invoicePublicId, long expectedVersion, CreateInvoiceDraftCommand command, IExecutionContext context, CancellationToken ct);
     Task<Result<SalesMutationReceipt>> CancelInvoiceDraftAsync(Guid invoicePublicId, long expectedVersion, string reason, string operationKey, IExecutionContext context, CancellationToken ct);
+    Task<Result<SalesInvoicePostPlan>> PrepareInvoicePostAsync(Guid invoicePublicId, long expectedVersion, IExecutionContext context, CancellationToken ct);
+    Task<Result<SalesMutationReceipt>> CompleteInvoicePostAsync(Guid invoicePublicId, string operationKey, IExecutionContext context, CancellationToken ct);
+    Task<Result<SalesInvoicePostPlan>> PrepareInvoiceReverseAsync(Guid invoicePublicId, long expectedVersion, IExecutionContext context, CancellationToken ct);
+    Task<Result<SalesMutationReceipt>> CompleteInvoiceReverseAsync(Guid invoicePublicId, string operationKey, IExecutionContext context, CancellationToken ct);
 }
 
 public sealed class SalesQueryHandler(
@@ -709,6 +731,47 @@ public sealed class SalesCommandHandler(
 
     public Task<Result<SalesMutationReceipt>> CancelInvoiceDraftAsync(Guid id,long version,string reason,string key,IExecutionContext context,CancellationToken ct) =>
         WithPermission(SalesPermissions.InvoiceEditDraft,()=>persistence.CancelInvoiceDraftAsync(id,version,reason,key,context,ct),context,ct);
+
+    public async Task<Result<SalesMutationReceipt>> PostInvoiceAsync(
+        Guid id,long version,string key,IExecutionContext context,CancellationToken ct)
+    {
+        if(!await Granted(SalesPermissions.InvoicePost,context,ct))return Denied<SalesMutationReceipt>();
+        return await transactions.ExecuteAsync(async innerCt=>{
+            var plan=await persistence.PrepareInvoicePostAsync(id,version,context,innerCt);
+            if(plan.IsFailure)return Result<SalesMutationReceipt>.Failure(plan.Error!);
+            if(!string.Equals(plan.Value!.CurrencyCode,"TRY",StringComparison.Ordinal))
+                return Result<SalesMutationReceipt>.Failure(new ApplicationError(
+                    ErrorCategory.BusinessRule,"sales.invoice.currency_policy",
+                    "Authoritative Sales Invoice POST is TRY-only until Finance base-currency/FX authority exists."));
+            var financeResult=await finance.PostSalesInvoiceAsync(
+                new FinanceSalesInvoicePostCommand(
+                    plan.Value.SalesInvoicePublicId,plan.Value.CustomerPartyPublicId,plan.Value.CurrencyCode,
+                    plan.Value.GrossTotal,plan.Value.DocumentDate,plan.Value.DueDate,
+                    DateOnly.FromDateTime(DateTime.UtcNow),
+                    plan.Value.Lines.Where(x=>x.SourceMode==SalesInvoiceSourceMode.Dispatch)
+                        .Select(x=>new FinanceSalesInvoiceCogsLine(
+                            x.SalesInvoiceLinePublicId,x.SourceDocumentPublicId!.Value,x.SourceLinePublicId!.Value,
+                            x.Quantity*x.ConversionFactorSnapshot)).ToArray(),
+                    DerivedKey(key,"finance")),
+                context,innerCt);
+            if(financeResult.IsFailure)return Result<SalesMutationReceipt>.Failure(financeResult.Error!);
+            return await persistence.CompleteInvoicePostAsync(id,key,context,innerCt);
+        },ct);
+    }
+
+    public async Task<Result<SalesMutationReceipt>> ReverseInvoiceAsync(
+        Guid id,long version,string key,IExecutionContext context,CancellationToken ct)
+    {
+        if(!await Granted(SalesPermissions.InvoiceReverse,context,ct))return Denied<SalesMutationReceipt>();
+        return await transactions.ExecuteAsync(async innerCt=>{
+            var plan=await persistence.PrepareInvoiceReverseAsync(id,version,context,innerCt);
+            if(plan.IsFailure)return Result<SalesMutationReceipt>.Failure(plan.Error!);
+            var financeResult=await finance.ReverseSalesInvoiceAsync(
+                plan.Value!.SalesInvoicePublicId,DateOnly.FromDateTime(DateTime.UtcNow),DerivedKey(key,"finance"),context,innerCt);
+            if(financeResult.IsFailure)return Result<SalesMutationReceipt>.Failure(financeResult.Error!);
+            return await persistence.CompleteInvoiceReverseAsync(id,key,context,innerCt);
+        },ct);
+    }
 
     private async Task<Result<InventoryReservationReceipt>> ChangeReservation(
         ChangeSalesReservationCommand command,bool increase,string permission,IExecutionContext context,CancellationToken ct)

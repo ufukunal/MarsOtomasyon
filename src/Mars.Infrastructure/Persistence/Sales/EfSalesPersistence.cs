@@ -476,8 +476,13 @@ public sealed partial class EfSalesPersistence(
         _ => "CANCELLED"
     };
 
-    private static string InvoiceStateCode(SalesInvoiceState state) =>
-        state == SalesInvoiceState.Draft ? "DRAFT" : "CANCELLED";
+    private static string InvoiceStateCode(SalesInvoiceState state) => state switch
+    {
+        SalesInvoiceState.Draft => "DRAFT",
+        SalesInvoiceState.Posted => "POSTED",
+        SalesInvoiceState.Reversed => "REVERSED",
+        _ => "CANCELLED"
+    };
 }
 
 public sealed class EfSalesTransactionCoordinator(MarsDbContext dbContext) : ISalesTransactionCoordinator

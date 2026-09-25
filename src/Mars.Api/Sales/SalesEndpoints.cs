@@ -127,6 +127,10 @@ public static class SalesEndpoints
             Map(await h.ReplaceInvoiceDraftAsync(id,r.Version,Invoice(r,Key(http)),c,ct),c)).WithName("ReplaceSalesInvoiceDraft");
         sales.MapPost("/invoices/{id:guid}/cancel", async (Guid id,ReasonVersionRequest r,HttpRequest http,IExecutionContext c,SalesCommandHandler h,CancellationToken ct)=>
             Map(await h.CancelInvoiceDraftAsync(id,r.Version,r.Reason,Key(http),c,ct),c)).WithName("CancelSalesInvoiceDraft");
+        sales.MapPost("/invoices/{id:guid}/post", async (Guid id,VersionRequest r,HttpRequest http,IExecutionContext c,SalesCommandHandler h,CancellationToken ct)=>
+            Map(await h.PostInvoiceAsync(id,r.Version,Key(http),c,ct),c)).WithName("PostSalesInvoice");
+        sales.MapPost("/invoices/{id:guid}/reverse", async (Guid id,VersionRequest r,HttpRequest http,IExecutionContext c,SalesCommandHandler h,CancellationToken ct)=>
+            Map(await h.ReverseInvoiceAsync(id,r.Version,Key(http),c,ct),c)).WithName("ReverseSalesInvoice");
     }
 
     private static SalesTradeLineInput Line(SalesTradeLineRequest x) =>

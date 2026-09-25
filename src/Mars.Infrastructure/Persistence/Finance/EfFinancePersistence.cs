@@ -489,9 +489,10 @@ public sealed class EfFinancePersistence(
                 .Where(x=>x.CompanyId==c.CompanyId&&x.TransactionId==original.Id&&x.ReversalOfBridgeEntryId==null)
                 .OrderBy(x=>x.Id).ToArrayAsync(innerCt);
             var bridgeIds=bridges.Select(x=>x.Id).ToArray();
-            if(await dbContext.Set<DispatchCostBridgeConsumptionRecord>().AsNoTracking()
-                .AnyAsync(x=>x.CompanyId==c.CompanyId&&bridgeIds.Contains(x.BridgeEntryId)&&x.ReversalOfConsumptionId==null,innerCt))
-                return Business("finance.dispatch.reverse.cogs_consumed","Dispatch cost bridge has already been consumed by Sales Invoice COGS.");
+            var bridgeConsumptions=await dbContext.Set<DispatchCostBridgeConsumptionRecord>().AsNoTracking()
+                .Where(x=>x.CompanyId==c.CompanyId&&bridgeIds.Contains(x.BridgeEntryId)).ToArrayAsync(innerCt);
+            if(bridgeConsumptions.GroupBy(x=>x.BridgeEntryId).Any(g=>g.Sum(x=>x.BaseQuantity)>0m))
+                return Business("finance.dispatch.reverse.cogs_consumed","Dispatch cost bridge has net Sales Invoice COGS consumption.");
 
             var movementMap=command.Lines.ToDictionary(x=>x.OriginalInventoryMovementPublicId,x=>x.ReversalInventoryMovementPublicId);
             if(bridges.Any(x=>!movementMap.ContainsKey(x.InventoryMovementPublicId))||
@@ -532,6 +533,129 @@ public sealed class EfFinancePersistence(
             original.ReversedAt=now;
             original.Version++;
             return Success(tx.PublicId,"POSTED",1,c);
+        },ct);
+
+    public Task<Result<FinanceMutationReceipt>> PostSalesInvoiceAsync(
+        FinanceSalesInvoicePostCommand command,IExecutionContext c,CancellationToken ct) =>
+        Mutate("finance.sales_invoice.post",command.OperationKey,"SalesInvoicePosted","SalesInvoice",c,async innerCt=>{
+            if(command.SalesInvoicePublicId==Guid.Empty||command.CustomerPartyPublicId==Guid.Empty||
+               command.GrossAmount<0m||command.DueDate<command.DocumentDate||!ValidTry(command.CurrencyCode)||
+               command.DispatchLines.Any(x=>x.SalesInvoiceLinePublicId==Guid.Empty||x.DispatchPublicId==Guid.Empty||
+                   x.DispatchLinePublicId==Guid.Empty||x.BaseQuantity<=0m))
+                return Validation("finance.sales_invoice.invalid","Sales Invoice Finance posting snapshot is invalid.");
+
+            var gate=await GatePeriod(c.CompanyId,command.PostingDate,innerCt);
+            if(gate is not null)return Result<FinanceMutationReceipt>.Failure(gate);
+            if(await SourceTransactionExists(c.CompanyId,FinanceTransactionKind.SalesInvoice,command.SalesInvoicePublicId,innerCt))
+                return Conflict("finance.sales_invoice.duplicate","Sales Invoice financial effects are already posted.");
+
+            var customer=await ResolveParty(c.CompanyId,command.CustomerPartyPublicId,PartyRoleType.Customer,innerCt);
+            if(customer is null)return Business("finance.customer.not_eligible","Customer must be ACTIVE with an ACTIVE CUSTOMER role.");
+
+            var amount=FinanceAmount.RoundTry(command.GrossAmount);
+            var tx=NewTransaction(c,FinanceTransactionKind.SalesInvoice,amount,command.DocumentDate,command.PostingDate,
+                customer.Id,FinancePartyRole.Customer,"Sales","SalesInvoice",command.SalesInvoicePublicId,null);
+            dbContext.Add(tx);
+            await dbContext.SaveChangesAsync(innerCt);
+            var now=DateTimeOffset.UtcNow;
+            if(amount>0m)
+                AddAccountEntry(tx.Id,c.CompanyId,customer.Id,FinancePartyRole.Customer,FinanceLedgerDirection.Debit,amount,command.DueDate,now);
+
+            foreach(var line in command.DispatchLines)
+            {
+                var bridges=await dbContext.Set<DispatchCostBridgeEntryRecord>().AsNoTracking()
+                    .Where(x=>x.CompanyId==c.CompanyId&&x.DispatchPublicId==line.DispatchPublicId&&
+                        x.DispatchLinePublicId==line.DispatchLinePublicId&&x.ReversalOfBridgeEntryId==null)
+                    .OrderBy(x=>x.Id).ToArrayAsync(innerCt);
+                if(bridges.Length==0)
+                    return Business("finance.sales_invoice.bridge_missing","Dispatch-sourced Invoice line has no Finance cost bridge.");
+
+                var bridgeIds=bridges.Select(x=>x.Id).ToArray();
+                var prior=await dbContext.Set<DispatchCostBridgeConsumptionRecord>().AsNoTracking()
+                    .Where(x=>x.CompanyId==c.CompanyId&&bridgeIds.Contains(x.BridgeEntryId)).ToArrayAsync(innerCt);
+                var usedQty=prior.GroupBy(x=>x.BridgeEntryId).ToDictionary(g=>g.Key,g=>g.Sum(x=>x.BaseQuantity));
+                var usedValue=prior.GroupBy(x=>x.BridgeEntryId).ToDictionary(g=>g.Key,g=>g.Sum(x=>x.BaseValue));
+                var remaining=line.BaseQuantity;
+
+                foreach(var bridge in bridges)
+                {
+                    var availableQty=bridge.BaseQuantity-usedQty.GetValueOrDefault(bridge.Id);
+                    if(availableQty<=0m)continue;
+                    var take=Math.Min(remaining,availableQty);
+                    if(take<=0m)break;
+                    var availableValue=bridge.BaseValue-usedValue.GetValueOrDefault(bridge.Id);
+                    var value=take==availableQty
+                        ? availableValue
+                        : FinanceAmount.RoundValue(bridge.BaseValue/bridge.BaseQuantity*take);
+                    if(value<0m)return Business("finance.sales_invoice.bridge_value","Dispatch bridge carrying value is inconsistent.");
+
+                    dbContext.Add(new DispatchCostBridgeConsumptionRecord{
+                        PublicId=Guid.NewGuid(),TransactionId=tx.Id,CompanyId=c.CompanyId,BridgeEntryId=bridge.Id,
+                        SalesInvoicePublicId=command.SalesInvoicePublicId,SalesInvoiceLinePublicId=line.SalesInvoiceLinePublicId,
+                        BaseQuantity=take,BaseValue=value,PostedAt=now});
+                    dbContext.Add(new InventoryValuationEntryRecord{
+                        PublicId=Guid.NewGuid(),TransactionId=tx.Id,CompanyId=c.CompanyId,PoolId=bridge.PoolId,
+                        Kind=FinanceValuationKind.SalesInvoiceCogs,InventoryQuantityEffect=0m,InventoryBaseValueEffect=0m,
+                        ExpenseBaseValueEffect=value,UnitBaseValue=take>0m?FinanceAmount.RoundValue(value/take):null,
+                        SourceModule="Sales",SourceEntityType="SalesInvoice",SourceDocumentPublicId=command.SalesInvoicePublicId,
+                        SourceLinePublicId=line.SalesInvoiceLinePublicId,PostedAt=now});
+                    remaining-=take;
+                    if(remaining<=0m)break;
+                }
+
+                if(remaining>0m)
+                    return Business("finance.sales_invoice.bridge_insufficient","Dispatch cost bridge quantity is insufficient for the Invoice line.");
+            }
+
+            return Success(tx.PublicId,"POSTED",1,c);
+        },ct);
+
+    public Task<Result<FinanceMutationReceipt>> ReverseSalesInvoiceAsync(
+        Guid salesInvoicePublicId,DateOnly postingDate,string operationKey,IExecutionContext c,CancellationToken ct) =>
+        Mutate("finance.sales_invoice.reverse",operationKey,"SalesInvoiceReversed","SalesInvoice",c,async innerCt=>{
+            var gate=await GatePeriod(c.CompanyId,postingDate,innerCt);
+            if(gate is not null)return Result<FinanceMutationReceipt>.Failure(gate);
+            var original=await dbContext.Set<FinanceTransactionRecord>()
+                .FromSqlInterpolated($@"SELECT * FROM finance.transactions WHERE company_id={c.CompanyId} AND kind='SalesInvoice' AND source_document_public_id={salesInvoicePublicId} FOR UPDATE")
+                .SingleOrDefaultAsync(innerCt);
+            if(original is null)return NotFound("finance.sales_invoice.not_posted","Sales Invoice financial posting was not found.");
+            if(original.State!=FinanceTransactionState.Posted)return Business("finance.sales_invoice.reverse_state","Sales Invoice financial posting is not POSTED.");
+
+            var reversal=NewTransaction(c,FinanceTransactionKind.Reversal,original.Amount,postingDate,postingDate,
+                original.PartyId,original.PartyRole,"Sales","SalesInvoiceReversal",salesInvoicePublicId,null);
+            reversal.ReversalOfTransactionId=original.Id;
+            dbContext.Add(reversal);
+            await dbContext.SaveChangesAsync(innerCt);
+            var now=DateTimeOffset.UtcNow;
+
+            foreach(var e in await dbContext.Set<AccountLedgerEntryRecord>().AsNoTracking()
+                        .Where(x=>x.CompanyId==c.CompanyId&&x.TransactionId==original.Id).ToArrayAsync(innerCt))
+                AddAccountEntry(reversal.Id,c.CompanyId,e.PartyId,e.PartyRole,Opposite(e.Direction),e.Amount,e.DueDate,now);
+
+            var consumptions=await dbContext.Set<DispatchCostBridgeConsumptionRecord>().AsNoTracking()
+                .Where(x=>x.CompanyId==c.CompanyId&&x.TransactionId==original.Id&&x.ReversalOfConsumptionId==null)
+                .ToArrayAsync(innerCt);
+            foreach(var e in consumptions)
+                dbContext.Add(new DispatchCostBridgeConsumptionRecord{
+                    PublicId=Guid.NewGuid(),TransactionId=reversal.Id,CompanyId=c.CompanyId,BridgeEntryId=e.BridgeEntryId,
+                    SalesInvoicePublicId=e.SalesInvoicePublicId,SalesInvoiceLinePublicId=e.SalesInvoiceLinePublicId,
+                    BaseQuantity=-e.BaseQuantity,BaseValue=-e.BaseValue,ReversalOfConsumptionId=e.Id,PostedAt=now});
+
+            var cogs=await dbContext.Set<InventoryValuationEntryRecord>().AsNoTracking()
+                .Where(x=>x.CompanyId==c.CompanyId&&x.TransactionId==original.Id&&x.Kind==FinanceValuationKind.SalesInvoiceCogs)
+                .ToArrayAsync(innerCt);
+            foreach(var e in cogs)
+                dbContext.Add(new InventoryValuationEntryRecord{
+                    PublicId=Guid.NewGuid(),TransactionId=reversal.Id,CompanyId=c.CompanyId,PoolId=e.PoolId,
+                    Kind=FinanceValuationKind.Reversal,InventoryQuantityEffect=0m,InventoryBaseValueEffect=0m,
+                    ExpenseBaseValueEffect=-e.ExpenseBaseValueEffect,UnitBaseValue=e.UnitBaseValue,
+                    SourceModule="Sales",SourceEntityType="SalesInvoiceReversal",SourceDocumentPublicId=salesInvoicePublicId,
+                    SourceLinePublicId=e.SourceLinePublicId,ReversalOfValuationEntryId=e.Id,PostedAt=now});
+
+            original.State=FinanceTransactionState.Reversed;
+            original.ReversedAt=now;
+            original.Version++;
+            return Success(reversal.PublicId,"POSTED",1,c);
         },ct);
 
     public Task<Result<FinanceMutationReceipt>> PostCountAdjustmentAsync(FinanceCountValuationCommand command,IExecutionContext c,CancellationToken ct) =>

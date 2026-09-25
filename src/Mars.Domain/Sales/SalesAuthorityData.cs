@@ -47,7 +47,9 @@ public enum DispatchState
 public enum SalesInvoiceState
 {
     Draft = 1,
-    Cancelled = 2
+    Posted = 2,
+    Reversed = 3,
+    Cancelled = 4
 }
 
 public enum SalesInvoiceSourceMode
