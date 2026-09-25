@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using System.Text;
+using Mars.Application.Finance;
 using Mars.Application.Foundation.Approvals;
 using Mars.Application.Foundation.Authorization;
 using Mars.Application.Foundation.Context;
@@ -503,6 +504,7 @@ public sealed class WarehouseCommandHandler(
     IPermissionEvaluator permissions,
     IWarehouseAccessEvaluator warehouseAccess,
     IInventoryPhysicalAuthority inventory,
+    IFinanceValuationAuthority finance,
     ISalesWarehouseDispatchAuthority salesDispatch,
     IApprovalDecisionAuthority approvals,
     IWarehousePersistence persistence,
@@ -829,18 +831,33 @@ public sealed class WarehouseCommandHandler(
         return await transactions.ExecuteAsync(async innerCt=>{
             var plan=await persistence.GetCountPostPlanAsync(id,c,innerCt);
             if(plan.IsFailure)return Result<WarehouseMutationReceipt>.Failure(plan.Error!);
-            if(plan.Value!.Lines.Any(x=>x.DiscrepancyQuantity>0m))
-                return Invalid("warehouse.count.positive_valuation_required",
-                    "Positive count adjustment requires implemented Finance/Costing valuation authority.");
             var effects=new List<WarehouseInventoryEffect>();
-            foreach(var line in plan.Value.Lines.Where(x=>x.DiscrepancyQuantity<0m)){
+            foreach(var line in plan.Value!.Lines.Where(x=>x.DiscrepancyQuantity!=0m)){
                 var q=Math.Abs(line.DiscrepancyQuantity);
+                var source=line.DiscrepancyQuantity<0m?line.Position:null;
+                var target=line.DiscrepancyQuantity>0m?line.Position:null;
                 var m=await inventory.PostAsync(new InventoryMovementCommand(
                     line.ProductPublicId,line.VariantPublicId,line.UomPublicId,q,line.ConversionFactorSnapshot,
-                    line.Position,null,InventorySourceIdentity.Create("Warehouse","StockCount",id,line.CountLinePublicId),
+                    source,target,InventorySourceIdentity.Create("Warehouse","StockCount",id,line.CountLinePublicId),
                     null,$"{operationKey}:count:{line.CountLinePublicId:D}"),c,innerCt);
                 if(m.IsFailure)return Result<WarehouseMutationReceipt>.Failure(m.Error!);
                 effects.Add(new(line.CountLinePublicId,m.Value!.MovementPublicId,null,false));
+            }
+
+            if(effects.Count>0){
+                var valuation=await finance.PostCountAdjustmentAsync(
+                    new FinanceCountValuationCommand(
+                        id,
+                        DateOnly.FromDateTime(DateTime.UtcNow),
+                        plan.Value.Lines.Where(x=>x.DiscrepancyQuantity!=0m).Select(line=>{
+                            var effect=effects.Single(x=>x.WorkLinePublicId==line.CountLinePublicId);
+                            return new FinanceCountValuationLine(
+                                line.CountLinePublicId,effect.InventoryMovementPublicId,line.ProductPublicId,line.VariantPublicId,
+                                line.UomPublicId,line.DiscrepancyQuantity*line.ConversionFactorSnapshot,null);
+                        }).ToArray(),
+                        operationKey+":finance"),
+                    c,innerCt);
+                if(valuation.IsFailure)return Result<WarehouseMutationReceipt>.Failure(valuation.Error!);
             }
             return await persistence.CompleteCountPostAsync(id,effects,operationKey,c,innerCt);
         },ct);
@@ -872,6 +889,9 @@ public sealed class WarehouseCommandHandler(
                 if(m.IsFailure)return Result<WarehouseMutationReceipt>.Failure(m.Error!);
                 effects.Add(new(line.CountLinePublicId,m.Value!.MovementPublicId,line.OriginalInventoryMovementPublicId,true));
             }
+            var valuation=await finance.ReverseCountAdjustmentAsync(
+                id,DateOnly.FromDateTime(DateTime.UtcNow),operationKey+":finance",c,innerCt);
+            if(valuation.IsFailure)return Result<WarehouseMutationReceipt>.Failure(valuation.Error!);
             return await persistence.CompleteCountReverseAsync(id,effects,operationKey,c,innerCt);
         },ct);
     }
@@ -919,7 +939,13 @@ public sealed class WarehouseCommandHandler(
                 p.Source,null,InventorySourceIdentity.Create("Warehouse","Scrap",p.ScrapPublicId,null),
                 null,operationKey+".inventory"),c,innerCt);
             if(movement.IsFailure)return Result<WarehouseMutationReceipt>.Failure(movement.Error!);
-            return await persistence.CompleteScrapPostAsync(id,movement.Value!.MovementPublicId,operationKey,c,innerCt);
+            var valuation=await finance.PostScrapAsync(
+                new FinanceScrapValuationCommand(
+                    p.ScrapPublicId,movement.Value!.MovementPublicId,p.ProductPublicId,p.VariantPublicId,p.UomPublicId,
+                    p.Quantity*p.ConversionFactorSnapshot,DateOnly.FromDateTime(DateTime.UtcNow),operationKey+":finance"),
+                c,innerCt);
+            if(valuation.IsFailure)return Result<WarehouseMutationReceipt>.Failure(valuation.Error!);
+            return await persistence.CompleteScrapPostAsync(id,movement.Value.MovementPublicId,operationKey,c,innerCt);
         },ct);
     }
 

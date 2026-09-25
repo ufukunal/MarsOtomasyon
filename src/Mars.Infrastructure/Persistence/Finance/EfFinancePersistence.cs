@@ -9,6 +9,7 @@ using Mars.Application.Foundation.Outbox;
 using Mars.Application.Foundation.Results;
 using Mars.Domain.Finance;
 using Mars.Domain.Parties;
+using Mars.Domain.Products;
 using Mars.Infrastructure.Persistence.Parties;
 using Mars.Infrastructure.Persistence.Products;
 using Microsoft.EntityFrameworkCore;
@@ -416,7 +417,7 @@ public sealed class EfFinancePersistence(
                 null,null,"Purchasing","GoodsReceipt",command.GoodsReceiptPublicId,null);
             dbContext.Add(tx);await dbContext.SaveChangesAsync(innerCt);
             foreach(var line in command.Lines){
-                var pool=await GetOrCreatePool(c.CompanyId,line.ProductPublicId,line.VariantPublicId,line.BaseUomPublicId,innerCt);
+                var pool=await GetOrCreatePool(c.CompanyId,line.ProductPublicId,line.VariantPublicId,line.UomPublicId,innerCt);
                 if(pool.IsFailure)return Result<FinanceMutationReceipt>.Failure(pool.Error!);
                 var value=FinanceAmount.RoundValue(line.ProvisionalBaseValue);
                 dbContext.Add(new InventoryValuationEntryRecord{PublicId=Guid.NewGuid(),TransactionId=tx.Id,CompanyId=c.CompanyId,PoolId=pool.Value!.Id,
@@ -441,7 +442,7 @@ public sealed class EfFinancePersistence(
                 return Conflict("finance.valuation.dispatch.duplicate","Dispatch valuation is already posted.");
             var prepared=new List<(FinanceDispatchValuationLine Line,InventoryValuationPoolRecord Pool,decimal Value)>();
             foreach(var line in command.Lines){
-                var pool=await GetExistingPool(c.CompanyId,line.ProductPublicId,line.VariantPublicId,line.BaseUomPublicId,innerCt);
+                var pool=await GetExistingPool(c.CompanyId,line.ProductPublicId,line.VariantPublicId,line.UomPublicId,innerCt);
                 if(pool is null)return Business("finance.valuation.pool_missing","Dispatch cannot value stock without an existing carrying-value pool.");
                 var balance=await PoolBalance(c.CompanyId,pool.Id,innerCt);
                 if(balance.Quantity<=0m||balance.Quantity<line.BaseQuantity||balance.Value<0m)
@@ -466,17 +467,72 @@ public sealed class EfFinancePersistence(
             return Success(tx.PublicId,"POSTED",1,c);
         },ct);
 
-    public async Task<Result<FinanceMutationReceipt>> ReverseDispatchAsync(Guid dispatchPublicId,DateOnly postingDate,string operationKey,IExecutionContext c,CancellationToken ct)
-    {
-        var bridgeIds=await dbContext.Set<DispatchCostBridgeEntryRecord>().AsNoTracking()
-            .Where(x=>x.CompanyId==c.CompanyId&&x.DispatchPublicId==dispatchPublicId&&x.ReversalOfBridgeEntryId==null)
-            .Select(x=>x.Id).ToArrayAsync(ct);
-        if(bridgeIds.Length>0&&await dbContext.Set<DispatchCostBridgeConsumptionRecord>().AsNoTracking()
-            .AnyAsync(x=>x.CompanyId==c.CompanyId&&bridgeIds.Contains(x.BridgeEntryId)&&x.ReversalOfConsumptionId==null,ct))
-            return Business("finance.dispatch.reverse.cogs_consumed","Dispatch cost bridge has already been consumed by Sales Invoice COGS.");
-        return await ReverseValuationSource("finance.valuation.dispatch.reverse",dispatchPublicId,FinanceTransactionKind.DispatchCarryingValue,
-            "Sales","Dispatch",postingDate,operationKey,c,ct,true);
-    }
+    public Task<Result<FinanceMutationReceipt>> ReverseDispatchAsync(
+        FinanceDispatchReversalCommand command,IExecutionContext c,CancellationToken ct) =>
+        Mutate("finance.valuation.dispatch.reverse",command.OperationKey,"DispatchValuationReversed","Dispatch",c,async innerCt=>{
+            if(command.DispatchPublicId==Guid.Empty||command.Lines.Count==0||
+               command.Lines.Any(x=>x.OriginalInventoryMovementPublicId==Guid.Empty||x.ReversalInventoryMovementPublicId==Guid.Empty)||
+               command.Lines.Select(x=>x.OriginalInventoryMovementPublicId).Distinct().Count()!=command.Lines.Count||
+               command.Lines.Select(x=>x.ReversalInventoryMovementPublicId).Distinct().Count()!=command.Lines.Count)
+                return Validation("finance.dispatch.reverse.invalid","Dispatch reversal requires unique original and reversal Inventory movement lineage.");
+
+            var gate=await GatePeriod(c.CompanyId,command.PostingDate,innerCt);
+            if(gate is not null)return Result<FinanceMutationReceipt>.Failure(gate);
+
+            var original=await dbContext.Set<FinanceTransactionRecord>()
+                .FromSqlInterpolated($@"SELECT * FROM finance.transactions WHERE company_id={c.CompanyId} AND kind='DispatchCarryingValue' AND source_document_public_id={command.DispatchPublicId} FOR UPDATE")
+                .SingleOrDefaultAsync(innerCt);
+            if(original is null)return NotFound("finance.valuation.original_not_found","Original Dispatch valuation transaction was not found.");
+            if(original.State!=FinanceTransactionState.Posted)return Business("finance.valuation.reverse_state","Original Dispatch valuation is not POSTED.");
+
+            var bridges=await dbContext.Set<DispatchCostBridgeEntryRecord>().AsNoTracking()
+                .Where(x=>x.CompanyId==c.CompanyId&&x.TransactionId==original.Id&&x.ReversalOfBridgeEntryId==null)
+                .OrderBy(x=>x.Id).ToArrayAsync(innerCt);
+            var bridgeIds=bridges.Select(x=>x.Id).ToArray();
+            if(await dbContext.Set<DispatchCostBridgeConsumptionRecord>().AsNoTracking()
+                .AnyAsync(x=>x.CompanyId==c.CompanyId&&bridgeIds.Contains(x.BridgeEntryId)&&x.ReversalOfConsumptionId==null,innerCt))
+                return Business("finance.dispatch.reverse.cogs_consumed","Dispatch cost bridge has already been consumed by Sales Invoice COGS.");
+
+            var movementMap=command.Lines.ToDictionary(x=>x.OriginalInventoryMovementPublicId,x=>x.ReversalInventoryMovementPublicId);
+            if(bridges.Any(x=>!movementMap.ContainsKey(x.InventoryMovementPublicId))||
+               movementMap.Keys.Any(x=>bridges.All(b=>b.InventoryMovementPublicId!=x)))
+                return Business("finance.dispatch.reverse.lineage","Dispatch reversal movement lineage must exactly cover original Finance bridge effects.");
+
+            var entries=await dbContext.Set<InventoryValuationEntryRecord>().AsNoTracking()
+                .Where(x=>x.CompanyId==c.CompanyId&&x.TransactionId==original.Id).ToArrayAsync(innerCt);
+            var tx=NewTransaction(c,FinanceTransactionKind.Reversal,original.Amount,command.PostingDate,command.PostingDate,
+                null,null,"Sales","DispatchReversal",command.DispatchPublicId,null);
+            tx.ReversalOfTransactionId=original.Id;
+            dbContext.Add(tx);
+            await dbContext.SaveChangesAsync(innerCt);
+            var now=DateTimeOffset.UtcNow;
+
+            foreach(var e in entries)
+            {
+                Guid? reversalMovement=null;
+                if(e.InventoryMovementPublicId.HasValue&&movementMap.TryGetValue(e.InventoryMovementPublicId.Value,out var mapped))
+                    reversalMovement=mapped;
+                dbContext.Add(new InventoryValuationEntryRecord{
+                    PublicId=Guid.NewGuid(),TransactionId=tx.Id,CompanyId=c.CompanyId,PoolId=e.PoolId,
+                    Kind=FinanceValuationKind.Reversal,InventoryQuantityEffect=-e.InventoryQuantityEffect,
+                    InventoryBaseValueEffect=-e.InventoryBaseValueEffect,ExpenseBaseValueEffect=-e.ExpenseBaseValueEffect,
+                    UnitBaseValue=e.UnitBaseValue,InventoryMovementPublicId=reversalMovement,
+                    SourceModule="Sales",SourceEntityType="DispatchReversal",SourceDocumentPublicId=command.DispatchPublicId,
+                    SourceLinePublicId=e.SourceLinePublicId,ReversalOfValuationEntryId=e.Id,PostedAt=now});
+            }
+
+            foreach(var e in bridges)
+                dbContext.Add(new DispatchCostBridgeEntryRecord{
+                    PublicId=Guid.NewGuid(),TransactionId=tx.Id,CompanyId=c.CompanyId,PoolId=e.PoolId,
+                    DispatchPublicId=e.DispatchPublicId,DispatchLinePublicId=e.DispatchLinePublicId,
+                    PhysicalSourcePublicId=e.PhysicalSourcePublicId,InventoryMovementPublicId=movementMap[e.InventoryMovementPublicId],
+                    BaseQuantity=-e.BaseQuantity,BaseValue=-e.BaseValue,ReversalOfBridgeEntryId=e.Id,PostedAt=now});
+
+            original.State=FinanceTransactionState.Reversed;
+            original.ReversedAt=now;
+            original.Version++;
+            return Success(tx.PublicId,"POSTED",1,c);
+        },ct);
 
     public Task<Result<FinanceMutationReceipt>> PostCountAdjustmentAsync(FinanceCountValuationCommand command,IExecutionContext c,CancellationToken ct) =>
         Mutate("finance.valuation.count.post",command.OperationKey,"StockCountValued","StockCount",c,async innerCt=>{
@@ -489,7 +545,7 @@ public sealed class EfFinancePersistence(
             foreach(var line in command.Lines){
                 InventoryValuationPoolRecord? pool;
                 if(line.BaseQuantityEffect>0m){
-                    var existing=await GetExistingPool(c.CompanyId,line.ProductPublicId,line.VariantPublicId,line.BaseUomPublicId,innerCt);
+                    var existing=await GetExistingPool(c.CompanyId,line.ProductPublicId,line.VariantPublicId,line.UomPublicId,innerCt);
                     decimal unit;
                     if(existing is not null){
                         var bal=await PoolBalance(c.CompanyId,existing.Id,innerCt);
@@ -500,13 +556,13 @@ public sealed class EfFinancePersistence(
                             return Business("finance.count.positive_valuation_required","Positive Count requires current moving average or explicit approved unit valuation.");
                         unit=FinanceAmount.RoundValue(line.ExplicitUnitBaseValue.Value);
                     }
-                    var ensured=existing is null?await GetOrCreatePool(c.CompanyId,line.ProductPublicId,line.VariantPublicId,line.BaseUomPublicId,innerCt)
+                    var ensured=existing is null?await GetOrCreatePool(c.CompanyId,line.ProductPublicId,line.VariantPublicId,line.UomPublicId,innerCt)
                         :Result<InventoryValuationPoolRecord>.Success(existing);
                     if(ensured.IsFailure)return Result<FinanceMutationReceipt>.Failure(ensured.Error!);
                     pool=ensured.Value!;
                     prepared.Add((line,pool,FinanceAmount.RoundValue(unit*line.BaseQuantityEffect),unit));
                 }else{
-                    pool=await GetExistingPool(c.CompanyId,line.ProductPublicId,line.VariantPublicId,line.BaseUomPublicId,innerCt);
+                    pool=await GetExistingPool(c.CompanyId,line.ProductPublicId,line.VariantPublicId,line.UomPublicId,innerCt);
                     if(pool is null)return Business("finance.valuation.pool_missing","Negative Count requires existing carrying-value pool.");
                     var bal=await PoolBalance(c.CompanyId,pool.Id,innerCt);
                     var q=Math.Abs(line.BaseQuantityEffect);
@@ -540,7 +596,7 @@ public sealed class EfFinancePersistence(
             var gate=await GatePeriod(c.CompanyId,command.PostingDate,innerCt);if(gate is not null)return Result<FinanceMutationReceipt>.Failure(gate);
             if(await SourceTransactionExists(c.CompanyId,FinanceTransactionKind.ScrapWriteOff,command.ScrapPublicId,innerCt))
                 return Conflict("finance.valuation.scrap.duplicate","Scrap valuation is already posted.");
-            var pool=await GetExistingPool(c.CompanyId,command.ProductPublicId,command.VariantPublicId,command.BaseUomPublicId,innerCt);
+            var pool=await GetExistingPool(c.CompanyId,command.ProductPublicId,command.VariantPublicId,command.UomPublicId,innerCt);
             if(pool is null)return Business("finance.valuation.pool_missing","Scrap requires existing carrying-value pool.");
             var bal=await PoolBalance(c.CompanyId,pool.Id,innerCt);
             if(bal.Quantity<=0m||bal.Quantity<command.BaseQuantity)return Business("finance.valuation.insufficient","Scrap exceeds valued on-hand quantity.");
@@ -562,7 +618,7 @@ public sealed class EfFinancePersistence(
 
     private Task<Result<FinanceMutationReceipt>> ReverseValuationSource(
         string scope,Guid sourceId,FinanceTransactionKind originalKind,string module,string entity,DateOnly postingDate,
-        string operationKey,IExecutionContext c,CancellationToken ct,bool reverseBridge=false) =>
+        string operationKey,IExecutionContext c,CancellationToken ct) =>
         Mutate(scope,operationKey,entity+"ValuationReversed",entity,c,async innerCt=>{
             var gate=await GatePeriod(c.CompanyId,postingDate,innerCt);if(gate is not null)return Result<FinanceMutationReceipt>.Failure(gate);
             var original=await dbContext.Set<FinanceTransactionRecord>()
@@ -579,52 +635,80 @@ public sealed class EfFinancePersistence(
                     Kind=FinanceValuationKind.Reversal,InventoryQuantityEffect=-e.InventoryQuantityEffect,InventoryBaseValueEffect=-e.InventoryBaseValueEffect,
                     ExpenseBaseValueEffect=-e.ExpenseBaseValueEffect,UnitBaseValue=e.UnitBaseValue,SourceModule=module,SourceEntityType=entity+"Reversal",
                     SourceDocumentPublicId=sourceId,SourceLinePublicId=e.SourceLinePublicId,ReversalOfValuationEntryId=e.Id,PostedAt=DateTimeOffset.UtcNow});
-            if(reverseBridge){
-                var bridge=await dbContext.Set<DispatchCostBridgeEntryRecord>().AsNoTracking()
-                    .Where(x=>x.CompanyId==c.CompanyId&&x.TransactionId==original.Id&&x.ReversalOfBridgeEntryId==null).ToArrayAsync(innerCt);
-                foreach(var e in bridge)
-                    dbContext.Add(new DispatchCostBridgeEntryRecord{PublicId=Guid.NewGuid(),TransactionId=tx.Id,CompanyId=c.CompanyId,PoolId=e.PoolId,
-                        DispatchPublicId=e.DispatchPublicId,DispatchLinePublicId=e.DispatchLinePublicId,PhysicalSourcePublicId=e.PhysicalSourcePublicId,
-                        InventoryMovementPublicId=Guid.NewGuid(),BaseQuantity=-e.BaseQuantity,BaseValue=-e.BaseValue,ReversalOfBridgeEntryId=e.Id,PostedAt=DateTimeOffset.UtcNow});
-            }
             original.State=FinanceTransactionState.Reversed;original.ReversedAt=DateTimeOffset.UtcNow;original.Version++;
             return Success(tx.PublicId,"POSTED",1,c);
         },ct);
 
     private async Task<Result<InventoryValuationPoolRecord>> GetOrCreatePool(
-        Guid companyId,Guid productPublicId,Guid? variantPublicId,Guid uomPublicId,CancellationToken ct)
+        Guid companyId,Guid productPublicId,Guid? variantPublicId,Guid enteredUomPublicId,CancellationToken ct)
     {
-        var existing=await GetExistingPool(companyId,productPublicId,variantPublicId,uomPublicId,ct);
+        var existing=await GetExistingPool(companyId,productPublicId,variantPublicId,enteredUomPublicId,ct);
         if(existing is not null)return Result<InventoryValuationPoolRecord>.Success(existing);
-        var product=await dbContext.Set<ProductRecord>().SingleOrDefaultAsync(x=>x.CompanyId==companyId&&x.PublicId==productPublicId,ct);
-        if(product is null)return Fail<InventoryValuationPoolRecord>("finance.valuation.product","Product was not found.");
-        ProductVariantRecord? variant=null;
+
+        var product=await dbContext.Set<ProductRecord>().SingleOrDefaultAsync(
+            x=>x.CompanyId==companyId&&x.PublicId==productPublicId&&x.Stockable,ct);
+        if(product is null)return Fail<InventoryValuationPoolRecord>("finance.valuation.product","Stockable Product was not found.");
+
+        long? variantId=null;
         if(variantPublicId.HasValue){
-            variant=await dbContext.Set<ProductVariantRecord>().SingleOrDefaultAsync(x=>x.CompanyId==companyId&&x.PublicId==variantPublicId&&x.ProductId==product.Id,ct);
+            var variant=await dbContext.Set<ProductVariantRecord>().SingleOrDefaultAsync(
+                x=>x.CompanyId==companyId&&x.PublicId==variantPublicId&&x.ProductId==product.Id,ct);
             if(variant is null)return Fail<InventoryValuationPoolRecord>("finance.valuation.variant","Variant was not found.");
+            variantId=variant.Id;
         }
-        var uom=await dbContext.Set<UnitOfMeasureRecord>().SingleOrDefaultAsync(x=>x.CompanyId==companyId&&x.PublicId==uomPublicId,ct);
-        if(uom is null)return Fail<InventoryValuationPoolRecord>("finance.valuation.uom","Base UOM was not found.");
-        var pool=new InventoryValuationPoolRecord{PublicId=Guid.NewGuid(),CompanyId=companyId,ProductId=product.Id,VariantId=variant?.Id,
-            BaseUomId=uom.Id,CurrencyCode="TRY",CreatedAt=DateTimeOffset.UtcNow};
-        dbContext.Add(pool);await dbContext.SaveChangesAsync(ct);
+
+        var enteredUom=await dbContext.Set<UnitOfMeasureRecord>().AsNoTracking().SingleOrDefaultAsync(
+            x=>x.CompanyId==companyId&&x.PublicId==enteredUomPublicId,ct);
+        if(enteredUom is null)return Fail<InventoryValuationPoolRecord>("finance.valuation.uom","Entered UOM was not found.");
+        if(!await dbContext.Set<ProductUomRecord>().AsNoTracking().AnyAsync(
+            x=>x.CompanyId==companyId&&x.ProductId==product.Id&&x.UomId==enteredUom.Id&&
+               x.State==ProductMasterRecordState.Active&&(x.VariantId==null||x.VariantId==variantId),ct))
+            return Fail<InventoryValuationPoolRecord>("finance.valuation.uom_assignment","Entered UOM is not active for the Product/Variant.");
+
+        var baseAssignment=await dbContext.Set<ProductUomRecord>().AsNoTracking().SingleOrDefaultAsync(
+            x=>x.CompanyId==companyId&&x.ProductId==product.Id&&x.VariantId==null&&
+               x.Role==ProductUomRole.Base&&x.State==ProductMasterRecordState.Active,ct);
+        if(baseAssignment is null)return Fail<InventoryValuationPoolRecord>("finance.valuation.base_uom","Product has no active base UOM.");
+
+        var pool=new InventoryValuationPoolRecord{
+            PublicId=Guid.NewGuid(),CompanyId=companyId,ProductId=product.Id,VariantId=variantId,
+            BaseUomId=baseAssignment.UomId,CurrencyCode="TRY",CreatedAt=DateTimeOffset.UtcNow};
+        dbContext.Add(pool);
+        await dbContext.SaveChangesAsync(ct);
         return Result<InventoryValuationPoolRecord>.Success(pool);
     }
 
     private async Task<InventoryValuationPoolRecord?> GetExistingPool(
-        Guid companyId,Guid productPublicId,Guid? variantPublicId,Guid uomPublicId,CancellationToken ct)
+        Guid companyId,Guid productPublicId,Guid? variantPublicId,Guid enteredUomPublicId,CancellationToken ct)
     {
-        var q=from pool in dbContext.Set<InventoryValuationPoolRecord>()
-              join p in dbContext.Set<ProductRecord>() on new{pool.ProductId,pool.CompanyId} equals new{ProductId=p.Id,p.CompanyId}
-              join u in dbContext.Set<UnitOfMeasureRecord>() on new{pool.BaseUomId,pool.CompanyId} equals new{BaseUomId=u.Id,u.CompanyId}
-              where pool.CompanyId==companyId&&p.PublicId==productPublicId&&u.PublicId==uomPublicId&&pool.CurrencyCode=="TRY"
-              select new{pool,p};
-        if(!variantPublicId.HasValue)return (await q.Where(x=>x.pool.VariantId==null).Select(x=>x.pool).SingleOrDefaultAsync(ct));
-        return await (
-            from x in q
-            join v in dbContext.Set<ProductVariantRecord>() on new{VariantId=x.pool.VariantId!.Value,x.pool.CompanyId} equals new{VariantId=v.Id,v.CompanyId}
-            where v.PublicId==variantPublicId.Value
-            select x.pool).SingleOrDefaultAsync(ct);
+        var product=await dbContext.Set<ProductRecord>().AsNoTracking().SingleOrDefaultAsync(
+            x=>x.CompanyId==companyId&&x.PublicId==productPublicId&&x.Stockable,ct);
+        if(product is null)return null;
+
+        long? variantId=null;
+        if(variantPublicId.HasValue){
+            var variant=await dbContext.Set<ProductVariantRecord>().AsNoTracking().SingleOrDefaultAsync(
+                x=>x.CompanyId==companyId&&x.PublicId==variantPublicId&&x.ProductId==product.Id,ct);
+            if(variant is null)return null;
+            variantId=variant.Id;
+        }
+
+        var enteredUom=await dbContext.Set<UnitOfMeasureRecord>().AsNoTracking().SingleOrDefaultAsync(
+            x=>x.CompanyId==companyId&&x.PublicId==enteredUomPublicId,ct);
+        if(enteredUom is null)return null;
+        if(!await dbContext.Set<ProductUomRecord>().AsNoTracking().AnyAsync(
+            x=>x.CompanyId==companyId&&x.ProductId==product.Id&&x.UomId==enteredUom.Id&&
+               x.State==ProductMasterRecordState.Active&&(x.VariantId==null||x.VariantId==variantId),ct))
+            return null;
+
+        var baseAssignment=await dbContext.Set<ProductUomRecord>().AsNoTracking().SingleOrDefaultAsync(
+            x=>x.CompanyId==companyId&&x.ProductId==product.Id&&x.VariantId==null&&
+               x.Role==ProductUomRole.Base&&x.State==ProductMasterRecordState.Active,ct);
+        if(baseAssignment is null)return null;
+
+        return await dbContext.Set<InventoryValuationPoolRecord>().SingleOrDefaultAsync(
+            x=>x.CompanyId==companyId&&x.ProductId==product.Id&&x.VariantId==variantId&&
+               x.BaseUomId==baseAssignment.UomId&&x.CurrencyCode=="TRY",ct);
     }
 
     private async Task<PoolBalanceValue> PoolBalance(Guid companyId,long poolId,CancellationToken ct)

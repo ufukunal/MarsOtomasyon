@@ -483,6 +483,20 @@ public sealed class EfPurchasingPersistence(
             return Business<GoodsReceiptPostPlan>("purchasing.receipt.order_state",
                 "Goods Receipt cannot POST after Purchase Order remainder cancellation or closure.");
 
+        var orderVersion=await dbContext.Set<PurchaseOrderVersionRecord>().AsNoTracking()
+            .SingleAsync(x=>x.CompanyId==context.CompanyId&&x.PurchaseOrderId==order.Id&&x.VersionNumber==receipt.PurchaseOrderVersionNumber,ct);
+        var orderLines=await dbContext.Set<PurchaseOrderLineRecord>().AsNoTracking()
+            .Where(x=>x.CompanyId==context.CompanyId&&x.PurchaseOrderVersionId==orderVersion.Id)
+            .OrderBy(x=>x.Sequence).ToArrayAsync(ct);
+        var orderCalculation=PurchaseCommercialCalculator.Calculate(
+            orderLines.Select(x=>new PurchaseCommercialLineInput(
+                x.Sequence,x.Quantity,x.UnitPrice,x.LineDiscountPercent,x.TaxPercent)).ToArray(),
+            orderVersion.DocumentDiscountPercent,2);
+        var provisionalPerUnit=orderLines.Zip(orderCalculation.Lines,(line,calc)=>new{
+                line.LinePublicId,
+                UnitValue=calc.TaxableBase/line.Quantity
+            }).ToDictionary(x=>x.LinePublicId,x=>x.UnitValue);
+
         var lines=await dbContext.Set<GoodsReceiptLineRecord>().AsNoTracking()
             .Where(x=>x.CompanyId==context.CompanyId&&x.GoodsReceiptId==receipt.Id)
             .OrderBy(x=>x.Sequence).ToArrayAsync(ct);
@@ -519,6 +533,7 @@ public sealed class EfPurchasingPersistence(
                 x.LocationId.HasValue?locations[x.LocationId.Value].PublicId:null,
                 x.LotId.HasValue?lots[x.LotId.Value].PublicId:null,
                 x.SerialId.HasValue?serials[x.SerialId.Value].PublicId:null,
+                Math.Round(provisionalPerUnit[x.PurchaseOrderLinePublicId]*x.Quantity,2,MidpointRounding.AwayFromZero),
                 products[x.ProductId].Stockable)).ToArray()));
     }
 

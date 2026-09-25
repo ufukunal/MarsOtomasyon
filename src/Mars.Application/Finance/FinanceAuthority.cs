@@ -56,7 +56,7 @@ public sealed record FinancePostingPeriodView(
 public sealed record FinanceValuationPoolView(
     Guid ProductPublicId,
     Guid? VariantPublicId,
-    Guid BaseUomPublicId,
+    Guid UomPublicId,
     string CurrencyCode,
     decimal BaseQuantity,
     decimal CarryingValue,
@@ -197,7 +197,7 @@ public sealed record FinanceReceiptValuationLine(
     Guid InventoryMovementPublicId,
     Guid ProductPublicId,
     Guid? VariantPublicId,
-    Guid BaseUomPublicId,
+    Guid UomPublicId,
     decimal BaseQuantity,
     decimal ProvisionalBaseValue);
 
@@ -213,7 +213,7 @@ public sealed record FinanceDispatchValuationLine(
     Guid InventoryMovementPublicId,
     Guid ProductPublicId,
     Guid? VariantPublicId,
-    Guid BaseUomPublicId,
+    Guid UomPublicId,
     decimal BaseQuantity);
 
 public sealed record FinanceDispatchValuationCommand(
@@ -222,12 +222,22 @@ public sealed record FinanceDispatchValuationCommand(
     IReadOnlyList<FinanceDispatchValuationLine> Lines,
     string OperationKey);
 
+public sealed record FinanceDispatchReversalLine(
+    Guid OriginalInventoryMovementPublicId,
+    Guid ReversalInventoryMovementPublicId);
+
+public sealed record FinanceDispatchReversalCommand(
+    Guid DispatchPublicId,
+    DateOnly PostingDate,
+    IReadOnlyList<FinanceDispatchReversalLine> Lines,
+    string OperationKey);
+
 public sealed record FinanceCountValuationLine(
     Guid CountLinePublicId,
     Guid InventoryMovementPublicId,
     Guid ProductPublicId,
     Guid? VariantPublicId,
-    Guid BaseUomPublicId,
+    Guid UomPublicId,
     decimal BaseQuantityEffect,
     decimal? ExplicitUnitBaseValue);
 
@@ -242,7 +252,7 @@ public sealed record FinanceScrapValuationCommand(
     Guid InventoryMovementPublicId,
     Guid ProductPublicId,
     Guid? VariantPublicId,
-    Guid BaseUomPublicId,
+    Guid UomPublicId,
     decimal BaseQuantity,
     DateOnly PostingDate,
     string OperationKey);
@@ -280,7 +290,7 @@ public interface IFinanceValuationAuthority
     Task<Result<FinanceMutationReceipt>> PostDispatchAsync(
         FinanceDispatchValuationCommand command, IExecutionContext context, CancellationToken ct);
     Task<Result<FinanceMutationReceipt>> ReverseDispatchAsync(
-        Guid dispatchPublicId, DateOnly postingDate, string operationKey, IExecutionContext context, CancellationToken ct);
+        FinanceDispatchReversalCommand command, IExecutionContext context, CancellationToken ct);
     Task<Result<FinanceMutationReceipt>> PostCountAdjustmentAsync(
         FinanceCountValuationCommand command, IExecutionContext context, CancellationToken ct);
     Task<Result<FinanceMutationReceipt>> ReverseCountAdjustmentAsync(

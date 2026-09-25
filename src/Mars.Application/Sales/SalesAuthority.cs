@@ -1,3 +1,4 @@
+using Mars.Application.Finance;
 using Mars.Application.Foundation.Approvals;
 using Mars.Application.Foundation.Authorization;
 using Mars.Application.Foundation.Context;
@@ -423,6 +424,7 @@ public sealed class SalesCommandHandler(
     IApprovalDecisionAuthority approvals,
     IInventoryReservationAuthority reservations,
     IInventoryPhysicalAuthority inventory,
+    IFinanceValuationAuthority finance,
     IWarehouseAccessEvaluator warehouseAccess,
     ISalesTransactionCoordinator transactions)
 {
@@ -630,6 +632,19 @@ public sealed class SalesCommandHandler(
 
                 effects.Add(new SalesDispatchEffect(line.DispatchLinePublicId,movement.Value!.MovementPublicId,null,false));
             }
+
+            var valuation=await finance.PostDispatchAsync(
+                new FinanceDispatchValuationCommand(
+                    plan.Value.DispatchPublicId,
+                    DateOnly.FromDateTime(DateTime.UtcNow),
+                    plan.Value.Lines.Select((line,i)=>new FinanceDispatchValuationLine(
+                        line.DispatchLinePublicId,line.PhysicalSourcePublicId,effects[i].InventoryMovementPublicId,
+                        line.ProductPublicId,line.VariantPublicId,line.UomPublicId,
+                        line.Quantity*line.ConversionFactorSnapshot)).ToArray(),
+                    DerivedKey(key,"finance")),
+                context,innerCt);
+            if(valuation.IsFailure)return Result<SalesMutationReceipt>.Failure(valuation.Error!);
+
             return await persistence.CompleteDispatchPostAsync(id,effects,key,context,innerCt);
         },ct);
     }
@@ -671,6 +686,17 @@ public sealed class SalesCommandHandler(
                 if(movement.IsFailure) return Result<SalesMutationReceipt>.Failure(movement.Error!);
                 effects.Add(new SalesDispatchEffect(line.ReversalLinePublicId,movement.Value!.MovementPublicId,line.OriginalInventoryMovementPublicId,true));
             }
+
+            var valuation=await finance.ReverseDispatchAsync(
+                new FinanceDispatchReversalCommand(
+                    plan.Value.OriginalDispatchPublicId,
+                    DateOnly.FromDateTime(DateTime.UtcNow),
+                    effects.Select(x=>new FinanceDispatchReversalLine(
+                        x.OriginalInventoryMovementPublicId!.Value,x.InventoryMovementPublicId)).ToArray(),
+                    DerivedKey(command.OperationKey,"finance")),
+                context,innerCt);
+            if(valuation.IsFailure)return Result<SalesMutationReceipt>.Failure(valuation.Error!);
+
             return await persistence.CompleteDispatchReverseAsync(plan.Value.ReversalDispatchPublicId,effects,command.OperationKey,context,innerCt);
         },ct);
     }
