@@ -481,17 +481,17 @@ public sealed partial class EfSalesPersistence
             .Where(x=>x.CompanyId==context.CompanyId&&lineIds.Contains(x.SalesInvoiceLineId)).ToArrayAsync(ct);
         if(links.Length!=lines.Length)return Conflict<SalesInvoicePostPlan>("sales.invoice.source_snapshot","Invoice source snapshot is incomplete.");
 
-        foreach(var group in links.Where(x=>x.SourceMode!=SalesInvoiceSourceMode.Direct)
+        foreach(var sourceGroup in links.Where(x=>x.SourceMode!=SalesInvoiceSourceMode.Direct)
                      .GroupBy(x=>new{x.SourceMode,x.SourceDocumentPublicId,x.SourceLinePublicId,x.SourceVersion}))
         {
-            if(!group.Key.SourceDocumentPublicId.HasValue||!group.Key.SourceLinePublicId.HasValue)
+            if(!sourceGroup.Key.SourceDocumentPublicId.HasValue||!sourceGroup.Key.SourceLinePublicId.HasValue)
                 return Business<SalesInvoicePostPlan>("sales.invoice.source.required","Sourced Invoice requires exact source document and line.");
 
             decimal sourceQuantity;
-            if(group.Key.SourceMode==SalesInvoiceSourceMode.Dispatch)
+            if(sourceGroup.Key.SourceMode==SalesInvoiceSourceMode.Dispatch)
             {
                 var dispatch=await dbContext.Set<DispatchRecord>()
-                    .FromSqlInterpolated($@"SELECT * FROM sales.dispatches WHERE company_id={context.CompanyId} AND public_id={group.Key.SourceDocumentPublicId.Value} FOR UPDATE")
+                    .FromSqlInterpolated($@"SELECT * FROM sales.dispatches WHERE company_id={context.CompanyId} AND public_id={sourceGroup.Key.SourceDocumentPublicId.Value} FOR UPDATE")
                     .SingleOrDefaultAsync(ct);
                 if(dispatch is null||dispatch.State is not (DispatchState.Posted or DispatchState.HandedOver or DispatchState.Delivered))
                     return Business<SalesInvoicePostPlan>("sales.invoice.dispatch_source","Dispatch source must remain physically posted and unreversed.");
@@ -499,22 +499,22 @@ public sealed partial class EfSalesPersistence
                     x=>x.CompanyId==context.CompanyId&&x.ReversalOfDispatchId==dispatch.Id&&x.State==DispatchState.Reversed,ct))
                     return Business<SalesInvoicePostPlan>("sales.invoice.dispatch_reversed","Reversed Dispatch cannot be invoiced.");
                 var sourceLine=await dbContext.Set<DispatchLineRecord>().AsNoTracking()
-                    .SingleOrDefaultAsync(x=>x.CompanyId==context.CompanyId&&x.DispatchId==dispatch.Id&&x.PublicId==group.Key.SourceLinePublicId.Value,ct);
+                    .SingleOrDefaultAsync(x=>x.CompanyId==context.CompanyId&&x.DispatchId==dispatch.Id&&x.PublicId==sourceGroup.Key.SourceLinePublicId.Value,ct);
                 if(sourceLine is null)return NotFound<SalesInvoicePostPlan>("sales.invoice.source_line","Dispatch source line was not found.");
                 sourceQuantity=sourceLine.Quantity;
             }
             else
             {
                 var order=await dbContext.Set<SalesOrderRecord>()
-                    .FromSqlInterpolated($@"SELECT * FROM sales.sales_orders WHERE company_id={context.CompanyId} AND public_id={group.Key.SourceDocumentPublicId.Value} FOR UPDATE")
+                    .FromSqlInterpolated($@"SELECT * FROM sales.sales_orders WHERE company_id={context.CompanyId} AND public_id={sourceGroup.Key.SourceDocumentPublicId.Value} FOR UPDATE")
                     .SingleOrDefaultAsync(ct);
                 if(order is null)return NotFound<SalesInvoicePostPlan>("sales.invoice.order_source","Order source was not found.");
-                if(group.Key.SourceVersion.HasValue&&group.Key.SourceVersion.Value!=order.CurrentVersionNumber)
+                if(sourceGroup.Key.SourceVersion.HasValue&&sourceGroup.Key.SourceVersion.Value!=order.CurrentVersionNumber)
                     return Conflict<SalesInvoicePostPlan>("sales.invoice.order_version","Invoice source Order version is no longer current.",true);
                 var ov=await dbContext.Set<SalesOrderVersionRecord>().AsNoTracking()
                     .SingleAsync(x=>x.CompanyId==context.CompanyId&&x.SalesOrderId==order.Id&&x.VersionNumber==order.CurrentVersionNumber,ct);
                 var sourceLine=await dbContext.Set<SalesOrderLineRecord>().AsNoTracking()
-                    .SingleOrDefaultAsync(x=>x.CompanyId==context.CompanyId&&x.SalesOrderVersionId==ov.Id&&x.LinePublicId==group.Key.SourceLinePublicId.Value,ct);
+                    .SingleOrDefaultAsync(x=>x.CompanyId==context.CompanyId&&x.SalesOrderVersionId==ov.Id&&x.LinePublicId==sourceGroup.Key.SourceLinePublicId.Value,ct);
                 if(sourceLine is null)return NotFound<SalesInvoicePostPlan>("sales.invoice.source_line","Order source line was not found.");
                 sourceQuantity=sourceLine.Quantity;
             }
@@ -525,10 +525,10 @@ public sealed partial class EfSalesPersistence
                 join other in dbContext.Set<SalesInvoiceRecord>().AsNoTracking() on invoiceLine.SalesInvoiceId equals other.Id
                 where link.CompanyId==context.CompanyId&&other.CompanyId==context.CompanyId&&other.PublicId!=invoice.PublicId&&
                       (other.State==SalesInvoiceState.Draft||other.State==SalesInvoiceState.Posted)&&
-                      link.SourceMode==group.Key.SourceMode&&link.SourceDocumentPublicId==group.Key.SourceDocumentPublicId&&
-                      link.SourceLinePublicId==group.Key.SourceLinePublicId
+                      link.SourceMode==sourceGroup.Key.SourceMode&&link.SourceDocumentPublicId==sourceGroup.Key.SourceDocumentPublicId&&
+                      link.SourceLinePublicId==sourceGroup.Key.SourceLinePublicId
                 select (decimal?)link.Quantity).SumAsync(ct)??0m;
-            if(otherUsed+group.Sum(x=>x.Quantity)>sourceQuantity)
+            if(otherUsed+sourceGroup.Sum(x=>x.Quantity)>sourceQuantity)
                 return Business<SalesInvoicePostPlan>("sales.invoice.source_cap","Active DRAFT/POSTED Invoice quantity exceeds source quantity.");
         }
 
