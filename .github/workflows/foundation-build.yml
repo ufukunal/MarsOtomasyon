@@ -152,10 +152,8 @@ jobs:
           grep -F '/api/v1/warehouse/transfers' /tmp/openapi.json
           grep -F '/api/v1/warehouse/counts' /tmp/openapi.json
           grep -F '/api/v1/warehouse/scrap' /tmp/openapi.json
-          if grep -E '/api/v1/purchasing/invoices/\{[^}]+\}/(post|reverse)' /tmp/openapi.json; then
-            echo "Supplier Invoice POST/REVERSE must remain absent in PURCHASING-IMP-001."
-            exit 1
-          fi
+          grep -E '/api/v1/purchasing/invoices/\{[^}]+\}/post' /tmp/openapi.json
+          grep -E '/api/v1/purchasing/invoices/\{[^}]+\}/reverse' /tmp/openapi.json
           if grep -E '/api/v1/warehouse/(dispatches|receipts)/[^"]*/post' /tmp/openapi.json; then
             echo "Warehouse must not expose Dispatch POST or Goods Receipt POST."
             exit 1
