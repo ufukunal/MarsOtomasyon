@@ -1,0 +1,53 @@
+# G-106 — Ürün kartı
+
+## Amaç
+Ürün kartı. **Her varyant ayrı karttır**; gruplama G-107'de gelir.
+
+## Önkoşul
+G-102 (birimler), G-103 (kategori/marka)
+
+## Şema
+`docs/01-veri-modeli/11-products.md` içindeki `products` şemasını birebir uygula.
+
+## Model
+- `use BelongsToCompany, LogsActivity, SoftDeletes, HasAttachments;`
+- `kind`: `normal | set | configurable` (Enum `ProductKind`)
+- `availableQuantity()` — Faz 2'de stok gelince dolar; şimdilik 0
+- `setAvailability()` — set ürünse `min(bileşen/gerekli)`, değilse null
+
+## Liste ekranı
+
+Kolonlar: Kod · Ad (altında marka) · Kategori · Birim · Liste Fiyatı ·
+KDV · Stok (Faz 2) · Durum
+Filtreler: kategori, marka, tip (normal/set/konfigüre), aktif, stok durumu
+Arama: kod, ad, barkod
+
+**Maliyet kolonu `cost.view` izni yoksa tanıma hiç eklenmez.**
+
+## Form ekranı
+
+Bölüm **Genel**: kod, ad, açıklama, kategori, marka, birim, barkod
+Bölüm **Fiyat**: liste fiyatı, KDV oranı, **KDV dahil/hariç seçici**
+  (dahil seçilirse girilen değer hariçe çevrilip saklanır)
+Bölüm **Stok**: negatif stok izni (ipucu: izinliyse uyarı verilir),
+  minimum stok
+Bölüm **Tip**: normal / set / konfigüre
+
+## KDV dahil → hariç çevrimi
+
+```php
+$excl = $inclPrice / (1 + $vatRate / 100);
+```
+Saklanan değer **her zaman hariçtir**.
+
+## Kabul ölçütü
+- Ürün açılıyor, kod benzersiz
+- KDV dahil girilen fiyat hariç olarak saklanıyor
+- `cost.view` izni olmayan kullanıcıda maliyet kolonu **HTML çıktısında yok**
+- Barkodla arama çalışıyor
+
+## İstem
+> products tablosu için migration, Product modeli, ProductKind enum'u,
+> ProductList ve ProductForm bileşenlerini yaz. Şemayı 11-products.md'den
+> birebir al. KDV dahil girilen fiyat hariçe çevrilip saklansın. Maliyet
+> kolonu cost.view izni yoksa kolon tanımına EKLENMESİN.

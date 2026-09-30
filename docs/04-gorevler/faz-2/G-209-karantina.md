@@ -1,0 +1,57 @@
+# G-209 — Karantina
+
+## Amaç
+İade edilen veya kontrol bekleyen malın satılamaz durumda tutulması.
+
+## Önkoşul
+G-202
+
+## Model
+Ayrı tablo yok. `stock_balances.quarantine` alanı kullanılır; giriş ve
+çıkışlar `quarantine_movements` görünümüyle izlenir.
+
+```php
+// quarantine_entries: id, company_id, product_id, location_id,
+//   quantity decimal(18,3), unit_cost decimal(18,4),
+//   source_document_type, source_document_id,
+//   status(pending|released|scrapped),
+//   decided_by, decided_at, decision_note, created_at
+```
+
+## Akış
+
+```
+İade geldi
+ → quarantine_entries satırı (status = pending)
+ → stock_balances.quarantine += miktar
+ → stock_balances.quantity DEĞİŞMEZ (mal fiziksel olarak içeride)
+
+Kontrol sonucu:
+ (a) Satılabilir → quarantine -= miktar, status = released
+     stok normal kullanılabilir hale gelir, hareket YAZILMAZ
+ (b) Hurda      → quarantine -= miktar, status = scrapped
+     RecordStockMovement(out, reason=scrap) çağrılır, stok düşer
+```
+
+## Kurallar
+- Karantinadaki mal **satılamaz, rezerve edilemez, transfer edilemez**
+- Kullanılabilir hesabından düşülür
+- Karar verilmeden satır kapanmaz
+- Karar `activity_log`'a düşer
+
+## Ekran
+Liste: ürün, lokasyon, miktar, kaynak belge, bekleme süresi (gün), durum.
+Eylem: seçili satırlar için "Satılabilir" / "Hurda" toplu karar.
+Uyarı: 30 günden uzun bekleyen satırlar işaretlenir.
+
+## Kabul ölçütü
+- Karantinaya giren mal kullanılabilirden düşüyor, stoktan düşmüyor
+- Satılabilir kararında hareket oluşmuyor, kullanılabilir artıyor
+- Hurda kararında çıkış hareketi oluşuyor
+- Karantinadaki ürün satış belgesinde seçilemiyor
+
+## İstem
+> quarantine_entries tablosu için migration, model, karantina ekranı ve
+> karar action'larını yaz. Satılabilir kararında stok hareketi OLUŞTURMA,
+> yalnızca quarantine alanını azalt. Hurda kararında RecordStockMovement
+> çağır.

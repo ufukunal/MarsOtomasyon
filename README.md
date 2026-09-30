@@ -6,17 +6,34 @@ iade, ithalat, basit üretim, fason ve e-ticaret entegrasyonlarını kapsar.
 **Kapsam dışı:** genel muhasebe, e-belge, parti/lot takibi, bütçe, amortisman,
 ileri üretim (rota, iş merkezi, kapasite, OEE, MRP).
 
-## Kaynaklar
+## Bu depo nasıl kullanılır
 
-- `docs/00-genel/00-devir-promptu.md` — proje çalışma sözleşmesi ve devir bağlamı
-- `reference/marsotomasyon-PROTOTIP-ONAYLI-v62.html` — onaylı UI/UX ve ekran şartname kaynağı
-- `docs/` — veri modeli, iş kuralları, ekran ve görev dokümantasyonu
+Kodun büyük kısmı **yerel bir dil modeli** tarafından yazılacaktır. `docs/`
+altındaki belgeler bu amaçla yazılmıştır: her görev dosyası **tek başına
+yeterlidir**, model başka dosyaya bakmadan görevi tamamlayabilmelidir.
 
-## Çalışma ilkesi
+| Klasör | İçerik |
+|---|---|
+| `docs/00-genel` | Teknoloji, mimari, isimlendirme, sözlük |
+| `docs/01-veri-modeli` | Tablo başına bir dosya |
+| `docs/02-is-kurallari` | Konu başına iş kuralları |
+| `docs/03-ekranlar` | Ekran başına: alanlar, butonlar, etki zinciri |
+| `docs/04-gorevler` | Sıralı görevler — kod bunlardan yazılır |
+| `docs/05-karar-gunlugu` | Kararlar ve gerekçeleri |
+| `docs/99-yerel-model` | Yerel model kılavuzu ve istem şablonları |
 
-Yeni sistem Laravel 13 + Livewire 3 ile sıfırdan geliştirilecektir.
-Prototip kod tabanı değildir; görsel dil, terminoloji, ekran alanları,
-kolonlar, eylemler ve durum akışları için referanstır.
+## Çalışma sırası
 
-Fazlar tek tek ilerler. Faz 0, 0b, 1 ve 2 tamamlanmıştır.
-Sıradaki çalışma Faz 3 — Satış'tır.
+1. `docs/99-yerel-model/01-kullanim.md` oku
+2. `docs/04-gorevler/faz-0/` içindeki görevleri **numara sırasıyla** yap
+3. Her görevin kabul ölçütünü çalıştır; geçmeden sonrakine geçme
+
+## Kurulum
+
+```bash
+composer install
+cp .env.example .env
+php artisan key:generate
+php artisan migrate --seed
+php artisan serve
+```
