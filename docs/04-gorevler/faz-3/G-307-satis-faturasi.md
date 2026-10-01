@@ -139,6 +139,7 @@ Aynı invoice için ikinci cari hareket unique constraint/idempotency ile oluşm
 - Direct faturada stok + cari aynı transaction içinde oluşur.
 - Kaynak belge varsa başlık relation ve satır `source_line_id` zinciri birlikte yazılır.
 - Fatura bakiyesi invoice-settlement tablosuna bağlanmaz.
+- Liste/detaydaki `Tahsilat` ve `Kalan` göstergeleri G-309 `BuildContactAging` motorunun sanal FIFO `applied_credit/remaining` sonucudur; kalıcı paid/remaining kolonu veya settlement kaydı yazılmaz.
 - E-Belge Faz 3 kapsamı dışıdır.
 
 ## Kabul ölçütü
@@ -148,6 +149,7 @@ Aynı invoice için ikinci cari hareket unique constraint/idempotency ile oluşm
 - Order direct invoice rezervi doğru tüketiyor.
 - Bir dispatch 60/40 iki faturaya bölünebiliyor.
 - Faturalanan toplam dispatch miktarını aşamıyor.
+- Fatura `Tahsilat/Kalan` göstergesi FIFO aging sonucu ile eşleşiyor ve DB'de invoice settlement/paid/remaining alanı oluşturmuyor.
 - Birden fazla uyumlu dispatch tek faturada birleşiyor.
 - Farklı cariler tek faturada birleşemiyor.
 - due_date contact/company default ile doğru.

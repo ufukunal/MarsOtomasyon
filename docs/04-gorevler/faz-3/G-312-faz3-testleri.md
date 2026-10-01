@@ -92,6 +92,9 @@ SQLite kullanılmaz.
 
 ## Tahsilat / cari
 
+- satış faturası `Tahsilat/Kalan` göstergesi BuildContactAging sanal FIFO sonucu ile eşleşiyor,
+- invoice üzerinde paid/remaining kolonu veya settlement tablosu oluşmuyor,
+
 - contact balance hareket toplamı.
 - collection cash/bank movement.
 - collection wrapper G-303 posting zincirini ikinci kez çalıştırmıyor; tek contact ve tek cash/bank movement oluşuyor.

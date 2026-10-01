@@ -72,6 +72,16 @@ aynı transaction içinde oluşur.
 - `rounding_difference` saklanır.
 - "Tümüne KDV uygula" / "KDV temizle" taslakta kullanılabilir.
 
-## Tahsilat göstergesi
+## Tahsilat / kalan göstergesi
 
-"Tahsilat" ve "Kalan" bilgisi kullanıcıya yardımcı gösterimdir. Fatura bakiyesi kalıcı invoice-settlement tablosundan hesaplanmaz; cari gerçek bakiye `contact_transactions` toplamıdır.
+"Tahsilat" ve "Kalan" **muhasebe settlement alanı değildir**. Aynı cari için `BuildContactAging` motorunun o anki `as_of` tarihine göre yaptığı sanal FIFO dağıtımında bu faturanın debit hareketine uygulanan credit tutarı bilgi amaçlı gösterilir:
+
+```
+tahsilat_gosterim = FIFO applied_credit
+kalan_gosterim    = invoice grand_total - FIFO applied_credit
+```
+
+- Kalıcı invoice-settlement tablosu veya invoice üzerinde paid/remaining kolonu oluşturulmaz.
+- Optional `collection_source` ilişkileri bu hesabı değiştirmez.
+- Cari gerçek bakiye daima `contact_transactions` toplamıdır.
+- Ödemeler sekmesi, varsa bilgi amaçlı kaynak ilişkilerini gösterebilir; "bu ödeme bu faturayı kesin kapattı" anlamı taşımaz.
