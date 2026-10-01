@@ -84,6 +84,14 @@ Bu görev fiyatı çözmez; fakat satır hesap API'si G-110/G-26 fiyat çözüm�
 - bloklamaz,
 - G-304/G-305/G-307 UI akışında uyarı+audit üretir.
 
+
+## Kurallar
+
+- Tüm decimal aritmetik string + BCMath/Money.
+- İskonto KDV'den önce.
+- KDV oran grubu bazında bir kez hesaplanır.
+- Ara adımda 2 hane yuvarlama yok; rounding_difference saklanır.
+
 ## Kabul ölçütü
 
 - 100 × 33.33 örneğinde kuruş sapması yok.

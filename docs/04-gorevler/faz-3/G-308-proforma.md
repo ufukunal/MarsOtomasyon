@@ -16,6 +16,11 @@ G-301, G-302, G-304, G-305.
 - `app/Livewire/Sales/ProformaDetail.php`
 - `tests/Feature/Sales/ProformaTest.php`
 
+
+## Şema / Kod
+
+Yeni tablo yok. Proforma `documents/document_lines` kullanır; kaynak bağlantısı `document_relations` ve `source_line_id` ile tutulur. Stok/cari tablo yazımı yoktur.
+
 ## Kaynak kararı
 
 Güncel `number_series` belgesi `proforma` serisini içerir ve v65 Proforma No gösterir. Bu güncel kaynaklar eski "proforma numarasız" devir notundan üstündür.
@@ -75,6 +80,13 @@ Proforma stok hareketi olmadığı için proforma kaynaklı invoice **doğrudan 
 - ürün/lokasyon miktar doğrulamaları G-307 ile aynı.
 
 Proforma conversion kaynak quote/order'ın fulfillment miktarını iki kez tüketmemeli. Eğer proforma zaten order'dan üretilmişse invoice miktar kontrolü order zincirine kadar takip edilerek çift satış engellenir.
+
+
+## Kurallar
+
+- Proforma numaralı ve immutable final çıktıdır.
+- Stok, rezerv veya cari etkisi yoktur.
+- Invoice dönüşümünde çift fulfillment engellenir.
 
 ## Kabul ölçütü
 

@@ -16,6 +16,11 @@ G-303, G-305, G-202, G-210.
 - `app/Livewire/Sales/DispatchEditor.php`
 - `tests/Feature/Sales/DispatchTest.php`
 
+
+## Şema / Kod
+
+Yeni tablo yok. `documents/document_lines/document_relations` ile Faz 2 `stock_reservations` ve `stock_movements` kullanılır. Dispatch satırı source order line'a `source_line_id` ile bağlanır.
+
 ## Ekran
 
 v65:
@@ -85,6 +90,14 @@ Sevk sonrası order:
 - kalan 0 ise ilişkili workflow'a göre closed olabilir.
 
 Kalan iptal davranışı G-305'tedir.
+
+
+## Kurallar
+
+- İrsaliye stok çıkışı üretir, cari etkilemez.
+- Kaynak kalan miktar aşılamaz.
+- Rezerv tüketimi ile stok çıkışı aynı işlem zincirindedir.
+- Kalite modülü eklenmez.
 
 ## Kabul ölçütü
 

@@ -15,6 +15,11 @@ G-303, G-306, G-307, G-309.
 - `app/Exceptions/Documents/AlreadyReversedException.php`
 - `tests/Feature/Documents/ReverseDocumentTest.php`
 
+
+## Şema / Kod
+
+Yeni tablo yok. Reversal yeni `documents/document_lines` kaydı, `document_relations.reversal_of` ve orijinal etkinin ters `stock_movements/contact_transactions/cash_movements/bank_movements` kayıtlarını kullanır.
+
 ## Temel kural
 
 K-016/K-079:
@@ -94,6 +99,14 @@ Reversal yeni bir `documents` kaydıdır ve kendi numarasını transaction için
 ## Partial query etkisi
 
 G-30 kısmi işlem sorguları yalnız **etkin** posted child belgeleri sayar. `reversal_of` ilişkisiyle terslenmiş dispatch/invoice child miktarı fulfillment toplamına dahil edilmez.
+
+
+## Kurallar
+
+- Original posted belgenin iş alanları değişmez.
+- Reversal yeni belge ve ters hareketler üretir.
+- İkinci reversal yasaktır.
+- Reverse sonrası otomatik rezervasyon yaratılmaz.
 
 ## Kabul ölçütü
 

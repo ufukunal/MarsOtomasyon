@@ -149,6 +149,14 @@ yapar.
 
 Virman, ekstre, mutabakat, kasa sayımı, çek/senet Faz 5.
 
+
+## Kurallar
+
+- Cari bakiye yalnız contact_transactions toplamıdır.
+- Tahsilat zorunlu fatura settlement'ı üretmez.
+- Collection contact + cash/bank etkilerini tek transaction yazar.
+- Aging yalnız runtime FIFO raporudur.
+
 ## Kabul ölçütü
 
 - Collection credit cari bakiyeyi azaltıyor.

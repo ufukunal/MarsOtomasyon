@@ -17,6 +17,11 @@ G-301…G-311 tamamlanmış olmalı.
 - `app/Console/Commands/IntegrityContacts.php`
 - `app/Console/Commands/IntegrityPartials.php`
 
+
+## Şema / Kod
+
+Yeni production şeması yok. Bu görev yalnız Faz 3 şemalarını ve `integrity:documents`, `integrity:contacts`, `integrity:partials` kontrollerini test/komut olarak tamamlar.
+
 ## Test ortamı
 
 - gerçek PostgreSQL,
@@ -133,6 +138,14 @@ Mevcut Faz 2:
 - integrity:units
 
 Fark raporlanır, otomatik düzeltme yok.
+
+
+## Kurallar
+
+- Testler gerçek PostgreSQL kullanır.
+- Beklenen parasal değerler production hesap fonksiyonundan türetilmez.
+- İki fiziksel period DB ile izolasyon test edilir.
+- Integrity farkı otomatik düzeltilmez.
 
 ## Kabul ölçütü
 

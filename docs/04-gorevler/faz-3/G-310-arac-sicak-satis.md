@@ -14,6 +14,11 @@ G-206, G-307, G-309, locations.kind=vehicle.
 - `app/Livewire/Sales/VehicleHotSale.php`
 - `tests/Feature/Sales/VehicleHotSaleTest.php`
 
+
+## Şema / Kod
+
+Yeni tablo yok. Araç `locations.kind=vehicle`, taşıma G-206 `transfers`, satış G-307 `documents/document_lines` üzerinden yürür.
+
 ## Akış
 
 K-014:
@@ -67,6 +72,14 @@ Hızlı akış:
 6. gerekirse ayrı Tahsilat eylemi
 
 Yeni özel stok veya cari tablosu yoktur.
+
+
+## Kurallar
+
+- Araç normal location gibi stok tutar.
+- Araç stok girişi yalnız tamamlanmış transferle olur.
+- Sıcak satış direct invoice kullanır.
+- Tahsilat otomatik oluşturulmaz.
 
 ## Kabul ölçütü
 

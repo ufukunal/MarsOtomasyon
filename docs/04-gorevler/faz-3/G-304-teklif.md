@@ -79,6 +79,14 @@ Yalnız onaylanmış teklif siparişe dönüştürülür.
 
 Teklif stok/cari/rezervasyon etkisi üretmez.
 
+
+## Kurallar
+
+- Revizyon update değil yeni kayıttır.
+- sales.quote.approve Action seviyesinde kontrol edilir.
+- Teklif stok/cari etkilemez.
+- Konfigürasyon fiyatı değiştirmez.
+
 ## Kabul ölçütü
 
 - Draft kayıt numara tüketmiyor.

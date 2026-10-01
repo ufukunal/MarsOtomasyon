@@ -18,6 +18,11 @@ G-301, G-302, G-210, G-304.
 - `app/Livewire/Sales/SalesOrderEditor.php`
 - `tests/Feature/Sales/SalesOrderTest.php`
 
+
+## Şema / Kod
+
+Yeni tablo yok. `documents`, `document_lines` ve Faz 2 `stock_reservations` kullanılır. Sipariş satırı fulfillment miktarları child `source_line_id` toplamından hesaplanır.
+
 ## Ekran
 
 v65 tabs:
@@ -103,6 +108,14 @@ Negatif stok izni negatif rezervasyon üretmez.
 - iptal edilen kısma ait aktif rezervleri çözer,
 - iptal miktarı sonradan rezerv/sevk/fatura edilemez,
 - kullanılabilir kalan 0 ise sipariş `closed`.
+
+
+## Kurallar
+
+- Sipariş onayı stok/cari hareket üretmez.
+- Rezervasyon yalnız kullanılabilir stok kadar oluşur.
+- Negatif stok izni negatif rezervasyon değildir.
+- Risk aşımı uyarıdır, blok değildir.
 
 ## Kabul ölçütü
 

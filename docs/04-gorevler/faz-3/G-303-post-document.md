@@ -90,6 +90,14 @@ eşleşmeli.
 
 Farkta transaction rollback.
 
+
+## Kurallar
+
+- Tüm posting etkileri tek period transaction içinde.
+- Idempotency ve deterministic lock sırası zorunlu.
+- Belge tipinin üretmediği etki yazılmaz.
+- Verify başarısızsa commit yok.
+
 ## Kabul ölçütü
 
 - Aynı idempotency key ikinci kez stock/cari hareket üretmiyor.

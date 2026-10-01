@@ -17,6 +17,11 @@ G-303, G-305, G-306.
 - `app/Livewire/Sales/SalesInvoiceEditor.php`
 - `tests/Feature/Sales/SalesInvoiceTest.php`
 
+
+## Şema / Kod
+
+Yeni tablo yok. Invoice aynı `documents/document_lines` şemasını kullanır. Cari etki `contact_transactions`, stok etki gerekiyorsa `stock_movements`; kaynak ilişkileri `document_relations` + `source_line_id` ile tutulur.
+
 ## Ekran
 
 Faz 3 tabs:
@@ -126,6 +131,14 @@ document_id = invoice.id
 ```
 
 Aynı invoice için ikinci cari hareket unique constraint/idempotency ile oluşmaz.
+
+
+## Kurallar
+
+- İrsaliyeden faturada stok ikinci kez düşmez.
+- Direct faturada stok + cari aynı transaction içinde oluşur.
+- Fatura bakiyesi invoice-settlement tablosuna bağlanmaz.
+- E-Belge Faz 3 kapsamı dışıdır.
 
 ## Kabul ölçütü
 
