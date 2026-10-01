@@ -1,64 +1,46 @@
 # Ekran — Dönem Devri
 
-**Veritabanı: HER İKİSİ.** Kaynak dönemden okur, hedef dönem veritabanını
-oluşturur ve yazar; `periods` kaydı master'dadır.
-
-## Rota
-`/ayarlar/donem-devri`
+**Bağlantılar:** Master + kaynak period + hedef period.
 
 ## Yetki
-Yalnızca `Yönetici`.
 
-## Ekran bölümleri
+Dönem devri ayrı yetkidir. Kaynak kapatma / gerekirse yeniden açma gerekçeli ve auditli yapılır.
 
-**Üst göstergeler:** kaynak dönem, hedef dönem, taşınacak stok kalemi
-sayısı, taşınacak cari sayısı.
+## Ön kontrol
 
-**Devir öncesi kontrol listesi** — her biri Uygun / Dikkat rozetiyle:
+Kapanmamış ay, açık teklif/sipariş, taslak, yoldaki transfer, karantina, negatif stok, son integrity sonucu, hedef DB'nin varlığı kontrol edilir.
 
-| Kontrol | Neden |
-|---|---|
-| Kapanmamış ay | Tüm aylar kapalı olmalı |
-| Açık sipariş / teklif | Devirde **taşınmaz**, kullanıcı bilmeli |
-| Yolda transfer | Çıkmış ama girmemiş mal bakiyeyi bozar |
-| Karantinada bekleyen | Karar verilmemiş kalemler |
-| Negatif stok | Devirden önce düzeltilmeli |
-| Kesinleşmemiş belge | Taslaklar taşınmaz |
+Açık teklif/sipariş/taslak/yoldaki transfer/karantina **taşınmaz** ve kullanıcıya adet/tutar ile gösterilir.
 
-**Dikkat** çıkması devri engellemez; kullanıcı bilerek devam edebilir.
-Engelleyen tek durum: hedef veritabanının zaten var olması.
+## Önizleme
 
-## Devir adımları
+Taşınacak:
+- aktif kartlar,
+- bakiye/hareket ilişkisi bulunan gerekli pasif kartlar,
+- stok açılışları,
+- product_costs,
+- cari açılış bakiyesi,
+- kasa/banka açılışı,
+- vadesi gelmemiş çek/senet.
 
-```
-1. CREATE DATABASE {db_prefix}_{yeni yıl} + migration
-2. Stok açılışı — her ürün/lokasyon için giriş hareketi
-   reason = opening, birim maliyet = KAPANIŞ HAREKETLİ ORTALAMASI
-3. product_costs kopyalanır (maliyet sürekliliği)
-4. Cari bakiyeleri açılış fişi olarak yazılır
-5. Kasa ve banka bakiyeleri açılış olarak yazılır
-6. Vadesi gelmemiş çek ve senetler taşınır
-7. Kaynak dönem status = closed
-8. periods satırı: carried_from_period_id, carried_at doldurulur
-```
+Aynı şirket devrinde taşınan bütün kart ID+kodları ve taşınan stock_balance ID'leri korunur.
 
-**Kartlar taşınmaz** — cari, ürün, fiyat listesi master'dadır, yeni
-dönem aynı kartları kullanır.
+## Akış
 
-## Maliyet sürekliliği — en kritik nokta
-
-Kapanış hareketli ortalaması, açılış hareketinin birim maliyeti olur.
-Aksi halde 1 Ocak'ta maliyet sıfırlanır ve o yılın tüm kârlılık
-hesapları yanlış çıkar.
+1. Hedef DB oluştur.
+2. `migrate:periods`.
+3. Kartları aynı ID/kodla kopyala.
+4. Stok bakiyelerini/devir kimliklerini koru; geçmiş stock_movements kopyalama.
+5. Opening stock movements yaz; maliyet kapanış hareketli ortalaması.
+6. product_costs.
+7. cari/kasa/banka açılışları.
+8. vadesi gelmemiş çek/senet.
+9. sequence'leri `MAX(id)+1` ayarla.
+10. `integrity:carry`.
+11. kaynak period'u closed yap.
+12. periods carry metadata doldur.
+13. **Devri bitirdikten sonra** “Önceki dönemin kullanıcı yetkilerini yeni döneme kopyala?” adımı göster; kullanıcılar seçilebilir ve period erişim + dönemsel permission override kopyalanır.
 
 ## Geri alma
 
-Devir geri alınabilir: hedef veritabanı silinir, `periods` satırı
-kaldırılır, kaynak dönem yeniden `active` yapılır.
-
-**Ancak** yeni döneme kayıt girildiyse geri alma veri kaybıdır.
-Ekran bu durumu kontrol eder ve uyarır.
-
-## Önizleme
-"Önizleme Al" hiçbir şey yazmadan ne taşınacağını listeler:
-ürün sayısı, toplam miktar, toplam stok değeri, cari sayısı, toplam bakiye.
+Hedefte yeni iş kaydı yoksa kontrollü olarak hedef DB kaldırılıp tekrar denenebilir. İş kaydı oluşmuşsa otomatik destructive rollback yapılmaz.

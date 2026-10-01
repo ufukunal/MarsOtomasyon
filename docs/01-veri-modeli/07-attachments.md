@@ -2,45 +2,35 @@
 
 **Veritabanı: DÖNEM**
 
-`company_id` kolonu **yoktur** — veritabanı zaten o şirkete ve yıla aittir.
-
-
-
-## Amaç
-
-Her belgeye ve karta dosya eklenebilir: fatura taraması, ürün görseli,
-teknik föy, fotoğraf.
-
-**Sıkıştırma yapılmaz** — kullanıcı dosyayı kendisi optimize eder (karar
-günlüğü K-012).
+Kart ve dönem belgelerine ait ekler period DB'dedir. `company_id` yoktur.
 
 ## Şema
 
 ```php
-Schema::create('attachments', function (Blueprint $table) {
+Schema::connection('period')->create('attachments', function (Blueprint $table) {
     $table->id();
-    $table->morphs('attachable');                    // attachable_type + attachable_id
+    $table->morphs('attachable');
     $table->string('disk', 30)->default('attachments');
     $table->string('path');
     $table->string('original_name');
     $table->string('mime', 100);
     $table->unsignedBigInteger('size');
-    $table->string('collection', 40)->nullable();    // görsel seti adı (Trendyol, Ortak...)
+    $table->string('collection', 40)->nullable();
     $table->unsignedSmallInteger('sort_order')->default(0);
-    $table->foreignId('uploaded_by')->constrained('users');
-    $table->timestamps();
 
-    $table->index(['company_id', 'attachable_type', 'attachable_id'], 'attachments_owner_index');
+    // Master users'a FK yok
+    $table->unsignedBigInteger('uploaded_by')->nullable();
+    $table->string('uploaded_by_name')->nullable();
+
+    $table->timestamps();
+    $table->index(['attachable_type','attachable_id']);
 });
 ```
 
-## Kurallar
+## Güvenlik
 
-- Dosya erişimi **her zaman** `disk` üzerinden yapılır; kodda sabit yol yazılmaz.
-  Disk dolduğunda `.env` değişir, S3 uyumlu servise (iDrive, Hetzner) geçilir,
-  kodda hiçbir şey değişmez.
-- İzin verilen türler: jpg, jpeg, png, webp, pdf, xlsx, csv, docx
-- Boyut sınırı: varsayılan 25 MB, şirket ayarından değiştirilebilir
-- `collection` alanı ürün görsellerinde platform setini tutar
-  (Ortak, Trendyol, Hepsiburada, N11, Site-A)
-- Silme: kayıt silinince dosya da silinir (model observer)
+MIME uzantıdan değil dosya içeriğinden doğrulanır. Fiziksel ad UUID'dir. SVG yasaktır. İzin verilen temel tipler jpg/jpeg/png/webp/pdf/xlsx/csv/docx; limit varsayılan 25 MB ve sistem ayarından değişebilir.
+
+Dosya yolu disk soyutlaması üzerinden çözülür. Sıkıştırma yapılmaz. Ürün görsel setlerinde `collection` kanal setini tutabilir.
+
+Kart eki dönem devrinde kartla birlikte kopyalanır. Dosyanın fiziksel taşıma/kopyalama işlemi `integrity:files` ile doğrulanır.

@@ -2,42 +2,36 @@
 
 **Veritabanı: DÖNEM**
 
-`company_id` kolonu **yoktur** — veritabanı zaten o şirkete ve yıla aittir.
-
-
-
-## Amaç
-
-Ay bazlı kayıt penceresi. Dönem kapatıldığında o aya kayıt girilemez ve
-o aydaki belgeler değiştirilemez.
-
-Gayri resmi sistemde arkada düzeltici bir defter olmadığı için bu kritik:
-kapanmış ayın stok ve kasa rakamları sonradan oynamamalıdır.
-
 ## Şema
 
 ```php
 Schema::connection('period')->create('posting_periods', function (Blueprint $table) {
     $table->id();
     $table->unsignedSmallInteger('year');
-    $table->unsignedTinyInteger('month');        // 1-12
-    $table->string('status', 10)->default('open');   // open | closed
-    $table->foreignId('closed_by')->nullable()->constrained('users');
+    $table->unsignedTinyInteger('month');
+    $table->string('status', 10)->default('open'); // open | closed
+
+    // Master users'a cross-DB FK YOK
+    $table->unsignedBigInteger('closed_by')->nullable();
+    $table->string('closed_by_name')->nullable();
     $table->timestamp('closed_at')->nullable();
-    $table->foreignId('reopened_by')->nullable()->constrained('users');
+
+    $table->unsignedBigInteger('reopened_by')->nullable();
+    $table->string('reopened_by_name')->nullable();
     $table->timestamp('reopened_at')->nullable();
     $table->text('reopen_reason')->nullable();
-    $table->timestamps();
 
-    $table->unique(['year', 'month'], 'posting_periods_unique');
+    $table->timestamps();
+    $table->unique(['year','month']);
 });
 ```
 
+CHECK: month 1..12; status open|closed.
+
 ## Kurallar
 
-- Satırı olmayan ay **açık** sayılır (varsayılan açık)
-- Kapalı döneme: yeni belge kesinleştirilemez, mevcut belge değiştirilemez,
-  stok ve cari hareketi yazılamaz
-- Yalnızca **Yönetici** dönemi yeniden açabilir; açma gerekçe ister ve
-  `audit_log`'a düşer
-- Kontrol tek noktadan yapılır: `EnsurePeriodOpen` action'ı
+`EnsurePeriodOpen(document_date)` tek kontrol noktasıdır. Kapalı aya yeni kesinleşmiş belge/hareket yazılamaz.
+
+Kapanmış yılı/ayı yeniden açmak role sabit değildir; özel yeniden-açma izni gerekir ve gerekçe zorunludur. Açma/kapama period activity_log'a actor snapshot ile yazılır.
+
+Satırı olmayan ay varsayılan açık kabul edilecekse bu davranış Action içinde açık testle korunur; sessiz varsayım yapılmaz.

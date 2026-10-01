@@ -2,53 +2,16 @@
 
 ## Yeni görev
 
-```
-Aşağıdaki görev dosyasını uygula. Şemayı birebir kullan, değiştirme.
-Yalnızca "Dokunulacak dosyalar" listesindeki dosyalara yaz.
-Başka hiçbir dosyaya dokunma. Kod dışında açıklama yazma.
+Bu G görevini aynen uygula. Yalnız “Dokunulacak dosyalar” kapsamını değiştir. Şemayı/mimariyi kendiliğinden değiştirme.
 
---- GÖREV DOSYASI ---
-<dosyanın tam içeriği>
-```
+Zorunlu kontrol: doğru Master/period connection; period tabloda company_id/BelongsToCompany/global scope yok; period içi FK gerçek; Master user cross-DB FK yok; user_id+user_name snapshot; Money+BCMath; document_date; idempotency/version/lockForUpdate; CHECK; RecordStockMovement; base_quantity+conversion_factor; integrity; gerçek PostgreSQL test.
 
-## Hata düzeltme
-
-```
-Şu görevi uyguladın: <G-xxx>
-Kabul ölçütü başarısız. Hata:
-
-<hata çıktısı>
-
-İlgili dosya:
-<dosya içeriği>
-
-Yalnızca bu hatayı düzelt. Başka değişiklik yapma.
-```
-
-## Test yazma
-
-```
-Şu dosya için Pest testi yaz:
-<dosya içeriği>
-
-Test edilecek davranışlar:
-- <madde>
-- <madde>
-
-RefreshDatabase kullan. Factory gerekiyorsa oluştur.
-```
+Kabul ölçütleri çalışmadan görevi tamamlandı sayma.
 
 ## Gözden geçirme
 
-```
-Aşağıdaki kodu şu kurallara göre denetle:
-1. BelongsToCompany trait'i var mı (iş modeliyse)
-2. Tutar decimal(18,4), miktar decimal(18,3) mi
-3. Ham SQL veya DB::table() kullanılmış mı
-4. İş kuralı Livewire bileşenine yazılmış mı (yazılmamalı)
-5. Yetki kontrolü Action içinde var mı
+Özellikle legacy kalıntısı ara: `company_id` period tablosu, `BelongsToCompany`, `withoutGlobalScopes`, `master.contacts`, `company` DB connection, `prices.override`, `date` belge alanı, Master user'a period FK.
 
-Yalnızca bulduğun sorunları listele, kod yazma.
+## Hata düzeltme
 
-<kod>
-```
+Hata kapsamı dışına çıkma. Yeni iş kararı gerekiyorsa kod yazmadan üç seçenekle raporla.

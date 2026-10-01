@@ -1,86 +1,33 @@
 # Bağlantı yönetimi
 
-## Üç bağlantı
+## Bağlantılar
 
-| Bağlantı | Veritabanı | İçerik |
-|---|---|---|
-| `master` | `MarsProject_Master` | Şirketler, kullanıcılar, yetkiler, sistem |
-| `company` | `{ŞirketKodu}` | Kartlar ve tanımlar |
-| `period` | `{ŞirketKodu}_{Yıl}` | Hareketler ve belgeler |
+- `master`: MarsProject_Master
+- `period`: aktif şirket+yıl DB
+- `period_source`: yalnız şirketler arası kopyalama sırasında geçici
 
-`company` ve `period` çalışma anında doldurulur.
+Kalıcı ayrı `company` bağlantısı **yoktur**; kartlar period DB'dedir.
 
-## Model bağlantıları — kural
+## PeriodContext
 
-Her model `$connection` özelliğini **açıkça** belirtir. Belirtmeyen model
-varsayılana düşer ve yanlış veritabanına yazar.
+Web isteğinde:
+1. aktif company + period seçimi Master'dan alınır,
+2. company_user erişimi kontrol edilir,
+3. period_user_access erişimi kontrol edilir,
+4. periods.database_name bulunur,
+5. `database.connections.period.database` atanır,
+6. `DB::purge('period')` + reconnect yapılır.
 
-```php
-class Contact extends Model       { protected $connection = 'company'; }
-class Document extends Model      { protected $connection = 'period'; }
-```
+PeriodContext olmadan PeriodModel sorgusu fail-fast hata vermelidir.
 
-**Yeni model yazarken ilk satır bu olmalı.** Unutulması, verinin yanlış
-veritabanına gitmesi demektir ve sessizce olur.
+## Queue
 
-## Middleware
+Job `company_id + period_id` (ve gerekirse year) taşır. `handle()` başında system context ile period bağlanır. Kullanıcı aksiyonundan doğmuşsa actor_user_id/name ayrıca taşınabilir.
 
-`SetDatabaseContext` her istekte çalışır:
+## FK
 
-1. Oturumdan aktif şirket ve yıl okunur
-2. Kullanıcının o şirkete erişimi var mı (`company_user`)
-3. O şirket-yıl veritabanı kayıtlı ve açık mı (`company_databases`)
-4. `DatabaseContext::use($company, $year)` çağrılır
+Aynı period DB içindeki kart/belge ilişkileri gerçek FK'dir. Master↔period cross-DB FK yoktur.
 
-Erişim yoksa 403; veritabanı yoksa şirket/dönem seçim ekranına yönlendirilir.
+## Çok dönem
 
-## Kuyruk işleri
-
-Kuyrukta oturum yoktur. Her iş `company_id` ve `year` taşır:
-
-```php
-public function handle(): void
-{
-    DatabaseContext::use(Company::find($this->companyId), $this->year);
-    // ...
-}
-```
-
-**Bunu unutan iş yanlış veritabanına yazar.** Base job sınıfı bunu
-zorunlu kılar.
-
-## İlişki kısıtı — önemli
-
-Farklı bağlantılardaki tablolar arasında **veritabanı seviyesinde
-yabancı anahtar kurulamaz.**
-
-Örnek: `documents.contact_id` → `contacts.id` ilişkisi, belge `period`
-veritabanında, cari `company` veritabanında olduğu için foreign key
-constraint ile korunamaz.
-
-Sonuç:
-- İlişki **uygulama seviyesinde** doğrulanır (kayıt öncesi `exists` kontrolü)
-- Eloquent `belongsTo` çalışır (ayrı sorgu atar), `join` çalışmaz
-- Liste ekranlarında cari adı göstermek için **denormalizasyon** gerekir:
-  `documents` tablosunda `contact_code` ve `contact_title` kolonları
-  belge kesinleşirken kopyalanır
-
-Bu denormalizasyon ayrıca doğrudur: belge kesinleştiği andaki cari unvanını
-saklamak, cari sonradan adını değiştirse bile eski belgenin doğru
-görünmesini sağlar.
-
-## Çapraz dönem sorgu
-
-```php
-$results = MultiPeriodQuery::for($company, [2025, 2026])
-    ->run(fn () => Document::where('document_type','sales_invoice')
-        ->whereBetween('date', [$from, $to])
-        ->sum('grand_total'));
-```
-
-Her yıl için sırayla bağlanır, sonuçları birleştirir. Yıllık karşılaştırma
-raporları bunu kullanır.
-
-**Performans notu:** çok yıllı rapor N sorgu demektir. Sık kullanılan
-karşılaştırmalar için `MarsProject_Master` içinde bir özet tablo
-düşünülebilir (dönem kapanışında doldurulur).
+Her period DB sırayla sorgulanır; sonuç PHP'de birleştirilir. `document_date` filtreleri kullanılır.

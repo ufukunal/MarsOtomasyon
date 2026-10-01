@@ -1,40 +1,9 @@
 # Dönem kilidi
 
-## Kural
+Kontrol tarihi `document_date`dır. `created_at` kilit kararı için kullanılmaz.
 
-Kapalı döneme kayıt girilemez ve o dönemdeki belgeler değiştirilemez.
+`EnsurePeriodOpen(document_date)` period DB'deki `posting_periods` kaydını okur. `company_id` filtresi yoktur.
 
-Kontrol edilen işlemler: belge kesinleştirme, belge iptali, stok hareketi
-oluşturma, cari hareketi yazma, sayım onaylama.
+Kapalı ayda posted belge, stok hareketi, cari hareketi, kasa/banka hareketi üretilemez. Taslak düzenleme politikası görevde açıkça belirtilir; kesinleştirme mutlaka engellenir.
 
-## Uygulama
-
-```php
-final class EnsurePeriodOpen
-{
-    public function handle(Carbon $date): void
-    {
-        $period = PostingPeriod::query()
-            ->where('company_id', CompanyContext::id())
-            ->where('year', $date->year)
-            ->where('month', $date->month)
-            ->first();
-
-        if ($period && $period->status === 'closed') {
-            throw new PeriodClosedException(
-                sprintf('%02d.%d dönemi kapalı. Bu tarihe kayıt girilemez.',
-                    $date->month, $date->year)
-            );
-        }
-    }
-}
-```
-
-**Satırı olmayan ay açık sayılır.** Dönem kaydı yalnızca kapatılınca oluşur.
-
-## Yeniden açma
-
-- Yalnızca `Yönetici` rolü
-- Gerekçe zorunlu
-- `audit_log`'a düşer
-- Açık bırakılan dönem ana sayfada uyarı olarak gösterilir
+Yeniden açma **özel izin + gerekçe** ister; yalnız rol adına bağlanmaz. Actor user_id + user_name snapshot ve gerekçe period activity_log'a yazılır.

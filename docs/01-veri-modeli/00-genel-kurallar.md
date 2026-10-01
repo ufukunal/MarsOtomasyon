@@ -1,50 +1,46 @@
 # Veri modeli — genel kurallar
 
-**Önce oku:** `docs/00-genel/07-veritabani-mimarisi.md`
+## Veritabanı ayrımı
 
-Sistem **master + şirket/dönem** veritabanı modeli kullanır.
-Her tablo dosyasının başında **hangi veritabanında durduğu** yazılıdır.
+**Master:** şirket, dönem, kullanıcı, rol/izin, şirket+dönem erişimi, kur, sistem ayarı, company_copy_permissions, print_profiles, master audit.
 
-## Master tabloları
+**Period:** kartlar dahil yıla bağlı bütün işletme verisi.
 
-Yalnızca: `companies`, `periods`, `users`, `roles`, `permissions`,
-`company_user`, `exchange_rates`, `app_settings`, `activity_log`.
-Bunlar şirket üstüdür, `company_id` taşımazlar (ilişki tabloları hariç).
+Period tablolarında `company_id` yoktur. Fiziksel DB seçimi şirket izolasyonudur. Period modelleri `PeriodModel`, Master modelleri `MasterModel` kullanır.
 
-**Master'da kart yoktur.**
+## Foreign key
 
-## Dönem tabloları — diğer HER ŞEY
+Aynı period DB içindeki ilişkiler gerçek PostgreSQL FK kullanır. Örnek: documents.contact_id → contacts.id, document_lines.product_id → products.id.
 
-`company_id` kolonu **yoktur.** Veritabanının kendisi o şirkete ve yıla
-aittir; izolasyon fizikseldir, global scope yoktur.
+Master ve period arasında gerçek FK kurulmaz. Period kaydındaki actor alanlarında `user_id` scalar ve `user_name` snapshot saklanır.
 
-Kartlar da dönemdedir, bu yüzden belgeler **gerçek yabancı anahtar**
-kullanır (`documents.contact_id` → `contacts.id`). Kart bilgisi belgeye
-yine kopyalanır (`contact_title`, `product_name`) ama bu zorunluluk
-değil, belge dökümü kolaylığıdır.
+Şirketler arası kopyalama provenance alanı `source_company_id` de scalar'dır; Master companies tablosuna period DB'den FK kurulmaz.
 
-## Silme politikası
+## Kimlik ve kod
 
-İş kayıtları silinmez. `deleted_at` yalnızca master'daki kart
-tablolarında bulunur. Belgeler iptal edilir, ters kayıt yazılır.
+- Period içi kart kodu benzersizdir.
+- Pasif kartın kodu başka karta tekrar verilmez.
+- Aynı şirket dönem devrinde taşınan kart ID ve kodları korunur.
+- Taşınan stock_balance kayıtlarının ID'si de korunur.
+- Şirketler arası kopyalamada hedef yeni ID üretir.
+- Devir sonrası sequence değerleri `MAX(id)+1` seviyesine alınır.
 
-## Sayısal tipler
+## Hassasiyet
 
-Tutar `decimal(18,4)`, miktar `decimal(18,3)`, oran `decimal(7,4)`,
-kur `decimal(18,6)`. **Float yasak.**
+- money: decimal(18,4)
+- quantity: decimal(18,3)
+- rate: decimal(7,4)
+- exchange rate / conversion: decimal(18,6)
+- PHP float yasak; Money + BCMath.
 
-## CHECK kısıtı kuralı
+## Zaman
 
-Her tablonun **ihlal edilemez** kuralları veritabanı seviyesinde CHECK
-kısıtı olarak yazılır. "Uygulama zaten kontrol ediyor" gerekçesi kabul
-edilmez — içe aktarma, kuyruk işi ve elle SQL uygulamayı atlar.
+İş tarihi gereken belgede `document_date` kullanılır. `created_at` sistem kayıt zamanıdır. Dönem kilidi `document_date` üzerinden çalışır.
 
-Örnek: `quantity > 0`, `direction IN ('in','out')`, `vat_rate BETWEEN 0 AND 100`,
-`abs(total_cost - quantity * unit_cost) < 0.01`.
+## Değişmezlik
 
-Ayrıntı: `docs/02-is-kurallari/16-veri-butunlugu.md`
+Posted/kesinleşmiş hareket ve belge fiziksel silinmez/değiştirilmez; ters kayıt kullanılır. Kartlar `is_active=false` ile pasifleştirilir. Taslak belge numara almadan fiziksel silinebilir.
 
-## İndeks kuralı
+## Bütünlük
 
-Her yabancı anahtar indekslenir. Master'da `company_id + code`,
-dönemde `product_id + location_id + date` bileşik indeks alır.
+İhlal edilemez kurallar DB CHECK ile korunur. Türetilmiş/kopyalanmış her veri için aynı fazda `integrity:` kontrolü tanımlanır.

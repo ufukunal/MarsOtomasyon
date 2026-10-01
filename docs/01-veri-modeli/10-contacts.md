@@ -2,99 +2,55 @@
 
 **Veritabanı: DÖNEM**
 
-`company_id` kolonu **yoktur** — veritabanı zaten o şirkete ve yıla aittir.
-
-
-
-## Amaç
-
-Cari kartı. **Müşteri ve tedarikçi ayrı kart değildir**; tek kart, kategoriyle
-ayrılır. Bakiye tektir.
+Cari müşteri/tedarikçi tek karttır. `company_id` yoktur.
 
 ## contacts
 
 ```php
 Schema::connection('period')->create('contacts', function (Blueprint $table) {
     $table->id();
-    $table->string('code', 30);
-    $table->string('title');                                  // unvan
-    $table->string('type', 10)->default('legal');             // legal | real
+    $table->string('code', 30)->unique();
+    $table->string('title');
+    $table->string('type', 10)->default('legal');
     $table->string('tax_office')->nullable();
     $table->string('tax_number', 20)->nullable();
-    $table->string('national_id', 11)->nullable();            // TC
+    $table->string('national_id', 11)->nullable();
     $table->text('address')->nullable();
     $table->string('city', 60)->nullable();
     $table->string('district', 60)->nullable();
     $table->string('phone', 30)->nullable();
     $table->string('email')->nullable();
 
-    $table->unsignedSmallInteger('term_days')->nullable();    // boş = şirket varsayılanı
+    $table->unsignedSmallInteger('term_days')->nullable();
     $table->decimal('risk_limit', 18, 4)->default(0);
-    $table->decimal('discount_rate', 7, 4)->default(0);       // belgeye otomatik gelir
-    $table->foreignId('price_list_id')->nullable()->constrained('price_lists');  // boşsa varsayılan liste
+    $table->decimal('discount_rate', 7, 4)->default(0);
+    $table->foreignId('price_list_id')->nullable()->constrained('price_lists');
 
-    $table->foreignId('source_company_id')->nullable()->constrained('companies');
+    // başka şirketten kopya provenance; cross-DB FK DEĞİL
+    $table->unsignedBigInteger('source_company_id')->nullable();
     $table->unsignedBigInteger('source_record_id')->nullable();
 
+    $table->string('search_index')->nullable();
     $table->boolean('is_active')->default(true);
     $table->timestamps();
-    $table->softDeletes();
 
-    $table->unique(['company_id','code']);
-    $table->index(['company_id','title']);
-    $table->index(['company_id','tax_number']);
+    $table->index('tax_number');
+    $table->index('source_company_id');
 });
 ```
 
-## contact_categories / contact_contact_category
+Kod pasifleşse bile başka karta verilmez; fiziksel silme yoktur. Aynı şirket dönem devrinde ID+code korunur. Şirketler arası kopyada yeni ID oluşur.
 
-Kategoriler: **Tedarikçi, Cari, İnternet Müşterisi, Mağaza Müşterisi**.
-Bir kart birden çok kategori taşıyabilir (çoktan çoğa).
+## Yan tablolar
 
-```php
-Schema::connection('period')->create('contact_categories', function (Blueprint $table) {
-    $table->id();
-    $table->string('name', 60);
-    $table->string('color', 20)->nullable();
-    $table->timestamps();
-    $table->unique(['company_id','name']);
-});
-```
+`contact_categories`: id, name unique, color, is_active.
+Pivot: contact_id + category_id gerçek period FK.
+`contact_addresses`, `contact_people`, `contact_banks`: contact_id gerçek FK.
 
-## contact_addresses
+Bu period tablolarının hiçbirinde `company_id` yoktur.
 
-```php
-$table->foreignId('contact_id')->constrained()->cascadeOnDelete();
-$table->string('kind', 10);          // billing | shipping
-$table->string('title', 60);
-$table->text('address'); $table->string('city',60); $table->string('district',60)->nullable();
-$table->boolean('is_default')->default(false);
-```
+## Bakiye / risk
 
-## contact_people
+Bakiye contacts üzerinde saklanmaz; `contact_transactions` toplamıdır. Yaşlandırma FIFO rapor hesabıdır. Risk limiti blok değil uyarıdır; sipariş ekranı cari bakiye + yeni sipariş + portföy kıymet riskini ayrıca gösterir.
 
-```php
-$table->foreignId('contact_id')->constrained()->cascadeOnDelete();
-$table->string('name'); $table->string('role',60)->nullable();
-$table->string('phone',30)->nullable(); $table->string('email')->nullable();
-$table->boolean('is_primary')->default(false);
-```
-
-## contact_banks
-
-```php
-$table->foreignId('contact_id')->constrained()->cascadeOnDelete();
-$table->string('bank_name',60); $table->string('branch',60)->nullable();
-$table->string('iban',34)->nullable(); $table->char('currency',3)->default('TRY');
-```
-
-## Kurallar
-
-- `code` şirket içinde benzersiz, otomatik üretilebilir (`CR` + sıra)
-- `term_days` boşsa `companies.default_term_days` kullanılır
-- `risk_limit` aşımında **uyarı** verilir, işlem engellenmez (K-007 benzeri)
-- `discount_rate` belgelere otomatik gelir, belgede değiştirilebilir
-- `price_list_id` boşsa şirketin varsayılan fiyat listesi kullanılır
-  (bkz. `02-is-kurallari/26-fiyatlandirma.md`)
-- Bakiye bu tabloda **tutulmaz**; `contact_transactions` tablosundan hesaplanır
-  (Faz 3'te gelir). Faz 1'de bakiye kolonu 0 gösterir.
+TC kimlik maskelenir; tam görüntü ayrı izindir.

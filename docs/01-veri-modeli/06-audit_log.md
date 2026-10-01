@@ -1,40 +1,26 @@
 # İşlem geçmişi (audit)
 
-**Veritabanı: DÖNEM**
+İki ayrı audit alanı vardır.
 
-`company_id` kolonu **yoktur** — veritabanı zaten o şirkete ve yıla aittir.
+## Master activity_log
 
+Login/başarısız login, kullanıcı/rol/izin değişikliği, şirket/dönem oluşturma, period erişim yetkisi, company_copy_permissions ve print profile yönetimi.
 
+## Period activity_log
 
-spatie/laravel-activitylog kullanılır, `activity_log` tablosuna
-`company_id` kolonu eklenir.
+Kart oluşturma/değiştirme/pasifleştirme, belge kesinleştirme/ters kayıt, fiyat sapması, dönem açma/kapama, stok/cari kritik eylemleri ve şirketler arası kopyalama hedef işlemi.
 
-## Ek kolon
+Period activity_log'a `company_id` eklenmez. Period DB zaten şirket+yıldır.
 
-```php
-Schema::table('activity_log', function (Blueprint $table) {
-    $table->foreignId('company_id')->nullable()->after('id')->constrained();
-    $table->index(['company_id', 'created_at']);
-});
-```
+Master user için period DB'de FK kurulmaz. Actor:
+- actor_user_id bigint nullable
+- actor_user_name string nullable
+- correlation_id
+- event
+- subject_type / subject_id
+- properties jsonb
+- created_at
 
-## Loglanacaklar
+Posted kayıtlar silinmez. Audit log otomatik temizlenmez; gerekiyorsa arşiv politikasıyla ayrılır.
 
-| Olay | Kayıt |
-|---|---|
-| Kart oluşturma / değiştirme | eski ve yeni değerler |
-| Belge kesinleştirme | belge no, tutar, cari |
-| Belge iptali / ters kayıt | gerekçe |
-| Dönem kapatma / açma | kim, ne zaman, gerekçe |
-| Yetki değişikliği | kim kime hangi rolü verdi |
-| Maliyet sapma uyarısı geçildiğinde | ürün, beklenen, girilen |
-| Şirketler arası kopyalama | kaynak, hedef, kayıt |
-| Giriş / çıkış / başarısız giriş | IP |
-
-## Loglanmayacaklar
-
-Liste görüntüleme, arama, rapor açma. Gürültü yaratır, değer üretmez.
-
-## Saklama
-
-Sınırsız. `audit_log` temizlenmez; gerekirse arşivlenir.
+Liste görüntüleme/normal arama gibi gürültülü okuma olayları varsayılan olarak loglanmaz.
