@@ -15,7 +15,7 @@ Taslak belge numarasız olabilir ve fiziksel silinebilir. Kesinleşmiş belge si
 | İrsaliye | **Çıkış** | İlgili rezervi çözer | Yok | Post |
 | Satış faturası — irsaliyeden | Tekrar stok yok | Yok | **Debit** | Post |
 | Satış faturası — doğrudan | **Çıkış** | Varsa ilişkili rezerv çözümü | **Debit** | Post |
-| Proforma | Yok | Yok | Yok | **[KARAR GEREKİYOR: numaralandırma kaynakları çelişiyor]** |
+| Proforma | Yok | Yok | Yok | Oluşturulurken period `proforma` serisinden numara alır; finansal posting etkisi yoktur |
 | Tahsilat | Yok | Yok | **Credit** | Post + kasa/banka girişi |
 
 ## PostDocument transaction sırası
