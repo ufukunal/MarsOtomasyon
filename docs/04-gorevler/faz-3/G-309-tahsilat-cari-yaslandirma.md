@@ -36,20 +36,21 @@ Period tablolarında company_id yoktur.
 
 ## Tahsilat formu
 
-v65 alanları:
+v65 görselinde Şube, Cari, İşlem, Tutar, Para Birimi, Kasa/Banka, Tarih, Vade, Evrak No ve Not görünür.
 
-- Şube
-- Cari
-- İşlem
-- Tutar
-- Para Birimi
-- Kasa/Banka
-- Tarih
-- Vade
-- Evrak No
-- Not
+Faz 3'te gerçekten persist edilen input:
 
-Faz 3 satışta TRY.
+- contact_id
+- amount
+- account_type + account_id
+- document_date
+- note
+- optional source_invoice_id
+- idempotency_key
+
+Satış tahsilatı TRY'dir; işlem tipi `collection` olarak sabittir.
+
+**Şube, Vade ve Evrak No için Faz 3 kaynaklarında backing kolon/ilişki tanımlı değildir. Claude bunlar için yeni kolon, JSON alanı veya lookup tablosu uydurmaz.** Bu üç v65 alanı Faz 3'te aktif input değildir.
 
 Form yalnız `Post` ile kalıcı hareket üretir. Ayrı kaydedilmiş draft collection detayı uydurma.
 

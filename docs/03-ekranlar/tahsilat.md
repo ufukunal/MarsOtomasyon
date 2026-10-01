@@ -11,20 +11,20 @@
 
 ## Alanlar
 
-v65:
+v65 görselinde Şube, Cari, İşlem, Tutar, Para Birimi, Kasa/Banka, Tarih, Vade, Evrak No ve Not alanları görünür.
 
-- Şube
+**Faz 3'te yalnız backing modeli bulunan alanlar aktiftir:**
+
 - Cari
-- İşlem
 - Tutar
-- Para Birimi
-- Kasa/Banka
+- Kasa/Banka hesabı
 - Tarih
-- Vade
-- Evrak No
 - Not
+- fatura içinden açıldıysa optional kaynak fatura ilişkisi
 
-Faz 3 satış tarafında para birimi TRY'dir.
+Para birimi satış tarafında TRY'dir; serbest döviz tahsilatı Faz 3 kapsamı değildir. İşlem tipi bu ekranda `collection` olarak sabittir.
+
+**Şube, Vade ve Evrak No için Faz 3 veri modelinde onaylı bir persistence alanı yoktur. Bu alanlar sırf v65'te görünüyor diye yeni kolon/tablo uydurularak uygulanmaz.** İleride backing model kararı verilirse ayrıca eklenir.
 
 ## Eylem
 
