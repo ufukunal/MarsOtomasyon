@@ -1,52 +1,27 @@
 # Mimari
 
-## Katmanlar
+## Veritabanı katmanları
 
-```
-Livewire bileşeni → Action (iş kuralı) → Model → Veritabanı
-                        ↓
-                  Event / Listener → audit, stok, cari hareketi
-```
+`MarsProject_Master` sistem üstü bağlamdır. `ABCHolding_2026`, `ABCHolding_2027`, `XYZltd_2026` gibi DB'ler şirket+yıl period veritabanlarıdır.
 
-**Kural:** iş kuralı Livewire bileşenine yazılmaz. Bileşen girdi toplar,
-bir Action çağırır. Böylece aynı kural ekrandan, içe aktarmadan, testten
-aynı şekilde çalışır.
+### Master
 
-## Dizin düzeni
+`companies`, `periods`, `users`, rol/izin tabloları, `company_user`, şirket+dönem erişim kayıtları, `exchange_rates`, `app_settings`, `company_copy_permissions`, `print_profiles`, master `activity_log`.
 
-```
-app/
-  Actions/
-    Numbering/      numara üretimi
-    Periods/        dönem kontrolü
-    Companies/      şirketler arası kopyalama
-  Models/
-  Livewire/
-    Pages/          tam sayfa ekranlar
-    Components/     tekrar kullanılan parçalar
-  Support/
-    Company/        CompanyContext, BelongsToCompany
-    Printing/       PrintManager ve taşıyıcılar
-  Enums/
-  Policies/
-resources/
-  css/app.css       TEK tema dosyası
-  js/app.js         asgari JS
-  views/layouts/ , views/livewire/
-```
+### Period
 
-## Şirket izolasyonu
+Cari/ürün kartları ve yan tabloları, fiyat listeleri, varyant/set/konfigürasyon, lokasyonlar, kart ekleri, documents/document_lines, stok hareket/bakiyeleri, maliyet, cari hareket, kasa/banka, çek/senet, numara serileri, posting period, rezervasyon, sayım, karantina ve period audit.
 
-Aktif şirket `session('active_company_id')`, `CompanyContext` üzerinden okunur.
+## İzolasyon ve bağlantı
 
-`BelongsToCompany` trait'i modele iki şey ekler:
-1. Global scope — her sorguya `where company_id = aktif şirket`
-2. `creating` olayında `company_id` otomatik doldurma
+Kullanıcının şirket+dönem erişimi Master'dan doğrulanmadan `PeriodContext` kurulmaz. Period DB seçildikten sonra tüm `PeriodModel` sorguları fiziksel olarak yalnız o DB'ye gider. `company_id` filtresi kullanılmaz.
 
-**Trait'i eklemeyi unutmak veri sızıntısıdır.** Her yeni model için izolasyon
-testi yazılır (G-011).
+Aynı period içindeki `documents.contact_id -> contacts.id` ve `document_lines.product_id -> products.id` gibi ilişkiler gerçek FK'dir. Master `users` farklı DB'de olduğu için `created_by/posted_by` gibi alanlarda gerçek FK yoktur; scalar user_id + user_name snapshot kullanılır.
 
-## Yazdırma soyutlaması
+## Yazma ve bütünlük
 
-Uygulama doğrudan yazıcıya konuşmaz. `PrintManager::send($type, $payload)`
-çağrılır; taşıyıcı (tarayıcı / yerel ajan / özel kabuk) tek sınıfta değişir.
+Stok yalnız `RecordStockMovement` üzerinden yazılır. Belge kesinleştirme transaction, idempotency, lockForUpdate ve aynı transaction içinde post-write verify kullanır. Cari bakiye `contact_transactions` toplamıdır. Türetilmiş/kopyalanmış her değer için `integrity:` kontrolü bulunur.
+
+## Arşiv
+
+Period DB verisi Master olmadan okunabilir. Uygulamada login, erişim kontrolü ve Master'daki yazdırma profilleri için Master gerekir.

@@ -1,128 +1,69 @@
-# Veritabanı mimarisi — ince master + şirket/dönem
+# Veritabanı mimarisi — ince Master + şirket/dönem
 
-**Bu belge diğer her şeyin üstündedir.**
+**Kanonik mimari belgesidir.**
 
 ## Yapı
 
 ```
-MarsProject_Master     şirketler, dönemler, kullanıcılar, roller, izinler,
-                       genel ayarlar, döviz kurları.  BAŞKA HİÇBİR ŞEY.
-
-ABCHolding_2026        HER ŞEY: cari ve ürün kartları, varyant, set,
-ABCHolding_2027        konfigüratör, fiyat listeleri, lokasyonlar, görseller,
-XYZltd_2026            belgeler, stok hareketleri, bakiye, maliyet,
-                       cari hareketler, kasa/banka, çek/senet,
-                       numara serileri, ay kilitleri, sayımlar, ekler.
+MarsProject_Master
+ABCHolding_2026
+ABCHolding_2027
+XYZltd_2026
 ```
 
-Logo/Mikro modeli. Kullanıcı giriş yapar, **şirket ve dönem seçer**,
-uygulama o veritabanına bağlanır ve **o veritabanında her şeyi bulur**.
+## Master'da duranlar
 
-## Neden kartlar da dönemde
+- companies
+- periods
+- users
+- roles / permissions ve ilişkileri
+- company_user
+- şirket+dönem erişim kayıtları
+- exchange_rates
+- app_settings
+- company_copy_permissions
+- print_profiles
+- master activity_log
 
-**Dönemin anlamı temiz geçiştir.** 2026'da bir ürünün fiyatını veya adını
-değiştirmek 2025'in faturalarını etkilememelidir. Kart o yılın içinde donar.
+Master'da cari/ürün/lokasyon/fiyat kartı yoktur. Master modelleri şirket global scope'u kullanmaz.
 
-İki büyük kazanç:
+## Period DB'de duranlar
 
-**Arşivlenen yıl kendi başına açılır.** Başka veritabanına ihtiyaç yok.
+Kartlar: contacts ve yan tabloları, products, units, categories, brands, variants, sets, configurator, price_lists, locations, kart attachments/görseller.
 
-**Veritabanları arası yabancı anahtar sorunu yok.** Belge aynı
-veritabanındaki cariye işaret eder, gerçek `foreign key` kurulur.
-Kart bilgisi belgeye yine kopyalanır (`contact_title`, `product_name`)
-ama bu artık zorunluluk değil, belge dökümü kolaylığıdır.
+Operasyon: documents, document_lines, document_relations, contact_transactions, stock_movements, stock_balances, product_costs, cash/bank, securities, number_series, posting_periods, reservations, stock counts, quarantine, integrity/idempotency kayıtları ve period activity_log.
 
-**Maliyeti:** bir ürünün adını düzeltince yalnızca aktif dönemde düzelir.
-Çoğu durumda doğru davranış budur.
+**Period tablolarında company_id yoktur.** `PeriodModel` connection=`period` kullanır.
 
-## Master'da ne var
+## Foreign key sınırı
 
-| Tablo | Not |
-|---|---|
-| `companies` | şirket kartı, `db_prefix` |
-| `periods` | hangi şirketin hangi yılı, hangi veritabanı |
-| `users`, `roles`, `permissions`, `company_user` | yetki |
-| `exchange_rates` | döviz kurları |
-| `app_settings` | sürüm, genel parametreler |
-| `activity_log` (master işlemleri) | giriş, yetki değişikliği, dönem açma |
+Aynı period DB içindeki ilişkiler gerçek FK'dir. Master'daki users/companies gibi başka DB kayıtlarına PostgreSQL cross-database FK kurulmaz. Bu referanslar scalar kimlik + gerektiğinde snapshot ile tutulur.
 
-**Master'da kart yoktur.** `company_copy_permissions` de kalkmıştır — şirketler arası
-kopyalama artık dönem veritabanları arasında yapılır (izin `companies`
-tablosunda tutulur).
+## Bağlantılar
 
-## Dönem veritabanında ne var
-
-Kartlar: `contacts` + adres/yetkili/banka/kategori, `products` +
-kategori/marka/birim/barkod/varyant/set/konfigürasyon, `price_lists`,
-`locations`, `attachments`.
-
-Hareketler: `documents`, `document_lines`, `stock_movements`,
-`stock_balances`, `product_costs`, `contact_transactions`,
-`cash_movements`, `bank_movements`, `securities`, `number_series`,
-`posting_periods`, `stock_counts`, `quarantine_entries`,
-`stock_reservations`, `integrity_reports`, `idempotency_keys`,
-`activity_log` (dönem işlemleri).
-
-**Dönem tablolarında `company_id` kolonu YOKTUR.** Veritabanı zaten o
-şirkete ve yıla aittir. Global scope da yoktur — izolasyon fizikseldir.
-
-## Bağlantı
-
-```php
-'master' => ['database' => env('DB_MASTER_DATABASE', 'MarsProject_Master')],
-'period' => ['database' => null],          // çalışma anında doldurulur
-
-PeriodContext::use($companyId, $year);
-  → config(['database.connections.period.database' => $period->database_name])
-  → DB::purge('period'); DB::reconnect('period');
-```
-
-Model temel sınıfları:
-
-```php
-abstract class MasterModel extends Model { protected $connection = 'master'; }
-abstract class PeriodModel extends Model { protected $connection = 'period'; }
-```
-
-Master modelleri de global scope **kullanmaz** — `companies`, `periods`,
-`users` zaten şirket üstüdür.
-
-## Migration klasörleri
-
-```
-database/migrations/master/
-database/migrations/period/
-```
-
-Dağıtımda `migrate --database=master` ve ardından **`migrate:periods`**
-(tüm dönem veritabanları) çalıştırılır.
-
-## Dönem devri
-
-Yıl sonunda yeni veritabanı oluşturulur ve:
-
-```
-1. KARTLAR KOPYALANIR — cari, ürün, varyant, set, konfigürasyon,
-   fiyat listeleri, lokasyonlar, kart ekleri
-2. Stok açılışı yazılır — her ürün/lokasyon için giriş hareketi,
-   birim maliyet = KAPANIŞ HAREKETLİ ORTALAMASI
-3. product_costs taşınır
-4. Cari bakiyeleri açılış fişi olur
-5. Kasa, banka bakiyeleri ve vadesi gelmemiş çek/senet taşınır
-6. Kaynak dönem kapatılır (salt okunur)
-```
-
-**Taşınmayanlar:** belgeler, hareketler, açık sipariş/teklif, taslaklar,
-yolda transfer, karantinada bekleyen kalem.
+Kalıcı bağlantılar `master` ve `period`dur. Şirketler arası kopyalamada işlem süresince `period_source` açılır. Kuyruk işi company_id + period_id/yıl bağlamını taşır ve `handle()` başında `PeriodContext` kurar.
 
 ## Şirketler arası kopyalama
 
-İzin `companies` tablosunda tanımlı (hangi şirket hangisinden kart
-alabilir). Kopyalama kaynak şirketin **aynı yıldaki** dönem
-veritabanından hedefin dönem veritabanına yapılır; kaynak referansı
-saklanır, canlı bağ kurulmaz.
+Master `company_copy_permissions` kaynak→hedef iznini tutar. Kaynak aynı yılın period DB'sinden okunur, hedef period DB'ye yeni kayıt yazılır. Hedefte yeni ID üretilir; `source_company_id + source_record_id` provenance'dır ve FK değildir. Kod çakışırsa kullanıcıdan mevcut kart / yeni kod / iptal seçimi alınır.
 
-## Yedekleme
+## Dönem devri
 
-Her veritabanı ayrı yedeklenir. Master küçüktür ama **her yedekte olmalı**
-— onsuz hangi veritabanının hangi şirkete ait olduğu bilinmez.
+1. Hedef DB oluşturulur ve `migrate:periods` çalışır.
+2. Aktif kartlar + bakiye/hareket ilişkili gerekli pasif kartlar kopyalanır.
+3. Aynı şirket devrinde taşınan bütün kartların ID/kodları ve taşınan stock_balance ID'leri korunur.
+4. Sequence'ler `MAX(id)+1` seviyesine alınır.
+5. Açılış stoku kapanış miktarı ve kapanış hareketli ortalama maliyetiyle yazılır; geçmiş stock_movements taşınmaz.
+6. product_costs, cari açılış, kasa/banka ve vadesi gelmemiş çek/senet taşınır.
+7. Belgeler, açık teklif/sipariş, taslak, yoldaki transfer ve karantina bekleyenler taşınmaz.
+8. `integrity:carry` fark bulursa devir tamamlanmaz.
+9. Kaynak dönem kapatılır.
+10. Sonunda önceki dönemin kullanıcı/dönem erişim ve dönemsel kullanıcı yetkilerini yeni döneme kopyalamak isteyip istemediği sorulur; kullanıcı seçilebilir.
+
+## Çok dönemli rapor
+
+Period DB'ler ayrı sorgulanır; ilk sürümde sonuç PHP'de birleştirilir. FDW/dblink zorunlu değildir.
+
+## Migration / restore
+
+Master migration'dan sonra tüm kayıtlı period DB'ler `migrate:periods` ile güncellenir. Restore edilmiş arşiv DB önce migrate edilir, sonra closed/salt-okunur açılır.

@@ -1,39 +1,24 @@
 # MarsOtomasyon
 
-Avize toptan ticareti için firmaya özel ERP. Ön muhasebe, stok, satış, alış,
-iade, ithalat, basit üretim, fason ve e-ticaret entegrasyonlarını kapsar.
+Avize toptan ticareti için firmaya özel ERP. Ön muhasebe, cari, kasa/banka/çek-senet, stok, satış, alış, iade, ithalat, basit üretim, fason ve e-ticaret entegrasyonlarını kapsar.
 
-**Kapsam dışı:** genel muhasebe, e-belge, parti/lot takibi, bütçe, amortisman,
-ileri üretim (rota, iş merkezi, kapasite, OEE, MRP).
+## Kaynak önceliği
 
-## Bu depo nasıl kullanılır
+1. Kullanıcının son açık kararı
+2. `GUNCELLEME-PROMPT.md`
+3. `docs/05-karar-gunlugu/kararlar.md`
+4. `docs/00-genel/07-veritabani-mimarisi.md`
+5. Güncel veri modeli / iş kuralı / görev belgeleri
+6. `DEVIR-PROMPT.md` — üsttekilerle çelişmeyen kısımlar
+7. `reference/marsotomasyon-PROTOTIP-ONAYLI-v65.html` — UI/terminoloji/görsel referans
 
-Kodun büyük kısmı **yerel bir dil modeli** tarafından yazılacaktır. `docs/`
-altındaki belgeler bu amaçla yazılmıştır: her görev dosyası **tek başına
-yeterlidir**, model başka dosyaya bakmadan görevi tamamlayabilmelidir.
+## Güncel mimari
 
-| Klasör | İçerik |
-|---|---|
-| `docs/00-genel` | Teknoloji, mimari, isimlendirme, sözlük |
-| `docs/01-veri-modeli` | Tablo başına bir dosya |
-| `docs/02-is-kurallari` | Konu başına iş kuralları |
-| `docs/03-ekranlar` | Ekran başına: alanlar, butonlar, etki zinciri |
-| `docs/04-gorevler` | Sıralı görevler — kod bunlardan yazılır |
-| `docs/05-karar-gunlugu` | Kararlar ve gerekçeleri |
-| `docs/99-yerel-model` | Yerel model kılavuzu ve istem şablonları |
+- PHP 8.3+, Laravel 13, Livewire 3, kendi bileşenlerimiz, düz CSS.
+- PostgreSQL: `MarsProject_Master` + her şirket/yıl için ayrı period DB.
+- Kartlar dahil yıllık işletme verileri period DB'dedir; period tablolarında `company_id` ve şirket global scope'u yoktur.
+- Master: şirket, dönem, kullanıcı, rol/izin, şirket+dönem erişimi, kur, ayar, `company_copy_permissions`, `print_profiles`, master audit.
+- Aynı period DB içindeki ilişkiler gerçek FK kullanır; Master kullanıcı gibi cross-DB referanslarda gerçek FK kurulmaz.
+- Dağıtım `migrate:periods` ile tüm period DB'leri günceller.
 
-## Çalışma sırası
-
-1. `docs/99-yerel-model/01-kullanim.md` oku
-2. `docs/04-gorevler/faz-0/` içindeki görevleri **numara sırasıyla** yap
-3. Her görevin kabul ölçütünü çalıştır; geçmeden sonrakine geçme
-
-## Kurulum
-
-```bash
-composer install
-cp .env.example .env
-php artisan key:generate
-php artisan migrate --seed
-php artisan serve
-```
+Repo şu anda şartname/görev deposudur. Kod, görev dosyaları uygulanırken üretilecektir.

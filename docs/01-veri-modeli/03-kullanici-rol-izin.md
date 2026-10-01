@@ -1,59 +1,41 @@
-# Kullanıcı, rol ve izin
+# Kullanıcı, rol, izin ve dönem erişimi
 
 **Veritabanı: MASTER**
 
-Şirket üstü tablo; `company_id` taşımaz.
+## users
 
-
-
-spatie/laravel-permission kullanılır, **teams özelliği açık** ve takım
-anahtarı `company_id`'dir. Böylece aynı kullanıcı farklı şirketlerde farklı
-role sahip olabilir.
-
-## users (Laravel varsayılanına ek)
-
-```php
-$table->boolean('is_active')->default(true);
-$table->foreignId('last_company_id')->nullable()->constrained('companies');
-```
-
-`last_company_id` kullanıcının en son çalıştığı şirket; girişte oraya döner.
+Laravel kullanıcı alanlarına `is_active`, `last_company_id` ve `last_period_id` eklenebilir. Bu alanlar yalnız kullanım kolaylığıdır; erişim yetkisi değildir.
 
 ## company_user
 
+Kullanıcının hangi şirketleri görebildiğini tutar. company_id + user_id unique.
+
+## period_user_access
+
+Şirket yetkisinden ayrı olarak dönem erişimi tutulur.
+
 ```php
-Schema::connection('master')->create('company_user', function (Blueprint $table) {
+Schema::connection('master')->create('period_user_access', function (Blueprint $table) {
     $table->id();
-    $table->foreignId('company_id')->constrained()->cascadeOnDelete();
-    $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+    $table->foreignId('period_id')->constrained('periods')->cascadeOnDelete();
+    $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
+    $table->boolean('is_active')->default(true);
+    $table->jsonb('permission_overrides')->nullable();
     $table->timestamps();
-    $table->unique(['company_id', 'user_id']);
+    $table->unique(['period_id','user_id']);
 });
 ```
 
-Kullanıcının hangi şirketlere erişebildiği. **Bu tabloda satırı olmayan
-kullanıcı o şirketi göremez, şirket seçicide listelenmez.**
+PeriodContext kurulmadan company_user + period_user_access doğrulanır.
 
-## Roller (seed)
+## Devir
 
-| Rol | Kapsam |
-|---|---|
-| Yönetici | Her şey, dönem açma, kullanıcı yönetimi |
-| Muhasebe | Cari, kasa, banka, çek, belge, rapor |
-| Satış | Teklif, sipariş, irsaliye, fatura, cari görüntüleme |
-| Satınalma | Satınalma siparişi, mal kabul, alış faturası, tedarikçi |
-| Depo | Stok hareketleri, transfer, sayım, ambar fişi, sevkiyat |
-| Üretim | Reçete, üretim emri, malzeme çıkışı, mamul girişi, fason |
-| Görüntüleyici | Yalnızca okuma |
+Yeni dönem devri tamamlandıktan sonra önceki period_user_access kayıtlarını kullanıcı seçerek kopyalama diyaloğu açılır. `permission_overrides` varsa seçilen kullanıcı için kopyalanır. Roller/permissions Master'da ortak olduğu için çoğaltılmaz.
 
-## İzinler
+## Period kayıtlarında actor
 
-Her ekran için dört izin: `<ekran>.view`, `.create`, `.update`, `.cancel`.
+Period DB içindeki created_by/posted_by vb. Master user ID'sini scalar tutar; gerçek FK kurulmaz. Yanında `created_by_name` / `posted_by_name` gibi snapshot alanı bulunur.
 
-**Ayrıca bağımsız bir izin:** `cost.view` — maliyet ve kâr görme.
-Satış rolünde **yoktur**. Bu izin olmadan maliyet kolonları, kâr ve marj
-alanları ekranda hiç render edilmez (gizlenmez, **basılmaz**).
+## Bağımsız izinler
 
-## Örnek veri (seed)
-
-- Kullanıcı: `admin@mars.local` / rol Yönetici / her iki şirkete bağlı
+`cost.view`, `reports.consolidated`, `sales.quote.approve`, dönem yeniden açma izni.

@@ -1,81 +1,25 @@
-# Fiyatlandırma — hangi fiyat nereden gelir
+# Fiyatlandırma
 
-Belge satırına birim fiyatın nasıl belirlendiği tanımsızdı. Bu belge
-o boşluğu doldurur.
+## Satış fiyatı çözümleme
 
-## Çözümleme sırası
-
-Kullanıcı ürünü seçtiğinde birim fiyat şu sırayla aranır:
-
-```
-1. Cariye atanmış fiyat listesinde, tarihi geçerli satır
-2. Şirketin VARSAYILAN fiyat listesinde, tarihi geçerli satır
+1. Cari karta atanmış fiyat listesi
+2. Varsayılan fiyat listesi
 3. products.list_price
-4. Bulunamazsa 0 — kullanıcı elle girer, uyarı gösterilir
-```
+4. Bulunamazsa 0 ve kullanıcı girişi
 
-İlk bulunan kazanır. Sonra **cari iskontosu** belgeye uygulanır
-(satır fiyatına değil, belge iskontosu olarak — bkz. hesap sırası).
+Konfigüratör fiyatı etkilemez.
 
-## Cari → fiyat listesi bağı
+## Fiyat değişikliği
 
-`contacts` tablosuna eklenir:
+Kullanıcı satır fiyatını değiştirebilir. Çözümlenen liste fiyatından mutlak sapma **%20 veya daha fazlaysa**:
 
-```php
-$table->foreignId('price_list_id')->nullable()->constrained('price_lists');
-```
+- açık uyarı gösterilir,
+- activity_log'a eski/yeni fiyat, yüzde sapma ve actor yazılır,
+- işlem **engellenmez**,
+- `prices.override` zorunlu değildir.
 
-Boşsa şirketin varsayılan listesi kullanılır.
+Maliyet altı satış uyarısı ayrıca devam eder. `cost.view` yoksa maliyet tutarı hiçbir payload/HTML/export içinde üretilmez.
 
-## Tarih geçerliliği
+## KDV / iskonto
 
-`price_list_items.valid_from` / `valid_to` boşsa süresizdir.
-Geçerlilik **belge tarihine** göre değerlendirilir, bugüne göre değil —
-geriye dönük fatura kesilirken o günkü fiyat gelir.
-
-Aynı ürün için çakışan tarih aralığı **engellenir** (G-110).
-
-## Fiyat değiştirilebilir mi
-
-Evet, kullanıcı satırda fiyatı değiştirebilir. Ama:
-
-- Listeden gelen fiyattan **%20'den fazla sapma** varsa uyarı verilir
-  (maliyet sapma uyarısıyla aynı mantık, eşik ayrı)
-- Değiştirilen satır işaretlenir, `activity_log`'a düşer
-- `prices.override` izni olmayan kullanıcı fiyatı **değiştiremez**
-  (satış personeli için tipik kısıt)
-
-## Maliyetin altında satış
-
-Satır fiyatı ürünün hareketli ortalama maliyetinin altındaysa uyarı:
-*"Bu satır maliyetin altında. Maliyet 2.513 ₺, fiyat 2.100 ₺."*
-
-Uyarı yalnız `cost.view` izni olanda gösterilir — diğerlerinde
-maliyet sızdırılmaz. İzni olmayan kullanıcı için uyarı metni
-maliyetsizdir: *"Bu fiyat onay gerektirir."*
-
-Engel değil, uyarıdır.
-
-## Konfigüratörlü ürün
-
-**Konfigüratör fiyatı etkilemez** (A-002). Yalnız ürün özelliklerini
-tanımlar — gövde, kristal, duy gibi seçimler satıra bilgi olarak yazılır.
-Fiyat normal çözümleme sırasından gelir. Seçimler sipariş satırında
-**dondurulur**.
-
-## Set ürün
-
-Set fiyatı bileşenlerin toplamı **değildir**; setin kendi
-`list_price` değeri kullanılır. Set bir satış birimidir ve genelde
-bileşen toplamından ucuzdur.
-
-## Alış tarafı
-
-Alışta fiyat listesi kullanılmaz. Varsayılan, o tedarikçiden **son alış
-fiyatıdır**; yoksa boş gelir. Girilen fiyat maliyet sapma uyarısına tabidir.
-
-## Para birimi
-
-Fiyat listesi kendi para biriminde tutulur. Belge para biriminden
-farklıysa **belge tarihinin kuruyla** çevrilir ve çevrilmiş değer
-satıra yazılır.
+Birim fiyat DB'de KDV hariç saklanır. Satır ve belge iskontosu yüzde veya tutar girilebilir; biri değişince diğeri Money/BCMath ile hesaplanır. Kesinleşmede oran+tutar dondurulur. İskonto KDV'den önce matrahı düşürür.

@@ -1,36 +1,18 @@
-# Yetki
+# Yetki ve dönem erişimi
 
-## Model
+## Master erişim modeli
 
-spatie/laravel-permission, **teams = şirket**. Aynı kullanıcı A şirketinde
-Satış, B şirketinde Yönetici olabilir.
+Kullanıcı şirket erişimi ve **şirket+dönem erişimi** Master DB'de tutulur. Şirket seçicide yalnız erişebildiği şirketler; dönem seçicide yalnız erişebildiği dönemler görünür. PeriodContext kurulmadan bu erişim doğrulanır.
 
-## İzin adlandırması
+Rol/izin sistemi spatie/laravel-permission ile Master'dadır. Aynı kullanıcı farklı şirketlerde farklı role sahip olabilir. Dönemsel özel erişim/override kayıtları ayrı tutulabilir.
 
-`<ekran>.<eylem>` → `contacts.view`, `sales_invoices.create`,
-`sales_invoices.cancel`
+Dönem devri tamamlandıktan sonra kullanıcıya önceki dönemin kullanıcı erişim ve dönemsel yetkilerini yeni döneme kopyalamak isteyip istemediği sorulur; kullanıcılar seçilebilir. Rol tanımlarının kendisi Master'da ortak olduğundan yeniden yaratılmaz.
 
-Eylemler: `view`, `create`, `update`, `cancel`
+## Özel izinler
 
-## Özel izin: `cost.view`
+- `cost.view`: maliyet/kâr; yoksa veri hiç üretilmez.
+- `reports.consolidated`: konsolide rapor.
+- `sales.quote.approve`: teklif iç onayı.
+- kapanmış yılı yeniden açma için ayrı izin + gerekçe.
 
-Maliyet ve kâr görme izni. **Satış rolünde yoktur.**
-
-Bu izin olmadan:
-- Maliyet, kâr, marj kolonları tabloya **eklenmez** (CSS ile gizlenmez, hiç basılmaz)
-- Ürün kartında maliyet sekmesi görünmez
-- Kârlılık raporları menüde çıkmaz
-- Dışa aktarmada maliyet kolonları yer almaz
-
-**Gizlemek yetmez, üretmemek gerekir.** Gizlenen veri dışa aktarmada,
-sayfa kaynağında veya API yanıtında sızar.
-
-## Kontrol noktaları
-
-1. Menü — yetkisiz ekran menüde görünmez
-2. Rota — `can:` middleware
-3. Bileşen — Livewire `mount()` içinde yetki kontrolü
-4. Eylem — Action sınıfının başında yetki kontrolü
-5. Policy — model bazında
-
-Dördüncüsü atlanmamalı: kullanıcı ekranı göremese de isteği elle gönderebilir.
+İzin kontrolü menü, rota, Livewire, Action ve Policy katmanlarında yapılır; kritik olan Action kontrolüdür.

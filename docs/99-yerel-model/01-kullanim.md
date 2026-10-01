@@ -1,41 +1,26 @@
 # Yerel model ile çalışma
 
-## Neden bu belgeler böyle yazıldı
+## Uygulama yöntemi
 
-Yerel modellerin bağlam penceresi dardır ve çıkarım yapmakta zayıftırlar.
-Bu yüzden:
+1. Bir seferde tek G görevi ver.
+2. Görev dosyasını tamamen bağlama koy.
+3. Yalnız “Dokunulacak dosyalar” kapsamını değiştir.
+4. Şemayı birebir uygula.
+5. Kabul ölçütlerini gerçek PostgreSQL ile çalıştır.
+6. Geçmeyen görevi bitmiş sayma ve sonraki G'ye geçme.
 
-- Her görev dosyası **tek başına yeterlidir**
-- Şema ve kod **kopyalanabilir halde** verilir, tarif edilmez
-- Bağlam tekrar edilir; tekrar, eksik bilgiden iyidir
-- Dosya başına 300-500 satır sınırı
+## Mimari kontrol
 
-## Bir görev nasıl çalıştırılır
+- PeriodModel aktif `period` bağlantısı.
+- Period tablosunda company_id yok.
+- BelongsToCompany/global scope yok; izolasyon fiziksel DB.
+- Master şirket+dönem erişimi PeriodContext kurulmadan kontrol edilir.
+- Master user cross-DB FK yok; user_id + user_name snapshot.
+- Para Money + BCMath, float yok.
+- Stok yalnız RecordStockMovement.
+- document_date, idempotency, version ve gerekli lockForUpdate kullanılır.
+- Dağıtım migrate:periods.
+- Test gerçek PostgreSQL.
+- Her türetilmiş/kopyalanmış veri integrity kontrolüne sahiptir.
 
-1. Görev dosyasını **tamamen** modele ver
-2. Sonundaki "İstem" bölümünü komut olarak kullan
-3. Üretilen kodu kabul ölçütüyle doğrula
-4. Geçmezse hatayı ve ilgili dosyayı ver, düzelttir
-5. Geçtiyse commit at, sonraki göreve geç
-
-## Kurallar
-
-**Model bir seferde tek görev yapar.** "G-002 ve G-003'ü yap" deme.
-
-**Kabul ölçütü geçmeden ilerleme.** Hatalı temel üstüne yazılan her şey
-sonra yeniden yazılır.
-
-**Model şemayı değiştirmesin.** Görev dosyasındaki şema birebir uygulanır.
-Model "daha iyisini" önerirse önce karar günlüğüne işlenir, sonra yazılır.
-
-**Model dosya uydurmasın.** "Dokunulacak dosyalar" listesi dışına çıkmamalı.
-
-## Sık karşılaşılan hatalar
-
-| Belirti | Sebep |
-|---|---|
-| Veri diğer şirkette görünüyor | `BelongsToCompany` trait'i eklenmemiş |
-| İki belge aynı numarayı aldı | `lockForUpdate()` atlanmış |
-| Maliyet satış rolünde görünüyor | Kolon gizlenmiş ama üretilmiş |
-| Kuyrukta şirket bulunamıyor | İş `company_id` taşımıyor |
-| Test geçiyor ama canlıda bozuk | `DB::table()` ile global scope atlanmış |
+Yanlış şirket verisi görülürse global scope ekleme; önce PeriodContext ve database_name doğrula.
