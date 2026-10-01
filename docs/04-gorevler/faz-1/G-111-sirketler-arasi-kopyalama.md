@@ -32,7 +32,7 @@ final class CopyRecordsBetweenCompanies
     public function handle(int $sourceCompanyId, CompanyCopyType $type, array $ids): CopyResult
     {
         abort_unless(
-            CompanyCopyPermission::allows($sourceCompanyId, CompanyContext::id(), $type),
+            CompanyCopyPermission::allows($sourceCompanyId, PeriodContext::companyId(), $type),
             403, 'Bu şirketten veri aktarma izniniz yok.'
         );
 
@@ -42,7 +42,7 @@ final class CopyRecordsBetweenCompanies
             : Product::on('period_source')->whereIn('id', $ids)->get();
 
         // her biri için: yeni kayıt, hedef source_* doldur,
-        // kod çakışırsa -2 ekle, sonucu raporla
+        // kod çakışırsa otomatik değiştirme; kullanıcı kararı iste
     }
 }
 ```
@@ -52,7 +52,7 @@ final class CopyRecordsBetweenCompanies
 - `on('period_source')` yalnızca burada kullanılır
 - Kopyalanan kayıtta `source_company_id` ve `source_record_id` dolar
 - Bakiye, hareket, belge **kopyalanmaz** — yalnızca kart bilgisi
-- Kod çakışırsa `-2`, `-3` eklenir ve sonuç raporunda bildirilir
+- Kod çakışırsa otomatik kod üretilmez; kullanıcı mevcut kart / yeni kod / iptal seçeneklerinden birini seçer
 - `audit_log`'a kayıt düşer
 
 ## Güncelleme kontrolü
@@ -76,7 +76,7 @@ farkı listeler; kullanıcı isterse günceller. **Otomatik güncelleme yoktur.*
 ## Kabul ölçütü
 - İzin yokken ekran açılmıyor, doğrudan istek 403
 - Kopyalanan kayıt hedef şirkette görünüyor, kaynakta değişiklik olmuyor
-- Kod çakışması `-2` ile çözülüyor ve raporlanıyor
+- Kod çakışmasında otomatik kayıt oluşmuyor; kullanıcı seçimi olmadan işlem devam etmiyor
 - Kaynak kayıt sonradan değişince hedef **değişmiyor**
 
 
@@ -84,4 +84,4 @@ farkı listeler; kullanıcı isterse günceller. **Otomatik güncelleme yoktur.*
 > CopyRecordsBetweenCompanies action'ını ve "Başka Şirketten Aktar" Livewire
 > ekranını yaz. İzin kontrolü action'ın ilk satırı olsun.
 > Kaynak kartları `period_source` bağlantısından oku; `withoutGlobalScopes` veya company_id filtresi kullanma. İzni önce Master `company_copy_permissions` üzerinden doğrula.
-> Kod çakışmasını -2 ekleyerek çöz ve sonuç raporunda bildir.
+> Kod çakışmasında otomatik suffix üretme; kullanıcıya mevcut kartı kullan / yeni kod gir / iptal seçeneklerini göster ve seçimi audit et.

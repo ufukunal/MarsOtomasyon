@@ -63,8 +63,4 @@ Liste görüntüleme, arama, rapor açma. Gürültü yaratır.
 
 ## İstem
 > activity_log tablosuna company_id kolonu ekleyen migration yaz.
-> Activity saving olayında company_id'yi CompanyContext'ten dolduran bir
-> service provider kaydı ekle. Company, CompanyLink, PostingPeriod,
-> PrintProfile ve User modellerine LogsActivity trait'ini ekle ve
-> getActivitylogOptions metodunu yaz. Login, Logout, Failed olayları için
-> dinleyici ekle.
+> Master ve period activity loglarını ayrı bağlantılarda uygula. Period log'a company_id ekleme; actor_user_id + actor_user_name snapshot ve correlation_id kullan. Login/Logout/Failed yalnız Master audit'e yazılsın.

@@ -68,14 +68,13 @@ sonunda eski bağlamı geri yükler.
 Schedule::command('integrity:all')->dailyAt('03:00');
 ```
 
-Fark bulunursa Yönetici'ye bildirim. Fark yoksa sessiz.
+Fark bulunursa bildirim üretilir. Fark yoksa sessiz.
 
 ## Ekran — Ayarlar › Bütünlük Kontrolü
 
 Liste: kontrol adı, son çalışma, kontrol edilen kayıt, fark sayısı, süre.
 Detay: farkların tablosu (kayıt, hesaplanan, saklanan, fark).
-Eylem: "Şimdi çalıştır" ve "Yeniden hesapla" (yalnızca Yönetici,
-gerekçe zorunlu, `activity_log`'a düşer).
+Eylem: "Şimdi çalıştır". Fark bulunduğunda kullanıcıya fark listesi gösterilir; integrity ekranı veriyi otomatik veya doğrudan yeniden hesaplayıp yazmaz.
 
 **Otomatik düzeltme yok.** Sebep bilinmeden düzeltmek asıl hatayı gizler.
 
@@ -111,7 +110,6 @@ Bu görevde ayrıca, mevcut migration'lara CHECK kısıtları eklenir:
 - Elle bozulan bir bakiye (`DB::table` ile) kontrolde yakalanıyor
 - Fark yoksa rapor `mismatch_count = 0` yazıyor
 - CHECK kısıtı ihlal eden insert veritabanı seviyesinde reddediliyor
-- "Yeniden hesapla" bakiyeyi hareket toplamına eşitliyor ve loglanıyor
 - Ana sayfa göstergesi eski kontrolde kırmızı oluyor
 
 

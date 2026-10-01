@@ -44,7 +44,7 @@ Faz 1'in doğru çalıştığını kanıtlamak.
 ### Kopyalama
 - İzinsiz kopyalama 403
 - Kopya kayıt oluşuyor, kaynak değişmiyor
-- Kod çakışması `-2` ile çözülüyor
+- Kod çakışmasında otomatik suffix üretilmiyor; kullanıcı seçimi olmadan kopyalama ilerlemiyor
 
 ### İçe aktarma
 - 1000 satır hatasız

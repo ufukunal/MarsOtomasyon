@@ -61,5 +61,4 @@ Satır no, kolon, değer, hata mesajı. Excel olarak indirilebilir.
 ## İstem
 > Excel/CSV/JSON içe aktarma için Livewire sihirbazı yaz: dosya yükleme,
 > kolon eşleştirme, önizleme, doğrulama, kuyruğa atma, sonuç raporu.
-> Cari ve ürün için eşleştirme tanımlarını yaz. Kuyruk işi company_id
-> taşısın ve handle başında CompanyContext::set çağırsın.
+> Cari ve ürün için eşleştirme tanımlarını yaz. Kuyruk işi company_id + period_id/yıl bağlamını taşısın; handle başında erişim/system-context kurallarıyla `PeriodContext::use(...)` çağırıp hedef period DB'ye bağlansın.

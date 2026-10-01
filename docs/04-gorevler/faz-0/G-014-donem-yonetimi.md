@@ -69,4 +69,4 @@ Eylemler: **Yeni Dönem Aç**, **Dönemi Kapat**, **Devir Yap** (Faz 11b).
 > Şirket/dönem seçici bileşenini ve Dönemler yönetim ekranını yaz.
 > Seçici üst çubukta olsun, aktif dönemi her zaman göstersin.
 > Yeni dönem açma CreatePeriod action'ını çağırsın. Kapalı dönemde
-> kayıt girişini engelle. Yalnızca Yönetici dönem açabilsin.
+> kayıt girişini engelle. Yeni dönem oluşturma `periods.create` izni gerektirsin; kapanmış dönemi yeniden açma ise ayrı yeniden-açma izni + gerekçe ile yapılsın.

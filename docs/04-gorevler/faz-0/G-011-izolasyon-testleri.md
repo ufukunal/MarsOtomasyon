@@ -27,25 +27,33 @@ Bu görevde aşağıdaki mevcut kod/şema örnekleri normatiftir. Yeni tablo ger
 - `use(B, 2026)` sonrası `XYZltd_2026`'ya gidiyor
 - Dönem seçilmeden dönem modeline erişim `NoActivePeriodException`
 
-### 1. Master kart izolasyonu
+### 1. Fiziksel period izolasyonu
 ```php
-it('bir şirketin kaydı diğer şirkette görünmez', function () {
+it('bir period kaydı diğer period veritabanında görünmez', function () {
     $a = Company::factory()->create();
     $b = Company::factory()->create();
 
-    CompanyContext::set($a->id);
+    $aPeriod = Period::factory()->for($a)->create(['year' => 2026]);
+    $bPeriod = Period::factory()->for($b)->create(['year' => 2026]);
+
+    PeriodContext::use($a->id, $aPeriod->id);
     $series = NumberSeries::create([
-        'document_type' => 'quote', 'prefix' => 'TKL',
-        'year' => 2026, 'last_number' => 0,
+        'document_type' => 'quote',
+        'prefix' => 'TKL',
+        'year' => 2026,
+        'last_number' => 0,
     ]);
 
-    CompanyContext::set($b->id);
+    PeriodContext::use($b->id, $bPeriod->id);
     expect(NumberSeries::find($series->id))->toBeNull();
 });
 ```
 
-### 2. company_id otomatik dolma
-Kayıt oluştururken `company_id` verilmese de aktif şirketle dolmalı.
+### 2. Erişim ve context
+- `company_user` erişimi olmayan kullanıcı company seçemez
+- `period_user_access` olmayan kullanıcı period seçemez
+- PeriodContext kurulmadan PeriodModel sorgusu `NoActivePeriodException` verir
+- Period tablolarında otomatik doldurulan `company_id` yoktur
 
 ### 3. Numara üretimi
 - Peş peşe üç çağrı: `00001`, `00002`, `00003`
