@@ -10,7 +10,7 @@ Her faz önce veri modeli + iş kuralları + ekran + standalone G görevleri ola
 - Faz 0b UI: G-0b1…G-0b3 yazıldı ve temizlendi.
 - Faz 1 Kartlar: G-101…G-115 period DB mimarisine göre güncellendi.
 - Faz 2 Stok: G-201…G-212 yeni stok/rezervasyon kararlarına göre güncellendi.
-- **Faz 3 Satış: BAŞLATILDI — veri modeli, iş kuralları, ekranlar ve G-300…G-312 hazırlanıyor.**
+- **Faz 3 Satış: YAZILDI — veri modeli 30–34, iş kuralları 28–31, ekranlar ve G-300…G-312 hazır; kullanıcı/Claude kontrolü bekleniyor. Faz 4 başlamaz.**
 - Faz 4 Alış
 - Faz 5 Kasa/Banka (Faz 3 minimum cash/bank altyapısını erkenden kurar)
 - Faz 6 İade
