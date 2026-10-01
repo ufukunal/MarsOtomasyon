@@ -15,24 +15,37 @@ G-106
 - `database/migrations/period/`
 
 ## Şema / Kod
-`product_sets`: `id, set_product_id, component_product_id,
-quantity decimal(18,3)`, unique(set, component)
+`product_sets`: `id, set_product_id, component_product_id, quantity decimal(18,3), version`, unique(set, component)
 
 ## Satılabilirlik hesabı
 
 ```php
-public function setAvailability(Product $set): float
+public function setAvailability(Product $set): string
 {
     $components = $set->setComponents()->with('componentProduct')->get();
 
     if ($components->isEmpty()) {
-        return 0;
+        return '0';
     }
 
-    return $components->min(function ($c) {
-        $stock = $c->componentProduct->availableQuantity();   // Faz 2
-        return $c->quantity > 0 ? floor($stock / $c->quantity) : 0;
-    });
+    $minimum = null;
+
+    foreach ($components as $component) {
+        $stock = $component->componentProduct->availableQuantity(); // decimal string
+        $required = $component->quantity;                           // decimal string
+
+        if (bccomp($required, '0', 3) <= 0) {
+            return '0';
+        }
+
+        // Pozitif değerlerde scale=0 tam karşılanabilir set adedini verir.
+        $count = bcdiv($stock, $required, 0);
+        $minimum = $minimum === null || bccomp($count, $minimum, 0) < 0
+            ? $count
+            : $minimum;
+    }
+
+    return $minimum ?? '0';
 }
 ```
 
@@ -68,10 +81,12 @@ satılabilir adet gösterilir.
 - 3 bileşenli set, en kısıtlı bileşene göre adet veriyor
 - Bir bileşen 0 olunca set 0 oluyor
 - Set içine set eklenemiyor
-- Faz 2 gelmeden hesap 0 döner, hata vermez
+- Faz 2 gelmeden hesap `'0'` döner, hata vermez
+- Hesapta PHP float/floor kullanılmıyor
+- Set bileşeni stale `version` ile güncellenemiyor
 
 
 ## İstem
 > product_sets tablosu için migration, ProductSet modelini, setAvailability
-> hesabını ve ürün formundaki Bileşenler sekmesini yaz. Set içine set
+> hesabını BCMath/decimal string ile ve ürün formundaki Bileşenler sekmesini yaz. Set içine set
 > eklenmesini engelle. Bileşen miktarı pozitif olmalı.

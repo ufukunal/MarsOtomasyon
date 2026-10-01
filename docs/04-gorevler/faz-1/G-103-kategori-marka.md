@@ -15,8 +15,8 @@ G-0b2 (tablo bileşeni)
 
 ## Şema / Kod
 ```php
-// product_categories: id, parent_id(nullable, self), name, sort_order, is_active
-// brands:             id, name, is_active
+// product_categories: id, parent_id(nullable, self), name, sort_order, is_active, version
+// brands:             id, name, is_active, version
 ```
 
 ## Kurallar
@@ -44,8 +44,9 @@ Marka: düz liste.
 ## Kabul ölçütü
 - Üç seviye açılıyor, dördüncü reddediliyor
 - Dolu kategori silinemiyor
+- Kategori/marka düzenlemede stale `version` reddediliyor
 
 
 ## İstem
 > product_categories ve brands tabloları için migration, modeller ve
-> ekranları yaz. Kategori ağacı en fazla 3 seviye olsun, kontrol et.
+> ekranları yaz. Kategori ağacı en fazla 3 seviye olsun; kategori/marka düzenlemelerini `version` optimistic lock ile koru.

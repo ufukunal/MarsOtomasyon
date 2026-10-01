@@ -21,16 +21,16 @@ Sipariş satırında kullanımı Faz 3'te gelir.
 
 ## Şemalar
 ```php
-// config_definitions: id, product_id, name, is_required(bool), sort_order
+// config_definitions: id, product_id, name, is_required(bool), sort_order, version
 // config_options:     id, config_definition_id, component_product_id,
-//                     label, sort_order, is_default(bool)
+//                     label, sort_order, is_default(bool), version
 //   FİYAT FARKI YOK — konfigüratör yalnız özellik tanımlar (A-002)
 ```
 
 ## Ekran
 Ürün formunda tip `configurable` seçilince "Konfigürasyon" sekmesi açılır.
 Seçim grupları (Gövde, Kristal, Duy) ve her grubun seçenekleri.
-Her seçenek bir bileşen ürüne ve fiyat farkına bağlanır.
+Her seçenek gerekiyorsa bir bileşen ürüne bağlanır. **Fiyat/fiyat farkı alanı yoktur.**
 
 ## Kurallar
 - Zorunlu grupta en az bir seçenek olmalı
@@ -58,9 +58,11 @@ tanım sonradan değişse eski sipariş bozulmaz.
 - Üç gruplu konfigürasyon tanımlanıyor
 - Zorunlu grupta seçenek yoksa kayıt reddediliyor
 - Seçimler sipariş satırına bilgi olarak yazılıyor
+- Şemada option price/price_delta alanı bulunmuyor
+- Stale `version` ile definition/option güncellemesi reddediliyor
 
 
 ## İstem
 > config_definitions ve config_options tabloları için migration, modeller ve
 > ürün formundaki Konfigürasyon sekmesini yaz. Zorunlu grupta en az bir
-> seçenek kuralını uygula.
+> seçenek kuralını uygula. Fiyat/fiyat farkı alanı ekleme ve düzenlenebilir kayıtları `version` optimistic lock ile koru.

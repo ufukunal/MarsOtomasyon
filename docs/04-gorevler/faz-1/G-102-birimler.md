@@ -16,14 +16,14 @@ Kristal gibi kalemler kg alınıp adet satılabilir.
 
 ## Şema / Kod
 ```php
-// units: id, code(20), name, is_base(bool), is_active
-// unit_conversions: id, from_unit_id, to_unit_id, factor decimal(18,6)
+// units: id, code(20), name, is_base(bool), is_active, version
+// unit_conversions: id, from_unit_id, to_unit_id, factor decimal(18,6), version
 //   unique(from_unit_id, to_unit_id)
 ```
 
 ## Kurallar
 - Her şirkette en az bir temel birim (`ADET`) olmalı
-- Dönüşüm tek yönlü tanımlanır, ters yön otomatik hesaplanır (1/factor)
+- Dönüşüm tek yönlü tanımlanır; ters yön `bcdiv('1', factor, 6)` ile decimal string olarak hesaplanır. PHP float/bölme kullanılmaz.
 - Katsayı sıfır veya negatif olamaz
 - Kullanılan birim silinemez
 
@@ -46,8 +46,10 @@ ADET (temel), KUTU, KOLİ, KG, METRE, SET
 ## Kabul ölçütü
 - 1 KUTU = 6 ADET tanımlanınca ters yön 0,166667 olarak çalışıyor
 - Sıfır katsayı reddediliyor
+- Ters dönüşüm BCMath ile 6 hane üretiliyor; float kullanılmıyor
+- Stale `version` ile eşzamanlı güncelleme reddediliyor
 
 
 ## İstem
 > units ve unit_conversions tabloları için migration, modeller, seeder ve
-> ekranları yaz. Ters dönüşüm otomatik hesaplansın. Katsayı pozitif olsun.
+> ekranları yaz. Ters dönüşümü BCMath ile hesapla; PHP float kullanma. Katsayı pozitif ve düzenlenebilir kayıtlar `version` optimistic lock korumalı olsun.

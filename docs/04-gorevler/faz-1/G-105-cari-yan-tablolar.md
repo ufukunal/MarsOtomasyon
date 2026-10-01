@@ -19,8 +19,7 @@ Bu bölümdeki mevcut şema örnekleri aşağıdaki kanonik mimari kurallarla bi
 Cari kartının adres, yetkili, banka ve kategori bilgileri.
 
 ## Şemalar
-`docs/01-veri-modeli/10-contacts.md` içindeki `contact_addresses`,
-`contact_people`, `contact_banks`, `contact_categories` şemalarını birebir uygula.
+`docs/01-veri-modeli/10-contacts.md` içindeki ilişki kurallarını uygula. Düzenlenebilir `contact_addresses`, `contact_people`, `contact_banks`, `contact_categories` kayıtları `version unsignedInteger default(1)` taşır.
 
 ## Ekranlar
 Cari detayında sekme olarak: **Adresler**, **İletişim**, **Banka Bilgileri**.
@@ -30,7 +29,7 @@ Her biri satır ekle/düzenle/sil yapabilen küçük tablo.
 - Her türde (fatura/sevk) en fazla bir varsayılan adres
 - Varsayılan yetkili tekil
 - IBAN biçim doğrulaması (TR + 24 hane)
-- Cari silinince yan kayıtlar da silinir (cascade)
+- Cari kartı fiziksel/soft delete edilmez. Yan kayıt FK'leri öksüz kayıt bırakmayacak şekilde korunur; cari pasife alındığında yan kayıtlar tarihsel olarak kalır.
 
 
 ### Göreve özel kararlar
@@ -48,9 +47,10 @@ Her biri satır ekle/düzenle/sil yapabilen küçük tablo.
 - Varsayılan adres işaretlenince eskisi kalkıyor
 - Geçersiz IBAN reddediliyor
 - Farklı şirketin carisine satır eklenemiyor
+- Yan tablo düzenlemede stale `version` reddediliyor
 
 
 ## İstem
 > contact_addresses, contact_people, contact_banks ve contact_categories
 > tabloları için migration, modeller ve cari detayındaki üç sekmeyi yaz.
-> IBAN doğrulaması ekle. Varsayılan kayıtlar tekil olsun.
+> IBAN doğrulaması ekle. Varsayılan kayıtlar tekil olsun. Cariyi delete/cascade ile kaldırma; yan tablo düzenlemelerini `version` optimistic lock ile koru.

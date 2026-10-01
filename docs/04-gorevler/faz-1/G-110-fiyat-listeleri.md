@@ -21,9 +21,9 @@ Birden çok fiyat listesi (bayi, perakende, kampanya).
 ## Şemalar
 ```php
 // price_lists:      id, name, currency, vat_included(bool),
-//                   is_default(bool), is_active
+//                   is_default(bool), is_active, version
 // price_list_items: id, price_list_id, product_id,
-//                   price decimal(18,4), valid_from(date,null), valid_to(date,null)
+//                   price decimal(18,4), valid_from(date,null), valid_to(date,null), version
 //   unique(price_list_id, product_id, valid_from)
 ```
 
@@ -56,10 +56,11 @@ Excel'den içe aktarma.
 ## Kabul ölçütü
 - KDV dahil işaretli listede girilen fiyat hariç olarak saklanıyor
 - Çakışan tarih aralığı reddediliyor
-- Toplu %10 zam tüm satırlara doğru uygulanıyor
+- Toplu %10 zam Money/BCMath ile tüm satırlara doğru uygulanıyor; float kullanılmıyor
+- Stale `version` ile fiyat listesi/satırı güncellemesi reddediliyor
 
 
 ## İstem
 > price_lists ve price_list_items tabloları için migration, modeller,
 > liste ve detay ekranlarını yaz. Fiyat her zaman KDV hariç saklansın.
-> Toplu yüzde güncelleme eylemi ekle. Çakışan tarih aralığını engelle.
+> Toplu yüzde güncelleme eylemini Money/BCMath ile yaz; PHP float kullanma. Çakışan tarih aralığını engelle ve düzenlenebilir kayıtları `version` optimistic lock ile koru.

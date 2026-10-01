@@ -21,9 +21,9 @@ grup tek ürün, kartlar varyant olarak yayınlanır.
 
 ## Şemalar
 ```php
-// variant_groups:         id, name, is_active
-// variant_attributes:     id, variant_group_id, name(Renk,Ölçü), sort_order
-// product_variant_values: id, product_id, variant_attribute_id, value
+// variant_groups:         id, name, is_active, version
+// variant_attributes:     id, variant_group_id, name(Renk,Ölçü), sort_order, version
+// product_variant_values: id, product_id, variant_attribute_id, value, version
 //   unique(product_id, variant_attribute_id)
 ```
 
@@ -52,10 +52,11 @@ fiyat, stok, durum. "Ürün ekle" ile mevcut kart gruba bağlanır.
 ## Kabul ölçütü
 - Üç kart bir gruba bağlanıyor, özellik değerleri giriliyor
 - Aynı kombinasyon ikinci kez uyarı veriyor
-- Grup silinince kartlar duruyor
+- Grup pasife/alakasız hale getirildiğinde kartlar duruyor; ürün kartları silinmiyor
+- Stale `version` ile grup/özellik güncellemesi reddediliyor
 
 
 ## İstem
 > variant_groups, variant_attributes ve product_variant_values tabloları için
 > migration, modeller ve Varyant Grubu Detay ekranını yaz. Bir ürün en fazla
-> bir gruba bağlansın. Aynı özellik kombinasyonunu uyar.
+> bir gruba bağlansın. Aynı özellik kombinasyonunu uyar. Düzenlenebilir varyant kayıtlarını `version` optimistic lock ile koru.
