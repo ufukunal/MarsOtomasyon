@@ -16,7 +16,7 @@ G-003, G-005
 
 ## Şema / Kod
 ```php
-Schema::create('posting_periods', function (Blueprint $table) {
+Schema::connection('period')->create('posting_periods', function (Blueprint $table) {
     $table->id();
 
     $table->unsignedSmallInteger('year');
@@ -30,7 +30,7 @@ Schema::create('posting_periods', function (Blueprint $table) {
     $table->timestamp('reopened_at')->nullable();
     $table->text('reopen_reason')->nullable();
     $table->timestamps();
-    $table->unique(['company_id','year','month'], 'posting_periods_unique');
+    $table->unique(['year','month'], 'posting_periods_unique');
 });
 ```
 

@@ -13,14 +13,17 @@ G-003
 
 ## Şema / Kod
 ```php
-Schema::create('print_profiles', function (Blueprint $table) {
+Schema::connection('master')->create('print_profiles', function (Blueprint $table) {
     $table->id();
     $table->foreignId('company_id')->constrained();
     $table->foreignId('user_id')->nullable()->constrained();
     $table->string('machine_key', 64)->nullable();
     $table->string('print_type', 30);
     $table->string('printer_name')->nullable();
-    $table->string('paper_code / width_mm / height_mm', 20)->nullable();
+    $table->string('paper_code', 20)->nullable();
+    $table->decimal('width_mm', 8, 2)->nullable();
+    $table->decimal('height_mm', 8, 2)->nullable();
+    $table->jsonb('settings')->nullable(); // dpi, gap, darkness vb.
     $table->unsignedBigInteger('template_id')->nullable();
     $table->timestamps();
     $table->unique(['company_id','user_id','machine_key','print_type'], 'print_profiles_unique');
@@ -57,11 +60,12 @@ final class PrintManager
 
     private static function resolveProfile(PrintType $type): ?PrintProfile
     {
-        $companyId = CompanyContext::id();
+        $companyId = PeriodContext::companyId();
         $userId    = auth()->id();
         $machine   = request()->cookie('machine_key');
 
         return PrintProfile::query()
+            ->where('company_id', $companyId)
             ->where('print_type', $type->value)
             ->where(fn ($q) => $q
                 ->where(fn ($s) => $s->where('user_id', $userId)->where('machine_key', $machine))

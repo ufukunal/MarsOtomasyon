@@ -26,7 +26,7 @@ sonra 15 dakika kilit.
 | Alan | Kural |
 |---|---|
 | Şirket | Yalnızca yetkili olduğu şirketler; tek şirketse otomatik seçilir |
-| Dönem | O şirketin dönemleri; varsayılan `users.last_company_id` + son yıl |
+| Dönem | O şirketin dönemleri; varsayılan `users.last_company_id` + `users.last_period_id`; erişim yoksa seçim zorunlu |
 | Bağlanılacak veritabanı | Ekranda **gösterilir** (`ABCHolding_2026`) — kullanıcı nerede çalıştığını bilmeli |
 
 **Durum davranışı:** `active` seçilebilir · `closed` seçilebilir ama
@@ -41,7 +41,8 @@ salt okunur, uyarı gösterilir · `archived` seçilemez, "önce geri yükleyin"
  → yetki kontrolü (company_user)
  → dönem durumu kontrolü
  → PeriodContext::use() → config + DB::purge + DB::reconnect
- → session'a company_id ve year
- → users.last_company_id güncellenir
+ → company_user + period_user_access doğrulanır
+ → session'a company_id, period_id ve year
+ → users.last_company_id + users.last_period_id güncellenir
  → activity_log (master)
 ```

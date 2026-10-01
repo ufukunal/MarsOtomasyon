@@ -16,7 +16,7 @@ G-003
 
 ## Şema / Kod
 ```php
-Schema::create('number_series', function (Blueprint $table) {
+Schema::connection('period')->create('number_series', function (Blueprint $table) {
     $table->id();
 
     $table->string('document_type', 40);

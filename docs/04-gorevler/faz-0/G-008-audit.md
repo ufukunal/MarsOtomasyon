@@ -17,28 +17,24 @@ Bu görevde aşağıdaki mevcut kod/şema örnekleri normatiftir. Yeni tablo ger
 
 ## Adımlar
 
-1. activitylog migration'ını çalıştır
-2. `activity_log` tablosuna `company_id` ekle:
+1. Master ve period için activity log migration/connection ayrımını kur.
+2. Master activity log: login/failed login, kullanıcı/rol/izin, şirket/dönem, period erişimi, print profile ve company_copy_permissions değişikliklerini tut.
+3. Period activity log: kart, belge, stok/cari kritik işlem, fiyat sapması, dönem aç/kapa ve şirketler arası kopyalama hedef işlemlerini tut.
+4. Period activity log'a `company_id` ekleme. Bunun yerine actor snapshot ve correlation bilgisi ekle:
 
 ```php
-Schema::table('activity_log', function (Blueprint $table) {
+Schema::connection('period')->table('activity_log', function (Blueprint $table) {
+    $table->unsignedBigInteger('actor_user_id')->nullable();
+    $table->string('actor_user_name')->nullable();
+    $table->uuid('correlation_id')->nullable()->index();
     $table->index('created_at');
 });
 ```
 
-3. Global observer: her activity kaydına aktif şirketi yaz
-
-```php
-Activity::saving(function (Activity $activity) {
-    $activity->company_id ??= CompanyContext::id();
-});
-```
-
-4. `LogsActivity` trait'ini şu modellere ekle: `Company`, `CompanyLink`,
-   `PostingPeriod`, `PrintProfile`, `User`
-
-5. Giriş/çıkış/başarısız giriş olaylarını logla
-   (`Illuminate\Auth\Events\Login|Logout|Failed` dinleyicileri)
+5. Master user ile period DB arasında FK kurma.
+6. Login/Logout/Failed olayları yalnız Master audit'e yazılır.
+7. Period işleminde actor_user_id/name authenticated Master kullanıcısından snapshot olarak alınır.
+8. `CompanyLink` gibi legacy model kullanma; geçerli model `CompanyCopyPermission`dır.
 
 ## Loglanmayacaklar
 Liste görüntüleme, arama, rapor açma. Gürültü yaratır.
@@ -180,7 +176,7 @@ Liste görüntüleme, arama, rapor açma. Gürültü yaratır.
 
 ## Kabul ölçütü
 - Şirket adı değiştirilince `activity_log`'a eski ve yeni değer düşer
-- Kayıtta `company_id` dolu
+- Period audit kaydında actor_user_id/name ve correlation_id dolu; company_id yok
 - Başarısız giriş denemesi loglanır
 
 

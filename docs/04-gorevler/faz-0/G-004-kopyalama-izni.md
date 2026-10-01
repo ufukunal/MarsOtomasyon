@@ -14,7 +14,7 @@ G-003
 
 ## Şema / Kod
 ```php
-Schema::create('company_copy_permissions', function (Blueprint $table) {
+Schema::connection('master')->create('company_copy_permissions', function (Blueprint $table) {
     $table->id();
     $table->foreignId('source_company_id')->constrained('companies');
     $table->foreignId('target_company_id')->constrained('companies');

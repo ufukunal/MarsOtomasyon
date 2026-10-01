@@ -24,12 +24,13 @@ Bu görevde aşağıdaki mevcut kod/şema örnekleri normatiftir. Yeni tablo ger
 ```php
 $table->boolean('is_active')->default(true);
 $table->foreignId('last_company_id')->nullable()->constrained('companies');
+$table->foreignId('last_period_id')->nullable()->constrained('periods');
 ```
 
 ## company_user
 
 ```php
-Schema::create('company_user', function (Blueprint $table) {
+Schema::connection('master')->create('company_user', function (Blueprint $table) {
     $table->id();
     $table->foreignId('company_id')->constrained()->cascadeOnDelete();
     $table->foreignId('user_id')->constrained()->cascadeOnDelete();
@@ -37,6 +38,22 @@ Schema::create('company_user', function (Blueprint $table) {
     $table->unique(['company_id','user_id']);
 });
 ```
+
+## period_user_access
+
+```php
+Schema::connection('master')->create('period_user_access', function (Blueprint $table) {
+    $table->id();
+    $table->foreignId('period_id')->constrained('periods')->cascadeOnDelete();
+    $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
+    $table->boolean('is_active')->default(true);
+    $table->jsonb('permission_overrides')->nullable();
+    $table->timestamps();
+    $table->unique(['period_id','user_id']);
+});
+```
+
+Şirket erişimi tek başına period erişimi vermez. `company_user` + `period_user_access` birlikte kontrol edilir. Dönem devri tamamlandıktan sonra seçilen kullanıcıların erişimi ve `permission_overrides` değerleri yeni döneme kopyalanabilir.
 
 ## Roller
 
@@ -305,7 +322,7 @@ php artisan migrate:fresh --seed
 - [ ] 94. İşlem sonunda yanlış connection'ın açık bırakılmadığını doğrula.
 
 ## İstem
-> users tablosuna is_active ve last_company_id ekle. company_user pivot
+> users tablosuna is_active, last_company_id ve last_period_id ekle. period_user_access tablosunu oluştur. company_user pivot
 > tablosunu oluştur. RoleSeeder yaz: yukarıdaki yedi rolü, listelenen
 > ekranlar için dörder izni ve cost.view iznini üretsin, tablodaki eşlemeye
 > göre rollere atasın. admin@mars.local kullanıcısını Yönetici olarak

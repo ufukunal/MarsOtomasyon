@@ -12,7 +12,7 @@ G-003
 
 ## Şema / Kod
 ```php
-Schema::create('attachments', function (Blueprint $table) {
+Schema::connection('period')->create('attachments', function (Blueprint $table) {
     $table->id();
 
     $table->morphs('attachable');
