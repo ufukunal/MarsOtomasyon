@@ -66,6 +66,14 @@ Period hareketlerindeki actor alanı Master user scalar id + user_name snapshot;
 - Testler gerçek PostgreSQL'de çalışır.
 - Yeni iş kararı uydurulmaz.
 
+
+### Uygulama ayrıntıları
+- Hedef period DB oluşturulup `migrate:periods` tamamlanmadan hiçbir kart/açılış kopyalanmaz.
+- Aynı şirket devrinde taşınan bütün kart ID+kodları ve taşınan stock_balance ID'leri korunur; sequence'ler `MAX(id)+1` yapılır.
+- Geçmiş belge/hareket, açık teklif-sipariş, taslak, yoldaki transfer ve karantina bekleyen kayıt taşınmaz.
+- `integrity:carry` kaynak kapanış ile hedef açılışı doğrulamadan kaynak period closed yapılmaz.
+- Devir başarıyla bittikten sonra kullanıcıya önceki dönem period erişim/permission override kayıtlarını seçerek kopyalama sorulur.
+
 ## Kabul ölçütü
 - [ ] Target DB yoksa oluşturulur; varsa ikinci devir otomatik başlamaz.
 - [ ] Target migration tam uygulanmadan copy başlamaz.

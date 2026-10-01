@@ -63,6 +63,14 @@ Context değiştirme try/finally ile korunur; hata olsa da çağrı öncesi cont
 - Testler gerçek PostgreSQL'de çalışır.
 - Yeni iş kararı uydurulmaz.
 
+
+### Uygulama ayrıntıları
+- İlk sürümde period DB'ler ayrı ayrı sorgulanır; normal cross-database JOIN/FDW/dblink zorunlu değildir.
+- Her sorgu sonucu period_id/year metadata taşır ve sonuçlar PHP katmanında birleştirilir.
+- Seçilen her period için Master erişim yetkisi doğrulanır; `reports.consolidated` ayrıca kontrol edilir.
+- Context değişimi `try/finally` ile geri yüklenir; rapor çağrısı aktif kullanıcı period context'ini bozamaz.
+- Money toplamları float kullanılmadan birleştirilir; `cost.view` yoksa maliyet/kâr alanları query üretiminde dışarıda bırakılır.
+
 ## Kabul ölçütü
 - [ ] Bir period sorgusu doğru sonuç verir.
 - [ ] Üç period sonucu birleşir.
