@@ -229,7 +229,7 @@ Bunlar kullanıcıyla tek tek konuşulup karara bağlandı. **Yeniden sorma.**
 - A-002: Konfigüratör fiyatlaması — bileşen toplamı mı, ayrı fiyat tablosu mu?
 - A-003: Reçetede fire yüzdesi tanımlansın mı?
 - A-004: Konsolide rapor hangi rollere açık?
-- A-005: Etiket yazıcısı markası ve etiket boyutları
+- A-005: **KAPATILDI (K-061)** — Etiket yazdırma marka/model bağımsızdır; ZPL genel şablondur, etiket ölçüsü `print_profiles.paper_size` ayarından gelir; `printer_name` yalnız fiziksel cihaz eşlemesi içindir.
 - A-006: Koli etiketi "1/4" numarası hangi belgeye bağlı?
 - A-007: Varyant grubunun pazaryerlerinde varyantlı gönderimi
 - **A-008: Kartlar master'da mı, dönem veritabanında mı?** (K-026 varsayımı)

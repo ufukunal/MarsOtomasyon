@@ -35,6 +35,7 @@ Verilen kararlar ve gerekçeleri. **Kod bu kararlara uyar; kod kararla
 | K-058 | Ürün bazında `channel_stock_mode`: stok / üretim / elle | Bazı ürünler üretimden karşılanıyor |
 | K-059 | **Konfigüratör fiyatı etkilemez**; yalnız ürün özelliği tanımlar | A-002 |
 | K-060 | Reçetede fire yüzdesi **yok**, çıkışta elle girilir · Konsolide rapor **ayrı izinle** · Koli etiketi **ambar fişine** bağlı · Pazaryerleri **varyantsız** · **Kalite modülü kapsam dışı** · Satınalma talebi + teklif toplama **basit haliyle eklendi** | A-003, A-004, A-006, A-007 |
+| K-061 | Etiket yazdırma **marka/model bağımsızdır**; ZPL şablonu genel, etiket ölçüsü `print_profiles.paper_size` ayarından gelir; `printer_name` yalnız fiziksel cihaz eşlemesidir | A-005 kapatıldı; farklı marka ve ölçüler desteklenir |
 | K-048 | **Stok hareketi her zaman ürünün temel biriminde**; belge satırı `base_quantity` ve dondurulmuş `conversion_factor` saklar | Birim karışırsa stok katlanır |
 | K-049 | Dönüşüm tanımlı değilse işlem **engellenir**; katsayı 1 varsayılmaz | Sessiz yanlış stoktan iyidir |
 | K-050 | Fiyat çözümleme: cari listesi → varsayılan liste → `products.list_price` → 0 | Tanımsızdı |
@@ -68,8 +69,4 @@ Verilen kararlar ve gerekçeleri. **Kod bu kararlara uyar; kod kararla
 
 ## Açık kararlar
 
-| No | Konu | Durum |
-|---|---|---|
-| A-005 | Etiket yazıcısı markası ve etiket boyutları | **Açık** — "her marka her boyut" denildi; ZPL şablonu marka bağımsız, boyut ayardan gelecek. Faz 10'da netleşir |
-
-Diğer tüm açık kararlar kapatıldı (bkz. K-054…K-060).
+**Yok.** A-001…A-008 kapatıldı. A-005 kararı K-061 olarak kaydedildi.

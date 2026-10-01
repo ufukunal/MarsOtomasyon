@@ -50,3 +50,11 @@ Yazdırma anında profil şu sırayla aranır:
 | `carton_label` | Ambar koli etiketi (1/4, 3/5) | ZPL (ileride) |
 | `receipt` | Sevkiyat fişi, depo çıkışı | ESC/POS (ileride) |
 | `report` | Rapor dökümü | PDF |
+
+## Etiket yazdırma kararı (K-061)
+
+- Etiket yazdırma **marka/model bağımsızdır**; uygulama belirli bir Zebra, TSC vb. modele bağlanmaz.
+- `product_label` ve `carton_label` çıktıları için **genel ZPL** üretilir.
+- Etiket ölçüsü profilin `paper_size` ayarından gelir; tek bir sabit ölçü yoktur.
+- `printer_name` yalnız kullanıcının/makinenin fiziksel yazıcısını eşlemek için kullanılır; iş kuralını değiştirmez.
+- İleride yerel ajan veya özel tarayıcı kabuğu kullanılsa da aynı `PrintManager` ve profil çözümleme sırası korunur.

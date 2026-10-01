@@ -79,15 +79,16 @@ Devir promptunda "açık" görünen kararlar kapandı. **Yeniden sorma.**
 | **A-002** | **Konfigüratör fiyatı etkilemez.** Yalnız ürün özelliklerini tanımlar (gövde, kristal, duy). Seçenekte fiyat alanı **yoktur**. Fiyat normal çözümleme sırasından gelir. |
 | **A-003** | Reçetede fire yüzdesi **yok**; malzeme çıkışında elle girilir. |
 | **A-004** | Konsolide rapor **ayrı bir izinle** (`reports.consolidated`) açılır; role bağlı değil. |
+| **A-005** | Etiket yazdırma **marka/model bağımsızdır**. ZPL şablonu cihaz markasına bağlanmaz; etiket ölçüsü `print_profiles.paper_size` ayarından gelir. `printer_name` yalnız fiziksel cihaz eşlemesi içindir; sabit marka veya sabit ölçü yoktur. |
 | **A-006** | Koli etiketi **ambar fişine** bağlıdır (irsaliyeye değil). "1/4" numarası ambar fişi kolilerinden üretilir. |
 | **A-007** | Pazaryerlerine **varyantsız** gönderilir — her kart ayrı ürün. Varyant grubu yalnız B2B ve kendi sitelerinde kullanılır. |
 | **A-008** | Kartlar **dönem veritabanında** (yukarıdaki madde 1). |
 | — | **Kalite modülü kapsam dışı.** 8 ekran (kontrol planı, DÖF, 8D, kalibrasyon, SPC, tedarikçi kalitesi) menüden çıkarıldı, dokümante edilmeyecek. |
 | — | **Satınalma talebi + teklif toplama eklendi** (basit). Faz 1'de `G-115`. Onay zinciri, bütçe kontrolü, RFQ e-postası **yok**. |
 
-**Tek açık karar kaldı:** A-005 — etiket yazıcısı markası ve boyutları.
-"Her marka her boyut" denildi; ZPL şablonu marka bağımsız yazılacak,
-boyut ayardan gelecek. Faz 10'da netleşir.
+**Açık karar kalmadı.** A-005 yukarıdaki kararla kapatıldı. Faz 10'da
+yazıcı markası/modeli sorulmayacak; yalnız kullanıcı/cihaz profiline göre
+`printer_name` ve etiket ölçüsü (`paper_size`) yapılandırılacak.
 
 ---
 
