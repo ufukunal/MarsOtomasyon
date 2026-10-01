@@ -108,6 +108,10 @@ SQLite kullanılmaz.
 
 ## Reverse
 
+- reversal document orijinal document_type'ı koruyor ve aynı tip serisinden yeni numara alıyor,
+- ayrı `reversal` document type/series oluşmuyor,
+- manual contact debit reversal credit; manual credit reversal debit üretiyor,
+
 - original immutable.
 - stock/cari/cash inverse effect.
 - duplicate reverse engel.
@@ -130,7 +134,8 @@ SQLite kullanılmaz.
 - totals / VAT / rounding.
 
 `integrity:contacts`:
-- contact_transactions / balance / reversal.
+- contact_transactions / balance / reversal,
+- contact_debit_credit typed direction posting ve reversal.
 
 `integrity:partials`:
 - source line fulfillment / cancellation.

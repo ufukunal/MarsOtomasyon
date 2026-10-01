@@ -17,6 +17,7 @@ Taslak belge numarasız olabilir ve fiziksel silinebilir. Kesinleşmiş belge si
 | Satış faturası — doğrudan | **Çıkış** | Varsa ilişkili rezerv çözümü | **Debit** | Post |
 | Proforma | Yok | Yok | Yok | Oluşturulurken period `proforma` serisinden numara alır; finansal posting etkisi yoktur |
 | Tahsilat | Yok | Yok | **Credit** | Post + kasa/banka girişi |
+| Cari Borç/Alacak Fişi | Yok | Yok | **Typed context: Debit veya Credit** | Post |
 
 ## PostDocument transaction sırası
 
@@ -77,6 +78,12 @@ v65: Kaydet, Onayla; detayda Hold, Rezervasyon Yap, Sevkiyat Oluştur, Fatura Ol
 - Kaynaksız/doğrudan satır stok çıkışı üretir.
 - Posted fatura mutate edilmez.
 
+### Cari Borç / Alacak Fişi
+
+- Yön belge tipinden türetilmez; doğrulanmış `debit|credit` typed posting context ile `PostDocument`a verilir.
+- Tek `contact_transactions` hareketi üretir.
+- Gerekçe zorunludur ve period audit'e yazılır.
+
 ### Tahsilat
 
 - `contact_transactions.credit` üretir.
@@ -91,6 +98,7 @@ Transaction commit edilmeden:
 - üretilmesi gereken stock movement sayısı/miktarı eşleşmeli,
 - tüketilen rezerv miktarı kaynak rezervi aşmamalı,
 - cari etkili belge için document_id ile tek contact transaction olmalı,
+- `contact_debit_credit` için üretilen cari yön typed posting context ile aynı olmalı,
 - tahsilat için kasa/banka movement tutarı contact transaction tutarıyla aynı olmalı.
 
 Uyuşmazlık `DomainException`/integrity exception ile rollback üretir.

@@ -71,6 +71,15 @@ Orijinal invoice stock out + debit:
 
 Reversal sonrası source order/dispatch partial miktar hesaplarında terslenmiş invoice fulfillment olarak sayılmaz.
 
+## Manuel Cari Borç / Alacak Fişi reversal
+
+Orijinal `contact_debit_credit` hareketi:
+
+- debit ise reversal credit,
+- credit ise reversal debit,
+- reversal contact transaction `reversal_of_id = original_contact_transaction.id` taşır,
+- stok veya kasa/banka hareketi üretmez.
+
 ## Tahsilat reversal
 
 Orijinal collection:
@@ -84,9 +93,17 @@ Reversal:
 - aynı hesaba cash/bank out,
 - orijinal hareket silinmez.
 
-## Numara
+## Reversal belge tipi ve numara
 
-Reversal yeni bir `documents` kaydıdır ve kendi numarasını transaction içinde alır. Orijinal number korunur; relation kaynak bağlantısını gösterir.
+Reversal için yeni bir `reversal` document_type veya yeni number series **uydurulmaz**.
+
+- reversal document, orijinal belgenin `document_type` değerini korur (`dispatch`, `sales_invoice`, `collection`, `contact_debit_credit`),
+- aynı document type'ın mevcut period number series'inden **yeni** numara alır,
+- `status = posted` olur,
+- bunun normal belge değil reversal olduğu `document_relations.reversal_of` ilişkisiyle belirlenir,
+- orijinal number ve orijinal belge değişmez.
+
+Bu nedenle effect resolver reversal document'ı normal `PostDocument` akışına tekrar sokmaz; ters etkilerin sahibi yalnız `ReverseDocument`dır.
 
 ## Doğrulama
 
@@ -119,6 +136,8 @@ G-30 kısmi işlem sorguları yalnız **etkin** posted child belgeleri sayar. `r
 - Dispatch-source invoice reverse yalnız cari credit.
 - Direct invoice reverse stock in + cari credit.
 - Collection reverse cari debit + aynı hesapta out movement.
+- Manuel cari debit fişi credit ile, credit fişi debit ile tersleniyor.
+- Reversal yeni `reversal` tipi üretmiyor; orijinal document_type serisinden yeni numara alıyor.
 - Aynı original ikinci kez reverse edilemiyor.
 - Kapalı reversal date reddediliyor.
 - Partial kalan miktar reverse sonrası doğru yeniden açılıyor.

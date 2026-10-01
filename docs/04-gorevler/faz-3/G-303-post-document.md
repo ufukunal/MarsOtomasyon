@@ -30,8 +30,11 @@ Faz 3 profil özeti:
 | sales_invoice / irsaliyeden | yok | yok | debit | yok |
 | sales_invoice / doğrudan | out | varsa consume | debit | yok |
 | collection | yok | yok | credit | in |
+| contact_debit_credit | yok | yok | **typed context direction: debit\|credit** | yok |
 
 Teklif, sipariş ve proforma kendi lifecycle Action'larında yönetilir; stok/cari posting etkisi yoktur.
+
+`contact_debit_credit` yönü belge tipinden tahmin edilmez. `PostContactDebitCredit` doğrulanmış `debit|credit` değerini typed posting context içinde `PostDocument`a verir; `ResolveDocumentPostingProfile` bu context dışındaki serbest yön değerini kabul etmez.
 
 ## Transaction sırası
 
@@ -85,7 +88,7 @@ Commit öncesi:
 - document totals,
 - stock movement miktarı,
 - reservation consume miktarı,
-- cari document transaction tekliği,
+- cari document transaction tekliği ve `contact_debit_credit` için typed context yönünün üretilen hareketle eşleşmesi,
 - collection financial movement tutarı
 
 eşleşmeli.
@@ -110,7 +113,8 @@ Farkta transaction rollback.
 - Dispatch stok düşürüyor, cari yazmıyor.
 - Dispatch kaynaklı invoice cari yazıyor, stok yazmıyor.
 - Direct invoice hem stok hem cari yazıyor.
-- PostCollection/PostDispatch/PostSalesInvoice wrapper'ları posting yan etkilerini ikinci kez yazmıyor.
+- PostCollection/PostDispatch/PostSalesInvoice/PostContactDebitCredit wrapper'ları posting yan etkilerini ikinci kez yazmıyor.
+- `contact_debit_credit` debit ve credit yönleri typed context üzerinden doğru tek cari hareketi üretiyor.
 - Verify kasıtlı bozulan senaryoda rollback ediyor.
 - Deadlock retry çift etki üretmiyor.
 - Gerçek PostgreSQL testleri geçiyor.
