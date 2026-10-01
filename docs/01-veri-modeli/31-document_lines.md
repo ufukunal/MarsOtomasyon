@@ -1,0 +1,93 @@
+# document_lines
+
+**Veritabanı: DÖNEM**
+
+Belge satırı kullanıcının seçtiği birimi/fiyatı ve posting sırasında gerekli dondurulmuş temel birim karşılığını birlikte saklar.
+
+## Şema
+
+```php
+Schema::connection('period')->create('document_lines', function (Blueprint $table) {
+    $table->id();
+    $table->foreignId('document_id')->constrained('documents')->cascadeOnDelete();
+    $table->unsignedInteger('line_no');
+
+    $table->foreignId('product_id')->constrained('products');
+    $table->string('description')->nullable();
+
+    $table->foreignId('unit_id')->constrained('units');
+    $table->decimal('quantity', 18, 3);
+    $table->decimal('conversion_factor', 18, 6);
+    $table->decimal('base_quantity', 18, 3);
+
+    $table->foreignId('location_id')->nullable()->constrained('locations');
+
+    $table->decimal('unit_price', 18, 4); // seçilen birim için, KDV hariç
+    $table->decimal('line_discount_rate', 7, 4)->default(0);
+    $table->decimal('line_discount_amount', 18, 4)->default(0);
+    $table->decimal('vat_rate', 7, 4)->default(0);
+    $table->decimal('line_total', 18, 4);
+
+    $table->boolean('reserve_stock')->default(false);
+    $table->decimal('cancelled_quantity', 18, 3)->default(0);
+
+    $table->jsonb('configuration')->nullable();
+
+    $table->foreignId('source_line_id')
+        ->nullable()
+        ->constrained('document_lines')
+        ->nullOnDelete();
+
+    $table->unsignedInteger('version')->default(1);
+    $table->timestamps();
+
+    $table->unique(['document_id','line_no']);
+    $table->index('source_line_id');
+});
+```
+
+## Temel birim
+
+```
+base_quantity = quantity × conversion_factor
+```
+
+- `quantity`: kullanıcının seçtiği birimde.
+- `unit_price`: yine seçilen birime ait.
+- `base_quantity`: stok hareketine gidecek miktar.
+- `conversion_factor`: belge anındaki katsayı; dondurulur.
+- Dönüşüm bulunamazsa posting engellenir; 1 varsayılmaz.
+
+## Satır iskontosu
+
+K-080 gereği hem yüzde hem tutar saklanır. Kullanıcı birini değiştirince diğeri hesaplanır; kesinleşen belgede ikisi de snapshot'tır.
+
+```
+gross = quantity × unit_price
+line_total = gross - line_discount_amount
+```
+
+Ara adımda yuvarlama yapılmaz; 4 hane korunur.
+
+## Kısmi işlem
+
+- `source_line_id`, teklif→sipariş, sipariş→irsaliye/fatura ve irsaliye→fatura gibi satır kaynak zincirini tutar.
+- Sevk edilmiş ve faturalanmış miktar ayrı kolon olarak kopyalanmaz; kaynak satıra bağlı hedef satırların toplamından hesaplanır.
+- `cancelled_quantity` kalıcıdır.
+- Kullanılabilir kalan: `quantity - shipped - cancelled` veya ilgili akışta kaynak satırın kalan miktarı.
+- İptal edilen miktar yeniden rezerv/sevk/fatura edilemez.
+
+## Lokasyon
+
+K-073 gereği satış satırı lokasyon taşıyabilir. Sipariş rezervasyonu bir satırı birden fazla lokasyona bölerse gerçek dağılım `stock_reservations` kayıtlarındadır; sevk belgesi satırları ilgili lokasyonlarla üretilir.
+
+## CHECK kısıtları
+
+- `quantity > 0`
+- `conversion_factor > 0`
+- `base_quantity > 0`
+- `unit_price >= 0`
+- `line_discount_rate between 0 and 100`
+- `line_discount_amount >= 0`
+- `vat_rate >= 0`
+- `cancelled_quantity >= 0 and cancelled_quantity <= quantity`
