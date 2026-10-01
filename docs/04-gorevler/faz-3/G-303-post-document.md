@@ -24,13 +24,13 @@ G-301, G-302, G-006, G-007, G-018, G-202, G-210.
 
 Faz 3 profil özeti:
 
-| Tür | stok | rezerv | cari | kasa/banka |
+| Tür | hesap modu | stok | rezerv | cari | kasa/banka |
 |---|---|---|---|---|
-| dispatch | out | consume | yok | yok |
-| sales_invoice / irsaliyeden | yok | yok | debit | yok |
-| sales_invoice / doğrudan | out | varsa consume | debit | yok |
-| collection | yok | yok | credit | in |
-| contact_debit_credit | yok | yok | **typed context direction: debit\|credit** | yok |
+| dispatch | line_calculated | out | consume | yok | yok |
+| sales_invoice / irsaliyeden | line_calculated | yok | yok | debit | yok |
+| sales_invoice / doğrudan | line_calculated | out | varsa consume | debit | yok |
+| collection | header_amount | yok | yok | credit | in |
+| contact_debit_credit | header_amount | yok | yok | **typed context direction: debit\|credit** | yok |
 
 Teklif, sipariş ve proforma kendi lifecycle Action'larında yönetilir; stok/cari posting etkisi yoktur.
 
@@ -43,7 +43,9 @@ DB::connection('period')->transaction(function () {
     1. idempotency anahtarını doğrula
     2. EnsurePeriodOpen(document_date)
     3. gerekliyse GenerateDocumentNumber -> lockForUpdate
-    4. belge toplamlarını G-302 ile tekrar doğrula
+    4. posting profile calculation mode'a göre toplamı doğrula:
+       - line_calculated -> G-302 ile satırları tekrar hesapla
+       - header_amount -> line bekleme; amount > 0 ve subtotal=tax_base=grand_total=amount, discount=vat=rounding=0 invariant'ını doğrula
     5. stok etkili satırlar -> `RecordStockMovement` (fiziksel hareketin tek yazma noktası)
     6. rezerv etkili satırlar -> `ConsumeReservation` (yalnız reservation state + reserved; stock movement YAZMAZ)
     7. cari etkili belge -> contact_transactions
@@ -85,7 +87,7 @@ olarak snapshot edilir. Cross-DB FK yok.
 
 Commit öncesi:
 
-- document totals,
+- document totals: line_calculated tiplerde G-302 sonucu; header_amount tiplerde amount/header invariant,
 - stock movement miktarı,
 - reservation consume miktarı,
 - cari document transaction tekliği ve `contact_debit_credit` için typed context yönünün üretilen hareketle eşleşmesi,
@@ -115,6 +117,7 @@ Farkta transaction rollback.
 - Direct invoice hem stok hem cari yazıyor.
 - PostCollection/PostDispatch/PostSalesInvoice/PostContactDebitCredit wrapper'ları posting yan etkilerini ikinci kez yazmıyor.
 - `contact_debit_credit` debit ve credit yönleri typed context üzerinden doğru tek cari hareketi üretiyor.
+- collection/contact_debit_credit boş document_lines nedeniyle G-302'ye girip 0 toplam üretmiyor; header_amount doğrulamasıyla post ediliyor.
 - Verify kasıtlı bozulan senaryoda rollback ediyor.
 - Deadlock retry çift etki üretmiyor.
 - Gerçek PostgreSQL testleri geçiyor.

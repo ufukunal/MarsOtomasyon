@@ -2,7 +2,7 @@
 
 ## Amaç
 
-Satır iskonto, belge iskonto, KDV gruplama ve yuvarlama farkını tek deterministik hesap motorunda toplamak.
+Satırlı ticari belgelerde satır iskonto, belge iskonto, KDV gruplama ve yuvarlama farkını tek deterministik hesap motorunda toplamak.
 
 ## Önkoşul
 
@@ -15,6 +15,12 @@ G-301, K-008, K-035, K-036, K-037, K-080.
 - `app/DataObjects/Documents/DocumentTotals.php`
 - `app/Support/Money.php` / mevcut Money altyapısı
 - `tests/Unit/Documents/CalculateDocumentTotalsTest.php`
+
+## Kapsam
+
+`CalculateDocumentTotals` yalnız **satırlı ticari belgeler** için kullanılır: quote, sales_order, dispatch, sales_invoice, proforma.
+
+`collection` ve `contact_debit_credit` header-amount belgelerdir; document_lines üretmez ve bu motora boş satır listesiyle sokulmaz. Bu iki tipte G-303 header-amount invariant'ını doğrular.
 
 ## Şema / Kod
 
@@ -104,6 +110,7 @@ Bu görev fiyatı çözmez; fakat satır hesap API'si G-110/G-26 fiyat çözüm�
 - rounding_difference grand_total CHECK ile uyumlu.
 - Kodda PHP float yok.
 - Test beklenenleri production fonksiyonuyla hesaplamıyor; elle sabit değer kullanıyor.
+- collection/contact_debit_credit için CalculateDocumentTotals çağrılmadığı contract test ile doğrulanıyor.
 
 ## İstem
 

@@ -6,7 +6,7 @@ Sistem stok/cari/kasanın tek kaydıdır. Bütünlük dört katmanda korunur: DB
 
 - `integrity:stock`: stock_movements toplamı ↔ stock_balances
 - `integrity:contacts`: contact_transactions toplamı ↔ raporlanan bakiye
-- `integrity:documents`: satırlar ↔ belge toplamları / rounding_difference
+- `integrity:documents`: **line_calculated** belgelerde satırlar ↔ belge toplamları / rounding_difference; **header_amount** (`collection`, `contact_debit_credit`) belgelerde satır beklemeden amount/header invariant'ı + ilgili cari/finans hareketi tutarı
 - `integrity:numbers`
 - `integrity:costs`
 - `integrity:reservations`

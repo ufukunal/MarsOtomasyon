@@ -1,6 +1,8 @@
 # Belge hesaplama
 
-Faz 3 satış belgelerinde hesaplama tek motor üzerinden yapılır. Aynı hesap motoru ileriki fazlarda alış belgeleri tarafından da kullanılabilir.
+Faz 3 **satırlı ticari belgelerinde** hesaplama tek motor üzerinden yapılır. Aynı hesap motoru ileriki fazlarda alış belgeleri tarafından da kullanılabilir.
+
+`collection` ve `contact_debit_credit` satırlı belge değildir; G-302 motoruna girmez. Bu tipler header-amount sözleşmesi kullanır: `subtotal = tax_base = grand_total = amount`, `discount_amount = vat_amount = rounding_difference = 0`.
 
 ## Girdi
 
@@ -78,10 +80,19 @@ Maliyet altı satışta uyarı vardır. `cost.view` yoksa maliyet tutarı kullan
 
 ## Bütünlük
 
-`integrity:documents`:
+`integrity:documents` document type'a göre çalışır.
+
+Line-calculated tiplerde:
 
 - line_total'ları yeniden hesaplar,
 - subtotal/discount/tax_base değerini karşılaştırır,
 - KDV oran gruplarını yeniden hesaplar,
 - rounding_difference dahil grand_total kontrolünü yapar,
 - farkı raporlar, otomatik düzeltmez.
+
+Header-amount tiplerde (`collection`, `contact_debit_credit`):
+
+- document_lines beklemez,
+- `subtotal = tax_base = grand_total = amount` header invariant'ını,
+- discount/vat/rounding değerlerinin 0 olduğunu,
+- document_id bağlı contact transaction tutarını ve collection için cash/bank movement tutarını karşılaştırır.
