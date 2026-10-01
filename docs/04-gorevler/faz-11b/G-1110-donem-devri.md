@@ -30,12 +30,12 @@ CarryPeriod::handle(Period $source, int $targetYear, string $idempotencyKey): Ca
 3. Target period Master kaydını ve DB adını belirle.
 4. Hedef DB oluştur.
 5. migrate:periods çalıştır.
-6. Kartları FK dependency sırasıyla aynı ID/kodla kopyala.
+6. Kartları FK dependency sırasıyla aynı ID/kodla kopyala; `cash_accounts` ve `bank_accounts` dahil Faz 3'te eklenen kartlar da bu kapsamdadır.
 7. Gerekli pasif kartları ilişki analiziyle dahil et.
 8. StockBalance kimliklerini ve açılış miktarlarını hazırla.
 9. Opening stock movements'i closing moving average maliyetiyle yaz.
 10. product_costs kopyala.
-11. cari/kasa/banka açılışlarını yaz.
+11. cari açılışlarını ve kasa/banka kapanış bakiyelerini hedefte opening movement olarak yaz; geçmiş `cash_movements` / `bank_movements` satırlarını kopyalama.
 12. vadesi gelmemiş çek/senetleri taşı.
 13. Sequence'leri MAX(id)+1 ayarla.
 14. integrity:carry çalıştır; farkta exception.

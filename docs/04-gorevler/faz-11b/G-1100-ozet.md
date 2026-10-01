@@ -21,7 +21,8 @@ Bu faz aynı şirketin bir yıldan sonraki yıla fiziksel DB geçişini ve çok 
 - [ ] Açık teklif/sipariş/taslak/yoldaki transfer/karantina taşınmıyor
 - [ ] Açılış maliyeti kaynak kapanış moving average
 - [ ] product_costs taşınıyor
-- [ ] cari/kasa/banka açılışları korunuyor
+- [ ] cash_accounts/bank_accounts kart ID+kodları korunuyor
+- [ ] cari/kasa/banka açılışları korunuyor; geçmiş cash/bank movements taşınmıyor
 - [ ] vadesi gelmemiş çek/senet taşınıyor
 - [ ] integrity:carry farkta devri tamamlatmıyor
 - [ ] kaynak period closed oluyor

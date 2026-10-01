@@ -15,7 +15,7 @@ Açık teklif/sipariş/taslak/yoldaki transfer/karantina **taşınmaz** ve kulla
 ## Önizleme
 
 Taşınacak:
-- aktif kartlar,
+- aktif kartlar (cari, ürün, lokasyon, birim/kategori/marka, varyant/set/konfigürasyon, fiyat listesi, **cash_accounts, bank_accounts**),
 - bakiye/hareket ilişkisi bulunan gerekli pasif kartlar,
 - stok açılışları,
 - product_costs,
@@ -29,11 +29,11 @@ Aynı şirket devrinde taşınan bütün kart ID+kodları ve taşınan stock_bal
 
 1. Hedef DB oluştur.
 2. `migrate:periods`.
-3. Kartları aynı ID/kodla kopyala.
+3. Kartları aynı ID/kodla kopyala; `cash_accounts` ve `bank_accounts` kart ID/kodları da korunur.
 4. Stok bakiyelerini/devir kimliklerini koru; geçmiş stock_movements kopyalama.
 5. Opening stock movements yaz; maliyet kapanış hareketli ortalaması.
 6. product_costs.
-7. cari/kasa/banka açılışları.
+7. cari açılış hareketleri ile kasa/banka kapanış bakiyelerini yeni dönemde **opening movement** olarak yaz; eski cash/bank movement geçmişini kopyalama.
 8. vadesi gelmemiş çek/senet.
 9. sequence'leri `MAX(id)+1` ayarla.
 10. `integrity:carry`.
