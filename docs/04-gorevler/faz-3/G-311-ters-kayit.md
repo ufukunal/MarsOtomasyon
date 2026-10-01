@@ -33,7 +33,7 @@ K-016/K-079:
 
 Orijinal belgenin iş alanlarını değiştirme. UI, aktif `reversal_of` ilişkisi varsa kaydı "Terslendi" olarak gösterebilir.
 
-Bir belge ikinci kez terslenemez.
+Bir belge ikinci kez terslenemez. `document_relations_one_reversal_per_target` partial unique index bu kuralı DB seviyesinde de korur.
 
 ## Reversal tarihi
 
@@ -42,6 +42,8 @@ Ters kayıt yeni `document_date` alır ve **o tarih açık period ayı olmalıd�
 ## İrsaliye reversal
 
 Orijinal dispatch her line için stock out üretti.
+
+Aktif posted invoice child'ı bulunan dispatch **önce terslenemez**. Önce bağlı aktif faturalar reverse edilmelidir; aksi halde stok geri gelirken finansal belge aktif kalır ve fulfillment zinciri bozulur.
 
 Reversal:
 
@@ -111,6 +113,7 @@ G-30 kısmi işlem sorguları yalnız **etkin** posted child belgeleri sayar. `r
 ## Kabul ölçütü
 
 - Posted belge alanları değişmiyor.
+- Aktif invoice child'ı bulunan dispatch reverse reddediliyor.
 - Dispatch reverse stok geri getiriyor, cari yazmıyor.
 - Dispatch reverse otomatik reservation oluşturmuyor.
 - Dispatch-source invoice reverse yalnız cari credit.

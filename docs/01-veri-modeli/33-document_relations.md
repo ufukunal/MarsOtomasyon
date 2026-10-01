@@ -38,11 +38,31 @@ Schema::connection('period')->create('document_relations', function (Blueprint $
 - `order_to_dispatch`
 - `order_to_invoice`
 - `dispatch_to_invoice`
+- `quote_to_proforma`
+- `order_to_proforma`
 - `proforma_to_invoice`
 - `collection_source`
 - `reversal_of`
 
 Liste uygulama enum'u ile yönetilir; sonraki fazlar yeni ilişki tipi ekleyebilir.
+
+PostgreSQL bütünlük indeksleri:
+
+```php
+DB::connection('period')->statement(<<<'SQL'
+ALTER TABLE document_relations
+ADD CONSTRAINT document_relations_source_target_different
+CHECK (source_document_id <> target_document_id)
+SQL);
+
+DB::connection('period')->statement(<<<'SQL'
+CREATE UNIQUE INDEX document_relations_one_reversal_per_target
+ON document_relations (target_document_id)
+WHERE relation_type = 'reversal_of'
+SQL);
+```
+
+Böylece aynı orijinal belge için ikinci `reversal_of` kaydı DB seviyesinde de engellenir.
 
 ## İlişki yönü
 
@@ -53,7 +73,7 @@ Liste uygulama enum'u ile yönetilir; sonraki fazlar yeni ilişki tipi ekleyebil
 
 ## Kurallar
 
-- Kaynak ve hedef aynı belge olamaz.
+- Kaynak ve hedef aynı belge olamaz; bu kural DB CHECK ile de korunur.
 - Posted belge silinmediği için ilişki zinciri tarihsel olarak korunur.
 - Teklif revizyonunda yeni belge eski revizyona `revision_of` ile bağlanır; aynı `number`, artan `revision_no` kullanılır.
 - Aynı carinin uyumlu birden fazla irsaliyesi tek faturaya bağlanabilir.

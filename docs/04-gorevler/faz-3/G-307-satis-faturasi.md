@@ -55,7 +55,7 @@ Yeni faturada:
 
 ## İrsaliyeden fatura
 
-Bir veya birden fazla irsaliye seçilebilir.
+Bir veya birden fazla irsaliye seçilebilir. Her kaynak irsaliye için `dispatch_to_invoice` relation yazılır.
 
 Birleştirme için:
 
@@ -88,7 +88,7 @@ olabilir.
 
 ## Siparişten doğrudan fatura
 
-Siparişten irsaliyesiz fatura mümkündür.
+Siparişten irsaliyesiz fatura mümkündür. Başlık seviyesinde `order_to_invoice` relation yazılır.
 
 - source_line_id = order_line.id
 - order kalan miktarı aşılmaz
@@ -137,6 +137,7 @@ Aynı invoice için ikinci cari hareket unique constraint/idempotency ile oluşm
 
 - İrsaliyeden faturada stok ikinci kez düşmez.
 - Direct faturada stok + cari aynı transaction içinde oluşur.
+- Kaynak belge varsa başlık relation ve satır `source_line_id` zinciri birlikte yazılır.
 - Fatura bakiyesi invoice-settlement tablosuna bağlanmaz.
 - E-Belge Faz 3 kapsamı dışıdır.
 

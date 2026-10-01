@@ -64,7 +64,7 @@ Tek transaction:
 3. `GenerateDocumentNumber('proforma')`,
 4. header/lines snapshot kopyala,
 5. source_line_id bağlantıları,
-6. document relation kaynağa göre yaz,
+6. kaynak quote ise `quote_to_proforma`, sales_order ise `order_to_proforma` relation yaz,
 7. status = `posted`, posted_at ve actor snapshot,
 8. audit.
 
@@ -92,6 +92,7 @@ Proforma conversion kaynak quote/order'ın fulfillment miktarını iki kez tüke
 
 - Proforma period proforma serisinden numara alıyor.
 - Quote/order snapshot'ı doğru kopyalanıyor.
+- Kaynak quote/order için doğru proforma relation tipi yazılıyor.
 - Proforma hiçbir stok/cari hareket üretmiyor.
 - PDF için finalized proforma immutable.
 - Proforma invoice'a dönüşünce invoice normal stok+cari etkisini üretiyor.

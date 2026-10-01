@@ -100,7 +100,7 @@ created_by_name
 timestamps
 ```
 
-Başlangıç ilişki tipleri: revision_of, quote_to_order, order_to_dispatch, order_to_invoice, dispatch_to_invoice, proforma_to_invoice, collection_source, reversal_of.
+Başlangıç ilişki tipleri: revision_of, quote_to_order, order_to_dispatch, order_to_invoice, dispatch_to_invoice, quote_to_proforma, order_to_proforma, proforma_to_invoice, collection_source, reversal_of.
 
 ## Kurallar
 
@@ -122,6 +122,8 @@ Başlangıç ilişki tipleri: revision_of, quote_to_order, order_to_dispatch, or
 - Actor alanlarında cross-DB user FK yok.
 - Aynı document_type/number/revision_no tekrar edemiyor.
 - quantity/conversion/discount CHECK kısıtları geçerli.
+- document_relations source != target CHECK geçerli.
+- Aynı target document için ikinci `reversal_of` DB partial unique index ile reddediliyor.
 - Draft silinebilir; posted silme Action seviyesinde reddedilir.
 - Model relation'ları doğru connection'da çalışıyor.
 

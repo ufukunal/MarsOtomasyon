@@ -49,6 +49,8 @@ Miktar aşılırsa işlem engellenir.
 
 Rezervasyon birden fazla lokasyondaysa dispatch satırları gerçek çıkış lokasyonlarına göre bölünebilir.
 
+`CreateDispatchFromOrder` başlık seviyesinde `order_to_dispatch` relation yazar.
+
 Child dispatch line:
 
 - `source_line_id = order_line.id`
@@ -96,6 +98,7 @@ Kalan iptal davranışı G-305'tedir.
 
 - İrsaliye stok çıkışı üretir, cari etkilemez.
 - Kaynak kalan miktar aşılamaz.
+- Sipariş kaynaklı sevkte `order_to_dispatch` relation zorunludur.
 - Rezerv tüketimi ile stok çıkışı aynı işlem zincirindedir.
 - Kalite modülü eklenmez.
 
