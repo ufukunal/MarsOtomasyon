@@ -43,7 +43,7 @@ draft
 
 İç onay gerekmeyen kullanımda yetkili akış doğrudan müşteri inceleme durumuna geçebilir; `sales.quote.approve` gerektiren "İç Onay" eylemi permission ile korunur.
 
-Teklif ilk kez `draft` dışına çıkarken ana teklif numarası üretilir. Draft kaydetmeleri numara tüketmez.
+Teklif oluşturulurken `revision_no = 1` atanır. İlk kez `draft` dışına çıkarken ana teklif numarası üretilir. Draft kaydetmeleri numara tüketmez. Kullanıcı hiçbir zaman `Rev.0` görmez.
 
 ## Revizyon
 
@@ -52,7 +52,7 @@ Yeni revizyon:
 1. kaynak quote posted/approved gibi mutate edilmez,
 2. yeni `documents` satırı oluşturulur,
 3. aynı `number` kullanılır,
-4. `revision_no = max + 1`,
+4. `revision_no = max + 1` (ilk kayıt 1 olduğu için sonraki 2, 3... devam eder),
 5. header + lines + configuration + requirements snapshot kopyalanır,
 6. `document_relations.revision_of` yazılır,
 7. yeni revizyon `draft` başlar.
@@ -91,7 +91,7 @@ Teklif stok/cari/rezervasyon etkisi üretmez.
 
 - Draft kayıt numara tüketmiyor.
 - İlk review geçişi concurrency'de tek numara alıyor.
-- Revizyon aynı number + Rev.N ile yeni kayıt oluşturuyor.
+- İlk teklif `revision_no=1`; sonraki revizyonlar aynı number ile Rev.2, Rev.3... oluşturuyor.
 - Eski revizyon değişmiyor.
 - İç onay izinsiz kullanıcıda 403.
 - Requirement/configuration snapshot eski revizyonda değişmiyor.

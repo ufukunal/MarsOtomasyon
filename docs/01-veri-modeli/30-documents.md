@@ -71,7 +71,7 @@ Belge tipi string tutulur; sonraki fazlar aynı tabloya yeni tür ekleyebilir.
 
 - Taslak belgede `number = null` olabilir.
 - Numara yalnız ilgili yaşam döngüsü geçişinde `GenerateDocumentNumber` ile ve `lockForUpdate` altında üretilir.
-- Teklif revizyonları ayrı kayıtlar olup aynı ana numarayı ve farklı `revision_no` değerini taşır.
+- Teklif revizyonları ayrı kayıtlar olup aynı ana numarayı ve farklı `revision_no` değerini taşır. **İlk teklif revizyonu `revision_no = 1`'dir; `Rev.0` yoktur.** Generic kolon default 0 yalnız revizyon kullanmayan diğer belge türleri içindir.
 - Satış tarafında K-013 gereği para birimi TRY'dir; generic kolonlar Faz 4 alış/ithalat için korunur.
 - `document_date` iş tarihidir; dönem kilidi ve raporlar bunu kullanır.
 - Posted/kesinleşmiş kayıt yerinde değiştirilmez.
@@ -88,6 +88,7 @@ Belge tipi string tutulur; sonraki fazlar aynı tabloya yeni tür ekleyebilir.
 - `tax_base >= 0`
 - `vat_amount >= 0`
 - `grand_total >= 0`
+- `document_type <> 'quote' OR revision_no >= 1`
 - `abs(grand_total - (tax_base + vat_amount + rounding_difference)) < 0.0001`
 
 ## İlişkiler

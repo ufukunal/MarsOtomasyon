@@ -44,6 +44,9 @@ SQLite kullanılmaz.
 
 ## Teklif
 
+- İlk teklif revision_no=1; Rev.0 oluşmuyor,
+- aynı ana number altında yeni revizyonlar 2, 3... artıyor,
+
 - draft number yok.
 - review'a çıkışta tek number.
 - Rev.1 → Rev.2 ayrı immutable kayıt.

@@ -54,7 +54,7 @@ Detay:
 - İç onay `sales.quote.approve` ister.
 - Teklif stok, rezervasyon veya cari hareket oluşturmaz.
 - Yeni revizyon eski document kaydını değiştirmez.
-- Revizyonlar aynı ana teklif numarasını, artan `revision_no` değerini taşır.
+- Revizyonlar aynı ana teklif numarasını taşır; ilk teklif **Rev.1**, sonraki kayıtlar Rev.2, Rev.3... olarak artar. Rev.0 gösterilmez.
 - Yeni revizyon `document_relations.revision_of` ile önceki revizyona bağlanır.
 - Konfigürasyon ve requirement snapshot revizyon içinde donar.
 - Siparişe dönüştürme yeni `sales_order` document + line kayıtları üretir; teklif satırlarına `source_line_id` ile bağlanır.
