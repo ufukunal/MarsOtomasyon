@@ -1,6 +1,6 @@
 # Görev dosyası biçimi
 
-Her kod üretim görevi **tek başına uygulanabilir** olmalıdır. Hedef uzunluk 300–500 satırdır; gerekli bağlam görev içinde tekrarlanır.
+Her kod üretim görevi **tek başına uygulanabilir** olmalıdır. **Satır sayısı hedef değildir.** Görev, işi eksiksiz tarif edecek kadar uzun; gereksiz tekrar içermeyecek kadar kısa olmalıdır.
 
 ## Zorunlu bölümler
 
@@ -14,6 +14,15 @@ Her kod üretim görevi **tek başına uygulanabilir** olmalıdır. Hedef uzunlu
 ## Kabul ölçütü
 ## İstem
 ```
+
+## Yazım ilkeleri
+
+- Ortak mimari metni her göreve kopyalanmaz; yalnız görevi doğrudan etkileyen kurallar yazılır.
+- Aynı test veya kontrol maddesi tekrar edilmez.
+- Kaynakta olmayan tablo/alan/sınıf/Action/iş kuralı uydurulmaz.
+- Eksik karar varsa `[KARAR GEREKİYOR]` yazılır.
+- Göreve özel Şema/Kod, işlem sırası, hata durumu ve kabul testi genel checklistten daha değerlidir.
+- 300–500 satır zorunlu değildir; uzunluk için dolgu yasaktır.
 
 ## Kontrol listesi
 
