@@ -24,4 +24,4 @@ Bu dosya `DEVIR-PROMPT.md`den sonra okunur. Çelişkide bu dosya ve karar günl�
 - v64 korunur; **v65 güncel UI referansıdır.**
 - Açık A kararı yoktur.
 
-Faz 3 henüz başlatılmaz; önce repo tutarlılık temizliği ve mevcut görevlerin yeni mimariye göre revizyonu tamamlanır.
+Repo tutarlılık temizliği ve Faz 0–2 görev revizyonu tamamlandı. **Faz 3 Satış başlatıldı.** Faz 4 kullanıcı onayı olmadan başlatılmaz.

@@ -74,7 +74,7 @@ Master company_copy_permissions. Kaynak period_source. Hedef yeni ID; source_com
 
 ## Faz ve görev yöntemi
 
-Faz 0, 0b, 1, 2 görevleri mevcut G numaraları korunarak yeni standalone standarda yükseltilir. Faz 3 Satış sıradadır ancak repo temizliği bitmeden başlatılmaz. Faz 3 iş kuralı dosyaları 28–31 numaralarını kullanır.
+Faz 0, 0b, 1, 2 görevleri güncel standalone standarda göre temizlendi. **Faz 3 Satış başlatıldı.** Faz 3 iş kuralı dosyaları 28–31 numaralarını kullanır. Faz 4 kullanıcı onayı olmadan başlatılmaz.
 
 Her görev şu bölümleri içerir: Amaç, Önkoşul, Dokunulacak dosyalar, Şema/Kod, Kurallar, Kabul ölçütü, İstem. Bir görev tek başına yerel modele verilebilir olmalıdır. **Satır sayısı hedef değildir.** 300–500 satır yalnız iş gerçekten o ayrıntıyı gerektiriyorsa doğal sonuç olabilir. Aynı genel checklist, mimari kural veya test maddesini sırf uzunluk için tekrar etmek yasaktır. Kaynaklarda tanımlanmayan alan, tablo, Action, sınıf, iş kuralı veya test beklentisi uydurulmaz. Eksik karar varsa `[KARAR GEREKİYOR]` yazılır ve kullanıcıya seçenek sunulur.
 
