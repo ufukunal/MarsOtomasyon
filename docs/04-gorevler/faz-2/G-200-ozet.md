@@ -1,44 +1,27 @@
 # Faz 2 — Stok
 
-**Tüm Faz 2 tabloları DÖNEM veritabanındadır.** `company_id` kolonu yoktur;
-veritabanı zaten o şirkete ve yıla aittir. Modeller `PeriodModel`'den türer.
-
-Ürün ve lokasyon kartları **aynı veritabanındadır**, bu yüzden stok hareketi
-ürüne **gerçek yabancı anahtarla** bağlanır. `product_code` yine kopyalanır
-ama bu kolaylık içindir, zorunluluk değil.
-
-Sistemin en kritik hesabı burada. Satış, alış, üretim ve ithalat hep bu
-katmana yazar. **Burada yapılan hata her rakama yayılır.**
+Tüm Faz 2 tabloları PERIOD DB'dedir; company_id yoktur. Ürün/lokasyon/birim kartları aynı DB'de gerçek FK ile bağlanır.
 
 ## Görevler
 
-| No | Görev | Önkoşul |
-|---|---|---|
-| G-201 | stock_movements + stock_balances | G-101, G-106 |
-| G-202 | RecordStockMovement action (tek yazma noktası) | G-201 |
-| G-203 | Hareketli ortalama maliyet + sapma uyarısı | G-202 |
-| G-204 | Stok Durumu ekranı | G-202, G-0b2 |
-| G-205 | Stok Hareketleri ekranı | G-202 |
-| G-206 | Depo transferi | G-202 |
-| G-207 | Ambar fişi | G-202 |
-| G-208 | Stok sayımı ve elle onaylı fark | G-202 |
-| G-209 | Karantina | G-202 |
-| G-210 | Rezervasyon altyapısı | G-202 |
-| G-211 | Açılış bakiyesi aktarımı | G-202, G-112 |
-| G-212 | Faz 2 testleri | hepsi |
+G-201 tablolar · G-202 RecordStockMovement · G-203 hareketli ortalama · G-204 stok durumu · G-205 stok hareketleri · G-206 transfer · G-207 ambar fişi · G-208 sayım · G-209 karantina · G-210 rezervasyon · G-211 açılış · G-212 test.
 
 ## Bitiş ölçütü
 
-- [ ] Stok yalnızca `RecordStockMovement` üzerinden değişiyor
-- [ ] Hareketli ortalama doğru hesaplanıyor, çıkışta değişmiyor
-- [ ] ±%25 sapmada uyarı çıkıyor, engellemiyor, loglanıyor
-- [ ] Negatif stok ürün bazında izinli/engelli çalışıyor
-- [ ] Transfer maliyeti değiştirmiyor
-- [ ] Sayım farkı elle onaylanmadan hareket oluşmuyor
-- [ ] Karantinadaki mal satılamıyor, rezerve edilemiyor
-- [ ] `stock:verify` komutu fark bulmuyor
-- [ ] Kapalı aya hareket yazılamıyor
-- [ ] `integrity:costs`, `integrity:reservations`, `integrity:quarantine` yazıldı ve fark bulmuyor
-- [ ] Stok tabloları dönem veritabanında, `company_id` kolonu yok
-- [ ] Ürün referansı gerçek yabancı anahtar
-- [ ] **Stok hareketi her zaman temel birimde** yazılıyor (bkz. 25-birim-donusumu.md)
+- [ ] Stok yalnız RecordStockMovement ile değişiyor
+- [ ] stock_movements miktarı her zaman temel birimde
+- [ ] conversion_factor eksikse işlem engelleniyor
+- [ ] Money/BCMath kullanılıyor
+- [ ] moving average doğru ve eşzamanlı işlemlerde bozulmuyor
+- [ ] stock_balances doğrudan business write almıyor
+- [ ] rezervasyon fiziksel stoğu düşürmüyor
+- [ ] rezervasyon kullanılabilir stoktan fazla oluşturulmuyor
+- [ ] karşılanamayan sipariş miktarı açık kalıyor
+- [ ] aynı satır birden fazla lokasyona reservation kayıtlarıyla dağıtılabiliyor
+- [ ] sevk/irsaliye rezervi çözüp stok düşürmeye hazır contract sağlıyor
+- [ ] ambar fişi koli etiketi 1/N bilgisi ambar fişi kolilerinden üretiliyor
+- [ ] karantina/konsinye kullanılabilir stoğu doğru azaltıyor
+- [ ] sayım farkı manuel onaysız hareket üretmiyor
+- [ ] integrity:stock/costs/reservations/quarantine/units geçiyor
+- [ ] cost.view olmayan payload/export maliyet içermiyor
+- [ ] gerçek PostgreSQL testleri geçiyor

@@ -1,24 +1,30 @@
 # Faz 11b — Dönem devri
 
-Yıl sonu kapanışı ve bir sonraki döneme geçiş. Master/dönem mimarisinin
-gerektirdiği faz; tek veritabanlı bir sistemde bu faz olmazdı.
+Bu faz aynı şirketin bir yıldan sonraki yıla fiziksel DB geçişini ve çok dönemli rapor sorgusunu kapsar.
 
 ## Görevler
 
-| No | Görev |
-|---|---|
-| G-1110 | Dönem devri action'ı ve ekranı |
-| G-1111 | Devir öncesi kontrol listesi |
-| G-1112 | Çok dönemli rapor altyapısı |
-| G-1113 | Testler |
+| No | Durum | Görev |
+|---|---|---|
+| G-1110 | yazıldı/güncellendi | Dönem devri action + ekran |
+| G-1111 | planlı | Devir öncesi kontrol listesi ayrıntıları |
+| G-1112 | yazıldı/güncellendi | Çok dönemli rapor altyapısı |
+| G-1113 | planlı | Faz 11b bütünlük/eşzamanlılık testleri |
 
 ## Bitiş ölçütü
 
-- [ ] Devir sonrası stok miktarları ve cari bakiyeleri korunuyor
-- [ ] **Açılış birim maliyeti = kaynak kapanış hareketli ortalaması**
-- [ ] Kartlar taşınmıyor (master'dalar)
-- [ ] Açık sipariş/teklif taşınmıyor, kullanıcı uyarılıyor
-- [ ] İkinci devir denemesi reddediliyor
-- [ ] Geri alma çalışıyor
-- [ ] Çok dönemli rapor sonrası aktif dönem değişmiyor
-- [ ] `integrity:carry` yazıldı: hedef açılış toplamı = kaynak kapanış toplamı
+- [ ] Aktif kartlar + bakiye/hareket ilişkili gerekli pasif kartlar taşınıyor
+- [ ] Taşınan bütün kart ID+kodları korunuyor
+- [ ] Taşınan stock_balance ID'leri korunuyor
+- [ ] Sequence'ler MAX(id)+1 yapılıyor
+- [ ] Geçmiş stock_movements/documents taşınmıyor
+- [ ] Açık teklif/sipariş/taslak/yoldaki transfer/karantina taşınmıyor
+- [ ] Açılış maliyeti kaynak kapanış moving average
+- [ ] product_costs taşınıyor
+- [ ] cari/kasa/banka açılışları korunuyor
+- [ ] vadesi gelmemiş çek/senet taşınıyor
+- [ ] integrity:carry farkta devri tamamlatmıyor
+- [ ] kaynak period closed oluyor
+- [ ] devir sonunda önceki dönem kullanıcı erişim/override'larını seçerek kopyalama soruluyor
+- [ ] çok dönemli sorgu her DB'yi ayrı sorgulayıp PHP'de birleştiriyor
+- [ ] sorgu sonunda aktif PeriodContext geri yükleniyor
