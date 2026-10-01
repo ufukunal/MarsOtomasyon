@@ -1,5 +1,9 @@
 # G-011 — İzolasyon ve temel testler
 
+**Not:** dönem verisi ayrı veritabanında olduğu için fiziksel olarak
+izoledir. Test edilecek asıl yer **master kartlarıdır** (global scope) ve
+**bağlantı değişiminin doğruluğudur**.
+
 ## Amaç
 Şirket izolasyonunun gerçekten çalıştığını kanıtlamak. **Bu görev
 atlanamaz** — izolasyon sessizce bozulur, testsiz fark edilmez.
@@ -9,7 +13,12 @@ G-002 … G-010
 
 ## Yazılacak testler
 
-### 1. Şirket izolasyonu
+### 0. Bağlantı değişimi
+- `PeriodContext::use(A, 2026)` sonrası dönem sorguları `ABCHolding_2026`'ya gidiyor
+- `use(B, 2026)` sonrası `XYZltd_2026`'ya gidiyor
+- Dönem seçilmeden dönem modeline erişim `NoActivePeriodException`
+
+### 1. Master kart izolasyonu
 ```php
 it('bir şirketin kaydı diğer şirkette görünmez', function () {
     $a = Company::factory()->create();
@@ -43,7 +52,7 @@ Kayıt oluştururken `company_id` verilmese de aktif şirketle dolmalı.
 - Yönetici sahip
 
 ### 6. Kopyalama izni
-- `company_links` kaydı yokken `allows()` false
+- `company_copy_permissions` kaydı yokken `allows()` false
 - İzinsiz kopyalama denemesi 403
 
 ### 7. Dosya ekleri

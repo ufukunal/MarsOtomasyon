@@ -1,59 +1,49 @@
 # Şirket izolasyonu
 
-## Kural
+**Önce oku:** `docs/00-genel/07-veritabani-mimarisi.md`
 
-Şirketler **tam izoledir**. Bir şirkette çalışan kullanıcı, diğer şirketin
-hiçbir verisini göremez: listede çıkmaz, aramada bulunmaz, doğrudan URL ile
-erişilemez.
+## İzolasyon fizikseldir
 
-Tek istisna: `company_links` tablosunda izin tanımlıysa, **kopyalama ekranında**
-kaynak şirketin cari veya ürün kartları listelenir. Kopyalama dışında yine görünmez.
+Kartlar dahil **her şey** şirket+dönem veritabanındadır
+(`ABCHolding_2026`). Başka şirketin verisine erişim fiziksel olarak
+mümkün değildir; bağlantı o veritabanına açılmaz.
 
-## Uygulama
+**Global scope yoktur. `company_id` kolonu yoktur.** Yanlış yazılmış bir
+sorgu bile başka şirketin verisini göremez — bu, scope tabanlı
+izolasyondan çok daha güçlüdür.
 
-`BelongsToCompany` trait'i her iş modeline eklenir:
+Master'da yalnız şirket listesi, dönem listesi ve kullanıcı/yetki vardır;
+orada da kart yoktur.
+
+## Aktif şirket ve dönem
+
+- `session('active_company_id')`, `session('active_year')`
+- `PeriodContext::use($companyId, $year)` bağlantıyı ayarlar
+- Kullanıcı yalnız `company_user`'da bağlı olduğu şirketleri seçebilir
+- Kuyruk işleri `company_id` + `year` taşır, `handle()` başında
+  `PeriodContext::use()` çağırır
+
+## Tek risk: yanlış bağlantı
+
+Model `period` yerine `master` bağlantısını kullanırsa tablo bulunamaz
+hatası alınır. Bu **sessiz sızıntı değil**, görünür hatadır — iyi haber.
+
+Her dönem modeli `PeriodModel`'den, her master modeli `MasterModel`'den
+türer. Test: dönem modeline dönem seçilmeden erişim
+`NoActivePeriodException` fırlatmalı.
+
+## Şirketler arası kart kopyalama
+
+İzin master'daki `company_copy_permissions` tablosunda. Kopyalama,
+kaynak şirketin **aynı yıldaki** dönem veritabanından okur, hedefin
+dönem veritabanına yazar.
 
 ```php
-trait BelongsToCompany
-{
-    protected static function bootBelongsToCompany(): void
-    {
-        static::addGlobalScope('company', function (Builder $q) {
-            if ($id = CompanyContext::id()) {
-                $q->where($q->getModel()->getTable().'.company_id', $id);
-            }
-        });
+abort_unless(CompanyCopyPermission::allows($sourceId, CompanyContext::id(), $type), 403);
 
-        static::creating(function ($model) {
-            if (empty($model->company_id)) {
-                $model->company_id = CompanyContext::id();
-            }
-        });
-    }
-
-    public function company(): BelongsTo
-    {
-        return $this->belongsTo(Company::class);
-    }
-}
+$source = DB::connection('period_source');     // geçici ikinci bağlantı
 ```
 
-## Aktif şirket
-
-- `session('active_company_id')` içinde tutulur
-- `CompanyContext::id()` ile okunur, başka yerden okunmaz
-- Değiştirme: kullanıcı yalnızca `company_user` tablosunda bağlı olduğu
-  şirketleri seçebilir
-- Şirket değişince `users.last_company_id` güncellenir
-- Kuyruk işlerinde session yoktur: iş kuyruğa atılırken `company_id`
-  taşınır ve işçi `CompanyContext::set($id)` ile başlar
-
-## Sızıntı riskleri — dikkat
-
-1. **Trait eklemeyi unutmak.** Her yeni model için izolasyon testi zorunlu.
-2. **Ham SQL / `DB::table()`.** Global scope çalışmaz; elle `where company_id`
-   eklenmeli. Mümkünse ham sorgu kullanılmaz.
-3. **`withoutGlobalScopes()`.** Yalnızca kopyalama ekranında ve yalnızca
-   izin doğrulandıktan sonra kullanılır.
-4. **Yabancı anahtar doğrulaması.** Bir belgede seçilen cari, aktif şirkete
-   ait olmalı; `exists` kuralı `company_id` ile birlikte yazılır.
+Kaynak için ikinci bir bağlantı (`period_source`) açılır, okuma biter,
+bağlantı kapatılır. Kopyalanan kayıtta `source_company_id` ve
+`source_record_id` saklanır; canlı bağ kurulmaz.

@@ -1,5 +1,9 @@
 # G-108 — Set ürün
 
+**Veritabanı: DÖNEM.** Model `PeriodModel`'den türer, migration
+`database/migrations/period/` altına yazılır. `company_id` kolonu YOKTUR.
+
+
 ## Amaç
 Bileşenlerden oluşan, kendi stoğu olmayan ürün.
 

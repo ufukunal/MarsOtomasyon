@@ -1,5 +1,9 @@
 # G-113 — Ürün görsel setleri
 
+**Veritabanı: DÖNEM.** Model `PeriodModel`'den türer, migration
+`database/migrations/period/` altına yazılır. `company_id` kolonu YOKTUR.
+
+
 ## Amaç
 Her platform için ayrı görsel: Trendyol ayrı, Hepsiburada ayrı, N11 ayrı,
 WooCommerce siteleri bazıları ortak bazıları ayrı.

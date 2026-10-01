@@ -1,5 +1,9 @@
 # G-110 — Fiyat listeleri
 
+**Veritabanı: DÖNEM.** Model `PeriodModel`'den türer, migration
+`database/migrations/period/` altına yazılır. `company_id` kolonu YOKTUR.
+
+
 ## Amaç
 Birden çok fiyat listesi (bayi, perakende, kampanya).
 

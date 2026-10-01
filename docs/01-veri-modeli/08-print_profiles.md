@@ -1,5 +1,11 @@
 # print_profiles
 
+**Veritabanı: DÖNEM**
+
+`company_id` kolonu **yoktur** — veritabanı zaten o şirkete ve yıla aittir.
+
+
+
 ## Amaç
 
 "Hangi iş hangi yazıcıya gitsin" ayarı. Logo'daki davranışın karşılığı.
@@ -12,9 +18,8 @@ Bu yüzden tablo şimdiden kurulur.
 ## Şema
 
 ```php
-Schema::create('print_profiles', function (Blueprint $table) {
+Schema::connection('period')->create('print_profiles', function (Blueprint $table) {
     $table->id();
-    $table->foreignId('company_id')->constrained();
     $table->foreignId('user_id')->nullable()->constrained();   // null = şirket varsayılanı
     $table->string('machine_key', 64)->nullable();             // tarayıcıya yazılan makine kimliği
     $table->string('print_type', 30);       // a4 | product_label | carton_label | receipt | report

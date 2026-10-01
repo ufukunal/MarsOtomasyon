@@ -1,5 +1,11 @@
 # stock_movements
 
+**Veritabanı: DÖNEM**
+
+`company_id` kolonu **yoktur** — veritabanı zaten o şirkete ve yıla aittir.
+
+
+
 ## Amaç
 
 **Stoğu değiştiren tek gerçek kaynak.** Bakiye tablosu bundan türetilir;
@@ -11,9 +17,8 @@ değişiyorsa bir `stock_movement` satırı vardır.
 ## Şema
 
 ```php
-Schema::create('stock_movements', function (Blueprint $table) {
+Schema::connection('period')->create('stock_movements', function (Blueprint $table) {
     $table->id();
-    $table->foreignId('company_id')->constrained();
     $table->foreignId('product_id')->constrained();
     $table->foreignId('location_id')->constrained();
 
@@ -36,8 +41,8 @@ Schema::create('stock_movements', function (Blueprint $table) {
     $table->foreignId('created_by')->constrained('users');
     $table->timestamps();
 
-    $table->index(['company_id','product_id','location_id','movement_date'], 'sm_product_loc_date');
-    $table->index(['company_id','document_type','document_id'], 'sm_document');
+    $table->index(['product_id','location_id','movement_date'], 'sm_product_loc_date');
+    $table->index(['document_type','document_id'], 'sm_document');
 });
 ```
 

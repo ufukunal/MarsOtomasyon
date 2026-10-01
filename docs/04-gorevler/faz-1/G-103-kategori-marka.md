@@ -1,5 +1,9 @@
 # G-103 — Kategoriler ve markalar
 
+**Veritabanı: DÖNEM.** Model `PeriodModel`'den türer, migration
+`database/migrations/period/` altına yazılır. `company_id` kolonu YOKTUR.
+
+
 ## Amaç
 Ürün kategorileri (ağaç yapısı) ve markalar.
 

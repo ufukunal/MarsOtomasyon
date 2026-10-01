@@ -1,5 +1,11 @@
 # product_costs
 
+**Veritabanı: DÖNEM**
+
+`company_id` kolonu **yoktur** — veritabanı zaten o şirkete ve yıla aittir.
+
+
+
 ## Amaç
 
 Ürünün maliyet bilgileri tek yerde. Dört ayrı değer tutulur ki hangi
@@ -8,9 +14,8 @@ rakamın nereden geldiği görülebilsin.
 ## Şema
 
 ```php
-Schema::create('product_costs', function (Blueprint $table) {
+Schema::connection('period')->create('product_costs', function (Blueprint $table) {
     $table->id();
-    $table->foreignId('company_id')->constrained();
     $table->foreignId('product_id')->constrained();
 
     $table->decimal('last_purchase_price', 18, 4)->default(0);  // son alış
@@ -20,7 +25,7 @@ Schema::create('product_costs', function (Blueprint $table) {
 
     $table->timestamp('last_purchase_at')->nullable();
     $table->timestamps();
-    $table->unique(['company_id','product_id']);
+    $table->unique(['product_id']);
 });
 ```
 

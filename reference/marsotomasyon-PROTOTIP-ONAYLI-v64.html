@@ -997,7 +997,8 @@ supplier_invoice_new:"Yeni Alış Faturası",supplier_invoice_detail:"Alış Fat
 ;R.dashboard=()=>`\n    <div class="preacc-welcome">\n      <div><strong>Bugün ne yapmak istiyorsun?</strong><small>En sık kullanılan işlemler burada. Diğer işlemler soldaki menüde.</small></div>\n      <div class="grow"></div>\n      <span class="badge blue">Firma: Noya Aydınlatma</span>\n      <span class="badge">Dönem Açık</span>\n    </div>\n    <div class="preacc-quick-grid">\n      <div class="preacc-quick" data-route="sales_invoice_new"><div class="big">🧾</div><b>Satış Faturası Kes</b><small>Müşteriye fatura oluştur</small></div>\n      <div class="preacc-quick" data-route="collection"><div class="big">₺</div><b>Tahsilat Gir</b><small>Müşteriden alınan ödeme</small></div>\n      <div class="preacc-quick" data-route="supplier_invoice_new"><div class="big">📥</div><b>Alış Faturası Gir</b><small>Tedarikçi faturası kaydet</small></div>\n      <div class="preacc-quick" data-route="payment"><div class="big">↗</div><b>Ödeme Yap</b><small>Tedarikçiye ödeme kaydet</small></div>\n      <div class="preacc-quick" data-route="sales_order_new"><div class="big">📋</div><b>Sipariş Gir</b><small>Yeni satış siparişi</small></div>\n      <div class="preacc-quick" data-route="product_new"><div class="big">📦</div><b>Ürün Ekle</b><small>Yeni stok kartı</small></div>\n      <div class="preacc-quick" data-route="contact_new"><div class="big">👤</div><b>Cari Ekle</b><small>Müşteri veya tedarikçi</small></div>\n      <div class="preacc-quick" data-route="balances"><div class="big">📊</div><b>Kimden Alacağım Var?</b><small>Cari bakiyeleri görüntüle</small></div>\n    </div>\n    <div style="height:12px"></div>\n    <div class="kpis">\n      <div class="kpi">Bugünkü Satış<div class="n">184.250 ₺</div><div class="up">12 fatura</div></div>\n      <div class="kpi">Bugünkü Tahsilat<div class="n">96.400 ₺</div><div>8 işlem</div></div>\n      <div class="kpi">Toplam Alacak<div class="n">1.245.680 ₺</div><div class="down">186.400 ₺ gecikmiş</div></div>\n      <div class="kpi">Toplam Borç<div class="n">684.300 ₺</div><div>14 tedarikçi</div></div>\n      <div class="kpi">Kasa + Banka<div class="n">392.850 ₺</div><div>4 hesap</div></div>\n    </div>\n    <div class="workbench">\n      <div class="tablecard">\n        <div class="toolbar"><b>Bugün Yapılacaklar</b><div class="grow"></div><button class="btn" data-route="work_queue">Tümünü Gör</button></div>\n        ${tableHtml(["İş","Cari / Belge","Tutar","Termin","Durum"],[["Tahsilat bekleniyor",link("Avize Park","contact_detail:CR0000036"),money(12400),"Bugün",badge("Bekliyor","warn")],["Sipariş sevk edilecek",link("SIP-2026-00481","sales_order_detail:SIP-2026-00481"),money(22320),"Bugün 15:00",badge("Hazır","blue")],["Tedarikçi ödemesi","Kristal Tedarik Ltd.",money(28000),"Yarın",badge("Planlandı")]],"preacc_today")}\n      </div>\n      <div class="inspector"><h3>Hızlı Durum</h3><div class="body">\n        <b>3</b> vadesi geçen müşteri<br><br>\n        <b>6</b> düşük stoklu ürün<br><br>\n        <b>2</b> eşleşmemiş banka hareketi<hr>\n        <button class="btn primary" data-route="balances">Cari Bakiyeler</button><br><br>\n        <button class="btn" data-route="stock_status">Stok Durumu</button>\n      </div></div>\n    </div>`
 ;const _render=render;render=function(){_render();setTimeout(()=>{if(!marsPreaccSimple)return;const key=baseRoute();const hints={contact_list:"Müşteri ve tedarikçilerini buradan bulabilir, bakiye ve hareketlerine ulaşabilirsin.",product_list:"Ürün kartlarını, satış fiyatlarını ve stok durumunu buradan yönetebilirsin.",sales_invoice_list:"Kestiğin satış faturalarını burada görürsün.",
 sales_invoice_new:"Önce müşteriyi seç, sonra ürünleri ekle. Kaydettiğinde taslak oluşur; Kesinleştir ile kesinleşir.",supplier_invoice_new:"Tedarikçiyi seç, faturadaki ürünleri gir ve toplamı kontrol et.",collection:"Müşteriden aldığın parayı gir. İstersen açık faturaya otomatik mahsup edebilirsin.",payment:"Tedarikçiye yaptığın ödemeyi gir. Açık borçlara mahsup edebilirsin.",
-statement:"Cari hareketlerin tarih sırasıyla burada görünür.",stock_status:"Kullanılabilir stok, rezerve ve bloke miktarları ayrı görünür.",reconciliation:"Banka ekstresindeki hareketi sistemdeki tahsilat/ödeme ile eşleştir."};if(hints[key]){const c=document.querySelector(".content");if(c&&!c.querySelector(".preacc-simple-tip"))c.insertAdjacentHTML("afterbegin",`<div class="preacc-simple-tip"><b>Kısaca:</b> ${hints[key]}</div>`)}document.querySelectorAll(".notice").forEach(n=>{if(/Outbox|idempotency|projection|ledger|authority|immutable|provider|schema|hash|recovery/i.test(n.innerText)){n.classList.add("advanced-only")}})},0)};renderNav();renderTabs();render()})()
+statement:"Cari hareketlerin tarih sırasıyla burada görünür.",stock_status:"Kullanılabilir stok, rezerve ve bloke miktarları ayrı görünür.",reconciliation:"Banka ekstresindeki hareketi sistemdeki tahsilat/ödeme ile eşleştir."};if(hints[key]){const c=document.querySelector(".content")
+;if(c&&!c.querySelector(".preacc-simple-tip"))c.insertAdjacentHTML("afterbegin",`<div class="preacc-simple-tip"><b>Kısaca:</b> ${hints[key]}</div>`)}document.querySelectorAll(".notice").forEach(n=>{if(/Outbox|idempotency|projection|ledger|authority|immutable|provider|schema|hash|recovery/i.test(n.innerText)){n.classList.add("advanced-only")}})},0)};renderNav();renderTabs();render()})()
 ;document.addEventListener("click",function(e){const a=e.target.closest("[data-action]");if(!a)return;if(a.dataset.action==="preacc-simple-mode"){e.preventDefault();e.stopImmediatePropagation();marsPreaccSimple=true;document.body.classList.add("preacc-simple");MENU.splice(0,MENU.length,{key:"home",label:"Ana Sayfa",icon:"⌂",
 items:[["dashboard","Ana Sayfa"],["work_queue","Yapılacaklar"],["calendar","Takvim"]]},{key:"accounts",label:"Cariler",icon:"◉",items:[["contact_list","Cari Listesi"],["contact_new","Yeni Cari"],["balances","Cari Bakiyeler"],["statement","Cari Ekstre"],["risk_limits","Risk / Kredi Limitleri"],["projects","Projeler"]]},{key:"products",label:"Ürün / Stok",icon:"▦",
 items:[["product_list","Ürün Listesi"],["product_new","Yeni Ürün"],["stock_status","Stok Durumu"],["stock_movements","Stok Hareketleri"],["warehouses","Depolar"],["locations","Lokasyonlar"],["reservations","Rezervasyonlar"],["transfer_list","Depo Transferleri"],["count_list","Stok Sayımı"],["lots_serials","Lot / Seri Takibi"],["quarantine","Bloke / Karantina Stok"],["price_lists","Fiyat Listeleri"],["pricing_rules","Fiyatlandırma Kuralları"]]
@@ -1996,7 +1997,8 @@ weight:420,cbm:4.8,status:"Eşleşti"},{carton:"K118",container:"TGHU-442118-8",
 weight:108,cbm:1.0,status:"Eşleşti"},{carton:"K203",container:"TGHU-442118-8",component:"Krom Ø60 Gövde",product:"AVZ-0805",qty:80,weight:580,cbm:5.1,status:"Eşleşti"},{carton:"K244",container:"TGHU-442118-8",component:"Kristal Seti Luna",product:"AVZ-0805",qty:72,weight:520,cbm:3.5,status:"Eşleşti"}];const importCountState={started:false,container:"MSCU-781245-3",scans:0,rows:{},history:[],
 result:[]};const barcodeMap={8699000000011:{carton:"K001",qty:1},8699000000028:{carton:"K002",qty:1},8699000001186:{carton:"K118",qty:1},8699000000332:{carton:"K033",qty:1},8699000000349:{carton:"K034",qty:1},8699000002039:{carton:"K203",qty:1},8699000002442:{carton:"K244",qty:1}};function flow(active){
 const steps=["İthalat Dosyası","Konteyner","Eşleştirme","Sayım","Uyumluluk","Maliyet","Üretim Hazırlığı","Yükleme"];return`<div class="import-flow">${steps.map((x,i)=>`\n      <span class="step ${x===active?"active":""}">${esc(x)}</span>${i<steps.length-1?'<span class="sep">›</span>':""}\n    `).join("")}</div>`}function impKpi(label,val,sub=""){
-return`<div><small>${esc(label)}</small><strong>${val}</strong>${sub?`<div class="sub">${esc(sub)}</div>`:""}</div>`}function importListToolbar(newLabel,newRoute){return`<div class="toolbar"><div class="grow"></div>\n      <button class="btn" data-action="import-list-upload">Excel / CSV Liste İçe Aktar</button>\n      <button class="btn primary" data-route="${newRoute}">＋ ${esc(newLabel)}</button>\n    </div>`}R.import_shipments_list=function(){
+return`<div><small>${esc(label)}</small><strong>${val}</strong>${sub?`<div class="sub">${esc(sub)}</div>`:""}</div>`}function importListToolbar(newLabel,newRoute){
+return`<div class="toolbar"><div class="grow"></div>\n      <button class="btn" data-action="import-list-upload">Excel / CSV Liste İçe Aktar</button>\n      <button class="btn primary" data-route="${newRoute}">＋ ${esc(newLabel)}</button>\n    </div>`}R.import_shipments_list=function(){
 return`\n      ${flow("İthalat Dosyası")}\n      <div class="tablecard">\n        ${importListToolbar("Yeni İthalat Dosyası","import_detail:new")}\n        ${tableHtml(["İthalat No","Tedarikçi","Ülke","Konteyner","Ürün","Koli","Tahmini Varış","Mal Bedeli","Durum",""],imports.map(x=>[link(x.no,"import_detail:"+x.no),x.supplier,x.country,x.containers,x.products,x.packages,x.eta,`${x.amount.toLocaleString("tr-TR")} ${x.currency}`,badge(x.status,x.status==="Teslim Alındı"?"green":"blue"),`<button class="btn" data-route="import_detail:${x.no}">Aç</button>`]),"import-files")}\n      </div>`
 };R.import_detail_screen=function(c){const tab=c.tabs[activeTabs[c.key]||0]||"Genel Bakış";const no=idParam()||"ITH-2026-014";if(tab==="Genel Bakış"){
 return`\n        ${flow("İthalat Dosyası")}\n        <div class="preacc-welcome">\n          <div><strong>${esc(no)} · Guangzhou Bright Lighting</strong>\n            <small>Çin · FOB Guangzhou · USD</small></div>\n          <div class="grow"></div>\n          ${badge("Yolda","blue")}\n        </div>\n        <div class="import-summary-grid">\n          ${impKpi("Konteyner","3")}\n          ${impKpi("Toplam Koli","426")}\n          ${impKpi("Ürün / Parça","18")}\n          ${impKpi("Toplam Ağırlık","48.130 kg")}\n          ${impKpi("Toplam Hacim","152,2 m³")}\n          ${impKpi("Tahmini Varış","05.09.2026")}\n        </div>\n        <div class="import-map-grid">\n          <div>\n            <div class="tablecard">\n              <div class="toolbar"><b>Konteynerler</b><div class="grow"></div><button class="btn" data-route="containers">Tüm Konteynerler</button></div>\n              ${tableHtml(["Konteyner","Tip","Koli","Ağırlık","Hacim","Durum"],containerRows.map(x=>[link(x.no,"container_detail:"+x.no),x.type,x.packages,x.weight.toLocaleString("tr-TR")+" kg",x.cbm+" m³",badge(x.status,"blue")]),"import-detail-containers")}\n            </div>\n            <div style="height:12px"></div>\n            <div class="tablecard">\n              <div class="toolbar"><b>Ürün Tamamlanma Durumu</b><div class="grow"></div><button class="btn" data-route="import_compatibility">Detaya Git</button></div>\n              ${tableHtml(["Ürün","Gövde","Kristal","Elektrik","Aksesuar","Üretilebilir","Durum"],[[link("AVZ-2032","product_detail:AVZ-2032"),"100","90","110","105","90",badge("Kısmi","warn")],[link("AVZ-0805","product_detail:AVZ-0805"),"80","72","80","78","72",badge("Kısmi","warn")],[link("APL-0410","product_detail:APL-0410"),"120","120","120","120","120",badge("Tam","green")]],"import-completion-summary")}\n            </div>\n          </div>\n          <div>\n            <div class="inspector"><h3>Hızlı İşlemler</h3><div class="body">\n              <button class="btn primary" style="width:100%;margin-bottom:7px" data-route="package_map">Koli / Parça Eşleştir</button>\n              <button class="btn" style="width:100%;margin-bottom:7px" data-route="import_container_count">Konteyner Sayımı</button>\n              <button class="btn" style="width:100%;margin-bottom:7px" data-route="landed_cost">Maliyet Hesapla</button>\n              <button class="btn" style="width:100%;margin-bottom:7px" data-route="import_production_prep">Üretime Hazırla</button>\n              <button class="btn" style="width:100%" data-route="container_simulator">Yükleme Planı</button>\n            </div></div>\n            <div style="height:12px"></div>\n            <div class="inspector"><h3>Kontrol</h3><div class="body">\n              Eşleşmemiş koli: <b class="import-warn">4</b><br>\n              Sayım farkı: <b class="import-risk">3</b><br>\n              Tamamlanamayan ürün: <b class="import-warn">2</b><br>\n              Maliyeti tamamlanmayan: <b>0</b>\n            </div></div>\n          </div>\n        </div>`
@@ -2995,7 +2997,8 @@ tabs:["Genel Bakış","Üretim Görselleri","Teknik Ölçüler","Montaj Sırası
 ;if(tab==="Fason Notları")return`${tsec("Fason Üretim Notları",`\n      <div class="sub">Fasona gönderildiğinde firma bu dosyanın güncel revizyonunu kullanmalıdır.</div>\n      <div style="height:8px"></div>\n      <div class="tech-file-warn">Gönderilen malzemeler: gövde, kristal, duy ve aksesuar seti adet bazında teslim listesiyle eşleşmeli.</div>\n      <div style="height:7px"></div>\n      <div class="tech-file-warn">Gelen mamulde fire/eksik ayrı kaydedilmeli; kalan malzeme fason firmada bırakılmamalı.</div>\n    `)}`
 ;if(tab==="Dosyalar")return`<div class="tablecard">\n      <div class="toolbar"><b>Ek Dosyalar</b><div class="grow"></div><button class="btn primary" data-action="tech-attachment-add-v134">＋ Dosya Ekle</button></div>\n      ${tableHtml(["Dosya","Tür","Açıklama","Tarih"],[["montaj_detay.pdf","PDF","Montaj referansı","23.08.2026"],["paketleme_ornek.jpg","Görsel","Koli içi yerleşim","23.08.2026"],["olcu_cizimi.pdf","PDF","Ürün ölçü çizimi","22.08.2026"]],"prod-tech-files-detail-v134")}\n    </div>`
 ;return`<div class="tablecard">${tableHtml(["Tarih","Revizyon","İşlem","Kullanıcı","Açıklama"],[["23.08.2026","R2","Güncellendi","Ufuk Ünal","Paketleme ve kristal montaj notları güncellendi"],["20.08.2026","R1","Oluşturuldu","Ufuk Ünal","İlk teknik bilgi dosyası oluşturuldu"]],"prod-tech-history-v134")}</div>`};const oldOrderDetailV134=R.prod_order_detail_v129
-;if(typeof oldOrderDetailV134==="function"){R.prod_order_detail_v129=function(c){let html=oldOrderDetailV134(c);const tab=c.tabs[activeTabs[c.key]||0]||"Genel Bakış";if(tab==="Genel Bakış"){const x=(window.PROD_ORDERS||[]).find(o=>o.no===idParam())||(window.PROD_ORDERS||[])[0];if(x&&!html.includes("tech-file-from-order-v134")){html=html.replace('<button class="btn" data-action="prod-waste-v129">Fire / Eksik Gir</button>','<button class="btn" data-action="prod-waste-v129">Fire / Eksik Gir</button>'+`<button class="btn" data-action="tech-file-from-order-v134" data-order="${esc(x.no)}">Teknik Bilgi Dosyası</button>`)}}return html}}const oldRecipeDetailV134=R.prod_recipe_detail_v129
+;if(typeof oldOrderDetailV134==="function"){R.prod_order_detail_v129=function(c){let html=oldOrderDetailV134(c);const tab=c.tabs[activeTabs[c.key]||0]||"Genel Bakış";if(tab==="Genel Bakış"){const x=(window.PROD_ORDERS||[]).find(o=>o.no===idParam())||(window.PROD_ORDERS||[])[0];if(x&&!html.includes("tech-file-from-order-v134")){
+html=html.replace('<button class="btn" data-action="prod-waste-v129">Fire / Eksik Gir</button>','<button class="btn" data-action="prod-waste-v129">Fire / Eksik Gir</button>'+`<button class="btn" data-action="tech-file-from-order-v134" data-order="${esc(x.no)}">Teknik Bilgi Dosyası</button>`)}}return html}}const oldRecipeDetailV134=R.prod_recipe_detail_v129
 ;if(typeof oldRecipeDetailV134==="function"){R.prod_recipe_detail_v129=function(c){let html=oldRecipeDetailV134(c);const tab=c.tabs[activeTabs[c.key]||0]||"Genel Bakış";if(tab==="Genel Bakış"&&idParam()!=="new"){const r=(window.RECIPES||[]).find(x=>x.no===idParam())||(window.RECIPES||[])[0];if(r&&!html.includes("tech-file-from-recipe-v134")){
 html=html.replace('<button class="btn" data-route="bom_list">Listeye Dön</button>',`<button class="btn" data-action="tech-file-from-recipe-v134" data-recipe="${esc(r.no)}">Teknik Bilgi Dosyası Oluştur</button><button class="btn" data-route="bom_list">Listeye Dön</button>`)}}return html}}document.addEventListener("click",function(e){const a=e.target.closest("[data-action]");if(!a)return
 ;const act=a.dataset.action;if(act==="tech-file-new-v134"){e.preventDefault();e.stopImmediatePropagation();navigate("production_technical_file_new");return}if(act==="tech-file-from-order-v134"){e.preventDefault();e.stopImmediatePropagation();navigate("production_technical_file_new:"+a.dataset.order);return}if(act==="tech-file-from-recipe-v134"){e.preventDefault();e.stopImmediatePropagation()
@@ -3994,7 +3997,8 @@ if(SCREENS.contact_detail&&!SCREENS.contact_detail.tabs.includes("B2B")){SCREENS
 </script>
 <style id="mars-v15-2-b2b-discount-sync-style">
 
-</style><script id="mars-v15-2-b2b-discount-sync-script">
+</style>
+<script id="mars-v15-2-b2b-discount-sync-script">
 (function(){window.B2B_DISCOUNT_SOURCE_V152="cari_discount"})();
 </script>
 <style id="mars-v15-3-manual-freight-style">
@@ -4993,7 +4997,8 @@ text:spec.text||(spec.field?`{${spec.field}}`:spec.label||"Metin"),band:bandName
 ;modal(d.name,`<div class="rpt19-opgrid"><button class="btn" data-action="rpt19-proxy" data-rpt19-op="preview" data-id="${esc(id)}">Önizle</button><button class="btn" data-action="rpt19-proxy" data-rpt19-op="print" data-id="${esc(id)}">Yazdır</button><button class="btn" data-action="rpt19-proxy" data-rpt19-op="pdf" data-id="${esc(id)}">PDF</button><button class="btn" data-action="rpt19-proxy" data-rpt19-op="excel" data-id="${esc(id)}">Excel</button><button class="btn" data-action="rpt19-proxy" data-rpt19-op="copy" data-id="${esc(id)}">Kopyala</button><button class="btn primary" data-action="rpt19-proxy" data-rpt19-op="design" data-id="${esc(id)}">Tasarla</button></div>`,"Kapat")
 }const samples={"contact.code":"CR0000036","contact.name":"Avize Park","contact.balance":"48.000,00 ₺","product.code":"AVZ-2032","product.name":"Aurora 80 Gold 3 Katlı Avize","product.barcode":"8690000203201","label.product_code":"AVZ-2032","label.product_name":"Aurora 80 Gold 3 Katlı Avize","label.barcode":"8690000203201","label.package_text":"KOLİ 1/4","receipt.contact":"Avize Park",
 "receipt.amount":"48.000,00","receipt.currency":"TRY","system.company":"Noya Aydınlatma"};function resolveText(o){let t=o.text||o.field||"";return t.replace(/\{([^}]+)\}/g,(m,f)=>samples[f]||m)}function previewHtml(d){d=normalize(clone(d));const offsets={};const scale=2.83;if(d.layoutMode==="label")offsets.detail=0;else if(d.layoutMode==="receipt"){offsets["report-title"]=0
-;offsets.detail=Math.round(d.pageHeightMm*.22*scale);offsets["page-foot"]=Math.round(d.pageHeightMm*.83*scale)}else{offsets["report-title"]=0;offsets["page-head"]=Math.round(d.pageHeightMm*.12*scale);offsets.detail=Math.round(d.pageHeightMm*.22*scale);offsets["page-foot"]=Math.round(d.pageHeightMm*.78*scale);offsets["report-foot"]=Math.round(d.pageHeightMm*.87*scale)}const mm=v=>(Number(v)||0)/scale;const html=d.objects.map(o=>{let extra=""
+;offsets.detail=Math.round(d.pageHeightMm*.22*scale);offsets["page-foot"]=Math.round(d.pageHeightMm*.83*scale)}else{offsets["report-title"]=0;offsets["page-head"]=Math.round(d.pageHeightMm*.12*scale);offsets.detail=Math.round(d.pageHeightMm*.22*scale);offsets["page-foot"]=Math.round(d.pageHeightMm*.78*scale);offsets["report-foot"]=Math.round(d.pageHeightMm*.87*scale)}
+const mm=v=>(Number(v)||0)/scale;const html=d.objects.map(o=>{let extra=""
 ;if(o.type==="barcode")extra="font-family:monospace;letter-spacing:.8mm;border:.3mm solid #222;text-align:center;padding:1mm";else if(o.type==="qrcode")extra="background:repeating-conic-gradient(#111 0 25%,#fff 0 50%) 0/2mm 2mm;border:.3mm solid #222";else if(o.type==="line")extra="height:0!important;border-top:.3mm solid #222";else if(o.type==="box"||o.border)extra="border:.3mm solid #536873"
 ;return`<div style="position:absolute;left:${mm(o.x)}mm;top:${mm((o.y||0)+(offsets[o.band]||0))}mm;width:${mm(o.w||120)}mm;height:${mm(o.h||22)}mm;font-size:${Math.max(6,+o.size||10)}pt;font-weight:${o.bold?"700":"400"};text-align:${o.align||"left"};overflow:hidden;box-sizing:border-box;${extra}">${o.type==="qrcode"?"":esc(resolveText(o))}</div>`}).join("")
 ;return`<!doctype html><html lang="tr"><head><meta charset="utf-8"><title>${esc(d.name)}</title><style>@page{size:${d.pageWidthMm}mm ${d.pageHeightMm}mm;margin:${d.marginMm}mm}html,body{margin:0;background:#ddd}.paper{position:relative;width:${d.pageWidthMm}mm;height:${d.pageHeightMm}mm;background:#fff;margin:8mm auto;overflow:hidden;box-sizing:border-box}@media print{html,body{background:#fff}.paper{margin:0}}</style></head><body><div class="paper">${html}</div>\n</body></html>`
@@ -5992,7 +5997,8 @@ select,
 .input-group > *{border-radius:0 !important}
 input[type="checkbox"],
 input[type="radio"]{border-radius:0 !important}
-</style><style id="mars-v36-performance-css">
+</style>
+<style id="mars-v36-performance-css">
 .card,.tablecard,.channel-section,.wsl-card,.v14-tablecard,.report-card,.inspector,.sey-box{content-visibility:auto;contain-intrinsic-size:auto 260px}
 .main,.nav,.gridwrap,.warehouse-slip-table-wrap{scrollbar-gutter:stable}
 .btn,.tab,.wtab,.ghead,.child,input,select,textarea{transition:none!important;animation:none!important}
@@ -6196,6 +6202,42 @@ table.imp-result .down{color:#b4372c}
 .lst-csv{height:26px;padding:0 10px;border:1px solid #cfd8e3;border-radius:6px;background:#fff;
   color:#2f4a63;font-size:11.5px;font-weight:650;cursor:pointer}
 .lst-csv:hover{background:#eef3f9;border-color:#b6c6d8}
+</style>
+<style id="mars-v63-setup">
+/* v63 — kurulum, giriş, dönem ekranları */
+.lg-wrap{display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:900px}
+@media (max-width:900px){.lg-wrap{grid-template-columns:1fr}}
+.lg-card{background:#fff;border:1px solid var(--line,#d7e0e5);padding:22px}
+.lg-brand{display:flex;align-items:center;gap:10px;margin-bottom:18px}
+.lg-mark{width:34px;height:34px;background:#1f8ac8;color:#fff;display:grid;place-items:center;font-weight:700}
+.lg-brand b{display:block;font-size:14px}
+.lg-brand small{color:#75858d;font-size:11px}
+.lg-title{font-size:14px;font-weight:700;margin-bottom:2px}
+.lg-hint{font-size:11.5px;color:#75858d;margin-bottom:16px}
+.lg-field{margin-bottom:12px}
+.lg-field label{display:block;font-size:11.5px;font-weight:600;color:#43596b;margin-bottom:4px}
+.lg-inp{height:34px;border:1px solid #cfd8e3;padding:0 10px;display:flex;align-items:center;
+  font-size:12.5px;color:#263741;background:#fff}
+.lg-sel{justify-content:space-between;color:#263741}
+.lg-row{display:flex;align-items:center;justify-content:space-between;margin:14px 0}
+.lg-chk{font-size:11.5px;color:#43596b;display:flex;align-items:center;gap:6px}
+.lg-btn{width:100%;height:36px !important;justify-content:center}
+.lg-note{margin-top:12px;font-size:11px;color:#75858d;line-height:1.5}
+.lg-db{background:#f2f6f9;border:1px solid #e2e9ef;padding:8px 10px;font-size:11.5px;margin-bottom:14px}
+.lg-db code{font-weight:700;color:#1673aa}
+
+.sw-list{display:grid;gap:6px}
+.sw-step{display:flex;gap:10px;padding:9px 10px;border:1px solid #e9eef1;background:#fbfcfd}
+.sw-step.sw-on{border-color:#1f8ac8;background:#f2f9fd}
+.sw-step.sw-done{opacity:.72}
+.sw-no{width:22px;height:22px;flex:0 0 22px;border-radius:50%;background:#dfe7ec;color:#4a5f66;
+  display:grid;place-items:center;font-size:11px;font-weight:700}
+.sw-step.sw-on .sw-no{background:#1f8ac8;color:#fff}
+.sw-body b{font-size:12.5px;display:block;margin-bottom:2px}
+.sw-body div{font-size:11.5px;color:#5c7077;line-height:1.5}
+.sw-hint{display:block;font-size:11px;color:#75858d;margin-top:3px}
+.carry-steps{margin:0;padding-left:20px;font-size:12.5px;line-height:1.9;color:#33465c}
+.carry-steps code{background:#f2f6f9;padding:1px 5px;font-size:11.5px}
 </style>
 <script id="mars-v46-header-script">
 (function(){
@@ -6980,18 +7022,9 @@ table.imp-result .down{color:#b4372c}
       ['outsourcing_return',        'Fason Malzeme İade'],
       ['outsourcing_reconcile',     'Fason Mutabakatı']
     ]],
-    ['quality',    'Kalite', '✓', [
-      ['qcp_list',                  'Kontrol Planları'],
-      ['qc_queue',                  'Kalite Kontrol Bekleyenler'],
-      ['nonconformity',             'Uygunsuzluklar'],
-      ['capa',                      'DÖF'],
-      ['root_cause',                '8D / Kök Neden'],
-      ['calibration',               'Kalibrasyon'],
-      ['supplier_quality',          'Tedarikçi Kalitesi'],
-      ['spc',                       'İstatistiksel Süreç Kontrolü']
-    ]],
     ['import',     'İthalat', '⚓', [
-      ['import_shipments',          'İthalat Dosyaları'],      ['containers',                'Konteynerler'],
+      ['import_shipments',          'İthalat Dosyaları'],
+      ['containers',                'Konteynerler'],
       ['package_map',               'Koli / Parça Eşleştirme'],
       ['import_container_count',    'Konteyner Sayımı'],
       ['import_count_result',       'Konteyner Sayım Sonucu'],
@@ -7991,6 +8024,7 @@ table.imp-result .down{color:#b4372c}
     return base.replace(/[\\/:*?"<>|]+/g,'-').slice(0,60)
       + '_' + d.getFullYear() + p(d.getMonth()+1) + p(d.getDate()) + '.csv';
   }
+
   function download(table){
     try{
       var text = '\ufeff' + csv(table);                 /* BOM: Excel Türkçe karakter */
@@ -8297,6 +8331,243 @@ table.imp-result .down{color:#b4372c}
       paint();
       return out;
     };
+  }
+  document.addEventListener('click', function(){ setTimeout(function(){ ensureMenu(); paint(); }, 0); }, true);
+  paint();
+})();
+</script>
+<script id="mars-v63-setup-script">
+(function(){
+  /* ===================================================================
+     v63 — Master/dönem mimarisinin gerektirdiği eksik ekranlar
+       · Giriş ekranı (önizleme)
+       · Firma Kurulum Sihirbazı
+       · Dönemler (yıl bazlı veritabanları)
+       · Dönem Devri
+     =================================================================== */
+
+  var SCREENS_DEF = {
+    login_preview:  { title: 'Giriş Ekranı (önizleme)', tabs: ['Giriş'] },
+    setup_wizard:   { title: 'Firma Kurulum Sihirbazı', tabs: ['Kurulum'] },
+    fiscal_periods: { title: 'Dönemler',                tabs: ['Dönemler'] },
+    period_carry:   { title: 'Dönem Devri',             tabs: ['Devir'] }
+  };
+
+  function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;'); }
+
+  function ensureScreens(){
+    try{
+      if(typeof SCREENS !== 'object' || !SCREENS) return;
+      var base = SCREENS.company_settings || SCREENS.branches;
+      if(!base) return;
+      for(var key in SCREENS_DEF){
+        if(SCREENS[key]) continue;
+        var sc = {};
+        for(var k in base) if(Object.prototype.hasOwnProperty.call(base,k)) sc[k] = base[k];
+        sc.key = key;
+        sc.title = SCREENS_DEF[key].title;
+        sc.tabs = SCREENS_DEF[key].tabs;
+        sc.actions = [];
+        SCREENS[key] = sc;
+      }
+    }catch(e){}
+  }
+
+  function ensureMenu(){
+    try{
+      if(typeof DATA !== 'object' || !DATA || !Array.isArray(DATA.menu)) return;
+      var grp = null;
+      for(var g=0; g<DATA.menu.length; g++) if(DATA.menu[g] && DATA.menu[g].key === 'settings') grp = DATA.menu[g];
+      if(!grp) return;
+      var want = [
+        ['setup_wizard',   'Firma Kurulum Sihirbazı'],
+        ['fiscal_periods', 'Dönemler'],
+        ['period_carry',   'Dönem Devri'],
+        ['login_preview',  'Giriş Ekranı (önizleme)']
+      ];
+      for(var i=0;i<want.length;i++){
+        var found = false;
+        for(var j=0;j<grp.items.length;j++) if(grp.items[j][0] === want[i][0]) found = true;
+        if(!found) grp.items.splice(i, 0, want[i]);
+      }
+    }catch(e){}
+  }
+
+  /* ---------------- GİRİŞ EKRANI ---------------- */
+  function loginHtml(){
+    return ''
+    + '<div class="notice warn">Bu bir önizlemedir; gerçek sistemde tam sayfa olarak, kabuğun dışında görünür.</div>'
+    + '<div class="lg-wrap"><div class="lg-card">'
+    +   '<div class="lg-brand"><div class="lg-mark">M</div><div><b>MarsOtomasyon</b><small>Ön muhasebe ve stok yönetimi</small></div></div>'
+    +   '<div class="lg-field"><label>E-posta</label><div class="lg-inp">admin@mars.local</div></div>'
+    +   '<div class="lg-field"><label>Parola</label><div class="lg-inp">••••••••</div></div>'
+    +   '<div class="lg-row"><label class="lg-chk"><input type="checkbox" checked> Beni hatırla</label>'
+    +     '<a href="#" class="link">Parolamı unuttum</a></div>'
+    +   '<button class="btn primary lg-btn">Giriş Yap</button>'
+    +   '<div class="lg-note">Giriş sonrası <b>şirket ve dönem seçimi</b> gelir.</div>'
+    + '</div>'
+    + '<div class="lg-card lg-second">'
+    +   '<div class="lg-title">Şirket ve Dönem Seçimi</div>'
+    +   '<div class="lg-hint">Hangi şirket ve hangi yıl üzerinde çalışacaksınız?</div>'
+    +   '<div class="lg-field"><label>Şirket</label><div class="lg-inp lg-sel">ABC Holding <span>▾</span></div></div>'
+    +   '<div class="lg-field"><label>Dönem</label><div class="lg-inp lg-sel">2026 <span>▾</span></div></div>'
+    +   '<div class="lg-db">Bağlanılacak veritabanı: <code>ABCHolding_2026</code></div>'
+    +   '<button class="btn primary lg-btn">Devam</button>'
+    +   '<div class="lg-note">Yalnızca yetkili olduğunuz şirketler listelenir. Kapalı dönem seçilebilir ama salt okunurdur.</div>'
+    + '</div></div>';
+  }
+
+  /* ---------------- KURULUM SİHİRBAZI ---------------- */
+  var SETUP_STEPS = [
+    ['Firma Bilgileri', 'Unvan, vergi dairesi ve numarası, adres, logo. <b>Veritabanı ön eki</b> burada belirlenir (örn. <code>ABCHolding</code>) ve sonradan değiştirilemez.'],
+    ['İlk Dönem',       'Çalışılacak yıl seçilir. Sistem <code>ABCHolding_2026</code> veritabanını oluşturur ve tablolarını kurar.'],
+    ['Varsayılanlar',   'Vade günü (30), maliyet sapma eşiği (%25), para birimi (TRY), KDV oranı (%20).'],
+    ['Lokasyonlar',     'En az bir depo zorunlu. Şube ve araç isteğe bağlı; araç sıcak satışta kullanılır.'],
+    ['Belge Serileri',  'Her belge türü için ön ek ve başlangıç numarası. Varsayılanlar önerilir: SF, TKL, SIP, IRS…'],
+    ['Kullanıcılar',    'Yönetici hesabı zorunlu. Diğer roller sonradan eklenebilir.'],
+    ['Açılış Verisi',   'Cari ve ürün kartları, açılış stok ve cari bakiyeleri. Excel veya JSON ile aktarılır. <b>Bu adım atlanabilir</b>, sonra da yapılabilir.'],
+    ['Özet ve Tamamla', 'Yapılan seçimler özetlenir. Onaydan sonra veritabanı oluşturulur ve sisteme giriş yapılır.']
+  ];
+
+  function setupHtml(){
+    var steps = '';
+    for(var i=0;i<SETUP_STEPS.length;i++){
+      var active = i === 0 ? ' sw-on' : (i < 1 ? ' sw-done' : '');
+      steps += '<div class="sw-step' + active + '">'
+             +   '<div class="sw-no">' + (i+1) + '</div>'
+             +   '<div class="sw-body"><b>' + SETUP_STEPS[i][0] + '</b><div>' + SETUP_STEPS[i][1] + '</div></div>'
+             + '</div>';
+    }
+    return ''
+    + '<div class="notice">Yeni firma kurulumu. Her adım tamamlanmadan sonrakine geçilmez; son adımda veritabanı oluşturulur.</div>'
+    + '<div class="card"><div class="cardhead">Kurulum Adımları</div><div class="cardbody">'
+    +   '<div class="sw-list">' + steps + '</div>'
+    + '</div></div>'
+    + '<div class="card"><div class="cardhead">Adım 1 · Firma Bilgileri</div><div class="cardbody">'
+    +   '<div class="formgrid">'
+    +     fld('Firma Kodu', 'ABCHOLDING', 'Benzersiz, değiştirilemez')
+    +     fld('Kısa Ad', 'ABC Holding', '')
+    +     fld('Resmi Unvan', 'ABC Holding Anonim Şirketi', '')
+    +     fld('Veritabanı Ön Eki', 'ABCHolding', 'Dönem veritabanı: ABCHolding_2026 · <b>sonradan değiştirilemez</b>')
+    +     fld('Vergi Dairesi / No', 'Yenimahalle · 1234567890', '')
+    +     fld('Para Birimi', 'TRY', 'Ana para birimi; döviz yalnız ithalat ve alışta')
+    +   '</div>'
+    + '</div></div>';
+  }
+  function fld(label, value, hint){
+    return '<div class="label">' + esc(label) + '</div>'
+         + '<div class="ig"><div class="input">' + esc(value) + '</div>'
+         + (hint ? '<small class="sw-hint">' + hint + '</small>' : '') + '</div>';
+  }
+
+  /* ---------------- DÖNEMLER ---------------- */
+  var PERIODS = [
+    ['ABC Holding','ABCHolding_2025',2025,'Kapalı','Evet','01.01.2025','31.12.2025','412 MB'],
+    ['ABC Holding','ABCHolding_2026',2026,'Aktif','—','01.01.2026','31.12.2026','188 MB'],
+    ['XYZ Ltd. Şti.','XYZltd_2025',2025,'Arşiv','Evet','01.01.2025','31.12.2025','96 MB'],
+    ['XYZ Ltd. Şti.','XYZltd_2026',2026,'Aktif','—','01.01.2026','31.12.2026','54 MB']
+  ];
+  function periodsHtml(){
+    var rows = '';
+    for(var i=0;i<PERIODS.length;i++){
+      var p = PERIODS[i];
+      var cls = p[3]==='Aktif' ? 'green' : (p[3]==='Kapalı' ? 'gray' : 'warn');
+      rows += '<tr>'
+        + '<td>' + esc(p[0]) + '</td>'
+        + '<td><code>' + esc(p[1]) + '</code></td>'
+        + '<td class="num">' + p[2] + '</td>'
+        + '<td><span class="badge ' + cls + '">' + esc(p[3]) + '</span></td>'
+        + '<td>' + esc(p[4]) + '</td>'
+        + '<td>' + esc(p[5]) + ' – ' + esc(p[6]) + '</td>'
+        + '<td class="num">' + esc(p[7]) + '</td>'
+        + '<td class="num"><button class="btn sm">Seç</button></td>'
+        + '</tr>';
+    }
+    return ''
+    + '<div class="notice">Her şirketin her yılı ayrı bir veritabanıdır. Yeni dönem açmak yeni veritabanı oluşturur.</div>'
+    + '<div class="card"><div class="cardhead">Dönemler<span class="right"><button class="btn primary sm">+ Yeni Dönem Aç</button></span></div>'
+    + '<div class="cardbody"><div class="gridwrap"><table class="imp-result"><thead><tr>'
+    + '<th>Şirket</th><th>Veritabanı</th><th>Yıl</th><th>Durum</th><th>Devir</th><th>Tarih Aralığı</th><th>Boyut</th><th></th>'
+    + '</tr></thead><tbody>' + rows + '</tbody></table></div>'
+    + '<div class="imp-basis"><b>Aktif:</b> kayıt girilebilir · <b>Kapalı:</b> salt okunur, rapor alınır · '
+    + '<b>Arşiv:</b> veritabanı ayrılmış, önce geri yüklenmeli</div>'
+    + '</div></div>';
+  }
+
+  /* ---------------- DÖNEM DEVRİ ---------------- */
+  function carryHtml(){
+    var checks = [
+      ['Kapanmamış ay var mı', 'Tüm aylar kapalı', 'ok'],
+      ['Açık sipariş / teklif', '3 açık sipariş var — devirde taşınmaz', 'warn'],
+      ['Yolda transfer', 'Yok', 'ok'],
+      ['Karantinada bekleyen', '2 kalem karar bekliyor', 'warn'],
+      ['Negatif stok', 'Yok', 'ok'],
+      ['Kesinleşmemiş belge', '1 taslak fatura', 'warn'],
+      ['Yeni dönem veritabanı', 'ABCHolding_2027 oluşturulacak', 'ok']
+    ];
+    var rows = '';
+    for(var i=0;i<checks.length;i++){
+      var c = checks[i];
+      rows += '<tr><td>' + esc(c[0]) + '</td><td>' + esc(c[1]) + '</td>'
+            + '<td><span class="badge ' + (c[2]==='ok'?'green':'warn') + '">'
+            + (c[2]==='ok'?'Uygun':'Dikkat') + '</span></td></tr>';
+    }
+    return ''
+    + '<div class="notice warn"><b>Devir geri alınabilir.</b> Yeni dönem veritabanı silinip işlem tekrarlanabilir. '
+    + 'Ancak devir sonrası yeni döneme kayıt girildiyse geri alma veri kaybı demektir.</div>'
+    + '<div class="kpis imp-kpis" style="grid-template-columns:repeat(4,1fr)">'
+    +   kpi('Kaynak Dönem','ABCHolding_2026') + kpi('Hedef Dönem','ABCHolding_2027')
+    +   kpi('Taşınacak Stok Kalemi','2.483 adet / 147 ürün') + kpi('Taşınacak Cari Bakiye','38 cari')
+    + '</div>'
+    + '<div class="card"><div class="cardhead">Devir Öncesi Kontrol</div><div class="cardbody">'
+    + '<div class="gridwrap"><table class="imp-result"><thead><tr><th>Kontrol</th><th>Durum</th><th>Sonuç</th></tr></thead>'
+    + '<tbody>' + rows + '</tbody></table></div></div></div>'
+    + '<div class="card"><div class="cardhead">Devirde Ne Olacak</div><div class="cardbody">'
+    + '<ol class="carry-steps">'
+    + '<li><b>Yeni veritabanı oluşturulur</b> — <code>ABCHolding_2027</code>, tablolar kurulur</li>'
+    + '<li><b>Stok açılışı yazılır</b> — her ürün/lokasyon için giriş hareketi, '
+    +     'birim maliyet = <b>kapanış hareketli ortalaması</b></li>'
+    + '<li><b>Maliyet taşınır</b> — <code>product_costs</code> yeni döneme kopyalanır. '
+    +     'Hareketli ortalama yıl sınırında kopmaz</li>'
+    + '<li><b>Cari bakiyeleri açılış fişi olur</b> — borç/alacak tek satır olarak</li>'
+    + '<li><b>Kasa ve banka bakiyeleri</b> açılış olarak yazılır</li>'
+    + '<li><b>Çek ve senetler</b> vadesi gelmemiş olanlar taşınır</li>'
+    + '<li><b>Kaynak dönem kapatılır</b> — salt okunur olur</li>'
+    + '</ol>'
+    + '<div class="imp-basis">Kartlar (cari, ürün, fiyat listesi) master veritabanında olduğu için '
+    + '<b>taşınmaz</b>; yeni dönem aynı kartları kullanır.</div>'
+    + '</div></div>'
+    + '<div class="card"><div class="cardbody" style="text-align:right">'
+    + '<button class="btn">Önizleme Al</button> <button class="btn primary">Devri Başlat</button>'
+    + '</div></div>';
+  }
+  function kpi(l,v){ return '<div class="kpi"><span>'+esc(l)+'</span><span class="n" style="font-size:14px">'+esc(v)+'</span></div>'; }
+
+  /* ---------------- boyama ---------------- */
+  var PAINT = {
+    login_preview: loginHtml,
+    setup_wizard:  setupHtml,
+    fiscal_periods: periodsHtml,
+    period_carry:  carryHtml
+  };
+
+  function paint(){
+    try{
+      var r = (typeof baseRoute === 'function' ? baseRoute() : '');
+      if(!PAINT[r]) return;
+      var host = document.querySelector('#main .content');
+      if(!host || host.getAttribute('data-v63') === r) return;
+      host.innerHTML = PAINT[r]();
+      host.setAttribute('data-v63', r);
+      var h1 = document.querySelector('#main .pagehead h1');
+      if(h1 && SCREENS[r]) h1.textContent = SCREENS[r].title;
+    }catch(e){}
+  }
+
+  ensureScreens(); ensureMenu();
+  if(typeof render === 'function'){
+    var prev = render;
+    render = function(){ ensureScreens(); ensureMenu(); var out = prev.apply(this, arguments); paint(); return out; };
   }
   document.addEventListener('click', function(){ setTimeout(function(){ ensureMenu(); paint(); }, 0); }, true);
   paint();

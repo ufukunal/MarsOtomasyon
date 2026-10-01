@@ -1,5 +1,9 @@
 # G-105 — Cari yan tabloları
 
+**Veritabanı: DÖNEM.** Model `PeriodModel`'den türer, migration
+`database/migrations/period/` altına yazılır. `company_id` kolonu YOKTUR.
+
+
 ## Amaç
 Cari kartının adres, yetkili, banka ve kategori bilgileri.
 

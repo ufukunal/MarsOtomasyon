@@ -1,4 +1,6 @@
-# G-004 — company_links (kopyalama izni)
+# G-004 — Şirketler arası kopyalama izni
+
+**Veritabanı: MASTER**
 
 ## Amaç
 Şirketler arası veri kopyalama izni. **Kayıt yoksa izin yoktur.**
@@ -9,21 +11,21 @@ G-003
 ## Şema
 
 ```php
-Schema::create('company_links', function (Blueprint $table) {
+Schema::create('company_copy_permissions', function (Blueprint $table) {
     $table->id();
     $table->foreignId('source_company_id')->constrained('companies');
     $table->foreignId('target_company_id')->constrained('companies');
     $table->string('type', 20);                 // contact | product
     $table->boolean('is_active')->default(true);
     $table->timestamps();
-    $table->unique(['source_company_id','target_company_id','type'], 'company_links_unique');
+    $table->unique(['source_company_id','target_company_id','type'], 'ccp_unique');
 });
 ```
 
 ## Enum
 
 ```php
-enum CompanyLinkType: string
+enum CompanyCopyPermissionType: string
 {
     case Contact = 'contact';
     case Product = 'product';
@@ -31,7 +33,7 @@ enum CompanyLinkType: string
 ```
 
 ## Model kuralları
-- `CompanyLink` modeli — **BelongsToCompany trait'i KULLANILMAZ**
+- `CompanyCopyPermission` modeli — `MasterModel`'den türer (master tablosu)
   (bu tablo iki şirketi birden ilgilendirir)
 - Doğrulama: `source_company_id !== target_company_id`
 - `sourceCompany()` ve `targetCompany()` ilişkileri
@@ -39,7 +41,7 @@ enum CompanyLinkType: string
 ## Yardımcı
 
 ```php
-public static function allows(int $sourceId, int $targetId, CompanyLinkType $type): bool
+public static function allows(int $sourceId, int $targetId, CompanyCopyPermissionType $type): bool
 {
     return static::query()
         ->where('source_company_id', $sourceId)
@@ -56,6 +58,6 @@ public static function allows(int $sourceId, int $targetId, CompanyLinkType $typ
 - `source === target` kaydı reddedilir
 
 ## İstem
-> company_links tablosu için migration, CompanyLinkType enum'u ve CompanyLink
+> company_copy_permissions tablosu için migration, CompanyCopyPermissionType enum'u ve CompanyCopyPermission
 > modelini yaz. Model BelongsToCompany trait'ini KULLANMASIN. allows() statik
 > yardımcısını ekle. source ve target aynı olamaz kuralını modelde doğrula.

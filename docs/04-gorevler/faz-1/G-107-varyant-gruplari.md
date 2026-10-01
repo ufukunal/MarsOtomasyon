@@ -1,5 +1,9 @@
 # G-107 — Varyant grupları
 
+**Veritabanı: DÖNEM.** Model `PeriodModel`'den türer, migration
+`database/migrations/period/` altına yazılır. `company_id` kolonu YOKTUR.
+
+
 ## Amaç
 Ayrı kartları tek ürün gibi göstermek. B2B ve kendi e-ticaret sitelerinde
 grup tek ürün, kartlar varyant olarak yayınlanır.

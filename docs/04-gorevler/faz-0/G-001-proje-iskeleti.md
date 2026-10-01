@@ -32,8 +32,8 @@ Yok. İlk görev.
    APP_NAME=MarsOtomasyon
    APP_LOCALE=tr
    APP_TIMEZONE=Europe/Istanbul
-   DB_CONNECTION=pgsql
-   DB_DATABASE=mars
+   DB_CONNECTION=master
+   DB_MASTER_DATABASE=MarsProject_Master
    CACHE_STORE=redis
    QUEUE_CONNECTION=redis
    SESSION_DRIVER=redis
@@ -49,7 +49,9 @@ Yok. İlk görev.
        'throw'  => false,
    ],
    ```
-7. `resources/css/app.css` ve `resources/js/app.js` oluştur (şimdilik boş)
+7. Migration klasörlerini ayır: `database/migrations/master/` ve
+   `database/migrations/period/`
+8. `resources/css/app.css` ve `resources/js/app.js` oluştur (şimdilik boş)
 8. Pint ve Larastan yapılandır
 
 ## Kabul ölçütü

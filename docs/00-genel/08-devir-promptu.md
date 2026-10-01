@@ -48,8 +48,8 @@ kapasite, OEE, MRP), katalog modülü (Canva ile elle yapılacak).
 | Arayüz | **Livewire 3 + kendi bileşenlerimiz** |
 | CSS | **Tek tema dosyası, düz CSS, değişkenlerle.** Tailwind YOK |
 | JS | Asgari — yalnız barkod odağı, sürükle-bırak, yazdırma köprüsü |
-| Veritabanı | PostgreSQL |
-| Önbellek/kuyruk/oturum | Valkey (Redis sürücüsü) |
+| Veritabanı | PostgreSQL — **master + şirket/dönem** modeli (aşağıda) |
+| Önbellek/kuyruk/oturum | Valkey — **ayrı Redis DB numaraları** (cache=1, session=2, queue=3) |
 | PDF | Browsershot |
 | Yetki | spatie/laravel-permission, **teams = şirket** |
 | Log | spatie/laravel-activitylog |
@@ -70,6 +70,93 @@ Tekrar önerme.
 4. Her iş tablosu `company_id` taşır, global scope ile filtrelenir.
 5. İş kuralı Livewire bileşenine yazılmaz, **Action sınıfına** yazılır.
 6. Arayüz Türkçe, tarih `d.m.Y`, sayı `1.234,56`.
+
+---
+
+## VERİTABANI MİMARİSİ — EN ÖNEMLİ YAPISAL KARAR
+
+Logo ve Mikro'nun kullandığı **firma + dönem veritabanı** modeli.
+
+```
+MarsProject_Master          ← tek adet, her zaman bağlı
+ABCHolding_2026             ← şirket + dönem
+ABCHolding_2027
+XYZltd_2026
+```
+
+Kullanıcı giriş yapar, **şirket ve dönem seçer**, uygulama o veritabanına
+bağlanır.
+
+### MASTER'da duran (yıla bağlı olmayan)
+
+`companies`, `periods`, `users`, `roles`, `permissions`, `company_user`,
+`company_copy_permissions`, **`contacts`** + yan tabloları, **`products`** + kategori/
+marka/birim/varyant/set/konfigürasyon, `price_lists`, `locations`,
+`exchange_rates`, `print_profiles`, kart ekleri, master işlem geçmişi.
+
+Master tabloları `company_id` taşır ve **global scope** ile filtrelenir.
+Modeller `MasterModel`'den türer.
+
+### DÖNEM veritabanında duran (yıla bağlı)
+
+`documents`, `document_lines`, `stock_movements`, `stock_balances`,
+`product_costs`, `contact_transactions`, `cash_movements`,
+`bank_movements`, `securities`, `number_series`, `posting_periods`
+(ay kilitleri), `stock_counts`, `quarantine_entries`,
+`stock_reservations`, belge ekleri, dönem işlem geçmişi.
+
+Dönem tabloları `company_id` **taşımaz** — veritabanı zaten o şirkete ve
+yıla aittir. Global scope yoktur. Modeller `PeriodModel`'den türer.
+
+### Bağlantı yönetimi
+
+```php
+'master' => [ 'database' => env('DB_MASTER_DATABASE', 'MarsProject_Master') ],
+'period' => [ 'database' => null ],   // çalışma anında doldurulur
+
+PeriodContext::use($companyId, $year);
+  → config(['database.connections.period.database' => $period->database_name])
+  → DB::purge('period'); DB::reconnect('period');
+```
+
+Migration klasörleri ayrıdır:
+`database/migrations/master/` ve `database/migrations/period/`
+
+### Veritabanları arası referans — KRİTİK
+
+**Yabancı anahtar yoktur.** `documents.contact_id` master'daki bir kayda
+işaret eder ama kısıt konamaz.
+
+Bu yüzden belge ve harekete kart bilgisi **kopyalanarak** saklanır:
+`contact_code`, `contact_title`, `product_code`, `product_name`,
+`location_code`. Kart sonradan değişse geçmiş belge bozulmaz.
+Referans bütünlüğü uygulama katmanında doğrulanır.
+
+### Dönem devri (Faz 11b)
+
+Yıl sonunda: yeni veritabanı oluşturulur, kapanış stok bakiyeleri
+açılış hareketi olarak yazılır (`reason = opening`, birim maliyet =
+kapanış hareketli ortalaması), `product_costs` taşınır, cari bakiyeleri
+açılış fişi olur.
+
+**Hareketli ortalama maliyet yıl sınırında kopmamalıdır.**
+
+### Yıllar arası rapor
+
+PostgreSQL'de veritabanları arası JOIN yoktur. Çok dönemli rapor her
+dönemi ayrı sorgulayıp sonucu PHP'de birleştirir. Yavaş olabilir;
+sık kullanılanlar için master'da özet tablo tutulabilir.
+
+### Yedekleme
+
+Her veritabanı ayrı yedeklenir. **Master her yedekte olmalıdır** —
+mastersız dönem veritabanı işe yaramaz, kartlar orada.
+
+> **[VARSAYIM] — A-008:** Kartların master'da durması benim önerimdir.
+> Alternatif, Logo'daki gibi kartların da dönem veritabanında durması ve
+> devirde kopyalanmasıdır. O yol dönemleri tamamen bağımsız yapar ama
+> aynı kart birden çok yerde durur. **Kullanıcı onayı bekliyor** —
+> onay gelmeden bu varsayımla ilerle, ama her faz özetinde hatırlat.
 
 ---
 
@@ -96,6 +183,33 @@ Bunlar kullanıcıyla tek tek konuşulup karara bağlandı. **Yeniden sorma.**
 | K-017 | Dönem ay bazında kilitlenir, yalnız Yönetici açar (gerekçeyle) |
 | K-018 | Pazaryeri senkronizasyonu **15 dk** + elle tetikleme |
 | K-019 | Ürün görselleri **platform bazlı set** (Ortak, Trendyol, Hepsiburada, N11, Site-A) |
+| K-048 | **Stok hareketi her zaman temel birimde**; satırda `base_quantity` + dondurulmuş katsayı |
+| K-050 | Fiyat çözümleme: cari listesi → varsayılan liste → `products.list_price` → 0 |
+| K-052 | Maliyetin altında satışta uyarı; `cost.view` yoksa metin maliyetsiz |
+| K-053 | Arşiv geri yüklenince önce `migrate:periods` |
+| K-041 | Dağıtımda `migrate` değil **`migrate:periods`** — tüm dönem veritabanları |
+| K-042 | Aranan alanlar için **normalize `search_index`** + trigram indeksi |
+| K-043 | İş kuralı hatası (`DomainException`) **loglanmaz** |
+| K-044 | Her istekte **correlation id**; hatada kullanıcıya kod verilir |
+| K-045 | Dosya yüklemede **MIME içerikten** doğrulanır, **SVG yasak** |
+| K-046 | TC kimlik maskelenir; tam hali ayrı izne bağlı (KVKK) |
+| K-047 | Testler **gerçek PostgreSQL'e** karşı, SQLite'a değil |
+| K-035 | Tutarlar **float değil**, string + BCMath (`Money` nesnesi) |
+| K-036 | Yuvarlama **yalnızca belge toplamında**, 2 hane; KDV oran grubu bazında tek seferde |
+| K-037 | Yuvarlama farkı `rounding_difference` alanında saklanır |
+| K-038 | Durum değiştiren her istek **istek anahtarı** (idempotency) taşır |
+| K-039 | Düzenlenebilir tablolarda **`version`** kolonu (iyimser kilit) |
+| K-040 | Dönem kilidi ve raporlar **`document_date`'e** bakar, `created_at`'e değil |
+| K-031 | İhlal edilemez kurallar **CHECK kısıtı** olarak veritabanında |
+| K-032 | Belge kesinleştirmede **yazma sonrası doğrulama** aynı transaction içinde |
+| K-033 | Gecelik `integrity:all`; fark varsa bildirim, **otomatik düzeltme yok** |
+| K-034 | **Türetilmiş veya kopyalanmış her değer için `integrity:` kontrolü yazılır** — fazın bitiş ölçütüdür |
+| K-029 | Önbellek anahtarları **şirket ve dönem taşır** (`c1:y2026:...`); bağlam yoksa istisna |
+| K-030 | Stok ve cari bakiyesi **önbelleğe alınmaz** — işlem anında doğru olmalı |
+| K-025 | **Master + şirket/dönem veritabanı**: `MarsProject_Master`, `ABCHolding_2026` |
+| K-026 | Kartlar **master'da**, hareketler dönem veritabanında — **[VARSAYIM], onay bekliyor (A-008)** |
+| K-027 | Veritabanları arası yabancı anahtar yok; belgeye kart kodu/adı kopyalanır |
+| K-028 | Yıl sonu **dönem devri** ayrı işlem; hareketli ortalama kapanıştan açılışa taşınır |
 | K-021 | VDS + PostgreSQL + Valkey |
 | K-022 | Yazdırma **tek arayüz arkasında**; taşıyıcı değişebilir (ileride özel tarayıcı kabuğu) |
 | K-023 | Belge tasarımcısı **bölüm tabanlı**, sürükle-bırak değil |
@@ -118,12 +232,14 @@ Bunlar kullanıcıyla tek tek konuşulup karara bağlandı. **Yeniden sorma.**
 - A-005: Etiket yazıcısı markası ve etiket boyutları
 - A-006: Koli etiketi "1/4" numarası hangi belgeye bağlı?
 - A-007: Varyant grubunun pazaryerlerinde varyantlı gönderimi
+- **A-008: Kartlar master'da mı, dönem veritabanında mı?** (K-026 varsayımı)
 
 ---
 
 ## ŞİMDİYE KADAR NE YAPILDI
 
-Elde **82 belge, 4.688 satır, 15 commit**lik bir depo var. Yapı:
+Elde **86 belge, 16 commit**lik bir depo var. Mimari değişikliği (master +
+şirket/dönem) Faz 0, 1 ve 2 belgelerine **uygulandı**. Yapı:
 
 ```
 docs/
@@ -138,30 +254,84 @@ docs/
 
 ### Tamamlanan fazlar
 
-**Faz 0 — Temel (13 görev, G-001…G-013)**
-Laravel kurulumu, `companies`, **şirket bağlamı + global scope**,
-`company_links`, kullanıcı/rol/izin (7 rol + `cost.view`), `number_series`
-(kilitli numara üretimi), `posting_periods` (dönem kilidi), audit log,
-`attachments`, `print_profiles` + `PrintManager` soyutlaması, izolasyon
-testleri, kabuk ve tema iskeleti, yedekleme.
+**Faz 0 — Temel (21 görev, G-001…G-021)**
+Laravel kurulumu, `companies` + **`periods`**, **bağlantı yönetimi
+(master + dönem)**, `company_copy_permissions`, kullanıcı/rol/izin (7 rol +
+`cost.view`), `number_series` (kilitli numara üretimi), ay bazlı dönem
+kilidi, audit log, `attachments`, `print_profiles` + `PrintManager`,
+izolasyon ve bağlantı testleri, kabuk ve tema iskeleti, yedekleme
+(master dahil), dönem oluşturma ve seçme ekranı, **giriş ekranı +
+şirket/dönem seçimi + 8 adımlı firma kurulum sihirbazı**, **önbellek
+altyapısı (dönem bazlı anahtar)**, **veri bütünlüğü altyapısı**,
+**para aritmetiği + eşzamanlılık + tarih kuralları**, **Türkçe arama
+altyapısı**, **hata yönetimi + izleme + güvenlik**, **`migrate:periods`
+çok veritabanlı dağıtım**.
 
 **Faz 0b — Arayüz bileşen kütüphanesi (3 görev)**
 Tema dosyası, `DataTableComponent` (arama, sıralama, filtre, sayfalama,
 kolon gizleme, satır seçimi, toplu işlem, dışa aktarma), form/modal/
 bildirim bileşenleri + barkod okuyucuyla çalışan `lookup` alanı.
 
-**Faz 1 — Kartlar (14 görev, G-101…G-114)**
+**Faz 1 — Kartlar (14 görev, G-101…G-114) — hepsi MASTER veritabanında**
 Lokasyonlar, birimler ve dönüşümler, kategori/marka, cari kartı ve yan
 tabloları, ürün kartı, varyant grupları, set ürün, konfigüratör, fiyat
 listeleri, şirketler arası kopyalama, Excel/JSON içe aktarma, görsel
 setleri, testler.
 
-**Faz 2 — Stok (12 görev, G-201…G-212)**
+**Faz 2 — Stok (12 görev, G-201…G-212) — hepsi DÖNEM veritabanında**
 `stock_movements` (tek gerçek kaynak), `stock_balances` (türetilmiş),
 `product_costs`, **`RecordStockMovement`** (stoğa yazan tek action),
 hareketli ortalama + sapma uyarısı, stok durumu, stok hareketleri,
 transfer, ambar fişi, sayım, karantina, rezervasyon, açılış bakiyesi,
 testler.
+
+### Yazılmış iş kuralı belgeleri
+
+`docs/02-is-kurallari/` altında 24 belge var. Yeni faz yazarken
+**önce bunları oku**, kuralları tekrar icat etme:
+
+| No | Konu |
+|---|---|
+| 01 | Şirket izolasyonu (master global scope + dönem fiziksel) |
+| 02 | Numaralandırma (`lockForUpdate`) |
+| 03 | Ay bazlı dönem kilidi |
+| 04 | Yetki (5 kontrol noktası, `cost.view`) |
+| 05 | İşlem geçmişi |
+| 06 | Yazdırma soyutlaması |
+| 07 | Şirketler arası kopyalama |
+| 08 | Kart kuralları (varyant, set, konfigüratör) |
+| 09 | Maliyet (hareketli ortalama, sapma uyarısı) |
+| 10 | Stok kuralları (negatif, rezerv, karantina, sayım) |
+| 15 | Önbellek (dönem bazlı anahtar) |
+| 16 | Veri bütünlüğü (CHECK, doğrulama, `integrity:`) + **kapsam matrisi** |
+| 17 | **Para aritmetiği** (BCMath, yuvarlama) |
+| 18 | **Eşzamanlılık** (idempotency, iyimser kilit, kuyruk) |
+| 19 | **Zaman ve tarih** (`document_date` vs `created_at`) |
+| 20 | **Migration ve dağıtım** (çok veritabanlı) |
+| 21 | **Arama ve Türkçe** (normalize kolon, trigram) |
+| 22 | **Hata yönetimi, günlük, izleme** |
+| 23 | **Güvenlik ve kişisel veri (KVKK)** |
+| 24 | **Doğrulama ve test standardı** |
+| 25 | **Birim dönüşümü** (stok her zaman temel birimde) |
+| 26 | **Fiyatlandırma** (fiyat çözümleme sırası, sapma uyarısı) |
+
+### Yazılmış ekran belgeleri
+
+`docs/03-ekranlar/` altında dört belge var, **biçim örneği olarak kullan**:
+
+- `cari-detay.md` — alanlar, KPI'lar, eylem menüleri, sekmeler, etki zinciri
+- `giris-ve-donem-secimi.md` — giriş, şirket/dönem seçimi, bağlantı kurulumu
+- `firma-kurulum-sihirbazi.md` — 8 adım, `db_prefix` kuralı, son adım etki zinciri
+- `donem-devri.md` — kontrol listesi, devir adımları, maliyet sürekliliği
+
+Yeni ekran belgeleri bu kalıpla yazılır.
+
+### Prototipe eklenen ekranlar (v63)
+
+Prototipte **giriş, firma kurulumu, dönemler ve devir ekranları yoktu** —
+master/dönem mimarisine geçince zorunlu hale geldiler. v63'te eklendi:
+`login_preview`, `setup_wizard`, `fiscal_periods`, `period_carry`.
+Ayarlar menüsünün başında görünürler.
 
 ---
 
@@ -197,15 +367,20 @@ posted_by, posted_at`
 unit_id, unit_price (KDV hariç), line_discount, vat_rate, line_total,
 reserve_stock (bool), configuration (JSON, dondurulmuş), source_line_id`
 
-### Hesap sırası (K-008, K-009)
+### Hesap sırası (K-008, K-009, K-035, K-036)
 ```
-satır toplamı = miktar × birim fiyat − satır iskontosu
-ara toplam    = Σ satır toplamları
-iskonto       = ara toplam × iskonto yüzdesi     ← KDV'den ÖNCE
-matrah        = ara toplam − iskonto
-KDV           = matrah üzerinden, satır oranlarıyla
-genel toplam  = matrah + KDV
+satır toplamı = miktar × birim fiyat − satır iskontosu     (4 hane, yuvarlama YOK)
+ara toplam    = Σ satır toplamları                          (4 hane, yuvarlama YOK)
+iskonto       = ara toplam × iskonto yüzdesi                ← KDV'den ÖNCE
+matrah        = ara toplam − iskonto                        (4 hane)
+KDV           = oran grubu bazında matrah toplanır,
+                her grup için BİR KEZ hesaplanır             (2 haneye yuvarlanır)
+genel toplam  = matrah + KDV                                 (2 haneye yuvarlanır)
+yuvarlama farkı → rounding_difference alanında saklanır
 ```
+**Tutarlar `Money` nesnesiyle, BCMath ile hesaplanır. Float yasak.**
+Ara adımlarda yuvarlama yapılmaz — 100 satırlık faturada 50 kuruşa
+kadar sapma üretir.
 Fatura ve sipariş ekranında **"Tümüne KDV uygula"** ve **"KDV temizle"**
 düğmeleri (temizlenirse oran 0).
 
@@ -447,8 +622,9 @@ Kesinleştir
  4. ConsumeReservation (varsa)
  5. contact_transactions satırı
  6. status = posted, posted_at, posted_by
- 7. activity_log
- HEPSİ TEK DB::transaction İÇİNDE
+ 7. yazma sonrası doğrulama (verify) — eşleşmezse geri al
+ 8. activity_log
+ HEPSİ TEK DB::transaction İÇİNDE (attempts: 3, deadlock için)
 ```
 
 ---
@@ -572,6 +748,20 @@ Aynı editör üç zemin için: **A4** (PDF), **etiket** (ZPL), **fiş**
 
 ---
 
+### Faz 11b — Dönem devri  ← **DOKÜMANI YAZILDI**
+
+`docs/04-gorevler/faz-11b/` altında G-1110 (devir action'ı ve ekranı),
+G-1112 (çok dönemli rapor altyapısı) ve özet hazır. Eksik olan:
+G-1111 (kontrol listesi detayı) ve G-1113 (testler).
+
+**Kritik:** açılış hareketinin birim maliyeti = kaynak dönemin **kapanış
+hareketli ortalaması**. Sıfır veya son alış fiyatı değil. Maliyet yıl
+sınırında koparsa o yılın tüm kârlılık hesapları yanlış çıkar.
+
+Kartlar taşınmaz (master'dalar). Açık sipariş, teklif, taslak belge,
+yolda transfer ve karantinada bekleyen kalem **taşınmaz** — kullanıcı
+kontrol listesinde uyarılır.
+
 ### Faz 11 — Canlıya geçiş
 
 **Görevler (6):** G-1101 gerçek veri aktarımı · G-1102 açılış bakiyeleri ·
@@ -656,7 +846,34 @@ sonucu kullanıcıya raporla:
 - [ ] Numara üreten her yer `lockForUpdate` kullanıyor mu?
 - [ ] Maliyet gösteren her ekran `cost.view` iznini kontrol ediyor mu?
       (gizleme değil, **üretmeme**)
-- [ ] Her yeni model `BelongsToCompany` trait'ini kullanıyor mu?
+- [ ] Her tablo dosyasında **hangi veritabanında** durduğu yazılı mı?
+- [ ] Master modeli `MasterModel`'den, dönem modeli `PeriodModel`'den mi türüyor?
+- [ ] Dönem tablosunda `company_id` kolonu **yok** mu? (olmamalı)
+- [ ] Veritabanları arası ilişkide `constrained()` **kullanılmamış** mı?
+      (kullanılmamalı — kart bilgisi kopyalanmalı)
+- [ ] Migration doğru klasörde mi? (`master/` veya `period/`)
+- [ ] Önbellek kullanan her yer `CacheKey` üzerinden mi anahtar üretiyor?
+      (çıplak `Cache::get()` hata sayılır)
+- [ ] Stok veya cari bakiyesi önbelleğe **alınmamış** mı?
+- [ ] Tutar hesabı `Money` + BCMath ile mi? (**float cast varsa hata**)
+- [ ] Yuvarlama yalnızca belge toplamında mı? (ara adımda varsa hata)
+- [ ] Durum değiştiren işlem **istek anahtarı** taşıyor mu?
+- [ ] Düzenlenebilir tabloda `version` kolonu var mı?
+- [ ] Dönem/rapor kontrolü `document_date` mi kullanıyor? (`created_at` ise hata)
+- [ ] Aranabilir yeni alan için `search_index` ve trigram indeksi var mı?
+- [ ] Yeni dönem tablosu için migration `period/` klasöründe ve
+      `migrate:periods` ile dağıtılacak mı?
+- [ ] `exists` doğrulama kuralı **şirket filtresi** taşıyor mu?
+      (global scope `exists`'te çalışmaz — başka şirketin id'si bağlanabilir)
+- [ ] İş kuralı hatası `DomainException` türevi mi? (loglanmamalı)
+- [ ] Stok hareketi **temel birimde** mi yazılıyor? (belge birimiyse hata)
+- [ ] Belge satırında `base_quantity` ve dondurulmuş `conversion_factor` var mı?
+- [ ] Yeni tabloda **CHECK kısıtları** tanımlı mı? (miktar pozitif, oran aralığı,
+      toplam = parçaların toplamı)
+- [ ] Belge kesinleştirme **yazma sonrası doğrulama** yapıyor mu?
+- [ ] Yeni türetilmiş tablo veya kopyalanmış alan için `integrity:` kontrolü
+      yazıldı mı? (`docs/02-is-kurallari/16-veri-butunlugu.md` kapsam matrisine bak —
+      **12 kontrol eksik**, hangileri bu faza düşüyorsa yaz)
 - [ ] Her görev dosyasında Amaç / Önkoşul / Dosyalar / Şema / Kurallar /
       Kabul ölçütü / İstem bölümleri var mı?
 - [ ] Görev dosyaları tek başına yeterli mi — başka dosyaya bakmadan

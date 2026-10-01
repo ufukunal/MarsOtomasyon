@@ -1,5 +1,9 @@
 # G-211 — Açılış bakiyesi
 
+**Veritabanı: DÖNEM.** Model `PeriodModel`'den türer, `company_id` kolonu
+yoktur, migration `database/migrations/period/` altına yazılır.
+
+
 ## Amaç
 Canlıya geçişte mevcut stoğun sisteme alınması. Faz 11'in provası.
 

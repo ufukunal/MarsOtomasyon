@@ -1,5 +1,9 @@
 # G-207 — Ambar fişi
 
+**Veritabanı: DÖNEM.** Model `PeriodModel`'den türer, `company_id` kolonu
+yoktur, migration `database/migrations/period/` altına yazılır.
+
+
 ## Amaç
 Belge bağı olmadan yapılan stok giriş/çıkışı: fire, numune verme,
 demirbaş çıkışı, düzeltme.

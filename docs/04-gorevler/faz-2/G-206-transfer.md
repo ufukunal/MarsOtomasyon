@@ -1,5 +1,9 @@
 # G-206 — Depo transferi
 
+**Veritabanı: DÖNEM.** Model `PeriodModel`'den türer, `company_id` kolonu
+yoktur, migration `database/migrations/period/` altına yazılır.
+
+
 ## Amaç
 Lokasyonlar arası mal aktarımı. Araca yükleme (sıcak satış) de budur.
 

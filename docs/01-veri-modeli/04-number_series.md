@@ -1,5 +1,11 @@
 # number_series
 
+**Veritabanı: DÖNEM**
+
+`company_id` kolonu **yoktur** — veritabanı zaten o şirkete ve yıla aittir.
+
+
+
 ## Amaç
 
 Belge numarası üretimi. **Şirket + belge türü + yıl** bazında ayrı sayaç.
@@ -11,9 +17,8 @@ Prototipte bu sorun vardı: numara üretimi işlemsel değildi.
 ## Şema
 
 ```php
-Schema::create('number_series', function (Blueprint $table) {
+Schema::connection('period')->create('number_series', function (Blueprint $table) {
     $table->id();
-    $table->foreignId('company_id')->constrained();
     $table->string('document_type', 40);        // sales_invoice, quote, ...
     $table->string('prefix', 10);               // SF, TKL, SIP
     $table->unsignedSmallInteger('year');
@@ -21,7 +26,7 @@ Schema::create('number_series', function (Blueprint $table) {
     $table->unsignedTinyInteger('padding')->default(5);   // 00001
     $table->timestamps();
 
-    $table->unique(['company_id', 'document_type', 'year'], 'number_series_unique');
+    $table->unique(['document_type', 'year'], 'number_series_unique');
 });
 ```
 

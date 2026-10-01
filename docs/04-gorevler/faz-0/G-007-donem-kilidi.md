@@ -1,4 +1,7 @@
-# G-007 — Dönem kilidi
+# G-007 — Dönem kilidi (ay bazlı)
+
+**Veritabanı: DÖNEM.** Bu, yıl bazlı dönem veritabanından farklıdır:
+burada **yıl içindeki ay kilitleri** tutulur.
 
 ## Amaç
 Kapalı aya kayıt girilmesini engellemek.

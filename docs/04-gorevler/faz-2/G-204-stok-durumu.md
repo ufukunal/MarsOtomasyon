@@ -1,5 +1,9 @@
 # G-204 — Stok Durumu ekranı
 
+**Veritabanı: DÖNEM.** Model `PeriodModel`'den türer, `company_id` kolonu
+yoktur, migration `database/migrations/period/` altına yazılır.
+
+
 ## Amaç
 Ürün ve lokasyon bazında anlık stok görünümü.
 

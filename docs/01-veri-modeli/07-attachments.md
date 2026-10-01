@@ -1,5 +1,11 @@
 # attachments
 
+**Veritabanı: DÖNEM**
+
+`company_id` kolonu **yoktur** — veritabanı zaten o şirkete ve yıla aittir.
+
+
+
 ## Amaç
 
 Her belgeye ve karta dosya eklenebilir: fatura taraması, ürün görseli,
@@ -13,7 +19,6 @@ günlüğü K-012).
 ```php
 Schema::create('attachments', function (Blueprint $table) {
     $table->id();
-    $table->foreignId('company_id')->constrained();
     $table->morphs('attachable');                    // attachable_type + attachable_id
     $table->string('disk', 30)->default('attachments');
     $table->string('path');

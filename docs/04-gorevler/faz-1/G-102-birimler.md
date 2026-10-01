@@ -1,5 +1,9 @@
 # G-102 — Birimler ve dönüşümler
 
+**Veritabanı: DÖNEM.** Model `PeriodModel`'den türer, migration
+`database/migrations/period/` altına yazılır. `company_id` kolonu YOKTUR.
+
+
 ## Amaç
 Adet, kutu, kg gibi birimler ve aralarındaki dönüşüm katsayıları.
 Kristal gibi kalemler kg alınıp adet satılabilir.

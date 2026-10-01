@@ -1,5 +1,9 @@
 # Faz 1 — Kartlar
 
+**Tüm Faz 1 tabloları MASTER veritabanındadır.** Kartlar yıla bağlı değildir;
+tüm dönemler aynı kartları kullanır. Modeller `PeriodModel`'den türer ve
+`company_id` + global scope ile filtrelenir.
+
 Cari ve ürün kartları, yan tabloları, lokasyonlar, fiyat listeleri ve
 veri aktarımı. Faz 2'den (stok) sonraki her şey bu kartlara dayanır.
 
@@ -18,6 +22,7 @@ veri aktarımı. Faz 2'den (stok) sonraki her şey bu kartlara dayanır.
 | G-109 | Konfigüratör tanımları | G-106 |
 | G-110 | Fiyat listeleri | G-106 |
 | G-111 | Şirketler arası kopyalama ekranı | G-104, G-106 |
+| G-115 | **Satınalma talebi ve teklif toplama (basit)** | G-104, G-106 |
 | G-112 | Excel / JSON içe aktarma | G-104, G-106 |
 | G-113 | Ürün görsel setleri (Ortak, Trendyol, …) | G-106, G-009 |
 | G-114 | Faz 1 testleri | hepsi |
@@ -31,4 +36,7 @@ veri aktarımı. Faz 2'den (stok) sonraki her şey bu kartlara dayanır.
 - [ ] Şirketler arası kopyalama izinle çalışıyor, izinsiz 403
 - [ ] Excel ve JSON içe aktarma hatalı satırları raporluyor
 - [ ] Görseller platform setleri halinde yükleniyor
+- [ ] Tüm kart tabloları master'da, modeller `PeriodModel`'den türüyor
+- [ ] Kart değişikliği tüm dönemlerde aynı anda görünüyor
 - [ ] Tüm testler yeşil
+- [ ] Kart tablolarında CHECK kısıtları tanımlı

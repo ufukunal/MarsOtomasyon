@@ -44,7 +44,7 @@ yetkisi olan kullanıcıya, açıkça "konsolide" seçildiğinde gösterilir.
 **companies** — id, ad, unvan, vergi dairesi/no, adres, logo, varsayılan_vade_gun (30),
 maliyet_sapma_esigi (%25), aktif
 
-**company_links** — kaynak_sirket_id, hedef_sirket_id, tur (stok | cari), aktif
+**company_copy_permissions** — kaynak_sirket_id, hedef_sirket_id, tur (stok | cari), aktif
 Kopyalama izni. Kayıt yoksa izin yok.
 
 **users** — id, ad, e-posta, parola, aktif

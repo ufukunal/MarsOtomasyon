@@ -5,12 +5,12 @@
 oluşur, canlı bağ kurulmaz.**
 
 ## Önkoşul
-G-004 (company_links), G-104, G-106
+G-004 (company_copy_permissions), G-104, G-106
 
 ## Akış
 
 1. Kullanıcı hedef şirkette "Başka Şirketten Aktar" ekranını açar
-2. İzinli kaynak şirketler listelenir (`company_links` üzerinden)
+2. İzinli kaynak şirketler listelenir (`company_copy_permissions` üzerinden)
 3. Kaynak ve tür (cari / ürün) seçilir
 4. Kaynak şirketin kartları listelenir
 5. Seçilen kartlar kopyalanır
@@ -20,15 +20,15 @@ G-004 (company_links), G-104, G-106
 ```php
 final class CopyRecordsBetweenCompanies
 {
-    public function handle(int $sourceCompanyId, CompanyLinkType $type, array $ids): CopyResult
+    public function handle(int $sourceCompanyId, CompanyCopyType $type, array $ids): CopyResult
     {
         abort_unless(
-            CompanyLink::allows($sourceCompanyId, CompanyContext::id(), $type),
+            CompanyCopyPermission::allows($sourceCompanyId, CompanyContext::id(), $type),
             403, 'Bu şirketten veri aktarma izniniz yok.'
         );
 
         // kaynak kayıtları SADECE burada global scope dışına çıkarak oku
-        $records = $type === CompanyLinkType::Contact
+        $records = $type === CompanyCopyType::Contact
             ? Contact::withoutGlobalScopes()->where('company_id', $sourceCompanyId)->whereIn('id', $ids)->get()
             : Product::withoutGlobalScopes()->where('company_id', $sourceCompanyId)->whereIn('id', $ids)->get();
 

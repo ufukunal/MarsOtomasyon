@@ -1,5 +1,11 @@
 # Kullanıcı, rol ve izin
 
+**Veritabanı: MASTER**
+
+Şirket üstü tablo; `company_id` taşımaz.
+
+
+
 spatie/laravel-permission kullanılır, **teams özelliği açık** ve takım
 anahtarı `company_id`'dir. Böylece aynı kullanıcı farklı şirketlerde farklı
 role sahip olabilir.
@@ -16,7 +22,7 @@ $table->foreignId('last_company_id')->nullable()->constrained('companies');
 ## company_user
 
 ```php
-Schema::create('company_user', function (Blueprint $table) {
+Schema::connection('master')->create('company_user', function (Blueprint $table) {
     $table->id();
     $table->foreignId('company_id')->constrained()->cascadeOnDelete();
     $table->foreignId('user_id')->constrained()->cascadeOnDelete();

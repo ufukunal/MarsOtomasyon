@@ -1,5 +1,9 @@
 # G-106 — Ürün kartı
 
+**Veritabanı: DÖNEM.** Model `PeriodModel`'den türer, migration
+`database/migrations/period/` altına yazılır. `company_id` kolonu YOKTUR.
+
+
 ## Amaç
 Ürün kartı. **Her varyant ayrı karttır**; gruplama G-107'de gelir.
 

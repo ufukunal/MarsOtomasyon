@@ -1,5 +1,9 @@
 # G-209 — Karantina
 
+**Veritabanı: DÖNEM.** Model `PeriodModel`'den türer, `company_id` kolonu
+yoktur, migration `database/migrations/period/` altına yazılır.
+
+
 ## Amaç
 İade edilen veya kontrol bekleyen malın satılamaz durumda tutulması.
 

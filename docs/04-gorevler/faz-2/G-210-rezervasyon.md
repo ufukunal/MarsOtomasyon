@@ -1,5 +1,9 @@
 # G-210 — Rezervasyon altyapısı
 
+**Veritabanı: DÖNEM.** Model `PeriodModel`'den türer, `company_id` kolonu
+yoktur, migration `database/migrations/period/` altına yazılır.
+
+
 ## Amaç
 Siparişe bağlı stok rezervi. Faz 3'te sipariş ekranı bunu kullanacak.
 

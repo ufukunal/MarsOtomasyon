@@ -1,5 +1,11 @@
 # contacts ve yan tabloları
 
+**Veritabanı: DÖNEM**
+
+`company_id` kolonu **yoktur** — veritabanı zaten o şirkete ve yıla aittir.
+
+
+
 ## Amaç
 
 Cari kartı. **Müşteri ve tedarikçi ayrı kart değildir**; tek kart, kategoriyle
@@ -8,9 +14,8 @@ ayrılır. Bakiye tektir.
 ## contacts
 
 ```php
-Schema::create('contacts', function (Blueprint $table) {
+Schema::connection('period')->create('contacts', function (Blueprint $table) {
     $table->id();
-    $table->foreignId('company_id')->constrained();
     $table->string('code', 30);
     $table->string('title');                                  // unvan
     $table->string('type', 10)->default('legal');             // legal | real
@@ -26,6 +31,7 @@ Schema::create('contacts', function (Blueprint $table) {
     $table->unsignedSmallInteger('term_days')->nullable();    // boş = şirket varsayılanı
     $table->decimal('risk_limit', 18, 4)->default(0);
     $table->decimal('discount_rate', 7, 4)->default(0);       // belgeye otomatik gelir
+    $table->foreignId('price_list_id')->nullable()->constrained('price_lists');  // boşsa varsayılan liste
 
     $table->foreignId('source_company_id')->nullable()->constrained('companies');
     $table->unsignedBigInteger('source_record_id')->nullable();
@@ -46,9 +52,8 @@ Kategoriler: **Tedarikçi, Cari, İnternet Müşterisi, Mağaza Müşterisi**.
 Bir kart birden çok kategori taşıyabilir (çoktan çoğa).
 
 ```php
-Schema::create('contact_categories', function (Blueprint $table) {
+Schema::connection('period')->create('contact_categories', function (Blueprint $table) {
     $table->id();
-    $table->foreignId('company_id')->constrained();
     $table->string('name', 60);
     $table->string('color', 20)->nullable();
     $table->timestamps();
@@ -89,5 +94,7 @@ $table->string('iban',34)->nullable(); $table->char('currency',3)->default('TRY'
 - `term_days` boşsa `companies.default_term_days` kullanılır
 - `risk_limit` aşımında **uyarı** verilir, işlem engellenmez (K-007 benzeri)
 - `discount_rate` belgelere otomatik gelir, belgede değiştirilebilir
+- `price_list_id` boşsa şirketin varsayılan fiyat listesi kullanılır
+  (bkz. `02-is-kurallari/26-fiyatlandirma.md`)
 - Bakiye bu tabloda **tutulmaz**; `contact_transactions` tablosundan hesaplanır
   (Faz 3'te gelir). Faz 1'de bakiye kolonu 0 gösterir.

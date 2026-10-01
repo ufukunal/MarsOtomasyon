@@ -1,5 +1,12 @@
 # Faz 2 — Stok
 
+**Tüm Faz 2 tabloları DÖNEM veritabanındadır.** `company_id` kolonu yoktur;
+veritabanı zaten o şirkete ve yıla aittir. Modeller `PeriodModel`'den türer.
+
+Ürün ve lokasyon kartları **aynı veritabanındadır**, bu yüzden stok hareketi
+ürüne **gerçek yabancı anahtarla** bağlanır. `product_code` yine kopyalanır
+ama bu kolaylık içindir, zorunluluk değil.
+
 Sistemin en kritik hesabı burada. Satış, alış, üretim ve ithalat hep bu
 katmana yazar. **Burada yapılan hata her rakama yayılır.**
 
@@ -30,4 +37,8 @@ katmana yazar. **Burada yapılan hata her rakama yayılır.**
 - [ ] Sayım farkı elle onaylanmadan hareket oluşmuyor
 - [ ] Karantinadaki mal satılamıyor, rezerve edilemiyor
 - [ ] `stock:verify` komutu fark bulmuyor
-- [ ] Kapalı döneme hareket yazılamıyor
+- [ ] Kapalı aya hareket yazılamıyor
+- [ ] `integrity:costs`, `integrity:reservations`, `integrity:quarantine` yazıldı ve fark bulmuyor
+- [ ] Stok tabloları dönem veritabanında, `company_id` kolonu yok
+- [ ] Ürün referansı gerçek yabancı anahtar
+- [ ] **Stok hareketi her zaman temel birimde** yazılıyor (bkz. 25-birim-donusumu.md)

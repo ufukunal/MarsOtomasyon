@@ -1,5 +1,9 @@
 # G-104 — Cari kartı
 
+**Veritabanı: DÖNEM.** Model `PeriodModel`'den türer, migration
+`database/migrations/period/` altına yazılır. `company_id` kolonu YOKTUR.
+
+
 ## Amaç
 Sistemin en çok kullanılan kartı. Müşteri ve tedarikçi **tek karttır**,
 kategoriyle ayrılır, bakiye tektir.
@@ -17,7 +21,7 @@ G-0b2 (tablo bileşeni), G-0b3 (form bileşenleri)
 ## Şema
 
 ```php
-Schema::create('contacts', function (Blueprint $table) {
+Schema::connection('period')->create('contacts', function (Blueprint $table) {
     $table->id();
     $table->foreignId('company_id')->constrained();
     $table->string('code', 30);
@@ -34,6 +38,7 @@ Schema::create('contacts', function (Blueprint $table) {
     $table->unsignedSmallInteger('term_days')->nullable();
     $table->decimal('risk_limit', 18, 4)->default(0);
     $table->decimal('discount_rate', 7, 4)->default(0);
+    $table->foreignId('price_list_id')->nullable()->constrained('price_lists');
     $table->foreignId('source_company_id')->nullable()->constrained('companies');
     $table->unsignedBigInteger('source_record_id')->nullable();
     $table->boolean('is_active')->default(true);

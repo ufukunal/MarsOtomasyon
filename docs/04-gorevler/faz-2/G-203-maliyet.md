@@ -1,5 +1,9 @@
 # G-203 — Hareketli ortalama ve sapma uyarısı
 
+**Veritabanı: DÖNEM.** Model `PeriodModel`'den türer, `company_id` kolonu
+yoktur, migration `database/migrations/period/` altına yazılır.
+
+
 ## Amaç
 Tek maliyet yöntemi. Geçerli maliyet `product_costs.moving_average`.
 

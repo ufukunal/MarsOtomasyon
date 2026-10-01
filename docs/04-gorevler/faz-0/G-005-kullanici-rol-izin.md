@@ -1,5 +1,7 @@
 # G-005 — Kullanıcı, rol, izin
 
+**Veritabanı: MASTER.** Kullanıcı ve yetki şirket/dönem üstüdür.
+
 ## Amaç
 Yedi rol, ekran bazlı izinler ve `cost.view` özel izni.
 
@@ -39,7 +41,7 @@ Schema::create('company_user', function (Blueprint $table) {
 
 Her ekran için dört izin: `<ekran>.view|create|update|cancel`.
 Faz 0'da yalnızca şu ekranlar için üret:
-`companies`, `users`, `roles`, `periods`, `audit`, `print_profiles`, `company_links`
+`companies`, `users`, `roles`, `periods`, `audit`, `print_profiles`, `company_copy_permissions`
 
 **Ayrıca bağımsız izin:** `cost.view`
 

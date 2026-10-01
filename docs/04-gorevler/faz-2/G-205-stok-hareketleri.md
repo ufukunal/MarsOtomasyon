@@ -1,5 +1,9 @@
 # G-205 — Stok Hareketleri ekranı
 
+**Veritabanı: DÖNEM.** Model `PeriodModel`'den türer, `company_id` kolonu
+yoktur, migration `database/migrations/period/` altına yazılır.
+
+
 ## Amaç
 Bir ürünün ya da lokasyonun tüm hareket geçmişi. Sorun araştırmanın
 başladığı ekran: "bu ürünün stoğu neden 3 kaldı?"

@@ -1,5 +1,8 @@
 # G-006 — Belge numaralandırma
 
+**Veritabanı: DÖNEM.** Her şirket+dönem kendi sayacını tutar; `company_id`
+kolonu yoktur, veritabanı zaten o şirkete aittir.
+
 ## Amaç
 Şirket + belge türü + yıl bazında, **kilitli**, boşluksuz numara üretimi.
 Prototipteki çift numara hatasının çözümü.
@@ -33,12 +36,8 @@ final class GenerateDocumentNumber
     public function handle(string $documentType, ?int $year = null): string
     {
         $year ??= now()->year;
-        $companyId = CompanyContext::id();
-
-        return DB::transaction(function () use ($documentType, $year, $companyId) {
+        return DB::transaction(function () use ($documentType, $year) {
             $series = NumberSeries::query()
-                ->withoutGlobalScopes()
-                ->where('company_id', $companyId)
                 ->where('document_type', $documentType)
                 ->where('year', $year)
                 ->lockForUpdate()
@@ -46,7 +45,6 @@ final class GenerateDocumentNumber
 
             if (! $series) {
                 $series = NumberSeries::create([
-                    'company_id'    => $companyId,
                     'document_type' => $documentType,
                     'prefix'        => config("numbering.prefixes.{$documentType}", 'DOC'),
                     'year'          => $year,

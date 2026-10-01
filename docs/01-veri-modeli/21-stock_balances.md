@@ -1,5 +1,11 @@
 # stock_balances
 
+**Veritabanı: DÖNEM**
+
+`company_id` kolonu **yoktur** — veritabanı zaten o şirkete ve yıla aittir.
+
+
+
 ## Amaç
 
 Anlık bakiye özeti. `stock_movements` toplamından **türetilir**, bağımsız
@@ -8,9 +14,8 @@ gerçek değildir. Hızlı okuma içindir.
 ## Şema
 
 ```php
-Schema::create('stock_balances', function (Blueprint $table) {
+Schema::connection('period')->create('stock_balances', function (Blueprint $table) {
     $table->id();
-    $table->foreignId('company_id')->constrained();
     $table->foreignId('product_id')->constrained();
     $table->foreignId('location_id')->constrained();
 
@@ -20,7 +25,7 @@ Schema::create('stock_balances', function (Blueprint $table) {
     $table->decimal('quarantine', 18, 3)->default(0);          // iade/kontrol bekleyen
 
     $table->timestamps();
-    $table->unique(['company_id','product_id','location_id'], 'stock_balances_unique');
+    $table->unique(['product_id','location_id'], 'stock_balances_unique');
 });
 ```
 

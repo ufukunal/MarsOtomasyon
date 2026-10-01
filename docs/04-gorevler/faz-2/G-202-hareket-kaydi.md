@@ -1,5 +1,9 @@
 # G-202 — RecordStockMovement (tek yazma noktası)
 
+**Veritabanı: DÖNEM.** Model `PeriodModel`'den türer, `company_id` kolonu
+yoktur, migration `database/migrations/period/` altına yazılır.
+
+
 ## Amaç
 
 Stoğa yazan **tek** action. Bütün Faz 2 bunun etrafında kurulur; satış,

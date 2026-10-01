@@ -1,5 +1,11 @@
 # İşlem geçmişi (audit)
 
+**Veritabanı: DÖNEM**
+
+`company_id` kolonu **yoktur** — veritabanı zaten o şirkete ve yıla aittir.
+
+
+
 spatie/laravel-activitylog kullanılır, `activity_log` tablosuna
 `company_id` kolonu eklenir.
 

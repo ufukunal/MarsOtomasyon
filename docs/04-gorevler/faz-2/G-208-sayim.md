@@ -1,5 +1,9 @@
 # G-208 — Stok sayımı
 
+**Veritabanı: DÖNEM.** Model `PeriodModel`'den türer, `company_id` kolonu
+yoktur, migration `database/migrations/period/` altına yazılır.
+
+
 ## Amaç
 Fiziksel sayım ve fark düzeltmesi. **Fark elle onaylanır**, otomatik
 hareket oluşmaz.

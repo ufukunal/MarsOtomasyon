@@ -37,7 +37,7 @@ Projenin iskeleti. Bu faz atlanırsa sonraki her şey yeniden yazılır.
 - Repo, Laravel + Filament kurulumu, ortam ayarları
 - Kimlik doğrulama, kullanıcı, rol, izin (ekran bazlı + `maliyet_gor`)
 - **Şirket modeli ve izolasyon** — global scope, aktif şirket seçici
-- `company_links` — şirketler arası kopyalama izni altyapısı
+- `company_copy_permissions` — şirketler arası kopyalama izni altyapısı
 - `number_series` — kilitli numara üretimi
 - `posting_periods` — dönem kilidi
 - `audit_log` — otomatik kayıt

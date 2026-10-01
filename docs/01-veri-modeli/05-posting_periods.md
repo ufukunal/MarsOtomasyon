@@ -1,5 +1,11 @@
 # posting_periods
 
+**Veritabanı: DÖNEM**
+
+`company_id` kolonu **yoktur** — veritabanı zaten o şirkete ve yıla aittir.
+
+
+
 ## Amaç
 
 Ay bazlı kayıt penceresi. Dönem kapatıldığında o aya kayıt girilemez ve
@@ -11,9 +17,8 @@ kapanmış ayın stok ve kasa rakamları sonradan oynamamalıdır.
 ## Şema
 
 ```php
-Schema::create('posting_periods', function (Blueprint $table) {
+Schema::connection('period')->create('posting_periods', function (Blueprint $table) {
     $table->id();
-    $table->foreignId('company_id')->constrained();
     $table->unsignedSmallInteger('year');
     $table->unsignedTinyInteger('month');        // 1-12
     $table->string('status', 10)->default('open');   // open | closed
@@ -24,7 +29,7 @@ Schema::create('posting_periods', function (Blueprint $table) {
     $table->text('reopen_reason')->nullable();
     $table->timestamps();
 
-    $table->unique(['company_id', 'year', 'month'], 'posting_periods_unique');
+    $table->unique(['year', 'month'], 'posting_periods_unique');
 });
 ```
 

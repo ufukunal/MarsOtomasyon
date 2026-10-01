@@ -2,7 +2,7 @@
 
 ## Kural
 
-Hedef şirkette çalışan kullanıcı, `company_links` tablosunda izin varsa
+Hedef şirkette çalışan kullanıcı, `company_copy_permissions` tablosunda izin varsa
 kaynak şirketin cari veya ürün kartlarını listeler ve **tek tıkla kopyalar**.
 
 Kopyalama **yeni kayıt** oluşturur. Canlı bağ kurulmaz.
@@ -10,7 +10,7 @@ Kopyalama **yeni kayıt** oluşturur. Canlı bağ kurulmaz.
 ## Akış
 
 1. Kullanıcı hedef şirkette "Başka şirketten aktar" ekranını açar
-2. İzinli kaynak şirketler listelenir (`company_links` üzerinden)
+2. İzinli kaynak şirketler listelenir (`company_copy_permissions` üzerinden)
 3. Kaynak seçilir, kartlar listelenir (`withoutGlobalScopes` + elle
    `where company_id = kaynak`)
 4. Seçilen kartlar kopyalanır:
@@ -27,7 +27,7 @@ sonra kullanılır. İzin kontrolü Action'ın ilk satırıdır:
 
 ```php
 abort_unless(
-    CompanyLink::where('source_company_id', $sourceId)
+    CompanyCopyPermission::where('source_company_id', $sourceId)
         ->where('target_company_id', CompanyContext::id())
         ->where('type', $type)
         ->where('is_active', true)

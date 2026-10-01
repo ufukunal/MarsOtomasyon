@@ -1,5 +1,9 @@
 # G-101 — Lokasyonlar
 
+**Veritabanı: DÖNEM.** Model `PeriodModel`'den türer, migration
+`database/migrations/period/` altına yazılır. `company_id` kolonu YOKTUR.
+
+
 ## Amaç
 Stok tutulan yerler: **depo, şube, araç**. Araç sıcak satışta kullanılır.
 

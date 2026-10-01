@@ -1,5 +1,11 @@
 # locations
 
+**Veritabanı: DÖNEM**
+
+`company_id` kolonu **yoktur** — veritabanı zaten o şirkete ve yıla aittir.
+
+
+
 ## Amaç
 Stok tutulan yer. Üç tip: **depo, şube, araç**.
 
@@ -9,9 +15,8 @@ araç deposundan düşer, gün sonunda kalan geri transferle döner.
 ## Şema
 
 ```php
-Schema::create('locations', function (Blueprint $table) {
+Schema::connection('period')->create('locations', function (Blueprint $table) {
     $table->id();
-    $table->foreignId('company_id')->constrained();
     $table->string('code', 20);
     $table->string('name');
     $table->string('kind', 10);              // warehouse | branch | vehicle

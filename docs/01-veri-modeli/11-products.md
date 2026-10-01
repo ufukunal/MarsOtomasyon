@@ -1,5 +1,11 @@
 # products ve yan tabloları
 
+**Veritabanı: DÖNEM**
+
+`company_id` kolonu **yoktur** — veritabanı zaten o şirkete ve yıla aittir.
+
+
+
 ## Amaç
 
 Ürün kartı. **Her varyant ayrı karttır**; varyant grubu ayrı kartları
@@ -8,9 +14,8 @@ tek ürün gibi gösterir.
 ## products
 
 ```php
-Schema::create('products', function (Blueprint $table) {
+Schema::connection('period')->create('products', function (Blueprint $table) {
     $table->id();
-    $table->foreignId('company_id')->constrained();
     $table->string('code', 40);
     $table->string('name');
     $table->text('description')->nullable();
@@ -67,9 +72,8 @@ kartlar varyant olur. Pazaryerlerine şimdilik düz kart gönderilir (A-007).
 ## product_sets
 
 ```php
-Schema::create('product_sets', function (Blueprint $table) {
+Schema::connection('period')->create('product_sets', function (Blueprint $table) {
     $table->id();
-    $table->foreignId('company_id')->constrained();
     $table->foreignId('set_product_id')->constrained('products');
     $table->foreignId('component_product_id')->constrained('products');
     $table->decimal('quantity', 18, 3);
@@ -86,7 +90,8 @@ karşılayamıyorsa set adedi **sıfırdır** ve tüm kanallarda satışa kapan�
 
 ```php
 // config_definitions: id, company_id, product_id, name (Gövde, Kristal, Duy), is_required, sort_order
-// config_options:     id, config_definition_id, component_product_id, label, price_delta decimal(18,4)
+// config_options:     id, config_definition_id, component_product_id, label, sort_order
+//   NOT: fiyat farkı YOK — konfigüratör yalnız ürün özelliklerini tanımlar (A-002)
 ```
 
 Sipariş satırı ürün koduna değil, seçilen bileşenlere bağlanır; satır
