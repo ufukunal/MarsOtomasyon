@@ -1,92 +1,113 @@
 # G-203 — Hareketli ortalama ve sapma uyarısı
 
-**Veritabanı: DÖNEM.** Model `PeriodModel`'den türer, `company_id` kolonu
-yoktur, migration `database/migrations/period/` altına yazılır.
-
+**Veritabanı: DÖNEM.**
 
 ## Amaç
-Tek maliyet yöntemi. Geçerli maliyet `product_costs.moving_average`.
+
+`product_costs.moving_average` alanını tek geçerli maliyet olarak güvenli ve deterministik biçimde güncellemek.
 
 ## Önkoşul
-G-202
 
+G-202.
 
 ## Dokunulacak dosyalar
-- `database/migrations/period/`
 
+- `app/Actions/Stock/UpdateMovingAverage.php`
+- `app/Actions/Stock/CheckPurchaseCostDeviation.php`
+- `tests/Feature/Stock/MovingAverageTest.php`
 
 ## Şema / Kod
 
-Mevcut şema/kod örnekleri aşağıdaki kanonik stok sözleşmesiyle birlikte uygulanır; çelişkide kanonik sözleşme üstündür.
-
-## Formül
+Formül:
 
 ```
-yeni_ortalama = (mevcut_miktar × mevcut_ortalama + giren_miktar × giren_fiyat)
-                ÷ (mevcut_miktar + giren_miktar)
+yeni_ortalama =
+  (mevcut_miktar × mevcut_ortalama + giren_miktar × giren_fiyat)
+  ÷ (mevcut_miktar + giren_miktar)
 ```
 
-`mevcut_miktar` **tüm lokasyonların toplamıdır** — maliyet ürün bazındadır,
-lokasyon bazında değil.
+Tüm değerler string/BCMath:
+
+```php
+final class UpdateMovingAverage
+{
+    public function handle(
+        int $productId,
+        string $incomingQty,
+        string $incomingUnitCost
+    ): string {
+        $cost = ProductCost::query()
+            ->where('product_id', $productId)
+            ->lockForUpdate()
+            ->firstOrCreate(
+                ['product_id' => $productId],
+                ['moving_average' => '0.0000']
+            );
+
+        $currentQty = StockBalance::query()
+            ->where('product_id', $productId)
+            ->sum('quantity'); // DB decimal sonucu string olarak ele alınır
+
+        if (bccomp((string) $currentQty, '0', 3) <= 0) {
+            $newAvg = bcadd($incomingUnitCost, '0', 4);
+        } else {
+            $currentValue = bcmul(
+                (string) $currentQty,
+                (string) $cost->moving_average,
+                4
+            );
+
+            $incomingValue = bcmul($incomingQty, $incomingUnitCost, 4);
+            $newValue = bcadd($currentValue, $incomingValue, 4);
+            $newQty = bcadd((string) $currentQty, $incomingQty, 3);
+
+            $newAvg = bcdiv($newValue, $newQty, 4);
+        }
+
+        $cost->moving_average = $newAvg;
+        $cost->save();
+
+        return $newAvg;
+    }
+}
+```
+
+Not: `RecordStockMovement` içindeki kilit sırası bu action ile uyumlu tutulur. Aynı ürün için farklı kilit sırası oluşturma.
 
 ## Kenar durumlar
 
 | Durum | Davranış |
 |---|---|
-| Stok 0 veya negatif, giriş var | Giren fiyat doğrudan maliyet olur |
-| Çıkış | Ortalama değişmez, çıkış maliyeti o anki ortalama |
-| Transfer | Ortalama değişmez, iki harekete de aynı maliyet |
-| İade (satış) | Ortalama değişmez, karantinaya çıkıştaki maliyetle girer |
-| Üretim mamul girişi | Malzeme maliyeti + fason bedeli / üretilen adet (Faz 8) |
+| Stok 0 veya negatifken giriş | Giren fiyat doğrudan moving average |
+| Çıkış | Ortalama değişmez |
+| Transfer | Ortalama değişmez |
+| Satış iadesi | K-015/Faz 6 karantina akışına göre; bu görev yeni kural üretmez |
+| Opening | Kaynak kapanış moving average kullanılır |
 
-## Sapma uyarısı
+## Alış fiyatı sapma uyarısı
 
-Alış girişinde:
+K-007: varsayılan eşik şirket kartındaki `companies.cost_deviation_threshold` (default 25).
 
-```php
-$threshold = $product->category?->cost_deviation_threshold
-          ?? $company->cost_deviation_threshold;          // varsayılan 25
+Sapma hesabı da BCMath ile yapılır. `moving_average = 0` ise yüzde sapma uyarısı hesaplanmaz.
 
-$avg = $cost->moving_average;
+Uyarı:
 
-if ($avg > 0) {
-    $deviation = abs(($unitCost - $avg) / $avg) * 100;
-    if ($deviation > $threshold) {
-        // ekranda onay iste, devam edilirse activity_log'a yaz
-    }
-}
-```
+- işlemi bloklamaz,
+- kullanıcı devam ederse period activity_log'a kaydedilir,
+- `cost.view` olmayan kullanıcıya mevcut maliyet tutarı sızdırılmaz.
 
-Uyarı metni: *"{kod} ürününün ortalama maliyeti {avg}, girilen fiyat
-{fiyat} (%{sapma} {yüksek/düşük}). Devam edilsin mi?"*
-
-**Engel değil, uyarıdır.** Amaç hatalı giriş yakalamak, iş durdurmak değil.
-
-
-## Kurallar
-
-### Göreve özel kararlar
-- Moving average yalnız giriş hareketlerinde yeni maliyet hesaplar; çıkış o anki ortalama maliyeti taşır.
-- Alış fiyatı ±%25 sapma uyarıdır, blok değil.
-
-
-### Uygulama ayrıntıları
-- Tek maliyet yöntemi hareketli ortalamadır.
-- Giriş hareketi yeni ortalamayı hesaplar; çıkış hareketi mevcut ortalama maliyeti taşır ve ortalamayı değiştirmez.
-- Para/maliyet hesabı Money/BCMath ile string hassasiyetinde yapılır; float kullanılmaz.
-- Alış fiyatı mevcut referansa göre ±%25 saparsa uyarı verilir, işlem bloklanmaz.
+Kategori bazlı ek bir eşik alanı güncel veri modelinde tanımlı değildir; bu görev böyle bir alan **uydurmaz**.
 
 ## Kabul ölçütü
-- 10 adet × 100 ₺ sonra 10 adet × 200 ₺ → ortalama 150 ₺
-- Çıkış sonrası ortalama 150 ₺ kalır
-- Stok 0'ken 5 adet × 300 ₺ → ortalama 300 ₺
-- %30 sapmada uyarı çıkar, %20'de çıkmaz
-- Uyarı geçilince `activity_log`'a düşer
-- Transfer sonrası ortalama değişmez
 
+- 10 × 100 ardından 10 × 200 → 150.0000.
+- Çıkış sonrası 150.0000 kalıyor.
+- Stok 0/negatifken giriş maliyeti doğrudan yeni ortalama oluyor.
+- %30 sapmada uyarı, %20'de uyarı yok (eşik 25).
+- Hesap kodunda float kullanılmıyor.
+- `cost.view` olmayan kullanıcıya maliyet rakamı dönmüyor.
+- Gerçek PostgreSQL concurrency testi geçiyor.
 
 ## İstem
-> UpdateMovingAverage action'ını ve sapma uyarısı kontrolünü yaz.
-> Mevcut miktar tüm lokasyonların toplamı olsun. Stok sıfır veya negatifken
-> giren fiyatı doğrudan maliyet yap. Uyarı engelleyici olmasın, geçilince
-> activity_log'a yazsın.
+
+> UpdateMovingAverage ve alış maliyet sapma kontrolünü bu görevdeki BCMath/string sözleşmesiyle uygula. Kategori eşiği gibi kaynakta olmayan alan ekleme. Şirket eşiğini Master companies.cost_deviation_threshold üzerinden al; cost.view veri sızıntısını engelle.
