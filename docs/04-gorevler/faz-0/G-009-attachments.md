@@ -14,7 +14,7 @@ G-003
 ```php
 Schema::create('attachments', function (Blueprint $table) {
     $table->id();
-    $table->foreignId('company_id')->constrained();
+
     $table->morphs('attachable');
     $table->string('disk', 30)->default('attachments');
     $table->string('path');
@@ -23,9 +23,10 @@ Schema::create('attachments', function (Blueprint $table) {
     $table->unsignedBigInteger('size');
     $table->string('collection', 40)->nullable();
     $table->unsignedSmallInteger('sort_order')->default(0);
-    $table->foreignId('uploaded_by')->constrained('users');
+    $table->unsignedBigInteger('uploaded_by')->nullable();
+    $table->string('uploaded_by_name')->nullable();
     $table->timestamps();
-    $table->index(['company_id','attachable_type','attachable_id'], 'attachments_owner_index');
+    $table->index(['attachable_type','attachable_id'], 'attachments_owner_index');
 });
 ```
 

@@ -28,7 +28,7 @@ Bu görevde aşağıdaki mevcut kod/şema örnekleri normatiftir. Yeni tablo ger
    - Saklama: günlük 7, haftalık 4, aylık 6
 
 2. **Master her yedekte olmalı.** Mastersız dönem veritabanı işe yaramaz —
-   kartlar orada. Yedek betiği tüm dönem veritabanlarını **ve** master'ı alır.
+   kimlik/yetki/dönem meta verisi orada. Yedek betiği tüm dönem veritabanlarını **ve** master'ı alır.
 
 3. Zamanlama (`routes/console.php`):
 ```php

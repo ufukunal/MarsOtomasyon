@@ -306,5 +306,5 @@ public static function allows(int $sourceId, int $targetId, CompanyCopyPermissio
 
 ## İstem
 > company_copy_permissions tablosu için migration, CompanyCopyPermissionType enum'u ve CompanyCopyPermission
-> modelini yaz. Model [GEÇERSİZ-LEGACY-BelongsToCompany] trait'ini KULLANMASIN. allows() statik
+> modelini yaz. Model `MasterModel`'den türesin; şirket global scope/BelongsToCompany kullanmasın. allows() statik
 > yardımcısını ekle. source ve target aynı olamaz kuralını modelde doğrula.

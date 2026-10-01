@@ -2,7 +2,7 @@
 
 **Veritabanı: MASTER**
 
-Şirket üstü tablo; `company_id` taşımaz.
+Master tablosudur; `company_id` burada **geçerli bir ilişki alanıdır** ve dönemin hangi şirkete ait olduğunu gösterir. Bu alan period işletme tablolarındaki şirket izolasyonu kolonu değildir.
 
 
 

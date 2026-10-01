@@ -4,7 +4,7 @@
 kolonu yoktur, veritabanı zaten o şirkete aittir.
 
 ## Amaç
-Şirket + belge türü + yıl bazında, **kilitli**, boşluksuz numara üretimi.
+period DB + belge türü + yıl bazında, **kilitli**, boşluksuz numara üretimi.
 Prototipteki çift numara hatasının çözümü.
 
 ## Önkoşul
@@ -18,14 +18,14 @@ G-003
 ```php
 Schema::create('number_series', function (Blueprint $table) {
     $table->id();
-    $table->foreignId('company_id')->constrained();
+
     $table->string('document_type', 40);
     $table->string('prefix', 10);
     $table->unsignedSmallInteger('year');
     $table->unsignedBigInteger('last_number')->default(0);
     $table->unsignedTinyInteger('padding')->default(5);
     $table->timestamps();
-    $table->unique(['company_id','document_type','year'], 'number_series_unique');
+    $table->unique(['document_type','year'], 'number_series_unique');
 });
 ```
 

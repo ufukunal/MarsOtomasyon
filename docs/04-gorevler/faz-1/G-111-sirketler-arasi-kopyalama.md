@@ -38,8 +38,8 @@ final class CopyRecordsBetweenCompanies
 
         // kaynak kayıtları SADECE burada period_source bağlantısından oku
         $records = $type === CompanyCopyType::Contact
-            ? Contact::/* LEGACY YASAK: period_source bağlantısını kullan */->whereIn('id', $ids)->get()
-            : Product::/* LEGACY YASAK: period_source bağlantısını kullan */->whereIn('id', $ids)->get();
+            ? Contact::on('period_source')->whereIn('id', $ids)->get()
+            : Product::on('period_source')->whereIn('id', $ids)->get();
 
         // her biri için: yeni kayıt, hedef source_* doldur,
         // kod çakışırsa -2 ekle, sonucu raporla
@@ -49,7 +49,7 @@ final class CopyRecordsBetweenCompanies
 
 ## Kurallar
 - İzin kontrolü **ilk satır**; izinsizse 403
-- `/* LEGACY YASAK: period_source bağlantısını kullan */` yalnızca burada kullanılır
+- `on('period_source')` yalnızca burada kullanılır
 - Kopyalanan kayıtta `source_company_id` ve `source_record_id` dolar
 - Bakiye, hareket, belge **kopyalanmaz** — yalnızca kart bilgisi
 - Kod çakışırsa `-2`, `-3` eklenir ve sonuç raporunda bildirilir
@@ -307,5 +307,5 @@ farkı listeler; kullanıcı isterse günceller. **Otomatik güncelleme yoktur.*
 ## İstem
 > CopyRecordsBetweenCompanies action'ını ve "Başka Şirketten Aktar" Livewire
 > ekranını yaz. İzin kontrolü action'ın ilk satırı olsun.
-> withoutGlobalScopes yalnızca izin doğrulandıktan sonra kullanılsın.
+> Kaynak kartları `period_source` bağlantısından oku; `withoutGlobalScopes` veya company_id filtresi kullanma. İzni önce Master `company_copy_permissions` üzerinden doğrula.
 > Kod çakışmasını -2 ekleyerek çöz ve sonuç raporunda bildir.

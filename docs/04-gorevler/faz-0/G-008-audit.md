@@ -22,8 +22,7 @@ Bu görevde aşağıdaki mevcut kod/şema örnekleri normatiftir. Yeni tablo ger
 
 ```php
 Schema::table('activity_log', function (Blueprint $table) {
-    $table->foreignId('company_id')->nullable()->after('id')->constrained();
-    $table->index(['company_id','created_at']);
+    $table->index('created_at');
 });
 ```
 

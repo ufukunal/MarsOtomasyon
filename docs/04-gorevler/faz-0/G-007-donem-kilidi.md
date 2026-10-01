@@ -18,13 +18,15 @@ G-003, G-005
 ```php
 Schema::create('posting_periods', function (Blueprint $table) {
     $table->id();
-    $table->foreignId('company_id')->constrained();
+
     $table->unsignedSmallInteger('year');
     $table->unsignedTinyInteger('month');
     $table->string('status', 10)->default('open');
-    $table->foreignId('closed_by')->nullable()->constrained('users');
+    $table->unsignedBigInteger('closed_by')->nullable();
+    $table->string('closed_by_name')->nullable();
     $table->timestamp('closed_at')->nullable();
-    $table->foreignId('reopened_by')->nullable()->constrained('users');
+    $table->unsignedBigInteger('reopened_by')->nullable();
+    $table->string('reopened_by_name')->nullable();
     $table->timestamp('reopened_at')->nullable();
     $table->text('reopen_reason')->nullable();
     $table->timestamps();
@@ -307,4 +309,4 @@ final class EnsurePeriodOpen
 ## İstem
 > posting_periods tablosu için migration, PostingPeriod modeli,
 > EnsurePeriodOpen action'ı ve PeriodClosedException sınıfını yaz.
-> Model [GEÇERSİZ-LEGACY-BelongsToCompany] trait'ini kullansın. Satırı olmayan ay açık sayılsın.
+> Model `PeriodModel`'den türesin; BelongsToCompany/global scope kullanmasın. Satırı olmayan ay açık sayılsın.

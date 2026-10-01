@@ -27,7 +27,8 @@ Bu bölümdeki mevcut şema örnekleri aşağıdaki kanonik mimari kurallarla bi
 $table->id();
 $table->string('number', 40)->nullable();          // kesinleşince verilir
 $table->date('request_date');
-$table->foreignId('requested_by')->constrained('users');
+$table->unsignedBigInteger('requested_by')->nullable(); // Master user scalar
+$table->string('requested_by_name')->nullable();
 $table->string('department', 60)->nullable();
 $table->date('needed_by')->nullable();
 $table->string('status', 15)->default('draft');     // draft|open|quoted|ordered|cancelled
