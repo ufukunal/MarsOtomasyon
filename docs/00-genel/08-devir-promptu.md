@@ -76,6 +76,17 @@ Master company_copy_permissions. Kaynak period_source. Hedef yeni ID; source_com
 
 Faz 0, 0b, 1, 2 görevleri mevcut G numaraları korunarak yeni standalone standarda yükseltilir. Faz 3 Satış sıradadır ancak repo temizliği bitmeden başlatılmaz. Faz 3 iş kuralı dosyaları 28–31 numaralarını kullanır.
 
-Her görev 300–500 satır hedefler ve şu bölümleri içerir: Amaç, Önkoşul, Dokunulacak dosyalar, Şema/Kod, Kurallar, Kabul ölçütü, İstem. Bir görev tek başına yerel modele verilebilir olmalıdır.
+Her görev şu bölümleri içerir: Amaç, Önkoşul, Dokunulacak dosyalar, Şema/Kod, Kurallar, Kabul ölçütü, İstem. Bir görev tek başına yerel modele verilebilir olmalıdır. **Satır sayısı hedef değildir.** 300–500 satır yalnız iş gerçekten o ayrıntıyı gerektiriyorsa doğal sonuç olabilir. Aynı genel checklist, mimari kural veya test maddesini sırf uzunluk için tekrar etmek yasaktır. Kaynaklarda tanımlanmayan alan, tablo, Action, sınıf, iş kuralı veya test beklentisi uydurulmaz. Eksik karar varsa `[KARAR GEREKİYOR]` yazılır ve kullanıcıya seçenek sunulur.
 
 Açık A kararı yoktur. Yeni iş kararı gerekiyorsa kullanıcıya üç seçenek sun; kendin kapatma.
+
+
+## Anti-halüsinasyon görev kuralı
+
+- Görev dosyası yalnız repo kararları, veri modeli, iş kuralları ve onaylı prototipte desteklenen ayrıntıyı içerebilir.
+- Ortak mimari kurallar her göreve kopyala-yapıştır doldurulmaz; yalnız o görevi doğrudan etkileyen maddeler yazılır.
+- Test listesi yalnız görevin ürettiği davranışları test eder; görevle ilgisiz güvenlik/cache/queue/concurrency maddeleri eklenmez.
+- Aynı kontrol maddesi farklı numaralarla tekrarlanmaz.
+- Bir alanın adı, tipi veya davranışı kaynakta yoksa model tahmin etmez.
+- “Muhtemelen gerekir” türü tahminler şemaya işlenmez; `[KARAR GEREKİYOR]` olarak ayrılır.
+- Claude/yerel model görevi uygularken görev dosyasını genişletip yeni ürün kararı vermez.
