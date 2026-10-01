@@ -44,6 +44,13 @@ Schema::connection('period')->create('document_relations', function (Blueprint $
 
 Liste uygulama enum'u ile yönetilir; sonraki fazlar yeni ilişki tipi ekleyebilir.
 
+## İlişki yönü
+
+- Dönüşüm: `source_document_id = kaynak`, `target_document_id = üretilen belge`.
+- `revision_of`: source = yeni revizyon, target = önceki revizyon.
+- `reversal_of`: source = reversal belge, target = orijinal belge.
+- `collection_source`: source = tahsilat, target = bilgi amaçlı kaynak fatura.
+
 ## Kurallar
 
 - Kaynak ve hedef aynı belge olamaz.

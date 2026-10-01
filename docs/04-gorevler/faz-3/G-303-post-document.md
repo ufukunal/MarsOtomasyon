@@ -28,7 +28,6 @@ Faz 3 profil özeti:
 | sales_invoice / irsaliyeden | yok | yok | debit | yok |
 | sales_invoice / doğrudan | out | varsa consume | debit | yok |
 | collection | yok | yok | credit | in |
-| contact debit/credit | yok | yok | profile yönü | yok |
 
 Teklif, sipariş ve proforma kendi lifecycle Action'larında yönetilir; stok/cari posting etkisi yoktur.
 

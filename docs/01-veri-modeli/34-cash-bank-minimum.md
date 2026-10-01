@@ -55,6 +55,7 @@ Schema::connection('period')->create('cash_movements', function (Blueprint $tabl
     $table->timestamps();
 
     $table->index(['cash_account_id','movement_date']);
+    $table->unique('document_id');
 });
 ```
 
@@ -78,8 +79,14 @@ Schema::connection('period')->create('bank_movements', function (Blueprint $tabl
     $table->timestamps();
 
     $table->index(['bank_account_id','movement_date']);
+    $table->unique('document_id');
 });
 ```
+
+## CHECK
+
+- movement amount > 0
+- direction in ('in','out')
 
 ## Faz 3 sınırı
 

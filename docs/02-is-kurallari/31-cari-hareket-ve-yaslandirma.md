@@ -57,10 +57,12 @@ Bu:
 
 Amaç muhasebe settlement'ı değil **bilgilendirme**dir.
 
-1. Debit/borç doğuran hareketler due_date + transaction_date sırasına dizilir.
-2. Credit hareket toplamı en eski borçtan başlayarak uygulanmış kabul edilir.
-3. Dağıtım runtime rapor hesabıdır; DB'ye fatura tahsilat eşleştirmesi yazılmaz.
-4. Kalan her borç satırı vade gecikmesine göre dilime düşer.
+1. Raporun "as of" tarihinden sonraki hareketler hesaba katılmaz.
+2. Debit/borç doğuran hareketler due_date + transaction_date + id sırasına dizilir.
+3. Credit hareket toplamı en eski borçtan başlayarak uygulanmış kabul edilir.
+4. Dağıtım runtime rapor hesabıdır; DB'ye fatura tahsilat eşleştirmesi yazılmaz.
+5. Kalan her borç satırı vade gecikmesine göre dilime düşer.
+6. Credit toplamı debit toplamını aşarsa açık alacak 0'dır; fazla credit ayrı "cari alacak/avans" bilgisi olarak gösterilir.
 
 Dilimler:
 
@@ -107,6 +109,6 @@ Diğer açık siparişler resmî bakiyeye katılmaz. Limit aşımı uyarıdır, 
 - contact_transactions toplamı raporlanan bakiye ile eşleşir,
 - document_id bağlı satış faturası/tahsilat için tek hareket bulunur,
 - reversal zinciri çift uygulanmaz,
-- yaşlandırma runtime sonucu bakiye toplamıyla tutarlı olmalıdır.
+- yaşlandırma kalan debit toplamı `max(cari bakiye, 0)` ile tutarlı olmalıdır; negatif bakiye excess credit olarak ayrıca gösterilir.
 
 Otomatik düzeltme yapılmaz.

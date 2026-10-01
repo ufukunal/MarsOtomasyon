@@ -7,8 +7,10 @@ Kısmi sevk ve kısmi fatura kaynak satırların child satırları üzerinden iz
 ```
 ordered   = source line.quantity
 cancelled = source line.cancelled_quantity
-shipped   = order line'i source_line_id olarak gösteren posted dispatch line toplamı
-direct_invoiced = order line'i source_line_id olarak gösteren doğrudan invoice line toplamı
+shipped   = order line'i source_line_id olarak gösteren ETKİN posted dispatch line toplamı
+direct_invoiced = order line'i source_line_id olarak gösteren ETKİN doğrudan invoice line toplamı
+
+ETKİN = kendisini hedef alan bir `reversal_of` ilişkisi bulunmayan belge.
 
 kalan sevk = ordered - cancelled - shipped - direct_invoiced
 ```
@@ -58,7 +60,7 @@ Bir fatura aynı cariye ait birden fazla irsaliyeyi birleştirebilir; K-076 gere
 Faturalanabilir irsaliye miktarı:
 
 ```
-dispatch quantity - posted invoice child line toplamı
+dispatch quantity - etkin posted invoice child line toplamı
 ```
 
 ## Belge ilişkileri
@@ -90,7 +92,7 @@ Sevk/fatura oluşturma sırasında kaynak satır ve ilgili rezervler transaction
 
 ## integrity:partials
 
-- child toplamları kaynak miktarı aşmamalı,
+- yalnız etkin child toplamları kaynak miktarı aşmamalı,
 - cancelled + fulfilled toplamı quantity'yi aşmamalı,
 - aynı dispatch miktarı toplam invoice miktarından küçük olmamalı,
 - closed siparişte kullanılabilir kalan 0 olmalı.

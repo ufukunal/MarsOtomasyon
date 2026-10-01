@@ -72,7 +72,7 @@ Tek transaction:
 1. idempotency
 2. EnsurePeriodOpen
 3. GenerateDocumentNumber('collection')
-4. `documents` collection başlığı oluştur; grand_total = amount
+4. `documents` collection başlığı oluştur; subtotal = tax_base = grand_total = amount, vat_amount = 0, rounding_difference = 0
 5. `contact_transactions` credit
 6. cash ise `cash_movements.in`; bank ise `bank_movements.in`
 7. source invoice verilmişse yalnız bilgi amaçlı `collection_source` relation
@@ -98,7 +98,7 @@ Tek adım form input'u:
 Posting sırasında:
 
 - `contact_debit_credit` number series kullan,
-- documents satırı oluştur,
+- documents satırı oluştur; subtotal = tax_base = grand_total = amount, vat_amount = 0,
 - direction yalnız üretilen contact_transaction'da gerçek finansal yön olarak saklanır,
 - gerekçe period audit'e yazılır.
 
@@ -116,11 +116,12 @@ contacts üzerinde balance kolonu yok. Cache yok.
 
 `BuildContactAging` DB'ye settlement yazmaz.
 
-1. borç/debit hareketlerini due_date, transaction_date, id sırasına koy,
-2. toplam credit'i en eski borçtan başlat,
-3. her satır için applied_credit ve remaining runtime hesapla,
-4. due_date'e göre bucket ata,
-5. renk ata:
+1. rapor as_of tarihinden sonraki hareketleri dışarıda bırak,
+2. borç/debit hareketlerini due_date, transaction_date, id sırasına koy,
+3. toplam credit'i en eski borçtan başlat,
+4. her satır için applied_credit ve remaining runtime hesapla,
+5. due_date'e göre bucket ata,
+6. renk ata:
    - green: remaining = 0
    - yellow: 0 < remaining < original
    - red: applied_credit = 0
@@ -134,7 +135,7 @@ Dilimler:
 - 91-120
 - 120+
 
-Satır remaining toplamı cari açık borç bakiyesiyle tutarlı olmalı.
+Satır remaining toplamı `max(cari bakiye, 0)` ile tutarlı olmalı. Credit fazlası varsa açık alacak 0, fazla credit ayrı cari alacak/avans olarak gösterilir.
 
 ## Minimum kasa/banka
 

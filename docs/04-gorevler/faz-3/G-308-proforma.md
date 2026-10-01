@@ -60,7 +60,7 @@ Tek transaction:
 4. header/lines snapshot kopyala,
 5. source_line_id bağlantıları,
 6. document relation kaynağa göre yaz,
-7. status = posted/final immutable durum,
+7. status = `posted`, posted_at ve actor snapshot,
 8. audit.
 
 **Stock, reservation veya contact_transaction yazılmaz.**
