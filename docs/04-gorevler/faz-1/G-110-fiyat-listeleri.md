@@ -5,6 +5,9 @@
 
 
 
+## Önkoşul
+G-106 (ürün kartı)
+
 ## Dokunulacak dosyalar
 - `database/migrations/period/`
 

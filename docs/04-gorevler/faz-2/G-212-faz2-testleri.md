@@ -1,6 +1,9 @@
 # G-212 — Faz 2 testleri
 
 
+## Önkoşul
+Faz 2 içindeki G-201…G-211
+
 ## Dokunulacak dosyalar
 - Görevde tarif edilen migration/model/action/Livewire/test dosyaları; kapsam dışına çıkma.
 

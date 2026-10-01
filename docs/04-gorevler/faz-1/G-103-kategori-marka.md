@@ -5,6 +5,9 @@
 
 
 
+## Önkoşul
+G-0b2 (tablo bileşeni)
+
 ## Dokunulacak dosyalar
 - `database/migrations/period/`
 

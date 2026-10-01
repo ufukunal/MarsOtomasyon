@@ -5,6 +5,9 @@
 
 
 
+## Önkoşul
+G-104 (cari kartı)
+
 ## Dokunulacak dosyalar
 - `database/migrations/period/`
 

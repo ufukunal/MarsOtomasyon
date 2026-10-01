@@ -1,6 +1,9 @@
 # G-114 — Faz 1 testleri
 
 
+## Önkoşul
+Faz 1 içindeki G-101…G-113 ve G-115
+
 ## Dokunulacak dosyalar
 - Görevde tarif edilen migration/model/action/Livewire/test dosyaları; kapsam dışına çıkma.
 
