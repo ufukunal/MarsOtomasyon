@@ -94,6 +94,7 @@ php artisan db:seed
 psql -l | grep -E "ABCHolding_2026|XYZltd_2026"   # ikisi de var
 ```
 - Aynı şirket+yıl ikinci kez oluşturulamıyor
+- Company/Period düzenlemede stale `version` reddediliyor
 - `db_prefix` değiştirilmeye çalışılınca reddediliyor
 
 
@@ -101,4 +102,4 @@ psql -l | grep -E "ABCHolding_2026|XYZltd_2026"   # ikisi de var
 > companies ve periods tabloları için master migration'larını, Company ve
 > Period modellerini, CreatePeriod action'ını ve CompanySeeder'ı yaz.
 > Şemaları belirtilen dosyalardan birebir al. CreatePeriod veritabanını
-> oluşturup migration çalıştırsın, hata durumunu try/catch ile ele alsın.
+> oluşturup migration çalıştırsın, hata durumunu try/catch/telafi temizliği ile ele alsın. Company ve Period düzenlemelerini `version` optimistic lock ile koru.

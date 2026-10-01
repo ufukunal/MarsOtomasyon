@@ -21,6 +21,7 @@ Schema::connection('master')->create('print_profiles', function (Blueprint $tabl
 
     $table->unsignedBigInteger('template_id')->nullable();
     $table->jsonb('settings')->nullable(); // dpi, gap, darkness vb. taşıyıcı/cihaz özel
+    $table->unsignedInteger('version')->default(1);
     $table->timestamps();
 
     $table->unique(
@@ -43,3 +44,5 @@ Schema::connection('master')->create('print_profiles', function (Blueprint $tabl
 - K-066: temel etiket ölçüsü string parse edilmez; `width_mm` ve `height_mm` kullanılır.
 - `printer_name` yalnız fiziksel cihaz eşlemesi.
 - ZPL/ESC-POS/PDF gibi taşıyıcı ayrıntısı `PrintManager` arkasındadır.
+
+- Profil düzenleme `version` optimistic lock ile korunur.

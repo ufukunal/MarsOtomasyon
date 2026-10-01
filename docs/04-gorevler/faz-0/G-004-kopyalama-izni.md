@@ -72,6 +72,7 @@ public static function allows(int $sourceId, int $targetId, CompanyCopyPermissio
 - Kaynak ve hedef aynı şirket olamaz kuralı migration CHECK veya Action doğrulamasıyla açıkça korunur.
 
 ## Kabul ölçütü
+- `company_copy_permissions` kaydı `version` optimistic lock ile düzenleniyor.
 - İzin yokken `allows()` false döner
 - Aynı üçlü ikinci kez eklenemez (unique hatası)
 - `source === target` kaydı reddedilir

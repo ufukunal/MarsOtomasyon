@@ -37,6 +37,10 @@ Master ve period arasında gerçek FK kurulmaz. Period kaydındaki actor alanlar
 
 İş tarihi gereken belgede `document_date` kullanılır. `created_at` sistem kayıt zamanıdır. Dönem kilidi `document_date` üzerinden çalışır.
 
+## Eşzamanlı düzenleme
+
+Kullanıcı tarafından düzenlenebilir ana kayıtlar `version unsignedInteger default(1)` taşır ve optimistic lock kullanır. Append-only hareket/audit tabloları, yalnız türetilmiş bakiye tabloları ve saf pivot/join tabloları bu `version` zorunluluğunun dışındadır; bunların bütünlüğü transaction/FK/lock/integrity kurallarıyla korunur.
+
 ## Değişmezlik
 
 Posted/kesinleşmiş hareket ve belge fiziksel silinmez/değiştirilmez; ters kayıt kullanılır. Kartlar `is_active=false` ile pasifleştirilir. Taslak belge numara almadan fiziksel silinebilir.

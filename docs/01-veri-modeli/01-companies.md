@@ -29,16 +29,18 @@ Schema::connection('master')->create('companies', function (Blueprint $table) {
     $table->decimal('cost_deviation_threshold', 7, 4)->default(25);
     $table->char('base_currency', 3)->default('TRY');
     $table->boolean('is_active')->default(true);
+    $table->unsignedInteger('version')->default(1);
     $table->timestamps();
 });
 
-// Şirketler arası kart kopyalama izni (eski company_copy_permissions)
+// Şirketler arası kart kopyalama izni — kanonik Master tablosu
 Schema::connection('master')->create('company_copy_permissions', function (Blueprint $table) {
     $table->id();
     $table->foreignId('source_company_id')->constrained('companies');
     $table->foreignId('target_company_id')->constrained('companies');
     $table->string('type', 20);                 // contact | product
     $table->boolean('is_active')->default(true);
+    $table->unsignedInteger('version')->default(1);
     $table->timestamps();
     $table->unique(['source_company_id','target_company_id','type'], 'ccp_unique');
 });

@@ -115,6 +115,7 @@ Uygulamanın hiçbir yerinden doğrudan yazıcıya erişilmez.
 - Uygulama yazıcıya doğrudan erişmez; tek giriş `PrintManager::send()` olur.
 
 ## Kabul ölçütü
+- Print profile stale `version` ile overwrite edilemiyor.
 - Profil çözümleme doğru sırayla çalışır (kullanıcı+makine → kullanıcı → şirket)
 - Profil yoksa sistem varsayılanı döner, hata vermez
 - `BrowserDriver` PDF üretir

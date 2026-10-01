@@ -23,6 +23,7 @@ Schema::connection('master')->create('periods', function (Blueprint $table) {
     $table->foreignId('carried_from_period_id')->nullable()->constrained('periods');
     $table->timestamp('carried_at')->nullable();        // devir yapıldı mı
     $table->timestamp('closed_at')->nullable();
+    $table->unsignedInteger('version')->default(1);
     $table->timestamps();
     $table->unique(['company_id','year']);
 });
