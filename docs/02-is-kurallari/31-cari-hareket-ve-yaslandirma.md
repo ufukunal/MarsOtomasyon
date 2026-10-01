@@ -58,11 +58,12 @@ Bu:
 Amaç muhasebe settlement'ı değil **bilgilendirme**dir.
 
 1. Raporun "as of" tarihinden sonraki hareketler hesaba katılmaz.
-2. Debit/borç doğuran hareketler due_date + transaction_date + id sırasına dizilir.
-3. Credit hareket toplamı en eski borçtan başlayarak uygulanmış kabul edilir.
-4. Dağıtım runtime rapor hesabıdır; DB'ye fatura tahsilat eşleştirmesi yazılmaz.
-5. Kalan her borç satırı vade gecikmesine göre dilime düşer.
-6. Credit toplamı debit toplamını aşarsa açık alacak 0'dır; fazla credit ayrı "cari alacak/avans" bilgisi olarak gösterilir.
+2. `reversal_of_id` ile bağlı exact inverse çiftler önce normalize edilir ve aging dağıtımından birlikte çıkarılır. Reversed invoice credit'i başka bir faturayı kapatmaz; reversed collection debit'i yeni açık borç satırı yaratmaz.
+3. Kalan debit/borç hareketleri `COALESCE(due_date, transaction_date) + transaction_date + id` sırasına dizilir.
+4. Kalan credit hareket toplamı en eski borçtan başlayarak uygulanmış kabul edilir.
+5. Dağıtım runtime rapor hesabıdır; DB'ye fatura tahsilat eşleştirmesi yazılmaz.
+6. Kalan her borç satırı vade gecikmesine göre dilime düşer.
+7. Credit toplamı debit toplamını aşarsa açık alacak 0'dır; fazla credit ayrı "cari alacak/avans" bilgisi olarak gösterilir.
 
 Dilimler:
 
@@ -108,7 +109,7 @@ Diğer açık siparişler resmî bakiyeye katılmaz. Limit aşımı uyarıdır, 
 
 - contact_transactions toplamı raporlanan bakiye ile eşleşir,
 - document_id bağlı satış faturası/tahsilat için tek hareket bulunur,
-- reversal zinciri çift uygulanmaz,
+- reversal zinciri çift uygulanmaz; exact inverse reversal çiftleri aging FIFO dağıtımına girmeden nötrlenir,
 - yaşlandırma kalan debit toplamı `max(cari bakiye, 0)` ile tutarlı olmalıdır; negatif bakiye excess credit olarak ayrıca gösterilir.
 
 Otomatik düzeltme yapılmaz.

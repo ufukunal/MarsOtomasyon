@@ -73,10 +73,11 @@ Stok bakiyesi gibi cari bakiyesi de cache edilmez.
 
 Yaşlandırma raporlamada sanal FIFO uygular:
 
-1. Borç doğuran açık hareketler `due_date` sırasına dizilir.
-2. Cariyi azaltan kesinleşmiş hareketler en eski borçtan başlayarak sanal mahsup edilir.
-3. Sonuç DB'ye fatura eşleştirmesi olarak yazılmaz.
-4. Satır rengi: yeşil=tam kapanmış, sarı=kısmi, kırmızı=hiç kapanmamış.
+1. Önce `reversal_of_id` ile birbirine bağlı **tam ters hareket çiftleri** normalize edilir: orijinal hareket ve onu birebir tersleyen hareket aging setinden birlikte çıkarılır. Böylece terslenmiş fatura credit'i başka eski faturayı FIFO ile kapatmış görünmez; terslenmiş tahsilat da yeni borç satırı gibi yaşlandırılmaz.
+2. Kalan borç doğuran hareketler `COALESCE(due_date, transaction_date)`, ardından `transaction_date`, ardından `id` sırasına dizilir.
+3. Kalan cari azaltıcı kesinleşmiş credit hareketler en eski borçtan başlayarak sanal mahsup edilir.
+4. Sonuç DB'ye fatura eşleştirmesi olarak yazılmaz.
+5. Satır rengi: yeşil=tam kapanmış, sarı=kısmi, kırmızı=hiç kapanmamış.
 
 Dilimler: vadesi gelmemiş, 1–30, 31–60, 61–90, 91–120, 120+.
 

@@ -55,6 +55,8 @@ Form yalnız `Post` ile kalıcı hareket üretir. Ayrı kaydedilmiş draft colle
 
 ## PostCollection
 
+`PostCollection` bir **finance façade**'ıdır; G-303 posting zincirini kopyalamaz. Form input'unu doğrular, collection document verisini ve cash/bank account context'ini hazırlar, ardından kesinleştirmeyi `PostDocument`a delege eder.
+
 Input:
 
 - contact_id
@@ -67,17 +69,13 @@ Input:
 - idempotency_key
 - actor snapshot
 
-Tek transaction:
+Kesinleştirme:
 
-1. idempotency
-2. EnsurePeriodOpen
-3. GenerateDocumentNumber('collection')
-4. `documents` collection başlığı oluştur; subtotal = tax_base = grand_total = amount, vat_amount = 0, rounding_difference = 0
-5. `contact_transactions` credit
-6. cash ise `cash_movements.in`; bank ise `bank_movements.in`
-7. source invoice verilmişse yalnız bilgi amaçlı `collection_source` relation
-8. post-write verify: üç tutar aynı
-9. activity_log
+1. `PostCollection` account_type/account_id, contact, amount ve optional source invoice doğrulamasını yapar.
+2. Collection document başlığı `subtotal = tax_base = grand_total = amount`, `vat_amount = 0`, `rounding_difference = 0` olacak şekilde G-303'e verilir.
+3. `PostDocument` idempotency, period lock, number series, `contact_transactions.credit`, cash/bank movement, posted actor, verify ve audit adımlarının **tek sahibidir**.
+4. source invoice verilmişse `collection_source` relation bilgi amaçlı yazılır.
+5. Wrapper Action ayrı ikinci transaction veya ikinci contact/cash/bank hareketi yazmaz.
 
 Tahsilat herhangi bir faturaya zorunlu dağıtılmaz.
 
@@ -95,12 +93,13 @@ Tek adım form input'u:
 - note
 - idempotency key
 
-Posting sırasında:
+Posting sırasında wrapper input'u doğrular ve G-303'e delege eder:
 
-- `contact_debit_credit` number series kullan,
-- documents satırı oluştur; subtotal = tax_base = grand_total = amount, vat_amount = 0,
-- direction yalnız üretilen contact_transaction'da gerçek finansal yön olarak saklanır,
-- gerekçe period audit'e yazılır.
+- `contact_debit_credit` number series kullanılır,
+- documents satırı `subtotal = tax_base = grand_total = amount`, `vat_amount = 0` ile kesinleşir,
+- direction yalnız üretilen `contact_transactions` kaydında finansal yön olarak saklanır,
+- gerekçe period audit'e yazılır,
+- contact transaction/numara/audit zinciri wrapper içinde ikinci kez yazılmaz.
 
 Ayrı draft yön alanı için yeni tablo/kolon uydurma.
 
@@ -117,11 +116,12 @@ contacts üzerinde balance kolonu yok. Cache yok.
 `BuildContactAging` DB'ye settlement yazmaz.
 
 1. rapor as_of tarihinden sonraki hareketleri dışarıda bırak,
-2. borç/debit hareketlerini due_date, transaction_date, id sırasına koy,
-3. toplam credit'i en eski borçtan başlat,
-4. her satır için applied_credit ve remaining runtime hesapla,
-5. due_date'e göre bucket ata,
-6. renk ata:
+2. `reversal_of_id` ile bağlı exact inverse çiftleri aging setinden birlikte nötrle,
+3. kalan borç/debit hareketlerini `COALESCE(due_date, transaction_date)`, transaction_date, id sırasına koy,
+4. kalan toplam credit'i en eski borçtan başlat,
+5. her satır için applied_credit ve remaining runtime hesapla,
+6. effective due date'e göre bucket ata,
+7. renk ata:
    - green: remaining = 0
    - yellow: 0 < remaining < original
    - red: applied_credit = 0
@@ -168,6 +168,8 @@ Virman, ekstre, mutabakat, kasa sayımı, çek/senet Faz 5.
 - Aging DB'ye settlement yazmıyor.
 - Tam kapanan satır green, kısmi yellow, hiç kapanmayan red.
 - FIFO en eski borcu önce kapatıyor.
+- Reversed invoice başka eski borcu FIFO ile kapatmıyor; original+reversal aging setinde nötr.
+- Reversed collection yeni açık debit satırı gibi yaşlandırılmıyor.
 - Aging toplamı cari bakiye ile tutarlı.
 - Gerçek PostgreSQL testleri geçiyor.
 

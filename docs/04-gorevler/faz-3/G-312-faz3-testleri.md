@@ -91,9 +91,12 @@ SQLite kullanılmaz.
 
 - contact balance hareket toplamı.
 - collection cash/bank movement.
+- collection wrapper G-303 posting zincirini ikinci kez çalıştırmıyor; tek contact ve tek cash/bank movement oluşuyor.
 - invoice settlement zorunlu değil.
 - manual debit/credit gerekçeli.
 - FIFO aging.
+- exact inverse invoice reversal çifti aging FIFO'ya dağıtılmadan nötrleniyor.
+- reversed collection debit'i yeni aging borcu üretmiyor.
 - green/yellow/red renk sonucu.
 - aging remaining toplamı cari bakiye ile tutarlı.
 

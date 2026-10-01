@@ -20,6 +20,8 @@ G-301, G-302, G-006, G-007, G-018, G-202, G-210.
 
 `PostDocument` document type için etkileri profile üzerinden çözer; Livewire içinde switch yazılmaz.
 
+**Tek posting sahibi:** `PostDispatch`, `PostSalesInvoice`, `PostCollection` gibi belgeye özel Action'lar yalnız kendi input/permission/source doğrulamasını ve typed posting context hazırlığını yapar; stok/cari/kasa-banka yan etkilerini kendi transaction'larında tekrar yazmaz. Kesinleştirme transaction'ının tek sahibi `PostDocument`dır.
+
 Faz 3 profil özeti:
 
 | Tür | stok | rezerv | cari | kasa/banka |
@@ -94,6 +96,7 @@ Farkta transaction rollback.
 ## Kurallar
 
 - Tüm posting etkileri tek period transaction içinde.
+- Belgeye özel wrapper Action aynı stock/contact/cash-bank posting zincirini yeniden implement etmez; `PostDocument`a delege eder.
 - Idempotency ve deterministic lock sırası zorunlu.
 - Belge tipinin üretmediği etki yazılmaz.
 - Verify başarısızsa commit yok.
@@ -106,6 +109,7 @@ Farkta transaction rollback.
 - Dispatch stok düşürüyor, cari yazmıyor.
 - Dispatch kaynaklı invoice cari yazıyor, stok yazmıyor.
 - Direct invoice hem stok hem cari yazıyor.
+- PostCollection/PostDispatch/PostSalesInvoice wrapper'ları posting yan etkilerini ikinci kez yazmıyor.
 - Verify kasıtlı bozulan senaryoda rollback ediyor.
 - Deadlock retry çift etki üretmiyor.
 - Gerçek PostgreSQL testleri geçiyor.

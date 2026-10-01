@@ -80,7 +80,7 @@ Orijinal collection:
 
 Reversal:
 
-- contact debit,
+- contact debit ve `reversal_of_id = original_contact_transaction.id`,
 - aynı hesaba cash/bank out,
 - orijinal hareket silinmez.
 
@@ -93,7 +93,7 @@ Reversal yeni bir `documents` kaydıdır ve kendi numarasını transaction için
 `VerifyReversal`:
 
 - reversal total = original total,
-- cari yönü tam ters,
+- cari yönü tam ters ve contact reversal kaydı `reversal_of_id` ile orijinal harekete bağlı,
 - stok etkisi olan original için aynı base_quantity ters yön,
 - cash/bank collection için aynı hesap ve tutar ters yön,
 - ikinci reversal ilişkisi yok.
