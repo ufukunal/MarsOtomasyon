@@ -11,12 +11,14 @@ Kalıcı ayrı `company` bağlantısı **yoktur**; kartlar period DB'dedir.
 ## PeriodContext
 
 Web isteğinde:
-1. aktif company + period seçimi Master'dan alınır,
-2. company_user erişimi kontrol edilir,
-3. period_user_access erişimi kontrol edilir,
-4. periods.database_name bulunur,
-5. `database.connections.period.database` atanır,
+1. aktif `company_id + period_id` seçimi Master'dan alınır,
+2. `periods.id = period_id` kaydının aynı `company_id`'ye ait olduğu doğrulanır,
+3. `company_user` erişimi kontrol edilir,
+4. `period_user_access` erişimi kontrol edilir,
+5. ancak bundan sonra `periods.database_name` aktif `period` bağlantısına atanır,
 6. `DB::purge('period')` + reconnect yapılır.
+
+`PeriodContext::use(companyId, periodId)` bağlantı kurar; kullanıcıya ait erişim doğrulaması user-facing middleware/Action tarafından **çağrıdan önce** yapılır. System/queue işleri yalnız daha önce doğrulanmış şirket+dönem bağlamıyla çağırır.
 
 PeriodContext olmadan PeriodModel sorgusu fail-fast hata vermelidir.
 

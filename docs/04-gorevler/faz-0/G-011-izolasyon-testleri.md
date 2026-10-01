@@ -23,8 +23,8 @@ Bu görevde aşağıdaki mevcut kod/şema örnekleri normatiftir. Yeni tablo ger
 ## Yazılacak testler
 
 ### 0. Bağlantı değişimi
-- `PeriodContext::use(A, 2026)` sonrası dönem sorguları `ABCHolding_2026`'ya gidiyor
-- `use(B, 2026)` sonrası `XYZltd_2026`'ya gidiyor
+- `PeriodContext::use(A, periodA.id)` sonrası dönem sorguları `ABCHolding_2026`'ya gidiyor
+- `use(B, periodB.id)` sonrası `XYZltd_2026`'ya gidiyor
 - Dönem seçilmeden dönem modeline erişim `NoActivePeriodException`
 
 ### 1. Fiziksel period izolasyonu

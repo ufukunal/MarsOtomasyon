@@ -46,7 +46,7 @@ final class CreatePeriod
             'status'        => 'active',
         ]);
 
-        PeriodContext::use($company->id, $year);
+        PeriodContext::use($company->id, $period->id);
         Artisan::call('migrate', [
             '--database' => 'period',
             '--path'     => 'database/migrations/period',
@@ -58,13 +58,10 @@ final class CreatePeriod
 }
 ```
 
-**Dikkat:** `CREATE DATABASE` transaction içinde çalışmaz. Migration
-başarısız olursa oluşan veritabanı elle silinmelidir; action bunu
-`try/catch` ile ele alır ve kullanıcıya bildirir.
+**Dikkat:** `CREATE DATABASE` transaction içinde çalışmaz. Migration başarısız olursa action oluşturduğu `periods` kaydını ve henüz işletme verisi almamış hedef DB'yi `try/catch` telafi adımıyla temizler; yarım period kaydı bırakmaz.
 
 ## Model kuralları
-- `Company` ve `Period` → `protected $connection = 'master'`
-  (bunlar `MasterModel`'den türemez, çünkü `company_id` taşımazlar)
+- `Company` ve `Period` → `MasterModel`'den türer; ikisi de `master` bağlantısını kullanır. `periods.company_id` Master içi geçerli FK'dir ve global scope amacıyla kullanılmaz.
 - `db_prefix` kayıt sonrası salt okunur; yalnızca harf, rakam, alt çizgi
 - `Period::databaseName()` → `{db_prefix}_{year}`
 

@@ -38,8 +38,7 @@ Schema::connection('master')->create('periods', function (Blueprint $table) {
 
 ## Kurallar
 
-- Dönem oluşturma: veritabanı yaratılır, migration çalıştırılır,
-  `periods` satırı eklenir — hepsi tek işlemde
+- Dönem oluşturma tek bir **orkestrasyon** işlemidir; PostgreSQL `CREATE DATABASE` transaction içine alınamadığı için DB oluşturma + `periods` kaydı + period migration adımları `try/catch` ve telafi temizliğiyle yönetilir
 - Kapalı döneme kayıt girilemez (veritabanı seviyesinde salt okunur
   kullanıcıyla da desteklenebilir)
 - Devir yapılmadan yeni dönemde açılış bakiyesi olmaz;
@@ -66,7 +65,7 @@ final class CreatePeriod
             'status'        => 'active',
         ]);
 
-        PeriodContext::use($company->id, $year);
+        PeriodContext::use($company->id, $period->id);
         Artisan::call('migrate', ['--database' => 'period', '--path' => 'database/migrations/period', '--force' => true]);
 
         return $period;
@@ -74,5 +73,4 @@ final class CreatePeriod
 }
 ```
 
-**Not:** `CREATE DATABASE` transaction içinde çalışmaz. Hata durumunda
-oluşan veritabanı elle silinmelidir; action bunu `try/catch` ile ele alır.
+**Not:** `CREATE DATABASE` transaction içinde çalışmaz. Period satırı veya migration adımı başarısız olursa action oluşturduğu period kaydını ve henüz işletme verisi almamış hedef DB'yi kontrollü telafi temizliğiyle kaldırır; yarım dönem aktif bırakılmaz.

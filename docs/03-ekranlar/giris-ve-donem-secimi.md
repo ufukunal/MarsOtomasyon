@@ -12,7 +12,8 @@ bağlantısı ancak seçim yapıldıktan sonra kurulur.
 1. Giriş: e-posta + parola
 2. Şirket seçimi — yalnızca company_user'da bağlı olduğu şirketler
 3. Dönem seçimi — o şirketin periods kayıtları
-4. PeriodContext::use($companyId, $year) → bağlantı kurulur
+4. company_user + period_user_access doğrulanır
+5. PeriodContext::use($companyId, $periodId) → bağlantı kurulur
 5. Ana sayfaya yönlendirme
 ```
 
@@ -38,10 +39,10 @@ salt okunur, uyarı gösterilir · `archived` seçilemez, "önce geri yükleyin"
 
 ## Etki zinciri — "Devam"
 ```
- → yetki kontrolü (company_user)
+ → yetki kontrolü (company_user + period_user_access)
+ → period kaydının seçilen şirkete ait olduğu doğrulanır
  → dönem durumu kontrolü
- → PeriodContext::use() → config + DB::purge + DB::reconnect
- → company_user + period_user_access doğrulanır
+ → PeriodContext::use(company_id, period_id) → config + DB::purge + DB::reconnect
  → session'a company_id, period_id ve year
  → users.last_company_id + users.last_period_id güncellenir
  → activity_log (master)

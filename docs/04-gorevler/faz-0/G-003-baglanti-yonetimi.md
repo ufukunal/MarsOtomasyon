@@ -53,28 +53,33 @@ namespace App\Support\Period;
 
 final class PeriodContext
 {
-    public static function use(int $companyId, int $year): Period
+    public static function use(int $companyId, int $periodId): Period
     {
         $period = Period::on('master')
+            ->whereKey($periodId)
             ->where('company_id', $companyId)
-            ->where('year', $year)
             ->firstOrFail();
 
         config(['database.connections.period.database' => $period->database_name]);
         DB::purge('period');
         DB::reconnect('period');
 
-        session(['active_company_id' => $companyId, 'active_year' => $year]);
+        session([
+            'active_company_id' => $companyId,
+            'active_period_id' => $period->id,
+            'active_year' => $period->year,
+        ]);
 
         return $period;
     }
 
     public static function companyId(): ?int { return session('active_company_id'); }
+    public static function periodId(): ?int  { return session('active_period_id'); }
     public static function year(): ?int      { return session('active_year'); }
 
     public static function ensure(): void
     {
-        if (! self::companyId() || ! self::year()) {
+        if (! self::companyId() || ! self::periodId()) {
             throw new NoActivePeriodException('Şirket ve dönem seçilmedi.');
         }
     }
@@ -105,9 +110,10 @@ abstract class PeriodModel extends Model
 1. Giriş yapılmamışsa devam
 2. Session'da şirket/dönem yoksa: `users.last_company_id` ve son aktif
    dönem; yoksa seçim ekranına yönlendir
-3. Kullanıcı o şirkete `company_user` üzerinden bağlı değilse 403; ayrıca seçilen dönem için `period_user_access` yoksa 403
-4. Dönem `archived` ise uyarı ve seçim ekranı
-5. `PeriodContext::use($companyId, $year)`
+3. Seçilen `period_id` kaydının aynı `company_id`'ye ait olduğunu doğrula
+4. Kullanıcı o şirkete `company_user` üzerinden bağlı değilse 403; seçilen dönem için `period_user_access` yoksa 403
+5. Dönem `archived` ise uyarı ve seçim ekranı
+6. **Yetki kontrollerinden sonra** `PeriodContext::use($companyId, $periodId)`
 
 `web` grubuna, `auth`'tan **sonra** eklenir.
 
@@ -126,12 +132,12 @@ php artisan migrate --database=period --path=database/migrations/period
 
 ## Kuyruk işleri
 
-Kuyrukta session yoktur. İş `company_id` ve `year` taşır:
+Kuyrukta session yoktur. İş `company_id` ve `period_id` taşır:
 
 ```php
 public function handle(): void
 {
-    PeriodContext::use($this->companyId, $this->year);
+    PeriodContext::use($this->companyId, $this->periodId);
     // ...
 }
 ```
