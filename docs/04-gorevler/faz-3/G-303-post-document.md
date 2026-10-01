@@ -41,8 +41,8 @@ DB::connection('period')->transaction(function () {
     2. EnsurePeriodOpen(document_date)
     3. gerekliyse GenerateDocumentNumber -> lockForUpdate
     4. belge toplamlarını G-302 ile tekrar doğrula
-    5. stok etkili satırlar -> RecordStockMovement
-    6. rezerv etkili satırlar -> ConsumeReservation
+    5. stok etkili satırlar -> `RecordStockMovement` (fiziksel hareketin tek yazma noktası)
+    6. rezerv etkili satırlar -> `ConsumeReservation` (yalnız reservation state + reserved; stock movement YAZMAZ)
     7. cari etkili belge -> contact_transactions
     8. collection ise cash/bank movement
     9. status + posted_at + actor snapshot
@@ -99,6 +99,7 @@ Farkta transaction rollback.
 - Belgeye özel wrapper Action aynı stock/contact/cash-bank posting zincirini yeniden implement etmez; `PostDocument`a delege eder.
 - Idempotency ve deterministic lock sırası zorunlu.
 - Belge tipinin üretmediği etki yazılmaz.
+- `ConsumeReservation` stok hareketi yazmaz; aksi çift stok düşümüdür.
 - Verify başarısızsa commit yok.
 
 ## Kabul ölçütü

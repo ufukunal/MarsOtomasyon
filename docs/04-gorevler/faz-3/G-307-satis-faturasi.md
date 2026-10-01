@@ -92,8 +92,8 @@ Siparişten irsaliyesiz fatura mümkündür. Başlık seviyesinde `order_to_invo
 
 - source_line_id = order_line.id
 - order kalan miktarı aşılmaz
-- ilgili rezerv varsa consume edilir
-- invoice posting **stok out + cari debit** üretir.
+- ilgili rezerv varsa `ConsumeReservation` ile state/reserved çözülür; bu Action stock movement yazmaz
+- invoice posting **tek stock out + cari debit** üretir.
 
 Aynı order miktarı daha sonra dispatch ile tekrar kullanılamaz.
 

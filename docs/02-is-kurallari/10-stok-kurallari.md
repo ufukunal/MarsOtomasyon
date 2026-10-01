@@ -14,7 +14,7 @@ Sipariş satırı için rezervasyon istenirse sistem kullanılabilir stoğu loka
 
 Bir sipariş satırı birden fazla lokasyona bölünebilir. Dağılım ayrı `stock_reservations` kayıtlarıyla tutulur. Rezervasyon fiziksel quantity'yi düşürmez; `reserved` değerini artırır ve kullanılabiliri azaltır.
 
-İrsaliye kesinleşince ilgili lokasyon rezervasyonu çözülür ve fiziksel stok çıkışı `RecordStockMovement` ile yazılır. Fatura irsaliyeden geliyorsa stok ikinci kez yazılmaz. İrsaliyesiz doğrudan fatura stok çıkışını kendisi yazar.
+İrsaliye kesinleşince fiziksel stok çıkışı yalnız `RecordStockMovement` ile yazılır; `ConsumeReservation` yalnız ilgili lokasyon rezervini consumed yapıp `reserved` değerini azaltır. `ConsumeReservation` kendi stock movement'ını üretmez. Fatura irsaliyeden geliyorsa stok ikinci kez yazılmaz. İrsaliyesiz doğrudan fatura stok çıkışını kendisi yazar.
 
 `cancelled_quantity` artık rezerv/sevk/fatura edilemez.
 

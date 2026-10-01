@@ -74,8 +74,8 @@ v65 `dispatch_new` ekranı doğrudan sevke izin verir. Kaynak sipariş yoksa:
 
 1. period açık,
 2. numara,
-3. satır bazında `RecordStockMovement(out, reason=dispatch)`,
-4. kaynak rezerv varsa ilgili miktar kadar consume,
+3. satır bazında **tek** `RecordStockMovement(out, reason=dispatch)`,
+4. kaynak rezerv varsa ilgili miktar kadar `ConsumeReservation`; bu adım ikinci stock movement yazmaz,
 5. posted status/actor,
 6. verify,
 7. audit.
@@ -99,7 +99,7 @@ Kalan iptal davranışı G-305'tedir.
 - İrsaliye stok çıkışı üretir, cari etkilemez.
 - Kaynak kalan miktar aşılamaz.
 - Sipariş kaynaklı sevkte `order_to_dispatch` relation zorunludur.
-- Rezerv tüketimi ile stok çıkışı aynı işlem zincirindedir.
+- Rezerv tüketimi ile stok çıkışı aynı transaction zincirindedir fakat iki ayrı sorumluluktur: stock out yalnız `RecordStockMovement`, reservation state yalnız `ConsumeReservation`.
 - Kalite modülü eklenmez.
 
 ## Kabul ölçütü
