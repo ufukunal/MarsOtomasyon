@@ -13,6 +13,7 @@ Schema::connection('period')->create('cash_accounts', function (Blueprint $table
     $table->string('name');
     $table->char('currency', 3)->default('TRY');
     $table->boolean('is_active')->default(true);
+    $table->unsignedInteger('version')->default(1);
     $table->timestamps();
 });
 ```
@@ -30,6 +31,7 @@ Schema::connection('period')->create('bank_accounts', function (Blueprint $table
     $table->string('iban', 34)->nullable();
     $table->char('currency', 3)->default('TRY');
     $table->boolean('is_active')->default(true);
+    $table->unsignedInteger('version')->default(1);
     $table->timestamps();
 });
 ```
@@ -99,3 +101,10 @@ Tahsilat posting'i:
 üretir. Hepsi aynı transaction içindedir.
 
 Faz 3'te virman, banka ekstresi importu, mutabakat, kasa sayımı ve çek/senet yaşam döngüsü yapılmaz.
+
+
+## Kart düzenleme / dönem devri
+
+- `cash_accounts` ve `bank_accounts` karttır; fiziksel silinmez, pasife alınır ve `version` optimistic lock kullanır.
+- Aynı şirket dönem devrinde taşınan kasa/banka kartlarının ID ve kodları korunur.
+- Geçmiş `cash_movements` / `bank_movements` kopyalanmaz; kapanış bakiyesi yeni dönemde açılış hareketi olarak yazılır.

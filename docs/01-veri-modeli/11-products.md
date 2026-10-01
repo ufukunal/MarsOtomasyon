@@ -35,11 +35,12 @@ Schema::connection('period')->create('products', function (Blueprint $table) {
 
     $table->string('search_index')->nullable();
     $table->boolean('is_active')->default(true);
+    $table->unsignedInteger('version')->default(1);
     $table->timestamps();
 });
 ```
 
-Kod tekrar kullanılmaz. Aynı şirket dönem devrinde ID+code korunur; şirketler arası kopyada yeni ID oluşur.
+Kod tekrar kullanılmaz; fiziksel silme/SoftDeletes yoktur ve `version` optimistic lock kullanılır. Aynı şirket dönem devrinde ID+code korunur; şirketler arası kopyada yeni ID oluşur.
 
 ## Yan tablolar
 

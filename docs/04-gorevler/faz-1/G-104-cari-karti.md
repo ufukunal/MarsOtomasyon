@@ -40,9 +40,10 @@ Schema::connection('period')->create('contacts', function (Blueprint $table) {
     $table->foreignId('price_list_id')->nullable()->constrained('price_lists');
     $table->unsignedBigInteger('source_company_id')->nullable(); // cross-DB provenance; FK YOK
     $table->unsignedBigInteger('source_record_id')->nullable();
+    $table->string('search_index')->nullable();
     $table->boolean('is_active')->default(true);
+    $table->unsignedInteger('version')->default(1);
     $table->timestamps();
-    $table->softDeletes();
     $table->unique('code');
     $table->index('title');
     $table->index('tax_number');
@@ -50,8 +51,8 @@ Schema::connection('period')->create('contacts', function (Blueprint $table) {
 ```
 
 ## Model
-- `use LogsActivity, SoftDeletes, HasAttachments;`
-- `getTermDaysAttribute()` → boşsa `company->default_term_days`
+- `use LogsActivity, HasAttachments;` — `SoftDeletes` KULLANMA; kart `is_active=false` ile pasife alınır.
+- `term_days` ham nullable değerdir. Şirket varsayılan vadesi period model accessor'ından çözülmez; fatura oluşturma akışındaki due-date resolver aktif şirketin Master `companies.default_term_days` değerine fallback yapar.
 - İlişkiler: `categories()`, `addresses()`, `people()`, `banks()`
 - `balance` şimdilik 0 döner (Faz 3'te `contact_transactions` gelecek)
 
@@ -74,7 +75,7 @@ iskonto %, risk limiti (ipucu: aşımda uyarı verilir, engellenmez), durum
 ## Kurallar
 - Kod otomatik: `CR` + 7 hane, kayıt sonrası değiştirilemez
 - Vergi no girildiyse şirket içinde benzersiz olmalı (uyarı, engel değil)
-- Silme yerine pasife alma önerilir; hareketi olan cari silinemez
+- Cari fiziksel/soft delete edilmez; `is_active=false` ile pasife alınır. Kod tekrar kullanılamaz.
 
 
 ### Göreve özel kararlar
@@ -93,6 +94,7 @@ iskonto %, risk limiti (ipucu: aşımda uyarı verilir, engellenmez), durum
 ## Kabul ölçütü
 - Cari açılıyor, kod otomatik geliyor
 - Aynı kod ikinci kez eklenemiyor
+- Stale `version` ile ikinci eşzamanlı düzenleme reddediliyor
 - Farklı şirkette aynı kod eklenebiliyor (izolasyon)
 - `contacts.create` izni olmayan kullanıcı Yeni Cari düğmesini görmüyor
   ve doğrudan istek gönderse 403 alıyor
@@ -101,6 +103,5 @@ iskonto %, risk limiti (ipucu: aşımda uyarı verilir, engellenmez), durum
 ## İstem
 > contacts tablosu için migration, Contact modeli, ContactList ve ContactForm
 > Livewire bileşenlerini ve ContactPolicy'yi yaz. Şemayı birebir uygula.
-> Model LogsActivity, SoftDeletes ve HasAttachments
-> trait'lerini kullansın. Liste ekranı DataTableComponent'ten türesin.
+> Model LogsActivity ve HasAttachments trait'lerini kullansın; SoftDeletes ekleme. Düzenleme `version` optimistic lock ile korunsun. Liste ekranı DataTableComponent'ten türesin.
 > Kod otomatik üretilsin (CR + 7 hane) ve kayıt sonrası salt okunur olsun.

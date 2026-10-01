@@ -18,7 +18,7 @@ G-102 (birimler), G-103 (kategori/marka)
 `docs/01-veri-modeli/11-products.md` içindeki `products` şemasını birebir uygula.
 
 ## Model
-- `use LogsActivity, SoftDeletes, HasAttachments;`
+- `use LogsActivity, HasAttachments;` — `SoftDeletes` YOK; ürün `is_active=false` ile pasife alınır.
 - `kind`: `normal | set | configurable` (Enum `ProductKind`)
 - `availableQuantity()` — Faz 2'de stok gelince dolar; şimdilik 0
 - `setAvailability()` — set ürünse `min(bileşen/gerekli)`, değilse null
@@ -44,7 +44,9 @@ Bölüm **Tip**: normal / set / konfigüre
 ## KDV dahil → hariç çevrimi
 
 ```php
-$excl = $inclPrice / (1 + $vatRate / 100);
+// decimal string + BCMath/Money; PHP float YOK
+$vatFactor = bcadd('1', bcdiv($vatRate, '100', 8), 8);
+$excl = bcdiv($inclPrice, $vatFactor, 4);
 ```
 Saklanan değer **her zaman hariçtir**.
 
@@ -55,7 +57,7 @@ Saklanan değer **her zaman hariçtir**.
 - Her varyant ayrı ürün kartıdır.
 - `channel_stock_mode`: stock|production|manual alanı bulunur.
 - `source_company_id` cross-DB FK değildir.
-- Ürün kodu pasifleşse bile tekrar kullanılmaz.
+- Ürün kodu pasifleşse bile tekrar kullanılmaz; fiziksel/soft delete yoktur ve düzenleme `version` optimistic lock ile korunur.
 
 
 ### Uygulama ayrıntıları
@@ -66,7 +68,8 @@ Saklanan değer **her zaman hariçtir**.
 
 ## Kabul ölçütü
 - Ürün açılıyor, kod benzersiz
-- KDV dahil girilen fiyat hariç olarak saklanıyor
+- KDV dahil girilen fiyat BCMath/Money ile, float kullanmadan hariç olarak saklanıyor
+- Stale `version` ile ikinci eşzamanlı düzenleme reddediliyor
 - `cost.view` izni olmayan kullanıcıda maliyet kolonu **HTML çıktısında yok**
 - Barkodla arama çalışıyor
 
@@ -74,5 +77,5 @@ Saklanan değer **her zaman hariçtir**.
 ## İstem
 > products tablosu için migration, Product modeli, ProductKind enum'u,
 > ProductList ve ProductForm bileşenlerini yaz. Şemayı 11-products.md'den
-> birebir al. KDV dahil girilen fiyat hariçe çevrilip saklansın. Maliyet
+> birebir al. KDV dahil girilen fiyat Money/BCMath ile hariçe çevrilip saklansın; PHP float kullanma. SoftDeletes ekleme ve `version` optimistic lock uygula. Maliyet
 > kolonu cost.view izni yoksa kolon tanımına EKLENMESİN.

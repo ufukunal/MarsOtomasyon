@@ -32,6 +32,7 @@ Schema::connection('period')->create('contacts', function (Blueprint $table) {
 
     $table->string('search_index')->nullable();
     $table->boolean('is_active')->default(true);
+    $table->unsignedInteger('version')->default(1);
     $table->timestamps();
 
     $table->index('tax_number');
@@ -39,7 +40,7 @@ Schema::connection('period')->create('contacts', function (Blueprint $table) {
 });
 ```
 
-Kod pasifleşse bile başka karta verilmez; fiziksel silme yoktur. Aynı şirket dönem devrinde ID+code korunur. Şirketler arası kopyada yeni ID oluşur.
+Kod pasifleşse bile başka karta verilmez; fiziksel silme/SoftDeletes yoktur. Düzenleme `version` optimistic lock ile yapılır. Aynı şirket dönem devrinde ID+code korunur. Şirketler arası kopyada yeni ID oluşur.
 
 ## Yan tablolar
 
