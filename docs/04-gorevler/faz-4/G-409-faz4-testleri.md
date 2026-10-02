@@ -53,6 +53,7 @@ Yeni production şeması yok. Testler Faz 4 belgeleri ve integrity komutlarını
 
 - TRY kur=1,
 - USD/EUR frozen exchange_rate,
+- dövizli alışın contact transaction tutarı base currency karşılığı,
 - posted sonrası kur değişince maliyet değişmiyor,
 - line/document discount sonrası VAT hariç inventory cost,
 - base_quantity başına unit_cost,
@@ -63,7 +64,7 @@ Yeni production şeması yok. Testler Faz 4 belgeleri ve integrity komutlarını
 
 ### Cari / ödeme sınırı
 
-- purchase_invoice supplier credit,
+- purchase_invoice supplier credit temel para biriminde doğru frozen-kur karşılığıyla,
 - Faz 4'te cash/bank payment movement oluşmaması,
 - contact balance formülüyle borcun doğru yönde görünmesi.
 
