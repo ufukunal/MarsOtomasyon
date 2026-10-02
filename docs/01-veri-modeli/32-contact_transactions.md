@@ -56,7 +56,18 @@ bakiye = SUM(debit amount) - SUM(credit amount)
 
 Müşteri satış faturası `debit`, tahsilat `credit` üretir.
 
-K-087 gereği tedarikçiye borç doğuran Faz 4 alış faturası `credit` üretir. Böylece tedarikçi borcu bu formülde negatif bakiye yönünde görünür. Faz 4'te tedarikçi ödeme hareketi yoktur; ödeme Faz 5 kapsamındadır.
+K-087 gereği tedarikçiye borç doğuran Faz 4 alış faturası `credit` üretir. Böylece tedarikçi borcu bu formülde negatif bakiye yönünde görünür.
+
+K-013 ile dövizli alış mümkün olduğundan tek bakiye toplamında farklı para birimleri doğrudan toplanmaz. Faz 4 purchase_invoice cari hareketi şirket temel para birimine çevrilmiş tutarı yazar:
+
+```
+ledger_amount = document.grand_total × frozen exchange_rate
+currency = company.base_currency  // mevcut varsayılan TRY
+```
+
+Orijinal döviz tutarı/currency/exchange_rate `documents` üzerinde snapshot olarak kalır. Kur farkı hesabı yapılmaz.
+
+Faz 4'te tedarikçi ödeme hareketi yoktur; ödeme Faz 5 kapsamındadır.
 
 ## Bakiye
 
