@@ -36,6 +36,8 @@ hareketlerinin birim maliyeti bu alandan okunur.
 
 Diğer üçü bilgi amaçlıdır; hangi rakamın neden farklı olduğunu görmek için.
 
+K-124 gereği `import_cost`, ürünün son finalized ithalat dosyasındaki **final import unit cost** snapshot'ıdır. Faz 7 ek ithalat maliyetinin moving_average'a yansıma formülü A-053 kapandığında kanonikleşecektir.
+
 ## Güncelleme
 
 Yalnızca giriş hareketinde (`direction = in`, `reason = purchase|production|opening`)
