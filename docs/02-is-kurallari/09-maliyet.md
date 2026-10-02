@@ -52,7 +52,11 @@ Davranış:
 
 Transfer ortalamayı değiştirmez; çıkış ve giriş aynı birim maliyetle yazılır.
 
-Satış iadesi Faz 6 kuralına göre karantinaya girer; ayrı faz kararı olmadan alış girişi gibi ortalamayı yeniden hesaplamaz.
+Faz 6 satış iadesi karantinaya girer ve moving average'ı yeniden hesaplamaz:
+- kaynaklı satış iadesi original sales stock-out unit_cost ile geri girer,
+- kaynaksız satış iadesi current moving average unit_cost kullanır.
+
+Purchase return bir stok çıkışıdır ve moving average'ı değiştirmez. Kaynaklı purchase return'de K-104 gereği kullanıcı current moving average veya source purchase cost temelini seçer; kaynaksızda yalnız current moving average kullanılır.
 
 ## Alış faturası maliyeti
 
