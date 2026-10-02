@@ -111,11 +111,11 @@ Master company_copy_permissions. Kaynak period_source. Hedef yeni ID; source_com
 
 ## Faz ve görev yöntemi
 
-Faz 0, 0b, 1, 2 görevleri güncel standalone standarda göre temizlendi. **Faz 3 Satış dokümantasyonu yazıldı; G-300…G-312 hazırdır. Faz 4 Alış dokümantasyonu yazıldı; G-400…G-409 hazırdır. Faz 5 Kasa/Banka/Çek-Senet dokümantasyonu yazıldı; G-500…G-509 hazırdır.** Faz 3 iş kuralı dosyaları 28–31, Faz 4 yeni iş kuralı dosyaları 32–34, Faz 5 yeni iş kuralı dosyaları 35–38 numaralarını kullanır. Faz 4 alış davranışları K-086…K-091, Faz 5 finans davranışları K-092…K-097 ile kilitlidir. Faz 6 başlangıç kararları K-098…K-112 ile kilitlidir; Faz 6 dokümantasyonu sıradaki adımdır.
+Faz 0, 0b, 1, 2 görevleri güncel standalone standarda göre temizlendi. **Faz 3 Satış dokümantasyonu yazıldı; G-300…G-312 hazırdır. Faz 4 Alış dokümantasyonu yazıldı; G-400…G-409 hazırdır. Faz 5 Kasa/Banka/Çek-Senet dokümantasyonu yazıldı; G-500…G-509 hazırdır.** Faz 3 iş kuralı dosyaları 28–31, Faz 4 yeni iş kuralı dosyaları 32–34, Faz 5 yeni iş kuralı dosyaları 35–38 numaralarını kullanır. Faz 4 alış davranışları K-086…K-091, Faz 5 finans davranışları K-092…K-097 ile kilitlidir. Faz 6 kararları K-098…K-113 ile kilitlidir; Faz 6 dokümantasyonu başlatılmıştır.
 
 Her görev şu bölümleri içerir: Amaç, Önkoşul, Dokunulacak dosyalar, Şema/Kod, Kurallar, Kabul ölçütü, İstem. Bir görev tek başına yerel modele verilebilir olmalıdır. **Satır sayısı hedef değildir.** 300–500 satır yalnız iş gerçekten o ayrıntıyı gerektiriyorsa doğal sonuç olabilir. Aynı genel checklist, mimari kural veya test maddesini sırf uzunluk için tekrar etmek yasaktır. Kaynaklarda tanımlanmayan alan, tablo, Action, sınıf, iş kuralı veya test beklentisi uydurulmaz. Eksik karar varsa `[KARAR GEREKİYOR]` yazılır ve kullanıcıya seçenek sunulur.
 
-Açık karar A-036 iade neden kodlarıdır. Kullanıcıya seçenek sun; kendin kapatma.
+Açık A kararı yoktur. Yeni iş kararı gerekiyorsa kullanıcıya seçenek sun; kendin kapatma.
 
 
 ## Anti-halüsinasyon görev kuralı
