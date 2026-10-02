@@ -141,3 +141,17 @@ Repo tutarlılık temizliği ve Faz 0–2 görev revizyonu tamamlandı. **Faz 3 
 - Geç gelen fason hizmet inventory_cost_adjustments reason=subcontract_late_cost ile işlenir.
 - Açık production order dönem devrinde taşınmaz; reçeteler ve fason location fiziksel stokları taşınır.
 - Faz 9 kullanıcı onayı olmadan başlatılmaz.
+
+
+## 03.10.2026 Faz 9 tamamlanma
+
+- Faz 9 E-ticaret dokümantasyonu tamamlandı.
+- K-163…K-201 kilitlidir; açık A kararı yoktur.
+- Veri modeli 42, iş kuralları 48–51, ekranlar ve G-900…G-910 hazırdır.
+- Kanal hesapları Master DB; listing/order/sync period DB'dedir.
+- Dönemler arası external-event duplicate engeli Master registry ile korunur.
+- Stock mode listing'e seçilmiş location kapsamını kullanır; production/manual miktarlar listing bazındadır.
+- Imported order confirmed sales_order'dır; marketplace buyer/shipping snapshot'tır ve import tahsilat üretmez.
+- Cancel mevcut remaining-cancel mantığı; return draft sales_return üretir.
+- Webhook birincil, 15 dk polling yedek; 30/60/120 retry + kalıcı sync history/error vardır.
+- Faz 10 kullanıcı onayı olmadan başlatılmaz.
