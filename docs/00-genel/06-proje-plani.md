@@ -14,7 +14,7 @@ Her faz önce veri modeli + iş kuralları + ekran + standalone G görevleri ola
 - **Faz 4 Alış: DOKÜMANTASYON YAZILDI — K-086…K-091 kilitli; veri modeli 35, iş kuralları 32–34, alış ekranları ve G-400…G-409 hazırdır. Kodlama/uygulama tamamlanması G-401…G-409 gerçek PostgreSQL kabul testlerine bağlıdır.**
 - **Faz 5 Kasa/Banka/Çek-Senet: DOKÜMANTASYON YAZILDI — K-092…K-097 kilitli; veri modeli 36–38, iş kuralları 35–38, finans ekranları ve G-500…G-509 hazırdır. Kodlama/uygulama tamamlanması G-501…G-509 gerçek PostgreSQL kabul testlerine bağlıdır.**
 - **Faz 6 İade: DOKÜMANTASYON YAZILDI — K-098…K-113 kilitli; veri modeli 39, iş kuralları 39–41, iade ekranları ve G-600…G-609 hazırdır. Kodlama/uygulama tamamlanması G-601…G-609 gerçek PostgreSQL kabul testlerine bağlıdır. Faz 7 kullanıcı onayı olmadan başlamaz.**
-- **Faz 7 İthalat: KARARLAR KİLİTLENDİ — K-114…K-129 ile ithalat dosyası, masraf dağıtımı, cost adjustment, FX ve finalize davranışları netleştirildi; dokümantasyon henüz yazılmadı.**
+- **Faz 7 İthalat: DOKÜMANTASYON YAZILDI — K-114…K-129 kilitli; veri modeli 40, iş kuralları 42–44, ithalat ekranları ve G-700…G-709 hazırdır. Yalnız A-053 (satış görmüş/sıfır-negatif stokta ek maliyetin moving average'a yansıma formülü) açıktır; bu kapanmadan Faz 7 dokümantasyonu tam kapalı sayılmaz.**
 - Faz 8 Basit üretim/fason
 - Faz 9 E-ticaret
 - Faz 10 Raporlar/çıktılar/tasarımcı
@@ -51,3 +51,10 @@ Faz 5 yeni veri modeli dosyaları 36–38; yeni iş kuralı dosyaları 35–38'd
 G-600 özet; G-601 iade şema genişletmesi; G-602 kaynak çözümleme; G-603 satış iadesi; G-604 alış iadesi; G-605 kısmi/çoklu iade; G-606 karantina kontrolü; G-607 cross-period iade; G-608 reverse/integrity; G-609 test.
 
 Faz 6 yeni veri modeli dosyası 39; yeni iş kuralı dosyaları 39–41'dir. Ortak belge, stok, cari ve finans çekirdeği yeniden kullanılmaktadır.
+
+
+## Faz 7 planı
+
+G-700 özet; G-701 ithalat şeması; G-702 yaşam döngüsü; G-703 purchase invoice line kaynakları; G-704 import expense; G-705 masraf dağıtımı; G-706 finalize/import cost; G-707 inventory cost adjustment; G-708 late cost/reverse/integrity; G-709 test.
+
+Faz 7 yeni veri modeli dosyası 40; yeni iş kuralı dosyaları 42–44'tür. Faz 4 purchase invoice ve moving-average çekirdeği yeniden kullanılmaktadır. A-053 kapanınca G-707/G-709'un son maliyet formülü kesinleşir.
