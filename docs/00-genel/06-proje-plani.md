@@ -17,7 +17,7 @@ Her faz önce veri modeli + iş kuralları + ekran + standalone G görevleri ola
 - **Faz 7 İthalat: DOKÜMANTASYON YAZILDI — K-114…K-130 kilitli; veri modeli 40, iş kuralları 42–44, ithalat ekranları ve G-700…G-709 hazırdır. Kodlama/uygulama tamamlanması G-701…G-709 gerçek PostgreSQL kabul testlerine bağlıdır. Faz 8 kullanıcı onayı olmadan başlamaz.**
 - **Faz 8 Basit üretim/fason: DOKÜMANTASYON YAZILDI — K-131…K-162 kilitli; veri modeli 41, iş kuralları 45–47, üretim/fason ekranları ve G-800…G-809 hazırdır. Kodlama/uygulama tamamlanması G-801…G-809 gerçek PostgreSQL kabul testlerine bağlıdır. Faz 9 kullanıcı onayı olmadan başlamaz.**
 - **Faz 9 E-ticaret: DOKÜMANTASYON YAZILDI — K-163…K-201 kilitli; veri modeli 42, iş kuralları 48–51, kanal ekranları ve G-900…G-910 hazırdır. Kodlama/uygulama tamamlanması G-901…G-910 gerçek PostgreSQL kabul testlerine bağlıdır. Faz 10 kullanıcı onayı olmadan başlamaz.**
-- Faz 10 Raporlar/çıktılar/tasarımcı
+- **Faz 10 Raporlar/çıktılar/tasarımcı: KARARLAR KİLİTLENDİ — K-202…K-235 ile geniş rapor motoru, export, çok dönem, dashboard, belge/etiket tasarımcısı ve print history kapsamı netleştirildi; dokümantasyon yazılıyor.**
 - Faz 11b Dönem devri
 - Faz 11 Canlı geçiş
 
