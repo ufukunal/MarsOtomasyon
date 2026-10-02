@@ -40,16 +40,21 @@ Snapshot:
 - Money/BCMath.
 - stock_movements yazılmaz.
 - adjustment gerçek kaynaktır; product_costs yalnız snapshot'tır.
-- A-053: current stock quantity <= 0 olduğunda davranış kullanıcı kararı bekliyor; kod uydurulmaz.
+- K-130: `unit_adjustment = amount_base / original_import_base_quantity`.
+- `moving_average_after = moving_average_before + unit_adjustment`.
+- Current on-hand quantity formülün paydası değildir.
+- Current quantity <= 0 olsa da snapshot adjustment uygulanabilir.
+- Geçmiş stock movement maliyetleri geriye dönük değiştirilmez.
 
 ## Kabul ölçütü
 
-- Positive stock quantity senaryosunda moving average adjustment doğru.
+- unit_adjustment original import base_quantity üzerinden doğru.
+- Positive, zero ve negative current stock senaryolarında aynı K-130 formülü uygulanıyor.
 - Stock quantity değişmiyor.
+- Geçmiş sales stock movement unit_cost değişmiyor.
 - inventory_cost_adjustment audit/history mevcut.
 - Concurrent products deterministik lock kullanıyor.
-- A-053 çözülmeden <=0 quantity davranışı uygulanmıyor.
 
 ## İstem
 
-> K-123 inventory cost adjustment mekanizmasını ayrı gerçek kaynak olarak uygula. A-053 çözülmeden sıfır/negatif stok için davranış uydurma.
+> K-123/K-130 inventory cost adjustment mekanizmasını ayrı gerçek kaynak olarak uygula; birim adjustment'ı original import base_quantity üzerinden hesapla ve fiziksel stok miktarını değiştirme.
