@@ -189,6 +189,29 @@ Her şirket+yıl ayrı period DB. Kartlar dahil işletme verisi period DB'dedir.
 - K-163…K-201 kilitlidir; açık A kararı yoktur.
 - Faz 10 kullanıcı onayı olmadan başlatılmaz.
 
+## Faz 10 rapor/çıktı kilitleri
+
+- Geniş kapsam: operasyonel raporlar, dashboard, PDF/XLSX/CSV export, çok dönem, belge tasarımcısı, etiket/koli etiketi, print history.
+- Raporlar mevcut kanonik transaction/stock/contact/finance tablolarını okur; ikinci bakiye kaynağı yaratmaz.
+- cost.view maliyet/kâr kolonlarını query seviyesinde korur; reports.consolidated çok dönem erişimini korur.
+- Çok dönem DB'ler ayrı sorgulanır, PHP'de birleştirilir.
+- Belge tasarımcısı bölüm tabanlıdır; serbest drag/drop veya kullanıcı SQL/PHP/Blade kodu yoktur.
+- Document/label templates Master DB'de şirket bazında immutable Rev.N'dir.
+- PDF Browsershot; yazdırma tek PrintManager; ZPL/driver ayrıntısı soyutlama arkasındadır.
+- Ürün etiketi ve ambar fişine bağlı koli etiketi desteklenir.
+- Rapor kataloğu satış, alış, cari, stok, finans, çek/senet, iade, ithalat, üretim/fason ve e-ticareti kapsar.
+- Genel muhasebe, resmi mali tablo, vergi/GİB raporları kapsam dışıdır.
+
+## Faz 10 dokümantasyon sonucu
+
+- Veri modeli 43: report presets/export jobs/document templates/print jobs/document print provenance.
+- İş kuralları 52–56.
+- Ekranlar: rapor merkezi, dashboard, çok dönem, export merkezi, belge tasarımcısı, etiket tasarımcısı, yazdırma geçmişi.
+- G-1000…G-1012 hazırdır.
+- K-202…K-235 kilitlidir; açık A kararı yoktur.
+- G-1112 çok dönem raporu G-1006 ile aynı MultiPeriodQuery çekirdeğini kullanır.
+- Genel muhasebe/GİB/resmi mali tablo kapsam dışıdır.
+
 ## Dönem devri
 
 Aktif kartlar + gerekli pasif kartlar kopyalanır. Taşınan bütün kartların ID/kodları ve taşınan stock_balance ID'leri aynı şirkette korunur. Geçmiş hareketler/belgeler/açık teklif-sipariş/taslak/yoldaki transfer/karantina taşınmaz. Açılış maliyeti kapanış hareketli ortalamasıdır. Devir sonunda kullanıcıya önceki dönem kullanıcı/dönem erişim ve dönemsel yetkilerini yeni döneme seçerek kopyalama sorulur.
