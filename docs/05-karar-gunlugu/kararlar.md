@@ -176,6 +176,44 @@ Verilen kararlar ve gerekçeleri. **Kod bu kararlara uyar; kod kararla
 |---|---|---|
 | K-130 | İthalat ek maliyeti kaynak ithalat miktarına bölünür: `unit_adjustment = additional_cost / original_import_quantity`. Bu birim fark current `moving_average` değerine eklenir. Geçmiş satış maliyetleri geriye dönük değiştirilmez. Mevcut stok quantity sıfır/negatif olsa bile moving_average snapshot bu birim farkla güncellenebilir; fiziksel stok miktarı değişmez. | Lot/parti takibi olmadığı için kalan stok oranı güvenilir biçimde izlenemez. Kaynak ithalat miktarı deterministik maliyet tabanı sağlar. |
 
+
+## 2026-10-02 — Faz 8 Basit üretim/fason kararları
+
+| No | Karar | Gerekçe / teknik sonuç |
+|---|---|---|
+| K-131 | Faz 8 **basit iç üretim + fason** birlikte kapsar. | Reçete, üretim emri, hammadde/mamul hareketleri ve fason akışı aynı fazda tamamlanır. |
+| K-132 | Bir mamulde **tek aktif reçete** vardır; yeni değişiklik ayrı immutable revizyon olarak açılır. | Geçmiş üretimlerin reçete geçmişi korunur. |
+| K-133 | Reçete revizyonları `Rev.N` immutable kayıtlardır; yeni üretimler varsayılan son aktif revizyonu kullanır. | Mutable reçete geçmişi bozulmaz. |
+| K-134 | Reçete kendi **output_quantity** tabanını taşır; component miktarları bu çıktıya göre tanımlanır ve üretim miktarına oransal ölçeklenir. | “100 adet için 4 kg” gibi reçeteler doğal desteklenir. |
+| K-135 | Üretim emri açılırken reçete revizyonu, component listesi, miktarlar ve unit/conversion değerleri snapshot edilir. | Sonraki reçete değişiklikleri açık üretim emrini değiştirmez. |
+| K-136 | Reçete planned consumption önerir; kullanıcı actual component consumption miktarını değiştirebilir ve fark audit edilir. | Basit üretimde gerçekleşen tüketim reçeteden sapabilir. |
+| K-137 | Fire component bazında actual miktar olarak girilir; normal consumption + fire stoktan çıkar ve fire maliyeti mamul maliyetine dahil edilir. | K-060 fire yüzdesi yok kararını somutlaştırır. |
+| K-138 | Hammadde source location component satır bazında seçilir; farklı component'ler farklı depolardan tüketilebilir. | Üretim emri tek source depoya zorlanmaz. |
+| K-139 | Üretim sonucu **birden fazla target location'a bölünebilir**. | Kullanıcı A-062 seçenek 2'yi seçti; completion output satırları lokasyon bazında dağıtılabilir. |
+| K-140 | Component stock çıkışı ürünün mevcut `allow_negative_stock` kuralına uyar. | Üretim için ikinci negatif stok politikası kurulmaz. |
+| K-141 | Üretim emri kısmi tamamlanabilir; aynı emirden birden fazla completion yapılabilir ve kalan iptal edilebilir. | Gerçek üretim parça parça sonuçlanabilir. |
+| K-142 | Üretim emri yaşam döngüsü `draft → confirmed → in_progress → completed/cancelled` modelidir; ayrı approval state yoktur. | Basit üretim kapsamı korunur. |
+| K-143 | Hammadde tüketimi ve mamul stock-in **production completion anında aynı transaction** içinde oluşur. | Ayrı zorunlu material issue süreci kurulmaz. |
+| K-144 | Mamul üretim maliyeti, actual consumed component hareketlerinin moving-average snapshot maliyetlerinden hesaplanır; fire dahil edilir. | Plan maliyeti değil gerçekleşen maliyet kullanılır. |
+| K-145 | İlk Faz 8 sürümünde iç üretim için işçilik/enerji/overhead ek maliyet satırları yoktur; mamul maliyeti yalnız actual material consumption'dan oluşur. | Basit üretim sınırı korunur. |
+| K-146 | Production stock-in calculated production unit cost ile moving average'ı günceller; `product_costs.production_cost` son production unit cost snapshot'ıdır. | K-006 moving average sistemi korunur. |
+| K-147 | Fason temel modelinde malzeme şirketten çıkar; fasoncu yalnız işçilik/hizmet sağlar. | İlk sürümde fasoncunun kendi malzemesiyle karma üretim yoktur. |
+| K-148 | Fasoncu stoğu ayrı tablo yerine **subcontractor location** olarak izlenir; kendi depodan fason location'a transfer edilir ve mülkiyet şirkette kalır. | Mevcut location/transfer altyapısı yeniden kullanılır. |
+| K-149 | Subcontractor location normal satış rezervasyon/sevki için kullanılamaz; yalnız fason transfer/üretim akışına açıktır. | Fason stoğu normal kullanılabilir stok gibi satılmaz. |
+| K-150 | Fasoncu normal supplier/contact kartıdır ve bir subcontractor location ile ilişkilendirilir; ayrı subcontractor master kartı yoktur. | Kart yapısı gereksiz genişlemez. |
+| K-151 | Fason hizmet bedeli normal `purchase_invoice` üzerinden kaydedilir ve production order'a bilgi/maliyet ilişkisiyle bağlanır. | Faz 4 alış/cari/ödeme altyapısı yeniden kullanılır. |
+| K-152 | Fason hizmet bedeli mamul maliyetine dahil edilir. | Gerçek fason üretim maliyeti material + service cost olur. |
+| K-153 | Fason completion, hizmet faturası gelmeden yapılabilir; sonradan gelen hizmet faturası ayrı production cost adjustment oluşturur. | Operasyon, faturayı beklemek zorunda kalmaz. |
+| K-154 | Sonradan gelen fason maliyet için Faz 7 `inventory_cost_adjustments` altyapısı yeniden kullanılır; reason=`subcontract_late_cost`. | Miktarı değiştirmeyen maliyet düzeltmesi tek kanonik altyapıda kalır. |
+| K-155 | Fasona mal gönderimi kısmi olabilir. | Planlanan miktar tek sevkte gönderilmek zorunda değildir. |
+| K-156 | Fason dönüş/completion kısmi olabilir; kalan component stok fason location'da bekleyebilir. | Parçalı fason teslim doğal desteklenir. |
+| K-157 | Fason fire iç üretimle aynı component-level actual fire kuralını kullanır ve mamul maliyetine dahil edilir. | İki üretim tipinde fire semantiği tekleşir. |
+| K-158 | `channel_stock_mode=production` satış siparişi confirmed olduğunda ihtiyaç kadar **draft production order** otomatik açılır; kullanıcı confirm eder. | Otomasyon vardır fakat insan kontrolü korunur. |
+| K-159 | Sales order → production order ilişkisi opsiyoneldir; bağımsız production order da açılabilir. | Üretim yalnız siparişe bağlı değildir. |
+| K-160 | Aktif reçeteler/revizyonlar dönem devrinde ürün ilişkileri korunarak taşınır; geçmiş production order'lar taşınmaz. | Kart/snapshot sürekliliği korunur. |
+| K-161 | Açık production/subcontract order yeni döneme taşınmaz; dönem kapanmadan tamamlanır/iptal edilir. Fason location'daki fiziksel stok location bazında açılış stoklarına taşınır. | Belge geçmişi taşınmazken fiziksel stok kaybolmaz. |
+| K-162 | Production completion reverse edilebilir; yeni ters kayıt mamul stock-out + component stock-in ve ilgili maliyet ters etkilerini üretir, original immutable kalır. | K-016 ters kayıt ilkesi üretime uygulanır. |
+
 ## Açık kararlar
 
-**Yok.** A-053, K-130 ile kapatıldı. Faz 7 kararları K-114…K-130 ile kilitlidir.
+**Yok.** A-054…A-085, K-131…K-162 ile kapatıldı.
