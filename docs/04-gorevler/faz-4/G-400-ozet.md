@@ -161,17 +161,15 @@ Ara adımlar zorunlu değildir. Kullanıcı ihtiyaca göre doğrudan satınalma 
 - Nakit, banka, çek/senet ve diğer tedarikçi ödeme akışları Faz 5 Kasa/Banka/Çek-Senet kapsamında ele alınır.
 - Faz 4 ekranlarında borç görüntülenebilir; ödeme işlemi başlatılamaz.
 
-### A-013 — Basit teklif toplama davranışı
+### A-013 — KAPANDI: Belge + satır bazlı teklif karşılaştırma
 
-K-060 yalnız özelliğin bulunacağını kilitler. Şunlar tanımlı değildir:
-
-- tek talebe kaç tedarikçi teklifi bağlanacağı,
-- tekliflerin satır bazlı mı belge bazlı mı karşılaştırılacağı,
-- seçilen teklifin nasıl işaretleneceği,
-- en düşük fiyatın otomatik seçilip seçilmeyeceği,
-- seçim için onay/yetki gerekip gerekmediği.
-
-Otomatik kazanan veya puanlama mekanizması varsayılmayacaktır.
+- Bir satınalma talebine birden fazla tedarikçi teklifi bağlanabilir.
+- Kullanıcı belge bazında tek bir tedarikçi teklifini seçebilir.
+- Kullanıcı satır bazında farklı ürünleri farklı tedarikçilerden seçebilir.
+- Satır bazlı seçimde oluşacak satınalma siparişleri seçilen tedarikçilere göre ayrıştırılır.
+- Sistem otomatik en ucuz teklif, puanlama veya kazanan seçimi yapmaz.
+- Karar kullanıcı tarafından verilir ve period audit'e seçim özeti yazılır.
+- Seçim/onay yetkisi ayrı açık karar olarak netleştirilecektir.
 
 ## Faz bitiş ölçütü
 
