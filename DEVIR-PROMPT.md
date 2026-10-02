@@ -165,6 +165,15 @@ Her şirket+yıl ayrı period DB. Kartlar dahil işletme verisi period DB'dedir.
 - K-131…K-162 kilitlidir; açık A kararı yoktur.
 - Faz 9 kullanıcı onayı olmadan başlatılmaz.
 
+## Faz 9 dokümantasyon sonucu
+
+- Veri modeli 42: Master channel account/external event registry; Period listing/location/order snapshot/sync history.
+- İş kuralları 48–51.
+- Ekranlar: kanal hesapları, listing, stok/fiyat önizleme, kanal siparişleri, sync merkezi.
+- G-900…G-910 hazırdır.
+- K-163…K-201 kilitlidir; açık A kararı yoktur.
+- Faz 10 kullanıcı onayı olmadan başlatılmaz.
+
 ## Dönem devri
 
 Aktif kartlar + gerekli pasif kartlar kopyalanır. Taşınan bütün kartların ID/kodları ve taşınan stock_balance ID'leri aynı şirkette korunur. Geçmiş hareketler/belgeler/açık teklif-sipariş/taslak/yoldaki transfer/karantina taşınmaz. Açılış maliyeti kapanış hareketli ortalamasıdır. Devir sonunda kullanıcıya önceki dönem kullanıcı/dönem erişim ve dönemsel yetkilerini yeni döneme seçerek kopyalama sorulur.
