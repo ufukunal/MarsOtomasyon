@@ -79,7 +79,9 @@ Proforma stok hareketi olmadığı için proforma kaynaklı invoice **doğrudan 
 - invoice posting stok out + cari debit,
 - ürün/lokasyon miktar doğrulamaları G-307 ile aynı.
 
-Proforma conversion kaynak quote/order'ın fulfillment miktarını iki kez tüketmemeli. Eğer proforma zaten order'dan üretilmişse invoice miktar kontrolü order zincirine kadar takip edilerek çift satış engellenir.
+Proforma conversion kaynak quote/order'ın fulfillment miktarını iki kez tüketmemeli.
+
+Order kaynaklı proformada `invoice_line.source_line_id = proforma_line.id` kalır; lineage'ı düzleştirip order id'sini ikinci bir kolona kopyalama. Bunun yerine G-30'daki `ResolveSourceLineage` parent zincirini `invoice -> proforma -> sales_order` olarak izler. Zincirde dispatch olmadığı için bu invoice miktarı order'ın `direct_invoiced` toplamına girer ve kalan sevk/fatura miktarını azaltır. Böylece aynı order miktarı daha sonra dispatch veya ikinci direct invoice ile tekrar kullanılamaz.
 
 
 ## Kurallar
@@ -96,7 +98,7 @@ Proforma conversion kaynak quote/order'ın fulfillment miktarını iki kez tüke
 - Proforma hiçbir stok/cari hareket üretmiyor.
 - PDF için finalized proforma immutable.
 - Proforma invoice'a dönüşünce invoice normal stok+cari etkisini üretiyor.
-- Aynı kaynak miktar proforma üzerinden ve order üzerinden iki kez faturalanamıyor.
+- Order→proforma→invoice ancestry'si order direct_invoiced toplamına giriyor; aynı miktar sonra dispatch/direct invoice ile tekrar kullanılamıyor.
 - Gerçek PostgreSQL testleri geçiyor.
 
 ## İstem

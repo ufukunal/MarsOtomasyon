@@ -71,7 +71,8 @@ Ara adımda yuvarlama yapılmaz; 4 hane korunur.
 
 ## Kısmi işlem
 
-- `source_line_id`, teklif→sipariş, sipariş→irsaliye/fatura ve irsaliye→fatura gibi satır kaynak zincirini tutar.
+- `source_line_id`, teklif→sipariş, sipariş→irsaliye/fatura, teklif/sipariş→proforma→fatura ve irsaliye→fatura gibi satır kaynak zincirini tutar.
+- Fulfillment hesabı yalnız bir parent seviyesi okumaz; parent zinciri cycle guard ile köke kadar izlenir. `order→proforma→invoice` order direct fulfillment sayılır; `order→dispatch→invoice` shipped fulfillment'ın üstüne ikinci kez eklenmez.
 - Sevk edilmiş ve faturalanmış miktar ayrı kolon olarak kopyalanmaz; kaynak satıra bağlı hedef satırların toplamından hesaplanır.
 - `cancelled_quantity` kalıcıdır.
 - Kullanılabilir kalan: `quantity - shipped - cancelled` veya ilgili akışta kaynak satırın kalan miktarı.
@@ -91,3 +92,4 @@ K-073 gereği satış satırı lokasyon taşıyabilir. Sipariş rezervasyonu bir
 - `line_discount_amount >= 0`
 - `vat_rate >= 0`
 - `cancelled_quantity >= 0 and cancelled_quantity <= quantity`
+- `source_line_id IS NULL OR source_line_id <> id` (doğrudan self-cycle engeli; daha uzun cycle Action/lineage resolver tarafından reddedilir)

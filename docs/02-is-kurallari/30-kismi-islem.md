@@ -8,7 +8,7 @@ Kısmi sevk ve kısmi fatura kaynak satırların child satırları üzerinden iz
 ordered   = source line.quantity
 cancelled = source line.cancelled_quantity
 shipped   = order line'i source_line_id olarak gösteren ETKİN posted dispatch line toplamı
-direct_invoiced = order line'i source_line_id olarak gösteren ETKİN doğrudan invoice line toplamı
+direct_invoiced = ancestry zinciri sipariş satırına ulaşan, fakat ancestry içinde posted dispatch bulunmayan ETKİN invoice line toplamı
 
 ETKİN = kendisini hedef alan bir `reversal_of` ilişkisi bulunmayan belge.
 
@@ -16,6 +16,19 @@ kalan sevk = ordered - cancelled - shipped - direct_invoiced
 ```
 
 Aynı miktar hem doğrudan fatura hem irsaliye ile tekrar karşılanamaz.
+
+### Satır ancestry çözümü
+
+`source_line_id` yalnız tek parent saklar; ancak fulfillment sorgusu yalnız bir seviye child bakmaz. `ResolveSourceLineage` benzeri tek helper invoice/proforma satırından parent'ları geriye doğru izler:
+
+1. visited line id seti ile cycle engellenir,
+2. parent document type okunur,
+3. `sales_order` satırına ulaşılırsa order origin belirlenir,
+4. zincirde etkin posted `dispatch` satırı varsa invoice **dispatch üzerinden faturalanmış** kabul edilir ve order için ayrıca `direct_invoiced` sayılmaz,
+5. order'a ulaşılıp zincirde dispatch yoksa invoice order'ın `direct_invoiced` miktarına dahil edilir,
+6. quote kökünde biten zincir order fulfillment'ı etkilemez.
+
+Böylece `order → proforma → invoice` doğrudan invoice fulfillment olarak, `order → dispatch → invoice` ise yalnız shipped fulfillment olarak sayılır.
 
 ## Kalanı iptal
 
@@ -94,7 +107,9 @@ Sevk/fatura oluşturma sırasında kaynak satır ve ilgili rezervler transaction
 
 - yalnız etkin child toplamları kaynak miktarı aşmamalı,
 - cancelled + fulfilled toplamı quantity'yi aşmamalı,
-- aynı dispatch miktarı toplam invoice miktarından küçük olmamalı,
+- aynı dispatch miktarı toplam etkin invoice miktarından küçük olmamalı,
+- source_line ancestry cycle içermemeli,
+- order→proforma→invoice miktarı direct_invoiced olarak sayılmalı ve order kalanını azaltmalı,
 - closed siparişte kullanılabilir kalan 0 olmalı.
 
 Fark raporlanır; otomatik düzeltme yapılmaz.

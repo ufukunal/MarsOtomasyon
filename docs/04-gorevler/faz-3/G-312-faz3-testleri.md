@@ -85,6 +85,10 @@ SQLite kullanılmaz.
 
 ## Proforma
 
+- order→proforma→invoice source_line ancestry order direct_invoiced miktarına dahil oluyor,
+- aynı order miktarı proforma invoice sonrası dispatch/direct invoice ile tekrar kullanılamıyor,
+- source_line cycle oluşturma reddediliyor,
+
 - proforma series numarası.
 - stok/cari etkisiz.
 - invoice conversion direct stock+cari.
