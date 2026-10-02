@@ -65,19 +65,29 @@ Schema::connection('period')->create('documents', function (Blueprint $table) {
 - `collection`
 - `contact_debit_credit`
 
-Belge tipi string tutulur; sonraki fazlar aynı tabloya yeni tür ekleyebilir.
+## Faz 4 belge türleri
+
+- `purchase_request`
+- `supplier_quote`
+- `purchase_order`
+- `goods_receipt`
+- `purchase_invoice`
+
+Belge tipi string tutulur; enum/sözleşme uygulama katmanında bu türleri doğrular.
 
 ## Kurallar
 
 - Taslak belgede `number = null` olabilir.
 - Numara yalnız ilgili yaşam döngüsü geçişinde `GenerateDocumentNumber` ile ve `lockForUpdate` altında üretilir.
 - Teklif revizyonları ayrı kayıtlar olup aynı ana numarayı ve farklı `revision_no` değerini taşır. **İlk teklif revizyonu `revision_no = 1`'dir; `Rev.0` yoktur.** Generic kolon default 0 yalnız revizyon kullanmayan diğer belge türleri içindir.
-- Satış tarafında K-013 gereği para birimi TRY'dir; generic kolonlar Faz 4 alış/ithalat için korunur.
+- Satış tarafında K-013 gereği para birimi TRY'dir. Faz 4 alış belgelerinde döviz kullanılabilir; `currency + exchange_rate` kesinleşmede snapshot olarak donar.
 - `document_date` iş tarihidir; dönem kilidi ve raporlar bunu kullanır.
 - Posted/kesinleşmiş kayıt yerinde değiştirilmez.
 - `version` yalnız düzenlenebilir durumlarda optimistic lock için kullanılır.
 - `requirements_snapshot`, teklif/sipariş bağlamındaki dondurulmuş müşteri/konfigürasyon ihtiyacını saklayabilir; güncel kart sonradan değişse de snapshot değişmez.
 - Belge toplamları `Money`/BCMath ile hesaplanır; float kullanılmaz.
+- `purchase_request` için contact_id null olabilir; supplier_quote, purchase_order, goods_receipt ve purchase_invoice için supplier contact zorunludur.
+- K-087 gereği goods_receipt stok/cari posting üretmez; purchase_invoice stok in + supplier credit üretir.
 
 ## CHECK kısıtları
 
