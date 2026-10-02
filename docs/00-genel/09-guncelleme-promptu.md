@@ -22,6 +22,19 @@ Bu dosya `DEVIR-PROMPT.md`den sonra okunur. Çelişkide bu dosya ve karar günl�
 - Faz 3 iş kuralı dosya numaraları mevcut 11–27 ile çakışmamak için **28–31** kullanılacaktır.
 - Faz 0–2 görev numaraları korunur ve görevler yeni standalone standarda yükseltilir.
 - v64 korunur; **v65 güncel UI referansıdır.**
-- Faz 4 Alış başlatıldı; A-009…A-013 açık kararları karar günlüğünde tutulur ve kullanıcı kararı olmadan kapatılmaz.
+- Faz 4 Alış kararları K-086…K-091 ile kilitlendi; açık A kararı yoktur.
 
-Repo tutarlılık temizliği ve Faz 0–2 görev revizyonu tamamlandı. **Faz 3 Satış dokümantasyonu yazıldı; G-300…G-312 hazırdır. Faz 4 Alış kullanıcı onayıyla başlatıldı; G-400 kapsam belgesi oluşturuldu ve A-009…A-013 açık kararları kapatılmadan alış iş akışı varsayılmayacaktır.**
+Repo tutarlılık temizliği ve Faz 0–2 görev revizyonu tamamlandı. **Faz 3 Satış dokümantasyonu yazıldı; G-300…G-312 hazırdır. Faz 4 Alış dokümantasyonu da yazıldı; K-086…K-091 kilitli, veri modeli 35, iş kuralları 32–34, alış ekranları ve G-400…G-409 hazırdır. Faz 5 kullanıcı onayı olmadan başlatılmaz.**
+
+
+## 02.10.2026 Faz 4 Alış güncellemesi
+
+- K-086: esnek alış belge zinciri.
+- K-087: goods_receipt operasyonel; stok+cari+maliyet yalnız purchase_invoice posting'inde.
+- K-088: kısmi teslim ve kısmi faturalama esnek.
+- K-089: tedarikçi ödemesi Faz 5.
+- K-090: teklif karşılaştırma belge + satır bazlı; otomatik kazanan yok.
+- K-091: teklif seçiminde ayrı approval/eşik yok; izin tabanlı kullanıcı seçimi.
+- Dövizli alışta belge currency/exchange_rate snapshot kalır; stok maliyeti ve cari ledger frozen kurla şirket temel para birimine çevrilir.
+- Faz 4'ün tek yeni seçim tablosu `purchase_quote_selections`; ortak belge/stok/cari çekirdeği yeniden kullanılmaktadır.
+- Açık A kararı yoktur.
