@@ -25,11 +25,8 @@ v65:
 - Toplama
 - Paketler
 - Kargo
-- Pre-Shipment QC
 - Dosyalar
 - Timeline
-
-**Kapsam override:** kalite modülü kapsam dışı olduğu için `Pre-Shipment QC` Faz 3'te uygulanmaz.
 
 ## Eylemler
 
