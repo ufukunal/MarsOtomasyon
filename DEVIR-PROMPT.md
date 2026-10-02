@@ -75,6 +75,16 @@ Her şirket+yıl ayrı period DB. Kartlar dahil işletme verisi period DB'dedir.
 - Teklif seçimi `purchasing.quote.select` izniyle doğrudan yapılır; ayrı approval/eşik yoktur.
 - Dövizli purchase invoice maliyet ve cari ledger etkileri frozen kurla şirket temel para birimine çevrilir.
 
+## Faz 5 finans kilitleri
+
+- Tüm kasa/banka virman kombinasyonları vardır; source/target aynı currency olmalıdır.
+- Tedarikçi ödeme genel form + alış faturası kısayoluyla yapılır; settlement zorunlu değildir.
+- Kasa sayımı toplam fiili bakiye ile yapılır; fark gerekçeyle ayrı adjustment hareketidir.
+- İlk sürüm banka mutabakatı manueldir; ekstre importu/otomatik matching yoktur.
+- Çek/senet tam kontrollü event yaşam döngüsü kullanır.
+- Çek/senet geniş operasyon alanları taşır; ciroda karşı cari zorunludur.
+- Faz 5 yeni FX dönüşüm/kur farkı motoru kurmaz.
+
 ## Dönem devri
 
 Aktif kartlar + gerekli pasif kartlar kopyalanır. Taşınan bütün kartların ID/kodları ve taşınan stock_balance ID'leri aynı şirkette korunur. Geçmiş hareketler/belgeler/açık teklif-sipariş/taslak/yoldaki transfer/karantina taşınmaz. Açılış maliyeti kapanış hareketli ortalamasıdır. Devir sonunda kullanıcıya önceki dönem kullanıcı/dönem erişim ve dönemsel yetkilerini yeni döneme seçerek kopyalama sorulur.
@@ -85,7 +95,7 @@ Master company_copy_permissions. Kaynak period_source. Hedef yeni ID; source_com
 
 ## Faz ve görev yöntemi
 
-Faz 0, 0b, 1, 2 görevleri güncel standalone standarda göre temizlendi. **Faz 3 Satış dokümantasyonu yazıldı; G-300…G-312 hazırdır. Faz 4 Alış dokümantasyonu yazıldı; G-400…G-409 hazırdır.** Faz 3 iş kuralı dosyaları 28–31, Faz 4 yeni iş kuralı dosyaları 32–34 numaralarını kullanır. Faz 4 alış davranışları K-086…K-091 ile kilitlidir. Faz 5 Kasa/Banka/Çek-Senet dokümantasyonu kullanıcı onayıyla başlatılmıştır; Faz 5 davranışları K-092…K-097 ile kilitlidir.
+Faz 0, 0b, 1, 2 görevleri güncel standalone standarda göre temizlendi. **Faz 3 Satış dokümantasyonu yazıldı; G-300…G-312 hazırdır. Faz 4 Alış dokümantasyonu yazıldı; G-400…G-409 hazırdır. Faz 5 Kasa/Banka/Çek-Senet dokümantasyonu yazıldı; G-500…G-509 hazırdır.** Faz 3 iş kuralı dosyaları 28–31, Faz 4 yeni iş kuralı dosyaları 32–34, Faz 5 yeni iş kuralı dosyaları 35–38 numaralarını kullanır. Faz 4 alış davranışları K-086…K-091, Faz 5 finans davranışları K-092…K-097 ile kilitlidir. Faz 6 kullanıcı onayı olmadan başlatılmaz.
 
 Her görev şu bölümleri içerir: Amaç, Önkoşul, Dokunulacak dosyalar, Şema/Kod, Kurallar, Kabul ölçütü, İstem. Bir görev tek başına yerel modele verilebilir olmalıdır. **Satır sayısı hedef değildir.** 300–500 satır yalnız iş gerçekten o ayrıntıyı gerektiriyorsa doğal sonuç olabilir. Aynı genel checklist, mimari kural veya test maddesini sırf uzunluk için tekrar etmek yasaktır. Kaynaklarda tanımlanmayan alan, tablo, Action, sınıf, iş kuralı veya test beklentisi uydurulmaz. Eksik karar varsa `[KARAR GEREKİYOR]` yazılır ve kullanıcıya seçenek sunulur.
 
