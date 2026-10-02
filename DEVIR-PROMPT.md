@@ -202,6 +202,16 @@ Her şirket+yıl ayrı period DB. Kartlar dahil işletme verisi period DB'dedir.
 - Rapor kataloğu satış, alış, cari, stok, finans, çek/senet, iade, ithalat, üretim/fason ve e-ticareti kapsar.
 - Genel muhasebe, resmi mali tablo, vergi/GİB raporları kapsam dışıdır.
 
+## Faz 10 dokümantasyon sonucu
+
+- Veri modeli 43: report presets/export jobs/document templates/print jobs/document print provenance.
+- İş kuralları 52–56.
+- Ekranlar: rapor merkezi, dashboard, çok dönem, export merkezi, belge tasarımcısı, etiket tasarımcısı, yazdırma geçmişi.
+- G-1000…G-1012 hazırdır.
+- K-202…K-235 kilitlidir; açık A kararı yoktur.
+- G-1112 çok dönem raporu G-1006 ile aynı MultiPeriodQuery çekirdeğini kullanır.
+- Genel muhasebe/GİB/resmi mali tablo kapsam dışıdır.
+
 ## Dönem devri
 
 Aktif kartlar + gerekli pasif kartlar kopyalanır. Taşınan bütün kartların ID/kodları ve taşınan stock_balance ID'leri aynı şirkette korunur. Geçmiş hareketler/belgeler/açık teklif-sipariş/taslak/yoldaki transfer/karantina taşınmaz. Açılış maliyeti kapanış hareketli ortalamasıdır. Devir sonunda kullanıcıya önceki dönem kullanıcı/dönem erişim ve dönemsel yetkilerini yeni döneme seçerek kopyalama sorulur.
