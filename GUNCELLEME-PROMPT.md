@@ -37,12 +37,12 @@ Repo tutarlılık temizliği ve Faz 0–2 görev revizyonu tamamlandı. **Faz 3 
 - K-091: teklif seçiminde ayrı approval/eşik yok; izin tabanlı kullanıcı seçimi.
 - Dövizli alışta belge currency/exchange_rate snapshot kalır; stok maliyeti ve cari ledger frozen kurla şirket temel para birimine çevrilir.
 - Faz 4'ün tek yeni seçim tablosu `purchase_quote_selections`; ortak belge/stok/cari çekirdeği yeniden kullanılmaktadır.
-- Faz 5 için A-015…A-020 açık kararları vardır; kullanıcı kararı olmadan kapatılmaz.
+- Faz 5 kararları K-092…K-097 ile kilitlendi; açık A kararı yoktur.
 
 
 ## 02.10.2026 Faz 5 başlangıcı
 
 - Faz 5 Kasa/Banka/Çek-Senet dokümantasyonu kullanıcı onayıyla başlatıldı.
 - G-500 kapsam/açık karar dosyası oluşturuldu.
-- Açık kararlar: A-015 virman, A-016 tedarikçi ödeme girişi, A-017 kasa sayımı, A-018 banka ekstresi/mutabakat, A-019 çek/senet yaşam döngüsü, A-020 çek/senet alanları/ciro hedefi.
+- Faz 5 kararları K-092…K-097 olarak kilitlendi; açık A kararı yoktur.
 - K-075/K-082/K-062/K-078 kaynakları kilitli; bunların dışında Faz 5 davranışı uydurulmayacaktır.
