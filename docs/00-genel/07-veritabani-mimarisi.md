@@ -54,8 +54,8 @@ Master `company_copy_permissions` kaynak→hedef iznini tutar. Kaynak aynı yıl
 3. Aynı şirket devrinde taşınan bütün kartların ID/kodları ve taşınan stock_balance ID'leri korunur.
 4. Sequence'ler `MAX(id)+1` seviyesine alınır.
 5. Açılış stoku kapanış miktarı ve kapanış hareketli ortalama maliyetiyle yazılır; geçmiş stock_movements taşınmaz.
-6. product_costs, cari açılış, kasa/banka ve vadesi gelmemiş çek/senet taşınır.
-7. Belgeler, açık teklif/sipariş, taslak, yoldaki transfer ve karantina bekleyenler taşınmaz.
+6. product_costs, cari açılış, kasa/banka, vadesi gelmemiş çek/senet ve **açık karantina miktar/snapshot kayıtları** taşınır.
+7. Belgeler, açık teklif/sipariş, taslak ve yoldaki transfer taşınmaz. Karantina bekleyen kayıtlar veri kaybı yaratmamak için açık miktarıyla yeni döneme taşınır.
 8. `integrity:carry` fark bulursa devir tamamlanmaz.
 9. Kaynak dönem kapatılır.
 10. Sonunda önceki dönemin kullanıcı/dönem erişim ve dönemsel kullanıcı yetkilerini yeni döneme kopyalamak isteyip istemediği sorulur; kullanıcı seçilebilir.
