@@ -67,20 +67,17 @@ Onaylı v65 prototipinde Faz 5'e ait kasa/banka/çek/senet ekran davranışı do
 
 ## [KARAR GEREKİYOR]
 
-### A-015 — Virman kapsamı ve para birimi
+### A-015 — KAPANDI: Tüm hesap türleri arasında aynı para birimli virman
 
-Kaynaklar virmanın Faz 5'te olacağını söyler; şu ayrıntılar kilitli değildir:
-
-- kasa → kasa,
-- kasa → banka,
-- banka → kasa,
-- banka → banka
-
-kombinasyonlarının hangilerinin destekleneceği,
-- farklı para birimli hesaplar arasında virman olup olmayacağı,
-- varsa kur/kur farkı davranışı.
-
-K-013 dövizi yalnız ithalat ve alışla sınırlar; bu nedenle finans hesapları arası döviz dönüşümü ayrıca karar verilmeden varsayılmayacaktır.
+- Kasa → Kasa desteklenir.
+- Kasa → Banka desteklenir.
+- Banka → Kasa desteklenir.
+- Banka → Banka desteklenir.
+- Kaynak ve hedef hesap currency değerleri aynı olmalıdır.
+- Farklı para birimleri arasında virman yoktur.
+- Virman kur dönüşümü veya kur farkı üretmez.
+- Kaynak ve hedef aynı hesap olamaz.
+- Virman iki finans hareketini tek transaction/idempotency zincirinde üretir.
 
 ### A-016 — Tedarikçi ödeme girişi
 
