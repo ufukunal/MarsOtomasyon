@@ -52,6 +52,8 @@ Davranış:
 
 Transfer ortalamayı değiştirmez; çıkış ve giriş aynı birim maliyetle yazılır.
 
+Faz 7 ithalatında purchase invoice ilk maliyeti normal alış gibi moving average'a sokar. Sonradan dağıtılan ithalat ek maliyeti fiziksel stock movement değildir; K-123 gereği `inventory_cost_adjustments` gerçek kaynağı üzerinden maliyet düzeltmesidir. Bu düzeltmenin satış görmüş / sıfır-negatif mevcut stokta moving_average'a uygulanma formülü A-053 kararı bekler.
+
 Faz 6 satış iadesi karantinaya girer ve moving average'ı yeniden hesaplamaz:
 - kaynaklı satış iadesi original sales stock-out unit_cost ile geri girer,
 - kaynaksız satış iadesi current moving average unit_cost kullanır.
