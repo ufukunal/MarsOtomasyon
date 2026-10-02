@@ -46,3 +46,10 @@ Schema::connection('master')->create('print_profiles', function (Blueprint $tabl
 - ZPL/ESC-POS/PDF gibi taşıyıcı ayrıntısı `PrintManager` arkasındadır.
 
 - Profil düzenleme `version` optimistic lock ile korunur.
+
+
+## Faz 10 template ilişkisi
+
+K-214/K-215 gereği `template_id` Master `document_templates` kaydını işaret eder. Aynı company kapsamındadır.
+
+Profile üzerindeki template seçimi, ilgili print type varsayılan template'ini override edebilir. Final render sırasında kullanılan template revision print job provenance'ında ayrıca snapshot edilir; profile kaydı geçmiş çıktının tek kanıtı değildir.
