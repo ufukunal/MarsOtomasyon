@@ -73,4 +73,25 @@ Repo tutarlılık temizliği ve Faz 0–2 görev revizyonu tamamlandı. **Faz 3 
 - Karantina gerçek kaynağı quarantine_entries; stock_balances.quarantine özetidir.
 - Açık karantina dönem devrinde kaybolmaz, yeni döneme açık miktar/snapshot taşınır.
 - Açık A kararı yoktur.
-- Faz 7 kullanıcı onayı olmadan başlatılmaz.
+- Faz 7 kararları K-114…K-129 ile kilitlendi; Faz 7 dokümantasyonu henüz yazılmadı.
+
+
+## 02.10.2026 Faz 7 ön kararları
+
+- Faz 7 İthalat kararları K-114…K-129 ile kilitlendi.
+- Purchase invoice ilk stok/maliyet etkisini Faz 4 kurallarıyla üretir; import finalize yalnız miktarı değiştirmeyen ek maliyet düzeltmesi yapar.
+- Masraf dağıtımı: alış değeri / miktar / manuel.
+- Masraf tipleri sabit temel liste + other.
+- Kaynak masraf hem purchase_invoice hem manuel import expense olabilir.
+- İndirilebilir ithalat KDV'si stok maliyetine girmez.
+- Farklı dövizli kaynak belgeler kendi frozen kurlarıyla base currency maliyet havuzunda birleşebilir.
+- Purchase invoice line import dosyasına tam satır bazında bağlanır; miktar bazlı bölünmez.
+- Finalize immutable; sonradan masraf ayrı import cost adjustment'tır.
+- Miktar değiştirmeyen maliyet gerçek kaynağı inventory_cost_adjustments'tır.
+- product_costs.import_cost son finalized import unit cost snapshot'ıdır.
+- Import file cari hareket üretmez.
+- Yaşam döngüsü draft → cost_collection → finalized → adjusted.
+- Bir import file birden fazla purchase invoice/supplier içerebilir.
+- Dağıtım yuvarlama farkı son uygun satıra verilir.
+- Ağırlık/hacim ilk sürümde yoktur.
+- Açık A kararı yoktur.
