@@ -172,4 +172,8 @@ Verilen kararlar ve gerekçeleri. **Kod bu kararlara uyar; kod kararla
 
 ## Açık kararlar
 
-**Yok.** A-037…A-052, K-114…K-129 ile kapatıldı.
+| No | Konu | Netleştirilecek davranış |
+|---|---|---|
+| A-053 | İthalat ek maliyetinin satış görmüş stokta moving average'a yansıması | Import file finalize olduğunda kaynak ithalat miktarının bir kısmı/tamamı satılmış olabilir. Lot/parti olmadığı için hangi mevcut birimlerin ithalat partisine ait olduğu izlenemez. Ek masrafın current moving average'a hangi formülle yansıyacağı ve current quantity <= 0 durumu kilitlenmelidir. |
+
+A-037…A-052, K-114…K-129 ile kapatılmıştır. Faz 7'nin tek açık kararı A-053'tür.
