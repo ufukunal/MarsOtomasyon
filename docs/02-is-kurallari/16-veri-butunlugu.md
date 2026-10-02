@@ -4,13 +4,13 @@ Sistem stok/cari/kasanın tek kaydıdır. Bütünlük dört katmanda korunur: DB
 
 ## Zorunlu kontroller
 
-- `integrity:stock`: stock_movements toplamı ↔ stock_balances
+- `integrity:stock`: stock_movements toplamı ↔ stock_balances.quantity
 - `integrity:contacts`: contact_transactions toplamı ↔ raporlanan bakiye
 - `integrity:documents`: **line_calculated** belgelerde satırlar ↔ belge toplamları / rounding_difference; **header_amount** (`collection`, `contact_debit_credit`) belgelerde satır beklemeden amount/header invariant'ı + ilgili cari/finans hareketi tutarı
 - `integrity:numbers`
 - `integrity:costs`
-- `integrity:reservations`
-- `integrity:quarantine`
+- `integrity:reservations`: aktif stock_reservations toplamı ↔ stock_balances.reserved
+- `integrity:quarantine`: aktif karantina kayıt toplamı ↔ stock_balances.quarantine
 - `integrity:units`: base_quantity = quantity × frozen conversion_factor
 - `integrity:partials`: ordered/shipped/invoiced/cancelled sınırları
 - `integrity:files`

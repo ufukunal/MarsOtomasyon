@@ -37,13 +37,18 @@ kullanılabilir = quantity − reserved − consignment_reserved − quarantine
 
 Bu kolon **saklanmaz**, okurken hesaplanır.
 
-## Güncelleme
+## Güncelleme sahipliği
 
-Yalnızca `RecordStockMovement` action'ı günceller. Başka hiçbir yerden
-`stock_balances` yazılmaz.
+`stock_balances` tek bir bağımsız gerçek kaynak değildir; alanlar kendi kaynak kayıtlarının hızlı özetidir. Bu nedenle **kolon bazında tek-yazar** kuralı uygulanır:
 
-Tutarlılık kontrolü: `php artisan stock:verify` komutu hareket toplamıyla
-bakiyeyi karşılaştırır, fark varsa raporlar. Ayda bir çalıştırılır.
+- `quantity` → yalnız `RecordStockMovement`; kaynağı `stock_movements`,
+- `reserved` → yalnız `ReserveStock / ReleaseReservation / ConsumeReservation`; kaynağı aktif `stock_reservations`,
+- `quarantine` → yalnız karantina Action'ları; kaynağı aktif karantina kayıtları,
+- `consignment_reserved` → yalnız konsinye/numune Action'ları; ilgili modülün kaynak kayıtları.
+
+Başka Action/controller/Livewire kodu bu alanlara doğrudan update yapmaz. Her sahip Action ilgili `product_id + location_id` stock_balance satırını transaction içinde kilitler.
+
+Tutarlılık: `integrity:stock` quantity'yi stock_movements ile; `integrity:reservations` reserved'ı aktif reservation toplamıyla; `integrity:quarantine` quarantine değerini aktif karantina toplamıyla karşılaştırır. Fark raporlanır, otomatik düzeltilmez.
 
 ## Rezerve, konsinye ve karantina
 
