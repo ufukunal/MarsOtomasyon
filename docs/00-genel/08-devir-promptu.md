@@ -64,6 +64,17 @@ Her şirket+yıl ayrı period DB. Kartlar dahil işletme verisi period DB'dedir.
 - Satır ve belge iskontosu yüzde/tutar girilebilir.
 - Manuel Cari Borç/Alacak Fişi gerekçe+audit ile vardır.
 
+## Faz 4 alış kilitleri
+
+- Belge ailesi esnektir: purchase_request, supplier_quote, purchase_order, goods_receipt, purchase_invoice; ara adımlar zorunlu değildir.
+- goods_receipt stok/cari/maliyet etkisiz operasyon kaydıdır.
+- purchase_invoice stock in + supplier credit + moving average üretir.
+- Kısmi receipt/invoice ve kalan iptal desteklenir.
+- Supplier payment Faz 5'tedir.
+- Teklif karşılaştırma belge + satır bazlıdır; otomatik winner yoktur.
+- Teklif seçimi `purchasing.quote.select` izniyle doğrudan yapılır; ayrı approval/eşik yoktur.
+- Dövizli purchase invoice maliyet ve cari ledger etkileri frozen kurla şirket temel para birimine çevrilir.
+
 ## Dönem devri
 
 Aktif kartlar + gerekli pasif kartlar kopyalanır. Taşınan bütün kartların ID/kodları ve taşınan stock_balance ID'leri aynı şirkette korunur. Geçmiş hareketler/belgeler/açık teklif-sipariş/taslak/yoldaki transfer/karantina taşınmaz. Açılış maliyeti kapanış hareketli ortalamasıdır. Devir sonunda kullanıcıya önceki dönem kullanıcı/dönem erişim ve dönemsel yetkilerini yeni döneme seçerek kopyalama sorulur.
@@ -74,11 +85,11 @@ Master company_copy_permissions. Kaynak period_source. Hedef yeni ID; source_com
 
 ## Faz ve görev yöntemi
 
-Faz 0, 0b, 1, 2 görevleri güncel standalone standarda göre temizlendi. **Faz 3 Satış dokümantasyonu yazıldı; G-300…G-312 hazırdır. Faz 4 Alış kullanıcı onayıyla başlatıldı; G-400 kapsam belgesi oluşturuldu.** Faz 3 iş kuralı dosyaları 28–31 numaralarını kullanır. Faz 4'te A-009…A-013 açık kararları kapatılmadan alış iş akışı varsayılmaz.
+Faz 0, 0b, 1, 2 görevleri güncel standalone standarda göre temizlendi. **Faz 3 Satış dokümantasyonu yazıldı; G-300…G-312 hazırdır. Faz 4 Alış dokümantasyonu yazıldı; G-400…G-409 hazırdır.** Faz 3 iş kuralı dosyaları 28–31, Faz 4 yeni iş kuralı dosyaları 32–34 numaralarını kullanır. Faz 4 alış davranışları K-086…K-091 ile kilitlidir. Faz 5 kullanıcı onayı olmadan başlatılmaz.
 
 Her görev şu bölümleri içerir: Amaç, Önkoşul, Dokunulacak dosyalar, Şema/Kod, Kurallar, Kabul ölçütü, İstem. Bir görev tek başına yerel modele verilebilir olmalıdır. **Satır sayısı hedef değildir.** 300–500 satır yalnız iş gerçekten o ayrıntıyı gerektiriyorsa doğal sonuç olabilir. Aynı genel checklist, mimari kural veya test maddesini sırf uzunluk için tekrar etmek yasaktır. Kaynaklarda tanımlanmayan alan, tablo, Action, sınıf, iş kuralı veya test beklentisi uydurulmaz. Eksik karar varsa `[KARAR GEREKİYOR]` yazılır ve kullanıcıya seçenek sunulur.
 
-Açık kararlar A-009…A-013'tür. Yeni veya mevcut açık iş kararı gerekiyorsa kullanıcıya seçenek sun; kendin kapatma.
+Açık A kararı yoktur. Yeni iş kararı gerekiyorsa kullanıcıya seçenek sun; kendin kapatma.
 
 
 ## Anti-halüsinasyon görev kuralı
