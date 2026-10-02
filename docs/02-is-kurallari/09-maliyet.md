@@ -52,7 +52,16 @@ Davranış:
 
 Transfer ortalamayı değiştirmez; çıkış ve giriş aynı birim maliyetle yazılır.
 
-Faz 7 ithalatında purchase invoice ilk maliyeti normal alış gibi moving average'a sokar. Sonradan dağıtılan ithalat ek maliyeti fiziksel stock movement değildir; K-123 gereği `inventory_cost_adjustments` gerçek kaynağı üzerinden maliyet düzeltmesidir. Bu düzeltmenin satış görmüş / sıfır-negatif mevcut stokta moving_average'a uygulanma formülü A-053 kararı bekler.
+Faz 7 ithalatında purchase invoice ilk maliyeti normal alış gibi moving average'a sokar. Sonradan dağıtılan ithalat ek maliyeti fiziksel stock movement değildir; K-123 gereği `inventory_cost_adjustments` gerçek kaynağı üzerinden maliyet düzeltmesidir. K-130 gereği unit adjustment original import base_quantity üzerinden hesaplanır ve current moving_average'a eklenir; geçmiş satış hareketleri değişmez.
+
+Faz 8 üretim:
+- component stock-out unit_cost, çıkış anındaki moving_average snapshot'ıdır,
+- actual consumption + fire maliyetleri mamul production cost'a girer,
+- internal production ilk sürümde işçilik/enerji/overhead eklemez,
+- fason üretimde bağlı hizmet purchase_invoice maliyeti production cost'a dahil olabilir,
+- production stock-in K-146 gereği moving_average'ı günceller,
+- product_costs.production_cost son production unit cost snapshot'ıdır,
+- geç gelen fason hizmet maliyeti K-154 ile inventory_cost_adjustments üzerinden miktarı değiştirmeden eklenir.
 
 Faz 6 satış iadesi karantinaya girer ve moving average'ı yeniden hesaplamaz:
 - kaynaklı satış iadesi original sales stock-out unit_cost ile geri girer,
