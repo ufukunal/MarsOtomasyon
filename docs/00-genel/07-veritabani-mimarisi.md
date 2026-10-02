@@ -31,7 +31,7 @@ Master'da cari/ürün/lokasyon/fiyat kartı yoktur. Master modelleri şirket glo
 
 Kartlar: contacts ve yan tabloları, products, units, categories, brands, variants, sets, configurator, price_lists, locations, kart attachments/görseller.
 
-Operasyon: documents, document_lines, document_relations, contact_transactions, stock_movements, stock_balances, product_costs, cash/bank, securities, number_series, posting_periods, reservations, stock counts, quarantine, integrity/idempotency kayıtları ve period activity_log.
+Operasyon: documents, document_lines, document_relations, contact_transactions, stock_movements, stock_balances, product_costs, cash/bank, securities, import_files/import_expenses/import allocations/inventory_cost_adjustments, number_series, posting_periods, reservations, stock counts, quarantine, integrity/idempotency kayıtları ve period activity_log.
 
 **Period tablolarında company_id yoktur.** `PeriodModel` connection=`period` kullanır.
 
