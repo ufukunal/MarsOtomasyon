@@ -109,15 +109,18 @@ Verilen kararlar ve gerekçeleri. **Kod bu kararlara uyar; kod kararla
 | K-090 | Satınalma teklif toplamada **belge bazlı ve satır bazlı karşılaştırma birlikte desteklenir**; sistem otomatik kazanan/en ucuz teklif seçmez. | Kullanıcı ister tek teklifi, ister satır bazında farklı tedarikçileri seçebilir. |
 | K-091 | Tedarikçi teklif seçimi için **ayrı approval state veya tutar eşiği yoktur**. Yetkili kullanıcı `purchasing.quote.select` izniyle seçimi doğrudan yapar; seçim period audit'e yazılır. | Basit teklif toplama kapsamı korunur; gereksiz onay katmanı eklenmez. |
 
+
+## 2026-10-02 — Faz 5 Kasa/Banka/Çek-Senet kararları
+
+| No | Karar | Gerekçe / teknik sonuç |
+|---|---|---|
+| K-092 | Virman **Kasa→Kasa, Kasa→Banka, Banka→Kasa ve Banka→Banka** destekler; kaynak ve hedef hesap aynı para biriminde olmalıdır. | Faz 5 virmanı döviz dönüşümü/kur farkı üretmez; kaynak ve hedef aynı hesap olamaz. |
+| K-093 | Tedarikçi ödeme ana işlemi genel ödeme formundadır; alış faturasında **Ödeme Yap** kısayolu vardır. Kaynak fatura ilişkisi bilgi amaçlıdır; settlement zorunlu değildir ve kısmi ödeme serbesttir. | K-062 açık hesap modelini korur, kullanıcıya pratik fatura kısayolu sağlar. |
+| K-094 | Kasa sayımı toplam fiili bakiye üzerinden yapılır; kupür sayımı yoktur. Fark kullanıcıya gösterilir; gerekçeyle onaylanırsa ayrı kasa sayım farkı hareketi oluşur. | Geçmiş hareketler mutate edilmeden fiziksel sayım farkı kayıt altına alınır. |
+| K-095 | İlk Faz 5 sürümünde banka ekstresi dosya importu ve otomatik eşleştirme yoktur. Banka hareketleri manuel olarak **mutabık / mutabık değil** işaretlenir. | İlk sürüm kapsamı kontrollü tutulur; mutabakat finans hareketi üretmez. |
+| K-096 | Çek/senet tam kontrollü yaşam döngüsüne sahiptir. Alınan kıymet: alındı→portföyde→ciro/tahsile verildi→tahsil edildi veya karşılıksız/geri döndü. Verilen kıymet: verildi→ödeme bekliyor→ödendi veya geri döndü/iptal. | K-082 cari etki kuralları lifecycle ile somutlaştırılır. |
+| K-097 | Çek/senet geniş veri seti + banka operasyon alanları taşır; ciroda karşı cari zorunludur ve history korunur. | Banka teslimi, tahsil/ödeme referansı, protesto/karşılıksız detayları ve operasyon metadata ilk sürüm veri modelinde desteklenir. |
+
 ## Açık kararlar
 
-| No | Konu | Netleştirilecek davranış |
-|---|---|---|
-| A-015 | **KAPANDI — Tüm hesap türleri, aynı para birimi** | Kasa→Kasa, Kasa→Banka, Banka→Kasa ve Banka→Banka virmanları desteklenir. Kaynak ve hedef hesap aynı para biriminde olmalıdır; Faz 5 virmanı döviz dönüşümü veya kur farkı üretmez. |
-| A-016 | **KAPANDI — Genel ödeme formu + fatura kısayolu** | Ana işlem genel Tedarikçi Ödeme formundan yapılır; alış faturası ekranında ödeme kısayolu vardır. Kaynak fatura ilişkisi bilgi amaçlıdır, settlement zorunlu değildir; kısmi ödeme serbesttir. |
-| A-017 | **KAPANDI — Toplam fiili bakiye + fark düzeltme hareketi** | Kullanıcı gerçek toplam kasa bakiyesini girer; sistem beklenen bakiye ile farkı gösterir. Gerekçeyle onaylanırsa ayrı kasa sayım farkı hareketi oluşturulur. Kupür bazlı sayım yoktur. |
-| A-018 | **KAPANDI — Manuel mutabakat** | İlk sürümde banka ekstresi dosya importu yoktur. Mevcut banka hareketleri kullanıcı tarafından manuel olarak mutabık / mutabık değil durumuyla işaretlenir. |
-| A-019 | **KAPANDI — Tam kontrollü yaşam döngüsü** | Alınan kıymet: alındı→portföyde→ciro veya tahsile verildi→tahsil edildi / karşılıksız-geri döndü. Verilen kıymet: verildi→ödeme bekliyor→ödendi / geri döndü-iptal. K-082 cari etkileri korunur. |
-| A-020 | **KAPANDI — Geniş veri seti + banka operasyon alanları** | Tür, yön, seri/no, tutar, vade, para birimi, ilk cari, keşideci/düzenleyen, banka/şube, açıklama, durum ve actor alanlarına ek olarak banka hesap bağlantısı, tahsil/ödeme referansı, banka teslim tarihi, protesto/karşılıksız detayları ve operasyon metadata tutulur. Ciro hedef carisi zorunludur. |
-
-A-009…A-014, K-086…K-091 ile kapatılmıştır. Faz 5 A-015…A-020 kullanıcı kararı olmadan kapatılmaz.
+**Yok.** A-015…A-020, K-092…K-097 ile kapatıldı.
