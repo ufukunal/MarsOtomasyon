@@ -105,7 +105,7 @@ Faz 4 Alış başlatıldıktan sonra aşağıdaki karar boşlukları tespit edil
 
 | No | Açık konu | Netleştirilecek davranış |
 |---|---|---|
-| A-009 | Faz 4 kanonik belge zinciri | Satınalma talebi + teklif toplama sonrasında satınalma siparişi ve mal kabul/alış irsaliyesinin zorunlu/opsiyonel yeri |
+| A-009 | **KAPANDI — Esnek belge zinciri** | Satınalma talebi → tedarikçi teklifleri → satınalma siparişi → mal kabul/alış irsaliyesi → alış faturası belgeleri vardır; ara adımlar zorunlu değildir. Kullanıcı doğrudan sonraki uygun belgeyi oluşturabilir. |
 | A-010 | Alışta stok ve cari etki anı | Mal kabul/alış irsaliyesinde stok girişi, irsaliyeden alış faturasında ikinci stok etkisinin önlenmesi ve doğrudan alış faturasının etkileri |
 | A-011 | Kısmi teslim ve kısmi faturalama | Kısmi kabul, kalan iptal, bir kabulün birden fazla faturaya ve birden fazla kabulün tek faturaya dönüşebilmesi |
 | A-012 | Tedarikçi ödeme zamanı | Faz 4'te minimum doğrudan ödeme eylemi olup olmayacağı veya ödemenin Faz 5'e bırakılması |
