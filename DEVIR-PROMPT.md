@@ -165,6 +165,21 @@ Her şirket+yıl ayrı period DB. Kartlar dahil işletme verisi period DB'dedir.
 - K-131…K-162 kilitlidir; açık A kararı yoktur.
 - Faz 9 kullanıcı onayı olmadan başlatılmaz.
 
+## Faz 9 e-ticaret kilitleri
+
+- Kanallar Trendyol, Hepsiburada, N11, WooCommerce; ortak adapter sözleşmesi vardır.
+- Channel account/credential Master DB'de şirket bazındadır; aynı platformda çoklu mağaza olabilir.
+- Listing mapping period DB'dedir; her internal varyant ayrı listing'dir.
+- Product temel kaynaktır; listing override ve kanal→Ortak görsel fallback vardır.
+- stock mode yalnız listing'e atanmış satışa uygun location kapsamını toplar.
+- production/manual quantity listing bazındadır.
+- External order idempotent confirmed sales_order olarak import edilir.
+- Marketplace buyer/shipping snapshot'tır; import tahsilat üretmez.
+- Cancel mevcut remaining-cancel, return draft sales_return akışıdır.
+- Webhook birincil, 15 dk polling yedek; 30/60/120 retry + kalıcı sync history/error vardır.
+- Mapping dönem devrinde taşınır; order/sync history taşınmaz.
+- Dönemler arası external event duplicate engeli Master registry ile korunur.
+
 ## Faz 9 dokümantasyon sonucu
 
 - Veri modeli 42: Master channel account/external event registry; Period listing/location/order snapshot/sync history.
