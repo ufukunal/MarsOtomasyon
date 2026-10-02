@@ -148,6 +148,28 @@ Verilen kararlar ve gerekçeleri. **Kod bu kararlara uyar; kod kararla
 |---|---|---|
 | K-113 | Satış ve alış iadeleri aynı sabit neden kodlarını kullanır: `wrong_product`, `damaged`, `defective`, `quantity_error`, `customer_request`, `supplier_return`, `other`. | İlk sürümde ayrı return reason kartı/CRUD kurulmaz; neden raporlanabilir ve audit edilebilir kalır. |
 
+
+## 2026-10-02 — Faz 7 İthalat kararları
+
+| No | Karar | Gerekçe / teknik sonuç |
+|---|---|---|
+| K-114 | İthalat ürünleri alış faturasında mevcut Faz 4 kurallarıyla ilk maliyetle stoğa girer; ithalat dosyası finalize edildiğinde ek ithalat masrafları **miktarı değiştirmeyen maliyet düzeltmesi** olarak moving average'a yansır. | Faz 4 purchase invoice posting modeli korunur; sonradan gelen ithalat maliyetleri fiziksel stoğu ikinci kez artırmaz. |
+| K-115 | Masraf dağıtım yöntemleri ilk sürümde **alış değerine göre, miktara göre veya manuel** seçimidir. | Ağırlık/hacim için ürün kartı genişletmesi ilk sürüme alınmaz. |
+| K-116 | İthalat masraf türleri sabit temel liste + `other` modelidir: freight, customs_duty, insurance, storage, customs_brokerage, port_terminal, other. | İlk sürümde import expense type CRUD yoktur; `other` açıklama gerektirir. |
+| K-117 | İthalat masrafları hem mevcut **purchase_invoice** belgelerinden hem de cari etkisi olmayan manuel import expense kayıtlarından gelebilir. | Faturalı masraf mevcut alış/cari/ödeme altyapısını yeniden kullanır; faturasız/vergi-harç tipi maliyetler ayrıca tutulur. |
+| K-118 | Stok maliyetine gümrük vergisi ve doğrudan ithalat giderleri dahil edilir; **indirilebilir ithalat KDV'si maliyete dahil edilmez**. Geri alınamayan vergi/harç maliyet masrafı olarak girilebilir. | Stok maliyeti ile indirilebilir vergi ayrılır; genel muhasebe kapsamı genişletilmez. |
+| K-119 | Aynı ithalat dosyasında farklı para birimli kaynak belgeler bulunabilir; her belge kendi frozen kuruyla şirket temel para birimine çevrilir ve maliyet havuzunda birleştirilir. | K-013 frozen kur yaklaşımı korunur; yeni kur farkı hesabı yoktur. |
+| K-120 | Purchase invoice kaynakları ithalat dosyasına **satır bazında tam** bağlanır; aynı invoice line birden fazla import dosyasına miktar bazında bölünmez. | Lot/parti ve miktar bazlı import parçalama karmaşıklığı ilk sürüme alınmaz. |
+| K-121 | Finalize edilmiş ithalat dosyası immutable'dır; yerinde tekrar açılmaz/değiştirilmez. | K-016 kesinleşmiş kayıt ilkesi korunur. |
+| K-122 | Finalize sonrası gelen masraf, eski dosyayı açmak yerine ayrı **import cost adjustment** kaydıyla aynı ürünlere ek maliyet olarak dağıtılır. | Geçmiş maliyet hesapları değişmeden yeni maliyet farkı izlenebilir olur. |
+| K-123 | Miktar değiştirmeyen ithalat maliyet düzeltmelerinin gerçek kaynağı ayrı **inventory_cost_adjustments** tablosudur; zero-quantity stock movement kullanılmaz ve product_costs doğrudan kaynak olmadan güncellenmez. | Fiziksel stok hareketi ile maliyet değer hareketi ayrılır; audit/integrity korunur. |
+| K-124 | `product_costs.import_cost`, ürünün **son finalize edilen ithalat birim maliyeti** snapshot'ıdır; bilgi amaçlıdır. Geçerli maliyet yine `moving_average`dır. | Mevcut product_costs alanı kanonik anlam kazanır. |
+| K-125 | İthalat dosyasının kendi cari etkisi yoktur. Cari etkiler kaynak purchase_invoice belgelerinde oluşur; manuel import expense cari hareket üretmez. | Çift borç/cari etkisi engellenir. |
+| K-126 | İthalat dosyası yaşam döngüsü **draft → cost_collection → finalized → adjusted** modelidir. Ayrı approval state yoktur. | Masraf toplama/finalize ayrılır; sonradan adjustment görünür olur. |
+| K-127 | Aynı ithalat dosyası birden fazla purchase invoice ve farklı supplier kaynaklarını içerebilir; ortak şart aynı fiziksel ithalat operasyonuna ait olmalarıdır. | İthalat operasyonu tek fatura kimliğiyle sınırlandırılmaz. |
+| K-128 | Masraf dağıtımındaki yuvarlama farkı deterministik olarak son uygun satıra verilir; toplam dağıtılan tutar masraf toplamına tam eşitlenir. | Dağıtılmamış maliyet bırakılmaz. |
+| K-129 | Faz 7 ilk sürümünde ağırlık/hacim bazlı dağıtım yoktur; ürün kartına bunun için yeni alan eklenmez. | Faz kapsamı korunur; K-115 yöntemleri yeterlidir. |
+
 ## Açık kararlar
 
-**Yok.** A-036, K-113 ile kapatıldı. Faz 6 başlangıç kararları K-098…K-113 ile kilitlidir.
+**Yok.** A-037…A-052, K-114…K-129 ile kapatıldı.
