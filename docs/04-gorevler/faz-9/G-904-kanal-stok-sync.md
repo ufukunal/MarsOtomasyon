@@ -47,7 +47,7 @@ Set:
 
 ## Kabul ölçütü
 
-- A-097 seçimi gereği yalnız seçili depolar toplanıyor.
+- K-174 gereği yalnız listing'e atanmış seçili depolar toplanıyor.
 - Subcontractor stock gönderilmiyor.
 - Withhold+max doğru.
 - production/manual fiziksel stock'tan bağımsız.
