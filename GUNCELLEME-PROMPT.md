@@ -22,6 +22,6 @@ Bu dosya `DEVIR-PROMPT.md`den sonra okunur. Çelişkide bu dosya ve karar günl�
 - Faz 3 iş kuralı dosya numaraları mevcut 11–27 ile çakışmamak için **28–31** kullanılacaktır.
 - Faz 0–2 görev numaraları korunur ve görevler yeni standalone standarda yükseltilir.
 - v64 korunur; **v65 güncel UI referansıdır.**
-- Açık A kararı yoktur.
+- Faz 4 Alış başlatıldı; A-009…A-013 açık kararları karar günlüğünde tutulur ve kullanıcı kararı olmadan kapatılmaz.
 
-Repo tutarlılık temizliği ve Faz 0–2 görev revizyonu tamamlandı. **Faz 3 Satış dokümantasyonu yazıldı; G-300…G-312 hazırdır.** Faz 4 kullanıcı onayı olmadan başlatılmaz.
+Repo tutarlılık temizliği ve Faz 0–2 görev revizyonu tamamlandı. **Faz 3 Satış dokümantasyonu yazıldı; G-300…G-312 hazırdır. Faz 4 Alış kullanıcı onayıyla başlatıldı; G-400 kapsam belgesi oluşturuldu ve A-009…A-013 açık kararları kapatılmadan alış iş akışı varsayılmayacaktır.**
