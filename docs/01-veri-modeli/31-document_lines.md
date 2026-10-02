@@ -67,7 +67,7 @@ gross = quantity × unit_price
 line_total = gross - line_discount_amount
 ```
 
-Ara adımda yuvarlama yapılmaz; 4 hane korunur.
+Ara hesapta 2 hanelik half-up yapılmaz. `line_total` 4 hanelik para snapshot'ı olarak saklanır; K-036'daki 2 hane half-up yalnız KDV grup sonucu ve belge grand total seviyesindedir.
 
 ## Kısmi işlem
 
