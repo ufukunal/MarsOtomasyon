@@ -5,7 +5,7 @@
 - Cari: `CR` + 7 hane sıra (`CR0000036`); tedarikçi de aynı seriden
 - Ürün: elle girilir (avize kodları anlamlı: `AVZ-2032`)
 - Kod şirket içinde benzersiz, kayıt sonrası **değiştirilemez**
-- Kopyalamada kod çakışırsa sonuna `-2` eklenir ve kullanıcıya bildirilir
+- Şirketler arası kopyalamada hedefte aynı kod varsa otomatik suffix/overwrite yapılmaz; kullanıcı **mevcut kartı kullan / yeni kod gir / iptal** seçeneklerinden birini seçer
 
 ## Cari
 
@@ -27,7 +27,7 @@
 ## Set ürün
 
 - Kendi stoğu **yoktur**
-- Satılabilir adet: `min(bileşen_stoğu ÷ gereken_miktar)`
+- Satılabilir adet: `min(bileşen_kullanılabilir_stoğu ÷ gereken_miktar)`
 - Bir bileşen tek seti karşılayamıyorsa set adedi sıfırlanır ve
   **tüm kanallarda** satışa kapanır
 - Satışta bileşenler stoktan düşer, set düşmez
@@ -36,7 +36,7 @@
 ## Konfigüratör
 
 - Seçim grupları ürüne bağlanır (Gövde, Kristal, Duy)
-- Her seçenek bir bileşen ürüne ve fiyat farkına bağlıdır
+- Konfigüratör seçeneği **fiyat taşımaz ve satış fiyatını değiştirmez**; seçenek yalnız ürün özelliği/konfigürasyon bilgisidir
 - Sipariş satırında seçim **dondurulur**; sonradan tanım değişse
   eski sipariş bozulmaz
 
