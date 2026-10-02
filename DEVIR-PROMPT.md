@@ -110,6 +110,23 @@ Her şirket+yıl ayrı period DB. Kartlar dahil işletme verisi period DB'dedir.
 - Açık A kararı yoktur.
 - Faz 7 kullanıcı onayı olmadan başlatılmaz.
 
+## Faz 7 ithalat kilitleri
+
+- Purchase invoice Faz 4 kurallarıyla ilk stok/maliyet etkisini üretir; import finalize yalnız ek maliyet adjustment yapar.
+- Masraf dağıtımı alış değeri / miktar / manuel yöntemlerinden biridir.
+- Sabit expense type listesi + other kullanılır; ağırlık/hacim ilk sürümde yoktur.
+- Masraf kaynağı purchase_invoice veya cari etkisiz manuel import expense olabilir.
+- İndirilebilir ithalat KDV'si stok maliyetine dahil edilmez.
+- Farklı dövizli kaynaklar kendi frozen kurlarıyla base currency maliyet havuzunda birleşebilir.
+- Purchase invoice line import dosyasına tam satır bazında bağlanır.
+- Finalized import file immutable'dır; sonradan masraf ayrı import cost adjustment'tır.
+- Miktar değiştirmeyen maliyet hareketinin gerçek kaynağı inventory_cost_adjustments'tır; zero-quantity stock movement yoktur.
+- product_costs.import_cost son finalized import unit cost snapshot'ıdır; geçerli maliyet moving_average'dır.
+- Import file kendi cari hareketini üretmez.
+- Yaşam döngüsü draft → cost_collection → finalized → adjusted.
+- Bir import file birden fazla purchase invoice/supplier içerebilir.
+- Dağıtım rounding farkı son uygun satıra verilir.
+
 ## Dönem devri
 
 Aktif kartlar + gerekli pasif kartlar kopyalanır. Taşınan bütün kartların ID/kodları ve taşınan stock_balance ID'leri aynı şirkette korunur. Geçmiş hareketler/belgeler/açık teklif-sipariş/taslak/yoldaki transfer/karantina taşınmaz. Açılış maliyeti kapanış hareketli ortalamasıdır. Devir sonunda kullanıcıya önceki dönem kullanıcı/dönem erişim ve dönemsel yetkilerini yeni döneme seçerek kopyalama sorulur.
@@ -124,7 +141,7 @@ Faz 0, 0b, 1, 2 görevleri güncel standalone standarda göre temizlendi. **Faz 
 
 Her görev şu bölümleri içerir: Amaç, Önkoşul, Dokunulacak dosyalar, Şema/Kod, Kurallar, Kabul ölçütü, İstem. Bir görev tek başına yerel modele verilebilir olmalıdır. **Satır sayısı hedef değildir.** 300–500 satır yalnız iş gerçekten o ayrıntıyı gerektiriyorsa doğal sonuç olabilir. Aynı genel checklist, mimari kural veya test maddesini sırf uzunluk için tekrar etmek yasaktır. Kaynaklarda tanımlanmayan alan, tablo, Action, sınıf, iş kuralı veya test beklentisi uydurulmaz. Eksik karar varsa `[KARAR GEREKİYOR]` yazılır ve kullanıcıya seçenek sunulur.
 
-Açık A kararı yoktur. Yeni iş kararı gerekiyorsa kullanıcıya seçenek sun; kendin kapatma.
+Açık A kararı yoktur. Faz 7 davranışları K-114…K-129 ile kilitlidir. Yeni iş kararı gerekiyorsa kullanıcıya seçenek sun; kendin kapatma.
 
 
 ## Anti-halüsinasyon görev kuralı
