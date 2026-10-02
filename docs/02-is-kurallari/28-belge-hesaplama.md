@@ -1,6 +1,6 @@
 # Belge hesaplama
 
-Faz 3 **satırlı ticari belgelerinde** hesaplama tek motor üzerinden yapılır. Aynı hesap motoru ileriki fazlarda alış belgeleri tarafından da kullanılabilir.
+Satırlı ticari belgelerde hesaplama tek motor üzerinden yapılır. Faz 3 satış ve Faz 4 alış belgeleri aynı motoru kullanır; alış için ikinci bir hesap motoru kurulmaz.
 
 `collection` ve `contact_debit_credit` satırlı belge değildir; G-302 motoruna girmez. Bu tipler header-amount sözleşmesi kullanır: `subtotal = tax_base = grand_total = amount`, `discount_amount = vat_amount = rounding_difference = 0`.
 
