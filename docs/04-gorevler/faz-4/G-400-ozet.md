@@ -144,16 +144,15 @@ Ara adımlar zorunlu değildir. Kullanıcı ihtiyaca göre doğrudan satınalma 
 - Doğrudan alış faturası da aynı şekilde stok + tedarikçi cari etkisini birlikte üretir.
 - Hareketli ortalama maliyet güncellemesi alış faturası posting transaction'ındaki gerçek stok girişiyle aynı noktada yapılır.
 
-### A-011 — Kısmi teslim ve kısmi faturalama
+### A-011 — KAPANDI: Esnek kısmi alış akışı
 
-Kaynaklar satış tarafındaki kısmi sevk/faturayı tanımlar; alış tarafındaki karşılığı kilitli değildir.
-
-Netleştirilmesi gerekenler:
-
-- satınalma siparişinin kısmi teslim alınabilmesi,
-- bir mal kabulün birden fazla alış faturasına bölünebilmesi,
-- birden fazla mal kabulün tek alış faturasında birleşebilmesi,
-- kalan miktarın iptal davranışı.
+- Satınalma siparişi kısmi teslim alınabilir.
+- Kalan miktar açık kalabilir veya kullanıcı tarafından iptal edilebilir.
+- İptal edilen miktar daha sonra teslim/fatura edilemez.
+- Bir mal kabul birden fazla alış faturasına bölünebilir.
+- Aynı tedarikçiye ait, aynı para birimi ve uyumlu alış koşullarındaki birden fazla mal kabul tek alış faturasında birleşebilir.
+- Kısmi miktarlar kaynak satır ilişkileri üzerinden izlenir; ayrı ikinci bir delivered/invoiced gerçek kaynağı oluşturulmaz.
+- Yarış koşulunda kaynak satır kalan miktarı transaction içinde yeniden okunur/kilitlenir.
 
 ### A-012 — Tedarikçi ödeme zamanı
 
