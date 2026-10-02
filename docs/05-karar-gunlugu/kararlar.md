@@ -114,10 +114,10 @@ Verilen kararlar ve gerekçeleri. **Kod bu kararlara uyar; kod kararla
 | No | Konu | Netleştirilecek davranış |
 |---|---|---|
 | A-015 | **KAPANDI — Tüm hesap türleri, aynı para birimi** | Kasa→Kasa, Kasa→Banka, Banka→Kasa ve Banka→Banka virmanları desteklenir. Kaynak ve hedef hesap aynı para biriminde olmalıdır; Faz 5 virmanı döviz dönüşümü veya kur farkı üretmez. |
-| A-016 | Tedarikçi ödeme girişi | Genel ödeme formu, fatura ekranı kısayolu, opsiyonel kaynak fatura ilişkisi ve kısmi ödeme UX'i |
-| A-017 | Kasa sayımı | Toplam/kupür sayımı ve kasa farkının blok/uyarı/düzeltme hareketi davranışı |
-| A-018 | Banka ekstresi/mutabakat | Import kapsamı/formatı, eşleştirme ve mutabakat durumu davranışı |
-| A-019 | Çek/senet yaşam döngüsü | Alınan/verilen, portföy, ciro, tahsil/ödeme, karşılıksız/geri dönüş ve iptal geçişleri |
-| A-020 | Çek/senet alanları/ciro hedefi | Zorunlu veri alanları, karşı cari rolü ve ciro seçim kuralları |
+| A-016 | **KAPANDI — Genel ödeme formu + fatura kısayolu** | Ana işlem genel Tedarikçi Ödeme formundan yapılır; alış faturası ekranında ödeme kısayolu vardır. Kaynak fatura ilişkisi bilgi amaçlıdır, settlement zorunlu değildir; kısmi ödeme serbesttir. |
+| A-017 | **KAPANDI — Toplam fiili bakiye + fark düzeltme hareketi** | Kullanıcı gerçek toplam kasa bakiyesini girer; sistem beklenen bakiye ile farkı gösterir. Gerekçeyle onaylanırsa ayrı kasa sayım farkı hareketi oluşturulur. Kupür bazlı sayım yoktur. |
+| A-018 | **KAPANDI — Manuel mutabakat** | İlk sürümde banka ekstresi dosya importu yoktur. Mevcut banka hareketleri kullanıcı tarafından manuel olarak mutabık / mutabık değil durumuyla işaretlenir. |
+| A-019 | **KAPANDI — Tam kontrollü yaşam döngüsü** | Alınan kıymet: alındı→portföyde→ciro veya tahsile verildi→tahsil edildi / karşılıksız-geri döndü. Verilen kıymet: verildi→ödeme bekliyor→ödendi / geri döndü-iptal. K-082 cari etkileri korunur. |
+| A-020 | **KAPANDI — Geniş veri seti + banka operasyon alanları** | Tür, yön, seri/no, tutar, vade, para birimi, ilk cari, keşideci/düzenleyen, banka/şube, açıklama, durum ve actor alanlarına ek olarak banka hesap bağlantısı, tahsil/ödeme referansı, banka teslim tarihi, protesto/karşılıksız detayları ve operasyon metadata tutulur. Ciro hedef carisi zorunludur. |
 
 A-009…A-014, K-086…K-091 ile kapatılmıştır. Faz 5 A-015…A-020 kullanıcı kararı olmadan kapatılmaz.
