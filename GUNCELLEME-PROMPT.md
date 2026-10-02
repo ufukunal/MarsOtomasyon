@@ -105,3 +105,22 @@ Repo tutarlılık temizliği ve Faz 0–2 görev revizyonu tamamlandı. **Faz 3 
 - K-114…K-129 kilitlidir.
 - K-130: import cost adjustment birim farkı original import base_quantity üzerinden hesaplanır; current stock quantity payda değildir ve geçmiş satış maliyetleri geriye dönük değiştirilmez.
 - Açık A kararı yoktur.
+
+
+## 02.10.2026 Faz 8 ön kararları
+
+- Faz 8 basit iç üretim + fason birlikte kapsamdadır.
+- K-131…K-162 kilitlidir; açık A kararı yoktur.
+- Tek aktif immutable reçete revizyonu, output_quantity tabanı ve production-order snapshot vardır.
+- Actual consumption kullanıcı tarafından düzeltilebilir; component-level fire manuel ve mamul maliyetine dahildir.
+- Component source location satır bazında seçilir.
+- Production output birden fazla target location'a bölünebilir.
+- Kısmi completion ve kalan iptal vardır.
+- Completion transaction'ında component out + finished product in birlikte yazılır.
+- Production cost actual consumed component moving-average snapshot maliyetlerinden gelir; ilk sürümde iç üretim overhead yoktur.
+- Fasoncu contact + subcontractor location modelidir; fason stok normal satışta kullanılamaz.
+- Fason hizmet faturası normal purchase_invoice'dır ve mamul maliyetine dahil edilir.
+- Geç gelen fason maliyeti inventory_cost_adjustments reason=subcontract_late_cost ile işlenir.
+- Production-mode satış siparişi draft production order otomatik açabilir.
+- Reçeteler dönem devrinde taşınır; açık production order taşınmaz.
+- Production completion immutable reverse ile terslenebilir.
