@@ -18,6 +18,11 @@ Taslak belge numarasız olabilir ve fiziksel silinebilir. Kesinleşmiş belge si
 | Proforma | Yok | Yok | Yok | Oluşturulurken period `proforma` serisinden numara alır; finansal posting etkisi yoktur |
 | Tahsilat | Yok | Yok | **Credit** | Post + kasa/banka girişi |
 | Cari Borç/Alacak Fişi | Yok | Yok | **Typed context: Debit veya Credit** | Post |
+| Satınalma talebi | Yok | Yok | Yok | Confirm |
+| Tedarikçi teklifi | Yok | Yok | Yok | Teklif kaydı; seçim ayrı kullanıcı eylemi |
+| Satınalma siparişi | Yok | Yok | Yok | Confirm |
+| Mal kabul / alış irsaliyesi | **Yok** | Yok | **Yok** | Post; yalnız operasyonel fulfillment |
+| Alış faturası | **Giriş** | Yok | **Credit** | Post; moving average güncellenir |
 
 ## PostDocument transaction sırası
 
@@ -28,12 +33,13 @@ Her belge bütün adımları çalıştırmaz; yalnız document type effect matri
 3. gerekliyse `GenerateDocumentNumber(type)` — `lockForUpdate`
 4. stok etkili satırlar için `RecordStockMovement`
 5. rezerv etkili satırlar için `ConsumeReservation`
-6. cari etkili belge için `contact_transactions`
-7. kasa/banka etkili tahsilatta ilgili movement
-8. status/posted_at/posted_by snapshot
-9. aynı transaction içinde post-write verify
-10. period activity_log
-11. idempotency result = done
+6. maliyet etkili stok girişinde `UpdateMovingAverage`
+7. cari etkili belge için `contact_transactions`
+8. kasa/banka etkili tahsilatta ilgili movement
+9. status/posted_at/posted_by snapshot
+10. aynı transaction içinde post-write verify
+11. period activity_log
+12. idempotency result = done
 
 Hepsi:
 
@@ -90,6 +96,17 @@ v65: Kaydet, Onayla; detayda Hold, Rezervasyon Yap, Sevkiyat Oluştur, Fatura Ol
 - Kasa seçildiyse `cash_movements.in`, banka seçildiyse `bank_movements.in`.
 - Faturaya zorunlu settlement dağıtımı yoktur.
 
+### Faz 4 satınalma
+
+K-086 gereği purchase_request → supplier_quote → purchase_order → goods_receipt → purchase_invoice zinciri esnektir; ara belgeler zorunlu değildir.
+
+- purchase_request stok/cari etkisizdir.
+- supplier_quote stok/cari etkisizdir; K-090/K-091 seçimi kullanıcı yapar.
+- purchase_order stok/cari etkisizdir.
+- goods_receipt K-087 gereği stok/cari/maliyet etkisiz operasyon kaydıdır.
+- purchase_invoice post edildiğinde stock in + supplier contact credit + moving average aynı transaction içinde oluşur.
+- Faz 4'te supplier payment yoktur; K-089 gereği Faz 5'tedir.
+
 ## Post-write doğrulama
 
 Transaction commit edilmeden:
@@ -99,6 +116,8 @@ Transaction commit edilmeden:
 - tüketilen rezerv miktarı kaynak rezervi aşmamalı,
 - cari etkili belge için document_id ile tek contact transaction olmalı,
 - `contact_debit_credit` için üretilen cari yön typed posting context ile aynı olmalı,
-- tahsilat için kasa/banka movement tutarı contact transaction tutarıyla aynı olmalı.
+- tahsilat için kasa/banka movement tutarı contact transaction tutarıyla aynı olmalı,
+- purchase_invoice için stock movement miktarı/base unit cost, moving average ve supplier credit etkisi eşleşmeli,
+- goods_receipt için stock/contact movement bulunmamalı.
 
 Uyuşmazlık `DomainException`/integrity exception ile rollback üretir.
