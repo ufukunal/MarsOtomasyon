@@ -36,13 +36,18 @@ final class UpdateMovingAverage
         string $incomingQty,
         string $incomingUnitCost
     ): string {
+        DB::connection('period')->table('product_costs')->insertOrIgnore([
+            'product_id' => $productId,
+            'last_purchase_price' => '0.0000',
+            'moving_average' => '0.0000',
+            'import_cost' => '0.0000',
+            'production_cost' => '0.0000',
+        ]);
+
         $cost = ProductCost::query()
             ->where('product_id', $productId)
             ->lockForUpdate()
-            ->firstOrCreate(
-                ['product_id' => $productId],
-                ['moving_average' => '0.0000']
-            );
+            ->firstOrFail();
 
         $currentQty = StockBalance::query()
             ->where('product_id', $productId)
@@ -107,6 +112,7 @@ Kategori bazlı ek bir eşik alanı güncel veri modelinde tanımlı değildir; 
 - Hesap kodunda float kullanılmıyor.
 - `cost.view` olmayan kullanıcıya maliyet rakamı dönmüyor.
 - Gerçek PostgreSQL concurrency testi geçiyor.
+- Daha önce product_costs satırı olmayan üründe iki eşzamanlı ilk giriş unique violation üretmiyor; tek cost satırı oluşuyor ve ortalama deterministik kalıyor.
 
 ## İstem
 
