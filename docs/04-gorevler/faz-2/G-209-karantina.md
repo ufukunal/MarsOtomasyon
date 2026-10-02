@@ -35,9 +35,10 @@ Ayrı tablo yok. `stock_balances.quarantine` alanı kullanılır; giriş ve
 
 ```
 İade geldi
+ → RecordStockMovement(in, reason=return) ile stock_balances.quantity += miktar
  → quarantine_entries satırı (status = pending)
  → stock_balances.quarantine += miktar
- → stock_balances.quantity DEĞİŞMEZ (mal fiziksel olarak içeride)
+ → kullanılabilir stok değişmez; fiziksel stok ve quarantine birlikte artar
 
 Kontrol sonucu:
  (a) Satılabilir → quarantine -= miktar, status = released
@@ -49,7 +50,7 @@ Kontrol sonucu:
 ## Kurallar
 - Karantinadaki mal **satılamaz, rezerve edilemez, transfer edilemez**
 - Kullanılabilir hesabından düşülür
-- Karar verilmeden satır kapanmaz
+- K-102 gereği karar kısmi olabilir; `released + scrapped <= quantity`, kalan miktar pending'dir
 - Karar `activity_log`'a düşer
 
 ## Ekran
@@ -67,10 +68,10 @@ Uyarı: 30 günden uzun bekleyen satırlar işaretlenir.
 - Karantina miktarı fiziksel stok içinde olabilir ama kullanılabilir/rezerve edilebilir stoktan düşülür.
 - Satış iadesi karantinaya alındığında doğrudan satılabilir stoğa dönmez.
 - Karantinadan çıkış kararı ayrı iş eylemidir; satışa uygun/hurda vb. sonuç ilgili stok hareketini üretir.
-- Karantina bekleyen kayıt dönem devrinde taşınmaz.
+- Dönem sonunda açık karantina kaydı varsa K-109 ve dönem devri kurallarıyla uyumlu şekilde yeni döneme açık miktar/snapshot taşınır; sessizce düşürülmez.
 
 ## Kabul ölçütü
-- Karantinaya giren mal kullanılabilirden düşüyor, stoktan düşmüyor
+- Satış iadesinde fiziksel stok quantity ve quarantine aynı miktarda artıyor; kullanılabilir stok değişmiyor
 - Satılabilir kararında hareket oluşmuyor, kullanılabilir artıyor
 - Hurda kararında çıkış hareketi oluşuyor
 - Karantinadaki ürün satış belgesinde seçilemiyor
