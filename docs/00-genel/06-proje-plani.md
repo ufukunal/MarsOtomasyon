@@ -15,7 +15,7 @@ Her faz önce veri modeli + iş kuralları + ekran + standalone G görevleri ola
 - **Faz 5 Kasa/Banka/Çek-Senet: DOKÜMANTASYON YAZILDI — K-092…K-097 kilitli; veri modeli 36–38, iş kuralları 35–38, finans ekranları ve G-500…G-509 hazırdır. Kodlama/uygulama tamamlanması G-501…G-509 gerçek PostgreSQL kabul testlerine bağlıdır.**
 - **Faz 6 İade: DOKÜMANTASYON YAZILDI — K-098…K-113 kilitli; veri modeli 39, iş kuralları 39–41, iade ekranları ve G-600…G-609 hazırdır. Kodlama/uygulama tamamlanması G-601…G-609 gerçek PostgreSQL kabul testlerine bağlıdır. Faz 7 kullanıcı onayı olmadan başlamaz.**
 - **Faz 7 İthalat: DOKÜMANTASYON YAZILDI — K-114…K-130 kilitli; veri modeli 40, iş kuralları 42–44, ithalat ekranları ve G-700…G-709 hazırdır. Kodlama/uygulama tamamlanması G-701…G-709 gerçek PostgreSQL kabul testlerine bağlıdır. Faz 8 kullanıcı onayı olmadan başlamaz.**
-- Faz 8 Basit üretim/fason
+- **Faz 8 Basit üretim/fason: KARARLAR KİLİTLENDİ — K-131…K-162 ile reçete, üretim emri, fire, kısmi completion, çoklu output location, fason location/hizmet maliyeti ve production cost adjustment davranışları netleştirildi; dokümantasyon henüz yazılmadı.**
 - Faz 9 E-ticaret
 - Faz 10 Raporlar/çıktılar/tasarımcı
 - Faz 11b Dönem devri
