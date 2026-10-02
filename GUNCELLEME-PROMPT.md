@@ -24,7 +24,7 @@ Bu dosya `DEVIR-PROMPT.md`den sonra okunur. Çelişkide bu dosya ve karar günl�
 - v64 korunur; **v65 güncel UI referansıdır.**
 - Faz 4 Alış kararları K-086…K-091 ile kilitlendi; açık A kararı yoktur.
 
-Repo tutarlılık temizliği ve Faz 0–2 görev revizyonu tamamlandı. **Faz 3 Satış dokümantasyonu yazıldı; G-300…G-312 hazırdır. Faz 4 Alış dokümantasyonu da yazıldı; K-086…K-091 kilitli, veri modeli 35, iş kuralları 32–34, alış ekranları ve G-400…G-409 hazırdır. Faz 5 Kasa/Banka/Çek-Senet dokümantasyonu kullanıcı onayıyla başlatıldı; kapsam ve açık kararlar G-500 ile çıkarılacaktır.**
+Repo tutarlılık temizliği ve Faz 0–2 görev revizyonu tamamlandı. **Faz 3 Satış dokümantasyonu yazıldı; G-300…G-312 hazırdır. Faz 4 Alış dokümantasyonu yazıldı; G-400…G-409 hazırdır. Faz 5 Kasa/Banka/Çek-Senet dokümantasyonu da yazıldı; K-092…K-097 kilitli, veri modeli 36–38, iş kuralları 35–38, finans ekranları ve G-500…G-509 hazırdır. Faz 6 kullanıcı onayı olmadan başlatılmaz.**
 
 
 ## 02.10.2026 Faz 4 Alış güncellemesi
@@ -42,7 +42,8 @@ Repo tutarlılık temizliği ve Faz 0–2 görev revizyonu tamamlandı. **Faz 3 
 
 ## 02.10.2026 Faz 5 başlangıcı
 
-- Faz 5 Kasa/Banka/Çek-Senet dokümantasyonu kullanıcı onayıyla başlatıldı.
-- G-500 kapsam/açık karar dosyası oluşturuldu.
-- Faz 5 kararları K-092…K-097 olarak kilitlendi; açık A kararı yoktur.
-- K-075/K-082/K-062/K-078 kaynakları kilitli; bunların dışında Faz 5 davranışı uydurulmayacaktır.
+- Faz 5 Kasa/Banka/Çek-Senet dokümantasyonu tamamlandı.
+- K-092…K-097 kilitlidir; açık A kararı yoktur.
+- Veri modeli 36–38, iş kuralları 35–38 ve G-500…G-509 hazırdır.
+- K-075/K-082/K-062/K-078 önceki kaynak kararları korunmuştur.
+- Faz 6 kullanıcı onayı olmadan başlatılmaz.
