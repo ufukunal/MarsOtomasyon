@@ -79,67 +79,77 @@ Onaylı v65 prototipinde Faz 5'e ait kasa/banka/çek/senet ekran davranışı do
 - Kaynak ve hedef aynı hesap olamaz.
 - Virman iki finans hareketini tek transaction/idempotency zincirinde üretir.
 
-### A-016 — Tedarikçi ödeme girişi
+### A-016 — KAPANDI: Genel ödeme formu + fatura ekranı kısayolu
 
-K-089 ödemenin Faz 5'te olduğunu, K-062 settlement'ın zorunlu olmadığını kilitler. Şunlar net değildir:
+- Ana işlem genel Tedarikçi Ödeme formundan yapılır.
+- Alış faturası ekranında `Ödeme Yap` kısayolu bulunur.
+- Fatura üzerinden başlatılırsa kaynak fatura ilişkisi bilgi amaçlı tutulur.
+- Settlement zorunlu değildir.
+- Kısmi ödeme serbesttir.
+- Bir ödeme belirli faturaya bağlı olmak zorunda değildir.
 
-- ödeme ayrı genel formdan mı yapılacak,
-- alış faturası ekranından ödeme başlatma kısayolu olacak mı,
-- kaynak alış faturası seçilirse ilişkinin yalnız bilgi amaçlı mı tutulacağı,
-- kısmi ödeme kullanıcı arayüzü.
+### A-017 — KAPANDI: Toplam fiili bakiye + fark düzeltme hareketi
 
-### A-017 — Kasa sayımı ve fark
+- Kullanıcı kasadaki gerçek toplam tutarı girer.
+- Kupür bazlı sayım yoktur.
+- Sistem beklenen bakiye ile fiili bakiye farkını gösterir.
+- Fark blok değildir.
+- Kullanıcı gerekçeyle onaylarsa ayrı kasa sayım farkı finans hareketi oluşturulur.
+- Geçmiş hareketler mutate edilmez.
 
-Kasa sayımı Faz 5 kapsamındadır; ancak:
+### A-018 — KAPANDI: İlk sürümde manuel banka mutabakatı
 
-- yalnız toplam fiili bakiye mi girilecek,
-- kupür bazlı sayım gerekip gerekmediği,
-- sistem bakiyesi ile farkta blok mu, uyarı mı, düzeltme hareketi mi üretileceği
+- Banka ekstresi dosya importu yoktur.
+- Otomatik eşleştirme yoktur.
+- Mevcut banka hareketleri kullanıcı tarafından manuel olarak `mutabık` / `mutabık değil` durumuyla işaretlenir.
+- Mutabakat hareketi yeni finans hareketi üretmez; mevcut hareket üzerinde mutabakat metadata'sı/audit tutulur.
+- Dosya formatı kararı Faz 5 ilk sürümü için gereksizdir.
 
-tanımlı değildir.
+### A-019 — KAPANDI: Tam kontrollü çek/senet yaşam döngüsü
 
-### A-018 — Banka ekstresi ve mutabakat
+Alınan kıymet:
 
-Kaynaklar ekstre/mutabakatı Faz 5'e bırakır fakat:
+- alındı,
+- portföyde,
+- ciro edildi **veya** tahsile verildi,
+- tahsil edildi,
+- karşılıksız / geri döndü.
 
-- ilk sürümde dosya importu olup olmayacağı,
-- dosya formatı,
-- otomatik eşleştirme yapılıp yapılmayacağı,
-- mutabakatın hareket bazında hangi durumları taşıyacağı,
-- eşleşmeyen satırdan yeni hareket oluşturulup oluşturulamayacağı
+Verilen kıymet:
 
-tanımlı değildir.
+- verildi,
+- ödeme bekliyor,
+- ödendi,
+- geri döndü / iptal edildi.
 
-### A-019 — Çek/senet kanonik yaşam döngüsü
+K-082 korunur: ilk teslim cari etkisini üretir; tahsil/ödeme ikinci kez cari etkilemez; karşılıksız/geri dönüş ters cari hareket üretir; ciro ilk cariyi ikinci kez etkilemeden karşı cariyi etkiler.
 
-K-082 etkileri tanımlar fakat durum makinesini tanımlamaz. Ayrı ayrı netleştirilmesi gerekenler:
+### A-020 — KAPANDI: Geniş veri seti + banka operasyon alanları
 
-- alınan çek/senet,
-- verilen çek/senet,
-- portföy,
-- ciro,
-- tahsil/ödeme,
-- karşılıksız/geri dönüş,
-- iptal/ters kayıt
+Temel alanlar:
 
-durumlarının kanonik sırası ve hangi geçişlerin destekleneceği.
-
-### A-020 — Çek/senet veri alanları ve ciro hedefi
-
-Kaynaklarda tam veri modeli yoktur. En az şu alanların zorunlu/opsiyonel kapsamı karara bağlanmalıdır:
-
-- çek/senet türü,
+- tür: check | promissory_note,
+- yön: received | issued,
 - belge/seri numarası,
-- keşideci/veren,
-- banka/şube bilgisi,
-- vade,
 - tutar,
+- vade,
 - para birimi,
 - ilk cari,
-- ciro edilen karşı cari,
-- açıklama.
+- keşideci / düzenleyen,
+- banka ve şube bilgisi,
+- açıklama,
+- mevcut durum,
+- actor snapshot.
 
-Ciroda K-082 gereği ilk cari ikinci kez etkilenmeyecektir; fakat ciro hedefinin hangi contact rolüyle tutulacağı ve seçim kuralları ayrıca kilitlenmelidir.
+Banka operasyon alanları:
+
+- banka hesap bağlantısı,
+- tahsil/ödeme referansı,
+- banka teslim tarihi,
+- protesto/karşılıksız detayları,
+- operasyon metadata.
+
+Ciroda karşı cari zorunludur; ciro tarihi ve açıklama tutulur. Kıymetin önceki kimliği/history zinciri korunur.
 
 ## Faz 5 dokümantasyon çıktıları
 
