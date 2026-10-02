@@ -123,6 +123,12 @@ SQLite kullanılmaz.
 - duplicate reverse engel.
 - reversed child partial toplamdan çıkar.
 
+## Period yıl sınırı
+
+- 2026 period DB aktifken 2027 document_date posting reddediliyor,
+- yanlış yıl için number_series oluşturulmuyor/artmıyor,
+- aktif yıl içinde posting_periods satırı olmayan ayın mevcut açık-varsayım davranışı korunuyor.
+
 ## Transaction / concurrency
 
 - idempotency çift tıklama.

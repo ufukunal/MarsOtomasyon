@@ -41,6 +41,7 @@ Schema::connection('period')->create('posting_periods', function (Blueprint $tab
 ```php
 final class EnsurePeriodOpen
 {
+    // İlk kontrol: $date->year === PeriodContext::year(); aksi PeriodYearMismatchException
     public function handle(Carbon $date): void
     {
         $period = PostingPeriod::query()
@@ -70,6 +71,7 @@ final class EnsurePeriodOpen
 
 ### Bu göreve özel kanonik notlar
 - Kontrol document_date üzerindendir.
+- `document_date.year` aktif `PeriodContext::year()` ile eşleşmiyorsa aylık kilit sorgusundan önce işlem reddedilir.
 - Yeniden açma role sabit değil ayrı permission + zorunlu gerekçedir.
 - Period actor alanlarında Master users FK'si kurma; id+name snapshot kullan.
 
@@ -89,5 +91,5 @@ final class EnsurePeriodOpen
 
 ## İstem
 > posting_periods tablosu için migration, PostingPeriod modeli,
-> EnsurePeriodOpen action'ı ve PeriodClosedException sınıfını yaz.
+> EnsurePeriodOpen action'ı, PeriodClosedException ve PeriodYearMismatchException sınıflarını yaz.
 > Model `PeriodModel`'den türesin; BelongsToCompany/global scope kullanmasın. Satırı olmayan ay açık sayılsın.

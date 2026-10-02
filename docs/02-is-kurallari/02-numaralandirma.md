@@ -1,6 +1,6 @@
 # Numaralandırma
 
-`number_series` period DB'dedir; company_id yoktur.
+`number_series` period DB'dedir; company_id yoktur. `year` aktif `PeriodContext::year()` ile aynı olmalıdır; başka yıl serisi aktif period DB içinde oluşturulamaz/kullanılamaz.
 
 ```php
 DB::connection('period')->transaction(function () use ($type, $year) {
@@ -16,5 +16,7 @@ DB::connection('period')->transaction(function () use ($type, $year) {
     // numara burada biçimlendirilir ve aynı transaction içindeki belgeye verilir
 }, attempts: 3);
 ```
+
+`GenerateDocumentNumber` çağrısı istenen yıl ile aktif PeriodContext yılını karşılaştırır; uyuşmazlıkta numara üretmez.
 
 Numara taslak oluştururken verilmez. Kesinleştirme rollback olursa seri artışı da rollback olur. Yıl/period değişince yeni seri başlayabilir. `integrity:numbers` tekrar ve beklenmeyen boşlukları raporlar.
