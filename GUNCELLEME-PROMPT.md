@@ -24,7 +24,7 @@ Bu dosya `DEVIR-PROMPT.md`den sonra okunur. Çelişkide bu dosya ve karar günl�
 - v64 korunur; **v65 güncel UI referansıdır.**
 - Faz 4 Alış kararları K-086…K-091 ile kilitlendi; açık A kararı yoktur.
 
-Repo tutarlılık temizliği ve Faz 0–2 görev revizyonu tamamlandı. **Faz 3 Satış dokümantasyonu yazıldı; G-300…G-312 hazırdır. Faz 4 Alış dokümantasyonu yazıldı; G-400…G-409 hazırdır. Faz 5 Kasa/Banka/Çek-Senet dokümantasyonu da yazıldı; K-092…K-097 kilitli, veri modeli 36–38, iş kuralları 35–38, finans ekranları ve G-500…G-509 hazırdır. Faz 6 kullanıcı onayı olmadan başlatılmaz.**
+Repo tutarlılık temizliği ve Faz 0–2 görev revizyonu tamamlandı. **Faz 3 Satış dokümantasyonu yazıldı; G-300…G-312 hazırdır. Faz 4 Alış dokümantasyonu yazıldı; G-400…G-409 hazırdır. Faz 5 Kasa/Banka/Çek-Senet dokümantasyonu yazıldı; G-500…G-509 hazırdır. Faz 6 İade dokümantasyonu da yazıldı; K-098…K-113 kilitli, veri modeli 39, iş kuralları 39–41, iade ekranları ve G-600…G-609 hazırdır. Faz 7 kullanıcı onayı olmadan başlatılmaz.**
 
 
 ## 02.10.2026 Faz 4 Alış güncellemesi
@@ -46,7 +46,7 @@ Repo tutarlılık temizliği ve Faz 0–2 görev revizyonu tamamlandı. **Faz 3 
 - K-092…K-097 kilitlidir; açık A kararı yoktur.
 - Veri modeli 36–38, iş kuralları 35–38 ve G-500…G-509 hazırdır.
 - K-075/K-082/K-062/K-078 önceki kaynak kararları korunmuştur.
-- Faz 6 kararları K-098…K-113 ile kilitlendi; Faz 6 dokümantasyonu başlatıldı.
+- Faz 6 kararları K-098…K-113 ile kilitlendi; Faz 6 dokümantasyonu tamamlandı.
 
 
 ## 02.10.2026 Faz 6 ön kararları
@@ -62,3 +62,15 @@ Repo tutarlılık temizliği ve Faz 0–2 görev revizyonu tamamlandı. **Faz 3 
 - Önceki dönem belge mevcut açık dönemde scalar source snapshot ile iade edilebilir; eski period mutate edilmez.
 - İade doğrudan yetkili kullanıcı tarafından post edilir; neden zorunludur.
 - Faz 6 kararları K-098…K-113 ile kilitlendi; açık A kararı yoktur.
+
+
+## 02.10.2026 Faz 6 tamamlanma
+
+- Faz 6 İade dokümantasyonu yazıldı.
+- Veri modeli 39, iş kuralları 39–41, ekranlar ve G-600…G-609 hazırdır.
+- Satış iadesi stock in + quarantine + customer credit; alış iadesi stock out + supplier debit üretir.
+- Cross-period iade read-only eski period + current-period frozen snapshot modelidir.
+- Karantina gerçek kaynağı quarantine_entries; stock_balances.quarantine özetidir.
+- Açık karantina dönem devrinde kaybolmaz, yeni döneme açık miktar/snapshot taşınır.
+- Açık A kararı yoktur.
+- Faz 7 kullanıcı onayı olmadan başlatılmaz.
