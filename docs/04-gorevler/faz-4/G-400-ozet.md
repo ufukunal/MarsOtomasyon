@@ -123,11 +123,9 @@ Karar boşlukları kapatıldıktan sonra şu dört katman yazılacaktır:
 
 Mevcut karar günlüğü aşağıdaki ürün davranışlarını belirlemiyor. Bunlar kilitlenmeden görevlerde varsayım yapılmayacaktır.
 
-### A-009 — Faz 4 belge zinciri
+### A-009 — KAPANDI: Esnek Faz 4 belge zinciri
 
-Satınalma talebi + teklif toplama sonrası hangi belge zinciri kanonik olacak?
-
-Aday kavramlar:
+Kanonik belge ailesi:
 
 - satınalma talebi
 - tedarikçi teklifi / teklif toplama
@@ -135,7 +133,7 @@ Aday kavramlar:
 - mal kabul / alış irsaliyesi
 - alış faturası
 
-Özellikle satınalma siparişi ve mal kabul adımının zorunlu/opsiyonel oluşu kaynaklarda tanımlı değildir.
+Ara adımlar zorunlu değildir. Kullanıcı ihtiyaca göre doğrudan satınalma siparişi, doğrudan mal kabul/alış irsaliyesi veya doğrudan alış faturası oluşturabilir. Belge ilişkileri yalnız gerçekten kullanılan zinciri izler; sistem eksik ara belge üretmez.
 
 ### A-010 — Stok ve cari etki anı
 
