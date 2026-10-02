@@ -1,195 +1,127 @@
-# G-400 — Faz 4 Alış kapsam ve karar boşlukları
+# G-400 — Faz 4 Alış özeti
 
 ## Amaç
 
-Faz 4 Alış dokümantasyonunu, Faz 3'te kurulmuş ortak `documents` / `document_lines` / `document_relations` / `contact_transactions` çekirdeğini tekrar etmeden genişletmek.
+Faz 4'te satınalma talebi, tedarikçi teklif toplama, satınalma siparişi, mal kabul ve alış faturası akışını Faz 3'teki ortak ticari belge çekirdeği üzerinde kurmak.
 
-Bu belge uygulama görevi değildir; Faz 4'ün hangi parçalarının mevcut kararlarla kilitli olduğunu ve hangi iş akışı ayrıntılarının henüz kaynaklarda tanımlanmadığını gösterir.
+Faz 4 ortak `documents`, `document_lines`, `document_relations`, `contact_transactions`, stok ve maliyet altyapısını tekrar kurmaz.
 
-## Önkoşul
+## Kilit kararlar
 
-- Faz 3 ortak ticari belge çekirdeği kullanılacaktır.
-- Period DB mimarisi korunacaktır; period tablolarında `company_id` olmayacaktır.
-- Posted/kesinleşmiş kayıt yerinde değiştirilmez; düzeltme ters kayıtla yapılır.
-- Durum değiştiren eylemler idempotent olacaktır.
-- Düzenlenebilir kayıtlarda `version` optimistic lock kullanılacaktır.
-- Para aritmetiği Money/BCMath ile yapılacaktır; PHP float kullanılmayacaktır.
-- Gerçek PostgreSQL kabul testleri zorunludur.
+- K-086: alış belge ailesi esnek; ara adımlar zorunlu değil.
+- K-087: goods_receipt operasyon kaydı; stok+cari+maliyet etkisi purchase_invoice posting'inde.
+- K-088: kısmi teslim/faturalama esnek.
+- K-089: tedarikçi ödeme akışı Faz 5'te.
+- K-090: teklif karşılaştırma belge + satır bazlı; otomatik kazanan yok.
+- K-091: ayrı teklif approval state/eşik yok; seçim izin tabanlı.
 
-## Mevcut kararlardan kilitli Faz 4 kuralları
+Açık Faz 4 A kararı yoktur.
 
-### Satınalma talebi ve teklif toplama
+## Faz 4 kaynakları
 
-K-060 gereği satınalma talebi ve teklif toplama Faz 4 kapsamında **basit haliyle** bulunacaktır.
+### Veri modeli
 
-Kaynaklarda bu akışın ayrıntılı durum makinesi, onay zinciri, teklif karşılaştırma algoritması veya hangi aşamada siparişe dönüştüğü tanımlı değildir. Bunlar aşağıdaki karar boşluklarında ayrı tutulur.
+- `docs/01-veri-modeli/30-documents.md`
+- `31-document_lines.md`
+- `32-contact_transactions.md`
+- `33-document_relations.md`
+- `35-purchase_quote_selections.md`
+- stok/maliyet için mevcut `20-stock_movements.md`, `21-stock_balances.md`, `22-product_costs.md`
 
-### Para birimi ve kur
+### İş kuralları
 
-K-013 gereği döviz alışta kullanılabilir.
+- `28-belge-hesaplama.md`
+- `29-belge-yasam-dongusu.md`
+- `30-kismi-islem.md`
+- `09-maliyet.md`
+- `25-birim-donusumu.md`
+- `32-satinalma-akisi.md`
+- `33-alis-posting-ve-maliyet.md`
+- `34-alis-kismi-islem-ve-teklif.md`
 
-- Belge para birimi `documents.currency` üzerinden tutulur.
-- Kur işlem anında dondurulur; `documents.exchange_rate` snapshot'tır.
-- Kur farkı hesabı bu kapsamda yoktur.
-- `exchange_rate > 0` CHECK'i korunur.
+### Ekranlar
 
-### Hesaplama
+- `satinalma-talebi.md`
+- `tedarikci-teklif-karsilastirma.md`
+- `satinalma-siparisi-detay.md`
+- `mal-kabul-detay.md`
+- `alis-faturasi-detay.md`
 
-Faz 3'teki ortak satırlı belge hesap motoru alış belgelerinde yeniden kullanılacaktır:
+v65 içinde hazır satınalma ekranı yoktur; bu ekranlar v65'in genel UI dilini izler, prototipte olmayan route/tab davranışı kaynak gibi gösterilmez.
 
-- birim fiyat KDV hariç saklanır,
-- satır ve belge iskontosu yüzde veya tutar girilebilir,
-- iskonto KDV'den önce uygulanır,
-- KDV oran grubu bazında hesaplanır,
-- 2 hane half-up yuvarlama yalnız tanımlı belge/KDV grup seviyelerinde yapılır,
-- `rounding_difference` saklanır.
+## Belge tipleri
 
-Alış için ayrı ikinci bir hesap motoru oluşturulmaz.
+- `purchase_request`
+- `supplier_quote`
+- `purchase_order`
+- `goods_receipt`
+- `purchase_invoice`
 
-### Birim dönüşümü
+## Etki matrisi
 
-K-048/K-049 gereği:
+| Tür | Stok | Cari | Maliyet | Kasa/Banka |
+|---|---|---|---|---|
+| purchase_request | yok | yok | yok | yok |
+| supplier_quote | yok | yok | yok | yok |
+| purchase_order | yok | yok | yok | yok |
+| goods_receipt | yok | yok | yok | yok |
+| purchase_invoice | in/purchase | supplier credit | moving average | yok |
 
-- stok hareketi her zaman ürünün temel biriminde yazılır,
-- belge satırındaki `quantity`, `unit_id`, `conversion_factor` ve `base_quantity` snapshot'tır,
-- dönüşüm bulunamazsa işlem engellenir,
-- katsayı 1 varsayılmaz.
+Dövizli purchase_invoice'da stok unit_cost ve cari ledger tutarı frozen exchange_rate ile şirket temel para birimine çevrilir. Orijinal currency/tutar/kur belge üzerinde snapshot kalır.
 
-### Maliyet
+## Teklif toplama
 
-K-006 gereği tek maliyet yöntemi hareketli ortalamadır.
-
-Alış kaynaklı maliyete giren gerçek stok girişlerinde:
-
-- `product_costs.moving_average` güncellenir,
-- `last_purchase_price` ve `last_purchase_at` güncellenir,
-- çıkış/transfer hareketi ortalamayı değiştirmez.
-
-K-007 gereği alış birim fiyatının mevcut maliyet referansından ±%25 veya üzeri sapması:
-
-- kullanıcıya açık uyarı verir,
-- period audit üretir,
-- işlemi bloklamaz.
-
-### Cari yönü
-
-`contact_transactions` cari bakiyenin tek gerçek kaynağı olmaya devam eder.
-
-Mevcut yön semantiği:
-
-```
-bakiye = debit - credit
-```
-
-Satış faturası `debit` ürettiği için tedarikçiye borç doğuran alış faturası aynı tabloda karşı yönde, yani `credit`, kullanacaktır.
-
-Zorunlu fatura-ödeme settlement tablosu oluşturulmaz.
-
-### Belge değişmezliği
-
-- Taslak belge düzenlenebilir.
-- Numara ilgili kesinleşme geçişinde üretilir.
-- Posted/kesinleşmiş belge mutate edilmez.
-- Ters kayıt yeni belge/hareket üretir.
-- `document_date` iş tarihidir ve dönem kilidi bunu kullanır.
-- Post-write doğrulama transaction içinde yapılır.
-
-## Faz 3'ten yeniden kullanılacak yapılar
-
-Aşağıdaki tablolar Faz 4 için kopyalanmayacaktır:
-
-- `documents`
-- `document_lines`
-- `document_relations`
-- `contact_transactions`
-- `stock_movements`
-- `stock_balances`
-- `product_costs`
-- `number_series`
-- period `activity_log`
-
-Yeni tablo yalnız mevcut çekirdeğin karşılayamadığı, açıkça gerekli bir Faz 4 verisi ortaya çıkarsa eklenir.
-
-## Faz 4 dokümantasyon çıktıları
-
-Karar boşlukları kapatıldıktan sonra şu dört katman yazılacaktır:
-
-1. Gerekliyse alışa özel veri modeli ekleri.
-2. Alış belge yaşam döngüsü, posting etkileri, maliyet ve kısmi işlem iş kuralları.
-3. v65 genel UI diliyle uyumlu alış ekran dokümanları; v65'te hazır satınalma ekranı olmadığı için iş akışı kararı olmadan ekran davranışı uydurulmayacaktır.
-4. Standalone `G-401...` görevleri ve faz sonu gerçek PostgreSQL test görevi.
-
-## Kilitlenen Faz 4 kararları
-
-A-009…A-014 soru-cevapla kapatılmış ve K-086…K-091 olarak karar günlüğüne işlenmiştir.
-
-### K-086 — Esnek Faz 4 belge zinciri: Esnek Faz 4 belge zinciri
-
-Kanonik belge ailesi:
-
-- satınalma talebi
-- tedarikçi teklifi / teklif toplama
-- satınalma siparişi
-- mal kabul / alış irsaliyesi
-- alış faturası
-
-Ara adımlar zorunlu değildir. Kullanıcı ihtiyaca göre doğrudan satınalma siparişi, doğrudan mal kabul/alış irsaliyesi veya doğrudan alış faturası oluşturabilir. Belge ilişkileri yalnız gerçekten kullanılan zinciri izler; sistem eksik ara belge üretmez.
-
-### K-087 — Stok ve cari etki yalnız alış faturasında: Stok ve cari etki yalnız alış faturasında
-
-- Mal kabul/alış irsaliyesi operasyon kaydıdır; stok hareketi üretmez.
-- Mal kabul/alış irsaliyesi tedarikçi cari hareketi üretmez.
-- Alış faturası post edildiğinde stok girişi ve tedarikçi cari etkisi birlikte oluşur.
-- Mal kabul kaynaklı alış faturasında stok, fatura posting anında ilk kez artar; ikinci stok etkisi diye ayrı bir aşama yoktur.
-- Doğrudan alış faturası da aynı şekilde stok + tedarikçi cari etkisini birlikte üretir.
-- Hareketli ortalama maliyet güncellemesi alış faturası posting transaction'ındaki gerçek stok girişiyle aynı noktada yapılır.
-
-### K-088 — Esnek kısmi alış akışı: Esnek kısmi alış akışı
-
-- Satınalma siparişi kısmi teslim alınabilir.
-- Kalan miktar açık kalabilir veya kullanıcı tarafından iptal edilebilir.
-- İptal edilen miktar daha sonra teslim/fatura edilemez.
-- Bir mal kabul birden fazla alış faturasına bölünebilir.
-- Aynı tedarikçiye ait, aynı para birimi ve uyumlu alış koşullarındaki birden fazla mal kabul tek alış faturasında birleşebilir.
-- Kısmi miktarlar kaynak satır ilişkileri üzerinden izlenir; ayrı ikinci bir delivered/invoiced gerçek kaynağı oluşturulmaz.
-- Yarış koşulunda kaynak satır kalan miktarı transaction içinde yeniden okunur/kilitlenir.
-
-### K-089 — Tedarikçi ödeme akışı Faz 5'te: Tedarikçi ödeme akışı Faz 5'te
-
-- Faz 4 alış faturası tedarikçi borcunu `contact_transactions.credit` hareketiyle oluşturur.
-- Faz 4'te kasa/banka ödeme posting eylemi yoktur.
-- Nakit, banka, çek/senet ve diğer tedarikçi ödeme akışları Faz 5 Kasa/Banka/Çek-Senet kapsamında ele alınır.
-- Faz 4 ekranlarında borç görüntülenebilir; ödeme işlemi başlatılamaz.
-
-### K-090 — Belge + satır bazlı teklif karşılaştırma: Belge + satır bazlı teklif karşılaştırma
-
-- Bir satınalma talebine birden fazla tedarikçi teklifi bağlanabilir.
-- Kullanıcı belge bazında tek bir tedarikçi teklifini seçebilir.
-- Kullanıcı satır bazında farklı ürünleri farklı tedarikçilerden seçebilir.
-- Satır bazlı seçimde oluşacak satınalma siparişleri seçilen tedarikçilere göre ayrıştırılır.
-- Sistem otomatik en ucuz teklif, puanlama veya kazanan seçimi yapmaz.
-- Karar kullanıcı tarafından verilir ve period audit'e seçim özeti yazılır.
-- Ayrı onay adımı yoktur. Yetkili kullanıcı `purchasing.quote.select` benzeri izinle belge veya satır bazlı seçimi doğrudan yapar.
-- Tutar eşiğine bağlı approval yoktur.
+- Bir request'e birden fazla supplier_quote bağlanabilir.
+- Belge veya satır bazlı seçim yapılabilir.
+- Seçim gerçek kaynağı `purchase_quote_selections` tablosudur.
+- Belge bazlı seçim de her request line için seçim satırı üretir.
+- Satır bazlı seçim purchase_order üretirken supplier'a göre gruplanır.
+- Otomatik winner/puanlama yok.
+- `purchasing.quote.select` izni gerekir.
+- Ayrı approval state/tutar eşiği yok.
 - Seçim period audit'e yazılır.
 
-### K-091 — Teklif seçimi ayrı onaysız: Teklif seçimi ayrı onaysız
+## Kısmi işlem
 
-- Tedarikçi teklif seçimi için ayrı approval state yoktur.
-- Yetkili kullanıcı `purchasing.quote.select` benzeri izinle seçimi doğrudan yapar.
-- Belge bazlı ve satır bazlı seçim aynı izin modelini kullanır.
-- Tutar eşiği veya ikinci onay katmanı yoktur.
-- Seçim sonucu period audit'e yazılır.
+Purchase order remaining:
+
+```
+ordered - cancelled - received - direct_invoiced
+```
+
+Goods receipt invoice remaining:
+
+```
+receipt quantity - effective posted purchase_invoice child total
+```
+
+Bir receipt bölünebilir; aynı supplier + currency + uyumlu alış koşullarındaki receipt'ler bir faturada birleşebilir.
+
+## Maliyet
+
+- Tek yöntem hareketli ortalama.
+- PHP float yok; Money/BCMath.
+- Stok temel birimde.
+- Purchase invoice inventory cost KDV hariç net alış bedelinin frozen kurla temel para birimine çevrilip base_quantity'ye bölünmesidir.
+- ±%25 sapma uyarı+audit; blok değil.
+- Eşik Master `companies.cost_deviation_threshold`.
+
+## Görev sırası
+
+| Görev | İçerik |
+|---|---|
+| G-401 | Faz 4 belge tipleri, relation tipleri, purchase_quote_selections |
+| G-402 | satınalma talebi |
+| G-403 | tedarikçi teklif toplama ve karşılaştırma |
+| G-404 | satınalma siparişi |
+| G-405 | mal kabul / alış irsaliyesi |
+| G-406 | alış faturası posting + maliyet + döviz |
+| G-407 | kısmi alış faturalama / lineage |
+| G-408 | ters kayıt + integrity |
+| G-409 | gerçek PostgreSQL bütünleşik testler |
 
 ## Faz bitiş ölçütü
 
-Faz 4 tamamlanmış sayılmadan:
+Dokümantasyon seti yazılmıştır. Kodlama/uygulama Faz 4 tamamlanmış sayılmaz; G-401…G-409 kabul ölçütlerinin gerçek PostgreSQL üzerinde geçmesi gerekir.
 
-- tüm alış belge tipleri için etki matrisi açık olmalı,
-- maliyet güncelleme noktası tek ve yarış koşuluna dayanıklı olmalı,
-- kısmi akışlarda kaynak satır toplamları aşılmamalı,
-- cari hareket yönü ve ters kayıtlar doğrulanmalı,
-- döviz kur snapshot testleri bulunmalı,
-- ±%25 alış fiyatı uyarısı + audit testi bulunmalı,
-- idempotency ve optimistic lock testleri bulunmalı,
-- tüm kabul testleri gerçek PostgreSQL üzerinde geçmelidir.
+Faz 5'e geçiş ayrıca kullanıcı onayıyla yapılır.
