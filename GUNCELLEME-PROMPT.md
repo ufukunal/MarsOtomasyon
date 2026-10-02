@@ -161,3 +161,10 @@ Repo tutarlılık temizliği ve Faz 0–2 görev revizyonu tamamlandı. **Faz 3 
 
 - Faz 9 kararları K-163…K-201 ile kilitlendi; açık A kararı yoktur.
 - A-097 seçimi K-174 olarak işlendi: stock mode tüm depoları değil listing'e atanmış location kapsamını kullanır.
+
+
+## 03.10.2026 Faz 10 kapsam kararı
+
+- Kullanıcı soru sorulmadan en geniş Faz 10 sisteminin yazılmasını istedi.
+- K-202…K-235 ile rapor motoru, export, çok dönem, dashboard, document/label template ve printing kapsamı kilitlendi.
+- Genel muhasebe/GİB/resmi mali tablo kapsam dışı kalır.
