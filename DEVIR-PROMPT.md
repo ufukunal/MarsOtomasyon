@@ -156,6 +156,15 @@ Her şirket+yıl ayrı period DB. Kartlar dahil işletme verisi period DB'dedir.
 - Reçeteler dönem devrinde taşınır; açık production orders taşınmaz, fason location fiziksel stoğu açılışa taşınır.
 - Production completion reverse edilebilir ve original immutable kalır.
 
+## Faz 8 dokümantasyon sonucu
+
+- Veri modeli 41: production recipes/orders/completions/consumptions/outputs + subcontractor location genişletmesi.
+- İş kuralları 45–47.
+- Ekranlar: reçeteler, üretim emri, completion, fason üretim.
+- G-800…G-809 hazırdır.
+- K-131…K-162 kilitlidir; açık A kararı yoktur.
+- Faz 9 kullanıcı onayı olmadan başlatılmaz.
+
 ## Dönem devri
 
 Aktif kartlar + gerekli pasif kartlar kopyalanır. Taşınan bütün kartların ID/kodları ve taşınan stock_balance ID'leri aynı şirkette korunur. Geçmiş hareketler/belgeler/açık teklif-sipariş/taslak/yoldaki transfer/karantina taşınmaz. Açılış maliyeti kapanış hareketli ortalamasıdır. Devir sonunda kullanıcıya önceki dönem kullanıcı/dönem erişim ve dönemsel yetkilerini yeni döneme seçerek kopyalama sorulur.
@@ -166,7 +175,7 @@ Master company_copy_permissions. Kaynak period_source. Hedef yeni ID; source_com
 
 ## Faz ve görev yöntemi
 
-Faz 0, 0b, 1, 2 görevleri güncel standalone standarda göre temizlendi. **Faz 3 Satış dokümantasyonu yazıldı; G-300…G-312 hazırdır. Faz 4 Alış dokümantasyonu yazıldı; G-400…G-409 hazırdır. Faz 5 Kasa/Banka/Çek-Senet dokümantasyonu yazıldı; G-500…G-509 hazırdır. Faz 6 İade dokümantasyonu yazıldı; G-600…G-609 hazırdır.** Faz 3 iş kuralı dosyaları 28–31, Faz 4 yeni iş kuralı dosyaları 32–34, Faz 5 yeni iş kuralı dosyaları 35–38, Faz 6 yeni iş kuralı dosyaları 39–41 numaralarını kullanır. Faz 4 alış davranışları K-086…K-091, Faz 5 finans davranışları K-092…K-097, Faz 6 iade davranışları K-098…K-113 ile kilitlidir. Faz 7 kullanıcı onayı olmadan başlatılmaz.
+Faz 0, 0b, 1, 2 görevleri güncel standalone standarda göre temizlendi. **Faz 3 Satış G-300…G-312, Faz 4 Alış G-400…G-409, Faz 5 Finans G-500…G-509, Faz 6 İade G-600…G-609, Faz 7 İthalat G-700…G-709 ve Faz 8 Üretim/fason G-800…G-809 hazırdır.** Faz 8 veri modeli 41, iş kuralları 45–47'dir. Faz 8 davranışları K-131…K-162 ile kilitlidir. Faz 9 kullanıcı onayı olmadan başlatılmaz.
 
 Her görev şu bölümleri içerir: Amaç, Önkoşul, Dokunulacak dosyalar, Şema/Kod, Kurallar, Kabul ölçütü, İstem. Bir görev tek başına yerel modele verilebilir olmalıdır. **Satır sayısı hedef değildir.** 300–500 satır yalnız iş gerçekten o ayrıntıyı gerektiriyorsa doğal sonuç olabilir. Aynı genel checklist, mimari kural veya test maddesini sırf uzunluk için tekrar etmek yasaktır. Kaynaklarda tanımlanmayan alan, tablo, Action, sınıf, iş kuralı veya test beklentisi uydurulmaz. Eksik karar varsa `[KARAR GEREKİYOR]` yazılır ve kullanıcıya seçenek sunulur.
 
