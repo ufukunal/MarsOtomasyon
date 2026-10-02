@@ -47,15 +47,19 @@ Teklif oluşturulurken `revision_no = 1` atanır. İlk kez `draft` dışına ç�
 
 ## Revizyon
 
-Yeni revizyon:
+Yeni revizyon tek period transaction içinde oluşturulur:
 
-1. kaynak quote posted/approved gibi mutate edilmez,
-2. yeni `documents` satırı oluşturulur,
-3. aynı `number` kullanılır,
-4. `revision_no = max + 1` (ilk kayıt 1 olduğu için sonraki 2, 3... devam eder),
-5. header + lines + configuration + requirements snapshot kopyalanır,
-6. `document_relations.revision_of` yazılır,
-7. yeni revizyon `draft` başlar.
+1. Teklif ailesinin sabit kilidi olarak aynı `number` + `revision_no = 1` satırı `lockForUpdate()` ile kilitlenir.
+2. Kilit alındıktan sonra aynı `number` için en yüksek `revision_no` tekrar okunur.
+3. İstek başlatılan kaynak revizyon artık latest değilse işlem stale-revision hatasıyla durur; eski revizyondan sessiz branch üretilmez.
+4. latest revizyon değiştirilmez; yeni `documents` satırı oluşturulur.
+5. aynı `number` kullanılır.
+6. `revision_no = latest.revision_no + 1`.
+7. header + lines + configuration + requirements snapshot latest revizyondan kopyalanır.
+8. `document_relations.revision_of`: source = yeni revizyon, target = latest revizyon.
+9. yeni revizyon `draft` başlar.
+
+Bu aile kilidi, iki eşzamanlı "Yeni Revizyon" isteğinin aynı Rev.N değerini üretmesini engeller. DB unique constraint son savunma olarak kalır.
 
 Eski revizyon hiçbir alanı güncellenmez.
 
@@ -92,6 +96,7 @@ Teklif stok/cari/rezervasyon etkisi üretmez.
 - Draft kayıt numara tüketmiyor.
 - İlk review geçişi concurrency'de tek numara alıyor.
 - İlk teklif `revision_no=1`; sonraki revizyonlar aynı number ile Rev.2, Rev.3... oluşturuyor.
+- Aynı teklif için iki eşzamanlı Yeni Revizyon isteği aynı revision_no'yu üretmiyor; stale kaynak revizyon ikinci branch'i oluşturmuyor.
 - Eski revizyon değişmiyor.
 - İç onay izinsiz kullanıcıda 403.
 - Requirement/configuration snapshot eski revizyonda değişmiyor.
