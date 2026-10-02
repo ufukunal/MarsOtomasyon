@@ -155,3 +155,9 @@ Repo tutarlılık temizliği ve Faz 0–2 görev revizyonu tamamlandı. **Faz 3 
 - Cancel mevcut remaining-cancel mantığı; return draft sales_return üretir.
 - Webhook birincil, 15 dk polling yedek; 30/60/120 retry + kalıcı sync history/error vardır.
 - Faz 10 kullanıcı onayı olmadan başlatılmaz.
+
+
+## 03.10.2026 Faz 9 karar özeti
+
+- Faz 9 kararları K-163…K-201 ile kilitlendi; açık A kararı yoktur.
+- A-097 seçimi K-174 olarak işlendi: stock mode tüm depoları değil listing'e atanmış location kapsamını kullanır.
