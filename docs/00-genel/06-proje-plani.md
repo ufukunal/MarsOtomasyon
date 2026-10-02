@@ -10,8 +10,8 @@ Her faz önce veri modeli + iş kuralları + ekran + standalone G görevleri ola
 - Faz 0b UI: G-0b1…G-0b3 yazıldı ve temizlendi.
 - Faz 1 Kartlar: G-101…G-115 period DB mimarisine göre güncellendi.
 - Faz 2 Stok: G-201…G-212 yeni stok/rezervasyon kararlarına göre güncellendi.
-- **Faz 3 Satış: DOKÜMANTASYON YAZILDI VE KALİTE KONTROLÜ TAMAMLANDI — veri modeli 30–34, iş kuralları 28–31, ekranlar ve G-300…G-312 hazırdır. Bu ifade kodlama/uygulama tamamlandı anlamına gelmez. Faz 4 kullanıcı onayı olmadan başlamaz.**
-- **Faz 4 Alış: BAŞLADI — kapsam/karar boşlukları G-400 ile çıkarılıyor; Faz 3 ortak belge çekirdeği yeniden yazılmayacak.**
+- **Faz 3 Satış: DOKÜMANTASYON YAZILDI VE KALİTE KONTROLÜ TAMAMLANDI — veri modeli 30–34, iş kuralları 28–31, ekranlar ve G-300…G-312 hazırdır. Kodlama/uygulama tamamlanması kabul testlerine bağlıdır.**
+- **Faz 4 Alış: DOKÜMANTASYON YAZILDI — K-086…K-091 kilitli; veri modeli 35, iş kuralları 32–34, alış ekranları ve G-400…G-409 hazırdır. Kodlama/uygulama tamamlanması G-401…G-409 gerçek PostgreSQL kabul testlerine bağlıdır. Faz 5 kullanıcı onayı olmadan başlamaz.**
 - Faz 5 Kasa/Banka/Çek-Senet (Faz 3 yalnız tahsilat için gereken minimum cash/bank altyapısını erkenden kurar; virman, ekstre, mutabakat ve çek/senet ayrıntıları Faz 5'tedir)
 - Faz 6 İade
 - Faz 7 İthalat
@@ -29,4 +29,11 @@ Faz 3 iş kuralı belgeleri mevcut numaralarla çakışmamak için 28–31 olaca
 
 ## Kritik sıra
 
-Repo temizliği ve Faz 0–2 görev revizyonu tamamlandı. Faz 3 Satış dokümantasyonu yazıldı ve kalite kontrolünden geçirildi. Faz 3'ün kodlama/uygulama tamamlanmış sayılması G-301…G-312 kabul ölçütlerinin gerçek PostgreSQL üzerinde geçmesine bağlıdır. Faz 4 kullanıcı onayıyla başlatıldı; önce kapsam ve karar boşlukları kilitlenecek, ardından veri modeli + iş kuralları + ekranlar + standalone G görevleri yazılacaktır.
+Repo temizliği ve Faz 0–2 görev revizyonu tamamlandı. Faz 3 Satış dokümantasyonu yazıldı ve kalite kontrolünden geçirildi. Faz 4 Alış dokümantasyonu K-086…K-091 kararlarıyla yazıldı; G-400…G-409 hazırdır. Faz 3 ve Faz 4'ün kodlama/uygulama tamamlanması kendi gerçek PostgreSQL kabul testlerine bağlıdır. Faz 5 kullanıcı onayı olmadan başlatılmaz.
+
+
+## Faz 4 planı
+
+G-400 özet; G-401 belge/selection çekirdeği; G-402 satınalma talebi; G-403 tedarikçi teklif toplama; G-404 satınalma siparişi; G-405 mal kabul; G-406 alış faturası posting+maliyet; G-407 kısmi faturalama; G-408 ters kayıt/bütünlük; G-409 test.
+
+Faz 4 yeni veri modeli dosyası 35; yeni iş kuralı dosyaları 32–34'tür. Ortak Faz 3 belge çekirdeği yeniden kullanılmaktadır.
