@@ -67,7 +67,7 @@ Onaylı v65 prototipinde Faz 5'e ait kasa/banka/çek/senet ekran davranışı do
 
 ## [KARAR GEREKİYOR]
 
-### A-015 — KAPANDI: Tüm hesap türleri arasında aynı para birimli virman
+### K-092 — Tüm hesap türleri arasında aynı para birimli virman
 
 - Kasa → Kasa desteklenir.
 - Kasa → Banka desteklenir.
@@ -79,7 +79,7 @@ Onaylı v65 prototipinde Faz 5'e ait kasa/banka/çek/senet ekran davranışı do
 - Kaynak ve hedef aynı hesap olamaz.
 - Virman iki finans hareketini tek transaction/idempotency zincirinde üretir.
 
-### A-016 — KAPANDI: Genel ödeme formu + fatura ekranı kısayolu
+### K-093 — Genel ödeme formu + fatura ekranı kısayolu
 
 - Ana işlem genel Tedarikçi Ödeme formundan yapılır.
 - Alış faturası ekranında `Ödeme Yap` kısayolu bulunur.
@@ -88,7 +88,7 @@ Onaylı v65 prototipinde Faz 5'e ait kasa/banka/çek/senet ekran davranışı do
 - Kısmi ödeme serbesttir.
 - Bir ödeme belirli faturaya bağlı olmak zorunda değildir.
 
-### A-017 — KAPANDI: Toplam fiili bakiye + fark düzeltme hareketi
+### K-094 — Toplam fiili bakiye + fark düzeltme hareketi
 
 - Kullanıcı kasadaki gerçek toplam tutarı girer.
 - Kupür bazlı sayım yoktur.
@@ -97,7 +97,7 @@ Onaylı v65 prototipinde Faz 5'e ait kasa/banka/çek/senet ekran davranışı do
 - Kullanıcı gerekçeyle onaylarsa ayrı kasa sayım farkı finans hareketi oluşturulur.
 - Geçmiş hareketler mutate edilmez.
 
-### A-018 — KAPANDI: İlk sürümde manuel banka mutabakatı
+### K-095 — İlk sürümde manuel banka mutabakatı
 
 - Banka ekstresi dosya importu yoktur.
 - Otomatik eşleştirme yoktur.
@@ -105,7 +105,7 @@ Onaylı v65 prototipinde Faz 5'e ait kasa/banka/çek/senet ekran davranışı do
 - Mutabakat hareketi yeni finans hareketi üretmez; mevcut hareket üzerinde mutabakat metadata'sı/audit tutulur.
 - Dosya formatı kararı Faz 5 ilk sürümü için gereksizdir.
 
-### A-019 — KAPANDI: Tam kontrollü çek/senet yaşam döngüsü
+### K-096 — Tam kontrollü çek/senet yaşam döngüsü
 
 Alınan kıymet:
 
@@ -124,7 +124,7 @@ Verilen kıymet:
 
 K-082 korunur: ilk teslim cari etkisini üretir; tahsil/ödeme ikinci kez cari etkilemez; karşılıksız/geri dönüş ters cari hareket üretir; ciro ilk cariyi ikinci kez etkilemeden karşı cariyi etkiler.
 
-### A-020 — KAPANDI: Geniş veri seti + banka operasyon alanları
+### K-097 — Geniş veri seti + banka operasyon alanları
 
 Temel alanlar:
 
@@ -153,7 +153,7 @@ Ciroda karşı cari zorunludur; ciro tarihi ve açıklama tutulur. Kıymetin ön
 
 ## Faz 5 dokümantasyon çıktıları
 
-A-015…A-020 kapandıktan sonra:
+K-092…K-097 kilitlerine göre:
 
 1. gerekiyorsa Faz 5 veri modeli ekleri,
 2. kasa/banka hareketleri, virman, ödeme, sayım, ekstre/mutabakat ve securities iş kuralları,
