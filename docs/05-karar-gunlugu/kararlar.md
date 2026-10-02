@@ -99,4 +99,14 @@ Verilen kararlar ve gerekçeleri. **Kod bu kararlara uyar; kod kararla
 
 ## Açık kararlar
 
-**Yok.** A-001…A-008 kapatıldı. K-062…K-085 dahil 01.10.2026 kararları da kilitlendi.
+A-001…A-008 kapatıldı. K-062…K-085 dahil 01.10.2026 kararları kilitlidir.
+
+Faz 4 Alış başlatıldıktan sonra aşağıdaki karar boşlukları tespit edildi. Bunlar karar verilmiş hüküm değildir; kullanıcı kararı olmadan görevlerde varsayım yapılamaz.
+
+| No | Açık konu | Netleştirilecek davranış |
+|---|---|---|
+| A-009 | Faz 4 kanonik belge zinciri | Satınalma talebi + teklif toplama sonrasında satınalma siparişi ve mal kabul/alış irsaliyesinin zorunlu/opsiyonel yeri |
+| A-010 | Alışta stok ve cari etki anı | Mal kabul/alış irsaliyesinde stok girişi, irsaliyeden alış faturasında ikinci stok etkisinin önlenmesi ve doğrudan alış faturasının etkileri |
+| A-011 | Kısmi teslim ve kısmi faturalama | Kısmi kabul, kalan iptal, bir kabulün birden fazla faturaya ve birden fazla kabulün tek faturaya dönüşebilmesi |
+| A-012 | Tedarikçi ödeme zamanı | Faz 4'te minimum doğrudan ödeme eylemi olup olmayacağı veya ödemenin Faz 5'e bırakılması |
+| A-013 | Basit teklif toplama davranışı | Tedarikçi tekliflerinin bağlanma/karşılaştırma/seçim kapsamı ve seçim için onay/yetki gereksinimi |
