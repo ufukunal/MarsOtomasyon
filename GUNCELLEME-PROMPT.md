@@ -61,4 +61,4 @@ Repo tutarlılık temizliği ve Faz 0–2 görev revizyonu tamamlandı. **Faz 3 
 - Kaynaklı iade orijinal frozen fiyat/iskonto/KDV/birim/conversion ve dövizli alışta original frozen kur kullanır.
 - Önceki dönem belge mevcut açık dönemde scalar source snapshot ile iade edilebilir; eski period mutate edilmez.
 - İade doğrudan yetkili kullanıcı tarafından post edilir; neden zorunludur.
-- Açık A kararı yoktur.
+- Faz 6 için yalnız A-036 iade neden kodları açıktır; diğer başlangıç kararları K-098…K-112 ile kilitlidir.
