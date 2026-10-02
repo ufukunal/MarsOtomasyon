@@ -72,7 +72,7 @@ Repo tutarlılık temizliği ve Faz 0–2 görev revizyonu tamamlandı. **Faz 3 
 - Cross-period iade read-only eski period + current-period frozen snapshot modelidir.
 - Karantina gerçek kaynağı quarantine_entries; stock_balances.quarantine özetidir.
 - Açık karantina dönem devrinde kaybolmaz, yeni döneme açık miktar/snapshot taşınır.
-- Açık A kararı yoktur.
+- Faz 7'nin tek açık kararı A-053'tür: satış görmüş veya sıfır/negatif mevcut stokta ithalat ek maliyetinin moving_average'a yansıma formülü.
 - Faz 7 kararları K-114…K-129 ile kilitlendi; Faz 7 dokümantasyonu henüz yazılmadı.
 
 
@@ -95,3 +95,12 @@ Repo tutarlılık temizliği ve Faz 0–2 görev revizyonu tamamlandı. **Faz 3 
 - Dağıtım yuvarlama farkı son uygun satıra verilir.
 - Ağırlık/hacim ilk sürümde yoktur.
 - Açık A kararı yoktur.
+
+
+## 02.10.2026 Faz 7 dokümantasyon durumu
+
+- Veri modeli 40 yazıldı.
+- İş kuralları 42–44 yazıldı.
+- İthalat ekranları ve G-700…G-709 hazırdır.
+- K-114…K-129 kilitlidir.
+- A-053 tek açık karardır; G-707/G-709 bu karar çözülmeden sıfır/negatif veya satış görmüş stok davranışı uydurmaz.
