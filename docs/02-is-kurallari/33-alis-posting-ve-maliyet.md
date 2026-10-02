@@ -101,8 +101,8 @@ Alış faturası için:
 
 - transaction_type = purchase_invoice,
 - direction = credit,
-- amount = grand_total,
-- currency = belge currency,
+- amount = `grand_total × frozen exchange_rate` ile şirket temel para birimi karşılığı,
+- currency = şirket `base_currency` değeri (mevcut varsayılan TRY),
 - due_date = belge due_date,
 - document_id unique.
 
@@ -132,7 +132,7 @@ Commit öncesi:
 - movement unit_cost frozen kur ve net maliyet hesabıyla eşleşmeli,
 - product_cost moving_average güncellemesi beklenen sonuçla eşleşmeli,
 - document_id ile tek supplier contact transaction bulunmalı,
-- cari yön = credit olmalı,
+- cari yön = credit ve ledger amount frozen kurla temel para birimi karşılığı olmalı,
 - source remaining aşılmamalı.
 
 Farkta transaction rollback.
