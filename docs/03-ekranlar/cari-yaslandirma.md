@@ -41,7 +41,7 @@ Renk tam %50 gibi bir eşiğe bağlı değildir; herhangi bir kısmi kapanma sar
 
 Tahsilat/credit hareketleri en eski borçtan başlayarak sanal uygulanır. Bu dağıtım yalnız rapor runtime hesabıdır; DB'ye invoice settlement yazılmaz.
 
-Satırların kalan toplamı cari hareket bakiyesiyle tutarlı olmalıdır.
+Satırların kalan toplamı `max(cari hareket bakiyesi, 0)` ile tutarlı olmalıdır. Cari bakiye negatifse açık borç satırı toplamı 0'dır; fazla credit ayrıca cari alacak/avans bilgisi olarak gösterilir.
 
 ## Filtreler
 
