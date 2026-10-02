@@ -81,7 +81,13 @@ Diğer açık siparişler resmî cari bakiyeye eklenmez.
 - limit aşım tutarı göster,
 - bloklama yok.
 
-Faz 5 çek/senet modülü henüz yoksa portföy kıymet riski 0 kabul edilmez diye yeni fake tablo kurulmaz; mevcut kaynak yoksa bu bileşen "henüz kıymet kaydı yok" olarak 0 döner ve Faz 5 entegrasyon noktası bırakılır.
+Faz 5 çek/senet modülü henüz yoksa yeni fake tablo kurulmaz ve portföy kıymet riski **0 diye bilinmiş değer gibi kabul edilmez**.
+
+- Kaynak mevcutsa tam projeksiyon = cari bakiye + bu sipariş + portföy kıymet riski.
+- Kaynak henüz yoksa `security_risk = unknown` / `projection_complete = false` olarak DTO/UI seviyesinde işaretlenir; DB'ye yeni alan yazılmaz.
+- Bilinen kısım `cari bakiye + bu sipariş` tek başına risk limitini aşıyorsa normal limit aşım uyarısı verilir.
+- Bilinen kısım limiti aşmıyorsa kullanıcıya "Çek/senet riski henüz Faz 5 kaynağı olmadığı için tam projeksiyona dahil edilemiyor" bilgisi gösterilir; eksik değer sessizce 0 gösterilmez.
+- Faz 5 securities kaynağı geldiğinde aynı hesap servisi K-078 tam formülünü kullanır.
 
 ## Rezervasyon
 
@@ -121,6 +127,7 @@ Negatif stok izni negatif rezervasyon üretmez.
 
 - Confirm numarayı bir kez üretir.
 - Risk aşımı uyarı veriyor ama onayı engellemiyor.
+- Çek/senet kaynağı yokken security risk sessizce 0 gösterilmiyor; projeksiyon eksik olarak işaretleniyor. Bilinen bakiye+sipariş tek başına limiti aşıyorsa uyarı yine çıkıyor.
 - Rezervasyon fiziksel quantity'yi değiştirmiyor.
 - 10 adet ihtiyaç, iki depoda 6+4 stok ise iki reservation oluşturabiliyor.
 - Toplam kullanılabilir 7 ise yalnız 7 rezerve, 3 açık kalıyor.
