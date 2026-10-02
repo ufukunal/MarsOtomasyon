@@ -23,6 +23,9 @@ Taslak belge numarasız olabilir ve fiziksel silinebilir. Kesinleşmiş belge si
 | Satınalma siparişi | Yok | Yok | Yok | Confirm |
 | Mal kabul / alış irsaliyesi | **Yok** | Yok | **Yok** | Post; yalnız operasyonel fulfillment |
 | Alış faturası | **Giriş** | Yok | **Credit** | Post; moving average güncellenir |
+| Tedarikçi ödeme | Yok | Yok | **Debit** | Post + kasa/banka çıkışı |
+| Finans virman | Yok | Yok | Yok | Post; source out + target in |
+| Kasa sayım farkı | Yok | Yok | Yok | Confirm edilen sayım farkında tek kasa hareketi |
 
 ## PostDocument transaction sırası
 
@@ -96,6 +99,14 @@ v65: Kaydet, Onayla; detayda Hold, Rezervasyon Yap, Sevkiyat Oluştur, Fatura Ol
 - Kasa seçildiyse `cash_movements.in`, banka seçildiyse `bank_movements.in`.
 - Faturaya zorunlu settlement dağıtımı yoktur.
 
+### Faz 5 finans
+
+- supplier_payment K-093 gereği supplier contact debit + cash/bank out üretir; kaynak alış faturası ilişkisi bilgi amaçlıdır.
+- finance_transfer K-092 gereği aynı para birimli source out + target in üretir; cari etkisi yoktur.
+- cash_count_adjustment K-094 gereği yalnız confirmed kasa sayım farkından üretilir.
+- bank reconciliation K-095 gereği finansal belge değildir; mevcut bank movement metadata'sını değiştirir ve audit yazar.
+- Çek/senet yaşam döngüsü `security_events` üzerinden yürür; K-082/K-096 cari/finans etkileri iş kuralları 37–38'de tanımlıdır.
+
 ### Faz 4 satınalma
 
 K-086 gereği purchase_request → supplier_quote → purchase_order → goods_receipt → purchase_invoice zinciri esnektir; ara belgeler zorunlu değildir.
@@ -118,6 +129,9 @@ Transaction commit edilmeden:
 - `contact_debit_credit` için üretilen cari yön typed posting context ile aynı olmalı,
 - tahsilat için kasa/banka movement tutarı contact transaction tutarıyla aynı olmalı,
 - purchase_invoice için stock movement miktarı/base unit cost, moving average ve supplier credit etkisi eşleşmeli,
-- goods_receipt için stock/contact movement bulunmamalı.
+- goods_receipt için stock/contact movement bulunmamalı,
+- finance_transfer için source out + target in tam çift olmalı,
+- supplier_payment için contact debit + finans out tutarı eşleşmeli,
+- cash_count_adjustment yalnız ilgili confirmed cash_count farkıyla eşleşmeli.
 
 Uyuşmazlık `DomainException`/integrity exception ile rollback üretir.
