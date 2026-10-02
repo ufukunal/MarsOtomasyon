@@ -1,10 +1,10 @@
-# G-500 — Faz 5 Kasa/Banka/Çek-Senet kapsam ve karar boşlukları
+# G-500 — Faz 5 Kasa/Banka/Çek-Senet özeti
 
 ## Amaç
 
 Faz 5 Kasa/Banka/Çek-Senet dokümantasyonunu, Faz 3'te K-075 ile erkenden kurulan minimum `cash_accounts`, `bank_accounts`, `cash_movements`, `bank_movements` ve mevcut `contact_transactions` çekirdeğini tekrar etmeden genişletmek.
 
-Bu belge uygulama görevi değildir. Kaynaklarda kilitli davranışları ve kullanıcı kararı gerektiren Faz 5 boşluklarını ayırır.
+Bu belge uygulama görevi değildir. Faz 5'in kilit kararlarını, kaynaklarını ve standalone görev sırasını özetler.
 
 ## Önkoşul
 
@@ -65,7 +65,7 @@ K-078:
 
 Onaylı v65 prototipinde Faz 5'e ait kasa/banka/çek/senet ekran davranışı doğrudan kaynak olarak bulunmuyor. Bu nedenle Faz 5 ekranları yalnız kilitlenen iş kararları ve mevcut genel UI dili üzerinden yazılacaktır; prototipte varmış gibi route, alan veya workflow uydurulmayacaktır.
 
-## [KARAR GEREKİYOR]
+## Kilitlenen Faz 5 kararları
 
 ### K-092 — Tüm hesap türleri arasında aynı para birimli virman
 
@@ -153,19 +153,44 @@ Ciroda karşı cari zorunludur; ciro tarihi ve açıklama tutulur. Kıymetin ön
 
 ## Faz 5 dokümantasyon çıktıları
 
-K-092…K-097 kilitlerine göre:
+### Veri modeli
 
-1. gerekiyorsa Faz 5 veri modeli ekleri,
-2. kasa/banka hareketleri, virman, ödeme, sayım, ekstre/mutabakat ve securities iş kuralları,
-3. genel UI diliyle Faz 5 ekran belgeleri,
-4. standalone `G-501...` görevleri,
-5. gerçek PostgreSQL bütünleşik/concurrency/integrity test görevi
+- `36-finance-movements-faz5.md`
+- `37-cash_counts.md`
+- `38-securities.md`
 
-yazılacaktır.
+### İş kuralları
+
+- `35-kasa-banka-virman-ve-odeme.md`
+- `36-kasa-sayimi-ve-banka-mutabakati.md`
+- `37-cek-senet-yasam-dongusu.md`
+- `38-cek-senet-risk-ve-butunluk.md`
+
+### Ekranlar
+
+- `finans-hareketleri-ve-virman.md`
+- `tedarikci-odeme.md`
+- `kasa-sayimi.md`
+- `banka-mutabakati.md`
+- `cek-senet.md`
+
+### Görev sırası
+
+| Görev | İçerik |
+|---|---|
+| G-501 | finans şema genişletmesi |
+| G-502 | virman |
+| G-503 | tedarikçi ödeme |
+| G-504 | kasa sayımı |
+| G-505 | manuel banka mutabakatı |
+| G-506 | çek/senet şeması |
+| G-507 | çek/senet yaşam döngüsü |
+| G-508 | risk + ters kayıt + integrity |
+| G-509 | gerçek PostgreSQL Faz 5 testleri |
 
 ## Faz bitiş ölçütü
 
-Faz 5 dokümantasyonu tamamlanmış sayılmadan:
+Faz 5 dokümantasyon seti yazılmıştır. Kodlama/uygulama tamamlanmış sayılmadan:
 
 - kasa/banka etki matrisi,
 - tedarikçi ödeme cari yönü ve finans hareketi,
