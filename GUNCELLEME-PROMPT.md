@@ -24,7 +24,7 @@ Bu dosya `DEVIR-PROMPT.md`den sonra okunur. Çelişkide bu dosya ve karar günl�
 - v64 korunur; **v65 güncel UI referansıdır.**
 - Faz 4 Alış kararları K-086…K-091 ile kilitlendi; açık A kararı yoktur.
 
-Repo tutarlılık temizliği ve Faz 0–2 görev revizyonu tamamlandı. **Faz 3 Satış dokümantasyonu yazıldı; G-300…G-312 hazırdır. Faz 4 Alış dokümantasyonu da yazıldı; K-086…K-091 kilitli, veri modeli 35, iş kuralları 32–34, alış ekranları ve G-400…G-409 hazırdır. Faz 5 kullanıcı onayı olmadan başlatılmaz.**
+Repo tutarlılık temizliği ve Faz 0–2 görev revizyonu tamamlandı. **Faz 3 Satış dokümantasyonu yazıldı; G-300…G-312 hazırdır. Faz 4 Alış dokümantasyonu da yazıldı; K-086…K-091 kilitli, veri modeli 35, iş kuralları 32–34, alış ekranları ve G-400…G-409 hazırdır. Faz 5 Kasa/Banka/Çek-Senet dokümantasyonu kullanıcı onayıyla başlatıldı; kapsam ve açık kararlar G-500 ile çıkarılacaktır.**
 
 
 ## 02.10.2026 Faz 4 Alış güncellemesi
