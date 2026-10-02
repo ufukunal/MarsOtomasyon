@@ -100,7 +100,18 @@ Tahsilat posting'i:
 
 üretir. Hepsi aynı transaction içindedir.
 
-Faz 3'te virman, banka ekstresi importu, mutabakat, kasa sayımı ve çek/senet yaşam döngüsü yapılmaz.
+Faz 3'te virman, banka mutabakatı, kasa sayımı ve çek/senet yaşam döngüsü yapılmaz.
+
+## Faz 5 genişletmesi
+
+Faz 5'te bu minimum çekirdek yeniden kullanılacak ve `docs/01-veri-modeli/36-finance-movements-faz5.md` ile genişletilecektir:
+
+- `cash_movements.unique(document_id)` ve `bank_movements.unique(document_id)` virman için composite unique yapısına dönüşür,
+- bank_movements manuel mutabakat metadata'sı alır,
+- supplier_payment ve finance_transfer aynı movement tablolarını kullanır,
+- ayrı ikinci cash/bank movement tablosu oluşturulmaz.
+
+K-095 gereği Faz 5 ilk sürümünde banka ekstresi dosya importu yoktur.
 
 
 ## Kart düzenleme / dönem devri
