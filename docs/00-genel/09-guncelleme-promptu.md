@@ -24,7 +24,7 @@ Bu dosya `DEVIR-PROMPT.md`den sonra okunur. Çelişkide bu dosya ve karar günl�
 - v64 korunur; **v65 güncel UI referansıdır.**
 - Faz 4 Alış kararları K-086…K-091 ile kilitlendi; açık A kararı yoktur.
 
-Repo tutarlılık temizliği ve Faz 0–2 görev revizyonu tamamlandı. **Faz 3 Satış dokümantasyonu yazıldı; G-300…G-312 hazırdır. Faz 4 Alış dokümantasyonu yazıldı; G-400…G-409 hazırdır. Faz 5 Kasa/Banka/Çek-Senet dokümantasyonu yazıldı; G-500…G-509 hazırdır. Faz 6 İade dokümantasyonu da yazıldı; K-098…K-113 kilitli, veri modeli 39, iş kuralları 39–41, iade ekranları ve G-600…G-609 hazırdır. Faz 7 kullanıcı onayı olmadan başlatılmaz.**
+Repo tutarlılık temizliği ve Faz 0–2 görev revizyonu tamamlandı. **Faz 3 Satış, Faz 4 Alış, Faz 5 Finans, Faz 6 İade, Faz 7 İthalat ve Faz 8 Basit üretim/fason dokümantasyonları yazıldı. Faz 8 K-131…K-162 kilitli; veri modeli 41, iş kuralları 45–47, üretim/fason ekranları ve G-800…G-809 hazırdır. Faz 9 kullanıcı onayı olmadan başlatılmaz.**
 
 
 ## 02.10.2026 Faz 4 Alış güncellemesi
@@ -105,3 +105,39 @@ Repo tutarlılık temizliği ve Faz 0–2 görev revizyonu tamamlandı. **Faz 3 
 - K-114…K-129 kilitlidir.
 - K-130: import cost adjustment birim farkı original import base_quantity üzerinden hesaplanır; current stock quantity payda değildir ve geçmiş satış maliyetleri geriye dönük değiştirilmez.
 - Açık A kararı yoktur.
+
+
+## 02.10.2026 Faz 8 ön kararları
+
+- Faz 8 basit iç üretim + fason birlikte kapsamdadır.
+- K-131…K-162 kilitlidir; açık A kararı yoktur.
+- Tek aktif immutable reçete revizyonu, output_quantity tabanı ve production-order snapshot vardır.
+- Actual consumption kullanıcı tarafından düzeltilebilir; component-level fire manuel ve mamul maliyetine dahildir.
+- Component source location satır bazında seçilir.
+- Production output birden fazla target location'a bölünebilir.
+- Kısmi completion ve kalan iptal vardır.
+- Completion transaction'ında component out + finished product in birlikte yazılır.
+- Production cost actual consumed component moving-average snapshot maliyetlerinden gelir; ilk sürümde iç üretim overhead yoktur.
+- Fasoncu contact + subcontractor location modelidir; fason stok normal satışta kullanılamaz.
+- Fason hizmet faturası normal purchase_invoice'dır ve mamul maliyetine dahil edilir.
+- Geç gelen fason maliyeti inventory_cost_adjustments reason=subcontract_late_cost ile işlenir.
+- Production-mode satış siparişi draft production order otomatik açabilir.
+- Reçeteler dönem devrinde taşınır; açık production order taşınmaz.
+- Production completion immutable reverse ile terslenebilir.
+
+
+## 02.10.2026 Faz 8 tamamlanma
+
+- Faz 8 Basit üretim/fason dokümantasyonu tamamlandı.
+- K-131…K-162 kilitlidir; açık A kararı yoktur.
+- Veri modeli 41, iş kuralları 45–47, ekranlar ve G-800…G-809 hazırdır.
+- Reçete immutable Rev.N + output_quantity tabanlıdır.
+- Production order reçete/component/unit/conversion snapshot taşır ve kısmi completion destekler.
+- Actual consumption + component-level fire stoktan çıkar; fire maliyete dahildir.
+- Component source location satır bazında, production output birden fazla target location'a bölünebilir.
+- Production stock-in moving_average günceller; product_costs.production_cost son production unit cost snapshot'ıdır.
+- Fasoncu contact + subcontractor location modelidir; normal satışta kullanılmaz.
+- Fason hizmet purchase_invoice üzerinden production order'a bağlanır ve mamul maliyetine dahil edilir.
+- Geç gelen fason hizmet inventory_cost_adjustments reason=subcontract_late_cost ile işlenir.
+- Açık production order dönem devrinde taşınmaz; reçeteler ve fason location fiziksel stokları taşınır.
+- Faz 9 kullanıcı onayı olmadan başlatılmaz.
