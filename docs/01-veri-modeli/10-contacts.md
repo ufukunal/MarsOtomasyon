@@ -44,9 +44,11 @@ Kod pasifleşse bile başka karta verilmez; fiziksel silme/SoftDeletes yoktur. D
 
 ## Yan tablolar
 
-`contact_categories`: id, name unique, color, is_active.
+`contact_categories`: id, name unique, color, is_active, **version**.
 Pivot: contact_id + category_id gerçek period FK.
-`contact_addresses`, `contact_people`, `contact_banks`: contact_id gerçek FK.
+`contact_addresses`, `contact_people`, `contact_banks`: contact_id gerçek FK ve her düzenlenebilir kayıt **version unsignedInteger default(1)** taşır.
+
+K-039 gereği bu yan kartlarda stale version ile update reddedilir; yalnız ana `contacts` tablosunda version olması yeterli sayılmaz.
 
 Bu period tablolarının hiçbirinde `company_id` yoktur.
 

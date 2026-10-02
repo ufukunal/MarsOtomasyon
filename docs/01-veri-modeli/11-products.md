@@ -44,16 +44,16 @@ Kod tekrar kullanılmaz; fiziksel silme/SoftDeletes yoktur ve `version` optimist
 
 ## Yan tablolar
 
-- product_categories: id, name, parent_id nullable, is_active
-- brands: id, name, is_active
-- units: id, code, name, is_base
-- unit_conversions: id, from_unit_id, to_unit_id, factor decimal(18,6)
-- variant_groups / variant_attributes / product_variant_values
-- product_sets
-- config_definitions / config_options
-- price_lists / price_list_items
+- product_categories: id, name, parent_id nullable, is_active, **version**
+- brands: id, name, is_active, **version**
+- units: id, code, name, is_base, is_active, **version**
+- unit_conversions: id, from_unit_id, to_unit_id, factor decimal(18,6), **version**
+- variant_groups / variant_attributes / product_variant_values: düzenlenebilir kayıtların her birinde **version**
+- product_sets: bileşen satırında **version**
+- config_definitions / config_options: her düzenlenebilir kayıtta **version**; fiyat alanı yok
+- price_lists / price_list_items: her düzenlenebilir kayıtta **version**
 
-Hepsi period DB'dedir ve `company_id` taşımaz. Aynı period içindeki ilişkiler gerçek FK'dir.
+Hepsi period DB'dedir ve `company_id` taşımaz. K-039 gereği yalnız parent product kartı değil, düzenlenebilir alt kart/satırlar da kendi optimistic-lock `version` alanını taşır. Aynı period içindeki ilişkiler gerçek FK'dir.
 
 Konfigüratör seçeneğinde fiyat alanı yoktur. Setin kendi fiziksel stoğu yoktur; satılabilir set miktarı bileşenlerin kullanılabilir stoklarından hesaplanır.
 
