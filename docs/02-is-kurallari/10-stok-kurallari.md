@@ -18,6 +18,16 @@ Bir sipariş satırı birden fazla lokasyona bölünebilir. Dağılım ayrı `st
 
 `cancelled_quantity` artık rezerv/sevk/fatura edilemez.
 
+## Üretim / fason
+
+- Production component consumption ve fire fiziksel stock out'tur.
+- Finished product completion fiziksel stock in'dir.
+- Component source location satır bazında seçilir.
+- Production output birden fazla target location'a bölünebilir.
+- Fason gönderim normal transferdir; fason location'daki stok şirket fiziksel stoğudur.
+- Subcontractor location normal satış rezervasyon/sevk taramasına girmez.
+- Üretim çıkışı mevcut `allow_negative_stock` kuralına uyar.
+
 ## Karantina / konsinye / sayım / transfer
 
 Karantinadaki mal rezerve ve sevk edilemez. Konsinye/numune fiziksel stoğun içindedir ancak kullanılabiliri azaltır. Sayım farkı elle onaylanır. Transfer çıkış+giriş aynı iş akışında ve temel birimde yazılır.
