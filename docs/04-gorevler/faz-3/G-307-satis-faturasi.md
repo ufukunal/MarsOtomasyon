@@ -97,6 +97,20 @@ Siparişten irsaliyesiz fatura mümkündür. Başlık seviyesinde `order_to_invo
 
 Aynı order miktarı daha sonra dispatch ile tekrar kullanılamaz.
 
+## Çok lokasyonlu siparişten doğrudan fatura
+
+Order kaynaklı direct invoice oluşturulurken tek order line'ın aktif rezervleri birden fazla lokasyonda olabilir.
+
+1. source ancestry ile origin sales_order line bulunur,
+2. ilgili aktif `stock_reservations` deterministic location/id sırasıyla kilitlenir,
+3. faturalanacak miktarın rezerve kısmı reservation allocation'larına göre bölünür,
+4. her allocation için ayrı invoice line üretilir; `location_id = reservation.location_id`,
+5. `ConsumeReservation` yalnız o invoice line miktarı kadar ilgili reservation'ı çözer,
+6. rezerve olmayan kalan varsa sistem sessiz depo seçmez; kullanıcı geçerli `location_id` seçmeden Post yapılamaz,
+7. negatif stok izni negatif reservation üretmez; yalnız seçilmiş lokasyondaki direct stock-out kuralında G-202 uygulanır.
+
+Örnek: order 10 adet, rezerv A=6/B=4 ise direct invoice iki line olarak A=6 ve B=4 oluşturulur.
+
 ## Doğrudan fatura
 
 Source line yoksa:
@@ -147,6 +161,8 @@ Aynı invoice için ikinci cari hareket unique constraint/idempotency ile oluşm
 - Dispatch kaynaklı invoice stok düşürmüyor.
 - Direct invoice stok + cari etkisi oluşturuyor.
 - Order direct invoice rezervi doğru tüketiyor.
+- 6+4 iki lokasyona rezerve order direct invoice edildiğinde invoice line'ları 6+4 lokasyon bazında bölünüyor.
+- Rezerve olmayan direct miktarda location seçilmeden post reddediliyor.
 - Bir dispatch 60/40 iki faturaya bölünebiliyor.
 - Faturalanan toplam dispatch miktarını aşamıyor.
 - Fatura `Tahsilat/Kalan` göstergesi FIFO aging sonucu ile eşleşiyor ve DB'de invoice settlement/paid/remaining alanı oluşturmuyor.

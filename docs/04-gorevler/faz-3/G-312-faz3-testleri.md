@@ -74,6 +74,10 @@ SQLite kullanılmaz.
 
 ## Fatura
 
+- order direct invoice çok lokasyon rezervini location bazında invoice line'lara bölüyor,
+- rezerve olmayan direct miktar location seçilmeden post edilemiyor,
+- proforma ancestry order'a ulaşıyorsa aynı reservation/location dağılımı uygulanıyor,
+
 - dispatch-source invoice cari debit, stok yok.
 - direct invoice stock out + debit.
 - order-direct invoice reservation consume.

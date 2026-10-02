@@ -78,6 +78,7 @@ Proforma stok hareketi olmadığı için proforma kaynaklı invoice **doğrudan 
 - `proforma_to_invoice` relation,
 - invoice posting stok out + cari debit,
 - ürün/lokasyon miktar doğrulamaları G-307 ile aynı.
+- lineage order'a ulaşıyorsa G-307 çok lokasyonlu direct invoice kuralı uygulanır: aktif order reservation'ları lokasyon bazında invoice line'lara bölünür; rezerve olmayan bakiye için kullanıcı location seçmeden post yapılamaz.
 
 Proforma conversion kaynak quote/order'ın fulfillment miktarını iki kez tüketmemeli.
 
@@ -99,6 +100,7 @@ Order kaynaklı proformada `invoice_line.source_line_id = proforma_line.id` kal�
 - PDF için finalized proforma immutable.
 - Proforma invoice'a dönüşünce invoice normal stok+cari etkisini üretiyor.
 - Order→proforma→invoice ancestry'si order direct_invoiced toplamına giriyor; aynı miktar sonra dispatch/direct invoice ile tekrar kullanılamıyor.
+- Order reservation'ı 6+4 iki lokasyondaysa proforma→invoice da 6+4 location line üretip ilgili rezervleri tüketiyor.
 - Gerçek PostgreSQL testleri geçiyor.
 
 ## İstem
