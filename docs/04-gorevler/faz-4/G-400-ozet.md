@@ -154,11 +154,12 @@ Ara adımlar zorunlu değildir. Kullanıcı ihtiyaca göre doğrudan satınalma 
 - Kısmi miktarlar kaynak satır ilişkileri üzerinden izlenir; ayrı ikinci bir delivered/invoiced gerçek kaynağı oluşturulmaz.
 - Yarış koşulunda kaynak satır kalan miktarı transaction içinde yeniden okunur/kilitlenir.
 
-### A-012 — Tedarikçi ödeme zamanı
+### A-012 — KAPANDI: Tedarikçi ödeme akışı Faz 5'te
 
-Faz 5 Kasa/Banka/Çek-Senet genişlemesi planlanmıştır.
-
-Faz 4'te yalnız tedarikçi borcunun oluşup ödemenin Faz 5'e bırakılması mı, yoksa minimum doğrudan ödeme eyleminin Faz 4'e de alınması mı gerektiği kaynaklarda açık değildir.
+- Faz 4 alış faturası tedarikçi borcunu `contact_transactions.credit` hareketiyle oluşturur.
+- Faz 4'te kasa/banka ödeme posting eylemi yoktur.
+- Nakit, banka, çek/senet ve diğer tedarikçi ödeme akışları Faz 5 Kasa/Banka/Çek-Senet kapsamında ele alınır.
+- Faz 4 ekranlarında borç görüntülenebilir; ödeme işlemi başlatılamaz.
 
 ### A-013 — Basit teklif toplama davranışı
 
