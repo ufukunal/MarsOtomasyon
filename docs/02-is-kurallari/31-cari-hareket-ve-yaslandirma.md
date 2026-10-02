@@ -104,6 +104,16 @@ K-082/K-096:
 
 Gerçek bakiye yine yalnız `contact_transactions` toplamıdır; `security_events` ikinci bakiye kaynağı değildir.
 
+## Faz 6 iade cari etkisi
+
+- sales_return = customer `credit`
+- purchase_return = supplier `debit`
+- iade cash/bank hareketini otomatik üretmez
+- source invoice ilişkisi settlement değildir
+- reverse exact inverse cari hareket üretir
+
+Kısmi/çoklu iade bakiye hesabında normal contact transaction'lar olarak görünür; ayrı return bakiye kaynağı yoktur.
+
 ## Risk
 
 Resmî cari risk bakiyesi = cari bakiye.
