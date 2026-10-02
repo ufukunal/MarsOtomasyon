@@ -39,6 +39,7 @@ KDV maliyete girmez.
 
 - Tüm para hesabı string + BCMath/Money.
 - TRY için kur 1; döviz kur snapshot'ı post sonrası değişmez.
+- Cari ledger amount = grand_total × frozen exchange_rate; contact transaction currency = company base_currency.
 - Wrapper stock/contact etkisini ikinci kez yazmaz; ortak posting transaction sahibini kullanır.
 - Stok hareketi temel birimde.
 - ±%25 sapma uyarı+audit, blok değil.
@@ -47,7 +48,7 @@ KDV maliyete girmez.
 
 ## Kabul ölçütü
 
-- Direct invoice stock in + supplier credit üretiyor.
+- Direct invoice stock in + supplier credit üretiyor; supplier credit amount frozen kurla şirket temel para birimine çevriliyor.
 - Receipt-source invoice ilk stok girişini invoice anında üretiyor.
 - Goods receipt önceden stock yazmadığı için duplicate stock oluşmuyor.
 - Moving average elle hesaplanmış beklenen değerle eşleşiyor.
