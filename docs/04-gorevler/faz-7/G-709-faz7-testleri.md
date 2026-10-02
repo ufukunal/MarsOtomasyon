@@ -6,7 +6,7 @@
 
 ## Önkoşul
 
-G-701…G-708 ve A-053 kapatılmış olmalı.
+G-701…G-708 tamamlanmış olmalı.
 
 ## Dokunulacak dosyalar
 
@@ -41,13 +41,13 @@ Yeni production şeması yok.
 - product cost concurrency
 - integrity:imports
 - integrity:cost-adjustments
-- A-053 chosen behavior
+- K-130 original-import-quantity cost adjustment behavior
 
 ## Kurallar
 
 - Gerçek PostgreSQL; SQLite yok.
 - Beklenen tutarlar production calculator'dan türetilmez.
-- K-114…K-129 ve A-053 nihai kararıyla çelişki yok.
+- K-114…K-130 ile çelişki yok.
 - Faz 8 production veya Faz 9 e-commerce davranışı eklenmez.
 
 ## Kabul ölçütü
