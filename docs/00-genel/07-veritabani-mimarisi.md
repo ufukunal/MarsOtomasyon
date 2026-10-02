@@ -23,6 +23,8 @@ XYZltd_2026
 - app_settings
 - company_copy_permissions
 - print_profiles
+- sales_channel_accounts
+- channel_external_event_registry
 - master activity_log
 
 Master'da cari/ürün/lokasyon/fiyat kartı yoktur. Master modelleri şirket global scope'u kullanmaz.
@@ -31,7 +33,7 @@ Master'da cari/ürün/lokasyon/fiyat kartı yoktur. Master modelleri şirket glo
 
 Kartlar: contacts ve yan tabloları, products, units, categories, brands, variants, sets, configurator, price_lists, locations, kart attachments/görseller.
 
-Operasyon: documents, document_lines, document_relations, contact_transactions, stock_movements, stock_balances, product_costs, cash/bank, securities, import_files/import_expenses/import allocations/inventory_cost_adjustments, production_recipes/production_orders/production_completions/production_consumptions/production_outputs, number_series, posting_periods, reservations, stock counts, quarantine, integrity/idempotency kayıtları ve period activity_log.
+Operasyon: documents, document_lines, document_relations, contact_transactions, stock_movements, stock_balances, product_costs, cash/bank, securities, import_files/import_expenses/import allocations/inventory_cost_adjustments, production_recipes/production_orders/production_completions/production_consumptions/production_outputs, channel_product_listings/channel_listing_locations/channel_order_snapshots/channel_sync_events/channel_sync_errors, number_series, posting_periods, reservations, stock counts, quarantine, integrity/idempotency kayıtları ve period activity_log.
 
 **Period tablolarında company_id yoktur.** `PeriodModel` connection=`period` kullanır.
 
@@ -55,7 +57,7 @@ Master `company_copy_permissions` kaynak→hedef iznini tutar. Kaynak aynı yıl
 4. Sequence'ler `MAX(id)+1` seviyesine alınır.
 5. Açılış stoku kapanış miktarı ve kapanış hareketli ortalama maliyetiyle yazılır; geçmiş stock_movements taşınmaz.
 6. product_costs, cari açılış, kasa/banka, vadesi gelmemiş çek/senet ve **açık karantina miktar/snapshot kayıtları** taşınır.
-7. Belgeler, açık teklif/sipariş, taslak, yoldaki transfer ve açık production/subcontract order taşınmaz. Aktif production recipe/revision kartları taşınır. Karantina bekleyen kayıtlar veri kaybı yaratmamak için açık miktarıyla yeni döneme taşınır; subcontractor location fiziksel stokları da normal location açılışı gibi taşınır.
+7. Belgeler, açık teklif/sipariş, taslak, yoldaki transfer ve açık production/subcontract order taşınmaz. Aktif production recipe/revision kartları ve channel-product listing/location mapping'leri taşınır. Kanal order/sync history taşınmaz. Karantina bekleyen kayıtlar açık miktarıyla yeni döneme taşınır; subcontractor location fiziksel stokları normal location açılışı gibi taşınır.
 8. `integrity:carry` fark bulursa devir tamamlanmaz.
 9. Kaynak dönem kapatılır.
 10. Sonunda önceki dönemin kullanıcı/dönem erişim ve dönemsel kullanıcı yetkilerini yeni döneme kopyalamak isteyip istemediği sorulur; kullanıcı seçilebilir.
