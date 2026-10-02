@@ -45,22 +45,22 @@ Schema::connection('period')->create('contact_transactions', function (Blueprint
 
 ## Yön
 
-Cari müşterinin bize olan bakiyesi açısından:
+Tek formül tüm cari türleri için korunur:
 
-- `debit`: müşterinin bize borcunu artırır.
-- `credit`: müşterinin bize borcunu azaltır.
-
-Satış faturası `debit`; tahsilat `credit` üretir. İleriki alış tarafında tedarikçi işlemleri aynı tabloyu karşı yönlerle kullanabilir.
-
-## Bakiye
-
-Bakiye contacts üzerinde saklanmaz.
+- `debit`: bakiyeyi artırır,
+- `credit`: bakiyeyi azaltır.
 
 ```
 bakiye = SUM(debit amount) - SUM(credit amount)
 ```
 
-Stok bakiyesi gibi cari bakiyesi de cache edilmez.
+Müşteri satış faturası `debit`, tahsilat `credit` üretir.
+
+K-087 gereği tedarikçiye borç doğuran Faz 4 alış faturası `credit` üretir. Böylece tedarikçi borcu bu formülde negatif bakiye yönünde görünür. Faz 4'te tedarikçi ödeme hareketi yoktur; ödeme Faz 5 kapsamındadır.
+
+## Bakiye
+
+Bakiye contacts üzerinde saklanmaz. Stok bakiyesi gibi cari bakiyesi de cache edilmez.
 
 ## Tahsilat ve fatura ilişkisi
 
