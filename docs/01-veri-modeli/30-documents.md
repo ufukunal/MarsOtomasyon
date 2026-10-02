@@ -73,6 +73,14 @@ Schema::connection('period')->create('documents', function (Blueprint $table) {
 - `goods_receipt`
 - `purchase_invoice`
 
+## Faz 5 belge türleri
+
+- `supplier_payment`
+- `finance_transfer`
+- `cash_count_adjustment`
+
+Bu Faz 5 tipleri `header_amount` hesap modundadır; document_lines gerektirmez.
+
 Belge tipi string tutulur; enum/sözleşme uygulama katmanında bu türleri doğrular.
 
 ## Kurallar
@@ -88,6 +96,9 @@ Belge tipi string tutulur; enum/sözleşme uygulama katmanında bu türleri doğ
 - Belge toplamları `Money`/BCMath ile hesaplanır; float kullanılmaz.
 - `purchase_request` için contact_id null olabilir; supplier_quote, purchase_order, goods_receipt ve purchase_invoice için supplier contact zorunludur.
 - K-087 gereği goods_receipt stok/cari posting üretmez; purchase_invoice stok in + supplier credit üretir.
+- K-093 supplier_payment supplier contact debit + tek finans out üretir.
+- K-092 finance_transfer contact_id kullanmaz; source out + target in üretir.
+- K-094 cash_count_adjustment yalnız onaylı kasa sayım farkından üretilir.
 
 ## CHECK kısıtları
 
