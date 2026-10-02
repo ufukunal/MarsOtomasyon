@@ -59,6 +59,7 @@ SQLite kullanılmaz.
 ## Sipariş / rezervasyon
 
 - risk limit aşımı uyarı, blok değil.
+- Faz 5 securities kaynağı yokken çek/senet riski sessiz 0 kabul edilmiyor; projection incomplete olarak gösteriliyor. Bilinen cari bakiye+sipariş limiti aşıyorsa uyarı yine üretiliyor.
 - rezerv stock quantity'yi düşürmüyor.
 - çok lokasyon reservation.
 - yetersiz stock'ta mevcut kadar reserve.
