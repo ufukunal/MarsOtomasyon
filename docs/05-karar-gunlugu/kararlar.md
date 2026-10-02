@@ -121,6 +121,27 @@ Verilen kararlar ve gerekçeleri. **Kod bu kararlara uyar; kod kararla
 | K-096 | Çek/senet tam kontrollü yaşam döngüsüne sahiptir. Alınan kıymet: alındı→portföyde→ciro/tahsile verildi→tahsil edildi veya karşılıksız/geri döndü. Verilen kıymet: verildi→ödeme bekliyor→ödendi veya geri döndü/iptal. | K-082 cari etki kuralları lifecycle ile somutlaştırılır. |
 | K-097 | Çek/senet geniş veri seti + banka operasyon alanları taşır; ciroda karşı cari zorunludur ve history korunur. | Banka teslimi, tahsil/ödeme referansı, protesto/karşılıksız detayları ve operasyon metadata ilk sürüm veri modelinde desteklenir. |
 
+
+## 2026-10-02 — Faz 6 İade kararları
+
+| No | Karar | Gerekçe / teknik sonuç |
+|---|---|---|
+| K-098 | Faz 6 hem **satış iadesi** hem **alış iadesi** kapsar. | İade davranışı iki ticari yönde tek fazda tamamlanır. |
+| K-099 | İade kaynak belgeye bağlı olabilir ama **zorunlu değildir**. Kaynaklı ve kaynaksız iade desteklenir. | Canlı geçiş öncesi eski/dış sistem işlemleri de iade edilebilir; kaynaksız iadede kontrollü manuel kurallar uygulanır. |
+| K-100 | Satış iadesi post edildiğinde **müşteri cari credit + fiziksel stok in + aynı miktar quarantine** birlikte oluşur. | Mal fiziksel olarak geri gelir fakat kontrol tamamlanana kadar kullanılabilir stok artmaz. |
+| K-101 | Alış iadesi post edildiğinde **stok out + tedarikçi cari debit** aynı transaction içinde oluşur. | Tedarikçiye iade fiziksel ve cari etkiyi birlikte işler. |
+| K-102 | Karantina kararı **kısmi** olabilir; aynı iade miktarı satılabilir/hurda/bekleyen parçalara ayrılabilir. | Gerçek kontrol sonucu parçalı olabilir; kaynak miktar korunur. |
+| K-103 | Kaynaklı satış iadesi stok maliyeti **orijinal satış stok çıkış unit_cost snapshot'ı** ile geri alınır. | İade, satılan malın çıktığı maliyetle geri girer; satılabilir kararı ikinci maliyet hareketi üretmez. |
+| K-104 | Alış iadesinde maliyet temeli satır bazında kullanıcı tarafından seçilir: **mevcut moving average** veya **kaynak alış faturası maliyeti**. Kaynaksız iadede yalnız moving average seçilebilir. | Lot/parti yoktur; kullanıcı ticari bağlama göre iki kanonik maliyet temelinden birini seçer. |
+| K-105 | İade belgesi **otomatik para hareketi üretmez**. Müşteri geri ödemesi veya tedarikçiden para tahsilatı ayrı finans işlemi olarak yapılır. | Cari etki ile gerçek kasa/banka hareketi ayrılır; settlement zorunlu değildir. |
+| K-106 | Aynı kaynak fatura satırı **birden fazla kısmi iade** alabilir; etkin toplam iade kaynak miktarı aşamaz. Reverse edilen iadeler kullanılabilir iade miktarını geri açar. | Faz 3/4 source-line partial modeli iadelere de uygulanır. |
+| K-107 | Kaynaklı iadede fiyat, iskonto, KDV, birim ve conversion snapshot **orijinal frozen değerlerden** alınır; güncel kart/fiyat kullanılmaz. | Tarihsel belge değeri korunur ve yeniden fiyatlama yapılmaz. |
+| K-108 | Dövizli alış iadesinde **orijinal alış faturasının frozen kuru** kullanılır; kur farkı hesabı yapılmaz. | K-013 ile uyumlu; iade yeni FX değerleme açmaz. |
+| K-109 | Önceki dönem/yıl belgesi **mevcut açık dönemde** iade edilebilir. Eski period DB değiştirilmez; cross-DB FK kurulmaz; kaynak period/document/line kimliği ve gerekli frozen snapshot iade üzerinde tutulur. | Kapalı dönem korunur, geçmiş satış/alım için yeni dönemde gerçek ticari iade yapılabilir. |
+| K-110 | Kaynaksız iadede kontrollü manuel giriş vardır: cari + ürün + miktar zorunlu, fiyat/KDV manuel, gerekçe zorunlu, ayrı izin + audit. Kaynaksız satış iadesi stok maliyeti mevcut moving average'dır. | Kaynak belge yokken sessiz varsayım yerine açık ve denetlenebilir manuel işlem kullanılır. |
+| K-111 | İade için ayrı approval state yoktur; yetkili kullanıcı **doğrudan post eder**. | Faz 4 seçim yaklaşımıyla tutarlı, gereksiz onay katmanı yoktur. |
+| K-112 | İade nedeni **zorunlu kontrollü neden + açıklama** modelidir; neden/açıklama audit edilir. Neden kod listesi Faz 6 dokümantasyonunda ayrı kanonik liste olarak tanımlanmalıdır. | Raporlanabilir neden gerekir; serbest metin tek başına yeterli değildir. |
+
 ## Açık kararlar
 
-**Yok.** A-015…A-020, K-092…K-097 ile kapatıldı.
+**Yok.** Faz 6 başlangıç kararları K-098…K-112 ile kilitlendi.
