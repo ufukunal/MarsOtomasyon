@@ -82,14 +82,27 @@ Dilimler:
 
 Renk yalnız sunumdur; transaction verisini değiştirmez.
 
+## Faz 5 tedarikçi ödeme
+
+K-093:
+
+- supplier_payment `debit` üretir,
+- kaynak purchase_invoice opsiyoneldir,
+- payment_source yalnız bilgi amaçlıdır,
+- kısmi ödeme serbesttir,
+- settlement tablosu oluşturulmaz.
+
 ## Çek / senet etkisi
 
-Tam yaşam döngüsü Faz 5'tedir. K-082 kuralı değişmez:
+K-082/K-096:
 
-- kıymet teslim alındığında cari credit etkisi oluşur,
-- tahsil olduğunda cari ikinci kez etkilenmez,
-- karşılıksız/geri dönüş ters cari hareket üretir,
-- ciro karşı taraf carisini ayrıca etkileyebilir.
+- alınan kıymetin ilk teslimi original cari için `credit`,
+- verilen kıymetin ilk teslimi original cari için `debit`,
+- tahsil/ödeme aşamasında cari ikinci kez etkilenmez,
+- ciro original cariyi ikinci kez etkilemez; target cari için `debit` üretir,
+- karşılıksız/geri dönüş ilgili önceki cari etkinin exact inverse hareketini üretir.
+
+Gerçek bakiye yine yalnız `contact_transactions` toplamıdır; `security_events` ikinci bakiye kaynağı değildir.
 
 ## Risk
 
@@ -104,6 +117,8 @@ cari bakiye
 ```
 
 Diğer açık siparişler resmî bakiyeye katılmaz. Limit aşımı uyarıdır, blok değildir.
+
+Faz 5'te çek/senet risk bileşenine yalnız alınan kıymetlerin `portfolio` ve `sent_to_collection` durumları dahil edilir. Endorsed, collected, bounced/returned ve issued kıymetler bu portföy riskine dahil edilmez.
 
 ## integrity:contacts
 
