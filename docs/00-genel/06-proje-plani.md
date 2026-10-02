@@ -12,8 +12,8 @@ Her faz önce veri modeli + iş kuralları + ekran + standalone G görevleri ola
 - Faz 2 Stok: G-201…G-212 yeni stok/rezervasyon kararlarına göre güncellendi.
 - **Faz 3 Satış: DOKÜMANTASYON YAZILDI VE KALİTE KONTROLÜ TAMAMLANDI — veri modeli 30–34, iş kuralları 28–31, ekranlar ve G-300…G-312 hazırdır. Kodlama/uygulama tamamlanması kabul testlerine bağlıdır.**
 - **Faz 4 Alış: DOKÜMANTASYON YAZILDI — K-086…K-091 kilitli; veri modeli 35, iş kuralları 32–34, alış ekranları ve G-400…G-409 hazırdır. Kodlama/uygulama tamamlanması G-401…G-409 gerçek PostgreSQL kabul testlerine bağlıdır.**
-- **Faz 5 Kasa/Banka/Çek-Senet: DOKÜMANTASYON YAZILDI — K-092…K-097 kilitli; veri modeli 36–38, iş kuralları 35–38, finans ekranları ve G-500…G-509 hazırdır. Kodlama/uygulama tamamlanması G-501…G-509 gerçek PostgreSQL kabul testlerine bağlıdır. Faz 6 kullanıcı onayı olmadan başlamaz.**
-- **Faz 6 İade: BAŞLADI — K-098…K-113 kilitli; satış/alış iadesi, karantina, maliyet, partial, finans ve cross-period davranışları net. Veri modeli + iş kuralları + ekranlar + G-600... görevleri yazılıyor.**
+- **Faz 5 Kasa/Banka/Çek-Senet: DOKÜMANTASYON YAZILDI — K-092…K-097 kilitli; veri modeli 36–38, iş kuralları 35–38, finans ekranları ve G-500…G-509 hazırdır. Kodlama/uygulama tamamlanması G-501…G-509 gerçek PostgreSQL kabul testlerine bağlıdır.**
+- **Faz 6 İade: DOKÜMANTASYON YAZILDI — K-098…K-113 kilitli; veri modeli 39, iş kuralları 39–41, iade ekranları ve G-600…G-609 hazırdır. Kodlama/uygulama tamamlanması G-601…G-609 gerçek PostgreSQL kabul testlerine bağlıdır. Faz 7 kullanıcı onayı olmadan başlamaz.**
 - Faz 7 İthalat
 - Faz 8 Basit üretim/fason
 - Faz 9 E-ticaret
@@ -29,7 +29,7 @@ Faz 3 iş kuralı belgeleri mevcut numaralarla çakışmamak için 28–31 olaca
 
 ## Kritik sıra
 
-Repo temizliği ve Faz 0–2 görev revizyonu tamamlandı. Faz 3 Satış dokümantasyonu yazıldı ve kalite kontrolünden geçirildi. Faz 4 Alış dokümantasyonu K-086…K-091 kararlarıyla yazıldı; G-400…G-409 hazırdır. Faz 3 ve Faz 4'ün kodlama/uygulama tamamlanması kendi gerçek PostgreSQL kabul testlerine bağlıdır. Faz 5 Kasa/Banka/Çek-Senet dokümantasyonu K-092…K-097 kararlarıyla yazıldı; G-500…G-509 hazırdır. Faz 5 kodlama/uygulama tamamlanması gerçek PostgreSQL kabul testlerine bağlıdır. Faz 6 kullanıcı onayı olmadan başlatılmaz.
+Repo temizliği ve Faz 0–2 görev revizyonu tamamlandı. Faz 3 Satış dokümantasyonu yazıldı ve kalite kontrolünden geçirildi. Faz 4 Alış dokümantasyonu K-086…K-091 kararlarıyla yazıldı; G-400…G-409 hazırdır. Faz 3 ve Faz 4'ün kodlama/uygulama tamamlanması kendi gerçek PostgreSQL kabul testlerine bağlıdır. Faz 5 Kasa/Banka/Çek-Senet dokümantasyonu K-092…K-097 kararlarıyla yazıldı; G-500…G-509 hazırdır. Faz 6 İade dokümantasyonu K-098…K-113 kararlarıyla yazıldı; G-600…G-609 hazırdır. Faz 5 ve Faz 6 kodlama/uygulama tamamlanması kendi gerçek PostgreSQL kabul testlerine bağlıdır. Faz 7 kullanıcı onayı olmadan başlatılmaz.
 
 
 ## Faz 4 planı
@@ -44,3 +44,10 @@ Faz 4 yeni veri modeli dosyası 35; yeni iş kuralı dosyaları 32–34'tür. Or
 G-500 özet; G-501 finans şema genişletmesi; G-502 virman; G-503 tedarikçi ödeme; G-504 kasa sayımı; G-505 manuel banka mutabakatı; G-506 çek/senet şeması; G-507 çek/senet yaşam döngüsü; G-508 risk/ters kayıt/integrity; G-509 test.
 
 Faz 5 yeni veri modeli dosyaları 36–38; yeni iş kuralı dosyaları 35–38'dir. Faz 3 minimum cash/bank çekirdeği yeniden kullanılmaktadır.
+
+
+## Faz 6 planı
+
+G-600 özet; G-601 iade şema genişletmesi; G-602 kaynak çözümleme; G-603 satış iadesi; G-604 alış iadesi; G-605 kısmi/çoklu iade; G-606 karantina kontrolü; G-607 cross-period iade; G-608 reverse/integrity; G-609 test.
+
+Faz 6 yeni veri modeli dosyası 39; yeni iş kuralı dosyaları 39–41'dir. Ortak belge, stok, cari ve finans çekirdeği yeniden kullanılmaktadır.
