@@ -46,6 +46,7 @@ SQLite kullanılmaz.
 
 - İlk teklif revision_no=1; Rev.0 oluşmuyor,
 - aynı ana number altında yeni revizyonlar 2, 3... artıyor,
+- aynı teklif ailesinde iki eşzamanlı Yeni Revizyon isteği aynı Rev.N'i üretmiyor; stale kaynak revizyon ikinci branch oluşturmuyor,
 
 - draft number yok.
 - review'a çıkışta tek number.
@@ -112,7 +113,7 @@ SQLite kullanılmaz.
 - exact inverse invoice reversal çifti aging FIFO'ya dağıtılmadan nötrleniyor.
 - reversed collection debit'i yeni aging borcu üretmiyor.
 - green/yellow/red renk sonucu.
-- aging remaining toplamı cari bakiye ile tutarlı.
+- aging remaining toplamı `max(cari bakiye, 0)` ile tutarlı; negatif bakiye excess credit/cari alacak olarak ayrıca gösteriliyor.
 
 ## Sıcak satış
 
