@@ -119,11 +119,11 @@ Karar boşlukları kapatıldıktan sonra şu dört katman yazılacaktır:
 3. v65 genel UI diliyle uyumlu alış ekran dokümanları; v65'te hazır satınalma ekranı olmadığı için iş akışı kararı olmadan ekran davranışı uydurulmayacaktır.
 4. Standalone `G-401...` görevleri ve faz sonu gerçek PostgreSQL test görevi.
 
-## [KARAR GEREKİYOR]
+## Kilitlenen Faz 4 kararları
 
-Mevcut karar günlüğü aşağıdaki ürün davranışlarını belirlemiyor. Bunlar kilitlenmeden görevlerde varsayım yapılmayacaktır.
+A-009…A-014 soru-cevapla kapatılmış ve K-086…K-091 olarak karar günlüğüne işlenmiştir.
 
-### A-009 — KAPANDI: Esnek Faz 4 belge zinciri
+### K-086 — Esnek Faz 4 belge zinciri: Esnek Faz 4 belge zinciri
 
 Kanonik belge ailesi:
 
@@ -135,7 +135,7 @@ Kanonik belge ailesi:
 
 Ara adımlar zorunlu değildir. Kullanıcı ihtiyaca göre doğrudan satınalma siparişi, doğrudan mal kabul/alış irsaliyesi veya doğrudan alış faturası oluşturabilir. Belge ilişkileri yalnız gerçekten kullanılan zinciri izler; sistem eksik ara belge üretmez.
 
-### A-010 — KAPANDI: Stok ve cari etki yalnız alış faturasında
+### K-087 — Stok ve cari etki yalnız alış faturasında: Stok ve cari etki yalnız alış faturasında
 
 - Mal kabul/alış irsaliyesi operasyon kaydıdır; stok hareketi üretmez.
 - Mal kabul/alış irsaliyesi tedarikçi cari hareketi üretmez.
@@ -144,7 +144,7 @@ Ara adımlar zorunlu değildir. Kullanıcı ihtiyaca göre doğrudan satınalma 
 - Doğrudan alış faturası da aynı şekilde stok + tedarikçi cari etkisini birlikte üretir.
 - Hareketli ortalama maliyet güncellemesi alış faturası posting transaction'ındaki gerçek stok girişiyle aynı noktada yapılır.
 
-### A-011 — KAPANDI: Esnek kısmi alış akışı
+### K-088 — Esnek kısmi alış akışı: Esnek kısmi alış akışı
 
 - Satınalma siparişi kısmi teslim alınabilir.
 - Kalan miktar açık kalabilir veya kullanıcı tarafından iptal edilebilir.
@@ -154,14 +154,14 @@ Ara adımlar zorunlu değildir. Kullanıcı ihtiyaca göre doğrudan satınalma 
 - Kısmi miktarlar kaynak satır ilişkileri üzerinden izlenir; ayrı ikinci bir delivered/invoiced gerçek kaynağı oluşturulmaz.
 - Yarış koşulunda kaynak satır kalan miktarı transaction içinde yeniden okunur/kilitlenir.
 
-### A-012 — KAPANDI: Tedarikçi ödeme akışı Faz 5'te
+### K-089 — Tedarikçi ödeme akışı Faz 5'te: Tedarikçi ödeme akışı Faz 5'te
 
 - Faz 4 alış faturası tedarikçi borcunu `contact_transactions.credit` hareketiyle oluşturur.
 - Faz 4'te kasa/banka ödeme posting eylemi yoktur.
 - Nakit, banka, çek/senet ve diğer tedarikçi ödeme akışları Faz 5 Kasa/Banka/Çek-Senet kapsamında ele alınır.
 - Faz 4 ekranlarında borç görüntülenebilir; ödeme işlemi başlatılamaz.
 
-### A-013 — KAPANDI: Belge + satır bazlı teklif karşılaştırma
+### K-090 — Belge + satır bazlı teklif karşılaştırma: Belge + satır bazlı teklif karşılaştırma
 
 - Bir satınalma talebine birden fazla tedarikçi teklifi bağlanabilir.
 - Kullanıcı belge bazında tek bir tedarikçi teklifini seçebilir.
@@ -173,7 +173,7 @@ Ara adımlar zorunlu değildir. Kullanıcı ihtiyaca göre doğrudan satınalma 
 - Tutar eşiğine bağlı approval yoktur.
 - Seçim period audit'e yazılır.
 
-### A-014 — KAPANDI: Teklif seçimi ayrı onaysız
+### K-091 — Teklif seçimi ayrı onaysız: Teklif seçimi ayrı onaysız
 
 - Tedarikçi teklif seçimi için ayrı approval state yoktur.
 - Yetkili kullanıcı `purchasing.quote.select` benzeri izinle seçimi doğrudan yapar.
