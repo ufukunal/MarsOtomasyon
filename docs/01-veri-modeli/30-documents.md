@@ -81,6 +81,13 @@ Schema::connection('period')->create('documents', function (Blueprint $table) {
 
 Bu Faz 5 tipleri `header_amount` hesap modundadır; document_lines gerektirmez.
 
+## Faz 6 belge türleri
+
+- `sales_return`
+- `purchase_return`
+
+Faz 6 iade belgeleri satırlıdır ve ortak document_lines yapısını kullanır.
+
 Belge tipi string tutulur; enum/sözleşme uygulama katmanında bu türleri doğrular.
 
 ## Kurallar
@@ -99,6 +106,9 @@ Belge tipi string tutulur; enum/sözleşme uygulama katmanında bu türleri doğ
 - K-093 supplier_payment supplier contact debit + tek finans out üretir.
 - K-092 finance_transfer contact_id kullanmaz; source out + target in üretir.
 - K-094 cash_count_adjustment yalnız onaylı kasa sayım farkından üretilir.
+- K-100 sales_return customer credit + stock in + quarantine üretir.
+- K-101 purchase_return supplier debit + stock out üretir.
+- K-105 iade belgeleri otomatik cash/bank hareketi üretmez.
 
 ## CHECK kısıtları
 
