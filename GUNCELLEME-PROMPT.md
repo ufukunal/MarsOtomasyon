@@ -46,4 +46,19 @@ Repo tutarlılık temizliği ve Faz 0–2 görev revizyonu tamamlandı. **Faz 3 
 - K-092…K-097 kilitlidir; açık A kararı yoktur.
 - Veri modeli 36–38, iş kuralları 35–38 ve G-500…G-509 hazırdır.
 - K-075/K-082/K-062/K-078 önceki kaynak kararları korunmuştur.
-- Faz 6 kullanıcı onayı olmadan başlatılmaz.
+- Faz 6 başlangıç kararları K-098…K-112 ile kilitlendi; Faz 6 dokümantasyonu henüz yazılmadı.
+
+
+## 02.10.2026 Faz 6 ön kararları
+
+- Faz 6 satış + alış iadesini kapsar.
+- Kaynaklı ve kaynaksız iade desteklenir.
+- Satış iadesi stock in + quarantine + customer credit; alış iadesi stock out + supplier debit üretir.
+- Karantina kısmi karar destekler.
+- Satış iadesi maliyeti kaynaklıysa original sales out unit_cost; kaynaksızsa current moving average.
+- Alış iadesi maliyet temeli kullanıcı seçimi: current moving average veya source purchase cost; kaynaksızda yalnız moving average.
+- Para iadesi otomatik değildir; ayrı finans işlemidir.
+- Kaynaklı iade orijinal frozen fiyat/iskonto/KDV/birim/conversion ve dövizli alışta original frozen kur kullanır.
+- Önceki dönem belge mevcut açık dönemde scalar source snapshot ile iade edilebilir; eski period mutate edilmez.
+- İade doğrudan yetkili kullanıcı tarafından post edilir; neden zorunludur.
+- Açık A kararı yoktur.
