@@ -46,17 +46,19 @@ Fiziksel quantity değişmez.
 
 K-123 gerçek kaynak: `inventory_cost_adjustments`.
 
-Adjustment uygulanırken:
+Kesin olanlar:
 
-1. product_costs row lockForUpdate,
-2. mevcut fiziksel stok quantity okunur,
-3. current inventory value = current_quantity × moving_average,
-4. adjustment amount eklenir,
-5. quantity > 0 ise yeni moving average = new_value / current_quantity,
-6. quantity <= 0 ise sessiz yeni ortalama türetilmez; finalize bloklanır ve kullanıcıya stok miktarı problemi gösterilir,
-7. before/after snapshot inventory_cost_adjustments'a yazılır.
+1. product_costs row lockForUpdate alınır,
+2. fiziksel stock quantity değiştirilmez,
+3. ek maliyet amount_base ayrı inventory_cost_adjustment kaydına yazılır,
+4. before/after snapshot saklanır,
+5. stock_movements yazılmaz.
 
-Bu Faz 7 özel maliyet değer düzeltmesidir; stock_movements yazılmaz.
+**[KARAR GEREKİYOR — A-053]**
+
+Finalize anında kaynak ithalat ürününün bir kısmı veya tamamı satılmış olabilir. Lot/parti takibi olmadığı için mevcut stok içindeki hangi birimlerin bu ithalata ait olduğu bilinmez. Bu nedenle tüm adjustment tutarını current on-hand quantity üzerine bölmek kanonik karar olmadan uygulanmaz.
+
+A-053 kapandığında moving_average_after formülü ve current quantity <= 0 davranışı bu bölüme işlenecektir.
 
 ## Sonradan gelen masraf
 
