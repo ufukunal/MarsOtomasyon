@@ -53,6 +53,12 @@ Schema::connection('period')->create('document_relations', function (Blueprint $
 - `order_to_purchase_invoice`
 - `goods_receipt_to_purchase_invoice`
 
+## Faz 5 ilişki tipleri
+
+- `payment_source`
+
+`payment_source`: source = supplier_payment, target = bilgi amaçlı purchase_invoice. Settlement gerçek kaynağı değildir.
+
 Liste uygulama enum'u ile yönetilir; sonraki fazlar yeni ilişki tipi ekleyebilir.
 
 PostgreSQL bütünlük indeksleri:
@@ -79,6 +85,7 @@ Böylece aynı orijinal belge için ikinci `reversal_of` kaydı DB seviyesinde d
 - `revision_of`: source = yeni revizyon, target = önceki revizyon.
 - `reversal_of`: source = reversal belge, target = orijinal belge.
 - `collection_source`: source = tahsilat, target = bilgi amaçlı kaynak fatura.
+- `payment_source`: source = tedarikçi ödeme, target = bilgi amaçlı kaynak alış faturası.
 
 ## Kurallar
 
