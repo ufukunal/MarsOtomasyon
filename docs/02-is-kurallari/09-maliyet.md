@@ -2,75 +2,109 @@
 
 ## Yöntem: hareketli ortalama
 
-Tek yöntem budur (K-006). FIFO veya parti bazlı maliyet **yoktur**, çünkü
-parti/lot takibi kapsam dışıdır (K-005).
+Tek yöntem hareketli ortalamadır (K-006). FIFO/parti maliyeti yoktur; lot/parti takibi kapsam dışıdır (K-005).
 
-## Formül
+## Para disiplini
 
-Her **giriş** hareketinde:
+Miktar ve maliyet hesaplarında PHP `float` kullanılmaz. Veritabanı decimal değerleri string olarak okunur; BCMath/Money tabanlı hesap yapılır.
+
+## Giriş formülü
+
+Maliyete giren stok girişinde:
 
 ```
-yeni_ortalama = (mevcut_miktar × mevcut_ortalama + giren_miktar × giren_fiyat)
-                ÷ (mevcut_miktar + giren_miktar)
+mevcut_deger = mevcut_miktar × mevcut_ortalama
+giren_deger  = giren_miktar × giren_birim_maliyet
+yeni_ortalama = (mevcut_deger + giren_deger) ÷ (mevcut_miktar + giren_miktar)
 ```
 
-**Çıkış** hareketinde ortalama değişmez; çıkışın birim maliyeti o anki
-ortalamadır.
+Tüm işlemler yeterli ara scale ile BCMath üzerinden yürür. `product_costs.moving_average` 4 hanelik decimal snapshot olarak normalize edilir.
 
-## Kod
+## UpdateMovingAverage sözleşmesi
 
-```php
-final class UpdateMovingAverage
-{
-    public function handle(Product $product, float $incomingQty, float $incomingUnitCost): float
-    {
-        $cost    = ProductCost::firstOrCreate(['product_id' => $product->id]);
-        $current = $this->totalQuantity($product);      // tüm lokasyonlar toplamı
+`UpdateMovingAverage` yalnız gerçek maliyet etkili stok girişinin transaction'ı içinde çağrılır.
 
-        if ($current + $incomingQty <= 0) {
-            return $incomingUnitCost;                    // stok yoksa gireni al
-        }
+Girdiler:
 
-        $newAvg = (($current * $cost->moving_average) + ($incomingQty * $incomingUnitCost))
-                  / ($current + $incomingQty);
+- product_id
+- incoming_base_quantity string
+- incoming_unit_cost_try string
+- document_date
+- source document bilgisi
 
-        $cost->update([
-            'moving_average'      => $newAvg,
-            'last_purchase_price' => $incomingUnitCost,
-            'last_purchase_at'    => now(),
-        ]);
+Davranış:
 
-        return $newAvg;
-    }
-}
+1. ilgili `product_costs` satırı `lockForUpdate` ile alınır,
+2. ürünün toplam mevcut stok miktarı tutarlı kilit sırasıyla okunur,
+3. stok sıfır veya negatifse yeni moving average doğrudan giren birim maliyet olur,
+4. aksi halde hareketli ortalama formülü BCMath ile hesaplanır,
+5. `moving_average`, `last_purchase_price`, `last_purchase_at` aynı transaction içinde güncellenir.
+
+## Hangi hareketler maliyeti değiştirir
+
+`product_costs` için maliyet etkili girişler:
+
+- purchase
+- production
+- opening
+
+Çıkış hareketi ortalamayı değiştirmez. Çıkışın unit_cost değeri o anki moving average snapshot'ıdır.
+
+Transfer ortalamayı değiştirmez; çıkış ve giriş aynı birim maliyetle yazılır.
+
+Satış iadesi Faz 6 kuralına göre karantinaya girer; ayrı faz kararı olmadan alış girişi gibi ortalamayı yeniden hesaplamaz.
+
+## Alış faturası maliyeti
+
+K-087 gereği Faz 4'te stok ve maliyet etkisi mal kabulde değil, alış faturası posting anında oluşur.
+
+Alış satırı için stok birim maliyeti:
+
+```
+satir_net = satır brüt - satır iskontosu - satıra dağıtılmış belge iskontosu
+net_try   = satir_net × frozen exchange_rate
+unit_cost_try = net_try ÷ base_quantity
 ```
 
-## Dikkat edilecek durumlar
+- KDV stok maliyetine eklenmez.
+- `exchange_rate` belge üzerinde dondurulmuş snapshot'tır.
+- `unit_cost_try` temel stok birimi başınadır.
+- Aynı alış faturası satırı ikinci kez maliyet güncellemesi üretemez; posting idempotent'tır.
 
-**Stok sıfır veya negatifken giriş:** ortalama hesaplanamaz, giren fiyat
-doğrudan maliyet olur.
+## Stok sıfır veya negatifken giriş
 
-**Negatif stokta çıkış:** o anki ortalama kullanılır. Stok negatifken
-ortalama anlamını yitirir; bu yüzden negatif stok ürün bazında izinlidir
-ve uyarı verilir.
+Mevcut toplam miktar `<= 0` ise hareketli ortalama doğrudan giren birim maliyete eşitlenir. Negatif geçmiş miktarla ağırlıklı ortalama türetilmez.
 
-**Transfer:** maliyeti **değiştirmez**. Çıkış ve giriş aynı birim maliyetle
-yazılır.
+## Alış fiyatı sapma uyarısı
 
-**İade:** satış iadesinde mal karantinaya girer; maliyeti çıkıştaki
-maliyetidir, ortalama yeniden hesaplanmaz.
+K-007 gereği alış girişinde birim maliyet mevcut hareketli ortalamadan mutlak **%25 veya üzeri** sapıyorsa:
 
-## Fiyat sapma uyarısı
+- kullanıcıya açık uyarı gösterilir,
+- kullanıcı devam edebilir,
+- posting engellenmez,
+- period `activity_log` içine ürün, referans maliyet, girilen maliyet, sapma yüzdesi ve actor yazılır.
 
-Alış girişinde birim fiyat mevcut ortalamadan **±%25** saparsa:
+Eşik Master `companies.cost_deviation_threshold` alanından okunur; varsayılan 25'tir. Kaynak kararlarda ürün grubu bazlı override yoktur.
 
-- Ekranda uyarı gösterilir: "Bu ürünün ortalama maliyeti 2.513 ₺, girilen
-  fiyat 4.100 ₺ (%63 yüksek). Devam edilsin mi?"
-- Kullanıcı devam ederse kayıt yapılır, satır işaretlenir
-- `activity_log`'a düşer
+Mevcut hareketli ortalama 0 ise yüzde sapma hesaplanmaz; ilk alış fiyatı doğrudan başlangıç maliyetidir.
 
-Eşik `companies.cost_deviation_threshold` (varsayılan 25), ürün grubundan
-ezilebilir.
+## Eşzamanlılık
 
-**Amaç hatalı giriş yakalamaktır, iş durdurmak değil.** Bu yüzden engel değil,
-uyarıdır (K-007).
+Aynı ürüne eşzamanlı iki maliyet etkili giriş:
+
+- aynı ürün maliyet satırını deterministik sırayla kilitler,
+- her ikinci işlem birincinin commit edilmiş yeni miktar/maliyet durumunu görerek hesap yapar,
+- idempotency aynı belgeyi ikinci kez maliyete sokamaz.
+
+## Bütünlük
+
+`integrity:stock` / maliyet kontrolü en az:
+
+- maliyet etkili girişlerin unit_cost ve total_cost tutarlılığını,
+- `product_costs.last_purchase_price` snapshot'ını,
+- son maliyet etkili alış sonrası `last_purchase_at` değerini,
+- mümkün olduğu noktada moving average zincirini
+
+kontrol eder.
+
+Fark raporlanır; otomatik düzeltme yapılmaz.
