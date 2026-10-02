@@ -136,6 +136,26 @@ Her şirket+yıl ayrı period DB. Kartlar dahil işletme verisi period DB'dedir.
 - K-130: inventory cost adjustment unit farkı original import base_quantity üzerinden moving_average'a eklenir; current on-hand quantity formül paydası değildir.
 - Açık A kararı yoktur.
 
+## Faz 8 üretim/fason kilitleri
+
+- Faz 8 basit iç üretim + fason birlikte kapsamdadır.
+- Bir mamulde tek aktif reçete, immutable Rev.N revizyonları vardır.
+- Reçete output_quantity tabanlıdır; production order component/unit/conversion snapshot alır.
+- Actual consumption kullanıcı tarafından değiştirilebilir; component-level fire manueldir ve mamul maliyetine dahil edilir.
+- Component source location satır bazında; production output birden fazla target location'a bölünebilir.
+- Production order kısmi tamamlanabilir; yaşam döngüsü draft → confirmed → in_progress → completed/cancelled.
+- Completion anında component out + finished product in aynı transaction'dadır.
+- Production cost actual material consumption maliyetidir; iç üretim overhead ilk sürümde yoktur.
+- Production stock-in moving_average günceller; product_costs.production_cost son üretim maliyeti snapshot'ıdır.
+- Fasoncu contact + subcontractor location modelidir; bu location normal satışta kullanılmaz.
+- Fason hizmet bedeli normal purchase_invoice üzerinden production order'a bağlanır ve mamul maliyetine dahil edilir.
+- Hizmet faturası geç gelirse inventory_cost_adjustments reason=subcontract_late_cost kullanılır.
+- Fason gönderim/dönüş kısmi olabilir.
+- channel_stock_mode=production confirmed satış siparişinde draft production order açabilir.
+- Sales order → production order ilişkisi opsiyoneldir.
+- Reçeteler dönem devrinde taşınır; açık production orders taşınmaz, fason location fiziksel stoğu açılışa taşınır.
+- Production completion reverse edilebilir ve original immutable kalır.
+
 ## Dönem devri
 
 Aktif kartlar + gerekli pasif kartlar kopyalanır. Taşınan bütün kartların ID/kodları ve taşınan stock_balance ID'leri aynı şirkette korunur. Geçmiş hareketler/belgeler/açık teklif-sipariş/taslak/yoldaki transfer/karantina taşınmaz. Açılış maliyeti kapanış hareketli ortalamasıdır. Devir sonunda kullanıcıya önceki dönem kullanıcı/dönem erişim ve dönemsel yetkilerini yeni döneme seçerek kopyalama sorulur.
@@ -150,7 +170,7 @@ Faz 0, 0b, 1, 2 görevleri güncel standalone standarda göre temizlendi. **Faz 
 
 Her görev şu bölümleri içerir: Amaç, Önkoşul, Dokunulacak dosyalar, Şema/Kod, Kurallar, Kabul ölçütü, İstem. Bir görev tek başına yerel modele verilebilir olmalıdır. **Satır sayısı hedef değildir.** 300–500 satır yalnız iş gerçekten o ayrıntıyı gerektiriyorsa doğal sonuç olabilir. Aynı genel checklist, mimari kural veya test maddesini sırf uzunluk için tekrar etmek yasaktır. Kaynaklarda tanımlanmayan alan, tablo, Action, sınıf, iş kuralı veya test beklentisi uydurulmaz. Eksik karar varsa `[KARAR GEREKİYOR]` yazılır ve kullanıcıya seçenek sunulur.
 
-Açık A kararı yoktur. Faz 7 davranışları K-114…K-130 ile kilitlidir.
+Açık A kararı yoktur. Faz 7 davranışları K-114…K-130, Faz 8 üretim/fason davranışları K-131…K-162 ile kilitlidir.
 
 
 ## Anti-halüsinasyon görev kuralı
