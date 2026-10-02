@@ -54,11 +54,11 @@ Gösterilecek bilgi:
 - cari bakiye,
 - risk limiti,
 - bu sipariş tutarı,
-- henüz tahsil edilmemiş portföy çek/senet riski,
-- sipariş sonrası projeksiyon,
+- henüz tahsil edilmemiş portföy çek/senet riski — Faz 5 kaynağı yoksa `bilinmiyor`, 0 gösterilmez,
+- sipariş sonrası projeksiyon — yalnız tüm bileşenler biliniyorsa tam projeksiyon olarak etiketlenir,
 - limit aşım tutarı.
 
-Limit aşımı **uyarıdır**, kayıt/onay engeli değildir.
+Limit aşımı **uyarıdır**, kayıt/onay engeli değildir. Faz 5 çek/senet kaynağı henüz yoksa bilinen `cari bakiye + bu sipariş` tek başına limiti aşıyorsa uyarı yine gösterilir; aşmıyorsa ekran tam riskin henüz hesaplanamadığını açıkça belirtir.
 
 ## Rezervasyon
 
