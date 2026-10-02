@@ -142,10 +142,12 @@ Verilen kararlar ve gerekçeleri. **Kod bu kararlara uyar; kod kararla
 | K-111 | İade için ayrı approval state yoktur; yetkili kullanıcı **doğrudan post eder**. | Faz 4 seçim yaklaşımıyla tutarlı, gereksiz onay katmanı yoktur. |
 | K-112 | İade nedeni **zorunlu kontrollü neden + açıklama** modelidir; neden/açıklama audit edilir. Neden kod listesi Faz 6 dokümantasyonunda ayrı kanonik liste olarak tanımlanmalıdır. | Raporlanabilir neden gerekir; serbest metin tek başına yeterli değildir. |
 
+## 2026-10-02 — Faz 6 ek karar
+
+| No | Karar | Gerekçe / teknik sonuç |
+|---|---|---|
+| K-113 | Satış ve alış iadeleri aynı sabit neden kodlarını kullanır: `wrong_product`, `damaged`, `defective`, `quantity_error`, `customer_request`, `supplier_return`, `other`. | İlk sürümde ayrı return reason kartı/CRUD kurulmaz; neden raporlanabilir ve audit edilebilir kalır. |
+
 ## Açık kararlar
 
-| No | Konu | Netleştirilecek davranış |
-|---|---|---|
-| A-036 | İade neden kodları | K-112 zorunlu kontrollü neden alanını kilitledi; Faz 6'da kullanılacak kanonik neden kodları henüz belirlenmedi. |
-
-Faz 6'nın diğer başlangıç kararları K-098…K-112 ile kilitlidir.
+**Yok.** A-036, K-113 ile kapatıldı. Faz 6 başlangıç kararları K-098…K-113 ile kilitlidir.
