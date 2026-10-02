@@ -169,7 +169,17 @@ Ara adımlar zorunlu değildir. Kullanıcı ihtiyaca göre doğrudan satınalma 
 - Satır bazlı seçimde oluşacak satınalma siparişleri seçilen tedarikçilere göre ayrıştırılır.
 - Sistem otomatik en ucuz teklif, puanlama veya kazanan seçimi yapmaz.
 - Karar kullanıcı tarafından verilir ve period audit'e seçim özeti yazılır.
-- Seçim/onay yetkisi ayrı açık karar olarak netleştirilecektir.
+- Ayrı onay adımı yoktur. Yetkili kullanıcı `purchasing.quote.select` benzeri izinle belge veya satır bazlı seçimi doğrudan yapar.
+- Tutar eşiğine bağlı approval yoktur.
+- Seçim period audit'e yazılır.
+
+### A-014 — KAPANDI: Teklif seçimi ayrı onaysız
+
+- Tedarikçi teklif seçimi için ayrı approval state yoktur.
+- Yetkili kullanıcı `purchasing.quote.select` benzeri izinle seçimi doğrudan yapar.
+- Belge bazlı ve satır bazlı seçim aynı izin modelini kullanır.
+- Tutar eşiği veya ikinci onay katmanı yoktur.
+- Seçim sonucu period audit'e yazılır.
 
 ## Faz bitiş ölçütü
 
