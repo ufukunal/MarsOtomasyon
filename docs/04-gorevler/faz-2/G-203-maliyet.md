@@ -103,6 +103,15 @@ Uyarı:
 
 Kategori bazlı ek bir eşik alanı güncel veri modelinde tanımlı değildir; bu görev böyle bir alan **uydurmaz**.
 
+## Kurallar
+
+- Tek geçerli ürün maliyeti `product_costs.moving_average` değeridir.
+- Maliyet hesabında PHP float kullanılmaz; decimal değerler string + BCMath ile işlenir.
+- Hareketli ortalama yalnız maliyeti etkileyen girişte güncellenir; çıkış ve transfer ortalamayı değiştirmez.
+- `UpdateMovingAverage` kilit sırası `RecordStockMovement` ile uyumlu olmalıdır; aynı ürün için ters kilit sırası kurulmaz.
+- Alış maliyet sapma eşiği Master `companies.cost_deviation_threshold` değeridir; sapma uyarı + period audit üretir, işlemi bloke etmez.
+- `cost.view` olmayan kullanıcıya mevcut maliyet tutarı hiçbir response/payload üzerinden sızdırılmaz.
+
 ## Kabul ölçütü
 
 - 10 × 100 ardından 10 × 200 → 150.0000.
