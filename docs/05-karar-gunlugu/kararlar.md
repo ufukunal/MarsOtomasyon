@@ -258,6 +258,45 @@ Verilen kararlar ve gerekçeleri. **Kod bu kararlara uyar; kod kararla
 | K-200 | Kanal başlık/açıklama override opsiyoneldir; yoksa internal product name/description kullanılır. | Faz 9 kapsamı ve entegrasyon davranışı kanonikleşir. |
 | K-201 | Her dış API işlemi için kalıcı sync event/history tutulur; yalnız gerekli güvenli metadata/hash saklanır, hassas tam payload tutulmaz. | Faz 9 kapsamı ve entegrasyon davranışı kanonikleşir. |
 
+## 2026-10-03 — Faz 10 Raporlar / çıktılar / tasarımcı kararları
+
+| No | Karar | Gerekçe / teknik sonuç |
+|---|---|---|
+| K-202 | Faz 10 en geniş rapor/çıktı/tasarım kapsamıdır: operasyonel raporlar, dashboard, export, çok dönemli rapor, belge şablonları, etiket/koli etiketi ve yazdırma altyapısı birlikte tamamlanır. | Kullanıcının en geniş Faz 10 kapsam talebi ve mevcut mimari kilitlerle uyumlu. |
+| K-203 | Raporlar mevcut kanonik işlem tablolarını okur; ayrı rapor bakiye/gerçek kaynak tabloları oluşturulmaz. | Kullanıcının en geniş Faz 10 kapsam talebi ve mevcut mimari kilitlerle uyumlu. |
+| K-204 | Rapor motoru tek ReportDefinition/ReportQuery sözleşmesi kullanır; filtre, kolon, sıralama, toplam ve permission metadata tanımlıdır. | Kullanıcının en geniş Faz 10 kapsam talebi ve mevcut mimari kilitlerle uyumlu. |
+| K-205 | Rapor erişimi permission tabanlıdır; maliyet/kâr kolonları cost.view olmadan query/select seviyesinde üretilmez. | Kullanıcının en geniş Faz 10 kapsam talebi ve mevcut mimari kilitlerle uyumlu. |
+| K-206 | Konsolide çok dönemli rapor reports.consolidated izni ister; period DB'ler ayrı sorgulanır ve PHP'de birleştirilir, FDW/dblink zorunlu değildir. | Kullanıcının en geniş Faz 10 kapsam talebi ve mevcut mimari kilitlerle uyumlu. |
+| K-207 | Rapor tarih filtresi iş tarihidir ve belge/hareket türüne göre document_date/transaction_date/movement_date gibi kanonik alanı kullanır; created_at iş tarihi değildir. | Kullanıcının en geniş Faz 10 kapsam talebi ve mevcut mimari kilitlerle uyumlu. |
+| K-208 | Rapor çıktıları ekran, PDF, XLSX ve CSV destekler; PDF Browsershot üzerinden, tablo exportları aynı rapor query sonucundan üretilir. | Kullanıcının en geniş Faz 10 kapsam talebi ve mevcut mimari kilitlerle uyumlu. |
+| K-209 | Büyük rapor/export işi queue üzerinden üretilebilir; kullanıcıya durum/progress/download kaydı gösterilir, session PeriodContext'e güvenilmez. | Kullanıcının en geniş Faz 10 kapsam talebi ve mevcut mimari kilitlerle uyumlu. |
+| K-210 | Rapor filtre presetleri kullanıcı+şirket bazında kaydedilebilir; paylaşılmış preset opsiyonel şirket kapsamındadır. | Kullanıcının en geniş Faz 10 kapsam talebi ve mevcut mimari kilitlerle uyumlu. |
+| K-211 | Dashboard kartları mevcut rapor/query servislerini yeniden kullanır; ayrı dashboard bakiye tablosu gerçek kaynak olmaz. | Kullanıcının en geniş Faz 10 kapsam talebi ve mevcut mimari kilitlerle uyumlu. |
+| K-212 | Rapor cache yalnız ağır tarihsel/immutable sonuçlarda kullanılabilir; anahtar şirket+dönem+filtre+permission kapsamı taşır. Anlık stok/cari bakiye cache edilmez. | Kullanıcının en geniş Faz 10 kapsam talebi ve mevcut mimari kilitlerle uyumlu. |
+| K-213 | Belge tasarımcısı bölüm tabanlıdır; serbest sürükle-bırak canvas yoktur. Header/body/table/footer/summary/signature/notes gibi sıralı bölümler yapılandırılır. | Kullanıcının en geniş Faz 10 kapsam talebi ve mevcut mimari kilitlerle uyumlu. |
+| K-214 | Belge şablonları Master DB'de şirket bazında tutulur ve dönemler boyunca kullanılabilir; şablon revizyonları immutable Rev.N olarak saklanır. | Kullanıcının en geniş Faz 10 kapsam talebi ve mevcut mimari kilitlerle uyumlu. |
+| K-215 | Her çıktı tipi için bir varsayılan aktif template olabilir; kullanıcı/print_profile template override yapabilir. | Kullanıcının en geniş Faz 10 kapsam talebi ve mevcut mimari kilitlerle uyumlu. |
+| K-216 | Template veri alanları allow-list token registry üzerinden çözülür; kullanıcı serbest PHP/SQL/Blade kodu yazamaz. | Kullanıcının en geniş Faz 10 kapsam talebi ve mevcut mimari kilitlerle uyumlu. |
+| K-217 | Belge template snapshot/revision id kesinleşmiş belgenin çıktı provenance'ında saklanabilir; tekrar baskıda seçilen davranış açıkça 'güncel template' veya 'orijinal revision' olarak kullanıcıya sunulur. | Kullanıcının en geniş Faz 10 kapsam talebi ve mevcut mimari kilitlerle uyumlu. |
+| K-218 | PDF/A4 çıktı HTML+CSS şablonundan Browsershot ile üretilir; uygulama yazıcıya doğrudan konuşmaz, tek giriş PrintManager'dır. | Kullanıcının en geniş Faz 10 kapsam talebi ve mevcut mimari kilitlerle uyumlu. |
+| K-219 | Etiket tasarımcısı bölüm/alan tabanlıdır; paper_code+width_mm+height_mm kullanır, ZPL/PDF taşıyıcısı PrintManager/driver arkasındadır. | Kullanıcının en geniş Faz 10 kapsam talebi ve mevcut mimari kilitlerle uyumlu. |
+| K-220 | Ürün etiketi barkod, ürün kodu/adı, fiyat, birim ve izinli ürün alanlarını kullanabilir; hangi alanların basılacağı template tanımıdır. | Kullanıcının en geniş Faz 10 kapsam talebi ve mevcut mimari kilitlerle uyumlu. |
+| K-221 | Koli etiketi K-060 gereği ambar fişi/sevk kaynağına bağlıdır; bağımsız koli stok kaydı oluşturmaz. | Kullanıcının en geniş Faz 10 kapsam talebi ve mevcut mimari kilitlerle uyumlu. |
+| K-222 | Yazdırma profili çözüm sırası company+user+machine+type → company+user+type → company+type → system default olarak korunur. | Kullanıcının en geniş Faz 10 kapsam talebi ve mevcut mimari kilitlerle uyumlu. |
+| K-223 | Toplu yazdırma desteklenir; her job seçilen template/profile snapshot metadata ve sonuç durumunu audit/history ile taşır. | Kullanıcının en geniş Faz 10 kapsam talebi ve mevcut mimari kilitlerle uyumlu. |
+| K-224 | Rapor/export/print geçmişi hassas tam belge verisini çoğaltmaz; dosya referansı, parametre özeti/hash, actor, tarih ve sonuç metadata tutulur. | Kullanıcının en geniş Faz 10 kapsam talebi ve mevcut mimari kilitlerle uyumlu. |
+| K-225 | Rapor kataloğu en az satış, alış, cari, stok, finans, çek/senet, iade/karantina, ithalat, üretim/fason ve e-ticaret alanlarını kapsar. | Kullanıcının en geniş Faz 10 kapsam talebi ve mevcut mimari kilitlerle uyumlu. |
+| K-226 | Satış raporlarında ciro, miktar, iskonto, KDV, maliyet, brüt kâr ve marj; maliyet/kâr alanları cost.view ile korunur. | Kullanıcının en geniş Faz 10 kapsam talebi ve mevcut mimari kilitlerle uyumlu. |
+| K-227 | Stok raporlarında mevcut/available/reserved/quarantine/consignment, lokasyon dağılımı, hareket dökümü, hareketli ortalama ve stok değerleme bulunur. | Kullanıcının en geniş Faz 10 kapsam talebi ve mevcut mimari kilitlerle uyumlu. |
+| K-228 | Cari/finans raporlarında ekstre, bakiye, FIFO yaşlandırma, risk, kasa/banka hareketleri, çek/senet portföy/ödenecek ve vade görünümü bulunur. | Kullanıcının en geniş Faz 10 kapsam talebi ve mevcut mimari kilitlerle uyumlu. |
+| K-229 | İthalat/üretim/e-ticaret raporları import cost allocation, production consumption/fire/cost, fason stok/hizmet, channel listing/sync/order performansını kapsar. | Kullanıcının en geniş Faz 10 kapsam talebi ve mevcut mimari kilitlerle uyumlu. |
+| K-230 | Faz 10 raporları genel muhasebe, resmi mali tablo, vergi beyannamesi veya GİB/e-belge raporu üretmez; K-002 kapsamı korunur. | Kullanıcının en geniş Faz 10 kapsam talebi ve mevcut mimari kilitlerle uyumlu. |
+| K-231 | Rapor kolonları kullanıcı tarafından görünürlük/sıra bazında kişiselleştirilebilir; veri kaynağı veya formül keyfi değiştirilemez. | Kullanıcının en geniş Faz 10 kapsam talebi ve mevcut mimari kilitlerle uyumlu. |
+| K-232 | Raporlar drill-down ile kaynak kart/belge/harekete gidebilir; drill-down yeni veri üretmez ve mevcut permission kontrollerine uyar. | Kullanıcının en geniş Faz 10 kapsam talebi ve mevcut mimari kilitlerle uyumlu. |
+| K-233 | Export edilen para/miktar değerleri formatlanmış metin yerine mümkün olan yerde gerçek numeric hücre olarak yazılır; Money hesabı yine BCMath tabanlıdır. | Kullanıcının en geniş Faz 10 kapsam talebi ve mevcut mimari kilitlerle uyumlu. |
+| K-234 | PDF/print çıktısında locale, tarih/para biçimi ve şirket kimliği template render context'inden gelir; iş hesapları render katmanında yeniden hesaplanmaz. | Kullanıcının en geniş Faz 10 kapsam talebi ve mevcut mimari kilitlerle uyumlu. |
+| K-235 | Template ve report definition değişiklikleri version optimistic lock + activity log ile korunur; finalized template revision yerinde mutate edilmez. | Kullanıcının en geniş Faz 10 kapsam talebi ve mevcut mimari kilitlerle uyumlu. |
+
 ## Açık kararlar
 
-**Yok.** A-086…A-124, K-163…K-201 ile kapatıldı.
+**Yok.** Faz 10 kapsamı K-202…K-235 ile kilitlendi.
