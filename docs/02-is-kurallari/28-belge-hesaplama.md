@@ -26,11 +26,11 @@ Tüm aritmetik string + BCMath / Money ile yapılır. PHP float yasaktır.
 ```
 satır brüt      = quantity × unit_price
 satır iskonto   = girilen yüzde/tutarın hesaplanan karşılığı
-satır toplamı   = satır brüt - satır iskonto              (4 hane, yuvarlama yok)
+satır toplamı   = satır brüt - satır iskonto              (4 hanelik para snapshot; 2 hane half-up YOK)
 
-subtotal        = Σ line_total                             (4 hane)
-belge iskonto   = subtotal üzerinden                      (4 hane)
-tax_base        = subtotal - belge iskonto                (4 hane)
+subtotal        = Σ line_total                             (4 hanelik para snapshot)
+belge iskonto   = subtotal üzerinden                      (4 hanelik para snapshot)
+tax_base        = subtotal - belge iskonto                (4 hanelik para snapshot)
 
 KDV:
   aynı vat_rate satırlarının belge iskonto payı sonrası matrahı toplanır
@@ -52,7 +52,7 @@ K-080:
 - Kesinleşmede ikisi de snapshot olarak saklanır.
 - İskonto KDV'den önce uygulanır.
 
-Belge iskontosunun satırlara/KDV gruplarına dağıtımı oranlı yapılır; ara adım yuvarlanmaz. Son KDV yalnız grup toplamında 2 haneye yuvarlanır.
+Belge iskontosunun satırlara/KDV gruplarına dağıtımı oranlı yapılır. Ara hesaplarda 2 hanelik half-up yapılmaz; BCMath yeterli yüksek scale ile çalışır. DB'deki para snapshot alanları 4 hane olarak normalize edilir. KDV yalnız oran grubu toplamında, grand total ise belge sonunda 2 hane half-up yuvarlanır.
 
 ## KDV toplu eylemleri
 
