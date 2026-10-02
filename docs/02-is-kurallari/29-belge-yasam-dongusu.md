@@ -26,6 +26,8 @@ Taslak belge numarasız olabilir ve fiziksel silinebilir. Kesinleşmiş belge si
 | Tedarikçi ödeme | Yok | Yok | **Debit** | Post + kasa/banka çıkışı |
 | Finans virman | Yok | Yok | Yok | Post; source out + target in |
 | Kasa sayım farkı | Yok | Yok | Yok | Confirm edilen sayım farkında tek kasa hareketi |
+| Satış iadesi | **Giriş + quarantine** | Yok | **Credit** | Post |
+| Alış iadesi | **Çıkış** | Yok | **Debit** | Post |
 
 ## PostDocument transaction sırası
 
@@ -107,6 +109,15 @@ v65: Kaydet, Onayla; detayda Hold, Rezervasyon Yap, Sevkiyat Oluştur, Fatura Ol
 - bank reconciliation K-095 gereği finansal belge değildir; mevcut bank movement metadata'sını değiştirir ve audit yazar.
 - Çek/senet yaşam döngüsü `security_events` üzerinden yürür; K-082/K-096 cari/finans etkileri iş kuralları 37–38'de tanımlıdır.
 
+### Faz 6 iade
+
+- sales_return K-100 gereği customer credit + stock in + quarantine üretir.
+- purchase_return K-101 gereği supplier debit + stock out üretir.
+- İade gerçek ticari olaydır; reverse ile aynı şey değildir.
+- Kaynaklı/kaynaksız ve prior-period source K-099/K-109/K-110'a göre desteklenir.
+- İade otomatik cash/bank hareketi üretmez.
+- Posted return immutable'dır.
+
 ### Faz 4 satınalma
 
 K-086 gereği purchase_request → supplier_quote → purchase_order → goods_receipt → purchase_invoice zinciri esnektir; ara belgeler zorunlu değildir.
@@ -132,6 +143,9 @@ Transaction commit edilmeden:
 - goods_receipt için stock/contact movement bulunmamalı,
 - finance_transfer için source out + target in tam çift olmalı,
 - supplier_payment için contact debit + finans out tutarı eşleşmeli,
-- cash_count_adjustment yalnız ilgili confirmed cash_count farkıyla eşleşmeli.
+- cash_count_adjustment yalnız ilgili confirmed cash_count farkıyla eşleşmeli,
+- sales_return stock in + quarantine + customer credit miktar/tutarı eşleşmeli,
+- purchase_return stock out + supplier debit miktar/tutarı eşleşmeli,
+- return source quantity limiti aşılmamalı.
 
 Uyuşmazlık `DomainException`/integrity exception ile rollback üretir.
