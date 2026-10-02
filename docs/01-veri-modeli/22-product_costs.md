@@ -36,7 +36,7 @@ hareketlerinin birim maliyeti bu alandan okunur.
 
 Diğer üçü bilgi amaçlıdır; hangi rakamın neden farklı olduğunu görmek için.
 
-K-124 gereği `import_cost`, ürünün son finalized ithalat dosyasındaki **final import unit cost** snapshot'ıdır. Faz 7 ek ithalat maliyetinin moving_average'a yansıma formülü A-053 kapandığında kanonikleşecektir.
+K-124 gereği `import_cost`, ürünün son finalized ithalat dosyasındaki **final import unit cost** snapshot'ıdır. K-130 gereği ithalat ek maliyeti original import base quantity üzerinden unit adjustment olarak moving_average'a eklenir.
 
 ## Güncelleme
 
@@ -44,3 +44,5 @@ Yalnızca giriş hareketinde (`direction = in`, `reason = purchase|production|op
 güncellenir. Çıkışta değişmez.
 
 Transfer maliyeti değiştirmez — mal yer değiştirir, maliyet aynı kalır.
+
+K-146 gereği production stock-in moving_average'ı günceller ve `production_cost` son production unit cost snapshot'ını taşır.
