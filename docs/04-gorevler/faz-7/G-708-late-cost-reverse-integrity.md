@@ -38,7 +38,7 @@ Reverse:
 - Duplicate reverse yok.
 - Allocation history immutable.
 - Integrity otomatik düzeltme yapmaz.
-- A-053 edge-case'i bu görevde de uydurulmaz.
+- Late-cost adjustment da K-130 original import quantity basis formülünü kullanır; current on-hand quantity'ye bölünmez.
 
 ## Kabul ölçütü
 
