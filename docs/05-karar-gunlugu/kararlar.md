@@ -214,6 +214,50 @@ Verilen kararlar ve gerekçeleri. **Kod bu kararlara uyar; kod kararla
 | K-161 | Açık production/subcontract order yeni döneme taşınmaz; dönem kapanmadan tamamlanır/iptal edilir. Fason location'daki fiziksel stok location bazında açılış stoklarına taşınır. | Belge geçmişi taşınmazken fiziksel stok kaybolmaz. |
 | K-162 | Production completion reverse edilebilir; yeni ters kayıt mamul stock-out + component stock-in ve ilgili maliyet ters etkilerini üretir, original immutable kalır. | K-016 ters kayıt ilkesi üretime uygulanır. |
 
+## 2026-10-03 — Faz 9 E-ticaret kararları
+
+| No | Karar | Gerekçe / teknik sonuç |
+|---|---|---|
+| K-163 | Faz 9 ilk sürüm kanalları Trendyol, Hepsiburada, N11 ve WooCommerce'dir; ortak adapter sözleşmesi kullanılır. | Faz 9 kapsamı ve entegrasyon davranışı kanonikleşir. |
+| K-164 | Kanal credential/account bağlantıları Master DB'de şirket bazında tutulur; period DB yalnız dönemsel mapping/order/sync verisini tutar. | Faz 9 kapsamı ve entegrasyon davranışı kanonikleşir. |
+| K-165 | Aynı platformdan bir şirkette birden fazla kanal hesabı/mağaza olabilir. | Faz 9 kapsamı ve entegrasyon davranışı kanonikleşir. |
+| K-166 | Ürün-kanal eşlemesi açık mapping tablosuyla tutulur; external listing/product id ve external sku saklanır. | Faz 9 kapsamı ve entegrasyon davranışı kanonikleşir. |
+| K-167 | Pazaryerinde her internal varyant ayrı listing'dir; variant group gönderilmez. | Faz 9 kapsamı ve entegrasyon davranışı kanonikleşir. |
+| K-168 | Sistem hem yeni listing yayınlayabilir hem mevcut external listing'e bağlanabilir. | Faz 9 kapsamı ve entegrasyon davranışı kanonikleşir. |
+| K-169 | Internal product temel kaynaktır; kanal listing üzerinde başlık/açıklama/fiyat/görsel/teslim süresi gibi override alanları olabilir. | Faz 9 kapsamı ve entegrasyon davranışı kanonikleşir. |
+| K-170 | Kanal görsel seti yoksa Ortak görsel setine fallback yapılır. | Faz 9 kapsamı ve entegrasyon davranışı kanonikleşir. |
+| K-171 | Kanal bazında fiyat override desteklenir; yoksa mevcut fiyat çözümleme zincirine düşülür. | Faz 9 kapsamı ve entegrasyon davranışı kanonikleşir. |
+| K-172 | Faz 9 satış kanalları ilk sürümde TRY kullanır. | Faz 9 kapsamı ve entegrasyon davranışı kanonikleşir. |
+| K-173 | Product channel_stock_mode varsayılandır; channel listing bazında stock|production|manual override yapılabilir. | Faz 9 kapsamı ve entegrasyon davranışı kanonikleşir. |
+| K-174 | stock modunda gönderilecek miktar, channel listing'e atanmış satışa uygun location kapsamının kullanılabilir stok toplamından hesaplanır. | Faz 9 kapsamı ve entegrasyon davranışı kanonikleşir. |
+| K-175 | Channel-product bazında max_channel_quantity ve withhold_quantity birlikte desteklenir. | Faz 9 kapsamı ve entegrasyon davranışı kanonikleşir. |
+| K-176 | production modunda fixed quantity ve teslim süresi channel-product bazındadır. | Faz 9 kapsamı ve entegrasyon davranışı kanonikleşir. |
+| K-177 | manual modunda quantity channel-product bazında elle tutulur; fiziksel stok değişikliklerinden otomatik etkilenmez. | Faz 9 kapsamı ve entegrasyon davranışı kanonikleşir. |
+| K-178 | Set ürün stock modunda, seçili kanal location kapsamındaki component available stoklarından min(component/required) ile hesaplanır. | Faz 9 kapsamı ve entegrasyon davranışı kanonikleşir. |
+| K-179 | Kanal siparişi mevcut sales_order belgesine import edilir. | Faz 9 kapsamı ve entegrasyon davranışı kanonikleşir. |
+| K-180 | Geçerli external sipariş idempotent şekilde otomatik confirmed sales_order oluşturur. | Faz 9 kapsamı ve entegrasyon davranışı kanonikleşir. |
+| K-181 | Idempotency anahtarı channel_account + external_order_id kombinasyonudur. | Faz 9 kapsamı ve entegrasyon davranışı kanonikleşir. |
+| K-182 | Her kanal hesabı için tek marketplace customer contact kullanılır; gerçek buyer/shipping bilgileri order snapshot'ında tutulur. | Faz 9 kapsamı ve entegrasyon davranışı kanonikleşir. |
+| K-183 | Kanal siparişi importunda collection/cash-bank movement üretilmez. | Faz 9 kapsamı ve entegrasyon davranışı kanonikleşir. |
+| K-184 | Marketplace payout/commission mutabakatı ilk Faz 9 kapsamı dışındadır. | Faz 9 kapsamı ve entegrasyon davranışı kanonikleşir. |
+| K-185 | External sipariş satır fiyatı platformdan frozen snapshot olarak alınır; internal fiyatla yeniden hesaplanmaz. | Faz 9 kapsamı ve entegrasyon davranışı kanonikleşir. |
+| K-186 | Platformdan gelen satır/belge indirimleri normalize edilip frozen snapshot olarak saklanır; kampanya metadata korunabilir. | Faz 9 kapsamı ve entegrasyon davranışı kanonikleşir. |
+| K-187 | Buyer/recipient/phone/email/address/city/district/postcode/cargo/package bilgileri order shipping snapshot'ında tutulur. | Faz 9 kapsamı ve entegrasyon davranışı kanonikleşir. |
+| K-188 | İlk sürümde ayrı kargo firması API entegrasyonu yoktur; marketplace shipment/cargo bilgisi okunur ve mevcut sevk akışı kullanılır. | Faz 9 kapsamı ve entegrasyon davranışı kanonikleşir. |
+| K-189 | External cancel henüz fulfillment yapılmamış miktarda mevcut sales_order kalan iptal mantığını uygular; fulfillment sonrası mal dönüşü Faz 6 iadedir. | Faz 9 kapsamı ve entegrasyon davranışı kanonikleşir. |
+| K-190 | Marketplace return event'i draft sales_return oluşturur; kullanıcı kontrol/post eder, Faz 6 quarantine kuralı aynen geçerlidir. | Faz 9 kapsamı ve entegrasyon davranışı kanonikleşir. |
+| K-191 | Desteklenen kanallarda shipment/cargo durumu adapter üzerinden platforma push edilir. | Faz 9 kapsamı ve entegrasyon davranışı kanonikleşir. |
+| K-192 | Ürün/stok/fiyat yönü sistem→kanal; sipariş/cancel/return yönü kanal→sistemdir; dış ürün değişikliği internal product'u mutate etmez. | Faz 9 kapsamı ve entegrasyon davranışı kanonikleşir. |
+| K-193 | Kanal API hatalarında 3 retry (30/60/120 sn), persistent channel_sync_errors ve manuel retry vardır; duplicate pending işler coalesce edilir. | Faz 9 kapsamı ve entegrasyon davranışı kanonikleşir. |
+| K-194 | Webhook destekleyen kanalda webhook birincil, polling güvenlik ağıdır. | Faz 9 kapsamı ve entegrasyon davranışı kanonikleşir. |
+| K-195 | Inbound order/cancel/return polling 15 dakikada bir ve manuel tetiklemelidir. | Faz 9 kapsamı ve entegrasyon davranışı kanonikleşir. |
+| K-196 | Channel account Master'da kalır; period channel-product mapping yeni döneme ürün ID sürekliliğiyle taşınır, eski order/sync history taşınmaz. | Faz 9 kapsamı ve entegrasyon davranışı kanonikleşir. |
+| K-197 | External order duplicate engeli dönemler arası korunur; event hangi açık period'a aitse oraya import edilir ve tekrar çekim ikinci order oluşturmaz. | Faz 9 kapsamı ve entegrasyon davranışı kanonikleşir. |
+| K-198 | Listing pasifleştirmede mapping silinmez; is_active=false olur ve kanal listing pasif/stock=0 yapılır. | Faz 9 kapsamı ve entegrasyon davranışı kanonikleşir. |
+| K-199 | İlk sürüm kanal kategori/özellik değerleri listing metadata'sında manuel tutulur; otomatik category matching yoktur. | Faz 9 kapsamı ve entegrasyon davranışı kanonikleşir. |
+| K-200 | Kanal başlık/açıklama override opsiyoneldir; yoksa internal product name/description kullanılır. | Faz 9 kapsamı ve entegrasyon davranışı kanonikleşir. |
+| K-201 | Her dış API işlemi için kalıcı sync event/history tutulur; yalnız gerekli güvenli metadata/hash saklanır, hassas tam payload tutulmaz. | Faz 9 kapsamı ve entegrasyon davranışı kanonikleşir. |
+
 ## Açık kararlar
 
-**Yok.** A-054…A-085, K-131…K-162 ile kapatıldı.
+**Yok.** A-086…A-124, K-163…K-201 ile kapatıldı.
