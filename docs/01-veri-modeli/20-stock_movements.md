@@ -37,6 +37,8 @@ CHECK: quantity > 0, direction in/out, unit_cost >= 0, total_cost tutarlı.
 
 Hareket silinmez/değiştirilmez; ters hareket yazılır. Tüm yazım `RecordStockMovement` üzerinden, transaction ve `EnsurePeriodOpen(document_date)` içinde yapılır.
 
-İrsaliye stok çıkışı üretir. İrsaliyeden fatura stok üretmez. İrsaliyesiz doğrudan fatura stok çıkışı üretir.
+Satışta irsaliye stok çıkışı üretir. İrsaliyeden satış faturası stok üretmez; doğrudan satış faturası stok çıkışı üretir.
+
+Faz 4'te goods_receipt stok hareketi üretmez. Purchase_invoice posting'i `direction=in, reason=purchase` hareketi üretir; quantity temel birimde, unit_cost şirket temel para biriminde net alış maliyetidir.
 
 Belge satırı kullanıcı biriminde quantity yanında `base_quantity + conversion_factor` dondurur; stock_movements.quantity daima `base_quantity`dır.
