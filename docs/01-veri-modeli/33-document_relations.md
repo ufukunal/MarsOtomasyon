@@ -44,6 +44,15 @@ Schema::connection('period')->create('document_relations', function (Blueprint $
 - `collection_source`
 - `reversal_of`
 
+## Faz 4 ilişki tipleri
+
+- `request_to_supplier_quote`
+- `supplier_quote_to_order`
+- `request_to_order`
+- `order_to_goods_receipt`
+- `order_to_purchase_invoice`
+- `goods_receipt_to_purchase_invoice`
+
 Liste uygulama enum'u ile yönetilir; sonraki fazlar yeni ilişki tipi ekleyebilir.
 
 PostgreSQL bütünlük indeksleri:
@@ -78,4 +87,6 @@ Böylece aynı orijinal belge için ikinci `reversal_of` kaydı DB seviyesinde d
 - Teklif revizyonunda yeni belge eski revizyona `revision_of` ile bağlanır; aynı `number`, artan `revision_no` kullanılır.
 - Aynı carinin uyumlu birden fazla irsaliyesi tek faturaya bağlanabilir.
 - Bir irsaliye birden fazla faturaya bağlanabilir; gerçek kısmi miktar child satırların `source_line_id` toplamından hesaplanır.
-- İrsaliyeden fatura oluştuğunda ilişki stok hareketinin ikinci kez yazılmamasını belirleyen kaynak kanıtlarından biridir.
+- İrsaliyeden satış faturası oluştuğunda ilişki stok hareketinin ikinci kez yazılmamasını belirleyen kaynak kanıtlarından biridir.
+- Faz 4'te goods_receipt stok etkisizdir; goods_receipt→purchase_invoice ilişkisi stok tekrarını önlemek için değil kısmi faturalama/lineage kanıtı olarak kullanılır.
+- Faz 4 miktar gerçekliği de document_lines.source_line_id üzerinden hesaplanır; document_relations miktar kolonu taşımaz.
