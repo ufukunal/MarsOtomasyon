@@ -85,11 +85,11 @@ Master company_copy_permissions. Kaynak period_source. Hedef yeni ID; source_com
 
 ## Faz ve görev yöntemi
 
-Faz 0, 0b, 1, 2 görevleri güncel standalone standarda göre temizlendi. **Faz 3 Satış dokümantasyonu yazıldı; G-300…G-312 hazırdır. Faz 4 Alış dokümantasyonu yazıldı; G-400…G-409 hazırdır.** Faz 3 iş kuralı dosyaları 28–31, Faz 4 yeni iş kuralı dosyaları 32–34 numaralarını kullanır. Faz 4 alış davranışları K-086…K-091 ile kilitlidir. Faz 5 kullanıcı onayı olmadan başlatılmaz.
+Faz 0, 0b, 1, 2 görevleri güncel standalone standarda göre temizlendi. **Faz 3 Satış dokümantasyonu yazıldı; G-300…G-312 hazırdır. Faz 4 Alış dokümantasyonu yazıldı; G-400…G-409 hazırdır.** Faz 3 iş kuralı dosyaları 28–31, Faz 4 yeni iş kuralı dosyaları 32–34 numaralarını kullanır. Faz 4 alış davranışları K-086…K-091 ile kilitlidir. Faz 5 Kasa/Banka/Çek-Senet dokümantasyonu kullanıcı onayıyla başlatılmıştır; G-500 açık kararları kapatılmadan Faz 5 davranışı uydurulmaz.
 
 Her görev şu bölümleri içerir: Amaç, Önkoşul, Dokunulacak dosyalar, Şema/Kod, Kurallar, Kabul ölçütü, İstem. Bir görev tek başına yerel modele verilebilir olmalıdır. **Satır sayısı hedef değildir.** 300–500 satır yalnız iş gerçekten o ayrıntıyı gerektiriyorsa doğal sonuç olabilir. Aynı genel checklist, mimari kural veya test maddesini sırf uzunluk için tekrar etmek yasaktır. Kaynaklarda tanımlanmayan alan, tablo, Action, sınıf, iş kuralı veya test beklentisi uydurulmaz. Eksik karar varsa `[KARAR GEREKİYOR]` yazılır ve kullanıcıya seçenek sunulur.
 
-Açık A kararı yoktur. Yeni iş kararı gerekiyorsa kullanıcıya seçenek sun; kendin kapatma.
+Açık kararlar A-015…A-020'dir. Kullanıcıya seçenek sun; kendin kapatma.
 
 
 ## Anti-halüsinasyon görev kuralı
