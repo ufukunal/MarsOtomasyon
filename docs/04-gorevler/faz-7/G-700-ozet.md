@@ -6,8 +6,7 @@ Faz 7, Faz 4 alış çekirdeğini yeniden kullanarak ithalat dosyası, masraf to
 
 ## Kilit kararlar
 
-- K-114…K-129.
-- A-053 yalnız current stock <= 0 anındaki finalize/adjustment davranışı için açıktır.
+- K-114…K-130.
 
 ## Veri modeli
 
@@ -42,4 +41,4 @@ Faz 7, Faz 4 alış çekirdeğini yeniden kullanarak ithalat dosyası, masraf to
 
 ## Faz bitiş ölçütü
 
-A-053 kapatılmadan Faz 7 dokümantasyonu tam kapanmış sayılmaz. Diğer Faz 7 davranışları K-114…K-129 ile kilitlidir.
+Faz 7 dokümantasyonu K-114…K-130 kararlarıyla tamamlanmıştır. Kodlama/uygulama G-701…G-709 gerçek PostgreSQL kabul testleri geçmeden tamamlanmış sayılmaz.
