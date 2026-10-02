@@ -17,7 +17,7 @@ Her faz önce veri modeli + iş kuralları + ekran + standalone G görevleri ola
 - **Faz 7 İthalat: DOKÜMANTASYON YAZILDI — K-114…K-130 kilitli; veri modeli 40, iş kuralları 42–44, ithalat ekranları ve G-700…G-709 hazırdır. Kodlama/uygulama tamamlanması G-701…G-709 gerçek PostgreSQL kabul testlerine bağlıdır. Faz 8 kullanıcı onayı olmadan başlamaz.**
 - **Faz 8 Basit üretim/fason: DOKÜMANTASYON YAZILDI — K-131…K-162 kilitli; veri modeli 41, iş kuralları 45–47, üretim/fason ekranları ve G-800…G-809 hazırdır. Kodlama/uygulama tamamlanması G-801…G-809 gerçek PostgreSQL kabul testlerine bağlıdır. Faz 9 kullanıcı onayı olmadan başlamaz.**
 - **Faz 9 E-ticaret: DOKÜMANTASYON YAZILDI — K-163…K-201 kilitli; veri modeli 42, iş kuralları 48–51, kanal ekranları ve G-900…G-910 hazırdır. Kodlama/uygulama tamamlanması G-901…G-910 gerçek PostgreSQL kabul testlerine bağlıdır. Faz 10 kullanıcı onayı olmadan başlamaz.**
-- **Faz 10 Raporlar/çıktılar/tasarımcı: KARARLAR KİLİTLENDİ — K-202…K-235 ile geniş rapor motoru, export, çok dönem, dashboard, belge/etiket tasarımcısı ve print history kapsamı netleştirildi; dokümantasyon yazılıyor.**
+- **Faz 10 Raporlar/çıktılar/tasarımcı: DOKÜMANTASYON YAZILDI — K-202…K-235 kilitli; veri modeli 43, iş kuralları 52–56, rapor/dashboard/export/tasarımcı ekranları ve G-1000…G-1012 hazırdır. Kodlama/uygulama tamamlanması G-1001…G-1012 gerçek PostgreSQL/multi-period kabul testlerine bağlıdır.**
 - Faz 11b Dönem devri
 - Faz 11 Canlı geçiş
 
@@ -72,3 +72,10 @@ Faz 8 yeni veri modeli dosyası 41; yeni iş kuralı dosyaları 45–47'dir. Faz
 G-900 özet; G-901 kanal hesapları/adapter; G-902 listing mapping/yayın; G-903 içerik/görsel; G-904 stok sync; G-905 fiyat sync; G-906 order import; G-907 cancel/return/shipment; G-908 webhook/polling/history; G-909 rollover/integrity; G-910 test.
 
 Faz 9 yeni veri modeli dosyası 42; yeni iş kuralı dosyaları 48–51'dir. Faz 1 görsel setleri, Faz 3 sales_order/partial fulfillment, Faz 6 sales_return ve Faz 8 production-mode entegrasyonları yeniden kullanılmaktadır.
+
+
+## Faz 10 planı
+
+G-1000 özet; G-1001 rapor çekirdeği; G-1002 rapor kataloğu; G-1003 dashboard; G-1004 PDF/XLSX/CSV export; G-1005 export queue/geçmiş; G-1006 çok dönem; G-1007 preset/kolon/drill-down; G-1008 belge template revizyon; G-1009 token güvenliği; G-1010 ürün/koli etiketi; G-1011 print history/toplu baskı; G-1012 test.
+
+Faz 10 yeni veri modeli dosyası 43; yeni iş kuralı dosyaları 52–56'dır. G-1112 çok dönemli rapor görevi G-1006 ile aynı MultiPeriodQuery sözleşmesini paylaşır; ikinci paralel altyapı kurulmaz.
