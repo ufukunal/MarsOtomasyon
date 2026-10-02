@@ -65,3 +65,10 @@ Faz 7 yeni veri modeli dosyası 40; yeni iş kuralı dosyaları 42–44'tür. Fa
 G-800 özet; G-801 üretim/fason şeması; G-802 reçete revizyonları; G-803 production order; G-804 production completion; G-805 production cost; G-806 fason location/gönderim; G-807 fason completion/hizmet; G-808 reverse/integrity/dönem devri; G-809 test.
 
 Faz 8 yeni veri modeli dosyası 41; yeni iş kuralı dosyaları 45–47'dir. Faz 2 stock/location, Faz 4 purchase_invoice ve Faz 7 inventory_cost_adjustments altyapıları yeniden kullanılmaktadır.
+
+
+## Faz 9 planı
+
+G-900 özet; G-901 kanal hesapları/adapter; G-902 listing mapping/yayın; G-903 içerik/görsel; G-904 stok sync; G-905 fiyat sync; G-906 order import; G-907 cancel/return/shipment; G-908 webhook/polling/history; G-909 rollover/integrity; G-910 test.
+
+Faz 9 yeni veri modeli dosyası 42; yeni iş kuralı dosyaları 48–51'dir. Faz 1 görsel setleri, Faz 3 sales_order/partial fulfillment, Faz 6 sales_return ve Faz 8 production-mode entegrasyonları yeniden kullanılmaktadır.
