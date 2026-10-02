@@ -41,4 +41,10 @@ Satışta irsaliye stok çıkışı üretir. İrsaliyeden satış faturası stok
 
 Faz 4'te goods_receipt stok hareketi üretmez. Purchase_invoice posting'i `direction=in, reason=purchase` hareketi üretir; quantity temel birimde, unit_cost şirket temel para biriminde net alış maliyetidir.
 
+Faz 6:
+- sales_return: `direction=in, reason=sales_return`; aynı miktar quarantine'a ayrılır.
+- purchase_return: `direction=out, reason=purchase_return`.
+- quarantine scrap: `direction=out, reason=scrap`.
+- quarantine release stock movement üretmez.
+
 Belge satırı kullanıcı biriminde quantity yanında `base_quantity + conversion_factor` dondurur; stock_movements.quantity daima `base_quantity`dır.
