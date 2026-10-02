@@ -135,17 +135,14 @@ Kanonik belge ailesi:
 
 Ara adımlar zorunlu değildir. Kullanıcı ihtiyaca göre doğrudan satınalma siparişi, doğrudan mal kabul/alış irsaliyesi veya doğrudan alış faturası oluşturabilir. Belge ilişkileri yalnız gerçekten kullanılan zinciri izler; sistem eksik ara belge üretmez.
 
-### A-010 — Stok ve cari etki anı
+### A-010 — KAPANDI: Stok ve cari etki yalnız alış faturasında
 
-Satışta K-072 etki matrisi açıkça kilitlidir; alış için eşdeğer karar yoktur.
-
-Netleştirilmesi gerekenler:
-
-- mal kabul/alış irsaliyesi post edildiğinde stok girişinin o anda mı oluşacağı,
-- irsaliyeden alış faturasında stok girişinin ikinci kez oluşmaması,
-- doğrudan alış faturasının stok + tedarikçi cari etkisini birlikte üretip üretmeyeceği.
-
-Bu davranışlar genel muhasebe bilgisiyle otomatik varsayılmayacaktır.
+- Mal kabul/alış irsaliyesi operasyon kaydıdır; stok hareketi üretmez.
+- Mal kabul/alış irsaliyesi tedarikçi cari hareketi üretmez.
+- Alış faturası post edildiğinde stok girişi ve tedarikçi cari etkisi birlikte oluşur.
+- Mal kabul kaynaklı alış faturasında stok, fatura posting anında ilk kez artar; ikinci stok etkisi diye ayrı bir aşama yoktur.
+- Doğrudan alış faturası da aynı şekilde stok + tedarikçi cari etkisini birlikte üretir.
+- Hareketli ortalama maliyet güncellemesi alış faturası posting transaction'ındaki gerçek stok girişiyle aynı noktada yapılır.
 
 ### A-011 — Kısmi teslim ve kısmi faturalama
 
