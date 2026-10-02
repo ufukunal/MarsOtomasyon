@@ -47,4 +47,10 @@ Faz 6:
 - quarantine scrap: `direction=out, reason=scrap`.
 - quarantine release stock movement üretmez.
 
+Faz 8:
+- component consumption/fire: `direction=out, reason=production_consumption`,
+- finished product output: `direction=in, reason=production`,
+- fason gönderim/dönüş normal transfer semantiğini kullanır,
+- production completion reverse yeni inverse stock movement'lar üretir.
+
 Belge satırı kullanıcı biriminde quantity yanında `base_quantity + conversion_factor` dondurur; stock_movements.quantity daima `base_quantity`dır.
