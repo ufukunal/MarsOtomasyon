@@ -1,7 +1,7 @@
-# G-1112 — Çok dönemli rapor altyapısı
+# G-1112 — Çok dönemli rapor altyapısı (Faz 10 G-1006 ile ortak sözleşme)
 
 ## Amaç
-Bir veya birden fazla şirket/yıl period DB'sini normal PostgreSQL cross-database JOIN kullanmadan sırayla sorgulayıp PHP katmanında güvenli biçimde birleştirmek.
+Bir veya birden fazla şirket/yıl period DB'sini normal PostgreSQL cross-database JOIN kullanmadan sırayla sorgulayıp PHP katmanında güvenli biçimde birleştirmek. Faz 10 G-1006 bu görevin rapor motoru entegrasyonudur; aynı altyapı ikinci kez kurulmaz.
 
 ## Önkoşul
 G-003 PeriodContext, Master period erişimi ve rapor yetkileri hazır olmalı. Dönem devri yapılmış olması zorunlu değildir; erişilebilir period kayıtları yeterlidir.
