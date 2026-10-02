@@ -113,7 +113,7 @@ Verilen kararlar ve gerekçeleri. **Kod bu kararlara uyar; kod kararla
 
 | No | Konu | Netleştirilecek davranış |
 |---|---|---|
-| A-015 | Virman kapsamı | Kasa/kasa, kasa/banka, banka/kasa, banka/banka kombinasyonları ve farklı para birimi davranışı |
+| A-015 | **KAPANDI — Tüm hesap türleri, aynı para birimi** | Kasa→Kasa, Kasa→Banka, Banka→Kasa ve Banka→Banka virmanları desteklenir. Kaynak ve hedef hesap aynı para biriminde olmalıdır; Faz 5 virmanı döviz dönüşümü veya kur farkı üretmez. |
 | A-016 | Tedarikçi ödeme girişi | Genel ödeme formu, fatura ekranı kısayolu, opsiyonel kaynak fatura ilişkisi ve kısmi ödeme UX'i |
 | A-017 | Kasa sayımı | Toplam/kupür sayımı ve kasa farkının blok/uyarı/düzeltme hareketi davranışı |
 | A-018 | Banka ekstresi/mutabakat | Import kapsamı/formatı, eşleştirme ve mutabakat durumu davranışı |
