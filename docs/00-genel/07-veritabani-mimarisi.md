@@ -23,6 +23,10 @@ XYZltd_2026
 - app_settings
 - company_copy_permissions
 - print_profiles
+- document_templates
+- report_filter_presets
+- report_export_jobs
+- print_jobs
 - sales_channel_accounts
 - channel_external_event_registry
 - master activity_log
@@ -33,7 +37,7 @@ Master'da cari/ürün/lokasyon/fiyat kartı yoktur. Master modelleri şirket glo
 
 Kartlar: contacts ve yan tabloları, products, units, categories, brands, variants, sets, configurator, price_lists, locations, kart attachments/görseller.
 
-Operasyon: documents, document_lines, document_relations, contact_transactions, stock_movements, stock_balances, product_costs, cash/bank, securities, import_files/import_expenses/import allocations/inventory_cost_adjustments, production_recipes/production_orders/production_completions/production_consumptions/production_outputs, channel_product_listings/channel_listing_locations/channel_order_snapshots/channel_sync_events/channel_sync_errors, number_series, posting_periods, reservations, stock counts, quarantine, integrity/idempotency kayıtları ve period activity_log.
+Operasyon: documents, document_lines, document_relations, contact_transactions, stock_movements, stock_balances, product_costs, cash/bank, securities, import_files/import_expenses/import allocations/inventory_cost_adjustments, production_recipes/production_orders/production_completions/production_consumptions/production_outputs, channel_product_listings/channel_listing_locations/channel_order_snapshots/channel_sync_events/channel_sync_errors, document_print_snapshots, number_series, posting_periods, reservations, stock counts, quarantine, integrity/idempotency kayıtları ve period activity_log.
 
 **Period tablolarında company_id yoktur.** `PeriodModel` connection=`period` kullanır.
 
