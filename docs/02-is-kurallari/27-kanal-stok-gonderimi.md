@@ -25,21 +25,34 @@ miktarı okur. 50 satırlık fatura 50 ayrı gönderim yapmaz.
 Anlık gönderim başarısız olursa (API hatası, kanal kapalı) 15 dakikalık
 tarama farkı yakalar ve yeniden gönderir. İkisi birlikte çalışır.
 
-## Üretimle karşılanan ürünler
+## Kanal stok modu
 
-Bazı ürünler stoktan değil **üretimden** karşılanır. Bu ürünlerde
-kanala gönderilen miktar fiziksel stok değildir:
+K-058 ürün üzerinde varsayılan `channel_stock_mode` değerini taşır:
 
-```php
-$table->string('channel_stock_mode', 20)->default('stock');
-// stock      → kullanılabilir stok gönderilir
-// production → sabit miktar gönderilir (üretim kapasitesi)
-// manual     → elle girilen miktar gönderilir
-$table->decimal('channel_fixed_quantity', 18, 3)->nullable();
-```
+- stock
+- production
+- manual
 
-`production` modundaki ürün stok bitse de kanalda satışta kalır; sipariş
-gelince üretim emri açılır. Teslim süresi kanal ürün ayarında belirtilir.
+Faz 9 K-173 gereği channel listing bu modu override edebilir.
+
+### stock
+
+K-174 gereği tüm şirket stoğu otomatik toplanmaz. Yalnız ilgili listing'e açıkça bağlanan satışa uygun location'ların kullanılabilir stok toplamı kullanılır. Subcontractor location hariçtir.
+
+K-175 gereği listing bazında:
+
+- `withhold_quantity`
+- `max_channel_quantity`
+
+uygulanır.
+
+### production
+
+K-176 gereği `fixed_quantity` ve `lead_time_days` channel-product listing üzerindedir. Fiziksel stok miktarı gönderilmez.
+
+### manual
+
+K-177 gereği `manual_quantity` channel-product listing üzerindedir ve fiziksel stok değişiminden otomatik etkilenmez.
 
 ## Set ürün
 
