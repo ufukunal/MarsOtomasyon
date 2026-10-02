@@ -11,8 +11,8 @@ Her faz önce veri modeli + iş kuralları + ekran + standalone G görevleri ola
 - Faz 1 Kartlar: G-101…G-115 period DB mimarisine göre güncellendi.
 - Faz 2 Stok: G-201…G-212 yeni stok/rezervasyon kararlarına göre güncellendi.
 - **Faz 3 Satış: DOKÜMANTASYON YAZILDI VE KALİTE KONTROLÜ TAMAMLANDI — veri modeli 30–34, iş kuralları 28–31, ekranlar ve G-300…G-312 hazırdır. Kodlama/uygulama tamamlanması kabul testlerine bağlıdır.**
-- **Faz 4 Alış: DOKÜMANTASYON YAZILDI — K-086…K-091 kilitli; veri modeli 35, iş kuralları 32–34, alış ekranları ve G-400…G-409 hazırdır. Kodlama/uygulama tamamlanması G-401…G-409 gerçek PostgreSQL kabul testlerine bağlıdır. Faz 5 kullanıcı onayı olmadan başlamaz.**
-- Faz 5 Kasa/Banka/Çek-Senet (Faz 3 yalnız tahsilat için gereken minimum cash/bank altyapısını erkenden kurar; virman, ekstre, mutabakat ve çek/senet ayrıntıları Faz 5'tedir)
+- **Faz 4 Alış: DOKÜMANTASYON YAZILDI — K-086…K-091 kilitli; veri modeli 35, iş kuralları 32–34, alış ekranları ve G-400…G-409 hazırdır. Kodlama/uygulama tamamlanması G-401…G-409 gerçek PostgreSQL kabul testlerine bağlıdır.**
+- **Faz 5 Kasa/Banka/Çek-Senet: BAŞLADI — K-075/K-082/K-062/K-078 kaynakları ve Faz 3 minimum cash/bank çekirdeği üzerinden kapsam/açık kararlar G-500 ile çıkarılıyor.**
 - Faz 6 İade
 - Faz 7 İthalat
 - Faz 8 Basit üretim/fason
@@ -29,7 +29,7 @@ Faz 3 iş kuralı belgeleri mevcut numaralarla çakışmamak için 28–31 olaca
 
 ## Kritik sıra
 
-Repo temizliği ve Faz 0–2 görev revizyonu tamamlandı. Faz 3 Satış dokümantasyonu yazıldı ve kalite kontrolünden geçirildi. Faz 4 Alış dokümantasyonu K-086…K-091 kararlarıyla yazıldı; G-400…G-409 hazırdır. Faz 3 ve Faz 4'ün kodlama/uygulama tamamlanması kendi gerçek PostgreSQL kabul testlerine bağlıdır. Faz 5 kullanıcı onayı olmadan başlatılmaz.
+Repo temizliği ve Faz 0–2 görev revizyonu tamamlandı. Faz 3 Satış dokümantasyonu yazıldı ve kalite kontrolünden geçirildi. Faz 4 Alış dokümantasyonu K-086…K-091 kararlarıyla yazıldı; G-400…G-409 hazırdır. Faz 3 ve Faz 4'ün kodlama/uygulama tamamlanması kendi gerçek PostgreSQL kabul testlerine bağlıdır. Faz 5 dokümantasyonu kullanıcı onayıyla başlatıldı; önce kapsam ve açık kararlar kilitlenecek, ardından veri modeli + iş kuralları + ekranlar + standalone G görevleri yazılacaktır.
 
 
 ## Faz 4 planı
