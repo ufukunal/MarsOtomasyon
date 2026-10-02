@@ -58,11 +58,16 @@ final class RecordStockMovement
         return DB::connection('period')->transaction(function () use ($data) {
             $this->ensurePeriodOpen->handle($data->movementDate);
 
-            StockBalance::query()->firstOrCreate(
-                ['product_id' => $data->productId, 'location_id' => $data->locationId],
-                ['quantity' => '0.000', 'reserved' => '0.000',
-                 'consignment_reserved' => '0.000', 'quarantine' => '0.000']
-            );
+            // Aynı product/location için ilk iki eşzamanlı istekte firstOrCreate
+            // unique yarışına girebilir. Önce idempotent insert, sonra satır kilidi.
+            DB::connection('period')->table('stock_balances')->insertOrIgnore([
+                'product_id' => $data->productId,
+                'location_id' => $data->locationId,
+                'quantity' => '0.000',
+                'reserved' => '0.000',
+                'consignment_reserved' => '0.000',
+                'quarantine' => '0.000',
+            ]);
 
             $balance = StockBalance::query()
                 ->where('product_id', $data->productId)
@@ -86,10 +91,13 @@ final class RecordStockMovement
                 );
             }
 
-            $cost = ProductCost::query()->firstOrCreate(
-                ['product_id' => $product->id],
-                ['moving_average' => '0.0000']
-            );
+            DB::connection('period')->table('product_costs')->insertOrIgnore([
+                'product_id' => $product->id,
+                'last_purchase_price' => '0.0000',
+                'moving_average' => '0.0000',
+                'import_cost' => '0.0000',
+                'production_cost' => '0.0000',
+            ]);
 
             if ($data->direction === 'in' && $data->updatesAverage) {
                 $unitCost = $data->unitCost ?? '0.0000';
@@ -99,6 +107,11 @@ final class RecordStockMovement
                     $unitCost
                 );
             } else {
+                $cost = ProductCost::query()
+                    ->where('product_id', $product->id)
+                    ->lockForUpdate()
+                    ->firstOrFail();
+
                 $unitCost = (string) $cost->moving_average;
                 $newAvg = (string) $cost->moving_average;
             }
@@ -155,6 +168,7 @@ final class RecordStockMovement
 - Çıkış bakiye azaltıyor, moving average değişmiyor.
 - Negatif stok izinsiz ürün hata veriyor.
 - Eşzamanlı çıkışlarda bakiye tutarlı kalıyor.
+- Daha önce stock_balance/product_cost satırı olmayan üründe iki eşzamanlı ilk hareket unique violation üretmiyor; tek özet/maliyet satırı oluşuyor.
 - `total_cost` BCMath ile doğru.
 - Actor ID + isim snapshot yazılıyor.
 - Post-write verify uyuşmazlıkta transaction rollback ediyor.
