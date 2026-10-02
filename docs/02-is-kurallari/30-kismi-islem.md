@@ -113,3 +113,32 @@ Sevk/fatura oluşturma sırasında kaynak satır ve ilgili rezervler transaction
 - closed siparişte kullanılabilir kalan 0 olmalı.
 
 Fark raporlanır; otomatik düzeltme yapılmaz.
+
+
+## Faz 4 alış kısmi işlemi
+
+K-088'e göre satınalma tarafı aynı source_line ancestry yaklaşımını kullanır.
+
+Purchase order satırı:
+
+```
+ordered = quantity
+cancelled = cancelled_quantity
+received = etkin posted goods_receipt ancestry toplamı
+direct_invoiced = purchase_order'a ulaşan ve zincirde goods_receipt bulunmayan etkin posted purchase_invoice toplamı
+kalan = ordered - cancelled - received - direct_invoiced
+```
+
+Aynı miktar hem direct purchase_invoice hem goods_receipt ile ikinci kez karşılanamaz.
+
+Goods receipt faturalanabilir miktarı:
+
+```
+receipt quantity - etkin posted purchase_invoice child toplamı
+```
+
+Bir goods_receipt birden fazla purchase_invoice'a bölünebilir. Aynı supplier + currency + uyumlu alış koşullarındaki birden fazla goods_receipt tek purchase_invoice'da birleşebilir.
+
+Goods receipt stok etkisiz olsa da fulfillment hesabında gerçek teslim kaydıdır. Purchase invoice stok girişini fatura posting anında üretir.
+
+Faz 4 yarış koşullarında purchase_order/goods_receipt source satırları transaction içinde yeniden okunur ve kilitlenir. `integrity:purchasing` bu miktar zincirini ayrıca doğrular.
