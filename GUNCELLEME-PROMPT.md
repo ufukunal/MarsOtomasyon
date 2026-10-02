@@ -46,7 +46,7 @@ Repo tutarlılık temizliği ve Faz 0–2 görev revizyonu tamamlandı. **Faz 3 
 - K-092…K-097 kilitlidir; açık A kararı yoktur.
 - Veri modeli 36–38, iş kuralları 35–38 ve G-500…G-509 hazırdır.
 - K-075/K-082/K-062/K-078 önceki kaynak kararları korunmuştur.
-- Faz 6 başlangıç kararları K-098…K-112 ile kilitlendi; Faz 6 dokümantasyonu henüz yazılmadı.
+- Faz 6 kararları K-098…K-113 ile kilitlendi; Faz 6 dokümantasyonu başlatıldı.
 
 
 ## 02.10.2026 Faz 6 ön kararları
@@ -61,4 +61,4 @@ Repo tutarlılık temizliği ve Faz 0–2 görev revizyonu tamamlandı. **Faz 3 
 - Kaynaklı iade orijinal frozen fiyat/iskonto/KDV/birim/conversion ve dövizli alışta original frozen kur kullanır.
 - Önceki dönem belge mevcut açık dönemde scalar source snapshot ile iade edilebilir; eski period mutate edilmez.
 - İade doğrudan yetkili kullanıcı tarafından post edilir; neden zorunludur.
-- Faz 6 için yalnız A-036 iade neden kodları açıktır; diğer başlangıç kararları K-098…K-112 ile kilitlidir.
+- Faz 6 kararları K-098…K-113 ile kilitlendi; açık A kararı yoktur.
