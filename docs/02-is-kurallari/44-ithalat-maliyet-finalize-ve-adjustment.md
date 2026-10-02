@@ -45,20 +45,24 @@ Fiziksel quantity değişmez.
 ## Moving average adjustment
 
 K-123 gerçek kaynak: `inventory_cost_adjustments`.
+K-130 maliyet formülünü kilitler.
 
-Kesin olanlar:
+Her import line/product için:
 
-1. product_costs row lockForUpdate alınır,
-2. fiziksel stock quantity değiştirilmez,
-3. ek maliyet amount_base ayrı inventory_cost_adjustment kaydına yazılır,
-4. before/after snapshot saklanır,
-5. stock_movements yazılmaz.
+```
+unit_adjustment = allocated_import_cost / original_import_base_quantity
+moving_average_after = moving_average_before + unit_adjustment
+```
 
-**[KARAR GEREKİYOR — A-053]**
+Kurallar:
 
-Finalize anında kaynak ithalat ürününün bir kısmı veya tamamı satılmış olabilir. Lot/parti takibi olmadığı için mevcut stok içindeki hangi birimlerin bu ithalata ait olduğu bilinmez. Bu nedenle tüm adjustment tutarını current on-hand quantity üzerine bölmek kanonik karar olmadan uygulanmaz.
-
-A-053 kapandığında moving_average_after formülü ve current quantity <= 0 davranışı bu bölüme işlenecektir.
+1. `product_costs` row `lockForUpdate` alınır.
+2. Fiziksel stock quantity değiştirilmez.
+3. Ek maliyet `amount_base` ayrı `inventory_cost_adjustments` kaydına yazılır.
+4. `quantity_basis` kaynak ithalat satırının original `base_quantity` değeridir; current on-hand değildir.
+5. Current stock quantity sıfır veya negatif olsa bile formül uygulanabilir.
+6. Geçmiş sales stock movement unit_cost kayıtları geriye dönük değiştirilmez.
+7. `stock_movements` yazılmaz.
 
 ## Sonradan gelen masraf
 
