@@ -144,4 +144,8 @@ Verilen kararlar ve gerekçeleri. **Kod bu kararlara uyar; kod kararla
 
 ## Açık kararlar
 
-**Yok.** Faz 6 başlangıç kararları K-098…K-112 ile kilitlendi.
+| No | Konu | Netleştirilecek davranış |
+|---|---|---|
+| A-036 | İade neden kodları | K-112 zorunlu kontrollü neden alanını kilitledi; Faz 6'da kullanılacak kanonik neden kodları henüz belirlenmedi. |
+
+Faz 6'nın diğer başlangıç kararları K-098…K-112 ile kilitlidir.
