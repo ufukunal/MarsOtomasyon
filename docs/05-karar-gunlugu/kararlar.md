@@ -170,10 +170,12 @@ Verilen kararlar ve gerekçeleri. **Kod bu kararlara uyar; kod kararla
 | K-128 | Masraf dağıtımındaki yuvarlama farkı deterministik olarak son uygun satıra verilir; toplam dağıtılan tutar masraf toplamına tam eşitlenir. | Dağıtılmamış maliyet bırakılmaz. |
 | K-129 | Faz 7 ilk sürümünde ağırlık/hacim bazlı dağıtım yoktur; ürün kartına bunun için yeni alan eklenmez. | Faz kapsamı korunur; K-115 yöntemleri yeterlidir. |
 
+## 2026-10-02 — Faz 7 ek karar
+
+| No | Karar | Gerekçe / teknik sonuç |
+|---|---|---|
+| K-130 | İthalat ek maliyeti kaynak ithalat miktarına bölünür: `unit_adjustment = additional_cost / original_import_quantity`. Bu birim fark current `moving_average` değerine eklenir. Geçmiş satış maliyetleri geriye dönük değiştirilmez. Mevcut stok quantity sıfır/negatif olsa bile moving_average snapshot bu birim farkla güncellenebilir; fiziksel stok miktarı değişmez. | Lot/parti takibi olmadığı için kalan stok oranı güvenilir biçimde izlenemez. Kaynak ithalat miktarı deterministik maliyet tabanı sağlar. |
+
 ## Açık kararlar
 
-| No | Konu | Netleştirilecek davranış |
-|---|---|---|
-| A-053 | İthalat ek maliyetinin satış görmüş stokta moving average'a yansıması | Import file finalize olduğunda kaynak ithalat miktarının bir kısmı/tamamı satılmış olabilir. Lot/parti olmadığı için hangi mevcut birimlerin ithalat partisine ait olduğu izlenemez. Ek masrafın current moving average'a hangi formülle yansıyacağı ve current quantity <= 0 durumu kilitlenmelidir. |
-
-A-037…A-052, K-114…K-129 ile kapatılmıştır. Faz 7'nin tek açık kararı A-053'tür.
+**Yok.** A-053, K-130 ile kapatıldı. Faz 7 kararları K-114…K-130 ile kilitlidir.
