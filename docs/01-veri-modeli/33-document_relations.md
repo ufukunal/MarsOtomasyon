@@ -59,6 +59,17 @@ Schema::connection('period')->create('document_relations', function (Blueprint $
 
 `payment_source`: source = supplier_payment, target = bilgi amaçlı purchase_invoice. Settlement gerçek kaynağı değildir.
 
+## Faz 6 ilişki tipleri
+
+- `return_source`
+- `return_reversal_of`
+
+Aynı-period kaynaklı iadede `return_source`: source = return document, target = kaynak invoice.
+
+Prior-period kaynak cross-DB olduğu için document_relations satırı oluşturulmaz; `return_sources` scalar snapshot kullanılır.
+
+`return_reversal_of`: source = return reversal, target = original return.
+
 Liste uygulama enum'u ile yönetilir; sonraki fazlar yeni ilişki tipi ekleyebilir.
 
 PostgreSQL bütünlük indeksleri:
@@ -86,6 +97,8 @@ Böylece aynı orijinal belge için ikinci `reversal_of` kaydı DB seviyesinde d
 - `reversal_of`: source = reversal belge, target = orijinal belge.
 - `collection_source`: source = tahsilat, target = bilgi amaçlı kaynak fatura.
 - `payment_source`: source = tedarikçi ödeme, target = bilgi amaçlı kaynak alış faturası.
+- `return_source`: source = aynı-period iade, target = kaynak satış/alış faturası.
+- `return_reversal_of`: source = iade reversal belgesi, target = orijinal iade.
 
 ## Kurallar
 
