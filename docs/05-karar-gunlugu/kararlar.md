@@ -97,17 +97,18 @@ Verilen kararlar ve gerekçeleri. **Kod bu kararlara uyar; kod kararla
 | K-084 | Çok dönemli rapor ilk sürümde period DB'leri ayrı sorgular ve PHP'de birleştirir. Period DB veri olarak Master olmadan okunabilir; uygulama login/yetki/print profile için Master ister. | FDW/dblink ilk sürümde yok. |
 | K-085 | Kart kodu bir kez kullanıldıktan sonra pasifleşse bile başka karta tekrar verilmez. Aynı şirket dönem devrinde taşınan kimlik/kodlar korunur; şirketler arası kopyalamada hedef kimlik ayrı olabilir. | Kod tarihçesi bozulmaz. |
 
+
+## 2026-10-02 — Faz 4 Alış kararları
+
+| No | Karar | Gerekçe / teknik sonuç |
+|---|---|---|
+| K-086 | Faz 4 alış belge ailesi **esnektir**: satınalma talebi → tedarikçi teklifleri → satınalma siparişi → mal kabul/alış irsaliyesi → alış faturası belgeleri vardır; ara adımlar zorunlu değildir. | Kullanıcı ihtiyaca göre doğrudan sonraki uygun belgeyi oluşturabilir; kullanılmayan ara belge yapay olarak üretilmez. |
+| K-087 | **Mal kabul/alış irsaliyesi operasyon kaydıdır; stok ve cari etkisi yoktur.** Stok girişi + tedarikçi cari credit etkisi yalnız alış faturası post edildiğinde oluşur. | Fiziksel kabul kaydı ile finansal/stok posting noktası ayrılır; kullanıcı tercihi gereği stok faturaya kadar artmaz. |
+| K-088 | Alışta **esnek kısmi akış** vardır: sipariş kısmi teslim alınabilir, kalan açık kalabilir veya iptal edilebilir; bir mal kabul birden fazla faturaya bölünebilir, uyumlu birden fazla mal kabul tek faturada birleşebilir. | Kısmi tedarik ve toplu fatura senaryoları desteklenir; miktar kaynağı satır ilişkileridir. |
+| K-089 | **Tedarikçi ödeme akışı Faz 5'tedir.** Faz 4 alış faturası borcu oluşturur; Faz 4'te kasa/banka ödeme posting eylemi yoktur. | Kasa/Banka/Çek-Senet kapsamı Faz 5'te tek yerde kalır. |
+| K-090 | Satınalma teklif toplamada **belge bazlı ve satır bazlı karşılaştırma birlikte desteklenir**; sistem otomatik kazanan/en ucuz teklif seçmez. | Kullanıcı ister tek teklifi, ister satır bazında farklı tedarikçileri seçebilir. |
+| K-091 | Tedarikçi teklif seçimi için **ayrı approval state veya tutar eşiği yoktur**. Yetkili kullanıcı `purchasing.quote.select` izniyle seçimi doğrudan yapar; seçim period audit'e yazılır. | Basit teklif toplama kapsamı korunur; gereksiz onay katmanı eklenmez. |
+
 ## Açık kararlar
 
-A-001…A-008 kapatıldı. K-062…K-085 dahil 01.10.2026 kararları kilitlidir.
-
-Faz 4 Alış başlatıldıktan sonra aşağıdaki karar boşlukları tespit edildi. Bunlar karar verilmiş hüküm değildir; kullanıcı kararı olmadan görevlerde varsayım yapılamaz.
-
-| No | Açık konu | Netleştirilecek davranış |
-|---|---|---|
-| A-009 | **KAPANDI — Esnek belge zinciri** | Satınalma talebi → tedarikçi teklifleri → satınalma siparişi → mal kabul/alış irsaliyesi → alış faturası belgeleri vardır; ara adımlar zorunlu değildir. Kullanıcı doğrudan sonraki uygun belgeyi oluşturabilir. |
-| A-010 | **KAPANDI — Etki yalnız alış faturasında** | Mal kabul/alış irsaliyesi operasyon kaydıdır; stok ve tedarikçi cari etkisi üretmez. Alış faturası post edildiğinde stok girişi ve tedarikçi cari credit hareketi birlikte oluşur. Mal kabul kaynaklı faturada stok etkisi fatura anında ilk kez oluşur. |
-| A-011 | **KAPANDI — Esnek kısmi alış akışı** | Satınalma siparişi kısmi teslim alınabilir; kalan miktar açık kalabilir veya iptal edilebilir. Bir mal kabul birden fazla alış faturasına bölünebilir; aynı tedarikçi + para birimi + uyumlu alış koşullarındaki birden fazla mal kabul tek alış faturasında birleşebilir. |
-| A-012 | **KAPANDI — Ödeme Faz 5'te** | Faz 4 alış faturası tedarikçi borcunu oluşturur; kasa/banka ödeme işlemleri ve çek/senet ödeme akışları Faz 5 Kasa/Banka/Çek-Senet kapsamındadır. Faz 4'te ödeme posting eylemi yoktur. |
-| A-013 | **KAPANDI — Belge + satır bazlı teklif karşılaştırma** | Bir satınalma talebine birden fazla tedarikçi teklifi bağlanabilir. Kullanıcı belge bazında tek teklif seçebilir veya satır bazında farklı tedarikçileri seçebilir. Sistem otomatik kazanan/en ucuz seçimi yapmaz. |
-| A-014 | **KAPANDI — Ayrı onay yok** | Tedarikçi teklif seçimi ayrı approval state gerektirmez. Yetkili kullanıcı `purchasing.quote.select` benzeri izinle belge veya satır bazlı seçimi doğrudan yapar; tutar eşiği yoktur. Seçim period audit'e yazılır. |
+**Yok.** A-009…A-014, K-086…K-091 ile kapatıldı.
