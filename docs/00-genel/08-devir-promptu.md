@@ -133,7 +133,8 @@ Her şirket+yıl ayrı period DB. Kartlar dahil işletme verisi period DB'dedir.
 - İş kuralları 42–44.
 - Ekranlar: ithalat listesi, detay, masraf dağıtımı, late-cost adjustment.
 - G-700…G-709 hazırdır.
-- Tek açık karar A-053'tür; moving-average adjustment edge-case'i kullanıcı kararı bekler.
+- K-130: inventory cost adjustment unit farkı original import base_quantity üzerinden moving_average'a eklenir; current on-hand quantity formül paydası değildir.
+- Açık A kararı yoktur.
 
 ## Dönem devri
 
@@ -149,7 +150,7 @@ Faz 0, 0b, 1, 2 görevleri güncel standalone standarda göre temizlendi. **Faz 
 
 Her görev şu bölümleri içerir: Amaç, Önkoşul, Dokunulacak dosyalar, Şema/Kod, Kurallar, Kabul ölçütü, İstem. Bir görev tek başına yerel modele verilebilir olmalıdır. **Satır sayısı hedef değildir.** 300–500 satır yalnız iş gerçekten o ayrıntıyı gerektiriyorsa doğal sonuç olabilir. Aynı genel checklist, mimari kural veya test maddesini sırf uzunluk için tekrar etmek yasaktır. Kaynaklarda tanımlanmayan alan, tablo, Action, sınıf, iş kuralı veya test beklentisi uydurulmaz. Eksik karar varsa `[KARAR GEREKİYOR]` yazılır ve kullanıcıya seçenek sunulur.
 
-Açık karar A-053'tür: ithalat ek maliyetinin satış görmüş / sıfır-negatif mevcut stokta moving_average'a uygulanma formülü. K-114…K-129 diğer Faz 7 davranışlarını kilitler. A-053'ü kullanıcı kararı olmadan kapatma.
+Açık A kararı yoktur. Faz 7 davranışları K-114…K-130 ile kilitlidir.
 
 
 ## Anti-halüsinasyon görev kuralı
