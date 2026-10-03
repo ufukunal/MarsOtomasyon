@@ -97,7 +97,7 @@ Faz 11 yeni veri modeli dosyası 44; yeni iş kuralı dosyaları 58–61'dir. K-
 
 ## Kodlama öncesi bütünlük taraması — 03.10.2026
 
-Durum: **BLOKAJ VAR — kodlamaya başlanmaz.**
+Durum: **BÜTÜNLÜK BLOKAJI YOK — plan/dokümantasyon tamamlandı. Kodlama bu çalışma kapsamında yapılmıyor.**
 
 Doğrulananlar:
 - K-001…K-256 eksiksiz ve tekrarsız.
@@ -110,9 +110,9 @@ Doğrulananlar:
 - Faz 10 print profile → document template FK migration sözleşmesi netleştirildi.
 - Proje planındaki eski “sonraki faz kullanıcı onayı” ifadeleri temizlendi.
 
-Açık blokajlar:
-- **A-125:** non-stock service purchase invoice satır modeli.
-- **A-126:** fason hizmet maliyetinin kısmi completion'lara dağıtımı.
+Karar kapanışları:
+- **A-125 KAPANDI → K-257:** `document_lines.line_kind=stock|service`; service satırı cari/KDV/toplama girer, stok/moving-average üretmez.
+- **A-126 KAPANDI → K-258:** fason hizmet maliyeti completion `completed_quantity` oranında deterministik dağıtılır; `production_service_allocations` gerçek kayıttır.
 - **A-127 KAPANDI → K-256:** açık sales_order/purchase_order kalan miktarları ve aktif sales-order rezervasyonları yeni period'a aktarılır; teklif/taslak aktarılmaz.
 
-A-125 ve A-126 kapanmadan Faz 4/7/8 ilgili görevler code-ready değildir. Faz 11b A-127 blokajı K-256 ile kapandı.
+Açık ürün kararı yoktur.
