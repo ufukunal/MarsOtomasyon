@@ -78,6 +78,7 @@ it('bir period kaydı diğer period veritabanında görünmez', function () {
 ### 7. Dosya ekleri
 - İzinsiz tür reddedilir
 - Kayıt silinince dosya diskten kalkar
+- Attachment kaydı korunup fiziksel dosya testte kasıtlı eksiltildiğinde `integrity:files` farkı yakalar; integrity komutu otomatik düzeltme yapmaz
 
 ### 8. Yazdırma profili çözümleme
 - Kullanıcı+makine profili varsa o seçilir
