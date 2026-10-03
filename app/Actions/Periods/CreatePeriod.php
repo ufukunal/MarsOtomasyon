@@ -43,7 +43,7 @@ final class CreatePeriod
                 'status' => 'active',
             ]);
 
-            PeriodContext::use($company->id, $period->id);
+            PeriodContext::useSystem($company->id, $period->id);
 
             $exitCode = Artisan::call('migrate', [
                 '--database' => 'period',

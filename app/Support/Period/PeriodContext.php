@@ -6,6 +6,8 @@ use App\Exceptions\NoActivePeriodException;
 use App\Exceptions\PeriodReadOnlyException;
 use App\Models\Period;
 use App\Support\Company\CompanyContext;
+use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 final class PeriodContext
@@ -17,6 +19,22 @@ final class PeriodContext
     private static ?int $year = null;
 
     public static function use(int $companyId, int $periodId): Period
+    {
+        self::assertAuthenticatedUserAccess($companyId, $periodId);
+
+        return self::activate($companyId, $periodId);
+    }
+
+    /**
+     * Güvenilir CLI/job/kurulum akışları için kullanıcı erişim kontrolünü atlar.
+     * HTTP request iş kodu normalde use() kullanmalıdır.
+     */
+    public static function useSystem(int $companyId, int $periodId): Period
+    {
+        return self::activate($companyId, $periodId);
+    }
+
+    private static function activate(int $companyId, int $periodId): Period
     {
         $period = Period::query()
             ->whereKey($periodId)
@@ -101,6 +119,32 @@ final class PeriodContext
                 'active_period_id',
                 'active_year',
             ]);
+        }
+    }
+
+    private static function assertAuthenticatedUserAccess(int $companyId, int $periodId): void
+    {
+        if (app()->runningInConsole() || ! Auth::check()) {
+            return;
+        }
+
+        $userId = Auth::id();
+
+        $companyAllowed = DB::connection('master')
+            ->table('company_user')
+            ->where('company_id', $companyId)
+            ->where('user_id', $userId)
+            ->exists();
+
+        $periodAllowed = DB::connection('master')
+            ->table('period_user_access')
+            ->where('period_id', $periodId)
+            ->where('user_id', $userId)
+            ->where('is_active', true)
+            ->exists();
+
+        if (! $companyAllowed || ! $periodAllowed) {
+            throw new AuthorizationException('Bu şirket/dönem bağlamına erişim izniniz yok.');
         }
     }
 

@@ -7,6 +7,7 @@ use App\Actions\Periods\CreatePeriod;
 use App\Models\Company;
 use App\Models\User;
 use App\Support\Auth\CompanyRoleProvisioner;
+use App\Support\Auth\MutationAuthorizer;
 use App\Support\Period\PeriodContext;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\DB;
@@ -85,16 +86,6 @@ class CompanyWizard extends Component
         try {
             $period = $createPeriod->handle($company, $this->year);
 
-            $saveLocation->handle([
-                'code' => $this->warehouseCode,
-                'name' => $this->warehouseName,
-                'kind' => 'warehouse',
-                'plate' => null,
-                'address' => null,
-                'is_default' => true,
-                'is_active' => true,
-            ]);
-
             foreach (config('numbering.prefixes', []) as $documentType => $prefix) {
                 DB::connection('period')->table('number_series')->updateOrInsert(
                     ['document_type' => $documentType, 'year' => $this->year],
@@ -139,7 +130,19 @@ class CompanyWizard extends Component
                 'last_period_id' => $period->id,
             ])->save();
 
-            PeriodContext::use($company->id, $period->id);
+            PeriodContext::useSystem($company->id, $period->id);
+
+            MutationAuthorizer::runAs($user, function () use ($saveLocation): void {
+                $saveLocation->handle([
+                    'code' => $this->warehouseCode,
+                    'name' => $this->warehouseName,
+                    'kind' => 'warehouse',
+                    'plate' => null,
+                    'address' => null,
+                    'is_default' => true,
+                    'is_active' => true,
+                ]);
+            });
         } catch (\Throwable $exception) {
             PeriodContext::clear();
 
