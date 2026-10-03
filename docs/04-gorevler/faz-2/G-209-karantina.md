@@ -12,7 +12,11 @@ G-202
 
 
 ## Dokunulacak dosyalar
-- `database/migrations/period/`
+- quarantine_entries period migration/model
+- QuarantineControl Livewire + blade
+- ReleaseQuarantine/ScrapQuarantine Action'ları
+- stock_balances.quarantine update helper
+- `tests/Feature/Stock/QuarantineTest.php`
 
 
 ## Şema / Kod
