@@ -9,7 +9,15 @@ G-003, G-005
 
 
 ## Dokunulacak dosyalar
-- Bu görevde tarif edilen mevcut uygulama/migration/test dosyaları; kapsam dışına çıkma.
+- exception handler/render yapılandırması
+- correlation-id middleware
+- logging channel/redaction config
+- health endpoint/controller
+- operational notification sınıfları
+- upload validation rules/service
+- auth/upload/report/webhook rate limiter tanımları
+- sensitive-field masking helper/policy
+- `tests/Feature/Operations/ErrorHealthSecurityTest.php`
 
 
 ## Şema / Kod
@@ -83,6 +91,8 @@ dosya yükleme 30/dk · rapor 10/dk · webhook 120/dk.
 
 
 ## Kurallar
+
+**Faz 11 ilişkisi:** Bu görev minimum uygulama içi health/log/security temelini kurar. G-1106/G-1107 production monitoring, heartbeat, backup freshness ve operasyonel alarm kapsamını bunun üzerine genişletir; ikinci paralel health sistemi kurulmaz.
 
 **Faz bağlamı:** Faz 0 — altyapı.
 
