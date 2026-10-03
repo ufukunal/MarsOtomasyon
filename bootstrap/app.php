@@ -61,7 +61,7 @@ return Application::configure(basePath: dirname(__DIR__))
             ], 422);
         });
 
-        $exceptions->render(function (\Throwable $exception, Request $request) {
+        $exceptions->render(function (Throwable $exception, Request $request) {
             if ($exception instanceof HttpExceptionInterface || config('app.debug')) {
                 return null;
             }
