@@ -212,6 +212,14 @@ Her şirket+yıl ayrı period DB. Kartlar dahil işletme verisi period DB'dedir.
 - G-1112 çok dönem raporu G-1006 ile aynı MultiPeriodQuery çekirdeğini kullanır.
 - Genel muhasebe/GİB/resmi mali tablo kapsam dışıdır.
 
+## Faz 11b ve Faz 11 dokümantasyon sonucu
+
+- Faz 11b: G-1110…G-1113 hazır; carry preview/integrity/multi-period kapsamı günceldir.
+- Açık quarantine taşınır; open production/subcontract order ve in-transit transfer carry blocker'dır.
+- Faz 11: veri modeli 44, iş kuralları 58–61, G-1101…G-1109 hazırdır.
+- K-236…K-255 immutable deploy, backup/restore, health/security ve cutover/rollback davranışlarını kilitler.
+- Tüm planlama/dokümantasyon fazları tamamlandı; bundan sonraki ana çalışma görevlerin uygulanmasıdır.
+
 ## Dönem devri
 
 Aktif kartlar + gerekli pasif kartlar kopyalanır. Taşınan bütün kartların ID/kodları ve taşınan stock_balance ID'leri aynı şirkette korunur. Geçmiş hareketler/belgeler/açık teklif-sipariş/taslak/yoldaki transfer/karantina taşınmaz. Açılış maliyeti kapanış hareketli ortalamasıdır. Devir sonunda kullanıcıya önceki dönem kullanıcı/dönem erişim ve dönemsel yetkilerini yeni döneme seçerek kopyalama sorulur.
@@ -222,11 +230,11 @@ Master company_copy_permissions. Kaynak period_source. Hedef yeni ID; source_com
 
 ## Faz ve görev yöntemi
 
-Faz 0, 0b, 1, 2 görevleri güncel standalone standarda göre temizlendi. **Faz 3 Satış G-300…G-312, Faz 4 Alış G-400…G-409, Faz 5 Finans G-500…G-509, Faz 6 İade G-600…G-609, Faz 7 İthalat G-700…G-709 ve Faz 8 Üretim/fason G-800…G-809 hazırdır.** Faz 8 veri modeli 41, iş kuralları 45–47'dir. Faz 8 davranışları K-131…K-162 ile kilitlidir. Faz 9 kullanıcı onayı olmadan başlatılmaz.
+Faz 0, 0b, 1, 2 görevleri standalone standarda göre temizlendi. **Faz 3–10, Faz 11b ve Faz 11 görev/dokümantasyon setleri hazırdır.** Kodlama/uygulama her fazın gerçek PostgreSQL kabul testlerine bağlıdır.
 
 Her görev şu bölümleri içerir: Amaç, Önkoşul, Dokunulacak dosyalar, Şema/Kod, Kurallar, Kabul ölçütü, İstem. Bir görev tek başına yerel modele verilebilir olmalıdır. **Satır sayısı hedef değildir.** 300–500 satır yalnız iş gerçekten o ayrıntıyı gerektiriyorsa doğal sonuç olabilir. Aynı genel checklist, mimari kural veya test maddesini sırf uzunluk için tekrar etmek yasaktır. Kaynaklarda tanımlanmayan alan, tablo, Action, sınıf, iş kuralı veya test beklentisi uydurulmaz. Eksik karar varsa `[KARAR GEREKİYOR]` yazılır ve kullanıcıya seçenek sunulur.
 
-Açık A kararı yoktur. Faz 7 davranışları K-114…K-130, Faz 8 üretim/fason davranışları K-131…K-162 ile kilitlidir.
+Açık A kararı yoktur. Faz 7 K-114…K-130, Faz 8 K-131…K-162, Faz 9 K-163…K-201, Faz 10 K-202…K-235 ve Faz 11 K-236…K-255 ile kilitlidir.
 
 
 ## Anti-halüsinasyon görev kuralı
