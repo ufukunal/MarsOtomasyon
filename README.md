@@ -17,8 +17,15 @@ Avize toptan ticareti için firmaya özel ERP. Ön muhasebe, cari, kasa/banka/ç
 - PHP 8.3+, Laravel 13, Livewire 3, kendi bileşenlerimiz, düz CSS.
 - PostgreSQL: `MarsProject_Master` + her şirket/yıl için ayrı period DB.
 - Kartlar dahil yıllık işletme verileri period DB'dedir; period tablolarında `company_id` ve şirket global scope'u yoktur.
-- Master: şirket, dönem, kullanıcı, rol/izin, şirket+dönem erişimi, kur, ayar, `company_copy_permissions`, `print_profiles`, master audit.
+- Master: şirket/dönem/kullanıcı/yetki, kur/ayar, `company_copy_permissions`, `print_profiles`, document/report template-preset/export/print operasyon metadata'sı, kanal hesapları + dönemler arası external-event registry, deployment/backup/restore/health metadata ve master audit.
 - Aynı period DB içindeki ilişkiler gerçek FK kullanır; Master kullanıcı gibi cross-DB referanslarda gerçek FK kurulmaz.
 - Dağıtım `migrate:periods` ile tüm period DB'leri günceller.
 
 Repo şu anda şartname/görev deposudur. Kod, görev dosyaları uygulanırken üretilecektir.
+
+
+## Kodlama öncesi durum
+
+Plan/dokümantasyon fazları tamamlandı; ancak **A-125** (non-stock service purchase invoice satır modeli) ve **A-126** (fason hizmet maliyetinin kısmi completion'lara dağıtımı) açık kodlama blokajlarıdır. Bu kararlar kapanmadan Faz 4/7/8'in ilgili görevleri uygulanmaz.
+
+Dönem devrinde K-256 gereği açık `sales_order` ve `purchase_order` yalnız kalan miktarlarıyla yeni period'da yeni confirmed snapshot olarak oluşturulur; aktif satış rezervasyonları location bazında yeniden kurulur. Açık quarantine de taşınır.
