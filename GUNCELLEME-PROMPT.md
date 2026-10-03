@@ -24,7 +24,7 @@ Bu dosya `DEVIR-PROMPT.md`den sonra okunur. Çelişkide bu dosya ve karar günl�
 - v64 korunur; **v65 güncel UI referansıdır.**
 - Faz 4 Alış kararları K-086…K-091 ile kilitlendi; açık A kararı yoktur.
 
-Repo tutarlılık temizliği ve Faz 0–2 görev revizyonu tamamlandı. **Faz 3 Satış, Faz 4 Alış, Faz 5 Finans, Faz 6 İade, Faz 7 İthalat ve Faz 8 Basit üretim/fason dokümantasyonları yazıldı. Faz 8 K-131…K-162 kilitli; veri modeli 41, iş kuralları 45–47, üretim/fason ekranları ve G-800…G-809 hazırdır. Faz 9 kullanıcı onayı olmadan başlatılmaz.**
+Repo tutarlılık temizliği ve Faz 0–2 görev revizyonu tamamlandı. **Faz 3–10 dokümantasyonları, Faz 11b dönem devri ve Faz 11 canlı geçiş dokümantasyonu yazıldı. Açık A kararı yoktur.**
 
 
 ## 02.10.2026 Faz 4 Alış güncellemesi
@@ -180,3 +180,13 @@ Repo tutarlılık temizliği ve Faz 0–2 görev revizyonu tamamlandı. **Faz 3 
 - Belge/etiket template'leri Master DB'de immutable Rev.N; serbest SQL/PHP/Blade yoktur.
 - PrintManager tek giriş noktasıdır; ürün/koli etiketi ve print history/toplu baskı vardır.
 - Genel muhasebe, resmi mali tablo ve GİB/e-belge kapsam dışıdır.
+
+
+## 03.10.2026 Faz 11b ve Faz 11 tamamlanma
+
+- Faz 11b G-1110…G-1113 tamamlandı; açık quarantine carry kuralı Faz 6 ile uyumlu hale getirildi.
+- Production recipe/revision, subcontractor location stock ve channel listing/location mapping carry kapsamına işlendi.
+- Faz 11 K-236…K-255 ile kilitlendi.
+- Veri modeli 44, iş kuralları 58–61, sistem sağlığı/backup/deployment ekranları ve G-1101…G-1109 hazırdır.
+- Production readiness: immutable deploy, Master→migrate:periods, recovery-set backup, restore prova, archive read-only, health/alert, secret/least privilege, cutover/rollback.
+- Tüm planlama/dokümantasyon fazları tamamlandı; kodlama/uygulama kabul testlerine bağlıdır.
