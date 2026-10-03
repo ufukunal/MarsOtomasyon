@@ -17,7 +17,7 @@ Her dosyada şu rubric uygulanmıştır:
 9. PostgreSQL / Money-BCMath / permission / cross-DB sınırları,
 10. Stale isim, alan, karar veya faz-onay metni.
 
-**Sonuç:** 156 dosya denetlendi. 58 görev/özet dosyasında doğrudan kalite düzeltmesi yapıldı; diğer dosyalar mevcut kanonik sözleşmeyle uyumlu bulundu.
+**Sonuç:** 156 dosya denetlendi. **58 görev/özet dosyasında doğrudan kalite düzeltmesi yapıldı**; diğer dosyalar mevcut kanonik sözleşmeyle uyumlu bulundu.
 
 ## Görev bazlı sonuç
 
@@ -25,234 +25,232 @@ Her dosyada şu rubric uygulanmıştır:
 
 | Görev | Durum | Not |
 |---|---|---|
-| G-000-ozet | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-001-proje-iskeleti | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-002-companies-periods | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-003-baglanti-yonetimi | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-004-kopyalama-izni | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-005-kullanici-rol-izin | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-006-numaralandirma | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-007-donem-kilidi | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-008-audit | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-009-attachments | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-010-yazdirma-profilleri | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-011-izolasyon-testleri | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-012-kabuk-ve-tema | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-013-yedekleme | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-014-donem-yonetimi | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-015-giris-ve-kurulum | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-016-onbellek | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-017-veri-butunlugu | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-018-para-ve-eszamanlilik | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-019-arama-altyapisi | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-020-hata-izleme-guvenlik | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-021-cok-veritabanli-migration | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-000 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-001 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-002 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-003 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-004 | **DÜZELTİLDİ** | generic dosya kapsamı somutlaştırıldı |
+| G-005 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-006 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-007 | **DÜZELTİLDİ** | rol sabiti yerine permission modeli |
+| G-008 | **DÜZELTİLDİ** | audit dosya kapsamı somutlaştırıldı |
+| G-009 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-010 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-011 | **DÜZELTİLDİ** | izolasyon test dosyaları somutlaştırıldı |
+| G-012 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-013 | **DÜZELTİLDİ** | Faz 11 backup genişletmesiyle sahiplik sınırı |
+| G-014 | **DÜZELTİLDİ** | period permission + dosya kapsamı |
+| G-015 | **DÜZELTİLDİ** | auth/setup dosya kapsamı |
+| G-016 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-017 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-018 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-019 | **DÜZELTİLDİ** | pg_trgm period DB migration'a taşındı |
+| G-020 | **DÜZELTİLDİ** | Faz 11 health/security sahiplik sınırı |
+| G-021 | **DÜZELTİLDİ** | stale in-place deploy kaldırıldı; yalnız migrate:periods |
 
 ### faz-0b
 
 | Görev | Durum | Not |
 |---|---|---|
-| G-0b0-ozet | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-0b1-tema | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-0b2-tablo-bileseni | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-0b3-form-bilesenleri | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-0b0 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-0b1 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-0b2 | **DÜZELTİLDİ** | DataTable dosya kapsamı somutlaştırıldı |
+| G-0b3 | **DÜZELTİLDİ** | form/lookup dosya kapsamı somutlaştırıldı |
 
 ### faz-1
 
 | Görev | Durum | Not |
 |---|---|---|
-| G-100-ozet | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-101-lokasyonlar | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-102-birimler | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-103-kategori-marka | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-104-cari-karti | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-105-cari-yan-tablolar | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-106-urun-karti | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-107-varyant-gruplari | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-108-set-urun | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-109-konfiguratormatik | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-110-fiyat-listeleri | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-111-sirketler-arasi-kopyalama | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-112-ice-aktarma | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-113-gorsel-setleri | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-114-faz1-testleri | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-115-satinalma-talebi | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-100 | **DÜZELTİLDİ** | G-115 kapsam sahipliği güncellendi |
+| G-101 | **DÜZELTİLDİ** | location dosya kapsamı + Faz 8 subcontractor genişletme sınırı |
+| G-102 | **DÜZELTİLDİ** | unit dosya kapsamı |
+| G-103 | **DÜZELTİLDİ** | category/brand dosya kapsamı |
+| G-104 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-105 | **DÜZELTİLDİ** | contact yan tablo dosya kapsamı |
+| G-106 | **DÜZELTİLDİ** | product dosya kapsamı |
+| G-107 | **DÜZELTİLDİ** | variant dosya kapsamı |
+| G-108 | **DÜZELTİLDİ** | set dosya kapsamı |
+| G-109 | **DÜZELTİLDİ** | configurator dosya kapsamı |
+| G-110 | **DÜZELTİLDİ** | price list dosya kapsamı |
+| G-111 | **DÜZELTİLDİ** | cross-company copy dosya kapsamı |
+| G-112 | **DÜZELTİLDİ** | import dosya kapsamı |
+| G-113 | **DÜZELTİLDİ** | attachment-based görsel set dosya kapsamı |
+| G-114 | **DÜZELTİLDİ** | Faz 1 test dosya kapsamı |
+| G-115 | **DÜZELTİLDİ** | Faz 1 scope taşması kaldırıldı; implementation Faz 4'e bırakıldı |
 
 ### faz-10
 
 | Görev | Durum | Not |
 |---|---|---|
-| G-1000-ozet | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-1001-rapor-cegirdegi | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-1002-rapor-katalogu | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-1003-dashboard | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-1004-export-pdf-xlsx-csv | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-1005-export-queue-gecmis | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-1006-cok-donemli-rapor | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-1007-preset-kolon-drilldown | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-1008-belge-template-revizyon | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-1009-template-token-guvenlik | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-1010-etiket-koli-print | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-1011-print-history-toplu-baski | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-1012-faz10-testleri | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-1000 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-1001 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-1002 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-1003 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-1004 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-1005 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-1006 | **DÜZELTİLDİ** | G-1112 dairesel bağımlılığı kaldırıldı; kanonik implementation sahibi |
+| G-1007 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-1008 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-1009 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-1010 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-1011 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-1012 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
 
 ### faz-11
 
 | Görev | Durum | Not |
 |---|---|---|
-| G-1101-canli-gecis-ozeti | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-1102-production-topoloji | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-1103-deploy-release-migration | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-1104-backup-recovery-set | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-1105-restore-archive-dr | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-1106-health-monitoring-alert | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-1107-production-security-secrets | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-1108-go-live-cutover-rollback | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-1109-canli-kabul-testleri | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-1101 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-1102 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-1103 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-1104 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-1105 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-1106 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-1107 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-1108 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-1109 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
 
 ### faz-11b
 
 | Görev | Durum | Not |
 |---|---|---|
-| G-1100-ozet | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-1110-donem-devri | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-1111-devir-oncesi-kontrol | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-1112-cok-donemli-rapor | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-1113-donem-devri-testleri | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-1100 | **DÜZELTİLDİ** | K-256 açık sipariş carry özeti düzeltildi |
+| G-1110 | **DÜZELTİLDİ** | K-256 channel snapshot + G-1111 sahiplik sınırı |
+| G-1111 | **DÜZELTİLDİ** | duplicate carry motoru riski kaldırıldı; preview genişletmesi |
+| G-1112 | **DÜZELTİLDİ** | copy-paste carry kuralları kaldırıldı; G-1006 reuse entegrasyonu |
+| G-1113 | **DÜZELTİLDİ** | K-256 channel snapshot carry testleri |
 
 ### faz-2
 
 | Görev | Durum | Not |
 |---|---|---|
-| G-200-ozet | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-201-tablolar | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-202-hareket-kaydi | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-203-maliyet | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-204-stok-durumu | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-205-stok-hareketleri | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-206-transfer | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-207-ambar-fisi | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-208-sayim | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-209-karantina | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-210-rezervasyon | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-211-acilis-bakiyesi | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-212-faz2-testleri | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-200 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-201 | **DÜZELTİLDİ** | stok şema/model/test dosya kapsamı |
+| G-202 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-203 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-204 | **DÜZELTİLDİ** | stok durumu ekran dosya kapsamı |
+| G-205 | **DÜZELTİLDİ** | stok hareket ekran dosya kapsamı |
+| G-206 | **DÜZELTİLDİ** | transfer dosya kapsamı |
+| G-207 | **DÜZELTİLDİ** | koli etiketi scope Faz 10'a devredildi; carton tablo uydurma kaldırıldı |
+| G-208 | **DÜZELTİLDİ** | sayım frozen-snapshot fark matematiği düzeltildi |
+| G-209 | **DÜZELTİLDİ** | quarantine_entries gerçek kaynak / summary ayrımı düzeltildi |
+| G-210 | **DÜZELTİLDİ** | rezervasyon dosya kapsamı |
+| G-211 | **DÜZELTİLDİ** | açılış stok dosya kapsamı |
+| G-212 | **DÜZELTİLDİ** | float test literal kaldırıldı; sayım acceptance düzeltildi |
 
 ### faz-3
 
 | Görev | Durum | Not |
 |---|---|---|
-| G-300-ozet | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-301-belge-tablolari | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-302-belge-hesap-motoru | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-303-post-document | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-304-teklif | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-305-satis-siparisi-rezervasyon | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-306-irsaliye-kismi-sevk | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-307-satis-faturasi | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-308-proforma | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-309-tahsilat-cari-yaslandirma | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-310-arac-sicak-satis | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-311-ters-kayit | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-312-faz3-testleri | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-300 | **DÜZELTİLDİ** | stale sonraki-faz onay cümlesi kaldırıldı |
+| G-301 | **DÜZELTİLDİ** | K-257 service line nullable şeması işlendi |
+| G-302 | **DÜZELTİLDİ** | stale fiyat referansı düzeltildi |
+| G-303 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-304 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-305 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-306 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-307 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-308 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-309 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-310 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-311 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-312 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
 
 ### faz-4
 
 | Görev | Durum | Not |
 |---|---|---|
-| G-400-ozet | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-401-alis-belge-cekirdegi | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-402-satinalma-talebi | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-403-tedarikci-teklif-toplama | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-404-satinalma-siparisi | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-405-mal-kabul | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-406-alis-faturasi-posting | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-407-kismi-alis-faturalama | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-408-alis-ters-kayit-ve-butunluk | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-409-faz4-testleri | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-400 | **DÜZELTİLDİ** | K-257 stock/service effect matrix + stale faz onayı |
+| G-401 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-402 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-403 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-404 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-405 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-406 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-407 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-408 | **DÜZELTİLDİ** | mixed/service invoice reverse semantiği |
+| G-409 | **DÜZELTİLDİ** | service-only/mixed purchase invoice testleri |
 
 ### faz-5
 
 | Görev | Durum | Not |
 |---|---|---|
-| G-500-ozet | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-501-finans-sema-genisletmesi | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-502-virman | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-503-tedarikci-odeme | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-504-kasa-sayimi | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-505-banka-mutabakati | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-506-cek-senet-semasi | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-507-cek-senet-yasam-dongusu | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-508-finans-risk-ters-kayit-integrity | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-509-faz5-testleri | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-500 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-501 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-502 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-503 | **DÜZELTİLDİ** | supplier payment currency compatibility açıklaştırıldı |
+| G-504 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-505 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-506 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-507 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-508 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-509 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
 
 ### faz-6
 
 | Görev | Durum | Not |
 |---|---|---|
-| G-600-ozet | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-601-iade-sema-genisletmesi | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-602-iade-kaynak-cozumleme | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-603-satis-iadesi | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-604-alis-iadesi | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-605-kismi-coklu-iade | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-606-karantina-kontrolu | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-607-cross-period-iade | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-608-iade-reverse-integrity | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-609-faz6-testleri | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-600 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-601 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-602 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-603 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-604 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-605 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-606 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-607 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-608 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-609 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
 
 ### faz-7
 
 | Görev | Durum | Not |
 |---|---|---|
-| G-700-ozet | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-701-ithalat-semasi | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-702-ithalat-dosyasi-yasam-dongusu | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-703-kaynak-alis-satirlari | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-704-ithalat-masraflari | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-705-masraf-dagitimi | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-706-ithalat-finalize | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-707-inventory-cost-adjustment | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-708-late-cost-reverse-integrity | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-709-faz7-testleri | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-700 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-701 | **DÜZELTİLDİ** | K-130/K-257 kapsamı + stock source şartı |
+| G-702 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-703 | **DÜZELTİLDİ** | ithal ürün kaynağı yalnız line_kind=stock |
+| G-704 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-705 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-706 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-707 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-708 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-709 | **DÜZELTİLDİ** | K-257 service expense/mixed invoice testleri |
 
 ### faz-8
 
 | Görev | Durum | Not |
 |---|---|---|
-| G-800-ozet | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-801-uretim-fason-semasi | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-802-recete-revizyonlari | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-803-production-order | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-804-production-completion | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-805-production-cost | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-806-fason-location-gonderim | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-807-fason-completion-hizmet | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-808-reverse-integrity-donem | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-809-faz8-testleri | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-800 | **DÜZELTİLDİ** | K-257/K-258 çapraz karar referansı |
+| G-801 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-802 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-803 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-804 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-805 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-806 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-807 | **DÜZELTİLDİ** | K-257 service source + K-258 allocation istemi |
+| G-808 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-809 | **DÜZELTİLDİ** | K-257/K-258 test kapsamı |
 
 ### faz-9
 
 | Görev | Durum | Not |
 |---|---|---|
-| G-900-ozet | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-901-kanal-hesaplari-adapter | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-902-listing-mapping-yayin | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-903-icerik-gorsel-sync | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-904-kanal-stok-sync | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-905-kanal-fiyat-sync | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-906-kanal-siparis-importu | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-907-cancel-return-shipment | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-908-webhook-polling-sync-history | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-909-donem-devri-integrity | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-910-faz9-testleri | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-900 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-901 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-902 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-903 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-904 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-905 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-906 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-907 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-908 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-909 | **DÜZELTİLDİ** | K-256 carried open channel-order snapshot provenance |
+| G-910 | **DÜZELTİLDİ** | K-256 kanal order carry test kapsamı |
 
 ## Görev dışı kanonik düzeltmeler
 
-156 görev taramasında görev dışındaki kanonik kaynaklarda da aşağıdaki teknik tutarlılık düzeltmeleri yapılmıştır:
-
-- `docs/02-is-kurallari/20-migration-ve-dagitim.md`: eski in-place `git pull/down/up` production deploy akışı kaldırıldı; K-239…K-241 / G-1103 immutable-release sözleşmesine bağlandı.
-- `docs/01-veri-modeli/42-ecommerce-channels.md`: K-256 ile taşınan açık kanal sales_order için minimal aktif `channel_order_snapshot` provenance carry istisnası eklendi; eski sync history taşınmaz.
+- `docs/02-is-kurallari/20-migration-ve-dagitim.md`: eski in-place production deploy akışı kaldırıldı; K-239…K-241 / G-1103 immutable-release sözleşmesine bağlandı.
+- `docs/01-veri-modeli/42-ecommerce-channels.md`: K-256 ile taşınan açık kanal sales_order için minimal aktif `channel_order_snapshot` provenance carry istisnası eklendi.
 - `docs/02-is-kurallari/51-kanal-webhook-sync-integrity.md`: aynı K-256 korelasyon kuralı işlendi.
 - `docs/02-is-kurallari/57-donem-devri-kontrol-ve-butunluk.md`: carried open channel order provenance carry kapsamına eklendi.
 
