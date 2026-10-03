@@ -77,7 +77,7 @@ it('integrity files eksik fiziksel dosyayı raporlar ve kaydı değiştirmez', f
     [$company, $period] = $this->createCompanyWithPeriod('INTFILE');
     PeriodContext::useSystem($company->id, $period->id);
 
-    $attachment = Attachment::query()->create([
+    $attachment = Attachment::query()->forceCreate([
         'attachable_type' => Product::class,
         'attachable_id' => 999,
         'disk' => 'attachments',

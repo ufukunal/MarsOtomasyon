@@ -28,9 +28,9 @@ final class PrintManager
         }
 
         $userId = auth()->id();
-        $machineKey = app()->runningInConsole()
-            ? null
-            : request()->cookie('machine_key');
+        $machineKey = app()->bound('request')
+            ? request()->cookie('machine_key')
+            : null;
 
         $base = fn () => PrintProfile::query()
             ->where('company_id', $companyId)

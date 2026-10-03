@@ -28,7 +28,7 @@ class ProcessCardImport implements ShouldQueue
 
     public function handle(ImportFileReader $reader, ImportRowImporterResolver $resolver): void
     {
-        PeriodContext::use($this->companyId, $this->periodId);
+        PeriodContext::useSystem($this->companyId, $this->periodId);
 
         $batch = CardImportBatch::query()->findOrFail($this->batchId);
 
@@ -122,7 +122,7 @@ class ProcessCardImport implements ShouldQueue
                     'success_rows' => count($validRows),
                     'error_rows' => $errorRowCount,
                 ],
-                $batch,
+                null,
                 'card_import_completed',
             );
         } catch (Throwable $exception) {

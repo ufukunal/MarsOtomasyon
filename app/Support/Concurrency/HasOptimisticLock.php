@@ -13,6 +13,13 @@ use Stringable;
  */
 trait HasOptimisticLock
 {
+    public function initializeHasOptimisticLock(): void
+    {
+        if (! array_key_exists('version', $this->attributes)) {
+            $this->attributes['version'] = 1;
+        }
+    }
+
     /**
      * Satırı FOR UPDATE ile kilitleyip güncel version değerini doğrular.
      * Ardından normal Eloquent save lifecycle'ını çalıştırır; böylece

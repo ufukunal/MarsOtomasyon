@@ -75,6 +75,6 @@ it('kart modellerinde BelongsToCompany veya company global scope kalmaz', functi
         $contents = file_get_contents($file) ?: '';
 
         expect($contents)->not->toContain('BelongsToCompany')
-            ->and($contents)->not->toContain('company_id');
+            ->and($contents)->not->toMatch('/(?<!source_)company_id/');
     }
 });

@@ -46,7 +46,7 @@ final class SaveContact
                 'term_days' => $data['term_days'] ?? null,
                 'risk_limit' => bcadd((string) ($data['risk_limit'] ?? '0'), '0', 4),
                 'discount_rate' => bcadd((string) ($data['discount_rate'] ?? '0'), '0', 4),
-                'price_list_id' => $data['price_list_id'] ?: null,
+                'price_list_id' => ($data['price_list_id'] ?? null) ?: null,
                 'is_active' => (bool) ($data['is_active'] ?? true),
             ];
 

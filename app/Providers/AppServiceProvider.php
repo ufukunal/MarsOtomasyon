@@ -32,7 +32,11 @@ class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        //
+        $this->app->booting(function (): void {
+            Gate::before(function ($user, string $ability): ?bool {
+                return PeriodPermissionContext::decision($ability);
+            });
+        });
     }
 
     public function boot(): void
@@ -62,9 +66,6 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('report', fn (Request $request): Limit => Limit::perMinute(10)->by((string) ($request->user()?->getAuthIdentifier() ?? $request->ip())));
 
         RateLimiter::for('webhook', fn (Request $request): Limit => Limit::perMinute(120)->by($request->ip()));
-        Gate::before(function ($user, string $ability): ?bool {
-            return PeriodPermissionContext::decision($ability);
-        });
 
         Gate::policy(Contact::class, ContactPolicy::class);
         Gate::policy(Product::class, ProductPolicy::class);

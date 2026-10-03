@@ -124,8 +124,8 @@ final class PeriodContext
 
     private static function assertAuthenticatedUserAccess(int $companyId, int $periodId): void
     {
-        if (app()->runningInConsole() || ! Auth::check()) {
-            return;
+        if (! Auth::check()) {
+            throw new AuthorizationException('Dönem bağlamı için oturum açmış kullanıcı gereklidir.');
         }
 
         $userId = Auth::id();

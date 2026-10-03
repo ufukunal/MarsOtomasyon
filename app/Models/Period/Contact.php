@@ -12,6 +12,7 @@ use App\Support\Search\HasSearchIndex;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use LogicException;
 use Spatie\Activitylog\Models\Concerns\LogsActivity;
@@ -61,6 +62,26 @@ class Contact extends PeriodModel implements HasAttachmentsContract, SearchIndex
 
     protected static function booted(): void
     {
+        static::creating(function (self $contact): void {
+            if ($contact->getAttribute('code')) {
+                return;
+            }
+
+            $row = DB::connection('period')
+                ->selectOne("SELECT nextval('contact_code_seq')::bigint AS value");
+
+            $next = (int) ($row?->value ?? 0);
+
+            if ($next <= 0) {
+                throw new LogicException('Cari kod sırası üretilemedi.');
+            }
+
+            $contact->setAttribute(
+                'code',
+                'CR'.str_pad((string) $next, 7, '0', STR_PAD_LEFT),
+            );
+        });
+
         static::updating(function (self $contact): void {
             if ($contact->isDirty('code')) {
                 throw new LogicException('Cari kodu kayıt sonrası değiştirilemez.');
