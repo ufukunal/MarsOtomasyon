@@ -108,7 +108,6 @@ Her şirket+yıl ayrı period DB. Kartlar dahil işletme verisi period DB'dedir.
 - Ekranlar: satış iadesi, alış iadesi, karantina kontrolü, kaynak seçimi.
 - G-600…G-609 hazırdır.
 - Açık kararlar A-125 ve A-126'dır. A-127 K-256 ile kapatıldı. A-125/A-126 kapanmadan ilgili Faz 4/7/8 görevlerini kodlama.
-- Faz 7 kullanıcı onayı olmadan başlatılmaz.
 
 ## Faz 7 ithalat kilitleri
 
@@ -163,7 +162,6 @@ Her şirket+yıl ayrı period DB. Kartlar dahil işletme verisi period DB'dedir.
 - Ekranlar: reçeteler, üretim emri, completion, fason üretim.
 - G-800…G-809 hazırdır.
 - K-131…K-162 kilitlidir; açık A kararı yoktur.
-- Faz 9 kullanıcı onayı olmadan başlatılmaz.
 
 ## Faz 9 e-ticaret kilitleri
 
@@ -187,7 +185,6 @@ Her şirket+yıl ayrı period DB. Kartlar dahil işletme verisi period DB'dedir.
 - Ekranlar: kanal hesapları, listing, stok/fiyat önizleme, kanal siparişleri, sync merkezi.
 - G-900…G-910 hazırdır.
 - K-163…K-201 kilitlidir; açık A kararı yoktur.
-- Faz 10 kullanıcı onayı olmadan başlatılmaz.
 
 ## Faz 10 rapor/çıktı kilitleri
 
@@ -215,7 +212,7 @@ Her şirket+yıl ayrı period DB. Kartlar dahil işletme verisi period DB'dedir.
 ## Faz 11b ve Faz 11 dokümantasyon sonucu
 
 - Faz 11b: G-1110…G-1113 hazır; carry preview/integrity/multi-period kapsamı günceldir.
-- Açık quarantine taşınır; open production/subcontract order ve in-transit transfer carry blocker'dır.
+- Açık quarantine taşınır; açık sales_order/purchase_order K-256 ile kalan miktar snapshot'ı olarak target'a aktarılır; open production/subcontract order ve in-transit transfer carry blocker'dır.
 - Faz 11: veri modeli 44, iş kuralları 58–61, G-1101…G-1109 hazırdır.
 - K-236…K-255 immutable deploy, backup/restore, health/security ve cutover/rollback davranışlarını kilitler.
 - Tüm planlama/dokümantasyon fazları tamamlandı; bundan sonraki ana çalışma görevlerin uygulanmasıdır.
@@ -238,7 +235,7 @@ Her şirket+yıl ayrı period DB. Kartlar dahil işletme verisi period DB'dedir.
 
 ## Dönem devri
 
-Aktif kartlar + gerekli pasif kartlar kopyalanır. Taşınan bütün kartların ID/kodları ve taşınan stock_balance ID'leri aynı şirkette korunur. Geçmiş hareketler/belgeler/açık teklif-sipariş/taslak/yoldaki transfer/karantina taşınmaz. Açılış maliyeti kapanış hareketli ortalamasıdır. Devir sonunda kullanıcıya önceki dönem kullanıcı/dönem erişim ve dönemsel yetkilerini yeni döneme seçerek kopyalama sorulur.
+Aktif kartlar + gerekli pasif kartlar kopyalanır. Taşınan bütün kartların ID/kodları ve taşınan stock_balance ID'leri aynı şirkette korunur. Geçmiş hareketler/belgeler, açık teklif/taslak ve yoldaki transfer taşınmaz. Açık quarantine miktar/snapshot ile taşınır. K-256 gereği açık sales_order/purchase_order yalnız kalan miktarlarıyla target period'da yeni confirmed snapshot olarak oluşturulur; sales-order aktif rezervasyonları location bazında yeniden kurulur. Açılış maliyeti kapanış hareketli ortalamasıdır. Devir sonunda kullanıcıya önceki dönem kullanıcı/dönem erişim ve dönemsel yetkilerini yeni döneme seçerek kopyalama sorulur.
 
 ## Şirketler arası kopyalama
 
