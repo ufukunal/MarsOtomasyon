@@ -82,7 +82,7 @@ it('hareketli ortalamayi dogru hesaplar', function () {
 ## Kurallar
 
 ### Göreve özel kararlar
-- Faz 2 kapanışı integrity:stock/costs/reservations/quarantine/units kontrollerinin tümünü gerçek PostgreSQL'de test eder.
+- Faz 2 kapanışı `integrity:stock`, `integrity:costs`, `integrity:reservations`, `integrity:quarantine` ve `integrity:units` kontrollerinin tümünü gerçek PostgreSQL'de test eder.
 - Legacy company_id kolonunu schema taramasıyla reddeder.
 
 
