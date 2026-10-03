@@ -12,6 +12,7 @@ G-804…G-806, Faz 4 purchase_invoice, Faz 7 inventory_cost_adjustments.
 
 - subcontract completion UI/Action
 - production_service_invoices mapping
+- production_service_allocations migration/model
 - service cost allocator
 - late cost adjustment integration
 - fason tests
@@ -24,16 +25,23 @@ Hizmet faturası:
 - supplier=production_order subcontractor
 - production_service_invoices ile production_order bağlantısı
 
+Service allocation:
+
+- K-258 completed_quantity-oranlı dağıtım
+- `production_service_allocations` gerçek kaydı
+- kaynak satır K-257 `line_kind=service`
+- rounding remainder son uygun completion
+
 Late cost:
 
 - inventory_cost_adjustments
 - reason=subcontract_late_cost
-- original completion quantity basis
+- allocation'ın production_completion provenance'ı + original completion quantity basis
 
 ## Kurallar
 
 - Completion fatura olmadan yapılabilir.
-- Posted bağlı hizmet faturası varsa production cost'a dahil.
+- Posted bağlı hizmet faturası varsa yalnız K-258 allocation payı production cost'a dahil.
 - Fason fire mamul maliyetine dahil.
 - Kısmi completion sonrası kalan component subcontractor location'da kalabilir.
 - Late cost physical stock quantity değiştirmez.
@@ -41,7 +49,8 @@ Late cost:
 ## Kabul ölçütü
 
 - Fason location'dan consumption/fire doğru.
-- Hizmet faturası bağlıysa service cost production unit cost'a giriyor.
+- Hizmet faturası bağlıysa quantity-oranlı service allocation production unit cost'a giriyor.
+- Birden fazla completion'da allocation toplamı service line amount_base ile eşleşiyor; rounding farkı son uygun completion'a gidiyor.
 - Fatura yoksa completion mümkün.
 - Sonradan fatura late cost adjustment oluşturuyor.
 - Geçmiş stock movement maliyetleri mutate edilmiyor.
@@ -50,10 +59,3 @@ Late cost:
 ## İstem
 
 > K-151…K-157 fason completion ve service-cost zincirini mevcut purchase_invoice + inventory_cost_adjustments altyapısıyla uygula.
-
-## Kodlama öncesi blokajlar
-
-- **[KARAR GEREKİYOR — A-125]** Hizmet purchase_invoice satır modeli.
-- **[KARAR GEREKİYOR — A-126]** Hizmet bedelinin kısmi completion'lara dağıtım ve allocation gerçek kaydı.
-
-Bu kararlar kapanmadan G-807 service-cost kısmı uygulanmaz.
