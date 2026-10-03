@@ -240,9 +240,22 @@ source = purchase_invoice, target = production_order.
 
 Geç gelen hizmet maliyeti `inventory_cost_adjustments.reason=subcontract_late_cost` ile işlenir.
 
+Faz 8 migration'ı, Faz 7'de oluşturulan `inventory_cost_adjustments` tablosunu production provenance için genişletir:
+
+```php
+Schema::connection('period')->table('inventory_cost_adjustments', function (Blueprint $table) {
+    $table->foreignId('production_completion_id')
+        ->nullable()
+        ->constrained('production_completions')
+        ->restrictOnDelete();
+});
+```
+
+`reason=subcontract_late_cost` kaydında `production_completion_id` zorunludur; import_file/import_file_line alanları null olabilir. Böylece Faz 7 import adjustment ile Faz 8 production adjustment aynı gerçek kaynak tabloda, fakat kaynak provenance'ı açık biçimde ayrılır.
+
 ## Location türü
 
-`locations` Faz 8'de `location_type` alanıyla genişletilir:
+`locations.kind` Faz 8'de `subcontractor` değerini destekleyecek şekilde genişletilir:
 
 - normal
 - vehicle
@@ -254,7 +267,7 @@ Opsiyonel ilişki:
 
 - `subcontractor_contact_id`
 
-yalnız location_type=subcontractor iken doludur.
+yalnız `kind=subcontractor` iken doludur.
 
 ## Dönem devri
 
