@@ -28,6 +28,6 @@ Repo şu anda şartname/görev deposudur. Kodlama bu çalışma kapsamında yap�
 
 Plan/dokümantasyon fazları tamamlandı. A-125 K-257 ile, A-126 K-258 ile, A-127 K-256 ile kapatıldı; açık ürün kararı yoktur. Bu repo şu aşamada dokümantasyon/görev deposudur; kodlama bu çalışma kapsamında yapılmıyor.
 
-156/156 G görev dosyası tek tek kalite denetiminden geçti; 58 görev/özet dosyasında doğrudan kalite düzeltmesi yapıldı. Ayrıntılı rapor: `docs/00-genel/10-gorev-kalite-denetimi.md`.
+156/156 G görev dosyası tek tek kalite denetiminden geçti; 59 görev/özet dosyasında doğrudan kalite düzeltmesi yapıldı. Ayrıntılı rapor: `docs/00-genel/10-gorev-kalite-denetimi.md`.
 
 Dönem devrinde K-256 gereği açık `sales_order` ve `purchase_order` yalnız kalan miktarlarıyla yeni period'da yeni confirmed snapshot olarak oluşturulur; aktif satış rezervasyonları location bazında yeniden kurulur. Açık quarantine de taşınır.
