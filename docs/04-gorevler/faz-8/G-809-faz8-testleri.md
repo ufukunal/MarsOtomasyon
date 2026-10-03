@@ -38,10 +38,10 @@ Yeni production şeması yok.
 - subcontract location transfer
 - sales exclusion of subcontract stock
 - partial subcontract send/return
-- service purchase_invoice relation
+- K-257 service purchase_invoice line source
 - completion before service invoice
 - late subcontract cost adjustment
-- service allocation toplamı/rounding/idempotency
+- K-258 service allocation toplamı/rounding/idempotency
 - reverse
 - rollover recipes/subcontract stock
 - integrity:production
@@ -51,7 +51,7 @@ Yeni production şeması yok.
 
 - Gerçek PostgreSQL; SQLite yok.
 - Beklenen maliyetler production calculator'dan türetilmez.
-- K-131…K-162 ile çelişki yok.
+- K-131…K-162, K-257 ve K-258 ile çelişki yok.
 - Faz 9 e-commerce davranışı eklenmez.
 
 ## Kabul ölçütü
