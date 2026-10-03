@@ -15,32 +15,16 @@ final class SaveProductCategory
             throw ValidationException::withMessages(['parent_id' => 'Kategori kendisinin altına taşınamaz.']);
         }
 
-        if ($parentId) {
-            $parent = ProductCategory::query()->findOrFail($parentId);
-            $depth = 2;
-            $cursor = $parent;
+        $newDepth = $this->proposedDepth($parentId ? (int) $parentId : null, $category);
 
-            while ($cursor) {
-                if ($category && (int) $cursor->id === (int) $category->id) {
-                    throw ValidationException::withMessages([
-                        'parent_id' => 'Kategori kendi alt dalının altına taşınamaz.',
-                    ]);
-                }
+        $subtreeHeight = $category
+            ? $this->subtreeHeight($category)
+            : 1;
 
-                if (! $cursor->parent_id) {
-                    break;
-                }
-
-                $depth++;
-
-                if ($depth > 3) {
-                    throw ValidationException::withMessages([
-                        'parent_id' => 'Kategori ağacı en fazla 3 seviye olabilir.',
-                    ]);
-                }
-
-                $cursor = ProductCategory::query()->findOrFail($cursor->parent_id);
-            }
+        if (($newDepth + $subtreeHeight - 1) > 3) {
+            throw ValidationException::withMessages([
+                'parent_id' => 'Kategori ağacı alt kategoriler dahil en fazla 3 seviye olabilir.',
+            ]);
         }
 
         $attributes = [
@@ -53,5 +37,62 @@ final class SaveProductCategory
         return $category
             ? $category->updateWithVersion($attributes, $expectedVersion ?? (int) $category->version)
             : ProductCategory::query()->create($attributes);
+    }
+
+    private function proposedDepth(?int $parentId, ?ProductCategory $moving): int
+    {
+        if (! $parentId) {
+            return 1;
+        }
+
+        $depth = 2;
+        $visited = [];
+        $cursor = ProductCategory::query()->findOrFail($parentId);
+
+        while ($cursor) {
+            if (isset($visited[$cursor->id])) {
+                throw ValidationException::withMessages([
+                    'parent_id' => 'Kategori ağacında döngü tespit edildi.',
+                ]);
+            }
+
+            $visited[$cursor->id] = true;
+
+            if ($moving && (int) $cursor->id === (int) $moving->id) {
+                throw ValidationException::withMessages([
+                    'parent_id' => 'Kategori kendi alt dalının altına taşınamaz.',
+                ]);
+            }
+
+            if (! $cursor->parent_id) {
+                break;
+            }
+
+            $depth++;
+            $cursor = ProductCategory::query()->findOrFail($cursor->parent_id);
+        }
+
+        return $depth;
+    }
+
+    private function subtreeHeight(ProductCategory $category, array $visited = []): int
+    {
+        if (isset($visited[$category->id])) {
+            throw ValidationException::withMessages([
+                'parent_id' => 'Kategori ağacında döngü tespit edildi.',
+            ]);
+        }
+
+        $visited[$category->id] = true;
+        $maxChildHeight = 0;
+
+        foreach ($category->children()->get() as $child) {
+            $maxChildHeight = max(
+                $maxChildHeight,
+                $this->subtreeHeight($child, $visited),
+            );
+        }
+
+        return 1 + $maxChildHeight;
     }
 }
