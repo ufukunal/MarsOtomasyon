@@ -136,3 +136,7 @@ Commit öncesi:
 - source remaining aşılmamalı.
 
 Farkta transaction rollback.
+
+## Kodlama öncesi blokaj — A-125
+
+**[KARAR GEREKİYOR]** Mevcut etki matrisi tüm purchase_invoice satırlarını stock-in kabul eder. Faturalı navlun/fason hizmet satırının cari/VAT üretip stok/moving-average üretmemesi için A-125 kapanmalıdır. A-125 çözülmeden service purchase invoice posting davranışı uydurulmaz.
