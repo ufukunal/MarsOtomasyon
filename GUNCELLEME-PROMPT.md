@@ -24,7 +24,7 @@ Bu dosya `DEVIR-PROMPT.md`den sonra okunur. Çelişkide bu dosya ve karar günl�
 - v64 korunur; **v65 güncel UI referansıdır.**
 - Faz 4 Alış kararları K-086…K-091 ile kilitlendi; açık A kararı yoktur.
 
-Repo tutarlılık temizliği ve Faz 0–2 görev revizyonu tamamlandı. **Faz 3–10 dokümantasyonları, Faz 11b dönem devri ve Faz 11 canlı geçiş dokümantasyonu yazıldı. Açık A kararı yoktur.**
+Repo tutarlılık temizliği ve Faz 0–2 görev revizyonu tamamlandı. **Faz 3–10 dokümantasyonları, Faz 11b dönem devri ve Faz 11 canlı geçiş dokümantasyonu yazıldı. Açık kararlar A-125, A-126 ve A-127'dir; kodlama öncesi kapatılmalıdır.**
 
 
 ## 02.10.2026 Faz 4 Alış güncellemesi
@@ -94,7 +94,7 @@ Repo tutarlılık temizliği ve Faz 0–2 görev revizyonu tamamlandı. **Faz 3�
 - Bir import file birden fazla purchase invoice/supplier içerebilir.
 - Dağıtım yuvarlama farkı son uygun satıra verilir.
 - Ağırlık/hacim ilk sürümde yoktur.
-- Açık A kararı yoktur.
+- Açık kararlar A-125, A-126 ve A-127'dir; kodlama öncesi kapatılmalıdır.
 
 
 ## 02.10.2026 Faz 7 dokümantasyon durumu
@@ -104,7 +104,7 @@ Repo tutarlılık temizliği ve Faz 0–2 görev revizyonu tamamlandı. **Faz 3�
 - İthalat ekranları ve G-700…G-709 hazırdır.
 - K-114…K-129 kilitlidir.
 - K-130: import cost adjustment birim farkı original import base_quantity üzerinden hesaplanır; current stock quantity payda değildir ve geçmiş satış maliyetleri geriye dönük değiştirilmez.
-- Açık A kararı yoktur.
+- Açık kararlar A-125, A-126 ve A-127'dir; kodlama öncesi kapatılmalıdır.
 
 
 ## 02.10.2026 Faz 8 ön kararları
@@ -190,3 +190,12 @@ Repo tutarlılık temizliği ve Faz 0–2 görev revizyonu tamamlandı. **Faz 3�
 - Veri modeli 44, iş kuralları 58–61, sistem sağlığı/backup/deployment ekranları ve G-1101…G-1109 hazırdır.
 - Production readiness: immutable deploy, Master→migrate:periods, recovery-set backup, restore prova, archive read-only, health/alert, secret/least privilege, cutover/rollback.
 - Tüm planlama/dokümantasyon fazları tamamlandı; kodlama/uygulama kabul testlerine bağlıdır.
+
+
+## 03.10.2026 kodlama öncesi bütünlük taraması
+
+- K-001…K-255 eksiksiz ve tekrarsızdır.
+- 156 G görev dosyasında görev kimliği çakışması yoktur.
+- Teknik düzeltmeler: locations alan adı kind; subcontract late cost production_completion provenance; production_service_invoices mapping; channel_account_period_settings; print template FK migration sözleşmesi; stale faz-onay metinleri.
+- **Açık blokajlar:** A-125 non-stock service purchase invoice; A-126 fason hizmet maliyeti partial completion allocation; A-127 dönem devrinde açık satış/alış belgeleri.
+- A-125…A-127 kapanmadan Faz 4/7/8/11b ilgili görevleri code-ready değildir.
