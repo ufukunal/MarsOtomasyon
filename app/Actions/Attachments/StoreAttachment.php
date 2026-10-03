@@ -16,7 +16,7 @@ final class StoreAttachment
     /**
      * @template TAttachable of PeriodModel
      *
-     * @param  TAttachable&HasAttachmentsContract<TAttachable>  $attachable
+     * @param  TAttachable&HasAttachmentsContract  $attachable
      */
     public function handle(
         PeriodModel&HasAttachmentsContract $attachable,

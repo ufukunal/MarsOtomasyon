@@ -6,11 +6,8 @@ use App\Models\Attachment;
 use App\Models\PeriodModel;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 
-/**
- * @template TModel of PeriodModel
- */
 interface HasAttachments
 {
-    /** @return MorphMany<Attachment, TModel> */
+    /** @return MorphMany<Attachment, covariant PeriodModel> */
     public function attachments(): MorphMany;
 }
