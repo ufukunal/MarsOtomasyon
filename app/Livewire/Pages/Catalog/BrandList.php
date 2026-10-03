@@ -15,7 +15,7 @@ class BrandList extends DataTableComponent
         abort_unless(auth()->user()?->can('brands.view'), 403);
     }
 
-    /** @return list<\App\Livewire\Components\DataTable\Column> */
+    /** @return list<Column> */
     public function columns(): array
     {
         return [

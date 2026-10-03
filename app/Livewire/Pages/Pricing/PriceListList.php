@@ -16,13 +16,13 @@ class PriceListList extends DataTableComponent
         abort_unless(auth()->user()?->can('price_lists.view'), 403);
     }
 
-    /** @return \Illuminate\Database\Eloquent\Builder<\App\Models\Period\PriceList> */
+    /** @return Builder<PriceList> */
     protected function baseQuery(): Builder
     {
         return PriceList::query()->withCount('items');
     }
 
-    /** @return list<\App\Livewire\Components\DataTable\Column> */
+    /** @return list<Column> */
     public function columns(): array
     {
         return [

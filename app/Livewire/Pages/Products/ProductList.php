@@ -3,6 +3,7 @@
 namespace App\Livewire\Pages\Products;
 
 use App\Livewire\Components\DataTable\Column;
+use App\Livewire\Components\DataTable\DateRangeFilter;
 use App\Livewire\Components\DataTable\DataTableComponent;
 use App\Livewire\Components\DataTable\SelectFilter;
 use App\Models\Period\Brand;
@@ -19,13 +20,13 @@ class ProductList extends DataTableComponent
         $this->authorize('viewAny', Product::class);
     }
 
-    /** @return \Illuminate\Database\Eloquent\Builder<\App\Models\Period\Product> */
+    /** @return Builder<Product> */
     protected function baseQuery(): Builder
     {
         return Product::query()->with(['brand', 'category', 'unit']);
     }
 
-    /** @return list<\App\Livewire\Components\DataTable\Column> */
+    /** @return list<Column> */
     public function columns(): array
     {
         return [
@@ -42,7 +43,7 @@ class ProductList extends DataTableComponent
         ];
     }
 
-    /** @return list<\App\Livewire\Components\DataTable\SelectFilter|\App\Livewire\Components\DataTable\DateRangeFilter> */
+    /** @return list<SelectFilter|DateRangeFilter> */
     public function filters(): array
     {
         return [

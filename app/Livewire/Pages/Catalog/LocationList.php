@@ -3,6 +3,7 @@
 namespace App\Livewire\Pages\Catalog;
 
 use App\Livewire\Components\DataTable\Column;
+use App\Livewire\Components\DataTable\DateRangeFilter;
 use App\Livewire\Components\DataTable\DataTableComponent;
 use App\Livewire\Components\DataTable\SelectFilter;
 use App\Models\Period\Location;
@@ -16,7 +17,7 @@ class LocationList extends DataTableComponent
         abort_unless(auth()->user()?->can('locations.view'), 403);
     }
 
-    /** @return list<\App\Livewire\Components\DataTable\Column> */
+    /** @return list<Column> */
     public function columns(): array
     {
         return [
@@ -29,7 +30,7 @@ class LocationList extends DataTableComponent
         ];
     }
 
-    /** @return list<\App\Livewire\Components\DataTable\SelectFilter|\App\Livewire\Components\DataTable\DateRangeFilter> */
+    /** @return list<SelectFilter|DateRangeFilter> */
     public function filters(): array
     {
         return [

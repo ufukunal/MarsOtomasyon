@@ -3,6 +3,7 @@
 namespace App\Livewire\Pages\Contacts;
 
 use App\Livewire\Components\DataTable\Column;
+use App\Livewire\Components\DataTable\DateRangeFilter;
 use App\Livewire\Components\DataTable\DataTableComponent;
 use App\Livewire\Components\DataTable\SelectFilter;
 use App\Models\Period\Contact;
@@ -19,13 +20,13 @@ class ContactList extends DataTableComponent
         $this->authorize('viewAny', Contact::class);
     }
 
-    /** @return \Illuminate\Database\Eloquent\Builder<\App\Models\Period\Contact> */
+    /** @return Builder<Contact> */
     protected function baseQuery(): Builder
     {
         return Contact::query()->with(['people', 'categories']);
     }
 
-    /** @return list<\App\Livewire\Components\DataTable\Column> */
+    /** @return list<Column> */
     public function columns(): array
     {
         return [
@@ -40,7 +41,7 @@ class ContactList extends DataTableComponent
         ];
     }
 
-    /** @return list<\App\Livewire\Components\DataTable\SelectFilter|\App\Livewire\Components\DataTable\DateRangeFilter> */
+    /** @return list<SelectFilter|DateRangeFilter> */
     public function filters(): array
     {
         $categories = ContactCategory::query()
@@ -65,7 +66,7 @@ class ContactList extends DataTableComponent
         ];
     }
 
-    /** @param \Illuminate\Database\Eloquent\Builder<\App\Models\Period\Contact> $query */
+    /** @param Builder<Contact> $query */
     protected function applyFilter(Builder $query, mixed $filter, mixed $value): void
     {
         if ($filter instanceof SelectFilter && $filter->key === 'category_id') {

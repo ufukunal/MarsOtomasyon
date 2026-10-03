@@ -9,6 +9,7 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Collection;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -302,8 +303,8 @@ abstract class DataTableComponent extends Component
         ]);
     }
 
-    /** @return \Illuminate\Support\Collection<int, Column> */
-    private function exportColumns(): \Illuminate\Support\Collection
+    /** @return Collection<int, Column> */
+    private function exportColumns(): Collection
     {
         return collect($this->columns())
             ->reject(fn (Column $column): bool => $this->hiddenColumns[$column->key] ?? false)
