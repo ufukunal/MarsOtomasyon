@@ -9,7 +9,12 @@ G-104, G-106
 
 
 ## Dokunulacak dosyalar
-- Görevde tarif edilen migration/model/action/Livewire/test dosyaları; kapsam dışına çıkma.
+- import wizard Livewire + blade adımları
+- import mapping/validation DTO'ları
+- contact/product importer Action'ları
+- queued import job
+- import result/error report exporter
+- `tests/Feature/Import/ContactProductImportTest.php`
 
 
 ## Şema / Kod
