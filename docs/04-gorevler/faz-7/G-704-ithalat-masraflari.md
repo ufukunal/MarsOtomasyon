@@ -52,3 +52,7 @@ Source:
 ## İstem
 
 > K-116…K-119 import expense kaynaklarını mevcut purchase invoice altyapısını tekrar kullanarak uygula.
+
+## Kodlama öncesi blokaj
+
+**[KARAR GEREKİYOR — A-125]** purchase_invoice kaynaklı import expense'in hangi non-stock service line modelinden geleceği kesinleşmeden faturalı expense kaynağı uygulanmaz.
