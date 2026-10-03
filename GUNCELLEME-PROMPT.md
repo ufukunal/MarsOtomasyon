@@ -187,7 +187,7 @@ Repo tutarlılık temizliği ve Faz 0–2 görev revizyonu tamamlandı. **Faz 3�
 - Faz 11 K-236…K-255 ile kilitlendi.
 - Veri modeli 44, iş kuralları 58–61, sistem sağlığı/backup/deployment ekranları ve G-1101…G-1109 hazırdır.
 - Production readiness: immutable deploy, Master→migrate:periods, recovery-set backup, restore prova, archive read-only, health/alert, secret/least privilege, cutover/rollback.
-- Tüm planlama/dokümantasyon fazları tamamlandı; kodlama/uygulama kabul testlerine bağlıdır.
+- Tüm planlama/dokümantasyon fazları tamamlandı. Kodlama bu çalışma kapsamında yapılmıyor.
 
 
 ## 03.10.2026 kodlama öncesi bütünlük taraması
