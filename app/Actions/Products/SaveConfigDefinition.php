@@ -2,6 +2,7 @@
 
 namespace App\Actions\Products;
 
+use App\Support\Period\PeriodContext;
 use App\Support\Auth\MutationAuthorizer;
 use App\Models\Period\ConfigDefinition;
 use App\Models\Period\ConfigOption;
@@ -19,6 +20,7 @@ final class SaveConfigDefinition
         ?int $expectedVersion = null,
     ): ConfigDefinition {
         MutationAuthorizer::authorize('products.update');
+        PeriodContext::ensureWritable();
         if ((bool) ($data['is_required'] ?? false) && $options === []) {
             throw ValidationException::withMessages([
                 'options' => 'Zorunlu seçim grubunda en az bir seçenek olmalıdır.',

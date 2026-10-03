@@ -2,6 +2,7 @@
 
 namespace App\Actions\Products;
 
+use App\Support\Period\PeriodContext;
 use App\Support\Auth\MutationAuthorizer;
 use App\Models\Period\Product;
 use Illuminate\Support\Facades\DB;
@@ -12,6 +13,7 @@ final class ReorderProductImages
     public function handle(Product $product, string $collection, array $attachmentIds): void
     {
         MutationAuthorizer::authorize('products.update');
+        PeriodContext::ensureWritable();
         $ownedIds = $product->attachments()
             ->where('collection', $collection)
             ->whereIn('id', $attachmentIds)

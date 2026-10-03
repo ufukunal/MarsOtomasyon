@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Products;
 
+use App\Actions\Products\DeleteProductImage;
 use App\Actions\Products\ReorderProductImages;
 use App\Actions\Products\StoreProductImage;
 use App\Models\Period\Product;
@@ -31,7 +32,7 @@ class ProductImages extends Component
         $this->reset('image');
     }
 
-    public function delete(int $attachmentId): void
+    public function delete(int $attachmentId, DeleteProductImage $action): void
     {
         $this->authorize('update', $this->product);
 
@@ -39,7 +40,7 @@ class ProductImages extends Component
             ->whereKey($attachmentId)
             ->firstOrFail();
 
-        $attachment->delete();
+        $action->handle($this->product, $attachment);
     }
 
     public function reorder(array $attachmentIds, ReorderProductImages $action): void

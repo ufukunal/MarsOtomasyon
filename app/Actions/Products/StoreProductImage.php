@@ -2,6 +2,7 @@
 
 namespace App\Actions\Products;
 
+use App\Support\Period\PeriodContext;
 use App\Support\Auth\MutationAuthorizer;
 use App\Actions\Attachments\StoreAttachment;
 use App\Models\Attachment;
@@ -14,6 +15,7 @@ final class StoreProductImage
     public function handle(Product $product, UploadedFile $file, string $collection): Attachment
     {
         MutationAuthorizer::authorize('products.update');
+        PeriodContext::ensureWritable();
         if (! in_array($collection, config('product_images.collections', []), true)) {
             throw ValidationException::withMessages([
                 'collection' => 'Geçersiz görsel seti.',

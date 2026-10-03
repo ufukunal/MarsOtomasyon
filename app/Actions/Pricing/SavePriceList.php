@@ -2,6 +2,7 @@
 
 namespace App\Actions\Pricing;
 
+use App\Support\Period\PeriodContext;
 use App\Support\Auth\MutationAuthorizer;
 use App\Models\Period\PriceList;
 use Illuminate\Support\Facades\DB;
@@ -14,6 +15,7 @@ final class SavePriceList
         ?int $expectedVersion = null,
     ): PriceList {
         MutationAuthorizer::authorize($list ? 'price_lists.update' : 'price_lists.create');
+        PeriodContext::ensureWritable();
         return DB::connection('period')->transaction(function () use ($data, $list, $expectedVersion): PriceList {
             $isFirst = ! PriceList::query()->exists();
             $isDefault = $isFirst ? true : (bool) ($data['is_default'] ?? false);

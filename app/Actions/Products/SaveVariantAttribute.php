@@ -2,6 +2,7 @@
 
 namespace App\Actions\Products;
 
+use App\Support\Period\PeriodContext;
 use App\Models\Period\VariantAttribute;
 use App\Models\Period\VariantGroup;
 use App\Support\Auth\MutationAuthorizer;
@@ -15,6 +16,7 @@ final class SaveVariantAttribute
         ?int $expectedVersion = null,
     ): VariantAttribute {
         MutationAuthorizer::authorize('variant_groups.update');
+        PeriodContext::ensureWritable();
 
         abort_if($attribute && (int) $attribute->variant_group_id !== (int) $group->id, 404);
 

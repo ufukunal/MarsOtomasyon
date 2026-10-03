@@ -2,6 +2,7 @@
 
 namespace App\Actions\Pricing;
 
+use App\Support\Period\PeriodContext;
 use App\Support\Auth\MutationAuthorizer;
 use App\Models\Period\PriceList;
 use Illuminate\Support\Facades\DB;
@@ -12,6 +13,7 @@ final class BulkAdjustPriceList
     public function handle(PriceList $list, string $percent): int
     {
         MutationAuthorizer::authorize('price_lists.update');
+        PeriodContext::ensureWritable();
         $multiplier = bcadd('1', bcdiv($percent, '100', 8), 8);
 
         if (bccomp($multiplier, '0', 8) < 0) {
