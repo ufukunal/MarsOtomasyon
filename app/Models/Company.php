@@ -6,10 +6,13 @@ use App\Models\Concerns\HasOptimisticLock;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use InvalidArgumentException;
 use LogicException;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Company extends MasterModel
 {
     use HasOptimisticLock;
+    use LogsActivity;
 
     protected $fillable = [
         'code',
@@ -55,5 +58,14 @@ class Company extends MasterModel
     public function periods(): HasMany
     {
         return $this->hasMany(Period::class);
+    }
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->useLogName('master')
+            ->logFillable()
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
     }
 }
