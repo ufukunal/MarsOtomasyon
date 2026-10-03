@@ -12,7 +12,11 @@ G-202
 
 
 ## Dokunulacak dosyalar
-- `database/migrations/period/`
+- transfers/transfer_lines period migration'ları
+- Transfer/TransferLine period modelleri
+- transfer list/detail Livewire + blade
+- SendTransfer/ReceiveTransfer/CancelTransfer Action'ları
+- `tests/Feature/Stock/TransferFlowTest.php`
 
 ## Şema / Kod
 ```php
