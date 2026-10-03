@@ -2,30 +2,28 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Period;
+use App\Support\Operations\BackupHealthService;
+use App\Support\Operations\IntegrityHealthService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redis;
-use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 use Throwable;
 
 class HealthController extends Controller
 {
-    public function __invoke(): JsonResponse
-    {
+    public function __invoke(
+        BackupHealthService $backupHealth,
+        IntegrityHealthService $integrityHealth,
+    ): JsonResponse {
         $checks = [
-            'version' => [
-                'ok' => true,
-                'value' => config('app.version', 'dev'),
-            ],
+            'version' => ['ok' => true, 'value' => config('app.version', 'dev')],
             'master' => $this->master(),
-            'period' => $this->period(),
             'valkey' => $this->valkey(),
             'queue_worker' => $this->queueWorker(),
             'failed_jobs' => $this->failedJobs(),
-            'backup' => $this->backup(),
-            'integrity' => $this->integrity(),
+            'backup' => $backupHealth->check(),
+            'integrity' => $integrityHealth->check(),
         ];
 
         $healthy = collect($checks)->every(
@@ -45,52 +43,20 @@ class HealthController extends Controller
 
             return ['ok' => true];
         } catch (Throwable $exception) {
-            return ['ok' => false, 'error' => $exception->getMessage()];
-        }
-    }
+            Log::warning('Health master kontrolü başarısız.', ['exception' => $exception]);
 
-    private function period(): array
-    {
-        $period = Period::query()
-            ->whereIn('status', ['active', 'closed'])
-            ->orderByDesc('year')
-            ->first();
-
-        if (! $period) {
-            return ['ok' => true, 'status' => 'not_configured'];
-        }
-
-        $original = config('database.connections.period.database');
-
-        try {
-            config(['database.connections.period.database' => $period->database_name]);
-            DB::purge('period');
-            DB::connection('period')->select('select 1');
-
-            return [
-                'ok' => true,
-                'database' => $period->database_name,
-            ];
-        } catch (Throwable $exception) {
-            return [
-                'ok' => false,
-                'database' => $period->database_name,
-                'error' => $exception->getMessage(),
-            ];
-        } finally {
-            config(['database.connections.period.database' => $original]);
-            DB::purge('period');
+            return ['ok' => false, 'status' => 'unavailable'];
         }
     }
 
     private function valkey(): array
     {
         try {
-            $pong = Redis::connection('default')->ping();
-
-            return ['ok' => (bool) $pong];
+            return ['ok' => (bool) Redis::connection('default')->ping()];
         } catch (Throwable $exception) {
-            return ['ok' => false, 'error' => $exception->getMessage()];
+            Log::warning('Health Valkey kontrolü başarısız.', ['exception' => $exception]);
+
+            return ['ok' => false, 'status' => 'unavailable'];
         }
     }
 
@@ -107,10 +73,12 @@ class HealthController extends Controller
 
             return [
                 'ok' => $age <= 180,
-                'age_seconds' => $age,
+                'status' => $age <= 180 ? 'fresh' : 'stale',
             ];
         } catch (Throwable $exception) {
-            return ['ok' => false, 'error' => $exception->getMessage()];
+            Log::warning('Health queue kontrolü başarısız.', ['exception' => $exception]);
+
+            return ['ok' => false, 'status' => 'unavailable'];
         }
     }
 
@@ -121,79 +89,12 @@ class HealthController extends Controller
 
             return [
                 'ok' => $count === 0,
-                'count' => $count,
+                'status' => $count === 0 ? 'clear' : 'failed_jobs_present',
             ];
         } catch (Throwable $exception) {
-            return ['ok' => false, 'error' => $exception->getMessage()];
-        }
-    }
+            Log::warning('Health failed_jobs kontrolü başarısız.', ['exception' => $exception]);
 
-    private function backup(): array
-    {
-        try {
-            $files = Storage::disk('backups')->allFiles();
-
-            if ($files === []) {
-                return ['ok' => false, 'status' => 'missing'];
-            }
-
-            $latest = collect($files)
-                ->map(fn (string $file): int => Storage::disk('backups')->lastModified($file))
-                ->max();
-
-            $ageHours = (now()->timestamp - (int) $latest) / 3600;
-
-            return [
-                'ok' => $ageHours <= 36,
-                'age_hours' => round($ageHours, 1),
-            ];
-        } catch (Throwable $exception) {
-            return ['ok' => false, 'error' => $exception->getMessage()];
-        }
-    }
-
-    private function integrity(): array
-    {
-        $period = Period::query()
-            ->where('status', 'active')
-            ->orderByDesc('year')
-            ->first();
-
-        if (! $period) {
-            return ['ok' => true, 'status' => 'not_configured'];
-        }
-
-        $original = config('database.connections.period.database');
-
-        try {
-            config(['database.connections.period.database' => $period->database_name]);
-            DB::purge('period');
-
-            if (! Schema::connection('period')->hasTable('integrity_reports')) {
-                return ['ok' => false, 'status' => 'reports_missing'];
-            }
-
-            $latest = DB::connection('period')
-                ->table('integrity_reports')
-                ->orderByDesc('run_at')
-                ->first();
-
-            if (! $latest) {
-                return ['ok' => false, 'status' => 'never_run'];
-            }
-
-            $ageHours = now()->diffInHours($latest->run_at);
-
-            return [
-                'ok' => $ageHours <= 72 && (int) $latest->mismatch_count === 0,
-                'age_hours' => $ageHours,
-                'mismatch_count' => (int) $latest->mismatch_count,
-            ];
-        } catch (Throwable $exception) {
-            return ['ok' => false, 'error' => $exception->getMessage()];
-        } finally {
-            config(['database.connections.period.database' => $original]);
-            DB::purge('period');
+            return ['ok' => false, 'status' => 'unavailable'];
         }
     }
 }

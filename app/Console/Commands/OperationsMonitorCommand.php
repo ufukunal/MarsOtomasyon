@@ -4,11 +4,12 @@ namespace App\Console\Commands;
 
 use App\Models\User;
 use App\Notifications\OperationalAlert;
+use App\Support\Cache\CacheKey;
+use App\Support\Operations\BackupHealthService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
-use Illuminate\Support\Facades\Storage;
 
 class OperationsMonitorCommand extends Command
 {
@@ -30,18 +31,14 @@ class OperationsMonitorCommand extends Command
             ];
         }
 
-        $files = Storage::disk('backups')->allFiles();
+        $backup = app(BackupHealthService::class)->check();
 
-        if ($files === []) {
-            $alerts[] = ['backup-missing', 'Yedek bulunamadı', 'Yerel backup diskinde yedek bulunamadı.'];
-        } else {
-            $latest = collect($files)
-                ->map(fn (string $file): int => Storage::disk('backups')->lastModified($file))
-                ->max();
-
-            if ((now()->timestamp - (int) $latest) > 36 * 3600) {
-                $alerts[] = ['backup-stale', 'Yedek eski', 'Son yerel yedek 36 saatten daha eski.'];
-            }
+        if (! $backup['ok']) {
+            $alerts[] = [
+                'backup-unhealthy',
+                'Yedek sağlığı bozuk',
+                'Bir veya daha fazla zorunlu yedek hedefi eksik ya da eski.',
+            ];
         }
 
         $total = disk_total_space(base_path());
@@ -60,7 +57,7 @@ class OperationsMonitorCommand extends Command
         }
 
         foreach ($alerts as [$code, $title, $message]) {
-            $lockKey = "g:ops-alert:{$code}";
+            $lockKey = CacheKey::global("ops-alert:{$code}");
 
             if (! Cache::store('redis')->add($lockKey, true, now()->addHours(6))) {
                 continue;
@@ -68,8 +65,10 @@ class OperationsMonitorCommand extends Command
 
             $adminIds = DB::connection('master')
                 ->table('model_has_roles')
-                ->join('roles', 'roles.id', '=', 'model_has_roles.role_id')
-                ->where('roles.name', 'Yönetici')
+                ->join('role_has_permissions', 'role_has_permissions.role_id', '=', 'model_has_roles.role_id')
+                ->join('permissions', 'permissions.id', '=', 'role_has_permissions.permission_id')
+                ->where('permissions.name', 'companies.update')
+                ->where('permissions.guard_name', 'web')
                 ->where('model_has_roles.model_type', User::class)
                 ->pluck('model_has_roles.model_id')
                 ->unique();

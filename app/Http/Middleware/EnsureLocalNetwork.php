@@ -10,9 +10,23 @@ class EnsureLocalNetwork
 {
     public function handle(Request $request, Closure $next): Response
     {
+        abort_unless($this->hasValidToken($request), 403);
         abort_unless($this->isLocal($request->ip()), 403);
 
         return $next($request);
+    }
+
+    private function hasValidToken(Request $request): bool
+    {
+        $configured = (string) config('operations.health.token', '');
+
+        if ($configured === '') {
+            return app()->environment('local', 'testing');
+        }
+
+        $provided = (string) $request->header('X-Health-Token', '');
+
+        return $provided !== '' && hash_equals($configured, $provided);
     }
 
     private function isLocal(?string $ip): bool
