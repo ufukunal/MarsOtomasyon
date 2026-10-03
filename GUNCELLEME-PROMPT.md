@@ -192,12 +192,13 @@ Repo tutarlılık temizliği ve Faz 0–2 görev revizyonu tamamlandı. **Faz 3�
 
 ## 03.10.2026 kodlama öncesi bütünlük taraması
 
-- K-001…K-255 eksiksiz ve tekrarsızdır.
+- K-001…K-258 eksiksiz ve tekrarsızdır.
 - 156 G görev dosyasında görev kimliği çakışması yoktur.
 - Teknik düzeltmeler: locations alan adı kind; subcontract late cost production_completion provenance; production_service_invoices mapping; channel_account_period_settings; print template FK migration sözleşmesi; stale faz-onay metinleri.
-- **Açık blokajlar:** A-125 non-stock service purchase invoice; A-126 fason hizmet maliyeti partial completion allocation.
+- A-125 K-257 ile kapandı: purchase_invoice `stock|service` satırlarını birlikte taşıyabilir; service satır stok/moving-average üretmez.
+- A-126 K-258 ile kapandı: fason hizmet maliyeti completion quantity oranında deterministik allocation kayıtlarına dağıtılır.
 - A-127 K-256 ile kapandı: açık sales_order/purchase_order yalnız kalan miktarlarıyla target period'da yeni confirmed snapshot'a dönüşür; sales-order aktif rezervasyonları location bazında yeniden kurulur; teklif/taslak aktarılmaz.
-- A-125/A-126 kapanmadan Faz 4/7/8 ilgili görevleri code-ready değildir.
+- Açık ürün kararı yoktur.
 
 
 ## 03.10.2026 K-256 dönem devri sipariş kararı
