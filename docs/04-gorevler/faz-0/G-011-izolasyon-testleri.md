@@ -13,7 +13,10 @@ G-002 … G-010
 
 
 ## Dokunulacak dosyalar
-- Bu görev için mevcut metinde tanımlanan uygulama/migration/test dosyaları; kapsam dışı dosyaya dokunma.
+- `tests/Feature/Period/PeriodIsolationTest.php`
+- `tests/Feature/Period/PeriodAccessIsolationTest.php`
+- `tests/Support/CreatesPeriodDatabases.php`
+- Company/Period test factory ve fixture'ları
 
 
 ## Şema / Kod
