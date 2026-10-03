@@ -142,3 +142,23 @@ Bir goods_receipt birden fazla purchase_invoice'a bölünebilir. Aynı supplier 
 Goods receipt stok etkisiz olsa da fulfillment hesabında gerçek teslim kaydıdır. Purchase invoice stok girişini fatura posting anında üretir.
 
 Faz 4 yarış koşullarında purchase_order/goods_receipt source satırları transaction içinde yeniden okunur ve kilitlenir. `integrity:purchasing` bu miktar zincirini ayrıca doğrular.
+
+
+## Dönem devrinde açık sipariş
+
+K-256:
+
+- yalnız `sales_order` ve `purchase_order` taşınır,
+- source period belgesi/satırı değişmez,
+- target order yalnız **kalan açık miktarı** taşır,
+- target quantity yeni başlangıç miktarıdır; `cancelled_quantity=0`,
+- target satır `source_line_id` ile eski period'a bağlanmaz,
+- cross-period provenance `period_document_carries` ve satır scalar snapshot'ından okunur.
+
+Sales order remaining, source period'da mevcut fulfillment formülüyle carry anında hesaplanır.
+
+Purchase order remaining, source period'da mevcut alış fulfillment formülüyle carry anında hesaplanır.
+
+Kalanı 0 olan satır target siparişe eklenmez; tüm satırları 0 kalan sipariş için target document oluşturulmaz.
+
+Aktif sales-order reservation'ları source satırın kalan miktarı içinde location bazında target order satırına yeniden kurulur. Eski period reservation kaydı kopyalanmış business truth değildir; target'ta yeni reservation kaydı oluşur.
