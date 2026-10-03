@@ -6,6 +6,7 @@ use App\Models\Company;
 use App\Models\Period;
 use App\Support\Period\PeriodContext;
 use App\Support\Period\PeriodSchemaVersion;
+use App\Actions\ReferenceData\SeedPeriodReferenceData;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
@@ -53,6 +54,8 @@ final class CreatePeriod
             if ($exitCode !== 0) {
                 throw new RuntimeException("{$dbName} period migration başarısız oldu.");
             }
+
+            app(SeedPeriodReferenceData::class)->handle();
 
             $schemaVersion = app(PeriodSchemaVersion::class)->currentDatabaseVersion();
 

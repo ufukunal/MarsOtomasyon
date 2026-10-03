@@ -17,6 +17,15 @@ final class CompanyRoleProvisioner
         'audit',
         'print_profiles',
         'company_copy_permissions',
+        'locations',
+        'units',
+        'product_categories',
+        'brands',
+        'contacts',
+        'products',
+        'variant_groups',
+        'price_lists',
+        'imports',
     ];
 
     private const ACTIONS = [

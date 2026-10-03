@@ -2,6 +2,15 @@
 
 return [
     [
+        'label' => 'Kartlar',
+        'items' => [
+            ['label' => 'Lokasyonlar', 'route' => 'locations.index', 'permission' => 'locations.view'],
+            ['label' => 'Birimler', 'route' => 'units.index', 'permission' => 'units.view'],
+            ['label' => 'Kategoriler', 'route' => 'categories.index', 'permission' => 'product_categories.view'],
+            ['label' => 'Markalar', 'route' => 'brands.index', 'permission' => 'brands.view'],
+        ],
+    ],
+    [
         'label' => 'Ayarlar',
         'items' => [
             ['label' => 'Şirketler', 'route' => 'settings.companies', 'permission' => 'companies.view'],
