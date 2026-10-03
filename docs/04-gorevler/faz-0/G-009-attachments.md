@@ -76,6 +76,7 @@ trait HasAttachments
 - İzinsiz tür reddedilir
 - Kayıt silinince dosya diskten kalkar
 - Farklı şirketin eki listede görünmez
+- Attachment kaydı fiziksel dosyayı işaretlediği halde dosya diskte yoksa `integrity:files` mismatch raporlar; otomatik dosya/kayıt üretmez.
 
 
 ## İstem
