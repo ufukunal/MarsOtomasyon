@@ -1,0 +1,31 @@
+<?php
+
+namespace App\Actions\Pricing;
+
+use App\Models\Period\PriceList;
+use Illuminate\Support\Facades\DB;
+
+final class BulkAdjustPriceList
+{
+    public function handle(PriceList $list, string $percent): int
+    {
+        $multiplier = bcadd('1', bcdiv($percent, '100', 8), 8);
+        $updated = 0;
+
+        DB::connection('period')->transaction(function () use ($list, $multiplier, &$updated): void {
+            $list->items()
+                ->orderBy('id')
+                ->lockForUpdate()
+                ->get()
+                ->each(function ($item) use ($multiplier, &$updated): void {
+                    $item->updateWithVersion([
+                        'price' => bcmul((string) $item->price, $multiplier, 4),
+                    ], (int) $item->version);
+
+                    $updated++;
+                });
+        });
+
+        return $updated;
+    }
+}

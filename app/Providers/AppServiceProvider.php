@@ -8,6 +8,8 @@ use App\Listeners\AuditLogout;
 use App\Listeners\PrepareBackupSources;
 use App\Models\Attachment;
 use App\Models\Period\Contact;
+use App\Models\Period\Product;
+use App\Policies\ProductPolicy;
 use App\Policies\ContactPolicy;
 use App\Observers\AttachmentObserver;
 use Illuminate\Auth\Events\Failed;
@@ -64,6 +66,7 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('webhook', fn (Request $request): Limit =>
             Limit::perMinute(120)->by($request->ip()));
         Gate::policy(Contact::class, ContactPolicy::class);
+        Gate::policy(Product::class, ProductPolicy::class);
 
         Attachment::observe(AttachmentObserver::class);
 

@@ -54,6 +54,7 @@ final class CompanyRoleProvisioner
             ...$allScreenPermissions,
             'cost.view',
             'periods.reopen',
+            'contacts.sensitive.view',
         ];
 
         foreach ($permissionNames as $permissionName) {
