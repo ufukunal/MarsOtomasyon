@@ -23,7 +23,8 @@ Posting profile:
 
 | tür | hesap | stok | cari | maliyet | cash/bank |
 |---|---|---|---|---|---|
-| purchase_invoice | line_calculated | in/purchase | credit | moving_average | yok |
+| purchase_invoice stock line | line_calculated | in/purchase | credit (document total) | moving_average | yok |
+| purchase_invoice service line | line_calculated | none | credit (document total) | none | yok |
 
 Unit cost:
 
@@ -44,11 +45,15 @@ KDV maliyete girmez.
 - Stok hareketi temel birimde.
 - ±%25 sapma uyarı+audit, blok değil.
 - Ödeme Action'ı yok; Faz 5.
-- Direct invoice ve goods_receipt-source invoice aynı posting etkisini üretir.
+- Direct invoice ve goods_receipt-source invoice stock satırlar için aynı posting etkisini üretir.
+- K-257 service satırı stok/moving-average üretmez; cari/KDV/toplama dahildir.
+- Aynı purchase_invoice stock + service satırlarını birlikte taşıyabilir.
 
 ## Kabul ölçütü
 
-- Direct invoice stock in + supplier credit üretiyor; supplier credit amount frozen kurla şirket temel para birimine çevriliyor.
+- Direct invoice stock satırı stock in + supplier credit üretiyor; supplier credit amount tüm belge grand_total'ının frozen kurla şirket temel para birimi karşılığıdır.
+- Service-only purchase_invoice supplier credit/KDV/toplam üretir fakat stock movement ve moving-average üretmez.
+- Mixed stock+service invoice yalnız stock satırlar için stock movement üretir; service tutarı cari belge toplamına dahildir.
 - Receipt-source invoice ilk stok girişini invoice anında üretiyor.
 - Goods receipt önceden stock yazmadığı için duplicate stock oluşmuyor.
 - Moving average elle hesaplanmış beklenen değerle eşleşiyor.
@@ -60,8 +65,4 @@ KDV maliyete girmez.
 
 ## İstem
 
-> purchase_invoice posting profilini ortak PostDocument zincirine ekle. Stock in, supplier credit ve moving average tek transaction'da olsun; float ve ikinci posting zinciri oluşturma.
-
-## Kodlama öncesi blokaj
-
-**[KARAR GEREKİYOR — A-125]** Non-stock service purchase_invoice satırının posting profili kesinleşmeden G-406 tam code-ready değildir.
+> purchase_invoice posting profilini ortak PostDocument zincirine ekle. K-257 line_kind ayrımını uygula: stock satır stock in + moving average, service satır stock etkisiz; supplier credit belge grand_total üzerinden tek transaction'da olsun. Float ve ikinci posting zinciri oluşturma.
