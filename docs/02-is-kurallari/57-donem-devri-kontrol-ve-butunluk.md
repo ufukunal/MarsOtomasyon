@@ -40,7 +40,7 @@ Açık quarantine blok değildir; yeni döneme taşınır. Açık sales_order/pu
 - production recipe/revision,
 - subcontractor location stock,
 - channel account period settings + channel listing/location mapping,
-- K-256 gereği kalan açık miktarlarıyla sales_order/purchase_order snapshot'ları ve sales-order aktif rezervasyonları,
+- K-256 gereği kalan açık miktarlarıyla sales_order/purchase_order snapshot'ları ve sales-order aktif rezervasyonları; target sipariş target yılın kendi numara serisinden yeni numara alır, source numara `period_document_carries.source_document_number` provenance'ında korunur,
 - taşınan açık sales_order kanal kaynaklıysa gerekli `channel_order_snapshot` aktif provenance kaydı.
 
 ## Taşınmayanlar
@@ -59,5 +59,7 @@ Açık quarantine blok değildir; yeni döneme taşınır. Açık sales_order/pu
 integrity:carry geçmeden:
 - source closed olmaz,
 - target active olarak ilan edilmez.
+
+Explicit ID ile kopyalanan bir tabloda, aynı tabloya normal/auto-ID insert yapılmadan önce sequence `MAX(id)+1` seviyesine alınır; carry sonunda ilgili sequence'ler yeniden doğrulanır.
 
 Başarı sonrası access/permission override kopyalama ayrı kullanıcı adımıdır.
