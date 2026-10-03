@@ -27,6 +27,11 @@ XYZltd_2026
 - report_filter_presets
 - report_export_jobs
 - print_jobs
+- deployment_runs
+- backup_runs
+- restore_runs
+- operational_heartbeats
+- health_check_runs
 - sales_channel_accounts
 - channel_external_event_registry
 - master activity_log
