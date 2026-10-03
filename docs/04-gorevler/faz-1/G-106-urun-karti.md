@@ -12,7 +12,13 @@ G-102 (birimler), G-103 (kategori/marka)
 
 
 ## Dokunulacak dosyalar
-- `database/migrations/period/`
+- `database/migrations/period/*_create_products_table.php`
+- `app/Models/Period/Product.php`
+- `app/Enums/ProductKind.php`
+- ProductList/ProductForm Livewire + blade
+- product policy/code generator
+- fiyat/KDV input normalizer
+- `tests/Feature/Products/ProductCrudTest.php`
 
 ## Şema / Kod
 `docs/01-veri-modeli/11-products.md` içindeki `products` şemasını birebir uygula.
