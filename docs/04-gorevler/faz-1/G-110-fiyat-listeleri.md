@@ -8,7 +8,12 @@
 G-106 (ürün kartı)
 
 ## Dokunulacak dosyalar
-- `database/migrations/period/`
+- price_lists/price_list_items period migration'ları
+- ilgili period modelleri
+- fiyat liste/detail Livewire + blade
+- price resolver + overlap validation
+- toplu yüzde güncelleme Action'ı
+- `tests/Feature/Pricing/PriceListTest.php`
 
 
 ## Şema / Kod
