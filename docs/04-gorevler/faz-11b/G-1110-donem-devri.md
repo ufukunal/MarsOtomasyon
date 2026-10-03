@@ -37,10 +37,12 @@ CarryPeriod::handle(Period $source, int $targetYear, string $idempotencyKey): Ca
 10. product_costs kopyala.
 11. cari açılışlarını ve kasa/banka kapanış bakiyelerini hedefte opening movement olarak yaz; geçmiş `cash_movements` / `bank_movements` satırlarını kopyalama.
 12. vadesi gelmemiş çek/senetleri taşı.
-13. Sequence'leri MAX(id)+1 ayarla.
-14. integrity:carry çalıştır; farkta exception.
-15. Kaynak period'u closed yap ve carry metadata yaz.
-16. Transaction/business aşaması tamamlanınca kullanıcıya yetki devri ekranını aç.
+13. Açık quarantine kayıtlarını source miktar/snapshot ile taşı.
+14. Aktif production recipe/revision kayıtlarını ve channel listing/location mapping'lerini taşı; açık production/subcontract order ve channel order/sync history taşıma.
+15. Sequence'leri MAX(id)+1 ayarla.
+16. integrity:carry çalıştır; farkta exception.
+17. Kaynak period'u closed yap ve carry metadata yaz.
+18. Transaction/business aşaması tamamlanınca kullanıcıya yetki devri ekranını aç.
 
 ### Actor
 Period hareketlerindeki actor alanı Master user scalar id + user_name snapshot; cross-DB FK yok.
@@ -50,7 +52,7 @@ Period hareketlerindeki actor alanı Master user scalar id + user_name snapshot;
 - Taşınan stock_balance kayıtlarının ID'si korunur; stock_movements geçmişi taşınmaz.
 - Sequence'ler kopya sonrası MAX(id)+1 seviyesine alınır.
 - Aktif kartlar ile bakiye/hareket ilişkili gerekli pasif kartlar taşınır.
-- Belgeler, açık teklif/sipariş, taslak, yoldaki transfer, karantina bekleyenler taşınmaz.
+- Belgeler, açık teklif/sipariş, taslak ve yoldaki transfer taşınmaz. **Açık karantina kayıtları miktar/snapshot ile taşınır.**
 - Açılış maliyeti kaynak period kapanış moving average değeridir.
 - product_costs sürekliliği korunur.
 - Cari bakiye contact_transactions toplamından açılış hareketine dönüştürülür.
@@ -70,7 +72,7 @@ Period hareketlerindeki actor alanı Master user scalar id + user_name snapshot;
 ### Uygulama ayrıntıları
 - Hedef period DB oluşturulup `migrate:periods` tamamlanmadan hiçbir kart/açılış kopyalanmaz.
 - Aynı şirket devrinde taşınan bütün kart ID+kodları ve taşınan stock_balance ID'leri korunur; sequence'ler `MAX(id)+1` yapılır.
-- Geçmiş belge/hareket, açık teklif-sipariş, taslak, yoldaki transfer ve karantina bekleyen kayıt taşınmaz.
+- Geçmiş belge/hareket, açık teklif-sipariş, taslak ve yoldaki transfer taşınmaz; **açık karantina kayıtları yeni period'a taşınır.**
 - `integrity:carry` kaynak kapanış ile hedef açılışı doğrulamadan kaynak period closed yapılmaz.
 - Devir başarıyla bittikten sonra kullanıcıya önceki dönem period erişim/permission override kayıtlarını seçerek kopyalama sorulur.
 
@@ -93,7 +95,7 @@ Period hareketlerindeki actor alanı Master user scalar id + user_name snapshot;
 - [ ] Open sales order/quote hedefte yok.
 - [ ] Draft hedefte yok.
 - [ ] In-transit transfer hedefte yok.
-- [ ] Quarantine waiting hedefte yok.
+- [ ] Açık quarantine kayıtları source open quantity/snapshot ile hedefte var.
 - [ ] Contact opening toplamı kaynak bakiye toplamıyla aynı.
 - [ ] Cash/bank opening toplamları aynı.
 - [ ] Unmatured security taşınır.
