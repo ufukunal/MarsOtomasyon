@@ -14,7 +14,7 @@ Laravel 13 + Livewire 3 + kendi bileşenleri + düz CSS; PostgreSQL Master + şi
 
 ## Veri mimarisi
 
-Master yalnız üst bağlam/yetki/ayar/print profile/kopyalama izni. Kartlar ve operasyon period DB'de. Period tablolarda company_id/global scope yok. Aynı period ilişkilerinde gerçek FK; Master actor cross-DB FK yok.
+Master üst bağlam/yetki/ayar/print profile/kopyalama izninin yanında yıl bağımsız document/report template metadata'sı, kanal hesabı/external-event registry ve deployment/backup/health operasyon metadata'sını da tutar. Kartlar ve operasyon period DB'de. Period tablolarda company_id/global scope yok. Aynı period ilişkilerinde gerçek FK; Master actor cross-DB FK yok.
 
 ## İş çekirdeği
 
@@ -33,4 +33,9 @@ Master yalnız üst bağlam/yetki/ayar/print profile/kopyalama izni. Kartlar ve 
 
 ## Dönem
 
-Aynı şirket yıl devrinde kart ve gerekli stok bakiye kimlikleri/kodları korunur. İşlem geçmişi taşınmaz. Devir sonunda kullanıcı period erişim/yetkisi kopyalama sorulur.
+Aynı şirket yıl devrinde kart ve gerekli stok bakiye kimlikleri/kodları korunur. İşlem geçmişi taşınmaz. Açık quarantine taşınır. K-256 gereği açık sales_order/purchase_order yalnız kalan miktarlarıyla target period'da yeni confirmed snapshot olur; sales-order aktif rezervasyonları location bazında yeniden kurulur. Teklif/taslak taşınmaz. Devir sonunda kullanıcı period erişim/yetkisi kopyalama sorulur.
+
+
+## Kodlama blokajı
+
+A-125 ve A-126 kapanmadan Faz 4/7/8'in ilgili purchase/service-cost görevleri code-ready değildir.
