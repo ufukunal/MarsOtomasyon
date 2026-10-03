@@ -6,11 +6,11 @@
 
 ### Master
 
-`companies`, `periods`, `users`, rol/izin tabloları, `company_user`, şirket+dönem erişim kayıtları, `exchange_rates`, `app_settings`, `company_copy_permissions`, `print_profiles`, master `activity_log`.
+`companies`, `periods`, `users`, rol/izin tabloları, `company_user`, şirket+dönem erişim kayıtları, `exchange_rates`, `app_settings`, `company_copy_permissions`, `print_profiles`, `document_templates`, `report_filter_presets`, `report_export_jobs`, `print_jobs`, `sales_channel_accounts`, `channel_external_event_registry`, deployment/backup/restore/health operasyon tabloları ve master `activity_log`.
 
 ### Period
 
-Cari/ürün kartları ve yan tabloları, fiyat listeleri, varyant/set/konfigürasyon, lokasyonlar, kart ekleri, documents/document_lines, stok hareket/bakiyeleri, maliyet, cari hareket, kasa/banka, çek/senet, numara serileri, posting period, rezervasyon, sayım, karantina ve period audit.
+Cari/ürün kartları ve yan tabloları, fiyat listeleri, varyant/set/konfigürasyon, lokasyonlar, kart ekleri, documents/document_lines ve period_document_carries, stok hareket/bakiyeleri, maliyet, cari hareket, kasa/banka, çek/senet, iade/quarantine, ithalat, üretim/fason, e-ticaret listing/order/sync dönem kayıtları, number series, posting period, rezervasyon, sayım ve period audit.
 
 ## İzolasyon ve bağlantı
 
@@ -25,3 +25,8 @@ Stok yalnız `RecordStockMovement` üzerinden yazılır. Belge kesinleştirme tr
 ## Arşiv
 
 Period DB verisi Master olmadan okunabilir. Uygulamada login, erişim kontrolü ve Master'daki yazdırma profilleri için Master gerekir.
+
+
+## Dönem devri özeti
+
+Kartlar ve gerekli stock_balance kimlikleri aynı ID/kodla taşınır. Açık quarantine yeni period'a taşınır. K-256 gereği açık sales_order/purchase_order yalnız kalan miktarlarıyla yeni confirmed snapshot'a dönüşür ve sales-order aktif rezervasyonları location bazında yeniden kurulur. Teklif/taslak, geçmiş hareket/belge, yoldaki transfer ve açık production/subcontract order taşınmaz.
