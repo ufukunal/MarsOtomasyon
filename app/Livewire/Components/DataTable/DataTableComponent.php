@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Components\DataTable;
 
+use App\Support\Formatting\TableValueFormatter;
 use App\Support\Search\SearchNormalizer;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Contracts\View\View;
@@ -119,6 +120,14 @@ abstract class DataTableComponent extends Component
         return $this->query()->paginate($this->perPage);
     }
 
+    public function formattedValue(Model $row, Column $column): string
+    {
+        return TableValueFormatter::format(
+            $column,
+            data_get($row, $column->key),
+        );
+    }
+
     public function sortBy(string $column): void
     {
         $allowed = collect($this->columns())
@@ -188,14 +197,16 @@ abstract class DataTableComponent extends Component
         return response()->streamDownload(function () use ($columns): void {
             $handle = fopen('php://output', 'wb');
 
-            fwrite($handle, "ï»¿");
+            fwrite($handle, "\xEF\xBB\xBF");
             fputcsv($handle, $columns->pluck('label')->all(), ';');
 
             $this->query()->chunkById(500, function ($rows) use ($columns, $handle): void {
                 foreach ($rows as $row) {
                     fputcsv(
                         $handle,
-                        $columns->map(fn (Column $column) => data_get($row, $column->key))->all(),
+                        $columns
+                            ->map(fn (Column $column): string => $this->formattedValue($row, $column))
+                            ->all(),
                         ';',
                     );
                 }

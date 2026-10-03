@@ -3,6 +3,7 @@
 use App\Exceptions\DomainException as MarsDomainException;
 use App\Http\Middleware\CorrelationId;
 use App\Http\Middleware\EnsureLocalNetwork;
+use App\Http\Middleware\SetActiveCompany;
 use App\Http\Middleware\SetActivePeriod;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -28,11 +29,12 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->appendToGroup('web', [
             AuthenticateSession::class,
+            SetActiveCompany::class,
             SetActivePeriod::class,
         ]);
 
-        // Session okunmuş olmalı; period route-model binding'den önce seçilmelidir.
-        $middleware->appendToPriorityList(StartSession::class, SetActivePeriod::class);
+        $middleware->appendToPriorityList(StartSession::class, SetActiveCompany::class);
+        $middleware->appendToPriorityList(SetActiveCompany::class, SetActivePeriod::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->dontReport([

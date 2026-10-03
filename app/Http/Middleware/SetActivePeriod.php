@@ -40,7 +40,7 @@ class SetActivePeriod
         }
 
         if (! $periodId) {
-            return redirect('/period/select');
+            return redirect()->route('period.select');
         }
 
         $hasCompanyAccess = DB::connection('master')
@@ -66,7 +66,7 @@ class SetActivePeriod
             ->firstOrFail();
 
         if ($period->status === 'archived') {
-            return redirect('/period/select')
+            return redirect()->route('period.select')
                 ->with('warning', 'Arşivlenmiş dönem önce geri yüklenmelidir.');
         }
 

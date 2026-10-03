@@ -55,12 +55,7 @@
                     @foreach ($columns as $column)
                         @continue($hiddenColumns[$column->key] ?? false)
                         <td @class(['align-end tabular' => $column->align === 'end'])>
-                            @php($value = data_get($row, $column->key))
-                            @if ($column->money && $value !== null)
-                                {{ \App\Support\Formatting\TrFormatter::money((string) $value) }}
-                            @else
-                                {{ $value }}
-                            @endif
+                            {{ $this->formattedValue($row, $column) }}
                         </td>
                     @endforeach
                 </tr>
