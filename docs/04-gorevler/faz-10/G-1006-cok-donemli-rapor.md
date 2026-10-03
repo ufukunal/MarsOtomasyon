@@ -13,7 +13,7 @@ G-1001, Master period access.
 - multi-db tests
 
 ## Şema / Kod
-G-1112 mevcut sözleşmesi ve iş kuralı 54 birlikte kanoniktir.
+Kanonik implementation sahibi **G-1006**'dır. Veri/iş kuralı kaynağı `docs/02-is-kurallari/54-export-ve-cok-donem.md` ve ortak reporting sözleşmesidir. G-1112 bu altyapıyı daha sonra Faz 11b dönem-devri bağlamında tekrar kurmadan doğrular/kullanır.
 
 ## Kurallar
 - reports.consolidated.
@@ -30,4 +30,4 @@ G-1112 mevcut sözleşmesi ve iş kuralı 54 birlikte kanoniktir.
 - cost.view yine korunuyor.
 
 ## İstem
-> G-1112 sözleşmesini Faz 10 rapor motoruna entegre ederek çok dönemli raporu uygula.
+> MultiPeriodQuery, PeriodRangeSelector ve konsolide rapor entegrasyonunu Faz 10 ortak rapor motorunun kanonik implementation'ı olarak uygula. G-1112'ye bağımlılık oluşturma; G-1112 bu çıktıyı yeniden kullanacaktır.
