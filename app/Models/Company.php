@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use Database\Factories\CompanyFactory;
 use App\Support\Concurrency\HasOptimisticLock;
+use Database\Factories\CompanyFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use InvalidArgumentException;
@@ -15,6 +15,7 @@ class Company extends MasterModel
 {
     /** @use HasFactory<CompanyFactory> */
     use HasFactory;
+
     use HasOptimisticLock;
     use LogsActivity;
 

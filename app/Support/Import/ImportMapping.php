@@ -53,8 +53,8 @@ final class ImportMapping
     }
 
     /**
-     * @param array<string, mixed> $row
-     * @param array<string, string|null> $mapping
+     * @param  array<string, mixed>  $row
+     * @param  array<string, string|null>  $mapping
      * @return array<string, mixed>
      */
     public static function map(array $row, array $mapping): array

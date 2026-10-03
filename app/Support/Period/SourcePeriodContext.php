@@ -8,7 +8,6 @@ use RuntimeException;
 
 final class SourcePeriodContext
 {
-
     public static function use(int $sourceCompanyId): Period
     {
         PeriodContext::ensure();
@@ -34,7 +33,6 @@ final class SourcePeriodContext
 
     public static function clear(): void
     {
-
         config(['database.connections.period_source.database' => null]);
         DB::purge('period_source');
     }

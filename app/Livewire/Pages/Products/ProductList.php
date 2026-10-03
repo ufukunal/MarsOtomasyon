@@ -3,8 +3,8 @@
 namespace App\Livewire\Pages\Products;
 
 use App\Livewire\Components\DataTable\Column;
-use App\Livewire\Components\DataTable\DateRangeFilter;
 use App\Livewire\Components\DataTable\DataTableComponent;
+use App\Livewire\Components\DataTable\DateRangeFilter;
 use App\Livewire\Components\DataTable\SelectFilter;
 use App\Models\Period\Brand;
 use App\Models\Period\Product;
