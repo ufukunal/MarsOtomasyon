@@ -5,6 +5,8 @@ use App\Livewire\Pages\Auth\Login;
 use App\Livewire\Pages\Auth\PeriodSelection;
 use App\Livewire\Pages\Auth\ResetPassword;
 use App\Livewire\Pages\Catalog\BrandList;
+use App\Livewire\Pages\Contacts\ContactForm;
+use App\Livewire\Pages\Contacts\ContactList;
 use App\Livewire\Pages\Catalog\CategoryList;
 use App\Livewire\Pages\Catalog\LocationForm;
 use App\Livewire\Pages\Catalog\LocationList;
@@ -37,6 +39,9 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/kartlar/birimler', UnitList::class)->name('units.index');
     Route::get('/kartlar/kategoriler', CategoryList::class)->name('categories.index');
     Route::get('/kartlar/markalar', BrandList::class)->name('brands.index');
+    Route::get('/kartlar/cariler', ContactList::class)->name('contacts.index');
+    Route::get('/kartlar/cariler/yeni', ContactForm::class)->name('contacts.create');
+    Route::get('/kartlar/cariler/{contact}', ContactForm::class)->name('contacts.edit');
     Route::get('/ayarlar/butunluk', IntegrityReport::class)->name('settings.integrity');
 
     Route::post('/cikis', function () {

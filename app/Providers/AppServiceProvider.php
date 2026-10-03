@@ -7,6 +7,8 @@ use App\Listeners\AuditLogin;
 use App\Listeners\AuditLogout;
 use App\Listeners\PrepareBackupSources;
 use App\Models\Attachment;
+use App\Models\Period\Contact;
+use App\Policies\ContactPolicy;
 use App\Observers\AttachmentObserver;
 use Illuminate\Auth\Events\Failed;
 use Illuminate\Auth\Events\Login;
@@ -17,6 +19,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
@@ -60,6 +63,8 @@ class AppServiceProvider extends ServiceProvider
 
         RateLimiter::for('webhook', fn (Request $request): Limit =>
             Limit::perMinute(120)->by($request->ip()));
+        Gate::policy(Contact::class, ContactPolicy::class);
+
         Attachment::observe(AttachmentObserver::class);
 
         Event::listen(Login::class, AuditLogin::class);

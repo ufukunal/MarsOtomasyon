@@ -62,11 +62,8 @@ abstract class DataTableComponent extends Component
             $searchable = $columns->filter(fn (Column $column): bool => $column->searchable);
 
             if ($searchable->isNotEmpty()) {
-                if ($query->getModel()->isFillable('search_index')
-                    || array_key_exists('search_index', $query->getModel()->getAttributes())) {
-                    foreach (explode(' ', $normalized) as $token) {
-                        $query->where('search_index', 'like', '%'.$token.'%');
-                    }
+                if (method_exists($query->getModel(), 'scopeSearch')) {
+                    $query->search($this->search);
                 } else {
                     $query->where(function (Builder $builder) use ($searchable): void {
                         foreach ($searchable as $column) {

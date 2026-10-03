@@ -8,6 +8,7 @@ return [
             ['label' => 'Birimler', 'route' => 'units.index', 'permission' => 'units.view'],
             ['label' => 'Kategoriler', 'route' => 'categories.index', 'permission' => 'product_categories.view'],
             ['label' => 'Markalar', 'route' => 'brands.index', 'permission' => 'brands.view'],
+            ['label' => 'Cariler', 'route' => 'contacts.index', 'permission' => 'contacts.view'],
         ],
     ],
     [

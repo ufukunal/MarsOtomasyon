@@ -19,7 +19,7 @@ return new class extends Migration
         });
 
         Schema::connection('period')->create('contact_category', function (Blueprint $table): void {
-            $table->foreignId('contact_id')->constrained('contacts')->cascadeOnDelete();
+            $table->foreignId('contact_id')->constrained('contacts')->restrictOnDelete();
             $table->foreignId('contact_category_id')->constrained('contact_categories')->restrictOnDelete();
 
             $table->primary(['contact_id', 'contact_category_id']);
@@ -27,7 +27,7 @@ return new class extends Migration
 
         Schema::connection('period')->create('contact_addresses', function (Blueprint $table): void {
             $table->id();
-            $table->foreignId('contact_id')->constrained('contacts')->cascadeOnDelete();
+            $table->foreignId('contact_id')->constrained('contacts')->restrictOnDelete();
             $table->string('type', 20);
             $table->string('title')->nullable();
             $table->text('address');
@@ -45,7 +45,7 @@ return new class extends Migration
 
         Schema::connection('period')->create('contact_people', function (Blueprint $table): void {
             $table->id();
-            $table->foreignId('contact_id')->constrained('contacts')->cascadeOnDelete();
+            $table->foreignId('contact_id')->constrained('contacts')->restrictOnDelete();
             $table->string('name');
             $table->string('title')->nullable();
             $table->string('phone', 30)->nullable();
@@ -62,7 +62,7 @@ return new class extends Migration
 
         Schema::connection('period')->create('contact_banks', function (Blueprint $table): void {
             $table->id();
-            $table->foreignId('contact_id')->constrained('contacts')->cascadeOnDelete();
+            $table->foreignId('contact_id')->constrained('contacts')->restrictOnDelete();
             $table->string('bank_name')->nullable();
             $table->string('iban', 26);
             $table->boolean('is_default')->default(false);
