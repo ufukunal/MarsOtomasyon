@@ -7,9 +7,9 @@ Bu faz aynı şirketin bir yıldan sonraki yıla fiziksel DB geçişini ve çok 
 | No | Durum | Görev |
 |---|---|---|
 | G-1110 | yazıldı/güncellendi | Dönem devri action + ekran |
-| G-1111 | planlı | Devir öncesi kontrol listesi ayrıntıları |
+| G-1111 | yazıldı/güncellendi | Devir öncesi kontrol listesi |
 | G-1112 | yazıldı/güncellendi | Çok dönemli rapor altyapısı |
-| G-1113 | planlı | Faz 11b bütünlük/eşzamanlılık testleri |
+| G-1113 | yazıldı/güncellendi | Faz 11b bütünlük/eşzamanlılık testleri |
 
 ## Bitiş ölçütü
 
