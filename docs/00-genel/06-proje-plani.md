@@ -85,7 +85,7 @@ Faz 10 yeni veri modeli dosyası 43; yeni iş kuralı dosyaları 52–56'dır. G
 
 G-1110 dönem devri; G-1111 devir öncesi kontrol; G-1112 çok dönemli rapor ortak altyapısı; G-1113 dönem devri bütünleşik testleri.
 
-Açık quarantine taşınır; açık production/subcontract order ve yoldaki transfer carry'yi bloklar. Aktif production recipe/revision, subcontractor location fiziksel stokları ve channel listing/location mapping taşınır. Channel order/sync history ve geçmiş belgeler/hareketler taşınmaz.
+Açık quarantine taşınır; açık sales_order/purchase_order K-256 ile kalan miktar snapshot'ı olarak aktarılır ve satış rezervasyonları yeniden kurulur; açık production/subcontract order ve yoldaki transfer carry'yi bloklar. Aktif production recipe/revision, subcontractor location fiziksel stokları ve channel listing/location mapping taşınır. Channel order/sync history ve geçmiş belgeler/hareketler taşınmaz.
 
 
 ## Faz 11 planı
@@ -113,6 +113,6 @@ Doğrulananlar:
 Açık blokajlar:
 - **A-125:** non-stock service purchase invoice satır modeli.
 - **A-126:** fason hizmet maliyetinin kısmi completion'lara dağıtımı.
-- **A-127:** dönem devrinde açık satış/alış belgelerinin kapanış/taşıma politikası.
+- **A-127 KAPANDI → K-256:** açık sales_order/purchase_order kalan miktarları ve aktif sales-order rezervasyonları yeni period'a aktarılır; teklif/taslak aktarılmaz.
 
-Bu üç karar kapanmadan ilgili görevler code-ready değildir.
+A-125 ve A-126 kapanmadan Faz 4/7/8 ilgili görevler code-ready değildir. Faz 11b A-127 blokajı K-256 ile kapandı.
