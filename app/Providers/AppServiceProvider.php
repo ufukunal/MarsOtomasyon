@@ -12,7 +12,14 @@ use Illuminate\Auth\Events\Failed;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Events\Logout;
 use Illuminate\Console\Events\CommandStarting;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Str;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -24,6 +31,35 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        Model::preventLazyLoading(app()->isLocal());
+
+        DB::listen(function ($query): void {
+            if ($query->time > 100) {
+                Log::warning('Yavaş sorgu', [
+                    'connection' => $query->connectionName,
+                    'sql' => $query->sql,
+                    'duration_ms' => $query->time,
+                ]);
+            }
+        });
+
+        RateLimiter::for('login', function (Request $request): Limit {
+            return Limit::perMinute(5)->by(
+                Str::lower((string) $request->input('email')).'|'.$request->ip(),
+            );
+        });
+
+        RateLimiter::for('password-reset', fn (Request $request): Limit =>
+            Limit::perHour(3)->by($request->ip()));
+
+        RateLimiter::for('upload', fn (Request $request): Limit =>
+            Limit::perMinute(30)->by((string) ($request->user()?->getAuthIdentifier() ?? $request->ip())));
+
+        RateLimiter::for('report', fn (Request $request): Limit =>
+            Limit::perMinute(10)->by((string) ($request->user()?->getAuthIdentifier() ?? $request->ip())));
+
+        RateLimiter::for('webhook', fn (Request $request): Limit =>
+            Limit::perMinute(120)->by($request->ip()));
         Attachment::observe(AttachmentObserver::class);
 
         Event::listen(Login::class, AuditLogin::class);

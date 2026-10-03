@@ -6,9 +6,14 @@ use App\Livewire\Pages\Auth\PeriodSelection;
 use App\Livewire\Pages\Auth\ResetPassword;
 use App\Livewire\Pages\Settings\IntegrityReport;
 use App\Livewire\Pages\Settings\Periods;
+use App\Http\Controllers\HealthController;
 use App\Livewire\Pages\Setup\CompanyWizard;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+
+Route::get('/saglik', HealthController::class)
+    ->middleware('local.network')
+    ->name('health');
 
 Route::view('/', 'welcome')->middleware('auth')->name('home');
 

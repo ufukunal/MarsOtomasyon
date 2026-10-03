@@ -2,8 +2,6 @@
 
 namespace App\Exceptions;
 
-use RuntimeException;
-
-class IdempotencyInProgressException extends RuntimeException
+class IdempotencyInProgressException extends DomainException
 {
 }

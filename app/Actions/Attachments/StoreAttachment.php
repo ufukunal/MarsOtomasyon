@@ -6,8 +6,8 @@ use App\Models\Attachment;
 use App\Models\PeriodModel;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use App\Support\Security\SecureUploadValidator;
 use Illuminate\Support\Str;
-use Illuminate\Validation\ValidationException;
 use RuntimeException;
 
 final class StoreAttachment
@@ -18,28 +18,10 @@ final class StoreAttachment
         ?string $collection = null,
         int $sortOrder = 0,
     ): Attachment {
-        $mime = (string) $file->getMimeType();
-        $allowed = config("attachments.mime_extensions.{$mime}");
-
-        if (! is_array($allowed) || $allowed === []) {
-            throw ValidationException::withMessages([
-                'file' => 'Dosya türüne izin verilmiyor.',
-            ]);
-        }
-
-        if (($file->getSize() ?: 0) > (int) config('attachments.max_size')) {
-            throw ValidationException::withMessages([
-                'file' => 'Dosya boyutu 25 MB sınırını aşıyor.',
-            ]);
-        }
-
-        $originalExtension = Str::lower($file->getClientOriginalExtension());
-
-        if ($originalExtension === 'svg' || ! in_array($originalExtension, $allowed, true)) {
-            throw ValidationException::withMessages([
-                'file' => 'Dosya uzantısı içerik türüyle uyumlu değil.',
-            ]);
-        }
+        $validated = app(SecureUploadValidator::class)->validate($file);
+        $mime = $validated['mime'];
+        $originalExtension = $validated['extension'];
+        $size = $validated['size'];
 
         $disk = (string) config('attachments.disk', 'attachments');
         $directory = now()->format('Y/m');
@@ -63,7 +45,7 @@ final class StoreAttachment
                 'path' => $stored,
                 'original_name' => $file->getClientOriginalName(),
                 'mime' => $mime,
-                'size' => (int) ($file->getSize() ?: 0),
+                'size' => $size,
                 'collection' => $collection,
                 'sort_order' => $sortOrder,
                 'uploaded_by' => $actor?->getAuthIdentifier(),

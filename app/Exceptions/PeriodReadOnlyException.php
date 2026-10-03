@@ -2,8 +2,6 @@
 
 namespace App\Exceptions;
 
-use RuntimeException;
-
-class PeriodReadOnlyException extends RuntimeException
+class PeriodReadOnlyException extends DomainException
 {
 }

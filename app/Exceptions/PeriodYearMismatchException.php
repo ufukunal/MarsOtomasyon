@@ -2,8 +2,6 @@
 
 namespace App\Exceptions;
 
-use RuntimeException;
-
-class PeriodYearMismatchException extends RuntimeException
+class PeriodYearMismatchException extends DomainException
 {
 }
