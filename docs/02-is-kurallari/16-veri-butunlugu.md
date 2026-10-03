@@ -15,6 +15,7 @@ Sistem stok/cari/kasanın tek kaydıdır. Bütünlük dört katmanda korunur: DB
 - `integrity:partials`: ordered/shipped/invoiced/cancelled sınırları
 - `integrity:files`
 - `integrity:carry`
+- Faz 10: `integrity:report-presets`, `integrity:templates`, `integrity:print-provenance`
 - ileriki fazlarda cash, securities, landed_cost, production, channels
 
 Kart-belge referansları artık aynı period DB'de gerçek FK ile korunur. Eski “master kart referansını integrity:references ile ara” yaklaşımı geçersizdir.
