@@ -11,6 +11,7 @@ G-901, Faz 3 sales_order, Master event registry.
 ## Dokunulacak dosyalar
 
 - channel_external_event_registry migration/model
+- channel_account_period_settings migration/model
 - channel_order_snapshots migration/model
 - ImportChannelOrder Action
 - marketplace customer resolver
@@ -34,6 +35,7 @@ Imported sales_order:
 ## Kurallar
 
 - Contact gerçek buyer için çoğaltılmaz.
+- Channel account için period-level marketplace customer mapping `channel_account_period_settings` üzerinden çözülür.
 - Collection/cash-bank yok.
 - Payout/commission yok.
 - Production-mode ürün Faz 8 draft production order entegrasyonunu tetikleyebilir.
