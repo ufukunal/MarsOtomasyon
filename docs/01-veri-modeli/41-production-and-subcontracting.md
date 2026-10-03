@@ -228,15 +228,33 @@ Schema::connection('period')->create('production_outputs', function (Blueprint $
 SUM(production_outputs.quantity) = production_completions.completed_quantity
 ```
 
-## Fason hizmet ilişkisi
+## Fason hizmet faturası ilişkisi
 
-Normal purchase_invoice kullanılır.
+Normal purchase_invoice kullanılır; fakat `production_orders` bir `documents` kaydı olmadığı için bu bağ `document_relations` üzerinden kurulamaz.
 
-Yeni relation type:
+```php
+Schema::connection('period')->create('production_service_invoices', function (Blueprint $table) {
+    $table->id();
 
-- `subcontract_service_source`
+    $table->foreignId('production_order_id')
+        ->constrained('production_orders')
+        ->cascadeOnDelete();
 
-source = purchase_invoice, target = production_order.
+    $table->foreignId('purchase_invoice_id')
+        ->constrained('documents')
+        ->restrictOnDelete();
+
+    $table->timestamps();
+
+    $table->unique(['production_order_id','purchase_invoice_id']);
+});
+```
+
+Kurallar:
+
+- `purchase_invoice_id` gerçekten posted `document_type=purchase_invoice` olmalıdır.
+- supplier, production_order.subcontractor_contact_id ile uyumlu olmalıdır.
+- Aynı hizmet faturası birden fazla production order'a bağlanacaksa maliyet paylaştırma davranışı ayrıca açıkça tanımlanmalıdır; sessiz tam tutar tekrar kullanımı yasaktır.
 
 Geç gelen hizmet maliyeti `inventory_cost_adjustments.reason=subcontract_late_cost` ile işlenir.
 
