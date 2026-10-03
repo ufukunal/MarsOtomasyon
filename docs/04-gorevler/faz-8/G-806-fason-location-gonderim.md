@@ -19,7 +19,7 @@ G-801, stok transfer altyapısı.
 
 Subcontractor location:
 
-- location_type=subcontractor
+- kind=subcontractor
 - subcontractor_contact_id zorunlu
 
 Gönderim normal stok transfer semantiğidir.
