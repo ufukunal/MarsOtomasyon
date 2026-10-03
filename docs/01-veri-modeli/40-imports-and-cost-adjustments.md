@@ -87,6 +87,11 @@ Schema::connection('period')->create('import_expenses', function (Blueprint $tab
         ->constrained('documents')
         ->restrictOnDelete();
 
+    $table->foreignId('source_document_line_id')
+        ->nullable()
+        ->constrained('document_lines')
+        ->restrictOnDelete();
+
     $table->char('currency', 3);
     $table->decimal('exchange_rate', 18, 6);
     $table->decimal('amount', 18, 4);
@@ -109,6 +114,8 @@ Schema::connection('period')->create('import_expenses', function (Blueprint $tab
 Kurallar:
 
 - purchase_invoice kaynaklı expense kendi document frozen currency/exchange_rate değerini kullanır.
+- K-257 gereği faturalı navlun/sigorta/müşavirlik vb. expense mümkün olduğunda `line_kind=service` olan `source_document_line_id` ile satır seviyesinde bağlanır; amount bu service satırın frozen net tutarıdır.
+- Mixed stock+service purchase_invoice'da stok ürün satırları expense amount'a dahil edilmez.
 - manual expense için currency/exchange_rate snapshot girilir.
 - `other` ise description zorunlu.
 - indirilebilir ithalat KDV'si `is_inventory_cost=false` olmalıdır.
@@ -218,6 +225,7 @@ K-124:
 - amount_base >= 0
 - allocation_method in purchase_value|quantity|manual
 - source_type in purchase_invoice|manual
+- source_type=purchase_invoice ise source_document_id zorunlu; service-line kaynak kullanılıyorsa source_document_line_id aynı document'a ait posted purchase_invoice `line_kind=service` satırı olmalı
 - import file finalized ise lines/expenses immutable
 - inventory-cost expenses tam dağıtılmış olmalı
 - purchase_invoice_line tek import file'a bağlı olmalı
