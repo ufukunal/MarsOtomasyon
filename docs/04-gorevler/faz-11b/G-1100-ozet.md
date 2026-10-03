@@ -18,7 +18,7 @@ Bu faz aynı şirketin bir yıldan sonraki yıla fiziksel DB geçişini ve çok 
 - [ ] Taşınan stock_balance ID'leri korunuyor
 - [ ] Sequence'ler MAX(id)+1 yapılıyor
 - [ ] Geçmiş stock_movements/documents taşınmıyor
-- [ ] Açık teklif/sipariş/taslak/yoldaki transfer/karantina taşınmıyor
+- [ ] Açık teklif/sipariş/taslak/yoldaki transfer taşınmıyor; **açık karantina kayıtları taşınıyor**
 - [ ] Açılış maliyeti kaynak kapanış moving average
 - [ ] product_costs taşınıyor
 - [ ] cash_accounts/bank_accounts kart ID+kodları korunuyor
@@ -27,5 +27,6 @@ Bu faz aynı şirketin bir yıldan sonraki yıla fiziksel DB geçişini ve çok 
 - [ ] integrity:carry farkta devri tamamlatmıyor
 - [ ] kaynak period closed oluyor
 - [ ] devir sonunda önceki dönem kullanıcı erişim/override'larını seçerek kopyalama soruluyor
+- [ ] production recipe/revision ve channel listing/location mapping taşınıyor; açık production/subcontract order taşınmıyor
 - [ ] çok dönemli sorgu her DB'yi ayrı sorgulayıp PHP'de birleştiriyor
 - [ ] sorgu sonunda aktif PeriodContext geri yükleniyor
