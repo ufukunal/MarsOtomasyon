@@ -10,7 +10,11 @@ G-003
 
 
 ## Dokunulacak dosyalar
-- Bu görev için mevcut metinde tanımlanan uygulama/migration/test dosyaları; kapsam dışı dosyaya dokunma.
+- `database/migrations/master/*_create_company_copy_permissions_table.php`
+- `app/Models/CompanyCopyPermission.php`
+- `app/Enums/CompanyCopyPermissionType.php`
+- `app/Actions/Companies/CheckCompanyCopyPermission.php`
+- `tests/Feature/Companies/CompanyCopyPermissionTest.php`
 
 ## Şema / Kod
 ```php
