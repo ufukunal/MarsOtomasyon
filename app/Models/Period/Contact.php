@@ -61,6 +61,10 @@ class Contact extends PeriodModel
                 throw new LogicException('Cari kodu kayıt sonrası değiştirilemez.');
             }
         });
+
+        static::deleting(function (): never {
+            throw new LogicException('Cari kartı fiziksel olarak silinemez; pasife alınmalıdır.');
+        });
     }
 
     public function searchableFields(): array
