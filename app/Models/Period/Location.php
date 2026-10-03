@@ -10,6 +10,7 @@ use App\Support\Search\HasSearchIndex;
 
 /**
  * @implements SearchIndexed<Location>
+ *
  * @property LocationKind $kind
  */
 class Location extends PeriodModel implements SearchIndexed
