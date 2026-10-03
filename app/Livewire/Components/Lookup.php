@@ -5,6 +5,7 @@ namespace App\Livewire\Components;
 use App\Models\PeriodModel;
 use App\Support\Period\PeriodContext;
 use Illuminate\Contracts\View\View;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Livewire\Attributes\Modelable;
 use Livewire\Component;
@@ -23,6 +24,9 @@ class Lookup extends Component
     public int|string|null $value = null;
 
     public array $results = [];
+    public array $detailedResults = [];
+    public int $highlighted = -1;
+    public bool $detailedOpen = false;
 
     public function mount(): void
     {
@@ -33,19 +37,13 @@ class Lookup extends Component
 
     public function updatedQuery(): void
     {
-        $this->results = $this->search()->limit(20)->get()
-            ->map(fn (Model $row) => [
-                'id' => $row->getKey(),
-                'code' => data_get($row, $this->codeField),
-                'label' => data_get($row, $this->labelField),
-            ])
-            ->all();
+        $this->results = $this->resultArray($this->search()->limit(20)->get());
+        $this->highlighted = $this->results === [] ? -1 : 0;
     }
 
     public function chooseExact(): void
     {
-        $builder = ($this->model)::query()
-            ->where($this->codeField, $this->query);
+        $builder = ($this->model)::query()->where($this->codeField, $this->query);
 
         if ($this->barcodeField) {
             $builder->orWhere($this->barcodeField, $this->query);
@@ -55,11 +53,45 @@ class Lookup extends Component
 
         if ($exact) {
             $this->select($exact->getKey());
+            return;
+        }
 
+        $this->chooseHighlighted();
+    }
+
+    public function chooseHighlighted(): void
+    {
+        if ($this->highlighted >= 0 && isset($this->results[$this->highlighted])) {
+            $this->select($this->results[$this->highlighted]['id']);
             return;
         }
 
         $this->updatedQuery();
+    }
+
+    public function moveHighlight(int $delta): void
+    {
+        $count = count($this->results);
+
+        if ($count === 0) {
+            $this->highlighted = -1;
+            return;
+        }
+
+        $this->highlighted = ($this->highlighted + $delta + $count) % $count;
+    }
+
+    public function closeResults(): void
+    {
+        $this->results = [];
+        $this->highlighted = -1;
+        $this->detailedOpen = false;
+    }
+
+    public function openDetailed(): void
+    {
+        $this->detailedResults = $this->resultArray($this->search()->limit(100)->get());
+        $this->detailedOpen = true;
     }
 
     public function select(int|string $id): void
@@ -68,12 +100,12 @@ class Lookup extends Component
 
         $this->value = $model->getKey();
         $this->query = (string) data_get($model, $this->labelField);
-        $this->results = [];
+        $this->closeResults();
 
         $this->dispatch('lookup-selected', id: $model->getKey());
     }
 
-    private function search()
+    private function search(): Builder
     {
         $builder = ($this->model)::query();
 
@@ -89,6 +121,15 @@ class Lookup extends Component
             $query->where($this->codeField, 'ilike', '%'.$this->query.'%')
                 ->orWhere($this->labelField, 'ilike', '%'.$this->query.'%');
         });
+    }
+
+    private function resultArray($rows): array
+    {
+        return $rows->map(fn (Model $row) => [
+            'id' => $row->getKey(),
+            'code' => (string) data_get($row, $this->codeField),
+            'label' => (string) data_get($row, $this->labelField),
+        ])->all();
     }
 
     public function render(): View

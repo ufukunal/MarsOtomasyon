@@ -27,8 +27,8 @@
                         <h2>{{ $group['label'] }}</h2>
                         @foreach ($visibleItems as $item)
                             <a
-                                href="{{ IlluminateSupportFacadesRoute::has($item['route']) ? route($item['route']) : '#' }}"
-                                @class(['nav-link', 'is-disabled' => ! IlluminateSupportFacadesRoute::has($item['route'])])
+                                href="{{ \Illuminate\Support\Facades\Route::has($item['route']) ? route($item['route']) : '#' }}"
+                                @class(['nav-link', 'is-disabled' => ! \Illuminate\Support\Facades\Route::has($item['route'])])
                             >
                                 {{ $item['label'] }}
                             </a>
@@ -48,7 +48,7 @@
         <div class="topbar-context">
             @auth
                 <livewire:shell.company-switcher />
-                @if (class_exists(AppLivewireComponentsPeriodSwitcher::class))
+                @if (class_exists(\App\Livewire\Components\PeriodSwitcher::class))
                     <livewire:components.period-switcher />
                 @endif
                 <span class="user-name">{{ auth()->user()->name }}</span>

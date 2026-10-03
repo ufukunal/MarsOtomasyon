@@ -11,6 +11,8 @@ use Illuminate\Database\Eloquent\Model;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 abstract class DataTableComponent extends Component
@@ -30,21 +32,38 @@ abstract class DataTableComponent extends Component
     public string $direction = 'asc';
 
     public int $perPage = 25;
-
-    /** @var array<string, mixed> */
     public array $filterValues = [];
-
-    /** @var array<int, int|string> */
     public array $selected = [];
-
-    /** @var array<string, bool> */
     public array $hiddenColumns = [];
 
     abstract public function columns(): array;
 
+    public function boot(): void
+    {
+        if ($this->hiddenColumns === [] && app()->bound('session')) {
+            $stored = session($this->columnSessionKey(), []);
+            $this->hiddenColumns = is_array($stored) ? $stored : [];
+        }
+    }
+
     public function filters(): array
     {
         return [];
+    }
+
+    public function rowActions(): array
+    {
+        return [];
+    }
+
+    public function bulkActions(): array
+    {
+        return [];
+    }
+
+    public function emptyAction(): ?array
+    {
+        return null;
     }
 
     protected function baseQuery(): Builder
@@ -56,7 +75,6 @@ abstract class DataTableComponent extends Component
     {
         $query = $this->baseQuery();
         $columns = collect($this->columns());
-
         $normalized = SearchNormalizer::make($this->search);
 
         if ($normalized !== '') {
@@ -99,17 +117,10 @@ abstract class DataTableComponent extends Component
 
         $sortColumn = $columns->first(
             fn (Column $column): bool => $column->key === $this->sort && $column->sortable
-        );
-
-        if (! $sortColumn) {
-            $sortColumn = $columns->first(fn (Column $column): bool => $column->sortable);
-        }
+        ) ?? $columns->first(fn (Column $column): bool => $column->sortable);
 
         if ($sortColumn) {
-            $query->orderBy(
-                $sortColumn->key,
-                $this->direction === 'desc' ? 'desc' : 'asc',
-            );
+            $query->orderBy($sortColumn->key, $this->direction === 'desc' ? 'desc' : 'asc');
         }
 
         return $query;
@@ -122,10 +133,7 @@ abstract class DataTableComponent extends Component
 
     public function formattedValue(Model $row, Column $column): string
     {
-        return TableValueFormatter::format(
-            $column,
-            data_get($row, $column->key),
-        );
+        return TableValueFormatter::format($column, data_get($row, $column->key));
     }
 
     public function sortBy(string $column): void
@@ -158,20 +166,19 @@ abstract class DataTableComponent extends Component
     public function setPerPage(int $perPage): void
     {
         abort_unless(in_array($perPage, [25, 50, 100], true), 422);
-
         $this->perPage = $perPage;
         $this->resetPage();
     }
 
     public function toggleColumn(string $column): void
     {
-        $exists = collect($this->columns())->contains(
-            fn (Column $item): bool => $item->key === $column
+        abort_unless(
+            collect($this->columns())->contains(fn (Column $item): bool => $item->key === $column),
+            422,
         );
 
-        abort_unless($exists, 422);
-
         $this->hiddenColumns[$column] = ! ($this->hiddenColumns[$column] ?? false);
+        session([$this->columnSessionKey() => $this->hiddenColumns]);
     }
 
     public function selectVisible(): void
@@ -187,33 +194,75 @@ abstract class DataTableComponent extends Component
         $this->selected = [];
     }
 
+    public function runRowAction(string $method, int|string $id): mixed
+    {
+        $allowed = collect($this->rowActions())->contains(
+            fn (array $action): bool => ($action['method'] ?? null) === $method
+        );
+
+        abort_unless($allowed && method_exists($this, $method), 422);
+
+        return $this->{$method}($id);
+    }
+
+    public function runBulkAction(string $method): mixed
+    {
+        $allowed = collect($this->bulkActions())->contains(
+            fn (array $action): bool => ($action['method'] ?? null) === $method
+        );
+
+        abort_unless($allowed && method_exists($this, $method), 422);
+
+        return $this->{$method}();
+    }
+
     public function exportCsv(): StreamedResponse
     {
+        $columns = $this->exportColumns();
         $filename = class_basename($this->model).'-'.now()->format('Ymd-His').'.csv';
-        $columns = collect($this->columns())
-            ->reject(fn (Column $column): bool => $this->hiddenColumns[$column->key] ?? false)
-            ->values();
 
         return response()->streamDownload(function () use ($columns): void {
             $handle = fopen('php://output', 'wb');
-
             fwrite($handle, "\xEF\xBB\xBF");
             fputcsv($handle, $columns->pluck('label')->all(), ';');
 
             $this->query()->chunkById(500, function ($rows) use ($columns, $handle): void {
                 foreach ($rows as $row) {
-                    fputcsv(
-                        $handle,
-                        $columns
-                            ->map(fn (Column $column): string => $this->formattedValue($row, $column))
-                            ->all(),
-                        ';',
-                    );
+                    fputcsv($handle, $columns->map(
+                        fn (Column $column): string => $this->formattedValue($row, $column)
+                    )->all(), ';');
                 }
             });
 
             fclose($handle);
         }, $filename, ['Content-Type' => 'text/csv; charset=UTF-8']);
+    }
+
+    public function exportXlsx(): StreamedResponse
+    {
+        $columns = $this->exportColumns();
+        $filename = class_basename($this->model).'-'.now()->format('Ymd-His').'.xlsx';
+
+        return response()->streamDownload(function () use ($columns): void {
+            $spreadsheet = new Spreadsheet();
+            $sheet = $spreadsheet->getActiveSheet();
+            $sheet->fromArray($columns->pluck('label')->all(), null, 'A1');
+            $line = 2;
+
+            $this->query()->chunkById(500, function ($rows) use ($columns, $sheet, &$line): void {
+                foreach ($rows as $row) {
+                    $sheet->fromArray($columns->map(
+                        fn (Column $column): string => $this->formattedValue($row, $column)
+                    )->all(), null, 'A'.$line);
+                    $line++;
+                }
+            });
+
+            (new Xlsx($spreadsheet))->save('php://output');
+            $spreadsheet->disconnectWorksheets();
+        }, $filename, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ]);
     }
 
     public function render(): View
@@ -222,6 +271,21 @@ abstract class DataTableComponent extends Component
             'rows' => $this->rows(),
             'columns' => $this->columns(),
             'filters' => $this->filters(),
+            'rowActions' => $this->rowActions(),
+            'bulkActions' => $this->bulkActions(),
+            'emptyAction' => $this->emptyAction(),
         ]);
+    }
+
+    private function exportColumns()
+    {
+        return collect($this->columns())
+            ->reject(fn (Column $column): bool => $this->hiddenColumns[$column->key] ?? false)
+            ->values();
+    }
+
+    private function columnSessionKey(): string
+    {
+        return 'datatable.hidden.'.str_replace('\\', '.', static::class);
     }
 }
