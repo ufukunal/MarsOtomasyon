@@ -41,7 +41,7 @@ final class StoreAttachment
         $actor = auth()->user();
 
         try {
-            return $attachable->attachments()->create([
+            $attachment = $attachable->attachments()->create([
                 'disk' => $disk,
                 'path' => $stored,
                 'original_name' => $file->getClientOriginalName(),
@@ -52,6 +52,12 @@ final class StoreAttachment
                 'uploaded_by' => $actor?->getAuthIdentifier(),
                 'uploaded_by_name' => $actor?->name,
             ]);
+
+            if (! $attachment instanceof Attachment) {
+                throw new RuntimeException('Ek kaydı beklenen model tipinde oluşturulamadı.');
+            }
+
+            return $attachment;
         } catch (\Throwable $exception) {
             Storage::disk($disk)->delete($stored);
 
