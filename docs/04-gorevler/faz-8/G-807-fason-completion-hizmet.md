@@ -50,3 +50,10 @@ Late cost:
 ## İstem
 
 > K-151…K-157 fason completion ve service-cost zincirini mevcut purchase_invoice + inventory_cost_adjustments altyapısıyla uygula.
+
+## Kodlama öncesi blokajlar
+
+- **[KARAR GEREKİYOR — A-125]** Hizmet purchase_invoice satır modeli.
+- **[KARAR GEREKİYOR — A-126]** Hizmet bedelinin kısmi completion'lara dağıtım ve allocation gerçek kaydı.
+
+Bu kararlar kapanmadan G-807 service-cost kısmı uygulanmaz.
