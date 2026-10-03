@@ -93,3 +93,26 @@ Açık quarantine taşınır; açık production/subcontract order ve yoldaki tra
 G-1101 özet; G-1102 production topoloji; G-1103 immutable deploy/migration; G-1104 recovery-set backup; G-1105 restore/archive/DR; G-1106 health/monitoring; G-1107 production security/secrets; G-1108 go-live cutover/rollback; G-1109 canlı kabul/DR testleri.
 
 Faz 11 yeni veri modeli dosyası 44; yeni iş kuralı dosyaları 58–61'dir. K-021 VDS hedefi korunur; PostgreSQL + Valkey + queue/scheduler + backup/restore/health tek production readiness sözleşmesinde tamamlanır.
+
+
+## Kodlama öncesi bütünlük taraması — 03.10.2026
+
+Durum: **BLOKAJ VAR — kodlamaya başlanmaz.**
+
+Doğrulananlar:
+- K-001…K-255 eksiksiz ve tekrarsız.
+- 156 görev dosyasında G kimliği çakışması yok.
+- Faz 0–11 plan/dokümantasyon dosyaları mevcut.
+- Faz 8 location alan adı `kind` olarak kanonikleştirildi.
+- Faz 8 subcontract late cost için `inventory_cost_adjustments.production_completion_id` provenance genişletmesi tanımlandı.
+- purchase_invoice → production_order için hatalı document_relations yaklaşımı kaldırıldı; `production_service_invoices` mapping tanımlandı.
+- Faz 9 channel account → period marketplace customer mapping için `channel_account_period_settings` eklendi.
+- Faz 10 print profile → document template FK migration sözleşmesi netleştirildi.
+- Proje planındaki eski “sonraki faz kullanıcı onayı” ifadeleri temizlendi.
+
+Açık blokajlar:
+- **A-125:** non-stock service purchase invoice satır modeli.
+- **A-126:** fason hizmet maliyetinin kısmi completion'lara dağıtımı.
+- **A-127:** dönem devrinde açık satış/alış belgelerinin kapanış/taşıma politikası.
+
+Bu üç karar kapanmadan ilgili görevler code-ready değildir.
