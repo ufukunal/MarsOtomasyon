@@ -86,7 +86,7 @@ final class EnsurePeriodOpen
 - Açık dönem: istisna fırlatmaz
 - Kapalı dönem: `PeriodClosedException` fırlatır
 - Satırı olmayan ay: istisna fırlatmaz
-- Yönetici olmayan kullanıcı dönemi açamaz
+- Yeniden-açma izni olmayan kullanıcı kapalı ayı yeniden açamaz
 
 
 ## İstem
