@@ -184,7 +184,7 @@ Schema::connection('period')->create('inventory_cost_adjustments', function (Blu
     $table->decimal('moving_average_before', 18, 4);
     $table->decimal('moving_average_after', 18, 4);
 
-    $table->string('reason', 30); // import_finalize | import_late_cost | reversal
+    $table->string('reason', 30); // import_finalize | import_late_cost | subcontract_late_cost | reversal
 
     $table->unsignedBigInteger('created_by')->nullable();
     $table->string('created_by_name')->nullable();
@@ -193,6 +193,16 @@ Schema::connection('period')->create('inventory_cost_adjustments', function (Blu
     $table->index(['product_id','adjustment_date']);
 });
 ```
+
+### Faz 8 production provenance genişletmesi
+
+Faz 8, bu tabloya `production_completion_id` nullable FK ekler. Bu kolon `production_completions` tablosu Faz 8'de oluşturulduktan sonra ALTER migration ile eklenir; Faz 7 migration'ı henüz var olmayan production tablosuna FK kurmaz.
+
+Kaynak kuralları:
+
+- import_finalize/import_late_cost → import_file_id/import_file_line_id dolu,
+- subcontract_late_cost → production_completion_id dolu,
+- reversal → adjustment_of_id dolu ve terslenen kaydın source provenance'ı izlenebilir.
 
 ## product_costs
 
