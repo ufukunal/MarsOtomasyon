@@ -17,6 +17,7 @@ class UnitConversion extends PeriodModel
         return ['version' => 'integer'];
     }
 
+    /** @return \Illuminate\Database\Eloquent\Relations\BelongsTo<Unit, $this> */
     public function fromUnit(): BelongsTo
     {
         return $this->belongsTo(Unit::class, 'from_unit_id');
