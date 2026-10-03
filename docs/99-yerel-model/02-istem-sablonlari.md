@@ -17,6 +17,6 @@ Kabul ölçütleri çalışmadan görevi tamamlandı sayma.
 Hata kapsamı dışına çıkma. Yeni iş kararı gerekiyorsa kod yazmadan üç seçenekle raporla.
 
 
-## Güncel pre-code blokaj
+## Güncel karar durumu
 
-A-125 ve A-126 kapanmadan Faz 4/7/8'in ilgili service purchase/service-cost görevlerini uygulama.
+A-125 K-257, A-126 K-258, A-127 K-256 ile kapalıdır. Yeni karar boşluğu fark edilirse uygulama uydurulmadan durdurulur ve karar katmanına geri dönülür.
