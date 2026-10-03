@@ -19,7 +19,7 @@ trait HasSearchIndex
     protected static function bootHasSearchIndex(): void
     {
         static::saving(function (Model $model): void {
-            if (!($model instanceof SearchIndexed)) {
+            if (! ($model instanceof SearchIndexed)) {
                 return;
             }
 
