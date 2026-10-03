@@ -18,8 +18,8 @@ Her faz önce veri modeli + iş kuralları + ekran + standalone G görevleri ola
 - **Faz 8 Basit üretim/fason: DOKÜMANTASYON YAZILDI — K-131…K-162 kilitli; veri modeli 41, iş kuralları 45–47, üretim/fason ekranları ve G-800…G-809 hazırdır. Kodlama/uygulama tamamlanması G-801…G-809 gerçek PostgreSQL kabul testlerine bağlıdır. Faz 9 kullanıcı onayı olmadan başlamaz.**
 - **Faz 9 E-ticaret: DOKÜMANTASYON YAZILDI — K-163…K-201 kilitli; veri modeli 42, iş kuralları 48–51, kanal ekranları ve G-900…G-910 hazırdır. Kodlama/uygulama tamamlanması G-901…G-910 gerçek PostgreSQL kabul testlerine bağlıdır. Faz 10 kullanıcı onayı olmadan başlamaz.**
 - **Faz 10 Raporlar/çıktılar/tasarımcı: DOKÜMANTASYON YAZILDI — K-202…K-235 kilitli; veri modeli 43, iş kuralları 52–56, rapor/dashboard/export/tasarımcı ekranları ve G-1000…G-1012 hazırdır. Kodlama/uygulama tamamlanması G-1001…G-1012 gerçek PostgreSQL/multi-period kabul testlerine bağlıdır.**
-- Faz 11b Dönem devri
-- Faz 11 Canlı geçiş
+- **Faz 11b Dönem devri: DOKÜMANTASYON YAZILDI — G-1110…G-1113 hazır; açık quarantine, production recipe, subcontractor stok ve channel mapping carry kuralları günceldir. Kodlama/uygulama gerçek PostgreSQL multi-DB kabul testlerine bağlıdır.**
+- **Faz 11 Canlı geçiş: DOKÜMANTASYON YAZILDI — K-236…K-255 kilitli; veri modeli 44, iş kuralları 58–61, operasyon ekranları ve G-1101…G-1109 hazırdır. Canlıya alma G-1109 ve tüm faz kabul testleri yeşil olmadan yapılmaz.**
 
 ## Faz 3 planı
 
@@ -79,3 +79,17 @@ Faz 9 yeni veri modeli dosyası 42; yeni iş kuralı dosyaları 48–51'dir. Faz
 G-1000 özet; G-1001 rapor çekirdeği; G-1002 rapor kataloğu; G-1003 dashboard; G-1004 PDF/XLSX/CSV export; G-1005 export queue/geçmiş; G-1006 çok dönem; G-1007 preset/kolon/drill-down; G-1008 belge template revizyon; G-1009 token güvenliği; G-1010 ürün/koli etiketi; G-1011 print history/toplu baskı; G-1012 test.
 
 Faz 10 yeni veri modeli dosyası 43; yeni iş kuralı dosyaları 52–56'dır. G-1112 çok dönemli rapor görevi G-1006 ile aynı MultiPeriodQuery sözleşmesini paylaşır; ikinci paralel altyapı kurulmaz.
+
+
+## Faz 11b planı
+
+G-1110 dönem devri; G-1111 devir öncesi kontrol; G-1112 çok dönemli rapor ortak altyapısı; G-1113 dönem devri bütünleşik testleri.
+
+Açık quarantine taşınır; açık production/subcontract order ve yoldaki transfer carry'yi bloklar. Aktif production recipe/revision, subcontractor location fiziksel stokları ve channel listing/location mapping taşınır. Channel order/sync history ve geçmiş belgeler/hareketler taşınmaz.
+
+
+## Faz 11 planı
+
+G-1101 özet; G-1102 production topoloji; G-1103 immutable deploy/migration; G-1104 recovery-set backup; G-1105 restore/archive/DR; G-1106 health/monitoring; G-1107 production security/secrets; G-1108 go-live cutover/rollback; G-1109 canlı kabul/DR testleri.
+
+Faz 11 yeni veri modeli dosyası 44; yeni iş kuralı dosyaları 58–61'dir. K-021 VDS hedefi korunur; PostgreSQL + Valkey + queue/scheduler + backup/restore/health tek production readiness sözleşmesinde tamamlanır.
