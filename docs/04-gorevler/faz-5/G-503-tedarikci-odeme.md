@@ -38,6 +38,7 @@ Posting:
 - payment_source yalnız bilgi amaçlı.
 - Invoice settlement/paid/remaining tablosu veya alanı oluşturulmaz.
 - Faz 5 yeni FX dönüşüm motoru kurmaz.
+- K-013/iş kuralı 35 gereği supplier_payment ledger etkisi şirket temel para birimindedir; seçilen cash/bank account currency ödeme ile uyumlu olmalıdır. Uyumlu olmayan para biriminde sessiz conversion/kur farkı yapılmaz.
 - Wrapper posting etkisini ikinci kez yazmaz.
 
 ## Kabul ölçütü
@@ -47,6 +48,7 @@ Posting:
 - Kullanıcı tutarı değiştirebiliyor.
 - Contact debit supplier borcunu azaltıyor.
 - Cash payment cash out, bank payment bank out üretiyor.
+- Uyumlu olmayan finans hesabı currency'si reddediliyor; FX conversion veya kur farkı hareketi üretilmiyor.
 - Source invoice seçimi bakiye hesabını farklılaştırmıyor.
 - Idempotency duplicate payment üretmiyor.
 - Reverse finance in + contact credit üretiyor.
