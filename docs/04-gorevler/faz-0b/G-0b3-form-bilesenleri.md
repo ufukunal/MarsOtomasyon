@@ -8,7 +8,16 @@ G-0b1
 
 
 ## Dokunulacak dosyalar
-- Bu görevde tarif edilen mevcut uygulama/migration/test dosyaları; kapsam dışına çıkma.
+- `resources/views/components/field/*.blade.php`
+- `resources/views/components/modal.blade.php`
+- `resources/views/components/confirm.blade.php`
+- `resources/views/components/toast.blade.php`
+- `resources/views/components/page-header.blade.php`
+- `resources/views/components/tabs.blade.php`
+- lookup Livewire component + blade
+- TR number/date formatting helpers
+- `tests/Feature/Ui/FormComponentsTest.php`
+- `tests/Feature/Ui/LookupComponentTest.php`
 
 
 ## Şema / Kod
