@@ -12,7 +12,11 @@ G-202, G-0b2
 
 
 ## Dokunulacak dosyalar
-- `database/migrations/period/`
+- StockStatus Livewire + blade
+- stock status query/read-model helper
+- set availability integration
+- DataTable column/filter definitions
+- `tests/Feature/Stock/StockStatusTest.php`
 
 
 ## Şema / Kod
