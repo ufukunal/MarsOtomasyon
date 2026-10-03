@@ -2,7 +2,7 @@
 
 ## Yeni görev
 
-Bu G görevini aynen uygula. Yalnız “Dokunulacak dosyalar” kapsamını değiştir. Şemayı/mimariyi kendiliğinden değiştirme.
+Bu G görevini aynen uygula. Önce karar günlüğü ve görev dosyasında açık blokaj kontrolü yap; açık karar görevi etkiliyorsa kod yazma. Yalnız “Dokunulacak dosyalar” kapsamını değiştir. Şemayı/mimariyi kendiliğinden değiştirme.
 
 Zorunlu kontrol: doğru Master/period connection; period tabloda company_id/BelongsToCompany/global scope yok; period içi FK gerçek; Master user cross-DB FK yok; user_id+user_name snapshot; Money+BCMath; document_date; idempotency/version/lockForUpdate; CHECK; RecordStockMovement; base_quantity+conversion_factor; integrity; gerçek PostgreSQL test.
 
@@ -15,3 +15,8 @@ Kabul ölçütleri çalışmadan görevi tamamlandı sayma.
 ## Hata düzeltme
 
 Hata kapsamı dışına çıkma. Yeni iş kararı gerekiyorsa kod yazmadan üç seçenekle raporla.
+
+
+## Güncel pre-code blokaj
+
+A-125 ve A-126 kapanmadan Faz 4/7/8'in ilgili service purchase/service-cost görevlerini uygulama.
