@@ -9,7 +9,13 @@ G-002, G-003, G-005, G-012
 
 
 ## Dokunulacak dosyalar
-- Bu görevde tarif edilen mevcut uygulama/migration/test dosyaları; kapsam dışına çıkma.
+- login/auth Livewire ekranı ve route'ları
+- şirket/dönem seçim Livewire ekranı
+- firma kurulum sihirbazı bileşenleri
+- `CreatePeriod` ve erişim doğrulama entegrasyonu
+- auth/rate-limit config
+- `tests/Feature/Auth/LoginAndSetupTest.php`
+- `tests/Feature/Period/CompanyPeriodSelectionTest.php`
 
 
 ## Şema / Kod
