@@ -254,7 +254,62 @@ Kurallar:
 
 - `purchase_invoice_id` gerçekten posted `document_type=purchase_invoice` olmalıdır.
 - supplier, production_order.subcontractor_contact_id ile uyumlu olmalıdır.
-- Aynı hizmet faturası birden fazla production order'a bağlanacaksa maliyet paylaştırma davranışı ayrıca açıkça tanımlanmalıdır; sessiz tam tutar tekrar kullanımı yasaktır.
+- Fason hizmet kaynağı purchase_invoice içindeki K-257 `line_kind=service` satırlarıdır; stock satırlar fason service cost'a girmez.
+- Aynı hizmet faturası birden fazla production order'a bağlanacaksa her order için kullanılan service amount allocation kayıtlarıyla sınırlandırılır; aynı tutar iki kez kullanılamaz.
+
+## production_service_allocations
+
+K-258 gereği posted service invoice maliyetinin completion'lara dağıtımı ayrı gerçek kayıttır.
+
+```php
+Schema::connection('period')->create('production_service_allocations', function (Blueprint $table) {
+    $table->id();
+
+    $table->foreignId('production_order_id')
+        ->constrained('production_orders')
+        ->cascadeOnDelete();
+
+    $table->foreignId('purchase_invoice_id')
+        ->constrained('documents')
+        ->restrictOnDelete();
+
+    $table->foreignId('purchase_invoice_line_id')
+        ->constrained('document_lines')
+        ->restrictOnDelete();
+
+    $table->foreignId('production_completion_id')
+        ->constrained('production_completions')
+        ->restrictOnDelete();
+
+    $table->decimal('quantity_basis', 18, 3);
+    $table->decimal('allocated_amount_base', 18, 4);
+
+    $table->timestamps();
+
+    $table->unique(
+        ['purchase_invoice_line_id','production_completion_id'],
+        'production_service_allocations_unique'
+    );
+});
+```
+
+Dağıtım formülü:
+
+```
+completion_share =
+service_line_amount_base
+× completion.completed_quantity
+÷ SUM(eligible_completion.completed_quantity)
+```
+
+Kurallar:
+
+- BCMath kullanılır.
+- Yuvarlama farkı deterministik olarak son uygun completion'a verilir.
+- Allocation toplamı service line base amount'u aşamaz.
+- Completion anında posted hizmet satırı varsa ilgili allocation payı production cost'a dahil edilir.
+- Hizmet faturası completion'lardan sonra gelirse mevcut completion'lar completed_quantity oranında allocation alır; her pay için ilgili completion provenance'ıyla `subcontract_late_cost` adjustment yazılır.
+- Aynı allocation hem completion cost'a hem late adjustment'a ikinci kez yansıtılamaz.
 
 Geç gelen hizmet maliyeti `inventory_cost_adjustments.reason=subcontract_late_cost` ile işlenir.
 
