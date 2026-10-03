@@ -19,11 +19,13 @@ class ContactList extends DataTableComponent
         $this->authorize('viewAny', Contact::class);
     }
 
+    /** @return \Illuminate\Database\Eloquent\Builder<\App\Models\Period\Contact> */
     protected function baseQuery(): Builder
     {
         return Contact::query()->with(['people', 'categories']);
     }
 
+    /** @return list<\App\Livewire\Components\DataTable\Column> */
     public function columns(): array
     {
         return [
@@ -38,6 +40,7 @@ class ContactList extends DataTableComponent
         ];
     }
 
+    /** @return list<\App\Livewire\Components\DataTable\SelectFilter|\App\Livewire\Components\DataTable\DateRangeFilter> */
     public function filters(): array
     {
         $categories = ContactCategory::query()
@@ -62,6 +65,7 @@ class ContactList extends DataTableComponent
         ];
     }
 
+    /** @param \Illuminate\Database\Eloquent\Builder<\App\Models\Period\Contact> $query */
     protected function applyFilter(Builder $query, mixed $filter, mixed $value): void
     {
         if ($filter instanceof SelectFilter && $filter->key === 'category_id') {
@@ -88,6 +92,7 @@ class ContactList extends DataTableComponent
         parent::applyFilter($query, $filter, $value);
     }
 
+    /** @return list<array<string, mixed>> */
     public function rowActions(): array
     {
         return auth()->user()?->can('contacts.update')
@@ -100,6 +105,7 @@ class ContactList extends DataTableComponent
         return $this->redirectRoute('contacts.edit', ['contact' => $id], navigate: false);
     }
 
+    /** @return array<string, mixed>|null */
     public function emptyAction(): ?array
     {
         return auth()->user()?->can('contacts.create')

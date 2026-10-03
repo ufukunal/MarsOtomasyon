@@ -15,6 +15,7 @@ class UnitList extends DataTableComponent
         abort_unless(auth()->user()?->can('units.view'), 403);
     }
 
+    /** @return list<\App\Livewire\Components\DataTable\Column> */
     public function columns(): array
     {
         return [

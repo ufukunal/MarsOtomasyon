@@ -16,6 +16,7 @@ class LocationList extends DataTableComponent
         abort_unless(auth()->user()?->can('locations.view'), 403);
     }
 
+    /** @return list<\App\Livewire\Components\DataTable\Column> */
     public function columns(): array
     {
         return [
@@ -28,6 +29,7 @@ class LocationList extends DataTableComponent
         ];
     }
 
+    /** @return list<\App\Livewire\Components\DataTable\SelectFilter|\App\Livewire\Components\DataTable\DateRangeFilter> */
     public function filters(): array
     {
         return [

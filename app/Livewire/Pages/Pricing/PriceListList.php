@@ -16,11 +16,13 @@ class PriceListList extends DataTableComponent
         abort_unless(auth()->user()?->can('price_lists.view'), 403);
     }
 
+    /** @return \Illuminate\Database\Eloquent\Builder<\App\Models\Period\PriceList> */
     protected function baseQuery(): Builder
     {
         return PriceList::query()->withCount('items');
     }
 
+    /** @return list<\App\Livewire\Components\DataTable\Column> */
     public function columns(): array
     {
         return [
@@ -33,6 +35,7 @@ class PriceListList extends DataTableComponent
         ];
     }
 
+    /** @return list<array<string, mixed>> */
     public function rowActions(): array
     {
         return auth()->user()?->can('price_lists.update')
@@ -45,6 +48,7 @@ class PriceListList extends DataTableComponent
         return $this->redirectRoute('price-lists.detail', ['list' => $id], navigate: false);
     }
 
+    /** @return array<string, mixed>|null */
     public function emptyAction(): ?array
     {
         return auth()->user()?->can('price_lists.create')

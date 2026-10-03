@@ -19,11 +19,13 @@ class ProductList extends DataTableComponent
         $this->authorize('viewAny', Product::class);
     }
 
+    /** @return \Illuminate\Database\Eloquent\Builder<\App\Models\Period\Product> */
     protected function baseQuery(): Builder
     {
         return Product::query()->with(['brand', 'category', 'unit']);
     }
 
+    /** @return list<\App\Livewire\Components\DataTable\Column> */
     public function columns(): array
     {
         return [
@@ -40,6 +42,7 @@ class ProductList extends DataTableComponent
         ];
     }
 
+    /** @return list<\App\Livewire\Components\DataTable\SelectFilter|\App\Livewire\Components\DataTable\DateRangeFilter> */
     public function filters(): array
     {
         return [
@@ -58,6 +61,7 @@ class ProductList extends DataTableComponent
         ];
     }
 
+    /** @return list<array<string, mixed>> */
     public function rowActions(): array
     {
         return auth()->user()?->can('products.update')
@@ -70,6 +74,7 @@ class ProductList extends DataTableComponent
         return $this->redirectRoute('products.edit', ['product' => $id], navigate: false);
     }
 
+    /** @return array<string, mixed>|null */
     public function emptyAction(): ?array
     {
         return auth()->user()?->can('products.create')
