@@ -27,6 +27,12 @@ return [
             'throw' => false,
         ],
 
+        'imports' => [
+            'driver' => 'local',
+            'root' => storage_path('app/imports'),
+            'throw' => true,
+        ],
+
         'backups' => [
             'driver' => 'local',
             'root' => storage_path('app/backups'),

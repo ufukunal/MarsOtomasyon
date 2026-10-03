@@ -13,6 +13,7 @@ return [
             ['label' => 'Varyant Grupları', 'route' => 'variant-groups.detail', 'permission' => 'variant_groups.view'],
             ['label' => 'Fiyat Listeleri', 'route' => 'price-lists.index', 'permission' => 'price_lists.view'],
             ['label' => 'Başka Şirketten Aktar', 'route' => 'company-copy.index', 'permission' => 'company_copy_permissions.view'],
+            ['label' => 'İçe Aktarma', 'route' => 'imports.index', 'permission' => 'imports.create'],
         ],
     ],
     [
