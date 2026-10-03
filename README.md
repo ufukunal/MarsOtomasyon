@@ -26,6 +26,6 @@ Repo şu anda şartname/görev deposudur. Kod, görev dosyaları uygulanırken �
 
 ## Kodlama öncesi durum
 
-Plan/dokümantasyon fazları tamamlandı; ancak **A-125** (non-stock service purchase invoice satır modeli) ve **A-126** (fason hizmet maliyetinin kısmi completion'lara dağıtımı) açık kodlama blokajlarıdır. Bu kararlar kapanmadan Faz 4/7/8'in ilgili görevleri uygulanmaz.
+Plan/dokümantasyon fazları tamamlandı. A-125 K-257 ile, A-126 K-258 ile, A-127 K-256 ile kapatıldı; açık ürün kararı yoktur. Bu repo şu aşamada dokümantasyon/görev deposudur; kodlama bu çalışma kapsamında yapılmıyor.
 
 Dönem devrinde K-256 gereği açık `sales_order` ve `purchase_order` yalnız kalan miktarlarıyla yeni period'da yeni confirmed snapshot olarak oluşturulur; aktif satış rezervasyonları location bazında yeniden kurulur. Açık quarantine de taşınır.
