@@ -57,7 +57,7 @@
                         <td @class(['align-end tabular' => $column->align === 'end'])>
                             @php($value = data_get($row, $column->key))
                             @if ($column->money && $value !== null)
-                                {{ number_format((float) $value, 2, ',', '.') }}
+                                {{ \App\Support\Formatting\TrFormatter::money((string) $value) }}
                             @else
                                 {{ $value }}
                             @endif
