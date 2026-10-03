@@ -26,8 +26,7 @@ return [
                  * The list of directories and files that will be included in the backup.
                  */
                 'include' => [
-                    base_path(),
-                    // storage_path(),  // Include if you use zero downtime deployments and don't follow symlinks
+                    storage_path('app/attachments'),
                 ],
 
                 /*
@@ -89,8 +88,10 @@ return [
              *
              * For a complete list of available customization options, see https://github.com/spatie/db-dumper
              */
+            // PrepareBackupSources bu listeyi backup:run başlarken
+            // Master + tüm active/closed period bağlantılarıyla genişletir.
             'databases' => [
-                env('DB_CONNECTION', 'mysql'),
+                'master',
             ],
         ],
 
@@ -164,7 +165,8 @@ return [
              * The disk names on which the backups will be stored.
              */
             'disks' => [
-                'local',
+                'backups',
+                'backup_external',
             ],
 
             /*
@@ -198,7 +200,7 @@ return [
          * After creating the zip, verify it can be opened and contains files.
          * Recommended for critical backups but adds a small overhead.
          */
-        'verify_backup' => false,
+        'verify_backup' => true,
 
         /*
          * The number of attempts, in case the backup command encounters an exception
@@ -339,26 +341,26 @@ return [
              * of that day will be kept. Older backups within the same day will be removed.
              * If you create backups only once a day, no backups will be removed yet.
              */
-            'keep_daily_backups_for_days' => 16,
+            'keep_daily_backups_for_days' => 7,
 
             /*
              * After the "keep_daily_backups_for_days" period is over, the most recent backup
              * of that week will be kept. Older backups within the same week will be removed.
              * If you create backups only once a week, no backups will be removed yet.
              */
-            'keep_weekly_backups_for_weeks' => 8,
+            'keep_weekly_backups_for_weeks' => 4,
 
             /*
              * After the "keep_weekly_backups_for_weeks" period is over, the most recent backup
              * of that month will be kept. Older backups within the same month will be removed.
              */
-            'keep_monthly_backups_for_months' => 4,
+            'keep_monthly_backups_for_months' => 6,
 
             /*
              * After the "keep_monthly_backups_for_months" period is over, the most recent backup
              * of that year will be kept. Older backups within the same year will be removed.
              */
-            'keep_yearly_backups_for_years' => 2,
+            'keep_yearly_backups_for_years' => 0,
 
             /*
              * After cleaning up the backups remove the oldest backup until
