@@ -7,6 +7,7 @@ use App\Livewire\Pages\Auth\ResetPassword;
 use App\Livewire\Pages\Catalog\BrandList;
 use App\Livewire\Pages\Contacts\ContactForm;
 use App\Livewire\Pages\Contacts\ContactList;
+use App\Livewire\Pages\Companies\CrossCompanyCopy;
 use App\Livewire\Pages\Products\ProductForm;
 use App\Livewire\Pages\Products\ProductList;
 use App\Livewire\Pages\Products\VariantGroupDetail;
@@ -53,6 +54,7 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/kartlar/varyant-gruplari/{group?}', VariantGroupDetail::class)->name('variant-groups.detail');
     Route::get('/kartlar/fiyat-listeleri', PriceListList::class)->name('price-lists.index');
     Route::get('/kartlar/fiyat-listeleri/{list?}', PriceListDetail::class)->name('price-lists.detail');
+    Route::get('/kartlar/baska-sirketten-aktar', CrossCompanyCopy::class)->name('company-copy.index');
     Route::get('/ayarlar/butunluk', IntegrityReport::class)->name('settings.integrity');
 
     Route::post('/cikis', function () {
