@@ -128,3 +128,45 @@ Belge tipi string tutulur; enum/sözleşme uygulama katmanında bu türleri doğ
 - Satırlar `document_lines.document_id` ile bağlanır.
 - Belge dönüşümleri `document_relations` ile tutulur.
 - Cari etkisi varsa en fazla bir `contact_transactions.document_id` kaydı oluşur.
+
+
+## Dönem devri — açık sipariş provenance
+
+K-256 gereği açık `sales_order` ve `purchase_order` source period'da mutate edilmez. Target period'da yalnız kalan açık miktarlar yeni sipariş snapshot'ı olarak oluşturulur.
+
+Target period provenance tablosu:
+
+```php
+Schema::connection('period')->create('period_document_carries', function (Blueprint $table) {
+    $table->id();
+
+    $table->foreignId('target_document_id')
+        ->constrained('documents')
+        ->restrictOnDelete();
+
+    $table->unsignedBigInteger('source_period_id');   // Master scalar
+    $table->unsignedBigInteger('source_document_id'); // cross-DB scalar
+    $table->string('source_document_type', 40);
+    $table->string('source_document_number', 40)->nullable();
+
+    $table->timestamps();
+
+    $table->unique('target_document_id');
+    $table->unique(
+        ['source_period_id','source_document_id'],
+        'period_document_carries_source_unique'
+    );
+});
+```
+
+Satır provenance'ı target `document_lines.configuration` içinde source period/document/line scalar snapshot'ı olarak tutulabilir; cross-DB FK kurulmaz.
+
+Carry edilen sipariş:
+- target yılın numara serisinden yeni numara alır,
+- `document_date = target period starts_on`,
+- status = `confirmed`,
+- yalnız source siparişin kullanılabilir kalan miktarları kadar satır içerir,
+- source satırın fiyat/iskonto/KDV/birim/conversion/requirements snapshot değerleri dondurulmuş olarak kopyalanır,
+- target satırda `source_line_id = null`; eski period'a FK kurulmaz.
+
+Eski period siparişi tarihsel gerçek olarak değişmeden kalır.
