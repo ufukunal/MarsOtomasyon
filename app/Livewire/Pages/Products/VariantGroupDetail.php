@@ -60,7 +60,7 @@ class VariantGroupDetail extends Component
 
     public function saveAttribute(SaveVariantAttribute $action): void
     {
-        abort_unless($this->group, 422);
+        abort_unless($this->group !== null, 422);
         $this->validate(['newAttribute' => ['required', 'max:255']]);
 
         $attribute = $this->attributeId
@@ -79,7 +79,7 @@ class VariantGroupDetail extends Component
 
     public function editAttribute(int $id): void
     {
-        abort_unless($this->group, 422);
+        abort_unless($this->group !== null, 422);
         $attribute = VariantAttribute::query()->where('variant_group_id', $this->group->id)->findOrFail($id);
         $this->attributeId = $attribute->id;
         $this->attributeVersion = (int) $attribute->version;
@@ -102,7 +102,7 @@ class VariantGroupDetail extends Component
 
     public function attachProduct(SaveVariantValues $action): void
     {
-        abort_unless($this->group && $this->productId, 422);
+        abort_unless($this->group !== null && $this->productId !== null, 422);
 
         $product = Product::query()->findOrFail($this->productId);
         $this->warnings = $action->handle($product, $this->group->id, $this->values);

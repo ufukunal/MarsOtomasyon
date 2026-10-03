@@ -203,7 +203,7 @@ class ContactForm extends Component
 
     public function saveAddress(SaveContactAddress $action): void
     {
-        abort_unless($this->contact, 422);
+        abort_unless($this->contact !== null, 422);
 
         $data = $this->validate([
             'addressType' => ['required', 'in:invoice,shipping'],
@@ -244,7 +244,7 @@ class ContactForm extends Component
 
     public function deleteAddress(int $id, DeleteContactAddress $action): void
     {
-        abort_unless($this->contact, 422);
+        abort_unless($this->contact !== null, 422);
         $row = ContactAddress::query()->where('contact_id', $this->contact->id)->findOrFail($id);
         $action->handle($this->contact, $row, (int) $row->version);
         $this->resetAddressEditor();
@@ -252,7 +252,7 @@ class ContactForm extends Component
 
     public function savePerson(SaveContactPerson $action): void
     {
-        abort_unless($this->contact, 422);
+        abort_unless($this->contact !== null, 422);
 
         $data = $this->validate([
             'personName' => ['required', 'max:255'],
@@ -290,7 +290,7 @@ class ContactForm extends Component
 
     public function deletePerson(int $id, DeleteContactPerson $action): void
     {
-        abort_unless($this->contact, 422);
+        abort_unless($this->contact !== null, 422);
         $row = ContactPerson::query()->where('contact_id', $this->contact->id)->findOrFail($id);
         $action->handle($this->contact, $row, (int) $row->version);
         $this->resetPersonEditor();
@@ -298,7 +298,7 @@ class ContactForm extends Component
 
     public function saveBank(SaveContactBank $action): void
     {
-        abort_unless($this->contact, 422);
+        abort_unless($this->contact !== null, 422);
 
         $data = $this->validate([
             'bankName' => ['nullable', 'max:255'],
@@ -330,7 +330,7 @@ class ContactForm extends Component
 
     public function deleteBank(int $id, DeleteContactBank $action): void
     {
-        abort_unless($this->contact, 422);
+        abort_unless($this->contact !== null, 422);
         $row = ContactBank::query()->where('contact_id', $this->contact->id)->findOrFail($id);
         $action->handle($this->contact, $row, (int) $row->version);
         $this->resetBankEditor();

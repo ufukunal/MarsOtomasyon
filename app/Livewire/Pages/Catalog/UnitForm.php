@@ -59,7 +59,7 @@ class UnitForm extends Component
 
     public function addConversion(SaveUnitConversion $action): void
     {
-        abort_unless($this->unit, 422);
+        abort_unless($this->unit !== null, 422);
 
         $this->validate([
             'toUnitId' => ['required', 'integer'],

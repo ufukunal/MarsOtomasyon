@@ -98,7 +98,7 @@ class CrossCompanyCopy extends Component
 
     public function inspectSourceChanges(InspectCopiedRecords $action): void
     {
-        abort_unless($this->sourceCompanyId, 422);
+        abort_unless($this->sourceCompanyId !== null, 422);
 
         $this->sourceChanges = $action->inspect(
             (int) $this->sourceCompanyId,
@@ -108,7 +108,7 @@ class CrossCompanyCopy extends Component
 
     public function refreshFromSource(int $targetId, InspectCopiedRecords $action): void
     {
-        abort_unless($this->sourceCompanyId, 422);
+        abort_unless($this->sourceCompanyId !== null, 422);
 
         $action->refresh(
             (int) $this->sourceCompanyId,

@@ -150,7 +150,7 @@ class ProductForm extends Component
 
     public function saveSetComponent(SaveSetComponent $action): void
     {
-        abort_unless($this->product, 422);
+        abort_unless($this->product !== null, 422);
 
         $data = $this->validate([
             'componentProductId' => ['required', 'integer'],
@@ -175,7 +175,7 @@ class ProductForm extends Component
 
     public function editSetComponent(int $lineId): void
     {
-        abort_unless($this->product, 422);
+        abort_unless($this->product !== null, 422);
 
         $line = ProductSet::query()
             ->where('set_product_id', $this->product->id)
@@ -189,7 +189,7 @@ class ProductForm extends Component
 
     public function removeSetComponent(int $lineId, DeleteSetComponent $action): void
     {
-        abort_unless($this->product, 422);
+        abort_unless($this->product !== null, 422);
 
         $line = ProductSet::query()
             ->where('set_product_id', $this->product->id)
@@ -209,7 +209,7 @@ class ProductForm extends Component
 
     public function saveConfigGroup(SaveConfigDefinition $action): void
     {
-        abort_unless($this->product, 422);
+        abort_unless($this->product !== null, 422);
 
         $options = collect($this->configOptions)
             ->filter(fn ($row): bool => trim((string) ($row['label'] ?? '')) !== '')
@@ -237,7 +237,7 @@ class ProductForm extends Component
 
     public function editConfigGroup(int $definitionId): void
     {
-        abort_unless($this->product, 422);
+        abort_unless($this->product !== null, 422);
 
         $definition = ConfigDefinition::query()
             ->where('product_id', $this->product->id)

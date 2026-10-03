@@ -40,11 +40,13 @@ class User extends Authenticatable
         ];
     }
 
+    /** @return BelongsToMany<Company, $this> */
     public function companies(): BelongsToMany
     {
         return $this->belongsToMany(Company::class, 'company_user')->withTimestamps();
     }
 
+    /** @return BelongsToMany<Period, $this> */
     public function accessiblePeriods(): BelongsToMany
     {
         return $this->belongsToMany(Period::class, 'period_user_access')
@@ -52,11 +54,13 @@ class User extends Authenticatable
             ->withTimestamps();
     }
 
+    /** @return BelongsTo<Company, $this> */
     public function lastCompany(): BelongsTo
     {
         return $this->belongsTo(Company::class, 'last_company_id');
     }
 
+    /** @return BelongsTo<Period, $this> */
     public function lastPeriod(): BelongsTo
     {
         return $this->belongsTo(Period::class, 'last_period_id');

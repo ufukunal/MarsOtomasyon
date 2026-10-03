@@ -103,7 +103,7 @@ class PriceListDetail extends Component
 
     public function editItem(int $itemId): void
     {
-        abort_unless($this->list, 422);
+        abort_unless($this->list !== null, 422);
 
         $item = $this->list->items()->findOrFail($itemId);
 
@@ -132,7 +132,7 @@ class PriceListDetail extends Component
 
     public function bulkAdjust(BulkAdjustPriceList $action): void
     {
-        abort_unless($this->list, 422);
+        abort_unless($this->list !== null, 422);
         $this->validate(['bulkPercent' => ['required', 'decimal:0,4']]);
 
         $action->handle($this->list, $this->bulkPercent);
