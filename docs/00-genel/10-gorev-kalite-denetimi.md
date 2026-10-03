@@ -115,7 +115,7 @@ Her dosyada şu rubric uygulanmıştır:
 | Görev | Durum | Not |
 |---|---|---|
 | G-1100 | **DÜZELTİLDİ** | K-256 açık sipariş carry özeti düzeltildi |
-| G-1110 | **DÜZELTİLDİ** | K-256 channel snapshot + G-1111 sahiplik sınırı |
+| G-1110 | **DÜZELTİLDİ** | K-256 channel snapshot + G-1111 sahiplik sınırı + carry numaralandırma/sequence sırası netleştirildi |
 | G-1111 | **DÜZELTİLDİ** | duplicate carry motoru riski kaldırıldı; preview genişletmesi |
 | G-1112 | **DÜZELTİLDİ** | copy-paste carry kuralları kaldırıldı; G-1006 reuse entegrasyonu |
 | G-1113 | **DÜZELTİLDİ** | K-256 channel snapshot carry testleri |
