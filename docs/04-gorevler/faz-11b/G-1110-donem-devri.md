@@ -38,8 +38,8 @@ CarryPeriod::handle(Period $source, int $targetYear, string $idempotencyKey): Ca
 11. cari açılışlarını ve kasa/banka kapanış bakiyelerini hedefte opening movement olarak yaz; geçmiş `cash_movements` / `bank_movements` satırlarını kopyalama.
 12. vadesi gelmemiş çek/senetleri taşı.
 13. Açık quarantine kayıtlarını source miktar/snapshot ile taşı.
-14. Aktif production recipe/revision kayıtlarını ve channel account period settings + channel listing/location mapping'lerini taşı; açık production/subcontract order ve channel order/sync history taşıma.
-15. K-256: source sales_order/purchase_order kalanlarını hesapla; kalan > 0 olanları target period'da yeni confirmed order snapshot'ı olarak oluştur, provenance yaz ve sales-order aktif rezervasyonlarını location bazında yeniden kur.
+14. Aktif production recipe/revision kayıtlarını ve channel account period settings + channel listing/location mapping'lerini taşı; açık production/subcontract order taşıma. Geçmiş channel order/sync history taşıma.
+15. K-256: source sales_order/purchase_order kalanlarını hesapla; kalan > 0 olanları target period'da yeni confirmed order snapshot'ı olarak oluştur, provenance yaz ve sales-order aktif rezervasyonlarını location bazında yeniden kur. Kaynak sales_order kanal siparişiyse gerekli `channel_order_snapshot` target order'a aktif provenance olarak yeniden bağla; sync event/error geçmişini taşıma.
 16. Sequence'leri MAX(id)+1 ayarla.
 17. integrity:carry çalıştır; farkta exception.
 18. Kaynak period'u closed yap ve carry metadata yaz.
@@ -97,6 +97,7 @@ Period hareketlerindeki actor alanı Master user scalar id + user_name snapshot;
 - [ ] Open sales_order kalan miktarı target confirmed order'a taşınmış.
 - [ ] Open purchase_order kalan miktarı target confirmed order'a taşınmış.
 - [ ] Sales-order aktif reservation location dağılımı target'ta yeniden kurulmuş.
+- [ ] Carried açık kanal sales_order için external order snapshot/provenance target'ta korunmuş; eski sync history yok.
 - [ ] Draft hedefte yok.
 - [ ] In-transit transfer hedefte yok.
 - [ ] Açık quarantine kayıtları source open quantity/snapshot ile hedefte var.
