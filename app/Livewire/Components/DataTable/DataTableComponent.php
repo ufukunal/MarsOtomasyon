@@ -100,19 +100,7 @@ abstract class DataTableComponent extends Component
                 continue;
             }
 
-            if ($filter instanceof SelectFilter) {
-                $query->where($filter->key, $value);
-            }
-
-            if ($filter instanceof DateRangeFilter && is_array($value)) {
-                if (! empty($value['from'])) {
-                    $query->whereDate($filter->key, '>=', $value['from']);
-                }
-
-                if (! empty($value['to'])) {
-                    $query->whereDate($filter->key, '<=', $value['to']);
-                }
-            }
+            $this->applyFilter($query, $filter, $value);
         }
 
         $sortColumn = $columns->first(
@@ -124,6 +112,24 @@ abstract class DataTableComponent extends Component
         }
 
         return $query;
+    }
+
+    protected function applyFilter(Builder $query, mixed $filter, mixed $value): void
+    {
+        if ($filter instanceof SelectFilter) {
+            $query->where($filter->key, $value);
+            return;
+        }
+
+        if ($filter instanceof DateRangeFilter && is_array($value)) {
+            if (! empty($value['from'])) {
+                $query->whereDate($filter->key, '>=', $value['from']);
+            }
+
+            if (! empty($value['to'])) {
+                $query->whereDate($filter->key, '<=', $value['to']);
+            }
+        }
     }
 
     public function rows(): LengthAwarePaginator

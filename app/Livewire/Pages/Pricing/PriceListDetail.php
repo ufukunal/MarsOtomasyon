@@ -25,6 +25,8 @@ class PriceListDetail extends Component
     public ?string $validFrom = null;
     public ?string $validTo = null;
     public string $bulkPercent = '0';
+    public ?int $itemId = null;
+    public int $itemVersion = 1;
 
     public function mount(?PriceList $list = null): void
     {
@@ -70,14 +72,46 @@ class PriceListDetail extends Component
 
         $product = Product::query()->findOrFail($this->productId);
 
+        $item = $this->itemId
+            ? $this->list->items()->findOrFail($this->itemId)
+            : null;
+
         $action->handle(
             $this->list,
             $product,
             $this->price,
             $this->validFrom,
             $this->validTo,
+            $item,
+            $item ? $this->itemVersion : null,
         );
 
+        $this->resetItemEditor();
+    }
+
+    public function editItem(int $itemId): void
+    {
+        abort_unless($this->list, 422);
+
+        $item = $this->list->items()->findOrFail($itemId);
+
+        $this->itemId = $item->id;
+        $this->itemVersion = (int) $item->version;
+        $this->productId = $item->product_id;
+        $this->price = (string) $item->price;
+        $this->validFrom = $item->valid_from?->toDateString();
+        $this->validTo = $item->valid_to?->toDateString();
+    }
+
+    public function cancelItemEdit(): void
+    {
+        $this->resetItemEditor();
+    }
+
+    private function resetItemEditor(): void
+    {
+        $this->itemId = null;
+        $this->itemVersion = 1;
         $this->productId = null;
         $this->price = '0.0000';
         $this->validFrom = null;

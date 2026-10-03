@@ -183,3 +183,9 @@ button:hover{background:var(--primary-600)}
 .lookup-modal header{display:flex;justify-content:space-between;align-items:center;padding:10px;border-bottom:1px solid var(--line)}
 .lookup-modal-list{overflow:auto;display:grid}
 .lookup-modal-list button{display:grid;grid-template-columns:120px 1fr;text-align:left;background:var(--surface);color:var(--text);border:0;border-bottom:1px solid var(--line)}
+
+.category-tree{display:grid;gap:5px}
+.category-node{display:grid;gap:4px}
+.category-node.level-2{margin-left:24px}
+.category-node.level-3{margin-left:48px}
+.category-node-row{display:grid;grid-template-columns:1fr auto auto;gap:12px;align-items:center;padding:7px;border-bottom:1px solid var(--line2)}

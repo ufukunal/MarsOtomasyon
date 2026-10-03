@@ -6,6 +6,7 @@ use App\Support\Auth\MutationAuthorizer;
 use App\Models\Period\PriceList;
 use App\Models\Period\PriceListItem;
 use App\Models\Period\Product;
+use Illuminate\Database\QueryException;
 use Illuminate\Validation\ValidationException;
 
 final class SavePriceListItem
@@ -56,8 +57,18 @@ final class SavePriceListItem
             'valid_to' => $validTo ?: null,
         ];
 
-        return $item
-            ? $item->updateWithVersion($attributes, $expectedVersion ?? (int) $item->version)
-            : PriceListItem::query()->create($attributes);
+        try {
+            return $item
+                ? $item->updateWithVersion($attributes, $expectedVersion ?? (int) $item->version)
+                : PriceListItem::query()->create($attributes);
+        } catch (QueryException $exception) {
+            if ($exception->getCode() === '23P01') {
+                throw ValidationException::withMessages([
+                    'date' => 'Aynı ürün için fiyat tarih aralıkları çakışamaz.',
+                ]);
+            }
+
+            throw $exception;
+        }
     }
 }

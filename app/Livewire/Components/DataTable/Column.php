@@ -7,6 +7,7 @@ final class Column
     public bool $searchable = false;
     public bool $sortable = false;
     public bool $money = false;
+    public bool $quantity = false;
     public string $align = 'start';
 
     private function __construct(
@@ -37,6 +38,14 @@ final class Column
     public function money(): self
     {
         $this->money = true;
+        $this->align = 'end';
+
+        return $this;
+    }
+
+    public function quantity(): self
+    {
+        $this->quantity = true;
         $this->align = 'end';
 
         return $this;

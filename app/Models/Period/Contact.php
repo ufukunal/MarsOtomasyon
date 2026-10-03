@@ -10,6 +10,7 @@ use App\Support\Search\HasSearchIndex;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Schema;
 use LogicException;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
@@ -99,7 +100,54 @@ class Contact extends PeriodModel
 
     public function balance(): string
     {
-        return '0.0000';
+        if (! Schema::connection('period')->hasTable('contact_transactions')) {
+            return '0.0000';
+        }
+
+        $balance = $this->newQuery()
+            ->getConnection()
+            ->table('contact_transactions')
+            ->where('contact_id', $this->id)
+            ->selectRaw("COALESCE(SUM(CASE WHEN direction = 'debit' THEN amount ELSE -amount END), 0)::text AS balance")
+            ->value('balance');
+
+        return bcadd((string) ($balance ?? '0'), '0', 4);
+    }
+
+    public function getPrimaryContactNameAttribute(): string
+    {
+        $people = $this->relationLoaded('people')
+            ? $this->people
+            : $this->people()->get();
+
+        return (string) ($people->firstWhere('is_default', true)?->name
+            ?? $people->first()?->name
+            ?? '');
+    }
+
+    public function getCategoryNamesAttribute(): string
+    {
+        $categories = $this->relationLoaded('categories')
+            ? $this->categories
+            : $this->categories()->get();
+
+        return $categories->pluck('name')->implode(', ');
+    }
+
+    public function getBalanceDisplayAttribute(): string
+    {
+        return $this->balance();
+    }
+
+    public function getRiskStatusAttribute(): string
+    {
+        if (bccomp((string) $this->risk_limit, '0', 4) <= 0) {
+            return 'Limitsiz';
+        }
+
+        return bccomp($this->balance(), (string) $this->risk_limit, 4) > 0
+            ? 'Limit Aşıldı'
+            : 'Normal';
     }
 
     public function getActivitylogOptions(): LogOptions

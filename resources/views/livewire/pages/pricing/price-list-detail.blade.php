@@ -15,14 +15,15 @@
                 <input wire:model="price" inputmode="decimal" placeholder="Fiyat">
                 <input wire:model="validFrom" type="date">
                 <input wire:model="validTo" type="date">
-                <button type="button" wire:click="addItem">Fiyat Ekle</button>
+                <button type="button" wire:click="addItem">{{ $itemId ? 'Fiyatı Güncelle' : 'Fiyat Ekle' }}</button>
+                @if($itemId)<button type="button" wire:click="cancelItemEdit">Vazgeç</button>@endif
             </div>
             <div class="form-row">
                 <input wire:model="bulkPercent" inputmode="decimal" placeholder="%">
                 <button type="button" wire:click="bulkAdjust">Toplu Yüzde Uygula</button>
             </div>
-            <table class="data-table"><thead><tr><th>Ürün</th><th>Fiyat</th><th>Başlangıç</th><th>Bitiş</th></tr></thead><tbody>
-            @foreach($items as $item)<tr><td>{{ $item->product->code }} · {{ $item->product->name }}</td><td>{{ \App\Support\Formatting\TrFormatter::money((string)$item->price,4) }}</td><td>{{ $item->valid_from?->format('d.m.Y') }}</td><td>{{ $item->valid_to?->format('d.m.Y') }}</td></tr>@endforeach
+            <table class="data-table"><thead><tr><th>Ürün</th><th>Fiyat</th><th>Başlangıç</th><th>Bitiş</th><th></th></tr></thead><tbody>
+            @foreach($items as $item)<tr><td>{{ $item->product->code }} · {{ $item->product->name }}</td><td>{{ \App\Support\Formatting\TrFormatter::money((string)$item->price,4) }}</td><td>{{ $item->valid_from?->format('d.m.Y') }}</td><td>{{ $item->valid_to?->format('d.m.Y') }}</td><td><button type="button" wire:click="editItem({{ $item->id }})">Düzenle</button></td></tr>@endforeach
             </tbody></table>
         </section>
     @endif

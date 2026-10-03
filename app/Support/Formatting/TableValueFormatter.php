@@ -31,6 +31,10 @@ final class TableValueFormatter
             return TrFormatter::money((string) $value);
         }
 
+        if ($column->quantity) {
+            return TrFormatter::quantity((string) $value);
+        }
+
         if (is_scalar($value)) {
             return (string) $value;
         }

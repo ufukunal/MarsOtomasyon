@@ -155,6 +155,26 @@ class Product extends PeriodModel
         return app(SetAvailabilityCalculator::class)->forProduct($this);
     }
 
+    public function getBrandNameAttribute(): string
+    {
+        return (string) ($this->relationLoaded('brand') ? $this->brand?->name : $this->brand()->value('name'));
+    }
+
+    public function getCategoryNameAttribute(): string
+    {
+        return (string) ($this->relationLoaded('category') ? $this->category?->name : $this->category()->value('name'));
+    }
+
+    public function getUnitNameAttribute(): string
+    {
+        return (string) ($this->relationLoaded('unit') ? $this->unit?->name : $this->unit()->value('name'));
+    }
+
+    public function getAvailableQuantityAttribute(): string
+    {
+        return $this->availableQuantity();
+    }
+
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
