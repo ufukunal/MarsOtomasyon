@@ -5,7 +5,7 @@ namespace App\Support\Concurrency;
 use App\Exceptions\StaleRecordException;
 use BackedEnum;
 use Illuminate\Database\Eloquent\Model;
-use RuntimeException;
+use Illuminate\Support\Facades\DB;
 use Stringable;
 
 /**
@@ -14,8 +14,10 @@ use Stringable;
 trait HasOptimisticLock
 {
     /**
-     * Atomik compare-and-swap yazar; normal Eloquent lifecycle'ının
-     * türetilmiş alan ve audit davranışlarını korur.
+     * Satırı FOR UPDATE ile kilitleyip güncel version değerini doğrular.
+     * Ardından normal Eloquent save lifecycle'ını çalıştırır; böylece
+     * saving/updating/updated/saved listener'ları ve audit/search türevleri
+     * doğal biçimde korunur.
      *
      * @param array<string, mixed> $attributes
      */
@@ -23,52 +25,25 @@ trait HasOptimisticLock
     {
         unset($attributes['version']);
 
-        /** @var static $current */
-        $current = static::query()->findOrFail($this->getKey());
+        return DB::connection($this->getConnectionName())->transaction(
+            function () use ($attributes, $expectedVersion): static {
+                /** @var static $current */
+                $current = static::query()
+                    ->lockForUpdate()
+                    ->findOrFail($this->getKey());
 
-        if ((int) $current->version !== $expectedVersion) {
-            throw $this->staleException($current, $attributes, $expectedVersion);
-        }
+                if ((int) $current->version !== $expectedVersion) {
+                    throw $this->staleException($current, $attributes, $expectedVersion);
+                }
 
-        $current->fill($attributes);
-        $current->setAttribute('version', $expectedVersion + 1);
+                $current->fill($attributes);
+                $current->setAttribute('version', $expectedVersion + 1);
+                $current->save();
 
-        if ($current->fireModelEvent('saving') === false
-            || $current->fireModelEvent('updating') === false) {
-            throw new RuntimeException(sprintf(
-                '%s#%s güncellemesi model lifecycle tarafından reddedildi.',
-                static::class,
-                (string) $this->getKey(),
-            ));
-        }
-
-        if ($current->usesTimestamps()) {
-            $current->updateTimestamps();
-        }
-
-        // Event listener'ları türetilmiş alanları değiştirebilir; SQL payload
-        // eventlerden sonra hesaplanır.
-        $dirty = $current->getDirty();
-
-        $updated = static::query()
-            ->whereKey($this->getKey())
-            ->where('version', $expectedVersion)
-            ->update($dirty);
-
-        if ($updated !== 1) {
-            throw new StaleRecordException(
-                sprintf('%s#%s eşzamanlı olarak değiştirildi.', static::class, (string) $this->getKey()),
-            );
-        }
-
-        // Eloquent performUpdate/finishSave sırasındaki post-event durumunu
-        // compare-and-swap başarıyla tamamlandıktan sonra üret.
-        $current->syncChanges();
-        $current->fireModelEvent('updated', false);
-        $current->fireModelEvent('saved', false);
-        $current->syncOriginal();
-
-        return $current;
+                return $current->refresh();
+            },
+            attempts: 3,
+        );
     }
 
     /**

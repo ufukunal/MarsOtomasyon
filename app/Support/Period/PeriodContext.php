@@ -80,7 +80,7 @@ final class PeriodContext
         }
     }
 
-    public static function clear(): void
+    public static function release(): void
     {
         self::$companyId = null;
         self::$periodId = null;
@@ -88,6 +88,11 @@ final class PeriodContext
 
         config(['database.connections.period.database' => null]);
         DB::purge('period');
+    }
+
+    public static function clear(): void
+    {
+        self::release();
         CompanyContext::clear();
 
         if (! app()->runningInConsole() && app()->bound('session')) {

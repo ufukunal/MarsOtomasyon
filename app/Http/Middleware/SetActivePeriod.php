@@ -68,22 +68,23 @@ class SetActivePeriod
 
         PeriodPermissionContext::use(is_array($overrides) ? $overrides : []);
 
-        $period = Period::query()
-            ->whereKey($periodId)
-            ->where('company_id', $companyId)
-            ->firstOrFail();
-
-        if ($period->status === 'archived') {
-            return redirect()->route('period.select')
-                ->with('warning', 'Arşivlenmiş dönem önce geri yüklenmelidir.');
-        }
-
-        PeriodContext::use((int) $companyId, (int) $periodId);
-
         try {
+            $period = Period::query()
+                ->whereKey($periodId)
+                ->where('company_id', $companyId)
+                ->firstOrFail();
+
+            if ($period->status === 'archived') {
+                return redirect()->route('period.select')
+                    ->with('warning', 'Arşivlenmiş dönem önce geri yüklenmelidir.');
+            }
+
+            PeriodContext::use((int) $companyId, (int) $periodId);
+
             return $next($request);
         } finally {
             PeriodPermissionContext::clear();
+            PeriodContext::release();
         }
     }
 }

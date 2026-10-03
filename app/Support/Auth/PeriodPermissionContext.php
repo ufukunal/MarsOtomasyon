@@ -10,6 +10,8 @@ final class PeriodPermissionContext
         'roles.',
         'periods.',
         'company_copy_permissions.',
+        'audit.',
+        'print_profiles.',
     ];
 
     private static array $allow = [];
