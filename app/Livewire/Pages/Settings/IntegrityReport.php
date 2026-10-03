@@ -1,0 +1,54 @@
+<?php
+
+namespace App\Livewire\Pages\Settings;
+
+use App\Models\IntegrityReport as IntegrityReportModel;
+use App\Support\Integrity\Checks\ContactBalanceCheck;
+use App\Support\Integrity\Checks\DocumentTotalCheck;
+use App\Support\Integrity\Checks\NumberSeriesCheck;
+use App\Support\Integrity\Checks\StockBalanceCheck;
+use App\Support\Integrity\IntegrityRunner;
+use Illuminate\Contracts\View\View;
+use Livewire\Component;
+
+class IntegrityReport extends Component
+{
+    public ?string $selectedCheck = null;
+
+    public function mount(): void
+    {
+        abort_unless(auth()->user()?->can('audit.view'), 403);
+    }
+
+    public function runNow(string $check, IntegrityRunner $runner): void
+    {
+        abort_unless(auth()->user()?->can('audit.view'), 403);
+
+        $map = [
+            'stock' => StockBalanceCheck::class,
+            'documents' => DocumentTotalCheck::class,
+            'contacts' => ContactBalanceCheck::class,
+            'numbers' => NumberSeriesCheck::class,
+        ];
+
+        abort_unless(isset($map[$check]), 404);
+
+        $runner->run(app($map[$check]));
+
+        $this->selectedCheck = $check;
+    }
+
+    public function render(): View
+    {
+        $reports = IntegrityReportModel::query()
+            ->latest('run_at')
+            ->limit(100)
+            ->get();
+
+        return view('livewire.pages.settings.integrity-report', [
+            'reports' => $reports,
+        ])->layout('layouts.app', [
+            'pageTitle' => 'Bütünlük Kontrolü',
+        ]);
+    }
+}

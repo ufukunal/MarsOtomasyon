@@ -1,0 +1,90 @@
+<?php
+
+namespace App\Console\Commands;
+
+use App\Models\Period;
+use App\Support\Integrity\Checks\ContactBalanceCheck;
+use App\Support\Integrity\Checks\DocumentTotalCheck;
+use App\Support\Integrity\Checks\NumberSeriesCheck;
+use App\Support\Integrity\Checks\StockBalanceCheck;
+use App\Support\Integrity\IntegrityRunner;
+use App\Support\Period\PeriodContext;
+use Illuminate\Console\Command;
+use Throwable;
+
+class IntegrityCommand extends Command
+{
+    protected $signature = 'integrity:all';
+
+    protected $description = 'Tüm aktif period DB bütünlük kontrollerini çalıştırır';
+
+    public function handle(IntegrityRunner $runner): int
+    {
+        $oldCompanyId = PeriodContext::companyId();
+        $oldPeriodId = PeriodContext::periodId();
+
+        $failed = [];
+        $mismatchCount = 0;
+
+        $checks = [
+            StockBalanceCheck::class,
+            DocumentTotalCheck::class,
+            ContactBalanceCheck::class,
+            NumberSeriesCheck::class,
+        ];
+
+        try {
+            Period::query()
+                ->where('status', 'active')
+                ->orderBy('company_id')
+                ->orderBy('year')
+                ->each(function (Period $period) use ($runner, $checks, &$failed, &$mismatchCount): void {
+                    $this->info("→ {$period->database_name}");
+
+                    try {
+                        PeriodContext::use($period->company_id, $period->id);
+
+                        foreach ($checks as $checkClass) {
+                            $check = app($checkClass);
+                            $result = $runner->run($check);
+                            $mismatchCount += $result->mismatchCount();
+
+                            $this->line(sprintf(
+                                '  %s checked=%d mismatch=%d',
+                                $check->name(),
+                                $result->checked,
+                                $result->mismatchCount(),
+                            ));
+                        }
+                    } catch (Throwable $exception) {
+                        $failed[] = [
+                            'database' => $period->database_name,
+                            'error' => $exception->getMessage(),
+                        ];
+
+                        $this->error("  {$exception->getMessage()}");
+                    }
+                });
+        } finally {
+            PeriodContext::clear();
+
+            if ($oldCompanyId && $oldPeriodId) {
+                PeriodContext::use($oldCompanyId, $oldPeriodId);
+            }
+        }
+
+        if ($failed !== [] || $mismatchCount > 0) {
+            $this->error(sprintf(
+                'Bütünlük kontrolü tamamlandı: %d hata, %d mismatch.',
+                count($failed),
+                $mismatchCount,
+            ));
+
+            return self::FAILURE;
+        }
+
+        $this->info('Bütünlük kontrolü tamamlandı; fark bulunmadı.');
+
+        return self::SUCCESS;
+    }
+}

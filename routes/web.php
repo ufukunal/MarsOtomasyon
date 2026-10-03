@@ -4,6 +4,7 @@ use App\Livewire\Pages\Auth\ForgotPassword;
 use App\Livewire\Pages\Auth\Login;
 use App\Livewire\Pages\Auth\PeriodSelection;
 use App\Livewire\Pages\Auth\ResetPassword;
+use App\Livewire\Pages\Settings\IntegrityReport;
 use App\Livewire\Pages\Settings\Periods;
 use App\Livewire\Pages\Setup\CompanyWizard;
 use Illuminate\Support\Facades\Auth;
@@ -20,6 +21,7 @@ Route::middleware('guest')->group(function (): void {
 Route::middleware('auth')->group(function (): void {
     Route::get('/secim', PeriodSelection::class)->name('period.select');
     Route::get('/ayarlar/donemler', Periods::class)->name('settings.periods');
+    Route::get('/ayarlar/butunluk', IntegrityReport::class)->name('settings.integrity');
 
     Route::post('/cikis', function () {
         Auth::logout();
