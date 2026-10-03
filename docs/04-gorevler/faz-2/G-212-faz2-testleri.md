@@ -5,7 +5,10 @@
 Faz 2 içindeki G-201…G-211
 
 ## Dokunulacak dosyalar
-- Görevde tarif edilen migration/model/action/Livewire/test dosyaları; kapsam dışına çıkma.
+- `tests/Feature/Stock/Faz2StockFlowTest.php`
+- `tests/Feature/Stock/Faz2ConcurrencyTest.php`
+- `tests/Feature/Stock/Faz2IntegrityTest.php`
+- Faz 2 schema/period-isolation contract testleri
 
 
 ## Şema / Kod
@@ -22,11 +25,11 @@ her rakama yayılır**, o yüzden testler kapsamlı olmalı.
 it('hareketli ortalamayi dogru hesaplar', function () {
     giris(10, 100);              // ortalama 100
     giris(10, 200);              // ortalama 150
-    expect(ortalama())->toBe(150.0);
+    expect(ortalama())->toBe('150.0000');
 
     cikis(5);                    // ortalama DEĞİŞMEZ
     expect(ortalama())->toBe(150.0);
-    expect(sonCikisMaliyeti())->toBe(150.0);
+    expect(sonCikisMaliyeti())->toBe('150.0000');
 });
 ```
 
@@ -55,7 +58,8 @@ it('hareketli ortalamayi dogru hesaplar', function () {
 - `system_quantity` sayım başlarken donuyor
 - Sayım sırasındaki satış dondurulan değeri değiştirmiyor
 - Onaylanmayan satır için hareket yok
-- Onaylı satır bakiyeyi sayılan miktara eşitliyor
+- Onaylı satır frozen snapshot farkını uyguluyor; araya stok hareketi girmediyse bakiye sayılan miktara eşitleniyor
+- Sayım başladıktan sonra hareket varsa o hareket korunuyor; final bakiye güncel bakiye + snapshot farkı oluyor
 
 ## Transfer
 
