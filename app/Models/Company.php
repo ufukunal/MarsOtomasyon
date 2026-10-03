@@ -1,0 +1,59 @@
+<?php
+
+namespace App\Models;
+
+use App\Models\Concerns\HasOptimisticLock;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use InvalidArgumentException;
+use LogicException;
+
+class Company extends MasterModel
+{
+    use HasOptimisticLock;
+
+    protected $fillable = [
+        'code',
+        'name',
+        'legal_name',
+        'db_prefix',
+        'tax_office',
+        'tax_number',
+        'address',
+        'city',
+        'phone',
+        'email',
+        'logo_path',
+        'default_term_days',
+        'cost_deviation_threshold',
+        'base_currency',
+        'is_active',
+    ];
+
+    protected function casts(): array
+    {
+        return [
+            'default_term_days' => 'integer',
+            'cost_deviation_threshold' => 'decimal:4',
+            'is_active' => 'boolean',
+            'version' => 'integer',
+        ];
+    }
+
+    protected static function booted(): void
+    {
+        static::saving(function (self $company): void {
+            if (! preg_match('/^[A-Za-z0-9_]+$/D', (string) $company->db_prefix)) {
+                throw new InvalidArgumentException('db_prefix yalnız harf, rakam ve alt çizgi içerebilir.');
+            }
+
+            if ($company->exists && $company->isDirty('db_prefix')) {
+                throw new LogicException('db_prefix kayıt oluşturulduktan sonra değiştirilemez.');
+            }
+        });
+    }
+
+    public function periods(): HasMany
+    {
+        return $this->hasMany(Period::class);
+    }
+}
