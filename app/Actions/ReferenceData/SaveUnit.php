@@ -2,6 +2,7 @@
 
 namespace App\Actions\ReferenceData;
 
+use App\Support\Period\PeriodContext;
 use App\Support\Auth\MutationAuthorizer;
 use App\Models\Period\Unit;
 use Illuminate\Validation\ValidationException;
@@ -12,6 +13,7 @@ final class SaveUnit
     public function handle(array $data, ?Unit $unit = null, ?int $expectedVersion = null): Unit
     {
         MutationAuthorizer::authorize($unit ? 'units.update' : 'units.create');
+        PeriodContext::ensureWritable();
         $attributes = [
             'code' => strtoupper(trim((string) $data['code'])),
             'name' => trim((string) $data['name']),

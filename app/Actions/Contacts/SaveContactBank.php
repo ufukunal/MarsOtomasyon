@@ -2,6 +2,7 @@
 
 namespace App\Actions\Contacts;
 
+use App\Support\Period\PeriodContext;
 use App\Support\Auth\MutationAuthorizer;
 use App\Models\Period\Contact;
 use App\Models\Period\ContactBank;
@@ -17,6 +18,7 @@ final class SaveContactBank
         ?int $expectedVersion = null,
     ): ContactBank {
         MutationAuthorizer::authorize('contacts.update');
+        PeriodContext::ensureWritable();
         abort_if($bank && $bank->contact_id !== $contact->id, 404);
 
         $iban = strtoupper(str_replace(' ', '', (string) $data['iban']));

@@ -2,6 +2,9 @@
 
 namespace App\Livewire\Pages\Contacts;
 
+use App\Actions\Contacts\DeleteContactAddress;
+use App\Actions\Contacts\DeleteContactBank;
+use App\Actions\Contacts\DeleteContactPerson;
 use App\Actions\Contacts\SaveContact;
 use App\Actions\Contacts\SaveContactAddress;
 use App\Actions\Contacts\SaveContactBank;
@@ -203,9 +206,11 @@ class ContactForm extends Component
         $this->addressVersion = (int) $row->version;
     }
 
-    public function deleteAddress(int $id): void
+    public function deleteAddress(int $id, DeleteContactAddress $action): void
     {
-        ContactAddress::query()->where('contact_id', $this->contact?->id)->findOrFail($id)->delete();
+        abort_unless($this->contact, 422);
+        $row = ContactAddress::query()->where('contact_id', $this->contact->id)->findOrFail($id);
+        $action->handle($this->contact, $row, (int) $row->version);
         $this->resetAddressEditor();
     }
 
@@ -247,9 +252,11 @@ class ContactForm extends Component
         $this->personVersion = (int) $row->version;
     }
 
-    public function deletePerson(int $id): void
+    public function deletePerson(int $id, DeleteContactPerson $action): void
     {
-        ContactPerson::query()->where('contact_id', $this->contact?->id)->findOrFail($id)->delete();
+        abort_unless($this->contact, 422);
+        $row = ContactPerson::query()->where('contact_id', $this->contact->id)->findOrFail($id);
+        $action->handle($this->contact, $row, (int) $row->version);
         $this->resetPersonEditor();
     }
 
@@ -285,9 +292,11 @@ class ContactForm extends Component
         $this->bankVersion = (int) $row->version;
     }
 
-    public function deleteBank(int $id): void
+    public function deleteBank(int $id, DeleteContactBank $action): void
     {
-        ContactBank::query()->where('contact_id', $this->contact?->id)->findOrFail($id)->delete();
+        abort_unless($this->contact, 422);
+        $row = ContactBank::query()->where('contact_id', $this->contact->id)->findOrFail($id);
+        $action->handle($this->contact, $row, (int) $row->version);
         $this->resetBankEditor();
     }
 
