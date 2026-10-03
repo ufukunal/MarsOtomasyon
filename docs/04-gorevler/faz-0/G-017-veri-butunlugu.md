@@ -111,6 +111,7 @@ Bu görevde ayrıca, mevcut migration'lara CHECK kısıtları eklenir:
 - Fark yoksa rapor `mismatch_count = 0` yazıyor
 - CHECK kısıtı ihlal eden insert veritabanı seviyesinde reddediliyor
 - Ana sayfa göstergesi eski kontrolde kırmızı oluyor
+- `NumberSeriesCheck` / `integrity:numbers` IntegrityCheck altyapısına kayıtlıdır, aktif period context'inde çalışır ve sonucunu `integrity_reports` içine yazar; gerçek belge-numara gap/tekrar acceptance'ı `documents` kurulduktan sonra Faz 3 testlerinde tamamlanır.
 
 
 ## İstem
