@@ -22,9 +22,10 @@ Purchase invoice reverse:
 
 - yeni purchase_invoice reversal document,
 - `reversal_of` relation,
-- original purchase stock in için inverse stock out,
-- supplier credit için debit,
-- maliyet/stock post-write verify.
+- supplier credit için **belgenin tam grand_total base-currency karşılığı kadar debit**,
+- yalnız K-257 `line_kind=stock` satırların original purchase stock-in etkisi için inverse stock out,
+- `line_kind=service` satır için stock/moving-average inverse üretilmez,
+- maliyet/stock/contact post-write verify.
 
 Goods receipt reversal operasyon fulfillment'ını tersler; stok/cari/maliyet üretmez.
 
@@ -38,7 +39,8 @@ Goods receipt reversal operasyon fulfillment'ını tersler; stok/cari/maliyet ü
 
 ## Kabul ölçütü
 
-- Purchase invoice reverse stock ve cari net etkisini tersliyor.
+- Stock-only, service-only ve mixed purchase invoice reverse cari net etkisini tam tersliyor.
+- Mixed invoice reverse yalnız stock satırların fiziksel stok etkisini tersliyor; service satır stok hareketi üretmiyor.
 - Original belge değişmiyor.
 - Duplicate reverse reddediliyor.
 - Reversed goods receipt order remaining'i geri açıyor ama stock yazmıyor.
