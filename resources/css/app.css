@@ -154,3 +154,10 @@ button:hover{background:var(--primary-600)}
 .check-grid{display:flex;gap:10px;flex-wrap:wrap}
 .check-grid input{width:auto;height:auto}
 @media(max-width:700px){.form-grid{grid-template-columns:1fr}.span-2{grid-column:auto}}
+
+.image-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:8px}
+.image-card{border:1px solid var(--line);background:var(--soft);padding:10px;display:grid;gap:8px}
+.image-meta{display:grid;gap:3px}
+.badge{display:inline-block;padding:2px 6px;border:1px solid var(--line);background:var(--soft);margin:2px}
+.conflict-row{display:grid;grid-template-columns:1.2fr 1fr 180px 160px;gap:8px;align-items:center}
+@media(max-width:800px){.conflict-row{grid-template-columns:1fr}}

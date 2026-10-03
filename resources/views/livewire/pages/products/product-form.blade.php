@@ -1,5 +1,5 @@
 <form wire:submit="save" class="stack">
-    <x-tabs :tabs="['general'=>'Genel','price'=>'Fiyat','stock'=>'Stok','type'=>'Tip','components'=>'Bileşenler','config'=>'Konfigürasyon']" :active="$activeTab" />
+    <x-tabs :tabs="['general'=>'Genel','price'=>'Fiyat','stock'=>'Stok','type'=>'Tip','components'=>'Bileşenler','config'=>'Konfigürasyon','images'=>'Görseller']" :active="$activeTab" />
 
     @if($activeTab === 'general')
         <section class="panel form-grid">
@@ -70,6 +70,12 @@
                 <button type="button" wire:click="addConfigGroup">Grubu Kaydet</button>
             @endif
         </section>
+    @elseif($activeTab === 'images')
+        @if($product)
+            <livewire:products.product-images :product="$product" :key="'product-images-'.$product->id" />
+        @else
+            <section class="panel"><p>Görseller için önce ürün kartını kaydedin.</p></section>
+        @endif
     @endif
 
     @foreach($errors->all() as $error)<div class="field-error">{{ $error }}</div>@endforeach
