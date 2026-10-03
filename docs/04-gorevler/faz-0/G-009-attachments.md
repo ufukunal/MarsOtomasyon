@@ -8,7 +8,12 @@ G-003
 
 
 ## Dokunulacak dosyalar
-- Bu görev için mevcut metinde tanımlanan uygulama/migration/test dosyaları; kapsam dışı dosyaya dokunma.
+- `database/migrations/period/` — `attachments` tablo migration'ı
+- `Attachment` modeli
+- `HasAttachments` trait'i
+- `AttachmentObserver`
+- `config/attachments.php`
+- attachment yükleme, tür/boyut doğrulama, silme ve şirket/period izolasyonu feature testleri
 
 ## Şema / Kod
 ```php
