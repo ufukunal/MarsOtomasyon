@@ -41,6 +41,7 @@ Yeni production şeması yok.
 - service purchase_invoice relation
 - completion before service invoice
 - late subcontract cost adjustment
+- service allocation toplamı/rounding/idempotency
 - reverse
 - rollover recipes/subcontract stock
 - integrity:production
