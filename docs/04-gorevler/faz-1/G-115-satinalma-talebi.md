@@ -1,114 +1,45 @@
-# G-115 — Satınalma talebi ve teklif toplama (basit)
-
-**Veritabanı: DÖNEM.** Model `PeriodModel`'den türer.
+# G-115 — Satınalma talebi + teklif toplama kapsam sözleşmesi
 
 ## Amaç
-Satınalma döngüsü doğrudan siparişle başlıyordu. Önüne iki basit halka
-ekleniyor: **talep** ve **tedarikçi teklifi karşılaştırma**.
+K-060 ile Faz 1 planına eklenen basit satınalma talebi + tedarikçi teklif toplama ihtiyacını **Faz 4 belge çekirdeğini tekrar kurmadan** kanonikleştirmek.
 
-Basit tutulur: onay zinciri, bütçe kontrolü, RFQ e-postası **yok**.
+Bu görev production tablo/Action görevi değildir. Gerçek `purchase_request`, `supplier_quote`, karşılaştırma ve siparişe dönüşüm uygulaması Faz 4 **G-401…G-404** içinde ortak `documents/document_lines` çekirdeğiyle yapılır.
 
 ## Önkoşul
-G-104 (cari), G-106 (ürün)
-
+G-104 (cari), G-106 (ürün), K-060.
 
 ## Dokunulacak dosyalar
-- Görevde tarif edilen migration/model/action/Livewire/test dosyaları; kapsam dışına çıkma.
-
+- `docs/00-genel/06-proje-plani.md`
+- `docs/03-ekranlar/satinalma-talebi.md`
+- `docs/03-ekranlar/tedarikci-teklif-karsilastirma.md`
+- Faz 4 G-401…G-404 görev sözleşmeleri
 
 ## Şema / Kod
+Bu görev **yeni production schema üretmez**.
 
-Bu bölümdeki mevcut şema örnekleri aşağıdaki kanonik mimari kurallarla birlikte uygulanır. Çelişkide kanonik kurallar üstündür.
+Yasak:
+- ayrı `purchase_requests` / `supplier_quotes` tablo ailesi kurmak,
+- Faz 4 gelmeden `purchase_order` üretmek,
+- ortak documents altyapısına paralel ikinci satınalma belge çekirdeği oluşturmak.
 
-## Şemalar
-
-```php
-// purchase_requests
-$table->id();
-$table->string('number', 40)->nullable();          // kesinleşince verilir
-$table->date('request_date');
-$table->unsignedBigInteger('requested_by')->nullable(); // Master user scalar
-$table->string('requested_by_name')->nullable();
-$table->string('department', 60)->nullable();
-$table->date('needed_by')->nullable();
-$table->string('status', 15)->default('draft');     // draft|open|quoted|ordered|cancelled
-$table->text('note')->nullable();
-$table->timestamps();
-
-// purchase_request_lines
-$table->foreignId('purchase_request_id')->constrained()->cascadeOnDelete();
-$table->foreignId('product_id')->constrained();
-$table->string('product_code', 40);
-$table->decimal('quantity', 18, 3);
-$table->foreignId('unit_id')->constrained('units');
-$table->text('note')->nullable();
-
-// supplier_quotes  — tedarikçiden gelen teklif
-$table->foreignId('purchase_request_id')->constrained();
-$table->foreignId('contact_id')->constrained();     // tedarikçi
-$table->date('quote_date');
-$table->date('valid_until')->nullable();
-$table->char('currency', 3)->default('TRY');
-$table->decimal('exchange_rate', 18, 6)->default(1);
-$table->unsignedSmallInteger('delivery_days')->nullable();
-$table->boolean('is_selected')->default(false);
-$table->text('note')->nullable();
-
-// supplier_quote_lines
-$table->foreignId('supplier_quote_id')->constrained()->cascadeOnDelete();
-$table->foreignId('purchase_request_line_id')->constrained();
-$table->decimal('unit_price', 18, 4);               // KDV hariç
-$table->decimal('quantity', 18, 3);
-```
-
-## Akış
-
-```
-1. Talep açılır: ürün + miktar + ihtiyaç tarihi        → draft
-2. "Teklif İste" → status = open, numara verilir
-3. Tedarikçi teklifleri ELLE girilir (e-posta/telefonla gelen)
-4. Karşılaştırma ekranı: satır bazında en ucuz vurgulanır
-5. Bir teklif seçilir (is_selected)                    → quoted
-6. "Siparişe Dönüştür" → satınalma siparişi oluşur     → ordered
-```
-
-## Karşılaştırma ekranı
-
-Satırlar ürün, kolonlar tedarikçi. Her hücrede birim fiyat ve toplam.
-En ucuz hücre yeşil. Altta tedarikçi bazında genel toplam, teslim süresi
-ve para birimi. Farklı para birimindeki teklifler **belge tarihinin
-kuruyla** TRY'ye çevrilerek karşılaştırılır.
+Faz 4 kanonik belge tipleri:
+- `purchase_request`
+- `supplier_quote`
+- `purchase_order`
 
 ## Kurallar
-- Talep kesinleşmeden teklif girilemez
-- Bir talepten **tek sipariş** çıkar; kısmi sipariş isteniyorsa talep bölünür
-- Seçilmeyen teklifler saklanır (geçmiş fiyat bilgisi)
-- Siparişe dönüşünce talep `ordered`, değiştirilemez
-- Fiyat girişinde maliyet sapma uyarısı **çalışmaz** (henüz alış değil)
-
-
-### Göreve özel kararlar
-- Basit satınalma talebi + teklif toplama; onay zinciri/bütçe/RFQ e-postası kapsam dışı.
-- Period DB'dedir ve document_date/actor snapshot kurallarına uyacak şekilde hazırlanır.
-
-
-### Uygulama ayrıntıları
-- Faz 1 kapsamındaki satınalma talebi basittir: talep + tedarikçi teklif toplama; onay zinciri, bütçe kontrolü ve RFQ e-posta kapsam dışıdır.
-- Tablolar period DB'dedir; talebi açan kullanıcı Master actor scalar ID + isim snapshot olarak tutulur.
-- Talep satırı product/unit period FK kullanır; tedarikçi teklifleri contact FK ile bağlanır.
-- İleride Faz 4 satınalma siparişine dönüşüm için kaynak ilişkisi korunur; bu görev sipariş/mal kabul/fatura üretmez.
+- K-060 kapsamı korunur: basit talep + teklif toplama vardır.
+- K-086…K-091 Faz 4'te davranışı somutlaştırır ve bu görevin eski/erken varsayımlarına üstün gelir.
+- Otomatik kazanan/puanlama yoktur.
+- Talep→teklif→sipariş business implementation sahibi Faz 4'tür.
+- G-115 duplicate schema/scope oluşmasını önleyen sınır sözleşmesidir.
 
 ## Kabul ölçütü
-- Talep açılıyor, numara kesinleşmede veriliyor
-- Üç tedarikçi teklifi girilip karşılaştırılıyor, en ucuz vurgulanıyor
-- Farklı para birimi TRY'ye çevrilerek kıyaslanıyor
-- Seçilen tekliften sipariş oluşuyor, satırlar ve fiyatlar taşınıyor
-- Talep `ordered` olunca değiştirilemiyor
-
+- Faz 1 kaynaklı ayrı `purchase_requests` / `supplier_quotes` production tablo planı yok.
+- G-402 purchase_request'i ortak documents üzerinde uygular.
+- G-403 supplier_quote + selection modelini ortak documents üzerinde uygular.
+- G-404 purchase_order üretiminin tek sahibidir.
+- K-090'a aykırı otomatik winner davranışı yoktur.
 
 ## İstem
-> purchase_requests, purchase_request_lines, supplier_quotes ve
-> supplier_quote_lines tabloları için migration, modeller, talep ekranı,
-> teklif giriş ekranı, karşılaştırma ekranı ve siparişe dönüştürme
-> action'ını yaz. Onay zinciri, bütçe kontrolü veya e-posta gönderimi
-> EKLEME. Para birimi farkını belge tarihinin kuruyla çöz.
+> K-060 satınalma talebi + teklif toplama kapsamını koru; production schema ve sipariş dönüşümünü Faz 4 G-401…G-404'e bırak. Ayrı purchase_requests/supplier_quotes tablo ailesi kurma.
