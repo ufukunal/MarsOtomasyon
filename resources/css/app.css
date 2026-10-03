@@ -189,3 +189,8 @@ button:hover{background:var(--primary-600)}
 .category-node.level-2{margin-left:24px}
 .category-node.level-3{margin-left:48px}
 .category-node-row{display:grid;grid-template-columns:1fr auto auto;gap:12px;align-items:center;padding:7px;border-bottom:1px solid var(--line2)}
+
+.source-change{border:1px solid var(--line);padding:10px;background:var(--soft)}
+.import-row-error{background:#fff0ef}
+.drag-handle{cursor:grab;user-select:none;color:var(--muted)}
+.image-card.is-dragging{opacity:.5;outline:2px dashed var(--primary)}

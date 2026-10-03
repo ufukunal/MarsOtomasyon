@@ -21,9 +21,29 @@
     @elseif($step === 3)
         <section class="panel stack">
             <h2>İlk 20 Satır</h2>
-            <div class="table-scroll"><table class="data-table"><thead><tr>@foreach($headers as $header)<th>{{ $header }}</th>@endforeach</tr></thead><tbody>
-            @foreach($preview as $row)<tr>@foreach($headers as $header)<td>{{ $row[$header] ?? '' }}</td>@endforeach</tr>@endforeach
-            </tbody></table></div>
+            <div class="table-scroll">
+                <table class="data-table">
+                    <thead><tr><th>#</th>@foreach($headers as $header)<th>{{ $header }}</th>@endforeach<th>Doğrulama</th></tr></thead>
+                    <tbody>
+                    @foreach($preview as $index => $row)
+                        @php($validation = $previewValidation[$index] ?? ['valid'=>true,'errors'=>[]])
+                        <tr @class(['import-row-error' => !$validation['valid']])>
+                            <td>{{ $index + 2 }}</td>
+                            @foreach($headers as $header)<td>{{ $row[$header] ?? '' }}</td>@endforeach
+                            <td>
+                                @if($validation['valid'])
+                                    <span>Uygun</span>
+                                @else
+                                    @foreach($validation['errors'] as $field => $message)
+                                        <div class="field-error">{{ $field }}: {{ $message }}</div>
+                                    @endforeach
+                                @endif
+                            </td>
+                        </tr>
+                    @endforeach
+                    </tbody>
+                </table>
+            </div>
             <x-field.select label="Hata Davranışı" wire:model="errorMode" :options="['cancel_all'=>'Bir hata varsa tümünü iptal et','skip_invalid'=>'Hatalı satırları atla']" />
             <button type="button" wire:click="queue">Kuyruğa Al</button>
         </section>

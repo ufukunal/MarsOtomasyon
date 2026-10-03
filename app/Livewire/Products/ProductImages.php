@@ -42,6 +42,17 @@ class ProductImages extends Component
         $attachment->delete();
     }
 
+    public function reorder(array $attachmentIds, ReorderProductImages $action): void
+    {
+        $this->authorize('update', $this->product);
+
+        $action->handle(
+            $this->product,
+            $this->collection,
+            array_map('intval', $attachmentIds),
+        );
+    }
+
     public function move(int $attachmentId, string $direction, ReorderProductImages $action): void
     {
         $this->authorize('update', $this->product);

@@ -13,6 +13,7 @@ use App\Models\Period\CardImportError;
 use App\Support\Audit\AuditContext;
 use App\Support\Import\ImportFileReader;
 use App\Support\Import\ImportMapping;
+use App\Support\Import\ImportRowImporterResolver;
 use App\Support\Period\PeriodContext;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -30,7 +31,7 @@ class ProcessCardImport implements ShouldQueue
     ) {
     }
 
-    public function handle(ImportFileReader $reader): void
+    public function handle(ImportFileReader $reader, ImportRowImporterResolver $resolver): void
     {
         PeriodContext::use($this->companyId, $this->periodId);
 
@@ -50,7 +51,7 @@ class ProcessCardImport implements ShouldQueue
 
         try {
             $rows = $reader->rows($batch->source_disk, $batch->source_path, $batch->original_name);
-            $importer = $this->importer($batch->type);
+            $importer = $resolver->resolve($batch->type);
             $validRows = [];
             $errors = [];
 
@@ -142,14 +143,4 @@ class ProcessCardImport implements ShouldQueue
         }
     }
 
-    private function importer(string $type): object
-    {
-        return match ($type) {
-            'contact' => app(ContactRowImporter::class),
-            'product' => app(ProductRowImporter::class),
-            'price_list' => app(PriceListRowImporter::class),
-            'opening_stock' => app(OpeningStockRowImporter::class),
-            default => throw new \RuntimeException('Desteklenmeyen import tipi.'),
-        };
-    }
 }

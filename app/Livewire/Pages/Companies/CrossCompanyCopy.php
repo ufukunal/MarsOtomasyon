@@ -3,6 +3,7 @@
 namespace App\Livewire\Pages\Companies;
 
 use App\Actions\Companies\CopyRecordsBetweenCompanies;
+use App\Actions\Companies\InspectCopiedRecords;
 use App\Enums\CompanyCopyPermissionType;
 use App\Models\Company;
 use App\Models\CompanyCopyPermission;
@@ -23,6 +24,7 @@ class CrossCompanyCopy extends Component
     public array $choices = [];
     public array $warnings = [];
     public array $result = [];
+    public array $sourceChanges = [];
 
     public function mount(): void
     {
@@ -36,6 +38,7 @@ class CrossCompanyCopy extends Component
         $this->choices = [];
         $this->warnings = [];
         $this->result = [];
+        $this->sourceChanges = [];
 
         if (! $this->sourceCompanyId) {
             $this->sourceRows = [];
@@ -82,6 +85,30 @@ class CrossCompanyCopy extends Component
         $this->result = $result->toArray();
         $this->conflicts = $this->result['conflicts'];
         $this->warnings = $this->result['warnings'];
+    }
+
+    public function inspectSourceChanges(InspectCopiedRecords $action): void
+    {
+        abort_unless($this->sourceCompanyId, 422);
+
+        $this->sourceChanges = $action->inspect(
+            (int) $this->sourceCompanyId,
+            CompanyCopyPermissionType::from($this->type),
+        );
+    }
+
+    public function refreshFromSource(int $targetId, InspectCopiedRecords $action): void
+    {
+        abort_unless($this->sourceCompanyId, 422);
+
+        $action->refresh(
+            (int) $this->sourceCompanyId,
+            CompanyCopyPermissionType::from($this->type),
+            $targetId,
+        );
+
+        $this->inspectSourceChanges($action);
+        session()->flash('warning', 'Seçilen kart kaynak verisiyle kullanıcı onayıyla güncellendi.');
     }
 
     public function render(): View

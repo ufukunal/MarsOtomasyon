@@ -6,6 +6,7 @@ use App\Jobs\ProcessCardImport;
 use App\Models\Period\CardImportBatch;
 use App\Support\Import\ImportFileReader;
 use App\Support\Import\ImportMapping;
+use App\Support\Import\ImportRowImporterResolver;
 use App\Support\Period\PeriodContext;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Storage;
@@ -25,6 +26,7 @@ class ImportWizard extends Component
     public array $headers = [];
     public array $mapping = [];
     public array $preview = [];
+    public array $previewValidation = [];
     public string $errorMode = 'cancel_all';
     public ?string $batchId = null;
 
@@ -62,7 +64,7 @@ class ImportWizard extends Component
         $this->step = 2;
     }
 
-    public function previewMapped(): void
+    public function previewMapped(ImportRowImporterResolver $resolver): void
     {
         foreach (ImportMapping::fields($this->type) as $field => $definition) {
             if (($definition['required'] ?? false) && empty($this->mapping[$field])) {
@@ -70,6 +72,20 @@ class ImportWizard extends Component
 
                 return;
             }
+        }
+
+        $importer = $resolver->resolve($this->type);
+        $this->previewValidation = [];
+
+        foreach ($this->preview as $index => $sourceRow) {
+            $mapped = ImportMapping::map($sourceRow, $this->mapping);
+            $result = $importer->validate($mapped);
+
+            $this->previewValidation[$index] = [
+                'valid' => $result->valid,
+                'errors' => $result->errors,
+                'mapped' => $mapped,
+            ];
         }
 
         $this->step = 3;
@@ -85,6 +101,35 @@ class ImportWizard extends Component
             ->first();
 
         if ($existing) {
+            if ($existing->status === 'failed') {
+                $actor = auth()->user();
+
+                $existing->update([
+                    'source_disk' => 'imports',
+                    'source_path' => $this->storedPath,
+                    'original_name' => $this->originalName,
+                    'mapping' => $this->mapping,
+                    'error_mode' => $this->errorMode,
+                    'status' => 'pending',
+                    'total_rows' => 0,
+                    'success_rows' => 0,
+                    'error_rows' => 0,
+                    'failure_message' => null,
+                    'started_at' => null,
+                    'finished_at' => null,
+                    'created_by' => $actor?->getAuthIdentifier(),
+                    'created_by_name' => $actor?->name,
+                ]);
+
+                $existing->errors()->delete();
+
+                ProcessCardImport::dispatch(
+                    (int) PeriodContext::companyId(),
+                    (int) PeriodContext::periodId(),
+                    $existing->id,
+                );
+            }
+
             $this->batchId = $existing->id;
             $this->step = 4;
 

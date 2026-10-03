@@ -19,7 +19,12 @@
             @endforeach
             </tbody>
         </table>
-        <button type="button" wire:click="copy">Seçilenleri Kopyala</button>
+        <div class="form-row">
+            <button type="button" wire:click="copy">Seçilenleri Kopyala</button>
+            @if($sourceCompanyId)
+                <button type="button" wire:click="inspectSourceChanges">Kaynakta Değişti mi?</button>
+            @endif
+        </div>
     </section>
 
     @if($conflicts)
@@ -41,6 +46,34 @@
                 </div>
             @endforeach
             <button type="button" wire:click="copy">Kararlarla Devam Et</button>
+        </section>
+    @endif
+
+    @if($sourceChanges !== [])
+        <section class="panel stack">
+            <h2>Kaynak Değişiklikleri</h2>
+            @foreach($sourceChanges as $row)
+                <article class="source-change">
+                    <div class="form-row">
+                        <strong>{{ $row['code'] }} · {{ $row['label'] }}</strong>
+                        @if($row['source_missing'])
+                            <span class="field-error">Kaynak kayıt artık bulunamıyor.</span>
+                        @else
+                            <button type="button" wire:click="refreshFromSource({{ $row['target_id'] }})">Kaynakla Güncelle</button>
+                        @endif
+                    </div>
+                    @if(!$row['source_missing'])
+                        <table class="data-table">
+                            <thead><tr><th>Alan</th><th>Hedef</th><th>Kaynak</th></tr></thead>
+                            <tbody>
+                            @foreach($row['changes'] as $change)
+                                <tr><td>{{ $change['field'] }}</td><td>{{ $change['target'] }}</td><td>{{ $change['source'] }}</td></tr>
+                            @endforeach
+                            </tbody>
+                        </table>
+                    @endif
+                </article>
+            @endforeach
         </section>
     @endif
 
