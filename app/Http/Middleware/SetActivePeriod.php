@@ -18,7 +18,7 @@ class SetActivePeriod
             return $next($request);
         }
 
-        if ($request->is('period/select', 'logout')) {
+        if ($request->routeIs('period.select', 'settings.periods', 'logout', 'setup')) {
             return $next($request);
         }
 
@@ -28,7 +28,7 @@ class SetActivePeriod
         $periodId = session('active_period_id') ?? $user->last_period_id;
 
         if (! $companyId) {
-            return redirect('/period/select');
+            return redirect()->route('period.select');
         }
 
         if (! $periodId) {

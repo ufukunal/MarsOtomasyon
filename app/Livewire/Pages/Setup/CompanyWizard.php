@@ -5,10 +5,10 @@ namespace App\Livewire\Pages\Setup;
 use App\Actions\Periods\CreatePeriod;
 use App\Models\Company;
 use App\Models\User;
+use App\Support\Auth\CompanyRoleProvisioner;
 use App\Support\Period\PeriodContext;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
 use Livewire\Component;
@@ -80,6 +80,8 @@ class CompanyWizard extends Component
             'base_currency' => $this->baseCurrency,
         ]);
 
+        $period = null;
+
         try {
             $period = $createPeriod->handle($company, $this->year);
 
@@ -133,6 +135,11 @@ class CompanyWizard extends Component
                 'updated_at' => now(),
             ]);
 
+            $roles = app(CompanyRoleProvisioner::class)->handle($company);
+            setPermissionsTeamId($company->id);
+            $user->unsetRelation('roles');
+            $user->assignRole($roles['Yönetici']);
+
             $user->forceFill([
                 'last_company_id' => $company->id,
                 'last_period_id' => $period->id,
@@ -140,6 +147,17 @@ class CompanyWizard extends Component
 
             PeriodContext::use($company->id, $period->id);
         } catch (\Throwable $exception) {
+            PeriodContext::clear();
+
+            if ($period?->exists) {
+                $databaseName = $period->database_name;
+                $period->delete();
+
+                DB::connection('master')->statement(
+                    sprintf('DROP DATABASE IF EXISTS "%s" WITH (FORCE)', $databaseName),
+                );
+            }
+
             $company->delete();
 
             throw $exception;
