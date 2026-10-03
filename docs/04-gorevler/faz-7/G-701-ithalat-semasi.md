@@ -6,7 +6,7 @@ Import file, kaynak satır, expense, allocation ve inventory cost adjustment ger
 
 ## Önkoşul
 
-Faz 4 purchase_invoice, product_costs, K-114…K-129.
+Faz 4 purchase_invoice, product_costs, K-114…K-130 ve K-257.
 
 ## Dokunulacak dosyalar
 
@@ -26,7 +26,7 @@ Kanonik kaynak:
 ## Kurallar
 
 - Period tablolarda company_id yok.
-- purchase_invoice_line unique import membership.
+- Import product source `purchase_invoice_line` yalnız `line_kind=stock` olabilir ve unique import membership taşır.
 - zero-quantity stock movement yok.
 - inventory cost adjustment ayrı tablo.
 - expense method yalnız purchase_value|quantity|manual.
