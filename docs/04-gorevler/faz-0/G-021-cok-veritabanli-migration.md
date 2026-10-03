@@ -14,7 +14,11 @@ G-002, G-003
 
 
 ## Dokunulacak dosyalar
-- Bu görevde tarif edilen mevcut uygulama/migration/test dosyaları; kapsam dışına çıkma.
+- `app/Console/Commands/MigratePeriodsCommand.php`
+- Master `periods.schema_version` migration/model güncellemesi
+- migration status/report DTO/helper'ları
+- `tests/Feature/Period/MigratePeriodsCommandTest.php`
+- `docs/isletim/migration-dagitim.md`
 
 
 ## Şema / Kod
@@ -50,19 +54,11 @@ Kod: `docs/02-is-kurallari/20-migration-ve-dagitim.md` içindeki
   komutla doldurulur. Uzun süren işlem altı veritabanında dağıtımı kilitler
 - Yeni dönem veritabanı hep güncel şemayla oluşur (`CreatePeriod`)
 
-## Dağıtım betiği
+## Production deploy sınırı
 
-```
-1. down --secret=...
-2. git pull
-3. composer install --no-dev -o
-4. migrate --database=master --path=database/migrations/master --force
-5. migrate:periods --force          ← HATA VERİRSE DUR
-6. optimize:clear && optimize
-7. permission:cache-reset
-8. queue:restart
-9. up
-```
+Bu görev **yalnız** `migrate:periods` komutu ve schema-version dağıtım sözleşmesini uygular.
+
+Eski in-place `git pull / down / up` deployment akışı bu görevin kanonik çıktısı değildir. Production deployment Faz 11 **G-1103 / K-239…K-241 immutable release** akışıdır. G-021 yalnız G-1103'ün çağıracağı güvenilir period migration komutunu sağlar.
 
 **Dağıtım öncesi tüm veritabanlarının yedeği alınır** (master dahil).
 Geri alma `down()` metoduna değil, yedeğe dayanır.
@@ -95,4 +91,4 @@ Geri alma `down()` metoduna değil, yedeğe dayanır.
 > arşivleri atlasın, her biri için PeriodContext::use çağırıp migrate
 > çalıştırsın. Hatalı olanları toplayıp sonunda raporlasın ve hata
 > koduyla çıksın. --year, --company, --status, --pretend seçeneklerini
-> destekle. Dağıtım betiğini docs/isletim/ altına yaz.
+> destekle. Production deploy scripti yazma; immutable release akışı G-1103'ün sorumluluğudur.
