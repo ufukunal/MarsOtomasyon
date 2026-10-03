@@ -2,10 +2,10 @@
 
 namespace App\Models\Period;
 
-use Illuminate\Support\Carbon;
 use App\Models\PeriodModel;
 use App\Support\Concurrency\HasOptimisticLock;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
 /**
  * @property Carbon|null $valid_from
