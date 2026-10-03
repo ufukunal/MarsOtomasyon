@@ -11,7 +11,7 @@ G-804…G-806, Faz 4 purchase_invoice, Faz 7 inventory_cost_adjustments.
 ## Dokunulacak dosyalar
 
 - subcontract completion UI/Action
-- subcontract_service_source relation
+- production_service_invoices mapping
 - service cost allocator
 - late cost adjustment integration
 - fason tests
@@ -22,7 +22,7 @@ Hizmet faturası:
 
 - normal purchase_invoice
 - supplier=production_order subcontractor
-- relation=subcontract_service_source
+- production_service_invoices ile production_order bağlantısı
 
 Late cost:
 
