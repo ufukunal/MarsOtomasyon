@@ -12,7 +12,7 @@ Faz 2 stok, Faz 4 alış, Faz 7 inventory cost adjustment, K-131…K-162.
 
 - production recipe/order/completion migrations/models
 - locations kind/subcontractor_contact_id genişletmesi
-- document relation type genişletmesi
+- production_service_invoices mapping migration/model
 - inventory_cost_adjustments production_completion_id genişletmesi
 - schema testleri
 
@@ -22,9 +22,9 @@ Kanonik kaynak:
 
 - `docs/01-veri-modeli/41-production-and-subcontracting.md`
 
-Yeni relation type:
+Fason hizmet bağı:
 
-- subcontract_service_source
+- production_service_invoices
 
 ## Kurallar
 
