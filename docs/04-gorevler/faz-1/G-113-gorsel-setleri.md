@@ -8,7 +8,11 @@
 G-106 (ürün kartı), G-009 (attachments)
 
 ## Dokunulacak dosyalar
-- `database/migrations/period/`
+- Attachment şemasındaki `collection`/`sort_order` alanlarının kullanımı; yeni paralel görsel tablosu yok
+- ürün detay Görseller Livewire sekmesi + blade
+- image collection resolver/fallback helper
+- attachment reorder Action
+- `tests/Feature/Products/ProductImageSetsTest.php`
 
 
 ## Şema / Kod
