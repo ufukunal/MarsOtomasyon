@@ -8,6 +8,7 @@ use App\Support\Period\PeriodContext;
 
 final class PrintManager
 {
+    /** @param array<string, mixed> $payload */
     public static function send(PrintType $type, array $payload): PrintResult
     {
         $profile = self::resolveProfile($type);

@@ -11,6 +11,7 @@ use Throwable;
 
 final class IntegrityHealthService
 {
+    /** @return array<string, bool|int|string> */
     public function check(): array
     {
         $periods = Period::query()->where('status', 'active')->get();

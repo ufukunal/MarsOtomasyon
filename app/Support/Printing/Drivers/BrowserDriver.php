@@ -11,6 +11,7 @@ use Spatie\Browsershot\Browsershot;
 
 class BrowserDriver implements PrintDriver
 {
+    /** @param array<string, mixed> $payload */
     public function send(
         PrintType $type,
         array $payload,
@@ -24,7 +25,7 @@ class BrowserDriver implements PrintDriver
 
         $browser = Browsershot::html($html);
 
-        if ($profile?->width_mm && $profile?->height_mm) {
+        if ($profile?->width_mm && $profile->height_mm) {
             $browser->paperSize(
                 (float) $profile->width_mm,
                 (float) $profile->height_mm,

@@ -4,6 +4,7 @@ namespace App\Support\Import;
 
 final class ImportMapping
 {
+    /** @return array<string, array{label:string, required:bool}> */
     public static function fields(string $type): array
     {
         return match ($type) {
@@ -51,6 +52,11 @@ final class ImportMapping
         };
     }
 
+    /**
+     * @param array<string, mixed> $row
+     * @param array<string, string|null> $mapping
+     * @return array<string, mixed>
+     */
     public static function map(array $row, array $mapping): array
     {
         $mapped = [];

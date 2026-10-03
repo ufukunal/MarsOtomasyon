@@ -14,8 +14,9 @@ final class PriceResolver
     {
         $date ??= now();
 
-        $listId = $contact?->price_list_id
-            ?? PriceList::query()->where('is_default', true)->where('is_active', true)->value('id');
+        $listId = $contact !== null && $contact->price_list_id !== null
+            ? $contact->price_list_id
+            : PriceList::query()->where('is_default', true)->where('is_active', true)->value('id');
 
         if ($listId) {
             $price = PriceListItem::query()

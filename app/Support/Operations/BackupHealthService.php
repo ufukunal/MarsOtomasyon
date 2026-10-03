@@ -8,6 +8,7 @@ use Throwable;
 
 final class BackupHealthService
 {
+    /** @return array{ok:bool,status:string,failed_targets:int} */
     public function check(): array
     {
         $maxAge = (int) config('operations.backup.max_age_hours', 36);

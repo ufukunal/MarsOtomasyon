@@ -8,9 +8,6 @@ use RuntimeException;
 
 final class SourcePeriodContext
 {
-    private static ?int $sourceCompanyId = null;
-
-    private static ?int $sourcePeriodId = null;
 
     public static function use(int $sourceCompanyId): Period
     {
@@ -32,16 +29,11 @@ final class SourcePeriodContext
         DB::purge('period_source');
         DB::reconnect('period_source');
 
-        self::$sourceCompanyId = $sourceCompanyId;
-        self::$sourcePeriodId = $period->id;
-
         return $period;
     }
 
     public static function clear(): void
     {
-        self::$sourceCompanyId = null;
-        self::$sourcePeriodId = null;
 
         config(['database.connections.period_source.database' => null]);
         DB::purge('period_source');
