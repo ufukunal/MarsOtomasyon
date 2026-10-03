@@ -100,7 +100,7 @@ Faz 11 yeni veri modeli dosyası 44; yeni iş kuralı dosyaları 58–61'dir. K-
 Durum: **BLOKAJ VAR — kodlamaya başlanmaz.**
 
 Doğrulananlar:
-- K-001…K-255 eksiksiz ve tekrarsız.
+- K-001…K-256 eksiksiz ve tekrarsız.
 - 156 görev dosyasında G kimliği çakışması yok.
 - Faz 0–11 plan/dokümantasyon dosyaları mevcut.
 - Faz 8 location alan adı `kind` olarak kanonikleştirildi.
