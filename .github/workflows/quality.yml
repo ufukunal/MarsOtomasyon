@@ -58,7 +58,10 @@ jobs:
         run: npm ci --ignore-scripts --no-audit --no-fund
 
       - name: Pint
-        run: vendor/bin/pint --test
+        run: |
+          vendor/bin/pint
+          git diff --no-color
+          git diff --exit-code
 
       - name: Larastan
         run: vendor/bin/phpstan analyse --no-progress
