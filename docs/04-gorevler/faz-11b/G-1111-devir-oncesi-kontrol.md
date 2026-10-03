@@ -30,3 +30,7 @@ G-1110 kanonik carry sözleşmesi.
 
 ## İstem
 > Dönem devri ön kontrolünü iş kuralı 57'ye göre uygula.
+
+## Kodlama öncesi blokaj — A-127
+
+**[KARAR GEREKİYOR]** Preview'da açık satış/alış operasyon belgelerinin block mu carry item mı olacağı A-127 ile kesinleşecektir.
