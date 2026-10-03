@@ -10,7 +10,8 @@ K-087/K-089:
 | supplier_quote | yok | yok | yok | yok |
 | purchase_order | yok | yok | yok | yok |
 | goods_receipt | yok | yok | yok | yok |
-| purchase_invoice | **in** | **credit** | **moving average** | yok |
+| purchase_invoice / stock line | **in** | **credit (belge toplamında)** | **moving average** | yok |
+| purchase_invoice / service line | **yok** | **credit (belge toplamında)** | **yok** | yok |
 
 Faz 4'te ödeme posting'i yoktur.
 
@@ -25,10 +26,10 @@ Transaction sırası:
 3. gerekiyorsa numara üret,
 4. ortak belge hesap motoruyla total doğrula,
 5. source lineage ve kalan miktarı kilit altında doğrula,
-6. her satır için temel birim miktarı doğrula,
-7. alış maliyetini frozen kurla TRY'a çevir,
-8. `RecordStockMovement(in, reason=purchase)`,
-9. aynı ürün için `UpdateMovingAverage`,
+6. her satırın line_kind değerini doğrula; stock satırda temel birim miktarını, service satırda stock alanlarının null olduğunu doğrula,
+7. stock satırlar için alış maliyetini frozen kurla TRY'a çevir,
+8. yalnız stock satırlar için `RecordStockMovement(in, reason=purchase)`,
+9. yalnız stock satır ürünleri için `UpdateMovingAverage`,
 10. belge toplamı kadar tedarikçi `contact_transactions.credit`,
 11. status/posted actor snapshot,
 12. post-write verify,
@@ -47,6 +48,18 @@ K-013 gereği alışta döviz kullanılabilir.
 - Dövizli alışta kur > 0 olmalıdır.
 - Kur sonradan değişse bile posted belge/maliyet yeniden hesaplanmaz.
 - Kur farkı hesabı Faz 4 kapsamında yoktur.
+
+## Service satırı
+
+K-257 gereği `line_kind=service` satırı:
+
+- purchase_invoice grand total/KDV/iskonto hesabına girer,
+- supplier contact credit etkisine belge toplamı üzerinden dahil olur,
+- stock movement üretmez,
+- moving_average / last_purchase_price güncellemez,
+- import expense veya fason hizmet maliyeti için kaynak satır olabilir.
+
+Karışık mal+hizmet faturasında yalnız stock satırlar fiziksel stok/maliyet posting'i üretir.
 
 ## Satır stok maliyeti
 
@@ -128,7 +141,7 @@ Orijinal belge immutable kalır.
 Commit öncesi:
 
 - belge totals ortak hesap motoruyla eşleşmeli,
-- her invoice line için tek beklenen purchase stock movement miktarı eşleşmeli,
+- her stock invoice line için tek beklenen purchase stock movement miktarı eşleşmeli; service line için stock movement bulunmamalı,
 - movement unit_cost frozen kur ve net maliyet hesabıyla eşleşmeli,
 - product_cost moving_average güncellemesi beklenen sonuçla eşleşmeli,
 - document_id ile tek supplier contact transaction bulunmalı,
@@ -136,7 +149,3 @@ Commit öncesi:
 - source remaining aşılmamalı.
 
 Farkta transaction rollback.
-
-## Kodlama öncesi blokaj — A-125
-
-**[KARAR GEREKİYOR]** Mevcut etki matrisi tüm purchase_invoice satırlarını stock-in kabul eder. Faturalı navlun/fason hizmet satırının cari/VAT üretip stok/moving-average üretmemesi için A-125 kapanmalıdır. A-125 çözülmeden service purchase invoice posting davranışı uydurulmaz.
