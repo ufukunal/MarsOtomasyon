@@ -49,10 +49,10 @@ K-151:
 Normal purchase_invoice kullanılır.
 
 - supplier = subcontractor contact,
-- production order'a `subcontract_service_source` ilişkisi,
+- production order'a `production_service_invoices` eşleme kaydı,
 - cari/payment etkileri normal purchase_invoice/Faz 5 kurallarıyla.
 
-Import file benzeri ayrı cari etkisi yoktur.
+Import file benzeri ayrı cari etkisi yoktur. `document_relations` bu bağ için kullanılmaz; production order `documents` tablosunda değildir.
 
 ## Hizmet maliyeti
 
