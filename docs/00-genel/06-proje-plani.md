@@ -116,3 +116,18 @@ Karar kapanışları:
 - **A-127 KAPANDI → K-256:** açık sales_order/purchase_order kalan miktarları ve aktif sales-order rezervasyonları yeni period'a aktarılır; teklif/taslak aktarılmaz.
 
 Açık ürün kararı yoktur.
+
+## 156 görev final kalite denetimi — 03.10.2026
+
+- **156/156 G dosyası tek tek okunmuştur.**
+- **58 görev/özet dosyasında doğrudan kalite düzeltmesi yapılmıştır.**
+- Ayrıntılı görev bazlı kayıt: `docs/00-genel/10-gorev-kalite-denetimi.md`.
+- Generic placeholder, stale faz-onay metni, açık `[KARAR GEREKİYOR]`, bilinen alan adı/bağımlılık çelişkisi kalmamıştır.
+- G-115 Faz 4'e doğru scope edilmiştir.
+- G-208 sayım snapshot fark matematiği düzeltilmiştir.
+- G-209 quarantine gerçek kaynak/summary ayrımı netleştirilmiştir.
+- K-257/K-258 service-line ve fason allocation davranışları ilgili Faz 3/4/7/8 görevlerine yansıtılmıştır.
+- K-256 açık kanal siparişi carry provenance'ı Faz 9/11b görevlerine işlenmiştir.
+- G-1006 kanonik MultiPeriodQuery sahibi, G-1112 doğrulama/reuse görevidir; dairesel sahiplik yoktur.
+- Production deploy kanoniği G-1103 immutable-release akışıdır; G-021 yalnız `migrate:periods` sağlar.
+- **Açık ürün kararı yoktur. Kodlama yapılmamıştır.**
