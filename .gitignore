@@ -5,3 +5,4 @@
 /storage/app/attachments
 .env
 .phpunit.result.cache
+*.tar.gz
