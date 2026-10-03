@@ -13,6 +13,7 @@ use Illuminate\Support\Carbon;
  */
 class Period extends MasterModel
 {
+    /** @use HasFactory<\Database\Factories\PeriodFactory> */
     use HasFactory;
     use HasOptimisticLock;
 

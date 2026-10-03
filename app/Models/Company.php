@@ -12,6 +12,7 @@ use Spatie\Activitylog\Support\LogOptions;
 
 class Company extends MasterModel
 {
+    /** @use HasFactory<\Database\Factories\CompanyFactory> */
     use HasFactory;
     use HasOptimisticLock;
     use LogsActivity;
