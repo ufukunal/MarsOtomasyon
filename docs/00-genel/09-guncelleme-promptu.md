@@ -214,7 +214,7 @@ Repo tutarlılık temizliği ve Faz 0–2 görev revizyonu tamamlandı. **Faz 3�
 ## 03.10.2026 — 156 görev final kalite denetimi
 
 - `docs/04-gorevler/` altındaki **156/156 G dosyası tek tek okundu**.
-- **58 görev/özet dosyasında doğrudan kalite düzeltmesi** yapıldı; diğerleri mevcut kanonik sözleşmeyle uyumlu bulundu.
+- **59 görev/özet dosyasında doğrudan kalite düzeltmesi** yapıldı; diğerleri mevcut kanonik sözleşmeyle uyumlu bulundu.
 - Başlıca düzeltmeler: generic dosya kapsamları, G-115 Faz 4 scope taşması, sayım snapshot matematiği, quarantine gerçek kaynak ayrımı, K-257 mixed/service invoice zinciri, K-257/K-258 ithalat/fason çaprazları, K-256 kanal order carry provenance, G-1006↔G-1112 dairesel sahiplik ve stale production deploy akışı.
 - Stale placeholder/`[KARAR GEREKİYOR]`/eski faz-onay metni kalmadı.
 - Açık ürün kararı yoktur.
