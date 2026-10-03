@@ -27,9 +27,6 @@
 Yanlış şirket verisi görülürse global scope ekleme; önce PeriodContext ve database_name doğrula.
 
 
-## Güncel açık blokajlar
+## Güncel karar durumu
 
-- A-125: non-stock service purchase_invoice satır modeli.
-- A-126: fason hizmet maliyetinin kısmi completion'lara dağıtım yöntemi.
-
-Bu iki karar kapanmadan ilgili Faz 4/7/8 görevlerinde çözüm uydurulmaz.
+A-125 K-257, A-126 K-258, A-127 K-256 ile kapalıdır. Açık ürün kararı yoktur. Görev uygulanırken yine de yeni bir karar boşluğu görülürse kod/şema uydurulmaz; karar günlüğüne geri dönülür.
