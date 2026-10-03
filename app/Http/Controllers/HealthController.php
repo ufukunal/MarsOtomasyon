@@ -36,6 +36,7 @@ class HealthController extends Controller
         ], $healthy ? 200 : 503);
     }
 
+    /** @return array<string, bool|string> */
     private function master(): array
     {
         try {

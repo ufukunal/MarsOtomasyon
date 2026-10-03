@@ -2,6 +2,8 @@
 
 namespace App\Actions\Companies;
 
+use BackedEnum;
+
 use App\Actions\Contacts\SaveContact;
 use App\Actions\Products\SaveProduct;
 use App\Enums\CompanyCopyPermissionType;
@@ -22,6 +24,7 @@ use Illuminate\Validation\ValidationException;
 
 final class InspectCopiedRecords
 {
+    /** @return list<array<string, mixed>> */
     public function inspect(int $sourceCompanyId, CompanyCopyPermissionType $type): array
     {
         MutationAuthorizer::authorize('company_copy_permissions.view');
@@ -207,12 +210,13 @@ final class InspectCopiedRecords
         ], $target, (int) $target->version);
     }
 
+    /** @return array<string, mixed> */
     private function snapshot(Model $model, CompanyCopyPermissionType $type, bool $source): array
     {
         if ($type === CompanyCopyPermissionType::Contact) {
             return [
                 'unvan' => $model->getAttribute('title'),
-                'tip' => $model->getAttribute('type')?->value ?? $model->getAttribute('type'),
+                'tip' => $this->scalar($model->getAttribute('type')),
                 'vergi_dairesi' => $model->getAttribute('tax_office'),
                 'vergi_no' => $model->getAttribute('tax_number'),
                 'tc_kimlik' => $model->getAttribute('national_id'),
@@ -248,10 +252,10 @@ final class InspectCopiedRecords
             'kdv' => $model->getAttribute('vat_rate'),
             'liste_fiyati' => $model->getAttribute('list_price'),
             'para_birimi' => $model->getAttribute('currency'),
-            'tip' => $model->getAttribute('kind')?->value ?? $model->getAttribute('kind'),
+            'tip' => $this->scalar($model->getAttribute('kind')),
             'negatif_stok' => (bool) $model->getAttribute('allow_negative_stock'),
             'minimum_stok' => $model->getAttribute('min_stock'),
-            'kanal_stok_modu' => $model->getAttribute('channel_stock_mode')?->value ?? $model->getAttribute('channel_stock_mode'),
+            'kanal_stok_modu' => $this->scalar($model->getAttribute('channel_stock_mode')),
             'durum' => (bool) $model->getAttribute('is_active'),
         ];
     }
@@ -337,6 +341,10 @@ final class InspectCopiedRecords
 
         if (is_bool($value)) {
             return $value ? '1' : '0';
+        }
+
+        if ($value instanceof BackedEnum) {
+            return (string) $value->value;
         }
 
         return (string) $value;

@@ -157,7 +157,7 @@ class Product extends PeriodModel implements HasAttachmentsContract, SearchIndex
             )
             ->first();
 
-        return bcadd((string) ($row?->available ?? '0'), '0', 3);
+        return bcadd($row ? (string) $row->available : '0', '0', 3);
     }
 
     public function setAvailability(): ?string

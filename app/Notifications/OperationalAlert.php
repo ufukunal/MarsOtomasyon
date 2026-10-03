@@ -17,6 +17,7 @@ class OperationalAlert extends Notification implements ShouldQueue
         public readonly string $code,
     ) {}
 
+    /** @return list<string> */
     public function via(object $notifiable): array
     {
         return ['mail'];

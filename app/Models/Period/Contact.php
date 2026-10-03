@@ -132,9 +132,15 @@ class Contact extends PeriodModel implements HasAttachmentsContract, SearchIndex
             ? $this->people
             : $this->people()->get();
 
-        return (string) ($people->firstWhere('is_default', true)?->name
-            ?? $people->first()?->name
-            ?? '');
+        $primary = $people->firstWhere('is_default', true);
+
+        if ($primary) {
+            return (string) $primary->name;
+        }
+
+        $first = $people->first();
+
+        return $first ? (string) $first->name : '';
     }
 
     public function getCategoryNamesAttribute(): string
