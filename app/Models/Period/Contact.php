@@ -18,9 +18,6 @@ use Spatie\Activitylog\Models\Concerns\LogsActivity;
 use Spatie\Activitylog\Support\LogOptions;
 
 /**
- * @implements HasAttachmentsContract<Contact>
- * @implements SearchIndexed<Contact>
- *
  * @property ContactType $type
  */
 class Contact extends PeriodModel implements HasAttachmentsContract, SearchIndexed

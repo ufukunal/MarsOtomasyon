@@ -102,8 +102,9 @@ abstract class DataTableComponent extends Component
                 $model = $query->getModel();
 
                 if ($model instanceof SearchIndexed) {
-                    /** @var SearchIndexed<TModel> $model */
-                    $model->scopeSearch($query, $this->search);
+                    foreach (explode(' ', $normalized) as $token) {
+                        $query->where('search_index', 'like', '%'.$token.'%');
+                    }
                 } else {
                     $query->where(function (Builder $builder) use ($searchable): void {
                         foreach ($searchable as $column) {
