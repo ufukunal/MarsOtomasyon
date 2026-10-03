@@ -13,7 +13,11 @@ G-202
 
 
 ## Dokunulacak dosyalar
-- `database/migrations/period/`
+- StockMovements Livewire + blade
+- stock movement query/filter helper
+- ürün detay Stok Hareketleri reuse entegrasyonu
+- cost.view column/export guards
+- `tests/Feature/Stock/StockMovementListTest.php`
 
 
 ## Şema / Kod
