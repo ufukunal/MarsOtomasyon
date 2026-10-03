@@ -8,7 +8,7 @@ return [
     'expire_on_close' => false,
     'encrypt' => env('SESSION_ENCRYPT', false),
     'files' => storage_path('framework/sessions'),
-    'connection' => env('SESSION_CONNECTION'),
+    'connection' => env('SESSION_CONNECTION', 'session'),
     'table' => 'sessions',
     'store' => env('SESSION_STORE'),
     'lottery' => [2, 100],
