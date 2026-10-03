@@ -8,7 +8,13 @@ G-003
 
 
 ## Dokunulacak dosyalar
-- Bu görev için mevcut metinde tanımlanan uygulama/migration/test dosyaları; kapsam dışı dosyaya dokunma.
+- Master activity_log migration/config genişletmesi
+- Period activity_log migration/config genişletmesi
+- `app/Support/Audit/AuditContext.php`
+- login/logout/failed-login audit listener'ları
+- period actor/correlation audit helper'ı
+- `tests/Feature/Audit/MasterAuditTest.php`
+- `tests/Feature/Audit/PeriodAuditTest.php`
 
 
 ## Şema / Kod
