@@ -162,6 +162,11 @@ SQLite kullanılmaz.
 `integrity:partials`:
 - source line fulfillment / cancellation.
 
+`integrity:numbers`:
+- finalized/numaralı documents ile ilgili `number_series` ilişkisini doğrular,
+- bilerek oluşturulan tekrar veya beklenmeyen numara boşluğu/series tutarsızlığını mismatch olarak raporlar,
+- otomatik numara düzeltmesi yapmaz.
+
 Mevcut Faz 2:
 - integrity:stock
 - integrity:reservations
@@ -186,6 +191,7 @@ Fark raporlanır, otomatik düzeltme yok.
 - cost.view olmayan kullanıcı payload/export'ta maliyet görmüyor.
 - E-Belge veya kalite modülü route/tab eklenmemiş.
 - Faz 3'te tanımlanmamış yeni business karar kodda uydurulmamış.
+- `integrity:numbers` gerçek PostgreSQL'de kasıtlı numara/series tutarsızlığını yakalıyor.
 
 ## İstem
 
