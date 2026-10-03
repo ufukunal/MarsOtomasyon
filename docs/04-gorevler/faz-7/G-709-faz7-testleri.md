@@ -33,6 +33,8 @@ Yeni production şeması yok.
 - purchase value allocation
 - quantity allocation
 - manual allocation
+- manual expense create idempotency: aynı anahtar retry -> tek expense
+- allocation persistence idempotency: aynı anahtar retry -> tek allocation seti
 - deterministic rounding
 - finalize immutable/idempotent
 - import_cost snapshot
