@@ -17,7 +17,7 @@ Her dosyada şu rubric uygulanmıştır:
 9. PostgreSQL / Money-BCMath / permission / cross-DB sınırları,
 10. Stale isim, alan, karar veya faz-onay metni.
 
-**Sonuç:** 156 dosya denetlendi. **59 görev/özet dosyasında doğrudan kalite düzeltmesi yapıldı**; diğer dosyalar mevcut kanonik sözleşmeyle uyumlu bulundu.
+**Sonuç:** 156 dosya denetlendi. **68 görev/özet dosyasında doğrudan kalite düzeltmesi yapıldı**; diğer dosyalar mevcut kanonik sözleşmeyle uyumlu bulundu.
 
 ## Görev bazlı sonuç
 
@@ -34,15 +34,15 @@ Her dosyada şu rubric uygulanmıştır:
 | G-006 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
 | G-007 | **DÜZELTİLDİ** | rol sabiti yerine permission modeli |
 | G-008 | **DÜZELTİLDİ** | audit dosya kapsamı somutlaştırıldı |
-| G-009 | **DÜZELTİLDİ** | generic dosya kapsamı somutlaştırıldı |
+| G-009 | **DÜZELTİLDİ** | generic dosya kapsamı somutlaştırıldı + integrity:files acceptance |
 | G-010 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-011 | **DÜZELTİLDİ** | izolasyon test dosyaları somutlaştırıldı |
+| G-011 | **DÜZELTİLDİ** | izolasyon test dosyaları somutlaştırıldı + integrity:files failure testi |
 | G-012 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
 | G-013 | **DÜZELTİLDİ** | Faz 11 backup genişletmesiyle sahiplik sınırı |
 | G-014 | **DÜZELTİLDİ** | period permission + dosya kapsamı |
 | G-015 | **DÜZELTİLDİ** | auth/setup dosya kapsamı |
 | G-016 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-017 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-017 | **DÜZELTİLDİ** | integrity:numbers altyapı acceptance + Faz 3 sahiplik sınırı |
 | G-018 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
 | G-019 | **DÜZELTİLDİ** | pg_trgm period DB migration'a taşındı |
 | G-020 | **DÜZELTİLDİ** | Faz 11 health/security sahiplik sınırı |
@@ -89,12 +89,12 @@ Her dosyada şu rubric uygulanmıştır:
 | G-1004 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
 | G-1005 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
 | G-1006 | **DÜZELTİLDİ** | G-1112 dairesel bağımlılığı kaldırıldı; kanonik implementation sahibi |
-| G-1007 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-1008 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-1007 | **DÜZELTİLDİ** | integrity:report-presets görev sahipliği ve acceptance |
+| G-1008 | **DÜZELTİLDİ** | integrity:templates görev sahipliği ve acceptance |
 | G-1009 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
 | G-1010 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-1011 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-1012 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-1011 | **DÜZELTİLDİ** | integrity:print-provenance görev sahipliği ve acceptance |
+| G-1012 | **DÜZELTİLDİ** | Faz 10 üç integrity kontrolü + integrity:all acceptance |
 
 ### faz-11
 
@@ -154,7 +154,7 @@ Her dosyada şu rubric uygulanmıştır:
 | G-309 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
 | G-310 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
 | G-311 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-312 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-312 | **DÜZELTİLDİ** | integrity:numbers gerçek belge/series mismatch acceptance |
 
 ### faz-4
 
@@ -194,7 +194,7 @@ Her dosyada şu rubric uygulanmıştır:
 | G-601 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
 | G-602 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
 | G-603 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-604 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-604 | **DÜZELTİLDİ** | alış iadesi posting idempotency sözleşmesi ve acceptance |
 | G-605 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
 | G-606 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
 | G-607 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
@@ -209,12 +209,12 @@ Her dosyada şu rubric uygulanmıştır:
 | G-701 | **DÜZELTİLDİ** | K-130/K-257 kapsamı + stock source şartı |
 | G-702 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
 | G-703 | **DÜZELTİLDİ** | ithal ürün kaynağı yalnız line_kind=stock |
-| G-704 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-705 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-704 | **DÜZELTİLDİ** | manual import expense state-changing idempotency |
+| G-705 | **DÜZELTİLDİ** | allocation persistence state-changing idempotency |
 | G-706 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
 | G-707 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
 | G-708 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
-| G-709 | **DÜZELTİLDİ** | K-257 service expense/mixed invoice testleri |
+| G-709 | **DÜZELTİLDİ** | K-257 service expense/mixed invoice + expense/allocation idempotency testleri |
 
 ### faz-8
 
@@ -265,6 +265,9 @@ Her dosyada şu rubric uygulanmıştır:
 - Faz 9 ↔ K-256 dönem devri external-order korelasyonu korundu.
 - Faz 10 G-1006 ↔ Faz 11b G-1112 dairesel implementation sahipliği kaldırıldı.
 - Faz 11b görevlerinde K-256 açık sipariş carry ve kanal provenance semantiği tutarlı hale getirildi.
+- Faz 10 `integrity:report-presets`, `integrity:templates`, `integrity:print-provenance` kontrolleri görev sahipliği ve Faz 10 test zincirine yayıldı.
+- `integrity:files` Faz 0 failure acceptance'ına, `integrity:numbers` ise Faz 0 altyapı + Faz 3 gerçek document/series acceptance zincirine bağlandı.
+- K-038 state-changing idempotency kuralı alış iadesi posting, manual import expense ve import allocation persistence görevlerine yayıldı; read-only/resolver görevlerine gereksiz duplicate idempotency sözleşmesi eklenmedi.
 
 ## Karar durumu
 
