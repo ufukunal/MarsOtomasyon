@@ -74,6 +74,7 @@ class ProductForm extends Component
 
     public bool $configRequired = false;
 
+    /** @var list<array<string, mixed>> */
     public array $configOptions = [];
 
     public function mount(?Product $product = null): void
@@ -225,7 +226,7 @@ class ProductForm extends Component
             [
                 'name' => $this->configName,
                 'is_required' => $this->configRequired,
-                'sort_order' => $definition?->sort_order ?? $this->product->configDefinitions()->count(),
+                'sort_order' => $definition->sort_order ?? $this->product->configDefinitions()->count(),
             ],
             $options,
             $definition,

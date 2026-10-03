@@ -30,8 +30,10 @@ class VariantGroupDetail extends Component
 
     public ?int $productId = null;
 
+    /** @var array<int, string> */
     public array $values = [];
 
+    /** @var list<string> */
     public array $warnings = [];
 
     public function mount(?VariantGroup $group = null): void
@@ -69,7 +71,7 @@ class VariantGroupDetail extends Component
 
         $action->handle($this->group, [
             'name' => $this->newAttribute,
-            'sort_order' => $attribute?->sort_order ?? $this->group->attributes()->count(),
+            'sort_order' => $attribute->sort_order ?? $this->group->attributes()->count(),
         ], $attribute, $attribute ? $this->attributeVersion : null);
 
         $this->attributeId = null;

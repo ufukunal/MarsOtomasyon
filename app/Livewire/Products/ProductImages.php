@@ -19,7 +19,7 @@ class ProductImages extends Component
 
     public string $collection = 'Ortak';
 
-    public $image;
+    public mixed $image = null;
 
     public function upload(StoreProductImage $action): void
     {
@@ -45,6 +45,7 @@ class ProductImages extends Component
         $action->handle($this->product, $attachment);
     }
 
+    /** @param list<int> $attachmentIds */
     public function reorder(array $attachmentIds, ReorderProductImages $action): void
     {
         $this->authorize('update', $this->product);

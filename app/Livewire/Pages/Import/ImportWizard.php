@@ -21,7 +21,7 @@ class ImportWizard extends Component
 
     public string $type = 'contact';
 
-    public $file;
+    public mixed $file = null;
 
     public ?string $storedPath = null;
 
@@ -29,12 +29,16 @@ class ImportWizard extends Component
 
     public ?string $fileHash = null;
 
+    /** @var list<string> */
     public array $headers = [];
 
+    /** @var array<string, string|null> */
     public array $mapping = [];
 
+    /** @var list<array<string, mixed>> */
     public array $preview = [];
 
+    /** @var array<int, array<string, mixed>> */
     public array $previewValidation = [];
 
     public string $errorMode = 'cancel_all';

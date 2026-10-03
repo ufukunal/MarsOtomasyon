@@ -20,18 +20,25 @@ class CrossCompanyCopy extends Component
 
     public string $type = 'contact';
 
+    /** @var list<int> */
     public array $selected = [];
 
+    /** @var list<array<string, mixed>> */
     public array $sourceRows = [];
 
+    /** @var list<array<string, mixed>> */
     public array $conflicts = [];
 
+    /** @var array<int, array<string, mixed>> */
     public array $choices = [];
 
+    /** @var list<string> */
     public array $warnings = [];
 
+    /** @var array<string, mixed> */
     public array $result = [];
 
+    /** @var list<array<string, mixed>> */
     public array $sourceChanges = [];
 
     public function mount(): void

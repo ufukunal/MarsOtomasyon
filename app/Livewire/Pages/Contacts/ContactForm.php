@@ -53,6 +53,7 @@ class ContactForm extends Component
 
     public ?int $priceListId = null;
 
+    /** @var list<int> */
     public array $categoryIds = [];
 
     public bool $isActive = true;
