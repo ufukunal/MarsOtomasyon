@@ -30,12 +30,13 @@ Yeni production şeması yok.
 - channel listing mapping
 - geçmiş belge/hareket taşınmaması
 - açık sales_order/purchase_order yalnız remaining snapshot carry
+- carried sales_order/purchase_order target yılın kendi numara serisinden yeni numara alması; source numaranın `period_document_carries.source_document_number` provenance'ında korunması
 - sales-order reservation location dağılımının yeniden kurulması
 - cross-period order provenance
 - carried açık channel sales_order için channel_order_snapshot provenance
 - channel sync event/error history taşınmaması
 - open production/in-transit blocker
-- sequence MAX+1
+- explicit-ID kopyalanan her tabloda sequence'in ilk auto-ID insert'ten önce MAX+1'e çekilmesi ve carry sonunda tekrar doğrulanması
 - idempotency
 - integrity:carry
 - access override copy
