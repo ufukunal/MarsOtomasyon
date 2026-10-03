@@ -45,16 +45,15 @@ Detay: ürün seçici (barkod okuyucu desteği), miktar, not.
 
 
 ### Göreve özel kararlar
-- Koli etiketi ambar fişi kolilerine bağlıdır.
-- `1/4` benzeri sıra toplam koli sayısından üretilir.
-- Etiket ölçüsü Master print_profile width_mm/height_mm ile çözülür.
+- K-060 gereği koli etiketi için ambar fişi **kaynak belge** olabilir.
+- Faz 2 bağımsız koli stok/tablo modeli oluşturmaz ve koli sayısını uydurmaz.
+- Gerçek koli etiketi template/label-count/render davranışının sahibi Faz 10 G-1010'dur.
 
 
 ### Uygulama ayrıntıları
 - Ambar fişi period DB'de depo içi fiziksel işlem belgesidir.
-- Koli etiketleri ambar fişindeki koli kayıtlarından üretilir; satış irsaliyesine bağlı değildir.
-- `1/N` sıra bilgisi gerçek koli sayısından hesaplanır.
-- Yazdırma profili Master `print_profiles` üzerinden çözülür; ölçü width_mm/height_mm ile gelir.
+- Faz 2 ambar fişi yalnız Faz 10 koli etiketi için source document kimliğini ve satır verisini sağlar; ayrı carton table/count davranışı eklemez.
+- Etiket template, ölçü, `1/N` ve baskı davranışı Faz 10 G-1010/G-1011 kapsamında PrintManager üzerinden çözülür.
 
 ## Kabul ölçütü
 - Çıkış fişi stoğu azaltıyor, hareket yazıyor
