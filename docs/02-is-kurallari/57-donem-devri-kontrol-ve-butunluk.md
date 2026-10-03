@@ -40,7 +40,8 @@ Açık quarantine blok değildir; yeni döneme taşınır. Açık sales_order/pu
 - production recipe/revision,
 - subcontractor location stock,
 - channel account period settings + channel listing/location mapping,
-- K-256 gereği kalan açık miktarlarıyla sales_order/purchase_order snapshot'ları ve sales-order aktif rezervasyonları.
+- K-256 gereği kalan açık miktarlarıyla sales_order/purchase_order snapshot'ları ve sales-order aktif rezervasyonları,
+- taşınan açık sales_order kanal kaynaklıysa gerekli `channel_order_snapshot` aktif provenance kaydı.
 
 ## Taşınmayanlar
 
@@ -50,7 +51,7 @@ Açık quarantine blok değildir; yeni döneme taşınır. Açık sales_order/pu
 - source period'daki geçmiş/tamamlanmış siparişler; yalnız K-256 kapsamındaki açık kalan sales_order/purchase_order target snapshot'a dönüşür,
 - yoldaki transfer,
 - açık production/subcontract order,
-- channel order/sync history,
+- geçmiş/tamamlanmış channel order snapshot ve sync history; yalnız K-256 ile taşınan açık kanal sales_order'ın aktif provenance snapshot'ı istisnadır,
 - report/export/print job history.
 
 ## Finalizasyon
