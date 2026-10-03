@@ -18,7 +18,7 @@ Master channel_external_event_registry dönemler arası duplicate engelidir.
 
 K-182:
 
-Her channel account için tek marketplace customer contact kullanılır.
+Her channel account için tek marketplace customer contact kullanılır. Bu eşleme period DB `channel_account_period_settings.marketplace_customer_contact_id` alanının gerçek kaynağıdır.
 
 Gerçek alıcı bilgileri contact'a yazılmaz; channel_order_snapshots üzerinde frozen kalır.
 
