@@ -41,6 +41,7 @@ Source:
 - other description zorunlu.
 - indirilebilir import VAT inventory cost dışıdır.
 - Import file cari hareket üretmez.
+- Manual expense oluşturan state-changing Action K-038 gereği `idempotency_key` taşır; aynı anahtar retry edildiğinde ikinci import expense kaydı oluşmaz. Purchase-invoice kaynak seçimi mevcut posted kaydı referanslar, ikinci cari hareket üretmez.
 
 ## Kabul ölçütü
 
@@ -50,6 +51,7 @@ Source:
 - Mixed stock+service invoice'da stock line tutarları expense amount'a karışmıyor.
 - other açıklamasız reddediliyor.
 - inventory-cost flag doğru.
+- Aynı idempotency key ile yinelenen manual expense create isteği tek expense kaydı bırakıyor.
 
 ## İstem
 
