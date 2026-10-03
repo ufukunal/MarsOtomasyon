@@ -60,7 +60,7 @@ K-152:
 
 Fason hizmet bedeli mamul production cost'a dahildir.
 
-Completion anında bağlı posted hizmet faturası varsa uygun maliyet payı completion'a dahil edilir.
+Completion anında bağlı posted hizmet faturası varsa K-258 `production_service_allocations` kaydındaki completed_quantity-oranlı pay completion'a dahil edilir.
 
 ## Geç gelen hizmet faturası
 
@@ -70,6 +70,7 @@ Completion hizmet faturası olmadan yapılabilir.
 
 Sonradan gelen hizmet maliyeti:
 
+- önce K-258 ile mevcut completion'lara completed_quantity oranında `production_service_allocations` oluşturulur,
 - completion/original production quantity basis,
 - `inventory_cost_adjustments`,
 - reason=`subcontract_late_cost`,
@@ -83,10 +84,3 @@ Geçmiş sales stock movement maliyetleri geriye dönük değiştirilmez.
 Açık production order taşınmaz.
 
 Subcontractor location'daki fiziksel stok yeni period opening stock'una location bazında taşınır.
-
-## Kodlama öncesi blokajlar
-
-- **[KARAR GEREKİYOR — A-125]** Fason hizmet purchase_invoice satırının non-stock davranışı.
-- **[KARAR GEREKİYOR — A-126]** Bir production order birden fazla kısmi completion aldığında hizmet bedelinin completion'lara dağıtım yöntemi.
-
-Bu iki karar kapanmadan "uygun maliyet payı" için uygulama formülü uydurulmaz.
