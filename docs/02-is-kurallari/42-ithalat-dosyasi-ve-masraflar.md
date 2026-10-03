@@ -72,7 +72,10 @@ K-117:
 
 - mevcut purchase_invoice kaynağı,
 - cari etkisi kendi faturasında oluşmuştur,
-- import file ikinci cari hareket üretmez.
+- import file ikinci cari hareket üretmez,
+- K-257 gereği faturalı import masrafı service satırıyla temsil edilir,
+- mixed mal+hizmet faturasında expense kaynağı `source_document_line_id` ile yalnız ilgili service satırıdır; stock satırlar masraf havuzuna girmez,
+- expense amount, service satırın frozen net tutarıdır.
 
 ### manual
 
