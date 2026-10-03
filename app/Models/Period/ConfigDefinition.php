@@ -22,11 +22,13 @@ class ConfigDefinition extends PeriodModel
         ];
     }
 
+    /** @return BelongsTo<Product, $this> */
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
     }
 
+    /** @return HasMany<ConfigOption, $this> */
     public function options(): HasMany
     {
         return $this->hasMany(ConfigOption::class)->orderBy('sort_order');

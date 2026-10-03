@@ -32,7 +32,7 @@ trait HasOptimisticLock
                     ->lockForUpdate()
                     ->findOrFail($this->getKey());
 
-                if ((int) $current->version !== $expectedVersion) {
+                if ((int) $current->getAttribute('version') !== $expectedVersion) {
                     throw $this->staleException($current, $attributes, $expectedVersion);
                 }
 
@@ -69,7 +69,7 @@ trait HasOptimisticLock
                 static::class,
                 (string) $this->getKey(),
                 $expectedVersion,
-                (int) $current->version,
+                (int) $current->getAttribute('version'),
                 $suffix,
             ),
         );

@@ -2,10 +2,15 @@
 
 namespace App\Models\Period;
 
+use Illuminate\Support\Carbon;
 use App\Models\PeriodModel;
 use App\Support\Concurrency\HasOptimisticLock;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property Carbon|null $valid_from
+ * @property Carbon|null $valid_to
+ */
 class PriceListItem extends PeriodModel
 {
     use HasOptimisticLock;
@@ -22,11 +27,13 @@ class PriceListItem extends PeriodModel
         ];
     }
 
+    /** @return BelongsTo<PriceList, $this> */
     public function priceList(): BelongsTo
     {
         return $this->belongsTo(PriceList::class);
     }
 
+    /** @return BelongsTo<Product, $this> */
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);

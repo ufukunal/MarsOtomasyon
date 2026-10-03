@@ -27,11 +27,13 @@ class ConfigOption extends PeriodModel
         ];
     }
 
+    /** @return BelongsTo<ConfigDefinition, $this> */
     public function definition(): BelongsTo
     {
         return $this->belongsTo(ConfigDefinition::class, 'config_definition_id');
     }
 
+    /** @return BelongsTo<Product, $this> */
     public function componentProduct(): BelongsTo
     {
         return $this->belongsTo(Product::class, 'component_product_id');

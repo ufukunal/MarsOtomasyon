@@ -20,11 +20,13 @@ class ProductSet extends PeriodModel
         ];
     }
 
+    /** @return BelongsTo<Product, $this> */
     public function setProduct(): BelongsTo
     {
         return $this->belongsTo(Product::class, 'set_product_id');
     }
 
+    /** @return BelongsTo<Product, $this> */
     public function componentProduct(): BelongsTo
     {
         return $this->belongsTo(Product::class, 'component_product_id');
