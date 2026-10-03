@@ -13,7 +13,11 @@ G-202
 
 
 ## Dokunulacak dosyalar
-- `database/migrations/period/`
+- warehouse_slips/warehouse_slip_lines period migration'ları
+- WarehouseSlip/Line period modelleri
+- ambar fişi list/detail Livewire + blade
+- PostWarehouseSlip/ReverseWarehouseSlip Action'ları
+- `tests/Feature/Stock/WarehouseSlipTest.php`
 
 ## Şema / Kod
 ```php
