@@ -324,4 +324,10 @@ Verilen kararlar ve gerekçeleri. **Kod bu kararlara uyar; kod kararla
 
 ## Açık kararlar
 
-**Yok.** Faz 11 canlı geçiş kapsamı K-236…K-255 ile kilitlendi.
+| No | Konu | Seçenekler / neden blokaj |
+|---|---|---|
+| A-125 | Non-stock hizmet alış faturası satırı | K-117 ve K-151 normal `purchase_invoice` ile navlun/fason hizmet faturası ister; mevcut `document_lines` product+unit+quantity zorunlu ve purchase_invoice her satırı stock-in yapar. **1:** document_lines'a `line_kind=stock|service` ekle, service satır stok/moving-average üretmesin; cari/VAT/toplam üretmeye devam etsin. **2:** ayrı service_purchase_invoice document type. **3:** faturalı hizmetleri normal purchase_invoice yerine yalnız manuel expense tut. |
+| A-126 | Fason hizmet bedelinin kısmi completion'lara dağıtımı | Production order birden fazla completion alabilir ve hizmet faturası önce/sonra gelebilir. **1:** hizmet maliyetini completion quantity oranında deterministik dağıt; allocation gerçek kaydı tut. **2:** kullanıcı invoice/service satırını completion'lara manuel dağıtsın. **3:** final completion öncesi hizmet faturası zorunlu olsun. |
+| A-127 | Dönem devrinde açık satış/alış belgeleri | Mevcut carry açık teklif/sipariş/taslağı taşımıyor; source period closed olunca bu belgeler devam ettirilemez. **1:** carry'yi tüm açık satış/alış operasyon belgeleri kapatılana/iptal edilene kadar blokla. **2:** açık belgeleri target period'a yeni snapshot belgeler olarak taşı. **3:** prior period'da read-only bırak ve yeni dönemde devam ettirme. |
+
+**Kodlama blokajı:** A-125, A-126 ve A-127 kapanmadan Faz 4/7/8/11b uygulamasına başlanmaz.
