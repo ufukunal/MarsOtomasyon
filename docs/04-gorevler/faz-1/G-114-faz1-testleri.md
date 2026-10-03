@@ -5,7 +5,12 @@
 Faz 1 içindeki G-101…G-113 ve G-115
 
 ## Dokunulacak dosyalar
-- Görevde tarif edilen migration/model/action/Livewire/test dosyaları; kapsam dışına çıkma.
+- `tests/Feature/Contacts/Faz1ContactsTest.php`
+- `tests/Feature/Products/Faz1ProductsTest.php`
+- `tests/Feature/Pricing/Faz1PricingTest.php`
+- `tests/Feature/Companies/Faz1CopyIsolationTest.php`
+- `tests/Feature/Import/Faz1ImportTest.php`
+- Faz 1 schema/period-isolation contract testleri
 
 
 ## Şema / Kod
