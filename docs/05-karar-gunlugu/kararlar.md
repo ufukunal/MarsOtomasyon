@@ -328,11 +328,16 @@ Verilen kararlar ve gerekçeleri. **Kod bu kararlara uyar; kod kararla
 |---|---|---|
 | K-256 | Dönem devrinde **açık satış siparişleri ve açık satınalma siparişleri aktarılır**. Eski period belgesi immutable/read-only kalır; target period'da yalnız kalan açık miktarlar yeni sipariş snapshot'ı olarak oluşturulur. Cross-period source provenance tutulur. Satış siparişinin kalan aktif rezervasyonları location bazında target period'da yeniden kurulur. Teklifler ve taslaklar aktarılmaz. | Source period kapandıktan sonra açık siparişlerin operasyona devam edebilmesi ve rezervli stok gerçeğinin yeni yılda kaybolmaması gerekir. |
 
+## 2026-10-03 — Kodlama öncesi hizmet/maliyet kararları
+
+| No | Karar | Gerekçe / teknik sonuç |
+|---|---|---|
+| K-257 | `document_lines` satır tipi `line_kind=stock|service` olarak genişletilir. `service` satırı aynı `purchase_invoice` içinde cari/KDV/belge toplamına girer fakat stock movement, base_quantity ve moving-average üretmez. Service satırında product/unit stok bağları zorunlu değildir; quantity ticari hesap için >0 olabilir. | Aynı faturada mal + navlun/fason hizmeti gerçek senaryosunu ayrı belge türü açmadan destekler. A-125 kapandı. |
+| K-258 | Fason hizmet maliyeti production order içindeki completion'lara **completed_quantity oranında deterministik** dağıtılır. Dağıtım ayrı `production_service_allocations` kayıtlarında saklanır; yuvarlama farkı son uygun completion'a verilir. Geç gelen hizmet faturası da aynı oran/allocation gerçek kaynağını kullanır ve ilgili completion için `inventory_cost_adjustments` üretir. | Kısmi completion + geç gelen fatura senaryosu kullanıcı manuel paylaştırmasına bağlı kalmaz. A-126 kapandı. |
+
 ## Açık kararlar
 
 | No | Konu | Seçenekler / neden blokaj |
 |---|---|---|
-| A-125 | Non-stock hizmet alış faturası satırı | K-117 ve K-151 normal `purchase_invoice` ile navlun/fason hizmet faturası ister; mevcut `document_lines` product+unit+quantity zorunlu ve purchase_invoice her satırı stock-in yapar. **1:** document_lines'a `line_kind=stock|service` ekle, service satır stok/moving-average üretmesin; cari/VAT/toplam üretmeye devam etsin. **2:** ayrı service_purchase_invoice document type. **3:** faturalı hizmetleri normal purchase_invoice yerine yalnız manuel expense tut. |
-| A-126 | Fason hizmet bedelinin kısmi completion'lara dağıtımı | Production order birden fazla completion alabilir ve hizmet faturası önce/sonra gelebilir. **1:** hizmet maliyetini completion quantity oranında deterministik dağıt; allocation gerçek kaydı tut. **2:** kullanıcı invoice/service satırını completion'lara manuel dağıtsın. **3:** final completion öncesi hizmet faturası zorunlu olsun. |
 
-**Kodlama blokajı:** A-125 ve A-126 kapanmadan Faz 4/7/8 ilgili uygulamalara başlanmaz. A-127, K-256 ile kapatıldı.
+**Yok.** A-125, K-257 ile; A-126, K-258 ile; A-127, K-256 ile kapatıldı.
