@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\DB;
 
 final class SaveContactAddress
 {
+    /** @param array<string, mixed> $data */
     public function handle(
         Contact $contact,
         array $data,

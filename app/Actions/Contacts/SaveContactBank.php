@@ -11,6 +11,7 @@ use Illuminate\Validation\ValidationException;
 
 final class SaveContactBank
 {
+    /** @param array<string, mixed> $data */
     public function handle(
         Contact $contact,
         array $data,

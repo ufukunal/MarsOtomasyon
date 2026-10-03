@@ -21,6 +21,10 @@ use Illuminate\Validation\ValidationException;
 
 final class CopyRecordsBetweenCompanies
 {
+    /**
+     * @param list<int> $ids
+     * @param array<int, mixed> $conflictChoices
+     */
     public function handle(
         int $sourceCompanyId,
         CompanyCopyPermissionType $type,
@@ -204,6 +208,7 @@ final class CopyRecordsBetweenCompanies
         return $target;
     }
 
+    /** @param list<string> $warnings */
     private function copyProduct(
         Product $source,
         int $sourceCompanyId,

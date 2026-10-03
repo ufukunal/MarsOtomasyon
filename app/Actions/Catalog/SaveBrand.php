@@ -8,6 +8,7 @@ use App\Support\Period\PeriodContext;
 
 final class SaveBrand
 {
+    /** @param array<string, mixed> $data */
     public function handle(array $data, ?Brand $brand = null, ?int $expectedVersion = null): Brand
     {
         MutationAuthorizer::authorize($brand ? 'brands.update' : 'brands.create');

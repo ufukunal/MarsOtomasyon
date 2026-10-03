@@ -9,6 +9,7 @@ use RuntimeException;
 
 final class OpeningStockRowImporter
 {
+    /** @param array<string, mixed> $row */
     public function validate(array $row): RowValidationResult
     {
         $errors = [];

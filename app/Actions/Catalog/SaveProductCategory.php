@@ -9,6 +9,7 @@ use Illuminate\Validation\ValidationException;
 
 final class SaveProductCategory
 {
+    /** @param array<string, mixed> $data */
     public function handle(array $data, ?ProductCategory $category = null, ?int $expectedVersion = null): ProductCategory
     {
         MutationAuthorizer::authorize($category ? 'product_categories.update' : 'product_categories.create');
@@ -79,6 +80,7 @@ final class SaveProductCategory
         return $depth;
     }
 
+    /** @param array<int, bool> $visited */
     private function subtreeHeight(ProductCategory $category, array $visited = []): int
     {
         if (isset($visited[$category->id])) {

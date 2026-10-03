@@ -8,6 +8,7 @@ use App\Support\Import\RowValidationResult;
 
 final class ContactRowImporter
 {
+    /** @param array<string, mixed> $row */
     public function validate(array $row): RowValidationResult
     {
         $errors = [];
