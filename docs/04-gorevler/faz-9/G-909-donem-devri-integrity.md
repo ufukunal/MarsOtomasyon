@@ -28,8 +28,10 @@ Taşınır:
 
 Taşınmaz:
 
-- channel_order_snapshots
+- geçmiş/tamamlanmış channel_order_snapshots
 - sync events/errors
+
+K-256 istisnası: target period'a taşınan açık kanal sales_order için gerekli channel_order_snapshot yeni target order'a bağlanarak aktif provenance olarak taşınır.
 
 Master account/event registry yıl bağımsız.
 
@@ -44,7 +46,7 @@ Master account/event registry yıl bağımsız.
 
 - Channel account period marketplace-customer mapping yeni period'da korunuyor.
 - Listing mapping yeni period'da korunuyor.
-- Old sync/order history taşınmıyor.
+- Old sync/order history taşınmıyor; K-256 carried open channel order için minimal active snapshot korunuyor.
 - Aynı external order yıl sınırında duplicate değil.
 - integrity:channels invalid location/mapping farkını buluyor.
 - integrity:channel-orders registry/order provenance farkını buluyor.
