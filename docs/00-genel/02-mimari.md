@@ -10,7 +10,7 @@
 
 ### Period
 
-Cari/ürün kartları ve yan tabloları, fiyat listeleri, varyant/set/konfigürasyon, lokasyonlar, kart ekleri, documents/document_lines ve period_document_carries, stok hareket/bakiyeleri, maliyet, cari hareket, kasa/banka, çek/senet, iade/quarantine, ithalat, üretim/fason, e-ticaret listing/order/sync dönem kayıtları, number series, posting period, rezervasyon, sayım ve period audit.
+Cari/ürün kartları ve yan tabloları, fiyat listeleri, varyant/set/konfigürasyon, lokasyonlar, kart ekleri, documents/document_lines ve period_document_carries, stok hareket/bakiyeleri, maliyet, cari hareket, kasa/banka, çek/senet, iade/quarantine, ithalat, üretim/fason, e-ticaret `channel_account_period_settings` + listing/order/sync dönem kayıtları, number series, posting period, rezervasyon, sayım ve period audit.
 
 ## İzolasyon ve bağlantı
 
