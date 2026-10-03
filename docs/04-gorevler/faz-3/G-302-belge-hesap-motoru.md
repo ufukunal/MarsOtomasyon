@@ -83,7 +83,7 @@ yalnız draft/düzenlenebilir belgede çalışır.
 
 ## Fiyat uyarıları
 
-Bu görev fiyatı çözmez; fakat satır hesap API'si G-110/G-26 fiyat çözümünden gelen değeri kullanır.
+Bu görev fiyatı çözmez; fakat satır hesap API'si G-110 fiyat listesi çözüm zincirinden gelen değeri kullanır.
 
 %20+ sapma:
 - hesap sonucunu değiştirmez,
