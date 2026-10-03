@@ -7,6 +7,7 @@ Faz 8 reçete, üretim emri, completion, fire, çoklu target location, fason sto
 ## Kilit kararlar
 
 - K-131…K-162.
+- Çapraz kararlar: K-257 service purchase line, K-258 production service allocation.
 
 ## Veri modeli
 
