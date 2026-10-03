@@ -67,6 +67,8 @@ ve sonucu not edilir.
 
 ## Kurallar
 
+**Faz 11 ilişkisi:** Bu görev minimum yedekleme temelini kurar. Production recovery-set manifest/checksum, restore doğrulama ve off-VDS operasyon sözleşmesi G-1104/G-1105'te genişletilir; ikinci paralel backup altyapısı kurulmaz.
+
 **Faz bağlamı:** Faz 0 — altyapı; sonraki fazların sözleşmesini bozmamalı.
 
 ### Bu göreve özel kanonik notlar
