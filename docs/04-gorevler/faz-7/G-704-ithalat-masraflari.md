@@ -35,6 +35,7 @@ Source:
 ## Kurallar
 
 - Purchase invoice source kendi frozen currency/exchange_rate kullanır.
+- K-257 faturalı import expense kaynağı `line_kind=service` document line olabilir; mixed faturada yalnız bu service line amount'u expense'e alınır.
 - Manual source currency + frozen exchange_rate snapshot taşır.
 - amount_base BCMath ile hesaplanır.
 - other description zorunlu.
@@ -46,13 +47,10 @@ Source:
 - Farklı currency expense'ler base currency'e frozen kurla çevriliyor.
 - Manual expense cari hareket üretmiyor.
 - Purchase invoice expense ikinci cari hareket üretmiyor.
+- Mixed stock+service invoice'da stock line tutarları expense amount'a karışmıyor.
 - other açıklamasız reddediliyor.
 - inventory-cost flag doğru.
 
 ## İstem
 
 > K-116…K-119 import expense kaynaklarını mevcut purchase invoice altyapısını tekrar kullanarak uygula.
-
-## Kodlama öncesi blokaj
-
-**[KARAR GEREKİYOR — A-125]** purchase_invoice kaynaklı import expense'in hangi non-stock service line modelinden geleceği kesinleşmeden faturalı expense kaynağı uygulanmaz.
