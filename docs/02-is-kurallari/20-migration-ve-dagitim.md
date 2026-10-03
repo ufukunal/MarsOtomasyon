@@ -75,28 +75,25 @@ işlemleri dağıtımı kilitler.
 **Yeni dönem veritabanı hep güncel şemayla oluşur** — `CreatePeriod`
 tüm migration'ları çalıştırır, sorun yok.
 
-## Dağıtım sırası
+## Production dağıtım sınırı
 
-```
-1. Bakım moduna al          php artisan down --secret=...
-2. Kodu çek                 git pull
-3. Bağımlılıklar            composer install --no-dev -o
-4. Master migration         php artisan migrate --database=master --path=database/migrations/master --force
-5. TÜM DÖNEMLER             php artisan migrate:periods --force
-6. Önbellek                 php artisan optimize:clear && php artisan optimize
-7. Yetki önbelleği          php artisan permission:cache-reset
-8. Kuyruk işçisini yeniden başlat   php artisan queue:restart
-9. Bakım modundan çık       php artisan up
-```
+Bu dosyanın kanonik sorumluluğu `migrate:periods` komutudur. Production deployment artık K-239…K-241 ve Faz 11 G-1103 immutable-release sözleşmesine tabidir.
 
-**5. adım hata verirse 9'a geçilmez.** Betik durur, kullanıcıya hangi
-veritabanının hatalı olduğu bildirilir.
+Production akışında zorunlu sıra:
+
+1. doğrulanmış recovery-set backup,
+2. yeni immutable release'i ayrı dizinde hazırla,
+3. Master migration,
+4. **tüm active/closed period DB'lerde `migrate:periods --force`**,
+5. health/smoke/integrity,
+6. ancak başarıdan sonra atomik `current` geçişi,
+7. worker kontrollü restart.
+
+Bir period migration hata verirse release aktive edilmez. Eski in-place `git pull` + çalışan kod üzerinde migration yaklaşımı kanonik değildir.
 
 ## Geri alma planı
 
-Dağıtım öncesi **tüm veritabanlarının yedeği alınır** (master dahil).
-Geri alma: kodu eski sürüme döndür, yedekleri geri yükle. Migration'ın
-`down()` metoduna güvenilmez — yedek daha güvenli.
+State-changing migration öncesi **Master + tüm period DB + gerekli dosyaları kapsayan doğrulanmış recovery set** alınır. Kod geri dönüşü immutable previous release üzerinden yapılır. Schema/data geri dönüşü güvenli değilse migration `down()` zorlanmaz; K-251 gereği forward-fix veya doğrulanmış backup restore runbook'u kullanılır.
 
 ## Sürüm izleme
 
