@@ -40,6 +40,7 @@
                 </dl>
                 @if($batch->failure_message)<div class="alert alert-warning">{{ $batch->failure_message }}</div>@endif
                 @if($batch->errors->isNotEmpty())
+                    <p><a href="{{ route('imports.errors', ['batchId' => $batch->id]) }}">Hata Raporu XLSX indir</a></p>
                     <table class="data-table"><thead><tr><th>Satır</th><th>Kolon</th><th>Değer</th><th>Hata</th></tr></thead><tbody>
                     @foreach($batch->errors as $error)<tr><td>{{ $error->row_no }}</td><td>{{ $error->column_name }}</td><td>{{ $error->value }}</td><td>{{ $error->message }}</td></tr>@endforeach
                     </tbody></table>

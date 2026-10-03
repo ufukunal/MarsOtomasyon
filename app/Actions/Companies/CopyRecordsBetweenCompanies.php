@@ -201,6 +201,10 @@ final class CopyRecordsBetweenCompanies
 
         $categoryId = $this->mapCategory($source->category_id, $warnings, (string) $source->code);
 
+        if (in_array($source->kind->value, ['set', 'configurable'], true)) {
+            $warnings[] = "{$source->code}: yalnız ürün kartı kopyalandı; set/konfigürasyon alt tanımları G-111 kapsamı gereği taşınmadı.";
+        }
+
         return Product::query()->create([
             'code' => $code,
             'name' => $source->name,

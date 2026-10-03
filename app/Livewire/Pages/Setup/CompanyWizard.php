@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Pages\Setup;
 
+use App\Actions\Locations\SaveLocation;
 use App\Actions\Periods\CreatePeriod;
 use App\Models\Company;
 use App\Models\User;
@@ -10,7 +11,6 @@ use App\Support\Period\PeriodContext;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Schema;
 use Livewire\Component;
 
 class CompanyWizard extends Component
@@ -61,7 +61,7 @@ class CompanyWizard extends Component
         $this->step = max(1, $this->step - 1);
     }
 
-    public function finish(CreatePeriod $createPeriod): void
+    public function finish(CreatePeriod $createPeriod, SaveLocation $saveLocation): void
     {
         for ($step = 1; $step <= 8; $step++) {
             $this->validateStep($step);
@@ -85,20 +85,14 @@ class CompanyWizard extends Component
         try {
             $period = $createPeriod->handle($company, $this->year);
 
-            if (! Schema::connection('period')->hasTable('locations')) {
-                throw new \RuntimeException(
-                    'Kurulum sihirbazının lokasyon adımı Faz 1 locations şeması kurulmadan tamamlanamaz.',
-                );
-            }
-
-            DB::connection('period')->table('locations')->insert([
+            $saveLocation->handle([
                 'code' => $this->warehouseCode,
                 'name' => $this->warehouseName,
                 'kind' => 'warehouse',
+                'plate' => null,
+                'address' => null,
                 'is_default' => true,
                 'is_active' => true,
-                'created_at' => now(),
-                'updated_at' => now(),
             ]);
 
             foreach (config('numbering.prefixes', []) as $documentType => $prefix) {

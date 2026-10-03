@@ -13,7 +13,23 @@ final class SavePriceList
         ?int $expectedVersion = null,
     ): PriceList {
         return DB::connection('period')->transaction(function () use ($data, $list, $expectedVersion): PriceList {
-            if ((bool) ($data['is_default'] ?? false)) {
+            $isFirst = ! PriceList::query()->exists();
+            $isDefault = $isFirst ? true : (bool) ($data['is_default'] ?? false);
+            $isActive = (bool) ($data['is_active'] ?? true);
+
+            if ($list?->is_default && (! $isDefault || ! $isActive)) {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'is_default' => 'Varsayılan fiyat listesini doğrudan kaldıramazsınız. Önce başka listeyi varsayılan yapın.',
+                ]);
+            }
+
+            if ($isDefault && ! $isActive) {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'is_active' => 'Varsayılan fiyat listesi aktif olmalıdır.',
+                ]);
+            }
+
+            if ($isDefault) {
                 PriceList::query()
                     ->when($list, fn ($q) => $q->whereKeyNot($list->id))
                     ->where('is_default', true)
@@ -24,8 +40,8 @@ final class SavePriceList
                 'name' => trim((string) $data['name']),
                 'currency' => strtoupper((string) ($data['currency'] ?? 'TRY')),
                 'vat_included' => (bool) ($data['vat_included'] ?? false),
-                'is_default' => (bool) ($data['is_default'] ?? false),
-                'is_active' => (bool) ($data['is_active'] ?? true),
+                'is_default' => $isDefault,
+                'is_active' => $isActive,
             ];
 
             return $list

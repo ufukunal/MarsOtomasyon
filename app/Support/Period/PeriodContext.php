@@ -6,6 +6,7 @@ use App\Exceptions\NoActivePeriodException;
 use App\Exceptions\PeriodReadOnlyException;
 use App\Models\Period;
 use Illuminate\Support\Facades\DB;
+use Spatie\Permission\PermissionRegistrar;
 
 final class PeriodContext
 {
@@ -30,6 +31,9 @@ final class PeriodContext
         self::$companyId = $companyId;
         self::$periodId = $period->id;
         self::$year = $period->year;
+
+        // Spatie team context şirket bazlıdır; period DB bağlantısıyla birlikte değişir.
+        app(PermissionRegistrar::class)->setPermissionsTeamId($companyId);
 
         if (! app()->runningInConsole() && app()->bound('session')) {
             session([
@@ -85,6 +89,7 @@ final class PeriodContext
 
         config(['database.connections.period.database' => null]);
         DB::purge('period');
+        app(PermissionRegistrar::class)->setPermissionsTeamId(null);
 
         if (! app()->runningInConsole() && app()->bound('session')) {
             session()->forget([

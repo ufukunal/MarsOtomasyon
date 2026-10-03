@@ -24,6 +24,9 @@
         </section>
 
         <section class="panel">
+            @if($groupProducts->count() === 1)
+                <div class="alert alert-warning">Varyant grubu yalnız bir ürün içeriyor. Bu durum engellenmez ancak grup sunum açısından anlamlı değildir.</div>
+            @endif
             <table class="data-table"><thead><tr><th>Kod</th><th>Ürün</th><th>Değerler</th></tr></thead><tbody>
             @foreach($groupProducts as $product)<tr><td>{{ $product->code }}</td><td>{{ $product->name }}</td><td>@foreach($product->variantValues as $value)<span class="badge">{{ $value->attribute->name }}: {{ $value->value }}</span>@endforeach</td></tr>@endforeach
             </tbody></table>

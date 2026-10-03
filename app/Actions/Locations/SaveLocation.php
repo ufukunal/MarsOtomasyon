@@ -28,7 +28,50 @@ final class SaveLocation
         }
 
         return DB::connection('period')->transaction(function () use ($data, $location, $expectedVersion, $kind, $plate): Location {
-            if ((bool) ($data['is_default'] ?? false)) {
+            $isFirstLocation = ! Location::query()->exists();
+            $isDefault = $isFirstLocation ? true : (bool) ($data['is_default'] ?? false);
+            $isActive = (bool) ($data['is_active'] ?? true);
+
+            if ($isFirstLocation && $kind !== LocationKind::Warehouse) {
+                throw ValidationException::withMessages([
+                    'kind' => 'İlk lokasyon depo olmalıdır.',
+                ]);
+            }
+
+            if (! Location::query()->where('kind', LocationKind::Warehouse->value)->where('is_active', true)
+                ->when($location, fn ($query) => $query->whereKeyNot($location->id))
+                ->exists()
+                && $kind !== LocationKind::Warehouse) {
+                throw ValidationException::withMessages([
+                    'kind' => 'En az bir aktif depo lokasyonu bulunmalıdır.',
+                ]);
+            }
+
+            if ($location?->kind === LocationKind::Warehouse
+                && ($kind !== LocationKind::Warehouse || ! $isActive)
+                && ! Location::query()
+                    ->whereKeyNot($location->id)
+                    ->where('kind', LocationKind::Warehouse->value)
+                    ->where('is_active', true)
+                    ->exists()) {
+                throw ValidationException::withMessages([
+                    'kind' => 'Son aktif depo pasife alınamaz veya türü değiştirilemez.',
+                ]);
+            }
+
+            if ($location?->is_default && (! $isDefault || ! $isActive)) {
+                throw ValidationException::withMessages([
+                    'is_default' => 'Varsayılan lokasyonu doğrudan kaldıramazsınız. Önce başka lokasyonu varsayılan yapın.',
+                ]);
+            }
+
+            if ($isDefault && ! $isActive) {
+                throw ValidationException::withMessages([
+                    'is_active' => 'Varsayılan lokasyon aktif olmalıdır.',
+                ]);
+            }
+
+            if ($isDefault) {
                 Location::query()
                     ->when($location, fn ($query) => $query->whereKeyNot($location->getKey()))
                     ->where('is_default', true)
@@ -41,8 +84,8 @@ final class SaveLocation
                 'kind' => $kind->value,
                 'plate' => $plate !== '' ? strtoupper($plate) : null,
                 'address' => trim((string) ($data['address'] ?? '')) ?: null,
-                'is_default' => (bool) ($data['is_default'] ?? false),
-                'is_active' => (bool) ($data['is_active'] ?? true),
+                'is_default' => $isDefault,
+                'is_active' => $isActive,
             ];
 
             if (! $location) {

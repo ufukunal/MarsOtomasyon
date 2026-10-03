@@ -9,6 +9,7 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
 use Illuminate\Session\Middleware\AuthenticateSession;
+use Illuminate\Session\Middleware\StartSession;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Throwable;
 
@@ -29,6 +30,9 @@ return Application::configure(basePath: dirname(__DIR__))
             AuthenticateSession::class,
             SetActivePeriod::class,
         ]);
+
+        // Session okunmuş olmalı; period route-model binding'den önce seçilmelidir.
+        $middleware->appendToPriorityList(StartSession::class, SetActivePeriod::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->dontReport([
