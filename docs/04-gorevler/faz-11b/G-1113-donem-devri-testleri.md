@@ -40,3 +40,7 @@ tam doğrulanır.
 
 ## İstem
 > Faz 11b dönem devrini gerçek PostgreSQL multi-db testleriyle uçtan uca doğrula.
+
+## Kodlama öncesi blokaj — A-127
+
+Açık satış/alış belge yıl geçiş davranışı A-127 kapanmadan ilgili acceptance case kesinleştirilmez.
