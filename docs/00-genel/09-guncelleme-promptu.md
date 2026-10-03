@@ -24,7 +24,7 @@ Bu dosya `DEVIR-PROMPT.md`den sonra okunur. Çelişkide bu dosya ve karar günl�
 - v64 korunur; **v65 güncel UI referansıdır.**
 - Faz 4 Alış kararları K-086…K-091 ile kilitlendi; açık A kararı yoktur.
 
-Repo tutarlılık temizliği ve Faz 0–2 görev revizyonu tamamlandı. **Faz 3–10 dokümantasyonları, Faz 11b dönem devri ve Faz 11 canlı geçiş dokümantasyonu yazıldı. Açık kararlar A-125, A-126 ve A-127'dir; kodlama öncesi kapatılmalıdır.**
+Repo tutarlılık temizliği ve Faz 0–2 görev revizyonu tamamlandı. **Faz 3–10 dokümantasyonları, Faz 11b dönem devri ve Faz 11 canlı geçiş dokümantasyonu yazıldı. Açık kararlar A-125 ve A-126'dır; A-127 K-256 ile kapatıldı.**
 
 
 ## 02.10.2026 Faz 4 Alış güncellemesi
@@ -94,7 +94,7 @@ Repo tutarlılık temizliği ve Faz 0–2 görev revizyonu tamamlandı. **Faz 3�
 - Bir import file birden fazla purchase invoice/supplier içerebilir.
 - Dağıtım yuvarlama farkı son uygun satıra verilir.
 - Ağırlık/hacim ilk sürümde yoktur.
-- Açık kararlar A-125, A-126 ve A-127'dir; kodlama öncesi kapatılmalıdır.
+- Açık kararlar A-125 ve A-126'dır; A-127 K-256 ile kapatıldı.
 
 
 ## 02.10.2026 Faz 7 dokümantasyon durumu
@@ -104,7 +104,7 @@ Repo tutarlılık temizliği ve Faz 0–2 görev revizyonu tamamlandı. **Faz 3�
 - İthalat ekranları ve G-700…G-709 hazırdır.
 - K-114…K-129 kilitlidir.
 - K-130: import cost adjustment birim farkı original import base_quantity üzerinden hesaplanır; current stock quantity payda değildir ve geçmiş satış maliyetleri geriye dönük değiştirilmez.
-- Açık kararlar A-125, A-126 ve A-127'dir; kodlama öncesi kapatılmalıdır.
+- Açık kararlar A-125 ve A-126'dır; A-127 K-256 ile kapatıldı.
 
 
 ## 02.10.2026 Faz 8 ön kararları
@@ -197,5 +197,17 @@ Repo tutarlılık temizliği ve Faz 0–2 görev revizyonu tamamlandı. **Faz 3�
 - K-001…K-255 eksiksiz ve tekrarsızdır.
 - 156 G görev dosyasında görev kimliği çakışması yoktur.
 - Teknik düzeltmeler: locations alan adı kind; subcontract late cost production_completion provenance; production_service_invoices mapping; channel_account_period_settings; print template FK migration sözleşmesi; stale faz-onay metinleri.
-- **Açık blokajlar:** A-125 non-stock service purchase invoice; A-126 fason hizmet maliyeti partial completion allocation; A-127 dönem devrinde açık satış/alış belgeleri.
-- A-125…A-127 kapanmadan Faz 4/7/8/11b ilgili görevleri code-ready değildir.
+- **Açık blokajlar:** A-125 non-stock service purchase invoice; A-126 fason hizmet maliyeti partial completion allocation.
+- A-127 K-256 ile kapandı: açık sales_order/purchase_order yalnız kalan miktarlarıyla target period'da yeni confirmed snapshot'a dönüşür; sales-order aktif rezervasyonları location bazında yeniden kurulur; teklif/taslak aktarılmaz.
+- A-125/A-126 kapanmadan Faz 4/7/8 ilgili görevleri code-ready değildir.
+
+
+## 03.10.2026 K-256 dönem devri sipariş kararı
+
+- A-127 kapandı.
+- Açık sales_order ve purchase_order yeni döneme aktarılır.
+- Yalnız kalan açık miktarlar target period'da yeni confirmed order snapshot'ı olur.
+- Source period order immutable/read-only kalır.
+- Cross-period provenance period_document_carries ile tutulur.
+- Sales-order aktif rezervasyonları location bazında target'ta yeniden kurulur.
+- Teklif ve taslaklar aktarılmaz.
