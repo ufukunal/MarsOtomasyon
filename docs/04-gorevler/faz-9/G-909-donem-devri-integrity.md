@@ -20,6 +20,7 @@ G-902, G-906, G-908, dönem devri altyapısı.
 
 Taşınır:
 
+- channel_account_period_settings
 - channel_product_listings
 - channel_listing_locations
 - external listing ids
@@ -41,7 +42,8 @@ Master account/event registry yıl bağımsız.
 
 ## Kabul ölçütü
 
-- Mapping yeni period'da korunuyor.
+- Channel account period marketplace-customer mapping yeni period'da korunuyor.
+- Listing mapping yeni period'da korunuyor.
 - Old sync/order history taşınmıyor.
 - Aynı external order yıl sınırında duplicate değil.
 - integrity:channels invalid location/mapping farkını buluyor.
