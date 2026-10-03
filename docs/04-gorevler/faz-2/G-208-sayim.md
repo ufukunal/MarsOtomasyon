@@ -48,8 +48,9 @@ G-202
    → yalnızca farkı olan satırlar listelenir
 5. Kullanıcı satır satır onaylar (is_approved)
 6. "Sayımı Kesinleştir"
-   → yalnızca ONAYLI satırlar için düzeltme hareketi yazılır
-   → reason = count, direction fark işaretine göre
+   → yalnızca ONAYLI satırlar için **sayım başlangıcında dondurulmuş fark** kadar düzeltme hareketi yazılır
+   → reason = count, direction snapshot fark işaretine göre
+   → sayım başladıktan sonra oluşmuş meşru stok hareketleri ayrıca korunur
    → status = posted, numara verilir
 ```
 
@@ -69,7 +70,7 @@ Detay: ürün, sistem miktarı, sayılan, fark (renkli), onay kutusu, not.
 
 ### Göreve özel kararlar
 - Sayım sistem miktarını snapshot eder; fark kullanıcı onayı olmadan uygulanmaz.
-- Onay sonrası yalnız fark kadar RecordStockMovement yazılır.
+- Onay sonrası yalnız `counted_quantity - frozen system_quantity` snapshot farkı kadar `RecordStockMovement` yazılır. Sayım başladıktan sonra oluşan hareketler geri alınmaz veya ezilmez.
 
 
 ### Uygulama ayrıntıları
@@ -83,7 +84,8 @@ Detay: ürün, sistem miktarı, sayılan, fark (renkli), onay kutusu, not.
 - Sayım sırasında yapılan satış `system_quantity`'yi değiştirmiyor
 - Onaylanmayan satır için hareket oluşmuyor
 - Kesinleşen sayım değiştirilemiyor
-- Fark kadar hareket yazılıyor, bakiye sayılan miktara eşitleniyor
+- Fark kadar hareket yazılıyor; sayım sonrası hareket yoksa bakiye sayılan miktara eşitleniyor
+- Sayım başladıktan sonra +/− hareket olduysa final bakiye = posting öncesi güncel bakiye + frozen snapshot farkı; sonraki hareketler kaybolmuyor
 
 
 ## İstem
