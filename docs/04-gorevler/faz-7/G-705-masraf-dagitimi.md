@@ -32,6 +32,7 @@ K-129 gereği weight/volume yok.
 - Manual toplam expense.amount_base'a eşit olmalı.
 - Rounding remainder K-128 ile son uygun satıra.
 - inventory-cost=false expense maliyet dağıtımına girmez.
+- Allocation persistence state-changing isteği K-038 gereği `idempotency_key` taşır; aynı anahtar retry edildiğinde allocation satırları ikinci kez yazılmaz ve toplam expense.amount_base'ı aşmaz.
 
 ## Kabul ölçütü
 
@@ -41,6 +42,7 @@ K-129 gereği weight/volume yok.
 - Rounding sonrası toplam birebir expense amount.
 - Weight/volume method yok.
 - Finalized allocation değişmiyor.
+- Aynı idempotency key ile yinelenen allocation save isteği tek allocation seti bırakıyor.
 
 ## İstem
 
