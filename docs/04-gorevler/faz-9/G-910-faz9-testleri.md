@@ -48,7 +48,8 @@ Yeni production şeması yok.
 - safe sync history
 - rollover mapping
 - K-256 carried open channel sales_order snapshot/provenance korunması, sync history taşınmaması
-- integrity:channels/channel-orders
+- `integrity:channels`
+- `integrity:channel-orders`
 
 ## Kurallar
 
