@@ -5,6 +5,7 @@ namespace App\Livewire\Components;
 use App\Contracts\SearchIndexed;
 use App\Models\PeriodModel;
 use App\Support\Period\PeriodContext;
+use App\Support\Search\SearchNormalizer;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -130,7 +131,13 @@ class Lookup extends Component
         $model = $builder->getModel();
 
         if ($model instanceof SearchIndexed) {
-            return $model->scopeSearch($builder, $this->query);
+            $normalized = SearchNormalizer::make($this->query);
+
+            foreach (explode(' ', $normalized) as $token) {
+                $builder->where('search_index', 'like', '%'.$token.'%');
+            }
+
+            return $builder;
         }
 
         return $builder->where(function ($query): void {
