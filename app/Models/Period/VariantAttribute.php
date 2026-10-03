@@ -18,13 +18,13 @@ class VariantAttribute extends PeriodModel
         return ['sort_order' => 'integer', 'version' => 'integer'];
     }
 
-    /** @return \Illuminate\Database\Eloquent\Relations\BelongsTo<VariantGroup, $this> */
+    /** @return BelongsTo<VariantGroup, $this> */
     public function group(): BelongsTo
     {
         return $this->belongsTo(VariantGroup::class, 'variant_group_id');
     }
 
-    /** @return \Illuminate\Database\Eloquent\Relations\HasMany<ProductVariantValue, $this> */
+    /** @return HasMany<ProductVariantValue, $this> */
     public function values(): HasMany
     {
         return $this->hasMany(ProductVariantValue::class);

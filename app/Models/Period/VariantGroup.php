@@ -17,13 +17,13 @@ class VariantGroup extends PeriodModel
         return ['is_active' => 'boolean', 'version' => 'integer'];
     }
 
-    /** @return \Illuminate\Database\Eloquent\Relations\HasMany<VariantAttribute, $this> */
+    /** @return HasMany<VariantAttribute, $this> */
     public function attributes(): HasMany
     {
         return $this->hasMany(VariantAttribute::class)->orderBy('sort_order')->orderBy('id');
     }
 
-    /** @return \Illuminate\Database\Eloquent\Relations\HasMany<Product, $this> */
+    /** @return HasMany<Product, $this> */
     public function products(): HasMany
     {
         return $this->hasMany(Product::class);

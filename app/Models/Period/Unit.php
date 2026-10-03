@@ -21,7 +21,7 @@ class Unit extends PeriodModel
         ];
     }
 
-    /** @return \Illuminate\Database\Eloquent\Relations\HasMany<UnitConversion, $this> */
+    /** @return HasMany<UnitConversion, $this> */
     public function conversionsFrom(): HasMany
     {
         return $this->hasMany(UnitConversion::class, 'from_unit_id');

@@ -34,13 +34,13 @@ class PrintProfile extends MasterModel
         ];
     }
 
-    /** @return \Illuminate\Database\Eloquent\Relations\BelongsTo<Company, $this> */
+    /** @return BelongsTo<Company, $this> */
     public function company(): BelongsTo
     {
         return $this->belongsTo(Company::class);
     }
 
-    /** @return \Illuminate\Database\Eloquent\Relations\BelongsTo<User, $this> */
+    /** @return BelongsTo<User, $this> */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
