@@ -25,6 +25,7 @@ final class ImportFileReader
         };
     }
 
+    /** @return list<array<string, mixed>> */
     private function csv(string $path): array
     {
         $handle = fopen($path, 'rb');

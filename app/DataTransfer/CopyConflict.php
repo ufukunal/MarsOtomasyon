@@ -12,6 +12,7 @@ final readonly class CopyConflict
         public string $existingTargetLabel,
     ) {}
 
+    /** @return array<string, int|string> */
     public function toArray(): array
     {
         return [

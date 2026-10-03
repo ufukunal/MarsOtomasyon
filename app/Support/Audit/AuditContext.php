@@ -16,6 +16,7 @@ final class AuditContext
         return self::$connection;
     }
 
+    /** @param array<string, mixed> $properties */
     public static function master(
         string $description,
         array $properties = [],

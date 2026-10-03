@@ -14,10 +14,13 @@ final class PeriodPermissionContext
         'print_profiles.',
     ];
 
+    /** @var list<string> */
     private static array $allow = [];
 
+    /** @var list<string> */
     private static array $deny = [];
 
+    /** @param array<string, mixed> $overrides */
     public static function use(array $overrides): void
     {
         self::$allow = self::normalize($overrides['allow'] ?? []);
@@ -58,6 +61,7 @@ final class PeriodPermissionContext
         return str_contains($ability, '.');
     }
 
+    /** @return list<string> */
     private static function normalize(mixed $values): array
     {
         if (! is_array($values)) {
