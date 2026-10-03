@@ -8,7 +8,11 @@
 G-106 (ürün kartı)
 
 ## Dokunulacak dosyalar
-- `database/migrations/period/`
+- variant_groups/variant_attributes/product_variant_values period migration'ları
+- ilgili period modelleri
+- VariantGroup detail Livewire + blade
+- kombinasyon/tek-grup validation helper'ı
+- `tests/Feature/Products/VariantGroupTest.php`
 
 
 ## Şema / Kod
