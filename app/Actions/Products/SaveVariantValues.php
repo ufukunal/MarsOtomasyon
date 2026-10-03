@@ -2,6 +2,7 @@
 
 namespace App\Actions\Products;
 
+use App\Support\Auth\MutationAuthorizer;
 use App\Models\Period\Product;
 use App\Models\Period\ProductVariantValue;
 use App\Models\Period\VariantAttribute;
@@ -12,6 +13,7 @@ final class SaveVariantValues
 {
     public function handle(Product $product, int $groupId, array $values): array
     {
+        MutationAuthorizer::authorize('products.update');
         if ((int) $product->variant_group_id !== $groupId) {
             $product = $product->updateWithVersion(
                 ['variant_group_id' => $groupId],

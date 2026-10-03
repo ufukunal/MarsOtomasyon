@@ -2,6 +2,7 @@
 
 namespace App\Actions\Pricing;
 
+use App\Support\Auth\MutationAuthorizer;
 use App\Models\Period\PriceList;
 use App\Models\Period\PriceListItem;
 use App\Models\Period\Product;
@@ -18,6 +19,7 @@ final class SavePriceListItem
         ?PriceListItem $item = null,
         ?int $expectedVersion = null,
     ): PriceListItem {
+        MutationAuthorizer::authorize('price_lists.update');
         $price = bcadd($inputPrice, '0', 4);
 
         if ($list->vat_included) {

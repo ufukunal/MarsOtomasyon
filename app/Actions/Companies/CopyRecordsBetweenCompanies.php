@@ -2,6 +2,7 @@
 
 namespace App\Actions\Companies;
 
+use App\Support\Auth\MutationAuthorizer;
 use App\DataTransfer\CopyConflict;
 use App\DataTransfer\CopyConflictChoice;
 use App\DataTransfer\CopyResult;
@@ -26,7 +27,28 @@ final class CopyRecordsBetweenCompanies
         array $ids,
         array $conflictChoices = [],
     ): CopyResult {
+        MutationAuthorizer::authorize('company_copy_permissions.view');
         abort_unless(CompanyCopyPermission::allows($sourceCompanyId, (int) PeriodContext::companyId(), $type), 403, 'Bu şirketten veri aktarma izniniz yok.');
+
+        if ($type === CompanyCopyPermissionType::Product) {
+            SourcePeriodContext::use($sourceCompanyId);
+
+            try {
+                $blocked = Product::on('period_source')
+                    ->whereIn('id', $ids)
+                    ->whereIn('kind', ['set', 'configurable'])
+                    ->pluck('code')
+                    ->all();
+
+                if ($blocked !== []) {
+                    throw ValidationException::withMessages([
+                        'products' => 'Set/konfigüre ürünler alt tanımları taşınmadan kopyalanamaz: '.implode(', ', $blocked),
+                    ]);
+                }
+            } finally {
+                SourcePeriodContext::clear();
+            }
+        }
 
         SourcePeriodContext::use($sourceCompanyId);
 
@@ -97,6 +119,19 @@ final class CopyRecordsBetweenCompanies
 
                         if ($action === CopyConflictChoice::Cancel) {
                             $cancelled[] = (int) $source->id;
+
+                            AuditContext::period(
+                                'Şirketler arası kopyalama kullanıcı tarafından iptal edildi.',
+                                [
+                                    'source_company_id' => $sourceCompanyId,
+                                    'source_record_id' => $source->id,
+                                    'target_record_id' => $target->id,
+                                    'type' => $type->value,
+                                ],
+                                $target,
+                                'cross_company_copy_cancelled',
+                            );
+
                             continue;
                         }
 
@@ -200,10 +235,6 @@ final class CopyRecordsBetweenCompanies
         }
 
         $categoryId = $this->mapCategory($source->category_id, $warnings, (string) $source->code);
-
-        if (in_array($source->kind->value, ['set', 'configurable'], true)) {
-            $warnings[] = "{$source->code}: yalnız ürün kartı kopyalandı; set/konfigürasyon alt tanımları G-111 kapsamı gereği taşınmadı.";
-        }
 
         return Product::query()->create([
             'code' => $code,

@@ -2,6 +2,7 @@
 
 namespace App\Actions\Products;
 
+use App\Support\Auth\MutationAuthorizer;
 use App\Models\Period\Product;
 use App\Support\Period\PeriodContext;
 use Illuminate\Validation\ValidationException;
@@ -13,6 +14,7 @@ final class SaveProduct
         ?Product $product = null,
         ?int $expectedVersion = null,
     ): Product {
+        MutationAuthorizer::authorize($product ? 'products.update' : 'products.create');
         PeriodContext::ensureWritable();
 
         $vatRate = bcadd((string) ($data['vat_rate'] ?? '0'), '0', 4);

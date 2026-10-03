@@ -7,6 +7,8 @@ use App\Actions\Import\OpeningStockRowImporter;
 use App\Actions\Import\PriceListRowImporter;
 use App\Actions\Import\ProductRowImporter;
 use App\Models\Period\CardImportBatch;
+use App\Models\User;
+use App\Support\Auth\MutationAuthorizer;
 use App\Models\Period\CardImportError;
 use App\Support\Audit\AuditContext;
 use App\Support\Import\ImportFileReader;
@@ -93,10 +95,16 @@ class ProcessCardImport implements ShouldQueue
                 return;
             }
 
-            DB::connection('period')->transaction(function () use ($importer, $validRows): void {
-                foreach ($validRows as [, $row]) {
-                    $importer->import($row);
-                }
+            $actor = $batch->created_by
+                ? User::query()->findOrFail($batch->created_by)
+                : null;
+
+            MutationAuthorizer::runAs($actor, function () use ($importer, $validRows): void {
+                DB::connection('period')->transaction(function () use ($importer, $validRows): void {
+                    foreach ($validRows as [, $row]) {
+                        $importer->import($row);
+                    }
+                });
             });
 
             $errorRowCount = count(array_unique(array_column($errors, 'row_no')));

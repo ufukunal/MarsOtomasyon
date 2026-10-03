@@ -2,6 +2,7 @@
 
 namespace App\Actions\Products;
 
+use App\Support\Auth\MutationAuthorizer;
 use App\Models\Period\ConfigDefinition;
 use App\Models\Period\ConfigOption;
 use App\Models\Period\Product;
@@ -17,6 +18,7 @@ final class SaveConfigDefinition
         ?ConfigDefinition $definition = null,
         ?int $expectedVersion = null,
     ): ConfigDefinition {
+        MutationAuthorizer::authorize('products.update');
         if ((bool) ($data['is_required'] ?? false) && $options === []) {
             throw ValidationException::withMessages([
                 'options' => 'Zorunlu seçim grubunda en az bir seçenek olmalıdır.',

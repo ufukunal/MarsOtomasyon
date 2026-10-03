@@ -2,6 +2,7 @@
 
 namespace App\Actions\Products;
 
+use App\Support\Auth\MutationAuthorizer;
 use App\Models\Period\Product;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -10,6 +11,7 @@ final class ReorderProductImages
 {
     public function handle(Product $product, string $collection, array $attachmentIds): void
     {
+        MutationAuthorizer::authorize('products.update');
         $ownedIds = $product->attachments()
             ->where('collection', $collection)
             ->whereIn('id', $attachmentIds)

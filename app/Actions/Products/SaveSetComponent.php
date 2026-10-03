@@ -2,6 +2,7 @@
 
 namespace App\Actions\Products;
 
+use App\Support\Auth\MutationAuthorizer;
 use App\Enums\ProductKind;
 use App\Models\Period\Product;
 use App\Models\Period\ProductSet;
@@ -16,6 +17,7 @@ final class SaveSetComponent
         ?ProductSet $line = null,
         ?int $expectedVersion = null,
     ): ProductSet {
+        MutationAuthorizer::authorize('products.update');
         if ($set->kind !== ProductKind::Set) {
             throw ValidationException::withMessages(['set' => 'Bileşen yalnız set ürüne eklenebilir.']);
         }
