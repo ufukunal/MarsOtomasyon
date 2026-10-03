@@ -2,6 +2,7 @@
 
 namespace App\Actions\Contacts;
 
+use App\Support\Auth\MutationAuthorizer;
 use App\Models\Period\Contact;
 use App\Models\Period\ContactBank;
 use Illuminate\Support\Facades\DB;
@@ -15,6 +16,7 @@ final class SaveContactBank
         ?ContactBank $bank = null,
         ?int $expectedVersion = null,
     ): ContactBank {
+        MutationAuthorizer::authorize('contacts.update');
         abort_if($bank && $bank->contact_id !== $contact->id, 404);
 
         $iban = strtoupper(str_replace(' ', '', (string) $data['iban']));

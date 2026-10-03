@@ -2,6 +2,7 @@
 
 namespace App\Actions\Locations;
 
+use App\Support\Auth\MutationAuthorizer;
 use App\Enums\LocationKind;
 use App\Models\Period\Location;
 use App\Support\Period\PeriodContext;
@@ -12,6 +13,7 @@ final class SaveLocation
 {
     public function handle(array $data, ?Location $location = null, ?int $expectedVersion = null): Location
     {
+        MutationAuthorizer::authorize($location ? 'locations.update' : 'locations.create');
         PeriodContext::ensureWritable();
 
         $kind = LocationKind::from((string) $data['kind']);

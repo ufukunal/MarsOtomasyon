@@ -2,6 +2,7 @@
 
 namespace App\Actions\Contacts;
 
+use App\Support\Auth\MutationAuthorizer;
 use App\Models\Period\Contact;
 use App\Support\Period\PeriodContext;
 use Illuminate\Support\Facades\DB;
@@ -13,7 +14,12 @@ final class SaveContact
         ?Contact $contact = null,
         ?int $expectedVersion = null,
     ): Contact {
+        MutationAuthorizer::authorize($contact ? 'contacts.update' : 'contacts.create');
         PeriodContext::ensureWritable();
+
+        if (array_key_exists('national_id', $data)) {
+            MutationAuthorizer::authorize('contacts.sensitive.view');
+        }
 
         return DB::connection('period')->transaction(function () use ($data, $contact, $expectedVersion): Contact {
             $categoryIds = array_values(array_unique(array_map(

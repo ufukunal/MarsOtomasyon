@@ -2,6 +2,7 @@
 
 namespace App\Actions\Catalog;
 
+use App\Support\Auth\MutationAuthorizer;
 use App\Models\Period\ProductCategory;
 use Illuminate\Validation\ValidationException;
 
@@ -9,6 +10,7 @@ final class SaveProductCategory
 {
     public function handle(array $data, ?ProductCategory $category = null, ?int $expectedVersion = null): ProductCategory
     {
+        MutationAuthorizer::authorize($category ? 'product_categories.update' : 'product_categories.create');
         $parentId = $data['parent_id'] ?? null;
 
         if ($category && $parentId && (int) $category->id === (int) $parentId) {

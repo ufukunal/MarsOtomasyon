@@ -2,6 +2,7 @@
 
 namespace App\Actions\Contacts;
 
+use App\Support\Auth\MutationAuthorizer;
 use App\Models\Period\Contact;
 use App\Models\Period\ContactAddress;
 use Illuminate\Support\Facades\DB;
@@ -14,6 +15,7 @@ final class SaveContactAddress
         ?ContactAddress $address = null,
         ?int $expectedVersion = null,
     ): ContactAddress {
+        MutationAuthorizer::authorize('contacts.update');
         abort_if($address && $address->contact_id !== $contact->id, 404);
 
         return DB::connection('period')->transaction(function () use ($contact, $data, $address, $expectedVersion): ContactAddress {

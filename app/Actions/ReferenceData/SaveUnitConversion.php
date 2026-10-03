@@ -2,6 +2,7 @@
 
 namespace App\Actions\ReferenceData;
 
+use App\Support\Auth\MutationAuthorizer;
 use App\Models\Period\UnitConversion;
 use Illuminate\Validation\ValidationException;
 
@@ -9,6 +10,7 @@ final class SaveUnitConversion
 {
     public function handle(array $data, ?UnitConversion $conversion = null, ?int $expectedVersion = null): UnitConversion
     {
+        MutationAuthorizer::authorize('units.update');
         $factor = bcadd((string) $data['factor'], '0', 6);
 
         if (bccomp($factor, '0', 6) <= 0) {

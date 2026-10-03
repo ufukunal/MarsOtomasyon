@@ -2,6 +2,7 @@
 
 namespace App\Actions\ReferenceData;
 
+use App\Support\Auth\MutationAuthorizer;
 use App\Models\Period\Unit;
 use Illuminate\Validation\ValidationException;
 use LogicException;
@@ -10,6 +11,7 @@ final class SaveUnit
 {
     public function handle(array $data, ?Unit $unit = null, ?int $expectedVersion = null): Unit
     {
+        MutationAuthorizer::authorize($unit ? 'units.update' : 'units.create');
         $attributes = [
             'code' => strtoupper(trim((string) $data['code'])),
             'name' => trim((string) $data['name']),
