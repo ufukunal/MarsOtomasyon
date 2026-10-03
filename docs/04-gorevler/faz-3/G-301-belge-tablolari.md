@@ -61,19 +61,20 @@ timestamps
 
 Unique: `document_type + number + revision_no`.
 
-### document_lines zorunlu alanları
+### document_lines alanları
 
 ```
 id
 document_id
 line_no
-product_id
+line_kind = stock|service
+product_id nullable (stock satırda zorunlu)
 description
-unit_id
+unit_id nullable (stock satırda zorunlu)
 quantity
-conversion_factor
-base_quantity
-location_id nullable
+conversion_factor nullable (stock satırda zorunlu)
+base_quantity nullable (stock satırda zorunlu)
+location_id nullable (service satırda null)
 unit_price
 line_discount_rate
 line_discount_amount
@@ -87,7 +88,7 @@ version
 timestamps
 ```
 
-`base_quantity = quantity × conversion_factor` posting öncesi doğrulanır.
+K-257: `line_kind=stock` satırda `base_quantity = quantity × conversion_factor` posting öncesi doğrulanır. `line_kind=service` satırda product/unit/conversion/base_quantity/location stok alanları nullable/null olabilir ve stok etkisi üretmez.
 
 ### document_relations
 
@@ -118,10 +119,10 @@ Başlangıç ilişki tipleri: revision_of, quote_to_order, order_to_dispatch, or
 
 - Migration gerçek PostgreSQL'de up/down çalışıyor.
 - Period tablolarda company_id yok.
-- documents.contact_id, lines.product_id/unit_id/location_id gerçek FK.
+- documents.contact_id gerçek period FK'dir. Stock line'larda product_id/unit_id/location_id varsa gerçek period FK kullanılır; K-257 service line nullable stok bağları FK zorunluluğu yaratmaz.
 - Actor alanlarında cross-DB user FK yok.
 - Aynı document_type/number/revision_no tekrar edemiyor.
-- quantity/conversion/discount CHECK kısıtları geçerli.
+- line_kind CHECK'i geçerli; stock satırda quantity/conversion/base_quantity zorunlulukları, service satırda nullable stok alanları ve quantity/discount CHECK kısıtları geçerli.
 - document_relations source != target CHECK geçerli.
 - Aynı target document için ikinci `reversal_of` DB partial unique index ile reddediliyor.
 - Draft silinebilir; posted silme Action seviyesinde reddedilir.
@@ -129,4 +130,4 @@ Başlangıç ilişki tipleri: revision_of, quote_to_order, order_to_dispatch, or
 
 ## İstem
 
-> G-301'i veri modeli 30, 31 ve 33'e göre uygula. Period tablolarına company_id veya Master user FK ekleme. source_line_id ve revision_no'yu atlama. Schema testini gerçek PostgreSQL ile yaz.
+> G-301'i veri modeli 30, 31 ve 33'e göre uygula. K-257 `line_kind=stock|service` ayrımını ve service satır nullable stok alanlarını atlama. Period tablolarına company_id veya Master user FK ekleme. source_line_id ve revision_no'yu koru. Schema testini gerçek PostgreSQL ile yaz.
