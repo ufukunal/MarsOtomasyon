@@ -12,7 +12,12 @@ G-106
 
 
 ## Dokunulacak dosyalar
-- `database/migrations/period/`
+- `database/migrations/period/*_create_product_sets_table.php`
+- ProductSet period modeli
+- set availability calculator
+- ürün formu Bileşenler sekmesi + blade
+- set-cycle validation
+- `tests/Feature/Products/ProductSetTest.php`
 
 ## Şema / Kod
 `product_sets`: `id, set_product_id, component_product_id, quantity decimal(18,3), version`, unique(set, component)
