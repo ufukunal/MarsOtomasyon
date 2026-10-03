@@ -16,12 +16,6 @@ final class SaveVariantValues
     {
         MutationAuthorizer::authorize('products.update');
         PeriodContext::ensureWritable();
-        if ((int) $product->variant_group_id !== $groupId) {
-            $product = $product->updateWithVersion(
-                ['variant_group_id' => $groupId],
-                (int) $product->version,
-            );
-        }
 
         $attributes = VariantAttribute::query()
             ->where('variant_group_id', $groupId)
@@ -35,7 +29,16 @@ final class SaveVariantValues
             throw ValidationException::withMessages(['values' => 'Varyant özelliği seçilen gruba ait değil.']);
         }
 
-        return DB::connection('period')->transaction(function () use ($product, $values): array {
+        return DB::connection('period')->transaction(function () use ($product, $groupId, $values): array {
+            if ((int) $product->variant_group_id !== $groupId) {
+                $product->variantValues()->delete();
+
+                $product = $product->updateWithVersion(
+                    ['variant_group_id' => $groupId],
+                    (int) $product->version,
+                );
+            }
+
             foreach ($values as $attributeId => $value) {
                 $existing = ProductVariantValue::query()
                     ->where('product_id', $product->id)
