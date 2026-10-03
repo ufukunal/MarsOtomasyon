@@ -107,7 +107,7 @@ Her şirket+yıl ayrı period DB. Kartlar dahil işletme verisi period DB'dedir.
 - İş kuralları 39–41.
 - Ekranlar: satış iadesi, alış iadesi, karantina kontrolü, kaynak seçimi.
 - G-600…G-609 hazırdır.
-- Açık kararlar A-125, A-126 ve A-127'dir. Bu üç karar kapanmadan ilgili Faz 4/7/8/11b görevlerini kodlama.
+- Açık kararlar A-125 ve A-126'dır. A-127 K-256 ile kapatıldı. A-125/A-126 kapanmadan ilgili Faz 4/7/8 görevlerini kodlama.
 - Faz 7 kullanıcı onayı olmadan başlatılmaz.
 
 ## Faz 7 ithalat kilitleri
@@ -134,7 +134,7 @@ Her şirket+yıl ayrı period DB. Kartlar dahil işletme verisi period DB'dedir.
 - Ekranlar: ithalat listesi, detay, masraf dağıtımı, late-cost adjustment.
 - G-700…G-709 hazırdır.
 - K-130: inventory cost adjustment unit farkı original import base_quantity üzerinden moving_average'a eklenir; current on-hand quantity formül paydası değildir.
-- Açık kararlar A-125, A-126 ve A-127'dir. Bu üç karar kapanmadan ilgili Faz 4/7/8/11b görevlerini kodlama.
+- Açık kararlar A-125 ve A-126'dır. A-127 K-256 ile kapatıldı. A-125/A-126 kapanmadan ilgili Faz 4/7/8 görevlerini kodlama.
 
 ## Faz 8 üretim/fason kilitleri
 
@@ -224,9 +224,17 @@ Her şirket+yıl ayrı period DB. Kartlar dahil işletme verisi period DB'dedir.
 
 - A-125: non-stock service purchase_invoice satır modeli.
 - A-126: fason hizmet maliyetinin kısmi completion'lara dağıtım yöntemi.
-- A-127: dönem devrinde açık satış/alış belgelerinin kapatma/taşıma politikası.
+- A-127 KAPANDI → K-256: açık sales_order/purchase_order yalnız kalan miktarla target period'da yeni confirmed snapshot olur; sales-order aktif rezervasyonları location bazında yeniden kurulur; teklif/taslak taşınmaz.
 - Teknik olarak location alanı `kind`, production service invoice bağı `production_service_invoices`, subcontract late cost provenance `production_completion_id`, kanal-period marketplace customer eşlemesi `channel_account_period_settings` olarak düzeltilmiştir.
-- A-125…A-127 kapanmadan kodlamaya başlama.
+- A-125/A-126 kapanmadan ilgili Faz 4/7/8 kodlamasına başlama.
+
+## K-256 açık sipariş dönem devri
+
+- Açık sales_order/purchase_order yalnız kalan miktarlarıyla target period'da yeni confirmed order snapshot'ına dönüşür.
+- Source period siparişi immutable/read-only kalır.
+- Cross-period provenance period_document_carries ile tutulur.
+- Sales-order aktif rezervasyonları location bazında yeniden kurulur.
+- Teklifler ve taslaklar taşınmaz.
 
 ## Dönem devri
 
@@ -242,7 +250,7 @@ Faz 0, 0b, 1, 2 görevleri standalone standarda göre temizlendi. **Faz 3–10, 
 
 Her görev şu bölümleri içerir: Amaç, Önkoşul, Dokunulacak dosyalar, Şema/Kod, Kurallar, Kabul ölçütü, İstem. Bir görev tek başına yerel modele verilebilir olmalıdır. **Satır sayısı hedef değildir.** 300–500 satır yalnız iş gerçekten o ayrıntıyı gerektiriyorsa doğal sonuç olabilir. Aynı genel checklist, mimari kural veya test maddesini sırf uzunluk için tekrar etmek yasaktır. Kaynaklarda tanımlanmayan alan, tablo, Action, sınıf, iş kuralı veya test beklentisi uydurulmaz. Eksik karar varsa `[KARAR GEREKİYOR]` yazılır ve kullanıcıya seçenek sunulur.
 
-Açık kararlar A-125, A-126 ve A-127'dir. Bu üç karar kapanmadan ilgili Faz 4/7/8/11b görevlerini kodlama.
+Açık kararlar A-125 ve A-126'dır. A-127 K-256 ile kapatıldı. A-125/A-126 kapanmadan ilgili Faz 4/7/8 görevlerini kodlama.
 
 
 ## Anti-halüsinasyon görev kuralı
