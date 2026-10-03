@@ -4,7 +4,7 @@
 Kaynak şirket/yıl period DB'sini bir sonraki yıla kontrollü biçimde taşımak; kart kimliklerini, stok/cari/maliyet sürekliliğini ve period erişim devri adımını korumak.
 
 ## Önkoşul
-Faz 0–2 altyapısı; cari/kasa/banka/çek-senet fazları canlıya geçmeden önce tamamlanmış olmalı. G-1111 kontrol listesi planlıdır; bu görev kendi minimum kontrollerini içerir.
+Faz 0–2 altyapısı; cari/kasa/banka/çek-senet fazları canlıya geçmeden önce tamamlanmış olmalı. G-1110 carry çekirdeği minimum preflight çağrısını içerir; G-1111 aynı `PreviewPeriodCarry` sözleşmesini ayrıntılı kontrol listesi/UI olarak genişletir.
 
 ## Dokunulacak dosyalar
 - `app/Actions/Periods/CarryPeriod.php`
