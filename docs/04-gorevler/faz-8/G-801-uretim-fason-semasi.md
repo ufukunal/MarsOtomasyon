@@ -11,8 +11,9 @@ Faz 2 stok, Faz 4 alış, Faz 7 inventory cost adjustment, K-131…K-162.
 ## Dokunulacak dosyalar
 
 - production recipe/order/completion migrations/models
-- locations location_type/subcontractor_contact_id genişletmesi
+- locations kind/subcontractor_contact_id genişletmesi
 - document relation type genişletmesi
+- inventory_cost_adjustments production_completion_id genişletmesi
 - schema testleri
 
 ## Şema / Kod
