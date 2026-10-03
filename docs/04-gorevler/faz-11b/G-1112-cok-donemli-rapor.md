@@ -47,7 +47,7 @@ Context değiştirme try/finally ile korunur; hata olsa da çağrı öncesi cont
 - Rapor sonucu hangi period'dan geldiğini taşır.
 - Sequence'ler kopya sonrası MAX(id)+1 seviyesine alınır.
 - Aktif kartlar ile bakiye/hareket ilişkili gerekli pasif kartlar taşınır.
-- Belgeler, açık teklif/sipariş, taslak, yoldaki transfer, karantina bekleyenler taşınmaz.
+- Belgeler, açık teklif/sipariş, taslak ve yoldaki transfer taşınmaz; açık quarantine kayıtları miktar/snapshot ile yeni döneme taşınır.
 - Açılış maliyeti kaynak period kapanış moving average değeridir.
 - product_costs sürekliliği korunur.
 - Cari bakiye contact_transactions toplamından açılış hareketine dönüştürülür.
