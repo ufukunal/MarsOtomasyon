@@ -297,6 +297,31 @@ Verilen kararlar ve gerekçeleri. **Kod bu kararlara uyar; kod kararla
 | K-234 | PDF/print çıktısında locale, tarih/para biçimi ve şirket kimliği template render context'inden gelir; iş hesapları render katmanında yeniden hesaplanmaz. | Kullanıcının en geniş Faz 10 kapsam talebi ve mevcut mimari kilitlerle uyumlu. |
 | K-235 | Template ve report definition değişiklikleri version optimistic lock + activity log ile korunur; finalized template revision yerinde mutate edilmez. | Kullanıcının en geniş Faz 10 kapsam talebi ve mevcut mimari kilitlerle uyumlu. |
 
+## 2026-10-03 — Faz 11 Canlı geçiş kararları
+
+| No | Karar | Gerekçe / teknik sonuç |
+|---|---|---|
+| K-236 | Canlı ilk kurulum K-021 VDS hedefinde çalışır: uygulama, PostgreSQL ve Valkey aynı VDS'de başlayabilir; servis sınırları ayrı tutulur ve ileride ayrı host'a taşınabilir. | Canlı işletim, geri dönüş ve veri güvenliği tek operasyon sözleşmesinde tutulur. |
+| K-237 | HTTP katmanı reverse proxy + PHP application runtime modelidir; HTTPS zorunludur, production debug kapalıdır ve yalnız public web root yayınlanır. | Canlı işletim, geri dönüş ve veri güvenliği tek operasyon sözleşmesinde tutulur. |
+| K-238 | Queue worker ve scheduler web request sürecinden ayrıdır; process manager tarafından sürekli çalıştırılır ve deploy sonrası kontrollü restart edilir. | Canlı işletim, geri dönüş ve veri güvenliği tek operasyon sözleşmesinde tutulur. |
+| K-239 | Deploy immutable release yaklaşımı kullanır: kod release dizinine alınır, dependency/build/migration/health başarılıysa current symlink atomik değiştirilir; başarısız release aktive edilmez. | Canlı işletim, geri dönüş ve veri güvenliği tek operasyon sözleşmesinde tutulur. |
+| K-240 | Migration sırası Master migration → kayıtlı tüm period DB'lerde migrate:periods şeklindedir; herhangi period migration hatası deploy'u başarısız yapar. | Canlı işletim, geri dönüş ve veri güvenliği tek operasyon sözleşmesinde tutulur. |
+| K-241 | State-changing migration öncesi doğrulanmış backup zorunludur; destructive schema change aynı release'te geri dönüşü imkansız hale getiremez. | Canlı işletim, geri dönüş ve veri güvenliği tek operasyon sözleşmesinde tutulur. |
+| K-242 | Backup kapsamı Master DB + tüm aktif/closed period DB + attachments/files + gerekli uygulama config/secret recovery metadata'dır; DB ve dosya backup'ları aynı recovery set kimliğiyle izlenir. | Canlı işletim, geri dönüş ve veri güvenliği tek operasyon sözleşmesinde tutulur. |
+| K-243 | Backup otomatik günlük, ayrıca deploy/dönem devri öncesi on-demand alınır; retention katmanlıdır ve en az bir kopya VDS dışı storage'da tutulur. | Canlı işletim, geri dönüş ve veri güvenliği tek operasyon sözleşmesinde tutulur. |
+| K-244 | Backup başarılı sayılmak için yalnız dosya oluşması yetmez; düzenli restore doğrulaması ve integrity smoke test gerekir. | Canlı işletim, geri dönüş ve veri güvenliği tek operasyon sözleşmesinde tutulur. |
+| K-245 | Restore ayrı staging/temporary database alanına yapılır; doğrulama+migrate tamamlanmadan production period olarak bağlanmaz. Arşiv restore sonrası closed/read-only açılır. | Canlı işletim, geri dönüş ve veri güvenliği tek operasyon sözleşmesinde tutulur. |
+| K-246 | Health sistemi HTTP/app, Master DB, aktif period DB erişimi, Valkey, queue lag/failed jobs, scheduler heartbeat, disk alanı ve backup freshness kontrollerini kapsar. | Canlı işletim, geri dönüş ve veri güvenliği tek operasyon sözleşmesinde tutulur. |
+| K-247 | Beklenmeyen uygulama hataları correlation id ile loglanır; DomainException kullanıcı hataları log gürültüsü oluşturmaz. Production loglarında credential/secret ve hassas tam payload bulunmaz. | Canlı işletim, geri dönüş ve veri güvenliği tek operasyon sözleşmesinde tutulur. |
+| K-248 | Secret'lar repo'ya yazılmaz; environment/secret store üzerinden verilir. Channel credentials encrypted tutulur ve backup/recovery süreci encryption key kaybını ayrıca önler. | Canlı işletim, geri dönüş ve veri güvenliği tek operasyon sözleşmesinde tutulur. |
+| K-249 | Production erişiminde least-privilege uygulanır: web/worker DB kullanıcıları gereken DB/şema izinleriyle sınırlandırılır; deployment/backup için ayrı operasyon credential kullanılabilir. | Canlı işletim, geri dönüş ve veri güvenliği tek operasyon sözleşmesinde tutulur. |
+| K-250 | Canlıya geçişte maintenance/read-only pencere desteklenir; son backup, migration, integrity, queue/scheduler ve smoke test geçmeden trafik açılmaz. | Canlı işletim, geri dönüş ve veri güvenliği tek operasyon sözleşmesinde tutulur. |
+| K-251 | Rollback kod release rollback ile yapılır; migration geri dönüşü veri kaybı riski taşıyorsa otomatik down yerine forward-fix veya doğrulanmış backup restore runbook'u kullanılır. | Canlı işletim, geri dönüş ve veri güvenliği tek operasyon sözleşmesinde tutulur. |
+| K-252 | Arşiv/closed period production uygulamasından read-only açılabilir; detached archive DB sessizce yok sayılmaz, restore gereksinimi açık gösterilir. | Canlı işletim, geri dönüş ve veri güvenliği tek operasyon sözleşmesinde tutulur. |
+| K-253 | Operasyonel health/deploy/backup geçmişi business transaction tablolarının alternatifi değildir; Master operational metadata olarak tutulabilir. | Canlı işletim, geri dönüş ve veri güvenliği tek operasyon sözleşmesinde tutulur. |
+| K-254 | Go-live öncesi tüm fazların gerçek PostgreSQL kabul testleri, integrity:all, authorization/security kontrolleri ve backup→restore prova sonucu yeşil olmalıdır. | Canlı işletim, geri dönüş ve veri güvenliği tek operasyon sözleşmesinde tutulur. |
+| K-255 | Canlı sonrası ilk dönem için deployment, failed job, backup, disk ve integrity alarmları düzenli gözlenir; otomatik business-data düzeltmesi yapılmaz. | Canlı işletim, geri dönüş ve veri güvenliği tek operasyon sözleşmesinde tutulur. |
+
 ## Açık kararlar
 
-**Yok.** Faz 10 kapsamı K-202…K-235 ile kilitlendi.
+**Yok.** Faz 11 canlı geçiş kapsamı K-236…K-255 ile kilitlendi.
