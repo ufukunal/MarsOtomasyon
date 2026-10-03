@@ -43,7 +43,7 @@ class RoleSeeder extends Seeder
             }
         }
 
-        $permissionNames = [...$allScreenPermissions, 'cost.view'];
+        $permissionNames = [...$allScreenPermissions, 'cost.view', 'periods.reopen'];
 
         foreach ($permissionNames as $permissionName) {
             Permission::query()->firstOrCreate([

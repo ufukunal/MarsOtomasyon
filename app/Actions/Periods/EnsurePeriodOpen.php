@@ -12,7 +12,7 @@ final class EnsurePeriodOpen
 {
     public function handle(CarbonInterface $date): void
     {
-        PeriodContext::ensure();
+        PeriodContext::ensureWritable();
 
         $activeYear = PeriodContext::year();
 

@@ -3,6 +3,7 @@
 namespace App\Support\Period;
 
 use App\Exceptions\NoActivePeriodException;
+use App\Exceptions\PeriodReadOnlyException;
 use App\Models\Period;
 use Illuminate\Support\Facades\DB;
 
@@ -60,6 +61,19 @@ final class PeriodContext
     {
         if (! self::companyId() || ! self::periodId() || ! config('database.connections.period.database')) {
             throw new NoActivePeriodException('Şirket ve dönem seçilmedi.');
+        }
+    }
+
+    public static function ensureWritable(): void
+    {
+        self::ensure();
+
+        $period = Period::query()->findOrFail(self::periodId());
+
+        if ($period->status !== 'active') {
+            throw new PeriodReadOnlyException(
+                sprintf('%d dönemi salt okunurdur.', $period->year),
+            );
         }
     }
 

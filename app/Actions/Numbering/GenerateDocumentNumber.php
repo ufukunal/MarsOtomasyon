@@ -11,7 +11,7 @@ final class GenerateDocumentNumber
 {
     public function handle(string $documentType, ?int $year = null): string
     {
-        PeriodContext::ensure();
+        PeriodContext::ensureWritable();
 
         $activeYear = PeriodContext::year();
         $year ??= $activeYear ?? now()->year;
