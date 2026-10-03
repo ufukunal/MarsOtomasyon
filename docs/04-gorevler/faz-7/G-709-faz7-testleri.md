@@ -26,6 +26,8 @@ Yeni production şeması yok.
 - unique invoice line membership
 - no quantity split
 - purchase invoice/manual expense
+- K-257 service-line purchase invoice expense source
+- mixed stock+service invoice'da stock line tutarının expense havuzuna karışmaması
 - USD/EUR/TRY frozen exchange rates
 - import VAT excluded
 - purchase value allocation
@@ -47,7 +49,7 @@ Yeni production şeması yok.
 
 - Gerçek PostgreSQL; SQLite yok.
 - Beklenen tutarlar production calculator'dan türetilmez.
-- K-114…K-130 ile çelişki yok.
+- K-114…K-130 ve K-257 ile çelişki yok.
 - Faz 8 production veya Faz 9 e-commerce davranışı eklenmez.
 
 ## Kabul ölçütü
