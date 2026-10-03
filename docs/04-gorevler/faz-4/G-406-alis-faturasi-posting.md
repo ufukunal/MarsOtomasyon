@@ -61,3 +61,7 @@ KDV maliyete girmez.
 ## İstem
 
 > purchase_invoice posting profilini ortak PostDocument zincirine ekle. Stock in, supplier credit ve moving average tek transaction'da olsun; float ve ikinci posting zinciri oluşturma.
+
+## Kodlama öncesi blokaj
+
+**[KARAR GEREKİYOR — A-125]** Non-stock service purchase_invoice satırının posting profili kesinleşmeden G-406 tam code-ready değildir.
