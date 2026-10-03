@@ -140,7 +140,6 @@ Repo tutarlılık temizliği ve Faz 0–2 görev revizyonu tamamlandı. **Faz 3�
 - Fason hizmet purchase_invoice üzerinden production order'a bağlanır ve mamul maliyetine dahil edilir.
 - Geç gelen fason hizmet inventory_cost_adjustments reason=subcontract_late_cost ile işlenir.
 - Açık production order dönem devrinde taşınmaz; reçeteler ve fason location fiziksel stokları taşınır.
-- Faz 9 kullanıcı onayı olmadan başlatılmaz.
 
 
 ## 03.10.2026 Faz 9 tamamlanma
@@ -154,7 +153,6 @@ Repo tutarlılık temizliği ve Faz 0–2 görev revizyonu tamamlandı. **Faz 3�
 - Imported order confirmed sales_order'dır; marketplace buyer/shipping snapshot'tır ve import tahsilat üretmez.
 - Cancel mevcut remaining-cancel mantığı; return draft sales_return üretir.
 - Webhook birincil, 15 dk polling yedek; 30/60/120 retry + kalıcı sync history/error vardır.
-- Faz 10 kullanıcı onayı olmadan başlatılmaz.
 
 
 ## 03.10.2026 Faz 9 karar özeti
