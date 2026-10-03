@@ -38,7 +38,7 @@ Açık quarantine blok değildir; yeni döneme taşınır.
 - açık quarantine,
 - production recipe/revision,
 - subcontractor location stock,
-- channel listing/location mapping.
+- channel account period settings + channel listing/location mapping.
 
 ## Taşınmayanlar
 
