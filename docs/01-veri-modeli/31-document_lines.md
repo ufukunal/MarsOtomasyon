@@ -11,14 +11,15 @@ Schema::connection('period')->create('document_lines', function (Blueprint $tabl
     $table->id();
     $table->foreignId('document_id')->constrained('documents')->cascadeOnDelete();
     $table->unsignedInteger('line_no');
+    $table->string('line_kind', 20)->default('stock'); // stock | service
 
-    $table->foreignId('product_id')->constrained('products');
+    $table->foreignId('product_id')->nullable()->constrained('products');
     $table->string('description')->nullable();
 
-    $table->foreignId('unit_id')->constrained('units');
+    $table->foreignId('unit_id')->nullable()->constrained('units');
     $table->decimal('quantity', 18, 3);
-    $table->decimal('conversion_factor', 18, 6);
-    $table->decimal('base_quantity', 18, 3);
+    $table->decimal('conversion_factor', 18, 6)->nullable();
+    $table->decimal('base_quantity', 18, 3)->nullable();
 
     $table->foreignId('location_id')->nullable()->constrained('locations');
 
@@ -46,15 +47,34 @@ Schema::connection('period')->create('document_lines', function (Blueprint $tabl
 });
 ```
 
+## Satır türü
+
+K-257:
+
+### stock
+
+- `product_id`, `unit_id`, `conversion_factor`, `base_quantity` zorunludur.
+- stok hareketi ve moving-average etkisi belge tipinin posting profilinden doğar.
+- mevcut temel birim kuralları aynen uygulanır.
+
+### service
+
+- aynı purchase_invoice içinde mal satırlarıyla birlikte bulunabilir,
+- `product_id`, `unit_id`, `conversion_factor`, `base_quantity` null olabilir,
+- `quantity > 0`, `unit_price`, iskonto ve KDV alanları ticari hesap için kullanılmaya devam eder,
+- cari/KDV/belge toplamına girer,
+- stock movement, reservation ve moving-average üretmez,
+- `location_id` null olmalıdır.
+
 ## Temel birim
 
 ```
 base_quantity = quantity × conversion_factor
 ```
 
-- `quantity`: kullanıcının seçtiği birimde.
-- `unit_price`: yine seçilen birime ait.
-- `base_quantity`: stok hareketine gidecek miktar.
+- `quantity`: stock satırda seçilen birimde; service satırda ticari hizmet miktarıdır.
+- `unit_price`: satırın seçilen/ticari miktarına ait fiyattır.
+- `base_quantity`: yalnız stock satırda stok hareketine gidecek miktardır.
 - `conversion_factor`: belge anındaki katsayı; dondurulur.
 - Dönüşüm bulunamazsa posting engellenir; 1 varsayılmaz.
 
@@ -84,16 +104,13 @@ K-073 gereği satış satırı lokasyon taşıyabilir. Sipariş rezervasyonu bir
 
 ## CHECK kısıtları
 
+- `line_kind in stock|service`
 - `quantity > 0`
-- `conversion_factor > 0`
-- `base_quantity > 0`
+- stock satırda: product_id/unit_id zorunlu, conversion_factor > 0, base_quantity > 0
+- service satırda: conversion_factor/base_quantity/location_id null; product_id/unit_id opsiyonel
 - `unit_price >= 0`
 - `line_discount_rate between 0 and 100`
 - `line_discount_amount >= 0`
 - `vat_rate >= 0`
 - `cancelled_quantity >= 0 and cancelled_quantity <= quantity`
 - `source_line_id IS NULL OR source_line_id <> id` (doğrudan self-cycle engeli; daha uzun cycle Action/lineage resolver tarafından reddedilir)
-
-## Kodlama öncesi blokaj — A-125
-
-**[KARAR GEREKİYOR]** Faz 7 ithalat masraf faturası ve Faz 8 fason hizmet faturası için non-stock/service purchase invoice satır modeli henüz kilitli değildir. Mevcut şemada product/unit/quantity/base_quantity zorunludur. A-125 kapanmadan bu dosyanın final migration sözleşmesi code-ready değildir.
