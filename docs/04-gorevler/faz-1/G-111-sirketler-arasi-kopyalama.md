@@ -9,7 +9,11 @@ G-004 (company_copy_permissions), G-104, G-106
 
 
 ## Dokunulacak dosyalar
-- Görevde tarif edilen migration/model/action/Livewire/test dosyaları; kapsam dışına çıkma.
+- `app/Actions/Companies/CopyRecordsBetweenCompanies.php`
+- `app/Support/Period/SourcePeriodContext.php` / period_source helper
+- Başka Şirketten Aktar Livewire + blade
+- copy conflict DTO/action'ları
+- `tests/Feature/Companies/CrossCompanyCopyTest.php`
 
 
 ## Şema / Kod
