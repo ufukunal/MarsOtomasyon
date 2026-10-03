@@ -24,7 +24,7 @@ Bu dosya `DEVIR-PROMPT.md`den sonra okunur. Çelişkide bu dosya ve karar günl�
 - v64 korunur; **v65 güncel UI referansıdır.**
 - Faz 4 Alış kararları K-086…K-091 ile kilitlendi; açık A kararı yoktur.
 
-Repo tutarlılık temizliği ve Faz 0–2 görev revizyonu tamamlandı. **Faz 3–10 dokümantasyonları, Faz 11b dönem devri ve Faz 11 canlı geçiş dokümantasyonu yazıldı. Açık kararlar A-125 ve A-126'dır; A-127 K-256 ile kapatıldı.**
+Repo tutarlılık temizliği ve Faz 0–2 görev revizyonu tamamlandı. **Faz 3–10 dokümantasyonları, Faz 11b dönem devri ve Faz 11 canlı geçiş dokümantasyonu yazıldı. Açık ürün kararı yoktur. A-125 K-257, A-126 K-258, A-127 K-256 ile kapatıldı.**
 
 
 ## 02.10.2026 Faz 4 Alış güncellemesi
@@ -94,7 +94,7 @@ Repo tutarlılık temizliği ve Faz 0–2 görev revizyonu tamamlandı. **Faz 3�
 - Bir import file birden fazla purchase invoice/supplier içerebilir.
 - Dağıtım yuvarlama farkı son uygun satıra verilir.
 - Ağırlık/hacim ilk sürümde yoktur.
-- Açık kararlar A-125 ve A-126'dır; A-127 K-256 ile kapatıldı.
+- Açık ürün kararı yoktur. A-125 K-257, A-126 K-258, A-127 K-256 ile kapatıldı.
 
 
 ## 02.10.2026 Faz 7 dokümantasyon durumu
@@ -104,7 +104,7 @@ Repo tutarlılık temizliği ve Faz 0–2 görev revizyonu tamamlandı. **Faz 3�
 - İthalat ekranları ve G-700…G-709 hazırdır.
 - K-114…K-129 kilitlidir.
 - K-130: import cost adjustment birim farkı original import base_quantity üzerinden hesaplanır; current stock quantity payda değildir ve geçmiş satış maliyetleri geriye dönük değiştirilmez.
-- Açık kararlar A-125 ve A-126'dır; A-127 K-256 ile kapatıldı.
+- Açık ürün kararı yoktur. A-125 K-257, A-126 K-258, A-127 K-256 ile kapatıldı.
 
 
 ## 02.10.2026 Faz 8 ön kararları
@@ -210,3 +210,13 @@ Repo tutarlılık temizliği ve Faz 0–2 görev revizyonu tamamlandı. **Faz 3�
 - Cross-period provenance period_document_carries ile tutulur.
 - Sales-order aktif rezervasyonları location bazında target'ta yeniden kurulur.
 - Teklif ve taslaklar aktarılmaz.
+
+## 03.10.2026 — 156 görev final kalite denetimi
+
+- `docs/04-gorevler/` altındaki **156/156 G dosyası tek tek okundu**.
+- **58 görev/özet dosyasında doğrudan kalite düzeltmesi** yapıldı; diğerleri mevcut kanonik sözleşmeyle uyumlu bulundu.
+- Başlıca düzeltmeler: generic dosya kapsamları, G-115 Faz 4 scope taşması, sayım snapshot matematiği, quarantine gerçek kaynak ayrımı, K-257 mixed/service invoice zinciri, K-257/K-258 ithalat/fason çaprazları, K-256 kanal order carry provenance, G-1006↔G-1112 dairesel sahiplik ve stale production deploy akışı.
+- Stale placeholder/`[KARAR GEREKİYOR]`/eski faz-onay metni kalmadı.
+- Açık ürün kararı yoktur.
+- Ayrıntılı rapor: `docs/00-genel/10-gorev-kalite-denetimi.md`.
+- Kodlama yapılmadı.
