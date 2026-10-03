@@ -73,4 +73,4 @@ Faz 3'te satış belge altyapısını kurmak: teklif → sipariş → rezervasyo
 
 ## Faz bitiş ölçütü
 
-G-301…G-312 kabul ölçütleri gerçek PostgreSQL'de geçmeden Faz 3 tamamlanmış sayılmaz. Faz 4 kullanıcı onayı olmadan başlamaz.
+G-301…G-312 kabul ölçütleri gerçek PostgreSQL'de geçmeden Faz 3 uygulaması tamamlanmış sayılmaz.
