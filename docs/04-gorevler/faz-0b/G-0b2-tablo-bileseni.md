@@ -9,7 +9,13 @@ G-0b1
 
 
 ## Dokunulacak dosyalar
-- Bu görevde tarif edilen mevcut uygulama/migration/test dosyaları; kapsam dışına çıkma.
+- `app/Livewire/Components/DataTable/DataTableComponent.php`
+- `app/Livewire/Components/DataTable/Column.php`
+- `app/Livewire/Components/DataTable/SelectFilter.php`
+- `app/Livewire/Components/DataTable/DateRangeFilter.php`
+- `resources/views/livewire/components/data-table.blade.php`
+- DataTable export/query helper'ları
+- `tests/Feature/Ui/DataTableComponentTest.php`
 
 
 ## Şema / Kod
