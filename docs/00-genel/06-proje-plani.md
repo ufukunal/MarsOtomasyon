@@ -29,7 +29,7 @@ Faz 3 iş kuralı belgeleri mevcut numaralarla çakışmamak için 28–31 olaca
 
 ## Kritik sıra
 
-Repo temizliği ve Faz 0–2 görev revizyonu tamamlandı. Faz 3 Satış dokümantasyonu yazıldı ve kalite kontrolünden geçirildi. Faz 4 Alış dokümantasyonu K-086…K-091 kararlarıyla yazıldı; G-400…G-409 hazırdır. Faz 3 ve Faz 4'ün kodlama/uygulama tamamlanması kendi gerçek PostgreSQL kabul testlerine bağlıdır. Faz 5 Kasa/Banka/Çek-Senet dokümantasyonu K-092…K-097 kararlarıyla yazıldı; G-500…G-509 hazırdır. Faz 6 İade dokümantasyonu K-098…K-113 kararlarıyla yazıldı; G-600…G-609 hazırdır. Faz 5 ve Faz 6 kodlama/uygulama tamamlanması kendi gerçek PostgreSQL kabul testlerine bağlıdır. Faz 7–11 planlama/dokümantasyon setleri tamamlandı. Kodlamaya geçmeden önce proje planı bütünlük taraması ve açık blokajların kapatılması zorunludur.
+Repo temizliği ve Faz 0–2 görev revizyonu tamamlandı. Faz 3 Satış dokümantasyonu yazıldı ve kalite kontrolünden geçirildi. Faz 4 Alış dokümantasyonu K-086…K-091 kararlarıyla yazıldı; G-400…G-409 hazırdır. Faz 3 ve Faz 4'ün kodlama/uygulama tamamlanması kendi gerçek PostgreSQL kabul testlerine bağlıdır. Faz 5 Kasa/Banka/Çek-Senet dokümantasyonu K-092…K-097 kararlarıyla yazıldı; G-500…G-509 hazırdır. Faz 6 İade dokümantasyonu K-098…K-113 kararlarıyla yazıldı; G-600…G-609 hazırdır. Faz 5 ve Faz 6 kodlama/uygulama tamamlanması kendi gerçek PostgreSQL kabul testlerine bağlıdır. Faz 7–11 planlama/dokümantasyon setleri tamamlandı. Proje planı bütünlük taraması tamamlandı; A-125/A-126/A-127 sırasıyla K-257/K-258/K-256 ile kapatıldı. Kodlama bu çalışma kapsamında yapılmıyor.
 
 
 ## Faz 4 planı
@@ -95,12 +95,12 @@ G-1101 özet; G-1102 production topoloji; G-1103 immutable deploy/migration; G-1
 Faz 11 yeni veri modeli dosyası 44; yeni iş kuralı dosyaları 58–61'dir. K-021 VDS hedefi korunur; PostgreSQL + Valkey + queue/scheduler + backup/restore/health tek production readiness sözleşmesinde tamamlanır.
 
 
-## Kodlama öncesi bütünlük taraması — 03.10.2026
+## Bütünlük ve kalite taraması — 03.10.2026
 
 Durum: **BÜTÜNLÜK BLOKAJI YOK — plan/dokümantasyon tamamlandı. Kodlama bu çalışma kapsamında yapılmıyor.**
 
 Doğrulananlar:
-- K-001…K-256 eksiksiz ve tekrarsız.
+- K-001…K-258 eksiksiz ve tekrarsız.
 - 156 görev dosyasında G kimliği çakışması yok.
 - Faz 0–11 plan/dokümantasyon dosyaları mevcut.
 - Faz 8 location alan adı `kind` olarak kanonikleştirildi.
