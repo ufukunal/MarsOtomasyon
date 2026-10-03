@@ -8,7 +8,11 @@
 G-104 (cari kartı)
 
 ## Dokunulacak dosyalar
-- `database/migrations/period/`
+- contact_addresses/contact_people/contact_banks/contact_categories period migration'ları
+- ilgili period modelleri
+- cari detay Adresler/İletişim/Banka sekmeleri + blade
+- default kayıt ve IBAN validation Action/helper'ları
+- `tests/Feature/Contacts/ContactRelationsTest.php`
 
 
 ## Şema / Kod
