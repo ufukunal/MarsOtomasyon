@@ -5,7 +5,7 @@ on:
     branches: [main]
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   quality:
@@ -43,8 +43,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          persist-credentials: true
 
       - name: PHP 8.4
         uses: shivammathur/setup-php@v2
@@ -56,39 +54,14 @@ jobs:
       - name: Composer install
         run: composer install --no-interaction --prefer-dist --no-progress
 
-      - name: Node lock
-        run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+      - name: Node install
+        run: npm ci --ignore-scripts --no-audit --no-fund
 
-      - name: Normalize PHP and lock files
-        id: normalize
-        shell: bash
-        run: |
-          vendor/bin/pint
-
-          if git diff --quiet -- composer.lock package-lock.json app bootstrap config database routes tests; then
-            echo "changed=false" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add composer.lock package-lock.json app bootstrap config database routes tests
-          git commit -m "style: Pint ve dependency lock dosyalarini sabitle"
-          git push origin HEAD:main
-          echo "changed=true" >> "$GITHUB_OUTPUT"
-
-      - name: Stop after normalization commit
-        if: steps.normalize.outputs.changed == 'true'
-        run: echo "Normalized source committed; the pushed commit will run the full quality gate."
-
-      - name: Pint check
-        if: steps.normalize.outputs.changed != 'true'
+      - name: Pint
         run: vendor/bin/pint --test
 
       - name: Larastan
-        if: steps.normalize.outputs.changed != 'true'
         run: vendor/bin/phpstan analyse --no-progress
 
       - name: Pest
-        if: steps.normalize.outputs.changed != 'true'
         run: php artisan test
