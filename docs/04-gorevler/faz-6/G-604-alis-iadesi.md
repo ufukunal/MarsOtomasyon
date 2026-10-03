@@ -33,6 +33,7 @@ Dövizli source => original frozen exchange_rate.
 - Otomatik cash/bank yok.
 - Kaynaklı fiyat/KDV snapshot immutable.
 - source_purchase_cost seçeneği yalnız source varsa.
+- `PostPurchaseReturn` K-038 gereği `idempotency_key` taşır; aynı anahtar tekrarlandığında ikinci stock out veya supplier debit üretilmez.
 
 ## Kabul ölçütü
 
@@ -42,6 +43,7 @@ Dövizli source => original frozen exchange_rate.
 - Stock out doğru.
 - Original frozen FX kullanılıyor.
 - Moving average değişmiyor.
+- Aynı idempotency key ile yinelenen alış iadesi tek posted return / tek stock out / tek supplier debit etkisi bırakıyor.
 
 ## İstem
 
