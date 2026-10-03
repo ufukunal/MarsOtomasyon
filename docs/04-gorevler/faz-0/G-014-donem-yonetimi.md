@@ -8,7 +8,12 @@ G-002, G-003, G-005
 
 
 ## Dokunulacak dosyalar
-- Bu görevde tarif edilen mevcut uygulama/migration/test dosyaları; kapsam dışına çıkma.
+- `app/Livewire/Pages/Settings/Periods.php`
+- `app/Livewire/Components/PeriodSwitcher.php`
+- `app/Actions/Periods/CreatePeriod.php` entegrasyonu
+- period close/reopen Action'ları
+- period policy/permission kontrolleri
+- `tests/Feature/Period/PeriodManagementTest.php`
 
 
 ## Şema / Kod
@@ -37,7 +42,7 @@ Eylemler: **Yeni Dönem Aç**, **Dönemi Kapat**, **Devir Yap** (Faz 11b).
 4. Sonuç: başarılıysa döneme geçilir, değilse hata ve temizlik talimatı
 
 ## Kurallar
-- Yalnızca **Yönetici** dönem açabilir/kapatabilir
+- Dönem açma/kapatma ilgili permission ile korunur; yeniden açma ayrı permission + zorunlu gerekçe ister
 - Kapalı dönem seçilebilir ama salt okunurdur; kayıt girişi engellenir
 - Devir yapılmamış dönemde açılış bakiyesi yoktur — ekranda uyarı
 - Arşivlenmiş dönem seçilemez, önce geri yüklenmeli
@@ -61,7 +66,7 @@ Eylemler: **Yeni Dönem Aç**, **Dönemi Kapat**, **Devir Yap** (Faz 11b).
 - Yeni dönem açılıyor, veritabanı oluşuyor, migration çalışıyor
 - Dönem değişince veriler o döneme ait geliyor
 - Kapalı dönemde kayıt girişi engelleniyor
-- Yönetici olmayan dönem açamıyor
+- `periods.create` izni olmayan kullanıcı dönem açamıyor
 - Aktif dönem üst çubukta görünüyor
 
 
