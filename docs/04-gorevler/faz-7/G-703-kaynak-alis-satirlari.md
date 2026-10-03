@@ -29,6 +29,7 @@ Kaynak purchase_invoice frozen kur/maliyet değerlerinden türetilir.
 ## Kurallar
 
 - Source document posted purchase_invoice.
+- Import edilen fiziksel ürün kaynağı yalnız K-257 `line_kind=stock` satırıdır; service satırı `import_file_lines` içine ürün kaynağı olarak bağlanamaz.
 - Satır tam bağlanır; miktar split yok.
 - Aynı line yalnız bir import file.
 - Bir file birden fazla invoice/supplier alabilir.
@@ -38,6 +39,7 @@ Kaynak purchase_invoice frozen kur/maliyet değerlerinden türetilir.
 
 - Multi-invoice/multi-supplier çalışıyor.
 - Duplicate line membership reddediliyor.
+- `line_kind=service` satır import ürün kaynağı olarak reddediliyor.
 - Quantity partial attach yapılamıyor.
 - Frozen base purchase value doğru.
 - Finalized membership immutable.
