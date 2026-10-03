@@ -134,6 +134,7 @@ class MigratePeriodsCommand extends Command
         return $failed === [] ? self::SUCCESS : self::FAILURE;
     }
 
+    /** @return Builder<Period> */
     private function periodQuery(): Builder
     {
         return Period::query()
