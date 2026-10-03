@@ -12,7 +12,8 @@
         "spatie/browsershot": "^5.4",
         "spatie/laravel-activitylog": "^5.1",
         "spatie/laravel-backup": "^10.3",
-        "spatie/laravel-permission": "^8.3"
+        "spatie/laravel-permission": "^8.3",
+        "ext-bcmath": "*"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",

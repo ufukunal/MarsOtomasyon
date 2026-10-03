@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use App\Enums\PrintType;
-use App\Models\Concerns\HasOptimisticLock;
+use App\Support\Concurrency\HasOptimisticLock;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class PrintProfile extends MasterModel
