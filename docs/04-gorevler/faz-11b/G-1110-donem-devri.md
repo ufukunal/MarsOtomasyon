@@ -120,3 +120,7 @@ Period hareketlerindeki actor alanı Master user scalar id + user_name snapshot;
 
 ## İstem
 > CarryPeriod ve önizleme/erişim kopyalama akışını bu dosyadaki sıraya göre uygula. Kart/stock_balance ID sürekliliğini bozma; geçmiş hareket/belge taşıma; integrity:carry geçmeden source period'u kapatma.
+
+## Kodlama öncesi blokaj — A-127
+
+**[KARAR GEREKİYOR]** Açık satış/alış teklif-sipariş/taslak belgelerin source period kapanışından önce zorunlu kapatılması mı, yoksa target period'a taşınması mı gerektiği kilitli değildir. Source period closed olduktan sonra açık belgenin devam ettirilmesi mümkün olmayacağından bu karar kapanmadan CarryPeriod final uygulanmaz.
