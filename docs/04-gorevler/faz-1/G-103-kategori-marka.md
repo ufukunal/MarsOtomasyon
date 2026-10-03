@@ -8,7 +8,11 @@
 G-0b2 (tablo bileşeni)
 
 ## Dokunulacak dosyalar
-- `database/migrations/period/`
+- category/brand period migration'ları
+- ProductCategory/Brand period modelleri
+- kategori ağaç/list/form ekranları
+- kategori seviye/unique doğrulama Action'ları
+- `tests/Feature/Products/CategoryBrandTest.php`
 
 ## Amaç
 Ürün kategorileri (ağaç yapısı) ve markalar.
