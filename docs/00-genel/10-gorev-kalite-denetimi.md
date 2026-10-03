@@ -17,7 +17,7 @@ Her dosyada şu rubric uygulanmıştır:
 9. PostgreSQL / Money-BCMath / permission / cross-DB sınırları,
 10. Stale isim, alan, karar veya faz-onay metni.
 
-**Sonuç:** 156 dosya denetlendi. **58 görev/özet dosyasında doğrudan kalite düzeltmesi yapıldı**; diğer dosyalar mevcut kanonik sözleşmeyle uyumlu bulundu.
+**Sonuç:** 156 dosya denetlendi. **59 görev/özet dosyasında doğrudan kalite düzeltmesi yapıldı**; diğer dosyalar mevcut kanonik sözleşmeyle uyumlu bulundu.
 
 ## Görev bazlı sonuç
 
@@ -34,7 +34,7 @@ Her dosyada şu rubric uygulanmıştır:
 | G-006 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
 | G-007 | **DÜZELTİLDİ** | rol sabiti yerine permission modeli |
 | G-008 | **DÜZELTİLDİ** | audit dosya kapsamı somutlaştırıldı |
-| G-009 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
+| G-009 | **DÜZELTİLDİ** | generic dosya kapsamı somutlaştırıldı |
 | G-010 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
 | G-011 | **DÜZELTİLDİ** | izolasyon test dosyaları somutlaştırıldı |
 | G-012 | **OK** | Değişiklik gerektiren çelişki bulunmadı. |
