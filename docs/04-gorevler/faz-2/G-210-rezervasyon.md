@@ -12,7 +12,11 @@ G-202
 
 
 ## Dokunulacak dosyalar
-- `database/migrations/period/`
+- stock_reservations period migration/model
+- ReserveStock/ReleaseReservation/ConsumeReservation Action'ları
+- reservation list Livewire + blade
+- reservation integrity helper
+- `tests/Feature/Stock/ReservationTest.php`
 
 ## Şema / Kod
 ```php
