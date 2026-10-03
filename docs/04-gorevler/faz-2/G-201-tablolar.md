@@ -12,7 +12,11 @@ G-101 (lokasyonlar), G-106 (ürünler)
 
 
 ## Dokunulacak dosyalar
-- `database/migrations/period/`
+- stock_movements/stock_balances/product_costs period migration'ları
+- StockMovement/StockBalance/ProductCost period modelleri
+- immutable StockMovement guard/observer
+- `app/Console/Commands/StockVerifyCommand.php`
+- `tests/Feature/Stock/StockSchemaTest.php`
 
 
 ## Şema / Kod
