@@ -2,11 +2,11 @@
 
 namespace App\Actions\Periods;
 
+use App\Actions\ReferenceData\SeedPeriodReferenceData;
 use App\Models\Company;
 use App\Models\Period;
 use App\Support\Period\PeriodContext;
 use App\Support\Period\PeriodSchemaVersion;
-use App\Actions\ReferenceData\SeedPeriodReferenceData;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;

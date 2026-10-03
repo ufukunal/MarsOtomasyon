@@ -8,14 +8,14 @@ return new class extends Migration
     public function up(): void
     {
         $connection = DB::connection('master');
-        $technicalViews = ['units.view','product_categories.view','brands.view','variant_groups.view'];
+        $technicalViews = ['units.view', 'product_categories.view', 'brands.view', 'variant_groups.view'];
 
         $matrix = [
-            'Muhasebe' => ['contacts.view','contacts.create','contacts.update','products.view','locations.view','price_lists.view', ...$technicalViews],
-            'Satış' => ['contacts.view','contacts.create','contacts.update','products.view','locations.view','price_lists.view', ...$technicalViews],
-            'Satınalma' => ['contacts.view','contacts.create','contacts.update','products.view','locations.view', ...$technicalViews],
-            'Depo' => ['contacts.view','products.view','locations.view','locations.create','locations.update', ...$technicalViews],
-            'Üretim' => ['contacts.view','products.view','locations.view', ...$technicalViews],
+            'Muhasebe' => ['contacts.view', 'contacts.create', 'contacts.update', 'products.view', 'locations.view', 'price_lists.view', ...$technicalViews],
+            'Satış' => ['contacts.view', 'contacts.create', 'contacts.update', 'products.view', 'locations.view', 'price_lists.view', ...$technicalViews],
+            'Satınalma' => ['contacts.view', 'contacts.create', 'contacts.update', 'products.view', 'locations.view', ...$technicalViews],
+            'Depo' => ['contacts.view', 'products.view', 'locations.view', 'locations.create', 'locations.update', ...$technicalViews],
+            'Üretim' => ['contacts.view', 'products.view', 'locations.view', ...$technicalViews],
         ];
 
         foreach ($matrix as $roleName => $permissions) {
@@ -37,15 +37,15 @@ return new class extends Migration
     {
         $connection = DB::connection('master');
         $roleIds = $connection->table('roles')
-            ->whereIn('name', ['Muhasebe','Satış','Satınalma','Depo','Üretim'])
+            ->whereIn('name', ['Muhasebe', 'Satış', 'Satınalma', 'Depo', 'Üretim'])
             ->where('guard_name', 'web')
             ->pluck('id');
 
         $permissionIds = $connection->table('permissions')
             ->whereIn('name', [
-                'contacts.view','contacts.create','contacts.update','products.view',
-                'locations.view','locations.create','locations.update','price_lists.view',
-                'units.view','product_categories.view','brands.view','variant_groups.view',
+                'contacts.view', 'contacts.create', 'contacts.update', 'products.view',
+                'locations.view', 'locations.create', 'locations.update', 'price_lists.view',
+                'units.view', 'product_categories.view', 'brands.view', 'variant_groups.view',
             ])
             ->where('guard_name', 'web')
             ->pluck('id');

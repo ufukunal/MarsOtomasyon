@@ -5,6 +5,7 @@ use App\Actions\Products\SaveSetComponent;
 use App\Actions\Products\SaveVariantValues;
 use App\Livewire\Pages\Products\ProductList;
 use App\Models\Period\Product;
+use App\Models\Period\Unit;
 use App\Models\Period\VariantAttribute;
 use App\Models\Period\VariantGroup;
 use App\Support\Products\SetAvailabilityCalculator;
@@ -16,7 +17,7 @@ it('KDV dahil girilen ürün fiyatını KDV hariç saklar ve barkodla arar', fun
     $admin = $this->createUserWithPeriodAccess($company, $period, 'Yönetici');
     $this->loginToPeriod($admin, $company, $period);
 
-    $unit = \App\Models\Period\Unit::query()->where('code', 'ADET')->firstOrFail();
+    $unit = Unit::query()->where('code', 'ADET')->firstOrFail();
 
     $product = app(SaveProduct::class)->handle([
         'code' => 'VAT-1',

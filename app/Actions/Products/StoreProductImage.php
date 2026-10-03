@@ -2,11 +2,11 @@
 
 namespace App\Actions\Products;
 
-use App\Support\Period\PeriodContext;
-use App\Support\Auth\MutationAuthorizer;
 use App\Actions\Attachments\StoreAttachment;
 use App\Models\Attachment;
 use App\Models\Period\Product;
+use App\Support\Auth\MutationAuthorizer;
+use App\Support\Period\PeriodContext;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Validation\ValidationException;
 

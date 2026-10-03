@@ -2,15 +2,11 @@
 
 namespace App\Jobs;
 
-use App\Actions\Import\ContactRowImporter;
-use App\Actions\Import\OpeningStockRowImporter;
-use App\Actions\Import\PriceListRowImporter;
-use App\Actions\Import\ProductRowImporter;
 use App\Models\Period\CardImportBatch;
-use App\Models\User;
-use App\Support\Auth\MutationAuthorizer;
 use App\Models\Period\CardImportError;
+use App\Models\User;
 use App\Support\Audit\AuditContext;
+use App\Support\Auth\MutationAuthorizer;
 use App\Support\Import\ImportFileReader;
 use App\Support\Import\ImportMapping;
 use App\Support\Import\ImportRowImporterResolver;
@@ -28,8 +24,7 @@ class ProcessCardImport implements ShouldQueue
         public readonly int $companyId,
         public readonly int $periodId,
         public readonly string $batchId,
-    ) {
-    }
+    ) {}
 
     public function handle(ImportFileReader $reader, ImportRowImporterResolver $resolver): void
     {
@@ -142,5 +137,4 @@ class ProcessCardImport implements ShouldQueue
             PeriodContext::clear();
         }
     }
-
 }

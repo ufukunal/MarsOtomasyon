@@ -19,6 +19,7 @@ final class BackupHealthService
 
                 if ($files === []) {
                     $failed[] = $disk;
+
                     continue;
                 }
 

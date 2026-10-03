@@ -2,8 +2,8 @@
 
 namespace App\Actions\Contacts;
 
-use App\Support\Auth\MutationAuthorizer;
 use App\Models\Period\Contact;
+use App\Support\Auth\MutationAuthorizer;
 use App\Support\Period\PeriodContext;
 use Illuminate\Support\Facades\DB;
 

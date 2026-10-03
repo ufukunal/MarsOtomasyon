@@ -10,10 +10,15 @@ use Livewire\Component;
 class CategoryForm extends Component
 {
     public ?ProductCategory $category = null;
+
     public string $name = '';
+
     public ?int $parentId = null;
+
     public int $sortOrder = 0;
+
     public bool $isActive = true;
+
     public int $version = 1;
 
     public function mount(?ProductCategory $category = null): void
@@ -32,22 +37,22 @@ class CategoryForm extends Component
 
     public function save(SaveProductCategory $action): void
     {
-        $this->validate(['name'=>['required','max:255'],'parentId'=>['nullable','integer']]);
+        $this->validate(['name' => ['required', 'max:255'], 'parentId' => ['nullable', 'integer']]);
 
         $this->category = $action->handle([
-            'name'=>$this->name,
-            'parent_id'=>$this->parentId,
-            'sort_order'=>$this->sortOrder,
-            'is_active'=>$this->isActive,
+            'name' => $this->name,
+            'parent_id' => $this->parentId,
+            'sort_order' => $this->sortOrder,
+            'is_active' => $this->isActive,
         ], $this->category, $this->version);
 
-        $this->version=(int)$this->category->version;
+        $this->version = (int) $this->category->version;
     }
 
     public function render(): View
     {
-        return view('livewire.pages.catalog.category-form',[
-            'categories'=>ProductCategory::query()->when($this->category,fn($q)=>$q->whereKeyNot($this->category->id))->orderBy('name')->get(),
-        ])->layout('layouts.app',['pageTitle'=>$this->category?'Kategori Düzenle':'Yeni Kategori']);
+        return view('livewire.pages.catalog.category-form', [
+            'categories' => ProductCategory::query()->when($this->category, fn ($q) => $q->whereKeyNot($this->category->id))->orderBy('name')->get(),
+        ])->layout('layouts.app', ['pageTitle' => $this->category ? 'Kategori Düzenle' : 'Yeni Kategori']);
     }
 }

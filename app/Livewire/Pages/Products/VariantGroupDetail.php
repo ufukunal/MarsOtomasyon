@@ -15,16 +15,23 @@ use Livewire\Component;
 class VariantGroupDetail extends Component
 {
     public ?VariantGroup $group = null;
+
     public string $name = '';
+
     public bool $isActive = true;
+
     public int $version = 1;
 
     public ?int $attributeId = null;
+
     public int $attributeVersion = 1;
+
     public string $newAttribute = '';
 
     public ?int $productId = null;
+
     public array $values = [];
+
     public array $warnings = [];
 
     public function mount(?VariantGroup $group = null): void

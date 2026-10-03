@@ -11,13 +11,19 @@ use Livewire\Component;
 class UnitForm extends Component
 {
     public ?Unit $unit = null;
+
     public string $code = '';
+
     public string $name = '';
+
     public bool $isBase = false;
+
     public bool $isActive = true;
+
     public int $version = 1;
 
     public ?int $toUnitId = null;
+
     public string $factor = '1.000000';
 
     public function mount(?Unit $unit = null): void
@@ -73,7 +79,7 @@ class UnitForm extends Component
     public function render(): View
     {
         return view('livewire.pages.catalog.unit-form', [
-            'units' => Unit::query()->where('is_active', true)->when($this->unit, fn($q)=>$q->whereKeyNot($this->unit->id))->orderBy('name')->get(),
+            'units' => Unit::query()->where('is_active', true)->when($this->unit, fn ($q) => $q->whereKeyNot($this->unit->id))->orderBy('name')->get(),
             'conversions' => $this->unit?->conversionsFrom()->with('toUnit')->get() ?? collect(),
         ])->layout('layouts.app', ['pageTitle' => $this->unit ? "Birim · {$this->code}" : 'Yeni Birim']);
     }

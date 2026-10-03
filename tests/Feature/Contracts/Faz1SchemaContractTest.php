@@ -1,9 +1,9 @@
 <?php
 
-use App\Models\PeriodModel;
 use App\Models\Period\Contact;
 use App\Models\Period\Location;
 use App\Models\Period\Product;
+use App\Models\PeriodModel;
 use App\Support\Period\PeriodContext;
 use Illuminate\Support\Facades\Schema;
 
@@ -39,9 +39,9 @@ it('Faz 1 kart tablolarını period DBde company_id olmadan tutar', function () 
             ->toBeFalse("{$table}.company_id olmamalı");
     }
 
-    expect(new Contact())->toBeInstanceOf(PeriodModel::class)
-        ->and(new Product())->toBeInstanceOf(PeriodModel::class)
-        ->and(new Location())->toBeInstanceOf(PeriodModel::class);
+    expect(new Contact)->toBeInstanceOf(PeriodModel::class)
+        ->and(new Product)->toBeInstanceOf(PeriodModel::class)
+        ->and(new Location)->toBeInstanceOf(PeriodModel::class);
 });
 
 it('Faz 1 period migrationlarında Master companies/users tablolarına cross-DB FK tanımlamaz', function () {

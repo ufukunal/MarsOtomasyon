@@ -66,12 +66,14 @@ class ContactList extends DataTableComponent
     {
         if ($filter instanceof SelectFilter && $filter->key === 'category_id') {
             $query->whereHas('categories', fn (Builder $q) => $q->whereKey((int) $value));
+
             return;
         }
 
         if ($filter instanceof SelectFilter && $filter->key === 'risk_exceeded') {
             if (! Schema::connection('period')->hasTable('contact_transactions')) {
                 $query->whereRaw('1 = 0');
+
                 return;
             }
 
@@ -79,6 +81,7 @@ class ContactList extends DataTableComponent
                 "(SELECT COALESCE(SUM(CASE WHEN direction = 'debit' THEN amount ELSE -amount END), 0)
                   FROM contact_transactions ct WHERE ct.contact_id = contacts.id) > contacts.risk_limit"
             );
+
             return;
         }
 

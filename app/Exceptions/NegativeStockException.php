@@ -2,6 +2,4 @@
 
 namespace App\Exceptions;
 
-class NegativeStockException extends DomainException
-{
-}
+class NegativeStockException extends DomainException {}

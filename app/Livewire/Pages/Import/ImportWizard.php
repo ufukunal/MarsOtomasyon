@@ -18,16 +18,27 @@ class ImportWizard extends Component
     use WithFileUploads;
 
     public int $step = 1;
+
     public string $type = 'contact';
+
     public $file;
+
     public ?string $storedPath = null;
+
     public ?string $originalName = null;
+
     public ?string $fileHash = null;
+
     public array $headers = [];
+
     public array $mapping = [];
+
     public array $preview = [];
+
     public array $previewValidation = [];
+
     public string $errorMode = 'cancel_all';
+
     public ?string $batchId = null;
 
     public function mount(): void

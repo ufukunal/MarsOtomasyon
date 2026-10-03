@@ -25,6 +25,7 @@ final class IntegrityHealthService
 
                 if (! Schema::connection('period')->hasTable('integrity_reports')) {
                     $failedChecks++;
+
                     continue;
                 }
 
@@ -39,6 +40,7 @@ final class IntegrityHealthService
 
                     if (! $latest) {
                         $failedChecks++;
+
                         continue;
                     }
 

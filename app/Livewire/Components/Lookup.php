@@ -16,16 +16,22 @@ class Lookup extends Component
     public string $model;
 
     public string $labelField = 'name';
+
     public string $codeField = 'code';
+
     public ?string $barcodeField = null;
+
     public string $query = '';
 
     #[Modelable]
     public int|string|null $value = null;
 
     public array $results = [];
+
     public array $detailedResults = [];
+
     public int $highlighted = -1;
+
     public bool $detailedOpen = false;
 
     public function mount(): void
@@ -53,6 +59,7 @@ class Lookup extends Component
 
         if ($exact) {
             $this->select($exact->getKey());
+
             return;
         }
 
@@ -63,6 +70,7 @@ class Lookup extends Component
     {
         if ($this->highlighted >= 0 && isset($this->results[$this->highlighted])) {
             $this->select($this->results[$this->highlighted]['id']);
+
             return;
         }
 
@@ -75,6 +83,7 @@ class Lookup extends Component
 
         if ($count === 0) {
             $this->highlighted = -1;
+
             return;
         }
 

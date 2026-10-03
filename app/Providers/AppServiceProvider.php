@@ -9,15 +9,15 @@ use App\Listeners\PrepareBackupSources;
 use App\Models\Attachment;
 use App\Models\Period\Contact;
 use App\Models\Period\Product;
+use App\Observers\AttachmentObserver;
+use App\Policies\ContactPolicy;
 use App\Policies\ProductPolicy;
 use App\Support\Auth\PeriodPermissionContext;
-use App\Policies\ContactPolicy;
-use App\Observers\AttachmentObserver;
 use Illuminate\Auth\Events\Failed;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Events\Logout;
-use Illuminate\Console\Events\CommandStarting;
 use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Console\Events\CommandStarting;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -25,8 +25,8 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
-use Illuminate\Support\Str;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Str;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -55,17 +55,13 @@ class AppServiceProvider extends ServiceProvider
             );
         });
 
-        RateLimiter::for('password-reset', fn (Request $request): Limit =>
-            Limit::perHour(3)->by($request->ip()));
+        RateLimiter::for('password-reset', fn (Request $request): Limit => Limit::perHour(3)->by($request->ip()));
 
-        RateLimiter::for('upload', fn (Request $request): Limit =>
-            Limit::perMinute(30)->by((string) ($request->user()?->getAuthIdentifier() ?? $request->ip())));
+        RateLimiter::for('upload', fn (Request $request): Limit => Limit::perMinute(30)->by((string) ($request->user()?->getAuthIdentifier() ?? $request->ip())));
 
-        RateLimiter::for('report', fn (Request $request): Limit =>
-            Limit::perMinute(10)->by((string) ($request->user()?->getAuthIdentifier() ?? $request->ip())));
+        RateLimiter::for('report', fn (Request $request): Limit => Limit::perMinute(10)->by((string) ($request->user()?->getAuthIdentifier() ?? $request->ip())));
 
-        RateLimiter::for('webhook', fn (Request $request): Limit =>
-            Limit::perMinute(120)->by($request->ip()));
+        RateLimiter::for('webhook', fn (Request $request): Limit => Limit::perMinute(120)->by($request->ip()));
         Gate::before(function ($user, string $ability): ?bool {
             return PeriodPermissionContext::decision($ability);
         });

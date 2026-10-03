@@ -1,5 +1,6 @@
 <?php
 
+use App\Jobs\QueueHeartbeatJob;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
 
@@ -12,5 +13,5 @@ Schedule::command('backup:run')->daily()->at('01:30');
 Schedule::command('backup:monitor')->daily()->at('02:00');
 Schedule::command('integrity:all')->dailyAt('03:00');
 Schedule::command('idempotency:prune')->dailyAt('03:30');
-Schedule::job(new \App\Jobs\QueueHeartbeatJob)->everyMinute();
+Schedule::job(new QueueHeartbeatJob)->everyMinute();
 Schedule::command('operations:monitor')->everyTenMinutes();

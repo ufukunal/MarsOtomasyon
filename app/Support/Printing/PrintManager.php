@@ -10,7 +10,7 @@ final class PrintManager
 {
     public static function send(PrintType $type, array $payload): PrintResult
     {
-        $profile = static::resolveProfile($type);
+        $profile = self::resolveProfile($type);
 
         /** @var PrintDriver $driver */
         $driver = app(config('printing.driver_class'));

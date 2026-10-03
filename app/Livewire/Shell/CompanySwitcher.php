@@ -2,7 +2,6 @@
 
 namespace App\Livewire\Shell;
 
-use App\Models\Company;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;

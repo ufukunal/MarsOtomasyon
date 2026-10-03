@@ -16,7 +16,7 @@ class ImportErrorReportController extends Controller
         $batch = CardImportBatch::query()->with('errors')->findOrFail($batchId);
 
         return response()->streamDownload(function () use ($batch): void {
-            $spreadsheet = new Spreadsheet();
+            $spreadsheet = new Spreadsheet;
             $sheet = $spreadsheet->getActiveSheet();
 
             $sheet->fromArray(

@@ -30,7 +30,7 @@ final class ContactRowImporter
     public function import(array $row): Contact
     {
         if (! empty($row['code'])) {
-            $contact = new Contact();
+            $contact = new Contact;
             $contact->forceFill([
                 'code' => strtoupper(trim((string) $row['code'])),
                 'title' => trim((string) $row['title']),

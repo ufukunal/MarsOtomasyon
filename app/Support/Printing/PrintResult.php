@@ -8,6 +8,5 @@ final readonly class PrintResult
         public string $content,
         public string $mimeType,
         public string $filename,
-    ) {
-    }
+    ) {}
 }

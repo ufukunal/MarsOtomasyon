@@ -10,13 +10,21 @@ use Livewire\Component;
 class LocationForm extends Component
 {
     public ?Location $location = null;
+
     public string $code = '';
+
     public string $name = '';
+
     public string $kind = 'warehouse';
+
     public string $plate = '';
+
     public string $address = '';
+
     public bool $isDefault = false;
+
     public bool $isActive = true;
+
     public int $version = 1;
 
     public function mount(?Location $location = null): void

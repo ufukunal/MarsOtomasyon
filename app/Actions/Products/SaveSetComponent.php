@@ -2,11 +2,11 @@
 
 namespace App\Actions\Products;
 
-use App\Support\Period\PeriodContext;
-use App\Support\Auth\MutationAuthorizer;
 use App\Enums\ProductKind;
 use App\Models\Period\Product;
 use App\Models\Period\ProductSet;
+use App\Support\Auth\MutationAuthorizer;
+use App\Support\Period\PeriodContext;
 use Illuminate\Validation\ValidationException;
 
 final class SaveSetComponent

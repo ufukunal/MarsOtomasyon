@@ -17,13 +17,21 @@ use Livewire\Component;
 class CrossCompanyCopy extends Component
 {
     public ?int $sourceCompanyId = null;
+
     public string $type = 'contact';
+
     public array $selected = [];
+
     public array $sourceRows = [];
+
     public array $conflicts = [];
+
     public array $choices = [];
+
     public array $warnings = [];
+
     public array $result = [];
+
     public array $sourceChanges = [];
 
     public function mount(): void
@@ -42,6 +50,7 @@ class CrossCompanyCopy extends Component
 
         if (! $this->sourceCompanyId) {
             $this->sourceRows = [];
+
             return;
         }
 
@@ -60,8 +69,8 @@ class CrossCompanyCopy extends Component
 
         try {
             $rows = $type === CompanyCopyPermissionType::Contact
-                ? Contact::on('period_source')->orderBy('code')->limit(500)->get(['id','code','title'])
-                : Product::on('period_source')->orderBy('code')->limit(500)->get(['id','code','name']);
+                ? Contact::on('period_source')->orderBy('code')->limit(500)->get(['id', 'code', 'title'])
+                : Product::on('period_source')->orderBy('code')->limit(500)->get(['id', 'code', 'name']);
 
             $this->sourceRows = $rows->map(fn ($row) => [
                 'id' => (int) $row->id,

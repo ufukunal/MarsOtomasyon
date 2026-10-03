@@ -2,6 +2,4 @@
 
 namespace App\Exceptions;
 
-class PeriodReadOnlyException extends DomainException
-{
-}
+class PeriodReadOnlyException extends DomainException {}

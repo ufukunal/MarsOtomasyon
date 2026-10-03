@@ -19,24 +19,37 @@ class CompanyWizard extends Component
     public int $step = 1;
 
     public string $code = '';
+
     public string $name = '';
+
     public string $legalName = '';
+
     public string $dbPrefix = '';
+
     public string $taxOffice = '';
+
     public string $taxNumber = '';
+
     public string $address = '';
+
     public string $baseCurrency = 'TRY';
 
     public int $year;
+
     public int $defaultTermDays = 30;
+
     public string $costDeviationThreshold = '25.0000';
+
     public string $defaultVatRate = '20';
 
     public string $warehouseCode = 'MERKEZ';
+
     public string $warehouseName = 'Merkez Depo';
 
     public string $adminName = '';
+
     public string $adminEmail = '';
+
     public string $adminPassword = '';
 
     public function mount(): void

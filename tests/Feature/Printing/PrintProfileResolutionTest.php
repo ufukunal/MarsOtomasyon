@@ -2,7 +2,6 @@
 
 use App\Enums\PrintType;
 use App\Models\PrintProfile;
-use App\Support\Period\PeriodContext;
 use App\Support\Printing\PrintManager;
 
 it('user+machine sonra user sonra şirket varsayılanı sırasıyla çözülür', function () {

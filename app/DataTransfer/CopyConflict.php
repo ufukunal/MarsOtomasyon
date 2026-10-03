@@ -10,8 +10,7 @@ final readonly class CopyConflict
         public string $sourceLabel,
         public int $existingTargetId,
         public string $existingTargetLabel,
-    ) {
-    }
+    ) {}
 
     public function toArray(): array
     {

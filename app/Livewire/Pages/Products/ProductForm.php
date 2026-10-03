@@ -19,35 +19,61 @@ use Livewire\Component;
 class ProductForm extends Component
 {
     public ?Product $product = null;
+
     public string $code = '';
+
     public string $name = '';
+
     public string $description = '';
+
     public ?int $categoryId = null;
+
     public ?int $brandId = null;
+
     public ?int $unitId = null;
+
     public string $barcode = '';
+
     public string $vatRate = '20.0000';
+
     public string $listPrice = '0.0000';
+
     public bool $priceVatIncluded = false;
+
     public string $currency = 'TRY';
+
     public string $kind = 'normal';
+
     public ?int $variantGroupId = null;
+
     public bool $allowNegativeStock = false;
+
     public string $minStock = '0.000';
+
     public string $channelStockMode = 'stock';
+
     public bool $isActive = true;
+
     public int $version = 1;
+
     public string $activeTab = 'general';
 
     public ?int $componentLineId = null;
+
     public int $componentVersion = 1;
+
     public ?int $componentProductId = null;
+
     public string $componentQuantity = '1.000';
 
     public ?int $configDefinitionId = null;
+
     public int $configDefinitionVersion = 1;
+
     public string $configName = '';
+
     public bool $configRequired = false;
+
     public array $configOptions = [];
 
     public function mount(?Product $product = null): void
@@ -57,6 +83,7 @@ class ProductForm extends Component
 
         if (! $product) {
             $this->unitId = Unit::query()->where('code', 'ADET')->value('id');
+
             return;
         }
 

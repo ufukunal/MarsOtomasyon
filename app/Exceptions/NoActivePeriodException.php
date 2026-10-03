@@ -2,6 +2,4 @@
 
 namespace App\Exceptions;
 
-class NoActivePeriodException extends DomainException
-{
-}
+class NoActivePeriodException extends DomainException {}

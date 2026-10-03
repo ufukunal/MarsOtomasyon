@@ -11,6 +11,7 @@ class CardImportBatch extends PeriodModel
     use HasUuids;
 
     public $incrementing = false;
+
     protected $keyType = 'string';
 
     protected $fillable = [

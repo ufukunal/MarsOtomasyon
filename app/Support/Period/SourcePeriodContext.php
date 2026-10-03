@@ -9,6 +9,7 @@ use RuntimeException;
 final class SourcePeriodContext
 {
     private static ?int $sourceCompanyId = null;
+
     private static ?int $sourcePeriodId = null;
 
     public static function use(int $sourceCompanyId): Period

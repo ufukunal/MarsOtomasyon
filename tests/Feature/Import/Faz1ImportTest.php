@@ -33,7 +33,7 @@ it('1000 satırlık ürün CSV importunu eksiksiz tamamlar', function () {
     $admin = $this->createUserWithPeriodAccess($company, $period, 'Yönetici');
     $this->loginToPeriod($admin, $company, $period);
 
-    $rows = ["code;name;unit_code"];
+    $rows = ['code;name;unit_code'];
 
     for ($i = 1; $i <= 1000; $i++) {
         $rows[] = sprintf('IMP-%04d;Ürün %04d;ADET', $i, $i);

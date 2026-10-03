@@ -58,6 +58,7 @@ class NumberSeriesCheck implements IntegrityCheck
                         'number' => $number,
                         'reason' => 'format_mismatch',
                     ];
+
                     continue;
                 }
 

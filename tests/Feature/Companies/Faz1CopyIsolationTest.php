@@ -4,7 +4,6 @@ use App\Actions\Companies\CopyRecordsBetweenCompanies;
 use App\Enums\CompanyCopyPermissionType;
 use App\Models\CompanyCopyPermission;
 use App\Models\Period\Contact;
-use App\Models\Period\Product;
 use App\Support\Period\PeriodContext;
 use Illuminate\Validation\ValidationException;
 

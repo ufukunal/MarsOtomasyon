@@ -2,6 +2,4 @@
 
 namespace App\Exceptions;
 
-class PeriodYearMismatchException extends DomainException
-{
-}
+class PeriodYearMismatchException extends DomainException {}

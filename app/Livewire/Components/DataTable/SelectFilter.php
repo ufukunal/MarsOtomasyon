@@ -8,8 +8,7 @@ final readonly class SelectFilter
         public string $key,
         public string $label,
         public array $options,
-    ) {
-    }
+    ) {}
 
     public static function make(string $key, string $label): self
     {

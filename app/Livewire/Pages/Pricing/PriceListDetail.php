@@ -13,19 +13,31 @@ use Livewire\Component;
 class PriceListDetail extends Component
 {
     public ?PriceList $list = null;
+
     public string $name = '';
+
     public string $currency = 'TRY';
+
     public bool $vatIncluded = false;
+
     public bool $isDefault = false;
+
     public bool $isActive = true;
+
     public int $version = 1;
 
     public ?int $productId = null;
+
     public string $price = '0.0000';
+
     public ?string $validFrom = null;
+
     public ?string $validTo = null;
+
     public string $bulkPercent = '0';
+
     public ?int $itemId = null;
+
     public int $itemVersion = 1;
 
     public function mount(?PriceList $list = null): void

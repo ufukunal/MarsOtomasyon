@@ -2,9 +2,9 @@
 
 namespace App\Actions\Catalog;
 
-use App\Support\Period\PeriodContext;
-use App\Support\Auth\MutationAuthorizer;
 use App\Models\Period\ProductCategory;
+use App\Support\Auth\MutationAuthorizer;
+use App\Support\Period\PeriodContext;
 use Illuminate\Validation\ValidationException;
 
 final class SaveProductCategory

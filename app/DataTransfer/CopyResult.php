@@ -10,8 +10,7 @@ final readonly class CopyResult
         public array $conflicts = [],
         public array $warnings = [],
         public array $cancelled = [],
-    ) {
-    }
+    ) {}
 
     public function toArray(): array
     {

@@ -19,7 +19,7 @@ trait HasOptimisticLock
      * saving/updating/updated/saved listener'ları ve audit/search türevleri
      * doğal biçimde korunur.
      *
-     * @param array<string, mixed> $attributes
+     * @param  array<string, mixed>  $attributes
      */
     public function updateWithVersion(array $attributes, int $expectedVersion): static
     {
@@ -47,7 +47,7 @@ trait HasOptimisticLock
     }
 
     /**
-     * @param array<string, mixed> $attributes
+     * @param  array<string, mixed>  $attributes
      */
     private function staleException(Model $current, array $attributes, int $expectedVersion): StaleRecordException
     {

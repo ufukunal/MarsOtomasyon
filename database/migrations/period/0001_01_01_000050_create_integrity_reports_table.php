@@ -27,7 +27,7 @@ return new class extends Migration
         );
 
         DB::connection('period')->statement(
-            "ALTER TABLE posting_periods ADD CONSTRAINT posting_periods_month_valid CHECK (month BETWEEN 1 AND 12)"
+            'ALTER TABLE posting_periods ADD CONSTRAINT posting_periods_month_valid CHECK (month BETWEEN 1 AND 12)'
         );
 
         DB::connection('period')->statement(

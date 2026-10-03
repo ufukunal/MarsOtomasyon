@@ -35,6 +35,7 @@ class SensitiveDataProcessor
 
             if (in_array($normalizedKey, self::SENSITIVE_KEYS, true)) {
                 $data[$key] = $this->mask($normalizedKey, $value);
+
                 continue;
             }
 

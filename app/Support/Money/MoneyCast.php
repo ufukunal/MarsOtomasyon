@@ -13,8 +13,7 @@ class MoneyCast implements CastsAttributes
 {
     public function __construct(
         private readonly ?string $currencyAttribute = 'currency',
-    ) {
-    }
+    ) {}
 
     public function get(
         Model $model,

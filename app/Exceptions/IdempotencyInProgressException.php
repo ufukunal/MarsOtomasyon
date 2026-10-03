@@ -2,6 +2,4 @@
 
 namespace App\Exceptions;
 
-class IdempotencyInProgressException extends DomainException
-{
-}
+class IdempotencyInProgressException extends DomainException {}

@@ -2,6 +2,7 @@
 
 namespace Tests\Support;
 
+use App\Actions\ReferenceData\SeedPeriodReferenceData;
 use App\Models\Company;
 use App\Models\Period;
 use App\Models\User;
@@ -10,7 +11,6 @@ use App\Support\Company\CompanyContext;
 use App\Support\Period\PeriodContext;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
 use RuntimeException;
 
 trait CreatesPeriodDatabases
@@ -60,7 +60,7 @@ trait CreatesPeriodDatabases
             throw new RuntimeException("Period migration başarısız: {$database}");
         }
 
-        app(\App\Actions\ReferenceData\SeedPeriodReferenceData::class)->handle();
+        app(SeedPeriodReferenceData::class)->handle();
 
         return [$company, $period];
     }

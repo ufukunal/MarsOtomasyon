@@ -13,8 +13,7 @@ final class ValidateDocumentDate
 {
     public function __construct(
         private readonly EnsurePeriodOpen $ensurePeriodOpen,
-    ) {
-    }
+    ) {}
 
     public function handle(CarbonInterface $documentDate): DocumentDateValidationResult
     {

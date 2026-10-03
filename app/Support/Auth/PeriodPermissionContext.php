@@ -15,6 +15,7 @@ final class PeriodPermissionContext
     ];
 
     private static array $allow = [];
+
     private static array $deny = [];
 
     public static function use(array $overrides): void

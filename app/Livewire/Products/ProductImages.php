@@ -16,7 +16,9 @@ class ProductImages extends Component
     use WithFileUploads;
 
     public Product $product;
+
     public string $collection = 'Ortak';
+
     public $image;
 
     public function upload(StoreProductImage $action): void

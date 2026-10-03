@@ -43,6 +43,7 @@ final class ImportFileReader
                         fn ($value): string => trim((string) $value),
                         $data,
                     );
+
                     continue;
                 }
 

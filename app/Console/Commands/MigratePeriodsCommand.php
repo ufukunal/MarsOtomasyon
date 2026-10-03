@@ -48,6 +48,7 @@ class MigratePeriodsCommand extends Command
 
                     if ($this->option('status')) {
                         $this->renderStatus($period, $schemaVersion);
+
                         continue;
                     }
 
@@ -75,6 +76,7 @@ class MigratePeriodsCommand extends Command
 
                     if ($this->option('pretend')) {
                         $this->comment('Pretend: schema_version değiştirilmedi.');
+
                         continue;
                     }
 

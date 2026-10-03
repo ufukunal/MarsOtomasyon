@@ -2,6 +2,4 @@
 
 namespace App\Exceptions;
 
-class PeriodClosedException extends DomainException
-{
-}
+class PeriodClosedException extends DomainException {}

@@ -2,10 +2,11 @@
 
 namespace App\Actions\Pricing;
 
-use App\Support\Period\PeriodContext;
-use App\Support\Auth\MutationAuthorizer;
 use App\Models\Period\PriceList;
+use App\Support\Auth\MutationAuthorizer;
+use App\Support\Period\PeriodContext;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 final class SavePriceList
 {
@@ -16,19 +17,20 @@ final class SavePriceList
     ): PriceList {
         MutationAuthorizer::authorize($list ? 'price_lists.update' : 'price_lists.create');
         PeriodContext::ensureWritable();
+
         return DB::connection('period')->transaction(function () use ($data, $list, $expectedVersion): PriceList {
             $isFirst = ! PriceList::query()->exists();
             $isDefault = $isFirst ? true : (bool) ($data['is_default'] ?? false);
             $isActive = (bool) ($data['is_active'] ?? true);
 
             if ($list?->is_default && (! $isDefault || ! $isActive)) {
-                throw \Illuminate\Validation\ValidationException::withMessages([
+                throw ValidationException::withMessages([
                     'is_default' => 'Varsayılan fiyat listesini doğrudan kaldıramazsınız. Önce başka listeyi varsayılan yapın.',
                 ]);
             }
 
             if ($isDefault && ! $isActive) {
-                throw \Illuminate\Validation\ValidationException::withMessages([
+                throw ValidationException::withMessages([
                     'is_active' => 'Varsayılan fiyat listesi aktif olmalıdır.',
                 ]);
             }

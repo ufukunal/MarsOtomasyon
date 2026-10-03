@@ -10,8 +10,11 @@ use Livewire\Component;
 class BrandForm extends Component
 {
     public ?Brand $brand = null;
+
     public string $name = '';
+
     public bool $isActive = true;
+
     public int $version = 1;
 
     public function mount(?Brand $brand = null): void

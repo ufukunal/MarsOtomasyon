@@ -2,6 +2,4 @@
 
 namespace App\Exceptions;
 
-class StaleRecordException extends DomainException
-{
-}
+class StaleRecordException extends DomainException {}

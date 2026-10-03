@@ -1,11 +1,11 @@
 <?php
 
 use App\Actions\Contacts\SaveContact;
+use App\Livewire\Pages\Contacts\ContactList;
 use App\Models\Period\Contact;
 use App\Support\Period\PeriodContext;
 use Illuminate\Auth\Access\AuthorizationException;
 use Livewire\Livewire;
-use App\Livewire\Pages\Contacts\ContactList;
 
 it('cari kodunu otomatik benzersiz üretir ve değiştirilmesini engeller', function () {
     [$company, $period] = $this->createCompanyWithPeriod('CONTACT');

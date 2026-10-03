@@ -2,6 +2,4 @@
 
 namespace App\Exceptions;
 
-class DomainException extends \DomainException
-{
-}
+class DomainException extends \DomainException {}

@@ -2,8 +2,8 @@
 
 namespace App\Actions\Products;
 
-use App\Support\Auth\MutationAuthorizer;
 use App\Models\Period\Product;
+use App\Support\Auth\MutationAuthorizer;
 use App\Support\Period\PeriodContext;
 use Illuminate\Validation\ValidationException;
 

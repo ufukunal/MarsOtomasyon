@@ -2,9 +2,9 @@
 
 namespace App\Actions\Locations;
 
-use App\Support\Auth\MutationAuthorizer;
 use App\Enums\LocationKind;
 use App\Models\Period\Location;
+use App\Support\Auth\MutationAuthorizer;
 use App\Support\Period\PeriodContext;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;

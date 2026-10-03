@@ -1,7 +1,6 @@
 <?php
 
 use App\Support\Auth\PeriodPermissionContext;
-use App\Support\Company\CompanyContext;
 use App\Support\Period\PeriodContext;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;

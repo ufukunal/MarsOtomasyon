@@ -2,7 +2,6 @@
 
 namespace App\Livewire\Components;
 
-use App\Models\Period;
 use App\Support\Audit\AuditContext;
 use App\Support\Period\PeriodContext;
 use Illuminate\Contracts\View\View;

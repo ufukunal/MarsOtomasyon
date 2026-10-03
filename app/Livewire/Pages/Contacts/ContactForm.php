@@ -22,47 +22,83 @@ use Livewire\Component;
 class ContactForm extends Component
 {
     public ?Contact $contact = null;
+
     public string $code = '';
+
     public string $title = '';
+
     public string $type = 'legal';
+
     public string $taxOffice = '';
+
     public string $taxNumber = '';
+
     public string $nationalId = '';
+
     public string $address = '';
+
     public string $city = '';
+
     public string $district = '';
+
     public string $phone = '';
+
     public string $email = '';
+
     public ?int $termDays = null;
+
     public string $riskLimit = '0.0000';
+
     public string $discountRate = '0.0000';
+
     public ?int $priceListId = null;
+
     public array $categoryIds = [];
+
     public bool $isActive = true;
+
     public int $version = 1;
+
     public string $activeTab = 'general';
 
     public ?int $addressId = null;
+
     public string $addressType = 'invoice';
+
     public string $addressTitle = '';
+
     public string $addressLine = '';
+
     public string $addressCity = '';
+
     public string $addressDistrict = '';
+
     public bool $addressDefault = false;
+
     public int $addressVersion = 1;
 
     public ?int $personId = null;
+
     public string $personName = '';
+
     public string $personTitle = '';
+
     public string $personPhone = '';
+
     public string $personEmail = '';
+
     public bool $personDefault = false;
+
     public int $personVersion = 1;
 
     public ?int $bankId = null;
+
     public string $bankName = '';
+
     public string $iban = '';
+
     public bool $bankDefault = false;
+
     public int $bankVersion = 1;
 
     public function mount(?Contact $contact = null): void

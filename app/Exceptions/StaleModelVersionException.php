@@ -2,6 +2,4 @@
 
 namespace App\Exceptions;
 
-class StaleModelVersionException extends StaleRecordException
-{
-}
+class StaleModelVersionException extends StaleRecordException {}

@@ -2,7 +2,6 @@
 
 namespace App\Actions\Companies;
 
-use App\Support\Auth\MutationAuthorizer;
 use App\DataTransfer\CopyConflict;
 use App\DataTransfer\CopyConflictChoice;
 use App\DataTransfer\CopyResult;
@@ -14,6 +13,7 @@ use App\Models\Period\Product;
 use App\Models\Period\ProductCategory;
 use App\Models\Period\Unit;
 use App\Support\Audit\AuditContext;
+use App\Support\Auth\MutationAuthorizer;
 use App\Support\Period\PeriodContext;
 use App\Support\Period\SourcePeriodContext;
 use Illuminate\Support\Facades\DB;
@@ -176,7 +176,7 @@ final class CopyRecordsBetweenCompanies
 
     private function copyContact(Contact $source, int $sourceCompanyId, string $code): Contact
     {
-        $target = new Contact();
+        $target = new Contact;
 
         $target->forceFill([
             'code' => $code,

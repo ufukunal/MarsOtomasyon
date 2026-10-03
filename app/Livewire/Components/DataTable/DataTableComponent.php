@@ -32,8 +32,11 @@ abstract class DataTableComponent extends Component
     public string $direction = 'asc';
 
     public int $perPage = 25;
+
     public array $filterValues = [];
+
     public array $selected = [];
+
     public array $hiddenColumns = [];
 
     abstract public function columns(): array;
@@ -118,6 +121,7 @@ abstract class DataTableComponent extends Component
     {
         if ($filter instanceof SelectFilter) {
             $query->where($filter->key, $value);
+
             return;
         }
 
@@ -250,7 +254,7 @@ abstract class DataTableComponent extends Component
         $filename = class_basename($this->model).'-'.now()->format('Ymd-His').'.xlsx';
 
         return response()->streamDownload(function () use ($columns): void {
-            $spreadsheet = new Spreadsheet();
+            $spreadsheet = new Spreadsheet;
             $sheet = $spreadsheet->getActiveSheet();
             $sheet->fromArray($columns->pluck('label')->all(), null, 'A1');
             $line = 2;
