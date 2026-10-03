@@ -3,10 +3,12 @@
 namespace App\Models;
 
 use App\Support\Concurrency\HasOptimisticLock;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Period extends MasterModel
 {
+    use HasFactory;
     use HasOptimisticLock;
 
     protected $fillable = [
