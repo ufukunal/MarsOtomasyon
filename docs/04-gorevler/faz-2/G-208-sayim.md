@@ -13,7 +13,11 @@ G-202
 
 
 ## Dokunulacak dosyalar
-- `database/migrations/period/`
+- stock_counts/stock_count_lines period migration'ları
+- StockCount/Line period modelleri
+- sayım list/detail Livewire + blade
+- StartStockCount/PostStockCount Action'ları
+- `tests/Feature/Stock/StockCountTest.php`
 
 ## Şema / Kod
 ```php
