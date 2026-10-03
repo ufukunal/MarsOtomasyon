@@ -53,10 +53,6 @@ final class StoreAttachment
                 'uploaded_by_name' => $actor?->name,
             ]);
 
-            if (! $attachment instanceof Attachment) {
-                throw new RuntimeException('Ek kaydı beklenen model tipinde oluşturulamadı.');
-            }
-
             return $attachment;
         } catch (\Throwable $exception) {
             Storage::disk($disk)->delete($stored);

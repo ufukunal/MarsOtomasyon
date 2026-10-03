@@ -50,6 +50,7 @@ class HealthController extends Controller
         }
     }
 
+    /** @return array<string, bool|string> */
     private function valkey(): array
     {
         try {
@@ -61,6 +62,7 @@ class HealthController extends Controller
         }
     }
 
+    /** @return array<string, bool|string> */
     private function queueWorker(): array
     {
         try {
@@ -83,6 +85,7 @@ class HealthController extends Controller
         }
     }
 
+    /** @return array<string, bool|string> */
     private function failedJobs(): array
     {
         try {

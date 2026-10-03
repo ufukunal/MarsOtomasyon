@@ -61,6 +61,7 @@ final class ImportFileReader
         }
     }
 
+    /** @return list<array<string, mixed>> */
     private function json(string $path): array
     {
         try {
@@ -80,6 +81,7 @@ final class ImportFileReader
         return array_values(array_filter($decoded, 'is_array'));
     }
 
+    /** @return list<array<string, mixed>> */
     private function xlsx(string $path): array
     {
         $spreadsheet = IOFactory::load($path);

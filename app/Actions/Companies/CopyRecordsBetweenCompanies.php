@@ -64,6 +64,7 @@ final class CopyRecordsBetweenCompanies
             $copied = [];
             $existing = [];
             $conflicts = [];
+            /** @var list<string> $warnings */
             $warnings = [];
             $cancelled = [];
 
@@ -263,6 +264,7 @@ final class CopyRecordsBetweenCompanies
         ]);
     }
 
+    /** @param list<string> $warnings */
     private function mapCategory(?int $sourceCategoryId, array &$warnings, string $productCode): ?int
     {
         if (! $sourceCategoryId) {

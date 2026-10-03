@@ -29,6 +29,7 @@ final class PriceListRowImporter
         return new RowValidationResult($errors === [], $errors);
     }
 
+    /** @param array<string, mixed> $row */
     public function import(array $row): void
     {
         $list = PriceList::query()->where('name', trim((string) $row['list_name']))->firstOrFail();

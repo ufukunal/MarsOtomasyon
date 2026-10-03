@@ -37,6 +37,7 @@ final class OpeningStockRowImporter
         return new RowValidationResult($errors === [], $errors);
     }
 
+    /** @param array<string, mixed> $row */
     public function import(array $row): void
     {
         if (! class_exists('App\\Actions\\Stock\\RecordStockMovement')) {

@@ -34,6 +34,7 @@ final class ProductRowImporter
         return new RowValidationResult($errors === [], $errors);
     }
 
+    /** @param array<string, mixed> $row */
     public function import(array $row): Product
     {
         $unitId = Unit::query()

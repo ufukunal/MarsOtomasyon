@@ -31,6 +31,7 @@ final class AuditContext
         ));
     }
 
+    /** @param array<string, mixed> $properties */
     public static function period(
         string $description,
         array $properties = [],
@@ -59,6 +60,7 @@ final class AuditContext
         }
     }
 
+    /** @param array<string, mixed> $properties */
     private static function write(
         string $description,
         array $properties,

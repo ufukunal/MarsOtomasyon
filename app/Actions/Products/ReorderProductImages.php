@@ -29,7 +29,7 @@ final class ReorderProductImages
         }
 
         DB::connection('period')->transaction(function () use ($attachmentIds): void {
-            foreach (array_values($attachmentIds) as $index => $id) {
+            foreach ($attachmentIds as $index => $id) {
                 DB::connection('period')->table('attachments')
                     ->where('id', (int) $id)
                     ->update(['sort_order' => $index]);

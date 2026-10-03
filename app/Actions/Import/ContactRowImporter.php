@@ -28,6 +28,7 @@ final class ContactRowImporter
         return new RowValidationResult($errors === [], $errors);
     }
 
+    /** @param array<string, mixed> $row */
     public function import(array $row): Contact
     {
         if (! empty($row['code'])) {
