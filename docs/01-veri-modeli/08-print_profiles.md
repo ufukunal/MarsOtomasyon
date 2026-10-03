@@ -50,6 +50,6 @@ Schema::connection('master')->create('print_profiles', function (Blueprint $tabl
 
 ## Faz 10 template ilişkisi
 
-K-214/K-215 gereği `template_id` Master `document_templates` kaydını işaret eder. Aynı company kapsamındadır.
+K-214/K-215 gereği `template_id` Master `document_templates` kaydını işaret eder. Aynı company kapsamındadır. Faz 10 migration'ı `document_templates` oluşturulduktan sonra `print_profiles.template_id -> document_templates.id` gerçek FK'sini ekler; mevcut Faz 0 migration sırası geriye dönük bozulmaz.
 
 Profile üzerindeki template seçimi, ilgili print type varsayılan template'ini override edebilir. Final render sırasında kullanılan template revision print job provenance'ında ayrıca snapshot edilir; profile kaydı geçmiş çıktının tek kanıtı değildir.
