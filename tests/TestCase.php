@@ -8,10 +8,12 @@ use Illuminate\Support\Facades\DB;
 use PDO;
 use RuntimeException;
 use Spatie\Permission\PermissionRegistrar;
+use Tests\Support\CreatesCatalogFixtures;
 use Tests\Support\CreatesPeriodDatabases;
 
 abstract class TestCase extends BaseTestCase
 {
+    use CreatesCatalogFixtures;
     use CreatesPeriodDatabases;
 
     protected function setUp(): void
