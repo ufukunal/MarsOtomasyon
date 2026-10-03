@@ -17,7 +17,10 @@ use LogicException;
 use Spatie\Activitylog\Models\Concerns\LogsActivity;
 use Spatie\Activitylog\Support\LogOptions;
 
-/** @property ContactType $type */
+/**
+ * @implements SearchIndexed<Contact>
+ * @property ContactType $type
+ */
 class Contact extends PeriodModel implements HasAttachmentsContract, SearchIndexed
 {
     use HasAttachments;

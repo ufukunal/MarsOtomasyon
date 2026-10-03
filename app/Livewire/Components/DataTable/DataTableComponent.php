@@ -17,11 +17,14 @@ use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
+/**
+ * @template TModel of Model
+ */
 abstract class DataTableComponent extends Component
 {
     use WithPagination;
 
-    /** @var class-string<Model> */
+    /** @var class-string<TModel> */
     public string $model;
 
     #[Url]
@@ -79,13 +82,13 @@ abstract class DataTableComponent extends Component
         return null;
     }
 
-    /** @return Builder<Model> */
+    /** @return Builder<TModel> */
     protected function baseQuery(): Builder
     {
         return ($this->model)::query();
     }
 
-    /** @return Builder<Model> */
+    /** @return Builder<TModel> */
     protected function query(): Builder
     {
         $query = $this->baseQuery();
@@ -99,6 +102,7 @@ abstract class DataTableComponent extends Component
                 $model = $query->getModel();
 
                 if ($model instanceof SearchIndexed) {
+                    /** @var SearchIndexed<TModel> $model */
                     $model->scopeSearch($query, $this->search);
                 } else {
                     $query->where(function (Builder $builder) use ($searchable): void {
@@ -131,7 +135,7 @@ abstract class DataTableComponent extends Component
         return $query;
     }
 
-    /** @param Builder<Model> $query */
+    /** @param Builder<TModel> $query */
     protected function applyFilter(Builder $query, mixed $filter, mixed $value): void
     {
         if ($filter instanceof SelectFilter) {
@@ -151,7 +155,7 @@ abstract class DataTableComponent extends Component
         }
     }
 
-    /** @return LengthAwarePaginator<int, Model> */
+    /** @return LengthAwarePaginator<int, TModel> */
     public function rows(): LengthAwarePaginator
     {
         return $this->query()->paginate($this->perPage);

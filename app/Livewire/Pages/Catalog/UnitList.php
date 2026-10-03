@@ -6,6 +6,7 @@ use App\Livewire\Components\DataTable\Column;
 use App\Livewire\Components\DataTable\DataTableComponent;
 use App\Models\Period\Unit;
 
+/** @extends DataTableComponent<Unit> */
 class UnitList extends DataTableComponent
 {
     public string $model = Unit::class;

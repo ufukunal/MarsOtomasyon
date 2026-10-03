@@ -7,6 +7,7 @@ use App\Livewire\Components\DataTable\DataTableComponent;
 use App\Models\Period\PriceList;
 use Illuminate\Database\Eloquent\Builder;
 
+/** @extends DataTableComponent<PriceList> */
 class PriceListList extends DataTableComponent
 {
     public string $model = PriceList::class;

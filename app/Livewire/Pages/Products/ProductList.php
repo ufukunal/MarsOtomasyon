@@ -11,6 +11,7 @@ use App\Models\Period\Product;
 use App\Models\Period\ProductCategory;
 use Illuminate\Database\Eloquent\Builder;
 
+/** @extends DataTableComponent<Product> */
 class ProductList extends DataTableComponent
 {
     public string $model = Product::class;

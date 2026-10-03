@@ -8,7 +8,10 @@ use App\Models\PeriodModel;
 use App\Support\Concurrency\HasOptimisticLock;
 use App\Support\Search\HasSearchIndex;
 
-/** @property LocationKind $kind */
+/**
+ * @implements SearchIndexed<Location>
+ * @property LocationKind $kind
+ */
 class Location extends PeriodModel implements SearchIndexed
 {
     use HasOptimisticLock;

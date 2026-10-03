@@ -82,7 +82,7 @@ class ImportWizard extends Component
     public function previewMapped(ImportRowImporterResolver $resolver): void
     {
         foreach (ImportMapping::fields($this->type) as $field => $definition) {
-            if (($definition['required'] ?? false) && empty($this->mapping[$field])) {
+            if ($definition['required'] && empty($this->mapping[$field])) {
                 $this->addError("mapping.{$field}", "{$definition['label']} için kaynak kolon seçilmelidir.");
 
                 return;

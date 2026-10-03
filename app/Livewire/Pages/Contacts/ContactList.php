@@ -11,6 +11,7 @@ use App\Models\Period\ContactCategory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Schema;
 
+/** @extends DataTableComponent<Contact> */
 class ContactList extends DataTableComponent
 {
     public string $model = Contact::class;

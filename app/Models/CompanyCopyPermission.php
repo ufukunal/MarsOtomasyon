@@ -42,6 +42,7 @@ class CompanyCopyPermission extends MasterModel
         return $this->belongsTo(Company::class, 'source_company_id');
     }
 
+    /** @return BelongsTo<Company, $this> */
     public function targetCompany(): BelongsTo
     {
         return $this->belongsTo(Company::class, 'target_company_id');

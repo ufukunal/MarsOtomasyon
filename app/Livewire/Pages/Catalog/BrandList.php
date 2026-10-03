@@ -6,6 +6,7 @@ use App\Livewire\Components\DataTable\Column;
 use App\Livewire\Components\DataTable\DataTableComponent;
 use App\Models\Period\Brand;
 
+/** @extends DataTableComponent<Brand> */
 class BrandList extends DataTableComponent
 {
     public string $model = Brand::class;

@@ -8,6 +8,7 @@ use App\Livewire\Components\DataTable\DateRangeFilter;
 use App\Livewire\Components\DataTable\SelectFilter;
 use App\Models\Period\Location;
 
+/** @extends DataTableComponent<Location> */
 class LocationList extends DataTableComponent
 {
     public string $model = Location::class;
