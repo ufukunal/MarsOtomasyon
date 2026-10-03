@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Pages\Products;
 
+use App\Actions\Products\DeleteSetComponent;
 use App\Actions\Products\SaveConfigDefinition;
 use App\Actions\Products\SaveProduct;
 use App\Actions\Products\SaveSetComponent;
@@ -38,9 +39,13 @@ class ProductForm extends Component
     public int $version = 1;
     public string $activeTab = 'general';
 
+    public ?int $componentLineId = null;
+    public int $componentVersion = 1;
     public ?int $componentProductId = null;
     public string $componentQuantity = '1.000';
 
+    public ?int $configDefinitionId = null;
+    public int $configDefinitionVersion = 1;
     public string $configName = '';
     public bool $configRequired = false;
     public array $configOptions = [];
@@ -116,7 +121,7 @@ class ProductForm extends Component
         $this->redirectRoute('products.edit', ['product' => $saved->id], navigate: false);
     }
 
-    public function addSetComponent(SaveSetComponent $action): void
+    public function saveSetComponent(SaveSetComponent $action): void
     {
         abort_unless($this->product, 422);
 
@@ -126,13 +131,22 @@ class ProductForm extends Component
         ]);
 
         $component = Product::query()->findOrFail($data['componentProductId']);
-        $action->handle($this->product, $component, $data['componentQuantity']);
+        $line = $this->componentLineId
+            ? ProductSet::query()->where('set_product_id', $this->product->id)->findOrFail($this->componentLineId)
+            : null;
 
-        $this->componentProductId = null;
-        $this->componentQuantity = '1.000';
+        $action->handle(
+            $this->product,
+            $component,
+            $data['componentQuantity'],
+            $line,
+            $line ? $this->componentVersion : null,
+        );
+
+        $this->resetSetEditor();
     }
 
-    public function removeSetComponent(int $lineId): void
+    public function editSetComponent(int $lineId): void
     {
         abort_unless($this->product, 422);
 
@@ -140,10 +154,33 @@ class ProductForm extends Component
             ->where('set_product_id', $this->product->id)
             ->findOrFail($lineId);
 
-        $line->delete();
+        $this->componentLineId = $line->id;
+        $this->componentVersion = (int) $line->version;
+        $this->componentProductId = $line->component_product_id;
+        $this->componentQuantity = (string) $line->quantity;
     }
 
-    public function addConfigGroup(SaveConfigDefinition $action): void
+    public function removeSetComponent(int $lineId, DeleteSetComponent $action): void
+    {
+        abort_unless($this->product, 422);
+
+        $line = ProductSet::query()
+            ->where('set_product_id', $this->product->id)
+            ->findOrFail($lineId);
+
+        $action->handle($this->product, $line, (int) $line->version);
+        $this->resetSetEditor();
+    }
+
+    private function resetSetEditor(): void
+    {
+        $this->componentLineId = null;
+        $this->componentVersion = 1;
+        $this->componentProductId = null;
+        $this->componentQuantity = '1.000';
+    }
+
+    public function saveConfigGroup(SaveConfigDefinition $action): void
     {
         abort_unless($this->product, 422);
 
@@ -152,15 +189,49 @@ class ProductForm extends Component
             ->values()
             ->all();
 
-        $action->handle($this->product, [
-            'name' => $this->configName,
-            'is_required' => $this->configRequired,
-            'sort_order' => $this->product->configDefinitions()->count(),
-        ], $options);
+        $definition = $this->configDefinitionId
+            ? ConfigDefinition::query()->where('product_id', $this->product->id)->findOrFail($this->configDefinitionId)
+            : null;
 
-        $this->configName = '';
-        $this->configRequired = false;
-        $this->configOptions = [];
+        $action->handle(
+            $this->product,
+            [
+                'name' => $this->configName,
+                'is_required' => $this->configRequired,
+                'sort_order' => $definition?->sort_order ?? $this->product->configDefinitions()->count(),
+            ],
+            $options,
+            $definition,
+            $definition ? $this->configDefinitionVersion : null,
+        );
+
+        $this->resetConfigEditor();
+    }
+
+    public function editConfigGroup(int $definitionId): void
+    {
+        abort_unless($this->product, 422);
+
+        $definition = ConfigDefinition::query()
+            ->where('product_id', $this->product->id)
+            ->with('options')
+            ->findOrFail($definitionId);
+
+        $this->configDefinitionId = $definition->id;
+        $this->configDefinitionVersion = (int) $definition->version;
+        $this->configName = $definition->name;
+        $this->configRequired = (bool) $definition->is_required;
+        $this->configOptions = $definition->options
+            ->sortBy('sort_order')
+            ->map(fn ($option) => [
+                'id' => $option->id,
+                'version' => (int) $option->version,
+                'label' => $option->label,
+                'component_product_id' => $option->component_product_id,
+                'is_default' => (bool) $option->is_default,
+            ])
+            ->values()
+            ->all();
     }
 
     public function addConfigOptionRow(): void
@@ -172,6 +243,26 @@ class ProductForm extends Component
         ];
     }
 
+    public function removeConfigOptionRow(int $index): void
+    {
+        unset($this->configOptions[$index]);
+        $this->configOptions = array_values($this->configOptions);
+    }
+
+    public function cancelConfigEdit(): void
+    {
+        $this->resetConfigEditor();
+    }
+
+    private function resetConfigEditor(): void
+    {
+        $this->configDefinitionId = null;
+        $this->configDefinitionVersion = 1;
+        $this->configName = '';
+        $this->configRequired = false;
+        $this->configOptions = [];
+    }
+
     public function render(): View
     {
         return view('livewire.pages.products.product-form', [
@@ -179,12 +270,6 @@ class ProductForm extends Component
             'brands' => Brand::query()->where('is_active', true)->orderBy('name')->get(),
             'units' => Unit::query()->where('is_active', true)->orderBy('name')->get(),
             'variantGroups' => VariantGroup::query()->where('is_active', true)->orderBy('name')->get(),
-            'products' => Product::query()
-                ->where('is_active', true)
-                ->when($this->product, fn ($q) => $q->whereKeyNot($this->product->id))
-                ->orderBy('name')
-                ->limit(500)
-                ->get(),
             'setLines' => $this->product?->setComponents()->with('componentProduct')->get() ?? collect(),
             'configDefinitions' => $this->product?->configDefinitions()->with('options.componentProduct')->get() ?? collect(),
         ])->layout('layouts.app', [

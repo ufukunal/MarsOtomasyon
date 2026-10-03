@@ -36,12 +36,12 @@
                 <p>Bileşenler yalnız kaydedilmiş set ürünlerde düzenlenir.</p>
             @else
                 <div class="form-row">
-                    <select wire:model="componentProductId"><option value="">Bileşen ürün</option>@foreach($products as $row)<option value="{{ $row->id }}">{{ $row->code }} · {{ $row->name }}</option>@endforeach</select>
-                    <input wire:model="componentQuantity" inputmode="decimal">
-                    <button type="button" wire:click="addSetComponent">Ekle</button>
+                    <x-field.lookup label="Bileşen Ürün" wire:model="componentProductId" :model="\App\Models\Period\Product::class" label-field="name" code-field="code" barcode-field="barcode" />
+                    <input data-tr-decimal wire:model="componentQuantity" inputmode="decimal" placeholder="Miktar">
+                    <button type="button" wire:click="saveSetComponent">{{ $componentLineId ? 'Güncelle' : 'Ekle' }}</button>
                 </div>
                 <table class="data-table"><thead><tr><th>Kod</th><th>Ürün</th><th>Miktar</th><th></th></tr></thead><tbody>
-                @foreach($setLines as $line)<tr><td>{{ $line->componentProduct->code }}</td><td>{{ $line->componentProduct->name }}</td><td>{{ $line->quantity }}</td><td><button type="button" wire:click="removeSetComponent({{ $line->id }})">Kaldır</button></td></tr>@endforeach
+                @foreach($setLines as $line)<tr><td>{{ $line->componentProduct->code }}</td><td>{{ $line->componentProduct->name }}</td><td>{{ $line->quantity }}</td><td><button type="button" wire:click="editSetComponent({{ $line->id }})">Düzenle</button> <button type="button" wire:click="removeSetComponent({{ $line->id }})">Kaldır</button></td></tr>@endforeach
                 </tbody></table>
                 <strong>Satılabilir: {{ $product->setAvailability() }}</strong>
             @endif
@@ -55,19 +55,22 @@
                     <div class="panel">
                         <strong>{{ $definition->name }}</strong>
                         @foreach($definition->options as $option)<span class="badge">{{ $option->label }}</span>@endforeach
+                        <button type="button" wire:click="editConfigGroup({{ $definition->id }})">Düzenle</button>
                     </div>
                 @endforeach
-                <x-field.text label="Yeni Grup Adı" wire:model="configName" />
+                <x-field.text :label="$configDefinitionId ? 'Grup Adı' : 'Yeni Grup Adı'" wire:model="configName" />
                 <x-field.toggle label="Zorunlu" wire:model="configRequired" />
                 @foreach($configOptions as $i => $option)
                     <div class="form-row" wire:key="config-option-{{ $i }}">
                         <input wire:model="configOptions.{{ $i }}.label" placeholder="Seçenek etiketi">
                         <select wire:model="configOptions.{{ $i }}.component_product_id"><option value="">Bileşen yok</option>@foreach($products as $row)<option value="{{ $row->id }}">{{ $row->name }}</option>@endforeach</select>
                         <label><input type="checkbox" wire:model="configOptions.{{ $i }}.is_default"> Varsayılan</label>
+                        <button type="button" wire:click="removeConfigOptionRow({{ $i }})">Kaldır</button>
                     </div>
                 @endforeach
                 <button type="button" wire:click="addConfigOptionRow">Seçenek Ekle</button>
-                <button type="button" wire:click="addConfigGroup">Grubu Kaydet</button>
+                <button type="button" wire:click="saveConfigGroup">{{ $configDefinitionId ? 'Grubu Güncelle' : 'Grubu Kaydet' }}</button>
+                @if($configDefinitionId)<button type="button" wire:click="cancelConfigEdit">Vazgeç</button>@endif
             @endif
         </section>
     @elseif($activeTab === 'images')

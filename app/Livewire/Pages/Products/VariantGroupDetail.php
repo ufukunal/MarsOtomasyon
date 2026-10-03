@@ -2,11 +2,14 @@
 
 namespace App\Livewire\Pages\Products;
 
+use App\Actions\Products\SaveVariantAttribute;
+use App\Actions\Products\SaveVariantGroup;
 use App\Actions\Products\SaveVariantValues;
 use App\Models\Period\Product;
 use App\Models\Period\VariantAttribute;
 use App\Models\Period\VariantGroup;
 use Illuminate\Contracts\View\View;
+use Livewire\Attributes\On;
 use Livewire\Component;
 
 class VariantGroupDetail extends Component
@@ -15,7 +18,11 @@ class VariantGroupDetail extends Component
     public string $name = '';
     public bool $isActive = true;
     public int $version = 1;
+
+    public ?int $attributeId = null;
+    public int $attributeVersion = 1;
     public string $newAttribute = '';
+
     public ?int $productId = null;
     public array $values = [];
     public array $warnings = [];
@@ -23,7 +30,6 @@ class VariantGroupDetail extends Component
     public function mount(?VariantGroup $group = null): void
     {
         abort_unless(auth()->user()?->can('variant_groups.view'), 403);
-
         $this->group = $group;
 
         if ($group) {
@@ -33,34 +39,58 @@ class VariantGroupDetail extends Component
         }
     }
 
-    public function saveGroup(): void
+    public function saveGroup(SaveVariantGroup $action): void
     {
-        abort_unless(auth()->user()?->can($this->group ? 'variant_groups.update' : 'variant_groups.create'), 403);
-
         $this->validate(['name' => ['required', 'max:255']]);
 
-        $attributes = ['name' => trim($this->name), 'is_active' => $this->isActive];
-
-        $this->group = $this->group
-            ? $this->group->updateWithVersion($attributes, $this->version)
-            : VariantGroup::query()->create($attributes);
+        $this->group = $action->handle([
+            'name' => $this->name,
+            'is_active' => $this->isActive,
+        ], $this->group, $this->version);
 
         $this->version = (int) $this->group->version;
     }
 
-    public function addAttribute(): void
+    public function saveAttribute(SaveVariantAttribute $action): void
     {
         abort_unless($this->group, 422);
-
         $this->validate(['newAttribute' => ['required', 'max:255']]);
 
-        VariantAttribute::query()->create([
-            'variant_group_id' => $this->group->id,
-            'name' => trim($this->newAttribute),
-            'sort_order' => $this->group->attributes()->count(),
-        ]);
+        $attribute = $this->attributeId
+            ? VariantAttribute::query()->where('variant_group_id', $this->group->id)->findOrFail($this->attributeId)
+            : null;
 
+        $action->handle($this->group, [
+            'name' => $this->newAttribute,
+            'sort_order' => $attribute?->sort_order ?? $this->group->attributes()->count(),
+        ], $attribute, $attribute ? $this->attributeVersion : null);
+
+        $this->attributeId = null;
+        $this->attributeVersion = 1;
         $this->newAttribute = '';
+    }
+
+    public function editAttribute(int $id): void
+    {
+        abort_unless($this->group, 422);
+        $attribute = VariantAttribute::query()->where('variant_group_id', $this->group->id)->findOrFail($id);
+        $this->attributeId = $attribute->id;
+        $this->attributeVersion = (int) $attribute->version;
+        $this->newAttribute = $attribute->name;
+    }
+
+    #[On('lookup-selected')]
+    public function productSelected(int|string $id): void
+    {
+        if (! $this->group) {
+            return;
+        }
+
+        $product = Product::query()->findOrFail($id);
+        $this->productId = (int) $product->id;
+        $this->values = $product->variantValues()
+            ->pluck('value', 'variant_attribute_id')
+            ->all();
     }
 
     public function attachProduct(SaveVariantValues $action): void
@@ -76,10 +106,11 @@ class VariantGroupDetail extends Component
     public function render(): View
     {
         return view('livewire.pages.products.variant-group-detail', [
-            'groups' => VariantGroup::query()->orderBy('name')->get(),
-            'products' => Product::query()->where('is_active', true)->orderBy('name')->limit(500)->get(),
             'attributes' => $this->group?->attributes()->get() ?? collect(),
-            'groupProducts' => $this->group?->products()->with('variantValues.attribute')->get() ?? collect(),
+            'groupProducts' => $this->group?->products()
+                ->with('variantValues.attribute')
+                ->orderBy('code')
+                ->get() ?? collect(),
         ])->layout('layouts.app', ['pageTitle' => 'Varyant Grupları']);
     }
 }
