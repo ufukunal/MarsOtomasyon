@@ -13,7 +13,7 @@ G-003
 ## Dokunulacak dosyalar
 - `app/Support/Search/SearchNormalizer.php`
 - `app/Support/Search/HasSearchIndex.php` (trait)
-- `database/migrations/master/xxxx_enable_pg_trgm.php`
+- `database/migrations/period/xxxx_enable_pg_trgm.php`
 
 
 ## Şema / Kod
@@ -98,7 +98,7 @@ benzerlik değil kesinlik ister.
 ### Uygulama ayrıntıları
 - Aranabilir kart alanları normalize edilmiş `search_index` üretir.
 - Türkçe büyük/küçük harf ve aksan normalizasyonu uygulama tarafında tek helper üzerinden yapılır.
-- PostgreSQL `pg_trgm` indeksi gerçek period tablolarında oluşturulur; SQLite alternatifi yoktur.
+- PostgreSQL `pg_trgm` extension ve trigram indeksleri **her period DB'de** period migration ile oluşturulur; yalnız Master DB'de extension açmak yeterli değildir. SQLite alternatifi yoktur.
 - Arama query'si aktif period connection'ını korur ve başka şirket DB'sine geçmez.
 
 ## Kabul ölçütü
