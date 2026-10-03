@@ -10,6 +10,7 @@ use App\Models\Attachment;
 use App\Models\Period\Contact;
 use App\Models\Period\Product;
 use App\Policies\ProductPolicy;
+use App\Support\Auth\PeriodPermissionContext;
 use App\Policies\ContactPolicy;
 use App\Observers\AttachmentObserver;
 use Illuminate\Auth\Events\Failed;
@@ -65,6 +66,10 @@ class AppServiceProvider extends ServiceProvider
 
         RateLimiter::for('webhook', fn (Request $request): Limit =>
             Limit::perMinute(120)->by($request->ip()));
+        Gate::before(function ($user, string $ability): ?bool {
+            return PeriodPermissionContext::decision($ability);
+        });
+
         Gate::policy(Contact::class, ContactPolicy::class);
         Gate::policy(Product::class, ProductPolicy::class);
 

@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Models\Period;
+use App\Support\Auth\PeriodPermissionContext;
 use App\Support\Period\PeriodContext;
 use Closure;
 use Illuminate\Http\Request;
@@ -51,14 +52,21 @@ class SetActivePeriod
 
         abort_unless($hasCompanyAccess, 403);
 
-        $hasPeriodAccess = DB::connection('master')
+        $periodAccess = DB::connection('master')
             ->table('period_user_access')
             ->where('period_id', $periodId)
             ->where('user_id', $user->getAuthIdentifier())
-            ->where('is_active', true)
-            ->exists();
+            ->first();
 
-        abort_unless($hasPeriodAccess, 403);
+        abort_unless($periodAccess && (bool) $periodAccess->is_active, 403);
+
+        $overrides = $periodAccess->permission_overrides;
+
+        if (is_string($overrides)) {
+            $overrides = json_decode($overrides, true) ?: [];
+        }
+
+        PeriodPermissionContext::use(is_array($overrides) ? $overrides : []);
 
         $period = Period::query()
             ->whereKey($periodId)
@@ -72,6 +80,10 @@ class SetActivePeriod
 
         PeriodContext::use((int) $companyId, (int) $periodId);
 
-        return $next($request);
+        try {
+            return $next($request);
+        } finally {
+            PeriodPermissionContext::clear();
+        }
     }
 }

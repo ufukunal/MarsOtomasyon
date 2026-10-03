@@ -69,27 +69,48 @@ final class CompanyRoleProvisioner
             fn (string $name): bool => str_ends_with($name, '.view'),
         ));
 
+        $technicalViews = [
+            'units.view',
+            'product_categories.view',
+            'brands.view',
+            'variant_groups.view',
+        ];
+
         $roleMatrix = [
             'Yönetici' => $permissionNames,
             'Muhasebe' => [
-                'periods.view',
-                'periods.create',
-                'periods.update',
-                'periods.cancel',
+                'periods.view','periods.create','periods.update','periods.cancel',
                 'audit.view',
-                'print_profiles.view',
-                'print_profiles.create',
-                'print_profiles.update',
-                'print_profiles.cancel',
-                'cost.view',
+                'print_profiles.view','print_profiles.create','print_profiles.update','print_profiles.cancel',
+                'contacts.view','contacts.create','contacts.update',
+                'products.view','locations.view','price_lists.view','cost.view',
+                ...$technicalViews,
             ],
-            'Satış' => ['print_profiles.view'],
-            'Satınalma' => ['print_profiles.view', 'cost.view'],
-            'Depo' => ['print_profiles.view'],
-            'Üretim' => ['print_profiles.view', 'cost.view'],
+            'Satış' => [
+                'print_profiles.view',
+                'contacts.view','contacts.create','contacts.update',
+                'products.view','locations.view','price_lists.view',
+                ...$technicalViews,
+            ],
+            'Satınalma' => [
+                'print_profiles.view','cost.view',
+                'contacts.view','contacts.create','contacts.update',
+                'products.view','locations.view',
+                ...$technicalViews,
+            ],
+            'Depo' => [
+                'print_profiles.view',
+                'contacts.view','products.view',
+                'locations.view','locations.create','locations.update',
+                ...$technicalViews,
+            ],
+            'Üretim' => [
+                'print_profiles.view','cost.view',
+                'contacts.view','products.view','locations.view',
+                ...$technicalViews,
+            ],
             'Görüntüleyici' => $viewerPermissions,
         ];
-
         setPermissionsTeamId($company->id);
 
         $roles = [];

@@ -14,7 +14,7 @@ class RoleSeeder extends Seeder
 {
     public function run(): void
     {
-        $admin = User::query()->updateOrCreate(
+        $admin = User::query()->firstOrCreate(
             ['email' => 'admin@mars.local'],
             [
                 'name' => 'Mars Yönetici',
@@ -22,6 +22,10 @@ class RoleSeeder extends Seeder
                 'is_active' => true,
             ],
         );
+
+        if (! $admin->is_active) {
+            $admin->forceFill(['is_active' => true])->save();
+        }
 
         foreach (Company::query()->orderBy('id')->get() as $company) {
             $roles = app(CompanyRoleProvisioner::class)->handle($company);
