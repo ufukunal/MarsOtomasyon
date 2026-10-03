@@ -4,13 +4,13 @@
 Carry başlamadan source/target durumunu ve taşınacak veriyi deterministik preview ile doğrulamak.
 
 ## Önkoşul
-G-1110 kanonik carry sözleşmesi.
+G-1110 kanonik carry sözleşmesi. G-1111 yeni ikinci carry motoru kurmaz; G-1110'un `PreviewPeriodCarry` preflight'ını ayrıntılı checklist/UI ile genişletir.
 
 ## Dokunulacak dosyalar
-- PreviewPeriodCarry
+- mevcut `PreviewPeriodCarry` genişletmesi
 - carry checklist DTO
-- PeriodCarry Livewire
-- preview tests
+- mevcut PeriodCarry Livewire checklist paneli
+- `tests/Feature/Period/PreviewPeriodCarryTest.php`
 
 ## Şema / Kod
 İş kuralı 57 kanoniktir.
