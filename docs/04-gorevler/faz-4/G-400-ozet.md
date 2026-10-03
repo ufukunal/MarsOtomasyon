@@ -65,7 +65,8 @@ v65 içinde hazır satınalma ekranı yoktur; bu ekranlar v65'in genel UI dilini
 | supplier_quote | yok | yok | yok | yok |
 | purchase_order | yok | yok | yok | yok |
 | goods_receipt | yok | yok | yok | yok |
-| purchase_invoice | in/purchase | supplier credit | moving average | yok |
+| purchase_invoice / stock line | in/purchase | supplier credit (document total) | moving average | yok |
+| purchase_invoice / service line | yok | supplier credit (document total) | yok | yok |
 
 Dövizli purchase_invoice'da stok unit_cost ve cari ledger tutarı frozen exchange_rate ile şirket temel para birimine çevrilir. Orijinal currency/tutar/kur belge üzerinde snapshot kalır.
 
@@ -102,7 +103,7 @@ Bir receipt bölünebilir; aynı supplier + currency + uyumlu alış koşulları
 - Tek yöntem hareketli ortalama.
 - PHP float yok; Money/BCMath.
 - Stok temel birimde.
-- Purchase invoice inventory cost KDV hariç net alış bedelinin frozen kurla temel para birimine çevrilip base_quantity'ye bölünmesidir.
+- Purchase invoice **stock line** inventory cost KDV hariç net alış bedelinin frozen kurla temel para birimine çevrilip base_quantity'ye bölünmesidir. K-257 service line stok/moving-average üretmez; cari/KDV/belge toplamına dahildir.
 - ±%25 sapma uyarı+audit; blok değil.
 - Eşik Master `companies.cost_deviation_threshold`.
 
@@ -124,4 +125,3 @@ Bir receipt bölünebilir; aynı supplier + currency + uyumlu alış koşulları
 
 Dokümantasyon seti yazılmıştır. Kodlama/uygulama Faz 4 tamamlanmış sayılmaz; G-401…G-409 kabul ölçütlerinin gerçek PostgreSQL üzerinde geçmesi gerekir.
 
-Faz 5'e geçiş ayrıca kullanıcı onayıyla yapılır.
