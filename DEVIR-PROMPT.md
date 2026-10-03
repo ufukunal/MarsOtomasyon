@@ -215,7 +215,7 @@ Her şirket+yıl ayrı period DB. Kartlar dahil işletme verisi period DB'dedir.
 - Açık quarantine taşınır; açık sales_order/purchase_order K-256 ile kalan miktar snapshot'ı olarak target'a aktarılır; open production/subcontract order ve in-transit transfer carry blocker'dır.
 - Faz 11: veri modeli 44, iş kuralları 58–61, G-1101…G-1109 hazırdır.
 - K-236…K-255 immutable deploy, backup/restore, health/security ve cutover/rollback davranışlarını kilitler.
-- Tüm planlama/dokümantasyon fazları tamamlandı; bundan sonraki ana çalışma görevlerin uygulanmasıdır.
+- Tüm planlama/dokümantasyon fazları tamamlandı. Kodlama bu çalışma kapsamında yapılmıyor; sonraki çalışma kullanıcı talebine bağlıdır.
 
 ## Kodlama öncesi bütünlük blokajları
 
@@ -243,7 +243,7 @@ Master company_copy_permissions. Kaynak period_source. Hedef yeni ID; source_com
 
 ## Faz ve görev yöntemi
 
-Faz 0, 0b, 1, 2 görevleri standalone standarda göre temizlendi. **Faz 3–10, Faz 11b ve Faz 11 görev/dokümantasyon setleri hazırdır.** Kodlama/uygulama her fazın gerçek PostgreSQL kabul testlerine bağlıdır.
+Faz 0, 0b, 1, 2 görevleri standalone standarda göre temizlendi. **Faz 3–10, Faz 11b ve Faz 11 görev/dokümantasyon setleri hazırdır.** İleride kodlama yapılırsa her fazın gerçek PostgreSQL kabul testlerine bağlıdır.
 
 Her görev şu bölümleri içerir: Amaç, Önkoşul, Dokunulacak dosyalar, Şema/Kod, Kurallar, Kabul ölçütü, İstem. Bir görev tek başına yerel modele verilebilir olmalıdır. **Satır sayısı hedef değildir.** 300–500 satır yalnız iş gerçekten o ayrıntıyı gerektiriyorsa doğal sonuç olabilir. Aynı genel checklist, mimari kural veya test maddesini sırf uzunluk için tekrar etmek yasaktır. Kaynaklarda tanımlanmayan alan, tablo, Action, sınıf, iş kuralı veya test beklentisi uydurulmaz. Eksik karar varsa `[KARAR GEREKİYOR]` yazılır ve kullanıcıya seçenek sunulur.
 
