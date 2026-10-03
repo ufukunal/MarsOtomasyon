@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Components\DataTable;
 
+use App\Contracts\SearchIndexed;
 use App\Support\Formatting\TableValueFormatter;
 use App\Support\Search\SearchNormalizer;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -84,8 +85,10 @@ abstract class DataTableComponent extends Component
             $searchable = $columns->filter(fn (Column $column): bool => $column->searchable);
 
             if ($searchable->isNotEmpty()) {
-                if (method_exists($query->getModel(), 'scopeSearch')) {
-                    $query->search($this->search);
+                $model = $query->getModel();
+
+                if ($model instanceof SearchIndexed) {
+                    $model->scopeSearch($query, $this->search);
                 } else {
                     $query->where(function (Builder $builder) use ($searchable): void {
                         foreach ($searchable as $column) {

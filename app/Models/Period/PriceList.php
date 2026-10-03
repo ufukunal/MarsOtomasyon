@@ -22,6 +22,7 @@ class PriceList extends PeriodModel
         ];
     }
 
+    /** @return HasMany<PriceListItem, $this> */
     public function items(): HasMany
     {
         return $this->hasMany(PriceListItem::class);

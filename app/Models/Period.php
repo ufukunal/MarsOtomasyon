@@ -6,6 +6,10 @@ use App\Support\Concurrency\HasOptimisticLock;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property \Illuminate\Support\Carbon $starts_on
+ * @property \Illuminate\Support\Carbon $ends_on
+ */
 class Period extends MasterModel
 {
     use HasFactory;
@@ -36,11 +40,13 @@ class Period extends MasterModel
         ];
     }
 
+    /** @return BelongsTo<Company, $this> */
     public function company(): BelongsTo
     {
         return $this->belongsTo(Company::class);
     }
 
+    /** @return BelongsTo<Period, $this> */
     public function carriedFromPeriod(): BelongsTo
     {
         return $this->belongsTo(self::class, 'carried_from_period_id');

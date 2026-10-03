@@ -56,10 +56,10 @@ class MoneyCast implements CastsAttributes
             return $value->amount;
         }
 
-        if (is_string($value) || is_int($value)) {
+        if (is_string($value)) {
             return Money::of($value)->amount;
         }
 
-        throw new InvalidArgumentException('MoneyCast yalnız Money|string|int kabul eder.');
+        return Money::of($value)->amount;
     }
 }

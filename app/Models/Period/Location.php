@@ -2,12 +2,14 @@
 
 namespace App\Models\Period;
 
+use App\Contracts\SearchIndexed;
 use App\Enums\LocationKind;
 use App\Models\PeriodModel;
 use App\Support\Concurrency\HasOptimisticLock;
 use App\Support\Search\HasSearchIndex;
 
-class Location extends PeriodModel
+/** @property LocationKind $kind */
+class Location extends PeriodModel implements SearchIndexed
 {
     use HasOptimisticLock;
     use HasSearchIndex;

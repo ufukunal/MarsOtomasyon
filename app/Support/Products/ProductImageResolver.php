@@ -4,7 +4,7 @@ namespace App\Support\Products;
 
 use App\Models\Attachment;
 use App\Models\Period\Product;
-use Illuminate\Support\Collection;
+use Illuminate\Database\Eloquent\Collection;
 
 final class ProductImageResolver
 {

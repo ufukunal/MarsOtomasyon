@@ -6,6 +6,7 @@ use App\Models\PeriodModel;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/** @property array<string, string|null> $mapping */
 class CardImportBatch extends PeriodModel
 {
     use HasUuids;
@@ -45,6 +46,7 @@ class CardImportBatch extends PeriodModel
         ];
     }
 
+    /** @return HasMany<CardImportError, $this> */
     public function errors(): HasMany
     {
         return $this->hasMany(CardImportError::class, 'batch_id');

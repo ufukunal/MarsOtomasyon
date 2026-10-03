@@ -22,11 +22,13 @@ class ProductCategory extends PeriodModel
         ];
     }
 
+    /** @return BelongsTo<ProductCategory, $this> */
     public function parent(): BelongsTo
     {
         return $this->belongsTo(self::class, 'parent_id');
     }
 
+    /** @return HasMany<ProductCategory, $this> */
     public function children(): HasMany
     {
         return $this->hasMany(self::class, 'parent_id')->orderBy('sort_order')->orderBy('name');

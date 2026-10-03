@@ -2,6 +2,7 @@
 
 namespace App\Actions\Attachments;
 
+use App\Contracts\HasAttachments as HasAttachmentsContract;
 use App\Models\Attachment;
 use App\Models\PeriodModel;
 use App\Support\Security\SecureUploadValidator;
@@ -13,7 +14,7 @@ use RuntimeException;
 final class StoreAttachment
 {
     public function handle(
-        PeriodModel $attachable,
+        PeriodModel&HasAttachmentsContract $attachable,
         UploadedFile $file,
         ?string $collection = null,
         int $sortOrder = 0,

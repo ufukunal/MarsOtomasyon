@@ -2,6 +2,8 @@
 
 namespace App\Models\Period;
 
+use App\Contracts\HasAttachments as HasAttachmentsContract;
+use App\Contracts\SearchIndexed;
 use App\Enums\ChannelStockMode;
 use App\Enums\ProductKind;
 use App\Models\Concerns\HasAttachments;
@@ -18,7 +20,11 @@ use LogicException;
 use Spatie\Activitylog\Models\Concerns\LogsActivity;
 use Spatie\Activitylog\Support\LogOptions;
 
-class Product extends PeriodModel
+/**
+ * @property ProductKind $kind
+ * @property ChannelStockMode $channel_stock_mode
+ */
+class Product extends PeriodModel implements HasAttachmentsContract, SearchIndexed
 {
     use HasAttachments;
     use HasOptimisticLock;
@@ -89,41 +95,49 @@ class Product extends PeriodModel
         return ['code', 'name', 'barcode'];
     }
 
+    /** @return BelongsTo<ProductCategory, $this> */
     public function category(): BelongsTo
     {
         return $this->belongsTo(ProductCategory::class, 'category_id');
     }
 
+    /** @return BelongsTo<Brand, $this> */
     public function brand(): BelongsTo
     {
         return $this->belongsTo(Brand::class);
     }
 
+    /** @return BelongsTo<Unit, $this> */
     public function unit(): BelongsTo
     {
         return $this->belongsTo(Unit::class);
     }
 
+    /** @return BelongsTo<VariantGroup, $this> */
     public function variantGroup(): BelongsTo
     {
         return $this->belongsTo(VariantGroup::class);
     }
 
+    /** @return HasMany<ProductVariantValue, $this> */
     public function variantValues(): HasMany
     {
         return $this->hasMany(ProductVariantValue::class);
     }
 
+    /** @return HasMany<ProductSet, $this> */
     public function setComponents(): HasMany
     {
         return $this->hasMany(ProductSet::class, 'set_product_id');
     }
 
+    /** @return HasMany<ConfigDefinition, $this> */
     public function configDefinitions(): HasMany
     {
         return $this->hasMany(ConfigDefinition::class)->orderBy('sort_order');
     }
 
+    /** @return HasMany<PriceListItem, $this> */
     public function priceListItems(): HasMany
     {
         return $this->hasMany(PriceListItem::class);
@@ -181,6 +195,6 @@ class Product extends PeriodModel
             ->useLogName('product')
             ->logFillable()
             ->logOnlyDirty()
-            ->dontSubmitEmptyLogs();
+            ->dontLogEmptyChanges();
     }
 }

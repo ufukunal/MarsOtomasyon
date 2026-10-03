@@ -2,6 +2,8 @@
 
 namespace App\Models\Period;
 
+use App\Contracts\HasAttachments as HasAttachmentsContract;
+use App\Contracts\SearchIndexed;
 use App\Enums\ContactType;
 use App\Models\Concerns\HasAttachments;
 use App\Models\PeriodModel;
@@ -15,7 +17,8 @@ use LogicException;
 use Spatie\Activitylog\Models\Concerns\LogsActivity;
 use Spatie\Activitylog\Support\LogOptions;
 
-class Contact extends PeriodModel
+/** @property ContactType $type */
+class Contact extends PeriodModel implements HasAttachmentsContract, SearchIndexed
 {
     use HasAttachments;
     use HasOptimisticLock;
@@ -72,6 +75,7 @@ class Contact extends PeriodModel
         return ['code', 'title', 'tax_number', 'phone', 'email', 'city'];
     }
 
+    /** @return BelongsToMany<ContactCategory, $this> */
     public function categories(): BelongsToMany
     {
         return $this->belongsToMany(
@@ -82,21 +86,25 @@ class Contact extends PeriodModel
         );
     }
 
+    /** @return HasMany<ContactAddress, $this> */
     public function addresses(): HasMany
     {
         return $this->hasMany(ContactAddress::class);
     }
 
+    /** @return HasMany<ContactPerson, $this> */
     public function people(): HasMany
     {
         return $this->hasMany(ContactPerson::class);
     }
 
+    /** @return HasMany<ContactBank, $this> */
     public function banks(): HasMany
     {
         return $this->hasMany(ContactBank::class);
     }
 
+    /** @return BelongsTo<PriceList, $this> */
     public function priceList(): BelongsTo
     {
         return $this->belongsTo(PriceList::class);
@@ -160,6 +168,6 @@ class Contact extends PeriodModel
             ->useLogName('contact')
             ->logFillable()
             ->logOnlyDirty()
-            ->dontSubmitEmptyLogs();
+            ->dontLogEmptyChanges();
     }
 }

@@ -57,6 +57,7 @@ class Company extends MasterModel
         });
     }
 
+    /** @return HasMany<Period, $this> */
     public function periods(): HasMany
     {
         return $this->hasMany(Period::class);
@@ -68,6 +69,6 @@ class Company extends MasterModel
             ->useLogName('master')
             ->logFillable()
             ->logOnlyDirty()
-            ->dontSubmitEmptyLogs();
+            ->dontLogEmptyChanges();
     }
 }

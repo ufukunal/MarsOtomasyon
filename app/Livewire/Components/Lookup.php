@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Components;
 
+use App\Contracts\SearchIndexed;
 use App\Models\PeriodModel;
 use App\Support\Period\PeriodContext;
 use Illuminate\Contracts\View\View;
@@ -122,8 +123,10 @@ class Lookup extends Component
             return $builder->whereRaw('1 = 0');
         }
 
-        if (method_exists($builder->getModel(), 'scopeSearch')) {
-            return $builder->search($this->query);
+        $model = $builder->getModel();
+
+        if ($model instanceof SearchIndexed) {
+            return $model->scopeSearch($builder, $this->query);
         }
 
         return $builder->where(function ($query): void {

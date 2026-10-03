@@ -2,6 +2,7 @@
 
 namespace App\Support\Search;
 
+use App\Contracts\SearchIndexed;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
@@ -18,6 +19,10 @@ trait HasSearchIndex
     protected static function bootHasSearchIndex(): void
     {
         static::saving(function (Model $model): void {
+            if (! $model instanceof SearchIndexed) {
+                return;
+            }
+
             $parts = array_map(
                 fn (string $field): string => (string) ($model->getAttribute($field) ?? ''),
                 $model->searchableFields(),
@@ -30,6 +35,10 @@ trait HasSearchIndex
         });
     }
 
+    /**
+     * @param Builder<static> $query
+     * @return Builder<static>
+     */
     public function scopeSearch(Builder $query, ?string $term): Builder
     {
         $normalized = SearchNormalizer::make($term);
