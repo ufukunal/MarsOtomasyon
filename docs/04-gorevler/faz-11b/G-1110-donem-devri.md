@@ -33,15 +33,15 @@ CarryPeriod::handle(Period $source, int $targetYear, string $idempotencyKey): Ca
 6. Kartları FK dependency sırasıyla aynı ID/kodla kopyala; `cash_accounts` ve `bank_accounts` dahil Faz 3'te eklenen kartlar da bu kapsamdadır.
 7. Gerekli pasif kartları ilişki analiziyle dahil et.
 8. StockBalance kimliklerini ve açılış miktarlarını hazırla.
-9. Opening stock movements'i closing moving average maliyetiyle yaz.
-10. product_costs kopyala.
-11. cari açılışlarını ve kasa/banka kapanış bakiyelerini hedefte opening movement olarak yaz; geçmiş `cash_movements` / `bank_movements` satırlarını kopyalama.
-12. vadesi gelmemiş çek/senetleri taşı.
-13. Açık quarantine kayıtlarını source miktar/snapshot ile taşı.
-14. Aktif production recipe/revision kayıtlarını ve channel account period settings + channel listing/location mapping'lerini taşı; açık production/subcontract order taşıma. Geçmiş channel order/sync history taşıma.
-15. K-256: source sales_order/purchase_order kalanlarını hesapla; kalan > 0 olanları target period'da yeni confirmed order snapshot'ı olarak oluştur, provenance yaz ve sales-order aktif rezervasyonlarını location bazında yeniden kur. Kaynak sales_order kanal siparişiyse gerekli `channel_order_snapshot` target order'a aktif provenance olarak yeniden bağla; sync event/error geçmişini taşıma.
-16. Sequence'leri MAX(id)+1 ayarla.
-17. integrity:carry çalıştır; farkta exception.
+9. **Explicit ID ile kopyalanan tabloların sequence'lerini**, aynı tabloya herhangi bir normal/auto-ID insert yapılmadan önce `MAX(id)+1` seviyesine getir. Bu kural yalnız carry sonunda yapılan toplu bir düzeltmeye bırakılamaz.
+10. Opening stock movements'i closing moving average maliyetiyle yaz.
+11. product_costs kopyala.
+12. cari açılışlarını ve kasa/banka kapanış bakiyelerini hedefte opening movement olarak yaz; geçmiş `cash_movements` / `bank_movements` satırlarını kopyalama.
+13. vadesi gelmemiş çek/senetleri taşı.
+14. Açık quarantine kayıtlarını source miktar/snapshot ile taşı.
+15. Aktif production recipe/revision kayıtlarını ve channel account period settings + channel listing/location mapping'lerini taşı; açık production/subcontract order taşıma. Geçmiş channel order/sync history taşıma. Bu aşamada explicit ID ile kopyalanan başka bir tablo varsa aynı sequence kuralını o tablo için de auto-ID insert'ten önce uygula.
+16. K-256: source sales_order/purchase_order kalanlarını hesapla; kalan > 0 olanları target period'da yeni confirmed order snapshot'ı olarak oluştur. **Target sipariş target yılın kendi `number_series` serisinden yeni numara alır; source numara `period_document_carries.source_document_number` provenance alanında korunur.** Provenance yaz ve sales-order aktif rezervasyonlarını location bazında yeniden kur. Kaynak sales_order kanal siparişiyse gerekli `channel_order_snapshot` target order'a aktif provenance olarak yeniden bağla; sync event/error geçmişini taşıma.
+17. Carry boyunca explicit ID yazılmış tüm tabloların sequence'lerinin `MAX(id)+1` olduğunu final olarak doğrula; ardından integrity:carry çalıştır, farkta exception.
 18. Kaynak period'u closed yap ve carry metadata yaz.
 19. Transaction/business aşaması tamamlanınca kullanıcıya yetki devri ekranını aç.
 
@@ -51,9 +51,9 @@ Period hareketlerindeki actor alanı Master user scalar id + user_name snapshot;
 ## Kurallar
 - Aynı şirket dönem devrinde kartların ID ve kodları korunur.
 - Taşınan stock_balance kayıtlarının ID'si korunur; stock_movements geçmişi taşınmaz.
-- Sequence'ler kopya sonrası MAX(id)+1 seviyesine alınır.
+- Explicit ID ile kopyalanan her tablonun sequence'i, aynı tabloya ilk auto-ID insert yapılmadan önce `MAX(id)+1` seviyesine alınır; carry sonunda da final olarak doğrulanır.
 - Aktif kartlar ile bakiye/hareket ilişkili gerekli pasif kartlar taşınır.
-- Geçmiş belgeler, açık teklif ve taslak taşınmaz. Açık sales_order/purchase_order yalnız K-256 kalan-miktar snapshot akışıyla target'ta **yeni belge** olarak oluşur. Yoldaki transfer taşınmaz. **Açık karantina kayıtları miktar/snapshot ile taşınır.**
+- Geçmiş belgeler, açık teklif ve taslak taşınmaz. Açık sales_order/purchase_order yalnız K-256 kalan-miktar snapshot akışıyla target'ta **yeni belge** olarak oluşur. Target belge target yılın kendi numara serisinden yeni numara alır; source belge numarası `period_document_carries.source_document_number` ile provenance olarak korunur. Yoldaki transfer taşınmaz. **Açık karantina kayıtları miktar/snapshot ile taşınır.**
 - Açılış maliyeti kaynak period kapanış moving average değeridir.
 - product_costs sürekliliği korunur.
 - Cari bakiye contact_transactions toplamından açılış hareketine dönüştürülür.
@@ -72,7 +72,7 @@ Period hareketlerindeki actor alanı Master user scalar id + user_name snapshot;
 
 ### Uygulama ayrıntıları
 - Hedef period DB oluşturulup `migrate:periods` tamamlanmadan hiçbir kart/açılış kopyalanmaz.
-- Aynı şirket devrinde taşınan bütün kart ID+kodları ve taşınan stock_balance ID'leri korunur; sequence'ler `MAX(id)+1` yapılır.
+- Aynı şirket devrinde taşınan bütün kart ID+kodları ve taşınan stock_balance ID'leri korunur; explicit-ID kopyalanan tabloların sequence'leri o tabloya auto-ID insert yapılmadan önce `MAX(id)+1` yapılır ve carry sonunda yeniden doğrulanır.
 - Geçmiş belge/hareket, açık teklif, taslak ve yoldaki transfer taşınmaz; açık sales_order/purchase_order K-256 gereği kalan miktarla target snapshot'a dönüşür; **açık karantina kayıtları yeni period'a taşınır.**
 - `integrity:carry` kaynak kapanış ile hedef açılışı doğrulamadan kaynak period closed yapılmaz.
 - Devir başarıyla bittikten sonra kullanıcıya önceki dönem period erişim/permission override kayıtlarını seçerek kopyalama sorulur.
@@ -94,8 +94,8 @@ Period hareketlerindeki actor alanı Master user scalar id + user_name snapshot;
 - [ ] Geçmiş stock_movements hedefte yok.
 - [ ] Geçmiş documents hedefte yok; yalnız K-256 carry order snapshot'ları var.
 - [ ] Open quote hedefte yok.
-- [ ] Open sales_order kalan miktarı target confirmed order'a taşınmış.
-- [ ] Open purchase_order kalan miktarı target confirmed order'a taşınmış.
+- [ ] Open sales_order kalan miktarı target confirmed order'a taşınmış; target yılın `sales_order` numara serisinden yeni numara almış ve source numarası carry provenance'ta korunmuş.
+- [ ] Open purchase_order kalan miktarı target confirmed order'a taşınmış; target yılın `purchase_order` numara serisinden yeni numara almış ve source numarası carry provenance'ta korunmuş.
 - [ ] Sales-order aktif reservation location dağılımı target'ta yeniden kurulmuş.
 - [ ] Carried açık kanal sales_order için external order snapshot/provenance target'ta korunmuş; eski sync history yok.
 - [ ] Draft hedefte yok.
@@ -105,7 +105,7 @@ Period hareketlerindeki actor alanı Master user scalar id + user_name snapshot;
 - [ ] Cash/bank opening toplamları aynı.
 - [ ] Unmatured security taşınır.
 - [ ] Matured/closed security taşınmaz.
-- [ ] Sequence MAX(id)+1 değerine alınır.
+- [ ] Explicit-ID kopyalanan tabloda ilk auto-ID insert'ten önce ilgili sequence `MAX(id)+1` değerine alınır; carry sonunda tüm ilgili sequence'ler tekrar doğrulanır.
 - [ ] integrity:carry farkta source period'u kapatmaz.
 - [ ] Başarılı carry source period'u closed yapar.
 - [ ] carried_at metadata yazılır.
