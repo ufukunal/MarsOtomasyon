@@ -93,3 +93,7 @@ K-073 gereği satış satırı lokasyon taşıyabilir. Sipariş rezervasyonu bir
 - `vat_rate >= 0`
 - `cancelled_quantity >= 0 and cancelled_quantity <= quantity`
 - `source_line_id IS NULL OR source_line_id <> id` (doğrudan self-cycle engeli; daha uzun cycle Action/lineage resolver tarafından reddedilir)
+
+## Kodlama öncesi blokaj — A-125
+
+**[KARAR GEREKİYOR]** Faz 7 ithalat masraf faturası ve Faz 8 fason hizmet faturası için non-stock/service purchase invoice satır modeli henüz kilitli değildir. Mevcut şemada product/unit/quantity/base_quantity zorunludur. A-125 kapanmadan bu dosyanın final migration sözleşmesi code-ready değildir.
