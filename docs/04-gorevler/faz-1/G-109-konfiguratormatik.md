@@ -8,7 +8,11 @@
 G-106 (ürün kartı)
 
 ## Dokunulacak dosyalar
-- `database/migrations/period/`
+- config_definitions/config_options period migration'ları
+- ilgili period modelleri
+- ürün formu Konfigürasyon sekmesi + blade
+- required/default option validation helper'ları
+- `tests/Feature/Products/ProductConfiguratorTest.php`
 
 
 ## Şema / Kod
