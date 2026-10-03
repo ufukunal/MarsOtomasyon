@@ -8,9 +8,9 @@ Dönem devri ayrı yetkidir. Kaynak kapatma / gerekirse yeniden açma gerekçeli
 
 ## Ön kontrol
 
-Kapanmamış ay, açık teklif/sipariş, taslak, yoldaki transfer, karantina, negatif stok, son integrity sonucu, hedef DB'nin varlığı kontrol edilir.
+Kapanmamış ay, açık teklif, taslak, **aktarılacak açık satış/satınalma siparişleri**, yoldaki transfer, karantina, negatif stok, son integrity sonucu ve hedef DB'nin varlığı kontrol edilir.
 
-Açık teklif/sipariş/taslak ve yoldaki transfer taşınmaz. **Açık karantina blok değildir; open quantity/snapshot ile yeni döneme taşınır.** Açık production/subcontract order ve yoldaki transfer carry tamamlanmasını bloklar.
+Açık teklif/taslak ve yoldaki transfer taşınmaz. **Açık sales_order ve purchase_order K-256 gereği yalnız kalan miktarlarıyla yeni period'a aktarılır.** **Açık karantina blok değildir; open quantity/snapshot ile yeni döneme taşınır.** Açık production/subcontract order ve yoldaki transfer carry tamamlanmasını bloklar.
 
 ## Önizleme
 
@@ -25,7 +25,9 @@ Taşınacak:
 - açık quarantine kayıtları,
 - aktif production recipe/revision,
 - subcontractor location fiziksel stokları,
-- channel listing/location mapping.
+- channel listing/location mapping,
+- açık satış/satınalma siparişlerinin kalan miktar snapshot'ları,
+- açık satış siparişlerinin aktif rezervasyonları.
 
 Aynı şirket devrinde taşınan bütün kart ID+kodları ve taşınan stock_balance ID'leri korunur.
 
@@ -41,11 +43,12 @@ Aynı şirket devrinde taşınan bütün kart ID+kodları ve taşınan stock_bal
 8. vadesi gelmemiş çek/senet.
 9. açık quarantine kayıtlarını taşı.
 10. production recipe/revision ve channel listing/location mapping taşı; açık production/subcontract order ve channel order/sync history taşıma.
-11. sequence'leri `MAX(id)+1` ayarla.
-12. `integrity:carry`.
-13. kaynak period'u closed yap.
-14. periods carry metadata doldur.
-15. **Devri bitirdikten sonra** “Önceki dönemin kullanıcı yetkilerini yeni döneme kopyala?” adımı göster; kullanıcılar seçilebilir ve period erişim + dönemsel permission override kopyalanır.
+11. Açık sales_order/purchase_order için yalnız kalan miktarlardan target-year yeni sipariş snapshot'ları oluştur; sales-order aktif rezervasyonlarını location bazında yeniden kur; cross-period provenance yaz.
+12. sequence'leri `MAX(id)+1` ayarla.
+13. `integrity:carry`.
+14. kaynak period'u closed yap.
+15. periods carry metadata doldur.
+16. **Devri bitirdikten sonra** “Önceki dönemin kullanıcı yetkilerini yeni döneme kopyala?” adımı göster; kullanıcılar seçilebilir ve period erişim + dönemsel permission override kopyalanır.
 
 ## Geri alma
 
