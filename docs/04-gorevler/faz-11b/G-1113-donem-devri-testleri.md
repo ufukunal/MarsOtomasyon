@@ -32,6 +32,8 @@ Yeni production şeması yok.
 - açık sales_order/purchase_order yalnız remaining snapshot carry
 - sales-order reservation location dağılımının yeniden kurulması
 - cross-period order provenance
+- carried açık channel sales_order için channel_order_snapshot provenance
+- channel sync event/error history taşınmaması
 - open production/in-transit blocker
 - sequence MAX+1
 - idempotency
