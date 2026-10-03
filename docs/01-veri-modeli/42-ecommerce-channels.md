@@ -262,9 +262,11 @@ Taşınır:
 
 Taşınmaz:
 
-- channel_order_snapshots,
+- geçmiş/tamamlanmış siparişlere ait channel_order_snapshots,
 - channel_sync_events,
 - channel_sync_errors.
+
+K-256 istisnası: target period'a kalan miktarıyla taşınan **açık kanal kaynaklı sales_order** için external order korelasyonunun devam etmesi amacıyla ilgili `channel_order_snapshot` target order'a yeni kayıt olarak kopyalanır. Bu kayıt history kopyası değil, taşınan açık siparişin aktif provenance'ıdır. Eski sync event/error geçmişi taşınmaz.
 
 Master sales_channel_accounts ve channel_external_event_registry zaten yıl bağımsızdır.
 
