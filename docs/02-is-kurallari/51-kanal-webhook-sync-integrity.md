@@ -67,7 +67,8 @@ K-196:
 - account Master'da kalır,
 - listing mapping/location kapsamı yeni period'a taşınır,
 - external listing ids korunur,
-- order/sync history taşınmaz.
+- geçmiş/tamamlanmış order snapshot ve sync history taşınmaz.
+- K-256 ile target'a taşınan açık kanal sales_order için minimal `channel_order_snapshot` target order'a yeniden bağlanır; external_order_id/channel_account/shipping-package provenance korunur. Sync event/error geçmişi yine taşınmaz.
 
 ## Integrity
 
