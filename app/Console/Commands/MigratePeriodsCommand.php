@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Actions\ReferenceData\SeedPeriodReferenceData;
 use App\Models\Period;
 use App\Support\Period\PeriodContext;
 use App\Support\Period\PeriodSchemaVersion;
@@ -76,6 +77,8 @@ class MigratePeriodsCommand extends Command
                         $this->comment('Pretend: schema_version değiştirilmedi.');
                         continue;
                     }
+
+                    app(SeedPeriodReferenceData::class)->handle();
 
                     $version = $schemaVersion->currentDatabaseVersion();
 

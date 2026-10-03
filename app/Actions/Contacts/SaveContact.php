@@ -28,7 +28,9 @@ final class SaveContact
                 'type' => (string) ($data['type'] ?? 'legal'),
                 'tax_office' => trim((string) ($data['tax_office'] ?? '')) ?: null,
                 'tax_number' => trim((string) ($data['tax_number'] ?? '')) ?: null,
-                'national_id' => trim((string) ($data['national_id'] ?? '')) ?: null,
+                'national_id' => array_key_exists('national_id', $data)
+                    ? (trim((string) $data['national_id']) ?: null)
+                    : $contact?->national_id,
                 'address' => trim((string) ($data['address'] ?? '')) ?: null,
                 'city' => trim((string) ($data['city'] ?? '')) ?: null,
                 'district' => trim((string) ($data['district'] ?? '')) ?: null,

@@ -12,8 +12,11 @@ final class SaveVariantValues
 {
     public function handle(Product $product, int $groupId, array $values): array
     {
-        if ($product->variant_group_id !== $groupId) {
-            $product->update(['variant_group_id' => $groupId]);
+        if ((int) $product->variant_group_id !== $groupId) {
+            $product = $product->updateWithVersion(
+                ['variant_group_id' => $groupId],
+                (int) $product->version,
+            );
         }
 
         $attributes = VariantAttribute::query()
@@ -30,13 +33,23 @@ final class SaveVariantValues
 
         return DB::connection('period')->transaction(function () use ($product, $values): array {
             foreach ($values as $attributeId => $value) {
-                ProductVariantValue::query()->updateOrCreate(
-                    [
+                $existing = ProductVariantValue::query()
+                    ->where('product_id', $product->id)
+                    ->where('variant_attribute_id', (int) $attributeId)
+                    ->first();
+
+                if ($existing) {
+                    $existing->updateWithVersion(
+                        ['value' => trim((string) $value)],
+                        (int) $existing->version,
+                    );
+                } else {
+                    ProductVariantValue::query()->create([
                         'product_id' => $product->id,
                         'variant_attribute_id' => (int) $attributeId,
-                    ],
-                    ['value' => trim((string) $value)],
-                );
+                        'value' => trim((string) $value),
+                    ]);
+                }
             }
 
             return $this->duplicateCombinationWarnings($product);

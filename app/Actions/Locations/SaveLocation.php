@@ -49,9 +49,11 @@ final class SaveLocation
                 return Location::query()->create($attributes);
             }
 
-            if ($location->isDirty('code')) {
+            if ($location->code !== $attributes['code']) {
                 throw ValidationException::withMessages(['code' => 'Lokasyon kodu kayıt sonrası değiştirilemez.']);
             }
+
+            unset($attributes['code']);
 
             return $location->updateWithVersion($attributes, $expectedVersion ?? (int) $location->version);
         });

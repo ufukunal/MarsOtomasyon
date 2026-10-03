@@ -20,15 +20,26 @@ final class SaveProductCategory
             $depth = 2;
             $cursor = $parent;
 
-            while ($cursor->parent_id) {
+            while ($cursor) {
+                if ($category && (int) $cursor->id === (int) $category->id) {
+                    throw ValidationException::withMessages([
+                        'parent_id' => 'Kategori kendi alt dalının altına taşınamaz.',
+                    ]);
+                }
+
+                if (! $cursor->parent_id) {
+                    break;
+                }
+
                 $depth++;
-                $cursor = ProductCategory::query()->findOrFail($cursor->parent_id);
 
                 if ($depth > 3) {
                     throw ValidationException::withMessages([
                         'parent_id' => 'Kategori ağacı en fazla 3 seviye olabilir.',
                     ]);
                 }
+
+                $cursor = ProductCategory::query()->findOrFail($cursor->parent_id);
             }
         }
 

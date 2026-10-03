@@ -7,18 +7,25 @@
         <button type="button" wire:click="upload">Yükle</button>
     </div>
 
+    @if($usingFallback)
+        <div class="alert alert-warning">Bu set boş; önizlemede Ortak görseller kullanılıyor. Sıralama/silme Ortak sekmesinden yapılır.</div>
+    @endif
+
     <div class="image-grid">
         @forelse($images as $imageRow)
             <article class="image-card">
+                <img class="product-image-preview" src="{{ route('products.images.show', ['product'=>$product->id,'attachment'=>$imageRow->id]) }}" alt="">
                 <div class="image-meta">
                     @if($loop->first)<strong>Ana görsel</strong>@endif
                     <span>{{ $imageRow->original_name }}</span>
                 </div>
-                <div class="form-row">
-                    <button type="button" wire:click="move({{ $imageRow->id }}, 'up')">↑</button>
-                    <button type="button" wire:click="move({{ $imageRow->id }}, 'down')">↓</button>
-                    <button type="button" wire:click="delete({{ $imageRow->id }})">Sil</button>
-                </div>
+                @unless($usingFallback)
+                    <div class="form-row">
+                        <button type="button" wire:click="move({{ $imageRow->id }}, 'up')">↑</button>
+                        <button type="button" wire:click="move({{ $imageRow->id }}, 'down')">↓</button>
+                        <button type="button" wire:click="delete({{ $imageRow->id }})">Sil</button>
+                    </div>
+                @endunless
             </article>
         @empty
             <p>Bu sette görsel yok. Kanal çözümlemesinde Ortak sete düşülür.</p>

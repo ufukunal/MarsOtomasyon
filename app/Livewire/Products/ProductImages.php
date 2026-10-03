@@ -4,8 +4,8 @@ namespace App\Livewire\Products;
 
 use App\Actions\Products\ReorderProductImages;
 use App\Actions\Products\StoreProductImage;
-use App\Models\Attachment;
 use App\Models\Period\Product;
+use App\Support\Products\ProductImageResolver;
 use Illuminate\Contracts\View\View;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -71,14 +71,19 @@ class ProductImages extends Component
         $action->handle($this->product, $this->collection, $ids);
     }
 
-    public function render(): View
+    public function render(ProductImageResolver $resolver): View
     {
+        $directCount = $this->product->attachments()
+            ->where('collection', $this->collection)
+            ->count();
+
+        $fallback = (string) config('product_images.fallback', 'Ortak');
+        $usingFallback = $directCount === 0 && $this->collection !== $fallback;
+
         return view('livewire.products.product-images', [
             'collections' => config('product_images.collections', []),
-            'images' => $this->product->attachments()
-                ->where('collection', $this->collection)
-                ->orderBy('sort_order')
-                ->get(),
+            'images' => $resolver->forCollection($this->product, $this->collection),
+            'usingFallback' => $usingFallback,
         ]);
     }
 }

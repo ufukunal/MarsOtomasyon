@@ -4,12 +4,19 @@ namespace App\Actions\Pricing;
 
 use App\Models\Period\PriceList;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 final class BulkAdjustPriceList
 {
     public function handle(PriceList $list, string $percent): int
     {
         $multiplier = bcadd('1', bcdiv($percent, '100', 8), 8);
+
+        if (bccomp($multiplier, '0', 8) < 0) {
+            throw ValidationException::withMessages([
+                'percent' => 'Toplu fiyat değişimi fiyatı negatife indiremez.',
+            ]);
+        }
         $updated = 0;
 
         DB::connection('period')->transaction(function () use ($list, $multiplier, &$updated): void {

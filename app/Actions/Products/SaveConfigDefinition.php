@@ -56,18 +56,28 @@ final class SaveConfigDefinition
                     }
                 }
 
-                $row = ConfigOption::query()->updateOrCreate(
-                    [
-                        'id' => $option['id'] ?? null,
+                $optionAttributes = [
+                    'component_product_id' => $componentId ?: null,
+                    'label' => trim((string) $option['label']),
+                    'sort_order' => (int) ($option['sort_order'] ?? $index),
+                    'is_default' => (bool) ($option['is_default'] ?? false),
+                ];
+
+                if (! empty($option['id'])) {
+                    $row = ConfigOption::query()
+                        ->where('config_definition_id', $definition->id)
+                        ->findOrFail((int) $option['id']);
+
+                    $row = $row->updateWithVersion(
+                        $optionAttributes,
+                        (int) ($option['version'] ?? $row->version),
+                    );
+                } else {
+                    $row = ConfigOption::query()->create([
                         'config_definition_id' => $definition->id,
-                    ],
-                    [
-                        'component_product_id' => $componentId ?: null,
-                        'label' => trim((string) $option['label']),
-                        'sort_order' => (int) ($option['sort_order'] ?? $index),
-                        'is_default' => (bool) ($option['is_default'] ?? false),
-                    ],
-                );
+                        ...$optionAttributes,
+                    ]);
+                }
 
                 $keep[] = $row->id;
             }
