@@ -11,7 +11,7 @@ return [
     ],
 
     'integrity' => [
-        'checks' => ['stock', 'documents', 'contacts', 'numbers'],
+        'checks' => ['stock', 'documents', 'contacts', 'numbers', 'files'],
         'max_age_hours' => 72,
     ],
 ];

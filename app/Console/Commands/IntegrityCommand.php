@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Models\Period;
 use App\Support\Integrity\Checks\ContactBalanceCheck;
 use App\Support\Integrity\Checks\DocumentTotalCheck;
+use App\Support\Integrity\Checks\FilesIntegrityCheck;
 use App\Support\Integrity\Checks\NumberSeriesCheck;
 use App\Support\Integrity\Checks\StockBalanceCheck;
 use App\Support\Integrity\IntegrityRunner;
@@ -31,6 +32,7 @@ class IntegrityCommand extends Command
             DocumentTotalCheck::class,
             ContactBalanceCheck::class,
             NumberSeriesCheck::class,
+            FilesIntegrityCheck::class,
         ];
 
         try {
