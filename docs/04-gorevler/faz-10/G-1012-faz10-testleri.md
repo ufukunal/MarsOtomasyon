@@ -31,6 +31,10 @@ Yeni production şeması yok.
 - Print profile resolution doğru.
 - Product/carton labels doğru.
 - Queue export doğru period context.
+- `integrity:report-presets` geçersiz report/kolon/filter veya scope bozulmasını yakalıyor.
+- `integrity:templates` revision/default-active/definition invariant bozulmasını yakalıyor.
+- `integrity:print-provenance` çözülemeyen/çelişen template revision provenance'ını yakalıyor.
+- `integrity:all` bu üç Faz 10 kontrolünü de çalıştırıyor; hiçbirisi business verisini otomatik düzeltmiyor.
 - Pint/Larastan/Pest yeşil.
 
 ## İstem
