@@ -21,10 +21,10 @@ Avize toptan ticareti için firmaya özel ERP. Ön muhasebe, cari, kasa/banka/ç
 - Aynı period DB içindeki ilişkiler gerçek FK kullanır; Master kullanıcı gibi cross-DB referanslarda gerçek FK kurulmaz.
 - Dağıtım `migrate:periods` ile tüm period DB'leri günceller.
 
-Repo şu anda şartname/görev deposudur. Kod, görev dosyaları uygulanırken üretilecektir.
+Repo şu anda şartname/görev deposudur. Kodlama bu çalışma kapsamında yapılmıyor.
 
 
-## Kodlama öncesi durum
+## Güncel durum
 
 Plan/dokümantasyon fazları tamamlandı. A-125 K-257 ile, A-126 K-258 ile, A-127 K-256 ile kapatıldı; açık ürün kararı yoktur. Bu repo şu aşamada dokümantasyon/görev deposudur; kodlama bu çalışma kapsamında yapılmıyor.
 
