@@ -107,7 +107,7 @@ Her şirket+yıl ayrı period DB. Kartlar dahil işletme verisi period DB'dedir.
 - İş kuralları 39–41.
 - Ekranlar: satış iadesi, alış iadesi, karantina kontrolü, kaynak seçimi.
 - G-600…G-609 hazırdır.
-- Açık kararlar A-125 ve A-126'dır. A-127 K-256 ile kapatıldı. A-125/A-126 kapanmadan ilgili Faz 4/7/8 görevlerini kodlama.
+- Açık kararlar A-125 ve A-126'dır. A-127 K-256 ile kapatıldı. Açık ürün kararı yoktur; ilgili görevler K-257/K-258'e göre günceldir.
 
 ## Faz 7 ithalat kilitleri
 
@@ -133,7 +133,7 @@ Her şirket+yıl ayrı period DB. Kartlar dahil işletme verisi period DB'dedir.
 - Ekranlar: ithalat listesi, detay, masraf dağıtımı, late-cost adjustment.
 - G-700…G-709 hazırdır.
 - K-130: inventory cost adjustment unit farkı original import base_quantity üzerinden moving_average'a eklenir; current on-hand quantity formül paydası değildir.
-- Açık kararlar A-125 ve A-126'dır. A-127 K-256 ile kapatıldı. A-125/A-126 kapanmadan ilgili Faz 4/7/8 görevlerini kodlama.
+- Açık kararlar A-125 ve A-126'dır. A-127 K-256 ile kapatıldı. Açık ürün kararı yoktur; ilgili görevler K-257/K-258'e göre günceldir.
 
 ## Faz 8 üretim/fason kilitleri
 
@@ -247,7 +247,7 @@ Faz 0, 0b, 1, 2 görevleri standalone standarda göre temizlendi. **Faz 3–10, 
 
 Her görev şu bölümleri içerir: Amaç, Önkoşul, Dokunulacak dosyalar, Şema/Kod, Kurallar, Kabul ölçütü, İstem. Bir görev tek başına yerel modele verilebilir olmalıdır. **Satır sayısı hedef değildir.** 300–500 satır yalnız iş gerçekten o ayrıntıyı gerektiriyorsa doğal sonuç olabilir. Aynı genel checklist, mimari kural veya test maddesini sırf uzunluk için tekrar etmek yasaktır. Kaynaklarda tanımlanmayan alan, tablo, Action, sınıf, iş kuralı veya test beklentisi uydurulmaz. Eksik karar varsa `[KARAR GEREKİYOR]` yazılır ve kullanıcıya seçenek sunulur.
 
-Açık kararlar A-125 ve A-126'dır. A-127 K-256 ile kapatıldı. A-125/A-126 kapanmadan ilgili Faz 4/7/8 görevlerini kodlama.
+Açık kararlar A-125 ve A-126'dır. A-127 K-256 ile kapatıldı. Açık ürün kararı yoktur; ilgili görevler K-257/K-258'e göre günceldir.
 
 
 ## Anti-halüsinasyon görev kuralı
@@ -259,3 +259,13 @@ Açık kararlar A-125 ve A-126'dır. A-127 K-256 ile kapatıldı. A-125/A-126 ka
 - Bir alanın adı, tipi veya davranışı kaynakta yoksa model tahmin etmez.
 - “Muhtemelen gerekir” türü tahminler şemaya işlenmez; `[KARAR GEREKİYOR]` olarak ayrılır.
 - Claude/yerel model görevi uygularken görev dosyasını genişletip yeni ürün kararı vermez.
+
+## 03.10.2026 — 156 görev final kalite denetimi
+
+- `docs/04-gorevler/` altındaki **156/156 G dosyası tek tek okundu**.
+- **58 görev/özet dosyasında doğrudan kalite düzeltmesi** yapıldı; diğerleri mevcut kanonik sözleşmeyle uyumlu bulundu.
+- Başlıca düzeltmeler: generic dosya kapsamları, G-115 Faz 4 scope taşması, sayım snapshot matematiği, quarantine gerçek kaynak ayrımı, K-257 mixed/service invoice zinciri, K-257/K-258 ithalat/fason çaprazları, K-256 kanal order carry provenance, G-1006↔G-1112 dairesel sahiplik ve stale production deploy akışı.
+- Stale placeholder/`[KARAR GEREKİYOR]`/eski faz-onay metni kalmadı.
+- Açık ürün kararı yoktur.
+- Ayrıntılı rapor: `docs/00-genel/10-gorev-kalite-denetimi.md`.
+- Kodlama yapılmadı.
