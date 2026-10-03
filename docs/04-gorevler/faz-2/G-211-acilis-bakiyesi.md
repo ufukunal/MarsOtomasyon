@@ -12,7 +12,11 @@ G-202, G-112 (içe aktarma)
 
 
 ## Dokunulacak dosyalar
-- `database/migrations/period/`
+- opening balance import Livewire + blade
+- ImportOpeningStock Action/job
+- opening row validator/DTO
+- import result report
+- `tests/Feature/Stock/OpeningBalanceTest.php`
 
 
 ## Şema / Kod
