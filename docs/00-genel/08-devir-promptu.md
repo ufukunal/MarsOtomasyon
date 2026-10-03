@@ -107,7 +107,7 @@ Her şirket+yıl ayrı period DB. Kartlar dahil işletme verisi period DB'dedir.
 - İş kuralları 39–41.
 - Ekranlar: satış iadesi, alış iadesi, karantina kontrolü, kaynak seçimi.
 - G-600…G-609 hazırdır.
-- Açık A kararı yoktur.
+- Açık kararlar A-125, A-126 ve A-127'dir. Bu üç karar kapanmadan ilgili Faz 4/7/8/11b görevlerini kodlama.
 - Faz 7 kullanıcı onayı olmadan başlatılmaz.
 
 ## Faz 7 ithalat kilitleri
@@ -134,7 +134,7 @@ Her şirket+yıl ayrı period DB. Kartlar dahil işletme verisi period DB'dedir.
 - Ekranlar: ithalat listesi, detay, masraf dağıtımı, late-cost adjustment.
 - G-700…G-709 hazırdır.
 - K-130: inventory cost adjustment unit farkı original import base_quantity üzerinden moving_average'a eklenir; current on-hand quantity formül paydası değildir.
-- Açık A kararı yoktur.
+- Açık kararlar A-125, A-126 ve A-127'dir. Bu üç karar kapanmadan ilgili Faz 4/7/8/11b görevlerini kodlama.
 
 ## Faz 8 üretim/fason kilitleri
 
@@ -220,6 +220,14 @@ Her şirket+yıl ayrı period DB. Kartlar dahil işletme verisi period DB'dedir.
 - K-236…K-255 immutable deploy, backup/restore, health/security ve cutover/rollback davranışlarını kilitler.
 - Tüm planlama/dokümantasyon fazları tamamlandı; bundan sonraki ana çalışma görevlerin uygulanmasıdır.
 
+## Kodlama öncesi bütünlük blokajları
+
+- A-125: non-stock service purchase_invoice satır modeli.
+- A-126: fason hizmet maliyetinin kısmi completion'lara dağıtım yöntemi.
+- A-127: dönem devrinde açık satış/alış belgelerinin kapatma/taşıma politikası.
+- Teknik olarak location alanı `kind`, production service invoice bağı `production_service_invoices`, subcontract late cost provenance `production_completion_id`, kanal-period marketplace customer eşlemesi `channel_account_period_settings` olarak düzeltilmiştir.
+- A-125…A-127 kapanmadan kodlamaya başlama.
+
 ## Dönem devri
 
 Aktif kartlar + gerekli pasif kartlar kopyalanır. Taşınan bütün kartların ID/kodları ve taşınan stock_balance ID'leri aynı şirkette korunur. Geçmiş hareketler/belgeler/açık teklif-sipariş/taslak/yoldaki transfer/karantina taşınmaz. Açılış maliyeti kapanış hareketli ortalamasıdır. Devir sonunda kullanıcıya önceki dönem kullanıcı/dönem erişim ve dönemsel yetkilerini yeni döneme seçerek kopyalama sorulur.
@@ -234,7 +242,7 @@ Faz 0, 0b, 1, 2 görevleri standalone standarda göre temizlendi. **Faz 3–10, 
 
 Her görev şu bölümleri içerir: Amaç, Önkoşul, Dokunulacak dosyalar, Şema/Kod, Kurallar, Kabul ölçütü, İstem. Bir görev tek başına yerel modele verilebilir olmalıdır. **Satır sayısı hedef değildir.** 300–500 satır yalnız iş gerçekten o ayrıntıyı gerektiriyorsa doğal sonuç olabilir. Aynı genel checklist, mimari kural veya test maddesini sırf uzunluk için tekrar etmek yasaktır. Kaynaklarda tanımlanmayan alan, tablo, Action, sınıf, iş kuralı veya test beklentisi uydurulmaz. Eksik karar varsa `[KARAR GEREKİYOR]` yazılır ve kullanıcıya seçenek sunulur.
 
-Açık A kararı yoktur. Faz 7 K-114…K-130, Faz 8 K-131…K-162, Faz 9 K-163…K-201, Faz 10 K-202…K-235 ve Faz 11 K-236…K-255 ile kilitlidir.
+Açık kararlar A-125, A-126 ve A-127'dir. Bu üç karar kapanmadan ilgili Faz 4/7/8/11b görevlerini kodlama.
 
 
 ## Anti-halüsinasyon görev kuralı
