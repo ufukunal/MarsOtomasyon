@@ -5,10 +5,11 @@ namespace App\Models;
 use App\Support\Concurrency\HasOptimisticLock;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
 /**
- * @property \Illuminate\Support\Carbon $starts_on
- * @property \Illuminate\Support\Carbon $ends_on
+ * @property Carbon $starts_on
+ * @property Carbon $ends_on
  */
 class Period extends MasterModel
 {

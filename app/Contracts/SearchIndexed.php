@@ -10,7 +10,7 @@ interface SearchIndexed
     public function searchableFields(): array;
 
     /**
-     * @param Builder<static> $query
+     * @param  Builder<static>  $query
      * @return Builder<static>
      */
     public function scopeSearch(Builder $query, ?string $term): Builder;

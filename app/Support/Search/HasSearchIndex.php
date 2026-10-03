@@ -19,7 +19,7 @@ trait HasSearchIndex
     protected static function bootHasSearchIndex(): void
     {
         static::saving(function (Model $model): void {
-            if (! $model instanceof SearchIndexed) {
+            if (!($model instanceof SearchIndexed)) {
                 return;
             }
 
@@ -36,7 +36,7 @@ trait HasSearchIndex
     }
 
     /**
-     * @param Builder<static> $query
+     * @param  Builder<static>  $query
      * @return Builder<static>
      */
     public function scopeSearch(Builder $query, ?string $term): Builder
