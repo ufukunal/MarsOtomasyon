@@ -8,7 +8,13 @@
 G-0b2 (tablo bileşeni)
 
 ## Dokunulacak dosyalar
-- `database/migrations/period/`
+- `database/migrations/period/*_create_units_table.php`
+- `database/migrations/period/*_create_unit_conversions_table.php`
+- Unit/UnitConversion period modelleri
+- unit conversion resolver/helper
+- birim liste/form ekranları
+- unit seeder
+- `tests/Feature/Units/UnitConversionTest.php`
 
 ## Amaç
 Adet, kutu, kg gibi birimler ve aralarındaki dönüşüm katsayıları.
