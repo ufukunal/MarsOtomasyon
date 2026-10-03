@@ -42,7 +42,9 @@ Yeni production şeması yok. Testler Faz 4 belgeleri ve integrity komutlarını
 
 ### Alış faturası
 
-- direct purchase_invoice stock in + contact credit,
+- direct stock-only purchase_invoice stock in + contact credit,
+- service-only purchase_invoice contact credit/KDV/toplam üretir; stock movement/moving-average üretmez,
+- mixed stock+service purchase_invoice cari credit'i tam grand_total üzerinden üretir; yalnız stock satırlar stock in + moving average üretir,
 - receipt-source invoice stock ilk kez invoice'da,
 - partial receipt invoice 60/40,
 - multi-receipt same supplier/currency merge,
@@ -70,7 +72,9 @@ Yeni production şeması yok. Testler Faz 4 belgeleri ve integrity komutlarını
 
 ### Reverse
 
-- purchase_invoice inverse stock out + debit,
+- stock-only purchase_invoice inverse stock out + debit,
+- service-only purchase_invoice reverse yalnız debit; stock movement yok,
+- mixed purchase_invoice reverse yalnız stock satırları out yapar ve tam belge tutarını debit ile tersler,
 - goods_receipt reverse stock/cari etkisiz,
 - duplicate reverse engeli,
 - reversed child partial toplamdan çıkar.
@@ -106,7 +110,7 @@ Fark otomatik düzeltilmez.
 - Pint yeşil.
 - Larastan level 6 yeni hata yok.
 - Period DB'ler arası veri sızıntısı yok.
-- K-086…K-091 ile çelişen davranış yok.
+- K-086…K-091 ve K-257 ile çelişen davranış yok.
 - Yeni açık ürün kararı kod içinde uydurulmamış.
 
 ## İstem
