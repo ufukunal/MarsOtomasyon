@@ -120,7 +120,7 @@ Açık ürün kararı yoktur.
 ## 156 görev final kalite denetimi — 03.10.2026
 
 - **156/156 G dosyası tek tek okunmuştur.**
-- **58 görev/özet dosyasında doğrudan kalite düzeltmesi yapılmıştır.**
+- **59 görev/özet dosyasında doğrudan kalite düzeltmesi yapılmıştır.**
 - Ayrıntılı görev bazlı kayıt: `docs/00-genel/10-gorev-kalite-denetimi.md`.
 - Generic placeholder, stale faz-onay metni, açık `[KARAR GEREKİYOR]`, bilinen alan adı/bağımlılık çelişkisi kalmamıştır.
 - G-115 Faz 4'e doğru scope edilmiştir.
