@@ -20,7 +20,7 @@ class ContactAddress extends PeriodModel
         ];
     }
 
-    /** @return \Illuminate\Database\Eloquent\Relations\BelongsTo<Contact, $this> */
+    /** @return BelongsTo<Contact, $this> */
     public function contact(): BelongsTo
     {
         return $this->belongsTo(Contact::class);

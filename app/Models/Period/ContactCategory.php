@@ -20,7 +20,7 @@ class ContactCategory extends PeriodModel
         ];
     }
 
-    /** @return \Illuminate\Database\Eloquent\Relations\BelongsToMany<Contact, $this> */
+    /** @return BelongsToMany<Contact, $this> */
     public function contacts(): BelongsToMany
     {
         return $this->belongsToMany(

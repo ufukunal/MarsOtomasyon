@@ -9,7 +9,7 @@ class CardImportError extends PeriodModel
 {
     protected $fillable = ['batch_id', 'row_no', 'column_name', 'value', 'message'];
 
-    /** @return \Illuminate\Database\Eloquent\Relations\BelongsTo<CardImportBatch, $this> */
+    /** @return BelongsTo<CardImportBatch, $this> */
     public function batch(): BelongsTo
     {
         return $this->belongsTo(CardImportBatch::class, 'batch_id');

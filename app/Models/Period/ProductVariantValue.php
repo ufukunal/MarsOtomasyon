@@ -17,13 +17,13 @@ class ProductVariantValue extends PeriodModel
         return ['version' => 'integer'];
     }
 
-    /** @return \Illuminate\Database\Eloquent\Relations\BelongsTo<Product, $this> */
+    /** @return BelongsTo<Product, $this> */
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
     }
 
-    /** @return \Illuminate\Database\Eloquent\Relations\BelongsTo<VariantAttribute, $this> */
+    /** @return BelongsTo<VariantAttribute, $this> */
     public function attribute(): BelongsTo
     {
         return $this->belongsTo(VariantAttribute::class, 'variant_attribute_id');

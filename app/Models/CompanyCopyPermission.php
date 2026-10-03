@@ -36,7 +36,7 @@ class CompanyCopyPermission extends MasterModel
         });
     }
 
-    /** @return \Illuminate\Database\Eloquent\Relations\BelongsTo<Company, $this> */
+    /** @return BelongsTo<Company, $this> */
     public function sourceCompany(): BelongsTo
     {
         return $this->belongsTo(Company::class, 'source_company_id');

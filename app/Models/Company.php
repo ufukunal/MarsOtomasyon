@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Database\Factories\CompanyFactory;
 use App\Support\Concurrency\HasOptimisticLock;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -12,7 +13,7 @@ use Spatie\Activitylog\Support\LogOptions;
 
 class Company extends MasterModel
 {
-    /** @use HasFactory<\Database\Factories\CompanyFactory> */
+    /** @use HasFactory<CompanyFactory> */
     use HasFactory;
     use HasOptimisticLock;
     use LogsActivity;

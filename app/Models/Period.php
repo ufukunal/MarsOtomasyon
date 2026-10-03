@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Database\Factories\PeriodFactory;
 use App\Support\Concurrency\HasOptimisticLock;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -13,7 +14,7 @@ use Illuminate\Support\Carbon;
  */
 class Period extends MasterModel
 {
-    /** @use HasFactory<\Database\Factories\PeriodFactory> */
+    /** @use HasFactory<PeriodFactory> */
     use HasFactory;
     use HasOptimisticLock;
 

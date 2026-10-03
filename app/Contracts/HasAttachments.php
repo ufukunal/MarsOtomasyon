@@ -7,6 +7,6 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 interface HasAttachments
 {
-    /** @return \Illuminate\Database\Eloquent\Relations\MorphMany<Attachment, $this> */
+    /** @return MorphMany<Attachment, $this> */
     public function attachments(): MorphMany;
 }
