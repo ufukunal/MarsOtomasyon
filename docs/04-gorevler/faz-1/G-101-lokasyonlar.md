@@ -8,7 +8,12 @@
 G-0b2 (tablo bileşeni)
 
 ## Dokunulacak dosyalar
-- `database/migrations/period/`
+- `database/migrations/period/*_create_locations_table.php`
+- `app/Models/Period/Location.php`
+- `app/Enums/LocationKind.php`
+- location list/form Livewire + blade
+- location policy/validation Action'ları
+- `tests/Feature/Locations/LocationCrudTest.php`
 
 ## Amaç
 Stok tutulan yerler: **depo, şube, araç**. Araç sıcak satışta kullanılır.
@@ -28,7 +33,7 @@ Form: kod, ad, tip seçimi, araçsa plaka alanı açılır, adres, varsayılan, 
 
 
 ### Göreve özel kararlar
-- Lokasyon tipleri warehouse|branch|vehicle; araç normal stok lokasyonu gibi davranır.
+- Faz 1 lokasyon tipleri warehouse|branch|vehicle; araç normal stok lokasyonu gibi davranır. Faz 8 G-801 `subcontractor` kind değerini bu tabloya sonradan ekler.
 - Satış satırı ileride lokasyon taşıyabilir; rezervasyon motoru bir satırı birden fazla lokasyona dağıtabilir.
 
 
