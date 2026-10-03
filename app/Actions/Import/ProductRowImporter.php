@@ -9,6 +9,7 @@ use App\Support\Import\RowValidationResult;
 
 final class ProductRowImporter
 {
+    /** @param array<string, mixed> $row */
     public function validate(array $row): RowValidationResult
     {
         $errors = [];

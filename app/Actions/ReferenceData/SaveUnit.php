@@ -10,6 +10,7 @@ use LogicException;
 
 final class SaveUnit
 {
+    /** @param array<string, mixed> $data */
     public function handle(array $data, ?Unit $unit = null, ?int $expectedVersion = null): Unit
     {
         MutationAuthorizer::authorize($unit ? 'units.update' : 'units.create');

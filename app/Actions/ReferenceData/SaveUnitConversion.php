@@ -9,6 +9,7 @@ use Illuminate\Validation\ValidationException;
 
 final class SaveUnitConversion
 {
+    /** @param array<string, mixed> $data */
     public function handle(array $data, ?UnitConversion $conversion = null, ?int $expectedVersion = null): UnitConversion
     {
         MutationAuthorizer::authorize('units.update');

@@ -11,6 +11,7 @@ use Illuminate\Validation\ValidationException;
 
 final class SaveLocation
 {
+    /** @param array<string, mixed> $data */
     public function handle(array $data, ?Location $location = null, ?int $expectedVersion = null): Location
     {
         MutationAuthorizer::authorize($location ? 'locations.update' : 'locations.create');

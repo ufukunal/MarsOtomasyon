@@ -8,6 +8,7 @@ use App\Support\Period\PeriodContext;
 
 final class SaveVariantGroup
 {
+    /** @param array<string, mixed> $data */
     public function handle(array $data, ?VariantGroup $group = null, ?int $expectedVersion = null): VariantGroup
     {
         MutationAuthorizer::authorize($group ? 'variant_groups.update' : 'variant_groups.create');

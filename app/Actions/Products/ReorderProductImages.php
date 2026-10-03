@@ -10,6 +10,7 @@ use Illuminate\Validation\ValidationException;
 
 final class ReorderProductImages
 {
+    /** @param list<int> $attachmentIds */
     public function handle(Product $product, string $collection, array $attachmentIds): void
     {
         MutationAuthorizer::authorize('products.update');

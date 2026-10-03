@@ -12,6 +12,10 @@ use Illuminate\Validation\ValidationException;
 
 final class SaveVariantValues
 {
+    /**
+     * @param array<int, mixed> $values
+     * @return list<string>
+     */
     public function handle(Product $product, int $groupId, array $values): array
     {
         MutationAuthorizer::authorize('products.update');
@@ -63,6 +67,7 @@ final class SaveVariantValues
         });
     }
 
+    /** @return list<string> */
     private function duplicateCombinationWarnings(Product $product): array
     {
         $current = $product->variantValues()

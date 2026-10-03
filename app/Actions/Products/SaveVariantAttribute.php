@@ -9,6 +9,7 @@ use App\Support\Period\PeriodContext;
 
 final class SaveVariantAttribute
 {
+    /** @param array<string, mixed> $data */
     public function handle(
         VariantGroup $group,
         array $data,

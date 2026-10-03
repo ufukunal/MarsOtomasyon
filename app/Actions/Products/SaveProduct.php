@@ -9,6 +9,7 @@ use Illuminate\Validation\ValidationException;
 
 final class SaveProduct
 {
+    /** @param array<string, mixed> $data */
     public function handle(
         array $data,
         ?Product $product = null,
