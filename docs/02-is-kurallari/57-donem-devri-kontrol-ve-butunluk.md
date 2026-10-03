@@ -8,7 +8,8 @@ Kontroller:
 - period açık/uygun durumda mı,
 - target year mevcut mu,
 - target DB daha önce business data almış mı,
-- açık teklif/sipariş/taslak/yoldaki transfer var mı,
+- açık teklif/taslak/yoldaki transfer var mı,
+- aktarılacak açık sales_order/purchase_order ve kalan miktar/rezervasyon özeti,
 - açık production/subcontract order var mı,
 - açık quarantine kayıtları,
 - stock/contact/cash/bank/security kapanış toplamları,
@@ -24,7 +25,7 @@ Kontroller:
 - açık production/subcontract order varsa kullanıcı tamamlamadan/iptal etmeden carry tamamlanmaz,
 - yoldaki transfer varsa carry tamamlanmaz.
 
-Açık quarantine blok değildir; yeni döneme taşınır.
+Açık quarantine blok değildir; yeni döneme taşınır. Açık sales_order/purchase_order da blok değildir; K-256 carry akışıyla yeni period'a kalan miktar snapshot'ı olarak aktarılır.
 
 ## Taşınanlar
 
@@ -38,13 +39,15 @@ Açık quarantine blok değildir; yeni döneme taşınır.
 - açık quarantine,
 - production recipe/revision,
 - subcontractor location stock,
-- channel account period settings + channel listing/location mapping.
+- channel account period settings + channel listing/location mapping,
+- K-256 gereği kalan açık miktarlarıyla sales_order/purchase_order snapshot'ları ve sales-order aktif rezervasyonları.
 
 ## Taşınmayanlar
 
 - geçmiş documents,
 - geçmiş stock/contact/cash/bank movements,
-- açık teklif/sipariş/taslak,
+- açık teklif ve taslak,
+- source period'daki geçmiş/tamamlanmış siparişler; yalnız K-256 kapsamındaki açık kalan sales_order/purchase_order target snapshot'a dönüşür,
 - yoldaki transfer,
 - açık production/subcontract order,
 - channel order/sync history,
