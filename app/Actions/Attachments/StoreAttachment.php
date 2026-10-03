@@ -13,6 +13,10 @@ use RuntimeException;
 
 final class StoreAttachment
 {
+    /**
+     * @template TAttachable of PeriodModel
+     * @param  TAttachable&HasAttachmentsContract<TAttachable>  $attachable
+     */
     public function handle(
         PeriodModel&HasAttachmentsContract $attachable,
         UploadedFile $file,

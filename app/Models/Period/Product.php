@@ -21,6 +21,7 @@ use Spatie\Activitylog\Models\Concerns\LogsActivity;
 use Spatie\Activitylog\Support\LogOptions;
 
 /**
+ * @implements HasAttachmentsContract<Product>
  * @implements SearchIndexed<Product>
  * @property ProductKind $kind
  * @property ChannelStockMode $channel_stock_mode
