@@ -219,11 +219,11 @@ Her şirket+yıl ayrı period DB. Kartlar dahil işletme verisi period DB'dedir.
 
 ## Kodlama öncesi bütünlük blokajları
 
-- A-125: non-stock service purchase_invoice satır modeli.
-- A-126: fason hizmet maliyetinin kısmi completion'lara dağıtım yöntemi.
+- A-125 KAPANDI → K-257: `document_lines.line_kind=stock|service`; service satır stok/moving-average üretmez, cari/KDV/toplama girer.
+- A-126 KAPANDI → K-258: fason service cost completion miktarı oranında `production_service_allocations` ile dağıtılır.
 - A-127 KAPANDI → K-256: açık sales_order/purchase_order yalnız kalan miktarla target period'da yeni confirmed snapshot olur; sales-order aktif rezervasyonları location bazında yeniden kurulur; teklif/taslak taşınmaz.
 - Teknik olarak location alanı `kind`, production service invoice bağı `production_service_invoices`, subcontract late cost provenance `production_completion_id`, kanal-period marketplace customer eşlemesi `channel_account_period_settings` olarak düzeltilmiştir.
-- A-125/A-126 kapanmadan ilgili Faz 4/7/8 kodlamasına başlama.
+- Açık ürün kararı yoktur.
 
 ## K-256 açık sipariş dönem devri
 
