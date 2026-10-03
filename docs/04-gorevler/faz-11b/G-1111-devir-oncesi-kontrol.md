@@ -19,6 +19,7 @@ G-1110 kanonik carry sözleşmesi.
 - Preview read-only.
 - Target business data varsa block.
 - In-transit transfer ve open production/subcontract order block.
+- Açık sales_order/purchase_order block değildir; carry preview'da kalan miktar ve reservation özetiyle transfer item olarak gösterilir.
 - Açık quarantine warning/transfer item; block değil.
 - Tüm kapanış toplamları preview'da görünür.
 
@@ -30,7 +31,3 @@ G-1110 kanonik carry sözleşmesi.
 
 ## İstem
 > Dönem devri ön kontrolünü iş kuralı 57'ye göre uygula.
-
-## Kodlama öncesi blokaj — A-127
-
-**[KARAR GEREKİYOR]** Preview'da açık satış/alış operasyon belgelerinin block mu carry item mı olacağı A-127 ile kesinleşecektir.
