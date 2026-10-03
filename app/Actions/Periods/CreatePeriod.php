@@ -5,6 +5,7 @@ namespace App\Actions\Periods;
 use App\Models\Company;
 use App\Models\Period;
 use App\Support\Period\PeriodContext;
+use App\Support\Period\PeriodSchemaVersion;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
@@ -52,6 +53,14 @@ final class CreatePeriod
             if ($exitCode !== 0) {
                 throw new RuntimeException("{$dbName} period migration başarısız oldu.");
             }
+
+            $schemaVersion = app(PeriodSchemaVersion::class)->currentDatabaseVersion();
+
+            Period::query()
+                ->whereKey($period->id)
+                ->update(['schema_version' => $schemaVersion]);
+
+            $period->schema_version = $schemaVersion;
 
             return $period;
         } catch (Throwable $exception) {

@@ -19,6 +19,7 @@ class Period extends MasterModel
         'carried_from_period_id',
         'carried_at',
         'closed_at',
+        'schema_version',
     ];
 
     protected function casts(): array
