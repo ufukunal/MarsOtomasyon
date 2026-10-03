@@ -39,6 +39,7 @@ Kanonik kaynak:
 - FK/CHECK/unique kuralları çalışıyor.
 - Aynı invoice line ikinci import file'a bağlanamıyor.
 - Manual/purchase_invoice source type doğrulanıyor.
+- Purchase-invoice expense service-line source'u aynı posted document'a ait `line_kind=service` satırını doğruluyor.
 - inventory_cost_adjustments fiziksel stock movement FK/quantity semantiği taşımıyor.
 
 ## İstem
