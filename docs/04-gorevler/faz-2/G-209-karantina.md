@@ -24,8 +24,7 @@ G-202
 Mevcut şema/kod örnekleri aşağıdaki kanonik stok sözleşmesiyle birlikte uygulanır; çelişkide kanonik sözleşme üstündür.
 
 ## Model
-Ayrı tablo yok. `stock_balances.quarantine` alanı kullanılır; giriş ve
-çıkışlar `quarantine_movements` görünümüyle izlenir.
+`quarantine_entries` **karantina karar/provenance gerçek kaynağıdır**. `stock_balances.quarantine` yalnız hızlı özet/türetilmiş miktardır; business kodu entries ile summary'yi aynı transaction'da tutarlı günceller. Ayrı bir `quarantine_movements` gerçek kaynak tablosu yoktur.
 
 ```php
 // quarantine_entries: id, product_id, location_id,
