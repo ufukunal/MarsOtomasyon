@@ -58,4 +58,4 @@ Late cost:
 
 ## İstem
 
-> K-151…K-157 fason completion ve service-cost zincirini mevcut purchase_invoice + inventory_cost_adjustments altyapısıyla uygula.
+> K-151…K-157 ile K-257/K-258'e göre fason completion ve service-cost zincirini mevcut purchase_invoice + inventory_cost_adjustments altyapısıyla uygula. Service kaynağı yalnız `line_kind=service`; completion dağıtımı `production_service_allocations` gerçek kaydıdır.
