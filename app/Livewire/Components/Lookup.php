@@ -8,6 +8,7 @@ use App\Support\Period\PeriodContext;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Collection;
 use Livewire\Attributes\Modelable;
 use Livewire\Component;
 
@@ -27,8 +28,10 @@ class Lookup extends Component
     #[Modelable]
     public int|string|null $value = null;
 
+    /** @var list<array{id:int|string, code:string, label:string}> */
     public array $results = [];
 
+    /** @var list<array{id:int|string, code:string, label:string}> */
     public array $detailedResults = [];
 
     public int $highlighted = -1;
@@ -115,6 +118,7 @@ class Lookup extends Component
         $this->dispatch('lookup-selected', id: $model->getKey());
     }
 
+    /** @return Builder<Model> */
     private function search(): Builder
     {
         $builder = ($this->model)::query();
@@ -135,7 +139,11 @@ class Lookup extends Component
         });
     }
 
-    private function resultArray($rows): array
+    /**
+     * @param Collection<int, Model> $rows
+     * @return list<array{id:int|string, code:string, label:string}>
+     */
+    private function resultArray(Collection $rows): array
     {
         return $rows->map(fn (Model $row) => [
             'id' => $row->getKey(),

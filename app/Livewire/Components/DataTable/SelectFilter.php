@@ -4,6 +4,7 @@ namespace App\Livewire\Components\DataTable;
 
 final readonly class SelectFilter
 {
+    /** @param array<int|string, string> $options */
     private function __construct(
         public string $key,
         public string $label,
@@ -15,6 +16,7 @@ final readonly class SelectFilter
         return new self($key, $label, []);
     }
 
+    /** @param array<int|string, string> $options */
     public function options(array $options): self
     {
         return new self($this->key, $this->label, $options);

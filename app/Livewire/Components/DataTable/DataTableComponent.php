@@ -34,12 +34,16 @@ abstract class DataTableComponent extends Component
 
     public int $perPage = 25;
 
+    /** @var array<string, mixed> */
     public array $filterValues = [];
 
+    /** @var list<int|string> */
     public array $selected = [];
 
+    /** @var array<string, bool> */
     public array $hiddenColumns = [];
 
+    /** @return list<Column> */
     abstract public function columns(): array;
 
     public function boot(): void
@@ -50,31 +54,37 @@ abstract class DataTableComponent extends Component
         }
     }
 
+    /** @return list<SelectFilter|DateRangeFilter> */
     public function filters(): array
     {
         return [];
     }
 
+    /** @return list<array<string, mixed>> */
     public function rowActions(): array
     {
         return [];
     }
 
+    /** @return list<array<string, mixed>> */
     public function bulkActions(): array
     {
         return [];
     }
 
+    /** @return array<string, mixed>|null */
     public function emptyAction(): ?array
     {
         return null;
     }
 
+    /** @return Builder<Model> */
     protected function baseQuery(): Builder
     {
         return ($this->model)::query();
     }
 
+    /** @return Builder<Model> */
     protected function query(): Builder
     {
         $query = $this->baseQuery();
@@ -120,6 +130,7 @@ abstract class DataTableComponent extends Component
         return $query;
     }
 
+    /** @param Builder<Model> $query */
     protected function applyFilter(Builder $query, mixed $filter, mixed $value): void
     {
         if ($filter instanceof SelectFilter) {
@@ -139,6 +150,7 @@ abstract class DataTableComponent extends Component
         }
     }
 
+    /** @return LengthAwarePaginator<int, Model> */
     public function rows(): LengthAwarePaginator
     {
         return $this->query()->paginate($this->perPage);
@@ -290,7 +302,8 @@ abstract class DataTableComponent extends Component
         ]);
     }
 
-    private function exportColumns()
+    /** @return \Illuminate\Support\Collection<int, Column> */
+    private function exportColumns(): \Illuminate\Support\Collection
     {
         return collect($this->columns())
             ->reject(fn (Column $column): bool => $this->hiddenColumns[$column->key] ?? false)
