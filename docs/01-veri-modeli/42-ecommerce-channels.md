@@ -68,6 +68,29 @@ Schema::connection('master')->create('channel_external_event_registry', function
 
 Period belge id alanı scalar provenance'dır; cross-DB FK değildir.
 
+## Period — channel_account_period_settings
+
+K-182'nin period-level gerçek eşlemesidir. Channel account Master DB'de, marketplace customer contact ise period DB'de olduğu için cross-DB FK kurulmaz.
+
+```php
+Schema::connection('period')->create('channel_account_period_settings', function (Blueprint $table) {
+    $table->id();
+
+    $table->unsignedBigInteger('channel_account_id'); // Master scalar
+
+    $table->foreignId('marketplace_customer_contact_id')
+        ->constrained('contacts')
+        ->restrictOnDelete();
+
+    $table->unsignedInteger('version')->default(1);
+    $table->timestamps();
+
+    $table->unique('channel_account_id');
+});
+```
+
+Her channel account için ilgili period'da tek marketplace customer contact eşlemesi vardır. Dönem devrinde contact ID korunarak bu mapping yeni period'a taşınır.
+
 ## Period — channel_product_listings
 
 ```php
@@ -231,6 +254,7 @@ Schema::connection('period')->create('channel_sync_errors', function (Blueprint 
 
 Taşınır:
 
+- channel_account_period_settings,
 - channel_product_listings,
 - channel_listing_locations,
 - listing external ids,
