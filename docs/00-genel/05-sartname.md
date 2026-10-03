@@ -36,6 +36,6 @@ Master üst bağlam/yetki/ayar/print profile/kopyalama izninin yanında yıl ba�
 Aynı şirket yıl devrinde kart ve gerekli stok bakiye kimlikleri/kodları korunur. İşlem geçmişi taşınmaz. Açık quarantine taşınır. K-256 gereği açık sales_order/purchase_order yalnız kalan miktarlarıyla target period'da yeni confirmed snapshot olur; sales-order aktif rezervasyonları location bazında yeniden kurulur. Teklif/taslak taşınmaz. Devir sonunda kullanıcı period erişim/yetkisi kopyalama sorulur.
 
 
-## Kodlama blokajı
+## Karar durumu
 
-A-125 ve A-126 kapanmadan Faz 4/7/8'in ilgili purchase/service-cost görevleri code-ready değildir.
+A-125 → K-257, A-126 → K-258, A-127 → K-256 ile kapatıldı. Açık ürün kararı yoktur.
