@@ -2,8 +2,6 @@
 
 namespace App\Actions\Companies;
 
-use BackedEnum;
-
 use App\Actions\Contacts\SaveContact;
 use App\Actions\Products\SaveProduct;
 use App\Enums\CompanyCopyPermissionType;
@@ -18,6 +16,7 @@ use App\Support\Audit\AuditContext;
 use App\Support\Auth\MutationAuthorizer;
 use App\Support\Period\PeriodContext;
 use App\Support\Period\SourcePeriodContext;
+use BackedEnum;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;

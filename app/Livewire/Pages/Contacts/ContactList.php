@@ -3,8 +3,8 @@
 namespace App\Livewire\Pages\Contacts;
 
 use App\Livewire\Components\DataTable\Column;
-use App\Livewire\Components\DataTable\DateRangeFilter;
 use App\Livewire\Components\DataTable\DataTableComponent;
+use App\Livewire\Components\DataTable\DateRangeFilter;
 use App\Livewire\Components\DataTable\SelectFilter;
 use App\Models\Period\Contact;
 use App\Models\Period\ContactCategory;

@@ -13,7 +13,7 @@ use Illuminate\Validation\ValidationException;
 final class SaveVariantValues
 {
     /**
-     * @param array<int, mixed> $values
+     * @param  array<int, mixed>  $values
      * @return list<string>
      */
     public function handle(Product $product, int $groupId, array $values): array

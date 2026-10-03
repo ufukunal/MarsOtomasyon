@@ -5,11 +5,11 @@ namespace App\DataTransfer;
 final readonly class CopyResult
 {
     /**
-     * @param list<array<string, mixed>> $copied
-     * @param list<array<string, mixed>> $existing
-     * @param list<CopyConflict|array<string, mixed>> $conflicts
-     * @param list<string> $warnings
-     * @param list<int> $cancelled
+     * @param  list<array<string, mixed>>  $copied
+     * @param  list<array<string, mixed>>  $existing
+     * @param  list<CopyConflict|array<string, mixed>>  $conflicts
+     * @param  list<string>  $warnings
+     * @param  list<int>  $cancelled
      */
     public function __construct(
         public array $copied = [],

@@ -140,7 +140,7 @@ class Lookup extends Component
     }
 
     /**
-     * @param Collection<int, Model> $rows
+     * @param  Collection<int, Model>  $rows
      * @return list<array{id:int|string, code:string, label:string}>
      */
     private function resultArray(Collection $rows): array

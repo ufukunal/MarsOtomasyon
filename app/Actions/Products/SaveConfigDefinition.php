@@ -13,8 +13,8 @@ use Illuminate\Validation\ValidationException;
 final class SaveConfigDefinition
 {
     /**
-     * @param array<string, mixed> $data
-     * @param list<array<string, mixed>> $options
+     * @param  array<string, mixed>  $data
+     * @param  list<array<string, mixed>>  $options
      */
     public function handle(
         Product $product,
