@@ -9,6 +9,9 @@ return [
             ['label' => 'Kategoriler', 'route' => 'categories.index', 'permission' => 'product_categories.view'],
             ['label' => 'Markalar', 'route' => 'brands.index', 'permission' => 'brands.view'],
             ['label' => 'Cariler', 'route' => 'contacts.index', 'permission' => 'contacts.view'],
+            ['label' => 'Ürünler', 'route' => 'products.index', 'permission' => 'products.view'],
+            ['label' => 'Varyant Grupları', 'route' => 'variant-groups.detail', 'permission' => 'variant_groups.view'],
+            ['label' => 'Fiyat Listeleri', 'route' => 'price-lists.index', 'permission' => 'price_lists.view'],
         ],
     ],
     [

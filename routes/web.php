@@ -7,6 +7,11 @@ use App\Livewire\Pages\Auth\ResetPassword;
 use App\Livewire\Pages\Catalog\BrandList;
 use App\Livewire\Pages\Contacts\ContactForm;
 use App\Livewire\Pages\Contacts\ContactList;
+use App\Livewire\Pages\Products\ProductForm;
+use App\Livewire\Pages\Products\ProductList;
+use App\Livewire\Pages\Products\VariantGroupDetail;
+use App\Livewire\Pages\Pricing\PriceListDetail;
+use App\Livewire\Pages\Pricing\PriceListList;
 use App\Livewire\Pages\Catalog\CategoryList;
 use App\Livewire\Pages\Catalog\LocationForm;
 use App\Livewire\Pages\Catalog\LocationList;
@@ -42,6 +47,12 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/kartlar/cariler', ContactList::class)->name('contacts.index');
     Route::get('/kartlar/cariler/yeni', ContactForm::class)->name('contacts.create');
     Route::get('/kartlar/cariler/{contact}', ContactForm::class)->name('contacts.edit');
+    Route::get('/kartlar/urunler', ProductList::class)->name('products.index');
+    Route::get('/kartlar/urunler/yeni', ProductForm::class)->name('products.create');
+    Route::get('/kartlar/urunler/{product}', ProductForm::class)->name('products.edit');
+    Route::get('/kartlar/varyant-gruplari/{group?}', VariantGroupDetail::class)->name('variant-groups.detail');
+    Route::get('/kartlar/fiyat-listeleri', PriceListList::class)->name('price-lists.index');
+    Route::get('/kartlar/fiyat-listeleri/{list?}', PriceListDetail::class)->name('price-lists.detail');
     Route::get('/ayarlar/butunluk', IntegrityReport::class)->name('settings.integrity');
 
     Route::post('/cikis', function () {
