@@ -2,12 +2,11 @@
 
 namespace Tests\Support;
 
+use App\Models\Period\Location;
 use App\Models\Period\PriceList;
 use App\Models\Period\Product;
 use App\Models\Period\Unit;
-use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 
 trait CreatesCatalogFixtures
 {
@@ -45,33 +44,30 @@ trait CreatesCatalogFixtures
         ], $attributes));
     }
 
-    protected function createStockBalanceSchema(): void
-    {
-        if (Schema::connection('period')->hasTable('stock_balances')) {
-            return;
-        }
-
-        Schema::connection('period')->create('stock_balances', function (Blueprint $table): void {
-            $table->id();
-            $table->unsignedBigInteger('product_id');
-            $table->decimal('quantity', 18, 3)->default(0);
-            $table->decimal('reserved', 18, 3)->default(0);
-            $table->decimal('consignment_reserved', 18, 3)->default(0);
-            $table->decimal('quarantine', 18, 3)->default(0);
-        });
-    }
-
     protected function setAvailableStock(Product $product, string $quantity): void
     {
-        $this->createStockBalanceSchema();
+        $location = Location::query()->firstOrCreate(
+            ['code' => 'TEST-STOCK'],
+            [
+                'name' => 'Test Stok Lokasyonu',
+                'kind' => 'warehouse',
+                'is_default' => false,
+                'is_active' => true,
+            ],
+        );
 
         DB::connection('period')->table('stock_balances')->updateOrInsert(
-            ['product_id' => $product->id],
+            [
+                'product_id' => $product->id,
+                'location_id' => $location->id,
+            ],
             [
                 'quantity' => $quantity,
                 'reserved' => '0.000',
                 'consignment_reserved' => '0.000',
                 'quarantine' => '0.000',
+                'created_at' => now(),
+                'updated_at' => now(),
             ],
         );
     }
