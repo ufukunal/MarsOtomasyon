@@ -5,6 +5,23 @@ namespace App\Models\Period;
 use App\Models\PeriodModel;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property int $supplier_invoice_line_id
+ * @property int $purchase_order_line_id
+ * @property int $goods_receipt_line_id
+ * @property int|null $product_id
+ * @property string $matched_quantity
+ * @property string $order_unit_price
+ * @property string $invoice_unit_price
+ * @property string $price_variance_rate
+ * @property string|null $provisional_unit_cost_try
+ * @property string|null $cost_unit_try
+ * @property string|null $previous_moving_average
+ * @property string|null $previous_last_purchase_price
+ * @property \Illuminate\Support\Carbon|null $previous_last_purchase_at
+ * @property string|null $cost_value_delta
+ * @property string|null $new_moving_average
+ */
 class PurchaseMatch extends PeriodModel
 {
     protected $fillable = [
@@ -49,21 +66,25 @@ class PurchaseMatch extends PeriodModel
         ];
     }
 
+    /** @return BelongsTo<DocumentLine, $this> */
     public function supplierInvoiceLine(): BelongsTo
     {
         return $this->belongsTo(DocumentLine::class, 'supplier_invoice_line_id');
     }
 
+    /** @return BelongsTo<DocumentLine, $this> */
     public function purchaseOrderLine(): BelongsTo
     {
         return $this->belongsTo(DocumentLine::class, 'purchase_order_line_id');
     }
 
+    /** @return BelongsTo<DocumentLine, $this> */
     public function goodsReceiptLine(): BelongsTo
     {
         return $this->belongsTo(DocumentLine::class, 'goods_receipt_line_id');
     }
 
+    /** @return BelongsTo<Product, $this> */
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
