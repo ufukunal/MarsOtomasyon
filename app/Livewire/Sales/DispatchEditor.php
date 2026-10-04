@@ -9,11 +9,23 @@ use App\Enums\DocumentType;
 class DispatchEditor extends BaseSalesDocumentEditor
 {
     public string $reversalDate = '';
+
     public string $reversalReason = '';
 
-    protected function documentType(): DocumentType { return DocumentType::Dispatch; }
-    protected function permissionPrefix(): string { return 'dispatches'; }
-    protected function pageTitle(): string { return $this->document ? 'Satış İrsaliyesi' : 'Yeni Satış İrsaliyesi'; }
+    protected function documentType(): DocumentType
+    {
+        return DocumentType::Dispatch;
+    }
+
+    protected function permissionPrefix(): string
+    {
+        return 'dispatches';
+    }
+
+    protected function pageTitle(): string
+    {
+        return $this->document ? 'Satış İrsaliyesi' : 'Yeni Satış İrsaliyesi';
+    }
 
     protected function extraMutationNames(): array
     {

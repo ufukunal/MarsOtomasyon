@@ -13,11 +13,17 @@ class ContactDebitCreditForm extends Component
     use WithIdempotentMutations;
 
     public ?int $contactId = null;
+
     public string $direction = 'debit';
+
     public string $amount = '0.0000';
+
     public string $documentDate = '';
+
     public string $reason = '';
+
     public string $note = '';
+
     public ?int $postedDocumentId = null;
 
     public function mount(): void

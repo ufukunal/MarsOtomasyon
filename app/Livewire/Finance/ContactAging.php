@@ -10,6 +10,7 @@ use Livewire\Component;
 class ContactAging extends Component
 {
     public ?int $contactId = null;
+
     public string $asOf = '';
 
     public function mount(): void

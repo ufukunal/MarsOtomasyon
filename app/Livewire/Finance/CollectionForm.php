@@ -17,14 +17,23 @@ class CollectionForm extends Component
     use WithIdempotentMutations;
 
     public ?int $contactId = null;
+
     public string $amount = '0.0000';
+
     public string $accountType = 'cash';
+
     public ?int $accountId = null;
+
     public string $documentDate = '';
+
     public ?int $sourceInvoiceId = null;
+
     public string $note = '';
+
     public ?int $postedDocumentId = null;
+
     public string $reversalDate = '';
+
     public string $reversalReason = '';
 
     public function mount(): void

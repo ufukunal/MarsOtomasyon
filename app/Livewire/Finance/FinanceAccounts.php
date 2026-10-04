@@ -15,13 +15,19 @@ class FinanceAccounts extends Component
     use WithIdempotentMutations;
 
     public string $cashCode = '';
+
     public string $cashName = '';
+
     public string $cashCurrency = 'TRY';
 
     public string $bankCode = '';
+
     public string $bankName = '';
+
     public string $bankAccountName = '';
+
     public string $bankIban = '';
+
     public string $bankCurrency = 'TRY';
 
     public function mount(): void
