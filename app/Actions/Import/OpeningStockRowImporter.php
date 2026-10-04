@@ -2,6 +2,8 @@
 
 namespace App\Actions\Import;
 
+use App\Actions\Stock\RecordStockMovement;
+use App\DataObjects\StockMovementData;
 use App\Models\Period\Location;
 use App\Models\Period\Product;
 use App\Support\Import\RowValidationResult;
@@ -30,8 +32,8 @@ final class OpeningStockRowImporter
             $errors['unit_cost'] = 'Birim maliyet negatif olamaz.';
         }
 
-        if (! class_exists('App\\Actions\\Stock\\RecordStockMovement')) {
-            $errors['stock'] = 'Faz 2 stok hareket motoru henüz kurulmadı.';
+        if (! class_exists('App\\Actions\\Stock\\ImportOpeningStock')) {
+            $errors['stock'] = 'Faz 2 açılış stok akışı henüz tamamlanmadı.';
         }
 
         return new RowValidationResult($errors === [], $errors);
@@ -40,21 +42,22 @@ final class OpeningStockRowImporter
     /** @param array<string, mixed> $row */
     public function import(array $row): void
     {
-        if (! class_exists('App\\Actions\\Stock\\RecordStockMovement')) {
-            throw new RuntimeException('Açılış stok importu için Faz 2 RecordStockMovement gereklidir.');
+        if (! class_exists('App\\Actions\\Stock\\ImportOpeningStock')) {
+            throw new RuntimeException('Açılış stok importu için Faz 2 açılış akışı gereklidir.');
         }
 
         $product = Product::query()->where('code', strtoupper(trim((string) $row['product_code'])))->firstOrFail();
         $location = Location::query()->where('code', strtoupper(trim((string) $row['location_code'])))->firstOrFail();
 
-        app('App\\Actions\\Stock\\RecordStockMovement')->handle([
-            'product_id' => $product->id,
-            'location_id' => $location->id,
-            'movement_date' => now()->toDateString(),
-            'direction' => 'in',
-            'reason' => 'opening',
-            'quantity' => bcadd((string) $row['quantity'], '0', 3),
-            'unit_cost' => bcadd((string) $row['unit_cost'], '0', 4),
-        ]);
+        app(RecordStockMovement::class)->handle(new StockMovementData(
+            productId: $product->id,
+            locationId: $location->id,
+            movementDate: now()->toDateString(),
+            direction: 'in',
+            reason: 'opening',
+            quantity: bcadd((string) $row['quantity'], '0', 3),
+            unitCost: bcadd((string) $row['unit_cost'], '0', 4),
+            updatesAverage: true,
+        ));
     }
 }
