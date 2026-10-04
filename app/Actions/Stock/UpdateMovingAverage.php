@@ -16,21 +16,13 @@ final class UpdateMovingAverage
         string $incomingUnitCost,
         ?string $reason = null,
         ?string $movementDate = null,
-        bool $quantityAlreadyInStock = false,
     ): string {
         $cost = $this->lockCost($productId);
         $currentQty = $this->currentQuantity($productId);
         $incomingQty = bcadd($incomingQty, '0', 3);
         $incomingUnitCost = bcadd($incomingUnitCost, '0', 4);
 
-        if ($quantityAlreadyInStock) {
-            $newAverage = $this->revalueAlreadyReceived(
-                $currentQty,
-                (string) $cost->moving_average,
-                $incomingQty,
-                $incomingUnitCost,
-            );
-        } elseif (bccomp($currentQty, '0', 3) <= 0) {
+        if (bccomp($currentQty, '0', 3) <= 0) {
             $newAverage = $incomingUnitCost;
         } else {
             $currentValue = bcmul(
@@ -118,30 +110,5 @@ final class UpdateMovingAverage
         return bcadd((string) StockBalance::query()
             ->where('product_id', $productId)
             ->sum('quantity'), '0', 3);
-    }
-
-    private function revalueAlreadyReceived(
-        string $currentQty,
-        string $currentAverage,
-        string $incomingQty,
-        string $incomingUnitCost,
-    ): string {
-        if (bccomp($currentQty, '0', 3) <= 0) {
-            return $incomingUnitCost;
-        }
-
-        $revalueQty = bccomp($incomingQty, $currentQty, 3) > 0
-            ? $currentQty
-            : $incomingQty;
-        $currentValue = bcmul($currentQty, $currentAverage, 8);
-        $unitDelta = bcsub($incomingUnitCost, $currentAverage, 8);
-        $valueDelta = bcmul($revalueQty, $unitDelta, 8);
-        $newValue = bcadd($currentValue, $valueDelta, 8);
-
-        if (bccomp($newValue, '0', 8) < 0) {
-            throw new DomainException('Alış faturası maliyet düzeltmesi stok değerini negatife düşüremez.');
-        }
-
-        return bcdiv($newValue, $currentQty, 4);
     }
 }

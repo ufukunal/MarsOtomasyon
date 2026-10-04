@@ -7,8 +7,8 @@ use App\Enums\DocumentType;
 use App\Models\Period\Document;
 use App\Models\Period\Product;
 use App\Models\Period\ProductCost;
+use App\Models\Period\StockMovement;
 use App\Models\Period\PurchaseMatch;
-use App\Models\Period\StockBalance;
 use App\Support\Audit\AuditContext;
 use DomainException;
 use Illuminate\Support\Facades\DB;
@@ -81,23 +81,35 @@ final class ApplySupplierInvoiceCosts
             $previousAverage = (string) $cost->moving_average;
             $previousLastPurchase = (string) $cost->last_purchase_price;
             $previousLastPurchaseAt = $cost->last_purchase_at?->toDateTimeString();
-            $currentQty = bcadd((string) StockBalance::query()
-                ->where('product_id', $line->product_id)
-                ->sum('quantity'), '0', 3);
-            $beforeValue = bcmul($currentQty, $previousAverage, 8);
 
-            $newAverage = $this->updateMovingAverage->handle(
+            $receiptLine = $match->goodsReceiptLine()
+                ->with('document')
+                ->firstOrFail();
+            $receiptMovement = StockMovement::query()
+                ->where('document_type', DocumentType::GoodsReceipt->value)
+                ->where('document_id', $receiptLine->document_id)
+                ->where('product_id', $line->product_id)
+                ->where('location_id', $receiptLine->location_id)
+                ->where('direction', 'in')
+                ->orderBy('id')
+                ->first();
+
+            if (! $receiptMovement) {
+                throw new DomainException('Alış faturası maliyeti için mal kabul stok hareketi bulunamadı.');
+            }
+
+            $provisionalUnitCost = bcadd((string) $receiptMovement->unit_cost, '0', 4);
+            $unitDelta = bcsub($unitCostTry, $provisionalUnitCost, 8);
+            $valueDelta = bcadd(bcmul($baseQuantity, $unitDelta, 8), '0', 4);
+            $newAverage = $this->updateMovingAverage->applyValueDelta(
                 (int) $line->product_id,
-                $baseQuantity,
+                $valueDelta,
                 $unitCostTry,
-                'purchase',
                 $locked->document_date->toDateString(),
-                true,
             );
-            $afterValue = bcmul($currentQty, $newAverage, 8);
-            $valueDelta = bcadd(bcsub($afterValue, $beforeValue, 8), '0', 4);
 
             $match->update([
+                'provisional_unit_cost_try' => $provisionalUnitCost,
                 'cost_unit_try' => $unitCostTry,
                 'previous_moving_average' => $previousAverage,
                 'previous_last_purchase_price' => $previousLastPurchase,

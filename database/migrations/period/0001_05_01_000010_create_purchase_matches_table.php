@@ -19,6 +19,7 @@ return new class extends Migration
             $table->decimal('order_unit_price', 18, 4);
             $table->decimal('invoice_unit_price', 18, 4);
             $table->decimal('price_variance_rate', 9, 4)->default(0);
+            $table->decimal('provisional_unit_cost_try', 18, 4)->nullable();
             $table->decimal('cost_unit_try', 18, 4)->nullable();
             $table->decimal('previous_moving_average', 18, 4)->nullable();
             $table->decimal('previous_last_purchase_price', 18, 4)->nullable();

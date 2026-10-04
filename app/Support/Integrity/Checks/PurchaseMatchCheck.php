@@ -124,7 +124,8 @@ final class PurchaseMatchCheck implements IntegrityCheck
                 }
 
                 if ($line->line_kind === 'stock'
-                    && ($match->cost_unit_try === null
+                    && ($match->provisional_unit_cost_try === null
+                        || $match->cost_unit_try === null
                         || $match->previous_moving_average === null
                         || $match->new_moving_average === null
                         || $match->cost_value_delta === null)) {
