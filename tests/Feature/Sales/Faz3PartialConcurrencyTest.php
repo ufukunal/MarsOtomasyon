@@ -76,7 +76,7 @@ it('kismi sevk ve kismi faturada kalan miktarlari dogru izler ve stogu ikinci ke
         'faz3-partial-order-confirm',
         true,
     )->load('lines');
-    $orderLine = $order->lines->firstOrFail();
+    $orderLine = DocumentLine::query()->where('document_id', $order->id)->firstOrFail();
 
     $dispatch = app(CreateDispatchFromOrder::class)->handle(
         $order,
@@ -102,7 +102,7 @@ it('kismi sevk ve kismi faturada kalan miktarlari dogru izler ve stogu ikinci ke
             ->count())->toBe(1)
         ->and(app(SourceLineAvailability::class)->orderRemaining($orderLine->refresh()))->toBe('6.000');
 
-    $dispatchLine = $dispatch->lines->firstOrFail();
+    $dispatchLine = DocumentLine::query()->where('document_id', $dispatch->id)->firstOrFail();
     $invoice = app(CreateInvoiceFromDispatches::class)->handle(
         [$dispatchLine->id => '2.000'],
         '2026-10-03',
