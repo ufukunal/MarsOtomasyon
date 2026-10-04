@@ -23,6 +23,12 @@
             <label>Belge İskonto % <input wire:model="discountRate"></label>
             <label>Not <textarea wire:model="notes"></textarea></label>
 
+            <div>
+                <label>KDV % <input wire:model="bulkVatRate"></label>
+                <button type="button" wire:click="applyVatToAll">Tümüne KDV Uygula</button>
+                <button type="button" wire:click="clearVat">KDV Temizle</button>
+            </div>
+
             <table>
                 <thead>
                     <tr>

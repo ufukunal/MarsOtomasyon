@@ -2,7 +2,6 @@
 
 namespace App\Actions\Sales;
 
-use App\Actions\Numbering\GenerateDocumentNumber;
 use App\Actions\Periods\EnsurePeriodOpen;
 use App\Enums\DocumentType;
 use App\Models\Period\Document;
@@ -18,7 +17,6 @@ final class IssueProforma
 {
     public function __construct(
         private readonly EnsurePeriodOpen $ensurePeriodOpen,
-        private readonly GenerateDocumentNumber $numbers,
     ) {}
 
     public function handle(
@@ -47,7 +45,7 @@ final class IssueProforma
 
                 $proforma = Document::query()->create([
                     'document_type' => DocumentType::Proforma->value,
-                    'number' => $this->numbers->handle(DocumentType::Proforma->value, $date->year),
+                    'number' => null,
                     'revision_no' => 0,
                     'document_date' => $date->toDateString(),
                     'due_date' => $locked->due_date,

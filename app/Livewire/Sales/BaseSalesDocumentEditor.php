@@ -29,6 +29,8 @@ abstract class BaseSalesDocumentEditor extends Component
 
     public string $discountRate = '0';
 
+    public string $bulkVatRate = '20';
+
     public string $notes = '';
 
     public int $version = 1;
@@ -72,6 +74,28 @@ abstract class BaseSalesDocumentEditor extends Component
     {
         unset($this->lines[$index]);
         $this->lines = array_values($this->lines);
+    }
+
+    public function applyVatToAll(): void
+    {
+        $rate = bcadd($this->bulkVatRate, '0', 4);
+
+        abort_if(
+            bccomp($rate, '0', 4) < 0 || bccomp($rate, '100', 4) > 0,
+            422,
+            'KDV oranı 0 ile 100 arasında olmalıdır.',
+        );
+
+        foreach ($this->lines as $index => $line) {
+            $this->lines[$index]['vat_rate'] = $rate;
+        }
+    }
+
+    public function clearVat(): void
+    {
+        foreach ($this->lines as $index => $line) {
+            $this->lines[$index]['vat_rate'] = '0.0000';
+        }
     }
 
     public function save(SaveSalesDocumentDraft $action): void

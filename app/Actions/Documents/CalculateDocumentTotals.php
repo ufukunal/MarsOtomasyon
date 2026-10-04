@@ -4,6 +4,7 @@ namespace App\Actions\Documents;
 
 use App\DataObjects\Documents\DocumentLineCalculation;
 use App\DataObjects\Documents\DocumentTotals;
+use App\Support\Money\Money;
 use DomainException;
 
 final class CalculateDocumentTotals
@@ -18,7 +19,7 @@ final class CalculateDocumentTotals
         }
 
         $calculatedLines = [];
-        $subtotal = '0.0000';
+        $subtotal = Money::of('0');
         $groups = [];
 
         foreach ($lines as $line) {
@@ -30,42 +31,42 @@ final class CalculateDocumentTotals
                 throw new DomainException('Belge satırı miktar/fiyat/KDV değerleri geçersiz.');
             }
 
-            $grossHigh = bcmul($quantity, $unitPrice, 10);
+            $gross = Money::of($unitPrice)->times($quantity);
             [$lineRate, $lineDiscount] = $this->normalizeDiscount(
-                $grossHigh,
+                $gross->amount,
                 $line['line_discount_rate'] ?? '0',
                 $line['line_discount_amount'] ?? '0',
             );
 
-            if (bccomp($lineDiscount, $grossHigh, 4) > 0) {
+            if (bccomp($lineDiscount, $gross->amount, 4) > 0) {
                 throw new DomainException('Satır iskontosu satır brüt tutarını aşamaz.');
             }
 
-            $lineTotal = $this->round(bcsub($grossHigh, $lineDiscount, 10), 4);
-            $subtotal = bcadd($subtotal, $lineTotal, 4);
-            $groups[$vatRate] = bcadd($groups[$vatRate] ?? '0.0000', $lineTotal, 4);
+            $lineTotal = $gross->minus(Money::of($lineDiscount));
+            $subtotal = $subtotal->plus($lineTotal);
+            $groups[$vatRate] = Money::of($groups[$vatRate] ?? '0')->plus($lineTotal)->amount;
 
             $calculatedLines[] = new DocumentLineCalculation(
-                gross: $this->round($grossHigh, 4),
+                gross: $gross->amount,
                 discountRate: $lineRate,
                 discountAmount: $lineDiscount,
-                lineTotal: $lineTotal,
+                lineTotal: $lineTotal->amount,
                 vatRate: $vatRate,
             );
         }
 
         [$documentRate, $documentDiscount] = $this->normalizeDiscount(
-            $subtotal,
+            $subtotal->amount,
             $discountRate,
             $discountAmount,
         );
 
-        if (bccomp($documentDiscount, $subtotal, 4) > 0) {
+        if (bccomp($documentDiscount, $subtotal->amount, 4) > 0) {
             throw new DomainException('Belge iskontosu subtotal tutarını aşamaz.');
         }
 
-        $taxBase = bcsub($subtotal, $documentDiscount, 4);
-        $vat = '0.0000';
+        $taxBase = $subtotal->minus(Money::of($documentDiscount));
+        $vat = Money::of('0');
         $allocated = '0.0000000000';
         $groupKeys = array_keys($groups);
         $last = array_key_last($groupKeys);
@@ -73,36 +74,40 @@ final class CalculateDocumentTotals
         foreach ($groupKeys as $index => $rate) {
             $groupSubtotal = $groups[$rate];
 
-            if (bccomp($subtotal, '0', 4) === 0) {
+            if (bccomp($subtotal->amount, '0', 4) === 0) {
                 $share = '0.0000000000';
             } elseif ($index === $last) {
                 $share = bcsub($documentDiscount, $allocated, 10);
             } else {
-                $share = bcdiv(bcmul($documentDiscount, $groupSubtotal, 10), $subtotal, 10);
+                $share = bcdiv(
+                    bcmul($documentDiscount, $groupSubtotal, 10),
+                    $subtotal->amount,
+                    10,
+                );
                 $allocated = bcadd($allocated, $share, 10);
             }
 
             $groupBase = bcsub($groupSubtotal, $share, 10);
-            $groupVat = $this->round(
+            $groupVat = Money::of($this->round(
                 bcdiv(bcmul($groupBase, $rate, 10), '100', 10),
                 2,
-            );
-            $vat = bcadd($vat, $groupVat, 4);
+            ));
+            $vat = $vat->plus($groupVat);
         }
 
-        $exactGrand = bcadd($taxBase, $vat, 4);
-        $grandTotal = $this->round($exactGrand, 2);
-        $roundingDifference = bcsub($grandTotal, $exactGrand, 4);
+        $exactGrand = $taxBase->plus($vat);
+        $grandTotal = Money::of($this->round($exactGrand->amount, 2));
+        $roundingDifference = $grandTotal->minus($exactGrand);
 
         return new DocumentTotals(
             lines: $calculatedLines,
             discountRate: $documentRate,
             discountAmount: $documentDiscount,
-            subtotal: $subtotal,
-            taxBase: $taxBase,
-            vatAmount: $vat,
-            roundingDifference: $roundingDifference,
-            grandTotal: $grandTotal,
+            subtotal: $subtotal->amount,
+            taxBase: $taxBase->amount,
+            vatAmount: $vat->amount,
+            roundingDifference: $roundingDifference->amount,
+            grandTotal: $grandTotal->amount,
         );
     }
 
@@ -110,7 +115,7 @@ final class CalculateDocumentTotals
     private function normalizeDiscount(string $base, string $rate, string $amount): array
     {
         $rate = bcadd($rate, '0', 4);
-        $amount = bcadd($amount, '0', 4);
+        $amount = Money::of($amount)->amount;
 
         if (bccomp($rate, '0', 4) < 0 || bccomp($rate, '100', 4) > 0 || bccomp($amount, '0', 4) < 0) {
             throw new DomainException('İskonto yüzde/tutar değeri geçersiz.');
@@ -120,7 +125,7 @@ final class CalculateDocumentTotals
         $amountProvided = bccomp($amount, '0', 4) !== 0;
 
         if ($rateProvided) {
-            $expectedAmount = $this->round(bcdiv(bcmul($base, $rate, 10), '100', 10), 4);
+            $expectedAmount = Money::of($base)->percent($rate)->amount;
 
             if ($amountProvided && bccomp($expectedAmount, $amount, 4) !== 0) {
                 throw new DomainException('İskonto yüzde ve tutar değerleri birbiriyle uyumlu değil.');
@@ -130,11 +135,14 @@ final class CalculateDocumentTotals
         }
 
         if ($amountProvided) {
-            if (bccomp($base, '0', 10) === 0) {
+            if (bccomp($base, '0', 4) === 0) {
                 throw new DomainException('Sıfır tutarda iskonto tutarı kullanılamaz.');
             }
 
-            $derivedRate = $this->round(bcdiv(bcmul($amount, '100', 10), $base, 10), 4);
+            $derivedRate = $this->round(
+                bcdiv(bcmul($amount, '100', 10), $base, 10),
+                4,
+            );
 
             return [$derivedRate, $amount];
         }
