@@ -54,6 +54,7 @@ final class PostSecurityPayroll
                     'payment',
                     'return',
                     'protest',
+                    'cancel',
                 ], true)) {
                     throw new DomainException('Çek/senet bordro işlem türü geçersiz.');
                 }
@@ -86,11 +87,20 @@ final class PostSecurityPayroll
                     }
 
                     $currency = (string) $securities->first()->currency;
+                    $stateSnapshot = [];
 
                     foreach ($securities as $security) {
                         if ($security->currency !== $currency) {
                             throw new DomainException('Tek bordroda farklı para birimleri kullanılamaz.');
                         }
+
+                        $this->assertSecurityState($security, $action);
+                        $stateSnapshot[(string) $security->id] = [
+                            'status' => $security->status,
+                            'endorsed_to_contact_id' => $security->endorsed_to_contact_id,
+                            'bank_account_id' => $security->bank_account_id,
+                            'last_payroll_id' => $security->last_payroll_id,
+                        ];
                     }
 
                     $contact = $contactId === null
@@ -106,13 +116,10 @@ final class PostSecurityPayroll
 
                     $this->assertActionContext($action, $contact, $bank);
 
-                    $total = '0.0000';
-
-                    foreach ($securities as $security) {
-                        $this->assertSecurityState($security, $action);
-                        $total = bcadd($total, (string) $security->amount, 4);
-                    }
-
+                    $total = $securities->reduce(
+                        fn (string $sum, Security $security): string => bcadd($sum, (string) $security->amount, 4),
+                        '0.0000',
+                    );
                     $actor = auth()->user();
                     $payroll = SecurityPayroll::query()->create([
                         'number' => $this->numbers->handle('security_payroll', $date->year),
@@ -123,6 +130,7 @@ final class PostSecurityPayroll
                         'currency' => $currency,
                         'total_amount' => $total,
                         'security_ids' => $ids,
+                        'state_snapshot' => $stateSnapshot,
                         'status' => 'posted',
                         'notes' => $note,
                         'created_by' => $actor?->id,
@@ -160,11 +168,8 @@ final class PostSecurityPayroll
         );
     }
 
-    private function assertActionContext(
-        string $action,
-        ?Contact $contact,
-        ?BankAccount $bank,
-    ): void {
+    private function assertActionContext(string $action, ?Contact $contact, ?BankAccount $bank): void
+    {
         if ($action === 'endorsement' && $contact === null) {
             throw new DomainException('Ciro bordrosunda hedef cari zorunludur.');
         }
@@ -177,14 +182,13 @@ final class PostSecurityPayroll
     private function assertSecurityState(Security $security, string $action): void
     {
         $valid = match ($action) {
-            'endorsement' => $security->direction === 'incoming' && $security->status === 'portfolio',
-            'bank_deposit' => $security->direction === 'incoming' && $security->status === 'portfolio',
+            'endorsement', 'bank_deposit' => $security->direction === 'incoming'
+                && $security->status === 'portfolio',
             'collection' => $security->direction === 'incoming'
                 && in_array($security->status, ['portfolio', 'banked'], true),
-            'payment' => $security->direction === 'outgoing' && $security->status === 'issued',
-            'return' => $security->direction === 'incoming'
-                && in_array($security->status, ['portfolio', 'banked'], true),
-            'protest' => $security->direction === 'incoming'
+            'payment', 'cancel' => $security->direction === 'outgoing'
+                && $security->status === 'issued',
+            'return', 'protest' => $security->direction === 'incoming'
                 && in_array($security->status, ['portfolio', 'banked'], true),
             default => false,
         };
@@ -208,8 +212,9 @@ final class PostSecurityPayroll
             'bank_deposit' => $this->bankDeposit($security, $payroll, $bank),
             'collection' => $this->collect($security, $payroll, $bank, $date, $actorId, $actorName),
             'payment' => $this->pay($security, $payroll, $bank, $date, $actorId, $actorName),
-            'return' => $this->returnToContact($security, $payroll, $date, $actorId, $actorName),
-            'protest' => $this->changeStatus($security, $payroll, 'protested'),
+            'return' => $this->reverseSourceContact($security, $payroll, $date, 'security_return', 'returned', $actorId, $actorName),
+            'protest' => $this->reverseSourceContact($security, $payroll, $date, 'security_protest', 'protested', $actorId, $actorName),
+            'cancel' => $this->reverseSourceContact($security, $payroll, $date, 'security_cancel', 'cancelled', $actorId, $actorName),
             default => null,
         };
     }
@@ -277,20 +282,7 @@ final class PostSecurityPayroll
             throw new DomainException('Bankaya verilmiş çek farklı bir banka hesabından tahsil edilemez.');
         }
 
-        BankMovement::query()->create([
-            'bank_account_id' => $bank->id,
-            'movement_date' => $date,
-            'direction' => 'in',
-            'movement_type' => 'security_collection',
-            'amount' => $security->amount,
-            'origin' => 'book',
-            'reference' => $security->instrument_no,
-            'group_key' => $payroll->number,
-            'description' => $payroll->notes,
-            'metadata' => ['security_id' => $security->id, 'payroll_id' => $payroll->id],
-            'created_by' => $actorId,
-            'created_by_name' => $actorName,
-        ]);
+        $this->createBankMovement($security, $payroll, $bank, $date, 'in', 'security_collection', $actorId, $actorName);
 
         $security->updateWithVersion([
             'bank_account_id' => $bank->id,
@@ -316,20 +308,7 @@ final class PostSecurityPayroll
             throw new DomainException('Verilen çek tanımlı olduğu banka hesabından ödenmelidir.');
         }
 
-        BankMovement::query()->create([
-            'bank_account_id' => $bank->id,
-            'movement_date' => $date,
-            'direction' => 'out',
-            'movement_type' => 'security_payment',
-            'amount' => $security->amount,
-            'origin' => 'book',
-            'reference' => $security->instrument_no,
-            'group_key' => $payroll->number,
-            'description' => $payroll->notes,
-            'metadata' => ['security_id' => $security->id, 'payroll_id' => $payroll->id],
-            'created_by' => $actorId,
-            'created_by_name' => $actorName,
-        ]);
+        $this->createBankMovement($security, $payroll, $bank, $date, 'out', 'security_payment', $actorId, $actorName);
 
         $security->updateWithVersion([
             'bank_account_id' => $bank->id,
@@ -338,38 +317,67 @@ final class PostSecurityPayroll
         ], (int) $security->version);
     }
 
-    private function returnToContact(
+    private function createBankMovement(
         Security $security,
         SecurityPayroll $payroll,
+        BankAccount $bank,
         string $date,
+        string $direction,
+        string $movementType,
         ?int $actorId,
         ?string $actorName,
     ): void {
-        if ($security->contact_id === null) {
-            throw new DomainException('İade edilecek çek/senet kaynak carisi bulunamadı.');
+        BankMovement::query()->create([
+            'bank_account_id' => $bank->id,
+            'movement_date' => $date,
+            'direction' => $direction,
+            'movement_type' => $movementType,
+            'amount' => $security->amount,
+            'origin' => 'book',
+            'reference' => $security->instrument_no,
+            'group_key' => hash('sha256', $payroll->number),
+            'description' => $payroll->notes,
+            'metadata' => ['security_id' => $security->id, 'payroll_id' => $payroll->id],
+            'created_by' => $actorId,
+            'created_by_name' => $actorName,
+        ]);
+    }
+
+    private function reverseSourceContact(
+        Security $security,
+        SecurityPayroll $payroll,
+        string $date,
+        string $transactionType,
+        string $status,
+        ?int $actorId,
+        ?string $actorName,
+    ): void {
+        if ($security->contact_transaction_id === null) {
+            throw new DomainException('Çek/senet kaynak cari hareketi bulunamadı.');
+        }
+
+        $source = ContactTransaction::query()
+            ->lockForUpdate()
+            ->findOrFail($security->contact_transaction_id);
+
+        if (ContactTransaction::query()->where('reversal_of_id', $source->id)->exists()) {
+            throw new DomainException('Çek/senet kaynak cari hareketi daha önce terslenmiş.');
         }
 
         ContactTransaction::query()->create([
-            'contact_id' => $security->contact_id,
-            'transaction_type' => 'security_return',
-            'direction' => 'debit',
+            'contact_id' => $source->contact_id,
+            'transaction_type' => $transactionType,
+            'direction' => $source->direction === 'debit' ? 'credit' : 'debit',
             'transaction_date' => $date,
             'due_date' => $security->due_date,
-            'amount' => $security->amount,
-            'currency' => 'TRY',
+            'amount' => $source->amount,
+            'currency' => $source->currency,
+            'reversal_of_id' => $source->id,
             'description' => $payroll->number.' · '.$security->instrument_no,
             'created_by' => $actorId,
             'created_by_name' => $actorName,
         ]);
 
-        $this->changeStatus($security, $payroll, 'returned');
-    }
-
-    private function changeStatus(
-        Security $security,
-        SecurityPayroll $payroll,
-        string $status,
-    ): void {
         $security->updateWithVersion([
             'last_payroll_id' => $payroll->id,
             'status' => $status,

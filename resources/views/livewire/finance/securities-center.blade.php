@@ -73,6 +73,7 @@
                 <option value="payment">Öde</option>
                 <option value="return">İade</option>
                 <option value="protest">Protesto</option>
+                <option value="cancel">Verilen Evrakı İptal Et</option>
             </select>
         </label>
         <label>Tarih <input type="date" wire:model="payrollDate"></label>
@@ -95,10 +96,27 @@
         <button type="button" wire:click="postPayroll">Bordroyu Kesinleştir</button>
     </section>
 
+    <section class="space-y-3">
+        <h2>Bordro Ters Kayıt</h2>
+        <label>Bordro
+            <select wire:model="reversePayrollId">
+                <option value="">Seçin</option>
+                @foreach($payrolls as $payroll)
+                    @if($payroll->action !== 'reversal')
+                        <option value="{{ $payroll->id }}">{{ $payroll->number }} · {{ $payroll->action }} · {{ $payroll->total_amount }}</option>
+                    @endif
+                @endforeach
+            </select>
+        </label>
+        <label>Tarih <input type="date" wire:model="reversalDate"></label>
+        <label>Gerekçe <input wire:model="reversalReason"></label>
+        <button type="button" wire:click="reversePayroll">Bordroyu Tersle</button>
+    </section>
+
     <section>
         <h2>Son Bordrolar</h2>
         <table>
-            <thead><tr><th>No</th><th>İşlem</th><th>Tarih</th><th>Toplam</th><th>Adet</th><th>Durum</th></tr></thead>
+            <thead><tr><th>No</th><th>İşlem</th><th>Tarih</th><th>Toplam</th><th>Adet</th><th>Terslenen</th><th>Durum</th></tr></thead>
             <tbody>
             @foreach($payrolls as $payroll)
                 <tr>
@@ -107,6 +125,7 @@
                     <td>{{ $payroll->payroll_date?->format('d.m.Y') }}</td>
                     <td>{{ $payroll->total_amount }}</td>
                     <td>{{ count($payroll->security_ids) }}</td>
+                    <td>{{ $payroll->reversal_of_id ?? '—' }}</td>
                     <td>{{ $payroll->status }}</td>
                 </tr>
             @endforeach

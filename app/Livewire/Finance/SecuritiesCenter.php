@@ -4,6 +4,7 @@ namespace App\Livewire\Finance;
 
 use App\Actions\Finance\CreateSecurity;
 use App\Actions\Finance\PostSecurityPayroll;
+use App\Actions\Finance\ReverseSecurityPayroll;
 use App\Livewire\Concerns\WithIdempotentMutations;
 use App\Models\Period\BankAccount;
 use App\Models\Period\Contact;
@@ -34,14 +35,18 @@ class SecuritiesCenter extends Component
     public ?int $payrollContactId = null;
     public ?int $payrollBankAccountId = null;
     public string $payrollDate = '';
+    public ?int $reversePayrollId = null;
+    public string $reversalDate = '';
+    public string $reversalReason = '';
 
     public function mount(): void
     {
-        $this->seedMutationKeys(['create', 'payroll']);
+        $this->seedMutationKeys(['create', 'payroll', 'reversePayroll']);
         abort_unless(auth()->user()?->can('securities.view'), 403);
         $this->transactionDate = now()->toDateString();
         $this->dueDate = now()->addMonth()->toDateString();
         $this->payrollDate = now()->toDateString();
+        $this->reversalDate = now()->toDateString();
     }
 
     public function create(CreateSecurity $action): void
@@ -77,6 +82,20 @@ class SecuritiesCenter extends Component
         );
         $this->completeMutation('payroll');
         $this->selectedSecurityIds = [];
+    }
+
+    public function reversePayroll(ReverseSecurityPayroll $action): void
+    {
+        $payroll = SecurityPayroll::query()->findOrFail((int) $this->reversePayrollId);
+
+        $action->handle(
+            $payroll,
+            $this->reversalDate,
+            $this->reversalReason,
+            $this->mutationKey('reversePayroll'),
+        );
+        $this->completeMutation('reversePayroll');
+        $this->reversePayrollId = null;
     }
 
     public function render(): View

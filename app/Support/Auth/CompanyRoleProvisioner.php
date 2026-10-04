@@ -137,7 +137,7 @@ final class CompanyRoleProvisioner
                 'expenses.view', 'expenses.create', 'expenses.cancel',
                 'advances.view', 'advances.create', 'advances.cancel',
                 'securities.view', 'securities.create', 'securities.update', 'securities.cancel',
-                'security_payrolls.view', 'security_payrolls.create',
+                'security_payrolls.view', 'security_payrolls.create', 'security_payrolls.cancel',
                 'bank_statements.view', 'bank_statements.create',
                 'bank_reconciliation.view', 'bank_reconciliation.update',
                 ...$technicalViews,

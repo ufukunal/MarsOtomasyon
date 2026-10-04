@@ -127,6 +127,21 @@ final class FinanceIntegrityCheck implements IntegrityCheck
 
         foreach ($securities as $security) {
             $checked++;
+            $sourceTransaction = $security->contact_transaction_id === null
+                ? null
+                : \App\Models\Period\ContactTransaction::query()->find($security->contact_transaction_id);
+            $expectedSourceDirection = $security->direction === 'incoming' ? 'credit' : 'debit';
+
+            if (! $sourceTransaction
+                || $sourceTransaction->contact_id !== $security->contact_id
+                || $sourceTransaction->direction !== $expectedSourceDirection
+                || bccomp((string) $sourceTransaction->amount, (string) $security->amount, 4) !== 0) {
+                $mismatches[] = [
+                    'security_id' => $security->id,
+                    'reason' => 'security_source_contact_transaction',
+                ];
+            }
+
             $invalid = match ($security->status) {
                 'endorsed' => $security->endorsed_to_contact_id === null,
                 'banked', 'collected', 'paid' => $security->bank_account_id === null,
@@ -154,11 +169,33 @@ final class FinanceIntegrityCheck implements IntegrityCheck
             );
 
             if ($rows->count() !== count($ids)
-                || bccomp($total, (string) $payroll->total_amount, 4) !== 0) {
+                || bccomp($total, (string) $payroll->total_amount, 4) !== 0
+                || ! is_array($payroll->state_snapshot)) {
                 $mismatches[] = [
                     'payroll_id' => $payroll->id,
-                    'reason' => 'security_payroll_total_or_membership',
+                    'reason' => 'security_payroll_total_membership_or_snapshot',
                 ];
+            }
+
+            if (($payroll->action === 'reversal') !== ($payroll->reversal_of_id !== null)) {
+                $mismatches[] = [
+                    'payroll_id' => $payroll->id,
+                    'reason' => 'security_payroll_reversal_link',
+                ];
+            }
+
+            if ($payroll->action === 'reversal') {
+                $original = SecurityPayroll::query()->find($payroll->reversal_of_id);
+
+                if (! $original
+                    || $original->action === 'reversal'
+                    || $original->currency !== $payroll->currency
+                    || bccomp((string) $original->total_amount, (string) $payroll->total_amount, 4) !== 0) {
+                    $mismatches[] = [
+                        'payroll_id' => $payroll->id,
+                        'reason' => 'security_payroll_reversal_invalid',
+                    ];
+                }
             }
         }
 

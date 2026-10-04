@@ -13,6 +13,7 @@ use LogicException;
  * @property string $kind
  * @property string $instrument_no
  * @property int|null $contact_id
+ * @property int|null $contact_transaction_id
  * @property int|null $endorsed_to_contact_id
  * @property int|null $bank_account_id
  * @property int|null $last_payroll_id
@@ -29,7 +30,7 @@ class Security extends PeriodModel
 
     protected $fillable = [
         'direction', 'kind', 'instrument_no', 'fingerprint', 'contact_id',
-        'endorsed_to_contact_id', 'bank_account_id', 'last_payroll_id', 'bank_name',
+        'contact_transaction_id', 'endorsed_to_contact_id', 'bank_account_id', 'last_payroll_id', 'bank_name',
         'issue_date', 'due_date', 'currency', 'amount', 'status', 'notes', 'version',
         'created_by', 'created_by_name',
     ];
@@ -45,6 +46,7 @@ class Security extends PeriodModel
     {
         return [
             'contact_id' => 'integer',
+            'contact_transaction_id' => 'integer',
             'endorsed_to_contact_id' => 'integer',
             'bank_account_id' => 'integer',
             'last_payroll_id' => 'integer',
@@ -60,6 +62,12 @@ class Security extends PeriodModel
     public function contact(): BelongsTo
     {
         return $this->belongsTo(Contact::class);
+    }
+
+    /** @return BelongsTo<ContactTransaction, $this> */
+    public function contactTransaction(): BelongsTo
+    {
+        return $this->belongsTo(ContactTransaction::class);
     }
 
     /** @return BelongsTo<Contact, $this> */

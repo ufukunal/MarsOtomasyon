@@ -113,25 +113,7 @@ final class CreateSecurity
                     }
 
                     $actor = auth()->user();
-                    $security = Security::query()->create([
-                        'direction' => $direction,
-                        'kind' => $kind,
-                        'instrument_no' => $instrumentNo,
-                        'fingerprint' => $fingerprint,
-                        'contact_id' => $contact->id,
-                        'bank_account_id' => $bankAccountId,
-                        'bank_name' => trim((string) $bankName) ?: null,
-                        'issue_date' => $date->toDateString(),
-                        'due_date' => $due->toDateString(),
-                        'currency' => 'TRY',
-                        'amount' => $normalized,
-                        'status' => $direction === 'incoming' ? 'portfolio' : 'issued',
-                        'notes' => $note,
-                        'created_by' => $actor?->id,
-                        'created_by_name' => $actor?->name,
-                    ]);
-
-                    ContactTransaction::query()->create([
+                    $contactTransaction = ContactTransaction::query()->create([
                         'contact_id' => $contact->id,
                         'transaction_type' => $direction === 'incoming'
                             ? 'security_received'
@@ -141,7 +123,26 @@ final class CreateSecurity
                         'due_date' => $due->toDateString(),
                         'amount' => $normalized,
                         'currency' => 'TRY',
-                        'description' => $note ?: $instrumentNo,
+                        'description' => $instrumentNo,
+                        'created_by' => $actor?->id,
+                        'created_by_name' => $actor?->name,
+                    ]);
+
+                    $security = Security::query()->create([
+                        'direction' => $direction,
+                        'kind' => $kind,
+                        'instrument_no' => $instrumentNo,
+                        'fingerprint' => $fingerprint,
+                        'contact_id' => $contact->id,
+                        'contact_transaction_id' => $contactTransaction->id,
+                        'bank_account_id' => $bankAccountId,
+                        'bank_name' => trim((string) $bankName) ?: null,
+                        'issue_date' => $date->toDateString(),
+                        'due_date' => $due->toDateString(),
+                        'currency' => 'TRY',
+                        'amount' => $normalized,
+                        'status' => $direction === 'incoming' ? 'portfolio' : 'issued',
+                        'notes' => $note,
                         'created_by' => $actor?->id,
                         'created_by_name' => $actor?->name,
                     ]);
