@@ -31,7 +31,6 @@ use App\Models\Period\StockBalance;
 use App\Models\Period\StockMovement;
 use App\Models\Period\StockReservation;
 use App\Models\Period\WarehouseSlip;
-use DomainException;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
@@ -548,7 +547,7 @@ it('1000 satırlık açılışı atomik uygular ve ikinci açılışı reddeder'
         (string) Str::uuid(),
         $admin->id,
         $admin->name,
-    ))->toThrow(DomainException::class);
+    ))->toThrow('DomainException');
 });
 
 it('rezervasyonu lokasyon önceliğine göre birden fazla depoya böler', function () {
