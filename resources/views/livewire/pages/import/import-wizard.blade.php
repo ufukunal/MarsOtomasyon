@@ -1,7 +1,18 @@
 <div class="stack">
     @if($step === 1)
         <section class="panel stack">
-            <x-field.select label="Aktarım Tipi" wire:model="type" :options="['contact'=>'Cari','product'=>'Ürün','price_list'=>'Fiyat Listesi','opening_stock'=>'Açılış Stok']" />
+            @if($openingOnly)
+                <h2>Açılış Stok Bakiyesi</h2>
+            @else
+                <x-field.select label="Aktarım Tipi" wire:model.live="type" :options="['contact'=>'Cari','product'=>'Ürün','price_list'=>'Fiyat Listesi','opening_stock'=>'Açılış Stok']" />
+            @endif
+            @if($type === 'opening_stock')
+                <label class="field">
+                    <span class="field-label">Açılış Tarihi *</span>
+                    <input type="date" wire:model="openingDate">
+                </label>
+                @error('openingDate')<div class="field-error">{{ $message }}</div>@enderror
+            @endif
             <x-field.file label="Dosya" wire:model="file" />
             <p>XLSX, CSV ve JSON desteklenir. CSV ayıracı noktalı virgüldür.</p>
             <button type="button" wire:click="upload">Dosyayı Yükle</button>
@@ -44,8 +55,15 @@
                     </tbody>
                 </table>
             </div>
-            <x-field.select label="Hata Davranışı" wire:model="errorMode" :options="['cancel_all'=>'Bir hata varsa tümünü iptal et','skip_invalid'=>'Hatalı satırları atla']" />
-            <button type="button" wire:click="queue">Kuyruğa Al</button>
+            @if($type === 'opening_stock')
+                <div class="alert alert-warning">
+                    Açılış bakiyesi tamamen atomiktir. Bir satır hatalıysa hiçbir stok hareketi uygulanmaz.
+                    Açılış tarihi: {{ $openingDate }}.
+                </div>
+            @else
+                <x-field.select label="Hata Davranışı" wire:model="errorMode" :options="['cancel_all'=>'Bir hata varsa tümünü iptal et','skip_invalid'=>'Hatalı satırları atla']" />
+            @endif
+            <button type="button" wire:click="queue">{{ $type === 'opening_stock' ? 'Açılışı Uygula' : 'Kuyruğa Al' }}</button>
         </section>
     @else
         <section class="panel">
@@ -54,6 +72,9 @@
             @else
                 <dl>
                     <dt>Durum</dt><dd>{{ $batch->status }}</dd>
+                    @if($batch->type === 'opening_stock')
+                        <dt>Açılış Tarihi</dt><dd>{{ $batch->opening_date?->format('d.m.Y') }}</dd>
+                    @endif
                     <dt>Toplam</dt><dd>{{ $batch->total_rows }}</dd>
                     <dt>Başarılı</dt><dd>{{ $batch->success_rows }}</dd>
                     <dt>Hatalı</dt><dd>{{ $batch->error_rows }}</dd>

@@ -2,12 +2,14 @@
 
 namespace App\Livewire\Pages\Import;
 
+use App\Actions\Periods\EnsurePeriodOpen;
 use App\Jobs\ProcessCardImport;
 use App\Models\Period\CardImportBatch;
 use App\Support\Import\ImportFileReader;
 use App\Support\Import\ImportMapping;
 use App\Support\Import\ImportRowImporterResolver;
 use App\Support\Period\PeriodContext;
+use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Component;
@@ -43,18 +45,46 @@ class ImportWizard extends Component
 
     public string $errorMode = 'cancel_all';
 
+    public string $openingDate = '';
+
+    public bool $openingOnly = false;
+
     public ?string $batchId = null;
 
     public function mount(): void
     {
         abort_unless(auth()->user()?->can('imports.create'), 403);
         PeriodContext::ensureWritable();
+
+        if (request()->routeIs('stock.opening.index')) {
+            $this->openingOnly = true;
+            $this->type = 'opening_stock';
+            $this->errorMode = 'cancel_all';
+            $this->openingDate = now()->toDateString();
+        }
+    }
+
+    public function updatedType(): void
+    {
+        if ($this->openingOnly) {
+            $this->type = 'opening_stock';
+        }
+
+        if ($this->type === 'opening_stock') {
+            $this->errorMode = 'cancel_all';
+            $this->openingDate = $this->openingDate !== '' ? $this->openingDate : now()->toDateString();
+        }
     }
 
     public function upload(ImportFileReader $reader): void
     {
+        if ($this->openingOnly) {
+            $this->type = 'opening_stock';
+        }
+
         $this->validate([
             'type' => ['required', 'in:contact,product,price_list,opening_stock'],
+            'openingDate' => ['required_if:type,opening_stock', 'nullable', 'date'],
             'file' => ['required', 'file', 'max:51200', 'mimes:xlsx,csv,json'],
         ]);
 
@@ -106,9 +136,21 @@ class ImportWizard extends Component
         $this->step = 3;
     }
 
-    public function queue(): void
+    public function queue(EnsurePeriodOpen $ensurePeriodOpen): void
     {
         PeriodContext::ensureWritable();
+
+        if ($this->openingOnly) {
+            $this->type = 'opening_stock';
+        }
+
+        if ($this->type === 'opening_stock') {
+            $this->validate([
+                'openingDate' => ['required', 'date'],
+            ]);
+            $this->errorMode = 'cancel_all';
+            $ensurePeriodOpen->handle(CarbonImmutable::parse($this->openingDate));
+        }
 
         $existing = CardImportBatch::query()
             ->where('file_hash', $this->fileHash)
@@ -125,6 +167,7 @@ class ImportWizard extends Component
                     'original_name' => $this->originalName,
                     'mapping' => $this->mapping,
                     'error_mode' => $this->errorMode,
+                    'opening_date' => $this->type === 'opening_stock' ? $this->openingDate : null,
                     'status' => 'pending',
                     'total_rows' => 0,
                     'success_rows' => 0,
@@ -161,6 +204,7 @@ class ImportWizard extends Component
             'file_hash' => $this->fileHash,
             'mapping' => $this->mapping,
             'error_mode' => $this->errorMode,
+            'opening_date' => $this->type === 'opening_stock' ? $this->openingDate : null,
             'status' => 'pending',
             'created_by' => $actor?->getAuthIdentifier(),
             'created_by_name' => $actor?->name,
@@ -181,6 +225,6 @@ class ImportWizard extends Component
         return view('livewire.pages.import.import-wizard', [
             'fields' => ImportMapping::fields($this->type),
             'batch' => $this->batchId ? CardImportBatch::query()->with('errors')->find($this->batchId) : null,
-        ])->layout('layouts.app', ['pageTitle' => 'İçe Aktarma']);
+        ])->layout('layouts.app', ['pageTitle' => $this->openingOnly ? 'Açılış Bakiyesi' : 'İçe Aktarma']);
     }
 }

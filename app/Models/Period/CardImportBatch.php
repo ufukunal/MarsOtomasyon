@@ -23,6 +23,7 @@ class CardImportBatch extends PeriodModel
         'file_hash',
         'mapping',
         'error_mode',
+        'opening_date',
         'status',
         'total_rows',
         'success_rows',
@@ -38,6 +39,7 @@ class CardImportBatch extends PeriodModel
     {
         return [
             'mapping' => 'array',
+            'opening_date' => 'date',
             'total_rows' => 'integer',
             'success_rows' => 'integer',
             'error_rows' => 'integer',

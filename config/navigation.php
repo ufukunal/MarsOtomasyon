@@ -26,6 +26,7 @@ return [
             ['label' => 'Stok Sayımları', 'route' => 'stock.counts.index', 'permission' => 'stock_counts.view'],
             ['label' => 'Karantina', 'route' => 'stock.quarantine.index', 'permission' => 'quarantine.view'],
             ['label' => 'Rezervasyonlar', 'route' => 'stock.reservations.index', 'permission' => 'reservations.view'],
+            ['label' => 'Açılış Bakiyesi', 'route' => 'stock.opening.index', 'permission' => 'imports.create'],
         ],
     ],
     [
