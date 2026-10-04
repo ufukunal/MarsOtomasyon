@@ -22,7 +22,7 @@ class PruneIdempotencyKeysCommand extends Command
             ->whereIn('status', ['active', 'closed'])
             ->each(function (Period $period) use (&$failed): void {
                 try {
-                    PeriodContext::use($period->company_id, $period->id);
+                    PeriodContext::useSystem($period->company_id, $period->id);
 
                     DB::connection('period')
                         ->table('idempotency_keys')
