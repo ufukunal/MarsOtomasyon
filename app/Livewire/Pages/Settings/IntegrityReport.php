@@ -8,6 +8,7 @@ use App\Support\Integrity\Checks\ContactBalanceCheck;
 use App\Support\Integrity\Checks\CostIntegrityCheck;
 use App\Support\Integrity\Checks\DocumentTotalCheck;
 use App\Support\Integrity\Checks\NumberSeriesCheck;
+use App\Support\Integrity\Checks\PartialDocumentCheck;
 use App\Support\Integrity\Checks\QuarantineBalanceCheck;
 use App\Support\Integrity\Checks\ReservationBalanceCheck;
 use App\Support\Integrity\Checks\StockBalanceCheck;
@@ -39,6 +40,7 @@ class IntegrityReport extends Component
             'quarantine' => QuarantineBalanceCheck::class,
             'units' => UnitIntegrityCheck::class,
             'documents' => DocumentTotalCheck::class,
+            'partials' => PartialDocumentCheck::class,
             'contacts' => ContactBalanceCheck::class,
             'numbers' => NumberSeriesCheck::class,
         ];
