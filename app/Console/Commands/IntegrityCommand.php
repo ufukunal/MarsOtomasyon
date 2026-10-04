@@ -44,7 +44,7 @@ class IntegrityCommand extends Command
                     $this->info("→ {$period->database_name}");
 
                     try {
-                        PeriodContext::use($period->company_id, $period->id);
+                        PeriodContext::useSystem($period->company_id, $period->id);
 
                         foreach ($checks as $checkClass) {
                             $check = app($checkClass);
@@ -71,7 +71,7 @@ class IntegrityCommand extends Command
             PeriodContext::clear();
 
             if ($oldCompanyId && $oldPeriodId) {
-                PeriodContext::use($oldCompanyId, $oldPeriodId);
+                PeriodContext::useSystem($oldCompanyId, $oldPeriodId);
             }
         }
 

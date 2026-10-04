@@ -26,6 +26,12 @@ final class CompanyRoleProvisioner
         'variant_groups',
         'price_lists',
         'imports',
+        'stock',
+        'transfers',
+        'warehouse_slips',
+        'stock_counts',
+        'quarantine',
+        'reservations',
     ];
 
     private const ACTIONS = [
