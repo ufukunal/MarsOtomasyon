@@ -27,14 +27,13 @@ use App\Exceptions\NegativeStockException;
 use App\Exceptions\PeriodClosedException;
 use App\Models\Period\Location;
 use App\Models\Period\ProductCost;
-use App\Models\Period\QuarantineEntry;
 use App\Models\Period\StockBalance;
-use App\Models\Period\StockCount;
 use App\Models\Period\StockMovement;
 use App\Models\Period\StockReservation;
-use App\Models\Period\Transfer;
 use App\Models\Period\WarehouseSlip;
+use DomainException;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -549,9 +548,8 @@ it('1000 satırlık açılışı atomik uygular ve ikinci açılışı reddeder'
         (string) Str::uuid(),
         $admin->id,
         $admin->name,
-    ))->toThrow(\DomainException::class);
+    ))->toThrow(DomainException::class);
 });
-
 
 it('rezervasyonu lokasyon önceliğine göre birden fazla depoya böler', function () {
     [$company, $period] = $this->createCompanyWithPeriod('RESPLIT');
@@ -618,7 +616,7 @@ it('hatalı açılış satırında tüm açılış transactionını geri alır',
         (string) Str::uuid(),
         $admin->id,
         $admin->name,
-    ))->toThrow(\Illuminate\Database\Eloquent\ModelNotFoundException::class);
+    ))->toThrow(ModelNotFoundException::class);
 
     expect(StockMovement::query()->where('reason', 'opening')->count())->toBe(0)
         ->and(StockBalance::query()->where('product_id', $product->id)->count())->toBe(0)

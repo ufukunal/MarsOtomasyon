@@ -8,6 +8,7 @@ use App\Models\Period\StockBalance;
 use App\Models\Period\StockMovement;
 use App\Support\Period\PeriodContext;
 use Illuminate\Support\Facades\DB;
+use Throwable;
 
 function faz2ConcurrencyWarehouse(string $code): Location
 {
@@ -21,7 +22,7 @@ function faz2ConcurrencyWarehouse(string $code): Location
 }
 
 /**
- * @param Closure(int):void $callback
+ * @param  Closure(int):void  $callback
  * @return list<string>
  */
 function faz2RunParallel(
@@ -41,7 +42,7 @@ function faz2RunParallel(
     $errorFiles = [];
 
     for ($index = 0; $index < $workers; $index++) {
-        $errorFile = sys_get_temp_dir()."/mars-faz2-concurrency-".getmypid()."-{$index}.log";
+        $errorFile = sys_get_temp_dir().'/mars-faz2-concurrency-'.getmypid()."-{$index}.log";
         @unlink($errorFile);
 
         $pid = pcntl_fork();
@@ -58,7 +59,7 @@ function faz2RunParallel(
                 PeriodContext::useSystem($companyId, $periodId);
                 $callback($index);
                 exit(0);
-            } catch (\Throwable $exception) {
+            } catch (Throwable $exception) {
                 file_put_contents(
                     $errorFile,
                     $exception::class.': '.$exception->getMessage(),

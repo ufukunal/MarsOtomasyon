@@ -24,7 +24,7 @@ final class ImportOpeningStock
     ) {}
 
     /**
-     * @param list<array<string, mixed>> $rows
+     * @param  list<array<string, mixed>>  $rows
      */
     public function handle(
         array $rows,

@@ -16,7 +16,7 @@ final class ReserveStock
     public function __construct(private readonly AdjustReservedBalance $adjustReserved) {}
 
     /**
-     * @param list<int> $orderedLocationIds
+     * @param  list<int>  $orderedLocationIds
      */
     public function handle(
         int $productId,
@@ -65,7 +65,7 @@ final class ReserveStock
     }
 
     /**
-     * @param list<int> $orderedLocationIds
+     * @param  list<int>  $orderedLocationIds
      * @return array{reservation_ids:list<int>,reserved_quantity:string,open_quantity:string}
      */
     private function reserve(
