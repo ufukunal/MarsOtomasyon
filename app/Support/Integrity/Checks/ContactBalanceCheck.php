@@ -62,6 +62,8 @@ final class ContactBalanceCheck implements IntegrityCheck
                 DocumentType::ContactDebitCredit->value,
                 DocumentType::SupplierInvoice->value,
                 DocumentType::Payment->value,
+                DocumentType::Advance->value,
+                DocumentType::AdvanceReturn->value,
             ])
             ->get();
 
@@ -90,6 +92,8 @@ final class ContactBalanceCheck implements IntegrityCheck
             $expectedAmount = in_array($document->document_type, [
                 DocumentType::SupplierInvoice,
                 DocumentType::Payment,
+                DocumentType::Advance,
+                DocumentType::AdvanceReturn,
             ], true)
                 ? bcadd(
                     bcmul((string) $document->grand_total, (string) $document->exchange_rate, 8),
@@ -100,6 +104,8 @@ final class ContactBalanceCheck implements IntegrityCheck
             $expectedCurrency = in_array($document->document_type, [
                 DocumentType::SupplierInvoice,
                 DocumentType::Payment,
+                DocumentType::Advance,
+                DocumentType::AdvanceReturn,
             ], true)
                 ? 'TRY'
                 : (string) $document->currency;
@@ -117,6 +123,8 @@ final class ContactBalanceCheck implements IntegrityCheck
                 DocumentType::Collection => 'credit',
                 DocumentType::SupplierInvoice => 'credit',
                 DocumentType::Payment => 'debit',
+                DocumentType::Advance => 'debit',
+                DocumentType::AdvanceReturn => 'credit',
                 default => null,
             };
 
@@ -133,7 +141,12 @@ final class ContactBalanceCheck implements IntegrityCheck
                 }
             }
 
-            if (in_array($document->document_type, [DocumentType::Collection, DocumentType::Payment], true)) {
+            if (in_array($document->document_type, [
+                DocumentType::Collection,
+                DocumentType::Payment,
+                DocumentType::Advance,
+                DocumentType::AdvanceReturn,
+            ], true)) {
                 $cashCount = DB::connection('period')->table('cash_movements')
                     ->where('document_id', $document->id)
                     ->count();

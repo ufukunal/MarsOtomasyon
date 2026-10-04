@@ -455,8 +455,14 @@ final class PostDocument
                 'contact_id' => $document->contact_id,
                 'movement_date' => $document->document_date,
                 'direction' => $direction,
+                'movement_type' => $document->document_type->value,
                 'amount' => $document->grand_total,
+                'reference' => $document->number,
                 'description' => $document->notes,
+                'metadata' => [
+                    'currency' => $document->currency,
+                    'exchange_rate' => (string) $document->exchange_rate,
+                ],
                 'created_by' => $actorId,
                 'created_by_name' => $actorName,
             ]);
@@ -476,8 +482,15 @@ final class PostDocument
             'contact_id' => $document->contact_id,
             'movement_date' => $document->document_date,
             'direction' => $direction,
+            'movement_type' => $document->document_type->value,
             'amount' => $document->grand_total,
+            'origin' => 'book',
+            'reference' => $document->number,
             'description' => $document->notes,
+            'metadata' => [
+                'currency' => $document->currency,
+                'exchange_rate' => (string) $document->exchange_rate,
+            ],
             'created_by' => $actorId,
             'created_by_name' => $actorName,
         ]);

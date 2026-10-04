@@ -62,6 +62,9 @@ final class ReverseDocument
                         DocumentType::GoodsReceipt,
                         DocumentType::SupplierInvoice,
                         DocumentType::Payment,
+                        DocumentType::Expense,
+                        DocumentType::Advance,
+                        DocumentType::AdvanceReturn,
                     ], true)) {
                     throw new DomainException('Bu belge ters kayıt için uygun değil.');
                 }
@@ -166,6 +169,9 @@ final class ReverseDocument
             DocumentType::GoodsReceipt => 'goods_receipts.cancel',
             DocumentType::SupplierInvoice => 'supplier_invoices.cancel',
             DocumentType::Payment => 'payments.cancel',
+            DocumentType::Expense => 'expenses.cancel',
+            DocumentType::Advance,
+            DocumentType::AdvanceReturn => 'advances.cancel',
             DocumentType::ContactDebitCredit => 'contacts.update',
             default => 'documents.cancel',
         };
@@ -300,8 +306,12 @@ final class ReverseDocument
                 'contact_id' => $cash->contact_id,
                 'movement_date' => $reversal->document_date,
                 'direction' => $cash->direction === 'in' ? 'out' : 'in',
+                'movement_type' => 'reversal',
                 'amount' => $cash->amount,
+                'reference' => $reversal->number,
+                'reversal_of_id' => $cash->id,
                 'description' => $reversal->notes,
+                'metadata' => $cash->metadata,
                 'created_by' => $actorId,
                 'created_by_name' => $actorName,
             ]);
@@ -318,9 +328,13 @@ final class ReverseDocument
                 'contact_id' => $bank->contact_id,
                 'movement_date' => $reversal->document_date,
                 'direction' => $bank->direction === 'in' ? 'out' : 'in',
+                'movement_type' => 'reversal',
                 'amount' => $bank->amount,
-                'reference' => $bank->reference,
+                'origin' => 'book',
+                'reference' => $reversal->number,
+                'reversal_of_id' => $bank->id,
                 'description' => $reversal->notes,
+                'metadata' => $bank->metadata,
                 'created_by' => $actorId,
                 'created_by_name' => $actorName,
             ]);
