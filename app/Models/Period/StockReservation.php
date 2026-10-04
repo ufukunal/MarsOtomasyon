@@ -4,6 +4,7 @@ namespace App\Models\Period;
 
 use App\Models\PeriodModel;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
 /**
  * @property int $product_id
@@ -13,7 +14,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int|null $document_id
  * @property int|null $document_line_id
  * @property string $status
- * @property \Illuminate\Support\Carbon|null $released_at
+ * @property Carbon|null $released_at
  */
 class StockReservation extends PeriodModel
 {
