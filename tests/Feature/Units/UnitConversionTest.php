@@ -49,5 +49,5 @@ it('tanımsız birim dönüşümünde factor 1 varsaymaz', function () {
     $kg = Unit::query()->where('code', 'KG')->firstOrFail();
 
     expect(fn () => app(UnitConversionResolver::class)->factor($kg->id, $piece->id))
-        ->toThrow(\DomainException::class);
+        ->toThrow(DomainException::class);
 });
