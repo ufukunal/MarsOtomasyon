@@ -28,6 +28,7 @@ use App\Livewire\Pages\Settings\IntegrityReport;
 use App\Livewire\Pages\Settings\Periods;
 use App\Livewire\Pages\Setup\CompanyWizard;
 use App\Livewire\Pages\Stock\QuarantineControl;
+use App\Livewire\Pages\Stock\ReservationList;
 use App\Livewire\Pages\Stock\StockCountDetail;
 use App\Livewire\Pages\Stock\StockCountList;
 use App\Livewire\Pages\Stock\StockMovements;
@@ -83,6 +84,7 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/stok/sayimlar/yeni', StockCountDetail::class)->name('stock.counts.create');
     Route::get('/stok/sayimlar/{id}', StockCountDetail::class)->name('stock.counts.show');
     Route::get('/stok/karantina', QuarantineControl::class)->name('stock.quarantine.index');
+    Route::get('/stok/rezervasyonlar', ReservationList::class)->name('stock.reservations.index');
     Route::get('/stok/transferler', TransferList::class)->name('stock.transfers.index');
     Route::get('/stok/transferler/yeni', TransferDetail::class)->name('stock.transfers.create');
     Route::get('/stok/transferler/{id}', TransferDetail::class)->name('stock.transfers.show');
