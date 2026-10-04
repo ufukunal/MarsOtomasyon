@@ -8,7 +8,6 @@ use App\Models\Period\StockBalance;
 use App\Models\Period\StockMovement;
 use App\Support\Period\PeriodContext;
 use Illuminate\Support\Facades\DB;
-use Throwable;
 
 function faz2ConcurrencyWarehouse(string $code): Location
 {

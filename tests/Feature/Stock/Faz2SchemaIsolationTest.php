@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
-function faz2ContractWarehouse(string $code): Location
+function faz2SchemaIsolationWarehouse(string $code): Location
 {
     return Location::query()->create([
         'code' => $code,
@@ -83,7 +83,7 @@ it('A periodindeki stok hareketi B periodinde görünmez ve A ürün kimliği B 
 
     PeriodContext::useSystem($companyA->id, $periodA->id);
     $productA = $this->createTestProduct(['code' => 'ISO-A-P']);
-    $locationA = faz2ContractWarehouse('ISO-A-L');
+    $locationA = faz2SchemaIsolationWarehouse('ISO-A-L');
 
     app(RecordStockMovement::class)->handle(new StockMovementData(
         productId: $productA->id,
@@ -128,7 +128,7 @@ it('kullanılabilir stok rezerve konsinye ve karantinayı düşer fiziksel stoğ
     PeriodContext::useSystem($company->id, $period->id);
 
     $product = $this->createTestProduct(['code' => 'AVL-1']);
-    $location = faz2ContractWarehouse('AVL-A');
+    $location = faz2SchemaIsolationWarehouse('AVL-A');
 
     $balance = StockBalance::query()->create([
         'product_id' => $product->id,
