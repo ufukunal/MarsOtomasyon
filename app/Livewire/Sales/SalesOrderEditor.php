@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Sales;
 
+use App\Actions\Documents\SaveSalesDocumentDraft;
 use App\Actions\Documents\SourceLineAvailability;
 use App\Actions\Sales\CancelSalesOrderRemaining;
 use App\Actions\Sales\ConfirmSalesOrder;
@@ -39,7 +40,7 @@ class SalesOrderEditor extends BaseSalesDocumentEditor
         $this->syncFulfillmentInputs();
     }
 
-    public function save(AppActionsDocumentsSaveSalesDocumentDraft $action): void
+    public function save(SaveSalesDocumentDraft $action): void
     {
         parent::save($action);
         $this->syncFulfillmentInputs();
