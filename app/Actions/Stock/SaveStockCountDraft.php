@@ -33,9 +33,11 @@ final class SaveStockCountDraft
 
         foreach ($productIds as $productId) {
             $product = $products->get($productId);
+
             if (! $product) {
                 throw ValidationException::withMessages(['product_ids' => 'Seçilen ürünlerden biri bulunamadı.']);
             }
+
             if ($product->kind === ProductKind::Set) {
                 throw ValidationException::withMessages(['product_ids' => 'Set ürün fiziksel sayım satırı olamaz.']);
             }
@@ -44,6 +46,7 @@ final class SaveStockCountDraft
         return DB::connection('period')->transaction(function () use ($data, $count, $productIds): StockCount {
             if ($count) {
                 $count = StockCount::query()->lockForUpdate()->findOrFail($count->id);
+
                 if ($count->status !== 'draft') {
                     throw new DomainException('Yalnız taslak sayım düzenlenebilir.');
                 }
@@ -61,12 +64,12 @@ final class SaveStockCountDraft
 
             foreach ($productIds as $productId) {
                 $count->lines()->create([
-                    'product_id'=>$productId,'system_quantity'=>'0.000','counted_quantity'=>null,
-                    'difference'=>'0.000','is_approved'=>false,
+                    'product_id' => $productId, 'system_quantity' => '0.000', 'counted_quantity' => null,
+                    'difference' => '0.000', 'is_approved' => false,
                 ]);
             }
 
-            return $count->refresh()->load(['location','lines.product']);
+            return $count->refresh()->load(['location', 'lines.product']);
         }, attempts: 3);
     }
 }

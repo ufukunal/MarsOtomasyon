@@ -20,13 +20,15 @@ final class StartStockCount
     {
         MutationAuthorizer::authorize('stock_counts.update');
         $result = IdempotencyKey::run($idempotencyKey, "stock_count.start:{$countId}", fn (): int => $this->start($countId));
-        return StockCount::query()->with(['location','lines.product'])->findOrFail((int) $result);
+
+        return StockCount::query()->with(['location', 'lines.product'])->findOrFail((int) $result);
     }
 
     private function start(int $countId): int
     {
         return DB::connection('period')->transaction(function () use ($countId): int {
             $count = StockCount::query()->lockForUpdate()->findOrFail($countId);
+
             if ($count->status !== 'draft') {
                 throw new DomainException('Yalnız taslak sayım başlatılabilir.');
             }
@@ -57,7 +59,7 @@ final class StartStockCount
 
             AuditContext::period(
                 'Stok sayımı başlatıldı; sistem miktarları donduruldu.',
-                ['stock_count_id'=>$count->id,'location_id'=>$count->location_id,'count_date'=>$date->toDateString()],
+                ['stock_count_id' => $count->id, 'location_id' => $count->location_id, 'count_date' => $date->toDateString()],
                 $count,
                 'stock_count_started',
             );

@@ -13,10 +13,15 @@ use Illuminate\Database\Eloquent\Builder;
 class StockCountList extends DataTableComponent
 {
     public string $model = StockCount::class;
+
     public string $sort = 'count_date';
+
     public string $direction = 'desc';
 
-    public function mount(): void { abort_unless(auth()->user()?->can('stock_counts.view'), 403); }
+    public function mount(): void
+    {
+        abort_unless(auth()->user()?->can('stock_counts.view'), 403);
+    }
 
     /** @return Builder<StockCount> */
     protected function baseQuery(): Builder
@@ -47,17 +52,25 @@ class StockCountList extends DataTableComponent
         return [
             DateRangeFilter::make('count_date', 'Tarih'),
             SelectFilter::make('status', 'Durum')->options([
-                'draft'=>'Taslak','counting'=>'Sayım','review'=>'İnceleme','posted'=>'Kesinleşti','cancelled'=>'İptal',
+                'draft' => 'Taslak', 'counting' => 'Sayım', 'review' => 'İnceleme', 'posted' => 'Kesinleşti', 'cancelled' => 'İptal',
             ]),
         ];
     }
 
     /** @return list<array<string,mixed>> */
-    public function rowActions(): array { return [['label'=>'Detay','method'=>'openCount']]; }
-    public function openCount(int|string $id): mixed { return $this->redirectRoute('stock.counts.show', ['id'=>$id], navigate:false); }
+    public function rowActions(): array
+    {
+        return [['label' => 'Detay', 'method' => 'openCount']];
+    }
+
+    public function openCount(int|string $id): mixed
+    {
+        return $this->redirectRoute('stock.counts.show', ['id' => $id], navigate: false);
+    }
+
     /** @return array<string,mixed>|null */
     public function emptyAction(): ?array
     {
-        return auth()->user()?->can('stock_counts.create') ? ['label'=>'Yeni Sayım','route'=>'stock.counts.create'] : null;
+        return auth()->user()?->can('stock_counts.create') ? ['label' => 'Yeni Sayım', 'route' => 'stock.counts.create'] : null;
     }
 }

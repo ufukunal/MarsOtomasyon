@@ -20,18 +20,25 @@ final class SaveStockCountLine
 
         return DB::connection('period')->transaction(function () use ($countId, $lineId, $countedQuantity, $note, $approved): StockCountLine {
             $count = StockCount::query()->lockForUpdate()->findOrFail($countId);
-            if (! in_array($count->status, ['counting','review'], true)) {
+
+            if (! in_array($count->status, ['counting', 'review'], true)) {
                 throw new DomainException('Bu sayımda miktar girişi yapılamaz.');
             }
 
-            $line = StockCountLine::query()->where('stock_count_id', $count->id)->lockForUpdate()->findOrFail($lineId);
+            $line = StockCountLine::query()
+                ->where('stock_count_id', $count->id)
+                ->lockForUpdate()
+                ->findOrFail($lineId);
+
             $normalized = bcadd($countedQuantity, '0', 3);
             $line->setAttribute('counted_quantity', $normalized);
             $line->setAttribute('difference', bcsub($normalized, (string) $line->system_quantity, 3));
             $line->note = $note;
+
             if ($approved !== null) {
                 $line->is_approved = $approved;
             }
+
             $line->save();
 
             return $line->refresh();
