@@ -15,8 +15,8 @@ use LogicException;
  * @property int|null $location_id
  * @property int|null $source_line_id
  * @property string $quantity
- * @property string $conversion_factor
- * @property string $base_quantity
+ * @property string|null $conversion_factor
+ * @property string|null $base_quantity
  * @property string $unit_price
  * @property string $line_discount_rate
  * @property string $line_discount_amount

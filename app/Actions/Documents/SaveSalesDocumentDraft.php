@@ -80,7 +80,7 @@ final class SaveSalesDocumentDraft
                 if ($kind === 'stock') {
                     $product = Product::query()->findOrFail((int) ($line['product_id'] ?? 0));
                     $unitId = (int) ($line['unit_id'] ?? $product->unit_id);
-                    $factor = isset($line['conversion_factor']) && $line['conversion_factor'] !== null
+                    $factor = isset($line['conversion_factor'])
                         ? bcadd((string) $line['conversion_factor'], '0', 6)
                         : $this->units->factor($unitId, (int) $product->unit_id);
                     $baseQuantity = bcadd(bcmul($quantity, $factor, 6), '0', 3);
@@ -102,7 +102,7 @@ final class SaveSalesDocumentDraft
 
                 $vatRate = isset($line['vat_rate'])
                     ? bcadd((string) $line['vat_rate'], '0', 4)
-                    : bcadd((string) ($product?->vat_rate ?? '0'), '0', 4);
+                    : bcadd($product === null ? '0' : (string) $product->vat_rate, '0', 4);
 
                 $calcInput[] = [
                     'quantity' => $quantity,
@@ -116,7 +116,7 @@ final class SaveSalesDocumentDraft
                     'line_no' => $index + 1,
                     'line_kind' => $kind,
                     'product_id' => $product?->id,
-                    'description' => trim((string) ($line['description'] ?? '')) ?: ($product?->name ?? null),
+                    'description' => trim((string) ($line['description'] ?? '')) ?: ($product === null ? null : $product->name),
                     'unit_id' => $unitId,
                     'quantity' => $quantity,
                     'conversion_factor' => $factor,

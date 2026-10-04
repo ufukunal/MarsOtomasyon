@@ -14,13 +14,14 @@ final class ResolveSalesDueDate
         $days = $contact->term_days;
 
         if ($days === null) {
-            $days = (int) Company::query()
+            $companyDays = Company::query()
                 ->whereKey(PeriodContext::companyId())
                 ->value('default_term_days');
+            $days = $companyDays === null ? 30 : (int) $companyDays;
         }
 
         return CarbonImmutable::parse($documentDate)
-            ->addDays($days ?? 30)
+            ->addDays($days)
             ->toDateString();
     }
 }

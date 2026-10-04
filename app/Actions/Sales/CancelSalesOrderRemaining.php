@@ -40,7 +40,7 @@ final class CancelSalesOrderRemaining
 
                 $targetIds = $lineIds === null
                     ? $locked->lines->pluck('id')->map(fn ($id): int => (int) $id)->all()
-                    : array_values(array_map('intval', $lineIds));
+                    : array_map('intval', $lineIds);
 
                 foreach ($targetIds as $lineId) {
                     $line = DocumentLine::query()

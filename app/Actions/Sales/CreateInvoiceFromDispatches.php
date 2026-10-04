@@ -98,7 +98,7 @@ final class CreateInvoiceFromDispatches
                         'document_date' => $documentDate,
                         'due_date' => $this->dueDate->handle($contact, $documentDate),
                         'contact_id' => $contactId,
-                        'discount_rate' => $discountRate ?? '0',
+                        'discount_rate' => $discountRate,
                         'discount_amount' => '0',
                     ],
                     $draftLines,

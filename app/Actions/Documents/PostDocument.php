@@ -124,7 +124,7 @@ final class PostDocument
                         'due_date' => $locked->due_date,
                         'amount' => $locked->grand_total,
                         'currency' => $locked->currency,
-                        'description' => $context?->reason ?? $locked->notes,
+                        'description' => $context === null ? $locked->notes : ($context->reason ?? $locked->notes),
                         'created_by' => $actor?->id,
                         'created_by_name' => $actor?->name,
                     ]);
@@ -323,7 +323,9 @@ final class PostDocument
         ?int $actorId,
         ?string $actorName,
     ): void {
-        if (! in_array($context?->accountType, ['cash', 'bank'], true) || $context?->accountId === null) {
+        if ($context === null
+            || ! in_array($context->accountType, ['cash', 'bank'], true)
+            || $context->accountId === null) {
             throw new DomainException('Tahsilat için kasa veya banka hesabı zorunludur.');
         }
 
