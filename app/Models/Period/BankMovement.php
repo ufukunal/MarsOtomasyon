@@ -27,7 +27,7 @@ class BankMovement extends PeriodModel
     protected $fillable = [
         'bank_account_id', 'document_id', 'contact_id', 'movement_date', 'direction',
         'movement_type', 'amount', 'origin', 'reference', 'group_key', 'reversal_of_id',
-        'statement_fingerprint', 'statement_description', 'statement_balance',
+        'statement_fingerprint', 'statement_value_date', 'statement_description', 'statement_balance',
         'reconciled_movement_id', 'reconciled_at', 'reconciled_by', 'reconciled_by_name',
         'imported_at', 'description', 'metadata', 'created_by', 'created_by_name',
     ];
@@ -41,6 +41,7 @@ class BankMovement extends PeriodModel
             'movement_date' => 'date',
             'amount' => 'decimal:4',
             'reversal_of_id' => 'integer',
+            'statement_value_date' => 'date',
             'statement_balance' => 'decimal:4',
             'reconciled_movement_id' => 'integer',
             'reconciled_at' => 'datetime',

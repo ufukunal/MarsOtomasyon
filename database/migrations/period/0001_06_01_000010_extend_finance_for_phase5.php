@@ -27,6 +27,7 @@ return new class extends Migration
             $table->foreignId('reversal_of_id')->nullable()
                 ->constrained('bank_movements')->restrictOnDelete();
             $table->string('statement_fingerprint', 64)->nullable();
+            $table->date('statement_value_date')->nullable();
             $table->text('statement_description')->nullable();
             $table->decimal('statement_balance', 18, 4)->nullable();
             $table->foreignId('reconciled_movement_id')->nullable()
@@ -116,7 +117,7 @@ return new class extends Migration
             $table->dropForeign(['reversal_of_id']);
             $table->dropColumn([
                 'movement_type', 'origin', 'group_key', 'reversal_of_id',
-                'statement_fingerprint', 'statement_description', 'statement_balance',
+                'statement_fingerprint', 'statement_value_date', 'statement_description', 'statement_balance',
                 'reconciled_movement_id', 'reconciled_at', 'reconciled_by',
                 'reconciled_by_name', 'imported_at', 'metadata',
             ]);
