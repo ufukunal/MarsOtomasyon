@@ -47,72 +47,72 @@ class ProcessCardImport implements ShouldQueue
 
             try {
                 $rows = $reader->rows($batch->source_disk, $batch->source_path, $batch->original_name);
-            $importer = $resolver->resolve($batch->type);
-            $validRows = [];
-            $errors = [];
+                $importer = $resolver->resolve($batch->type);
+                $validRows = [];
+                $errors = [];
 
-            foreach ($rows as $index => $sourceRow) {
-                $rowNo = $index + 2;
-                $mapped = ImportMapping::map($sourceRow, $batch->mapping);
-                $validation = $importer->validate($mapped);
+                foreach ($rows as $index => $sourceRow) {
+                    $rowNo = $index + 2;
+                    $mapped = ImportMapping::map($sourceRow, $batch->mapping);
+                    $validation = $importer->validate($mapped);
 
-                if (! $validation->valid) {
-                    foreach ($validation->errors as $column => $message) {
-                        $errors[] = [
-                            'batch_id' => $batch->id,
-                            'row_no' => $rowNo,
-                            'column_name' => (string) $column,
-                            'value' => isset($mapped[$column]) ? (string) $mapped[$column] : null,
-                            'message' => (string) $message,
-                            'created_at' => now(),
-                            'updated_at' => now(),
-                        ];
+                    if (! $validation->valid) {
+                        foreach ($validation->errors as $column => $message) {
+                            $errors[] = [
+                                'batch_id' => $batch->id,
+                                'row_no' => $rowNo,
+                                'column_name' => (string) $column,
+                                'value' => isset($mapped[$column]) ? (string) $mapped[$column] : null,
+                                'message' => (string) $message,
+                                'created_at' => now(),
+                                'updated_at' => now(),
+                            ];
+                        }
+
+                        continue;
                     }
 
-                    continue;
+                    $validRows[] = [$rowNo, $mapped];
                 }
 
-                $validRows[] = [$rowNo, $mapped];
-            }
+                if ($errors !== []) {
+                    CardImportError::query()->insert($errors);
+                }
 
-            if ($errors !== []) {
-                CardImportError::query()->insert($errors);
-            }
+                if ($batch->error_mode === 'cancel_all' && $errors !== []) {
+                    $batch->update([
+                        'status' => 'failed',
+                        'total_rows' => count($rows),
+                        'success_rows' => 0,
+                        'error_rows' => count(array_unique(array_column($errors, 'row_no'))),
+                        'finished_at' => now(),
+                        'failure_message' => 'Doğrulama hatası nedeniyle hiçbir satır uygulanmadı.',
+                    ]);
 
-            if ($batch->error_mode === 'cancel_all' && $errors !== []) {
-                $batch->update([
-                    'status' => 'failed',
-                    'total_rows' => count($rows),
-                    'success_rows' => 0,
-                    'error_rows' => count(array_unique(array_column($errors, 'row_no'))),
-                    'finished_at' => now(),
-                    'failure_message' => 'Doğrulama hatası nedeniyle hiçbir satır uygulanmadı.',
-                ]);
+                    return;
+                }
 
-                return;
-            }
+                $actor = $batch->created_by
+                    ? User::query()->findOrFail($batch->created_by)
+                    : null;
 
-            $actor = $batch->created_by
-                ? User::query()->findOrFail($batch->created_by)
-                : null;
-
-            MutationAuthorizer::runAs($actor, function () use ($importer, $validRows): void {
-                DB::connection('period')->transaction(function () use ($importer, $validRows): void {
-                    foreach ($validRows as [, $row]) {
-                        $importer->import($row);
-                    }
+                MutationAuthorizer::runAs($actor, function () use ($importer, $validRows): void {
+                    DB::connection('period')->transaction(function () use ($importer, $validRows): void {
+                        foreach ($validRows as [, $row]) {
+                            $importer->import($row);
+                        }
+                    });
                 });
-            });
 
-            $errorRowCount = count(array_unique(array_column($errors, 'row_no')));
+                $errorRowCount = count(array_unique(array_column($errors, 'row_no')));
 
-            $batch->update([
-                'status' => 'done',
-                'total_rows' => count($rows),
-                'success_rows' => count($validRows),
-                'error_rows' => $errorRowCount,
-                'finished_at' => now(),
-            ]);
+                $batch->update([
+                    'status' => 'done',
+                    'total_rows' => count($rows),
+                    'success_rows' => count($validRows),
+                    'error_rows' => $errorRowCount,
+                    'finished_at' => now(),
+                ]);
 
                 AuditContext::period(
                     'Kart içe aktarma tamamlandı.',

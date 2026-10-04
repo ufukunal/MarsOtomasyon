@@ -132,7 +132,6 @@ it('aynı dosya hash ve tip ikinci kez kuyruğa alınırken yeni batch üretmez'
     expect(CardImportBatch::query()->where('file_hash', $hash)->count())->toBe(1);
 });
 
-
 it('tamamlanmış import jobu erken dönerken period contextini temizler', function () {
     [$company, $period] = $this->createCompanyWithPeriod('IMPDONE');
 
