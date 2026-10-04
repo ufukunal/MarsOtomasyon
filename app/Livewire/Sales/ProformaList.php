@@ -10,4 +10,5 @@ class ProformaList extends BaseSalesDocumentList
     protected function permission(): string { return 'proformas.view'; }
     protected function pageTitle(): string { return 'Proformalar'; }
     protected function editRoute(): string { return 'sales.proformas.show'; }
+    protected function createRoute(): ?string { return null; }
 }
