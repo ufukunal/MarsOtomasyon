@@ -5,6 +5,14 @@ namespace App\Models\Period;
 use App\Models\PeriodModel;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property int $cash_account_id
+ * @property int|null $document_id
+ * @property int|null $contact_id
+ * @property \Illuminate\Support\Carbon $movement_date
+ * @property string $direction
+ * @property string $amount
+ */
 class CashMovement extends PeriodModel
 {
     protected $fillable = [

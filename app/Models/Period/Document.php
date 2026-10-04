@@ -9,6 +9,24 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use LogicException;
 
+/**
+ * @property DocumentType $document_type
+ * @property \Illuminate\Support\Carbon $document_date
+ * @property \Illuminate\Support\Carbon|null $due_date
+ * @property \Illuminate\Support\Carbon|null $valid_until
+ * @property \Illuminate\Support\Carbon|null $posted_at
+ * @property int|null $contact_id
+ * @property string $status
+ * @property string $exchange_rate
+ * @property string $discount_rate
+ * @property string $discount_amount
+ * @property string $subtotal
+ * @property string $tax_base
+ * @property string $vat_amount
+ * @property string $rounding_difference
+ * @property string $grand_total
+ * @property array<string, mixed>|null $requirements_snapshot
+ */
 class Document extends PeriodModel
 {
     use HasOptimisticLock;

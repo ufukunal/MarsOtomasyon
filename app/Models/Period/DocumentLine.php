@@ -8,6 +8,24 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use LogicException;
 
+/**
+ * @property int $document_id
+ * @property int|null $product_id
+ * @property int|null $unit_id
+ * @property int|null $location_id
+ * @property int|null $source_line_id
+ * @property string $quantity
+ * @property string $conversion_factor
+ * @property string $base_quantity
+ * @property string $unit_price
+ * @property string $line_discount_rate
+ * @property string $line_discount_amount
+ * @property string $vat_rate
+ * @property string $line_total
+ * @property string $cancelled_quantity
+ * @property bool $reserve_stock
+ * @property array<string, mixed>|null $configuration
+ */
 class DocumentLine extends PeriodModel
 {
     use HasOptimisticLock;

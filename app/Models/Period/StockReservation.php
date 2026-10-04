@@ -5,6 +5,16 @@ namespace App\Models\Period;
 use App\Models\PeriodModel;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property int $product_id
+ * @property int $location_id
+ * @property string $quantity
+ * @property string $document_type
+ * @property int|null $document_id
+ * @property int|null $document_line_id
+ * @property string $status
+ * @property \Illuminate\Support\Carbon|null $released_at
+ */
 class StockReservation extends PeriodModel
 {
     protected $fillable = [
