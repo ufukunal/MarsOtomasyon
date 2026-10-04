@@ -44,19 +44,19 @@ return new class extends Migration
         });
 
         DB::connection('period')->statement(
-            "ALTER TABLE documents ADD CONSTRAINT documents_exchange_rate_positive CHECK (exchange_rate > 0)"
+            'ALTER TABLE documents ADD CONSTRAINT documents_exchange_rate_positive CHECK (exchange_rate > 0)'
         );
         DB::connection('period')->statement(
-            "ALTER TABLE documents ADD CONSTRAINT documents_discount_rate_valid CHECK (discount_rate BETWEEN 0 AND 100)"
+            'ALTER TABLE documents ADD CONSTRAINT documents_discount_rate_valid CHECK (discount_rate BETWEEN 0 AND 100)'
         );
         DB::connection('period')->statement(
-            "ALTER TABLE documents ADD CONSTRAINT documents_amounts_nonnegative CHECK (discount_amount >= 0 AND subtotal >= 0 AND tax_base >= 0 AND vat_amount >= 0 AND grand_total >= 0)"
+            'ALTER TABLE documents ADD CONSTRAINT documents_amounts_nonnegative CHECK (discount_amount >= 0 AND subtotal >= 0 AND tax_base >= 0 AND vat_amount >= 0 AND grand_total >= 0)'
         );
         DB::connection('period')->statement(
             "ALTER TABLE documents ADD CONSTRAINT documents_quote_revision_valid CHECK (document_type <> 'quote' OR revision_no >= 1)"
         );
         DB::connection('period')->statement(
-            "ALTER TABLE documents ADD CONSTRAINT documents_total_invariant CHECK (abs(grand_total - (tax_base + vat_amount + rounding_difference)) < 0.0001)"
+            'ALTER TABLE documents ADD CONSTRAINT documents_total_invariant CHECK (abs(grand_total - (tax_base + vat_amount + rounding_difference)) < 0.0001)'
         );
     }
 

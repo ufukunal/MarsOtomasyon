@@ -25,9 +25,20 @@ class SalesOrderEditor extends BaseSalesDocumentEditor
     /** @var array<int,int|null> */
     public array $fulfillmentLocationIds = [];
 
-    protected function documentType(): DocumentType { return DocumentType::SalesOrder; }
-    protected function permissionPrefix(): string { return 'sales_orders'; }
-    protected function pageTitle(): string { return $this->document ? 'Satış Siparişi' : 'Yeni Satış Siparişi'; }
+    protected function documentType(): DocumentType
+    {
+        return DocumentType::SalesOrder;
+    }
+
+    protected function permissionPrefix(): string
+    {
+        return 'sales_orders';
+    }
+
+    protected function pageTitle(): string
+    {
+        return $this->document ? 'Satış Siparişi' : 'Yeni Satış Siparişi';
+    }
 
     protected function extraMutationNames(): array
     {

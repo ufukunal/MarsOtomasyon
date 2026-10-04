@@ -41,7 +41,7 @@ return new class extends Migration
             "ALTER TABLE document_lines ADD CONSTRAINT document_lines_kind_valid CHECK (line_kind IN ('stock','service'))"
         );
         DB::connection('period')->statement(
-            "ALTER TABLE document_lines ADD CONSTRAINT document_lines_quantity_positive CHECK (quantity > 0)"
+            'ALTER TABLE document_lines ADD CONSTRAINT document_lines_quantity_positive CHECK (quantity > 0)'
         );
         DB::connection('period')->statement(
             "ALTER TABLE document_lines ADD CONSTRAINT document_lines_stock_shape_valid CHECK (
@@ -51,15 +51,15 @@ return new class extends Migration
             )"
         );
         DB::connection('period')->statement(
-            "ALTER TABLE document_lines ADD CONSTRAINT document_lines_money_valid CHECK (
+            'ALTER TABLE document_lines ADD CONSTRAINT document_lines_money_valid CHECK (
                 unit_price >= 0 AND line_discount_rate BETWEEN 0 AND 100 AND line_discount_amount >= 0 AND vat_rate >= 0
-            )"
+            )'
         );
         DB::connection('period')->statement(
-            "ALTER TABLE document_lines ADD CONSTRAINT document_lines_cancelled_valid CHECK (cancelled_quantity >= 0 AND cancelled_quantity <= quantity)"
+            'ALTER TABLE document_lines ADD CONSTRAINT document_lines_cancelled_valid CHECK (cancelled_quantity >= 0 AND cancelled_quantity <= quantity)'
         );
         DB::connection('period')->statement(
-            "ALTER TABLE document_lines ADD CONSTRAINT document_lines_no_self_source CHECK (source_line_id IS NULL OR source_line_id <> id)"
+            'ALTER TABLE document_lines ADD CONSTRAINT document_lines_no_self_source CHECK (source_line_id IS NULL OR source_line_id <> id)'
         );
     }
 

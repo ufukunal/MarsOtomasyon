@@ -16,7 +16,9 @@ class VehicleHotSale extends Component
     use WithIdempotentMutations;
 
     public ?int $vehicleLocationId = null;
+
     public ?int $contactId = null;
+
     public string $documentDate = '';
 
     /** @var list<array<string,mixed>> */
