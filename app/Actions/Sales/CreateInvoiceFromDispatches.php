@@ -22,7 +22,7 @@ final class CreateInvoiceFromDispatches
     ) {}
 
     /**
-     * @param array<int,string> $dispatchLineQuantities
+     * @param  array<int,string>  $dispatchLineQuantities
      */
     public function handle(
         array $dispatchLineQuantities,

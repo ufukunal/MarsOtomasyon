@@ -23,8 +23,8 @@ final class CreateInvoiceFromOrder
     ) {}
 
     /**
-     * @param array<int,string> $lineQuantities
-     * @param array<int,int> $fallbackLocations
+     * @param  array<int,string>  $lineQuantities
+     * @param  array<int,int>  $fallbackLocations
      */
     public function handle(
         Document $order,

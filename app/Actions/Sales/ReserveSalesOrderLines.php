@@ -20,7 +20,7 @@ final class ReserveSalesOrderLines
     ) {}
 
     /**
-     * @param array<int,list<int>> $lineLocationPriorities
+     * @param  array<int,list<int>>  $lineLocationPriorities
      * @return array<int,array{reservation_ids:list<int>,reserved_quantity:string,open_quantity:string}>
      */
     public function handle(
@@ -71,8 +71,7 @@ final class ReserveSalesOrderLines
                         ->lockForUpdate()
                         ->get()
                         ->reduce(
-                            fn (string $sum, StockReservation $reservation): string =>
-                                bcadd($sum, (string) $reservation->quantity, 3),
+                            fn (string $sum, StockReservation $reservation): string => bcadd($sum, (string) $reservation->quantity, 3),
                             '0.000',
                         );
 

@@ -78,8 +78,7 @@ final class CancelSalesOrderRemaining
 
                 $allClosed = $locked->lines()
                     ->get()
-                    ->every(fn (DocumentLine $line): bool =>
-                        bccomp($this->availability->orderRemaining($line), '0', 3) <= 0
+                    ->every(fn (DocumentLine $line): bool => bccomp($this->availability->orderRemaining($line), '0', 3) <= 0
                     );
 
                 if ($allClosed) {
