@@ -3,6 +3,10 @@
 use App\Http\Controllers\HealthController;
 use App\Http\Controllers\ImportErrorReportController;
 use App\Http\Controllers\ProductImageController;
+use App\Livewire\Finance\CollectionForm;
+use App\Livewire\Finance\ContactAging;
+use App\Livewire\Finance\ContactDebitCreditForm;
+use App\Livewire\Finance\FinanceAccounts;
 use App\Livewire\Pages\Auth\ForgotPassword;
 use App\Livewire\Pages\Auth\Login;
 use App\Livewire\Pages\Auth\PeriodSelection;
@@ -37,6 +41,17 @@ use App\Livewire\Pages\Stock\TransferDetail;
 use App\Livewire\Pages\Stock\TransferList;
 use App\Livewire\Pages\Stock\WarehouseSlipDetail;
 use App\Livewire\Pages\Stock\WarehouseSlipList;
+use App\Livewire\Sales\DispatchEditor;
+use App\Livewire\Sales\DispatchList;
+use App\Livewire\Sales\ProformaDetail;
+use App\Livewire\Sales\ProformaList;
+use App\Livewire\Sales\QuoteEditor;
+use App\Livewire\Sales\QuoteList;
+use App\Livewire\Sales\SalesInvoiceEditor;
+use App\Livewire\Sales\SalesInvoiceList;
+use App\Livewire\Sales\SalesOrderEditor;
+use App\Livewire\Sales\SalesOrderList;
+use App\Livewire\Sales\VehicleHotSale;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -77,6 +92,24 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/kartlar/fiyat-listeleri', PriceListList::class)->name('price-lists.index');
     Route::get('/kartlar/fiyat-listeleri/{list?}', PriceListDetail::class)->name('price-lists.detail');
     Route::get('/kartlar/baska-sirketten-aktar', CrossCompanyCopy::class)->name('company-copy.index');
+
+    Route::get('/satis/teklifler', QuoteList::class)->name('sales.quotes.index');
+    Route::get('/satis/teklif/{id?}', QuoteEditor::class)->name('sales.quotes.edit');
+    Route::get('/satis/siparisler', SalesOrderList::class)->name('sales.orders.index');
+    Route::get('/satis/siparis/{id?}', SalesOrderEditor::class)->name('sales.orders.edit');
+    Route::get('/satis/irsaliyeler', DispatchList::class)->name('sales.dispatches.index');
+    Route::get('/satis/irsaliye/{id?}', DispatchEditor::class)->name('sales.dispatches.edit');
+    Route::get('/satis/faturalar', SalesInvoiceList::class)->name('sales.invoices.index');
+    Route::get('/satis/fatura/{id?}', SalesInvoiceEditor::class)->name('sales.invoices.edit');
+    Route::get('/satis/proformalar', ProformaList::class)->name('sales.proformas.index');
+    Route::get('/satis/proforma/{id}', ProformaDetail::class)->name('sales.proformas.show');
+    Route::get('/satis/arac-sicak-satis', VehicleHotSale::class)->name('sales.vehicle-hot-sale');
+
+    Route::get('/finans/tahsilat', CollectionForm::class)->name('finance.collections.create');
+    Route::get('/finans/cari-fis', ContactDebitCreditForm::class)->name('finance.contact-debit-credit');
+    Route::get('/finans/yaslandirma', ContactAging::class)->name('finance.contact-aging');
+    Route::get('/finans/hesaplar', FinanceAccounts::class)->name('finance.accounts');
+
     Route::get('/ice-aktarma', ImportWizard::class)->name('imports.index');
     Route::get('/stok/durum', StockStatus::class)->name('stock.status');
     Route::get('/stok/hareketler', StockMovements::class)->name('stock.movements');
