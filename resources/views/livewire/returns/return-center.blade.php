@@ -34,9 +34,9 @@
                         <td>{{ $line->quantity }}</td>
                         <td><input wire:model="quantities.{{ $line->id }}"></td>
                         <td>
-                            @if($type === 'sales_return' && $line->line_kind === 'stock')
+                            @if($line->line_kind === 'stock')
                                 <select wire:model="locationIds.{{ $line->id }}">
-                                    <option value="">Kabul lokasyonu</option>
+                                    <option value="">{{ $type === 'sales_return' ? 'Kabul lokasyonu' : 'Çıkış lokasyonu' }}</option>
                                     @foreach($locations as $location)
                                         <option value="{{ $location->id }}">{{ $location->name }}</option>
                                     @endforeach

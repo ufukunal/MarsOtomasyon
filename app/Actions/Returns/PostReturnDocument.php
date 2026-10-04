@@ -236,9 +236,11 @@ final class PostReturnDocument
 
             if (DocumentRelation::query()
                 ->where('relation_type', 'reversal_of')
-                ->where('target_document_id', $source->document_id)
+                ->where(fn ($query) => $query
+                    ->where('target_document_id', $source->document_id)
+                    ->orWhere('source_document_id', $source->document_id))
                 ->exists()) {
-                throw new DomainException('Terslenmiş fatura iade kaynağı olamaz.');
+                throw new DomainException('Ters kayıt zincirindeki fatura iade kaynağı olamaz.');
             }
 
             $remaining = $this->availability->remaining($source, $document->document_type);

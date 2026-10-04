@@ -135,6 +135,7 @@ class ReturnCenter extends Component
                 ->where('document_type', $sourceType->value)
                 ->where('status', 'posted')
                 ->whereDoesntHave('incomingRelations', fn ($query) => $query->where('relation_type', 'reversal_of'))
+                ->whereDoesntHave('outgoingRelations', fn ($query) => $query->where('relation_type', 'reversal_of'))
                 ->orderByDesc('document_date')
                 ->limit(500)
                 ->get(),

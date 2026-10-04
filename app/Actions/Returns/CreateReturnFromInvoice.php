@@ -64,9 +64,11 @@ final class CreateReturnFromInvoice
 
                 if (DocumentRelation::query()
                     ->where('relation_type', 'reversal_of')
-                    ->where('target_document_id', $source->id)
+                    ->where(fn ($query) => $query
+                        ->where('target_document_id', $source->id)
+                        ->orWhere('source_document_id', $source->id))
                     ->exists()) {
-                    throw new DomainException('Terslenmiş fatura iade kaynağı olamaz.');
+                    throw new DomainException('Ters kayıt zincirindeki fatura iade kaynağı olamaz.');
                 }
 
                 $rows = [];
@@ -88,11 +90,11 @@ final class CreateReturnFromInvoice
 
                     $locationId = $sourceLine->location_id;
 
-                    if ($returnType === DocumentType::SalesReturn && $sourceLine->line_kind === 'stock') {
-                        $locationId = $lineLocationIds[(int) $sourceLine->id] ?? null;
+                    if ($sourceLine->line_kind === 'stock') {
+                        $locationId = $lineLocationIds[(int) $sourceLine->id] ?? $locationId;
 
                         if ($locationId === null) {
-                            throw new DomainException('Satış iadesi stok satırında kabul lokasyonu zorunludur.');
+                            throw new DomainException('Stok iade satırında lokasyon zorunludur.');
                         }
                     }
 

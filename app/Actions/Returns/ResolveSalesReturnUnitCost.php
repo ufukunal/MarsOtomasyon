@@ -24,6 +24,7 @@ final class ResolveSalesReturnUnitCost
                     ->where('document_type', DocumentType::Dispatch->value)
                     ->where('document_id', $dispatchLine->document_id)
                     ->where('product_id', $sourceInvoiceLine->product_id)
+                    ->where('location_id', $dispatchLine->location_id)
                     ->where('direction', 'out')
                     ->value('unit_cost');
 
@@ -37,6 +38,7 @@ final class ResolveSalesReturnUnitCost
             ->where('document_type', DocumentType::SalesInvoice->value)
             ->where('document_id', $sourceInvoiceLine->document_id)
             ->where('product_id', $sourceInvoiceLine->product_id)
+            ->where('location_id', $sourceInvoiceLine->location_id)
             ->where('direction', 'out')
             ->value('unit_cost');
 
