@@ -44,6 +44,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Prepare environment
+        run: cp .env.example .env
+
       - name: PHP 8.4
         uses: shivammathur/setup-php@v2
         with:
