@@ -168,6 +168,10 @@ final class ReverseDocument
             ->whereNotNull('source_line_id')
             ->get();
 
+        $dispatchLineIds = $dispatch->lines
+            ->pluck('id')
+            ->map(fn ($id): int => (int) $id);
+
         foreach ($invoiceLines as $invoiceLine) {
             if (DocumentRelation::query()
                 ->where('relation_type', 'reversal_of')
@@ -178,8 +182,7 @@ final class ReverseDocument
 
             $lineage = $this->lineage->handle($invoiceLine);
 
-            if (in_array((int) $dispatch->lines->firstWhere('id', $invoiceLine->source_line_id)?->id, $lineage['line_ids'], true)
-                || collect($dispatch->lines)->pluck('id')->map(fn ($id): int => (int) $id)->intersect($lineage['line_ids'])->isNotEmpty()) {
+            if ($dispatchLineIds->intersect($lineage['line_ids'])->isNotEmpty()) {
                 throw new DomainException('Aktif faturası bulunan irsaliye önce terslenemez.');
             }
         }
