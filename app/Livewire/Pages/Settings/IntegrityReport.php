@@ -8,6 +8,7 @@ use App\Support\Integrity\Checks\ContactBalanceCheck;
 use App\Support\Integrity\Checks\CostIntegrityCheck;
 use App\Support\Integrity\Checks\DocumentTotalCheck;
 use App\Support\Integrity\Checks\FinanceIntegrityCheck;
+use App\Support\Integrity\Checks\ImportIntegrityCheck;
 use App\Support\Integrity\Checks\NumberSeriesCheck;
 use App\Support\Integrity\Checks\PartialDocumentCheck;
 use App\Support\Integrity\Checks\PurchaseMatchCheck;
@@ -48,6 +49,7 @@ class IntegrityReport extends Component
             'contacts' => ContactBalanceCheck::class,
             'finance' => FinanceIntegrityCheck::class,
             'returns' => ReturnIntegrityCheck::class,
+            'imports_phase7' => ImportIntegrityCheck::class,
             'numbers' => NumberSeriesCheck::class,
         ];
 

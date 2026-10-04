@@ -5,7 +5,9 @@ namespace App\Actions\Imports;
 use App\Models\Period\ImportContainer;
 use App\Models\Period\ImportCostAllocation;
 use App\Models\Period\ImportFile;
+use App\Enums\ProductKind;
 use App\Models\Period\ImportPackage;
+use App\Models\Period\Product;
 use App\Support\Auth\MutationAuthorizer;
 use DomainException;
 use Illuminate\Support\Facades\DB;
@@ -43,7 +45,15 @@ final class SaveImportPackage
                 throw new DomainException('Koli miktarı/fiyatı geçersiz.');
             }
 
-            $productId = $data['product_id'] ? (int) $data['product_id'] : null;
+            $productId = ($data['product_id'] ?? null) ? (int) $data['product_id'] : null;
+
+            if ($productId !== null) {
+                $product = Product::query()->findOrFail($productId);
+
+                if ($product->kind === ProductKind::Set) {
+                    throw new DomainException('Set ürün fiziksel ithalat paketiyle eşleştirilemez.');
+                }
+            }
 
             $model->fill([
                 'container_id' => $container->id,

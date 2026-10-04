@@ -32,6 +32,12 @@ final class SaveImportFile
                 throw new DomainException('İthalat dosyası başka bir kullanıcı tarafından güncellendi.');
             }
 
+            $supplierId = (int) ($data['supplier_contact_id'] ?? 0);
+
+            if ($supplierId <= 0) {
+                throw new DomainException('İthalat tedarikçisi zorunludur.');
+            }
+
             $currency = strtoupper(trim((string) ($data['currency'] ?? '')));
             $rate = $data['exchange_rate'] ?? null;
 
@@ -50,7 +56,7 @@ final class SaveImportFile
             $oldRate = $locked->exists ? (string) ($locked->exchange_rate ?? '') : null;
 
             $locked->fill([
-                'supplier_contact_id' => (int) $data['supplier_contact_id'],
+                'supplier_contact_id' => $supplierId,
                 'receiving_location_id' => ($data['receiving_location_id'] ?? null) ? (int) $data['receiving_location_id'] : null,
                 'country' => trim((string) ($data['country'] ?? '')) ?: null,
                 'incoterm' => trim((string) ($data['incoterm'] ?? '')) ?: null,

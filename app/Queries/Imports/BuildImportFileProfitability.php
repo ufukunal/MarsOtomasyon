@@ -93,6 +93,7 @@ final class BuildImportFileProfitability
         $invoiceLines = DocumentLine::query()
             ->with('document')
             ->where('product_id', $productId)
+            ->where('line_kind', 'stock')
             ->whereHas('document', fn ($query) => $query
                 ->where('document_type', DocumentType::SalesInvoice->value)
                 ->where('status', 'posted')
@@ -104,6 +105,7 @@ final class BuildImportFileProfitability
         $returnLines = DocumentLine::query()
             ->with('document')
             ->where('product_id', $productId)
+            ->where('line_kind', 'stock')
             ->whereHas('document', fn ($query) => $query
                 ->where('document_type', DocumentType::SalesReturn->value)
                 ->where('status', 'posted')
@@ -119,7 +121,7 @@ final class BuildImportFileProfitability
             $factor = bccomp((string) $line->document->subtotal, '0', 4) > 0
                 ? bcdiv((string) $line->document->tax_base, (string) $line->document->subtotal, 10)
                 : '1.0000000000';
-            $qty = bcadd($qty, (string) $line->quantity, 3);
+            $qty = bcadd($qty, (string) ($line->base_quantity ?? $line->quantity), 3);
             $sales = bcadd($sales, bcmul((string) $line->line_total, $factor, 10), 4);
         }
 
@@ -127,7 +129,7 @@ final class BuildImportFileProfitability
             $factor = bccomp((string) $line->document->subtotal, '0', 4) > 0
                 ? bcdiv((string) $line->document->tax_base, (string) $line->document->subtotal, 10)
                 : '1.0000000000';
-            $qty = bcsub($qty, (string) $line->quantity, 3);
+            $qty = bcsub($qty, (string) ($line->base_quantity ?? $line->quantity), 3);
             $sales = bcsub($sales, bcmul((string) $line->line_total, $factor, 10), 4);
         }
 

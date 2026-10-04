@@ -38,8 +38,20 @@ class ImportFile extends PeriodModel
     protected static function booted(): void
     {
         static::updating(function (self $file): void {
-            if ($file->getOriginal('status') === 'closed') {
+            $originalStatus = (string) $file->getOriginal('status');
+
+            if ($originalStatus === 'closed') {
                 throw new LogicException('Kapanmış ithalat dosyası değiştirilemez.');
+            }
+
+            if ($originalStatus === 'received') {
+                $allowed = ['status', 'closed_by', 'closed_by_name', 'closed_at', 'version', 'updated_at'];
+
+                foreach (array_keys($file->getDirty()) as $field) {
+                    if (! in_array($field, $allowed, true)) {
+                        throw new LogicException('Teslim alınmış ithalat dosyasında yalnız kapanış alanları değişebilir.');
+                    }
+                }
             }
 
             if ($file->getOriginal('exchange_rate_locked_at') !== null

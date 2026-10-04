@@ -69,6 +69,12 @@ return [
         ],
     ],
     [
+        'label' => 'İthalat',
+        'items' => [
+            ['label' => 'İthalat Dosyaları', 'route' => 'imports.shipments', 'permission' => 'import_shipments.view'],
+        ],
+    ],
+    [
         'label' => 'Ayarlar',
         'items' => [
             ['label' => 'Şirketler', 'route' => 'settings.companies', 'permission' => 'companies.view'],

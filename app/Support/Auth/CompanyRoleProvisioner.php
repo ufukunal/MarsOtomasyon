@@ -55,6 +55,7 @@ final class CompanyRoleProvisioner
         'bank_statements',
         'bank_reconciliation',
         'returns',
+        'import_shipments',
     ];
 
     private const ACTIONS = [
@@ -86,6 +87,8 @@ final class CompanyRoleProvisioner
             'contacts.sensitive.view',
             'sales.quote.approve',
             'purchase_orders.approve',
+            'import_shipments.receive',
+            'import_shipments.close',
         ];
 
         foreach ($permissionNames as $permissionName) {
@@ -142,6 +145,7 @@ final class CompanyRoleProvisioner
                 'bank_statements.view', 'bank_statements.create',
                 'bank_reconciliation.view', 'bank_reconciliation.update',
                 'returns.view', 'returns.create', 'returns.update', 'returns.cancel',
+                'import_shipments.view', 'import_shipments.create', 'import_shipments.update', 'import_shipments.close',
                 ...$technicalViews,
             ],
             'Satış' => [
@@ -169,6 +173,7 @@ final class CompanyRoleProvisioner
                 'supplier_invoices.view', 'supplier_invoices.create', 'supplier_invoices.update',
                 'supplier_performance.view',
                 'returns.view', 'returns.create', 'returns.update',
+                'import_shipments.view', 'import_shipments.create', 'import_shipments.update', 'import_shipments.close',
                 ...$technicalViews,
             ],
             'Depo' => [
@@ -184,6 +189,7 @@ final class CompanyRoleProvisioner
                 'purchase_orders.view',
                 'goods_receipts.view', 'goods_receipts.create', 'goods_receipts.update', 'goods_receipts.cancel',
                 'returns.view',
+                'import_shipments.view', 'import_shipments.receive',
                 ...$technicalViews,
             ],
             'Üretim' => [

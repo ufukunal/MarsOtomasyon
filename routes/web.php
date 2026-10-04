@@ -10,6 +10,7 @@ use App\Livewire\Finance\ContactDebitCreditForm;
 use App\Livewire\Finance\FinanceAccounts;
 use App\Livewire\Finance\FinanceOperationCenter;
 use App\Livewire\Finance\SecuritiesCenter;
+use App\Livewire\Imports\ImportCenter;
 use App\Livewire\Pages\Auth\ForgotPassword;
 use App\Livewire\Pages\Auth\Login;
 use App\Livewire\Pages\Auth\PeriodSelection;
@@ -134,6 +135,7 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/finans/ekstre-mutabakat', BankStatementCenter::class)->name('finance.bank-statements');
     Route::get('/finans/cek-senet', SecuritiesCenter::class)->name('finance.securities');
     Route::get('/iadeler', ReturnCenter::class)->name('returns.center');
+    Route::get('/ithalat', ImportCenter::class)->name('imports.shipments');
 
     Route::get('/ice-aktarma', ImportWizard::class)->name('imports.index');
     Route::get('/stok/durum', StockStatus::class)->name('stock.status');

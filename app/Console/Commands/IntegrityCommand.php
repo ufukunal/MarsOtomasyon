@@ -8,6 +8,7 @@ use App\Support\Integrity\Checks\CostIntegrityCheck;
 use App\Support\Integrity\Checks\DocumentTotalCheck;
 use App\Support\Integrity\Checks\FilesIntegrityCheck;
 use App\Support\Integrity\Checks\FinanceIntegrityCheck;
+use App\Support\Integrity\Checks\ImportIntegrityCheck;
 use App\Support\Integrity\Checks\NumberSeriesCheck;
 use App\Support\Integrity\Checks\PartialDocumentCheck;
 use App\Support\Integrity\Checks\PurchaseMatchCheck;
@@ -47,6 +48,7 @@ class IntegrityCommand extends Command
             ContactBalanceCheck::class,
             FinanceIntegrityCheck::class,
             ReturnIntegrityCheck::class,
+            ImportIntegrityCheck::class,
             NumberSeriesCheck::class,
             FilesIntegrityCheck::class,
         ];
