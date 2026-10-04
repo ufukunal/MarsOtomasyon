@@ -30,6 +30,36 @@ return [
         ],
     ],
     [
+        'label' => 'Satış',
+        'items' => [
+            ['label' => 'Teklifler', 'route' => 'sales.quotes.index', 'permission' => 'quotes.view'],
+            ['label' => 'Satış Siparişleri', 'route' => 'sales.orders.index', 'permission' => 'sales_orders.view'],
+            ['label' => 'İrsaliyeler', 'route' => 'sales.dispatches.index', 'permission' => 'dispatches.view'],
+            ['label' => 'Satış Faturaları', 'route' => 'sales.invoices.index', 'permission' => 'sales_invoices.view'],
+            ['label' => 'Proformalar', 'route' => 'sales.proformas.index', 'permission' => 'proformas.view'],
+            ['label' => 'Araç Sıcak Satış', 'route' => 'sales.vehicle-hot-sale', 'permission' => 'sales_invoices.create'],
+        ],
+    ],
+    [
+        'label' => 'Alış',
+        'items' => [
+            ['label' => 'Satınalma Siparişleri', 'route' => 'purchases.orders.index', 'permission' => 'purchase_orders.view'],
+            ['label' => 'Mal Kabul', 'route' => 'purchases.receipts.index', 'permission' => 'goods_receipts.view'],
+            ['label' => 'Alış Faturaları', 'route' => 'purchases.invoices.index', 'permission' => 'supplier_invoices.view'],
+            ['label' => 'Ödeme', 'route' => 'purchases.payments.create', 'permission' => 'payments.view'],
+            ['label' => 'Tedarikçi Performansı', 'route' => 'purchases.supplier-performance', 'permission' => 'supplier_performance.view'],
+        ],
+    ],
+    [
+        'label' => 'Finans',
+        'items' => [
+            ['label' => 'Tahsilat', 'route' => 'finance.collections.create', 'permission' => 'collections.view'],
+            ['label' => 'Cari Borç / Alacak', 'route' => 'finance.contact-debit-credit', 'permission' => 'contacts.update'],
+            ['label' => 'Cari Yaşlandırma', 'route' => 'finance.contact-aging', 'permission' => 'contact_aging.view'],
+            ['label' => 'Kasa / Banka Hesapları', 'route' => 'finance.accounts', 'permission' => 'cash_accounts.view'],
+        ],
+    ],
+    [
         'label' => 'Ayarlar',
         'items' => [
             ['label' => 'Şirketler', 'route' => 'settings.companies', 'permission' => 'companies.view'],

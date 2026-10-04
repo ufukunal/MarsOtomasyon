@@ -41,6 +41,14 @@ use App\Livewire\Pages\Stock\TransferDetail;
 use App\Livewire\Pages\Stock\TransferList;
 use App\Livewire\Pages\Stock\WarehouseSlipDetail;
 use App\Livewire\Pages\Stock\WarehouseSlipList;
+use App\Livewire\Purchases\GoodsReceiptEditor;
+use App\Livewire\Purchases\GoodsReceiptList;
+use App\Livewire\Purchases\PaymentForm;
+use App\Livewire\Purchases\PurchaseOrderEditor;
+use App\Livewire\Purchases\PurchaseOrderList;
+use App\Livewire\Purchases\SupplierInvoiceEditor;
+use App\Livewire\Purchases\SupplierInvoiceList;
+use App\Livewire\Purchases\SupplierPerformance;
 use App\Livewire\Sales\DispatchEditor;
 use App\Livewire\Sales\DispatchList;
 use App\Livewire\Sales\ProformaDetail;
@@ -104,6 +112,15 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/satis/proformalar', ProformaList::class)->name('sales.proformas.index');
     Route::get('/satis/proforma/{id}', ProformaDetail::class)->name('sales.proformas.show');
     Route::get('/satis/arac-sicak-satis', VehicleHotSale::class)->name('sales.vehicle-hot-sale');
+
+    Route::get('/alis/siparisler', PurchaseOrderList::class)->name('purchases.orders.index');
+    Route::get('/alis/siparis/{id?}', PurchaseOrderEditor::class)->name('purchases.orders.edit');
+    Route::get('/alis/mal-kabul', GoodsReceiptList::class)->name('purchases.receipts.index');
+    Route::get('/alis/mal-kabul/{id}', GoodsReceiptEditor::class)->name('purchases.receipts.edit');
+    Route::get('/alis/faturalar', SupplierInvoiceList::class)->name('purchases.invoices.index');
+    Route::get('/alis/fatura/{id}', SupplierInvoiceEditor::class)->name('purchases.invoices.edit');
+    Route::get('/alis/odeme', PaymentForm::class)->name('purchases.payments.create');
+    Route::get('/alis/tedarikci-performansi', SupplierPerformance::class)->name('purchases.supplier-performance');
 
     Route::get('/finans/tahsilat', CollectionForm::class)->name('finance.collections.create');
     Route::get('/finans/cari-fis', ContactDebitCreditForm::class)->name('finance.contact-debit-credit');

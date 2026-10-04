@@ -41,6 +41,11 @@ final class CompanyRoleProvisioner
         'contact_aging',
         'cash_accounts',
         'bank_accounts',
+        'purchase_orders',
+        'goods_receipts',
+        'supplier_invoices',
+        'payments',
+        'supplier_performance',
     ];
 
     private const ACTIONS = [
@@ -71,6 +76,7 @@ final class CompanyRoleProvisioner
             'periods.reopen',
             'contacts.sensitive.view',
             'sales.quote.approve',
+            'purchase_orders.approve',
         ];
 
         foreach ($permissionNames as $permissionName) {
@@ -114,6 +120,10 @@ final class CompanyRoleProvisioner
                 'contact_aging.view',
                 'cash_accounts.view', 'cash_accounts.create', 'cash_accounts.update',
                 'bank_accounts.view', 'bank_accounts.create', 'bank_accounts.update',
+                'purchase_orders.view', 'goods_receipts.view',
+                'supplier_invoices.view', 'supplier_invoices.create', 'supplier_invoices.update', 'supplier_invoices.cancel',
+                'payments.view', 'payments.create', 'payments.cancel',
+                'supplier_performance.view',
                 ...$technicalViews,
             ],
             'Satış' => [
@@ -135,6 +145,11 @@ final class CompanyRoleProvisioner
                 'print_profiles.view', 'cost.view',
                 'contacts.view', 'contacts.create', 'contacts.update',
                 'products.view', 'locations.view', 'stock.view',
+                'purchase_orders.view', 'purchase_orders.create', 'purchase_orders.update', 'purchase_orders.cancel',
+                'goods_receipts.view',
+                'supplier_invoices.view', 'supplier_invoices.create', 'supplier_invoices.update',
+                'payments.view',
+                'supplier_performance.view',
                 ...$technicalViews,
             ],
             'Depo' => [
@@ -147,6 +162,7 @@ final class CompanyRoleProvisioner
                 'quarantine.view', 'quarantine.update',
                 'reservations.view', 'reservations.create', 'reservations.update',
                 'dispatches.view', 'dispatches.create', 'dispatches.update',
+                'goods_receipts.view', 'goods_receipts.create', 'goods_receipts.update', 'goods_receipts.cancel',
                 ...$technicalViews,
             ],
             'Üretim' => [

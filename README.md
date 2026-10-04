@@ -25,7 +25,7 @@ Repo aktif Laravel uygulama kodunu ve kanonik dokümantasyonu birlikte içerir.
 
 ## Güncel durum
 
-Faz 0, Faz 1, Faz 2 ve Faz 3 production kodu uygulanmıştır. Faz 3; ortak belge şeması, belge hesap motoru, posting zinciri, teklif, satış siparişi ve rezervasyon, irsaliye/kısmi sevk, satış faturası/kısmi fatura, proforma, tahsilat/cari hareket, araçtan sıcak satış ve ters kayıt akışlarını kapsar. Faz 4 production geliştirmesi henüz başlatılmamıştır.
+Faz 0, Faz 1, Faz 2, Faz 3 ve Faz 4 production kodu uygulanmıştır. Faz 3; ortak belge şeması, belge hesap motoru, posting zinciri, teklif, satış siparişi ve rezervasyon, irsaliye/kısmi sevk, satış faturası/kısmi fatura, proforma, tahsilat/cari hareket, araçtan sıcak satış ve ters kayıt akışlarını kapsar. Faz 4; satınalma siparişi onayı, kısmi mal kabul, alış faturası, üçlü eşleştirme, hareketli ortalama maliyet güncelleme ve ±%25 alış fiyat sapma uyarısı, ödeme, tedarikçi performansı ve alış integrity kontrollerini kapsar. Faz 4 test paketi ile tüm kalite komutları final local runner turunda toplu çalıştırılacaktır. Faz 5 production geliştirmesi henüz başlatılmamıştır.
 
 K-038 gereği state-changing Livewire istekleri ilk component snapshot'ında üretilen ve retry boyunca sabit kalan idempotency key taşır. Period mutationları period DB'deki, Master mutationları Master DB'deki idempotency kayıtlarını kullanır.
 
