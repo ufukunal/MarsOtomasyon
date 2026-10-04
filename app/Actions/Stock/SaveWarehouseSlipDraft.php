@@ -10,6 +10,7 @@ use App\Support\Auth\MutationAuthorizer;
 use App\Support\Period\PeriodContext;
 use Carbon\CarbonImmutable;
 use DomainException;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -49,6 +50,20 @@ final class SaveWarehouseSlipDraft
 
         if ($data['lines'] === []) {
             throw ValidationException::withMessages(['lines' => 'Ambar fişi en az bir satır içermelidir.']);
+        }
+
+        $canViewCost = auth()->user()?->can('cost.view') ?? false;
+
+        if ($data['direction'] === 'in' && ! $canViewCost) {
+            if ($slip?->lines()->whereNotNull('unit_cost')->exists()) {
+                throw new AuthorizationException('Maliyet içeren giriş fişini düzenleme yetkiniz yok.');
+            }
+
+            foreach ($data['lines'] as $line) {
+                if ($line['unit_cost'] !== null && $line['unit_cost'] !== '') {
+                    throw new AuthorizationException('Birim maliyet girmek için cost.view yetkisi gerekir.');
+                }
+            }
         }
 
         foreach ($data['lines'] as $index => $line) {

@@ -48,7 +48,7 @@ class WarehouseSlipDetail extends Component
         $this->slipDate = now()->toDateString();
 
         if ($id !== null) {
-            $this->slip = WarehouseSlip::query()->with(['location', 'lines.product'])->findOrFail($id);
+            $this->slip = WarehouseSlip::query()->with('location')->findOrFail($id);
             $this->loadSlip();
 
             return;
@@ -167,6 +167,23 @@ class WarehouseSlipDetail extends Component
 
     public function render(): View
     {
+        $canViewCost = auth()->user()?->can('cost.view') ?? false;
+        $postedLines = collect();
+
+        if ($this->slip) {
+            $columns = ['id', 'warehouse_slip_id', 'product_id', 'quantity', 'note'];
+
+            if ($canViewCost) {
+                $columns[] = 'unit_cost';
+            }
+
+            $postedLines = $this->slip->lines()
+                ->select($columns)
+                ->with('product')
+                ->orderBy('id')
+                ->get();
+        }
+
         return view('livewire.pages.stock.warehouse-slip-detail', [
             'locations' => Location::query()->where('is_active', true)->orderBy('name')->get(),
             'products' => Product::query()
@@ -175,7 +192,8 @@ class WarehouseSlipDetail extends Component
                 ->orderBy('name')
                 ->limit(1000)
                 ->get(),
-            'postedLines' => $this->slip?->lines()->with('product')->orderBy('id')->get() ?? collect(),
+            'postedLines' => $postedLines,
+            'canViewCost' => $canViewCost,
             'reasonOptions' => $this->direction === 'in'
                 ? [
                     'found' => 'Buluntu',
@@ -203,17 +221,30 @@ class WarehouseSlipDetail extends Component
             return;
         }
 
-        $this->slip->refresh()->load(['location', 'lines.product']);
+        $this->slip->refresh()->load('location');
         $this->locationId = $this->slip->location_id;
         $this->slipDate = CarbonImmutable::parse((string) $this->slip->slip_date)->toDateString();
         $this->direction = $this->slip->direction;
         $this->reason = $this->slip->reason;
         $this->note = (string) ($this->slip->note ?? '');
-        $this->draftLines = $this->slip->lines
+
+        $canViewCost = auth()->user()?->can('cost.view') ?? false;
+        $columns = ['id', 'warehouse_slip_id', 'product_id', 'quantity', 'note'];
+
+        if ($canViewCost) {
+            $columns[] = 'unit_cost';
+        }
+
+        $lines = $this->slip->lines()
+            ->select($columns)
+            ->orderBy('id')
+            ->get();
+
+        $this->draftLines = $lines
             ->map(fn ($line): array => [
                 'product_id' => $line->product_id,
                 'quantity' => (string) $line->quantity,
-                'unit_cost' => $line->unit_cost !== null ? (string) $line->unit_cost : null,
+                'unit_cost' => $canViewCost && $line->unit_cost !== null ? (string) $line->unit_cost : null,
                 'note' => $line->note !== null ? (string) $line->note : null,
             ])
             ->values()

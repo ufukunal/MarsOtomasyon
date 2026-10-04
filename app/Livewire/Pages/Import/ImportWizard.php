@@ -5,6 +5,7 @@ namespace App\Livewire\Pages\Import;
 use App\Actions\Periods\EnsurePeriodOpen;
 use App\Jobs\ProcessCardImport;
 use App\Models\Period\CardImportBatch;
+use App\Models\Period\StockMovement;
 use App\Support\Import\ImportFileReader;
 use App\Support\Import\ImportMapping;
 use App\Support\Import\ImportRowImporterResolver;
@@ -150,6 +151,12 @@ class ImportWizard extends Component
             ]);
             $this->errorMode = 'cancel_all';
             $ensurePeriodOpen->handle(CarbonImmutable::parse($this->openingDate));
+
+            if (StockMovement::query()->where('reason', 'opening')->exists()) {
+                $this->addError('openingDate', 'Bu dönem için açılış stoğu daha önce oluşturulmuş.');
+
+                return;
+            }
         }
 
         $existing = CardImportBatch::query()
