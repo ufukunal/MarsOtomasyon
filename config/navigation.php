@@ -21,6 +21,7 @@ return [
         'items' => [
             ['label' => 'Stok Durumu', 'route' => 'stock.status', 'permission' => 'stock.view'],
             ['label' => 'Stok Hareketleri', 'route' => 'stock.movements', 'permission' => 'stock.view'],
+            ['label' => 'Transferler', 'route' => 'stock.transfers.index', 'permission' => 'transfers.view'],
         ],
     ],
     [

@@ -108,6 +108,7 @@ final class CompanyRoleProvisioner
                 'print_profiles.view',
                 'contacts.view', 'products.view',
                 'locations.view', 'locations.create', 'locations.update', 'stock.view',
+                'transfers.view', 'transfers.create', 'transfers.update', 'transfers.cancel',
                 ...$technicalViews,
             ],
             'Üretim' => [
