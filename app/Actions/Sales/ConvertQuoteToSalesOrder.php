@@ -1,0 +1,90 @@
+<?php
+
+namespace App\Actions\Sales;
+
+use App\Enums\DocumentType;
+use App\Models\Period\Document;
+use App\Models\Period\DocumentLine;
+use App\Models\Period\DocumentRelation;
+use App\Support\Audit\AuditContext;
+use App\Support\Auth\MutationAuthorizer;
+use App\Support\Concurrency\IdempotencyKey;
+use DomainException;
+
+final class ConvertQuoteToSalesOrder
+{
+    public function handle(Document $quote, string $idempotencyKey): Document
+    {
+        MutationAuthorizer::authorize('sales_orders.create');
+
+        return IdempotencyKey::run(
+            $idempotencyKey,
+            'quote.to-order:'.$quote->id,
+            function () use ($quote): Document {
+                $locked = Document::query()->with('lines')->lockForUpdate()->findOrFail($quote->id);
+
+                if ($locked->document_type !== DocumentType::Quote || $locked->status !== 'approved') {
+                    throw new DomainException('Yalnız onaylanmış teklif siparişe dönüştürülebilir.');
+                }
+
+                $actor = auth()->user();
+                $order = Document::query()->create([
+                    'document_type' => DocumentType::SalesOrder->value,
+                    'revision_no' => 0,
+                    'document_date' => $locked->document_date,
+                    'due_date' => $locked->due_date,
+                    'contact_id' => $locked->contact_id,
+                    'currency' => 'TRY',
+                    'exchange_rate' => '1.000000',
+                    'status' => 'draft',
+                    'discount_rate' => $locked->discount_rate,
+                    'discount_amount' => $locked->discount_amount,
+                    'subtotal' => $locked->subtotal,
+                    'tax_base' => $locked->tax_base,
+                    'vat_amount' => $locked->vat_amount,
+                    'rounding_difference' => $locked->rounding_difference,
+                    'grand_total' => $locked->grand_total,
+                    'requirements_snapshot' => $locked->requirements_snapshot,
+                    'notes' => $locked->notes,
+                    'created_by' => $actor?->id,
+                    'created_by_name' => $actor?->name,
+                ]);
+
+                foreach ($locked->lines as $line) {
+                    DocumentLine::query()->create([
+                        ...$line->only([
+                            'line_no', 'line_kind', 'product_id', 'description', 'unit_id', 'quantity',
+                            'conversion_factor', 'base_quantity', 'location_id', 'unit_price',
+                            'line_discount_rate', 'line_discount_amount', 'vat_rate', 'line_total',
+                            'reserve_stock', 'configuration',
+                        ]),
+                        'document_id' => $order->id,
+                        'cancelled_quantity' => '0.000',
+                        'source_line_id' => $line->id,
+                    ]);
+                }
+
+                DocumentRelation::query()->create([
+                    'source_document_id' => $locked->id,
+                    'target_document_id' => $order->id,
+                    'relation_type' => 'quote_to_order',
+                    'created_by' => $actor?->id,
+                    'created_by_name' => $actor?->name,
+                ]);
+
+                $locked->status = 'converted';
+                $locked->version = (int) $locked->version + 1;
+                $locked->save();
+
+                AuditContext::period(
+                    'Teklif satış siparişine dönüştürüldü.',
+                    ['quote_id' => $locked->id, 'order_id' => $order->id],
+                    $order,
+                    'quote_converted',
+                );
+
+                return $order->load('lines');
+            },
+        );
+    }
+}
