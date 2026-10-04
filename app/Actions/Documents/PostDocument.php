@@ -4,6 +4,7 @@ namespace App\Actions\Documents;
 
 use App\Actions\Numbering\GenerateDocumentNumber;
 use App\Actions\Periods\EnsurePeriodOpen;
+use App\Actions\Purchases\PurchaseLineAvailability;
 use App\Actions\Stock\ConsumeReservation;
 use App\Actions\Stock\RecordStockMovement;
 use App\DataObjects\Documents\DocumentPostingContext;
@@ -34,6 +35,7 @@ final class PostDocument
         private readonly VerifyPostedDocument $verify,
         private readonly ResolveSourceLineage $lineage,
         private readonly SourceLineAvailability $availability,
+        private readonly PurchaseLineAvailability $purchaseAvailability,
     ) {}
 
     public function handle(
@@ -74,7 +76,7 @@ final class PostDocument
                     $stockOut = $profile->stockOut
                         && ! ($locked->document_type === DocumentType::SalesInvoice && $lineage['has_dispatch']);
 
-                    if ($stockOut) {
+                    if ($stockOut || $profile->stockIn) {
                         if ($line->location_id === null || $line->base_quantity === null) {
                             throw new DomainException('Stok etkili belge satırında lokasyon ve temel miktar zorunludur.');
                         }
@@ -83,9 +85,10 @@ final class PostDocument
                             productId: (int) $line->product_id,
                             locationId: (int) $line->location_id,
                             movementDate: $locked->document_date->toDateString(),
-                            direction: 'out',
+                            direction: $profile->stockIn ? 'in' : 'out',
                             reason: $locked->document_type->value,
                             quantity: (string) $line->base_quantity,
+                            updatesAverage: false,
                             documentType: $locked->document_type->value,
                             documentId: (int) $locked->id,
                             documentNo: $locked->number,
@@ -115,6 +118,9 @@ final class PostDocument
                         throw new DomainException('Cari etkili belgede cari zorunludur.');
                     }
 
+                    $contactAmount = $context?->contactAmount ?? (string) $locked->grand_total;
+                    $contactCurrency = $context?->contactCurrency ?? (string) $locked->currency;
+
                     ContactTransaction::query()->create([
                         'contact_id' => $locked->contact_id,
                         'document_id' => $locked->id,
@@ -122,8 +128,8 @@ final class PostDocument
                         'direction' => $profile->contactDirection,
                         'transaction_date' => $locked->document_date,
                         'due_date' => $locked->due_date,
-                        'amount' => $locked->grand_total,
-                        'currency' => $locked->currency,
+                        'amount' => $contactAmount,
+                        'currency' => $contactCurrency,
                         'description' => $context === null ? $locked->notes : ($context->reason ?? $locked->notes),
                         'created_by' => $actor?->id,
                         'created_by_name' => $actor?->name,
@@ -132,6 +138,10 @@ final class PostDocument
 
                 if ($profile->financialIn) {
                     $this->writeCollectionMovement($locked, $context, $actor?->id, $actor?->name);
+                }
+
+                if ($profile->financialOut) {
+                    $this->writePaymentMovement($locked, $context, $actor?->id, $actor?->name);
                 }
 
                 $locked->status = 'posted';
@@ -158,6 +168,12 @@ final class PostDocument
 
     private function assertSourceAvailability(Document $document): void
     {
+        if (in_array($document->document_type, [DocumentType::GoodsReceipt, DocumentType::SupplierInvoice], true)) {
+            $this->assertPurchaseSourceAvailability($document);
+
+            return;
+        }
+
         if (! in_array($document->document_type, [DocumentType::Dispatch, DocumentType::SalesInvoice], true)) {
             return;
         }
@@ -213,6 +229,51 @@ final class PostDocument
 
             if (bccomp((string) $group['quantity'], $remaining, 3) > 0) {
                 throw new DomainException('Belge kaynak satırın kalan miktarını aşıyor.');
+            }
+        }
+    }
+
+    private function assertPurchaseSourceAvailability(Document $document): void
+    {
+        $groups = [];
+
+        foreach ($document->lines as $line) {
+            if ($line->source_line_id === null) {
+                throw new DomainException('Alış akışı belgesinde kaynak satır zorunludur.');
+            }
+
+            $key = (string) $line->source_line_id;
+            $groups[$key] = bcadd(
+                $groups[$key] ?? '0.000',
+                (string) $line->quantity,
+                3,
+            );
+        }
+
+        foreach ($groups as $sourceLineId => $quantity) {
+            $source = DocumentLine::query()
+                ->with('document')
+                ->lockForUpdate()
+                ->findOrFail((int) $sourceLineId);
+
+            if ($document->document_type === DocumentType::GoodsReceipt) {
+                if ($source->document->document_type !== DocumentType::PurchaseOrder
+                    || $source->document->status !== 'approved') {
+                    throw new DomainException('Mal kabul yalnız onaylı satınalma siparişi satırından yapılabilir.');
+                }
+
+                $remaining = $this->purchaseAvailability->orderReceiptRemaining($source);
+            } else {
+                if ($source->document->document_type !== DocumentType::GoodsReceipt
+                    || $source->document->status !== 'posted') {
+                    throw new DomainException('Alış faturası yalnız kesinleşmiş mal kabul satırından üretilebilir.');
+                }
+
+                $remaining = $this->purchaseAvailability->receiptInvoiceRemaining($source);
+            }
+
+            if (bccomp($quantity, $remaining, 3) > 0) {
+                throw new DomainException('Alış belgesi kaynak satırın kalan miktarını aşıyor.');
             }
         }
     }
@@ -323,17 +384,51 @@ final class PostDocument
         ?int $actorId,
         ?string $actorName,
     ): void {
+        $this->writeFinancialMovement(
+            $document,
+            $context,
+            $actorId,
+            $actorName,
+            'in',
+            'Tahsilat',
+        );
+    }
+
+    private function writePaymentMovement(
+        Document $document,
+        ?DocumentPostingContext $context,
+        ?int $actorId,
+        ?string $actorName,
+    ): void {
+        $this->writeFinancialMovement(
+            $document,
+            $context,
+            $actorId,
+            $actorName,
+            'out',
+            'Ödeme',
+        );
+    }
+
+    private function writeFinancialMovement(
+        Document $document,
+        ?DocumentPostingContext $context,
+        ?int $actorId,
+        ?string $actorName,
+        string $direction,
+        string $label,
+    ): void {
         if ($context === null
             || ! in_array($context->accountType, ['cash', 'bank'], true)
             || $context->accountId === null) {
-            throw new DomainException('Tahsilat için kasa veya banka hesabı zorunludur.');
+            throw new DomainException("{$label} için kasa veya banka hesabı zorunludur.");
         }
 
         if ($context->accountType === 'cash') {
             $account = CashAccount::query()->where('is_active', true)->findOrFail($context->accountId);
 
             if ($account->currency !== $document->currency) {
-                throw new DomainException('Kasa para birimi tahsilat para birimiyle eşleşmiyor.');
+                throw new DomainException("Kasa para birimi {$label} para birimiyle eşleşmiyor.");
             }
 
             CashMovement::query()->create([
@@ -341,7 +436,7 @@ final class PostDocument
                 'document_id' => $document->id,
                 'contact_id' => $document->contact_id,
                 'movement_date' => $document->document_date,
-                'direction' => 'in',
+                'direction' => $direction,
                 'amount' => $document->grand_total,
                 'description' => $document->notes,
                 'created_by' => $actorId,
@@ -354,7 +449,7 @@ final class PostDocument
         $account = BankAccount::query()->where('is_active', true)->findOrFail($context->accountId);
 
         if ($account->currency !== $document->currency) {
-            throw new DomainException('Banka para birimi tahsilat para birimiyle eşleşmiyor.');
+            throw new DomainException("Banka para birimi {$label} para birimiyle eşleşmiyor.");
         }
 
         BankMovement::query()->create([
@@ -362,7 +457,7 @@ final class PostDocument
             'document_id' => $document->id,
             'contact_id' => $document->contact_id,
             'movement_date' => $document->document_date,
-            'direction' => 'in',
+            'direction' => $direction,
             'amount' => $document->grand_total,
             'description' => $document->notes,
             'created_by' => $actorId,

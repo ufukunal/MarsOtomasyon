@@ -23,27 +23,31 @@ final class VerifyPostedDocument
     ): void {
         if ($profile->contactDirection !== null) {
             $transaction = ContactTransaction::query()->where('document_id', $document->id)->first();
+            $expectedAmount = $context?->contactAmount ?? (string) $document->grand_total;
+            $expectedCurrency = $context?->contactCurrency ?? (string) $document->currency;
 
             if (! $transaction
                 || $transaction->direction !== $profile->contactDirection
-                || bccomp((string) $transaction->amount, (string) $document->grand_total, 4) !== 0) {
+                || $transaction->currency !== $expectedCurrency
+                || bccomp((string) $transaction->amount, $expectedAmount, 4) !== 0) {
                 throw new DomainException('Belge sonrası cari hareket doğrulaması başarısız.');
             }
         }
 
-        if ($profile->financialIn) {
+        if ($profile->financialIn || $profile->financialOut) {
             $movement = $context?->accountType === 'cash'
                 ? CashMovement::query()->where('document_id', $document->id)->first()
                 : BankMovement::query()->where('document_id', $document->id)->first();
+            $expectedDirection = $profile->financialOut ? 'out' : 'in';
 
             if (! $movement
-                || $movement->direction !== 'in'
+                || $movement->direction !== $expectedDirection
                 || bccomp((string) $movement->amount, (string) $document->grand_total, 4) !== 0) {
-                throw new DomainException('Tahsilat finans hareketi doğrulaması başarısız.');
+                throw new DomainException('Finans hareketi doğrulaması başarısız.');
             }
         }
 
-        if (! $profile->stockOut) {
+        if (! $profile->stockOut && ! $profile->stockIn) {
             return;
         }
 
@@ -64,10 +68,11 @@ final class VerifyPostedDocument
             $expected[$key] = bcadd($expected[$key] ?? '0.000', (string) $line->base_quantity, 3);
         }
 
+        $expectedDirection = $profile->stockIn ? 'in' : 'out';
         $actual = DB::connection('period')->table('stock_movements')
             ->where('document_type', $document->document_type->value)
             ->where('document_id', $document->id)
-            ->where('direction', 'out')
+            ->where('direction', $expectedDirection)
             ->selectRaw('product_id, location_id, SUM(quantity)::text AS quantity')
             ->groupBy('product_id', 'location_id')
             ->get()
