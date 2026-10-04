@@ -82,6 +82,17 @@ abstract class DataTableComponent extends Component
         return null;
     }
 
+    /** @return array<string, string> */
+    public function summary(): array
+    {
+        return [];
+    }
+
+    public function columnUrl(Model $row, Column $column): ?string
+    {
+        return null;
+    }
+
     /** @return Builder<TModel> */
     protected function baseQuery(): Builder
     {
@@ -305,6 +316,7 @@ abstract class DataTableComponent extends Component
             'rowActions' => $this->rowActions(),
             'bulkActions' => $this->bulkActions(),
             'emptyAction' => $this->emptyAction(),
+            'summary' => $this->summary(),
         ]);
     }
 
