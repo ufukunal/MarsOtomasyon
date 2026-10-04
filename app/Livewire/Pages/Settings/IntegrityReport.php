@@ -4,9 +4,13 @@ namespace App\Livewire\Pages\Settings;
 
 use App\Models\IntegrityReport as IntegrityReportModel;
 use App\Support\Integrity\Checks\ContactBalanceCheck;
+use App\Support\Integrity\Checks\CostIntegrityCheck;
 use App\Support\Integrity\Checks\DocumentTotalCheck;
 use App\Support\Integrity\Checks\NumberSeriesCheck;
+use App\Support\Integrity\Checks\QuarantineBalanceCheck;
+use App\Support\Integrity\Checks\ReservationBalanceCheck;
 use App\Support\Integrity\Checks\StockBalanceCheck;
+use App\Support\Integrity\Checks\UnitIntegrityCheck;
 use App\Support\Integrity\IntegrityRunner;
 use Illuminate\Contracts\View\View;
 use Livewire\Component;
@@ -26,6 +30,10 @@ class IntegrityReport extends Component
 
         $map = [
             'stock' => StockBalanceCheck::class,
+            'costs' => CostIntegrityCheck::class,
+            'reservations' => ReservationBalanceCheck::class,
+            'quarantine' => QuarantineBalanceCheck::class,
+            'units' => UnitIntegrityCheck::class,
             'documents' => DocumentTotalCheck::class,
             'contacts' => ContactBalanceCheck::class,
             'numbers' => NumberSeriesCheck::class,

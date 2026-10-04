@@ -1,7 +1,7 @@
 <div class="stack">
     <section class="panel">
         <div class="form-row">
-            @foreach (['stock' => 'Stok', 'documents' => 'Belgeler', 'contacts' => 'Cari', 'numbers' => 'Numaralar'] as $key => $label)
+            @foreach (['stock' => 'Stok', 'costs' => 'Maliyet', 'reservations' => 'Rezervasyon', 'quarantine' => 'Karantina', 'units' => 'Birim', 'documents' => 'Belgeler', 'contacts' => 'Cari', 'numbers' => 'Numaralar'] as $key => $label)
                 <button type="button" wire:click="runNow('{{ $key }}')">{{ $label }} şimdi çalıştır</button>
             @endforeach
         </div>

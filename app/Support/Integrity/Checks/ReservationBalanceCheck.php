@@ -44,19 +44,21 @@ class ReservationBalanceCheck implements IntegrityCheck
             FULL OUTER JOIN reservation_totals r
               ON r.product_id = b.product_id
              AND r.location_id = b.location_id
-            WHERE COALESCE(b.reserved, 0) <> COALESCE(r.reserved, 0)
             ORDER BY 1, 2
         SQL);
 
-        $mismatches = array_map(
-            fn (object $row): array => [
-                'product_id' => $row->product_id,
-                'location_id' => $row->location_id,
-                'stored' => $row->stored_reserved,
-                'calculated' => $row->calculated_reserved,
-            ],
-            $rows,
-        );
+        $mismatches = [];
+
+        foreach ($rows as $row) {
+            if (bccomp((string) $row->stored_reserved, (string) $row->calculated_reserved, 3) !== 0) {
+                $mismatches[] = [
+                    'product_id' => $row->product_id,
+                    'location_id' => $row->location_id,
+                    'stored' => $row->stored_reserved,
+                    'calculated' => $row->calculated_reserved,
+                ];
+            }
+        }
 
         return new IntegrityResult(
             checked: count($rows),

@@ -4,10 +4,14 @@ namespace App\Console\Commands;
 
 use App\Models\Period;
 use App\Support\Integrity\Checks\ContactBalanceCheck;
+use App\Support\Integrity\Checks\CostIntegrityCheck;
 use App\Support\Integrity\Checks\DocumentTotalCheck;
 use App\Support\Integrity\Checks\FilesIntegrityCheck;
 use App\Support\Integrity\Checks\NumberSeriesCheck;
+use App\Support\Integrity\Checks\QuarantineBalanceCheck;
+use App\Support\Integrity\Checks\ReservationBalanceCheck;
 use App\Support\Integrity\Checks\StockBalanceCheck;
+use App\Support\Integrity\Checks\UnitIntegrityCheck;
 use App\Support\Integrity\IntegrityRunner;
 use App\Support\Period\PeriodContext;
 use Illuminate\Console\Command;
@@ -29,6 +33,10 @@ class IntegrityCommand extends Command
 
         $checks = [
             StockBalanceCheck::class,
+            CostIntegrityCheck::class,
+            ReservationBalanceCheck::class,
+            QuarantineBalanceCheck::class,
+            UnitIntegrityCheck::class,
             DocumentTotalCheck::class,
             ContactBalanceCheck::class,
             NumberSeriesCheck::class,

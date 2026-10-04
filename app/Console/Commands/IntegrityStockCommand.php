@@ -2,20 +2,19 @@
 
 namespace App\Console\Commands;
 
-use App\Console\Commands\Concerns\RunsIntegrityCheck;
 use App\Support\Integrity\Checks\StockBalanceCheck;
-use Illuminate\Console\Command;
+use App\Support\Integrity\IntegrityCheck;
+use App\Support\Integrity\RunIntegrityCheckCommand;
 
-class IntegrityStockCommand extends Command
+class IntegrityStockCommand extends RunIntegrityCheckCommand
 {
-    use RunsIntegrityCheck;
-
     protected $signature = 'integrity:stock';
 
-    protected $description = 'Stok hareketleri ile stok bakiyelerini karşılaştırır';
+    protected $description = 'Stok hareketleri ile stok bakiyelerini doğrular';
 
-    public function handle(StockBalanceCheck $check): int
+    /** @return class-string<IntegrityCheck> */
+    protected function checkClass(): string
     {
-        return $this->runCheck($check);
+        return StockBalanceCheck::class;
     }
 }
