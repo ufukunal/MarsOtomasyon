@@ -32,6 +32,7 @@ final class PostDocument
         private readonly ConsumeReservation $consumeReservation,
         private readonly VerifyPostedDocument $verify,
         private readonly ResolveSourceLineage $lineage,
+        private readonly SourceLineAvailability $availability,
     ) {}
 
     public function handle(
@@ -52,6 +53,7 @@ final class PostDocument
                 $this->ensurePeriodOpen->handle(CarbonImmutable::parse($locked->document_date));
                 $profile = $this->profiles->handle($locked, $context);
                 $this->assertTotals($locked, $profile->calculationMode);
+                $this->assertSourceAvailability($locked);
 
                 if ($locked->number === null) {
                     $locked->number = $this->numbers->handle(
@@ -151,6 +153,67 @@ final class PostDocument
                 return $locked->refresh();
             },
         );
+    }
+
+    private function assertSourceAvailability(Document $document): void
+    {
+        if (! in_array($document->document_type, [DocumentType::Dispatch, DocumentType::SalesInvoice], true)) {
+            return;
+        }
+
+        $groups = [];
+
+        foreach ($document->lines as $line) {
+            $lineage = $this->lineage->handle($line);
+            $sourceType = null;
+            $sourceLineId = null;
+
+            if ($document->document_type === DocumentType::Dispatch
+                && $lineage['origin_order_line_id'] !== null) {
+                $sourceType = 'order';
+                $sourceLineId = $lineage['origin_order_line_id'];
+            }
+
+            if ($document->document_type === DocumentType::SalesInvoice) {
+                if ($lineage['dispatch_line_id'] !== null) {
+                    $sourceType = 'dispatch';
+                    $sourceLineId = $lineage['dispatch_line_id'];
+                } elseif ($lineage['origin_order_line_id'] !== null) {
+                    $sourceType = 'order';
+                    $sourceLineId = $lineage['origin_order_line_id'];
+                }
+            }
+
+            if ($sourceType === null || $sourceLineId === null) {
+                continue;
+            }
+
+            $key = $sourceType.':'.$sourceLineId;
+            $groups[$key] ??= [
+                'type' => $sourceType,
+                'line_id' => $sourceLineId,
+                'quantity' => '0.000',
+            ];
+            $groups[$key]['quantity'] = bcadd(
+                $groups[$key]['quantity'],
+                (string) $line->quantity,
+                3,
+            );
+        }
+
+        foreach ($groups as $group) {
+            $source = AppModelsPeriodDocumentLine::query()
+                ->lockForUpdate()
+                ->findOrFail((int) $group['line_id']);
+
+            $remaining = $group['type'] === 'dispatch'
+                ? $this->availability->dispatchRemaining($source)
+                : $this->availability->orderRemaining($source);
+
+            if (bccomp((string) $group['quantity'], $remaining, 3) > 0) {
+                throw new DomainException('Belge kaynak satırın kalan miktarını aşıyor.');
+            }
+        }
     }
 
     private function assertTotals(Document $document, string $calculationMode): void
