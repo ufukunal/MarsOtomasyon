@@ -5,6 +5,7 @@ namespace App\Actions\Attachments;
 use App\Contracts\HasAttachments as HasAttachmentsContract;
 use App\Models\Attachment;
 use App\Models\PeriodModel;
+use App\Support\Period\PeriodContext;
 use App\Support\Security\SecureUploadValidator;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -24,6 +25,7 @@ final class StoreAttachment
         ?string $collection = null,
         int $sortOrder = 0,
     ): Attachment {
+        PeriodContext::ensureWritable();
         $validated = app(SecureUploadValidator::class)->validate($file);
         $mime = $validated['mime'];
         $originalExtension = $validated['extension'];

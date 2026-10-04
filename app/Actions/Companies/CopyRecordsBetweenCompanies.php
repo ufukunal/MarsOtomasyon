@@ -32,6 +32,7 @@ final class CopyRecordsBetweenCompanies
         array $conflictChoices = [],
     ): CopyResult {
         MutationAuthorizer::authorize('company_copy_permissions.view');
+        PeriodContext::ensureWritable();
         abort_unless(CompanyCopyPermission::allows($sourceCompanyId, (int) PeriodContext::companyId(), $type), 403, 'Bu şirketten veri aktarma izniniz yok.');
 
         if ($type === CompanyCopyPermissionType::Product) {

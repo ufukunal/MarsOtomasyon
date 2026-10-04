@@ -2,6 +2,7 @@
 
 use App\Actions\Companies\CopyRecordsBetweenCompanies;
 use App\Enums\CompanyCopyPermissionType;
+use App\Exceptions\PeriodReadOnlyException;
 use App\Models\CompanyCopyPermission;
 use App\Models\Period\Contact;
 use App\Support\Period\PeriodContext;
@@ -94,4 +95,32 @@ it('set ve configurable ürünleri alt tanımsız kart olarak kopyalamayı redde
         CompanyCopyPermissionType::Product,
         [$set->id],
     ))->toThrow(ValidationException::class);
+});
+
+
+it('kapalı hedef döneme şirketler arası kart kopyalamayı reddeder', function () {
+    [$sourceCompany, $sourcePeriod] = $this->createCompanyWithPeriod('CLOSEDS');
+    [$targetCompany, $targetPeriod] = $this->createCompanyWithPeriod('CLOSEDT');
+
+    PeriodContext::useSystem($sourceCompany->id, $sourcePeriod->id);
+    $source = Contact::query()->create(['title' => 'Kapalı Dönem Kaynak', 'type' => 'legal']);
+
+    $admin = $this->createUserWithPeriodAccess($targetCompany, $targetPeriod, 'Yönetici');
+    $targetPeriod->update(['status' => 'closed']);
+    $this->loginToPeriod($admin, $targetCompany, $targetPeriod);
+
+    CompanyCopyPermission::query()->create([
+        'source_company_id' => $sourceCompany->id,
+        'target_company_id' => $targetCompany->id,
+        'type' => CompanyCopyPermissionType::Contact->value,
+        'is_active' => true,
+    ]);
+
+    expect(fn () => app(CopyRecordsBetweenCompanies::class)->handle(
+        $sourceCompany->id,
+        CompanyCopyPermissionType::Contact,
+        [$source->id],
+    ))->toThrow(PeriodReadOnlyException::class);
+
+    expect(Contact::query()->count())->toBe(0);
 });

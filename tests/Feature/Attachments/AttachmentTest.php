@@ -1,6 +1,7 @@
 <?php
 
 use App\Actions\Attachments\StoreAttachment;
+use App\Exceptions\PeriodReadOnlyException;
 use App\Models\Attachment;
 use App\Models\Period\Product;
 use App\Models\Period\Unit;
@@ -92,4 +93,23 @@ it('integrity files eksik fiziksel dosyayı raporlar ve kaydı değiştirmez', f
     expect($result->mismatchCount())->toBe(1)
         ->and($result->mismatches[0]['attachment_id'])->toBe($attachment->id)
         ->and(Attachment::query()->whereKey($attachment->id)->exists())->toBeTrue();
+});
+
+
+it('kapalı dönemde generic attachment yazımını reddeder', function () {
+    Storage::fake('attachments');
+
+    [$company, $period] = $this->createCompanyWithPeriod('FILECLOSED');
+    PeriodContext::useSystem($company->id, $period->id);
+    $product = $this->createTestProduct(['code' => 'P-FILE-CLOSED']);
+
+    $period->update(['status' => 'closed']);
+
+    expect(fn () => app(StoreAttachment::class)->handle(
+        $product,
+        UploadedFile::fake()->image('kapali.jpg'),
+    ))->toThrow(PeriodReadOnlyException::class);
+
+    expect(Attachment::query()->count())->toBe(0)
+        ->and(Storage::disk('attachments')->allFiles())->toBe([]);
 });
