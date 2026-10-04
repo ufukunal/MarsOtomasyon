@@ -4,6 +4,7 @@ namespace App\Actions\Sales;
 
 use App\Actions\Documents\SaveSalesDocumentDraft;
 use App\Enums\DocumentType;
+use App\Models\Period\Document;
 use App\Models\Period\Location;
 use App\Support\Auth\MutationAuthorizer;
 use App\Support\Concurrency\IdempotencyKey;
@@ -25,13 +26,13 @@ final class StartVehicleHotSale
         array $header,
         array $lines,
         string $idempotencyKey,
-    ) {
+    ): Document {
         MutationAuthorizer::authorize('sales_invoices.create');
 
         return IdempotencyKey::run(
             $idempotencyKey,
             'vehicle-hot-sale.create',
-            function () use ($vehicleLocationId, $header, $lines, $idempotencyKey) {
+            function () use ($vehicleLocationId, $header, $lines, $idempotencyKey): Document {
                 $vehicle = Location::query()
                     ->where('kind', 'vehicle')
                     ->where('is_active', true)
