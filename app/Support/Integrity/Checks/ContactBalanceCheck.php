@@ -5,6 +5,7 @@ namespace App\Support\Integrity\Checks;
 use App\Enums\DocumentType;
 use App\Models\Period\ContactTransaction;
 use App\Models\Period\Document;
+use App\Models\Period\DocumentRelation;
 use App\Queries\Finance\BuildContactAging;
 use App\Support\Integrity\IntegrityCheck;
 use App\Support\Integrity\IntegrityResult;
@@ -59,6 +60,8 @@ final class ContactBalanceCheck implements IntegrityCheck
                 DocumentType::SalesInvoice->value,
                 DocumentType::Collection->value,
                 DocumentType::ContactDebitCredit->value,
+                DocumentType::SupplierInvoice->value,
+                DocumentType::Payment->value,
             ])
             ->get();
 
@@ -79,22 +82,58 @@ final class ContactBalanceCheck implements IntegrityCheck
 
             $transaction = $transactions->first();
 
-            if (bccomp((string) $transaction->amount, (string) $document->grand_total, 4) !== 0) {
+            $isReversal = DocumentRelation::query()
+                ->where('relation_type', 'reversal_of')
+                ->where('source_document_id', $document->id)
+                ->exists();
+
+            $expectedAmount = in_array($document->document_type, [
+                DocumentType::SupplierInvoice,
+                DocumentType::Payment,
+            ], true)
+                ? bcadd(
+                    bcmul((string) $document->grand_total, (string) $document->exchange_rate, 8),
+                    '0',
+                    4,
+                )
+                : (string) $document->grand_total;
+            $expectedCurrency = in_array($document->document_type, [
+                DocumentType::SupplierInvoice,
+                DocumentType::Payment,
+            ], true)
+                ? 'TRY'
+                : (string) $document->currency;
+
+            if (bccomp((string) $transaction->amount, $expectedAmount, 4) !== 0
+                || $transaction->currency !== $expectedCurrency) {
                 $mismatches[] = [
                     'document_id' => $document->id,
-                    'reason' => 'contact_transaction_amount',
+                    'reason' => 'contact_transaction_amount_or_currency',
                 ];
             }
 
-            if ($document->document_type === DocumentType::SalesInvoice && $transaction->direction !== 'debit') {
-                $mismatches[] = ['document_id' => $document->id, 'reason' => 'invoice_direction'];
+            $expectedDirection = match ($document->document_type) {
+                DocumentType::SalesInvoice => 'debit',
+                DocumentType::Collection => 'credit',
+                DocumentType::SupplierInvoice => 'credit',
+                DocumentType::Payment => 'debit',
+                default => null,
+            };
+
+            if ($expectedDirection !== null) {
+                if ($isReversal) {
+                    $expectedDirection = $expectedDirection === 'debit' ? 'credit' : 'debit';
+                }
+
+                if ($transaction->direction !== $expectedDirection) {
+                    $mismatches[] = [
+                        'document_id' => $document->id,
+                        'reason' => 'contact_transaction_direction',
+                    ];
+                }
             }
 
-            if ($document->document_type === DocumentType::Collection && $transaction->direction !== 'credit') {
-                $mismatches[] = ['document_id' => $document->id, 'reason' => 'collection_direction'];
-            }
-
-            if ($document->document_type === DocumentType::Collection) {
+            if (in_array($document->document_type, [DocumentType::Collection, DocumentType::Payment], true)) {
                 $cashCount = DB::connection('period')->table('cash_movements')
                     ->where('document_id', $document->id)
                     ->count();

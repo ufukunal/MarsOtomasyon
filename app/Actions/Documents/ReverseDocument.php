@@ -4,6 +4,7 @@ namespace App\Actions\Documents;
 
 use App\Actions\Numbering\GenerateDocumentNumber;
 use App\Actions\Periods\EnsurePeriodOpen;
+use App\Actions\Purchases\ReverseSupplierInvoiceCosts;
 use App\Actions\Stock\RecordStockMovement;
 use App\DataObjects\StockMovementData;
 use App\Enums\DocumentType;
@@ -29,6 +30,7 @@ final class ReverseDocument
         private readonly GenerateDocumentNumber $numbers,
         private readonly RecordStockMovement $recordStockMovement,
         private readonly ResolveSourceLineage $lineage,
+        private readonly ReverseSupplierInvoiceCosts $reversePurchaseCosts,
         private readonly VerifyReversal $verify,
     ) {}
 
@@ -57,6 +59,9 @@ final class ReverseDocument
                         DocumentType::SalesInvoice,
                         DocumentType::Collection,
                         DocumentType::ContactDebitCredit,
+                        DocumentType::GoodsReceipt,
+                        DocumentType::SupplierInvoice,
+                        DocumentType::Payment,
                     ], true)) {
                     throw new DomainException('Bu belge ters kayıt için uygun değil.');
                 }
@@ -70,6 +75,10 @@ final class ReverseDocument
 
                 if ($locked->document_type === DocumentType::Dispatch) {
                     $this->assertDispatchHasNoActiveInvoice($locked);
+                }
+
+                if ($locked->document_type === DocumentType::GoodsReceipt) {
+                    $this->assertGoodsReceiptHasNoActiveInvoice($locked);
                 }
 
                 $date = CarbonImmutable::parse($reversalDate);
@@ -128,6 +137,7 @@ final class ReverseDocument
                 $this->reverseStock($locked, $reversal);
                 $this->reverseContact($locked, $reversal, $actor?->id, $actor?->name);
                 $this->reverseFinance($locked, $reversal, $actor?->id, $actor?->name);
+                $this->reversePurchaseCosts->handle($locked);
 
                 $this->verify->handle($locked, $reversal);
 
@@ -153,6 +163,9 @@ final class ReverseDocument
             DocumentType::Dispatch => 'dispatches.cancel',
             DocumentType::SalesInvoice => 'sales_invoices.cancel',
             DocumentType::Collection => 'collections.cancel',
+            DocumentType::GoodsReceipt => 'goods_receipts.cancel',
+            DocumentType::SupplierInvoice => 'supplier_invoices.cancel',
+            DocumentType::Payment => 'payments.cancel',
             DocumentType::ContactDebitCredit => 'contacts.update',
             default => 'documents.cancel',
         };
@@ -185,6 +198,32 @@ final class ReverseDocument
             if ($dispatchLineIds->intersect($lineage['line_ids'])->isNotEmpty()) {
                 throw new DomainException('Aktif faturası bulunan irsaliye önce terslenemez.');
             }
+        }
+    }
+
+    private function assertGoodsReceiptHasNoActiveInvoice(Document $receipt): void
+    {
+        $receiptLineIds = $receipt->lines
+            ->pluck('id')
+            ->map(fn ($id): int => (int) $id);
+
+        $invoiceLines = DocumentLine::query()
+            ->with('document')
+            ->whereIn('source_line_id', $receiptLineIds)
+            ->whereHas('document', fn ($query) => $query
+                ->where('document_type', DocumentType::SupplierInvoice->value)
+                ->where('status', 'posted'))
+            ->get();
+
+        foreach ($invoiceLines as $invoiceLine) {
+            if (DocumentRelation::query()
+                ->where('relation_type', 'reversal_of')
+                ->where('target_document_id', $invoiceLine->document_id)
+                ->exists()) {
+                continue;
+            }
+
+            throw new DomainException('Aktif alış faturası bulunan mal kabul önce terslenemez.');
         }
     }
 
