@@ -32,6 +32,15 @@ final class CompanyRoleProvisioner
         'stock_counts',
         'quarantine',
         'reservations',
+        'quotes',
+        'sales_orders',
+        'dispatches',
+        'sales_invoices',
+        'proformas',
+        'collections',
+        'contact_aging',
+        'cash_accounts',
+        'bank_accounts',
     ];
 
     private const ACTIONS = [
@@ -61,6 +70,7 @@ final class CompanyRoleProvisioner
             'cost.view',
             'periods.reopen',
             'contacts.sensitive.view',
+            'sales.quote.approve',
         ];
 
         foreach ($permissionNames as $permissionName) {
@@ -82,6 +92,14 @@ final class CompanyRoleProvisioner
             'variant_groups.view',
         ];
 
+        $salesDocumentViews = [
+            'quotes.view',
+            'sales_orders.view',
+            'dispatches.view',
+            'sales_invoices.view',
+            'proformas.view',
+        ];
+
         $roleMatrix = [
             'Yönetici' => $permissionNames,
             'Muhasebe' => [
@@ -90,12 +108,27 @@ final class CompanyRoleProvisioner
                 'print_profiles.view', 'print_profiles.create', 'print_profiles.update', 'print_profiles.cancel',
                 'contacts.view', 'contacts.create', 'contacts.update',
                 'products.view', 'locations.view', 'price_lists.view', 'stock.view', 'cost.view',
+                ...$salesDocumentViews,
+                'sales_invoices.create', 'sales_invoices.update', 'sales_invoices.cancel',
+                'collections.view', 'collections.create', 'collections.cancel',
+                'contact_aging.view',
+                'cash_accounts.view', 'cash_accounts.create', 'cash_accounts.update',
+                'bank_accounts.view', 'bank_accounts.create', 'bank_accounts.update',
                 ...$technicalViews,
             ],
             'Satış' => [
                 'print_profiles.view',
                 'contacts.view', 'contacts.create', 'contacts.update',
                 'products.view', 'locations.view', 'price_lists.view', 'stock.view',
+                'quotes.view', 'quotes.create', 'quotes.update', 'quotes.cancel',
+                'sales.quote.approve',
+                'sales_orders.view', 'sales_orders.create', 'sales_orders.update', 'sales_orders.cancel',
+                'dispatches.view', 'dispatches.create', 'dispatches.update', 'dispatches.cancel',
+                'sales_invoices.view', 'sales_invoices.create', 'sales_invoices.update', 'sales_invoices.cancel',
+                'proformas.view', 'proformas.create',
+                'collections.view', 'collections.create',
+                'contact_aging.view',
+                'reservations.view', 'reservations.create', 'reservations.update',
                 ...$technicalViews,
             ],
             'Satınalma' => [
@@ -113,6 +146,7 @@ final class CompanyRoleProvisioner
                 'stock_counts.view', 'stock_counts.create', 'stock_counts.update', 'stock_counts.cancel',
                 'quarantine.view', 'quarantine.update',
                 'reservations.view', 'reservations.create', 'reservations.update',
+                'dispatches.view', 'dispatches.create', 'dispatches.update',
                 ...$technicalViews,
             ],
             'Üretim' => [
