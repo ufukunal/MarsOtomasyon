@@ -4,6 +4,7 @@ namespace App\Support\Concurrency;
 
 use App\Exceptions\IdempotencyInProgressException;
 use App\Support\Period\PeriodContext;
+use Carbon\CarbonImmutable;
 use Closure;
 use Illuminate\Database\Connection;
 use Illuminate\Database\Eloquent\Model;
@@ -14,6 +15,8 @@ use Throwable;
 
 final class IdempotencyKey
 {
+    private const STALE_AFTER_HOURS = 24;
+
     public static function run(
         string $key,
         string $action,
@@ -29,8 +32,14 @@ final class IdempotencyKey
 
                 self::assertRecord($record, $action);
 
-                if ($inserted === 0) {
-                    return self::existingResult($record);
+                if ($inserted === 0 && $record->status === 'done') {
+                    return self::decodeResult($record->result);
+                }
+
+                if ($inserted === 0 && ! self::claimStaleProcessing($connection, $record)) {
+                    throw new IdempotencyInProgressException(
+                        'İşlem aynı istek anahtarıyla halen sürüyor.',
+                    );
                 }
 
                 $result = $callback();
@@ -57,12 +66,18 @@ final class IdempotencyKey
 
             self::assertRecord($record, $action);
 
-            if ($inserted === 0) {
+            if ($inserted === 0 && $record->status === 'done') {
                 return [
                     'existing' => true,
                     'id' => (int) $record->id,
-                    'result' => self::existingResult($record),
+                    'result' => self::decodeResult($record->result),
                 ];
+            }
+
+            if ($inserted === 0 && ! self::claimStaleProcessing($connection, $record)) {
+                throw new IdempotencyInProgressException(
+                    'İşlem aynı istek anahtarıyla halen sürüyor.',
+                );
             }
 
             return [
@@ -143,13 +158,34 @@ final class IdempotencyKey
         }
     }
 
-    private static function existingResult(object $record): mixed
-    {
-        if ($record->status === 'done') {
-            return self::decodeResult($record->result);
+    private static function claimStaleProcessing(
+        Connection $connection,
+        object $record,
+    ): bool {
+        if ($record->status !== 'processing' || ! self::isStale($record)) {
+            return false;
         }
 
-        throw new IdempotencyInProgressException('İşlem aynı istek anahtarıyla halen sürüyor.');
+        $connection->table('idempotency_keys')
+            ->where('id', (int) $record->id)
+            ->where('status', 'processing')
+            ->update([
+                'result' => null,
+                'completed_at' => null,
+                'updated_at' => now(),
+            ]);
+
+        return true;
+    }
+
+    private static function isStale(object $record): bool
+    {
+        if (! isset($record->updated_at)) {
+            return false;
+        }
+
+        return CarbonImmutable::parse((string) $record->updated_at)
+            ->lessThanOrEqualTo(now()->subHours(self::STALE_AFTER_HOURS));
     }
 
     private static function markDone(

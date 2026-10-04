@@ -128,6 +128,36 @@ it('processing durumundaki aynı logical request paralel tekrar olarak reddedili
     ))->toThrow(IdempotencyInProgressException::class, 'İşlem aynı istek anahtarıyla halen sürüyor.');
 });
 
+it('stale master processing claimini aynı logical request ile doğrudan devralır', function () {
+    DB::connection('master')->table('idempotency_keys')->insert([
+        'key' => 'master-stale-recovery-key',
+        'action' => 'test.master.stale',
+        'status' => 'processing',
+        'result' => null,
+        'completed_at' => null,
+        'created_at' => now()->subDays(2),
+        'updated_at' => now()->subDays(2),
+    ]);
+
+    $runs = 0;
+
+    $result = IdempotencyKey::runMaster(
+        'master-stale-recovery-key',
+        'test.master.stale',
+        function () use (&$runs): string {
+            $runs++;
+
+            return 'recovered';
+        },
+    );
+
+    expect($result)->toBe('recovered')
+        ->and($runs)->toBe(1)
+        ->and(DB::connection('master')->table('idempotency_keys')
+            ->where('key', 'master-stale-recovery-key')
+            ->value('status'))->toBe('done');
+});
+
 it('başarısız master mutation claimini temizler ve aynı key ile güvenli retrya izin verir', function () {
     expect(fn () => IdempotencyKey::runMaster(
         'master-failure-key',
