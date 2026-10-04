@@ -11,6 +11,10 @@ enum DocumentType: string
     case Proforma = 'proforma';
     case Collection = 'collection';
     case ContactDebitCredit = 'contact_debit_credit';
+    case PurchaseOrder = 'purchase_order';
+    case GoodsReceipt = 'goods_receipt';
+    case SupplierInvoice = 'supplier_invoice';
+    case Payment = 'payment';
 
     public function isLineCalculated(): bool
     {
@@ -20,11 +24,18 @@ enum DocumentType: string
             self::Dispatch,
             self::SalesInvoice,
             self::Proforma,
+            self::PurchaseOrder,
+            self::GoodsReceipt,
+            self::SupplierInvoice,
         ], true);
     }
 
     public function isHeaderAmount(): bool
     {
-        return in_array($this, [self::Collection, self::ContactDebitCredit], true);
+        return in_array($this, [
+            self::Collection,
+            self::ContactDebitCredit,
+            self::Payment,
+        ], true);
     }
 }

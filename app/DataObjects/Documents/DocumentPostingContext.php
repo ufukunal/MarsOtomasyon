@@ -9,5 +9,7 @@ final readonly class DocumentPostingContext
         public ?string $accountType = null,
         public ?int $accountId = null,
         public ?string $reason = null,
+        public ?string $contactAmount = null,
+        public ?string $contactCurrency = null,
     ) {}
 }

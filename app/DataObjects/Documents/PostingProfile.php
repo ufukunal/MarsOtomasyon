@@ -10,5 +10,7 @@ final readonly class PostingProfile
         public bool $consumeReservations,
         public ?string $contactDirection,
         public bool $financialIn,
+        public bool $stockIn = false,
+        public bool $financialOut = false,
     ) {}
 }

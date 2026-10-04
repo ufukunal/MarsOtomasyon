@@ -1,0 +1,67 @@
+<?php
+
+namespace App\Models\Period;
+
+use App\Models\PeriodModel;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
+class PurchaseMatch extends PeriodModel
+{
+    protected $fillable = [
+        'supplier_invoice_line_id',
+        'purchase_order_line_id',
+        'goods_receipt_line_id',
+        'product_id',
+        'matched_quantity',
+        'order_unit_price',
+        'invoice_unit_price',
+        'price_variance_rate',
+        'cost_unit_try',
+        'previous_moving_average',
+        'previous_last_purchase_price',
+        'cost_value_delta',
+        'new_moving_average',
+        'created_by',
+        'created_by_name',
+    ];
+
+    protected function casts(): array
+    {
+        return [
+            'supplier_invoice_line_id' => 'integer',
+            'purchase_order_line_id' => 'integer',
+            'goods_receipt_line_id' => 'integer',
+            'product_id' => 'integer',
+            'matched_quantity' => 'decimal:3',
+            'order_unit_price' => 'decimal:4',
+            'invoice_unit_price' => 'decimal:4',
+            'price_variance_rate' => 'decimal:4',
+            'cost_unit_try' => 'decimal:4',
+            'previous_moving_average' => 'decimal:4',
+            'previous_last_purchase_price' => 'decimal:4',
+            'cost_value_delta' => 'decimal:4',
+            'new_moving_average' => 'decimal:4',
+            'created_by' => 'integer',
+        ];
+    }
+
+    public function supplierInvoiceLine(): BelongsTo
+    {
+        return $this->belongsTo(DocumentLine::class, 'supplier_invoice_line_id');
+    }
+
+    public function purchaseOrderLine(): BelongsTo
+    {
+        return $this->belongsTo(DocumentLine::class, 'purchase_order_line_id');
+    }
+
+    public function goodsReceiptLine(): BelongsTo
+    {
+        return $this->belongsTo(DocumentLine::class, 'goods_receipt_line_id');
+    }
+
+    public function product(): BelongsTo
+    {
+        return $this->belongsTo(Product::class);
+    }
+}
