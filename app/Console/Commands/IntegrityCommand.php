@@ -8,6 +8,7 @@ use App\Support\Integrity\Checks\CostIntegrityCheck;
 use App\Support\Integrity\Checks\DocumentTotalCheck;
 use App\Support\Integrity\Checks\FilesIntegrityCheck;
 use App\Support\Integrity\Checks\NumberSeriesCheck;
+use App\Support\Integrity\Checks\PartialDocumentCheck;
 use App\Support\Integrity\Checks\QuarantineBalanceCheck;
 use App\Support\Integrity\Checks\ReservationBalanceCheck;
 use App\Support\Integrity\Checks\StockBalanceCheck;
@@ -38,6 +39,7 @@ class IntegrityCommand extends Command
             QuarantineBalanceCheck::class,
             UnitIntegrityCheck::class,
             DocumentTotalCheck::class,
+            PartialDocumentCheck::class,
             ContactBalanceCheck::class,
             NumberSeriesCheck::class,
             FilesIntegrityCheck::class,

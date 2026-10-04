@@ -7,7 +7,7 @@ use App\Support\Integrity\IntegrityResult;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
-class NumberSeriesCheck implements IntegrityCheck
+final class NumberSeriesCheck implements IntegrityCheck
 {
     public function name(): string
     {
@@ -28,10 +28,7 @@ class NumberSeriesCheck implements IntegrityCheck
                 checked: $series->count(),
                 mismatches: [],
                 durationMs: $this->elapsed($started),
-                meta: [
-                    'status' => 'infrastructure_only',
-                    'reason' => 'documents Faz 3 içinde kurulunca gerçek belge/series gap ve tekrar kontrolü aktif olur',
-                ],
+                meta: ['status' => 'infrastructure_only'],
             );
         }
 
@@ -45,6 +42,7 @@ class NumberSeriesCheck implements IntegrityCheck
                 ->where('document_type', $item->document_type)
                 ->whereNotNull('number')
                 ->whereYear('document_date', $year)
+                ->distinct()
                 ->pluck('number')
                 ->all();
 
