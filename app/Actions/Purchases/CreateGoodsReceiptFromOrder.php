@@ -5,6 +5,7 @@ namespace App\Actions\Purchases;
 use App\Enums\DocumentType;
 use App\Models\Period\Document;
 use App\Models\Period\DocumentLine;
+use App\Models\Period\DocumentRelation;
 use App\Support\Auth\MutationAuthorizer;
 use App\Support\Concurrency\IdempotencyKey;
 use DomainException;
@@ -84,7 +85,7 @@ final class CreateGoodsReceiptFromOrder
                     throw new DomainException('Mal kabul edilecek satır seçilmedi.');
                 }
 
-                return $this->saveDraft->handle(
+                $receipt = $this->saveDraft->handle(
                     DocumentType::GoodsReceipt,
                     [
                         'contact_id' => $locked->contact_id,
@@ -96,6 +97,18 @@ final class CreateGoodsReceiptFromOrder
                     ],
                     $draftLines,
                 );
+
+                $actor = auth()->user();
+
+                DocumentRelation::query()->create([
+                    'source_document_id' => $locked->id,
+                    'target_document_id' => $receipt->id,
+                    'relation_type' => 'purchase_order_to_goods_receipt',
+                    'created_by' => $actor?->id,
+                    'created_by_name' => $actor?->name,
+                ]);
+
+                return $receipt;
             },
         );
     }

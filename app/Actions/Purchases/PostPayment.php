@@ -83,6 +83,8 @@ final class PostPayment
                         throw new DomainException('Ödeme kaynak alış faturası geçersiz.');
                     }
 
+                    $exchangeRate = (string) $sourceInvoice->exchange_rate;
+
                     $alreadyPaid = DocumentRelation::query()
                         ->where('relation_type', 'payment_source')
                         ->where('target_document_id', $sourceInvoice->id)
