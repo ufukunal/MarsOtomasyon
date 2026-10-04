@@ -64,6 +64,8 @@ final class ContactBalanceCheck implements IntegrityCheck
                 DocumentType::Payment->value,
                 DocumentType::Advance->value,
                 DocumentType::AdvanceReturn->value,
+                DocumentType::SalesReturn->value,
+                DocumentType::PurchaseReturn->value,
             ])
             ->get();
 
@@ -94,6 +96,7 @@ final class ContactBalanceCheck implements IntegrityCheck
                 DocumentType::Payment,
                 DocumentType::Advance,
                 DocumentType::AdvanceReturn,
+                DocumentType::PurchaseReturn,
             ], true)
                 ? bcadd(
                     bcmul((string) $document->grand_total, (string) $document->exchange_rate, 8),
@@ -106,6 +109,7 @@ final class ContactBalanceCheck implements IntegrityCheck
                 DocumentType::Payment,
                 DocumentType::Advance,
                 DocumentType::AdvanceReturn,
+                DocumentType::PurchaseReturn,
             ], true)
                 ? 'TRY'
                 : (string) $document->currency;
@@ -125,6 +129,8 @@ final class ContactBalanceCheck implements IntegrityCheck
                 DocumentType::Payment => 'debit',
                 DocumentType::Advance => 'debit',
                 DocumentType::AdvanceReturn => 'credit',
+                DocumentType::SalesReturn => 'credit',
+                DocumentType::PurchaseReturn => 'debit',
                 default => null,
             };
 

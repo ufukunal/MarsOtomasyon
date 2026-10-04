@@ -63,6 +63,12 @@ return [
         ],
     ],
     [
+        'label' => 'İadeler',
+        'items' => [
+            ['label' => 'İade Merkezi', 'route' => 'returns.center', 'permission' => 'returns.view'],
+        ],
+    ],
+    [
         'label' => 'Ayarlar',
         'items' => [
             ['label' => 'Şirketler', 'route' => 'settings.companies', 'permission' => 'companies.view'],

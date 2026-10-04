@@ -13,6 +13,7 @@ use App\Support\Integrity\Checks\PartialDocumentCheck;
 use App\Support\Integrity\Checks\PurchaseMatchCheck;
 use App\Support\Integrity\Checks\QuarantineBalanceCheck;
 use App\Support\Integrity\Checks\ReservationBalanceCheck;
+use App\Support\Integrity\Checks\ReturnIntegrityCheck;
 use App\Support\Integrity\Checks\StockBalanceCheck;
 use App\Support\Integrity\Checks\UnitIntegrityCheck;
 use App\Support\Integrity\IntegrityRunner;
@@ -46,6 +47,7 @@ class IntegrityReport extends Component
             'purchases' => PurchaseMatchCheck::class,
             'contacts' => ContactBalanceCheck::class,
             'finance' => FinanceIntegrityCheck::class,
+            'returns' => ReturnIntegrityCheck::class,
             'numbers' => NumberSeriesCheck::class,
         ];
 

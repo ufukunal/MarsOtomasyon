@@ -52,6 +52,7 @@ use App\Livewire\Purchases\PurchaseOrderList;
 use App\Livewire\Purchases\SupplierInvoiceEditor;
 use App\Livewire\Purchases\SupplierInvoiceList;
 use App\Livewire\Purchases\SupplierPerformance;
+use App\Livewire\Returns\ReturnCenter;
 use App\Livewire\Sales\DispatchEditor;
 use App\Livewire\Sales\DispatchList;
 use App\Livewire\Sales\ProformaDetail;
@@ -132,6 +133,7 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/finans/islemler', FinanceOperationCenter::class)->name('finance.operations');
     Route::get('/finans/ekstre-mutabakat', BankStatementCenter::class)->name('finance.bank-statements');
     Route::get('/finans/cek-senet', SecuritiesCenter::class)->name('finance.securities');
+    Route::get('/iadeler', ReturnCenter::class)->name('returns.center');
 
     Route::get('/ice-aktarma', ImportWizard::class)->name('imports.index');
     Route::get('/stok/durum', StockStatus::class)->name('stock.status');

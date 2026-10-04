@@ -13,6 +13,7 @@ use App\Support\Integrity\Checks\PartialDocumentCheck;
 use App\Support\Integrity\Checks\PurchaseMatchCheck;
 use App\Support\Integrity\Checks\QuarantineBalanceCheck;
 use App\Support\Integrity\Checks\ReservationBalanceCheck;
+use App\Support\Integrity\Checks\ReturnIntegrityCheck;
 use App\Support\Integrity\Checks\StockBalanceCheck;
 use App\Support\Integrity\Checks\UnitIntegrityCheck;
 use App\Support\Integrity\IntegrityRunner;
@@ -45,6 +46,7 @@ class IntegrityCommand extends Command
             PurchaseMatchCheck::class,
             ContactBalanceCheck::class,
             FinanceIntegrityCheck::class,
+            ReturnIntegrityCheck::class,
             NumberSeriesCheck::class,
             FilesIntegrityCheck::class,
         ];

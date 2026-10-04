@@ -54,6 +54,7 @@ final class CompanyRoleProvisioner
         'security_payrolls',
         'bank_statements',
         'bank_reconciliation',
+        'returns',
     ];
 
     private const ACTIONS = [
@@ -140,6 +141,7 @@ final class CompanyRoleProvisioner
                 'security_payrolls.view', 'security_payrolls.create', 'security_payrolls.cancel',
                 'bank_statements.view', 'bank_statements.create',
                 'bank_reconciliation.view', 'bank_reconciliation.update',
+                'returns.view', 'returns.create', 'returns.update', 'returns.cancel',
                 ...$technicalViews,
             ],
             'Satış' => [
@@ -155,6 +157,7 @@ final class CompanyRoleProvisioner
                 'collections.view', 'collections.create',
                 'contact_aging.view',
                 'reservations.view', 'reservations.create', 'reservations.update',
+                'returns.view', 'returns.create', 'returns.update',
                 ...$technicalViews,
             ],
             'Satınalma' => [
@@ -165,6 +168,7 @@ final class CompanyRoleProvisioner
                 'goods_receipts.view',
                 'supplier_invoices.view', 'supplier_invoices.create', 'supplier_invoices.update',
                 'supplier_performance.view',
+                'returns.view', 'returns.create', 'returns.update',
                 ...$technicalViews,
             ],
             'Depo' => [
@@ -179,6 +183,7 @@ final class CompanyRoleProvisioner
                 'dispatches.view', 'dispatches.create', 'dispatches.update',
                 'purchase_orders.view',
                 'goods_receipts.view', 'goods_receipts.create', 'goods_receipts.update', 'goods_receipts.cancel',
+                'returns.view',
                 ...$technicalViews,
             ],
             'Üretim' => [
