@@ -28,7 +28,9 @@ final class UnitConversionResolver
             ->value('factor');
 
         if ($reverse !== null) {
-            return bcdiv('1', (string) $reverse, 6);
+            $quotient = bcdiv('1', (string) $reverse, 7);
+
+            return bcadd($quotient, '0.0000005', 6);
         }
 
         throw new DomainException('Birim dönüşümü tanımlı değil.');
