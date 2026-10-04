@@ -1,0 +1,86 @@
+<?php
+
+namespace App\Actions\Imports;
+
+use App\Models\Period\ImportContainer;
+use App\Models\Period\ImportCostAllocation;
+use App\Models\Period\ImportFile;
+use App\Models\Period\ImportPackage;
+use App\Support\Auth\MutationAuthorizer;
+use DomainException;
+use Illuminate\Support\Facades\DB;
+
+final class SaveImportPackage
+{
+    /** @param array<string,mixed> $data */
+    public function handle(ImportFile $file, array $data, ?ImportPackage $package = null): ImportPackage
+    {
+        MutationAuthorizer::authorize('import_shipments.update');
+
+        return DB::connection('period')->transaction(function () use ($file, $data, $package): ImportPackage {
+            $lockedFile = ImportFile::query()->lockForUpdate()->findOrFail($file->id);
+
+            if ($lockedFile->isLocked()) {
+                throw new DomainException('Teslim alınmış ithalat dosyasında koli eşleşmesi değiştirilemez.');
+            }
+
+            $container = ImportContainer::query()
+                ->where('import_file_id', $lockedFile->id)
+                ->findOrFail((int) $data['container_id']);
+
+            $model = $package
+                ? ImportPackage::query()->lockForUpdate()->findOrFail($package->id)
+                : new ImportPackage(['import_file_id' => $lockedFile->id]);
+
+            if ($model->exists && (int) $model->import_file_id !== (int) $lockedFile->id) {
+                throw new DomainException('Koli başka ithalat dosyasına ait.');
+            }
+
+            $quantity = bcadd((string) $data['quantity'], '0', 3);
+            $unitPrice = bcadd((string) ($data['unit_price'] ?? '0'), '0', 4);
+
+            if (bccomp($quantity, '0', 3) <= 0 || bccomp($unitPrice, '0', 4) < 0) {
+                throw new DomainException('Koli miktarı/fiyatı geçersiz.');
+            }
+
+            $productId = $data['product_id'] ? (int) $data['product_id'] : null;
+
+            $model->fill([
+                'container_id' => $container->id,
+                'carton_no' => trim((string) $data['carton_no']),
+                'component_name' => trim((string) ($data['component_name'] ?? '')) ?: null,
+                'product_id' => $productId,
+                'location_id' => ($data['location_id'] ?? null)
+                    ? (int) $data['location_id']
+                    : $lockedFile->receiving_location_id,
+                'quantity' => $quantity,
+                'unit_price' => $unitPrice,
+                'weight_kg' => ($data['weight_kg'] ?? null) ?: null,
+                'volume_cbm' => ($data['volume_cbm'] ?? null) ?: null,
+                'status' => $productId ? 'matched' : 'unmatched',
+                'notes' => trim((string) ($data['notes'] ?? '')) ?: null,
+                'goods_value_try' => null,
+                'allocated_cost_try' => null,
+                'landed_unit_cost_try' => null,
+            ]);
+
+            if ($model->carton_no === '') {
+                throw new DomainException('Koli numarası zorunludur.');
+            }
+
+            $model->save();
+
+            ImportCostAllocation::query()
+                ->whereIn('import_cost_item_id', $lockedFile->costItems()->pluck('id'))
+                ->delete();
+            $lockedFile->costItems()->update(['amount_try' => null, 'allocated_at' => null]);
+            $lockedFile->packages()->update([
+                'goods_value_try' => null,
+                'allocated_cost_try' => null,
+                'landed_unit_cost_try' => null,
+            ]);
+
+            return $model->refresh();
+        }, attempts: 3);
+    }
+}

@@ -22,5 +22,6 @@ return [
         'advance' => 'ADV',
         'advance_return' => 'AVI',
         'security_payroll' => 'BRD',
+        'import_file' => 'ITH',
     ],
 ];
