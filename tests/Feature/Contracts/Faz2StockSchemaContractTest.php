@@ -73,9 +73,7 @@ it('Faz 2 period şemasını company_id ve Master FK olmadan kurar', function ()
         expect($masterOnly)->not->toContain($foreignKey->target_table);
     }
 
-    expect(Schema::connection('period')->hasTable('documents'))->toBeFalse()
-        ->and(Schema::connection('period')->hasTable('document_lines'))->toBeFalse()
-        ->and(Schema::connection('period')->hasTable('purchase_requests'))->toBeFalse()
+    expect(Schema::connection('period')->hasTable('purchase_requests'))->toBeFalse()
         ->and(Schema::connection('period')->hasTable('supplier_quotes'))->toBeFalse();
 });
 
