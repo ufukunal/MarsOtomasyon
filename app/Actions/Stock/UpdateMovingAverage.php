@@ -49,13 +49,14 @@ final class UpdateMovingAverage
             $newAverage = bcdiv($newValue, $newQty, 4);
         }
 
-        $cost->moving_average = $newAverage;
+        $cost->setAttribute('moving_average', $newAverage);
 
         if ($reason === 'purchase') {
-            $cost->last_purchase_price = bcadd($incomingUnitCost, '0', 4);
-            $cost->last_purchase_at = $movementDate
-                ? CarbonImmutable::parse($movementDate)->startOfDay()
-                : now();
+            $cost->setAttribute('last_purchase_price', bcadd($incomingUnitCost, '0', 4));
+            $cost->setAttribute(
+                'last_purchase_at',
+                $movementDate ? CarbonImmutable::parse($movementDate)->startOfDay() : now(),
+            );
         }
 
         $cost->save();
