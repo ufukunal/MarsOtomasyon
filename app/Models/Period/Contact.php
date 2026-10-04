@@ -70,7 +70,7 @@ class Contact extends PeriodModel implements HasAttachmentsContract, SearchIndex
             $row = DB::connection('period')
                 ->selectOne("SELECT nextval('contact_code_seq')::bigint AS value");
 
-            $next = (int) ($row?->value ?? 0);
+            $next = (int) ($row->value ?? 0);
 
             if ($next <= 0) {
                 throw new LogicException('Cari kod sırası üretilemedi.');
