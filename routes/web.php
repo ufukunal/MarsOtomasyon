@@ -26,9 +26,9 @@ use App\Livewire\Pages\Products\ProductList;
 use App\Livewire\Pages\Products\VariantGroupDetail;
 use App\Livewire\Pages\Settings\IntegrityReport;
 use App\Livewire\Pages\Settings\Periods;
+use App\Livewire\Pages\Setup\CompanyWizard;
 use App\Livewire\Pages\Stock\StockMovements;
 use App\Livewire\Pages\Stock\StockStatus;
-use App\Livewire\Pages\Setup\CompanyWizard;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
