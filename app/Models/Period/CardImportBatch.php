@@ -5,10 +5,11 @@ namespace App\Models\Period;
 use App\Models\PeriodModel;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 
 /**
  * @property array<string, string|null> $mapping
- * @property \Illuminate\Support\Carbon|null $opening_date
+ * @property Carbon|null $opening_date
  */
 class CardImportBatch extends PeriodModel
 {
