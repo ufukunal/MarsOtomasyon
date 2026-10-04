@@ -5,7 +5,6 @@ use App\Models\Period\Brand;
 use App\Support\Concurrency\IdempotencyKey;
 use Illuminate\Support\Facades\DB;
 use Livewire\Livewire;
-use RuntimeException;
 
 it('period idempotency aynı key retryında callbacki ikinci kez çalıştırmaz ve modeli yeniden yükler', function () {
     [$company, $period] = $this->createCompanyWithPeriod('IDEMPERIOD');
@@ -33,7 +32,7 @@ it('period idempotency aynı key retryında callbacki ikinci kez çalıştırmaz
         function () use (&$runs): Brand {
             $runs++;
 
-            throw new RuntimeException('Retry callback çalışmamalı.');
+            throw new \RuntimeException('Retry callback çalışmamalı.');
         },
     );
 
@@ -76,8 +75,8 @@ it('başarısız master mutation claimini temizler ve aynı key ile güvenli ret
     expect(fn () => IdempotencyKey::runMaster(
         'master-failure-key',
         'test.master.failure',
-        fn () => throw new RuntimeException('beklenen hata'),
-    ))->toThrow(RuntimeException::class, 'beklenen hata');
+        fn () => throw new \RuntimeException('beklenen hata'),
+    ))->toThrow(\RuntimeException::class, 'beklenen hata');
 
     expect(
         DB::connection('master')

@@ -39,4 +39,4 @@ Demo şirket/kullanıcı seed'leri production ortamında çalışmaz. Yerel veya
 
 ## Backup bildirimleri
 
-Backup e-posta bildirimleri `BACKUP_NOTIFICATION_EMAIL` ile yapılandırılır. Değer boşsa mail notification kanalı devre dışı kalır; repository içinde placeholder alıcı kullanılmaz.
+Backup e-posta bildirimleri `BACKUP_NOTIFICATION_EMAIL` ile yapılandırılır. Local/test için `backup@mars.test` güvenli sentinel adresidir; production bu sentinel, boş veya geçersiz adresle boot etmez ve gerçek bir bildirim adresi zorunludur.

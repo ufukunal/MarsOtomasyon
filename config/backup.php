@@ -11,8 +11,7 @@ use Spatie\Backup\Tasks\Cleanup\Strategies\DefaultStrategy;
 use Spatie\Backup\Tasks\Monitor\HealthChecks\MaximumAgeInDays;
 use Spatie\Backup\Tasks\Monitor\HealthChecks\MaximumStorageInMegabytes;
 
-$backupNotificationEmail = env('BACKUP_NOTIFICATION_EMAIL');
-$backupMailChannels = $backupNotificationEmail ? ['mail'] : [];
+$backupNotificationEmail = (string) (env('BACKUP_NOTIFICATION_EMAIL') ?: 'backup@mars.test');
 
 return [
 
@@ -226,12 +225,12 @@ return [
      */
     'notifications' => [
         'notifications' => [
-            BackupHasFailedNotification::class => $backupMailChannels,
-            UnhealthyBackupWasFoundNotification::class => $backupMailChannels,
-            CleanupHasFailedNotification::class => $backupMailChannels,
-            BackupWasSuccessfulNotification::class => $backupMailChannels,
-            HealthyBackupWasFoundNotification::class => $backupMailChannels,
-            CleanupWasSuccessfulNotification::class => $backupMailChannels,
+            BackupHasFailedNotification::class => ['mail'],
+            UnhealthyBackupWasFoundNotification::class => ['mail'],
+            CleanupHasFailedNotification::class => ['mail'],
+            BackupWasSuccessfulNotification::class => ['mail'],
+            HealthyBackupWasFoundNotification::class => ['mail'],
+            CleanupWasSuccessfulNotification::class => ['mail'],
         ],
 
         /*

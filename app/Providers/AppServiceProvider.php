@@ -27,6 +27,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
+use RuntimeException;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -41,6 +42,16 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        $backupNotificationEmail = (string) config('backup.notifications.mail.to');
+
+        if (app()->environment('production')
+            && ($backupNotificationEmail === 'backup@mars.test'
+                || filter_var($backupNotificationEmail, FILTER_VALIDATE_EMAIL) === false)) {
+            throw new RuntimeException(
+                'Production ortamında geçerli BACKUP_NOTIFICATION_EMAIL zorunludur.',
+            );
+        }
+
         Model::preventLazyLoading(app()->isLocal());
 
         DB::listen(function ($query): void {

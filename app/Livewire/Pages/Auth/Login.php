@@ -3,6 +3,7 @@
 namespace App\Livewire\Pages\Auth;
 
 use App\Livewire\Concerns\WithIdempotentMutations;
+use App\Models\User;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
@@ -40,7 +41,7 @@ class Login extends Component
             ]);
         }
 
-        $this->runMasterMutation('authenticate', function () use ($credentials, $key): bool {
+        $userId = (int) $this->runMasterMutation('authenticate', function () use ($credentials, $key): int {
             if (! Auth::attempt($credentials, $this->remember)) {
                 RateLimiter::hit($key, 15 * 60);
 
@@ -49,7 +50,9 @@ class Login extends Component
                 ]);
             }
 
-            if (! Auth::user()->is_active) {
+            $user = Auth::user();
+
+            if (! $user->is_active) {
                 Auth::logout();
 
                 throw ValidationException::withMessages([
@@ -58,10 +61,15 @@ class Login extends Component
             }
 
             RateLimiter::clear($key);
-            request()->session()->regenerate();
 
-            return true;
+            return (int) $user->getAuthIdentifier();
         });
+
+        if (! Auth::check() || (int) Auth::id() !== $userId) {
+            Auth::login(User::query()->findOrFail($userId), $this->remember);
+        }
+
+        request()->session()->regenerate();
 
         $this->redirect('/secim', navigate: false);
     }
