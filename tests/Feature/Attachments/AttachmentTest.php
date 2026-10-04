@@ -95,7 +95,6 @@ it('integrity files eksik fiziksel dosyayı raporlar ve kaydı değiştirmez', f
         ->and(Attachment::query()->whereKey($attachment->id)->exists())->toBeTrue();
 });
 
-
 it('kapalı dönemde generic attachment yazımını reddeder', function () {
     Storage::fake('attachments');
 

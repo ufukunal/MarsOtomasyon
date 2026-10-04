@@ -97,7 +97,6 @@ it('set ve configurable ürünleri alt tanımsız kart olarak kopyalamayı redde
     ))->toThrow(ValidationException::class);
 });
 
-
 it('kapalı hedef döneme şirketler arası kart kopyalamayı reddeder', function () {
     [$sourceCompany, $sourcePeriod] = $this->createCompanyWithPeriod('CLOSEDS');
     [$targetCompany, $targetPeriod] = $this->createCompanyWithPeriod('CLOSEDT');
