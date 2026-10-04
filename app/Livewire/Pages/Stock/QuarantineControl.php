@@ -94,10 +94,10 @@ class QuarantineControl extends Component
     /** @return list<int> */
     private function selectedEntryIds(): array
     {
-        return array_values(array_map(
+        return array_map(
             'intval',
             array_keys(array_filter($this->selected)),
-        ));
+        );
     }
 
     private function decisionQuantity(QuarantineEntry $entry): string

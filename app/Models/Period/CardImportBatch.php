@@ -6,7 +6,10 @@ use App\Models\PeriodModel;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-/** @property array<string, string|null> $mapping */
+/**
+ * @property array<string, string|null> $mapping
+ * @property \Illuminate\Support\Carbon|null $opening_date
+ */
 class CardImportBatch extends PeriodModel
 {
     use HasUuids;
