@@ -122,3 +122,18 @@ it('set ürünün başka setin bileşeni olmasını reddeder', function () {
     expect(fn () => app(SaveSetComponent::class)->handle($outer, $inner, '1'))
         ->toThrow(ValidationException::class);
 });
+
+
+it('Türkçe karakterleri normalize ederek ürün aramasını eşler', function () {
+    [$company, $period] = $this->createCompanyWithPeriod('TRSEARCH');
+    $admin = $this->createUserWithPeriodAccess($company, $period, 'Yönetici');
+    $this->loginToPeriod($admin, $company, $period);
+
+    $product = $this->createTestProduct([
+        'code' => 'TR-1',
+        'name' => 'IŞIK ÇAĞI',
+    ]);
+
+    expect(Product::query()->search('ışık çağı')->pluck('id')->all())->toContain($product->id)
+        ->and(Product::query()->search('ISIK CAGI')->pluck('id')->all())->toContain($product->id);
+});
