@@ -89,6 +89,8 @@ final class PostPayment
                         ->whereHas('sourceDocument', fn ($query) => $query
                             ->where('document_type', DocumentType::Payment->value)
                             ->where('status', 'posted'))
+                        ->whereDoesntHave('sourceDocument.incomingRelations', fn ($query) => $query
+                            ->where('relation_type', 'reversal_of'))
                         ->with('sourceDocument')
                         ->get()
                         ->reduce(

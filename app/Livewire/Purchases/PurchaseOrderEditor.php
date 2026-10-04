@@ -5,6 +5,7 @@ namespace App\Livewire\Purchases;
 use App\Actions\Purchases\ApprovePurchaseOrder;
 use App\Actions\Purchases\CreateGoodsReceiptFromOrder;
 use App\Actions\Purchases\PurchaseLineAvailability;
+use App\Actions\Purchases\SendPurchaseOrderToSupplier;
 use App\Actions\Purchases\SubmitPurchaseOrderForApproval;
 use App\Enums\DocumentType;
 
@@ -24,7 +25,7 @@ class PurchaseOrderEditor extends BasePurchaseDocumentEditor
 
     protected function extraMutationNames(): array
     {
-        return ['submitApproval', 'approve', 'goodsReceipt'];
+        return ['submitApproval', 'approve', 'sendToSupplier', 'goodsReceipt'];
     }
 
     public function mount(?int $id = null): void
@@ -52,6 +53,17 @@ class PurchaseOrderEditor extends BasePurchaseDocumentEditor
             $this->mutationKey('approve'),
         )->load('lines'));
         $this->completeMutation('approve');
+        $this->syncReceiptInputs();
+    }
+
+    public function sendToSupplier(SendPurchaseOrderToSupplier $action): void
+    {
+        abort_unless($this->document !== null, 422);
+        $this->loadDocument($action->handle(
+            $this->document,
+            $this->mutationKey('sendToSupplier'),
+        )->load('lines'));
+        $this->completeMutation('sendToSupplier');
         $this->syncReceiptInputs();
     }
 
@@ -85,7 +97,7 @@ class PurchaseOrderEditor extends BasePurchaseDocumentEditor
 
     private function syncReceiptInputs(): void
     {
-        if (! $this->document || $this->document->status !== 'approved') {
+        if (! $this->document || ! in_array($this->document->status, ['approved', 'sent'], true)) {
             return;
         }
 

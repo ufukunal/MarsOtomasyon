@@ -22,6 +22,7 @@ return new class extends Migration
             $table->decimal('cost_unit_try', 18, 4)->nullable();
             $table->decimal('previous_moving_average', 18, 4)->nullable();
             $table->decimal('previous_last_purchase_price', 18, 4)->nullable();
+            $table->timestamp('previous_last_purchase_at')->nullable();
             $table->decimal('cost_value_delta', 18, 4)->nullable();
             $table->decimal('new_moving_average', 18, 4)->nullable();
             $table->unsignedBigInteger('created_by')->nullable();

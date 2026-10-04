@@ -5,6 +5,8 @@ namespace App\Livewire\Purchases;
 use App\Actions\Documents\ReverseDocument;
 use App\Actions\Purchases\PostSupplierInvoice;
 use App\Enums\DocumentType;
+use App\Models\Period\PurchaseMatch;
+use Illuminate\Contracts\View\View;
 
 class SupplierInvoiceEditor extends BasePurchaseDocumentEditor
 {
@@ -36,6 +38,21 @@ class SupplierInvoiceEditor extends BasePurchaseDocumentEditor
             $this->deviationAccepted,
         )->load('lines'));
         $this->completeMutation('post');
+    }
+
+    public function render(): View
+    {
+        $view = parent::render();
+
+        $matches = $this->document
+            ? PurchaseMatch::query()
+                ->whereHas('supplierInvoiceLine', fn ($query) => $query
+                    ->where('document_id', $this->document?->id))
+                ->orderBy('supplier_invoice_line_id')
+                ->get()
+            : collect();
+
+        return $view->with('purchaseMatches', $matches);
     }
 
     public function reverse(ReverseDocument $action): mixed

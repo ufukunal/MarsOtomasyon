@@ -80,6 +80,7 @@ final class ApplySupplierInvoiceCosts
                 ->firstOrFail();
             $previousAverage = (string) $cost->moving_average;
             $previousLastPurchase = (string) $cost->last_purchase_price;
+            $previousLastPurchaseAt = $cost->last_purchase_at?->toDateTimeString();
             $currentQty = bcadd((string) StockBalance::query()
                 ->where('product_id', $line->product_id)
                 ->sum('quantity'), '0', 3);
@@ -100,6 +101,7 @@ final class ApplySupplierInvoiceCosts
                 'cost_unit_try' => $unitCostTry,
                 'previous_moving_average' => $previousAverage,
                 'previous_last_purchase_price' => $previousLastPurchase,
+                'previous_last_purchase_at' => $previousLastPurchaseAt,
                 'cost_value_delta' => $valueDelta,
                 'new_moving_average' => $newAverage,
             ]);

@@ -36,8 +36,9 @@ final class CreateGoodsReceiptFromOrder
             function () use ($order, $lineQuantities, $lineLocationIds, $documentDate, $deliveryNote): Document {
                 $locked = Document::query()->with('lines')->lockForUpdate()->findOrFail($order->id);
 
-                if ($locked->document_type !== DocumentType::PurchaseOrder || $locked->status !== 'approved') {
-                    throw new DomainException('Mal kabul yalnız onaylı satınalma siparişinden oluşturulabilir.');
+                if ($locked->document_type !== DocumentType::PurchaseOrder
+                    || ! in_array($locked->status, ['approved', 'sent'], true)) {
+                    throw new DomainException('Mal kabul yalnız onaylı/gönderilmiş satınalma siparişinden oluşturulabilir.');
                 }
 
                 $draftLines = [];

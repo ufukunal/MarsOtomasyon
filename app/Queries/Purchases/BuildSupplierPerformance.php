@@ -14,13 +14,15 @@ final class BuildSupplierPerformance
         $orders = Document::query()
             ->where('document_type', DocumentType::PurchaseOrder->value)
             ->where('contact_id', $contactId)
-            ->whereIn('status', ['approved', 'closed'])
+            ->whereIn('status', ['approved', 'sent', 'closed'])
             ->count();
 
         $receipts = Document::query()
             ->where('document_type', DocumentType::GoodsReceipt->value)
             ->where('contact_id', $contactId)
             ->where('status', 'posted')
+            ->whereDoesntHave('incomingRelations', fn ($query) => $query->where('relation_type', 'reversal_of'))
+            ->whereDoesntHave('outgoingRelations', fn ($query) => $query->where('relation_type', 'reversal_of'))
             ->with('lines.sourceLine.document')
             ->get();
 
@@ -48,12 +50,16 @@ final class BuildSupplierPerformance
             ->where('document_type', DocumentType::SupplierInvoice->value)
             ->where('contact_id', $contactId)
             ->where('status', 'posted')
+            ->whereDoesntHave('incomingRelations', fn ($query) => $query->where('relation_type', 'reversal_of'))
+            ->whereDoesntHave('outgoingRelations', fn ($query) => $query->where('relation_type', 'reversal_of'))
             ->count();
 
         $variances = PurchaseMatch::query()
             ->whereHas('supplierInvoiceLine.document', fn ($query) => $query
                 ->where('contact_id', $contactId)
-                ->where('status', 'posted'))
+                ->where('status', 'posted')
+                ->whereDoesntHave('incomingRelations', fn ($nested) => $nested->where('relation_type', 'reversal_of'))
+                ->whereDoesntHave('outgoingRelations', fn ($nested) => $nested->where('relation_type', 'reversal_of')))
             ->pluck('price_variance_rate');
 
         $absoluteVariance = '0.0000';

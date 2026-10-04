@@ -55,13 +55,22 @@ final class ThreeWayMatchSupplierInvoice
                 ->findOrFail($lineage['purchase_order_line_id']);
 
             if ($orderLine->document->document_type !== DocumentType::PurchaseOrder
-                || $orderLine->document->status !== 'approved') {
-                throw new DomainException('Üçlü eşleştirme için onaylı satınalma siparişi zorunludur.');
+                || ! in_array($orderLine->document->status, ['approved', 'sent'], true)) {
+                throw new DomainException('Üçlü eşleştirme için onaylı/gönderilmiş satınalma siparişi zorunludur.');
             }
 
             if ((int) $orderLine->document->contact_id !== (int) $locked->contact_id
                 || (int) $receiptLine->document->contact_id !== (int) $locked->contact_id) {
                 throw new DomainException('Sipariş, mal kabul ve alış faturası tedarikçisi eşleşmiyor.');
+            }
+
+            if ($invoiceLine->line_kind !== $receiptLine->line_kind
+                || $receiptLine->line_kind !== $orderLine->line_kind
+                || (int) ($invoiceLine->product_id ?? 0) !== (int) ($receiptLine->product_id ?? 0)
+                || (int) ($receiptLine->product_id ?? 0) !== (int) ($orderLine->product_id ?? 0)
+                || (int) ($invoiceLine->unit_id ?? 0) !== (int) ($receiptLine->unit_id ?? 0)
+                || (int) ($receiptLine->unit_id ?? 0) !== (int) ($orderLine->unit_id ?? 0)) {
+                throw new DomainException('Üçlü eşleştirme ürün/birim zinciri tutarsız.');
             }
 
             if ($orderLine->document->currency !== $locked->currency) {

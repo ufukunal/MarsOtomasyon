@@ -44,7 +44,7 @@ final class PurchaseMatchCheck implements IntegrityCheck
         $orderLines = DocumentLine::query()
             ->whereHas('document', fn ($query) => $query
                 ->where('document_type', DocumentType::PurchaseOrder->value)
-                ->where('status', 'approved'))
+                ->whereIn('status', ['approved', 'sent']))
             ->get();
 
         foreach ($orderLines as $line) {
@@ -63,6 +63,8 @@ final class PurchaseMatchCheck implements IntegrityCheck
         $receipts = Document::query()
             ->where('document_type', DocumentType::GoodsReceipt->value)
             ->where('status', 'posted')
+            ->whereDoesntHave('incomingRelations', fn ($query) => $query->where('relation_type', 'reversal_of'))
+            ->whereDoesntHave('outgoingRelations', fn ($query) => $query->where('relation_type', 'reversal_of'))
             ->with('lines')
             ->get();
 
@@ -84,6 +86,8 @@ final class PurchaseMatchCheck implements IntegrityCheck
         $invoices = Document::query()
             ->where('document_type', DocumentType::SupplierInvoice->value)
             ->where('status', 'posted')
+            ->whereDoesntHave('incomingRelations', fn ($query) => $query->where('relation_type', 'reversal_of'))
+            ->whereDoesntHave('outgoingRelations', fn ($query) => $query->where('relation_type', 'reversal_of'))
             ->with('lines')
             ->get();
 

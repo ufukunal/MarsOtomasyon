@@ -30,17 +30,21 @@ final class ReverseSupplierInvoiceCosts
                 continue;
             }
 
-            $latest = PurchaseMatch::query()
+            $laterActive = PurchaseMatch::query()
                 ->where('product_id', $match->product_id)
+                ->where('id', '>', $match->id)
+                ->whereHas('supplierInvoiceLine', fn ($query) => $query
+                    ->where('document_id', '!=', $invoice->id))
                 ->whereHas('supplierInvoiceLine.document', fn ($query) => $query
                     ->where('document_type', DocumentType::SupplierInvoice->value)
                     ->where('status', 'posted'))
-                ->orderByDesc('id')
-                ->first();
+                ->whereDoesntHave('supplierInvoiceLine.document.incomingRelations', fn ($query) => $query
+                    ->where('relation_type', 'reversal_of'))
+                ->whereDoesntHave('supplierInvoiceLine.document.outgoingRelations', fn ($query) => $query
+                    ->where('relation_type', 'reversal_of'))
+                ->exists();
 
-            $latestDocumentId = $latest?->supplierInvoiceLine?->document_id;
-
-            if ($latestDocumentId !== null && (int) $latestDocumentId !== (int) $invoice->id) {
+            if ($laterActive) {
                 throw new DomainException(
                     'Alış faturası maliyeti terslenmeden önce aynı ürünün daha sonraki alış faturaları terslenmelidir.',
                 );
@@ -50,6 +54,7 @@ final class ReverseSupplierInvoiceCosts
                 (int) $match->product_id,
                 bcmul((string) $match->cost_value_delta, '-1', 4),
                 (string) ($match->previous_last_purchase_price ?? '0.0000'),
+                $match->previous_last_purchase_at?->toDateTimeString(),
             );
         }
     }

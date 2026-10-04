@@ -242,6 +242,19 @@ final class PostDocument
                 throw new DomainException('Alış akışı belgesinde kaynak satır zorunludur.');
             }
 
+            $source = DocumentLine::query()
+                ->with('document')
+                ->lockForUpdate()
+                ->findOrFail((int) $line->source_line_id);
+
+            if ($line->line_kind !== $source->line_kind
+                || (int) ($line->product_id ?? 0) !== (int) ($source->product_id ?? 0)
+                || (int) ($line->unit_id ?? 0) !== (int) ($source->unit_id ?? 0)
+                || ($line->line_kind === 'stock'
+                    && bccomp((string) $line->conversion_factor, (string) $source->conversion_factor, 6) !== 0)) {
+                throw new DomainException('Alış belgesi kaynak satır ürün/birim snapshotıyla eşleşmiyor.');
+            }
+
             $key = (string) $line->source_line_id;
             $groups[$key] = bcadd(
                 $groups[$key] ?? '0.000',
@@ -258,8 +271,13 @@ final class PostDocument
 
             if ($document->document_type === DocumentType::GoodsReceipt) {
                 if ($source->document->document_type !== DocumentType::PurchaseOrder
-                    || $source->document->status !== 'approved') {
-                    throw new DomainException('Mal kabul yalnız onaylı satınalma siparişi satırından yapılabilir.');
+                    || ! in_array($source->document->status, ['approved', 'sent'], true)) {
+                    throw new DomainException('Mal kabul yalnız onaylı/gönderilmiş satınalma siparişi satırından yapılabilir.');
+                }
+
+                if ((int) $source->document->contact_id !== (int) $document->contact_id
+                    || $source->document->currency !== $document->currency) {
+                    throw new DomainException('Mal kabul tedarikçi veya para birimi satınalma siparişiyle eşleşmiyor.');
                 }
 
                 $remaining = $this->purchaseAvailability->orderReceiptRemaining($source);

@@ -1,4 +1,6 @@
 <div class="space-y-6">
+    @php($isGoodsReceipt = $document?->document_type === \App\Enums\DocumentType::GoodsReceipt)
+
     <div>
         <h1>{{ $title }}</h1>
         @if($document)
@@ -17,49 +19,69 @@
                 </select>
             </label>
             <label>Tarih <input type="date" wire:model="documentDate"></label>
-            <label>Vade <input type="date" wire:model="dueDate"></label>
-            <label>Para Birimi <input wire:model="currency" maxlength="3"></label>
-            <label>Kur <input wire:model="exchangeRate"></label>
-            <label>Belge İskonto % <input wire:model="discountRate"></label>
+            @if(!$isGoodsReceipt)
+                <label>Vade <input type="date" wire:model="dueDate"></label>
+                <label>Para Birimi <input wire:model="currency" maxlength="3"></label>
+                <label>Kur <input wire:model="exchangeRate"></label>
+                <label>Belge İskonto % <input wire:model="discountRate"></label>
+            @else
+                <div>{{ $currency }} · kur {{ $exchangeRate }}</div>
+            @endif
             <label>Not <textarea wire:model="notes"></textarea></label>
 
-            <div>
-                <label>KDV % <input wire:model="bulkVatRate"></label>
-                <button type="button" wire:click="applyVatToAll">Tümüne KDV Uygula</button>
-                <button type="button" wire:click="clearVat">KDV Temizle</button>
-            </div>
+            @if(!$isGoodsReceipt)
+                <div>
+                    <label>KDV % <input wire:model="bulkVatRate"></label>
+                    <button type="button" wire:click="applyVatToAll">Tümüne KDV Uygula</button>
+                    <button type="button" wire:click="clearVat">KDV Temizle</button>
+                </div>
+            @endif
 
             <table>
                 <thead>
                 <tr>
                     <th>Tür</th><th>Ürün</th><th>Birim</th><th>Miktar</th><th>Lokasyon</th>
-                    <th>Fiyat</th><th>İsk. %</th><th>KDV %</th><th></th>
+                    @if(!$isGoodsReceipt)
+                        <th>Fiyat</th><th>İsk. %</th><th>KDV %</th><th></th>
+                    @endif
                 </tr>
                 </thead>
                 <tbody>
                 @foreach($lines as $index => $line)
                     <tr wire:key="purchase-line-{{ $index }}">
                         <td>
-                            <select wire:model="lines.{{ $index }}.line_kind">
-                                <option value="stock">Stok</option>
-                                <option value="service">Hizmet</option>
-                            </select>
+                            @if($isGoodsReceipt)
+                                {{ $line['line_kind'] === 'stock' ? 'Stok' : 'Hizmet' }}
+                            @else
+                                <select wire:model="lines.{{ $index }}.line_kind">
+                                    <option value="stock">Stok</option>
+                                    <option value="service">Hizmet</option>
+                                </select>
+                            @endif
                         </td>
                         <td>
-                            <select wire:model="lines.{{ $index }}.product_id">
-                                <option value="">Seçin</option>
-                                @foreach($products as $product)
-                                    <option value="{{ $product->id }}">{{ $product->code }} · {{ $product->name }}</option>
-                                @endforeach
-                            </select>
+                            @if($isGoodsReceipt)
+                                {{ $line['description'] ?? 'Kaynak satır' }}
+                            @else
+                                <select wire:model="lines.{{ $index }}.product_id">
+                                    <option value="">Seçin</option>
+                                    @foreach($products as $product)
+                                        <option value="{{ $product->id }}">{{ $product->code }} · {{ $product->name }}</option>
+                                    @endforeach
+                                </select>
+                            @endif
                         </td>
                         <td>
-                            <select wire:model="lines.{{ $index }}.unit_id">
-                                <option value="">Seçin</option>
-                                @foreach($units as $unit)
-                                    <option value="{{ $unit->id }}">{{ $unit->code }}</option>
-                                @endforeach
-                            </select>
+                            @if($isGoodsReceipt)
+                                {{ $line['unit_id'] ?? '—' }}
+                            @else
+                                <select wire:model="lines.{{ $index }}.unit_id">
+                                    <option value="">Seçin</option>
+                                    @foreach($units as $unit)
+                                        <option value="{{ $unit->id }}">{{ $unit->code }}</option>
+                                    @endforeach
+                                </select>
+                            @endif
                         </td>
                         <td><input wire:model="lines.{{ $index }}.quantity"></td>
                         <td>
@@ -70,16 +92,20 @@
                                 @endforeach
                             </select>
                         </td>
-                        <td><input wire:model="lines.{{ $index }}.unit_price"></td>
-                        <td><input wire:model="lines.{{ $index }}.line_discount_rate"></td>
-                        <td><input wire:model="lines.{{ $index }}.vat_rate"></td>
-                        <td><button type="button" wire:click="removeLine({{ $index }})">Sil</button></td>
+                        @if(!$isGoodsReceipt)
+                            <td><input wire:model="lines.{{ $index }}.unit_price"></td>
+                            <td><input wire:model="lines.{{ $index }}.line_discount_rate"></td>
+                            <td><input wire:model="lines.{{ $index }}.vat_rate"></td>
+                            <td><button type="button" wire:click="removeLine({{ $index }})">Sil</button></td>
+                        @endif
                     </tr>
                 @endforeach
                 </tbody>
             </table>
 
-            <button type="button" wire:click="addLine">Satır Ekle</button>
+            @if(!$isGoodsReceipt)
+                <button type="button" wire:click="addLine">Satır Ekle</button>
+            @endif
             <button type="submit">Kaydet</button>
         </form>
     @endif
@@ -96,7 +122,11 @@
                 @endcan
             @endif
 
-            @if(method_exists($this, 'createGoodsReceipt') && $document->status === 'approved')
+            @if(method_exists($this, 'sendToSupplier') && $document->status === 'approved')
+                <button type="button" wire:click="sendToSupplier">Tedarikçiye Gönder</button>
+            @endif
+
+            @if(method_exists($this, 'createGoodsReceipt') && in_array($document->status, ['approved', 'sent']))
                 <label>Mal Kabul Tarihi <input type="date" wire:model="receiptDate"></label>
                 @foreach($document->lines as $line)
                     <div>
@@ -142,6 +172,34 @@
                 <input type="date" wire:model="reversalDate">
                 <input wire:model="reversalReason" placeholder="Ters kayıt gerekçesi">
                 <button type="button" wire:click="reverse">Ters Kayıt</button>
+            @endif
+
+            @if(isset($purchaseMatches) && $purchaseMatches->isNotEmpty())
+                <h2>Üçlü Eşleştirme</h2>
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Fatura Satırı</th>
+                        <th>Sipariş Fiyatı</th>
+                        <th>Fatura Fiyatı</th>
+                        <th>Fiyat Sapması %</th>
+                        <th>TRY Maliyet</th>
+                        <th>Yeni Ort.</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    @foreach($purchaseMatches as $match)
+                        <tr>
+                            <td>{{ $match->supplier_invoice_line_id }}</td>
+                            <td>{{ $match->order_unit_price }}</td>
+                            <td>{{ $match->invoice_unit_price }}</td>
+                            <td>{{ $match->price_variance_rate }}</td>
+                            <td>{{ $match->cost_unit_try ?? '—' }}</td>
+                            <td>{{ $match->new_moving_average ?? '—' }}</td>
+                        </tr>
+                    @endforeach
+                    </tbody>
+                </table>
             @endif
         </div>
     @endif
