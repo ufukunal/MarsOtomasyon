@@ -27,6 +27,8 @@ use App\Livewire\Pages\Products\VariantGroupDetail;
 use App\Livewire\Pages\Settings\IntegrityReport;
 use App\Livewire\Pages\Settings\Periods;
 use App\Livewire\Pages\Setup\CompanyWizard;
+use App\Livewire\Pages\Stock\StockCountDetail;
+use App\Livewire\Pages\Stock\StockCountList;
 use App\Livewire\Pages\Stock\StockMovements;
 use App\Livewire\Pages\Stock\StockStatus;
 use App\Livewire\Pages\Stock\TransferDetail;
@@ -76,6 +78,9 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/ice-aktarma', ImportWizard::class)->name('imports.index');
     Route::get('/stok/durum', StockStatus::class)->name('stock.status');
     Route::get('/stok/hareketler', StockMovements::class)->name('stock.movements');
+    Route::get('/stok/sayimlar', StockCountList::class)->name('stock.counts.index');
+    Route::get('/stok/sayimlar/yeni', StockCountDetail::class)->name('stock.counts.create');
+    Route::get('/stok/sayimlar/{id}', StockCountDetail::class)->name('stock.counts.show');
     Route::get('/stok/transferler', TransferList::class)->name('stock.transfers.index');
     Route::get('/stok/transferler/yeni', TransferDetail::class)->name('stock.transfers.create');
     Route::get('/stok/transferler/{id}', TransferDetail::class)->name('stock.transfers.show');
