@@ -5,11 +5,14 @@ namespace App\Livewire\Pages\Catalog;
 use App\Actions\ReferenceData\SaveUnit;
 use App\Actions\ReferenceData\SaveUnitConversion;
 use App\Models\Period\Unit;
+use App\Livewire\Concerns\WithIdempotentMutations;
 use Illuminate\Contracts\View\View;
 use Livewire\Component;
 
 class UnitForm extends Component
 {
+    use WithIdempotentMutations;
+
     public ?Unit $unit = null;
 
     public string $code = '';
@@ -28,6 +31,7 @@ class UnitForm extends Component
 
     public function mount(?Unit $unit = null): void
     {
+        $this->seedMutationKeys(['save','addConversion']);
         abort_unless(auth()->user()?->can($unit ? 'units.update' : 'units.create'), 403);
         $this->unit = $unit;
 
@@ -47,12 +51,12 @@ class UnitForm extends Component
             'name' => ['required', 'max:255'],
         ]);
 
-        $this->unit = $action->handle([
+        $this->unit = $this->runPeriodMutation('save', fn () => $action->handle([
             'code' => $data['code'],
             'name' => $data['name'],
             'is_base' => $this->isBase,
             'is_active' => $this->isActive,
-        ], $this->unit, $this->version);
+        ], $this->unit, $this->version));
 
         $this->version = (int) $this->unit->version;
     }
@@ -66,11 +70,11 @@ class UnitForm extends Component
             'factor' => ['required', 'decimal:0,6'],
         ]);
 
-        $action->handle([
+        $this->runPeriodMutation('addConversion', fn () => $action->handle([
             'from_unit_id' => $this->unit->id,
             'to_unit_id' => $this->toUnitId,
             'factor' => $this->factor,
-        ]);
+        ]));
 
         $this->toUnitId = null;
         $this->factor = '1.000000';

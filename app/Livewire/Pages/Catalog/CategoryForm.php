@@ -4,11 +4,14 @@ namespace App\Livewire\Pages\Catalog;
 
 use App\Actions\Catalog\SaveProductCategory;
 use App\Models\Period\ProductCategory;
+use App\Livewire\Concerns\WithIdempotentMutations;
 use Illuminate\Contracts\View\View;
 use Livewire\Component;
 
 class CategoryForm extends Component
 {
+    use WithIdempotentMutations;
+
     public ?ProductCategory $category = null;
 
     public string $name = '';
@@ -23,6 +26,7 @@ class CategoryForm extends Component
 
     public function mount(?ProductCategory $category = null): void
     {
+        $this->seedMutationKeys(['save']);
         abort_unless(auth()->user()?->can($category ? 'product_categories.update' : 'product_categories.create'), 403);
         $this->category = $category;
 
@@ -39,12 +43,12 @@ class CategoryForm extends Component
     {
         $this->validate(['name' => ['required', 'max:255'], 'parentId' => ['nullable', 'integer']]);
 
-        $this->category = $action->handle([
+        $this->category = $this->runPeriodMutation('save', fn () => $action->handle([
             'name' => $this->name,
             'parent_id' => $this->parentId,
             'sort_order' => $this->sortOrder,
             'is_active' => $this->isActive,
-        ], $this->category, $this->version);
+        ], $this->category, $this->version));
 
         $this->version = (int) $this->category->version;
     }

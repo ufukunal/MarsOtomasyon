@@ -4,11 +4,14 @@ namespace App\Livewire\Pages\Catalog;
 
 use App\Actions\Catalog\SaveBrand;
 use App\Models\Period\Brand;
+use App\Livewire\Concerns\WithIdempotentMutations;
 use Illuminate\Contracts\View\View;
 use Livewire\Component;
 
 class BrandForm extends Component
 {
+    use WithIdempotentMutations;
+
     public ?Brand $brand = null;
 
     public string $name = '';
@@ -19,6 +22,7 @@ class BrandForm extends Component
 
     public function mount(?Brand $brand = null): void
     {
+        $this->seedMutationKeys(['save']);
         abort_unless(auth()->user()?->can($brand ? 'brands.update' : 'brands.create'), 403);
         $this->brand = $brand;
 
@@ -33,10 +37,10 @@ class BrandForm extends Component
     {
         $this->validate(['name' => ['required', 'max:255']]);
 
-        $this->brand = $action->handle([
+        $this->brand = $this->runPeriodMutation('save', fn () => $action->handle([
             'name' => $this->name,
             'is_active' => $this->isActive,
-        ], $this->brand, $this->version);
+        ], $this->brand, $this->version));
 
         $this->version = (int) $this->brand->version;
     }

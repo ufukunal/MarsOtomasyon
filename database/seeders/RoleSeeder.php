@@ -9,16 +9,30 @@ use App\Support\Auth\CompanyRoleProvisioner;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use RuntimeException;
 
 class RoleSeeder extends Seeder
 {
     public function run(): void
     {
+        if (app()->environment('production')) {
+            throw new RuntimeException('Demo rol/kullanıcı seed işlemi production ortamında çalıştırılamaz.');
+        }
+
+        $adminEmail = (string) config('demo.admin_email', 'admin@mars.local');
+        $adminPassword = config('demo.admin_password');
+
+        if (! is_string($adminPassword) || mb_strlen($adminPassword) < 12) {
+            throw new RuntimeException(
+                'Demo admin oluşturmak için DEMO_ADMIN_PASSWORD en az 12 karakter olmalıdır.',
+            );
+        }
+
         $admin = User::query()->firstOrCreate(
-            ['email' => 'admin@mars.local'],
+            ['email' => $adminEmail],
             [
                 'name' => 'Mars Yönetici',
-                'password' => Hash::make('password'),
+                'password' => Hash::make($adminPassword),
                 'is_active' => true,
             ],
         );

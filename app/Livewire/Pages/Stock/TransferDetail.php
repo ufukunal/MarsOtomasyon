@@ -10,12 +10,15 @@ use App\Models\Period\Location;
 use App\Models\Period\Product;
 use App\Models\Period\Transfer;
 use Carbon\CarbonImmutable;
+use App\Livewire\Concerns\WithIdempotentMutations;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Str;
 use Livewire\Component;
 
 class TransferDetail extends Component
 {
+    use WithIdempotentMutations;
+
     public ?Transfer $transfer = null;
 
     public ?int $fromLocationId = null;
@@ -40,6 +43,7 @@ class TransferDetail extends Component
 
     public function mount(?int $id = null): void
     {
+        $this->seedMutationKeys(['saveDraft']);
         abort_unless(auth()->user()?->can('transfers.view'), 403);
 
         $this->refreshKeys();
@@ -86,7 +90,7 @@ class TransferDetail extends Component
             'draftLines.*.quantity' => ['required', 'decimal:0,3'],
         ]);
 
-        $this->transfer = $action->handle([
+        $this->transfer = $this->runPeriodMutation('saveDraft', fn () => $action->handle([
             'from_location_id' => (int) $this->fromLocationId,
             'to_location_id' => (int) $this->toLocationId,
             'transfer_date' => $this->transferDate,
@@ -98,7 +102,7 @@ class TransferDetail extends Component
                 ],
                 $this->draftLines,
             ),
-        ], $this->transfer);
+        ], $this->transfer));
 
         $this->loadTransfer();
 

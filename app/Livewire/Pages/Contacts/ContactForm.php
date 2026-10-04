@@ -16,11 +16,14 @@ use App\Models\Period\ContactCategory;
 use App\Models\Period\ContactPerson;
 use App\Models\Period\PriceList;
 use App\Support\Security\SensitiveFieldMasker;
+use App\Livewire\Concerns\WithIdempotentMutations;
 use Illuminate\Contracts\View\View;
 use Livewire\Component;
 
 class ContactForm extends Component
 {
+    use WithIdempotentMutations;
+
     public ?Contact $contact = null;
 
     public string $code = '';
@@ -104,6 +107,7 @@ class ContactForm extends Component
 
     public function mount(?Contact $contact = null): void
     {
+        $this->seedMutationKeys(['save','saveAddress','deleteAddress','savePerson','deletePerson','saveBank','deleteBank']);
         $this->contact = $contact;
         $this->authorize($contact ? 'update' : 'create', $contact ?? Contact::class);
 
@@ -197,7 +201,7 @@ class ContactForm extends Component
             $payload['national_id'] = $data['nationalId'];
         }
 
-        $saved = $action->handle($payload, $this->contact, $this->version);
+        $saved = $this->runPeriodMutation('save', fn () => $action->handle($payload, $this->contact, $this->version));
 
         $this->redirectRoute('contacts.edit', ['contact' => $saved->id], navigate: false);
     }
@@ -218,14 +222,14 @@ class ContactForm extends Component
             ? ContactAddress::query()->where('contact_id', $this->contact->id)->findOrFail($this->addressId)
             : null;
 
-        $action->handle($this->contact, [
+        $this->runPeriodMutation('saveAddress', fn () => $action->handle($this->contact, [
             'type' => $data['addressType'],
             'title' => $data['addressTitle'],
             'address' => $data['addressLine'],
             'city' => $data['addressCity'],
             'district' => $data['addressDistrict'],
             'is_default' => $this->addressDefault,
-        ], $row, $this->addressVersion);
+        ], $row, $this->addressVersion));
 
         $this->resetAddressEditor();
     }
@@ -247,7 +251,7 @@ class ContactForm extends Component
     {
         abort_unless($this->contact !== null, 422);
         $row = ContactAddress::query()->where('contact_id', $this->contact->id)->findOrFail($id);
-        $action->handle($this->contact, $row, (int) $row->version);
+        $this->runPeriodMutation('deleteAddress', fn () => $action->handle($this->contact, $row, (int) $row->version));
         $this->resetAddressEditor();
     }
 
@@ -266,13 +270,13 @@ class ContactForm extends Component
             ? ContactPerson::query()->where('contact_id', $this->contact->id)->findOrFail($this->personId)
             : null;
 
-        $action->handle($this->contact, [
+        $this->runPeriodMutation('savePerson', fn () => $action->handle($this->contact, [
             'name' => $data['personName'],
             'title' => $data['personTitle'],
             'phone' => $data['personPhone'],
             'email' => $data['personEmail'],
             'is_default' => $this->personDefault,
-        ], $row, $this->personVersion);
+        ], $row, $this->personVersion));
 
         $this->resetPersonEditor();
     }
@@ -293,7 +297,7 @@ class ContactForm extends Component
     {
         abort_unless($this->contact !== null, 422);
         $row = ContactPerson::query()->where('contact_id', $this->contact->id)->findOrFail($id);
-        $action->handle($this->contact, $row, (int) $row->version);
+        $this->runPeriodMutation('deletePerson', fn () => $action->handle($this->contact, $row, (int) $row->version));
         $this->resetPersonEditor();
     }
 
@@ -310,11 +314,11 @@ class ContactForm extends Component
             ? ContactBank::query()->where('contact_id', $this->contact->id)->findOrFail($this->bankId)
             : null;
 
-        $action->handle($this->contact, [
+        $this->runPeriodMutation('saveBank', fn () => $action->handle($this->contact, [
             'bank_name' => $data['bankName'],
             'iban' => $data['iban'],
             'is_default' => $this->bankDefault,
-        ], $row, $this->bankVersion);
+        ], $row, $this->bankVersion));
 
         $this->resetBankEditor();
     }
@@ -333,7 +337,7 @@ class ContactForm extends Component
     {
         abort_unless($this->contact !== null, 422);
         $row = ContactBank::query()->where('contact_id', $this->contact->id)->findOrFail($id);
-        $action->handle($this->contact, $row, (int) $row->version);
+        $this->runPeriodMutation('deleteBank', fn () => $action->handle($this->contact, $row, (int) $row->version));
         $this->resetBankEditor();
     }
 

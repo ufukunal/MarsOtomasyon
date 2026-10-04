@@ -11,12 +11,15 @@ use App\Models\Period\Location;
 use App\Models\Period\Product;
 use App\Models\Period\StockCount;
 use Carbon\CarbonImmutable;
+use App\Livewire\Concerns\WithIdempotentMutations;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Str;
 use Livewire\Component;
 
 class StockCountDetail extends Component
 {
+    use WithIdempotentMutations;
+
     public ?StockCount $count = null;
 
     public ?int $locationId = null;
@@ -45,6 +48,7 @@ class StockCountDetail extends Component
 
     public function mount(?int $id = null): void
     {
+        $this->seedMutationKeys(['saveDraft','saveLine','review','postRequest']);
         abort_unless(auth()->user()?->can('stock_counts.view'), 403);
         $this->refreshKeys();
         $this->countDate = now()->toDateString();
@@ -66,10 +70,10 @@ class StockCountDetail extends Component
             'productIds' => ['required', 'array', 'min:1'], 'productIds.*' => ['integer'],
         ]);
 
-        $this->count = $action->handle([
+        $this->count = $this->runPeriodMutation('saveDraft', fn () => $action->handle([
             'location_id' => (int) $this->locationId, 'count_date' => $this->countDate,
             'note' => $this->note !== '' ? $this->note : null, 'product_ids' => array_map('intval', $this->productIds),
-        ], $this->count);
+        ], $this->count));
         $this->loadCount();
 
         if (request()->routeIs('stock.counts.create')) {
@@ -88,12 +92,15 @@ class StockCountDetail extends Component
     public function saveLine(int $lineId, SaveStockCountLine $action): void
     {
         abort_unless($this->count !== null, 422);
-        $action->handle(
-            $this->count->id,
-            $lineId,
-            (string) ($this->countedQuantities[$lineId] ?? '0'),
-            $this->lineNotes[$lineId] ?? null,
-            $this->count->status === 'review' ? (bool) ($this->approved[$lineId] ?? false) : null,
+        $this->runPeriodMutation(
+            'saveLine',
+            fn () => $action->handle(
+                $this->count->id,
+                $lineId,
+                (string) ($this->countedQuantities[$lineId] ?? '0'),
+                $this->lineNotes[$lineId] ?? null,
+                $this->count->status === 'review' ? (bool) ($this->approved[$lineId] ?? false) : null,
+            ),
         );
         $this->loadCount();
     }
@@ -101,7 +108,7 @@ class StockCountDetail extends Component
     public function review(ReviewStockCount $action): void
     {
         abort_unless($this->count !== null, 422);
-        $this->count = $action->handle($this->count->id);
+        $this->count = $this->runPeriodMutation('review', fn () => $action->handle($this->count->id));
         $this->loadCount();
     }
 
@@ -109,13 +116,21 @@ class StockCountDetail extends Component
     {
         abort_unless($this->count !== null, 422);
 
-        foreach ($this->count->lines as $line) {
-            if ($line->counted_quantity !== null) {
-                $this->saveLine($line->id, app(SaveStockCountLine::class));
+        $this->count = $this->runPeriodMutation('postRequest', function () use ($action): StockCount {
+            foreach ($this->count->lines as $line) {
+                if ($line->counted_quantity !== null) {
+                    app(SaveStockCountLine::class)->handle(
+                        $this->count->id,
+                        $line->id,
+                        (string) ($this->countedQuantities[$line->id] ?? '0'),
+                        $this->lineNotes[$line->id] ?? null,
+                        (bool) ($this->approved[$line->id] ?? false),
+                    );
+                }
             }
-        }
 
-        $this->count = $action->handle($this->count->id, $this->postKey);
+            return $action->handle($this->count->id, $this->postKey);
+        });
         $this->refreshKeys();
         $this->loadCount();
     }

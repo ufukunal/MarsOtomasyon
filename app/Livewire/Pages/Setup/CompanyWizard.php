@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Support\Auth\CompanyRoleProvisioner;
 use App\Support\Auth\MutationAuthorizer;
 use App\Support\Period\PeriodContext;
+use App\Livewire\Concerns\WithIdempotentMutations;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -16,6 +17,8 @@ use Livewire\Component;
 
 class CompanyWizard extends Component
 {
+    use WithIdempotentMutations;
+
     public int $step = 1;
 
     public string $code = '';
@@ -54,6 +57,7 @@ class CompanyWizard extends Component
 
     public function mount(): void
     {
+        $this->seedMutationKeys(['finish']);
         $this->year = now()->year;
 
         if (User::query()->exists()) {
@@ -81,6 +85,7 @@ class CompanyWizard extends Component
             $this->validateStep($step);
         }
 
+        $this->runMasterMutation('finish', function () use ($createPeriod, $saveLocation): bool {
         $company = Company::query()->create([
             'code' => $this->code,
             'name' => $this->name,
@@ -95,6 +100,7 @@ class CompanyWizard extends Component
         ]);
 
         $period = null;
+        $createdUser = null;
 
         try {
             $period = $createPeriod->handle($company, $this->year);
@@ -115,6 +121,7 @@ class CompanyWizard extends Component
                     'password' => Hash::make($this->adminPassword),
                     'is_active' => true,
                 ]);
+                $createdUser = $user;
             }
 
             DB::connection('master')->table('company_user')->insertOrIgnore([
@@ -169,9 +176,13 @@ class CompanyWizard extends Component
             }
 
             $company->delete();
+            $createdUser?->delete();
 
             throw $exception;
         }
+
+            return true;
+        });
 
         $this->redirect('/', navigate: false);
     }

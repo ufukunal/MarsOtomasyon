@@ -11,13 +11,17 @@ use App\Support\Import\ImportMapping;
 use App\Support\Import\ImportRowImporterResolver;
 use App\Support\Period\PeriodContext;
 use Carbon\CarbonImmutable;
+use App\Livewire\Concerns\WithIdempotentMutations;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Component;
 use Livewire\WithFileUploads;
+use Throwable;
 
 class ImportWizard extends Component
 {
+    use WithIdempotentMutations;
+
     use WithFileUploads;
 
     public int $step = 1;
@@ -54,6 +58,7 @@ class ImportWizard extends Component
 
     public function mount(): void
     {
+        $this->seedMutationKeys(['upload', 'queue']);
         abort_unless(auth()->user()?->can('imports.create'), 403);
         PeriodContext::ensureWritable();
 
@@ -89,24 +94,46 @@ class ImportWizard extends Component
             'file' => ['required', 'file', 'max:51200', 'mimes:xlsx,csv,json'],
         ]);
 
-        $this->originalName = $this->file->getClientOriginalName();
-        $this->storedPath = $this->file->store('card-imports', 'imports');
-        $absolute = Storage::disk('imports')->path($this->storedPath);
-        $this->fileHash = hash_file('sha256', $absolute);
+        $result = $this->runPeriodMutation('upload', function () use ($reader): array {
+            $originalName = $this->file->getClientOriginalName();
+            $storedPath = $this->file->store('card-imports', 'imports');
 
-        $rows = $reader->rows('imports', $this->storedPath, $this->originalName);
-        $this->headers = array_keys($rows[0] ?? []);
-        $this->preview = array_slice($rows, 0, 20);
+            try {
+                $absolute = Storage::disk('imports')->path($storedPath);
+                $fileHash = hash_file('sha256', $absolute);
+                $rows = $reader->rows('imports', $storedPath, $originalName);
+                $headers = array_keys($rows[0] ?? []);
+                $preview = array_slice($rows, 0, 20);
+                $mapping = [];
 
-        $this->mapping = [];
+                foreach (ImportMapping::fields($this->type) as $field => $definition) {
+                    $match = collect($headers)->first(
+                        fn (string $header): bool => mb_strtolower($header) === mb_strtolower($field)
+                    );
+                    $mapping[$field] = $match;
+                }
 
-        foreach (ImportMapping::fields($this->type) as $field => $definition) {
-            $match = collect($this->headers)->first(
-                fn (string $header): bool => mb_strtolower($header) === mb_strtolower($field)
-            );
-            $this->mapping[$field] = $match;
-        }
+                return [
+                    'original_name' => $originalName,
+                    'stored_path' => $storedPath,
+                    'file_hash' => $fileHash,
+                    'headers' => $headers,
+                    'preview' => $preview,
+                    'mapping' => $mapping,
+                ];
+            } catch (Throwable $exception) {
+                Storage::disk('imports')->delete($storedPath);
 
+                throw $exception;
+            }
+        });
+
+        $this->originalName = $result['original_name'];
+        $this->storedPath = $result['stored_path'];
+        $this->fileHash = $result['file_hash'];
+        $this->headers = $result['headers'];
+        $this->preview = $result['preview'];
+        $this->mapping = $result['mapping'];
         $this->step = 2;
     }
 
@@ -159,71 +186,70 @@ class ImportWizard extends Component
             }
         }
 
-        $existing = CardImportBatch::query()
-            ->where('file_hash', $this->fileHash)
-            ->where('type', $this->type)
-            ->first();
-
-        if ($existing) {
-            if ($existing->status === 'failed') {
-                $actor = auth()->user();
-
-                $existing->update([
-                    'source_disk' => 'imports',
-                    'source_path' => $this->storedPath,
-                    'original_name' => $this->originalName,
-                    'mapping' => $this->mapping,
-                    'error_mode' => $this->errorMode,
-                    'opening_date' => $this->type === 'opening_stock' ? $this->openingDate : null,
-                    'status' => 'pending',
-                    'total_rows' => 0,
-                    'success_rows' => 0,
-                    'error_rows' => 0,
-                    'failure_message' => null,
-                    'started_at' => null,
-                    'finished_at' => null,
-                    'created_by' => $actor?->getAuthIdentifier(),
-                    'created_by_name' => $actor?->name,
-                ]);
-
-                $existing->errors()->delete();
-
-                ProcessCardImport::dispatch(
-                    (int) PeriodContext::companyId(),
-                    (int) PeriodContext::periodId(),
-                    $existing->id,
-                );
+        $this->batchId = (string) $this->runPeriodMutation('queue', function (): string {
+            $existing = CardImportBatch::query()
+                ->where('file_hash', $this->fileHash)
+                ->where('type', $this->type)
+                ->first();
+    
+            if ($existing) {
+                if ($existing->status === 'failed') {
+                    $actor = auth()->user();
+    
+                    $existing->update([
+                        'source_disk' => 'imports',
+                        'source_path' => $this->storedPath,
+                        'original_name' => $this->originalName,
+                        'mapping' => $this->mapping,
+                        'error_mode' => $this->errorMode,
+                        'opening_date' => $this->type === 'opening_stock' ? $this->openingDate : null,
+                        'status' => 'pending',
+                        'total_rows' => 0,
+                        'success_rows' => 0,
+                        'error_rows' => 0,
+                        'failure_message' => null,
+                        'started_at' => null,
+                        'finished_at' => null,
+                        'created_by' => $actor?->getAuthIdentifier(),
+                        'created_by_name' => $actor?->name,
+                    ]);
+    
+                    $existing->errors()->delete();
+    
+                    ProcessCardImport::dispatch(
+                        (int) PeriodContext::companyId(),
+                        (int) PeriodContext::periodId(),
+                        $existing->id,
+                    )->afterCommit();
+                }
+    
+                return $existing->id;
             }
-
-            $this->batchId = $existing->id;
-            $this->step = 4;
-
-            return;
-        }
-
-        $actor = auth()->user();
-
-        $batch = CardImportBatch::query()->create([
-            'type' => $this->type,
-            'source_disk' => 'imports',
-            'source_path' => $this->storedPath,
-            'original_name' => $this->originalName,
-            'file_hash' => $this->fileHash,
-            'mapping' => $this->mapping,
-            'error_mode' => $this->errorMode,
-            'opening_date' => $this->type === 'opening_stock' ? $this->openingDate : null,
-            'status' => 'pending',
-            'created_by' => $actor?->getAuthIdentifier(),
-            'created_by_name' => $actor?->name,
-        ]);
-
-        ProcessCardImport::dispatch(
-            (int) PeriodContext::companyId(),
-            (int) PeriodContext::periodId(),
-            $batch->id,
-        );
-
-        $this->batchId = $batch->id;
+    
+            $actor = auth()->user();
+    
+            $batch = CardImportBatch::query()->create([
+                'type' => $this->type,
+                'source_disk' => 'imports',
+                'source_path' => $this->storedPath,
+                'original_name' => $this->originalName,
+                'file_hash' => $this->fileHash,
+                'mapping' => $this->mapping,
+                'error_mode' => $this->errorMode,
+                'opening_date' => $this->type === 'opening_stock' ? $this->openingDate : null,
+                'status' => 'pending',
+                'created_by' => $actor?->getAuthIdentifier(),
+                'created_by_name' => $actor?->name,
+            ]);
+    
+            ProcessCardImport::dispatch(
+                (int) PeriodContext::companyId(),
+                (int) PeriodContext::periodId(),
+                $batch->id,
+            )->afterCommit();
+    
+            return $batch->id;
+        });
         $this->step = 4;
     }
 

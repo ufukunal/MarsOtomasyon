@@ -20,7 +20,7 @@ Komut yalnız Master `periods.status in (active, closed)` kayıtlarını dolaş�
 Her period için:
 
 1. Master period kaydı okunur.
-2. `PeriodContext::use(company_id, period_id)` ile fiziksel DB seçilir.
+2. `PeriodContext::useSystem(company_id, period_id)` ile fiziksel DB seçilir.
 3. `database/migrations/period` zinciri çalıştırılır.
 4. Başarı sonrası DB'nin son uygulanmış migration adı `periods.schema_version`
    alanına yazılır.

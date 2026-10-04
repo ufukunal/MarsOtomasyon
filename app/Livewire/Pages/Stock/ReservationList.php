@@ -4,15 +4,17 @@ namespace App\Livewire\Pages\Stock;
 
 use App\Actions\Stock\ReleaseReservation;
 use App\Livewire\Components\DataTable\Column;
+use App\Livewire\Concerns\WithIdempotentMutations;
 use App\Livewire\Components\DataTable\DataTableComponent;
 use App\Livewire\Components\DataTable\SelectFilter;
 use App\Models\Period\StockReservation;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Str;
 
 /** @extends DataTableComponent<StockReservation> */
 class ReservationList extends DataTableComponent
 {
+    use WithIdempotentMutations;
+
     public string $model = StockReservation::class;
 
     public string $sort = 'created_at';
@@ -21,6 +23,7 @@ class ReservationList extends DataTableComponent
 
     public function mount(): void
     {
+        $this->seedMutationKeys(['releaseReservation']);
         abort_unless(auth()->user()?->can('reservations.view'), 403);
     }
 
@@ -84,6 +87,7 @@ class ReservationList extends DataTableComponent
             return;
         }
 
-        $action->handle($reservation->id, (string) Str::uuid());
+        $action->handle($reservation->id, $this->mutationKey('releaseReservation'));
+        $this->completeMutation('releaseReservation');
     }
 }

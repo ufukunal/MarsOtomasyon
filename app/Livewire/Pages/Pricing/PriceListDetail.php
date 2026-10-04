@@ -7,11 +7,14 @@ use App\Actions\Pricing\SavePriceList;
 use App\Actions\Pricing\SavePriceListItem;
 use App\Models\Period\PriceList;
 use App\Models\Period\Product;
+use App\Livewire\Concerns\WithIdempotentMutations;
 use Illuminate\Contracts\View\View;
 use Livewire\Component;
 
 class PriceListDetail extends Component
 {
+    use WithIdempotentMutations;
+
     public ?PriceList $list = null;
 
     public string $name = '';
@@ -42,6 +45,7 @@ class PriceListDetail extends Component
 
     public function mount(?PriceList $list = null): void
     {
+        $this->seedMutationKeys(['saveList','addItem','bulkAdjust']);
         abort_unless(auth()->user()?->can('price_lists.view'), 403);
 
         $this->list = $list;
@@ -65,13 +69,13 @@ class PriceListDetail extends Component
             'currency' => ['required', 'size:3'],
         ]);
 
-        $this->list = $action->handle([
+        $this->list = $this->runPeriodMutation('saveList', fn () => $action->handle([
             'name' => $this->name,
             'currency' => $this->currency,
             'vat_included' => $this->vatIncluded,
             'is_default' => $this->isDefault,
             'is_active' => $this->isActive,
-        ], $this->list, $this->version);
+        ], $this->list, $this->version));
 
         $this->version = (int) $this->list->version;
     }
@@ -88,7 +92,7 @@ class PriceListDetail extends Component
             ? $this->list->items()->findOrFail($this->itemId)
             : null;
 
-        $action->handle(
+        $this->runPeriodMutation('addItem', fn () => $action->handle(
             $this->list,
             $product,
             $this->price,
@@ -96,7 +100,7 @@ class PriceListDetail extends Component
             $this->validTo,
             $item,
             $item ? $this->itemVersion : null,
-        );
+        ));
 
         $this->resetItemEditor();
     }
@@ -135,7 +139,7 @@ class PriceListDetail extends Component
         abort_unless($this->list !== null, 422);
         $this->validate(['bulkPercent' => ['required', 'decimal:0,4']]);
 
-        $action->handle($this->list, $this->bulkPercent);
+        $this->runPeriodMutation('bulkAdjust', fn () => $action->handle($this->list, $this->bulkPercent));
         $this->bulkPercent = '0';
     }
 

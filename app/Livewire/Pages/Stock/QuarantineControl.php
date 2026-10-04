@@ -5,13 +5,15 @@ namespace App\Livewire\Pages\Stock;
 use App\Actions\Stock\ReleaseQuarantine;
 use App\Actions\Stock\ScrapQuarantine;
 use App\Models\Period\QuarantineEntry;
+use App\Livewire\Concerns\WithIdempotentMutations;
 use Illuminate\Contracts\View\View;
-use Illuminate\Support\Str;
 use Livewire\Component;
 use Livewire\WithPagination;
 
 class QuarantineControl extends Component
 {
+    use WithIdempotentMutations;
+
     use WithPagination;
 
     /** @var array<int, bool> */
@@ -26,6 +28,7 @@ class QuarantineControl extends Component
 
     public function mount(): void
     {
+        $this->seedMutationKeys(['releaseSelected','scrapSelected']);
         abort_unless(auth()->user()?->can('quarantine.view'), 403);
     }
 
@@ -40,11 +43,12 @@ class QuarantineControl extends Component
             $action->handle(
                 $entry->id,
                 $quantity,
-                (string) Str::uuid(),
+                $this->childMutationKey('releaseSelected', $entry->id),
                 $this->decisionNote !== '' ? $this->decisionNote : null,
             );
         }
 
+        $this->completeMutation('releaseSelected');
         $this->resetDecision();
     }
 
@@ -64,6 +68,7 @@ class QuarantineControl extends Component
             );
         }
 
+        $this->completeMutation('scrapSelected');
         $this->resetDecision();
     }
 

@@ -11,11 +11,14 @@ use App\Models\Period\Contact;
 use App\Models\Period\Product;
 use App\Support\Period\PeriodContext;
 use App\Support\Period\SourcePeriodContext;
+use App\Livewire\Concerns\WithIdempotentMutations;
 use Illuminate\Contracts\View\View;
 use Livewire\Component;
 
 class CrossCompanyCopy extends Component
 {
+    use WithIdempotentMutations;
+
     public ?int $sourceCompanyId = null;
 
     public string $type = 'contact';
@@ -43,6 +46,7 @@ class CrossCompanyCopy extends Component
 
     public function mount(): void
     {
+        $this->seedMutationKeys(['copy','refreshFromSource']);
         abort_unless(auth()->user()?->can('company_copy_permissions.view'), 403);
     }
 
@@ -91,14 +95,15 @@ class CrossCompanyCopy extends Component
 
     public function copy(CopyRecordsBetweenCompanies $action): void
     {
-        $result = $action->handle(
-            (int) $this->sourceCompanyId,
-            CompanyCopyPermissionType::from($this->type),
-            array_map('intval', $this->selected),
-            $this->choices,
+        $this->result = $this->runPeriodMutation(
+            'copy',
+            fn (): array => $action->handle(
+                (int) $this->sourceCompanyId,
+                CompanyCopyPermissionType::from($this->type),
+                array_map('intval', $this->selected),
+                $this->choices,
+            )->toArray(),
         );
-
-        $this->result = $result->toArray();
         $this->conflicts = $this->result['conflicts'];
         $this->warnings = $this->result['warnings'];
     }
@@ -117,10 +122,13 @@ class CrossCompanyCopy extends Component
     {
         abort_unless($this->sourceCompanyId !== null, 422);
 
-        $action->refresh(
-            (int) $this->sourceCompanyId,
-            CompanyCopyPermissionType::from($this->type),
-            $targetId,
+        $this->runPeriodMutation(
+            'refreshFromSource',
+            fn () => $action->refresh(
+                (int) $this->sourceCompanyId,
+                CompanyCopyPermissionType::from($this->type),
+                $targetId,
+            ),
         );
 
         $this->inspectSourceChanges($action);

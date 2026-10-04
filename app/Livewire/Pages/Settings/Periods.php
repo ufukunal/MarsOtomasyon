@@ -7,12 +7,15 @@ use App\Actions\Periods\CreatePeriod;
 use App\Actions\Periods\ReopenPeriod;
 use App\Models\Company;
 use App\Models\Period;
+use App\Livewire\Concerns\WithIdempotentMutations;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Gate;
 use Livewire\Component;
 
 class Periods extends Component
 {
+    use WithIdempotentMutations;
+
     public ?int $companyId = null;
 
     public int $year;
@@ -21,6 +24,7 @@ class Periods extends Component
 
     public function mount(): void
     {
+        $this->seedMutationKeys(['createPeriod','close','reopen']);
         Gate::authorize('periods.view');
 
         $this->companyId = auth()->user()?->last_company_id;
@@ -37,7 +41,7 @@ class Periods extends Component
         ]);
 
         $company = Company::query()->findOrFail($validated['companyId']);
-        $action->handle($company, (int) $validated['year']);
+        $this->runMasterMutation('createPeriod', fn () => $action->handle($company, (int) $validated['year']));
 
         session()->flash(
             'warning',
@@ -47,14 +51,17 @@ class Periods extends Component
 
     public function close(int $periodId, ClosePeriod $action): void
     {
-        $action->handle(Period::query()->findOrFail($periodId));
+        $this->runMasterMutation('close', fn () => $action->handle(Period::query()->findOrFail($periodId)));
     }
 
     public function reopen(int $periodId, ReopenPeriod $action): void
     {
-        $action->handle(
-            Period::query()->findOrFail($periodId),
-            $this->reopenReason,
+        $this->runMasterMutation(
+            'reopen',
+            fn () => $action->handle(
+                Period::query()->findOrFail($periodId),
+                $this->reopenReason,
+            ),
         );
 
         $this->reopenReason = '';

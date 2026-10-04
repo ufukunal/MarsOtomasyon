@@ -8,12 +8,15 @@ use App\Actions\Products\SaveVariantValues;
 use App\Models\Period\Product;
 use App\Models\Period\VariantAttribute;
 use App\Models\Period\VariantGroup;
+use App\Livewire\Concerns\WithIdempotentMutations;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
 class VariantGroupDetail extends Component
 {
+    use WithIdempotentMutations;
+
     public ?VariantGroup $group = null;
 
     public string $name = '';
@@ -38,6 +41,7 @@ class VariantGroupDetail extends Component
 
     public function mount(?VariantGroup $group = null): void
     {
+        $this->seedMutationKeys(['saveGroup','saveAttribute','attachProduct']);
         abort_unless(auth()->user()?->can('variant_groups.view'), 403);
         $this->group = $group;
 
@@ -52,10 +56,10 @@ class VariantGroupDetail extends Component
     {
         $this->validate(['name' => ['required', 'max:255']]);
 
-        $this->group = $action->handle([
+        $this->group = $this->runPeriodMutation('saveGroup', fn () => $action->handle([
             'name' => $this->name,
             'is_active' => $this->isActive,
-        ], $this->group, $this->version);
+        ], $this->group, $this->version));
 
         $this->version = (int) $this->group->version;
     }
@@ -69,10 +73,10 @@ class VariantGroupDetail extends Component
             ? VariantAttribute::query()->where('variant_group_id', $this->group->id)->findOrFail($this->attributeId)
             : null;
 
-        $action->handle($this->group, [
+        $this->runPeriodMutation('saveAttribute', fn () => $action->handle($this->group, [
             'name' => $this->newAttribute,
             'sort_order' => $attribute->sort_order ?? $this->group->attributes()->count(),
-        ], $attribute, $attribute ? $this->attributeVersion : null);
+        ], $attribute, $attribute ? $this->attributeVersion : null));
 
         $this->attributeId = null;
         $this->attributeVersion = 1;
@@ -107,7 +111,7 @@ class VariantGroupDetail extends Component
         abort_unless($this->group !== null && $this->productId !== null, 422);
 
         $product = Product::query()->findOrFail($this->productId);
-        $this->warnings = $action->handle($product, $this->group->id, $this->values);
+        $this->warnings = $this->runPeriodMutation('attachProduct', fn () => $action->handle($product, $this->group->id, $this->values));
         $this->values = [];
         $this->productId = null;
     }

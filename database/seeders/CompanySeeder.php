@@ -6,11 +6,16 @@ use App\Actions\Periods\CreatePeriod;
 use App\Models\Company;
 use App\Models\Period;
 use Illuminate\Database\Seeder;
+use RuntimeException;
 
 class CompanySeeder extends Seeder
 {
     public function run(): void
     {
+        if (app()->environment('production')) {
+            throw new RuntimeException('Demo şirket seed işlemi production ortamında çalıştırılamaz.');
+        }
+
         $companies = [
             [
                 'code' => 'ABCHOLDING',

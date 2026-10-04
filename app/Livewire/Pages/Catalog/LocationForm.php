@@ -4,11 +4,14 @@ namespace App\Livewire\Pages\Catalog;
 
 use App\Actions\Locations\SaveLocation;
 use App\Models\Period\Location;
+use App\Livewire\Concerns\WithIdempotentMutations;
 use Illuminate\Contracts\View\View;
 use Livewire\Component;
 
 class LocationForm extends Component
 {
+    use WithIdempotentMutations;
+
     public ?Location $location = null;
 
     public string $code = '';
@@ -29,6 +32,7 @@ class LocationForm extends Component
 
     public function mount(?Location $location = null): void
     {
+        $this->seedMutationKeys(['save']);
         $this->location = $location;
 
         abort_unless(auth()->user()?->can($location ? 'locations.update' : 'locations.create'), 403);
@@ -57,7 +61,7 @@ class LocationForm extends Component
             'isActive' => ['boolean'],
         ]);
 
-        $saved = $action->handle([
+        $saved = $this->runPeriodMutation('save', fn () => $action->handle([
             'code' => $data['code'],
             'name' => $data['name'],
             'kind' => $data['kind'],
@@ -65,7 +69,7 @@ class LocationForm extends Component
             'address' => $data['address'],
             'is_default' => $data['isDefault'],
             'is_active' => $data['isActive'],
-        ], $this->location, $this->version);
+        ], $this->location, $this->version));
 
         $this->redirectRoute('locations.edit', ['location' => $saved->id], navigate: false);
     }

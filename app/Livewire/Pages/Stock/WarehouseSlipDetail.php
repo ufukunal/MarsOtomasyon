@@ -10,12 +10,15 @@ use App\Models\Period\Location;
 use App\Models\Period\Product;
 use App\Models\Period\WarehouseSlip;
 use Carbon\CarbonImmutable;
+use App\Livewire\Concerns\WithIdempotentMutations;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Str;
 use Livewire\Component;
 
 class WarehouseSlipDetail extends Component
 {
+    use WithIdempotentMutations;
+
     public ?WarehouseSlip $slip = null;
 
     public ?int $locationId = null;
@@ -42,6 +45,7 @@ class WarehouseSlipDetail extends Component
 
     public function mount(?int $id = null): void
     {
+        $this->seedMutationKeys(['saveDraft']);
         abort_unless(auth()->user()?->can('warehouse_slips.view'), 403);
 
         $this->refreshKeys();
@@ -101,7 +105,7 @@ class WarehouseSlipDetail extends Component
             'draftLines.*.unit_cost' => ['nullable', 'decimal:0,4'],
         ]);
 
-        $this->slip = $action->handle([
+        $this->slip = $this->runPeriodMutation('saveDraft', fn () => $action->handle([
             'location_id' => (int) $this->locationId,
             'slip_date' => $this->slipDate,
             'direction' => $this->direction,
@@ -120,7 +124,7 @@ class WarehouseSlipDetail extends Component
                 ],
                 $this->draftLines,
             ),
-        ], $this->slip);
+        ], $this->slip));
 
         $this->loadSlip();
 

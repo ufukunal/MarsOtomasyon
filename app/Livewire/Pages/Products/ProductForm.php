@@ -13,11 +13,14 @@ use App\Models\Period\ProductCategory;
 use App\Models\Period\ProductSet;
 use App\Models\Period\Unit;
 use App\Models\Period\VariantGroup;
+use App\Livewire\Concerns\WithIdempotentMutations;
 use Illuminate\Contracts\View\View;
 use Livewire\Component;
 
 class ProductForm extends Component
 {
+    use WithIdempotentMutations;
+
     public ?Product $product = null;
 
     public string $code = '';
@@ -79,6 +82,7 @@ class ProductForm extends Component
 
     public function mount(?Product $product = null): void
     {
+        $this->seedMutationKeys(['save','saveSetComponent','removeSetComponent','saveConfigGroup']);
         $this->product = $product;
         $this->authorize($product ? 'update' : 'create', $product ?? Product::class);
 
@@ -126,7 +130,7 @@ class ProductForm extends Component
             'channelStockMode' => ['required', 'in:stock,production,manual'],
         ]);
 
-        $saved = $action->handle([
+        $saved = $this->runPeriodMutation('save', fn () => $action->handle([
             'code' => $data['code'],
             'name' => $data['name'],
             'description' => $data['description'],
@@ -144,7 +148,7 @@ class ProductForm extends Component
             'min_stock' => $data['minStock'],
             'channel_stock_mode' => $data['channelStockMode'],
             'is_active' => $this->isActive,
-        ], $this->product, $this->version);
+        ], $this->product, $this->version));
 
         $this->redirectRoute('products.edit', ['product' => $saved->id], navigate: false);
     }
@@ -163,13 +167,13 @@ class ProductForm extends Component
             ? ProductSet::query()->where('set_product_id', $this->product->id)->findOrFail($this->componentLineId)
             : null;
 
-        $action->handle(
+        $this->runPeriodMutation('saveSetComponent', fn () => $action->handle(
             $this->product,
             $component,
             $data['componentQuantity'],
             $line,
             $line ? $this->componentVersion : null,
-        );
+        ));
 
         $this->resetSetEditor();
     }
@@ -196,7 +200,7 @@ class ProductForm extends Component
             ->where('set_product_id', $this->product->id)
             ->findOrFail($lineId);
 
-        $action->handle($this->product, $line, (int) $line->version);
+        $this->runPeriodMutation('removeSetComponent', fn () => $action->handle($this->product, $line, (int) $line->version));
         $this->resetSetEditor();
     }
 
@@ -221,7 +225,7 @@ class ProductForm extends Component
             ? ConfigDefinition::query()->where('product_id', $this->product->id)->findOrFail($this->configDefinitionId)
             : null;
 
-        $action->handle(
+        $this->runPeriodMutation('saveConfigGroup', fn () => $action->handle(
             $this->product,
             [
                 'name' => $this->configName,
@@ -231,7 +235,7 @@ class ProductForm extends Component
             $options,
             $definition,
             $definition ? $this->configDefinitionVersion : null,
-        );
+        ));
 
         $this->resetConfigEditor();
     }
