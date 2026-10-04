@@ -51,8 +51,8 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
-          extensions: bcmath, pdo_pgsql, mbstring, intl, fileinfo
-          coverage: none
+          extensions: bcmath, pdo_pgsql, mbstring, intl, fileinfo, pcntl
+          coverage: pcov
 
       - name: Composer install
         run: composer install --no-interaction --prefer-dist --no-progress
@@ -74,3 +74,6 @@ jobs:
 
       - name: Pest
         run: php artisan test --display-warnings
+
+      - name: Phase 2 stock coverage
+        run: vendor/bin/pest -c phpunit.stock.xml --coverage --min=90
