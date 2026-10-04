@@ -20,6 +20,11 @@ abstract class BaseSalesDocumentList extends Component
 
     abstract protected function editRoute(): string;
 
+    protected function createRoute(): ?string
+    {
+        return $this->editRoute();
+    }
+
     public function mount(): void
     {
         abort_unless(auth()->user()?->can($this->permission()), 403);
@@ -40,7 +45,7 @@ abstract class BaseSalesDocumentList extends Component
                 ->orderByDesc('id')
                 ->paginate(50),
             'title' => $this->pageTitle(),
-            'createRoute' => $this->editRoute(),
+            'createRoute' => $this->createRoute(),
         ])->layout('layouts.app', ['pageTitle' => $this->pageTitle()]);
     }
 }
