@@ -14,14 +14,17 @@ class SyncCompanyRolePermissionsCommand extends Command
 
     public function handle(CompanyRoleProvisioner $provisioner): int
     {
-        Company::query()
-            ->orderBy('id')
-            ->each(function (Company $company) use ($provisioner): void {
-                $provisioner->handle($company);
-                $this->line("{$company->id} · {$company->name}: roller senkronize edildi.");
-            });
+        try {
+            Company::query()
+                ->orderBy('id')
+                ->each(function (Company $company) use ($provisioner): void {
+                    $provisioner->handle($company);
+                    $this->line("{$company->id} · {$company->name}: roller senkronize edildi.");
+                });
+        } finally {
+            setPermissionsTeamId(null);
+        }
 
-        setPermissionsTeamId(null);
         $this->info('Şirket rol izinleri güncel matrisle senkronize edildi.');
 
         return self::SUCCESS;

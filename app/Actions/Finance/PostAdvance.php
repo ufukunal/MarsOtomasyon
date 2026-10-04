@@ -53,8 +53,10 @@ final class PostAdvance
                     ? '1.000000'
                     : bcadd($exchangeRate, '0', 6);
 
-                if (bccomp($normalized, '0', 4) <= 0 || bccomp($rate, '0', 6) <= 0) {
-                    throw new DomainException('Avans tutarı veya kuru geçersiz.');
+                if (bccomp($normalized, '0', 4) <= 0
+                    || strtoupper($currency) !== 'TRY'
+                    || bccomp($rate, '1.000000', 6) !== 0) {
+                    throw new DomainException('Avans tutarı geçersiz veya işlem TRY dışında.');
                 }
 
                 $contact = Contact::query()->findOrFail($contactId);

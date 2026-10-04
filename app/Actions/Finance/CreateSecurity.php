@@ -83,8 +83,14 @@ final class CreateSecurity
                 ): Security {
                     $contact = Contact::query()->lockForUpdate()->findOrFail($contactId);
 
+                    $normalizedBankName = mb_strtoupper(trim((string) $bankName), 'UTF-8');
+
                     if ($direction === 'outgoing' && $kind === 'check' && $bankAccountId === null) {
                         throw new DomainException('Verilen çek için banka hesabı zorunludur.');
+                    }
+
+                    if ($direction === 'incoming' && $kind === 'check' && $normalizedBankName === '') {
+                        throw new DomainException('Alınan çek için banka adı zorunludur.');
                     }
 
                     if ($bankAccountId !== null) {
@@ -102,9 +108,7 @@ final class CreateSecurity
                         $kind,
                         mb_strtoupper($instrumentNo, 'UTF-8'),
                         (string) $contactId,
-                        $due->toDateString(),
-                        $normalized,
-                        trim((string) $bankName),
+                        $normalizedBankName,
                         (string) ($bankAccountId ?? 0),
                     ]));
 
@@ -136,7 +140,7 @@ final class CreateSecurity
                         'contact_id' => $contact->id,
                         'contact_transaction_id' => $contactTransaction->id,
                         'bank_account_id' => $bankAccountId,
-                        'bank_name' => trim((string) $bankName) ?: null,
+                        'bank_name' => $normalizedBankName !== '' ? $normalizedBankName : null,
                         'issue_date' => $date->toDateString(),
                         'due_date' => $due->toDateString(),
                         'currency' => 'TRY',

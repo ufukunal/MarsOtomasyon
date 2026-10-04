@@ -60,9 +60,9 @@ final class PostExpense
                     || bccomp($net, '0', 4) <= 0
                     || bccomp($vat, '0', 4) < 0
                     || bccomp($vat, '100', 4) > 0
-                    || ! preg_match('/^[A-Z]{3}$/', $currency)
-                    || bccomp($rate, '0', 6) <= 0) {
-                    throw new DomainException('Gider türü, tutarı, KDV oranı, para birimi veya kuru geçersiz.');
+                    || $currency !== 'TRY'
+                    || bccomp($rate, '1.000000', 6) !== 0) {
+                    throw new DomainException('Gider türü, tutarı veya KDV oranı geçersiz; gider kaydı TRY olmalıdır.');
                 }
 
                 $totals = $this->calculator->handle([[

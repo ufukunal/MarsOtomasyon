@@ -39,7 +39,7 @@
                 @endforeach
             </select>
         </label>
-        <label>Kur <input wire:model="exchangeRate"></label>
+        <div>Para Birimi: TRY</div>
         <label>İşlem Türü <input wire:model="movementType"></label>
         <label>Referans <input wire:model="reference"></label>
         <label>Not <textarea wire:model="note"></textarea></label>
@@ -82,7 +82,7 @@
         </label>
         <label>Tutar <input wire:model="transferAmount"></label>
         <button type="button" wire:click="postTransfer">Virmanı Kesinleştir</button>
-        <p>Virman aynı para birimli hesaplar arasında yapılır.</p>
+        <p>Virman aynı para birimli hesaplar arasında yapılır; döviz hesabı virmanı kur dönüşümü yapmaz.</p>
     </section>
 
     <section class="space-y-3">
@@ -90,8 +90,7 @@
         <label>Gider Türü <input wire:model="expenseCategory"></label>
         <label>Net Tutar <input wire:model="expenseNet"></label>
         <label>KDV % <input wire:model="expenseVatRate"></label>
-        <label>Para Birimi <input wire:model="expenseCurrency" maxlength="3"></label>
-        <label>Kur <input wire:model="expenseExchangeRate"></label>
+        <div>Para Birimi: TRY</div>
         <label>Ödeme Yeri
             <select wire:model="expenseAccountType">
                 <option value="cash">Kasa</option>
@@ -126,8 +125,7 @@
             </select>
         </label>
         <label>Tutar <input wire:model="advanceAmount"></label>
-        <label>Para Birimi <input wire:model="advanceCurrency" maxlength="3"></label>
-        <label>Kur <input wire:model="advanceExchangeRate"></label>
+        <div>Para Birimi: TRY</div>
         <label>Hesap Türü
             <select wire:model="advanceAccountType">
                 <option value="cash">Kasa</option>

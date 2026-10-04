@@ -83,6 +83,12 @@ final class ReconcileBankStatement
                         }
 
                         $actor = auth()->user();
+                        $account = $statement->account()->firstOrFail();
+
+                        if ($account->currency !== 'TRY') {
+                            throw new DomainException('Döviz ekstresinden yeni generic defter hareketi üretilemez; mevcut alış/ithalat hareketiyle eşleştirilmelidir.');
+                        }
+
                         $contact = $contactId === null
                             ? null
                             : Contact::query()->lockForUpdate()->findOrFail($contactId);
@@ -90,11 +96,6 @@ final class ReconcileBankStatement
                         $contactTransaction = null;
 
                         if ($contact !== null) {
-                            $account = $statement->account()->firstOrFail();
-
-                            if ($account->currency !== 'TRY') {
-                                throw new DomainException('Cari etkili ekstre hareketi yalnız TRY banka hesabından üretilebilir.');
-                            }
 
                             $contactTransaction = ContactTransaction::query()->create([
                                 'contact_id' => $contact->id,

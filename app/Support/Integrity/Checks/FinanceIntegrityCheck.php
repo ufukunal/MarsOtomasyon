@@ -199,6 +199,37 @@ final class FinanceIntegrityCheck implements IntegrityCheck
                     'reason' => 'security_state_context_missing',
                 ];
             }
+
+            if (in_array($security->status, ['returned', 'protested', 'cancelled'], true)
+                && $security->contact_transaction_id !== null
+                && ! \App\Models\Period\ContactTransaction::query()
+                    ->where('reversal_of_id', $security->contact_transaction_id)
+                    ->exists()) {
+                $mismatches[] = [
+                    'security_id' => $security->id,
+                    'status' => $security->status,
+                    'reason' => 'security_terminal_contact_reversal_missing',
+                ];
+            }
+
+            if (in_array($security->status, ['collected', 'paid'], true)) {
+                $movementType = $security->status === 'collected'
+                    ? 'security_collection'
+                    : 'security_payment';
+                $bankEffect = BankMovement::query()
+                    ->where('origin', 'book')
+                    ->where('movement_type', $movementType)
+                    ->whereRaw("metadata->>'security_id' = ?", [(string) $security->id])
+                    ->exists();
+
+                if (! $bankEffect) {
+                    $mismatches[] = [
+                        'security_id' => $security->id,
+                        'status' => $security->status,
+                        'reason' => 'security_bank_effect_missing',
+                    ];
+                }
+            }
         }
 
         $payrolls = SecurityPayroll::query()->get();

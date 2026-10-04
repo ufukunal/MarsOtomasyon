@@ -92,7 +92,12 @@ final class PostManualFinanceMovement
                         ? CashAccount::query()->where('is_active', true)->lockForUpdate()->findOrFail($accountId)
                         : BankAccount::query()->where('is_active', true)->lockForUpdate()->findOrFail($accountId);
                     $currency = (string) $account->getAttribute('currency');
-                    $rate = $currency === 'TRY' ? '1.000000' : $requestedRate;
+
+                    if ($currency !== 'TRY') {
+                        throw new DomainException('Manuel finans hareketi yalnız TRY hesapta kullanılabilir; döviz hareketi alış/ithalat kaynağından gelmelidir.');
+                    }
+
+                    $rate = '1.000000';
                     $contactTransaction = null;
 
                     if ($contact !== null) {
