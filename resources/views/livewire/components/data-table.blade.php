@@ -83,7 +83,12 @@
                     @foreach ($columns as $column)
                         @continue($hiddenColumns[$column->key] ?? false)
                         <td @class(['align-end tabular' => $column->align === 'end'])>
-                            {{ $this->formattedValue($row, $column) }}
+                            @php($cellUrl = $this->columnUrl($row, $column))
+                            @if($cellUrl)
+                                <a href="{{ $cellUrl }}">{{ $this->formattedValue($row, $column) }}</a>
+                            @else
+                                {{ $this->formattedValue($row, $column) }}
+                            @endif
                         </td>
                     @endforeach
                     @if($rowActions !== [])
@@ -105,6 +110,20 @@
                 </tr>
             @endforelse
             </tbody>
+            @if($summary !== [])
+                <tfoot>
+                <tr class="table-summary">
+                    <td></td>
+                    @foreach ($columns as $column)
+                        @continue($hiddenColumns[$column->key] ?? false)
+                        <td @class(['align-end tabular' => $column->align === 'end'])>
+                            <strong>{{ $summary[$column->key] ?? '' }}</strong>
+                        </td>
+                    @endforeach
+                    @if($rowActions !== [])<td></td>@endif
+                </tr>
+                </tfoot>
+            @endif
         </table>
     </div>
 
