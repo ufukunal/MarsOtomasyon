@@ -15,6 +15,7 @@ use App\Models\Period\CashAccount;
 use App\Models\Period\CashMovement;
 use App\Models\Period\ContactTransaction;
 use App\Models\Period\Document;
+use App\Models\Period\DocumentLine;
 use App\Models\Period\StockReservation;
 use App\Support\Audit\AuditContext;
 use App\Support\Concurrency\IdempotencyKey;
@@ -202,7 +203,7 @@ final class PostDocument
         }
 
         foreach ($groups as $group) {
-            $source = AppModelsPeriodDocumentLine::query()
+            $source = DocumentLine::query()
                 ->lockForUpdate()
                 ->findOrFail((int) $group['line_id']);
 
