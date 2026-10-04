@@ -34,7 +34,7 @@ final class ImportIntegrityCheck implements IntegrityCheck
         $mismatches = [];
         $files = ImportFile::query()
             ->whereIn('status', ['received', 'closed'])
-            ->with(['packages', 'costItems'])
+            ->with(['packages.container', 'costItems'])
             ->get();
 
         $latestClosedByProduct = [];
@@ -44,11 +44,14 @@ final class ImportIntegrityCheck implements IntegrityCheck
                 $productId = (int) $package->product_id;
                 $known = $latestClosedByProduct[$productId] ?? null;
 
+                $closedAt = $closedFile->closed_at?->getTimestamp() ?? 0;
+
                 if ($known === null
-                    || ($closedFile->closed_at?->getTimestamp() ?? 0) > $known['closed_at']) {
+                    || $closedAt > $known['closed_at']
+                    || ($closedAt === $known['closed_at'] && (int) $closedFile->id > $known['file_id'])) {
                     $latestClosedByProduct[$productId] = [
                         'file_id' => (int) $closedFile->id,
-                        'closed_at' => $closedFile->closed_at?->getTimestamp() ?? 0,
+                        'closed_at' => $closedAt,
                     ];
                 }
             }
@@ -62,9 +65,27 @@ final class ImportIntegrityCheck implements IntegrityCheck
             }
 
             foreach ($file->costItems as $item) {
-                $allocated = bcadd((string) ImportCostAllocation::query()
+                $allocated = '0.0000';
+                $allocations = ImportCostAllocation::query()
+                    ->with('package')
                     ->where('import_cost_item_id', $item->id)
-                    ->sum('allocated_amount_try'), '0', 4);
+                    ->orderBy('id')
+                    ->get();
+
+                foreach ($allocations as $allocation) {
+                    $allocated = bcadd($allocated, (string) $allocation->allocated_amount_try, 4);
+                    $package = $allocation->package;
+
+                    if ($package === null
+                        || (int) $package->import_file_id !== (int) $file->id
+                        || (int) $allocation->product_id !== (int) $package->product_id
+                        || (int) $allocation->container_id !== (int) $package->container_id) {
+                        $mismatches[] = [
+                            'allocation_id' => $allocation->id,
+                            'reason' => 'allocation_source_mismatch',
+                        ];
+                    }
+                }
 
                 if ($item->amount_try === null || bccomp($allocated, (string) $item->amount_try, 4) !== 0) {
                     $mismatches[] = ['cost_item_id' => $item->id, 'reason' => 'allocation_total_mismatch'];
@@ -74,7 +95,12 @@ final class ImportIntegrityCheck implements IntegrityCheck
             foreach ($file->packages as $package) {
                 if ($package->product_id === null
                     || $package->location_id === null
+                    || $package->goods_value_try === null
+                    || $package->allocated_cost_try === null
                     || $package->landed_unit_cost_try === null
+                    || bccomp((string) $package->quantity, '0', 3) <= 0
+                    || $package->container === null
+                    || (int) $package->container->import_file_id !== (int) $file->id
                     || $package->status !== 'received') {
                     $mismatches[] = ['package_id' => $package->id, 'reason' => 'received_package_incomplete'];
                     continue;
@@ -114,10 +140,23 @@ final class ImportIntegrityCheck implements IntegrityCheck
                 );
             }
 
-            $actual = DB::connection('period')->table('stock_movements')
+            $movementQuery = DB::connection('period')->table('stock_movements')
                 ->where('document_type', 'import_file')
                 ->where('document_id', $file->id)
-                ->where('direction', 'in')
+                ->where('direction', 'in');
+
+            $sourceRows = (clone $movementQuery)->get(['reason', 'document_no']);
+
+            if ($sourceRows->count() !== $file->packages->count()
+                || $sourceRows->contains(fn ($row) => (string) $row->reason !== 'import'
+                    || (string) $row->document_no !== (string) $file->number)) {
+                $mismatches[] = [
+                    'import_file_id' => $file->id,
+                    'reason' => 'stock_receipt_source_mismatch',
+                ];
+            }
+
+            $actual = (clone $movementQuery)
                 ->selectRaw('product_id, location_id, SUM(quantity)::text AS quantity, SUM(total_cost)::text AS value')
                 ->groupBy('product_id', 'location_id')
                 ->get();
@@ -155,6 +194,15 @@ final class ImportIntegrityCheck implements IntegrityCheck
                             bcmul((string) $package->quantity, (string) $package->landed_unit_cost_try, 8),
                             4,
                         );
+                    }
+
+                    if (bccomp($qty, '0', 3) <= 0) {
+                        $mismatches[] = [
+                            'import_file_id' => $file->id,
+                            'product_id' => (int) $productId,
+                            'reason' => 'product_import_quantity_invalid',
+                        ];
+                        continue;
                     }
 
                     $expectedImportCost = bcdiv($value, $qty, 4);

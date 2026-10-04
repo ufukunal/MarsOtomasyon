@@ -18,87 +18,147 @@ final class BuildContainerProfitability
         $packages = ImportPackage::query()
             ->where('import_file_id', $file->id)
             ->whereNotNull('landed_unit_cost_try')
+            ->orderBy('id')
             ->get();
         $containers = ImportContainer::query()
             ->where('import_file_id', $file->id)
             ->orderBy('id')
             ->get();
 
-        $productTotals = [];
-        foreach ($packages->whereNotNull('product_id') as $package) {
-            $productTotals[(int) $package->product_id] = bcadd(
-                $productTotals[(int) $package->product_id] ?? '0.000',
-                (string) $package->quantity,
-                3,
-            );
-        }
-
-        $totalVolume = '0.000000';
-        foreach ($containers as $container) {
-            $totalVolume = bcadd($totalVolume, (string) ($container->volume_cbm ?? '0'), 6);
-        }
-
         $rows = [];
 
         foreach ($containers as $container) {
-            $containerPackages = $packages->where('container_id', $container->id);
-            $cost = '0.0000';
-            $sales = '0.0000';
-            $hasMappedQuantity = false;
-
-            foreach ($containerPackages as $package) {
-                if ($package->product_id === null || ! isset($productRows[(int) $package->product_id])) {
-                    continue;
-                }
-
-                $totalProductQty = $productTotals[(int) $package->product_id] ?? '0.000';
-
-                if (bccomp($totalProductQty, '0', 3) <= 0) {
-                    continue;
-                }
-
-                $hasMappedQuantity = true;
-                $share = bcdiv((string) $package->quantity, $totalProductQty, 10);
-                $sales = bcadd(
-                    $sales,
-                    bcmul((string) $productRows[(int) $package->product_id]['sales_try'], $share, 10),
-                    4,
-                );
-                $cost = bcadd(
-                    $cost,
-                    bcmul((string) $productRows[(int) $package->product_id]['cost_try'], $share, 10),
-                    4,
-                );
-            }
-
-            if (! $hasMappedQuantity && bccomp($totalVolume, '0', 6) > 0) {
-                $volumeShare = bcdiv((string) ($container->volume_cbm ?? '0'), $totalVolume, 10);
-                $sales = bcadd(
-                    bcmul((string) $profitability['sales_try'], $volumeShare, 10),
-                    '0',
-                    4,
-                );
-                $cost = bcadd(
-                    bcmul((string) $profitability['cost_try'], $volumeShare, 10),
-                    '0',
-                    4,
-                );
-            }
-
-            $profit = bcsub($sales, $cost, 4);
-            $rows[] = [
+            $rows[(int) $container->id] = [
                 'container_id' => (int) $container->id,
                 'container_no' => $container->container_no,
-                'sales_try' => $sales,
-                'cost_try' => $cost,
-                'profit_try' => $profit,
-                'margin_rate' => bccomp($sales, '0', 4) > 0
-                    ? bcdiv(bcmul($profit, '100', 8), $sales, 4)
-                    : '0.0000',
-                'allocation_basis' => $hasMappedQuantity ? 'matched_quantity' : 'volume_share',
+                'sales_try' => '0.0000',
+                'cost_try' => '0.0000',
             ];
         }
 
-        return $rows;
+        $productPackages = $packages
+            ->whereNotNull('product_id')
+            ->groupBy('product_id');
+        $hasMappedQuantity = false;
+
+        foreach ($productRows as $productId => $productRow) {
+            $mappedPackages = ($productPackages->get($productId) ?? collect())
+                ->filter(fn ($package) => bccomp((string) $package->quantity, '0', 3) > 0)
+                ->sortBy('id')
+                ->values();
+
+            if ($mappedPackages->isEmpty()) {
+                continue;
+            }
+
+            $totalProductQty = '0.000';
+
+            foreach ($mappedPackages as $package) {
+                $totalProductQty = bcadd($totalProductQty, (string) $package->quantity, 3);
+            }
+
+            if (bccomp($totalProductQty, '0', 3) <= 0) {
+                continue;
+            }
+
+            $hasMappedQuantity = true;
+            $allocatedSales = '0.0000';
+            $allocatedCost = '0.0000';
+            $lastIndex = $mappedPackages->count() - 1;
+
+            foreach ($mappedPackages as $index => $package) {
+                if ($index === $lastIndex) {
+                    $packageSales = bcsub((string) $productRow['sales_try'], $allocatedSales, 4);
+                    $packageCost = bcsub((string) $productRow['cost_try'], $allocatedCost, 4);
+                } else {
+                    $share = bcdiv((string) $package->quantity, $totalProductQty, 10);
+                    $packageSales = bcadd(
+                        bcmul((string) $productRow['sales_try'], $share, 10),
+                        '0',
+                        4,
+                    );
+                    $packageCost = bcadd(
+                        bcmul((string) $productRow['cost_try'], $share, 10),
+                        '0',
+                        4,
+                    );
+                }
+
+                $allocatedSales = bcadd($allocatedSales, $packageSales, 4);
+                $allocatedCost = bcadd($allocatedCost, $packageCost, 4);
+
+                $containerId = (int) $package->container_id;
+
+                if (! isset($rows[$containerId])) {
+                    continue;
+                }
+
+                $rows[$containerId]['sales_try'] = bcadd(
+                    (string) $rows[$containerId]['sales_try'],
+                    $packageSales,
+                    4,
+                );
+                $rows[$containerId]['cost_try'] = bcadd(
+                    (string) $rows[$containerId]['cost_try'],
+                    $packageCost,
+                    4,
+                );
+            }
+        }
+
+        if (! $hasMappedQuantity) {
+            $eligibleContainers = $containers
+                ->filter(fn ($container) => bccomp((string) ($container->volume_cbm ?? '0'), '0', 6) > 0)
+                ->values();
+
+            $totalVolume = '0.000000';
+
+            foreach ($eligibleContainers as $container) {
+                $totalVolume = bcadd($totalVolume, (string) $container->volume_cbm, 6);
+            }
+
+            if (bccomp($totalVolume, '0', 6) > 0) {
+                $allocatedSales = '0.0000';
+                $allocatedCost = '0.0000';
+                $lastIndex = $eligibleContainers->count() - 1;
+
+                foreach ($eligibleContainers as $index => $container) {
+                    if ($index === $lastIndex) {
+                        $containerSales = bcsub((string) $profitability['sales_try'], $allocatedSales, 4);
+                        $containerCost = bcsub((string) $profitability['cost_try'], $allocatedCost, 4);
+                    } else {
+                        $share = bcdiv((string) $container->volume_cbm, $totalVolume, 10);
+                        $containerSales = bcadd(
+                            bcmul((string) $profitability['sales_try'], $share, 10),
+                            '0',
+                            4,
+                        );
+                        $containerCost = bcadd(
+                            bcmul((string) $profitability['cost_try'], $share, 10),
+                            '0',
+                            4,
+                        );
+                    }
+
+                    $allocatedSales = bcadd($allocatedSales, $containerSales, 4);
+                    $allocatedCost = bcadd($allocatedCost, $containerCost, 4);
+                    $containerId = (int) $container->id;
+                    $rows[$containerId]['sales_try'] = $containerSales;
+                    $rows[$containerId]['cost_try'] = $containerCost;
+                }
+            }
+        }
+
+        foreach ($rows as &$row) {
+            $profit = bcsub((string) $row['sales_try'], (string) $row['cost_try'], 4);
+            $row['profit_try'] = $profit;
+            $row['margin_rate'] = bccomp((string) $row['sales_try'], '0', 4) > 0
+                ? bcdiv(bcmul($profit, '100', 8), (string) $row['sales_try'], 4)
+                : '0.0000';
+            $row['allocation_basis'] = $hasMappedQuantity ? 'matched_quantity' : 'volume_share';
+        }
+        unset($row);
+
+        return array_values($rows);
     }
 }

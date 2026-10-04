@@ -37,6 +37,7 @@ final class CloseImportFile
                 }
 
                 $grouped = $locked->packages->groupBy('product_id');
+                $importCosts = [];
 
                 foreach ($grouped as $productId => $packages) {
                     $qty = '0.000';
@@ -55,8 +56,28 @@ final class CloseImportFile
                         throw new DomainException('Ürün ithalat miktarı sıfır olamaz.');
                     }
 
+                    $importCosts[(int) $productId] = bcdiv($value, $qty, 4);
+                }
+
+                $actor = auth()->user();
+
+                // Child model guard'ını yalnız kontrollü receive -> closed yaşam döngüsü için aşar.
+                $locked->containers()
+                    ->where('status', 'received')
+                    ->update(['status' => 'closed', 'updated_at' => now()]);
+
+                $locked->status = 'closed';
+                $locked->closed_by = $actor?->id;
+                $locked->closed_by_name = $actor?->name;
+                $locked->closed_at = now();
+                $locked->version = (int) $locked->version + 1;
+                $locked->save();
+
+                ksort($importCosts, SORT_NUMERIC);
+
+                foreach ($importCosts as $productId => $unitCost) {
                     DB::connection('period')->table('product_costs')->insertOrIgnore([
-                        'product_id' => (int) $productId,
+                        'product_id' => $productId,
                         'last_purchase_price' => '0.0000',
                         'moving_average' => '0.0000',
                         'import_cost' => '0.0000',
@@ -66,22 +87,22 @@ final class CloseImportFile
                     ]);
 
                     $cost = ProductCost::query()
-                        ->where('product_id', (int) $productId)
+                        ->where('product_id', $productId)
                         ->lockForUpdate()
                         ->firstOrFail();
 
-                    $cost->setAttribute('import_cost', bcdiv($value, $qty, 4));
-                    $cost->save();
-                }
+                    $latestClosedFileId = ImportFile::query()
+                        ->where('status', 'closed')
+                        ->whereHas('packages', fn ($query) => $query->where('product_id', $productId))
+                        ->orderByDesc('closed_at')
+                        ->orderByDesc('id')
+                        ->value('id');
 
-                $actor = auth()->user();
-                $locked->status = 'closed';
-                $locked->closed_by = $actor?->id;
-                $locked->closed_by_name = $actor?->name;
-                $locked->closed_at = now();
-                $locked->version = (int) $locked->version + 1;
-                $locked->save();
-                $locked->containers()->update(['status' => 'closed']);
+                    if ((int) $latestClosedFileId === (int) $locked->id) {
+                        $cost->setAttribute('import_cost', $unitCost);
+                        $cost->save();
+                    }
+                }
 
                 AuditContext::period(
                     'İthalat dosyası kapatıldı; ürün ithalat maliyetleri güncellendi.',

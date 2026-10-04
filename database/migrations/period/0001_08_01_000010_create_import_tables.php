@@ -123,6 +123,9 @@ return new class extends Migration
             'ALTER TABLE import_files ADD CONSTRAINT import_files_exchange_rate_positive CHECK (exchange_rate IS NULL OR exchange_rate > 0)'
         );
         DB::connection('period')->statement(
+            "ALTER TABLE import_files ADD CONSTRAINT import_files_try_rate_one CHECK (currency <> 'TRY' OR (exchange_rate IS NOT NULL AND exchange_rate = 1.000000))"
+        );
+        DB::connection('period')->statement(
             "ALTER TABLE containers ADD CONSTRAINT containers_status_valid CHECK (status IN ('planned','in_transit','customs','received','closed'))"
         );
         DB::connection('period')->statement(
@@ -148,6 +151,9 @@ return new class extends Migration
         );
         DB::connection('period')->statement(
             'ALTER TABLE import_cost_items ADD CONSTRAINT import_cost_items_exchange_rate_positive CHECK (exchange_rate IS NULL OR exchange_rate > 0)'
+        );
+        DB::connection('period')->statement(
+            "ALTER TABLE import_cost_items ADD CONSTRAINT import_cost_items_try_rate_one CHECK (currency <> 'TRY' OR (exchange_rate IS NOT NULL AND exchange_rate = 1.000000))"
         );
         DB::connection('period')->statement(
             'ALTER TABLE import_cost_items ADD CONSTRAINT import_cost_items_amount_try_non_negative CHECK (amount_try IS NULL OR amount_try >= 0)'
