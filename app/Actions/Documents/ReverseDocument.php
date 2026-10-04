@@ -20,7 +20,6 @@ use App\Support\Auth\MutationAuthorizer;
 use App\Support\Concurrency\IdempotencyKey;
 use Carbon\CarbonImmutable;
 use DomainException;
-use Illuminate\Support\Facades\DB;
 
 final class ReverseDocument
 {

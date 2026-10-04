@@ -24,8 +24,8 @@ final class SaveSalesDocumentDraft
     ) {}
 
     /**
-     * @param array<string,mixed> $header
-     * @param list<array<string,mixed>> $lines
+     * @param  array<string,mixed>  $header
+     * @param  list<array<string,mixed>>  $lines
      */
     public function handle(
         DocumentType $type,

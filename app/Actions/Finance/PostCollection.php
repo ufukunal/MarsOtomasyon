@@ -2,9 +2,9 @@
 
 namespace App\Actions\Finance;
 
+use App\Actions\Documents\PostDocument;
 use App\DataObjects\Documents\DocumentPostingContext;
 use App\Enums\DocumentType;
-use App\Actions\Documents\PostDocument;
 use App\Models\Period\BankAccount;
 use App\Models\Period\CashAccount;
 use App\Models\Period\Contact;

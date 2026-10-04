@@ -68,7 +68,7 @@ final class VerifyPostedDocument
             ->where('document_type', $document->document_type->value)
             ->where('document_id', $document->id)
             ->where('direction', 'out')
-            ->selectRaw("product_id, location_id, SUM(quantity)::text AS quantity")
+            ->selectRaw('product_id, location_id, SUM(quantity)::text AS quantity')
             ->groupBy('product_id', 'location_id')
             ->get()
             ->mapWithKeys(fn ($row) => [

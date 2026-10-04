@@ -70,7 +70,7 @@ final class VerifyReversal
         $originalStock = DB::connection('period')->table('stock_movements')
             ->where('document_type', $original->document_type->value)
             ->where('document_id', $original->id)
-            ->selectRaw("product_id, location_id, direction, SUM(quantity)::text AS quantity")
+            ->selectRaw('product_id, location_id, direction, SUM(quantity)::text AS quantity')
             ->groupBy('product_id', 'location_id', 'direction')
             ->get();
 

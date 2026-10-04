@@ -9,7 +9,7 @@ use DomainException;
 final class CalculateDocumentTotals
 {
     /**
-     * @param list<array{quantity:string,unit_price:string,line_discount_rate?:string,line_discount_amount?:string,vat_rate?:string}> $lines
+     * @param  list<array{quantity:string,unit_price:string,line_discount_rate?:string,line_discount_amount?:string,vat_rate?:string}>  $lines
      */
     public function handle(array $lines, string $discountRate = '0', string $discountAmount = '0'): DocumentTotals
     {
