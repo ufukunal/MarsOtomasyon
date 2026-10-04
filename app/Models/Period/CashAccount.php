@@ -30,4 +30,13 @@ class CashAccount extends PeriodModel
     {
         return $this->hasMany(CashMovement::class);
     }
+
+    public function balance(): string
+    {
+        $value = $this->movements()
+            ->selectRaw("COALESCE(SUM(CASE WHEN direction = 'in' THEN amount ELSE -amount END), 0)::text AS balance")
+            ->value('balance');
+
+        return bcadd((string) ($value ?? '0'), '0', 4);
+    }
 }

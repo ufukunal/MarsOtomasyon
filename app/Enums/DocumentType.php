@@ -15,6 +15,9 @@ enum DocumentType: string
     case GoodsReceipt = 'goods_receipt';
     case SupplierInvoice = 'supplier_invoice';
     case Payment = 'payment';
+    case Expense = 'expense';
+    case Advance = 'advance';
+    case AdvanceReturn = 'advance_return';
 
     public function isLineCalculated(): bool
     {
@@ -27,6 +30,7 @@ enum DocumentType: string
             self::PurchaseOrder,
             self::GoodsReceipt,
             self::SupplierInvoice,
+            self::Expense,
         ], true);
     }
 
@@ -36,6 +40,8 @@ enum DocumentType: string
             self::Collection,
             self::ContactDebitCredit,
             self::Payment,
+            self::Advance,
+            self::AdvanceReturn,
         ], true);
     }
 }

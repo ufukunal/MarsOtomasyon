@@ -18,5 +18,9 @@ return [
         'production_order' => 'UE',
         'collection' => 'TH',
         'payment' => 'OD',
+        'expense' => 'GDR',
+        'advance' => 'ADV',
+        'advance_return' => 'AVI',
+        'security_payroll' => 'BRD',
     ],
 ];

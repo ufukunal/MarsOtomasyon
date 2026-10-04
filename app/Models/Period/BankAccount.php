@@ -30,4 +30,34 @@ class BankAccount extends PeriodModel
     {
         return $this->hasMany(BankMovement::class);
     }
+
+    public function bookBalance(): string
+    {
+        $value = $this->movements()
+            ->where('origin', 'book')
+            ->selectRaw("COALESCE(SUM(CASE WHEN direction = 'in' THEN amount ELSE -amount END), 0)::text AS balance")
+            ->value('balance');
+
+        return bcadd((string) ($value ?? '0'), '0', 4);
+    }
+
+    public function statementBalance(): ?string
+    {
+        $value = $this->movements()
+            ->where('origin', 'statement')
+            ->whereNotNull('statement_balance')
+            ->orderByDesc('movement_date')
+            ->orderByDesc('id')
+            ->value('statement_balance');
+
+        return $value === null ? null : bcadd((string) $value, '0', 4);
+    }
+
+    public function unreconciledStatementCount(): int
+    {
+        return $this->movements()
+            ->where('origin', 'statement')
+            ->whereNull('reconciled_movement_id')
+            ->count();
+    }
 }
