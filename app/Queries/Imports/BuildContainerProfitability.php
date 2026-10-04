@@ -47,12 +47,6 @@ final class BuildContainerProfitability
             $hasMappedQuantity = false;
 
             foreach ($containerPackages as $package) {
-                $cost = bcadd(
-                    $cost,
-                    bcmul((string) $package->quantity, (string) $package->landed_unit_cost_try, 8),
-                    4,
-                );
-
                 if ($package->product_id === null || ! isset($productRows[(int) $package->product_id])) {
                     continue;
                 }
@@ -70,12 +64,22 @@ final class BuildContainerProfitability
                     bcmul((string) $productRows[(int) $package->product_id]['sales_try'], $share, 10),
                     4,
                 );
+                $cost = bcadd(
+                    $cost,
+                    bcmul((string) $productRows[(int) $package->product_id]['cost_try'], $share, 10),
+                    4,
+                );
             }
 
             if (! $hasMappedQuantity && bccomp($totalVolume, '0', 6) > 0) {
                 $volumeShare = bcdiv((string) ($container->volume_cbm ?? '0'), $totalVolume, 10);
                 $sales = bcadd(
                     bcmul((string) $profitability['sales_try'], $volumeShare, 10),
+                    '0',
+                    4,
+                );
+                $cost = bcadd(
+                    bcmul((string) $profitability['cost_try'], $volumeShare, 10),
                     '0',
                     4,
                 );

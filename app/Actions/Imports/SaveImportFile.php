@@ -46,7 +46,7 @@ final class SaveImportFile
             }
 
             if ($currency === 'TRY') {
-                throw new DomainException('İthalat dosyası dövizli olmalıdır.');
+                $rate = '1.000000';
             }
 
             if ($rate !== null && bccomp((string) $rate, '0', 6) <= 0) {
@@ -54,6 +54,7 @@ final class SaveImportFile
             }
 
             $oldRate = $locked->exists ? (string) ($locked->exchange_rate ?? '') : null;
+            $oldCurrency = $locked->exists ? (string) $locked->currency : null;
 
             $locked->fill([
                 'supplier_contact_id' => $supplierId,
@@ -83,7 +84,8 @@ final class SaveImportFile
 
             $locked->save();
 
-            if ($locked->exists && $oldRate !== null && $oldRate !== (string) $locked->exchange_rate) {
+            if ($locked->exists
+                && ($oldRate !== (string) $locked->exchange_rate || $oldCurrency !== (string) $locked->currency)) {
                 $itemIds = $locked->costItems()->pluck('id');
                 ImportCostAllocation::query()->whereIn('import_cost_item_id', $itemIds)->delete();
                 $locked->costItems()->update(['amount_try' => null, 'allocated_at' => null]);
