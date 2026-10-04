@@ -49,9 +49,32 @@ final class SaveConfigDefinition
                 ? $definition->updateWithVersion($attributes, $expectedVersion ?? (int) $definition->version)
                 : ConfigDefinition::query()->create($attributes);
 
-            $keep = [];
+            $existingOptionIds = collect($options)
+                ->pluck('id')
+                ->filter(fn ($id): bool => $id !== null && $id !== '')
+                ->map(fn ($id): int => (int) $id)
+                ->values()
+                ->all();
 
-            foreach ($options as $index => $option) {
+            $removedOptions = ConfigOption::query()
+                ->where('config_definition_id', $definition->id);
+
+            if ($existingOptionIds !== []) {
+                $removedOptions->whereNotIn('id', $existingOptionIds);
+            }
+
+            $removedOptions->delete();
+
+            $optionIndexes = array_keys($options);
+
+            usort(
+                $optionIndexes,
+                fn (int $left, int $right): int => ((int) ($options[$left]['is_default'] ?? false))
+                    <=> ((int) ($options[$right]['is_default'] ?? false)),
+            );
+
+            foreach ($optionIndexes as $index) {
+                $option = $options[$index];
                 $componentId = $option['component_product_id'] ?? null;
 
                 if ($componentId) {
@@ -76,24 +99,17 @@ final class SaveConfigDefinition
                         ->where('config_definition_id', $definition->id)
                         ->findOrFail((int) $option['id']);
 
-                    $row = $row->updateWithVersion(
+                    $row->updateWithVersion(
                         $optionAttributes,
                         (int) ($option['version'] ?? $row->version),
                     );
                 } else {
-                    $row = ConfigOption::query()->create([
+                    ConfigOption::query()->create([
                         'config_definition_id' => $definition->id,
                         ...$optionAttributes,
                     ]);
                 }
-
-                $keep[] = $row->id;
             }
-
-            ConfigOption::query()
-                ->where('config_definition_id', $definition->id)
-                ->when($keep !== [], fn ($q) => $q->whereNotIn('id', $keep))
-                ->delete();
 
             return $definition->refresh();
         });
