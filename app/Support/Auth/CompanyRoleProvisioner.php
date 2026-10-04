@@ -111,6 +111,7 @@ final class CompanyRoleProvisioner
                 'transfers.view', 'transfers.create', 'transfers.update', 'transfers.cancel',
                 'warehouse_slips.view', 'warehouse_slips.create', 'warehouse_slips.update', 'warehouse_slips.cancel',
                 'stock_counts.view', 'stock_counts.create', 'stock_counts.update', 'stock_counts.cancel',
+                'quarantine.view', 'quarantine.update',
                 ...$technicalViews,
             ],
             'Üretim' => [

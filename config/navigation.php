@@ -24,6 +24,7 @@ return [
             ['label' => 'Transferler', 'route' => 'stock.transfers.index', 'permission' => 'transfers.view'],
             ['label' => 'Ambar Fişleri', 'route' => 'stock.warehouse-slips.index', 'permission' => 'warehouse_slips.view'],
             ['label' => 'Stok Sayımları', 'route' => 'stock.counts.index', 'permission' => 'stock_counts.view'],
+            ['label' => 'Karantina', 'route' => 'stock.quarantine.index', 'permission' => 'quarantine.view'],
         ],
     ],
     [
