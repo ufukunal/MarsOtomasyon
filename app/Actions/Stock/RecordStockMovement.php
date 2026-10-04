@@ -27,9 +27,10 @@ final class RecordStockMovement
         $movementDate = CarbonImmutable::parse($data->movementDate)->startOfDay();
 
         $this->assertData($data);
-        $this->ensurePeriodOpen->handle($movementDate);
 
         return DB::connection('period')->transaction(function () use ($data, $movementDate): StockMovement {
+            $this->ensurePeriodOpen->handle($movementDate);
+
             $product = Product::query()->findOrFail($data->productId);
             Location::query()->findOrFail($data->locationId);
 
@@ -103,7 +104,7 @@ final class RecordStockMovement
                 $newAverage = (string) $cost->moving_average;
             }
 
-            $balance->quantity = $after;
+            $balance->setAttribute('quantity', $after);
             $balance->save();
 
             $movement = StockMovement::query()->create([
