@@ -63,7 +63,7 @@ class QuarantineControl extends Component
             $action->handle(
                 $entry->id,
                 $quantity,
-                (string) Str::uuid(),
+                $this->childMutationKey('scrapSelected', $entry->id),
                 $this->decisionNote !== '' ? $this->decisionNote : null,
             );
         }

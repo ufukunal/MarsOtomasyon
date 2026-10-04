@@ -5,6 +5,7 @@ namespace App\Livewire\Products;
 use App\Actions\Products\DeleteProductImage;
 use App\Actions\Products\ReorderProductImages;
 use App\Actions\Products\StoreProductImage;
+use App\Livewire\Concerns\WithIdempotentMutations;
 use App\Models\Period\Product;
 use App\Support\Products\ProductImageResolver;
 use Illuminate\Contracts\View\View;
@@ -14,6 +15,7 @@ use Livewire\WithFileUploads;
 class ProductImages extends Component
 {
     use WithFileUploads;
+    use WithIdempotentMutations;
 
     public Product $product;
 
@@ -30,7 +32,10 @@ class ProductImages extends Component
             'collection' => ['required', 'string'],
         ]);
 
-        $action->handle($this->product, $this->image, $this->collection);
+        $this->runPeriodMutation(
+            'upload',
+            fn () => $action->handle($this->product, $this->image, $this->collection),
+        );
         $this->reset('image');
     }
 
@@ -42,7 +47,10 @@ class ProductImages extends Component
             ->whereKey($attachmentId)
             ->firstOrFail();
 
-        $action->handle($this->product, $attachment);
+        $this->runPeriodMutation(
+            'delete',
+            fn () => $action->handle($this->product, $attachment),
+        );
     }
 
     /** @param list<int> $attachmentIds */
@@ -50,10 +58,13 @@ class ProductImages extends Component
     {
         $this->authorize('update', $this->product);
 
-        $action->handle(
-            $this->product,
-            $this->collection,
-            array_map('intval', $attachmentIds),
+        $this->runPeriodMutation(
+            'reorder',
+            fn () => $action->handle(
+                $this->product,
+                $this->collection,
+                array_map('intval', $attachmentIds),
+            ),
         );
     }
 
@@ -83,7 +94,10 @@ class ProductImages extends Component
 
         [$ids[$index], $ids[$target]] = [$ids[$target], $ids[$index]];
 
-        $action->handle($this->product, $this->collection, $ids);
+        $this->runPeriodMutation(
+            'move',
+            fn () => $action->handle($this->product, $this->collection, $ids),
+        );
     }
 
     public function render(ProductImageResolver $resolver): View
