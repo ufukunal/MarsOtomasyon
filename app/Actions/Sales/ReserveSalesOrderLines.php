@@ -7,6 +7,7 @@ use App\Actions\Stock\ReserveStock;
 use App\Enums\DocumentType;
 use App\Models\Period\Document;
 use App\Models\Period\DocumentLine;
+use App\Models\Period\StockReservation;
 use App\Support\Auth\MutationAuthorizer;
 use App\Support\Concurrency\IdempotencyKey;
 use DomainException;
@@ -58,16 +59,33 @@ final class ReserveSalesOrderLines
                         continue;
                     }
 
-                    $requestedBase = bcadd(
+                    $remainingBase = bcadd(
                         bcmul($remaining, (string) $line->conversion_factor, 6),
                         '0',
                         3,
                     );
 
+                    $alreadyReserved = StockReservation::query()
+                        ->where('document_line_id', $line->id)
+                        ->where('status', 'active')
+                        ->lockForUpdate()
+                        ->get()
+                        ->reduce(
+                            fn (string $sum, StockReservation $reservation): string =>
+                                bcadd($sum, (string) $reservation->quantity, 3),
+                            '0.000',
+                        );
+
+                    $requestedBase = bcsub($remainingBase, $alreadyReserved, 3);
+
+                    if (bccomp($requestedBase, '0', 3) <= 0) {
+                        continue;
+                    }
+
                     $result = $this->reserveStock->handle(
                         productId: (int) $line->product_id,
                         requestedQuantity: $requestedBase,
-                        orderedLocationIds: array_values(array_map('intval', $locationIds)),
+                        orderedLocationIds: array_values(array_unique(array_map('intval', $locationIds))),
                         documentType: DocumentType::SalesOrder->value,
                         documentId: (int) $locked->id,
                         documentLineId: (int) $line->id,
