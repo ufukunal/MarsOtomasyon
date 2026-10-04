@@ -8,7 +8,10 @@
                 <input wire:model="cashCode" placeholder="Kod">
                 <input wire:model="cashName" placeholder="Ad">
                 <input wire:model="cashCurrency" maxlength="3" placeholder="TRY">
-                <button type="button" wire:click="saveCash">Kasa Ekle</button>
+                <button type="button" wire:click="saveCash">{{ $cashEditId ? 'Kasayı Güncelle' : 'Kasa Ekle' }}</button>
+                @if($cashEditId)
+                    <button type="button" wire:click="cancelCashEdit">Vazgeç</button>
+                @endif
             </div>
         @endcan
 
@@ -24,6 +27,7 @@
                     <td>{{ $account->is_active ? 'Aktif' : 'Pasif' }}</td>
                     <td>
                         @can('cash_accounts.update')
+                            <button type="button" wire:click="editCash({{ $account->id }})">Düzenle</button>
                             <button type="button" wire:click="toggleCash({{ $account->id }})">
                                 {{ $account->is_active ? 'Pasife Al' : 'Aktifleştir' }}
                             </button>
@@ -44,7 +48,10 @@
                 <input wire:model="bankAccountName" placeholder="Hesap adı">
                 <input wire:model="bankIban" placeholder="IBAN">
                 <input wire:model="bankCurrency" maxlength="3" placeholder="TRY">
-                <button type="button" wire:click="saveBank">Banka Ekle</button>
+                <button type="button" wire:click="saveBank">{{ $bankEditId ? 'Bankayı Güncelle' : 'Banka Ekle' }}</button>
+                @if($bankEditId)
+                    <button type="button" wire:click="cancelBankEdit">Vazgeç</button>
+                @endif
             </div>
         @endcan
 
@@ -75,6 +82,7 @@
                     <td>{{ $account->is_active ? 'Aktif' : 'Pasif' }}</td>
                     <td>
                         @can('bank_accounts.update')
+                            <button type="button" wire:click="editBank({{ $account->id }})">Düzenle</button>
                             <button type="button" wire:click="toggleBank({{ $account->id }})">
                                 {{ $account->is_active ? 'Pasife Al' : 'Aktifleştir' }}
                             </button>

@@ -12,6 +12,7 @@ php artisan migrate:periods --year=2026
 php artisan migrate:periods --company=1
 php artisan migrate:periods --status
 php artisan migrate:periods --pretend
+php artisan permissions:sync-company-roles
 ```
 
 Komut yalnız Master `periods.status in (active, closed)` kayıtlarını dolaşır.
@@ -29,6 +30,8 @@ Her period için:
 
 `--pretend` SQL'i uygulatmaz ve `schema_version` değiştirmez.
 `--status` repo migration listesi ile DB `migrations` tablosunu karşılaştırır.
+
+Yeni ekran/aksiyon izinleri eklendiğinde period migrationlarından sonra `permissions:sync-company-roles` çalıştırılır. Bu komut demo kullanıcı/şirket seed etmez; mevcut şirketlerde yalnız sistem rol matrisini günceller.
 
 ## Migration disiplini
 

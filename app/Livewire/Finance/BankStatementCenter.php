@@ -115,6 +115,10 @@ class BankStatementCenter extends Component
                 ->get(),
             'bookRows' => BankMovement::query()
                 ->where('origin', 'book')
+                ->whereNotIn('id', BankMovement::query()
+                    ->where('origin', 'statement')
+                    ->whereNotNull('reconciled_movement_id')
+                    ->select('reconciled_movement_id'))
                 ->orderByDesc('movement_date')
                 ->orderByDesc('id')
                 ->limit(200)

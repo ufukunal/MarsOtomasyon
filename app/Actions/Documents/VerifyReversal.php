@@ -48,6 +48,7 @@ final class VerifyReversal
 
             if (! $reverseCash
                 || $reverseCash->cash_account_id !== $originalCash->cash_account_id
+                || $reverseCash->reversal_of_id !== $originalCash->id
                 || $reverseCash->direction === $originalCash->direction
                 || bccomp((string) $reverseCash->amount, (string) $originalCash->amount, 4) !== 0) {
                 throw new DomainException('Ters kasa hareket doğrulaması başarısız.');
@@ -61,6 +62,8 @@ final class VerifyReversal
 
             if (! $reverseBank
                 || $reverseBank->bank_account_id !== $originalBank->bank_account_id
+                || $reverseBank->origin !== 'book'
+                || $reverseBank->reversal_of_id !== $originalBank->id
                 || $reverseBank->direction === $originalBank->direction
                 || bccomp((string) $reverseBank->amount, (string) $originalBank->amount, 4) !== 0) {
                 throw new DomainException('Ters banka hareket doğrulaması başarısız.');

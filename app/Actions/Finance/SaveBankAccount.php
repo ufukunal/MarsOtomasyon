@@ -18,15 +18,32 @@ final class SaveBankAccount
         $code = strtoupper(trim((string) $data['code']));
         $currency = strtoupper(trim((string) ($data['currency'] ?? 'TRY')));
 
-        if ($code === '' || strlen($currency) !== 3) {
-            throw new DomainException('Finans hesabı kodu ve 3 harfli para birimi zorunludur.');
+        $bankName = trim((string) $data['bank_name']);
+        $accountName = trim((string) $data['account_name']);
+        $iban = strtoupper(preg_replace('/\s+/', '', trim((string) ($data['iban'] ?? ''))) ?? '');
+
+        if ($code === ''
+            || $bankName === ''
+            || $accountName === ''
+            || ! preg_match('/^[A-Z]{3}$/', $currency)) {
+            throw new DomainException('Banka hesap kodu, banka adı, hesap adı ve para birimi zorunludur.');
+        }
+
+        if ($iban !== '' && ! preg_match('/^[A-Z]{2}[0-9A-Z]{13,32}$/', $iban)) {
+            throw new DomainException('IBAN biçimi geçersiz.');
+        }
+
+        if ($account
+            && $account->currency !== $currency
+            && $account->movements()->exists()) {
+            throw new DomainException('Hareket görmüş banka hesabının para birimi değiştirilemez.');
         }
 
         $attributes = [
             'code' => $code,
-            'bank_name' => trim((string) $data['bank_name']),
-            'account_name' => trim((string) $data['account_name']),
-            'iban' => trim((string) ($data['iban'] ?? '')) ?: null,
+            'bank_name' => $bankName,
+            'account_name' => $accountName,
+            'iban' => $iban !== '' ? $iban : null,
             'currency' => $currency,
             'is_active' => (bool) ($data['is_active'] ?? true),
         ];

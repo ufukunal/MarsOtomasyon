@@ -63,7 +63,7 @@ final class ReconcileBankStatement
                         if (BankMovement::query()
                             ->where('origin', 'statement')
                             ->where('reconciled_movement_id', $book->id)
-                            ->whereKeyNot($statement->id)
+                            ->where('id', '!=', $statement->id)
                             ->exists()) {
                             throw new DomainException('Seçilen defter hareketi başka bir ekstre satırıyla zaten eşleştirilmiş.');
                         }

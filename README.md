@@ -25,7 +25,7 @@ Repo aktif Laravel uygulama kodunu ve kanonik dokümantasyonu birlikte içerir.
 
 ## Güncel durum
 
-Faz 0, Faz 1, Faz 2, Faz 3 ve Faz 4 production kodu uygulanmıştır. Faz 3; ortak belge şeması, belge hesap motoru, posting zinciri, teklif, satış siparişi ve rezervasyon, irsaliye/kısmi sevk, satış faturası/kısmi fatura, proforma, tahsilat/cari hareket, araçtan sıcak satış ve ters kayıt akışlarını kapsar. Faz 4; satınalma siparişi onayı, kısmi mal kabul, alış faturası, üçlü eşleştirme, hareketli ortalama maliyet güncelleme ve ±%25 alış fiyat sapma uyarısı, ödeme, tedarikçi performansı ve alış integrity kontrollerini kapsar. Faz 4 test paketi ile tüm kalite komutları final local runner turunda toplu çalıştırılacaktır. Faz 5 production geliştirmesi henüz başlatılmamıştır.
+Faz 0, Faz 1, Faz 2, Faz 3, Faz 4 ve Faz 5 production kodu uygulanmıştır. Faz 3; ortak belge şeması, belge hesap motoru, posting zinciri, teklif, satış siparişi ve rezervasyon, irsaliye/kısmi sevk, satış faturası/kısmi fatura, proforma, tahsilat/cari hareket, araçtan sıcak satış ve ters kayıt akışlarını kapsar. Faz 4; satınalma siparişi onayı, kısmi mal kabul, alış faturası, üçlü eşleştirme, hareketli ortalama maliyet güncelleme ve ±%25 alış fiyat sapma uyarısı, ödeme, tedarikçi performansı ve alış integrity kontrollerini kapsar. Faz 5; kasa/banka hesapları ve bakiyeleri, manuel finans hareketleri, virman, gider, avans, çek/senet ve bordro akışları, CSV/XLSX/MT940 banka ekstresi içe aktarma, duplicate koruması, mutabakat, finans ters kayıtları ve `integrity:finance` kontrolünü kapsar. Faz 4–5 test paketleri ile tüm kalite komutları final local runner turunda toplu çalıştırılacaktır. Faz 6 production geliştirmesi henüz başlatılmamıştır.
 
 K-038 gereği state-changing Livewire istekleri ilk component snapshot'ında üretilen ve retry boyunca sabit kalan idempotency key taşır. Period mutationları period DB'deki, Master mutationları Master DB'deki idempotency kayıtlarını kullanır.
 
@@ -54,9 +54,10 @@ php artisan serve
 
 ```bash
 php artisan migrate:periods
+php artisan permissions:sync-company-roles
 ```
 
-Production'da demo seed kullanılmaz.
+`permissions:sync-company-roles` production-safe sistem rol senkronizasyonudur; yeni ekran izinlerini mevcut şirketlerin Yönetici/Muhasebe/Satış/Satınalma/Depo/Üretim/Görüntüleyici sistem rollerine uygular. Production'da demo seed kullanılmaz.
 
 ## Yerel demo seed
 

@@ -22,6 +22,10 @@ final class SuggestBankStatementMatches
             ->where('origin', 'book')
             ->where('direction', $statement->direction)
             ->where('amount', $statement->amount)
+            ->whereNotIn('id', BankMovement::query()
+                ->where('origin', 'statement')
+                ->whereNotNull('reconciled_movement_id')
+                ->select('reconciled_movement_id'))
             ->whereBetween('movement_date', [
                 $date->subDays(3)->toDateString(),
                 $date->addDays(3)->toDateString(),

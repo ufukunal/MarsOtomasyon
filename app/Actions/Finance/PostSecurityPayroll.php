@@ -97,6 +97,7 @@ final class PostSecurityPayroll
                         $this->assertSecurityState($security, $action);
                         $stateSnapshot[(string) $security->id] = [
                             'status' => $security->status,
+                            'contact_transaction_id' => $security->contact_transaction_id,
                             'endorsed_to_contact_id' => $security->endorsed_to_contact_id,
                             'bank_account_id' => $security->bank_account_id,
                             'last_payroll_id' => $security->last_payroll_id,

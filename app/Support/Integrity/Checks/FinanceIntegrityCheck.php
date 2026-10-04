@@ -69,6 +69,18 @@ final class FinanceIntegrityCheck implements IntegrityCheck
         }
 
         $statementRows = BankMovement::query()->where('origin', 'statement')->get();
+        $reconciledGroups = $statementRows
+            ->whereNotNull('reconciled_movement_id')
+            ->groupBy('reconciled_movement_id');
+
+        foreach ($reconciledGroups as $bookMovementId => $rows) {
+            if ($rows->count() > 1) {
+                $mismatches[] = [
+                    'book_movement_id' => $bookMovementId,
+                    'reason' => 'statement_reconciliation_not_one_to_one',
+                ];
+            }
+        }
 
         foreach ($statementRows as $statement) {
             $checked++;
@@ -94,6 +106,38 @@ final class FinanceIntegrityCheck implements IntegrityCheck
                 $mismatches[] = [
                     'movement_id' => $statement->id,
                     'reason' => 'statement_reconciliation_invalid',
+                ];
+            }
+        }
+
+        foreach (CashMovement::query()->whereNotNull('reversal_of_id')->get() as $reversal) {
+            $checked++;
+            $original = CashMovement::query()->find($reversal->reversal_of_id);
+
+            if (! $original
+                || $original->cash_account_id !== $reversal->cash_account_id
+                || $original->direction === $reversal->direction
+                || bccomp((string) $original->amount, (string) $reversal->amount, 4) !== 0) {
+                $mismatches[] = [
+                    'movement_id' => $reversal->id,
+                    'reason' => 'cash_reversal_invalid',
+                ];
+            }
+        }
+
+        foreach (BankMovement::query()->whereNotNull('reversal_of_id')->get() as $reversal) {
+            $checked++;
+            $original = BankMovement::query()->find($reversal->reversal_of_id);
+
+            if (! $original
+                || $original->origin !== 'book'
+                || $reversal->origin !== 'book'
+                || $original->bank_account_id !== $reversal->bank_account_id
+                || $original->direction === $reversal->direction
+                || bccomp((string) $original->amount, (string) $reversal->amount, 4) !== 0) {
+                $mismatches[] = [
+                    'movement_id' => $reversal->id,
+                    'reason' => 'bank_reversal_invalid',
                 ];
             }
         }

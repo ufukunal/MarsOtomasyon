@@ -49,17 +49,28 @@ final class PostExpense
                 $description,
             ): Document {
                 $category = trim($category);
+                $net = bcadd($netAmount, '0', 4);
+                $vat = bcadd($vatRate, '0', 4);
+                $currency = strtoupper(trim($currency));
+                $rate = $currency === 'TRY'
+                    ? '1.000000'
+                    : bcadd($exchangeRate, '0', 6);
 
-                if ($category === '') {
-                    throw new DomainException('Gider türü zorunludur.');
+                if ($category === ''
+                    || bccomp($net, '0', 4) <= 0
+                    || bccomp($vat, '0', 4) < 0
+                    || bccomp($vat, '100', 4) > 0
+                    || ! preg_match('/^[A-Z]{3}$/', $currency)
+                    || bccomp($rate, '0', 6) <= 0) {
+                    throw new DomainException('Gider türü, tutarı, KDV oranı, para birimi veya kuru geçersiz.');
                 }
 
                 $totals = $this->calculator->handle([[
                     'quantity' => '1.000',
-                    'unit_price' => bcadd($netAmount, '0', 4),
+                    'unit_price' => $net,
                     'line_discount_rate' => '0',
                     'line_discount_amount' => '0',
-                    'vat_rate' => bcadd($vatRate, '0', 4),
+                    'vat_rate' => $vat,
                 ]], '0', '0');
 
                 $actor = auth()->user();
@@ -67,10 +78,8 @@ final class PostExpense
                     'document_type' => DocumentType::Expense->value,
                     'revision_no' => 0,
                     'document_date' => $documentDate,
-                    'currency' => strtoupper($currency),
-                    'exchange_rate' => strtoupper($currency) === 'TRY'
-                        ? '1.000000'
-                        : bcadd($exchangeRate, '0', 6),
+                    'currency' => $currency,
+                    'exchange_rate' => $rate,
                     'status' => 'draft',
                     'discount_rate' => '0.0000',
                     'discount_amount' => $totals->discountAmount,
@@ -93,10 +102,10 @@ final class PostExpense
                     'line_kind' => 'service',
                     'description' => $description ?: $category,
                     'quantity' => '1.000',
-                    'unit_price' => bcadd($netAmount, '0', 4),
+                    'unit_price' => $net,
                     'line_discount_rate' => $line->discountRate,
                     'line_discount_amount' => $line->discountAmount,
-                    'vat_rate' => bcadd($vatRate, '0', 4),
+                    'vat_rate' => $vat,
                     'line_total' => $line->lineTotal,
                     'reserve_stock' => false,
                     'cancelled_quantity' => '0.000',

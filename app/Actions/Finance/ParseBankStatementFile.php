@@ -103,45 +103,59 @@ final class ParseBankStatementFile
 
             if ($sharedXml !== false) {
                 $xml = new SimpleXMLElement($sharedXml);
+                $items = $xml->xpath('//*[local-name()="si"]') ?: [];
 
-                foreach ($xml->si as $item) {
-                    if (isset($item->t)) {
-                        $sharedStrings[] = (string) $item->t;
-                    } else {
-                        $text = '';
-
-                        foreach ($item->r as $run) {
-                            $text .= (string) $run->t;
-                        }
-
-                        $sharedStrings[] = $text;
-                    }
+                foreach ($items as $item) {
+                    $texts = $item->xpath('.//*[local-name()="t"]') ?: [];
+                    $sharedStrings[] = implode('', array_map(
+                        static fn (SimpleXMLElement $node): string => (string) $node,
+                        $texts,
+                    ));
                 }
             }
 
             $sheetXml = $zip->getFromName('xl/worksheets/sheet1.xml');
 
             if ($sheetXml === false) {
-                throw new DomainException('XLSX ilk çalışma sayfası bulunamadı.');
+                for ($index = 0; $index < $zip->numFiles; $index++) {
+                    $stat = $zip->statIndex($index);
+                    $name = is_array($stat) ? (string) ($stat['name'] ?? '') : '';
+
+                    if (preg_match('#^xl/worksheets/sheet\d+\.xml$#', $name)) {
+                        $sheetXml = $zip->getFromIndex($index);
+                        break;
+                    }
+                }
+            }
+
+            if ($sheetXml === false) {
+                throw new DomainException('XLSX çalışma sayfası bulunamadı.');
             }
 
             $sheet = new SimpleXMLElement($sheetXml);
             $table = [];
+            $rows = $sheet->xpath('//*[local-name()="sheetData"]/*[local-name()="row"]') ?: [];
 
-            foreach ($sheet->sheetData->row as $row) {
+            foreach ($rows as $row) {
                 $values = [];
+                $cells = $row->xpath('./*[local-name()="c"]') ?: [];
 
-                foreach ($row->c as $cell) {
+                foreach ($cells as $cell) {
                     $reference = (string) $cell['r'];
                     preg_match('/^[A-Z]+/', $reference, $match);
                     $column = $this->columnIndex($match[0] ?? 'A');
                     $type = (string) $cell['t'];
-                    $value = (string) $cell->v;
+                    $valueNodes = $cell->xpath('./*[local-name()="v"]') ?: [];
+                    $value = $valueNodes === [] ? '' : (string) $valueNodes[0];
 
                     if ($type === 's') {
                         $value = $sharedStrings[(int) $value] ?? '';
                     } elseif ($type === 'inlineStr') {
-                        $value = (string) $cell->is->t;
+                        $textNodes = $cell->xpath('.//*[local-name()="t"]') ?: [];
+                        $value = implode('', array_map(
+                            static fn (SimpleXMLElement $node): string => (string) $node,
+                            $textNodes,
+                        ));
                     }
 
                     $values[$column] = trim($value);
@@ -226,9 +240,11 @@ final class ParseBankStatementFile
                     $day = (int) substr($match[2], 2, 2);
                     $candidate = CarbonImmutable::create($dateObject->year, $month, $day)->startOfDay();
 
-                    if ($candidate->diffInDays($dateObject, false) > 180) {
+                    $deltaSeconds = $candidate->getTimestamp() - $dateObject->getTimestamp();
+
+                    if ($deltaSeconds > 180 * 86400) {
                         $candidate = $candidate->subYear();
-                    } elseif ($candidate->diffInDays($dateObject, false) < -180) {
+                    } elseif ($deltaSeconds < -180 * 86400) {
                         $candidate = $candidate->addYear();
                     }
 
@@ -256,6 +272,16 @@ final class ParseBankStatementFile
 
             if ($pending !== null && str_starts_with($line, ':86:')) {
                 $pending['description'] = trim(substr($line, 4));
+
+                continue;
+            }
+
+            if ($pending !== null
+                && preg_match('/^:62[FM]:([CD])\d{6}[A-Z]{3}([0-9,\.]+)$/', $line, $balanceMatch)) {
+                $balance = $this->decimal($balanceMatch[2]);
+                $pending['balance'] = $balanceMatch[1] === 'D'
+                    ? bcmul($balance, '-1', 4)
+                    : $balance;
             }
         }
 
@@ -336,11 +362,12 @@ final class ParseBankStatementFile
         }
 
         if (is_numeric($value)) {
-            $serial = (float) $value;
+            $integerPart = preg_split('/[\.,]/', $value, 2)[0] ?? '';
+            $serial = (int) $integerPart;
 
             if ($serial >= 1 && $serial <= 100000) {
                 return CarbonImmutable::create(1899, 12, 30)
-                    ->addDays((int) floor($serial))
+                    ->addDays($serial)
                     ->toDateString();
             }
         }

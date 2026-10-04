@@ -18,13 +18,21 @@ final class SaveCashAccount
         $code = strtoupper(trim((string) $data['code']));
         $currency = strtoupper(trim((string) ($data['currency'] ?? 'TRY')));
 
-        if ($code === '' || strlen($currency) !== 3) {
-            throw new DomainException('Finans hesabı kodu ve 3 harfli para birimi zorunludur.');
+        $name = trim((string) $data['name']);
+
+        if ($code === '' || $name === '' || ! preg_match('/^[A-Z]{3}$/', $currency)) {
+            throw new DomainException('Kasa kodu, adı ve 3 harfli para birimi zorunludur.');
+        }
+
+        if ($account
+            && $account->currency !== $currency
+            && $account->movements()->exists()) {
+            throw new DomainException('Hareket görmüş kasanın para birimi değiştirilemez.');
         }
 
         $attributes = [
             'code' => $code,
-            'name' => trim((string) $data['name']),
+            'name' => $name,
             'currency' => $currency,
             'is_active' => (bool) ($data['is_active'] ?? true),
         ];
