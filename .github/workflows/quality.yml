@@ -57,6 +57,9 @@ jobs:
       - name: Node install
         run: npm ci --ignore-scripts --no-audit --no-fund
 
+      - name: Frontend build
+        run: npm run build
+
       - name: Pint
         run: |
           vendor/bin/pint
