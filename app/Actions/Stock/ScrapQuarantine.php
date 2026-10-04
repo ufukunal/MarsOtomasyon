@@ -8,6 +8,7 @@ use App\Models\Period\StockBalance;
 use App\Support\Audit\AuditContext;
 use App\Support\Auth\MutationAuthorizer;
 use App\Support\Concurrency\IdempotencyKey;
+use App\Support\Period\PeriodContext;
 use DomainException;
 use Illuminate\Support\Facades\DB;
 
@@ -26,6 +27,7 @@ final class ScrapQuarantine
         ?string $movementDate = null,
     ): QuarantineEntry {
         MutationAuthorizer::authorize('quarantine.update');
+        PeriodContext::ensureWritable();
 
         if (bccomp($quantity, '0', 3) <= 0) {
             throw new DomainException('Hurdaya ayrılacak miktar pozitif olmalıdır.');

@@ -7,6 +7,7 @@ use App\Models\Period\StockBalance;
 use App\Models\Period\StockReservation;
 use App\Support\Auth\MutationAuthorizer;
 use App\Support\Concurrency\IdempotencyKey;
+use App\Support\Period\PeriodContext;
 use DomainException;
 use Illuminate\Support\Facades\DB;
 
@@ -29,6 +30,7 @@ final class ReserveStock
         ?string $actorUserName = null,
     ): ReservationResult {
         MutationAuthorizer::authorize('reservations.create');
+        PeriodContext::ensureWritable();
 
         if (bccomp($requestedQuantity, '0', 3) <= 0) {
             throw new DomainException('Rezervasyon miktarı pozitif olmalıdır.');

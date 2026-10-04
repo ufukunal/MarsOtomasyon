@@ -4,6 +4,7 @@ namespace App\Actions\Stock;
 
 use App\Models\Period\StockCount;
 use App\Support\Auth\MutationAuthorizer;
+use App\Support\Period\PeriodContext;
 use DomainException;
 use Illuminate\Support\Facades\DB;
 
@@ -12,6 +13,7 @@ final class ReviewStockCount
     public function handle(int $countId): StockCount
     {
         MutationAuthorizer::authorize('stock_counts.update');
+        PeriodContext::ensureWritable();
 
         return DB::connection('period')->transaction(function () use ($countId): StockCount {
             $count = StockCount::query()->lockForUpdate()->findOrFail($countId);

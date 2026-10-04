@@ -5,6 +5,7 @@ namespace App\Actions\Stock;
 use App\Models\Period\StockReservation;
 use App\Support\Auth\MutationAuthorizer;
 use App\Support\Concurrency\IdempotencyKey;
+use App\Support\Period\PeriodContext;
 use DomainException;
 use Illuminate\Support\Facades\DB;
 
@@ -15,6 +16,7 @@ final class ReleaseReservation
     public function handle(int $reservationId, string $idempotencyKey): StockReservation
     {
         MutationAuthorizer::authorize('reservations.update');
+        PeriodContext::ensureWritable();
 
         $result = IdempotencyKey::run(
             $idempotencyKey,

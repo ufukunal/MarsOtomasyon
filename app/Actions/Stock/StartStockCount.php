@@ -8,6 +8,7 @@ use App\Models\Period\StockCount;
 use App\Support\Audit\AuditContext;
 use App\Support\Auth\MutationAuthorizer;
 use App\Support\Concurrency\IdempotencyKey;
+use App\Support\Period\PeriodContext;
 use Carbon\CarbonImmutable;
 use DomainException;
 use Illuminate\Support\Facades\DB;
@@ -19,6 +20,7 @@ final class StartStockCount
     public function handle(int $countId, string $idempotencyKey): StockCount
     {
         MutationAuthorizer::authorize('stock_counts.update');
+        PeriodContext::ensureWritable();
         $result = IdempotencyKey::run($idempotencyKey, "stock_count.start:{$countId}", fn (): int => $this->start($countId));
 
         return StockCount::query()->with(['location', 'lines.product'])->findOrFail((int) $result);

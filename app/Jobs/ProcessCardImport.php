@@ -32,6 +32,7 @@ class ProcessCardImport implements ShouldQueue
         PeriodContext::useSystem($this->companyId, $this->periodId);
 
         try {
+            PeriodContext::ensureWritable();
             $batch = CardImportBatch::query()->findOrFail($this->batchId);
 
             if ($batch->status === 'done') {

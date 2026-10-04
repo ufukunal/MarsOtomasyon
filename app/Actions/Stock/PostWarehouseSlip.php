@@ -10,6 +10,7 @@ use App\Models\Period\WarehouseSlip;
 use App\Support\Audit\AuditContext;
 use App\Support\Auth\MutationAuthorizer;
 use App\Support\Concurrency\IdempotencyKey;
+use App\Support\Period\PeriodContext;
 use Carbon\CarbonImmutable;
 use DomainException;
 use Illuminate\Support\Facades\DB;
@@ -29,6 +30,7 @@ final class PostWarehouseSlip
         bool $acceptCostDeviation = false,
     ): WarehouseSlip {
         MutationAuthorizer::authorize('warehouse_slips.update');
+        PeriodContext::ensureWritable();
 
         $result = IdempotencyKey::run(
             $idempotencyKey,

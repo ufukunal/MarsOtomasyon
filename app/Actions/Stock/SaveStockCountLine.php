@@ -5,6 +5,7 @@ namespace App\Actions\Stock;
 use App\Models\Period\StockCount;
 use App\Models\Period\StockCountLine;
 use App\Support\Auth\MutationAuthorizer;
+use App\Support\Period\PeriodContext;
 use DomainException;
 use Illuminate\Support\Facades\DB;
 
@@ -13,6 +14,7 @@ final class SaveStockCountLine
     public function handle(int $countId, int $lineId, string $countedQuantity, ?string $note = null, ?bool $approved = null): StockCountLine
     {
         MutationAuthorizer::authorize('stock_counts.update');
+        PeriodContext::ensureWritable();
 
         if (bccomp($countedQuantity, '0', 3) < 0) {
             throw new DomainException('Sayılan miktar negatif olamaz.');

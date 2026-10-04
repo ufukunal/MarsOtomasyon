@@ -7,6 +7,7 @@ use App\DataObjects\StockMovementData;
 use App\Models\Period\QuarantineEntry;
 use App\Support\Audit\AuditContext;
 use App\Support\Concurrency\IdempotencyKey;
+use App\Support\Period\PeriodContext;
 use DomainException;
 use Illuminate\Support\Facades\DB;
 
@@ -19,6 +20,8 @@ final class ReceiveToQuarantine
 
     public function handle(QuarantineReceiptData $data, string $idempotencyKey): QuarantineEntry
     {
+        PeriodContext::ensureWritable();
+
         if (bccomp($data->quantity, '0', 3) <= 0) {
             throw new DomainException('Karantina miktarı pozitif olmalıdır.');
         }

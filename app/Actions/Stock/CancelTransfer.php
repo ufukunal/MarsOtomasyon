@@ -8,6 +8,7 @@ use App\Models\Period\Transfer;
 use App\Support\Audit\AuditContext;
 use App\Support\Auth\MutationAuthorizer;
 use App\Support\Concurrency\IdempotencyKey;
+use App\Support\Period\PeriodContext;
 use Carbon\CarbonImmutable;
 use DomainException;
 use Illuminate\Support\Facades\DB;
@@ -19,6 +20,7 @@ final class CancelTransfer
     public function handle(int $transferId, string $idempotencyKey): Transfer
     {
         MutationAuthorizer::authorize('transfers.cancel');
+        PeriodContext::ensureWritable();
 
         $result = IdempotencyKey::run(
             $idempotencyKey,

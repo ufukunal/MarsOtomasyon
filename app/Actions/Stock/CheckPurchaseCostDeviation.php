@@ -75,6 +75,8 @@ final class CheckPurchaseCostDeviation
         );
 
         if ($accepted) {
+            PeriodContext::ensureWritable();
+
             AuditContext::period(
                 'Alış maliyet sapma uyarısına rağmen işlem sürdürüldü.',
                 [
