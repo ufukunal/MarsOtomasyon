@@ -17,15 +17,21 @@ class ImportCostItem extends PeriodModel
     protected static function booted(): void
     {
         $guard = function (self $item): void {
-            if ($item->exists && in_array(
-                (string) $item->importFile()->value('status'),
-                ['received', 'closed'],
-                true,
-            )) {
-                throw new LogicException('Teslim alınmış ithalat maliyet kalemi değiştirilemez.');
+            $fileIds = array_unique(array_filter([
+                (int) ($item->import_file_id ?? 0),
+                (int) ($item->getOriginal('import_file_id') ?? 0),
+            ]));
+
+            foreach ($fileIds as $fileId) {
+                $status = ImportFile::query()->whereKey($fileId)->value('status');
+
+                if (in_array((string) $status, ['received', 'closed'], true)) {
+                    throw new LogicException('Teslim alınmış ithalat maliyet kalemi değiştirilemez.');
+                }
             }
         };
 
+        static::creating($guard);
         static::updating($guard);
         static::deleting($guard);
     }

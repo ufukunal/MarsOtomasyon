@@ -4,6 +4,7 @@ namespace App\Models\Period;
 
 use App\Models\PeriodModel;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use LogicException;
 
 class ImportCostAllocation extends PeriodModel
 {
@@ -11,6 +12,31 @@ class ImportCostAllocation extends PeriodModel
         'import_cost_item_id', 'package_id', 'product_id', 'container_id',
         'basis_value', 'allocation_ratio', 'allocated_amount_try',
     ];
+
+    protected static function booted(): void
+    {
+        $guard = function (self $allocation): void {
+            $costItemIds = array_unique(array_filter([
+                (int) ($allocation->import_cost_item_id ?? 0),
+                (int) ($allocation->getOriginal('import_cost_item_id') ?? 0),
+            ]));
+
+            foreach ($costItemIds as $costItemId) {
+                $fileId = ImportCostItem::query()->whereKey($costItemId)->value('import_file_id');
+                $status = $fileId
+                    ? ImportFile::query()->whereKey((int) $fileId)->value('status')
+                    : null;
+
+                if (in_array((string) $status, ['received', 'closed'], true)) {
+                    throw new LogicException('Teslim alınmış ithalat maliyet dağıtımı değiştirilemez.');
+                }
+            }
+        };
+
+        static::creating($guard);
+        static::updating($guard);
+        static::deleting($guard);
+    }
 
     protected function casts(): array
     {

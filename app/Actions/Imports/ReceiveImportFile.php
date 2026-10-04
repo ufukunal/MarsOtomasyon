@@ -4,6 +4,7 @@ namespace App\Actions\Imports;
 
 use App\Actions\Periods\EnsurePeriodOpen;
 use App\Actions\Stock\RecordStockMovement;
+use App\Enums\ProductKind;
 use App\DataObjects\StockMovementData;
 use App\Models\Period\ImportFile;
 use App\Models\Period\ImportPackage;
@@ -46,13 +47,16 @@ final class ReceiveImportFile
                 $date = CarbonImmutable::parse($receivingDate)->startOfDay();
                 $this->ensurePeriodOpen->handle($date);
 
-                $rate = bcadd((string) ($locked->exchange_rate ?? '0'), '0', 6);
+                $rate = $locked->currency === 'TRY'
+                    ? '1.000000'
+                    : bcadd((string) ($locked->exchange_rate ?? '0'), '0', 6);
 
                 if (bccomp($rate, '0', 6) <= 0) {
                     throw new DomainException('Stoğa almadan önce ithalat kuru girilmelidir.');
                 }
 
                 $packages = ImportPackage::query()
+                    ->with('product')
                     ->where('import_file_id', $locked->id)
                     ->orderBy('id')
                     ->lockForUpdate()
@@ -69,6 +73,14 @@ final class ReceiveImportFile
 
                     if ($package->status !== 'matched') {
                         throw new DomainException('Tüm ithalat kolileri eşleşmiş durumda olmalıdır.');
+                    }
+
+                    if ($package->product?->kind === ProductKind::Set) {
+                        throw new DomainException('Set ürün fiziksel ithalat paketiyle stoğa alınamaz.');
+                    }
+
+                    if (bccomp((string) $package->quantity, '0', 3) <= 0) {
+                        throw new DomainException('İthalat paket miktarı pozitif olmalıdır.');
                     }
                 }
 
@@ -110,7 +122,11 @@ final class ReceiveImportFile
                     $package->save();
                 }
 
-                $locked->containers()->update(['status' => 'received']);
+                foreach ($locked->containers()->orderBy('id')->lockForUpdate()->get() as $container) {
+                    $container->status = 'received';
+                    $container->save();
+                }
+
                 $locked->status = 'received';
                 $locked->received_at = $date->toDateString();
                 $locked->version = (int) $locked->version + 1;

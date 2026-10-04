@@ -21,15 +21,21 @@ class ImportPackage extends PeriodModel
     protected static function booted(): void
     {
         $guard = function (self $package): void {
-            if ($package->exists && in_array(
-                (string) $package->importFile()->value('status'),
-                ['received', 'closed'],
-                true,
-            )) {
-                throw new LogicException('Teslim alınmış ithalat paketi değiştirilemez.');
+            $fileIds = array_unique(array_filter([
+                (int) ($package->import_file_id ?? 0),
+                (int) ($package->getOriginal('import_file_id') ?? 0),
+            ]));
+
+            foreach ($fileIds as $fileId) {
+                $status = ImportFile::query()->whereKey($fileId)->value('status');
+
+                if (in_array((string) $status, ['received', 'closed'], true)) {
+                    throw new LogicException('Teslim alınmış ithalat paketi değiştirilemez.');
+                }
             }
         };
 
+        static::creating($guard);
         static::updating($guard);
         static::deleting($guard);
     }

@@ -19,15 +19,21 @@ class ImportContainer extends PeriodModel
     protected static function booted(): void
     {
         $guard = function (self $container): void {
-            if ($container->exists && $container->importFile()->value('status') && in_array(
-                $container->importFile()->value('status'),
-                ['received', 'closed'],
-                true,
-            )) {
-                throw new LogicException('Teslim alınmış ithalat konteyneri değiştirilemez.');
+            $fileIds = array_unique(array_filter([
+                (int) ($container->import_file_id ?? 0),
+                (int) ($container->getOriginal('import_file_id') ?? 0),
+            ]));
+
+            foreach ($fileIds as $fileId) {
+                $status = ImportFile::query()->whereKey($fileId)->value('status');
+
+                if (in_array((string) $status, ['received', 'closed'], true)) {
+                    throw new LogicException('Teslim alınmış ithalat konteyneri değiştirilemez.');
+                }
             }
         };
 
+        static::creating($guard);
         static::updating($guard);
         static::deleting($guard);
     }
