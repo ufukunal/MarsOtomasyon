@@ -4,14 +4,15 @@ namespace App\Models\Period;
 
 use App\Models\PeriodModel;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
 /**
  * @property int $contact_id
  * @property int|null $document_id
  * @property string $transaction_type
  * @property string $direction
- * @property \Illuminate\Support\Carbon $transaction_date
- * @property \Illuminate\Support\Carbon|null $due_date
+ * @property Carbon $transaction_date
+ * @property Carbon|null $due_date
  * @property string $amount
  * @property string $currency
  * @property int|null $reversal_of_id
