@@ -10,7 +10,7 @@ return new class extends Migration
         $connection = DB::connection('master');
         $roleIds = $connection->table('roles')->where('name', 'Depo')->where('guard_name', 'web')->pluck('id');
         $permissionIds = $connection->table('permissions')
-            ->whereIn('name', ['warehouse_slips.view','warehouse_slips.create','warehouse_slips.update','warehouse_slips.cancel'])
+            ->whereIn('name', ['warehouse_slips.view', 'warehouse_slips.create', 'warehouse_slips.update', 'warehouse_slips.cancel'])
             ->where('guard_name', 'web')
             ->pluck('id');
 
@@ -29,7 +29,7 @@ return new class extends Migration
         $connection = DB::connection('master');
         $roleIds = $connection->table('roles')->where('name', 'Depo')->where('guard_name', 'web')->pluck('id');
         $permissionIds = $connection->table('permissions')
-            ->whereIn('name', ['warehouse_slips.view','warehouse_slips.create','warehouse_slips.update','warehouse_slips.cancel'])
+            ->whereIn('name', ['warehouse_slips.view', 'warehouse_slips.create', 'warehouse_slips.update', 'warehouse_slips.cancel'])
             ->where('guard_name', 'web')
             ->pluck('id');
 
