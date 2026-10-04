@@ -26,6 +26,7 @@ use App\Livewire\Pages\Products\ProductList;
 use App\Livewire\Pages\Products\VariantGroupDetail;
 use App\Livewire\Pages\Settings\IntegrityReport;
 use App\Livewire\Pages\Settings\Periods;
+use App\Livewire\Pages\Stock\StockStatus;
 use App\Livewire\Pages\Setup\CompanyWizard;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -68,6 +69,7 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/kartlar/fiyat-listeleri/{list?}', PriceListDetail::class)->name('price-lists.detail');
     Route::get('/kartlar/baska-sirketten-aktar', CrossCompanyCopy::class)->name('company-copy.index');
     Route::get('/ice-aktarma', ImportWizard::class)->name('imports.index');
+    Route::get('/stok/durum', StockStatus::class)->name('stock.status');
     Route::get('/ice-aktarma/{batchId}/hatalar.xlsx', ImportErrorReportController::class)->name('imports.errors');
     Route::get('/urunler/{product}/gorseller/{attachment}', ProductImageController::class)->name('products.images.show');
     Route::get('/ayarlar/butunluk', IntegrityReport::class)->name('settings.integrity');

@@ -17,6 +17,12 @@ return [
         ],
     ],
     [
+        'label' => 'Stok',
+        'items' => [
+            ['label' => 'Stok Durumu', 'route' => 'stock.status', 'permission' => 'stock.view'],
+        ],
+    ],
+    [
         'label' => 'Ayarlar',
         'items' => [
             ['label' => 'Şirketler', 'route' => 'settings.companies', 'permission' => 'companies.view'],
