@@ -9,11 +9,23 @@ use App\Enums\DocumentType;
 class SalesInvoiceEditor extends BaseSalesDocumentEditor
 {
     public string $reversalDate = '';
+
     public string $reversalReason = '';
 
-    protected function documentType(): DocumentType { return DocumentType::SalesInvoice; }
-    protected function permissionPrefix(): string { return 'sales_invoices'; }
-    protected function pageTitle(): string { return $this->document ? 'Satış Faturası' : 'Yeni Satış Faturası'; }
+    protected function documentType(): DocumentType
+    {
+        return DocumentType::SalesInvoice;
+    }
+
+    protected function permissionPrefix(): string
+    {
+        return 'sales_invoices';
+    }
+
+    protected function pageTitle(): string
+    {
+        return $this->document ? 'Satış Faturası' : 'Yeni Satış Faturası';
+    }
 
     protected function extraMutationNames(): array
     {

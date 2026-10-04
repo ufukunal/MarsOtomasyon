@@ -12,9 +12,20 @@ use App\Enums\DocumentType;
 
 class QuoteEditor extends BaseSalesDocumentEditor
 {
-    protected function documentType(): DocumentType { return DocumentType::Quote; }
-    protected function permissionPrefix(): string { return 'quotes'; }
-    protected function pageTitle(): string { return $this->document ? 'Teklif' : 'Yeni Teklif'; }
+    protected function documentType(): DocumentType
+    {
+        return DocumentType::Quote;
+    }
+
+    protected function permissionPrefix(): string
+    {
+        return 'quotes';
+    }
+
+    protected function pageTitle(): string
+    {
+        return $this->document ? 'Teklif' : 'Yeni Teklif';
+    }
 
     protected function extraMutationNames(): array
     {
