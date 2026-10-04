@@ -5,6 +5,7 @@ namespace App\Livewire\Concerns;
 use App\Support\Concurrency\IdempotencyKey;
 use Closure;
 use Illuminate\Support\Str;
+use LogicException;
 
 trait WithIdempotentMutations
 {
@@ -15,13 +16,19 @@ trait WithIdempotentMutations
     protected function seedMutationKeys(array $names): void
     {
         foreach ($names as $name) {
-            $this->mutationKeys[$name] ??= (string) Str::uuid();
+            if (! isset($this->mutationKeys[$name]) || $this->mutationKeys[$name] === '') {
+                $this->mutationKeys[$name] = (string) Str::uuid();
+            }
         }
     }
 
     protected function mutationKey(string $name): string
     {
-        $this->seedMutationKeys([$name]);
+        if (! isset($this->mutationKeys[$name]) || $this->mutationKeys[$name] === '') {
+            throw new LogicException(
+                "{$name} mutation key Livewire snapshot oluşturulmadan önce seedMutationKeys() ile hazırlanmalıdır.",
+            );
+        }
 
         return $this->mutationKeys[$name];
     }

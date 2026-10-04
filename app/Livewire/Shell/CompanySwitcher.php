@@ -2,25 +2,28 @@
 
 namespace App\Livewire\Shell;
 
+use App\Livewire\Concerns\WithIdempotentMutations;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 
 class CompanySwitcher extends Component
 {
+    use WithIdempotentMutations;
+
     public ?int $companyId = null;
 
     public function mount(): void
     {
+        $this->seedMutationKeys(['selectCompany']);
         $this->companyId = session('active_company_id')
             ?? Auth::user()?->last_company_id;
     }
 
     public function updatedCompanyId(?int $companyId): void
     {
-        abort_unless(Auth::check(), 403);
-
         $user = Auth::user();
+        abort_unless($user !== null, 403);
 
         $allowed = $user->companies()
             ->whereKey($companyId)
@@ -28,10 +31,14 @@ class CompanySwitcher extends Component
 
         abort_unless($allowed, 403);
 
-        $user->forceFill([
-            'last_company_id' => $companyId,
-            'last_period_id' => null,
-        ])->save();
+        $this->runMasterMutation('selectCompany', function () use ($user, $companyId): bool {
+            $user->forceFill([
+                'last_company_id' => $companyId,
+                'last_period_id' => null,
+            ])->save();
+
+            return true;
+        });
 
         session([
             'active_company_id' => $companyId,

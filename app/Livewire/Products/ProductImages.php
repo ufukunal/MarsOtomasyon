@@ -23,6 +23,11 @@ class ProductImages extends Component
 
     public mixed $image = null;
 
+    public function mount(): void
+    {
+        $this->seedMutationKeys(['upload', 'delete', 'reorder', 'move']);
+    }
+
     public function upload(StoreProductImage $action): void
     {
         $this->authorize('update', $this->product);

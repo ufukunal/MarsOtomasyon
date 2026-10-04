@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Components;
 
+use App\Livewire\Concerns\WithIdempotentMutations;
 use App\Support\Audit\AuditContext;
 use App\Support\Period\PeriodContext;
 use Illuminate\Contracts\View\View;
@@ -10,29 +11,37 @@ use Livewire\Component;
 
 class PeriodSwitcher extends Component
 {
+    use WithIdempotentMutations;
+
     public ?int $companyId = null;
 
     public ?int $periodId = null;
 
     public function mount(): void
     {
+        $this->seedMutationKeys(['selectCompany', 'selectPeriod']);
         $this->companyId = session('active_company_id') ?? Auth::user()?->last_company_id;
         $this->periodId = session('active_period_id') ?? Auth::user()?->last_period_id;
     }
 
     public function updatedCompanyId(?int $companyId): void
     {
-        abort_unless(Auth::check(), 403);
+        $user = Auth::user();
+        abort_unless($user !== null, 403);
 
-        $allowed = Auth::user()->companies()->whereKey($companyId)->exists();
+        $allowed = $user->companies()->whereKey($companyId)->exists();
         abort_unless($allowed, 403);
 
         $this->periodId = null;
 
-        Auth::user()->forceFill([
-            'last_company_id' => $companyId,
-            'last_period_id' => null,
-        ])->save();
+        $this->runMasterMutation('selectCompany', function () use ($user, $companyId): bool {
+            $user->forceFill([
+                'last_company_id' => $companyId,
+                'last_period_id' => null,
+            ])->save();
+
+            return true;
+        });
 
         session(['active_company_id' => $companyId]);
         session()->forget(['active_period_id', 'active_year']);
@@ -47,6 +56,7 @@ class PeriodSwitcher extends Component
         }
 
         $user = Auth::user();
+        abort_unless($user !== null, 403);
 
         $period = $user->accessiblePeriods()
             ->where('periods.id', $periodId)
@@ -58,21 +68,25 @@ class PeriodSwitcher extends Component
 
         PeriodContext::use((int) $this->companyId, (int) $periodId);
 
-        $user->forceFill([
-            'last_company_id' => $this->companyId,
-            'last_period_id' => $periodId,
-        ])->save();
+        $this->runMasterMutation('selectPeriod', function () use ($user, $periodId, $period): bool {
+            $user->forceFill([
+                'last_company_id' => $this->companyId,
+                'last_period_id' => $periodId,
+            ])->save();
 
-        AuditContext::master(
-            'Aktif dönem değiştirildi.',
-            [
-                'company_id' => $this->companyId,
-                'period_id' => $periodId,
-                'year' => $period->year,
-            ],
-            $period,
-            'period_selected',
-        );
+            AuditContext::master(
+                'Aktif dönem değiştirildi.',
+                [
+                    'company_id' => $this->companyId,
+                    'period_id' => $periodId,
+                    'year' => $period->year,
+                ],
+                $period,
+                'period_selected',
+            );
+
+            return true;
+        });
 
         if ($period->status === 'closed') {
             session()->flash('warning', "{$period->year} dönemi kapalı ve salt okunurdur.");
