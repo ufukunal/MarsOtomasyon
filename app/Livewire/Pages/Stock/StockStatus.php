@@ -117,9 +117,9 @@ class StockStatus extends DataTableComponent
 
         return array_filter([
             'product_label' => 'Toplam',
-            'available' => TrFormatter::quantity((string) ($row?->total_available ?? '0')),
+            'available' => TrFormatter::quantity((string) ($row->total_available ?? '0')),
             'stock_value' => $this->canViewCost()
-                ? TrFormatter::money((string) ($row?->total_value ?? '0'))
+                ? TrFormatter::money((string) ($row->total_value ?? '0'))
                 : null,
         ], fn (?string $value): bool => $value !== null);
     }
