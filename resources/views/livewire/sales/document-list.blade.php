@@ -1,7 +1,9 @@
 <div class="space-y-4">
     <div class="flex items-center justify-between">
         <h1>{{ $title }}</h1>
-        <a href="{{ route($createRoute) }}">Yeni</a>
+        @if($createRoute)
+            <a href="{{ route($createRoute) }}">Yeni</a>
+        @endif
     </div>
 
     <table>
