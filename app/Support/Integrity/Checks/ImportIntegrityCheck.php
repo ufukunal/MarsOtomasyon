@@ -5,6 +5,7 @@ namespace App\Support\Integrity\Checks;
 use App\Models\Period\ImportCostAllocation;
 use App\Models\Period\ImportFile;
 use App\Models\Period\ImportPackage;
+use App\Models\Period\ProductCost;
 use App\Support\Integrity\IntegrityCheck;
 use App\Support\Integrity\IntegrityResult;
 use Illuminate\Support\Facades\DB;
@@ -35,6 +36,23 @@ final class ImportIntegrityCheck implements IntegrityCheck
             ->whereIn('status', ['received', 'closed'])
             ->with(['packages', 'costItems'])
             ->get();
+
+        $latestClosedByProduct = [];
+
+        foreach ($files->where('status', 'closed') as $closedFile) {
+            foreach ($closedFile->packages->whereNotNull('product_id') as $package) {
+                $productId = (int) $package->product_id;
+                $known = $latestClosedByProduct[$productId] ?? null;
+
+                if ($known === null
+                    || ($closedFile->closed_at?->getTimestamp() ?? 0) > $known['closed_at']) {
+                    $latestClosedByProduct[$productId] = [
+                        'file_id' => (int) $closedFile->id,
+                        'closed_at' => $closedFile->closed_at?->getTimestamp() ?? 0,
+                    ];
+                }
+            }
+        }
 
         foreach ($files as $file) {
             if ($file->exchange_rate_locked_at === null
@@ -119,6 +137,40 @@ final class ImportIntegrityCheck implements IntegrityCheck
 
             foreach (array_keys($expected) as $key) {
                 $mismatches[] = ['import_file_id' => $file->id, 'key' => $key, 'reason' => 'stock_receipt_missing'];
+            }
+
+            if ($file->status === 'closed') {
+                foreach ($file->packages->whereNotNull('product_id')->groupBy('product_id') as $productId => $packages) {
+                    if (($latestClosedByProduct[(int) $productId]['file_id'] ?? null) !== (int) $file->id) {
+                        continue;
+                    }
+
+                    $qty = '0.000';
+                    $value = '0.0000';
+
+                    foreach ($packages as $package) {
+                        $qty = bcadd($qty, (string) $package->quantity, 3);
+                        $value = bcadd(
+                            $value,
+                            bcmul((string) $package->quantity, (string) $package->landed_unit_cost_try, 8),
+                            4,
+                        );
+                    }
+
+                    $expectedImportCost = bcdiv($value, $qty, 4);
+                    $storedImportCost = ProductCost::query()
+                        ->where('product_id', (int) $productId)
+                        ->value('import_cost');
+
+                    if ($storedImportCost === null
+                        || bccomp((string) $storedImportCost, $expectedImportCost, 4) !== 0) {
+                        $mismatches[] = [
+                            'import_file_id' => $file->id,
+                            'product_id' => (int) $productId,
+                            'reason' => 'product_import_cost_mismatch',
+                        ];
+                    }
+                }
             }
         }
 
