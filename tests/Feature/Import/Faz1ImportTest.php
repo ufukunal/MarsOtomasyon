@@ -131,3 +131,30 @@ it('aynı dosya hash ve tip ikinci kez kuyruğa alınırken yeni batch üretmez'
 
     expect(CardImportBatch::query()->where('file_hash', $hash)->count())->toBe(1);
 });
+
+
+it('tamamlanmış import jobu erken dönerken period contextini temizler', function () {
+    [$company, $period] = $this->createCompanyWithPeriod('IMPDONE');
+
+    $batch = CardImportBatch::query()->create([
+        'type' => 'product',
+        'source_disk' => 'imports',
+        'source_path' => 'done.csv',
+        'original_name' => 'done.csv',
+        'file_hash' => hash('sha256', 'done-import'),
+        'mapping' => productImportMapping(),
+        'error_mode' => 'cancel_all',
+        'status' => 'done',
+        'created_by' => null,
+        'created_by_name' => null,
+    ]);
+
+    PeriodContext::clear();
+
+    (new ProcessCardImport($company->id, $period->id, $batch->id))
+        ->handle(app(ImportFileReader::class), app(ImportRowImporterResolver::class));
+
+    expect(PeriodContext::companyId())->toBeNull()
+        ->and(PeriodContext::periodId())->toBeNull()
+        ->and(config('database.connections.period.database'))->toBeNull();
+});

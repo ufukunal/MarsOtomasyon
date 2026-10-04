@@ -30,22 +30,23 @@ class ProcessCardImport implements ShouldQueue
     {
         PeriodContext::useSystem($this->companyId, $this->periodId);
 
-        $batch = CardImportBatch::query()->findOrFail($this->batchId);
-
-        if ($batch->status === 'done') {
-            return;
-        }
-
-        $batch->update([
-            'status' => 'processing',
-            'started_at' => now(),
-            'failure_message' => null,
-        ]);
-
-        CardImportError::query()->where('batch_id', $batch->id)->delete();
-
         try {
-            $rows = $reader->rows($batch->source_disk, $batch->source_path, $batch->original_name);
+            $batch = CardImportBatch::query()->findOrFail($this->batchId);
+
+            if ($batch->status === 'done') {
+                return;
+            }
+
+            $batch->update([
+                'status' => 'processing',
+                'started_at' => now(),
+                'failure_message' => null,
+            ]);
+
+            CardImportError::query()->where('batch_id', $batch->id)->delete();
+
+            try {
+                $rows = $reader->rows($batch->source_disk, $batch->source_path, $batch->original_name);
             $importer = $resolver->resolve($batch->type);
             $validRows = [];
             $errors = [];
@@ -113,26 +114,27 @@ class ProcessCardImport implements ShouldQueue
                 'finished_at' => now(),
             ]);
 
-            AuditContext::period(
-                'Kart içe aktarma tamamlandı.',
-                [
-                    'batch_id' => $batch->id,
-                    'type' => $batch->type,
-                    'total_rows' => count($rows),
-                    'success_rows' => count($validRows),
-                    'error_rows' => $errorRowCount,
-                ],
-                null,
-                'card_import_completed',
-            );
-        } catch (Throwable $exception) {
-            $batch->update([
-                'status' => 'failed',
-                'finished_at' => now(),
-                'failure_message' => $exception->getMessage(),
-            ]);
+                AuditContext::period(
+                    'Kart içe aktarma tamamlandı.',
+                    [
+                        'batch_id' => $batch->id,
+                        'type' => $batch->type,
+                        'total_rows' => count($rows),
+                        'success_rows' => count($validRows),
+                        'error_rows' => $errorRowCount,
+                    ],
+                    null,
+                    'card_import_completed',
+                );
+            } catch (Throwable $exception) {
+                $batch->update([
+                    'status' => 'failed',
+                    'finished_at' => now(),
+                    'failure_message' => $exception->getMessage(),
+                ]);
 
-            throw $exception;
+                throw $exception;
+            }
         } finally {
             PeriodContext::clear();
         }
