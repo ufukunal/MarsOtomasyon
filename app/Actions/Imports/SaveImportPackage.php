@@ -45,6 +45,20 @@ final class SaveImportPackage
                 throw new DomainException('Koli miktarı/fiyatı geçersiz.');
             }
 
+            $weight = ($data['weight_kg'] ?? null);
+            $weight = $weight === null || trim((string) $weight) === ''
+                ? null
+                : bcadd((string) $weight, '0', 4);
+            $volume = ($data['volume_cbm'] ?? null);
+            $volume = $volume === null || trim((string) $volume) === ''
+                ? null
+                : bcadd((string) $volume, '0', 6);
+
+            if (($weight !== null && bccomp($weight, '0', 4) < 0)
+                || ($volume !== null && bccomp($volume, '0', 6) < 0)) {
+                throw new DomainException('Koli ağırlık/hacim değerleri negatif olamaz.');
+            }
+
             $productId = ($data['product_id'] ?? null) ? (int) $data['product_id'] : null;
 
             if ($productId !== null) {
@@ -65,8 +79,8 @@ final class SaveImportPackage
                     : $lockedFile->receiving_location_id,
                 'quantity' => $quantity,
                 'unit_price' => $unitPrice,
-                'weight_kg' => ($data['weight_kg'] ?? null) ?: null,
-                'volume_cbm' => ($data['volume_cbm'] ?? null) ?: null,
+                'weight_kg' => $weight,
+                'volume_cbm' => $volume,
                 'status' => $productId ? 'matched' : 'unmatched',
                 'notes' => trim((string) ($data['notes'] ?? '')) ?: null,
                 'goods_value_try' => null,

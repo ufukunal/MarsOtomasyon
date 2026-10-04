@@ -52,6 +52,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->unique(['import_file_id', 'container_no']);
+            $table->unique(['id', 'import_file_id'], 'containers_id_import_file_unique');
             $table->index(['status', 'eta']);
         });
 
@@ -75,6 +76,10 @@ return new class extends Migration
             $table->text('notes')->nullable();
             $table->timestamps();
 
+            $table->foreign(['container_id', 'import_file_id'], 'packages_container_file_fk')
+                ->references(['id', 'import_file_id'])
+                ->on('containers')
+                ->restrictOnDelete();
             $table->index(['import_file_id', 'product_id']);
             $table->index(['container_id', 'carton_no']);
             $table->index(['status', 'product_id']);
@@ -121,10 +126,19 @@ return new class extends Migration
             "ALTER TABLE containers ADD CONSTRAINT containers_status_valid CHECK (status IN ('planned','in_transit','customs','received','closed'))"
         );
         DB::connection('period')->statement(
+            'ALTER TABLE containers ADD CONSTRAINT containers_dimensions_non_negative CHECK ((gross_weight_kg IS NULL OR gross_weight_kg >= 0) AND (volume_cbm IS NULL OR volume_cbm >= 0))'
+        );
+        DB::connection('period')->statement(
             'ALTER TABLE packages ADD CONSTRAINT packages_quantity_positive CHECK (quantity > 0)'
         );
         DB::connection('period')->statement(
             'ALTER TABLE packages ADD CONSTRAINT packages_unit_price_non_negative CHECK (unit_price >= 0)'
+        );
+        DB::connection('period')->statement(
+            'ALTER TABLE packages ADD CONSTRAINT packages_dimensions_non_negative CHECK ((weight_kg IS NULL OR weight_kg >= 0) AND (volume_cbm IS NULL OR volume_cbm >= 0))'
+        );
+        DB::connection('period')->statement(
+            'ALTER TABLE packages ADD CONSTRAINT packages_costs_non_negative CHECK ((goods_value_try IS NULL OR goods_value_try >= 0) AND (allocated_cost_try IS NULL OR allocated_cost_try >= 0) AND (landed_unit_cost_try IS NULL OR landed_unit_cost_try >= 0))'
         );
         DB::connection('period')->statement(
             "ALTER TABLE packages ADD CONSTRAINT packages_status_valid CHECK (status IN ('unmatched','matched','received'))"
@@ -133,7 +147,19 @@ return new class extends Migration
             'ALTER TABLE import_cost_items ADD CONSTRAINT import_cost_items_amount_non_negative CHECK (amount >= 0)'
         );
         DB::connection('period')->statement(
+            'ALTER TABLE import_cost_items ADD CONSTRAINT import_cost_items_exchange_rate_positive CHECK (exchange_rate IS NULL OR exchange_rate > 0)'
+        );
+        DB::connection('period')->statement(
+            'ALTER TABLE import_cost_items ADD CONSTRAINT import_cost_items_amount_try_non_negative CHECK (amount_try IS NULL OR amount_try >= 0)'
+        );
+        DB::connection('period')->statement(
             "ALTER TABLE import_cost_items ADD CONSTRAINT import_cost_items_basis_valid CHECK (allocation_basis IN ('value','weight','volume'))"
+        );
+        DB::connection('period')->statement(
+            'ALTER TABLE import_cost_allocations ADD CONSTRAINT import_allocations_basis_non_negative CHECK (basis_value >= 0)'
+        );
+        DB::connection('period')->statement(
+            'ALTER TABLE import_cost_allocations ADD CONSTRAINT import_allocations_ratio_valid CHECK (allocation_ratio >= 0 AND allocation_ratio <= 1)'
         );
         DB::connection('period')->statement(
             'ALTER TABLE import_cost_allocations ADD CONSTRAINT import_allocations_amount_non_negative CHECK (allocated_amount_try >= 0)'

@@ -43,19 +43,38 @@ final class SaveImportCostItem
                 throw new DomainException('İthalat maliyet tutarı negatif olamaz.');
             }
 
+            $currency = strtoupper(trim((string) $data['currency']));
+
+            if (strlen($currency) !== 3) {
+                throw new DomainException('Maliyet kalemi para birimi 3 karakter olmalıdır.');
+            }
+
+            $exchangeRate = ($data['exchange_rate'] ?? null);
+            $exchangeRate = $exchangeRate === null || trim((string) $exchangeRate) === ''
+                ? null
+                : bcadd((string) $exchangeRate, '0', 6);
+
+            if ($currency === 'TRY') {
+                $exchangeRate = '1.000000';
+            } elseif ($currency === (string) $lockedFile->currency) {
+                $exchangeRate = null;
+            } elseif ($exchangeRate === null || bccomp($exchangeRate, '0', 6) <= 0) {
+                throw new DomainException("{$currency}/TRY kuru bu maliyet kalemi için zorunludur.");
+            }
+
             $model->fill([
                 'name' => trim((string) $data['name']),
                 'amount' => $amount,
-                'currency' => strtoupper(trim((string) $data['currency'])),
-                'exchange_rate' => ($data['exchange_rate'] ?? null) ?: null,
+                'currency' => $currency,
+                'exchange_rate' => $exchangeRate,
                 'allocation_basis' => $basis,
                 'notes' => trim((string) ($data['notes'] ?? '')) ?: null,
                 'amount_try' => null,
                 'allocated_at' => null,
             ]);
 
-            if ($model->name === '' || strlen($model->currency) !== 3) {
-                throw new DomainException('Maliyet kalemi adı ve para birimi zorunludur.');
+            if ($model->name === '') {
+                throw new DomainException('Maliyet kalemi adı zorunludur.');
             }
 
             $model->save();

@@ -66,6 +66,7 @@ final class ImportCostAllocator
 
             $basis = [];
             $basisTotal = '0.00000000';
+            $lastEligiblePackageId = null;
 
             foreach ($packages as $package) {
                 $value = match ($item->allocation_basis) {
@@ -76,8 +77,17 @@ final class ImportCostAllocator
                 };
 
                 $value = bcadd($value, '0', 8);
+
+                if (bccomp($value, '0', 8) < 0) {
+                    throw new DomainException("{$item->name} maliyet kalemi için dağıtım tabanı negatif olamaz.");
+                }
+
                 $basis[(int) $package->id] = $value;
                 $basisTotal = bcadd($basisTotal, $value, 8);
+
+                if (bccomp($value, '0', 8) > 0) {
+                    $lastEligiblePackageId = (int) $package->id;
+                }
             }
 
             if (bccomp($basisTotal, '0', 8) <= 0 && bccomp($amountTry, '0', 4) > 0) {
@@ -85,17 +95,20 @@ final class ImportCostAllocator
             }
 
             $allocated = '0.0000';
-            $lastIndex = $packages->count() - 1;
 
-            foreach ($packages->values() as $index => $package) {
+            foreach ($packages as $package) {
                 $basisValue = $basis[(int) $package->id];
                 $ratio = bccomp($basisTotal, '0', 8) === 0
                     ? '0.0000000000'
                     : bcdiv($basisValue, $basisTotal, 10);
 
-                $amount = $index === $lastIndex
-                    ? bcsub($amountTry, $allocated, 4)
-                    : bcadd(bcmul($amountTry, $ratio, 10), '0', 4);
+                if (bccomp($basisValue, '0', 8) === 0) {
+                    $amount = '0.0000';
+                } elseif ((int) $package->id === $lastEligiblePackageId) {
+                    $amount = bcsub($amountTry, $allocated, 4);
+                } else {
+                    $amount = bcadd(bcmul($amountTry, $ratio, 10), '0', 4);
+                }
 
                 $allocated = bcadd($allocated, $amount, 4);
 

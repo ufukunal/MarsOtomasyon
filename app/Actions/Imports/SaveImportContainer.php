@@ -30,12 +30,26 @@ final class SaveImportContainer
                 throw new DomainException('Konteyner başka ithalat dosyasına ait.');
             }
 
+            $grossWeight = ($data['gross_weight_kg'] ?? null);
+            $grossWeight = $grossWeight === null || trim((string) $grossWeight) === ''
+                ? null
+                : bcadd((string) $grossWeight, '0', 3);
+            $volume = ($data['volume_cbm'] ?? null);
+            $volume = $volume === null || trim((string) $volume) === ''
+                ? null
+                : bcadd((string) $volume, '0', 4);
+
+            if (($grossWeight !== null && bccomp($grossWeight, '0', 3) < 0)
+                || ($volume !== null && bccomp($volume, '0', 4) < 0)) {
+                throw new DomainException('Konteyner ağırlık/hacim değerleri negatif olamaz.');
+            }
+
             $model->fill([
                 'container_no' => trim((string) $data['container_no']),
                 'container_type' => trim((string) ($data['container_type'] ?? '')) ?: null,
                 'seal_no' => trim((string) ($data['seal_no'] ?? '')) ?: null,
-                'gross_weight_kg' => ($data['gross_weight_kg'] ?? null) ?: null,
-                'volume_cbm' => ($data['volume_cbm'] ?? null) ?: null,
+                'gross_weight_kg' => $grossWeight,
+                'volume_cbm' => $volume,
                 'etd' => $data['etd'] ?? null,
                 'eta' => $data['eta'] ?? null,
                 'status' => $data['status'] ?? 'planned',
