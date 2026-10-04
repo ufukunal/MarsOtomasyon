@@ -7,6 +7,7 @@ use App\Models\IntegrityReport as IntegrityReportModel;
 use App\Support\Integrity\Checks\ContactBalanceCheck;
 use App\Support\Integrity\Checks\CostIntegrityCheck;
 use App\Support\Integrity\Checks\DocumentTotalCheck;
+use App\Support\Integrity\Checks\FinanceIntegrityCheck;
 use App\Support\Integrity\Checks\NumberSeriesCheck;
 use App\Support\Integrity\Checks\PartialDocumentCheck;
 use App\Support\Integrity\Checks\PurchaseMatchCheck;
@@ -44,6 +45,7 @@ class IntegrityReport extends Component
             'partials' => PartialDocumentCheck::class,
             'purchases' => PurchaseMatchCheck::class,
             'contacts' => ContactBalanceCheck::class,
+            'finance' => FinanceIntegrityCheck::class,
             'numbers' => NumberSeriesCheck::class,
         ];
 

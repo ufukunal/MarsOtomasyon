@@ -59,33 +59,44 @@ final class ReconcileBankStatement
 
                         $book = BankMovement::query()->lockForUpdate()->findOrFail($bookMovementId);
                         $this->assertCompatible($statement, $book);
+
+                        if (BankMovement::query()
+                            ->where('origin', 'statement')
+                            ->where('reconciled_movement_id', $book->id)
+                            ->whereKeyNot($statement->id)
+                            ->exists()) {
+                            throw new DomainException('Seçilen defter hareketi başka bir ekstre satırıyla zaten eşleştirilmiş.');
+                        }
                     } else {
+                        $movementType = trim($movementType);
+
+                        if (! in_array($movementType, [
+                            'statement_created',
+                            'collection',
+                            'payment',
+                            'expense',
+                            'advance',
+                            'advance_return',
+                            'manual',
+                        ], true)) {
+                            throw new DomainException('Ekstreden üretilecek finans hareketi türü geçersiz.');
+                        }
+
                         $actor = auth()->user();
                         $contact = $contactId === null
                             ? null
                             : Contact::query()->lockForUpdate()->findOrFail($contactId);
 
-                        $book = BankMovement::query()->create([
-                            'bank_account_id' => $statement->bank_account_id,
-                            'contact_id' => $contact?->id,
-                            'movement_date' => $statement->movement_date,
-                            'direction' => $statement->direction,
-                            'movement_type' => $movementType,
-                            'amount' => $statement->amount,
-                            'origin' => 'book',
-                            'reference' => $statement->reference,
-                            'group_key' => 'statement:'.$statement->statement_fingerprint,
-                            'description' => $statement->statement_description ?? $statement->description,
-                            'metadata' => [
-                                'statement_movement_id' => $statement->id,
-                                'statement_fingerprint' => $statement->statement_fingerprint,
-                            ],
-                            'created_by' => $actor?->id,
-                            'created_by_name' => $actor?->name,
-                        ]);
+                        $contactTransaction = null;
 
                         if ($contact !== null) {
-                            ContactTransaction::query()->create([
+                            $account = $statement->account()->firstOrFail();
+
+                            if ($account->currency !== 'TRY') {
+                                throw new DomainException('Cari etkili ekstre hareketi yalnız TRY banka hesabından üretilebilir.');
+                            }
+
+                            $contactTransaction = ContactTransaction::query()->create([
                                 'contact_id' => $contact->id,
                                 'transaction_type' => $movementType,
                                 'direction' => $statement->direction === 'in' ? 'credit' : 'debit',
@@ -97,6 +108,26 @@ final class ReconcileBankStatement
                                 'created_by_name' => $actor?->name,
                             ]);
                         }
+
+                        $book = BankMovement::query()->create([
+                            'bank_account_id' => $statement->bank_account_id,
+                            'contact_id' => $contact?->id,
+                            'movement_date' => $statement->movement_date,
+                            'direction' => $statement->direction,
+                            'movement_type' => $movementType,
+                            'amount' => $statement->amount,
+                            'origin' => 'book',
+                            'reference' => $statement->reference,
+                            'group_key' => hash('sha256', 'statement:'.$statement->statement_fingerprint),
+                            'description' => $statement->statement_description ?? $statement->description,
+                            'metadata' => [
+                                'statement_movement_id' => $statement->id,
+                                'statement_fingerprint' => $statement->statement_fingerprint,
+                                'contact_transaction_id' => $contactTransaction?->id,
+                            ],
+                            'created_by' => $actor?->id,
+                            'created_by_name' => $actor?->name,
+                        ]);
                     }
 
                     $actor = auth()->user();

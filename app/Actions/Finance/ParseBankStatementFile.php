@@ -217,10 +217,23 @@ final class ParseBankStatementFile
                     continue;
                 }
 
-                $date = CarbonImmutable::createFromFormat('ymd', $match[1])->toDateString();
-                $valueDate = $match[2] !== ''
-                    ? CarbonImmutable::createFromFormat('Ymd', substr($date, 0, 4).$match[2])->toDateString()
-                    : null;
+                $dateObject = CarbonImmutable::createFromFormat('ymd', $match[1])->startOfDay();
+                $date = $dateObject->toDateString();
+                $valueDate = null;
+
+                if ($match[2] !== '') {
+                    $month = (int) substr($match[2], 0, 2);
+                    $day = (int) substr($match[2], 2, 2);
+                    $candidate = CarbonImmutable::create($dateObject->year, $month, $day)->startOfDay();
+
+                    if ($candidate->diffInDays($dateObject, false) > 180) {
+                        $candidate = $candidate->subYear();
+                    } elseif ($candidate->diffInDays($dateObject, false) < -180) {
+                        $candidate = $candidate->addYear();
+                    }
+
+                    $valueDate = $candidate->toDateString();
+                }
                 $tail = trim($match[5]);
                 $reference = null;
 
@@ -300,9 +313,9 @@ final class ParseBankStatementFile
         }
 
         return [
-            'date' => CarbonImmutable::parse($dateValue)->toDateString(),
+            'date' => $this->date($dateValue),
             'value_date' => ($row['value_date'] ?? '') !== ''
-                ? CarbonImmutable::parse($row['value_date'])->toDateString()
+                ? $this->date($row['value_date'])
                 : null,
             'reference' => trim($row['reference'] ?? '') ?: null,
             'description' => trim($row['description'] ?? ''),
@@ -312,6 +325,27 @@ final class ParseBankStatementFile
                 ? $this->decimal($row['balance'])
                 : null,
         ];
+    }
+
+    private function date(string $value): string
+    {
+        $value = trim($value);
+
+        if ($value === '') {
+            throw new DomainException('Ekstre satırı tarihi boş olamaz.');
+        }
+
+        if (is_numeric($value)) {
+            $serial = (float) $value;
+
+            if ($serial >= 1 && $serial <= 100000) {
+                return CarbonImmutable::create(1899, 12, 30)
+                    ->addDays((int) floor($serial))
+                    ->toDateString();
+            }
+        }
+
+        return CarbonImmutable::parse($value)->toDateString();
     }
 
     private function normalizeHeader(string $value): string

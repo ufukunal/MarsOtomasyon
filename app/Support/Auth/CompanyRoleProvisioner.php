@@ -46,6 +46,14 @@ final class CompanyRoleProvisioner
         'supplier_invoices',
         'payments',
         'supplier_performance',
+        'finance_movements',
+        'finance_transfers',
+        'expenses',
+        'advances',
+        'securities',
+        'security_payrolls',
+        'bank_statements',
+        'bank_reconciliation',
     ];
 
     private const ACTIONS = [
@@ -124,6 +132,14 @@ final class CompanyRoleProvisioner
                 'supplier_invoices.view', 'supplier_invoices.create', 'supplier_invoices.update', 'supplier_invoices.cancel',
                 'payments.view', 'payments.create', 'payments.cancel',
                 'supplier_performance.view',
+                'finance_movements.view', 'finance_movements.create', 'finance_movements.cancel',
+                'finance_transfers.view', 'finance_transfers.create', 'finance_transfers.cancel',
+                'expenses.view', 'expenses.create', 'expenses.cancel',
+                'advances.view', 'advances.create', 'advances.cancel',
+                'securities.view', 'securities.create', 'securities.update', 'securities.cancel',
+                'security_payrolls.view', 'security_payrolls.create',
+                'bank_statements.view', 'bank_statements.create',
+                'bank_reconciliation.view', 'bank_reconciliation.update',
                 ...$technicalViews,
             ],
             'Satış' => [

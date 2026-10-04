@@ -5,6 +5,7 @@ namespace App\Models\Period;
 use App\Models\PeriodModel;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
+use LogicException;
 
 /**
  * @property int $cash_account_id
@@ -21,6 +22,17 @@ use Illuminate\Support\Carbon;
  */
 class CashMovement extends PeriodModel
 {
+    protected static function booted(): void
+    {
+        static::updating(function (): never {
+            throw new LogicException('Kesinleşmiş kasa hareketi yerinde değiştirilemez.');
+        });
+
+        static::deleting(function (): never {
+            throw new LogicException('Kasa hareketi fiziksel olarak silinemez.');
+        });
+    }
+
     protected $fillable = [
         'cash_account_id', 'document_id', 'contact_id', 'movement_date', 'direction',
         'movement_type', 'amount', 'reference', 'group_key', 'reversal_of_id',

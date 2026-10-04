@@ -56,10 +56,17 @@ final class PostManualFinanceMovement
                 }
 
                 $normalized = bcadd($amount, '0', 4);
-                $rate = bcadd($exchangeRate, '0', 6);
+                $requestedRate = bcadd($exchangeRate, '0', 6);
+                $movementType = trim($movementType);
 
-                if (bccomp($normalized, '0', 4) <= 0 || bccomp($rate, '0', 6) <= 0) {
-                    throw new DomainException('Finans hareketi tutarı ve kur pozitif olmalıdır.');
+                if (bccomp($normalized, '0', 4) <= 0
+                    || bccomp($requestedRate, '0', 6) <= 0
+                    || $movementType === '') {
+                    throw new DomainException('Finans hareketi tutarı, kur ve işlem türü geçerli olmalıdır.');
+                }
+
+                if (in_array($movementType, ['transfer', 'reversal', 'statement'], true)) {
+                    throw new DomainException('Bu işlem türü manuel finans hareketinde kullanılamaz.');
                 }
 
                 $date = CarbonImmutable::parse($movementDate)->startOfDay();
@@ -72,7 +79,7 @@ final class PostManualFinanceMovement
                     $normalized,
                     $date,
                     $contactId,
-                    $rate,
+                    $requestedRate,
                     $movementType,
                     $reference,
                     $note,
@@ -81,13 +88,36 @@ final class PostManualFinanceMovement
                     $contact = $contactId === null
                         ? null
                         : Contact::query()->lockForUpdate()->findOrFail($contactId);
+                    $account = $accountType === 'cash'
+                        ? CashAccount::query()->where('is_active', true)->lockForUpdate()->findOrFail($accountId)
+                        : BankAccount::query()->where('is_active', true)->lockForUpdate()->findOrFail($accountId);
+                    $currency = (string) $account->getAttribute('currency');
+                    $rate = $currency === 'TRY' ? '1.000000' : $requestedRate;
+                    $contactTransaction = null;
+
+                    if ($contact !== null) {
+                        $contactAmountTry = bcadd(bcmul($normalized, $rate, 8), '0', 4);
+
+                        $contactTransaction = ContactTransaction::query()->create([
+                            'contact_id' => $contact->id,
+                            'transaction_type' => $movementType,
+                            'direction' => $direction === 'in' ? 'credit' : 'debit',
+                            'transaction_date' => $date->toDateString(),
+                            'amount' => $contactAmountTry,
+                            'currency' => 'TRY',
+                            'description' => $note,
+                            'created_by' => $actor?->id,
+                            'created_by_name' => $actor?->name,
+                        ]);
+                    }
+
+                    $metadata = [
+                        'exchange_rate' => $rate,
+                        'currency' => $currency,
+                        'contact_transaction_id' => $contactTransaction?->id,
+                    ];
 
                     if ($accountType === 'cash') {
-                        $account = CashAccount::query()
-                            ->where('is_active', true)
-                            ->lockForUpdate()
-                            ->findOrFail($accountId);
-
                         $movement = CashMovement::query()->create([
                             'cash_account_id' => $account->id,
                             'contact_id' => $contact?->id,
@@ -97,16 +127,11 @@ final class PostManualFinanceMovement
                             'amount' => $normalized,
                             'reference' => $reference,
                             'description' => $note,
-                            'metadata' => ['exchange_rate' => $rate, 'currency' => $account->currency],
+                            'metadata' => $metadata,
                             'created_by' => $actor?->id,
                             'created_by_name' => $actor?->name,
                         ]);
                     } else {
-                        $account = BankAccount::query()
-                            ->where('is_active', true)
-                            ->lockForUpdate()
-                            ->findOrFail($accountId);
-
                         $movement = BankMovement::query()->create([
                             'bank_account_id' => $account->id,
                             'contact_id' => $contact?->id,
@@ -117,23 +142,7 @@ final class PostManualFinanceMovement
                             'origin' => 'book',
                             'reference' => $reference,
                             'description' => $note,
-                            'metadata' => ['exchange_rate' => $rate, 'currency' => $account->currency],
-                            'created_by' => $actor?->id,
-                            'created_by_name' => $actor?->name,
-                        ]);
-                    }
-
-                    if ($contact !== null) {
-                        $contactAmountTry = bcadd(bcmul($normalized, $rate, 8), '0', 4);
-
-                        ContactTransaction::query()->create([
-                            'contact_id' => $contact->id,
-                            'transaction_type' => $movementType,
-                            'direction' => $direction === 'in' ? 'credit' : 'debit',
-                            'transaction_date' => $date->toDateString(),
-                            'amount' => $contactAmountTry,
-                            'currency' => 'TRY',
-                            'description' => $note,
+                            'metadata' => $metadata,
                             'created_by' => $actor?->id,
                             'created_by_name' => $actor?->name,
                         ]);
@@ -147,6 +156,7 @@ final class PostManualFinanceMovement
                             'direction' => $direction,
                             'movement_type' => $movementType,
                             'amount' => $normalized,
+                            'currency' => $currency,
                             'contact_id' => $contact?->id,
                         ],
                         $movement,

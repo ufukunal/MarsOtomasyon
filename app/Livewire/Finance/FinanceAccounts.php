@@ -32,7 +32,7 @@ class FinanceAccounts extends Component
 
     public function mount(): void
     {
-        $this->seedMutationKeys(['cash', 'bank']);
+        $this->seedMutationKeys(['cash', 'bank', 'toggleCash', 'toggleBank']);
         abort_unless(
             auth()->user()?->can('cash_accounts.view') || auth()->user()?->can('bank_accounts.view'),
             403,
@@ -67,6 +67,32 @@ class FinanceAccounts extends Component
         $this->bankName = '';
         $this->bankAccountName = '';
         $this->bankIban = '';
+    }
+
+    public function toggleCash(int $id, SaveCashAccount $action): void
+    {
+        $account = CashAccount::query()->findOrFail($id);
+
+        $this->runPeriodMutation('toggleCash', fn () => $action->handle([
+            'code' => $account->code,
+            'name' => $account->name,
+            'currency' => $account->currency,
+            'is_active' => ! $account->is_active,
+        ], $account, (int) $account->version));
+    }
+
+    public function toggleBank(int $id, SaveBankAccount $action): void
+    {
+        $account = BankAccount::query()->findOrFail($id);
+
+        $this->runPeriodMutation('toggleBank', fn () => $action->handle([
+            'code' => $account->code,
+            'bank_name' => $account->bank_name,
+            'account_name' => $account->account_name,
+            'iban' => $account->iban,
+            'currency' => $account->currency,
+            'is_active' => ! $account->is_active,
+        ], $account, (int) $account->version));
     }
 
     public function render(): View

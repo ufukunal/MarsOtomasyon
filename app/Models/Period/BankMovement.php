@@ -5,6 +5,7 @@ namespace App\Models\Period;
 use App\Models\PeriodModel;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
+use LogicException;
 
 /**
  * @property int $bank_account_id
@@ -24,6 +25,33 @@ use Illuminate\Support\Carbon;
  */
 class BankMovement extends PeriodModel
 {
+    protected static function booted(): void
+    {
+        static::updating(function (self $movement): void {
+            if ($movement->getOriginal('origin') !== 'statement') {
+                throw new LogicException('Kesinleşmiş banka defter hareketi yerinde değiştirilemez.');
+            }
+
+            $allowed = [
+                'reconciled_movement_id',
+                'reconciled_at',
+                'reconciled_by',
+                'reconciled_by_name',
+                'updated_at',
+            ];
+
+            foreach (array_keys($movement->getDirty()) as $field) {
+                if (! in_array($field, $allowed, true)) {
+                    throw new LogicException('Ekstre hareketinde yalnız mutabakat alanları güncellenebilir.');
+                }
+            }
+        });
+
+        static::deleting(function (): never {
+            throw new LogicException('Banka hareketi fiziksel olarak silinemez.');
+        });
+    }
+
     protected $fillable = [
         'bank_account_id', 'document_id', 'contact_id', 'movement_date', 'direction',
         'movement_type', 'amount', 'origin', 'reference', 'group_key', 'reversal_of_id',

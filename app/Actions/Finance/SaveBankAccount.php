@@ -5,6 +5,7 @@ namespace App\Actions\Finance;
 use App\Models\Period\BankAccount;
 use App\Support\Auth\MutationAuthorizer;
 use App\Support\Period\PeriodContext;
+use DomainException;
 
 final class SaveBankAccount
 {
@@ -14,12 +15,19 @@ final class SaveBankAccount
         MutationAuthorizer::authorize($account ? 'bank_accounts.update' : 'bank_accounts.create');
         PeriodContext::ensureWritable();
 
+        $code = strtoupper(trim((string) $data['code']));
+        $currency = strtoupper(trim((string) ($data['currency'] ?? 'TRY')));
+
+        if ($code === '' || strlen($currency) !== 3) {
+            throw new DomainException('Finans hesabı kodu ve 3 harfli para birimi zorunludur.');
+        }
+
         $attributes = [
-            'code' => strtoupper(trim((string) $data['code'])),
+            'code' => $code,
             'bank_name' => trim((string) $data['bank_name']),
             'account_name' => trim((string) $data['account_name']),
             'iban' => trim((string) ($data['iban'] ?? '')) ?: null,
-            'currency' => strtoupper((string) ($data['currency'] ?? 'TRY')),
+            'currency' => $currency,
             'is_active' => (bool) ($data['is_active'] ?? true),
         ];
 

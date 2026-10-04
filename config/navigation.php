@@ -57,6 +57,9 @@ return [
             ['label' => 'Cari Borç / Alacak', 'route' => 'finance.contact-debit-credit', 'permission' => 'contacts.update'],
             ['label' => 'Cari Yaşlandırma', 'route' => 'finance.contact-aging', 'permission' => 'contact_aging.view'],
             ['label' => 'Kasa / Banka Hesapları', 'route' => 'finance.accounts', 'permission' => 'cash_accounts.view'],
+            ['label' => 'Kasa / Banka Hareketleri', 'route' => 'finance.operations', 'permission' => 'finance_movements.view'],
+            ['label' => 'Banka Ekstresi / Mutabakat', 'route' => 'finance.bank-statements', 'permission' => 'bank_statements.view'],
+            ['label' => 'Çek / Senet', 'route' => 'finance.securities', 'permission' => 'securities.view'],
         ],
     ],
     [

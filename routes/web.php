@@ -3,10 +3,13 @@
 use App\Http\Controllers\HealthController;
 use App\Http\Controllers\ImportErrorReportController;
 use App\Http\Controllers\ProductImageController;
+use App\Livewire\Finance\BankStatementCenter;
 use App\Livewire\Finance\CollectionForm;
 use App\Livewire\Finance\ContactAging;
 use App\Livewire\Finance\ContactDebitCreditForm;
 use App\Livewire\Finance\FinanceAccounts;
+use App\Livewire\Finance\FinanceOperationCenter;
+use App\Livewire\Finance\SecuritiesCenter;
 use App\Livewire\Pages\Auth\ForgotPassword;
 use App\Livewire\Pages\Auth\Login;
 use App\Livewire\Pages\Auth\PeriodSelection;
@@ -126,6 +129,9 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/finans/cari-fis', ContactDebitCreditForm::class)->name('finance.contact-debit-credit');
     Route::get('/finans/yaslandirma', ContactAging::class)->name('finance.contact-aging');
     Route::get('/finans/hesaplar', FinanceAccounts::class)->name('finance.accounts');
+    Route::get('/finans/islemler', FinanceOperationCenter::class)->name('finance.operations');
+    Route::get('/finans/ekstre-mutabakat', BankStatementCenter::class)->name('finance.bank-statements');
+    Route::get('/finans/cek-senet', SecuritiesCenter::class)->name('finance.securities');
 
     Route::get('/ice-aktarma', ImportWizard::class)->name('imports.index');
     Route::get('/stok/durum', StockStatus::class)->name('stock.status');

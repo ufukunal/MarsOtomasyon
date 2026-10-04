@@ -88,7 +88,13 @@ final class CreateSecurity
                     }
 
                     if ($bankAccountId !== null) {
-                        BankAccount::query()->where('is_active', true)->findOrFail($bankAccountId);
+                        $bankAccount = BankAccount::query()
+                            ->where('is_active', true)
+                            ->findOrFail($bankAccountId);
+
+                        if ($bankAccount->currency !== 'TRY') {
+                            throw new DomainException('Çek/senet finans akışı TRY banka hesabı gerektirir.');
+                        }
                     }
 
                     $fingerprint = hash('sha256', implode('|', [
