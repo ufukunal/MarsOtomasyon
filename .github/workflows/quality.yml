@@ -70,4 +70,4 @@ jobs:
         run: vendor/bin/phpstan analyse --no-progress
 
       - name: Pest
-        run: php artisan test
+        run: php artisan test --display-warnings
