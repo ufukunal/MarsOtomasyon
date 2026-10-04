@@ -20,6 +20,7 @@ return [
         'label' => 'Stok',
         'items' => [
             ['label' => 'Stok Durumu', 'route' => 'stock.status', 'permission' => 'stock.view'],
+            ['label' => 'Stok Hareketleri', 'route' => 'stock.movements', 'permission' => 'stock.view'],
         ],
     ],
     [

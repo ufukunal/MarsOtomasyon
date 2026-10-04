@@ -23,6 +23,12 @@
             <x-field.toggle label="Negatif stok izni" wire:model="allowNegativeStock" />
             <x-field.number label="Minimum Stok" kind="quantity" wire:model="minStock" />
             <x-field.select label="Kanal Stok Modu" wire:model="channelStockMode" :options="['stock'=>'Stok','production'=>'Üretim','manual'=>'Manuel']" />
+            @if($product && auth()->user()?->can('stock.view'))
+                <div class="field">
+                    <span class="field-label">Hareket Geçmişi</span>
+                    <a href="{{ route('stock.movements', ['product' => $product->id]) }}">Stok Hareketlerini Aç</a>
+                </div>
+            @endif
         </section>
     @elseif($activeTab === 'type')
         <section class="panel form-grid">
