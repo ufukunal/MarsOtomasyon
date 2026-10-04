@@ -31,6 +31,8 @@ use App\Livewire\Pages\Stock\StockMovements;
 use App\Livewire\Pages\Stock\StockStatus;
 use App\Livewire\Pages\Stock\TransferDetail;
 use App\Livewire\Pages\Stock\TransferList;
+use App\Livewire\Pages\Stock\WarehouseSlipDetail;
+use App\Livewire\Pages\Stock\WarehouseSlipList;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -77,6 +79,9 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/stok/transferler', TransferList::class)->name('stock.transfers.index');
     Route::get('/stok/transferler/yeni', TransferDetail::class)->name('stock.transfers.create');
     Route::get('/stok/transferler/{id}', TransferDetail::class)->name('stock.transfers.show');
+    Route::get('/stok/ambar-fisleri', WarehouseSlipList::class)->name('stock.warehouse-slips.index');
+    Route::get('/stok/ambar-fisleri/yeni', WarehouseSlipDetail::class)->name('stock.warehouse-slips.create');
+    Route::get('/stok/ambar-fisleri/{id}', WarehouseSlipDetail::class)->name('stock.warehouse-slips.show');
     Route::get('/ice-aktarma/{batchId}/hatalar.xlsx', ImportErrorReportController::class)->name('imports.errors');
     Route::get('/urunler/{product}/gorseller/{attachment}', ProductImageController::class)->name('products.images.show');
     Route::get('/ayarlar/butunluk', IntegrityReport::class)->name('settings.integrity');

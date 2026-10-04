@@ -109,6 +109,7 @@ final class CompanyRoleProvisioner
                 'contacts.view', 'products.view',
                 'locations.view', 'locations.create', 'locations.update', 'stock.view',
                 'transfers.view', 'transfers.create', 'transfers.update', 'transfers.cancel',
+                'warehouse_slips.view', 'warehouse_slips.create', 'warehouse_slips.update', 'warehouse_slips.cancel',
                 ...$technicalViews,
             ],
             'Üretim' => [
