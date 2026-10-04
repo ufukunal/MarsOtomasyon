@@ -1,6 +1,7 @@
 <?php
 
 use App\Support\Money\Money;
+
 it('parayı dört ondalıkla ve BCMath ile taşır', function () {
     expect(Money::of('10.12555')->amount)->toBe('10.1255')
         ->and((string) Money::of('10.0000')->plus(Money::of('2.3456')))->toBe('12.3456')

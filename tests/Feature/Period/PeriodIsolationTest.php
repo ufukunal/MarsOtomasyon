@@ -37,7 +37,6 @@ it('period context olmadan period model sorgusunu reddeder', function () {
         ->toThrow(NoActivePeriodException::class);
 });
 
-
 it('migrate:periods CLI kullanıcı oturumu olmadan çalışır ve context bırakmaz', function () {
     [$company, $period] = $this->createCompanyWithPeriod('MIGCLI');
 
