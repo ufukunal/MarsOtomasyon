@@ -9,6 +9,7 @@ use App\Actions\Stock\SendTransfer;
 use App\Models\Period\Location;
 use App\Models\Period\Product;
 use App\Models\Period\Transfer;
+use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Str;
 use Livewire\Component;
@@ -53,7 +54,7 @@ class TransferDetail extends Component
             return;
         }
 
-        abort_unless(auth()->user()?->can('transfers.create'), 403);
+        abort_unless(auth()->user()->can('transfers.create'), 403);
         $this->addLine();
     }
 
@@ -168,7 +169,7 @@ class TransferDetail extends Component
         $this->transfer->refresh()->load(['fromLocation', 'toLocation', 'lines.product']);
         $this->fromLocationId = $this->transfer->from_location_id;
         $this->toLocationId = $this->transfer->to_location_id;
-        $this->transferDate = $this->transfer->transfer_date?->toDateString() ?? '';
+        $this->transferDate = CarbonImmutable::parse((string) $this->transfer->transfer_date)->toDateString();
         $this->note = (string) ($this->transfer->note ?? '');
         $this->draftLines = $this->transfer->lines
             ->map(fn ($line): array => [
