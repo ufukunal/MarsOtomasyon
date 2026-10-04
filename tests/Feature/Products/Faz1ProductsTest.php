@@ -123,7 +123,6 @@ it('set ürünün başka setin bileşeni olmasını reddeder', function () {
         ->toThrow(ValidationException::class);
 });
 
-
 it('Türkçe karakterleri normalize ederek ürün aramasını eşler', function () {
     [$company, $period] = $this->createCompanyWithPeriod('TRSEARCH');
     $admin = $this->createUserWithPeriodAccess($company, $period, 'Yönetici');
