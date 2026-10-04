@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Pages\Auth;
 
+use App\Livewire\Concerns\WithIdempotentMutations;
 use App\Models\User;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Contracts\View\View;
@@ -12,6 +13,8 @@ use Livewire\Component;
 
 class ResetPassword extends Component
 {
+    use WithIdempotentMutations;
+
     public string $token = '';
 
     public string $email = '';
@@ -22,6 +25,7 @@ class ResetPassword extends Component
 
     public function mount(string $token): void
     {
+        $this->seedMutationKeys(['resetPassword']);
         $this->token = $token;
         $this->email = (string) request()->query('email', '');
     }
@@ -34,16 +38,19 @@ class ResetPassword extends Component
             'password' => ['required', 'string', 'min:10', 'confirmed', 'regex:/^(?=.*[A-Za-z])(?=.*\d).+$/'],
         ]);
 
-        $status = Password::reset(
-            $data,
-            function (User $user, string $password): void {
-                $user->forceFill([
-                    'password' => Hash::make($password),
-                    'remember_token' => Str::random(60),
-                ])->save();
+        $status = $this->runMasterMutation(
+            'resetPassword',
+            fn (): string => Password::reset(
+                $data,
+                function (User $user, string $password): void {
+                    $user->forceFill([
+                        'password' => Hash::make($password),
+                        'remember_token' => Str::random(60),
+                    ])->save();
 
-                event(new PasswordReset($user));
-            },
+                    event(new PasswordReset($user));
+                },
+            ),
         );
 
         if ($status === Password::PASSWORD_RESET) {

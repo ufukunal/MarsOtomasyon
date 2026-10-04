@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Pages\Auth;
 
+use App\Livewire\Concerns\WithIdempotentMutations;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\RateLimiter;
@@ -10,9 +11,16 @@ use Livewire\Component;
 
 class ForgotPassword extends Component
 {
+    use WithIdempotentMutations;
+
     public string $email = '';
 
     public ?string $status = null;
+
+    public function mount(): void
+    {
+        $this->seedMutationKeys(['send']);
+    }
 
     public function send(): void
     {
@@ -26,9 +34,11 @@ class ForgotPassword extends Component
             ]);
         }
 
-        RateLimiter::hit($key, 3600);
+        $this->runMasterMutation('send', function () use ($key): string {
+            RateLimiter::hit($key, 3600);
 
-        Password::sendResetLink(['email' => $this->email]);
+            return Password::sendResetLink(['email' => $this->email]);
+        });
 
         $this->status = 'Parola sıfırlama bağlantısı, hesap mevcutsa e-posta adresine gönderildi.';
     }

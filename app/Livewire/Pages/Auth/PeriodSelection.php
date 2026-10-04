@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Pages\Auth;
 
+use App\Livewire\Concerns\WithIdempotentMutations;
 use App\Support\Audit\AuditContext;
 use App\Support\Period\PeriodContext;
 use Illuminate\Contracts\View\View;
@@ -9,12 +10,15 @@ use Livewire\Component;
 
 class PeriodSelection extends Component
 {
+    use WithIdempotentMutations;
+
     public ?int $companyId = null;
 
     public ?int $periodId = null;
 
     public function mount(): void
     {
+        $this->seedMutationKeys(['select']);
         $user = auth()->user();
 
         $this->companyId = $user?->last_company_id;
@@ -45,23 +49,27 @@ class PeriodSelection extends Component
 
         abort_if($period->status === 'archived', 403);
 
-        PeriodContext::use((int) $data['companyId'], (int) $data['periodId']);
+        $this->runMasterMutation('select', function () use ($data, $user, $period): bool {
+            PeriodContext::use((int) $data['companyId'], (int) $data['periodId']);
 
-        $user->forceFill([
-            'last_company_id' => $data['companyId'],
-            'last_period_id' => $data['periodId'],
-        ])->save();
+            $user->forceFill([
+                'last_company_id' => $data['companyId'],
+                'last_period_id' => $data['periodId'],
+            ])->save();
 
-        AuditContext::master(
-            'Şirket/dönem seçildi.',
-            [
-                'company_id' => $data['companyId'],
-                'period_id' => $data['periodId'],
-                'database_name' => $period->database_name,
-            ],
-            $period,
-            'period_selected',
-        );
+            AuditContext::master(
+                'Şirket/dönem seçildi.',
+                [
+                    'company_id' => $data['companyId'],
+                    'period_id' => $data['periodId'],
+                    'database_name' => $period->database_name,
+                ],
+                $period,
+                'period_selected',
+            );
+
+            return true;
+        });
 
         if ($period->status === 'closed') {
             session()->flash('warning', "{$period->year} dönemi kapalı ve salt okunurdur.");

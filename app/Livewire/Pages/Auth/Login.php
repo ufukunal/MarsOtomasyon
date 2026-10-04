@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Pages\Auth;
 
+use App\Livewire\Concerns\WithIdempotentMutations;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
@@ -11,11 +12,18 @@ use Livewire\Component;
 
 class Login extends Component
 {
+    use WithIdempotentMutations;
+
     public string $email = '';
 
     public string $password = '';
 
     public bool $remember = false;
+
+    public function mount(): void
+    {
+        $this->seedMutationKeys(['authenticate']);
+    }
 
     public function authenticate(): void
     {
@@ -32,24 +40,28 @@ class Login extends Component
             ]);
         }
 
-        if (! Auth::attempt($credentials, $this->remember)) {
-            RateLimiter::hit($key, 15 * 60);
+        $this->runMasterMutation('authenticate', function () use ($credentials, $key): bool {
+            if (! Auth::attempt($credentials, $this->remember)) {
+                RateLimiter::hit($key, 15 * 60);
 
-            throw ValidationException::withMessages([
-                'email' => 'E-posta veya parola hatalı.',
-            ]);
-        }
+                throw ValidationException::withMessages([
+                    'email' => 'E-posta veya parola hatalı.',
+                ]);
+            }
 
-        if (! Auth::user()->is_active) {
-            Auth::logout();
+            if (! Auth::user()->is_active) {
+                Auth::logout();
 
-            throw ValidationException::withMessages([
-                'email' => 'Kullanıcı hesabı pasif.',
-            ]);
-        }
+                throw ValidationException::withMessages([
+                    'email' => 'Kullanıcı hesabı pasif.',
+                ]);
+            }
 
-        RateLimiter::clear($key);
-        request()->session()->regenerate();
+            RateLimiter::clear($key);
+            request()->session()->regenerate();
+
+            return true;
+        });
 
         $this->redirect('/secim', navigate: false);
     }

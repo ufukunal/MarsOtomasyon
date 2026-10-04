@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Pages\Settings;
 
+use App\Livewire\Concerns\WithIdempotentMutations;
 use App\Models\IntegrityReport as IntegrityReportModel;
 use App\Support\Integrity\Checks\ContactBalanceCheck;
 use App\Support\Integrity\Checks\CostIntegrityCheck;
@@ -17,10 +18,13 @@ use Livewire\Component;
 
 class IntegrityReport extends Component
 {
+    use WithIdempotentMutations;
+
     public ?string $selectedCheck = null;
 
     public function mount(): void
     {
+        $this->seedMutationKeys(['runNow']);
         abort_unless(auth()->user()?->can('audit.view'), 403);
     }
 
@@ -41,7 +45,7 @@ class IntegrityReport extends Component
 
         abort_unless(isset($map[$check]), 404);
 
-        $runner->run(app($map[$check]));
+        $this->runPeriodMutation('runNow', fn () => $runner->run(app($map[$check])));
 
         $this->selectedCheck = $check;
     }
