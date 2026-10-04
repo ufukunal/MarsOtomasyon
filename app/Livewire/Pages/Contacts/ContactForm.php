@@ -9,6 +9,7 @@ use App\Actions\Contacts\SaveContact;
 use App\Actions\Contacts\SaveContactAddress;
 use App\Actions\Contacts\SaveContactBank;
 use App\Actions\Contacts\SaveContactPerson;
+use App\Livewire\Concerns\WithIdempotentMutations;
 use App\Models\Period\Contact;
 use App\Models\Period\ContactAddress;
 use App\Models\Period\ContactBank;
@@ -16,7 +17,6 @@ use App\Models\Period\ContactCategory;
 use App\Models\Period\ContactPerson;
 use App\Models\Period\PriceList;
 use App\Support\Security\SensitiveFieldMasker;
-use App\Livewire\Concerns\WithIdempotentMutations;
 use Illuminate\Contracts\View\View;
 use Livewire\Component;
 
@@ -107,7 +107,7 @@ class ContactForm extends Component
 
     public function mount(?Contact $contact = null): void
     {
-        $this->seedMutationKeys(['save','saveAddress','deleteAddress','savePerson','deletePerson','saveBank','deleteBank']);
+        $this->seedMutationKeys(['save', 'saveAddress', 'deleteAddress', 'savePerson', 'deletePerson', 'saveBank', 'deleteBank']);
         $this->contact = $contact;
         $this->authorize($contact ? 'update' : 'create', $contact ?? Contact::class);
 

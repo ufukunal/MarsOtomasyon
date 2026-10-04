@@ -3,8 +3,8 @@
 namespace App\Livewire\Pages\Catalog;
 
 use App\Actions\Catalog\SaveBrand;
-use App\Models\Period\Brand;
 use App\Livewire\Concerns\WithIdempotentMutations;
+use App\Models\Period\Brand;
 use Illuminate\Contracts\View\View;
 use Livewire\Component;
 

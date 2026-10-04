@@ -5,9 +5,9 @@ namespace App\Livewire\Pages\Pricing;
 use App\Actions\Pricing\BulkAdjustPriceList;
 use App\Actions\Pricing\SavePriceList;
 use App\Actions\Pricing\SavePriceListItem;
+use App\Livewire\Concerns\WithIdempotentMutations;
 use App\Models\Period\PriceList;
 use App\Models\Period\Product;
-use App\Livewire\Concerns\WithIdempotentMutations;
 use Illuminate\Contracts\View\View;
 use Livewire\Component;
 
@@ -45,7 +45,7 @@ class PriceListDetail extends Component
 
     public function mount(?PriceList $list = null): void
     {
-        $this->seedMutationKeys(['saveList','addItem','bulkAdjust']);
+        $this->seedMutationKeys(['saveList', 'addItem', 'bulkAdjust']);
         abort_unless(auth()->user()?->can('price_lists.view'), 403);
 
         $this->list = $list;

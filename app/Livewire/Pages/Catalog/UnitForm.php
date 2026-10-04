@@ -4,8 +4,8 @@ namespace App\Livewire\Pages\Catalog;
 
 use App\Actions\ReferenceData\SaveUnit;
 use App\Actions\ReferenceData\SaveUnitConversion;
-use App\Models\Period\Unit;
 use App\Livewire\Concerns\WithIdempotentMutations;
+use App\Models\Period\Unit;
 use Illuminate\Contracts\View\View;
 use Livewire\Component;
 
@@ -31,7 +31,7 @@ class UnitForm extends Component
 
     public function mount(?Unit $unit = null): void
     {
-        $this->seedMutationKeys(['save','addConversion']);
+        $this->seedMutationKeys(['save', 'addConversion']);
         abort_unless(auth()->user()?->can($unit ? 'units.update' : 'units.create'), 403);
         $this->unit = $unit;
 

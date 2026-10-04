@@ -4,12 +4,12 @@ namespace App\Livewire\Pages\Setup;
 
 use App\Actions\Locations\SaveLocation;
 use App\Actions\Periods\CreatePeriod;
+use App\Livewire\Concerns\WithIdempotentMutations;
 use App\Models\Company;
 use App\Models\User;
 use App\Support\Auth\CompanyRoleProvisioner;
 use App\Support\Auth\MutationAuthorizer;
 use App\Support\Period\PeriodContext;
-use App\Livewire\Concerns\WithIdempotentMutations;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -86,100 +86,100 @@ class CompanyWizard extends Component
         }
 
         $this->runMasterMutation('finish', function () use ($createPeriod, $saveLocation): bool {
-        $company = Company::query()->create([
-            'code' => $this->code,
-            'name' => $this->name,
-            'legal_name' => $this->legalName ?: null,
-            'db_prefix' => $this->dbPrefix,
-            'tax_office' => $this->taxOffice ?: null,
-            'tax_number' => $this->taxNumber ?: null,
-            'address' => $this->address ?: null,
-            'default_term_days' => $this->defaultTermDays,
-            'cost_deviation_threshold' => $this->costDeviationThreshold,
-            'base_currency' => $this->baseCurrency,
-        ]);
-
-        $period = null;
-        $createdUser = null;
-
-        try {
-            $period = $createPeriod->handle($company, $this->year);
-
-            foreach (config('numbering.prefixes', []) as $documentType => $prefix) {
-                DB::connection('period')->table('number_series')->updateOrInsert(
-                    ['document_type' => $documentType, 'year' => $this->year],
-                    ['prefix' => $prefix, 'last_number' => 0, 'padding' => 5, 'updated_at' => now(), 'created_at' => now()],
-                );
-            }
-
-            $user = auth()->user();
-
-            if (! $user) {
-                $user = User::query()->create([
-                    'name' => $this->adminName,
-                    'email' => $this->adminEmail,
-                    'password' => Hash::make($this->adminPassword),
-                    'is_active' => true,
-                ]);
-                $createdUser = $user;
-            }
-
-            DB::connection('master')->table('company_user')->insertOrIgnore([
-                'company_id' => $company->id,
-                'user_id' => $user->id,
-                'created_at' => now(),
-                'updated_at' => now(),
+            $company = Company::query()->create([
+                'code' => $this->code,
+                'name' => $this->name,
+                'legal_name' => $this->legalName ?: null,
+                'db_prefix' => $this->dbPrefix,
+                'tax_office' => $this->taxOffice ?: null,
+                'tax_number' => $this->taxNumber ?: null,
+                'address' => $this->address ?: null,
+                'default_term_days' => $this->defaultTermDays,
+                'cost_deviation_threshold' => $this->costDeviationThreshold,
+                'base_currency' => $this->baseCurrency,
             ]);
 
-            DB::connection('master')->table('period_user_access')->insertOrIgnore([
-                'period_id' => $period->id,
-                'user_id' => $user->id,
-                'is_active' => true,
-                'permission_overrides' => null,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
+            $period = null;
+            $createdUser = null;
 
-            $roles = app(CompanyRoleProvisioner::class)->handle($company);
-            setPermissionsTeamId($company->id);
-            $user->unsetRelation('roles');
-            $user->assignRole($roles['Yönetici']);
+            try {
+                $period = $createPeriod->handle($company, $this->year);
 
-            $user->forceFill([
-                'last_company_id' => $company->id,
-                'last_period_id' => $period->id,
-            ])->save();
+                foreach (config('numbering.prefixes', []) as $documentType => $prefix) {
+                    DB::connection('period')->table('number_series')->updateOrInsert(
+                        ['document_type' => $documentType, 'year' => $this->year],
+                        ['prefix' => $prefix, 'last_number' => 0, 'padding' => 5, 'updated_at' => now(), 'created_at' => now()],
+                    );
+                }
 
-            PeriodContext::useSystem($company->id, $period->id);
+                $user = auth()->user();
 
-            MutationAuthorizer::runAs($user, function () use ($saveLocation): void {
-                $saveLocation->handle([
-                    'code' => $this->warehouseCode,
-                    'name' => $this->warehouseName,
-                    'kind' => 'warehouse',
-                    'plate' => null,
-                    'address' => null,
-                    'is_default' => true,
-                    'is_active' => true,
+                if (! $user) {
+                    $user = User::query()->create([
+                        'name' => $this->adminName,
+                        'email' => $this->adminEmail,
+                        'password' => Hash::make($this->adminPassword),
+                        'is_active' => true,
+                    ]);
+                    $createdUser = $user;
+                }
+
+                DB::connection('master')->table('company_user')->insertOrIgnore([
+                    'company_id' => $company->id,
+                    'user_id' => $user->id,
+                    'created_at' => now(),
+                    'updated_at' => now(),
                 ]);
-            });
-        } catch (\Throwable $exception) {
-            PeriodContext::clear();
 
-            if ($period?->exists) {
-                $databaseName = $period->database_name;
-                $period->delete();
+                DB::connection('master')->table('period_user_access')->insertOrIgnore([
+                    'period_id' => $period->id,
+                    'user_id' => $user->id,
+                    'is_active' => true,
+                    'permission_overrides' => null,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
 
-                DB::connection('master')->statement(
-                    sprintf('DROP DATABASE IF EXISTS "%s" WITH (FORCE)', $databaseName),
-                );
+                $roles = app(CompanyRoleProvisioner::class)->handle($company);
+                setPermissionsTeamId($company->id);
+                $user->unsetRelation('roles');
+                $user->assignRole($roles['Yönetici']);
+
+                $user->forceFill([
+                    'last_company_id' => $company->id,
+                    'last_period_id' => $period->id,
+                ])->save();
+
+                PeriodContext::useSystem($company->id, $period->id);
+
+                MutationAuthorizer::runAs($user, function () use ($saveLocation): void {
+                    $saveLocation->handle([
+                        'code' => $this->warehouseCode,
+                        'name' => $this->warehouseName,
+                        'kind' => 'warehouse',
+                        'plate' => null,
+                        'address' => null,
+                        'is_default' => true,
+                        'is_active' => true,
+                    ]);
+                });
+            } catch (\Throwable $exception) {
+                PeriodContext::clear();
+
+                if ($period?->exists) {
+                    $databaseName = $period->database_name;
+                    $period->delete();
+
+                    DB::connection('master')->statement(
+                        sprintf('DROP DATABASE IF EXISTS "%s" WITH (FORCE)', $databaseName),
+                    );
+                }
+
+                $company->delete();
+                $createdUser?->delete();
+
+                throw $exception;
             }
-
-            $company->delete();
-            $createdUser?->delete();
-
-            throw $exception;
-        }
 
             return true;
         });

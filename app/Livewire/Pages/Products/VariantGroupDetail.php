@@ -5,10 +5,10 @@ namespace App\Livewire\Pages\Products;
 use App\Actions\Products\SaveVariantAttribute;
 use App\Actions\Products\SaveVariantGroup;
 use App\Actions\Products\SaveVariantValues;
+use App\Livewire\Concerns\WithIdempotentMutations;
 use App\Models\Period\Product;
 use App\Models\Period\VariantAttribute;
 use App\Models\Period\VariantGroup;
-use App\Livewire\Concerns\WithIdempotentMutations;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\On;
 use Livewire\Component;
@@ -41,7 +41,7 @@ class VariantGroupDetail extends Component
 
     public function mount(?VariantGroup $group = null): void
     {
-        $this->seedMutationKeys(['saveGroup','saveAttribute','attachProduct']);
+        $this->seedMutationKeys(['saveGroup', 'saveAttribute', 'attachProduct']);
         abort_unless(auth()->user()?->can('variant_groups.view'), 403);
         $this->group = $group;
 

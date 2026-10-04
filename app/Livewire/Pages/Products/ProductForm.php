@@ -6,6 +6,7 @@ use App\Actions\Products\DeleteSetComponent;
 use App\Actions\Products\SaveConfigDefinition;
 use App\Actions\Products\SaveProduct;
 use App\Actions\Products\SaveSetComponent;
+use App\Livewire\Concerns\WithIdempotentMutations;
 use App\Models\Period\Brand;
 use App\Models\Period\ConfigDefinition;
 use App\Models\Period\Product;
@@ -13,7 +14,6 @@ use App\Models\Period\ProductCategory;
 use App\Models\Period\ProductSet;
 use App\Models\Period\Unit;
 use App\Models\Period\VariantGroup;
-use App\Livewire\Concerns\WithIdempotentMutations;
 use Illuminate\Contracts\View\View;
 use Livewire\Component;
 
@@ -82,7 +82,7 @@ class ProductForm extends Component
 
     public function mount(?Product $product = null): void
     {
-        $this->seedMutationKeys(['save','saveSetComponent','removeSetComponent','saveConfigGroup']);
+        $this->seedMutationKeys(['save', 'saveSetComponent', 'removeSetComponent', 'saveConfigGroup']);
         $this->product = $product;
         $this->authorize($product ? 'update' : 'create', $product ?? Product::class);
 

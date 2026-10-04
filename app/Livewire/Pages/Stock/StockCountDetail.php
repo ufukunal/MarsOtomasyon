@@ -7,11 +7,11 @@ use App\Actions\Stock\ReviewStockCount;
 use App\Actions\Stock\SaveStockCountDraft;
 use App\Actions\Stock\SaveStockCountLine;
 use App\Actions\Stock\StartStockCount;
+use App\Livewire\Concerns\WithIdempotentMutations;
 use App\Models\Period\Location;
 use App\Models\Period\Product;
 use App\Models\Period\StockCount;
 use Carbon\CarbonImmutable;
-use App\Livewire\Concerns\WithIdempotentMutations;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Str;
 use Livewire\Component;
@@ -48,7 +48,7 @@ class StockCountDetail extends Component
 
     public function mount(?int $id = null): void
     {
-        $this->seedMutationKeys(['saveDraft','saveLine','review','postRequest']);
+        $this->seedMutationKeys(['saveDraft', 'saveLine', 'review', 'postRequest']);
         abort_unless(auth()->user()?->can('stock_counts.view'), 403);
         $this->refreshKeys();
         $this->countDate = now()->toDateString();

@@ -4,6 +4,7 @@ namespace App\Livewire\Pages\Import;
 
 use App\Actions\Periods\EnsurePeriodOpen;
 use App\Jobs\ProcessCardImport;
+use App\Livewire\Concerns\WithIdempotentMutations;
 use App\Models\Period\CardImportBatch;
 use App\Models\Period\StockMovement;
 use App\Support\Import\ImportFileReader;
@@ -11,7 +12,6 @@ use App\Support\Import\ImportMapping;
 use App\Support\Import\ImportRowImporterResolver;
 use App\Support\Period\PeriodContext;
 use Carbon\CarbonImmutable;
-use App\Livewire\Concerns\WithIdempotentMutations;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Component;
@@ -20,9 +20,8 @@ use Throwable;
 
 class ImportWizard extends Component
 {
-    use WithIdempotentMutations;
-
     use WithFileUploads;
+    use WithIdempotentMutations;
 
     public int $step = 1;
 
@@ -191,11 +190,11 @@ class ImportWizard extends Component
                 ->where('file_hash', $this->fileHash)
                 ->where('type', $this->type)
                 ->first();
-    
+
             if ($existing) {
                 if ($existing->status === 'failed') {
                     $actor = auth()->user();
-    
+
                     $existing->update([
                         'source_disk' => 'imports',
                         'source_path' => $this->storedPath,
@@ -213,21 +212,21 @@ class ImportWizard extends Component
                         'created_by' => $actor?->getAuthIdentifier(),
                         'created_by_name' => $actor?->name,
                     ]);
-    
+
                     $existing->errors()->delete();
-    
+
                     ProcessCardImport::dispatch(
                         (int) PeriodContext::companyId(),
                         (int) PeriodContext::periodId(),
                         $existing->id,
                     )->afterCommit();
                 }
-    
+
                 return $existing->id;
             }
-    
+
             $actor = auth()->user();
-    
+
             $batch = CardImportBatch::query()->create([
                 'type' => $this->type,
                 'source_disk' => 'imports',
@@ -241,13 +240,13 @@ class ImportWizard extends Component
                 'created_by' => $actor?->getAuthIdentifier(),
                 'created_by_name' => $actor?->name,
             ]);
-    
+
             ProcessCardImport::dispatch(
                 (int) PeriodContext::companyId(),
                 (int) PeriodContext::periodId(),
                 $batch->id,
             )->afterCommit();
-    
+
             return $batch->id;
         });
         $this->step = 4;

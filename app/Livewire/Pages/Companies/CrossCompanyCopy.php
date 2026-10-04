@@ -5,13 +5,13 @@ namespace App\Livewire\Pages\Companies;
 use App\Actions\Companies\CopyRecordsBetweenCompanies;
 use App\Actions\Companies\InspectCopiedRecords;
 use App\Enums\CompanyCopyPermissionType;
+use App\Livewire\Concerns\WithIdempotentMutations;
 use App\Models\Company;
 use App\Models\CompanyCopyPermission;
 use App\Models\Period\Contact;
 use App\Models\Period\Product;
 use App\Support\Period\PeriodContext;
 use App\Support\Period\SourcePeriodContext;
-use App\Livewire\Concerns\WithIdempotentMutations;
 use Illuminate\Contracts\View\View;
 use Livewire\Component;
 
@@ -46,7 +46,7 @@ class CrossCompanyCopy extends Component
 
     public function mount(): void
     {
-        $this->seedMutationKeys(['copy','refreshFromSource']);
+        $this->seedMutationKeys(['copy', 'refreshFromSource']);
         abort_unless(auth()->user()?->can('company_copy_permissions.view'), 403);
     }
 

@@ -5,9 +5,9 @@ namespace App\Livewire\Pages\Settings;
 use App\Actions\Periods\ClosePeriod;
 use App\Actions\Periods\CreatePeriod;
 use App\Actions\Periods\ReopenPeriod;
+use App\Livewire\Concerns\WithIdempotentMutations;
 use App\Models\Company;
 use App\Models\Period;
-use App\Livewire\Concerns\WithIdempotentMutations;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Gate;
 use Livewire\Component;
@@ -24,7 +24,7 @@ class Periods extends Component
 
     public function mount(): void
     {
-        $this->seedMutationKeys(['createPeriod','close','reopen']);
+        $this->seedMutationKeys(['createPeriod', 'close', 'reopen']);
         Gate::authorize('periods.view');
 
         $this->companyId = auth()->user()?->last_company_id;
