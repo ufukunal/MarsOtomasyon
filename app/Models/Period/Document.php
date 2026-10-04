@@ -7,14 +7,15 @@ use App\Models\PeriodModel;
 use App\Support\Concurrency\HasOptimisticLock;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 use LogicException;
 
 /**
  * @property DocumentType $document_type
- * @property \Illuminate\Support\Carbon $document_date
- * @property \Illuminate\Support\Carbon|null $due_date
- * @property \Illuminate\Support\Carbon|null $valid_until
- * @property \Illuminate\Support\Carbon|null $posted_at
+ * @property Carbon $document_date
+ * @property Carbon|null $due_date
+ * @property Carbon|null $valid_until
+ * @property Carbon|null $posted_at
  * @property int|null $contact_id
  * @property string $status
  * @property string $exchange_rate
