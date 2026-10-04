@@ -1,0 +1,59 @@
+<?php
+
+namespace App\Actions\Pricing;
+
+use App\Models\Period\PriceList;
+use App\Support\Auth\MutationAuthorizer;
+use App\Support\Period\PeriodContext;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
+
+final class SavePriceList
+{
+    /** @param array<string, mixed> $data */
+    public function handle(
+        array $data,
+        ?PriceList $list = null,
+        ?int $expectedVersion = null,
+    ): PriceList {
+        MutationAuthorizer::authorize($list ? 'price_lists.update' : 'price_lists.create');
+        PeriodContext::ensureWritable();
+
+        return DB::connection('period')->transaction(function () use ($data, $list, $expectedVersion): PriceList {
+            $isFirst = ! PriceList::query()->exists();
+            $isDefault = $isFirst ? true : (bool) ($data['is_default'] ?? false);
+            $isActive = (bool) ($data['is_active'] ?? true);
+
+            if ($list?->is_default && (! $isDefault || ! $isActive)) {
+                throw ValidationException::withMessages([
+                    'is_default' => 'Varsayılan fiyat listesini doğrudan kaldıramazsınız. Önce başka listeyi varsayılan yapın.',
+                ]);
+            }
+
+            if ($isDefault && ! $isActive) {
+                throw ValidationException::withMessages([
+                    'is_active' => 'Varsayılan fiyat listesi aktif olmalıdır.',
+                ]);
+            }
+
+            if ($isDefault) {
+                PriceList::query()
+                    ->when($list, fn ($q) => $q->whereKeyNot($list->id))
+                    ->where('is_default', true)
+                    ->update(['is_default' => false]);
+            }
+
+            $attributes = [
+                'name' => trim((string) $data['name']),
+                'currency' => strtoupper((string) ($data['currency'] ?? 'TRY')),
+                'vat_included' => (bool) ($data['vat_included'] ?? false),
+                'is_default' => $isDefault,
+                'is_active' => $isActive,
+            ];
+
+            return $list
+                ? $list->updateWithVersion($attributes, $expectedVersion ?? (int) $list->version)
+                : PriceList::query()->create($attributes);
+        });
+    }
+}

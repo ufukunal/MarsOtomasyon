@@ -1,0 +1,1 @@
+<section class="panel form-grid"><x-field.text label="Marka" wire:model="name" /><x-field.toggle label="Aktif" wire:model="isActive" /><button type="button" wire:click="save">Kaydet</button></section>

@@ -1,0 +1,133 @@
+# MarsOtomasyon — Proje planı v2
+
+## Çalışma yöntemi
+
+Her faz önce veri modeli + iş kuralları + ekran + standalone G görevleri olarak yazılır. **Satır sayısı hedef değildir; uzunluk için dolgu yasaktır.** Yerel model görevleri tek tek uygular; gerçek PostgreSQL kabul testleri geçmeden ilerlenmez.
+
+## Faz durumu
+
+- Faz 0 Temel: G-001…G-021 yazıldı ve güncel mimariye göre temizlendi.
+- Faz 0b UI: G-0b1…G-0b3 yazıldı ve temizlendi.
+- Faz 1 Kartlar: G-101…G-115 period DB mimarisine göre güncellendi.
+- Faz 2 Stok: G-201…G-212 yeni stok/rezervasyon kararlarına göre güncellendi.
+- **Faz 3 Satış: DOKÜMANTASYON YAZILDI VE KALİTE KONTROLÜ TAMAMLANDI — veri modeli 30–34, iş kuralları 28–31, ekranlar ve G-300…G-312 hazırdır. Kodlama/uygulama tamamlanması kabul testlerine bağlıdır.**
+- **Faz 4 Alış: DOKÜMANTASYON YAZILDI — K-086…K-091 kilitli; veri modeli 35, iş kuralları 32–34, alış ekranları ve G-400…G-409 hazırdır. Kodlama/uygulama tamamlanması G-401…G-409 gerçek PostgreSQL kabul testlerine bağlıdır.**
+- **Faz 5 Kasa/Banka/Çek-Senet: DOKÜMANTASYON YAZILDI — K-092…K-097 kilitli; veri modeli 36–38, iş kuralları 35–38, finans ekranları ve G-500…G-509 hazırdır. Kodlama/uygulama tamamlanması G-501…G-509 gerçek PostgreSQL kabul testlerine bağlıdır.**
+- **Faz 6 İade: DOKÜMANTASYON YAZILDI — K-098…K-113 kilitli; veri modeli 39, iş kuralları 39–41, iade ekranları ve G-600…G-609 hazırdır. Kodlama/uygulama tamamlanması G-601…G-609 gerçek PostgreSQL kabul testlerine bağlıdır.**
+- **Faz 7 İthalat: DOKÜMANTASYON YAZILDI — K-114…K-130 kilitli; veri modeli 40, iş kuralları 42–44, ithalat ekranları ve G-700…G-709 hazırdır. Kodlama/uygulama tamamlanması G-701…G-709 gerçek PostgreSQL kabul testlerine bağlıdır.**
+- **Faz 8 Basit üretim/fason: DOKÜMANTASYON YAZILDI — K-131…K-162 kilitli; veri modeli 41, iş kuralları 45–47, üretim/fason ekranları ve G-800…G-809 hazırdır. Kodlama/uygulama tamamlanması G-801…G-809 gerçek PostgreSQL kabul testlerine bağlıdır.**
+- **Faz 9 E-ticaret: DOKÜMANTASYON YAZILDI — K-163…K-201 kilitli; veri modeli 42, iş kuralları 48–51, kanal ekranları ve G-900…G-910 hazırdır. Kodlama/uygulama tamamlanması G-901…G-910 gerçek PostgreSQL kabul testlerine bağlıdır.**
+- **Faz 10 Raporlar/çıktılar/tasarımcı: DOKÜMANTASYON YAZILDI — K-202…K-235 kilitli; veri modeli 43, iş kuralları 52–56, rapor/dashboard/export/tasarımcı ekranları ve G-1000…G-1012 hazırdır. Kodlama/uygulama tamamlanması G-1001…G-1012 gerçek PostgreSQL/multi-period kabul testlerine bağlıdır.**
+- **Faz 11b Dönem devri: DOKÜMANTASYON YAZILDI — G-1110…G-1113 hazır; açık quarantine, production recipe, subcontractor stok ve channel mapping carry kuralları günceldir. Kodlama/uygulama gerçek PostgreSQL multi-DB kabul testlerine bağlıdır.**
+- **Faz 11 Canlı geçiş: DOKÜMANTASYON YAZILDI — K-236…K-255 kilitli; veri modeli 44, iş kuralları 58–61, operasyon ekranları ve G-1101…G-1109 hazırdır. Canlıya alma G-1109 ve tüm faz kabul testleri yeşil olmadan yapılmaz.**
+
+## Faz 3 planı
+
+G-300 özet; G-301 documents/document_lines; G-302 hesap; G-303 PostDocument; G-304 teklif; G-305 sipariş/rezervasyon; G-306 irsaliye; G-307 fatura; G-308 proforma; G-309 tahsilat/cari; G-310 araç sıcak satış; G-311 ters kayıt; G-312 test.
+
+Faz 3 iş kuralı belgeleri mevcut numaralarla çakışmamak için 28–31 olacaktır.
+
+## Kritik sıra
+
+Repo temizliği ve Faz 0–2 görev revizyonu tamamlandı. Faz 3 Satış dokümantasyonu yazıldı ve kalite kontrolünden geçirildi. Faz 4 Alış dokümantasyonu K-086…K-091 kararlarıyla yazıldı; G-400…G-409 hazırdır. Faz 3 ve Faz 4'ün kodlama/uygulama tamamlanması kendi gerçek PostgreSQL kabul testlerine bağlıdır. Faz 5 Kasa/Banka/Çek-Senet dokümantasyonu K-092…K-097 kararlarıyla yazıldı; G-500…G-509 hazırdır. Faz 6 İade dokümantasyonu K-098…K-113 kararlarıyla yazıldı; G-600…G-609 hazırdır. Faz 5 ve Faz 6 kodlama/uygulama tamamlanması kendi gerçek PostgreSQL kabul testlerine bağlıdır. Faz 7–11 planlama/dokümantasyon setleri tamamlandı. Proje planı bütünlük taraması tamamlandı; A-125/A-126/A-127 sırasıyla K-257/K-258/K-256 ile kapatıldı. Kodlama bu çalışma kapsamında yapılmıyor.
+
+
+## Faz 4 planı
+
+G-400 özet; G-401 belge/selection çekirdeği; G-402 satınalma talebi; G-403 tedarikçi teklif toplama; G-404 satınalma siparişi; G-405 mal kabul; G-406 alış faturası posting+maliyet; G-407 kısmi faturalama; G-408 ters kayıt/bütünlük; G-409 test.
+
+Faz 4 yeni veri modeli dosyası 35; yeni iş kuralı dosyaları 32–34'tür. Ortak Faz 3 belge çekirdeği yeniden kullanılmaktadır.
+
+
+## Faz 5 planı
+
+G-500 özet; G-501 finans şema genişletmesi; G-502 virman; G-503 tedarikçi ödeme; G-504 kasa sayımı; G-505 manuel banka mutabakatı; G-506 çek/senet şeması; G-507 çek/senet yaşam döngüsü; G-508 risk/ters kayıt/integrity; G-509 test.
+
+Faz 5 yeni veri modeli dosyaları 36–38; yeni iş kuralı dosyaları 35–38'dir. Faz 3 minimum cash/bank çekirdeği yeniden kullanılmaktadır.
+
+
+## Faz 6 planı
+
+G-600 özet; G-601 iade şema genişletmesi; G-602 kaynak çözümleme; G-603 satış iadesi; G-604 alış iadesi; G-605 kısmi/çoklu iade; G-606 karantina kontrolü; G-607 cross-period iade; G-608 reverse/integrity; G-609 test.
+
+Faz 6 yeni veri modeli dosyası 39; yeni iş kuralı dosyaları 39–41'dir. Ortak belge, stok, cari ve finans çekirdeği yeniden kullanılmaktadır.
+
+
+## Faz 7 planı
+
+G-700 özet; G-701 ithalat şeması; G-702 yaşam döngüsü; G-703 purchase invoice line kaynakları; G-704 import expense; G-705 masraf dağıtımı; G-706 finalize/import cost; G-707 inventory cost adjustment; G-708 late cost/reverse/integrity; G-709 test.
+
+Faz 7 yeni veri modeli dosyası 40; yeni iş kuralı dosyaları 42–44'tür. Faz 4 purchase invoice ve moving-average çekirdeği yeniden kullanılmaktadır. K-130 ile inventory cost adjustment birim farkı original import base_quantity üzerinden kesinleştirilmiştir.
+
+
+## Faz 8 planı
+
+G-800 özet; G-801 üretim/fason şeması; G-802 reçete revizyonları; G-803 production order; G-804 production completion; G-805 production cost; G-806 fason location/gönderim; G-807 fason completion/hizmet; G-808 reverse/integrity/dönem devri; G-809 test.
+
+Faz 8 yeni veri modeli dosyası 41; yeni iş kuralı dosyaları 45–47'dir. Faz 2 stock/location, Faz 4 purchase_invoice ve Faz 7 inventory_cost_adjustments altyapıları yeniden kullanılmaktadır.
+
+
+## Faz 9 planı
+
+G-900 özet; G-901 kanal hesapları/adapter; G-902 listing mapping/yayın; G-903 içerik/görsel; G-904 stok sync; G-905 fiyat sync; G-906 order import; G-907 cancel/return/shipment; G-908 webhook/polling/history; G-909 rollover/integrity; G-910 test.
+
+Faz 9 yeni veri modeli dosyası 42; yeni iş kuralı dosyaları 48–51'dir. Faz 1 görsel setleri, Faz 3 sales_order/partial fulfillment, Faz 6 sales_return ve Faz 8 production-mode entegrasyonları yeniden kullanılmaktadır.
+
+
+## Faz 10 planı
+
+G-1000 özet; G-1001 rapor çekirdeği; G-1002 rapor kataloğu; G-1003 dashboard; G-1004 PDF/XLSX/CSV export; G-1005 export queue/geçmiş; G-1006 çok dönem; G-1007 preset/kolon/drill-down; G-1008 belge template revizyon; G-1009 token güvenliği; G-1010 ürün/koli etiketi; G-1011 print history/toplu baskı; G-1012 test.
+
+Faz 10 yeni veri modeli dosyası 43; yeni iş kuralı dosyaları 52–56'dır. G-1112 çok dönemli rapor görevi G-1006 ile aynı MultiPeriodQuery sözleşmesini paylaşır; ikinci paralel altyapı kurulmaz.
+
+
+## Faz 11b planı
+
+G-1110 dönem devri; G-1111 devir öncesi kontrol; G-1112 çok dönemli rapor ortak altyapısı; G-1113 dönem devri bütünleşik testleri.
+
+Açık quarantine taşınır; açık sales_order/purchase_order K-256 ile kalan miktar snapshot'ı olarak aktarılır ve satış rezervasyonları yeniden kurulur; açık production/subcontract order ve yoldaki transfer carry'yi bloklar. Aktif production recipe/revision, subcontractor location fiziksel stokları ve channel listing/location mapping taşınır. Channel order/sync history ve geçmiş belgeler/hareketler taşınmaz.
+
+
+## Faz 11 planı
+
+G-1101 özet; G-1102 production topoloji; G-1103 immutable deploy/migration; G-1104 recovery-set backup; G-1105 restore/archive/DR; G-1106 health/monitoring; G-1107 production security/secrets; G-1108 go-live cutover/rollback; G-1109 canlı kabul/DR testleri.
+
+Faz 11 yeni veri modeli dosyası 44; yeni iş kuralı dosyaları 58–61'dir. K-021 VDS hedefi korunur; PostgreSQL + Valkey + queue/scheduler + backup/restore/health tek production readiness sözleşmesinde tamamlanır.
+
+
+## Bütünlük ve kalite taraması — 03.10.2026
+
+Durum: **BÜTÜNLÜK BLOKAJI YOK — plan/dokümantasyon tamamlandı. Kodlama bu çalışma kapsamında yapılmıyor.**
+
+Doğrulananlar:
+- K-001…K-258 eksiksiz ve tekrarsız.
+- 156 görev dosyasında G kimliği çakışması yok.
+- Faz 0–11 plan/dokümantasyon dosyaları mevcut.
+- Faz 8 location alan adı `kind` olarak kanonikleştirildi.
+- Faz 8 subcontract late cost için `inventory_cost_adjustments.production_completion_id` provenance genişletmesi tanımlandı.
+- purchase_invoice → production_order için hatalı document_relations yaklaşımı kaldırıldı; `production_service_invoices` mapping tanımlandı.
+- Faz 9 channel account → period marketplace customer mapping için `channel_account_period_settings` eklendi.
+- Faz 10 print profile → document template FK migration sözleşmesi netleştirildi.
+- Proje planındaki eski “sonraki faz kullanıcı onayı” ifadeleri temizlendi.
+
+Karar kapanışları:
+- **A-125 KAPANDI → K-257:** `document_lines.line_kind=stock|service`; service satırı cari/KDV/toplama girer, stok/moving-average üretmez.
+- **A-126 KAPANDI → K-258:** fason hizmet maliyeti completion `completed_quantity` oranında deterministik dağıtılır; `production_service_allocations` gerçek kayıttır.
+- **A-127 KAPANDI → K-256:** açık sales_order/purchase_order kalan miktarları ve aktif sales-order rezervasyonları yeni period'a aktarılır; teklif/taslak aktarılmaz.
+
+Açık ürün kararı yoktur.
+
+## 156 görev final kalite denetimi — 03.10.2026
+
+- **156/156 G dosyası tek tek okunmuştur.**
+- **68 görev/özet dosyasında doğrudan kalite düzeltmesi yapılmıştır.**
+- Ayrıntılı görev bazlı kayıt: `docs/00-genel/10-gorev-kalite-denetimi.md`.
+- Generic placeholder, stale faz-onay metni, açık `[KARAR GEREKİYOR]`, bilinen alan adı/bağımlılık çelişkisi kalmamıştır.
+- G-115 Faz 4'e doğru scope edilmiştir.
+- G-208 sayım snapshot fark matematiği düzeltilmiştir.
+- G-209 quarantine gerçek kaynak/summary ayrımı netleştirilmiştir.
+- K-257/K-258 service-line ve fason allocation davranışları ilgili Faz 3/4/7/8 görevlerine yansıtılmıştır.
+- K-256 açık kanal siparişi carry provenance'ı Faz 9/11b görevlerine işlenmiştir.
+- G-1006 kanonik MultiPeriodQuery sahibi, G-1112 doğrulama/reuse görevidir; dairesel sahiplik yoktur.
+- Production deploy kanoniği G-1103 immutable-release akışıdır; G-021 yalnız `migrate:periods` sağlar.
+- **Açık ürün kararı yoktur. Kodlama yapılmamıştır.**

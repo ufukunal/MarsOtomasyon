@@ -1,0 +1,140 @@
+# Cari hareket, bakiye ve yaşlandırma
+
+## Tek kaynak
+
+Cari bakiye `contact_transactions` hareket toplamıdır. `contacts` üzerinde balance kolonu yoktur ve bakiye cache edilmez.
+
+```
+bakiye = debit toplamı - credit toplamı
+```
+
+Fatura settlement tablosu bakiye kaynağı değildir.
+
+## Faz 3 hareketleri
+
+### Satış faturası
+
+Posted satış faturası:
+
+```
+direction = debit
+transaction_type = sales_invoice
+amount = document.grand_total
+transaction_date = document.document_date
+due_date = document.due_date
+document_id = invoice.id
+```
+
+### Tahsilat
+
+Posted tahsilat:
+
+```
+direction = credit
+transaction_type = collection
+amount = document.grand_total
+transaction_date = document.document_date
+document_id = collection.id
+```
+
+Tahsilat kasa/banka movement ile aynı transaction içinde yazılır.
+
+### Manuel Cari Borç/Alacak Fişi
+
+K-081 gereği vardır. Gerekçe ve period audit zorunludur. Bu belge de posted olduğunda tek contact transaction üretir.
+
+## Fatura içinden tahsilat
+
+Fatura detayındaki "Tahsilat" eylemi tahsilat formunu cari ve kaynak belge bilgisiyle açabilir.
+
+Bu:
+
+- tahsilatı o faturaya kilitlemez,
+- kalıcı settlement dağıtımı üretmez,
+- yalnız `document_relations.collection_source` gibi bilgi amaçlı ilişki kurabilir.
+
+## FIFO yaşlandırma
+
+Amaç muhasebe settlement'ı değil **bilgilendirme**dir.
+
+1. Raporun "as of" tarihinden sonraki hareketler hesaba katılmaz.
+2. `reversal_of_id` ile bağlı exact inverse çiftler önce normalize edilir ve aging dağıtımından birlikte çıkarılır. Reversed invoice credit'i başka bir faturayı kapatmaz; reversed collection debit'i yeni açık borç satırı yaratmaz.
+3. Kalan debit/borç hareketleri `COALESCE(due_date, transaction_date) + transaction_date + id` sırasına dizilir.
+4. Kalan credit hareket toplamı en eski borçtan başlayarak uygulanmış kabul edilir.
+5. Dağıtım runtime rapor hesabıdır; DB'ye fatura tahsilat eşleştirmesi yazılmaz.
+6. Kalan her borç satırı vade gecikmesine göre dilime düşer.
+7. Credit toplamı debit toplamını aşarsa açık alacak 0'dır; fazla credit ayrı "cari alacak/avans" bilgisi olarak gösterilir.
+
+Dilimler:
+
+- Vadesi gelmemiş
+- 1–30
+- 31–60
+- 61–90
+- 91–120
+- 120+
+
+## Satır renkleri
+
+- **Yeşil:** borç tamamen sanal FIFO ile kapanmış.
+- **Sarı:** bir kısmı kapanmış, bakiye kalmış.
+- **Kırmızı:** bu borca henüz hiç mahsup düşmemiş.
+
+Renk yalnız sunumdur; transaction verisini değiştirmez.
+
+## Faz 5 tedarikçi ödeme
+
+K-093:
+
+- supplier_payment `debit` üretir,
+- kaynak purchase_invoice opsiyoneldir,
+- payment_source yalnız bilgi amaçlıdır,
+- kısmi ödeme serbesttir,
+- settlement tablosu oluşturulmaz.
+
+## Çek / senet etkisi
+
+K-082/K-096:
+
+- alınan kıymetin ilk teslimi original cari için `credit`,
+- verilen kıymetin ilk teslimi original cari için `debit`,
+- tahsil/ödeme aşamasında cari ikinci kez etkilenmez,
+- ciro original cariyi ikinci kez etkilemez; target cari için `debit` üretir,
+- karşılıksız/geri dönüş ilgili önceki cari etkinin exact inverse hareketini üretir.
+
+Gerçek bakiye yine yalnız `contact_transactions` toplamıdır; `security_events` ikinci bakiye kaynağı değildir.
+
+## Faz 6 iade cari etkisi
+
+- sales_return = customer `credit`
+- purchase_return = supplier `debit`
+- iade cash/bank hareketini otomatik üretmez
+- source invoice ilişkisi settlement değildir
+- reverse exact inverse cari hareket üretir
+
+Kısmi/çoklu iade bakiye hesabında normal contact transaction'lar olarak görünür; ayrı return bakiye kaynağı yoktur.
+
+## Risk
+
+Resmî cari risk bakiyesi = cari bakiye.
+
+Sipariş ekranındaki ticari projeksiyon:
+
+```
+cari bakiye
++ bu sipariş tutarı
++ portföyde henüz tahsil edilmemiş çek/senet riski
+```
+
+Diğer açık siparişler resmî bakiyeye katılmaz. Limit aşımı uyarıdır, blok değildir.
+
+Faz 5'te çek/senet risk bileşenine yalnız alınan kıymetlerin `portfolio` ve `sent_to_collection` durumları dahil edilir. Endorsed, collected, bounced/returned ve issued kıymetler bu portföy riskine dahil edilmez.
+
+## integrity:contacts
+
+- contact_transactions toplamı raporlanan bakiye ile eşleşir,
+- document_id bağlı satış faturası/tahsilat için tek hareket bulunur,
+- reversal zinciri çift uygulanmaz; exact inverse reversal çiftleri aging FIFO dağıtımına girmeden nötrlenir,
+- yaşlandırma kalan debit toplamı `max(cari bakiye, 0)` ile tutarlı olmalıdır; negatif bakiye excess credit olarak ayrıca gösterilir.
+
+Otomatik düzeltme yapılmaz.
