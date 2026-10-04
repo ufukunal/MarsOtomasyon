@@ -33,7 +33,7 @@ class QuarantineBalanceCheck implements IntegrityCheck
                 SELECT
                     product_id,
                     location_id,
-                    SUM(quantity - released_quantity - scrapped_quantity) AS pending
+                    SUM(quantity - released_quantity - scrapped_quantity - COALESCE(reversed_quantity, 0)) AS pending
                 FROM quarantine_entries
                 GROUP BY product_id, location_id
             )

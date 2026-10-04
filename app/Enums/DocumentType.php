@@ -18,6 +18,8 @@ enum DocumentType: string
     case Expense = 'expense';
     case Advance = 'advance';
     case AdvanceReturn = 'advance_return';
+    case SalesReturn = 'sales_return';
+    case PurchaseReturn = 'purchase_return';
 
     public function isLineCalculated(): bool
     {
@@ -31,6 +33,8 @@ enum DocumentType: string
             self::GoodsReceipt,
             self::SupplierInvoice,
             self::Expense,
+            self::SalesReturn,
+            self::PurchaseReturn,
         ], true);
     }
 

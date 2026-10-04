@@ -16,6 +16,7 @@ class QuarantineEntry extends PeriodModel
         'quantity',
         'released_quantity',
         'scrapped_quantity',
+        'reversed_quantity',
         'unit_cost',
         'status',
         'decision_note',
@@ -24,6 +25,7 @@ class QuarantineEntry extends PeriodModel
         'decided_by',
         'decided_by_name',
         'decided_at',
+        'reversed_at',
     ];
 
     protected function casts(): array
@@ -32,12 +34,14 @@ class QuarantineEntry extends PeriodModel
             'quantity' => 'decimal:3',
             'released_quantity' => 'decimal:3',
             'scrapped_quantity' => 'decimal:3',
+            'reversed_quantity' => 'decimal:3',
             'unit_cost' => 'decimal:4',
             'source_document_id' => 'integer',
             'source_line_id' => 'integer',
             'created_by' => 'integer',
             'decided_by' => 'integer',
             'decided_at' => 'datetime',
+            'reversed_at' => 'datetime',
             'version' => 'integer',
         ];
     }
@@ -45,8 +49,12 @@ class QuarantineEntry extends PeriodModel
     public function pendingQuantity(): string
     {
         return bcsub(
-            bcsub((string) $this->quantity, (string) $this->released_quantity, 3),
-            (string) $this->scrapped_quantity,
+            bcsub(
+                bcsub((string) $this->quantity, (string) $this->released_quantity, 3),
+                (string) $this->scrapped_quantity,
+                3,
+            ),
+            (string) ($this->reversed_quantity ?? '0'),
             3,
         );
     }
