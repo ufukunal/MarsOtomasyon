@@ -44,7 +44,7 @@ class MigratePeriodsCommand extends Command
                 $this->info("→ {$period->database_name}");
 
                 try {
-                    PeriodContext::use($period->company_id, $period->id);
+                    PeriodContext::useSystem($period->company_id, $period->id);
 
                     if ($this->option('status')) {
                         $this->renderStatus($period, $schemaVersion);
@@ -105,7 +105,7 @@ class MigratePeriodsCommand extends Command
             PeriodContext::clear();
 
             if ($oldCompanyId && $oldPeriodId) {
-                PeriodContext::use($oldCompanyId, $oldPeriodId);
+                PeriodContext::useSystem($oldCompanyId, $oldPeriodId);
             }
         }
 

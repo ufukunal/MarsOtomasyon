@@ -4,6 +4,7 @@ use App\Exceptions\NoActivePeriodException;
 use App\Models\NumberSeries;
 use App\Models\Period\Unit;
 use App\Support\Period\PeriodContext;
+use Illuminate\Support\Facades\Artisan;
 
 it('fiziksel period veritabanlarını birbirinden izole eder', function () {
     [$companyA, $periodA] = $this->createCompanyWithPeriod('ISOA');
@@ -34,4 +35,23 @@ it('period context olmadan period model sorgusunu reddeder', function () {
 
     expect(fn () => Unit::query()->count())
         ->toThrow(NoActivePeriodException::class);
+});
+
+
+it('migrate:periods CLI kullanıcı oturumu olmadan çalışır ve context bırakmaz', function () {
+    [$company, $period] = $this->createCompanyWithPeriod('MIGCLI');
+
+    auth()->logout();
+    PeriodContext::clear();
+
+    $exitCode = Artisan::call('migrate:periods', [
+        '--company' => $company->id,
+        '--year' => $period->year,
+        '--force' => true,
+    ]);
+
+    expect($exitCode)->toBe(0)
+        ->and(PeriodContext::companyId())->toBeNull()
+        ->and(PeriodContext::periodId())->toBeNull()
+        ->and(config('database.connections.period.database'))->toBeNull();
 });
