@@ -80,6 +80,20 @@ final class PreviewPeriodCarry
             );
         }
 
+        if ($target && (string) $target->status !== 'active') {
+            $checks[] = $this->check(
+                'target_status',
+                'block',
+                'Hedef dönem carry için active durumda olmalıdır.',
+            );
+        } elseif ($target) {
+            $checks[] = $this->check(
+                'target_status',
+                'pass',
+                'Hedef dönem carry için active durumdadır.',
+            );
+        }
+
         $resumingSameCarry = $target
             && $target->carried_at === null
             && (int) ($target->carried_from_period_id ?? 0) === (int) $source->id;
