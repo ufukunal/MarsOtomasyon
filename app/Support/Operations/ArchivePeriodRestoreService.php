@@ -17,13 +17,29 @@ use Throwable;
 
 final class ArchivePeriodRestoreService
 {
-    public function __construct(private readonly RecoverySetArchive $archive) {}
+    public function __construct(
+        private readonly RecoverySetArchive $archive,
+        private readonly ArchivePeriodIntegrityVerifier $integrity,
+    ) {}
 
     /** @return array<string,mixed> */
     public function restore(BackupRun $backup, Period $period): array
     {
         if ((string) $period->status !== 'archived') {
             throw new RuntimeException('Archive restore yalnız archived period için çalışır.');
+        }
+
+        if ((string) $backup->status !== 'verified' || $backup->verified_at === null) {
+            throw new RuntimeException('Archive restore için temporary restore provası verified recovery set zorunludur.');
+        }
+
+        $manifestContainsPeriod = collect($backup->period_manifest ?? [])->contains(
+            fn (array $item): bool =>
+                (string) ($item['database_name'] ?? '') === (string) $period->database_name
+        );
+
+        if (! $manifestContainsPeriod) {
+            throw new RuntimeException('Seçilen recovery set archived period veritabanını içermiyor.');
         }
 
         if (DB::connection('master')->table('pg_database')->where('datname', $period->database_name)->exists()) {
@@ -68,6 +84,7 @@ final class ArchivePeriodRestoreService
             PeriodContext::useSystem((int) $period->company_id, (int) $period->id);
             app(SeedPeriodReferenceData::class)->handle();
             $schemaVersion = app(PeriodSchemaVersion::class)->currentDatabaseVersion();
+            $integrityChecked = $this->integrity->verify();
 
             DB::connection('master')->transaction(function () use ($period, $schemaVersion): void {
                 $locked = Period::query()->lockForUpdate()->findOrFail($period->id);
@@ -91,6 +108,7 @@ final class ArchivePeriodRestoreService
                 'checksum_verified' => true,
                 'database_restored' => true,
                 'migrations_applied' => true,
+                'integrity_checked' => $integrityChecked,
                 'status' => 'closed',
                 'database_default_read_only' => true,
             ];
