@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Support\Operations\DatabasePrivilegeVerifier;
 use Illuminate\Console\Command;
 
 class OperationsSecurityCheckCommand extends Command
@@ -9,9 +10,9 @@ class OperationsSecurityCheckCommand extends Command
     protected $signature = 'operations:security-check';
     protected $description = 'Production secret/config/file-permission güvenlik kontrollerini çalıştırır';
 
-    public function handle(): int
+    public function handle(DatabasePrivilegeVerifier $privileges): int
     {
-        $failures = [];
+        $failures = $privileges->failures();
 
         if (app()->environment('production') && (bool) config('app.debug')) {
             $failures[] = 'APP_DEBUG production ortamında false olmalıdır.';
