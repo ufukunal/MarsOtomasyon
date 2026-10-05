@@ -56,6 +56,7 @@ final class CreatePeriod
             }
 
             app(SeedPeriodReferenceData::class)->handle();
+            $this->grantRuntimeRole($dbName);
 
             $schemaVersion = app(PeriodSchemaVersion::class)->currentDatabaseVersion();
 
@@ -82,4 +83,39 @@ final class CreatePeriod
             throw $exception;
         }
     }
+    private function grantRuntimeRole(string $databaseName): void
+    {
+        $role = trim((string) config('operations.database.runtime_username'));
+
+        if ($role === '') {
+            throw new RuntimeException('Runtime DB username tanımlı olmalıdır.');
+        }
+
+        if (! preg_match('/^[A-Za-z_][A-Za-z0-9_]*$/', $role)
+            || ! preg_match('/^[A-Za-z_][A-Za-z0-9_]*$/', $databaseName)) {
+            throw new RuntimeException('Runtime DB role/database identifier geçersiz.');
+        }
+
+        $quotedRole = '"'.$role.'"';
+        $quotedDatabase = '"'.$databaseName.'"';
+
+        DB::connection('period')->statement('REVOKE CREATE ON SCHEMA public FROM PUBLIC');
+        DB::connection('period')->statement("GRANT CONNECT ON DATABASE {$quotedDatabase} TO {$quotedRole}");
+        DB::connection('period')->statement("GRANT USAGE ON SCHEMA public TO {$quotedRole}");
+        DB::connection('period')->statement(
+            "GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO {$quotedRole}"
+        );
+        DB::connection('period')->statement(
+            "GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO {$quotedRole}"
+        );
+        DB::connection('period')->statement(
+            "ALTER DEFAULT PRIVILEGES IN SCHEMA public
+             GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO {$quotedRole}"
+        );
+        DB::connection('period')->statement(
+            "ALTER DEFAULT PRIVILEGES IN SCHEMA public
+             GRANT USAGE, SELECT ON SEQUENCES TO {$quotedRole}"
+        );
+    }
+
 }
