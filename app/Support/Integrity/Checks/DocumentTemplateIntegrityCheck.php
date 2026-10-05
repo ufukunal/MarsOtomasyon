@@ -4,6 +4,7 @@ namespace App\Support\Integrity\Checks;
 
 use App\Models\DocumentTemplate;
 use App\Support\DocumentTemplates\TemplateDefinitionValidator;
+use App\Support\DocumentTemplates\TemplateExpressionValidator;
 use App\Support\Integrity\IntegrityCheck;
 use App\Support\Integrity\IntegrityResult;
 use Illuminate\Support\Facades\Schema;
@@ -11,7 +12,10 @@ use Throwable;
 
 final class DocumentTemplateIntegrityCheck implements IntegrityCheck
 {
-    public function __construct(private readonly TemplateDefinitionValidator $validator) {}
+    public function __construct(
+        private readonly TemplateDefinitionValidator $validator,
+        private readonly TemplateExpressionValidator $expressions,
+    ) {}
 
     public function name(): string
     {
@@ -72,11 +76,12 @@ final class DocumentTemplateIntegrityCheck implements IntegrityCheck
                 }
 
                 try {
-                    $this->validator->normalize($template->definition ?? []);
+                    $definition = $this->validator->normalize($template->definition ?? []);
+                    $this->expressions->validateDefinition($definition);
                 } catch (Throwable $exception) {
                     $mismatches[] = [
                         'template_id' => $template->id,
-                        'reason' => 'definition_structure_invalid',
+                        'reason' => 'definition_or_token_contract_invalid',
                         'detail' => $exception->getMessage(),
                     ];
                 }

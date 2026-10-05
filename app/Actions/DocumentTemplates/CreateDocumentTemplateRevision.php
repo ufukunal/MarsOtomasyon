@@ -5,6 +5,7 @@ namespace App\Actions\DocumentTemplates;
 use App\Models\DocumentTemplate;
 use App\Models\User;
 use App\Support\DocumentTemplates\TemplateDefinitionValidator;
+use App\Support\DocumentTemplates\TemplateExpressionValidator;
 use App\Support\Period\PeriodContext;
 use DomainException;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -13,7 +14,10 @@ use Illuminate\Support\Facades\Gate;
 
 final class CreateDocumentTemplateRevision
 {
-    public function __construct(private readonly TemplateDefinitionValidator $validator) {}
+    public function __construct(
+        private readonly TemplateDefinitionValidator $validator,
+        private readonly TemplateExpressionValidator $expressions,
+    ) {}
 
     /** @param array<string,mixed> $definition */
     public function handle(
@@ -60,6 +64,7 @@ final class CreateDocumentTemplateRevision
         }
 
         $normalized = $this->validator->normalize($definition);
+        $this->expressions->validateDefinition($normalized);
         $lockKey = "document-template|{$companyId}|{$templateKey}";
 
         return DB::connection('master')->transaction(function () use (

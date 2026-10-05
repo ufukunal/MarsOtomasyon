@@ -9,12 +9,14 @@ final class DocumentTemplatePreviewRenderer
 {
     public function __construct(
         private readonly TemplateDefinitionValidator $validator,
+        private readonly TemplateExpressionValidator $expressions,
         private readonly ViewFactory $view,
     ) {}
 
     public function renderDefinition(array $definition, string $name = 'Template Önizleme'): string
     {
         $normalized = $this->validator->normalize($definition);
+        $this->expressions->validateDefinition($normalized);
 
         return $this->view->make('document-templates.preview', [
             'name' => $name,
