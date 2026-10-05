@@ -106,6 +106,14 @@ final class SaveChannelProductListing
             $listing,
             $expectedVersion,
         ): ChannelProductListing {
+            $externalListingId = trim((string) ($data['external_listing_id'] ?? '')) ?: null;
+            $this->lockExternalListingIdentity($channelAccountId, $externalListingId);
+            $this->assertExternalListingIdentityAvailable(
+                $channelAccountId,
+                $externalListingId,
+                $listing?->id,
+            );
+
             if ($listing) {
                 $locked = ChannelProductListing::query()->lockForUpdate()->findOrFail($listing->id);
 
@@ -159,6 +167,43 @@ final class SaveChannelProductListing
 
             return $saved->refresh()->load(['product', 'locations.location']);
         }, attempts: 3);
+    }
+
+    private function lockExternalListingIdentity(
+        int $channelAccountId,
+        ?string $externalListingId,
+    ): void {
+        if ($externalListingId === null) {
+            return;
+        }
+
+        DB::connection('period')->select(
+            'SELECT pg_advisory_xact_lock(hashtextextended(?, 0))',
+            [implode('|', ['channel-listing-external-id', $channelAccountId, $externalListingId])],
+        );
+    }
+
+    private function assertExternalListingIdentityAvailable(
+        int $channelAccountId,
+        ?string $externalListingId,
+        ?int $ignoreListingId,
+    ): void {
+        if ($externalListingId === null) {
+            return;
+        }
+
+        $duplicate = ChannelProductListing::query()
+            ->where('channel_account_id', $channelAccountId)
+            ->where('external_listing_id', $externalListingId)
+            ->when(
+                $ignoreListingId !== null,
+                fn ($query) => $query->where('id', '<>', $ignoreListingId),
+            )
+            ->exists();
+
+        if ($duplicate) {
+            throw new DomainException('External listing ID aynı kanal hesabında yalnız bir kez eşlenebilir.');
+        }
     }
 
     /** @return array<string, mixed> */

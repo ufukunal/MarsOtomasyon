@@ -10,6 +10,8 @@ use App\Models\SalesChannelAccount;
 use App\Support\Integrity\IntegrityCheck;
 use App\Support\Integrity\IntegrityResult;
 use App\Support\Period\PeriodContext;
+use App\Support\Period\SourcePeriodContext;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 final class ChannelOrderIntegrityCheck implements IntegrityCheck
@@ -86,7 +88,8 @@ final class ChannelOrderIntegrityCheck implements IntegrityCheck
                 : null;
             $historicalSourceReroutedForward = $routedPeriod !== null
                 && (int) $routedPeriod->year > (int) $currentPeriod->year
-                && (int) $registry->period_document_id > 0;
+                && (int) $registry->period_document_id > 0
+                && $this->routedSnapshotMatches($routedPeriod, $snapshot, $registry);
 
             if (! $historicalSourceReroutedForward) {
                 $mismatches[] = [
@@ -104,6 +107,29 @@ final class ChannelOrderIntegrityCheck implements IntegrityCheck
             mismatches: $mismatches,
             durationMs: $this->elapsed($started),
         );
+    }
+
+    private function routedSnapshotMatches(
+        Period $routedPeriod,
+        ChannelOrderSnapshot $sourceSnapshot,
+        ChannelExternalEventRegistry $registry,
+    ): bool {
+        SourcePeriodContext::usePeriod($routedPeriod);
+
+        try {
+            if (! Schema::connection('period_source')->hasTable('channel_order_snapshots')) {
+                return false;
+            }
+
+            return DB::connection('period_source')
+                ->table('channel_order_snapshots')
+                ->where('sales_order_id', (int) $registry->period_document_id)
+                ->where('channel_account_id', (int) $sourceSnapshot->channel_account_id)
+                ->where('external_order_id', (string) $sourceSnapshot->external_order_id)
+                ->exists();
+        } finally {
+            SourcePeriodContext::clear();
+        }
     }
 
     private function elapsed(int $started): int

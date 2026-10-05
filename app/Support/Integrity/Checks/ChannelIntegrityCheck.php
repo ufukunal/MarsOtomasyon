@@ -60,7 +60,15 @@ final class ChannelIntegrityCheck implements IntegrityCheck
                     ?? ''
                 ));
 
+                $storeParts = parse_url($storeUrl);
+
                 if (! str_starts_with(strtolower($storeUrl), 'https://')
+                    || ! is_array($storeParts)
+                    || trim((string) ($storeParts['host'] ?? '')) === ''
+                    || isset($storeParts['user'])
+                    || isset($storeParts['pass'])
+                    || isset($storeParts['query'])
+                    || isset($storeParts['fragment'])
                     || trim((string) ($credentials['consumer_key'] ?? '')) === ''
                     || trim((string) ($credentials['consumer_secret'] ?? '')) === '') {
                     $mismatches[] = [
@@ -166,7 +174,9 @@ final class ChannelIntegrityCheck implements IntegrityCheck
         foreach ($syncEvents as $event) {
             if (! $accounts->has($event->channel_account_id)
                 || ($event->payload_hash !== null && ! preg_match('/^[a-f0-9]{64}$/D', (string) $event->payload_hash))
-                || ($event->safe_metadata !== null && ! is_array($event->safe_metadata))) {
+                || ($event->safe_metadata !== null
+                    && (! is_array($event->safe_metadata)
+                        || $this->containsSensitiveMetadata($event->safe_metadata)))) {
                 $mismatches[] = [
                     'channel_sync_event_id' => $event->id,
                     'reason' => 'sync_event_account_or_hash_invalid',
@@ -201,6 +211,25 @@ final class ChannelIntegrityCheck implements IntegrityCheck
             mismatches: $mismatches,
             durationMs: $this->elapsed($started),
         );
+    }
+
+    /** @param array<string,mixed> $metadata */
+    private function containsSensitiveMetadata(array $metadata): bool
+    {
+        foreach ($metadata as $key => $value) {
+            if (preg_match(
+                '/(^|[_-])(authorization|password|secret|token|credential|api[_-]?key|access[_-]?key|consumer[_-]?secret|buyer|customer|recipient|email|phone|address)([_-]|$)/',
+                strtolower((string) $key),
+            )) {
+                return true;
+            }
+
+            if (is_array($value) && $this->containsSensitiveMetadata($value)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private function elapsed(int $started): int
