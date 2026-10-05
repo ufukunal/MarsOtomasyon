@@ -24,6 +24,7 @@ final class ChannelSyncRecorder
         ?string $externalId = null,
         ?string $payloadHash = null,
         ?string $correlationId = null,
+        ?array $safeMetadata = null,
     ): ChannelSyncEvent {
         PeriodContext::ensureWritable();
 
@@ -57,6 +58,7 @@ final class ChannelSyncRecorder
             $externalId,
             $payloadHash,
             $correlationId,
+            $safeMetadata,
         ): ChannelSyncEvent {
             $query = ChannelSyncEvent::query()
                 ->where('channel_account_id', $channelAccountId)
@@ -82,6 +84,7 @@ final class ChannelSyncRecorder
             if ($pending) {
                 if ($pending->status === 'queued' && $payloadHash !== null) {
                     $pending->payload_hash = $payloadHash;
+                    $pending->safe_metadata = $safeMetadata ?? $pending->safe_metadata;
                     $pending->save();
                 }
 
@@ -99,6 +102,7 @@ final class ChannelSyncRecorder
                 'attempts' => 0,
                 'correlation_id' => $correlationId ?: (string) Str::uuid(),
                 'payload_hash' => $payloadHash,
+                'safe_metadata' => $safeMetadata,
             ]);
         }, attempts: 3);
     }

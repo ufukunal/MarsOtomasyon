@@ -2,6 +2,8 @@
 
 namespace App\Livewire\Channels;
 
+use App\Actions\Channels\PollChannelAccount;
+use App\Actions\Channels\RetryChannelSyncEvent;
 use App\Livewire\Concerns\WithIdempotentMutations;
 use App\Models\Period\ChannelSyncError;
 use App\Models\Period\ChannelSyncEvent;
@@ -21,7 +23,7 @@ class ChannelSyncCenter extends Component
 
     public function mount(): void
     {
-        $this->seedMutationKeys(['resolveError']);
+        $this->seedMutationKeys(['resolveError', 'pollNow', 'retryEvent']);
         abort_unless(auth()->user()?->can('channel_sync.view'), 403);
         PeriodContext::ensure();
     }
@@ -35,6 +37,36 @@ class ChannelSyncCenter extends Component
             'resolveError',
             fn () => $recorder->resolveError($error),
         );
+    }
+
+    public function pollNow(PollChannelAccount $poll): void
+    {
+        abort_unless(auth()->user()?->can('channel_sync.update'), 403);
+        abort_unless($this->channelAccountId !== null, 422);
+
+        $account = SalesChannelAccount::query()
+            ->where('company_id', PeriodContext::companyId())
+            ->findOrFail($this->channelAccountId);
+
+        $counts = $this->runPeriodMutation('pollNow', fn () => $poll->handle($account));
+
+        session()->flash('status', sprintf(
+            'Polling tamamlandı: order=%d cancel=%d return=%d processed=%d',
+            $counts['orders'],
+            $counts['cancellations'],
+            $counts['returns'],
+            $counts['processed'],
+        ));
+    }
+
+    public function retryEvent(int $eventId, RetryChannelSyncEvent $retry): void
+    {
+        abort_unless(auth()->user()?->can('channel_sync.update'), 403);
+
+        $event = ChannelSyncEvent::query()->findOrFail($eventId);
+        $this->runPeriodMutation('retryEvent', fn () => $retry->handle($event));
+
+        session()->flash('status', 'Sync retry tetiklendi.');
     }
 
     public function render(): View

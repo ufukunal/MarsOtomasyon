@@ -70,7 +70,31 @@ final class TrendyolAdapter implements ChannelAdapter
         string $quantity,
         ?int $leadTimeDays = null,
     ): ChannelOperationResult {
-        return $this->inventoryUpdate($account, $listing, $quantity, null);
+        $inventory = $this->inventoryUpdate($account, $listing, $quantity, null);
+
+        if (! $inventory->success || $leadTimeDays === null) {
+            return $inventory;
+        }
+
+        $sellerId = $this->client->sellerId($account);
+        $delivery = $this->client->post(
+            $account,
+            "/integration/product/sellers/{$sellerId}/products/delivery-info-bulk-update",
+            ['items' => [$this->payloads->deliveryItem($listing, $leadTimeDays)]],
+        );
+        $deliveryBatch = (string) ($delivery['batchRequestId'] ?? '');
+
+        return new ChannelOperationResult(
+            success: $deliveryBatch !== '',
+            externalId: $inventory->externalId,
+            message: $deliveryBatch !== ''
+                ? 'Trendyol stok ve Product V2 teslimat bilgisi kuyruğa alındı.'
+                : 'Trendyol delivery batchRequestId dönmedi.',
+            safeMetadata: [
+                'inventory_batch_request_id' => $inventory->externalId,
+                'delivery_batch_request_id' => $deliveryBatch !== '' ? $deliveryBatch : null,
+            ],
+        );
     }
 
     public function fetchOrders(SalesChannelAccount $account, ?CarbonImmutable $since = null): array

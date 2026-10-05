@@ -20,4 +20,6 @@ return [
     'retry_delays' => [30, 60, 120],
 
     'poll_interval_minutes' => 15,
+
+    'poll_lookback_minutes' => 30,
 ];

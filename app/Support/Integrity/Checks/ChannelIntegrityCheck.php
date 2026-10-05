@@ -128,7 +128,8 @@ final class ChannelIntegrityCheck implements IntegrityCheck
 
         foreach ($syncEvents as $event) {
             if (! $accounts->has($event->channel_account_id)
-                || ($event->payload_hash !== null && ! preg_match('/^[a-f0-9]{64}$/D', (string) $event->payload_hash))) {
+                || ($event->payload_hash !== null && ! preg_match('/^[a-f0-9]{64}$/D', (string) $event->payload_hash))
+                || ($event->safe_metadata !== null && ! is_array($event->safe_metadata))) {
                 $mismatches[] = [
                     'channel_sync_event_id' => $event->id,
                     'reason' => 'sync_event_account_or_hash_invalid',

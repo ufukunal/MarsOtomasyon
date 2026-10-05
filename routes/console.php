@@ -15,3 +15,5 @@ Schedule::command('integrity:all')->dailyAt('03:00');
 Schedule::command('idempotency:prune')->dailyAt('03:30');
 Schedule::job(new QueueHeartbeatJob)->everyMinute();
 Schedule::command('operations:monitor')->everyTenMinutes();
+Schedule::command('channels:poll')->everyFifteenMinutes()->withoutOverlapping();
+Schedule::command('channels:retry')->everyMinute()->withoutOverlapping();

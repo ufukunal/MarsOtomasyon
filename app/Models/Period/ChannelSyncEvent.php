@@ -18,6 +18,7 @@ class ChannelSyncEvent extends PeriodModel
         'attempts',
         'correlation_id',
         'payload_hash',
+        'safe_metadata',
         'error_summary',
         'last_attempt_at',
     ];
@@ -28,6 +29,7 @@ class ChannelSyncEvent extends PeriodModel
             'channel_account_id' => 'integer',
             'entity_id' => 'integer',
             'attempts' => 'integer',
+            'safe_metadata' => 'array',
             'last_attempt_at' => 'datetime',
         ];
     }

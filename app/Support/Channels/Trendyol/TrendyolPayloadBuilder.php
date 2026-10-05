@@ -74,7 +74,7 @@ final class TrendyolPayloadBuilder
         ];
 
         if ($listing->lead_time_days !== null) {
-            $item['deliveryOption'] = ['deliveryDuration' => (int) $listing->lead_time_days];
+            $item['deliveryOptions'] = ['deliveryDuration' => (int) $listing->lead_time_days];
         }
 
         foreach (['origin', 'shipment_address_id', 'returning_address_id', 'lot_number'] as $key) {
@@ -155,6 +155,22 @@ final class TrendyolPayloadBuilder
             'quantity' => min(20000, $this->integerQuantity($quantity)),
             'salePrice' => (float) $price,
             'listPrice' => (float) $listPrice,
+        ];
+    }
+
+    /** @return array{barcode:string,deliveryOptions:array{deliveryDuration:int}} */
+    public function deliveryItem(ChannelProductListing $listing, int $leadTimeDays): array
+    {
+        $listing->loadMissing('product');
+        $barcode = trim((string) ($listing->product->barcode ?? ''));
+
+        if ($barcode === '' || $leadTimeDays < 0) {
+            throw new DomainException('Trendyol delivery sync barcode/lead time geçersiz.');
+        }
+
+        return [
+            'barcode' => $barcode,
+            'deliveryOptions' => ['deliveryDuration' => $leadTimeDays],
         ];
     }
 

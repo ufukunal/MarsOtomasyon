@@ -1,4 +1,5 @@
 <div class="space-y-6">
+    @if(session('status')) <div class="panel">{{ session('status') }}</div> @endif
     <section class="panel">
         <h1>Kanal Sync Merkezi</h1>
         <div class="form-row">
@@ -20,10 +21,13 @@
                 <option value="success">Success</option>
                 <option value="failed">Failed</option>
             </select>
+            @can('channel_sync.update')
+                <button type="button" wire:click="pollNow" @disabled(!$channelAccountId)>Seçili Hesabı Şimdi Poll Et</button>
+            @endcan
         </div>
 
         <table class="data-table">
-            <thead><tr><th>Zaman</th><th>Kanal</th><th>Yön</th><th>Entity</th><th>Action</th><th>Status</th><th>Attempt</th><th>Correlation</th><th>Hata</th></tr></thead>
+            <thead><tr><th>Zaman</th><th>Kanal</th><th>Yön</th><th>Entity</th><th>Action</th><th>Status</th><th>Attempt</th><th>Correlation</th><th>Hata</th><th></th></tr></thead>
             <tbody>
             @forelse($events as $event)
                 <tr>
@@ -36,9 +40,16 @@
                     <td>{{ $event->attempts }}</td>
                     <td>{{ $event->correlation_id }}</td>
                     <td>{{ $event->error_summary }}</td>
+                    <td>
+                        @if($event->status === 'failed' && $event->direction === 'outbound')
+                            @can('channel_sync.update')
+                                <button type="button" wire:click="retryEvent({{ $event->id }})">Retry</button>
+                            @endcan
+                        @endif
+                    </td>
                 </tr>
             @empty
-                <tr><td colspan="9">Henüz sync event yok.</td></tr>
+                <tr><td colspan="10">Henüz sync event yok.</td></tr>
             @endforelse
             </tbody>
         </table>
@@ -66,6 +77,6 @@
             @endforelse
             </tbody>
         </table>
-        <div>Manuel retry ve polling tetikleri ilk gerçek kanal adapter bloğunda etkinleşecektir.</div>
+        <div>Trendyol için webhook primary, 15 dakikalık polling güvenlik ağıdır. Outbound başarısız sync 30/60/120 saniye politikasına göre otomatik yeniden denenir.</div>
     </section>
 </div>

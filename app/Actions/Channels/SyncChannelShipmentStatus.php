@@ -55,6 +55,11 @@ final class SyncChannelShipmentStatus
             entityId: (int) $salesOrder->id,
             externalId: (string) $packageId,
             payloadHash: $this->hasher->hash($payload),
+            safeMetadata: [
+                'status' => $status,
+                'lines' => $lines,
+                'invoice_number' => $invoiceNumber,
+            ],
         );
         $attempt = $this->sync->startAttempt($event);
 
