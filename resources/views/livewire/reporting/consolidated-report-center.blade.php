@@ -29,7 +29,11 @@
                         type="checkbox"
                         value="{{ $period->id }}"
                         wire:model.defer="selectedPeriodIds"
+                        @disabled($period->status === 'archived')
                     >
+                    @if($period->status === 'archived')
+                        <small>Restore gerekli</small>
+                    @endif
                 </label>
             @endforeach
         </div>

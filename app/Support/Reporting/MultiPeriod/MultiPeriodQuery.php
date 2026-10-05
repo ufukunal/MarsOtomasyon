@@ -28,8 +28,15 @@ final class MultiPeriodQuery
         array $periodIds,
         ReportRequest $request,
         ?User $actor = null,
+        ?int $companyId = null,
     ): ConsolidatedReportResult {
-        PeriodContext::ensure();
+        $originalCompanyId = PeriodContext::companyId();
+        $originalPeriodId = PeriodContext::periodId();
+
+        if ($companyId === null) {
+            PeriodContext::ensure();
+            $companyId = PeriodContext::companyId();
+        }
 
         $actor ??= auth()->user();
 
@@ -37,11 +44,12 @@ final class MultiPeriodQuery
             throw new AuthorizationException('Çok dönemli rapor için aktif kullanıcı gereklidir.');
         }
 
-        $companyId = PeriodContext::companyId();
-        $originalPeriodId = PeriodContext::periodId();
+        if (! $companyId || $companyId < 1) {
+            throw new DomainException('Çok dönemli rapor geçerli şirket bağlamı gerektirir.');
+        }
 
-        if (! $companyId || ! $originalPeriodId) {
-            throw new DomainException('Çok dönemli rapor aktif şirket/dönem bağlamı gerektirir.');
+        if ($originalPeriodId !== null && $originalCompanyId === null) {
+            throw new DomainException('PeriodContext şirket/dönem bağlamı tutarsız.');
         }
 
         $gate = Gate::forUser($actor);
@@ -123,7 +131,11 @@ final class MultiPeriodQuery
                 $this->mergeTotals($combinedTotals, $periodFirst, $definition->totalMap());
             }
         } finally {
-            PeriodContext::useSystem($companyId, $originalPeriodId);
+            PeriodContext::clear();
+
+            if ($originalCompanyId && $originalPeriodId) {
+                PeriodContext::useSystem($originalCompanyId, $originalPeriodId);
+            }
         }
 
         if (! $first) {

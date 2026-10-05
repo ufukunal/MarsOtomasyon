@@ -17,7 +17,14 @@ final class RunMultiPeriodReport
         array $periodIds,
         ReportRequest $request,
         ?User $actor = null,
+        ?int $companyId = null,
     ): ConsolidatedReportResult {
-        return $this->query->run($reportKey, $periodIds, $request, $actor);
+        return $this->query->run(
+            $reportKey,
+            $periodIds,
+            $request,
+            $actor,
+            $companyId,
+        );
     }
 }

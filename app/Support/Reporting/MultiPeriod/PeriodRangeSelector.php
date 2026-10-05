@@ -75,7 +75,37 @@ final class PeriodRangeSelector
             throw new AuthorizationException('Seçilen dönemlerden en az birine erişiminiz yok.');
         }
 
+        foreach ($periods as $period) {
+            $this->assertReportablePeriod($period);
+        }
+
         return $periods->all();
+    }
+
+    private function assertReportablePeriod(Period $period): void
+    {
+        if ((string) $period->status === 'archived') {
+            throw new DomainException(
+                "{$period->year} dönemi arşivlenmiş/detached durumda; çok dönemli rapor için önce restore edilmelidir.",
+            );
+        }
+
+        if (! in_array((string) $period->status, ['active', 'closed'], true)) {
+            throw new DomainException(
+                "{$period->year} dönemi raporlanabilir durumda değil: {$period->status}.",
+            );
+        }
+
+        $attached = DB::connection('master')
+            ->table('pg_database')
+            ->where('datname', $period->database_name)
+            ->exists();
+
+        if (! $attached) {
+            throw new DomainException(
+                "{$period->year} dönem veritabanı bağlı değil; restore/attach işlemi gereklidir.",
+            );
+        }
     }
 
     private function assertCompanyAccess(User $actor, int $companyId): void
