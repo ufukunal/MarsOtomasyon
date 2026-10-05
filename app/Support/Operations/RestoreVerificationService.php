@@ -82,7 +82,7 @@ final class RestoreVerificationService
 
             $this->artisan(['migrate', '--database=master', '--force'], $env);
             $this->artisan(['migrate:periods', '--force'], $env);
-            $this->artisan(['integrity:all'], $env);
+            $this->artisan(['integrity:all', '--include-closed'], $env);
 
             $summary = [
                 'checksum_verified' => true,
