@@ -7,6 +7,7 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schema;
 use RuntimeException;
+use Symfony\Component\Process\Process;
 use Throwable;
 
 class OperationsDeployCommand extends Command
@@ -38,11 +39,7 @@ class OperationsDeployCommand extends Command
                 commitSha: (string) $this->option('commit'),
                 previousReleaseId: $this->option('previous') ?: null,
                 activateRelease: fn () => $this->activate($releasePath, $currentLink),
-                restartWorkers: static function (): void {
-                    if (Artisan::call('queue:restart') !== 0) {
-                        throw new RuntimeException('Queue restart sinyali gönderilemedi.');
-                    }
-                },
+                restartWorkers: fn (): void => $this->restartServices(),
             );
             $this->info('Release active: '.$result['release_id']);
             return self::SUCCESS;
@@ -79,6 +76,24 @@ class OperationsDeployCommand extends Command
         }
 
         $this->info('Operational readiness bootstrap tamamlandı; tracked deploy akışına geçiliyor.');
+    }
+
+    private function restartServices(): void
+    {
+        if (Artisan::call('queue:restart') !== 0) {
+            throw new RuntimeException('Queue restart sinyali gönderilemedi.');
+        }
+
+        $process = new Process([
+            'sudo',
+            'systemctl',
+            'restart',
+            'mars-queue.service',
+            'mars-scheduler.service',
+            'mars-operations.service',
+        ], base_path(), null, null, 120);
+
+        $process->mustRun();
     }
 
     private function activate(string $releasePath, string $currentLink): void
