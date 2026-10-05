@@ -3,9 +3,11 @@
 namespace App\Console\Commands;
 
 use App\Models\DeploymentRun;
+use App\Support\Operations\OperationalHealthService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Artisan;
 use RuntimeException;
+use Symfony\Component\Process\Process;
 use Throwable;
 
 class OperationsRollbackCommand extends Command
@@ -50,9 +52,8 @@ class OperationsRollbackCommand extends Command
         try {
             $this->activate($releasePath, $currentLink);
 
-            if (Artisan::call('queue:restart') !== 0) {
-                throw new RuntimeException('Queue restart sinyali gönderilemedi.');
-            }
+            $this->restartServices();
+            $health = $this->waitForHealthy();
 
             if (Artisan::call('operations:smoke') !== 0) {
                 throw new RuntimeException('Previous release smoke kontrolü başarısız.');
@@ -64,6 +65,8 @@ class OperationsRollbackCommand extends Command
                 'metadata' => array_merge($active->metadata ?? [], [
                     'rolled_back_to' => $active->previous_release_id,
                     'schema_down_executed' => false,
+                    'post_rollback_health' => $health['status'],
+                    'health_correlation_id' => $health['correlation_id'],
                 ]),
             ])->save();
 
@@ -76,6 +79,44 @@ class OperationsRollbackCommand extends Command
 
             return self::FAILURE;
         }
+    }
+
+    private function restartServices(): void
+    {
+        if (Artisan::call('queue:restart') !== 0) {
+            throw new RuntimeException('Queue restart sinyali gönderilemedi.');
+        }
+
+        $process = new Process([
+            'sudo',
+            'systemctl',
+            'restart',
+            'mars-queue.service',
+            'mars-scheduler.service',
+            'mars-operations.service',
+        ], base_path(), null, null, 120);
+
+        $process->mustRun();
+    }
+
+    private function waitForHealthy(): array
+    {
+        $last = null;
+
+        for ($attempt = 0; $attempt < 18; $attempt++) {
+            $last = app(OperationalHealthService::class)->check();
+
+            if ($last['status'] === 'healthy') {
+                return $last;
+            }
+
+            sleep(5);
+        }
+
+        throw new RuntimeException(
+            'Rollback sonrası operational health healthy duruma ulaşmadı: '.
+            ($last['status'] ?? 'unknown'),
+        );
     }
 
     private function activate(string $releasePath, string $currentLink): void
