@@ -11,11 +11,14 @@ use App\Support\Reporting\ReportFilterDefinition;
 use App\Support\Reporting\ReportQueryResult;
 use App\Support\Reporting\ReportSort;
 use App\Support\Reporting\ReportTotalDefinition;
+use App\Support\Stock\StockStatusQuery;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 
 final class StockBalanceReportQuery implements ReportQuery
 {
+    public function __construct(private readonly StockStatusQuery $stockStatus) {}
+
     public function definition(): ReportDefinition
     {
         return new ReportDefinition(
@@ -40,6 +43,7 @@ final class StockBalanceReportQuery implements ReportQuery
                 new ReportColumnDefinition('consignment_reserved', 'Konsinye Rezerve', 'decimal'),
                 new ReportColumnDefinition('quarantine', 'Karantina', 'decimal'),
                 new ReportColumnDefinition('available', 'Satılabilir', 'decimal'),
+                new ReportColumnDefinition('stock_status', 'Durum'),
                 new ReportColumnDefinition('moving_average', 'Hareketli Ortalama', 'decimal', costSensitive: true),
                 new ReportColumnDefinition('stock_value', 'Stok Değeri', 'decimal', costSensitive: true),
             ],
@@ -50,11 +54,6 @@ final class StockBalanceReportQuery implements ReportQuery
                 new ReportSort('location_id'),
             ],
             totals: [
-                new ReportTotalDefinition('quantity', 'Fiziksel'),
-                new ReportTotalDefinition('reserved', 'Rezerve'),
-                new ReportTotalDefinition('consignment_reserved', 'Konsinye Rezerve'),
-                new ReportTotalDefinition('quarantine', 'Karantina'),
-                new ReportTotalDefinition('available', 'Satılabilir'),
                 new ReportTotalDefinition('stock_value', 'Stok Değeri', costSensitive: true),
             ],
             drillDowns: [
@@ -71,22 +70,21 @@ final class StockBalanceReportQuery implements ReportQuery
 
     public function execute(ReportExecutionContext $context): ReportQueryResult
     {
-        $base = DB::connection('period')
-            ->table('stock_balances as sb')
-            ->join('products as p', 'p.id', '=', 'sb.product_id')
-            ->join('locations as l', 'l.id', '=', 'sb.location_id');
-
-        if ($context->canViewCost) {
-            $base->leftJoin('product_costs as pc', 'pc.product_id', '=', 'sb.product_id');
-        }
+        $base = $this->stockStatus
+            ->build($context->canViewCost)
+            ->toBase();
 
         $this->applyFilters($base, $context);
 
-        $totalRows = (clone $base)->count('sb.id');
+        $totalRows = (clone $base)->count();
         $rows = clone $base;
 
         if (! $context->hasColumn('product_id')) {
-            $rows->selectRaw('sb.product_id AS product_id');
+            $rows->selectRaw('product_id AS product_id');
+        }
+
+        if (! $context->hasColumn('location_id')) {
+            $rows->selectRaw('location_id AS location_id');
         }
 
         foreach ($context->columns as $column) {
@@ -104,11 +102,11 @@ final class StockBalanceReportQuery implements ReportQuery
         }
 
         if (! $hasProductId) {
-            $rows->orderBy('sb.product_id');
+            $rows->orderBy('product_id');
         }
 
         if (! $hasLocationId) {
-            $rows->orderBy('sb.location_id');
+            $rows->orderBy('location_id');
         }
 
         $data = $rows
@@ -130,34 +128,36 @@ final class StockBalanceReportQuery implements ReportQuery
         $filters = $context->filters;
 
         if (isset($filters['product_id'])) {
-            $query->where('sb.product_id', $filters['product_id']);
+            $query->where('product_id', $filters['product_id']);
         }
 
         if (isset($filters['location_id'])) {
-            $query->where('sb.location_id', $filters['location_id']);
+            $query->where('location_id', $filters['location_id']);
         }
 
         if (($filters['active_only'] ?? false) === true) {
-            $query->where('p.is_active', true)->where('l.is_active', true);
+            $query->where('product_is_active', true)
+                ->where('location_is_active', true);
         }
     }
 
     private function selectExpression(string $column): string
     {
         return [
-            'product_id' => 'sb.product_id AS product_id',
-            'product_code' => 'p.code AS product_code',
-            'product_name' => 'p.name AS product_name',
-            'location_id' => 'sb.location_id AS location_id',
-            'location_code' => 'l.code AS location_code',
-            'location_name' => 'l.name AS location_name',
-            'quantity' => 'sb.quantity::text AS quantity',
-            'reserved' => 'sb.reserved::text AS reserved',
-            'consignment_reserved' => 'sb.consignment_reserved::text AS consignment_reserved',
-            'quarantine' => 'sb.quarantine::text AS quarantine',
-            'available' => '(sb.quantity - sb.reserved - sb.consignment_reserved - sb.quarantine)::text AS available',
-            'moving_average' => 'COALESCE(pc.moving_average, 0)::text AS moving_average',
-            'stock_value' => 'trunc(sb.quantity * COALESCE(pc.moving_average, 0), 4)::text AS stock_value',
+            'product_id' => 'product_id AS product_id',
+            'product_code' => 'product_code AS product_code',
+            'product_name' => 'product_name AS product_name',
+            'location_id' => 'location_id AS location_id',
+            'location_code' => 'location_code AS location_code',
+            'location_name' => 'location_name AS location_name',
+            'quantity' => 'quantity::text AS quantity',
+            'reserved' => 'reserved::text AS reserved',
+            'consignment_reserved' => 'consignment_reserved::text AS consignment_reserved',
+            'quarantine' => 'quarantine::text AS quarantine',
+            'available' => 'available::text AS available',
+            'stock_status' => 'stock_status AS stock_status',
+            'moving_average' => 'moving_average::text AS moving_average',
+            'stock_value' => 'stock_value::text AS stock_value',
         ][$column];
     }
 
@@ -165,51 +165,36 @@ final class StockBalanceReportQuery implements ReportQuery
     private function sortMap(): array
     {
         return [
-            'product_id' => 'sb.product_id',
-            'product_code' => 'p.code',
-            'product_name' => 'p.name',
-            'location_id' => 'sb.location_id',
-            'location_code' => 'l.code',
-            'location_name' => 'l.name',
-            'quantity' => 'sb.quantity',
-            'reserved' => 'sb.reserved',
-            'consignment_reserved' => 'sb.consignment_reserved',
-            'quarantine' => 'sb.quarantine',
-            'available' => DB::raw('(sb.quantity - sb.reserved - sb.consignment_reserved - sb.quarantine)'),
-            'moving_average' => 'pc.moving_average',
-            'stock_value' => DB::raw('(sb.quantity * COALESCE(pc.moving_average, 0))'),
+            'product_id' => 'product_id',
+            'product_code' => 'product_code',
+            'product_name' => 'product_name',
+            'location_id' => 'location_id',
+            'location_code' => 'location_code',
+            'location_name' => 'location_name',
+            'quantity' => 'quantity',
+            'reserved' => 'reserved',
+            'consignment_reserved' => 'consignment_reserved',
+            'quarantine' => 'quarantine',
+            'available' => DB::raw('available::numeric'),
+            'stock_status' => 'stock_status',
+            'moving_average' => DB::raw('moving_average::numeric'),
+            'stock_value' => DB::raw('stock_value::numeric'),
         ];
     }
 
     /** @return array<string,mixed> */
     private function totals(Builder $base, ReportExecutionContext $context): array
     {
-        $expressions = [
-            'quantity' => 'COALESCE(SUM(sb.quantity), 0)::text AS quantity',
-            'reserved' => 'COALESCE(SUM(sb.reserved), 0)::text AS reserved',
-            'consignment_reserved' => 'COALESCE(SUM(sb.consignment_reserved), 0)::text AS consignment_reserved',
-            'quarantine' => 'COALESCE(SUM(sb.quarantine), 0)::text AS quarantine',
-            'available' => 'COALESCE(SUM(sb.quantity - sb.reserved - sb.consignment_reserved - sb.quarantine), 0)::text AS available',
-            'stock_value' => 'COALESCE(SUM(trunc(sb.quantity * COALESCE(pc.moving_average, 0), 4)), 0)::text AS stock_value',
-        ];
-        $query = clone $base;
-        $selected = [];
-
-        foreach ($context->totalKeys as $key) {
-            if (isset($expressions[$key])) {
-                $query->selectRaw($expressions[$key]);
-                $selected[] = $key;
-            }
-        }
-
-        if ($selected === []) {
+        if (! $context->hasTotal('stock_value')) {
             return [];
         }
 
-        $row = $query->first();
+        $value = (clone $base)
+            ->selectRaw(
+                "COALESCE(SUM(CASE WHEN product_kind <> 'set' THEN COALESCE(stock_value::numeric, 0) ELSE 0 END), 0)::text AS stock_value",
+            )
+            ->value('stock_value');
 
-        return collect($selected)
-            ->mapWithKeys(fn (string $key): array => [$key => $row->{$key} ?? '0'])
-            ->all();
+        return ['stock_value' => (string) ($value ?? '0')];
     }
 }
