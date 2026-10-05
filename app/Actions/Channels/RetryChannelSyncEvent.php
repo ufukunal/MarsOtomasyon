@@ -81,7 +81,7 @@ final class RetryChannelSyncEvent
                 }
 
                 $result = $adapter->pushShipmentStatus($account, [
-                    'package_id' => (int) $snapshot->external_package_id,
+                    'package_id' => (string) $snapshot->external_package_id,
                     'status' => $status,
                     'lines' => is_array($meta['lines'] ?? null) ? $meta['lines'] : [],
                     'invoice_number' => isset($meta['invoice_number'])

@@ -72,66 +72,112 @@ final class ImportChannelReturn
 
         $claimQuantitiesByOrderLine = [];
         $reasonNames = [];
+        $normalizedReturnLines = is_array($data['returnLines'] ?? null)
+            ? $data['returnLines']
+            : [];
 
-        foreach (($data['items'] ?? []) as $item) {
-            if (! is_array($item) || ! is_array($item['orderLine'] ?? null)) {
-                continue;
-            }
-
-            $orderLineData = $item['orderLine'];
-            $externalLineId = trim((string) ($orderLineData['id'] ?? $orderLineData['lineId'] ?? ''));
-            $orderLineId = $externalLineId !== ''
-                ? ($orderLinesByExternalId[$externalLineId] ?? null)
-                : null;
-
-            if ($orderLineId === null) {
-                $orderLineId = $this->fallbackOrderLineId(
-                    $order,
-                    (string) ($orderLineData['merchantSku'] ?? $orderLineData['stockCode'] ?? ''),
-                    (string) ($orderLineData['barcode'] ?? ''),
-                );
-            }
-
-            if ($orderLineId === null) {
-                throw new DomainException('Trendyol claim satırı satış siparişi satırıyla eşlenemedi.');
-            }
-
-            $quantity = '0.000';
-
-            foreach (($item['claimItems'] ?? []) as $claimItem) {
-                if (! is_array($claimItem)) {
+        if ($normalizedReturnLines !== []) {
+            foreach ($normalizedReturnLines as $returnLine) {
+                if (! is_array($returnLine)) {
                     continue;
                 }
 
-                $status = (string) ($claimItem['claimItemStatus']['name'] ?? 'Created');
+                $externalLineId = trim((string) ($returnLine['externalLineId'] ?? ''));
+                $orderLineId = $externalLineId !== ''
+                    ? ($orderLinesByExternalId[$externalLineId] ?? null)
+                    : null;
 
-                if ($status !== 'Created') {
+                if ($orderLineId === null) {
+                    $orderLineId = $this->fallbackOrderLineId(
+                        $order,
+                        (string) ($returnLine['stockCode'] ?? ''),
+                        (string) ($returnLine['barcode'] ?? ''),
+                    );
+                }
+
+                if ($orderLineId === null) {
+                    throw new DomainException('Kanal iade satırı satış siparişi satırıyla eşlenemedi.');
+                }
+
+                $quantity = bcadd((string) ($returnLine['quantity'] ?? '0'), '0', 3);
+
+                if (bccomp($quantity, '0', 3) <= 0) {
                     continue;
                 }
 
-                $quantity = bcadd($quantity, '1.000', 3);
-                $reason = trim((string) (
-                    $claimItem['customerClaimItemReason']['name']
-                    ?? $claimItem['trendyolClaimItemReason']['name']
-                    ?? ''
-                ));
-
-                if ($reason !== '') {
-                    $reasonNames[$reason] = true;
-                }
-            }
-
-            if (bccomp($quantity, '0', 3) > 0) {
                 $claimQuantitiesByOrderLine[$orderLineId] = bcadd(
                     $claimQuantitiesByOrderLine[$orderLineId] ?? '0.000',
                     $quantity,
                     3,
                 );
+
+                $reason = trim((string) ($returnLine['reason'] ?? ''));
+
+                if ($reason !== '') {
+                    $reasonNames[$reason] = true;
+                }
+            }
+        } else {
+            foreach (($data['items'] ?? []) as $item) {
+                if (! is_array($item) || ! is_array($item['orderLine'] ?? null)) {
+                    continue;
+                }
+
+                $orderLineData = $item['orderLine'];
+                $externalLineId = trim((string) ($orderLineData['id'] ?? $orderLineData['lineId'] ?? ''));
+                $orderLineId = $externalLineId !== ''
+                    ? ($orderLinesByExternalId[$externalLineId] ?? null)
+                    : null;
+
+                if ($orderLineId === null) {
+                    $orderLineId = $this->fallbackOrderLineId(
+                        $order,
+                        (string) ($orderLineData['merchantSku'] ?? $orderLineData['stockCode'] ?? ''),
+                        (string) ($orderLineData['barcode'] ?? ''),
+                    );
+                }
+
+                if ($orderLineId === null) {
+                    throw new DomainException('Kanal claim satırı satış siparişi satırıyla eşlenemedi.');
+                }
+
+                $quantity = '0.000';
+
+                foreach (($item['claimItems'] ?? []) as $claimItem) {
+                    if (! is_array($claimItem)) {
+                        continue;
+                    }
+
+                    $status = (string) ($claimItem['claimItemStatus']['name'] ?? 'Created');
+
+                    if ($status !== 'Created') {
+                        continue;
+                    }
+
+                    $quantity = bcadd($quantity, '1.000', 3);
+                    $reason = trim((string) (
+                        $claimItem['customerClaimItemReason']['name']
+                        ?? $claimItem['trendyolClaimItemReason']['name']
+                        ?? ''
+                    ));
+
+                    if ($reason !== '') {
+                        $reasonNames[$reason] = true;
+                    }
+                }
+
+                if (bccomp($quantity, '0', 3) > 0) {
+                    $claimQuantitiesByOrderLine[$orderLineId] = bcadd(
+                        $claimQuantitiesByOrderLine[$orderLineId] ?? '0.000',
+                        $quantity,
+                        3,
+                    );
+                }
             }
         }
 
         if ($claimQuantitiesByOrderLine === []) {
-            throw new DomainException('Trendyol claim içinde Created statülü iade kalemi bulunamadı.');
+            throw new DomainException('Kanal iade eventinde işlenebilir iade kalemi bulunamadı.');
         }
 
         $invoiceLines = DocumentLine::query()
@@ -159,7 +205,7 @@ final class ImportChannelReturn
 
                 if ($sourceInvoiceId !== null && $sourceInvoiceId !== (int) $invoiceLine->document_id) {
                     throw new DomainException(
-                        'Tek Trendyol claim birden fazla satış faturasına dağılıyor; otomatik draft iade güvenli değil.',
+                        'Tek kanal iade eventi birden fazla satış faturasına dağılıyor; otomatik draft iade güvenli değil.',
                     );
                 }
 
@@ -199,14 +245,14 @@ final class ImportChannelReturn
 
             if (bccomp($remaining, '0', 3) > 0) {
                 throw new DomainException(
-                    'Trendyol return claim miktarı henüz posted satış faturasıyla karşılanamıyor; daha sonra yeniden denenmelidir.',
+                    'Kanal iade miktarı henüz posted satış faturasıyla karşılanamıyor; daha sonra yeniden denenmelidir.',
                 );
             }
         }
 
         if ($sourceInvoiceId === null) {
             throw new DomainException(
-                'Trendyol return claim için posted satış faturası bulunamadı; daha sonra yeniden denenmelidir.',
+                'Kanal iadesi için posted satış faturası bulunamadı; daha sonra yeniden denenmelidir.',
             );
         }
 
@@ -218,7 +264,7 @@ final class ImportChannelReturn
             $locationIds,
             $event->occurredAt->setTimezone(config('app.timezone'))->toDateString(),
             hash('sha256', 'channel-return:'.$account->id.':'.$event->externalId),
-            'Trendyol iade claim '.$event->externalId
+            $account->platform->label().' iade '.$event->externalId
                 .($reasonNames !== [] ? ' · '.implode(', ', array_keys($reasonNames)) : ''),
         );
 
@@ -230,7 +276,7 @@ final class ImportChannelReturn
                 'event_type' => 'return',
                 'external_id' => $event->externalId,
                 'external_order_id' => $orderNumber,
-                'external_package_id' => $data['orderShipmentPackageId'] ?? null,
+                'external_package_id' => $data['externalPackageId'] ?? $data['orderShipmentPackageId'] ?? null,
             ],
         ];
         $draft->save();

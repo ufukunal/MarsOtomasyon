@@ -12,7 +12,7 @@ return [
     */
     'adapters' => [
         'trendyol' => App\Support\Channels\Trendyol\TrendyolAdapter::class,
-        'hepsiburada' => null,
+        'hepsiburada' => App\Support\Channels\Hepsiburada\HepsiburadaAdapter::class,
         'n11' => null,
         'woocommerce' => null,
     ],

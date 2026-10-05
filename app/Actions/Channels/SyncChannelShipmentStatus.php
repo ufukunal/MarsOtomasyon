@@ -35,9 +35,9 @@ final class SyncChannelShipmentStatus
             ->where('sales_order_id', $salesOrder->id)
             ->firstOrFail();
         $account = SalesChannelAccount::query()->findOrFail($snapshot->channel_account_id);
-        $packageId = (int) ($snapshot->external_package_id ?? 0);
+        $packageId = trim((string) ($snapshot->external_package_id ?? ''));
 
-        if ($packageId <= 0) {
+        if ($packageId === '') {
             throw new DomainException('Kanal sipariş snapshotında shipment package id bulunamadı.');
         }
 
@@ -53,7 +53,7 @@ final class SyncChannelShipmentStatus
             entityType: 'shipment',
             action: strtolower($status),
             entityId: (int) $salesOrder->id,
-            externalId: (string) $packageId,
+            externalId: $packageId,
             payloadHash: $this->hasher->hash($payload),
             safeMetadata: [
                 'status' => $status,
