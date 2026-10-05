@@ -139,7 +139,7 @@ final class ImportChannelCancellation
             'Kanal satış siparişi kısmi/tam iptal işlendi.',
             [
                 'channel_account_id' => $account->id,
-                'external_order_id' => $orderNumber,
+                'external_order_id' => $externalOrderId,
                 'external_cancel_id' => $event->externalId,
                 'cancelled_lines' => $cancelled,
             ],

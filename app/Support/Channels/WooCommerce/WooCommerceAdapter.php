@@ -456,6 +456,27 @@ final class WooCommerceAdapter implements ChannelAdapter
     /** @return array<string,mixed> */
     private function sourceOrderLine(array $order, array $refundLine): array
     {
+        $originalItemId = collect(
+            is_array($refundLine['meta_data'] ?? null) ? $refundLine['meta_data'] : [],
+        )->first(function ($meta): bool {
+            return is_array($meta)
+                && (string) ($meta['key'] ?? '') === '_refunded_item_id';
+        });
+        $originalItemId = is_array($originalItemId)
+            ? (int) ($originalItemId['value'] ?? 0)
+            : 0;
+
+        if ($originalItemId > 0) {
+            $exact = collect($order['line_items'] ?? [])->first(
+                fn ($line): bool => is_array($line)
+                    && (int) ($line['id'] ?? 0) === $originalItemId,
+            );
+
+            if (is_array($exact)) {
+                return $exact;
+            }
+        }
+
         $productId = (int) ($refundLine['product_id'] ?? 0);
         $variationId = (int) ($refundLine['variation_id'] ?? 0);
         $sku = trim((string) ($refundLine['sku'] ?? ''));

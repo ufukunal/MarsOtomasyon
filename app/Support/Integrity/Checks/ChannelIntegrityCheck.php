@@ -68,6 +68,14 @@ final class ChannelIntegrityCheck implements IntegrityCheck
                         'reason' => 'woocommerce_store_url_or_credentials_invalid',
                     ];
                 }
+
+                if (data_get($account->settings, 'woocommerce_webhook_ids')
+                    && mb_strlen(trim((string) ($credentials['webhook_secret'] ?? ''))) < 32) {
+                    $mismatches[] = [
+                        'channel_account_id' => $account->id,
+                        'reason' => 'woocommerce_webhook_secret_invalid',
+                    ];
+                }
             }
         }
 

@@ -78,9 +78,20 @@ final class WooCommerceClient
         if ($host === ''
             || in_array($host, ['localhost', '127.0.0.1', '::1'], true)
             || str_contains($host, '.localhost')
+            || str_ends_with($host, '.local')
+            || str_ends_with($host, '.internal')
             || isset($parts['query'])
             || isset($parts['fragment'])) {
-            throw new DomainException('WooCommerce store_url geçerli bir HTTPS mağaza kökü olmalıdır.');
+            throw new DomainException('WooCommerce store_url geçerli bir public HTTPS mağaza kökü olmalıdır.');
+        }
+
+        if (filter_var($host, FILTER_VALIDATE_IP)
+            && ! filter_var(
+                $host,
+                FILTER_VALIDATE_IP,
+                FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE,
+            )) {
+            throw new DomainException('WooCommerce store_url private/reserved IP kullanamaz.');
         }
 
         return $url;

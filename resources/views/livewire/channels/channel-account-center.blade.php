@@ -119,14 +119,15 @@
                                 Webhook URL: <code>{{ $woocommerceWebhookUrl }}</code>
                             </div>
                             @if(($selectedAccount?->settings['woocommerce_webhook_ids']['order.created'] ?? null)
-                                && ($selectedAccount?->settings['woocommerce_webhook_ids']['order.updated'] ?? null))
+                                && ($selectedAccount?->settings['woocommerce_webhook_ids']['order.updated'] ?? null)
+                                && ($selectedAccount?->settings['woocommerce_webhook_ids']['action.woocommerce_order_refunded'] ?? null))
                                 <div>
                                     order.created #{{ $selectedAccount?->settings['woocommerce_webhook_ids']['order.created'] ?? '' }}
                                     · order.updated #{{ $selectedAccount?->settings['woocommerce_webhook_ids']['order.updated'] ?? '' }}
+                                    · refund #{{ $selectedAccount?->settings['woocommerce_webhook_ids']['action.woocommerce_order_refunded'] ?? '' }}
                                 </div>
-                            @else
-                                <button type="button" wire:click="setupWooCommerceWebhooks">Webhookları Oluştur</button>
                             @endif
+                            <button type="button" wire:click="setupWooCommerceWebhooks">Webhookları Doğrula / Kur</button>
                             <div>
                                 Webhook secret şifreli credential alanında otomatik üretilir. Core WooCommerce
                                 standart shipment-tracking endpointi sağlamadığı için shipment push desteklenmez.

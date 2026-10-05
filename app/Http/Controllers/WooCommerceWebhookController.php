@@ -12,7 +12,11 @@ use Illuminate\Http\Response;
 
 final class WooCommerceWebhookController extends Controller
 {
-    private const TOPICS = ['order.created', 'order.updated'];
+    private const TOPICS = [
+        'order.created',
+        'order.updated',
+        'action.woocommerce_order_refunded',
+    ];
 
     public function __invoke(
         Request $request,

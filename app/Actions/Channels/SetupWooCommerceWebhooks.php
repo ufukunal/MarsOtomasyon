@@ -13,7 +13,11 @@ use Illuminate\Support\Facades\URL;
 
 final class SetupWooCommerceWebhooks
 {
-    private const TOPICS = ['order.created', 'order.updated'];
+    private const TOPICS = [
+        'order.created',
+        'order.updated',
+        'action.woocommerce_order_refunded',
+    ];
 
     public function __construct(private readonly WooCommerceClient $client) {}
 
