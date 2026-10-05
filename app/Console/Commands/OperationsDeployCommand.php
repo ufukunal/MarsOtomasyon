@@ -1,0 +1,71 @@
+<?php
+
+namespace App\Console\Commands;
+
+use App\Support\Operations\DeploymentService;
+use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Artisan;
+use RuntimeException;
+use Throwable;
+
+class OperationsDeployCommand extends Command
+{
+    protected $signature = 'operations:deploy
+        {--release= : Release identifier}
+        {--commit= : Git commit SHA}
+        {--previous= : Previous release identifier}
+        {--release-path= : Candidate immutable release directory}
+        {--current-link=/var/www/mars/current : Atomic current symlink path}';
+
+    protected $description = 'Backup, Master/period migration, verification ve atomik current geçişini yürütür';
+
+    public function handle(DeploymentService $service): int
+    {
+        $releasePath = rtrim((string) $this->option('release-path'), '/');
+        $currentLink = (string) $this->option('current-link');
+
+        if ($releasePath === '' || ! is_dir($releasePath) || ! is_file($releasePath.'/artisan')) {
+            $this->error('Geçerli candidate release path zorunludur.');
+            return self::FAILURE;
+        }
+
+        try {
+            $result = $service->deploy(
+                releaseId: (string) $this->option('release'),
+                commitSha: (string) $this->option('commit'),
+                previousReleaseId: $this->option('previous') ?: null,
+                activateRelease: fn () => $this->activate($releasePath, $currentLink),
+                restartWorkers: static function (): void {
+                    if (Artisan::call('queue:restart') !== 0) {
+                        throw new RuntimeException('Queue restart sinyali gönderilemedi.');
+                    }
+                },
+            );
+            $this->info('Release active: '.$result['release_id']);
+            return self::SUCCESS;
+        } catch (Throwable $exception) {
+            $this->error('Deploy başarısız: '.$exception->getMessage());
+            return self::FAILURE;
+        }
+    }
+
+    private function activate(string $releasePath, string $currentLink): void
+    {
+        $parent = dirname($currentLink);
+        if (! is_dir($parent)) {
+            throw new RuntimeException('Current symlink parent dizini bulunamadı.');
+        }
+
+        $temporary = $currentLink.'.next';
+        if (is_link($temporary) || file_exists($temporary)) {
+            @unlink($temporary);
+        }
+        if (! symlink($releasePath, $temporary)) {
+            throw new RuntimeException('Candidate release symlink oluşturulamadı.');
+        }
+        if (! rename($temporary, $currentLink)) {
+            @unlink($temporary);
+            throw new RuntimeException('Current symlink atomik olarak değiştirilemedi.');
+        }
+    }
+}
