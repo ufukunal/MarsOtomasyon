@@ -122,11 +122,11 @@ final class DeploymentService
 
                     $rolledBack = true;
                 } catch (Throwable $rollbackException) {
-                    $rollbackError = trim($rollbackException->getMessage());
+                    $rollbackError = app(OperationalErrorSanitizer::class)->summarize($rollbackException);
                 }
             }
 
-            $error = trim($exception->getMessage());
+            $error = app(OperationalErrorSanitizer::class)->summarize($exception);
 
             if ($rollbackError !== null && $rollbackError !== '') {
                 $error .= ' | activation rollback failed: '.$rollbackError;
@@ -141,6 +141,13 @@ final class DeploymentService
                 ]),
                 'error_summary' => mb_substr($error, 0, 500),
             ])->save();
+
+            app(OperationalAlertService::class)->send(
+                'deployment-failed',
+                'Production deployment başarısız',
+                'Release '.$releaseId.' başarısız: '.mb_substr($error, 0, 500),
+                1,
+            );
 
             throw $exception;
         }
