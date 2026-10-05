@@ -77,6 +77,6 @@
             @endforelse
             </tbody>
         </table>
-        <div>Trendyol için webhook primary, 15 dakikalık polling güvenlik ağıdır. Outbound başarısız sync 30/60/120 saniye politikasına göre otomatik yeniden denenir.</div>
+        <div>Webhook destekleyen kanallarda webhook primary, 15 dakikalık polling güvenlik ağıdır. Outbound başarısız sync 30/60/120 saniye politikasına göre otomatik yeniden denenir.</div>
     </section>
 </div>

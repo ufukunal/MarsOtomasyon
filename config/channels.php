@@ -7,7 +7,7 @@ return [
     |--------------------------------------------------------------------------
     |
     | Platform sınıfları Faz 9 kanal bloklarında tek tek etkinleştirilir.
-    | Trendyol Product/Order V2 adapterı Faz 9B ile aktif edilir.
+    | Trendyol Faz 9B, Hepsiburada Faz 9C ile aktif edilmiştir.
     |
     */
     'adapters' => [
