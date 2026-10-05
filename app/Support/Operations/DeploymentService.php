@@ -15,6 +15,7 @@ final class DeploymentService
         ?string $previousReleaseId,
         callable $activateRelease,
         ?callable $restartWorkers = null,
+        ?callable $rollbackActivation = null,
     ): array {
         if ($releaseId === '' || ! preg_match('/^[A-Za-z0-9._-]+$/', $releaseId)) {
             throw new RuntimeException('Geçersiz release_id.');
@@ -24,6 +25,7 @@ final class DeploymentService
         }
 
         $actor = auth()->user();
+        $activated = false;
         $run = DeploymentRun::query()->create([
             'release_id' => $releaseId,
             'commit_sha' => $commitSha,
@@ -78,6 +80,7 @@ final class DeploymentService
             ])->save();
 
             $activateRelease();
+            $activated = true;
 
             if ($restartWorkers !== null) {
                 $restartWorkers();
@@ -106,11 +109,39 @@ final class DeploymentService
                 'previous_release_id' => $previousReleaseId,
             ];
         } catch (Throwable $exception) {
+            $rollbackError = null;
+            $rolledBack = false;
+
+            if ($activated && $rollbackActivation !== null) {
+                try {
+                    $rollbackActivation();
+
+                    if ($restartWorkers !== null) {
+                        $restartWorkers();
+                    }
+
+                    $rolledBack = true;
+                } catch (Throwable $rollbackException) {
+                    $rollbackError = trim($rollbackException->getMessage());
+                }
+            }
+
+            $error = trim($exception->getMessage());
+
+            if ($rollbackError !== null && $rollbackError !== '') {
+                $error .= ' | activation rollback failed: '.$rollbackError;
+            }
+
             $run->forceFill([
                 'status' => 'failed',
                 'finished_at' => now(),
-                'error_summary' => mb_substr(trim($exception->getMessage()), 0, 500),
+                'metadata' => array_merge($run->metadata ?? [], [
+                    'activated' => false,
+                    'activation_rolled_back' => $rolledBack,
+                ]),
+                'error_summary' => mb_substr($error, 0, 500),
             ])->save();
+
             throw $exception;
         }
     }
