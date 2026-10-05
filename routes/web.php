@@ -41,6 +41,7 @@ use App\Livewire\Pages\Products\ProductForm;
 use App\Livewire\Pages\Products\ProductList;
 use App\Livewire\Pages\Products\VariantGroupDetail;
 use App\Livewire\Pages\Settings\IntegrityReport;
+use App\Livewire\Pages\Settings\PeriodCarry;
 use App\Livewire\Pages\Settings\Periods;
 use App\Livewire\Pages\Setup\CompanyWizard;
 use App\Livewire\Pages\Stock\QuarantineControl;
@@ -121,6 +122,7 @@ Route::middleware('guest')->group(function (): void {
 Route::middleware('auth')->group(function (): void {
     Route::get('/secim', PeriodSelection::class)->name('period.select');
     Route::get('/ayarlar/donemler', Periods::class)->name('settings.periods');
+    Route::get('/ayarlar/donem-devri', PeriodCarry::class)->name('settings.period-carry');
     Route::get('/kartlar/lokasyonlar', LocationList::class)->name('locations.index');
     Route::get('/kartlar/lokasyonlar/yeni', LocationForm::class)->name('locations.create');
     Route::get('/kartlar/lokasyonlar/{location}', LocationForm::class)->name('locations.edit');
@@ -190,7 +192,8 @@ Route::middleware('auth')->group(function (): void {
         ->middleware('throttle:report')
         ->name('reports.consolidated');
     Route::get('/raporlar/exportlar', ExportCenter::class)->name('reports.exports');
-    Route::get('/raporlar/sablonlar', DocumentTemplateDesigner::class)->name('reports.templates');\n    Route::get('/raporlar/yazdirma-gecmisi', PrintHistory::class)->name('reports.print-history');
+    Route::get('/raporlar/sablonlar', DocumentTemplateDesigner::class)->name('reports.templates');
+    Route::get('/raporlar/yazdirma-gecmisi', PrintHistory::class)->name('reports.print-history');
     Route::get('/raporlar/exportlar/{export}/indir', ReportExportDownloadController::class)
         ->whereNumber('export')
         ->name('reports.exports.download');
