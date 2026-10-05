@@ -33,6 +33,8 @@ final class ChannelExternalEventRegistryService
             $externalId,
             $occurredAt,
         ): ChannelExternalEventReservation {
+            $this->lockIdentity($account->id, $eventType, $externalId);
+
             $event = ChannelExternalEventRegistry::query()->firstOrCreate(
                 [
                     'channel_account_id' => $account->id,
@@ -85,6 +87,14 @@ final class ChannelExternalEventRegistryService
                 periodDocumentId: $locked->period_document_id,
             );
         }, attempts: 3);
+    }
+
+    private function lockIdentity(int $accountId, string $eventType, string $externalId): void
+    {
+        DB::connection('master')->select(
+            'SELECT pg_advisory_xact_lock(hashtextextended(?, 0))',
+            [implode('|', ['channel-registry', $accountId, $eventType, $externalId])],
+        );
     }
 
     public function markDone(int $registryId, int $periodId, int $periodDocumentId): void

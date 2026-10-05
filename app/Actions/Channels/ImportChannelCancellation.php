@@ -13,8 +13,8 @@ use App\Models\Period\StockReservation;
 use App\Models\SalesChannelAccount;
 use App\Support\Audit\AuditContext;
 use App\Support\Channels\ChannelAutomationActorResolver;
+use App\Support\Concurrency\IdempotencyKey;
 use DomainException;
-use Illuminate\Support\Facades\DB;
 
 final class ImportChannelCancellation
 {
@@ -34,10 +34,18 @@ final class ImportChannelCancellation
 
         return $this->actors->run(
             ['sales_orders.cancel', 'reservations.update'],
-            fn () => DB::connection('period')->transaction(
-                fn (): Document => $this->cancel($account, $event),
-                attempts: 3,
-            ),
+            function () use ($account, $event): Document {
+                $documentId = IdempotencyKey::run(
+                    hash(
+                        'sha256',
+                        'channel-cancel-import:'.$account->id.':'.$event->externalId,
+                    ),
+                    'channel.cancel.import:'.$account->id,
+                    fn (): int => (int) $this->cancel($account, $event)->id,
+                );
+
+                return Document::query()->findOrFail((int) $documentId);
+            },
         );
     }
 

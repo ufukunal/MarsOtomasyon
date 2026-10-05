@@ -171,7 +171,7 @@ final class HepsiburadaClient
     {
         if (! $response->successful()) {
             $summary = $this->redactor->redact(
-                'Hepsiburada HTTP '.$response->status().': '.$response->body(),
+                'Hepsiburada HTTP '.$response->status().' request failed.',
                 $account,
             );
 

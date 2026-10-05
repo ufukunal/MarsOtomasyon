@@ -81,7 +81,7 @@ final class TrendyolClient
     {
         if (! $response->successful()) {
             $summary = $this->redactor->redact(
-                'Trendyol HTTP '.$response->status().': '.$response->body(),
+                'Trendyol HTTP '.$response->status().' request failed.',
                 $account,
             );
 

@@ -8,6 +8,12 @@ final class ChannelSensitiveDataRedactor
 {
     public function redact(string $text, SalesChannelAccount $account): string
     {
+        $text = preg_replace(
+            '/^(Trendyol|Hepsiburada|N11(?: Return SOAP)?|WooCommerce) HTTP (\\d{3}):[\\s\\S]*$/',
+            '$1 HTTP $2 request failed.',
+            $text,
+        ) ?? $text;
+
         $secrets = $this->flattenSecrets($account->credentials());
 
         foreach ($secrets as $secret) {

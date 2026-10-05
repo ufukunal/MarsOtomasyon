@@ -80,6 +80,8 @@ final class WooCommerceClient
             || str_contains($host, '.localhost')
             || str_ends_with($host, '.local')
             || str_ends_with($host, '.internal')
+            || isset($parts['user'])
+            || isset($parts['pass'])
             || isset($parts['query'])
             || isset($parts['fragment'])) {
             throw new DomainException('WooCommerce store_url geçerli bir public HTTPS mağaza kökü olmalıdır.');
@@ -138,7 +140,7 @@ final class WooCommerceClient
     {
         if (! $response->successful()) {
             throw new DomainException($this->redactor->redact(
-                'WooCommerce HTTP '.$response->status().': '.$response->body(),
+                'WooCommerce HTTP '.$response->status().' request failed.',
                 $account,
             ));
         }

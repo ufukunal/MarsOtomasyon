@@ -67,7 +67,6 @@ final class ImportChannelOrder
 
         if ($existingSnapshot) {
             $order = Document::query()->with('lines')->lockForUpdate()->findOrFail($existingSnapshot->sales_order_id);
-            $this->updateSnapshot($existingSnapshot, $data);
 
             if ($order->status === 'draft') {
                 $order = $this->confirm->handle(
