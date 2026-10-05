@@ -41,6 +41,7 @@ use App\Livewire\Pages\Products\ProductForm;
 use App\Livewire\Pages\Products\ProductList;
 use App\Livewire\Pages\Products\VariantGroupDetail;
 use App\Livewire\Pages\Settings\IntegrityReport;
+use App\Livewire\Pages\Settings\OperationsCenter;
 use App\Livewire\Pages\Settings\PeriodCarry;
 use App\Livewire\Pages\Settings\Periods;
 use App\Livewire\Pages\Setup\CompanyWizard;
@@ -216,6 +217,7 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/ice-aktarma/{batchId}/hatalar.xlsx', ImportErrorReportController::class)->name('imports.errors');
     Route::get('/urunler/{product}/gorseller/{attachment}', ProductImageController::class)->name('products.images.show');
     Route::get('/ayarlar/butunluk', IntegrityReport::class)->name('settings.integrity');
+    Route::get('/ayarlar/operasyonlar', OperationsCenter::class)->name('settings.operations');
 
     Route::post('/cikis', function () {
         Auth::logout();
