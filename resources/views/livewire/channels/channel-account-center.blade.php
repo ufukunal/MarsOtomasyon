@@ -73,6 +73,25 @@
                         @else
                             <button type="button" wire:click="setupWebhook">Webhook Oluştur</button>
                         @endif
+                    @elseif($platform === 'hepsiburada')
+                        <div class="space-y-2">
+                            <strong>Hepsiburada Webhook Base URL</strong>
+                            <code>{{ $hepsiburadaWebhookBaseUrl }}</code>
+                            <div>
+                                Hepsiburada entegratör ayarında bu adres Base URL olarak tanımlanır;
+                                platform createOrder, orderCancel, awaitingAction ve diğer event adlarını URL sonuna ekler.
+                            </div>
+                            <div>
+                                External Store ID = MerchantId. Credential JSON içinde
+                                <code>username</code> + <code>password</code> (veya <code>service_key</code>)
+                                ile webhook receiver için ayrı <code>webhook_username</code> +
+                                <code>webhook_password</code> tutulmalıdır.
+                            </div>
+                            <div>
+                                Settings JSON: <code>environment</code> = <code>sit</code> veya <code>prod</code>,
+                                isteğe bağlı <code>integrator_name</code>.
+                            </div>
+                        </div>
                     @endif
                 @endcan
             @else

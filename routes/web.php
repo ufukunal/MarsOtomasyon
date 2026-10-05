@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ChannelAssetController;
 use App\Http\Controllers\HealthController;
+use App\Http\Controllers\HepsiburadaWebhookController;
 use App\Http\Controllers\ImportErrorReportController;
 use App\Http\Controllers\ProductImageController;
 use App\Http\Controllers\TrendyolWebhookController;
@@ -85,6 +86,11 @@ Route::view('/', 'welcome')->middleware('auth')->name('home');
 Route::post('/hooks/channel/{account}', TrendyolWebhookController::class)
     ->whereNumber('account')
     ->name('webhooks.trendyol');
+
+Route::put('/hooks/channel/hepsiburada/{account}/{event}', HepsiburadaWebhookController::class)
+    ->whereNumber('account')
+    ->where('event', 'createOrder|createPackages|orderCancel|unpack|intransit|deliver|undeliver|changeShippingAddressOrder|awaitingAction|awaitingPreApproval|disputedClaimResult|packageFromClaimResult')
+    ->name('webhooks.hepsiburada');
 
 Route::get('/channel-assets/{company}/{period}/{product}/{attachment}', ChannelAssetController::class)
     ->middleware('signed')

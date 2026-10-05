@@ -174,6 +174,10 @@ class ChannelAccountCenter extends Component
             $adapterAvailability[$platform->value] = $resolver->hasAdapter($platform);
         }
 
+        $selectedAccount = $this->selectedAccountId
+            ? $accounts->firstWhere('id', $this->selectedAccountId)
+            : null;
+
         return view('livewire.channels.channel-account-center', [
             'accounts' => $accounts,
             'platforms' => SalesChannelPlatform::cases(),
@@ -183,8 +187,9 @@ class ChannelAccountCenter extends Component
                 ->limit(1000)
                 ->get(),
             'adapterAvailability' => $adapterAvailability,
-            'selectedAccount' => $this->selectedAccountId
-                ? $accounts->firstWhere('id', $this->selectedAccountId)
+            'selectedAccount' => $selectedAccount,
+            'hepsiburadaWebhookBaseUrl' => $selectedAccount?->platform === SalesChannelPlatform::Hepsiburada
+                ? url('/hooks/channel/hepsiburada/'.$selectedAccount->id)
                 : null,
         ])->layout('layouts.app', ['pageTitle' => 'Kanal Hesapları']);
     }

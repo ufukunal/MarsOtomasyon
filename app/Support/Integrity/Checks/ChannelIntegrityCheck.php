@@ -42,6 +42,17 @@ final class ChannelIntegrityCheck implements IntegrityCheck
             ->keyBy('id');
         $mismatches = [];
 
+        foreach ($accounts as $account) {
+            if ($account->is_active
+                && $account->platform->value === 'hepsiburada'
+                && trim((string) ($account->external_store_id ?: ($account->credentials()['merchant_id'] ?? ''))) === '') {
+                $mismatches[] = [
+                    'channel_account_id' => $account->id,
+                    'reason' => 'hepsiburada_merchant_id_missing',
+                ];
+            }
+        }
+
         $settings = ChannelAccountPeriodSetting::query()
             ->with('marketplaceCustomerContact')
             ->orderBy('id')
