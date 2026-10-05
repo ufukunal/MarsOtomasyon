@@ -10,6 +10,7 @@ use App\Support\Audit\AuditContext;
 use App\Support\Concurrency\IdempotencyKey;
 use App\Support\Integrity\Checks\CarryIntegrityCheck;
 use App\Support\Integrity\IntegrityRunner;
+use App\Support\Operations\RecoverySetBackupService;
 use App\Support\Period\PeriodContext;
 use DomainException;
 use Illuminate\Support\Facades\DB;
@@ -27,6 +28,7 @@ final class CarryPeriod
         private readonly CarryChannelPeriodState $channels,
         private readonly CarryIntegrityCheck $integrity,
         private readonly IntegrityRunner $integrityRunner,
+        private readonly RecoverySetBackupService $backups,
     ) {}
 
     public function handle(
@@ -80,6 +82,8 @@ final class CarryPeriod
                 'Dönem devri preflight bloklandı: '.implode(' | ', $blocks),
             );
         }
+
+        $recoverySet = $this->backups->run('period_carry');
 
         $target = Period::query()
             ->where('company_id', $source->company_id)
@@ -197,6 +201,8 @@ final class CarryPeriod
                     'imports' => count($importIds),
                     'channels' => $channelResult,
                     'integrity_checked' => $integrity->checked,
+                    'recovery_set_id' => $recoverySet['recovery_set_id'],
+                    'backup_run_id' => $recoverySet['backup_run_id'],
                     'access_copy_required' => true,
                 ],
             ))->toArray();
