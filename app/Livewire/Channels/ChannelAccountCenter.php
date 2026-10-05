@@ -4,6 +4,7 @@ namespace App\Livewire\Channels;
 
 use App\Actions\Channels\SaveChannelAccountPeriodSetting;
 use App\Actions\Channels\SaveSalesChannelAccount;
+use App\Actions\Channels\SetupTrendyolWebhook;
 use App\Actions\Channels\TestChannelConnection;
 use App\Enums\SalesChannelPlatform;
 use App\Livewire\Concerns\WithIdempotentMutations;
@@ -33,7 +34,7 @@ class ChannelAccountCenter extends Component
 
     public function mount(): void
     {
-        $this->seedMutationKeys(['save', 'periodSetting', 'testConnection']);
+        $this->seedMutationKeys(['save', 'periodSetting', 'testConnection', 'setupWebhook']);
         abort_unless(auth()->user()?->can('channel_accounts.view'), 403);
         PeriodContext::ensure();
     }
@@ -144,6 +145,22 @@ class ChannelAccountCenter extends Component
         );
     }
 
+    public function setupWebhook(SetupTrendyolWebhook $action): void
+    {
+        abort_unless($this->selectedAccountId !== null, 422);
+        $account = SalesChannelAccount::query()
+            ->where('company_id', PeriodContext::companyId())
+            ->findOrFail($this->selectedAccountId);
+
+        $webhookId = $this->runMasterMutation(
+            'setupWebhook',
+            fn () => $action->handle($account),
+        );
+
+        $this->selectAccount((int) $account->id);
+        session()->flash('status', 'Trendyol webhook oluşturuldu: '.$webhookId);
+    }
+
     public function render(ChannelAdapterResolver $resolver): View
     {
         $accounts = SalesChannelAccount::query()
@@ -166,6 +183,9 @@ class ChannelAccountCenter extends Component
                 ->limit(1000)
                 ->get(),
             'adapterAvailability' => $adapterAvailability,
+            'selectedAccount' => $this->selectedAccountId
+                ? $accounts->firstWhere('id', $this->selectedAccountId)
+                : null,
         ])->layout('layouts.app', ['pageTitle' => 'Kanal Hesapları']);
     }
 

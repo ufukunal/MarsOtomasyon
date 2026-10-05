@@ -35,6 +35,10 @@ return Application::configure(basePath: dirname(__DIR__))
             'local.network' => EnsureLocalNetwork::class,
         ]);
 
+        $middleware->validateCsrfTokens(except: [
+            'hooks/channel/*',
+        ]);
+
         $middleware->appendToGroup('web', [
             AuthenticateSession::class,
             SetActiveCompany::class,

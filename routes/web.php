@@ -4,6 +4,7 @@ use App\Http\Controllers\ChannelAssetController;
 use App\Http\Controllers\HealthController;
 use App\Http\Controllers\ImportErrorReportController;
 use App\Http\Controllers\ProductImageController;
+use App\Http\Controllers\TrendyolWebhookController;
 use App\Livewire\Finance\BankStatementCenter;
 use App\Livewire\Finance\CollectionForm;
 use App\Livewire\Finance\ContactAging;
@@ -80,6 +81,10 @@ Route::get('/saglik', HealthController::class)
     ->name('health');
 
 Route::view('/', 'welcome')->middleware('auth')->name('home');
+
+Route::post('/hooks/channel/{account}', TrendyolWebhookController::class)
+    ->whereNumber('account')
+    ->name('webhooks.trendyol');
 
 Route::get('/channel-assets/{company}/{period}/{product}/{attachment}', ChannelAssetController::class)
     ->middleware('signed')

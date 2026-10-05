@@ -57,9 +57,15 @@ final class ChannelExternalEventRegistryService
                 ->lockForUpdate()
                 ->findOrFail($event->id);
 
-            if ($locked->status === 'failed') {
+            $staleProcessing = $locked->status === 'processing'
+                && $locked->updated_at !== null
+                && CarbonImmutable::parse($locked->updated_at)->lessThanOrEqualTo(now()->subMinutes(15));
+
+            if ($locked->status === 'failed' || $staleProcessing) {
                 $locked->status = 'processing';
                 $locked->external_occurred_at ??= $occurredAt;
+                $locked->period_id = null;
+                $locked->period_document_id = null;
                 $locked->save();
 
                 return new ChannelExternalEventReservation(

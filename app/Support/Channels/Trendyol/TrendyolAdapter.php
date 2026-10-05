@@ -75,7 +75,12 @@ final class TrendyolAdapter implements ChannelAdapter
 
     public function fetchOrders(SalesChannelAccount $account, ?CarbonImmutable $since = null): array
     {
-        return $this->fetchPackages($account, ['Created'], 'order', $since);
+        return $this->fetchPackages(
+            $account,
+            ['Created', 'Picking', 'Invoiced', 'Shipped', 'Delivered', 'UnDelivered', 'AtCollectionPoint', 'Verified'],
+            'order',
+            $since,
+        );
     }
 
     public function fetchCancellations(SalesChannelAccount $account, ?CarbonImmutable $since = null): array
@@ -86,7 +91,7 @@ final class TrendyolAdapter implements ChannelAdapter
     public function fetchReturns(SalesChannelAccount $account, ?CarbonImmutable $since = null): array
     {
         $sellerId = $this->client->sellerId($account);
-        $query = ['page' => 0, 'size' => 200];
+        $query = ['page' => 0, 'size' => 200, 'claimItemStatus' => 'Created'];
 
         if ($since) {
             $query['startDate'] = $since->getTimestampMs();

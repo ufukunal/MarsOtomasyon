@@ -67,6 +67,13 @@
             @if($adapterAvailability[$platform] ?? false)
                 @can('channel_accounts.update')
                     <button type="button" wire:click="testConnection">Bağlantıyı Test Et</button>
+                    @if($platform === 'trendyol')
+                        @if(data_get($selectedAccount?->settings, 'trendyol_webhook_id'))
+                            <span>Webhook ID: {{ data_get($selectedAccount?->settings, 'trendyol_webhook_id') }}</span>
+                        @else
+                            <button type="button" wire:click="setupWebhook">Webhook Oluştur</button>
+                        @endif
+                    @endif
                 @endcan
             @else
                 <div>Bu platformun gerçek adapter'ı henüz eklenmedi.</div>
