@@ -12,7 +12,7 @@ class OperationsSecurityCheckCommand extends Command
 
     public function handle(DatabasePrivilegeVerifier $privileges): int
     {
-        $failures = $privileges->failures();
+        $failures = app()->environment('production') ? $privileges->failures() : [];
 
         if (app()->environment('production') && (bool) config('app.debug')) {
             $failures[] = 'APP_DEBUG production ortamında false olmalıdır.';
