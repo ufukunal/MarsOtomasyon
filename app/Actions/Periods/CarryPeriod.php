@@ -238,7 +238,16 @@ final class CarryPeriod
         }
 
         DB::connection('master')->transaction(function () use ($source, $target): void {
+            $sourceLocked = Period::query()->lockForUpdate()->findOrFail($source->id);
             $locked = Period::query()->lockForUpdate()->findOrFail($target->id);
+
+            if ((string) $sourceLocked->status !== 'active' || $sourceLocked->carried_at !== null) {
+                throw new DomainException('Kaynak dönem carry sahiplenme anında active ve devredilmemiş olmalıdır.');
+            }
+
+            if ((string) $locked->status !== 'active') {
+                throw new DomainException('Hedef dönem carry sahiplenme anında active olmalıdır.');
+            }
 
             if ($locked->carried_at !== null) {
                 throw new DomainException('Hedef dönem carry işlemi zaten tamamlanmış.');
@@ -265,6 +274,10 @@ final class CarryPeriod
 
             if ((string) $sourceLocked->status !== 'active') {
                 throw new DomainException('Finalizasyon anında source dönem active olmalıdır.');
+            }
+
+            if ((string) $targetLocked->status !== 'active') {
+                throw new DomainException('Finalizasyon anında target dönem active olmalıdır.');
             }
 
             if ((int) ($targetLocked->carried_from_period_id ?? 0) !== (int) $sourceLocked->id
