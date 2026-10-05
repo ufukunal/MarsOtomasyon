@@ -1,43 +1,56 @@
-# Yedekleme ve geri yükleme
+# Recovery-set yedekleme ve geri yükleme
 
-Faz 0 yedekleme temeli Master veritabanını, Master'da kayıtlı tüm `active` ve
-`closed` period veritabanlarını ve `storage/app/attachments` içeriğini kapsar.
+Production backup gerçek kaynağı `backup_runs` ve recovery-set manifestidir. Master DB, tüm `active|closed` period DB'ler ve attachment/files aynı recovery set içinde izlenir.
 
-`backup:run` başlamadan hemen önce `PrepareBackupSources` period listesini Master
-DB'den okur ve period bağlantılarını dinamik olarak backup kaynağına ekler. Arşivlenmiş /
-detached period DB'ler Faz 11 restore/archive runbook'u kapsamında ayrıca ele alınır.
+`PrepareBackupSources`, Spatie `backup:run` başlamadan Master'daki period listesini dinamik olarak backup kaynaklarına ekler. Faz 11 katmanı bunun üzerinde checksum, off-VDS kopya ve operasyon geçmişi üretir; paralel ikinci backup sistemi yoktur.
 
 ## Hedefler
 
-- `backups`: VDS üzerindeki yerel disk.
-- `backup_external`: S3 uyumlu harici depolama.
+- `backups`: VDS üzerindeki yerel kopya.
+- `backup_external`: S3 uyumlu off-VDS kopya.
 
-İki hedef de başarıyla yazılmadan backup başarılı kabul edilmez.
+Recovery set ancak iki hedefe de yazılmış ve archive checksum değerleri eşleşmişse `done` olur. Restore provası başarılı olmadan `verified` sayılmaz.
+
+## Komutlar
+
+Manuel:
+
+```bash
+php artisan operations:backup --trigger=manual
+```
+
+Deploy öncesi `DeploymentService` otomatik `deploy` trigger kullanır. Dönem devri state-changing aşamadan önce otomatik `period_carry` trigger kullanır.
 
 ## Zamanlama
 
 - 01:00 `backup:clean`
-- 01:30 `backup:run`
+- 01:30 `RunRecoverySetBackupJob('scheduled')` → privileged `operations` queue
 - 02:00 `backup:monitor`
+- Pazar 05:00 `VerifyLatestRecoverySetBackupJob` → temporary restore provası
 
-Saklama temeli: 7 günlük, 4 haftalık, 6 aylık kopya.
+Retention: mevcut Spatie backup cleanup politikası.
 
-## Geri yükleme
+## Recovery-set manifest
 
-1. İstenen recovery setin Master DB, period DB dump'ları ve attachment dosyalarının
-   birlikte mevcut olduğunu doğrula.
-2. Production bağlantısını değiştirmeden ayrı geçici/staging DB'lere geri yükle.
-3. Master verisini ve period kaydını doğrula.
-4. Restore edilen period için önce `migrate:periods --company=<id> --year=<yıl>`
-   çalıştır.
-5. Integrity/smoke doğrulaması tamamlanmadan period'u production'a bağlama.
-6. Arşiv dönem restore edildiyse doğrulama sonrası `closed`/read-only aç.
+Manifest secret içermez. En az:
+
+- recovery_set_id
+- uygulama/version
+- Master DB adı
+- active/closed period DB listesi
+- local/off-VDS archive path, checksum, size
+- files dahil bilgisi
+- encryption algoritması
+
+taşır.
 
 ## Restore provası
 
-En az ayda bir gerçek geri yükleme provası yapılır. Yalnız arşiv dosyasının oluşması
-yedek doğrulaması sayılmaz. Prova sonucu, kullanılan recovery set kimliği ve doğrulanan
-DB/dosya kapsamı operasyon kaydında tutulur.
+```bash
+php artisan operations:restore-verify
+php artisan operations:restore-verify <backup_run_id>
+```
 
-Faz 11 G-1104/G-1105 bu temeli recovery-set manifest/checksum, off-VDS doğrulama ve
-production DR akışıyla genişletir; ikinci bir paralel backup sistemi kurulmaz.
+Akış production DB'lerine dokunmadan temporary Master/Period DB'leri oluşturur, restore eder, migration zincirini ve `integrity:all` kontrolünü çalıştırır. Başarı sonrası backup `verified` ve `verified_at` alır.
+
+Archive restore ve disaster recovery için `docs/isletim/disaster-recovery.md` kanoniktir.
