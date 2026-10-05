@@ -228,8 +228,15 @@ final class CopyPeriodCards
         $ids += $this->ids($balanceIds);
 
         $ids += $this->ids($db->table('documents')
-            ->whereIn('document_type', ['sales_order', 'purchase_order'])
-            ->where('status', 'confirmed')
+            ->where(function ($query): void {
+                $query->where(function ($sales): void {
+                    $sales->where('document_type', 'sales_order')
+                        ->where('status', 'confirmed');
+                })->orWhere(function ($purchase): void {
+                    $purchase->where('document_type', 'purchase_order')
+                        ->whereIn('status', ['approved', 'sent']);
+                });
+            })
             ->whereNotNull('contact_id')
             ->pluck('contact_id'));
         $ids += $this->ids($db->table('import_files')
@@ -275,8 +282,15 @@ final class CopyPeriodCards
         return $this->ids(
             DB::connection('period_source')->table('document_lines')
                 ->join('documents', 'documents.id', '=', 'document_lines.document_id')
-                ->whereIn('documents.document_type', ['sales_order', 'purchase_order'])
-                ->where('documents.status', 'confirmed')
+                ->where(function ($query): void {
+                    $query->where(function ($sales): void {
+                        $sales->where('documents.document_type', 'sales_order')
+                            ->where('documents.status', 'confirmed');
+                    })->orWhere(function ($purchase): void {
+                        $purchase->where('documents.document_type', 'purchase_order')
+                            ->whereIn('documents.status', ['approved', 'sent']);
+                    });
+                })
                 ->whereNotNull('document_lines.'.$column)
                 ->pluck('document_lines.'.$column),
         );

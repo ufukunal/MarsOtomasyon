@@ -278,7 +278,7 @@ final class PreviewPeriodCarry
         $orders = Document::query()
             ->with('lines')
             ->where('document_type', $type->value)
-            ->where('status', 'confirmed')
+            ->whereIn('status', $type === DocumentType::SalesOrder ? ['confirmed'] : ['approved', 'sent'])
             ->orderBy('id')
             ->get();
 
