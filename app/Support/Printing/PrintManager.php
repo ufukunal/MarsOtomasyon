@@ -7,27 +7,47 @@ use App\Models\DocumentTemplate;
 use App\Models\PrintProfile;
 use App\Support\Period\PeriodContext;
 use DomainException;
+use Throwable;
 
 final class PrintManager
 {
-    /** @param array<string, mixed> $payload */
-    public static function send(PrintType $type, array $payload): PrintResult
+    /** @param array<string, mixed> $payload @param array<string, mixed> $context */
+    public static function send(PrintType $type, array $payload, array $context = []): PrintResult
     {
         $profile = self::resolveProfile($type);
         $driverClass = (string) config('printing.driver_class');
+        $tracker = app(PrintJobTracker::class);
+        $contentHash = self::payloadContentHash($payload);
+        $job = $tracker->start($type, null, $profile, $context, $contentHash);
 
-        /** @var PrintDriver $driver */
-        $driver = app($driverClass);
+        try {
+            /** @var PrintDriver $driver */
+            $driver = app($driverClass);
+            $result = $driver->send($type, $payload, $profile);
+            $tracker->complete($job, $result, null, $context);
 
-        return $driver->send($type, $payload, $profile);
+            return $result;
+        } catch (Throwable $exception) {
+            $tracker->fail($job, $exception);
+
+            throw $exception;
+        }
     }
 
+    /** @param array<string, mixed> $context */
     public static function sendTemplate(
         PrintType $type,
         DocumentTemplate $template,
         string $content,
         ?string $filename = null,
+        array $context = [],
     ): PrintResult {
+        PeriodContext::ensure();
+
+        if ((int) $template->company_id !== (int) PeriodContext::companyId()) {
+            throw new DomainException('Print template aktif şirket ile aynı şirkete ait olmalıdır.');
+        }
+
         $profile = self::resolveProfile($type);
         $driverKey = match ($template->render_type) {
             'html_pdf' => 'browser',
@@ -40,9 +60,6 @@ final class PrintManager
         if (! is_string($driverClass) || $driverClass === '') {
             throw new DomainException("Print driver yapılandırılmamış: {$driverKey}.");
         }
-
-        /** @var PrintDriver $driver */
-        $driver = app($driverClass);
 
         $payload = [
             'paper_code' => $template->paper_code,
@@ -57,7 +74,27 @@ final class PrintManager
             'text' => $payload['text'] = $content,
         };
 
-        return $driver->send($type, $payload, $profile);
+        $tracker = app(PrintJobTracker::class);
+        $job = $tracker->start(
+            $type,
+            $template,
+            $profile,
+            $context,
+            hash('sha256', $content),
+        );
+
+        try {
+            /** @var PrintDriver $driver */
+            $driver = app($driverClass);
+            $result = $driver->send($type, $payload, $profile);
+            $tracker->complete($job, $result, $template, $context);
+
+            return $result;
+        } catch (Throwable $exception) {
+            $tracker->fail($job, $exception);
+
+            throw $exception;
+        }
     }
 
     public static function resolveProfile(PrintType $type): ?PrintProfile
@@ -104,5 +141,17 @@ final class PrintManager
             ->whereNull('user_id')
             ->whereNull('machine_key')
             ->first();
+    }
+
+    /** @param array<string, mixed> $payload */
+    private static function payloadContentHash(array $payload): ?string
+    {
+        foreach (['html', 'zpl', 'text'] as $key) {
+            if (isset($payload[$key]) && is_string($payload[$key])) {
+                return hash('sha256', $payload[$key]);
+            }
+        }
+
+        return null;
     }
 }

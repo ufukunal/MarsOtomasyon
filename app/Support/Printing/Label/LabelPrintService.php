@@ -14,9 +14,7 @@ final class LabelPrintService
     public const PRODUCT_TEMPLATE_KEY = 'label.product';
     public const CARTON_TEMPLATE_KEY = 'label.carton';
 
-    public function __construct(private readonly LabelTemplateRenderer $renderer) {}
-
-    public function product(ProductLabelData $data): PrintResult
+    public function product(ProductLabelData $data, int $quantity = 1): PrintResult
     {
         $template = $this->defaultTemplate(self::PRODUCT_TEMPLATE_KEY);
         $rendered = $this->renderer->render($template, $data->toRenderData());
@@ -26,10 +24,16 @@ final class LabelPrintService
             $template,
             $rendered['content'],
             'product-'.$data->productId.'.'.$this->extension($template),
+            [
+                'source_type' => 'product',
+                'source_id' => $data->productId,
+                'quantity' => max(1, $quantity),
+                'revision_selection' => 'current',
+            ],
         );
     }
 
-    public function carton(CartonLabelData $data): PrintResult
+    public function carton(CartonLabelData $data, int $quantity = 1): PrintResult
     {
         $template = $this->defaultTemplate(self::CARTON_TEMPLATE_KEY);
         $rendered = $this->renderer->render($template, $data->toRenderData());
@@ -39,6 +43,12 @@ final class LabelPrintService
             $template,
             $rendered['content'],
             'carton-'.$data->sourceType.'-'.$data->sourceId.'.'.$this->extension($template),
+            [
+                'source_type' => $data->sourceType,
+                'source_id' => $data->sourceId,
+                'quantity' => max(1, $quantity),
+                'revision_selection' => 'current',
+            ],
         );
     }
 
@@ -69,4 +79,6 @@ final class LabelPrintService
             default => 'bin',
         };
     }
+
+    public function __construct(private readonly LabelTemplateRenderer $renderer) {}
 }
