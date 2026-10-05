@@ -1,4 +1,4 @@
-<div class="stack">
+<div class="stack" wire:poll.5s="refreshCarryStatus">
     <section class="panel">
         <h2>Dönem Devri Ön Kontrolü</h2>
         <div class="form-row">
