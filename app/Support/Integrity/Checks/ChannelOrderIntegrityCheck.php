@@ -4,6 +4,7 @@ namespace App\Support\Integrity\Checks;
 
 use App\Enums\DocumentType;
 use App\Models\ChannelExternalEventRegistry;
+use App\Models\Period;
 use App\Models\Period\ChannelOrderSnapshot;
 use App\Models\SalesChannelAccount;
 use App\Support\Integrity\IntegrityCheck;
@@ -32,6 +33,7 @@ final class ChannelOrderIntegrityCheck implements IntegrityCheck
             );
         }
 
+        $currentPeriod = Period::query()->findOrFail(PeriodContext::periodId());
         $accounts = SalesChannelAccount::query()
             ->where('company_id', PeriodContext::companyId())
             ->get()
@@ -60,13 +62,38 @@ final class ChannelOrderIntegrityCheck implements IntegrityCheck
                 continue;
             }
 
-            if ($registry === null
-                || $registry->status !== 'done'
-                || (int) $registry->period_id !== (int) PeriodContext::periodId()
-                || (int) $registry->period_document_id !== (int) $order->id) {
+            if ($registry === null || $registry->status !== 'done') {
                 $mismatches[] = [
                     'channel_order_snapshot_id' => $snapshot->id,
                     'sales_order_id' => $order->id,
+                    'reason' => 'external_event_registry_missing_or_not_done',
+                ];
+                continue;
+            }
+
+            $registryTargetsCurrent = (int) $registry->period_id === (int) $currentPeriod->id
+                && (int) $registry->period_document_id === (int) $order->id;
+
+            if ($registryTargetsCurrent) {
+                continue;
+            }
+
+            $routedPeriod = $registry->period_id
+                ? Period::query()
+                    ->whereKey((int) $registry->period_id)
+                    ->where('company_id', $currentPeriod->company_id)
+                    ->first()
+                : null;
+            $historicalSourceReroutedForward = $routedPeriod !== null
+                && (int) $routedPeriod->year > (int) $currentPeriod->year
+                && (int) $registry->period_document_id > 0;
+
+            if (! $historicalSourceReroutedForward) {
+                $mismatches[] = [
+                    'channel_order_snapshot_id' => $snapshot->id,
+                    'sales_order_id' => $order->id,
+                    'registry_period_id' => $registry->period_id,
+                    'registry_period_document_id' => $registry->period_document_id,
                     'reason' => 'external_event_registry_provenance_mismatch',
                 ];
             }

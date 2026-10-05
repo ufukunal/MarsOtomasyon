@@ -108,6 +108,57 @@ final class ChannelExternalEventRegistryService
         }, attempts: 3);
     }
 
+    public function rebindCarriedOrder(
+        SalesChannelAccount $account,
+        string $externalId,
+        int $sourcePeriodId,
+        int $sourceDocumentId,
+        int $targetPeriodId,
+        int $targetDocumentId,
+    ): void {
+        if ($sourcePeriodId <= 0
+            || $sourceDocumentId <= 0
+            || $targetPeriodId <= 0
+            || $targetDocumentId <= 0
+            || $sourcePeriodId === $targetPeriodId) {
+            throw new DomainException('Channel registry carry provenance id değerleri geçersiz.');
+        }
+
+        DB::connection('master')->transaction(function () use (
+            $account,
+            $externalId,
+            $sourcePeriodId,
+            $sourceDocumentId,
+            $targetPeriodId,
+            $targetDocumentId,
+        ): void {
+            $event = ChannelExternalEventRegistry::query()
+                ->where('channel_account_id', $account->id)
+                ->where('event_type', 'order')
+                ->where('external_id', trim($externalId))
+                ->lockForUpdate()
+                ->first();
+
+            if (! $event || $event->status !== 'done') {
+                throw new DomainException('Carried channel order için tamamlanmış Master registry kaydı bulunamadı.');
+            }
+
+            if ((int) $event->period_id === $targetPeriodId
+                && (int) $event->period_document_id === $targetDocumentId) {
+                return;
+            }
+
+            if ((int) $event->period_id !== $sourcePeriodId
+                || (int) $event->period_document_id !== $sourceDocumentId) {
+                throw new DomainException('Channel registry source carry provenance çakışması.');
+            }
+
+            $event->period_id = $targetPeriodId;
+            $event->period_document_id = $targetDocumentId;
+            $event->save();
+        }, attempts: 3);
+    }
+
     public function markFailed(int $registryId): void
     {
         DB::connection('master')->transaction(function () use ($registryId): void {
