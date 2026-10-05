@@ -15,6 +15,7 @@ use App\Support\Integrity\Checks\ImportIntegrityCheck;
 use App\Support\Integrity\Checks\NumberSeriesCheck;
 use App\Support\Integrity\Checks\PartialDocumentCheck;
 use App\Support\Integrity\Checks\ProductionIntegrityCheck;
+use App\Support\Integrity\Checks\PrintProvenanceIntegrityCheck;
 use App\Support\Integrity\Checks\PurchaseMatchCheck;
 use App\Support\Integrity\Checks\RecipeIntegrityCheck;
 use App\Support\Integrity\Checks\QuarantineBalanceCheck;
@@ -30,9 +31,9 @@ use Throwable;
 
 class IntegrityCommand extends Command
 {
-    protected $signature = 'integrity:all';
+    protected $signature = 'integrity:all {--include-closed : Closed periodleri read-only olarak doğrula}';
 
-    protected $description = 'Tüm aktif period DB bütünlük kontrollerini çalıştırır';
+    protected $description = 'Master ve active/opsiyonel closed period DB bütünlük kontrollerini çalıştırır';
 
     public function handle(IntegrityRunner $runner): int
     {
@@ -59,6 +60,7 @@ class IntegrityCommand extends Command
             ProductionIntegrityCheck::class,
             ChannelIntegrityCheck::class,
             ChannelOrderIntegrityCheck::class,
+            PrintProvenanceIntegrityCheck::class,
             NumberSeriesCheck::class,
             FilesIntegrityCheck::class,
         ];
@@ -69,7 +71,7 @@ class IntegrityCommand extends Command
                 'templates' => DocumentTemplateIntegrityCheck::class,
             ] as $masterCheckName => $masterCheckClass) {
                 try {
-                    $masterResult = $runner->run(app($masterCheckClass));
+                    $masterResult = $runner->run(app($masterCheckClass), false);
                     $mismatchCount += $masterResult->mismatchCount();
 
                     $this->line(sprintf(
@@ -89,8 +91,12 @@ class IntegrityCommand extends Command
                 }
             }
 
+            $periodStatuses = $this->option('include-closed')
+                ? ['active', 'closed']
+                : ['active'];
+
             Period::query()
-                ->where('status', 'active')
+                ->whereIn('status', $periodStatuses)
                 ->orderBy('company_id')
                 ->orderBy('year')
                 ->each(function (Period $period) use ($runner, $checks, &$failed, &$mismatchCount): void {
@@ -101,7 +107,10 @@ class IntegrityCommand extends Command
 
                         foreach ($checks as $checkClass) {
                             $check = app($checkClass);
-                            $result = $runner->run($check);
+                            $result = $runner->run(
+                                $check,
+                                (string) $period->status === 'active',
+                            );
                             $mismatchCount += $result->mismatchCount();
 
                             $this->line(sprintf(
