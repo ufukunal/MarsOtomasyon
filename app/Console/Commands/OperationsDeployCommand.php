@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Support\Operations\DeploymentService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Schema;
 use RuntimeException;
 use Throwable;
 
@@ -30,6 +31,8 @@ class OperationsDeployCommand extends Command
         }
 
         try {
+            $this->bootstrapReadinessTables();
+
             $result = $service->deploy(
                 releaseId: (string) $this->option('release'),
                 commitSha: (string) $this->option('commit'),
@@ -47,6 +50,35 @@ class OperationsDeployCommand extends Command
             $this->error('Deploy başarısız: '.$exception->getMessage());
             return self::FAILURE;
         }
+    }
+
+    private function bootstrapReadinessTables(): void
+    {
+        if (Schema::connection('master')->hasTable('deployment_runs')
+            && Schema::connection('master')->hasTable('backup_runs')) {
+            return;
+        }
+
+        $this->warn('Operational readiness tabloları yok; güvenli bootstrap başlatılıyor.');
+
+        if (Artisan::call('backup:run') !== 0) {
+            throw new RuntimeException('Readiness bootstrap öncesi recovery backup başarısız.');
+        }
+
+        if (Artisan::call('migrate', [
+            '--database' => 'master',
+            '--path' => 'database/migrations/master/0001_12_01_000010_create_operational_readiness_tables.php',
+            '--force' => true,
+        ]) !== 0) {
+            throw new RuntimeException('Operational readiness bootstrap migration başarısız.');
+        }
+
+        if (! Schema::connection('master')->hasTable('deployment_runs')
+            || ! Schema::connection('master')->hasTable('backup_runs')) {
+            throw new RuntimeException('Operational readiness bootstrap tabloları doğrulanamadı.');
+        }
+
+        $this->info('Operational readiness bootstrap tamamlandı; tracked deploy akışına geçiliyor.');
     }
 
     private function activate(string $releasePath, string $currentLink): void
