@@ -21,6 +21,7 @@ final class StockBalanceReportQuery implements ReportQuery
         return new ReportDefinition(
             key: 'stock.balances',
             title: 'Stok Bakiye',
+            category: 'Stok',
             permission: 'stock.view',
             filters: [
                 new ReportFilterDefinition('product_id', 'Ürün', 'positive_integer'),

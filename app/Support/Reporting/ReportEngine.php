@@ -71,6 +71,7 @@ final class ReportEngine
         return new ReportResult(
             key: $definition->key,
             title: $definition->title,
+            category: $definition->category,
             columns: $visibleColumns,
             drillDowns: $drillDowns,
             rows: $data->rows,

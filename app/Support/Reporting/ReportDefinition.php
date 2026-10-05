@@ -17,6 +17,7 @@ final readonly class ReportDefinition
     public function __construct(
         public string $key,
         public string $title,
+        public string $category,
         public string $permission,
         public array $filters,
         public array $columns,
@@ -26,8 +27,8 @@ final readonly class ReportDefinition
         public array $exporters = ['screen'],
         public int $version = 1,
     ) {
-        if ($this->key === '' || $this->title === '' || $this->permission === '') {
-            throw new LogicException('Rapor definition key/title/permission boş olamaz.');
+        if ($this->key === '' || $this->title === '' || $this->category === '' || $this->permission === '') {
+            throw new LogicException('Rapor definition key/title/category/permission boş olamaz.');
         }
 
         $this->assertUniqueKeys($this->filters, 'filter');

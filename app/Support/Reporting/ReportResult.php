@@ -15,6 +15,7 @@ final readonly class ReportResult
     public function __construct(
         public string $key,
         public string $title,
+        public string $category,
         public array $columns,
         public array $drillDowns,
         public array $rows,

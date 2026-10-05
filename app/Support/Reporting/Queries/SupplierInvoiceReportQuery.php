@@ -4,35 +4,35 @@ namespace App\Support\Reporting\Queries;
 
 use App\Enums\DocumentType;
 
-final class SalesInvoiceReportQuery extends AbstractDocumentReportQuery
+final class SupplierInvoiceReportQuery extends AbstractDocumentReportQuery
 {
     protected function key(): string
     {
-        return 'sales.invoices';
+        return 'purchases.supplier_invoices';
     }
 
     protected function title(): string
     {
-        return 'Satış Dökümü';
+        return 'Alış Dökümü';
     }
 
     protected function category(): string
     {
-        return 'Satış';
+        return 'Alış';
     }
 
     protected function permission(): string
     {
-        return 'sales_invoices.view';
+        return 'supplier_invoices.view';
     }
 
     protected function documentTypes(): array
     {
-        return [DocumentType::SalesInvoice->value];
+        return [DocumentType::SupplierInvoice->value];
     }
 
     protected function drillDownTarget(): string
     {
-        return 'sales_invoices';
+        return 'supplier_invoices';
     }
 }
