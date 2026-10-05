@@ -9,10 +9,47 @@
                 <h2>Operasyon İşlemleri</h2>
                 <p>Backup ve restore doğrulama işleri queue üzerinden yürütülür.</p>
             </div>
-            @can('companies.update')
-                <button type="button" wire:click="backupNow">Şimdi Recovery-Set Backup Al</button>
-            @endcan
+            <div class="toolbar">
+                <button type="button" wire:click="runHealth">Health Kontrolü Çalıştır</button>
+                @can('companies.update')
+                    <button type="button" wire:click="backupNow">Şimdi Recovery-Set Backup Al</button>
+                @endcan
+            </div>
         </div>
+    </section>
+
+    <section class="panel">
+        <h2>Güncel Operational Health</h2>
+        @if($latestHealth)
+            <p>
+                Durum: <strong>{{ strtoupper($latestHealth->overall_status) }}</strong>
+                — {{ $latestHealth->checked_at?->format('d.m.Y H:i:s') }}
+                — <code>{{ $latestHealth->correlation_id ?? '—' }}</code>
+            </p>
+            <div class="table-scroll">
+                <table class="data-table">
+                    <thead>
+                    <tr><th>Kontrol</th><th>Durum</th><th>Detay</th></tr>
+                    </thead>
+                    <tbody>
+                    @foreach(($latestHealth->checks ?? []) as $name => $check)
+                        <tr>
+                            <td>{{ $name }}</td>
+                            <td>{{ ($check['ok'] ?? false) ? 'OK' : 'FAIL' }} / {{ $check['status'] ?? 'unknown' }}</td>
+                            <td>
+                                {{ json_encode(
+                                    collect($check)->except(['ok', 'status', 'severity'])->all(),
+                                    JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
+                                ) }}
+                            </td>
+                        </tr>
+                    @endforeach
+                    </tbody>
+                </table>
+            </div>
+        @else
+            <div class="empty-state">Henüz health sonucu yok.</div>
+        @endif
     </section>
 
     <section class="panel">
