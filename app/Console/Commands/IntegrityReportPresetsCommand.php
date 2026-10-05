@@ -16,6 +16,6 @@ class IntegrityReportPresetsCommand extends Command
 
     public function handle(ReportPresetIntegrityCheck $check): int
     {
-        return $this->runCheck($check);
+        return $this->runCheck($check, false);
     }
 }
