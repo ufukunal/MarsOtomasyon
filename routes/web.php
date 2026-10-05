@@ -64,6 +64,7 @@ use App\Livewire\Purchases\SupplierPerformance;
 use App\Livewire\Production\ProductionOrderCenter;
 use App\Livewire\Production\RecipeCenter;
 use App\Livewire\Production\SubcontractingCenter;
+use App\Livewire\Reporting\ConsolidatedReportCenter;
 use App\Livewire\Reporting\Dashboard;
 use App\Livewire\Reporting\ExportCenter;
 use App\Livewire\Reporting\ReportCenter;
@@ -183,6 +184,9 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/raporlar', ReportCenter::class)
         ->middleware('throttle:report')
         ->name('reports.center');
+    Route::get('/raporlar/cok-donem', ConsolidatedReportCenter::class)
+        ->middleware('throttle:report')
+        ->name('reports.consolidated');
     Route::get('/raporlar/exportlar', ExportCenter::class)->name('reports.exports');
     Route::get('/raporlar/exportlar/{export}/indir', ReportExportDownloadController::class)
         ->whereNumber('export')
