@@ -7,9 +7,13 @@ Gerçek trafik açılmadan önce DNS/TLS, production secretleri, least-privilege
 ## Dry-run
 
 ```bash
-php artisan operations:security-check
-php artisan operations:smoke
-php artisan operations:health --no-persist
+php artisan operations:go-live-preflight
+```
+
+Bu komut fail-fast olarak verified/fresh recovery set, production security, `integrity:all --include-closed`, smoke ve operational health kapılarını birlikte doğrular. Harici kanal read-only connection smoke da isteniyorsa:
+
+```bash
+php artisan operations:go-live-preflight --external
 ```
 
 Harici kanal bağlantıları bilinçli olarak ayrıca doğrulanır:
@@ -27,7 +31,7 @@ php artisan operations:smoke --external
 5. Master ve bütün active/closed period migrationlarının başarılı olduğunu doğrula.
 6. `integrity:all`, security check ve smoke başarılı olmalı.
 7. Queue, scheduler ve operations worker restart edilmeli.
-8. `operations:health --no-persist` sonucu `healthy` olmalı.
+8. `operations:go-live-preflight` sonucu başarılı olmalı; health sonucu `healthy` değilse trafik açılmaz.
 9. Gerekli ise external channel smoke çalıştır.
 10. Ancak bütün kapılar yeşilse trafiği aç.
 
