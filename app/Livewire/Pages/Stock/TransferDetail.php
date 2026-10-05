@@ -7,6 +7,7 @@ use App\Actions\Stock\ReceiveTransfer;
 use App\Actions\Stock\SaveTransferDraft;
 use App\Actions\Stock\SendTransfer;
 use App\Livewire\Concerns\WithIdempotentMutations;
+use App\Enums\LocationKind;
 use App\Models\Period\Location;
 use App\Models\Period\Product;
 use App\Models\Period\Transfer;
@@ -149,7 +150,11 @@ class TransferDetail extends Component
     public function render(): View
     {
         return view('livewire.pages.stock.transfer-detail', [
-            'locations' => Location::query()->where('is_active', true)->orderBy('name')->get(),
+            'locations' => Location::query()
+                ->where('is_active', true)
+                ->where('kind', '!=', LocationKind::Subcontractor->value)
+                ->orderBy('name')
+                ->get(),
             'products' => Product::query()
                 ->where('is_active', true)
                 ->where('kind', '!=', 'set')

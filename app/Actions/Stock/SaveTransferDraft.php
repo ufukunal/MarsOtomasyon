@@ -2,9 +2,11 @@
 
 namespace App\Actions\Stock;
 
+use App\Enums\LocationKind;
 use App\Enums\ProductKind;
 use App\Models\Period\Location;
 use App\Models\Period\Product;
+use App\Models\Period\ProductionOrder;
 use App\Models\Period\Transfer;
 use App\Support\Auth\MutationAuthorizer;
 use App\Support\Period\PeriodContext;
@@ -35,8 +37,29 @@ final class SaveTransferDraft
             ]);
         }
 
-        Location::query()->findOrFail($data['from_location_id']);
-        Location::query()->findOrFail($data['to_location_id']);
+        $fromLocation = Location::query()->findOrFail($data['from_location_id']);
+        $toLocation = Location::query()->findOrFail($data['to_location_id']);
+        $productionOrderId = isset($data['production_order_id']) && $data['production_order_id']
+            ? (int) $data['production_order_id']
+            : null;
+
+        if ($fromLocation->kind === LocationKind::Subcontractor
+            || $toLocation->kind === LocationKind::Subcontractor) {
+            if ($productionOrderId === null) {
+                throw new DomainException('Fason lokasyon transferi üretim emri provenance gerektirir.');
+            }
+
+            $productionOrder = ProductionOrder::query()->findOrFail($productionOrderId);
+
+            if ($productionOrder->production_type !== 'subcontract'
+                || (int) $productionOrder->subcontractor_location_id !== (int) $toLocation->id
+                || $fromLocation->kind === LocationKind::Subcontractor) {
+                throw new DomainException('Fason transfer lokasyonları üretim emriyle eşleşmiyor.');
+            }
+        } elseif ($productionOrderId !== null) {
+            throw new DomainException('Production-order transfer provenance yalnız fason lokasyon sevkinde kullanılabilir.');
+        }
+
         CarbonImmutable::parse($data['transfer_date']);
 
         if ($data['lines'] === []) {
@@ -61,7 +84,7 @@ final class SaveTransferDraft
             }
         }
 
-        return DB::connection('period')->transaction(function () use ($data, $transfer): Transfer {
+        return DB::connection('period')->transaction(function () use ($data, $transfer, $productionOrderId): Transfer {
             if ($transfer) {
                 $transfer = Transfer::query()->lockForUpdate()->findOrFail($transfer->id);
 
@@ -76,6 +99,7 @@ final class SaveTransferDraft
 
             $transfer->from_location_id = $data['from_location_id'];
             $transfer->to_location_id = $data['to_location_id'];
+            $transfer->production_order_id = $productionOrderId;
             $transfer->transfer_date = $data['transfer_date'];
             $transfer->note = $data['note'] ?? null;
             $transfer->save();

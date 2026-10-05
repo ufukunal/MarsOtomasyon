@@ -4,6 +4,7 @@ namespace App\Actions\Sales;
 
 use App\Actions\Documents\SourceLineAvailability;
 use App\Enums\DocumentType;
+use App\Enums\LocationKind;
 use App\Models\Period\DocumentLine;
 use App\Models\Period\Location;
 use App\Models\Period\StockReservation;
@@ -80,7 +81,11 @@ final class AllocateOrderLineLocations
                 throw new DomainException('Rezerve olmayan doğrudan miktar için lokasyon seçilmelidir.');
             }
 
-            Location::query()->where('is_active', true)->findOrFail($fallbackLocationId);
+            $fallback = Location::query()->where('is_active', true)->findOrFail($fallbackLocationId);
+
+            if ($fallback->kind === LocationKind::Subcontractor) {
+                throw new DomainException('Fason lokasyon normal satış fulfillment lokasyonu olamaz.');
+            }
 
             $parts[] = [
                 'quantity' => bcdiv($remainingBase, $factor, 3),

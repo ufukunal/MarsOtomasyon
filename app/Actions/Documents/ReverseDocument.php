@@ -5,6 +5,7 @@ namespace App\Actions\Documents;
 use App\Actions\Numbering\GenerateDocumentNumber;
 use App\Actions\Periods\EnsurePeriodOpen;
 use App\Actions\Purchases\ReverseSupplierInvoiceCosts;
+use App\Actions\Production\ReverseProductionServiceInvoiceCosts;
 use App\Actions\Stock\RecordStockMovement;
 use App\DataObjects\StockMovementData;
 use App\Enums\DocumentType;
@@ -31,6 +32,7 @@ final class ReverseDocument
         private readonly RecordStockMovement $recordStockMovement,
         private readonly ResolveSourceLineage $lineage,
         private readonly ReverseSupplierInvoiceCosts $reversePurchaseCosts,
+        private readonly ReverseProductionServiceInvoiceCosts $reverseProductionServiceCosts,
         private readonly VerifyReversal $verify,
     ) {}
 
@@ -141,6 +143,10 @@ final class ReverseDocument
                 $this->reverseContact($locked, $reversal, $actor?->id, $actor?->name);
                 $this->reverseFinance($locked, $reversal, $actor?->id, $actor?->name);
                 $this->reversePurchaseCosts->handle($locked);
+                $this->reverseProductionServiceCosts->handle(
+                    $locked,
+                    $reversal->document_date->toDateString(),
+                );
 
                 $this->verify->handle($locked, $reversal);
 

@@ -75,7 +75,8 @@ final class SendTransfer
 
                 $available = $balance?->available() ?? '0.000';
 
-                if (bccomp($available, (string) $line->quantity, 3) < 0) {
+                if (bccomp($available, (string) $line->quantity, 3) < 0
+                    && ! $line->product->allow_negative_stock) {
                     throw new DomainException(sprintf(
                         '%s için transfer edilebilir stok yetersiz.',
                         $line->product->code,

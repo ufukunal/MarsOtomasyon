@@ -4,6 +4,7 @@ namespace App\Livewire\Sales;
 
 use App\Actions\Documents\SaveSalesDocumentDraft;
 use App\Enums\DocumentType;
+use App\Enums\LocationKind;
 use App\Livewire\Concerns\WithIdempotentMutations;
 use App\Models\Period\Contact;
 use App\Models\Period\Document;
@@ -129,7 +130,11 @@ abstract class BaseSalesDocumentEditor extends Component
             'contacts' => Contact::query()->where('is_active', true)->orderBy('title')->limit(500)->get(),
             'products' => Product::query()->where('is_active', true)->orderBy('name')->limit(500)->get(),
             'units' => Unit::query()->where('is_active', true)->orderBy('name')->get(),
-            'locations' => Location::query()->where('is_active', true)->orderBy('name')->get(),
+            'locations' => Location::query()
+                ->where('is_active', true)
+                ->where('kind', '!=', LocationKind::Subcontractor->value)
+                ->orderBy('name')
+                ->get(),
         ])->layout('layouts.app', ['pageTitle' => $this->pageTitle()]);
     }
 

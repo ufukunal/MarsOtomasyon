@@ -3,9 +3,11 @@
 namespace App\Actions\Documents;
 
 use App\Enums\DocumentType;
+use App\Enums\LocationKind;
 use App\Models\Period\Contact;
 use App\Models\Period\Document;
 use App\Models\Period\DocumentLine;
+use App\Models\Period\Location;
 use App\Models\Period\Product;
 use App\Support\Period\PeriodContext;
 use App\Support\Pricing\PriceDeviation;
@@ -87,6 +89,14 @@ final class SaveSalesDocumentDraft
                     $locationId = isset($line['location_id']) && $line['location_id'] !== ''
                         ? (int) $line['location_id']
                         : null;
+
+                    if ($locationId !== null) {
+                        $location = Location::query()->where('is_active', true)->findOrFail($locationId);
+
+                        if ($location->kind === LocationKind::Subcontractor) {
+                            throw new DomainException('Fason lokasyon normal satış satırında kullanılamaz.');
+                        }
+                    }
                 }
 
                 $resolvedPrice = $product

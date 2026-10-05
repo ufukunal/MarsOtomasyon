@@ -10,6 +10,7 @@ use App\Actions\Stock\RecordStockMovement;
 use App\DataObjects\Documents\DocumentPostingContext;
 use App\DataObjects\StockMovementData;
 use App\Enums\DocumentType;
+use App\Enums\LocationKind;
 use App\Models\Period\BankAccount;
 use App\Models\Period\BankMovement;
 use App\Models\Period\CashAccount;
@@ -17,6 +18,7 @@ use App\Models\Period\CashMovement;
 use App\Models\Period\ContactTransaction;
 use App\Models\Period\Document;
 use App\Models\Period\DocumentLine;
+use App\Models\Period\Location;
 use App\Models\Period\StockReservation;
 use App\Support\Audit\AuditContext;
 use App\Support\Concurrency\IdempotencyKey;
@@ -79,6 +81,14 @@ final class PostDocument
                     if ($stockOut || $profile->stockIn) {
                         if ($line->location_id === null || $line->base_quantity === null) {
                             throw new DomainException('Stok etkili belge satırında lokasyon ve temel miktar zorunludur.');
+                        }
+
+                        if (in_array($locked->document_type, [DocumentType::Dispatch, DocumentType::SalesInvoice], true)) {
+                            $locationKind = Location::query()->whereKey($line->location_id)->value('kind');
+
+                            if ((string) $locationKind === LocationKind::Subcontractor->value) {
+                                throw new DomainException('Fason lokasyon normal satış sevk/fatura lokasyonu olamaz.');
+                            }
                         }
 
                         $this->recordStockMovement->handle(new StockMovementData(
@@ -238,8 +248,14 @@ final class PostDocument
         $groups = [];
 
         foreach ($document->lines as $line) {
+            if ($document->document_type === DocumentType::SupplierInvoice
+                && $line->line_kind === 'service'
+                && $line->source_line_id === null) {
+                continue;
+            }
+
             if ($line->source_line_id === null) {
-                throw new DomainException('Alış akışı belgesinde kaynak satır zorunludur.');
+                throw new DomainException('Alış akışı stok satırında kaynak satır zorunludur.');
             }
 
             $source = DocumentLine::query()

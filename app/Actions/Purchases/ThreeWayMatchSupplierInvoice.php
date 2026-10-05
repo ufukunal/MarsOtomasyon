@@ -28,6 +28,10 @@ final class ThreeWayMatchSupplierInvoice
         $matches = [];
 
         foreach ($locked->lines as $invoiceLine) {
+            if ($invoiceLine->line_kind === 'service') {
+                continue;
+            }
+
             if ($invoiceLine->source_line_id === null) {
                 throw new DomainException('Alış faturası satırında mal kabul kaynağı zorunludur.');
             }

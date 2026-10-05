@@ -3,6 +3,8 @@
 namespace App\Actions\Stock;
 
 use App\DataObjects\ReservationResult;
+use App\Enums\LocationKind;
+use App\Models\Period\Location;
 use App\Models\Period\StockBalance;
 use App\Models\Period\StockReservation;
 use App\Support\Auth\MutationAuthorizer;
@@ -40,6 +42,13 @@ final class ReserveStock
 
         if ($locationIds === []) {
             return new ReservationResult([], '0.000', bcadd($requestedQuantity, '0', 3));
+        }
+
+        if (Location::query()
+            ->whereIn('id', $locationIds)
+            ->where('kind', LocationKind::Subcontractor->value)
+            ->exists()) {
+            throw new DomainException('Fason lokasyon normal satış rezervasyonunda kullanılamaz.');
         }
 
         $result = IdempotencyKey::run(

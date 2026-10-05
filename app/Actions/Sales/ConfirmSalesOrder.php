@@ -5,6 +5,7 @@ namespace App\Actions\Sales;
 use App\Actions\Documents\CalculateDocumentTotals;
 use App\Actions\Numbering\GenerateDocumentNumber;
 use App\Actions\Periods\EnsurePeriodOpen;
+use App\Actions\Production\CreateProductionOrdersForSalesOrder;
 use App\Enums\DocumentType;
 use App\Models\Period\Document;
 use App\Support\Audit\AuditContext;
@@ -20,6 +21,7 @@ final class ConfirmSalesOrder
         private readonly CalculateSalesRiskProjection $risk,
         private readonly EnsurePeriodOpen $ensurePeriodOpen,
         private readonly GenerateDocumentNumber $numbers,
+        private readonly CreateProductionOrdersForSalesOrder $productionOrders,
     ) {}
 
     public function handle(Document $order, string $idempotencyKey, bool $riskAccepted = false): Document
@@ -86,6 +88,8 @@ final class ConfirmSalesOrder
                 $locked->version = (int) $locked->version + 1;
                 $locked->save();
 
+                $productionOrderIds = $this->productionOrders->handle($locked);
+
                 AuditContext::period(
                     'Satış siparişi onaylandı.',
                     [
@@ -94,6 +98,7 @@ final class ConfirmSalesOrder
                         'known_exposure' => $projection->knownExposure,
                         'security_projection_complete' => $projection->projectionComplete,
                         'risk_accepted' => $riskAccepted,
+                        'production_order_ids' => $productionOrderIds,
                     ],
                     $locked,
                     'sales_order_confirmed',
