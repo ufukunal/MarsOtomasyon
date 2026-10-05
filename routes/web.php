@@ -6,6 +6,7 @@ use App\Http\Controllers\HepsiburadaWebhookController;
 use App\Http\Controllers\ImportErrorReportController;
 use App\Http\Controllers\ProductImageController;
 use App\Http\Controllers\TrendyolWebhookController;
+use App\Http\Controllers\WooCommerceWebhookController;
 use App\Livewire\Finance\BankStatementCenter;
 use App\Livewire\Finance\CollectionForm;
 use App\Livewire\Finance\ContactAging;
@@ -91,6 +92,10 @@ Route::put('/hooks/channel/hepsiburada/{account}/{event}', HepsiburadaWebhookCon
     ->whereNumber('account')
     ->where('event', 'createOrder|createPackages|orderCancel|unpack|intransit|deliver|undeliver|changeShippingAddressOrder|awaitingAction|awaitingPreApproval|disputedClaimResult|packageFromClaimResult')
     ->name('webhooks.hepsiburada');
+
+Route::post('/hooks/channel/woocommerce/{account}', WooCommerceWebhookController::class)
+    ->whereNumber('account')
+    ->name('webhooks.woocommerce');
 
 Route::get('/channel-assets/{company}/{period}/{product}/{attachment}', ChannelAssetController::class)
     ->middleware('signed')

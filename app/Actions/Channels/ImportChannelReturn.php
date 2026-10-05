@@ -47,14 +47,15 @@ final class ImportChannelReturn
     ): Document {
         $data = $event->data;
         $orderNumber = trim((string) ($data['orderNumber'] ?? $data['orderParentNumber'] ?? ''));
+        $externalOrderId = trim((string) ($data['externalOrderId'] ?? $orderNumber));
 
-        if ($orderNumber === '') {
-            throw new DomainException('Kanal return claim orderNumber içermiyor.');
+        if ($orderNumber === '' || $externalOrderId === '') {
+            throw new DomainException('Kanal return claim orderNumber/externalOrderId içermiyor.');
         }
 
         $snapshot = ChannelOrderSnapshot::query()
             ->where('channel_account_id', $account->id)
-            ->where('external_order_id', $orderNumber)
+            ->where('external_order_id', $externalOrderId)
             ->firstOrFail();
         $order = Document::query()->with('lines')->findOrFail($snapshot->sales_order_id);
         $orderLinesByExternalId = [];
@@ -275,7 +276,7 @@ final class ImportChannelReturn
                 'channel_account_id' => (int) $account->id,
                 'event_type' => 'return',
                 'external_id' => $event->externalId,
-                'external_order_id' => $orderNumber,
+                'external_order_id' => $externalOrderId,
                 'external_package_id' => $data['externalPackageId'] ?? $data['orderShipmentPackageId'] ?? null,
             ],
         ];

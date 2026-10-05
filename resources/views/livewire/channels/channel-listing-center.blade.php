@@ -102,6 +102,11 @@
                         maksimum adet, ana ürün kodu, KDV ve desteklenen attribute alanlarını günceller.
                         Resmi update endpointinde title/görsel alanı tanımlı olmadığı için bu alanlar publish sonrası gönderilmez.
                     </div>
+                @elseif(($accounts->firstWhere('id', $channelAccountId)?->platform?->value ?? null) === 'woocommerce')
+                    <div>
+                        WooCommerce core REST API ürün adı, açıklama, görsel, stok ve fiyat güncellemelerini destekler.
+                        Lead-time ve standart shipment-tracking endpointi core API'de bulunmadığından bu iki alan outbound gönderilmez.
+                    </div>
                 @endif
                 @can('channel_listings.update')
                     <div class="form-row">

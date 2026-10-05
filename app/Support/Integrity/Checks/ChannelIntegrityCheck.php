@@ -51,6 +51,24 @@ final class ChannelIntegrityCheck implements IntegrityCheck
                     'reason' => 'hepsiburada_merchant_id_missing',
                 ];
             }
+
+            if ($account->is_active && $account->platform->value === 'woocommerce') {
+                $credentials = $account->credentials();
+                $storeUrl = trim((string) (
+                    $account->settings['store_url']
+                    ?? $account->external_store_id
+                    ?? ''
+                ));
+
+                if (! str_starts_with(strtolower($storeUrl), 'https://')
+                    || trim((string) ($credentials['consumer_key'] ?? '')) === ''
+                    || trim((string) ($credentials['consumer_secret'] ?? '')) === '') {
+                    $mismatches[] = [
+                        'channel_account_id' => $account->id,
+                        'reason' => 'woocommerce_store_url_or_credentials_invalid',
+                    ];
+                }
+            }
         }
 
         $settings = ChannelAccountPeriodSetting::query()

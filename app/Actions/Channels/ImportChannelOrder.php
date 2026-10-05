@@ -53,14 +53,15 @@ final class ImportChannelOrder
         PeriodContext::ensureWritable();
         $data = $event->data;
         $orderNumber = trim((string) ($data['orderNumber'] ?? $event->externalId));
+        $externalOrderId = trim((string) ($data['externalOrderId'] ?? $orderNumber));
 
-        if ($orderNumber === '') {
-            throw new DomainException('Kanal orderNumber boş olamaz.');
+        if ($orderNumber === '' || $externalOrderId === '') {
+            throw new DomainException('Kanal orderNumber/externalOrderId boş olamaz.');
         }
 
         $existingSnapshot = ChannelOrderSnapshot::query()
             ->where('channel_account_id', $account->id)
-            ->where('external_order_id', $orderNumber)
+            ->where('external_order_id', $externalOrderId)
             ->lockForUpdate()
             ->first();
 
@@ -71,7 +72,7 @@ final class ImportChannelOrder
             if ($order->status === 'draft') {
                 $order = $this->confirm->handle(
                     $order,
-                    hash('sha256', 'channel-order-confirm:'.$account->id.':'.$orderNumber),
+                    hash('sha256', 'channel-order-confirm:'.$account->id.':'.$externalOrderId),
                     true,
                 );
                 $this->reserveStockLines($account, $order);
@@ -137,7 +138,7 @@ final class ImportChannelOrder
                     'channel' => [
                         'platform' => $account->platform->value,
                         'channel_account_id' => (int) $account->id,
-                        'external_order_id' => $orderNumber,
+                        'external_order_id' => $externalOrderId,
                         'external_line_id' => $lineId !== '' ? $lineId : null,
                         'stock_code' => $stockCode !== '' ? $stockCode : null,
                         'barcode' => $barcode !== '' ? $barcode : null,
@@ -166,7 +167,7 @@ final class ImportChannelOrder
                     'channel' => [
                         'platform' => $account->platform->value,
                         'channel_account_id' => (int) $account->id,
-                        'external_order_id' => $orderNumber,
+                        'external_order_id' => $externalOrderId,
                     ],
                 ],
                 'notes' => 'Kanal siparişi '.$account->platform->label().' '.$orderNumber,
@@ -177,13 +178,13 @@ final class ImportChannelOrder
         $snapshot = ChannelOrderSnapshot::query()->create([
             'sales_order_id' => $draft->id,
             'channel_account_id' => $account->id,
-            'external_order_id' => $orderNumber,
+            'external_order_id' => $externalOrderId,
         ]);
         $this->updateSnapshot($snapshot, $data);
 
         $confirmed = $this->confirm->handle(
             $draft,
-            hash('sha256', 'channel-order-confirm:'.$account->id.':'.$orderNumber),
+            hash('sha256', 'channel-order-confirm:'.$account->id.':'.$externalOrderId),
             true,
         );
 
@@ -198,6 +199,7 @@ final class ImportChannelOrder
     ): ChannelProductListing {
         $stockCode = trim((string) ($sourceLine['stockCode'] ?? ''));
         $barcode = trim((string) ($sourceLine['barcode'] ?? ''));
+        $externalProductId = trim((string) ($sourceLine['externalProductId'] ?? ''));
 
         $query = ChannelProductListing::query()
             ->where('channel_account_id', $account->id)
@@ -206,7 +208,13 @@ final class ImportChannelOrder
 
         $matches = collect();
 
-        if ($stockCode !== '') {
+        if ($externalProductId !== '') {
+            $matches = (clone $query)
+                ->where('external_product_id', $externalProductId)
+                ->get();
+        }
+
+        if ($matches->isEmpty() && $stockCode !== '') {
             $matches = (clone $query)
                 ->where(function ($builder) use ($stockCode): void {
                     $builder->where('external_sku', $stockCode)
@@ -223,7 +231,7 @@ final class ImportChannelOrder
 
         if ($matches->count() !== 1) {
             throw new DomainException(
-                'Kanal sipariş satırı için tekil ürün listing mapping bulunamadı: '.($stockCode ?: $barcode),
+                'Kanal sipariş satırı için tekil ürün listing mapping bulunamadı: '.($externalProductId ?: $stockCode ?: $barcode),
             );
         }
 

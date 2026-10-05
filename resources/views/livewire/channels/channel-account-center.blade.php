@@ -108,6 +108,30 @@
                                 15 dakikalık polling ve Sync Merkezi manuel polling üzerinden yürür.
                             </div>
                         </div>
+                    @elseif($platform === 'woocommerce')
+                        <div class="space-y-2">
+                            <strong>WooCommerce REST API / Webhook</strong>
+                            <div>
+                                Settings JSON içinde <code>store_url</code> public HTTPS mağaza kökü olmalıdır.
+                                Credential JSON içinde read/write yetkili <code>consumer_key</code> + <code>consumer_secret</code> tutulmalıdır.
+                            </div>
+                            <div>
+                                Webhook URL: <code>{{ $woocommerceWebhookUrl }}</code>
+                            </div>
+                            @if(($selectedAccount?->settings['woocommerce_webhook_ids']['order.created'] ?? null)
+                                && ($selectedAccount?->settings['woocommerce_webhook_ids']['order.updated'] ?? null))
+                                <div>
+                                    order.created #{{ $selectedAccount?->settings['woocommerce_webhook_ids']['order.created'] ?? '' }}
+                                    · order.updated #{{ $selectedAccount?->settings['woocommerce_webhook_ids']['order.updated'] ?? '' }}
+                                </div>
+                            @else
+                                <button type="button" wire:click="setupWooCommerceWebhooks">Webhookları Oluştur</button>
+                            @endif
+                            <div>
+                                Webhook secret şifreli credential alanında otomatik üretilir. Core WooCommerce
+                                standart shipment-tracking endpointi sağlamadığı için shipment push desteklenmez.
+                            </div>
+                        </div>
                     @endif
                 @endcan
             @else

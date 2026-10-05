@@ -5,6 +5,7 @@ namespace App\Livewire\Channels;
 use App\Actions\Channels\SaveChannelAccountPeriodSetting;
 use App\Actions\Channels\SaveSalesChannelAccount;
 use App\Actions\Channels\SetupTrendyolWebhook;
+use App\Actions\Channels\SetupWooCommerceWebhooks;
 use App\Actions\Channels\TestChannelConnection;
 use App\Enums\SalesChannelPlatform;
 use App\Livewire\Concerns\WithIdempotentMutations;
@@ -34,7 +35,7 @@ class ChannelAccountCenter extends Component
 
     public function mount(): void
     {
-        $this->seedMutationKeys(['save', 'periodSetting', 'testConnection', 'setupWebhook']);
+        $this->seedMutationKeys(['save', 'periodSetting', 'testConnection', 'setupWebhook', 'setupWooCommerceWebhooks']);
         abort_unless(auth()->user()?->can('channel_accounts.view'), 403);
         PeriodContext::ensure();
     }
@@ -161,6 +162,30 @@ class ChannelAccountCenter extends Component
         session()->flash('status', 'Trendyol webhook oluşturuldu: '.$webhookId);
     }
 
+    public function setupWooCommerceWebhooks(SetupWooCommerceWebhooks $action): void
+    {
+        abort_unless($this->selectedAccountId !== null, 422);
+
+        $account = SalesChannelAccount::query()
+            ->where('company_id', PeriodContext::companyId())
+            ->findOrFail($this->selectedAccountId);
+
+        $ids = $this->runMasterMutation(
+            'setupWooCommerceWebhooks',
+            fn () => $action->handle($account),
+        );
+
+        $this->selectAccount((int) $account->id);
+        session()->flash(
+            'status',
+            'WooCommerce webhookları hazır: '.implode(', ', array_map(
+                fn ($topic, $id): string => $topic.' #'.$id,
+                array_keys($ids),
+                array_values($ids),
+            )),
+        );
+    }
+
     public function render(ChannelAdapterResolver $resolver): View
     {
         $accounts = SalesChannelAccount::query()
@@ -190,6 +215,9 @@ class ChannelAccountCenter extends Component
             'selectedAccount' => $selectedAccount,
             'hepsiburadaWebhookBaseUrl' => $selectedAccount?->platform === SalesChannelPlatform::Hepsiburada
                 ? url('/hooks/channel/hepsiburada/'.$selectedAccount->id)
+                : null,
+            'woocommerceWebhookUrl' => $selectedAccount?->platform === SalesChannelPlatform::WooCommerce
+                ? url('/hooks/channel/woocommerce/'.$selectedAccount->id)
                 : null,
         ])->layout('layouts.app', ['pageTitle' => 'Kanal Hesapları']);
     }

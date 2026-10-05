@@ -45,14 +45,15 @@ final class ImportChannelCancellation
     {
         $data = $event->data;
         $orderNumber = trim((string) ($data['orderNumber'] ?? ''));
+        $externalOrderId = trim((string) ($data['externalOrderId'] ?? $orderNumber));
 
-        if ($orderNumber === '') {
-            throw new DomainException('Kanal cancel event orderNumber içermiyor.');
+        if ($orderNumber === '' || $externalOrderId === '') {
+            throw new DomainException('Kanal cancel event orderNumber/externalOrderId içermiyor.');
         }
 
         $snapshot = ChannelOrderSnapshot::query()
             ->where('channel_account_id', $account->id)
-            ->where('external_order_id', $orderNumber)
+            ->where('external_order_id', $externalOrderId)
             ->lockForUpdate()
             ->firstOrFail();
         $order = Document::query()

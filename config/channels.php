@@ -14,7 +14,7 @@ return [
         'trendyol' => App\Support\Channels\Trendyol\TrendyolAdapter::class,
         'hepsiburada' => App\Support\Channels\Hepsiburada\HepsiburadaAdapter::class,
         'n11' => App\Support\Channels\N11\N11Adapter::class,
-        'woocommerce' => null,
+        'woocommerce' => App\Support\Channels\WooCommerce\WooCommerceAdapter::class,
     ],
 
     'retry_delays' => [30, 60, 120],
