@@ -33,6 +33,13 @@ final class WooCommerceWebhookController extends Controller
         $topic = trim((string) $request->header('X-WC-Webhook-Topic', ''));
         $source = trim((string) $request->header('X-WC-Webhook-Source', ''));
 
+        if ($signature === ''
+            && $topic === ''
+            && str_contains((string) $request->userAgent(), 'Hookshot')
+            && preg_match('/^webhook_id=\\d+$/D', trim($request->getContent())) === 1) {
+            return response('OK', 200);
+        }
+
         abort_unless(
             $secret !== ''
                 && $signature !== ''

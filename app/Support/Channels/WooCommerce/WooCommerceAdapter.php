@@ -148,11 +148,9 @@ final class WooCommerceAdapter implements ChannelAdapter
             $events[] = new ChannelInboundEvent(
                 eventType: 'order',
                 externalId: (string) $order['id'],
-                occurredAt: $this->date(
-                    $order['date_modified_gmt']
-                        ?? $order['date_modified']
-                        ?? $order['date_created_gmt']
-                        ?? null,
+                occurredAt: $this->wooDate(
+                    $order['date_modified_gmt'] ?? $order['date_created_gmt'] ?? null,
+                    $order['date_modified'] ?? $order['date_created'] ?? null,
                     $since,
                 ),
                 data: $data,
@@ -190,8 +188,9 @@ final class WooCommerceAdapter implements ChannelAdapter
             $events[] = new ChannelInboundEvent(
                 eventType: 'cancel',
                 externalId: mb_substr($order['id'].':'.$status, 0, 120),
-                occurredAt: $this->date(
-                    $order['date_modified_gmt'] ?? $order['date_modified'] ?? null,
+                occurredAt: $this->wooDate(
+                    $order['date_modified_gmt'] ?? null,
+                    $order['date_modified'] ?? null,
                     $since,
                 ),
                 data: $data,
@@ -227,8 +226,9 @@ final class WooCommerceAdapter implements ChannelAdapter
                     continue;
                 }
 
-                $occurredAt = $this->date(
-                    $refund['date_created_gmt'] ?? $refund['date_created'] ?? null,
+                $occurredAt = $this->wooDate(
+                    $refund['date_created_gmt'] ?? null,
+                    $refund['date_created'] ?? null,
                     $since,
                 );
 
@@ -418,8 +418,9 @@ final class WooCommerceAdapter implements ChannelAdapter
             'externalOrderId' => $orderId,
             'orderNumber' => $number,
             'currencyCode' => strtoupper((string) ($order['currency'] ?? 'TRY')),
-            'orderDate' => $this->date(
-                $order['date_created_gmt'] ?? $order['date_created'] ?? null,
+            'orderDate' => $this->wooDate(
+                $order['date_created_gmt'] ?? null,
+                $order['date_created'] ?? null,
             )->getTimestampMs(),
             'customerFirstName' => (string) ($billing['first_name'] ?? ''),
             'customerLastName' => (string) ($billing['last_name'] ?? ''),
@@ -446,8 +447,9 @@ final class WooCommerceAdapter implements ChannelAdapter
                 ?? ''
             ),
             'status' => (string) ($order['status'] ?? ''),
-            'lastModifiedDate' => $this->date(
-                $order['date_modified_gmt'] ?? $order['date_modified'] ?? null,
+            'lastModifiedDate' => $this->wooDate(
+                $order['date_modified_gmt'] ?? null,
+                $order['date_modified'] ?? null,
             )->getTimestampMs(),
             'lines' => $lines,
         ];
@@ -554,14 +556,23 @@ final class WooCommerceAdapter implements ChannelAdapter
         );
     }
 
-    private function date(
-        mixed $value,
+    private function wooDate(
+        mixed $gmt,
+        mixed $local,
         ?CarbonImmutable $fallback = null,
     ): CarbonImmutable {
-        if (is_string($value) && trim($value) !== '') {
+        if (is_string($gmt) && trim($gmt) !== '') {
             try {
-                return CarbonImmutable::parse($value, 'UTC')
+                return CarbonImmutable::parse($gmt, 'UTC')
                     ->setTimezone(config('app.timezone'));
+            } catch (\Throwable) {
+                // try store-local value
+            }
+        }
+
+        if (is_string($local) && trim($local) !== '') {
+            try {
+                return CarbonImmutable::parse($local, config('app.timezone'));
             } catch (\Throwable) {
                 // fall through
             }
