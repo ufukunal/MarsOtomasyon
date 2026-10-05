@@ -66,6 +66,7 @@ use App\Livewire\Production\RecipeCenter;
 use App\Livewire\Production\SubcontractingCenter;
 use App\Livewire\Reporting\ConsolidatedReportCenter;
 use App\Livewire\Reporting\Dashboard;
+use App\Livewire\Reporting\DocumentTemplateDesigner;
 use App\Livewire\Reporting\ExportCenter;
 use App\Livewire\Reporting\ReportCenter;
 use App\Livewire\Returns\ReturnCenter;
@@ -188,6 +189,7 @@ Route::middleware('auth')->group(function (): void {
         ->middleware('throttle:report')
         ->name('reports.consolidated');
     Route::get('/raporlar/exportlar', ExportCenter::class)->name('reports.exports');
+    Route::get('/raporlar/sablonlar', DocumentTemplateDesigner::class)->name('reports.templates');
     Route::get('/raporlar/exportlar/{export}/indir', ReportExportDownloadController::class)
         ->whereNumber('export')
         ->name('reports.exports.download');

@@ -98,6 +98,8 @@ final class CompanyRoleProvisioner
             'reports.view',
             'reports.consolidated',
             'reports.presets.share',
+            'document_templates.view',
+            'document_templates.update',
         ];
 
         foreach ($permissionNames as $permissionName) {
@@ -134,6 +136,7 @@ final class CompanyRoleProvisioner
             'Yönetici' => $permissionNames,
             'Muhasebe' => [
                 'reports.view', 'reports.consolidated', 'reports.presets.share',
+                'document_templates.view', 'document_templates.update',
                 'periods.view', 'periods.create', 'periods.update', 'periods.cancel',
                 'audit.view',
                 'print_profiles.view', 'print_profiles.create', 'print_profiles.update', 'print_profiles.cancel',

@@ -7,6 +7,7 @@ use App\Support\Integrity\Checks\ChannelIntegrityCheck;
 use App\Support\Integrity\Checks\ChannelOrderIntegrityCheck;
 use App\Support\Integrity\Checks\ContactBalanceCheck;
 use App\Support\Integrity\Checks\CostIntegrityCheck;
+use App\Support\Integrity\Checks\DocumentTemplateIntegrityCheck;
 use App\Support\Integrity\Checks\DocumentTotalCheck;
 use App\Support\Integrity\Checks\FilesIntegrityCheck;
 use App\Support\Integrity\Checks\FinanceIntegrityCheck;
@@ -63,22 +64,29 @@ class IntegrityCommand extends Command
         ];
 
         try {
-            try {
-                $presetResult = $runner->run(app(ReportPresetIntegrityCheck::class));
-                $mismatchCount += $presetResult->mismatchCount();
+            foreach ([
+                'report_presets' => ReportPresetIntegrityCheck::class,
+                'templates' => DocumentTemplateIntegrityCheck::class,
+            ] as $masterCheckName => $masterCheckClass) {
+                try {
+                    $masterResult = $runner->run(app($masterCheckClass));
+                    $mismatchCount += $masterResult->mismatchCount();
 
-                $this->line(sprintf(
-                    '→ master report_presets checked=%d mismatch=%d',
-                    $presetResult->checked,
-                    $presetResult->mismatchCount(),
-                ));
-            } catch (Throwable $exception) {
-                $failed[] = [
-                    'database' => 'master',
-                    'error' => $exception->getMessage(),
-                ];
+                    $this->line(sprintf(
+                        '→ master %s checked=%d mismatch=%d',
+                        $masterCheckName,
+                        $masterResult->checked,
+                        $masterResult->mismatchCount(),
+                    ));
+                } catch (Throwable $exception) {
+                    $failed[] = [
+                        'database' => 'master',
+                        'check' => $masterCheckName,
+                        'error' => $exception->getMessage(),
+                    ];
 
-                $this->error("→ master report_presets: {$exception->getMessage()}");
+                    $this->error("→ master {$masterCheckName}: {$exception->getMessage()}");
+                }
             }
 
             Period::query()

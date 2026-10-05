@@ -96,6 +96,7 @@ return [
             ['label' => 'Rapor Merkezi', 'route' => 'reports.center', 'permission' => 'reports.view'],
             ['label' => 'Çok Dönemli Rapor', 'route' => 'reports.consolidated', 'permission' => 'reports.consolidated'],
             ['label' => 'Export Merkezi', 'route' => 'reports.exports', 'permission' => 'reports.view'],
+            ['label' => 'Belge Şablonları', 'route' => 'reports.templates', 'permission' => 'document_templates.view'],
         ],
     ],
     [
