@@ -21,8 +21,8 @@ final class CancelProductionOrderRemaining
             fn (): int => DB::connection('period')->transaction(function () use ($order): int {
                 $locked = ProductionOrder::query()->lockForUpdate()->findOrFail($order->id);
 
-                if (! in_array($locked->status, ['confirmed', 'in_progress'], true)) {
-                    throw new DomainException('Yalnız açık üretim emrinin kalanı iptal edilebilir.');
+                if (! in_array($locked->status, ['draft', 'confirmed', 'in_progress'], true)) {
+                    throw new DomainException('Yalnız açık üretim emri iptal edilebilir.');
                 }
 
                 $remaining = $locked->remainingQuantity();

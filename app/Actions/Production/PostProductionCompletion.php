@@ -290,6 +290,10 @@ final class PostProductionCompletion
                     ]);
                 }
 
+                $finishedCost->moving_average = $movingAfter;
+                $finishedCost->production_cost = $productionUnitCost;
+                $finishedCost->save();
+
                 foreach ($normalizedOutputs as $output) {
                     $movement = $this->recordStockMovement->handle(new StockMovementData(
                         productId: (int) $locked->product_id,
@@ -299,7 +303,7 @@ final class PostProductionCompletion
                         reason: 'production',
                         quantity: $output['quantity'],
                         unitCost: $productionUnitCost,
-                        updatesAverage: true,
+                        updatesAverage: false,
                         documentType: 'production_completion',
                         documentId: (int) $completion->id,
                         documentNo: $locked->number,
@@ -316,14 +320,14 @@ final class PostProductionCompletion
                 }
 
                 $this->serviceCosts->persistNewCompletion($completion, $servicePlan['shares']);
-                $finishedCost->refresh();
 
-                if (bccomp((string) $finishedCost->moving_average, $movingAfter, 4) !== 0) {
+                if (bccomp(
+                    (string) ProductCost::query()->where('product_id', $locked->product_id)->value('moving_average'),
+                    $movingAfter,
+                    4,
+                ) !== 0) {
                     throw new DomainException('Production completion sonrası moving average snapshotı eşleşmiyor.');
                 }
-
-                $finishedCost->production_cost = $productionUnitCost;
-                $finishedCost->save();
 
                 $locked->completed_quantity = bcadd(
                     (string) $locked->completed_quantity,

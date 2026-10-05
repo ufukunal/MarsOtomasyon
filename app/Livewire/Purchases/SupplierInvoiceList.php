@@ -10,4 +10,5 @@ class SupplierInvoiceList extends BasePurchaseDocumentList
     protected function permission(): string { return 'supplier_invoices.view'; }
     protected function pageTitle(): string { return 'Alış Faturaları'; }
     protected function editRoute(): string { return 'purchases.invoices.edit'; }
+    protected function createRoute(): ?string { return 'purchases.invoices.edit'; }
 }

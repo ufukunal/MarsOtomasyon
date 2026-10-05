@@ -75,6 +75,14 @@ return [
         ],
     ],
     [
+        'label' => 'Üretim',
+        'items' => [
+            ['label' => 'Reçeteler', 'route' => 'production.recipes', 'permission' => 'production_recipes.view'],
+            ['label' => 'Üretim Emirleri', 'route' => 'production.orders', 'permission' => 'production_orders.view'],
+            ['label' => 'Fason Üretim', 'route' => 'production.subcontracting', 'permission' => 'subcontracting.view'],
+        ],
+    ],
+    [
         'label' => 'Ayarlar',
         'items' => [
             ['label' => 'Şirketler', 'route' => 'settings.companies', 'permission' => 'companies.view'],

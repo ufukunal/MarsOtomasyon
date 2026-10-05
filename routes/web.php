@@ -53,6 +53,9 @@ use App\Livewire\Purchases\PurchaseOrderList;
 use App\Livewire\Purchases\SupplierInvoiceEditor;
 use App\Livewire\Purchases\SupplierInvoiceList;
 use App\Livewire\Purchases\SupplierPerformance;
+use App\Livewire\Production\ProductionOrderCenter;
+use App\Livewire\Production\RecipeCenter;
+use App\Livewire\Production\SubcontractingCenter;
 use App\Livewire\Returns\ReturnCenter;
 use App\Livewire\Sales\DispatchEditor;
 use App\Livewire\Sales\DispatchList;
@@ -123,7 +126,7 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/alis/mal-kabul', GoodsReceiptList::class)->name('purchases.receipts.index');
     Route::get('/alis/mal-kabul/{id}', GoodsReceiptEditor::class)->name('purchases.receipts.edit');
     Route::get('/alis/faturalar', SupplierInvoiceList::class)->name('purchases.invoices.index');
-    Route::get('/alis/fatura/{id}', SupplierInvoiceEditor::class)->name('purchases.invoices.edit');
+    Route::get('/alis/fatura/{id?}', SupplierInvoiceEditor::class)->name('purchases.invoices.edit');
     Route::get('/alis/odeme', PaymentForm::class)->name('purchases.payments.create');
     Route::get('/alis/tedarikci-performansi', SupplierPerformance::class)->name('purchases.supplier-performance');
 
@@ -136,6 +139,10 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/finans/cek-senet', SecuritiesCenter::class)->name('finance.securities');
     Route::get('/iadeler', ReturnCenter::class)->name('returns.center');
     Route::get('/ithalat', ImportCenter::class)->name('imports.shipments');
+
+    Route::get('/uretim/receteler', RecipeCenter::class)->name('production.recipes');
+    Route::get('/uretim/emirler', ProductionOrderCenter::class)->name('production.orders');
+    Route::get('/uretim/fason', SubcontractingCenter::class)->name('production.subcontracting');
 
     Route::get('/ice-aktarma', ImportWizard::class)->name('imports.index');
     Route::get('/stok/durum', StockStatus::class)->name('stock.status');

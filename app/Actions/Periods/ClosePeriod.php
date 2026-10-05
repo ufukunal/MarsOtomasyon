@@ -4,7 +4,10 @@ namespace App\Actions\Periods;
 
 use App\Models\Period;
 use App\Support\Audit\AuditContext;
+use App\Support\Period\SourcePeriodContext;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Schema;
 
 final class ClosePeriod
 {
@@ -18,6 +21,21 @@ final class ClosePeriod
 
         if ($period->status === 'closed') {
             return $period;
+        }
+
+        SourcePeriodContext::usePeriod($period);
+
+        try {
+            if (Schema::connection('period_source')->hasTable('production_orders')
+                && DB::connection('period_source')->table('production_orders')
+                    ->whereIn('status', ['draft', 'confirmed', 'in_progress'])
+                    ->exists()) {
+                throw new \DomainException(
+                    'Dönem kapatılamaz: açık üretim/fason emri tamamlanmalı veya iptal edilmelidir.',
+                );
+            }
+        } finally {
+            SourcePeriodContext::clear();
         }
 
         $expectedVersion = (int) $period->version;

@@ -11,7 +11,9 @@ use App\Support\Integrity\Checks\FinanceIntegrityCheck;
 use App\Support\Integrity\Checks\ImportIntegrityCheck;
 use App\Support\Integrity\Checks\NumberSeriesCheck;
 use App\Support\Integrity\Checks\PartialDocumentCheck;
+use App\Support\Integrity\Checks\ProductionIntegrityCheck;
 use App\Support\Integrity\Checks\PurchaseMatchCheck;
+use App\Support\Integrity\Checks\RecipeIntegrityCheck;
 use App\Support\Integrity\Checks\QuarantineBalanceCheck;
 use App\Support\Integrity\Checks\ReservationBalanceCheck;
 use App\Support\Integrity\Checks\ReturnIntegrityCheck;
@@ -49,6 +51,8 @@ class IntegrityCommand extends Command
             FinanceIntegrityCheck::class,
             ReturnIntegrityCheck::class,
             ImportIntegrityCheck::class,
+            RecipeIntegrityCheck::class,
+            ProductionIntegrityCheck::class,
             NumberSeriesCheck::class,
             FilesIntegrityCheck::class,
         ];

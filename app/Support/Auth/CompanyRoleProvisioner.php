@@ -56,6 +56,9 @@ final class CompanyRoleProvisioner
         'bank_reconciliation',
         'returns',
         'import_shipments',
+        'production_recipes',
+        'production_orders',
+        'subcontracting',
     ];
 
     private const ACTIONS = [
@@ -146,6 +149,7 @@ final class CompanyRoleProvisioner
                 'bank_reconciliation.view', 'bank_reconciliation.update',
                 'returns.view', 'returns.create', 'returns.update', 'returns.cancel',
                 'import_shipments.view', 'import_shipments.create', 'import_shipments.update', 'import_shipments.close',
+                'production_orders.view', 'subcontracting.view',
                 ...$technicalViews,
             ],
             'Satış' => [
@@ -162,6 +166,7 @@ final class CompanyRoleProvisioner
                 'contact_aging.view',
                 'reservations.view', 'reservations.create', 'reservations.update',
                 'returns.view', 'returns.create', 'returns.update',
+                'production_orders.view',
                 ...$technicalViews,
             ],
             'Satınalma' => [
@@ -174,6 +179,8 @@ final class CompanyRoleProvisioner
                 'supplier_performance.view',
                 'returns.view', 'returns.create', 'returns.update',
                 'import_shipments.view', 'import_shipments.create', 'import_shipments.update', 'import_shipments.close',
+                'production_orders.view',
+                'subcontracting.view', 'subcontracting.update',
                 ...$technicalViews,
             ],
             'Depo' => [
@@ -190,11 +197,17 @@ final class CompanyRoleProvisioner
                 'goods_receipts.view', 'goods_receipts.create', 'goods_receipts.update', 'goods_receipts.cancel',
                 'returns.view',
                 'import_shipments.view', 'import_shipments.receive',
+                'production_orders.view',
+                'subcontracting.view', 'subcontracting.create', 'subcontracting.update',
                 ...$technicalViews,
             ],
             'Üretim' => [
                 'print_profiles.view', 'cost.view',
                 'contacts.view', 'products.view', 'locations.view', 'stock.view',
+                'transfers.view', 'transfers.create', 'transfers.update', 'transfers.cancel',
+                'production_recipes.view', 'production_recipes.create', 'production_recipes.update', 'production_recipes.cancel',
+                'production_orders.view', 'production_orders.create', 'production_orders.update', 'production_orders.cancel',
+                'subcontracting.view', 'subcontracting.create', 'subcontracting.update', 'subcontracting.cancel',
                 ...$technicalViews,
             ],
             'Görüntüleyici' => $viewerPermissions,
