@@ -1,11 +1,25 @@
 [Unit]
 Description=Mars queue worker
-After=network.target
+After=network-online.target postgresql.service valkey.service
+Wants=network-online.target
 
 [Service]
+Type=simple
 User=www-data
+Group=www-data
+WorkingDirectory=/var/www/mars/current
+EnvironmentFile=/etc/mars/mars.env
+ExecStart=/usr/bin/php /var/www/mars/current/artisan queue:work redis --queue=default --sleep=3 --tries=3 --timeout=120 --max-time=3600
+ExecReload=/bin/kill -USR2 $MAINPID
 Restart=always
-ExecStart=/usr/bin/php /var/www/mars/artisan queue:work redis --sleep=3 --tries=3 --max-time=3600
+RestartSec=5
+KillSignal=SIGTERM
+TimeoutStopSec=3600
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=full
+UMask=0027
 
 [Install]
 WantedBy=multi-user.target
