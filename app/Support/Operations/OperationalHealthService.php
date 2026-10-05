@@ -29,6 +29,7 @@ final class OperationalHealthService
             'valkey' => $this->valkey(),
             'queue_worker' => $this->heartbeat('mars:queue-worker-heartbeat'),
             'scheduler' => $this->heartbeat('mars:scheduler-heartbeat'),
+            'operations_worker' => $this->heartbeat('mars:operations-worker-heartbeat'),
             'queue_lag' => $this->queueLag(),
             'failed_jobs' => $this->failedJobs(),
             'disk' => $this->disk(),
@@ -74,7 +75,9 @@ final class OperationalHealthService
         $failed = [];
 
         try {
-            foreach (Period::query()->where('status', 'active')->get() as $period) {
+            $periods = Period::query()->where('status', 'active')->get();
+
+            foreach ($periods as $period) {
                 try {
                     config(['database.connections.period.database' => $period->database_name]);
                     DB::purge('period');
@@ -83,17 +86,24 @@ final class OperationalHealthService
                     $failed[] = (int) $period->id;
                 }
             }
+
+            return [
+                'ok' => $failed === [],
+                'status' => $failed === [] ? 'available' : 'unavailable',
+                'failed_period_ids' => $failed,
+                'severity' => $failed === [] ? null : 'failed',
+            ];
+        } catch (Throwable) {
+            return [
+                'ok' => false,
+                'status' => 'unavailable',
+                'failed_period_ids' => [],
+                'severity' => 'failed',
+            ];
         } finally {
             config(['database.connections.period.database' => $original]);
             DB::purge('period');
         }
-
-        return [
-            'ok' => $failed === [],
-            'status' => $failed === [] ? 'available' : 'unavailable',
-            'failed_period_ids' => $failed,
-            'severity' => $failed === [] ? null : 'failed',
-        ];
     }
 
     private function valkey(): array
@@ -131,16 +141,24 @@ final class OperationalHealthService
     {
         try {
             $redis = Redis::connection('queue');
-            $ready = (int) $redis->llen('queues:default');
-            $delayed = (int) $redis->zcard('queues:default:delayed');
-            $reserved = (int) $redis->zcard('queues:default:reserved');
-            $total = $ready + $delayed + $reserved;
+            $queues = [];
+            $total = 0;
+
+            foreach (['default', 'operations'] as $queue) {
+                $count = (int) $redis->llen("queues:{$queue}")
+                    + (int) $redis->zcard("queues:{$queue}:delayed")
+                    + (int) $redis->zcard("queues:{$queue}:reserved");
+                $queues[$queue] = $count;
+                $total += $count;
+            }
+
             $warn = (int) config('operations.health.queue_lag_warning', 100);
 
             return [
                 'ok' => $total <= $warn,
                 'status' => $total <= $warn ? 'normal' : 'high',
                 'jobs' => $total,
+                'queues' => $queues,
                 'severity' => $total <= $warn ? null : 'degraded',
             ];
         } catch (Throwable) {
