@@ -18,9 +18,9 @@ final class BackupHealthService
             }
 
             $latest = BackupRun::query()
-                ->where('status', 'verified')
-                ->whereNotNull('verified_at')
-                ->latest('verified_at')
+                ->whereIn('status', ['done', 'verified'])
+                ->whereNotNull('finished_at')
+                ->latest('finished_at')
                 ->first();
 
             if (! $latest) {
@@ -33,7 +33,7 @@ final class BackupHealthService
             }
 
             $maxAge = (int) config('operations.backup.max_age_hours', 36);
-            $ageHours = $latest->verified_at->diffInHours(now());
+            $ageHours = $latest->finished_at->diffInHours(now());
             $failed = [];
 
             foreach (config('operations.backup.disks', []) as $disk) {
@@ -64,6 +64,7 @@ final class BackupHealthService
                 'age_hours' => $ageHours,
                 'backup_run_id' => (int) $latest->id,
                 'recovery_set_id' => (string) $latest->recovery_set_id,
+                'restore_verified_at' => $latest->verified_at?->toIso8601String(),
                 'severity' => $fresh && $failed === [] ? null : 'failed',
             ];
         } catch (Throwable) {
