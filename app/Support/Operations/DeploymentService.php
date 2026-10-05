@@ -61,6 +61,24 @@ final class DeploymentService
             if (Artisan::call('integrity:all') !== 0) {
                 throw new RuntimeException('Deploy integrity doğrulaması başarısız.');
             }
+            if (Artisan::call('operations:security-check') !== 0) {
+                throw new RuntimeException('Production security doğrulaması başarısız.');
+            }
+            if (Artisan::call('operations:smoke') !== 0) {
+                throw new RuntimeException('Candidate release smoke doğrulaması başarısız.');
+            }
+
+            $health = app(OperationalHealthService::class)->check();
+            if ($health['status'] === 'failed') {
+                throw new RuntimeException('Operational health candidate activation öncesi failed durumda.');
+            }
+
+            $run->forceFill([
+                'metadata' => array_merge($run->metadata ?? [], [
+                    'pre_activation_health' => $health['status'],
+                    'health_correlation_id' => $health['correlation_id'],
+                ]),
+            ])->save();
 
             $activateRelease();
             if ($restartWorkers !== null) {
