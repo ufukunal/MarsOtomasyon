@@ -24,15 +24,18 @@ class BrowserDriver implements PrintDriver
         }
 
         $browser = Browsershot::html($html);
+        $widthMm = $profile?->width_mm ?: ($payload['width_mm'] ?? null);
+        $heightMm = $profile?->height_mm ?: ($payload['height_mm'] ?? null);
+        $paperCode = $profile?->paper_code ?: ($payload['paper_code'] ?? null);
 
-        if ($profile?->width_mm && $profile->height_mm) {
+        if ($widthMm && $heightMm) {
             $browser->paperSize(
-                (float) $profile->width_mm,
-                (float) $profile->height_mm,
+                (float) $widthMm,
+                (float) $heightMm,
                 'mm',
             );
         } else {
-            $browser->format($profile?->paper_code ?: 'A4');
+            $browser->format($paperCode ?: 'A4');
         }
 
         return new PrintResult(

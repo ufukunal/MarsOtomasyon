@@ -10,6 +10,9 @@ final class TemplateTokenRegistry
             'code', 'name', 'legal_name', 'tax_office', 'tax_number',
             'address', 'city', 'phone', 'email',
         ],
+        'product' => [
+            'id', 'code', 'name', 'barcode', 'price', 'unit',
+        ],
         'document' => [
             'id', 'type', 'number', 'date', 'status', 'currency',
             'subtotal', 'discount_amount', 'vat_amount', 'grand_total',
