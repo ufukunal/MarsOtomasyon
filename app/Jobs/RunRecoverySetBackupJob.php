@@ -12,7 +12,10 @@ class RunRecoverySetBackupJob implements ShouldQueue
 
     public int $timeout = 3600;
 
-    public function __construct(public readonly string $triggerType = 'manual') {}
+    public function __construct(public readonly string $triggerType = 'manual')
+    {
+        $this->onQueue('operations');
+    }
 
     public function handle(RecoverySetBackupService $service): void
     {
