@@ -22,6 +22,7 @@ final class WooCommerceAdapter implements ChannelAdapter
 
     public function testConnection(SalesChannelAccount $account): ChannelOperationResult
     {
+        $this->assertTryCurrency($account);
         $this->client->get($account, 'products', ['per_page' => 1, 'page' => 1]);
 
         return new ChannelOperationResult(
@@ -35,6 +36,7 @@ final class WooCommerceAdapter implements ChannelAdapter
         SalesChannelAccount $account,
         ChannelProductListing $listing,
     ): ChannelOperationResult {
+        $this->assertTryCurrency($account);
         $productId = $this->productId($listing, required: false);
         $response = $productId
             ? $this->client->put(
@@ -101,6 +103,7 @@ final class WooCommerceAdapter implements ChannelAdapter
         ChannelProductListing $listing,
         string $priceTry,
     ): ChannelOperationResult {
+        $this->assertTryCurrency($account);
         $id = $this->productId($listing);
         $response = $this->client->put(
             $account,
@@ -520,6 +523,19 @@ final class WooCommerceAdapter implements ChannelAdapter
             '0',
             4,
         );
+    }
+
+    private function assertTryCurrency(SalesChannelAccount $account): void
+    {
+        $setting = $this->client->get(
+            $account,
+            'settings/general/woocommerce_currency',
+        );
+        $currency = strtoupper(trim((string) ($setting['value'] ?? '')));
+
+        if ($currency !== 'TRY') {
+            throw new DomainException('WooCommerce mağaza para birimi TRY olmalıdır.');
+        }
     }
 
     private function productId(
