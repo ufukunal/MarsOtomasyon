@@ -8,6 +8,7 @@ use App\Models\BackupRun;
 use App\Models\DeploymentRun;
 use App\Models\HealthCheckRun;
 use App\Models\RestoreRun;
+use App\Support\Operations\OperationalHealthService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Gate;
 use Livewire\Component;
@@ -39,13 +40,24 @@ final class OperationsCenter extends Component
         session()->flash('status', 'Temporary restore provası queueya alındı.');
     }
 
+    public function runHealth(OperationalHealthService $health): void
+    {
+        Gate::authorize('audit.view');
+
+        $health->check(true);
+        session()->flash('status', 'Operational health kontrolü tamamlandı.');
+    }
+
     public function render(): View
     {
+        $healthRuns = HealthCheckRun::query()->latest('id')->limit(50)->get();
+
         return view('livewire.pages.settings.operations-center', [
             'deployments' => DeploymentRun::query()->latest('id')->limit(50)->get(),
             'backups' => BackupRun::query()->latest('id')->limit(50)->get(),
             'restores' => RestoreRun::query()->latest('id')->limit(50)->get(),
-            'healthRuns' => HealthCheckRun::query()->latest('id')->limit(50)->get(),
+            'healthRuns' => $healthRuns,
+            'latestHealth' => $healthRuns->first(),
         ])->layout('layouts.app', [
             'pageTitle' => 'Operasyon Merkezi',
             'pageDescription' => 'Deployment, recovery-set backup/restore ve production health geçmişi.',
