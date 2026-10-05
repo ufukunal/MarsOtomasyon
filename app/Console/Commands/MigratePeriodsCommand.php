@@ -9,6 +9,7 @@ use App\Support\Period\PeriodSchemaVersion;
 use Illuminate\Console\Command;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\DB;
 use Throwable;
 
 class MigratePeriodsCommand extends Command
@@ -50,6 +51,12 @@ class MigratePeriodsCommand extends Command
                         $this->renderStatus($period, $schemaVersion);
 
                         continue;
+                    }
+
+                    if ((string) $period->status === 'closed') {
+                        DB::connection('period')->statement(
+                            'SET default_transaction_read_only = off'
+                        );
                     }
 
                     $arguments = [
