@@ -5,7 +5,7 @@ namespace App\Console\Commands;
 use App\Models\User;
 use App\Notifications\OperationalAlert;
 use App\Support\Cache\CacheKey;
-use App\Support\Operations\BackupHealthService;
+use App\Support\Operations\OperationalHealthService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -14,46 +14,28 @@ use Illuminate\Support\Facades\Notification;
 class OperationsMonitorCommand extends Command
 {
     protected $signature = 'operations:monitor';
+    protected $description = 'Operational health sonuçlarından alarm üretir';
 
-    protected $description = 'Faz 0 operasyonel uyarı koşullarını kontrol eder';
-
-    public function handle(): int
+    public function handle(OperationalHealthService $health): int
     {
+        $result = $health->check();
         $alerts = [];
 
-        $failedJobs = DB::connection('master')->table('failed_jobs')->count();
-
-        if ($failedJobs > 0) {
-            $alerts[] = [
-                'failed-jobs',
-                'Başarısız kuyruk işleri',
-                "{$failedJobs} başarısız kuyruk işi var.",
-            ];
-        }
-
-        $backup = app(BackupHealthService::class)->check();
-
-        if (! $backup['ok']) {
-            $alerts[] = [
-                'backup-unhealthy',
-                'Yedek sağlığı bozuk',
-                'Bir veya daha fazla zorunlu yedek hedefi eksik ya da eski.',
-            ];
-        }
-
-        $total = disk_total_space(base_path());
-        $free = disk_free_space(base_path());
-
-        if ($total && $free !== false) {
-            $usedPercent = (($total - $free) / $total) * 100;
-
-            if ($usedPercent >= 85) {
-                $alerts[] = [
-                    'disk-usage',
-                    'Disk doluluk uyarısı',
-                    sprintf('Disk doluluk oranı %.1f%%.', $usedPercent),
-                ];
+        foreach ($result['checks'] as $name => $check) {
+            if ((bool) ($check['ok'] ?? false)) {
+                continue;
             }
+
+            $alerts[] = [
+                'health-'.$name,
+                'Operational health uyarısı: '.$name,
+                sprintf(
+                    '%s kontrolü %s durumunda. correlation_id=%s',
+                    $name,
+                    (string) ($check['status'] ?? 'unknown'),
+                    $result['correlation_id'],
+                ),
+            ];
         }
 
         foreach ($alerts as [$code, $title, $message]) {
@@ -78,12 +60,9 @@ class OperationsMonitorCommand extends Command
                 ->where('is_active', true)
                 ->get();
 
-            Notification::send(
-                $admins,
-                new OperationalAlert($title, $message, $code),
-            );
+            Notification::send($admins, new OperationalAlert($title, $message, $code));
         }
 
-        return self::SUCCESS;
+        return $result['status'] === 'failed' ? self::FAILURE : self::SUCCESS;
     }
 }
