@@ -1,71 +1,49 @@
 # Arşiv dönem ve geri yükleme
 
-## Neden arşiv
+Archived period fiziksel DB'si production sunucudan detach edilmiş, Master `periods` kaydı korunmuş dönemdir. Archived dönem sessizce rapora dahil edilmez; restore/attach gereksinimi açık hata olarak gösterilir.
 
-Her şirket-yıl bir veritabanıdır. Beş yıl sonra 10+ veritabanı olur ve
-55 GB disk dolar. Eski dönemler arşivlenir: veritabanı dışa aktarılıp
-sunucudan kaldırılır, `periods.status = archived` yapılır.
+## Archive detach önkoşulu
 
-Arşiv dönem **seçilemez**; raporu alınamaz. Gerekirse geri yüklenir.
+Bir period yalnız:
 
-## Arşivleme
+- `status=closed`,
+- seçilen recovery set `verified`,
+- recovery set period manifestinde aynı `database_name` mevcut,
+- recovery set gerçek temporary restore provasından geçmiş
 
-```bash
-# 1. Yedeğini al (harici hedefe de)
-pg_dump -Fc ABCHolding_2023 > /yedek/ABCHolding_2023.dump
+ise detach edilebilir.
 
-# 2. Doğrula — bozuk yedek yedek değildir
-pg_restore --list /yedek/ABCHolding_2023.dump > /dev/null
-
-# 3. Veritabanını kaldır
-psql -c 'DROP DATABASE "ABCHolding_2023"'
-
-# 4. periods kaydını güncelle
-php artisan period:archive --company=1 --year=2023
-```
-
-`period:archive` komutu: durum `archived`, `archived_at`, arşiv dosya
-yolu ve boyutu `periods` tablosuna yazılır. **Kayıt silinmez** — hangi
-dönemin var olduğu bilinmeli.
-
-## Geri yükleme
+Komut:
 
 ```bash
-# 1. Veritabanını oluştur ve geri yükle
-psql -c 'CREATE DATABASE "ABCHolding_2023"'
-pg_restore -d ABCHolding_2023 /yedek/ABCHolding_2023.dump
-
-# 2. EKSİK MIGRATION'LARI ÇALIŞTIR  ← atlanırsa hata verir
-php artisan migrate:periods --company=1 --year=2023
-
-# 3. Durumu güncelle
-php artisan period:restore --company=1 --year=2023
+php artisan operations:archive-period <period_id> <backup_run_id>
 ```
 
-**2. adım kritik.** Arşivlendikten sonra çıkan tüm şema değişiklikleri
-o veritabanına uygulanmamıştır. `periods.schema_version` ile mevcut
-sürüm karşılaştırılır; eksikse geri yükleme komutu uyarır ve migration
-çalıştırılmadan dönemi `closed` yapmaz.
+Komut varsayılan olarak destructive onay ister. Başarılı olduğunda fiziksel DB kaldırılır ve period `archived` olur. DB drop başarısızsa Master status `closed` durumuna geri çevrilir.
 
-## Geri yüklenen dönemin durumu
+## Archive restore / attach
 
-`closed` olur, `active` değil. Arşivden dönen bir yıla yeni kayıt
-girilmez; yalnız rapor alınır. Gerçekten kayıt gerekiyorsa Yönetici
-bilinçli olarak açar ve bu `activity_log`'a düşer.
+```bash
+php artisan operations:archive-restore <backup_run_id> <period_id>
+```
 
-## Ne zaman arşivlenir
+Akış:
 
-Öneri: devir yapılmış ve üzerinden **iki tam yıl geçmiş** dönemler.
-Ticari kayıt saklama yükümlülüğü sürdüğü için yedek **silinmez**,
-yalnız sunucudan kaldırılır.
+1. recovery set archive/checksum doğrulaması,
+2. ilgili period SQL dump restore,
+3. period migration zinciri,
+4. reference data doğrulaması,
+5. Master period status `closed`,
+6. PostgreSQL `default_transaction_read_only=on`.
 
-## Çok dönemli raporda arşiv
+Restore edilen dönem `active` yapılmaz ve normal write akışları `PeriodContext::ensureWritable()` tarafından reddedilir.
 
-Arşiv dönem seçilirse rapor uyarı verir: *"2023 dönemi arşivde,
-rapora dahil edilemedi. Geri yüklemek için Ayarlar › Dönemler."*
-Sessizce atlanmaz — eksik veriyle rapor almak yanlış karar demektir.
+## Çok dönemli rapor
 
-## Disk takibi
+- `closed` restore edilmiş dönem okunabilir.
+- `archived/detached` dönem sessizce atlanmaz.
+- kullanıcıya restore gereksinimi bildirilir.
 
-Ana sayfada disk kullanımı gösterilir. %85'i aşınca uyarı:
-*"Disk %87 dolu. En eski dönemleri arşivlemeyi değerlendirin."*
+## Disaster recovery
+
+Production recovery için manuel DB komutları yerine `docs/isletim/disaster-recovery.md` izlenir. Verified recovery set olmadan production restore yapılmaz.
