@@ -7,9 +7,9 @@ use App\Support\Integrity\IntegrityRunner;
 
 trait RunsIntegrityCheck
 {
-    protected function runCheck(IntegrityCheck $check): int
+    protected function runCheck(IntegrityCheck $check, bool $persist = true): int
     {
-        $result = app(IntegrityRunner::class)->run($check);
+        $result = app(IntegrityRunner::class)->run($check, $persist);
 
         $this->line(sprintf(
             '%s: checked=%d mismatch=%d duration=%dms',
