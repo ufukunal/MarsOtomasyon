@@ -6,12 +6,12 @@ return [
     | Platform adapters
     |--------------------------------------------------------------------------
     |
-    | Faz 9A yalnız ortak adapter sınırını kurar. Gerçek platform sınıfları
-    | Trendyol / Hepsiburada / N11 / WooCommerce bloklarında tek tek eklenir.
+    | Platform sınıfları Faz 9 kanal bloklarında tek tek etkinleştirilir.
+    | Trendyol Product/Order V2 adapterı Faz 9B ile aktif edilir.
     |
     */
     'adapters' => [
-        'trendyol' => null,
+        'trendyol' => App\Support\Channels\Trendyol\TrendyolAdapter::class,
         'hepsiburada' => null,
         'n11' => null,
         'woocommerce' => null,

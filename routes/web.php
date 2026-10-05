@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ChannelAssetController;
 use App\Http\Controllers\HealthController;
 use App\Http\Controllers\ImportErrorReportController;
 use App\Http\Controllers\ProductImageController;
@@ -79,6 +80,14 @@ Route::get('/saglik', HealthController::class)
     ->name('health');
 
 Route::view('/', 'welcome')->middleware('auth')->name('home');
+
+Route::get('/channel-assets/{company}/{period}/{product}/{attachment}', ChannelAssetController::class)
+    ->middleware('signed')
+    ->whereNumber('company')
+    ->whereNumber('period')
+    ->whereNumber('product')
+    ->whereNumber('attachment')
+    ->name('channels.asset');
 
 Route::middleware('guest')->group(function (): void {
     Route::get('/giris', Login::class)->name('login');

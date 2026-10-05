@@ -89,7 +89,25 @@
             <button type="button" wire:click="save">Mapping Kaydet</button>
         @endcanany
 
-        <div>Publish / içerik / stok / fiyat gönderme eylemleri ilgili kanal adapter bloğunda açılacaktır.</div>
+        @if($selectedListingId)
+            <div>
+                <strong>Preview:</strong>
+                stok {{ $stockPreview }} · fiyat {{ $pricePreview }} TRY
+            </div>
+
+            @if($adapterAvailable)
+                @can('channel_listings.update')
+                    <div class="form-row">
+                        <button type="button" wire:click="publish">Publish</button>
+                        <button type="button" wire:click="syncContent">İçerik/Görsel Sync</button>
+                        <button type="button" wire:click="syncStock">Stok Sync</button>
+                        <button type="button" wire:click="syncPrice">Fiyat Sync</button>
+                    </div>
+                @endcan
+            @else
+                <div>Seçili hesabın adapter'ı henüz etkin değil.</div>
+            @endif
+        @endif
     </section>
 
     @foreach($errors->all() as $error)

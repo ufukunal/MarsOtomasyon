@@ -3,12 +3,16 @@
 namespace App\Livewire\Channels;
 
 use App\Actions\Channels\SaveChannelProductListing;
+use App\Actions\Channels\SyncChannelListing;
 use App\Enums\LocationKind;
 use App\Livewire\Concerns\WithIdempotentMutations;
 use App\Models\Period\ChannelProductListing;
 use App\Models\Period\Location;
 use App\Models\Period\Product;
 use App\Models\SalesChannelAccount;
+use App\Support\Channels\ChannelAdapterResolver;
+use App\Support\Channels\ChannelPriceResolver;
+use App\Support\Channels\ChannelStockResolver;
 use App\Support\Period\PeriodContext;
 use Illuminate\Contracts\View\View;
 use Illuminate\Validation\ValidationException;
@@ -44,7 +48,7 @@ class ChannelListingCenter extends Component
 
     public function mount(): void
     {
-        $this->seedMutationKeys(['save']);
+        $this->seedMutationKeys(['save', 'publish', 'content', 'stock', 'price']);
         abort_unless(auth()->user()?->can('channel_listings.view'), 403);
         PeriodContext::ensure();
     }
@@ -162,7 +166,39 @@ class ChannelListingCenter extends Component
         session()->flash('status', 'Kanal listing mapping kaydedildi.');
     }
 
-    public function render(): View
+    public function publish(SyncChannelListing $action): void
+    {
+        $listing = $this->currentListing();
+        $this->runPeriodMutation('publish', fn () => $action->publish($listing));
+        session()->flash('status', 'Listing publish işlemi kanala gönderildi.');
+    }
+
+    public function syncContent(SyncChannelListing $action): void
+    {
+        $listing = $this->currentListing();
+        $this->runPeriodMutation('content', fn () => $action->content($listing));
+        session()->flash('status', 'İçerik/görsel sync işlemi kanala gönderildi.');
+    }
+
+    public function syncStock(SyncChannelListing $action): void
+    {
+        $listing = $this->currentListing();
+        $this->runPeriodMutation('stock', fn () => $action->stock($listing));
+        session()->flash('status', 'Stok sync işlemi kanala gönderildi.');
+    }
+
+    public function syncPrice(SyncChannelListing $action): void
+    {
+        $listing = $this->currentListing();
+        $this->runPeriodMutation('price', fn () => $action->price($listing));
+        session()->flash('status', 'Fiyat sync işlemi kanala gönderildi.');
+    }
+
+    public function render(
+        ChannelAdapterResolver $adapters,
+        ChannelStockResolver $stock,
+        ChannelPriceResolver $prices,
+    ): View
     {
         $accountIds = SalesChannelAccount::query()
             ->where('company_id', PeriodContext::companyId())
@@ -191,7 +227,36 @@ class ChannelListingCenter extends Component
                 ->where('kind', '!=', LocationKind::Subcontractor->value)
                 ->orderBy('name')
                 ->get(),
+            'adapterAvailable' => $this->channelAccountId
+                ? $adapters->hasAdapter(SalesChannelAccount::query()->find($this->channelAccountId)?->platform?->value ?? '')
+                : false,
+            'stockPreview' => $this->selectedListingId
+                ? $this->safePreview(fn () => $stock->quantity(
+                    ChannelProductListing::query()->findOrFail($this->selectedListingId),
+                ))
+                : null,
+            'pricePreview' => $this->selectedListingId
+                ? $this->safePreview(fn () => $prices->price(
+                    ChannelProductListing::query()->findOrFail($this->selectedListingId),
+                ))
+                : null,
         ])->layout('layouts.app', ['pageTitle' => 'Kanal Ürün Listingleri']);
+    }
+
+    private function safePreview(callable $callback): ?string
+    {
+        try {
+            return (string) $callback();
+        } catch (\Throwable) {
+            return null;
+        }
+    }
+
+    private function currentListing(): ChannelProductListing
+    {
+        abort_unless($this->selectedListingId !== null, 422);
+
+        return ChannelProductListing::query()->findOrFail($this->selectedListingId);
     }
 
     /** @return array<string, mixed> */
