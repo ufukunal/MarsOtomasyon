@@ -92,6 +92,22 @@
                                 isteğe bağlı <code>integrator_name</code>.
                             </div>
                         </div>
+                    @elseif($platform === 'n11')
+                        <div class="space-y-2">
+                            <strong>N11 REST/SOAP Entegrasyonu</strong>
+                            <div>
+                                Credential JSON içinde <code>app_key</code> + <code>app_secret</code> tutulmalıdır.
+                                Settings JSON içinde isteğe bağlı <code>integrator_name</code> kullanılabilir.
+                            </div>
+                            <div>
+                                Ürün ve sipariş servisleri güncel REST API üzerinden çalışır; iade talepleri
+                                N11 ReturnService SOAP servisi üzerinden normalize edilir.
+                            </div>
+                            <div>
+                                N11 için resmi webhook akışı tanımlanmadığından inbound güvenlik ağı
+                                15 dakikalık polling ve Sync Merkezi manuel polling üzerinden yürür.
+                            </div>
+                        </div>
                     @endif
                 @endcan
             @else

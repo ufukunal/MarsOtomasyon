@@ -96,6 +96,13 @@
             </div>
 
             @if($adapterAvailable)
+                @if(($accounts->firstWhere('id', $channelAccountId)?->platform?->value ?? null) === 'n11')
+                    <div>
+                        N11 ürün güncelleme REST servisi açıklama, durum, hazırlık süresi, kargo şablonu,
+                        maksimum adet, ana ürün kodu, KDV ve desteklenen attribute alanlarını günceller.
+                        Resmi update endpointinde title/görsel alanı tanımlı olmadığı için bu alanlar publish sonrası gönderilmez.
+                    </div>
+                @endif
                 @can('channel_listings.update')
                     <div class="form-row">
                         <button type="button" wire:click="publish">Publish</button>
