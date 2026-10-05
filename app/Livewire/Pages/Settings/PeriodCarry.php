@@ -2,9 +2,9 @@
 
 namespace App\Livewire\Pages\Settings;
 
-use App\Actions\Periods\CarryPeriod;
 use App\Actions\Periods\CopyPeriodAccess;
 use App\Actions\Periods\PreviewPeriodCarry;
+use App\Jobs\CarryPeriodJob;
 use App\Livewire\Concerns\WithIdempotentMutations;
 use App\Models\Period;
 use Illuminate\Contracts\View\View;
@@ -71,29 +71,56 @@ final class PeriodCarry extends Component
         $this->preview = $action->handle($source, (int) $validated['targetYear'])->toArray();
     }
 
-    public function carry(CarryPeriod $action): void
+    public function carry(): void
     {
         $validated = $this->validate([
             'sourcePeriodId' => ['required', 'integer', 'exists:master.periods,id'],
             'targetYear' => ['required', 'integer', 'between:2000,2200'],
         ]);
 
+        Gate::authorize('periods.update');
+
         $source = Period::query()->findOrFail((int) $validated['sourcePeriodId']);
-        $result = $action->handle(
-            $source,
+        $actorId = auth()->id();
+
+        if (! $actorId) {
+            abort(403);
+        }
+
+        CarryPeriodJob::dispatch(
+            (int) $actorId,
+            (int) $source->id,
             (int) $validated['targetYear'],
             $this->mutationKey('carry'),
         );
-        $this->completeMutation('carry');
 
-        $this->completedTargetPeriodId = $result->targetPeriodId;
         $this->preview = null;
         $this->selectedAccessUserIds = [];
 
         session()->flash(
             'success',
-            'Dönem devri tamamlandı. Yeni dönem erişimleri otomatik verilmedi; aşağıdan seçerek kopyalayın.',
+            'Dönem devri privileged operations queueya alındı. Ekran tamamlanma durumunu otomatik izleyecek.',
         );
+    }
+
+    public function refreshCarryStatus(): void
+    {
+        if (! $this->sourcePeriodId) {
+            return;
+        }
+
+        $target = Period::query()
+            ->where('carried_from_period_id', $this->sourcePeriodId)
+            ->where('year', $this->targetYear)
+            ->whereNotNull('carried_at')
+            ->first();
+
+        if (! $target) {
+            return;
+        }
+
+        $this->completedTargetPeriodId = (int) $target->id;
+        $this->completeMutation('carry');
     }
 
     public function copyAccess(CopyPeriodAccess $action): void
