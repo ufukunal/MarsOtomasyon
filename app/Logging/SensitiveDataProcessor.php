@@ -57,15 +57,23 @@ class SensitiveDataProcessor
 
     private function sanitizeString(string $value): string
     {
-        $patterns = [
+        $value = preg_replace(
             '/(authorization\s*[:=]\s*)([^\s,;]+)/i',
-            '/((?:password|secret|token|api[_-]?key|access[_-]?key|consumer[_-]?secret)\s*[:=]\s*)([^\s,;]+)/i',
-            '/("?(?:password|secret|token|api_key|access_token|refresh_token|consumer_secret)"?\s*:\s*")[^"]*(")/i',
-        ];
+            '$1[REDACTED]',
+            $value,
+        ) ?? $value;
 
-        foreach ($patterns as $pattern) {
-            $value = preg_replace($pattern, '$1[REDACTED]$3', $value) ?? $value;
-        }
+        $value = preg_replace(
+            '/((?:password|secret|token|api[_-]?key|access[_-]?key|consumer[_-]?secret)\s*[:=]\s*)([^\s,;]+)/i',
+            '$1[REDACTED]',
+            $value,
+        ) ?? $value;
+
+        $value = preg_replace(
+            '/("?(?:password|secret|token|api_key|access_token|refresh_token|consumer_secret)"?\s*:\s*")[^"]*(")/i',
+            '$1[REDACTED]$2',
+            $value,
+        ) ?? $value;
 
         return $value;
     }
