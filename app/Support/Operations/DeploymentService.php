@@ -58,7 +58,7 @@ final class DeploymentService
             if (Artisan::call('optimize') !== 0) {
                 throw new RuntimeException('Production cache warmup başarısız.');
             }
-            if (Artisan::call('integrity:all') !== 0) {
+            if (Artisan::call('integrity:all', ['--include-closed' => true]) !== 0) {
                 throw new RuntimeException('Deploy integrity doğrulaması başarısız.');
             }
             if (Artisan::call('operations:security-check') !== 0) {
