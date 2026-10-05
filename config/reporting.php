@@ -16,6 +16,8 @@ use App\Support\Reporting\Queries\SupplierInvoiceReportQuery;
 
 return [
     'max_page_size' => 250,
+    'export_disk' => env('REPORT_EXPORT_DISK', 'report_exports'),
+    'export_retention_days' => (int) env('REPORT_EXPORT_RETENTION_DAYS', 30),
 
     'queries' => [
         SalesInvoiceReportQuery::class,

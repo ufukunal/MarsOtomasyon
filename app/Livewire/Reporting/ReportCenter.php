@@ -3,6 +3,7 @@
 namespace App\Livewire\Reporting;
 
 use App\Actions\Reporting\ExportReport;
+use App\Actions\Reporting\QueueReportExport;
 use App\Actions\Reporting\RunReport;
 use App\Support\Period\PeriodContext;
 use App\Support\Reporting\ReportCatalog;
@@ -36,6 +37,8 @@ final class ReportCenter extends Component
 
     public int $page = 1;
 
+    public ?string $queueMessage = null;
+
     public function mount(): void
     {
         abort_unless(auth()->user()?->can('reports.view'), 403);
@@ -50,6 +53,7 @@ final class ReportCenter extends Component
     public function selectReport(string $key): void
     {
         $key = trim($key);
+        $this->queueMessage = null;
 
         if ($key === '') {
             $this->resetReport();
@@ -64,12 +68,14 @@ final class ReportCenter extends Component
     {
         abort_unless($this->reportKey !== '', 422);
         $this->page = 1;
+        $this->queueMessage = null;
     }
 
     public function clearFilters(): void
     {
         $this->filterValues = [];
         $this->page = 1;
+        $this->queueMessage = null;
     }
 
     public function setPerPage(int $perPage): void
@@ -87,29 +93,11 @@ final class ReportCenter extends Component
 
     public function export(string $format): StreamedResponse
     {
-        abort_unless($this->reportKey !== '', 422);
-
-        $report = $this->findReport(
-            app(ReportCatalog::class)->forActor(),
-            $this->reportKey,
-        );
-        abort_unless($report !== null, 403);
-        abort_unless(in_array($format, $report->exporters, true), 422);
+        $report = $this->authorizedReportForExport($format);
 
         $artifact = app(ExportReport::class)->handle(
             $report->key,
-            new ReportRequest(
-                filters: $this->submittedFilters(),
-                columns: $this->selectedColumns,
-                sort: $this->sortKey !== ''
-                    ? [[
-                        'key' => $this->sortKey,
-                        'direction' => $this->sortDirection,
-                    ]]
-                    : [],
-                limit: $this->perPage,
-                offset: 0,
-            ),
+            $this->exportRequest(),
             $format,
         );
 
@@ -120,6 +108,19 @@ final class ReportCenter extends Component
             $artifact->filename,
             ['Content-Type' => $artifact->mimeType],
         );
+    }
+
+    public function queueExport(string $format): void
+    {
+        $report = $this->authorizedReportForExport($format);
+
+        $job = app(QueueReportExport::class)->handle(
+            $report->key,
+            $this->exportRequest(),
+            $format,
+        );
+
+        $this->queueMessage = "Export #{$job->id} kuyruğa alındı.";
     }
 
     public function formatCell(array $row, ReportColumnDefinition $column): string
@@ -244,6 +245,7 @@ final class ReportCenter extends Component
         $this->sortKey = $report->defaultSort[0]->key ?? '';
         $this->sortDirection = $report->defaultSort[0]->direction ?? 'asc';
         $this->page = 1;
+        $this->queueMessage = null;
     }
 
     private function applyIncomingFilters(): void
@@ -283,6 +285,38 @@ final class ReportCenter extends Component
         $this->sortKey = '';
         $this->sortDirection = 'asc';
         $this->page = 1;
+        $this->queueMessage = null;
+    }
+
+    private function authorizedReportForExport(string $format): ReportCatalogItem
+    {
+        abort_unless($this->reportKey !== '', 422);
+
+        $report = $this->findReport(
+            app(ReportCatalog::class)->forActor(),
+            $this->reportKey,
+        );
+
+        abort_unless($report !== null, 403);
+        abort_unless(in_array($format, $report->exporters, true) && $format !== 'screen', 422);
+
+        return $report;
+    }
+
+    private function exportRequest(): ReportRequest
+    {
+        return new ReportRequest(
+            filters: $this->submittedFilters(),
+            columns: $this->selectedColumns,
+            sort: $this->sortKey !== ''
+                ? [[
+                    'key' => $this->sortKey,
+                    'direction' => $this->sortDirection,
+                ]]
+                : [],
+            limit: $this->perPage,
+            offset: 0,
+        );
     }
 
     /** @return array<string,mixed> */

@@ -121,9 +121,22 @@
                             >
                                 {{ $label }}
                             </button>
+                            <button
+                                type="button"
+                                class="button-secondary"
+                                wire:click="queueExport('{{ $format }}')"
+                                wire:loading.attr="disabled"
+                                wire:target="queueExport"
+                            >
+                                {{ $label }} Kuyruk
+                            </button>
                         @endif
                     @endforeach
                 </div>
+
+                @if($queueMessage)
+                    <div class="alert">{{ $queueMessage }} <a href="{{ route('reports.exports') }}">Export Merkezi</a></div>
+                @endif
 
                 @if($reportError)
                     <div class="alert alert-warning">{{ $reportError }}</div>

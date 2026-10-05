@@ -5,6 +5,7 @@ use App\Http\Controllers\HealthController;
 use App\Http\Controllers\HepsiburadaWebhookController;
 use App\Http\Controllers\ImportErrorReportController;
 use App\Http\Controllers\ProductImageController;
+use App\Http\Controllers\ReportExportDownloadController;
 use App\Http\Controllers\TrendyolWebhookController;
 use App\Http\Controllers\WooCommerceWebhookController;
 use App\Livewire\Finance\BankStatementCenter;
@@ -64,6 +65,7 @@ use App\Livewire\Production\ProductionOrderCenter;
 use App\Livewire\Production\RecipeCenter;
 use App\Livewire\Production\SubcontractingCenter;
 use App\Livewire\Reporting\Dashboard;
+use App\Livewire\Reporting\ExportCenter;
 use App\Livewire\Reporting\ReportCenter;
 use App\Livewire\Returns\ReturnCenter;
 use App\Livewire\Sales\DispatchEditor;
@@ -181,6 +183,10 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/raporlar', ReportCenter::class)
         ->middleware('throttle:report')
         ->name('reports.center');
+    Route::get('/raporlar/exportlar', ExportCenter::class)->name('reports.exports');
+    Route::get('/raporlar/exportlar/{export}/indir', ReportExportDownloadController::class)
+        ->whereNumber('export')
+        ->name('reports.exports.download');
 
     Route::get('/ice-aktarma', ImportWizard::class)->name('imports.index');
     Route::get('/stok/durum', StockStatus::class)->name('stock.status');

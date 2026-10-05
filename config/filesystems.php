@@ -33,6 +33,12 @@ return [
             'throw' => true,
         ],
 
+        'report_exports' => [
+            'driver' => env('REPORT_EXPORT_DISK_DRIVER', 'local'),
+            'root' => storage_path('app/report-exports'),
+            'throw' => true,
+        ],
+
         'backups' => [
             'driver' => 'local',
             'root' => storage_path('app/backups'),

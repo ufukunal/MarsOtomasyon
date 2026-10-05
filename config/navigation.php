@@ -94,6 +94,7 @@ return [
         'label' => 'Raporlar',
         'items' => [
             ['label' => 'Rapor Merkezi', 'route' => 'reports.center', 'permission' => 'reports.view'],
+            ['label' => 'Export Merkezi', 'route' => 'reports.exports', 'permission' => 'reports.view'],
         ],
     ],
     [
