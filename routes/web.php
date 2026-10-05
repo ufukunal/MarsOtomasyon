@@ -189,7 +189,7 @@ Route::middleware('auth')->group(function (): void {
         ->middleware('throttle:report')
         ->name('reports.consolidated');
     Route::get('/raporlar/exportlar', ExportCenter::class)->name('reports.exports');
-    Route::get('/raporlar/sablonlar', DocumentTemplateDesigner::class)->name('reports.templates');
+    Route::get('/raporlar/sablonlar', DocumentTemplateDesigner::class)->name('reports.templates');\n    Route::get('/raporlar/yazdirma-gecmisi', PrintHistory::class)->name('reports.print-history');
     Route::get('/raporlar/exportlar/{export}/indir', ReportExportDownloadController::class)
         ->whereNumber('export')
         ->name('reports.exports.download');
