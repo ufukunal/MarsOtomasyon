@@ -102,11 +102,21 @@ final class RecoverySetBackupService
                 'period_count' => count($periods),
             ];
         } catch (Throwable $exception) {
+            $summary = app(OperationalErrorSanitizer::class)->summarize($exception);
+
             $run->forceFill([
                 'status' => 'failed',
                 'finished_at' => now(),
-                'error_summary' => mb_substr(trim($exception->getMessage()), 0, 500),
+                'error_summary' => $summary,
             ])->save();
+
+            app(OperationalAlertService::class)->send(
+                'recovery-set-backup-failed',
+                'Recovery-set backup başarısız',
+                'Backup run #'.$run->id.' başarısız: '.$summary,
+                1,
+            );
+
             throw $exception;
         }
     }
