@@ -1,0 +1,33 @@
+-- MarsOtomasyon production PostgreSQL least-privilege örneği.
+-- PASSWORD değerleri bu dosyaya yazılmaz; psql/secret automation ile ALTER ROLE uygulanır.
+
+CREATE ROLE mars_app LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION;
+CREATE ROLE mars_migrator LOGIN NOSUPERUSER CREATEDB NOCREATEROLE NOREPLICATION;
+CREATE ROLE mars_backup LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION;
+
+-- Her Mars Master/Period DB için deployment sırasında uygulanır:
+-- \connect <database>
+
+GRANT CONNECT ON DATABASE <database> TO mars_app, mars_migrator, mars_backup;
+GRANT USAGE ON SCHEMA public TO mars_app, mars_backup;
+GRANT USAGE, CREATE ON SCHEMA public TO mars_migrator;
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO mars_app;
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO mars_app;
+
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO mars_migrator;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO mars_migrator;
+
+GRANT SELECT ON ALL TABLES IN SCHEMA public TO mars_backup;
+GRANT SELECT ON ALL SEQUENCES IN SCHEMA public TO mars_backup;
+
+ALTER DEFAULT PRIVILEGES FOR ROLE mars_migrator IN SCHEMA public
+    GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO mars_app;
+ALTER DEFAULT PRIVILEGES FOR ROLE mars_migrator IN SCHEMA public
+    GRANT USAGE, SELECT ON SEQUENCES TO mars_app;
+ALTER DEFAULT PRIVILEGES FOR ROLE mars_migrator IN SCHEMA public
+    GRANT SELECT ON TABLES TO mars_backup;
+
+-- mars_app'e CREATE DATABASE, DROP DATABASE, role yönetimi veya superuser verilmez.
+-- backup user yalnız gerekli read access'e sahiptir.
+-- production deploy automation migration sırasında mars_migrator kullanır.
