@@ -80,19 +80,38 @@ final class PreviewPeriodCarry
             );
         }
 
-        if ($target && ($target->carried_at !== null || $target->carried_from_period_id !== null)) {
+        $resumingSameCarry = $target
+            && $target->carried_at === null
+            && (int) ($target->carried_from_period_id ?? 0) === (int) $source->id;
+
+        if ($target?->carried_at !== null) {
             $checks[] = $this->check(
                 'target_carry_state',
                 'block',
-                'Hedef dönem daha önce bir carry işlemiyle ilişkilendirilmiş.',
+                'Hedef dönem carry işlemi daha önce tamamlanmış.',
+            );
+        } elseif ($target?->carried_from_period_id !== null
+            && (int) $target->carried_from_period_id !== (int) $source->id) {
+            $checks[] = $this->check(
+                'target_carry_state',
+                'block',
+                'Hedef dönem farklı bir source carry işlemiyle ilişkilendirilmiş.',
+            );
+        } elseif ($resumingSameCarry) {
+            $checks[] = $this->check(
+                'target_carry_state',
+                'warning',
+                'Aynı source dönem için yarım carry güvenli retry/resume olarak devam edecek.',
             );
         }
 
         if ($target && $this->targetHasBusinessData($target)) {
             $checks[] = $this->check(
                 'target_business_data',
-                'block',
-                'Hedef dönem business data içeriyor; otomatik carry başlatılamaz.',
+                $resumingSameCarry ? 'warning' : 'block',
+                $resumingSameCarry
+                    ? 'Hedefte aynı carry tarafından yazılmış veriler var; idempotent resume uygulanacak.'
+                    : 'Hedef dönem business data içeriyor; otomatik carry başlatılamaz.',
             );
         } elseif ($target) {
             $checks[] = $this->check(
