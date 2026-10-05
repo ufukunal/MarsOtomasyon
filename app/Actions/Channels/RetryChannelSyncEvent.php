@@ -13,6 +13,7 @@ use App\Support\Channels\ChannelAdapterResolver;
 use App\Support\Channels\ChannelPriceResolver;
 use App\Support\Channels\ChannelStockResolver;
 use App\Support\Channels\ChannelSyncRecorder;
+use App\Support\Period\PeriodContext;
 use DomainException;
 use Throwable;
 
@@ -28,6 +29,7 @@ final class RetryChannelSyncEvent
     public function handle(ChannelSyncEvent $event, bool $automatic = false): void
     {
         MutationAuthorizer::authorize('channel_sync.update');
+        PeriodContext::ensureWritable();
 
         if ($event->status !== 'failed'
             || $event->direction !== 'outbound'
@@ -36,6 +38,7 @@ final class RetryChannelSyncEvent
         }
 
         $account = SalesChannelAccount::query()
+            ->where('company_id', PeriodContext::companyId())
             ->where('is_active', true)
             ->findOrFail($event->channel_account_id);
         $adapter = $this->adapters->resolve($account);
@@ -44,6 +47,7 @@ final class RetryChannelSyncEvent
         try {
             if ($event->entity_type === 'listing') {
                 $listing = ChannelProductListing::query()
+                    ->where('channel_account_id', $account->id)
                     ->where('is_active', true)
                     ->findOrFail($event->entity_id);
 

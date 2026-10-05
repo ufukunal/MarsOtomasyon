@@ -3,6 +3,7 @@
 namespace App\Support\Channels;
 
 use App\Enums\ChannelStockMode;
+use App\Enums\LocationKind;
 use App\Enums\ProductKind;
 use App\Models\Period\ChannelProductListing;
 use App\Models\Period\StockBalance;
@@ -12,7 +13,7 @@ final class ChannelStockResolver
 {
     public function quantity(ChannelProductListing $listing): string
     {
-        $listing->loadMissing(['product.setComponents', 'locations']);
+        $listing->loadMissing(['product.setComponents', 'locations.location']);
         $mode = $listing->stock_mode
             ? ChannelStockMode::from((string) $listing->stock_mode)
             : $listing->product->channel_stock_mode;
@@ -44,6 +45,16 @@ final class ChannelStockResolver
 
     private function stock(ChannelProductListing $listing): string
     {
+        if ($listing->locations->contains(
+            fn ($mapping): bool => $mapping->location === null
+                || ! $mapping->location->is_active
+                || $mapping->location->kind === LocationKind::Subcontractor,
+        )) {
+            throw new DomainException(
+                'Stock listing aktif satış lokasyonu dışında veya fason lokasyonda hesaplanamaz.',
+            );
+        }
+
         $locationIds = $listing->locations
             ->pluck('location_id')
             ->map(fn ($id): int => (int) $id)

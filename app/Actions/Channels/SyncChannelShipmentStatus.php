@@ -34,7 +34,10 @@ final class SyncChannelShipmentStatus
         $snapshot = ChannelOrderSnapshot::query()
             ->where('sales_order_id', $salesOrder->id)
             ->firstOrFail();
-        $account = SalesChannelAccount::query()->findOrFail($snapshot->channel_account_id);
+        $account = SalesChannelAccount::query()
+            ->where('company_id', PeriodContext::companyId())
+            ->where('is_active', true)
+            ->findOrFail($snapshot->channel_account_id);
         $packageId = trim((string) ($snapshot->external_package_id ?? ''));
 
         if ($packageId === '') {

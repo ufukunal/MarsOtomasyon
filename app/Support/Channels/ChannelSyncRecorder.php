@@ -10,6 +10,7 @@ use App\Support\Period\PeriodContext;
 use DomainException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use JsonException;
 
 final class ChannelSyncRecorder
 {
@@ -49,6 +50,8 @@ final class ChannelSyncRecorder
             throw new DomainException('Kanal sync payload hash SHA-256 biçiminde olmalıdır.');
         }
 
+        $this->assertSafeMetadata($safeMetadata);
+
         return DB::connection('period')->transaction(function () use (
             $channelAccountId,
             $direction,
@@ -60,6 +63,15 @@ final class ChannelSyncRecorder
             $correlationId,
             $safeMetadata,
         ): ChannelSyncEvent {
+            $this->lockCoalesceKey(
+                $channelAccountId,
+                $direction,
+                $entityType,
+                $action,
+                $entityId,
+                $externalId,
+            );
+
             $query = ChannelSyncEvent::query()
                 ->where('channel_account_id', $channelAccountId)
                 ->where('direction', $direction)
@@ -116,6 +128,18 @@ final class ChannelSyncRecorder
                 return $locked;
             }
 
+            $staleProcessing = $locked->status === 'processing'
+                && $locked->last_attempt_at !== null
+                && $locked->last_attempt_at->lessThanOrEqualTo(now()->subMinutes(15));
+
+            if ($locked->status === 'processing' && ! $staleProcessing) {
+                throw new DomainException('Kanal sync event başka bir worker tarafından işleniyor.');
+            }
+
+            if (! in_array($locked->status, ['queued', 'failed', 'processing'], true)) {
+                throw new DomainException('Kanal sync event attempt için uygun durumda değil.');
+            }
+
             $locked->status = 'processing';
             $locked->attempts = (int) $locked->attempts + 1;
             $locked->last_attempt_at = now();
@@ -166,6 +190,69 @@ final class ChannelSyncRecorder
 
             return null;
         }, attempts: 3);
+    }
+
+    /** @param array<string,mixed>|null $metadata */
+    private function assertSafeMetadata(?array $metadata, string $path = 'safe_metadata'): void
+    {
+        if ($metadata === null) {
+            return;
+        }
+
+        foreach ($metadata as $key => $value) {
+            $name = strtolower((string) $key);
+
+            if (preg_match(
+                '/(^|[_-])(authorization|password|secret|token|credential|api[_-]?key|access[_-]?key|consumer[_-]?secret|buyer|customer|recipient|email|phone|address)([_-]|$)/',
+                $name,
+            )) {
+                throw new DomainException($path.'.'.$key.' hassas veri içeremez.');
+            }
+
+            if (is_array($value)) {
+                $this->assertSafeMetadata($value, $path.'.'.$key);
+            }
+        }
+
+        try {
+            $encoded = json_encode(
+                $metadata,
+                JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES,
+            );
+        } catch (JsonException $exception) {
+            throw new DomainException(
+                'Kanal sync safe_metadata JSON olarak saklanabilir olmalıdır.',
+                previous: $exception,
+            );
+        }
+
+        if (strlen($encoded) > 65535) {
+            throw new DomainException('Kanal sync safe_metadata güvenli boyut sınırını aşıyor.');
+        }
+    }
+
+    private function lockCoalesceKey(
+        int $channelAccountId,
+        string $direction,
+        string $entityType,
+        string $action,
+        ?int $entityId,
+        ?string $externalId,
+    ): void {
+        $scope = implode('|', [
+            'channel-sync',
+            $channelAccountId,
+            $direction,
+            $entityType,
+            $action,
+            $entityId === null ? 'null' : (string) $entityId,
+            $externalId ?? 'null',
+        ]);
+
+        DB::connection('period')->select(
+            'SELECT pg_advisory_xact_lock(hashtextextended(?, 0))',
+            [$scope],
+        );
     }
 
     public function resolveError(ChannelSyncError $error): ChannelSyncError
