@@ -86,19 +86,18 @@ final class RecoverySetBackupService
 
             $primaryArchive = $archives[$primaryDisk] ?? reset($archives);
             $run->forceFill([
-                'status' => 'verified',
+                'status' => 'done',
                 'finished_at' => now(),
                 'manifest_path' => $manifestPath,
                 'master_backup_path' => $primaryArchive['path'],
                 'files_backup_path' => $primaryArchive['path'],
                 'checksum_manifest' => $archives,
-                'verified_at' => now(),
             ])->save();
 
             return [
                 'backup_run_id' => (int) $run->id,
                 'recovery_set_id' => $recoverySetId,
-                'status' => 'verified',
+                'status' => 'done',
                 'manifest_path' => $manifestPath,
                 'period_count' => count($periods),
             ];
