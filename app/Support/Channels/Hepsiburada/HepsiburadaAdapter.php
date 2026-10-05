@@ -38,7 +38,7 @@ final class HepsiburadaAdapter implements ChannelAdapter
         SalesChannelAccount $account,
         ChannelProductListing $listing,
     ): ChannelOperationResult {
-        $response = $this->client->postJson(
+        $response = $this->client->postJsonFile(
             $account,
             'catalog',
             '/product/api/products/import',
@@ -46,6 +46,7 @@ final class HepsiburadaAdapter implements ChannelAdapter
                 $listing,
                 $this->client->merchantId($account),
             )],
+            'mars-hepsiburada-products.json',
         );
 
         return $this->trackingResult(

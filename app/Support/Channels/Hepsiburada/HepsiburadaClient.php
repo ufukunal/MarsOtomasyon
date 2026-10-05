@@ -8,6 +8,7 @@ use DomainException;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
+use JsonException;
 
 final class HepsiburadaClient
 {
@@ -39,6 +40,34 @@ final class HepsiburadaClient
                 $this->url($account, $service, $path),
                 $payload,
             ),
+        );
+    }
+
+    /** @return array<string,mixed> */
+    public function postJsonFile(
+        SalesChannelAccount $account,
+        string $service,
+        string $path,
+        array $payload,
+        string $filename = 'products.json',
+    ): array {
+        try {
+            $json = json_encode(
+                $payload,
+                JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR,
+            );
+        } catch (JsonException $exception) {
+            throw new DomainException(
+                'Hepsiburada katalog JSON dosyası üretilemedi.',
+                previous: $exception,
+            );
+        }
+
+        return $this->decode(
+            $account,
+            $this->request($account)
+                ->attach('file', $json, $filename, ['Content-Type' => 'application/json'])
+                ->post($this->url($account, $service, $path)),
         );
     }
 
