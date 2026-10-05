@@ -103,11 +103,20 @@ final class RestoreVerificationService
 
             return ['restore_run_id' => (int) $run->id, ...$summary];
         } catch (Throwable $exception) {
+            $summary = app(OperationalErrorSanitizer::class)->summarize($exception);
+
             $run->forceFill([
                 'status' => 'failed',
                 'finished_at' => now(),
-                'error_summary' => mb_substr(trim($exception->getMessage()), 0, 500),
+                'error_summary' => $summary,
             ])->save();
+
+            app(OperationalAlertService::class)->send(
+                'restore-verification-failed',
+                'Restore doğrulama provası başarısız',
+                'Restore run #'.$run->id.' başarısız: '.$summary,
+                1,
+            );
 
             throw $exception;
         } finally {
