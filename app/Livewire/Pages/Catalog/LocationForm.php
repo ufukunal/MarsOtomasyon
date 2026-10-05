@@ -4,6 +4,7 @@ namespace App\Livewire\Pages\Catalog;
 
 use App\Actions\Locations\SaveLocation;
 use App\Livewire\Concerns\WithIdempotentMutations;
+use App\Models\Period\Contact;
 use App\Models\Period\Location;
 use Illuminate\Contracts\View\View;
 use Livewire\Component;
@@ -21,6 +22,8 @@ class LocationForm extends Component
     public string $kind = 'warehouse';
 
     public string $plate = '';
+
+    public ?int $subcontractorContactId = null;
 
     public string $address = '';
 
@@ -42,6 +45,7 @@ class LocationForm extends Component
             $this->name = $location->name;
             $this->kind = $location->kind->value;
             $this->plate = (string) $location->plate;
+            $this->subcontractorContactId = $location->subcontractor_contact_id;
             $this->address = (string) $location->address;
             $this->isDefault = (bool) $location->is_default;
             $this->isActive = (bool) $location->is_active;
@@ -54,7 +58,8 @@ class LocationForm extends Component
         $data = $this->validate([
             'code' => ['required', 'max:20'],
             'name' => ['required', 'max:255'],
-            'kind' => ['required', 'in:warehouse,branch,vehicle'],
+            'kind' => ['required', 'in:warehouse,branch,vehicle,subcontractor'],
+            'subcontractorContactId' => ['nullable', 'integer'],
             'plate' => ['nullable', 'max:20'],
             'address' => ['nullable'],
             'isDefault' => ['boolean'],
@@ -66,6 +71,7 @@ class LocationForm extends Component
             'name' => $data['name'],
             'kind' => $data['kind'],
             'plate' => $data['plate'],
+            'subcontractor_contact_id' => $data['subcontractorContactId'],
             'address' => $data['address'],
             'is_default' => $data['isDefault'],
             'is_active' => $data['isActive'],
@@ -76,7 +82,9 @@ class LocationForm extends Component
 
     public function render(): View
     {
-        return view('livewire.pages.catalog.location-form')
+        return view('livewire.pages.catalog.location-form', [
+            'contacts' => Contact::query()->where('is_active', true)->orderBy('title')->limit(500)->get(),
+        ])
             ->layout('layouts.app', ['pageTitle' => $this->location ? 'Lokasyon Düzenle' : 'Yeni Lokasyon']);
     }
 }

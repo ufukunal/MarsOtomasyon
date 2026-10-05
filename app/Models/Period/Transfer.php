@@ -12,6 +12,7 @@ class Transfer extends PeriodModel
         'number',
         'from_location_id',
         'to_location_id',
+        'production_order_id',
         'transfer_date',
         'status',
         'note',
@@ -23,6 +24,7 @@ class Transfer extends PeriodModel
     protected function casts(): array
     {
         return [
+            'production_order_id' => 'integer',
             'transfer_date' => 'date',
             'created_by' => 'integer',
             'posted_by' => 'integer',
@@ -43,6 +45,11 @@ class Transfer extends PeriodModel
     }
 
     /** @return HasMany<TransferLine, $this> */
+    public function productionOrder(): BelongsTo
+    {
+        return $this->belongsTo(ProductionOrder::class);
+    }
+
     public function lines(): HasMany
     {
         return $this->hasMany(TransferLine::class);

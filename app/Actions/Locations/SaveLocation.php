@@ -3,6 +3,7 @@
 namespace App\Actions\Locations;
 
 use App\Enums\LocationKind;
+use App\Models\Period\Contact;
 use App\Models\Period\Location;
 use App\Support\Auth\MutationAuthorizer;
 use App\Support\Period\PeriodContext;
@@ -30,7 +31,29 @@ final class SaveLocation
             $plate = '';
         }
 
-        return DB::connection('period')->transaction(function () use ($data, $location, $expectedVersion, $kind, $plate): Location {
+        $subcontractorContactId = isset($data['subcontractor_contact_id']) && $data['subcontractor_contact_id'] !== ''
+            ? (int) $data['subcontractor_contact_id']
+            : null;
+
+        if ($kind === LocationKind::Subcontractor) {
+            if ($subcontractorContactId === null) {
+                throw ValidationException::withMessages([
+                    'subcontractor_contact_id' => 'Fason lokasyonunda fasoncu cari zorunludur.',
+                ]);
+            }
+
+            Contact::query()->where('is_active', true)->findOrFail($subcontractorContactId);
+
+            if ((bool) ($data['is_default'] ?? false)) {
+                throw ValidationException::withMessages([
+                    'is_default' => 'Fason lokasyon varsayılan lokasyon olamaz.',
+                ]);
+            }
+        } else {
+            $subcontractorContactId = null;
+        }
+
+        return DB::connection('period')->transaction(function () use ($data, $location, $expectedVersion, $kind, $plate, $subcontractorContactId): Location {
             $isFirstLocation = ! Location::query()->exists();
             $isDefault = $isFirstLocation ? true : (bool) ($data['is_default'] ?? false);
             $isActive = (bool) ($data['is_active'] ?? true);
@@ -86,6 +109,7 @@ final class SaveLocation
                 'name' => trim((string) $data['name']),
                 'kind' => $kind->value,
                 'plate' => $plate !== '' ? strtoupper($plate) : null,
+                'subcontractor_contact_id' => $subcontractorContactId,
                 'address' => trim((string) ($data['address'] ?? '')) ?: null,
                 'is_default' => $isDefault,
                 'is_active' => $isActive,

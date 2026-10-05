@@ -7,4 +7,5 @@ enum LocationKind: string
     case Warehouse = 'warehouse';
     case Branch = 'branch';
     case Vehicle = 'vehicle';
+    case Subcontractor = 'subcontractor';
 }
