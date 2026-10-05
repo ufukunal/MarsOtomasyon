@@ -63,13 +63,12 @@ if [[ -n "${PREVIOUS_RELEASE_ID}" ]]; then
   ARGS+=("--previous=${PREVIOUS_RELEASE_ID}")
 fi
 
-php artisan "${ARGS[@]}"
-
-sudo systemctl restart mars-queue.service
-sudo systemctl restart mars-scheduler.service
-sudo systemctl restart mars-operations.service
-
-sleep 70
+(
+  set -a
+  source /etc/mars/mars-operations.env
+  set +a
+  php artisan "${ARGS[@]}"
+)
 
 cd "${CURRENT_LINK}"
 php artisan operations:health --no-persist
