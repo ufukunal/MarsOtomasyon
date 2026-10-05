@@ -130,14 +130,15 @@ final class CarryOpenOrders
                 if ($type === DocumentType::SalesOrder && $line->line_kind === 'stock') {
                     $reservations = DB::connection('period')
                         ->table('stock_reservations')
+                        ->selectRaw('location_id, SUM(quantity) AS quantity')
                         ->where('document_line_id', $line->id)
                         ->where('status', 'active')
+                        ->groupBy('location_id')
                         ->orderBy('location_id')
-                        ->orderBy('id')
                         ->get()
                         ->map(fn (object $reservation): array => [
                             'location_id' => (int) $reservation->location_id,
-                            'quantity' => (string) $reservation->quantity,
+                            'quantity' => bcadd((string) $reservation->quantity, '0', 3),
                         ])
                         ->all();
                 }

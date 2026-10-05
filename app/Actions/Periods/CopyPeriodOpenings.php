@@ -77,7 +77,15 @@ final class CopyPeriodOpenings
 
         foreach ($rows as $row) {
             $values = (array) $row;
-            $values['reserved'] = '0.000';
+            $values['reserved'] = bcadd(
+                (string) (DB::connection('period')->table('stock_reservations')
+                    ->where('product_id', $row->product_id)
+                    ->where('location_id', $row->location_id)
+                    ->where('status', 'active')
+                    ->sum('quantity') ?? '0'),
+                '0',
+                3,
+            );
 
             $existing = DB::connection('period')->table('stock_balances')->where('id', $row->id)->first();
 

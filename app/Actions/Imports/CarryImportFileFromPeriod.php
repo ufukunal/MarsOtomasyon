@@ -16,6 +16,7 @@ use App\Support\Period\SourcePeriodContext;
 use DomainException;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 
 final class CarryImportFileFromPeriod
 {
@@ -25,8 +26,13 @@ final class CarryImportFileFromPeriod
         Period $sourcePeriod,
         int $sourceImportFileId,
         string $idempotencyKey,
+        bool $asPeriodCarry = false,
     ): ImportFile {
-        MutationAuthorizer::authorize('import_shipments.create');
+        if ($asPeriodCarry) {
+            Gate::authorize('periods.update');
+        } else {
+            MutationAuthorizer::authorize('import_shipments.create');
+        }
         PeriodContext::ensureWritable();
         $this->assertSourcePeriod($sourcePeriod);
 
@@ -218,7 +224,6 @@ final class CarryImportFileFromPeriod
 
             if (! in_array((string) $file->status, ['draft', 'in_transit', 'customs'], true)
                 || $file->received_at !== null
-                || $file->exchange_rate_locked_at !== null
                 || $file->closed_at !== null) {
                 throw new DomainException('Yalnız açık ve henüz stoğa alınmamış ithalat dosyası yeni döneme taşınabilir.');
             }
