@@ -29,7 +29,7 @@ Faz 0, Faz 1, Faz 2, Faz 3, Faz 4, Faz 5, Faz 6 ve Faz 7 production kodu uygulan
 
 K-038 gereği state-changing Livewire istekleri ilk component snapshot'ında üretilen ve retry boyunca sabit kalan idempotency key taşır. Period mutationları period DB'deki, Master mutationları Master DB'deki idempotency kayıtlarını kullanır.
 
-Dönem devrinde K-256 gereği açık `sales_order` ve `purchase_order` yalnız kalan miktarlarıyla yeni period'da yeni confirmed snapshot olarak oluşturulur; aktif satış rezervasyonları location bazında yeniden kurulur ve açık quarantine taşınır.
+Dönem devrinde K-256 gereği açık `sales_order` ve `purchase_order` yalnız kalan miktarlarıyla yeni period'da yeni confirmed snapshot olarak oluşturulur; aktif satış rezervasyonları location bazında yeniden kurulur ve açık quarantine taşınır. K-259 gereği henüz stoğa alınmamış açık ithalat dosyaları target period'da yeni numara + source provenance ile operational snapshot olarak devam eder; kur kilidi ve landed-cost hesap snapshotları taşınmaz, hedef dönemde yeniden üretilir.
 
 ## Yerel kurulum
 

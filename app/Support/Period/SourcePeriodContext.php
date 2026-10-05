@@ -24,6 +24,11 @@ final class SourcePeriodContext
             throw new RuntimeException("Kaynak şirket için {$year} dönemi bulunamadı.");
         }
 
+        return self::usePeriod($period);
+    }
+
+    public static function usePeriod(Period $period): Period
+    {
         config(['database.connections.period_source.database' => $period->database_name]);
         DB::purge('period_source');
         DB::reconnect('period_source');

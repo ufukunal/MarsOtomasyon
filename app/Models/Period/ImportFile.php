@@ -13,7 +13,8 @@ class ImportFile extends PeriodModel
     use HasOptimisticLock;
 
     protected $fillable = [
-        'number', 'supplier_contact_id', 'receiving_location_id', 'country', 'incoterm',
+        'number', 'source_period_id', 'source_import_file_id', 'source_number',
+        'supplier_contact_id', 'receiving_location_id', 'country', 'incoterm',
         'currency', 'exchange_rate', 'exchange_rate_locked_at', 'exchange_rate_date',
         'etd', 'eta', 'received_at', 'status', 'notes', 'version',
         'created_by', 'created_by_name', 'closed_by', 'closed_by_name', 'closed_at',
@@ -22,6 +23,8 @@ class ImportFile extends PeriodModel
     protected function casts(): array
     {
         return [
+            'source_period_id' => 'integer',
+            'source_import_file_id' => 'integer',
             'supplier_contact_id' => 'integer',
             'receiving_location_id' => 'integer',
             'exchange_rate' => 'decimal:6',
@@ -39,6 +42,13 @@ class ImportFile extends PeriodModel
     {
         static::updating(function (self $file): void {
             $originalStatus = (string) $file->getOriginal('status');
+
+            if ($file->getOriginal('source_period_id') !== null
+                && ($file->isDirty('source_period_id')
+                    || $file->isDirty('source_import_file_id')
+                    || $file->isDirty('source_number'))) {
+                throw new LogicException('İthalat dosyasının dönem devir kaynağı değiştirilemez.');
+            }
 
             if ($originalStatus === 'closed') {
                 throw new LogicException('Kapanmış ithalat dosyası değiştirilemez.');

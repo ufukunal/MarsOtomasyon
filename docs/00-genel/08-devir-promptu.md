@@ -269,3 +269,8 @@ Açık ürün kararı yoktur. A-125 K-257, A-126 K-258, A-127 K-256 ile kapatıl
 - Açık ürün kararı yoktur.
 - Ayrıntılı rapor: `docs/00-genel/10-gorev-kalite-denetimi.md`.
 - Kodlama yapılmadı.
+
+
+## 05.10.2026 — K-259 açık ithalat dönem devri
+
+Henüz stoğa alınmamış `draft|in_transit|customs` import file dönem devrini bloklamaz. Target period'da yeni import numarasıyla operational snapshot oluşturulur; `source_period_id + source_import_file_id + source_number` provenance tutulur. Container/package/cost-item operasyon alanları taşınır; kur kilidi, TRY/allocation/landed-cost snapshotları taşınmaz ve target receiving date akışında yeniden hesaplanır. Source period mutate edilmez.

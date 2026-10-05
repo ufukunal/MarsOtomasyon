@@ -335,6 +335,12 @@ Verilen kararlar ve gerekçeleri. **Kod bu kararlara uyar; kod kararla
 | K-257 | `document_lines` satır tipi `line_kind=stock|service` olarak genişletilir. `service` satırı aynı `purchase_invoice` içinde cari/KDV/belge toplamına girer fakat stock movement, base_quantity ve moving-average üretmez. Service satırında product/unit stok bağları zorunlu değildir; quantity ticari hesap için >0 olabilir. | Aynı faturada mal + navlun/fason hizmeti gerçek senaryosunu ayrı belge türü açmadan destekler. A-125 kapandı. |
 | K-258 | Fason hizmet maliyeti production order içindeki completion'lara **completed_quantity oranında deterministik** dağıtılır. Dağıtım ayrı `production_service_allocations` kayıtlarında saklanır; yuvarlama farkı son uygun completion'a verilir. Geç gelen hizmet faturası da aynı oran/allocation gerçek kaynağını kullanır ve ilgili completion için `inventory_cost_adjustments` üretir. | Kısmi completion + geç gelen fatura senaryosu kullanıcı manuel paylaştırmasına bağlı kalmaz. A-126 kapandı. |
 
+## 2026-10-05 — Faz 7 dönem sınırı kararı
+
+| No | Karar | Gerekçe / teknik sonuç |
+|---|---|---|
+| K-259 | Dönem sonunda henüz stoğa alınmamış açık `import_file` (`draft|in_transit|customs`) blok değildir; target period'da yeni ithalat snapshot'ı olarak oluşturulur. Source period immutable/read-only kalır. Target dosya kendi yılının `import_file` numara serisinden yeni numara alır; `source_period_id + source_import_file_id + source_number` provenance tutulur. Konteyner/paket/maliyet kalemleri yeni operational ID'lerle taşınır. Kur kilidi ve hesaplanmış TRY/allocation/landed-cost snapshotları taşınmaz; TRY=1.000000, yabancı para kurları target period'da yeniden girilip dağıtım yeniden hesaplanır. | Yıl aşan fiziksel ithalat operasyonu source period'u mutate etmeden yeni yılda stoğa alınabilmeli; receiving-date kur kilidi ve period DB izolasyonu korunmalıdır. |
+
 ## Açık kararlar
 
 | No | Konu | Seçenekler / neden blokaj |

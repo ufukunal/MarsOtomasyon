@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Imports;
 
+use App\Actions\Imports\CarryImportFileFromPeriod;
 use App\Actions\Imports\CloseImportFile;
 use App\Actions\Imports\RecalculateImportCosts;
 use App\Actions\Imports\ReceiveImportFile;
@@ -11,6 +12,7 @@ use App\Actions\Imports\SaveImportFile;
 use App\Actions\Imports\SaveImportPackage;
 use App\Enums\ProductKind;
 use App\Livewire\Concerns\WithIdempotentMutations;
+use App\Models\Period;
 use App\Models\Period\Contact;
 use App\Models\Period\ImportContainer;
 use App\Models\Period\ImportCostItem;
@@ -20,7 +22,11 @@ use App\Models\Period\Location;
 use App\Models\Period\Product;
 use App\Queries\Imports\BuildContainerProfitability;
 use App\Queries\Imports\BuildImportFileProfitability;
+use App\Support\Period\PeriodContext;
+use App\Support\Period\SourcePeriodContext;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 
 class ImportCenter extends Component
@@ -69,12 +75,19 @@ class ImportCenter extends Component
     public string $costBasis = 'value';
 
     public string $receivingDate = '';
+    public ?int $carrySourcePeriodId = null;
+    public ?int $carrySourceImportFileId = null;
 
     public function mount(): void
     {
-        $this->seedMutationKeys(['file', 'container', 'package', 'cost', 'allocate', 'receive', 'close']);
+        $this->seedMutationKeys(['file', 'container', 'package', 'cost', 'allocate', 'receive', 'close', 'carry']);
         abort_unless(auth()->user()?->can('import_shipments.view'), 403);
         $this->receivingDate = now()->toDateString();
+    }
+
+    public function updatedCarrySourcePeriodId(): void
+    {
+        $this->carrySourceImportFileId = null;
     }
 
     public function newFile(): void
@@ -262,6 +275,26 @@ class ImportCenter extends Component
         $this->selectFile((int) $closed->id);
     }
 
+    public function carryFromPeriod(CarryImportFileFromPeriod $action): void
+    {
+        abort_unless($this->carrySourcePeriodId !== null && $this->carrySourceImportFileId !== null, 422);
+
+        $sourcePeriod = Period::query()
+            ->where('company_id', PeriodContext::companyId())
+            ->findOrFail($this->carrySourcePeriodId);
+
+        $carried = $action->handle(
+            $sourcePeriod,
+            $this->carrySourceImportFileId,
+            $this->mutationKey('carry'),
+        );
+
+        $this->completeMutation('carry');
+        $this->carrySourcePeriodId = null;
+        $this->carrySourceImportFileId = null;
+        $this->selectFile((int) $carried->id);
+    }
+
     public function render(
         BuildImportFileProfitability $fileProfitability,
         BuildContainerProfitability $containerProfitability,
@@ -270,6 +303,10 @@ class ImportCenter extends Component
             ? ImportFile::query()
                 ->with(['supplier', 'receivingLocation', 'containers', 'packages.product', 'packages.location', 'packages.container', 'costItems'])
                 ->find($this->selectedFileId)
+            : null;
+        $sourcePeriods = $this->carrySourcePeriods();
+        $selectedSourcePeriod = $this->carrySourcePeriodId
+            ? $sourcePeriods->firstWhere('id', $this->carrySourcePeriodId)
             : null;
 
         return view('livewire.imports.import-center', [
@@ -289,7 +326,57 @@ class ImportCenter extends Component
             'containerProfitability' => $file && in_array($file->status, ['received', 'closed'], true)
                 ? $containerProfitability->handle($file)
                 : [],
+            'sourcePeriods' => $sourcePeriods,
+            'carrySourceFiles' => $this->carrySourceFiles($selectedSourcePeriod),
         ])->layout('layouts.app', ['pageTitle' => 'İthalat Merkezi']);
+    }
+
+    /** @return Collection<int, Period> */
+    private function carrySourcePeriods(): Collection
+    {
+        $userId = auth()->id();
+
+        if (! auth()->user()?->can('import_shipments.create')
+            || $userId === null
+            || PeriodContext::companyId() === null
+            || PeriodContext::year() === null) {
+            return collect();
+        }
+
+        $accessiblePeriodIds = DB::connection('master')
+            ->table('period_user_access')
+            ->where('user_id', $userId)
+            ->where('is_active', true)
+            ->pluck('period_id');
+
+        return Period::query()
+            ->where('company_id', PeriodContext::companyId())
+            ->whereIn('id', $accessiblePeriodIds)
+            ->where('year', '<', PeriodContext::year())
+            ->where('status', 'closed')
+            ->orderByDesc('year')
+            ->get();
+    }
+
+    /** @return Collection<int, object> */
+    private function carrySourceFiles(?Period $period): Collection
+    {
+        if ($period === null) {
+            return collect();
+        }
+
+        SourcePeriodContext::usePeriod($period);
+
+        try {
+            return DB::connection('period_source')
+                ->table('import_files')
+                ->whereIn('status', ['draft', 'in_transit', 'customs'])
+                ->orderByDesc('id')
+                ->limit(200)
+                ->get(['id', 'number', 'status', 'eta']);
+        } finally {
+            SourcePeriodContext::clear();
+        }
     }
 
     private function currentFile(): ImportFile

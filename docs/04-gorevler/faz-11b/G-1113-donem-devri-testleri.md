@@ -25,6 +25,7 @@ Yeni production şeması yok.
 - opening stock/cost
 - cari/kasa/banka/security
 - açık quarantine
+- K-259 açık import file carry; yeni target numarası + source provenance + kur/allocation/landed-cost snapshot reset
 - recipe/revision
 - subcontractor location stock
 - channel listing mapping

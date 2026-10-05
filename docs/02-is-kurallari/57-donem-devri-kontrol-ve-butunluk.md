@@ -10,6 +10,7 @@ Kontroller:
 - target DB daha önce business data almış mı,
 - açık teklif/taslak/yoldaki transfer var mı,
 - aktarılacak açık sales_order/purchase_order ve kalan miktar/rezervasyon özeti,
+- K-259 kapsamındaki açık import_file ve konteyner/paket/maliyet kalemi snapshot özeti,
 - açık production/subcontract order var mı,
 - açık quarantine kayıtları,
 - stock/contact/cash/bank/security kapanış toplamları,
@@ -25,7 +26,7 @@ Kontroller:
 - açık production/subcontract order varsa kullanıcı tamamlamadan/iptal etmeden carry tamamlanmaz,
 - yoldaki transfer varsa carry tamamlanmaz.
 
-Açık quarantine blok değildir; yeni döneme taşınır. Açık sales_order/purchase_order da blok değildir; K-256 carry akışıyla yeni period'a kalan miktar snapshot'ı olarak aktarılır.
+Açık quarantine blok değildir; yeni döneme taşınır. Açık sales_order/purchase_order da blok değildir; K-256 carry akışıyla yeni period'a kalan miktar snapshot'ı olarak aktarılır. K-259 gereği henüz stoğa alınmamış açık import_file da blok değildir; target period'da yeni numara ve source provenance ile operational snapshot olarak devam eder.
 
 ## Taşınanlar
 
@@ -41,13 +42,14 @@ Açık quarantine blok değildir; yeni döneme taşınır. Açık sales_order/pu
 - subcontractor location stock,
 - channel account period settings + channel listing/location mapping,
 - K-256 gereği kalan açık miktarlarıyla sales_order/purchase_order snapshot'ları ve sales-order aktif rezervasyonları; target sipariş target yılın kendi numara serisinden yeni numara alır, source numara `period_document_carries.source_document_number` provenance'ında korunur,
-- taşınan açık sales_order kanal kaynaklıysa gerekli `channel_order_snapshot` aktif provenance kaydı.
+- taşınan açık sales_order kanal kaynaklıysa gerekli `channel_order_snapshot` aktif provenance kaydı,
+- K-259 gereği açık `draft|in_transit|customs` import file: target yılın yeni import numarası + source period/file/number provenance; container/package/cost-item operasyon snapshotları. Kur kilidi, TRY/allocation/landed-cost snapshotları taşınmaz ve target'ta yeniden hesaplanır.
 
 ## Taşınmayanlar
 
 - geçmiş documents,
 - geçmiş stock/contact/cash/bank movements,
-- açık teklif ve taslak,
+- açık satış/satınalma teklif ve taslakları; K-259 açık import file draft istisnadır,
 - source period'daki geçmiş/tamamlanmış siparişler; yalnız K-256 kapsamındaki açık kalan sales_order/purchase_order target snapshot'a dönüşür,
 - yoldaki transfer,
 - açık production/subcontract order,

@@ -8,6 +8,7 @@ use App\Models\Period\ImportPackage;
 use App\Models\Period\ProductCost;
 use App\Support\Integrity\IntegrityCheck;
 use App\Support\Integrity\IntegrityResult;
+use App\Support\Period\PeriodContext;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
@@ -32,6 +33,24 @@ final class ImportIntegrityCheck implements IntegrityCheck
         }
 
         $mismatches = [];
+        $provenanceFiles = ImportFile::query()
+            ->whereNotNull('source_period_id')
+            ->orWhereNotNull('source_import_file_id')
+            ->orWhereNotNull('source_number')
+            ->get();
+
+        foreach ($provenanceFiles as $file) {
+            if ($file->source_period_id === null
+                || $file->source_import_file_id === null
+                || trim((string) $file->source_number) === ''
+                || (int) $file->source_period_id === (int) PeriodContext::periodId()) {
+                $mismatches[] = [
+                    'import_file_id' => $file->id,
+                    'reason' => 'carry_provenance_invalid',
+                ];
+            }
+        }
+
         $files = ImportFile::query()
             ->whereIn('status', ['received', 'closed'])
             ->with(['packages.container', 'costItems'])
@@ -62,6 +81,12 @@ final class ImportIntegrityCheck implements IntegrityCheck
                 || $file->exchange_rate_date === null
                 || bccomp((string) ($file->exchange_rate ?? '0'), '0', 6) <= 0) {
                 $mismatches[] = ['import_file_id' => $file->id, 'reason' => 'exchange_rate_not_locked'];
+            }
+
+            if ($file->received_at === null
+                || $file->exchange_rate_date?->toDateString() !== $file->received_at?->toDateString()
+                || (int) ($file->exchange_rate_date?->year ?? 0) !== (int) PeriodContext::year()) {
+                $mismatches[] = ['import_file_id' => $file->id, 'reason' => 'exchange_rate_date_mismatch'];
             }
 
             foreach ($file->costItems as $item) {
@@ -223,7 +248,7 @@ final class ImportIntegrityCheck implements IntegrityCheck
         }
 
         return new IntegrityResult(
-            checked: $files->count(),
+            checked: $files->count() + $provenanceFiles->whereNotIn('status', ['received', 'closed'])->count(),
             mismatches: $mismatches,
             durationMs: $this->elapsed($started),
         );

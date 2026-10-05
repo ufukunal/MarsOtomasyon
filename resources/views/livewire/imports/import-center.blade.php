@@ -6,6 +6,38 @@
         @endcan
     </div>
 
+    @can('import_shipments.create')
+        @if($sourcePeriods->isNotEmpty())
+            <section class="space-y-3">
+                <h2>Önceki Dönemden Açık İthalat Taşı</h2>
+                <label>Kaynak Dönem
+                    <select wire:model.live="carrySourcePeriodId">
+                        <option value="">Seçin</option>
+                        @foreach($sourcePeriods as $sourcePeriod)
+                            <option value="{{ $sourcePeriod->id }}">{{ $sourcePeriod->year }}</option>
+                        @endforeach
+                    </select>
+                </label>
+                @if($carrySourcePeriodId)
+                    <label>Kaynak İthalat Dosyası
+                        <select wire:model="carrySourceImportFileId">
+                            <option value="">Seçin</option>
+                            @foreach($carrySourceFiles as $sourceFile)
+                                <option value="{{ $sourceFile->id }}">
+                                    {{ $sourceFile->number }} · {{ $sourceFile->status }} · ETA {{ $sourceFile->eta ?? '—' }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </label>
+                    <button type="button" wire:click="carryFromPeriod" @disabled(!$carrySourceImportFileId)>
+                        Yeni Döneme Taşı
+                    </button>
+                    <p>Kaynak kayıt değişmez; kur kilidi ve hesaplanmış landed-cost snapshotları hedef dönemde yeniden oluşturulur.</p>
+                @endif
+            </section>
+        @endif
+    @endcan
+
     <section>
         <h2>İthalat Dosyaları</h2>
         <table>
@@ -30,6 +62,12 @@
 
     <section class="space-y-3">
         <h2>{{ $file?->number ?? 'Yeni İthalat Dosyası' }}</h2>
+        @if($file?->source_period_id)
+            <div>
+                Devir kaynağı: dönem #{{ $file->source_period_id }} ·
+                {{ $file->source_number }} (#{{ $file->source_import_file_id }})
+            </div>
+        @endif
         <label>Tedarikçi
             <select wire:model="supplierContactId">
                 <option value="">Seçin</option>

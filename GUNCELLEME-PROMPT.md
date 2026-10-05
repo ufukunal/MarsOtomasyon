@@ -220,3 +220,14 @@ Repo tutarlılık temizliği ve Faz 0–2 görev revizyonu tamamlandı. **Faz 3�
 - Açık ürün kararı yoktur.
 - Ayrıntılı rapor: `docs/00-genel/10-gorev-kalite-denetimi.md`.
 - Kodlama yapılmadı.
+
+
+## 05.10.2026 — Faz 7 dönem sınırı ithalat kararı
+
+- **K-259:** Dönem sonunda henüz stoğa alınmamış açık ithalat dosyası (`draft|in_transit|customs`) carry'yi bloklamaz. Hedef period'da yeni `import_file` snapshot'ı oluşturulur; kaynak period kaydı değiştirilmez.
+- Hedef dosya hedef yılın kendi `import_file` numara serisinden yeni numara alır. Kaynak `source_period_id + source_import_file_id + source_number` scalar provenance ile tutulur; cross-database FK kurulmaz.
+- Konteyner, paket ve maliyet kalemleri operasyon snapshot'ı olarak yeni ID'lerle taşınır. Ürün/lokasyon/cari kart referansları K-071 ID sürekliliğine dayanır.
+- Kaynak kur kilidi, `exchange_rate_date`, hesaplanmış `amount_try`, allocation kayıtları, `goods_value_try`, `allocated_cost_try`, `landed_unit_cost_try`, received/closed alanları taşınmaz. TRY kuru hedefte `1.000000`; yabancı para kurları hedef dönemde yeniden girilir ve landed-cost yeniden hesaplanır.
+- Böylece örneğin 2026'da açılan ve 2027'de gelen dosya, 2026 period DB'sini mutate etmeden 2027 stoğa giriş tarihinde kuru kilitlenerek devam eder.
+- Açık ürün kararı yoktur.
+

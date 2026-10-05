@@ -235,6 +235,8 @@ Her şirket+yıl ayrı period DB. Kartlar dahil işletme verisi period DB'dedir.
 
 ## Dönem devri
 
+**K-259 açık ithalat dönem devri:** Henüz stoğa alınmamış `draft|in_transit|customs` import file blok değildir. Target period'da yeni import numarasıyla operational snapshot oluşturulur; `source_period_id + source_import_file_id + source_number` provenance tutulur. Container/package/cost-item operasyon alanları taşınır; kur kilidi, TRY/allocation/landed-cost snapshotları taşınmaz ve target receiving date akışında yeniden hesaplanır. Source period mutate edilmez.
+
 Aktif kartlar + gerekli pasif kartlar kopyalanır. Taşınan bütün kartların ID/kodları ve taşınan stock_balance ID'leri aynı şirkette korunur. Geçmiş hareketler/belgeler, açık teklif/taslak ve yoldaki transfer taşınmaz. Açık quarantine miktar/snapshot ile taşınır. K-256 gereği açık sales_order/purchase_order yalnız kalan miktarlarıyla target period'da yeni confirmed snapshot olarak oluşturulur; sales-order aktif rezervasyonları location bazında yeniden kurulur. Açılış maliyeti kapanış hareketli ortalamasıdır. Devir sonunda kullanıcıya önceki dönem kullanıcı/dönem erişim ve dönemsel yetkilerini yeni döneme seçerek kopyalama sorulur.
 
 ## Şirketler arası kopyalama

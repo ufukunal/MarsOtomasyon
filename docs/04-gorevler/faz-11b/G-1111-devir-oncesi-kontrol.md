@@ -20,6 +20,7 @@ G-1110 kanonik carry sözleşmesi. G-1111 yeni ikinci carry motoru kurmaz; G-111
 - Target business data varsa block.
 - In-transit transfer ve open production/subcontract order block.
 - Açık sales_order/purchase_order block değildir; carry preview'da kalan miktar ve reservation özetiyle transfer item olarak gösterilir.
+- K-259 açık `draft|in_transit|customs` import file block değildir; source number, container/package/cost-item sayıları ve resetlenecek kur/allocation snapshot özetiyle transfer item olarak gösterilir.
 - Açık quarantine warning/transfer item; block değil.
 - Tüm kapanış toplamları preview'da görünür.
 
