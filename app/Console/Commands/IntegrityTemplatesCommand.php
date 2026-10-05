@@ -16,6 +16,6 @@ class IntegrityTemplatesCommand extends Command
 
     public function handle(DocumentTemplateIntegrityCheck $check): int
     {
-        return $this->runCheck($check);
+        return $this->runCheck($check, false);
     }
 }
