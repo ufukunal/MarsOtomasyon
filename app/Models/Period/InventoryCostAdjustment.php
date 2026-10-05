@@ -2,6 +2,7 @@
 
 namespace App\Models\Period;
 
+use LogicException;
 use App\Models\PeriodModel;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -14,6 +15,12 @@ class InventoryCostAdjustment extends PeriodModel
         'amount_base', 'unit_adjustment_base', 'moving_average_before',
         'moving_average_after', 'reason', 'created_by', 'created_by_name',
     ];
+
+    protected static function booted(): void
+    {
+        static::updating(fn (): never => throw new LogicException('Production geçmiş kaydı yerinde değiştirilemez.'));
+        static::deleting(fn (): never => throw new LogicException('Production geçmiş kaydı fiziksel olarak silinemez.'));
+    }
 
     protected function casts(): array
     {

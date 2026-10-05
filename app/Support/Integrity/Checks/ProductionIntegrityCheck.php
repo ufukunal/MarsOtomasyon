@@ -2,11 +2,14 @@
 
 namespace App\Support\Integrity\Checks;
 
+use App\Models\Period\Document;
+use App\Models\Period\DocumentLine;
 use App\Models\Period\InventoryCostAdjustment;
 use App\Models\Period\ProductCost;
 use App\Models\Period\ProductionCompletion;
 use App\Models\Period\ProductionOrder;
 use App\Models\Period\ProductionServiceAllocation;
+use App\Models\Period\ProductionServiceInvoice;
 use App\Support\Integrity\IntegrityCheck;
 use App\Support\Integrity\IntegrityResult;
 use Illuminate\Support\Facades\Schema;
@@ -157,20 +160,83 @@ final class ProductionIntegrityCheck implements IntegrityCheck
         }
 
         $allocations = ProductionServiceAllocation::query()
-            ->with(['invoiceLine', 'completion'])
+            ->with(['invoiceLine.document', 'completion'])
             ->orderBy('id')
             ->get();
 
+        $activeMappings = ProductionServiceInvoice::query()
+            ->orderBy('purchase_invoice_id')
+            ->orderBy('production_order_id')
+            ->get()
+            ->groupBy('purchase_invoice_id');
+
         foreach ($allocations as $allocation) {
+            $mappingExists = $activeMappings
+                ->get($allocation->purchase_invoice_id, collect())
+                ->contains(fn ($mapping): bool => (int) $mapping->production_order_id === (int) $allocation->production_order_id);
+
             if ($allocation->invoiceLine === null
                 || $allocation->invoiceLine->line_kind !== 'service'
                 || $allocation->completion === null
                 || (int) $allocation->completion->production_order_id !== (int) $allocation->production_order_id
-                || bccomp((string) $allocation->allocated_amount_base, (string) $allocation->applied_amount_base, 4) !== 0) {
+                || bccomp((string) $allocation->allocated_amount_base, (string) $allocation->applied_amount_base, 4) !== 0
+                || (! $mappingExists && bccomp((string) $allocation->allocated_amount_base, '0', 4) !== 0)) {
                 $mismatches[] = [
                     'production_service_allocation_id' => $allocation->id,
                     'reason' => 'service_allocation_mismatch',
                 ];
+            }
+        }
+
+        foreach ($activeMappings as $invoiceId => $mappings) {
+            $invoice = Document::query()->with('lines')->find((int) $invoiceId);
+
+            if ($invoice === null) {
+                $mismatches[] = [
+                    'purchase_invoice_id' => (int) $invoiceId,
+                    'reason' => 'service_invoice_mapping_document_missing',
+                ];
+
+                continue;
+            }
+
+            $orderIds = $mappings
+                ->pluck('production_order_id')
+                ->map(fn ($id): int => (int) $id)
+                ->all();
+            $hasEligibleCompletion = ProductionCompletion::query()
+                ->whereIn('production_order_id', $orderIds)
+                ->whereNull('reversal_of_id')
+                ->whereDoesntHave('reversals')
+                ->exists();
+
+            if (! $hasEligibleCompletion) {
+                continue;
+            }
+
+            foreach ($invoice->lines->where('line_kind', 'service') as $line) {
+                $allocated = $allocations
+                    ->where('purchase_invoice_line_id', $line->id)
+                    ->whereIn('production_order_id', $orderIds)
+                    ->reduce(
+                        fn (string $sum, $allocation): string => bcadd(
+                            $sum,
+                            (string) $allocation->allocated_amount_base,
+                            4,
+                        ),
+                        '0.0000',
+                    );
+                $expected = $this->serviceLineAmountBase($invoice, $line);
+
+                if (bccomp($allocated, $expected, 4) !== 0) {
+                    $mismatches[] = [
+                        'purchase_invoice_id' => (int) $invoiceId,
+                        'purchase_invoice_line_id' => $line->id,
+                        'reason' => 'service_allocation_total_mismatch',
+                        'allocated' => $allocated,
+                        'expected' => $expected,
+                    ];
+                }
             }
         }
 
@@ -221,6 +287,42 @@ final class ProductionIntegrityCheck implements IntegrityCheck
             mismatches: $mismatches,
             durationMs: $this->elapsed($started),
         );
+    }
+
+    private function serviceLineAmountBase(Document $invoice, DocumentLine $target): string
+    {
+        $allocatedDiscount = '0.00000000';
+        $lines = $invoice->lines->sortBy('id')->values();
+        $last = $lines->count() - 1;
+
+        foreach ($lines as $index => $line) {
+            if (bccomp((string) $invoice->subtotal, '0', 4) === 0) {
+                $discountShare = '0.00000000';
+            } elseif ($index === $last) {
+                $discountShare = bcsub((string) $invoice->discount_amount, $allocatedDiscount, 8);
+            } else {
+                $discountShare = bcdiv(
+                    bcmul((string) $invoice->discount_amount, (string) $line->line_total, 8),
+                    (string) $invoice->subtotal,
+                    8,
+                );
+                $allocatedDiscount = bcadd($allocatedDiscount, $discountShare, 8);
+            }
+
+            if ((int) $line->id === (int) $target->id) {
+                return bcadd(
+                    bcmul(
+                        bcsub((string) $line->line_total, $discountShare, 8),
+                        (string) $invoice->exchange_rate,
+                        8,
+                    ),
+                    '0',
+                    4,
+                );
+            }
+        }
+
+        return '0.0000';
     }
 
     private function elapsed(int $started): int

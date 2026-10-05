@@ -78,6 +78,9 @@
                 @can('production_orders.update')
                     <button type="button" wire:click="confirm">Emri Onayla</button>
                 @endcan
+                @can('production_orders.cancel')
+                    <button type="button" wire:click="cancelRemaining">Taslağı İptal Et</button>
+                @endcan
             @endif
         @endif
 

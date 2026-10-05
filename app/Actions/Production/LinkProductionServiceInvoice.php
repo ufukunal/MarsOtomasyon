@@ -38,6 +38,9 @@ final class LinkProductionServiceInvoice
 
                 if ($lockedInvoice->document_type !== DocumentType::SupplierInvoice
                     || $lockedInvoice->status !== 'posted'
+                    || $lockedInvoice->incomingRelations()
+                        ->where('relation_type', 'reversal_of')
+                        ->exists()
                     || (int) $lockedInvoice->contact_id !== (int) $lockedOrder->subcontractor_contact_id
                     || $lockedInvoice->lines->where('line_kind', 'service')->isEmpty()) {
                     throw new DomainException('Fason hizmet faturası supplier/service/status kurallarıyla eşleşmiyor.');

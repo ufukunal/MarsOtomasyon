@@ -4,6 +4,7 @@ namespace App\Actions\Production;
 
 use App\Actions\Periods\EnsurePeriodOpen;
 use App\Actions\Stock\RecordStockMovement;
+use App\Actions\Stock\UpdateMovingAverage;
 use App\DataObjects\StockMovementData;
 use App\Enums\LocationKind;
 use App\Models\Period\Location;
@@ -12,7 +13,6 @@ use App\Models\Period\ProductionCompletion;
 use App\Models\Period\ProductionConsumption;
 use App\Models\Period\ProductionOrder;
 use App\Models\Period\ProductionOutput;
-use App\Models\Period\StockBalance;
 use App\Support\Audit\AuditContext;
 use App\Support\Auth\MutationAuthorizer;
 use App\Support\Concurrency\IdempotencyKey;
@@ -27,6 +27,7 @@ final class PostProductionCompletion
     public function __construct(
         private readonly EnsurePeriodOpen $ensurePeriodOpen,
         private readonly RecordStockMovement $recordStockMovement,
+        private readonly UpdateMovingAverage $updateMovingAverage,
         private readonly ProductionCostCalculator $costs,
         private readonly ProductionServiceCostAllocator $serviceCosts,
     ) {}
@@ -200,8 +201,10 @@ final class PostProductionCompletion
                     $normalizedConsumptions[] = [
                         'component_product_id' => (int) $component->component_product_id,
                         'location_id' => $locationId,
+                        'planned_quantity' => $plannedForCompletion,
                         'consumed_quantity' => $consumed,
                         'fire_quantity' => $fire,
+                        'consumption_deviation' => bcsub($consumed, $plannedForCompletion, 3),
                         'total_quantity' => $total,
                         'unit_cost' => $unitCost,
                     ];
@@ -224,20 +227,12 @@ final class PostProductionCompletion
 
                 $movingBefore = bcadd((string) $finishedCost->moving_average, '0', 4);
                 $previousProductionCost = bcadd((string) $finishedCost->production_cost, '0', 4);
-                $currentQuantity = StockBalance::query()
-                    ->where('product_id', $locked->product_id)
-                    ->orderBy('location_id')
-                    ->lockForUpdate()
-                    ->get()
-                    ->reduce(
-                        fn (string $sum, StockBalance $balance): string => bcadd($sum, (string) $balance->quantity, 3),
-                        '0.000',
-                    );
-                $movingAfter = $this->costs->projectedAverage(
-                    $currentQuantity,
-                    $movingBefore,
+                $movingAfter = $this->updateMovingAverage->handle(
+                    (int) $locked->product_id,
                     $completedQuantity,
                     $productionUnitCost,
+                    'production',
+                    $date->toDateString(),
                 );
 
                 $actor = auth()->user();
@@ -290,7 +285,7 @@ final class PostProductionCompletion
                     ]);
                 }
 
-                $finishedCost->moving_average = $movingAfter;
+                $finishedCost->refresh();
                 $finishedCost->production_cost = $productionUnitCost;
                 $finishedCost->save();
 
@@ -349,6 +344,19 @@ final class PostProductionCompletion
                         'material_cost' => $materialCost,
                         'service_cost' => $serviceCost,
                         'production_unit_cost' => $productionUnitCost,
+                        'consumption_deviations' => array_values(array_filter(
+                            array_map(
+                                fn (array $row): array => [
+                                    'component_product_id' => $row['component_product_id'],
+                                    'planned_quantity' => $row['planned_quantity'],
+                                    'consumed_quantity' => $row['consumed_quantity'],
+                                    'fire_quantity' => $row['fire_quantity'],
+                                    'deviation_quantity' => $row['consumption_deviation'],
+                                ],
+                                $normalizedConsumptions,
+                            ),
+                            fn (array $row): bool => bccomp($row['deviation_quantity'], '0', 3) !== 0,
+                        )),
                     ],
                     $completion,
                     'production_completion_posted',

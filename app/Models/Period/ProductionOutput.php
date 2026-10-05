@@ -2,6 +2,7 @@
 
 namespace App\Models\Period;
 
+use LogicException;
 use App\Models\PeriodModel;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -10,6 +11,12 @@ class ProductionOutput extends PeriodModel
     protected $fillable = [
         'production_completion_id', 'location_id', 'quantity', 'stock_movement_id',
     ];
+
+    protected static function booted(): void
+    {
+        static::updating(fn (): never => throw new LogicException('Production geçmiş kaydı yerinde değiştirilemez.'));
+        static::deleting(fn (): never => throw new LogicException('Production geçmiş kaydı fiziksel olarak silinemez.'));
+    }
 
     protected function casts(): array
     {

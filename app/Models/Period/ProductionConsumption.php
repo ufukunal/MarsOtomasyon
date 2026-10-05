@@ -2,6 +2,7 @@
 
 namespace App\Models\Period;
 
+use LogicException;
 use App\Models\PeriodModel;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -11,6 +12,12 @@ class ProductionConsumption extends PeriodModel
         'production_completion_id', 'component_product_id', 'location_id',
         'consumed_quantity', 'fire_quantity', 'unit_cost', 'total_cost', 'stock_movement_id',
     ];
+
+    protected static function booted(): void
+    {
+        static::updating(fn (): never => throw new LogicException('Production geçmiş kaydı yerinde değiştirilemez.'));
+        static::deleting(fn (): never => throw new LogicException('Production geçmiş kaydı fiziksel olarak silinemez.'));
+    }
 
     protected function casts(): array
     {

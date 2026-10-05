@@ -2,6 +2,7 @@
 
 namespace App\Support\Integrity\Checks;
 
+use App\Models\Period\ProductionOrder;
 use App\Models\Period\ProductionRecipe;
 use App\Support\Integrity\IntegrityCheck;
 use App\Support\Integrity\IntegrityResult;
@@ -82,8 +83,96 @@ final class RecipeIntegrityCheck implements IntegrityCheck
             }
         }
 
+        $orders = ProductionOrder::query()
+            ->with(['recipe.lines', 'components'])
+            ->whereNotIn('status', ['draft'])
+            ->orderBy('id')
+            ->get();
+
+        foreach ($orders as $order) {
+            $recipe = $order->recipe;
+
+            if ($recipe === null
+                || (int) $recipe->product_id !== (int) $order->product_id
+                || (int) $recipe->revision_no !== (int) $order->recipe_revision_no) {
+                $mismatches[] = [
+                    'production_order_id' => $order->id,
+                    'reason' => 'order_recipe_revision_mismatch',
+                ];
+
+                continue;
+            }
+
+            if ($order->components->isEmpty()) {
+                if ($order->status !== 'cancelled') {
+                    $mismatches[] = [
+                        'production_order_id' => $order->id,
+                        'reason' => 'order_recipe_snapshot_missing',
+                    ];
+                }
+
+                continue;
+            }
+
+            $components = $order->components->keyBy('component_product_id');
+
+            if ($components->count() !== $recipe->lines->count()) {
+                $mismatches[] = [
+                    'production_order_id' => $order->id,
+                    'reason' => 'order_recipe_snapshot_line_count_mismatch',
+                ];
+            }
+
+            foreach ($recipe->lines as $line) {
+                $component = $components->get($line->component_product_id);
+
+                if ($component === null) {
+                    $mismatches[] = [
+                        'production_order_id' => $order->id,
+                        'recipe_line_id' => $line->id,
+                        'reason' => 'order_recipe_component_missing',
+                    ];
+
+                    continue;
+                }
+
+                $expectedQuantity = bcadd(
+                    bcdiv(
+                        bcmul((string) $line->quantity, (string) $order->planned_quantity, 8),
+                        (string) $recipe->output_quantity,
+                        8,
+                    ),
+                    '0',
+                    3,
+                );
+                $expectedBase = bcadd(
+                    bcdiv(
+                        bcmul((string) $line->base_quantity, (string) $order->planned_quantity, 8),
+                        (string) $recipe->output_quantity,
+                        8,
+                    ),
+                    '0',
+                    3,
+                );
+
+                if ((int) $component->unit_id !== (int) $line->unit_id
+                    || bccomp((string) $component->conversion_factor, (string) $line->conversion_factor, 6) !== 0
+                    || bccomp((string) $component->planned_quantity, $expectedQuantity, 3) !== 0
+                    || bccomp((string) $component->planned_base_quantity, $expectedBase, 3) !== 0) {
+                    $mismatches[] = [
+                        'production_order_id' => $order->id,
+                        'production_order_component_id' => $component->id,
+                        'reason' => 'order_recipe_snapshot_mismatch',
+                    ];
+                }
+            }
+        }
+
         return new IntegrityResult(
-            checked: $recipes->count() + $recipes->sum(fn ($recipe): int => $recipe->lines->count()),
+            checked: $recipes->count()
+                + $recipes->sum(fn ($recipe): int => $recipe->lines->count())
+                + $orders->count()
+                + $orders->sum(fn ($order): int => $order->components->count()),
             mismatches: $mismatches,
             durationMs: $this->elapsed($started),
         );

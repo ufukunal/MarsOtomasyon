@@ -95,6 +95,19 @@ final class PurchaseMatchCheck implements IntegrityCheck
             foreach ($invoice->lines as $line) {
                 $checked++;
 
+                if ($line->line_kind === 'service') {
+                    if (PurchaseMatch::query()
+                        ->where('supplier_invoice_line_id', $line->id)
+                        ->exists()) {
+                        $mismatches[] = [
+                            'line_id' => $line->id,
+                            'reason' => 'service_line_must_not_have_three_way_match',
+                        ];
+                    }
+
+                    continue;
+                }
+
                 try {
                     $lineage = $this->lineage->handle($line);
                 } catch (Throwable $exception) {

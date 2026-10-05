@@ -2,6 +2,7 @@
 
 namespace App\Models\Period;
 
+use LogicException;
 use App\Models\PeriodModel;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -11,6 +12,12 @@ class ProductionOrderComponent extends PeriodModel
         'production_order_id', 'component_product_id', 'unit_id',
         'planned_quantity', 'planned_base_quantity', 'conversion_factor',
     ];
+
+    protected static function booted(): void
+    {
+        static::updating(fn (): never => throw new LogicException('Production geçmiş kaydı yerinde değiştirilemez.'));
+        static::deleting(fn (): never => throw new LogicException('Production geçmiş kaydı fiziksel olarak silinemez.'));
+    }
 
     protected function casts(): array
     {

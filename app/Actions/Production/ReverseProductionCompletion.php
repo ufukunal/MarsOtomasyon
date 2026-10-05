@@ -104,6 +104,10 @@ final class ReverseProductionCompletion
                     );
                 }
 
+                $cost->moving_average = $original->moving_average_before;
+                $cost->production_cost = $original->previous_production_cost;
+                $cost->save();
+
                 $actor = auth()->user();
                 $reversal = ProductionCompletion::query()->create([
                     'production_order_id' => $original->production_order_id,
@@ -182,10 +186,6 @@ final class ReverseProductionCompletion
                         'stock_movement_id' => $movement->id,
                     ]);
                 }
-
-                $cost->moving_average = $original->moving_average_before;
-                $cost->production_cost = $original->previous_production_cost;
-                $cost->save();
 
                 ProductionServiceAllocation::query()
                     ->where('production_completion_id', $original->id)

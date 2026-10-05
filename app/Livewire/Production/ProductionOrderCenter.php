@@ -185,6 +185,7 @@ class ProductionOrderCenter extends Component
                 ->with([
                     'product', 'recipe', 'components.componentProduct', 'subcontractor',
                     'subcontractorLocation', 'sourceSalesOrder',
+                    'completions.reversals',
                     'completions.consumptions.componentProduct',
                     'completions.outputs.location',
                 ])
