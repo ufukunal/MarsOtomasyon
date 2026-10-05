@@ -68,6 +68,7 @@ use App\Livewire\Reporting\ConsolidatedReportCenter;
 use App\Livewire\Reporting\Dashboard;
 use App\Livewire\Reporting\DocumentTemplateDesigner;
 use App\Livewire\Reporting\ExportCenter;
+use App\Livewire\Reporting\PrintHistory;
 use App\Livewire\Reporting\ReportCenter;
 use App\Livewire\Returns\ReturnCenter;
 use App\Livewire\Sales\DispatchEditor;
