@@ -3,8 +3,8 @@
 namespace App\Livewire\Pages\Settings;
 
 use App\Actions\Periods\ClosePeriod;
-use App\Actions\Periods\CreatePeriod;
 use App\Actions\Periods\ReopenPeriod;
+use App\Jobs\CreatePeriodJob;
 use App\Livewire\Concerns\WithIdempotentMutations;
 use App\Models\Company;
 use App\Models\Period;
@@ -31,7 +31,7 @@ class Periods extends Component
         $this->year = now()->year + 1;
     }
 
-    public function createPeriod(CreatePeriod $action): void
+    public function createPeriod(): void
     {
         Gate::authorize('periods.create');
 
@@ -40,12 +40,22 @@ class Periods extends Component
             'year' => ['required', 'integer', 'between:2000,2200'],
         ]);
 
-        $company = Company::query()->findOrFail($validated['companyId']);
-        $this->runMasterMutation('createPeriod', fn () => $action->handle($company, (int) $validated['year']));
+        $company = Company::query()->where('is_active', true)->findOrFail($validated['companyId']);
+        $actorId = auth()->id();
+
+        if (! $actorId) {
+            abort(403);
+        }
+
+        CreatePeriodJob::dispatch(
+            (int) $actorId,
+            (int) $company->id,
+            (int) $validated['year'],
+        );
 
         session()->flash(
             'warning',
-            'Yeni dönem oluşturuldu. Erişim otomatik verilmez; period_user_access ayrıca tanımlanmalıdır.',
+            'Yeni dönem oluşturma operations queueya alındı. Tamamlandığında erişim ayrıca tanımlanmalıdır.',
         );
     }
 
