@@ -17,6 +17,7 @@ use App\Support\Integrity\Checks\ProductionIntegrityCheck;
 use App\Support\Integrity\Checks\PurchaseMatchCheck;
 use App\Support\Integrity\Checks\RecipeIntegrityCheck;
 use App\Support\Integrity\Checks\QuarantineBalanceCheck;
+use App\Support\Integrity\Checks\ReportPresetIntegrityCheck;
 use App\Support\Integrity\Checks\ReservationBalanceCheck;
 use App\Support\Integrity\Checks\ReturnIntegrityCheck;
 use App\Support\Integrity\Checks\StockBalanceCheck;
@@ -62,6 +63,24 @@ class IntegrityCommand extends Command
         ];
 
         try {
+            try {
+                $presetResult = $runner->run(app(ReportPresetIntegrityCheck::class));
+                $mismatchCount += $presetResult->mismatchCount();
+
+                $this->line(sprintf(
+                    '→ master report_presets checked=%d mismatch=%d',
+                    $presetResult->checked,
+                    $presetResult->mismatchCount(),
+                ));
+            } catch (Throwable $exception) {
+                $failed[] = [
+                    'database' => 'master',
+                    'error' => $exception->getMessage(),
+                ];
+
+                $this->error("→ master report_presets: {$exception->getMessage()}");
+            }
+
             Period::query()
                 ->where('status', 'active')
                 ->orderBy('company_id')

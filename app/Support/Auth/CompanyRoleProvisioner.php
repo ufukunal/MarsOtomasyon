@@ -97,6 +97,7 @@ final class CompanyRoleProvisioner
             'import_shipments.close',
             'reports.view',
             'reports.consolidated',
+            'reports.presets.share',
         ];
 
         foreach ($permissionNames as $permissionName) {
@@ -132,7 +133,7 @@ final class CompanyRoleProvisioner
         $roleMatrix = [
             'Yönetici' => $permissionNames,
             'Muhasebe' => [
-                'reports.view', 'reports.consolidated',
+                'reports.view', 'reports.consolidated', 'reports.presets.share',
                 'periods.view', 'periods.create', 'periods.update', 'periods.cancel',
                 'audit.view',
                 'print_profiles.view', 'print_profiles.create', 'print_profiles.update', 'print_profiles.cancel',

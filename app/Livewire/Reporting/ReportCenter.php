@@ -2,13 +2,17 @@
 
 namespace App\Livewire\Reporting;
 
+use App\Actions\Reporting\DeleteReportPreset;
 use App\Actions\Reporting\ExportReport;
 use App\Actions\Reporting\QueueReportExport;
 use App\Actions\Reporting\RunReport;
+use App\Actions\Reporting\SaveReportPreset;
 use App\Support\Period\PeriodContext;
 use App\Support\Reporting\ReportCatalog;
 use App\Support\Reporting\ReportCatalogItem;
 use App\Support\Reporting\ReportColumnDefinition;
+use App\Support\Reporting\ReportDrillDownResolver;
+use App\Support\Reporting\ReportPresetRepository;
 use App\Support\Reporting\ReportRequest;
 use App\Support\Reporting\ReportResult;
 use Carbon\CarbonImmutable;
@@ -38,6 +42,14 @@ final class ReportCenter extends Component
     public int $page = 1;
 
     public ?string $queueMessage = null;
+
+    public string $presetName = '';
+
+    public bool $presetShared = false;
+
+    public ?int $selectedPresetId = null;
+
+    public ?string $presetMessage = null;
 
     public function mount(): void
     {
@@ -123,6 +135,84 @@ final class ReportCenter extends Component
         $this->queueMessage = "Export #{$job->id} kuyruğa alındı.";
     }
 
+    public function savePreset(): void
+    {
+        abort_unless($this->reportKey !== '', 422);
+
+        $preset = app(SaveReportPreset::class)->handle(
+            reportKey: $this->reportKey,
+            name: $this->presetName,
+            filters: $this->submittedFilters(),
+            columns: $this->selectedColumns,
+            sort: $this->sortKey !== ''
+                ? [['key' => $this->sortKey, 'direction' => $this->sortDirection]]
+                : [],
+            shared: $this->presetShared,
+            presetId: $this->selectedPresetId,
+        );
+
+        $this->selectedPresetId = $preset->id;
+        $this->presetName = $preset->name;
+        $this->presetMessage = 'Preset kaydedildi.';
+    }
+
+    public function applyPreset(int $presetId): void
+    {
+        $actor = auth()->user();
+        abort_unless($actor !== null && $this->reportKey !== '', 403);
+
+        $preset = app(ReportPresetRepository::class)
+            ->forReport($this->reportKey, $actor)
+            ->firstWhere('id', $presetId);
+
+        abort_unless($preset !== null, 404);
+
+        $this->selectedPresetId = $preset->id;
+        $this->presetName = $preset->name;
+        $this->presetShared = (bool) $preset->is_shared;
+        $this->filterValues = $preset->filters ?? [];
+        $this->selectedColumns = array_values($preset->columns ?? []);
+        $firstSort = ($preset->sort ?? [])[0] ?? null;
+        $this->sortKey = is_array($firstSort) ? (string) ($firstSort['key'] ?? '') : '';
+        $this->sortDirection = is_array($firstSort) ? (string) ($firstSort['direction'] ?? 'asc') : 'asc';
+        $this->page = 1;
+        $this->presetMessage = 'Preset uygulandı.';
+    }
+
+    public function deletePreset(): void
+    {
+        abort_unless($this->selectedPresetId !== null, 422);
+
+        app(DeleteReportPreset::class)->handle($this->selectedPresetId);
+
+        $this->selectedPresetId = null;
+        $this->presetName = '';
+        $this->presetShared = false;
+        $this->presetMessage = 'Preset silindi.';
+    }
+
+    /** @param list<\App\Support\Reporting\ReportDrillDownDefinition> $definitions */
+    public function drillDownLink(array $row, array $definitions): ?array
+    {
+        $actor = auth()->user();
+
+        if (! $actor) {
+            return null;
+        }
+
+        $resolver = app(ReportDrillDownResolver::class);
+
+        foreach ($definitions as $definition) {
+            $resolved = $resolver->resolve($definition, $row, $actor);
+
+            if ($resolved !== null) {
+                return $resolved;
+            }
+        }
+
+        return null;
+    }
+
     public function formatCell(array $row, ReportColumnDefinition $column): string
     {
         $value = $row[$column->key] ?? null;
@@ -165,6 +255,9 @@ final class ReportCenter extends Component
         $runReport = app(RunReport::class);
         $catalogItems = $catalog->forActor();
         $selectedReport = $this->findReport($catalogItems, $this->reportKey);
+        $presets = $selectedReport && auth()->user()
+            ? app(ReportPresetRepository::class)->forReport($selectedReport->key, auth()->user())
+            : collect();
         $result = null;
         $reportError = null;
 
@@ -202,6 +295,7 @@ final class ReportCenter extends Component
             'catalogItems' => $catalogItems,
             'catalogGroups' => collect($catalogItems)->groupBy('category'),
             'selectedReport' => $selectedReport,
+            'presets' => $presets,
             'result' => $result,
             'reportError' => $reportError,
             'totalPages' => $totalPages,
@@ -246,6 +340,10 @@ final class ReportCenter extends Component
         $this->sortDirection = $report->defaultSort[0]->direction ?? 'asc';
         $this->page = 1;
         $this->queueMessage = null;
+        $this->selectedPresetId = null;
+        $this->presetName = '';
+        $this->presetShared = false;
+        $this->presetMessage = null;
     }
 
     private function applyIncomingFilters(): void
@@ -286,6 +384,10 @@ final class ReportCenter extends Component
         $this->sortDirection = 'asc';
         $this->page = 1;
         $this->queueMessage = null;
+        $this->selectedPresetId = null;
+        $this->presetName = '';
+        $this->presetShared = false;
+        $this->presetMessage = null;
     }
 
     private function authorizedReportForExport(string $format): ReportCatalogItem

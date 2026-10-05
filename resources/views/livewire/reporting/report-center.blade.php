@@ -35,6 +35,42 @@
                     <div class="report-meta">Tanım v{{ $selectedReport->version }}</div>
                 </div>
 
+                <div class="report-toolbar">
+                    <label>
+                        Preset
+                        <select wire:change="applyPreset($event.target.value)">
+                            <option value="">Preset seçin</option>
+                            @foreach($presets as $preset)
+                                <option value="{{ $preset->id }}" @selected($selectedPresetId === $preset->id)>
+                                    {{ $preset->is_shared ? '[Ortak] ' : '' }}{{ $preset->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </label>
+
+                    <label>
+                        Preset adı
+                        <input type="text" maxlength="120" wire:model.defer="presetName">
+                    </label>
+
+                    @can('reports.presets.share')
+                        <label>
+                            <input type="checkbox" wire:model.defer="presetShared">
+                            Şirketle paylaş
+                        </label>
+                    @endcan
+
+                    <button type="button" class="button-secondary" wire:click="savePreset">Preset Kaydet</button>
+
+                    @if($selectedPresetId)
+                        <button type="button" class="button-secondary" wire:click="deletePreset">Preset Sil</button>
+                    @endif
+                </div>
+
+                @if($presetMessage)
+                    <div class="alert">{{ $presetMessage }}</div>
+                @endif
+
                 @if($selectedReport->filters !== [])
                     <div class="report-filter-grid">
                         @foreach($selectedReport->filters as $filter)
@@ -167,6 +203,9 @@
                                         {{ $column->label }}
                                     </th>
                                 @endforeach
+                                @if($result->drillDowns !== [])
+                                    <th>Detay</th>
+                                @endif
                             </tr>
                             </thead>
                             <tbody>
@@ -177,10 +216,18 @@
                                             {{ $this->formatCell($row, $column) }}
                                         </td>
                                     @endforeach
+                                    @if($result->drillDowns !== [])
+                                        @php($drillDown = $this->drillDownLink($row, $result->drillDowns))
+                                        <td>
+                                            @if($drillDown)
+                                                <a href="{{ $drillDown['url'] }}">{{ $drillDown['label'] }}</a>
+                                            @endif
+                                        </td>
+                                    @endif
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="{{ max(1, count($result->columns)) }}" class="empty-state">
+                                    <td colspan="{{ max(1, count($result->columns) + ($result->drillDowns !== [] ? 1 : 0)) }}" class="empty-state">
                                         Bu filtrelerle kayıt bulunamadı.
                                     </td>
                                 </tr>
