@@ -109,6 +109,20 @@
                             @endforeach
                         </div>
                     </details>
+
+                    @foreach(['pdf' => 'PDF', 'xlsx' => 'XLSX', 'csv' => 'CSV'] as $format => $label)
+                        @if(in_array($format, $selectedReport->exporters, true))
+                            <button
+                                type="button"
+                                class="button-secondary"
+                                wire:click="export('{{ $format }}')"
+                                wire:loading.attr="disabled"
+                                wire:target="export"
+                            >
+                                {{ $label }}
+                            </button>
+                        @endif
+                    @endforeach
                 </div>
 
                 @if($reportError)

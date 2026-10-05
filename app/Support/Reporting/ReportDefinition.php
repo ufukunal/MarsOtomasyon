@@ -24,7 +24,7 @@ final readonly class ReportDefinition
         public array $defaultSort,
         public array $totals = [],
         public array $drillDowns = [],
-        public array $exporters = ['screen'],
+        public array $exporters = ['screen', 'pdf', 'xlsx', 'csv'],
         public int $version = 1,
     ) {
         if ($this->key === '' || $this->title === '' || $this->category === '' || $this->permission === '') {
@@ -41,6 +41,12 @@ final readonly class ReportDefinition
         foreach ($this->defaultSort as $sort) {
             if (! isset($columns[$sort->key]) || ! $columns[$sort->key]->sortable) {
                 throw new LogicException("Rapor default sort kolonu geçersiz: {$sort->key}.");
+            }
+        }
+
+        foreach ($this->exporters as $exporter) {
+            if (! in_array($exporter, ['screen', 'pdf', 'xlsx', 'csv'], true)) {
+                throw new LogicException("Rapor exporter geçersiz: {$exporter}.");
             }
         }
     }

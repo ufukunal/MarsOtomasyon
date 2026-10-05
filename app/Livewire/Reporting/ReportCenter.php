@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Reporting;
 
+use App\Actions\Reporting\ExportReport;
 use App\Actions\Reporting\RunReport;
 use App\Support\Period\PeriodContext;
 use App\Support\Reporting\ReportCatalog;
@@ -14,6 +15,7 @@ use DomainException;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Url;
 use Livewire\Component;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 final class ReportCenter extends Component
 {
@@ -81,6 +83,43 @@ final class ReportCenter extends Component
     {
         abort_unless($page >= 1, 422);
         $this->page = $page;
+    }
+
+    public function export(string $format): StreamedResponse
+    {
+        abort_unless($this->reportKey !== '', 422);
+
+        $report = $this->findReport(
+            app(ReportCatalog::class)->forActor(),
+            $this->reportKey,
+        );
+        abort_unless($report !== null, 403);
+        abort_unless(in_array($format, $report->exporters, true), 422);
+
+        $artifact = app(ExportReport::class)->handle(
+            $report->key,
+            new ReportRequest(
+                filters: $this->submittedFilters(),
+                columns: $this->selectedColumns,
+                sort: $this->sortKey !== ''
+                    ? [[
+                        'key' => $this->sortKey,
+                        'direction' => $this->sortDirection,
+                    ]]
+                    : [],
+                limit: $this->perPage,
+                offset: 0,
+            ),
+            $format,
+        );
+
+        return response()->streamDownload(
+            static function () use ($artifact): void {
+                echo $artifact->contents;
+            },
+            $artifact->filename,
+            ['Content-Type' => $artifact->mimeType],
+        );
     }
 
     public function formatCell(array $row, ReportColumnDefinition $column): string
