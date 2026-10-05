@@ -22,7 +22,7 @@ Zorunlu production secret grupları:
 - off-VDS backup storage credential
 - webhook/channel secret'ları
 
-`php artisan operations:security-check` production config guard'larını doğrular.
+`php artisan operations:security-check` production config guard'larını ve `RUNTIME_DB_USERNAME` rolünün PostgreSQL least-privilege sınırlarını doğrular. Runtime rol SUPERUSER/CREATEDB/CREATEROLE/REPLICATION veya database/schema CREATE yetkisi taşıyorsa deploy green gate başarısız olur.
 
 ## APP_KEY / encryption-key recovery
 
@@ -41,7 +41,7 @@ Bu nedenle:
 
 En az üç erişim sınırı kullanılır:
 
-- `mars_app`: web/worker runtime DML; database/schema create/drop yok.
+- `mars_app`: web/worker runtime DML; database/schema create/drop yok. Active period DB'lerde DML gerekir; restore edilmiş closed archive DB'lerde yalnız read-only erişim verilir ve database-level `default_transaction_read_only=on` uygulanır.
 - `mars_migrator`: deploy/migration DDL; normal web process tarafından kullanılmaz.
 - `mars_backup`: backup için read-only veri erişimi.
 
