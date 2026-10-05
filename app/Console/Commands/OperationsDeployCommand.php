@@ -40,6 +40,10 @@ class OperationsDeployCommand extends Command
                 previousReleaseId: $this->option('previous') ?: null,
                 activateRelease: fn () => $this->activate($releasePath, $currentLink),
                 restartWorkers: fn (): void => $this->restartServices(),
+                rollbackActivation: fn (): void => $this->restorePreviousRelease(
+                    $this->option('previous') ?: null,
+                    $currentLink,
+                ),
             );
             $this->info('Release active: '.$result['release_id']);
             return self::SUCCESS;
@@ -76,6 +80,42 @@ class OperationsDeployCommand extends Command
         }
 
         $this->info('Operational readiness bootstrap tamamlandı; tracked deploy akışına geçiliyor.');
+    }
+
+    private function restorePreviousRelease(?string $previousReleaseId, string $currentLink): void
+    {
+        if ($previousReleaseId === null || $previousReleaseId === '') {
+            if (is_link($currentLink) && ! @unlink($currentLink)) {
+                throw new RuntimeException('Başarısız ilk release current symlinkten çıkarılamadı.');
+            }
+
+            return;
+        }
+
+        if (! preg_match('/^[A-Za-z0-9._-]+$/', $previousReleaseId)) {
+            throw new RuntimeException('Previous release identifier geçersiz.');
+        }
+
+        $releasePath = dirname($currentLink).'/releases/'.$previousReleaseId;
+
+        if (! is_dir($releasePath) || ! is_file($releasePath.'/artisan')) {
+            throw new RuntimeException('Previous immutable release dizini bulunamadı.');
+        }
+
+        $temporary = $currentLink.'.recover';
+
+        if (is_link($temporary) || file_exists($temporary)) {
+            @unlink($temporary);
+        }
+
+        if (! symlink($releasePath, $temporary)) {
+            throw new RuntimeException('Previous release recovery symlink oluşturulamadı.');
+        }
+
+        if (! rename($temporary, $currentLink)) {
+            @unlink($temporary);
+            throw new RuntimeException('Previous release current symlinkine geri alınamadı.');
+        }
     }
 
     private function restartServices(): void
