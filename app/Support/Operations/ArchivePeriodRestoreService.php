@@ -104,6 +104,7 @@ final class ArchivePeriodRestoreService
             return ['restore_run_id' => (int) $run->id, ...$summary];
         } catch (Throwable $exception) {
             PeriodContext::clear();
+            $summary = app(OperationalErrorSanitizer::class)->summarize($exception);
 
             if ($databaseCreated) {
                 try {
@@ -117,8 +118,15 @@ final class ArchivePeriodRestoreService
             $run->forceFill([
                 'status' => 'failed',
                 'finished_at' => now(),
-                'error_summary' => mb_substr(trim($exception->getMessage()), 0, 500),
+                'error_summary' => $summary,
             ])->save();
+
+            app(OperationalAlertService::class)->send(
+                'archive-restore-failed',
+                'Archive period restore başarısız',
+                'Restore run #'.$run->id.' başarısız: '.$summary,
+                1,
+            );
 
             throw $exception;
         } finally {
