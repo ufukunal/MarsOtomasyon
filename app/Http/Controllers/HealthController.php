@@ -21,6 +21,7 @@ class HealthController extends Controller
             'master' => $this->master(),
             'valkey' => $this->valkey(),
             'queue_worker' => $this->queueWorker(),
+            'scheduler' => $this->scheduler(),
             'failed_jobs' => $this->failedJobs(),
             'backup' => $backupHealth->check(),
             'integrity' => $integrityHealth->check(),
@@ -80,6 +81,29 @@ class HealthController extends Controller
             ];
         } catch (Throwable $exception) {
             Log::warning('Health queue kontrolü başarısız.', ['exception' => $exception]);
+
+            return ['ok' => false, 'status' => 'unavailable'];
+        }
+    }
+
+    /** @return array<string, bool|string> */
+    private function scheduler(): array
+    {
+        try {
+            $timestamp = Redis::connection('queue')->get('mars:scheduler-heartbeat');
+
+            if (! $timestamp) {
+                return ['ok' => false, 'status' => 'heartbeat_missing'];
+            }
+
+            $age = now()->timestamp - (int) $timestamp;
+
+            return [
+                'ok' => $age <= 180,
+                'status' => $age <= 180 ? 'fresh' : 'stale',
+            ];
+        } catch (Throwable $exception) {
+            Log::warning('Health scheduler kontrolü başarısız.', ['exception' => $exception]);
 
             return ['ok' => false, 'status' => 'unavailable'];
         }
