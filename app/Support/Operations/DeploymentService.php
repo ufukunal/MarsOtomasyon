@@ -68,27 +68,35 @@ final class DeploymentService
                 throw new RuntimeException('Candidate release smoke doğrulaması başarısız.');
             }
 
-            $health = app(OperationalHealthService::class)->check();
-            if ($health['status'] === 'failed') {
-                throw new RuntimeException('Operational health candidate activation öncesi failed durumda.');
-            }
+            $preHealth = app(OperationalHealthService::class)->check();
 
             $run->forceFill([
                 'metadata' => array_merge($run->metadata ?? [], [
-                    'pre_activation_health' => $health['status'],
-                    'health_correlation_id' => $health['correlation_id'],
+                    'pre_activation_health' => $preHealth['status'],
+                    'pre_activation_health_correlation_id' => $preHealth['correlation_id'],
                 ]),
             ])->save();
 
             $activateRelease();
+
             if ($restartWorkers !== null) {
                 $restartWorkers();
+            }
+
+            $health = $this->waitForHealthy();
+
+            if (Artisan::call('operations:smoke') !== 0) {
+                throw new RuntimeException('Post-activation smoke doğrulaması başarısız.');
             }
 
             $run->forceFill([
                 'status' => 'active',
                 'finished_at' => now(),
-                'metadata' => array_merge($run->metadata ?? [], ['activated' => true]),
+                'metadata' => array_merge($run->metadata ?? [], [
+                    'activated' => true,
+                    'post_activation_health' => $health['status'],
+                    'post_activation_health_correlation_id' => $health['correlation_id'],
+                ]),
             ])->save();
 
             return [
@@ -105,5 +113,25 @@ final class DeploymentService
             ])->save();
             throw $exception;
         }
+    }
+    /** @return array{status:string,checks:array<string,array<string,mixed>>,correlation_id:string} */
+    private function waitForHealthy(): array
+    {
+        $last = null;
+
+        for ($attempt = 0; $attempt < 18; $attempt++) {
+            $last = app(OperationalHealthService::class)->check();
+
+            if ($last['status'] === 'healthy') {
+                return $last;
+            }
+
+            sleep(5);
+        }
+
+        throw new RuntimeException(
+            'Post-activation operational health healthy duruma ulaşmadı: '.
+            ($last['status'] ?? 'unknown'),
+        );
     }
 }
