@@ -13,7 +13,10 @@ class VerifyRecoverySetBackupJob implements ShouldQueue
 
     public int $timeout = 7200;
 
-    public function __construct(public readonly int $backupRunId) {}
+    public function __construct(public readonly int $backupRunId)
+    {
+        $this->onQueue('operations');
+    }
 
     public function handle(RestoreVerificationService $service): void
     {
