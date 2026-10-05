@@ -63,6 +63,7 @@ use App\Livewire\Purchases\SupplierPerformance;
 use App\Livewire\Production\ProductionOrderCenter;
 use App\Livewire\Production\RecipeCenter;
 use App\Livewire\Production\SubcontractingCenter;
+use App\Livewire\Reporting\ReportCenter;
 use App\Livewire\Returns\ReturnCenter;
 use App\Livewire\Sales\DispatchEditor;
 use App\Livewire\Sales\DispatchList;
@@ -175,6 +176,10 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/e-ticaret/kanal-hesaplari', ChannelAccountCenter::class)->name('channels.accounts');
     Route::get('/e-ticaret/listingler', ChannelListingCenter::class)->name('channels.listings');
     Route::get('/e-ticaret/sync', ChannelSyncCenter::class)->name('channels.sync');
+
+    Route::get('/raporlar', ReportCenter::class)
+        ->middleware('throttle:report')
+        ->name('reports.center');
 
     Route::get('/ice-aktarma', ImportWizard::class)->name('imports.index');
     Route::get('/stok/durum', StockStatus::class)->name('stock.status');

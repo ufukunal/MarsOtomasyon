@@ -194,3 +194,40 @@ button:hover{background:var(--primary-600)}
 .import-row-error{background:#fff0ef}
 .drag-handle{cursor:grab;user-select:none;color:var(--muted)}
 .image-card.is-dragging{opacity:.5;outline:2px dashed var(--primary)}
+
+
+.button-secondary{background:var(--surface);color:var(--text);border-color:var(--line)}
+.button-secondary:hover{background:var(--soft)}
+button:disabled{opacity:.45;cursor:not-allowed}
+
+.report-center{display:grid;grid-template-columns:240px minmax(0,1fr);gap:12px;align-items:start}
+.report-catalog{position:sticky;top:62px;max-height:calc(100vh - 76px);overflow:auto}
+.report-catalog h2{font-size:14px;margin:0 0 10px}
+.report-catalog-group{display:grid;gap:3px;margin-bottom:12px}
+.report-catalog-group h3{margin:0 0 3px;color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.06em}
+.report-catalog-item{width:100%;text-align:left;background:var(--surface);color:var(--text);border-color:var(--line)}
+.report-catalog-item:hover{background:var(--soft)}
+.report-catalog-item.is-active{border-color:var(--primary);color:var(--primary);background:#f0f8fc}
+.report-workspace{min-width:0}
+.report-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.report-heading h2{margin:2px 0 0}
+.report-category,.report-meta{color:var(--muted)}
+.report-filter-grid{display:grid;grid-template-columns:repeat(4,minmax(150px,1fr));gap:8px}
+.report-filter-grid input,.report-filter-grid select{width:100%}
+.report-toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;border-top:1px solid var(--line2);padding-top:10px}
+.report-toolbar>label{display:flex;align-items:center;gap:5px}
+.report-totals{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px}
+.report-total-card{background:var(--surface);border:1px solid var(--line);padding:10px;display:grid;gap:4px}
+.report-total-card span{color:var(--muted)}
+.report-total-card strong{font-size:15px;font-variant-numeric:tabular-nums}
+.report-table{min-width:760px}
+.report-pagination{display:flex;gap:6px}
+
+@media(max-width:1000px){
+  .report-center{grid-template-columns:1fr}
+  .report-catalog{position:static;max-height:none}
+  .report-filter-grid{grid-template-columns:repeat(2,minmax(150px,1fr))}
+}
+@media(max-width:640px){
+  .report-filter-grid{grid-template-columns:1fr}
+}

@@ -91,6 +91,12 @@ return [
         ],
     ],
     [
+        'label' => 'Raporlar',
+        'items' => [
+            ['label' => 'Rapor Merkezi', 'route' => 'reports.center', 'permission' => 'reports.view'],
+        ],
+    ],
+    [
         'label' => 'Ayarlar',
         'items' => [
             ['label' => 'Şirketler', 'route' => 'settings.companies', 'permission' => 'companies.view'],

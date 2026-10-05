@@ -95,6 +95,7 @@ final class CompanyRoleProvisioner
             'purchase_orders.approve',
             'import_shipments.receive',
             'import_shipments.close',
+            'reports.view',
         ];
 
         foreach ($permissionNames as $permissionName) {
@@ -104,10 +105,13 @@ final class CompanyRoleProvisioner
             ]);
         }
 
-        $viewerPermissions = array_values(array_filter(
-            $allScreenPermissions,
-            fn (string $name): bool => str_ends_with($name, '.view'),
-        ));
+        $viewerPermissions = [
+            ...array_values(array_filter(
+                $allScreenPermissions,
+                fn (string $name): bool => str_ends_with($name, '.view'),
+            )),
+            'reports.view',
+        ];
 
         $technicalViews = [
             'units.view',
@@ -127,6 +131,7 @@ final class CompanyRoleProvisioner
         $roleMatrix = [
             'Yönetici' => $permissionNames,
             'Muhasebe' => [
+                'reports.view',
                 'periods.view', 'periods.create', 'periods.update', 'periods.cancel',
                 'audit.view',
                 'print_profiles.view', 'print_profiles.create', 'print_profiles.update', 'print_profiles.cancel',
@@ -157,6 +162,7 @@ final class CompanyRoleProvisioner
                 ...$technicalViews,
             ],
             'Satış' => [
+                'reports.view',
                 'print_profiles.view',
                 'contacts.view', 'contacts.create', 'contacts.update',
                 'products.view', 'locations.view', 'price_lists.view', 'stock.view',
@@ -177,6 +183,7 @@ final class CompanyRoleProvisioner
                 ...$technicalViews,
             ],
             'Satınalma' => [
+                'reports.view',
                 'print_profiles.view', 'cost.view',
                 'contacts.view', 'contacts.create', 'contacts.update',
                 'products.view', 'locations.view', 'stock.view',
@@ -191,6 +198,7 @@ final class CompanyRoleProvisioner
                 ...$technicalViews,
             ],
             'Depo' => [
+                'reports.view',
                 'print_profiles.view',
                 'contacts.view', 'products.view',
                 'locations.view', 'locations.create', 'locations.update', 'stock.view',
@@ -210,6 +218,7 @@ final class CompanyRoleProvisioner
                 ...$technicalViews,
             ],
             'Üretim' => [
+                'reports.view',
                 'print_profiles.view', 'cost.view',
                 'contacts.view', 'products.view', 'locations.view', 'stock.view',
                 'transfers.view', 'transfers.create', 'transfers.update', 'transfers.cancel',
