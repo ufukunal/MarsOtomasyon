@@ -86,6 +86,7 @@ final class ArchivePeriodRestoreService
             app(SeedPeriodReferenceData::class)->handle();
             $schemaVersion = app(PeriodSchemaVersion::class)->currentDatabaseVersion();
             $integrityChecked = $this->integrity->verify();
+            $this->enforceRuntimeReadOnlyAccess((string) $period->database_name);
 
             PeriodContext::clear();
 
@@ -113,6 +114,7 @@ final class ArchivePeriodRestoreService
                 'integrity_checked' => $integrityChecked,
                 'status' => 'closed',
                 'database_default_read_only' => true,
+                'runtime_read_only_access_enforced' => true,
             ];
 
             $run->forceFill([
@@ -154,6 +156,37 @@ final class ArchivePeriodRestoreService
             DB::purge('period');
             $this->deleteDirectory($workspace);
         }
+    }
+
+    private function enforceRuntimeReadOnlyAccess(string $database): void
+    {
+        $role = trim((string) config('operations.database.runtime_username'));
+
+        if ($role === '') {
+            throw new RuntimeException('Runtime DB username archive restore için tanımlı olmalıdır.');
+        }
+
+        if (! preg_match('/^[A-Za-z_][A-Za-z0-9_]*$/', $role)
+            || ! preg_match('/^[A-Za-z_][A-Za-z0-9_]*$/', $database)) {
+            throw new RuntimeException('Archive runtime role/database identifier geçersiz.');
+        }
+
+        $quotedRole = '"'.$role.'"';
+        $quotedDatabase = '"'.$database.'"';
+
+        DB::connection('period')->statement('REVOKE CREATE ON SCHEMA public FROM '.$quotedRole);
+        DB::connection('period')->statement(
+            'REVOKE INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER ON ALL TABLES IN SCHEMA public FROM '.$quotedRole
+        );
+        DB::connection('period')->statement(
+            'GRANT SELECT ON ALL TABLES IN SCHEMA public TO '.$quotedRole
+        );
+        DB::connection('period')->statement(
+            'GRANT USAGE ON SCHEMA public TO '.$quotedRole
+        );
+        DB::connection('master')->statement(
+            'GRANT CONNECT ON DATABASE '.$quotedDatabase.' TO '.$quotedRole
+        );
     }
 
     private function restoreSql(string $database, string $sqlFile): void
