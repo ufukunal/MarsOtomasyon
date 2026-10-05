@@ -56,6 +56,7 @@ final class ArchivePeriodRestoreService
 
         $workspace = storage_path('app/restore-temp/archive-'.str_replace('-', '', (string) Str::uuid()));
         $databaseCreated = false;
+        $masterAttached = false;
         $oldDatabase = config('database.connections.period.database');
 
         try {
@@ -86,6 +87,12 @@ final class ArchivePeriodRestoreService
             $schemaVersion = app(PeriodSchemaVersion::class)->currentDatabaseVersion();
             $integrityChecked = $this->integrity->verify();
 
+            PeriodContext::clear();
+
+            DB::connection('master')->statement(
+                'ALTER DATABASE "'.$this->identifier($period->database_name).'" SET default_transaction_read_only = on'
+            );
+
             DB::connection('master')->transaction(function () use ($period, $schemaVersion): void {
                 $locked = Period::query()->lockForUpdate()->findOrFail($period->id);
                 if ((string) $locked->status !== 'archived') {
@@ -97,12 +104,7 @@ final class ArchivePeriodRestoreService
                 $locked->version = (int) $locked->version + 1;
                 $locked->save();
             });
-
-            PeriodContext::clear();
-
-            DB::connection('master')->statement(
-                'ALTER DATABASE "'.$this->identifier($period->database_name).'" SET default_transaction_read_only = on'
-            );
+            $masterAttached = true;
 
             $summary = [
                 'checksum_verified' => true,
@@ -124,7 +126,7 @@ final class ArchivePeriodRestoreService
             PeriodContext::clear();
             $summary = app(OperationalErrorSanitizer::class)->summarize($exception);
 
-            if ($databaseCreated) {
+            if ($databaseCreated && ! $masterAttached) {
                 try {
                     DB::connection('master')->statement(
                         'DROP DATABASE IF EXISTS "'.$this->identifier($period->database_name).'" WITH (FORCE)'
