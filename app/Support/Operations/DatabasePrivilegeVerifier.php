@@ -4,7 +4,6 @@ namespace App\Support\Operations;
 
 use App\Models\Period;
 use Illuminate\Support\Facades\DB;
-use RuntimeException;
 use Throwable;
 
 final class DatabasePrivilegeVerifier
