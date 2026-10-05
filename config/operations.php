@@ -1,6 +1,10 @@
 <?php
 
 return [
+    'database' => [
+        'runtime_username' => env('RUNTIME_DB_USERNAME', env('DB_USERNAME', 'postgres')),
+    ],
+
     'health' => [
         'token' => env('HEALTH_TOKEN', ''),
         'heartbeat_max_age_seconds' => 180,
