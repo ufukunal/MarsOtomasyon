@@ -63,6 +63,7 @@ use App\Livewire\Purchases\SupplierPerformance;
 use App\Livewire\Production\ProductionOrderCenter;
 use App\Livewire\Production\RecipeCenter;
 use App\Livewire\Production\SubcontractingCenter;
+use App\Livewire\Reporting\Dashboard;
 use App\Livewire\Reporting\ReportCenter;
 use App\Livewire\Returns\ReturnCenter;
 use App\Livewire\Sales\DispatchEditor;
@@ -83,7 +84,7 @@ Route::get('/saglik', HealthController::class)
     ->middleware('local.network')
     ->name('health');
 
-Route::view('/', 'welcome')->middleware('auth')->name('home');
+Route::get('/', Dashboard::class)->middleware('auth')->name('home');
 
 Route::post('/hooks/channel/{account}', TrendyolWebhookController::class)
     ->whereNumber('account')

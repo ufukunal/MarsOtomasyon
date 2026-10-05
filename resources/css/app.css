@@ -231,3 +231,12 @@ button:disabled{opacity:.45;cursor:not-allowed}
 @media(max-width:640px){
   .report-filter-grid{grid-template-columns:1fr}
 }
+
+
+.dashboard-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+.dashboard-card{background:var(--surface);border:1px solid var(--line);padding:14px;display:grid;gap:7px;min-height:128px}
+a.dashboard-card:hover{border-color:var(--primary);background:var(--soft)}
+.dashboard-card-title{font-weight:650}
+.dashboard-card strong{font-size:22px;font-variant-numeric:tabular-nums}
+.dashboard-card small{color:var(--muted)}
+.dashboard-card-link{margin-top:auto;color:var(--primary);font-weight:600}

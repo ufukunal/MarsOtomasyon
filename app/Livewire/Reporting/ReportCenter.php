@@ -41,6 +41,7 @@ final class ReportCenter extends Component
 
         if ($this->reportKey !== '') {
             $this->initializeReport($this->reportKey);
+            $this->applyIncomingFilters();
         }
     }
 
@@ -204,6 +205,35 @@ final class ReportCenter extends Component
         $this->sortKey = $report->defaultSort[0]->key ?? '';
         $this->sortDirection = $report->defaultSort[0]->direction ?? 'asc';
         $this->page = 1;
+    }
+
+    private function applyIncomingFilters(): void
+    {
+        $incoming = request()->query('filters', []);
+
+        if (! is_array($incoming)) {
+            return;
+        }
+
+        $report = $this->findReport(
+            app(ReportCatalog::class)->forActor(),
+            $this->reportKey,
+        );
+
+        if (! $report) {
+            return;
+        }
+
+        $allowed = array_fill_keys(
+            array_map(fn ($filter): string => $filter->key, $report->filters),
+            true,
+        );
+
+        foreach ($incoming as $key => $value) {
+            if (isset($allowed[$key]) && (is_scalar($value) || $value === null)) {
+                $this->filterValues[$key] = $value;
+            }
+        }
     }
 
     private function resetReport(): void
