@@ -6,6 +6,7 @@ use App\Exceptions\NoActivePeriodException;
 use App\Exceptions\PeriodReadOnlyException;
 use App\Models\Period;
 use App\Support\Company\CompanyContext;
+use Closure;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -61,6 +62,24 @@ final class PeriodContext
         }
 
         return $period;
+    }
+
+    public static function withinSystem(Period $period, Closure $callback): mixed
+    {
+        $oldCompanyId = self::companyId();
+        $oldPeriodId = self::periodId();
+
+        try {
+            self::useSystem((int) $period->company_id, (int) $period->id);
+
+            return $callback($period);
+        } finally {
+            self::clear();
+
+            if ($oldCompanyId && $oldPeriodId) {
+                self::useSystem($oldCompanyId, $oldPeriodId);
+            }
+        }
     }
 
     public static function companyId(): ?int
