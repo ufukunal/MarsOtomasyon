@@ -59,6 +59,9 @@ final class CompanyRoleProvisioner
         'production_recipes',
         'production_orders',
         'subcontracting',
+        'channel_accounts',
+        'channel_listings',
+        'channel_sync',
     ];
 
     private const ACTIONS = [
@@ -150,6 +153,7 @@ final class CompanyRoleProvisioner
                 'returns.view', 'returns.create', 'returns.update', 'returns.cancel',
                 'import_shipments.view', 'import_shipments.create', 'import_shipments.update', 'import_shipments.close',
                 'production_orders.view', 'subcontracting.view',
+                'channel_accounts.view', 'channel_sync.view',
                 ...$technicalViews,
             ],
             'Satış' => [
@@ -167,6 +171,9 @@ final class CompanyRoleProvisioner
                 'reservations.view', 'reservations.create', 'reservations.update',
                 'returns.view', 'returns.create', 'returns.update',
                 'production_orders.view',
+                'channel_accounts.view',
+                'channel_listings.view', 'channel_listings.create', 'channel_listings.update', 'channel_listings.cancel',
+                'channel_sync.view', 'channel_sync.update',
                 ...$technicalViews,
             ],
             'Satınalma' => [
@@ -199,6 +206,7 @@ final class CompanyRoleProvisioner
                 'import_shipments.view', 'import_shipments.receive',
                 'production_orders.view',
                 'subcontracting.view', 'subcontracting.create', 'subcontracting.update',
+                'channel_listings.view', 'channel_sync.view',
                 ...$technicalViews,
             ],
             'Üretim' => [

@@ -9,6 +9,9 @@ use App\Livewire\Finance\ContactAging;
 use App\Livewire\Finance\ContactDebitCreditForm;
 use App\Livewire\Finance\FinanceAccounts;
 use App\Livewire\Finance\FinanceOperationCenter;
+use App\Livewire\Channels\ChannelAccountCenter;
+use App\Livewire\Channels\ChannelListingCenter;
+use App\Livewire\Channels\ChannelSyncCenter;
 use App\Livewire\Finance\SecuritiesCenter;
 use App\Livewire\Imports\ImportCenter;
 use App\Livewire\Pages\Auth\ForgotPassword;
@@ -143,6 +146,10 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/uretim/receteler', RecipeCenter::class)->name('production.recipes');
     Route::get('/uretim/emirler', ProductionOrderCenter::class)->name('production.orders');
     Route::get('/uretim/fason', SubcontractingCenter::class)->name('production.subcontracting');
+
+    Route::get('/e-ticaret/kanal-hesaplari', ChannelAccountCenter::class)->name('channels.accounts');
+    Route::get('/e-ticaret/listingler', ChannelListingCenter::class)->name('channels.listings');
+    Route::get('/e-ticaret/sync', ChannelSyncCenter::class)->name('channels.sync');
 
     Route::get('/ice-aktarma', ImportWizard::class)->name('imports.index');
     Route::get('/stok/durum', StockStatus::class)->name('stock.status');

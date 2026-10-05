@@ -142,6 +142,7 @@ return new class extends Migration
             $table->string('resolved_by_name')->nullable();
             $table->timestamps();
 
+            $table->unique('channel_sync_event_id');
             $table->index('resolved_at');
         });
     }

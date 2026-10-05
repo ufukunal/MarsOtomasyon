@@ -3,6 +3,8 @@
 namespace App\Console\Commands;
 
 use App\Models\Period;
+use App\Support\Integrity\Checks\ChannelIntegrityCheck;
+use App\Support\Integrity\Checks\ChannelOrderIntegrityCheck;
 use App\Support\Integrity\Checks\ContactBalanceCheck;
 use App\Support\Integrity\Checks\CostIntegrityCheck;
 use App\Support\Integrity\Checks\DocumentTotalCheck;
@@ -53,6 +55,8 @@ class IntegrityCommand extends Command
             ImportIntegrityCheck::class,
             RecipeIntegrityCheck::class,
             ProductionIntegrityCheck::class,
+            ChannelIntegrityCheck::class,
+            ChannelOrderIntegrityCheck::class,
             NumberSeriesCheck::class,
             FilesIntegrityCheck::class,
         ];

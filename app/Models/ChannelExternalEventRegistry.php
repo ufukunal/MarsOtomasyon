@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use LogicException;
 
 class ChannelExternalEventRegistry extends MasterModel
 {
@@ -26,6 +27,21 @@ class ChannelExternalEventRegistry extends MasterModel
             'period_document_id' => 'integer',
             'external_occurred_at' => 'datetime',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::updating(function (self $event): void {
+            foreach (['channel_account_id', 'event_type', 'external_id'] as $field) {
+                if ($event->isDirty($field)) {
+                    throw new LogicException('External event registry identity alanları değiştirilemez.');
+                }
+            }
+        });
+
+        static::deleting(fn (): never => throw new LogicException(
+            'External event registry fiziksel olarak silinemez.',
+        ));
     }
 
     public function account(): BelongsTo

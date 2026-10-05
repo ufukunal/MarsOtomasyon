@@ -6,6 +6,7 @@ use App\Enums\SalesChannelPlatform;
 use App\Support\Concurrency\HasOptimisticLock;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use LogicException;
 
 class SalesChannelAccount extends MasterModel
 {
@@ -36,6 +37,19 @@ class SalesChannelAccount extends MasterModel
             'is_active' => 'boolean',
             'version' => 'integer',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::updating(function (self $account): void {
+            if ($account->isDirty('company_id') || $account->isDirty('platform')) {
+                throw new LogicException('Kanal hesabının şirket/platform kimliği değiştirilemez.');
+            }
+        });
+
+        static::deleting(fn (): never => throw new LogicException(
+            'Kanal hesabı fiziksel silinemez; pasife alınmalıdır.',
+        ));
     }
 
     public function company(): BelongsTo

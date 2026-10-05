@@ -4,6 +4,8 @@ namespace App\Livewire\Pages\Settings;
 
 use App\Livewire\Concerns\WithIdempotentMutations;
 use App\Models\IntegrityReport as IntegrityReportModel;
+use App\Support\Integrity\Checks\ChannelIntegrityCheck;
+use App\Support\Integrity\Checks\ChannelOrderIntegrityCheck;
 use App\Support\Integrity\Checks\ContactBalanceCheck;
 use App\Support\Integrity\Checks\CostIntegrityCheck;
 use App\Support\Integrity\Checks\DocumentTotalCheck;
@@ -54,6 +56,8 @@ class IntegrityReport extends Component
             'imports_phase7' => ImportIntegrityCheck::class,
             'recipes_phase8' => RecipeIntegrityCheck::class,
             'production_phase8' => ProductionIntegrityCheck::class,
+            'channels_phase9' => ChannelIntegrityCheck::class,
+            'channel_orders_phase9' => ChannelOrderIntegrityCheck::class,
             'numbers' => NumberSeriesCheck::class,
         ];
 

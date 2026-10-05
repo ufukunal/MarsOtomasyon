@@ -5,6 +5,7 @@ namespace App\Support\Channels;
 use App\Models\Period\ChannelSyncError;
 use App\Models\Period\ChannelSyncEvent;
 use App\Models\SalesChannelAccount;
+use App\Support\Audit\AuditContext;
 use App\Support\Period\PeriodContext;
 use DomainException;
 use Illuminate\Support\Facades\DB;
@@ -26,22 +27,80 @@ final class ChannelSyncRecorder
     ): ChannelSyncEvent {
         PeriodContext::ensureWritable();
 
+        $account = SalesChannelAccount::query()->findOrFail($channelAccountId);
+
+        if ((int) $account->company_id !== (int) PeriodContext::companyId()) {
+            throw new DomainException('Kanal sync hesabı aktif şirkete ait değil.');
+        }
+
         if (! in_array($direction, ['outbound', 'inbound'], true)) {
             throw new DomainException('Geçersiz kanal sync yönü.');
         }
 
-        return ChannelSyncEvent::query()->create([
-            'channel_account_id' => $channelAccountId,
-            'direction' => $direction,
-            'entity_type' => trim($entityType),
-            'entity_id' => $entityId,
-            'external_id' => $externalId,
-            'action' => trim($action),
-            'status' => 'queued',
-            'attempts' => 0,
-            'correlation_id' => $correlationId ?: (string) Str::uuid(),
-            'payload_hash' => $payloadHash,
-        ]);
+        $entityType = trim($entityType);
+        $action = trim($action);
+
+        if ($entityType === '' || $action === '') {
+            throw new DomainException('Kanal sync entity/action boş olamaz.');
+        }
+
+        if ($payloadHash !== null && ! preg_match('/^[a-f0-9]{64}$/D', $payloadHash)) {
+            throw new DomainException('Kanal sync payload hash SHA-256 biçiminde olmalıdır.');
+        }
+
+        return DB::connection('period')->transaction(function () use (
+            $channelAccountId,
+            $direction,
+            $entityType,
+            $action,
+            $entityId,
+            $externalId,
+            $payloadHash,
+            $correlationId,
+        ): ChannelSyncEvent {
+            $query = ChannelSyncEvent::query()
+                ->where('channel_account_id', $channelAccountId)
+                ->where('direction', $direction)
+                ->where('entity_type', $entityType)
+                ->where('action', $action)
+                ->whereIn('status', ['queued', 'processing'])
+                ->when(
+                    $entityId === null,
+                    fn ($builder) => $builder->whereNull('entity_id'),
+                    fn ($builder) => $builder->where('entity_id', $entityId),
+                )
+                ->when(
+                    $externalId === null,
+                    fn ($builder) => $builder->whereNull('external_id'),
+                    fn ($builder) => $builder->where('external_id', $externalId),
+                )
+                ->orderByDesc('id')
+                ->lockForUpdate();
+
+            $pending = $query->first();
+
+            if ($pending) {
+                if ($pending->status === 'queued' && $payloadHash !== null) {
+                    $pending->payload_hash = $payloadHash;
+                    $pending->save();
+                }
+
+                return $pending->refresh();
+            }
+
+            return ChannelSyncEvent::query()->create([
+                'channel_account_id' => $channelAccountId,
+                'direction' => $direction,
+                'entity_type' => $entityType,
+                'entity_id' => $entityId,
+                'external_id' => $externalId,
+                'action' => $action,
+                'status' => 'queued',
+                'attempts' => 0,
+                'correlation_id' => $correlationId ?: (string) Str::uuid(),
+                'payload_hash' => $payloadHash,
+            ]);
+        }, attempts: 3);
     }
 
     public function startAttempt(ChannelSyncEvent $event): ChannelSyncEvent
@@ -119,6 +178,16 @@ final class ChannelSyncRecorder
             $locked->resolved_by = $actor?->id;
             $locked->resolved_by_name = $actor?->name;
             $locked->save();
+
+            AuditContext::period(
+                'Kanal sync hatası resolved işaretlendi.',
+                [
+                    'channel_sync_error_id' => $locked->id,
+                    'channel_sync_event_id' => $locked->channel_sync_event_id,
+                ],
+                $locked,
+                'channel_sync_error_resolved',
+            );
 
             return $locked->refresh();
         }, attempts: 3);

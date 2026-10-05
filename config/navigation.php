@@ -83,6 +83,14 @@ return [
         ],
     ],
     [
+        'label' => 'E-Ticaret',
+        'items' => [
+            ['label' => 'Kanal Hesapları', 'route' => 'channels.accounts', 'permission' => 'channel_accounts.view'],
+            ['label' => 'Kanal Listingleri', 'route' => 'channels.listings', 'permission' => 'channel_listings.view'],
+            ['label' => 'Sync Merkezi', 'route' => 'channels.sync', 'permission' => 'channel_sync.view'],
+        ],
+    ],
+    [
         'label' => 'Ayarlar',
         'items' => [
             ['label' => 'Şirketler', 'route' => 'settings.companies', 'permission' => 'companies.view'],
