@@ -97,6 +97,7 @@ final class TemplateDefinitionValidator
 
             if (is_array($item)) {
                 $this->assertJsonArraySafe($item, "{$path}.{$key}");
+
                 continue;
             }
 

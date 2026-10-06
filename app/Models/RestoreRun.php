@@ -5,8 +5,8 @@ namespace App\Models;
 class RestoreRun extends MasterModel
 {
     protected $fillable = [
-        'recovery_set_id','source_backup_run_id','target_type','status','started_at',
-        'finished_at','verification_summary','error_summary',
+        'recovery_set_id', 'source_backup_run_id', 'target_type', 'status', 'started_at',
+        'finished_at', 'verification_summary', 'error_summary',
     ];
 
     protected function casts(): array

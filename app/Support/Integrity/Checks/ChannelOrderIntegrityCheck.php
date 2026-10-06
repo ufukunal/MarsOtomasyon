@@ -61,6 +61,7 @@ final class ChannelOrderIntegrityCheck implements IntegrityCheck
                     'channel_order_snapshot_id' => $snapshot->id,
                     'reason' => 'snapshot_account_or_sales_order_invalid',
                 ];
+
                 continue;
             }
 
@@ -70,6 +71,7 @@ final class ChannelOrderIntegrityCheck implements IntegrityCheck
                     'sales_order_id' => $order->id,
                     'reason' => 'external_event_registry_missing_or_not_done',
                 ];
+
                 continue;
             }
 

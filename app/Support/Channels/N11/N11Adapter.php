@@ -8,7 +8,6 @@ use App\DataObjects\Channels\ChannelOperationResult;
 use App\Models\Period\ChannelProductListing;
 use App\Models\SalesChannelAccount;
 use Carbon\CarbonImmutable;
-use DomainException;
 
 final class N11Adapter implements ChannelAdapter
 {
@@ -407,7 +406,7 @@ final class N11Adapter implements ChannelAdapter
     }
 
     /**
-     * @param list<array<string,mixed>> $packages
+     * @param  list<array<string,mixed>>  $packages
      * @return array<string,mixed>
      */
     private function normalizeOrder(string $orderNumber, array $packages): array

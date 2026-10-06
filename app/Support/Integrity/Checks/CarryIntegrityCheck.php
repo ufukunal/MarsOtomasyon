@@ -71,6 +71,7 @@ final class CarryIntegrityCheck implements IntegrityCheck
 
             if (! $actual) {
                 $mismatches[] = ['reason' => 'stock_balance_missing', 'id' => $id];
+
                 continue;
             }
 
@@ -120,6 +121,7 @@ final class CarryIntegrityCheck implements IntegrityCheck
 
             if (! $actual) {
                 $mismatches[] = ['reason' => 'product_cost_missing', 'product_id' => $productId];
+
                 continue;
             }
 
@@ -332,11 +334,11 @@ final class CarryIntegrityCheck implements IntegrityCheck
     }
 
     /**
-     * @param list<int> $productIds
-     * @param list<int> $contactIds
-     * @param list<int> $locationIds
-     * @param list<int> $cashIds
-     * @param list<int> $bankIds
+     * @param  list<int>  $productIds
+     * @param  list<int>  $contactIds
+     * @param  list<int>  $locationIds
+     * @param  list<int>  $cashIds
+     * @param  list<int>  $bankIds
      * @return array<string,mixed>
      */
     private function sourceSnapshot(
@@ -522,9 +524,9 @@ final class CarryIntegrityCheck implements IntegrityCheck
     }
 
     /**
-     * @param array<string,string> $expected
-     * @param array<string,string> $actual
-     * @param array<int,array<string,mixed>> $mismatches
+     * @param  array<string,string>  $expected
+     * @param  array<string,string>  $actual
+     * @param  array<int,array<string,mixed>>  $mismatches
      */
     private function compareBalanceMap(
         string $label,
@@ -552,9 +554,9 @@ final class CarryIntegrityCheck implements IntegrityCheck
     }
 
     /**
-     * @param list<int> $expected
-     * @param list<int> $actual
-     * @param array<int,array<string,mixed>> $mismatches
+     * @param  list<int>  $expected
+     * @param  list<int>  $actual
+     * @param  array<int,array<string,mixed>>  $mismatches
      */
     private function compareIdSet(
         string $label,

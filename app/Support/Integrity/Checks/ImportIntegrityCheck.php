@@ -4,7 +4,6 @@ namespace App\Support\Integrity\Checks;
 
 use App\Models\Period\ImportCostAllocation;
 use App\Models\Period\ImportFile;
-use App\Models\Period\ImportPackage;
 use App\Models\Period\ProductCost;
 use App\Support\Integrity\IntegrityCheck;
 use App\Support\Integrity\IntegrityResult;
@@ -128,6 +127,7 @@ final class ImportIntegrityCheck implements IntegrityCheck
                     || (int) $package->container->import_file_id !== (int) $file->id
                     || $package->status !== 'received') {
                     $mismatches[] = ['package_id' => $package->id, 'reason' => 'received_package_incomplete'];
+
                     continue;
                 }
 
@@ -227,6 +227,7 @@ final class ImportIntegrityCheck implements IntegrityCheck
                             'product_id' => (int) $productId,
                             'reason' => 'product_import_quantity_invalid',
                         ];
+
                         continue;
                     }
 

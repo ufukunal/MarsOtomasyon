@@ -5,6 +5,7 @@ namespace App\Support\Integrity\Checks;
 use App\Enums\DocumentType;
 use App\Models\Period\BankMovement;
 use App\Models\Period\CashMovement;
+use App\Models\Period\ContactTransaction;
 use App\Models\Period\Document;
 use App\Models\Period\Security;
 use App\Models\Period\SecurityPayroll;
@@ -173,7 +174,7 @@ final class FinanceIntegrityCheck implements IntegrityCheck
             $checked++;
             $sourceTransaction = $security->contact_transaction_id === null
                 ? null
-                : \App\Models\Period\ContactTransaction::query()->find($security->contact_transaction_id);
+                : ContactTransaction::query()->find($security->contact_transaction_id);
             $expectedSourceDirection = $security->direction === 'incoming' ? 'credit' : 'debit';
 
             if (! $sourceTransaction
@@ -202,7 +203,7 @@ final class FinanceIntegrityCheck implements IntegrityCheck
 
             if (in_array($security->status, ['returned', 'protested', 'cancelled'], true)
                 && $security->contact_transaction_id !== null
-                && ! \App\Models\Period\ContactTransaction::query()
+                && ! ContactTransaction::query()
                     ->where('reversal_of_id', $security->contact_transaction_id)
                     ->exists()) {
                 $mismatches[] = [

@@ -47,6 +47,7 @@ final class ReturnIntegrityCheck implements IntegrityCheck
 
             if (! $transaction) {
                 $mismatches[] = ['document_id' => $document->id, 'reason' => 'return_contact_transaction_missing'];
+
                 continue;
             }
 

@@ -430,7 +430,7 @@ final class HepsiburadaAdapter implements ChannelAdapter
     }
 
     /**
-     * @param list<array<string,mixed>> $rows
+     * @param  list<array<string,mixed>>  $rows
      * @return array<string,mixed>
      */
     private function normalizeOrder(
@@ -708,5 +708,4 @@ final class HepsiburadaAdapter implements ChannelAdapter
     {
         return $this->date($value)->getTimestampMs();
     }
-
 }

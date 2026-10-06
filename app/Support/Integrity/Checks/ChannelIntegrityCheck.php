@@ -128,6 +128,7 @@ final class ChannelIntegrityCheck implements IntegrityCheck
                     'channel_product_listing_id' => $listing->id,
                     'reason' => 'listing_account_or_product_invalid',
                 ];
+
                 continue;
             }
 

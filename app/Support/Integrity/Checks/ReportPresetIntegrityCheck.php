@@ -46,6 +46,7 @@ final class ReportPresetIntegrityCheck implements IntegrityCheck
 
             if ($reason !== null) {
                 $mismatches[] = ['preset_id' => $preset->id, 'reason' => $reason];
+
                 continue;
             }
 
@@ -53,6 +54,7 @@ final class ReportPresetIntegrityCheck implements IntegrityCheck
 
             if ($definition === null) {
                 $mismatches[] = ['preset_id' => $preset->id, 'reason' => 'report_key_unresolvable'];
+
                 continue;
             }
 

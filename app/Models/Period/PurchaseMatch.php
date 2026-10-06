@@ -4,6 +4,7 @@ namespace App\Models\Period;
 
 use App\Models\PeriodModel;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
 /**
  * @property int $supplier_invoice_line_id
@@ -18,7 +19,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string|null $cost_unit_try
  * @property string|null $previous_moving_average
  * @property string|null $previous_last_purchase_price
- * @property \Illuminate\Support\Carbon|null $previous_last_purchase_at
+ * @property Carbon|null $previous_last_purchase_at
  * @property string|null $cost_value_delta
  * @property string|null $new_moving_average
  */

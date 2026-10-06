@@ -3,7 +3,6 @@
 namespace App\Support\Integrity\Checks;
 
 use App\Actions\Documents\CalculateDocumentTotals;
-use App\Enums\DocumentType;
 use App\Models\Period\Document;
 use App\Support\Integrity\IntegrityCheck;
 use App\Support\Integrity\IntegrityResult;
