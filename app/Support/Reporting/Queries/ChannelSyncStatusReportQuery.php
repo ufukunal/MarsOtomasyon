@@ -137,6 +137,7 @@ final class ChannelSyncStatusReportQuery implements ReportQuery
         ][$column];
     }
 
+    /** @return array<string,string> */
     private function sortMap(): array
     {
         return [
@@ -151,7 +152,10 @@ final class ChannelSyncStatusReportQuery implements ReportQuery
         ];
     }
 
-    /** @param list<array<string,mixed>> $rows @return list<array<string,mixed>> */
+    /**
+     * @param list<array<string,mixed>> $rows
+     * @return list<array<string,mixed>>
+     */
     private function enrichAccounts(array $rows, ReportExecutionContext $context): array
     {
         if (! $context->hasColumn('account_name') && ! $context->hasColumn('platform')) {

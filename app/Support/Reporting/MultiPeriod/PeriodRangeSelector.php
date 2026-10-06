@@ -30,7 +30,10 @@ final class PeriodRangeSelector
             ->get();
     }
 
-    /** @param list<int|string> $periodIds @return list<Period> */
+    /**
+     * @param list<int|string> $periodIds
+     * @return list<Period>
+     */
     public function select(User $actor, int $companyId, array $periodIds): array
     {
         $this->assertCompanyAccess($actor, $companyId);
