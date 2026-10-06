@@ -82,7 +82,7 @@ final class CopyPeriodOpenings
                     ->where('product_id', $row->product_id)
                     ->where('location_id', $row->location_id)
                     ->where('status', 'active')
-                    ->sum('quantity') ?? '0'),
+                    ->sum('quantity')),
                 '0',
                 3,
             );

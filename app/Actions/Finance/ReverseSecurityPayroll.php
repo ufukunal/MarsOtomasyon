@@ -70,9 +70,6 @@ final class ReverseSecurityPayroll
 
                     $snapshot = $original->state_snapshot;
 
-                    if (! is_array($snapshot)) {
-                        throw new DomainException('Bordro durum snapshotı bulunamadı.');
-                    }
 
                     $actor = auth()->user();
                     $currentSnapshot = [];
@@ -107,7 +104,7 @@ final class ReverseSecurityPayroll
                     foreach ($securities as $security) {
                         $state = $snapshot[(string) $security->id] ?? null;
 
-                        if (! is_array($state) || ! isset($state['status'])) {
+                        if ($state === null) {
                             throw new DomainException('Bordro çek/senet snapshotı eksik.');
                         }
 

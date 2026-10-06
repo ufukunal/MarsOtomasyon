@@ -282,15 +282,15 @@ final class PreviewPeriodCarry
             'import_files' => $imports,
             'quarantine' => $quarantine,
             'summary' => [
-                'stock_quantity' => (string) (DB::connection('period')->table('stock_balances')->sum('quantity') ?? '0'),
+                'stock_quantity' => (string) (DB::connection('period')->table('stock_balances')->sum('quantity')),
                 'stock_balance_rows' => DB::connection('period')->table('stock_balances')->count(),
                 'product_cost_rows' => DB::connection('period')->table('product_costs')->count(),
-                'contact_debit' => (string) (DB::connection('period')->table('contact_transactions')->where('direction', 'debit')->sum('amount') ?? '0'),
-                'contact_credit' => (string) (DB::connection('period')->table('contact_transactions')->where('direction', 'credit')->sum('amount') ?? '0'),
-                'cash_in' => (string) (DB::connection('period')->table('cash_movements')->where('direction', 'in')->sum('amount') ?? '0'),
-                'cash_out' => (string) (DB::connection('period')->table('cash_movements')->where('direction', 'out')->sum('amount') ?? '0'),
-                'bank_in' => (string) (DB::connection('period')->table('bank_movements')->where('direction', 'in')->sum('amount') ?? '0'),
-                'bank_out' => (string) (DB::connection('period')->table('bank_movements')->where('direction', 'out')->sum('amount') ?? '0'),
+                'contact_debit' => (string) (DB::connection('period')->table('contact_transactions')->where('direction', 'debit')->sum('amount')),
+                'contact_credit' => (string) (DB::connection('period')->table('contact_transactions')->where('direction', 'credit')->sum('amount')),
+                'cash_in' => (string) (DB::connection('period')->table('cash_movements')->where('direction', 'in')->sum('amount')),
+                'cash_out' => (string) (DB::connection('period')->table('cash_movements')->where('direction', 'out')->sum('amount')),
+                'bank_in' => (string) (DB::connection('period')->table('bank_movements')->where('direction', 'in')->sum('amount')),
+                'bank_out' => (string) (DB::connection('period')->table('bank_movements')->where('direction', 'out')->sum('amount')),
                 'unmatured_securities' => DB::connection('period')->table('securities')
                     ->whereIn('status', ['portfolio', 'issued', 'endorsed', 'banked'])
                     ->count(),
@@ -336,7 +336,7 @@ final class PreviewPeriodCarry
                     ? (string) (DB::connection('period')->table('stock_reservations')
                         ->where('document_line_id', $line->id)
                         ->where('status', 'active')
-                        ->sum('quantity') ?? '0')
+                        ->sum('quantity'))
                     : '0.000';
 
                 $lines[] = [
