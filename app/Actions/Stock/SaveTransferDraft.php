@@ -10,7 +10,7 @@ use App\Models\Period\ProductionOrder;
 use App\Models\Period\Transfer;
 use App\Support\Auth\MutationAuthorizer;
 use App\Support\Period\PeriodContext;
-use Carbon\CarbonImmutable;
+use Illuminate\Support\Carbon;
 use DomainException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -61,7 +61,7 @@ final class SaveTransferDraft
             throw new DomainException('Production-order transfer provenance yalnız fason lokasyon sevkinde kullanılabilir.');
         }
 
-        $transferDate = CarbonImmutable::parse($data['transfer_date']);
+        $transferDate = Carbon::parse($data['transfer_date']);
 
         if ($data['lines'] === []) {
             throw ValidationException::withMessages([

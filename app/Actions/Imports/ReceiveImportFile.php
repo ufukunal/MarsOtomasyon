@@ -12,7 +12,7 @@ use App\Support\Audit\AuditContext;
 use App\Support\Auth\MutationAuthorizer;
 use App\Support\Concurrency\IdempotencyKey;
 use App\Support\Imports\ImportCostAllocator;
-use Carbon\CarbonImmutable;
+use Illuminate\Support\Carbon;
 use DomainException;
 use Illuminate\Support\Facades\DB;
 
@@ -44,7 +44,7 @@ final class ReceiveImportFile
                     throw new DomainException('İthalat dosyası stoğa alma için uygun durumda değil.');
                 }
 
-                $date = CarbonImmutable::parse($receivingDate)->startOfDay();
+                $date = Carbon::parse($receivingDate)->startOfDay();
                 $this->ensurePeriodOpen->handle($date);
 
                 $rate = $locked->currency === 'TRY'
