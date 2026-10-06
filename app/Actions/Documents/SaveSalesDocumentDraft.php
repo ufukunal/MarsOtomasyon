@@ -135,7 +135,7 @@ final class SaveSalesDocumentDraft
                     'unit_price' => $unitPrice,
                     'vat_rate' => $vatRate,
                     'reserve_stock' => (bool) ($line['reserve_stock'] ?? false),
-                    'cancelled_quantity' => bcadd((string) ($line['cancelled_quantity'] ?? '0'), '0', 3),
+                    'cancelled_quantity' => '0.000',
                     'configuration' => $line['configuration'] ?? null,
                     'source_line_id' => isset($line['source_line_id']) ? (int) $line['source_line_id'] : null,
                 ];
