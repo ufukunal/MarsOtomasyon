@@ -8,6 +8,19 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use LogicException;
 
+/**
+ * @property int $id
+ * @property string $number
+ * @property string $currency
+ * @property string|null $exchange_rate
+ * @property \Illuminate\Support\Carbon|null $exchange_rate_locked_at
+ * @property \Illuminate\Support\Carbon|null $exchange_rate_date
+ * @property \Illuminate\Support\Carbon|null $etd
+ * @property \Illuminate\Support\Carbon|null $eta
+ * @property \Illuminate\Support\Carbon|null $received_at
+ * @property \Illuminate\Support\Carbon|null $closed_at
+ * @property string $status
+ */
 class ImportFile extends PeriodModel
 {
     use HasOptimisticLock;
