@@ -12,6 +12,7 @@ use Throwable;
 
 final class RecoverySetBackupService
 {
+    /** @return array{backup_run_id:int,recovery_set_id:string,status:string,manifest_path:string,period_count:int} */
     public function run(string $triggerType = 'manual'): array
     {
         if (! in_array($triggerType, ['scheduled', 'deploy', 'period_carry', 'manual'], true)) {

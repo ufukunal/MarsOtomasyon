@@ -9,6 +9,7 @@ use ZipArchive;
 
 final class RecoverySetArchive
 {
+    /** @return array{directory:string,checksum:string,archive_path:string} */
     public function verifyAndExtract(BackupRun $backup, string $directory): array
     {
         if (! in_array($backup->status, ['done', 'verified'], true)) {

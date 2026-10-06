@@ -59,6 +59,7 @@ final class OperationalHealthService
         ];
     }
 
+    /** @return array<string, mixed> */
     private function master(): array
     {
         try {
@@ -70,6 +71,7 @@ final class OperationalHealthService
         }
     }
 
+    /** @return array<string, mixed> */
     private function activePeriods(): array
     {
         $original = config('database.connections.period.database');
@@ -107,6 +109,7 @@ final class OperationalHealthService
         }
     }
 
+    /** @return array<string, mixed> */
     private function valkey(): array
     {
         try {
@@ -118,6 +121,7 @@ final class OperationalHealthService
         }
     }
 
+    /** @return array<string, mixed> */
     private function heartbeat(string $key): array
     {
         try {
@@ -140,6 +144,7 @@ final class OperationalHealthService
         }
     }
 
+    /** @return array<string, mixed> */
     private function queueLag(): array
     {
         try {
@@ -169,6 +174,7 @@ final class OperationalHealthService
         }
     }
 
+    /** @return array<string, mixed> */
     private function failedJobs(): array
     {
         try {
@@ -185,6 +191,7 @@ final class OperationalHealthService
         }
     }
 
+    /** @return array<string, mixed> */
     private function disk(): array
     {
         $total = disk_total_space(base_path());
@@ -207,6 +214,7 @@ final class OperationalHealthService
         ];
     }
 
+    /** @return array<string, mixed> */
     private function storage(): array
     {
         $failed = [];

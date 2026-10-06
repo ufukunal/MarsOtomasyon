@@ -99,6 +99,7 @@ class OperationsRollbackCommand extends Command
         $process->mustRun();
     }
 
+    /** @return array<string, mixed> */
     private function waitForHealthy(): array
     {
         $last = null;

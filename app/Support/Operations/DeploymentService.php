@@ -9,6 +9,7 @@ use Throwable;
 
 final class DeploymentService
 {
+    /** @return array<string, mixed> */
     public function deploy(
         string $releaseId,
         string $commitSha,
