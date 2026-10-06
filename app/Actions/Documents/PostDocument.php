@@ -86,7 +86,8 @@ final class PostDocument
                         if (in_array($locked->document_type, [DocumentType::Dispatch, DocumentType::SalesInvoice], true)) {
                             $locationKind = Location::query()->whereKey($line->location_id)->value('kind');
 
-                            if ((string) $locationKind === LocationKind::Subcontractor->value) {
+                            if ($locationKind === LocationKind::Subcontractor
+                                || $locationKind === LocationKind::Subcontractor->value) {
                                 throw new DomainException('Fason lokasyon normal satış sevk/fatura lokasyonu olamaz.');
                             }
                         }
