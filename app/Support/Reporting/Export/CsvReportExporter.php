@@ -28,7 +28,7 @@ final class CsvReportExporter
 
             foreach ($dataset->columns as $column) {
                 $value = $row[$column->key] ?? null;
-                $values[] = is_scalar($value) || $value === null ? $value : '';
+                $values[] = $this->safeValue($value, (string) $column->type);
             }
 
             fputcsv($stream, $values, ';', '"', '');
@@ -43,5 +43,25 @@ final class CsvReportExporter
         }
 
         return $contents;
+    }
+
+    private function safeValue(mixed $value, string $type): int|float|string|null
+    {
+        if ($value === null || ! is_scalar($value)) {
+            return null;
+        }
+
+        if (in_array($type, ['integer', 'decimal', 'money', 'quantity'], true)
+            && is_numeric((string) $value)) {
+            return $value;
+        }
+
+        $text = (string) $value;
+
+        if (preg_match('/^[\\x00-\\x20]*[=+\\-@]/u', $text) === 1) {
+            return "'".$text;
+        }
+
+        return $text;
     }
 }
