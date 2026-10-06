@@ -8,6 +8,17 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use LogicException;
 
+/**
+ * @property int $id
+ * @property \Illuminate\Support\Carbon $document_date
+ * @property int $product_id
+ * @property int $recipe_id
+ * @property string $planned_quantity
+ * @property string $completed_quantity
+ * @property string $cancelled_quantity
+ * @property string $production_type
+ * @property string $status
+ */
 class ProductionOrder extends PeriodModel
 {
     use HasOptimisticLock;
@@ -74,41 +85,49 @@ class ProductionOrder extends PeriodModel
         );
     }
 
+    /** @return BelongsTo<Product, $this> */
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
     }
 
+    /** @return BelongsTo<ProductionRecipe, $this> */
     public function recipe(): BelongsTo
     {
         return $this->belongsTo(ProductionRecipe::class, 'recipe_id');
     }
 
+    /** @return BelongsTo<Contact, $this> */
     public function subcontractor(): BelongsTo
     {
         return $this->belongsTo(Contact::class, 'subcontractor_contact_id');
     }
 
+    /** @return BelongsTo<Location, $this> */
     public function subcontractorLocation(): BelongsTo
     {
         return $this->belongsTo(Location::class, 'subcontractor_location_id');
     }
 
+    /** @return BelongsTo<Document, $this> */
     public function sourceSalesOrder(): BelongsTo
     {
         return $this->belongsTo(Document::class, 'source_sales_order_id');
     }
 
+    /** @return HasMany<ProductionOrderComponent, $this> */
     public function components(): HasMany
     {
         return $this->hasMany(ProductionOrderComponent::class)->orderBy('id');
     }
 
+    /** @return HasMany<ProductionCompletion, $this> */
     public function completions(): HasMany
     {
         return $this->hasMany(ProductionCompletion::class)->orderBy('id');
     }
 
+    /** @return HasMany<ProductionServiceInvoice, $this> */
     public function serviceInvoices(): HasMany
     {
         return $this->hasMany(ProductionServiceInvoice::class);
