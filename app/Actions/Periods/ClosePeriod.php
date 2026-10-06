@@ -40,7 +40,7 @@ final class ClosePeriod
 
         $expectedVersion = (int) $period->version;
 
-        $period->updateWithVersion([
+        $period = $period->updateWithVersion([
             'status' => 'closed',
             'closed_at' => now(),
         ], $expectedVersion);
