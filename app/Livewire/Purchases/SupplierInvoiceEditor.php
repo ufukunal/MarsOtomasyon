@@ -60,7 +60,7 @@ class SupplierInvoiceEditor extends BasePurchaseDocumentEditor
         $matches = $this->document
             ? PurchaseMatch::query()
                 ->whereHas('supplierInvoiceLine', fn ($query) => $query
-                    ->where('document_id', $this->document?->id))
+                    ->where('document_id', $this->document->id))
                 ->orderBy('supplier_invoice_line_id')
                 ->get()
             : collect();

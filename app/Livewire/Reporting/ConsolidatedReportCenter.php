@@ -104,6 +104,7 @@ final class ConsolidatedReportCenter extends Component
         $this->page = $page;
     }
 
+    /** @param array<string,mixed> $row */
     public function formatCell(array $row, ReportColumnDefinition $column): string
     {
         $value = $row[$column->key] ?? null;

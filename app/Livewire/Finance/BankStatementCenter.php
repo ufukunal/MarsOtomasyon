@@ -19,7 +19,7 @@ class BankStatementCenter extends Component
     use WithFileUploads;
     use WithIdempotentMutations;
 
-    public $file = null;
+    public mixed $file = null;
 
     public ?int $bankAccountId = null;
 
