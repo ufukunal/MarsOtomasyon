@@ -245,7 +245,7 @@ class ChannelListingCenter extends Component
                 ->orderBy('name')
                 ->get(),
             'adapterAvailable' => $this->channelAccountId
-                ? $adapters->hasAdapter(SalesChannelAccount::query()->find($this->channelAccountId)?->platform?->value ?? '')
+                ? $adapters->hasAdapter(SalesChannelAccount::query()->find($this->channelAccountId)?->platform->value ?? '')
                 : false,
             'stockPreview' => $this->selectedListingId
                 ? $this->safePreview(fn () => $stock->quantity(

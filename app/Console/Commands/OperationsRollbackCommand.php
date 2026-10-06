@@ -116,7 +116,7 @@ class OperationsRollbackCommand extends Command
 
         throw new RuntimeException(
             'Rollback sonrası operational health healthy duruma ulaşmadı: '.
-            ($last['status'] ?? 'unknown'),
+            $last['status'],
         );
     }
 

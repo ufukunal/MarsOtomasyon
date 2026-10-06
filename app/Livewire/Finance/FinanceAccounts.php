@@ -57,7 +57,7 @@ class FinanceAccounts extends Component
             'code' => $this->cashCode,
             'name' => $this->cashName,
             'currency' => $this->cashCurrency,
-            'is_active' => $account?->is_active ?? true,
+            'is_active' => $account->is_active ?? true,
         ], $account, $this->cashEditVersion));
 
         $this->resetCashForm();
@@ -91,7 +91,7 @@ class FinanceAccounts extends Component
             'account_name' => $this->bankAccountName,
             'iban' => $this->bankIban,
             'currency' => $this->bankCurrency,
-            'is_active' => $account?->is_active ?? true,
+            'is_active' => $account->is_active ?? true,
         ], $account, $this->bankEditVersion));
 
         $this->resetBankForm();
