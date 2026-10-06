@@ -3,8 +3,8 @@
 namespace App\Models\Period;
 
 use App\Models\PeriodModel;
-use Illuminate\Support\Carbon;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
 /**
  * @property int $product_id

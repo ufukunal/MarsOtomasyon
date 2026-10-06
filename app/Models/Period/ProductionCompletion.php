@@ -5,8 +5,8 @@ namespace App\Models\Period;
 use App\Models\PeriodModel;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use LogicException;
 use Illuminate\Support\Carbon;
+use LogicException;
 
 /**
  * @property int $id
