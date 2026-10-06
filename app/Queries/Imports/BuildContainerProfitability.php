@@ -14,7 +14,9 @@ final class BuildContainerProfitability
     public function handle(ImportFile $file): array
     {
         $profitability = $this->fileProfitability->handle($file);
-        $productRows = collect($profitability['rows'])->keyBy('product_id');
+        /** @var list<array<string,mixed>> $profitabilityRows */
+        $profitabilityRows = $profitability['rows'];
+        $productRows = collect($profitabilityRows)->keyBy('product_id');
         $packages = ImportPackage::query()
             ->where('import_file_id', $file->id)
             ->whereNotNull('landed_unit_cost_try')

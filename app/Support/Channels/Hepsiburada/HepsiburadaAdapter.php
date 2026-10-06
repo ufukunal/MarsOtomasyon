@@ -352,8 +352,8 @@ final class HepsiburadaAdapter implements ChannelAdapter
         SalesChannelAccount $account,
         array $shipment,
     ): ChannelOperationResult {
-        $packageNumber = trim((string) ($shipment['package_id'] ?? ''));
-        $status = strtolower(trim((string) ($shipment['status'] ?? '')));
+        $packageNumber = trim((string) ($shipment['package_id']));
+        $status = strtolower(trim((string) ($shipment['status'])));
 
         if ($packageNumber === '') {
             return new ChannelOperationResult(
@@ -600,7 +600,10 @@ final class HepsiburadaAdapter implements ChannelAdapter
         ];
     }
 
-    /** @param array<array-key,mixed> $response @return list<array<string,mixed>> */
+    /**
+     * @param  array<array-key,mixed>  $response
+     * @return list<array<string,mixed>>
+     */
     private function rows(array $response): array
     {
         return $this->rowsFromPotentialList(

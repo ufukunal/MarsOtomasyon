@@ -13,8 +13,10 @@ final class WooCommerceClient
 {
     public function __construct(private readonly ChannelSensitiveDataRedactor $redactor) {}
 
-    /** @return array<array-key,mixed>|list<array<string,mixed>> */
-    /** @param array<array-key,mixed> $query @return array<array-key,mixed> */
+    /**
+     * @param  array<array-key,mixed>  $query
+     * @return array<array-key,mixed>
+     */
     public function get(
         SalesChannelAccount $account,
         string $path,
@@ -26,8 +28,10 @@ final class WooCommerceClient
         );
     }
 
-    /** @return array<array-key,mixed> */
-    /** @param array<array-key,mixed> $payload @return array<array-key,mixed> */
+    /**
+     * @param  array<array-key,mixed>  $payload
+     * @return array<array-key,mixed>
+     */
     public function post(
         SalesChannelAccount $account,
         string $path,
@@ -41,11 +45,13 @@ final class WooCommerceClient
             ),
         );
 
-        return is_array($decoded) && ! array_is_list($decoded) ? $decoded : [];
+        return ! array_is_list($decoded) ? $decoded : [];
     }
 
-    /** @return array<array-key,mixed> */
-    /** @param array<array-key,mixed> $payload @return array<array-key,mixed> */
+    /**
+     * @param  array<array-key,mixed>  $payload
+     * @return array<array-key,mixed>
+     */
     public function put(
         SalesChannelAccount $account,
         string $path,
@@ -59,7 +65,7 @@ final class WooCommerceClient
             ),
         );
 
-        return is_array($decoded) && ! array_is_list($decoded) ? $decoded : [];
+        return ! array_is_list($decoded) ? $decoded : [];
     }
 
     public function storeUrl(SalesChannelAccount $account): string

@@ -29,7 +29,7 @@ final class HepsiburadaPayloadBuilder
         $barcode = trim((string) ($listing->product->barcode ?? ''));
         $brand = trim((string) (
             $meta['brand']
-            ?? $listing->product->brand?->name
+            ?? data_get($listing->product, 'brand.name')
             ?? ''
         ));
 

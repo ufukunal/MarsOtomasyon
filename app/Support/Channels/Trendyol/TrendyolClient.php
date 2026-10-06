@@ -13,22 +13,28 @@ final class TrendyolClient
 {
     public function __construct(private readonly ChannelSensitiveDataRedactor $redactor) {}
 
-    /** @return array<array-key,mixed> */
-    /** @param array<array-key,mixed> $query @return array<array-key,mixed> */
+    /**
+     * @param  array<array-key,mixed>  $query
+     * @return array<array-key,mixed>
+     */
     public function get(SalesChannelAccount $account, string $path, array $query = []): array
     {
         return $this->decode($account, $this->request($account)->get($this->url($account, $path), $query));
     }
 
-    /** @return array<array-key,mixed> */
-    /** @param array<array-key,mixed> $payload @return array<array-key,mixed> */
+    /**
+     * @param  array<array-key,mixed>  $payload
+     * @return array<array-key,mixed>
+     */
     public function post(SalesChannelAccount $account, string $path, array $payload): array
     {
         return $this->decode($account, $this->request($account)->post($this->url($account, $path), $payload));
     }
 
-    /** @return array<array-key,mixed> */
-    /** @param array<array-key,mixed> $payload @return array<array-key,mixed> */
+    /**
+     * @param  array<array-key,mixed>  $payload
+     * @return array<array-key,mixed>
+     */
     public function put(SalesChannelAccount $account, string $path, array $payload): array
     {
         return $this->decode($account, $this->request($account)->put($this->url($account, $path), $payload));

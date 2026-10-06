@@ -11,6 +11,7 @@ use App\Support\Reporting\ReportFilterDefinition;
 use App\Support\Reporting\ReportQueryResult;
 use App\Support\Reporting\ReportSort;
 use App\Support\Reporting\ReportTotalDefinition;
+use Illuminate\Contracts\Database\Query\Expression;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 
@@ -156,7 +157,7 @@ final class ProductionOrderReportQuery implements ReportQuery
         ][$column];
     }
 
-    /** @return array<string,string> */
+    /** @return array<string,Expression|string> */
     private function sortMap(): array
     {
         return [

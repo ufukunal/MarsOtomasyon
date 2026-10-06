@@ -249,7 +249,7 @@ final class N11Adapter implements ChannelAdapter
                 [$stockCode, $barcode] = $listing
                     ? [
                         (string) ($listing->external_sku ?: $listing->product?->code),
-                        (string) ($listing->product?->barcode ?? ''),
+                        (string) data_get($listing, 'product.barcode', ''),
                     ]
                     : $this->resolveReturnProductIdentity($account, $productId);
 
@@ -287,7 +287,7 @@ final class N11Adapter implements ChannelAdapter
         SalesChannelAccount $account,
         array $shipment,
     ): ChannelOperationResult {
-        $status = strtolower(trim((string) ($shipment['status'] ?? '')));
+        $status = strtolower(trim((string) ($shipment['status'])));
 
         if ($status !== 'picking') {
             return new ChannelOperationResult(
@@ -299,10 +299,6 @@ final class N11Adapter implements ChannelAdapter
         $lines = [];
 
         foreach (($shipment['lines'] ?? []) as $line) {
-            if (! is_array($line)) {
-                continue;
-            }
-
             $lineId = (int) (
                 $line['lineId']
                 ?? $line['line_id']
@@ -336,7 +332,7 @@ final class N11Adapter implements ChannelAdapter
 
         return new ChannelOperationResult(
             success: ! $failed && $results !== [],
-            externalId: (string) ($shipment['package_id'] ?? ''),
+            externalId: (string) ($shipment['package_id']),
             message: ! $failed && $results !== []
                 ? 'N11 sipariş kalemleri Picking statüsüne alındı.'
                 : 'N11 Picking güncellemesinde başarısız satır var.',
@@ -537,6 +533,7 @@ final class N11Adapter implements ChannelAdapter
         return trim((string) ($listing->external_sku ?: $listing->product->code));
     }
 
+    /** @param  array<array-key,mixed>  $response */
     private function taskResult(array $response, string $message): ChannelOperationResult
     {
         $id = trim((string) ($response['id'] ?? ''));

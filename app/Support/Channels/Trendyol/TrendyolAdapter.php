@@ -163,8 +163,8 @@ final class TrendyolAdapter implements ChannelAdapter
         array $shipment,
     ): ChannelOperationResult {
         $sellerId = $this->client->sellerId($account);
-        $packageId = (int) ($shipment['package_id'] ?? 0);
-        $status = (string) ($shipment['status'] ?? '');
+        $packageId = (int) ($shipment['package_id']);
+        $status = (string) ($shipment['status']);
 
         if ($packageId <= 0 || ! in_array($status, ['Picking', 'Invoiced'], true)) {
             return new ChannelOperationResult(false, message: 'Trendyol package_id/status geçersiz.');
@@ -172,7 +172,7 @@ final class TrendyolAdapter implements ChannelAdapter
 
         $payload = ['status' => $status];
 
-        if (isset($shipment['lines']) && is_array($shipment['lines'])) {
+        if (isset($shipment['lines'])) {
             $payload['lines'] = $shipment['lines'];
         }
 
@@ -205,7 +205,10 @@ final class TrendyolAdapter implements ChannelAdapter
         return $this->batchResult($response, 'Trendyol stok/fiyat güncellemesi kuyruğa alındı.');
     }
 
-    /** @param list<string> $statuses @return list<ChannelInboundEvent> */
+    /**
+     * @param  list<string>  $statuses
+     * @return list<ChannelInboundEvent>
+     */
     private function fetchPackages(
         SalesChannelAccount $account,
         array $statuses,
@@ -269,6 +272,7 @@ final class TrendyolAdapter implements ChannelAdapter
         return $events;
     }
 
+    /** @param  array<array-key,mixed>  $response */
     private function batchResult(array $response, string $message): ChannelOperationResult
     {
         $batch = (string) ($response['batchRequestId'] ?? '');

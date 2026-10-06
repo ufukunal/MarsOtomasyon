@@ -69,11 +69,11 @@ final class N11PayloadBuilder
             'catalogId' => isset($meta['catalog_id']) ? (int) $meta['catalog_id'] : null,
             'barcode' => $barcode !== '' ? $barcode : null,
             'quantity' => min(999999, $this->integerQuantity($this->stock->quantity($listing))),
-            'images' => array_values(array_map(
+            'images' => array_map(
                 fn (string $url, int $index): array => ['url' => $url, 'order' => $index],
                 array_slice($images, 0, 8),
                 array_keys(array_slice($images, 0, 8)),
-            )),
+            ),
             'attributes' => $attributes,
             'salePrice' => (float) bcadd($salePrice, '0', 2),
             'listPrice' => (float) $listPrice,

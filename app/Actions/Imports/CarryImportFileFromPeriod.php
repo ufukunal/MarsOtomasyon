@@ -210,7 +210,7 @@ final class CarryImportFileFromPeriod
         }
     }
 
-    /** @return array{file:object,containers:Collection<int, object>,packages:Collection<int, object>,cost_items:Collection<int, object>} */
+    /** @return array{file:\stdClass,containers:Collection<int, \stdClass>,packages:Collection<int, \stdClass>,cost_items:Collection<int, \stdClass>} */
     private function sourceSnapshot(Period $sourcePeriod, int $sourceImportFileId): array
     {
         SourcePeriodContext::usePeriod($sourcePeriod);
@@ -249,7 +249,7 @@ final class CarryImportFileFromPeriod
         }
     }
 
-    /** @param array{file:object,containers:Collection<int, object>,packages:Collection<int, object>,cost_items:Collection<int, object>} $snapshot */
+    /** @param array{file:\stdClass,containers:Collection<int, \stdClass>,packages:Collection<int, \stdClass>,cost_items:Collection<int, \stdClass>} $snapshot */
     private function assertTargetReferences(array $snapshot): void
     {
         $file = $snapshot['file'];

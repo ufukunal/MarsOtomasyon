@@ -368,7 +368,10 @@ final class WooCommerceAdapter implements ChannelAdapter
         return $all;
     }
 
-    /** @param array<string,mixed> $order @return array<string,mixed> */
+    /**
+     * @param  array<string,mixed>  $order
+     * @return array<string,mixed>
+     */
     private function normalizeOrder(array $order): array
     {
         $billing = is_array($order['billing'] ?? null) ? $order['billing'] : [];
@@ -458,12 +461,14 @@ final class WooCommerceAdapter implements ChannelAdapter
         ];
     }
 
-    /** @param array<string,mixed> $order @param array<string,mixed> $refundLine @return array<string,mixed> */
+    /**
+     * @param  array<string,mixed>  $order
+     * @param  array<string,mixed>  $refundLine
+     * @return array<string,mixed>
+     */
     private function sourceOrderLine(array $order, array $refundLine): array
     {
-        $originalItemId = collect(
-            is_array($refundLine['meta_data'] ?? null) ? $refundLine['meta_data'] : [],
-        )->first(function ($meta): bool {
+        $originalItemId = collect((array) ($refundLine['meta_data'] ?? []))->first(function ($meta): bool {
             return is_array($meta)
                 && (string) ($meta['key'] ?? '') === '_refunded_item_id';
         });
@@ -472,7 +477,7 @@ final class WooCommerceAdapter implements ChannelAdapter
             : 0;
 
         if ($originalItemId > 0) {
-            $exact = collect($order['line_items'] ?? [])->first(
+            $exact = collect((array) ($order['line_items'] ?? []))->first(
                 fn ($line): bool => is_array($line)
                     && (int) ($line['id'] ?? 0) === $originalItemId,
             );
@@ -486,7 +491,7 @@ final class WooCommerceAdapter implements ChannelAdapter
         $variationId = (int) ($refundLine['variation_id'] ?? 0);
         $sku = trim((string) ($refundLine['sku'] ?? ''));
 
-        $matches = collect($order['line_items'] ?? [])
+        $matches = collect((array) ($order['line_items'] ?? []))
             ->filter(function ($line) use ($productId, $variationId, $sku): bool {
                 if (! is_array($line)) {
                     return false;

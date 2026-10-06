@@ -70,17 +70,17 @@ final class ReportPresetIntegrityCheck implements IntegrityCheck
                 }
 
                 foreach (($preset->columns ?? []) as $key) {
-                    if (! is_string($key) || ! isset($columnMap[$key])) {
+                    if (! isset($columnMap[$key])) {
                         throw new \DomainException('column_key_unresolvable');
                     }
                 }
 
                 foreach (($preset->sort ?? []) as $item) {
-                    if (! is_array($item)
-                        || ! isset($item['key'])
-                        || ! isset($columnMap[(string) $item['key']])
-                        || ! $columnMap[(string) $item['key']]->sortable
-                        || ! in_array(strtolower((string) ($item['direction'] ?? 'asc')), ['asc', 'desc'], true)) {
+                    $key = $item['key'];
+
+                    if (! isset($columnMap[$key])
+                        || ! $columnMap[$key]->sortable
+                        || ! in_array(strtolower($item['direction']), ['asc', 'desc'], true)) {
                         throw new \DomainException('sort_key_unresolvable');
                     }
                 }

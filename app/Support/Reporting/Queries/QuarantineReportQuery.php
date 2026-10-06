@@ -11,6 +11,7 @@ use App\Support\Reporting\ReportFilterDefinition;
 use App\Support\Reporting\ReportQueryResult;
 use App\Support\Reporting\ReportSort;
 use App\Support\Reporting\ReportTotalDefinition;
+use Illuminate\Contracts\Database\Query\Expression;
 use Illuminate\Support\Facades\DB;
 
 final class QuarantineReportQuery implements ReportQuery
@@ -129,7 +130,7 @@ final class QuarantineReportQuery implements ReportQuery
         ][$column];
     }
 
-    /** @return array<string,string> */
+    /** @return array<string,Expression|string> */
     private function sortMap(): array
     {
         return [
