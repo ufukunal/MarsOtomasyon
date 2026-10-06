@@ -368,7 +368,7 @@ final class WooCommerceAdapter implements ChannelAdapter
         return $all;
     }
 
-    /** @return array<string,mixed> */
+    /** @param array<string,mixed> $order @return array<string,mixed> */
     private function normalizeOrder(array $order): array
     {
         $billing = is_array($order['billing'] ?? null) ? $order['billing'] : [];
@@ -458,7 +458,7 @@ final class WooCommerceAdapter implements ChannelAdapter
         ];
     }
 
-    /** @return array<string,mixed> */
+    /** @param array<string,mixed> $order @param array<string,mixed> $refundLine @return array<string,mixed> */
     private function sourceOrderLine(array $order, array $refundLine): array
     {
         $originalItemId = collect(
@@ -509,6 +509,7 @@ final class WooCommerceAdapter implements ChannelAdapter
             : [];
     }
 
+    /** @param array<string,mixed> $line */
     private function vatRate(array $line): string
     {
         $subtotal = bcadd((string) ($line['subtotal'] ?? '0'), '0', 4);
@@ -555,6 +556,7 @@ final class WooCommerceAdapter implements ChannelAdapter
         return $id > 0 ? $id : null;
     }
 
+    /** @param array<string,mixed> $response */
     private function productResult(
         array $response,
         string $message,

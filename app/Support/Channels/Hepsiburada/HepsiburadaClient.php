@@ -14,8 +14,7 @@ final class HepsiburadaClient
 {
     public function __construct(private readonly ChannelSensitiveDataRedactor $redactor) {}
 
-    /** @return array<string,mixed> */
-    /** @param array<array-key, mixed> $query @return array<string|int, mixed> */
+    /** @param array<array-key,mixed> $query @return array<array-key,mixed> */
     public function get(
         SalesChannelAccount $account,
         string $service,
@@ -28,8 +27,7 @@ final class HepsiburadaClient
         );
     }
 
-    /** @return array<string,mixed> */
-    /** @param array<array-key, mixed> $payload @return array<string|int, mixed> */
+    /** @param array<array-key,mixed> $payload @return array<array-key,mixed> */
     public function postJson(
         SalesChannelAccount $account,
         string $service,
@@ -45,8 +43,7 @@ final class HepsiburadaClient
         );
     }
 
-    /** @return array<string,mixed> */
-    /** @param array<array-key, mixed> $payload @return array<string|int, mixed> */
+    /** @param array<array-key,mixed> $payload @return array<array-key,mixed> */
     public function postJsonFile(
         SalesChannelAccount $account,
         string $service,
@@ -74,7 +71,7 @@ final class HepsiburadaClient
         );
     }
 
-    /** @return array<string,mixed> */
+    /** @return array<array-key,mixed> */
     public function postEmptyObject(
         SalesChannelAccount $account,
         string $service,
@@ -88,8 +85,7 @@ final class HepsiburadaClient
         );
     }
 
-    /** @return array<string,mixed> */
-    /** @param array<array-key, mixed> $payload @return array<string|int, mixed> */
+    /** @param array<array-key,mixed> $payload @return array<array-key,mixed> */
     public function putJson(
         SalesChannelAccount $account,
         string $service,
@@ -170,7 +166,7 @@ final class HepsiburadaClient
         return 'https://'.$host.'/'.ltrim($path, '/');
     }
 
-    /** @return array<string,mixed> */
+    /** @return array<array-key,mixed> */
     private function decode(SalesChannelAccount $account, Response $response): array
     {
         if (! $response->successful()) {

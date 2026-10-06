@@ -15,8 +15,8 @@ final class N11Client
 
     public function __construct(private readonly ChannelSensitiveDataRedactor $redactor) {}
 
-    /** @return array<string,mixed> */
-    /** @param array<string, mixed> $query @return array<string|int, mixed> */
+    /** @return array<array-key,mixed> */
+    /** @param array<array-key,mixed> $query @return array<array-key,mixed> */
     public function get(SalesChannelAccount $account, string $path, array $query = []): array
     {
         return $this->decode(
@@ -25,8 +25,8 @@ final class N11Client
         );
     }
 
-    /** @return array<string,mixed> */
-    /** @param array<string, mixed> $payload @return array<string|int, mixed> */
+    /** @return array<array-key,mixed> */
+    /** @param array<array-key,mixed> $payload @return array<array-key,mixed> */
     public function post(SalesChannelAccount $account, string $path, array $payload): array
     {
         return $this->decode(
@@ -35,8 +35,8 @@ final class N11Client
         );
     }
 
-    /** @return array<string,mixed> */
-    /** @param array<string, mixed> $payload @return array<string|int, mixed> */
+    /** @return array<array-key,mixed> */
+    /** @param array<array-key,mixed> $payload @return array<array-key,mixed> */
     public function put(SalesChannelAccount $account, string $path, array $payload): array
     {
         return $this->decode(
@@ -210,7 +210,7 @@ final class N11Client
         return $rows;
     }
 
-    /** @return array<string,mixed> */
+    /** @return array<array-key,mixed> */
     private function decode(SalesChannelAccount $account, Response $response): array
     {
         if (! $response->successful()) {

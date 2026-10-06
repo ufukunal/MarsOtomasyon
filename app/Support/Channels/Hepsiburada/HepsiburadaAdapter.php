@@ -431,6 +431,7 @@ final class HepsiburadaAdapter implements ChannelAdapter
 
     /**
      * @param  list<array<string,mixed>>  $rows
+     * @param  array<string,mixed>  $detail
      * @return array<string,mixed>
      */
     private function normalizeOrder(
@@ -599,7 +600,7 @@ final class HepsiburadaAdapter implements ChannelAdapter
         ];
     }
 
-    /** @return list<array<string,mixed>> */
+    /** @param array<array-key,mixed> $response @return list<array<string,mixed>> */
     private function rows(array $response): array
     {
         return $this->rowsFromPotentialList(
@@ -652,6 +653,7 @@ final class HepsiburadaAdapter implements ChannelAdapter
         return bcadd((string) $value, '0', 4);
     }
 
+    /** @param array<string,mixed> $row */
     private function vatRate(array $row): string
     {
         if (isset($row['vatRate'])) {
@@ -661,6 +663,7 @@ final class HepsiburadaAdapter implements ChannelAdapter
         return '0.0000';
     }
 
+    /** @param array<array-key,mixed> $response */
     private function trackingResult(
         array $response,
         string $key,
