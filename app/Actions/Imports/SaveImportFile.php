@@ -22,7 +22,7 @@ final class SaveImportFile
         return DB::connection('period')->transaction(function () use ($data, $file, $expectedVersion): ImportFile {
             $locked = $file
                 ? ImportFile::query()->lockForUpdate()->findOrFail($file->id)
-                : new ImportFile();
+                : new ImportFile;
 
             if ($locked->exists && $locked->isLocked()) {
                 throw new DomainException('Teslim alınmış/kapanmış ithalat dosyası değiştirilemez.');

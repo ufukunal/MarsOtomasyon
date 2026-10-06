@@ -79,7 +79,6 @@ final class PostManualFinanceMovement
                     $normalized,
                     $date,
                     $contactId,
-                    $requestedRate,
                     $movementType,
                     $reference,
                     $note,

@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Gate;
 final class CopyPeriodAccess
 {
     /**
-     * @param list<int> $userIds
+     * @param  list<int>  $userIds
      * @return array{copied:int,user_ids:list<int>}
      */
     public function handle(Period $source, Period $target, array $userIds): array

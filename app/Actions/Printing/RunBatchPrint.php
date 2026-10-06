@@ -9,7 +9,7 @@ use Throwable;
 final class RunBatchPrint
 {
     /**
-     * @param array<int, callable(): PrintResult> $items
+     * @param  array<int, callable(): PrintResult>  $items
      * @return array{done:int,failed:int,results:array<int,array<string,mixed>>}
      */
     public function execute(array $items): array

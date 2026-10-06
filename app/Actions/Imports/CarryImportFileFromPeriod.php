@@ -15,6 +15,7 @@ use App\Support\Period\PeriodContext;
 use App\Support\Period\SourcePeriodContext;
 use DomainException;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
@@ -209,7 +210,7 @@ final class CarryImportFileFromPeriod
         }
     }
 
-    /** @return array{file:object,containers:\Illuminate\Support\Collection<int, object>,packages:\Illuminate\Support\Collection<int, object>,cost_items:\Illuminate\Support\Collection<int, object>} */
+    /** @return array{file:object,containers:Collection<int, object>,packages:Collection<int, object>,cost_items:Collection<int, object>} */
     private function sourceSnapshot(Period $sourcePeriod, int $sourceImportFileId): array
     {
         SourcePeriodContext::usePeriod($sourcePeriod);
@@ -248,7 +249,7 @@ final class CarryImportFileFromPeriod
         }
     }
 
-    /** @param array{file:object,containers:\Illuminate\Support\Collection<int, object>,packages:\Illuminate\Support\Collection<int, object>,cost_items:\Illuminate\Support\Collection<int, object>} $snapshot */
+    /** @param array{file:object,containers:Collection<int, object>,packages:Collection<int, object>,cost_items:Collection<int, object>} $snapshot */
     private function assertTargetReferences(array $snapshot): void
     {
         $file = $snapshot['file'];

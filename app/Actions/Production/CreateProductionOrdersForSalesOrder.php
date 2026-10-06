@@ -59,6 +59,7 @@ final class CreateProductionOrdersForSalesOrder
 
             if ($existing) {
                 $ids[] = (int) $existing->id;
+
                 continue;
             }
 

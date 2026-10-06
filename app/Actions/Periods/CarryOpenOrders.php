@@ -187,7 +187,7 @@ final class CarryOpenOrders
     }
 
     /**
-     * @param array<string,mixed> $sourceOrder
+     * @param  array<string,mixed>  $sourceOrder
      */
     private function carryOrder(
         Period $source,
@@ -276,7 +276,7 @@ final class CarryOpenOrders
     }
 
     /**
-     * @param array<string,mixed> $sourceOrder
+     * @param  array<string,mixed>  $sourceOrder
      */
     private function restoreReservations(array $sourceOrder, Document $targetOrder): int
     {

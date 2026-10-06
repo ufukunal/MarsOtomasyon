@@ -452,7 +452,7 @@ final class CopyPeriodCards
     }
 
     /**
-     * @param Collection<int,mixed> $values
+     * @param  Collection<int,mixed>  $values
      * @return array<int,true>
      */
     private function ids(Collection $values): array
@@ -469,7 +469,7 @@ final class CopyPeriodCards
     }
 
     /**
-     * @param array<int,true> $ownerIds
+     * @param  array<int,true>  $ownerIds
      * @return array<int,true>
      */
     private function foreignIds(

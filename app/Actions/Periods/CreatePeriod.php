@@ -83,6 +83,7 @@ final class CreatePeriod
             throw $exception;
         }
     }
+
     private function grantRuntimeRole(string $databaseName): void
     {
         $role = trim((string) config('operations.database.runtime_username'));
@@ -117,5 +118,4 @@ final class CreatePeriod
              GRANT USAGE, SELECT ON SEQUENCES TO {$quotedRole}"
         );
     }
-
 }

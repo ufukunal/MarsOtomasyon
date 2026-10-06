@@ -33,8 +33,8 @@ final class PostProductionCompletion
     ) {}
 
     /**
-     * @param array<int,array{consumed_quantity?:string,fire_quantity?:string,location_id?:int|null}> $consumptions
-     * @param list<array{location_id:int,quantity:string}> $outputs
+     * @param  array<int,array{consumed_quantity?:string,fire_quantity?:string,location_id?:int|null}>  $consumptions
+     * @param  list<array{location_id:int,quantity:string}>  $outputs
      */
     public function handle(
         ProductionOrder $order,
