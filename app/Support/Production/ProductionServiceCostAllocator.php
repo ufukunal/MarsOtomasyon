@@ -16,6 +16,50 @@ final class ProductionServiceCostAllocator
 {
     public function __construct(private readonly ApplyInventoryCostAdjustment $adjustment) {}
 
+    public function lockRelevantCompletions(ProductionOrder $order): void
+    {
+        if ($order->production_type !== 'subcontract') {
+            return;
+        }
+
+        $invoiceIds = ProductionServiceInvoice::query()
+            ->where('production_order_id', $order->id)
+            ->orderBy('purchase_invoice_id')
+            ->pluck('purchase_invoice_id')
+            ->map(fn ($id): int => (int) $id)
+            ->unique()
+            ->values()
+            ->all();
+
+        if ($invoiceIds === []) {
+            return;
+        }
+
+        Document::query()
+            ->whereIn('id', $invoiceIds)
+            ->orderBy('id')
+            ->lockForUpdate()
+            ->get();
+
+        $orderIds = ProductionServiceInvoice::query()
+            ->whereIn('purchase_invoice_id', $invoiceIds)
+            ->orderBy('production_order_id')
+            ->pluck('production_order_id')
+            ->map(fn ($id): int => (int) $id)
+            ->unique()
+            ->values()
+            ->all();
+
+        ProductionCompletion::query()
+            ->whereIn('production_order_id', $orderIds)
+            ->whereNull('reversal_of_id')
+            ->whereDoesntHave('reversals')
+            ->orderBy('production_order_id')
+            ->orderBy('id')
+            ->lockForUpdate()
+            ->get();
+    }
+
     /**
      * @return array{service_cost:string,shares:list<array{invoice_id:int,line_id:int,amount:string}>}
      */
