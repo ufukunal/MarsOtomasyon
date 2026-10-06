@@ -12,9 +12,9 @@ use App\Actions\Stock\RecordStockMovement;
 use App\DataObjects\StockMovementData;
 use App\Enums\DocumentType;
 use App\Models\Period\ContactTransaction;
+use App\Models\Period\DocumentLine;
 use App\Models\Period\Location;
 use App\Models\Period\StockMovement;
-use DomainException;
 
 it('kismi sevk ve kismi faturada kalan miktarlari dogru izler ve stogu ikinci kez dusmez', function () {
     [$company, $period] = $this->createCompanyWithPeriod('FAZ3PARTIAL');
