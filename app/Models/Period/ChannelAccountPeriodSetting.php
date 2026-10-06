@@ -25,6 +25,7 @@ class ChannelAccountPeriodSetting extends PeriodModel
         ];
     }
 
+    /** @return BelongsTo<Contact, $this> */
     public function marketplaceCustomerContact(): BelongsTo
     {
         return $this->belongsTo(Contact::class, 'marketplace_customer_contact_id');

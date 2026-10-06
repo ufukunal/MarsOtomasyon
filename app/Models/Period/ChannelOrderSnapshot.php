@@ -43,6 +43,7 @@ class ChannelOrderSnapshot extends PeriodModel
         ];
     }
 
+    /** @return BelongsTo<Document, $this> */
     public function salesOrder(): BelongsTo
     {
         return $this->belongsTo(Document::class, 'sales_order_id');

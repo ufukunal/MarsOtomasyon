@@ -44,6 +44,7 @@ class ChannelExternalEventRegistry extends MasterModel
         ));
     }
 
+    /** @return BelongsTo<SalesChannelAccount, $this> */
     public function account(): BelongsTo
     {
         return $this->belongsTo(SalesChannelAccount::class, 'channel_account_id');

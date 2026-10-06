@@ -44,11 +44,13 @@ class ProductionRecipe extends PeriodModel
         static::deleting(fn (): never => throw new LogicException('Reçete revizyonu fiziksel olarak silinemez.'));
     }
 
+    /** @return BelongsTo<Product, $this> */
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
     }
 
+    /** @return HasMany<ProductionRecipeLine, $this> */
     public function lines(): HasMany
     {
         return $this->hasMany(ProductionRecipeLine::class)->orderBy('id');

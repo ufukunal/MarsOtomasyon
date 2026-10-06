@@ -20,11 +20,13 @@ class ChannelListingLocation extends PeriodModel
         ];
     }
 
+    /** @return BelongsTo<ChannelProductListing, $this> */
     public function listing(): BelongsTo
     {
         return $this->belongsTo(ChannelProductListing::class, 'channel_product_listing_id');
     }
 
+    /** @return BelongsTo<Location, $this> */
     public function location(): BelongsTo
     {
         return $this->belongsTo(Location::class);
