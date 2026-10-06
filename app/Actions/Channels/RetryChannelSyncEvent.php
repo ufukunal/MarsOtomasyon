@@ -117,6 +117,7 @@ final class RetryChannelSyncEvent
             throw $exception;
         }
     }
+
     /** @return list<array<string,int|string>> */
     private function shipmentLines(mixed $value): array
     {

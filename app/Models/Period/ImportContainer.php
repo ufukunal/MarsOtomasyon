@@ -5,6 +5,7 @@ namespace App\Models\Period;
 use App\Models\PeriodModel;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 use LogicException;
 
 /**
@@ -15,8 +16,8 @@ use LogicException;
  * @property string|null $seal_no
  * @property string|null $gross_weight_kg
  * @property string|null $volume_cbm
- * @property \Illuminate\Support\Carbon|null $etd
- * @property \Illuminate\Support\Carbon|null $eta
+ * @property Carbon|null $etd
+ * @property Carbon|null $eta
  * @property string $status
  */
 class ImportContainer extends PeriodModel
