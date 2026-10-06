@@ -24,9 +24,11 @@ final class SetupTrendyolWebhook
             throw new DomainException('Webhook kurulumu yalnız aktif şirkete ait Trendyol hesabında yapılabilir.');
         }
 
-        if (trim((string) data_get($account->settings, 'trendyol_webhook_id', '')) !== '') {
-            throw new DomainException('Trendyol webhook zaten kayıtlı; ikinci subscription oluşturulamaz.');
-        }
+        $existingWebhookId = trim((string) data_get(
+            $account->settings,
+            'trendyol_webhook_id',
+            '',
+        ));
 
         $apiKey = trim((string) ($account->credentials()['webhook_api_key'] ?? ''));
 
@@ -49,20 +51,36 @@ final class SetupTrendyolWebhook
             throw new DomainException('Trendyol webhook URL public HTTPS olmalı ve yasaklı endpoint ifadelerini içermemelidir.');
         }
 
-        $response = $this->client->post(
-            $account,
-            "/integration/webhook/sellers/{$sellerId}/webhooks",
-            [
-                'url' => $url,
-                'authenticationType' => 'API_KEY',
-                'apiKey' => $apiKey,
-                'subscribedStatuses' => ['CREATED', 'CANCELLED', 'UNSUPPLIED'],
-            ],
-        );
-        $webhookId = trim((string) ($response['id'] ?? ''));
+        $payload = [
+            'url' => $url,
+            'authenticationType' => 'API_KEY',
+            'apiKey' => $apiKey,
+            'subscribedStatuses' => ['CREATED', 'CANCELLED', 'UNSUPPLIED'],
+        ];
 
-        if ($webhookId === '') {
-            throw new DomainException('Trendyol webhook create yanıtında id bulunamadı.');
+        if ($existingWebhookId !== '') {
+            $this->client->put(
+                $account,
+                "/integration/webhook/sellers/{$sellerId}/webhooks/".rawurlencode($existingWebhookId),
+                $payload,
+            );
+            $webhookId = $existingWebhookId;
+            $auditMessage = 'Trendyol webhook ayarları güncellendi.';
+            $auditEvent = 'trendyol_webhook_updated';
+        } else {
+            $response = $this->client->post(
+                $account,
+                "/integration/webhook/sellers/{$sellerId}/webhooks",
+                $payload,
+            );
+            $webhookId = trim((string) ($response['id'] ?? ''));
+
+            if ($webhookId === '') {
+                throw new DomainException('Trendyol webhook create yanıtında id bulunamadı.');
+            }
+
+            $auditMessage = 'Trendyol webhook kurulumu tamamlandı.';
+            $auditEvent = 'trendyol_webhook_created';
         }
 
         $settings = $account->settings ?? [];
@@ -72,14 +90,14 @@ final class SetupTrendyolWebhook
         $account->save();
 
         AuditContext::master(
-            'Trendyol webhook kurulumu tamamlandı.',
+            $auditMessage,
             [
                 'channel_account_id' => $account->id,
                 'webhook_id' => $webhookId,
                 'subscribed_statuses' => ['CREATED', 'CANCELLED', 'UNSUPPLIED'],
             ],
             $account,
-            'trendyol_webhook_created',
+            $auditEvent,
         );
 
         return $webhookId;
