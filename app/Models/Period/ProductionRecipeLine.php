@@ -32,16 +32,19 @@ class ProductionRecipeLine extends PeriodModel
         static::deleting(fn (): never => throw new LogicException('Reçete satırı fiziksel olarak silinemez.'));
     }
 
+    /** @return BelongsTo<ProductionRecipe, $this> */
     public function recipe(): BelongsTo
     {
         return $this->belongsTo(ProductionRecipe::class, 'production_recipe_id');
     }
 
+    /** @return BelongsTo<Product, $this> */
     public function componentProduct(): BelongsTo
     {
         return $this->belongsTo(Product::class, 'component_product_id');
     }
 
+    /** @return BelongsTo<Unit, $this> */
     public function unit(): BelongsTo
     {
         return $this->belongsTo(Unit::class);

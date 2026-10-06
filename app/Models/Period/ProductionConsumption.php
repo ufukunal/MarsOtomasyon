@@ -33,21 +33,25 @@ class ProductionConsumption extends PeriodModel
         ];
     }
 
+    /** @return BelongsTo<ProductionCompletion, $this> */
     public function completion(): BelongsTo
     {
         return $this->belongsTo(ProductionCompletion::class, 'production_completion_id');
     }
 
+    /** @return BelongsTo<Product, $this> */
     public function componentProduct(): BelongsTo
     {
         return $this->belongsTo(Product::class, 'component_product_id');
     }
 
+    /** @return BelongsTo<Location, $this> */
     public function location(): BelongsTo
     {
         return $this->belongsTo(Location::class);
     }
 
+    /** @return BelongsTo<StockMovement, $this> */
     public function stockMovement(): BelongsTo
     {
         return $this->belongsTo(StockMovement::class);

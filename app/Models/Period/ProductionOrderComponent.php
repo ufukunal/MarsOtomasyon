@@ -31,16 +31,19 @@ class ProductionOrderComponent extends PeriodModel
         ];
     }
 
+    /** @return BelongsTo<ProductionOrder, $this> */
     public function order(): BelongsTo
     {
         return $this->belongsTo(ProductionOrder::class, 'production_order_id');
     }
 
+    /** @return BelongsTo<Product, $this> */
     public function componentProduct(): BelongsTo
     {
         return $this->belongsTo(Product::class, 'component_product_id');
     }
 
+    /** @return BelongsTo<Unit, $this> */
     public function unit(): BelongsTo
     {
         return $this->belongsTo(Unit::class);

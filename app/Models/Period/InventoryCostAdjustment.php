@@ -41,21 +41,25 @@ class InventoryCostAdjustment extends PeriodModel
         ];
     }
 
+    /** @return BelongsTo<Product, $this> */
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
     }
 
+    /** @return BelongsTo<ProductionCompletion, $this> */
     public function completion(): BelongsTo
     {
         return $this->belongsTo(ProductionCompletion::class, 'production_completion_id');
     }
 
+    /** @return BelongsTo<ProductionServiceAllocation, $this> */
     public function serviceAllocation(): BelongsTo
     {
         return $this->belongsTo(ProductionServiceAllocation::class, 'production_service_allocation_id');
     }
 
+    /** @return BelongsTo<self, $this> */
     public function adjustmentOf(): BelongsTo
     {
         return $this->belongsTo(self::class, 'adjustment_of_id');

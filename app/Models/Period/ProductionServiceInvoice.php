@@ -18,16 +18,19 @@ class ProductionServiceInvoice extends PeriodModel
         ];
     }
 
+    /** @return BelongsTo<ProductionOrder, $this> */
     public function order(): BelongsTo
     {
         return $this->belongsTo(ProductionOrder::class, 'production_order_id');
     }
 
+    /** @return BelongsTo<Document, $this> */
     public function invoice(): BelongsTo
     {
         return $this->belongsTo(Document::class, 'purchase_invoice_id');
     }
 
+    /** @return HasMany<ProductionServiceAllocation, $this> */
     public function allocations(): HasMany
     {
         return $this->hasMany(
