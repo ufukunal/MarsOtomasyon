@@ -43,38 +43,34 @@ final class CreatePeriod
                 'status' => 'active',
             ]);
 
-            PeriodContext::useSystem($company->id, $period->id);
+            PeriodContext::withinSystem($period, function () use ($dbName, $period): void {
+                $exitCode = Artisan::call('migrate', [
+                    '--database' => 'period',
+                    '--path' => 'database/migrations/period',
+                    '--force' => true,
+                ]);
 
-            $exitCode = Artisan::call('migrate', [
-                '--database' => 'period',
-                '--path' => 'database/migrations/period',
-                '--force' => true,
-            ]);
+                if ($exitCode !== 0) {
+                    throw new RuntimeException("{$dbName} period migration başarısız oldu.");
+                }
 
-            if ($exitCode !== 0) {
-                throw new RuntimeException("{$dbName} period migration başarısız oldu.");
-            }
+                app(SeedPeriodReferenceData::class)->handle();
+                $this->grantRuntimeRole($dbName);
 
-            app(SeedPeriodReferenceData::class)->handle();
-            $this->grantRuntimeRole($dbName);
+                $schemaVersion = app(PeriodSchemaVersion::class)->currentDatabaseVersion();
 
-            $schemaVersion = app(PeriodSchemaVersion::class)->currentDatabaseVersion();
+                Period::query()
+                    ->whereKey($period->id)
+                    ->update(['schema_version' => $schemaVersion]);
 
-            Period::query()
-                ->whereKey($period->id)
-                ->update(['schema_version' => $schemaVersion]);
-
-            $period->schema_version = $schemaVersion;
+                $period->schema_version = $schemaVersion;
+            });
 
             return $period;
         } catch (Throwable $exception) {
-            DB::purge('period');
-
             if ($period?->exists) {
                 $period->delete();
             }
-
-            PeriodContext::clear();
 
             if ($databaseCreated) {
                 DB::connection('master')->statement(sprintf('DROP DATABASE IF EXISTS "%s" WITH (FORCE)', $dbName));
