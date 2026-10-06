@@ -94,15 +94,18 @@ Route::get('/saglik', HealthController::class)
 Route::get('/', Dashboard::class)->middleware('auth')->name('home');
 
 Route::post('/hooks/channel/{account}', TrendyolWebhookController::class)
+    ->middleware('throttle:webhook')
     ->whereNumber('account')
     ->name('webhooks.trendyol');
 
 Route::put('/hooks/channel/hepsiburada/{account}/{event}', HepsiburadaWebhookController::class)
+    ->middleware('throttle:webhook')
     ->whereNumber('account')
     ->where('event', 'createOrder|createPackages|orderCancel|unpack|intransit|deliver|undeliver|changeShippingAddressOrder|awaitingAction|awaitingPreApproval|disputedClaimResult|packageFromClaimResult')
     ->name('webhooks.hepsiburada');
 
 Route::post('/hooks/channel/woocommerce/{account}', WooCommerceWebhookController::class)
+    ->middleware('throttle:webhook')
     ->whereNumber('account')
     ->name('webhooks.woocommerce');
 
