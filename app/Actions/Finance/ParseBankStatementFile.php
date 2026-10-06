@@ -119,7 +119,7 @@ final class ParseBankStatementFile
             if ($sheetXml === false) {
                 for ($index = 0; $index < $zip->numFiles; $index++) {
                     $stat = $zip->statIndex($index);
-                    $name = is_array($stat) ? (string) ($stat['name'] ?? '') : '';
+                    $name = is_array($stat) ? (string) $stat['name'] : '';
 
                     if (preg_match('#^xl/worksheets/sheet\d+\.xml$#', $name)) {
                         $sheetXml = $zip->getFromIndex($index);

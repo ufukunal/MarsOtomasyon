@@ -128,8 +128,8 @@ final class PostDocument
                         throw new DomainException('Cari etkili belgede cari zorunludur.');
                     }
 
-                    $contactAmount = $context?->contactAmount ?? (string) $locked->grand_total;
-                    $contactCurrency = $context?->contactCurrency ?? (string) $locked->currency;
+                    $contactAmount = $context->contactAmount ?? (string) $locked->grand_total;
+                    $contactCurrency = $context->contactCurrency ?? (string) $locked->currency;
 
                     ContactTransaction::query()->create([
                         'contact_id' => $locked->contact_id,

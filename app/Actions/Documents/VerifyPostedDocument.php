@@ -23,8 +23,8 @@ final class VerifyPostedDocument
     ): void {
         if ($profile->contactDirection !== null) {
             $transaction = ContactTransaction::query()->where('document_id', $document->id)->first();
-            $expectedAmount = $context?->contactAmount ?? (string) $document->grand_total;
-            $expectedCurrency = $context?->contactCurrency ?? (string) $document->currency;
+            $expectedAmount = $context->contactAmount ?? (string) $document->grand_total;
+            $expectedCurrency = $context->contactCurrency ?? (string) $document->currency;
 
             if (! $transaction
                 || $transaction->direction !== $profile->contactDirection
