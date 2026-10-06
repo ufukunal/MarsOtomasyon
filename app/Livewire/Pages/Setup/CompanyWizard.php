@@ -86,23 +86,46 @@ class CompanyWizard extends Component
         }
 
         $this->runMasterMutation('finish', function () use ($createPeriod, $saveLocation): bool {
-            $company = Company::query()->create([
-                'code' => $this->code,
-                'name' => $this->name,
-                'legal_name' => $this->legalName ?: null,
-                'db_prefix' => $this->dbPrefix,
-                'tax_office' => $this->taxOffice ?: null,
-                'tax_number' => $this->taxNumber ?: null,
-                'address' => $this->address ?: null,
-                'default_term_days' => $this->defaultTermDays,
-                'cost_deviation_threshold' => $this->costDeviationThreshold,
-                'base_currency' => $this->baseCurrency,
-            ]);
-
+            $company = null;
             $period = null;
             $createdUser = null;
 
             try {
+                $user = auth()->user();
+
+                if ($user) {
+                    abort_unless($user->can('companies.create'), 403);
+                } else {
+                    $user = DB::connection('master')->transaction(function (): User {
+                        DB::connection('master')->statement(
+                            'LOCK TABLE users IN SHARE ROW EXCLUSIVE MODE'
+                        );
+
+                        abort_if(User::query()->exists(), 403);
+
+                        return User::query()->create([
+                            'name' => $this->adminName,
+                            'email' => $this->adminEmail,
+                            'password' => Hash::make($this->adminPassword),
+                            'is_active' => true,
+                        ]);
+                    }, attempts: 3);
+                    $createdUser = $user;
+                }
+
+                $company = Company::query()->create([
+                    'code' => $this->code,
+                    'name' => $this->name,
+                    'legal_name' => $this->legalName ?: null,
+                    'db_prefix' => $this->dbPrefix,
+                    'tax_office' => $this->taxOffice ?: null,
+                    'tax_number' => $this->taxNumber ?: null,
+                    'address' => $this->address ?: null,
+                    'default_term_days' => $this->defaultTermDays,
+                    'cost_deviation_threshold' => $this->costDeviationThreshold,
+                    'base_currency' => $this->baseCurrency,
+                ]);
+
                 $period = $createPeriod->handle($company, $this->year);
 
                 foreach (config('numbering.prefixes', []) as $documentType => $prefix) {
@@ -110,18 +133,6 @@ class CompanyWizard extends Component
                         ['document_type' => $documentType, 'year' => $this->year],
                         ['prefix' => $prefix, 'last_number' => 0, 'padding' => 5, 'updated_at' => now(), 'created_at' => now()],
                     );
-                }
-
-                $user = auth()->user();
-
-                if (! $user) {
-                    $user = User::query()->create([
-                        'name' => $this->adminName,
-                        'email' => $this->adminEmail,
-                        'password' => Hash::make($this->adminPassword),
-                        'is_active' => true,
-                    ]);
-                    $createdUser = $user;
                 }
 
                 DB::connection('master')->table('company_user')->insertOrIgnore([
@@ -175,7 +186,7 @@ class CompanyWizard extends Component
                     );
                 }
 
-                $company->delete();
+                $company?->delete();
                 $createdUser?->delete();
 
                 throw $exception;
