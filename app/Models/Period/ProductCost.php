@@ -5,6 +5,14 @@ namespace App\Models\Period;
 use App\Models\PeriodModel;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property int $product_id
+ * @property string $last_purchase_price
+ * @property string $moving_average
+ * @property string $import_cost
+ * @property string $production_cost
+ * @property \Illuminate\Support\Carbon|null $last_purchase_at
+ */
 class ProductCost extends PeriodModel
 {
     protected $fillable = [
