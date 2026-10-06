@@ -2,6 +2,18 @@
 
 namespace App\Models;
 
+/**
+ * @property int $id
+ * @property string $recovery_set_id
+ * @property string $trigger_type
+ * @property string $status
+ * @property \Carbon\CarbonImmutable $started_at
+ * @property \Carbon\CarbonImmutable|null $finished_at
+ * @property string $storage_disk
+ * @property array<int, array<string, mixed>>|null $period_manifest
+ * @property array<string, array<string, mixed>>|null $checksum_manifest
+ * @property \Carbon\CarbonImmutable|null $verified_at
+ */
 class BackupRun extends MasterModel
 {
     protected $fillable = [
