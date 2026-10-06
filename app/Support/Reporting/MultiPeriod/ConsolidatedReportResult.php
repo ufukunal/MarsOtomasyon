@@ -8,12 +8,12 @@ use App\Support\Reporting\ReportSort;
 final readonly class ConsolidatedReportResult
 {
     /**
-     * @param list<ReportColumnDefinition> $columns
-     * @param list<array<string,mixed>> $rows
-     * @param array<string,mixed> $totals
-     * @param array<string,mixed> $filters
-     * @param list<ReportSort> $sort
-     * @param list<array{id:int,year:int,status:string}> $periods
+     * @param  list<ReportColumnDefinition>  $columns
+     * @param  list<array<string,mixed>>  $rows
+     * @param  array<string,mixed>  $totals
+     * @param  array<string,mixed>  $filters
+     * @param  list<ReportSort>  $sort
+     * @param  list<array{id:int,year:int,status:string}>  $periods
      */
     public function __construct(
         public string $key,

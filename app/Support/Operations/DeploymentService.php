@@ -152,6 +152,7 @@ final class DeploymentService
             throw $exception;
         }
     }
+
     /** @return array{status:string,checks:array<string,array<string,mixed>>,correlation_id:string} */
     private function waitForHealthy(): array
     {

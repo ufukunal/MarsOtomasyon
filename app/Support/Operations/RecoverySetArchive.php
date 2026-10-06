@@ -41,7 +41,7 @@ final class RecoverySetArchive
         fclose($source);
         fclose($target);
 
-        $zip = new ZipArchive();
+        $zip = new ZipArchive;
         if ($zip->open($localArchive) !== true) {
             throw new RuntimeException('Recovery set ZIP açılamadı.');
         }

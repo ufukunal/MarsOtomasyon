@@ -8,11 +8,11 @@ use App\Support\Reporting\ReportSort;
 final readonly class ReportExportDataset
 {
     /**
-     * @param list<ReportColumnDefinition> $columns
-     * @param list<array<string,mixed>> $rows
-     * @param array<string,mixed> $totals
-     * @param array<string,mixed> $filters
-     * @param list<ReportSort> $sort
+     * @param  list<ReportColumnDefinition>  $columns
+     * @param  list<array<string,mixed>>  $rows
+     * @param  array<string,mixed>  $totals
+     * @param  array<string,mixed>  $filters
+     * @param  list<ReportSort>  $sort
      */
     public function __construct(
         public string $key,

@@ -12,6 +12,7 @@ use DomainException;
 final class LabelPrintService
 {
     public const PRODUCT_TEMPLATE_KEY = 'label.product';
+
     public const CARTON_TEMPLATE_KEY = 'label.carton';
 
     public function product(ProductLabelData $data, int $quantity = 1): PrintResult

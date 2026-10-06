@@ -5,8 +5,8 @@ namespace App\Support\Reporting\Dashboard;
 final readonly class DashboardWidgetDefinition
 {
     /**
-     * @param list<string> $columns
-     * @param array<string,mixed> $filters
+     * @param  list<string>  $columns
+     * @param  array<string,mixed>  $filters
      */
     public function __construct(
         public string $key,

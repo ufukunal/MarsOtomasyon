@@ -12,7 +12,7 @@ final class XlsxReportExporter
 {
     public function export(ReportExportDataset $dataset): string
     {
-        $spreadsheet = new Spreadsheet();
+        $spreadsheet = new Spreadsheet;
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->setTitle('Rapor');
 

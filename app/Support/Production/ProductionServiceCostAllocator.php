@@ -11,7 +11,6 @@ use App\Models\Period\ProductionOrder;
 use App\Models\Period\ProductionServiceAllocation;
 use App\Models\Period\ProductionServiceInvoice;
 use DomainException;
-use Illuminate\Support\Collection;
 
 final class ProductionServiceCostAllocator
 {

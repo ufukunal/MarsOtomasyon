@@ -17,13 +17,21 @@ use Illuminate\Support\Facades\DB;
 abstract class AbstractFinanceMovementReportQuery implements ReportQuery
 {
     abstract protected function key(): string;
+
     abstract protected function title(): string;
+
     abstract protected function permission(): string;
+
     abstract protected function accountPermission(): string;
+
     abstract protected function target(): string;
+
     abstract protected function movementTable(): string;
+
     abstract protected function accountTable(): string;
+
     abstract protected function accountForeignKey(): string;
+
     abstract protected function accountNameExpression(): string;
 
     protected function hasOrigin(): bool

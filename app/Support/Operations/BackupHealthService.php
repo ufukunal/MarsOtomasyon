@@ -42,11 +42,13 @@ final class BackupHealthService
 
                 if (! is_string($archive) || ! is_string($expected)) {
                     $failed[] = $disk;
+
                     continue;
                 }
 
                 if (! Storage::disk($disk)->exists($archive)) {
                     $failed[] = $disk;
+
                     continue;
                 }
 
@@ -89,6 +91,7 @@ final class BackupHealthService
 
                 if ($files === []) {
                     $failed[] = $disk;
+
                     continue;
                 }
 

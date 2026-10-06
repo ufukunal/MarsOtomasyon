@@ -8,8 +8,8 @@ use Illuminate\Support\Facades\DB;
 final class PeriodCarryTableCopier
 {
     /**
-     * @param list<int> $ids
-     * @param list<string> $identityColumns
+     * @param  list<int>  $ids
+     * @param  list<string>  $identityColumns
      */
     public function copyIds(string $table, array $ids, array $identityColumns = []): int
     {

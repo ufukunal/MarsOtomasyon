@@ -9,6 +9,7 @@ use DomainException;
 final class PrintRevisionSelector
 {
     public const CURRENT = 'current';
+
     public const ORIGINAL = 'original';
 
     public function resolve(

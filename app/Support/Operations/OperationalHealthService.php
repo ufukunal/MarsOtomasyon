@@ -63,6 +63,7 @@ final class OperationalHealthService
     {
         try {
             DB::connection('master')->select('select 1');
+
             return ['ok' => true, 'status' => 'available'];
         } catch (Throwable) {
             return ['ok' => false, 'status' => 'unavailable', 'severity' => 'failed'];
@@ -110,6 +111,7 @@ final class OperationalHealthService
     {
         try {
             $ok = (bool) Redis::connection('default')->ping();
+
             return ['ok' => $ok, 'status' => $ok ? 'available' : 'unavailable', 'severity' => $ok ? null : 'failed'];
         } catch (Throwable) {
             return ['ok' => false, 'status' => 'unavailable', 'severity' => 'failed'];
@@ -126,6 +128,7 @@ final class OperationalHealthService
 
             $age = max(0, now()->timestamp - (int) $timestamp);
             $maxAge = (int) config('operations.health.heartbeat_max_age_seconds', 180);
+
             return [
                 'ok' => $age <= $maxAge,
                 'status' => $age <= $maxAge ? 'fresh' : 'stale',
@@ -170,6 +173,7 @@ final class OperationalHealthService
     {
         try {
             $count = DB::connection('master')->table('failed_jobs')->count();
+
             return [
                 'ok' => $count === 0,
                 'status' => $count === 0 ? 'clear' : 'present',

@@ -21,6 +21,7 @@ use App\Support\Integrity\Checks\ReservationBalanceCheck;
 use App\Support\Integrity\Checks\ReturnIntegrityCheck;
 use App\Support\Integrity\Checks\StockBalanceCheck;
 use App\Support\Integrity\Checks\UnitIntegrityCheck;
+use App\Support\Integrity\IntegrityCheck;
 use App\Support\Integrity\IntegrityRunner;
 use RuntimeException;
 
@@ -48,7 +49,7 @@ final class ArchivePeriodIntegrityVerifier
         return $checked;
     }
 
-    /** @return list<class-string<\App\Support\Integrity\IntegrityCheck>> */
+    /** @return list<class-string<IntegrityCheck>> */
     private function checks(): array
     {
         return [
