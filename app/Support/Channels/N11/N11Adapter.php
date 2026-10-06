@@ -414,8 +414,14 @@ final class N11Adapter implements ChannelAdapter
         );
         $latest = $packages[array_key_last($packages)] ?? [];
         $address = is_array($latest['shippingAddress'] ?? null) ? $latest['shippingAddress'] : [];
+        $billingAddress = is_array($latest['billingAddress'] ?? null) ? $latest['billingAddress'] : [];
+        $isDeliveryPoint = trim((string) ($latest['deliveryAddressType'] ?? '')) !== '';
+        $customerAddress = $isDeliveryPoint && $billingAddress !== []
+            ? $billingAddress
+            : $address;
         $customer = trim((string) (
             $latest['customerfullName']
+            ?? $customerAddress['fullName']
             ?? $address['fullName']
             ?? ''
         ));
@@ -483,10 +489,21 @@ final class N11Adapter implements ChannelAdapter
             'orderDate' => $orderDate,
             'customerFirstName' => $firstName,
             'customerLastName' => $lastName,
-            'customerEmail' => (string) ($latest['customerEmail'] ?? ''),
+            'customerEmail' => (string) (
+                $latest['customerEmail']
+                ?? $customerAddress['email']
+                ?? $address['email']
+                ?? ''
+            ),
             'shipmentAddress' => [
-                'fullName' => (string) ($address['fullName'] ?? $customer),
-                'phone' => (string) ($address['gsm'] ?? ''),
+                'fullName' => (string) ($customerAddress['fullName'] ?? $customer),
+                'phone' => (string) (
+                    $customerAddress['gsm']
+                    ?? $customerAddress['phone']
+                    ?? $address['gsm']
+                    ?? $address['phone']
+                    ?? ''
+                ),
                 'fullAddress' => (string) ($address['address'] ?? ''),
                 'city' => (string) ($address['city'] ?? ''),
                 'district' => (string) ($address['district'] ?? ''),
