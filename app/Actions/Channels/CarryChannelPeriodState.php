@@ -249,10 +249,10 @@ final class CarryChannelPeriodState
 
     /**
      * @param  array{
-     *   settings:\Illuminate\Support\Collection<int,object>,
-     *   listings:\Illuminate\Support\Collection<int,object>,
-     *   locations:\Illuminate\Support\Collection<int,object>,
-     *   order_snapshots:\Illuminate\Support\Collection<int,object>,
+     *   settings:Collection<int,object>,
+     *   listings:Collection<int,object>,
+     *   locations:Collection<int,object>,
+     *   order_snapshots:Collection<int,object>,
      *   account_ids:list<int>
      * }  $snapshot
      * @param  array<int,int>  $salesOrderCarryMap
@@ -323,10 +323,10 @@ final class CarryChannelPeriodState
     /**
      * @param  array<int,int>  $salesOrderCarryMap
      * @param  array{
-     *   settings:\Illuminate\Support\Collection<int,object>,
-     *   listings:\Illuminate\Support\Collection<int,object>,
-     *   locations:\Illuminate\Support\Collection<int,object>,
-     *   order_snapshots:\Illuminate\Support\Collection<int,object>,
+     *   settings:Collection<int,object>,
+     *   listings:Collection<int,object>,
+     *   locations:Collection<int,object>,
+     *   order_snapshots:Collection<int,object>,
      *   account_ids:list<int>
      * }  $snapshot
      * @return array{settings:int,listings:int,locations:int,order_snapshots:int,registry_rebinds:list<array<string,int|string>>}

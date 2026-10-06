@@ -10,6 +10,7 @@ use App\Support\Reporting\ReportRegistry;
 use App\Support\Reporting\ReportRequest;
 use App\Support\Reporting\ReportResult;
 use App\Support\Reporting\ReportSort;
+use App\Support\Reporting\ReportTotalDefinition;
 use DomainException;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\Gate;
@@ -167,7 +168,7 @@ final class MultiPeriodQuery
 
     /**
      * @param  array<string,mixed>  $combined
-     * @param  array<string,\App\Support\Reporting\ReportTotalDefinition>  $totalDefinitions
+     * @param  array<string,ReportTotalDefinition>  $totalDefinitions
      */
     private function mergeTotals(array &$combined, ReportResult $result, array $totalDefinitions): void
     {
