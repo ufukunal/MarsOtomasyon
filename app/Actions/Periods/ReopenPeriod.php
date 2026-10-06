@@ -29,7 +29,7 @@ final class ReopenPeriod
 
         $expectedVersion = (int) $period->version;
 
-        $period->updateWithVersion([
+        $period = $period->updateWithVersion([
             'status' => 'active',
             'closed_at' => null,
         ], $expectedVersion);
