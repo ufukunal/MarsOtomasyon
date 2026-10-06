@@ -4,6 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property array<string,mixed> $filters
+ * @property list<int> $periods
+ * @property array{cost_view_required?:bool} $permission_scope
+ */
 class ReportExportJob extends MasterModel
 {
     protected $fillable = [

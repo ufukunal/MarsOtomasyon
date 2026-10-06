@@ -5,6 +5,11 @@ namespace App\Models;
 use App\Support\Concurrency\HasOptimisticLock;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property array<string,mixed>|null $filters
+ * @property list<string>|null $columns
+ * @property list<array{key:string,direction:string}>|null $sort
+ */
 class ReportFilterPreset extends MasterModel
 {
     use HasOptimisticLock;
