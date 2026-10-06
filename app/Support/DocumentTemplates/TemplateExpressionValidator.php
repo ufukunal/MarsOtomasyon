@@ -16,7 +16,7 @@ final class TemplateExpressionValidator
 
         preg_match_all('/\{\{(.*?)\}\}/s', $text, $matches);
 
-        foreach ($matches[1] ?? [] as $expression) {
+        foreach ($matches[1] as $expression) {
             $token = trim((string) $expression);
 
             if (! preg_match('/^[a-z][a-z0-9_]*\.[a-z][a-z0-9_]*$/D', $token)) {

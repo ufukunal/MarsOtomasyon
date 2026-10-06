@@ -31,13 +31,16 @@ final class ChannelSensitiveDataRedactor
         return mb_substr($text, 0, 2000);
     }
 
-    /** @return list<string> */
+    /**
+     * @param array<string,mixed> $credentials
+     * @return list<string>
+     */
     private function flattenSecrets(array $credentials): array
     {
         $values = [];
 
         array_walk_recursive($credentials, function (mixed $value) use (&$values): void {
-            if (is_scalar($value) && $value !== null) {
+            if (is_scalar($value)) {
                 $values[] = (string) $value;
             }
         });

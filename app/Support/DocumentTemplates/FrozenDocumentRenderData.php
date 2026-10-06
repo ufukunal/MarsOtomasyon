@@ -10,12 +10,8 @@ final readonly class FrozenDocumentRenderData
     public function __construct(public array $domains)
     {
         foreach ($domains as $domain => $values) {
-            if (! is_string($domain) || ! is_array($values)) {
-                throw new DomainException('Render DTO yalnız domain => scalar map içerebilir.');
-            }
-
             foreach ($values as $field => $value) {
-                if (! is_string($field) || (! is_scalar($value) && $value !== null)) {
+                if (! is_scalar($value) && $value !== null) {
                     throw new DomainException("Render DTO {$domain}.{$field} scalar olmalıdır.");
                 }
             }
