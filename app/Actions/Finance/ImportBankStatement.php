@@ -8,6 +8,7 @@ use App\Models\Period\BankMovement;
 use App\Support\Audit\AuditContext;
 use App\Support\Auth\MutationAuthorizer;
 use App\Support\Concurrency\IdempotencyKey;
+use Carbon\CarbonImmutable;
 use DomainException;
 use Illuminate\Support\Facades\DB;
 
@@ -52,6 +53,7 @@ final class ImportBankStatement
                     $account,
                     $rows,
                     $checksum,
+                    $format,
                     &$imported,
                     &$duplicates,
                     &$ids,
@@ -59,7 +61,7 @@ final class ImportBankStatement
                     $actor = auth()->user();
 
                     foreach ($rows as $row) {
-                        $this->ensurePeriodOpen->handle($row['date']);
+                        $this->ensurePeriodOpen->handle(CarbonImmutable::parse($row['date'], config('app.timezone')));
                         $fingerprint = hash('sha256', implode('|', [
                             (string) $account->id,
                             $row['date'],
