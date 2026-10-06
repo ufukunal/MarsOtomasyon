@@ -18,7 +18,9 @@ class ChannelSyncCenter extends Component
     use WithIdempotentMutations;
 
     public string $status = '';
+
     public string $direction = '';
+
     public ?int $channelAccountId = null;
 
     public function mount(): void

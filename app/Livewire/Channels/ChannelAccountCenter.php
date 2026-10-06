@@ -24,13 +24,21 @@ class ChannelAccountCenter extends Component
     use WithIdempotentMutations;
 
     public ?int $selectedAccountId = null;
+
     public int $version = 1;
+
     public string $platform = 'trendyol';
+
     public string $name = '';
+
     public string $externalStoreId = '';
+
     public string $credentialsJson = '{}';
+
     public string $settingsJson = '{}';
+
     public bool $isActive = true;
+
     public ?int $marketplaceCustomerContactId = null;
 
     public function mount(): void
@@ -66,7 +74,7 @@ class ChannelAccountCenter extends Component
         $this->externalStoreId = (string) ($account->external_store_id ?? '');
         $this->credentialsJson = '';
         $this->settingsJson = json_encode(
-            $account->settings ?? new \stdClass(),
+            $account->settings ?? new \stdClass,
             JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES,
         ) ?: '{}';
         $this->isActive = (bool) $account->is_active;

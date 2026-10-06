@@ -19,7 +19,9 @@ class FinanceAccounts extends Component
     public string $cashName = '';
 
     public string $cashCurrency = 'TRY';
+
     public ?int $cashEditId = null;
+
     public ?int $cashEditVersion = null;
 
     public string $bankCode = '';
@@ -31,7 +33,9 @@ class FinanceAccounts extends Component
     public string $bankIban = '';
 
     public string $bankCurrency = 'TRY';
+
     public ?int $bankEditId = null;
+
     public ?int $bankEditVersion = null;
 
     public function mount(): void

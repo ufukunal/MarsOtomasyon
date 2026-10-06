@@ -5,12 +5,12 @@ namespace App\DataObjects\Periods;
 final readonly class PeriodCarryPreview
 {
     /**
-     * @param list<array{key:string,status:string,message:string,count?:int}> $checks
-     * @param array<string,mixed> $summary
-     * @param list<array<string,mixed>> $salesOrders
-     * @param list<array<string,mixed>> $purchaseOrders
-     * @param list<array<string,mixed>> $importFiles
-     * @param list<array<string,mixed>> $quarantine
+     * @param  list<array{key:string,status:string,message:string,count?:int}>  $checks
+     * @param  array<string,mixed>  $summary
+     * @param  list<array<string,mixed>>  $salesOrders
+     * @param  list<array<string,mixed>>  $purchaseOrders
+     * @param  list<array<string,mixed>>  $importFiles
+     * @param  list<array<string,mixed>>  $quarantine
      */
     public function __construct(
         public int $sourcePeriodId,

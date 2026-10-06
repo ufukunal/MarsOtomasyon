@@ -24,23 +24,41 @@ class ChannelListingCenter extends Component
     use WithIdempotentMutations;
 
     public ?int $selectedListingId = null;
+
     public int $version = 1;
+
     public ?int $channelAccountId = null;
+
     public ?int $productId = null;
+
     public string $externalProductId = '';
+
     public string $externalListingId = '';
+
     public string $externalSku = '';
+
     public string $stockMode = '';
+
     public string $maxChannelQuantity = '';
+
     public string $withholdQuantity = '0.000';
+
     public string $fixedQuantity = '';
+
     public string $manualQuantity = '';
+
     public string $leadTimeDays = '';
+
     public string $priceOverride = '';
+
     public string $titleOverride = '';
+
     public string $descriptionOverride = '';
+
     public string $imageCollection = '';
+
     public string $categoryMetadataJson = '{}';
+
     public bool $isActive = true;
 
     /** @var list<int> */
@@ -101,7 +119,7 @@ class ChannelListingCenter extends Component
         $this->descriptionOverride = (string) ($listing->description_override ?? '');
         $this->imageCollection = (string) ($listing->image_collection ?? '');
         $this->categoryMetadataJson = json_encode(
-            $listing->category_metadata ?? new \stdClass(),
+            $listing->category_metadata ?? new \stdClass,
             JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES,
         ) ?: '{}';
         $this->isActive = (bool) $listing->is_active;
@@ -198,8 +216,7 @@ class ChannelListingCenter extends Component
         ChannelAdapterResolver $adapters,
         ChannelStockResolver $stock,
         ChannelPriceResolver $prices,
-    ): View
-    {
+    ): View {
         $accountIds = SalesChannelAccount::query()
             ->where('company_id', PeriodContext::companyId())
             ->pluck('id')

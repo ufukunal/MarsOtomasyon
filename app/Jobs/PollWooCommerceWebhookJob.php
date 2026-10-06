@@ -13,7 +13,7 @@ use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 
-class PollWooCommerceWebhookJob implements ShouldQueue, ShouldBeUnique
+class PollWooCommerceWebhookJob implements ShouldBeUnique, ShouldQueue
 {
     use Queueable;
 

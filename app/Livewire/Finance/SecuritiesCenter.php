@@ -18,25 +18,40 @@ class SecuritiesCenter extends Component
     use WithIdempotentMutations;
 
     public string $direction = 'incoming';
+
     public string $kind = 'check';
+
     public string $instrumentNo = '';
+
     public ?int $contactId = null;
+
     public string $amount = '0.0000';
+
     public string $transactionDate = '';
+
     public string $dueDate = '';
+
     public string $bankName = '';
+
     public ?int $bankAccountId = null;
+
     public string $note = '';
 
     /** @var list<int> */
     public array $selectedSecurityIds = [];
 
     public string $payrollAction = 'endorsement';
+
     public ?int $payrollContactId = null;
+
     public ?int $payrollBankAccountId = null;
+
     public string $payrollDate = '';
+
     public ?int $reversePayrollId = null;
+
     public string $reversalDate = '';
+
     public string $reversalReason = '';
 
     public function mount(): void

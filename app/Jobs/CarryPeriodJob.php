@@ -11,11 +11,12 @@ use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Auth;
 use RuntimeException;
 
-class CarryPeriodJob implements ShouldQueue, ShouldBeUnique
+class CarryPeriodJob implements ShouldBeUnique, ShouldQueue
 {
     use Queueable;
 
     public int $timeout = 7200;
+
     public int $uniqueFor = 7200;
 
     public function __construct(

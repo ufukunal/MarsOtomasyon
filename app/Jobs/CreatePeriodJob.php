@@ -12,11 +12,12 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use RuntimeException;
 
-class CreatePeriodJob implements ShouldQueue, ShouldBeUnique
+class CreatePeriodJob implements ShouldBeUnique, ShouldQueue
 {
     use Queueable;
 
     public int $timeout = 3600;
+
     public int $uniqueFor = 3600;
 
     public function __construct(

@@ -25,43 +25,73 @@ class FinanceOperationCenter extends Component
     use WithIdempotentMutations;
 
     public string $date = '';
+
     public string $accountType = 'cash';
+
     public ?int $accountId = null;
+
     public string $direction = 'in';
+
     public string $amount = '0.0000';
+
     public ?int $contactId = null;
+
     public string $exchangeRate = '1.000000';
+
     public string $movementType = 'manual';
+
     public string $reference = '';
+
     public string $note = '';
 
     public string $transferSourceType = 'cash';
+
     public ?int $transferSourceId = null;
+
     public string $transferTargetType = 'bank';
+
     public ?int $transferTargetId = null;
+
     public string $transferAmount = '0.0000';
 
     public string $expenseCategory = '';
+
     public string $expenseNet = '0.0000';
+
     public string $expenseVatRate = '20.0000';
+
     public string $expenseCurrency = 'TRY';
+
     public string $expenseExchangeRate = '1.000000';
+
     public string $expenseAccountType = 'cash';
+
     public ?int $expenseAccountId = null;
 
     public string $advanceOperation = 'give';
+
     public ?int $advanceContactId = null;
+
     public string $advanceAmount = '0.0000';
+
     public string $advanceCurrency = 'TRY';
+
     public string $advanceExchangeRate = '1.000000';
+
     public string $advanceAccountType = 'cash';
+
     public ?int $advanceAccountId = null;
 
     public string $reversalDate = '';
+
     public string $reversalReason = '';
+
     public string $reverseAccountType = 'cash';
+
     public ?int $reverseMovementId = null;
+
     public string $reverseTransferGroupKey = '';
+
     public ?int $reverseDocumentId = null;
 
     public function mount(): void

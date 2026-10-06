@@ -14,6 +14,7 @@ use Throwable;
 class OperationsSmokeCommand extends Command
 {
     protected $signature = 'operations:smoke {--external : Aktif kanal hesaplarında read-only connection test çalıştır}';
+
     protected $description = 'Business veri üretmeden production smoke kontrollerini çalıştırır';
 
     public function handle(

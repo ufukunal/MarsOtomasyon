@@ -34,48 +34,83 @@ class ImportCenter extends Component
     use WithIdempotentMutations;
 
     public ?int $selectedFileId = null;
+
     public ?int $fileVersion = null;
+
     public ?int $supplierContactId = null;
+
     public ?int $receivingLocationId = null;
+
     public string $country = '';
+
     public string $incoterm = 'FOB';
+
     public string $currency = 'USD';
+
     public string $exchangeRate = '';
+
     public ?string $etd = null;
+
     public ?string $eta = null;
+
     public string $fileStatus = 'draft';
+
     public string $fileNotes = '';
 
     public ?int $containerEditId = null;
+
     public string $containerNo = '';
+
     public string $containerType = '40 HC';
+
     public string $sealNo = '';
+
     public string $containerWeight = '';
+
     public string $containerVolume = '';
+
     public ?string $containerEtd = null;
+
     public ?string $containerEta = null;
+
     public string $containerStatus = 'planned';
 
     public ?int $packageEditId = null;
+
     public ?int $packageContainerId = null;
+
     public string $cartonNo = '';
+
     public string $componentName = '';
+
     public ?int $packageProductId = null;
+
     public ?int $packageLocationId = null;
+
     public string $packageQuantity = '1.000';
+
     public string $packageUnitPrice = '0.0000';
+
     public string $packageWeight = '';
+
     public string $packageVolume = '';
 
     public ?int $costEditId = null;
+
     public string $costName = '';
+
     public string $costAmount = '0.0000';
+
     public string $costCurrency = 'TRY';
+
     public string $costExchangeRate = '';
+
     public string $costBasis = 'value';
 
     public string $receivingDate = '';
+
     public ?int $carrySourcePeriodId = null;
+
     public ?int $carrySourceImportFileId = null;
 
     public function mount(): void

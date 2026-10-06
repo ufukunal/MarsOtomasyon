@@ -20,7 +20,9 @@ class BankStatementCenter extends Component
     use WithIdempotentMutations;
 
     public $file = null;
+
     public ?int $bankAccountId = null;
+
     public string $format = 'auto';
 
     /** @var list<array<string,mixed>> */
@@ -30,8 +32,11 @@ class BankStatementCenter extends Component
     public ?array $importResult = null;
 
     public ?int $selectedStatementId = null;
+
     public ?int $selectedBookMovementId = null;
+
     public ?int $selectedContactId = null;
+
     public string $newMovementType = 'statement_created';
 
     public function mount(): void
