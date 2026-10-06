@@ -16,7 +16,9 @@ class RecipeCenter extends Component
     use WithIdempotentMutations;
 
     public ?int $selectedRecipeId = null;
+
     public ?int $productId = null;
+
     public string $outputQuantity = '1.000';
 
     /** @var list<array{component_product_id:int|null,unit_id:int|null,quantity:string}> */

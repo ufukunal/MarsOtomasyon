@@ -13,8 +13,11 @@ abstract class BasePurchaseDocumentList extends Component
     use WithPagination;
 
     abstract protected function documentType(): DocumentType;
+
     abstract protected function permission(): string;
+
     abstract protected function pageTitle(): string;
+
     abstract protected function editRoute(): string;
 
     protected function createRoute(): ?string

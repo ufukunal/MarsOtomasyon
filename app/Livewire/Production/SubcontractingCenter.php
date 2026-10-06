@@ -21,7 +21,9 @@ class SubcontractingCenter extends Component
     use WithIdempotentMutations;
 
     public ?int $selectedOrderId = null;
+
     public ?int $sourceLocationId = null;
+
     public string $transferDate = '';
 
     /** @var array<int,string> */

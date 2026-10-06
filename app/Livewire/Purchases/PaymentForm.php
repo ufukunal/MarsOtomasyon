@@ -4,12 +4,12 @@ namespace App\Livewire\Purchases;
 
 use App\Actions\Documents\ReverseDocument;
 use App\Actions\Purchases\PostPayment;
+use App\Enums\DocumentType;
 use App\Livewire\Concerns\WithIdempotentMutations;
 use App\Models\Period\BankAccount;
 use App\Models\Period\CashAccount;
 use App\Models\Period\Contact;
 use App\Models\Period\Document;
-use App\Enums\DocumentType;
 use Illuminate\Contracts\View\View;
 use Livewire\Component;
 
@@ -18,16 +18,27 @@ class PaymentForm extends Component
     use WithIdempotentMutations;
 
     public ?int $contactId = null;
+
     public string $amount = '0.0000';
+
     public string $currency = 'TRY';
+
     public string $exchangeRate = '1.000000';
+
     public string $accountType = 'cash';
+
     public ?int $accountId = null;
+
     public string $documentDate = '';
+
     public ?int $sourceInvoiceId = null;
+
     public string $note = '';
+
     public ?int $postedDocumentId = null;
+
     public string $reversalDate = '';
+
     public string $reversalReason = '';
 
     public function mount(): void

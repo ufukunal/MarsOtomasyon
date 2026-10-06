@@ -23,17 +23,27 @@ class ProductionOrderCenter extends Component
     use WithIdempotentMutations;
 
     public ?int $selectedOrderId = null;
+
     public int $version = 1;
+
     public string $documentDate = '';
+
     public ?int $productId = null;
+
     public ?int $recipeId = null;
+
     public string $plannedQuantity = '1.000';
+
     public string $productionType = 'internal';
+
     public ?int $subcontractorContactId = null;
+
     public ?int $subcontractorLocationId = null;
+
     public string $notes = '';
 
     public string $completionDate = '';
+
     public string $completionQuantity = '0.000';
 
     /** @var array<int,array{consumed_quantity:string,fire_quantity:string,location_id:int|null}> */
@@ -43,7 +53,9 @@ class ProductionOrderCenter extends Component
     public array $outputs = [];
 
     public string $completionNotes = '';
+
     public string $reversalDate = '';
+
     public string $reversalReason = '';
 
     public function mount(): void

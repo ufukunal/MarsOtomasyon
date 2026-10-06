@@ -11,12 +11,25 @@ use Illuminate\Contracts\View\View;
 class SupplierInvoiceEditor extends BasePurchaseDocumentEditor
 {
     public bool $deviationAccepted = false;
+
     public string $reversalDate = '';
+
     public string $reversalReason = '';
 
-    protected function documentType(): DocumentType { return DocumentType::SupplierInvoice; }
-    protected function permissionPrefix(): string { return 'supplier_invoices'; }
-    protected function pageTitle(): string { return 'Alış Faturası'; }
+    protected function documentType(): DocumentType
+    {
+        return DocumentType::SupplierInvoice;
+    }
+
+    protected function permissionPrefix(): string
+    {
+        return 'supplier_invoices';
+    }
+
+    protected function pageTitle(): string
+    {
+        return 'Alış Faturası';
+    }
 
     protected function extraMutationNames(): array
     {

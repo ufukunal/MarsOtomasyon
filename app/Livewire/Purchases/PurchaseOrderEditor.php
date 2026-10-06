@@ -19,9 +19,20 @@ class PurchaseOrderEditor extends BasePurchaseDocumentEditor
     /** @var array<int,int|null> */
     public array $receiptLocationIds = [];
 
-    protected function documentType(): DocumentType { return DocumentType::PurchaseOrder; }
-    protected function permissionPrefix(): string { return 'purchase_orders'; }
-    protected function pageTitle(): string { return $this->document ? 'Satınalma Siparişi' : 'Yeni Satınalma Siparişi'; }
+    protected function documentType(): DocumentType
+    {
+        return DocumentType::PurchaseOrder;
+    }
+
+    protected function permissionPrefix(): string
+    {
+        return 'purchase_orders';
+    }
+
+    protected function pageTitle(): string
+    {
+        return $this->document ? 'Satınalma Siparişi' : 'Yeni Satınalma Siparişi';
+    }
 
     protected function extraMutationNames(): array
     {

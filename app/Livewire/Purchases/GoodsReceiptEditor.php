@@ -11,17 +11,32 @@ use App\Enums\DocumentType;
 class GoodsReceiptEditor extends BasePurchaseDocumentEditor
 {
     public string $invoiceDate = '';
+
     public string $invoiceCurrency = 'TRY';
+
     public string $invoiceExchangeRate = '1.000000';
+
     public string $reversalDate = '';
+
     public string $reversalReason = '';
 
     /** @var array<int,string> */
     public array $invoiceQuantities = [];
 
-    protected function documentType(): DocumentType { return DocumentType::GoodsReceipt; }
-    protected function permissionPrefix(): string { return 'goods_receipts'; }
-    protected function pageTitle(): string { return 'Mal Kabul'; }
+    protected function documentType(): DocumentType
+    {
+        return DocumentType::GoodsReceipt;
+    }
+
+    protected function permissionPrefix(): string
+    {
+        return 'goods_receipts';
+    }
+
+    protected function pageTitle(): string
+    {
+        return 'Mal Kabul';
+    }
 
     protected function extraMutationNames(): array
     {

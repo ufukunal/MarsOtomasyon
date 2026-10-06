@@ -18,21 +18,32 @@ abstract class BasePurchaseDocumentEditor extends Component
     use WithIdempotentMutations;
 
     public ?Document $document = null;
+
     public ?int $contactId = null;
+
     public string $documentDate = '';
+
     public ?string $dueDate = null;
+
     public string $currency = 'TRY';
+
     public string $exchangeRate = '1.000000';
+
     public string $discountRate = '0';
+
     public string $bulkVatRate = '20';
+
     public string $notes = '';
+
     public int $version = 1;
 
     /** @var list<array<string,mixed>> */
     public array $lines = [];
 
     abstract protected function documentType(): DocumentType;
+
     abstract protected function permissionPrefix(): string;
+
     abstract protected function pageTitle(): string;
 
     /** @return list<string> */

@@ -17,10 +17,14 @@ final class PeriodCarry extends Component
     use WithIdempotentMutations;
 
     public ?int $sourcePeriodId = null;
+
     public int $targetYear;
+
     /** @var array<string,mixed>|null */
     public ?array $preview = null;
+
     public ?int $completedTargetPeriodId = null;
+
     /** @var list<int|string> */
     public array $selectedAccessUserIds = [];
 
