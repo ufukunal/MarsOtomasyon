@@ -7,6 +7,7 @@ use App\Actions\Periods\PreviewPeriodCarry;
 use App\Jobs\CarryPeriodJob;
 use App\Livewire\Concerns\WithIdempotentMutations;
 use App\Models\Period;
+use App\Support\Period\PeriodContext;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -33,12 +34,15 @@ final class PeriodCarry extends Component
         Gate::authorize('periods.view');
         $this->seedMutationKeys(['carry', 'copyAccess']);
 
+        $companyId = (int) PeriodContext::companyId();
+
         $source = Period::query()
+            ->where('company_id', $companyId)
             ->where('id', auth()->user()?->last_period_id)
             ->where('status', 'active')
             ->first()
             ?? Period::query()
-                ->where('company_id', auth()->user()?->last_company_id)
+                ->where('company_id', $companyId)
                 ->where('status', 'active')
                 ->orderByDesc('year')
                 ->first();
@@ -50,7 +54,9 @@ final class PeriodCarry extends Component
     public function updatedSourcePeriodId(): void
     {
         $source = $this->sourcePeriodId
-            ? Period::query()->find($this->sourcePeriodId)
+            ? Period::query()
+                ->where('company_id', PeriodContext::companyId())
+                ->find($this->sourcePeriodId)
             : null;
 
         if ($source) {
@@ -71,7 +77,9 @@ final class PeriodCarry extends Component
             'targetYear' => ['required', 'integer', 'between:2000,2200'],
         ]);
 
-        $source = Period::query()->findOrFail((int) $validated['sourcePeriodId']);
+        $source = Period::query()
+            ->where('company_id', PeriodContext::companyId())
+            ->findOrFail((int) $validated['sourcePeriodId']);
         $this->preview = $action->handle($source, (int) $validated['targetYear'])->toArray();
     }
 
@@ -84,7 +92,9 @@ final class PeriodCarry extends Component
 
         Gate::authorize('periods.update');
 
-        $source = Period::query()->findOrFail((int) $validated['sourcePeriodId']);
+        $source = Period::query()
+            ->where('company_id', PeriodContext::companyId())
+            ->findOrFail((int) $validated['sourcePeriodId']);
         $actorId = auth()->id();
 
         if (! $actorId) {
@@ -114,6 +124,7 @@ final class PeriodCarry extends Component
         }
 
         $target = Period::query()
+            ->where('company_id', PeriodContext::companyId())
             ->where('carried_from_period_id', $this->sourcePeriodId)
             ->where('year', $this->targetYear)
             ->whereNotNull('carried_at')
@@ -133,8 +144,13 @@ final class PeriodCarry extends Component
             return;
         }
 
-        $source = Period::query()->findOrFail($this->sourcePeriodId);
-        $target = Period::query()->findOrFail($this->completedTargetPeriodId);
+        $companyId = (int) PeriodContext::companyId();
+        $source = Period::query()
+            ->where('company_id', $companyId)
+            ->findOrFail($this->sourcePeriodId);
+        $target = Period::query()
+            ->where('company_id', $companyId)
+            ->findOrFail($this->completedTargetPeriodId);
         $userIds = array_values(array_unique(array_map('intval', $this->selectedAccessUserIds)));
 
         $this->runMasterMutation(
@@ -149,6 +165,7 @@ final class PeriodCarry extends Component
     {
         $sourcePeriods = Period::query()
             ->with('company')
+            ->where('company_id', PeriodContext::companyId())
             ->whereIn('status', ['active', 'closed'])
             ->orderBy('company_id')
             ->orderByDesc('year')

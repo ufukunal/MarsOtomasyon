@@ -4,7 +4,9 @@ namespace App\Actions\Periods;
 
 use App\Models\Period;
 use App\Support\Audit\AuditContext;
+use App\Support\Period\PeriodContext;
 use DomainException;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
@@ -16,6 +18,12 @@ final class CopyPeriodAccess
      */
     public function handle(Period $source, Period $target, array $userIds): array
     {
+        PeriodContext::ensure();
+
+        if ((int) PeriodContext::companyId() !== (int) $source->company_id) {
+            throw new AuthorizationException('Erişim kopyası kaynak dönemi aktif şirket bağlamına ait olmalıdır.');
+        }
+
         Gate::authorize('periods.update');
 
         if ((int) $source->company_id !== (int) $target->company_id
@@ -36,10 +44,17 @@ final class CopyPeriodAccess
 
         $rows = DB::connection('master')
             ->table('period_user_access')
-            ->where('period_id', $source->id)
-            ->where('is_active', true)
-            ->whereIn('user_id', $userIds)
-            ->get();
+            ->join('company_user', function ($join) use ($source): void {
+                $join->on('company_user.user_id', '=', 'period_user_access.user_id')
+                    ->where('company_user.company_id', '=', (int) $source->company_id);
+            })
+            ->where('period_user_access.period_id', $source->id)
+            ->where('period_user_access.is_active', true)
+            ->whereIn('period_user_access.user_id', $userIds)
+            ->get([
+                'period_user_access.user_id',
+                'period_user_access.permission_overrides',
+            ]);
 
         $found = $rows->pluck('user_id')->map(fn ($id): int => (int) $id)->all();
         $missing = array_values(array_diff($userIds, $found));

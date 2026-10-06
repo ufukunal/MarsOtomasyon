@@ -24,6 +24,12 @@ final class PreviewPeriodCarry
 
     public function handle(Period $source, int $targetYear): PeriodCarryPreview
     {
+        PeriodContext::ensure();
+
+        if ((int) PeriodContext::companyId() !== (int) $source->company_id) {
+            throw new AuthorizationException('Carry preview kaynak dönemi aktif şirket bağlamına ait olmalıdır.');
+        }
+
         Gate::authorize('periods.create');
         $source->loadMissing('company');
 

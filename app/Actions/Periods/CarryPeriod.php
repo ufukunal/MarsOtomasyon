@@ -13,6 +13,7 @@ use App\Support\Integrity\IntegrityRunner;
 use App\Support\Operations\RecoverySetBackupService;
 use App\Support\Period\PeriodContext;
 use DomainException;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
@@ -36,6 +37,12 @@ final class CarryPeriod
         int $targetYear,
         string $idempotencyKey,
     ): CarryResult {
+        PeriodContext::ensure();
+
+        if ((int) PeriodContext::companyId() !== (int) $source->company_id) {
+            throw new AuthorizationException('Carry kaynak dönemi aktif şirket bağlamına ait olmalıdır.');
+        }
+
         Gate::authorize('periods.create');
         Gate::authorize('periods.update');
         Gate::authorize('periods.cancel');
