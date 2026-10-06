@@ -73,38 +73,37 @@ final class ImportBankStatement
                             (string) ($row['balance'] ?? ''),
                         ]));
 
-                        $existing = BankMovement::query()
-                            ->where('bank_account_id', $account->id)
-                            ->where('statement_fingerprint', $fingerprint)
-                            ->first();
+                        $movement = BankMovement::query()->firstOrCreate(
+                            [
+                                'bank_account_id' => $account->id,
+                                'statement_fingerprint' => $fingerprint,
+                            ],
+                            [
+                                'movement_date' => $row['date'],
+                                'direction' => $row['direction'],
+                                'movement_type' => 'statement',
+                                'amount' => $row['amount'],
+                                'origin' => 'statement',
+                                'reference' => $row['reference'],
+                                'statement_value_date' => $row['value_date'],
+                                'statement_description' => $row['description'],
+                                'statement_balance' => $row['balance'],
+                                'imported_at' => now(),
+                                'description' => $row['description'],
+                                'metadata' => [
+                                    'file_checksum' => $checksum,
+                                    'import_format' => $format,
+                                ],
+                                'created_by' => $actor?->id,
+                                'created_by_name' => $actor?->name,
+                            ],
+                        );
 
-                        if ($existing) {
+                        if (! $movement->wasRecentlyCreated) {
                             $duplicates++;
 
                             continue;
                         }
-
-                        $movement = BankMovement::query()->create([
-                            'bank_account_id' => $account->id,
-                            'movement_date' => $row['date'],
-                            'direction' => $row['direction'],
-                            'movement_type' => 'statement',
-                            'amount' => $row['amount'],
-                            'origin' => 'statement',
-                            'reference' => $row['reference'],
-                            'statement_fingerprint' => $fingerprint,
-                            'statement_value_date' => $row['value_date'],
-                            'statement_description' => $row['description'],
-                            'statement_balance' => $row['balance'],
-                            'imported_at' => now(),
-                            'description' => $row['description'],
-                            'metadata' => [
-                                'file_checksum' => $checksum,
-                                'import_format' => $format,
-                            ],
-                            'created_by' => $actor?->id,
-                            'created_by_name' => $actor?->name,
-                        ]);
 
                         $ids[] = (int) $movement->id;
                         $imported++;
