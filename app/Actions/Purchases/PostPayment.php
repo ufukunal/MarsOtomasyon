@@ -74,7 +74,7 @@ final class PostPayment
                 $sourceInvoice = null;
 
                 if ($sourceInvoiceId !== null) {
-                    $sourceInvoice = Document::query()->lockForUpdate()->findOrFail($sourceInvoiceId);
+                    $sourceInvoice = Document::query()->findOrFail($sourceInvoiceId);
 
                     if ($sourceInvoice->document_type !== DocumentType::SupplierInvoice
                         || $sourceInvoice->status !== 'posted'
@@ -84,29 +84,6 @@ final class PostPayment
                     }
 
                     $exchangeRate = (string) $sourceInvoice->exchange_rate;
-
-                    $alreadyPaid = DocumentRelation::query()
-                        ->where('relation_type', 'payment_source')
-                        ->where('target_document_id', $sourceInvoice->id)
-                        ->whereHas('sourceDocument', fn ($query) => $query
-                            ->where('document_type', DocumentType::Payment->value)
-                            ->where('status', 'posted'))
-                        ->whereDoesntHave('sourceDocument.incomingRelations', fn ($query) => $query
-                            ->where('relation_type', 'reversal_of'))
-                        ->with('sourceDocument')
-                        ->get()
-                        ->reduce(
-                            fn (string $sum, DocumentRelation $relation): string => bcadd(
-                                $sum,
-                                (string) $relation->sourceDocument->grand_total,
-                                4,
-                            ),
-                            '0.0000',
-                        );
-
-                    if (bccomp(bcadd($alreadyPaid, $normalized, 4), (string) $sourceInvoice->grand_total, 4) > 0) {
-                        throw new DomainException('Ödeme tutarı alış faturası kalanını aşıyor.');
-                    }
                 }
 
                 $actor = auth()->user();
