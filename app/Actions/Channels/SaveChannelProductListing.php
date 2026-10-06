@@ -206,7 +206,10 @@ final class SaveChannelProductListing
         }
     }
 
-    /** @return array<string, mixed> */
+    /**
+     * @param array<string,mixed> $data
+     * @return array<string,mixed>
+     */
     private function attributes(
         array $data,
         ?ChannelStockMode $stockMode,

@@ -158,6 +158,7 @@ final class ImportChannelCancellation
         return $order->refresh();
     }
 
+    /** @param array<string,mixed> $sourceLine */
     private function resolveOrderLine(Document $order, array $sourceLine): ?DocumentLine
     {
         $externalLineId = trim((string) ($sourceLine['lineId'] ?? ''));

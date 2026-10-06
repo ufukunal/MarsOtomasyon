@@ -192,6 +192,7 @@ final class ImportChannelOrder
         return $confirmed->refresh();
     }
 
+    /** @param array<string,mixed> $sourceLine */
     private function resolveListing(
         SalesChannelAccount $account,
         array $sourceLine,
@@ -291,6 +292,7 @@ final class ImportChannelOrder
         }
     }
 
+    /** @param array<string,mixed> $data */
     private function updateSnapshot(ChannelOrderSnapshot $snapshot, array $data): void
     {
         $address = is_array($data['shipmentAddress'] ?? null) ? $data['shipmentAddress'] : [];
