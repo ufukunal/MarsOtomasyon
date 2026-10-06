@@ -16,6 +16,7 @@ final class N11Client
     public function __construct(private readonly ChannelSensitiveDataRedactor $redactor) {}
 
     /** @return array<string,mixed> */
+    /** @param array<string, mixed> $query @return array<string|int, mixed> */
     public function get(SalesChannelAccount $account, string $path, array $query = []): array
     {
         return $this->decode(
@@ -25,6 +26,7 @@ final class N11Client
     }
 
     /** @return array<string,mixed> */
+    /** @param array<string, mixed> $payload @return array<string|int, mixed> */
     public function post(SalesChannelAccount $account, string $path, array $payload): array
     {
         return $this->decode(
@@ -34,6 +36,7 @@ final class N11Client
     }
 
     /** @return array<string,mixed> */
+    /** @param array<string, mixed> $payload @return array<string|int, mixed> */
     public function put(SalesChannelAccount $account, string $path, array $payload): array
     {
         return $this->decode(

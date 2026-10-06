@@ -15,6 +15,7 @@ final class HepsiburadaClient
     public function __construct(private readonly ChannelSensitiveDataRedactor $redactor) {}
 
     /** @return array<string,mixed> */
+    /** @param array<string, mixed> $query @return array<string|int, mixed> */
     public function get(
         SalesChannelAccount $account,
         string $service,
@@ -28,6 +29,7 @@ final class HepsiburadaClient
     }
 
     /** @return array<string,mixed> */
+    /** @param array<string, mixed> $payload @return array<string|int, mixed> */
     public function postJson(
         SalesChannelAccount $account,
         string $service,
@@ -44,6 +46,7 @@ final class HepsiburadaClient
     }
 
     /** @return array<string,mixed> */
+    /** @param array<string, mixed> $payload @return array<string|int, mixed> */
     public function postJsonFile(
         SalesChannelAccount $account,
         string $service,
@@ -86,6 +89,7 @@ final class HepsiburadaClient
     }
 
     /** @return array<string,mixed> */
+    /** @param array<string, mixed> $payload @return array<string|int, mixed> */
     public function putJson(
         SalesChannelAccount $account,
         string $service,
