@@ -39,11 +39,15 @@ class OperationsDeployCommand extends Command
                 commitSha: (string) $this->option('commit'),
                 previousReleaseId: $this->option('previous') ?: null,
                 activateRelease: fn () => $this->activate($releasePath, $currentLink),
-                restartWorkers: fn (): void => $this->restartServices(),
-                rollbackActivation: fn (): void => $this->restorePreviousRelease(
-                    $this->option('previous') ?: null,
-                    $currentLink,
-                ),
+                restartWorkers: function (): void {
+                    $this->restartServices();
+                },
+                rollbackActivation: function () use ($currentLink): void {
+                    $this->restorePreviousRelease(
+                        $this->option('previous') ?: null,
+                        $currentLink,
+                    );
+                },
             );
             $this->info('Release active: '.$result['release_id']);
             return self::SUCCESS;
