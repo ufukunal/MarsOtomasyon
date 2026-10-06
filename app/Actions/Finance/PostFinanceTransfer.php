@@ -71,8 +71,12 @@ final class PostFinanceTransfer
                     $groupKey,
                     $note,
                 ): array {
-                    $sourceAccount = $this->lockAccount($sourceType, $sourceId);
-                    $targetAccount = $this->lockAccount($targetType, $targetId);
+                    ['source' => $sourceAccount, 'target' => $targetAccount] = $this->lockAccounts(
+                        $sourceType,
+                        $sourceId,
+                        $targetType,
+                        $targetId,
+                    );
 
                     if ($sourceAccount->getAttribute('currency') !== $targetAccount->getAttribute('currency')) {
                         throw new DomainException('Virman yalnız aynı para birimli finans hesapları arasında yapılabilir.');
@@ -121,6 +125,27 @@ final class PostFinanceTransfer
                 }, attempts: 3);
             },
         );
+    }
+
+    /** @return array{source:Model,target:Model} */
+    private function lockAccounts(
+        string $sourceType,
+        int $sourceId,
+        string $targetType,
+        int $targetId,
+    ): array {
+        $sourceFirst = strcmp($sourceType, $targetType) < 0
+            || ($sourceType === $targetType && $sourceId < $targetId);
+
+        if ($sourceFirst) {
+            $source = $this->lockAccount($sourceType, $sourceId);
+            $target = $this->lockAccount($targetType, $targetId);
+        } else {
+            $target = $this->lockAccount($targetType, $targetId);
+            $source = $this->lockAccount($sourceType, $sourceId);
+        }
+
+        return ['source' => $source, 'target' => $target];
     }
 
     private function lockAccount(string $type, int $id): Model
