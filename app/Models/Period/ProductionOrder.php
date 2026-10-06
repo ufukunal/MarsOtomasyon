@@ -7,10 +7,11 @@ use App\Support\Concurrency\HasOptimisticLock;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use LogicException;
+use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
- * @property \Illuminate\Support\Carbon $document_date
+ * @property Carbon $document_date
  * @property int $product_id
  * @property int $recipe_id
  * @property string $planned_quantity

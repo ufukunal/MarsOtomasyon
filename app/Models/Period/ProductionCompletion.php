@@ -6,11 +6,12 @@ use App\Models\PeriodModel;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use LogicException;
+use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
  * @property int $production_order_id
- * @property \Illuminate\Support\Carbon $completion_date
+ * @property Carbon $completion_date
  * @property string $completed_quantity
  * @property string $material_cost_total
  * @property string $subcontract_service_cost_total

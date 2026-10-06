@@ -4,6 +4,7 @@ namespace App\Models\Period;
 
 use App\Models\PeriodModel;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
@@ -15,7 +16,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string $status
  * @property int $attempts
  * @property array<string, mixed>|null $safe_metadata
- * @property \Illuminate\Support\Carbon|null $last_attempt_at
+ * @property Carbon|null $last_attempt_at
  */
 class ChannelSyncEvent extends PeriodModel
 {

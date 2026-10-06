@@ -5,11 +5,12 @@ namespace App\Models\Period;
 use App\Models\PeriodModel;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
  * @property int|null $production_order_id
- * @property \Illuminate\Support\Carbon $transfer_date
+ * @property Carbon $transfer_date
  * @property string $status
  */
 class Transfer extends PeriodModel

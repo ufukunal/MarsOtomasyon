@@ -3,6 +3,7 @@
 namespace App\Models\Period;
 
 use App\Models\PeriodModel;
+use Illuminate\Support\Carbon;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
@@ -11,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string $moving_average
  * @property string $import_cost
  * @property string $production_cost
- * @property \Illuminate\Support\Carbon|null $last_purchase_at
+ * @property Carbon|null $last_purchase_at
  */
 class ProductCost extends PeriodModel
 {
