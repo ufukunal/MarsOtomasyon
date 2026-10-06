@@ -6,6 +6,7 @@ use App\Actions\Reporting\ExportReport;
 use App\Models\ReportExportJob;
 use App\Models\User;
 use App\Support\Period\PeriodContext;
+use App\Support\Operations\OperationalErrorSanitizer;
 use App\Support\Reporting\ReportRequest;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -44,7 +45,10 @@ class GenerateReportExport implements ShouldQueue
         return [30, 120];
     }
 
-    public function handle(ExportReport $exportReport): void
+    public function handle(
+        ExportReport $exportReport,
+        OperationalErrorSanitizer $errors,
+    ): void
     {
         $job = ReportExportJob::query()
             ->whereKey($this->exportJobId)
@@ -131,7 +135,7 @@ class GenerateReportExport implements ShouldQueue
                 'status' => 'failed',
                 'progress' => null,
                 'finished_at' => now(),
-                'error_summary' => Str::limit($exception->getMessage(), 900),
+                'error_summary' => $errors->summarize($exception),
             ]);
 
             throw $exception;
