@@ -101,7 +101,7 @@ final class TrendyolAdapter implements ChannelAdapter
     {
         return $this->fetchPackages(
             $account,
-            ['Created', 'Picking', 'Invoiced', 'Shipped', 'Delivered', 'UnDelivered', 'AtCollectionPoint', 'Verified'],
+            ['Created', 'Picking', 'Invoiced', 'Shipped', 'Delivered', 'UnDelivered', 'AtCollectionPoint'],
             'order',
             $since,
         );
