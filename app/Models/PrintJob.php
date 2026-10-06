@@ -5,6 +5,20 @@ namespace App\Models;
 use App\Enums\PrintType;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property int $id
+ * @property int $company_id
+ * @property int|null $user_id
+ * @property PrintType $print_type
+ * @property int|null $template_id
+ * @property int|null $template_revision_no
+ * @property int|null $profile_id
+ * @property string|null $source_type
+ * @property int|null $source_id
+ * @property int $quantity
+ * @property string $status
+ * @property array<string, mixed>|null $result_metadata
+ */
 class PrintJob extends MasterModel
 {
     protected $fillable = [
@@ -38,21 +52,25 @@ class PrintJob extends MasterModel
         ];
     }
 
+    /** @return BelongsTo<Company, $this> */
     public function company(): BelongsTo
     {
         return $this->belongsTo(Company::class);
     }
 
+    /** @return BelongsTo<User, $this> */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
+    /** @return BelongsTo<DocumentTemplate, $this> */
     public function template(): BelongsTo
     {
         return $this->belongsTo(DocumentTemplate::class, 'template_id');
     }
 
+    /** @return BelongsTo<PrintProfile, $this> */
     public function profile(): BelongsTo
     {
         return $this->belongsTo(PrintProfile::class, 'profile_id');

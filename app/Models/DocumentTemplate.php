@@ -8,6 +8,20 @@ use LogicException;
 use Spatie\Activitylog\Models\Concerns\LogsActivity;
 use Spatie\Activitylog\Support\LogOptions;
 
+/**
+ * @property int $id
+ * @property int $company_id
+ * @property string $template_key
+ * @property string $name
+ * @property int $revision_no
+ * @property string $render_type
+ * @property string|null $paper_code
+ * @property string|null $width_mm
+ * @property string|null $height_mm
+ * @property array<string, mixed> $definition
+ * @property bool $is_active
+ * @property bool $is_default
+ */
 class DocumentTemplate extends MasterModel
 {
     use HasOptimisticLock;

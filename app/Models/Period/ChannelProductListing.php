@@ -7,6 +7,20 @@ use App\Support\Concurrency\HasOptimisticLock;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * @property int $id
+ * @property int $channel_account_id
+ * @property int $product_id
+ * @property string|null $stock_mode
+ * @property string|null $max_channel_quantity
+ * @property string|null $withhold_quantity
+ * @property string|null $fixed_quantity
+ * @property string|null $manual_quantity
+ * @property int|null $lead_time_days
+ * @property string|null $price_override
+ * @property array<string, mixed>|null $category_metadata
+ * @property bool $is_active
+ */
 class ChannelProductListing extends PeriodModel
 {
     use HasOptimisticLock;
@@ -49,11 +63,13 @@ class ChannelProductListing extends PeriodModel
         ];
     }
 
+    /** @return BelongsTo<Product, $this> */
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
     }
 
+    /** @return HasMany<ChannelListingLocation, $this> */
     public function locations(): HasMany
     {
         return $this->hasMany(ChannelListingLocation::class);

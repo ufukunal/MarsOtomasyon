@@ -6,6 +6,12 @@ use App\Models\PeriodModel;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * @property int $id
+ * @property int|null $production_order_id
+ * @property \Illuminate\Support\Carbon $transfer_date
+ * @property string $status
+ */
 class Transfer extends PeriodModel
 {
     protected $fillable = [
@@ -44,12 +50,13 @@ class Transfer extends PeriodModel
         return $this->belongsTo(Location::class, 'to_location_id');
     }
 
-    /** @return HasMany<TransferLine, $this> */
+    /** @return BelongsTo<ProductionOrder, $this> */
     public function productionOrder(): BelongsTo
     {
         return $this->belongsTo(ProductionOrder::class);
     }
 
+    /** @return HasMany<TransferLine, $this> */
     public function lines(): HasMany
     {
         return $this->hasMany(TransferLine::class);

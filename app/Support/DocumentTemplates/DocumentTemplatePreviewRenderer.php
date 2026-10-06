@@ -13,6 +13,7 @@ final class DocumentTemplatePreviewRenderer
         private readonly ViewFactory $view,
     ) {}
 
+    /** @param array<string, mixed> $definition */
     public function renderDefinition(array $definition, string $name = 'Template Önizleme'): string
     {
         $normalized = $this->validator->normalize($definition);

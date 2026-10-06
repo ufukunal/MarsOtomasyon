@@ -51,6 +51,7 @@ final class SafeTemplateRenderer
             'html_pdf' => e($value),
             'text' => $this->plainText($value),
             'zpl' => str_replace(['^', '~'], '', $this->plainText($value)),
+            default => throw new DomainException('Güvenli renderer render_type desteklemiyor.'),
         };
     }
 
