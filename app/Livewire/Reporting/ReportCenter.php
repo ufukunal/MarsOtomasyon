@@ -172,10 +172,10 @@ final class ReportCenter extends Component
         $this->presetName = $preset->name;
         $this->presetShared = (bool) $preset->is_shared;
         $this->filterValues = $preset->filters ?? [];
-        $this->selectedColumns = array_values($preset->columns ?? []);
+        $this->selectedColumns = $preset->columns ?? [];
         $firstSort = ($preset->sort ?? [])[0] ?? null;
-        $this->sortKey = is_array($firstSort) ? (string) ($firstSort['key'] ?? '') : '';
-        $this->sortDirection = is_array($firstSort) ? (string) ($firstSort['direction'] ?? 'asc') : 'asc';
+        $this->sortKey = $firstSort !== null ? $firstSort['key'] : '';
+        $this->sortDirection = $firstSort !== null ? $firstSort['direction'] : 'asc';
         $this->page = 1;
         $this->presetMessage = 'Preset uygulandı.';
     }

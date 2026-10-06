@@ -21,6 +21,10 @@ class SensitiveDataProcessor
         );
     }
 
+    /**
+     * @param array<array-key,mixed> $data
+     * @return array<array-key,mixed>
+     */
     private function sanitize(array $data): array
     {
         foreach ($data as $key => $value) {
