@@ -18,8 +18,8 @@ final class CreateGoodsReceiptFromOrder
     ) {}
 
     /**
-     * @param array<int,string> $lineQuantities
-     * @param array<int,int> $lineLocationIds
+     * @param  array<int,string>  $lineQuantities
+     * @param  array<int,int>  $lineLocationIds
      */
     public function handle(
         Document $order,

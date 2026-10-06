@@ -8,6 +8,7 @@ use Illuminate\Console\Command;
 class OperationsSecurityCheckCommand extends Command
 {
     protected $signature = 'operations:security-check';
+
     protected $description = 'Production secret/config/file-permission güvenlik kontrollerini çalıştırır';
 
     public function handle(DatabasePrivilegeVerifier $privileges): int

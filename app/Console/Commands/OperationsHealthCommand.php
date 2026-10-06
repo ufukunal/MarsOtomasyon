@@ -8,6 +8,7 @@ use Illuminate\Console\Command;
 class OperationsHealthCommand extends Command
 {
     protected $signature = 'operations:health {--no-persist : health_check_runs kaydı oluşturma}';
+
     protected $description = 'Production operational health kontrollerini çalıştırır';
 
     public function handle(OperationalHealthService $health): int

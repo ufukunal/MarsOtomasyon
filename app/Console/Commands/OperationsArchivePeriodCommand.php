@@ -34,8 +34,7 @@ class OperationsArchivePeriodCommand extends Command
             }
 
             $manifestContainsPeriod = collect($backup->period_manifest ?? [])
-                ->contains(fn (array $item): bool =>
-                    (string) ($item['database_name'] ?? '') === (string) $period->database_name
+                ->contains(fn (array $item): bool => (string) ($item['database_name'] ?? '') === (string) $period->database_name
                 );
 
             if (! $manifestContainsPeriod) {
@@ -55,6 +54,7 @@ class OperationsArchivePeriodCommand extends Command
                 "{$period->database_name} fiziksel DB detach/drop edilip archived işaretlensin mi?"
             )) {
                 $this->warn('Archive işlemi iptal edildi.');
+
                 return self::SUCCESS;
             }
 

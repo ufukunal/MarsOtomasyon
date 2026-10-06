@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Notification;
 class OperationsMonitorCommand extends Command
 {
     protected $signature = 'operations:monitor';
+
     protected $description = 'Operational health sonuçlarından alarm üretir';
 
     public function handle(OperationalHealthService $health): int

@@ -10,6 +10,7 @@ use Throwable;
 class OperationsRestoreVerifyCommand extends Command
 {
     protected $signature = 'operations:restore-verify {backup_run_id? : Recovery-set backup run ID; boşsa son verified backup}';
+
     protected $description = 'Recovery seti temporary DBlerde restore/migrate/integrity ile doğrular';
 
     public function handle(RestoreVerificationService $service): int

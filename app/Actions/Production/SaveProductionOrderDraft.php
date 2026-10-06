@@ -34,7 +34,7 @@ final class SaveProductionOrderDraft
         return DB::connection('period')->transaction(function () use ($data, $order, $expectedVersion, $date): ProductionOrder {
             $locked = $order
                 ? ProductionOrder::query()->lockForUpdate()->findOrFail($order->id)
-                : new ProductionOrder();
+                : new ProductionOrder;
 
             if ($locked->exists && $locked->status !== 'draft') {
                 throw new DomainException('Yalnız taslak üretim emri düzenlenebilir.');

@@ -28,6 +28,7 @@ class OperationsDeployCommand extends Command
 
         if ($releasePath === '' || ! is_dir($releasePath) || ! is_file($releasePath.'/artisan')) {
             $this->error('Geçerli candidate release path zorunludur.');
+
             return self::FAILURE;
         }
 
@@ -50,9 +51,11 @@ class OperationsDeployCommand extends Command
                 },
             );
             $this->info('Release active: '.$result['release_id']);
+
             return self::SUCCESS;
         } catch (Throwable $exception) {
             $this->error('Deploy başarısız: '.$exception->getMessage());
+
             return self::FAILURE;
         }
     }

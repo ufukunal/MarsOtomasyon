@@ -27,6 +27,7 @@ class OperationsArchiveRestoreCommand extends Command
                 "{$period->database_name} archived period veritabanı restore edilsin mi?"
             )) {
                 $this->warn('Archive restore iptal edildi.');
+
                 return self::SUCCESS;
             }
 
