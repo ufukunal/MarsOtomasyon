@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Period\Document;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class DocumentPrintSnapshot extends PeriodModel
