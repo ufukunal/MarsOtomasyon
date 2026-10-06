@@ -40,11 +40,12 @@ class DocumentLine extends PeriodModel
     protected static function booted(): void
     {
         $guard = function (DocumentLine $line): void {
-            if ($line->exists && $line->document()->value('status') === 'posted') {
+            if ($line->document()->value('status') === 'posted') {
                 throw new LogicException('Kesinleşmiş belge satırı yerinde değiştirilemez.');
             }
         };
 
+        static::creating($guard);
         static::updating($guard);
         static::deleting($guard);
     }
