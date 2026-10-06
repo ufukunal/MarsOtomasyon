@@ -93,7 +93,7 @@ final class CreateSupplierInvoiceFromReceipts
                     ];
                 }
 
-                if ($draftLines === [] || $contactId === null) {
+                if ($draftLines === []) {
                     throw new DomainException('Faturalanacak mal kabul satırı seçilmedi.');
                 }
 
