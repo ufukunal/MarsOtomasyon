@@ -28,6 +28,7 @@ final class RestoreVerificationService
         $suffix = str_replace('-', '', (string) Str::uuid());
         $workspace = storage_path('app/restore-temp/'.$suffix);
         $created = [];
+        $cleanupCompleted = false;
 
         try {
             $extracted = $this->archive->verifyAndExtract($backup, $workspace);
@@ -84,6 +85,10 @@ final class RestoreVerificationService
             $this->artisan(['migrate:periods', '--force'], $env);
             $this->artisan(['integrity:all', '--include-closed'], $env);
 
+            $this->cleanupDatabases($created);
+            $this->deleteDirectory($workspace);
+            $cleanupCompleted = true;
+
             $summary = [
                 'checksum_verified' => true,
                 'master_restored' => true,
@@ -103,27 +108,48 @@ final class RestoreVerificationService
 
             return ['restore_run_id' => (int) $run->id, ...$summary];
         } catch (Throwable $exception) {
-            $summary = app(OperationalErrorSanitizer::class)->summarize($exception);
+            $sanitizer = app(OperationalErrorSanitizer::class);
+            $summary = $sanitizer->summarize($exception);
+            $cleanupErrors = [];
+
+            if (! $cleanupCompleted) {
+                foreach (array_reverse($created) as $database) {
+                    try {
+                        $this->dropDatabase($database);
+                    } catch (Throwable $cleanupException) {
+                        $cleanupErrors[] = $database.': '.$sanitizer->summarize($cleanupException);
+                    }
+                }
+
+                try {
+                    $this->deleteDirectory($workspace);
+                } catch (Throwable $cleanupException) {
+                    $cleanupErrors[] = 'workspace: '.$sanitizer->summarize($cleanupException);
+                }
+            }
+
+            if ($cleanupErrors !== []) {
+                $summary .= ' | cleanup failed: '.implode(' | ', $cleanupErrors);
+            }
 
             $run->forceFill([
                 'status' => 'failed',
                 'finished_at' => now(),
-                'error_summary' => $summary,
+                'verification_summary' => [
+                    'temporary_cleanup_failed' => $cleanupErrors !== [],
+                    'temporary_cleanup_errors' => $cleanupErrors,
+                ],
+                'error_summary' => mb_substr($summary, 0, 500),
             ])->save();
 
             app(OperationalAlertService::class)->send(
                 'restore-verification-failed',
                 'Restore doğrulama provası başarısız',
-                'Restore run #'.$run->id.' başarısız: '.$summary,
+                'Restore run #'.$run->id.' başarısız: '.mb_substr($summary, 0, 500),
                 1,
             );
 
             throw $exception;
-        } finally {
-            foreach (array_reverse($created) as $database) {
-                $this->dropDatabase($database);
-            }
-            $this->deleteDirectory($workspace);
         }
     }
 
@@ -138,13 +164,18 @@ final class RestoreVerificationService
         DB::connection('master')->statement('CREATE DATABASE "'.$database.'"');
     }
 
+    /** @param list<string> $databases */
+    private function cleanupDatabases(array $databases): void
+    {
+        foreach (array_reverse($databases) as $database) {
+            $this->dropDatabase($database);
+        }
+    }
+
     private function dropDatabase(string $database): void
     {
-        try {
-            $this->assertIdentifier($database);
-            DB::connection('master')->statement('DROP DATABASE IF EXISTS "'.$database.'" WITH (FORCE)');
-        } catch (Throwable) {
-        }
+        $this->assertIdentifier($database);
+        DB::connection('master')->statement('DROP DATABASE IF EXISTS "'.$database.'" WITH (FORCE)');
     }
 
     private function restoreSql(string $database, string $sqlFile): void
@@ -213,9 +244,19 @@ final class RestoreVerificationService
         );
 
         foreach ($iterator as $item) {
-            $item->isDir() ? @rmdir($item->getPathname()) : @unlink($item->getPathname());
+            $path = $item->getPathname();
+
+            if ($item->isDir()) {
+                if (! rmdir($path)) {
+                    throw new RuntimeException('Restore temporary alt dizini silinemedi.');
+                }
+            } elseif (! unlink($path)) {
+                throw new RuntimeException('Restore temporary dosyası silinemedi.');
+            }
         }
 
-        @rmdir($directory);
+        if (! rmdir($directory)) {
+            throw new RuntimeException('Restore temporary çalışma dizini silinemedi.');
+        }
     }
 }
