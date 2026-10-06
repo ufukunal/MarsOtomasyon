@@ -106,41 +106,6 @@ final class PostProductionCompletion
                     throw new DomainException('Output lokasyon miktar toplamı completion miktarına eşit olmalıdır.');
                 }
 
-                $servicePlan = $this->serviceCosts->prepareNewCompletion(
-                    $locked,
-                    $completedQuantity,
-                    $date->toDateString(),
-                );
-
-                $componentIds = $locked->components
-                    ->pluck('component_product_id')
-                    ->map(fn ($value): int => (int) $value)
-                    ->push((int) $locked->product_id)
-                    ->unique()
-                    ->sort()
-                    ->values()
-                    ->all();
-
-                foreach ($componentIds as $productId) {
-                    DB::connection('period')->table('product_costs')->insertOrIgnore([
-                        'product_id' => $productId,
-                        'last_purchase_price' => '0.0000',
-                        'moving_average' => '0.0000',
-                        'import_cost' => '0.0000',
-                        'production_cost' => '0.0000',
-                        'created_at' => now(),
-                        'updated_at' => now(),
-                    ]);
-                }
-
-                $costRows = ProductCost::query()
-                    ->whereIn('product_id', $componentIds)
-                    ->orderBy('product_id')
-                    ->lockForUpdate()
-                    ->get()
-                    ->keyBy('product_id');
-
-                $materialRows = [];
                 $normalizedConsumptions = [];
 
                 foreach ($locked->components->sortBy('component_product_id') as $component) {
@@ -191,13 +156,6 @@ final class PostProductionCompletion
                         throw new DomainException('İç üretim fason lokasyon stokunu tüketemez.');
                     }
 
-                    $costRow = $costRows->get((int) $component->component_product_id);
-
-                    if (! $costRow) {
-                        throw new DomainException('Component product_costs snapshotı bulunamadı.');
-                    }
-
-                    $unitCost = bcadd((string) $costRow->moving_average, '0', 4);
                     $normalizedConsumptions[] = [
                         'component_product_id' => (int) $component->component_product_id,
                         'location_id' => $locationId,
@@ -206,9 +164,61 @@ final class PostProductionCompletion
                         'fire_quantity' => $fire,
                         'consumption_deviation' => bcsub($consumed, $plannedForCompletion, 3),
                         'total_quantity' => $total,
+                    ];
+                }
+
+                $this->serviceCosts->lockRelevantCompletions($locked);
+                $this->lockStockBalances($locked, $normalizedConsumptions, $normalizedOutputs);
+
+                $servicePlan = $this->serviceCosts->prepareNewCompletion(
+                    $locked,
+                    $completedQuantity,
+                    $date->toDateString(),
+                );
+
+                $componentIds = $locked->components
+                    ->pluck('component_product_id')
+                    ->map(fn ($value): int => (int) $value)
+                    ->push((int) $locked->product_id)
+                    ->unique()
+                    ->sort()
+                    ->values()
+                    ->all();
+
+                foreach ($componentIds as $productId) {
+                    DB::connection('period')->table('product_costs')->insertOrIgnore([
+                        'product_id' => $productId,
+                        'last_purchase_price' => '0.0000',
+                        'moving_average' => '0.0000',
+                        'import_cost' => '0.0000',
+                        'production_cost' => '0.0000',
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                }
+
+                $costRows = ProductCost::query()
+                    ->whereIn('product_id', $componentIds)
+                    ->orderBy('product_id')
+                    ->lockForUpdate()
+                    ->get()
+                    ->keyBy('product_id');
+
+                $materialRows = [];
+
+                foreach ($normalizedConsumptions as $index => $row) {
+                    $costRow = $costRows->get($row['component_product_id']);
+
+                    if (! $costRow) {
+                        throw new DomainException('Component product_costs snapshotı bulunamadı.');
+                    }
+
+                    $unitCost = bcadd((string) $costRow->moving_average, '0', 4);
+                    $normalizedConsumptions[$index]['unit_cost'] = $unitCost;
+                    $materialRows[] = [
+                        'quantity' => $row['total_quantity'],
                         'unit_cost' => $unitCost,
                     ];
-                    $materialRows[] = ['quantity' => $total, 'unit_cost' => $unitCost];
                 }
 
                 $materialCost = $this->costs->materialCost($materialRows);
@@ -370,4 +380,58 @@ final class PostProductionCompletion
             ->with(['order.product', 'consumptions.componentProduct', 'outputs.location', 'serviceAllocations'])
             ->findOrFail((int) $id);
     }
+
+    /**
+     * @param  list<array{component_product_id:int,location_id:int}>  $consumptions
+     * @param  list<array{location_id:int,quantity:string}>  $outputs
+     */
+    private function lockStockBalances(
+        ProductionOrder $order,
+        array $consumptions,
+        array $outputs,
+    ): void {
+        $keys = [];
+
+        foreach ($consumptions as $row) {
+            $productId = (int) $row['component_product_id'];
+            $locationId = (int) $row['location_id'];
+            $keys[$productId.':'.$locationId] = [$productId, $locationId];
+        }
+
+        foreach ($outputs as $row) {
+            $productId = (int) $order->product_id;
+            $locationId = (int) $row['location_id'];
+            $keys[$productId.':'.$locationId] = [$productId, $locationId];
+        }
+
+        $keys = array_values($keys);
+        usort($keys, static fn (array $left, array $right): int =>
+            $left[0] <=> $right[0] ?: $left[1] <=> $right[1]
+        );
+
+        foreach ($keys as [$productId, $locationId]) {
+            DB::connection('period')->table('stock_balances')->insertOrIgnore([
+                'product_id' => $productId,
+                'location_id' => $locationId,
+                'quantity' => '0.000',
+                'reserved' => '0.000',
+                'consignment_reserved' => '0.000',
+                'quarantine' => '0.000',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            $balance = DB::connection('period')
+                ->table('stock_balances')
+                ->where('product_id', $productId)
+                ->where('location_id', $locationId)
+                ->lockForUpdate()
+                ->first();
+
+            if (! $balance) {
+                throw new DomainException('Production stock balance kilidi alınamadı.');
+            }
+        }
+    }
+
 }
