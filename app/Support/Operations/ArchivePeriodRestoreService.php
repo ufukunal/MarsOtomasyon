@@ -126,21 +126,29 @@ final class ArchivePeriodRestoreService
             return ['restore_run_id' => (int) $run->id, ...$summary];
         } catch (Throwable $exception) {
             PeriodContext::clear();
-            $summary = app(OperationalErrorSanitizer::class)->summarize($exception);
+            $sanitizer = app(OperationalErrorSanitizer::class);
+            $summary = $sanitizer->summarize($exception);
+            $cleanupSummary = null;
 
             if ($databaseCreated && ! $masterAttached) {
                 try {
                     DB::connection('master')->statement(
                         'DROP DATABASE IF EXISTS "'.$this->identifier($period->database_name).'" WITH (FORCE)'
                     );
-                } catch (Throwable) {
+                } catch (Throwable $cleanupException) {
+                    $cleanupSummary = $sanitizer->summarize($cleanupException);
+                    $summary .= ' | cleanup failed: '.$cleanupSummary;
                 }
             }
 
             $run->forceFill([
                 'status' => 'failed',
                 'finished_at' => now(),
-                'error_summary' => $summary,
+                'verification_summary' => array_filter([
+                    'cleanup_failed' => $cleanupSummary !== null,
+                    'cleanup_error' => $cleanupSummary,
+                ], static fn (mixed $value): bool => $value !== null),
+                'error_summary' => mb_substr($summary, 0, 500),
             ])->save();
 
             app(OperationalAlertService::class)->send(
