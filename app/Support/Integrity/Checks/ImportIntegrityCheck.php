@@ -82,9 +82,13 @@ final class ImportIntegrityCheck implements IntegrityCheck
                 $mismatches[] = ['import_file_id' => $file->id, 'reason' => 'exchange_rate_not_locked'];
             }
 
-            if ($file->received_at === null
-                || $file->exchange_rate_date?->toDateString() !== $file->received_at?->toDateString()
-                || (int) ($file->exchange_rate_date?->year ?? 0) !== (int) PeriodContext::year()) {
+            $exchangeRateDate = $file->exchange_rate_date;
+            $receivedAt = $file->received_at;
+
+            if ($receivedAt === null
+                || $exchangeRateDate === null
+                || $exchangeRateDate->toDateString() !== $receivedAt->toDateString()
+                || (int) $exchangeRateDate->year !== (int) PeriodContext::year()) {
                 $mismatches[] = ['import_file_id' => $file->id, 'reason' => 'exchange_rate_date_mismatch'];
             }
 

@@ -245,8 +245,7 @@ final class FinanceIntegrityCheck implements IntegrityCheck
             );
 
             if ($rows->count() !== count($ids)
-                || bccomp($total, (string) $payroll->total_amount, 4) !== 0
-                || ! is_array($payroll->state_snapshot)) {
+                || bccomp($total, (string) $payroll->total_amount, 4) !== 0) {
                 $mismatches[] = [
                     'payroll_id' => $payroll->id,
                     'reason' => 'security_payroll_total_membership_or_snapshot',

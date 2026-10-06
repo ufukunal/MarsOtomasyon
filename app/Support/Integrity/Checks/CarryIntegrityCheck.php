@@ -103,7 +103,7 @@ final class CarryIntegrityCheck implements IntegrityCheck
                 ->where('product_id', $actual->product_id)
                 ->where('location_id', $actual->location_id)
                 ->where('status', 'active')
-                ->sum('quantity') ?? '0');
+                ->sum('quantity'));
 
             if (bccomp((string) $actual->reserved, $reserved, 3) !== 0) {
                 $mismatches[] = [
@@ -457,7 +457,10 @@ final class CarryIntegrityCheck implements IntegrityCheck
             ->all();
     }
 
-    /** @param list<int> $contactIds @return array<string,string> */
+    /**
+     * @param list<int> $contactIds
+     * @return array<string,string>
+     */
     private function sourceContactBalances(array $contactIds): array
     {
         if ($contactIds === []) {
@@ -476,7 +479,10 @@ final class CarryIntegrityCheck implements IntegrityCheck
             ->all();
     }
 
-    /** @param list<int> $accountIds @return array<int|string,string> */
+    /**
+     * @param list<int> $accountIds
+     * @return array<int|string,string>
+     */
     private function sourceFinancialBalances(string $table, string $foreignKey, array $accountIds): array
     {
         if ($accountIds === []) {
