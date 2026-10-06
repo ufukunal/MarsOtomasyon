@@ -12,7 +12,10 @@ use Illuminate\Support\Facades\DB;
 
 final class SaveSalesChannelAccount
 {
-    /** @param array<string, mixed>|null $credentials @param array<string, mixed>|null $settings */
+    /**
+     * @param array<string,mixed>|null $credentials
+     * @param array<string,mixed>|null $settings
+     */
     public function handle(
         string $platform,
         string $name,

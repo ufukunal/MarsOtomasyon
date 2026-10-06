@@ -168,10 +168,10 @@ final class CarryChannelPeriodState
     /**
      * @param  list<int>  $sourceSalesOrderIds
      * @return array{
-     *   settings:Collection<int,object>,
-     *   listings:Collection<int,object>,
-     *   locations:Collection<int,object>,
-     *   order_snapshots:Collection<int,object>,
+     *   settings:Collection<int,\stdClass>,
+     *   listings:Collection<int,\stdClass>,
+     *   locations:Collection<int,\stdClass>,
+     *   order_snapshots:Collection<int,\stdClass>,
      *   account_ids:list<int>
      * }
      */
@@ -195,14 +195,16 @@ final class CarryChannelPeriodState
             $settings = $source->table('channel_account_period_settings')->orderBy('id')->get();
             $listings = $source->table('channel_product_listings')->orderBy('id')->get();
             $locations = $source->table('channel_listing_locations')->orderBy('id')->get();
+            /** @var Collection<int,\stdClass> $orderSnapshots */
             $orderSnapshots = $sourceSalesOrderIds === []
                 ? collect()
                 : $source->table('channel_order_snapshots')
                     ->whereIn('sales_order_id', $sourceSalesOrderIds)
                     ->orderBy('id')
-                    ->get();
+                    ->get()
+                    ->values();
 
-            $accountIds = collect()
+            $accountIds = array_values(collect()
                 ->merge($settings->pluck('channel_account_id'))
                 ->merge($listings->pluck('channel_account_id'))
                 ->merge($orderSnapshots->pluck('channel_account_id'))
@@ -211,7 +213,7 @@ final class CarryChannelPeriodState
                 ->unique()
                 ->sort()
                 ->values()
-                ->all();
+                ->all());
 
             return [
                 'settings' => $settings,
@@ -249,10 +251,10 @@ final class CarryChannelPeriodState
 
     /**
      * @param  array{
-     *   settings:Collection<int,object>,
-     *   listings:Collection<int,object>,
-     *   locations:Collection<int,object>,
-     *   order_snapshots:Collection<int,object>,
+     *   settings:Collection<int,\stdClass>,
+     *   listings:Collection<int,\stdClass>,
+     *   locations:Collection<int,\stdClass>,
+     *   order_snapshots:Collection<int,\stdClass>,
      *   account_ids:list<int>
      * }  $snapshot
      * @param  array<int,int>  $salesOrderCarryMap
@@ -323,10 +325,10 @@ final class CarryChannelPeriodState
     /**
      * @param  array<int,int>  $salesOrderCarryMap
      * @param  array{
-     *   settings:Collection<int,object>,
-     *   listings:Collection<int,object>,
-     *   locations:Collection<int,object>,
-     *   order_snapshots:Collection<int,object>,
+     *   settings:Collection<int,\stdClass>,
+     *   listings:Collection<int,\stdClass>,
+     *   locations:Collection<int,\stdClass>,
+     *   order_snapshots:Collection<int,\stdClass>,
      *   account_ids:list<int>
      * }  $snapshot
      * @return array{settings:int,listings:int,locations:int,order_snapshots:int,registry_rebinds:list<array<string,int|string>>}

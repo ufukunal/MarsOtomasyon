@@ -65,7 +65,10 @@ final class SyncChannelListing
         );
     }
 
-    /** @param callable $operation @param array<string,mixed> $fingerprint */
+    /**
+     * @param callable $operation
+     * @param array<string,mixed> $fingerprint
+     */
     private function perform(
         ChannelProductListing $listing,
         string $action,
