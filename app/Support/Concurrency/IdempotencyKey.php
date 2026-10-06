@@ -213,8 +213,8 @@ final class IdempotencyKey
                 'key' => $result->getKey(),
             ]
             : [
-                'type' => 'value',
-                'value' => $result,
+                'type' => 'structured_value',
+                'value' => self::encodeStructuredValue($result),
             ];
 
         try {
@@ -228,6 +228,30 @@ final class IdempotencyKey
                 previous: $exception,
             );
         }
+    }
+
+    private static function encodeStructuredValue(mixed $value): mixed
+    {
+        if ($value instanceof Model) {
+            return [
+                '__type' => 'eloquent_model',
+                'class' => $value::class,
+                'connection' => $value->getConnectionName(),
+                'key' => $value->getKey(),
+            ];
+        }
+
+        if (! is_array($value)) {
+            return $value;
+        }
+
+        $encoded = [];
+
+        foreach ($value as $key => $item) {
+            $encoded[$key] = self::encodeStructuredValue($item);
+        }
+
+        return $encoded;
     }
 
     private static function decodeResult(mixed $stored): mixed
@@ -247,11 +271,42 @@ final class IdempotencyKey
             );
         }
 
-        if (($decoded['type'] ?? 'value') !== 'eloquent_model') {
-            return $decoded['value'] ?? null;
+        if (($decoded['type'] ?? 'value') === 'eloquent_model') {
+            return self::restoreModel($decoded);
         }
 
-        $class = $decoded['class'] ?? null;
+        if (($decoded['type'] ?? 'value') === 'structured_value') {
+            return self::decodeStructuredValue($decoded['value'] ?? null);
+        }
+
+        return $decoded['value'] ?? null;
+    }
+
+    private static function decodeStructuredValue(mixed $value): mixed
+    {
+        if (! is_array($value)) {
+            return $value;
+        }
+
+        if (($value['__type'] ?? null) === 'eloquent_model') {
+            return self::restoreModel($value);
+        }
+
+        $decoded = [];
+
+        foreach ($value as $key => $item) {
+            $decoded[$key] = self::decodeStructuredValue($item);
+        }
+
+        return $decoded;
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     */
+    private static function restoreModel(array $payload): Model
+    {
+        $class = $payload['class'] ?? null;
 
         if (! is_string($class) || ! is_a($class, Model::class, true)) {
             throw new RuntimeException('Saklanmış model idempotency sonucu geçersiz.');
@@ -260,10 +315,10 @@ final class IdempotencyKey
         /** @var Model $model */
         $model = new $class;
 
-        if (is_string($decoded['connection'] ?? null) && $decoded['connection'] !== '') {
-            $model->setConnection($decoded['connection']);
+        if (is_string($payload['connection'] ?? null) && $payload['connection'] !== '') {
+            $model->setConnection($payload['connection']);
         }
 
-        return $model->newQuery()->findOrFail($decoded['key'] ?? null);
+        return $model->newQuery()->findOrFail($payload['key'] ?? null);
     }
 }
