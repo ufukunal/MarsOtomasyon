@@ -73,7 +73,7 @@ final class PrintJobTracker
         $outputHash = hash('sha256', $result->content);
 
         if ($template && $job->source_type === 'document' && $job->source_id) {
-            DocumentPrintSnapshot::query()->updateOrCreate(
+            DocumentPrintSnapshot::query()->firstOrCreate(
                 ['document_id' => $job->source_id],
                 [
                     'template_key' => $template->template_key,
