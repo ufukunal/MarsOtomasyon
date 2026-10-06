@@ -6,6 +6,10 @@ use App\Support\DocumentTemplates\FrozenDocumentRenderData;
 
 final readonly class ProductLabelData
 {
+    /**
+     * @param array<string,mixed> $company
+     * @param array<string,mixed> $user
+     */
     public function __construct(
         public int $productId,
         public string $code,

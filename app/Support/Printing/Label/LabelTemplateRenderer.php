@@ -44,6 +44,7 @@ final class LabelTemplateRenderer
         };
     }
 
+    /** @param list<array<string,mixed>> $sections */
     private function zpl(array $sections): string
     {
         $y = 30;
@@ -66,6 +67,7 @@ final class LabelTemplateRenderer
         return implode("\n", $commands);
     }
 
+    /** @param list<array<string,mixed>> $sections */
     private function text(array $sections): string
     {
         return collect($sections)
