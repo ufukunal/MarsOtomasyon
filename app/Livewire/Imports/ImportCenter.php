@@ -393,7 +393,7 @@ class ImportCenter extends Component
             ->get();
     }
 
-    /** @return Collection<int, object> */
+    /** @return Collection<int, \stdClass> */
     private function carrySourceFiles(?Period $period): Collection
     {
         if ($period === null) {

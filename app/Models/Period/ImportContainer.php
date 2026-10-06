@@ -7,6 +7,18 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use LogicException;
 
+/**
+ * @property int $id
+ * @property int $import_file_id
+ * @property string $container_no
+ * @property string|null $container_type
+ * @property string|null $seal_no
+ * @property string|null $gross_weight_kg
+ * @property string|null $volume_cbm
+ * @property \Illuminate\Support\Carbon|null $etd
+ * @property \Illuminate\Support\Carbon|null $eta
+ * @property string $status
+ */
 class ImportContainer extends PeriodModel
 {
     protected $table = 'containers';
