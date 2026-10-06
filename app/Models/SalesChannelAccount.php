@@ -14,6 +14,7 @@ use LogicException;
  * @property SalesChannelPlatform $platform
  * @property string $name
  * @property string|null $external_store_id
+ * @property array<string, mixed> $credentials_encrypted
  * @property array<string, mixed>|null $settings
  * @property bool $is_active
  * @property int $version

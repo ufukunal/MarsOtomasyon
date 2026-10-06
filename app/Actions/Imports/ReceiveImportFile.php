@@ -85,7 +85,7 @@ final class ReceiveImportFile
                 }
 
                 $locked->exchange_rate = $rate;
-                $locked->exchange_rate_date = $date->toDateString();
+                $locked->exchange_rate_date = $date;
                 $locked->exchange_rate_locked_at = now();
                 $locked->save();
 
@@ -128,7 +128,7 @@ final class ReceiveImportFile
                 }
 
                 $locked->status = 'received';
-                $locked->received_at = $date->toDateString();
+                $locked->received_at = $date;
                 $locked->version = (int) $locked->version + 1;
                 $locked->save();
 

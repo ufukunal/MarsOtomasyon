@@ -22,6 +22,7 @@ final class SaveTransferDraft
      *   from_location_id:int,
      *   to_location_id:int,
      *   transfer_date:string,
+     *   production_order_id?:int|null,
      *   note?:?string,
      *   lines:list<array{product_id:int,quantity:string}>
      * } $data
@@ -60,7 +61,7 @@ final class SaveTransferDraft
             throw new DomainException('Production-order transfer provenance yalnız fason lokasyon sevkinde kullanılabilir.');
         }
 
-        CarbonImmutable::parse($data['transfer_date']);
+        $transferDate = CarbonImmutable::parse($data['transfer_date']);
 
         if ($data['lines'] === []) {
             throw ValidationException::withMessages([
@@ -84,7 +85,7 @@ final class SaveTransferDraft
             }
         }
 
-        return DB::connection('period')->transaction(function () use ($data, $transfer, $productionOrderId): Transfer {
+        return DB::connection('period')->transaction(function () use ($data, $transfer, $productionOrderId, $transferDate): Transfer {
             if ($transfer) {
                 $transfer = Transfer::query()->lockForUpdate()->findOrFail($transfer->id);
 
@@ -100,7 +101,7 @@ final class SaveTransferDraft
             $transfer->from_location_id = $data['from_location_id'];
             $transfer->to_location_id = $data['to_location_id'];
             $transfer->production_order_id = $productionOrderId;
-            $transfer->transfer_date = $data['transfer_date'];
+            $transfer->transfer_date = $transferDate;
             $transfer->note = $data['note'] ?? null;
             $transfer->save();
 

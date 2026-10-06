@@ -87,7 +87,7 @@ final class RetryChannelSyncEvent
                 $result = $adapter->pushShipmentStatus($account, [
                     'package_id' => (string) $snapshot->external_package_id,
                     'status' => $status,
-                    'lines' => is_array($meta['lines'] ?? null) ? $meta['lines'] : [],
+                    'lines' => $this->shipmentLines($meta['lines'] ?? null),
                     'invoice_number' => isset($meta['invoice_number'])
                         ? (string) $meta['invoice_number']
                         : null,
@@ -116,5 +116,34 @@ final class RetryChannelSyncEvent
 
             throw $exception;
         }
+    }
+    /** @return list<array<string,int|string>> */
+    private function shipmentLines(mixed $value): array
+    {
+        if (! is_array($value)) {
+            return [];
+        }
+
+        $lines = [];
+
+        foreach ($value as $line) {
+            if (! is_array($line)) {
+                continue;
+            }
+
+            $normalized = [];
+
+            foreach ($line as $key => $item) {
+                if ((is_int($item) || is_string($item)) && is_string($key)) {
+                    $normalized[$key] = $item;
+                }
+            }
+
+            if ($normalized !== []) {
+                $lines[] = $normalized;
+            }
+        }
+
+        return $lines;
     }
 }

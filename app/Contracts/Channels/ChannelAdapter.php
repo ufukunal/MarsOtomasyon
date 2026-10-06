@@ -53,7 +53,14 @@ interface ChannelAdapter
         ?CarbonImmutable $since = null,
     ): array;
 
-    /** @param array<string, scalar|null> $shipment */
+    /**
+     * @param array{
+     *   package_id:string,
+     *   status:string,
+     *   lines?:list<array<string,int|string>>,
+     *   invoice_number?:string|null
+     * } $shipment
+     */
     public function pushShipmentStatus(
         SalesChannelAccount $account,
         array $shipment,
