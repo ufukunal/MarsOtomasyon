@@ -8,6 +8,16 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use LogicException;
 
+/**
+ * @property int $id
+ * @property int $company_id
+ * @property SalesChannelPlatform $platform
+ * @property string $name
+ * @property string|null $external_store_id
+ * @property array<string, mixed>|null $settings
+ * @property bool $is_active
+ * @property int $version
+ */
 class SalesChannelAccount extends MasterModel
 {
     use HasOptimisticLock;
