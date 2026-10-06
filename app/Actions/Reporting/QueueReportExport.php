@@ -78,6 +78,14 @@ final class QueueReportExport
             $actor,
         );
 
+        $maxExportRows = max(1, (int) config('reporting.max_export_rows', 50000));
+
+        if ($normalized->totalRows > $maxExportRows) {
+            throw new DomainException(
+                "Rapor export satır sayısı {$maxExportRows} sınırını aşıyor.",
+            );
+        }
+
         $columns = array_map(fn ($column): string => $column->key, $normalized->columns);
         $sort = array_map(
             fn ($item): array => ['key' => $item->key, 'direction' => $item->direction],

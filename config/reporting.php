@@ -16,6 +16,7 @@ use App\Support\Reporting\Queries\SupplierInvoiceReportQuery;
 
 return [
     'max_page_size' => 250,
+    'max_export_rows' => max(1, (int) env('REPORT_MAX_EXPORT_ROWS', 50000)),
     'max_consolidated_periods' => (int) env('REPORT_MAX_CONSOLIDATED_PERIODS', 12),
     'export_disk' => env('REPORT_EXPORT_DISK', 'report_exports'),
     'export_retention_days' => (int) env('REPORT_EXPORT_RETENTION_DAYS', 30),

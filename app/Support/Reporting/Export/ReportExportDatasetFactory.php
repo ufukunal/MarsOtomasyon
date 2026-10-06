@@ -34,6 +34,7 @@ final class ReportExportDatasetFactory
         }
 
         $pageSize = max(1, (int) config('reporting.max_page_size', 250));
+        $maxExportRows = max(1, (int) config('reporting.max_export_rows', 50000));
         $rows = [];
         $offset = 0;
         $first = null;
@@ -54,6 +55,12 @@ final class ReportExportDatasetFactory
 
             $first ??= $result;
             $expectedTotal ??= $result->totalRows;
+
+            if ($expectedTotal > $maxExportRows) {
+                throw new DomainException(
+                    "Rapor export satır sayısı {$maxExportRows} sınırını aşıyor.",
+                );
+            }
 
             if ($result->totalRows !== $expectedTotal) {
                 throw new DomainException('Rapor export sırasında dataset değişti; çıktı üretilmedi.');
