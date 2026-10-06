@@ -67,10 +67,6 @@ final class ReportExportDatasetFactory
             }
         } while ($offset < $expectedTotal);
 
-        if (! $first) {
-            throw new DomainException('Rapor export dataset üretilemedi.');
-        }
-
         if (count($rows) !== $expectedTotal) {
             throw new DomainException('Rapor export satır sayısı ekran dataset ile uyuşmuyor.');
         }

@@ -124,10 +124,6 @@ final class MultiPeriodQuery
                     }
                 } while ($offset < $expectedTotal);
 
-                if (! $periodFirst) {
-                    throw new DomainException("{$period->year} dönemi rapor sonucu üretilemedi.");
-                }
-
                 $totalRows += $periodFirst->totalRows;
                 $this->mergeTotals($combinedTotals, $periodFirst, $definition->totalMap());
             }

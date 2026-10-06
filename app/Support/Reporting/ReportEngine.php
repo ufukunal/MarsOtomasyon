@@ -85,7 +85,10 @@ final class ReportEngine
         );
     }
 
-    /** @param array<string,mixed> $input @return array<string,mixed> */
+    /**
+     * @param array<string,mixed> $input
+     * @return array<string,mixed>
+     */
     private function normalizeFilters(ReportDefinition $definition, array $input): array
     {
         $filterMap = $definition->filterMap();
@@ -114,7 +117,10 @@ final class ReportEngine
         return $normalized;
     }
 
-    /** @param list<string>|null $requested @return list<string> */
+    /**
+     * @param list<string>|null $requested
+     * @return list<string>
+     */
     private function normalizeColumns(
         ReportDefinition $definition,
         ?array $requested,
@@ -130,7 +136,7 @@ final class ReportEngine
         $normalized = [];
 
         foreach ($columns as $column) {
-            if (! is_string($column) || ! isset($columnMap[$column])) {
+            if (! isset($columnMap[$column])) {
                 throw new DomainException('Desteklenmeyen rapor kolonu.');
             }
 
@@ -163,9 +169,7 @@ final class ReportEngine
         foreach ($source as $item) {
             $candidate = $item instanceof ReportSort
                 ? $item
-                : (is_array($item) && isset($item['key'])
-                    ? new ReportSort((string) $item['key'], strtolower((string) ($item['direction'] ?? 'asc')))
-                    : throw new DomainException('Rapor sıralama tanımı geçersiz.'));
+                : new ReportSort($item['key'], strtolower((string) ($item['direction'] ?? 'asc')));
 
             if (! isset($columnMap[$candidate->key]) || ! $columnMap[$candidate->key]->sortable) {
                 throw new DomainException("Desteklenmeyen rapor sıralama kolonu: {$candidate->key}.");
