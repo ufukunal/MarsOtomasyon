@@ -89,7 +89,7 @@ final class DeploymentService
 
             $health = $this->waitForHealthy();
 
-            if (Artisan::call('operations:smoke') !== 0) {
+            if (! $this->artisanSucceeded('operations:smoke')) {
                 throw new RuntimeException('Post-activation smoke doğrulaması başarısız.');
             }
 
@@ -154,6 +154,12 @@ final class DeploymentService
         }
     }
 
+    /** @param array<string,mixed> $parameters */
+    private function artisanSucceeded(string $command, array $parameters = []): bool
+    {
+        return Artisan::call($command, $parameters) === 0;
+    }
+
     /** @return array{status:string,checks:array<string,array<string,mixed>>,correlation_id:string} */
     private function waitForHealthy(): array
     {
@@ -171,7 +177,7 @@ final class DeploymentService
 
         throw new RuntimeException(
             'Post-activation operational health healthy duruma ulaşmadı: '.
-            ($last['status'] ?? 'unknown'),
+            $last['status'],
         );
     }
 }

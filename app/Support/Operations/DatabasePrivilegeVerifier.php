@@ -59,7 +59,7 @@ final class DatabasePrivilegeVerifier
                     [$role, $database],
                 );
 
-                if (! (bool) ($connect?->allowed ?? false)) {
+                if (! (bool) ($connect->allowed ?? false)) {
                     $failures[] = "Runtime DB role CONNECT yetkisine sahip değil: {$database}.";
                 }
 
@@ -68,7 +68,7 @@ final class DatabasePrivilegeVerifier
                     [$role, $database],
                 );
 
-                if ((bool) ($create?->allowed ?? false)) {
+                if ((bool) ($create->allowed ?? false)) {
                     $failures[] = "Runtime DB role database CREATE yetkisi taşımamalıdır: {$database}.";
                 }
             }
@@ -106,7 +106,7 @@ final class DatabasePrivilegeVerifier
                     [$role],
                 );
 
-                if ((bool) ($row?->allowed ?? false)) {
+                if ((bool) ($row->allowed ?? false)) {
                     $failures[] = "Runtime DB role public schema CREATE yetkisi taşımamalıdır: {$database}.";
                 }
             }
@@ -116,7 +116,7 @@ final class DatabasePrivilegeVerifier
                 [$role],
             );
 
-            if ((bool) ($masterSchema?->allowed ?? false)) {
+            if ((bool) ($masterSchema->allowed ?? false)) {
                 $failures[] = 'Runtime DB role Master public schema CREATE yetkisi taşımamalıdır.';
             }
         } finally {

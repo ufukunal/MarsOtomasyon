@@ -190,8 +190,10 @@ final class RestoreVerificationService
         $process->mustRun();
     }
 
-    /** @param list<string> $arguments */
-    /** @param list<string> $arguments @param array<string, string> $env */
+    /**
+     * @param list<string> $arguments
+     * @param array<string,string> $env
+     */
     private function artisan(array $arguments, array $env): void
     {
         $process = new Process(
@@ -204,8 +206,10 @@ final class RestoreVerificationService
         $process->mustRun();
     }
 
-    /** @param list<string> $extra */
-    /** @param list<string> $extra @return list<string> */
+    /**
+     * @param list<string> $extra
+     * @return list<string>
+     */
     private function psqlArgs(string $database, array $extra): array
     {
         return [
