@@ -192,6 +192,15 @@ final class PostDocument
         $groups = [];
 
         foreach ($document->lines as $line) {
+            if ($line->source_line_id !== null) {
+                $source = DocumentLine::query()
+                    ->with('document')
+                    ->lockForUpdate()
+                    ->findOrFail((int) $line->source_line_id);
+
+                $this->assertSalesSourceLine($document, $line, $source);
+            }
+
             $lineage = $this->lineage->handle($line);
             $sourceType = null;
             $sourceLineId = null;
@@ -241,6 +250,49 @@ final class PostDocument
             if (bccomp((string) $group['quantity'], $remaining, 3) > 0) {
                 throw new DomainException('Belge kaynak satırın kalan miktarını aşıyor.');
             }
+        }
+    }
+
+    private function assertSalesSourceLine(
+        Document $document,
+        DocumentLine $line,
+        DocumentLine $source,
+    ): void {
+        $sourceDocument = $source->document;
+        $validSource = match ($document->document_type) {
+            DocumentType::Dispatch => $sourceDocument->document_type === DocumentType::SalesOrder
+                && $sourceDocument->status === 'confirmed',
+            DocumentType::SalesInvoice => (
+                $sourceDocument->document_type === DocumentType::SalesOrder
+                    && $sourceDocument->status === 'confirmed'
+            ) || (
+                $sourceDocument->document_type === DocumentType::Dispatch
+                    && $sourceDocument->status === 'posted'
+            ),
+            default => false,
+        };
+
+        if (! $validSource) {
+            throw new DomainException('Satış belgesi kaynak satır tipi veya durumu geçersiz.');
+        }
+
+        if ((int) ($sourceDocument->contact_id ?? 0) !== (int) ($document->contact_id ?? 0)
+            || $sourceDocument->currency !== $document->currency) {
+            throw new DomainException('Satış belgesi kaynak cari veya para birimiyle eşleşmiyor.');
+        }
+
+        if ($line->line_kind !== $source->line_kind
+            || (int) ($line->product_id ?? 0) !== (int) ($source->product_id ?? 0)
+            || (int) ($line->unit_id ?? 0) !== (int) ($source->unit_id ?? 0)
+            || ($line->line_kind === 'stock'
+                && bccomp((string) $line->conversion_factor, (string) $source->conversion_factor, 6) !== 0)) {
+            throw new DomainException('Satış belgesi kaynak satır ürün/birim snapshotıyla eşleşmiyor.');
+        }
+
+        if ($document->document_type === DocumentType::SalesInvoice
+            && $sourceDocument->document_type === DocumentType::Dispatch
+            && (int) ($line->location_id ?? 0) !== (int) ($source->location_id ?? 0)) {
+            throw new DomainException('Fatura satırı kaynak irsaliye lokasyonuyla eşleşmiyor.');
         }
     }
 
