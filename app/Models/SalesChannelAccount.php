@@ -62,11 +62,13 @@ class SalesChannelAccount extends MasterModel
         ));
     }
 
+    /** @return BelongsTo<Company, $this> */
     public function company(): BelongsTo
     {
         return $this->belongsTo(Company::class);
     }
 
+    /** @return HasMany<ChannelExternalEventRegistry, $this> */
     public function externalEvents(): HasMany
     {
         return $this->hasMany(ChannelExternalEventRegistry::class, 'channel_account_id');

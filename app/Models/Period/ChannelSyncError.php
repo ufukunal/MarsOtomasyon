@@ -24,6 +24,7 @@ class ChannelSyncError extends PeriodModel
         ];
     }
 
+    /** @return BelongsTo<ChannelSyncEvent, $this> */
     public function event(): BelongsTo
     {
         return $this->belongsTo(ChannelSyncEvent::class, 'channel_sync_event_id');

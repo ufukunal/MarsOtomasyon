@@ -39,6 +39,7 @@ class Location extends PeriodModel implements SearchIndexed
         ];
     }
 
+    /** @return BelongsTo<Contact, $this> */
     public function subcontractorContact(): BelongsTo
     {
         return $this->belongsTo(Contact::class, 'subcontractor_contact_id');
