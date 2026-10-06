@@ -17,7 +17,7 @@ use LogicException;
  * @property string $currency
  * @property string $total_amount
  * @property list<int> $security_ids
- * @property array<string,mixed>|null $state_snapshot
+ * @property array<int, array{status:string, contact_transaction_id:int|null, endorsed_to_contact_id:int|null, bank_account_id:int|null, last_payroll_id:int|null}> $state_snapshot
  * @property string $status
  */
 class SecurityPayroll extends PeriodModel

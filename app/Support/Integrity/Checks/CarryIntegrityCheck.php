@@ -476,7 +476,7 @@ final class CarryIntegrityCheck implements IntegrityCheck
             ->all();
     }
 
-    /** @param list<int> $accountIds @return array<string,string> */
+    /** @param list<int> $accountIds @return array<int|string,string> */
     private function sourceFinancialBalances(string $table, string $foreignKey, array $accountIds): array
     {
         if ($accountIds === []) {
@@ -509,7 +509,7 @@ final class CarryIntegrityCheck implements IntegrityCheck
             ->all();
     }
 
-    /** @return array<string,string> */
+    /** @return array<int|string,string> */
     private function targetFinancialBalances(string $table, string $foreignKey): array
     {
         return DB::connection('period')->table($table)
@@ -524,8 +524,8 @@ final class CarryIntegrityCheck implements IntegrityCheck
     }
 
     /**
-     * @param  array<string,string>  $expected
-     * @param  array<string,string>  $actual
+     * @param  array<int|string,string>  $expected
+     * @param  array<int|string,string>  $actual
      * @param  array<int,array<string,mixed>>  $mismatches
      */
     private function compareBalanceMap(

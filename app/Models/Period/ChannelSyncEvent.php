@@ -5,6 +5,18 @@ namespace App\Models\Period;
 use App\Models\PeriodModel;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * @property int $id
+ * @property int $channel_account_id
+ * @property string $direction
+ * @property string $entity_type
+ * @property int|null $entity_id
+ * @property string $action
+ * @property string $status
+ * @property int $attempts
+ * @property array<string, mixed>|null $safe_metadata
+ * @property \Illuminate\Support\Carbon|null $last_attempt_at
+ */
 class ChannelSyncEvent extends PeriodModel
 {
     protected $fillable = [
@@ -34,6 +46,7 @@ class ChannelSyncEvent extends PeriodModel
         ];
     }
 
+    /** @return HasMany<ChannelSyncError, $this> */
     public function errors(): HasMany
     {
         return $this->hasMany(ChannelSyncError::class);
