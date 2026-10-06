@@ -34,8 +34,7 @@ final class ArchivePeriodRestoreService
         }
 
         $manifestContainsPeriod = collect($backup->period_manifest ?? [])->contains(
-            fn (array $item): bool =>
-                (string) ($item['database_name'] ?? '') === (string) $period->database_name
+            fn (array $item): bool => (string) ($item['database_name'] ?? '') === (string) $period->database_name
         );
 
         if (! $manifestContainsPeriod) {
