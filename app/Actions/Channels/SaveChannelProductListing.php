@@ -17,8 +17,8 @@ use Illuminate\Support\Facades\DB;
 final class SaveChannelProductListing
 {
     /**
-     * @param list<int> $locationIds
-     * @param array<string, mixed> $data
+     * @param  list<int>  $locationIds
+     * @param  array<string, mixed>  $data
      */
     public function handle(
         int $channelAccountId,

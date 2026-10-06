@@ -238,7 +238,7 @@ final class ImportChannelOrder
     }
 
     /**
-     * @param list<ChannelProductListing>|null $knownListings
+     * @param  list<ChannelProductListing>|null  $knownListings
      */
     private function reserveStockLines(
         SalesChannelAccount $account,

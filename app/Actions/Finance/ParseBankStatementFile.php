@@ -91,7 +91,7 @@ final class ParseBankStatementFile
             throw new DomainException('XLSX içe aktarma için PHP zip uzantısı gereklidir.');
         }
 
-        $zip = new ZipArchive();
+        $zip = new ZipArchive;
 
         if ($zip->open($path) !== true) {
             throw new DomainException('XLSX dosyası açılamadı.');
@@ -297,7 +297,7 @@ final class ParseBankStatementFile
     }
 
     /**
-     * @param array<string,string> $row
+     * @param  array<string,string>  $row
      * @return array{date:string,value_date:?string,reference:?string,description:string,direction:string,amount:string,balance:?string}|null
      */
     private function normalizeRow(array $row): ?array

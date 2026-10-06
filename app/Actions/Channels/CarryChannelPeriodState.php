@@ -12,6 +12,7 @@ use App\Support\Period\PeriodContext;
 use App\Support\Period\SourcePeriodContext;
 use DomainException;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Schema;
@@ -23,7 +24,7 @@ final class CarryChannelPeriodState
     ) {}
 
     /**
-     * @param array<int,int> $salesOrderCarryMap source sales_order id => target sales_order id
+     * @param  array<int,int>  $salesOrderCarryMap  source sales_order id => target sales_order id
      * @return array{settings:int,listings:int,locations:int,order_snapshots:int}
      */
     public function handle(
@@ -162,12 +163,12 @@ final class CarryChannelPeriodState
     }
 
     /**
-     * @param list<int> $sourceSalesOrderIds
+     * @param  list<int>  $sourceSalesOrderIds
      * @return array{
-     *   settings:\Illuminate\Support\Collection<int,object>,
-     *   listings:\Illuminate\Support\Collection<int,object>,
-     *   locations:\Illuminate\Support\Collection<int,object>,
-     *   order_snapshots:\Illuminate\Support\Collection<int,object>,
+     *   settings:Collection<int,object>,
+     *   listings:Collection<int,object>,
+     *   locations:Collection<int,object>,
+     *   order_snapshots:Collection<int,object>,
      *   account_ids:list<int>
      * }
      */
@@ -308,7 +309,7 @@ final class CarryChannelPeriodState
     }
 
     /**
-     * @param array<int,int> $salesOrderCarryMap
+     * @param  array<int,int>  $salesOrderCarryMap
      * @return array{settings:int,listings:int,locations:int,order_snapshots:int,registry_rebinds:list<array<string,int|string>>}
      */
     private function copyToTarget(

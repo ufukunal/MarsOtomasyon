@@ -4,8 +4,8 @@ namespace App\Actions\Documents;
 
 use App\Actions\Numbering\GenerateDocumentNumber;
 use App\Actions\Periods\EnsurePeriodOpen;
-use App\Actions\Purchases\ReverseSupplierInvoiceCosts;
 use App\Actions\Production\ReverseProductionServiceInvoiceCosts;
+use App\Actions\Purchases\ReverseSupplierInvoiceCosts;
 use App\Actions\Stock\RecordStockMovement;
 use App\DataObjects\StockMovementData;
 use App\Enums\DocumentType;
@@ -22,7 +22,6 @@ use App\Support\Auth\MutationAuthorizer;
 use App\Support\Concurrency\IdempotencyKey;
 use Carbon\CarbonImmutable;
 use DomainException;
-use Illuminate\Support\Facades\DB;
 
 final class ReverseDocument
 {
