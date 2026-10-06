@@ -5,6 +5,8 @@ namespace App\Jobs;
 use App\Actions\Periods\CarryPeriod;
 use App\Models\Period;
 use App\Models\User;
+use App\Support\Auth\PeriodPermissionContext;
+use App\Support\Period\PeriodContext;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -41,12 +43,18 @@ class CarryPeriodJob implements ShouldBeUnique, ShouldQueue
             throw new RuntimeException('Dönem devri actor kullanıcısı aktif değil.');
         }
 
+        PeriodPermissionContext::clear();
+        PeriodContext::clear();
         Auth::login($actor);
 
         try {
             $source = Period::query()->findOrFail($this->sourcePeriodId);
+            PeriodContext::use((int) $source->company_id, (int) $source->id);
+
             $action->handle($source, $this->targetYear, $this->idempotencyKey);
         } finally {
+            PeriodPermissionContext::clear();
+            PeriodContext::clear();
             Auth::logout();
         }
     }
