@@ -82,7 +82,7 @@ final class ReverseReturnDocument
                     'contact_id' => $locked->contact_id,
                     'currency' => $locked->currency,
                     'exchange_rate' => $locked->exchange_rate,
-                    'status' => 'posted',
+                    'status' => 'draft',
                     'discount_rate' => $locked->discount_rate,
                     'discount_amount' => $locked->discount_amount,
                     'subtotal' => $locked->subtotal,
@@ -93,10 +93,7 @@ final class ReverseReturnDocument
                     'notes' => $reason,
                     'created_by' => $actor?->id,
                     'created_by_name' => $actor?->name,
-                    'posted_by' => $actor?->id,
-                    'posted_by_name' => $actor?->name,
-                    'posted_at' => now(),
-                ]);
+                 ]);
 
                 foreach ($locked->lines as $line) {
                     DocumentLine::query()->create([
@@ -140,6 +137,13 @@ final class ReverseReturnDocument
                     'created_by' => $actor?->id,
                     'created_by_name' => $actor?->name,
                 ]);
+
+                $reversal->status = 'posted';
+                $reversal->posted_by = $actor?->id;
+                $reversal->posted_by_name = $actor?->name;
+                $reversal->posted_at = now();
+                $reversal->version = (int) $reversal->version + 1;
+                $reversal->save();
 
                 AuditContext::period(
                     'İade belgesi ters kayıtla düzeltildi.',
