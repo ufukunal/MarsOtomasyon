@@ -7,6 +7,19 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use LogicException;
 
+/**
+ * @property int $id
+ * @property int $production_order_id
+ * @property \Illuminate\Support\Carbon $completion_date
+ * @property string $completed_quantity
+ * @property string $material_cost_total
+ * @property string $subcontract_service_cost_total
+ * @property string $production_cost_total
+ * @property string $production_unit_cost
+ * @property string $moving_average_before
+ * @property string $moving_average_after
+ * @property string $previous_production_cost
+ */
 class ProductionCompletion extends PeriodModel
 {
     protected $fillable = [
@@ -41,36 +54,43 @@ class ProductionCompletion extends PeriodModel
         ];
     }
 
+    /** @return BelongsTo<ProductionOrder, $this> */
     public function order(): BelongsTo
     {
         return $this->belongsTo(ProductionOrder::class, 'production_order_id');
     }
 
+    /** @return BelongsTo<self, $this> */
     public function reversalOf(): BelongsTo
     {
         return $this->belongsTo(self::class, 'reversal_of_id');
     }
 
+    /** @return HasMany<self, $this> */
     public function reversals(): HasMany
     {
         return $this->hasMany(self::class, 'reversal_of_id');
     }
 
+    /** @return HasMany<ProductionConsumption, $this> */
     public function consumptions(): HasMany
     {
         return $this->hasMany(ProductionConsumption::class);
     }
 
+    /** @return HasMany<ProductionOutput, $this> */
     public function outputs(): HasMany
     {
         return $this->hasMany(ProductionOutput::class);
     }
 
+    /** @return HasMany<ProductionServiceAllocation, $this> */
     public function serviceAllocations(): HasMany
     {
         return $this->hasMany(ProductionServiceAllocation::class);
     }
 
+    /** @return HasMany<InventoryCostAdjustment, $this> */
     public function costAdjustments(): HasMany
     {
         return $this->hasMany(InventoryCostAdjustment::class);
