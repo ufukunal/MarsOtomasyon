@@ -11,7 +11,10 @@ use Throwable;
 
 final class PrintManager
 {
-    /** @param array<string, mixed> $payload @param array<string, mixed> $context */
+    /**
+     * @param array<string,mixed> $payload
+     * @param array<string,mixed> $context
+     */
     public static function send(PrintType $type, array $payload, array $context = []): PrintResult
     {
         $profile = self::resolveProfile($type);

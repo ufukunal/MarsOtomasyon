@@ -100,6 +100,7 @@ final readonly class ReportDefinition
         ));
     }
 
+    /** @param list<ReportFilterDefinition|ReportColumnDefinition|ReportTotalDefinition|ReportDrillDownDefinition> $items */
     private function assertUniqueKeys(array $items, string $label): void
     {
         $keys = [];
