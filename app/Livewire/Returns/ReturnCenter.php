@@ -18,11 +18,17 @@ class ReturnCenter extends Component
     use WithIdempotentMutations;
 
     public string $type = 'sales_return';
+
     public ?int $sourceInvoiceId = null;
+
     public ?int $selectedReturnId = null;
+
     public string $documentDate = '';
+
     public string $note = '';
+
     public string $reversalDate = '';
+
     public string $reversalReason = '';
 
     /** @var array<int,string> */

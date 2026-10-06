@@ -28,11 +28,13 @@ class SensitiveDataProcessor
 
             if ($this->isSensitiveKey($normalized)) {
                 $data[$key] = '[REDACTED]';
+
                 continue;
             }
 
             if (is_array($value)) {
                 $data[$key] = $this->sanitize($value);
+
                 continue;
             }
 

@@ -10,6 +10,7 @@ use Livewire\Component;
 final class PrintHistory extends Component
 {
     public string $status = '';
+
     public string $printType = '';
 
     public function mount(): void

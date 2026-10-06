@@ -4,7 +4,7 @@ namespace App\Models;
 
 class HealthCheckRun extends MasterModel
 {
-    protected $fillable = ['checked_at','overall_status','checks','correlation_id'];
+    protected $fillable = ['checked_at', 'overall_status', 'checks', 'correlation_id'];
 
     protected function casts(): array
     {

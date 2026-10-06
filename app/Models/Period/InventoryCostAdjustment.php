@@ -2,9 +2,9 @@
 
 namespace App\Models\Period;
 
-use LogicException;
 use App\Models\PeriodModel;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use LogicException;
 
 class InventoryCostAdjustment extends PeriodModel
 {

@@ -11,6 +11,7 @@ use App\Support\Period\PeriodContext;
 use App\Support\Reporting\ReportCatalog;
 use App\Support\Reporting\ReportCatalogItem;
 use App\Support\Reporting\ReportColumnDefinition;
+use App\Support\Reporting\ReportDrillDownDefinition;
 use App\Support\Reporting\ReportDrillDownResolver;
 use App\Support\Reporting\ReportPresetRepository;
 use App\Support\Reporting\ReportRequest;
@@ -191,7 +192,7 @@ final class ReportCenter extends Component
         $this->presetMessage = 'Preset silindi.';
     }
 
-    /** @param list<\App\Support\Reporting\ReportDrillDownDefinition> $definitions */
+    /** @param list<ReportDrillDownDefinition> $definitions */
     public function drillDownLink(array $row, array $definitions): ?array
     {
         $actor = auth()->user();

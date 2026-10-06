@@ -2,10 +2,10 @@
 
 namespace App\Models\Period;
 
-use LogicException;
 use App\Models\PeriodModel;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use LogicException;
 
 class ProductionCompletion extends PeriodModel
 {
