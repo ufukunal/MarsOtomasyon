@@ -129,6 +129,7 @@ final class QuarantineReportQuery implements ReportQuery
         ][$column];
     }
 
+    /** @return array<string,string> */
     private function sortMap(): array
     {
         return [
