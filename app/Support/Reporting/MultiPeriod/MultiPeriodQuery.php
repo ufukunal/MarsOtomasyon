@@ -165,7 +165,10 @@ final class MultiPeriodQuery
         );
     }
 
-    /** @param array<string,mixed> $combined @param array<string,mixed> $totalDefinitions */
+    /**
+     * @param  array<string,mixed>  $combined
+     * @param  array<string,\App\Support\Reporting\ReportTotalDefinition>  $totalDefinitions
+     */
     private function mergeTotals(array &$combined, ReportResult $result, array $totalDefinitions): void
     {
         foreach ($result->totals as $key => $value) {
@@ -184,7 +187,11 @@ final class MultiPeriodQuery
         }
     }
 
-    /** @param list<array<string,mixed>> $rows @param list<ReportColumnDefinition> $columns @param list<ReportSort> $sort */
+    /**
+     * @param  list<array<string,mixed>>  $rows
+     * @param  list<ReportColumnDefinition>  $columns
+     * @param  list<ReportSort>  $sort
+     */
     private function sortRows(array &$rows, array $columns, array $sort): void
     {
         $columnTypes = [];

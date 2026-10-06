@@ -7,7 +7,10 @@ use Illuminate\Support\Facades\Gate;
 
 final class ReportDrillDownResolver
 {
-    /** @return array{label:string,url:string}|null */
+    /**
+     * @param  array<string,mixed>  $row
+     * @return array{label:string,url:string}|null
+     */
     public function resolve(
         ReportDrillDownDefinition $definition,
         array $row,

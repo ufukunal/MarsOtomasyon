@@ -26,7 +26,10 @@ final class TemplateDefinitionValidator
         'page_break',
     ];
 
-    /** @param array<string,mixed> $definition @return array{sections:list<array{type:string,visible:bool,settings:array<string,mixed>}>} */
+    /**
+     * @param  array<string,mixed>  $definition
+     * @return array{sections:list<array{type:string,visible:bool,settings:array<string,mixed>}>}
+     */
     public function normalize(array $definition): array
     {
         $unknownRoot = array_diff(array_keys($definition), ['sections']);
@@ -88,6 +91,7 @@ final class TemplateDefinitionValidator
         return ['sections' => $normalized];
     }
 
+    /** @param array<array-key,mixed> $value */
     private function assertJsonSafe(array $value, string $path): void
     {
         foreach ($value as $key => $item) {
@@ -107,6 +111,7 @@ final class TemplateDefinitionValidator
         }
     }
 
+    /** @param array<array-key,mixed> $value */
     private function assertJsonArraySafe(array $value, string $path): void
     {
         foreach ($value as $index => $item) {

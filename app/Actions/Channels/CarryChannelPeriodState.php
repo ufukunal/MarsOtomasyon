@@ -137,7 +137,10 @@ final class CarryChannelPeriodState
         }
     }
 
-    /** @param array<int,int> $map @return array<int,int> */
+    /**
+     * @param  array<int,int>  $map
+     * @return array<int,int>
+     */
     private function normalizeOrderMap(array $map): array
     {
         $normalized = [];
@@ -244,7 +247,16 @@ final class CarryChannelPeriodState
         }
     }
 
-    /** @param array<int,int> $salesOrderCarryMap */
+    /**
+     * @param  array{
+     *   settings:\Illuminate\Support\Collection<int,object>,
+     *   listings:\Illuminate\Support\Collection<int,object>,
+     *   locations:\Illuminate\Support\Collection<int,object>,
+     *   order_snapshots:\Illuminate\Support\Collection<int,object>,
+     *   account_ids:list<int>
+     * }  $snapshot
+     * @param  array<int,int>  $salesOrderCarryMap
+     */
     private function assertTargetReferences(array $snapshot, array $salesOrderCarryMap): void
     {
         $this->assertIdsExist(
@@ -310,6 +322,13 @@ final class CarryChannelPeriodState
 
     /**
      * @param  array<int,int>  $salesOrderCarryMap
+     * @param  array{
+     *   settings:\Illuminate\Support\Collection<int,object>,
+     *   listings:\Illuminate\Support\Collection<int,object>,
+     *   locations:\Illuminate\Support\Collection<int,object>,
+     *   order_snapshots:\Illuminate\Support\Collection<int,object>,
+     *   account_ids:list<int>
+     * }  $snapshot
      * @return array{settings:int,listings:int,locations:int,order_snapshots:int,registry_rebinds:list<array<string,int|string>>}
      */
     private function copyToTarget(
@@ -511,7 +530,10 @@ final class CarryChannelPeriodState
         }
     }
 
-    /** @param array<string,mixed> $values @param list<string> $compareKeys */
+    /**
+     * @param  array<string,mixed>  $values
+     * @param  list<string>  $compareKeys
+     */
     private function insertExact(
         string $table,
         int $id,

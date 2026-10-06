@@ -7,6 +7,12 @@ use DomainException;
 
 final readonly class CartonLabelData
 {
+    /**
+     * @param  array<string,mixed>  $document
+     * @param  array<string,mixed>  $shipping
+     * @param  array<string,mixed>  $company
+     * @param  array<string,mixed>  $user
+     */
     public function __construct(
         public string $sourceType,
         public int $sourceId,

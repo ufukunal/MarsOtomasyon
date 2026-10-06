@@ -214,7 +214,10 @@ final class CopyPeriodCards
         return $ids;
     }
 
-    /** @param array<int,true> $locationIds @return array<int,true> */
+    /**
+     * @param  array<int,true>  $locationIds
+     * @return array<int,true>
+     */
     private function requiredContactIds(array $locationIds): array
     {
         $db = DB::connection('period_source');
@@ -307,7 +310,10 @@ final class CopyPeriodCards
         );
     }
 
-    /** @param array<int,true> $ids @return array<int,true> */
+    /**
+     * @param  array<int,true>  $ids
+     * @return array<int,true>
+     */
     private function withCategoryParents(array $ids): array
     {
         $db = DB::connection('period_source');
@@ -363,7 +369,10 @@ final class CopyPeriodCards
         return $this->copier->copyIds('product_categories', $ordered);
     }
 
-    /** @param list<int> $contactIds @param list<int> $categoryIds */
+    /**
+     * @param  list<int>  $contactIds
+     * @param  list<int>  $categoryIds
+     */
     private function copyContactCategoryPivot(array $contactIds, array $categoryIds): int
     {
         if ($contactIds === [] || $categoryIds === []) {
@@ -434,7 +443,10 @@ final class CopyPeriodCards
         return $this->copier->copyIds($table, $ids);
     }
 
-    /** @param list<int> $priceListIds @param list<int> $productIds */
+    /**
+     * @param  list<int>  $priceListIds
+     * @param  list<int>  $productIds
+     */
     private function copyPriceListItems(array $priceListIds, array $productIds): int
     {
         if ($priceListIds === [] || $productIds === []) {

@@ -192,7 +192,11 @@ final class ReportCenter extends Component
         $this->presetMessage = 'Preset silindi.';
     }
 
-    /** @param list<ReportDrillDownDefinition> $definitions */
+    /**
+     * @param  array<string,mixed>  $row
+     * @param  list<ReportDrillDownDefinition>  $definitions
+     * @return array{label:string,url:string}|null
+     */
     public function drillDownLink(array $row, array $definitions): ?array
     {
         $actor = auth()->user();
@@ -214,6 +218,7 @@ final class ReportCenter extends Component
         return null;
     }
 
+    /** @param array<string,mixed> $row */
     public function formatCell(array $row, ReportColumnDefinition $column): string
     {
         $value = $row[$column->key] ?? null;
