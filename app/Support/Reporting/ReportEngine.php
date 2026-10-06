@@ -147,7 +147,7 @@ final class ReportEngine
     }
 
     /**
-     * @param list<array{key:string,direction?:string}|ReportSort> $requested
+     * @param  list<array{key:string,direction?:string}|ReportSort>  $requested
      * @return list<ReportSort>
      */
     private function normalizeSort(

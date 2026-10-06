@@ -1,5 +1,10 @@
 <?php
 
+use App\Support\Channels\Hepsiburada\HepsiburadaAdapter;
+use App\Support\Channels\N11\N11Adapter;
+use App\Support\Channels\Trendyol\TrendyolAdapter;
+use App\Support\Channels\WooCommerce\WooCommerceAdapter;
+
 return [
     /*
     |--------------------------------------------------------------------------
@@ -11,10 +16,10 @@ return [
     |
     */
     'adapters' => [
-        'trendyol' => App\Support\Channels\Trendyol\TrendyolAdapter::class,
-        'hepsiburada' => App\Support\Channels\Hepsiburada\HepsiburadaAdapter::class,
-        'n11' => App\Support\Channels\N11\N11Adapter::class,
-        'woocommerce' => App\Support\Channels\WooCommerce\WooCommerceAdapter::class,
+        'trendyol' => TrendyolAdapter::class,
+        'hepsiburada' => HepsiburadaAdapter::class,
+        'n11' => N11Adapter::class,
+        'woocommerce' => WooCommerceAdapter::class,
     ],
 
     'retry_delays' => [30, 60, 120],

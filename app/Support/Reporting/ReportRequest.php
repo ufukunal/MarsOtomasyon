@@ -5,9 +5,9 @@ namespace App\Support\Reporting;
 final readonly class ReportRequest
 {
     /**
-     * @param array<string,mixed> $filters
-     * @param list<string>|null $columns
-     * @param list<array{key:string,direction?:string}|ReportSort> $sort
+     * @param  array<string,mixed>  $filters
+     * @param  list<string>|null  $columns
+     * @param  list<array{key:string,direction?:string}|ReportSort>  $sort
      */
     public function __construct(
         public array $filters = [],

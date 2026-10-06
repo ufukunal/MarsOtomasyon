@@ -5,10 +5,10 @@ namespace App\Support\Reporting;
 final readonly class ReportExecutionContext
 {
     /**
-     * @param array<string,mixed> $filters
-     * @param list<string> $columns
-     * @param list<ReportSort> $sort
-     * @param list<string> $totalKeys
+     * @param  array<string,mixed>  $filters
+     * @param  list<string>  $columns
+     * @param  list<ReportSort>  $sort
+     * @param  list<string>  $totalKeys
      */
     public function __construct(
         public array $filters,
