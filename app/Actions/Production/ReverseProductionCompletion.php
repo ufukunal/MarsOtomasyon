@@ -10,6 +10,7 @@ use App\Models\Period\ProductCost;
 use App\Models\Period\ProductionCompletion;
 use App\Models\Period\ProductionConsumption;
 use App\Models\Period\ProductionOutput;
+use App\Models\Period\ProductionOrder;
 use App\Models\Period\ProductionServiceAllocation;
 use App\Support\Audit\AuditContext;
 use App\Support\Auth\MutationAuthorizer;
@@ -49,10 +50,20 @@ final class ReverseProductionCompletion
                 $reversalDate,
                 $reason,
             ): int {
+                $order = ProductionOrder::query()
+                    ->lockForUpdate()
+                    ->findOrFail((int) $completion->production_order_id);
+
+                $this->serviceCosts->lockRelevantCompletions($order);
+
                 $original = ProductionCompletion::query()
                     ->with(['order.product', 'consumptions', 'outputs', 'serviceAllocations'])
                     ->lockForUpdate()
                     ->findOrFail($completion->id);
+
+                if ((int) $original->production_order_id !== (int) $order->id) {
+                    throw new DomainException('Completion üretim emri bağlamı değişmiş.');
+                }
 
                 if ($original->reversal_of_id !== null
                     || ProductionCompletion::query()->where('reversal_of_id', $original->id)->exists()) {
@@ -72,6 +83,7 @@ final class ReverseProductionCompletion
 
                 $date = CarbonImmutable::parse($reversalDate)->startOfDay();
                 $this->ensurePeriodOpen->handle($date);
+                $this->lockStockBalances($order, $original);
 
                 $adjustments = InventoryCostAdjustment::query()
                     ->where('production_completion_id', $original->id)
@@ -91,7 +103,6 @@ final class ReverseProductionCompletion
                     $this->reverseAdjustment->handle($adjustment, $date->toDateString());
                 }
 
-                $order = $original->order()->lockForUpdate()->firstOrFail();
                 $cost = ProductCost::query()
                     ->where('product_id', $order->product_id)
                     ->lockForUpdate()
@@ -237,4 +248,57 @@ final class ReverseProductionCompletion
             ->with(['order.product', 'consumptions', 'outputs'])
             ->findOrFail((int) $id);
     }
+
+    private function lockStockBalances(
+        ProductionOrder $order,
+        ProductionCompletion $completion,
+    ): void {
+        $keys = [];
+
+        foreach ($completion->outputs as $output) {
+            $productId = (int) $order->product_id;
+            $locationId = (int) $output->location_id;
+            $keys[$productId.':'.$locationId] = [$productId, $locationId];
+        }
+
+        foreach ($completion->consumptions as $consumption) {
+            $productId = (int) $consumption->component_product_id;
+            $locationId = (int) $consumption->location_id;
+            $keys[$productId.':'.$locationId] = [$productId, $locationId];
+        }
+
+        $keys = array_values($keys);
+        usort($keys, static function (array $left, array $right): int {
+            $productOrder = $left[0] <=> $right[0];
+
+            return $productOrder !== 0
+                ? $productOrder
+                : $left[1] <=> $right[1];
+        });
+
+        foreach ($keys as [$productId, $locationId]) {
+            DB::connection('period')->table('stock_balances')->insertOrIgnore([
+                'product_id' => $productId,
+                'location_id' => $locationId,
+                'quantity' => '0.000',
+                'reserved' => '0.000',
+                'consignment_reserved' => '0.000',
+                'quarantine' => '0.000',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            $balance = DB::connection('period')
+                ->table('stock_balances')
+                ->where('product_id', $productId)
+                ->where('location_id', $locationId)
+                ->lockForUpdate()
+                ->first();
+
+            if (! $balance) {
+                throw new DomainException('Production reversal stock balance kilidi alınamadı.');
+            }
+        }
+    }
+
 }
