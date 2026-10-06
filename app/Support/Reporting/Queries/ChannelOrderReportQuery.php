@@ -174,7 +174,7 @@ final class ChannelOrderReportQuery implements ReportQuery
     }
 
     /**
-     * @param list<array<string,mixed>> $rows
+     * @param  list<array<string,mixed>>  $rows
      * @return list<array<string,mixed>>
      */
     private function enrichAccounts(array $rows, ReportExecutionContext $context): array

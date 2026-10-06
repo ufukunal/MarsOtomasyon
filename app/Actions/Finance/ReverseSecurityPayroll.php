@@ -70,7 +70,6 @@ final class ReverseSecurityPayroll
 
                     $snapshot = $original->state_snapshot;
 
-
                     $actor = auth()->user();
                     $currentSnapshot = [];
 

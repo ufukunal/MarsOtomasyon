@@ -24,7 +24,7 @@ final class DocumentTemplateRenderService
     }
 
     /**
-     * @param array<string|int,mixed> $value
+     * @param  array<string|int,mixed>  $value
      * @return array<string|int,mixed>
      */
     private function renderArray(array $value, FrozenDocumentRenderData $data, string $renderType): array

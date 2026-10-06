@@ -86,7 +86,7 @@ final class ReportEngine
     }
 
     /**
-     * @param array<string,mixed> $input
+     * @param  array<string,mixed>  $input
      * @return array<string,mixed>
      */
     private function normalizeFilters(ReportDefinition $definition, array $input): array
@@ -118,7 +118,7 @@ final class ReportEngine
     }
 
     /**
-     * @param list<string>|null $requested
+     * @param  list<string>|null  $requested
      * @return list<string>
      */
     private function normalizeColumns(

@@ -458,7 +458,7 @@ final class CarryIntegrityCheck implements IntegrityCheck
     }
 
     /**
-     * @param list<int> $contactIds
+     * @param  list<int>  $contactIds
      * @return array<string,string>
      */
     private function sourceContactBalances(array $contactIds): array
@@ -480,7 +480,7 @@ final class CarryIntegrityCheck implements IntegrityCheck
     }
 
     /**
-     * @param list<int> $accountIds
+     * @param  list<int>  $accountIds
      * @return array<int|string,string>
      */
     private function sourceFinancialBalances(string $table, string $foreignKey, array $accountIds): array

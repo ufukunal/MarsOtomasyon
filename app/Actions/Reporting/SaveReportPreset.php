@@ -19,9 +19,9 @@ final class SaveReportPreset
     ) {}
 
     /**
-     * @param array<string,mixed> $filters
-     * @param list<string> $columns
-     * @param list<array{key:string,direction?:string}> $sort
+     * @param  array<string,mixed>  $filters
+     * @param  list<string>  $columns
+     * @param  list<array{key:string,direction?:string}>  $sort
      */
     public function handle(
         string $reportKey,

@@ -32,7 +32,7 @@ final class ChannelSensitiveDataRedactor
     }
 
     /**
-     * @param array<string,mixed> $credentials
+     * @param  array<string,mixed>  $credentials
      * @return list<string>
      */
     private function flattenSecrets(array $credentials): array

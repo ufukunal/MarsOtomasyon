@@ -76,8 +76,8 @@ final class PeriodCarryTableCopier
     }
 
     /**
-     * @param list<array<string,mixed>> $rows
-     * @param list<string> $keyColumns
+     * @param  list<array<string,mixed>>  $rows
+     * @param  list<string>  $keyColumns
      */
     public function copyPivot(string $table, array $rows, array $keyColumns): int
     {

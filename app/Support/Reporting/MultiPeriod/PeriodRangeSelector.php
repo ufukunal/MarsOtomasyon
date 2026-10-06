@@ -31,7 +31,7 @@ final class PeriodRangeSelector
     }
 
     /**
-     * @param list<int|string> $periodIds
+     * @param  list<int|string>  $periodIds
      * @return list<Period>
      */
     public function select(User $actor, int $companyId, array $periodIds): array
