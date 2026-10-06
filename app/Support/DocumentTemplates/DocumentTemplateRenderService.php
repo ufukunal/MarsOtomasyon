@@ -23,7 +23,10 @@ final class DocumentTemplateRenderService
         return $this->renderArray($definition, $data, $template->render_type);
     }
 
-    /** @param array<string|int, mixed> $value @return array<string|int, mixed> */
+    /**
+     * @param array<string|int,mixed> $value
+     * @return array<string|int,mixed>
+     */
     private function renderArray(array $value, FrozenDocumentRenderData $data, string $renderType): array
     {
         $result = [];

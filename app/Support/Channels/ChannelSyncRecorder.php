@@ -16,6 +16,7 @@ final class ChannelSyncRecorder
 {
     public function __construct(private readonly ChannelSensitiveDataRedactor $redactor) {}
 
+    /** @param array<string,mixed>|null $safeMetadata */
     public function queue(
         int $channelAccountId,
         string $direction,
