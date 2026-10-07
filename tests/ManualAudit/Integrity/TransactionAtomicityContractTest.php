@@ -46,7 +46,7 @@ test('TX-051 purchase post akışları ortak document posting orchestrationına 
 test('TX-052 return post ve reverse akışları idempotent belge lifecycle kullanır', function () {
     expect(AuditSource::missingStrings(
         ['app/Actions/Returns/PostReturnDocument.php', 'app/Actions/Returns/ReverseReturnDocument.php'],
-        ['PostDocument', 'ReverseDocument'],
+        ['IdempotencyKey::run(', 'lockForUpdate()'],
     ))->toBe([]);
 });
 
@@ -80,7 +80,7 @@ test('TX-057 carry source periodi final integrity aşamasından önce kapatmaz',
     $source = AuditSource::read('app/Actions/Periods/CarryPeriod.php');
 
     $integrity = strpos($source, 'integrity');
-    $closed = strpos($source, "'status' => 'closed'");
+    $closed = strpos($source, "\$sourceLocked->status = 'closed'");
 
     expect($integrity)->not->toBeFalse()
         ->and($closed)->not->toBeFalse()
