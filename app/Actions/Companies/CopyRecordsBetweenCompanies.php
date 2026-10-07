@@ -188,28 +188,24 @@ final class CopyRecordsBetweenCompanies
     private function copyContact(Contact $source, int $sourceCompanyId, string $code): Contact
     {
         $target = new Contact;
-
-        $target->forceFill([
-            'code' => $code,
-            'title' => $source->title,
-            'type' => $source->type->value,
-            'tax_office' => $source->tax_office,
-            'tax_number' => $source->tax_number,
-            'national_id' => $source->national_id,
-            'address' => $source->address,
-            'city' => $source->city,
-            'district' => $source->district,
-            'phone' => $source->phone,
-            'email' => $source->email,
-            'term_days' => $source->term_days,
-            'risk_limit' => $source->risk_limit,
-            'discount_rate' => $source->discount_rate,
-            'price_list_id' => null,
-            'source_company_id' => $sourceCompanyId,
-            'source_record_id' => $source->id,
-            'is_active' => $source->is_active,
-        ]);
-
+        $target->code = $code;
+        $target->title = $source->title;
+        $target->type = $source->type->value;
+        $target->tax_office = $source->tax_office;
+        $target->tax_number = $source->tax_number;
+        $target->national_id = $source->national_id;
+        $target->address = $source->address;
+        $target->city = $source->city;
+        $target->district = $source->district;
+        $target->phone = $source->phone;
+        $target->email = $source->email;
+        $target->term_days = $source->term_days;
+        $target->risk_limit = $source->risk_limit;
+        $target->discount_rate = $source->discount_rate;
+        $target->price_list_id = null;
+        $target->source_company_id = $sourceCompanyId;
+        $target->source_record_id = $source->id;
+        $target->is_active = $source->is_active;
         $target->save();
 
         return $target;
