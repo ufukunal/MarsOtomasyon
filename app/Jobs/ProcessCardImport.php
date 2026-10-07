@@ -88,7 +88,7 @@ class ProcessCardImport implements ShouldQueue
                     CardImportError::query()->insert($validationErrors);
                 }
 
-                if (($batch->type === 'opening_stock' || $batch->error_mode === 'cancel_all') && $errors !== []) {
+                if (($batch->type === 'opening_stock' || $batch->error_mode === 'cancel_all') && $validationErrors !== []) {
                     $batch->update([
                         'status' => 'failed',
                         'total_rows' => count($rows),
@@ -139,38 +139,38 @@ class ProcessCardImport implements ShouldQueue
 
                 try {
                     MutationAuthorizer::runAs($actor, function () use ($batch, $importer, $validRows): void {
-                    if ($batch->type === 'opening_stock') {
-                        if ($batch->error_mode !== 'cancel_all') {
-                            throw new \RuntimeException('Açılış stok importu yalnız tümünü iptal et modunda çalışır.');
+                        if ($batch->type === 'opening_stock') {
+                            if ($batch->error_mode !== 'cancel_all') {
+                                throw new \RuntimeException('Açılış stok importu yalnız tümünü iptal et modunda çalışır.');
+                            }
+
+                            $openingDate = $batch->opening_date?->toDateString();
+
+                            if (! $openingDate) {
+                                throw new \RuntimeException('Açılış tarihi bulunamadı.');
+                            }
+
+                            $rows = array_map(
+                                fn (array $item): array => $item[1],
+                                $validRows,
+                            );
+
+                            app(ImportOpeningStock::class)->handle(
+                                $rows,
+                                $openingDate,
+                                $batch->id,
+                                $batch->created_by,
+                                $batch->created_by_name,
+                            );
+
+                            return;
                         }
 
-                        $openingDate = $batch->opening_date?->toDateString();
-
-                        if (! $openingDate) {
-                            throw new \RuntimeException('Açılış tarihi bulunamadı.');
-                        }
-
-                        $rows = array_map(
-                            fn (array $item): array => $item[1],
-                            $validRows,
-                        );
-
-                        app(ImportOpeningStock::class)->handle(
-                            $rows,
-                            $openingDate,
-                            $batch->id,
-                            $batch->created_by,
-                            $batch->created_by_name,
-                        );
-
-                        return;
-                    }
-
-                    DB::connection('period')->transaction(function () use ($importer, $validRows): void {
-                        foreach ($validRows as [, $row]) {
-                            $importer->import($row);
-                        }
-                    });
+                        DB::connection('period')->transaction(function () use ($importer, $validRows): void {
+                            foreach ($validRows as [, $row]) {
+                                $importer->import($row);
+                            }
+                        });
                     });
                 } finally {
                     PeriodPermissionContext::clear();
