@@ -9,7 +9,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: quality-local-v7
+  group: quality-local-v8
   cancel-in-progress: true
 
 env:
@@ -47,183 +47,7 @@ jobs:
           for candidate in php8.5 php8.4 php; do
             if command -v "$candidate" >/dev/null 2>&1; then
               echo "--- $candidate ---"
-              "$candidate" -m 2>/dev/null | grep -Ei '^(pcov|xdebug)
-  foundation:
-    needs: prepare-host
-    name: "R1 - Unit + Foundation Feature"
-    runs-on: [self-hosted, Linux, mars-ubuntu, mars-r1]
-    env:
-      DB_MASTER_DATABASE: MarsProject_Master_Test_R1
-      MARS_PG_PORT: "55431"
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Select stable PHP
-        shell: bash
-        run: bash scripts/ci/select-php.sh
-
-      - name: Composer install
-        run: composer install --no-interaction --prefer-dist --no-progress
-
-      - name: Prepare environment
-        run: cp .env.example .env
-
-      - name: Unit tests
-        run: vendor/bin/pest tests/Unit --display-warnings
-
-      - name: Start isolated PostgreSQL
-        shell: bash
-        run: bash scripts/ci/postgres.sh start 55431 "$DB_MASTER_DATABASE"
-
-      - name: Foundation feature tests
-        run: |
-          vendor/bin/pest \
-            tests/Feature/Attachments \
-            tests/Feature/Companies \
-            tests/Feature/Concurrency \
-            tests/Feature/Contacts \
-            tests/Feature/Contracts \
-            tests/Feature/Import \
-            tests/Feature/Locations \
-            tests/Feature/Period \
-            tests/Feature/Pricing \
-            --display-warnings
-
-      - name: Stop isolated PostgreSQL
-        if: always()
-        shell: bash
-        run: bash scripts/ci/postgres.sh stop 55431
-
-  domain:
-    needs: prepare-host
-    name: "R2 - Domain Feature"
-    runs-on: [self-hosted, Linux, mars-ubuntu, mars-r2]
-    env:
-      DB_MASTER_DATABASE: MarsProject_Master_Test_R2
-      MARS_PG_PORT: "55432"
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Select stable PHP
-        shell: bash
-        run: bash scripts/ci/select-php.sh
-
-      - name: Composer install
-        run: composer install --no-interaction --prefer-dist --no-progress
-
-      - name: Prepare environment
-        run: cp .env.example .env
-
-      - name: Start isolated PostgreSQL
-        shell: bash
-        run: bash scripts/ci/postgres.sh start 55432 "$DB_MASTER_DATABASE"
-
-      - name: Domain feature tests
-        run: |
-          vendor/bin/pest \
-            tests/Feature/Channels \
-            tests/Feature/Printing \
-            tests/Feature/Products \
-            tests/Feature/Sales \
-            tests/Feature/Security \
-            tests/Feature/Stock \
-            tests/Feature/Units \
-            --display-warnings
-
-      - name: Stop isolated PostgreSQL
-        if: always()
-        shell: bash
-        run: bash scripts/ci/postgres.sh stop 55432
-
-  manual-audit:
-    needs: prepare-host
-    name: "R3 - ManualAudit 273"
-    runs-on: [self-hosted, Linux, mars-ubuntu, mars-r3]
-    env:
-      DB_MASTER_DATABASE: MarsProject_Master_Test_R3
-      MARS_PG_PORT: "55433"
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Select stable PHP
-        shell: bash
-        run: bash scripts/ci/select-php.sh
-
-      - name: Composer install
-        run: composer install --no-interaction --prefer-dist --no-progress
-
-      - name: Prepare environment
-        run: cp .env.example .env
-
-      - name: Start isolated PostgreSQL
-        shell: bash
-        run: bash scripts/ci/postgres.sh start 55433 "$DB_MASTER_DATABASE"
-
-      - name: Manual integrity quality security suite
-        run: vendor/bin/pest tests/ManualAudit --display-warnings
-
-      - name: Stop isolated PostgreSQL
-        if: always()
-        shell: bash
-        run: bash scripts/ci/postgres.sh stop 55433
-
-  quality:
-    needs: prepare-host
-    name: "R4 - Pint + Larastan + Build + Stock Tests"
-    runs-on: [self-hosted, Linux, mars-ubuntu, mars-r4]
-    env:
-      DB_MASTER_DATABASE: MarsProject_Master_Test_R4
-      MARS_PG_PORT: "55434"
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Select stable PHP
-        shell: bash
-        run: bash scripts/ci/select-php.sh
-
-      - name: Composer install
-        run: composer install --no-interaction --prefer-dist --no-progress
-
-      - name: Prepare environment
-        run: cp .env.example .env
-
-      - name: Verify Node toolchain
-        shell: bash
-        run: |
-          node --version
-          npm --version
-
-      - name: Node install
-        run: npm ci --ignore-scripts --no-audit --no-fund
-
-      - name: Frontend build
-        run: npm run build
-
-      - name: Pint
-        run: vendor/bin/pint --test
-
-      - name: Larastan
-        run: vendor/bin/phpstan analyse --no-progress
-
-      - name: Start isolated PostgreSQL
-        shell: bash
-        run: bash scripts/ci/postgres.sh start 55434 "$DB_MASTER_DATABASE"
-
-      - name: Phase 2 stock tests
-        shell: bash
-        run: |
-          if php -m | grep -Eqi "^(pcov|xdebug)$"; then
-            vendor/bin/pest -c phpunit.stock.xml --coverage --min=90
-          else
-            echo "Coverage driver unavailable; running the complete stock suite without coverage gate."
-            vendor/bin/pest -c phpunit.stock.xml
-          fi
-
-      - name: Stop isolated PostgreSQL
-        if: always()
-        shell: bash
-        run: bash scripts/ci/postgres.sh stop 55434
- || true
+              "$candidate" -m 2>/dev/null | grep -E '^(pcov|xdebug)$' || true
             fi
           done
           command -v phpize8.5 || command -v phpize8.4 || command -v phpize || true
@@ -396,7 +220,7 @@ jobs:
       - name: Phase 2 stock tests
         shell: bash
         run: |
-          if php -m | grep -Eqi "^(pcov|xdebug)$"; then
+          if php -m | grep -Eqi '^(pcov|xdebug)$'; then
             vendor/bin/pest -c phpunit.stock.xml --coverage --min=90
           else
             echo "Coverage driver unavailable; running the complete stock suite without coverage gate."
