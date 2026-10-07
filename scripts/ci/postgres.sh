@@ -111,9 +111,16 @@ case "$COMMAND" in
 
         "$PG_BINDIR/pg_ctl" -D "$PGDATA" -l "$PGDATA/postgres.log" start >/dev/null
 
+        PG_ISREADY="$(command -v pg_isready || true)"
+        CREATEDB="$(command -v createdb || true)"
+        [[ -n "$PG_ISREADY" && -n "$CREATEDB" ]] || {
+            echo "PostgreSQL client tools are unavailable." >&2
+            exit 1
+        }
+
         READY=0
         for _ in $(seq 1 30); do
-            if "$PG_BINDIR/pg_isready" -h 127.0.0.1 -p "$PORT" -U postgres >/dev/null 2>&1; then
+            if "$PG_ISREADY" -h 127.0.0.1 -p "$PORT" -U postgres >/dev/null 2>&1; then
                 READY=1
                 break
             fi
@@ -125,7 +132,7 @@ case "$COMMAND" in
             exit 1
         fi
 
-        "$PG_BINDIR/createdb" -h 127.0.0.1 -p "$PORT" -U postgres "$DATABASE"
+        "$CREATEDB" -h 127.0.0.1 -p "$PORT" -U postgres "$DATABASE"
 
         {
             echo "DB_HOST=127.0.0.1"
