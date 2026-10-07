@@ -31,7 +31,6 @@ class SalesChannelAccount extends MasterModel
         'credentials_encrypted',
         'settings',
         'is_active',
-        'version',
     ];
 
     protected $hidden = [
