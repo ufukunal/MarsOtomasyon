@@ -2,26 +2,94 @@
 set -Eeuo pipefail
 
 COMMAND="${1:-}"
-PORT="${2:-}"
+PORT="${2:-0}"
 DATABASE="${3:-}"
 
-if [[ -z "$COMMAND" || -z "$PORT" ]]; then
-    echo "usage: postgres.sh <start|stop> <port> [database]" >&2
-    exit 2
-fi
+PG_VERSION="16.15.0"
+CACHE_BASE="${HOME:?HOME is required}/.cache/mars-postgres"
+CACHE_DIR="$CACHE_BASE/$PG_VERSION-$(uname -m)"
 
-PG_BINDIR="$(find /usr/lib/postgresql -maxdepth 2 -type f -name initdb -printf '%h\n' 2>/dev/null | sort -V | tail -1)"
-if [[ -z "$PG_BINDIR" || ! -x "$PG_BINDIR/initdb" || ! -x "$PG_BINDIR/pg_ctl" ]]; then
-    echo "PostgreSQL server binaries are not installed." >&2
-    exit 1
-fi
+portable_metadata() {
+    case "$(uname -m)" in
+        x86_64)
+            echo "embedded-postgres-binaries-linux-amd64|postgres-linux-x86_64.txz"
+            ;;
+        aarch64|arm64)
+            echo "embedded-postgres-binaries-linux-arm64v8|postgres-linux-arm_64.txz"
+            ;;
+        *)
+            echo "Unsupported runner architecture: $(uname -m)" >&2
+            return 1
+            ;;
+    esac
+}
 
+ensure_portable() {
+    if [[ -x "$CACHE_DIR/bin/initdb" && -x "$CACHE_DIR/bin/pg_ctl" ]]; then
+        return
+    fi
+
+    mkdir -p "$CACHE_BASE"
+
+    META="$(portable_metadata)"
+    ARTIFACT="${META%%|*}"
+    ARCHIVE="${META#*|}"
+    JAR="$CACHE_BASE/$ARTIFACT-$PG_VERSION.jar"
+    URL="https://repo1.maven.org/maven2/io/zonky/test/postgres/$ARTIFACT/$PG_VERSION/$ARTIFACT-$PG_VERSION.jar"
+
+    LOCK="$CACHE_DIR.lock"
+    if mkdir "$LOCK" 2>/dev/null; then
+        trap 'rm -rf "$LOCK"' RETURN
+        rm -rf "$CACHE_DIR"
+        mkdir -p "$CACHE_DIR"
+
+        if [[ ! -s "$JAR" ]]; then
+            curl --fail --location --retry 3 --silent --show-error "$URL" -o "$JAR"
+        fi
+
+        unzip -p "$JAR" "$ARCHIVE" | tar -xJ -C "$CACHE_DIR"
+        chmod -R u+rwX "$CACHE_DIR"
+
+        [[ -x "$CACHE_DIR/bin/initdb" ]] || {
+            echo "Portable PostgreSQL bundle did not contain bin/initdb." >&2
+            exit 1
+        }
+    else
+        for _ in $(seq 1 120); do
+            if [[ -x "$CACHE_DIR/bin/initdb" ]]; then
+                return
+            fi
+            sleep 1
+        done
+
+        echo "Timed out waiting for portable PostgreSQL cache." >&2
+        exit 1
+    fi
+}
+
+resolve_bindir() {
+    SYSTEM_BINDIR="$(find /usr/lib/postgresql -maxdepth 2 -type f -name initdb -printf '%h\n' 2>/dev/null | sort -V | tail -1)"
+    if [[ -n "$SYSTEM_BINDIR" && -x "$SYSTEM_BINDIR/initdb" && -x "$SYSTEM_BINDIR/pg_ctl" ]]; then
+        echo "$SYSTEM_BINDIR"
+        return
+    fi
+
+    ensure_portable
+    echo "$CACHE_DIR/bin"
+}
+
+PG_BINDIR="$(resolve_bindir)"
 PGDATA="${RUNNER_TEMP:?RUNNER_TEMP is required}/mars-postgres-$PORT"
 
 case "$COMMAND" in
+    ensure)
+        "$PG_BINDIR/initdb" --version
+        "$PG_BINDIR/postgres" --version
+        ;;
+
     start)
-        if [[ -z "$DATABASE" ]]; then
-            echo "database name is required for start" >&2
+        if [[ -z "$DATABASE" || "$PORT" == "0" ]]; then
+            echo "usage: postgres.sh start <port> <database>" >&2
             exit 2
         fi
 
@@ -70,6 +138,11 @@ case "$COMMAND" in
         ;;
 
     stop)
+        if [[ "$PORT" == "0" ]]; then
+            echo "usage: postgres.sh stop <port>" >&2
+            exit 2
+        fi
+
         if [[ -d "$PGDATA" ]]; then
             "$PG_BINDIR/pg_ctl" -D "$PGDATA" -m fast stop >/dev/null 2>&1 || true
             rm -rf "$PGDATA"
@@ -77,7 +150,7 @@ case "$COMMAND" in
         ;;
 
     *)
-        echo "unknown command: $COMMAND" >&2
+        echo "usage: postgres.sh <ensure|start|stop> [port] [database]" >&2
         exit 2
         ;;
 esac
