@@ -6,6 +6,7 @@ use App\Jobs\RunRecoverySetBackupJob;
 use App\Jobs\VerifyRecoverySetBackupJob;
 use App\Models\BackupRun;
 use App\Models\Company;
+use App\Support\Company\CompanyContext;
 use App\Models\DeploymentRun;
 use App\Models\HealthCheckRun;
 use App\Models\RestoreRun;
@@ -94,6 +95,21 @@ final class OperationsCenter extends Component
             ->all();
 
         abort_unless(array_diff($companyIds, $accessible) === [], 403);
+
+        $previousCompanyId = CompanyContext::id();
+
+        try {
+            foreach ($companyIds as $companyId) {
+                CompanyContext::use($companyId);
+                Gate::forUser($user)->authorize('companies.update');
+            }
+        } finally {
+            if ($previousCompanyId !== null) {
+                CompanyContext::use($previousCompanyId);
+            } else {
+                CompanyContext::clear();
+            }
+        }
     }
 
 }
