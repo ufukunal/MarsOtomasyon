@@ -101,7 +101,7 @@ test('SEC-147 Blade raw echo yalnız güvenli renderer çıktısında kullanıla
 
     expect(array_keys($offenders))->toBe(['resources/views/printing/label.blade.php']);
     expect(AuditSource::read('app/Support/DocumentTemplates/SafeTemplateRenderer.php'))
-        ->toContain("? e(\$text)")
+        ->toContain('? e($text)')
         ->toContain("'html_pdf' => e(\$value)");
 });
 
