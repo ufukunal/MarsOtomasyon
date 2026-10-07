@@ -24,7 +24,34 @@ env:
   XDEBUG_MODE: coverage
 
 jobs:
+  prepare-host:
+    name: "Prepare local Ubuntu host"
+    runs-on: [self-hosted, Linux, mars-ubuntu, mars-r1]
+    steps:
+      - name: Prepare PostgreSQL CI role
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          sudo -n -u postgres true
+          if ! sudo -n -u postgres psql -d postgres -tAc "SELECT 1 FROM pg_roles WHERE rolname='github-runner'" | grep -qx 1; then
+            sudo -n -u postgres createuser --login --createdb github-runner
+          else
+            sudo -n -u postgres psql -d postgres -v ON_ERROR_STOP=1 -c 'ALTER ROLE "github-runner" WITH LOGIN CREATEDB;'
+          fi
+          psql -h /var/run/postgresql -U github-runner -d postgres -tAc 'SELECT current_user;'
+
+      - name: Host toolchain summary
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          php8.5 -v 2>/dev/null || php8.4 -v 2>/dev/null || php -v
+          composer --version
+          node --version
+          npm --version
+          psql --version
+
   foundation:
+    needs: prepare-host
     name: "R1 - Unit + Foundation Feature"
     runs-on: [self-hosted, Linux, mars-ubuntu, mars-r1]
     env:
@@ -62,52 +89,20 @@ jobs:
       - name: Unit tests
         run: vendor/bin/pest tests/Unit --display-warnings
 
-      - name: Start isolated PostgreSQL
+      - name: Reset test database
         shell: bash
         run: |
           set -Eeuo pipefail
-          PG_BINDIR="$(pg_config --bindir 2>/dev/null || true)"
-          if [[ -z "$PG_BINDIR" || ! -x "$PG_BINDIR/initdb" ]]; then
-            PG_BINDIR="$(find /usr/lib/postgresql -maxdepth 2 -type f -name initdb -printf '%h\n' 2>/dev/null | sort -V | tail -1)"
-          fi
-          [[ -n "$PG_BINDIR" && -x "$PG_BINDIR/initdb" && -x "$PG_BINDIR/pg_ctl" ]] || {
-            echo "PostgreSQL server binaries (initdb/pg_ctl) not found." >&2
-            exit 1
-          }
-          PGDATA="$RUNNER_TEMP/mars-pg-r1"
-          rm -rf "$PGDATA"
-          "$PG_BINDIR/initdb" -D "$PGDATA" -U postgres --auth=trust --no-locale >/dev/null
-          {
-            echo "listen_addresses = '127.0.0.1'"
-            echo "port = $MARS_PG_PORT"
-            echo "unix_socket_directories = '$RUNNER_TEMP'"
-          } >> "$PGDATA/postgresql.conf"
-          "$PG_BINDIR/pg_ctl" -D "$PGDATA" -l "$PGDATA/postgres.log" start
-          for i in $(seq 1 30); do
-            "$PG_BINDIR/pg_isready" -h 127.0.0.1 -p "$MARS_PG_PORT" -U postgres >/dev/null 2>&1 && break
-            sleep 1
-          done
-          "$PG_BINDIR/pg_isready" -h 127.0.0.1 -p "$MARS_PG_PORT" -U postgres
-          "$PG_BINDIR/createdb" -h 127.0.0.1 -p "$MARS_PG_PORT" -U postgres "$DB_MASTER_DATABASE"
-          echo "DB_PORT=$MARS_PG_PORT" >> "$GITHUB_ENV"
-          echo "DB_USERNAME=postgres" >> "$GITHUB_ENV"
-          echo "DB_PASSWORD=" >> "$GITHUB_ENV"
-          echo "MARS_PG_BINDIR=$PG_BINDIR" >> "$GITHUB_ENV"
-          echo "MARS_PGDATA=$PGDATA" >> "$GITHUB_ENV"
+          dropdb --if-exists -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USERNAME" "$DB_MASTER_DATABASE"
+          createdb -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USERNAME" "$DB_MASTER_DATABASE"
 
       - name: Foundation feature tests
         run: |
           vendor/bin/pest             tests/Feature/Attachments             tests/Feature/Companies             tests/Feature/Concurrency             tests/Feature/Contacts             tests/Feature/Contracts             tests/Feature/Import             tests/Feature/Locations             tests/Feature/Period             tests/Feature/Pricing             --display-warnings
 
-      - name: Cleanup PostgreSQL
-        if: always()
-        shell: bash
-        run: |
-          if [[ -n "${MARS_PG_BINDIR:-}" && -x "${MARS_PG_BINDIR}/pg_ctl" && -n "${MARS_PGDATA:-}" ]]; then
-            "${MARS_PG_BINDIR}/pg_ctl" -D "${MARS_PGDATA}" -m fast stop >/dev/null 2>&1 || true
-          fi
 
   domain:
+    needs: prepare-host
     name: "R2 - Domain Feature"
     runs-on: [self-hosted, Linux, mars-ubuntu, mars-r2]
     env:
@@ -142,52 +137,20 @@ jobs:
       - name: Prepare environment
         run: cp .env.example .env
 
-      - name: Start isolated PostgreSQL
+      - name: Reset test database
         shell: bash
         run: |
           set -Eeuo pipefail
-          PG_BINDIR="$(pg_config --bindir 2>/dev/null || true)"
-          if [[ -z "$PG_BINDIR" || ! -x "$PG_BINDIR/initdb" ]]; then
-            PG_BINDIR="$(find /usr/lib/postgresql -maxdepth 2 -type f -name initdb -printf '%h\n' 2>/dev/null | sort -V | tail -1)"
-          fi
-          [[ -n "$PG_BINDIR" && -x "$PG_BINDIR/initdb" && -x "$PG_BINDIR/pg_ctl" ]] || {
-            echo "PostgreSQL server binaries (initdb/pg_ctl) not found." >&2
-            exit 1
-          }
-          PGDATA="$RUNNER_TEMP/mars-pg-r2"
-          rm -rf "$PGDATA"
-          "$PG_BINDIR/initdb" -D "$PGDATA" -U postgres --auth=trust --no-locale >/dev/null
-          {
-            echo "listen_addresses = '127.0.0.1'"
-            echo "port = $MARS_PG_PORT"
-            echo "unix_socket_directories = '$RUNNER_TEMP'"
-          } >> "$PGDATA/postgresql.conf"
-          "$PG_BINDIR/pg_ctl" -D "$PGDATA" -l "$PGDATA/postgres.log" start
-          for i in $(seq 1 30); do
-            "$PG_BINDIR/pg_isready" -h 127.0.0.1 -p "$MARS_PG_PORT" -U postgres >/dev/null 2>&1 && break
-            sleep 1
-          done
-          "$PG_BINDIR/pg_isready" -h 127.0.0.1 -p "$MARS_PG_PORT" -U postgres
-          "$PG_BINDIR/createdb" -h 127.0.0.1 -p "$MARS_PG_PORT" -U postgres "$DB_MASTER_DATABASE"
-          echo "DB_PORT=$MARS_PG_PORT" >> "$GITHUB_ENV"
-          echo "DB_USERNAME=postgres" >> "$GITHUB_ENV"
-          echo "DB_PASSWORD=" >> "$GITHUB_ENV"
-          echo "MARS_PG_BINDIR=$PG_BINDIR" >> "$GITHUB_ENV"
-          echo "MARS_PGDATA=$PGDATA" >> "$GITHUB_ENV"
+          dropdb --if-exists -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USERNAME" "$DB_MASTER_DATABASE"
+          createdb -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USERNAME" "$DB_MASTER_DATABASE"
 
       - name: Domain feature tests
         run: |
           vendor/bin/pest             tests/Feature/Channels             tests/Feature/Printing             tests/Feature/Products             tests/Feature/Sales             tests/Feature/Security             tests/Feature/Stock             tests/Feature/Units             --display-warnings
 
-      - name: Cleanup PostgreSQL
-        if: always()
-        shell: bash
-        run: |
-          if [[ -n "${MARS_PG_BINDIR:-}" && -x "${MARS_PG_BINDIR}/pg_ctl" && -n "${MARS_PGDATA:-}" ]]; then
-            "${MARS_PG_BINDIR}/pg_ctl" -D "${MARS_PGDATA}" -m fast stop >/dev/null 2>&1 || true
-          fi
 
   manual-audit:
+    needs: prepare-host
     name: "R3 - ManualAudit 273"
     runs-on: [self-hosted, Linux, mars-ubuntu, mars-r3]
     steps:
@@ -219,10 +182,18 @@ jobs:
       - name: Prepare environment
         run: cp .env.example .env
 
+      - name: Reset test database
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          dropdb --if-exists -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USERNAME" "$DB_MASTER_DATABASE"
+          createdb -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USERNAME" "$DB_MASTER_DATABASE"
+
       - name: Manual integrity quality security suite
         run: vendor/bin/pest tests/ManualAudit --display-warnings
 
   quality:
+    needs: prepare-host
     name: "R4 - Pint + Larastan + Build + Stock Tests"
     runs-on: [self-hosted, Linux, mars-ubuntu, mars-r4]
     env:
@@ -265,44 +236,28 @@ jobs:
       - name: Frontend build
         run: npm run build
 
-      - name: Pint
-        run: vendor/bin/pint --test
+      - name: Pint diff
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          vendor/bin/pint
+          if ! git diff --quiet; then
+            echo "=== PINT PATCH START ==="
+            git diff --no-color
+            echo "=== PINT PATCH END ==="
+            exit 1
+          fi
 
       - name: Larastan
         run: vendor/bin/phpstan analyse --no-progress
 
-      - name: Start isolated PostgreSQL
+      - name: Reset test database
         shell: bash
         run: |
           set -Eeuo pipefail
-          PG_BINDIR="$(pg_config --bindir 2>/dev/null || true)"
-          if [[ -z "$PG_BINDIR" || ! -x "$PG_BINDIR/initdb" ]]; then
-            PG_BINDIR="$(find /usr/lib/postgresql -maxdepth 2 -type f -name initdb -printf '%h\n' 2>/dev/null | sort -V | tail -1)"
-          fi
-          [[ -n "$PG_BINDIR" && -x "$PG_BINDIR/initdb" && -x "$PG_BINDIR/pg_ctl" ]] || {
-            echo "PostgreSQL server binaries (initdb/pg_ctl) not found." >&2
-            exit 1
-          }
-          PGDATA="$RUNNER_TEMP/mars-pg-r4"
-          rm -rf "$PGDATA"
-          "$PG_BINDIR/initdb" -D "$PGDATA" -U postgres --auth=trust --no-locale >/dev/null
-          {
-            echo "listen_addresses = '127.0.0.1'"
-            echo "port = $MARS_PG_PORT"
-            echo "unix_socket_directories = '$RUNNER_TEMP'"
-          } >> "$PGDATA/postgresql.conf"
-          "$PG_BINDIR/pg_ctl" -D "$PGDATA" -l "$PGDATA/postgres.log" start
-          for i in $(seq 1 30); do
-            "$PG_BINDIR/pg_isready" -h 127.0.0.1 -p "$MARS_PG_PORT" -U postgres >/dev/null 2>&1 && break
-            sleep 1
-          done
-          "$PG_BINDIR/pg_isready" -h 127.0.0.1 -p "$MARS_PG_PORT" -U postgres
-          "$PG_BINDIR/createdb" -h 127.0.0.1 -p "$MARS_PG_PORT" -U postgres "$DB_MASTER_DATABASE"
-          echo "DB_PORT=$MARS_PG_PORT" >> "$GITHUB_ENV"
-          echo "DB_USERNAME=postgres" >> "$GITHUB_ENV"
-          echo "DB_PASSWORD=" >> "$GITHUB_ENV"
-          echo "MARS_PG_BINDIR=$PG_BINDIR" >> "$GITHUB_ENV"
-          echo "MARS_PGDATA=$PGDATA" >> "$GITHUB_ENV"
+          dropdb --if-exists -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USERNAME" "$DB_MASTER_DATABASE"
+          createdb -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USERNAME" "$DB_MASTER_DATABASE"
 
       - name: Phase 2 stock tests
         shell: bash
@@ -314,10 +269,4 @@ jobs:
             vendor/bin/pest -c phpunit.stock.xml
           fi
 
-      - name: Cleanup PostgreSQL
-        if: always()
-        shell: bash
-        run: |
-          if [[ -n "${MARS_PG_BINDIR:-}" && -x "${MARS_PG_BINDIR}/pg_ctl" && -n "${MARS_PGDATA:-}" ]]; then
-            "${MARS_PG_BINDIR}/pg_ctl" -D "${MARS_PGDATA}" -m fast stop >/dev/null 2>&1 || true
-          fi
+
