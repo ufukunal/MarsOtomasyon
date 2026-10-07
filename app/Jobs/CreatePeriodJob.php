@@ -7,6 +7,7 @@ use App\Models\Company;
 use App\Models\User;
 use App\Support\Auth\PeriodPermissionContext;
 use App\Support\Company\CompanyContext;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -58,7 +59,7 @@ class CreatePeriodJob implements ShouldBeUnique, ShouldQueue
                 ->exists();
 
             if (! $hasAccess) {
-                throw new \Illuminate\Auth\Access\AuthorizationException(
+                throw new AuthorizationException(
                     'Dönem oluşturma actor kullanıcısının hedef şirkete erişimi yok.',
                 );
             }
