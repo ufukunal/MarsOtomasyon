@@ -10,7 +10,7 @@ permissions:
 
 concurrency:
   group: quality-main
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 env:
   APP_ENV: testing
@@ -33,15 +33,19 @@ jobs:
       MARS_PG_CONTAINER: mars-pg-${{ github.run_id }}-r1
       MARS_PG_PORT: "55431"
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: PHP 8.4
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: "8.4"
-          extensions: bcmath, pdo_pgsql, mbstring, intl, fileinfo, pcntl
-          coverage: none
+      - name: Verify runner toolchain
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          command -v php
+          command -v composer
+          php -r 'exit(version_compare(PHP_VERSION, "8.4.0", ">=") ? 0 : 1);'
+          php -m | grep -qi '^bcmath$'
+          php -m | grep -qi '^pdo_pgsql$'
+          php -v
+          composer --version
 
       - name: Composer install
         run: composer install --no-interaction --prefer-dist --no-progress
@@ -55,31 +59,25 @@ jobs:
           set -Eeuo pipefail
           if command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1; then
             docker rm -f "$MARS_PG_CONTAINER" >/dev/null 2>&1 || true
-            docker run -d --name "$MARS_PG_CONTAINER"               -e POSTGRES_USER=postgres               -e POSTGRES_PASSWORD=postgres               -e POSTGRES_DB=postgres               -p "127.0.0.1:${MARS_PG_PORT}:5432"               postgres:16 >/dev/null
+            docker run -d --name "$MARS_PG_CONTAINER" -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=postgres -p "127.0.0.1:${MARS_PG_PORT}:5432" postgres:16 >/dev/null
             echo "DB_PORT=$MARS_PG_PORT" >> "$GITHUB_ENV"
             echo "DB_USERNAME=postgres" >> "$GITHUB_ENV"
             echo "DB_PASSWORD=postgres" >> "$GITHUB_ENV"
             for i in $(seq 1 60); do
-              if docker exec "$MARS_PG_CONTAINER" pg_isready -U postgres >/dev/null 2>&1; then
-                exit 0
-              fi
+              docker exec "$MARS_PG_CONTAINER" pg_isready -U postgres >/dev/null 2>&1 && exit 0
               sleep 1
             done
-            echo "PostgreSQL container did not become ready." >&2
             docker logs "$MARS_PG_CONTAINER" || true
             exit 1
           fi
 
-          echo "Docker unavailable; trying host PostgreSQL."
+          command -v pg_isready
+          command -v dropdb
+          command -v createdb
           echo "DB_PORT=5432" >> "$GITHUB_ENV"
-          if PGPASSWORD="$DB_PASSWORD" pg_isready -h "$DB_HOST" -p 5432 -U "$DB_USERNAME" >/dev/null 2>&1; then
-            PGPASSWORD="$DB_PASSWORD" dropdb --if-exists -h "$DB_HOST" -p 5432 -U "$DB_USERNAME" "$DB_MASTER_DATABASE"
-            PGPASSWORD="$DB_PASSWORD" createdb -h "$DB_HOST" -p 5432 -U "$DB_USERNAME" "$DB_MASTER_DATABASE"
-            exit 0
-          fi
-
-          echo "No usable Docker or PostgreSQL service is available to the runner." >&2
-          exit 1
+          PGPASSWORD="$DB_PASSWORD" pg_isready -h "$DB_HOST" -p 5432 -U "$DB_USERNAME"
+          PGPASSWORD="$DB_PASSWORD" dropdb --if-exists -h "$DB_HOST" -p 5432 -U "$DB_USERNAME" "$DB_MASTER_DATABASE"
+          PGPASSWORD="$DB_PASSWORD" createdb -h "$DB_HOST" -p 5432 -U "$DB_USERNAME" "$DB_MASTER_DATABASE"
 
       - name: Unit tests
         run: vendor/bin/pest tests/Unit --display-warnings
@@ -104,15 +102,19 @@ jobs:
       MARS_PG_CONTAINER: mars-pg-${{ github.run_id }}-r2
       MARS_PG_PORT: "55432"
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: PHP 8.4
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: "8.4"
-          extensions: bcmath, pdo_pgsql, mbstring, intl, fileinfo, pcntl
-          coverage: none
+      - name: Verify runner toolchain
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          command -v php
+          command -v composer
+          php -r 'exit(version_compare(PHP_VERSION, "8.4.0", ">=") ? 0 : 1);'
+          php -m | grep -qi '^bcmath$'
+          php -m | grep -qi '^pdo_pgsql$'
+          php -v
+          composer --version
 
       - name: Composer install
         run: composer install --no-interaction --prefer-dist --no-progress
@@ -126,31 +128,25 @@ jobs:
           set -Eeuo pipefail
           if command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1; then
             docker rm -f "$MARS_PG_CONTAINER" >/dev/null 2>&1 || true
-            docker run -d --name "$MARS_PG_CONTAINER"               -e POSTGRES_USER=postgres               -e POSTGRES_PASSWORD=postgres               -e POSTGRES_DB=postgres               -p "127.0.0.1:${MARS_PG_PORT}:5432"               postgres:16 >/dev/null
+            docker run -d --name "$MARS_PG_CONTAINER" -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=postgres -p "127.0.0.1:${MARS_PG_PORT}:5432" postgres:16 >/dev/null
             echo "DB_PORT=$MARS_PG_PORT" >> "$GITHUB_ENV"
             echo "DB_USERNAME=postgres" >> "$GITHUB_ENV"
             echo "DB_PASSWORD=postgres" >> "$GITHUB_ENV"
             for i in $(seq 1 60); do
-              if docker exec "$MARS_PG_CONTAINER" pg_isready -U postgres >/dev/null 2>&1; then
-                exit 0
-              fi
+              docker exec "$MARS_PG_CONTAINER" pg_isready -U postgres >/dev/null 2>&1 && exit 0
               sleep 1
             done
-            echo "PostgreSQL container did not become ready." >&2
             docker logs "$MARS_PG_CONTAINER" || true
             exit 1
           fi
 
-          echo "Docker unavailable; trying host PostgreSQL."
+          command -v pg_isready
+          command -v dropdb
+          command -v createdb
           echo "DB_PORT=5432" >> "$GITHUB_ENV"
-          if PGPASSWORD="$DB_PASSWORD" pg_isready -h "$DB_HOST" -p 5432 -U "$DB_USERNAME" >/dev/null 2>&1; then
-            PGPASSWORD="$DB_PASSWORD" dropdb --if-exists -h "$DB_HOST" -p 5432 -U "$DB_USERNAME" "$DB_MASTER_DATABASE"
-            PGPASSWORD="$DB_PASSWORD" createdb -h "$DB_HOST" -p 5432 -U "$DB_USERNAME" "$DB_MASTER_DATABASE"
-            exit 0
-          fi
-
-          echo "No usable Docker or PostgreSQL service is available to the runner." >&2
-          exit 1
+          PGPASSWORD="$DB_PASSWORD" pg_isready -h "$DB_HOST" -p 5432 -U "$DB_USERNAME"
+          PGPASSWORD="$DB_PASSWORD" dropdb --if-exists -h "$DB_HOST" -p 5432 -U "$DB_USERNAME" "$DB_MASTER_DATABASE"
+          PGPASSWORD="$DB_PASSWORD" createdb -h "$DB_HOST" -p 5432 -U "$DB_USERNAME" "$DB_MASTER_DATABASE"
 
       - name: Domain feature tests
         run: |
@@ -172,15 +168,19 @@ jobs:
       MARS_PG_CONTAINER: mars-pg-${{ github.run_id }}-r3
       MARS_PG_PORT: "55433"
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: PHP 8.4
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: "8.4"
-          extensions: bcmath, pdo_pgsql, mbstring, intl, fileinfo, pcntl
-          coverage: none
+      - name: Verify runner toolchain
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          command -v php
+          command -v composer
+          php -r 'exit(version_compare(PHP_VERSION, "8.4.0", ">=") ? 0 : 1);'
+          php -m | grep -qi '^bcmath$'
+          php -m | grep -qi '^pdo_pgsql$'
+          php -v
+          composer --version
 
       - name: Composer install
         run: composer install --no-interaction --prefer-dist --no-progress
@@ -194,31 +194,25 @@ jobs:
           set -Eeuo pipefail
           if command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1; then
             docker rm -f "$MARS_PG_CONTAINER" >/dev/null 2>&1 || true
-            docker run -d --name "$MARS_PG_CONTAINER"               -e POSTGRES_USER=postgres               -e POSTGRES_PASSWORD=postgres               -e POSTGRES_DB=postgres               -p "127.0.0.1:${MARS_PG_PORT}:5432"               postgres:16 >/dev/null
+            docker run -d --name "$MARS_PG_CONTAINER" -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=postgres -p "127.0.0.1:${MARS_PG_PORT}:5432" postgres:16 >/dev/null
             echo "DB_PORT=$MARS_PG_PORT" >> "$GITHUB_ENV"
             echo "DB_USERNAME=postgres" >> "$GITHUB_ENV"
             echo "DB_PASSWORD=postgres" >> "$GITHUB_ENV"
             for i in $(seq 1 60); do
-              if docker exec "$MARS_PG_CONTAINER" pg_isready -U postgres >/dev/null 2>&1; then
-                exit 0
-              fi
+              docker exec "$MARS_PG_CONTAINER" pg_isready -U postgres >/dev/null 2>&1 && exit 0
               sleep 1
             done
-            echo "PostgreSQL container did not become ready." >&2
             docker logs "$MARS_PG_CONTAINER" || true
             exit 1
           fi
 
-          echo "Docker unavailable; trying host PostgreSQL."
+          command -v pg_isready
+          command -v dropdb
+          command -v createdb
           echo "DB_PORT=5432" >> "$GITHUB_ENV"
-          if PGPASSWORD="$DB_PASSWORD" pg_isready -h "$DB_HOST" -p 5432 -U "$DB_USERNAME" >/dev/null 2>&1; then
-            PGPASSWORD="$DB_PASSWORD" dropdb --if-exists -h "$DB_HOST" -p 5432 -U "$DB_USERNAME" "$DB_MASTER_DATABASE"
-            PGPASSWORD="$DB_PASSWORD" createdb -h "$DB_HOST" -p 5432 -U "$DB_USERNAME" "$DB_MASTER_DATABASE"
-            exit 0
-          fi
-
-          echo "No usable Docker or PostgreSQL service is available to the runner." >&2
-          exit 1
+          PGPASSWORD="$DB_PASSWORD" pg_isready -h "$DB_HOST" -p 5432 -U "$DB_USERNAME"
+          PGPASSWORD="$DB_PASSWORD" dropdb --if-exists -h "$DB_HOST" -p 5432 -U "$DB_USERNAME" "$DB_MASTER_DATABASE"
+          PGPASSWORD="$DB_PASSWORD" createdb -h "$DB_HOST" -p 5432 -U "$DB_USERNAME" "$DB_MASTER_DATABASE"
 
       - name: Manual integrity quality security suite
         run: vendor/bin/pest tests/ManualAudit --display-warnings
@@ -239,21 +233,24 @@ jobs:
       MARS_PG_CONTAINER: mars-pg-${{ github.run_id }}-r4
       MARS_PG_PORT: "55434"
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: PHP 8.4
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: "8.4"
-          extensions: bcmath, pdo_pgsql, mbstring, intl, fileinfo, pcntl
-          coverage: pcov
-
-      - name: Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-          cache: npm
+      - name: Verify runner toolchain
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          command -v php
+          command -v composer
+          command -v node
+          command -v npm
+          php -r 'exit(version_compare(PHP_VERSION, "8.4.0", ">=") ? 0 : 1);'
+          php -m | grep -qi '^bcmath$'
+          php -m | grep -qi '^pdo_pgsql$'
+          php -m | grep -Eqi '^(pcov|xdebug)$'
+          php -v
+          composer --version
+          node --version
+          npm --version
 
       - name: Composer install
         run: composer install --no-interaction --prefer-dist --no-progress
@@ -279,31 +276,25 @@ jobs:
           set -Eeuo pipefail
           if command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1; then
             docker rm -f "$MARS_PG_CONTAINER" >/dev/null 2>&1 || true
-            docker run -d --name "$MARS_PG_CONTAINER"               -e POSTGRES_USER=postgres               -e POSTGRES_PASSWORD=postgres               -e POSTGRES_DB=postgres               -p "127.0.0.1:${MARS_PG_PORT}:5432"               postgres:16 >/dev/null
+            docker run -d --name "$MARS_PG_CONTAINER" -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=postgres -p "127.0.0.1:${MARS_PG_PORT}:5432" postgres:16 >/dev/null
             echo "DB_PORT=$MARS_PG_PORT" >> "$GITHUB_ENV"
             echo "DB_USERNAME=postgres" >> "$GITHUB_ENV"
             echo "DB_PASSWORD=postgres" >> "$GITHUB_ENV"
             for i in $(seq 1 60); do
-              if docker exec "$MARS_PG_CONTAINER" pg_isready -U postgres >/dev/null 2>&1; then
-                exit 0
-              fi
+              docker exec "$MARS_PG_CONTAINER" pg_isready -U postgres >/dev/null 2>&1 && exit 0
               sleep 1
             done
-            echo "PostgreSQL container did not become ready." >&2
             docker logs "$MARS_PG_CONTAINER" || true
             exit 1
           fi
 
-          echo "Docker unavailable; trying host PostgreSQL."
+          command -v pg_isready
+          command -v dropdb
+          command -v createdb
           echo "DB_PORT=5432" >> "$GITHUB_ENV"
-          if PGPASSWORD="$DB_PASSWORD" pg_isready -h "$DB_HOST" -p 5432 -U "$DB_USERNAME" >/dev/null 2>&1; then
-            PGPASSWORD="$DB_PASSWORD" dropdb --if-exists -h "$DB_HOST" -p 5432 -U "$DB_USERNAME" "$DB_MASTER_DATABASE"
-            PGPASSWORD="$DB_PASSWORD" createdb -h "$DB_HOST" -p 5432 -U "$DB_USERNAME" "$DB_MASTER_DATABASE"
-            exit 0
-          fi
-
-          echo "No usable Docker or PostgreSQL service is available to the runner." >&2
-          exit 1
+          PGPASSWORD="$DB_PASSWORD" pg_isready -h "$DB_HOST" -p 5432 -U "$DB_USERNAME"
+          PGPASSWORD="$DB_PASSWORD" dropdb --if-exists -h "$DB_HOST" -p 5432 -U "$DB_USERNAME" "$DB_MASTER_DATABASE"
+          PGPASSWORD="$DB_PASSWORD" createdb -h "$DB_HOST" -p 5432 -U "$DB_USERNAME" "$DB_MASTER_DATABASE"
 
       - name: Phase 2 stock coverage
         run: vendor/bin/pest -c phpunit.stock.xml --coverage --min=90
