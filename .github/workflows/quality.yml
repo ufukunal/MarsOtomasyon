@@ -23,6 +23,7 @@ env:
   CACHE_STORE: array
   SESSION_DRIVER: array
   QUEUE_CONNECTION: sync
+  XDEBUG_MODE: coverage
 
 jobs:
   foundation:
@@ -53,6 +54,9 @@ jobs:
       - name: Prepare environment
         run: cp .env.example .env
 
+      - name: Unit tests
+        run: vendor/bin/pest tests/Unit --display-warnings
+
       - name: Start isolated PostgreSQL
         shell: bash
         run: |
@@ -78,9 +82,6 @@ jobs:
           PGPASSWORD="$DB_PASSWORD" pg_isready -h "$DB_HOST" -p 5432 -U "$DB_USERNAME"
           PGPASSWORD="$DB_PASSWORD" dropdb --if-exists -h "$DB_HOST" -p 5432 -U "$DB_USERNAME" "$DB_MASTER_DATABASE"
           PGPASSWORD="$DB_PASSWORD" createdb -h "$DB_HOST" -p 5432 -U "$DB_USERNAME" "$DB_MASTER_DATABASE"
-
-      - name: Unit tests
-        run: vendor/bin/pest tests/Unit --display-warnings
 
       - name: Foundation feature tests
         run: |
@@ -188,42 +189,9 @@ jobs:
       - name: Prepare environment
         run: cp .env.example .env
 
-      - name: Start isolated PostgreSQL
-        shell: bash
-        run: |
-          set -Eeuo pipefail
-          if command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1; then
-            docker rm -f "$MARS_PG_CONTAINER" >/dev/null 2>&1 || true
-            docker run -d --name "$MARS_PG_CONTAINER" -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=postgres -p "127.0.0.1:${MARS_PG_PORT}:5432" postgres:16 >/dev/null
-            echo "DB_PORT=$MARS_PG_PORT" >> "$GITHUB_ENV"
-            echo "DB_USERNAME=postgres" >> "$GITHUB_ENV"
-            echo "DB_PASSWORD=postgres" >> "$GITHUB_ENV"
-            for i in $(seq 1 60); do
-              docker exec "$MARS_PG_CONTAINER" pg_isready -U postgres >/dev/null 2>&1 && exit 0
-              sleep 1
-            done
-            docker logs "$MARS_PG_CONTAINER" || true
-            exit 1
-          fi
-
-          command -v pg_isready
-          command -v dropdb
-          command -v createdb
-          echo "DB_PORT=5432" >> "$GITHUB_ENV"
-          PGPASSWORD="$DB_PASSWORD" pg_isready -h "$DB_HOST" -p 5432 -U "$DB_USERNAME"
-          PGPASSWORD="$DB_PASSWORD" dropdb --if-exists -h "$DB_HOST" -p 5432 -U "$DB_USERNAME" "$DB_MASTER_DATABASE"
-          PGPASSWORD="$DB_PASSWORD" createdb -h "$DB_HOST" -p 5432 -U "$DB_USERNAME" "$DB_MASTER_DATABASE"
-
       - name: Manual integrity quality security suite
         run: vendor/bin/pest tests/ManualAudit --display-warnings
 
-      - name: Cleanup PostgreSQL
-        if: always()
-        shell: bash
-        run: |
-          if command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1; then
-            docker rm -f "$MARS_PG_CONTAINER" >/dev/null 2>&1 || true
-          fi
 
   quality:
     name: "R4 - Pint + Larastan + Build + Coverage"
@@ -246,7 +214,6 @@ jobs:
           php -r 'exit(version_compare(PHP_VERSION, "8.4.0", ">=") ? 0 : 1);'
           php -m | grep -qi '^bcmath$'
           php -m | grep -qi '^pdo_pgsql$'
-          php -m | grep -Eqi '^(pcov|xdebug)$'
           php -v
           composer --version
           node --version
@@ -269,6 +236,15 @@ jobs:
 
       - name: Larastan
         run: vendor/bin/phpstan analyse --no-progress
+
+      - name: Verify coverage driver
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          php -m | grep -Eqi '^(pcov|xdebug)$' || {
+            echo "Coverage driver missing: install PCOV or Xdebug on the runner host." >&2
+            exit 1
+          }
 
       - name: Start isolated PostgreSQL
         shell: bash
