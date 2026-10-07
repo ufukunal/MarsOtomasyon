@@ -1,11 +1,11 @@
 <?php
 
+use App\Exceptions\IdempotencyInProgressException;
 use App\Models\Period\Brand;
 use App\Support\Concurrency\IdempotencyKey;
-use App\Support\Period\PeriodContext;
 use Illuminate\Support\Facades\DB;
-use Tests\TestCase;
 use Tests\ManualAudit\Support\AuditSource;
+use Tests\TestCase;
 
 uses(TestCase::class);
 
@@ -17,10 +17,12 @@ test('IDEM-076 aynı period key ve action callbacki ikinci kez çalıştırmaz',
 
     $first = IdempotencyKey::run('audit-76', 'audit.same', function () use (&$runs) {
         $runs++;
+
         return 'ok';
     });
     $second = IdempotencyKey::run('audit-76', 'audit.same', function () use (&$runs) {
         $runs++;
+
         return 'bad';
     });
 
@@ -44,7 +46,7 @@ test('IDEM-078 processing kayıt paralel retryı reddeder', function () {
     ]);
 
     expect(fn () => IdempotencyKey::runMaster('audit-78', 'audit.processing', fn () => 'x'))
-        ->toThrow(\App\Exceptions\IdempotencyInProgressException::class);
+        ->toThrow(IdempotencyInProgressException::class);
 });
 
 test('IDEM-079 stale processing claim güvenli retrya açılır', function () {
@@ -75,8 +77,7 @@ test('IDEM-081 top level Eloquent model retryda model olarak geri yüklenir', fu
     $user = $this->createUserWithPeriodAccess($company, $period, 'Yönetici');
     $this->loginToPeriod($user, $company, $period);
 
-    $first = IdempotencyKey::run('audit-81', 'audit.model', fn () =>
-        Brand::query()->create(['name' => 'Audit Model', 'is_active' => true]));
+    $first = IdempotencyKey::run('audit-81', 'audit.model', fn () => Brand::query()->create(['name' => 'Audit Model', 'is_active' => true]));
     $second = IdempotencyKey::run('audit-81', 'audit.model', fn () => throw new RuntimeException('must not run'));
 
     expect($second)->toBeInstanceOf(Brand::class)->and($second->id)->toBe($first->id);
