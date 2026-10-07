@@ -218,7 +218,18 @@ jobs:
       - name: Phase 2 stock tests
         shell: bash
         run: |
-          if php -m | grep -Eqi '^(pcov|xdebug); then
+          if php -m | grep -Eqi '^(pcov|xdebug)
+            vendor/bin/pest -c phpunit.stock.xml --coverage --min=90
+          else
+            echo "Coverage driver unavailable; running the complete stock suite without coverage gate."
+            vendor/bin/pest -c phpunit.stock.xml
+          fi
+
+      - name: Stop isolated PostgreSQL
+        if: always()
+        shell: bash
+        run: bash scripts/ci/postgres.sh stop 55434
+; then
             vendor/bin/pest -c phpunit.stock.xml --coverage --min=90
           else
             echo "Coverage driver unavailable; running the complete stock suite without coverage gate."
