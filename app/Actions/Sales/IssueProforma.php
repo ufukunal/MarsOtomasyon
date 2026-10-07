@@ -53,7 +53,7 @@ final class IssueProforma
                     'contact_id' => $locked->contact_id,
                     'currency' => 'TRY',
                     'exchange_rate' => '1.000000',
-                    'status' => 'posted',
+                    'status' => 'draft',
                     'discount_rate' => $locked->discount_rate,
                     'discount_amount' => $locked->discount_amount,
                     'subtotal' => $locked->subtotal,
@@ -93,6 +93,9 @@ final class IssueProforma
                     'created_by' => $actor?->id,
                     'created_by_name' => $actor?->name,
                 ]);
+
+                $proforma->status = 'posted';
+                $proforma->save();
 
                 AuditContext::period(
                     'Proforma oluşturuldu.',
