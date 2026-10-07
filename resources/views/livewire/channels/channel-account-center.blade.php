@@ -70,6 +70,7 @@
                     @if($platform === 'trendyol')
                         @if(data_get($selectedAccount?->settings, 'trendyol_webhook_id'))
                             <span>Webhook ID: {{ data_get($selectedAccount?->settings, 'trendyol_webhook_id') }}</span>
+                            <button type="button" wire:click="setupWebhook">Webhook Ayarlarını Güncelle</button>
                         @else
                             <button type="button" wire:click="setupWebhook">Webhook Oluştur</button>
                         @endif
