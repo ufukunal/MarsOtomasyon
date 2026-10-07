@@ -111,7 +111,7 @@ final class ReverseDocument
                     'notes' => $reason,
                     'created_by' => $actor?->id,
                     'created_by_name' => $actor?->name,
-                 ]);
+                ]);
 
                 foreach ($locked->lines as $line) {
                     DocumentLine::query()->create([
