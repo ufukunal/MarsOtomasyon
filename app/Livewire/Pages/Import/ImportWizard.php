@@ -100,9 +100,8 @@ class ImportWizard extends Component
             try {
                 $absolute = Storage::disk('imports')->path($storedPath);
                 $fileHash = hash_file('sha256', $absolute);
-                $rows = $reader->rows('imports', $storedPath, $originalName);
-                $headers = array_keys($rows[0] ?? []);
-                $preview = array_slice($rows, 0, 20);
+                $preview = $reader->previewRows('imports', $storedPath, $originalName, 20);
+                $headers = array_keys($preview[0] ?? []);
                 $mapping = [];
 
                 foreach (ImportMapping::fields($this->type) as $field => $definition) {
