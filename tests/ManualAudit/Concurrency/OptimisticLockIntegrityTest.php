@@ -3,8 +3,8 @@
 use App\Actions\Periods\ClosePeriod;
 use App\Actions\Periods\ReopenPeriod;
 use App\Exceptions\StaleRecordException;
-use Tests\TestCase;
 use Tests\ManualAudit\Support\AuditSource;
+use Tests\TestCase;
 
 uses(TestCase::class);
 
