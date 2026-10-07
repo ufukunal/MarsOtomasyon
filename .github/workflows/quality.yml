@@ -9,7 +9,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: quality-local-v5
+  group: quality-local-v6
   cancel-in-progress: true
 
 env:
@@ -26,7 +26,7 @@ env:
 jobs:
   prepare-host:
     name: "Prepare local Ubuntu host"
-    runs-on: [self-hosted, Linux, mars-ubuntu, mars-r4]
+    runs-on: [self-hosted, Linux, mars-ubuntu, mars-r3]
     steps:
       - uses: actions/checkout@v4
 
@@ -132,9 +132,9 @@ jobs:
         run: bash scripts/ci/postgres.sh stop 55432
 
   manual-audit:
-    needs: [prepare-host, foundation]
+    needs: prepare-host
     name: "R3 - ManualAudit 273"
-    runs-on: [self-hosted, Linux, mars-ubuntu, mars-r1]
+    runs-on: [self-hosted, Linux, mars-ubuntu, mars-r3]
     env:
       DB_MASTER_DATABASE: MarsProject_Master_Test_R3
       MARS_PG_PORT: "55433"
@@ -195,18 +195,8 @@ jobs:
       - name: Frontend build
         run: npm run build
 
-      - name: Pint diff
-        continue-on-error: true
-        shell: bash
-        run: |
-          set -Eeuo pipefail
-          vendor/bin/pint
-          if ! git diff --quiet; then
-            echo "=== PINT PATCH START ==="
-            git diff --no-color
-            echo "=== PINT PATCH END ==="
-            exit 1
-          fi
+      - name: Pint
+        run: vendor/bin/pint --test
 
       - name: Larastan
         run: vendor/bin/phpstan analyse --no-progress
