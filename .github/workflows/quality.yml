@@ -56,23 +56,7 @@ jobs:
 
       - name: Select stable PHP
         shell: bash
-        run: |
-          set -Eeuo pipefail
-          mkdir -p "$RUNNER_TEMP/mars-bin"
-          PHP_BIN=""
-          for candidate in /usr/bin/php8.5 /usr/bin/php8.4 /usr/local/bin/php /usr/bin/php; do
-            if [[ -x "$candidate" ]] && "$candidate" -r 'exit(version_compare(PHP_VERSION, "8.4.0", ">=") ? 0 : 1);' >/dev/null 2>&1; then
-              PHP_BIN="$candidate"
-              break
-            fi
-          done
-          [[ -n "$PHP_BIN" ]] || { echo "No working PHP >= 8.4 binary found." >&2; exit 1; }
-          ln -sf "$PHP_BIN" "$RUNNER_TEMP/mars-bin/php"
-          echo "$RUNNER_TEMP/mars-bin" >> "$GITHUB_PATH"
-          "$PHP_BIN" -m | grep -qi '^bcmath$'
-          "$PHP_BIN" -m | grep -qi '^pdo_pgsql$'
-          "$PHP_BIN" -v
-          PATH="$RUNNER_TEMP/mars-bin:$PATH" composer --version
+        run: bash scripts/ci/select-php.sh
 
       - name: Composer install
         run: composer install --no-interaction --prefer-dist --no-progress
@@ -118,23 +102,7 @@ jobs:
 
       - name: Select stable PHP
         shell: bash
-        run: |
-          set -Eeuo pipefail
-          mkdir -p "$RUNNER_TEMP/mars-bin"
-          PHP_BIN=""
-          for candidate in /usr/bin/php8.5 /usr/bin/php8.4 /usr/local/bin/php /usr/bin/php; do
-            if [[ -x "$candidate" ]] && "$candidate" -r 'exit(version_compare(PHP_VERSION, "8.4.0", ">=") ? 0 : 1);' >/dev/null 2>&1; then
-              PHP_BIN="$candidate"
-              break
-            fi
-          done
-          [[ -n "$PHP_BIN" ]] || { echo "No working PHP >= 8.4 binary found." >&2; exit 1; }
-          ln -sf "$PHP_BIN" "$RUNNER_TEMP/mars-bin/php"
-          echo "$RUNNER_TEMP/mars-bin" >> "$GITHUB_PATH"
-          "$PHP_BIN" -m | grep -qi '^bcmath$'
-          "$PHP_BIN" -m | grep -qi '^pdo_pgsql$'
-          "$PHP_BIN" -v
-          PATH="$RUNNER_TEMP/mars-bin:$PATH" composer --version
+        run: bash scripts/ci/select-php.sh
 
       - name: Composer install
         run: composer install --no-interaction --prefer-dist --no-progress
@@ -175,23 +143,7 @@ jobs:
 
       - name: Select stable PHP
         shell: bash
-        run: |
-          set -Eeuo pipefail
-          mkdir -p "$RUNNER_TEMP/mars-bin"
-          PHP_BIN=""
-          for candidate in /usr/bin/php8.5 /usr/bin/php8.4 /usr/local/bin/php /usr/bin/php; do
-            if [[ -x "$candidate" ]] && "$candidate" -r 'exit(version_compare(PHP_VERSION, "8.4.0", ">=") ? 0 : 1);' >/dev/null 2>&1; then
-              PHP_BIN="$candidate"
-              break
-            fi
-          done
-          [[ -n "$PHP_BIN" ]] || { echo "No working PHP >= 8.4 binary found." >&2; exit 1; }
-          ln -sf "$PHP_BIN" "$RUNNER_TEMP/mars-bin/php"
-          echo "$RUNNER_TEMP/mars-bin" >> "$GITHUB_PATH"
-          "$PHP_BIN" -m | grep -qi '^bcmath$'
-          "$PHP_BIN" -m | grep -qi '^pdo_pgsql$'
-          "$PHP_BIN" -v
-          PATH="$RUNNER_TEMP/mars-bin:$PATH" composer --version
+        run: bash scripts/ci/select-php.sh
 
       - name: Composer install
         run: composer install --no-interaction --prefer-dist --no-progress
@@ -223,31 +175,19 @@ jobs:
 
       - name: Select stable PHP
         shell: bash
-        run: |
-          set -Eeuo pipefail
-          mkdir -p "$RUNNER_TEMP/mars-bin"
-          PHP_BIN=""
-          for candidate in /usr/bin/php8.5 /usr/bin/php8.4 /usr/local/bin/php /usr/bin/php; do
-            if [[ -x "$candidate" ]] && "$candidate" -r 'exit(version_compare(PHP_VERSION, "8.4.0", ">=") ? 0 : 1);' >/dev/null 2>&1; then
-              PHP_BIN="$candidate"
-              break
-            fi
-          done
-          [[ -n "$PHP_BIN" ]] || { echo "No working PHP >= 8.4 binary found." >&2; exit 1; }
-          ln -sf "$PHP_BIN" "$RUNNER_TEMP/mars-bin/php"
-          echo "$RUNNER_TEMP/mars-bin" >> "$GITHUB_PATH"
-          "$PHP_BIN" -m | grep -qi '^bcmath$'
-          "$PHP_BIN" -m | grep -qi '^pdo_pgsql$'
-          "$PHP_BIN" -v
-          PATH="$RUNNER_TEMP/mars-bin:$PATH" composer --version
-          node --version
-          npm --version
+        run: bash scripts/ci/select-php.sh
 
       - name: Composer install
         run: composer install --no-interaction --prefer-dist --no-progress
 
       - name: Prepare environment
         run: cp .env.example .env
+
+      - name: Verify Node toolchain
+        shell: bash
+        run: |
+          node --version
+          npm --version
 
       - name: Node install
         run: npm ci --ignore-scripts --no-audit --no-fund
