@@ -13,7 +13,6 @@ class ChannelAccountPeriodSetting extends PeriodModel
     protected $fillable = [
         'channel_account_id',
         'marketplace_customer_contact_id',
-        'version',
     ];
 
     protected function casts(): array
