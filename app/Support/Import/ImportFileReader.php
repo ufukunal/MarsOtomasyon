@@ -259,9 +259,9 @@ final class ImportFileReader
             return;
         }
 
-        $sheetName = (string) ($first['worksheetName'] ?? '');
-        $lastColumn = (string) ($first['lastColumnLetter'] ?? 'A');
-        $totalRows = (int) ($first['totalRows'] ?? 0);
+        $sheetName = (string) $first['worksheetName'];
+        $lastColumn = (string) $first['lastColumnLetter'];
+        $totalRows = (int) $first['totalRows'];
 
         if ($sheetName === '' || $totalRows < 1) {
             return;
@@ -358,13 +358,7 @@ final class ImportFileReader
             0,
             count($header),
         );
-        $combined = array_combine($header, $values);
-
-        if ($combined === false) {
-            throw new RuntimeException('İçe aktarma satırı kolon sayısı header ile uyuşmuyor.');
-        }
-
-        return $combined;
+        return array_combine($header, $values);
     }
 
     /**
