@@ -107,7 +107,7 @@ test('IDEM-083 finance transfer shape source target nested model tipini korur', 
     $source = Brand::query()->create(['name' => 'Source marker', 'is_active' => true]);
     $target = Brand::query()->create(['name' => 'Target marker', 'is_active' => true]);
 
-    IdempotencyKey::run('audit-83', 'finance-transfer.create', fn () => compact('source', 'target'));
+    IdempotencyKey::run('audit-83', 'finance-transfer.create', fn () => ['source' => $source, 'target' => $target]);
     $retry = IdempotencyKey::run('audit-83', 'finance-transfer.create', fn () => throw new RuntimeException('must not run'));
 
     expect($retry)->toHaveKeys(['source', 'target'])
@@ -128,7 +128,7 @@ test('IDEM-085 associative array sonucu kayıpsız döner', function () {
     $value = ['ok' => true, 'nested' => ['count' => 3, 'code' => 'X']];
     IdempotencyKey::runMaster('audit-85', 'audit.array', fn () => $value);
 
-    expect(IdempotencyKey::runMaster('audit-85', 'audit.array', fn () => []))->toBe($value);
+    expect(IdempotencyKey::runMaster('audit-85', 'audit.array', fn () => []))->toEqual($value);
 });
 
 test('IDEM-086 legacy type value kayıtları geriye dönük okunabilir', function () {
