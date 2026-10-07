@@ -5,11 +5,13 @@ namespace App\Livewire\Pages\Settings;
 use App\Jobs\RunRecoverySetBackupJob;
 use App\Jobs\VerifyRecoverySetBackupJob;
 use App\Models\BackupRun;
+use App\Models\Company;
 use App\Models\DeploymentRun;
 use App\Models\HealthCheckRun;
 use App\Models\RestoreRun;
 use App\Support\Operations\OperationalHealthService;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Livewire\Component;
 
@@ -17,12 +19,12 @@ final class OperationsCenter extends Component
 {
     public function mount(): void
     {
-        abort_unless(auth()->user()?->can('audit.view'), 403);
+        $this->assertGlobalOperationsAccess();
     }
 
     public function backupNow(): void
     {
-        Gate::authorize('companies.update');
+        $this->assertGlobalOperationsAccess();
 
         RunRecoverySetBackupJob::dispatch('manual');
         session()->flash('status', 'Recovery-set backup queueya alındı.');
@@ -30,7 +32,7 @@ final class OperationsCenter extends Component
 
     public function verifyBackup(int $backupRunId): void
     {
-        Gate::authorize('companies.update');
+        $this->assertGlobalOperationsAccess();
 
         $backup = BackupRun::query()
             ->whereIn('status', ['done', 'verified'])
@@ -42,7 +44,7 @@ final class OperationsCenter extends Component
 
     public function runHealth(OperationalHealthService $health): void
     {
-        Gate::authorize('audit.view');
+        $this->assertGlobalOperationsAccess();
 
         $health->check(true);
         session()->flash('status', 'Operational health kontrolü tamamlandı.');
@@ -50,6 +52,8 @@ final class OperationsCenter extends Component
 
     public function render(): View
     {
+        $this->assertGlobalOperationsAccess();
+
         $healthRuns = HealthCheckRun::query()->latest('id')->limit(50)->get();
 
         return view('livewire.pages.settings.operations-center', [
@@ -63,4 +67,33 @@ final class OperationsCenter extends Component
             'pageDescription' => 'Deployment, recovery-set backup/restore ve production health geçmişi.',
         ]);
     }
+
+    private function assertGlobalOperationsAccess(): void
+    {
+        $user = auth()->user();
+
+        abort_unless($user?->is_active, 403);
+        Gate::forUser($user)->authorize('companies.update');
+
+        $companyIds = Company::query()
+            ->orderBy('id')
+            ->pluck('id')
+            ->map(fn ($id): int => (int) $id)
+            ->all();
+
+        if ($companyIds === []) {
+            return;
+        }
+
+        $accessible = DB::connection('master')
+            ->table('company_user')
+            ->where('user_id', $user->id)
+            ->whereIn('company_id', $companyIds)
+            ->pluck('company_id')
+            ->map(fn ($id): int => (int) $id)
+            ->all();
+
+        abort_unless(array_diff($companyIds, $accessible) === [], 403);
+    }
+
 }
