@@ -323,5 +323,4 @@ final class MultiPeriodQuery
 
         return is_array($value) ? $value : [];
     }
-
 }
