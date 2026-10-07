@@ -43,7 +43,6 @@ class ChannelProductListing extends PeriodModel
         'image_collection',
         'category_metadata',
         'is_active',
-        'version',
     ];
 
     protected function casts(): array
