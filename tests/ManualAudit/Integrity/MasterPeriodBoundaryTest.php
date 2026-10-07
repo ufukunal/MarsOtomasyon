@@ -6,8 +6,8 @@ use App\Support\Period\PeriodContext;
 use App\Support\Period\SourcePeriodContext;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-use Tests\TestCase;
 use Tests\ManualAudit\Support\AuditSource;
+use Tests\TestCase;
 
 uses(TestCase::class);
 
