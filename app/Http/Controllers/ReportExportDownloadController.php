@@ -98,5 +98,4 @@ final class ReportExportDownloadController
 
         return is_array($value) ? $value : [];
     }
-
 }
