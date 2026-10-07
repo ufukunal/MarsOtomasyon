@@ -61,6 +61,7 @@ final class MultiPeriodQuery
 
         $selectedPeriods = $this->periods->select($actor, $companyId, $periodIds);
         $pageSize = max(1, (int) config('reporting.max_page_size', 250));
+        $maxRows = max(1, (int) config('reporting.max_consolidated_rows', 50000));
 
         if ($request->limit < 1 || $request->offset < 0) {
             throw new DomainException('Çok dönemli rapor pagination parametreleri geçersiz.');
@@ -106,6 +107,12 @@ final class MultiPeriodQuery
                     if ($result->totalRows !== $expectedTotal) {
                         throw new DomainException(
                             "{$period->year} dönemi rapor verisi sorgu sırasında değişti.",
+                        );
+                    }
+
+                    if (count($allRows) + count($result->rows) > $maxRows) {
+                        throw new DomainException(
+                            "Çok dönemli rapor {$maxRows} satır sınırını aşıyor; filtreyi daraltın.",
                         );
                     }
 
