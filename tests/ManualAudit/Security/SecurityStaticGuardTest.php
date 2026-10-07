@@ -87,7 +87,7 @@ test('SEC-146 raw SQL identifier interpolation allowlist dışına çıkmaz', fu
     ]);
 
     expect(AuditSource::read('app/Actions/Channels/CarryChannelPeriodState.php'))->toContain('if (! in_array($table, [');
-    expect(AuditSource::read('app/Actions/Periods/CreatePeriod.php'))->toContain("preg_match('/^[A-Za-z_][A-Za-z0-9_]*$/', \$databaseName)");
+    expect(AuditSource::read('app/Actions/Periods/CreatePeriod.php'))->toContain("preg_match('/^[A-Za-z_][A-Za-z0-9_]*$/', \$dbName)");
     expect(AuditSource::read('app/Livewire/Pages/Setup/CompanyWizard.php'))->toContain("'dbPrefix' => ['required', 'regex:/^[A-Za-z0-9_]+$/',");
     expect(AuditSource::read('app/Support/PeriodCarry/PeriodCarryTableCopier.php'))->toContain('$this->assertIdentifier($table)');
     expect(AuditSource::read('app/Support/Search/SearchIndexSchema.php'))->toContain('self::assertIdentifier($table)');
