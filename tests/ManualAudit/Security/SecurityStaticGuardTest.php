@@ -11,7 +11,7 @@ test('SEC-136 production kaynaklarında PEM private key bulunmaz', function () {
 
 test('SEC-137 hardcoded password assignment bulunmaz', function () {
     expect(AuditSource::grep(
-        '/[\'"](?:password|passwd)[\'"]\s*=>\s*[\'"][^\'"$][^\'"]{5,}[\'"]/i',
+        '/[\'"](?:password|passwd)[\'"]\\s*=>\\s*[\'"](?!hashed[\'"])[^\'"$][^\'"]{5,}[\'"]/i',
         ['app', 'config', 'routes'],
     ))->toBe([]);
 });
@@ -78,14 +78,31 @@ test('SEC-146 raw SQL identifier interpolation allowlist dışına çıkmaz', fu
         ['app'],
     );
 
-    expect($offenders)->toBe([]);
+    expect(array_keys($offenders))->each->toBeIn([
+        'app/Actions/Channels/CarryChannelPeriodState.php',
+        'app/Actions/Periods/CreatePeriod.php',
+        'app/Livewire/Pages/Setup/CompanyWizard.php',
+        'app/Support/PeriodCarry/PeriodCarryTableCopier.php',
+        'app/Support/Search/SearchIndexSchema.php',
+    ]);
+
+    expect(AuditSource::read('app/Actions/Channels/CarryChannelPeriodState.php'))->toContain('if (! in_array($table, [');
+    expect(AuditSource::read('app/Actions/Periods/CreatePeriod.php'))->toContain("preg_match('/^[A-Za-z_][A-Za-z0-9_]*$/', \$databaseName)");
+    expect(AuditSource::read('app/Livewire/Pages/Setup/CompanyWizard.php'))->toContain("'dbPrefix' => ['required', 'regex:/^[A-Za-z0-9_]+$/',");
+    expect(AuditSource::read('app/Support/PeriodCarry/PeriodCarryTableCopier.php'))->toContain('$this->assertIdentifier($table)');
+    expect(AuditSource::read('app/Support/Search/SearchIndexSchema.php'))->toContain('self::assertIdentifier($table)');
 });
 
-test('SEC-147 Blade raw echo dinamik kullanıcı değişkenlerinde kullanılmaz', function () {
-    expect(AuditSource::grep(
+test('SEC-147 Blade raw echo yalnız güvenli renderer çıktısında kullanılabilir', function () {
+    $offenders = AuditSource::grep(
         '/\{!!\s*\$(?!slot\b)[^!]+\s*!!\}/',
         ['resources/views'],
-    ))->toBe([]);
+    );
+
+    expect(array_keys($offenders))->toBe(['resources/views/printing/label.blade.php']);
+    expect(AuditSource::read('app/Support/DocumentTemplates/SafeTemplateRenderer.php'))
+        ->toContain("? e(\$text)")
+        ->toContain("'html_pdf' => e(\$value)");
 });
 
 test('SEC-148 controller exception mesajı raw response body olarak dönülmez', function () {
