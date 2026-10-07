@@ -35,7 +35,7 @@ final class ContactRowImporter
             $contact = new Contact;
             $contact->code = strtoupper(trim((string) $row['code']));
             $contact->title = trim((string) $row['title']);
-            $contact->type = (string) ($row['type'] ?: 'legal');
+            $contact->setAttribute('type', (string) ($row['type'] ?: 'legal'));
             $contact->tax_office = $row['tax_office'] ?: null;
             $contact->tax_number = $row['tax_number'] ?: null;
             $contact->national_id = $row['national_id'] ?: null;
@@ -45,8 +45,8 @@ final class ContactRowImporter
             $contact->phone = $row['phone'] ?: null;
             $contact->email = $row['email'] ?: null;
             $contact->term_days = $row['term_days'] ?: null;
-            $contact->risk_limit = bcadd((string) ($row['risk_limit'] ?: '0'), '0', 4);
-            $contact->discount_rate = bcadd((string) ($row['discount_rate'] ?: '0'), '0', 4);
+            $contact->setAttribute('risk_limit', bcadd((string) ($row['risk_limit'] ?: '0'), '0', 4));
+            $contact->setAttribute('discount_rate', bcadd((string) ($row['discount_rate'] ?: '0'), '0', 4));
             $contact->is_active = true;
             $contact->save();
 
