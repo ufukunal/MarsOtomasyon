@@ -4,6 +4,7 @@ namespace App\Support\Reporting\MultiPeriod;
 
 use App\Actions\Reporting\RunReport;
 use App\Models\User;
+use App\Support\Auth\PeriodPermissionContext;
 use App\Support\Period\PeriodContext;
 use App\Support\Reporting\ReportColumnDefinition;
 use App\Support\Reporting\ReportRegistry;
@@ -13,6 +14,7 @@ use App\Support\Reporting\ReportSort;
 use App\Support\Reporting\ReportTotalDefinition;
 use DomainException;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
 final class MultiPeriodQuery
@@ -33,6 +35,16 @@ final class MultiPeriodQuery
     ): ConsolidatedReportResult {
         $originalCompanyId = PeriodContext::companyId();
         $originalPeriodId = PeriodContext::periodId();
+        $originalPeriodAccess = null;
+
+        if ($originalPeriodId !== null && $actor === null && auth()->user()) {
+            $originalPeriodAccess = DB::connection('master')
+                ->table('period_user_access')
+                ->where('period_id', $originalPeriodId)
+                ->where('user_id', auth()->id())
+                ->where('is_active', true)
+                ->first(['permission_overrides']);
+        }
 
         if ($companyId === null) {
             PeriodContext::ensure();
@@ -59,6 +71,15 @@ final class MultiPeriodQuery
         $definition = $this->registry->query($reportKey)->definition();
         $gate->authorize($definition->permission);
 
+        if ($originalPeriodId !== null) {
+            $originalPeriodAccess = DB::connection('master')
+                ->table('period_user_access')
+                ->where('period_id', $originalPeriodId)
+                ->where('user_id', $actor->id)
+                ->where('is_active', true)
+                ->first(['permission_overrides']);
+        }
+
         $selectedPeriods = $this->periods->select($actor, $companyId, $periodIds);
         $pageSize = max(1, (int) config('reporting.max_page_size', 250));
         $maxRows = max(1, (int) config('reporting.max_consolidated_rows', 50000));
@@ -75,6 +96,23 @@ final class MultiPeriodQuery
 
         try {
             foreach ($selectedPeriods as $period) {
+                $periodAccess = DB::connection('master')
+                    ->table('period_user_access')
+                    ->where('period_id', $period->id)
+                    ->where('user_id', $actor->id)
+                    ->where('is_active', true)
+                    ->first(['permission_overrides']);
+
+                if (! $periodAccess) {
+                    throw new AuthorizationException(
+                        "{$period->year} dönemi için aktif kullanıcı erişimi bulunamadı.",
+                    );
+                }
+
+                PeriodPermissionContext::clear();
+                PeriodPermissionContext::use(
+                    $this->decodeOverrides($periodAccess->permission_overrides),
+                );
                 PeriodContext::useSystem($companyId, $period->id);
 
                 $periodMetadata[] = [
@@ -135,10 +173,17 @@ final class MultiPeriodQuery
                 $this->mergeTotals($combinedTotals, $periodFirst, $definition->totalMap());
             }
         } finally {
+            PeriodPermissionContext::clear();
             PeriodContext::clear();
 
             if ($originalCompanyId && $originalPeriodId) {
                 PeriodContext::useSystem($originalCompanyId, $originalPeriodId);
+
+                if ($originalPeriodAccess) {
+                    PeriodPermissionContext::use(
+                        $this->decodeOverrides($originalPeriodAccess->permission_overrides),
+                    );
+                }
             }
         }
 
@@ -268,4 +313,15 @@ final class MultiPeriodQuery
 
         return $value === '-0' || $value === '' ? '0' : $value;
     }
+
+    /** @return array<string,mixed> */
+    private function decodeOverrides(mixed $value): array
+    {
+        if (is_string($value)) {
+            $value = json_decode($value, true) ?: [];
+        }
+
+        return is_array($value) ? $value : [];
+    }
+
 }
