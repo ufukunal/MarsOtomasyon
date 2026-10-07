@@ -88,11 +88,19 @@ test('QLT-236 controllers kritik business mutationı doğrudan DB ile yapmaz', f
     ))->toBe([]);
 });
 
-test('QLT-237 Livewire içinde açık DB transaction başlatılmaz', function () {
-    expect(AuditSource::grep(
+test('QLT-237 Livewire içinde yalnız first-admin bootstrap transactionına izin verilir', function () {
+    $offenders = AuditSource::grep(
         '/DB::(?:connection\([^)]*\)->)?transaction\s*\(/',
         ['app/Livewire'],
-    ))->toBe([]);
+    );
+
+    $wizard = $offenders['app/Livewire/Pages/Setup/CompanyWizard.php'] ?? [];
+    unset($offenders['app/Livewire/Pages/Setup/CompanyWizard.php']);
+
+    expect($offenders)->toBe([])
+        ->and($wizard)->not->toBe([])
+        ->and(AuditSource::read('app/Livewire/Pages/Setup/CompanyWizard.php'))
+        ->toContain('LOCK TABLE users IN SHARE ROW EXCLUSIVE MODE');
 });
 
 test('QLT-238 production request kodunda sleep veya usleep kullanılmaz', function () {
