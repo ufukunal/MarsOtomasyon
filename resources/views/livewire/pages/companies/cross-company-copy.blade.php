@@ -20,7 +20,9 @@
             </tbody>
         </table>
         <div class="form-row">
-            <button type="button" wire:click="copy">Seçilenleri Kopyala</button>
+            @if($canCopy)
+                <button type="button" wire:click="copy">Seçilenleri Kopyala</button>
+            @endif
             @if($sourceCompanyId)
                 <button type="button" wire:click="inspectSourceChanges">Kaynakta Değişti mi?</button>
             @endif
@@ -45,7 +47,9 @@
                     @endif
                 </div>
             @endforeach
-            <button type="button" wire:click="copy">Kararlarla Devam Et</button>
+            @if($canCopy)
+                <button type="button" wire:click="copy">Kararlarla Devam Et</button>
+            @endif
         </section>
     @endif
 
@@ -58,7 +62,7 @@
                         <strong>{{ $row['code'] }} · {{ $row['label'] }}</strong>
                         @if($row['source_missing'])
                             <span class="field-error">Kaynak kayıt artık bulunamıyor.</span>
-                        @else
+                        @elseif($canRefresh)
                             <button type="button" wire:click="refreshFromSource({{ $row['target_id'] }})">Kaynakla Güncelle</button>
                         @endif
                     </div>

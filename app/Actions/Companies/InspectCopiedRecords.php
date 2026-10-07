@@ -27,6 +27,11 @@ final class InspectCopiedRecords
     public function inspect(int $sourceCompanyId, CompanyCopyPermissionType $type): array
     {
         MutationAuthorizer::authorize('company_copy_permissions.view');
+        MutationAuthorizer::authorize(
+            $type === CompanyCopyPermissionType::Contact
+                ? 'contacts.view'
+                : 'products.view',
+        );
         $this->authorizeSource($sourceCompanyId, $type);
 
         $targetClass = $type === CompanyCopyPermissionType::Contact ? Contact::class : Product::class;
@@ -93,6 +98,11 @@ final class InspectCopiedRecords
         int $targetId,
     ): Model {
         MutationAuthorizer::authorize('company_copy_permissions.view');
+        MutationAuthorizer::authorize(
+            $type === CompanyCopyPermissionType::Contact
+                ? 'contacts.update'
+                : 'products.update',
+        );
         PeriodContext::ensureWritable();
         $this->authorizeSource($sourceCompanyId, $type);
 
@@ -213,12 +223,11 @@ final class InspectCopiedRecords
     private function snapshot(Model $model, CompanyCopyPermissionType $type, bool $source): array
     {
         if ($type === CompanyCopyPermissionType::Contact) {
-            return [
+            $snapshot = [
                 'unvan' => $model->getAttribute('title'),
                 'tip' => $this->scalar($model->getAttribute('type')),
                 'vergi_dairesi' => $model->getAttribute('tax_office'),
                 'vergi_no' => $model->getAttribute('tax_number'),
-                'tc_kimlik' => $model->getAttribute('national_id'),
                 'adres' => $model->getAttribute('address'),
                 'il' => $model->getAttribute('city'),
                 'ilce' => $model->getAttribute('district'),
@@ -229,6 +238,12 @@ final class InspectCopiedRecords
                 'iskonto_orani' => $model->getAttribute('discount_rate'),
                 'durum' => (bool) $model->getAttribute('is_active'),
             ];
+
+            if (auth()->user()?->can('contacts.sensitive.view')) {
+                $snapshot['tc_kimlik'] = $model->getAttribute('national_id');
+            }
+
+            return $snapshot;
         }
 
         $connection = $source ? 'period_source' : 'period';

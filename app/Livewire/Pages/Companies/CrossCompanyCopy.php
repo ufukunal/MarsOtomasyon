@@ -145,8 +145,12 @@ class CrossCompanyCopy extends Component
             ->where('is_active', true)
             ->pluck('source_company_id');
 
+        $isContact = $this->type === CompanyCopyPermissionType::Contact->value;
+
         return view('livewire.pages.companies.cross-company-copy', [
             'sourceCompanies' => Company::query()->whereIn('id', $sourceCompanyIds)->orderBy('name')->get(),
+            'canCopy' => auth()->user()?->can($isContact ? 'contacts.create' : 'products.create') ?? false,
+            'canRefresh' => auth()->user()?->can($isContact ? 'contacts.update' : 'products.update') ?? false,
         ])->layout('layouts.app', ['pageTitle' => 'Başka Şirketten Aktar']);
     }
 }
