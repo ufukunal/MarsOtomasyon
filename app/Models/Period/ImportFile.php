@@ -30,7 +30,7 @@ class ImportFile extends PeriodModel
         'number', 'source_period_id', 'source_import_file_id', 'source_number',
         'supplier_contact_id', 'receiving_location_id', 'country', 'incoterm',
         'currency', 'exchange_rate', 'exchange_rate_locked_at', 'exchange_rate_date',
-        'etd', 'eta', 'received_at', 'status', 'notes', 'version',
+        'etd', 'eta', 'received_at', 'status', 'notes',
         'created_by', 'created_by_name', 'closed_by', 'closed_by_name', 'closed_at',
     ];
 
@@ -69,7 +69,7 @@ class ImportFile extends PeriodModel
             }
 
             if ($originalStatus === 'received') {
-                $allowed = ['status', 'closed_by', 'closed_by_name', 'closed_at', 'version', 'updated_at'];
+                $allowed = ['status', 'closed_by', 'closed_by_name', 'closed_at', 'updated_at'];
 
                 foreach (array_keys($file->getDirty()) as $field) {
                     if (! in_array($field, $allowed, true)) {
