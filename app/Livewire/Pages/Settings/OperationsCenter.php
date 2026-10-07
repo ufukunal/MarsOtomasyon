@@ -6,10 +6,10 @@ use App\Jobs\RunRecoverySetBackupJob;
 use App\Jobs\VerifyRecoverySetBackupJob;
 use App\Models\BackupRun;
 use App\Models\Company;
-use App\Support\Company\CompanyContext;
 use App\Models\DeploymentRun;
 use App\Models\HealthCheckRun;
 use App\Models\RestoreRun;
+use App\Support\Company\CompanyContext;
 use App\Support\Operations\OperationalHealthService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\DB;
@@ -116,5 +116,4 @@ final class OperationsCenter extends Component
             $user->unsetRelation('permissions');
         }
     }
-
 }
