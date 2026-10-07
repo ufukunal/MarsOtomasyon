@@ -61,7 +61,7 @@ test('MASS-193 carried_from_period_id istemci tarafından doğrudan yazılmaz', 
 test('MASS-194 encrypted credentials generic request all ile fill edilmez', function () {
     $source = AuditSource::read('app/Actions/Channels/SaveSalesChannelAccount.php');
 
-    expect($source)->not->Contain('$request->all()');
+    expect($source)->not->toContain('$request->all()');
 });
 
 test('MASS-195 financial lifecycle alanları generic Livewire payload ile fill edilmez', function () {
