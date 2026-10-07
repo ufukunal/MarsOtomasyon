@@ -55,7 +55,10 @@ test('RACE-067 dispatch to invoice lineage aynı source line üzerinde lock veya
 test('RACE-068 finance transfer hesapları lock öncesi deterministik sıraya sokulur', function () {
     $source = AuditSource::read('app/Actions/Finance/PostFinanceTransfer.php');
 
-    expect($source)->toMatch('/(?:sort|usort|ksort)\s*\(/');
+    expect($source)
+        ->toContain('$sourceFirst = strcmp(')
+        ->toContain('$sourceId < $targetId')
+        ->toContain('if ($sourceFirst)');
 });
 
 test('RACE-069 finance transfer source target hesaplarını lock eder', function () {
