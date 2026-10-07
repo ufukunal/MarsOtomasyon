@@ -23,7 +23,7 @@
             @if($canCopy)
                 <button type="button" wire:click="copy">Seçilenleri Kopyala</button>
             @endif
-            @if($sourceCompanyId)
+            @if($sourceCompanyId && $canViewSource)
                 <button type="button" wire:click="inspectSourceChanges">Kaynakta Değişti mi?</button>
             @endif
         </div>

@@ -66,6 +66,14 @@ class CrossCompanyCopy extends Component
         }
 
         $type = CompanyCopyPermissionType::from($this->type);
+        abort_unless(
+            auth()->user()?->can(
+                $type === CompanyCopyPermissionType::Contact
+                    ? 'contacts.view'
+                    : 'products.view',
+            ),
+            403,
+        );
 
         abort_unless(
             CompanyCopyPermission::allows(
@@ -146,9 +154,15 @@ class CrossCompanyCopy extends Component
             ->pluck('source_company_id');
 
         $isContact = $this->type === CompanyCopyPermissionType::Contact->value;
+        $canViewSource = auth()->user()?->can(
+            $isContact ? 'contacts.view' : 'products.view',
+        ) ?? false;
 
         return view('livewire.pages.companies.cross-company-copy', [
-            'sourceCompanies' => Company::query()->whereIn('id', $sourceCompanyIds)->orderBy('name')->get(),
+            'sourceCompanies' => $canViewSource
+                ? Company::query()->whereIn('id', $sourceCompanyIds)->orderBy('name')->get()
+                : collect(),
+            'canViewSource' => $canViewSource,
             'canCopy' => auth()->user()?->can($isContact ? 'contacts.create' : 'products.create') ?? false,
             'canRefresh' => auth()->user()?->can($isContact ? 'contacts.update' : 'products.update') ?? false,
         ])->layout('layouts.app', ['pageTitle' => 'Başka Şirketten Aktar']);
