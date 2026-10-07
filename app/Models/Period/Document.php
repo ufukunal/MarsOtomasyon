@@ -36,7 +36,7 @@ class Document extends PeriodModel
         'document_type', 'number', 'revision_no', 'document_date', 'due_date', 'valid_until',
         'contact_id', 'currency', 'exchange_rate', 'status', 'discount_rate', 'discount_amount',
         'subtotal', 'tax_base', 'vat_amount', 'rounding_difference', 'grand_total',
-        'requirements_snapshot', 'notes', 'version', 'created_by', 'created_by_name',
+        'requirements_snapshot', 'notes', 'created_by', 'created_by_name',
         'posted_by', 'posted_by_name', 'posted_at',
     ];
 
