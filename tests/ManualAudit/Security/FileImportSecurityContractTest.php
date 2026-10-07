@@ -40,7 +40,7 @@ test('FILE-215 XLSX import error raporu kullanıcı değerlerini explicit string
 
 test('FILE-216 spreadsheet formula prefixleri text veri olarak ele alınır', function () {
     expect(AuditSource::read('app/Support/Reporting/Export/CsvReportExporter.php'))
-        ->toContain('[=+\\-@]');
+        ->toContain('[=+\\\\-@]');
 });
 
 test('FILE-217 upload boyutu config max size ile sınırlandırılır', function () {
