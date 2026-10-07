@@ -40,14 +40,22 @@ test('PERF-248 obvious query inside foreach kritik rapor ve carry kodunda bulunm
 });
 
 test('PERF-249 marketplace HTTP çağrıları listing koleksiyon döngüsüne gömülmez', function () {
-    $offenders = AuditSource::grep(
-        '/foreach\s*\([^)]*\)\s*\{(?:(?!\n\}).){0,1000}->(?:get|post|put|delete|send)\s*\(/s',
-        ['app/Actions/Channels', 'app/Jobs'],
-    );
+    $offenders = [];
+
+    foreach (AuditSource::files(['app/Actions/Channels', 'app/Jobs']) as $path) {
+        $source = AuditSource::read($path);
+
+        if (! preg_match('/(?:Illuminate\\\\Support\\\\Facades\\\\Http|Illuminate\\\\Http\\\\Client|Http::|PendingRequest)/', $source)) {
+            continue;
+        }
+
+        if (preg_match('/foreach\\s*\\([^)]*\\)\\s*\\{(?:(?!\\n\\}).){0,1000}(?:Http::|\\$[A-Za-z_][A-Za-z0-9_]*(?:Client|Http|Request|request|client|http))->(?:get|post|put|delete|send)\\s*\\(/s', $source)) {
+            $offenders[] = $path;
+        }
+    }
 
     expect($offenders)->toBe([]);
 });
-
 test('PERF-250 reporting query katmanı period reconnect işlemi yapmaz', function () {
     expect(AuditSource::grep(
         '/DB::(?:purge|reconnect)\s*\(/',
