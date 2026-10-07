@@ -190,7 +190,7 @@ final class CopyRecordsBetweenCompanies
         $target = new Contact;
         $target->code = $code;
         $target->title = $source->title;
-        $target->type = $source->type->value;
+        $target->setAttribute('type', $source->type->value);
         $target->tax_office = $source->tax_office;
         $target->tax_number = $source->tax_number;
         $target->national_id = $source->national_id;
