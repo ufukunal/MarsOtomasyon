@@ -9,7 +9,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: quality-local-v10
+  group: quality-local-v11
   cancel-in-progress: true
 
 env:
@@ -178,7 +178,7 @@ jobs:
   quality:
     needs: prepare-host
     name: "R4 - Pint + Larastan + Build + Stock Coverage"
-    runs-on: [self-hosted, Linux, mars-ubuntu, mars-r4]
+    runs-on: [self-hosted, Linux, mars-ubuntu]
     env:
       DB_MASTER_DATABASE: MarsProject_Master_Test_R4
       MARS_PG_PORT: "55434"
