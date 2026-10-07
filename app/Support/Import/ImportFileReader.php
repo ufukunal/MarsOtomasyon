@@ -358,6 +358,7 @@ final class ImportFileReader
             0,
             count($header),
         );
+
         return array_combine($header, $values);
     }
 
