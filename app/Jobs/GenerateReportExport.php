@@ -5,9 +5,9 @@ namespace App\Jobs;
 use App\Actions\Reporting\ExportReport;
 use App\Models\ReportExportJob;
 use App\Models\User;
-use App\Support\Period\PeriodContext;
 use App\Support\Auth\PeriodPermissionContext;
 use App\Support\Operations\OperationalErrorSanitizer;
+use App\Support\Period\PeriodContext;
 use App\Support\Reporting\ReportRequest;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -49,8 +49,7 @@ class GenerateReportExport implements ShouldQueue
     public function handle(
         ExportReport $exportReport,
         OperationalErrorSanitizer $errors,
-    ): void
-    {
+    ): void {
         $job = ReportExportJob::query()
             ->whereKey($this->exportJobId)
             ->where('company_id', $this->companyId)
