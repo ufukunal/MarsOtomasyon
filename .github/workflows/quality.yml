@@ -252,14 +252,30 @@ jobs:
         run: bash scripts/ci/postgres.sh start 55434 "$DB_MASTER_DATABASE"
 
       - name: Phase 2 stock coverage
+        timeout-minutes: 10
         shell: bash
         run: |
           set -Eeuo pipefail
 
-          if php -m | grep -Eqi '^(pcov|xdebug)$'; then
-            vendor/bin/pest -c phpunit.stock.xml --coverage --min=90
+          STOCK_COVERAGE_TESTS=(
+            tests/Feature/Stock/Faz2BranchCoverageTest.php
+            tests/Feature/Stock/Faz2IntegrityTest.php
+            tests/Feature/Stock/Faz2SchemaIsolationTest.php
+            tests/Feature/Stock/Faz2StockFlowTest.php
+          )
+
+          # Faz2ConcurrencyTest uses pcntl_fork. It already runs in R2 without
+          # instrumentation; running forked workers under Xdebug can stall or
+          # multiply coverage overhead dramatically.
+          if php -m | grep -Eqi '^(pcov|xdebug)
+      - name: Stop isolated PostgreSQL
+        if: always()
+        shell: bash
+        run: bash scripts/ci/postgres.sh stop 55434
+; then
+            vendor/bin/pest -c phpunit.stock.xml "${STOCK_COVERAGE_TESTS[@]}" --coverage --min=90
           elif [[ -n "${XDEBUG_EXTENSION:-}" && -f "$XDEBUG_EXTENSION" ]]; then
-            php -d "zend_extension=$XDEBUG_EXTENSION" -d xdebug.mode=coverage vendor/bin/pest -c phpunit.stock.xml --coverage --min=90
+            php -d "zend_extension=$XDEBUG_EXTENSION" -d xdebug.mode=coverage               vendor/bin/pest -c phpunit.stock.xml "${STOCK_COVERAGE_TESTS[@]}" --coverage --min=90
           else
             echo "Coverage driver unavailable." >&2
             exit 1
