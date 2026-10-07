@@ -26,8 +26,8 @@ final class AuditSource
     }
 
     /**
-     * @param list<string> $roots
-     * @param list<string> $extensions
+     * @param  list<string>  $roots
+     * @param  list<string>  $extensions
      * @return list<string>
      */
     public static function files(array $roots, array $extensions = ['php']): array
@@ -39,6 +39,7 @@ final class AuditSource
 
             if (is_file($absolute)) {
                 $files[] = self::relative($absolute);
+
                 continue;
             }
 
@@ -72,8 +73,8 @@ final class AuditSource
     }
 
     /**
-     * @param list<string> $roots
-     * @param list<string> $excludePrefixes
+     * @param  list<string>  $roots
+     * @param  list<string>  $excludePrefixes
      * @return array<string, list<string>>
      */
     public static function grep(
@@ -140,8 +141,8 @@ final class AuditSource
     }
 
     /**
-     * @param list<string> $paths
-     * @param list<string> $required
+     * @param  list<string>  $paths
+     * @param  list<string>  $required
      */
     public static function missingStrings(array $paths, array $required): array
     {
@@ -158,8 +159,8 @@ final class AuditSource
     }
 
     /**
-     * @param list<string> $paths
-     * @param list<string> $forbidden
+     * @param  list<string>  $paths
+     * @param  list<string>  $forbidden
      * @return list<string>
      */
     public static function presentStrings(array $paths, array $forbidden): array
