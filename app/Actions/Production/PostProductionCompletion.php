@@ -405,8 +405,7 @@ final class PostProductionCompletion
         }
 
         $keys = array_values($keys);
-        usort($keys, static fn (array $left, array $right): int =>
-            $left[0] <=> $right[0] ?: $left[1] <=> $right[1]
+        usort($keys, static fn (array $left, array $right): int => $left[0] <=> $right[0] ?: $left[1] <=> $right[1]
         );
 
         foreach ($keys as [$productId, $locationId]) {
@@ -433,5 +432,4 @@ final class PostProductionCompletion
             }
         }
     }
-
 }
