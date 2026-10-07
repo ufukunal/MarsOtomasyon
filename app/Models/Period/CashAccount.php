@@ -11,7 +11,7 @@ class CashAccount extends PeriodModel
 {
     use HasOptimisticLock;
 
-    protected $fillable = ['code', 'name', 'currency', 'is_active', 'version'];
+    protected $fillable = ['code', 'name', 'currency', 'is_active'];
 
     protected static function booted(): void
     {
