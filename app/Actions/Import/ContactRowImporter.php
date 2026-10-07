@@ -33,23 +33,21 @@ final class ContactRowImporter
     {
         if (! empty($row['code'])) {
             $contact = new Contact;
-            $contact->forceFill([
-                'code' => strtoupper(trim((string) $row['code'])),
-                'title' => trim((string) $row['title']),
-                'type' => (string) ($row['type'] ?: 'legal'),
-                'tax_office' => $row['tax_office'] ?: null,
-                'tax_number' => $row['tax_number'] ?: null,
-                'national_id' => $row['national_id'] ?: null,
-                'address' => $row['address'] ?: null,
-                'city' => $row['city'] ?: null,
-                'district' => $row['district'] ?: null,
-                'phone' => $row['phone'] ?: null,
-                'email' => $row['email'] ?: null,
-                'term_days' => $row['term_days'] ?: null,
-                'risk_limit' => bcadd((string) ($row['risk_limit'] ?: '0'), '0', 4),
-                'discount_rate' => bcadd((string) ($row['discount_rate'] ?: '0'), '0', 4),
-                'is_active' => true,
-            ]);
+            $contact->code = strtoupper(trim((string) $row['code']));
+            $contact->title = trim((string) $row['title']);
+            $contact->type = (string) ($row['type'] ?: 'legal');
+            $contact->tax_office = $row['tax_office'] ?: null;
+            $contact->tax_number = $row['tax_number'] ?: null;
+            $contact->national_id = $row['national_id'] ?: null;
+            $contact->address = $row['address'] ?: null;
+            $contact->city = $row['city'] ?: null;
+            $contact->district = $row['district'] ?: null;
+            $contact->phone = $row['phone'] ?: null;
+            $contact->email = $row['email'] ?: null;
+            $contact->term_days = $row['term_days'] ?: null;
+            $contact->risk_limit = bcadd((string) ($row['risk_limit'] ?: '0'), '0', 4);
+            $contact->discount_rate = bcadd((string) ($row['discount_rate'] ?: '0'), '0', 4);
+            $contact->is_active = true;
             $contact->save();
 
             return $contact;
