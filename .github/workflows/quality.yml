@@ -9,7 +9,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: quality-local-v8
+  group: quality-local-v9
   cancel-in-progress: true
 
 env:
@@ -177,7 +177,7 @@ jobs:
 
   quality:
     needs: prepare-host
-    name: "R4 - Pint + Larastan + Build + Stock Tests"
+    name: "R4 - Pint + Larastan + Build + Stock Coverage"
     runs-on: [self-hosted, Linux, mars-ubuntu, mars-r4]
     env:
       DB_MASTER_DATABASE: MarsProject_Master_Test_R4
@@ -218,7 +218,37 @@ jobs:
         run: |
           set -Eeuo pipefail
 
-          if php -m | grep -Eqi '^(pcov|xdebug)        shell: bash
+          if php -m | grep -Eqi '^(pcov|xdebug)$'; then
+            echo "Coverage driver already available."
+            exit 0
+          fi
+
+          PHP_MM="$(php -r 'echo PHP_MAJOR_VERSION.".".PHP_MINOR_VERSION;')"
+          PHPIZE="$(command -v "phpize$PHP_MM" || command -v phpize)"
+          PHP_CONFIG="$(command -v "php-config$PHP_MM" || command -v php-config)"
+
+          BUILD_DIR="$RUNNER_TEMP/mars-pcov-build"
+          rm -rf "$BUILD_DIR"
+          mkdir -p "$BUILD_DIR"
+          cd "$BUILD_DIR"
+
+          pecl download pcov
+          ARCHIVE="$(find . -maxdepth 1 -type f -name 'pcov-*.tgz' -print -quit)"
+          test -n "$ARCHIVE"
+
+          tar -xzf "$ARCHIVE" --strip-components=1
+          "$PHPIZE"
+          ./configure --with-php-config="$PHP_CONFIG"
+          make -j"$(nproc)"
+
+          PCOV_SO="$(find "$BUILD_DIR" -type f -path '*/modules/pcov.so' -print -quit)"
+          test -f "$PCOV_SO"
+
+          echo "PCOV_EXTENSION=$PCOV_SO" >> "$GITHUB_ENV"
+          php -d "extension=$PCOV_SO" -d pcov.enabled=1 -m | grep -qi '^pcov$'
+
+      - name: Start isolated PostgreSQL
+        shell: bash
         run: bash scripts/ci/postgres.sh start 55434 "$DB_MASTER_DATABASE"
 
       - name: Phase 2 stock coverage
@@ -226,146 +256,13 @@ jobs:
         run: |
           set -Eeuo pipefail
 
-          if php -m | grep -Eqi '^(pcov|xdebug)
-      - name: Stop isolated PostgreSQL
-        if: always()
-        shell: bash
-        run: bash scripts/ci/postgres.sh stop 55434
-; then
-            echo "Coverage driver already available."
-            exit 0
-          fi
-
-          PHP_MM="$(php -r 'echo PHP_MAJOR_VERSION.".".PHP_MINOR_VERSION;')"
-          PHPIZE="$(command -v "phpize$PHP_MM" || command -v phpize)"
-          PHP_CONFIG="$(command -v "php-config$PHP_MM" || command -v php-config)"
-
-          BUILD_DIR="$RUNNER_TEMP/mars-pcov-build"
-          rm -rf "$BUILD_DIR"
-          mkdir -p "$BUILD_DIR"
-          cd "$BUILD_DIR"
-
-          pecl download pcov
-          ARCHIVE="$(find . -maxdepth 1 -type f -name 'pcov-*.tgz' -print -quit)"
-          test -n "$ARCHIVE"
-
-          tar -xzf "$ARCHIVE" --strip-components=1
-          "$PHPIZE"
-          ./configure --with-php-config="$PHP_CONFIG"
-          make -j"$(nproc)"
-
-          PCOV_SO="$(find "$BUILD_DIR" -type f -path '*/modules/pcov.so' -print -quit)"
-          test -f "$PCOV_SO"
-
-          echo "PCOV_EXTENSION=$PCOV_SO" >> "$GITHUB_ENV"
-          php -d "extension=$PCOV_SO" -d pcov.enabled=1 -m | grep -qi '^pcov        shell: bash
-        run: bash scripts/ci/postgres.sh start 55434 "$DB_MASTER_DATABASE"
-
-      - name: Phase 2 stock tests
-        shell: bash
-        run: |
           if php -m | grep -Eqi '^(pcov|xdebug)$'; then
-            vendor/bin/pest -c phpunit.stock.xml --coverage --min=90
-          else
-            echo "Coverage driver unavailable; running the complete stock suite without coverage gate."
-            vendor/bin/pest -c phpunit.stock.xml
-          fi
-
-      - name: Stop isolated PostgreSQL
-        if: always()
-        shell: bash
-        run: bash scripts/ci/postgres.sh stop 55434
-
-
-      - name: Start isolated PostgreSQL
-        shell: bash
-        run: bash scripts/ci/postgres.sh start 55434 "$DB_MASTER_DATABASE"
-
-      - name: Phase 2 stock tests
-        shell: bash
-        run: |
-          if php -m | grep -Eqi '^(pcov|xdebug)$'; then
-            vendor/bin/pest -c phpunit.stock.xml --coverage --min=90
-          else
-            echo "Coverage driver unavailable; running the complete stock suite without coverage gate."
-            vendor/bin/pest -c phpunit.stock.xml
-          fi
-
-      - name: Stop isolated PostgreSQL
-        if: always()
-        shell: bash
-        run: bash scripts/ci/postgres.sh stop 55434
-; then
             vendor/bin/pest -c phpunit.stock.xml --coverage --min=90
           elif [[ -n "${PCOV_EXTENSION:-}" && -f "$PCOV_EXTENSION" ]]; then
             php -d "extension=$PCOV_EXTENSION" -d pcov.enabled=1 vendor/bin/pest -c phpunit.stock.xml --coverage --min=90
           else
             echo "Coverage driver unavailable." >&2
             exit 1
-          fi
-
-      - name: Stop isolated PostgreSQL
-        if: always()
-        shell: bash
-        run: bash scripts/ci/postgres.sh stop 55434
-; then
-            echo "Coverage driver already available."
-            exit 0
-          fi
-
-          PHP_MM="$(php -r 'echo PHP_MAJOR_VERSION.".".PHP_MINOR_VERSION;')"
-          PHPIZE="$(command -v "phpize$PHP_MM" || command -v phpize)"
-          PHP_CONFIG="$(command -v "php-config$PHP_MM" || command -v php-config)"
-
-          BUILD_DIR="$RUNNER_TEMP/mars-pcov-build"
-          rm -rf "$BUILD_DIR"
-          mkdir -p "$BUILD_DIR"
-          cd "$BUILD_DIR"
-
-          pecl download pcov
-          ARCHIVE="$(find . -maxdepth 1 -type f -name 'pcov-*.tgz' -print -quit)"
-          test -n "$ARCHIVE"
-
-          tar -xzf "$ARCHIVE" --strip-components=1
-          "$PHPIZE"
-          ./configure --with-php-config="$PHP_CONFIG"
-          make -j"$(nproc)"
-
-          PCOV_SO="$(find "$BUILD_DIR" -type f -path '*/modules/pcov.so' -print -quit)"
-          test -f "$PCOV_SO"
-
-          echo "PCOV_EXTENSION=$PCOV_SO" >> "$GITHUB_ENV"
-          php -d "extension=$PCOV_SO" -d pcov.enabled=1 -m | grep -qi '^pcov        shell: bash
-        run: bash scripts/ci/postgres.sh start 55434 "$DB_MASTER_DATABASE"
-
-      - name: Phase 2 stock tests
-        shell: bash
-        run: |
-          if php -m | grep -Eqi '^(pcov|xdebug)$'; then
-            vendor/bin/pest -c phpunit.stock.xml --coverage --min=90
-          else
-            echo "Coverage driver unavailable; running the complete stock suite without coverage gate."
-            vendor/bin/pest -c phpunit.stock.xml
-          fi
-
-      - name: Stop isolated PostgreSQL
-        if: always()
-        shell: bash
-        run: bash scripts/ci/postgres.sh stop 55434
-
-
-      - name: Start isolated PostgreSQL
-        shell: bash
-        run: bash scripts/ci/postgres.sh start 55434 "$DB_MASTER_DATABASE"
-
-      - name: Phase 2 stock tests
-        shell: bash
-        run: |
-          if php -m | grep -Eqi '^(pcov|xdebug)$'; then
-            vendor/bin/pest -c phpunit.stock.xml --coverage --min=90
-          else
-            echo "Coverage driver unavailable; running the complete stock suite without coverage gate."
-            vendor/bin/pest -c phpunit.stock.xml
           fi
 
       - name: Stop isolated PostgreSQL
