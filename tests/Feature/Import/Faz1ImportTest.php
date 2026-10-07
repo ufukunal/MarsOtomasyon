@@ -7,6 +7,7 @@ use App\Models\Period\CardImportError;
 use App\Models\Period\Product;
 use App\Support\Import\ImportFileReader;
 use App\Support\Import\ImportRowImporterResolver;
+use App\Support\Operations\OperationalErrorSanitizer;
 use App\Support\Period\PeriodContext;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
@@ -56,7 +57,7 @@ it('1000 satırlık ürün CSV importunu eksiksiz tamamlar', function () {
     ]);
 
     $job = new ProcessCardImport($company->id, $period->id, $batch->id);
-    $job->handle(app(ImportFileReader::class), app(ImportRowImporterResolver::class));
+    $job->handle(app(ImportFileReader::class), app(ImportRowImporterResolver::class), app(OperationalErrorSanitizer::class));
 
     PeriodContext::use($company->id, $period->id);
 
@@ -90,7 +91,7 @@ it('hatalı satırı raporlar ve skip_invalid modunda geçerli satırı uygular'
     ]);
 
     (new ProcessCardImport($company->id, $period->id, $batch->id))
-        ->handle(app(ImportFileReader::class), app(ImportRowImporterResolver::class));
+        ->handle(app(ImportFileReader::class), app(ImportRowImporterResolver::class), app(OperationalErrorSanitizer::class));
 
     PeriodContext::use($company->id, $period->id);
     $batch->refresh();
@@ -151,7 +152,7 @@ it('tamamlanmış import jobu erken dönerken period contextini temizler', funct
     PeriodContext::clear();
 
     (new ProcessCardImport($company->id, $period->id, $batch->id))
-        ->handle(app(ImportFileReader::class), app(ImportRowImporterResolver::class));
+        ->handle(app(ImportFileReader::class), app(ImportRowImporterResolver::class), app(OperationalErrorSanitizer::class));
 
     expect(PeriodContext::companyId())->toBeNull()
         ->and(PeriodContext::periodId())->toBeNull()
