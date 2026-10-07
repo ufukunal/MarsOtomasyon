@@ -11,6 +11,7 @@ use App\Support\Auth\MutationAuthorizer;
 use App\Support\Import\ImportFileReader;
 use App\Support\Import\ImportMapping;
 use App\Support\Import\ImportRowImporterResolver;
+use App\Support\Operations\OperationalErrorSanitizer;
 use App\Support\Period\PeriodContext;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -27,7 +28,11 @@ class ProcessCardImport implements ShouldQueue
         public readonly string $batchId,
     ) {}
 
-    public function handle(ImportFileReader $reader, ImportRowImporterResolver $resolver): void
+    public function handle(
+        ImportFileReader $reader,
+        ImportRowImporterResolver $resolver,
+        OperationalErrorSanitizer $errors,
+    ): void
     {
         PeriodContext::useSystem($this->companyId, $this->periodId);
 
@@ -159,7 +164,7 @@ class ProcessCardImport implements ShouldQueue
                 $batch->update([
                     'status' => 'failed',
                     'finished_at' => now(),
-                    'failure_message' => $exception->getMessage(),
+                    'failure_message' => $errors->summarize($exception),
                 ]);
 
                 throw $exception;
