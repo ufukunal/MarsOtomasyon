@@ -10,7 +10,7 @@ test('FILE-211 upload validator yalnız configte izinli MIME tiplerini kabul ede
 
 test('FILE-212 extension MIME mismatch reddedilir', function () {
     expect(AuditSource::read('app/Support/Security/SecureUploadValidator.php'))
-        ->toContain("! in_array(\$extension, \$allowed, true)")
+        ->toContain('! in_array($extension, $allowed, true)')
         ->toContain('Dosya uzantısı içerik türüyle uyumlu değil.');
 });
 
