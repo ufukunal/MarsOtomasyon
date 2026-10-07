@@ -4,6 +4,8 @@ namespace App\Actions\Periods;
 
 use App\Models\Period;
 use App\Support\Audit\AuditContext;
+use App\Support\Period\PeriodContext;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\Gate;
 use InvalidArgumentException;
 
@@ -11,6 +13,10 @@ final class ReopenPeriod
 {
     public function handle(Period $period, string $reason): Period
     {
+        if ((int) PeriodContext::companyId() !== (int) $period->company_id) {
+            throw new AuthorizationException('Dönem yeniden açma yalnız aktif şirkete ait dönem için yapılabilir.');
+        }
+
         Gate::authorize('periods.reopen');
 
         $reason = trim($reason);

@@ -4,7 +4,9 @@ namespace App\Actions\Periods;
 
 use App\Models\Period;
 use App\Support\Audit\AuditContext;
+use App\Support\Period\PeriodContext;
 use App\Support\Period\SourcePeriodContext;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Schema;
@@ -13,6 +15,10 @@ final class ClosePeriod
 {
     public function handle(Period $period): Period
     {
+        if ((int) PeriodContext::companyId() !== (int) $period->company_id) {
+            throw new AuthorizationException('Dönem kapatma yalnız aktif şirkete ait dönem için yapılabilir.');
+        }
+
         Gate::authorize('periods.cancel');
 
         if ($period->status === 'archived') {

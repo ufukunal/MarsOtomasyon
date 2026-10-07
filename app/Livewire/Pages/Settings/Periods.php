@@ -8,6 +8,7 @@ use App\Jobs\CreatePeriodJob;
 use App\Livewire\Concerns\WithIdempotentMutations;
 use App\Models\Company;
 use App\Models\Period;
+use App\Support\Period\PeriodContext;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Gate;
 use Livewire\Component;
@@ -27,7 +28,7 @@ class Periods extends Component
         $this->seedMutationKeys(['createPeriod', 'close', 'reopen']);
         Gate::authorize('periods.view');
 
-        $this->companyId = auth()->user()?->last_company_id;
+        $this->companyId = PeriodContext::companyId();
         $this->year = now()->year + 1;
     }
 
@@ -40,7 +41,10 @@ class Periods extends Component
             'year' => ['required', 'integer', 'between:2000,2200'],
         ]);
 
-        $company = Company::query()->where('is_active', true)->findOrFail($validated['companyId']);
+        $company = Company::query()
+            ->whereKey((int) PeriodContext::companyId())
+            ->where('is_active', true)
+            ->findOrFail($validated['companyId']);
         $actorId = auth()->id();
 
         if (! $actorId) {
@@ -61,7 +65,11 @@ class Periods extends Component
 
     public function close(int $periodId, ClosePeriod $action): void
     {
-        $this->runMasterMutation('close', fn () => $action->handle(Period::query()->findOrFail($periodId)));
+        $this->runMasterMutation('close', fn () => $action->handle(
+            Period::query()
+                ->where('company_id', PeriodContext::companyId())
+                ->findOrFail($periodId),
+        ));
     }
 
     public function reopen(int $periodId, ReopenPeriod $action): void
@@ -69,7 +77,9 @@ class Periods extends Component
         $this->runMasterMutation(
             'reopen',
             fn () => $action->handle(
-                Period::query()->findOrFail($periodId),
+                Period::query()
+                    ->where('company_id', PeriodContext::companyId())
+                    ->findOrFail($periodId),
                 $this->reopenReason,
             ),
         );
@@ -79,15 +89,19 @@ class Periods extends Component
 
     public function render(): View
     {
+        $companyId = (int) PeriodContext::companyId();
         $periods = Period::query()
             ->with('company')
-            ->orderBy('company_id')
+            ->where('company_id', $companyId)
             ->orderByDesc('year')
             ->get();
 
         return view('livewire.pages.settings.periods', [
             'periods' => $periods,
-            'companies' => Company::query()->where('is_active', true)->orderBy('name')->get(),
+            'companies' => Company::query()
+                ->whereKey($companyId)
+                ->where('is_active', true)
+                ->get(),
         ])->layout('layouts.app', [
             'pageTitle' => 'Dönemler',
         ]);
