@@ -107,5 +107,4 @@ final class ChannelAutomationActorResolver
 
         return [];
     }
-
 }
