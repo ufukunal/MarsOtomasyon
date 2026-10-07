@@ -31,7 +31,7 @@ class Security extends PeriodModel
     protected $fillable = [
         'direction', 'kind', 'instrument_no', 'fingerprint', 'contact_id',
         'contact_transaction_id', 'endorsed_to_contact_id', 'bank_account_id', 'last_payroll_id', 'bank_name',
-        'issue_date', 'due_date', 'currency', 'amount', 'status', 'notes', 'version',
+        'issue_date', 'due_date', 'currency', 'amount', 'status', 'notes',
         'created_by', 'created_by_name',
     ];
 
