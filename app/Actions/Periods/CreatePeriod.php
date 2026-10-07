@@ -18,6 +18,10 @@ final class CreatePeriod
     {
         $dbName = sprintf('%s_%d', $company->db_prefix, $year);
 
+        if (! preg_match('/^[A-Za-z_][A-Za-z0-9_]*$/', $dbName)) {
+            throw new RuntimeException('Period database identifier geçersiz.');
+        }
+
         if (Period::query()->where('company_id', $company->id)->where('year', $year)->exists()
             || Period::query()->where('database_name', $dbName)->exists()) {
             throw new RuntimeException("{$dbName} zaten var.");
