@@ -9,7 +9,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: quality-local-v4
+  group: quality-local-v5
   cancel-in-progress: true
 
 env:
@@ -26,7 +26,7 @@ env:
 jobs:
   prepare-host:
     name: "Prepare local Ubuntu host"
-    runs-on: [self-hosted, Linux, mars-ubuntu, mars-r3]
+    runs-on: [self-hosted, Linux, mars-ubuntu, mars-r4]
     steps:
       - uses: actions/checkout@v4
 
@@ -132,9 +132,9 @@ jobs:
         run: bash scripts/ci/postgres.sh stop 55432
 
   manual-audit:
-    needs: prepare-host
+    needs: [prepare-host, foundation]
     name: "R3 - ManualAudit 273"
-    runs-on: [self-hosted, Linux, mars-ubuntu, mars-r3]
+    runs-on: [self-hosted, Linux, mars-ubuntu, mars-r1]
     env:
       DB_MASTER_DATABASE: MarsProject_Master_Test_R3
       MARS_PG_PORT: "55433"
