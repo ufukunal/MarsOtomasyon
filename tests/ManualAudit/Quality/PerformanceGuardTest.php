@@ -42,7 +42,7 @@ test('PERF-248 obvious query inside foreach kritik rapor ve carry kodunda bulunm
 test('PERF-249 marketplace HTTP çağrıları listing koleksiyon döngüsüne gömülmez', function () {
     $offenders = AuditSource::grep(
         '/foreach\s*\([^)]*\)\s*\{(?:(?!\n\}).){0,1000}->(?:get|post|put|delete|send)\s*\(/s',
-        ['app/Support/Channels'],
+        ['app/Actions/Channels', 'app/Jobs'],
     );
 
     expect($offenders)->toBe([]);
