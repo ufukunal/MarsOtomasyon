@@ -128,7 +128,8 @@ test('PAR-125 fillable lifecycle alanları version alanını istemciden açmaz',
     foreach (AuditSource::files(['app/Models']) as $path) {
         $source = AuditSource::read($path);
 
-        if (preg_match('/protected\s+\$fillable\s*=\s*\[[\s\S]*?[\'"]version[\'"][\s\S]*?\];/', $source)) {
+        if (preg_match('/protected\\s+\\$fillable\\s*=\\s*\\[([\\s\\S]*?)\\];/', $source, $fillable)
+            && preg_match('/[\'"]version[\'"]/', $fillable[1])) {
             $offenders[] = $path;
         }
     }
