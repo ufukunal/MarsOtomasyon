@@ -11,7 +11,7 @@ class BankAccount extends PeriodModel
 {
     use HasOptimisticLock;
 
-    protected $fillable = ['code', 'bank_name', 'account_name', 'iban', 'currency', 'is_active', 'version'];
+    protected $fillable = ['code', 'bank_name', 'account_name', 'iban', 'currency', 'is_active'];
 
     protected static function booted(): void
     {
