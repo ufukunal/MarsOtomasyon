@@ -34,7 +34,7 @@ class DocumentLine extends PeriodModel
         'document_id', 'line_no', 'line_kind', 'product_id', 'description', 'unit_id',
         'quantity', 'conversion_factor', 'base_quantity', 'location_id', 'unit_price',
         'line_discount_rate', 'line_discount_amount', 'vat_rate', 'line_total',
-        'reserve_stock', 'cancelled_quantity', 'configuration', 'source_line_id', 'version',
+        'reserve_stock', 'cancelled_quantity', 'configuration', 'source_line_id',
     ];
 
     protected static function booted(): void
