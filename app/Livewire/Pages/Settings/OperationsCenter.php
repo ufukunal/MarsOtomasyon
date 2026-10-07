@@ -101,6 +101,8 @@ final class OperationsCenter extends Component
         try {
             foreach ($companyIds as $companyId) {
                 CompanyContext::use($companyId);
+                $user->unsetRelation('roles');
+                $user->unsetRelation('permissions');
                 Gate::forUser($user)->authorize('companies.update');
             }
         } finally {
@@ -109,6 +111,9 @@ final class OperationsCenter extends Component
             } else {
                 CompanyContext::clear();
             }
+
+            $user->unsetRelation('roles');
+            $user->unsetRelation('permissions');
         }
     }
 
