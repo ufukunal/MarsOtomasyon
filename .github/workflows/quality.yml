@@ -167,6 +167,9 @@ jobs:
     needs: prepare-host
     name: "R3 - ManualAudit 273"
     runs-on: [self-hosted, Linux, mars-ubuntu, mars-r3]
+    env:
+      DB_MASTER_DATABASE: MarsProject_Master_Test_R3
+      MARS_PG_PORT: "55433"
     steps:
       - uses: actions/checkout@v4
 
