@@ -8,26 +8,19 @@ function transactionContract(string $path, array $required): void
         ->toBe([], "Transaction contract eksik: {$path}");
 }
 
-test('TX-043 document posting idempotent transaction sınırı ve row lock kullanır', fn () =>
-    transactionContract('app/Actions/Documents/PostDocument.php', ['IdempotencyKey::run(', 'lockForUpdate()']));
+test('TX-043 document posting idempotent transaction sınırı ve row lock kullanır', fn () => transactionContract('app/Actions/Documents/PostDocument.php', ['IdempotencyKey::run(', 'lockForUpdate()']));
 
-test('TX-044 document posting stock etkisini aynı orchestration içinde üretir', fn () =>
-    transactionContract('app/Actions/Documents/PostDocument.php', ['RecordStockMovement', 'VerifyPostedDocument']));
+test('TX-044 document posting stock etkisini aynı orchestration içinde üretir', fn () => transactionContract('app/Actions/Documents/PostDocument.php', ['RecordStockMovement', 'VerifyPostedDocument']));
 
-test('TX-045 document posting cari hareketini posting akışının içinde oluşturur', fn () =>
-    transactionContract('app/Actions/Documents/PostDocument.php', ['ContactTransaction::query()->create']));
+test('TX-045 document posting cari hareketini posting akışının içinde oluşturur', fn () => transactionContract('app/Actions/Documents/PostDocument.php', ['ContactTransaction::query()->create']));
 
-test('TX-046 tahsilat ödeme hareketleri posting akışının transaction sınırı içindedir', fn () =>
-    transactionContract('app/Actions/Documents/PostDocument.php', ['CashMovement::query()->create', 'BankMovement::query()->create']));
+test('TX-046 tahsilat ödeme hareketleri posting akışının transaction sınırı içindedir', fn () => transactionContract('app/Actions/Documents/PostDocument.php', ['CashMovement::query()->create', 'BankMovement::query()->create']));
 
-test('TX-047 reversal idempotent row lock ile orijinali sabitler', fn () =>
-    transactionContract('app/Actions/Documents/ReverseDocument.php', ['IdempotencyKey::run(', 'lockForUpdate()']));
+test('TX-047 reversal idempotent row lock ile orijinali sabitler', fn () => transactionContract('app/Actions/Documents/ReverseDocument.php', ['IdempotencyKey::run(', 'lockForUpdate()']));
 
-test('TX-048 finance transfer source ve target hareketini aynı period transactionında üretir', fn () =>
-    transactionContract('app/Actions/Finance/PostFinanceTransfer.php', ["DB::connection('period')->transaction", "'source' =>", "'target' =>"]));
+test('TX-048 finance transfer source ve target hareketini aynı period transactionında üretir', fn () => transactionContract('app/Actions/Finance/PostFinanceTransfer.php', ["DB::connection('period')->transaction", "'source' =>", "'target' =>"]));
 
-test('TX-049 stock hareketi balance ve cost satırlarını transaction altında günceller', fn () =>
-    transactionContract('app/Actions/Stock/RecordStockMovement.php', ["DB::connection('period')->transaction", 'lockForUpdate()']));
+test('TX-049 stock hareketi balance ve cost satırlarını transaction altında günceller', fn () => transactionContract('app/Actions/Stock/RecordStockMovement.php', ["DB::connection('period')->transaction", 'lockForUpdate()']));
 
 test('TX-050 reservation mutationları idempotency ve lock kullanır', function () {
     expect(AuditSource::missingStrings(
@@ -50,8 +43,7 @@ test('TX-052 return post ve reverse akışları idempotent belge lifecycle kulla
     ))->toBe([]);
 });
 
-test('TX-053 production completion period transaction ve locking taşır', fn () =>
-    transactionContract('app/Actions/Production/PostProductionCompletion.php', ["DB::connection('period')->transaction", 'lockForUpdate()']));
+test('TX-053 production completion period transaction ve locking taşır', fn () => transactionContract('app/Actions/Production/PostProductionCompletion.php', ["DB::connection('period')->transaction", 'lockForUpdate()']));
 
 test('TX-054 import finalize mutationı explicit period transaction kullanır', function () {
     $paths = [
@@ -64,8 +56,7 @@ test('TX-054 import finalize mutationı explicit period transaction kullanır', 
     expect($combined)->toContain("DB::connection('period')->transaction");
 });
 
-test('TX-055 channel order import transaction ve writable guard kullanır', fn () =>
-    transactionContract('app/Actions/Channels/ImportChannelOrder.php', ['PeriodContext::ensureWritable()', "DB::connection('period')->transaction"]));
+test('TX-055 channel order import transaction ve writable guard kullanır', fn () => transactionContract('app/Actions/Channels/ImportChannelOrder.php', ['PeriodContext::ensureWritable()', "DB::connection('period')->transaction"]));
 
 test('TX-056 cross database carry tek DB transactionı varmış gibi davranmaz', function () {
     $source = AuditSource::read('app/Actions/Periods/CarryPeriod.php');
