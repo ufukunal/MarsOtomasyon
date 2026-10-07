@@ -32,7 +32,7 @@ class ProcessCardImport implements ShouldQueue
     public function handle(
         ImportFileReader $reader,
         ImportRowImporterResolver $resolver,
-        OperationalErrorSanitizer $errors,
+        OperationalErrorSanitizer $sanitizer,
     ): void
     {
         PeriodPermissionContext::clear();
@@ -58,7 +58,7 @@ class ProcessCardImport implements ShouldQueue
                 $rows = $reader->rows($batch->source_disk, $batch->source_path, $batch->original_name);
                 $importer = $resolver->resolve($batch->type);
                 $validRows = [];
-                $errors = [];
+                $validationErrors = [];
 
                 foreach ($rows as $index => $sourceRow) {
                     $rowNo = $index + 2;
@@ -67,7 +67,7 @@ class ProcessCardImport implements ShouldQueue
 
                     if (! $validation->valid) {
                         foreach ($validation->errors as $column => $message) {
-                            $errors[] = [
+                            $validationErrors[] = [
                                 'batch_id' => $batch->id,
                                 'row_no' => $rowNo,
                                 'column_name' => (string) $column,
@@ -84,8 +84,8 @@ class ProcessCardImport implements ShouldQueue
                     $validRows[] = [$rowNo, $mapped];
                 }
 
-                if ($errors !== []) {
-                    CardImportError::query()->insert($errors);
+                if ($validationErrors !== []) {
+                    CardImportError::query()->insert($validationErrors);
                 }
 
                 if (($batch->type === 'opening_stock' || $batch->error_mode === 'cancel_all') && $errors !== []) {
@@ -93,7 +93,7 @@ class ProcessCardImport implements ShouldQueue
                         'status' => 'failed',
                         'total_rows' => count($rows),
                         'success_rows' => 0,
-                        'error_rows' => count(array_unique(array_column($errors, 'row_no'))),
+                        'error_rows' => count(array_unique(array_column($validationErrors, 'row_no'))),
                         'finished_at' => now(),
                         'failure_message' => 'Doğrulama hatası nedeniyle hiçbir satır uygulanmadı.',
                     ]);
@@ -176,7 +176,7 @@ class ProcessCardImport implements ShouldQueue
                     PeriodPermissionContext::clear();
                 }
 
-                $errorRowCount = count(array_unique(array_column($errors, 'row_no')));
+                $errorRowCount = count(array_unique(array_column($validationErrors, 'row_no')));
 
                 $batch->update([
                     'status' => 'done',
@@ -202,7 +202,7 @@ class ProcessCardImport implements ShouldQueue
                 $batch->update([
                     'status' => 'failed',
                     'finished_at' => now(),
-                    'failure_message' => $errors->summarize($exception),
+                    'failure_message' => $sanitizer->summarize($exception),
                 ]);
 
                 throw $exception;
