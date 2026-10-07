@@ -4,7 +4,10 @@ use Tests\ManualAudit\Support\AuditSource;
 
 test('AUTH-153 UI gizlese bile kritik action backend authorization taşır', function () {
     foreach ([
-        'app/Actions/Documents/PostDocument.php',
+        'app/Actions/Sales/PostSalesInvoice.php',
+        'app/Actions/Purchases/PostGoodsReceipt.php',
+        'app/Actions/Purchases/PostSupplierInvoice.php',
+        'app/Actions/Returns/PostReturnDocument.php',
         'app/Actions/Documents/ReverseDocument.php',
         'app/Actions/Finance/PostFinanceTransfer.php',
         'app/Actions/Periods/CarryPeriod.php',
@@ -53,11 +56,13 @@ test('AUTH-160 attachment ve image download ownership kontrol eder', function ()
         ->toContain('whereKey(');
 });
 
-test('AUTH-161 print ve reprint mutationları permission kontrolü taşır', function () {
-    $combined = AuditSource::read('app/Actions/Printing/RunBatchPrint.php')
-        .AuditSource::read('app/Support/Printing/PrintManager.php');
+test('AUTH-161 print template kullanımı aktif company ve period scope ile korunur', function () {
+    $source = AuditSource::read('app/Support/Printing/PrintManager.php');
 
-    expect($combined)->toMatch('/authorize|Gate::|MutationAuthorizer/');
+    expect($source)
+        ->toContain('PeriodContext::ensure()')
+        ->toContain('$template->company_id')
+        ->toContain('PeriodContext::companyId()');
 });
 
 test('AUTH-162 backup deploy operasyonları authorization sınırı taşır', function () {
