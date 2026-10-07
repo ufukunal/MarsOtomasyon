@@ -28,17 +28,31 @@ jobs:
     name: "Prepare local Ubuntu host"
     runs-on: [self-hosted, Linux, mars-ubuntu, mars-r1]
     steps:
-      - name: Prepare PostgreSQL CI role
+      - name: Ensure PostgreSQL server binaries
         shell: bash
         run: |
           set -Eeuo pipefail
-          sudo -n -u postgres true
-          if ! sudo -n -u postgres psql -d postgres -tAc "SELECT 1 FROM pg_roles WHERE rolname='github-runner'" | grep -qx 1; then
-            sudo -n -u postgres createuser --login --createdb github-runner
-          else
-            sudo -n -u postgres psql -d postgres -v ON_ERROR_STOP=1 -c 'ALTER ROLE "github-runner" WITH LOGIN CREATEDB;'
+          sudo -n true
+
+          if ! find /usr/lib/postgresql -maxdepth 2 -type f -name initdb -print -quit 2>/dev/null | grep -q .; then
+            sudo apt-get update -qq
+
+            PACKAGE=""
+            for candidate in postgresql-16 postgresql-17 postgresql-15 postgresql-14 postgresql; do
+              if apt-cache show "$candidate" >/dev/null 2>&1; then
+                PACKAGE="$candidate"
+                break
+              fi
+            done
+
+            [[ -n "$PACKAGE" ]] || { echo "No PostgreSQL server package available." >&2; exit 1; }
+            echo "Installing $PACKAGE"
+            sudo DEBIAN_FRONTEND=noninteractive apt-get install -y "$PACKAGE"
           fi
-          psql -h /var/run/postgresql -U github-runner -d postgres -tAc 'SELECT current_user;'
+
+          PG_INITDB="$(find /usr/lib/postgresql -maxdepth 2 -type f -name initdb -print -quit 2>/dev/null)"
+          [[ -n "$PG_INITDB" ]] || { echo "initdb is still unavailable after setup." >&2; exit 1; }
+          "$PG_INITDB" --version
 
       - name: Host toolchain summary
         shell: bash
@@ -89,17 +103,28 @@ jobs:
       - name: Unit tests
         run: vendor/bin/pest tests/Unit --display-warnings
 
-      - name: Reset test database
+      - name: Start isolated PostgreSQL
         shell: bash
-        run: |
-          set -Eeuo pipefail
-          dropdb --if-exists -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USERNAME" "$DB_MASTER_DATABASE"
-          createdb -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USERNAME" "$DB_MASTER_DATABASE"
+        run: bash scripts/ci/postgres.sh start 55431 "$DB_MASTER_DATABASE"
 
       - name: Foundation feature tests
         run: |
-          vendor/bin/pest             tests/Feature/Attachments             tests/Feature/Companies             tests/Feature/Concurrency             tests/Feature/Contacts             tests/Feature/Contracts             tests/Feature/Import             tests/Feature/Locations             tests/Feature/Period             tests/Feature/Pricing             --display-warnings
+          vendor/bin/pest \
+            tests/Feature/Attachments \
+            tests/Feature/Companies \
+            tests/Feature/Concurrency \
+            tests/Feature/Contacts \
+            tests/Feature/Contracts \
+            tests/Feature/Import \
+            tests/Feature/Locations \
+            tests/Feature/Period \
+            tests/Feature/Pricing \
+            --display-warnings
 
+      - name: Stop isolated PostgreSQL
+        if: always()
+        shell: bash
+        run: bash scripts/ci/postgres.sh stop 55431
 
   domain:
     needs: prepare-host
@@ -137,17 +162,26 @@ jobs:
       - name: Prepare environment
         run: cp .env.example .env
 
-      - name: Reset test database
+      - name: Start isolated PostgreSQL
         shell: bash
-        run: |
-          set -Eeuo pipefail
-          dropdb --if-exists -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USERNAME" "$DB_MASTER_DATABASE"
-          createdb -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USERNAME" "$DB_MASTER_DATABASE"
+        run: bash scripts/ci/postgres.sh start 55432 "$DB_MASTER_DATABASE"
 
       - name: Domain feature tests
         run: |
-          vendor/bin/pest             tests/Feature/Channels             tests/Feature/Printing             tests/Feature/Products             tests/Feature/Sales             tests/Feature/Security             tests/Feature/Stock             tests/Feature/Units             --display-warnings
+          vendor/bin/pest \
+            tests/Feature/Channels \
+            tests/Feature/Printing \
+            tests/Feature/Products \
+            tests/Feature/Sales \
+            tests/Feature/Security \
+            tests/Feature/Stock \
+            tests/Feature/Units \
+            --display-warnings
 
+      - name: Stop isolated PostgreSQL
+        if: always()
+        shell: bash
+        run: bash scripts/ci/postgres.sh stop 55432
 
   manual-audit:
     needs: prepare-host
@@ -182,15 +216,17 @@ jobs:
       - name: Prepare environment
         run: cp .env.example .env
 
-      - name: Reset test database
+      - name: Start isolated PostgreSQL
         shell: bash
-        run: |
-          set -Eeuo pipefail
-          dropdb --if-exists -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USERNAME" "$DB_MASTER_DATABASE"
-          createdb -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USERNAME" "$DB_MASTER_DATABASE"
+        run: bash scripts/ci/postgres.sh start 55433 "$DB_MASTER_DATABASE"
 
       - name: Manual integrity quality security suite
         run: vendor/bin/pest tests/ManualAudit --display-warnings
+
+      - name: Stop isolated PostgreSQL
+        if: always()
+        shell: bash
+        run: bash scripts/ci/postgres.sh stop 55433
 
   quality:
     needs: prepare-host
@@ -252,21 +288,21 @@ jobs:
       - name: Larastan
         run: vendor/bin/phpstan analyse --no-progress
 
-      - name: Reset test database
+      - name: Start isolated PostgreSQL
         shell: bash
-        run: |
-          set -Eeuo pipefail
-          dropdb --if-exists -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USERNAME" "$DB_MASTER_DATABASE"
-          createdb -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USERNAME" "$DB_MASTER_DATABASE"
+        run: bash scripts/ci/postgres.sh start 55434 "$DB_MASTER_DATABASE"
 
       - name: Phase 2 stock tests
         shell: bash
         run: |
-          if php -m | grep -Eqi '^(pcov|xdebug)$'; then
+          if php -m | grep -Eqi '^(pcov|xdebug); then
             vendor/bin/pest -c phpunit.stock.xml --coverage --min=90
           else
             echo "Coverage driver unavailable; running the complete stock suite without coverage gate."
             vendor/bin/pest -c phpunit.stock.xml
           fi
 
-
+      - name: Stop isolated PostgreSQL
+        if: always()
+        shell: bash
+        run: bash scripts/ci/postgres.sh stop 55434
