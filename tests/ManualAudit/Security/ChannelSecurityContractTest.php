@@ -44,7 +44,7 @@ test('CH-202 webhook girişlerinde platforma özgü authentication doğrulaması
 
 test('CH-203 WooCommerce webhook HMAC SHA256 doğrular', function () {
     expect(AuditSource::read('app/Http/Controllers/WooCommerceWebhookController.php'))
-        ->toContain("hash_hmac(")
+        ->toContain('hash_hmac(')
         ->toContain("'sha256'");
 });
 
