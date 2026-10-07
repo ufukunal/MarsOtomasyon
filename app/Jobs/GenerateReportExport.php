@@ -6,6 +6,7 @@ use App\Actions\Reporting\ExportReport;
 use App\Models\ReportExportJob;
 use App\Models\User;
 use App\Support\Period\PeriodContext;
+use App\Support\Auth\PeriodPermissionContext;
 use App\Support\Operations\OperationalErrorSanitizer;
 use App\Support\Reporting\ReportRequest;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -67,19 +68,19 @@ class GenerateReportExport implements ShouldQueue
             ->where('is_active', true)
             ->firstOrFail();
 
-        $hasAccess = DB::connection('master')
+        $hasCompanyAccess = DB::connection('master')
             ->table('company_user')
             ->where('company_id', $this->companyId)
             ->where('user_id', $this->userId)
-            ->exists()
-            && DB::connection('master')
-                ->table('period_user_access')
-                ->where('period_id', $this->periodId)
-                ->where('user_id', $this->userId)
-                ->where('is_active', true)
-                ->exists();
+            ->exists();
+        $periodAccess = DB::connection('master')
+            ->table('period_user_access')
+            ->where('period_id', $this->periodId)
+            ->where('user_id', $this->userId)
+            ->where('is_active', true)
+            ->first(['permission_overrides']);
 
-        if (! $hasAccess) {
+        if (! $hasCompanyAccess || ! $periodAccess) {
             throw new RuntimeException('Export sahibi şirket/dönem erişimini kaybetti.');
         }
 
@@ -91,7 +92,16 @@ class GenerateReportExport implements ShouldQueue
             'error_summary' => null,
         ]);
 
+        PeriodPermissionContext::clear();
         PeriodContext::useSystem($this->companyId, $this->periodId);
+
+        $overrides = $periodAccess->permission_overrides;
+
+        if (is_string($overrides)) {
+            $overrides = json_decode($overrides, true) ?: [];
+        }
+
+        PeriodPermissionContext::use(is_array($overrides) ? $overrides : []);
 
         try {
             $job->update(['progress' => 35]);
@@ -140,6 +150,7 @@ class GenerateReportExport implements ShouldQueue
 
             throw $exception;
         } finally {
+            PeriodPermissionContext::clear();
             PeriodContext::clear();
         }
     }
