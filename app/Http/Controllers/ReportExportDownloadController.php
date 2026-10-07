@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\ReportExportJob;
+use App\Support\Auth\PeriodPermissionContext;
 use App\Support\Period\PeriodContext;
 use App\Support\Reporting\ReportRegistry;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -28,22 +29,48 @@ final class ReportExportDownloadController
         }
 
         $periodId = (int) (($export->periods ?? [])[0] ?? 0);
-        $hasPeriodAccess = $periodId > 0 && DB::connection('master')
-            ->table('period_user_access')
-            ->where('period_id', $periodId)
-            ->where('user_id', $actor->id)
-            ->where('is_active', true)
-            ->exists();
+        $periodAccess = $periodId > 0
+            ? DB::connection('master')
+                ->table('period_user_access')
+                ->where('period_id', $periodId)
+                ->where('user_id', $actor->id)
+                ->where('is_active', true)
+                ->first(['permission_overrides'])
+            : null;
 
-        if (! $hasPeriodAccess) {
+        if (! $periodAccess) {
             throw new AuthorizationException('Export kaynak dönemine erişiminiz yok.');
         }
 
-        $definition = $registry->query($export->report_key)->definition();
-        Gate::forUser($actor)->authorize($definition->permission);
+        $currentPeriodId = (int) (PeriodContext::periodId() ?? 0);
+        $currentAccess = $currentPeriodId > 0
+            ? DB::connection('master')
+                ->table('period_user_access')
+                ->where('period_id', $currentPeriodId)
+                ->where('user_id', $actor->id)
+                ->where('is_active', true)
+                ->first(['permission_overrides'])
+            : null;
 
-        if ((bool) ($export->permission_scope['cost_view_required'] ?? false)) {
-            Gate::forUser($actor)->authorize('cost.view');
+        $sourceOverrides = $this->decodeOverrides($periodAccess->permission_overrides);
+        $currentOverrides = $this->decodeOverrides($currentAccess?->permission_overrides);
+
+        PeriodPermissionContext::clear();
+        PeriodPermissionContext::use($sourceOverrides);
+
+        try {
+            $definition = $registry->query($export->report_key)->definition();
+            Gate::forUser($actor)->authorize($definition->permission);
+
+            if ((bool) ($export->permission_scope['cost_view_required'] ?? false)) {
+                Gate::forUser($actor)->authorize('cost.view');
+            }
+        } finally {
+            PeriodPermissionContext::clear();
+
+            if ($currentAccess) {
+                PeriodPermissionContext::use($currentOverrides);
+            }
         }
 
         if ($export->status !== 'done' || ! $export->storage_disk || ! $export->storage_path) {
@@ -61,4 +88,15 @@ final class ReportExportDownloadController
 
         return $disk->download($export->storage_path, $filename);
     }
+
+    /** @return array<string,mixed> */
+    private function decodeOverrides(mixed $value): array
+    {
+        if (is_string($value)) {
+            $value = json_decode($value, true) ?: [];
+        }
+
+        return is_array($value) ? $value : [];
+    }
+
 }
