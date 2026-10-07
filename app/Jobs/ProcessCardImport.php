@@ -8,6 +8,7 @@ use App\Models\Period\CardImportError;
 use App\Models\User;
 use App\Support\Audit\AuditContext;
 use App\Support\Auth\MutationAuthorizer;
+use App\Support\Auth\PeriodPermissionContext;
 use App\Support\Import\ImportFileReader;
 use App\Support\Import\ImportMapping;
 use App\Support\Import\ImportRowImporterResolver;
@@ -34,6 +35,7 @@ class ProcessCardImport implements ShouldQueue
         OperationalErrorSanitizer $errors,
     ): void
     {
+        PeriodPermissionContext::clear();
         PeriodContext::useSystem($this->companyId, $this->periodId);
 
         try {
@@ -100,10 +102,43 @@ class ProcessCardImport implements ShouldQueue
                 }
 
                 $actor = $batch->created_by
-                    ? User::query()->findOrFail($batch->created_by)
+                    ? User::query()->where('is_active', true)->findOrFail($batch->created_by)
                     : null;
 
-                MutationAuthorizer::runAs($actor, function () use ($batch, $importer, $validRows): void {
+                if (! $actor) {
+                    throw new \Illuminate\Auth\Access\AuthorizationException(
+                        'İçe aktarma için aktif actor kullanıcı bulunamadı.',
+                    );
+                }
+
+                $hasCompanyAccess = DB::connection('master')
+                    ->table('company_user')
+                    ->where('company_id', $this->companyId)
+                    ->where('user_id', $actor->id)
+                    ->exists();
+                $periodAccess = DB::connection('master')
+                    ->table('period_user_access')
+                    ->where('period_id', $this->periodId)
+                    ->where('user_id', $actor->id)
+                    ->where('is_active', true)
+                    ->first(['permission_overrides']);
+
+                if (! $hasCompanyAccess || ! $periodAccess) {
+                    throw new \Illuminate\Auth\Access\AuthorizationException(
+                        'İçe aktarma actor kullanıcısının şirket/dönem erişimi artık aktif değil.',
+                    );
+                }
+
+                $overrides = $periodAccess->permission_overrides;
+
+                if (is_string($overrides)) {
+                    $overrides = json_decode($overrides, true) ?: [];
+                }
+
+                PeriodPermissionContext::use(is_array($overrides) ? $overrides : []);
+
+                try {
+                    MutationAuthorizer::runAs($actor, function () use ($batch, $importer, $validRows): void {
                     if ($batch->type === 'opening_stock') {
                         if ($batch->error_mode !== 'cancel_all') {
                             throw new \RuntimeException('Açılış stok importu yalnız tümünü iptal et modunda çalışır.');
@@ -136,7 +171,10 @@ class ProcessCardImport implements ShouldQueue
                             $importer->import($row);
                         }
                     });
-                });
+                    });
+                } finally {
+                    PeriodPermissionContext::clear();
+                }
 
                 $errorRowCount = count(array_unique(array_column($errors, 'row_no')));
 
@@ -170,6 +208,7 @@ class ProcessCardImport implements ShouldQueue
                 throw $exception;
             }
         } finally {
+            PeriodPermissionContext::clear();
             PeriodContext::clear();
         }
     }
