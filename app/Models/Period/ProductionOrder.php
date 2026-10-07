@@ -28,7 +28,7 @@ class ProductionOrder extends PeriodModel
         'number', 'document_date', 'product_id', 'recipe_id', 'recipe_revision_no',
         'planned_quantity', 'completed_quantity', 'cancelled_quantity', 'production_type',
         'subcontractor_contact_id', 'subcontractor_location_id', 'source_sales_order_id',
-        'status', 'notes', 'version', 'created_by', 'created_by_name',
+        'status', 'notes', 'created_by', 'created_by_name',
         'confirmed_by', 'confirmed_by_name',
     ];
 
@@ -59,7 +59,7 @@ class ProductionOrder extends PeriodModel
             }
 
             $allowed = [
-                'status', 'completed_quantity', 'cancelled_quantity', 'version',
+                'status', 'completed_quantity', 'cancelled_quantity',
                 'confirmed_by', 'confirmed_by_name', 'number', 'updated_at',
             ];
 
