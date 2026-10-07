@@ -10,7 +10,7 @@ class ProductionRecipeLine extends PeriodModel
 {
     protected $fillable = [
         'production_recipe_id', 'component_product_id', 'unit_id',
-        'quantity', 'base_quantity', 'conversion_factor', 'version',
+        'quantity', 'base_quantity', 'conversion_factor',
     ];
 
     protected function casts(): array
