@@ -54,3 +54,20 @@ the overall repeated run FAILED.
 Sequential execution increases wall time compared with running the four
 runners in parallel. Infrastructure health monitoring is a separate
 scheduled check and may run independently of quality verification.
+
+## Completed maintenance — 2026-10-08
+
+The authorized, guarded test-only maintenance workflow [#37847090664](https://github.com/ufukunal/MarsOtomasyon/actions/runs/37847090664) completed successfully. Runtime output showed:
+
+- Root LV `/dev/ubuntu-vg/ubuntu-lv`: increased online from <49 GiB to <98 GiB with `lvextend --resizefs`, retaining ext4 root filesystem and test volumes.
+- Root filesystem `df -hT /`: **97G total, 8.0G used, 84G available (9%)**, previously 48G total at 18% used.
+- Volume group `ubuntu-vg`: **0 free extents** after expansion (the planned ~49 GiB was assigned to root).
+- PostgreSQL `mars-test-postgres` restart and test-only persisted row: **PASS**.
+- Valkey `mars-test-valkey` restart and persisted AOF test key: **PASS**.
+- Both Docker volume existence and `unless-stopped` restart policies: **PASS**.
+- Authenticated PostgreSQL/Valkey health, Docker, disk and memory monitoring: **PASS**.
+- The one-time privileged workflow was deleted from the active maintenance branch immediately after successful execution.
+
+A **whole-VM reboot/autostart verification has not been performed**. It remains a separate planned service interruption in [issue #1](https://github.com/ufukunal/MarsOtomasyon/issues/1). Do not interpret container-level restart success as whole-node reboot evidence.
+
+New full R1–R4 quality verification should be performed after maintenance before considering this operational change closed.
