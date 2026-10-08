@@ -5,6 +5,9 @@ if [[ "${EUID}" -ne 0 ]] || [[ "$(hostname)" != ufukmarsprod ]] ||
    ! ip -4 addr show tailscale0 | grep -q '100.127.235.30/32'; then
   echo "Refusing LVM changes: unexpected identity or privileges" >&2; exit 2
 fi
+# This privileged filesystem change must use a root-owned local file.
+[[ ! -L "$0" && "$(stat -c %u "$0")" == 0 ]] ||
+  { echo "Install a root-owned expansion script first" >&2; exit 2; }
 lv=/dev/ubuntu-vg/ubuntu-lv
 [[ "$(findmnt -no SOURCE /)" == /dev/mapper/ubuntu--vg-ubuntu--lv ]] ||
   { echo "Unexpected root mount" >&2; exit 2; }

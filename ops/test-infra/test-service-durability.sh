@@ -5,11 +5,24 @@ if [[ "${EUID}" -ne 0 || "$(hostname)" != ufukmarsprod ]] ||
    ! ip -4 addr show tailscale0 | grep -q '100.127.235.30/32'; then
   echo "Incorrect target host/privileges" >&2; exit 2
 fi
+# Never execute a maintenance script from a user-writable checkout as root.
+[[ ! -L "$0" && "$(stat -c %u "$0")" == 0 ]] ||
+  { echo "Install a root-owned maintenance script first" >&2; exit 2; }
+# The credential file belongs to ufuk; parse its values as data, not shell commands.
 secrets=/home/ufuk/.config/mars-test-infra/secrets.env
-[[ -r "$secrets" ]] || { echo "Missing test-only credentials" >&2; exit 2; }
-set -a
-source "$secrets"
-set +a
+[[ -f "$secrets" && ! -L "$secrets" && -r "$secrets" ]] ||
+  { echo "Missing or unsafe test-only credentials file" >&2; exit 2; }
+read_config_value() {
+  local key="$1"
+  sed -n "s/^${key}=//p" "$secrets"
+}
+MARS_BIND_IP="$(read_config_value MARS_BIND_IP)"
+MARS_PG_PASSWORD="$(read_config_value MARS_PG_PASSWORD)"
+MARS_VALKEY_PASSWORD="$(read_config_value MARS_VALKEY_PASSWORD)"
+[[ "$MARS_BIND_IP" == 100.127.235.30 ]] ||
+  { echo "Unexpected test service bind address" >&2; exit 2; }
+[[ "$MARS_PG_PASSWORD" =~ ^[a-fA-F0-9]{64}$ && "$MARS_VALKEY_PASSWORD" =~ ^[a-fA-F0-9]{64}$ ]] ||
+  { echo "Invalid test-only credential format" >&2; exit 2; }
 export PGPASSWORD="$MARS_PG_PASSWORD"
 export REDISCLI_AUTH="$MARS_VALKEY_PASSWORD"
 psqltest() {

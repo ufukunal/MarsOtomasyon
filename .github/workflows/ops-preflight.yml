@@ -4,6 +4,8 @@ on:
     branches: [ops/maintenance-5-11]
     paths:
       - '.github/workflows/ops-preflight.yml'
+      - 'ops/test-infra/test-service-durability.sh'
+      - 'ops/test-infra/extend-root-lvm.sh'
   workflow_dispatch:
 permissions:
   contents: read
