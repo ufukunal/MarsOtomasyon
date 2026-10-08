@@ -1,6 +1,7 @@
 name: Quality - 4 Self Hosted Runners
 
 on:
+  workflow_call:
   push:
     branches: [main]
   workflow_dispatch:
@@ -9,8 +10,8 @@ permissions:
   contents: read
 
 concurrency:
-  group: quality-local-v11
-  cancel-in-progress: true
+  group: quality-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
 
 env:
   APP_ENV: testing
@@ -21,7 +22,7 @@ env:
   CACHE_STORE: array
   SESSION_DRIVER: array
   QUEUE_CONNECTION: sync
-  XDEBUG_MODE: coverage
+  XDEBUG_MODE: off
 
 jobs:
   prepare-host:
@@ -58,7 +59,6 @@ jobs:
     runs-on: [self-hosted, Linux, mars-ubuntu, mars-r1]
     env:
       DB_MASTER_DATABASE: MarsProject_Master_Test_R1
-      MARS_PG_PORT: "55431"
     steps:
       - uses: actions/checkout@v4
 
@@ -100,7 +100,6 @@ jobs:
     runs-on: [self-hosted, Linux, mars-ubuntu, mars-r2]
     env:
       DB_MASTER_DATABASE: MarsProject_Master_Test_R2
-      MARS_PG_PORT: "55432"
     steps:
       - uses: actions/checkout@v4
 
@@ -137,7 +136,6 @@ jobs:
     runs-on: [self-hosted, Linux, mars-ubuntu, mars-r3]
     env:
       DB_MASTER_DATABASE: MarsProject_Master_Test_R3
-      MARS_PG_PORT: "55433"
     steps:
       - uses: actions/checkout@v4
 
@@ -165,7 +163,6 @@ jobs:
     runs-on: [self-hosted, Linux, mars-ubuntu, mars-r4]
     env:
       DB_MASTER_DATABASE: MarsProject_Coverage_Test
-      MARS_PG_PORT: "55444"
     steps:
       - uses: actions/checkout@v4
 

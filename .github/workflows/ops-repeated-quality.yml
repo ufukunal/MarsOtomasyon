@@ -1,0 +1,21 @@
+name: OPS - Three Full Local Runner Quality Passes
+on:
+  workflow_dispatch:
+  push:
+    branches: [ops/maintenance-5-11]
+    paths:
+      - '.github/workflows/ops-repeated-quality.yml'
+permissions:
+  contents: read
+jobs:
+  pass-1:
+    name: "Quality pass 1 of 3"
+    uses: ./.github/workflows/quality.yml
+  pass-2:
+    name: "Quality pass 2 of 3"
+    needs: pass-1
+    uses: ./.github/workflows/quality.yml
+  pass-3:
+    name: "Quality pass 3 of 3"
+    needs: pass-2
+    uses: ./.github/workflows/quality.yml

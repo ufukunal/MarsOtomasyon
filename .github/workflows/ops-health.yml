@@ -1,0 +1,29 @@
+name: OPS - Permanent Test Infrastructure Health
+on:
+  schedule:
+    - cron: '17 * * * *'
+  workflow_dispatch:
+  push:
+    branches: [ops/maintenance-5-11]
+    paths:
+      - '.github/workflows/ops-health.yml'
+      - 'scripts/ci/health-test-infra.sh'
+permissions:
+  contents: read
+concurrency:
+  group: ops-permanent-infra-health
+  cancel-in-progress: false
+jobs:
+  health:
+    name: PostgreSQL + Valkey + Docker + disk + memory
+    runs-on: [self-hosted, Linux, mars-ubuntu, mars-r3]
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check permanent VM services and capacity
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          bash -n scripts/ci/remote-test-services.sh
+          bash -n scripts/ci/health-test-infra.sh
+          bash scripts/ci/health-test-infra.sh
