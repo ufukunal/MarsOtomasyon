@@ -197,39 +197,42 @@ jobs:
       - name: Larastan
         run: vendor/bin/phpstan analyse --no-progress
 
-      - name: Prepare local Xdebug coverage driver
+      - name: Verify reusable PCOV coverage driver
         shell: bash
         run: |
           set -Eeuo pipefail
-
-          if php -m | grep -Eqi '^(pcov|xdebug)$'; then
-            echo "Coverage driver already available."
-            exit 0
+          # PCOV's fast line coverage is compatible with the --min=90 gate.
+          # Build it at most once per PHP version in the runner's persistent home.
+          if php -m | grep -Eqi '^pcov$'; then
+            php -d pcov.enabled=1 -r 'exit(extension_loaded("pcov") && ini_get("pcov.enabled") ? 0 : 1);'
+            echo 'PCOV_EXTENSION=' >> "$GITHUB_ENV"
+            echo 'System PCOV available.'
+          else
+            PHP_MM="$(php -r 'echo PHP_MAJOR_VERSION.".".PHP_MINOR_VERSION;')"
+            CACHE="$HOME/.cache/mars-pcov/php-$PHP_MM"
+            SO="$CACHE/pcov.so"
+            if ! php -d "extension=$SO" -d pcov.enabled=1 -r 'exit(extension_loaded("pcov") && ini_get("pcov.enabled") ? 0 : 1);' >/dev/null 2>&1; then
+              mkdir -p "$CACHE"
+              BUILD_DIR="$RUNNER_TEMP/mars-pcov-build"
+              mkdir -p "$BUILD_DIR"
+              cd "$BUILD_DIR"
+              PHPIZE="$(command -v "phpize$PHP_MM" || command -v phpize)"
+              PHP_CONFIG="$(command -v "php-config$PHP_MM" || command -v php-config)"
+              pecl download pcov
+              ARCHIVE="$(find . -maxdepth 1 -name 'pcov-*.tgz' -type f -print -quit)"
+              test -f "$ARCHIVE"
+              tar xzf "$ARCHIVE" --strip-components=1
+              "$PHPIZE"
+              ./configure --with-php-config="$PHP_CONFIG"
+              make -j"$(nproc)"
+              BUILT_SO="$(find "$BUILD_DIR" -type f -path '*/modules/pcov.so' -print -quit)"
+              test -f "$BUILT_SO"
+              install -m 0644 "$BUILT_SO" "$SO"
+            fi
+            php -d "extension=$SO" -d pcov.enabled=1 -r 'exit(extension_loaded("pcov") && ini_get("pcov.enabled") ? 0 : 1);'
+            echo "PCOV_EXTENSION=$SO" >> "$GITHUB_ENV"
+            echo 'Cached PCOV verified.'
           fi
-
-          PHP_MM="$(php -r 'echo PHP_MAJOR_VERSION.".".PHP_MINOR_VERSION;')"
-          PHPIZE="$(command -v "phpize$PHP_MM" || command -v phpize)"
-          PHP_CONFIG="$(command -v "php-config$PHP_MM" || command -v php-config)"
-
-          BUILD_DIR="$RUNNER_TEMP/mars-xdebug-build"
-          rm -rf "$BUILD_DIR"
-          mkdir -p "$BUILD_DIR"
-          cd "$BUILD_DIR"
-
-          pecl download xdebug
-          ARCHIVE="$(find . -maxdepth 1 -type f -name 'xdebug-*.tgz' -print -quit)"
-          test -n "$ARCHIVE"
-
-          tar -xzf "$ARCHIVE" --strip-components=1
-          "$PHPIZE"
-          ./configure --with-php-config="$PHP_CONFIG"
-          make -j"$(nproc)"
-
-          XDEBUG_SO="$(find "$BUILD_DIR" -type f -path '*/modules/xdebug.so' -print -quit)"
-          test -f "$XDEBUG_SO"
-
-          echo "XDEBUG_EXTENSION=$XDEBUG_SO" >> "$GITHUB_ENV"
-          php -d "zend_extension=$XDEBUG_SO" -d xdebug.mode=coverage -m | grep -qi '^xdebug$'
 
       - name: Verify permanent PostgreSQL and Valkey
         shell: bash
@@ -248,16 +251,12 @@ jobs:
             tests/Feature/Stock/Faz2StockFlowTest.php
           )
 
-          # R2 executes the complete Stock feature suite, including concurrency.
-          # R4 excludes only Faz2ConcurrencyTest because pcntl_fork under Xdebug
-          # causes pathological coverage slowdown; all non-fork stock tests
-          # contribute to the 90% coverage gate.
-          if php -m | grep -Eqi '^(pcov|xdebug)$'; then
-            vendor/bin/pest -c phpunit.stock.xml "${STOCK_COVERAGE_TESTS[@]}" --coverage --min=90
-          elif [[ -n "${XDEBUG_EXTENSION:-}" && -f "$XDEBUG_EXTENSION" ]]; then
-            php -d "zend_extension=$XDEBUG_EXTENSION" -d xdebug.mode=coverage vendor/bin/pest -c phpunit.stock.xml "${STOCK_COVERAGE_TESTS[@]}" --coverage --min=90
-          else
-            echo "Coverage driver unavailable." >&2
-            exit 1
+          # R2 runs all Stock tests including the pcntl_fork concurrency suite.
+          # R4 measures the complete non-fork Stock suite with genuine line coverage.
+          FLAGS=()
+          if [[ -n "${PCOV_EXTENSION:-}" ]]; then
+            test -s "$PCOV_EXTENSION"
+            FLAGS=(-d "extension=$PCOV_EXTENSION")
           fi
+          XDEBUG_MODE=off php "${FLAGS[@]}" -d pcov.enabled=1 -d "pcov.directory=$GITHUB_WORKSPACE/app/Actions/Stock" vendor/bin/pest -c phpunit.stock.xml "${STOCK_COVERAGE_TESTS[@]}" --coverage --min=90
 
