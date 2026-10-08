@@ -34,3 +34,23 @@ Inspect the exact failing job and runner label. Determine whether the failure is
 
 ## Excluded tasks 1–4
 Do **not** change Tailscale Funnel, temporary administrator secret cleanup, PostgreSQL access roles, or automated database backups in this change set.
+
+## Fully sequential quality execution
+
+The single source of truth is `.github/workflows/quality.yml`:
+`prepare-host -> foundation (R1) -> domain (R2) -> manual-audit (R3) -> quality (R4)`.
+Each stage waits for the prior job to finish; no R1–R4 jobs run concurrently
+within a single quality invocation. Later stages use `if: !cancelled()`
+to execute despite an earlier test failure, ensuring a complete diagnosis;
+GitHub still marks the invocation FAILED if any stage fails.
+
+The three-round repeated suite is sequential as well:
+`pass-1 -> pass-2 -> pass-3`. Each pass contains the same four-runner
+serial chain and maintains the actual stock coverage gate `--min=90`.
+All rounds run unless explicitly cancelled, even if a previous round fails,
+so intermittent failures can be identified. A failure in any round makes
+the overall repeated run FAILED.
+
+Sequential execution increases wall time compared with running the four
+runners in parallel. Infrastructure health monitoring is a separate
+scheduled check and may run independently of quality verification.

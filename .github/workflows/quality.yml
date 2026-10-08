@@ -95,7 +95,8 @@ jobs:
 
 
   domain:
-    needs: prepare-host
+    needs: foundation
+    if: ${{ !cancelled() }}
     name: "R2 - Domain Feature"
     runs-on: [self-hosted, Linux, mars-ubuntu, mars-r2]
     env:
@@ -131,7 +132,8 @@ jobs:
 
 
   manual-audit:
-    needs: prepare-host
+    needs: domain
+    if: ${{ !cancelled() }}
     name: "R3 - ManualAudit 273"
     runs-on: [self-hosted, Linux, mars-ubuntu, mars-r3]
     env:
@@ -158,7 +160,8 @@ jobs:
 
 
   quality:
-    needs: prepare-host
+    needs: manual-audit
+    if: ${{ !cancelled() }}
     name: "R4 - Pint + Larastan + Build + Stock Coverage"
     runs-on: [self-hosted, Linux, mars-ubuntu, mars-r4]
     env:

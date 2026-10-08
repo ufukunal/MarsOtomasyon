@@ -14,8 +14,10 @@ jobs:
   pass-2:
     name: "Quality pass 2 of 3"
     needs: pass-1
+    if: ${{ !cancelled() }}
     uses: ./.github/workflows/quality.yml
   pass-3:
     name: "Quality pass 3 of 3"
     needs: pass-2
+    if: ${{ !cancelled() }}
     uses: ./.github/workflows/quality.yml
