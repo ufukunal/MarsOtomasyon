@@ -4,6 +4,11 @@ on:
     branches: [ops/maintenance-5-11]
     paths:
       - '.github/workflows/ops-checks.yml'
+      - 'scripts/ci/*.sh'
+      - 'ops/test-infra/*.sh'
+      - '.github/workflows/quality.yml'
+      - '.github/workflows/ops-health.yml'
+      - '.github/workflows/ops-repeated-quality.yml'
   workflow_dispatch:
 permissions:
   contents: read
