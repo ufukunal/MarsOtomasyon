@@ -178,7 +178,7 @@ jobs:
   quality:
     needs: prepare-host
     name: "R4 - Pint + Larastan + Build + Stock Coverage"
-    runs-on: [self-hosted, Linux, mars-ubuntu]
+    runs-on: [self-hosted, Linux, mars-ubuntu, mars-r4]
     env:
       DB_MASTER_DATABASE: MarsProject_Master_Test_R4
       MARS_PG_PORT: "55444"
@@ -259,13 +259,11 @@ jobs:
 
           STOCK_COVERAGE_TESTS=(
             tests/Feature/Stock/Faz2BranchCoverageTest.php
-            tests/Feature/Stock/Faz2IntegrityTest.php
-            tests/Feature/Stock/Faz2SchemaIsolationTest.php
-            tests/Feature/Stock/Faz2StockFlowTest.php
           )
 
-          # Faz2ConcurrencyTest uses pcntl_fork and is already exercised in R2.
-          # Keep forked workers out of Xdebug coverage to avoid pathological slowdown.
+          # R2 already executes the complete Stock feature suite, including
+          # concurrency, integrity, schema isolation and stock-flow tests.
+          # R4 only runs the dedicated branch-coverage suite under Xdebug.
           if php -m | grep -Eqi '^(pcov|xdebug)$'; then
             vendor/bin/pest -c phpunit.stock.xml "${STOCK_COVERAGE_TESTS[@]}" --coverage --min=90
           elif [[ -n "${XDEBUG_EXTENSION:-}" && -f "$XDEBUG_EXTENSION" ]]; then
