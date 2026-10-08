@@ -1,0 +1,52 @@
+name: OPS - LVM and Service Durability Preflight
+on:
+  push:
+    branches: [ops/maintenance-5-11]
+    paths:
+      - '.github/workflows/ops-preflight.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  preflight:
+    name: Non-disruptive VM storage and service checks
+    runs-on: [self-hosted, Linux, mars-ubuntu, mars-r3]
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check scripts, live PostgreSQL, Valkey and disk
+        run: |
+          set -Eeuo pipefail
+          bash -n ops/test-infra/extend-root-lvm.sh
+          bash -n ops/test-infra/test-service-durability.sh
+          bash scripts/ci/health-test-infra.sh
+          echo 'SCRIPT_SYNTAX_AND_AUTHENTICATED_SERVICE_PROBES_PASS'
+      - name: Check root filesystem, LVM geometry and docker volumes without mutation
+        env:
+          MARS_TEST_SUDO_PASSWORD: ${{ secrets.MARS_TEST_SUDO_PASSWORD }}
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          : "${MARS_TEST_SUDO_PASSWORD:?Required pre-existing test VM read-only privilege credential unavailable}"
+          opts=(-o BatchMode=yes -o ConnectTimeout=7 -o PasswordAuthentication=no -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile="$RUNNER_TEMP/mars-preflight-hostkey" -o LogLevel=ERROR)
+          host=ufuk@100.127.235.30
+          ssh "${opts[@]}" "$host" 'bash -s' <<'REMOTE'
+          set -Eeuo pipefail
+          [[ "$(hostname)" == ufukmarsprod ]] || exit 10
+          [[ "$(findmnt -no FSTYPE /)" == ext4 ]] || exit 11
+          [[ "$(findmnt -no SOURCE /)" == /dev/mapper/ubuntu--vg-ubuntu--lv ]] || exit 12
+          [[ "$(systemctl is-active docker)" == active ]] || exit 13
+          [[ "$(systemctl is-enabled docker)" == enabled ]] || exit 14
+          echo '=== HOST / ROOT ==='
+          hostname
+          lsblk -o NAME,SIZE,TYPE,MOUNTPOINTS
+          df -hT /
+          echo '=== SERVICE TCP ==='
+          ss -H -lnt '( sport = :55432 or sport = :6379 )'
+          echo 'ROOT_AND_DOCKER_UNPRIVILEGED_PREFLIGHT_OK'
+          REMOTE
+          printf '%s\n' "$MARS_TEST_SUDO_PASSWORD" | ssh "${opts[@]}" "$host" "sudo -S -p '' vgs --noheadings --units m --nosuffix -o vg_name,vg_size,vg_free ubuntu-vg"
+          printf '%s\n' "$MARS_TEST_SUDO_PASSWORD" | ssh "${opts[@]}" "$host" "sudo -S -p '' lvs --noheadings -o lv_path,lv_size,lv_attr ubuntu-vg"
+          printf '%s\n' "$MARS_TEST_SUDO_PASSWORD" | ssh "${opts[@]}" "$host" "sudo -S -p '' docker inspect --format '{{.Name}} {{.State.Health.Status}} {{.HostConfig.RestartPolicy.Name}}' mars-test-postgres mars-test-valkey"
+          printf '%s\n' "$MARS_TEST_SUDO_PASSWORD" | ssh "${opts[@]}" "$host" "sudo -S -p '' docker volume inspect --format '{{.Name}} {{.Driver}}' mars-test-services_postgres_data mars-test-services_valkey_data"
+          echo 'STORAGE_AND_DOCKER_PREFLIGHT_PASS'
