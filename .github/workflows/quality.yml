@@ -252,18 +252,22 @@ jobs:
         run: bash scripts/ci/postgres.sh start 55444 "$DB_MASTER_DATABASE"
 
       - name: Phase 2 stock coverage
-        timeout-minutes: 10
+        timeout-minutes: 45
         shell: bash
         run: |
           set -Eeuo pipefail
 
           STOCK_COVERAGE_TESTS=(
             tests/Feature/Stock/Faz2BranchCoverageTest.php
+            tests/Feature/Stock/Faz2IntegrityTest.php
+            tests/Feature/Stock/Faz2SchemaIsolationTest.php
+            tests/Feature/Stock/Faz2StockFlowTest.php
           )
 
-          # R2 already executes the complete Stock feature suite, including
-          # concurrency, integrity, schema isolation and stock-flow tests.
-          # R4 only runs the dedicated branch-coverage suite under Xdebug.
+          # R2 executes the complete Stock feature suite, including concurrency.
+          # R4 excludes only Faz2ConcurrencyTest because pcntl_fork under Xdebug
+          # causes pathological coverage slowdown; all non-fork stock tests
+          # contribute to the 90% coverage gate.
           if php -m | grep -Eqi '^(pcov|xdebug)$'; then
             vendor/bin/pest -c phpunit.stock.xml "${STOCK_COVERAGE_TESTS[@]}" --coverage --min=90
           elif [[ -n "${XDEBUG_EXTENSION:-}" && -f "$XDEBUG_EXTENSION" ]]; then
