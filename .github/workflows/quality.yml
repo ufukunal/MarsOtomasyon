@@ -181,7 +181,7 @@ jobs:
     runs-on: [self-hosted, Linux, mars-ubuntu]
     env:
       DB_MASTER_DATABASE: MarsProject_Master_Test_R4
-      MARS_PG_PORT: "55434"
+      MARS_PG_PORT: "55444"
     steps:
       - uses: actions/checkout@v4
 
@@ -249,7 +249,7 @@ jobs:
 
       - name: Start isolated PostgreSQL
         shell: bash
-        run: bash scripts/ci/postgres.sh start 55434 "$DB_MASTER_DATABASE"
+        run: bash scripts/ci/postgres.sh start 55444 "$DB_MASTER_DATABASE"
 
       - name: Phase 2 stock coverage
         timeout-minutes: 10
@@ -278,4 +278,4 @@ jobs:
       - name: Stop isolated PostgreSQL
         if: always()
         shell: bash
-        run: bash scripts/ci/postgres.sh stop 55434
+        run: bash scripts/ci/postgres.sh stop 55444
