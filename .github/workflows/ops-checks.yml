@@ -1,0 +1,43 @@
+name: OPS - Static Maintainer Gate
+on:
+  push:
+    branches: [ops/maintenance-5-11]
+    paths:
+      - '.github/workflows/ops-checks.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  syntax:
+    name: Validate ops scripts, YAML and CI safety gates
+    runs-on: [self-hosted, Linux, mars-ubuntu, mars-r3]
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Bash source syntax
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          for file in ops/test-infra/*.sh scripts/ci/*.sh; do
+            bash -n "$file"
+          done
+          echo 'ALL_BASH_SYNTAX_OK'
+      - name: Parse and inspect workflows
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          python3 - <<'PY'
+          import pathlib, yaml
+          folder = pathlib.Path(".github/workflows")
+          for file in folder.glob("*.yml"):
+              data = yaml.safe_load(file.read_text())
+              assert isinstance(data, dict) and "jobs" in data, file
+          print("WORKFLOW_YAML_PARSE_OK")
+          PY
+          grep -q 'workflow_call:' .github/workflows/quality.yml
+          grep -q 'cancel-in-progress: false' .github/workflows/quality.yml
+          ! grep -q 'MARS_PG_PORT' .github/workflows/quality.yml
+          grep -q -- '--min=90' .github/workflows/quality.yml
+          for label in mars-r1 mars-r2 mars-r3 mars-r4; do grep -q "$label" .github/workflows/quality.yml; done
+          test "$(grep -c 'uses: ./.github/workflows/quality.yml' .github/workflows/ops-repeated-quality.yml)" = 3
+          echo 'CI_REUSE_SECURITY_COVERAGE_GATES_OK'
