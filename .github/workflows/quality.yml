@@ -17,7 +17,7 @@ env:
   APP_KEY: base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
   APP_DEBUG: "false"
   DB_CONNECTION: master
-  DB_HOST: 127.0.0.1
+  DB_HOST: 100.127.235.30
   CACHE_STORE: array
   SESSION_DRIVER: array
   QUEUE_CONNECTION: sync
@@ -29,10 +29,6 @@ jobs:
     runs-on: [self-hosted, Linux, mars-ubuntu, mars-r3]
     steps:
       - uses: actions/checkout@v4
-
-      - name: Prepare portable PostgreSQL
-        shell: bash
-        run: bash scripts/ci/postgres.sh ensure
 
       - name: Host toolchain summary
         shell: bash
@@ -79,9 +75,9 @@ jobs:
       - name: Unit tests
         run: vendor/bin/pest tests/Unit --display-warnings
 
-      - name: Start isolated PostgreSQL
+      - name: Verify permanent PostgreSQL and Valkey
         shell: bash
-        run: bash scripts/ci/postgres.sh start 55431 "$DB_MASTER_DATABASE"
+        run: bash scripts/ci/remote-test-services.sh "$DB_MASTER_DATABASE"
 
       - name: Foundation feature tests
         run: |
@@ -97,10 +93,6 @@ jobs:
             tests/Feature/Pricing \
             --display-warnings
 
-      - name: Stop isolated PostgreSQL
-        if: always()
-        shell: bash
-        run: bash scripts/ci/postgres.sh stop 55431
 
   domain:
     needs: prepare-host
@@ -122,9 +114,9 @@ jobs:
       - name: Prepare environment
         run: cp .env.example .env
 
-      - name: Start isolated PostgreSQL
+      - name: Verify permanent PostgreSQL and Valkey
         shell: bash
-        run: bash scripts/ci/postgres.sh start 55432 "$DB_MASTER_DATABASE"
+        run: bash scripts/ci/remote-test-services.sh "$DB_MASTER_DATABASE"
 
       - name: Domain feature tests
         run: |
@@ -138,10 +130,6 @@ jobs:
             tests/Feature/Units \
             --display-warnings
 
-      - name: Stop isolated PostgreSQL
-        if: always()
-        shell: bash
-        run: bash scripts/ci/postgres.sh stop 55432
 
   manual-audit:
     needs: prepare-host
@@ -163,24 +151,20 @@ jobs:
       - name: Prepare environment
         run: cp .env.example .env
 
-      - name: Start isolated PostgreSQL
+      - name: Verify permanent PostgreSQL and Valkey
         shell: bash
-        run: bash scripts/ci/postgres.sh start 55433 "$DB_MASTER_DATABASE"
+        run: bash scripts/ci/remote-test-services.sh "$DB_MASTER_DATABASE"
 
       - name: Manual integrity quality security suite
         run: vendor/bin/pest tests/ManualAudit --display-warnings
 
-      - name: Stop isolated PostgreSQL
-        if: always()
-        shell: bash
-        run: bash scripts/ci/postgres.sh stop 55433
 
   quality:
     needs: prepare-host
     name: "R4 - Pint + Larastan + Build + Stock Coverage"
     runs-on: [self-hosted, Linux, mars-ubuntu, mars-r4]
     env:
-      DB_MASTER_DATABASE: MarsProject_Master_Test_R4
+      DB_MASTER_DATABASE: MarsProject_Coverage_Test
       MARS_PG_PORT: "55444"
     steps:
       - uses: actions/checkout@v4
@@ -247,9 +231,9 @@ jobs:
           echo "XDEBUG_EXTENSION=$XDEBUG_SO" >> "$GITHUB_ENV"
           php -d "zend_extension=$XDEBUG_SO" -d xdebug.mode=coverage -m | grep -qi '^xdebug$'
 
-      - name: Start isolated PostgreSQL
+      - name: Verify permanent PostgreSQL and Valkey
         shell: bash
-        run: bash scripts/ci/postgres.sh start 55444 "$DB_MASTER_DATABASE"
+        run: bash scripts/ci/remote-test-services.sh "$DB_MASTER_DATABASE"
 
       - name: Phase 2 stock coverage
         timeout-minutes: 45
@@ -277,7 +261,3 @@ jobs:
             exit 1
           fi
 
-      - name: Stop isolated PostgreSQL
-        if: always()
-        shell: bash
-        run: bash scripts/ci/postgres.sh stop 55444
