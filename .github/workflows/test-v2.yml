@@ -1,0 +1,67 @@
+name: Test v2.0 - New Behaviour and Integration
+
+on:
+  push:
+    branches: [test/v2-full-audit-20261009]
+    paths:
+      - '.github/workflows/test-v2.yml'
+      - 'tests/Unit/TestV2/**'
+      - 'tests/Feature/TestV2/**'
+      - 'docs/testing/test-v2-scope.md'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: test-v2-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  APP_ENV: testing
+  APP_KEY: base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+  APP_DEBUG: "false"
+  DB_CONNECTION: master
+  DB_HOST: 100.127.235.30
+  DB_MASTER_DATABASE: MarsProject_Master_Test_V2
+  CACHE_STORE: array
+  SESSION_DRIVER: array
+  QUEUE_CONNECTION: sync
+  XDEBUG_MODE: off
+
+jobs:
+  executable-v2:
+    name: "V2 - Real class and isolated PostgreSQL integration"
+    runs-on: [self-hosted, Linux, mars-ubuntu, mars-r1]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select stable PHP
+        shell: bash
+        run: bash scripts/ci/select-php.sh
+
+      - name: Install PHP dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Prepare environment
+        run: cp .env.example .env
+
+      - name: PHP syntax
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          find tests/Unit/TestV2 tests/Feature/TestV2 -name '*.php' -type f -print0 | xargs -0 -n 1 php -l
+
+      - name: Test v2.0 unit and security behavior
+        run: vendor/bin/pest tests/Unit/TestV2 --display-warnings
+
+      - name: Authenticate isolated remote test services
+        shell: bash
+        env:
+          MARS_PG_PASSWORD: ${{ secrets.MARS_PG_PASSWORD }}
+          MARS_VALKEY_PASSWORD: ${{ secrets.MARS_VALKEY_PASSWORD }}
+        run: bash scripts/ci/remote-test-services.sh "$DB_MASTER_DATABASE"
+
+      - name: Test v2.0 feature and multi-domain integration
+        timeout-minutes: 45
+        run: vendor/bin/pest tests/Feature/TestV2 --display-warnings
