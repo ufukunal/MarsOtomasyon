@@ -7,6 +7,10 @@ use App\Support\Channels\ChannelContentResolver;
 use App\Support\Channels\ChannelPriceResolver;
 use App\Support\Channels\ChannelSensitiveDataRedactor;
 
+beforeEach(function () {
+    $this->createCompanyWithPeriod('V2CHCONTENT');
+});
+
 it('v2 channel errors never include nested marketplace credentials', function () {
     $account = new SalesChannelAccount([
         'credentials_encrypted' => [
