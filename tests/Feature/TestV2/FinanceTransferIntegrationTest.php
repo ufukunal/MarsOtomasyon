@@ -1,6 +1,8 @@
 <?php
 
 use App\Actions\Finance\PostFinanceTransfer;
+use App\Models\Period\BankAccount;
+use App\Models\Period\BankMovement;
 use App\Models\Period\CashAccount;
 use App\Models\Period\CashMovement;
 
@@ -66,4 +68,31 @@ it('v2 finance refuses currency mismatch and leaves both ledgers untouched', fun
     ))->toThrow(DomainException::class);
 
     expect(CashMovement::query()->count())->toBe(0);
+});
+
+
+it('v2 finance supports balanced cash-to-bank movements without statement-origin mutation', function () {
+    [$company, $period] = $this->createCompanyWithPeriod('V2FINBANK');
+    $admin = $this->createUserWithPeriodAccess($company, $period, 'Yönetici');
+    $this->loginToPeriod($admin, $company, $period);
+
+    $cash = CashAccount::query()->create([
+        'code' => 'V2CASH', 'name' => 'Cash', 'currency' => 'TRY', 'is_active' => true,
+    ]);
+    $bank = BankAccount::query()->create([
+        'code' => 'V2BANK', 'bank_name' => 'Test Bank', 'account_name' => 'Test IBAN',
+        'currency' => 'TRY', 'is_active' => true,
+    ]);
+
+    $result = app(PostFinanceTransfer::class)->handle(
+        'cash', $cash->id, 'bank', $bank->id, '22.0050', '2026-09-01', 'v2-cash-to-bank',
+    );
+
+    expect($result['source']->amount)->toBe('22.0050')
+        ->and($result['target']->amount)->toBe('22.0050')
+        ->and($result['source']->group_key)->toBe($result['target']->group_key)
+        ->and($cash->balance())->toBe('-22.0050')
+        ->and($bank->bookBalance())->toBe('22.0050')
+        ->and(BankMovement::query()->where('origin', 'book')->count())->toBe(1)
+        ->and(BankMovement::query()->where('origin', 'statement')->count())->toBe(0);
 });
