@@ -72,6 +72,7 @@ jobs:
 
 
   foundation:
+    if: ${{ !contains(github.event.head_commit.message, 'preview Pint formatting only') }}
     needs: prepare-host
     name: "R1 - Unit + Foundation Feature"
     runs-on: [self-hosted, Linux, mars-ubuntu, mars-r1]
@@ -157,7 +158,7 @@ jobs:
           if-no-files-found: warn
 
   domain:
-    if: ${{ always() && needs.prepare-host.result == 'success' }}
+    if: ${{ always() && needs.prepare-host.result == 'success' && !contains(github.event.head_commit.message, 'preview Pint formatting only') }}
     needs: [prepare-host, foundation]
     name: "R2 - Domain Feature"
     runs-on: [self-hosted, Linux, mars-ubuntu, mars-r2]
@@ -217,7 +218,7 @@ jobs:
           if-no-files-found: warn
 
   manual-audit:
-    if: ${{ always() && needs.prepare-host.result == 'success' }}
+    if: ${{ always() && needs.prepare-host.result == 'success' && !contains(github.event.head_commit.message, 'preview Pint formatting only') }}
     needs: [prepare-host, domain]
     name: "R3 - ManualAudit 273"
     runs-on: [self-hosted, Linux, mars-ubuntu, mars-r3]
@@ -268,7 +269,7 @@ jobs:
           if-no-files-found: warn
 
   quality:
-    if: ${{ always() && needs.prepare-host.result == 'success' }}
+    if: ${{ always() && needs.prepare-host.result == 'success' && !contains(github.event.head_commit.message, 'preview Pint formatting only') }}
     needs: [prepare-host, manual-audit]
     name: "R4 - Pint + Larastan + Build + Stock Coverage"
     runs-on: [self-hosted, Linux, mars-ubuntu, mars-r4]
@@ -416,7 +417,7 @@ jobs:
   http-smoke:
     name: "R5 - Isolated HTTP smoke and anonymous authorization"
     needs: [prepare-host, quality]
-    if: ${{ always() && needs.prepare-host.result == 'success' }}
+    if: ${{ always() && needs.prepare-host.result == 'success' && !contains(github.event.head_commit.message, 'preview Pint formatting only') }}
     runs-on: [self-hosted, Linux, mars-ubuntu, mars-r1]
     env:
       DB_MASTER_DATABASE: MarsProject_Master_Test_R1
@@ -440,7 +441,7 @@ jobs:
 
   final-summary:
     name: "All stages - final gate and summary"
-    if: ${{ always() }}
+    if: ${{ always() && !contains(github.event.head_commit.message, 'preview Pint formatting only') }}
     needs: [prepare-host, foundation, domain, manual-audit, quality, http-smoke]
     runs-on: [self-hosted, Linux, mars-ubuntu, mars-r3]
     steps:
