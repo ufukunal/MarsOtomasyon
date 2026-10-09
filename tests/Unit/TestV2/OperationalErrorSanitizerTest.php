@@ -25,8 +25,8 @@ it('v2 operations redact JSON-formatted secrets and URL embedded credentials', f
 
 it('v2 operations cap unsafe error messages and normalize whitespace', function () {
     $output = (new OperationalErrorSanitizer)->summarize(str_repeat('x', 600)."\n\n");
-    expect(mb_strlen($output))->toBe(500)
-        ->not->toContain("\n");
+    expect(mb_strlen($output))->toBe(500);
+    expect($output)->not->toContain("\n");
 });
 
 it('v2 operations expose an exception class instead of an empty exception message', function () {
