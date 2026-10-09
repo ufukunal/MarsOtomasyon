@@ -9,6 +9,11 @@ on:
 permissions:
   contents: read
 
+env:
+  APP_ENV: testing
+  APP_KEY: base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+  APP_DEBUG: 'false'
+
 jobs:
   formatter:
     runs-on: [self-hosted, Linux, mars-ubuntu, mars-r3]
