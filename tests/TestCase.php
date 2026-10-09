@@ -10,6 +10,7 @@ use RuntimeException;
 use Spatie\Permission\PermissionRegistrar;
 use Tests\Support\CreatesCatalogFixtures;
 use Tests\Support\CreatesPeriodDatabases;
+use Tests\Support\TestDatabaseGuard;
 
 abstract class TestCase extends BaseTestCase
 {
@@ -48,20 +49,8 @@ abstract class TestCase extends BaseTestCase
         $port = (string) config('database.connections.master.port');
         $username = (string) config('database.connections.master.username');
 
-        $allowedDatabases = [
-            'MarsProject_Master_Test_R1',
-            'MarsProject_Master_Test_R2',
-            'MarsProject_Master_Test_R3',
-            'MarsProject_Coverage_Test',
-        ];
+        TestDatabaseGuard::assertSafe(app()->environment(), $database, $host, $port, $username);
 
-        if (! app()->environment('testing')
-            || ! in_array($database, $allowedDatabases, true)
-            || $host !== '100.127.235.30'
-            || $port !== '55432'
-            || $username !== 'mars_test') {
-            throw new RuntimeException('PRODUCTION GUARD: only isolated and explicitly approved CI test databases are writable.');
-        }
         $password = (string) config('database.connections.master.password');
 
         $pdo = new PDO(
