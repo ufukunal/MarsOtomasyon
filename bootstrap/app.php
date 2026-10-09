@@ -5,12 +5,16 @@ use App\Http\Middleware\CorrelationId;
 use App\Http\Middleware\EnsureLocalNetwork;
 use App\Http\Middleware\SetActiveCompany;
 use App\Http\Middleware\SetActivePeriod;
+use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Auth\AuthenticationException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
 use Illuminate\Session\Middleware\AuthenticateSession;
 use Illuminate\Session\Middleware\StartSession;
+use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -66,7 +70,13 @@ return Application::configure(basePath: dirname(__DIR__))
         });
 
         $exceptions->render(function (Throwable $exception, Request $request) {
-            if ($exception instanceof HttpExceptionInterface || config('app.debug')) {
+            // Preserve Laravel's native 302/401/403/404/422 handling; only mask unexpected 500s.
+            if ($exception instanceof HttpExceptionInterface
+                || $exception instanceof AuthenticationException
+                || $exception instanceof AuthorizationException
+                || $exception instanceof ModelNotFoundException
+                || $exception instanceof ValidationException
+                || config('app.debug')) {
                 return null;
             }
 

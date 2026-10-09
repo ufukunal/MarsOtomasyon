@@ -39,6 +39,10 @@ it('v2 anonymous user cannot access sensitive business pages', function () {
     }
 });
 
+it('v2 guest JSON requests receive 401 instead of a masked server error', function () {
+    $this->getJson('/satis/siparisler')->assertUnauthorized();
+});
+
 it('v2 public channel asset endpoint rejects unsigned URLs', function () {
     $this->get('/channel-assets/1/1/1/1')->assertForbidden();
 });

@@ -16,8 +16,8 @@
 | Stok | Mevcut Stock dinamik suite, dar PCOV | Kanal stok scope boş/fason kontrolü | Depolar arası yoğun paralel yük ve tüm stok hareketi |
 | Satış ve belge | Mevcut Sales ve Period feature suite | İlgili mutasyonlarda kimlik bilgisi olmadan reddetme | Satış–iade tam ters kayıt / muhasebe mutabakatı |
 | Satın alma | Önceki doğrudan feature suite yok | Onay ve fatura posting işlevlerinde yetkisiz değişiklik reddi | Teklif → sipariş → kabul → fatura → ödeme → iade başarılı/geri-al akışları |
-| Finans | Önceki doğrudan feature suite yok | Transferde anonim mutasyon reddi, format/decimal testleri | Virman çift kayıt invariants, banka mutabakatı, kur |
-| İthalat | Önceki doğrudan feature suite yok | Dağıtım mutasyonunda anonim reddi | Maliyet dağıtımı gerçek DB, rounding residual, para birimi |
+| Finans | Önceki doğrudan feature suite yok | Transferde anonim mutasyon reddi, gerçek PostgreSQL çift kayıt/idempotency ve rollback, format/decimal testleri | Banka mutabakatı, kur ve farklı finans hesap türleri arası transfer |
+| İthalat | Önceki doğrudan feature suite yok | Dağıtım mutasyonunda anonim reddi, gerçek PostgreSQL maliyet dağıtım toplamı ve rounding residual | Çok dövizli ithalat maliyetinde hata enjeksiyonu, para birimi ve dönem izolasyonu |
 | Üretim/fason | Önceki doğrudan feature suite yok | BCMath malzeme, servis, FIFO olmayan ortalama maliyet ve geçersiz girdiler; anonim posting reddi | Reçete revizyonu, üretim çıktı/eksik/fire, taşeron hizmet maliyeti tam DB |
 | İade | Önceki doğrudan feature suite yok | İade mutasyonunda anonim reddi | Satış iadeleri karantina ve alış iadeleri rezervasyon/ledger tam DB |
 | Pazar yerleri | Mevcut Faz9ChannelStockPriceTest | Event hash sıralama ve tipi, eksik mod/boş/fason stok, webhook bulunmayan hesap reddi | Canlı API sözleşmesi, HMAC negatif/pozitif, retry/backoff, rate limit/duplicate event |

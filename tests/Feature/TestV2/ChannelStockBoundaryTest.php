@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Period\ChannelProductListing;
+use App\Models\Period\Contact;
 use App\Models\Period\Location;
 use App\Models\Period\ChannelListingLocation;
 use App\Support\Channels\ChannelStockResolver;
@@ -42,10 +43,12 @@ it('v2 channel stock mode refuses empty warehouse scope instead of exposing all 
 it('v2 channel stock mode excludes subcontractor warehouses even with available inventory', function () {
     $this->createCompanyWithPeriod('V2CHSUB');
     $product = $this->createTestProduct(['code' => 'V2-SUBCONTRACT']);
+    $subcontractor = Contact::query()->create(['title' => 'V2 Subcontractor', 'type' => 'legal']);
     $location = Location::query()->create([
         'code' => 'V2-SUBLOC',
         'name' => 'External Subcontractor',
         'kind' => 'subcontractor',
+        'subcontractor_contact_id' => $subcontractor->id,
         'is_active' => true,
         'is_default' => false,
     ]);
