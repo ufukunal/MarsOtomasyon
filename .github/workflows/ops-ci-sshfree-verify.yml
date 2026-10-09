@@ -43,12 +43,18 @@ jobs:
               assert isinstance(yaml.safe_load(pathlib.Path(".github/workflows",name).read_text()),dict)
           print("STATIC_CI_SSH_FREE_CONTRACT_PASS")
           PY
+          failed=0
           if [[ ! "${MARS_PG_PASSWORD:-}" =~ ^[[:xdigit:]]{64}$ ]]; then
             echo "MARS_PG_PASSWORD_ACTIONS_SECRET_MISSING_OR_INVALID" >&2
-            exit 21
+            failed=1
+          else
+            echo "MARS_PG_PASSWORD_ACTIONS_SECRET_PRESENT"
           fi
           if [[ ! "${MARS_VALKEY_PASSWORD:-}" =~ ^[[:xdigit:]]{64}$ ]]; then
             echo "MARS_VALKEY_PASSWORD_ACTIONS_SECRET_MISSING_OR_INVALID" >&2
-            exit 22
+            failed=1
+          else
+            echo "MARS_VALKEY_PASSWORD_ACTIONS_SECRET_PRESENT"
           fi
+          if (( failed != 0 )); then exit 23; fi
           echo "GITHUB_ACTIONS_TEST_SECRETS_PRESENT"
