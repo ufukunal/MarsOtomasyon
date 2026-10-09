@@ -4,41 +4,60 @@ on:
     - cron: '17 * * * *'
   workflow_dispatch:
   push:
-    branches: [ops/maintenance-5-11, ops/verify-20261009]
+    branches: [ops/maintenance-5-11, ci/ssh-free-quality-20261009]
     paths:
       - '.github/workflows/ops-health.yml'
+      - 'scripts/ci/remote-test-services.sh'
       - 'scripts/ci/health-test-infra.sh'
+      - 'scripts/ci/health-host-infra.sh'
       - 'scripts/ci/test-service-network.sh'
 permissions:
   contents: read
 concurrency:
-  group: ops-permanent-infra-health
+  group: ops-permanent-infra-health-${{ github.ref }}
   cancel-in-progress: false
 jobs:
   network:
-    name: PostgreSQL and Valkey network transport (no SSH)
+    name: R3 - Existing Tailnet PostgreSQL/Valkey network transport
     runs-on: [self-hosted, Linux, mars-ubuntu, mars-r3]
     timeout-minutes: 3
     steps:
       - uses: actions/checkout@v4
-      - name: Probe the existing private service endpoints without credentials
+      - name: Test private service ports without authentication
         shell: bash
         run: |
           set -Eeuo pipefail
           bash -n scripts/ci/test-service-network.sh
           bash scripts/ci/test-service-network.sh
-  health:
-    name: Authenticated PostgreSQL + Valkey and remote Docker + disk + memory
+  authenticated-services:
+    name: R3 - Authenticated PostgreSQL/Valkey and fsync/AOF (no SSH)
     needs: network
     if: ${{ !cancelled() }}
     runs-on: [self-hosted, Linux, mars-ubuntu, mars-r3]
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
-      - name: Check permanent VM services and capacity
+      - name: Verify authenticated database and persistence safely
         shell: bash
+        env:
+          MARS_PG_PASSWORD: ${{ secrets.MARS_PG_PASSWORD }}
+          MARS_VALKEY_PASSWORD: ${{ secrets.MARS_VALKEY_PASSWORD }}
         run: |
           set -Eeuo pipefail
           bash -n scripts/ci/remote-test-services.sh
           bash -n scripts/ci/health-test-infra.sh
           bash scripts/ci/health-test-infra.sh
+  host:
+    name: R3 - VM Docker/disk/RAM (separate SSH-only host check)
+    needs: network
+    if: ${{ !cancelled() }}
+    runs-on: [self-hosted, Linux, mars-ubuntu, mars-r3]
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - name: Read-only remote host health; fail if SSH authorization unavailable
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          bash -n scripts/ci/health-host-infra.sh
+          bash scripts/ci/health-host-infra.sh

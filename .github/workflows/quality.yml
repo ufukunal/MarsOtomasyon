@@ -77,6 +77,9 @@ jobs:
 
       - name: Verify permanent PostgreSQL and Valkey
         shell: bash
+        env:
+          MARS_PG_PASSWORD: ${{ secrets.MARS_PG_PASSWORD }}
+          MARS_VALKEY_PASSWORD: ${{ secrets.MARS_VALKEY_PASSWORD }}
         run: bash scripts/ci/remote-test-services.sh "$DB_MASTER_DATABASE"
 
       - name: Foundation feature tests
@@ -116,6 +119,9 @@ jobs:
 
       - name: Verify permanent PostgreSQL and Valkey
         shell: bash
+        env:
+          MARS_PG_PASSWORD: ${{ secrets.MARS_PG_PASSWORD }}
+          MARS_VALKEY_PASSWORD: ${{ secrets.MARS_VALKEY_PASSWORD }}
         run: bash scripts/ci/remote-test-services.sh "$DB_MASTER_DATABASE"
 
       - name: Domain feature tests
@@ -153,6 +159,9 @@ jobs:
 
       - name: Verify permanent PostgreSQL and Valkey
         shell: bash
+        env:
+          MARS_PG_PASSWORD: ${{ secrets.MARS_PG_PASSWORD }}
+          MARS_VALKEY_PASSWORD: ${{ secrets.MARS_VALKEY_PASSWORD }}
         run: bash scripts/ci/remote-test-services.sh "$DB_MASTER_DATABASE"
 
       - name: Manual integrity quality security suite
@@ -236,6 +245,9 @@ jobs:
 
       - name: Verify permanent PostgreSQL and Valkey
         shell: bash
+        env:
+          MARS_PG_PASSWORD: ${{ secrets.MARS_PG_PASSWORD }}
+          MARS_VALKEY_PASSWORD: ${{ secrets.MARS_VALKEY_PASSWORD }}
         run: bash scripts/ci/remote-test-services.sh "$DB_MASTER_DATABASE"
 
       - name: Phase 2 stock coverage

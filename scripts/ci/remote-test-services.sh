@@ -7,13 +7,14 @@ case "$database" in
   *) echo "Refusing unapproved database name: $database" >&2; exit 2 ;;
 esac
 host=100.127.235.30
-ssh_options=(-o BatchMode=yes -o ConnectTimeout=7 -o PasswordAuthentication=no -o StrictHostKeyChecking=accept-new)
-# Read ONLY the designated test credentials, through authenticated Tailnet SSH.
-# GitHub masks both values before adding them to the per-job environment file.
-credentials="$(timeout 20 ssh "${ssh_options[@]}" ufuk@"$host" 'cat /home/ufuk/.config/mars-test-infra/secrets.env')"
-pgpass="$(sed -n 's/^MARS_PG_PASSWORD=//p' <<<"$credentials" | head -1)"
-valkeypass="$(sed -n 's/^MARS_VALKEY_PASSWORD=//p' <<<"$credentials" | head -1)"
-[[ "$pgpass" =~ ^[[:xdigit:]]{64}$ && "$valkeypass" =~ ^[[:xdigit:]]{64}$ ]] || { echo "Missing or malformed test credentials" >&2; exit 1; }
+# The CI job injects pre-existing repository Actions secrets.
+# Never fetch passwords over SSH, use alternate network paths, or print their values.
+pgpass="${MARS_PG_PASSWORD:-}"
+valkeypass="${MARS_VALKEY_PASSWORD:-}"
+[[ "$pgpass" =~ ^[[:xdigit:]]{64}$ && "$valkeypass" =~ ^[[:xdigit:]]{64}$ ]] || {
+  echo "CI_SECRET_MISSING_OR_INVALID: configure repository Actions secrets MARS_PG_PASSWORD and MARS_VALKEY_PASSWORD with existing test-only 64-hex values." >&2
+  exit 3
+}
 echo "::add-mask::$pgpass"
 echo "::add-mask::$valkeypass"
 [[ -n "${GITHUB_ENV:-}" ]] || { echo "GITHUB_ENV unavailable" >&2; exit 1; }
@@ -38,5 +39,5 @@ printf '*1\r\n$4\r\nPING\r\n' >&3
 IFS= read -r -t 8 response <&3
 [[ "${response%$'\r'}" == '+PONG' ]] || { echo "Valkey PING failed" >&2; exit 1; }
 exec 3<&- 3>&-
-unset pgpass valkeypass credentials
+unset pgpass valkeypass
 echo "Persistent PostgreSQL ($database) and Valkey verified over Tailnet."
