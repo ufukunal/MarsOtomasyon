@@ -38,6 +38,6 @@ it('v2 channels produce deterministic SHA-256 hex output', function () {
 });
 
 it('v2 channels fail closed on malformed UTF-8 payloads', function () {
-    expect(fn () => (new ChannelPayloadHasher)->hash(["bad" => "\xB1"]))
+    expect(fn () => (new ChannelPayloadHasher)->hash(['bad' => "\xB1"]))
         ->toThrow(JsonException::class);
 });

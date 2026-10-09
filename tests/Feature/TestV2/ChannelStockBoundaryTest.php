@@ -1,9 +1,9 @@
 <?php
 
+use App\Models\Period\ChannelListingLocation;
 use App\Models\Period\ChannelProductListing;
 use App\Models\Period\Contact;
 use App\Models\Period\Location;
-use App\Models\Period\ChannelListingLocation;
 use App\Support\Channels\ChannelStockResolver;
 
 it('v2 channel manual and production modes fail closed on missing configured quantities', function () {
