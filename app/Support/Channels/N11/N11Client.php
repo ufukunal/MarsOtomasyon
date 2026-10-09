@@ -80,6 +80,7 @@ final class N11Client
             'SOAPAction' => '',
             'User-Agent' => $this->integrator($account),
         ])->withBody($xml, 'text/xml; charset=utf-8')
+            ->withoutRedirecting()
             ->connectTimeout(10)
             ->timeout(45)
             ->post($endpoint);
@@ -141,6 +142,7 @@ final class N11Client
         }
 
         $wsdl = Http::accept('text/xml')
+            ->withoutRedirecting()
             ->connectTimeout(10)
             ->timeout(30)
             ->get('https://api.n11.com/ws/ReturnService.wsdl');
@@ -158,8 +160,21 @@ final class N11Client
 
         $endpoint = trim((string) $match[1]);
 
-        if (! str_starts_with($endpoint, 'https://')) {
+        if (! str_starts_with(strtolower($endpoint), 'https://')) {
             throw new DomainException('N11 ReturnService SOAP endpoint HTTPS değil.');
+        }
+
+        $parts = parse_url($endpoint);
+        if (! is_array($parts)
+            || strtolower((string) ($parts['scheme'] ?? '')) !== 'https'
+            || strtolower((string) ($parts['host'] ?? '')) !== 'api.n11.com'
+            || (isset($parts['port']) && (int) $parts['port'] !== 443)
+            || isset($parts['user'])
+            || isset($parts['pass'])
+            || isset($parts['query'])
+            || isset($parts['fragment'])
+            || ! str_starts_with((string) ($parts['path'] ?? ''), '/ws/')) {
+            throw new DomainException('N11 ReturnService SOAP endpoint güvenilir bir N11 adresi değil.');
         }
 
         return $this->resolvedReturnServiceEndpoint = $endpoint;

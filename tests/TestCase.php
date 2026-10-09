@@ -44,16 +44,24 @@ abstract class TestCase extends BaseTestCase
     {
         $database = (string) config('database.connections.master.database');
 
-        if (! preg_match('/^[A-Za-z0-9_]+$/D', $database)
-            || ! str_contains(strtolower($database), 'test')) {
-            throw new RuntimeException(
-                "Testler yalnız adı 'test' içeren güvenli master DB üzerinde çalışır; mevcut: {$database}",
-            );
-        }
-
         $host = (string) config('database.connections.master.host');
         $port = (string) config('database.connections.master.port');
         $username = (string) config('database.connections.master.username');
+
+        $allowedDatabases = [
+            'MarsProject_Master_Test_R1',
+            'MarsProject_Master_Test_R2',
+            'MarsProject_Master_Test_R3',
+            'MarsProject_Coverage_Test',
+        ];
+
+        if (! app()->environment('testing')
+            || ! in_array($database, $allowedDatabases, true)
+            || $host !== '100.127.235.30'
+            || $port !== '55432'
+            || $username !== 'mars_test') {
+            throw new RuntimeException('PRODUCTION GUARD: only isolated and explicitly approved CI test databases are writable.');
+        }
         $password = (string) config('database.connections.master.password');
 
         $pdo = new PDO(

@@ -79,6 +79,10 @@ final class ImportFileReader
 
             while (($data = fgetcsv($handle, separator: ';')) !== false) {
                 if ($header === null) {
+                    if (isset($data[0])) {
+                        $data[0] = preg_replace('/^\\xEF\\xBB\\xBF/', '', (string) $data[0]);
+                    }
+
                     $header = array_map(
                         fn ($value): string => trim((string) $value),
                         $data,
