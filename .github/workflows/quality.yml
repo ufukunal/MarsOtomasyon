@@ -53,6 +53,24 @@ jobs:
           command -v gcc || command -v cc || true
           command -v make || true
 
+      - name: Generate reproducible Pint formatting patch
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          composer install --no-interaction --prefer-dist --no-progress
+          vendor/bin/pint
+          python3 - <<'PY'
+          import json
+          import subprocess
+          from pathlib import Path
+          paths = subprocess.check_output(['git', 'diff', '--name-only'], text=True).splitlines()
+          for path in paths:
+              if path.endswith('.php') and Path(path).is_file():
+                  print('@@MARS_FMT ' + json.dumps({'path': path, 'content': Path(path).read_text(encoding='utf-8')}, ensure_ascii=False))
+          print('@@MARS_FMT_COUNT ' + str(len([p for p in paths if p.endswith('.php')])))
+          PY
+
+
   foundation:
     needs: prepare-host
     name: "R1 - Unit + Foundation Feature"
