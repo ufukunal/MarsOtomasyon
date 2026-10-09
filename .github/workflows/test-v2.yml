@@ -1,13 +1,6 @@
 name: Test v2.0 - New Behaviour and Integration
 
 on:
-  push:
-    branches: [test/v2-full-audit-20261009]
-    paths:
-      - '.github/workflows/test-v2.yml'
-      - 'tests/Unit/TestV2/**'
-      - 'tests/Feature/TestV2/**'
-      - 'docs/testing/test-v2-scope.md'
   workflow_dispatch:
 
 permissions:

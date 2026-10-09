@@ -1,4 +1,4 @@
-name: Quality - 4 Self Hosted Runners
+name: Mars Full Test v2 - Sequential R1-R4
 
 on:
   workflow_call:
@@ -72,6 +72,16 @@ jobs:
       - name: Prepare environment
         run: cp .env.example .env
 
+      - name: Verify exact test database identity
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          [[ "$APP_ENV" == "testing" && "$DB_CONNECTION" == "master" ]] || exit 41
+          case "$DB_MASTER_DATABASE" in
+            MarsProject_Master_Test_R1|MarsProject_Master_Test_R2|MarsProject_Master_Test_R3|MarsProject_Coverage_Test) ;;
+            *) echo "PRODUCTION GUARD: unknown database" >&2; exit 42 ;;
+          esac
+
       - name: Test v2.0 PHP syntax
         shell: bash
         run: |
@@ -104,7 +114,8 @@ jobs:
 
 
   domain:
-    needs: foundation
+    if: ${{ always() && needs.prepare-host.result == 'success' }}
+    needs: [prepare-host, foundation]
     name: "R2 - Domain Feature"
     runs-on: [self-hosted, Linux, mars-ubuntu, mars-r2]
     env:
@@ -121,6 +132,16 @@ jobs:
 
       - name: Prepare environment
         run: cp .env.example .env
+
+      - name: Verify exact test database identity
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          [[ "$APP_ENV" == "testing" && "$DB_CONNECTION" == "master" ]] || exit 41
+          case "$DB_MASTER_DATABASE" in
+            MarsProject_Master_Test_R1|MarsProject_Master_Test_R2|MarsProject_Master_Test_R3|MarsProject_Coverage_Test) ;;
+            *) echo "PRODUCTION GUARD: unknown database" >&2; exit 42 ;;
+          esac
 
       - name: Verify permanent PostgreSQL and Valkey
         shell: bash
@@ -143,7 +164,8 @@ jobs:
 
 
   manual-audit:
-    needs: domain
+    if: ${{ always() && needs.prepare-host.result == 'success' }}
+    needs: [prepare-host, domain]
     name: "R3 - ManualAudit 273"
     runs-on: [self-hosted, Linux, mars-ubuntu, mars-r3]
     env:
@@ -161,6 +183,16 @@ jobs:
       - name: Prepare environment
         run: cp .env.example .env
 
+      - name: Verify exact test database identity
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          [[ "$APP_ENV" == "testing" && "$DB_CONNECTION" == "master" ]] || exit 41
+          case "$DB_MASTER_DATABASE" in
+            MarsProject_Master_Test_R1|MarsProject_Master_Test_R2|MarsProject_Master_Test_R3|MarsProject_Coverage_Test) ;;
+            *) echo "PRODUCTION GUARD: unknown database" >&2; exit 42 ;;
+          esac
+
       - name: Verify permanent PostgreSQL and Valkey
         shell: bash
         env:
@@ -173,7 +205,8 @@ jobs:
 
 
   quality:
-    needs: manual-audit
+    if: ${{ always() && needs.prepare-host.result == 'success' }}
+    needs: [prepare-host, manual-audit]
     name: "R4 - Pint + Larastan + Build + Stock Coverage"
     runs-on: [self-hosted, Linux, mars-ubuntu, mars-r4]
     env:
@@ -191,6 +224,16 @@ jobs:
       - name: Prepare environment
         run: cp .env.example .env
 
+      - name: Verify exact test database identity
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          [[ "$APP_ENV" == "testing" && "$DB_CONNECTION" == "master" ]] || exit 41
+          case "$DB_MASTER_DATABASE" in
+            MarsProject_Master_Test_R1|MarsProject_Master_Test_R2|MarsProject_Master_Test_R3|MarsProject_Coverage_Test) ;;
+            *) echo "PRODUCTION GUARD: unknown database" >&2; exit 42 ;;
+          esac
+
       - name: Verify Node toolchain
         shell: bash
         run: |
@@ -204,9 +247,14 @@ jobs:
         run: npm run build
 
       - name: Pint
+        id: pint
+        continue-on-error: true
         run: vendor/bin/pint --test
 
       - name: Larastan
+        id: larastan
+        if: always()
+        continue-on-error: true
         run: vendor/bin/phpstan analyse --no-progress
 
       - name: Verify reusable PCOV coverage driver
@@ -254,6 +302,8 @@ jobs:
         run: bash scripts/ci/remote-test-services.sh "$DB_MASTER_DATABASE"
 
       - name: Phase 2 stock coverage
+        id: coverage
+        continue-on-error: true
         timeout-minutes: 45
         shell: bash
         run: |
@@ -275,3 +325,47 @@ jobs:
           fi
           XDEBUG_MODE=off php "${FLAGS[@]}" -d pcov.enabled=1 -d "pcov.directory=$GITHUB_WORKSPACE/app/Actions/Stock" vendor/bin/pest -c phpunit.stock.xml "${STOCK_COVERAGE_TESTS[@]}" --coverage --min=90
 
+
+      - name: Enforce R4 quality gates
+        if: always()
+        shell: bash
+        env:
+          PINT: ${{ steps.pint.outcome }}
+          LARASTAN: ${{ steps.larastan.outcome }}
+          COVERAGE: ${{ steps.coverage.outcome }}
+        run: |
+          set -Eeuo pipefail
+          echo "Pint: $PINT"
+          echo "Larastan: $LARASTAN"
+          echo "Stock coverage: $COVERAGE"
+          [[ "$PINT" == "success" && "$LARASTAN" == "success" && "$COVERAGE" == "success" ]]
+
+  final-summary:
+    name: "All stages - final gate and summary"
+    if: ${{ always() }}
+    needs: [prepare-host, foundation, domain, manual-audit, quality]
+    runs-on: [self-hosted, Linux, mars-ubuntu, mars-r3]
+    steps:
+      - name: Consolidate sequential pipeline results
+        shell: bash
+        env:
+          PREPARE: ${{ needs.prepare-host.result }}
+          R1: ${{ needs.foundation.result }}
+          R2: ${{ needs.domain.result }}
+          R3: ${{ needs.manual-audit.result }}
+          R4: ${{ needs.quality.result }}
+        run: |
+          set -Eeuo pipefail
+          {
+            echo '## Mars sequential test pipeline'
+            echo '| Aşama | Sonuç |'
+            echo '| --- | --- |'
+            echo "| Runner hazırlığı | $PREPARE |"
+            echo "| R1 Unit / Foundation / V2 | $R1 |"
+            echo "| R2 Domain | $R2 |"
+            echo "| R3 ManualAudit | $R3 |"
+            echo "| R4 Pint / Larastan / Build / Coverage | $R4 |"
+            echo
+            echo 'Bu run yalnız GitHub dalına commit edilmiş testleri kapsamaktadır.'
+          } >> "$GITHUB_STEP_SUMMARY"
+          [[ "$PREPARE" == "success" && "$R1" == "success" && "$R2" == "success" && "$R3" == "success" && "$R4" == "success" ]]

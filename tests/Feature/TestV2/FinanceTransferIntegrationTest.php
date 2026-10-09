@@ -70,7 +70,6 @@ it('v2 finance refuses currency mismatch and leaves both ledgers untouched', fun
     expect(CashMovement::query()->count())->toBe(0);
 });
 
-
 it('v2 finance supports balanced cash-to-bank movements without statement-origin mutation', function () {
     [$company, $period] = $this->createCompanyWithPeriod('V2FINBANK');
     $admin = $this->createUserWithPeriodAccess($company, $period, 'Yönetici');
