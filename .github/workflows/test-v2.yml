@@ -23,7 +23,7 @@ env:
   APP_DEBUG: "false"
   DB_CONNECTION: master
   DB_HOST: 100.127.235.30
-  DB_MASTER_DATABASE: MarsProject_Master_Test_V2
+  DB_MASTER_DATABASE: MarsProject_Master_Test_R1
   CACHE_STORE: array
   SESSION_DRIVER: array
   QUEUE_CONNECTION: sync
