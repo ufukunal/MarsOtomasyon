@@ -88,6 +88,8 @@ jobs:
           find tests/Unit/TestV2 tests/Feature/TestV2 -type f -name '*.php' -print0 | xargs -0 -n 1 php -l
 
       - name: Unit tests
+        id: unit
+        continue-on-error: true
         run: vendor/bin/pest tests/Unit --display-warnings
 
       - name: Verify permanent PostgreSQL and Valkey
@@ -98,6 +100,8 @@ jobs:
         run: bash scripts/ci/remote-test-services.sh "$DB_MASTER_DATABASE"
 
       - name: Foundation feature tests
+        id: foundation_feature
+        continue-on-error: true
         run: |
           vendor/bin/pest \
             tests/Feature/Attachments \
@@ -112,6 +116,17 @@ jobs:
             tests/Feature/TestV2 \
             --display-warnings
 
+      - name: Enforce R1 unit and feature gates
+        if: always()
+        shell: bash
+        env:
+          UNIT: ${{ steps.unit.outcome }}
+          FEATURE: ${{ steps.foundation_feature.outcome }}
+        run: |
+          set -Eeuo pipefail
+          echo "Unit: $UNIT"
+          echo "Foundation feature: $FEATURE"
+          [[ "$UNIT" == "success" && "$FEATURE" == "success" ]]
 
   domain:
     if: ${{ always() && needs.prepare-host.result == 'success' }}

@@ -27,7 +27,7 @@ it('v2 CSV export starts with UTF-8 BOM and preserves declared column order', fu
 
     expect(str_starts_with($csv, "\xEF\xBB\xBF"))->toBeTrue()
         ->and($csv)->toContain("Ürün;Kod")
-        ->toContain('Türkçe Ürün;ITEM-1');
+        ->toContain('"Türkçe Ürün";ITEM-1');
 });
 
 it('v2 CSV export neutralizes formula prefixes in string cells without modifying numeric amounts', function () {
