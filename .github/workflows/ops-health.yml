@@ -4,18 +4,33 @@ on:
     - cron: '17 * * * *'
   workflow_dispatch:
   push:
-    branches: [ops/maintenance-5-11]
+    branches: [ops/maintenance-5-11, ops/verify-20261009]
     paths:
       - '.github/workflows/ops-health.yml'
       - 'scripts/ci/health-test-infra.sh'
+      - 'scripts/ci/test-service-network.sh'
 permissions:
   contents: read
 concurrency:
   group: ops-permanent-infra-health
   cancel-in-progress: false
 jobs:
+  network:
+    name: PostgreSQL and Valkey network transport (no SSH)
+    runs-on: [self-hosted, Linux, mars-ubuntu, mars-r3]
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - name: Probe the existing private service endpoints without credentials
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          bash -n scripts/ci/test-service-network.sh
+          bash scripts/ci/test-service-network.sh
   health:
-    name: PostgreSQL + Valkey + Docker + disk + memory
+    name: Authenticated PostgreSQL + Valkey and remote Docker + disk + memory
+    needs: network
+    if: ${{ !cancelled() }}
     runs-on: [self-hosted, Linux, mars-ubuntu, mars-r3]
     timeout-minutes: 5
     steps:

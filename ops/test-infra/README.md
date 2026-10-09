@@ -21,7 +21,7 @@ GitHub main Quality run [37815414588](https://github.com/ufukunal/MarsOtomasyon/
 Read-only VM check [37818092042](https://github.com/ufukunal/MarsOtomasyon/actions/runs/37818092042) confirms /dev/sda 100 GB, /dev/sda3 ~98 GB, root LV ~49 GB and VG free ~49 GB. `ops/test-infra/extend-root-lvm.sh` validates root identity, Tailnet IP, mount source and ext4 before online LV expansion. After executing via authorized admin change, require visible before/after `df -hT /` and `vgs` evidence before marking done. A staged script is not proof of a completed disk expansion.
 
 ## Repeated quality — task 6
-`.github/workflows/ops-repeated-quality.yml` invokes the real `quality.yml` three times through sequential `workflow_call` dependencies; each full round runs R1, R2, R3, R4, including the actual `--min=90` line-coverage gate and concurrency test in R2. A failed run blocks next pass.
+`.github/workflows/ops-repeated-quality.yml` invokes the real `quality.yml` three times through sequential `workflow_call` dependencies; each full round runs R1, R2, R3, R4, including the actual `--min=90` line-coverage gate and concurrency test in R2. A failed pass still allows the next round to run; the overall workflow remains FAILED.
 
 ## CI — task 9
 Quality is reusable with `workflow_call`. Disabled `cancel-in-progress` avoids cancelling costly test runs when new commits arrive. Unused old `MARS_PG_PORT` per-runner variables removed. Global `XDEBUG_MODE=off` keeps noncoverage checks fast; R4 uses validated PCOV. Default GitHub token permission remains `contents: read`.
@@ -71,3 +71,17 @@ The authorized, guarded test-only maintenance workflow [#37847090664](https://gi
 A **whole-VM reboot/autostart verification has not been performed**. It remains a separate planned service interruption in [issue #1](https://github.com/ufukunal/MarsOtomasyon/issues/1). Do not interpret container-level restart success as whole-node reboot evidence.
 
 New full R1–R4 quality verification should be performed after maintenance before considering this operational change closed.
+
+## Access-independent health diagnosis — 2026-10-09
+
+A scheduled health check [#37892715713](https://github.com/ufukunal/MarsOtomasyon/actions/runs/37892715713) failed with a **Tailscale SSH additional verification request** from the R3 runner, before authorized database credentials or host metrics could be collected. No passwords, access policies, IPs or user accounts were changed.
+
+Read-only R1–R4 checks [#37902748550](https://github.com/ufukunal/MarsOtomasyon/actions/runs/37902748550) confirmed: on **all four runners**, Tailscale was running, `pg_isready` accepted TCP on PostgreSQL port 55432, and TCP connections reached Valkey port 6379; non-interactive SSH to the VM failed on all four. **TCP reachability is not proof of authenticated database or Docker health.**
+
+The scheduled `ops-health.yml` workflow now has two separately visible jobs:
+1. **Network transport**, using `scripts/ci/test-service-network.sh`, checks only unauthenticated PostgreSQL readiness and Valkey TCP reachability. No remote SSH is required; it never claims DB authentication or persistence health.
+2. **Full authenticated and host health**, retaining the existing SSH-secured credentials retrieval, PostgreSQL and Valkey authenticated health, `fsync`/AOF, Docker state, root disk, and memory checks. This job **must stay red** while SSH requires additional verification. A healthy network job must not mask an unverified full-health job.
+
+Both jobs were exercised on [#37903009401](https://github.com/ufukunal/MarsOtomasyon/actions/runs/37903009401): network PASS, authenticated/host health FAILED on SSH verification. Separately, offline unit, Bash, Pint, Larastan and frontend build checks passed in [#37903125609](https://github.com/ufukunal/MarsOtomasyon/actions/runs/37903125609).
+
+Whole-node reboot and its autostart checks remain blocked until existing SSH access becomes available via the previously authorized mechanism. Do not bypass SSH verification, alter passwords or change addresses. R1–R4 feature and real PCOV coverage tests also depend on that existing SSH credential retrieval; do not claim a fresh full quality PASS until they truly run.
