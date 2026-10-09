@@ -70,7 +70,9 @@ jobs:
         run: composer install --no-interaction --prefer-dist --no-progress
 
       - name: Prepare environment
-        run: cp .env.example .env
+        run: |
+          cp .env.example .env
+          mkdir -p storage/app/test-v2-artifacts
 
       - name: Verify exact test database identity
         shell: bash
@@ -90,7 +92,7 @@ jobs:
       - name: Unit tests
         id: unit
         continue-on-error: true
-        run: vendor/bin/pest tests/Unit --display-warnings
+        run: vendor/bin/pest tests/Unit --display-warnings --log-junit storage/app/test-v2-artifacts/unit.xml
 
       - name: Verify permanent PostgreSQL and Valkey
         shell: bash
@@ -114,7 +116,7 @@ jobs:
             tests/Feature/Period \
             tests/Feature/Pricing \
             tests/Feature/TestV2 \
-            --display-warnings
+            --display-warnings --log-junit storage/app/test-v2-artifacts/foundation.xml
 
       - name: Enforce R1 unit and feature gates
         if: always()
@@ -127,6 +129,14 @@ jobs:
           echo "Unit: $UNIT"
           echo "Foundation feature: $FEATURE"
           [[ "$UNIT" == "success" && "$FEATURE" == "success" ]]
+
+      - name: Upload R1 test evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mars-v2-r1-${{ github.run_id }}
+          path: storage/app/test-v2-artifacts/*.xml
+          if-no-files-found: warn
 
   domain:
     if: ${{ always() && needs.prepare-host.result == 'success' }}
@@ -146,7 +156,9 @@ jobs:
         run: composer install --no-interaction --prefer-dist --no-progress
 
       - name: Prepare environment
-        run: cp .env.example .env
+        run: |
+          cp .env.example .env
+          mkdir -p storage/app/test-v2-artifacts
 
       - name: Verify exact test database identity
         shell: bash
@@ -175,8 +187,16 @@ jobs:
             tests/Feature/Security \
             tests/Feature/Stock \
             tests/Feature/Units \
-            --display-warnings
+            --display-warnings --log-junit storage/app/test-v2-artifacts/domain.xml
 
+
+      - name: Upload R2 test evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mars-v2-r2-${{ github.run_id }}
+          path: storage/app/test-v2-artifacts/*.xml
+          if-no-files-found: warn
 
   manual-audit:
     if: ${{ always() && needs.prepare-host.result == 'success' }}
@@ -196,7 +216,9 @@ jobs:
         run: composer install --no-interaction --prefer-dist --no-progress
 
       - name: Prepare environment
-        run: cp .env.example .env
+        run: |
+          cp .env.example .env
+          mkdir -p storage/app/test-v2-artifacts
 
       - name: Verify exact test database identity
         shell: bash
@@ -216,8 +238,16 @@ jobs:
         run: bash scripts/ci/remote-test-services.sh "$DB_MASTER_DATABASE"
 
       - name: Manual integrity quality security suite
-        run: vendor/bin/pest tests/ManualAudit --display-warnings
+        run: vendor/bin/pest tests/ManualAudit --display-warnings --log-junit storage/app/test-v2-artifacts/manual-audit.xml
 
+
+      - name: Upload R3 test evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mars-v2-r3-${{ github.run_id }}
+          path: storage/app/test-v2-artifacts/*.xml
+          if-no-files-found: warn
 
   quality:
     if: ${{ always() && needs.prepare-host.result == 'success' }}
@@ -237,7 +267,9 @@ jobs:
         run: composer install --no-interaction --prefer-dist --no-progress
 
       - name: Prepare environment
-        run: cp .env.example .env
+        run: |
+          cp .env.example .env
+          mkdir -p storage/app/test-v2-artifacts
 
       - name: Verify exact test database identity
         shell: bash
@@ -338,7 +370,7 @@ jobs:
             test -s "$PCOV_EXTENSION"
             FLAGS=(-d "extension=$PCOV_EXTENSION")
           fi
-          XDEBUG_MODE=off php "${FLAGS[@]}" -d pcov.enabled=1 -d "pcov.directory=$GITHUB_WORKSPACE/app/Actions/Stock" vendor/bin/pest -c phpunit.stock.xml "${STOCK_COVERAGE_TESTS[@]}" --coverage --min=90
+          XDEBUG_MODE=off php "${FLAGS[@]}" -d pcov.enabled=1 -d "pcov.directory=$GITHUB_WORKSPACE/app/Actions/Stock" vendor/bin/pest -c phpunit.stock.xml "${STOCK_COVERAGE_TESTS[@]}" --coverage --min=90 --log-junit storage/app/test-v2-artifacts/stock-coverage.xml
 
 
       - name: Enforce R4 quality gates
@@ -355,10 +387,43 @@ jobs:
           echo "Stock coverage: $COVERAGE"
           [[ "$PINT" == "success" && "$LARASTAN" == "success" && "$COVERAGE" == "success" ]]
 
+      - name: Upload stock-coverage test evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mars-v2-r4-${{ github.run_id }}
+          path: storage/app/test-v2-artifacts/*.xml
+          if-no-files-found: warn
+
+  http-smoke:
+    name: "R5 - Isolated HTTP smoke and anonymous authorization"
+    needs: [prepare-host, quality]
+    if: ${{ always() && needs.prepare-host.result == 'success' }}
+    runs-on: [self-hosted, Linux, mars-ubuntu, mars-r1]
+    env:
+      DB_MASTER_DATABASE: MarsProject_Master_Test_R1
+    steps:
+      - uses: actions/checkout@v4
+      - name: Select stable PHP
+        run: bash scripts/ci/select-php.sh
+      - name: Install PHP dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+      - name: Prepare isolated HTTP environment
+        run: cp .env.example .env
+      - name: Authenticate test-only PostgreSQL and Valkey
+        env:
+          MARS_PG_PASSWORD: ${{ secrets.MARS_PG_PASSWORD }}
+          MARS_VALKEY_PASSWORD: ${{ secrets.MARS_VALKEY_PASSWORD }}
+        run: bash scripts/ci/remote-test-services.sh "$DB_MASTER_DATABASE"
+      - name: Verify only localhost health and anonymous auth redirects
+        shell: bash
+        timeout-minutes: 5
+        run: bash scripts/ci/test-v2-http-smoke.sh
+
   final-summary:
     name: "All stages - final gate and summary"
     if: ${{ always() }}
-    needs: [prepare-host, foundation, domain, manual-audit, quality]
+    needs: [prepare-host, foundation, domain, manual-audit, quality, http-smoke]
     runs-on: [self-hosted, Linux, mars-ubuntu, mars-r3]
     steps:
       - name: Consolidate sequential pipeline results
@@ -369,6 +434,7 @@ jobs:
           R2: ${{ needs.domain.result }}
           R3: ${{ needs.manual-audit.result }}
           R4: ${{ needs.quality.result }}
+          R5: ${{ needs.http-smoke.result }}
         run: |
           set -Eeuo pipefail
           {
@@ -380,7 +446,8 @@ jobs:
             echo "| R2 Domain | $R2 |"
             echo "| R3 ManualAudit | $R3 |"
             echo "| R4 Pint / Larastan / Build / Coverage | $R4 |"
+            echo "| R5 Local HTTP / authorization | $R5 |"
             echo
             echo 'Bu run yalnız GitHub dalına commit edilmiş testleri kapsamaktadır.'
           } >> "$GITHUB_STEP_SUMMARY"
-          [[ "$PREPARE" == "success" && "$R1" == "success" && "$R2" == "success" && "$R3" == "success" && "$R4" == "success" ]]
+          [[ "$PREPARE" == "success" && "$R1" == "success" && "$R2" == "success" && "$R3" == "success" && "$R4" == "success" && "$R5" == "success" ]]
