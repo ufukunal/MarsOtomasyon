@@ -36,10 +36,10 @@ it('V2-004 rejects wrong environment host port and user even for an allowlisted 
     expect(fn () => TestDatabaseGuard::assertSafe(...array_values($settings)))
         ->toThrow(RuntimeException::class, 'PRODUCTION GUARD');
 })->with([
-    ['environment' => 'production'],
-    ['environment' => 'local'],
-    ['host' => '127.0.0.1'],
-    ['host' => 'mars-prod.taila20365.ts.net'],
-    ['port' => '5432'],
-    ['username' => 'postgres'],
+    [['environment' => 'production']],
+    [['environment' => 'local']],
+    [['host' => '127.0.0.1']],
+    [['host' => 'mars-prod.taila20365.ts.net']],
+    [['port' => '5432']],
+    [['username' => 'postgres']],
 ]);

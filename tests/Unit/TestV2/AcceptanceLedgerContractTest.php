@@ -1,7 +1,7 @@
 <?php
 
 it('V2-001 312 acceptance IDs retain unique traceable criteria and priority without silently closing unproven work', function () {
-    $path = base_path('docs/testing/TEST_V2_ACCEPTANCE_312.csv');
+    $path = dirname(__DIR__, 3).'/docs/testing/TEST_V2_ACCEPTANCE_312.csv';
     expect(is_file($path))->toBeTrue();
 
     $handle = fopen($path, 'rb');

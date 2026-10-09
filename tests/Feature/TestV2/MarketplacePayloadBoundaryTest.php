@@ -2,6 +2,10 @@
 
 use App\Models\Period\ChannelProductListing;
 use App\Models\Period\Product;
+
+beforeEach(function () {
+    $this->createCompanyWithPeriod('V2PAYLOAD');
+});
 use App\Support\Channels\Hepsiburada\HepsiburadaPayloadBuilder;
 use App\Support\Channels\N11\N11PayloadBuilder;
 use App\Support\Channels\Trendyol\TrendyolPayloadBuilder;

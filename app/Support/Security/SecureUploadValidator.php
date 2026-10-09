@@ -45,6 +45,31 @@ final class SecureUploadValidator
             ]);
         }
 
+        // A forged extension or client-provided MIME must never make
+        // non-image bytes eligible for a document/image allowlist.
+        if (in_array($extension, ['png', 'jpg', 'jpeg', 'webp', 'pdf'], true)) {
+            $handle = fopen($file->getRealPath(), 'rb');
+            $signature = $handle === false ? '' : (string) fread($handle, 1024);
+            if ($handle !== false) {
+                fclose($handle);
+            }
+
+            $matches = match ($extension) {
+                'png' => str_starts_with($signature, "\x89PNG\r\n\x1a\n"),
+                'jpg', 'jpeg' => str_starts_with($signature, "\xFF\xD8\xFF"),
+                'webp' => str_starts_with($signature, 'RIFF')
+                    && substr($signature, 8, 4) === 'WEBP',
+                'pdf' => str_starts_with($signature, '%PDF-'),
+                default => false,
+            };
+
+            if (! $matches) {
+                throw ValidationException::withMessages([
+                    'file' => 'Dosya içerik imzası uzantıyla uyumlu değil.',
+                ]);
+            }
+        }
+
         return [
             'mime' => $mime,
             'extension' => $extension,

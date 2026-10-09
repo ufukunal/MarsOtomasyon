@@ -18,7 +18,13 @@ it('v2 contact code sequence is unique across consecutive writes within one peri
 
 it('v2 contact code cannot be changed after creation', function () {
     $contact = Contact::query()->create(['title' => 'Immutable Contact', 'type' => 'legal']);
-    expect(fn () => $contact->update(['code' => 'FORGED']))->toThrow(LogicException::class);
+    // Code is not fillable: mass assignment is discarded instead of raising.
+    $contact->update(['code' => 'FORGED']);
+    expect($contact->refresh()->code)->not->toBe('FORGED');
+
+    // Bypassing mass assignment must still fail at the model invariant.
+    $contact->setAttribute('code', 'FORGED');
+    expect(fn () => $contact->save())->toThrow(LogicException::class);
     expect($contact->refresh()->code)->not->toBe('FORGED');
 });
 

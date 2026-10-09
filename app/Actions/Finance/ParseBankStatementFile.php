@@ -44,7 +44,7 @@ final class ParseBankStatementFile
         $delimiter = $this->detectDelimiter($sample);
         $file = new SplFileObject($path);
         $file->setFlags(SplFileObject::READ_CSV | SplFileObject::SKIP_EMPTY);
-        $file->setCsvControl($delimiter);
+        $file->setCsvControl($delimiter, '"', '');
 
         $headers = null;
         $rows = [];

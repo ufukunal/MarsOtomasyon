@@ -113,12 +113,12 @@ it('v2 WooCommerce valid HMAC and source queues exactly one job rather than a di
         'store_url' => 'https://shop.example.test',
     ]);
     $body = '{"id":42}';
-    $this->withHeaders([
-        'X-WC-Webhook-Signature' => base64_encode(hash_hmac('sha256', $body, 'v2-webhook-secret', true)),
-        'X-WC-Webhook-Topic' => 'order.created',
-        'X-WC-Webhook-Source' => 'https://shop.example.test',
-    ])->call('POST', '/hooks/channel/woocommerce/'.$account->id, [], [], [], ['CONTENT_TYPE' => 'application/json'], $body)
-        ->assertNoContent();
+    $this->call('POST', '/hooks/channel/woocommerce/'.$account->id, [], [], [], [
+        'CONTENT_TYPE' => 'application/json',
+        'HTTP_X_WC_WEBHOOK_SIGNATURE' => base64_encode(hash_hmac('sha256', $body, 'v2-webhook-secret', true)),
+        'HTTP_X_WC_WEBHOOK_TOPIC' => 'order.created',
+        'HTTP_X_WC_WEBHOOK_SOURCE' => 'https://shop.example.test',
+    ], $body)->assertNoContent();
     Bus::assertDispatched(PollWooCommerceWebhookJob::class, 1);
 });
 
@@ -134,9 +134,9 @@ it('v2 WooCommerce Hookshot ping is accepted without queueing an order', functio
     $account = v2WebhookAccount($this->v2WebhookCompanyId, 'woocommerce', [
         'webhook_secret' => 'v2-webhook-secret',
     ], ['store_url' => 'https://shop.example.test']);
-    $this->withHeaders(['User-Agent' => 'WooCommerce/10.0 Hookshot'])
-        ->call('POST', '/hooks/channel/woocommerce/'.$account->id, [], [], [],
-            ['CONTENT_TYPE' => 'text/plain'], 'webhook_id=456')
-        ->assertOk();
+    $this->call('POST', '/hooks/channel/woocommerce/'.$account->id, [], [], [], [
+        'CONTENT_TYPE' => 'text/plain',
+        'HTTP_USER_AGENT' => 'WooCommerce/10.0 Hookshot',
+    ], 'webhook_id=456')->assertOk();
     Bus::assertNotDispatched(PollWooCommerceWebhookJob::class);
 });
