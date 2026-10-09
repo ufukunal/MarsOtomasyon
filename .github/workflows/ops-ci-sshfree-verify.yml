@@ -14,8 +14,8 @@ permissions:
   contents: read
 jobs:
   static:
-    name: R3 - Static CI contract and secret presence
-    runs-on: [self-hosted, Linux, mars-ubuntu, mars-r3]
+    name: R4 - Static CI contract and secret presence
+    runs-on: [self-hosted, Linux, mars-ubuntu, mars-r4]
     timeout-minutes: 5
     env:
       MARS_PG_PASSWORD: ${{ secrets.MARS_PG_PASSWORD }}
