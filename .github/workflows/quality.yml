@@ -3,7 +3,7 @@ name: Quality - 4 Self Hosted Runners
 on:
   workflow_call:
   push:
-    branches: [main]
+    branches: [main, test/v2-full-audit-20261009]
   workflow_dispatch:
 
 permissions:
@@ -72,6 +72,11 @@ jobs:
       - name: Prepare environment
         run: cp .env.example .env
 
+      - name: Test v2.0 PHP syntax
+        shell: bash
+        run: |
+          find tests/Unit/TestV2 tests/Feature/TestV2 -type f -name '*.php' -print0 | xargs -0 -n 1 php -l
+
       - name: Unit tests
         run: vendor/bin/pest tests/Unit --display-warnings
 
@@ -94,6 +99,7 @@ jobs:
             tests/Feature/Locations \
             tests/Feature/Period \
             tests/Feature/Pricing \
+            tests/Feature/TestV2 \
             --display-warnings
 
 
