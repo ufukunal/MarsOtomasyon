@@ -13,13 +13,16 @@ jobs:
   pass-1:
     name: "Quality pass 1 of 3"
     uses: ./.github/workflows/quality.yml
+    secrets: inherit
   pass-2:
     name: "Quality pass 2 of 3"
     needs: pass-1
     if: ${{ !cancelled() }}
     uses: ./.github/workflows/quality.yml
+    secrets: inherit
   pass-3:
     name: "Quality pass 3 of 3"
     needs: pass-2
     if: ${{ !cancelled() }}
     uses: ./.github/workflows/quality.yml
+    secrets: inherit
