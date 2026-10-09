@@ -4,7 +4,7 @@ on:
     - cron: '17 * * * *'
   workflow_dispatch:
   push:
-    branches: [ops/maintenance-5-11, ci/ssh-free-quality-20261009]
+    branches: [ops/maintenance-5-11]
     paths:
       - '.github/workflows/ops-health.yml'
       - 'scripts/ci/remote-test-services.sh'

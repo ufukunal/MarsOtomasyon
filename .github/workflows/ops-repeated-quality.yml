@@ -2,7 +2,7 @@ name: OPS - Three Full Local Runner Quality Passes
 on:
   workflow_dispatch:
   push:
-    branches: [ops/maintenance-5-11, ci/ssh-free-quality-20261009]
+    branches: [ops/maintenance-5-11]
     paths:
       - '.github/workflows/ops-repeated-quality.yml'
       - '.github/workflows/quality.yml'
