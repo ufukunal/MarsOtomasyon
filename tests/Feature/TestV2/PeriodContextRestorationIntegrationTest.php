@@ -34,8 +34,8 @@ it('v2 system period context restores parent connection even when child task thr
     $databaseB = (string) config('database.connections.period.database');
 
     expect(fn () => PeriodContext::withinSystem($periodA, function (): never {
-        throw new \RuntimeException('V2 injected nested failure');
-    }))->toThrow(\RuntimeException::class, 'V2 injected nested failure');
+        throw new RuntimeException('V2 injected nested failure');
+    }))->toThrow(RuntimeException::class, 'V2 injected nested failure');
 
     expect(PeriodContext::periodId())->toBe($periodB->id)
         ->and(CompanyContext::id())->toBe($companyB->id)

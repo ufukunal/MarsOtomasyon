@@ -26,7 +26,7 @@
                         <td>{{ $job->created_at?->format('d.m.Y H:i:s') }}</td>
                         <td>
                             @if($job->status === 'done' && $job->storage_path)
-                                <a href="{{ route('reports.exports.download', $job) }}">İndir</a>
+                                <a href="{{ \Illuminate\Support\Facades\URL::temporarySignedRoute('reports.exports.download', now()->addMinutes(15), ['export' => $job->getKey()]) }}">İndir</a>
                             @elseif($job->status === 'failed')
                                 {{ $job->error_summary ?: 'Üretim başarısız.' }}
                             @elseif($job->status === 'done')

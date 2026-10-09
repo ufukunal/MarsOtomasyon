@@ -31,7 +31,7 @@ it('v2 import JSON refuses non-array root and incomplete documents', function ()
 
     foreach (['bad.json', 'truncated.json'] as $path) {
         expect(fn () => app(ImportFileReader::class)->rows('v2-import-isolated', $path, $path))
-            ->toThrow(\RuntimeException::class);
+            ->toThrow(RuntimeException::class);
     }
 });
 
@@ -39,7 +39,7 @@ it('v2 import rejects unknown filename extensions before parsing', function () {
     Storage::disk('v2-import-isolated')->put('cards.exe', 'binary');
 
     expect(fn () => app(ImportFileReader::class)->rows('v2-import-isolated', 'cards.exe', 'cards.exe'))
-        ->toThrow(\RuntimeException::class, 'Desteklenmeyen içe aktarma dosya türü.');
+        ->toThrow(RuntimeException::class, 'Desteklenmeyen içe aktarma dosya türü.');
 });
 
 it('v2 CSV import must normalize UTF-8 BOM before matching the first header', function () {

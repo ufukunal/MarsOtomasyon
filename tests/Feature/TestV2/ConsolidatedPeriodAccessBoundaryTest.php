@@ -18,7 +18,7 @@ it('v2 consolidated report selection rejects foreign period IDs even when compan
     [$companyB, $periodB] = $this->createCompanyWithPeriod('V2REPD');
 
     expect(fn () => app(PeriodRangeSelector::class)->select($actor, $companyA->id, [$periodB->id]))
-        ->toThrow(\DomainException::class, 'bu şirkete ait değil');
+        ->toThrow(DomainException::class, 'bu şirkete ait değil');
 });
 
 it('v2 consolidated report selection refuses an empty or zero-only period list', function () {
@@ -26,5 +26,5 @@ it('v2 consolidated report selection refuses an empty or zero-only period list',
     $actor = $this->createUserWithPeriodAccess($company, $period, 'Yönetici');
 
     expect(fn () => app(PeriodRangeSelector::class)->select($actor, $company->id, [0, -1]))
-        ->toThrow(\DomainException::class, 'En az bir dönem seçilmelidir.');
+        ->toThrow(DomainException::class, 'En az bir dönem seçilmelidir.');
 });

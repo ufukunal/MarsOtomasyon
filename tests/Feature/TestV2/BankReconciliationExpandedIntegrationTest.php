@@ -22,6 +22,7 @@ function v2StatementFixtures(string $currency = 'TRY'): array
         'origin' => 'statement', 'statement_fingerprint' => hash('sha256', 'v2-test-statement'),
         'statement_description' => 'Inbound transfer',
     ]);
+
     return [$account, $statement];
 }
 

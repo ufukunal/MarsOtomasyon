@@ -3,7 +3,6 @@
 use App\Actions\Catalog\SaveProductCategory;
 use App\Actions\Products\SaveProduct;
 use App\Models\Period\PriceListItem;
-use App\Models\Period\Product;
 use App\Models\Period\ProductCategory;
 use App\Models\Period\Unit;
 use App\Support\Pricing\PriceResolver;

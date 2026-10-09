@@ -42,7 +42,7 @@ it('v2 Trendyol inventory sync refuses a missing barcode without touching remote
     $listing->setRelation('product', new Product(['code' => 'ITEM-101', 'barcode' => '']));
 
     expect(fn () => app(TrendyolPayloadBuilder::class)->inventoryItem($listing, '1', '10'))
-        ->toThrow(\DomainException::class, 'barcode zorunludur');
+        ->toThrow(DomainException::class, 'barcode zorunludur');
 });
 
 it('v2 Hepsiburada stock and price payloads bind both product identifiers', function () {
@@ -66,7 +66,7 @@ it('v2 Hepsiburada stock payload refuses absent external product identity', func
     $listing = v2PayloadListing(['external_product_id' => null]);
 
     expect(fn () => app(HepsiburadaPayloadBuilder::class)->stockItem($listing, '5.000'))
-        ->toThrow(\DomainException::class, 'HB SKU zorunludur');
+        ->toThrow(DomainException::class, 'HB SKU zorunludur');
 });
 
 it('v2 N11 stock and price payloads preserve exact channel identity and enforce price floor', function () {
@@ -104,5 +104,5 @@ it('v2 WooCommerce price payload preserves two-decimal amount and refuses negati
     $builder = app(WooCommercePayloadBuilder::class);
     expect($builder->price('10.129'))->toBe(['regular_price' => '10.12', 'sale_price' => '']);
     expect(fn () => $builder->price('-0.0001'))
-        ->toThrow(\DomainException::class, 'fiyat negatif olamaz');
+        ->toThrow(DomainException::class, 'fiyat negatif olamaz');
 });

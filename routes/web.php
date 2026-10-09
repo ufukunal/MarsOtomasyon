@@ -200,6 +200,7 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/raporlar/yazdirma-gecmisi', PrintHistory::class)->name('reports.print-history');
     Route::get('/raporlar/exportlar/{export}/indir', ReportExportDownloadController::class)
         ->whereNumber('export')
+        ->middleware('signed')
         ->name('reports.exports.download');
 
     Route::get('/ice-aktarma', ImportWizard::class)->name('imports.index');

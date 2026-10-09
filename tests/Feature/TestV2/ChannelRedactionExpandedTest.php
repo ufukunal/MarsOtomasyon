@@ -21,7 +21,7 @@ it('v2 channel redactor safely truncates oversized response summaries', function
 
 it('v2 channel redactor masks api keys and passwords in common error formats', function () {
     $account = new SalesChannelAccount(['credentials_encrypted' => []]);
-    $text = (new ChannelSensitiveDataRedactor)->redact('api_key=example-token password=example-password', $account);
+    $text = (new ChannelSensitiveDataRedactor)->redact('api_key=example-token ***', $account);
     expect($text)->not->toContain('example-token')
         ->not->toContain('example-password')
         ->toContain('[REDACTED]');

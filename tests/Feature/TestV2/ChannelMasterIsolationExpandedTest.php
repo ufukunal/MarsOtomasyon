@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\ChannelExternalEventRegistry;
 use App\Models\SalesChannelAccount;
 use App\Support\Channels\ChannelExternalEventRegistryService;
 
@@ -56,12 +57,12 @@ it('v2 marketplace external events reject unsupported type without creating a re
     $account = v2MasterChannelAccount($this->v2ChannelOwner->id);
     expect(fn () => app(ChannelExternalEventRegistryService::class)->reserve($account, 'inventory_update', 'E-1'))
         ->toThrow(DomainException::class, 'Geçersiz kanal external event tipi');
-    expect(\App\Models\ChannelExternalEventRegistry::query()->count())->toBe(0);
+    expect(ChannelExternalEventRegistry::query()->count())->toBe(0);
 });
 
 it('v2 marketplace external events reject blank external identity', function () {
     $account = v2MasterChannelAccount($this->v2ChannelOwner->id);
     expect(fn () => app(ChannelExternalEventRegistryService::class)->reserve($account, 'order', '   '))
         ->toThrow(DomainException::class, 'External event id boş');
-    expect(\App\Models\ChannelExternalEventRegistry::query()->count())->toBe(0);
+    expect(ChannelExternalEventRegistry::query()->count())->toBe(0);
 });

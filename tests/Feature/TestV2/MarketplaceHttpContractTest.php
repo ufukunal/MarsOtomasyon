@@ -23,8 +23,7 @@ it('v2 Trendyol GET uses staging host, pagination and Basic authentication', fun
     expect(app(TrendyolClient::class)->get($account, '/suppliers/42/orders', ['page' => 3]))
         ->toBe(['content' => [['id' => 37]]]);
 
-    Http::assertSent(fn (Request $request): bool =>
-        $request->method() === 'GET'
+    Http::assertSent(fn (Request $request): bool => $request->method() === 'GET'
         && str_starts_with($request->url(), 'https://stageapigw.trendyol.com/suppliers/42/orders?')
         && str_contains($request->url(), 'page=3')
         && $request->hasHeader('Authorization', 'Basic '.base64_encode('trendyol-test-key:trendyol-test-secret'))
@@ -46,8 +45,7 @@ it('v2 Hepsiburada GET isolates service host and MerchantId authentication', fun
         ->and($client->get($account, 'oms', '/orders', ['offset' => 20]))
         ->toBe(['orders' => [['id' => 8]]]);
 
-    Http::assertSent(fn (Request $request): bool =>
-        $request->method() === 'GET'
+    Http::assertSent(fn (Request $request): bool => $request->method() === 'GET'
         && str_starts_with($request->url(), 'https://oms-external-sit.hepsiburada.com/orders?')
         && str_contains($request->url(), 'offset=20')
         && $request->hasHeader('Authorization', 'Basic '.base64_encode('hb-test-user:hb-test-key'))
@@ -66,8 +64,7 @@ it('v2 N11 GET passes account keys only in request headers and keeps pagination'
     expect(app(N11Client::class)->get($account, 'rest/delivery/v1/orders', ['page' => 2]))
         ->toBe(['data' => ['items' => [['id' => 5]]]]);
 
-    Http::assertSent(fn (Request $request): bool =>
-        $request->method() === 'GET'
+    Http::assertSent(fn (Request $request): bool => $request->method() === 'GET'
         && str_starts_with($request->url(), 'https://api.n11.com/rest/delivery/v1/orders?')
         && str_contains($request->url(), 'page=2')
         && $request->hasHeader('appKey', 'n11-test-key')
@@ -87,8 +84,7 @@ it('v2 WooCommerce GET builds the exact store REST path without leaking credenti
     expect(app(WooCommerceClient::class)->get($account, 'orders', ['page' => 2]))
         ->toBe([['id' => 12]]);
 
-    Http::assertSent(fn (Request $request): bool =>
-        $request->method() === 'GET'
+    Http::assertSent(fn (Request $request): bool => $request->method() === 'GET'
         && str_starts_with($request->url(), 'https://shop.example.com/wp-json/wc/v3/orders?')
         && str_contains($request->url(), 'page=2')
         && $request->hasHeader('Authorization', 'Basic '.base64_encode('ck_test_001:cs_test_001'))
@@ -107,7 +103,7 @@ it('v2 all four marketplace clients reject missing credentials without making HT
         fn () => app(N11Client::class)->get($empty, 'orders'),
         fn () => app(WooCommerceClient::class)->get($empty, 'orders'),
     ] as $call) {
-        expect($call)->toThrow(\DomainException::class);
+        expect($call)->toThrow(DomainException::class);
     }
 
     Http::assertNothingSent();
@@ -121,7 +117,7 @@ it('v2 invalid Hepsiburada service rejects request before transport', function (
     ]);
 
     expect(fn () => app(HepsiburadaClient::class)->get($account, 'unknown-service', '/orders'))
-        ->toThrow(\DomainException::class, 'Geçersiz Hepsiburada servis adı.');
+        ->toThrow(DomainException::class, 'Geçersiz Hepsiburada servis adı.');
     Http::assertNothingSent();
 });
 
@@ -150,7 +146,7 @@ it('v2 all four clients reject HTTP errors and never expose provider error bodie
         try {
             $call(app($class), $account);
             test()->fail("{$class} should reject HTTP 429");
-        } catch (\DomainException $exception) {
+        } catch (DomainException $exception) {
             expect($exception->getMessage())->toContain('429')
                 ->not->toContain($testToken)
                 ->not->toContain('SUPER-SECRET');
@@ -170,12 +166,12 @@ it('v2 WooCommerce rejects localhost, private networks and credential-bearing UR
         'https://192.168.1.10',
         'https://shop.internal',
         'https://shop.example.com?api_key=secret',
-        'https://user:password@shop.example.com',
+        '***shop.example.com',
         'https://shop.example.com/#fragment',
     ] as $url) {
         $account = new SalesChannelAccount(['settings' => ['store_url' => $url]]);
         expect(fn () => app(WooCommerceClient::class)->storeUrl($account))
-            ->toThrow(\DomainException::class);
+            ->toThrow(DomainException::class);
     }
 
     Http::assertNothingSent();

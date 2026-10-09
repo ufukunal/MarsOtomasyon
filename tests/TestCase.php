@@ -6,7 +6,6 @@ use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use PDO;
-use RuntimeException;
 use Spatie\Permission\PermissionRegistrar;
 use Tests\Support\CreatesCatalogFixtures;
 use Tests\Support\CreatesPeriodDatabases;

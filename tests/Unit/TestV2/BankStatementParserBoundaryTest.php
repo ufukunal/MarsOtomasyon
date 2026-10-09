@@ -42,7 +42,7 @@ it('v2 bank statement refuses unknown input formats before parsing', function ()
     try {
         file_put_contents($path, 'data');
         expect(fn () => (new ParseBankStatementFile)->handle($path, 'binary'))
-            ->toThrow(\DomainException::class, 'Desteklenmeyen ekstre formatı.');
+            ->toThrow(DomainException::class, 'Desteklenmeyen ekstre formatı.');
     } finally {
         @unlink($path);
     }
@@ -50,13 +50,13 @@ it('v2 bank statement refuses unknown input formats before parsing', function ()
 
 it('v2 bank statement refuses missing files and empty CSV movement lists', function () {
     expect(fn () => (new ParseBankStatementFile)->handle(sys_get_temp_dir().'/mars-nonexistent-'.uniqid(), 'csv'))
-        ->toThrow(\DomainException::class, 'Banka ekstre dosyası bulunamadı.');
+        ->toThrow(DomainException::class, 'Banka ekstre dosyası bulunamadı.');
 
     $path = tempnam(sys_get_temp_dir(), 'mars-bank-v2-');
     try {
         file_put_contents($path, "Date;Amount;Description\n;0;Empty\n");
         expect(fn () => (new ParseBankStatementFile)->handle($path, 'csv'))
-            ->toThrow(\DomainException::class, 'aktarılabilir hareket bulunamadı');
+            ->toThrow(DomainException::class, 'aktarılabilir hareket bulunamadı');
     } finally {
         @unlink($path);
     }

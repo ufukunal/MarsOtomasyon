@@ -1,7 +1,9 @@
 <?php
 
 use App\Actions\Production\SaveProductionOrderDraft;
+use App\Exceptions\PeriodYearMismatchException;
 use App\Models\Period\ProductionOrder;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 beforeEach(function () {
     [$company, $period] = $this->createCompanyWithPeriod('V2PRODVAL');
@@ -20,7 +22,7 @@ it('v2 production refuses planned output of zero or less before saving work orde
 it('v2 production refuses creation in a different accounting year before saving work order', function () {
     expect(fn () => app(SaveProductionOrderDraft::class)->handle([
         'document_date' => '2025-09-01', 'planned_quantity' => '1.000',
-    ]))->toThrow(\App\Exceptions\PeriodYearMismatchException::class);
+    ]))->toThrow(PeriodYearMismatchException::class);
     expect(ProductionOrder::query()->count())->toBe(0);
 });
 
@@ -28,7 +30,7 @@ it('v2 production refuses missing output product even with otherwise positive am
     expect(fn () => app(SaveProductionOrderDraft::class)->handle([
         'document_date' => '2026-09-01', 'product_id' => 999999,
         'recipe_id' => 1, 'planned_quantity' => '1.000',
-    ]))->toThrow(\Illuminate\Database\Eloquent\ModelNotFoundException::class);
+    ]))->toThrow(ModelNotFoundException::class);
     expect(ProductionOrder::query()->count())->toBe(0);
 });
 

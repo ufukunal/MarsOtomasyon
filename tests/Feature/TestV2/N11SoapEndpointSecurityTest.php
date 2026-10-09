@@ -46,7 +46,7 @@ it('v2 N11 return SOAP refuses HTTP endpoints resolved from WSDL', function () {
     ]);
 
     expect(fn () => app(N11Client::class)->claimReturns($account, '2026-01-01', '2026-01-31', 0))
-        ->toThrow(\DomainException::class, 'HTTPS değil');
+        ->toThrow(DomainException::class, 'HTTPS değil');
     Http::assertSentCount(1);
 });
 
@@ -65,6 +65,6 @@ it('v2 N11 return SOAP must reject private-network WSDL endpoints before any POS
     ]);
 
     expect(fn () => app(N11Client::class)->claimReturns($account, '2026-01-01', '2026-01-31', 0))
-        ->toThrow(\DomainException::class);
+        ->toThrow(DomainException::class);
     Http::assertNotSent(fn (Request $request): bool => str_contains($request->url(), '127.0.0.1'));
 });

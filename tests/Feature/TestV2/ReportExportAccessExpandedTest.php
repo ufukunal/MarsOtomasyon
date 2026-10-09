@@ -3,6 +3,7 @@
 use App\Http\Controllers\ReportExportDownloadController;
 use App\Models\ReportExportJob;
 use App\Models\User;
+use App\Support\Period\PeriodContext;
 use App\Support\Reporting\ReportRegistry;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
@@ -52,7 +53,7 @@ it('v2 report export denies a revoked period membership before file retrieval', 
 it('v2 report export denies file linked to another company even if same actor id', function () {
     [$otherCompany, $otherPeriod] = $this->createCompanyWithPeriod('V2EXPOTHER');
     $export = v2ReportExport($otherCompany->id, $this->v2ReportUser->id, $otherPeriod->id);
-    \App\Support\Period\PeriodContext::useSystem($this->v2ReportCompany->id, $this->v2ReportPeriod->id);
+    PeriodContext::useSystem($this->v2ReportCompany->id, $this->v2ReportPeriod->id);
     expect(fn () => app(ReportExportDownloadController::class)->__invoke($export, app(ReportRegistry::class)))
         ->toThrow(AuthorizationException::class);
 });
