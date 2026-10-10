@@ -1,0 +1,107 @@
+name: TEST V4 - Manual Isolated Runner
+on:
+  workflow_dispatch:
+    inputs:
+      suite:
+        description: "Run preflight before the PHP suites"
+        required: true
+        type: choice
+        default: preflight
+        options: [preflight, contracts, unit, feature, integration, performance]
+      isolation_confirmed:
+        description: "I have verified R4 is NOT a production VM"
+        required: true
+        type: choice
+        default: "NO"
+        options: ["NO", "YES"]
+permissions:
+  contents: read
+concurrency:
+  group: mars-v4-manual-isolated-r4
+  cancel-in-progress: false
+jobs:
+  test-v4:
+    runs-on: [self-hosted, Linux, mars-ubuntu, mars-r4]
+    timeout-minutes: 30
+    env:
+      APP_ENV: testing
+      APP_DEBUG: "false"
+      APP_KEY: "base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+      DB_CONNECTION: master
+      DB_HOST: "127.0.0.1"
+      DB_PORT: "5432"
+      DB_MASTER_DATABASE: mars_test_master
+      DB_USERNAME: mars_test
+      DB_PASSWORD: ""
+      REDIS_HOST: "127.0.0.1"
+      REDIS_PREFIX: "mars:test:"
+      CACHE_STORE: array
+      SESSION_DRIVER: array
+      QUEUE_CONNECTION: sync
+      MAIL_MAILER: array
+    steps:
+      - uses: actions/checkout@v4
+      - name: R0 - fail-closed preflight
+        shell: bash
+        env:
+          SELECTED_SUITE: ${{ inputs.suite }}
+          ISOLATION_CONFIRMED: ${{ inputs.isolation_confirmed }}
+        run: |
+          set -Eeuo pipefail
+          mkdir -p artifacts/test-v4
+          exec > >(tee artifacts/test-v4/preflight.log) 2>&1
+          echo "HEAD: $(git rev-parse HEAD); suite: $SELECTED_SUITE"
+          php -v | head -n 1 || true
+          if [[ "$SELECTED_SUITE" == "preflight" ]]; then
+            echo "R0 only: no tests, migrations, or DB writes."
+            command -v docker >/dev/null && docker version --format '{{.Server.Version}}' || true
+            command -v composer >/dev/null && composer --version || true
+            exit 0
+          fi
+          [[ "$ISOLATION_CONFIRMED" == "YES" ]] || { echo "BLOCKED: no isolation confirmation"; exit 77; }
+          [[ "${RUNNER_NAME:-}" == "mars-ubuntu-04" ]] || { echo "BLOCKED: unexpected runner"; exit 77; }
+          [[ "$(hostname | tr '[:upper:]' '[:lower:]')" != *prod* ]] || { echo "BLOCKED: production hostname"; exit 77; }
+          [[ -f phpunit.xml && -f scripts/ci/test-v4.sh ]] || exit 77
+          command -v docker >/dev/null || { echo "BLOCKED: Docker unavailable"; exit 77; }
+          docker info >/dev/null
+          for spec in mars-v4-postgres:5432 mars-v4-valkey:6379; do
+            name="${spec%%:*}"; port="${spec##*:}"
+            running="$(docker inspect -f '{{.State.Running}}' "$name" 2>/dev/null || true)"
+            label="$(docker inspect -f '{{index .Config.Labels "mars.v4.isolated"}}' "$name" 2>/dev/null || true)"
+            net="$(docker inspect -f '{{.HostConfig.NetworkMode}}' "$name" 2>/dev/null || true)"
+            published="$(docker port "$name" "$port/tcp" 2>/dev/null || true)"
+            binds="$(docker inspect -f '{{range .Mounts}}{{if eq .Type "bind"}}X{{end}}{{end}}' "$name" 2>/dev/null || true)"
+            [[ "$running" == true && "$label" == true && "$net" != host && -z "$binds" && "$published" == "127.0.0.1:$port" ]] || {
+              echo "BLOCKED: dedicated test container validation failed for $name"; exit 77;
+            }
+          done
+          dbs="$(docker exec -u postgres mars-v4-postgres psql -Atqc "SELECT datname FROM pg_database WHERE datistemplate=false ORDER BY datname" | tr '\n' ' ' | sed 's/ $//')"
+          [[ "$dbs" == "mars_test_master mars_test_period postgres" ]] || { echo "BLOCKED: unknown/missing DB"; exit 77; }
+          role="$(docker exec -u postgres mars-v4-postgres psql -Atqc "SELECT rolsuper::int::text || rolcreatedb::int::text || rolcreaterole::int::text FROM pg_roles WHERE rolname='mars_test'")"
+          [[ "$role" == "000" ]] || { echo "BLOCKED: unsafe test DB role"; exit 77; }
+          php -r 'exit(PHP_VERSION_ID >= 80400 ? 0 : 1);'
+          command -v composer >/dev/null || exit 77
+          echo "R0 PASSED: disposable localhost test services verified"
+      - name: Install dependencies
+        if: ${{ inputs.suite != 'preflight' }}
+        run: composer install --no-interaction --prefer-dist --no-progress
+      - name: Execute approved suite
+        if: ${{ inputs.suite != 'preflight' }}
+        shell: bash
+        env:
+          SELECTED_SUITE: ${{ inputs.suite }}
+          MARS_TEST_EXECUTION_APPROVED: MARS_V4_EXECUTION_APPROVED
+          MARS_INTEGRATION_TESTS_APPROVED: ${{ inputs.suite == 'integration' && 'I_APPROVE_LOCAL_TEST_ONLY' || 'NO' }}
+          MARS_PERFORMANCE_TESTS_APPROVED: ${{ inputs.suite == 'performance' && 'I_APPROVE_LOCAL_BENCHMARK' || 'NO' }}
+        run: |
+          set -Eeuo pipefail
+          mkdir -p artifacts/test-v4
+          timeout 1500s bash scripts/ci/test-v4.sh "$SELECTED_SUITE" 2>&1 | tee "artifacts/test-v4/${SELECTED_SUITE}.log"
+      - name: Retain diagnostic output
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v4-manual-${{ inputs.suite }}-${{ github.run_id }}
+          path: artifacts/test-v4/
+          if-no-files-found: ignore
+          retention-days: 14
