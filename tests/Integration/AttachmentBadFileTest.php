@@ -3,6 +3,7 @@
 use App\Actions\Attachments\StoreAttachment;
 use App\Models\Period\Product;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 use Tests\Support\IsolatedPostgres;
@@ -18,6 +19,6 @@ it('refuses PHP uploads before storing any attachment or writing business metada
             ->toThrow(ValidationException::class);
 
         expect(Storage::disk('attachments')->allFiles())->toBe([])
-            ->and(\Illuminate\Support\Facades\DB::connection('period')->table('attachments')->count())->toBe(0);
+            ->and(DB::connection('period')->table('attachments')->count())->toBe(0);
     });
 });
