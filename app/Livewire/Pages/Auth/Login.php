@@ -71,7 +71,7 @@ class Login extends Component
 
         request()->session()->regenerate();
 
-        $this->redirect(config('mars_doc2.mode') === 'doc2' ? '/sirket-secimi' : '/secim', navigate: false);
+        $this->redirect('/secim', navigate: false);
     }
 
     public function render(): View

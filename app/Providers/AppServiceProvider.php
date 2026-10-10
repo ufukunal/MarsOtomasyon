@@ -12,7 +12,6 @@ use App\Models\Period\Product;
 use App\Observers\AttachmentObserver;
 use App\Policies\ContactPolicy;
 use App\Policies\ProductPolicy;
-use App\Support\Auth\CompanyPermissionContext;
 use App\Support\Auth\PeriodPermissionContext;
 use Illuminate\Auth\Events\Failed;
 use Illuminate\Auth\Events\Login;
@@ -36,23 +35,13 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->app->booting(function (): void {
             Gate::before(function ($user, string $ability): ?bool {
-                return config('mars_doc2.mode') === 'doc2'
-                    ? CompanyPermissionContext::decision($ability)
-                    : PeriodPermissionContext::decision($ability);
+                return PeriodPermissionContext::decision($ability);
             });
         });
     }
 
     public function boot(): void
     {
-        // Switching live period-based services before the DOC2 migration is complete
-        // would silently route transactions to the wrong database. Fail closed.
-        if (config('mars_doc2.mode') === 'doc2') {
-            throw new RuntimeException(
-                'DOC2 aktivasyonu engellendi: şirket bağlantısı, migration, iş akışları ve kullanıcı kurulumunun dönüşümü tamamlanmadı.',
-            );
-        }
-
         $backupNotificationEmail = (string) config('backup.notifications.mail.to');
 
         if (app()->environment('production')

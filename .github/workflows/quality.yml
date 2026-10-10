@@ -41,5 +41,3 @@ jobs:
         run: vendor/bin/pint --test
       - name: Larastan static analysis
         run: vendor/bin/phpstan analyse --no-progress
-      - name: DOC2 legacy dependency inventory (read-only)
-        run: php artisan doc2:audit

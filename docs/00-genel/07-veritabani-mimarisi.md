@@ -1,12 +1,5 @@
 # Veritabanı mimarisi — ince Master + şirket/dönem
 
-> **DOC2 hedef kararı (11.10.2026):** Çok şirketli ve dönemsiz mimari. Master kimlik/yetki
-> veritabanı + şirket başına tek kalıcı fiziksel PostgreSQL veritabanı.
-> Yıl/dönem için ayrı DB, seçici, devir veya yıllık fiziksel veri taşıma olmayacak.
-> Eski period mimarisi aşağıda yalnız **mevcut legacy kodun geçiş referansı** olarak tutulmuştur.
-> Veri konsolidasyonu ve uygulama dönüşümü doğrulanmadan DOC2 etkinleştirilmez.
-> Yeni kanonik hedef: [docs/doc2/README.md](../doc2/README.md).
-
 **Kanonik mimari belgesidir.**
 
 ## Yapı

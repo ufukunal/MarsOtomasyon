@@ -20,22 +20,6 @@ return [
             'sslmode' => env('DB_SSLMODE', 'prefer'),
         ],
 
-        // DOC2: one permanent physical PostgreSQL database per company.
-        // Deliberately unbound until an authorized company context is selected.
-        'company' => [
-            'driver' => 'pgsql',
-            'host' => env('DB_COMPANY_HOST', env('DB_HOST', '127.0.0.1')),
-            'port' => env('DB_COMPANY_PORT', env('DB_PORT', '5432')),
-            'database' => null,
-            'username' => env('DB_COMPANY_USERNAME', env('DB_USERNAME', 'postgres')),
-            'password' => env('DB_COMPANY_PASSWORD', env('DB_PASSWORD', '')),
-            'charset' => 'utf8',
-            'prefix' => '',
-            'prefix_indexes' => true,
-            'search_path' => 'public',
-            'sslmode' => env('DB_COMPANY_SSLMODE', env('DB_SSLMODE', 'prefer')),
-        ],
-
         'period' => [
             'driver' => 'pgsql',
             'host' => env('DB_HOST', '127.0.0.1'),
