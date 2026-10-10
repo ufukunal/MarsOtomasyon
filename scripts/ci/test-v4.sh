@@ -14,7 +14,12 @@ case "$mode" in
       echo "BLOCKED: isolated local integration approval required" >&2
       exit 77
     fi
+    [[ "$MARS_V4_REMOTE_TUNNEL_READY" == "YES" ]] || { echo "BLOCKED: remote TEST tunnel was not verified" >&2; exit 77; }
     exec vendor/bin/pest --testsuite=Integration ;;
+  valkey)
+    [[ "$MARS_INTEGRATION_TESTS_APPROVED" == "I_APPROVE_LOCAL_TEST_ONLY" && "$MARS_VALKEY_TESTS_APPROVED" == "I_APPROVE_LOCAL_VALKEY_ONLY" ]] || { echo "BLOCKED: Valkey test approval missing" >&2; exit 77; }
+    [[ "$MARS_V4_REMOTE_TUNNEL_READY" == "YES" ]] || { echo "BLOCKED: remote TEST tunnel was not verified" >&2; exit 77; }
+    exec vendor/bin/pest tests/Integration/ValkeyNamespaceAndAtomicityTest.php ;;
   performance)
     if [[ "${MARS_PERFORMANCE_TESTS_APPROVED:-}" != "I_APPROVE_LOCAL_BENCHMARK" ]]; then
       echo "BLOCKED: isolated performance approval required" >&2
@@ -28,6 +33,6 @@ case "$mode" in
     fi
     exec npm --prefix tests/Browser run test ;;
   *)
-    echo "usage: $0 {unit|contracts|feature|integration|performance|browser}" >&2
+    echo "usage: $0 {unit|contracts|feature|integration|valkey|performance|browser}" >&2
     exit 2 ;;
 esac
