@@ -5,7 +5,6 @@ use App\Support\Reporting\Export\ReportExportDataset;
 use App\Support\Reporting\Export\XlsxReportExporter;
 use App\Support\Reporting\ReportColumnDefinition;
 use PhpOffice\PhpSpreadsheet\IOFactory;
-use PhpOffice\PhpSpreadsheet\Spreadsheet;
 
 function marsV4ExportDataset(): ReportExportDataset
 {

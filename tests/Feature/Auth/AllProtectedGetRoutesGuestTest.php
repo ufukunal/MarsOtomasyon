@@ -1,6 +1,5 @@
 <?php
 
-use Illuminate\Routing\Route as LaravelRoute;
 use Illuminate\Support\Facades\Route;
 
 function marsProtectedGetRoutes(): array
