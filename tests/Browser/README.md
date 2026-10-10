@@ -31,3 +31,7 @@ MARS_BROWSER_TEST_COMPANY_ID and MARS_BROWSER_TEST_PERIOD_ID and set
 MARS_BROWSER_TEST_PERIOD_READY=I_APPROVE_LOCAL_PERIOD_FIXTURES. The test
 selects that company and period through the real Livewire selector and checks
 that each module renders without HTTP 4xx/5xx errors. It performs no mutations.
+
+## Additional explicit permission for browser writes
+
+Product creation, contact creation and negative form validation tests are in `specs/isolated-product-contact-crud.spec.ts`. They are skipped unless `MARS_BROWSER_TEST_MUTATIONS_APPROVED=I_APPROVE_LOCAL_UI_WRITES`, all base browser approval gates and local company/period fixture IDs are present. For product creation also provide `MARS_BROWSER_TEST_PRODUCT_UNIT_ID` for a disposable local unit. All successful CRUD cases create records only in a throwaway local test database; they must not be pointed at production or a shared environment. These test files have not been executed.
