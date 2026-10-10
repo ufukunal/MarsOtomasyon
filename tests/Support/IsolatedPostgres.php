@@ -40,8 +40,6 @@ final class IsolatedPostgres
      * The callback uses only existing, dedicated local test databases.
      * All inserted fixtures are rolled back, including on exceptions.
      * Do not use this with app code that purges active DB connections mid-callback.
-     *
-     * @param callable(int,int):mixed $callback company ID and period ID
      */
     public static function withActivePeriod(callable $callback): mixed
     {
