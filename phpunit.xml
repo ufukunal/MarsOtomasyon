@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd" bootstrap="vendor/autoload.php" colors="true" failOnWarning="true">
+  <testsuites>
+    <testsuite name="Unit"><directory>tests/Unit</directory></testsuite>
+    <testsuite name="Contracts"><directory>tests/Contracts</directory></testsuite>
+    <testsuite name="Feature"><directory>tests/Feature</directory></testsuite>
+    <testsuite name="Integration"><directory>tests/Integration</directory></testsuite>
+  </testsuites>
+  <php>
+    <env name="APP_ENV" value="testing" force="true"/>
+    <env name="APP_DEBUG" value="false" force="true"/>
+    <env name="APP_KEY" value="base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=" force="true"/>
+    <env name="DB_CONNECTION" value="master" force="true"/>
+    <env name="DB_HOST" value="127.0.0.1" force="true"/>
+    <env name="DB_PORT" value="5432" force="true"/>
+    <env name="DB_MASTER_DATABASE" value="mars_test_master" force="true"/>
+    <env name="DB_USERNAME" value="mars_test" force="true"/>
+    <env name="DB_PASSWORD" value="" force="true"/>
+    <env name="REDIS_HOST" value="127.0.0.1" force="true"/>
+    <env name="REDIS_PREFIX" value="mars:test:" force="true"/>
+    <env name="CACHE_STORE" value="array" force="true"/>
+    <env name="SESSION_DRIVER" value="array" force="true"/>
+    <env name="QUEUE_CONNECTION" value="sync" force="true"/>
+    <env name="MAIL_MAILER" value="array" force="true"/>
+    <env name="MARS_INTEGRATION_TESTS_APPROVED" value="NO" force="true"/>
+  </php>
+</phpunit>
