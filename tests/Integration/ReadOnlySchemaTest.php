@@ -5,6 +5,10 @@ use Illuminate\Support\Facades\Schema;
 
 function requireDedicatedMarsIntegrationDatabases(): void
 {
+    if (getenv('MARS_V4_REMOTE_TUNNEL_READY') !== 'YES') {
+        test()->markTestSkipped('Verified SSH tunnel to remote test databases is required.');
+    }
+
     if (getenv('MARS_INTEGRATION_TESTS_APPROVED') !== 'I_APPROVE_LOCAL_TEST_ONLY') {
         test()->markTestSkipped('Explicit local test DB approval required; never use production DB.');
     }
