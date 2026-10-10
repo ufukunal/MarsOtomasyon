@@ -55,7 +55,7 @@ trap 'exit 143' TERM
 
 ssh_opts=(-p "$port" -o StrictHostKeyChecking=yes -o ConnectTimeout=8 -o ConnectionAttempts=1
   -o ServerAliveInterval=10 -o ServerAliveCountMax=2 -o ExitOnForwardFailure=yes
-  -o ClearAllForwardings=yes -o LogLevel=ERROR)
+  -o LogLevel=ERROR)
 if [[ -n "${MARS_V4_SSH_KNOWN_HOSTS:-}" ]]; then
   printf '%s\n' "$MARS_V4_SSH_KNOWN_HOSTS" > "$tmp/known_hosts"
   chmod 600 "$tmp/known_hosts"
