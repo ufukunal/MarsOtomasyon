@@ -42,6 +42,14 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        // Switching live period-based services before the DOC2 migration is complete
+        // would silently route transactions to the wrong database. Fail closed.
+        if (config('mars_doc2.mode') === 'doc2') {
+            throw new RuntimeException(
+                'DOC2 aktivasyonu engellendi: şirket bağlantısı, migration, iş akışları ve kullanıcı kurulumunun dönüşümü tamamlanmadı.',
+            );
+        }
+
         $backupNotificationEmail = (string) config('backup.notifications.mail.to');
 
         if (app()->environment('production')

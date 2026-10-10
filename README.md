@@ -12,6 +12,13 @@ Avize toptan ticareti için firmaya özel ERP. Ön muhasebe, cari, kasa/banka/ç
 6. `DEVIR-PROMPT.md` — üsttekilerle çelişmeyen kısımlar
 7. `reference/marsotomasyon-PROTOTIP-ONAYLI-v65.html` — UI/terminoloji/görsel referans
 
+## DOC2 hazırlığı
+
+**Yeni karar:** Çok şirketli, dönem/yıl veritabanı olmayan DOC2 mimarisine geçilecektir.
+Şirket başına kalıcı PostgreSQL DB, Master kimlik/yetki DB yapısı hedeflenmektedir.
+Eski mimari geçiş tamamlanana kadar aktiftir; DOC2 production için **henüz etkin değildir**.
+Aşamalar ve doğrulama planı: [DOC2 dönüşüm dosyası](docs/doc2/README.md).
+
 ## Güncel mimari
 
 - PHP ^8.4, Laravel 13, Livewire 3.
