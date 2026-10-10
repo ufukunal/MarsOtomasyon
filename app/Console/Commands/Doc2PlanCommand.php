@@ -16,18 +16,14 @@ final class Doc2PlanCommand extends Command
 
     protected $description = 'DOC2 için Master şirket ve eski dönem veritabanlarını sadece okuyarak taşınma envanteri çıkarır.';
 
-    /**
-     * @return int
-     *
-     * @throws JsonException
-     */
+    /** @throws JsonException */
     public function handle(): int
     {
         $requested = array_map('strval', $this->option('company'));
         $ids = [];
 
         foreach ($requested as $value) {
-            if (! ctype_digit($value) || (int) $value < 1) {
+            if (ctype_digit($value) === false || (int) $value < 1) {
                 $this->error('Geçersiz --company değeri.');
 
                 return self::INVALID;
