@@ -65,7 +65,7 @@ try {
         $pdo = null;
     }
 
-    $valkey = new Redis();
+    $valkey = new Redis;
     v4Require($valkey->connect('127.0.0.1', 6379, 5.0), 'Valkey connection failed');
     v4Require($valkey->auth(['mars_test', $redisPassword]), 'Valkey ACL authentication failed');
     v4Require($valkey->rawCommand('ACL', 'WHOAMI') === 'mars_test', 'Valkey ACL identity mismatch');
