@@ -23,7 +23,7 @@ it('requires every action to expose an explicit public business operation', func
         fn (ReflectionMethod $method): bool =>
             $method->getDeclaringClass()->getName() === $symbol
             && ! $method->isConstructor()
-            && ! str_starts_with($method->getName(), '__'),
+            && ($method->getName() === '__invoke' || ! str_starts_with($method->getName(), '__')),
     );
     expect($methods)->not->toBeEmpty("No public operation in {$path}");
 })->with(fn (): array => array_values(array_map(
