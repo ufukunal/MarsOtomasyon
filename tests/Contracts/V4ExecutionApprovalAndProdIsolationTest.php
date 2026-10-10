@@ -33,3 +33,25 @@ it('keeps browser tests bound to an isolated loopback application and opt-in UI 
     expect($journey)->toContain('MARS_BROWSER_TEST_MUTATIONS_APPROVED')
         ->toContain('I_APPROVE_LOCAL_UI_WRITES');
 });
+
+it('checks the remote test preflight and requires a least-privilege database role and Valkey ACL', function (): void {
+    $preflight = file_get_contents(base_path('scripts/ci/v4-remote-preflight.php'));
+    $runner = file_get_contents(base_path('scripts/ci/test-v4-remote.sh'));
+    $launch = file_get_contents(base_path('scripts/ci/test-v4.sh'));
+
+    expect($preflight)->toContain('mars_test_master')
+        ->toContain('mars_test_period')
+        ->toContain('has_database_privilege')
+        ->toContain('rolsuper')
+        ->toContain('rolcreatedb')
+        ->toContain('rolcreaterole')
+        ->toContain("rawCommand('ACL', 'WHOAMI')")
+        ->toContain('mars:test:');
+
+    expect($runner)->toContain('ISOLATION_CONFIRMED')
+        ->toContain('MARS_V4_REMOTE_TUNNEL_READY')
+        ->toContain('StrictHostKeyChecking=yes');
+
+    expect($launch)->toContain('MARS_V4_REMOTE_TUNNEL_READY')
+        ->toContain('MARS_VALKEY_TESTS_APPROVED');
+});
