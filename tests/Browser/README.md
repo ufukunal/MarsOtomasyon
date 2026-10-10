@@ -23,3 +23,11 @@ navigation. Never provide production passwords.
 The suite checks real browser guest redirects, login form shape, recovery link,
 and local authenticated dashboard/period navigation. It does **not** claim full
 authenticated business CRUD journey or broad accessibility coverage.
+
+An optional authenticated read-only smoke sweep covers ten business modules.
+It is **skipped** unless the actor above also has an isolated provisioned and
+fully authorized company/period. Supply the local integer IDs through
+MARS_BROWSER_TEST_COMPANY_ID and MARS_BROWSER_TEST_PERIOD_ID and set
+MARS_BROWSER_TEST_PERIOD_READY=I_APPROVE_LOCAL_PERIOD_FIXTURES. The test
+selects that company and period through the real Livewire selector and checks
+that each module renders without HTTP 4xx/5xx errors. It performs no mutations.
