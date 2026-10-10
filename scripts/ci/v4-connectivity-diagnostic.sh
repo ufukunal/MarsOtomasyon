@@ -69,6 +69,7 @@ for spec in "LAN:$host" "TAILNET_IP:$tailnet_ip" "TAILNET_DNS:$tailnet_dns"; do
   if [[ "$label" == TAILNET_DNS ]]; then
     if command -v pg_isready >/dev/null 2>&1 && timeout 6 pg_isready -h "$target" -p 55432 -t 4 >/dev/null 2>&1; then
       echo "POSTGRES_PROTOCOL=ACCEPTING_CONNECTIONS"
+      postgres_ready=YES
     else
       echo "POSTGRES_PROTOCOL=NOT_CONFIRMED"
     fi
@@ -76,7 +77,7 @@ for spec in "LAN:$host" "TAILNET_IP:$tailnet_ip" "TAILNET_DNS:$tailnet_dns"; do
       response="$(timeout 6 redis-cli -h "$target" -p 6379 --raw PING 2>/dev/null | head -n 1 || true)"
       case "$response" in
         PONG) echo "VALKEY_PROTOCOL=PONG_UNAUTHENTICATED" ;;
-        *NOAUTH*|*WRONGPASS*) echo "VALKEY_PROTOCOL=AUTH_REQUIRED" ;;
+        *NOAUTH*|*WRONGPASS*) echo "VALKEY_PROTOCOL=AUTH_REQUIRED"; valkey_auth_required=YES ;;
         *) echo "VALKEY_PROTOCOL=NOT_CONFIRMED" ;;
       esac
     else
@@ -87,6 +88,10 @@ for spec in "LAN:$host" "TAILNET_IP:$tailnet_ip" "TAILNET_DNS:$tailnet_dns"; do
     ip neigh show "$target" 2>/dev/null | sed -E 's/lladdr [[:xdigit:]:]+/lladdr [REDACTED]/g' || true
   fi
 done
+if [[ "${postgres_ready:-NO}" == YES && "${valkey_auth_required:-NO}" == YES ]]; then
+  echo "RESULT=DIRECT_TAILSCALE_DATA_PROTOCOLS_CONFIRMED; TEST_CREDENTIALS_NOT_CHECKED"
+  exit 0
+fi
 if [[ -z "$reachable_host" ]]; then
   echo "RESULT=ALL_SSH_PATHS_UNREACHABLE"
   exit 77

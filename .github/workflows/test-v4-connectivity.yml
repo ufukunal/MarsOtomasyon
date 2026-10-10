@@ -26,7 +26,7 @@ jobs:
         shell: bash
         run: |
           set -Eeuo pipefail
-          bash -n scripts/ci/test-v4-remote.sh scripts/ci/test-v4.sh scripts/ci/v4-connectivity-diagnostic.sh scripts/ci/health-host-infra.sh
+          bash -n scripts/ci/test-v4-direct.sh scripts/ci/test-v4-remote.sh scripts/ci/test-v4.sh scripts/ci/v4-connectivity-diagnostic.sh scripts/ci/health-host-infra.sh
           php -l scripts/ci/v4-remote-preflight.php
       - name: Probe real CI VM and PROD host without changes
         shell: bash

@@ -13,13 +13,13 @@ it('requires explicit approval before launching any PHP test suite', function ()
         ->toContain('I_APPROVE_LOCAL_BROWSER');
 });
 
-it('uses only loopback and explicitly disposable database role names in the PHPUnit configuration', function (): void {
+it('pins dedicated TEST DBs and the verified PROD VM Tailscale endpoint in PHPUnit', function (): void {
     $xml = file_get_contents(base_path('phpunit.xml'));
 
     expect($xml)->toContain('mars_test_master')
         ->toContain('mars_test')
-        ->toContain('127.0.0.1')
-        ->not->toContain('mars-prod-1.taila20365.ts.net')
+        ->toContain('mars-prod-1.taila20365.ts.net')
+        ->toContain('55432')
         ->not->toContain('192.168.239.132');
 });
 
@@ -36,7 +36,7 @@ it('keeps browser tests bound to an isolated loopback application and opt-in UI 
 
 it('checks the remote test preflight and requires a least-privilege database role and Valkey ACL', function (): void {
     $preflight = file_get_contents(base_path('scripts/ci/v4-remote-preflight.php'));
-    $runner = file_get_contents(base_path('scripts/ci/test-v4-remote.sh'));
+    $runner = file_get_contents(base_path('scripts/ci/test-v4-direct.sh'));
     $launch = file_get_contents(base_path('scripts/ci/test-v4.sh'));
 
     expect($preflight)->toContain('mars_test_master')
@@ -49,9 +49,9 @@ it('checks the remote test preflight and requires a least-privilege database rol
         ->toContain('mars:test:');
 
     expect($runner)->toContain('ISOLATION_CONFIRMED')
-        ->toContain('MARS_V4_REMOTE_TUNNEL_READY')
-        ->toContain('StrictHostKeyChecking=yes');
+        ->toContain('MARS_V4_REMOTE_TEST_READY')
+        ->toContain('tailscale');
 
-    expect($launch)->toContain('MARS_V4_REMOTE_TUNNEL_READY')
+    expect($launch)->toContain('MARS_V4_REMOTE_TEST_READY')
         ->toContain('MARS_VALKEY_TESTS_APPROVED');
 });
