@@ -44,4 +44,6 @@ jobs:
       - name: Release activation safety Unit tests
         run: vendor/bin/pest tests/Unit/Operations/ReleaseActivationGateTest.php
       - name: Production release shell syntax checks
-        run: bash -n ops/build-release-artifact.sh ops/deploy-release.sh
+        run: bash -n ops/build-release-artifact.sh ops/deploy-release.sh scripts/ci/test-release-guards.sh
+      - name: Production release tamper-rejection tests
+        run: bash scripts/ci/test-release-guards.sh
