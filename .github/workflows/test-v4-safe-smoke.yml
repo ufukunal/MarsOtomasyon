@@ -44,7 +44,7 @@ jobs:
           x=x.replace('name="REDIS_PORT" value="6379"','name="REDIS_PORT" value="9"')
           p.write_text(x)
           PY
-      - name: Run isolated arithmetic, template, auth, and middleware regressions
+      - name: Run isolated finance, template, authorization, and all-action guard regressions
         shell: bash
         run: |
           set -Eeuo pipefail
@@ -62,6 +62,8 @@ jobs:
             tests/Unit/Companies/CopiedContactPrivacySnapshotTest.php \
             tests/Unit/Security/MutationAuthorizerTest.php \
             tests/Unit/Security/CorrelationAndPeriodCleanupMiddlewareTest.php \
+            tests/Unit/Security/MutationGateEntryPointsTest.php \
+            tests/Unit/Finance/Mt940ParserTest.php \
             2>&1 | tee artifacts/test-v4/safe-smoke.log
       - name: Save test diagnostics
         if: always()
