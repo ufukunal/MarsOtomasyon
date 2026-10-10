@@ -3,16 +3,13 @@
 This is a separate test-only Playwright package, **not** an application dependency.
 No old browser tests were restored.
 
-Prerequisites: locally provisioned, disposable Laravel app + local dedicated
-master and period databases. No production data/accounts. The server must bind
-127.0.0.1, not a Tailscale or public interface. The test suite does not start,
-migrate, seed or clean databases.
+Prerequisites: runner-local disposable Laravel application with **dedicated test** Master/Period databases on the existing PROD VM, accessed **only through the read-only-validated SSH localhost forwards** in `scripts/ci/test-v4-remote.sh`. CI must not install a PostgreSQL or Valkey server. The browser application must bind `127.0.0.1` (not Tailscale/public) and use the `mars_test` DB role and Valkey ACL. No production data or accounts. Browser tests do not create databases, migrate schemas or clean global data. The manual V4 workflow currently does not expose the browser mode; it requires an independently provisioned runner-local Laravel app and additional verification.
 
 After *separate explicit execution approval*, prepare locally:
 
 1. cd tests/Browser && npm install && npx playwright install chromium
 2. Supply MARS_BROWSER_BASE_URL=http://127.0.0.1:8080
-3. Supply MARS_TEST_EXECUTION_APPROVED=MARS_V4_EXECUTION_APPROVED
+3. Verify the TEST V4 SSH tunnel and both dedicated test databases are ready before launching the runner-local Laravel app. Supply MARS_TEST_EXECUTION_APPROVED=MARS_V4_EXECUTION_APPROVED
 4. Supply MARS_BROWSER_TESTS_APPROVED=I_APPROVE_LOCAL_BROWSER
 5. npm test
 
@@ -34,4 +31,4 @@ that each module renders without HTTP 4xx/5xx errors. It performs no mutations.
 
 ## Additional explicit permission for browser writes
 
-Product creation, contact creation and negative form validation tests are in `specs/isolated-product-contact-crud.spec.ts`. They are skipped unless `MARS_BROWSER_TEST_MUTATIONS_APPROVED=I_APPROVE_LOCAL_UI_WRITES`, all base browser approval gates and local company/period fixture IDs are present. For product creation also provide `MARS_BROWSER_TEST_PRODUCT_UNIT_ID` for a disposable local unit. All successful CRUD cases create records only in a throwaway local test database; they must not be pointed at production or a shared environment. These test files have not been executed.
+Product creation, contact creation and negative form validation tests are in `specs/isolated-product-contact-crud.spec.ts`. They are skipped unless `MARS_BROWSER_TEST_MUTATIONS_APPROVED=I_APPROVE_LOCAL_UI_WRITES`, all base browser approval gates and local company/period fixture IDs are present. For product creation also provide `MARS_BROWSER_TEST_PRODUCT_UNIT_ID` for a disposable local unit. All successful CRUD cases create records only in the dedicated remote PostgreSQL TEST database reached through runner-local SSH forwarding; they must never target production databases or accounts. Do not execute browser writes until dedicated fixture cleanup and test ACL restrictions have been independently verified. These test files have not been executed.
