@@ -16,11 +16,16 @@ final class IsolatedPostgres
             Assert::markTestSkipped('Standalone local PostgreSQL approval is absent.');
         }
 
+        if (getenv('MARS_V4_REMOTE_TUNNEL_READY') !== 'YES') {
+            throw new RuntimeException('Verified SSH tunnel to dedicated remote test databases is required.');
+        }
+
         foreach (['master', 'period'] as $connection) {
             $config = config("database.connections.{$connection}");
             if (($config['driver'] ?? '') !== 'pgsql'
                 || ($config['host'] ?? '') !== '127.0.0.1'
-                || (string) ($config['username'] ?? '') !== 'mars_test') {
+                || (string) ($config['username'] ?? '') !== 'mars_test'
+                || (string) ($config['port'] ?? '') !== '5432') {
                 throw new RuntimeException("Unsafe {$connection} database; refusing integration tests.");
             }
         }
