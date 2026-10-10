@@ -2,6 +2,17 @@
 
 Bu dosya `DEVIR-PROMPT.md`den sonra okunur. Çelişkide bu dosya ve karar günlüğü üstündür.
 
+## 11.10.2026 DOC2 en güncel hedef (önceki dönem kararlarının yerine geçer)
+
+- Çok şirketli yapı korunur, işletme operasyonunda **dönem yoktur**.
+- Master şirket/kullanıcı/yetki ve sistem operasyon bilgilerini tutar.
+- Her şirkete yıl içermeyen **tek kalıcı** fiziksel PostgreSQL iş veritabanı atanır.
+- Mevcut company+year period DB'lerinden DOC2'ye kayıpsız taşıma ayrı, doğrulamalı aşamadır.
+- Eski dönem kararları ve kodu, hedef DOC2'ye ilişkin normatif gereklilik değildir.
+- Mevcut uygulama legacy modda kalır; tamamlanmamış DOC2 üretimde aktive edilemez.
+- Yeni normatif dönüşüm planı: `docs/doc2/README.md`.
+- Kurulum ve gerçek kullanıcı live test ancak dönemsiz modüller, veri taşıma, güvenlik ve kalite kapandıktan sonra yapılır.
+
 ## 01.10.2026 kanonik güncelleme
 
 - Kartlar dahil yıllık işletme verisi period DB'dedir; period tablolarında `company_id`/global scope yoktur.

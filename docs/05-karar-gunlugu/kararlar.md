@@ -347,3 +347,11 @@ Verilen kararlar ve gerekçeleri. **Kod bu kararlara uyar; kod kararla
 |---|---|---|
 
 **Yok.** A-125, K-257 ile; A-126, K-258 ile; A-127, K-256 ile kapatıldı.
+
+## 2026-10-11 — DOC2 mimari kararları
+
+| No | Karar | Teknik sonuç |
+|---|---|---|
+| K-260 | DOC2 ERP çok şirketli, dönemsizdir. Master ortak kimlik ve yetki; her şirket için yıl içermeyen tek kalıcı fiziksel iş veritabanı bulunur. | Eski `periods`, `PeriodContext`, yıl bazlı DB, dönem seçimi/kapatma/devir kavramları DOC2'de kullanılmaz. Tarih ve yıllık rapor filtreleri kalır. |
+| K-261 | Eski şirket/yıl verileri doğrulanmış kayıpsız konsolidasyon yapılmadan silinmez veya DOC2 yeni DB'ye otomatik aktarılmaz. | Metadata envanteri, anahtar/FK eşlemesi, prova/backup/restore ve modül doğrulaması zorunludur. DOC2 erken aktivasyonu bloklanır. |
+| K-262 | DOC2 yazılım bütünlüğü tamamlandıktan sonra kurulum ve gerçek kullanıcı live kabul testi yapılır. | UAT ve production go-live ayrı karardır; CI runner'a PostgreSQL/Valkey sunucusu kurulmaz. |
