@@ -43,7 +43,7 @@ function marsAuthorizationEntrypoints(): array
                 $method->getEndLine() - $method->getStartLine() + 1,
             ));
 
-            if (preg_match('/\{\s*MutationAuthorizer::authorize\(/s', $text) !== 1) {
+            if (preg_match('/\)\s*(?::\s*[^{}]+)?\{\s*MutationAuthorizer::authorize\(/s', $text) !== 1) {
                 continue;
             }
 
