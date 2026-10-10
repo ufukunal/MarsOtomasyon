@@ -3,12 +3,13 @@
 use App\Actions\Imports\SaveImportContainer;
 use App\Actions\Imports\SaveImportFile;
 use App\Actions\Imports\SaveImportPackage;
+use App\Models\Period\ImportFile;
 use App\Models\Period\Contact;
 use Illuminate\Support\Str;
 use Tests\Support\AuthorizedPeriod;
 use Tests\Support\IsolatedPostgres;
 
-function marsV4TestImportShipment(): \App\Models\Period\ImportFile
+function marsV4TestImportShipment(): ImportFile
 {
     $supplier = Contact::query()->create(['title' => 'V4 local shipment supplier', 'type' => 'legal']);
 
