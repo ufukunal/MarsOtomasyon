@@ -100,12 +100,10 @@ if [[ -n "${MARS_V4_SSH_PRIVATE_KEY:-}" ]]; then
   printf '%s\n' "$MARS_V4_SSH_PRIVATE_KEY" > "$tmp/id_key"; chmod 600 "$tmp/id_key"
   opts+=(-o BatchMode=yes -o IdentitiesOnly=yes -i "$tmp/id_key")
 elif [[ -n "${MARS_V4_SSH_PASSWORD:-}" ]]; then
-  if ! command -v sshpass >/dev/null 2>&1; then
-    echo "RESULT=SSH_PASSWORD_CLIENT_MISSING"; exit 0
-  fi
-  cmd=(sshpass -e ssh)
-  export SSHPASS="$MARS_V4_SSH_PASSWORD"
-  opts+=(-o BatchMode=no -o PreferredAuthentications=password -o PubkeyAuthentication=no)
+  printf '%s\n' '#!/bin/sh' 'printf "%s\\n" "$MARS_V4_SSH_PASSWORD"' > "$tmp/askpass"
+  chmod 700 "$tmp/askpass"
+  export SSH_ASKPASS="$tmp/askpass" SSH_ASKPASS_REQUIRE=force DISPLAY=:0
+  opts+=(-o BatchMode=no -o PreferredAuthentications=password -o PubkeyAuthentication=no -o NumberOfPasswordPrompts=1)
 else
   opts+=(-o BatchMode=yes -o PasswordAuthentication=no)
 fi
