@@ -68,6 +68,9 @@ jobs:
       - name: Choose PHP 8.4+ with client extensions
         shell: bash
         run: bash scripts/ci/select-php.sh
+      - name: Create runner-only Laravel .env from example
+        shell: bash
+        run: cp .env.example .env
       - name: Install test dependencies
         run: composer install --no-interaction --prefer-dist --no-progress
       - name: Force non-routable DB and Valkey hosts only in ephemeral checkout

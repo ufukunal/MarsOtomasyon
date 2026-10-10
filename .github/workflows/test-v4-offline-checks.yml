@@ -29,6 +29,9 @@ jobs:
       - uses: actions/checkout@v4
       - name: Select PHP
         run: bash scripts/ci/select-php.sh
+      - name: Create runner-only Laravel .env from example
+        shell: bash
+        run: cp .env.example .env
       - name: Install dependencies
         run: composer install --no-interaction --prefer-dist --no-progress
       - name: Execute source-only contract tests
@@ -64,6 +67,9 @@ jobs:
       - uses: actions/checkout@v4
       - name: Select PHP
         run: bash scripts/ci/select-php.sh
+      - name: Create runner-only Laravel .env from example
+        shell: bash
+        run: cp .env.example .env
       - name: Install dependencies
         run: composer install --no-interaction --prefer-dist --no-progress
       - name: Disable all remote database endpoints in ephemeral PHPUnit config

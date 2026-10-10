@@ -49,6 +49,9 @@ jobs:
       - name: Select existing PHP 8.4+ and PHP client extensions
         shell: bash
         run: bash scripts/ci/select-php.sh
+      - name: Create runner-only Laravel .env from example
+        shell: bash
+        run: cp .env.example .env
       - name: Install PHP test dependencies
         if: ${{ inputs.suite != 'preflight' }}
         run: composer install --no-interaction --prefer-dist --no-progress
