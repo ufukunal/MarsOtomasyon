@@ -12,6 +12,7 @@ use App\Models\Period\Product;
 use App\Observers\AttachmentObserver;
 use App\Policies\ContactPolicy;
 use App\Policies\ProductPolicy;
+use App\Support\Auth\CompanyPermissionContext;
 use App\Support\Auth\PeriodPermissionContext;
 use Illuminate\Auth\Events\Failed;
 use Illuminate\Auth\Events\Login;
@@ -35,7 +36,9 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->app->booting(function (): void {
             Gate::before(function ($user, string $ability): ?bool {
-                return PeriodPermissionContext::decision($ability);
+                return config('mars_doc2.mode') === 'doc2'
+                    ? CompanyPermissionContext::decision($ability)
+                    : PeriodPermissionContext::decision($ability);
             });
         });
     }

@@ -65,3 +65,15 @@ it('prepares a period-free company selection screen without enabling premature D
     expect($routes)->toContain("config('mars_doc2.mode') === 'doc2'")
         ->toContain("'/sirket-secimi'");
 });
+
+it('keeps company authorization separate from legacy period permissions', function (): void {
+    $middleware = file_get_contents(base_path('app/Http/Middleware/SetActiveCompanyDatabase.php'));
+    $access = file_get_contents(base_path('database/migrations/master/0001_13_01_000020_add_doc2_company_user_access_fields.php'));
+
+    expect($middleware)->toContain('CompanyPermissionContext::use')
+        ->toContain('CompanyPermissionContext::clear')
+        ->toContain("where('is_active', true)")
+        ->not->toContain('PeriodPermissionContext::');
+    expect($access)->toContain('company_user')
+        ->toContain('permission_overrides');
+});

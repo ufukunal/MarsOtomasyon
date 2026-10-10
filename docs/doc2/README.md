@@ -21,6 +21,12 @@ veri karışmasına veya yanlış DB kullanımına neden olabilir.
 Kayıt `active` durumunda, doğrulama/aktivasyon zamanları dolu ve hedef DB adı şirket kimliğiyle
 eşleşmiyorsa şirket bağlantısı açılmaz. Bu aşamada kayıt oluşturulmaz, hedef fiziksel DB oluşturulmaz.
 
+Dördüncü blok: Master `company_user` ilişkisinde şirket bazlı `is_active` ve
+`permission_overrides` alanları ekleyici migration ile hazırlandı. DOC2 middleware
+üyeliği ve şirket istisnalarını ayrıca denetler; `CompanyPermissionContext`
+bir şirketteki yetki reddini veya iznini başka şirkete sızdırmaz.
+DOC2 HTTP zincirine etkin olarak bağlanması yine ertelendi.
+
 Üçüncü blok: dönem içermeyen `CompanySelection` Livewire ekranı, yalnız DOC2 modunda
 tanımlanan `/sirket-secimi` rotası ve `SetActiveCompanyDatabase` HTTP middleware
 sınıfı hazırlandı. **Middleware henüz uygulama web zincirine bağlanmadı**; geçmiş

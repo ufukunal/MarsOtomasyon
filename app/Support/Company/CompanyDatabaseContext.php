@@ -28,6 +28,7 @@ final class CompanyDatabaseContext
         if (! $company || ! DB::connection('master')->table('company_user')
             ->where('company_id', $companyId)
             ->where('user_id', $userId)
+            ->where('is_active', true)
             ->exists()) {
             throw new AuthorizationException('Bu şirkete erişim izniniz yok.');
         }
