@@ -31,3 +31,22 @@ it('contains no company DB creation, drop or migration in the DOC2 connection la
         ->toContain("DB::purge('company')")
         ->toContain("table('company_user')");
 });
+
+it('does not bind an unregistered physical company database', function (): void {
+    $context = file_get_contents(base_path('app/Support/Company/CompanyDatabaseContext.php'));
+
+    expect($context)->toContain('CompanyDatabaseRegistration::query()')
+        ->toContain("where('state', 'active')")
+        ->toContain('verified_at')
+        ->toContain('activated_at');
+});
+
+it('keeps DOC2 planning read-only with no automatic provisioning or data migration', function (): void {
+    $planner = file_get_contents(base_path('app/Console/Commands/Doc2PlanCommand.php'));
+
+    expect($planner)->toContain('doc2:plan')
+        ->toContain('legacy_period_databases')
+        ->not->toContain('DROP DATABASE')
+        ->not->toContain('CREATE DATABASE')
+        ->not->toContain('Artisan::call');
+});

@@ -3,6 +3,7 @@
 namespace App\Support\Company;
 
 use App\Models\Company;
+use App\Models\CompanyDatabaseRegistration;
 use Closure;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
@@ -87,6 +88,19 @@ final class CompanyDatabaseContext
     private static function bind(Company $company): void
     {
         $companyId = (int) $company->getKey();
+
+        // Fail closed until migration, count reconciliation and restore rehearsal
+        // explicitly activate the matching physical database in Master metadata.
+        $registration = CompanyDatabaseRegistration::query()->whereKey($companyId)
+            ->where('state', 'active')
+            ->first();
+
+        if (! $registration
+            || $registration->database_name !== CompanyDatabaseName::forCompanyId($companyId)
+            || $registration->verified_at === null
+            || $registration->activated_at === null) {
+            throw new LogicException('DOC2 şirket veritabanı doğrulanıp etkinleştirilmemiş.');
+        }
 
         // Purge the previous connection before selecting another company's DB.
         self::release();

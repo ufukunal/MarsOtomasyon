@@ -16,6 +16,11 @@ devam eder. `MARS_ARCHITECTURE=doc2` mevcut aşamada uygulama başlangıcını k
 dönem bağımlı Action'lar, queue işler, backup/restore ve migration'lar dönüşmeden açılması
 veri karışmasına veya yanlış DB kullanımına neden olabilir.
 
+İkinci blok: Master tarafında `company_database_registry` tablosu, doğrulama ve aktivasyon kapısı ile
+`php artisan doc2:plan --json` salt okunur eski şirket/yıl DB envanteri eklendi.
+Kayıt `active` durumunda, doğrulama/aktivasyon zamanları dolu ve hedef DB adı şirket kimliğiyle
+eşleşmiyorsa şirket bağlantısı açılmaz. Bu aşamada kayıt oluşturulmaz, hedef fiziksel DB oluşturulmaz.
+
 İlk kod bloğu: `company` isimli başlangıçta boş PostgreSQL bağlantısı,
 `CompanyDatabaseName` adlı sabit şirket DB adlandırması, `CompanyDatabaseContext` ile
 Master `company_user` kontrolü, yetki gerektirmeyen sistem/queue akışlarının ayrı API'si
@@ -56,6 +61,14 @@ yeniden adlandırmaz veya bağlam değişimini production'da açmaz.**
 `php artisan doc2:audit` — sadece kodu tarar; DB bağlantısı, SQL, migration ve
 sistem servisi değişikliği yoktur. `--strict` kalan dönem bağımlılıklarını CI için
 başarısızlık olarak işaretler. Referans sayıları bire bir modül/test sayısı değildir.
+
+## Master kaynak envanteri
+
+`php artisan doc2:plan` salt okunur Master bağlantısı gerektirir; şirket başına kaynak eski
+dönem veritabanlarını, hedef sabit veritabanı adını ve geçiş sicili durumunu listeler.
+`--json` rapor üretir, `--company=ID` seçili şirkete sınırlar. Bu komut **hiçbir
+veriyi taşımaz**. `company_database_registry` migration'ı ekleyicidir ve
+otomatik rollback ile silme bloke edilmiştir. Migration henüz çalıştırılmamıştır.
 
 ## Üretime müdahale yasağı
 
