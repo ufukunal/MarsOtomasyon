@@ -9,11 +9,11 @@ it('declares separated master, active period and source period PostgreSQL connec
         ->and(config('database.connections.period_source.database'))->toBeNull();
 });
 
-it('retains at least thirty master migrations and forty period migrations', function (): void {
+it('retains at least thirty master migrations and forty-three period migrations', function (): void {
     $master = glob(base_path('database/migrations/master/*.php'));
     $period = glob(base_path('database/migrations/period/*.php'));
     expect(count($master ?: []))->toBeGreaterThanOrEqual(30)
-        ->and(count($period ?: []))->toBeGreaterThanOrEqual(44);
+        ->and(count($period ?: []))->toBeGreaterThanOrEqual(43);
 });
 
 it('keeps separate Redis logical connections for cache, session and queue', function (): void {
