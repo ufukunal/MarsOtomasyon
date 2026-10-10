@@ -35,6 +35,6 @@ it('maps shipping label records into immutable approved renderer data', function
     $label = new CartonLabelData('dispatch', 17, ['number' => 'D-17'], ['city' => 'İstanbul']);
     $data = $label->toRenderData();
 
-    expect($data->get('document.number'))->toBe('D-17')
-        ->and($data->get('shipping.city'))->toBe('İstanbul');
+    expect($data->value('document.number'))->toBe('D-17')
+        ->and($data->value('shipping.city'))->toBe('İstanbul');
 });
