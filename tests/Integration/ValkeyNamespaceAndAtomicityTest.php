@@ -12,10 +12,16 @@ function marsValkeyTestApproval(): void
         Assert::markTestSkipped('Separate isolated local Valkey approval is required.');
     }
 
+    if (getenv('MARS_V4_REMOTE_TUNNEL_READY') !== 'YES') {
+        throw new RuntimeException('Verified remote TEST tunnel is required for Valkey integration.');
+    }
+
     foreach (['default', 'cache'] as $connection) {
         $settings = config("database.redis.{$connection}");
 
-        if (($settings['host'] ?? '') !== '127.0.0.1') {
+        if (($settings['host'] ?? '') !== '127.0.0.1'
+            || (string) ($settings['port'] ?? '') !== '6379'
+            || ($settings['username'] ?? '') !== 'mars_test') {
             throw new RuntimeException('Valkey host must be strictly 127.0.0.1.');
         }
     }
