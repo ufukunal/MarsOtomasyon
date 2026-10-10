@@ -24,5 +24,7 @@
     <env name="QUEUE_CONNECTION" value="sync" force="true"/>
     <env name="MAIL_MAILER" value="array" force="true"/>
     <env name="MARS_INTEGRATION_TESTS_APPROVED" value="NO"/>
+    <env name="MARS_VALKEY_TESTS_APPROVED" value="NO"/>
+    <env name="MARS_PERFORMANCE_TESTS_APPROVED" value="NO"/>
   </php>
 </phpunit>

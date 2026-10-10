@@ -1,28 +1,30 @@
-# MarsProject V4 — Fresh test suite
+# MarsProject V4 — Fresh test package
 
-Every V4 file was newly authored against the current production code in `main`. No V1/V2/V3 tests were restored or cherry-picked.
+Newly authored tests for the current `main` production tree. No historic V1/V2/V3 suite was restored, copied or cherry-picked.
 
-## Existing suites
+## Suites and scope
 
-- **Unit:** Money and VAT calculations, purchase and sale due dates, invoice discounts, stock balances and validation, production costing, price boundaries, bank statements, imports, rendering, masking, file security, company/period invariants, four ecommerce payload builders, channel rules, registry guards, backup preflight and reporting.
-- **Contracts:** Production PHP symbol inventory (`tests/Contracts/source-manifest.json`), 181 action class method signatures, Livewire routes, authorization wrappers, migration and connection inventories. Contracts only establish shape and authorization requirements, not end-to-end correctness.
-- **Feature:** Guest access denial for major module routes, unsigned channel asset links and route protection.
-- **Integration:** Opt-in, disposable-local-PostgreSQL fixtures for real stock movement, reservations, sales/purchase return quantities, financial document constraints, numbering, period closure, optimistic version locks, user permissions, marketplace event idempotency, supplier price deviations, and per-module database schemas.
-- **Performance:** An opt-in, bounded microbenchmark for pure fixed-point arithmetic only. It is **not** application load testing.
+- **Unit:** Fixed-point money, VAT/discount totals, stock and production cost math, finance/purchase due dates, posting profile matrix, return and import guards, CSV/JSON streaming, security and file validation, channel API payloads/HTTP fakes/N11 SOAP fixtures, reporting definitions, print/template safety, role/mutation boundaries, stateful Livewire form calculations and local archive checks.
+- **Contracts:** Exact production symbol inventory (644 baseline symbols), action signature checks for 181 action classes, Livewire route classes, module route policies, migrations, PostgreSQL connections and operational commands. These are shape/policy checks, **not** a substitute for behavior tests.
+- **Feature:** Unauthenticated HTTP route and Livewire screen denial.
+- **Integration:** Separate manually provisioned **local-only** PostgreSQL databases and strictly rolled-back temporary fixture transactions: real cash/bank collection and payments, immutable posted documents, company/period authorization, period closure, transaction numbering, optimistic locks, stock movements and reservations, supplier price deviation, returns, marketplace webhook authentication/event idempotency, schema/ledger constraints, advisory-lock contention.
+- **Optional Valkey integration:** Local 127.0.0.1 host, separate test key prefix, atomic duplicate claim and TTL. Extra opt-in gate.
+- **Optional performance:** Bounded pure arithmetic microbenchmark. No shared load.
+- **Optional browser:** `tests/Browser` independent Playwright package. Local, approval-gated real browser login/guest boundary and authenticated read-only smoke for ten modules with explicit fixture IDs.
 
-## Safety
+## Important: execution and safety
 
-**No Pest tests have been executed as part of authoring this package.** GitHub `quality.yml` automatically runs static Pint/Larastan checks and a frontend build on pushes; it does not execute Pest.
+Authoring V4 and passing GitHub's Pint/Larastan/frontend-build workflow **does not mean Pest, Playwright, Valkey or PostgreSQL integration tests passed**. These suites were not run during authoring, consistent with separate execution approval.
 
-- All integration database targets are fixed to `127.0.0.1`, the isolated `mars_test` role and the separate `mars_test_master` / `mars_test_period` databases. They must exist independently, be disposable and contain the matching migrated schema.
-- Integration tests write **only temporary fixture rows within explicit transactions**, then roll them back. Schema contract checks are read-only. No migrations, database creation/drop or production restoration are performed by these tests.
-- The local PostgreSQL integration suite is skipped unless `MARS_INTEGRATION_TESTS_APPROVED=I_APPROVE_LOCAL_TEST_ONLY`.
-- The optional microbenchmark is skipped unless `MARS_PERFORMANCE_TESTS_APPROVED=I_APPROVE_LOCAL_BENCHMARK`.
-- All suite invocations through `scripts/ci/test-v4.sh` require `MARS_TEST_EXECUTION_APPROVED=MARS_V4_EXECUTION_APPROVED`. These flags are gates, not substitutes for separate explicit user execution authorization.
-- Nothing in this package is permission to access PROD/Tailscale systems, production databases, shared Valkey namespaces, secrets or operational data.
+- `scripts/ci/test-v4.sh` requires `MARS_TEST_EXECUTION_APPROVED=MARS_V4_EXECUTION_APPROVED` for any mode.
+- Integration tests additionally require `MARS_INTEGRATION_TESTS_APPROVED=I_APPROVE_LOCAL_TEST_ONLY` and previously prepared disposable PostgreSQL databases `mars_test_master` / `mars_test_period` on `127.0.0.1`, role `mars_test`. Fixtures are written inside transactions and rolled back. No automatic migrations, database drop, or backups.
+- Valkey integration separately requires `MARS_VALKEY_TESTS_APPROVED=I_APPROVE_LOCAL_VALKEY_ONLY`, `127.0.0.1` host and `mars:test:` key prefix.
+- Performance tests additionally require `MARS_PERFORMANCE_TESTS_APPROVED=I_APPROVE_LOCAL_BENCHMARK`.
+- Browser tests additionally require `MARS_BROWSER_TESTS_APPROVED=I_APPROVE_LOCAL_BROWSER`; see `tests/Browser/README.md`. The browser target must be localhost on `127.0.0.1`.
+- Never point these tests at PROD, CI's shared stateful databases, Tailscale PROD resources, real marketplace accounts or actual customer records. An execution flag is **not** a substitute for explicit user permission to run the tests.
 
-## Incomplete coverage: deliberately explicit
+## Remaining work that cannot honestly be marked completed
 
-The manifest indexes all production classes, but **does not prove all their behavior**. Executable tests cover selected business flows and failure paths, not every branch of all 181 actions. Outstanding work includes complete sales/purchasing/finance posting and reversals; cross-company data transfers and period carry; upload and printing end-to-end workflows; API/webhook error/retry/pagination/signature fixtures for all four channels; real Valkey queue contention/concurrent workers; browser-driven Livewire journeys; actual export files; full backup/restore disaster recovery and realistic performance/load tests. Those require new isolated fixtures, mock servers and/or browser/host infrastructure before execution.
+The 181 action classes have been inventoried but **not every success, failure and concurrency branch has a dedicated executable scenario**. Full document posting/reversal chains, period carry involving complete and realistic distinct company DBs, cross-tenant copying, complete marketplace pagination/retry flows, password reset, browser CRUD operations, real multi-worker Valkey concurrency, disaster-recovery restorations and realistic production-scale performance tests need additional isolated fixtures and/or infrastructure and separate execution approval.
 
-Do not report 100% coverage or green test results: execution has not been authorized. Maintain `source-manifest.json` when application files change; `SourceInventoryTest` detects discrepancies.
+Source inventory is `tests/Contracts/source-manifest.json`. Keep it synchronized with `app/`. Do not equate "file exists" with "test passed" or report a 100% coverage figure until executable branch/line coverage has been obtained.
