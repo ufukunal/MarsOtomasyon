@@ -12,7 +12,7 @@ it('prevents concurrent local test connections from acquiring the same transacti
         $peerName = 'mars_v4_local_peer';
         config(["database.connections.{$peerName}" => [
             ...config('database.connections.period'),
-            'host' => '127.0.0.1',
+            'host' => 'mars-prod-1.taila20365.ts.net',
             'database' => 'mars_test_period',
             'username' => 'mars_test',
         ]]);

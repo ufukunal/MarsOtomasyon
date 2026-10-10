@@ -16,16 +16,16 @@ final class IsolatedPostgres
             Assert::markTestSkipped('Standalone local PostgreSQL approval is absent.');
         }
 
-        if (getenv('MARS_V4_REMOTE_TUNNEL_READY') !== 'YES') {
-            throw new RuntimeException('Verified SSH tunnel to dedicated remote test databases is required.');
+        if (getenv('MARS_V4_REMOTE_TEST_READY') !== 'YES') {
+            throw new RuntimeException('Verified direct Tailnet test database check is required.');
         }
 
         foreach (['master', 'period'] as $connection) {
             $config = config("database.connections.{$connection}");
             if (($config['driver'] ?? '') !== 'pgsql'
-                || ($config['host'] ?? '') !== '127.0.0.1'
+                || ($config['host'] ?? '') !== 'mars-prod-1.taila20365.ts.net'
                 || (string) ($config['username'] ?? '') !== 'mars_test'
-                || (string) ($config['port'] ?? '') !== '5432') {
+                || (string) ($config['port'] ?? '') !== '55432') {
                 throw new RuntimeException("Unsafe {$connection} database; refusing integration tests.");
             }
         }
@@ -42,7 +42,7 @@ final class IsolatedPostgres
     }
 
     /**
-     * The callback uses only existing, dedicated local test databases.
+     * The callback uses only existing, dedicated remote test databases.
      * All inserted fixtures are rolled back, including on exceptions.
      * Do not use this with app code that purges active DB connections mid-callback.
      */

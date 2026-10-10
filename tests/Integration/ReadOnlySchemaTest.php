@@ -5,19 +5,20 @@ use Illuminate\Support\Facades\Schema;
 
 function requireDedicatedMarsIntegrationDatabases(): void
 {
-    if (getenv('MARS_V4_REMOTE_TUNNEL_READY') !== 'YES') {
-        test()->markTestSkipped('Verified SSH tunnel to remote test databases is required.');
+    if (getenv('MARS_V4_REMOTE_TEST_READY') !== 'YES') {
+        test()->markTestSkipped('Verified direct Tailnet test database isolation is required.');
     }
 
     if (getenv('MARS_INTEGRATION_TESTS_APPROVED') !== 'I_APPROVE_LOCAL_TEST_ONLY') {
         test()->markTestSkipped('Explicit local test DB approval required; never use production DB.');
     }
 
-    expect(config('database.connections.master.host'))->toBe('127.0.0.1')
+    expect(config('database.connections.master.host'))->toBe('mars-prod-1.taila20365.ts.net')
         ->and(config('database.connections.master.database'))->toBe('mars_test_master')
         ->and(config('database.connections.master.username'))->toBe('mars_test');
 
-    config(['database.connections.period.host' => '127.0.0.1']);
+    config(['database.connections.period.host' => 'mars-prod-1.taila20365.ts.net']);
+    config(['database.connections.period.port' => '55432']);
     config(['database.connections.period.username' => 'mars_test']);
     config(['database.connections.period.database' => 'mars_test_period']);
     DB::purge('period');

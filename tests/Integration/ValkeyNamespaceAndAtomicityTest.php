@@ -12,17 +12,17 @@ function marsValkeyTestApproval(): void
         Assert::markTestSkipped('Separate isolated local Valkey approval is required.');
     }
 
-    if (getenv('MARS_V4_REMOTE_TUNNEL_READY') !== 'YES') {
-        throw new RuntimeException('Verified remote TEST tunnel is required for Valkey integration.');
+    if (getenv('MARS_V4_REMOTE_TEST_READY') !== 'YES') {
+        throw new RuntimeException('Verified direct Tailscale test identity check is required for Valkey integration.');
     }
 
     foreach (['default', 'cache'] as $connection) {
         $settings = config("database.redis.{$connection}");
 
-        if (($settings['host'] ?? '') !== '127.0.0.1'
+        if (($settings['host'] ?? '') !== 'mars-prod-1.taila20365.ts.net'
             || (string) ($settings['port'] ?? '') !== '6379'
             || ($settings['username'] ?? '') !== 'mars_test') {
-            throw new RuntimeException('Valkey host must be strictly 127.0.0.1.');
+            throw new RuntimeException('Valkey host must be the approved Tailnet endpoint.');
         }
     }
 
