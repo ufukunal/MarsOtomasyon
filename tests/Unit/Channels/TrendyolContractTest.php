@@ -10,6 +10,7 @@ function marsTrendyolListing(string $barcode = '123456'): ChannelProductListing
         'category_metadata' => ['list_price' => '5.00'],
     ]);
     $listing->setRelation('product', new Product(['code' => 'TY-SKU', 'barcode' => $barcode]));
+
     return $listing;
 }
 

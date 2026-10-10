@@ -1,10 +1,10 @@
 <?php
 
+use App\Exceptions\NoActivePeriodException;
 use App\Models\NumberSeries;
 use App\Models\Period\Document;
 use App\Models\Period\StockBalance;
 use App\Support\Period\PeriodContext;
-use App\Exceptions\NoActivePeriodException;
 
 it('scopes document numbering and stock tables to the selected period', function (): void {
     PeriodContext::clear();

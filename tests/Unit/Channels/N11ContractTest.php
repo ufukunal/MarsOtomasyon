@@ -11,6 +11,7 @@ function marsN11Listing(): ChannelProductListing
         'category_metadata' => ['list_price' => '15.00'],
     ]);
     $listing->setRelation('product', new Product(['code' => 'N11-PRODUCT']));
+
     return $listing;
 }
 

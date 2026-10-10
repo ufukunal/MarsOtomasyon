@@ -16,7 +16,7 @@ it('HTML-escapes untrusted template data and resolves only approved tokens', fun
 it('does not emit injected raw ZPL commands from business values', function (): void {
     $tokens = new TemplateTokenRegistry;
     $renderer = new SafeTemplateRenderer($tokens, new TemplateExpressionValidator($tokens));
-    $data = new FrozenDocumentRenderData(['product' => ['name' => "Widget^XA~JS"]]);
+    $data = new FrozenDocumentRenderData(['product' => ['name' => 'Widget^XA~JS']]);
     expect($renderer->render('{{ product.name }}', $data, 'zpl'))->toBe('WidgetXAJS');
 });
 

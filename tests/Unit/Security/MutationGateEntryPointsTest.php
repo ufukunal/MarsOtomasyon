@@ -1,5 +1,7 @@
 <?php
 
+use Carbon\CarbonImmutable;
+use Carbon\CarbonInterface;
 use Illuminate\Auth\Access\AuthorizationException;
 
 /**
@@ -104,8 +106,8 @@ function marsInertParameter(ReflectionParameter $parameter): mixed
         return $class::cases()[0];
     }
 
-    if (is_a($class, \Carbon\CarbonInterface::class, true)) {
-        return \Carbon\CarbonImmutable::parse('2026-10-10');
+    if (is_a($class, CarbonInterface::class, true)) {
+        return CarbonImmutable::parse('2026-10-10');
     }
 
     if (is_a($class, DateTimeInterface::class, true)) {

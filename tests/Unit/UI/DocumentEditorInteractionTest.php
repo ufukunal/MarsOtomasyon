@@ -1,7 +1,7 @@
 <?php
 
-use App\Livewire\Sales\SalesOrderEditor;
 use App\Livewire\Purchases\PurchaseOrderEditor;
+use App\Livewire\Sales\SalesOrderEditor;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
 it('updates all sale line VAT percentages and resets them without a database', function (): void {

@@ -12,6 +12,7 @@ function marsHepsiburadaListing(?string $hbSku = 'HB123'): ChannelProductListing
         'max_channel_quantity' => '500',
     ]);
     $listing->setRelation('product', new Product(['code' => 'SKU-FALLBACK']));
+
     return $listing;
 }
 
