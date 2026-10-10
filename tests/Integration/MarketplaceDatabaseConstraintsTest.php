@@ -2,6 +2,7 @@
 
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Route;
 use Tests\Support\IsolatedPostgres;
 
 it('restricts marketplace accounts to explicitly supported providers', function (): void {
@@ -16,6 +17,7 @@ it('restricts marketplace accounts to explicitly supported providers', function 
         ];
         $master->beginTransaction();
         $rejected = false;
+
         try {
             $master->table('sales_channel_accounts')->insert($row);
         } catch (QueryException) {
@@ -30,7 +32,7 @@ it('restricts marketplace accounts to explicitly supported providers', function 
 });
 
 it('requires the four ecommerce webhook routes and their HTTP methods', function (string $name, string $method): void {
-    $route = \Illuminate\Support\Facades\Route::getRoutes()->getByName($name);
+    $route = Route::getRoutes()->getByName($name);
     expect($route)->not->toBeNull()
         ->and($route->methods())->toContain($method)
         ->and($route->gatherMiddleware())->toContain('throttle:webhook');

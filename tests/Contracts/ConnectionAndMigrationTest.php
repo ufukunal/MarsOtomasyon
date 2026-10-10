@@ -1,11 +1,10 @@
 <?php
 
-use Illuminate\Support\Facades\DB;
-
 it('declares separated master, active period and source period PostgreSQL connections', function (): void {
     foreach (['master', 'period', 'period_source'] as $connection) {
         expect(config("database.connections.{$connection}.driver"))->toBe('pgsql');
     }
+
     expect(config('database.connections.period.database'))->toBeNull()
         ->and(config('database.connections.period_source.database'))->toBeNull();
 });

@@ -20,10 +20,11 @@ it('requires every action to expose an explicit public business operation', func
     $reflection = new ReflectionClass($symbol);
     $methods = array_filter(
         $reflection->getMethods(ReflectionMethod::IS_PUBLIC),
-        fn (ReflectionMethod $method): bool =>
-            $method->getDeclaringClass()->getName() === $symbol
-            && ! $method->isConstructor()
-            && ($method->getName() === '__invoke' || ! str_starts_with($method->getName(), '__')),
+        function (ReflectionMethod $method) use ($symbol): bool {
+            return $method->getDeclaringClass()->getName() === $symbol
+                && ! $method->isConstructor()
+                && ($method->getName() === '__invoke' || ! str_starts_with($method->getName(), '__'));
+        },
     );
     expect($methods)->not->toBeEmpty("No public operation in {$path}");
 })->with(fn (): array => array_values(array_map(
@@ -39,9 +40,12 @@ it('detects every unindexed production PHP file and every stale inventory record
             $actual[] = str_replace(DIRECTORY_SEPARATOR, '/', substr($file->getPathname(), strlen(base_path()) + 1));
         }
     }
+
     sort($actual);
+
     $declared = array_column(marsManifest(), 'path');
     sort($declared);
+
     expect($declared)->toBe($actual);
 });
 

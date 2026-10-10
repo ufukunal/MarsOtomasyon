@@ -9,6 +9,7 @@ function marsRejectPeriodSql(callable $query): bool
     $db = DB::connection('period');
     $db->beginTransaction();
     $rejected = false;
+
     try {
         $query($db);
     } catch (QueryException) {
@@ -16,6 +17,7 @@ function marsRejectPeriodSql(callable $query): bool
     } finally {
         $db->rollBack();
     }
+
     return $rejected;
 }
 

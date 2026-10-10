@@ -7,14 +7,13 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use PHPUnit\Framework\Assert;
 use RuntimeException;
-use Throwable;
 
 final class IsolatedPostgres
 {
     public static function approved(): void
     {
         if (getenv('MARS_INTEGRATION_TESTS_APPROVED') !== 'I_APPROVE_LOCAL_TEST_ONLY') {
-            \PHPUnit\Framework\Assert::markTestSkipped('Standalone local PostgreSQL approval is absent.');
+            Assert::markTestSkipped('Standalone local PostgreSQL approval is absent.');
         }
 
         foreach (['master', 'period'] as $connection) {
@@ -110,6 +109,7 @@ final class IsolatedPostgres
             'code' => 'P'.$suffix, 'name' => 'Product '.$suffix, 'unit_id' => $unit,
             'created_at' => now(), 'updated_at' => now(),
         ]);
+
         return ['product' => (int) $product, 'unit' => (int) $unit, 'location' => (int) $location];
     }
 }

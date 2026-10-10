@@ -5,14 +5,16 @@ use App\Support\Period\PeriodContext;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Tests\Support\IsolatedPostgres;
 
 it('rejects another company and inactive period access despite valid login', function (): void {
     IsolatedPostgres::withActivePeriod(function (int $companyId, int $periodId): void {
         $db = DB::connection('master');
         $userId = $db->table('users')->insertGetId([
-            'name' => 'V4 test actor', 'email' => 'v4.'.strtolower(\Illuminate\Support\Str::random(9)).'@invalid.test',
-            'password' => \Illuminate\Support\Facades\Hash::make('test-only'),
+            'name' => 'V4 test actor', 'email' => 'v4.'.strtolower(Str::random(9)).'@invalid.test',
+            'password' => Hash::make('test-only'),
             'created_at' => now(), 'updated_at' => now(),
         ]);
         $db->table('company_user')->insert([
@@ -26,6 +28,7 @@ it('rejects another company and inactive period access despite valid login', fun
         Auth::login(User::query()->findOrFail($userId));
 
         $verify = new ReflectionMethod(PeriodContext::class, 'assertAuthenticatedUserAccess');
+
         try {
             $verify->invoke(null, $companyId, $periodId);
             expect(fn () => $verify->invoke(null, $companyId + 100000, $periodId))
