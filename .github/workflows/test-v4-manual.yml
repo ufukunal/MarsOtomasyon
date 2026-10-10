@@ -28,13 +28,13 @@ jobs:
       APP_DEBUG: "false"
       APP_KEY: "base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
       DB_CONNECTION: master
-      DB_HOST: "127.0.0.1"
-      DB_PORT: "5432"
+      DB_HOST: "mars-prod-1.taila20365.ts.net"
+      DB_PORT: "55432"
       DB_MASTER_DATABASE: mars_test_master
       DB_USERNAME: mars_test
       DB_PASSWORD: ${{ secrets.MARS_V4_DB_PASSWORD }}
-      DB_SSLMODE: disable
-      REDIS_HOST: "127.0.0.1"
+      DB_SSLMODE: prefer
+      REDIS_HOST: "mars-prod-1.taila20365.ts.net"
       REDIS_PORT: "6379"
       REDIS_USERNAME: mars_test
       REDIS_PASSWORD: ${{ secrets.MARS_V4_VALKEY_PASSWORD }}
@@ -44,14 +44,6 @@ jobs:
       SESSION_DRIVER: array
       QUEUE_CONNECTION: sync
       MAIL_MAILER: array
-      MARS_V4_SSH_HOST: "mars-prod-1.taila20365.ts.net"
-      MARS_V4_SSH_PORT: "10000"
-      MARS_V4_SSH_USER: ufuk
-      MARS_V4_REMOTE_PG_PORT: "55432"
-      MARS_V4_REMOTE_REDIS_PORT: "6379"
-      MARS_V4_SSH_PRIVATE_KEY: ${{ secrets.MARS_V4_SSH_PRIVATE_KEY }}
-      MARS_V4_SSH_PASSWORD: ${{ secrets.MARS_V4_SSH_PASSWORD }}
-      MARS_V4_SSH_KNOWN_HOSTS: ${{ secrets.MARS_V4_SSH_KNOWN_HOSTS }}
     steps:
       - uses: actions/checkout@v4
       - name: Select existing PHP 8.4+ and PHP client extensions
@@ -60,7 +52,7 @@ jobs:
       - name: Install PHP test dependencies
         if: ${{ inputs.suite != 'preflight' }}
         run: composer install --no-interaction --prefer-dist --no-progress
-      - name: R0 remote isolation preflight and selected suite
+      - name: R0 direct Tailscale isolation preflight and selected suite
         shell: bash
         env:
           SELECTED_SUITE: ${{ inputs.suite }}
@@ -72,7 +64,7 @@ jobs:
         run: |
           set -Eeuo pipefail
           mkdir -p artifacts/test-v4
-          timeout 1800s bash scripts/ci/test-v4-remote.sh "$SELECTED_SUITE" 2>&1 | tee "artifacts/test-v4/$SELECTED_SUITE.log"
+          timeout 1800s bash scripts/ci/test-v4-direct.sh "$SELECTED_SUITE" 2>&1 | tee "artifacts/test-v4/$SELECTED_SUITE.log"
       - name: Retain sanitized diagnostic output
         if: always()
         uses: actions/upload-artifact@v4

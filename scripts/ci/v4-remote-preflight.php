@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-// Strictly read-only verification of dedicated TEST resources forwarded over SSH.
+// Strictly read-only verification of dedicated TEST resources accessed directly via Tailscale.
 // This script never creates databases, changes privileges or writes Valkey keys.
 
 function v4Require(bool $condition, string $message): void
@@ -13,10 +13,10 @@ function v4Require(bool $condition, string $message): void
     }
 }
 
-v4Require(getenv('DB_HOST') === '127.0.0.1' && getenv('DB_PORT') === '5432', 'unexpected PostgreSQL endpoint');
+v4Require(getenv('DB_HOST') === 'mars-prod-1.taila20365.ts.net' && getenv('DB_PORT') === '55432', 'unexpected PostgreSQL endpoint');
 v4Require(getenv('DB_MASTER_DATABASE') === 'mars_test_master', 'unexpected master test database');
 v4Require(getenv('DB_USERNAME') === 'mars_test', 'unexpected PostgreSQL test role');
-v4Require(getenv('REDIS_HOST') === '127.0.0.1' && getenv('REDIS_PORT') === '6379', 'unexpected Valkey endpoint');
+v4Require(getenv('REDIS_HOST') === 'mars-prod-1.taila20365.ts.net' && getenv('REDIS_PORT') === '6379', 'unexpected Valkey endpoint');
 v4Require(getenv('REDIS_PREFIX') === 'mars:test:', 'unexpected Valkey test prefix');
 v4Require(getenv('REDIS_USERNAME') === 'mars_test', 'dedicated Valkey ACL identity required');
 
@@ -29,7 +29,7 @@ v4Require(extension_loaded('pdo_pgsql') && extension_loaded('redis'), 'missing P
 try {
     foreach (['mars_test_master', 'mars_test_period'] as $database) {
         $pdo = new PDO(
-            "pgsql:host=127.0.0.1;port=5432;dbname={$database};connect_timeout=5",
+            "pgsql:host=mars-prod-1.taila20365.ts.net;port=55432;dbname={$database};connect_timeout=5",
             'mars_test',
             $dbPassword,
             [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_TIMEOUT => 5],
@@ -66,7 +66,7 @@ try {
     }
 
     $valkey = new Redis;
-    v4Require($valkey->connect('127.0.0.1', 6379, 5.0), 'Valkey connection failed');
+    v4Require($valkey->connect('mars-prod-1.taila20365.ts.net', 6379, 5.0), 'Valkey connection failed');
     v4Require($valkey->auth(['mars_test', $redisPassword]), 'Valkey ACL authentication failed');
     v4Require($valkey->rawCommand('ACL', 'WHOAMI') === 'mars_test', 'Valkey ACL identity mismatch');
     v4Require($valkey->select(1), 'Valkey test cache logical DB is inaccessible');
