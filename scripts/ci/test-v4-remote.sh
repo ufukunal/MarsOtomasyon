@@ -67,10 +67,12 @@ if [[ -n "${MARS_V4_SSH_PRIVATE_KEY:-}" ]]; then
   chmod 600 "$tmp/id_key"
   ssh_opts+=(-i "$tmp/id_key" -o IdentitiesOnly=yes -o BatchMode=yes)
 elif [[ -n "${MARS_V4_SSH_PASSWORD:-}" ]]; then
-  command -v sshpass >/dev/null || { echo "BLOCKED: sshpass CLIENT required for password-based SSH" >&2; exit 77; }
-  export SSHPASS="$MARS_V4_SSH_PASSWORD"
-  ssh_cmd=(sshpass -e ssh)
-  ssh_opts+=(-o BatchMode=no -o PubkeyAuthentication=no -o PreferredAuthentications=password)
+  # OpenSSH's built-in askpass works without installing sshpass on the runner.
+  # The credential remains in a GitHub Secret and is never embedded in this script.
+  printf '%s\n' '#!/bin/sh' 'printf "%s\\n" "$MARS_V4_SSH_PASSWORD"' > "$tmp/askpass"
+  chmod 700 "$tmp/askpass"
+  export SSH_ASKPASS="$tmp/askpass" SSH_ASKPASS_REQUIRE=force DISPLAY=:0
+  ssh_opts+=(-o BatchMode=no -o PubkeyAuthentication=no -o PreferredAuthentications=password -o NumberOfPasswordPrompts=1)
 else
   ssh_opts+=(-o BatchMode=yes -o PasswordAuthentication=no)
 fi
