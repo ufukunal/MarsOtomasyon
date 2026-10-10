@@ -17,7 +17,7 @@ if [[ ! "${RELEASE_ID}" =~ ^[A-Za-z0-9._-]+$ ]]; then
   exit 2
 fi
 
-if [[ ! "${COMMIT_SHA}" =~ ^[a-fA-F0-9]{7,64}$ ]]; then
+if [[ ! "${COMMIT_SHA}" =~ ^[a-f0-9]{40}$ ]]; then
   echo "Gecersiz commit SHA" >&2
   exit 2
 fi
@@ -30,6 +30,27 @@ fi
 if [[ -e "${RELEASE_PATH}" ]]; then
   echo "Immutable release zaten mevcut: ${RELEASE_PATH}" >&2
   exit 2
+fi
+
+if [[ ! -f "${ARTIFACT_DIR}/.mars-release-commit" || ! -f "${ARTIFACT_DIR}/.mars-artifact-checksums" ]]; then
+  echo "BLOCKED: release provenance and integrity manifest required" >&2
+  exit 77
+fi
+
+ARTIFACT_COMMIT="$(< "${ARTIFACT_DIR}/.mars-release-commit")"
+if [[ "$ARTIFACT_COMMIT" != "$COMMIT_SHA" ]]; then
+  echo "BLOCKED: release artifact commit does not match requested SHA" >&2
+  exit 77
+fi
+
+if [[ -e "${ARTIFACT_DIR}/.env" ]]; then
+  echo "BLOCKED: secret .env must not be embedded in release artifact" >&2
+  exit 77
+fi
+
+if ! (cd "$ARTIFACT_DIR" && sha256sum -c --status .mars-artifact-checksums); then
+  echo "BLOCKED: release artifact checksum verification failed" >&2
+  exit 77
 fi
 
 mkdir -p "${RELEASES_ROOT}" "${SHARED_ROOT}/storage"

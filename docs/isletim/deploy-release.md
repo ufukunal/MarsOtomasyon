@@ -16,6 +16,25 @@ Release dizini aktive edildikten sonra değiştirilmez.
 - `mars-scheduler.service`: scheduler
 - `mars-operations.service`: `operations` queue, migrator/backup credential
 
+## Release artifact bütünlüğü
+
+Bir sürümü dağıtmadan önce aynı tam 40 karakterli Git SHA için temiz checkout'tan,
+uygulama secret'ı olmadan ve ayrı bir artifact dizininde build alın:
+
+```bash
+bash ops/build-release-artifact.sh <full-commit-sha> /srv/mars-artifacts/<release-id>
+```
+
+Bu işlem `composer install --no-dev`, `npm ci`, `npm run build` ile paket üretir;
+`.mars-release-commit` ve SHA-256 dosya manifesti ekler.
+Dağıtım betiği **servis veya release dizinini değiştirmeden önce** tam commit
+eşleşmesi ile bütün dosya checksum'larını doğrular. Geçersiz/eksik manifest
+veya artifact içine yanlışlıkla eklenmiş `.env` işlemi durdurur.
+
+Bu manifest bir **kriptografik imza değildir**: artifact'a yazma izni olan saldırgan
+manifesti de değiştirebilir. Artifact storage ve CI yazma erişimi ayrıca
+kısıtlanmalıdır.
+
 ## Release hazırlama
 
 Artifact en az şunları içermelidir:
