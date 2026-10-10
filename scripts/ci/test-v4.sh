@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+if [[ "${MARS_TEST_EXECUTION_APPROVED:-}" != "MARS_V4_EXECUTION_APPROVED" ]]; then
+  echo "BLOCKED: explicit approval required" >&2
+  exit 77
+fi
+mode="${1:-}"
+case "$mode" in
+  unit) exec vendor/bin/pest --testsuite=Unit ;;
+  contracts) exec vendor/bin/pest --testsuite=Contracts ;;
+  feature) exec vendor/bin/pest --testsuite=Feature ;;
+  integration)
+    if [[ "${MARS_INTEGRATION_TESTS_APPROVED:-}" != "I_APPROVE_LOCAL_TEST_ONLY" ]]; then
+      echo "BLOCKED: isolated local integration approval required" >&2
+      exit 77
+    fi
+    exec vendor/bin/pest --testsuite=Integration ;;
+  *)
+    echo "usage: $0 {unit|contracts|feature|integration}" >&2
+    exit 2 ;;
+esac
