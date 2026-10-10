@@ -22,23 +22,61 @@ done
 if command -v ip >/dev/null 2>&1; then
   ip -4 route get "$host" 2>&1 | sed -E 's/src [0-9.]+/src [REDACTED]/g' || true
 fi
-tcp_probe() {
-  local name="$1" port="$2"
+# Check each previously supplied route; do not infer VM reachability from routing alone.
+if command -v tailscale >/dev/null 2>&1; then
+  if timeout 4 tailscale status >/dev/null 2>&1; then
+    echo "TAILSCALE_LOCAL=ACTIVE"
+  else
+    echo "TAILSCALE_LOCAL=UNAVAILABLE"
+  fi
+else
+  echo "TAILSCALE_LOCAL=CLIENT_MISSING"
+fi
+tailnet_ip=100.127.235.30
+tailnet_dns=mars-prod-1.taila20365.ts.net
+if resolved="$(getent ahostsv4 "$tailnet_dns" 2>/dev/null | awk 'NR==1{print $1}')" && [[ -n "$resolved" ]]; then
+  echo "TAILNET_DNS=RESOLVES"
+else
+  echo "TAILNET_DNS=NOT_RESOLVED"
+fi
+probe_port() {
+  local label="$1" target="$2" port="$3"
   if command -v nc >/dev/null 2>&1; then
-    if timeout 5 nc -z -w 3 "$host" "$port" >/dev/null 2>&1; then
-      echo "TCP_${name}=OPEN"
+    if timeout 5 nc -z -w 3 "$target" "$port" >/dev/null 2>&1; then
+      echo "TCP_${label}=OPEN"
       return 0
     fi
-  elif timeout 5 bash -c ":</dev/tcp/$host/$port" >/dev/null 2>&1; then
-    echo "TCP_${name}=OPEN"
+  elif timeout 5 bash -c ":</dev/tcp/$target/$port" >/dev/null 2>&1; then
+    echo "TCP_${label}=OPEN"
     return 0
   fi
-  echo "TCP_${name}=CLOSED_OR_FILTERED"
+  echo "TCP_${label}=CLOSED_OR_FILTERED"
   return 1
 }
-tcp_probe SSH_10000 "$ssh_port" || { echo "RESULT=BLOCKED_SSH_NETWORK"; exit 77; }
-tcp_probe POSTGRES_55432 55432 || true
-tcp_probe VALKEY_6379 6379 || true
+reachable_host=""
+for spec in "LAN:$host" "TAILNET_IP:$tailnet_ip" "TAILNET_DNS:$tailnet_dns"; do
+  label="${spec%%:*}"
+  target="${spec#*:}"
+  if probe_port "${label}_SSH_10000" "$target" 10000; then
+    if [[ -z "$reachable_host" ]]; then
+      reachable_host="$target"
+    fi
+  fi
+  if [[ "$label" == LAN ]]; then
+    probe_port "${label}_POSTGRES_55432" "$target" 55432 || true
+    probe_port "${label}_POSTGRES_5432" "$target" 5432 || true
+    probe_port "${label}_VALKEY_6379" "$target" 6379 || true
+    if command -v ip >/dev/null 2>&1; then
+      ip neigh show "$target" 2>/dev/null | sed -E 's/lladdr [[:xdigit:]:]+/lladdr [REDACTED]/g' || true
+    fi
+  fi
+done
+if [[ -z "$reachable_host" ]]; then
+  echo "RESULT=ALL_SSH_PATHS_UNREACHABLE"
+  exit 77
+fi
+host="$reachable_host"
+echo "PREFERRED_SSH_ROUTE=$host"
 if [[ -n "${MARS_V4_SSH_PRIVATE_KEY:-}" ]]; then
   echo "SSH_AUTH_MATERIAL=KEY"
 elif [[ -n "${MARS_V4_SSH_PASSWORD:-}" ]]; then
