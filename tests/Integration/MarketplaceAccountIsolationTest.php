@@ -1,8 +1,8 @@
 <?php
 
 use App\Actions\Channels\PollChannelAccount;
-use App\Actions\Channels\TestChannelConnection;
 use App\Actions\Channels\SaveSalesChannelAccount;
+use App\Actions\Channels\TestChannelConnection;
 use App\Models\SalesChannelAccount;
 use Illuminate\Support\Str;
 use Tests\Support\AuthorizedPeriod;

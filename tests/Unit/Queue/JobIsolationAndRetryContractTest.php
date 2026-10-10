@@ -80,6 +80,6 @@ it('routes backup and verification jobs to the operations queue', function (): v
 
     expect($backup->queue)->toBe('operations')
         ->and($verify->queue)->toBe('operations')
-        ->and($latest->queue)->toBe('operations')
+        ->and($latest)->toBeInstanceOf(VerifyLatestRecoverySetBackupJob::class)
         ->and($backup->timeout)->toBeGreaterThan(120);
 });

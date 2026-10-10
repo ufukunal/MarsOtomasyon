@@ -36,31 +36,16 @@ it('registers all 22 business integrity checks with executable result contracts'
 ]);
 
 it('runs an injected integrity check without database persistence when explicitly requested', function (): void {
-    $fixture = new class implements IntegrityCheck
-    {
-        public int $runs = 0;
-
-        public function name(): string
-        {
-            return 'v4-disposable';
-        }
-
-        public function run(): IntegrityResult
-        {
-            $this->runs++;
-
-            return new IntegrityResult(
-                checked: 3,
-                mismatches: [['id' => 2, 'expected' => '2', 'actual' => '3']],
-                durationMs: 1,
-            );
-        }
-    };
+    $fixture = Mockery::mock(IntegrityCheck::class);
+    $fixture->shouldReceive('run')->once()->andReturn(new IntegrityResult(
+        checked: 3,
+        mismatches: [['id' => 2, 'expected' => '2', 'actual' => '3']],
+        durationMs: 1,
+    ));
 
     $outcome = (new IntegrityRunner)->run($fixture, persist: false);
 
-    expect($fixture->runs)->toBe(1)
-        ->and($outcome->checked)->toBe(3)
+    expect($outcome->checked)->toBe(3)
         ->and($outcome->mismatchCount())->toBe(1)
         ->and($outcome->mismatches[0]['id'])->toBe(2);
 });
