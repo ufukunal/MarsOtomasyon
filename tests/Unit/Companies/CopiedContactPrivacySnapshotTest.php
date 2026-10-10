@@ -4,9 +4,10 @@ use App\Actions\Companies\InspectCopiedRecords;
 use App\Enums\CompanyCopyPermissionType;
 use App\Enums\ProductKind;
 use App\Models\Period\Contact;
+use Illuminate\Support\Facades\Auth;
 
 it('hides national identifiers from unprivileged copied-contact previews', function (): void {
-    auth()->logout();
+    Auth::forgetGuards();
     $source = new Contact([
         'title' => 'V4 Source',
         'type' => 'legal',

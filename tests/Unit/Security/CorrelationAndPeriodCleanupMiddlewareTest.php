@@ -4,6 +4,7 @@ use App\Http\Middleware\CorrelationId;
 use App\Http\Middleware\SetActiveCompany;
 use App\Http\Middleware\SetActivePeriod;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
 
 it('issues a fresh fixed-length correlation ID for each request and returns it in response headers', function (): void {
@@ -24,7 +25,7 @@ it('issues a fresh fixed-length correlation ID for each request and returns it i
 });
 
 it('does not load privileged master or period state for anonymous requests', function (): void {
-    auth()->logout();
+    Auth::forgetGuards();
 
     foreach ([new SetActiveCompany, new SetActivePeriod] as $middleware) {
         $request = Request::create('/v4-unauthenticated');

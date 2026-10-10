@@ -6,12 +6,12 @@ it('rejects unknown top-level fields and an incorrectly shaped sections collecti
     expect(fn () => (new TemplateDefinitionValidator)->normalize($definition))
         ->toThrow(DomainException::class);
 })->with([
-    ['sections' => [], 'php' => 'echo 1'],
-    ['sections' => 'not-an-array'],
-    ['sections' => ['header' => ['type' => 'header']]],
-    ['sections' => [['type' => 'execute_shell']]],
-    ['sections' => [['type' => 'header', 'visible' => 'yes']]],
-    ['sections' => [['type' => 'header', 'settings' => ['object' => new stdClass]]]],
+    [['sections' => [], 'php' => 'echo 1']],
+    [['sections' => 'not-an-array']],
+    [['sections' => ['header' => ['type' => 'header']]]],
+    [['sections' => [['type' => 'execute_shell']]]],
+    [['sections' => [['type' => 'header', 'visible' => 'yes']]]],
+    [['sections' => [['type' => 'header', 'settings' => ['object' => new stdClass]]]]],
 ]);
 
 it('refuses overlong template definitions before rendering or printing', function (): void {

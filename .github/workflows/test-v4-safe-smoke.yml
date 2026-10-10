@@ -44,12 +44,25 @@ jobs:
           x=x.replace('name="REDIS_PORT" value="6379"','name="REDIS_PORT" value="9"')
           p.write_text(x)
           PY
-      - name: Run eight isolated real V4 Unit test files
+      - name: Run isolated arithmetic, template, auth, and middleware regressions
         shell: bash
         run: |
           set -Eeuo pipefail
           mkdir -p artifacts/test-v4
-          timeout 360s vendor/bin/pest             tests/Unit/Money/MoneyTest.php             tests/Unit/Documents/DocumentTotalsTest.php             tests/Unit/Production/ProductionCostCalculatorTest.php             tests/Unit/Formatting/TrFormatterTest.php             tests/Unit/Units/UnitConversionTest.php             tests/Unit/Stock/StockBalanceTest.php             tests/Unit/Pricing/PriceDeviationTest.php             tests/Unit/Concurrency/IdempotencyCodecTest.php             2>&1 | tee artifacts/test-v4/safe-smoke.log
+          timeout 480s vendor/bin/pest \
+            tests/Unit/Money/MoneyTest.php \
+            tests/Unit/Documents/DocumentTotalsTest.php \
+            tests/Unit/Production/ProductionCostCalculatorTest.php \
+            tests/Unit/Formatting/TrFormatterTest.php \
+            tests/Unit/Units/UnitConversionTest.php \
+            tests/Unit/Stock/StockBalanceTest.php \
+            tests/Unit/Pricing/PriceDeviationTest.php \
+            tests/Unit/Concurrency/IdempotencyCodecTest.php \
+            tests/Unit/DocumentTemplates/TemplateDefinitionInputGuardTest.php \
+            tests/Unit/Companies/CopiedContactPrivacySnapshotTest.php \
+            tests/Unit/Security/MutationAuthorizerTest.php \
+            tests/Unit/Security/CorrelationAndPeriodCleanupMiddlewareTest.php \
+            2>&1 | tee artifacts/test-v4/safe-smoke.log
       - name: Save test diagnostics
         if: always()
         uses: actions/upload-artifact@v4

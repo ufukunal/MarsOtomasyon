@@ -3,6 +3,7 @@
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Support\Facades\Auth;
 
 /**
  * Discover every action method whose first executable statement is the
@@ -122,7 +123,7 @@ function marsInertParameter(ReflectionParameter $parameter): mixed
 }
 
 it('blocks every discovered permission-first action for anonymous users', function (string $class, string $method): void {
-    auth()->logout();
+    Auth::forgetGuards();
 
     $object = (new ReflectionClass($class))->newInstanceWithoutConstructor();
     $reflection = new ReflectionMethod($class, $method);
