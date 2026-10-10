@@ -22,6 +22,12 @@ jobs:
       MARS_V4_SSH_KNOWN_HOSTS: ${{ secrets.MARS_V4_SSH_KNOWN_HOSTS }}
     steps:
       - uses: actions/checkout@v4
+      - name: Validate TEST V4 shell scripts and PHP preflight syntax
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          bash -n scripts/ci/test-v4-remote.sh scripts/ci/test-v4.sh scripts/ci/v4-connectivity-diagnostic.sh scripts/ci/health-host-infra.sh
+          php -l scripts/ci/v4-remote-preflight.php
       - name: Probe real CI VM and PROD host without changes
         shell: bash
         run: bash scripts/ci/v4-connectivity-diagnostic.sh
