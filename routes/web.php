@@ -22,6 +22,7 @@ use App\Livewire\Imports\ImportCenter;
 use App\Livewire\Pages\Auth\ForgotPassword;
 use App\Livewire\Pages\Auth\Login;
 use App\Livewire\Pages\Auth\PeriodSelection;
+use App\Livewire\Pages\Auth\CompanySelection;
 use App\Livewire\Pages\Auth\ResetPassword;
 use App\Livewire\Pages\Catalog\BrandForm;
 use App\Livewire\Pages\Catalog\BrandList;
@@ -230,5 +231,12 @@ Route::middleware('auth')->group(function (): void {
         return redirect()->route('login');
     })->name('logout');
 });
+
+// DOC2 selector remains unreachable while the application-level DOC2 gate is closed.
+if (config('mars_doc2.mode') === 'doc2') {
+    Route::get('/sirket-secimi', CompanySelection::class)
+        ->middleware('auth')
+        ->name('company.select');
+}
 
 Route::get('/kurulum', CompanyWizard::class)->name('setup');

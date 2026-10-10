@@ -21,6 +21,11 @@ veri karışmasına veya yanlış DB kullanımına neden olabilir.
 Kayıt `active` durumunda, doğrulama/aktivasyon zamanları dolu ve hedef DB adı şirket kimliğiyle
 eşleşmiyorsa şirket bağlantısı açılmaz. Bu aşamada kayıt oluşturulmaz, hedef fiziksel DB oluşturulmaz.
 
+Üçüncü blok: dönem içermeyen `CompanySelection` Livewire ekranı, yalnız DOC2 modunda
+tanımlanan `/sirket-secimi` rotası ve `SetActiveCompanyDatabase` HTTP middleware
+sınıfı hazırlandı. **Middleware henüz uygulama web zincirine bağlanmadı**; geçmiş
+dönem modeli kullanan modüller tamamen dönüştürülmeden etkinleştirmek güvensizdir.
+
 İlk kod bloğu: `company` isimli başlangıçta boş PostgreSQL bağlantısı,
 `CompanyDatabaseName` adlı sabit şirket DB adlandırması, `CompanyDatabaseContext` ile
 Master `company_user` kontrolü, yetki gerektirmeyen sistem/queue akışlarının ayrı API'si

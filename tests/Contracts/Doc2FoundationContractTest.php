@@ -50,3 +50,18 @@ it('keeps DOC2 planning read-only with no automatic provisioning or data migrati
         ->not->toContain('CREATE DATABASE')
         ->not->toContain('Artisan::call');
 });
+
+it('prepares a period-free company selection screen without enabling premature DOC2 access', function (): void {
+    $page = file_get_contents(base_path('app/Livewire/Pages/Auth/CompanySelection.php'));
+    $view = file_get_contents(base_path('resources/views/livewire/pages/auth/company-selection.blade.php'));
+    $routes = file_get_contents(base_path('routes/web.php'));
+
+    expect($page)->toContain('CompanyDatabaseContext::activateForUser')
+        ->toContain('last_company_id')
+        ->not->toContain('PeriodContext::')
+        ->not->toContain('accessiblePeriods');
+    expect($view)->toContain('Şirket Seçimi')
+        ->not->toContain('wire:model="periodId"');
+    expect($routes)->toContain("config('mars_doc2.mode') === 'doc2'")
+        ->toContain("'/sirket-secimi'");
+});
