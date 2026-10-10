@@ -21,7 +21,13 @@ case "$mode" in
       exit 77
     fi
     exec vendor/bin/pest --testsuite=Performance ;;
+  browser)
+    if [[ "${MARS_BROWSER_TESTS_APPROVED:-}" != "I_APPROVE_LOCAL_BROWSER" ]]; then
+      echo "BLOCKED: local browser test approval missing" >&2
+      exit 77
+    fi
+    exec npm --prefix tests/Browser run test ;;
   *)
-    echo "usage: $0 {unit|contracts|feature|integration|performance}" >&2
+    echo "usage: $0 {unit|contracts|feature|integration|performance|browser}" >&2
     exit 2 ;;
 esac
