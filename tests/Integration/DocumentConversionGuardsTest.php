@@ -8,6 +8,7 @@ use App\Actions\Sales\ConvertQuoteToSalesOrder;
 use App\Actions\Sales\CreateDispatchFromOrder;
 use App\Actions\Sales\CreateInvoiceFromOrder;
 use App\Enums\DocumentType;
+use App\Models\Period\Document;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Tests\Support\AuthorizedPeriod;
@@ -20,8 +21,8 @@ it('refuses converting unapproved quotes and sales orders before producing desti
         try {
             $quoteId = marsV4ConversionDoc('quote', 'internal_review', 1);
             $orderId = marsV4ConversionDoc('sales_order', 'draft');
-            $quote = \App\Models\Period\Document::query()->findOrFail($quoteId);
-            $order = \App\Models\Period\Document::query()->findOrFail($orderId);
+            $quote = Document::query()->findOrFail($quoteId);
+            $order = Document::query()->findOrFail($orderId);
             $before = DB::connection('period')->table('documents')->count();
 
             expect(fn () => app(ConvertQuoteToSalesOrder::class)->handle($quote, 'v4-'.Str::random(18)))
@@ -45,7 +46,7 @@ it('blocks goods receipts from draft purchase orders and supplier invoices witho
 
         try {
             $id = marsV4ConversionDoc('purchase_order', 'draft');
-            $order = \App\Models\Period\Document::query()->findOrFail($id);
+            $order = Document::query()->findOrFail($id);
             expect(fn () => app(CreateGoodsReceiptFromOrder::class)->handle(
                 $order, [], [], '2026-10-10', 'v4-'.Str::random(18),
             ))->toThrow(DomainException::class);
@@ -64,7 +65,7 @@ it('requires the right source and draft status before opening or posting sales r
 
         try {
             $invoiceId = marsV4ConversionDoc('sales_invoice', 'draft');
-            $invoice = \App\Models\Period\Document::query()->findOrFail($invoiceId);
+            $invoice = Document::query()->findOrFail($invoiceId);
             expect(fn () => app(CreateReturnFromInvoice::class)->handle(
                 $invoice, DocumentType::SalesReturn, [], [], '2026-10-10', 'v4-'.Str::random(18),
             ))->toThrow(DomainException::class);
