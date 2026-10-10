@@ -47,7 +47,7 @@ it('rolls back a shipment that would make stock negative', function (): void {
             productId: $fixture['product'], locationId: $fixture['location'],
             movementDate: '2026-10-10', direction: 'out', reason: 'sale',
             quantity: '2.000',
-        ))->toThrow(NegativeStockException::class);
+        )))->toThrow(NegativeStockException::class);
 
         expect($db->table('stock_movements')->where('product_id', $fixture['product'])->count())->toBe(0)
             ->and((string) $db->table('stock_balances')->where('product_id', $fixture['product'])->value('quantity'))->toBe('1.000');

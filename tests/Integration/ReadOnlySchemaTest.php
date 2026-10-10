@@ -47,7 +47,7 @@ it('checks core documents, stock, finance, production, imports and channels tabl
     'transfers', 'transfer_lines', 'warehouse_slips', 'stock_counts', 'quarantine_entries',
     'documents', 'document_lines', 'document_relations', 'contact_transactions',
     'cash_accounts', 'bank_accounts', 'purchase_matches',
-    'import_files', 'import_packages', 'production_recipes', 'production_orders',
+    'import_files', 'packages', 'production_recipes', 'production_orders',
     'channel_product_listings', 'channel_sync_events',
 ]);
 

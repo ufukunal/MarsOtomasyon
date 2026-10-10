@@ -16,7 +16,7 @@ it('verifies core read and write schema contracts for each business module', fun
     'purchasing' => ['period', ['purchase_matches', 'documents', 'document_lines']],
     'finance' => ['period', ['cash_accounts', 'cash_movements', 'bank_accounts', 'bank_movements', 'contact_transactions']],
     'returns' => ['period', ['documents', 'document_lines', 'quarantine_entries']],
-    'imports' => ['period', ['import_files', 'import_packages', 'import_cost_items', 'import_cost_allocations']],
+    'imports' => ['period', ['import_files', 'packages', 'import_cost_items', 'import_cost_allocations']],
     'production' => ['period', ['production_orders', 'production_recipes', 'production_completions', 'production_consumptions']],
     'channels' => ['period', ['channel_product_listings', 'channel_sync_events', 'channel_sync_errors']],
     'reporting' => ['master', ['report_filter_presets', 'report_export_jobs', 'document_templates', 'print_jobs']],
