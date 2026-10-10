@@ -16,8 +16,12 @@
     <env name="DB_PORT" value="5432" force="true"/>
     <env name="DB_MASTER_DATABASE" value="mars_test_master" force="true"/>
     <env name="DB_USERNAME" value="mars_test" force="true"/>
-    <env name="DB_PASSWORD" value="" force="true"/>
+    <env name="DB_PASSWORD" value=""/>
     <env name="REDIS_HOST" value="127.0.0.1" force="true"/>
+    <env name="REDIS_PORT" value="6379" force="true"/>
+    <env name="REDIS_USERNAME" value="mars_test" force="true"/>
+    <env name="REDIS_PASSWORD" value=""/>
+    <env name="REDIS_CLIENT" value="phpredis" force="true"/>
     <env name="REDIS_PREFIX" value="mars:test:" force="true"/>
     <env name="CACHE_STORE" value="array" force="true"/>
     <env name="SESSION_DRIVER" value="array" force="true"/>
