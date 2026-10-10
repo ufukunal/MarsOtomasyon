@@ -5,7 +5,7 @@ use Livewire\Component;
 
 function marsLivewireViewBindings(): array
 {
-    $directory = base_path('resources/views/livewire');
+    $directory = dirname(__DIR__, 2).'/resources/views/livewire';
     $iterator = new RecursiveIteratorIterator(
         new RecursiveDirectoryIterator($directory, FilesystemIterator::SKIP_DOTS),
     );
