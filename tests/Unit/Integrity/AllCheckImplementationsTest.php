@@ -1,5 +1,27 @@
 <?php
 
+use App\Support\Integrity\Checks\CarryIntegrityCheck;
+use App\Support\Integrity\Checks\ChannelIntegrityCheck;
+use App\Support\Integrity\Checks\ChannelOrderIntegrityCheck;
+use App\Support\Integrity\Checks\ContactBalanceCheck;
+use App\Support\Integrity\Checks\CostIntegrityCheck;
+use App\Support\Integrity\Checks\DocumentTemplateIntegrityCheck;
+use App\Support\Integrity\Checks\DocumentTotalCheck;
+use App\Support\Integrity\Checks\FilesIntegrityCheck;
+use App\Support\Integrity\Checks\FinanceIntegrityCheck;
+use App\Support\Integrity\Checks\ImportIntegrityCheck;
+use App\Support\Integrity\Checks\NumberSeriesCheck;
+use App\Support\Integrity\Checks\PartialDocumentCheck;
+use App\Support\Integrity\Checks\PrintProvenanceIntegrityCheck;
+use App\Support\Integrity\Checks\ProductionIntegrityCheck;
+use App\Support\Integrity\Checks\PurchaseMatchCheck;
+use App\Support\Integrity\Checks\QuarantineBalanceCheck;
+use App\Support\Integrity\Checks\RecipeIntegrityCheck;
+use App\Support\Integrity\Checks\ReportPresetIntegrityCheck;
+use App\Support\Integrity\Checks\ReservationBalanceCheck;
+use App\Support\Integrity\Checks\ReturnIntegrityCheck;
+use App\Support\Integrity\Checks\StockBalanceCheck;
+use App\Support\Integrity\Checks\UnitIntegrityCheck;
 use App\Support\Integrity\IntegrityCheck;
 use App\Support\Integrity\IntegrityResult;
 use App\Support\Integrity\IntegrityRunner;
@@ -11,28 +33,28 @@ it('registers all 22 business integrity checks with executable result contracts'
         ->and($reflection->getMethod('name')->isPublic())->toBeTrue()
         ->and($reflection->getMethod('run')->isPublic())->toBeTrue();
 })->with([
-    [\App\Support\Integrity\Checks\CarryIntegrityCheck::class],
-    [\App\Support\Integrity\Checks\ChannelIntegrityCheck::class],
-    [\App\Support\Integrity\Checks\ChannelOrderIntegrityCheck::class],
-    [\App\Support\Integrity\Checks\ContactBalanceCheck::class],
-    [\App\Support\Integrity\Checks\CostIntegrityCheck::class],
-    [\App\Support\Integrity\Checks\DocumentTemplateIntegrityCheck::class],
-    [\App\Support\Integrity\Checks\DocumentTotalCheck::class],
-    [\App\Support\Integrity\Checks\FilesIntegrityCheck::class],
-    [\App\Support\Integrity\Checks\FinanceIntegrityCheck::class],
-    [\App\Support\Integrity\Checks\ImportIntegrityCheck::class],
-    [\App\Support\Integrity\Checks\NumberSeriesCheck::class],
-    [\App\Support\Integrity\Checks\PartialDocumentCheck::class],
-    [\App\Support\Integrity\Checks\PrintProvenanceIntegrityCheck::class],
-    [\App\Support\Integrity\Checks\ProductionIntegrityCheck::class],
-    [\App\Support\Integrity\Checks\PurchaseMatchCheck::class],
-    [\App\Support\Integrity\Checks\QuarantineBalanceCheck::class],
-    [\App\Support\Integrity\Checks\RecipeIntegrityCheck::class],
-    [\App\Support\Integrity\Checks\ReportPresetIntegrityCheck::class],
-    [\App\Support\Integrity\Checks\ReservationBalanceCheck::class],
-    [\App\Support\Integrity\Checks\ReturnIntegrityCheck::class],
-    [\App\Support\Integrity\Checks\StockBalanceCheck::class],
-    [\App\Support\Integrity\Checks\UnitIntegrityCheck::class],
+    [CarryIntegrityCheck::class],
+    [ChannelIntegrityCheck::class],
+    [ChannelOrderIntegrityCheck::class],
+    [ContactBalanceCheck::class],
+    [CostIntegrityCheck::class],
+    [DocumentTemplateIntegrityCheck::class],
+    [DocumentTotalCheck::class],
+    [FilesIntegrityCheck::class],
+    [FinanceIntegrityCheck::class],
+    [ImportIntegrityCheck::class],
+    [NumberSeriesCheck::class],
+    [PartialDocumentCheck::class],
+    [PrintProvenanceIntegrityCheck::class],
+    [ProductionIntegrityCheck::class],
+    [PurchaseMatchCheck::class],
+    [QuarantineBalanceCheck::class],
+    [RecipeIntegrityCheck::class],
+    [ReportPresetIntegrityCheck::class],
+    [ReservationBalanceCheck::class],
+    [ReturnIntegrityCheck::class],
+    [StockBalanceCheck::class],
+    [UnitIntegrityCheck::class],
 ]);
 
 it('runs an injected integrity check without database persistence when explicitly requested', function (): void {
