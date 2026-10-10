@@ -8,11 +8,11 @@ permissions:
   contents: read
 concurrency:
   group: v4-offline-contracts-feature-kickoff
-  cancel-in-progress: false
+  cancel-in-progress: true
 jobs:
   offline-contracts:
     name: R4 - V4 Contracts suite (source contracts, no DB mutations)
-    runs-on: [self-hosted, Linux, mars-ubuntu, mars-r4]
+    runs-on: [self-hosted, Linux, mars-ubuntu]
     timeout-minutes: 15
     env:
       APP_ENV: testing
@@ -50,7 +50,7 @@ jobs:
           if-no-files-found: ignore
   offline-feature:
     name: R4 - V4 Feature suite (anonymous, DB endpoints disabled)
-    runs-on: [self-hosted, Linux, mars-ubuntu, mars-r4]
+    runs-on: [self-hosted, Linux, mars-ubuntu]
     timeout-minutes: 15
     env:
       APP_ENV: testing
