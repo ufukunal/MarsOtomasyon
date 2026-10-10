@@ -33,7 +33,7 @@ function marsAuthorizationEntrypoints(): array
 
         $class = $row['symbol'];
         $reflection = new ReflectionClass($class);
-        $lines = file(base_path($row['path']));
+        $lines = file(dirname(__DIR__, 3).'/'.$row['path']);
 
         foreach ($reflection->getMethods(ReflectionMethod::IS_PUBLIC) as $method) {
             if ($method->getDeclaringClass()->getName() !== $class || $method->isConstructor()) {

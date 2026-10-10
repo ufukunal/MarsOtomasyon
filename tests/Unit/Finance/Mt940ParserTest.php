@@ -21,6 +21,24 @@ it('parses incoming MT940 payment reference and balance', function (): void {
     }
 });
 
+it('prefers the bank reference after MT940 double slash when a customer reference is present', function (): void {
+    $file = tempnam(sys_get_temp_dir(), 'mars-mt940-');
+    if ($file === false) {
+        throw new RuntimeException('Cannot create fixture');
+    }
+
+    try {
+        file_put_contents($file, ":61:261010C10,00NTRFCUSTREF//BANKREF\n:86:Transfer\n");
+        $rows = (new ParseBankStatementFile)->handle($file, 'mt940');
+
+        expect($rows)->toHaveCount(1)
+            ->and($rows[0]['reference'])->toBe('BANKREF')
+            ->and($rows[0]['amount'])->toBe('10.0000');
+    } finally {
+        unlink($file);
+    }
+});
+
 it('rejects empty MT940 files', function (): void {
     $file = tempnam(sys_get_temp_dir(), 'mars-mt940-');
     if ($file === false) {

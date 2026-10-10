@@ -253,7 +253,7 @@ final class ParseBankStatementFile
                 $tail = trim($match[5]);
                 $reference = null;
 
-                if (preg_match('/N[A-Z0-9]{3}([^\/]+)(?:\/\/([^\s]+))?/', $tail, $refMatch)) {
+                if (preg_match('/N[A-Z0-9]{3}([^\/\s]*)(?:\/\/([^\s]+))?/', $tail, $refMatch)) {
                     $reference = trim((string) ($refMatch[2] ?? $refMatch[1]));
                 }
 

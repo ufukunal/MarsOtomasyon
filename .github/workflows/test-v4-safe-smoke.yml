@@ -2,7 +2,11 @@ name: TEST V4 - Parallel Safe Arithmetic Smoke
 on:
   push:
     branches: [main]
-    paths: ['.github/workflows/test-v4-safe-smoke.yml']
+    paths:
+      - '.github/workflows/test-v4-safe-smoke.yml'
+      - 'tests/Unit/Finance/Mt940ParserTest.php'
+      - 'tests/Unit/Security/MutationGateEntryPointsTest.php'
+      - 'app/Actions/Finance/ParseBankStatementFile.php'
   workflow_dispatch:
 permissions:
   contents: read
