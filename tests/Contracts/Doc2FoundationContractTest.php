@@ -3,6 +3,7 @@
 use App\Models\CompanyModel;
 use App\Support\Company\CompanyDatabaseContext;
 use App\Support\Company\CompanyDatabaseName;
+use Illuminate\Database\Eloquent\Model;
 
 it('keeps DOC2 inactive until company-only migration and data verification are complete', function (): void {
     expect(config('mars_doc2.mode'))->toBe('legacy')
@@ -18,7 +19,7 @@ it('defines the permanent database key without year or raw company-controlled pr
     $first = CompanyDatabaseName::forCompanyId(17);
     expect($first)->toBe('mars_company_17')
         ->and($first)->not->toContain('_2026')
-        ->and(is_subclass_of(CompanyModel::class, \Illuminate\Database\Eloquent\Model::class))->toBeTrue();
+        ->and(is_subclass_of(CompanyModel::class, Model::class))->toBeTrue();
 });
 
 it('contains no company DB creation, drop or migration in the DOC2 connection layer', function (): void {
