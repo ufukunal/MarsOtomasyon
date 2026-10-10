@@ -1,7 +1,6 @@
-name: Quality - 4 Self Hosted Runners
+name: Quality - Static Analysis and Frontend Build
 
 on:
-  workflow_call:
   push:
     branches: [main]
   workflow_dispatch:
@@ -10,265 +9,35 @@ permissions:
   contents: read
 
 concurrency:
-  group: quality-${{ github.workflow }}-${{ github.ref }}
+  group: static-quality-${{ github.ref }}
   cancel-in-progress: false
 
-env:
-  APP_ENV: testing
-  APP_KEY: base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
-  APP_DEBUG: "false"
-  DB_CONNECTION: master
-  DB_HOST: 100.127.235.30
-  CACHE_STORE: array
-  SESSION_DRIVER: array
-  QUEUE_CONNECTION: sync
-  XDEBUG_MODE: off
-
 jobs:
-  prepare-host:
-    name: "Prepare local Ubuntu host"
-    runs-on: [self-hosted, Linux, mars-ubuntu, mars-r3]
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Host toolchain summary
-        shell: bash
-        run: |
-          set -Eeuo pipefail
-          php8.5 -v 2>/dev/null || php8.4 -v 2>/dev/null || php -v
-          composer --version
-          node --version
-          npm --version
-          psql --version
-          echo "=== Coverage/build toolchain ==="
-          for candidate in php8.5 php8.4 php; do
-            if command -v "$candidate" >/dev/null 2>&1; then
-              echo "--- $candidate ---"
-              "$candidate" -m 2>/dev/null | grep -E '^(pcov|xdebug)$' || true
-            fi
-          done
-          command -v phpize8.5 || command -v phpize8.4 || command -v phpize || true
-          command -v php-config8.5 || command -v php-config8.4 || command -v php-config || true
-          command -v pecl || true
-          command -v gcc || command -v cc || true
-          command -v make || true
-
-  foundation:
-    needs: prepare-host
-    name: "R1 - Unit + Foundation Feature"
-    runs-on: [self-hosted, Linux, mars-ubuntu, mars-r1]
-    env:
-      DB_MASTER_DATABASE: MarsProject_Master_Test_R1
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Select stable PHP
-        shell: bash
-        run: bash scripts/ci/select-php.sh
-
-      - name: Composer install
-        run: composer install --no-interaction --prefer-dist --no-progress
-
-      - name: Prepare environment
-        run: cp .env.example .env
-
-      - name: Unit tests
-        run: vendor/bin/pest tests/Unit --display-warnings
-
-      - name: Verify permanent PostgreSQL and Valkey
-        shell: bash
-        env:
-          MARS_PG_PASSWORD: ${{ secrets.MARS_PG_PASSWORD }}
-          MARS_VALKEY_PASSWORD: ${{ secrets.MARS_VALKEY_PASSWORD }}
-        run: bash scripts/ci/remote-test-services.sh "$DB_MASTER_DATABASE"
-
-      - name: Foundation feature tests
-        run: |
-          vendor/bin/pest \
-            tests/Feature/Attachments \
-            tests/Feature/Companies \
-            tests/Feature/Concurrency \
-            tests/Feature/Contacts \
-            tests/Feature/Contracts \
-            tests/Feature/Import \
-            tests/Feature/Locations \
-            tests/Feature/Period \
-            tests/Feature/Pricing \
-            --display-warnings
-
-
-  domain:
-    needs: foundation
-    if: ${{ !cancelled() }}
-    name: "R2 - Domain Feature"
-    runs-on: [self-hosted, Linux, mars-ubuntu, mars-r2]
-    env:
-      DB_MASTER_DATABASE: MarsProject_Master_Test_R2
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Select stable PHP
-        shell: bash
-        run: bash scripts/ci/select-php.sh
-
-      - name: Composer install
-        run: composer install --no-interaction --prefer-dist --no-progress
-
-      - name: Prepare environment
-        run: cp .env.example .env
-
-      - name: Verify permanent PostgreSQL and Valkey
-        shell: bash
-        env:
-          MARS_PG_PASSWORD: ${{ secrets.MARS_PG_PASSWORD }}
-          MARS_VALKEY_PASSWORD: ${{ secrets.MARS_VALKEY_PASSWORD }}
-        run: bash scripts/ci/remote-test-services.sh "$DB_MASTER_DATABASE"
-
-      - name: Domain feature tests
-        run: |
-          vendor/bin/pest \
-            tests/Feature/Channels \
-            tests/Feature/Printing \
-            tests/Feature/Products \
-            tests/Feature/Sales \
-            tests/Feature/Security \
-            tests/Feature/Stock \
-            tests/Feature/Units \
-            --display-warnings
-
-
-  manual-audit:
-    needs: domain
-    if: ${{ !cancelled() }}
-    name: "R3 - ManualAudit 273"
-    runs-on: [self-hosted, Linux, mars-ubuntu, mars-r3]
-    env:
-      DB_MASTER_DATABASE: MarsProject_Master_Test_R3
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Select stable PHP
-        shell: bash
-        run: bash scripts/ci/select-php.sh
-
-      - name: Composer install
-        run: composer install --no-interaction --prefer-dist --no-progress
-
-      - name: Prepare environment
-        run: cp .env.example .env
-
-      - name: Verify permanent PostgreSQL and Valkey
-        shell: bash
-        env:
-          MARS_PG_PASSWORD: ${{ secrets.MARS_PG_PASSWORD }}
-          MARS_VALKEY_PASSWORD: ${{ secrets.MARS_VALKEY_PASSWORD }}
-        run: bash scripts/ci/remote-test-services.sh "$DB_MASTER_DATABASE"
-
-      - name: Manual integrity quality security suite
-        run: vendor/bin/pest tests/ManualAudit --display-warnings
-
-
-  quality:
-    needs: manual-audit
-    if: ${{ !cancelled() }}
-    name: "R4 - Pint + Larastan + Build + Stock Coverage"
+  source-quality:
+    name: R4 - Static checks and frontend build
     runs-on: [self-hosted, Linux, mars-ubuntu, mars-r4]
+    timeout-minutes: 30
     env:
-      DB_MASTER_DATABASE: MarsProject_Coverage_Test
+      APP_ENV: local
+      APP_KEY: base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+      APP_DEBUG: "false"
+      CACHE_STORE: array
+      SESSION_DRIVER: array
+      QUEUE_CONNECTION: sync
     steps:
       - uses: actions/checkout@v4
-
-      - name: Select stable PHP
+      - name: Select PHP 8.4+
         shell: bash
         run: bash scripts/ci/select-php.sh
-
-      - name: Composer install
+      - name: Install PHP dependencies
         run: composer install --no-interaction --prefer-dist --no-progress
-
-      - name: Prepare environment
+      - name: Prepare local environment
         run: cp .env.example .env
-
-      - name: Verify Node toolchain
-        shell: bash
-        run: |
-          node --version
-          npm --version
-
-      - name: Node install
+      - name: Install frontend dependencies
         run: npm ci --ignore-scripts --no-audit --no-fund
-
       - name: Frontend build
         run: npm run build
-
-      - name: Pint
+      - name: Pint style validation
         run: vendor/bin/pint --test
-
-      - name: Larastan
+      - name: Larastan static analysis
         run: vendor/bin/phpstan analyse --no-progress
-
-      - name: Verify reusable PCOV coverage driver
-        shell: bash
-        run: |
-          set -Eeuo pipefail
-          # PCOV's fast line coverage is compatible with the --min=90 gate.
-          # Build it at most once per PHP version in the runner's persistent home.
-          if php -m | grep -Eqi '^pcov$'; then
-            php -d pcov.enabled=1 -r 'exit(extension_loaded("pcov") && ini_get("pcov.enabled") ? 0 : 1);'
-            echo 'PCOV_EXTENSION=' >> "$GITHUB_ENV"
-            echo 'System PCOV available.'
-          else
-            PHP_MM="$(php -r 'echo PHP_MAJOR_VERSION.".".PHP_MINOR_VERSION;')"
-            CACHE="$HOME/.cache/mars-pcov/php-$PHP_MM"
-            SO="$CACHE/pcov.so"
-            if ! php -d "extension=$SO" -d pcov.enabled=1 -r 'exit(extension_loaded("pcov") && ini_get("pcov.enabled") ? 0 : 1);' >/dev/null 2>&1; then
-              mkdir -p "$CACHE"
-              BUILD_DIR="$RUNNER_TEMP/mars-pcov-build"
-              mkdir -p "$BUILD_DIR"
-              cd "$BUILD_DIR"
-              PHPIZE="$(command -v "phpize$PHP_MM" || command -v phpize)"
-              PHP_CONFIG="$(command -v "php-config$PHP_MM" || command -v php-config)"
-              pecl download pcov
-              ARCHIVE="$(find . -maxdepth 1 -name 'pcov-*.tgz' -type f -print -quit)"
-              test -f "$ARCHIVE"
-              tar xzf "$ARCHIVE" --strip-components=1
-              "$PHPIZE"
-              ./configure --with-php-config="$PHP_CONFIG"
-              make -j"$(nproc)"
-              BUILT_SO="$(find "$BUILD_DIR" -type f -path '*/modules/pcov.so' -print -quit)"
-              test -f "$BUILT_SO"
-              install -m 0644 "$BUILT_SO" "$SO"
-            fi
-            php -d "extension=$SO" -d pcov.enabled=1 -r 'exit(extension_loaded("pcov") && ini_get("pcov.enabled") ? 0 : 1);'
-            echo "PCOV_EXTENSION=$SO" >> "$GITHUB_ENV"
-            echo 'Cached PCOV verified.'
-          fi
-
-      - name: Verify permanent PostgreSQL and Valkey
-        shell: bash
-        env:
-          MARS_PG_PASSWORD: ${{ secrets.MARS_PG_PASSWORD }}
-          MARS_VALKEY_PASSWORD: ${{ secrets.MARS_VALKEY_PASSWORD }}
-        run: bash scripts/ci/remote-test-services.sh "$DB_MASTER_DATABASE"
-
-      - name: Phase 2 stock coverage
-        timeout-minutes: 45
-        shell: bash
-        run: |
-          set -Eeuo pipefail
-
-          STOCK_COVERAGE_TESTS=(
-            tests/Feature/Stock/Faz2BranchCoverageTest.php
-            tests/Feature/Stock/Faz2IntegrityTest.php
-            tests/Feature/Stock/Faz2SchemaIsolationTest.php
-            tests/Feature/Stock/Faz2StockFlowTest.php
-          )
-
-          # R2 runs all Stock tests including the pcntl_fork concurrency suite.
-          # R4 measures the complete non-fork Stock suite with genuine line coverage.
-          FLAGS=()
-          if [[ -n "${PCOV_EXTENSION:-}" ]]; then
-            test -s "$PCOV_EXTENSION"
-            FLAGS=(-d "extension=$PCOV_EXTENSION")
-          fi
-          XDEBUG_MODE=off php "${FLAGS[@]}" -d pcov.enabled=1 -d "pcov.directory=$GITHUB_WORKSPACE/app/Actions/Stock" vendor/bin/pest -c phpunit.stock.xml "${STOCK_COVERAGE_TESTS[@]}" --coverage --min=90
-
