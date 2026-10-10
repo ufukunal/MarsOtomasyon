@@ -58,6 +58,14 @@ sudo -u mars-deploy ops/deploy-release.sh \
 
 Script candidate release'i immutable dizine alır ve `operations:deploy` çalıştırır.
 
+## Çakışan dağıtım koruması
+
+`ops/deploy-release.sh` artefact doğrulamasından sonra
+`/var/www/mars/.mars-deploy.lock` için `flock` alır.
+Aynı anda ikinci dağıtım çalışırsa migration veya release dizinine dokunmadan reddedilir.
+Doğrudan `php artisan operations:deploy` çağrıları bu shell kilidini kullanmadığından
+normal dağıtım girişi **yalnız** onaylı deploy betiği olmalıdır.
+
 ## operations:deploy sırası
 
 1. Operational readiness tabloları henüz yoksa:

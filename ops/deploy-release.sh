@@ -53,6 +53,16 @@ if ! (cd "$ARTIFACT_DIR" && sha256sum -c --status .mars-artifact-checksums); the
   exit 77
 fi
 
+# The lock is acquired after all read-only artifact checks, before any release,
+# migration, symlink or service mutation. Do not allow overlapping deployments.
+command -v flock >/dev/null || { echo "BLOCKED: flock is required for serialized deployment" >&2; exit 77; }
+mkdir -p "${MARS_ROOT}"
+exec 9>"${MARS_ROOT}/.mars-deploy.lock"
+if ! flock -n 9; then
+  echo "BLOCKED: another release is already deploying" >&2
+  exit 77
+fi
+
 mkdir -p "${RELEASES_ROOT}" "${SHARED_ROOT}/storage"
 mkdir "${RELEASE_PATH}"
 

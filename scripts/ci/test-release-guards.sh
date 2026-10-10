@@ -46,3 +46,20 @@ assert_blocked_without_side_effects "embedded production secrets"
 rm "$ARTIFACT/.env"
 rm "$ARTIFACT/.mars-artifact-checksums"
 assert_blocked_without_side_effects "missing checksum list"
+
+# A valid artifact may not start deployment while another deploy holds the lock.
+(cd "$ARTIFACT" && sha256sum artisan .mars-release-commit > .mars-artifact-checksums)
+LOCKED_ROOT="$ROOT/locked-runtime"
+mkdir -p "$LOCKED_ROOT"
+exec 8>"$LOCKED_ROOT/.mars-deploy.lock"
+flock -n 8
+if MARS_ROOT="$LOCKED_ROOT" bash ops/deploy-release.sh "test-release" "$SHA_A" "$ARTIFACT" > "$ROOT/output" 2>&1; then
+  echo "FAIL: overlapping deployment was accepted" >&2
+  exit 1
+fi
+if [[ -e "$LOCKED_ROOT/releases" ]]; then
+  echo "FAIL: overlapping deployment created a release directory" >&2
+  exit 1
+fi
+flock -u 8
+echo "PASS: overlapping deployment rejected before release mutation"
