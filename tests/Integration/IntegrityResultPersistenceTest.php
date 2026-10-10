@@ -6,7 +6,7 @@ use App\Support\Integrity\IntegrityResult;
 use App\Support\Integrity\IntegrityRunner;
 use Tests\Support\IsolatedPostgres;
 
-it('saves check count, mismatches, metadata and execution time to the isolated master database', function (): void {
+it('saves check count, mismatches, metadata and execution time to the isolated period database', function (): void {
     IsolatedPostgres::withActivePeriod(function (): void {
         $check = Mockery::mock(IntegrityCheck::class);
         $check->shouldReceive('name')->andReturn('v4-integrity-demo');
