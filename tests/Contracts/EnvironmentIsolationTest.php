@@ -14,3 +14,20 @@ it('uses in-memory cache and sessions for ordinary tests', function (): void {
         ->and(config('session.driver'))->toBe('array')
         ->and(config('queue.default'))->toBe('sync');
 });
+
+it('requires SSH-forwarded services rather than installing database servers on runners', function (): void {
+    $workflow = file_get_contents(base_path('.github/workflows/test-v4-manual.yml'));
+    $tunnel = file_get_contents(base_path('scripts/ci/test-v4-remote.sh'));
+
+    expect($workflow)->toContain('MARS_V4_REMOTE_PG_PORT')
+        ->toContain('MARS_V4_REMOTE_REDIS_PORT')
+        ->toContain('MARS_V4_SSH_PRIVATE_KEY')
+        ->not->toContain('mars-v4-postgres')
+        ->not->toContain('mars-v4-valkey');
+
+    expect($tunnel)->toContain('127.0.0.1:5432:127.0.0.1:55432')
+        ->toContain('127.0.0.1:6379:127.0.0.1:6379')
+        ->toContain('StrictHostKeyChecking=yes')
+        ->not->toContain('docker run')
+        ->not->toContain('docker compose');
+});
