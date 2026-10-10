@@ -3,6 +3,7 @@
 use App\Support\Operations\BackupHealthService;
 use App\Support\Operations\OperationalHeartbeatService;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Tests\Support\IsolatedPostgres;
 
 it('returns an explicit missing-backup failure instead of treating absent recovery sets as healthy', function (): void {
@@ -25,7 +26,7 @@ it('returns an explicit missing-backup failure instead of treating absent recove
 it('upserts one operational heartbeat per service while preserving the latest metadata', function (): void {
     IsolatedPostgres::withActivePeriod(function (): void {
         $service = app(OperationalHeartbeatService::class);
-        $name = 'v4-lifecycle-local-'.strtolower(\Illuminate\Support\Str::random(8));
+        $name = 'v4-lifecycle-local-'.strtolower(Str::random(8));
 
         $service->touch($name, ['phase' => 'startup']);
         $service->touch($name, ['phase' => 'healthy']);

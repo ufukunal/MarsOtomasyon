@@ -4,6 +4,7 @@ use App\Models\Period;
 use App\Support\Reporting\MultiPeriod\PeriodRangeSelector;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Tests\Support\AuthorizedPeriod;
 use Tests\Support\IsolatedPostgres;
 
@@ -14,7 +15,7 @@ function marsV4ReportTestPeriod(int $companyId, int $year, string $status = 'clo
         'year' => $year,
         'starts_on' => "{$year}-01-01",
         'ends_on' => "{$year}-12-31",
-        'database_name' => 'mars_v4_report_'.strtolower(\Illuminate\Support\Str::random(14)),
+        'database_name' => 'mars_v4_report_'.strtolower(Str::random(14)),
         'status' => $status,
     ]);
 }

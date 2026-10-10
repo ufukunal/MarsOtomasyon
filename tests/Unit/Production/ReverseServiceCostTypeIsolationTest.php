@@ -13,5 +13,5 @@ it('does not touch a production cost ledger for sales invoices', function (): vo
 it('does not reverse supplier costs for other document categories', function (string $type): void {
     $subject = (new ReflectionClass(ReverseSupplierInvoiceCosts::class))->newInstanceWithoutConstructor();
 
-    expect($subject->handle(new Document(['document_type' => $type]))->toBeNull();
+    expect($subject->handle(new Document(['document_type' => $type])))->toBeNull();
 })->with(['sales_invoice', 'payment', 'collection', 'sales_return']);
