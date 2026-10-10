@@ -15,7 +15,13 @@ case "$mode" in
       exit 77
     fi
     exec vendor/bin/pest --testsuite=Integration ;;
+  performance)
+    if [[ "${MARS_PERFORMANCE_TESTS_APPROVED:-}" != "I_APPROVE_LOCAL_BENCHMARK" ]]; then
+      echo "BLOCKED: isolated performance approval required" >&2
+      exit 77
+    fi
+    exec vendor/bin/pest --testsuite=Performance ;;
   *)
-    echo "usage: $0 {unit|contracts|feature|integration}" >&2
+    echo "usage: $0 {unit|contracts|feature|integration|performance}" >&2
     exit 2 ;;
 esac

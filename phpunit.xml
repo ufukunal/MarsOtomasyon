@@ -5,6 +5,7 @@
     <testsuite name="Contracts"><directory>tests/Contracts</directory></testsuite>
     <testsuite name="Feature"><directory>tests/Feature</directory></testsuite>
     <testsuite name="Integration"><directory>tests/Integration</directory></testsuite>
+    <testsuite name="Performance"><directory>tests/Performance</directory></testsuite>
   </testsuites>
   <php>
     <env name="APP_ENV" value="testing" force="true"/>
