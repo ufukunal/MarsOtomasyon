@@ -68,7 +68,7 @@ final class Doc2PlanCommand extends Command
                 'company_active' => (bool) $company->is_active,
                 'target_database' => CompanyDatabaseName::forCompanyId($id),
                 'legacy_period_databases' => $sources,
-                'registry_state' => $registration?->state ?? 'unregistered',
+                'registry_state' => $registration === null ? 'unregistered' : $registration->state,
                 'registry_database_matches' => $registration === null
                     ? null
                     : $registration->database_name === CompanyDatabaseName::forCompanyId($id),
