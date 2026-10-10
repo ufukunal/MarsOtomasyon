@@ -51,19 +51,24 @@ Script candidate release'i immutable dizine alır ve `operations:deploy` çalı�
    - attachments/files,
    - local + off-VDS archive,
    - checksum manifest.
-3. Master migration.
+3. Master migration — `--database=master --path=database/migrations/master --force` ile **Master alt dizini** açıkça kullanılır.
 4. `migrate:periods --force`.
 5. Cache/build warmup.
 6. `integrity:all`.
 7. `operations:security-check`.
 8. `operations:smoke`.
-9. Operational health pre-activation gate.
+9. Operational health pre-activation gate: `status=healthy` değilse (degraded dahil) candidate release aktive edilmez.
 10. Candidate release → `current` atomik symlink.
 11. Queue restart sinyali.
 12. systemd web/queue/scheduler/operations process restart.
 13. Post-activation `operations:health` + `operations:smoke`.
 
 Herhangi bir migration veya verification hatası symlink değişiminden önce oluşursa candidate release active olmaz.
+
+Not: Yedek dosyasının yazılması, doğrulanmış restore anlamına gelmez. İlk go-live'dan önce
+`operations:restore-verify` ile izole temporary restore kanıtı alınmalıdır.
+Mevcut uygulama dağıtımı systemd/symlink temellidir; bir Docker runtime'a
+taşınmadan önce bu betiği Docker container içinde çalıştırmayın.
 
 ## Rollback
 

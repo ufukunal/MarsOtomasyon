@@ -41,3 +41,5 @@ jobs:
         run: vendor/bin/pint --test
       - name: Larastan static analysis
         run: vendor/bin/phpstan analyse --no-progress
+      - name: Release activation safety Unit tests
+        run: vendor/bin/pest tests/Unit/Operations/ReleaseActivationGateTest.php

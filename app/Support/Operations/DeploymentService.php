@@ -3,6 +3,7 @@
 namespace App\Support\Operations;
 
 use App\Models\DeploymentRun;
+use App\Support\Operations\ReleaseActivationGate;
 use Illuminate\Support\Facades\Artisan;
 use RuntimeException;
 use Throwable;
@@ -49,7 +50,11 @@ final class DeploymentService
                 ],
             ])->save();
 
-            if (Artisan::call('migrate', ['--database' => 'master', '--force' => true]) !== 0) {
+            if (Artisan::call('migrate', [
+                '--database' => 'master',
+                '--path' => 'database/migrations/master',
+                '--force' => true,
+            ]) !== 0) {
                 throw new RuntimeException('Master migration başarısız.');
             }
             if (Artisan::call('migrate:periods', ['--force' => true]) !== 0) {
@@ -79,6 +84,13 @@ final class DeploymentService
                     'pre_activation_health_correlation_id' => $preHealth['correlation_id'],
                 ]),
             ])->save();
+
+            // A degraded or failed pre-activation health status must never
+            // activate a candidate release, even if other checks succeeded.
+            ReleaseActivationGate::assertHealthy(
+                (string) $preHealth['status'],
+                (string) $preHealth['correlation_id'],
+            );
 
             $activateRelease();
             $activated = true;

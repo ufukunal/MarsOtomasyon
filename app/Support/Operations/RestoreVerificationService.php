@@ -81,7 +81,7 @@ final class RestoreVerificationService
                 'QUEUE_CONNECTION' => 'sync',
             ];
 
-            $this->artisan(['migrate', '--database=master', '--force'], $env);
+            $this->artisan(['migrate', '--database=master', '--path=database/migrations/master', '--force'], $env);
             $this->artisan(['migrate:periods', '--force'], $env);
             $this->artisan(['integrity:all', '--include-closed'], $env);
 
