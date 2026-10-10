@@ -4,13 +4,14 @@ use App\Actions\Companies\CheckCompanyCopyPermission;
 use App\Enums\CompanyCopyPermissionType;
 use App\Models\CompanyCopyPermission;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Tests\Support\IsolatedPostgres;
 
 it('allows only active, directed and matching company copy grants', function (): void {
     IsolatedPostgres::withActivePeriod(function (int $sourceId): void {
         $db = DB::connection('master');
         $targetId = $db->table('companies')->insertGetId([
-            'code' => 'v4-target-'.strtolower(\Illuminate\Support\Str::random(8)),
+            'code' => 'v4-target-'.strtolower(Str::random(8)),
             'name' => 'V4 target company',
             'db_prefix' => 'v4_target',
             'created_at' => now(),
