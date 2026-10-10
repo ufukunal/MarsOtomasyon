@@ -5,6 +5,7 @@ use App\Actions\Products\SaveVariantGroup;
 use App\Actions\Products\SaveVariantValues;
 use App\Models\Period\Product;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Tests\Support\AuthorizedPeriod;
 use Tests\Support\IsolatedPostgres;
 
@@ -46,7 +47,7 @@ it('rejects an attribute from a different variant group without rewriting existi
 
             expect(fn () => app(SaveVariantValues::class)->handle(
                 $product, $b->id, [$attribute->id => 'unowned'],
-            ))->toThrow(\Illuminate\Validation\ValidationException::class);
+            ))->toThrow(ValidationException::class);
 
             expect(DB::connection('period')->table('product_variant_values')
                 ->where('product_id', $product->id)->count())->toBe(0);
