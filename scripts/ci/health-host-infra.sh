@@ -2,8 +2,8 @@
 # Separate, read-only VM host metrics: may need existing authorized Tailscale SSH.
 # This is intentionally independent from CI application database tests.
 set -Eeuo pipefail
-host=100.127.235.30
-opts=(-o BatchMode=yes -o PasswordAuthentication=no -o ConnectTimeout=7 -o ConnectionAttempts=1 -o StrictHostKeyChecking=accept-new -o LogLevel=ERROR)
+host=192.168.239.132
+opts=(-p 10000 -o BatchMode=yes -o PasswordAuthentication=no -o ConnectTimeout=7 -o ConnectionAttempts=1 -o StrictHostKeyChecking=yes -o LogLevel=ERROR)
 echo '=== VM Docker, disk and RAM host checks (existing SSH authorization required) ==='
 timeout 35 ssh "${opts[@]}" ufuk@"$host" 'bash -s' <<'REMOTE'
 set -Eeuo pipefail
