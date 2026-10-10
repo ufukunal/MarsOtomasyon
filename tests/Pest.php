@@ -2,4 +2,4 @@
 
 use Tests\TestCase;
 
-uses(TestCase::class)->in('Unit', 'Contracts', 'Feature', 'Integration');
+uses(TestCase::class)->in('Unit', 'Contracts', 'Feature', 'Integration', 'Performance');
