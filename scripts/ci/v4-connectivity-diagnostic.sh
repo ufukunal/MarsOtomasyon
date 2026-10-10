@@ -66,6 +66,23 @@ for spec in "LAN:$host" "TAILNET_IP:$tailnet_ip" "TAILNET_DNS:$tailnet_dns"; do
   probe_port "${label}_POSTGRES_55432" "$target" 55432 || true
   probe_port "${label}_POSTGRES_5432" "$target" 5432 || true
   probe_port "${label}_VALKEY_6379" "$target" 6379 || true
+  if [[ "$label" == TAILNET_DNS ]]; then
+    if command -v pg_isready >/dev/null 2>&1 && timeout 6 pg_isready -h "$target" -p 55432 -t 4 >/dev/null 2>&1; then
+      echo "POSTGRES_PROTOCOL=ACCEPTING_CONNECTIONS"
+    else
+      echo "POSTGRES_PROTOCOL=NOT_CONFIRMED"
+    fi
+    if command -v redis-cli >/dev/null 2>&1; then
+      response="$(timeout 6 redis-cli -h "$target" -p 6379 --raw PING 2>/dev/null | head -n 1 || true)"
+      case "$response" in
+        PONG) echo "VALKEY_PROTOCOL=PONG_UNAUTHENTICATED" ;;
+        *NOAUTH*|*WRONGPASS*) echo "VALKEY_PROTOCOL=AUTH_REQUIRED" ;;
+        *) echo "VALKEY_PROTOCOL=NOT_CONFIRMED" ;;
+      esac
+    else
+      echo "VALKEY_PROTOCOL=REDIS_CLI_MISSING"
+    fi
+  fi
   if [[ "$label" == LAN ]] && command -v ip >/dev/null 2>&1; then
     ip neigh show "$target" 2>/dev/null | sed -E 's/lladdr [[:xdigit:]:]+/lladdr [REDACTED]/g' || true
   fi
