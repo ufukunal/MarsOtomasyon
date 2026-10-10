@@ -24,7 +24,7 @@ php -r 'exit(PHP_VERSION_ID >= 80400 && extension_loaded("pdo_pgsql") && extensi
   echo "BLOCKED: PHP 8.4+, pdo_pgsql and phpredis CLIENT extensions are required" >&2
   exit 77
 }
-host="${MARS_V4_SSH_HOST:-192.168.239.132}"
+host="${MARS_V4_SSH_HOST:-mars-prod-1.taila20365.ts.net}"
 port="${MARS_V4_SSH_PORT:-10000}"
 user="${MARS_V4_SSH_USER:-ufuk}"
 pg_port="${MARS_V4_REMOTE_PG_PORT:-55432}"
