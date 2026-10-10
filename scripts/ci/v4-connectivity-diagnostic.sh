@@ -62,13 +62,12 @@ for spec in "LAN:$host" "TAILNET_IP:$tailnet_ip" "TAILNET_DNS:$tailnet_dns"; do
       reachable_host="$target"
     fi
   fi
-  if [[ "$label" == LAN ]]; then
-    probe_port "${label}_POSTGRES_55432" "$target" 55432 || true
-    probe_port "${label}_POSTGRES_5432" "$target" 5432 || true
-    probe_port "${label}_VALKEY_6379" "$target" 6379 || true
-    if command -v ip >/dev/null 2>&1; then
-      ip neigh show "$target" 2>/dev/null | sed -E 's/lladdr [[:xdigit:]:]+/lladdr [REDACTED]/g' || true
-    fi
+  # These are the owner-approved existing service ports, never a general port scan.
+  probe_port "${label}_POSTGRES_55432" "$target" 55432 || true
+  probe_port "${label}_POSTGRES_5432" "$target" 5432 || true
+  probe_port "${label}_VALKEY_6379" "$target" 6379 || true
+  if [[ "$label" == LAN ]] && command -v ip >/dev/null 2>&1; then
+    ip neigh show "$target" 2>/dev/null | sed -E 's/lladdr [[:xdigit:]:]+/lladdr [REDACTED]/g' || true
   fi
 done
 if [[ -z "$reachable_host" ]]; then
