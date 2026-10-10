@@ -16,11 +16,11 @@ function marsReportDefinition(array $columns, array $sort = [], array $exporters
 it('hides cost-sensitive columns when a user lacks cost viewing permissions', function (): void {
     $report = marsReportDefinition([
         new ReportColumnDefinition('sku', 'SKU'),
-        new ReportColumnDefinition('cost', 'Cost', 'money', true, true, false),
+        new ReportColumnDefinition('cost', 'Cost', 'money', true, true, true),
     ]);
 
     expect($report->defaultColumnKeys(false))->toBe(['sku'])
-        ->and($report->defaultColumnKeys(true))->toBe(['sku']);
+        ->and($report->defaultColumnKeys(true))->toBe(['sku', 'cost']);
     expect($report->columnMap())->toHaveKeys(['sku', 'cost']);
 });
 
