@@ -2,15 +2,15 @@
 
 namespace App\Livewire\Pages\Products;
 
+use App\Enums\ProductKind;
 use App\Livewire\Components\DataTable\Column;
 use App\Livewire\Components\DataTable\DataTableComponent;
 use App\Livewire\Components\DataTable\DateRangeFilter;
 use App\Livewire\Components\DataTable\SelectFilter;
-use App\Enums\ProductKind;
 use App\Models\Period\Brand;
-use App\Support\Formatting\TrFormatter;
 use App\Models\Period\Product;
 use App\Models\Period\ProductCategory;
+use App\Support\Formatting\TrFormatter;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
