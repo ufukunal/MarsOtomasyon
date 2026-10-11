@@ -92,7 +92,7 @@ it('implements separate read-only detail and editing routes and safe copy-to-edi
     expect($routes)->toContain("name('warehouse.transport.edit')")
         ->and($editor)->toContain("#[Locked]")
         ->toContain("request()->routeIs('warehouse.transport.edit')")
-        ->toContain("\$this->mode !== 'detail'")
+        ->toContain('abort_unless($this->mode')
         ->toContain("'readonly' => \$this->mode === 'detail'")
         ->toContain("redirectRoute('warehouse.transport.edit'")
         ->toContain("\$duplicate->status = 'draft'")

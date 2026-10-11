@@ -46,7 +46,12 @@ jobs:
       - name: Approved v65 standalone HTML JavaScript syntax checks
         run: node scripts/ci/verify-v65-html.mjs
       - name: Pint style validation
-        run: vendor/bin/pint --test
+        run: |
+          if ! vendor/bin/pint --test; then
+            vendor/bin/pint
+            git diff -- app/Livewire/Pages/Warehouse/TransportSlipEditor.php tests/Unit/UI/ApprovedV65TransportSlipParityTest.php
+            exit 1
+          fi
       - name: Larastan static analysis
         run: vendor/bin/phpstan analyse --no-progress
       - name: Release activation safety Unit tests
