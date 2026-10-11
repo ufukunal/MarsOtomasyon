@@ -31,32 +31,45 @@ class ProductDetail extends Component
     /** @return array<string, string> */
     private function tabs(): array
     {
-        $tabs = [
-            'overview' => 'Genel Bakış',
-            'stock' => 'Stok Durumu',
-            'movements' => 'Stok Hareketleri',
-        ];
+        $tabs = ['overview' => 'Genel Bakış'];
+
+        if (auth()->user()?->can('stock.view')) {
+            $tabs['stock'] = 'Stok Durumu';
+            $tabs['movements'] = 'Stok Hareketleri';
+        }
 
         if (auth()->user()?->can('sales_invoices.view')) {
             $tabs['sales'] = 'Satışlar';
-            $tabs['buyers'] = 'En Çok Alan Cariler';
-            $tabs['annual'] = 'Yıllık Performans';
         }
 
         if (auth()->user()?->can('supplier_invoices.view')) {
             $tabs['purchases'] = 'Alışlar';
+        }
+
+        if (auth()->user()?->can('sales_invoices.view')) {
+            $tabs['buyers'] = 'En Çok Alan Cariler';
+        }
+
+        $tabs['prices'] = 'Fiyatlar';
+        $tabs['technical'] = 'Teknik Bilgi Föyü';
+
+        if (auth()->user()?->can('sales_invoices.view')) {
+            $tabs['annual'] = 'Yıllık Performans';
+        }
+
+        if (auth()->user()?->can('stock.view')) {
+            $tabs['locations'] = 'Depolar';
+        }
+        $tabs['variants'] = 'Varyantlar';
+        $tabs['barcodes'] = 'Barkodlar';
+
+        if (auth()->user()?->can('supplier_invoices.view')) {
             $tabs['suppliers'] = 'Tedarikçiler';
         }
 
-        $tabs += [
-            'prices' => 'Fiyatlar',
-            'locations' => 'Depolar',
-            'variants' => 'Varyantlar',
-            'barcodes' => 'Barkodlar',
-            'images' => 'Görseller',
-            'notes' => 'Notlar',
-            'files' => 'Dosyalar',
-        ];
+        $tabs['images'] = 'Görseller';
+        $tabs['notes'] = 'Notlar';
+        $tabs['files'] = 'Dosyalar';
 
         return $tabs;
     }
@@ -78,13 +91,16 @@ class ProductDetail extends Component
 
         $product = $this->product->loadMissing(['brand', 'category', 'unit']);
         $tab = $this->activeTab;
-        $summary = StockBalance::query()
-            ->where('product_id', $product->id)
-            ->selectRaw('COALESCE(SUM(quantity), 0)::text AS physical')
-            ->selectRaw('COALESCE(SUM(reserved + consignment_reserved), 0)::text AS reserved_total')
-            ->selectRaw('COALESCE(SUM(quarantine), 0)::text AS quarantined')
-            ->selectRaw('COALESCE(SUM(quantity - reserved - consignment_reserved - quarantine), 0)::text AS available_total')
-            ->first();
+        $canViewStock = auth()->user()?->can('stock.view') ?? false;
+        $summary = $canViewStock
+            ? StockBalance::query()
+                ->where('product_id', $product->id)
+                ->selectRaw('COALESCE(SUM(quantity), 0)::text AS physical')
+                ->selectRaw('COALESCE(SUM(reserved + consignment_reserved), 0)::text AS reserved_total')
+                ->selectRaw('COALESCE(SUM(quarantine), 0)::text AS quarantined')
+                ->selectRaw('COALESCE(SUM(quantity - reserved - consignment_reserved - quarantine), 0)::text AS available_total')
+                ->first()
+            : null;
 
         $balances = collect();
         $movements = collect();
@@ -95,8 +111,12 @@ class ProductDetail extends Component
         $prices = collect();
         $variants = collect();
         $attachments = collect();
+        $salesStats = null;
+        $purchaseStats = null;
+        $topSuppliers = collect();
+        $currentYear = (int) now()->format('Y');
 
-        if (in_array($tab, ['stock', 'locations'], true)) {
+        if ($canViewStock && in_array($tab, ['stock', 'locations'], true)) {
             $balances = StockBalance::query()
                 ->where('product_id', $product->id)
                 ->with('location')
@@ -104,7 +124,7 @@ class ProductDetail extends Component
                 ->get();
         }
 
-        if (in_array($tab, ['overview', 'movements'], true)) {
+        if ($canViewStock && in_array($tab, ['overview', 'movements'], true)) {
             $movements = StockMovement::query()
                 ->where('product_id', $product->id)
                 ->with('location')
@@ -122,6 +142,33 @@ class ProductDetail extends Component
             $purchases = $this->postedLines('supplier_invoice', 50);
         }
 
+        if (auth()->user()?->can('sales_invoices.view')
+            && in_array($tab, ['overview', 'buyers', 'annual'], true)) {
+            $salesStats = DB::connection('period')->table('document_lines as line')
+                ->join('documents as doc', 'doc.id', '=', 'line.document_id')
+                ->where('line.product_id', $product->id)
+                ->where('doc.document_type', 'sales_invoice')
+                ->where('doc.status', 'posted')
+                ->whereYear('doc.document_date', $currentYear)
+                ->selectRaw('COALESCE(SUM(line.quantity), 0)::text AS quantity')
+                ->selectRaw('COALESCE(SUM(CASE WHEN doc.currency = ? THEN line.line_total ELSE 0 END), 0)::text AS revenue', [$product->currency])
+                ->selectRaw('COALESCE(SUM(CASE WHEN doc.currency = ? THEN line.quantity ELSE 0 END), 0)::text AS currency_quantity', [$product->currency])
+                ->selectRaw('COUNT(DISTINCT doc.contact_id) AS buyer_count')
+                ->selectRaw('COUNT(DISTINCT doc.id) AS document_count')
+                ->first();
+        }
+
+        if (auth()->user()?->can('supplier_invoices.view') && $tab === 'overview') {
+            $purchaseStats = DB::connection('period')->table('document_lines as line')
+                ->join('documents as doc', 'doc.id', '=', 'line.document_id')
+                ->where('line.product_id', $product->id)
+                ->where('doc.document_type', 'supplier_invoice')
+                ->where('doc.status', 'posted')
+                ->selectRaw('MAX(doc.document_date) AS last_purchase_date')
+                ->selectRaw('(ARRAY_AGG(line.quantity ORDER BY doc.document_date DESC, line.id DESC))[1]::text AS last_quantity')
+                ->first();
+        }
+
         if (auth()->user()?->can('sales_invoices.view') && $tab === 'buyers') {
             $topBuyers = DB::connection('period')->table('document_lines as line')
                 ->join('documents as doc', 'doc.id', '=', 'line.document_id')
@@ -129,8 +176,13 @@ class ProductDetail extends Component
                 ->where('line.product_id', $product->id)
                 ->where('doc.document_type', 'sales_invoice')
                 ->where('doc.status', 'posted')
+                ->whereYear('doc.document_date', $currentYear)
                 ->groupBy('contact.id', 'contact.title')
-                ->selectRaw('contact.title AS contact_name, SUM(line.quantity)::text AS quantity, COUNT(DISTINCT doc.id) AS documents')
+                ->selectRaw('contact.id AS contact_id, contact.title AS contact_name')
+                ->selectRaw('SUM(line.quantity)::text AS quantity, COUNT(DISTINCT doc.id) AS documents')
+                ->selectRaw('COALESCE(SUM(CASE WHEN doc.currency = ? THEN line.line_total ELSE 0 END), 0)::text AS revenue', [$product->currency])
+                ->selectRaw('COALESCE(SUM(CASE WHEN doc.currency = ? THEN line.quantity ELSE 0 END), 0)::text AS currency_quantity', [$product->currency])
+                ->selectRaw('MAX(doc.document_date) AS last_purchase_at')
                 ->orderByRaw('SUM(line.quantity) DESC')
                 ->limit(30)
                 ->get();
@@ -143,8 +195,27 @@ class ProductDetail extends Component
                 ->where('doc.document_type', 'sales_invoice')
                 ->where('doc.status', 'posted')
                 ->groupByRaw('EXTRACT(YEAR FROM doc.document_date)')
-                ->selectRaw('EXTRACT(YEAR FROM doc.document_date)::int AS year, SUM(line.quantity)::text AS quantity, COUNT(DISTINCT doc.id) AS documents')
+                ->selectRaw('EXTRACT(YEAR FROM doc.document_date)::int AS year')
+                ->selectRaw('SUM(line.quantity)::text AS quantity, COUNT(DISTINCT doc.id) AS documents')
+                ->selectRaw('COALESCE(SUM(CASE WHEN doc.currency = ? THEN line.line_total ELSE 0 END), 0)::text AS revenue', [$product->currency])
+                ->selectRaw('COALESCE(SUM(CASE WHEN doc.currency = ? THEN line.quantity ELSE 0 END), 0)::text AS currency_quantity', [$product->currency])
                 ->orderByDesc('year')
+                ->get();
+        }
+
+        if (auth()->user()?->can('supplier_invoices.view') && $tab === 'suppliers') {
+            $topSuppliers = DB::connection('period')->table('document_lines as line')
+                ->join('documents as doc', 'doc.id', '=', 'line.document_id')
+                ->join('contacts as contact', 'contact.id', '=', 'doc.contact_id')
+                ->where('line.product_id', $product->id)
+                ->where('doc.document_type', 'supplier_invoice')
+                ->where('doc.status', 'posted')
+                ->groupBy('contact.id', 'contact.title')
+                ->selectRaw('contact.id AS contact_id, contact.title AS contact_name')
+                ->selectRaw('SUM(line.quantity)::text AS quantity, COUNT(DISTINCT doc.id) AS documents')
+                ->selectRaw('MAX(doc.document_date) AS last_purchase_at')
+                ->orderByRaw('SUM(line.quantity) DESC')
+                ->limit(30)
                 ->get();
         }
 
@@ -157,7 +228,7 @@ class ProductDetail extends Component
             $variants = $product->variantValues()->with('attribute')->get();
         }
 
-        if ($tab === 'images' || $tab === 'files' || $tab === 'overview') {
+        if (in_array($tab, ['images', 'files', 'technical', 'overview'], true)) {
             $attachments = $product->attachments()->orderBy('sort_order')->orderBy('id')->get();
         }
 
@@ -168,7 +239,8 @@ class ProductDetail extends Component
 
         return view('livewire.pages.products.product-detail', compact(
             'product', 'tabs', 'summary', 'balances', 'movements', 'sales', 'purchases',
-            'topBuyers', 'annual', 'prices', 'variants', 'attachments', 'cost', 'canViewCost'
+            'topBuyers', 'annual', 'prices', 'variants', 'attachments', 'cost', 'canViewCost',
+            'salesStats', 'purchaseStats', 'topSuppliers', 'currentYear', 'canViewStock'
         ))->layout('layouts.app', [
             'pageTitle' => 'Ürün Detay · '.$product->code.' · '.$product->name,
         ]);

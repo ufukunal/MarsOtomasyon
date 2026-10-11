@@ -31,16 +31,19 @@ class ProductList extends DataTableComponent
     /** @return list<Column> */
     public function columns(): array
     {
+        // v65 sırası; veri modelinde olmayan tedarikçi ürün kodu, alış KDV,
+        // ikinci/üçüncü kategori ve model için sahte sütun oluşturulmaz.
         return [
-            Column::make('code', 'Kod')->searchable()->sortable(),
-            Column::make('name', 'Ad')->searchable()->sortable(),
-            Column::make('brand_name', 'Marka'),
-            Column::make('category_name', 'Kategori'),
+            Column::make('code', 'Ürün Kodu')->searchable()->sortable(),
+            Column::make('name', 'Ürün')->searchable()->sortable(),
+            Column::make('barcode', 'Barkodu')->searchable()->sortable(),
+            Column::make('kind', 'Ürün Tipi')->sortable(),
+            Column::make('vat_rate', 'Satış KDV %')->alignEnd()->sortable(),
+            Column::make('category_name', '1. Kategori'),
             Column::make('unit_name', 'Birim'),
-            Column::make('list_price', 'Liste Fiyatı')->money()->sortable(),
-            Column::make('vat_rate', 'KDV %')->alignEnd(),
-            Column::make('available_quantity', 'Stok')->quantity(),
-            Column::make('kind', 'Tip')->sortable(),
+            Column::make('brand_name', 'Marka'),
+            Column::make('list_price', 'Satış Fiyatı')->money()->sortable(),
+            Column::make('available_quantity', 'Kullanılabilir')->quantity(),
             Column::make('is_active', 'Durum')->sortable(),
         ];
     }
@@ -59,6 +62,11 @@ class ProductList extends DataTableComponent
                 'normal' => 'Normal',
                 'set' => 'Set',
                 'configurable' => 'Konfigüre',
+            ]),
+            SelectFilter::make('channel_stock_mode', 'Stok Tipi')->options([
+                'stock' => 'Stok',
+                'production' => 'Üretim',
+                'manual' => 'Manuel',
             ]),
             SelectFilter::make('is_active', 'Durum')->options([1 => 'Aktif', 0 => 'Pasif']),
         ];

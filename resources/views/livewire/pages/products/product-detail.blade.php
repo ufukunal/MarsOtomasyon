@@ -3,9 +3,9 @@
         $tr = \App\Support\Formatting\TrFormatter::class;
         $physical = (string) ($summary?->getAttribute('physical') ?? '0');
         $reserved = (string) ($summary?->getAttribute('reserved_total') ?? '0');
-        $available = $product->kind->value === 'set'
+        $available = ($product->kind->value === 'set'
             ? $product->setAvailability()
-            : (string) ($summary?->getAttribute('available_total') ?? '0');
+            : (string) ($summary?->getAttribute('available_total') ?? '0')) ?? '0';
         $quarantined = (string) ($summary?->getAttribute('quarantined') ?? '0');
         $unit = $product->unit?->name ?? '';
         $firstImage = $attachments->first(fn ($attachment) => str_starts_with((string) $attachment->mime, 'image/'));
@@ -18,6 +18,15 @@
         @endcan
     </nav>
 
+    <nav class="tabs v65-product-tabs" role="tablist" aria-label="Ürün detay sekmeleri">
+        @foreach($tabs as $key => $label)
+            <button type="button" role="tab" @class(['tab', 'is-active' => $activeTab === $key])
+                aria-selected="{{ $activeTab === $key ? 'true' : 'false' }}"
+                wire:click="selectTab('{{ $key }}')">{{ $label }}</button>
+        @endforeach
+    </nav>
+
+    @if($activeTab === 'overview')
     <section class="product-identity" aria-label="Ürün kimliği">
         <div class="product-photo">
             @if($firstImage)
@@ -31,39 +40,65 @@
             <div class="sub">{{ $product->brand?->name ?? 'Markasız' }} · {{ $product->category?->name ?? 'Kategorisiz' }} · {{ $unit }}</div>
             <div class="form-row">
                 <span class="badge">{{ $product->is_active ? 'Aktif' : 'Pasif' }}</span>
-                <span class="badge">KDV %{{ $product->vat_rate }}</span>
+                <span class="badge">KDV %{{ number_format((float) $product->vat_rate, 2, ',', '.') }}</span>
                 @if($product->barcode)<span class="badge">Barkod: {{ $product->barcode }}</span>@endif
             </div>
         </div>
         <div class="product-summary">
             <div><small>Satış Fiyatı</small><b>{{ $tr::money((string) $product->list_price) }} {{ $product->currency }}</b></div>
-            <div><small>Son Alış</small><b>{{ $canViewCost && $cost ? $tr::money((string) $cost->last_purchase_price) : '—' }}</b></div>
-            <div><small>Mevcut Stok</small><b>{{ $tr::quantity($physical) }} {{ $unit }}</b></div>
-            <div><small>Kullanılabilir</small><b>{{ $tr::quantity((string) $available) }} {{ $unit }}</b></div>
+            <div><small>Alış Fiyatı</small><b>{{ $canViewCost && $cost ? $tr::money((string) $cost->last_purchase_price).' '.$product->currency : '—' }}</b></div>
+            <div><small>Mevcut Stok</small><b>{{ $canViewStock ? $tr::quantity($physical).' '.$unit : '—' }}</b></div>
+            <div><small>Kullanılabilir</small><b>{{ $canViewStock ? $tr::quantity((string) $available).' '.$unit : '—' }}</b></div>
         </div>
     </section>
+    @endif
 
-    <nav class="tabs v65-product-tabs" role="tablist" aria-label="Ürün detay sekmeleri">
-        @foreach($tabs as $key => $label)
-            <button type="button" role="tab" @class(['tab', 'is-active' => $activeTab === $key])
-                aria-selected="{{ $activeTab === $key ? 'true' : 'false' }}"
-                wire:click="selectTab('{{ $key }}')">{{ $label }}</button>
-        @endforeach
-    </nav>
-
-    @if(in_array($activeTab, ['overview', 'stock', 'locations'], true))
+    @if($activeTab === 'overview')
         <div class="dashboard-grid">
-            <div class="dashboard-card panel stack"><small>Mevcut Stok</small><strong>{{ $tr::quantity($physical) }} {{ $unit }}</strong></div>
+            @can('stock.view')
+                <div class="dashboard-card panel stack"><small>Mevcut Stok</small><strong>{{ $tr::quantity($physical) }} {{ $unit }}</strong><small>Tüm depolar</small></div>
+            <div class="dashboard-card panel stack"><small>Rezerve</small><strong>{{ $tr::quantity($reserved) }} {{ $unit }}</strong><small>Siparişler için ayrılan</small></div>
+            <div class="dashboard-card panel stack"><small>Kullanılabilir</small><strong>{{ $tr::quantity((string) $available) }} {{ $unit }}</strong><small>Satılabilir stok</small></div>
+            @endcan
+            @can('sales_invoices.view')
+                <div class="dashboard-card panel stack"><small>{{ $currentYear }} Satış</small><strong>{{ $tr::quantity((string) ($salesStats?->quantity ?? '0')) }} {{ $unit }}</strong><small>{{ $tr::money((string) ($salesStats?->revenue ?? '0')) }} {{ $product->currency }} ciro</small></div>
+            @endcan
+            @can('supplier_invoices.view')
+                <div class="dashboard-card panel stack"><small>Son Alış</small><strong>{{ $purchaseStats?->last_quantity !== null ? $tr::quantity((string) $purchaseStats->last_quantity).' '.$unit : '—' }}</strong><small>{{ $purchaseStats?->last_purchase_date ? \Illuminate\Support\Carbon::parse($purchaseStats->last_purchase_date)->format('d.m.Y') : 'Kesinleşmiş alış yok' }}</small></div>
+            @endcan
+        </div>
+    @elseif($activeTab === 'stock')
+        <div class="dashboard-grid">
+            <div class="dashboard-card panel stack"><small>Toplam Stok</small><strong>{{ $tr::quantity($physical) }} {{ $unit }}</strong></div>
             <div class="dashboard-card panel stack"><small>Rezerve</small><strong>{{ $tr::quantity($reserved) }} {{ $unit }}</strong></div>
-            <div class="dashboard-card panel stack"><small>Karantina</small><strong>{{ $tr::quantity($quarantined) }} {{ $unit }}</strong></div>
             <div class="dashboard-card panel stack"><small>Kullanılabilir</small><strong>{{ $tr::quantity((string) $available) }} {{ $unit }}</strong></div>
-            <div class="dashboard-card panel stack"><small>Minimum</small><strong>{{ $tr::quantity((string) $product->min_stock) }} {{ $unit }}</strong></div>
+            <div class="dashboard-card panel stack"><small>Minimum Stok</small><strong>{{ $tr::quantity((string) $product->min_stock) }} {{ $unit }}</strong></div>
+            <div class="dashboard-card panel stack"><small>Karantina</small><strong>{{ $tr::quantity($quarantined) }} {{ $unit }}</strong></div>
+        </div>
+    @elseif($activeTab === 'buyers')
+        <div class="dashboard-grid">
+            <div class="dashboard-card panel stack"><small>{{ $currentYear }} Satılan</small><strong>{{ $tr::quantity((string) ($salesStats?->quantity ?? '0')) }} {{ $unit }}</strong></div>
+            <div class="dashboard-card panel stack"><small>{{ $currentYear }} Ciro</small><strong>{{ $tr::money((string) ($salesStats?->revenue ?? '0')) }} {{ $product->currency }}</strong><small>Ürün para birimiyle kesilen belgeler</small></div>
+            <div class="dashboard-card panel stack"><small>Farklı Cari</small><strong>{{ $salesStats?->buyer_count ?? 0 }}</strong><small>{{ $currentYear }}</small></div>
+            <div class="dashboard-card panel stack"><small>En Büyük Müşteri</small><strong>{{ $topBuyers->first()?->contact_name ?? '—' }}</strong><small>Tüm dönemler</small></div>
+            <div class="dashboard-card panel stack"><small>Ortalama Satış Fiyatı</small>
+                <strong>{{ bccomp((string) ($salesStats?->currency_quantity ?? '0'), '0', 3) > 0 ? $tr::money(bcdiv((string) ($salesStats?->revenue ?? '0'), (string) $salesStats->currency_quantity, 4)).' '.$product->currency : '—' }}</strong>
+                <small>{{ $product->currency }} para birimindeki satışlardan</small>
+            </div>
+        </div>
+    @elseif($activeTab === 'annual')
+        <div class="dashboard-grid">
+            <div class="dashboard-card panel stack"><small>{{ $currentYear }} Satış</small><strong>{{ $tr::quantity((string) ($salesStats?->quantity ?? '0')) }} {{ $unit }}</strong></div>
+            <div class="dashboard-card panel stack"><small>{{ $currentYear }} Ciro</small><strong>{{ $tr::money((string) ($salesStats?->revenue ?? '0')) }} {{ $product->currency }}</strong></div>
+            <div class="dashboard-card panel stack"><small>Toplam Satış Belgesi</small><strong>{{ $salesStats?->document_count ?? 0 }}</strong></div>
+            <div class="dashboard-card panel stack"><small>Farklı Cari</small><strong>{{ $salesStats?->buyer_count ?? 0 }}</strong></div>
         </div>
     @endif
 
     @if($activeTab === 'overview')
         <div class="workbench">
             <div class="stack">
+                @can('stock.view')
                 <section class="panel stack">
                     <div class="form-row"><strong>Son Stok Hareketleri</strong>
                         @can('stock.view')<a href="{{ route('stock.movements', ['product' => $product->id]) }}">Tüm Hareketler →</a>@endcan
@@ -85,6 +120,7 @@
                         </tbody>
                     </table></div>
                 </section>
+                @endcan
                 @can('sales_invoices.view')
                     <section class="panel stack">
                         <strong>Son Satışlar</strong>
@@ -115,12 +151,14 @@
                     @can('stock_counts.view')<a href="{{ route('stock.counts.index') }}">Stok Sayımları</a>@endcan
                     @can('products.update')<a href="{{ route('products.edit', ['product' => $product->id]) }}">Ürünü Düzenle</a>@endcan
                 </section>
+                @can('stock.view')
                 <section class="panel stack">
                     <strong>Stok Uyarısı</strong>
                     <span>Minimum: {{ $tr::quantity((string) $product->min_stock) }}</span>
                     <span>Kullanılabilir: {{ $tr::quantity((string) $available) }}</span>
                     <span class="badge">{{ bccomp((string) $available, (string) $product->min_stock, 3) > 0 ? 'Stok Yeterli' : 'Stok Kritik / Tükendi' }}</span>
                 </section>
+                @endcan
             </aside>
         </div>
     @elseif(in_array($activeTab, ['stock', 'locations'], true))
@@ -162,46 +200,82 @@
                 </tbody>
             </table></div>
         </section>
-    @elseif(in_array($activeTab, ['sales', 'purchases', 'suppliers'], true))
+    @elseif(in_array($activeTab, ['sales', 'purchases'], true))
         @php($lines = $activeTab === 'sales' ? $sales : $purchases)
         <section class="panel stack">
-            <strong>{{ $tabs[$activeTab] }}</strong>
+            <div class="form-row"><strong>{{ $activeTab === 'sales' ? 'Ürün Satışları' : 'Ürün Alışları' }}</strong><span>{{ $product->code }} · {{ $product->name }}</span></div>
             <div class="table-scroll v65-grid-scroll"><table class="data-table">
-                <thead><tr><th>Tarih</th><th>Cari / Tedarikçi</th><th>Belge</th><th>Miktar</th><th>Birim Fiyat</th></tr></thead>
+                <thead><tr><th>Tarih</th><th>{{ $activeTab === 'sales' ? 'Cari' : 'Tedarikçi' }}</th><th>Belge</th><th>Miktar</th><th>Birim Fiyat</th><th>{{ $activeTab === 'sales' ? 'İskonto' : 'Para Birimi' }}</th><th>Net Tutar</th></tr></thead>
                 <tbody>
                 @forelse($lines as $line)
                     <tr><td>{{ $line->document?->document_date?->format('d.m.Y') }}</td>
                         <td>{{ $line->document?->contact?->title ?? '—' }}</td>
-                        <td>{{ $line->document?->number ?? '—' }}</td>
+                        <td>
+                            @if($activeTab === 'sales')
+                                <a href="{{ route('sales.invoices.edit', ['id' => $line->document_id]) }}">{{ $line->document?->number ?? '—' }}</a>
+                            @else
+                                <a href="{{ route('purchases.invoices.edit', ['id' => $line->document_id]) }}">{{ $line->document?->number ?? '—' }}</a>
+                            @endif
+                        </td>
                         <td>{{ $tr::quantity((string) $line->quantity) }}</td>
-                        <td>{{ $activeTab === 'sales' || $canViewCost ? $tr::money((string) $line->unit_price) : '—' }}</td></tr>
+                        <td>{{ $activeTab === 'sales' || $canViewCost ? $tr::money((string) $line->unit_price) : '—' }}</td>
+                        <td>{{ $activeTab === 'sales' ? '%'.number_format((float) $line->line_discount_rate, 2, ',', '.') : ($line->document?->currency ?? '—') }}</td>
+                        <td>{{ $activeTab === 'sales' || $canViewCost ? $tr::money((string) $line->line_total) : '—' }}</td>
+                    </tr>
                 @empty
-                    <tr><td colspan="5" class="empty-state">Bu ürüne ait kesinleşmiş belge bulunamadı.</td></tr>
+                    <tr><td colspan="7" class="empty-state">Bu ürüne ait kesinleşmiş belge bulunamadı.</td></tr>
                 @endforelse
                 </tbody>
             </table></div>
         </section>
     @elseif($activeTab === 'buyers')
-        <section class="panel stack"><strong>En Çok Alan Cariler</strong>
+        <section class="panel stack">
+            <strong>En Çok Alan Cariler</strong>
+            <small>Ciro yalnız ürün para birimindeki ({{ $product->currency }}) kesinleşmiş satışları içerir. Miktar tüm para birimlerini kapsar.</small>
             <div class="table-scroll v65-grid-scroll"><table class="data-table">
-                <thead><tr><th>Cari</th><th>Toplam Adet</th><th>Belge Sayısı</th></tr></thead>
-                <tbody>@forelse($topBuyers as $buyer)
-                    <tr><td>{{ $buyer->contact_name }}</td><td>{{ $tr::quantity((string) $buyer->quantity) }}</td><td>{{ $buyer->documents }}</td></tr>
-                @empty<tr><td colspan="3" class="empty-state">Satış kaydı yok.</td></tr>@endforelse</tbody>
+                <thead><tr><th>Sıra</th><th>Cari</th><th>Toplam Adet</th><th>Ciro ({{ $product->currency }})</th><th>Son Alım</th><th>Ortalama Fiyat</th></tr></thead>
+                <tbody>
+                    @forelse($topBuyers as $buyer)
+                        <tr><td>{{ $loop->iteration }}</td>
+                            <td>{{ $buyer->contact_name }}</td>
+                            <td>{{ $tr::quantity((string) $buyer->quantity) }} {{ $unit }}</td>
+                            <td>{{ $tr::money((string) $buyer->revenue) }}</td>
+                            <td>{{ $buyer->last_purchase_at ? \Illuminate\Support\Carbon::parse($buyer->last_purchase_at)->format('d.m.Y') : '—' }}</td>
+                            <td>{{ bccomp((string) $buyer->currency_quantity, '0', 3) > 0 ? $tr::money(bcdiv((string) $buyer->revenue, (string) $buyer->currency_quantity, 4)) : '—' }}</td>
+                        </tr>
+                    @empty
+                        <tr><td colspan="6" class="empty-state">Kesinleşmiş satış kaydı bulunamadı.</td></tr>
+                    @endforelse
+                </tbody>
             </table></div>
         </section>
     @elseif($activeTab === 'annual')
-        <section class="panel stack"><strong>Yıllık Performans · Kesinleşmiş Satışlar</strong>
+        <section class="panel stack">
+            <strong>Yıllık Performans · Kesinleşmiş Satışlar</strong>
+            <small>Ciro {{ $product->currency }} para birimiyle kesilen belgeleri içerir; farklı para birimlerindeki tutarlar birleştirilmez.</small>
             <div class="table-scroll v65-grid-scroll"><table class="data-table">
-                <thead><tr><th>Yıl</th><th>Toplam Adet</th><th>Belge Sayısı</th></tr></thead>
-                <tbody>@forelse($annual as $year)
-                    <tr><td>{{ $year->year }}</td><td>{{ $tr::quantity((string) $year->quantity) }}</td><td>{{ $year->documents }}</td></tr>
-                @empty<tr><td colspan="3" class="empty-state">Yıllık satış verisi yok.</td></tr>@endforelse</tbody>
+                <thead><tr><th>Yıl</th><th>Toplam Adet</th><th>Ciro ({{ $product->currency }})</th><th>Belge Sayısı</th></tr></thead>
+                <tbody>
+                    @forelse($annual as $year)
+                        <tr><td>{{ $year->year }}</td>
+                            <td>{{ $tr::quantity((string) $year->quantity) }} {{ $unit }}</td>
+                            <td>{{ $tr::money((string) $year->revenue) }}</td>
+                            <td>{{ $year->documents }}</td></tr>
+                    @empty
+                        <tr><td colspan="4" class="empty-state">Yıllık satış verisi yok.</td></tr>
+                    @endforelse
+                </tbody>
             </table></div>
         </section>
     @elseif($activeTab === 'prices')
         <section class="panel stack">
             <strong>Fiyatlar</strong>
+            <div class="dashboard-grid">
+                <div class="dashboard-card panel stack"><small>Satış Fiyatı</small><strong>{{ $tr::money((string) $product->list_price) }} {{ $product->currency }}</strong><small>Varsayılan</small></div>
+                <div class="dashboard-card panel stack"><small>Son Alış</small><strong>{{ $canViewCost && $cost ? $tr::money((string) $cost->last_purchase_price).' '.$product->currency : '—' }}</strong></div>
+                <div class="dashboard-card panel stack"><small>Hareketli Ortalama</small><strong>{{ $canViewCost && $cost ? $tr::money((string) $cost->moving_average).' '.$product->currency : '—' }}</strong></div>
+                <div class="dashboard-card panel stack"><small>KDV</small><strong>%{{ number_format((float) $product->vat_rate, 2, ',', '.') }}</strong></div>
+            </div>
             <div class="form-grid">
                 <div class="field"><span class="field-label">Liste Fiyatı</span><strong>{{ $tr::money((string) $product->list_price) }} {{ $product->currency }}</strong></div>
                 <div class="field"><span class="field-label">KDV</span><strong>%{{ $product->vat_rate }}</strong></div>
@@ -219,6 +293,21 @@
                 @empty<tr><td colspan="4" class="empty-state">Ek fiyat listesi kaydı yok.</td></tr>@endforelse</tbody>
             </table></div>
         </section>
+    @elseif($activeTab === 'technical')
+        <section class="panel stack">
+            <strong>Teknik Bilgi Föyü</strong>
+            <p>Ürüne ait teknik bilgiler ve ilişkili dokümanlar burada gösterilir. Bağımsız teknik föy şablonu mevcut veri modelinde bulunmuyor.</p>
+            @if($product->description)
+                <div class="field"><span class="field-label">Ürün Açıklaması</span><p class="readonly-note">{{ $product->description }}</p></div>
+            @endif
+            <div class="stack">
+                @forelse($attachments->filter(fn ($row) => str_contains(mb_strtolower($row->original_name), 'teknik') || str_contains(mb_strtolower($row->original_name), 'technical')) as $file)
+                    <div class="form-row"><span>{{ $file->original_name }}</span><small>{{ $file->mime }}</small></div>
+                @empty
+                    <p class="empty-state">Ürüne bağlı teknik doküman bulunamadı.</p>
+                @endforelse
+            </div>
+        </section>
     @elseif($activeTab === 'variants')
         <section class="panel stack"><strong>Varyant Özellikleri</strong>
             <div class="domain-info-grid">
@@ -235,6 +324,23 @@
                 <div><small>Ana Barkod</small><b>{{ $product->barcode ?: 'Barkod tanımlanmamış' }}</b></div>
                 <div><small>Ürün Kodu</small><b>{{ $product->code }}</b></div>
             </div>
+        </section>
+    @elseif($activeTab === 'suppliers')
+        <section class="panel stack">
+            <strong>Ürün Tedarikçileri · Kesinleşmiş Alışlar</strong>
+            <div class="table-scroll v65-grid-scroll"><table class="data-table">
+                <thead><tr><th>Tedarikçi</th><th>Toplam Alış</th><th>Belge Sayısı</th><th>Son Alış</th></tr></thead>
+                <tbody>
+                    @forelse($topSuppliers as $supplier)
+                        <tr><td>{{ $supplier->contact_name }}</td>
+                            <td>{{ $tr::quantity((string) $supplier->quantity) }} {{ $unit }}</td>
+                            <td>{{ $supplier->documents }}</td>
+                            <td>{{ $supplier->last_purchase_at ? \Illuminate\Support\Carbon::parse($supplier->last_purchase_at)->format('d.m.Y') : '—' }}</td></tr>
+                    @empty
+                        <tr><td colspan="4" class="empty-state">Bu ürün için alış yapılan tedarikçi bulunamadı.</td></tr>
+                    @endforelse
+                </tbody>
+            </table></div>
         </section>
     @elseif($activeTab === 'images')
         <section class="panel stack"><strong>Ürün Görselleri</strong>
