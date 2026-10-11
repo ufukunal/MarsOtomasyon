@@ -31,7 +31,7 @@ final class Dashboard extends Component
             ['title' => 'Satış Siparişleri', 'description' => 'Yeni satış siparişi', 'icon' => '📋', 'route' => 'sales.orders.edit', 'permission' => 'sales_orders.create'],
             ['title' => 'Ürün Ekle', 'description' => 'Yeni stok kartı', 'icon' => '📦', 'route' => 'products.create', 'permission' => 'products.create'],
             ['title' => 'Cari Ekle', 'description' => 'Müşteri veya tedarikçi', 'icon' => '●', 'route' => 'contacts.create', 'permission' => 'contacts.create'],
-            ['title' => 'Cari Yaşlandırma', 'description' => 'Alacak vadelerini görüntüle', 'icon' => '▥', 'route' => 'finance.contact-aging', 'permission' => 'contact_aging.view'],
+            ['title' => 'Kimden Alacağım Var?', 'description' => 'Cari bakiyeleri görüntüle', 'icon' => '▥', 'route' => 'finance.contact-aging', 'permission' => 'contact_aging.view'],
         ];
 
         $actor = auth()->user();

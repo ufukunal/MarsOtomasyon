@@ -145,3 +145,12 @@
 .app-shell .data-table-shell .date-range-filter{min-width:0}
 .app-shell .data-table-shell .table-search{min-width:min(100%,170px)}
 @media(max-width:740px){.app-shell .v65-shared-list-heading{align-items:flex-start;flex-direction:column}}
+
+.app-shell .v65-home-extended{margin-top:12px;background:#fff;border:1px solid #d7e0e9;border-radius:8px;padding:10px}
+.app-shell .v65-home-extended>summary{cursor:pointer;color:#506c8b;font-weight:650;padding:5px 8px}
+.app-shell .v65-home-extended[open] .v65-home-kpis{margin-top:10px}
+
+.app-shell .v65-products-advanced{margin:0 0 10px;border:1px solid #dce5f0;background:#fff}
+.app-shell .v65-products-advanced>summary{cursor:pointer;padding:8px 12px;color:#536b87;font-size:11px}
+.app-shell .v65-products-advanced>div{padding:4px 12px 12px}
+.app-shell .v65-products-advanced .table-filter select{min-width:185px}

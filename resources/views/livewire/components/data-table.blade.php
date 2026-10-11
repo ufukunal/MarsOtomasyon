@@ -61,6 +61,9 @@
             </label>
 
             @foreach ($filters as $filter)
+                @if($isProductTable && in_array($filter->key, ['kind', 'channel_stock_mode'], true))
+                    @continue
+                @endif
                 @if ($filter instanceof \App\Livewire\Components\DataTable\SelectFilter)
                     <label class="table-filter">
                         <span class="sr-only">{{ $filter->label }}</span>
@@ -124,6 +127,26 @@
         </div>
     @endif
 
+    @if($isProductTable)
+        <details class="v65-products-advanced">
+            <summary>Diğer Filtreler: Ürün Tipi / Stok Tipi</summary>
+            <div class="form-row">
+                @foreach($filters as $filter)
+                    @if($filter instanceof \App\Livewire\Components\DataTable\SelectFilter && in_array($filter->key, ['kind', 'channel_stock_mode'], true))
+                        <label class="table-filter">
+                            <span class="sr-only">{{ $filter->label }}</span>
+                            <select wire:model.live="filterValues.{{ $filter->key }}">
+                                <option value="">{{ $filter->label }} · Tümü</option>
+                                @foreach($filter->options as $value => $label)
+                                    <option value="{{ $value }}">{{ $label }}</option>
+                                @endforeach
+                            </select>
+                        </label>
+                    @endif
+                @endforeach
+            </div>
+        </details>
+    @endif
     <div class="v65-shared-table-title">
         <strong>{{ $listLabel }}</strong>
         <small>{{ $rows->total() }} kayıt</small>

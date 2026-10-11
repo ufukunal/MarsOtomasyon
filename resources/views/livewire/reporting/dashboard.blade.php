@@ -104,7 +104,8 @@
         </aside>
     </div>
 
-    <h2 class="v65-home-reports-title">Diğer Gerçek Dönem Göstergeleri</h2>
+    <details class="v65-home-extended">
+        <summary>Diğer Dönem Göstergeleri</summary>
     @if($widgets === [])
         <section class="panel empty-state">
             Yetkinize uygun dashboard raporu bulunamadı.
@@ -128,4 +129,5 @@
             @endforeach
         </section>
     @endif
+    </details>
 </div>

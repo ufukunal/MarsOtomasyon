@@ -28,6 +28,17 @@ it('applies one v65 shell asset to all authenticated modules', function (): void
         ->not->toContain('!important');
 });
 
+it('keeps v65 daily dashboard visible and older period widgets accessible without mock data', function (): void {
+    $view = file_get_contents(base_path('resources/views/livewire/reporting/dashboard.blade.php'));
+    $component = file_get_contents(base_path('app/Livewire/Reporting/Dashboard.php'));
+    expect($view)->toContain('Bugün Yapılacaklar')
+        ->toContain('Hızlı Durum')
+        ->toContain('<details class="v65-home-extended">')
+        ->toContain('Diğer Dönem Göstergeleri')
+        ->and($component)->toContain('Kimden Alacağım Var?')
+        ->toContain("where('status', 'posted')");
+});
+
 it('uses the same reference table scaffolding for product, stock and other lists', function (): void {
     $view = file_get_contents(base_path('resources/views/livewire/components/data-table.blade.php'));
 
@@ -35,6 +46,7 @@ it('uses the same reference table scaffolding for product, stock and other lists
         ->toContain('v65-products-heading')
         ->toContain('v65-shared-list-heading')
         ->toContain('v65-shared-table-title')
+        ->toContain('v65-products-advanced')
         ->toContain('$navigationItem')
         ->toContain('wire:model.live.debounce.300ms="search"')
         ->toContain('wire:click="exportCsv"')
