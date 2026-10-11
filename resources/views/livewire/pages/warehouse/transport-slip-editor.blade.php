@@ -19,17 +19,25 @@
 
     <div class="wsl-info"><strong>Bağımsız belge:</strong> Ambar taşıma fişi satış irsaliyesi veya stok düzeltme fişi değildir. Kaydedilmesi stok hareketi oluşturmaz.</div>
 
+    @if($errors->any())
+        <div class="wsl-validation-summary" role="alert">
+            <strong>Kaydedilemedi: {{ $errors->count() }} alanı kontrol edin.</strong>
+            <span>Hatalı alanlar aşağıda kırmızı ile işaretlendi.</span>
+        </div>
+    @endif
+
     <form id="wsl-transport-form" wire:submit="save" class="stack">
         <section class="wsl-card panel">
             <div class="wsl-card-head">Fiş Bilgileri</div>
             <div class="wsl-card-body wsl-grid">
                 <label class="wsl-field"><span class="field-label">Ambar Fişi No</span><input value="{{ $slip?->number ?? 'Otomatik' }}" readonly></label>
-                <label class="wsl-field"><span class="field-label">Tarih *</span><input type="date" wire:model="date" @disabled($readonly)></label>
+                <label class="wsl-field"><span class="field-label">Tarih *</span><input type="date" wire:model="date" @disabled($readonly) @error('date') aria-invalid="true" @enderror>@error('date')<small class="wsl-field-error">{{ $message }}</small>@enderror</label>
                 <label class="wsl-field"><span class="field-label">Firma / Cari *</span>
-                    <select wire:model.live="contactId" @disabled($readonly)>
+                    <select wire:model.live="contactId" @disabled($readonly) @error('contactId') aria-invalid="true" @enderror>
                         <option value="">Seçiniz</option>
                         @foreach($contacts as $contact)<option value="{{ $contact->id }}">{{ $contact->code }} · {{ $contact->title }}</option>@endforeach
                     </select>
+                    @error('contactId')<small class="wsl-field-error">{{ $message }}</small>@enderror
                 </label>
                 <label class="wsl-field"><span class="field-label">Cari Kodu</span>
                     <input readonly value="{{ $contacts->firstWhere('id', $contactId)?->code ?? '' }}">
@@ -60,9 +68,10 @@
             <div class="wsl-card-body">
                 <div class="wsl-grid">
                     <label class="wsl-field"><span class="field-label">Gönderim Tipi *</span>
-                        <select wire:model="shippingType" @disabled($readonly)>
+                        <select wire:model="shippingType" @disabled($readonly) @error('shippingType') aria-invalid="true" @enderror>
                             @foreach(['Ambar', 'Nakliye', 'Kargo', 'Elden Teslim'] as $option)<option value="{{ $option }}">{{ $option }}</option>@endforeach
                         </select>
+                        @error('shippingType')<small class="wsl-field-error">{{ $message }}</small>@enderror
                     </label>
                     <label class="wsl-field"><span class="field-label">Taşıyıcı / Ambar Firması *</span>
                         <div class="wsl-carrier-picker">
@@ -75,10 +84,11 @@
                                 <input wire:model.blur="carrier" placeholder="Firma / ambar adı" @disabled($readonly)>
                             @endif
                         </div>
+                        @error('carrier')<small class="wsl-field-error">{{ $message }}</small>@enderror
                     </label>
-                    <label class="wsl-field"><span class="field-label">Koli Adedi *</span><input type="number" min="1" max="500" step="1" wire:model.live="packageCount" @disabled($readonly)></label>
+                    <label class="wsl-field"><span class="field-label">Koli Adedi *</span><input type="number" min="1" max="500" step="1" wire:model.live="packageCount" @disabled($readonly) @error('packageCount') aria-invalid="true" @enderror>@error('packageCount')<small class="wsl-field-error">{{ $message }}</small>@enderror</label>
                     <label class="wsl-field"><span class="field-label">Ambar Takip / Teslim No</span><input wire:model="trackingNumber" @disabled($readonly)></label>
-                    <label class="wsl-field"><span class="field-label">Gideceği Ambar *</span><input wire:model="destinationWarehouse" @disabled($readonly)></label>
+                    <label class="wsl-field"><span class="field-label">Gideceği Ambar *</span><input wire:model="destinationWarehouse" @disabled($readonly) @error('destinationWarehouse') aria-invalid="true" @enderror>@error('destinationWarehouse')<small class="wsl-field-error">{{ $message }}</small>@enderror</label>
                     <label class="wsl-field"><span class="field-label">Toplam Ağırlık (kg)</span><input type="number" min="0" step="0.01" wire:model="weightKg" @disabled($readonly)></label>
 
                 </div>
@@ -112,31 +122,33 @@
                                 @if($readonly)
                                     {{ $selectedProduct?->code ?? '—' }}
                                 @else
-                                    <select wire:model.live="items.{{ $i }}.product_id">
+                                    <select wire:model.live="items.{{ $i }}.product_id" @error('items.'.$i.'.product_id') aria-invalid="true" @enderror>
                                         <option value="">Ürün Seçiniz</option>
                                         @foreach($products as $product)<option value="{{ $product->id }}">{{ $product->code }} · {{ $product->name }}</option>@endforeach
                                     </select>
                                 @endif
+                                @error('items.'.$i.'.product_id')<small class="wsl-item-error">{{ $message }}</small>@enderror
                             </td>
                             <td>{{ $selectedProduct?->name ?? '—' }}</td>
-                            <td><input type="number" min="0.001" step="0.001" wire:model="items.{{ $i }}.quantity" @disabled($readonly)></td>
+                            <td><input type="number" min="0.001" step="0.001" wire:model="items.{{ $i }}.quantity" @disabled($readonly) @error('items.'.$i.'.quantity') aria-invalid="true" @enderror>@error('items.'.$i.'.quantity')<small class="wsl-item-error">{{ $message }}</small>@enderror</td>
                             <td>{{ $selectedProduct?->unit?->name ?? '—' }}</td>
                             @unless($readonly)<td><button type="button" class="button-secondary" wire:click="removeItem({{ $i }})">Kaldır</button></td>@endunless
                         </tr>
                     @endforeach
                 </tbody>
             </table></div>
+            @error('items')<p class="wsl-items-error">{{ $message }}</p>@enderror
         </section>
 
         <section class="wsl-card panel">
             <div class="wsl-card-head">Firma / Teslimat İletişimi</div>
             <div class="wsl-card-body wsl-grid">
-                <label class="wsl-field"><span class="field-label">Teslim Edilecek Firma *</span><input wire:model="deliveryCompany" @disabled($readonly)></label>
+                <label class="wsl-field"><span class="field-label">Teslim Edilecek Firma *</span><input wire:model="deliveryCompany" @disabled($readonly) @error('deliveryCompany') aria-invalid="true" @enderror>@error('deliveryCompany')<small class="wsl-field-error">{{ $message }}</small>@enderror</label>
                 <label class="wsl-field"><span class="field-label">Yetkili Kişi</span><input wire:model="deliveryPerson" @disabled($readonly)></label>
-                <label class="wsl-field"><span class="field-label">Telefon *</span><input wire:model="deliveryPhone" @disabled($readonly)></label>
-                <label class="wsl-field"><span class="field-label">İl *</span><input wire:model="deliveryCity" @disabled($readonly)></label>
-                <label class="wsl-field"><span class="field-label">İlçe *</span><input wire:model="deliveryDistrict" @disabled($readonly)></label>
-                <label class="wsl-field wsl-wide"><span class="field-label">Teslimat Adresi *</span><textarea wire:model="deliveryAddress" rows="2" @disabled($readonly)></textarea></label>
+                <label class="wsl-field"><span class="field-label">Telefon *</span><input wire:model="deliveryPhone" @disabled($readonly) @error('deliveryPhone') aria-invalid="true" @enderror>@error('deliveryPhone')<small class="wsl-field-error">{{ $message }}</small>@enderror</label>
+                <label class="wsl-field"><span class="field-label">İl *</span><input wire:model="deliveryCity" @disabled($readonly) @error('deliveryCity') aria-invalid="true" @enderror>@error('deliveryCity')<small class="wsl-field-error">{{ $message }}</small>@enderror</label>
+                <label class="wsl-field"><span class="field-label">İlçe *</span><input wire:model="deliveryDistrict" @disabled($readonly) @error('deliveryDistrict') aria-invalid="true" @enderror>@error('deliveryDistrict')<small class="wsl-field-error">{{ $message }}</small>@enderror</label>
+                <label class="wsl-field wsl-wide"><span class="field-label">Teslimat Adresi *</span><textarea wire:model="deliveryAddress" rows="2" @disabled($readonly) @error('deliveryAddress') aria-invalid="true" @enderror></textarea>@error('deliveryAddress')<small class="wsl-field-error">{{ $message }}</small>@enderror</label>
                 <label class="wsl-field wsl-wide"><span class="field-label">Sevk / Taşıma Notu</span><textarea wire:model="note" rows="2" @disabled($readonly)></textarea></label>
             </div>
         </section>
@@ -150,10 +162,7 @@
 
         <div class="wsl-warn"><strong>Baskı:</strong> Ambar fişi A4 dikeyde aynı kaydın iki A5 kopyasını üretir. Orta çizgiden kesildiğinde iki ayrı A5 fiş elde edilir. Koli etiketi koli adedi kadar üretilir.</div>
 
-        @if($errors->any())<div class="alert alert-warning" role="alert">
-            <strong>Eksik veya geçersiz alanlar</strong>
-            @foreach($errors->all() as $error)<div>{{ $error }}</div>@endforeach
-        </div>@endif
+
 
         <div class="wsl-footer">
             <a class="button-secondary" href="{{ route('warehouse.transport.index') }}">← Listeye Dön</a>

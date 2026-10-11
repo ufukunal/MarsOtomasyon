@@ -228,3 +228,35 @@ it('exports authorized period-local ambar slips as Excel-compatible CSV without 
         ->toContain('streamDownload(')
         ->toContain('safeCell(');
 });
+
+it('renders Turkish validation feedback for each incomplete transport slip field', function (): void {
+    $previous = app()->getLocale();
+    app()->setLocale('tr');
+
+    try {
+        $validator = \Illuminate\Support\Facades\Validator::make(
+            ['deliveryAddress' => '', 'contactId' => null],
+            ['deliveryAddress' => ['required'], 'contactId' => ['required']],
+            [],
+            ['deliveryAddress' => 'Teslimat Adresi', 'contactId' => 'Firma / Cari'],
+        );
+
+        expect($validator->fails())->toBeTrue()
+            ->and($validator->errors()->first('deliveryAddress'))->toBe('Teslimat Adresi alanı zorunludur.')
+            ->and($validator->errors()->first('contactId'))->toBe('Firma / Cari alanı zorunludur.');
+
+        $component = file_get_contents(base_path('app/Livewire/Pages/Warehouse/TransportSlipEditor.php'));
+        $view = file_get_contents(base_path('resources/views/livewire/pages/warehouse/transport-slip-editor.blade.php'));
+
+        expect($component)->toContain('$this->validate($this->rules(), [], $this->fieldNames())')
+            ->toContain("'deliveryAddress' => 'Teslimat Adresi'")
+            ->toContain('"items.{\$index}.product_id"')
+            ->and($view)->toContain("@error('deliveryAddress')")
+            ->toContain("@error('contactId')")
+            ->toContain("@error('items.'.\$i.'.product_id')")
+            ->toContain('class="wsl-validation-summary"')
+            ->not->toContain('@foreach($errors->all() as $error)');
+    } finally {
+        app()->setLocale($previous);
+    }
+});

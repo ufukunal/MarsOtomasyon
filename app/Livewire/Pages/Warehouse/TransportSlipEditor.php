@@ -159,7 +159,7 @@ class TransportSlipEditor extends Component
         $this->assertEditable();
         PeriodContext::ensureWritable();
 
-        $data = $this->validate($this->rules());
+        $data = $this->validate($this->rules(), [], $this->fieldNames());
 
         $created = $this->slip === null;
 
@@ -264,7 +264,7 @@ class TransportSlipEditor extends Component
         abort_unless(auth()->user()->can('warehouse_slips.view'), 403);
         abort_unless(in_array($format, ['slip', 'labels'], true), 404);
         if ($this->mode !== 'detail') {
-            $this->validate($this->rules());
+            $this->validate($this->rules(), [], $this->fieldNames());
         }
 
         $this->preview = $format;
@@ -347,6 +347,44 @@ class TransportSlipEditor extends Component
         ]);
     }
 
+    /** @return array<string, string> */
+    private function fieldNames(): array
+    {
+        $names = [
+            'date' => 'Tarih',
+            'contactId' => 'Firma / Cari',
+            'locationId' => 'Depo / Lokasyon',
+            'orderReference' => 'Sipariş Referansı',
+            'dispatchReference' => 'İrsaliye Referansı',
+            'shippingType' => 'Gönderim Tipi',
+            'carrier' => 'Taşıyıcı / Ambar Firması',
+            'destinationWarehouse' => 'Gideceği Ambar',
+            'packageCount' => 'Koli Adedi',
+            'weightKg' => 'Toplam Ağırlık (kg)',
+            'trackingNumber' => 'Ambar Takip / Teslim No',
+            'containsGlass' => 'Cam İçeriyor',
+            'fragile' => 'Kırılabilir / Hassas',
+            'keepUpright' => 'Dik Taşınmalı',
+            'doNotStack' => 'Üstüne Yük Konmaz',
+            'deliveryCompany' => 'Teslim Edilecek Firma',
+            'deliveryPerson' => 'Yetkili Kişi',
+            'deliveryPhone' => 'Telefon',
+            'deliveryCity' => 'İl',
+            'deliveryDistrict' => 'İlçe',
+            'deliveryAddress' => 'Teslimat Adresi',
+            'note' => 'Sevk / Taşıma Notu',
+            'items' => 'Ürünler / Koli İçeriği',
+        ];
+
+        foreach (array_keys($this->items) as $index) {
+            $row = $index + 1;
+            $names["items.{$index}.product_id"] = "{$row}. satır - Ürün";
+            $names["items.{$index}.quantity"] = "{$row}. satır - Miktar";
+        }
+
+        return $names;
+    }
+
     /** @return array<string, list<mixed>> */
     private function rules(): array
     {
@@ -376,7 +414,6 @@ class TransportSlipEditor extends Component
             'items' => ['required', 'array', 'min:1', 'max:200'],
             'items.*.product_id' => ['required', 'integer', Rule::exists('period.products', 'id')],
             'items.*.quantity' => ['required', 'numeric', 'gt:0', 'max:999999999999.999'],
-
         ];
     }
 

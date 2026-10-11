@@ -58,3 +58,11 @@
 .app-shell .wsl-product-search label{font-size:10px;color:#526873}
 .app-shell .wsl-product-search input{min-width:200px;max-width:100%;width:270px;padding:7px 9px;border:1px solid #d5e0e9;border-radius:4px;background:#fff;font:inherit}
 .app-shell .wsl-product-search small{font-size:9px;color:#708397}
+
+/* v65 error handling: field-local feedback without changing the approved two-column order. */
+.app-shell .wsl-grid .wsl-field-error{grid-column:2;display:block;font-size:10px;line-height:1.35;color:#b42318;text-align:left;margin-top:2px}
+.app-shell .wsl-item-error{display:block;font-size:10px;line-height:1.35;color:#b42318;margin-top:4px;white-space:normal}
+.app-shell .wsl-items-error{padding:6px 10px;font-size:10px;color:#b42318;margin:0}
+.app-shell .wsl-shell [aria-invalid="true"]{border-color:#d92d20!important;box-shadow:0 0 0 1px #d92d2020}
+.app-shell .wsl-validation-summary{display:flex;align-items:center;flex-wrap:wrap;gap:6px 12px;background:#fff0ef;border-left:3px solid #d92d20;border-radius:7px;padding:8px 10px;color:#9d2119;font-size:10px}
+@media(max-width:900px){.app-shell .wsl-grid .wsl-field-error{grid-column:1}}
