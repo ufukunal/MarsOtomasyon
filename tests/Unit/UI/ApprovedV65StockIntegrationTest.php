@@ -23,7 +23,7 @@ it('maps approved v65 stock destinations to real authorized Laravel routes', fun
     foreach ([
         'stock.status', 'stock.movements', 'locations.index', 'stock.reservations.index',
         'stock.transfers.index', 'stock.transfers.create', 'stock.counts.index',
-        'stock.counts.create', 'stock.quarantine.index', 'stock.costs',
+        'stock.counts.create', 'stock.counts.quick', 'stock.quarantine.index', 'stock.costs',
     ] as $route) {
         expect($stockRoutes)->toContain($route)
             ->and(Route::has($route))->toBeTrue();
@@ -55,7 +55,8 @@ it('keeps inventory actions wired to existing authenticated Livewire workflows',
     }
 
     $count = file_get_contents(base_path('resources/views/livewire/pages/stock/stock-count-detail.blade.php'));
-    expect($count)->toContain('wire:model.live.debounce.300ms="productSearch"');
+    expect($count)->toContain('wire:model.live.debounce.300ms="productSearch"')
+        ->toContain('wire:submit.prevent="addProductByBarcode"');
 
     $quarantine = file_get_contents(base_path('resources/views/livewire/pages/stock/quarantine-control.blade.php'));
     expect($quarantine)->toContain('\\App\\Support\\Formatting\\TrFormatter::quantity')

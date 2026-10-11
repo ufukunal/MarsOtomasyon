@@ -216,6 +216,7 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/stok/hareketler', StockMovements::class)->name('stock.movements');
     Route::get('/stok/sayimlar', StockCountList::class)->name('stock.counts.index');
     Route::get('/stok/sayimlar/yeni', StockCountDetail::class)->name('stock.counts.create');
+    Route::get('/stok/hizli-sayim', StockCountDetail::class)->name('stock.counts.quick');
     Route::get('/stok/sayimlar/{id}', StockCountDetail::class)->name('stock.counts.show');
     Route::get('/stok/karantina', QuarantineControl::class)->name('stock.quarantine.index');
     Route::get('/stok/rezervasyonlar', ReservationList::class)->name('stock.reservations.index');

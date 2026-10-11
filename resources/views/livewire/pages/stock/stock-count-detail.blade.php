@@ -14,8 +14,12 @@
 <div class="stack" id="stock-document-lines">
     <div class="v65-stock-product-toolbar">
         <strong>Sayılacak Ürünler ({{ count($productIds) }} seçildi)</strong>
-        <input type="search" wire:model.live.debounce.300ms="productSearch" placeholder="Ürün kodu veya adı ile ara…" aria-label="Sayılacak ürün ara">
+        <form wire:submit.prevent="addProductByBarcode" class="form-row">
+            <input type="search" wire:model.live.debounce.300ms="productSearch" placeholder="Ürün kodu / barkod / ad ile ara…" aria-label="Sayılacak ürün ara" @if($quickMode) autofocus @endif>
+            <button type="submit" class="button-secondary">Kodu / Barkodu Ekle</button>
+        </form>
     </div>
+    @error('productSearch')<div class="field-error" role="alert">{{ $message }}</div>@enderror
     <div class="v65-stock-product-selector">
         @forelse($products as $product)
             <label><input type="checkbox" wire:model="productIds" value="{{ $product->id }}"> {{ $product->code }} · {{ $product->name }}</label>
@@ -27,7 +31,7 @@
 <div class="form-row"><button type="button" wire:click="saveDraft">Taslağı Kaydet</button>@if($count && auth()->user()?->can('stock_counts.update'))<button type="button" wire:click="start">Sayımı Başlat</button>@endif</div>
 @else
 <div class="alert alert-warning">Sayım sırasında bu lokasyonda hareket yapılmaması önerilir.</div>
-<div class="form-row"><strong>{{ $count->number ?: 'Henüz numara verilmedi' }}</strong><span>Durum: {{ $count->status }}</span><label><input type="checkbox" wire:model.live="differencesOnly"> Yalnızca farklıları göster</label></div>
+<div class="form-row" id="stock-document-details"><strong>{{ $count->number ?: 'Henüz numara verilmedi' }}</strong><span>Durum: {{ $count->status }}</span><label><input type="checkbox" wire:model.live="differencesOnly"> Yalnızca farklıları göster</label></div>
 <div class="table-scroll v65-grid-scroll" id="stock-document-lines"><table class="data-table"><thead><tr><th>Ürün</th><th>Sistem</th><th>Sayılan</th><th>Fark</th><th>Onay</th><th>Not</th><th></th></tr></thead><tbody>
 @foreach($countLines as $line)<tr>
 <td>{{ $line->product->code }} · {{ $line->product->name }}</td>

@@ -33,6 +33,7 @@ return [
             ['label' => 'Yeni Depo Transferi', 'route' => 'stock.transfers.create', 'permission' => 'transfers.create'],
             ['label' => 'Stok Sayımları', 'route' => 'stock.counts.index', 'permission' => 'stock_counts.view'],
             ['label' => 'Yeni Stok Sayımı', 'route' => 'stock.counts.create', 'permission' => 'stock_counts.create'],
+            ['label' => 'Hızlı Stok Sayımı', 'route' => 'stock.counts.quick', 'permission' => 'stock_counts.create'],
             ['label' => 'Karantina / Bloke', 'route' => 'stock.quarantine.index', 'permission' => 'quarantine.view'],
             ['label' => 'Stok Maliyeti', 'route' => 'stock.costs', 'permission' => 'cost.view', 'permission_secondary' => 'stock.view'],
             ['label' => 'Açılış Bakiyesi', 'route' => 'stock.opening.index', 'permission' => 'imports.create'],

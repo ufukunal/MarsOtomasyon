@@ -44,6 +44,8 @@ class StockCountDetail extends Component
 
     public string $productSearch = '';
 
+    public bool $quickMode = false;
+
     public string $startKey = '';
 
     public string $postKey = '';
@@ -54,6 +56,7 @@ class StockCountDetail extends Component
         abort_unless(auth()->user()?->can('stock_counts.view'), 403);
         $this->refreshKeys();
         $this->countDate = now()->toDateString();
+        $this->quickMode = request()->routeIs('stock.counts.quick');
 
         if ($id !== null) {
             $this->count = StockCount::query()->with(['location', 'lines.product'])->findOrFail($id);
@@ -65,6 +68,42 @@ class StockCountDetail extends Component
         abort_unless(auth()->user()->can('stock_counts.create'), 403);
     }
 
+    public function addProductByBarcode(): void
+    {
+        abort_unless(auth()->user()?->can('stock_counts.create'), 403);
+        abort_unless($this->count === null || $this->count->status === 'draft', 422);
+
+        $code = trim($this->productSearch);
+
+        if ($code === '') {
+            $this->addError('productSearch', 'Ürün kodu veya barkod girin.');
+
+            return;
+        }
+
+        $products = Product::query()
+            ->where('is_active', true)
+            ->where('kind', '!=', 'set')
+            ->where(fn ($query) => $query->where('barcode', $code)->orWhere('code', $code))
+            ->limit(2)
+            ->get();
+
+        if ($products->count() !== 1) {
+            $this->addError('productSearch', 'Barkod bulunamadı veya birden fazla ürünle eşleşiyor.');
+
+            return;
+        }
+
+        $id = (int) $products->first()->id;
+
+        if (! in_array($id, $this->productIds, true)) {
+            $this->productIds[] = $id;
+        }
+
+        $this->resetErrorBag('productSearch');
+        $this->productSearch = '';
+    }
+
     public function saveDraft(SaveStockCountDraft $action): void
     {
         $this->validate([
@@ -72,13 +111,14 @@ class StockCountDetail extends Component
             'productIds' => ['required', 'array', 'min:1'], 'productIds.*' => ['integer'],
         ]);
 
+        $wasNew = $this->count === null;
         $this->count = $this->runPeriodMutation('saveDraft', fn () => $action->handle([
             'location_id' => (int) $this->locationId, 'count_date' => $this->countDate,
             'note' => $this->note !== '' ? $this->note : null, 'product_ids' => array_map('intval', $this->productIds),
         ], $this->count));
         $this->loadCount();
 
-        if (request()->routeIs('stock.counts.create')) {
+        if ($wasNew) {
             $this->redirectRoute('stock.counts.show', ['id' => $this->count->id], navigate: false);
         }
     }
@@ -153,12 +193,13 @@ class StockCountDetail extends Component
                 ->when($this->productSearch !== '', fn ($query) => $query
                     ->where(fn ($items) => $items
                         ->where('code', 'ilike', '%'.$this->productSearch.'%')
-                        ->orWhere('name', 'ilike', '%'.$this->productSearch.'%')))
+                        ->orWhere('name', 'ilike', '%'.$this->productSearch.'%')
+                        ->orWhere('barcode', 'ilike', '%'.$this->productSearch.'%')))
                 ->orderBy('name')
                 ->limit(100)
                 ->get(),
             'countLines' => $lines?->get() ?? collect(),
-        ])->layout('layouts.app', ['pageTitle' => $this->count ? 'Stok Sayımı · '.($this->count->number ?: 'Taslak #'.$this->count->id) : 'Yeni Stok Sayımı']);
+        ])->layout('layouts.app', ['pageTitle' => $this->count ? 'Stok Sayımı · '.($this->count->number ?: 'Taslak #'.$this->count->id) : ($this->quickMode ? 'Hızlı Stok Sayımı' : 'Yeni Stok Sayımı')]);
     }
 
     private function loadCount(): void
