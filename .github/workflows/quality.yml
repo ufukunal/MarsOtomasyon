@@ -37,6 +37,8 @@ jobs:
         run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Frontend build
         run: npm run build
+      - name: Approved v65 UI contract checks
+        run: bash scripts/ci/test-ui-v65-contract.sh
       - name: Pint style validation
         run: vendor/bin/pint --test
       - name: Larastan static analysis
