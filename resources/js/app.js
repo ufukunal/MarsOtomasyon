@@ -158,3 +158,41 @@ document.addEventListener('input', (event) => {
         }
     }
 });
+
+
+// Search only links already authorized and rendered by Laravel.
+document.addEventListener('keydown', (event) => {
+    if (!(event.ctrlKey || event.metaKey) || event.key.toLowerCase() !== 'k') {
+        return;
+    }
+    const search = document.getElementById('global-screen-search')
+        ?? document.getElementById('menu-search');
+    if (search instanceof HTMLInputElement) {
+        event.preventDefault();
+        search.focus();
+        search.select();
+    }
+});
+document.addEventListener('input', (event) => {
+    if (!(event.target instanceof HTMLInputElement) || event.target.id !== 'global-screen-search') {
+        return;
+    }
+    const sidebarSearch = document.getElementById('menu-search');
+    if (sidebarSearch instanceof HTMLInputElement) {
+        sidebarSearch.value = event.target.value;
+        sidebarSearch.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+});
+document.addEventListener('keydown', (event) => {
+    const input = event.target;
+    if (event.key !== 'Enter' || !(input instanceof HTMLInputElement)
+        || !['menu-search', 'global-screen-search'].includes(input.id)) {
+        return;
+    }
+    const matches = Array.from(document.querySelectorAll('.navigation .nav-link'))
+        .filter((link) => !link.hidden && !link.closest('.nav-group[hidden]'));
+    if (matches.length === 1 && matches[0] instanceof HTMLAnchorElement) {
+        event.preventDefault();
+        matches[0].click();
+    }
+});

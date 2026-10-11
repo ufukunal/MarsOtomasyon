@@ -1,47 +1,46 @@
 <?php
 
+// UI groups follow approved v65; permissions and routes are preserved.
+// Only available, authorized modules appear. Never add fake prototype routes.
 return [
     [
-        'label' => 'Kartlar',
+        'label' => 'Ana Sayfa',
         'items' => [
-            ['label' => 'Lokasyonlar', 'route' => 'locations.index', 'permission' => 'locations.view'],
-            ['label' => 'Birimler', 'route' => 'units.index', 'permission' => 'units.view'],
+            ['label' => 'Ana Sayfa', 'route' => 'home', 'permission' => null],
+        ],
+    ],
+    [
+        'label' => 'Kişiler / Firmalar',
+        'items' => [
+            ['label' => 'Kişi/Firma Listesi', 'route' => 'contacts.index', 'permission' => 'contacts.view'],
+            ['label' => 'Başka Şirketten Aktar', 'route' => 'company-copy.index', 'permission' => 'company_copy_permissions.view'],
+        ],
+    ],
+    [
+        'label' => 'Ürünler ve Hizmetler',
+        'items' => [
+            ['label' => 'Ürün Listesi', 'route' => 'products.index', 'permission' => 'products.view'],
             ['label' => 'Kategoriler', 'route' => 'categories.index', 'permission' => 'product_categories.view'],
             ['label' => 'Markalar', 'route' => 'brands.index', 'permission' => 'brands.view'],
-            ['label' => 'Cariler', 'route' => 'contacts.index', 'permission' => 'contacts.view'],
-            ['label' => 'Ürünler', 'route' => 'products.index', 'permission' => 'products.view'],
             ['label' => 'Varyant Grupları', 'route' => 'variant-groups.detail', 'permission' => 'variant_groups.view'],
+            ['label' => 'Birimler', 'route' => 'units.index', 'permission' => 'units.view'],
             ['label' => 'Fiyat Listeleri', 'route' => 'price-lists.index', 'permission' => 'price_lists.view'],
-            ['label' => 'Başka Şirketten Aktar', 'route' => 'company-copy.index', 'permission' => 'company_copy_permissions.view'],
             ['label' => 'İçe Aktarma', 'route' => 'imports.index', 'permission' => 'imports.create'],
         ],
     ],
     [
-        'label' => 'Stok',
-        'items' => [
-            ['label' => 'Stok Durumu', 'route' => 'stock.status', 'permission' => 'stock.view'],
-            ['label' => 'Stok Hareketleri', 'route' => 'stock.movements', 'permission' => 'stock.view'],
-            ['label' => 'Transferler', 'route' => 'stock.transfers.index', 'permission' => 'transfers.view'],
-            ['label' => 'Ambar Fişleri', 'route' => 'stock.warehouse-slips.index', 'permission' => 'warehouse_slips.view'],
-            ['label' => 'Stok Sayımları', 'route' => 'stock.counts.index', 'permission' => 'stock_counts.view'],
-            ['label' => 'Karantina', 'route' => 'stock.quarantine.index', 'permission' => 'quarantine.view'],
-            ['label' => 'Rezervasyonlar', 'route' => 'stock.reservations.index', 'permission' => 'reservations.view'],
-            ['label' => 'Açılış Bakiyesi', 'route' => 'stock.opening.index', 'permission' => 'imports.create'],
-        ],
-    ],
-    [
-        'label' => 'Satış',
+        'label' => 'Satış Yönetimi',
         'items' => [
             ['label' => 'Teklifler', 'route' => 'sales.quotes.index', 'permission' => 'quotes.view'],
             ['label' => 'Satış Siparişleri', 'route' => 'sales.orders.index', 'permission' => 'sales_orders.view'],
-            ['label' => 'İrsaliyeler', 'route' => 'sales.dispatches.index', 'permission' => 'dispatches.view'],
+            ['label' => 'Sevkiyat / İrsaliyeler', 'route' => 'sales.dispatches.index', 'permission' => 'dispatches.view'],
             ['label' => 'Satış Faturaları', 'route' => 'sales.invoices.index', 'permission' => 'sales_invoices.view'],
             ['label' => 'Proformalar', 'route' => 'sales.proformas.index', 'permission' => 'proformas.view'],
             ['label' => 'Araç Sıcak Satış', 'route' => 'sales.vehicle-hot-sale', 'permission' => 'sales_invoices.create'],
         ],
     ],
     [
-        'label' => 'Alış',
+        'label' => 'Satınalma Yönetimi',
         'items' => [
             ['label' => 'Satınalma Siparişleri', 'route' => 'purchases.orders.index', 'permission' => 'purchase_orders.view'],
             ['label' => 'Mal Kabul', 'route' => 'purchases.receipts.index', 'permission' => 'goods_receipts.view'],
@@ -51,7 +50,21 @@ return [
         ],
     ],
     [
-        'label' => 'Finans',
+        'label' => 'Stok ve Depo',
+        'items' => [
+            ['label' => 'Stok Durumu', 'route' => 'stock.status', 'permission' => 'stock.view'],
+            ['label' => 'Stok Hareketleri', 'route' => 'stock.movements', 'permission' => 'stock.view'],
+            ['label' => 'Depolar / Lokasyonlar', 'route' => 'locations.index', 'permission' => 'locations.view'],
+            ['label' => 'Transferler', 'route' => 'stock.transfers.index', 'permission' => 'transfers.view'],
+            ['label' => 'Ambar Fişleri', 'route' => 'stock.warehouse-slips.index', 'permission' => 'warehouse_slips.view'],
+            ['label' => 'Stok Sayımları', 'route' => 'stock.counts.index', 'permission' => 'stock_counts.view'],
+            ['label' => 'Karantina', 'route' => 'stock.quarantine.index', 'permission' => 'quarantine.view'],
+            ['label' => 'Rezervasyonlar', 'route' => 'stock.reservations.index', 'permission' => 'reservations.view'],
+            ['label' => 'Açılış Bakiyesi', 'route' => 'stock.opening.index', 'permission' => 'imports.create'],
+        ],
+    ],
+    [
+        'label' => 'Finans İşlemleri',
         'items' => [
             ['label' => 'Tahsilat', 'route' => 'finance.collections.create', 'permission' => 'collections.view'],
             ['label' => 'Cari Borç / Alacak', 'route' => 'finance.contact-debit-credit', 'permission' => 'contacts.update'],
@@ -63,7 +76,7 @@ return [
         ],
     ],
     [
-        'label' => 'İadeler',
+        'label' => 'İade / RMA',
         'items' => [
             ['label' => 'İade Merkezi', 'route' => 'returns.center', 'permission' => 'returns.view'],
         ],
@@ -95,7 +108,7 @@ return [
         'items' => [
             ['label' => 'Rapor Merkezi', 'route' => 'reports.center', 'permission' => 'reports.view'],
             ['label' => 'Çok Dönemli Rapor', 'route' => 'reports.consolidated', 'permission' => 'reports.consolidated'],
-            ['label' => 'Export Merkezi', 'route' => 'reports.exports', 'permission' => 'reports.view'],
+            ['label' => 'Dışa Aktarma Merkezi', 'route' => 'reports.exports', 'permission' => 'reports.view'],
             ['label' => 'Belge Şablonları', 'route' => 'reports.templates', 'permission' => 'document_templates.view'],
             ['label' => 'Yazdırma Geçmişi', 'route' => 'reports.print-history', 'permission' => 'reports.view'],
         ],

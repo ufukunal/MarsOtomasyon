@@ -15,7 +15,7 @@
         ->map(function (array $group): array {
             $group['items'] = collect($group['items'] ?? [])
                 ->filter(fn (array $item): bool => auth()->check()
-                    && auth()->user()->can($item['permission'])
+                    && ($item['permission'] === null || auth()->user()->can($item['permission']))
                     && \Illuminate\Support\Facades\Route::has($item['route']))
                 ->values()
                 ->all();
@@ -34,8 +34,10 @@
     $activeTitle = $pageTitle ?? ($activeItem['label'] ?? 'Ana Sayfa');
     $activeSection = $activeGroup['label'] ?? 'Çalışma Alanı';
     $navigationIcons = [
-        'Kartlar' => '▦', 'Stok' => '◫', 'Satış' => '◴',
-        'Alış' => '◈', 'Finans' => '⌁', 'İadeler' => '↩',
+        'Ana Sayfa' => '⌂', 'Kişiler / Firmalar' => '◉',
+        'Ürünler ve Hizmetler' => '◈', 'Satış Yönetimi' => '◴',
+        'Satınalma Yönetimi' => '◉', 'Stok ve Depo' => '▦',
+        'Finans İşlemleri' => '₺', 'İade / RMA' => '↩',
         'İthalat' => '◇', 'Üretim' => '⚒', 'E-Ticaret' => '▣',
         'Raporlar' => '▤', 'Ayarlar' => '⚙',
     ];
@@ -77,7 +79,7 @@
                 </details>
             @endforeach
         </nav>
-        <div class="sidebar-foot">MarsProject · UAT</div>
+        <div class="sidebar-foot">{{ config('app.name') }} · Ön Muhasebe</div>
     </aside>
 
     <header class="topbar">
@@ -85,6 +87,11 @@
             <span>{{ $activeSection }}</span>
             <span aria-hidden="true">›</span>
             <strong>{{ $activeTitle }}</strong>
+        </div>
+        <div class="topbar-search" role="search">
+            <label class="sr-only" for="global-screen-search">Ekranlarda ara</label>
+            <input id="global-screen-search" type="search" autocomplete="off" placeholder="Ekran ara… (Ctrl+K)" aria-controls="menu-search">
+            <span aria-hidden="true">⌕</span>
         </div>
         <div class="topbar-context">
             @auth
