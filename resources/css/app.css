@@ -560,3 +560,28 @@ input,select,textarea{border-radius:6px}
 .content .panel>h1{margin:0 0 12px;font-size:17px}
 .content .panel>h2{margin:0 0 12px;font-size:14px}
 .content :is(.space-y-6,.space-y-8)>.form-row>h1{margin:0;font-size:17px}
+
+
+/* v65 common nested controls: one visual language across all modules */
+.content label:has(>select):not(.inline-check):not(.page-size-control):not(.table-filter),
+.content label:has(>textarea):not(.inline-check),
+.content label:has(>input:not([type="checkbox"])):not(.inline-check):not(.table-search){
+ display:grid;gap:5px;min-width:0;color:#40516b;font-size:11px;font-weight:650
+}
+.content label:has(>select):not(.page-size-control):not(.table-filter)>select,
+.content label:has(>textarea)>textarea,
+.content label:has(>input:not([type="checkbox"]))>input{min-width:0;max-width:100%;font-weight:400}
+.content :is(.panel,.stack)>.form-row>label{min-width:140px}
+.content .table-scroll :is(th,td){white-space:normal;overflow-wrap:anywhere}
+.content .data-table .row-actions{white-space:nowrap}
+.content .data-table .row-actions button{
+ min-height:28px;border:1px solid var(--line);color:var(--primary-600);
+ background:#fff;font-weight:650
+}
+.content .data-table .row-actions button:hover{background:var(--soft)}
+.content .data-table .sort-button:focus-visible{outline:2px solid var(--primary)}
+.content .table-footer [aria-current="page"]{border-color:var(--primary);color:var(--primary-600)}
+.content :is(.panel,.table-toolbar,.report-workspace) :is(input,select,textarea):focus{
+ border-color:var(--primary);box-shadow:0 0 0 2px rgba(22,119,168,.11)
+}
+@media(prefers-reduced-motion:reduce){.content *{transition:none}}
