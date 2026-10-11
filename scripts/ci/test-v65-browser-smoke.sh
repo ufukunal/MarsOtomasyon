@@ -91,3 +91,67 @@ if (probe.groups < 5 or probe.pageheads < 1 or probe.content < 1
     raise SystemExit('FAIL: v65 rendered blank/incomplete app. See screenshot and DOM artifact.')
 print('PASS: approved v65 renders navigation groups, page header, and nonempty dashboard in Chromium.')
 PY
+
+# Preserve separate canonical stock screens for module-by-module visual acceptance.
+# Fail if a route falls back to the blank dashboard instead of its expected screen.
+for stock_route in stock_status stock_movements warehouses transfer_list count_list warehouse_slip_list warehouse_slip_new; do
+  timeout 45s "$browser" --headless=new --no-sandbox --disable-gpu \
+    --disable-dev-shm-usage --disable-extensions --no-first-run \
+    --window-size=1440,900 --virtual-time-budget=8000 \
+    --screenshot="artifacts/v65-browser-${stock_route}.png" \
+    --dump-dom="http://127.0.0.1:18765/reference/marsotomasyon-PROTOTIP-ONAYLI-v65.html#${stock_route}" \
+    >"artifacts/v65-browser-${stock_route}-dom.html" \
+    2>"artifacts/v65-browser-${stock_route}-stderr.log" || {
+      echo "FAIL: Chromium could not render stock route ${stock_route}" >&2
+      exit 1
+    }
+done
+python3 - <<'PY_STOCK'
+from html.parser import HTMLParser
+from pathlib import Path
+
+routes = {
+    'stock_status': 'Stok Durumu',
+    'stock_movements': 'Stok Hareketleri',
+    'warehouses': 'Depolar',
+    'transfer_list': 'Depo Transferleri',
+    'count_list': 'Stok Sayımları',
+    'warehouse_slip_list': 'Ambar Fişleri',
+    'warehouse_slip_new': 'Yeni Ambar Fişi',
+}
+
+class MainText(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.inside = False
+        self.depth = 0
+        self.words = []
+
+    def handle_starttag(self, tag, attrs):
+        if self.inside:
+            self.depth += 1
+        elif dict(attrs).get('id') == 'main':
+            self.inside = True
+            self.depth = 1
+
+    def handle_endtag(self, tag):
+        if self.inside and tag not in {'meta', 'br', 'img', 'input', 'link', 'hr'}:
+            self.depth -= 1
+            if self.depth <= 0:
+                self.inside = False
+
+    def handle_data(self, data):
+        if self.inside:
+            self.words.append(data)
+
+for route, title in routes.items():
+    page = Path(f'artifacts/v65-browser-{route}-dom.html').read_text()
+    parser = MainText()
+    parser.feed(page)
+    visible_text = ' '.join(parser.words).strip()
+    if title not in visible_text or len(visible_text) < 90:
+        raise SystemExit(f'FAIL: {route} did not render expected screen: {visible_text[:220]!r}')
+    if not Path(f'artifacts/v65-browser-{route}.png').is_file():
+        raise SystemExit(f'FAIL: missing screenshot for {route}')
+    print(f'PASS: v65 {route} rendered; main text length={len(visible_text)}')
+PY_STOCK
