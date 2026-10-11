@@ -441,3 +441,26 @@ input,select,textarea{border-radius:6px}
 .wizard .context-preview{padding:12px;border-radius:7px;background:#f2f8fb}
 @media(max-width:900px){.topbar-search{display:none}}
 @media(max-width:640px){.wizard-form-grid{grid-template-columns:1fr}.wizard-form-grid .span-2{grid-column:auto}.guest-body{padding:10px}.guest-card{margin:8px auto;padding:18px}}
+
+
+/* v65 sales and purchasing workspace components */
+.document-workspace{gap:12px}
+.document-workspace>div:first-child{padding:12px 15px;background:#fff;border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow-sm)}
+.document-workspace>div:first-child h2{font-size:16px;margin:3px 0}
+.document-editor-form{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;padding:15px;background:#fff;border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow-sm)}
+.document-editor-form>label{display:grid;gap:6px;align-content:start;font-size:11px;font-weight:650;color:#40516b}
+.document-editor-form>label:first-child,.document-editor-form>label:has(textarea){grid-column:span 2}
+.document-editor-form>label>input,.document-editor-form>label>select,.document-editor-form>label>textarea{width:100%;min-width:0;font-weight:400}
+.document-editor-form>label>textarea{min-height:70px}
+.document-editor-form>div:has(>label>input[wire\\:model="bulkVatRate"]){grid-column:1/-1;display:flex;align-items:end;gap:8px;flex-wrap:wrap;padding:10px 0;border-top:1px solid var(--line2)}
+.document-editor-form>div:has(>label>input[wire\\:model="bulkVatRate"]) label{display:grid;gap:5px;min-width:120px}
+.document-editor-form>.document-lines{grid-column:1/-1;overflow:auto}
+.document-editor-form .document-lines table{min-width:920px}
+.document-editor-form .document-lines :is(input,select){min-width:65px;width:100%;height:32px}
+.document-editor-form>button{justify-self:start}
+.document-actions{display:flex;align-items:center;flex-wrap:wrap;gap:10px}
+.document-actions>label{display:grid;gap:5px}
+.document-actions>label:has(input[type="checkbox"]){display:flex;align-items:center}
+.document-actions>div{min-width:0;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+@media(max-width:1100px){.document-editor-form{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:640px){.document-editor-form{grid-template-columns:1fr}.document-editor-form>label:first-child,.document-editor-form>label:has(textarea){grid-column:auto}}

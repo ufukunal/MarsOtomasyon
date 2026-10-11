@@ -1,15 +1,15 @@
-<div class="space-y-6">
+<div class="document-workspace stack">
     @php($isGoodsReceipt = $document?->document_type === \App\Enums\DocumentType::GoodsReceipt)
 
     <div>
-        <h1>{{ $title }}</h1>
+        <span class="page-category">Satınalma Yönetimi</span><h2>{{ $title }}</h2>
         @if($document)
             <div>{{ $document->number ?? 'Taslak' }} · {{ $document->status }}</div>
         @endif
     </div>
 
     @if(!$document || $document->status === 'draft')
-        <form wire:submit="save" class="space-y-4">
+        <form wire:submit="save" class="document-editor-form">
             <label>Tedarikçi
                 <select wire:model="contactId">
                     <option value="">Seçin</option>
@@ -37,7 +37,7 @@
                 </div>
             @endif
 
-            <table>
+            <div class="table-scroll document-lines"><table class="data-table">
                 <thead>
                 <tr>
                     <th>Tür</th><th>Ürün</th><th>Birim</th><th>Miktar</th><th>Lokasyon</th>
@@ -83,7 +83,7 @@
                                 </select>
                             @endif
                         </td>
-                        <td><input wire:model="lines.{{ $index }}.quantity"></td>
+                        <td><input wire:model="lines.{{ $index }}.quantity" inputmode="decimal" aria-label="Satır {{ $index + 1 }} miktar"></td>
                         <td>
                             <select wire:model="lines.{{ $index }}.location_id">
                                 <option value="">Seçin</option>
@@ -93,25 +93,25 @@
                             </select>
                         </td>
                         @if(!$isGoodsReceipt)
-                            <td><input wire:model="lines.{{ $index }}.unit_price"></td>
-                            <td><input wire:model="lines.{{ $index }}.line_discount_rate"></td>
-                            <td><input wire:model="lines.{{ $index }}.vat_rate"></td>
+                            <td><input wire:model="lines.{{ $index }}.unit_price" inputmode="decimal" aria-label="Satır {{ $index + 1 }} birim fiyat"></td>
+                            <td><input wire:model="lines.{{ $index }}.line_discount_rate" inputmode="decimal" aria-label="Satır {{ $index + 1 }} iskonto"></td>
+                            <td><input wire:model="lines.{{ $index }}.vat_rate" inputmode="decimal" aria-label="Satır {{ $index + 1 }} KDV"></td>
                             <td><button type="button" wire:click="removeLine({{ $index }})">Sil</button></td>
                         @endif
                     </tr>
                 @endforeach
                 </tbody>
-            </table>
+            </table></div>
 
             @if(!$isGoodsReceipt)
                 <button type="button" wire:click="addLine">Satır Ekle</button>
             @endif
-            <button type="submit">Kaydet</button>
+            <button type="submit" wire:loading.attr="disabled" wire:target="save">Kaydet</button>
         </form>
     @endif
 
     @if($document)
-        <div class="space-y-3">
+        <div class="document-actions panel">
             @if(method_exists($this, 'submitApproval') && $document->status === 'draft')
                 <button type="button" wire:click="submitApproval">Onaya Gönder</button>
             @endif
@@ -169,8 +169,8 @@
             @endif
 
             @if(method_exists($this, 'reverse') && $document->status === 'posted')
-                <input type="date" wire:model="reversalDate">
-                <input wire:model="reversalReason" placeholder="Ters kayıt gerekçesi">
+                <label class="field"><span class="field-label">Ters Kayıt Tarihi</span><input type="date" wire:model="reversalDate"></label>
+                <label class="field"><span class="field-label">Ters Kayıt Gerekçesi</span><input wire:model="reversalReason"></label>
                 <button type="button" wire:click="reverse">Ters Kayıt</button>
             @endif
 
