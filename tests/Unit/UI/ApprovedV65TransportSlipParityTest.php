@@ -1,8 +1,5 @@
 <?php
 
-use App\Models\Period\Contact;
-use App\Models\Period\TransportSlip;
-use App\Models\Period\TransportSlipItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Validator;
@@ -277,28 +274,38 @@ it('defers transport slip database lookup until after period context is initiali
         ->not->toContain('public function __invoke(TransportSlip $slip');
 });
 
-it('renders both saved-slip format templates from period-free transport fixture', function (): void {
-    $slip = new TransportSlip([
+it('renders both A4 halves and carton labels without requiring a database', function (): void {
+    $slip = (object) [
         'number' => 'AF-2026-00001',
-        'slip_date' => '2026-10-12',
+        'slip_date' => new DateTimeImmutable('2026-10-12'),
         'shipping_type' => 'Ambar',
         'carrier' => 'Test Ambar',
         'destination_warehouse' => 'Ankara',
         'package_count' => 3,
+        'weight_kg' => '0.00',
+        'tracking_number' => '',
+        'order_reference' => '',
+        'dispatch_reference' => '',
         'delivery_company' => 'Deneme Ltd',
+        'delivery_person' => '',
         'delivery_phone' => '03120000000',
         'delivery_city' => 'Ankara',
         'delivery_district' => 'Çankaya',
         'delivery_address' => 'Test adresi',
-    ]);
-    $slip->setRelation('contact', new Contact(['code' => 'CR001', 'title' => 'Deneme Ltd']));
-    $item = new TransportSlipItem(['quantity' => '2.000']);
-    $item->setRelation('product', null);
-    $slip->setRelation('items', collect([$item]));
+        'note' => '',
+        'contact' => (object) ['code' => 'CR001', 'title' => 'Deneme Ltd'],
+        'items' => collect([(object) [
+            'quantity' => '2.000',
+            'product' => (object) [
+                'code' => 'UR001', 'name' => 'Test Ürün',
+                'unit' => (object) ['name' => 'Adet'],
+            ],
+        ]]),
+    ];
 
     $data = ['slip' => $slip, 'warnings' => 'KIRILABİLİR', 'autoprint' => false];
-
     $html = view('printing.transport-slip', [...$data, 'format' => 'slip'])->render();
+
     expect(substr_count($html, '<h1>AMBAR FİŞİ</h1>'))->toBe(2)
         ->and($html)->toContain('AF-2026-00001')
         ->toContain('12.10.2026')
