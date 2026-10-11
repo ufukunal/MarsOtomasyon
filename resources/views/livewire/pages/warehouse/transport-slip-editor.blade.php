@@ -164,42 +164,52 @@
 
 
 
-        <div class="wsl-footer">
-            <a class="button-secondary" href="{{ route('warehouse.transport.index') }}">← Listeye Dön</a>
-            <div class="wsl-grow"></div>
-            <button type="button" class="button-secondary" wire:click="openPreview('slip')">Fiş Önizle</button>
-            @if($mode === 'detail' && $slip)
-                <a class="button-secondary" data-wsl-print-slip target="_blank" rel="noopener" href="{{ route('warehouse.transport.print', ['slip' => $slip->id, 'format' => 'slip', 'autoprint' => 1]) }}">Fiş Yazdır / PDF</a>
-            @else
-                <button type="button" class="button-secondary" data-wsl-print-slip wire:click="openPreview('slip', true)">Fiş Yazdır / PDF</button>
-            @endif
-            <button type="button" class="button-secondary" wire:click="openPreview('labels')">Etiket Önizle</button>
-            @if($mode === 'detail' && $slip)
-                <a class="button-secondary" target="_blank" rel="noopener" href="{{ route('warehouse.transport.print', ['slip' => $slip->id, 'format' => 'labels', 'autoprint' => 1]) }}">Etiket Yazdır</a>
-            @else
-                <button type="button" class="button-secondary" wire:click="openPreview('labels', true)">Etiket Yazdır</button>
-            @endif
-            @if($mode === 'detail' && $slip)
-                @can('warehouse_slips.create')
-                    <button type="button" wire:click="duplicate" class="button-secondary">Kopyala</button>
-                @endcan
-                @if(in_array($slip->status, ['draft', 'ready'], true))
-                    @can('warehouse_slips.update')
-                        <a class="button-link" href="{{ route('warehouse.transport.edit', ['id' => $slip->id]) }}">Düzenle</a>
-                    @endcan
+        <div class="wsl-footer" role="group" aria-label="Ambar fişi işlemleri">
+            <a class="wsl-footer-back" href="{{ route('warehouse.transport.index') }}">← Listeye Dön</a>
+            <div class="wsl-footer-right">
+                <div class="wsl-footer-group wsl-footer-group-print" role="group" aria-label="Baskı işlemleri">
+                    <div class="wsl-footer-pair" role="group" aria-label="Fiş">
+                        <button type="button" class="wsl-footer-btn" wire:click="openPreview('slip')">Fiş Önizle</button>
+                        @if($mode === 'detail' && $slip)
+                            <a class="wsl-footer-btn" data-wsl-print-slip target="_blank" rel="noopener" href="{{ route('warehouse.transport.print', ['slip' => $slip->id, 'format' => 'slip', 'autoprint' => 1]) }}">Fiş Yazdır / PDF</a>
+                        @else
+                            <button type="button" class="wsl-footer-btn" data-wsl-print-slip wire:click="openPreview('slip', true)">Fiş Yazdır / PDF</button>
+                        @endif
+                    </div>
+                    <span class="wsl-footer-divider" aria-hidden="true"></span>
+                    <div class="wsl-footer-pair" role="group" aria-label="Etiket">
+                        <button type="button" class="wsl-footer-btn" wire:click="openPreview('labels')">Etiket Önizle</button>
+                        @if($mode === 'detail' && $slip)
+                            <a class="wsl-footer-btn" target="_blank" rel="noopener" href="{{ route('warehouse.transport.print', ['slip' => $slip->id, 'format' => 'labels', 'autoprint' => 1]) }}">Etiket Yazdır</a>
+                        @else
+                            <button type="button" class="wsl-footer-btn" wire:click="openPreview('labels', true)">Etiket Yazdır</button>
+                        @endif
+                    </div>
+                </div>
+                @if($mode === 'detail' && $slip)
+                    <div class="wsl-footer-group wsl-footer-group-document" role="group" aria-label="Belge işlemleri">
+                        @can('warehouse_slips.create')
+                            <button type="button" class="wsl-footer-btn" wire:click="duplicate">Kopyala</button>
+                        @endcan
+                        @if(in_array($slip->status, ['draft', 'ready'], true))
+                            @can('warehouse_slips.update')
+                                <a class="wsl-footer-btn" href="{{ route('warehouse.transport.edit', ['id' => $slip->id]) }}">Düzenle</a>
+                            @endcan
+                        @endif
+                        @if(in_array($slip->status, ['draft', 'ready', 'handed_over'], true))
+                            @can('warehouse_slips.update')
+                                <button type="button" class="wsl-footer-btn wsl-footer-btn-primary" wire:click="advance">{{ ['draft' => 'Hazır', 'ready' => 'Ambara Teslim', 'handed_over' => 'Tamamlandı'][$slip->status] }}</button>
+                            @endcan
+                            @can('warehouse_slips.cancel')
+                                <button type="button" class="wsl-footer-btn wsl-footer-btn-danger" wire:confirm="Bu ambar fişi iptal edilecek. Devam edilsin mi?" wire:click="cancel">İptal</button>
+                            @endcan
+                        @endif
+                    </div>
                 @endif
-                @if(in_array($slip->status, ['draft', 'ready', 'handed_over'], true))
-                    @can('warehouse_slips.update')
-                        <button type="button" class="button-link" wire:click="advance">{{ ['draft' => 'Hazır', 'ready' => 'Ambara Teslim', 'handed_over' => 'Tamamlandı'][$slip->status] }}</button>
-                    @endcan
-                    @can('warehouse_slips.cancel')
-                        <button type="button" class="button-secondary" wire:confirm="Bu ambar fişi iptal edilecek. Devam edilsin mi?" wire:click="cancel">İptal</button>
-                    @endcan
-                @endif
-            @endif
-            @unless($readonly)
-                <button type="submit" class="button-link">Kaydet</button>
-            @endunless
+                @unless($readonly)
+                    <button type="submit" class="wsl-footer-btn wsl-footer-btn-primary">Kaydet</button>
+                @endunless
+            </div>
         </div>
     </form>
     @error('preview')<p class="alert alert-warning">{{ $message }}</p>@enderror

@@ -323,3 +323,28 @@ it('renders both A4 halves and carton labels without requiring a database', func
         ->and($labels)->toContain('1/3')
         ->toContain('3/3');
 });
+
+it('groups the warehouse footer actions consistently without changing Livewire behavior', function (): void {
+    $view = file_get_contents(base_path('resources/views/livewire/pages/warehouse/transport-slip-editor.blade.php'));
+    $css = file_get_contents(base_path('resources/css/v65-warehouse.css'));
+
+    expect($view)->toContain('class="wsl-footer-right"')
+        ->toContain('wsl-footer-group-print')
+        ->toContain('wsl-footer-group-document')
+        ->toContain('aria-label="Fiş"')
+        ->toContain('aria-label="Etiket"')
+        ->toContain("wire:click=\"openPreview('slip')\"")
+        ->toContain("wire:click=\"openPreview('slip', true)\"")
+        ->toContain("wire:click=\"openPreview('labels')\"")
+        ->toContain("wire:click=\"openPreview('labels', true)\"")
+        ->toContain('data-wsl-print-slip')
+        ->toContain('wire:click="duplicate"')
+        ->toContain('wire:click="advance"')
+        ->toContain('wire:click="cancel"')
+        ->toContain('wire:confirm="Bu ambar fişi iptal edilecek.')
+        ->toContain('type="submit" class="wsl-footer-btn wsl-footer-btn-primary"')
+        ->and($css)->toContain('.wsl-footer .wsl-footer-btn')
+        ->toContain('.wsl-footer-group-print')
+        ->toContain('.wsl-footer-btn-danger')
+        ->toContain('@media(max-width:610px)');
+});
