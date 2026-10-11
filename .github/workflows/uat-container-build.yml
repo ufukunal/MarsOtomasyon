@@ -16,8 +16,8 @@ concurrency:
   cancel-in-progress: true
 jobs:
   build-and-verify:
-    name: R4 - Docker UAT image build (no production access)
-    runs-on: [self-hosted, Linux, mars-ubuntu, mars-r4]
+    name: GitHub-hosted - UAT Docker image validation
+    runs-on: ubuntu-latest
     timeout-minutes: 50
     env:
       IMAGE_TAG: mars-uat-ci:${{ github.sha }}
@@ -27,8 +27,8 @@ jobs:
         shell: bash
         run: |
           set -Eeuo pipefail
-          command -v docker >/dev/null || { echo "BLOCKED: Docker CLI not installed on R4" >&2; exit 77; }
-          docker info >/dev/null || { echo "BLOCKED: Docker Engine not available to R4" >&2; exit 77; }
+          command -v docker >/dev/null || { echo "BLOCKED: Docker CLI not installed" >&2; exit 77; }
+          docker info >/dev/null || { echo "BLOCKED: Docker Engine unavailable" >&2; exit 77; }
           docker compose version
       - name: Check UAT runtime scripts syntax
         run: bash -n ops/uat-preflight.sh scripts/ci/uat-container-smoke.sh
