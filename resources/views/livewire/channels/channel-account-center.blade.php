@@ -4,7 +4,6 @@
 
     <section class="panel v65-list-panel">
         <div class="form-row">
-            <h1>Kanal Hesapları</h1>
             @can('channel_accounts.create')
                 <button type="button" wire:click="newAccount">Yeni Hesap</button>
             @endcan
@@ -27,7 +26,7 @@
         </table></div>
     </section>
 
-    <section class="panel stack v65-editor-panel">
+    <section class="panel stack v65-editor-panel v65-workspace-form">
         <h2>{{ $selectedAccountId ? 'Kanal Hesabını Düzenle' : 'Yeni Kanal Hesabı' }}</h2>
         <label>Platform
             <select wire:model="platform" @disabled($selectedAccountId)>
@@ -45,7 +44,7 @@
         <small>Credential değerleri kaydedildikten sonra ekrana geri basılmaz.</small>
         <label>Adapter Settings JSON <textarea wire:model="settingsJson"></textarea></label>
         <small>Token, secret, password ve API key gibi hassas değerler settings alanına kabul edilmez; Credential JSON kullanılmalıdır.</small>
-        <label><input type="checkbox" wire:model="isActive"> Aktif</label>
+        <label class="inline-check"><input type="checkbox" wire:model="isActive"> Aktif</label>
 
         @canany(['channel_accounts.create','channel_accounts.update'])
             <button type="button" wire:click="save">Kaydet</button>

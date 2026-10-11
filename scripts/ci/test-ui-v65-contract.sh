@@ -36,6 +36,25 @@ for view in \
     echo "FAIL: v65 responsive table wrapper missing: $view" >&2; exit 1;
   }
 done
+# Catch regressions observed during the live UAT visual review.
+for view in \
+  resources/views/livewire/returns/return-center.blade.php \
+  resources/views/livewire/imports/import-center.blade.php \
+  resources/views/livewire/channels/channel-account-center.blade.php \
+  resources/views/livewire/finance/finance-operation-center.blade.php; do
+  grep -Fq 'v65-workspace-form' "$view" || {
+    echo "FAIL: aligned v65 form missing: $view" >&2; exit 1;
+  }
+done
+grep -Fq '.dashboard-grid{grid-template-columns:repeat(5,minmax(0,1fr))}' "$css" || {
+ echo 'FAIL: KPI cards must not run into one endless row' >&2; exit 1;
+}
+grep -Fq '.v65-grid-scroll>.data-table th{height:34px' "$css" || {
+ echo 'FAIL: data-grid heading layout missing' >&2; exit 1;
+}
+if grep -Fq '.content label:has(>select):not(' "$css"; then
+ echo 'FAIL: broad label selectors are prohibited; scope by screen' >&2; exit 1
+fi
 # Prevent accidental unsafe replacement of the approved prototype.
 grep -Fq 'PROTOTIP ONAYLI v65' "$prototype"
 echo 'PASS: approved v65 shared UI contracts and single-theme rules'

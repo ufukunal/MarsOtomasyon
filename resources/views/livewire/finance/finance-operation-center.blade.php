@@ -1,7 +1,6 @@
 <div class="space-y-8">
-    <h1>Finans İşlemleri</h1>
 
-    <section class="space-y-3">
+    <section class="panel stack v65-workspace-form">
         <h2>Manuel Kasa / Banka Hareketi</h2>
         <label>Tarih <input type="date" wire:model="date"></label>
         <label>Hesap Türü
@@ -46,7 +45,7 @@
         <button type="button" wire:click="postManual">Hareketi Kesinleştir</button>
     </section>
 
-    <section class="space-y-3">
+    <section class="panel stack v65-workspace-form">
         <h2>Virman</h2>
         <label>Kaynak Tür
             <select wire:model="transferSourceType">
@@ -85,7 +84,7 @@
         <p>Virman aynı para birimli hesaplar arasında yapılır; döviz hesabı virmanı kur dönüşümü yapmaz.</p>
     </section>
 
-    <section class="space-y-3">
+    <section class="panel stack v65-workspace-form">
         <h2>Gider</h2>
         <label>Gider Türü <input wire:model="expenseCategory"></label>
         <label>Net Tutar <input wire:model="expenseNet"></label>
@@ -108,7 +107,7 @@
         <button type="button" wire:click="postExpense">Gideri Kesinleştir</button>
     </section>
 
-    <section class="space-y-3">
+    <section class="panel stack v65-workspace-form">
         <h2>Avans</h2>
         <label>İşlem
             <select wire:model="advanceOperation">
@@ -143,7 +142,7 @@
         <button type="button" wire:click="postAdvance">Avans İşlemini Kesinleştir</button>
     </section>
 
-    <section class="space-y-3">
+    <section class="panel stack v65-workspace-form">
         <h2>Ters Kayıt</h2>
         <label>Tarih <input type="date" wire:model="reversalDate"></label>
         <label>Gerekçe <input wire:model="reversalReason"></label>
@@ -178,7 +177,7 @@
         </div>
     </section>
 
-    <section>
+    <section class="panel stack">
         <h2>Son Kasa Hareketleri</h2>
         <table>
             <thead><tr><th>ID</th><th>Tarih</th><th>Tür</th><th>Yön</th><th>Tutar</th><th>Referans</th><th>Grup</th></tr></thead>
@@ -198,7 +197,7 @@
         </table>
     </section>
 
-    <section>
+    <section class="panel stack">
         <h2>Son Banka Defter Hareketleri</h2>
         <table>
             <thead><tr><th>ID</th><th>Tarih</th><th>Tür</th><th>Yön</th><th>Tutar</th><th>Referans</th><th>Grup</th></tr></thead>

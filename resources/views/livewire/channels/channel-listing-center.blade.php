@@ -3,7 +3,6 @@
 
     <section class="panel v65-list-panel">
         <div class="form-row">
-            <h1>Kanal Ürün Listingleri</h1>
             @can('channel_listings.create')
                 <button type="button" wire:click="newListing">Yeni Mapping</button>
             @endcan
@@ -26,7 +25,7 @@
         </table></div>
     </section>
 
-    <section class="panel stack v65-editor-panel">
+    <section class="panel stack v65-editor-panel v65-workspace-form">
         <h2>{{ $selectedListingId ? 'Listing Mapping Düzenle' : 'Yeni Listing Mapping' }}</h2>
         <label>Kanal Hesabı
             <select wire:model="channelAccountId" @disabled($selectedListingId)>

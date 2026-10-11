@@ -1,6 +1,5 @@
 <div class="space-y-6">
     <div class="form-row page-header-actions">
-        <h1>İthalat Merkezi</h1>
         @can('import_shipments.create')
             <button type="button" wire:click="newFile">Yeni İthalat Dosyası</button>
         @endcan
@@ -8,7 +7,7 @@
 
     @can('import_shipments.create')
         @if($sourcePeriods->isNotEmpty())
-            <section class="space-y-3">
+            <section class="panel stack v65-workspace-form">
                 <h2>Önceki Dönemden Açık İthalat Taşı</h2>
                 <label>Kaynak Dönem
                     <select wire:model.live="carrySourcePeriodId">
@@ -38,7 +37,7 @@
         @endif
     @endcan
 
-    <section>
+    <section class="panel stack">
         <h2>İthalat Dosyaları</h2>
         <table>
             <thead><tr><th>No</th><th>Tedarikçi</th><th>Ülke</th><th>ETD</th><th>ETA</th><th>PB</th><th>Kur</th><th>Durum</th><th></th></tr></thead>
@@ -60,7 +59,7 @@
         </table>
     </section>
 
-    <section class="space-y-3">
+    <section class="panel stack v65-workspace-form">
         <h2>{{ $file?->number ?? 'Yeni İthalat Dosyası' }}</h2>
         @if($file?->source_period_id)
             <div>
@@ -108,7 +107,7 @@
     </section>
 
     @if($file)
-        <section class="space-y-3">
+        <section class="panel stack v65-workspace-form">
             <h2>Konteynerler</h2>
             @if(!$file->isLocked())
                 @can('import_shipments.update')
@@ -149,7 +148,7 @@
             </table>
         </section>
 
-        <section class="space-y-3">
+        <section class="panel stack v65-workspace-form">
             <h2>Koli / Parça Eşleştirme</h2>
             @if(!$file->isLocked())
                 @can('import_shipments.update')
@@ -210,7 +209,7 @@
             </table>
         </section>
 
-        <section class="space-y-3">
+        <section class="panel stack v65-workspace-form">
             <h2>Maliyet Kalemleri</h2>
             @if(!$file->isLocked())
                 @can('import_shipments.update')
@@ -267,7 +266,7 @@
         </section>
 
         @if($fileProfitability)
-            <section class="space-y-3">
+            <section class="panel stack v65-workspace-form">
                 <h2>Dosya Kârlılığı / Satış Sonucu</h2>
                 <div>
                     Satış: {{ $fileProfitability['sales_try'] }} TRY ·
@@ -294,7 +293,7 @@
                 </table>
             </section>
 
-            <section>
+            <section class="panel stack">
                 <h2>Konteyner Kârlılığı</h2>
                 <table>
                     <thead><tr><th>Konteyner</th><th>Satış</th><th>Maliyet</th><th>Kâr</th><th>Marj</th><th>Atıf Esası</th></tr></thead>

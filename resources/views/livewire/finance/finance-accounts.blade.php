@@ -1,7 +1,6 @@
 <div class="space-y-6">
-    <h1>Kasa / Banka Hesapları</h1>
 
-    <section class="panel stack">
+    <section class="panel stack v65-workspace-form">
         <h2>Kasa</h2>
         @can('cash_accounts.create')
             <div>
@@ -39,7 +38,7 @@
         </table>
     </section>
 
-    <section class="panel stack">
+    <section class="panel stack v65-workspace-form">
         <h2>Banka</h2>
         @can('bank_accounts.create')
             <div>

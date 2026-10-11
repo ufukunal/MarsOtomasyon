@@ -1,6 +1,5 @@
 <div class="stack v65-sales-list">
     <div class="form-row v65-list-heading">
-        <h1>{{ $title }}</h1>
         @if($createRoute)
             <a class="button-link table-add-action" href="{{ route($createRoute) }}">+ Yeni</a>
         @endif

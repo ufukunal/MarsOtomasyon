@@ -1,6 +1,6 @@
 <div class="stack">
     @can('product_categories.create')
-        <div><a class="button-link" href="{{ route('categories.create') }}">Yeni Kategori</a></div>
+        <div class="v65-page-actions"><a class="button-link table-add-action" href="{{ route('categories.create') }}">+ Yeni Kategori</a></div>
     @endcan
 
     <section class="panel category-tree">
@@ -39,7 +39,7 @@
                 @endforeach
             </div>
         @empty
-            <p>Kategori bulunamadı.</p>
+            <div class="v65-category-empty"><p>Henüz kategori kaydı bulunmuyor.</p></div>
         @endforelse
     </section>
 </div>

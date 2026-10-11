@@ -1,7 +1,6 @@
 <div class="space-y-6">
-    <h1>İade Merkezi</h1>
 
-    <section class="panel stack">
+    <section class="panel stack v65-workspace-form">
         <label>İade Türü
             <select wire:model.live="type">
                 <option value="sales_return">Satış İadesi</option>
@@ -57,7 +56,7 @@
     </section>
 
     @if($selectedReturn)
-        <section class="space-y-3">
+        <section class="panel stack v65-workspace-form">
             <h2>{{ $selectedReturn->number ?? 'Taslak' }} · {{ $selectedReturn->document_type->value }} · {{ $selectedReturn->status }}</h2>
             <div>Cari: {{ $selectedReturn->contact?->title }}</div>
             <div>Tutar: {{ $selectedReturn->grand_total }} {{ $selectedReturn->currency }}</div>
@@ -80,7 +79,7 @@
         </section>
     @endif
 
-    <section>
+    <section class="panel stack">
         <h2>İade Geçmişi</h2>
         <table>
             <thead><tr><th>No</th><th>Tür</th><th>Cari</th><th>Tarih</th><th>Tutar</th><th>Durum</th><th></th></tr></thead>
