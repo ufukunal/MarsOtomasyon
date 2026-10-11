@@ -20,7 +20,7 @@ OWNER_PASSWORD="$(sed -n 's/^MARS_UAT_PG_OWNER_PASSWORD=//p' "$ENV")"
 test -n "$OWNER_PASSWORD"
 export DB_PASSWORD="$OWNER_PASSWORD"
 unset OWNER_PASSWORD
-sudo docker compose --env-file "$ENV" -f "$DIR/compose.uat.lab.yml" --profile application run --rm -T --no-deps -e DB_USERNAME=mars_uat_owner -e DB_PASSWORD -e DB_PERIOD_DATABASE=mars_uat_demo_2026 --entrypoint php web artisan migrate --database=period --path=database/migrations/period/0001_12_01_000010_create_transport_slips_tables.php --force
+sudo --preserve-env=DB_PASSWORD docker compose --env-file "$ENV" -f "$DIR/compose.uat.lab.yml" --profile application run --rm -T --no-deps -e DB_USERNAME=mars_uat_owner -e DB_PASSWORD -e DB_PERIOD_DATABASE=mars_uat_demo_2026 --entrypoint php web artisan migrate --database=period --path=database/migrations/period/0001_12_01_000010_create_transport_slips_tables.php --force
 unset DB_PASSWORD
 sudo docker exec -u postgres "$PGID" psql -X -w -v ON_ERROR_STOP=1 -U mars_uat_owner -d mars_uat_demo_2026 -c 'GRANT SELECT, INSERT, UPDATE, DELETE ON transport_slips, transport_slip_items TO mars_uat_app; GRANT USAGE, SELECT ON SEQUENCE transport_slips_id_seq, transport_slip_items_id_seq TO mars_uat_app;'
 echo 'PASS: isolated NOYA transport slip migration'

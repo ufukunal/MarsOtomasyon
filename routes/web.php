@@ -63,6 +63,8 @@ use App\Livewire\Pages\Stock\TransferDetail;
 use App\Livewire\Pages\Stock\TransferList;
 use App\Livewire\Pages\Stock\WarehouseSlipDetail;
 use App\Livewire\Pages\Stock\WarehouseSlipList;
+use App\Livewire\Pages\Warehouse\TransportSlipEditor;
+use App\Livewire\Pages\Warehouse\TransportSlipList;
 use App\Livewire\Production\ProductionOrderCenter;
 use App\Livewire\Production\RecipeCenter;
 use App\Livewire\Production\SubcontractingCenter;
@@ -92,8 +94,6 @@ use App\Livewire\Sales\SalesInvoiceList;
 use App\Livewire\Sales\SalesOrderEditor;
 use App\Livewire\Sales\SalesOrderList;
 use App\Livewire\Sales\VehicleHotSale;
-use App\Livewire\Pages\Warehouse\TransportSlipEditor;
-use App\Livewire\Pages\Warehouse\TransportSlipList;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 

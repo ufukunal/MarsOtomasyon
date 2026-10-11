@@ -17,26 +17,47 @@ class TransportSlipEditor extends Component
     public ?TransportSlip $slip = null;
 
     public string $date = '';
+
     public ?int $contactId = null;
+
     public ?int $locationId = null;
+
     public string $orderReference = '';
+
     public string $dispatchReference = '';
+
     public string $shippingType = 'Ambar';
+
     public string $carrier = '';
+
     public string $destinationWarehouse = '';
+
     public int $packageCount = 1;
+
     public string $weightKg = '';
+
     public string $trackingNumber = '';
+
     public bool $containsGlass = false;
+
     public bool $fragile = false;
+
     public bool $keepUpright = false;
+
     public bool $doNotStack = false;
+
     public string $deliveryCompany = '';
+
     public string $deliveryPerson = '';
+
     public string $deliveryPhone = '';
+
     public string $deliveryCity = '';
+
     public string $deliveryDistrict = '';
+
     public string $deliveryAddress = '';
+
     public string $note = '';
 
     /** @var list<array{product_id:?int,quantity:string}> */
