@@ -18,10 +18,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY --from=composer:2 /usr/bin/composer /usr/local/bin/composer
 WORKDIR /var/www/html
 COPY . .
-RUN composer install --no-dev --no-interaction --prefer-dist --no-progress --optimize-autoloader \
-    && mkdir -p storage/framework/cache/data storage/framework/sessions storage/framework/testing \
+# Composer invokes Laravel package:discover, which requires writable
+# framework/cache and framework/views paths *during* dependency installation.
+RUN mkdir -p storage/framework/cache/data storage/framework/sessions storage/framework/testing \
        storage/framework/views storage/logs storage/app/private storage/app/attachments \
        storage/app/report-exports bootstrap/cache \
+    && composer install --no-dev --no-interaction --prefer-dist --no-progress --optimize-autoloader \
     && chown -R www-data:www-data storage bootstrap/cache
 COPY --from=assets /src/public/build /var/www/html/public/build
 USER www-data
