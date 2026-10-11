@@ -18,7 +18,7 @@ button{border:1px solid #b5c6d2;background:#fff;border-radius:4px;padding:10px 1
 .head h1{margin:0;font-size:19px}
 .head small{display:block;margin-top:4px}
 table{width:100%;border-collapse:collapse}
-td,th{border:1px solid #d1dce5;padding:4px;text-align:left;vertical-align:top}
+td,th{border:1px solid #d1dce5;padding:4px;text-align:left;vertical-align:top;overflow-wrap:anywhere;word-break:break-word}
 th{background:#f1f5f9}
 .details td:nth-child(odd){font-weight:bold;width:19%}
 .items{margin-top:5px}

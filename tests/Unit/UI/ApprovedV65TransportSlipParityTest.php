@@ -197,13 +197,20 @@ it('allows server-side product searching beyond the first page and distinguishes
     $editor = file_get_contents(base_path('app/Livewire/Pages/Warehouse/TransportSlipEditor.php'));
     $form = file_get_contents(base_path('resources/views/livewire/pages/warehouse/transport-slip-editor.blade.php'));
 
-    expect($editor)->toContain("public string $productSearch = ''")
-        ->toContain("->orWhere('name', 'ilike', $needle)")
-        ->toContain("limit(80)")
-        ->toContain("public bool $previewPrint = false")
-        ->toContain("openPreview(string $format, bool $print = false)")
+    expect($editor)->toContain("public string \$productSearch = ''")
+        ->toContain("->orWhere('name', 'ilike', \$needle)")
+        ->toContain('limit(80)')
+        ->toContain('public bool $previewPrint = false')
+        ->toContain('openPreview(string $format, bool $print = false)')
         ->and($form)->toContain('wire:model.live.debounce.300ms="productSearch"')
         ->toContain("openPreview('slip', true)")
         ->toContain("openPreview('labels', true)")
         ->toContain('onload="this.contentWindow.print()"');
+});
+
+it('includes both carrier and destination warehouse in transport list searches', function (): void {
+    $list = file_get_contents(base_path('app/Livewire/Pages/Warehouse/TransportSlipList.php'));
+
+    expect($list)->toContain("->orWhere('destination_warehouse', 'ilike', \$text)")
+        ->toContain("->orWhere('destination_warehouse', 'ilike', \$needle)");
 });
