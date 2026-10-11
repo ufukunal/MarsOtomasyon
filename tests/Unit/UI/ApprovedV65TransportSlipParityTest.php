@@ -250,7 +250,7 @@ it('renders Turkish validation feedback for each incomplete transport slip field
 
         expect($component)->toContain('$this->validate($this->rules(), [], $this->fieldNames())')
             ->toContain("'deliveryAddress' => 'Teslimat Adresi'")
-            ->toContain('"items.{\$index}.product_id"')
+            ->toContain('"items.{$index}.product_id"')
             ->and($view)->toContain("@error('deliveryAddress')")
             ->toContain("@error('contactId')")
             ->toContain("@error('items.'.\$i.'.product_id')")
