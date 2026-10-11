@@ -9,11 +9,20 @@ ENV_FILE="$HOME/.config/mars/uat-lab.env"
 test -f "$ENV_FILE" && test ! -L "$ENV_FILE"
 test "$(stat -c '%a' "$ENV_FILE")" = 600
 test "$(stat -c '%U' "$ENV_FILE")" = "$(id -un)"
-PREV=178eeb672ff9a3026753d36803295884809da936
 CURRENT="$(sed -n 's/^MARS_UAT_SHA=//p' "$ENV_FILE")"
-if test "$CURRENT" != "$PREV" && test "$CURRENT" != "$SHA"; then
-  echo 'BLOCKED: unexpected UAT secrets SHA' >&2
+[[ "$CURRENT" =~ ^[a-f0-9]{40}$ ]] || {
+  echo 'BLOCKED: malformed prior UAT release SHA' >&2
   exit 77
+}
+if test "$CURRENT" != "$SHA"; then
+  WEB_CID="$(sudo docker ps -q --filter name=^/mars-uat-lab-web-1$)"
+  test -n "$WEB_CID" || { echo 'BLOCKED: prior UAT web container not running' >&2; exit 77; }
+  test "$(sudo docker inspect "$WEB_CID" --format '{{index .Config.Labels "com.docker.compose.project"}}')" = mars-uat-lab
+  test "$(sudo docker inspect "$WEB_CID" --format '{{index .Config.Labels "com.docker.compose.service"}}')" = web
+  test "$(sudo docker inspect "$WEB_CID" --format '{{index .Config.Labels "org.opencontainers.image.revision"}}')" = "$CURRENT" || {
+    echo 'BLOCKED: running UAT image does not match configured previous release' >&2
+    exit 77
+  }
 fi
 PGID="$(sudo docker ps -q --filter name=^/mars-uat-lab-postgres-1$)"
 test -n "$PGID"
@@ -32,8 +41,9 @@ echo 'PASS: isolated UAT PostgreSQL verified'
 IMAGE="ghcr.io/ufukunal/marsotomasyon:uat-$SHA"
 sudo docker pull "$IMAGE" >/dev/null
 test "$(sudo docker image inspect "$IMAGE" --format '{{index .Config.Labels "org.opencontainers.image.revision"}}')" = "$SHA"
-if test "$CURRENT" = "$PREV"; then
-  sed -i "s/^MARS_UAT_SHA=$PREV$/MARS_UAT_SHA=$SHA/" "$ENV_FILE"
+if test "$CURRENT" != "$SHA"; then
+  # Change only the release marker. Keep every database/Valkey secret intact.
+  sed -i "s/^MARS_UAT_SHA=$CURRENT$/MARS_UAT_SHA=$SHA/" "$ENV_FILE"
 fi
 test "$(stat -c '%a' "$ENV_FILE")" = 600
 grep -Fxq "MARS_UAT_SHA=$SHA" "$ENV_FILE"
