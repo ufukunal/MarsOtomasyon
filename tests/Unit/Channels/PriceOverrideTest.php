@@ -1,6 +1,5 @@
 <?php
 
-use App\Models\Period\ChannelProductListing;
 use App\Models\Period\Product;
 use App\Support\Channels\ChannelPriceResolver;
 
