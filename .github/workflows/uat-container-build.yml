@@ -1,0 +1,49 @@
+name: UAT - Build and Offline Runtime Verification
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'Dockerfile.uat'
+      - '.dockerignore'
+      - 'compose.uat.yml'
+      - '.github/workflows/uat-container-build.yml'
+      - 'scripts/ci/uat-container-smoke.sh'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: mars-uat-container-build
+  cancel-in-progress: true
+jobs:
+  build-and-verify:
+    name: R4 - Docker UAT image build (no production access)
+    runs-on: [self-hosted, Linux, mars-ubuntu, mars-r4]
+    timeout-minutes: 50
+    env:
+      IMAGE_TAG: mars-uat-ci:${{ github.sha }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify local Docker engine is available
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          command -v docker >/dev/null || { echo "BLOCKED: Docker CLI not installed on R4" >&2; exit 77; }
+          docker info >/dev/null || { echo "BLOCKED: Docker Engine not available to R4" >&2; exit 77; }
+          docker compose version
+      - name: Check UAT runtime scripts syntax
+        run: bash -n ops/uat-preflight.sh scripts/ci/uat-container-smoke.sh
+      - name: Build disposable UAT image without secrets
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          docker build --file Dockerfile.uat --tag "$IMAGE_TAG" .
+      - name: Exercise PHP, Laravel routes and assets with network disabled
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          bash scripts/ci/uat-container-smoke.sh "$IMAGE_TAG"
+      - name: Clean up tagged CI image (never prune shared Docker state)
+        if: always()
+        shell: bash
+        run: |
+          docker image rm "${IMAGE_TAG}" >/dev/null 2>&1 || true
