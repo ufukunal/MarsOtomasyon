@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Period\TransportSlip;
+use Carbon\CarbonImmutable;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ExportTransportSlipController
@@ -47,7 +48,7 @@ class ExportTransportSlipController
                         default => $slip->status,
                     };
                     $row = [
-                        $slip->number, \Carbon\CarbonImmutable::parse((string) $slip->slip_date)->toDateString(),
+                        $slip->number, CarbonImmutable::parse((string) $slip->slip_date)->toDateString(),
                         $slip->contact?->title, $slip->contact?->code,
                         $slip->shipping_type, $slip->carrier, $slip->destination_warehouse,
                         $slip->package_count, $slip->contains_glass ? 'Evet' : 'Hayır',
