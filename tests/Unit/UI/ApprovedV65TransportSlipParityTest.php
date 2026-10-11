@@ -214,3 +214,17 @@ it('includes both carrier and destination warehouse in transport list searches',
     expect($list)->toContain("->orWhere('destination_warehouse', 'ilike', \$text)")
         ->toContain("->orWhere('destination_warehouse', 'ilike', \$needle)");
 });
+
+it('exports authorized period-local ambar slips as Excel-compatible CSV without spreadsheet formula execution', function (): void {
+    $routes = file_get_contents(base_path('routes/web.php'));
+    $layout = file_get_contents(base_path('resources/views/layouts/app.blade.php'));
+    $controller = file_get_contents(base_path('app/Http/Controllers/ExportTransportSlipController.php'));
+
+    expect($routes)->toContain("name('warehouse.transport.export')")
+        ->and($layout)->toContain("route('warehouse.transport.export'")
+        ->toContain('data-wsl-print-slip')
+        ->and($controller)->toContain("'warehouse_slips.view'")
+        ->toContain("with(['contact', 'items.product'])")
+        ->toContain('streamDownload(')
+        ->toContain('safeCell(');
+});

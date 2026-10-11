@@ -160,9 +160,9 @@
             <div class="wsl-grow"></div>
             <button type="button" class="button-secondary" wire:click="openPreview('slip')">Fiş Önizle</button>
             @if($mode === 'detail' && $slip)
-                <a class="button-secondary" target="_blank" rel="noopener" href="{{ route('warehouse.transport.print', ['slip' => $slip->id, 'format' => 'slip', 'autoprint' => 1]) }}">Fiş Yazdır / PDF</a>
+                <a class="button-secondary" data-wsl-print-slip target="_blank" rel="noopener" href="{{ route('warehouse.transport.print', ['slip' => $slip->id, 'format' => 'slip', 'autoprint' => 1]) }}">Fiş Yazdır / PDF</a>
             @else
-                <button type="button" class="button-secondary" wire:click="openPreview('slip', true)">Fiş Yazdır / PDF</button>
+                <button type="button" class="button-secondary" data-wsl-print-slip wire:click="openPreview('slip', true)">Fiş Yazdır / PDF</button>
             @endif
             <button type="button" class="button-secondary" wire:click="openPreview('labels')">Etiket Önizle</button>
             @if($mode === 'detail' && $slip)

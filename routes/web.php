@@ -4,6 +4,7 @@ use App\Http\Controllers\ChannelAssetController;
 use App\Http\Controllers\HealthController;
 use App\Http\Controllers\HepsiburadaWebhookController;
 use App\Http\Controllers\ImportErrorReportController;
+use App\Http\Controllers\ExportTransportSlipController;
 use App\Http\Controllers\PrintTransportSlipController;
 use App\Http\Controllers\ProductImageController;
 use App\Http\Controllers\ReportExportDownloadController;
@@ -239,6 +240,8 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/stok/transferler/{id}', TransferDetail::class)->name('stock.transfers.show');
     // v65 transport slips are separate from G-207 physical stock adjustments.
     Route::get('/ambar/fisler', TransportSlipList::class)->name('warehouse.transport.index');
+    Route::get('/ambar/fisler/disa-aktar/{id?}', ExportTransportSlipController::class)
+        ->whereNumber('id')->name('warehouse.transport.export');
     Route::get('/ambar/fisler/yeni', TransportSlipEditor::class)->name('warehouse.transport.create');
     Route::get('/ambar/fisler/{id}/duzenle', TransportSlipEditor::class)->whereNumber('id')->name('warehouse.transport.edit');
     Route::get('/ambar/fisler/{id}', TransportSlipEditor::class)->whereNumber('id')->name('warehouse.transport.show');

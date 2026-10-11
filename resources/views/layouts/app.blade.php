@@ -194,8 +194,23 @@
                         <a class="button-secondary" href="{{ route('products.edit', ['product' => request()->route('product')]) }}">Düzenle</a>
                     @endcan
                 @endif
-                <button type="button" class="button-secondary" onclick="window.print()">Yazdır</button>
-                <button type="button" class="button-secondary" onclick="window.print()" title="PDF için yazdırma ekranında PDF olarak kaydet seçin">PDF</button>
+                @if ($routeName === 'warehouse.transport.show')
+                    @can('warehouse_slips.view')
+                        <a class="button-secondary" target="_blank" rel="noopener" href="{{ route('warehouse.transport.print', ['slip' => request()->route('id'), 'format' => 'slip', 'autoprint' => 1]) }}">Yazdır</a>
+                        <a class="button-secondary" target="_blank" rel="noopener" href="{{ route('warehouse.transport.print', ['slip' => request()->route('id'), 'format' => 'slip', 'autoprint' => 1]) }}" title="Yazdırma ekranında PDF olarak kaydet seçin">PDF</a>
+                    @endcan
+                @elseif (in_array($routeName, ['warehouse.transport.create', 'warehouse.transport.edit'], true))
+                    <button type="button" class="button-secondary" onclick="document.querySelector('[data-wsl-print-slip]')?.click()">Yazdır</button>
+                    <button type="button" class="button-secondary" onclick="document.querySelector('[data-wsl-print-slip]')?.click()" title="Yazdırma ekranında PDF olarak kaydet seçin">PDF</button>
+                @else
+                    <button type="button" class="button-secondary" onclick="window.print()">Yazdır</button>
+                    <button type="button" class="button-secondary" onclick="window.print()" title="PDF için yazdırma ekranında PDF olarak kaydet seçin">PDF</button>
+                @endif
+                @if (in_array($routeName, ['warehouse.transport.index', 'warehouse.transport.show', 'warehouse.transport.create', 'warehouse.transport.edit'], true))
+                    @can('warehouse_slips.view')
+                        <a class="button-secondary" href="{{ route('warehouse.transport.export', $routeName === 'warehouse.transport.show' ? ['id' => request()->route('id')] : []) }}" title="Kayıtlı ambar fişlerini Excel uyumlu CSV olarak dışa aktar">Excel</a>
+                    @endcan
+                @endif
                 @isset($pageActions){{ $pageActions }}@endisset
                 <button type="button" class="button-secondary" onclick="if (history.length > 1) history.back(); else location.href='{{ route('home') }}'">Geri</button>
             </div>
