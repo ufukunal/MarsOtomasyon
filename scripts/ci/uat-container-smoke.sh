@@ -20,6 +20,7 @@ docker run --rm --network none --cap-drop ALL --security-opt no-new-privileges \
   -e QUEUE_CONNECTION=sync \
   "$IMAGE" sh -ec '
     test -f public/build/manifest.json
+    php scripts/ci/verify-vite-manifest.php
     test -f vendor/autoload.php
     php -r '\''foreach (["bcmath","mbstring","pdo_pgsql","redis","gd","intl","zip"] as $ext) { if (!extension_loaded($ext)) { fwrite(STDERR, "MISSING: ".$ext.PHP_EOL); exit(77); } } echo "All required UAT PHP extensions present".PHP_EOL;'\''
     php artisan route:list --json >/dev/null

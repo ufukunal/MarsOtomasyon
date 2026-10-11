@@ -5,6 +5,8 @@ on:
     paths:
       - '.github/workflows/uat-image-publish.yml'
       - 'Dockerfile.uat'
+      - 'vite.config.js'
+      - 'scripts/ci/verify-vite-manifest.php'
       - 'compose.uat.yml'
       - 'ops/uat-preview-start.sh'
       - 'docs/isletim/.env.uat.example'

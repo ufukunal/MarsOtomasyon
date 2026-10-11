@@ -4,6 +4,8 @@ on:
     branches: [main]
     paths:
       - 'Dockerfile.uat'
+      - 'vite.config.js'
+      - 'scripts/ci/verify-vite-manifest.php'
       - '.dockerignore'
       - 'compose.uat.yml'
       - '.github/workflows/uat-container-build.yml'

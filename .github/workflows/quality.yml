@@ -37,6 +37,8 @@ jobs:
         run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Frontend build
         run: npm run build
+      - name: Validate every Blade Vite asset against production manifest
+        run: php scripts/ci/verify-vite-manifest.php
       - name: Compile all Blade templates
         run: php artisan view:cache
       - name: Approved v65 UI contract checks
