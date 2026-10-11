@@ -7,8 +7,8 @@ use App\Models\Period\Contact;
 use App\Models\Period\Document;
 use App\Models\Period\Location;
 use App\Models\Period\Product;
-use App\Models\Period\TransportSlipItem;
 use App\Models\Period\TransportSlip;
+use App\Models\Period\TransportSlipItem;
 use App\Support\Period\PeriodContext;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
@@ -392,6 +392,7 @@ class TransportSlipEditor extends Component
                 'product_id' => $row['product_id'], 'quantity' => $row['quantity'],
             ]);
             $item->setRelation('product', $products->get((int) $row['product_id']));
+
             return $item;
         }));
 
