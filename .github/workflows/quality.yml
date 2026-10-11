@@ -39,6 +39,8 @@ jobs:
         run: npm run build
       - name: Approved v65 UI contract checks
         run: bash scripts/ci/test-ui-v65-contract.sh
+      - name: Approved v65 standalone HTML JavaScript syntax checks
+        run: node scripts/ci/verify-v65-html.mjs
       - name: Pint style validation
         run: vendor/bin/pint --test
       - name: Larastan static analysis
