@@ -126,6 +126,22 @@ it('matches two-column left-labeled form, real choices and four distinct print a
         ->toContain('deliveryAddress ?:');
 });
 
+it('previews unpersisted form values without creating any stock movement', function (): void {
+    $editor = file_get_contents(base_path('app/Livewire/Pages/Warehouse/TransportSlipEditor.php'));
+    $form = file_get_contents(base_path('resources/views/livewire/pages/warehouse/transport-slip-editor.blade.php'));
+
+    expect($editor)->toContain('private function draftPrintHtml(')
+        ->toContain('new TransportSlip([')
+        ->toContain("'number' => 'TASLAK'")
+        ->toContain('new TransportSlipItem([')
+        ->toContain('setRelation(')
+        ->toContain('previewHtml')
+        ->toContain('validate($this->rules())')
+        ->and($form)->toContain('srcdoc="{{ $previewHtml }}"')
+        ->toContain('Fiş Yazdır / PDF')
+        ->toContain('Etiket Yazdır');
+});
+
 it('prints two A5 slips on A4 without dropping products after five rows', function (): void {
     $view = file_get_contents(base_path('resources/views/printing/transport-slip.blade.php'));
     $controller = file_get_contents(base_path('app/Http/Controllers/PrintTransportSlipController.php'));

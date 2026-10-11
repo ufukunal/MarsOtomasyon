@@ -7,6 +7,7 @@ use App\Models\Period\Contact;
 use App\Models\Period\Document;
 use App\Models\Period\Location;
 use App\Models\Period\Product;
+use App\Models\Period\TransportSlipItem;
 use App\Models\Period\TransportSlip;
 use App\Support\Period\PeriodContext;
 use Carbon\CarbonImmutable;
@@ -154,33 +155,7 @@ class TransportSlipEditor extends Component
         $this->assertEditable();
         PeriodContext::ensureWritable();
 
-        $data = $this->validate([
-            'date' => ['required', 'date'],
-            'contactId' => ['required', 'integer', Rule::exists('period.contacts', 'id')],
-            'locationId' => ['nullable', 'integer', Rule::exists('period.locations', 'id')],
-            'orderReference' => ['nullable', 'string', 'max:80'],
-            'dispatchReference' => ['nullable', 'string', 'max:80'],
-            'shippingType' => ['required', Rule::in(['Ambar', 'Nakliye', 'Kargo', 'Elden Teslim'])],
-            'carrier' => ['required', 'string', 'max:180'],
-            'destinationWarehouse' => ['required', 'string', 'max:180'],
-            'packageCount' => ['required', 'integer', 'min:1', 'max:500'],
-            'weightKg' => ['nullable', 'numeric', 'min:0', 'max:9999999999.99'],
-            'trackingNumber' => ['nullable', 'string', 'max:120'],
-            'containsGlass' => ['boolean'],
-            'fragile' => ['boolean'],
-            'keepUpright' => ['boolean'],
-            'doNotStack' => ['boolean'],
-            'deliveryCompany' => ['required', 'string', 'max:180'],
-            'deliveryPerson' => ['nullable', 'string', 'max:120'],
-            'deliveryPhone' => ['required', 'string', 'max:40'],
-            'deliveryCity' => ['required', 'string', 'max:100'],
-            'deliveryDistrict' => ['required', 'string', 'max:100'],
-            'deliveryAddress' => ['required', 'string', 'max:4000'],
-            'note' => ['nullable', 'string', 'max:4000'],
-            'items' => ['required', 'array', 'min:1', 'max:200'],
-            'items.*.product_id' => ['required', 'integer', Rule::exists('period.products', 'id')],
-            'items.*.quantity' => ['required', 'numeric', 'gt:0', 'max:999999999999.999'],
-        ]);
+        $data = $this->validate($this->rules());
 
         $created = $this->slip === null;
 
@@ -284,10 +259,8 @@ class TransportSlipEditor extends Component
     {
         abort_unless(auth()->user()->can('warehouse_slips.view'), 403);
         abort_unless(in_array($format, ['slip', 'labels'], true), 404);
-        if ($this->slip === null) {
-            $this->addError('preview', 'Önizleme için fişi önce kaydedin.');
-
-            return;
+        if ($this->mode !== 'detail') {
+            $this->validate($this->rules());
         }
 
         $this->preview = $format;
@@ -341,7 +314,13 @@ class TransportSlipEditor extends Component
                 ->orderByDesc('id')->limit(250)->get(['id', 'number']),
             'carrierOptions' => TransportSlip::query()->where('carrier', '!=', '')
                 ->distinct()->orderBy('carrier')->pluck('carrier'),
-            'products' => Product::query()->where('is_active', true)->with('unit')->orderBy('name')->limit(1000)->get(),
+            'previewHtml' => $this->preview && $this->mode !== 'detail'
+                ? $this->draftPrintHtml($this->preview) : null,
+            'products' => Product::query()->where('is_active', true)->with('unit')
+                ->orderBy('name')->limit(1000)->get()
+                ->merge(Product::query()->with('unit')
+                    ->whereKey(collect($this->items)->pluck('product_id')->filter()->all())->get())
+                ->unique('id')->values(),
             'readonly' => $this->mode === 'detail' || ($this->slip !== null
                 && (! in_array($this->slip->status, ['draft', 'ready'], true)
                     || ! auth()->user()->can('warehouse_slips.update'))),
@@ -353,6 +332,78 @@ class TransportSlipEditor extends Component
             'pageTitle' => $this->mode === 'new' ? 'Yeni Ambar Fişi'
                 : ($this->mode === 'edit' ? 'Ambar Fişini Düzenle · ' : 'Ambar Fişi · ').$this->slip->number,
         ]);
+    }
+
+    /** @return array<string, list<mixed>> */
+    private function rules(): array
+    {
+        return [
+            'date' => ['required', 'date'],
+            'contactId' => ['required', 'integer', Rule::exists('period.contacts', 'id')],
+            'locationId' => ['nullable', 'integer', Rule::exists('period.locations', 'id')],
+            'orderReference' => ['nullable', 'string', 'max:80'],
+            'dispatchReference' => ['nullable', 'string', 'max:80'],
+            'shippingType' => ['required', Rule::in(['Ambar', 'Nakliye', 'Kargo', 'Elden Teslim'])],
+            'carrier' => ['required', 'string', 'max:180'],
+            'destinationWarehouse' => ['required', 'string', 'max:180'],
+            'packageCount' => ['required', 'integer', 'min:1', 'max:500'],
+            'weightKg' => ['nullable', 'numeric', 'min:0', 'max:9999999999.99'],
+            'trackingNumber' => ['nullable', 'string', 'max:120'],
+            'containsGlass' => ['boolean'],
+            'fragile' => ['boolean'],
+            'keepUpright' => ['boolean'],
+            'doNotStack' => ['boolean'],
+            'deliveryCompany' => ['required', 'string', 'max:180'],
+            'deliveryPerson' => ['nullable', 'string', 'max:120'],
+            'deliveryPhone' => ['required', 'string', 'max:40'],
+            'deliveryCity' => ['required', 'string', 'max:100'],
+            'deliveryDistrict' => ['required', 'string', 'max:100'],
+            'deliveryAddress' => ['required', 'string', 'max:4000'],
+            'note' => ['nullable', 'string', 'max:4000'],
+            'items' => ['required', 'array', 'min:1', 'max:200'],
+            'items.*.product_id' => ['required', 'integer', Rule::exists('period.products', 'id')],
+            'items.*.quantity' => ['required', 'numeric', 'gt:0', 'max:999999999999.999'],
+
+        ];
+    }
+
+    private function draftPrintHtml(string $format): string
+    {
+        $draft = new TransportSlip([
+            'number' => 'TASLAK', 'slip_date' => $this->date,
+            'contact_id' => $this->contactId, 'shipping_type' => $this->shippingType,
+            'carrier' => $this->carrier, 'destination_warehouse' => $this->destinationWarehouse,
+            'package_count' => $this->packageCount, 'weight_kg' => $this->weightKg,
+            'tracking_number' => $this->trackingNumber,
+            'contains_glass' => $this->containsGlass, 'fragile' => $this->fragile,
+            'keep_upright' => $this->keepUpright, 'do_not_stack' => $this->doNotStack,
+            'order_reference' => $this->orderReference, 'dispatch_reference' => $this->dispatchReference,
+            'delivery_company' => $this->deliveryCompany, 'delivery_person' => $this->deliveryPerson,
+            'delivery_phone' => $this->deliveryPhone, 'delivery_city' => $this->deliveryCity,
+            'delivery_district' => $this->deliveryDistrict, 'delivery_address' => $this->deliveryAddress,
+            'note' => $this->note,
+        ]);
+
+        $draft->setRelation('contact', $this->contactId ? Contact::query()->find($this->contactId) : null);
+        $productIds = collect($this->items)->pluck('product_id')->filter()->map(fn ($id): int => (int) $id)->all();
+        $products = Product::query()->with('unit')->whereKey($productIds)->get()->keyBy('id');
+        $draft->setRelation('items', collect($this->items)->map(function (array $row) use ($products): TransportSlipItem {
+            $item = new TransportSlipItem([
+                'product_id' => $row['product_id'], 'quantity' => $row['quantity'],
+            ]);
+            $item->setRelation('product', $products->get((int) $row['product_id']));
+            return $item;
+        }));
+
+        return view('printing.transport-slip', [
+            'slip' => $draft, 'format' => $format, 'autoprint' => false,
+            'warnings' => collect([
+                $this->containsGlass ? 'CAM ÜRÜN' : null,
+                $this->fragile ? 'KIRILABİLİR / HASSAS' : null,
+                $this->keepUpright ? 'DİK TAŞIYIN' : null,
+                $this->doNotStack ? 'ÜSTÜNE YÜK KOYMAYIN' : null,
+            ])->filter()->implode(' · '),
+        ])->render();
     }
 
     private function assertEditable(): void

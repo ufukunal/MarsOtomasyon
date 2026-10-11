@@ -151,14 +151,17 @@
         <div class="wsl-footer">
             <a class="button-secondary" href="{{ route('warehouse.transport.index') }}">← Listeye Dön</a>
             <div class="wsl-grow"></div>
-            @if($slip)
-                <button type="button" class="button-secondary" wire:click="openPreview('slip')">Fiş Önizle</button>
+            <button type="button" class="button-secondary" wire:click="openPreview('slip')">Fiş Önizle</button>
+            @if($mode === 'detail' && $slip)
                 <a class="button-secondary" target="_blank" rel="noopener" href="{{ route('warehouse.transport.print', ['slip' => $slip->id, 'format' => 'slip', 'autoprint' => 1]) }}">Fiş Yazdır / PDF</a>
-                <button type="button" class="button-secondary" wire:click="openPreview('labels')">Etiket Önizle</button>
+            @else
+                <button type="button" class="button-secondary" wire:click="openPreview('slip')">Fiş Yazdır / PDF</button>
+            @endif
+            <button type="button" class="button-secondary" wire:click="openPreview('labels')">Etiket Önizle</button>
+            @if($mode === 'detail' && $slip)
                 <a class="button-secondary" target="_blank" rel="noopener" href="{{ route('warehouse.transport.print', ['slip' => $slip->id, 'format' => 'labels', 'autoprint' => 1]) }}">Etiket Yazdır</a>
             @else
-                <button class="button-secondary" type="button" wire:click="openPreview('slip')">Fiş Önizle</button>
-                <button class="button-secondary" type="button" wire:click="openPreview('labels')">Etiket Önizle</button>
+                <button type="button" class="button-secondary" wire:click="openPreview('labels')">Etiket Yazdır</button>
             @endif
             @if($mode === 'detail' && $slip)
                 @can('warehouse_slips.create')
@@ -184,17 +187,25 @@
         </div>
     </form>
     @error('preview')<p class="alert alert-warning">{{ $message }}</p>@enderror
-    @if($preview && $slip)
+    @if($preview && ($slip || $previewHtml))
         <div class="wsl-modal-backdrop" role="presentation" wire:key="transport-preview-{{ $preview }}">
             <section class="wsl-modal" role="dialog" aria-modal="true" aria-label="{{ $preview === 'slip' ? 'Ambar Fişi Önizleme · A4 / 2×A5' : 'Koli Etiketleri Önizleme' }}">
                 <header class="wsl-modal-header">
                     <strong>{{ $preview === 'slip' ? 'Ambar Fişi Önizleme · A4 / 2×A5' : 'Koli Etiketleri Önizleme' }}</strong>
                     <div class="form-row">
-                        <a class="button-link" target="_blank" rel="noopener" href="{{ route('warehouse.transport.print', ['slip' => $slip->id, 'format' => $preview, 'autoprint' => 1]) }}">Yazdır / PDF</a>
+                        @if($mode === 'detail' && $slip)
+                            <a class="button-link" target="_blank" rel="noopener" href="{{ route('warehouse.transport.print', ['slip' => $slip->id, 'format' => $preview, 'autoprint' => 1]) }}">Yazdır / PDF</a>
+                        @else
+                            <button type="button" class="button-link" onclick="document.getElementById('wsl-preview-frame').contentWindow.print()">Yazdır / PDF</button>
+                        @endif
                         <button type="button" class="button-secondary" wire:click="closePreview">Kapat</button>
                     </div>
                 </header>
-                <iframe title="Ambar baskı önizlemesi" src="{{ route('warehouse.transport.print', ['slip' => $slip->id, 'format' => $preview]) }}"></iframe>
+                @if($mode === 'detail' && $slip)
+                    <iframe id="wsl-preview-frame" title="Ambar baskı önizlemesi" src="{{ route('warehouse.transport.print', ['slip' => $slip->id, 'format' => $preview]) }}"></iframe>
+                @else
+                    <iframe id="wsl-preview-frame" title="Ambar baskı önizlemesi" srcdoc="{{ $previewHtml }}"></iframe>
+                @endif
             </section>
         </div>
     @endif
