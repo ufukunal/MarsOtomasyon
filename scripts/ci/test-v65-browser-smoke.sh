@@ -41,15 +41,17 @@ class ContentProbe(HTMLParser):
         self.groups = 0
         self.pageheads = 0
         self.content = 0
+        self.ignored_depth = 0
 
     def handle_starttag(self, tag, attrs):
         d = dict(attrs)
-        if self.mode is not None:
+        void = tag in {'area','base','br','col','embed','hr','img','input','link','meta','param','source','track','wbr'}
+        if self.mode is not None and not void:
             self.depth += 1
-        elif d.get('id') == 'nav':
+        elif self.mode is None and d.get('id') == 'nav':
             self.mode = 'nav'
             self.depth = 1
-        elif d.get('id') == 'main':
+        elif self.mode is None and d.get('id') == 'main':
             self.mode = 'main'
             self.depth = 1
         if self.mode == 'nav' and 'group' in d.get('class', '').split():
@@ -58,6 +60,10 @@ class ContentProbe(HTMLParser):
             self.pageheads += 1
         if self.mode == 'main' and 'content' in d.get('class', '').split():
             self.content += 1
+
+    def handle_startendtag(self, tag, attrs):
+        # XHTML-style self-closing elements do not change nesting depth.
+        pass
 
     def handle_endtag(self, tag):
         if self.mode is not None:
@@ -79,7 +85,9 @@ nav = ' '.join(probe.nav_text).strip()
 main = ' '.join(probe.main_text).strip()
 print(f'Browser nav groups={probe.groups}, pageheads={probe.pageheads}, content nodes={probe.content}')
 print(f'Browser nav text length={len(nav)}, page text length={len(main)}')
-if probe.groups < 5 or probe.pageheads < 1 or probe.content < 1 or len(main) < 60:
+print(f'Browser rendered main preview: {main[:180]!r}')
+if (probe.groups < 5 or probe.pageheads < 1 or probe.content < 1
+        or len(main) < 60 or len(main) > 50000):
     raise SystemExit('FAIL: v65 rendered blank/incomplete app. See screenshot and DOM artifact.')
 print('PASS: approved v65 renders navigation groups, page header, and nonempty dashboard in Chromium.')
 PY
