@@ -17,6 +17,8 @@ on:
       - 'app/Actions/Periods/CreatePeriod.php'
       - 'app/Livewire/Pages/Setup/CompanyWizard.php'
       - 'config/operations.php'
+      - 'resources/**'
+      - 'config/navigation.php'
       - 'resources/css/app.css'
       - 'resources/js/app.js'
       - 'resources/views/layouts/app.blade.php'

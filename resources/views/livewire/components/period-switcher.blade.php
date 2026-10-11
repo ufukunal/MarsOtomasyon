@@ -1,14 +1,6 @@
 <div class="period-switcher">
-    <label>
-        <span class="sr-only">Şirket</span>
-        <select wire:model.live="companyId" aria-label="Şirket">
-            <option value="">Şirket seçin</option>
-            @foreach ($companies as $company)
-                <option value="{{ $company->id }}">{{ $company->name }}</option>
-            @endforeach
-        </select>
-    </label>
-
+    {{-- The company switcher is already rendered once in layouts/app.blade.php.
+         This component owns only the current company's period selection. --}}
     <label>
         <span class="sr-only">Dönem</span>
         <select wire:model.live="periodId" aria-label="Dönem" @disabled(! $companyId)>
