@@ -8,6 +8,7 @@
             : (string) ($summary?->getAttribute('available_total') ?? '0')) ?? '0';
         $quarantined = (string) ($summary?->getAttribute('quarantined') ?? '0');
         $unit = $product->unit?->name ?? '';
+        $tabIcons = ['overview'=>'◈','stock'=>'▦','movements'=>'↕','sales'=>'↗','purchases'=>'↙','buyers'=>'◎','prices'=>'₺','technical'=>'i','annual'=>'↗','locations'=>'▤','variants'=>'◩','barcodes'=>'#','suppliers'=>'◉','images'=>'▥','notes'=>'✎','files'=>'▤'];
         $firstImage = $attachments->first(fn ($attachment) => str_starts_with((string) $attachment->mime, 'image/'));
     @endphp
 
@@ -22,7 +23,7 @@
         @foreach($tabs as $key => $label)
             <button type="button" role="tab" @class(['tab', 'is-active' => $activeTab === $key])
                 aria-selected="{{ $activeTab === $key ? 'true' : 'false' }}"
-                wire:click="selectTab('{{ $key }}')">{{ $label }}</button>
+                wire:click="selectTab('{{ $key }}')"><span aria-hidden="true">{{ $tabIcons[$key] ?? '·' }}</span> {{ $label }}</button>
         @endforeach
     </nav>
 
@@ -108,7 +109,7 @@
                         <tbody>
                         @forelse($movements as $movement)
                             <tr><td>{{ $movement->movement_date?->format('d.m.Y') }}</td>
-                                <td>{{ $movement->document_no ?? '—' }}</td>
+                                <td><a href="{{ route('stock.movements.show', ['id' => $movement->id]) }}">{{ $movement->document_no ?? '#'.$movement->id }}</a></td>
                                 <td>{{ $movement->reason }}</td>
                                 <td>{{ $movement->direction === 'in' ? $tr::quantity((string) $movement->quantity) : '—' }}</td>
                                 <td>{{ $movement->direction === 'out' ? $tr::quantity((string) $movement->quantity) : '—' }}</td>
@@ -125,16 +126,17 @@
                     <section class="panel stack">
                         <strong>Son Satışlar</strong>
                         <div class="table-scroll v65-grid-scroll"><table class="data-table">
-                            <thead><tr><th>Tarih</th><th>Cari</th><th>Belge</th><th>Miktar</th><th>Birim Fiyat</th></tr></thead>
+                            <thead><tr><th>Tarih</th><th>Cari</th><th>Belge</th><th>Miktar</th><th>Birim Fiyat</th><th>Net Tutar</th></tr></thead>
                             <tbody>
                             @forelse($sales as $line)
                                 <tr><td>{{ $line->document?->document_date?->format('d.m.Y') }}</td>
                                     <td>{{ $line->document?->contact?->title ?? '—' }}</td>
-                                    <td>{{ $line->document?->number ?? '—' }}</td>
+                                    <td><a href="{{ route('sales.invoices.edit', ['id' => $line->document_id]) }}">{{ $line->document?->number ?? '—' }}</a></td>
                                     <td>{{ $tr::quantity((string) $line->quantity) }}</td>
-                                    <td>{{ $tr::money((string) $line->unit_price) }}</td></tr>
+                                    <td>{{ $tr::money((string) $line->unit_price) }}</td>
+                                    <td>{{ $tr::money((string) $line->line_total) }}</td></tr>
                             @empty
-                                <tr><td colspan="5" class="empty-state">Kesinleşmiş satış kaydı yok.</td></tr>
+                                <tr><td colspan="6" class="empty-state">Kesinleşmiş satış kaydı yok.</td></tr>
                             @endforelse
                             </tbody>
                         </table></div>
@@ -164,6 +166,7 @@
     @elseif(in_array($activeTab, ['stock', 'locations'], true))
         <section class="panel stack">
             <strong>Depo Bazlı Stok</strong>
+            <small>Minimum stok bilgisi ürünün tamamı için tanımlıdır; depoya özel minimum kaydı bulunmuyor.</small>
             <div class="table-scroll v65-grid-scroll"><table class="data-table">
                 <thead><tr><th>Depo</th><th>Mevcut</th><th>Rezerve</th><th>Karantina</th><th>Kullanılabilir</th></tr></thead>
                 <tbody>
@@ -189,7 +192,7 @@
                 <tbody>
                 @forelse($movements as $movement)
                     <tr><td>{{ $movement->movement_date?->format('d.m.Y') }}</td>
-                        <td>{{ $movement->document_no ?? '—' }}</td><td>{{ $movement->reason }}</td>
+                        <td><a href="{{ route('stock.movements.show', ['id' => $movement->id]) }}">{{ $movement->document_no ?? '#'.$movement->id }}</a></td><td>{{ $movement->reason }}</td>
                         <td>{{ $movement->location?->name ?? '—' }}</td>
                         <td>{{ $movement->direction === 'in' ? 'Giriş' : 'Çıkış' }}</td>
                         <td>{{ $tr::quantity((string) $movement->quantity) }}</td>

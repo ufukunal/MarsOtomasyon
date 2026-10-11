@@ -6,7 +6,9 @@ use App\Livewire\Components\DataTable\Column;
 use App\Livewire\Components\DataTable\DataTableComponent;
 use App\Livewire\Components\DataTable\DateRangeFilter;
 use App\Livewire\Components\DataTable\SelectFilter;
+use App\Enums\ProductKind;
 use App\Models\Period\Brand;
+use App\Support\Formatting\TrFormatter;
 use App\Models\Period\Product;
 use App\Models\Period\ProductCategory;
 use Illuminate\Database\Eloquent\Builder;
@@ -46,6 +48,31 @@ class ProductList extends DataTableComponent
             Column::make('available_quantity', 'Kullanılabilir')->quantity(),
             Column::make('is_active', 'Durum')->sortable(),
         ];
+    }
+
+    public function formattedValue(Model $row, Column $column): string
+    {
+        if ($column->key === 'is_active') {
+            return $row->getAttribute('is_active') ? 'Aktif' : 'Pasif';
+        }
+
+        if ($column->key === 'vat_rate') {
+            return '%'.TrFormatter::money((string) $row->getAttribute('vat_rate'));
+        }
+
+        if ($column->key === 'kind') {
+            $kind = $row->getAttribute('kind');
+
+            if ($kind instanceof ProductKind) {
+                return match ($kind) {
+                    ProductKind::Normal => 'Normal',
+                    ProductKind::Set => 'Set',
+                    ProductKind::Configurable => 'Konfigüre',
+                };
+            }
+        }
+
+        return parent::formattedValue($row, $column);
     }
 
     /** @return list<SelectFilter|DateRangeFilter> */

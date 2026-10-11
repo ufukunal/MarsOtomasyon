@@ -108,9 +108,10 @@ PY_WAREHOUSE
 
 # Preserve separate canonical stock screens for module-by-module visual acceptance.
 # Fail if a route falls back to the blank dashboard instead of its expected screen.
-for stock_route in stock_status stock_movements warehouses transfer_list count_list warehouse_slip_list warehouse_slip_new; do
+for stock_route in product_list product_detail stock_status stock_movements warehouses transfer_list count_list warehouse_slip_list warehouse_slip_new; do
   case "$stock_route" in
     warehouse_slip_*) route_url="http://127.0.0.1:18765/artifacts/v65-browser-navigation-${stock_route}.html" ;;
+    product_detail) route_url="http://127.0.0.1:18765/reference/marsotomasyon-PROTOTIP-ONAYLI-v65.html#product_detail:AVZ-2032" ;;
     *) route_url="http://127.0.0.1:18765/reference/marsotomasyon-PROTOTIP-ONAYLI-v65.html#${stock_route}" ;;
   esac
   timeout 45s "$browser" --headless=new --no-sandbox --disable-gpu \
@@ -129,6 +130,8 @@ from html.parser import HTMLParser
 from pathlib import Path
 
 routes = {
+    'product_list': 'Ürün Listesi',
+    'product_detail': 'Ürün Detay',
     'stock_status': 'Stok Durumu',
     'stock_movements': 'Stok Hareketleri',
     'warehouses': 'Depolar',

@@ -14,6 +14,8 @@ it('keeps v65 product list labels and read-only detail destinations', function (
         ->toContain("'Barkodu'")
         ->toContain("'Ürün Tipi'")
         ->toContain("'Satış KDV %'")
+        ->toContain("ProductKind::Configurable")
+        ->toContain("'Aktif' : 'Pasif'")
         ->toContain("route('products.show'")
         ->not->toContain("'label' => 'Detay', 'method' => 'editProduct'")
         ->and($stock)->toContain("route('products.show'")
@@ -61,7 +63,8 @@ it('renders the reference tab order and only shows the identity within the overv
         ->and($tabNav)->toBeLessThan($identity)
         ->and($view)->toContain("@if(\$activeTab === 'overview')")
         ->toContain('product-identity')
-        ->toContain('product-summary');
+        ->toContain('product-summary')
+        ->toContain('tabIcons');
 });
 
 it('populates v65 analytics from posted period documents without fabricated totals', function (): void {
@@ -81,4 +84,8 @@ it('populates v65 analytics from posted period documents without fabricated tota
         ->toContain('Bağımsız teknik föy şablonu mevcut veri modelinde bulunmuyor.')
         ->not->toContain('684.000')
         ->not->toContain('10687.50');
+
+    $browserSmoke = file_get_contents(base_path('scripts/ci/test-v65-browser-smoke.sh'));
+    expect($browserSmoke)->toContain('product_list product_detail')
+        ->toContain('product_detail:AVZ-2032');
 });
