@@ -1,4 +1,28 @@
-<div @class(['data-table-shell', 'v65-stock-table' => str_starts_with(get_class($this), 'App\\Livewire\\Pages\\Stock\\') || $this instanceof \\App\\Livewire\\Pages\\Catalog\\LocationList])>
+<div @class(['data-table-shell', 'v65-stock-table' => str_starts_with(get_class($this), 'App\\Livewire\\Pages\\Stock\\') || $this instanceof \App\Livewire\Pages\Catalog\LocationList])>
+    @php
+        $stockListMeta = [
+            \App\Livewire\Pages\Stock\StockStatus::class => ['Stok Durumu', 'Depo bazlı anlık stok, rezervasyon ve kullanılabilir miktarlar.'],
+            \App\Livewire\Pages\Stock\StockMovements::class => ['Stok Hareketleri', 'Ürünlerin dönem içindeki giriş, çıkış ve belge hareketleri.'],
+            \App\Livewire\Pages\Stock\StockCost::class => ['Stok Maliyeti', 'Yetkili kullanıcılar için güncel hareketli ortalama ve stok değeri.'],
+            \App\Livewire\Pages\Stock\TransferList::class => ['Depo Transferleri', 'Depolar arası stok transferleri ve teslimat durumları.'],
+            \App\Livewire\Pages\Stock\WarehouseSlipList::class => ['Ambar Fişleri', 'Stok giriş ve çıkış fişleri.'],
+            \App\Livewire\Pages\Stock\StockCountList::class => ['Stok Sayımları', 'Depo sayımları ve sistem–sayım farkları.'],
+            \App\Livewire\Pages\Stock\ReservationList::class => ['Rezervasyonlar', 'Ayrılan stoklar ve rezervasyonların güncel durumu.'],
+            \App\Livewire\Pages\Catalog\LocationList::class => ['Depolar / Lokasyonlar', 'Stokların izlendiği depo ve lokasyon kartları.'],
+        ];
+        $stockMeta = $stockListMeta[get_class($this)] ?? null;
+    @endphp
+    @if($stockMeta)
+        @if($this instanceof \App\Livewire\Pages\Stock\StockStatus && !($this instanceof \App\Livewire\Pages\Stock\StockCost))
+            <div class="alert"><strong>Kısaca:</strong> Kullanılabilir stok, rezerve ve bloke miktarları ayrı gösterilir.</div>
+        @endif
+        <header class="panel form-row" aria-label="{{ $stockMeta[0] }} özeti">
+            <div class="stack">
+                <strong>{{ $stockMeta[0] }}</strong>
+                <small>{{ $stockMeta[1] }}</small>
+            </div>
+        </header>
+    @endif
     <div class="table-toolbar">
         <div class="table-toolbar-main">
             <label class="table-search">

@@ -37,6 +37,8 @@ jobs:
         run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Frontend build
         run: npm run build
+      - name: Compile all Blade templates
+        run: php artisan view:cache
       - name: Approved v65 UI contract checks
         run: bash scripts/ci/test-ui-v65-contract.sh
       - name: Approved v65 standalone HTML JavaScript syntax checks

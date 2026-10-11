@@ -58,6 +58,12 @@ it('keeps inventory actions wired to existing authenticated Livewire workflows',
     expect($count)->toContain('wire:model.live.debounce.300ms="productSearch"')
         ->toContain('wire:submit.prevent="addProductByBarcode"');
 
+    $dataTable = file_get_contents(base_path('resources/views/livewire/components/data-table.blade.php'));
+    expect($dataTable)->toContain('Stok Durumu')
+        ->toContain('Depo Transferleri')
+        ->toContain('v65-stock-table')
+        ->not->toContain('instanceof \\\\App');
+
     $quarantine = file_get_contents(base_path('resources/views/livewire/pages/stock/quarantine-control.blade.php'));
     expect($quarantine)->toContain('\\App\\Support\\Formatting\\TrFormatter::quantity')
         ->not->toContain('AppSupportFormattingTrFormatter');
