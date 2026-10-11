@@ -21,8 +21,6 @@ table{width:100%;border-collapse:collapse}
 td,th{border:1px solid #d1dce5;padding:4px;text-align:left;vertical-align:top;overflow-wrap:anywhere;word-break:break-word}
 th{background:#f1f5f9}
 .details td:nth-child(odd){font-weight:bold;width:19%}
-.items{margin-top:5px}
-.items td,.items th{padding:2px 3px;font-size:10px}
 .warning{border:2px solid #15242d;text-align:center;padding:6px;font-weight:800;margin:6px 0}
 .signatures{display:grid;grid-template-columns:1fr 1fr;gap:8mm;margin:5mm 0 0}
 .signatures>div{border-top:1px solid #15242d;text-align:center;padding:4px}
@@ -50,7 +48,6 @@ th{background:#f1f5f9}
   <button onclick="window.print()">Yazdır / PDF Olarak Kaydet</button>
 </div>
 @if($format === 'slip')
-@foreach($slip->items->chunk(5) as $itemPage)
 <main class="sheet a4">
     @for($copy = 0; $copy < 2; $copy++)
     <section class="copy">
@@ -66,15 +63,6 @@ th{background:#f1f5f9}
             <tr><td>İl / İlçe</td><td>{{ $slip->delivery_city }} / {{ $slip->delivery_district }}</td><td>Adres</td><td>{{ $slip->delivery_address }}</td></tr>
             <tr><td>Not</td><td colspan="3">{{ $slip->note ?: '—' }}</td></tr>
         </table>
-        <table class="items">
-            <thead><tr><th>Ürün</th><th>Adı</th><th>Miktar</th></tr></thead>
-            <tbody>
-                @foreach($itemPage as $item)
-                    <tr><td>{{ $item->product?->code }}</td><td>{{ $item->product?->name }}</td><td>{{ \App\Support\Formatting\TrFormatter::quantity((string) $item->quantity) }} {{ $item->product?->unit?->name }}</td></tr>
-                @endforeach
-            </tbody>
-        </table>
-        @if($slip->items->count() > 5)<small>Sayfa {{ $loop->iteration }} / {{ $slip->items->chunk(5)->count() }} · Toplam {{ $slip->items->count() }} ürün satırı</small>@endif
         @if($warnings)<div class="warning">{{ $warnings }}</div>@endif
         <div class="signatures"><div>Teslim Eden<br>Ad / İmza</div><div>Teslim Alan<br>Ad / İmza</div></div>
         {!! \App\Support\Printing\Label\Code39Svg::render($slip->number) !!}
@@ -82,7 +70,6 @@ th{background:#f1f5f9}
     </section>
     @endfor
 </main>
-@endforeach
 @else
 <main class="sheet" style="width:210mm">
     <div class="label-grid">

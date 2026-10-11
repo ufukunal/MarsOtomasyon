@@ -147,12 +147,15 @@ it('previews unpersisted form values without creating any stock movement', funct
         ->toContain('Etiket Yazdır');
 });
 
-it('prints two A5 slips on A4 without dropping products after five rows', function (): void {
+it('prints exactly two A5 transport slips on one A4 without product details', function (): void {
     $view = file_get_contents(base_path('resources/views/printing/transport-slip.blade.php'));
     $controller = file_get_contents(base_path('app/Http/Controllers/PrintTransportSlipController.php'));
 
-    expect($view)->toContain('$slip->items->chunk(5)')
-        ->toContain('$copy < 2')
+    expect($view)->toContain('$copy < 2')
+        ->toContain('class="sheet a4"')
+        ->not->toContain('$slip->items->chunk(')
+        ->not->toContain('<table class="items">')
+        ->not->toContain('$item->product')
         ->toContain('Code39Svg::render')
         ->toContain('@if($autoprint)')
         ->not->toContain('->take(8)')
@@ -294,13 +297,13 @@ it('renders both A4 halves and carton labels without requiring a database', func
         'delivery_address' => 'Test adresi',
         'note' => '',
         'contact' => (object) ['code' => 'CR001', 'title' => 'Deneme Ltd'],
-        'items' => collect([(object) [
+        'items' => collect(array_fill(0, 7, (object) [
             'quantity' => '2.000',
             'product' => (object) [
                 'code' => 'UR001', 'name' => 'Test Ürün',
                 'unit' => (object) ['name' => 'Adet'],
             ],
-        ]]),
+        ])),
     ];
 
     $data = ['slip' => $slip, 'warnings' => 'KIRILABİLİR', 'autoprint' => false];
@@ -309,8 +312,11 @@ it('renders both A4 halves and carton labels without requiring a database', func
     expect(substr_count($html, '<h1>AMBAR FİŞİ</h1>'))->toBe(2)
         ->and($html)->toContain('AF-2026-00001')
         ->toContain('12.10.2026')
-        ->toContain('2,000')
-        ->toContain('KIRILABİLİR');
+        ->toContain('KIRILABİLİR')
+        ->not->toContain('UR001')
+        ->not->toContain('Test Ürün')
+        ->not->toContain('2,000')
+        ->not->toContain('<table class="items">');
 
     $labels = view('printing.transport-slip', [...$data, 'format' => 'labels'])->render();
     expect(substr_count($labels, 'SEVKİYAT ETİKETİ'))->toBe(3)
