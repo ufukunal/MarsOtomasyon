@@ -29,3 +29,9 @@ it('redirects unauthenticated users away from every ordinary business module', f
 it('forbids unsigned channel asset URLs before resolving attachments', function (): void {
     $this->get('/channel-assets/1/2/3/4')->assertForbidden();
 });
+
+it('preserves native Laravel guest authentication redirects instead of converting them to HTTP 500', function (): void {
+    Auth::forgetGuards();
+
+    $this->get(route('home'))->assertRedirect(route('login'));
+});

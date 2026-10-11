@@ -1,6 +1,12 @@
 <?php
 
 use App\Exceptions\DomainException as MarsDomainException;
+use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Auth\AuthenticationException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Session\TokenMismatchException;
+use Illuminate\Validation\ValidationException;
 use App\Http\Middleware\CorrelationId;
 use App\Http\Middleware\EnsureLocalNetwork;
 use App\Http\Middleware\SetActiveCompany;
@@ -66,7 +72,16 @@ return Application::configure(basePath: dirname(__DIR__))
         });
 
         $exceptions->render(function (Throwable $exception, Request $request) {
-            if ($exception instanceof HttpExceptionInterface || config('app.debug')) {
+            // Preserve framework status codes and login/validation redirects.
+            // An unauthenticated request must not become a generic HTTP 500.
+            if ($exception instanceof HttpExceptionInterface
+                || $exception instanceof AuthenticationException
+                || $exception instanceof AuthorizationException
+                || $exception instanceof ValidationException
+                || $exception instanceof ModelNotFoundException
+                || $exception instanceof TokenMismatchException
+                || $exception instanceof HttpResponseException
+                || config('app.debug')) {
                 return null;
             }
 
