@@ -478,3 +478,13 @@ input,select,textarea{border-radius:6px}
 .user-menu-panel form{margin:0}
 .user-menu-panel button{width:100%;background:#fff;border-color:var(--line);color:var(--text)}
 .table-add-action{display:inline-flex;align-items:center;justify-content:center;min-height:34px;margin:0;padding:0 11px;border-radius:7px;font-weight:700;white-space:nowrap}
+
+
+/* v65 compact multi-screen work tabs; no dummy links or page reload tricks */
+.worktabs{overflow-x:auto;overflow-y:hidden;scrollbar-width:thin}
+.workspace-tab{display:inline-flex;align-items:center;flex:none;height:31px;max-width:235px;border:1px solid transparent;border-radius:7px;color:#506370;background:transparent}
+.workspace-tab.is-active{background:#fff;border-color:var(--line);box-shadow:var(--shadow-sm);color:#263741;font-weight:700}
+.workspace-tab>a{display:block;min-width:0;padding:7px 11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.workspace-tab>a:hover{color:var(--primary-600)}
+.workspace-tab-close{min-height:24px;height:24px;margin-right:4px;padding:0 6px;border:0;border-radius:5px;background:transparent;color:var(--muted);font-size:17px}
+.workspace-tab-close:hover{background:#e8f0fe;color:var(--primary-600)}

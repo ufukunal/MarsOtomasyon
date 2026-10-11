@@ -114,9 +114,13 @@
         </div>
     </header>
 
-    <div class="worktabs" aria-label="Aktif ekran">
-        <span class="worktab-current"><span aria-hidden="true">▤</span> {{ $activeTitle }}</span>
-    </div>
+    <nav class="worktabs" aria-label="Açık ekranlar"
+        data-worktabs
+        data-tab-scope="{{ auth()->id() }}.{{ session('active_company_id') }}"
+        data-active-path="{{ request()->path() }}"
+        data-active-title="{{ $activeTitle }}">
+        <a class="worktab-current" href="{{ url()->current() }}" aria-current="page"><span aria-hidden="true">▤</span> {{ $activeTitle }}</a>
+    </nav>
 
     <main class="content" id="main-content">
         <header class="page-header">

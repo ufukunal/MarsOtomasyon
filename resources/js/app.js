@@ -196,3 +196,67 @@ document.addEventListener('keydown', (event) => {
         matches[0].click();
     }
 });
+
+
+// v65 worktabs: open business screens persist for this user and active company
+// in this browser tab only. Store paths/titles, never form state or credentials.
+document.addEventListener('DOMContentLoaded', () => {
+    const bar = document.querySelector('[data-worktabs]');
+    if (!(bar instanceof HTMLElement)) {
+        return;
+    }
+
+    const scope = bar.dataset.tabScope ?? '';
+    const path = '/' + (bar.dataset.activePath ?? '').replace(/^\/+/, '');
+    const title = (bar.dataset.activeTitle ?? 'Ekran').slice(0, 90);
+    const key = 'mars.v65.worktabs.' + scope;
+    let tabs = [];
+    try {
+        const loaded = JSON.parse(sessionStorage.getItem(key) ?? '[]');
+        if (Array.isArray(loaded)) {
+            tabs = loaded.filter((tab) =>
+                tab && typeof tab.path === 'string' && tab.path.startsWith('/')
+                && !tab.path.startsWith('//') && !tab.path.includes('\\')
+                && typeof tab.title === 'string'
+            ).slice(-5);
+        }
+    } catch {
+        tabs = [];
+    }
+    tabs = [...tabs.filter((tab) => tab.path !== path), { path, title }].slice(-6);
+    const store = () => {
+        try {
+            sessionStorage.setItem(key, JSON.stringify(tabs));
+        } catch {
+            // Private browsing may block storage. Navigation still works.
+        }
+    };
+    const render = () => {
+        bar.replaceChildren();
+        for (const tab of tabs) {
+            const item = document.createElement('span');
+            item.className = 'workspace-tab' + (tab.path === path ? ' is-active' : '');
+            const link = document.createElement('a');
+            link.href = tab.path;
+            link.textContent = tab.title;
+            if (tab.path === path) link.setAttribute('aria-current', 'page');
+            item.append(link);
+            if (tab.path !== path) {
+                const close = document.createElement('button');
+                close.type = 'button';
+                close.className = 'workspace-tab-close';
+                close.setAttribute('aria-label', tab.title + ' sekmesini kapat');
+                close.textContent = '×';
+                close.addEventListener('click', () => {
+                    tabs = tabs.filter((current) => current.path !== tab.path);
+                    store();
+                    render();
+                });
+                item.append(close);
+            }
+            bar.append(item);
+        }
+    };
+    store();
+    render();
+});
