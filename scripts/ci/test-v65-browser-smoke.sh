@@ -101,7 +101,7 @@ source = Path('reference/marsotomasyon-PROTOTIP-ONAYLI-v65.html').read_text()
 assert '</body>' in source
 for route in ('warehouse_slip_list', 'warehouse_slip_new'):
     suffix = "<script>window.addEventListener('load', () => navigate('" + route + "', true));</script>"
-    html = source.replace('</body>', suffix + '</body>', 1)
+    html = source.rsplit('</body>', 1)[0] + suffix + '</body>' + source.rsplit('</body>', 1)[1]
     Path(f'artifacts/v65-browser-navigation-{route}.html').write_text(html)
 PY_WAREHOUSE
 
