@@ -30,10 +30,6 @@ if [[ -n "$(sudo docker ps -a --filter "name=^/${CONTAINER}$" --format '{{.ID}}'
   echo 'BLOCKED: preview container already exists; manual review required' >&2
   exit 77
 fi
-if command -v ss >/dev/null && ss -ltn "( sport = :${PORT} )" | grep -q 'LISTEN'; then
-  echo "BLOCKED: local port $PORT is already listening" >&2
-  exit 77
-fi
 
 # GHCR may be private on an unauthenticated host; build that exact clean
 # checkout if pull is unavailable. Never pull a mutable latest tag.
@@ -70,7 +66,6 @@ APP_KEY="base64:$(openssl rand -base64 32)"
 sudo docker run --detach --rm \
   --name "$CONTAINER" \
   --network "$NETWORK" \
-  --publish "127.0.0.1:${PORT}:8080" \
   --security-opt no-new-privileges:true \
   --cap-drop ALL \
   --pids-limit 128 \
@@ -94,15 +89,24 @@ sudo docker run --detach --rm \
   "$IMAGE" >/dev/null
 unset APP_KEY
 
+# Docker internal networks do not forward published host ports. The host can
+# reach its internal bridge container IP directly, including over SSH tunnels.
+CONTAINER_IP="$(sudo docker inspect "$CONTAINER" --format '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}')"
+if [[ ! "$CONTAINER_IP" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+  echo 'BLOCKED: could not determine isolated preview container IP' >&2
+  sudo docker stop "$CONTAINER" >/dev/null 2>&1 || true
+  exit 77
+fi
+
 page="$(mktemp)"
 trap 'rm -f "$page"' EXIT
 for attempt in $(seq 1 25); do
-  if curl --fail --silent --max-time 3 "http://127.0.0.1:${PORT}/up" >/dev/null \
-    && curl --fail --silent --max-time 5 "http://127.0.0.1:${PORT}/giris" > "$page" \
+  if curl --fail --silent --max-time 3 "http://${CONTAINER_IP}:8080/up" >/dev/null \
+    && curl --fail --silent --max-time 5 "http://${CONTAINER_IP}:8080/giris" > "$page" \
     && grep -Eiq '<form|wire:' "$page"; then
     echo 'PASS: local UAT login preview responds on /up and /giris.'
-    echo "HOST_LOCAL_URL=http://127.0.0.1:${PORT}/giris"
-    echo 'SSH_TUNNEL=local 18080 -> remote 127.0.0.1:18080'
+    echo "SSH_TUNNEL_DESTINATION=${CONTAINER_IP}:8080"
+    echo "BROWSER_URL_AFTER_TUNNEL=http://127.0.0.1:${PORT}/giris"
     echo 'MODE=OFFLINE_LOGIN_ONLY; no user login or business data access.'
     exit 0
   fi
