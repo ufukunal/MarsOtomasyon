@@ -1,6 +1,5 @@
 <form wire:submit="authenticate" class="auth-form">
-    <h1>MarsOtomasyon</h1>
-    <p>Hesabınızla giriş yapın.</p>
+    <div class="auth-heading"><span class="brand-mark" aria-hidden="true">M</span><h1>{{ config('app.name') }}</h1><p>Hesabınızla giriş yapın.</p></div>
 
     <label>
         E-posta
