@@ -19,6 +19,7 @@ REDIS_PASSWORD=synthetic_test_password
 REDIS_PREFIX=mars:test:
 QUEUE_CONNECTION=redis
 ENV
+chmod 600 "$fixture"
 bash ops/uat-preflight.sh "$fixture" > /dev/null
 echo "PASS: synthetic isolated UAT configuration accepted"
 

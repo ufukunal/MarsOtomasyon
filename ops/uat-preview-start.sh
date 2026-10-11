@@ -2,7 +2,12 @@
 # Operator-invoked, isolated web-only UAT start. Never provisions DBs or queues.
 set -Eeuo pipefail
 EXPECTED_SHA="${1:?pass the reviewed full Git commit SHA}"
-ENV_FILE="/etc/mars/uat.env"  # Must match compose.uat.yml exactly; no override.
+ENV_FILE="${MARS_UAT_ENV_FILE:-/etc/mars/uat.env}"
+if [[ "$ENV_FILE" != /* ]]; then
+  echo "BLOCKED: absolute UAT env path required" >&2
+  exit 77
+fi
+export MARS_UAT_ENV_FILE="$ENV_FILE"  # Same path is loaded by Compose.
 if [[ "${MARS_UAT_DEPLOY_APPROVED:-}" != "I_APPROVE_ISOLATED_UAT_WEB_ONLY" ]]; then
   echo "BLOCKED: explicit web-only UAT approval flag required" >&2
   exit 77

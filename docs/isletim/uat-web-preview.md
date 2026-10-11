@@ -9,12 +9,16 @@ does not start any persistent application service.
 
 1. Docker Engine and Docker Compose accessible to the authorized operator.
 2. Git checkout of the specific release commit (no local modifications).
-3. Copy docs/isletim/.env.uat.example to /etc/mars/uat.env with root-owned
-   0600 permissions. Set a newly generated APP_KEY (for example base64:
+3. Copy docs/isletim/.env.uat.example to a protected file, for example
+   ~/.config/mars/uat.env with 0600 permissions. Set
+   MARS_UAT_ENV_FILE to its **absolute** path before running the startup
+   script. The same path is supplied to Docker Compose.
+   A root-owned /etc/mars/uat.env with a restricted authorized
+   deployment group and 0640 permissions is also supported. Set a newly generated APP_KEY (for example base64:
    followed by 32 securely random bytes), the actual test credentials, and
    MARS_UAT_ISOLATION_CONFIRMED=YES only after DB/ACL verification.
    Never use business production credentials.
-4. Protected /etc/mars/uat.env containing an isolated UAT APP_KEY,
+4. Protected UAT env file containing an isolated UAT APP_KEY,
    mars_test PostgreSQL and Valkey credentials. The test Master and
    Period databases must already exist, have correct migrations, and
    the test role must have no CREATEDB, SUPERUSER or PROD database CONNECT.
@@ -27,6 +31,7 @@ does not start any persistent application service.
 Run within the checkout, passing the reviewed full 40-character commit SHA:
 
 ```bash
+MARS_UAT_ENV_FILE="$HOME/.config/mars/uat.env" \
 MARS_UAT_DEPLOY_APPROVED=I_APPROVE_ISOLATED_UAT_WEB_ONLY \
   bash ops/uat-preview-start.sh <reviewed-full-git-sha>
 ```

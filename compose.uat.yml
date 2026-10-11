@@ -6,7 +6,7 @@ x-uat-app: &uat-app
     dockerfile: Dockerfile.uat
   image: ${MARS_UAT_IMAGE:-mars-uat:${MARS_UAT_IMAGE_TAG:-candidate}}
   env_file:
-    - /etc/mars/uat.env
+    - ${MARS_UAT_ENV_FILE:-/etc/mars/uat.env}
   volumes:
     - mars_uat_storage:/var/www/html/storage
   read_only: true

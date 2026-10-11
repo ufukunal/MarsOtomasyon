@@ -2,7 +2,9 @@
 # Read-only policy check; never sources or echoes secret contents.
 set -Eeuo pipefail
 ENV_FILE="${1:-/etc/mars/uat.env}"
-[[ -r "$ENV_FILE" ]] || { echo "BLOCKED: missing protected UAT env file" >&2; exit 77; }
+[[ -r "$ENV_FILE" && ! -L "$ENV_FILE" ]] || { echo "BLOCKED: UAT env not readable or is a symlink" >&2; exit 77; }
+mode="$(stat -c '%a' "$ENV_FILE")"
+[[ "$mode" == 600 || "$mode" == 640 ]] || { echo "BLOCKED: UAT env must have 0600 or 0640 permissions" >&2; exit 77; }
 value() { sed -n -E "s/^${1}=(.*)$/\\1/p" "$ENV_FILE" | tail -n 1 | tr -d '\r'; }
 must_equal() {
   if [[ "$(value "$1")" != "$2" ]]; then
