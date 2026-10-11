@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 it('maps approved v65 ambar transport separately from legacy stock adjustments', function (): void {
@@ -157,7 +158,6 @@ it('prints two A5 slips on A4 without dropping products after five rows', functi
         ->and($controller)->toContain("request()->boolean('autoprint')");
 });
 
-
 it('routes old Ambar bookmarks to v65 and retains G-207 stock documents separately', function (): void {
     expect(route('warehouse.transport.index', [], false))->toBe('/ambar/fisler')
         ->and(route('warehouse.transport.create', [], false))->toBe('/ambar/fisler/yeni')
@@ -165,13 +165,13 @@ it('routes old Ambar bookmarks to v65 and retains G-207 stock documents separate
         ->and(route('stock.warehouse-slips.create', [], false))->toBe('/stok/duzeltme-fisleri/yeni');
 
     $legacyList = Route::getRoutes()->match(
-        \Illuminate\Http\Request::create('/stok/ambar-fisleri', 'GET'),
+        Request::create('/stok/ambar-fisleri', 'GET'),
     );
     $legacyCreate = Route::getRoutes()->match(
-        \Illuminate\Http\Request::create('/stok/ambar-fisleri/yeni', 'GET'),
+        Request::create('/stok/ambar-fisleri/yeni', 'GET'),
     );
     $legacyShow = Route::getRoutes()->match(
-        \Illuminate\Http\Request::create('/stok/ambar-fisleri/42', 'GET'),
+        Request::create('/stok/ambar-fisleri/42', 'GET'),
     );
 
     expect($legacyList->getName())->toBe('warehouse.transport.legacy.index')
@@ -187,7 +187,7 @@ it('keeps v65 general and table search inputs independent', function (): void {
     $view = file_get_contents(base_path('resources/views/livewire/pages/warehouse/transport-slip-list.blade.php'));
 
     expect($component)->toContain("public string \$tableSearch = ''")
-        ->toContain("trim(\$this->tableSearch)")
+        ->toContain('trim($this->tableSearch)')
         ->toContain("'search', 'tableSearch', 'status'")
         ->and($view)->toContain('wire:model.live.debounce.300ms="search"')
         ->toContain('wire:model.live.debounce.300ms="tableSearch"');
