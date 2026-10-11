@@ -63,13 +63,13 @@ PAGE="$(mktemp)"
 trap 'status=$?; rm -f "$PAGE"; echo "UAT_RESUME_EXIT=$status"' EXIT
 for i in $(seq 1 25); do
   if curl --noproxy '*' -fsS --max-time 4 "http://$WEBIP:8080/up" >/dev/null 2>&1 &&
-     curl --noproxy '*' -fsS --max-time 4 "http://$WEBIP:8080/kurulum" -o "$PAGE" 2>/dev/null &&
-     grep -Eiq 'Firma Kurulum Sihirbaz|Adım' "$PAGE"; then
-    echo 'PASS: UAT SETUP WIZARD READY'
+     curl --noproxy '*' -fsS --max-time 4 "http://$WEBIP:8080/giris" -o "$PAGE" 2>/dev/null &&
+     grep -Eiq '<form|wire:' "$PAGE"; then
+    echo 'PASS: UAT WEB AND LOGIN READY'
     echo "UAT_WEB_BRIDGE=$WEBIP:8080"
     exit 0
   fi
   sleep 2
 done
-echo 'BLOCKED: UAT HTTP wizard verification failed' >&2
+echo 'BLOCKED: UAT HTTP health/login verification failed' >&2
 exit 77
