@@ -6,6 +6,7 @@ on:
       - '.github/workflows/test-v4-offline-checks.yml'
       - 'tests/Contracts/**'
       - 'tests/Feature/**'
+      - 'tests/Pest.php'
   workflow_dispatch:
 permissions:
   contents: read

@@ -21,11 +21,16 @@ function marsProtectedGetRoutes(): array
     return $result;
 }
 
-it('redirects every anonymous visitor away from all authenticated GET screens', function (string $path): void {
+it('redirects every anonymous visitor away from all authenticated GET screens', function (): void {
     Auth::forgetGuards();
 
-    $this->get('/'.ltrim($path, '/'))->assertRedirect(route('login'));
-})->with(fn (): array => marsProtectedGetRoutes());
+    $routes = marsProtectedGetRoutes();
+    expect($routes)->not->toBeEmpty();
+
+    foreach ($routes as $name => [$path]) {
+        $this->get('/'.ltrim($path, '/'))->assertRedirect(route('login'), "Unprotected route: {$name}");
+    }
+});
 
 it('indexes a substantial number of protected business screens rather than testing only the dashboard', function (): void {
     expect(count(marsProtectedGetRoutes()))->toBeGreaterThan(30);

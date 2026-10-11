@@ -16,7 +16,16 @@ it('requires auth for every module UI screen, including exports and downloads', 
             continue;
         }
         $matched[] = $name;
-        expect($route->gatherMiddleware())->toContain('auth');
+
+        // Public channel assets use a cryptographic signed URL rather than
+        // session authentication; the missing/invalid signature is forbidden.
+        if ($name === 'channels.asset') {
+            expect($route->gatherMiddleware())->toContain('signed');
+
+            continue;
+        }
+
+        expect($route->gatherMiddleware())->toContain('auth', "Missing auth middleware on {$name}");
     }
     expect($matched)->not->toBeEmpty();
 });
