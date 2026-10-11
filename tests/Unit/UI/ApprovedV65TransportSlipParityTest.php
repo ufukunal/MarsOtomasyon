@@ -2,6 +2,7 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Validator;
 
 it('maps approved v65 ambar transport separately from legacy stock adjustments', function (): void {
     $ref = file_get_contents(base_path('reference/marsotomasyon-PROTOTIP-ONAYLI-v65.html'));
@@ -234,7 +235,7 @@ it('renders Turkish validation feedback for each incomplete transport slip field
     app()->setLocale('tr');
 
     try {
-        $validator = \Illuminate\Support\Facades\Validator::make(
+        $validator = Validator::make(
             ['deliveryAddress' => '', 'contactId' => null],
             ['deliveryAddress' => ['required'], 'contactId' => ['required']],
             [],
