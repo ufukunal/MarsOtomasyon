@@ -92,16 +92,17 @@ if (probe.groups < 5 or probe.pageheads < 1 or probe.content < 1
 print('PASS: approved v65 renders navigation groups, page header, and nonempty dashboard in Chromium.')
 PY
 
-# The v165 Ambar screens register after initial deep-link resolution in the prototype.
-# Use its real navigate() behavior on a temporary test copy; never alter the approved HTML.
+# The v65 Ambar routes are registered by late scripts.
+# The standalone reference ends in a script tag (without a final HTML closing tag);
+# append an isolated navigation script to a temporary test copy, not the reference.
 python3 - <<'PY_WAREHOUSE'
 from pathlib import Path
 
 source = Path('reference/marsotomasyon-PROTOTIP-ONAYLI-v65.html').read_text()
-assert '</body>' in source
+assert source.rstrip().endswith('</script>')
 for route in ('warehouse_slip_list', 'warehouse_slip_new'):
     suffix = "<script>window.addEventListener('load', () => navigate('" + route + "', true));</script>"
-    html = source.rsplit('</body>', 1)[0] + suffix + '</body>' + source.rsplit('</body>', 1)[1]
+    html = source + '\n' + suffix
     Path(f'artifacts/v65-browser-navigation-{route}.html').write_text(html)
 PY_WAREHOUSE
 
