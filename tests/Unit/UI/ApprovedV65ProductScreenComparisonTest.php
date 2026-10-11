@@ -14,7 +14,7 @@ it('keeps v65 product list labels and read-only detail destinations', function (
         ->toContain("'Barkodu'")
         ->toContain("'Ürün Tipi'")
         ->toContain("'Satış KDV %'")
-        ->toContain("ProductKind::Configurable")
+        ->toContain('ProductKind::Configurable')
         ->toContain("'Aktif' : 'Pasif'")
         ->toContain("route('products.show'")
         ->not->toContain("'label' => 'Detay', 'method' => 'editProduct'")
