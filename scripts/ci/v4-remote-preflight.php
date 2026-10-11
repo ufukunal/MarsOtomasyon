@@ -69,6 +69,23 @@ try {
     v4Require($valkey->connect('mars-prod-1.taila20365.ts.net', 6379, 5.0), 'Valkey connection failed');
     v4Require($valkey->auth(['mars_test', $redisPassword]), 'Valkey ACL authentication failed');
     v4Require($valkey->rawCommand('ACL', 'WHOAMI') === 'mars_test', 'Valkey ACL identity mismatch');
+    // Read-only negative ACL probe: the dedicated user must be denied access
+    // to a key outside mars:test:. Never read the contents of any key.
+    $valkey->clearLastError();
+    $aclError = null;
+    try {
+        $outOfScopeResult = $valkey->rawCommand('EXISTS', '__mars_uat_acl_outside_test_namespace__');
+        $aclError = $valkey->getLastError();
+    } catch (RedisException $exception) {
+        $outOfScopeResult = false;
+        $aclError = $exception->getMessage();
+    }
+    v4Require(
+        $outOfScopeResult === false
+            && is_string($aclError)
+            && str_contains(strtoupper($aclError), 'NOPERM'),
+        'Valkey ACL did not deny out-of-namespace key access',
+    );
     v4Require($valkey->select(1), 'Valkey test cache logical DB is inaccessible');
     $valkey->close();
 } catch (Throwable $exception) {

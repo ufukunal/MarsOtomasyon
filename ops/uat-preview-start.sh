@@ -43,6 +43,12 @@ if [[ -n "${MARS_UAT_IMAGE:-}" ]]; then
     exit 77
   fi
   docker compose -f compose.uat.yml pull web
+  # A tag alone is not a verifiable source-to-image match.
+  IMAGE_REVISION="$(docker image inspect "$EXPECTED_IMAGE" --format '{{ index .Config.Labels "org.opencontainers.image.revision" }}')"
+  if [[ "$IMAGE_REVISION" != "$EXPECTED_SHA" ]]; then
+    echo "BLOCKED: pulled image revision does not match reviewed Git commit" >&2
+    exit 77
+  fi
 else
   docker compose -f compose.uat.yml build web
 fi

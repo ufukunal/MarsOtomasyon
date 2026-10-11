@@ -8,6 +8,7 @@ on:
       - 'compose.uat.yml'
       - 'ops/uat-preview-start.sh'
       - 'docs/isletim/.env.uat.example'
+      - 'scripts/ci/v4-remote-preflight.php'
   workflow_dispatch:
 permissions:
   contents: read

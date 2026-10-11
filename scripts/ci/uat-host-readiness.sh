@@ -22,8 +22,12 @@ if [[ -n "${MARS_V4_SSH_PRIVATE_KEY:-}" ]]; then
   chmod 600 "$tmp/id_key"
   ssh_opts+=(-i "$tmp/id_key" -o IdentitiesOnly=yes -o BatchMode=yes)
 else
-  printf '#!/bin/sh\nprintf "%%s\\n" "$MARS_V4_SSH_PASSWORD"\n' > "$tmp/askpass"
+  # Never interpolate a password into executable shell source.
+  printf '%s' "$MARS_V4_SSH_PASSWORD" > "$tmp/ssh_password"
+  chmod 600 "$tmp/ssh_password"
+  printf '#!/bin/sh\ncat "$MARS_ASKPASS_PASSWORD_FILE"\n' > "$tmp/askpass"
   chmod 700 "$tmp/askpass"
+  export MARS_ASKPASS_PASSWORD_FILE="$tmp/ssh_password"
   export SSH_ASKPASS="$tmp/askpass" SSH_ASKPASS_REQUIRE=force DISPLAY=:0
   ssh_opts+=(-o BatchMode=no -o PreferredAuthentications=password
     -o PubkeyAuthentication=no -o NumberOfPasswordPrompts=1)
