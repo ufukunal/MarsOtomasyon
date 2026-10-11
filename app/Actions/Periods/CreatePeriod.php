@@ -27,16 +27,35 @@ final class CreatePeriod
             throw new RuntimeException("{$dbName} zaten var.");
         }
 
-        if (DB::connection('master')->table('pg_database')->where('datname', $dbName)->exists()) {
+        // UAT uses a database provisioned out-of-band on a dedicated test
+        // PostgreSQL instance. The HTTP runtime has no CREATEDB privilege.
+        $uatPreprovisioned = config('app.env') === 'uat'
+            && $dbName === config('operations.database.uat_preprovisioned_period');
+
+        $database = DB::connection('master')->table('pg_database')
+            ->where('datname', $dbName)
+            ->selectRaw('pg_get_userbyid(datdba) AS owner')
+            ->first();
+
+        if ($uatPreprovisioned) {
+            if ($database === null) {
+                throw new RuntimeException('UAT period DB henüz ayrı provisioning ile oluşturulmadı.');
+            }
+
+            $currentUser = DB::connection('master')->selectOne('SELECT current_user AS username');
+            if ($database->owner !== ($currentUser->username ?? null)) {
+                throw new RuntimeException('UAT period DB runtime hesabına ait değil.');
+            }
+        } elseif ($database !== null) {
             throw new RuntimeException("{$dbName} fiziksel veritabanı zaten var.");
         }
 
-        $databaseCreated = false;
         $period = null;
 
         try {
-            DB::connection('master')->statement(sprintf('CREATE DATABASE "%s"', $dbName));
-            $databaseCreated = true;
+            if (! $uatPreprovisioned) {
+                DB::connection('master')->statement(sprintf('CREATE DATABASE "%s"', $dbName));
+            }
 
             $period = Period::query()->create([
                 'company_id' => $company->id,
@@ -76,10 +95,8 @@ final class CreatePeriod
                 $period->delete();
             }
 
-            if ($databaseCreated) {
-                DB::connection('master')->statement(sprintf('DROP DATABASE IF EXISTS "%s" WITH (FORCE)', $dbName));
-            }
-
+            // Never drop a physical database automatically during rollback.
+            // It may contain operator-provisioned data or partial migrations.
             throw $exception;
         }
     }

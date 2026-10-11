@@ -10,6 +10,12 @@ on:
       - 'scripts/ci/uat-container-smoke.sh'
       - 'scripts/ci/v4-remote-preflight.php'
       - 'ops/uat-login-only-preview.sh'
+      - 'ops/uat-lab-postgres-init.sh'
+      - 'ops/uat-lab-start.sh'
+      - 'compose.uat.lab.yml'
+      - 'app/Actions/Periods/CreatePeriod.php'
+      - 'app/Livewire/Pages/Setup/CompanyWizard.php'
+      - 'config/operations.php'
   workflow_dispatch:
 permissions:
   contents: read
@@ -33,7 +39,7 @@ jobs:
           docker info >/dev/null || { echo "BLOCKED: Docker Engine unavailable" >&2; exit 77; }
           docker compose version
       - name: Check UAT runtime scripts syntax
-        run: bash -n ops/uat-preflight.sh ops/uat-login-only-preview.sh scripts/ci/uat-container-smoke.sh
+        run: bash -n ops/uat-preflight.sh ops/uat-login-only-preview.sh ops/uat-lab-postgres-init.sh ops/uat-lab-start.sh scripts/ci/uat-container-smoke.sh
       - name: Build disposable UAT image without secrets
         shell: bash
         run: |

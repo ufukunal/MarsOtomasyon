@@ -3,6 +3,7 @@
 return [
     'database' => [
         'runtime_username' => env('RUNTIME_DB_USERNAME', env('DB_USERNAME', 'postgres')),
+        'uat_preprovisioned_period' => env('MARS_UAT_PREPROVISIONED_PERIOD_DB', ''),
     ],
 
     'health' => [

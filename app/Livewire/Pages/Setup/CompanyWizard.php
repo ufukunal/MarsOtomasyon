@@ -178,12 +178,9 @@ class CompanyWizard extends Component
                 PeriodContext::clear();
 
                 if ($period?->exists) {
-                    $databaseName = $period->database_name;
+                    // Remove only the failed metadata record. Physical
+                    // databases are never automatically deleted.
                     $period->delete();
-
-                    DB::connection('master')->statement(
-                        sprintf('DROP DATABASE IF EXISTS "%s" WITH (FORCE)', $databaseName),
-                    );
                 }
 
                 $company?->delete();

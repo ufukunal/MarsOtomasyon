@@ -1,0 +1,110 @@
+# Dedicated disposable UAT DATA services. No shared PROD PostgreSQL/Valkey.
+# NO host published database, Valkey or web ports. The internal network can be
+# reached from the VM bridge for explicitly approved Tailscale-only previews.
+name: mars-uat-lab
+
+services:
+  postgres:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: mars_uat_owner
+      POSTGRES_PASSWORD: ${MARS_UAT_PG_OWNER_PASSWORD:?missing dedicated owner password}
+      POSTGRES_DB: postgres
+      MARS_UAT_PG_APP_PASSWORD: ${MARS_UAT_PG_APP_PASSWORD:?missing dedicated app password}
+    volumes:
+      - mars_uat_lab_pg:/var/lib/postgresql/data
+      - ./ops/uat-lab-postgres-init.sh:/docker-entrypoint-initdb.d/10-uat-init.sh:ro
+    networks: [uat_internal]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mars_uat_owner -d postgres"]
+      interval: 5s
+      timeout: 4s
+      retries: 20
+    mem_limit: 1280m
+    cpus: 1.5
+    pids_limit: 256
+    security_opt: ["no-new-privileges:true"]
+
+  valkey:
+    image: valkey/valkey:8-alpine
+    restart: unless-stopped
+    command: ["valkey-server", "--appendonly", "yes", "--requirepass", "${MARS_UAT_VALKEY_PASSWORD:?missing dedicated Valkey password}"]
+    environment:
+      REDISCLI_AUTH: ${MARS_UAT_VALKEY_PASSWORD:?missing dedicated Valkey password}
+    volumes:
+      - mars_uat_lab_valkey:/data
+    networks: [uat_internal]
+    healthcheck:
+      test: ["CMD", "valkey-cli", "ping"]
+      interval: 5s
+      timeout: 4s
+      retries: 15
+    mem_limit: 256m
+    cpus: 0.5
+    pids_limit: 96
+    security_opt: ["no-new-privileges:true"]
+
+  web:
+    image: ghcr.io/ufukunal/marsotomasyon:uat-${MARS_UAT_SHA:?missing release sha}
+    profiles: ["application"]
+    restart: unless-stopped
+    depends_on:
+      postgres: {condition: service_healthy}
+      valkey: {condition: service_healthy}
+    environment:
+      APP_NAME: MarsProjectUAT
+      APP_ENV: uat
+      APP_DEBUG: "false"
+      APP_KEY: ${MARS_UAT_APP_KEY:?missing application key}
+      APP_URL: "http://100.127.235.30:18081"
+      LOG_CHANNEL: stack
+      LOG_LEVEL: warning
+      DB_CONNECTION: master
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      DB_MASTER_DATABASE: mars_uat_master
+      DB_USERNAME: mars_uat_app
+      DB_PASSWORD: ${MARS_UAT_PG_APP_PASSWORD:?missing database password}
+      REDIS_CLIENT: phpredis
+      REDIS_HOST: valkey
+      REDIS_PORT: "6379"
+      REDIS_USERNAME: default
+      REDIS_PASSWORD: ${MARS_UAT_VALKEY_PASSWORD:?missing valkey password}
+      REDIS_PREFIX: "mars:uat:"
+      REDIS_DB: "0"
+      REDIS_CACHE_DB: "1"
+      REDIS_SESSION_DB: "2"
+      REDIS_QUEUE_DB: "3"
+      CACHE_STORE: redis
+      SESSION_DRIVER: redis
+      SESSION_CONNECTION: session
+      QUEUE_CONNECTION: redis
+      REDIS_QUEUE_CONNECTION: queue
+      MAIL_MAILER: log
+      FILESYSTEM_DISK: local
+      ATTACHMENTS_DISK_DRIVER: local
+      RUNTIME_DB_USERNAME: mars_uat_app
+      MARS_UAT_PREPROVISIONED_PERIOD_DB: mars_uat_demo_2026
+    volumes:
+      - mars_uat_lab_app_storage:/var/www/html/storage
+    read_only: true
+    tmpfs:
+      - /tmp:rw,nosuid,nodev,size=128m
+      - /var/www/html/bootstrap/cache:rw,nosuid,nodev,size=32m
+    networks: [uat_internal]
+    mem_limit: 1024m
+    cpus: 1.5
+    pids_limit: 256
+    security_opt: ["no-new-privileges:true"]
+    cap_drop: ["ALL"]
+
+networks:
+  uat_internal:
+    internal: true
+    driver: bridge
+
+volumes:
+  mars_uat_lab_pg:
+  mars_uat_lab_valkey:
+  mars_uat_lab_app_storage:
