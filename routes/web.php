@@ -41,6 +41,7 @@ use App\Livewire\Pages\Products\ProductForm;
 use App\Livewire\Pages\Products\ProductList;
 use App\Livewire\Pages\Products\VariantGroupDetail;
 use App\Livewire\Pages\Settings\IntegrityReport;
+use App\Livewire\Pages\Settings\MasterSettingsIndex;
 use App\Livewire\Pages\Settings\OperationsCenter;
 use App\Livewire\Pages\Settings\PeriodCarry;
 use App\Livewire\Pages\Settings\Periods;
@@ -125,6 +126,12 @@ Route::middleware('guest')->group(function (): void {
 
 Route::middleware('auth')->group(function (): void {
     Route::get('/secim', PeriodSelection::class)->name('period.select');
+    Route::get('/ayarlar/sirketler', MasterSettingsIndex::class)->name('settings.companies');
+    Route::get('/ayarlar/kullanicilar', MasterSettingsIndex::class)->name('settings.users');
+    Route::get('/ayarlar/roller', MasterSettingsIndex::class)->name('settings.roles');
+    Route::get('/ayarlar/islem-gecmisi', MasterSettingsIndex::class)->name('settings.audit');
+    Route::get('/ayarlar/yazdirma-profilleri', MasterSettingsIndex::class)->name('settings.print-profiles');
+    Route::get('/ayarlar/sirket-baglantilari', MasterSettingsIndex::class)->name('settings.company-copy-permissions');
     Route::get('/ayarlar/donemler', Periods::class)->name('settings.periods');
     Route::get('/ayarlar/donem-devri', PeriodCarry::class)->name('settings.period-carry');
     Route::get('/kartlar/lokasyonlar', LocationList::class)->name('locations.index');
