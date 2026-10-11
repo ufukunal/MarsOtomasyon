@@ -11,7 +11,7 @@
 @else
 <div class="alert alert-warning">Sayım sırasında bu lokasyonda hareket yapılmaması önerilir.</div>
 <div class="form-row"><strong>{{ $count->number ?: 'Henüz numara verilmedi' }}</strong><span>Durum: {{ $count->status }}</span><label><input type="checkbox" wire:model.live="differencesOnly"> Yalnızca farklıları göster</label></div>
-<table class="data-table"><thead><tr><th>Ürün</th><th>Sistem</th><th>Sayılan</th><th>Fark</th><th>Onay</th><th>Not</th><th></th></tr></thead><tbody>
+<div class="table-scroll v65-grid-scroll"><table class="data-table"><thead><tr><th>Ürün</th><th>Sistem</th><th>Sayılan</th><th>Fark</th><th>Onay</th><th>Not</th><th></th></tr></thead><tbody>
 @foreach($countLines as $line)<tr>
 <td>{{ $line->product->code }} · {{ $line->product->name }}</td>
 <td>{{ \App\Support\Formatting\TrFormatter::quantity((string)$line->system_quantity) }}</td>
@@ -21,7 +21,7 @@
 <td>@if(in_array($count->status,['counting','review'],true))<input wire:model="lineNotes.{{ $line->id }}">@else{{ $line->note }}@endif</td>
 <td>@if(in_array($count->status,['counting','review'],true))<button type="button" wire:click="saveLine({{ $line->id }})">Kaydet</button>@endif</td>
 </tr>@endforeach
-</tbody></table>
+</tbody></table></div>
 <div class="form-row">@if($count->status==='counting' && auth()->user()?->can('stock_counts.update'))<button type="button" wire:click="review">Farkları Göster / İncelemeye Al</button>@endif @if($count->status==='review' && auth()->user()?->can('stock_counts.update'))<button type="button" wire:click="post">Sayımı Kesinleştir</button>@endif</div>
 @endif
 </section>

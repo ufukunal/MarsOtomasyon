@@ -585,3 +585,29 @@ input,select,textarea{border-radius:6px}
  border-color:var(--primary);box-shadow:0 0 0 2px rgba(22,119,168,.11)
 }
 @media(prefers-reduced-motion:reduce){.content *{transition:none}}
+
+
+/* Approved v65: scrollable tables for production, stock and channels. */
+.v65-list-panel{display:grid;gap:12px;min-width:0}
+.v65-list-panel>.form-row{display:flex;justify-content:space-between;align-items:center}
+.v65-list-panel>.form-row>h1{margin:0;font-size:16px;line-height:1.4}
+.v65-editor-panel{display:grid;gap:12px;min-width:0}
+.v65-editor-panel>h2{margin:0;color:var(--text);font-size:14px}
+.v65-editor-panel>label:not(:has(>input[type="checkbox"])){display:grid;gap:5px;max-width:860px}
+.v65-editor-panel>label:not(:has(>input[type="checkbox"]))>:is(input,select,textarea){width:100%;max-width:100%}
+.v65-grid-scroll{
+  min-width:0;max-width:100%;overflow-x:auto;overscroll-behavior-x:contain;
+  border:1px solid var(--line);border-radius:8px;background:var(--surface)
+}
+.v65-grid-scroll>.data-table{width:100%;min-width:660px}
+.v65-grid-scroll>.data-table th{background:#f6f9fa;color:#506370}
+.v65-grid-scroll>.data-table td{vertical-align:middle}
+.v65-grid-scroll>.data-table td button{
+ min-height:28px;border-radius:6px;border:1px solid var(--line);
+ background:#fff;color:var(--primary-600);font-weight:650
+}
+.v65-grid-scroll>.data-table td button:hover{background:var(--soft)}
+@media(max-width:700px){
+ .v65-list-panel>.form-row{align-items:flex-start;flex-direction:column}
+ .v65-grid-scroll>.data-table{min-width:650px}
+}

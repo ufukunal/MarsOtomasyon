@@ -23,5 +23,7 @@ docker run --rm --network none --cap-drop ALL --security-opt no-new-privileges \
     test -f vendor/autoload.php
     php -r '\''foreach (["bcmath","mbstring","pdo_pgsql","redis","gd","intl","zip"] as $ext) { if (!extension_loaded($ext)) { fwrite(STDERR, "MISSING: ".$ext.PHP_EOL); exit(77); } } echo "All required UAT PHP extensions present".PHP_EOL;'\''
     php artisan route:list --json >/dev/null
-    echo "PASS: Laravel routes bootstrap without DB or Valkey network"
+    php artisan view:cache >/dev/null
+    php artisan view:clear >/dev/null
+    echo "PASS: Laravel routes and all Blade views compiled without DB or Valkey network"
   '

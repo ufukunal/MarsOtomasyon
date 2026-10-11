@@ -30,7 +30,7 @@
         </div>
 
         @if(!$transfer || $transfer->status === 'draft')
-            <table class="data-table">
+            <div class="table-scroll v65-grid-scroll"><table class="data-table">
                 <thead><tr><th>Ürün</th><th>Miktar</th><th></th></tr></thead>
                 <tbody>
                 @foreach($draftLines as $index => $line)
@@ -48,7 +48,7 @@
                     </tr>
                 @endforeach
                 </tbody>
-            </table>
+            </table></div>
             <div class="form-row">
                 <button type="button" wire:click="addLine">Satır Ekle</button>
                 <button type="button" wire:click="saveDraft">Taslağı Kaydet</button>
@@ -65,7 +65,7 @@
                 <span>Durum: {{ $transfer->status }}</span>
             </div>
 
-            <table class="data-table">
+            <div class="table-scroll v65-grid-scroll"><table class="data-table">
                 <thead><tr><th>Ürün</th><th>Gönderilen</th><th>Teslim Alınan</th><th>Kalan</th><th>Şimdi Teslim</th></tr></thead>
                 <tbody>
                 @foreach($postedLines as $line)
@@ -82,7 +82,7 @@
                     </tr>
                 @endforeach
                 </tbody>
-            </table>
+            </table></div>
 
             <div class="form-row">
                 @if(in_array($transfer->status, ['in_transit','partially_received'], true) && auth()->user()?->can('transfers.update'))

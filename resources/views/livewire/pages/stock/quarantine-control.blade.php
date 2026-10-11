@@ -18,7 +18,7 @@
             </label>
         </div>
 
-        <table class="data-table">
+        <div class="table-scroll v65-grid-scroll"><table class="data-table">
             <thead>
             <tr>
                 <th></th>
@@ -61,7 +61,7 @@
                 </tr>
             @endforeach
             </tbody>
-        </table>
+        </table></div>
 
         {{ $entries->links() }}
 
