@@ -26,8 +26,8 @@ MARS_UAT_DEPLOY_APPROVED=I_APPROVE_ISOLATED_UAT_WEB_ONLY \
   bash ops/uat-preview-start.sh <reviewed-full-git-sha>
 ```
 
-The script checks the protected configuration, builds only the application
-image, runs the repository's PostgreSQL/Valkey **read-only** isolation
+The script checks the protected configuration, then builds the application
+image or pulls a prebuilt GitHub Container Registry image (when\n`MARS_UAT_IMAGE=ghcr.io/ufukunal/marsotomasyon:uat-<reviewed-full-git-sha>`\nis set and authenticated GHCR access is available), runs the repository's PostgreSQL/Valkey **read-only** isolation
 preflight, then starts only `web`. It tests `/up` and `/giris`.
 If either page fails it stops the UAT web service. No queue/scheduler,
 migration, provisioning, system ACL change or production traffic is started.

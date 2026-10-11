@@ -4,7 +4,7 @@ x-uat-app: &uat-app
   build:
     context: .
     dockerfile: Dockerfile.uat
-  image: mars-uat:${MARS_UAT_IMAGE_TAG:-candidate}
+  image: ${MARS_UAT_IMAGE:-mars-uat:${MARS_UAT_IMAGE_TAG:-candidate}}
   env_file:
     - /etc/mars/uat.env
   volumes:

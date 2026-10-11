@@ -31,7 +31,16 @@ fi
 
 # Never print env_file contents. All DB/Valkey values reach only the test image.
 docker compose -f compose.uat.yml config --quiet
-docker compose -f compose.uat.yml build web
+if [[ -n "${MARS_UAT_IMAGE:-}" ]]; then
+  EXPECTED_IMAGE="ghcr.io/ufukunal/marsotomasyon:uat-${EXPECTED_SHA}"
+  if [[ "$MARS_UAT_IMAGE" != "$EXPECTED_IMAGE" ]]; then
+    echo "BLOCKED: requested OCI image does not match reviewed Git commit" >&2
+    exit 77
+  fi
+  docker compose -f compose.uat.yml pull web
+else
+  docker compose -f compose.uat.yml build web
+fi
 
 # Read-only remote checks: exact test PostgreSQL identities, no CREATEDB role,
 # non-production CONNECT ACLs, isolated Valkey user. No data modifications.
