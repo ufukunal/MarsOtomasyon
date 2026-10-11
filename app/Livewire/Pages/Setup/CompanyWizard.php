@@ -13,8 +13,8 @@ use App\Support\Period\PeriodContext;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Livewire\Component;
 use Illuminate\Validation\ValidationException;
+use Livewire\Component;
 
 class CompanyWizard extends Component
 {
