@@ -21,7 +21,7 @@
 
     @if($errors->any())
         <div class="wsl-validation-summary" role="alert">
-            <strong>Kaydedilemedi: {{ $errors->count() }} alanı kontrol edin.</strong>
+            <strong>İşlem yapılamadı: {{ $errors->count() }} alanı kontrol edin.</strong>
             <span>Hatalı alanlar aşağıda kırmızı ile işaretlendi.</span>
         </div>
     @endif

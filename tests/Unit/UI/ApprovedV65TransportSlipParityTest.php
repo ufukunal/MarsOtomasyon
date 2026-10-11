@@ -141,7 +141,7 @@ it('previews unpersisted form values without creating any stock movement', funct
         ->toContain('new TransportSlipItem([')
         ->toContain('setRelation(')
         ->toContain('previewHtml')
-        ->toContain('validate($this->rules())')
+        ->toContain('validate($this->rules(), [], $this->fieldNames())')
         ->and($form)->toContain('srcdoc="{{ $previewHtml }}"')
         ->toContain('Fiş Yazdır / PDF')
         ->toContain('Etiket Yazdır');
