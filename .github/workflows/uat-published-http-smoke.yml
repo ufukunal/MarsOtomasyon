@@ -24,11 +24,15 @@ jobs:
           printf '%s' "$GH_TOKEN" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
       - name: Pull the exact smoke-tested image
         run: docker pull "$IMAGE"
+      - name: Prepare isolated network without database or Valkey connectivity
+        shell: bash
+        run: docker network create --internal --driver bridge mars-uat-ci-internal
       - name: Launch disposable HTTP preview with impossible DB endpoints
         shell: bash
         run: |
           set -Eeuo pipefail
           docker run --detach --rm --name "$CONTAINER_NAME" \
+            --network mars-uat-ci-internal \
             --publish 127.0.0.1:18080:8080 --cap-drop ALL \
             --security-opt no-new-privileges:true \
             -e APP_ENV=testing \
@@ -64,3 +68,4 @@ jobs:
         shell: bash
         run: |
           docker stop "$CONTAINER_NAME" >/dev/null 2>&1 || true
+          docker network rm mars-uat-ci-internal >/dev/null 2>&1 || true

@@ -9,6 +9,7 @@ on:
       - 'ops/uat-preview-start.sh'
       - 'docs/isletim/.env.uat.example'
       - 'scripts/ci/v4-remote-preflight.php'
+      - 'ops/uat-login-only-preview.sh'
   workflow_dispatch:
 permissions:
   contents: read
