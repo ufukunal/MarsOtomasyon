@@ -47,3 +47,7 @@ jobs:
         run: bash -n ops/build-release-artifact.sh ops/deploy-release.sh scripts/ci/test-release-guards.sh
       - name: Production release tamper-rejection tests
         run: bash scripts/ci/test-release-guards.sh
+      - name: UAT shell syntax and isolation policy regressions
+        run: |
+          bash -n ops/uat-preflight.sh scripts/ci/test-uat-isolation-guards.sh
+          bash scripts/ci/test-uat-isolation-guards.sh
