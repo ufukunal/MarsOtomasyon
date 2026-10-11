@@ -1,4 +1,10 @@
-<form wire:submit="save" class="stack">
+<form wire:submit="save" class="stack v65-product-edit">
+    <nav class="form-row" aria-label="Ürün gezinme">
+        <a href="{{ route('products.index') }}">← Ürün Listesi</a>
+        @if($product)
+            <a href="{{ route('products.show', ['product' => $product->id]) }}">Ürün Detayına Dön →</a>
+        @endif
+    </nav>
     <x-tabs :tabs="['general'=>'Genel','price'=>'Fiyat','stock'=>'Stok','type'=>'Tip','components'=>'Bileşenler','config'=>'Konfigürasyon','images'=>'Görseller']" :active="$activeTab" />
 
     @if($activeTab === 'general')

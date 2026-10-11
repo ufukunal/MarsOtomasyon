@@ -308,6 +308,9 @@ class ProductForm extends Component
             'units' => Unit::query()->where('is_active', true)->orderBy('name')->get(),
             'variantGroups' => VariantGroup::query()->where('is_active', true)->orderBy('name')->get(),
             'setLines' => $this->product?->setComponents()->with('componentProduct')->get() ?? collect(),
+            'products' => $this->activeTab === 'config' && $this->product !== null
+                ? Product::query()->where('is_active', true)->orderBy('name')->limit(1000)->get()
+                : collect(),
             'configDefinitions' => $this->product?->configDefinitions()->with('options.componentProduct')->get() ?? collect(),
         ])->layout('layouts.app', [
             'pageTitle' => $this->product ? "Ürün · {$this->code}" : 'Yeni Ürün',

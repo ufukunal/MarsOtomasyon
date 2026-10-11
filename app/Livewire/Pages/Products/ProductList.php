@@ -10,6 +10,7 @@ use App\Models\Period\Brand;
 use App\Models\Period\Product;
 use App\Models\Period\ProductCategory;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 
 /** @extends DataTableComponent<Product> */
 class ProductList extends DataTableComponent
@@ -66,9 +67,25 @@ class ProductList extends DataTableComponent
     /** @return list<array<string, mixed>> */
     public function rowActions(): array
     {
-        return auth()->user()?->can('products.update')
-            ? [['label' => 'Düzenle', 'method' => 'editProduct']]
-            : [];
+        $actions = [['label' => 'Detay', 'method' => 'showProduct']];
+
+        if (auth()->user()?->can('products.update')) {
+            $actions[] = ['label' => 'Düzenle', 'method' => 'editProduct'];
+        }
+
+        return $actions;
+    }
+
+    public function columnUrl(Model $row, Column $column): ?string
+    {
+        return in_array($column->key, ['code', 'name'], true)
+            ? route('products.show', ['product' => $row->getKey()])
+            : null;
+    }
+
+    public function showProduct(int|string $id): mixed
+    {
+        return $this->redirectRoute('products.show', ['product' => $id], navigate: false);
     }
 
     public function editProduct(int|string $id): mixed
