@@ -156,3 +156,39 @@ it('prints two A5 slips on A4 without dropping products after five rows', functi
         ->not->toContain('->take(8)')
         ->and($controller)->toContain("request()->boolean('autoprint')");
 });
+
+
+it('routes old Ambar bookmarks to v65 and retains G-207 stock documents separately', function (): void {
+    expect(route('warehouse.transport.index', [], false))->toBe('/ambar/fisler')
+        ->and(route('warehouse.transport.create', [], false))->toBe('/ambar/fisler/yeni')
+        ->and(route('stock.warehouse-slips.index', [], false))->toBe('/stok/duzeltme-fisleri')
+        ->and(route('stock.warehouse-slips.create', [], false))->toBe('/stok/duzeltme-fisleri/yeni');
+
+    $legacyList = Route::getRoutes()->match(
+        \Illuminate\Http\Request::create('/stok/ambar-fisleri', 'GET'),
+    );
+    $legacyCreate = Route::getRoutes()->match(
+        \Illuminate\Http\Request::create('/stok/ambar-fisleri/yeni', 'GET'),
+    );
+    $legacyShow = Route::getRoutes()->match(
+        \Illuminate\Http\Request::create('/stok/ambar-fisleri/42', 'GET'),
+    );
+
+    expect($legacyList->getName())->toBe('warehouse.transport.legacy.index')
+        ->and($legacyCreate->getName())->toBe('warehouse.transport.legacy.create')
+        ->and($legacyShow->getName())->toBe('stock.warehouse-slips.legacy.show');
+
+    $stockTable = file_get_contents(base_path('resources/views/livewire/components/data-table.blade.php'));
+    expect($stockTable)->toContain("['Stok Düzeltme Fişleri',");
+});
+
+it('keeps v65 general and table search inputs independent', function (): void {
+    $component = file_get_contents(base_path('app/Livewire/Pages/Warehouse/TransportSlipList.php'));
+    $view = file_get_contents(base_path('resources/views/livewire/pages/warehouse/transport-slip-list.blade.php'));
+
+    expect($component)->toContain("public string \$tableSearch = ''")
+        ->toContain("trim(\$this->tableSearch)")
+        ->toContain("'search', 'tableSearch', 'status'")
+        ->and($view)->toContain('wire:model.live.debounce.300ms="search"')
+        ->toContain('wire:model.live.debounce.300ms="tableSearch"');
+});

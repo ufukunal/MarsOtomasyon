@@ -1,7 +1,7 @@
 <div class="stack v65-stock-workspace">
     <section class="panel stack v65-stock-document">
-        <nav class="v65-stock-document-tabs" aria-label="Ambar fişi bölümleri">
-            <a href="{{ route('stock.warehouse-slips.index') }}">Ambar Fişleri</a>
+        <nav class="v65-stock-document-tabs" aria-label="Stok düzeltme fişi bölümleri">
+            <a href="{{ route('stock.warehouse-slips.index') }}">Stok Düzeltme Fişleri</a>
             <a href="#stock-document-details">Bilgiler</a>
             <a href="#stock-document-lines">Ürünler</a>
         </nav>

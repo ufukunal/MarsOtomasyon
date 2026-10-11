@@ -237,16 +237,23 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/stok/transferler', TransferList::class)->name('stock.transfers.index');
     Route::get('/stok/transferler/yeni', TransferDetail::class)->name('stock.transfers.create');
     Route::get('/stok/transferler/{id}', TransferDetail::class)->name('stock.transfers.show');
-    // Legacy G-207 physical stock adjustments remain available and unchanged.
+    // v65 transport slips are separate from G-207 physical stock adjustments.
     Route::get('/ambar/fisler', TransportSlipList::class)->name('warehouse.transport.index');
     Route::get('/ambar/fisler/yeni', TransportSlipEditor::class)->name('warehouse.transport.create');
     Route::get('/ambar/fisler/{id}/duzenle', TransportSlipEditor::class)->whereNumber('id')->name('warehouse.transport.edit');
     Route::get('/ambar/fisler/{id}', TransportSlipEditor::class)->whereNumber('id')->name('warehouse.transport.show');
     Route::get('/ambar/fisler/{slip}/yazdir/{format}', PrintTransportSlipController::class)
         ->whereNumber('slip')->whereIn('format', ['slip', 'labels'])->name('warehouse.transport.print');
-    Route::get('/stok/ambar-fisleri', WarehouseSlipList::class)->name('stock.warehouse-slips.index');
-    Route::get('/stok/ambar-fisleri/yeni', WarehouseSlipDetail::class)->name('stock.warehouse-slips.create');
-    Route::get('/stok/ambar-fisleri/{id}', WarehouseSlipDetail::class)->name('stock.warehouse-slips.show');
+    // Historical menu/bookmark URLs must reach the approved v65 Ambar workflow.
+    // Existing G-207 document deep links remain readable, without mixing records.
+    Route::redirect('/stok/ambar-fisleri', '/ambar/fisler')->name('warehouse.transport.legacy.index');
+    Route::redirect('/stok/ambar-fisleri/yeni', '/ambar/fisler/yeni')->name('warehouse.transport.legacy.create');
+    Route::get('/stok/ambar-fisleri/{id}', WarehouseSlipDetail::class)
+        ->whereNumber('id')->name('stock.warehouse-slips.legacy.show');
+    Route::get('/stok/duzeltme-fisleri', WarehouseSlipList::class)->name('stock.warehouse-slips.index');
+    Route::get('/stok/duzeltme-fisleri/yeni', WarehouseSlipDetail::class)->name('stock.warehouse-slips.create');
+    Route::get('/stok/duzeltme-fisleri/{id}', WarehouseSlipDetail::class)
+        ->whereNumber('id')->name('stock.warehouse-slips.show');
     Route::get('/ice-aktarma/{batchId}/hatalar.xlsx', ImportErrorReportController::class)->name('imports.errors');
     Route::get('/urunler/{product}/gorseller/{attachment}', ProductImageController::class)->name('products.images.show');
     Route::get('/ayarlar/butunluk', IntegrityReport::class)->name('settings.integrity');

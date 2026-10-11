@@ -34,7 +34,7 @@
 
     <section class="wsl-card panel">
         <div class="wsl-card-head"><strong>Ambar Fişi Listesi</strong><span class="badge">{{ $slips->total() }} kayıt</span></div>
-        <div class="wsl-table-search"><input wire:model.live.debounce.300ms="search" placeholder="Listede ara..." aria-label="Ambar fiş listesinde ara"></div>
+        <div class="wsl-table-search"><input wire:model.live.debounce.300ms="tableSearch" placeholder="Listede ara..." aria-label="Ambar fiş listesinde ara"></div>
         <div class="table-scroll">
             <table class="data-table wsl-table">
                 <thead><tr>

@@ -15,6 +15,9 @@ class TransportSlipList extends Component
     #[Url(as: 'ara')]
     public string $search = '';
 
+    #[Url(as: 'liste')]
+    public string $tableSearch = '';
+
     #[Url(as: 'durum')]
     public string $status = '';
 
@@ -42,7 +45,7 @@ class TransportSlipList extends Component
 
     public function clearFilters(): void
     {
-        $this->reset('search', 'status', 'carrier', 'glass', 'dateFrom', 'dateTo');
+        $this->reset('search', 'tableSearch', 'status', 'carrier', 'glass', 'dateFrom', 'dateTo');
         $this->resetPage();
     }
 
@@ -60,6 +63,16 @@ class TransportSlipList extends Component
                     ->orWhere('tracking_number', 'ilike', $text)
                     ->orWhereHas('contact', fn ($contacts) => $contacts->where('title', 'ilike', $text)
                         ->orWhere('code', 'ilike', $text));
+            });
+        }
+
+        if (trim($this->tableSearch) !== '') {
+            $needle = '%'.trim($this->tableSearch).'%';
+            $query->where(function ($q) use ($needle): void {
+                $q->where('number', 'ilike', $needle)
+                    ->orWhere('carrier', 'ilike', $needle)
+                    ->orWhereHas('contact', fn ($contacts) => $contacts
+                        ->where('title', 'ilike', $needle));
             });
         }
 
