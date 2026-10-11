@@ -1,6 +1,11 @@
-<div class="stack">
-    <section class="panel stack">
-        <div class="form-grid">
+<div class="stack v65-stock-workspace">
+    <section class="panel stack v65-stock-document">
+        <nav class="v65-stock-document-tabs" aria-label="Transfer bölümleri">
+            <a href="{{ route('stock.transfers.index') }}">Transfer Listesi</a>
+            <a href="#stock-document-details">Bilgiler</a>
+            <a href="#stock-document-lines">{{ $transfer && $transfer->status !== 'draft' ? 'Sevk / Kabul' : 'Hareketler' }}</a>
+        </nav>
+        <div class="form-grid" id="stock-document-details">
             <label class="field">
                 <span class="field-label">Kaynak</span>
                 <select wire:model="fromLocationId" @disabled($transfer && $transfer->status !== 'draft')>
@@ -30,7 +35,7 @@
         </div>
 
         @if(!$transfer || $transfer->status === 'draft')
-            <div class="table-scroll v65-grid-scroll"><table class="data-table">
+            <div class="table-scroll v65-grid-scroll" id="stock-document-lines"><table class="data-table">
                 <thead><tr><th>Ürün</th><th>Miktar</th><th></th></tr></thead>
                 <tbody>
                 @foreach($draftLines as $index => $line)
@@ -65,7 +70,7 @@
                 <span>Durum: {{ $transfer->status }}</span>
             </div>
 
-            <div class="table-scroll v65-grid-scroll"><table class="data-table">
+            <div class="table-scroll v65-grid-scroll" id="stock-document-lines"><table class="data-table">
                 <thead><tr><th>Ürün</th><th>Gönderilen</th><th>Teslim Alınan</th><th>Kalan</th><th>Şimdi Teslim</th></tr></thead>
                 <tbody>
                 @foreach($postedLines as $line)

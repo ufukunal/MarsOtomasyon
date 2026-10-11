@@ -48,6 +48,7 @@ use App\Livewire\Pages\Settings\Periods;
 use App\Livewire\Pages\Setup\CompanyWizard;
 use App\Livewire\Pages\Stock\QuarantineControl;
 use App\Livewire\Pages\Stock\ReservationList;
+use App\Livewire\Pages\Stock\StockCost;
 use App\Livewire\Pages\Stock\StockCountDetail;
 use App\Livewire\Pages\Stock\StockCountList;
 use App\Livewire\Pages\Stock\StockMovements;
@@ -211,6 +212,7 @@ Route::middleware('auth')->group(function (): void {
 
     Route::get('/ice-aktarma', ImportWizard::class)->name('imports.index');
     Route::get('/stok/durum', StockStatus::class)->name('stock.status');
+    Route::get('/stok/maliyet', StockCost::class)->name('stock.costs');
     Route::get('/stok/hareketler', StockMovements::class)->name('stock.movements');
     Route::get('/stok/sayimlar', StockCountList::class)->name('stock.counts.index');
     Route::get('/stok/sayimlar/yeni', StockCountDetail::class)->name('stock.counts.create');

@@ -40,6 +40,24 @@ class TransferList extends DataTableComponent
                     ->selectRaw('COUNT(*)')
                     ->whereColumn('transfer_lines.transfer_id', 'transfers.id'),
                 'line_count',
+            )
+            ->selectSub(
+                fn ($query) => $query->from('transfer_lines')
+                    ->selectRaw('COALESCE(SUM(quantity), 0)')
+                    ->whereColumn('transfer_lines.transfer_id', 'transfers.id'),
+                'issued_quantity',
+            )
+            ->selectSub(
+                fn ($query) => $query->from('transfer_lines')
+                    ->selectRaw('COALESCE(SUM(received_quantity), 0)')
+                    ->whereColumn('transfer_lines.transfer_id', 'transfers.id'),
+                'received_quantity',
+            )
+            ->selectSub(
+                fn ($query) => $query->from('transfer_lines')
+                    ->selectRaw('COALESCE(SUM(quantity - received_quantity), 0)')
+                    ->whereColumn('transfer_lines.transfer_id', 'transfers.id'),
+                'remaining_quantity',
             );
     }
 
@@ -47,12 +65,15 @@ class TransferList extends DataTableComponent
     public function columns(): array
     {
         return [
-            Column::make('number', 'Numara')->searchable()->sortable(),
-            Column::make('from_location_name', 'Kaynak'),
-            Column::make('to_location_name', 'Hedef'),
+            Column::make('number', 'Transfer No')->searchable()->sortable(),
+            Column::make('from_location_name', 'Kaynak Depo'),
+            Column::make('to_location_name', 'Hedef Depo'),
             Column::make('transfer_date', 'Tarih')->sortable(),
-            Column::make('status', 'Durum')->sortable(),
+            Column::make('issued_quantity', 'Gönderilen')->quantity()->alignEnd(),
+            Column::make('received_quantity', 'Alınan')->quantity()->alignEnd(),
+            Column::make('remaining_quantity', 'Fark / Kalan')->quantity()->alignEnd(),
             Column::make('line_count', 'Satır')->alignEnd(),
+            Column::make('status', 'Durum')->sortable(),
         ];
     }
 

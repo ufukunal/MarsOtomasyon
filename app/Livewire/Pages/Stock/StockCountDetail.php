@@ -42,6 +42,8 @@ class StockCountDetail extends Component
 
     public bool $differencesOnly = false;
 
+    public string $productSearch = '';
+
     public string $startKey = '';
 
     public string $postKey = '';
@@ -145,7 +147,16 @@ class StockCountDetail extends Component
 
         return view('livewire.pages.stock.stock-count-detail', [
             'locations' => Location::query()->where('is_active', true)->orderBy('name')->get(),
-            'products' => Product::query()->where('is_active', true)->where('kind', '!=', 'set')->orderBy('name')->limit(1000)->get(),
+            'products' => Product::query()
+                ->where('is_active', true)
+                ->where('kind', '!=', 'set')
+                ->when($this->productSearch !== '', fn ($query) => $query
+                    ->where(fn ($items) => $items
+                        ->where('code', 'ilike', '%'.$this->productSearch.'%')
+                        ->orWhere('name', 'ilike', '%'.$this->productSearch.'%')))
+                ->orderBy('name')
+                ->limit(100)
+                ->get(),
             'countLines' => $lines?->get() ?? collect(),
         ])->layout('layouts.app', ['pageTitle' => $this->count ? 'Stok Sayımı · '.($this->count->number ?: 'Taslak #'.$this->count->id) : 'Yeni Stok Sayımı']);
     }

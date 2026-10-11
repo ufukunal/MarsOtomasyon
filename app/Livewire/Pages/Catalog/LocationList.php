@@ -39,11 +39,32 @@ class LocationList extends DataTableComponent
                 'warehouse' => 'Depo',
                 'branch' => 'Şube',
                 'vehicle' => 'Araç',
+                'subcontractor' => 'Fason',
             ]),
             SelectFilter::make('is_active', 'Durum')->options([
                 1 => 'Aktif',
                 0 => 'Pasif',
             ]),
         ];
+    }
+    /** @return array<string, mixed>|null */
+    public function emptyAction(): ?array
+    {
+        return auth()->user()?->can('locations.create')
+            ? ['label' => 'Yeni Depo / Lokasyon', 'route' => 'locations.create']
+            : null;
+    }
+
+    /** @return list<array<string, mixed>> */
+    public function rowActions(): array
+    {
+        return auth()->user()?->can('locations.update')
+            ? [['label' => 'Düzenle', 'method' => 'openLocation']]
+            : [];
+    }
+
+    public function openLocation(int|string $id): mixed
+    {
+        return $this->redirectRoute('locations.edit', ['location' => $id], navigate: false);
     }
 }

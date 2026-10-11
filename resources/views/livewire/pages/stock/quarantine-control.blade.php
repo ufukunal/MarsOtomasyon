@@ -1,5 +1,5 @@
-<div class="stack">
-    <section class="panel stack">
+<div class="stack v65-stock-workspace">
+    <section class="panel stack v65-stock-document">
         <div class="form-row">
             <label class="field">
                 <span class="field-label">Durum</span>
@@ -43,8 +43,8 @@
                     </td>
                     <td>{{ $entry->product->code }} · {{ $entry->product->name }}</td>
                     <td>{{ $entry->location->name }}</td>
-                    <td>{{ AppSupportFormattingTrFormatter::quantity((string) $entry->quantity) }}</td>
-                    <td>{{ AppSupportFormattingTrFormatter::quantity($entry->pendingQuantity()) }}</td>
+                    <td>{{ \App\Support\Formatting\TrFormatter::quantity((string) $entry->quantity) }}</td>
+                    <td>{{ \App\Support\Formatting\TrFormatter::quantity($entry->pendingQuantity()) }}</td>
                     <td>
                         @if(in_array($entry->status, ['pending','partial'], true))
                             <input data-tr-decimal wire:model="decisionQuantities.{{ $entry->id }}" inputmode="decimal">
@@ -60,6 +60,9 @@
                     <td>{{ $entry->status }}</td>
                 </tr>
             @endforeach
+            @if($entries->isEmpty())
+                <tr><td colspan="9" class="empty-state">Bu filtreye uygun karantina kaydı bulunamadı.</td></tr>
+            @endif
             </tbody>
         </table></div>
 

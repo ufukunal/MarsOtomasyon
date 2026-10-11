@@ -42,9 +42,9 @@ class WarehouseSlipList extends DataTableComponent
     public function columns(): array
     {
         return [
-            Column::make('number', 'Numara')->searchable()->sortable(),
+            Column::make('number', 'Fiş No')->searchable()->sortable(),
             Column::make('slip_date', 'Tarih')->sortable(),
-            Column::make('location_name', 'Lokasyon'),
+            Column::make('location_name', 'Depo / Lokasyon'),
             Column::make('direction', 'Yön')->sortable(),
             Column::make('reason', 'Sebep')->sortable(),
             Column::make('line_count', 'Satır')->alignEnd(),

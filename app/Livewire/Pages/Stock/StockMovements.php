@@ -49,10 +49,12 @@ class StockMovements extends DataTableComponent
     {
         $columns = [
             Column::make('movement_date', 'Tarih')->sortable(),
-            Column::make('product_label', 'Ürün')->searchable()->sortable(),
-            Column::make('location_name', 'Lokasyon')->searchable()->sortable(),
+            Column::make('reason_label', 'Hareket')->sortable(),
+            Column::make('document_no', 'Kaynak Belge')->searchable(),
+            Column::make('product_code', 'Ürün Kodu')->searchable()->sortable(),
+            Column::make('product_label', 'Ürün Adı')->searchable()->sortable(),
+            Column::make('location_name', 'Depo / Lokasyon')->searchable()->sortable(),
             Column::make('direction_label', 'Yön')->sortable(),
-            Column::make('reason_label', 'Sebep')->sortable(),
             Column::make('quantity', 'Miktar')->quantity()->sortable(),
         ];
 
@@ -62,8 +64,7 @@ class StockMovements extends DataTableComponent
         }
 
         $columns[] = Column::make('balance_after', 'Kalan Bakiye')->quantity()->sortable();
-        $columns[] = Column::make('document_no', 'Belge No')->searchable();
-        $columns[] = Column::make('created_by_name', 'Kullanıcı')->searchable()->sortable();
+        $columns[] = Column::make('created_by_name', 'İşlemi Yapan')->searchable()->sortable();
 
         return $columns;
     }

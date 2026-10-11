@@ -1,4 +1,4 @@
-<div class="data-table-shell">
+<div @class(['data-table-shell', 'v65-stock-table' => str_starts_with(get_class($this), 'App\\Livewire\\Pages\\Stock\\') || $this instanceof \\App\\Livewire\\Pages\\Catalog\\LocationList])>
     <div class="table-toolbar">
         <div class="table-toolbar-main">
             <label class="table-search">

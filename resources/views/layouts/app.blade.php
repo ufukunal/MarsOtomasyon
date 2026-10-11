@@ -38,7 +38,7 @@
         'Ürünler ve Hizmetler' => '◈', 'Satış Yönetimi' => '◴',
         'Satınalma Yönetimi' => '◉', 'Stok ve Depo' => '▦',
         'Finans İşlemleri' => '₺', 'İade / RMA' => '↩',
-        'İthalat' => '◇', 'Üretim' => '⚒', 'E-Ticaret' => '▣',
+        'Ambar' => '▣', 'İthalat' => '◇', 'Üretim' => '⚒', 'E-Ticaret' => '▣',
         'Raporlar' => '▤', 'Ayarlar' => '⚙',
     ];
 @endphp

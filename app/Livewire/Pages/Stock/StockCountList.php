@@ -37,12 +37,12 @@ class StockCountList extends DataTableComponent
     public function columns(): array
     {
         return [
-            Column::make('number', 'Numara')->searchable()->sortable(),
-            Column::make('location_name', 'Lokasyon'),
+            Column::make('number', 'Sayım No')->searchable()->sortable(),
+            Column::make('location_name', 'Depo / Lokasyon'),
             Column::make('count_date', 'Tarih')->sortable(),
             Column::make('status', 'Durum')->sortable(),
             Column::make('line_count', 'Satır')->alignEnd(),
-            Column::make('difference_count', 'Farklı')->alignEnd(),
+            Column::make('difference_count', 'Fark Satırı')->alignEnd(),
         ];
     }
 

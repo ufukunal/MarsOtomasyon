@@ -12,6 +12,7 @@ use App\Models\Period\StockBalance;
 use App\Support\Formatting\TrFormatter;
 use App\Support\Stock\StockStatusQuery;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 
 /** @extends DataTableComponent<StockBalance> */
@@ -34,15 +35,16 @@ class StockStatus extends DataTableComponent
     public function columns(): array
     {
         $columns = [
-            Column::make('product_label', 'Ürün')->searchable()->sortable(),
-            Column::make('location_name', 'Lokasyon')->searchable()->sortable(),
-            Column::make('quantity', 'Stok')->quantity()->sortable(),
+            Column::make('product_code', 'Ürün Kodu')->searchable()->sortable(),
+            Column::make('product_name', 'Ürün Adı')->searchable()->sortable(),
+            Column::make('location_name', 'Depo / Lokasyon')->searchable()->sortable(),
+            Column::make('stock_status', 'Durum')->sortable(),
+            Column::make('available', 'Kullanılabilir')->quantity()->sortable(),
             Column::make('reserved', 'Rezerve')->quantity()->sortable(),
             Column::make('consignment_reserved', 'Konsinye')->quantity()->sortable(),
             Column::make('quarantine', 'Karantina')->quantity()->sortable(),
-            Column::make('available', 'Kullanılabilir')->quantity()->sortable(),
+            Column::make('quantity', 'Toplam')->quantity()->sortable(),
             Column::make('min_stock', 'Minimum')->quantity()->sortable(),
-            Column::make('stock_status', 'Durum')->sortable(),
         ];
 
         if ($this->canViewCost()) {
@@ -122,6 +124,16 @@ class StockStatus extends DataTableComponent
                 ? TrFormatter::money((string) ($row->total_value ?? '0'))
                 : null,
         ], fn (?string $value): bool => $value !== null);
+    }
+
+    public function columnUrl(Model $row, Column $column): ?string
+    {
+        if (! in_array($column->key, ['product_code', 'product_name'], true)
+            || ! auth()->user()?->can('products.view')) {
+            return null;
+        }
+
+        return route('products.edit', ['product' => (int) $row->getAttribute('product_id')]);
     }
 
     private function canViewCost(): bool

@@ -1,6 +1,11 @@
-<div class="stack">
-    <section class="panel stack">
-        <div class="form-grid">
+<div class="stack v65-stock-workspace">
+    <section class="panel stack v65-stock-document">
+        <nav class="v65-stock-document-tabs" aria-label="Ambar fişi bölümleri">
+            <a href="{{ route('stock.warehouse-slips.index') }}">Ambar Fişleri</a>
+            <a href="#stock-document-details">Bilgiler</a>
+            <a href="#stock-document-lines">Ürünler</a>
+        </nav>
+        <div class="form-grid" id="stock-document-details">
             <label class="field"><span class="field-label">Lokasyon</span>
                 <select wire:model="locationId" @disabled($slip && $slip->status !== 'draft')>
                     <option value="">Seçin</option>
@@ -26,7 +31,7 @@
         </div>
 
         @if(!$slip || $slip->status === 'draft')
-            <div class="table-scroll v65-grid-scroll"><table class="data-table"><thead><tr><th>Ürün</th><th>Miktar</th>@if($direction === 'in' && $canViewCost)<th>Birim Maliyet</th>@endif<th>Not</th><th></th></tr></thead><tbody>
+            <div class="table-scroll v65-grid-scroll" id="stock-document-lines"><table class="data-table"><thead><tr><th>Ürün</th><th>Miktar</th>@if($direction === 'in' && $canViewCost)<th>Birim Maliyet</th>@endif<th>Not</th><th></th></tr></thead><tbody>
             @foreach($draftLines as $index => $line)
                 <tr wire:key="warehouse-slip-line-{{ $index }}">
                     <td><select wire:model="draftLines.{{ $index }}.product_id"><option value="">Ürün</option>@foreach($products as $product)<option value="{{ $product->id }}">{{ $product->code }} · {{ $product->name }}</option>@endforeach</select></td>
@@ -44,7 +49,7 @@
             </div>
         @else
             <div class="form-row"><strong>{{ $slip->number }}</strong><span>Durum: {{ $slip->status }}</span></div>
-            <div class="table-scroll v65-grid-scroll"><table class="data-table"><thead><tr><th>Ürün</th><th>Miktar</th>@if($canViewCost)<th>Birim Maliyet</th>@endif<th>Not</th></tr></thead><tbody>
+            <div class="table-scroll v65-grid-scroll" id="stock-document-lines"><table class="data-table"><thead><tr><th>Ürün</th><th>Miktar</th>@if($canViewCost)<th>Birim Maliyet</th>@endif<th>Not</th></tr></thead><tbody>
             @foreach($postedLines as $line)<tr><td>{{ $line->product->code }} · {{ $line->product->name }}</td><td>{{ \App\Support\Formatting\TrFormatter::quantity((string)$line->quantity) }}</td>@if($canViewCost)<td>{{ $line->unit_cost !== null ? \App\Support\Formatting\TrFormatter::money((string)$line->unit_cost,4) : '—' }}</td>@endif<td>{{ $line->note }}</td></tr>@endforeach
             </tbody></table></div>
             @if($slip->status === 'posted' && auth()->user()?->can('warehouse_slips.cancel'))<button type="button" wire:click="reverse">Ters Fişle İptal Et</button>@endif

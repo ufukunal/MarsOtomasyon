@@ -585,3 +585,31 @@ a.v65-home-kpi:hover{background:#f8fbff;border-color:#95b9f5;border-left-color:#
 .v65-home-kpi>small{font-size:11px;color:#687b95}
 @media(max-width:1200px){.v65-home-quick-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:640px){.v65-home-quick-grid{grid-template-columns:minmax(0,1fr)}.v65-home-welcome{align-items:flex-start}.page-header{margin:-11px -11px 14px;padding:12px}.topbar-create>summary{padding:0 10px}}
+
+/* K-067: Stock workspace is scoped; shared tables in other modules remain unchanged. */
+.v65-stock-table{border-radius:0;overflow:visible}
+.v65-stock-table .table-toolbar{border-radius:0;background:#fff}
+.v65-stock-table .table-scroll{overflow-x:auto;min-width:0}
+.v65-stock-table .data-table{min-width:960px}
+.v65-stock-table .data-table th,.v65-stock-table .data-table td{white-space:nowrap;overflow-wrap:normal}
+.v65-stock-table .data-table thead th{height:36px;font-size:11px;color:#506580}
+.v65-stock-table .data-table td a{font-weight:700}
+.v65-stock-table .data-table-shell{border-radius:0}
+.v65-stock-workspace{gap:12px;min-width:0}
+.v65-stock-document{gap:15px;min-width:0;border-radius:3px}
+.v65-stock-document .form-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.v65-stock-document .field{min-width:0;align-content:start}
+.v65-stock-document .field textarea{min-height:36px;max-height:90px;resize:vertical;padding:8px}
+.v65-stock-document .form-row{gap:8px;align-items:center}
+.v65-stock-document-tabs{display:flex;gap:4px;flex-wrap:wrap;align-items:center;border-bottom:1px solid var(--line);padding:0 0 8px}
+.v65-stock-document-tabs a{padding:9px 13px;border:1px solid #dbe4f0;background:#fff;color:#38668b;font-weight:650;border-radius:3px}
+.v65-stock-document-tabs a:hover,.v65-stock-document-tabs a:focus-visible{background:#e8f0fe;color:#1769d2}
+.v65-stock-workspace .v65-grid-scroll{border-radius:2px}
+.v65-stock-workspace .v65-grid-scroll input,.v65-stock-workspace .v65-grid-scroll select{min-width:100px;max-width:360px}
+.v65-stock-product-selector{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:7px;max-height:300px;overflow:auto;padding:10px;border:1px solid var(--line);border-radius:3px;background:#fff}
+.v65-stock-product-selector label{display:inline-flex;align-items:center;gap:7px;min-width:0;font-size:11px}
+.v65-stock-product-selector input[type=checkbox]{width:15px;height:15px;flex:none}
+.v65-stock-product-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.v65-stock-product-toolbar input{width:min(360px,100%);min-width:170px}
+@media(max-width:1150px){.v65-stock-document .form-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:640px){.v65-stock-document .form-grid{grid-template-columns:1fr}.v65-stock-document-tabs{overflow-x:auto;flex-wrap:nowrap}.v65-stock-document-tabs a{white-space:nowrap}}

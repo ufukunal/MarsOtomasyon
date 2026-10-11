@@ -1,17 +1,34 @@
-<div class="stack">
-<section class="panel stack">
+<div class="stack v65-stock-workspace">
+<section class="panel stack v65-stock-document">
+<nav class="v65-stock-document-tabs" aria-label="Stok sayımı bölümleri">
+    <a href="{{ route('stock.counts.index') }}">Stok Sayımları</a>
+    <a href="#stock-document-details">Bilgiler</a>
+    <a href="#stock-document-lines">{{ $count && $count->status !== 'draft' ? 'Sayım / Farklar' : 'Sayılacak Ürünler' }}</a>
+</nav>
 @if(!$count || $count->status === 'draft')
-<div class="form-grid">
+<div class="form-grid" id="stock-document-details">
 <label class="field"><span class="field-label">Lokasyon</span><select wire:model="locationId"><option value="">Seçin</option>@foreach($locations as $location)<option value="{{ $location->id }}">{{ $location->code }} · {{ $location->name }}</option>@endforeach</select></label>
 <label class="field"><span class="field-label">Tarih</span><input type="date" wire:model="countDate"></label>
 <label class="field"><span class="field-label">Not</span><textarea wire:model="note"></textarea></label>
 </div>
-<div class="panel stack"><strong>Sayılacak Ürünler</strong>@foreach($products as $product)<label><input type="checkbox" wire:model="productIds" value="{{ $product->id }}"> {{ $product->code }} · {{ $product->name }}</label>@endforeach</div>
+<div class="stack" id="stock-document-lines">
+    <div class="v65-stock-product-toolbar">
+        <strong>Sayılacak Ürünler ({{ count($productIds) }} seçildi)</strong>
+        <input type="search" wire:model.live.debounce.300ms="productSearch" placeholder="Ürün kodu veya adı ile ara…" aria-label="Sayılacak ürün ara">
+    </div>
+    <div class="v65-stock-product-selector">
+        @forelse($products as $product)
+            <label><input type="checkbox" wire:model="productIds" value="{{ $product->id }}"> {{ $product->code }} · {{ $product->name }}</label>
+        @empty
+            <span class="empty-state">Aramaya uygun ürün bulunamadı.</span>
+        @endforelse
+    </div>
+</div>
 <div class="form-row"><button type="button" wire:click="saveDraft">Taslağı Kaydet</button>@if($count && auth()->user()?->can('stock_counts.update'))<button type="button" wire:click="start">Sayımı Başlat</button>@endif</div>
 @else
 <div class="alert alert-warning">Sayım sırasında bu lokasyonda hareket yapılmaması önerilir.</div>
 <div class="form-row"><strong>{{ $count->number ?: 'Henüz numara verilmedi' }}</strong><span>Durum: {{ $count->status }}</span><label><input type="checkbox" wire:model.live="differencesOnly"> Yalnızca farklıları göster</label></div>
-<div class="table-scroll v65-grid-scroll"><table class="data-table"><thead><tr><th>Ürün</th><th>Sistem</th><th>Sayılan</th><th>Fark</th><th>Onay</th><th>Not</th><th></th></tr></thead><tbody>
+<div class="table-scroll v65-grid-scroll" id="stock-document-lines"><table class="data-table"><thead><tr><th>Ürün</th><th>Sistem</th><th>Sayılan</th><th>Fark</th><th>Onay</th><th>Not</th><th></th></tr></thead><tbody>
 @foreach($countLines as $line)<tr>
 <td>{{ $line->product->code }} · {{ $line->product->name }}</td>
 <td>{{ \App\Support\Formatting\TrFormatter::quantity((string)$line->system_quantity) }}</td>
