@@ -261,3 +261,49 @@ it('renders Turkish validation feedback for each incomplete transport slip field
         app()->setLocale($previous);
     }
 });
+
+it('defers transport slip database lookup until after period context is initialized', function (): void {
+    $controller = file_get_contents(base_path('app/Http/Controllers/PrintTransportSlipController.php'));
+    $route = Route::getRoutes()->getByName('warehouse.transport.print');
+
+    expect($route)->not->toBeNull()
+        ->and($route->wheres['slip'] ?? null)->not->toBeNull()
+        ->and($controller)->toContain('public function __invoke(int $slip, string $format): View')
+        ->toContain('PeriodContext::ensure()')
+        ->toContain("->findOrFail(\$slip)")
+        ->not->toContain('public function __invoke(TransportSlip $slip');
+});
+
+it('renders both saved-slip format templates from period-free transport fixture', function (): void {
+    $slip = new \App\Models\Period\TransportSlip([
+        'number' => 'AF-2026-00001',
+        'slip_date' => '2026-10-12',
+        'shipping_type' => 'Ambar',
+        'carrier' => 'Test Ambar',
+        'destination_warehouse' => 'Ankara',
+        'package_count' => 3,
+        'delivery_company' => 'Deneme Ltd',
+        'delivery_phone' => '03120000000',
+        'delivery_city' => 'Ankara',
+        'delivery_district' => 'Çankaya',
+        'delivery_address' => 'Test adresi',
+    ]);
+    $slip->setRelation('contact', new \App\Models\Period\Contact(['code' => 'CR001', 'title' => 'Deneme Ltd']));
+    $item = new \App\Models\Period\TransportSlipItem(['quantity' => '2.000']);
+    $item->setRelation('product', null);
+    $slip->setRelation('items', collect([$item]));
+
+    $data = ['slip' => $slip, 'warnings' => 'KIRILABİLİR', 'autoprint' => false];
+
+    $html = view('printing.transport-slip', [...$data, 'format' => 'slip'])->render();
+    expect(substr_count($html, '<h1>AMBAR FİŞİ</h1>'))->toBe(2)
+        ->and($html)->toContain('AF-2026-00001')
+        ->toContain('12.10.2026')
+        ->toContain('2,000')
+        ->toContain('KIRILABİLİR');
+
+    $labels = view('printing.transport-slip', [...$data, 'format' => 'labels'])->render();
+    expect(substr_count($labels, 'SEVKİYAT ETİKETİ'))->toBe(3)
+        ->and($labels)->toContain('1/3')
+        ->toContain('3/3');
+});
