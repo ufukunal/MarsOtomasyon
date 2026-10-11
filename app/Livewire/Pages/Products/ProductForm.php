@@ -7,6 +7,7 @@ use App\Actions\Products\SaveConfigDefinition;
 use App\Actions\Products\SaveProduct;
 use App\Actions\Products\SaveSetComponent;
 use App\Livewire\Concerns\WithIdempotentMutations;
+use App\Models\Company;
 use App\Models\Period\Brand;
 use App\Models\Period\ConfigDefinition;
 use App\Models\Period\Product;
@@ -14,6 +15,7 @@ use App\Models\Period\ProductCategory;
 use App\Models\Period\ProductSet;
 use App\Models\Period\Unit;
 use App\Models\Period\VariantGroup;
+use App\Support\Period\PeriodContext;
 use Illuminate\Contracts\View\View;
 use Livewire\Component;
 
@@ -87,6 +89,9 @@ class ProductForm extends Component
         $this->authorize($product ? 'update' : 'create', $product ?? Product::class);
 
         if (! $product) {
+            $companyVatRate = Company::query()->whereKey(PeriodContext::companyId())
+                ->value('default_vat_rate');
+            $this->vatRate = $companyVatRate !== null ? (string) $companyVatRate : '20.0000';
             $this->unitId = Unit::query()->where('code', 'ADET')->value('id');
 
             return;

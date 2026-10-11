@@ -33,6 +33,7 @@ class Company extends MasterModel
         'logo_path',
         'default_term_days',
         'cost_deviation_threshold',
+        'default_vat_rate',
         'base_currency',
         'is_active',
     ];
@@ -42,6 +43,7 @@ class Company extends MasterModel
         return [
             'default_term_days' => 'integer',
             'cost_deviation_threshold' => 'decimal:4',
+            'default_vat_rate' => 'decimal:4',
             'is_active' => 'boolean',
             'version' => 'integer',
         ];

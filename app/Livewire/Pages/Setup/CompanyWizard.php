@@ -124,6 +124,7 @@ class CompanyWizard extends Component
                     'address' => $this->address ?: null,
                     'default_term_days' => $this->defaultTermDays,
                     'cost_deviation_threshold' => $this->costDeviationThreshold,
+                    'default_vat_rate' => $this->defaultVatRate,
                     'base_currency' => $this->baseCurrency,
                 ]);
 
@@ -212,7 +213,7 @@ class CompanyWizard extends Component
             3 => $this->validate([
                 'defaultTermDays' => ['required', 'integer', 'min:0', 'max:3650'],
                 'costDeviationThreshold' => ['required', 'decimal:0,4'],
-                'defaultVatRate' => ['required', 'decimal:0,4'],
+                'defaultVatRate' => ['required', 'decimal:0,4', 'min:0', 'max:100'],
             ]),
             4 => $this->validate([
                 'warehouseCode' => ['required', 'string', 'max:40'],
