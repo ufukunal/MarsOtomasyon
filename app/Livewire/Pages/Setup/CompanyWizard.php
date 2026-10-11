@@ -14,6 +14,7 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Livewire\Component;
+use Illuminate\Validation\ValidationException;
 
 class CompanyWizard extends Component
 {
@@ -223,6 +224,22 @@ class CompanyWizard extends Component
             ]),
             default => null,
         };
+
+        // This UAT instance provisions one dedicated period DB out-of-band.
+        // Reject any other prefix/year before creating the first user/company
+        // or attempting a CREATE DATABASE without runtime privileges.
+        if ($step === 2 && config('app.env') === 'uat') {
+            $expected = (string) config('operations.database.uat_preprovisioned_period', '');
+            $requested = sprintf('%s_%d', $this->dbPrefix, $this->year);
+
+            if ($expected === '' || $requested !== $expected) {
+                throw ValidationException::withMessages([
+                    'dbPrefix' => "Bu UAT ortamında yalnız {$expected} dönem veritabanı hazır. "
+                        .'Şirket bilgileri adımında DB önekini mars_uat_demo, dönem yılını 2026 seçin. '
+                        .'Şirket adı ve kodu farklı olabilir.',
+                ]);
+            }
+        }
     }
 
     public function render(): View

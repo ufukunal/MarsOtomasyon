@@ -14,8 +14,13 @@
         <input wire:model="baseCurrency" placeholder="TRY">
     @elseif ($step === 2)
         <h2>İlk Dönem</h2>
-        <input wire:model="year" type="number">
-        <p>Oluşacak veritabanı: <strong>{{ $dbPrefix }}_{{ $year }}</strong></p>
+        <label for="uat-year">Dönem yılı</label>
+        <input id="uat-year" wire:model="year" type="number" min="2000" max="2200">
+        <p>Dönem veritabanı: <strong>{{ $dbPrefix }}_{{ $year }}</strong></p>
+        @if (config('app.env') === 'uat')
+            <p>Bu UAT ortamında hazır veritabanı: <strong>{{ config('operations.database.uat_preprovisioned_period') }}</strong>.</p>
+            <p>Şirket adı ve kodu serbesttir, veritabanı öneki hazır dönem veritabanıyla eşleşmelidir.</p>
+        @endif
     @elseif ($step === 3)
         <h2>Varsayılanlar</h2>
         <input wire:model="defaultTermDays" type="number" placeholder="Vade günü">
@@ -48,7 +53,12 @@
             <dt>Yönetici</dt><dd>{{ $adminEmail }}</dd>
         </dl>
         <div class="alert alert-warning">
-            db_prefix kayıt sonrası değiştirilemez. Tamamla işlemi fiziksel PostgreSQL veritabanı oluşturur.
+            DB öneki kayıt sonrasında değiştirilemez.
+            @if (config('app.env') === 'uat')
+                Bu UAT ortamında yeni fiziksel veritabanı oluşturulmaz; yalnız önceden hazırlanmış dönem veritabanı kullanılabilir.
+            @else
+                Tamamla işlemi fiziksel PostgreSQL dönem veritabanı oluşturabilir.
+            @endif
         </div>
     @endif
 

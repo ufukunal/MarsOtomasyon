@@ -32,6 +32,11 @@ final class CreatePeriod
         $uatPreprovisioned = config('app.env') === 'uat'
             && $dbName === config('operations.database.uat_preprovisioned_period');
 
+        // UAT runtime must never attempt to provision an arbitrary database.
+        if (config('app.env') === 'uat' && ! $uatPreprovisioned) {
+            throw new RuntimeException('UAT dönem veritabanı eşleşmiyor; sunucu yöneticisi tarafından önceden hazırlanmalıdır.');
+        }
+
         $database = DB::connection('master')->table('pg_database')
             ->where('datname', $dbName)
             ->selectRaw('pg_get_userbyid(datdba) AS owner')
