@@ -18,7 +18,7 @@
 .app-shell .wsl-info{background:#eef8fc;border-left:3px solid #1686b7;padding:8px 10px;border-radius:7px;font-size:9px}
 .app-shell .wsl-warn{background:#fff6df;border-left:3px solid #d59613;padding:8px 10px;font-size:9px;border-radius:7px}
 .app-shell .wsl-table th,.app-shell .wsl-items th{background:#f5f8fa;white-space:nowrap}
-.app-shell .wsl-table td,.app-shell .wsl-items td{padding:10px;vertical-align:middle}
+.app-shell .wsl-table td,.app-shell .wsl-items td{padding:7px 8px;font-size:9px;vertical-align:middle}
 .app-shell .wsl-items select,.app-shell .wsl-items input{width:100%;min-width:90px}
 .app-shell .wsl-items select{min-width:220px}
 .app-shell .wsl-items td:first-child{width:35%}
@@ -48,3 +48,6 @@
 .app-shell .wsl-modal-header{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 16px;border-bottom:1px solid #d9e3ee}
 .app-shell .wsl-modal iframe{height:100%;width:100%;flex:1;border:0;background:#f4f7fa}
 @media print{.app-shell .wsl-modal-backdrop,.app-shell .wsl-footer{display:none}}
+
+.app-shell .wsl-table-search{padding:6px 8px;background:#fff;border-bottom:1px solid #d9e3ee}
+.app-shell .wsl-table-search input{width:190px;max-width:100%;height:29px;border:1px solid #d9e3ee;padding:5px 8px;font-size:10px;background:#fff}

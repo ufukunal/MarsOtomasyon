@@ -12,28 +12,29 @@
     <section class="wsl-card panel">
         <div class="wsl-card-head"><strong>Filtreler</strong><button type="button" class="button-secondary" wire:click="clearFilters">Temizle</button></div>
         <div class="wsl-card-body wsl-grid">
-            <label class="field"><span class="field-label">Genel Arama</span><input wire:model.live.debounce.300ms="search" placeholder="Fiş no, firma, ambar..."></label>
-            <label class="field"><span class="field-label">Durum</span>
+            <label class="wsl-field"><span class="field-label">Genel Arama</span><input wire:model.live.debounce.300ms="search" placeholder="Fiş no, firma, ambar..."></label>
+            <label class="wsl-field"><span class="field-label">Durum</span>
                 <select wire:model.live="status">
                     <option value="">Tümü</option>
                     @foreach($statusLabels as $value => $label)<option value="{{ $value }}">{{ $label }}</option>@endforeach
                 </select>
             </label>
-            <label class="field"><span class="field-label">Ambar / Nakliye</span>
+            <label class="wsl-field"><span class="field-label">Ambar / Nakliye</span>
                 <select wire:model.live="carrier"><option value="">Tümü</option>
                     @foreach($carriers as $option)<option value="{{ $option }}">{{ $option }}</option>@endforeach
                 </select>
             </label>
-            <label class="field"><span class="field-label">Cam Durumu</span>
+            <label class="wsl-field"><span class="field-label">Cam Durumu</span>
                 <select wire:model.live="glass"><option value="">Tümü</option><option value="yes">Cam Var</option><option value="no">Cam Yok</option></select>
             </label>
-            <label class="field"><span class="field-label">Tarih Başlangıç</span><input type="date" wire:model.live="dateFrom"></label>
-            <label class="field"><span class="field-label">Tarih Bitiş</span><input type="date" wire:model.live="dateTo"></label>
+            <label class="wsl-field"><span class="field-label">Tarih Başlangıç</span><input type="date" wire:model.live="dateFrom"></label>
+            <label class="wsl-field"><span class="field-label">Tarih Bitiş</span><input type="date" wire:model.live="dateTo"></label>
         </div>
     </section>
 
     <section class="wsl-card panel">
         <div class="wsl-card-head"><strong>Ambar Fişi Listesi</strong><span class="badge">{{ $slips->total() }} kayıt</span></div>
+        <div class="wsl-table-search"><input wire:model.live.debounce.300ms="search" placeholder="Listede ara..." aria-label="Ambar fiş listesinde ara"></div>
         <div class="table-scroll">
             <table class="data-table wsl-table">
                 <thead><tr>
