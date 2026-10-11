@@ -488,3 +488,44 @@ input,select,textarea{border-radius:6px}
 .workspace-tab>a:hover{color:var(--primary-600)}
 .workspace-tab-close{min-height:24px;height:24px;margin-right:4px;padding:0 6px;border:0;border-radius:5px;background:transparent;color:var(--muted);font-size:17px}
 .workspace-tab-close:hover{background:#e8f0fe;color:var(--primary-600)}
+
+
+/* K-067 / approved v65: legacy module workspace and form harmonization */
+.content :is(.space-y-3,.space-y-4,.space-y-6,.space-y-8){min-width:0}
+.content :is(.space-y-3,.space-y-4,.space-y-6,.space-y-8)>section:not(.panel){
+ min-width:0;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+ padding:14px;box-shadow:var(--shadow-sm)
+}
+.content :is(.space-y-3,.space-y-4,.space-y-6,.space-y-8)>section>h2{
+ font-size:14px;margin:0 0 12px;color:var(--text)
+}
+.content :is(.space-y-3,.space-y-4,.space-y-6,.space-y-8)>section>label{
+ display:grid;gap:5px;color:#40516b;font-size:11px;font-weight:650;max-width:850px
+}
+.content :is(.space-y-3,.space-y-4,.space-y-6,.space-y-8)>section>label>:is(input,select,textarea){
+ width:100%;font-weight:400
+}
+.content :is(.panel,.stack)>.form-row{min-width:0;flex-wrap:wrap}
+.content .panel :is(.toolbar,.form-row){min-width:0;flex-wrap:wrap;gap:8px}
+.content .panel .toolbar button{min-height:34px}
+.content .panel table:not(.data-table){width:100%;min-width:650px;border-collapse:collapse}
+.content .panel table:not(.data-table) th{background:#f6f9fa;color:#506370;font-size:10.5px}
+.content .panel table:not(.data-table) td,.content .panel table:not(.data-table) th{
+ padding:9px 10px;border-bottom:1px solid var(--line2);text-align:left
+}
+.content .panel table:not(.data-table) tbody tr:nth-child(even){background:#fbfcfd}
+.content .panel table:not(.data-table) tbody tr:hover{background:#edf7fb}
+.content :is(.panel,.stack)>.empty-state{padding:28px 16px;color:var(--muted);text-align:center}
+.content .alert-success{border-color:#b8dfd0;background:#effaf5;color:#176d4e}
+.content textarea{height:auto;min-height:72px;padding:9px 10px}
+.content :is(input,select,textarea):disabled{background:var(--soft);color:var(--muted)}
+.content :is(input,select,textarea)[aria-invalid="true"]{border-color:var(--red)}
+.content .field-control input{min-width:0}
+.content .field-control:focus-within .field-addon{border-color:var(--primary)}
+.content .form-grid{align-items:start}
+.content .form-grid>.field{min-width:0}
+.content .table-summary td{background:#f5f9fb;font-weight:700}
+@media(max-width:780px){
+ .content :is(.space-y-3,.space-y-4,.space-y-6,.space-y-8)>section:not(.panel){padding:11px}
+ .content .table-scroll{max-width:calc(100vw - 24px)}
+}

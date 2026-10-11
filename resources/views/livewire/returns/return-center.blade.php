@@ -1,7 +1,7 @@
 <div class="space-y-6">
     <h1>İade Merkezi</h1>
 
-    <section class="space-y-3">
+    <section class="panel stack">
         <label>İade Türü
             <select wire:model.live="type">
                 <option value="sales_return">Satış İadesi</option>

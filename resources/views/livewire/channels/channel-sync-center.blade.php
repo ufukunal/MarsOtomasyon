@@ -3,18 +3,18 @@
     <section class="panel">
         <h1>Kanal Sync Merkezi</h1>
         <div class="form-row">
-            <select wire:model.live="channelAccountId">
+            <select aria-label="Kanal hesabı" wire:model.live="channelAccountId">
                 <option value="">Tüm Kanal Hesapları</option>
                 @foreach($accounts as $account)
                     <option value="{{ $account->id }}">{{ $account->platform->label() }} · {{ $account->name }}</option>
                 @endforeach
             </select>
-            <select wire:model.live="direction">
+            <select aria-label="Senkronizasyon yönü" wire:model.live="direction">
                 <option value="">Tüm Yönler</option>
                 <option value="outbound">Outbound</option>
                 <option value="inbound">Inbound</option>
             </select>
-            <select wire:model.live="status">
+            <select aria-label="Senkronizasyon durumu" wire:model.live="status">
                 <option value="">Tüm Durumlar</option>
                 <option value="queued">Queued</option>
                 <option value="processing">Processing</option>
