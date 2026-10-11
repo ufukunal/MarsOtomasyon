@@ -1,12 +1,12 @@
 <div class="space-y-6">
-    <section class="panel">
+    <section class="panel v65-list-panel">
         <div class="form-row">
             <h1>Üretim Emirleri</h1>
             @can('production_orders.create')
                 <button type="button" wire:click="newOrder">Yeni Emir</button>
             @endcan
         </div>
-        <table class="data-table">
+        <div class="table-scroll v65-grid-scroll"><table class="data-table">
             <thead><tr><th>No</th><th>Tarih</th><th>Mamul</th><th>Tip</th><th>Plan</th><th>Tamamlanan</th><th>Durum</th><th></th></tr></thead>
             <tbody>
             @foreach($orders as $row)
@@ -22,10 +22,10 @@
                 </tr>
             @endforeach
             </tbody>
-        </table>
+        </table></div>
     </section>
 
-    <section class="panel space-y-3">
+    <section class="panel stack v65-editor-panel">
         <h2>{{ $order?->number ?? 'Yeni Üretim Emri' }}</h2>
         @if(!$order || $order->status === 'draft')
             <label>Tarih <input type="date" wire:model="documentDate"></label>
@@ -94,7 +94,7 @@
             </div>
 
             <h3>Component Snapshot</h3>
-            <table class="data-table">
+            <div class="table-scroll v65-grid-scroll"><table class="data-table">
                 <thead><tr><th>Component</th><th>Plan</th><th>Temel Plan</th></tr></thead>
                 <tbody>
                 @foreach($order->components as $component)
@@ -105,7 +105,7 @@
                     </tr>
                 @endforeach
                 </tbody>
-            </table>
+            </table></div>
 
             @if(in_array($order->status, ['confirmed','in_progress'], true))
                 @can('production_orders.update')
@@ -113,7 +113,7 @@
                     <label>Tarih <input type="date" wire:model="completionDate"></label>
                     <label>Tamamlanan Miktar <input data-tr-decimal wire:model="completionQuantity"></label>
 
-                    <table class="data-table">
+                    <div class="table-scroll v65-grid-scroll"><table class="data-table">
                         <thead><tr><th>Component</th><th>Actual Tüketim</th><th>Fire</th><th>Kaynak</th></tr></thead>
                         <tbody>
                         @foreach($order->components as $component)
@@ -136,7 +136,7 @@
                             </tr>
                         @endforeach
                         </tbody>
-                    </table>
+                    </table></div>
 
                     <h4>Mamul Çıktıları</h4>
                     @foreach($outputs as $index => $output)
@@ -161,7 +161,7 @@
             @endif
 
             <h3>Completion Geçmişi</h3>
-            <table class="data-table">
+            <div class="table-scroll v65-grid-scroll"><table class="data-table">
                 <thead><tr><th>ID</th><th>Tarih</th><th>Miktar</th>@can('cost.view')<th>Malzeme</th><th>Fason Hizmet</th><th>Birim Maliyet</th>@endcan<th>Ters</th></tr></thead>
                 <tbody>
                 @foreach($order->completions as $completion)
@@ -190,7 +190,7 @@
                     </tr>
                 @endforeach
                 </tbody>
-            </table>
+            </table></div>
         @endif
     </section>
 

@@ -1,12 +1,12 @@
 <div class="space-y-6">
-    <section class="panel">
+    <section class="panel v65-list-panel">
         <div class="form-row">
             <h1>Üretim Reçeteleri</h1>
             @can('production_recipes.create')
                 <button type="button" wire:click="newRecipe">Yeni Reçete</button>
             @endcan
         </div>
-        <table class="data-table">
+        <div class="table-scroll v65-grid-scroll"><table class="data-table">
             <thead><tr><th>Mamul</th><th>Reçete</th><th>Rev.</th><th>Çıktı</th><th>Aktif</th><th></th></tr></thead>
             <tbody>
             @foreach($recipes as $recipe)
@@ -27,10 +27,10 @@
                 </tr>
             @endforeach
             </tbody>
-        </table>
+        </table></div>
     </section>
 
-    <section class="panel space-y-3">
+    <section class="panel stack v65-editor-panel">
         <h2>{{ $selectedRecipe ? 'Yeni Revizyon · '.$selectedRecipe->number.' Rev.'.$selectedRecipe->revision_no : 'Yeni Reçete' }}</h2>
         <label>Mamul
             <select wire:model="productId" @disabled($selectedRecipeId)>
@@ -42,7 +42,7 @@
         </label>
         <label>Reçete Çıktı Miktarı <input data-tr-decimal wire:model="outputQuantity"></label>
 
-        <table class="data-table">
+        <div class="table-scroll v65-grid-scroll"><table class="data-table">
             <thead><tr><th>Component</th><th>Birim</th><th>Miktar</th><th></th></tr></thead>
             <tbody>
             @foreach($lines as $index => $line)
@@ -68,7 +68,7 @@
                 </tr>
             @endforeach
             </tbody>
-        </table>
+        </table></div>
         <button type="button" wire:click="addLine">Component Ekle</button>
 
         @canany(['production_recipes.create','production_recipes.update'])

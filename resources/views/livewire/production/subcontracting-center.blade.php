@@ -1,7 +1,7 @@
 <div class="space-y-6">
-    <section class="panel">
+    <section class="panel v65-list-panel">
         <h1>Fason Üretim</h1>
-        <table class="data-table">
+        <div class="table-scroll v65-grid-scroll"><table class="data-table">
             <thead><tr><th>Emir</th><th>Mamul</th><th>Fasoncu</th><th>Durum</th><th></th></tr></thead>
             <tbody>
             @foreach($orders as $row)
@@ -14,11 +14,11 @@
                 </tr>
             @endforeach
             </tbody>
-        </table>
+        </table></div>
     </section>
 
     @if($order)
-        <section class="panel space-y-3">
+        <section class="panel stack v65-editor-panel">
             <h2>{{ $order->number ?? 'Taslak #'.$order->id }} · {{ $order->subcontractor?->title }}</h2>
             <div>Fason lokasyon: {{ $order->subcontractorLocation?->code }} · {{ $order->subcontractorLocation?->name }}</div>
 
@@ -45,7 +45,7 @@
             @endif
 
             <h3>Fason Lokasyon Stoku</h3>
-            <table class="data-table">
+            <div class="table-scroll v65-grid-scroll"><table class="data-table">
                 <thead><tr><th>Ürün</th><th>Miktar</th></tr></thead>
                 <tbody>
                 @forelse($balances as $balance)
@@ -57,10 +57,10 @@
                     <tr><td colspan="2">Fason lokasyonda stok yok.</td></tr>
                 @endforelse
                 </tbody>
-            </table>
+            </table></div>
 
             <h3>Fason Transferleri</h3>
-            <table class="data-table">
+            <div class="table-scroll v65-grid-scroll"><table class="data-table">
                 <thead><tr><th>No</th><th>Durum</th><th>Satırlar</th></tr></thead>
                 <tbody>
                 @foreach($transfers as $transfer)
@@ -75,7 +75,7 @@
                     </tr>
                 @endforeach
                 </tbody>
-            </table>
+            </table></div>
 
             @can('subcontracting.update')
                 <h3>Hizmet Faturası Bağla</h3>
@@ -97,7 +97,7 @@
 
             @can('cost.view')
                 <h3>Hizmet Maliyet Dağılımı</h3>
-                <table class="data-table">
+                <div class="table-scroll v65-grid-scroll"><table class="data-table">
                     <thead><tr><th>Fatura Satırı</th><th>Completion</th><th>Basis</th><th>Allocation</th><th>Applied</th></tr></thead>
                     <tbody>
                     @foreach($allocations as $allocation)
@@ -110,7 +110,7 @@
                         </tr>
                     @endforeach
                     </tbody>
-                </table>
+                </table></div>
             @endcan
         </section>
     @endif

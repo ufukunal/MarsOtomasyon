@@ -2,7 +2,7 @@
     @if(session('status')) <div class="panel">{{ session('status') }}</div> @endif
     @if(session('warning')) <div class="panel">{{ session('warning') }}</div> @endif
 
-    <section class="panel">
+    <section class="panel v65-list-panel">
         <div class="form-row">
             <h1>Kanal Hesapları</h1>
             @can('channel_accounts.create')
@@ -10,7 +10,7 @@
             @endcan
         </div>
 
-        <table class="data-table">
+        <div class="table-scroll v65-grid-scroll"><table class="data-table">
             <thead><tr><th>Platform</th><th>Hesap</th><th>Store ID</th><th>Aktif</th><th>Adapter</th><th></th></tr></thead>
             <tbody>
             @foreach($accounts as $account)
@@ -24,10 +24,10 @@
                 </tr>
             @endforeach
             </tbody>
-        </table>
+        </table></div>
     </section>
 
-    <section class="panel space-y-3">
+    <section class="panel stack v65-editor-panel">
         <h2>{{ $selectedAccountId ? 'Kanal Hesabını Düzenle' : 'Yeni Kanal Hesabı' }}</h2>
         <label>Platform
             <select wire:model="platform" @disabled($selectedAccountId)>

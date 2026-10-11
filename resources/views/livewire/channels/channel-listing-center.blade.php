@@ -1,14 +1,14 @@
 <div class="space-y-6">
     @if(session('status')) <div class="panel">{{ session('status') }}</div> @endif
 
-    <section class="panel">
+    <section class="panel v65-list-panel">
         <div class="form-row">
             <h1>Kanal Ürün Listingleri</h1>
             @can('channel_listings.create')
                 <button type="button" wire:click="newListing">Yeni Mapping</button>
             @endcan
         </div>
-        <table class="data-table">
+        <div class="table-scroll v65-grid-scroll"><table class="data-table">
             <thead><tr><th>Account</th><th>Ürün</th><th>External Listing</th><th>SKU</th><th>Mode</th><th>Aktif</th><th></th></tr></thead>
             <tbody>
             @foreach($listings as $listing)
@@ -23,10 +23,10 @@
                 </tr>
             @endforeach
             </tbody>
-        </table>
+        </table></div>
     </section>
 
-    <section class="panel space-y-3">
+    <section class="panel stack v65-editor-panel">
         <h2>{{ $selectedListingId ? 'Listing Mapping Düzenle' : 'Yeni Listing Mapping' }}</h2>
         <label>Kanal Hesabı
             <select wire:model="channelAccountId" @disabled($selectedListingId)>
