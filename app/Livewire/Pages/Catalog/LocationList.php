@@ -7,6 +7,7 @@ use App\Livewire\Components\DataTable\DataTableComponent;
 use App\Livewire\Components\DataTable\DateRangeFilter;
 use App\Livewire\Components\DataTable\SelectFilter;
 use App\Models\Period\Location;
+use Illuminate\Database\Eloquent\Model;
 
 /** @extends DataTableComponent<Location> */
 class LocationList extends DataTableComponent
@@ -59,9 +60,25 @@ class LocationList extends DataTableComponent
     /** @return list<array<string, mixed>> */
     public function rowActions(): array
     {
-        return auth()->user()?->can('locations.update')
-            ? [['label' => 'Düzenle', 'method' => 'openLocation']]
-            : [];
+        $actions = [['label' => 'Detay', 'method' => 'showLocation']];
+
+        if (auth()->user()?->can('locations.update')) {
+            $actions[] = ['label' => 'Düzenle', 'method' => 'openLocation'];
+        }
+
+        return $actions;
+    }
+
+    public function columnUrl(Model $row, Column $column): ?string
+    {
+        return in_array($column->key, ['code', 'name'], true)
+            ? route('locations.show', ['location' => $row->getKey()])
+            : null;
+    }
+
+    public function showLocation(int|string $id): mixed
+    {
+        return $this->redirectRoute('locations.show', ['location' => $id], navigate: false);
     }
 
     public function openLocation(int|string $id): mixed

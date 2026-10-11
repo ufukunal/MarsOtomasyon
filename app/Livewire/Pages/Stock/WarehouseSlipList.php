@@ -8,6 +8,7 @@ use App\Livewire\Components\DataTable\DateRangeFilter;
 use App\Livewire\Components\DataTable\SelectFilter;
 use App\Models\Period\WarehouseSlip;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 
 /** @extends DataTableComponent<WarehouseSlip> */
 class WarehouseSlipList extends DataTableComponent
@@ -64,6 +65,13 @@ class WarehouseSlipList extends DataTableComponent
                 'cancelled' => 'İptal',
             ]),
         ];
+    }
+
+    public function columnUrl(Model $row, Column $column): ?string
+    {
+        return $column->key === 'number'
+            ? route('stock.warehouse-slips.show', ['id' => $row->getKey()])
+            : null;
     }
 
     /** @return list<array<string, mixed>> */

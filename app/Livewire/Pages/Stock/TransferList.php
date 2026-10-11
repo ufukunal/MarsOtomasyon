@@ -8,6 +8,7 @@ use App\Livewire\Components\DataTable\DateRangeFilter;
 use App\Livewire\Components\DataTable\SelectFilter;
 use App\Models\Period\Transfer;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 
 /** @extends DataTableComponent<Transfer> */
 class TransferList extends DataTableComponent
@@ -90,6 +91,13 @@ class TransferList extends DataTableComponent
                 'cancelled' => 'İptal',
             ]),
         ];
+    }
+
+    public function columnUrl(Model $row, Column $column): ?string
+    {
+        return $column->key === 'number'
+            ? route('stock.transfers.show', ['id' => $row->getKey()])
+            : null;
     }
 
     /** @return list<array<string, mixed>> */

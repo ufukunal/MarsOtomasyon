@@ -9,6 +9,7 @@ use App\Livewire\Components\DataTable\SelectFilter;
 use App\Livewire\Concerns\WithIdempotentMutations;
 use App\Models\Period\StockReservation;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 
 /** @extends DataTableComponent<StockReservation> */
 class ReservationList extends DataTableComponent
@@ -72,11 +73,31 @@ class ReservationList extends DataTableComponent
     /** @return list<array<string, mixed>> */
     public function rowActions(): array
     {
-        if (! auth()->user()?->can('reservations.update')) {
-            return [];
+        $actions = [['label' => 'Detay', 'method' => 'showReservation']];
+
+        if (auth()->user()?->can('reservations.update')) {
+            $actions[] = ['label' => 'Rezervi Çöz', 'method' => 'releaseReservation'];
         }
 
-        return [['label' => 'Rezervi Çöz', 'method' => 'releaseReservation']];
+        return $actions;
+    }
+
+    public function columnUrl(Model $row, Column $column): ?string
+    {
+        if (in_array($column->key, ['product_code', 'product_name'], true)) {
+            return auth()->user()?->can('products.view')
+                ? route('products.show', ['product' => (int) $row->getAttribute('product_id')])
+                : null;
+        }
+
+        return $column->key === 'document_id'
+            ? route('stock.reservations.show', ['id' => $row->getKey()])
+            : null;
+    }
+
+    public function showReservation(int|string $id): mixed
+    {
+        return $this->redirectRoute('stock.reservations.show', ['id' => $id], navigate: false);
     }
 
     public function releaseReservation(int|string $id, ReleaseReservation $action): void

@@ -8,6 +8,7 @@ use App\Livewire\Components\DataTable\DateRangeFilter;
 use App\Livewire\Components\DataTable\SelectFilter;
 use App\Models\Period\StockCount;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 
 /** @extends DataTableComponent<StockCount> */
 class StockCountList extends DataTableComponent
@@ -55,6 +56,13 @@ class StockCountList extends DataTableComponent
                 'draft' => 'Taslak', 'counting' => 'Sayım', 'review' => 'İnceleme', 'posted' => 'Kesinleşti', 'cancelled' => 'İptal',
             ]),
         ];
+    }
+
+    public function columnUrl(Model $row, Column $column): ?string
+    {
+        return $column->key === 'number'
+            ? route('stock.counts.show', ['id' => $row->getKey()])
+            : null;
     }
 
     /** @return list<array<string,mixed>> */

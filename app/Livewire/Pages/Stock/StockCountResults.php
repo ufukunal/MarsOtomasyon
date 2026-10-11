@@ -79,10 +79,20 @@ class StockCountResults extends DataTableComponent
 
     public function columnUrl(Model $row, Column $column): ?string
     {
-        if ($column->key !== 'count_number') {
-            return null;
+        if (in_array($column->key, ['product_code', 'product_name'], true)) {
+            return auth()->user()?->can('products.view')
+                ? route('products.show', ['product' => (int) $row->getAttribute('product_id')])
+                : null;
         }
 
-        return route('stock.counts.show', ['id' => (int) $row->getAttribute('stock_count_id')]);
+        if ($column->key === 'location_name') {
+            return auth()->user()?->can('locations.view')
+                ? route('locations.show', ['location' => (int) $row->getAttribute('location_id')])
+                : null;
+        }
+
+        return $column->key === 'count_number'
+            ? route('stock.counts.show', ['id' => (int) $row->getAttribute('stock_count_id')])
+            : null;
     }
 }

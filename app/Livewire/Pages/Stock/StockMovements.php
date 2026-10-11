@@ -120,24 +120,46 @@ class StockMovements extends DataTableComponent
 
     public function columnUrl(Model $row, Column $column): ?string
     {
+        if (in_array($column->key, ['product_code', 'product_label'], true)) {
+            return auth()->user()?->can('products.view')
+                ? route('products.show', ['product' => (int) $row->getAttribute('product_id')])
+                : null;
+        }
+
+        if ($column->key === 'reason_label' || $column->key === 'movement_date') {
+            return route('stock.movements.show', ['id' => $row->getKey()]);
+        }
+
         if ($column->key !== 'document_no'
             || ! $row->getAttribute('document_type')
             || ! $row->getAttribute('document_id')) {
             return null;
         }
 
-        $route = match ((string) $row->getAttribute('document_type')) {
-            'transfer' => 'stock.transfers.show',
-            'warehouse_slip' => 'stock.warehouse-slips.show',
-            'stock_count' => 'stock.counts.show',
-            default => null,
+        [$route, $permission] = match ((string) $row->getAttribute('document_type')) {
+            'transfer' => ['stock.transfers.show', 'transfers.view'],
+            'warehouse_slip' => ['stock.warehouse-slips.show', 'warehouse_slips.view'],
+            'stock_count' => ['stock.counts.show', 'stock_counts.view'],
+            default => [null, null],
         };
 
-        if ($route === null || ! Route::has($route)) {
+        if ($route === null || ! Route::has($route)
+            || ! auth()->user()?->can($permission)) {
             return null;
         }
 
         return route($route, ['id' => (int) $row->getAttribute('document_id')]);
+    }
+
+    /** @return list<array<string, mixed>> */
+    public function rowActions(): array
+    {
+        return [['label' => 'Detay', 'method' => 'showMovement']];
+    }
+
+    public function showMovement(int|string $id): mixed
+    {
+        return $this->redirectRoute('stock.movements.show', ['id' => $id], navigate: false);
     }
 
     private function canViewCost(): bool
