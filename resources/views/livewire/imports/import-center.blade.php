@@ -1,5 +1,5 @@
 <div class="space-y-6">
-    <div class="flex gap-2 items-center">
+    <div class="form-row page-header-actions">
         <h1>İthalat Merkezi</h1>
         @can('import_shipments.create')
             <button type="button" wire:click="newFile">Yeni İthalat Dosyası</button>

@@ -547,3 +547,16 @@ input,select,textarea{border-radius:6px}
 .content .panel .form-row :is(input,select):not([type="checkbox"]){min-width:110px}
 .content .panel .form-row>label:not(.inline-check){display:grid;gap:5px;color:#40516b}
 @media(max-width:700px){.content .space-y-5{max-width:100%}}
+
+
+/* v65 legacy finance/import tables and toolbars */
+.content .page-header-actions{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:42px;flex-wrap:wrap}
+.content .page-header-actions h1{font-size:17px;margin:0}
+.content .page-header-actions button{min-height:34px;font-weight:650}
+.content :is(.panel,.stack) :is(.table-scroll,.table-responsive){max-width:100%;overflow-x:auto}
+.content :is(.panel,.stack) table:not(.data-table){min-width:650px}
+.content .panel>label:not(.inline-check){display:grid;gap:6px;min-width:0}
+.content .panel>label:not(.inline-check)>:is(input,select,textarea){width:100%;max-width:850px}
+.content .panel>h1{margin:0 0 12px;font-size:17px}
+.content .panel>h2{margin:0 0 12px;font-size:14px}
+.content :is(.space-y-6,.space-y-8)>.form-row>h1{margin:0;font-size:17px}

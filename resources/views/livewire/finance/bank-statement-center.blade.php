@@ -1,7 +1,7 @@
 <div class="space-y-8">
     <h1>Banka Ekstresi / Mutabakat</h1>
 
-    <section class="space-y-3">
+    <section class="panel stack">
         <h2>Ekstre Dosyası</h2>
         <label>Banka
             <select wire:model="bankAccountId">
@@ -74,7 +74,7 @@
     </section>
 
     @if($selectedStatementId)
-        <section class="space-y-3">
+        <section class="panel stack">
             <h2>Mutabakat · Ekstre #{{ $selectedStatementId }}</h2>
 
             @if($suggestions !== [])

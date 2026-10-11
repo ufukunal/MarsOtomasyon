@@ -1,4 +1,4 @@
-<div class="space-y-5">
+<div class="space-y-5 panel">
     <h1>Cari Yaşlandırma</h1>
 
     <label>Cari

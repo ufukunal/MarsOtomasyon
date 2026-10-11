@@ -1,7 +1,7 @@
 <div class="space-y-8">
     <h1>Çek / Senet</h1>
 
-    <section class="space-y-3">
+    <section class="panel stack">
         <h2>Yeni Çek / Senet</h2>
         <label>Yön
             <select wire:model="direction">
@@ -63,7 +63,7 @@
         </table>
     </section>
 
-    <section class="space-y-3">
+    <section class="panel stack">
         <h2>Bordro İşlemi</h2>
         <label>İşlem
             <select wire:model="payrollAction">
@@ -96,7 +96,7 @@
         <button type="button" wire:click="postPayroll">Bordroyu Kesinleştir</button>
     </section>
 
-    <section class="space-y-3">
+    <section class="panel stack">
         <h2>Bordro Ters Kayıt</h2>
         <label>Bordro
             <select wire:model="reversePayrollId">
