@@ -1,5 +1,8 @@
 <?php
 
+use App\Models\Period\Contact;
+use App\Models\Period\TransportSlip;
+use App\Models\Period\TransportSlipItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Validator;
@@ -270,12 +273,12 @@ it('defers transport slip database lookup until after period context is initiali
         ->and($route->wheres['slip'] ?? null)->not->toBeNull()
         ->and($controller)->toContain('public function __invoke(int $slip, string $format): View')
         ->toContain('PeriodContext::ensure()')
-        ->toContain("->findOrFail(\$slip)")
+        ->toContain('->findOrFail($slip)')
         ->not->toContain('public function __invoke(TransportSlip $slip');
 });
 
 it('renders both saved-slip format templates from period-free transport fixture', function (): void {
-    $slip = new \App\Models\Period\TransportSlip([
+    $slip = new TransportSlip([
         'number' => 'AF-2026-00001',
         'slip_date' => '2026-10-12',
         'shipping_type' => 'Ambar',
@@ -288,8 +291,8 @@ it('renders both saved-slip format templates from period-free transport fixture'
         'delivery_district' => 'Çankaya',
         'delivery_address' => 'Test adresi',
     ]);
-    $slip->setRelation('contact', new \App\Models\Period\Contact(['code' => 'CR001', 'title' => 'Deneme Ltd']));
-    $item = new \App\Models\Period\TransportSlipItem(['quantity' => '2.000']);
+    $slip->setRelation('contact', new Contact(['code' => 'CR001', 'title' => 'Deneme Ltd']));
+    $item = new TransportSlipItem(['quantity' => '2.000']);
     $item->setRelation('product', null);
     $slip->setRelation('items', collect([$item]));
 
