@@ -51,6 +51,7 @@ use App\Livewire\Pages\Stock\ReservationList;
 use App\Livewire\Pages\Stock\StockCost;
 use App\Livewire\Pages\Stock\StockCountDetail;
 use App\Livewire\Pages\Stock\StockCountList;
+use App\Livewire\Pages\Stock\StockCountResults;
 use App\Livewire\Pages\Stock\StockMovements;
 use App\Livewire\Pages\Stock\StockStatus;
 use App\Livewire\Pages\Stock\TransferDetail;
@@ -217,6 +218,7 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/stok/sayimlar', StockCountList::class)->name('stock.counts.index');
     Route::get('/stok/sayimlar/yeni', StockCountDetail::class)->name('stock.counts.create');
     Route::get('/stok/hizli-sayim', StockCountDetail::class)->name('stock.counts.quick');
+    Route::get('/stok/sayim-sonuclari', StockCountResults::class)->name('stock.counts.results');
     Route::get('/stok/sayimlar/{id}', StockCountDetail::class)->name('stock.counts.show');
     Route::get('/stok/karantina', QuarantineControl::class)->name('stock.quarantine.index');
     Route::get('/stok/rezervasyonlar', ReservationList::class)->name('stock.reservations.index');

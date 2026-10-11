@@ -23,7 +23,7 @@ it('maps approved v65 stock destinations to real authorized Laravel routes', fun
     foreach ([
         'stock.status', 'stock.movements', 'locations.index', 'stock.reservations.index',
         'stock.transfers.index', 'stock.transfers.create', 'stock.counts.index',
-        'stock.counts.create', 'stock.counts.quick', 'stock.quarantine.index', 'stock.costs',
+        'stock.counts.create', 'stock.counts.quick', 'stock.counts.results', 'stock.quarantine.index', 'stock.costs',
     ] as $route) {
         expect($stockRoutes)->toContain($route)
             ->and(Route::has($route))->toBeTrue();
@@ -70,6 +70,10 @@ it('keeps inventory actions wired to existing authenticated Livewire workflows',
 });
 
 it('calculates in-transit stock from real transfers and prevents unauthorized cost access', function (): void {
+    $results = file_get_contents(base_path('app/Livewire/Pages/Stock/StockCountResults.php'));
+    expect($results)->toContain("where('count.status', 'posted')")
+        ->toContain("route('stock.counts.show'");
+
     $statusQuery = file_get_contents(base_path('app/Support/Stock/StockStatusQuery.php'));
     $costScreen = file_get_contents(base_path('app/Livewire/Pages/Stock/StockCost.php'));
 
