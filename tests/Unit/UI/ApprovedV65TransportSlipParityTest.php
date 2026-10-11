@@ -132,7 +132,8 @@ it('previews unpersisted form values without creating any stock movement', funct
 
     expect($editor)->toContain('private function draftPrintHtml(')
         ->toContain('new TransportSlip([')
-        ->toContain("'number' => 'TASLAK'")
+        ->toContain("'TASLAK'")
+        ->toContain('$this->slip?->number')
         ->toContain('new TransportSlipItem([')
         ->toContain('setRelation(')
         ->toContain('previewHtml')

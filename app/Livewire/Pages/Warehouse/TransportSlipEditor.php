@@ -370,7 +370,7 @@ class TransportSlipEditor extends Component
     private function draftPrintHtml(string $format): string
     {
         $draft = new TransportSlip([
-            'number' => 'TASLAK', 'slip_date' => $this->date,
+            'number' => $this->slip?->number ?? 'TASLAK', 'slip_date' => $this->date,
             'contact_id' => $this->contactId, 'shipping_type' => $this->shippingType,
             'carrier' => $this->carrier, 'destination_warehouse' => $this->destinationWarehouse,
             'package_count' => $this->packageCount, 'weight_kg' => $this->weightKg,
