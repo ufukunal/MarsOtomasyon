@@ -5,6 +5,8 @@ on:
     paths:
       - '.github/workflows/uat-image-publish.yml'
       - 'Dockerfile.uat'
+      - 'compose.uat.yml'
+      - 'ops/uat-preview-start.sh'
   workflow_dispatch:
 permissions:
   contents: read

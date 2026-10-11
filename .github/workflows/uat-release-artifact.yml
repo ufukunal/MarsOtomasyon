@@ -5,6 +5,9 @@ on:
     paths:
       - '.github/workflows/uat-release-artifact.yml'
       - 'ops/build-release-artifact.sh'
+      - 'Dockerfile.uat'
+      - 'compose.uat.yml'
+      - 'ops/uat-preview-start.sh'
   workflow_dispatch:
 permissions:
   contents: read
