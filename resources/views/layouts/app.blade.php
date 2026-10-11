@@ -99,7 +99,17 @@
                 @if (class_exists(\App\Livewire\Components\PeriodSwitcher::class))
                     <livewire:components.period-switcher />
                 @endif
-                <span class="user-name">{{ auth()->user()->name }}</span>
+                <details class="user-menu">
+                    <summary aria-label="Kullanıcı menüsü">{{ auth()->user()->name }} <span aria-hidden="true">⌄</span></summary>
+                    <div class="user-menu-panel">
+                        <span class="user-menu-caption">{{ auth()->user()->email }}</span>
+                        <a href="{{ route('home') }}">Ana Sayfa</a>
+                        <form action="{{ route('logout') }}" method="POST">
+                            @csrf
+                            <button type="submit" class="button-secondary">Çıkış Yap</button>
+                        </form>
+                    </div>
+                </details>
             @endauth
         </div>
     </header>

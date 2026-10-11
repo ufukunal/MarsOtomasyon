@@ -464,3 +464,17 @@ input,select,textarea{border-radius:6px}
 .document-actions>div{min-width:0;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 @media(max-width:1100px){.document-editor-form{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:640px){.document-editor-form{grid-template-columns:1fr}.document-editor-form>label:first-child,.document-editor-form>label:has(textarea){grid-column:auto}}
+
+
+/* v65 functional top-right account menu and list primary action */
+.user-menu{position:relative;flex:none;max-width:220px}
+.user-menu summary{display:flex;align-items:center;gap:8px;max-width:220px;height:34px;cursor:pointer;padding:0 10px;border:1px solid var(--line);border-radius:8px;background:#f7fafc;color:#506370;font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.user-menu summary::marker{content:""}
+.user-menu summary::-webkit-details-marker{display:none}
+.user-menu-panel{position:absolute;z-index:85;right:0;top:calc(100% + 6px);display:grid;gap:7px;min-width:195px;max-width:300px;padding:12px;border:1px solid var(--line);border-radius:9px;background:#fff;box-shadow:var(--shadow)}
+.user-menu-caption{font-size:10px;color:var(--muted);overflow-wrap:anywhere}
+.user-menu-panel a{padding:7px 8px;border-radius:5px;color:var(--primary-600)}
+.user-menu-panel a:hover{background:var(--soft)}
+.user-menu-panel form{margin:0}
+.user-menu-panel button{width:100%;background:#fff;border-color:var(--line);color:var(--text)}
+.table-add-action{display:inline-flex;align-items:center;justify-content:center;min-height:34px;margin:0;padding:0 11px;border-radius:7px;font-weight:700;white-space:nowrap}

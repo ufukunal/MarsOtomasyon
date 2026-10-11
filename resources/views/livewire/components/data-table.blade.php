@@ -49,6 +49,9 @@
                     @endforeach
                 </div>
             </details>
+            @if($emptyAction)
+                <a class="button-link table-add-action" href="{{ route($emptyAction['route']) }}">+ {{ $emptyAction['label'] }}</a>
+            @endif
             <button class="button-secondary" type="button" wire:click="exportCsv">CSV</button>
             <button class="button-secondary" type="button" wire:click="exportXlsx">Excel</button>
         </div>
