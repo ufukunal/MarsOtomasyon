@@ -1,0 +1,27 @@
+name: UAT - PROD Host SSH Readiness (Read Only)
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/uat-host-readiness.yml'
+      - 'scripts/ci/uat-host-readiness.sh'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  read-only-probe:
+    name: R4 - Verify authorized UAT host access
+    runs-on: [self-hosted, Linux, mars-ubuntu, mars-r4]
+    timeout-minutes: 5
+    env:
+      MARS_V4_SSH_PRIVATE_KEY: ${{ secrets.MARS_V4_SSH_PRIVATE_KEY }}
+      MARS_V4_SSH_PASSWORD: ${{ secrets.MARS_V4_SSH_PASSWORD }}
+      MARS_V4_SSH_KNOWN_HOSTS: ${{ secrets.MARS_V4_SSH_KNOWN_HOSTS }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Read-only host authorization and Docker accessibility
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          bash -n scripts/ci/uat-host-readiness.sh
+          bash scripts/ci/uat-host-readiness.sh
