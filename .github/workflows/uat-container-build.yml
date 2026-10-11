@@ -12,6 +12,7 @@ on:
       - 'ops/uat-login-only-preview.sh'
       - 'ops/uat-lab-postgres-init.sh'
       - 'ops/uat-lab-start.sh'
+      - 'ops/uat-lab-resume.sh'
       - 'compose.uat.lab.yml'
       - 'app/Actions/Periods/CreatePeriod.php'
       - 'app/Livewire/Pages/Setup/CompanyWizard.php'
@@ -39,7 +40,7 @@ jobs:
           docker info >/dev/null || { echo "BLOCKED: Docker Engine unavailable" >&2; exit 77; }
           docker compose version
       - name: Check UAT runtime scripts syntax
-        run: bash -n ops/uat-preflight.sh ops/uat-login-only-preview.sh ops/uat-lab-postgres-init.sh ops/uat-lab-start.sh scripts/ci/uat-container-smoke.sh
+        run: bash -n ops/uat-preflight.sh ops/uat-login-only-preview.sh ops/uat-lab-postgres-init.sh ops/uat-lab-start.sh ops/uat-lab-resume.sh scripts/ci/uat-container-smoke.sh
       - name: Validate dedicated UAT Compose without starting database services
         shell: bash
         env:

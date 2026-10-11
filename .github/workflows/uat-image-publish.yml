@@ -12,6 +12,7 @@ on:
       - 'compose.uat.lab.yml'
       - 'ops/uat-lab-postgres-init.sh'
       - 'ops/uat-lab-start.sh'
+      - 'ops/uat-lab-resume.sh'
       - 'app/Actions/Periods/CreatePeriod.php'
       - 'app/Livewire/Pages/Setup/CompanyWizard.php'
       - 'config/operations.php'
