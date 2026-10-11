@@ -6,7 +6,7 @@ it('keeps all v65 sidebar destinations real and authorization guarded', function
     $groups = config('navigation');
     $expected = [
         'Ana Sayfa', 'Kişiler / Firmalar', 'Ürünler ve Hizmetler',
-        'Satış Yönetimi', 'Satınalma Yönetimi', 'Stok ve Depo',
+        'Satış Yönetimi', 'Satınalma Yönetimi', 'Stok ve Depo', 'Ambar',
         'Finans İşlemleri', 'İade / RMA', 'İthalat', 'Üretim',
         'E-Ticaret', 'Raporlar', 'Ayarlar',
     ];
