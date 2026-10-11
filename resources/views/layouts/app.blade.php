@@ -83,9 +83,26 @@
     </aside>
 
     <header class="topbar">
+        @canany(['sales_invoices.create', 'collections.create', 'products.create', 'contacts.create'])
+            <details class="topbar-create">
+                <summary>＋ Yeni İşlem</summary>
+                <div class="topbar-create-menu">
+                    @can('sales_invoices.create')
+                        <a href="{{ route('sales.invoices.edit') }}">Satış Faturası</a>
+                    @endcan
+                    @can('collections.create')
+                        <a href="{{ route('finance.collections.create') }}">Tahsilat</a>
+                    @endcan
+                    @can('products.create')
+                        <a href="{{ route('products.create') }}">Ürün</a>
+                    @endcan
+                    @can('contacts.create')
+                        <a href="{{ route('contacts.create') }}">Cari</a>
+                    @endcan
+                </div>
+            </details>
+        @endcanany
         <div class="topbar-breadcrumb">
-            <span>{{ $activeSection }}</span>
-            <span aria-hidden="true">›</span>
             <strong>{{ $activeTitle }}</strong>
         </div>
         <div class="topbar-search" role="search">
@@ -125,8 +142,8 @@
     <main class="content" id="main-content">
         <header class="page-header">
             <div>
-                <span class="page-category">{{ $activeSection }}</span>
-                <h1>{{ $activeTitle }}</h1>
+                <span class="page-category sr-only">{{ $activeSection }}</span>
+                <h1><span class="page-title-icon" aria-hidden="true">{{ $navigationIcons[$activeSection] ?? '⌂' }}</span>{{ $activeTitle }}</h1>
                 @isset($pageDescription)
                     <p>{{ $pageDescription }}</p>
                 @endisset
