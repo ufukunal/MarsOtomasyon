@@ -1,4 +1,4 @@
-<div @class(['data-table-shell', 'v65-stock-table' => str_starts_with(get_class($this), 'App\\Livewire\\Pages\\Stock\\') || $this instanceof \App\Livewire\Pages\Catalog\LocationList])>
+<div @class(['data-table-shell', 'v65-products' => $this instanceof \App\Livewire\Pages\Products\ProductList, 'v65-stock-table' => str_starts_with(get_class($this), 'App\\Livewire\\Pages\\Stock\\') || $this instanceof \App\Livewire\Pages\Catalog\LocationList])>
     @php
         $stockListMeta = [
             \App\Livewire\Pages\Stock\StockStatus::class => ['Stok Durumu', 'Depo bazlı anlık stok, rezervasyon ve kullanılabilir miktarlar.'],
@@ -13,6 +13,22 @@
         ];
         $stockMeta = $stockListMeta[get_class($this)] ?? null;
     @endphp
+    @if($this instanceof \App\Livewire\Pages\Products\ProductList)
+        <div class="alert v65-products-hint"><strong>Kısaca:</strong> Ürün kartlarını, satış fiyatlarını ve stok durumunu buradan yönetebilirsin.</div>
+        <header class="v65-products-heading">
+            <div class="stack">
+                <strong>Ürün Listesi</strong>
+                <small>Ürün kartları, fiyat ve stok özeti.</small>
+            </div>
+            <div class="form-row">
+                @can('products.create')
+                    <a class="button-link" href="{{ route('products.create') }}">＋ Yeni Ürün</a>
+                @endcan
+                <button class="button-secondary" type="button" wire:click="exportXlsx">Excel</button>
+                <button class="button-secondary" type="button" wire:click="exportCsv">CSV</button>
+            </div>
+        </header>
+    @endif
     @if($stockMeta)
         @if($this instanceof \App\Livewire\Pages\Stock\StockStatus && !($this instanceof \App\Livewire\Pages\Stock\StockCost))
             <div class="alert"><strong>Kısaca:</strong> Kullanılabilir stok, rezerve ve bloke miktarları ayrı gösterilir.</div>
@@ -29,7 +45,7 @@
             <label class="table-search">
                 <span class="sr-only">Tabloda ara</span>
                 <span class="table-search-icon" aria-hidden="true">⌕</span>
-                <input wire:model.live.debounce.300ms="search" type="search" placeholder="Tabloda ara…">
+                <input wire:model.live.debounce.300ms="search" type="search" placeholder="{{ $this instanceof \App\Livewire\Pages\Products\ProductList ? 'Ürün kodu / adı' : 'Tabloda ara…' }}">
             </label>
 
             @foreach ($filters as $filter)
@@ -52,6 +68,9 @@
                 @endif
             @endforeach
         </div>
+        @if($this instanceof \App\Livewire\Pages\Products\ProductList)
+            <button class="button-secondary v65-products-filter" type="button" wire:click="$refresh">Filtrele</button>
+        @else
         <div class="table-toolbar-actions">
             <label class="page-size-control">
                 <span>Satır</span>
@@ -80,6 +99,7 @@
             <button class="button-secondary" type="button" wire:click="exportCsv">CSV</button>
             <button class="button-secondary" type="button" wire:click="exportXlsx">Excel</button>
         </div>
+        @endif
     </div>
 
     @if($selected !== [] && $bulkActions !== [])
@@ -92,6 +112,9 @@
         </div>
     @endif
 
+    @if($this instanceof \App\Livewire\Pages\Products\ProductList)
+        <div class="v65-products-table-title"><strong>✦　Ürün Listesi</strong><span>{{ $rows->total() }} kayıt</span></div>
+    @endif
     <div class="table-scroll">
         <table class="data-table">
             <thead>
@@ -168,6 +191,15 @@
 
     <div class="table-footer">
         <span>{{ $rows->total() }} kayıt</span>
+        @if($this instanceof \App\Livewire\Pages\Products\ProductList)
+            <label class="page-size-control"><span>Satır</span>
+                <select wire:change="setPerPage($event.target.value)">
+                    @foreach([25, 50, 100] as $size)
+                        <option value="{{ $size }}" @selected($perPage === $size)>{{ $size }}</option>
+                    @endforeach
+                </select>
+            </label>
+        @endif
         {{ $rows->links() }}
     </div>
 </div>

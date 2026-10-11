@@ -5,10 +5,9 @@ use Illuminate\Support\Facades\Route;
 it('keeps all v65 sidebar destinations real and authorization guarded', function (): void {
     $groups = config('navigation');
     $expected = [
-        'Ana Sayfa', 'Kişiler / Firmalar', 'Ürün / Stok',
-        'Satış Yönetimi', 'Ambar', 'Satınalma Yönetimi',
-        'Finans İşlemleri', 'İade / RMA', 'İthalat', 'Üretim',
-        'E-Ticaret', 'Raporlar', 'Ayarlar',
+        'Ana Sayfa', 'Cariler', 'Ürün / Stok', 'Satış', 'Ambar',
+        'Alış', 'Üretim', 'Kasa / Banka', 'Çek / Senet',
+        'İade / RMA', 'İthalat', 'E-Ticaret', 'Raporlar', 'Ayarlar',
     ];
 
     expect(array_column($groups, 'label'))->toBe($expected);

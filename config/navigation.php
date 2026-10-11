@@ -10,9 +10,9 @@ return [
         ],
     ],
     [
-        'label' => 'Kişiler / Firmalar',
+        'label' => 'Cariler',
         'items' => [
-            ['label' => 'Kişi/Firma Listesi', 'route' => 'contacts.index', 'permission' => 'contacts.view'],
+            ['label' => 'Cari Listesi', 'route' => 'contacts.index', 'permission' => 'contacts.view'],
             ['label' => 'Başka Şirketten Aktar', 'route' => 'company-copy.index', 'permission' => 'company_copy_permissions.view'],
         ],
     ],
@@ -20,21 +20,21 @@ return [
         'label' => 'Ürün / Stok',
         'items' => [
             ['label' => 'Ürün Listesi', 'route' => 'products.index', 'permission' => 'products.view'],
-            ['label' => 'Kategoriler', 'route' => 'categories.index', 'permission' => 'product_categories.view'],
-            ['label' => 'Markalar', 'route' => 'brands.index', 'permission' => 'brands.view'],
-            ['label' => 'Varyant Grupları', 'route' => 'variant-groups.detail', 'permission' => 'variant_groups.view'],
-            ['label' => 'Birimler', 'route' => 'units.index', 'permission' => 'units.view'],
             ['label' => 'Fiyat Listeleri', 'route' => 'price-lists.index', 'permission' => 'price_lists.view'],
             ['label' => 'Stok Durumu', 'route' => 'stock.status', 'permission' => 'stock.view'],
             ['label' => 'Stok Hareketleri', 'route' => 'stock.movements', 'permission' => 'stock.view'],
-            ['label' => 'Depolar / Lokasyonlar', 'route' => 'locations.index', 'permission' => 'locations.view'],
-            ['label' => 'Rezervasyonlar', 'route' => 'stock.reservations.index', 'permission' => 'reservations.view'],
+            ['label' => 'Depolar', 'route' => 'locations.index', 'permission' => 'locations.view'],
             ['label' => 'Depo Transferleri', 'route' => 'stock.transfers.index', 'permission' => 'transfers.view'],
             ['label' => 'Yeni Depo Transferi', 'route' => 'stock.transfers.create', 'permission' => 'transfers.create'],
             ['label' => 'Stok Sayımları', 'route' => 'stock.counts.index', 'permission' => 'stock_counts.view'],
             ['label' => 'Yeni Stok Sayımı', 'route' => 'stock.counts.create', 'permission' => 'stock_counts.create'],
             ['label' => 'Hızlı Stok Sayımı', 'route' => 'stock.counts.quick', 'permission' => 'stock_counts.create'],
             ['label' => 'Stok Sayım Listesi', 'route' => 'stock.counts.results', 'permission' => 'stock_counts.view'],
+            ['label' => 'Kategoriler', 'route' => 'categories.index', 'permission' => 'product_categories.view'],
+            ['label' => 'Markalar', 'route' => 'brands.index', 'permission' => 'brands.view'],
+            ['label' => 'Varyantlar', 'route' => 'variant-groups.detail', 'permission' => 'variant_groups.view'],
+            ['label' => 'Birimler', 'route' => 'units.index', 'permission' => 'units.view'],
+            ['label' => 'Rezervasyonlar', 'route' => 'stock.reservations.index', 'permission' => 'reservations.view'],
             ['label' => 'Karantina / Bloke', 'route' => 'stock.quarantine.index', 'permission' => 'quarantine.view'],
             ['label' => 'Stok Maliyeti', 'route' => 'stock.costs', 'permission' => 'cost.view', 'permission_secondary' => 'stock.view'],
             ['label' => 'Açılış Bakiyesi', 'route' => 'stock.opening.index', 'permission' => 'imports.create'],
@@ -42,7 +42,7 @@ return [
         ],
     ],
     [
-        'label' => 'Satış Yönetimi',
+        'label' => 'Satış',
         'items' => [
             ['label' => 'Teklifler', 'route' => 'sales.quotes.index', 'permission' => 'quotes.view'],
             ['label' => 'Satış Siparişleri', 'route' => 'sales.orders.index', 'permission' => 'sales_orders.view'],
@@ -60,7 +60,7 @@ return [
         ],
     ],
     [
-        'label' => 'Satınalma Yönetimi',
+        'label' => 'Alış',
         'items' => [
             ['label' => 'Satınalma Siparişleri', 'route' => 'purchases.orders.index', 'permission' => 'purchase_orders.view'],
             ['label' => 'Mal Kabul', 'route' => 'purchases.receipts.index', 'permission' => 'goods_receipts.view'],
@@ -70,7 +70,15 @@ return [
         ],
     ],
     [
-        'label' => 'Finans İşlemleri',
+        'label' => 'Üretim',
+        'items' => [
+            ['label' => 'Reçeteler', 'route' => 'production.recipes', 'permission' => 'production_recipes.view'],
+            ['label' => 'Üretim Emirleri', 'route' => 'production.orders', 'permission' => 'production_orders.view'],
+            ['label' => 'Fason Üretim', 'route' => 'production.subcontracting', 'permission' => 'subcontracting.view'],
+        ],
+    ],
+    [
+        'label' => 'Kasa / Banka',
         'items' => [
             ['label' => 'Tahsilat', 'route' => 'finance.collections.create', 'permission' => 'collections.view'],
             ['label' => 'Cari Borç / Alacak', 'route' => 'finance.contact-debit-credit', 'permission' => 'contacts.update'],
@@ -78,6 +86,11 @@ return [
             ['label' => 'Kasa / Banka Hesapları', 'route' => 'finance.accounts', 'permission' => 'cash_accounts.view'],
             ['label' => 'Kasa / Banka Hareketleri', 'route' => 'finance.operations', 'permission' => 'finance_movements.view'],
             ['label' => 'Banka Ekstresi / Mutabakat', 'route' => 'finance.bank-statements', 'permission' => 'bank_statements.view'],
+        ],
+    ],
+    [
+        'label' => 'Çek / Senet',
+        'items' => [
             ['label' => 'Çek / Senet', 'route' => 'finance.securities', 'permission' => 'securities.view'],
         ],
     ],
@@ -91,14 +104,6 @@ return [
         'label' => 'İthalat',
         'items' => [
             ['label' => 'İthalat Dosyaları', 'route' => 'imports.shipments', 'permission' => 'import_shipments.view'],
-        ],
-    ],
-    [
-        'label' => 'Üretim',
-        'items' => [
-            ['label' => 'Reçeteler', 'route' => 'production.recipes', 'permission' => 'production_recipes.view'],
-            ['label' => 'Üretim Emirleri', 'route' => 'production.orders', 'permission' => 'production_orders.view'],
-            ['label' => 'Fason Üretim', 'route' => 'production.subcontracting', 'permission' => 'subcontracting.view'],
         ],
     ],
     [

@@ -10,6 +10,7 @@ use App\Livewire\Components\DataTable\SelectFilter;
 use App\Models\Period\Brand;
 use App\Models\Period\Product;
 use App\Models\Period\ProductCategory;
+use App\Models\Period\StockBalance;
 use App\Support\Formatting\TrFormatter;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -27,27 +28,56 @@ class ProductList extends DataTableComponent
     /** @return Builder<Product> */
     protected function baseQuery(): Builder
     {
-        return Product::query()->with(['brand', 'category', 'unit']);
+        $query = Product::query()->with(['brand', 'category', 'unit'])
+            ->select('products.*');
+
+        if (auth()->user()?->can('stock.view')) {
+            $query
+                ->selectSub(
+                    StockBalance::query()
+                        ->selectRaw('COALESCE(SUM(quantity), 0)')
+                        ->whereColumn('stock_balances.product_id', 'products.id'),
+                    'on_hand_v65',
+                )
+                ->selectSub(
+                    StockBalance::query()
+                        ->selectRaw('COALESCE(SUM(reserved + consignment_reserved), 0)')
+                        ->whereColumn('stock_balances.product_id', 'products.id'),
+                    'reserved_v65',
+                )
+                ->selectSub(
+                    StockBalance::query()
+                        ->selectRaw('COALESCE(SUM(quantity - reserved - consignment_reserved - quarantine), 0)')
+                        ->whereColumn('stock_balances.product_id', 'products.id'),
+                    'available_v65',
+                );
+        }
+
+        return $query;
     }
 
     /** @return list<Column> */
     public function columns(): array
     {
-        // v65 sırası; veri modelinde olmayan tedarikçi ürün kodu, alış KDV,
-        // ikinci/üçüncü kategori ve model için sahte sütun oluşturulmaz.
-        return [
+        // The approved v65 grid keeps separate stock, order reservation and available columns.
+        $columns = [
             Column::make('code', 'Ürün Kodu')->searchable()->sortable(),
-            Column::make('name', 'Ürün')->searchable()->sortable(),
-            Column::make('barcode', 'Barkodu')->searchable()->sortable(),
-            Column::make('kind', 'Ürün Tipi')->sortable(),
-            Column::make('vat_rate', 'Satış KDV %')->alignEnd()->sortable(),
-            Column::make('category_name', '1. Kategori'),
-            Column::make('unit_name', 'Birim'),
+            Column::make('name', 'Ürün Adı')->searchable()->sortable(),
             Column::make('brand_name', 'Marka'),
+            Column::make('category_name', 'Kategori'),
+            Column::make('unit_name', 'Birim'),
             Column::make('list_price', 'Satış Fiyatı')->money()->sortable(),
-            Column::make('available_quantity', 'Kullanılabilir')->quantity(),
-            Column::make('is_active', 'Durum')->sortable(),
         ];
+
+        if (auth()->user()?->can('stock.view')) {
+            $columns[] = Column::make('on_hand_v65', 'Stok')->quantity()->sortable();
+            $columns[] = Column::make('reserved_v65', 'Sipariş Rez.')->quantity()->sortable();
+            $columns[] = Column::make('available_v65', 'Kullanılabilir')->quantity()->sortable();
+        }
+
+        $columns[] = Column::make('is_active', 'Durum')->sortable();
+
+        return $columns;
     }
 
     public function formattedValue(Model $row, Column $column): string
@@ -56,20 +86,14 @@ class ProductList extends DataTableComponent
             return $row->getAttribute('is_active') ? 'Aktif' : 'Pasif';
         }
 
-        if ($column->key === 'vat_rate') {
-            return '%'.TrFormatter::money((string) $row->getAttribute('vat_rate'));
-        }
+        if (in_array($column->key, ['on_hand_v65', 'reserved_v65', 'available_v65'], true)) {
+            $value = $column->key === 'available_v65'
+                && $row instanceof Product
+                && $row->kind === ProductKind::Set
+                    ? $row->setAvailability()
+                    : $row->getAttribute($column->key);
 
-        if ($column->key === 'kind') {
-            $kind = $row->getAttribute('kind');
-
-            if ($kind instanceof ProductKind) {
-                return match ($kind) {
-                    ProductKind::Normal => 'Normal',
-                    ProductKind::Set => 'Set',
-                    ProductKind::Configurable => 'Konfigüre',
-                };
-            }
+            return TrFormatter::quantity((string) ($value ?? '0')).' '.$row->getAttribute('unit_name');
         }
 
         return parent::formattedValue($row, $column);
