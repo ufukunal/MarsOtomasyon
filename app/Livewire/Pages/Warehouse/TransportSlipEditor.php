@@ -9,6 +9,7 @@ use App\Models\Period\TransportSlip;
 use App\Support\Period\PeriodContext;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Livewire\Component;
 
@@ -187,7 +188,7 @@ class TransportSlipEditor extends Component
             ]);
 
             if ($created) {
-                $slip->number = 'PENDING-'.str_replace('-', '', (string) \Illuminate\Support\Str::uuid());
+                $slip->number = 'PENDING-'.str_replace('-', '', (string) Str::uuid());
                 $slip->status = 'draft';
                 $slip->created_by = auth()->id();
             }
