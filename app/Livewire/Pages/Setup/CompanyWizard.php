@@ -129,6 +129,11 @@ class CompanyWizard extends Component
 
                 $period = $createPeriod->handle($company, $this->year);
 
+                // CreatePeriod::handle() uses withinSystem(), which restores the
+                // prior context on return. Re-activate the new period BEFORE
+                // writing its number series (and keep it for the warehouse).
+                PeriodContext::useSystem($company->id, $period->id);
+
                 foreach (config('numbering.prefixes', []) as $documentType => $prefix) {
                     DB::connection('period')->table('number_series')->updateOrInsert(
                         ['document_type' => $documentType, 'year' => $this->year],
@@ -161,8 +166,6 @@ class CompanyWizard extends Component
                     'last_company_id' => $company->id,
                     'last_period_id' => $period->id,
                 ])->save();
-
-                PeriodContext::useSystem($company->id, $period->id);
 
                 MutationAuthorizer::runAs($user, function () use ($saveLocation): void {
                     $saveLocation->handle([
