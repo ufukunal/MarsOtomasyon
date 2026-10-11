@@ -12,13 +12,6 @@
         $firstImage = $attachments->first(fn ($attachment) => str_starts_with((string) $attachment->mime, 'image/'));
     @endphp
 
-    <nav class="form-row" aria-label="Ürün gezinme">
-        <a href="{{ route('products.index') }}">← Ürün Listesi</a>
-        @can('products.update')
-            <a class="button-link" href="{{ route('products.edit', ['product' => $product->id]) }}">Ürünü Düzenle</a>
-        @endcan
-    </nav>
-
     <nav class="tabs v65-product-tabs" role="tablist" aria-label="Ürün detay sekmeleri">
         @foreach($tabs as $key => $label)
             <button type="button" role="tab" @class(['tab', 'is-active' => $activeTab === $key])

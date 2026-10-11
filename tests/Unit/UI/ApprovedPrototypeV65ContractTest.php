@@ -37,7 +37,19 @@ it('preserves the canonical v65 theme in the single shared stylesheet', function
         ->and($styles)->toContain('.document-editor-form')
         ->and($styles)->toContain('.wizard-progress-track');
 
-    expect(glob(base_path('resources/css/*.css')))->toHaveCount(1);
+    $shellStyles = file_get_contents(base_path('resources/css/v65-shell.css'));
+
+    expect($shellStyles)->not->toContain('!important')
+        ->toContain('.app-shell .sidebar')
+        ->toContain('.app-shell .data-table')
+        ->toContain('.document-editor-form')
+        ->toContain('.v65-products-heading');
+
+    $layout = file_get_contents(base_path('resources/views/layouts/app.blade.php'));
+    expect($layout)->toContain('resources/css/v65-shell.css')
+        ->not->toContain('<style>');
+
+    expect(glob(base_path('resources/css/*.css')))->toHaveCount(2);
     expect(is_file(base_path('reference/marsotomasyon-PROTOTIP-ONAYLI-v65.html')))->toBeTrue();
 });
 

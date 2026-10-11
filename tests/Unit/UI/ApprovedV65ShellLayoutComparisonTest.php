@@ -40,7 +40,7 @@ it('preserves true stock totals and working export actions on the v65 product gr
         ->toContain("route('products.show'")
         ->and($table)->toContain('v65-products-hint')
         ->toContain('v65-products-heading')
-        ->toContain('v65-products-table-title')
+        ->toContain('v65-shared-table-title')
         ->toContain('wire:click="exportXlsx"')
         ->toContain('wire:click="exportCsv"');
 });

@@ -12,6 +12,12 @@
             \App\Livewire\Pages\Catalog\LocationList::class => ['Depolar / Lokasyonlar', 'Stokların izlendiği depo ve lokasyon kartları.'],
         ];
         $stockMeta = $stockListMeta[get_class($this)] ?? null;
+        $isProductTable = $this instanceof \App\Livewire\Pages\Products\ProductList;
+        $activeRoute = \Illuminate\Support\Facades\Route::currentRouteName();
+        $navigationItem = collect(config('navigation', []))
+            ->flatMap(fn (array $group): array => $group['items'] ?? [])
+            ->first(fn (array $item): bool => $item['route'] === $activeRoute);
+        $listLabel = $stockMeta[0] ?? ($navigationItem['label'] ?? 'Kayıt Listesi');
     @endphp
     @if($this instanceof \App\Livewire\Pages\Products\ProductList)
         <div class="alert v65-products-hint"><strong>Kısaca:</strong> Ürün kartlarını, satış fiyatlarını ve stok durumunu buradan yönetebilirsin.</div>
@@ -27,6 +33,12 @@
                 <button class="button-secondary" type="button" wire:click="exportXlsx">Excel</button>
                 <button class="button-secondary" type="button" wire:click="exportCsv">CSV</button>
             </div>
+        </header>
+    @endif
+    @if(! $stockMeta && ! $isProductTable)
+        <header class="panel form-row v65-shared-list-heading" aria-label="{{ $listLabel }} listesi">
+            <strong>{{ $listLabel }}</strong>
+            <small>Yetkili olduğunuz kayıtlar listelenir.</small>
         </header>
     @endif
     @if($stockMeta)
@@ -112,9 +124,10 @@
         </div>
     @endif
 
-    @if($this instanceof \App\Livewire\Pages\Products\ProductList)
-        <div class="v65-products-table-title"><strong>✦　Ürün Listesi</strong><span>{{ $rows->total() }} kayıt</span></div>
-    @endif
+    <div class="v65-shared-table-title">
+        <strong>{{ $listLabel }}</strong>
+        <small>{{ $rows->total() }} kayıt</small>
+    </div>
     <div class="table-scroll">
         <table class="data-table">
             <thead>
