@@ -61,6 +61,33 @@ final class Dashboard extends Component
             ];
         }
 
+        if ($actor !== null && $actor->can('contacts.view')) {
+            // Net debit is receivable; net credit is payable. Do not guess whether
+            // a contact is a customer or supplier from its legal/real person type.
+            $contactBalances = DB::connection('period')->table('contact_transactions')
+                ->where('currency', 'TRY')
+                ->groupBy('contact_id')
+                ->selectRaw("SUM(CASE WHEN direction = 'debit' THEN amount ELSE -amount END) AS net_balance");
+
+            $total = DB::connection('period')->query()->fromSub($contactBalances, 'balances')
+                ->selectRaw('COALESCE(SUM(GREATEST(net_balance, 0)), 0)::text AS receivable')
+                ->selectRaw('COALESCE(SUM(GREATEST(-net_balance, 0)), 0)::text AS payable')
+                ->first();
+
+            $daily['receivables'] = ['value' => TrFormatter::money((string) ($total->receivable ?? '0')).' ₺'];
+            $daily['payables'] = ['value' => TrFormatter::money((string) ($total->payable ?? '0')).' ₺'];
+        }
+
+        if ($actor !== null && $actor->can('cash_accounts.view')) {
+            $cash = DB::connection('period')->table('cash_accounts as account')
+                ->leftJoin('cash_movements as movement', 'movement.cash_account_id', '=', 'account.id')
+                ->where('account.currency', 'TRY')
+                ->selectRaw("COALESCE(SUM(CASE WHEN movement.direction = 'in' THEN movement.amount WHEN movement.direction = 'out' THEN -movement.amount ELSE 0 END), 0)::text AS balance")
+                ->first();
+
+            $daily['cash'] = ['value' => TrFormatter::money((string) ($cash->balance ?? '0')).' ₺'];
+        }
+
         $taskTypes = [];
         if ($actor?->can('sales_orders.view')) {
             $taskTypes[] = DocumentType::SalesOrder->value;

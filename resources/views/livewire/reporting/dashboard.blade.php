@@ -40,6 +40,27 @@
                     <small>{{ $daily['collections']['count'] }} kesinleşmiş TRY tahsilat</small>
                 </div>
             @endif
+            @if(isset($daily['receivables']))
+                <div class="v65-home-kpi">
+                    <span>Cari Alacak (Net Pozitif)</span>
+                    <strong>{{ $daily['receivables']['value'] }}</strong>
+                    <small>TRY cari hareket bakiyeleri</small>
+                </div>
+            @endif
+            @if(isset($daily['payables']))
+                <div class="v65-home-kpi">
+                    <span>Cari Borç (Net Negatif)</span>
+                    <strong>{{ $daily['payables']['value'] }}</strong>
+                    <small>TRY cari hareket bakiyeleri</small>
+                </div>
+            @endif
+            @if(isset($daily['cash']))
+                <a class="v65-home-kpi" href="{{ route('finance.accounts') }}">
+                    <span>Kasa + Banka</span>
+                    <strong>{{ $daily['cash']['value'] }}</strong>
+                    <small>TRY finans hesabı hareketleri</small>
+                </a>
+            @endif
         </section>
     @endif
 
