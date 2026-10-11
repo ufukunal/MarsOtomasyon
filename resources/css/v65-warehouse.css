@@ -24,7 +24,8 @@
 .app-shell .wsl-items td:first-child{width:35%}
 .app-shell .wsl-actions{display:flex;align-items:center;gap:5px}
 .app-shell .wsl-actions a{padding:7px 10px;white-space:nowrap;border:1px solid #d6e0e9;border-radius:4px}
-.app-shell .wsl-badge{display:inline-block;padding:4px 8px;font-size:11px;border:1px solid #d6e0e9;border-radius:3px;background:#f6f8fa;color:#5e7285}
+.app-shell .wsl-badge{display:inline-flex;align-items:center;padding:3px 7px;font-size:8px;font-weight:800;border:0;border-radius:999px;background:#e8f5fb;color:#126d98}
+.app-shell .wsl-badge.gray{background:#eef2f4;color:#60737c}
 .app-shell .wsl-badge.ok{background:#e7f8ee;color:#087b40;border-color:#c8e9d3}
 .app-shell .wsl-badge.warn{background:#fff3d8;color:#946200;border-color:#f1dcaa}
 .app-shell .wsl-badge.red{background:#ffe9e9;color:#b42828;border-color:#efc5c5}
@@ -51,3 +52,8 @@
 
 .app-shell .wsl-table-search{padding:6px 8px;background:#fff;border-bottom:1px solid #d9e3ee}
 .app-shell .wsl-table-search input{width:190px;max-width:100%;height:29px;border:1px solid #d9e3ee;padding:5px 8px;font-size:10px;background:#fff}
+
+.app-shell .wsl-product-search{display:flex;align-items:center;flex-wrap:wrap;gap:8px;padding:8px 10px;border-bottom:1px solid #d9e3ee;background:#fafcff}
+.app-shell .wsl-product-search label{font-size:10px;color:#526873}
+.app-shell .wsl-product-search input{min-width:200px;max-width:100%;width:270px;padding:7px 9px;border:1px solid #d5e0e9;border-radius:4px;background:#fff;font:inherit}
+.app-shell .wsl-product-search small{font-size:9px;color:#708397}

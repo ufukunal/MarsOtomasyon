@@ -5,7 +5,7 @@
             <p class="wsl-sub">Bağımsız taşıma fişi. Sipariş ve irsaliye referansları opsiyoneldir.</p>
         </div>
         <div class="wsl-head-actions">
-            <span class="wsl-badge">{{ $slip ? ($statusLabels[$slip->status] ?? $slip->status) : 'Taslak' }}</span>
+            <span @class(['wsl-badge', 'gray' => ! $slip || in_array($slip->status, ['draft', 'cancelled'], true), 'warn' => $slip?->status === 'ready', 'ok' => $slip?->status === 'completed'])>{{ $slip ? ($statusLabels[$slip->status] ?? $slip->status) : 'Taslak' }}</span>
             @if($mode === 'detail' && $slip && in_array($slip->status, ['draft', 'ready'], true))
                 @can('warehouse_slips.update')
                     <a class="button-link" href="{{ route('warehouse.transport.edit', ['id' => $slip->id]) }}">Düzenle</a>
@@ -95,6 +95,13 @@
             <div class="wsl-card-head"><strong>Ürünler / Koli İçeriği</strong>
                 @unless($readonly)<button class="button-link" type="button" wire:click="addItem">+ Ürün Ekle</button>@endunless
             </div>
+            @unless($readonly)
+                <div class="wsl-product-search">
+                    <label for="wsl-product-search"><strong>Ürün ara</strong></label>
+                    <input id="wsl-product-search" type="search" wire:model.live.debounce.300ms="productSearch" placeholder="Ürün kodu veya adına göre ara...">
+                    <small>Seçeneklerde ilk 80 eşleşme listelenir. Seçili ürünler arama değişse de korunur.</small>
+                </div>
+            @endunless
             <div class="table-scroll"><table class="data-table wsl-items">
                 <thead><tr><th>Ürün Kodu</th><th>Ürün Adı</th><th>Miktar</th><th>Birim</th>@unless($readonly)<th>İşlem</th>@endunless</tr></thead>
                 <tbody>
@@ -155,13 +162,13 @@
             @if($mode === 'detail' && $slip)
                 <a class="button-secondary" target="_blank" rel="noopener" href="{{ route('warehouse.transport.print', ['slip' => $slip->id, 'format' => 'slip', 'autoprint' => 1]) }}">Fiş Yazdır / PDF</a>
             @else
-                <button type="button" class="button-secondary" wire:click="openPreview('slip')">Fiş Yazdır / PDF</button>
+                <button type="button" class="button-secondary" wire:click="openPreview('slip', true)">Fiş Yazdır / PDF</button>
             @endif
             <button type="button" class="button-secondary" wire:click="openPreview('labels')">Etiket Önizle</button>
             @if($mode === 'detail' && $slip)
                 <a class="button-secondary" target="_blank" rel="noopener" href="{{ route('warehouse.transport.print', ['slip' => $slip->id, 'format' => 'labels', 'autoprint' => 1]) }}">Etiket Yazdır</a>
             @else
-                <button type="button" class="button-secondary" wire:click="openPreview('labels')">Etiket Yazdır</button>
+                <button type="button" class="button-secondary" wire:click="openPreview('labels', true)">Etiket Yazdır</button>
             @endif
             @if($mode === 'detail' && $slip)
                 @can('warehouse_slips.create')
@@ -204,7 +211,7 @@
                 @if($mode === 'detail' && $slip)
                     <iframe id="wsl-preview-frame" title="Ambar baskı önizlemesi" src="{{ route('warehouse.transport.print', ['slip' => $slip->id, 'format' => $preview]) }}"></iframe>
                 @else
-                    <iframe id="wsl-preview-frame" title="Ambar baskı önizlemesi" srcdoc="{{ $previewHtml }}"></iframe>
+                    <iframe id="wsl-preview-frame" title="Ambar baskı önizlemesi" srcdoc="{{ $previewHtml }}" @if($previewPrint) onload="this.contentWindow.print()" @endif></iframe>
                 @endif
             </section>
         </div>

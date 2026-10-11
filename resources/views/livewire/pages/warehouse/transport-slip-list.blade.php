@@ -51,7 +51,7 @@
                             <td>@if($slip->contains_glass)<span class="wsl-badge warn">Cam Var</span>@else Hayır @endif</td>
                             <td>@if($slip->fragile)<span class="wsl-badge red">Hassas</span>@else Hayır @endif</td>
                             <td>{{ $slip->slip_date?->format('d.m.Y') }}</td>
-                            <td><span @class(['wsl-badge','ok' => $slip->status === 'completed','warn' => $slip->status === 'ready'])>{{ $statusLabels[$slip->status] ?? $slip->status }}</span></td>
+                            <td><span @class(['wsl-badge', 'gray' => in_array($slip->status, ['draft', 'cancelled'], true), 'ok' => $slip->status === 'completed', 'warn' => $slip->status === 'ready'])>{{ $statusLabels[$slip->status] ?? $slip->status }}</span></td>
                             <td class="wsl-actions">
                                 <a class="button-secondary" href="{{ route('warehouse.transport.show', ['id' => $slip->id]) }}">Aç</a>
                                 @if(in_array($slip->status, ['draft', 'ready'], true))

@@ -192,3 +192,18 @@ it('keeps v65 general and table search inputs independent', function (): void {
         ->and($view)->toContain('wire:model.live.debounce.300ms="search"')
         ->toContain('wire:model.live.debounce.300ms="tableSearch"');
 });
+
+it('allows server-side product searching beyond the first page and distinguishes draft printing from preview', function (): void {
+    $editor = file_get_contents(base_path('app/Livewire/Pages/Warehouse/TransportSlipEditor.php'));
+    $form = file_get_contents(base_path('resources/views/livewire/pages/warehouse/transport-slip-editor.blade.php'));
+
+    expect($editor)->toContain("public string $productSearch = ''")
+        ->toContain("->orWhere('name', 'ilike', $needle)")
+        ->toContain("limit(80)")
+        ->toContain("public bool $previewPrint = false")
+        ->toContain("openPreview(string $format, bool $print = false)")
+        ->and($form)->toContain('wire:model.live.debounce.300ms="productSearch"')
+        ->toContain("openPreview('slip', true)")
+        ->toContain("openPreview('labels', true)")
+        ->toContain('onload="this.contentWindow.print()"');
+});

@@ -27,6 +27,10 @@ class TransportSlipEditor extends Component
 
     public ?string $preview = null;
 
+    public bool $previewPrint = false;
+
+    public string $productSearch = '';
+
     public string $carrierOption = '';
 
     public string $date = '';
@@ -255,7 +259,7 @@ class TransportSlipEditor extends Component
         $this->slip->refresh();
     }
 
-    public function openPreview(string $format): void
+    public function openPreview(string $format, bool $print = false): void
     {
         abort_unless(auth()->user()->can('warehouse_slips.view'), 403);
         abort_unless(in_array($format, ['slip', 'labels'], true), 404);
@@ -264,11 +268,13 @@ class TransportSlipEditor extends Component
         }
 
         $this->preview = $format;
+        $this->previewPrint = $print;
     }
 
     public function closePreview(): void
     {
         $this->preview = null;
+        $this->previewPrint = false;
     }
 
     public function duplicate(): mixed
@@ -317,7 +323,14 @@ class TransportSlipEditor extends Component
             'previewHtml' => $this->preview && $this->mode !== 'detail'
                 ? $this->draftPrintHtml($this->preview) : null,
             'products' => Product::query()->where('is_active', true)->with('unit')
-                ->orderBy('name')->limit(1000)->get()
+                ->when(trim($this->productSearch) !== '', function ($query): void {
+                    $needle = '%'.trim($this->productSearch).'%';
+                    $query->where(function ($products) use ($needle): void {
+                        $products->where('code', 'ilike', $needle)
+                            ->orWhere('name', 'ilike', $needle);
+                    });
+                })
+                ->orderBy('name')->limit(80)->get()
                 ->merge(Product::query()->with('unit')
                     ->whereKey(collect($this->items)->pluck('product_id')->filter()->all())->get())
                 ->unique('id')->values(),
