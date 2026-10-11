@@ -12,7 +12,7 @@ it('maps approved v65 ambar transport separately from legacy stock adjustments',
 
     foreach ([
         'warehouse.transport.index', 'warehouse.transport.create',
-        'warehouse.transport.show', 'warehouse.transport.print',
+        'warehouse.transport.show', 'warehouse.transport.edit', 'warehouse.transport.print',
         'stock.warehouse-slips.index', 'stock.warehouse-slips.show',
     ] as $route) {
         expect(Route::has($route))->toBeTrue();
@@ -82,4 +82,58 @@ it('requires a distinct period migration and keeps the UAT migration isolated', 
         ->toContain('--database=period')
         ->not->toContain('docker volume rm')
         ->not->toContain('down -v');
+});
+
+it('implements separate read-only detail and editing routes and safe copy-to-edit', function (): void {
+    $editor = file_get_contents(base_path('app/Livewire/Pages/Warehouse/TransportSlipEditor.php'));
+    $routes = file_get_contents(base_path('routes/web.php'));
+    $list = file_get_contents(base_path('resources/views/livewire/pages/warehouse/transport-slip-list.blade.php'));
+
+    expect($routes)->toContain("name('warehouse.transport.edit')")
+        ->and($editor)->toContain("#[Locked]")
+        ->toContain("request()->routeIs('warehouse.transport.edit')")
+        ->toContain("\$this->mode !== 'detail'")
+        ->toContain("'readonly' => \$this->mode === 'detail'")
+        ->toContain("redirectRoute('warehouse.transport.edit'")
+        ->toContain("\$duplicate->status = 'draft'")
+        ->toContain("\$duplicate->tracking_number = null")
+        ->and($list)->toContain("route('warehouse.transport.edit'");
+});
+
+it('matches two-column left-labeled form, real choices and four distinct print actions', function (): void {
+    $css = file_get_contents(base_path('resources/css/v65-warehouse.css'));
+    $form = file_get_contents(base_path('resources/views/livewire/pages/warehouse/transport-slip-editor.blade.php'));
+    $editor = file_get_contents(base_path('app/Livewire/Pages/Warehouse/TransportSlipEditor.php'));
+
+    expect($css)->toContain('grid-template-columns:repeat(2,minmax(0,1fr))')
+        ->toContain('grid-template-columns:155px minmax(0,1fr)')
+        ->toContain('position:sticky;bottom:0')
+        ->and($form)->toContain('wsl-head-actions')
+        ->toContain('wire:model="orderReference"')
+        ->toContain('wire:model="dispatchReference"')
+        ->toContain('wire:model.live="carrierOption"')
+        ->toContain("openPreview('slip')")
+        ->toContain("openPreview('labels')")
+        ->toContain('Fiş Yazdır / PDF')
+        ->toContain('Etiket Yazdır')
+        ->toContain('role="dialog"')
+        ->toContain('aria-modal="true"')
+        ->not->toContain('Çıkış Deposu')
+        ->and($editor)->toContain('DocumentType::SalesOrder')
+        ->toContain('DocumentType::Dispatch')
+        ->toContain('carrierOptions')
+        ->toContain('deliveryCompany ?:')
+        ->toContain('deliveryAddress ?:');
+});
+
+it('prints two A5 slips on A4 without dropping products after five rows', function (): void {
+    $view = file_get_contents(base_path('resources/views/printing/transport-slip.blade.php'));
+    $controller = file_get_contents(base_path('app/Http/Controllers/PrintTransportSlipController.php'));
+
+    expect($view)->toContain('$slip->items->chunk(5)')
+        ->toContain('$copy < 2')
+        ->toContain('Code39Svg::render')
+        ->toContain('@if($autoprint)')
+        ->not->toContain('->take(8)')
+        ->and($controller)->toContain("request()->boolean('autoprint')");
 });

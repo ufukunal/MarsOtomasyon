@@ -55,7 +55,7 @@
                                 <a class="button-secondary" href="{{ route('warehouse.transport.show', ['id' => $slip->id]) }}">Aç</a>
                                 @if(in_array($slip->status, ['draft', 'ready'], true))
                                     @can('warehouse_slips.update')
-                                        <a class="button-secondary" href="{{ route('warehouse.transport.show', ['id' => $slip->id]) }}">Düzenle</a>
+                                        <a class="button-secondary" href="{{ route('warehouse.transport.edit', ['id' => $slip->id]) }}">Düzenle</a>
                                     @endcan
                                 @endif
                             </td>

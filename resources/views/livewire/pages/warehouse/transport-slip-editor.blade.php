@@ -1,37 +1,56 @@
 <div class="wsl-shell stack">
     <header class="wsl-head">
         <div>
-            <h2>{{ $slip ? 'Ambar Fişi · '.$slip->number : 'Yeni Ambar Fişi' }}</h2>
+            <h2>{{ $mode === 'new' ? 'Yeni Ambar Fişi' : ($mode === 'edit' ? 'Ambar Fişini Düzenle' : 'Ambar Fişi') }}</h2>
             <p class="wsl-sub">Bağımsız taşıma fişi. Sipariş ve irsaliye referansları opsiyoneldir.</p>
         </div>
-        <div class="form-row">
+        <div class="wsl-head-actions">
             <span class="wsl-badge">{{ $slip ? ($statusLabels[$slip->status] ?? $slip->status) : 'Taslak' }}</span>
+            @if($mode === 'detail' && $slip && in_array($slip->status, ['draft', 'ready'], true))
+                @can('warehouse_slips.update')
+                    <a class="button-link" href="{{ route('warehouse.transport.edit', ['id' => $slip->id]) }}">Düzenle</a>
+                @endcan
+            @elseif(! $readonly)
+                <button class="button-link" type="submit" form="wsl-transport-form">Kaydet</button>
+            @endif
             <a class="button-secondary" href="{{ route('warehouse.transport.index') }}">Listeye Dön</a>
         </div>
     </header>
 
     <div class="wsl-info"><strong>Bağımsız belge:</strong> Ambar taşıma fişi satış irsaliyesi veya stok düzeltme fişi değildir. Kaydedilmesi stok hareketi oluşturmaz.</div>
 
-    <form wire:submit="save" class="stack">
+    <form id="wsl-transport-form" wire:submit="save" class="stack">
         <section class="wsl-card panel">
             <div class="wsl-card-head">Fiş Bilgileri</div>
             <div class="wsl-card-body wsl-grid">
-                <label class="field"><span class="field-label">Ambar Fişi No</span><input value="{{ $slip?->number ?? 'Otomatik' }}" readonly></label>
-                <label class="field"><span class="field-label">Tarih *</span><input type="date" wire:model="date" @disabled($readonly)></label>
-                <label class="field"><span class="field-label">Firma / Cari *</span>
+                <label class="wsl-field"><span class="field-label">Ambar Fişi No</span><input value="{{ $slip?->number ?? 'Otomatik' }}" readonly></label>
+                <label class="wsl-field"><span class="field-label">Tarih *</span><input type="date" wire:model="date" @disabled($readonly)></label>
+                <label class="wsl-field"><span class="field-label">Firma / Cari *</span>
                     <select wire:model.live="contactId" @disabled($readonly)>
                         <option value="">Seçiniz</option>
                         @foreach($contacts as $contact)<option value="{{ $contact->id }}">{{ $contact->code }} · {{ $contact->title }}</option>@endforeach
                     </select>
                 </label>
-                <label class="field"><span class="field-label">Cari Kodu</span>
+                <label class="wsl-field"><span class="field-label">Cari Kodu</span>
                     <input readonly value="{{ $contacts->firstWhere('id', $contactId)?->code ?? '' }}">
                 </label>
-                <label class="field"><span class="field-label">Sipariş Referansı</span>
-                    <input wire:model="orderReference" placeholder="Opsiyonel" @disabled($readonly)>
+                <label class="wsl-field"><span class="field-label">Sipariş Referansı</span>
+                    <select wire:model="orderReference" @disabled($readonly)>
+                        <option value="">— Opsiyonel —</option>
+                        @foreach($orderOptions as $order)<option value="{{ $order->number }}">{{ $order->number }}</option>@endforeach
+                        @if($orderReference && ! $orderOptions->contains('number', $orderReference))
+                            <option value="{{ $orderReference }}">{{ $orderReference }}</option>
+                        @endif
+                    </select>
                 </label>
-                <label class="field"><span class="field-label">İrsaliye Referansı</span>
-                    <input wire:model="dispatchReference" placeholder="Opsiyonel" @disabled($readonly)>
+                <label class="wsl-field"><span class="field-label">İrsaliye Referansı</span>
+                    <select wire:model="dispatchReference" @disabled($readonly)>
+                        <option value="">— Opsiyonel —</option>
+                        @foreach($dispatchOptions as $dispatch)<option value="{{ $dispatch->number }}">{{ $dispatch->number }}</option>@endforeach
+                        @if($dispatchReference && ! $dispatchOptions->contains('number', $dispatchReference))
+                            <option value="{{ $dispatchReference }}">{{ $dispatchReference }}</option>
+                        @endif
+                    </select>
                 </label>
             </div>
         </section>
@@ -40,24 +59,28 @@
             <div class="wsl-card-head">Taşıma / Gideceği Ambar</div>
             <div class="wsl-card-body">
                 <div class="wsl-grid">
-                    <label class="field"><span class="field-label">Gönderim Tipi *</span>
+                    <label class="wsl-field"><span class="field-label">Gönderim Tipi *</span>
                         <select wire:model="shippingType" @disabled($readonly)>
                             @foreach(['Ambar', 'Nakliye', 'Kargo', 'Elden Teslim'] as $option)<option value="{{ $option }}">{{ $option }}</option>@endforeach
                         </select>
                     </label>
-                    <label class="field"><span class="field-label">Taşıyıcı / Ambar Firması *</span>
-                        <input wire:model.blur="carrier" placeholder="Taşıyıcı veya ambar adı" @disabled($readonly)>
+                    <label class="wsl-field"><span class="field-label">Taşıyıcı / Ambar Firması *</span>
+                        <div class="wsl-carrier-picker">
+                            <select wire:model.live="carrierOption" @disabled($readonly)>
+                                <option value="">Seçiniz</option>
+                                @foreach($carrierOptions as $option)<option value="{{ $option }}">{{ $option }}</option>@endforeach
+                                <option value="__other__">+ Yeni taşıyıcı / ambar firması</option>
+                            </select>
+                            @if($carrierOption === '__other__' || ($carrier !== '' && ! $carrierOptions->contains($carrier)))
+                                <input wire:model.blur="carrier" placeholder="Firma / ambar adı" @disabled($readonly)>
+                            @endif
+                        </div>
                     </label>
-                    <label class="field"><span class="field-label">Koli Adedi *</span><input type="number" min="1" max="500" step="1" wire:model.live="packageCount" @disabled($readonly)></label>
-                    <label class="field"><span class="field-label">Ambar Takip / Teslim No</span><input wire:model="trackingNumber" @disabled($readonly)></label>
-                    <label class="field"><span class="field-label">Gideceği Ambar *</span><input wire:model="destinationWarehouse" @disabled($readonly)></label>
-                    <label class="field"><span class="field-label">Toplam Ağırlık (kg)</span><input type="number" min="0" step="0.01" wire:model="weightKg" @disabled($readonly)></label>
-                    <label class="field"><span class="field-label">Çıkış Deposu</span>
-                        <select wire:model="locationId" @disabled($readonly)>
-                            <option value="">Seçiniz (opsiyonel)</option>
-                            @foreach($locations as $location)<option value="{{ $location->id }}">{{ $location->code }} · {{ $location->name }}</option>@endforeach
-                        </select>
-                    </label>
+                    <label class="wsl-field"><span class="field-label">Koli Adedi *</span><input type="number" min="1" max="500" step="1" wire:model.live="packageCount" @disabled($readonly)></label>
+                    <label class="wsl-field"><span class="field-label">Ambar Takip / Teslim No</span><input wire:model="trackingNumber" @disabled($readonly)></label>
+                    <label class="wsl-field"><span class="field-label">Gideceği Ambar *</span><input wire:model="destinationWarehouse" @disabled($readonly)></label>
+                    <label class="wsl-field"><span class="field-label">Toplam Ağırlık (kg)</span><input type="number" min="0" step="0.01" wire:model="weightKg" @disabled($readonly)></label>
+
                 </div>
                 <div class="wsl-checks">
                     <label><input type="checkbox" wire:model.live="containsGlass" @disabled($readonly)> Cam İçeriyor</label>
@@ -101,13 +124,13 @@
         <section class="wsl-card panel">
             <div class="wsl-card-head">Firma / Teslimat İletişimi</div>
             <div class="wsl-card-body wsl-grid">
-                <label class="field"><span class="field-label">Teslim Edilecek Firma *</span><input wire:model="deliveryCompany" @disabled($readonly)></label>
-                <label class="field"><span class="field-label">Yetkili Kişi</span><input wire:model="deliveryPerson" @disabled($readonly)></label>
-                <label class="field"><span class="field-label">Telefon *</span><input wire:model="deliveryPhone" @disabled($readonly)></label>
-                <label class="field"><span class="field-label">İl *</span><input wire:model="deliveryCity" @disabled($readonly)></label>
-                <label class="field"><span class="field-label">İlçe *</span><input wire:model="deliveryDistrict" @disabled($readonly)></label>
-                <label class="field wsl-wide"><span class="field-label">Teslimat Adresi *</span><textarea wire:model="deliveryAddress" rows="2" @disabled($readonly)></textarea></label>
-                <label class="field wsl-wide"><span class="field-label">Sevk / Taşıma Notu</span><textarea wire:model="note" rows="2" @disabled($readonly)></textarea></label>
+                <label class="wsl-field"><span class="field-label">Teslim Edilecek Firma *</span><input wire:model="deliveryCompany" @disabled($readonly)></label>
+                <label class="wsl-field"><span class="field-label">Yetkili Kişi</span><input wire:model="deliveryPerson" @disabled($readonly)></label>
+                <label class="wsl-field"><span class="field-label">Telefon *</span><input wire:model="deliveryPhone" @disabled($readonly)></label>
+                <label class="wsl-field"><span class="field-label">İl *</span><input wire:model="deliveryCity" @disabled($readonly)></label>
+                <label class="wsl-field"><span class="field-label">İlçe *</span><input wire:model="deliveryDistrict" @disabled($readonly)></label>
+                <label class="wsl-field wsl-wide"><span class="field-label">Teslimat Adresi *</span><textarea wire:model="deliveryAddress" rows="2" @disabled($readonly)></textarea></label>
+                <label class="wsl-field wsl-wide"><span class="field-label">Sevk / Taşıma Notu</span><textarea wire:model="note" rows="2" @disabled($readonly)></textarea></label>
             </div>
         </section>
 
@@ -118,7 +141,7 @@
             <div><small>Belge Durumu</small><strong>{{ $slip ? ($statusLabels[$slip->status] ?? $slip->status) : 'Taslak' }}</strong></div>
         </div>
 
-        <div class="wsl-warn"><strong>Baskı:</strong> A4 dikey sayfada aynı fişin iki A5 kopyası, koli etiketi baskısında ise numaralandırılmış {{ $packageCount }} etiket hazırlanır.</div>
+        <div class="wsl-warn"><strong>Baskı:</strong> Ambar fişi A4 dikeyde aynı kaydın iki A5 kopyasını üretir. Orta çizgiden kesildiğinde iki ayrı A5 fiş elde edilir. Koli etiketi koli adedi kadar üretilir.</div>
 
         @if($errors->any())<div class="alert alert-warning" role="alert">
             <strong>Eksik veya geçersiz alanlar</strong>
@@ -129,17 +152,50 @@
             <a class="button-secondary" href="{{ route('warehouse.transport.index') }}">← Listeye Dön</a>
             <div class="wsl-grow"></div>
             @if($slip)
-                <a class="button-secondary" target="_blank" rel="noopener" href="{{ route('warehouse.transport.print', ['slip' => $slip->id, 'format' => 'slip']) }}">Fiş Önizle / Yazdır / PDF</a>
-                <a class="button-secondary" target="_blank" rel="noopener" href="{{ route('warehouse.transport.print', ['slip' => $slip->id, 'format' => 'labels']) }}">Etiket Önizle / Yazdır</a>
-                @can('warehouse_slips.create')<button type="button" wire:click="duplicate" class="button-secondary">Kopyala</button>@endcan
+                <button type="button" class="button-secondary" wire:click="openPreview('slip')">Fiş Önizle</button>
+                <a class="button-secondary" target="_blank" rel="noopener" href="{{ route('warehouse.transport.print', ['slip' => $slip->id, 'format' => 'slip', 'autoprint' => 1]) }}">Fiş Yazdır / PDF</a>
+                <button type="button" class="button-secondary" wire:click="openPreview('labels')">Etiket Önizle</button>
+                <a class="button-secondary" target="_blank" rel="noopener" href="{{ route('warehouse.transport.print', ['slip' => $slip->id, 'format' => 'labels', 'autoprint' => 1]) }}">Etiket Yazdır</a>
+            @else
+                <button class="button-secondary" type="button" wire:click="openPreview('slip')">Fiş Önizle</button>
+                <button class="button-secondary" type="button" wire:click="openPreview('labels')">Etiket Önizle</button>
+            @endif
+            @if($mode === 'detail' && $slip)
+                @can('warehouse_slips.create')
+                    <button type="button" wire:click="duplicate" class="button-secondary">Kopyala</button>
+                @endcan
+                @if(in_array($slip->status, ['draft', 'ready'], true))
+                    @can('warehouse_slips.update')
+                        <a class="button-link" href="{{ route('warehouse.transport.edit', ['id' => $slip->id]) }}">Düzenle</a>
+                    @endcan
+                @endif
                 @if(in_array($slip->status, ['draft', 'ready', 'handed_over'], true))
                     @can('warehouse_slips.update')
                         <button type="button" class="button-link" wire:click="advance">{{ ['draft' => 'Hazır', 'ready' => 'Ambara Teslim', 'handed_over' => 'Tamamlandı'][$slip->status] }}</button>
                     @endcan
-                    @can('warehouse_slips.cancel')<button type="button" class="button-secondary" wire:confirm="Bu fişi iptal etmek istiyor musunuz?" wire:click="cancel">İptal</button>@endcan
+                    @can('warehouse_slips.cancel')
+                        <button type="button" class="button-secondary" wire:confirm="Bu ambar fişi iptal edilecek. Devam edilsin mi?" wire:click="cancel">İptal</button>
+                    @endcan
                 @endif
             @endif
-            @unless($readonly)<button type="submit" class="button-link">Kaydet</button>@endunless
+            @unless($readonly)
+                <button type="submit" class="button-link">Kaydet</button>
+            @endunless
         </div>
     </form>
+    @error('preview')<p class="alert alert-warning">{{ $message }}</p>@enderror
+    @if($preview && $slip)
+        <div class="wsl-modal-backdrop" role="presentation" wire:key="transport-preview-{{ $preview }}">
+            <section class="wsl-modal" role="dialog" aria-modal="true" aria-label="{{ $preview === 'slip' ? 'Ambar Fişi Önizleme · A4 / 2×A5' : 'Koli Etiketleri Önizleme' }}">
+                <header class="wsl-modal-header">
+                    <strong>{{ $preview === 'slip' ? 'Ambar Fişi Önizleme · A4 / 2×A5' : 'Koli Etiketleri Önizleme' }}</strong>
+                    <div class="form-row">
+                        <a class="button-link" target="_blank" rel="noopener" href="{{ route('warehouse.transport.print', ['slip' => $slip->id, 'format' => $preview, 'autoprint' => 1]) }}">Yazdır / PDF</a>
+                        <button type="button" class="button-secondary" wire:click="closePreview">Kapat</button>
+                    </div>
+                </header>
+                <iframe title="Ambar baskı önizlemesi" src="{{ route('warehouse.transport.print', ['slip' => $slip->id, 'format' => $preview]) }}"></iframe>
+            </section>
+        </div>
+    @endif
 </div>

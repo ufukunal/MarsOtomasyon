@@ -5,14 +5,14 @@
 .app-shell .wsl-head h2{font-size:19px;font-weight:750;margin:0 0 5px}
 .app-shell .wsl-sub{font-size:12px;color:#708397;margin:0}
 .app-shell .wsl-card{padding:0;border:1px solid #d9e3ee;background:#fff;box-shadow:0 1px 4px #182c480d;border-radius:7px;overflow:hidden}
-.app-shell .wsl-card-head{min-height:43px;padding:10px 13px;border-bottom:1px solid #d9e3ee;font-size:12px;font-weight:750;display:flex;align-items:center;justify-content:space-between;gap:10px;background:#fafcff}
-.app-shell .wsl-card-body{padding:13px}
-.app-shell .wsl-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px}
-.app-shell .wsl-grid .field{display:flex;flex-direction:column;gap:5px;min-width:0}
+.app-shell .wsl-card-head{min-height:38px;padding:6px 10px;border-bottom:1px solid #d9e3ee;font-size:12px;font-weight:750;display:flex;align-items:center;justify-content:space-between;gap:10px;background:#fafcff}
+.app-shell .wsl-card-body{padding:10px}
+.app-shell .wsl-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 14px;min-width:0}
+.app-shell .wsl-grid .wsl-field{display:grid;grid-template-columns:155px minmax(0,1fr);gap:8px;align-items:center;min-width:0}
 .app-shell .wsl-grid input,.app-shell .wsl-grid select,.app-shell .wsl-grid textarea{width:100%;min-width:0;min-height:35px;border:1px solid #d5e0e9;border-radius:4px;padding:7px 9px;background:#fff;color:#263741;font:inherit}
 .app-shell .wsl-grid input[readonly],.app-shell .wsl-grid input:disabled,.app-shell .wsl-grid select:disabled{background:#f4f7fa}
-.app-shell .wsl-grid .field-label{font-size:11px;color:#52697e}
-.app-shell .wsl-wide{grid-column:span 2}
+.app-shell .wsl-grid .field-label{text-align:right;font-size:9px;font-weight:800;color:#526873}
+.app-shell .wsl-wide{grid-column:1/-1}
 .app-shell .wsl-checks{display:flex;flex-wrap:wrap;gap:10px 22px;padding:15px 0 0}
 .app-shell .wsl-checks label{display:flex;gap:7px;align-items:center;font-size:12px;cursor:pointer}
 .app-shell .wsl-info{background:#f0f8ff;border:1px solid #d4e8fa;padding:12px;border-radius:5px;font-size:12px}
@@ -32,8 +32,19 @@
 .app-shell .wsl-summary>div{background:#fff;border:1px solid #d9e3ee;padding:14px 11px;border-radius:5px}
 .app-shell .wsl-summary small{display:block;color:#6f8497;margin-bottom:8px}
 .app-shell .wsl-summary strong{font-size:17px}
-.app-shell .wsl-footer{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.app-shell .wsl-footer{display:flex;align-items:center;gap:6px;flex-wrap:wrap;background:#fff;border:1px solid #d9e3ee;border-radius:9px;padding:8px 10px;position:sticky;bottom:0;z-index:5}
 .app-shell .wsl-grow{flex:1}
 .app-shell .wsl-footer .button-link,.app-shell .wsl-footer button{min-height:34px}
-@media(max-width:1050px){.app-shell .wsl-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(max-width:680px){.app-shell .wsl-grid,.app-shell .wsl-summary{grid-template-columns:1fr}.app-shell .wsl-wide{grid-column:auto}.app-shell .wsl-head{align-items:flex-start;flex-direction:column}}
+@media(max-width:1050px){.app-shell .wsl-grid .wsl-field{grid-template-columns:120px minmax(0,1fr)}}
+@media(max-width:950px){.app-shell .wsl-grid{grid-template-columns:1fr}.app-shell .wsl-wide{grid-column:auto}}@media(max-width:680px){.app-shell .wsl-summary{grid-template-columns:1fr}.app-shell .wsl-grid .wsl-field{grid-template-columns:105px minmax(0,1fr)}.app-shell .wsl-head{align-items:flex-start;flex-direction:column}}
+
+.app-shell .wsl-head-actions{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:7px}
+.app-shell .wsl-head-actions .button-secondary,.app-shell .wsl-head-actions .button-link{white-space:nowrap}
+.app-shell .wsl-grid .wsl-field textarea{min-height:62px;resize:vertical}
+.app-shell .wsl-grid .wsl-field.wsl-wide textarea{width:100%}
+.app-shell .wsl-carrier-picker{display:flex;flex-direction:column;gap:6px;min-width:0}
+.app-shell .wsl-modal-backdrop{position:fixed;inset:0;z-index:110;background:#111b29a6;display:grid;place-items:center;padding:15px}
+.app-shell .wsl-modal{width:min(94vw,1100px);height:min(94vh,940px);background:#fff;border-radius:9px;display:flex;flex-direction:column;box-shadow:0 15px 65px #0004;overflow:hidden}
+.app-shell .wsl-modal-header{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 16px;border-bottom:1px solid #d9e3ee}
+.app-shell .wsl-modal iframe{height:100%;width:100%;flex:1;border:0;background:#f4f7fa}
+@media print{.app-shell .wsl-modal-backdrop,.app-shell .wsl-footer{display:none}}

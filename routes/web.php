@@ -240,6 +240,7 @@ Route::middleware('auth')->group(function (): void {
     // Legacy G-207 physical stock adjustments remain available and unchanged.
     Route::get('/ambar/fisler', TransportSlipList::class)->name('warehouse.transport.index');
     Route::get('/ambar/fisler/yeni', TransportSlipEditor::class)->name('warehouse.transport.create');
+    Route::get('/ambar/fisler/{id}/duzenle', TransportSlipEditor::class)->whereNumber('id')->name('warehouse.transport.edit');
     Route::get('/ambar/fisler/{id}', TransportSlipEditor::class)->whereNumber('id')->name('warehouse.transport.show');
     Route::get('/ambar/fisler/{slip}/yazdir/{format}', PrintTransportSlipController::class)
         ->whereNumber('slip')->whereIn('format', ['slip', 'labels'])->name('warehouse.transport.print');

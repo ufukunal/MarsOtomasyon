@@ -10,8 +10,8 @@ body{font:11px Arial,sans-serif;color:#15242d;background:#edf1f4;margin:0}
 .toolbar{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:12px 18px;background:#fff;position:sticky;top:0;z-index:10;border-bottom:1px solid #cad4dd}
 button{border:1px solid #b5c6d2;background:#fff;border-radius:4px;padding:10px 15px;cursor:pointer}
 .sheet{background:#fff;margin:20px auto;box-shadow:0 2px 12px #10203522}
-.a4{width:210mm;height:297mm;display:grid;grid-template-rows:148.5mm 148.5mm}
-.copy{height:148.5mm;overflow:hidden;padding:6mm 8mm 5mm;position:relative}
+.a4{width:210mm;height:297mm;display:grid;grid-template-rows:148.5mm 148.5mm;break-after:page;page-break-after:always}.a4:last-child{break-after:auto;page-break-after:auto}
+.copy{height:148.5mm;overflow:hidden;padding:5mm 8mm;position:relative}
 .copy:first-child{border-bottom:1px dashed #6e8794}
 .cut{position:absolute;right:8mm;bottom:1mm;font-size:7px;color:#6e8794}
 .head{display:flex;justify-content:space-between;border-bottom:2px solid #15242d;padding-bottom:5px;margin-bottom:5px}
@@ -22,9 +22,9 @@ td,th{border:1px solid #d1dce5;padding:4px;text-align:left;vertical-align:top}
 th{background:#f1f5f9}
 .details td:nth-child(odd){font-weight:bold;width:19%}
 .items{margin-top:5px}
-.items td,.items th{padding:3px}
+.items td,.items th{padding:2px 3px;font-size:10px}
 .warning{border:2px solid #15242d;text-align:center;padding:6px;font-weight:800;margin:6px 0}
-.signatures{display:grid;grid-template-columns:1fr 1fr;gap:8mm;margin:12mm 0 0}
+.signatures{display:grid;grid-template-columns:1fr 1fr;gap:8mm;margin:5mm 0 0}
 .signatures>div{border-top:1px solid #15242d;text-align:center;padding:4px}
 .label-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:5mm;padding:5mm;background:#fff}
 .label{border:2px solid #15242d;padding:6mm;min-height:130mm;break-inside:avoid;page-break-inside:avoid}
@@ -39,7 +39,7 @@ th{background:#f1f5f9}
  .toolbar{display:none}
  .sheet{margin:0;box-shadow:none}
  .label-grid{padding:6mm}
- .a4{page-break-after:avoid}
+ .a4:last-child{page-break-after:avoid}
  .label{break-inside:avoid}
 }
 </style>
@@ -50,6 +50,7 @@ th{background:#f1f5f9}
   <button onclick="window.print()">Yazdır / PDF Olarak Kaydet</button>
 </div>
 @if($format === 'slip')
+@foreach($slip->items->chunk(5) as $itemPage)
 <main class="sheet a4">
     @for($copy = 0; $copy < 2; $copy++)
     <section class="copy">
@@ -68,12 +69,12 @@ th{background:#f1f5f9}
         <table class="items">
             <thead><tr><th>Ürün</th><th>Adı</th><th>Miktar</th></tr></thead>
             <tbody>
-                @foreach($slip->items->take(8) as $item)
+                @foreach($itemPage as $item)
                     <tr><td>{{ $item->product?->code }}</td><td>{{ $item->product?->name }}</td><td>{{ \App\Support\Formatting\TrFormatter::quantity((string) $item->quantity) }} {{ $item->product?->unit?->name }}</td></tr>
                 @endforeach
             </tbody>
         </table>
-        @if($slip->items->count() > 8)<small>İlk 8 satır gösteriliyor · Toplam {{ $slip->items->count() }} ürün satırı</small>@endif
+        @if($slip->items->count() > 5)<small>Sayfa {{ $loop->iteration }} / {{ $slip->items->chunk(5)->count() }} · Toplam {{ $slip->items->count() }} ürün satırı</small>@endif
         @if($warnings)<div class="warning">{{ $warnings }}</div>@endif
         <div class="signatures"><div>Teslim Eden<br>Ad / İmza</div><div>Teslim Alan<br>Ad / İmza</div></div>
         {!! \App\Support\Printing\Label\Code39Svg::render($slip->number) !!}
@@ -81,6 +82,7 @@ th{background:#f1f5f9}
     </section>
     @endfor
 </main>
+@endforeach
 @else
 <main class="sheet" style="width:210mm">
     <div class="label-grid">
@@ -102,6 +104,9 @@ th{background:#f1f5f9}
         @endfor
     </div>
 </main>
+@endif
+@if($autoprint)
+<script>window.addEventListener('load', () => { window.print(); });</script>
 @endif
 </body>
 </html>

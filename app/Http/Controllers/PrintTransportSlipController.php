@@ -18,6 +18,7 @@ class PrintTransportSlipController
         return view('printing.transport-slip', [
             'slip' => $slip,
             'format' => $format,
+            'autoprint' => request()->boolean('autoprint'),
             'warnings' => collect([
                 $slip->contains_glass ? 'CAM ÜRÜN' : null,
                 $slip->fragile ? 'KIRILABİLİR / HASSAS' : null,

@@ -2,7 +2,9 @@
 
 namespace App\Livewire\Pages\Warehouse;
 
+use App\Enums\DocumentType;
 use App\Models\Period\Contact;
+use App\Models\Period\Document;
 use App\Models\Period\Location;
 use App\Models\Period\Product;
 use App\Models\Period\TransportSlip;
@@ -12,11 +14,19 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Livewire\Attributes\Locked;
 use Livewire\Component;
 
 class TransportSlipEditor extends Component
 {
     public ?TransportSlip $slip = null;
+
+    #[Locked]
+    public string $mode = 'new';
+
+    public ?string $preview = null;
+
+    public string $carrierOption = '';
 
     public string $date = '';
 
@@ -71,8 +81,15 @@ class TransportSlipEditor extends Component
         $this->date = now()->toDateString();
 
         if ($id !== null) {
+            $this->mode = request()->routeIs('warehouse.transport.edit') ? 'edit' : 'detail';
+            if ($this->mode === 'edit') {
+                abort_unless(auth()->user()->can('warehouse_slips.update'), 403);
+            }
             $this->slip = TransportSlip::query()->with('items')->findOrFail($id);
             $this->loadSlip();
+            if ($this->mode === 'edit') {
+                abort_unless(in_array($this->slip->status, ['draft', 'ready'], true), 409);
+            }
 
             return;
         }
@@ -86,11 +103,22 @@ class TransportSlipEditor extends Component
         $contact = $this->contactId ? Contact::query()->find($this->contactId) : null;
 
         if ($contact) {
-            $this->deliveryCompany = $contact->title;
-            $this->deliveryPhone = (string) ($contact->phone ?? '');
-            $this->deliveryCity = (string) ($contact->city ?? '');
-            $this->deliveryDistrict = (string) ($contact->district ?? '');
-            $this->deliveryAddress = (string) ($contact->address ?? '');
+            $this->deliveryCompany = $this->deliveryCompany ?: (string) $contact->title;
+            $this->deliveryPerson = $this->deliveryPerson ?: (string) $contact->primary_contact_name;
+            $this->deliveryPhone = $this->deliveryPhone ?: (string) ($contact->phone ?? '');
+            $this->deliveryCity = $this->deliveryCity ?: (string) ($contact->city ?? '');
+            $this->deliveryDistrict = $this->deliveryDistrict ?: (string) ($contact->district ?? '');
+            $this->deliveryAddress = $this->deliveryAddress ?: (string) ($contact->address ?? '');
+        }
+    }
+
+    public function updatedCarrierOption(string $value): void
+    {
+        if ($value !== '__other__') {
+            $this->carrier = $value;
+            $this->updatedCarrier();
+        } else {
+            $this->carrier = '';
         }
     }
 
@@ -252,14 +280,48 @@ class TransportSlipEditor extends Component
         $this->slip->refresh();
     }
 
+    public function openPreview(string $format): void
+    {
+        abort_unless(auth()->user()->can('warehouse_slips.view'), 403);
+        abort_unless(in_array($format, ['slip', 'labels'], true), 404);
+        if ($this->slip === null) {
+            $this->addError('preview', 'Önizleme için fişi önce kaydedin.');
+            return;
+        }
+
+        $this->preview = $format;
+    }
+
+    public function closePreview(): void
+    {
+        $this->preview = null;
+    }
+
     public function duplicate(): mixed
     {
         abort_unless($this->slip !== null && auth()->user()->can('warehouse_slips.create'), 403);
-        $this->slip = null;
-        $this->date = now()->toDateString();
-        $this->trackingNumber = '';
+        PeriodContext::ensureWritable();
+        $copy = DB::connection('period')->transaction(function (): TransportSlip {
+            $original = TransportSlip::query()->with('items')->findOrFail($this->slip->id);
+            $duplicate = $original->replicate(['id', 'number', 'status', 'created_by', 'created_at', 'updated_at']);
+            $duplicate->number = 'PENDING-'.str_replace('-', '', (string) Str::uuid());
+            $duplicate->status = 'draft';
+            $duplicate->created_by = auth()->id();
+            $duplicate->slip_date = now()->toDateString();
+            $duplicate->tracking_number = null;
+            $duplicate->save();
+            $duplicate->number = sprintf('AF-%d-%05d', now()->year, $duplicate->id);
+            $duplicate->save();
+            foreach ($original->items as $item) {
+                $duplicate->items()->create([
+                    'product_id' => $item->product_id,
+                    'quantity' => (string) $item->quantity,
+                ]);
+            }
+            return $duplicate;
+        }, 3);
 
-        return $this->save();
+        return $this->redirectRoute('warehouse.transport.edit', ['id' => $copy->id], navigate: false);
     }
 
     public function render(): View
@@ -269,21 +331,31 @@ class TransportSlipEditor extends Component
         return view('livewire.pages.warehouse.transport-slip-editor', [
             'contacts' => Contact::query()->where('is_active', true)->orderBy('title')->get(['id', 'code', 'title']),
             'locations' => Location::query()->where('is_active', true)->orderBy('name')->get(['id', 'code', 'name']),
+            'orderOptions' => Document::query()->where('document_type', DocumentType::SalesOrder)
+                ->when($this->contactId, fn ($query) => $query->where('contact_id', $this->contactId))
+                ->orderByDesc('id')->limit(250)->get(['id', 'number']),
+            'dispatchOptions' => Document::query()->where('document_type', DocumentType::Dispatch)
+                ->when($this->contactId, fn ($query) => $query->where('contact_id', $this->contactId))
+                ->orderByDesc('id')->limit(250)->get(['id', 'number']),
+            'carrierOptions' => TransportSlip::query()->where('carrier', '!=', '')
+                ->distinct()->orderBy('carrier')->pluck('carrier'),
             'products' => Product::query()->where('is_active', true)->with('unit')->orderBy('name')->limit(1000)->get(),
-            'readonly' => $this->slip !== null
+            'readonly' => $this->mode === 'detail' || ($this->slip !== null
                 && (! in_array($this->slip->status, ['draft', 'ready'], true)
-                    || ! auth()->user()->can('warehouse_slips.update')),
+                    || ! auth()->user()->can('warehouse_slips.update'))),
             'statusLabels' => [
                 'draft' => 'Taslak', 'ready' => 'Hazır', 'handed_over' => 'Ambara Teslim',
                 'completed' => 'Tamamlandı', 'cancelled' => 'İptal',
             ],
         ])->layout('layouts.app', [
-            'pageTitle' => $this->slip ? 'Ambar Fişi · '.$this->slip->number : 'Yeni Ambar Fişi',
+            'pageTitle' => $this->mode === 'new' ? 'Yeni Ambar Fişi'
+                : ($this->mode === 'edit' ? 'Ambar Fişini Düzenle · ' : 'Ambar Fişi · ').$this->slip->number,
         ]);
     }
 
     private function assertEditable(): void
     {
+        abort_unless($this->mode !== 'detail', 403);
         abort_unless(auth()->user()->can($this->slip ? 'warehouse_slips.update' : 'warehouse_slips.create'), 403);
         abort_unless($this->slip === null || in_array($this->slip->status, ['draft', 'ready'], true), 409);
     }
@@ -298,6 +370,7 @@ class TransportSlipEditor extends Component
         $this->dispatchReference = (string) ($s->dispatch_reference ?? '');
         $this->shippingType = $s->shipping_type;
         $this->carrier = $s->carrier;
+        $this->carrierOption = $s->carrier;
         $this->destinationWarehouse = $s->destination_warehouse;
         $this->packageCount = (int) $s->package_count;
         $this->weightKg = (string) ($s->weight_kg ?? '');
