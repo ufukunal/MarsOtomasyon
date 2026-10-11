@@ -40,6 +40,15 @@ jobs:
           docker compose version
       - name: Check UAT runtime scripts syntax
         run: bash -n ops/uat-preflight.sh ops/uat-login-only-preview.sh ops/uat-lab-postgres-init.sh ops/uat-lab-start.sh scripts/ci/uat-container-smoke.sh
+      - name: Validate dedicated UAT Compose without starting database services
+        shell: bash
+        env:
+          MARS_UAT_SHA: ${{ github.sha }}
+          MARS_UAT_PG_OWNER_PASSWORD: ci_owner_not_real
+          MARS_UAT_PG_APP_PASSWORD: ci_app_not_real
+          MARS_UAT_VALKEY_PASSWORD: ci_valkey_not_real
+          MARS_UAT_APP_KEY: base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+        run: docker compose -f compose.uat.lab.yml config --quiet
       - name: Build disposable UAT image without secrets
         shell: bash
         run: |

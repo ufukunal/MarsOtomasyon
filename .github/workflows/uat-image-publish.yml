@@ -9,6 +9,12 @@ on:
       - 'ops/uat-preview-start.sh'
       - 'docs/isletim/.env.uat.example'
       - 'scripts/ci/v4-remote-preflight.php'
+      - 'compose.uat.lab.yml'
+      - 'ops/uat-lab-postgres-init.sh'
+      - 'ops/uat-lab-start.sh'
+      - 'app/Actions/Periods/CreatePeriod.php'
+      - 'app/Livewire/Pages/Setup/CompanyWizard.php'
+      - 'config/operations.php'
       - 'ops/uat-login-only-preview.sh'
   workflow_dispatch:
 permissions:
