@@ -5,8 +5,8 @@ use Illuminate\Support\Facades\Route;
 it('keeps all v65 sidebar destinations real and authorization guarded', function (): void {
     $groups = config('navigation');
     $expected = [
-        'Ana Sayfa', 'Kişiler / Firmalar', 'Ürünler ve Hizmetler',
-        'Satış Yönetimi', 'Satınalma Yönetimi', 'Stok ve Depo', 'Ambar',
+        'Ana Sayfa', 'Kişiler / Firmalar', 'Ürün / Stok',
+        'Satış Yönetimi', 'Ambar', 'Satınalma Yönetimi',
         'Finans İşlemleri', 'İade / RMA', 'İthalat', 'Üretim',
         'E-Ticaret', 'Raporlar', 'Ayarlar',
     ];

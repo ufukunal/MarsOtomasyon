@@ -17,7 +17,7 @@ return [
         ],
     ],
     [
-        'label' => 'Ürünler ve Hizmetler',
+        'label' => 'Ürün / Stok',
         'items' => [
             ['label' => 'Ürün Listesi', 'route' => 'products.index', 'permission' => 'products.view'],
             ['label' => 'Kategoriler', 'route' => 'categories.index', 'permission' => 'product_categories.view'],
@@ -25,6 +25,17 @@ return [
             ['label' => 'Varyant Grupları', 'route' => 'variant-groups.detail', 'permission' => 'variant_groups.view'],
             ['label' => 'Birimler', 'route' => 'units.index', 'permission' => 'units.view'],
             ['label' => 'Fiyat Listeleri', 'route' => 'price-lists.index', 'permission' => 'price_lists.view'],
+            ['label' => 'Stok Durumu', 'route' => 'stock.status', 'permission' => 'stock.view'],
+            ['label' => 'Stok Hareketleri', 'route' => 'stock.movements', 'permission' => 'stock.view'],
+            ['label' => 'Depolar / Lokasyonlar', 'route' => 'locations.index', 'permission' => 'locations.view'],
+            ['label' => 'Rezervasyonlar', 'route' => 'stock.reservations.index', 'permission' => 'reservations.view'],
+            ['label' => 'Depo Transferleri', 'route' => 'stock.transfers.index', 'permission' => 'transfers.view'],
+            ['label' => 'Yeni Depo Transferi', 'route' => 'stock.transfers.create', 'permission' => 'transfers.create'],
+            ['label' => 'Stok Sayımları', 'route' => 'stock.counts.index', 'permission' => 'stock_counts.view'],
+            ['label' => 'Yeni Stok Sayımı', 'route' => 'stock.counts.create', 'permission' => 'stock_counts.create'],
+            ['label' => 'Karantina / Bloke', 'route' => 'stock.quarantine.index', 'permission' => 'quarantine.view'],
+            ['label' => 'Stok Maliyeti', 'route' => 'stock.costs', 'permission' => 'cost.view', 'permission_secondary' => 'stock.view'],
+            ['label' => 'Açılış Bakiyesi', 'route' => 'stock.opening.index', 'permission' => 'imports.create'],
             ['label' => 'İçe Aktarma', 'route' => 'imports.index', 'permission' => 'imports.create'],
         ],
     ],
@@ -40,6 +51,13 @@ return [
         ],
     ],
     [
+        'label' => 'Ambar',
+        'items' => [
+            ['label' => 'Ambar Fişleri', 'route' => 'stock.warehouse-slips.index', 'permission' => 'warehouse_slips.view'],
+            ['label' => 'Yeni Ambar Fişi', 'route' => 'stock.warehouse-slips.create', 'permission' => 'warehouse_slips.create'],
+        ],
+    ],
+    [
         'label' => 'Satınalma Yönetimi',
         'items' => [
             ['label' => 'Satınalma Siparişleri', 'route' => 'purchases.orders.index', 'permission' => 'purchase_orders.view'],
@@ -47,29 +65,6 @@ return [
             ['label' => 'Alış Faturaları', 'route' => 'purchases.invoices.index', 'permission' => 'supplier_invoices.view'],
             ['label' => 'Ödeme', 'route' => 'purchases.payments.create', 'permission' => 'payments.view'],
             ['label' => 'Tedarikçi Performansı', 'route' => 'purchases.supplier-performance', 'permission' => 'supplier_performance.view'],
-        ],
-    ],
-    [
-        'label' => 'Stok ve Depo',
-        'items' => [
-            ['label' => 'Stok Durumu', 'route' => 'stock.status', 'permission' => 'stock.view'],
-            ['label' => 'Stok Hareketleri', 'route' => 'stock.movements', 'permission' => 'stock.view'],
-            ['label' => 'Depolar / Lokasyonlar', 'route' => 'locations.index', 'permission' => 'locations.view'],
-            ['label' => 'Rezervasyonlar', 'route' => 'stock.reservations.index', 'permission' => 'reservations.view'],
-            ['label' => 'Depo Transferleri', 'route' => 'stock.transfers.index', 'permission' => 'transfers.view'],
-            ['label' => 'Yeni Depo Transferi', 'route' => 'stock.transfers.create', 'permission' => 'transfers.create'],
-            ['label' => 'Stok Sayımları', 'route' => 'stock.counts.index', 'permission' => 'stock_counts.view'],
-            ['label' => 'Yeni Stok Sayımı', 'route' => 'stock.counts.create', 'permission' => 'stock_counts.create'],
-            ['label' => 'Karantina / Bloke', 'route' => 'stock.quarantine.index', 'permission' => 'quarantine.view'],
-            ['label' => 'Stok Maliyeti', 'route' => 'stock.costs', 'permission' => 'cost.view'],
-            ['label' => 'Açılış Bakiyesi', 'route' => 'stock.opening.index', 'permission' => 'imports.create'],
-        ],
-    ],
-    [
-        'label' => 'Ambar',
-        'items' => [
-            ['label' => 'Ambar Fişleri', 'route' => 'stock.warehouse-slips.index', 'permission' => 'warehouse_slips.view'],
-            ['label' => 'Yeni Ambar Fişi', 'route' => 'stock.warehouse-slips.create', 'permission' => 'warehouse_slips.create'],
         ],
     ],
     [

@@ -129,7 +129,7 @@ class StockStatus extends DataTableComponent
     public function columnUrl(Model $row, Column $column): ?string
     {
         if (! in_array($column->key, ['product_code', 'product_name'], true)
-            || ! auth()->user()?->can('products.view')) {
+            || ! auth()->user()?->can('products.update')) {
             return null;
         }
 

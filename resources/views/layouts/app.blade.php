@@ -16,6 +16,7 @@
             $group['items'] = collect($group['items'] ?? [])
                 ->filter(fn (array $item): bool => auth()->check()
                     && ($item['permission'] === null || auth()->user()->can($item['permission']))
+                    && (! isset($item['permission_secondary']) || auth()->user()->can($item['permission_secondary']))
                     && \Illuminate\Support\Facades\Route::has($item['route']))
                 ->values()
                 ->all();
@@ -35,7 +36,7 @@
     $activeSection = $activeGroup['label'] ?? 'Çalışma Alanı';
     $navigationIcons = [
         'Ana Sayfa' => '⌂', 'Kişiler / Firmalar' => '◉',
-        'Ürünler ve Hizmetler' => '◈', 'Satış Yönetimi' => '◴',
+        'Ürün / Stok' => '◈', 'Satış Yönetimi' => '◴',
         'Satınalma Yönetimi' => '◉', 'Stok ve Depo' => '▦',
         'Finans İşlemleri' => '₺', 'İade / RMA' => '↩',
         'Ambar' => '▣', 'İthalat' => '◇', 'Üretim' => '⚒', 'E-Ticaret' => '▣',
