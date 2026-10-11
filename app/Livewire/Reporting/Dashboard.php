@@ -6,9 +6,9 @@ use App\Enums\DocumentType;
 use App\Models\Company;
 use App\Models\Period;
 use App\Models\Period\Document;
+use App\Support\Formatting\TrFormatter;
 use App\Support\Period\PeriodContext;
 use App\Support\Reporting\Dashboard\DashboardService;
-use App\Support\Formatting\TrFormatter;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\DB;
 use Livewire\Component;
@@ -43,7 +43,7 @@ final class Dashboard extends Component
             'sales' => [DocumentType::SalesInvoice->value, 'sales_invoices.view'],
             'collections' => [DocumentType::Collection->value, 'collections.view'],
         ] as $key => [$type, $permission]) {
-            if (! $actor?->can($permission)) {
+            if ($actor === null || ! $actor->can($permission)) {
                 continue;
             }
 
