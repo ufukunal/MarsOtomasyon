@@ -47,7 +47,7 @@ class ExportTransportSlipController
                         default => $slip->status,
                     };
                     $row = [
-                        $slip->number, $slip->slip_date?->format('Y-m-d'),
+                        $slip->number, \Carbon\CarbonImmutable::parse((string) $slip->slip_date)->toDateString(),
                         $slip->contact?->title, $slip->contact?->code,
                         $slip->shipping_type, $slip->carrier, $slip->destination_warehouse,
                         $slip->package_count, $slip->contains_glass ? 'Evet' : 'Hayır',
@@ -55,7 +55,7 @@ class ExportTransportSlipController
                         $slip->delivery_company, $slip->delivery_person, $slip->delivery_phone,
                         $slip->delivery_city, $slip->delivery_district, $slip->delivery_address,
                         $slip->tracking_number, $slip->order_reference, $slip->dispatch_reference,
-                        $slip->items->map(fn ($item): string => ($item->product?->code ?? '').' x '.$item->quantity)->implode(' | '),
+                        $slip->items->map(fn ($item): string => $item->product->code.' x '.$item->quantity)->implode(' | '),
                     ];
 
                     fputcsv($output, array_map(self::safeCell(...), $row), ';', '"', '');
