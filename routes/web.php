@@ -1,10 +1,10 @@
 <?php
 
 use App\Http\Controllers\ChannelAssetController;
+use App\Http\Controllers\ExportTransportSlipController;
 use App\Http\Controllers\HealthController;
 use App\Http\Controllers\HepsiburadaWebhookController;
 use App\Http\Controllers\ImportErrorReportController;
-use App\Http\Controllers\ExportTransportSlipController;
 use App\Http\Controllers\PrintTransportSlipController;
 use App\Http\Controllers\ProductImageController;
 use App\Http\Controllers\ReportExportDownloadController;
