@@ -6,7 +6,7 @@ use Illuminate\Support\HtmlString;
 
 final class Code39Svg
 {
-    /** @var array<string, string> */
+    /** @var array<array-key, string> */
     private const PATTERNS = [
         '0' => 'nnnwwnwnn', '1' => 'wnnwnnnnw', '2' => 'nnwwnnnnw',
         '3' => 'wnwwnnnnn', '4' => 'nnnwwnnnw', '5' => 'wnnwwnnnn',

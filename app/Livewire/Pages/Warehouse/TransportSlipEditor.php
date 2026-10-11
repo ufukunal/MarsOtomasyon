@@ -7,6 +7,7 @@ use App\Models\Period\Location;
 use App\Models\Period\Product;
 use App\Models\Period\TransportSlip;
 use App\Support\Period\PeriodContext;
+use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -66,7 +67,7 @@ class TransportSlipEditor extends Component
 
     public function mount(?int $id = null): void
     {
-        abort_unless(auth()->user()?->can('warehouse_slips.view'), 403);
+        abort_unless(auth()->user()->can('warehouse_slips.view'), 403);
         $this->date = now()->toDateString();
 
         if ($id !== null) {
@@ -76,7 +77,7 @@ class TransportSlipEditor extends Component
             return;
         }
 
-        abort_unless(auth()->user()?->can('warehouse_slips.create'), 403);
+        abort_unless(auth()->user()->can('warehouse_slips.create'), 403);
         $this->addItem();
     }
 
@@ -219,7 +220,7 @@ class TransportSlipEditor extends Component
 
     public function advance(): void
     {
-        abort_unless($this->slip !== null && auth()->user()?->can('warehouse_slips.update'), 403);
+        abort_unless($this->slip !== null && auth()->user()->can('warehouse_slips.update'), 403);
         PeriodContext::ensureWritable();
 
         DB::connection('period')->transaction(function (): void {
@@ -240,7 +241,7 @@ class TransportSlipEditor extends Component
 
     public function cancel(): void
     {
-        abort_unless($this->slip !== null && auth()->user()?->can('warehouse_slips.cancel'), 403);
+        abort_unless($this->slip !== null && auth()->user()->can('warehouse_slips.cancel'), 403);
         PeriodContext::ensureWritable();
         DB::connection('period')->transaction(function (): void {
             $slip = TransportSlip::query()->lockForUpdate()->findOrFail($this->slip->id);
@@ -253,7 +254,7 @@ class TransportSlipEditor extends Component
 
     public function duplicate(): mixed
     {
-        abort_unless($this->slip !== null && auth()->user()?->can('warehouse_slips.create'), 403);
+        abort_unless($this->slip !== null && auth()->user()->can('warehouse_slips.create'), 403);
         $this->slip = null;
         $this->date = now()->toDateString();
         $this->trackingNumber = '';
@@ -263,7 +264,7 @@ class TransportSlipEditor extends Component
 
     public function render(): View
     {
-        abort_unless(auth()->user()?->can('warehouse_slips.view'), 403);
+        abort_unless(auth()->user()->can('warehouse_slips.view'), 403);
 
         return view('livewire.pages.warehouse.transport-slip-editor', [
             'contacts' => Contact::query()->where('is_active', true)->orderBy('title')->get(['id', 'code', 'title']),
@@ -271,7 +272,7 @@ class TransportSlipEditor extends Component
             'products' => Product::query()->where('is_active', true)->with('unit')->orderBy('name')->limit(1000)->get(),
             'readonly' => $this->slip !== null
                 && (! in_array($this->slip->status, ['draft', 'ready'], true)
-                    || ! auth()->user()?->can('warehouse_slips.update')),
+                    || ! auth()->user()->can('warehouse_slips.update')),
             'statusLabels' => [
                 'draft' => 'Taslak', 'ready' => 'Hazır', 'handed_over' => 'Ambara Teslim',
                 'completed' => 'Tamamlandı', 'cancelled' => 'İptal',
@@ -283,14 +284,14 @@ class TransportSlipEditor extends Component
 
     private function assertEditable(): void
     {
-        abort_unless(auth()->user()?->can($this->slip ? 'warehouse_slips.update' : 'warehouse_slips.create'), 403);
+        abort_unless(auth()->user()->can($this->slip ? 'warehouse_slips.update' : 'warehouse_slips.create'), 403);
         abort_unless($this->slip === null || in_array($this->slip->status, ['draft', 'ready'], true), 409);
     }
 
     private function loadSlip(): void
     {
         $s = $this->slip;
-        $this->date = $s->slip_date->toDateString();
+        $this->date = CarbonImmutable::parse((string) $s->slip_date)->toDateString();
         $this->contactId = $s->contact_id;
         $this->locationId = $s->location_id;
         $this->orderReference = (string) ($s->order_reference ?? '');
