@@ -21,7 +21,7 @@ class LocationDetail extends Component
     {
         abort_unless(auth()->user()?->can('locations.view'), 403);
 
-        $balances = auth()->user()?->can('stock.view')
+        $balances = auth()->user()->can('stock.view')
             ? StockBalance::query()
                 ->where('location_id', $this->location->id)
                 ->with('product')
