@@ -124,3 +124,37 @@ document.addEventListener('dragend', () => {
         draggedImageCard = null;
     }
 });
+
+
+// v65 sidebar menu search: operates only on authorized, server-rendered links.
+document.addEventListener('input', (event) => {
+    if (!(event.target instanceof HTMLInputElement) || event.target.id !== 'menu-search') {
+        return;
+    }
+
+    const query = event.target.value.trim().toLocaleLowerCase('tr');
+    const nav = event.target.closest('.sidebar')?.querySelector('.navigation');
+
+    if (!nav) {
+        return;
+    }
+
+    for (const group of nav.querySelectorAll('.nav-group')) {
+        const label = group.querySelector('.nav-group-title')?.textContent?.toLocaleLowerCase('tr') ?? '';
+        const groupMatches = label.includes(query);
+        let visible = false;
+
+        for (const link of group.querySelectorAll('.nav-link')) {
+            const matches = !query || groupMatches || link.textContent.toLocaleLowerCase('tr').includes(query);
+            link.hidden = !matches;
+            visible = visible || matches;
+        }
+
+        group.hidden = !visible;
+        if (query) {
+            group.open = visible;
+        } else {
+            group.open = group.querySelector('[aria-current="page"]') !== null;
+        }
+    }
+});

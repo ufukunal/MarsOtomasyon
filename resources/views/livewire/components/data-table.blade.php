@@ -1,46 +1,57 @@
 <div class="data-table-shell">
     <div class="table-toolbar">
-        <input wire:model.live.debounce.300ms="search" type="search" placeholder="Ara…">
+        <div class="table-toolbar-main">
+            <label class="table-search">
+                <span class="sr-only">Tabloda ara</span>
+                <span class="table-search-icon" aria-hidden="true">⌕</span>
+                <input wire:model.live.debounce.300ms="search" type="search" placeholder="Tabloda ara…">
+            </label>
 
-        @foreach ($filters as $filter)
-            @if ($filter instanceof \App\Livewire\Components\DataTable\SelectFilter)
-                <select wire:model.live="filterValues.{{ $filter->key }}">
-                    <option value="">{{ $filter->label }} · Tümü</option>
-                    @foreach ($filter->options as $value => $label)
-                        <option value="{{ $value }}">{{ $label }}</option>
+            @foreach ($filters as $filter)
+                @if ($filter instanceof \App\Livewire\Components\DataTable\SelectFilter)
+                    <label class="table-filter">
+                        <span class="sr-only">{{ $filter->label }}</span>
+                        <select wire:model.live="filterValues.{{ $filter->key }}">
+                            <option value="">{{ $filter->label }} · Tümü</option>
+                            @foreach ($filter->options as $value => $label)
+                                <option value="{{ $value }}">{{ $label }}</option>
+                            @endforeach
+                        </select>
+                    </label>
+                @elseif ($filter instanceof \App\Livewire\Components\DataTable\DateRangeFilter)
+                    <div class="date-range-filter">
+                        <span>{{ $filter->label }}</span>
+                        <input type="date" wire:model.live="filterValues.{{ $filter->key }}.from" aria-label="{{ $filter->label }} başlangıç">
+                        <input type="date" wire:model.live="filterValues.{{ $filter->key }}.to" aria-label="{{ $filter->label }} bitiş">
+                    </div>
+                @endif
+            @endforeach
+        </div>
+        <div class="table-toolbar-actions">
+            <label class="page-size-control">
+                <span>Satır</span>
+                <select wire:change="setPerPage($event.target.value)">
+                    @foreach ([25,50,100] as $size)
+                        <option value="{{ $size }}" @selected($perPage === $size)>{{ $size }}</option>
                     @endforeach
                 </select>
-            @elseif ($filter instanceof \App\Livewire\Components\DataTable\DateRangeFilter)
-                <div class="date-range-filter">
-                    <span>{{ $filter->label }}</span>
-                    <input type="date" wire:model.live="filterValues.{{ $filter->key }}.from" aria-label="{{ $filter->label }} başlangıç">
-                    <input type="date" wire:model.live="filterValues.{{ $filter->key }}.to" aria-label="{{ $filter->label }} bitiş">
+            </label>
+            <details class="column-picker">
+                <summary>Kolonlar</summary>
+                <div class="column-picker-menu">
+                    @foreach($columns as $column)
+                        <label>
+                            <input type="checkbox"
+                                   @checked(!($hiddenColumns[$column->key] ?? false))
+                                   wire:click="toggleColumn('{{ $column->key }}')">
+                            {{ $column->label }}
+                        </label>
+                    @endforeach
                 </div>
-            @endif
-        @endforeach
-
-        <select wire:change="setPerPage($event.target.value)">
-            @foreach ([25,50,100] as $size)
-                <option value="{{ $size }}" @selected($perPage === $size)>{{ $size }}</option>
-            @endforeach
-        </select>
-
-        <details class="column-picker">
-            <summary>Kolonlar</summary>
-            <div class="column-picker-menu">
-                @foreach($columns as $column)
-                    <label>
-                        <input type="checkbox"
-                               @checked(!($hiddenColumns[$column->key] ?? false))
-                               wire:click="toggleColumn('{{ $column->key }}')">
-                        {{ $column->label }}
-                    </label>
-                @endforeach
-            </div>
-        </details>
-
-        <button type="button" wire:click="exportCsv">CSV</button>
-        <button type="button" wire:click="exportXlsx">Excel</button>
+            </details>
+            <button class="button-secondary" type="button" wire:click="exportCsv">CSV</button>
+            <button class="button-secondary" type="button" wire:click="exportXlsx">Excel</button>
+        </div>
     </div>
 
     @if($selected !== [] && $bulkActions !== [])

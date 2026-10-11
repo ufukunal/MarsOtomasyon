@@ -16,6 +16,10 @@ on:
       - 'app/Actions/Periods/CreatePeriod.php'
       - 'app/Livewire/Pages/Setup/CompanyWizard.php'
       - 'config/operations.php'
+      - 'resources/css/app.css'
+      - 'resources/js/app.js'
+      - 'resources/views/layouts/app.blade.php'
+      - 'resources/views/livewire/components/data-table.blade.php'
       - 'ops/uat-login-only-preview.sh'
   workflow_dispatch:
 permissions:
