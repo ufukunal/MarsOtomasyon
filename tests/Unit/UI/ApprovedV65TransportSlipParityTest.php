@@ -90,13 +90,13 @@ it('implements separate read-only detail and editing routes and safe copy-to-edi
     $list = file_get_contents(base_path('resources/views/livewire/pages/warehouse/transport-slip-list.blade.php'));
 
     expect($routes)->toContain("name('warehouse.transport.edit')")
-        ->and($editor)->toContain("#[Locked]")
+        ->and($editor)->toContain('#[Locked]')
         ->toContain("request()->routeIs('warehouse.transport.edit')")
         ->toContain('abort_unless($this->mode')
         ->toContain("'readonly' => \$this->mode === 'detail'")
         ->toContain("redirectRoute('warehouse.transport.edit'")
         ->toContain("\$duplicate->status = 'draft'")
-        ->toContain("\$duplicate->tracking_number = null")
+        ->toContain('$duplicate->tracking_number = null')
         ->and($list)->toContain("route('warehouse.transport.edit'");
 });
 

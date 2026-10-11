@@ -286,6 +286,7 @@ class TransportSlipEditor extends Component
         abort_unless(in_array($format, ['slip', 'labels'], true), 404);
         if ($this->slip === null) {
             $this->addError('preview', 'Önizleme için fişi önce kaydedin.');
+
             return;
         }
 
@@ -318,6 +319,7 @@ class TransportSlipEditor extends Component
                     'quantity' => (string) $item->quantity,
                 ]);
             }
+
             return $duplicate;
         }, 3);
 
