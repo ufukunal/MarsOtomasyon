@@ -86,6 +86,7 @@ final class MasterSettingsIndex extends Component
                     ->select(['ccp.id', 'target.name as target_name', 'ccp.type', 'ccp.is_active']),
                 ['target_name' => 'Hedef Şirket', 'type' => 'İzin Türü', 'is_active' => 'Aktif'],
             ],
+            default => abort(404),
         };
 
         $rows = $query->orderByDesc($this->section === 'users' ? 'u.id' : ($this->section === 'company-copy-permissions' ? 'ccp.id' : 'id'))->paginate(25);
