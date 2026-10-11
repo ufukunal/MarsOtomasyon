@@ -1,4 +1,4 @@
-<div class="space-y-6">
+<div class="stack v65-supplier-performance">
     <h1>Tedarikçi Performansı</h1>
 
     <label>Tedarikçi
@@ -11,7 +11,7 @@
     </label>
 
     @if($metrics)
-        <table>
+        <div class="panel"><div class="table-scroll v65-grid-scroll"><table class="data-table">
             <tbody>
             <tr><th>Satınalma Siparişi</th><td>{{ $metrics['purchase_orders'] }}</td></tr>
             <tr><th>Mal Kabul</th><td>{{ $metrics['goods_receipts'] }}</td></tr>
@@ -19,6 +19,6 @@
             <tr><th>Zamanında Teslim %</th><td>{{ $metrics['on_time_receipt_rate'] }}</td></tr>
             <tr><th>Ort. Mutlak Fiyat Sapması %</th><td>{{ $metrics['average_price_variance_rate'] }}</td></tr>
             </tbody>
-        </table>
+        </table></div></div>
     @endif
 </div>

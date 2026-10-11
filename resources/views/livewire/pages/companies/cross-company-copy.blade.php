@@ -1,24 +1,24 @@
 <div class="stack">
     <section class="panel form-row">
-        <select wire:model.live="type" wire:change="loadSource">
+        <select aria-label="Kopyalanacak kart tipi" wire:model.live="type" wire:change="loadSource">
             <option value="contact">Cari</option>
             <option value="product">Ürün</option>
         </select>
-        <select wire:model.live="sourceCompanyId" wire:change="loadSource">
+        <select aria-label="Kaynak şirket" wire:model.live="sourceCompanyId" wire:change="loadSource">
             <option value="">Kaynak şirket seçin</option>
             @foreach($sourceCompanies as $company)<option value="{{ $company->id }}">{{ $company->name }}</option>@endforeach
         </select>
     </section>
 
     <section class="panel">
-        <table class="data-table">
+        <div class="table-scroll v65-grid-scroll"><table class="data-table">
             <thead><tr><th></th><th>Kod</th><th>Kayıt</th></tr></thead>
             <tbody>
             @foreach($sourceRows as $row)
                 <tr><td><input type="checkbox" wire:model="selected" value="{{ $row['id'] }}"></td><td>{{ $row['code'] }}</td><td>{{ $row['label'] }}</td></tr>
             @endforeach
             </tbody>
-        </table>
+        </table></div>
         <div class="form-row">
             @if($canCopy)
                 <button type="button" wire:click="copy">Seçilenleri Kopyala</button>
@@ -67,14 +67,14 @@
                         @endif
                     </div>
                     @if(!$row['source_missing'])
-                        <table class="data-table">
+                        <div class="table-scroll v65-grid-scroll"><table class="data-table">
                             <thead><tr><th>Alan</th><th>Hedef</th><th>Kaynak</th></tr></thead>
                             <tbody>
                             @foreach($row['changes'] as $change)
                                 <tr><td>{{ $change['field'] }}</td><td>{{ $change['target'] }}</td><td>{{ $change['source'] }}</td></tr>
                             @endforeach
                             </tbody>
-                        </table>
+                        </table></div>
                     @endif
                 </article>
             @endforeach

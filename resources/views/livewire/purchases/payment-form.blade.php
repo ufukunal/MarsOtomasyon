@@ -1,7 +1,7 @@
 <div class="space-y-6">
     <h1>Ödeme</h1>
 
-    <div class="space-y-3">
+    <section class="panel stack v65-voucher-panel">
         <label>Tedarikçi
             <select wire:model="contactId">
                 <option value="">Seçin</option>
@@ -44,14 +44,14 @@
         </label>
         <label>Not <textarea wire:model="note"></textarea></label>
         <button type="button" wire:click="post">Ödemeyi Kesinleştir</button>
-    </div>
+    </section>
 
     @if($postedDocumentId)
-        <div class="space-y-2">
+        <section class="panel stack v65-voucher-panel">
             <div>Kesinleşen belge: #{{ $postedDocumentId }}</div>
-            <input type="date" wire:model="reversalDate">
+            <input type="date" wire:model="reversalDate" aria-label="Ters kayıt tarihi">
             <input wire:model="reversalReason" placeholder="Ters kayıt gerekçesi">
             <button type="button" wire:click="reverse">Ters Kayıt</button>
-        </div>
+        </section>
     @endif
 </div>

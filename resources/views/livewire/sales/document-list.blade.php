@@ -1,12 +1,12 @@
-<div class="space-y-4">
-    <div class="flex items-center justify-between">
+<div class="stack v65-sales-list">
+    <div class="form-row v65-list-heading">
         <h1>{{ $title }}</h1>
         @if($createRoute)
-            <a href="{{ route($createRoute) }}">Yeni</a>
+            <a class="button-link table-add-action" href="{{ route($createRoute) }}">+ Yeni</a>
         @endif
     </div>
 
-    <table>
+    <div class="panel"><div class="table-scroll v65-grid-scroll"><table class="data-table">
         <thead>
             <tr>
                 <th>Numara</th>
@@ -28,10 +28,10 @@
                     <td><button type="button" wire:click="open({{ $document->id }})">Aç</button></td>
                 </tr>
             @empty
-                <tr><td colspan="6">Kayıt yok.</td></tr>
+                <tr><td colspan="6" class="empty-state">Henüz kayıt yok.</td></tr>
             @endforelse
         </tbody>
-    </table>
+    </table></div></div>
 
     {{ $documents->links() }}
 </div>

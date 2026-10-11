@@ -1,4 +1,4 @@
-<div class="space-y-5">
+<div class="space-y-5 panel v65-detail-screen">
     <h1>Araç Sıcak Satış</h1>
 
     <label>Araç
@@ -21,7 +21,7 @@
 
     <label>Tarih <input type="date" wire:model="documentDate"></label>
 
-    <table>
+    <div class="table-scroll v65-grid-scroll"><table class="data-table">
         <thead><tr><th>Ürün</th><th>Birim</th><th>Miktar</th><th>Fiyat</th><th>KDV</th><th></th></tr></thead>
         <tbody>
             @foreach($lines as $index => $line)
@@ -49,7 +49,7 @@
                 </tr>
             @endforeach
         </tbody>
-    </table>
+    </table></div>
 
     <button type="button" wire:click="addLine">Satır Ekle</button>
     <button type="button" wire:click="post">Satışı Kesinleştir</button>
