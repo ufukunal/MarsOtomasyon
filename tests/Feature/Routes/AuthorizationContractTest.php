@@ -25,7 +25,7 @@ it('requires auth for every module UI screen, including exports and downloads', 
             continue;
         }
 
-        expect($route->gatherMiddleware())->toContain('auth', "Missing auth middleware on {$name}");
+        expect($route->gatherMiddleware())->toContain('auth');
     }
     expect($matched)->not->toBeEmpty();
 });

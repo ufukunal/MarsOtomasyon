@@ -76,6 +76,10 @@ jobs:
         run: cp .env.example .env
       - name: Install dependencies
         run: composer install --no-interaction --prefer-dist --no-progress
+      - name: Prepare real Vite assets for full HTTP error/redirect rendering
+        run: |
+          npm ci --ignore-scripts --no-audit --no-fund
+          npm run build
       - name: Disable all remote database endpoints in ephemeral PHPUnit config
         shell: bash
         run: |
