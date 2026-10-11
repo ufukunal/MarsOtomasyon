@@ -99,7 +99,7 @@ for stock_route in stock_status stock_movements warehouses transfer_list count_l
     --disable-dev-shm-usage --disable-extensions --no-first-run \
     --window-size=1440,900 --virtual-time-budget=8000 \
     --screenshot="artifacts/v65-browser-${stock_route}.png" \
-    --dump-dom="http://127.0.0.1:18765/reference/marsotomasyon-PROTOTIP-ONAYLI-v65.html#${stock_route}" \
+    --dump-dom "http://127.0.0.1:18765/reference/marsotomasyon-PROTOTIP-ONAYLI-v65.html#${stock_route}" \
     >"artifacts/v65-browser-${stock_route}-dom.html" \
     2>"artifacts/v65-browser-${stock_route}-stderr.log" || {
       echo "FAIL: Chromium could not render stock route ${stock_route}" >&2
