@@ -19,6 +19,7 @@ on:
       - 'app/Livewire/Pages/Setup/CompanyWizard.php'
       - 'config/operations.php'
       - 'resources/**'
+      - 'lang/**'
       - 'config/navigation.php'
       - 'app/**'
       - 'routes/**'
