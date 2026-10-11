@@ -10,6 +10,7 @@ use App\Models\Period\StockBalance;
 use App\Models\Period\StockMovement;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Url;
 use Livewire\Component;
@@ -173,8 +174,8 @@ class ProductDetail extends Component
         ]);
     }
 
-    /** @return \Illuminate\Database\Eloquent\Collection<int, DocumentLine> */
-    private function postedLines(string $type, int $limit): \Illuminate\Database\Eloquent\Collection
+    /** @return Collection<int, DocumentLine> */
+    private function postedLines(string $type, int $limit): Collection
     {
         return DocumentLine::query()
             ->where('product_id', $this->product->id)
