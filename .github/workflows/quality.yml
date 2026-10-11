@@ -52,7 +52,7 @@ jobs:
       - name: Release activation safety Unit tests
         run: vendor/bin/pest tests/Unit/Operations/ReleaseActivationGateTest.php
       - name: Approved v65 UI and authorized screen regression tests
-        run: vendor/bin/pest tests/Unit/UI/ApprovedPrototypeV65ContractTest.php tests/Unit/UI/ApprovedV65StockIntegrationTest.php tests/Unit/UI/ProductDetailV65ScreenTest.php tests/Unit/UI/StockDetailNavigationV65Test.php tests/Unit/UI/ApprovedV65ProductScreenComparisonTest.php tests/Unit/UI/ApprovedV65ShellLayoutComparisonTest.php tests/Unit/UI/ApprovedV65SharedShellAuditTest.php
+        run: vendor/bin/pest tests/Unit/UI/ApprovedPrototypeV65ContractTest.php tests/Unit/UI/ApprovedV65StockIntegrationTest.php tests/Unit/UI/ProductDetailV65ScreenTest.php tests/Unit/UI/StockDetailNavigationV65Test.php tests/Unit/UI/ApprovedV65ProductScreenComparisonTest.php tests/Unit/UI/ApprovedV65ShellLayoutComparisonTest.php tests/Unit/UI/ApprovedV65SharedShellAuditTest.php tests/Unit/UI/ApprovedV65TransportSlipParityTest.php
       - name: Production release shell syntax checks
         run: bash -n ops/build-release-artifact.sh ops/deploy-release.sh scripts/ci/test-release-guards.sh
       - name: Production release tamper-rejection tests

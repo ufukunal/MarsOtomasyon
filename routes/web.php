@@ -5,6 +5,7 @@ use App\Http\Controllers\HealthController;
 use App\Http\Controllers\HepsiburadaWebhookController;
 use App\Http\Controllers\ImportErrorReportController;
 use App\Http\Controllers\ProductImageController;
+use App\Http\Controllers\PrintTransportSlipController;
 use App\Http\Controllers\ReportExportDownloadController;
 use App\Http\Controllers\TrendyolWebhookController;
 use App\Http\Controllers\WooCommerceWebhookController;
@@ -91,6 +92,8 @@ use App\Livewire\Sales\SalesInvoiceList;
 use App\Livewire\Sales\SalesOrderEditor;
 use App\Livewire\Sales\SalesOrderList;
 use App\Livewire\Sales\VehicleHotSale;
+use App\Livewire\Pages\Warehouse\TransportSlipEditor;
+use App\Livewire\Pages\Warehouse\TransportSlipList;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -234,6 +237,12 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/stok/transferler', TransferList::class)->name('stock.transfers.index');
     Route::get('/stok/transferler/yeni', TransferDetail::class)->name('stock.transfers.create');
     Route::get('/stok/transferler/{id}', TransferDetail::class)->name('stock.transfers.show');
+    // Legacy G-207 physical stock adjustments remain available and unchanged.
+    Route::get('/ambar/fisler', TransportSlipList::class)->name('warehouse.transport.index');
+    Route::get('/ambar/fisler/yeni', TransportSlipEditor::class)->name('warehouse.transport.create');
+    Route::get('/ambar/fisler/{id}', TransportSlipEditor::class)->whereNumber('id')->name('warehouse.transport.show');
+    Route::get('/ambar/fisler/{slip}/yazdir/{format}', PrintTransportSlipController::class)
+        ->whereNumber('slip')->whereIn('format', ['slip', 'labels'])->name('warehouse.transport.print');
     Route::get('/stok/ambar-fisleri', WarehouseSlipList::class)->name('stock.warehouse-slips.index');
     Route::get('/stok/ambar-fisleri/yeni', WarehouseSlipDetail::class)->name('stock.warehouse-slips.create');
     Route::get('/stok/ambar-fisleri/{id}', WarehouseSlipDetail::class)->name('stock.warehouse-slips.show');

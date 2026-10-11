@@ -214,8 +214,8 @@ class WarehouseSlipDetail extends Component
                 ],
         ])->layout('layouts.app', [
             'pageTitle' => $this->slip
-                ? 'Ambar Fişi · '.($this->slip->number ?: 'Taslak #'.$this->slip->id)
-                : 'Yeni Ambar Fişi',
+                ? 'Stok Düzeltme Fişi · '.($this->slip->number ?: 'Taslak #'.$this->slip->id)
+                : 'Yeni Stok Düzeltme Fişi',
         ]);
     }
 

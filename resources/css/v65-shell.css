@@ -1,3 +1,4 @@
+@import "./v65-warehouse.css";
 /* Approved v65 composition: shared shell, product listing and dashboard.
    The application continues to use only one compiled CSS asset. */
 .app-shell{--side:232px;--top:52px;--tabs:39px;background:#f4f7fc}

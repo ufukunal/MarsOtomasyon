@@ -29,7 +29,8 @@ it('maps approved v65 stock destinations to real authorized Laravel routes', fun
             ->and(Route::has($route))->toBeTrue();
     }
 
-    expect($warehouseRoutes)->toContain('stock.warehouse-slips.index', 'stock.warehouse-slips.create');
+    expect($warehouseRoutes)->toContain('warehouse.transport.index', 'warehouse.transport.create');
+    expect($stockRoutes)->toContain('stock.warehouse-slips.index');
 
     $costItem = collect($productStock['items'])->firstWhere('route', 'stock.costs');
     expect($costItem['permission'])->toBe('cost.view')

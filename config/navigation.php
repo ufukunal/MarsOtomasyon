@@ -36,6 +36,7 @@ return [
             ['label' => 'Birimler', 'route' => 'units.index', 'permission' => 'units.view'],
             ['label' => 'Rezervasyonlar', 'route' => 'stock.reservations.index', 'permission' => 'reservations.view'],
             ['label' => 'Karantina / Bloke', 'route' => 'stock.quarantine.index', 'permission' => 'quarantine.view'],
+            ['label' => 'Stok Düzeltme Fişleri', 'route' => 'stock.warehouse-slips.index', 'permission' => 'warehouse_slips.view'],
             ['label' => 'Stok Maliyeti', 'route' => 'stock.costs', 'permission' => 'cost.view', 'permission_secondary' => 'stock.view'],
             ['label' => 'Açılış Bakiyesi', 'route' => 'stock.opening.index', 'permission' => 'imports.create'],
             ['label' => 'İçe Aktarma', 'route' => 'imports.index', 'permission' => 'imports.create'],
@@ -55,8 +56,8 @@ return [
     [
         'label' => 'Ambar',
         'items' => [
-            ['label' => 'Ambar Fişleri', 'route' => 'stock.warehouse-slips.index', 'permission' => 'warehouse_slips.view'],
-            ['label' => 'Yeni Ambar Fişi', 'route' => 'stock.warehouse-slips.create', 'permission' => 'warehouse_slips.create'],
+            ['label' => 'Ambar Fişleri', 'route' => 'warehouse.transport.index', 'permission' => 'warehouse_slips.view'],
+            ['label' => 'Yeni Ambar Fişi', 'route' => 'warehouse.transport.create', 'permission' => 'warehouse_slips.create'],
         ],
     ],
     [

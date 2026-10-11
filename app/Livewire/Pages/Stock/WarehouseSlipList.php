@@ -89,7 +89,7 @@ class WarehouseSlipList extends DataTableComponent
     public function emptyAction(): ?array
     {
         return auth()->user()?->can('warehouse_slips.create')
-            ? ['label' => 'Yeni Ambar Fişi', 'route' => 'stock.warehouse-slips.create']
+            ? ['label' => 'Yeni Stok Düzeltme Fişi', 'route' => 'stock.warehouse-slips.create']
             : null;
     }
 }
