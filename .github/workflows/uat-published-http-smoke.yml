@@ -1,0 +1,66 @@
+name: UAT - Verify Real HTTP Login From Published Image
+on:
+  workflow_run:
+    workflows: ["UAT - Publish Isolated Preview Image"]
+    types: [completed]
+permissions:
+  contents: read
+  packages: read
+jobs:
+  http-smoke:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    name: Published image serves Laravel login (no external DB access)
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      IMAGE: ghcr.io/ufukunal/marsotomasyon:uat-${{ github.event.workflow_run.head_sha }}
+      CONTAINER_NAME: mars-uat-ci-http
+    steps:
+      - name: Authenticate to GitHub Container Registry
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          printf '%s' "$GH_TOKEN" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+      - name: Pull the exact smoke-tested image
+        run: docker pull "$IMAGE"
+      - name: Launch disposable HTTP preview with impossible DB endpoints
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          docker run --detach --rm --name "$CONTAINER_NAME" \
+            --publish 127.0.0.1:18080:8080 --cap-drop ALL \
+            --security-opt no-new-privileges:true \
+            -e APP_ENV=testing \
+            -e APP_DEBUG=false \
+            -e APP_KEY=base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= \
+            -e DB_HOST=192.0.2.1 -e DB_PORT=9 \
+            -e REDIS_HOST=192.0.2.1 -e REDIS_PORT=9 \
+            -e SESSION_DRIVER=array -e CACHE_STORE=array \
+            -e QUEUE_CONNECTION=sync -e MAIL_MAILER=array \
+            "$IMAGE"
+      - name: Verify /up and real /giris response
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          ok=0
+          for n in $(seq 1 25); do
+            if curl --fail --silent --max-time 3 "http://127.0.0.1:18080/up" >/dev/null \
+              && curl --fail --silent --max-time 5 "http://127.0.0.1:18080/giris" > /tmp/mars-login.html; then
+              if grep -Eiq '<form|wire:' /tmp/mars-login.html; then
+                ok=1
+                break
+              fi
+            fi
+            sleep 2
+          done
+          if [[ "$ok" != 1 ]]; then
+            echo "FAIL: published UAT image did not render an interactive login page" >&2
+            exit 1
+          fi
+          echo "PASS: real Laravel /up and /giris HTTP routes render from published UAT image"
+      - name: Stop disposable HTTP container
+        if: always()
+        shell: bash
+        run: |
+          docker stop "$CONTAINER_NAME" >/dev/null 2>&1 || true
