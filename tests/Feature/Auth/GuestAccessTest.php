@@ -1,7 +1,9 @@
 <?php
 
+use Illuminate\Support\Facades\Auth;
+
 it('redirects unauthenticated users away from every ordinary business module', function (string $routeName): void {
-    auth()->logout();
+    Auth::forgetGuards();
     $this->get(route($routeName))->assertRedirect(route('login'));
 })->with([
     'home',

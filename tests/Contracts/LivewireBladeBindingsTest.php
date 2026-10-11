@@ -31,6 +31,35 @@ function marsLivewireViewBindings(): array
     return $matched;
 }
 
+/**
+ * Only templates declaring actions should enter action binding cases.
+ * Templates with no such actions are still indexed by the separate screen check.
+ *
+ * @return array<string,array{0:class-string,1:string}>
+ */
+function marsLivewireActionBindingViews(): array
+{
+    return array_filter(
+        marsLivewireViewBindings(),
+        static fn (array $case): bool => preg_match(
+            '/wire:(?:click|submit|change)(?:\\.[\\w-]+)*="\\s*[A-Za-z_]\\w*/',
+            (string) file_get_contents($case[1]),
+        ) === 1,
+    );
+}
+
+/** @return array<string,array{0:class-string,1:string}> */
+function marsLivewireStateBindingViews(): array
+{
+    return array_filter(
+        marsLivewireViewBindings(),
+        static fn (array $case): bool => preg_match(
+            '/wire:model(?:\\.[\\w-]+)*="\\s*[A-Za-z_]\\w*/',
+            (string) file_get_contents($case[1]),
+        ) === 1,
+    );
+}
+
 it('keeps each Livewire click and form submit binding connected to a callable public method', function (string $class, string $bladePath): void {
     $blade = file_get_contents($bladePath);
     $reflection = new ReflectionClass($class);
@@ -41,12 +70,14 @@ it('keeps each Livewire click and form submit binding connected to a callable pu
         $matches,
     );
 
+    expect($matches[1])->not->toBeEmpty();
+
     foreach (array_unique($matches[1]) as $method) {
         expect($reflection->hasMethod($method))
             ->toBeTrue("Missing Livewire action {$class}::{$method} from {$bladePath}");
         expect($reflection->getMethod($method)->isPublic())->toBeTrue();
     }
-})->with(fn (): array => marsLivewireViewBindings());
+})->with(fn (): array => marsLivewireActionBindingViews());
 
 it('keeps Livewire form bindings attached to public component state', function (string $class, string $bladePath): void {
     $blade = file_get_contents($bladePath);
@@ -58,12 +89,14 @@ it('keeps Livewire form bindings attached to public component state', function (
         $matches,
     );
 
+    expect($matches[1])->not->toBeEmpty();
+
     foreach (array_unique($matches[1]) as $property) {
         expect($reflection->hasProperty($property))
             ->toBeTrue("Missing form state {$class}::\${$property} from {$bladePath}");
         expect($reflection->getProperty($property)->isPublic())->toBeTrue();
     }
-})->with(fn (): array => marsLivewireViewBindings());
+})->with(fn (): array => marsLivewireStateBindingViews());
 
 it('indexes real application screen templates rather than testing a hard-coded example', function (): void {
     $cases = marsLivewireViewBindings();

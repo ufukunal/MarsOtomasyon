@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 function marsProtectedGetRoutes(): array
@@ -21,7 +22,7 @@ function marsProtectedGetRoutes(): array
 }
 
 it('redirects every anonymous visitor away from all authenticated GET screens', function (string $path): void {
-    auth()->logout();
+    Auth::forgetGuards();
 
     $this->get('/'.ltrim($path, '/'))->assertRedirect(route('login'));
 })->with(fn (): array => marsProtectedGetRoutes());

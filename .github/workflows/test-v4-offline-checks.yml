@@ -5,6 +5,7 @@ on:
     paths:
       - '.github/workflows/test-v4-offline-checks.yml'
       - 'tests/Contracts/**'
+      - 'tests/Feature/**'
   workflow_dispatch:
 permissions:
   contents: read
@@ -93,7 +94,12 @@ jobs:
         run: |
           set -Eeuo pipefail
           mkdir -p artifacts/test-v4
-          timeout 600s bash scripts/ci/test-v4.sh feature 2>&1 | tee artifacts/test-v4/feature.log
+          failed=0
+          while IFS= read -r testfile; do
+            echo "=== V4 Feature: ${testfile} ===" | tee -a artifacts/test-v4/feature.log
+            timeout 120s vendor/bin/pest "$testfile" 2>&1 | tee -a artifacts/test-v4/feature.log || failed=1
+          done < <(find tests/Feature -name '*Test.php' -type f | sort)
+          exit "$failed"
       - name: Save feature evidence
         if: always()
         uses: actions/upload-artifact@v4

@@ -8,10 +8,11 @@ use App\Livewire\Production\ProductionOrderCenter;
 use App\Livewire\Production\RecipeCenter;
 use App\Livewire\Reporting\ReportCenter;
 use App\Livewire\Returns\ReturnCenter;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Livewire;
 
 it('denies guests when Livewire mounts business modules directly', function (string $screen): void {
-    auth()->logout();
+    Auth::forgetGuards();
 
     Livewire::test($screen)->assertForbidden();
 })->with([
