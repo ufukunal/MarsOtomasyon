@@ -43,6 +43,8 @@ jobs:
         run: vendor/bin/phpstan analyse --no-progress
       - name: Release activation safety Unit tests
         run: vendor/bin/pest tests/Unit/Operations/ReleaseActivationGateTest.php
+      - name: Approved v65 UI and authorized screen regression tests
+        run: vendor/bin/pest tests/Unit/UI/ApprovedPrototypeV65ContractTest.php
       - name: Production release shell syntax checks
         run: bash -n ops/build-release-artifact.sh ops/deploy-release.sh scripts/ci/test-release-guards.sh
       - name: Production release tamper-rejection tests
