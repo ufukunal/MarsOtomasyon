@@ -4,9 +4,11 @@ use App\Models\Period\ChannelProductListing;
 use App\Models\Period\Product;
 use App\Support\Channels\Hepsiburada\HepsiburadaPayloadBuilder;
 
+require_once __DIR__.'/OfflineChannelListing.php';
+
 function marsHepsiburadaListing(?string $hbSku = 'HB123'): ChannelProductListing
 {
-    $listing = new ChannelProductListing([
+    $listing = new MarsOfflineChannelListing([
         'external_product_id' => $hbSku,
         'external_sku' => 'MY-SKU',
         'max_channel_quantity' => '500',

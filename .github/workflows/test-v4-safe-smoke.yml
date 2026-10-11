@@ -7,6 +7,7 @@ on:
       - 'tests/Unit/Finance/Mt940ParserTest.php'
       - 'tests/Unit/Security/MutationGateEntryPointsTest.php'
       - 'app/Actions/Finance/ParseBankStatementFile.php'
+      - 'tests/Unit/Channels/**'
   workflow_dispatch:
 permissions:
   contents: read
@@ -68,6 +69,10 @@ jobs:
             tests/Unit/Security/CorrelationAndPeriodCleanupMiddlewareTest.php \
             tests/Unit/Security/MutationGateEntryPointsTest.php \
             tests/Unit/Finance/Mt940ParserTest.php \
+            tests/Unit/Channels/HepsiburadaContractTest.php \
+            tests/Unit/Channels/N11ContractTest.php \
+            tests/Unit/Channels/PriceOverrideTest.php \
+            tests/Unit/Channels/TrendyolContractTest.php \
             2>&1 | tee artifacts/test-v4/safe-smoke.log
       - name: Save test diagnostics
         if: always()

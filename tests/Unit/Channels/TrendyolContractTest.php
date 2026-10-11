@@ -4,9 +4,11 @@ use App\Models\Period\ChannelProductListing;
 use App\Models\Period\Product;
 use App\Support\Channels\Trendyol\TrendyolPayloadBuilder;
 
+require_once __DIR__.'/OfflineChannelListing.php';
+
 function marsTrendyolListing(string $barcode = '123456'): ChannelProductListing
 {
-    $listing = new ChannelProductListing([
+    $listing = new MarsOfflineChannelListing([
         'category_metadata' => ['list_price' => '5.00'],
     ]);
     $listing->setRelation('product', new Product(['code' => 'TY-SKU', 'barcode' => $barcode]));

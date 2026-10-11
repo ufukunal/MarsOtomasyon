@@ -4,9 +4,11 @@ use App\Models\Period\ChannelProductListing;
 use App\Models\Period\Product;
 use App\Support\Channels\N11\N11PayloadBuilder;
 
+require_once __DIR__.'/OfflineChannelListing.php';
+
 function marsN11Listing(): ChannelProductListing
 {
-    $listing = new ChannelProductListing([
+    $listing = new MarsOfflineChannelListing([
         'external_sku' => 'N11-SKU',
         'category_metadata' => ['list_price' => '15.00'],
     ]);
