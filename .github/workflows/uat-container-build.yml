@@ -54,6 +54,28 @@ jobs:
         run: |
           set -Eeuo pipefail
           docker build --file Dockerfile.uat --tag "$IMAGE_TAG" .
+      - name: Verify dedicated UAT writable directories as unprivileged PHP user
+        shell: bash
+        env:
+          MARS_UAT_SHA: ${{ github.sha }}
+          MARS_UAT_PG_OWNER_PASSWORD: ci_owner_not_real
+          MARS_UAT_PG_APP_PASSWORD: ci_app_not_real
+          MARS_UAT_VALKEY_PASSWORD: ci_valkey_not_real
+          MARS_UAT_APP_KEY: base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+        run: |
+          set -Eeuo pipefail
+          # Run the real read-only Compose service; no PostgreSQL or Valkey started.
+          docker tag "$IMAGE_TAG" "ghcr.io/ufukunal/marsotomasyon:uat-$GITHUB_SHA"
+          docker compose -f compose.uat.lab.yml --profile application \
+            run --rm -T --no-deps --entrypoint sh web -ec '
+              test "$(id -u)" = 33
+              test -w /var/www/html/bootstrap/cache
+              test -w /var/www/html/storage/framework/cache
+              touch /var/www/html/bootstrap/cache/.uat-ci-write-check
+              touch /var/www/html/storage/framework/cache/.uat-ci-write-check
+              php artisan --version >/dev/null
+              echo "PASS: Compose Laravel writable paths and artisan bootstrap"
+            '
       - name: Exercise PHP, Laravel routes and assets with network disabled
         shell: bash
         run: |

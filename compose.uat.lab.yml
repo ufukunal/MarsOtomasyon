@@ -91,7 +91,8 @@ services:
     read_only: true
     tmpfs:
       - /tmp:rw,nosuid,nodev,size=128m
-      - /var/www/html/bootstrap/cache:rw,nosuid,nodev,size=32m
+      # php:8.4-cli uses www-data UID/GID 33; tmpfs otherwise mounts root:root.
+      - /var/www/html/bootstrap/cache:rw,nosuid,nodev,size=32m,uid=33,gid=33,mode=0770
     networks: [uat_internal]
     mem_limit: 1024m
     cpus: 1.5
