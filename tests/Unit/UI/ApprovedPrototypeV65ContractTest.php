@@ -49,7 +49,7 @@ it('preserves the canonical v65 theme in the single shared stylesheet', function
     expect($layout)->toContain('resources/css/v65-shell.css')
         ->not->toContain('<style>');
 
-    expect(glob(base_path('resources/css/*.css')))->toHaveCount(2);
+    expect(glob(base_path('resources/css/*.css')))->toHaveCount(3);
     expect(is_file(base_path('reference/marsotomasyon-PROTOTIP-ONAYLI-v65.html')))->toBeTrue();
 });
 
