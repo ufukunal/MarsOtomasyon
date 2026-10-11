@@ -3,13 +3,13 @@
         <section class="panel">
             <h2>Yeni Dönem Aç</h2>
             <div class="form-row">
-                <select wire:model="companyId">
+                <select aria-label="Şirket" wire:model="companyId">
                     <option value="">Şirket seçin</option>
                     @foreach ($companies as $company)
                         <option value="{{ $company->id }}">{{ $company->name }}</option>
                     @endforeach
                 </select>
-                <input wire:model="year" type="number" min="2000" max="2200">
+                <input aria-label="Yeni dönem yılı" wire:model="year" type="number" min="2000" max="2200">
                 <button wire:click="createPeriod" type="button">Yeni Dönem Aç</button>
             </div>
             @error('companyId') <div class="field-error">{{ $message }}</div> @enderror

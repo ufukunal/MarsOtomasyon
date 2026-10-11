@@ -529,3 +529,21 @@ input,select,textarea{border-radius:6px}
  .content :is(.space-y-3,.space-y-4,.space-y-6,.space-y-8)>section:not(.panel){padding:11px}
  .content .table-scroll{max-width:calc(100vw - 24px)}
 }
+
+
+/* v65 compact standalone voucher screens */
+.content .space-y-5{display:grid;gap:12px;min-width:0;max-width:1180px}
+.content .space-y-5>h1{margin:0;font-size:17px;font-weight:750}
+.content .space-y-5>label{
+ display:grid;gap:6px;min-width:0;max-width:900px;color:#40516b;font-weight:650;
+ font-size:11px
+}
+.content .space-y-5>label>:is(input,select,textarea){min-width:0;width:100%;font-weight:400}
+.content .space-y-5>:is(p,.field-error){margin:0}
+.content .space-y-5>button{justify-self:start}
+.content .space-y-5>.form-row{flex-wrap:wrap;align-items:end}
+.content .space-y-5>.form-row>label{display:grid;gap:6px;min-width:150px}
+.content .space-y-5>.form-row>label>:is(select,input){width:100%}
+.content .panel .form-row :is(input,select):not([type="checkbox"]){min-width:110px}
+.content .panel .form-row>label:not(.inline-check){display:grid;gap:5px;color:#40516b}
+@media(max-width:700px){.content .space-y-5{max-width:100%}}

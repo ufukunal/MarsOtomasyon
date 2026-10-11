@@ -1,4 +1,4 @@
-<div class="space-y-5">
+<div class="space-y-5 panel">
     <h1>Cari Borç / Alacak Fişi</h1>
 
     <label>Cari
