@@ -36,13 +36,13 @@ class StockMovementDetail extends Component
         };
         $sourceUrl = $sourceRoute && $sourcePermission
             && $this->movement->document_id
-            && auth()->user()?->can($sourcePermission)
+            && auth()->user()->can($sourcePermission)
             ? route($sourceRoute, ['id' => $this->movement->document_id])
             : null;
 
         return view('livewire.pages.stock.stock-movement-detail', [
             'sourceUrl' => $sourceUrl,
-            'canViewCost' => auth()->user()?->can('cost.view') ?? false,
+            'canViewCost' => auth()->user()->can('cost.view'),
         ])->layout('layouts.app', [
             'pageTitle' => 'Stok Hareketi · #'.$this->movement->id,
         ]);
