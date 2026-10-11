@@ -43,6 +43,7 @@ class StockStatus extends DataTableComponent
             Column::make('reserved', 'Rezerve')->quantity()->sortable(),
             Column::make('consignment_reserved', 'Konsinye')->quantity()->sortable(),
             Column::make('quarantine', 'Karantina')->quantity()->sortable(),
+            Column::make('in_transit', 'Yolda')->quantity()->sortable(),
             Column::make('quantity', 'Toplam')->quantity()->sortable(),
             Column::make('min_stock', 'Minimum')->quantity()->sortable(),
         ];

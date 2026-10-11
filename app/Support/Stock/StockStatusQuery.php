@@ -37,6 +37,12 @@ final class StockStatusQuery
             DB::raw('p.name AS product_name'),
             DB::raw('l.code AS location_code'),
             DB::raw('l.name AS location_name'),
+            DB::raw("(SELECT COALESCE(SUM(tl.quantity - tl.received_quantity), 0)::text
+                FROM transfer_lines tl
+                JOIN transfers t ON t.id = tl.transfer_id
+                WHERE tl.product_id = sb.product_id
+                  AND t.to_location_id = sb.location_id
+                  AND t.status IN ('in_transit', 'partially_received')) AS in_transit"),
             DB::raw('p.is_active AS product_is_active'),
             DB::raw('l.is_active AS location_is_active'),
             'p.category_id',
@@ -107,6 +113,7 @@ final class StockStatusQuery
                 DB::raw('p.name AS product_name'),
                 DB::raw('l.code AS location_code'),
                 DB::raw('l.name AS location_name'),
+                DB::raw('0::text AS in_transit'),
                 DB::raw('p.is_active AS product_is_active'),
                 DB::raw('l.is_active AS location_is_active'),
                 'p.category_id',
