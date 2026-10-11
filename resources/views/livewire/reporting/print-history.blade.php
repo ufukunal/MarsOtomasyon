@@ -1,5 +1,6 @@
 <div class="stack">
-    <section class="panel">
+    <section class="panel stack">
+        <h2>Baskı Geçmişi Filtreleri</h2>
         <div class="form-grid">
             <label>
                 <span>Durum</span>

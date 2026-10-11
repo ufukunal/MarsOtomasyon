@@ -22,6 +22,20 @@ done
 for marker in 'wire:model.live.debounce.300ms="search"' 'wire:model.live="filterValues.' 'wire:click="exportCsv"' 'wire:click="exportXlsx"' 'class="table-footer"'; do
   grep -Fq "$marker" "$table" || { echo "FAIL: shared DataTable feature missing $marker" >&2; exit 1; }
 done
+# Every data grid in these critical UAT operations must be scrollable on narrower screens.
+for view in \
+  resources/views/livewire/production/production-order-center.blade.php \
+  resources/views/livewire/production/recipe-center.blade.php \
+  resources/views/livewire/production/subcontracting-center.blade.php \
+  resources/views/livewire/pages/stock/transfer-detail.blade.php \
+  resources/views/livewire/pages/stock/warehouse-slip-detail.blade.php \
+  resources/views/livewire/channels/channel-account-center.blade.php \
+  resources/views/livewire/channels/channel-listing-center.blade.php \
+  resources/views/livewire/sales/document-list.blade.php; do
+  grep -Fq 'class="table-scroll v65-grid-scroll"' "$view" || {
+    echo "FAIL: v65 responsive table wrapper missing: $view" >&2; exit 1;
+  }
+done
 # Prevent accidental unsafe replacement of the approved prototype.
 grep -Fq 'PROTOTIP ONAYLI v65' "$prototype"
 echo 'PASS: approved v65 shared UI contracts and single-theme rules'

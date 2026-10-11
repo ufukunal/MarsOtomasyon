@@ -4,7 +4,7 @@
     @endif
 
     <section class="panel stack">
-        <h2>Template Revizyonu</h2>
+        <h2>Belge Şablonu Revizyonu</h2>
 
         <div class="report-filter-grid">
             <label class="field">
@@ -42,19 +42,19 @@
         </div>
 
         <div class="report-toolbar">
-            <select wire:model.defer="newSectionType">
+            <select aria-label="Yeni bölüm tipi" wire:model.defer="newSectionType">
                 @foreach($sectionTypes as $type)
                     <option value="{{ $type }}">{{ $type }}</option>
                 @endforeach
             </select>
-            <button type="button" wire:click="addSection">Section Ekle</button>
+            <button type="button" wire:click="addSection">Bölüm Ekle</button>
             <button type="button" class="button-secondary" wire:click="preview">Önizle</button>
             @can('document_templates.update')
                 <button type="button" wire:click="saveRevision">Yeni Revizyon Kaydet</button>
             @endcan
         </div>
 
-        <div class="stack">
+        <div class="stack v65-template-sections">
             @forelse($sections as $index => $section)
                 <div class="panel" wire:key="template-section-{{ $index }}">
                     <div class="report-toolbar">
@@ -76,7 +76,7 @@
                     @endif
                 </div>
             @empty
-                <div class="empty-state">Section eklenmedi.</div>
+                <div class="empty-state">Henüz bölüm eklenmedi.</div>
             @endforelse
         </div>
     </section>
@@ -88,7 +88,7 @@
                 title="Template önizleme"
                 sandbox=""
                 srcdoc="{{ $previewHtml }}"
-                style="width:100%;min-height:520px;border:1px solid #ccc"
+                class="v65-template-preview"
             ></iframe>
         </section>
     @endif

@@ -611,3 +611,41 @@ input,select,textarea{border-radius:6px}
  .v65-list-panel>.form-row{align-items:flex-start;flex-direction:column}
  .v65-grid-scroll>.data-table{min-width:650px}
 }
+
+
+/* v65 transactional and reporting detail workspaces */
+.v65-sales-list{min-width:0}
+.v65-list-heading{
+ display:flex;align-items:center;justify-content:space-between;
+ gap:10px;flex-wrap:wrap;min-height:38px
+}
+.v65-list-heading h1{margin:0;font-size:17px}
+.v65-detail-screen{max-width:100%;align-content:start}
+.v65-detail-screen>h1{font-size:17px;margin:0}
+.v65-detail-screen>.v65-grid-scroll{width:100%}
+.v65-detail-screen>.v65-grid-scroll select{min-width:130px}
+.v65-supplier-performance{min-width:0}
+.v65-supplier-performance>label{max-width:740px}
+.v65-voucher-panel{min-width:0}
+.v65-voucher-panel>label:not(:has(input[type="checkbox"])){
+ display:grid;gap:5px;max-width:850px
+}
+.v65-voucher-panel>label>:is(input,select,textarea){min-width:0;width:100%}
+.v65-voucher-panel>button{justify-self:start}
+.v65-template-preview{
+ width:100%;min-height:520px;border:1px solid var(--line);
+ border-radius:8px;background:#fff
+}
+.v65-template-sections .panel{border-radius:8px}
+.v65-template-sections>.empty-state{
+ border:1px dashed var(--line);border-radius:8px;padding:18px
+}
+.v65-integrity-grid>table{min-width:760px}
+.v65-integrity-grid details summary{
+ cursor:pointer;color:var(--primary-600);font-weight:650
+}
+.v65-integrity-grid pre{
+ max-width:440px;overflow:auto;white-space:pre-wrap;
+ overflow-wrap:anywhere;padding:10px;border:1px solid var(--line);
+ border-radius:6px;background:var(--soft)
+}

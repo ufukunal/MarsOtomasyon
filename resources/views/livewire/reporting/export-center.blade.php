@@ -1,5 +1,6 @@
 <div class="stack">
-    <section class="panel">
+    <section class="panel stack">
+        <h2>Dışa Aktarım Geçmişi</h2>
         <div class="table-scroll">
             <table class="data-table">
                 <thead>

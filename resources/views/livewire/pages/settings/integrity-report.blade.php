@@ -8,6 +8,7 @@
     </section>
 
     <section class="panel">
+        <div class="table-scroll v65-grid-scroll v65-integrity-grid">
         <table class="data-table">
             <thead>
             <tr>
@@ -42,6 +43,6 @@
                 <tr><td colspan="6">Henüz bütünlük kontrolü çalışmadı.</td></tr>
             @endforelse
             </tbody>
-        </table>
+        </table></div>
     </section>
 </div>
