@@ -92,14 +92,31 @@ if (probe.groups < 5 or probe.pageheads < 1 or probe.content < 1
 print('PASS: approved v65 renders navigation groups, page header, and nonempty dashboard in Chromium.')
 PY
 
+# The v165 Ambar screens register after initial deep-link resolution in the prototype.
+# Use its real navigate() behavior on a temporary test copy; never alter the approved HTML.
+python3 - <<'PY_WAREHOUSE'
+from pathlib import Path
+
+source = Path('reference/marsotomasyon-PROTOTIP-ONAYLI-v65.html').read_text()
+assert '</body>' in source
+for route in ('warehouse_slip_list', 'warehouse_slip_new'):
+    suffix = "<script>window.addEventListener('load', () => navigate('" + route + "', true));</script>"
+    html = source.replace('</body>', suffix + '</body>', 1)
+    Path(f'artifacts/v65-browser-navigation-{route}.html').write_text(html)
+PY_WAREHOUSE
+
 # Preserve separate canonical stock screens for module-by-module visual acceptance.
 # Fail if a route falls back to the blank dashboard instead of its expected screen.
 for stock_route in stock_status stock_movements warehouses transfer_list count_list warehouse_slip_list warehouse_slip_new; do
+  case "$stock_route" in
+    warehouse_slip_*) route_url="http://127.0.0.1:18765/artifacts/v65-browser-navigation-${stock_route}.html" ;;
+    *) route_url="http://127.0.0.1:18765/reference/marsotomasyon-PROTOTIP-ONAYLI-v65.html#${stock_route}" ;;
+  esac
   timeout 45s "$browser" --headless=new --no-sandbox --disable-gpu \
     --disable-dev-shm-usage --disable-extensions --no-first-run \
     --window-size=1440,900 --virtual-time-budget=8000 \
     --screenshot="artifacts/v65-browser-${stock_route}.png" \
-    --dump-dom "http://127.0.0.1:18765/reference/marsotomasyon-PROTOTIP-ONAYLI-v65.html#${stock_route}" \
+    --dump-dom "$route_url" \
     >"artifacts/v65-browser-${stock_route}-dom.html" \
     2>"artifacts/v65-browser-${stock_route}-stderr.log" || {
       echo "FAIL: Chromium could not render stock route ${stock_route}" >&2
@@ -128,9 +145,10 @@ class MainText(HTMLParser):
         self.words = []
 
     def handle_starttag(self, tag, attrs):
-        if self.inside:
+        void = {'area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'source'}
+        if self.inside and tag not in void:
             self.depth += 1
-        elif dict(attrs).get('id') == 'main':
+        elif not self.inside and dict(attrs).get('id') == 'main':
             self.inside = True
             self.depth = 1
 
