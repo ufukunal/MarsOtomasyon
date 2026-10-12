@@ -358,3 +358,59 @@
 .app-shell .v65-operations-actions button{min-height:38px;max-width:100%;margin:0}
 @media(max-width:680px){.app-shell .v65-operations-actions{flex:1 1 100%;justify-content:flex-start}}
 /* UAT release marker: approved v65 manual per-screen button review, 2026-10-12. */
+
+/* v65 product list: exact approved HTML screen composition, without changing other DataTables. */
+.app-shell .v65-products{background:transparent;border:0;box-shadow:none;padding:0;min-width:0}
+.app-shell .v65-products .v65-products-hint{display:block;margin:0 0 11px;padding:13px 15px;border:1px solid #d8e5fb;background:#f8fbff;border-radius:12px!important;font-size:12px;color:#476493}
+.app-shell .v65-products-list-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;min-height:68px;padding:10px 12px;margin-bottom:11px;background:#fff;border:1px solid #dce5f0;border-radius:12px!important;box-shadow:0 2px 6px #172c4b08}
+.app-shell .v65-products-list-intro{display:grid;gap:5px;min-width:0}
+.app-shell .v65-products-list-intro strong{font-size:12px;color:#172033;font-weight:800}
+.app-shell .v65-products-list-intro small{font-size:11px;color:#8192a9}
+.app-shell .v65-products-heading-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap;margin-left:auto}
+.app-shell .v65-products-list-heading .v65-products-create{display:inline-flex;align-items:center;justify-content:center;margin:0;min-height:40px;padding:0 14px;background:#1a73e8!important;color:#fff!important;border:1px solid #1a73e8!important;font-size:11.5px!important;font-weight:700!important;text-decoration:none;border-radius:0!important;white-space:nowrap}
+.app-shell .v65-products-list-heading .v65-products-create:hover{background:#1669d5!important;border-color:#1669d5!important}
+.app-shell .v65-products-export-menu{position:relative;z-index:16}
+.app-shell .v65-products-export-menu>summary{display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:0 15px;cursor:pointer;list-style:none;white-space:nowrap;background:#fff;border:1px solid #dce5f0;border-radius:0!important;color:#334155;font-size:11.5px;font-weight:700}
+.app-shell .v65-products-export-menu>summary::-webkit-details-marker{display:none}
+.app-shell .v65-products-export-menu[open]>summary{background:#f4f8fd}
+.app-shell .v65-products-export-options{position:absolute;right:0;top:calc(100% + 4px);min-width:165px;padding:4px;z-index:60;background:#fff;border:1px solid #dce5f0;box-shadow:0 8px 22px #172c4b1f}
+.app-shell .v65-products-export-options button{display:flex;justify-content:flex-start;width:100%;min-height:34px!important;margin:0!important;padding:6px 10px!important;background:#fff!important;border:0!important;color:#334155!important;text-align:left;font-size:11.5px!important;font-weight:600!important}
+.app-shell .v65-products-export-options button:hover{background:#eef3f9!important}
+.app-shell .v65-products .table-toolbar{display:block;padding:9px 10px;margin:0 0 10px;border:1px solid #dce5f0;border-radius:0!important;background:#fff;box-shadow:none}
+.app-shell .v65-products .table-toolbar-main{display:grid;grid-template-columns:minmax(0,1.1fr) repeat(3,minmax(0,1fr)) minmax(80px,85px);gap:10px;align-items:center;width:100%;min-width:0;flex:auto}
+.app-shell .v65-products .table-search{min-width:0;max-width:none;flex:none;margin:0}
+.app-shell .v65-products .table-search input,.app-shell .v65-products .table-filter select{height:42px!important;min-height:42px!important;width:100%;min-width:0;border:1px solid #cfd8e3;background:#fff;color:#243a4a;font-size:11.5px;border-radius:0!important}
+.app-shell .v65-products .table-search input{padding-left:36px}
+.app-shell .v65-products-filter-popover{position:relative;min-width:0;z-index:15}
+.app-shell .v65-products-filter-popover>summary{display:flex;justify-content:center;align-items:center;width:100%;min-height:42px;padding:0 8px;background:#fff;border:1px solid #cfd8e3;color:#33465c;font-size:11.5px;font-weight:700;cursor:pointer;list-style:none;border-radius:0!important}
+.app-shell .v65-products-filter-popover>summary::-webkit-details-marker{display:none}
+.app-shell .v65-products-filter-popover[open]>summary{background:#eef5ff;border-color:#1a73e8}
+.app-shell .v65-products-filter-popover-body{position:absolute;top:calc(100% + 5px);right:0;z-index:80;width:min(285px,85vw);padding:12px;display:grid;gap:10px;background:#fff;border:1px solid #d5dfec;box-shadow:0 12px 28px #172c4b20}
+.app-shell .v65-products-filter-popover-body>strong{font-size:12px}
+.app-shell .v65-products-filter-popover-body .table-filter{display:grid;gap:5px}
+.app-shell .v65-products-filter-popover-body .table-filter span{font-size:11px;color:#52657b}
+.app-shell .v65-products-filter-popover-body button{justify-self:end;background:#1a73e8!important;border-color:#1a73e8!important;color:#fff!important;font-size:11.5px}
+.app-shell .v65-products .v65-shared-table-title{display:flex;align-items:center;justify-content:space-between;min-height:52px;padding:9px 13px;background:#fff;border:1px solid #dce5f0;border-bottom:0}
+.app-shell .v65-products .v65-shared-table-title strong{font-size:12px;font-weight:800;color:#1d2f43}
+.app-shell .v65-products .v65-shared-table-title small{font-size:11px;color:#6f818b}
+.app-shell .v65-products>.table-scroll{background:#fff;border:1px solid #dce5f0;overflow-x:auto;max-width:100%}
+.app-shell .v65-products .data-table{min-width:940px;width:100%}
+.app-shell .v65-products .data-table th{height:43px;vertical-align:middle;white-space:nowrap;background:#f5f8fc;border-right:1px solid #e3eaf3;color:#405575;font-size:11px;font-weight:700;padding:9px 11px}
+.app-shell .v65-products .data-table td{height:44px;vertical-align:middle;white-space:nowrap;border-right:1px solid #e6ecf3;padding:9px 11px;font-size:11.5px;color:#344862}
+.app-shell .v65-products .data-table tbody tr:nth-child(even){background:#f8fafc}
+.app-shell .v65-products .data-table tbody tr:hover{background:#edf5ff}
+.app-shell .v65-products .data-table td a{color:#1268d6;font-weight:750}
+.app-shell .v65-products .data-table td strong{font-weight:750}
+.app-shell .v65-products-reserved{color:#b37600}
+.app-shell .v65-products-available{color:#00864b}
+.app-shell .v65-products-unavailable{color:#d52424}
+.app-shell .v65-products-status{display:inline-flex;align-items:center;padding:4px 8px;font-weight:700;border:1px solid #cae8d0}
+.app-shell .v65-products-status.is-active{color:#087b3d;background:#e9f8ed}
+.app-shell .v65-products-status.is-inactive{color:#a23434;background:#ffeded;border-color:#f0cccc}
+.app-shell .v65-products .table-footer{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;background:#fff;border:1px solid #dce5f0;border-top:0;padding:10px 13px}
+.app-shell .v65-products-footer-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-left:auto}
+.app-shell .v65-products-footer-right .page-size-control{display:inline-flex;align-items:center;gap:7px}
+.app-shell .v65-products-footer-right .column-picker>summary{min-height:33px;border:1px solid #cfd8e3;padding:8px 10px}
+@media(max-width:1100px){.app-shell .v65-products .table-toolbar-main{grid-template-columns:repeat(2,minmax(0,1fr))}.app-shell .v65-products .table-toolbar-main .table-search{grid-column:1/-1}.app-shell .v65-products-filter-popover{max-width:180px}}
+@media(max-width:620px){.app-shell .v65-products-list-heading{align-items:stretch}.app-shell .v65-products-heading-actions{width:100%;margin-left:0;justify-content:flex-start}.app-shell .v65-products .table-toolbar-main{grid-template-columns:1fr}.app-shell .v65-products .table-toolbar-main .table-search{grid-column:auto}.app-shell .v65-products-filter-popover{max-width:none}.app-shell .v65-products-footer-right{margin-left:0}}
+@media print{.app-shell .v65-products-list-heading .v65-products-heading-actions,.app-shell .v65-products .table-toolbar,.app-shell .v65-products .table-footer{display:none!important}.app-shell .v65-products>.table-scroll{overflow:visible}.app-shell .v65-products .data-table{min-width:0}}
