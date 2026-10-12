@@ -260,3 +260,17 @@ it('keeps product export dialog open while Livewire updates field selections', f
         ->toContain('{{ $exportSelectedCount }} alan seçili')
         ->toContain('data-v65-products-dialog-close');
 });
+
+it('keeps worktabs in first-opened order and aligns the close control', function (): void {
+    $js = file_get_contents(base_path('resources/js/app.js'));
+    $css = file_get_contents(base_path('resources/css/v65-shell.css'));
+
+    expect($js)->toContain('const existing = tabs.find((tab) => tab.path === path)')
+        ->toContain('tabs.push({ path, title })')
+        ->not->toContain('tabs = [...tabs.filter((tab) => tab.path !== path), { path, title }]')
+        ->toContain("item.addEventListener('auxclick'")
+        ->toContain('marsWorktabDirty')
+        ->and($css)->toContain('v65 worktab close: compact neutral icon')
+        ->toContain('.worktabs .workspace-tab>.workspace-tab-close')
+        ->toContain('width:20px!important');
+});
