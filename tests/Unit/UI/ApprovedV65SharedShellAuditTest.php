@@ -250,3 +250,13 @@ it('exports only explicitly selected product fields through the same Excel CSV a
         ->and($css)->toContain('.v65-products-export-fields-scroll')
         ->toContain('overflow-y:auto');
 });
+
+it('keeps product export dialog open while Livewire updates field selections', function (): void {
+    $view = file_get_contents(base_path('resources/views/livewire/components/data-table.blade.php'));
+
+    expect($view)->toContain('<dialog wire:ignore.self class="v65-products-dialog v65-products-export-dialog"')
+        ->toContain('wire:model.live="exportFields.{{ $column->key }}"')
+        ->toContain('wire:click="toggleAllExportFields"')
+        ->toContain('{{ $exportSelectedCount }} alan seçili')
+        ->toContain('data-v65-products-dialog-close');
+});
