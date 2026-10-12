@@ -239,7 +239,7 @@ it('exports only explicitly selected product fields through the same Excel CSV a
     expect($component)->toContain('public array $exportFields = []')
         ->toContain('public function toggleAllExportFields(): void')
         ->toContain('public function exportProducts(): StreamedResponse')
-        ->toContain("$this->exportFields[$column->key] ?? false")
+        ->toContain('$this->exportFields[$column->key] ?? false')
         ->toContain("abort_if($columns->isEmpty(), 422")
         ->toContain("['code', 'name']")
         ->and($view)->toContain('v65-products-export-fields-head')
