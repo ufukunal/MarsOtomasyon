@@ -501,3 +501,22 @@
 .v65-products-export-dialog .v65-products-dialog-actions small{font-size:11px;color:#64748b;margin-right:auto}
 .v65-products-export-dialog .v65-products-dialog-actions button:disabled{opacity:.5;cursor:not-allowed}
 @media(max-width:520px){.v65-products-export-dialog{max-height:90vh}.v65-products-export-fields-scroll{max-height:32vh}}
+
+/* v65 worktab close: compact neutral icon aligned within every tab. */
+.app-shell .worktabs .workspace-tab{display:inline-flex;align-items:center;gap:2px;min-height:31px;padding:0 5px 0 0;overflow:hidden}
+.app-shell .worktabs .workspace-tab>a{display:flex;align-items:center;min-height:29px;padding:0 7px 0 11px;line-height:1.2}
+.app-shell .worktabs .workspace-tab>.workspace-tab-close{
+  display:inline-flex!important;align-items:center!important;justify-content:center!important;
+  box-sizing:border-box!important;flex:0 0 20px!important;
+  width:20px!important;min-width:20px!important;max-width:20px!important;
+  height:20px!important;min-height:20px!important;max-height:20px!important;
+  margin:0 2px 0 0!important;padding:0!important;
+  border:0!important;border-radius:4px!important;
+  background:transparent!important;box-shadow:none!important;
+  color:#72839b!important;font-family:Arial,sans-serif!important;
+  font-size:14px!important;font-weight:400!important;line-height:1!important;
+  cursor:pointer!important;vertical-align:middle!important
+}
+.app-shell .worktabs .workspace-tab>.workspace-tab-close:hover{background:#dce6f6!important;color:#1f4f91!important}
+.app-shell .worktabs .workspace-tab>.workspace-tab-close:focus-visible{outline:2px solid #2563eb!important;outline-offset:0}
+.app-shell .worktabs .workspace-tab.is-active>.workspace-tab-close{color:#526a88!important}
