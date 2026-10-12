@@ -340,3 +340,13 @@
  .app-shell :where(.report-toolbar,.v65-stock-product-toolbar,.wizard-actions,.form-actions,.bulk-bar,.document-actions){justify-content:flex-start}
  .app-shell :where(.report-toolbar,.v65-stock-product-toolbar,.wizard-actions,.form-actions,.bulk-bar,.document-actions)>button{max-width:100%}
 }
+
+/* Prototype v65 account/contact form-action sets. Keep table cells as cells. */
+.app-shell .v65-inline-action-form{display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-width:0}
+.app-shell .v65-inline-action-form :where(input,select){flex:1 1 140px;min-width:100px;max-width:260px}
+.app-shell .v65-inline-action-form :where(button,.button-secondary){flex:0 0 auto;margin:0;min-height:38px}
+.app-shell .v65-row-actions{white-space:normal!important;vertical-align:middle!important}
+.app-shell .v65-row-actions :where(button,.button-link,.button-secondary,.button-danger){display:inline-flex;align-items:center;justify-content:center;margin:2px 5px 2px 0;min-height:38px}
+.app-shell .v65-form-footer{display:flex;align-items:center;justify-content:flex-end;gap:7px;flex-wrap:wrap;background:#fff;border-top:1px solid #dfe6ef;min-height:58px;padding:9px 18px}
+.app-shell .v65-form-footer :where(button,.button-link,.button-secondary){min-height:38px}
+@media(max-width:640px){.app-shell .v65-inline-action-form :where(input,select){max-width:none}.app-shell .v65-form-footer{padding:9px 12px}}
