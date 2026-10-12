@@ -86,6 +86,11 @@
 .app-shell .button-secondary,.app-shell .button-link,.app-shell button{transition:background-color .12s ease,border-color .12s ease}
 .app-shell .button-link{display:inline-flex;align-items:center;justify-content:center;min-height:var(--ctl);margin-top:0;padding:0 10px;border-radius:6px}
 .app-shell .button-secondary{min-height:var(--ctl)}
+.app-shell a.button-secondary{display:inline-flex;align-items:center;justify-content:center;min-height:var(--ctl);padding:0 10px;border:1px solid var(--line);border-radius:6px;background:#fff;color:var(--text);font-size:11px;font-weight:650;white-space:nowrap;text-decoration:none}
+.app-shell a.button-secondary:hover{background:var(--soft);border-color:#bdcedb;color:var(--primary-600)}
+.app-shell .empty-state .button-link{display:inline-flex;align-items:center;justify-content:center;min-height:var(--ctl);margin-top:10px;padding:0 12px;font-weight:650}
+.app-shell .category-tree .empty-state{display:grid;justify-items:center;gap:6px}
+.app-shell .category-tree .empty-state p{margin:0}
 .app-shell .button-ghost{display:inline-flex;align-items:center;justify-content:center;min-height:var(--ctl);padding:0 10px;border:1px solid transparent;background:transparent;color:#3f6076;border-radius:6px}
 .app-shell .button-ghost:hover{background:#eef4f8;color:#1f5f89}
 .app-shell .button-danger{display:inline-flex;align-items:center;justify-content:center;min-height:var(--ctl);padding:0 10px;border:1px solid #c94640;background:#d9534f;color:#fff;border-radius:6px}
