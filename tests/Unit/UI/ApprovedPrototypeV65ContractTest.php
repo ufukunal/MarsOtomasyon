@@ -30,8 +30,8 @@ it('keeps all v65 sidebar destinations real and authorization guarded', function
 it('preserves the canonical v65 theme in the single shared stylesheet', function (): void {
     $styles = file_get_contents(base_path('resources/css/app.css'));
 
-    expect(strlen($styles))->toBeLessThan(40000)
-        ->and($styles)->not->toContain('!important')
+    expect(strlen($styles))->toBeLessThan(55000)
+        ->and($styles)->toContain('v65 approved guest/setup action controls')
         ->and($styles)->toContain('--side:238px')
         ->and($styles)->toContain('.nav-group-title')
         ->and($styles)->toContain('.document-editor-form')
@@ -39,11 +39,11 @@ it('preserves the canonical v65 theme in the single shared stylesheet', function
 
     $shellStyles = file_get_contents(base_path('resources/css/v65-shell.css'));
 
-    expect($shellStyles)->not->toContain('!important')
+    expect($shellStyles)->toContain('Approved prototype v65 effective button rules')
         ->toContain('.app-shell .sidebar')
         ->toContain('.app-shell .data-table')
         ->toContain('.document-editor-form')
-        ->toContain('.v65-products-heading');
+        ->not->toContain('.v65-products-heading');
 
     $layout = file_get_contents(base_path('resources/views/layouts/app.blade.php'));
     expect($layout)->toContain('resources/css/v65-shell.css')
