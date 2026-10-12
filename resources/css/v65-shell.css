@@ -217,3 +217,18 @@
 .app-shell .table-toolbar-actions :where(button,.button-link,.button-secondary,a){flex:0 0 auto}
 .app-shell .page-action-menu>summary{display:inline-flex;align-items:center;justify-content:center;min-height:var(--v65-btn-height);padding:6px 11px;border-radius:var(--v65-btn-radius)}
 @media(max-width:640px){.app-shell :where(.page-actions,.v65-page-actions,.form-actions,.table-toolbar-actions){width:100%;justify-content:flex-start}.app-shell .row-actions{white-space:normal}}
+
+/* v65 toolbar alignment pass: shared data tables, filters and bulk operations. */
+.app-shell .table-toolbar{display:flex;align-items:center;flex-wrap:wrap;gap:10px}
+.app-shell .table-toolbar-main{min-width:0;flex:1 1 380px}
+.app-shell .table-toolbar-actions{min-width:0;flex:0 1 auto;justify-content:flex-end}
+.app-shell .table-toolbar-actions :where(.column-picker>summary,.page-size-control,.button-secondary,.button-link){min-height:var(--v65-btn-height)}
+.app-shell .table-toolbar-actions .column-picker>summary{display:inline-flex;align-items:center;justify-content:center;padding:6px 11px;border:1px solid var(--v65-btn-border);border-radius:var(--v65-btn-radius);background:#fff;color:var(--v65-btn-ink);cursor:pointer;font-size:11px;font-weight:650}
+.app-shell .table-toolbar-actions .page-size-control{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.app-shell .table-toolbar-actions .page-size-control select{min-height:var(--v65-btn-height);height:var(--v65-btn-height);max-width:85px}
+.app-shell .column-picker-menu{z-index:65;max-height:min(55vh,390px);overflow:auto}
+.app-shell .column-picker-menu label{display:flex;align-items:center;gap:8px;min-height:30px;white-space:normal}
+.app-shell .bulk-bar{display:flex;align-items:center;gap:7px;flex-wrap:wrap;min-width:0}
+.app-shell .bulk-bar button{display:inline-flex;align-items:center;justify-content:center;min-height:var(--v65-btn-height);margin:0;padding:6px 11px;border-radius:var(--v65-btn-radius);font-size:11px;font-weight:650}
+.app-shell .table-footer{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+@media(max-width:740px){.app-shell .table-toolbar-main,.app-shell .table-toolbar-actions{flex:1 1 100%;justify-content:flex-start}}
