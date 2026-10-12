@@ -191,7 +191,7 @@
 
 /* Shared v65 button sets across every authenticated module.
    Keep actions/permission logic in Blade; normalize only their visual presentation. */
-.app-shell{--v65-btn-height:34px;--v65-btn-radius:6px;--v65-btn-border:#cddbe8;--v65-btn-ink:#28445e;--v65-btn-primary:#1679ae}
+.app-shell{--v65-btn-height:38px;--v65-btn-radius:0px;--v65-btn-border:#dfe6ef;--v65-btn-ink:#334155;--v65-btn-primary:#1a73e8}
 .app-shell :where(.page-actions,.v65-page-actions,.form-actions,.table-toolbar-actions,.row-actions,.wsl-head-actions,.wsl-footer-right,.form-row){min-width:0}
 .app-shell :where(.page-actions,.v65-page-actions,.form-actions,.table-toolbar-actions){display:flex;align-items:center;flex-wrap:wrap;gap:7px}
 .app-shell :where(.page-actions,.v65-page-actions,.form-actions,.table-toolbar-actions) :where(button,.button-link,.button-secondary,.button-ghost,.button-danger,a.button-secondary,a.button-link){
@@ -203,13 +203,13 @@
 .app-shell :where(.button-link,.page-actions>button,.v65-page-actions>button,.form-actions>button,.table-toolbar-actions>button){
  background:var(--v65-btn-primary);border-color:var(--v65-btn-primary);color:#fff
 }
-.app-shell :where(.button-link,.page-actions>button,.v65-page-actions>button,.form-actions>button,.table-toolbar-actions>button):hover:not(:disabled){background:#10658f;border-color:#10658f;color:#fff}
+.app-shell :where(.button-link,.page-actions>button,.v65-page-actions>button,.form-actions>button,.table-toolbar-actions>button):hover:not(:disabled){background:#1669d5;border-color:#1669d5;color:#fff}
 .app-shell :where(.button-secondary,a.button-secondary){background:#fff;color:var(--v65-btn-ink);border:1px solid var(--v65-btn-border)}
 .app-shell :where(.button-secondary,a.button-secondary):hover:not(:disabled){background:#eef5fb;border-color:#9fbdd0;color:#145b81}
 .app-shell :where(.button-ghost){background:transparent;color:#365d75;border:1px solid transparent}
 .app-shell :where(.button-ghost):hover:not(:disabled){background:#eef5fb;color:#145b81}
-.app-shell :where(.button-danger){background:#fff1f1;border:1px solid #e8c1c1;color:#a13030}
-.app-shell :where(.button-danger):hover:not(:disabled){background:#ffe5e5;border-color:#d49c9c;color:#872323}
+.app-shell :where(.button-danger){background:#dc2626;border:1px solid #dc2626;color:#fff}
+.app-shell :where(.button-danger):hover:not(:disabled){background:#b91c1c;border-color:#b91c1c;color:#fff}
 .app-shell :where(.button-link,.button-secondary,.button-ghost,.button-danger,button):focus-visible{outline:2px solid #2384be;outline-offset:2px}
 .app-shell :where(button,.button-link,.button-secondary,.button-ghost,.button-danger):disabled{opacity:.5;cursor:not-allowed}
 .app-shell .row-actions{white-space:normal;vertical-align:middle}
