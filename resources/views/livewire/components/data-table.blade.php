@@ -163,7 +163,7 @@
                     @if($rowActions !== [])
                         <td class="row-actions">
                             @foreach($rowActions as $action)
-                                <button type="button" wire:click="runRowAction('{{ $action['method'] }}', '{{ $row->getKey() }}')">{{ $action['label'] }}</button>
+                                <button type="button" class="button-secondary" wire:click="runRowAction('{{ $action['method'] }}', '{{ $row->getKey() }}')">{{ $action['label'] }}</button>
                             @endforeach
                         </td>
                     @endif

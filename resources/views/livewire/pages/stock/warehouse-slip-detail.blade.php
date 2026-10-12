@@ -38,12 +38,12 @@
                     <td><input data-tr-decimal wire:model="draftLines.{{ $index }}.quantity" inputmode="decimal"></td>
                     @if($direction === 'in' && $canViewCost)<td><input data-tr-decimal wire:model="draftLines.{{ $index }}.unit_cost" inputmode="decimal" placeholder="Boş = mevcut ortalama"></td>@endif
                     <td><input wire:model="draftLines.{{ $index }}.note"></td>
-                    <td><button type="button" wire:click="removeLine({{ $index }})">Kaldır</button></td>
+                    <td><button class="button-danger" type="button" wire:click="removeLine({{ $index }})">Kaldır</button></td>
                 </tr>
             @endforeach
             </tbody></table></div>
             <div class="form-row">
-                <button type="button" wire:click="addLine">Satır Ekle</button>
+                <button class="button-secondary" type="button" wire:click="addLine">Satır Ekle</button>
                 <button type="button" wire:click="saveDraft">Taslağı Kaydet</button>
                 @if($slip && auth()->user()?->can('warehouse_slips.update'))<button type="button" wire:click="post">{{ $acceptCostDeviation ? 'Uyarıya Rağmen Kesinleştir' : 'Kesinleştir' }}</button>@endif
             </div>
@@ -52,7 +52,7 @@
             <div class="table-scroll v65-grid-scroll" id="stock-document-lines"><table class="data-table"><thead><tr><th>Ürün</th><th>Miktar</th>@if($canViewCost)<th>Birim Maliyet</th>@endif<th>Not</th></tr></thead><tbody>
             @foreach($postedLines as $line)<tr><td>{{ $line->product->code }} · {{ $line->product->name }}</td><td>{{ \App\Support\Formatting\TrFormatter::quantity((string)$line->quantity) }}</td>@if($canViewCost)<td>{{ $line->unit_cost !== null ? \App\Support\Formatting\TrFormatter::money((string)$line->unit_cost,4) : '—' }}</td>@endif<td>{{ $line->note }}</td></tr>@endforeach
             </tbody></table></div>
-            @if($slip->status === 'posted' && auth()->user()?->can('warehouse_slips.cancel'))<button type="button" wire:click="reverse">Ters Fişle İptal Et</button>@endif
+            @if($slip->status === 'posted' && auth()->user()?->can('warehouse_slips.cancel'))<button class="button-danger" type="button" wire:click="reverse">Ters Fişle İptal Et</button>@endif
         @endif
     </section>
 

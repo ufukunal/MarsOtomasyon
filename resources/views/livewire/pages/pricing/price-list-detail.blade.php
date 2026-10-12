@@ -26,7 +26,7 @@
             </div>
             <div class="form-row">
                 <label class="field"><span class="field-label">Toplu Fiyat Değişimi (%)</span><input wire:model="bulkPercent" inputmode="decimal"></label>
-                <button type="button" wire:click="bulkAdjust">Toplu Yüzde Uygula</button>
+                <button type="button" class="button-secondary" wire:click="bulkAdjust">Toplu Yüzde Uygula</button>
             </div>
             <div class="table-scroll">
                 <table class="data-table"><thead><tr><th>Ürün</th><th>Fiyat</th><th>Başlangıç</th><th>Bitiş</th><th>İşlem</th></tr></thead><tbody>

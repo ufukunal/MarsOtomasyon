@@ -49,19 +49,19 @@
                             </select>
                         </td>
                         <td><input data-tr-decimal wire:model="draftLines.{{ $index }}.quantity" inputmode="decimal"></td>
-                        <td><button type="button" wire:click="removeLine({{ $index }})">Kaldır</button></td>
+                        <td><button class="button-danger" type="button" wire:click="removeLine({{ $index }})">Kaldır</button></td>
                     </tr>
                 @endforeach
                 </tbody>
             </table></div>
             <div class="form-row">
-                <button type="button" wire:click="addLine">Satır Ekle</button>
+                <button class="button-secondary" type="button" wire:click="addLine">Satır Ekle</button>
                 <button type="button" wire:click="saveDraft">Taslağı Kaydet</button>
                 @if($transfer && auth()->user()?->can('transfers.update'))
                     <button type="button" wire:click="send">Gönder</button>
                 @endif
                 @if($transfer && auth()->user()?->can('transfers.cancel'))
-                    <button type="button" wire:click="cancel">İptal Et</button>
+                    <button class="button-danger" type="button" wire:click="cancel">İptal Et</button>
                 @endif
             </div>
         @else
@@ -94,7 +94,7 @@
                     <button type="button" wire:click="receive">Teslim Al</button>
                 @endif
                 @if(in_array($transfer->status, ['in_transit','partially_received'], true) && auth()->user()?->can('transfers.cancel'))
-                    <button type="button" wire:click="cancel">Kalan Transferi İptal Et</button>
+                    <button class="button-danger" type="button" wire:click="cancel">Kalan Transferi İptal Et</button>
                 @endif
             </div>
         @endif

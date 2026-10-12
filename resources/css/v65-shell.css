@@ -86,6 +86,10 @@
 .app-shell .button-secondary,.app-shell .button-link,.app-shell button{transition:background-color .12s ease,border-color .12s ease}
 .app-shell .button-link{display:inline-flex;align-items:center;justify-content:center;min-height:var(--ctl);margin-top:0;padding:0 10px;border-radius:6px}
 .app-shell .button-secondary{min-height:var(--ctl)}
+.app-shell .button-ghost{display:inline-flex;align-items:center;justify-content:center;min-height:var(--ctl);padding:0 10px;border:1px solid transparent;background:transparent;color:#3f6076;border-radius:6px}
+.app-shell .button-ghost:hover{background:#eef4f8;color:#1f5f89}
+.app-shell .button-danger{display:inline-flex;align-items:center;justify-content:center;min-height:var(--ctl);padding:0 10px;border:1px solid #c94640;background:#d9534f;color:#fff;border-radius:6px}
+.app-shell .button-danger:hover{background:#c6423d;border-color:#b73b36}
 .app-shell .page-actions :where(button,a,summary){display:inline-flex;align-items:center;justify-content:center;min-height:var(--ctl);margin:0;padding:0 10px;font-size:11px;white-space:nowrap}
 .app-shell .tabs,.app-shell .v65-product-tabs{display:flex;flex-wrap:nowrap;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none;background:#f5f8fc;border-bottom:1px solid #d6e0ec}
 .app-shell .tabs::-webkit-scrollbar,.app-shell .v65-product-tabs::-webkit-scrollbar{display:none}
@@ -140,8 +144,9 @@
 .app-shell .v65-shared-table-title small{color:#6f818b}
 .app-shell .data-table-shell>.v65-shared-table-title+.table-scroll{border-top:1px solid #d7e0e9}
 .app-shell .data-table-shell .row-actions{white-space:nowrap}
-.app-shell .data-table-shell .row-actions button{min-height:var(--ctl);padding:0 10px;background:#177eac;border-radius:5px}
-.app-shell .data-table-shell .row-actions button:hover{background:#126993}
+.app-shell .data-table-shell .row-actions button{min-height:var(--ctl);padding:0 10px;border-radius:5px}
+.app-shell .data-table-shell .row-actions .button-secondary{background:#fff;color:#1268d6;border-color:#cbd7dd}
+.app-shell .data-table-shell .row-actions .button-secondary:hover{background:#eef5fb;border-color:#b8cad8}
 .app-shell .data-table-shell .table-toolbar-main{min-width:0}
 .app-shell .data-table-shell .table-toolbar-main input,.app-shell .data-table-shell .table-toolbar-main select{height:var(--ctl);min-height:var(--ctl)}
 .app-shell .data-table-shell .date-range-filter{min-width:0}

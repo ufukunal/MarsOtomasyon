@@ -1,5 +1,6 @@
 <?php
 
+use App\Support\Printing\Label\OpaqueQrSvg;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Validator;
@@ -391,14 +392,14 @@ it('removes the redundant destination warehouse field without losing existing pe
 it('keeps opaque QR identifiers stable per slip and distinct per parcel', function (): void {
     $key = 'test-qr-key';
     $scope = 'company:period:slip-42';
-    $slipToken = \App\Support\Printing\Label\OpaqueQrSvg::token($scope, 0, $key);
-    $parcelOne = \App\Support\Printing\Label\OpaqueQrSvg::token($scope, 1, $key);
-    $parcelTwo = \App\Support\Printing\Label\OpaqueQrSvg::token($scope, 2, $key);
+    $slipToken = OpaqueQrSvg::token($scope, 0, $key);
+    $parcelOne = OpaqueQrSvg::token($scope, 1, $key);
+    $parcelTwo = OpaqueQrSvg::token($scope, 2, $key);
 
     expect($slipToken)->toMatch('/\\A[A-F0-9]{32}\\z/')
         ->and($parcelOne)->toMatch('/\\A[A-F0-9]{32}\\z/')
         ->and($parcelTwo)->toMatch('/\\A[A-F0-9]{32}\\z/')
-        ->and(\App\Support\Printing\Label\OpaqueQrSvg::token($scope, 1, $key))->toBe($parcelOne)
+        ->and(OpaqueQrSvg::token($scope, 1, $key))->toBe($parcelOne)
         ->and($parcelOne)->not->toBe($parcelTwo)
         ->and($slipToken)->not->toBe($parcelOne);
 });
