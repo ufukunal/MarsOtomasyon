@@ -19,6 +19,7 @@
             ->first(fn (array $item): bool => $item['route'] === $activeRoute);
         $listLabel = $stockMeta[0] ?? ($navigationItem['label'] ?? 'Kayıt Listesi');
     @endphp
+    @php($visibleColumnCount = collect($columns)->filter(fn ($column): bool => ! ($hiddenColumns[$column->key] ?? false))->count())
     @if($isProductTable)
         <div class="alert v65-products-hint"><strong>Kısaca:</strong> Ürün kartlarını, satış fiyatlarını ve stok durumunu buradan yönetin.</div>
     @elseif($this instanceof \App\Livewire\Pages\Stock\StockStatus && !($this instanceof \App\Livewire\Pages\Stock\StockCost))
@@ -126,12 +127,12 @@
         <table class="data-table">
             <thead>
             <tr>
-                <th class="select-column">
+                <th class="select-column" scope="col">
                     <button type="button" class="link-button" wire:click="selectVisible">Tümü</button>
                 </th>
                 @foreach ($columns as $column)
                     @continue($hiddenColumns[$column->key] ?? false)
-                    <th @class(['align-end' => $column->align === 'end'])>
+                    <th scope="col" @class(['align-end' => $column->align === 'end'])>
                         @if ($column->sortable)
                             <button type="button" class="sort-button" wire:click="sortBy('{{ $column->key }}')">
                                 {{ $column->label }}
@@ -142,13 +143,13 @@
                         @endif
                     </th>
                 @endforeach
-                @if($rowActions !== [])<th>Eylemler</th>@endif
+                @if($rowActions !== [])<th scope="col">Eylemler</th>@endif
             </tr>
             </thead>
             <tbody>
             @forelse ($rows as $row)
                 <tr wire:key="row-{{ $row->getKey() }}">
-                    <td><input wire:model.live="selected" type="checkbox" value="{{ $row->getKey() }}"></td>
+                    <td><input wire:model.live="selected" type="checkbox" value="{{ $row->getKey() }}" aria-label="Kayıt {{ $row->getKey() }} seç"></td>
                     @foreach ($columns as $column)
                         @continue($hiddenColumns[$column->key] ?? false)
                         <td @class(['align-end tabular' => $column->align === 'end'])>
@@ -170,7 +171,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="{{ count($columns) + 2 }}" class="empty-state">
+                    <td colspan="{{ $visibleColumnCount + 1 + (count($rowActions) > 0 ? 1 : 0) }}" class="empty-state">
                         <div>Kayıt bulunamadı.</div>
                         @if($emptyAction)
                             <a class="button-link" href="{{ route($emptyAction['route']) }}">{{ $emptyAction['label'] }}</a>
