@@ -447,3 +447,16 @@
 .app-shell .page-actions.v65-page-actions .v65-products-export-options{position:absolute;top:calc(100% + 4px);right:0;z-index:80;min-width:155px;padding:4px;background:#fff;border:1px solid #dce5f0;box-shadow:0 8px 22px #172c4b1f}
 .app-shell .page-actions.v65-page-actions .v65-products-export-options button{display:block;width:100%;text-align:left;background:#fff;color:#334155;border:0;padding:8px 10px;cursor:pointer}
 .app-shell .page-actions.v65-page-actions .v65-products-export-options button:hover{background:#eef3f9}
+
+/* v65: compact, grouped Product / Stock navigation */
+.app-shell .nav-children:has(>.nav-subgroup){padding:3px 0 6px}
+.app-shell .nav-subgroup{margin:2px 0;border:0}
+.app-shell .nav-subgroup-title{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:32px;padding:7px 11px 7px 15px;color:#526781;background:#f5f8fc;border-radius:5px;font-size:11px;font-weight:700;cursor:pointer;list-style:none}
+.app-shell .nav-subgroup-title::-webkit-details-marker{display:none}
+.app-shell .nav-subgroup-title span{font-size:12px;transition:transform .15s ease}
+.app-shell .nav-subgroup[open]>.nav-subgroup-title span{transform:rotate(180deg)}
+.app-shell .nav-subgroup-links{padding:2px 0 3px}
+.app-shell .nav-subgroup .nav-link{display:flex;align-items:center;min-height:31px;margin:1px 0;padding:6px 8px 6px 29px;line-height:1.3;font-size:11px;border-radius:5px}
+.app-shell .nav-subgroup .nav-link .nav-child-dot{flex:0 0 9px;font-size:10px;color:#8196af}
+.app-shell .nav-subgroup .nav-link.is-active{padding-left:26px}
+.app-shell .nav-subgroup-title:focus-visible{outline:2px solid #1a73e8;outline-offset:1px}
