@@ -24,12 +24,6 @@
         <div class="alert"><strong>Kısaca:</strong> Kullanılabilir stok, rezerve ve bloke miktarları ayrı gösterilir.</div>
     @endif
     @if($isProductTable)
-        <div class="v65-products-list-heading">
-            <div class="v65-products-list-intro">
-                <strong>Ürün Listesi</strong>
-                <small>Ürün kartları, fiyat ve stok özeti.</small>
-            </div>
-        </div>
         @teleport('.page-actions.v65-page-actions')
             <div class="v65-products-heading-actions">
                 @if($emptyAction)
