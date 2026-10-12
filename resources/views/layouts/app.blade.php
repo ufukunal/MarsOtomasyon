@@ -206,8 +206,7 @@
                 @elseif (in_array($routeName, ['warehouse.transport.create', 'warehouse.transport.edit'], true))
                     <button type="button" class="button-secondary" onclick="document.querySelector('[data-wsl-print-slip]')?.click()" title="Yazdırma penceresinde PDF olarak kaydedebilirsiniz">Yazdır / PDF</button>
                 @else
-                    <button type="button" class="button-secondary" onclick="window.print()">Yazdır</button>
-                    <button type="button" class="button-secondary" onclick="window.print()" title="PDF için yazdırma ekranında PDF olarak kaydet seçin">PDF</button>
+                    <button type="button" class="button-secondary" onclick="window.print()" title="Yazdırma penceresinde PDF olarak kaydedebilirsiniz">Yazdır / PDF</button>
                 @endif
                 @if (in_array($routeName, ['warehouse.transport.index', 'warehouse.transport.show', 'warehouse.transport.create', 'warehouse.transport.edit'], true))
                     @can('warehouse_slips.view')
