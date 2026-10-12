@@ -35,15 +35,39 @@
                 @if($emptyAction)
                     <a class="button-link v65-products-create" href="{{ route($emptyAction['route']) }}">+ {{ $emptyAction['label'] }}</a>
                 @endif
-                <details class="v65-products-export-menu">
-                    <summary>Excel / CSV</summary>
-                    <div class="v65-products-export-options">
-                        <button type="button" wire:click="exportXlsx" data-v65-product-export-xlsx>Excel (.xlsx)</button>
-                        <button type="button" wire:click="exportCsv" data-v65-product-export-csv>CSV (.csv)</button>
-                    </div>
-                </details>
+                <button type="button" class="button-secondary" data-v65-products-print-open>Yazdır</button>
+                <button type="button" class="button-secondary" data-v65-products-export-open>Dışa Aktar</button>
             </div>
         @endteleport
+        <dialog class="v65-products-dialog" data-v65-products-print-dialog aria-label="Yazdırma şablonları">
+            <div class="v65-products-dialog-head"><strong>Yazdırma Şablonları</strong><button type="button" data-v65-products-dialog-close aria-label="Kapat">×</button></div>
+            <p>Yazdırılacak ürün listesi görünümünü seçin.</p>
+            <label>Şablon
+                <select data-v65-products-print-template>
+                    <option value="landscape">Ürün Listesi — A4 Yatay</option>
+                    <option value="portrait">Ürün Listesi — A4 Dikey</option>
+                </select>
+            </label>
+            <div class="v65-products-dialog-actions"><button type="button" class="button-secondary" data-v65-products-dialog-close>İptal</button><button type="button" class="button-link" data-v65-products-print-run>Yazdır / PDF</button></div>
+        </dialog>
+        <dialog class="v65-products-dialog" data-v65-products-export-dialog aria-label="Ürünleri dışa aktar">
+            <div class="v65-products-dialog-head"><strong>Dışa Aktar</strong><button type="button" data-v65-products-dialog-close aria-label="Kapat">×</button></div>
+            <label>Dosya biçimi
+                <select wire:model="exportFormat">
+                    <option value="xlsx">Excel (.xlsx)</option>
+                    <option value="csv">CSV (.csv)</option>
+                    <option value="json">JSON (.json)</option>
+                </select>
+            </label>
+            <label>Çıktı kapsamı
+                <select wire:model="exportScope">
+                    <option value="filtered">Filtrelenmiş tüm kayıtlar</option>
+                    <option value="page">Görünen sayfa</option>
+                    <option value="all">Tüm ürünler</option>
+                </select>
+            </label>
+            <div class="v65-products-dialog-actions"><button type="button" class="button-secondary" data-v65-products-dialog-close>İptal</button><button type="button" class="button-link" wire:click="exportProducts">Dışa Aktar</button></div>
+        </dialog>
     @endif
     <div class="table-toolbar">
         <div class="table-toolbar-main">
