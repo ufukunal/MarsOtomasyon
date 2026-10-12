@@ -135,8 +135,9 @@ final class OpaqueQrSvg
         return $modules;
     }
 
-    /** @param list<int> $data
-     *  @return list<int>
+    /**
+     * @param  list<int>  $data
+     * @return list<int>
      */
     private static function remainder(array $data): array
     {
