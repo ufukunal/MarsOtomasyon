@@ -39,7 +39,11 @@
                 @endforeach
             </div>
         @empty
-            <div class="v65-category-empty"><p>Henüz kategori kaydı bulunmuyor.</p></div>
+            <div class="empty-state v65-category-empty"><p>Henüz kategori kaydı bulunmuyor.</p>
+                @can('product_categories.create')
+                    <a class="button-link table-add-action" href="{{ route('categories.create') }}">+ Yeni Kategori</a>
+                @endcan
+            </div>
         @endforelse
     </section>
 </div>
