@@ -436,3 +436,14 @@
 .app-shell .data-table-shell:not(.v65-products)>.table-toolbar :where(input,select,button,a,summary):focus-visible{outline:2px solid #1a73e8;outline-offset:2px}
 @media(max-width:1000px){.app-shell .data-table-shell:not(.v65-products)>.table-toolbar .table-toolbar-actions{flex:1 1 100%;justify-content:flex-start;margin-left:0}}
 @media(max-width:640px){.app-shell .data-table-shell:not(.v65-products)>.table-toolbar .table-toolbar-main{flex-basis:100%}.app-shell .data-table-shell:not(.v65-products)>.table-toolbar .table-search{max-width:none;flex-basis:100%}.app-shell .data-table-shell:not(.v65-products)>.table-toolbar .table-toolbar-actions{width:100%}}
+
+
+/* Product actions now live in the main page header; no duplicate lower action row. */
+.app-shell .page-actions.v65-page-actions>.v65-products-heading-actions{display:inline-flex;align-items:center;gap:7px;flex-wrap:wrap;margin-left:0}
+.app-shell .page-actions.v65-page-actions .v65-products-create{display:inline-flex;align-items:center;justify-content:center;min-height:34px;padding:0 12px;background:#1a73e8;color:#fff;border:1px solid #1a73e8;text-decoration:none;font-size:11px;font-weight:700;white-space:nowrap}
+.app-shell .page-actions.v65-page-actions .v65-products-export-menu{position:relative}
+.app-shell .page-actions.v65-page-actions .v65-products-export-menu>summary{display:inline-flex;align-items:center;justify-content:center;min-height:34px;padding:0 12px;border:1px solid #dce5f0;background:#fff;color:#334155;font-size:11px;font-weight:700;cursor:pointer;list-style:none;white-space:nowrap}
+.app-shell .page-actions.v65-page-actions .v65-products-export-menu>summary::-webkit-details-marker{display:none}
+.app-shell .page-actions.v65-page-actions .v65-products-export-options{position:absolute;top:calc(100% + 4px);right:0;z-index:80;min-width:155px;padding:4px;background:#fff;border:1px solid #dce5f0;box-shadow:0 8px 22px #172c4b1f}
+.app-shell .page-actions.v65-page-actions .v65-products-export-options button{display:block;width:100%;text-align:left;background:#fff;color:#334155;border:0;padding:8px 10px;cursor:pointer}
+.app-shell .page-actions.v65-page-actions .v65-products-export-options button:hover{background:#eef3f9}
