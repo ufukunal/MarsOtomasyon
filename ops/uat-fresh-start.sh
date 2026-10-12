@@ -56,6 +56,10 @@ done
 
 mkdir -p "$NEW_ROOT" "$HOME/.config/mars"
 git archive "$HEAD_SHA" | tar -x -C "$NEW_ROOT"
+# The checkout is extracted with umask 077. PostgreSQL drops privileges to
+# its postgres user before sourcing /docker-entrypoint-initdb.d/*.sh;
+# allow that user to READ this single read-only bind-mounted init script.
+chmod 0644 "$NEW_ROOT/ops/uat-lab-postgres-init.sh"
 (
   umask 077
   {
