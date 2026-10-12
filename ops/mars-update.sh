@@ -34,8 +34,8 @@ ENV_FILE="$HOME/.config/mars/uat-lab.env"
   echo "BLOCKED: UAT environment ownership/mode invalid" >&2
   exit 77
 }
-OLD_SHA="$(sed -n 's/^MARS_UAT_SHA=//p' "$ENV_FILE")"
-[[ "$OLD_SHA" =~ ^[0-9a-f]{40}$ ]] || {
+ENV_SHA="$(sed -n 's/^MARS_UAT_SHA=//p' "$ENV_FILE")"
+[[ "$ENV_SHA" =~ ^[0-9a-f]{40}$ ]] || {
   echo "BLOCKED: invalid UAT image pin" >&2
   exit 77
 }
@@ -63,39 +63,73 @@ done
   echo "BLOCKED: UAT Valkey volume mismatch" >&2
   exit 77
 }
-[[ "$(sudo docker inspect "$WEB_CID" --format '{{index .Config.Labels "org.opencontainers.image.revision"}}')" == "$OLD_SHA" ]] || {
-  echo "BLOCKED: running web revision differs from UAT release pin" >&2
+# A previous interrupted release may have advanced the env marker but left
+# the running image unchanged. Trust neither marker without image verification.
+RUNNING_SHA="$(sudo docker inspect "$WEB_CID" --format '{{index .Config.Labels "org.opencontainers.image.revision"}}')"
+RUNNING_IMAGE_ID="$(sudo docker inspect "$WEB_CID" --format '{{.Image}}')"
+[[ "$RUNNING_SHA" =~ ^[0-9a-f]{40}$ ]] || {
+  echo "BLOCKED: running UAT web image has no full commit revision" >&2
   exit 77
 }
+[[ "$(sudo docker image inspect "$RUNNING_IMAGE_ID" --format '{{index .Config.Labels "org.opencontainers.image.revision"}}')" == "$RUNNING_SHA" ]] || {
+  echo "BLOCKED: UAT container/image revision labels do not match" >&2
+  exit 77
+}
+[[ "$(sudo docker image inspect "$RUNNING_IMAGE_ID" --format '{{json .RepoTags}}')" == *"\"ghcr.io/ufukunal/marsotomasyon:uat-$RUNNING_SHA\""* ]] || {
+  echo "BLOCKED: running image lacks its expected UAT revision tag" >&2
+  exit 77
+}
+if [[ "$RUNNING_SHA" != "$ENV_SHA" ]]; then
+  echo "WARN: UAT env pin $ENV_SHA differs from running image $RUNNING_SHA"
+  echo "INFO: treating verified running image as rollback baseline; env will update only after successful build"
+fi
 
 echo "=== Fetch current main (no GitHub Actions required) ==="
 git fetch --prune origin main
 TARGET="$(git rev-parse refs/remotes/origin/main^{commit})"
-git cat-file -e "$OLD_SHA^{commit}"
-git merge-base --is-ancestor "$OLD_SHA" "$TARGET" || {
-  echo "BLOCKED: current UAT release is not an ancestor of main" >&2
+git cat-file -e "$ENV_SHA^{commit}" || { echo "BLOCKED: recorded UAT revision absent from git history" >&2; exit 77; }
+git cat-file -e "$RUNNING_SHA^{commit}" || { echo "BLOCKED: running UAT revision absent from git history" >&2; exit 77; }
+git merge-base --is-ancestor "$ENV_SHA" "$TARGET" || {
+  echo "BLOCKED: recorded UAT release is not an ancestor of main" >&2
   exit 77
 }
-if [[ "$OLD_SHA" == "$TARGET" ]]; then
-  echo "PASS: UAT is already pinned to the current main revision"
+git merge-base --is-ancestor "$RUNNING_SHA" "$TARGET" || {
+  echo "BLOCKED: running UAT web revision is not an ancestor of main" >&2
+  exit 77
+}
+if [[ "$RUNNING_SHA" == "$TARGET" ]]; then
+  # The running code is already current; repair only a stale marker after
+  # validating the actual image and dashboard assets.
   sudo docker exec "$WEB_CID" sh -ec '
     grep -q "v65-home-workbench" /var/www/html/resources/views/livewire/reporting/dashboard.blade.php
     test -s /var/www/html/public/build/manifest.json
   ' || { echo "BLOCKED: installed image content does not match current UI expectations" >&2; exit 77; }
+  if [[ "$ENV_SHA" != "$RUNNING_SHA" ]]; then
+    sed -i "s/^MARS_UAT_SHA=$ENV_SHA$/MARS_UAT_SHA=$RUNNING_SHA/" "$ENV_FILE"
+    grep -Fxq "MARS_UAT_SHA=$RUNNING_SHA" "$ENV_FILE"
+    [[ "$(stat -c '%a' "$ENV_FILE")" == 600 ]]
+  fi
   sudo docker exec "$WEB_CID" php artisan view:clear
-  echo "PASS: stale UAT Blade views cleared; reload the browser without cached assets"
+  echo "PASS: UAT web and release marker agree on SHA=$TARGET"
   exit 0
 fi
-if [[ -n "$(git diff --name-only "$OLD_SHA" "$TARGET" -- database/migrations)" ]]; then
+if [[ "$ENV_SHA" == "$TARGET" ]]; then
+  echo "INFO: release marker is current but running web is stale; web update required"
+fi
+if [[ -n "$(git diff --name-only "$RUNNING_SHA" "$TARGET" -- database/migrations)" ]]; then
   echo "BLOCKED: database migration changes require a separate backed-up UAT migration plan" >&2
   exit 77
 fi
 
 # Keep a local tag pointing at the previous image for offline rollback.
 REGISTRY="ghcr.io/ufukunal/marsotomasyon"
-OLD_IMAGE="$REGISTRY:uat-$OLD_SHA"
+OLD_IMAGE="$REGISTRY:uat-$RUNNING_SHA"
 NEW_IMAGE="$REGISTRY:uat-$TARGET"
-sudo docker tag "$(sudo docker inspect "$WEB_CID" --format '{{.Image}}')" "$OLD_IMAGE"
+# Do not retag a real image as a different commit. Preserve verified rollback image.
+[[ "$(sudo docker image inspect "$OLD_IMAGE" --format '{{index .Config.Labels "org.opencontainers.image.revision"}}')" == "$RUNNING_SHA" ]] || {
+  echo "BLOCKED: old UAT image is not available for rollback" >&2
+  exit 77
+}
 
 START_HEAD="$(git rev-parse HEAD)"
 SOURCE_SWITCHED=0
@@ -109,7 +143,7 @@ restore_on_failure() {
       git switch --detach "$START_HEAD" >/dev/null || true
     fi
     if (( MARKER_CHANGED == 1 )); then
-      sed -i "s/^MARS_UAT_SHA=$TARGET$/MARS_UAT_SHA=$OLD_SHA/" "$ENV_FILE" || true
+      sed -i "s/^MARS_UAT_SHA=$TARGET$/MARS_UAT_SHA=$RUNNING_SHA/" "$ENV_FILE" || true
       sudo docker compose --env-file "$ENV_FILE" -f compose.uat.lab.yml --profile application \
         up -d --no-deps --pull never --force-recreate web || true
     fi
@@ -138,8 +172,8 @@ sudo docker run --rm --entrypoint sh "$NEW_IMAGE" -ec '
 echo "PASS: application templates and compiled frontend present in SHA-pinned image"
 
 # Change only the release pin, not passwords or data service configuration.
-if [[ "$OLD_SHA" != "$TARGET" ]]; then
-  sed -i "s/^MARS_UAT_SHA=$OLD_SHA$/MARS_UAT_SHA=$TARGET/" "$ENV_FILE"
+if [[ "$ENV_SHA" != "$TARGET" ]]; then
+  sed -i "s/^MARS_UAT_SHA=$ENV_SHA$/MARS_UAT_SHA=$TARGET/" "$ENV_FILE"
   MARKER_CHANGED=1
 fi
 [[ "$(stat -c '%a' "$ENV_FILE")" == 600 ]]
