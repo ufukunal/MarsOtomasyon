@@ -8,6 +8,7 @@ on:
       - 'vite.config.js'
       - 'scripts/ci/verify-vite-manifest.php'
       - 'scripts/ci/download-uat-storefront-images.py'
+      - 'scripts/ci/build-uat-catalog-batches.py'
       - 'compose.uat.yml'
       - 'ops/uat-preview-start.sh'
       - 'docs/isletim/.env.uat.example'
@@ -48,11 +49,13 @@ jobs:
       DEST_IMAGE: ghcr.io/ufukunal/marsotomasyon:uat-${{ github.sha }}
     steps:
       - uses: actions/checkout@v4
-      - name: Fetch verified storefront product photos for isolated UAT image
+      - name: Build 50-product verified storefront batch for isolated UAT image
         shell: bash
+        env:
+          MARS_UAT_BUILD_BATCH: "1"
         run: |
           set -Eeuo pipefail
-          python3 scripts/ci/download-uat-storefront-images.py
+          python3 scripts/ci/build-uat-catalog-batches.py
       - name: Build source-pinned application image without environment secrets
         shell: bash
         run: |
