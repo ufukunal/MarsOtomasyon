@@ -176,3 +176,8 @@ Depodaki 92 Blade şablonu ayrıca envantere katıldı. İlk arama sadece buton 
 - [ ] `resources/views/printing/transport-slip.blade.php` — eylem/özel kontrol varlığı taraması ve gerektiğinde v65 karşılaştırması
 - [ ] `resources/views/reporting/exports/pdf.blade.php` — eylem/özel kontrol varlığı taraması ve gerektiğinde v65 karşılaştırması
 - [ ] `resources/views/welcome.blade.php` — eylem/özel kontrol varlığı taraması ve gerektiğinde v65 karşılaştırması
+
+## Ekran bazlı manuel görsel karşılaştırmalar
+
+- [x] **Ürün Listesi — 2026-10-12, kaynak kod uyarlaması:** Üst Yazdır / PDF / Excel işlemleri ayrıldı; Yeni Ürün ve Excel / CSV başlık satırına taşındı; arama/Kategori/Marka/Durum/Filtrele tek satıra alındı; diğer filtreler Filtrele içinde saklandı; yalnızca ürün listesindeki seçim ve Eylemler sütunları kaldırıldı; durum ve stok metriklerinin v65 görünümü uygulandı. Diğer modüllerin DataTable seçim/eylem davranışları korundu.
+- [ ] **Ürün Listesi — UAT canlı görsel kabulü:** gerçek kullanıcı oturumunda HTML ekranıyla karşılaştırma ve tıklama doğrulaması bekliyor.
