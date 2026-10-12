@@ -49,6 +49,25 @@
 @media print{.sidebar,.topbar,.worktabs,.v65-page-actions,.topbar-create,.page-action-menu{display:none}.app-shell{display:block}.content{padding:0}.page-header{margin:0}.table-scroll{overflow:visible}}
 
 
+/* Consistent control layout across all authenticated modules. */
+.app-shell :where(.panel,.data-table-shell,.table-toolbar,.table-toolbar-main,.table-toolbar-actions,.form-grid,.form-row,.field,.page-header,.page-actions){min-width:0}
+.app-shell :where(.page-actions,.v65-page-actions,.form-actions,.table-toolbar-actions){display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.app-shell :where(.page-actions,.v65-page-actions,.form-actions,.table-toolbar-actions) :where(a,button,summary){box-sizing:border-box;min-height:var(--ctl);max-width:100%;line-height:1.35}
+.app-shell :where(.field,.form-grid,.form-row,.table-toolbar-main) :where(input:not([type=checkbox]):not([type=radio]),select,textarea){max-width:100%;min-width:0}
+.app-shell :where(.panel,.data-table-shell) .table-scroll{max-width:100%;overflow-x:auto}
+.app-shell .data-table-shell .row-actions{white-space:normal}
+.app-shell .data-table-shell .row-actions button{margin:2px;vertical-align:middle}
+.app-shell .page-header>div:first-child{min-width:0}
+.app-shell .page-header h1{overflow-wrap:anywhere}
+.app-shell .nav-link{overflow-wrap:anywhere}
+@media(max-width:640px){
+ .app-shell .page-header{flex-wrap:wrap;align-items:flex-start}
+ .app-shell .page-actions{margin-left:0}
+ .app-shell .table-toolbar-main{flex-basis:100%}
+ .app-shell .table-search{flex:1 1 170px}
+ .app-shell .form-row .field{min-width:min(100%,175px)}
+}
+
 /* Shared v65 layout contract; applies to every authenticated module. */
 .app-shell{--v65-action-line:#d7e0e5;--v65-ink:#263741;--v65-cyan:#72d4ec;--v65-blue:#1673aa}
 .app-shell .sidebar{width:var(--side);min-width:0}
