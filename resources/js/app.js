@@ -254,13 +254,19 @@ document.addEventListener('click', (event) => {
     if (target.closest('[data-v65-products-print-run]')) {
         const dialog = target.closest('dialog');
         const portrait = dialog?.querySelector('[data-v65-products-print-template]')?.value === 'portrait';
-        document.documentElement.classList.toggle('v65-products-print-portrait', portrait);
+        document.querySelector('[data-v65-products-page-style]')?.remove();
+        const pageStyle = document.createElement('style');
+        pageStyle.setAttribute('data-v65-products-page-style', '');
+        pageStyle.textContent = portrait
+            ? '@media print{@page{size:A4 portrait;margin:12mm}}'
+            : '@media print{@page{size:A4 landscape;margin:10mm}}';
+        document.head.append(pageStyle);
         dialog?.close();
         window.print();
     }
 });
 window.addEventListener('afterprint', () => {
-    document.documentElement.classList.remove('v65-products-print-portrait');
+    document.querySelector('[data-v65-products-page-style]')?.remove();
 });
 
 // v65 worktabs: open business screens persist for this user and active company
