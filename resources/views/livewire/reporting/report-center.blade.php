@@ -63,7 +63,7 @@
                     <button type="button" class="button-secondary" wire:click="savePreset">Preset Kaydet</button>
 
                     @if($selectedPresetId)
-                        <button type="button" class="button-secondary" wire:click="deletePreset">Preset Sil</button>
+                        <button type="button" class="button-danger" wire:click="deletePreset">Preset Sil</button>
                     @endif
                 </div>
 
