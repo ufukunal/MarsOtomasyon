@@ -50,7 +50,7 @@ it('preserves approved field groups, filters and A4/A5 and numbered carton print
 
     foreach ([
         'Fiş Bilgileri', 'Firma / Cari', 'Sipariş Referansı', 'İrsaliye Referansı',
-        'Taşıma / Gideceği Ambar', 'Koli Adedi', 'Gideceği Ambar', 'Toplam Ağırlık',
+        'Taşıma Bilgileri', 'Koli Adedi', 'Toplam Ağırlık',
         'Cam İçeriyor', 'Kırılabilir / Hassas', 'Dik Taşınmalı', 'Üstüne Yük Konmaz',
         'Ürünler / Koli İçeriği', 'Firma / Teslimat İletişimi', 'Teslimat Adresi',
         'Etiket Önizle', 'Fiş Önizle',
@@ -212,11 +212,12 @@ it('allows server-side product searching beyond the first page and distinguishes
         ->toContain('onload="this.contentWindow.print()"');
 });
 
-it('includes both carrier and destination warehouse in transport list searches', function (): void {
+it('searches carrier without exposing obsolete destination warehouse values', function (): void {
     $list = file_get_contents(base_path('app/Livewire/Pages/Warehouse/TransportSlipList.php'));
 
-    expect($list)->toContain("->orWhere('destination_warehouse', 'ilike', \$text)")
-        ->toContain("->orWhere('destination_warehouse', 'ilike', \$needle)");
+    expect($list)->toContain("->orWhere('carrier', 'ilike', \$text)")
+        ->toContain("->orWhere('carrier', 'ilike', \$needle)")
+        ->not->toContain("->orWhere('destination_warehouse'");
 });
 
 it('exports authorized period-local ambar slips as Excel-compatible CSV without spreadsheet formula execution', function (): void {
@@ -347,4 +348,25 @@ it('groups the warehouse footer actions consistently without changing Livewire b
         ->toContain('.wsl-footer-group-print')
         ->toContain('.wsl-footer-btn-danger')
         ->toContain('@media(max-width:610px)');
+});
+
+it('removes the redundant destination warehouse field without losing existing period data', function (): void {
+    $editor = file_get_contents(base_path('app/Livewire/Pages/Warehouse/TransportSlipEditor.php'));
+    $form = file_get_contents(base_path('resources/views/livewire/pages/warehouse/transport-slip-editor.blade.php'));
+    $print = file_get_contents(base_path('resources/views/printing/transport-slip.blade.php'));
+    $export = file_get_contents(base_path('app/Http/Controllers/ExportTransportSlipController.php'));
+    $migration = file_get_contents(base_path('database/migrations/period/0001_12_01_000010_create_transport_slips_tables.php'));
+
+    expect($form)->toContain('Taşıma Bilgileri')
+        ->not->toContain('Gideceği Ambar')
+        ->not->toContain('wire:model="destinationWarehouse"')
+        ->and($editor)->not->toContain('public string $destinationWarehouse')
+        ->not->toContain("'destinationWarehouse' => ['required'")
+        ->toContain("'destination_warehouse' => \$slip->destination_warehouse ?: \$data['carrier']")
+        ->toContain("'destination_warehouse' => \$this->slip?->destination_warehouse ?: \$this->carrier")
+        ->and($print)->not->toContain('Gideceği Ambar')
+        ->toContain('<th>Taşıyıcı / Ambar</th><td>{{ $slip->carrier }}</td>')
+        ->and($export)->not->toContain('Gideceği Ambar')
+        ->not->toContain('$slip->destination_warehouse,')
+        ->and($migration)->toContain("'destination_warehouse'");
 });

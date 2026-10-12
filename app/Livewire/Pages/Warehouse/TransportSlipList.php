@@ -60,7 +60,6 @@ class TransportSlipList extends Component
             $query->where(function ($q) use ($text): void {
                 $q->where('number', 'ilike', $text)
                     ->orWhere('carrier', 'ilike', $text)
-                    ->orWhere('destination_warehouse', 'ilike', $text)
                     ->orWhere('tracking_number', 'ilike', $text)
                     ->orWhereHas('contact', fn ($contacts) => $contacts->where('title', 'ilike', $text)
                         ->orWhere('code', 'ilike', $text));
@@ -72,7 +71,6 @@ class TransportSlipList extends Component
             $query->where(function ($q) use ($needle): void {
                 $q->where('number', 'ilike', $needle)
                     ->orWhere('carrier', 'ilike', $needle)
-                    ->orWhere('destination_warehouse', 'ilike', $needle)
                     ->orWhere('tracking_number', 'ilike', $needle)
                     ->orWhereHas('contact', fn ($contacts) => $contacts
                         ->where('title', 'ilike', $needle));

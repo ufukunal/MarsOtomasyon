@@ -47,8 +47,6 @@ class TransportSlipEditor extends Component
 
     public string $carrier = '';
 
-    public string $destinationWarehouse = '';
-
     public int $packageCount = 1;
 
     public string $weightKg = '';
@@ -121,16 +119,8 @@ class TransportSlipEditor extends Component
     {
         if ($value !== '__other__') {
             $this->carrier = $value;
-            $this->updatedCarrier();
         } else {
             $this->carrier = '';
-        }
-    }
-
-    public function updatedCarrier(): void
-    {
-        if ($this->destinationWarehouse === '') {
-            $this->destinationWarehouse = $this->carrier;
         }
     }
 
@@ -178,7 +168,7 @@ class TransportSlipEditor extends Component
                 'dispatch_reference' => $data['dispatchReference'],
                 'shipping_type' => $data['shippingType'],
                 'carrier' => $data['carrier'],
-                'destination_warehouse' => $data['destinationWarehouse'],
+                'destination_warehouse' => $slip->destination_warehouse ?: $data['carrier'],
                 'package_count' => $data['packageCount'],
                 'weight_kg' => $data['weightKg'] !== '' ? $data['weightKg'] : null,
                 'tracking_number' => $data['trackingNumber'],
@@ -358,7 +348,6 @@ class TransportSlipEditor extends Component
             'dispatchReference' => 'İrsaliye Referansı',
             'shippingType' => 'Gönderim Tipi',
             'carrier' => 'Taşıyıcı / Ambar Firması',
-            'destinationWarehouse' => 'Gideceği Ambar',
             'packageCount' => 'Koli Adedi',
             'weightKg' => 'Toplam Ağırlık (kg)',
             'trackingNumber' => 'Ambar Takip / Teslim No',
@@ -396,7 +385,6 @@ class TransportSlipEditor extends Component
             'dispatchReference' => ['nullable', 'string', 'max:80'],
             'shippingType' => ['required', Rule::in(['Ambar', 'Nakliye', 'Kargo', 'Elden Teslim'])],
             'carrier' => ['required', 'string', 'max:180'],
-            'destinationWarehouse' => ['required', 'string', 'max:180'],
             'packageCount' => ['required', 'integer', 'min:1', 'max:500'],
             'weightKg' => ['nullable', 'numeric', 'min:0', 'max:9999999999.99'],
             'trackingNumber' => ['nullable', 'string', 'max:120'],
@@ -422,7 +410,7 @@ class TransportSlipEditor extends Component
         $draft = new TransportSlip([
             'number' => $this->slip !== null ? $this->slip->number : 'TASLAK', 'slip_date' => $this->date,
             'contact_id' => $this->contactId, 'shipping_type' => $this->shippingType,
-            'carrier' => $this->carrier, 'destination_warehouse' => $this->destinationWarehouse,
+            'carrier' => $this->carrier, 'destination_warehouse' => $this->slip?->destination_warehouse ?: $this->carrier,
             'package_count' => $this->packageCount, 'weight_kg' => $this->weightKg,
             'tracking_number' => $this->trackingNumber,
             'contains_glass' => $this->containsGlass, 'fragile' => $this->fragile,
@@ -475,7 +463,6 @@ class TransportSlipEditor extends Component
         $this->shippingType = $s->shipping_type;
         $this->carrier = $s->carrier;
         $this->carrierOption = $s->carrier;
-        $this->destinationWarehouse = $s->destination_warehouse;
         $this->packageCount = (int) $s->package_count;
         $this->weightKg = (string) ($s->weight_kg ?? '');
         $this->trackingNumber = (string) ($s->tracking_number ?? '');

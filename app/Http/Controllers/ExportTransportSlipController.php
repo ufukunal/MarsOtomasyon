@@ -27,7 +27,7 @@ class ExportTransportSlipController
             fwrite($output, "\xEF\xBB\xBF");
             fputcsv($output, [
                 'Fiş No', 'Tarih', 'Firma', 'Cari Kodu', 'Gönderim Tipi',
-                'Taşıyıcı / Ambar', 'Gideceği Ambar', 'Koli', 'Cam', 'Kırılabilir',
+                'Taşıyıcı / Ambar', 'Koli', 'Cam', 'Kırılabilir',
                 'Durum', 'Teslim Edilecek Firma', 'Yetkili', 'Telefon', 'İl', 'İlçe',
                 'Teslimat Adresi', 'Takip No', 'Sipariş Ref.', 'İrsaliye Ref.', 'Ürünler',
             ], ';', '"', '');
@@ -50,7 +50,7 @@ class ExportTransportSlipController
                     $row = [
                         $slip->number, CarbonImmutable::parse((string) $slip->slip_date)->toDateString(),
                         $slip->contact?->title, $slip->contact?->code,
-                        $slip->shipping_type, $slip->carrier, $slip->destination_warehouse,
+                        $slip->shipping_type, $slip->carrier,
                         $slip->package_count, $slip->contains_glass ? 'Evet' : 'Hayır',
                         $slip->fragile ? 'Evet' : 'Hayır', $status,
                         $slip->delivery_company, $slip->delivery_person, $slip->delivery_phone,

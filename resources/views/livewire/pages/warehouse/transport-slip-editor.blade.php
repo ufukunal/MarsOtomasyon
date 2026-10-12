@@ -64,7 +64,7 @@
         </section>
 
         <section class="wsl-card panel">
-            <div class="wsl-card-head">Taşıma / Gideceği Ambar</div>
+            <div class="wsl-card-head">Taşıma Bilgileri</div>
             <div class="wsl-card-body">
                 <div class="wsl-grid">
                     <label class="wsl-field"><span class="field-label">Gönderim Tipi *</span>
@@ -88,7 +88,6 @@
                     </label>
                     <label class="wsl-field"><span class="field-label">Koli Adedi *</span><input type="number" min="1" max="500" step="1" wire:model.live="packageCount" @disabled($readonly) @error('packageCount') aria-invalid="true" @enderror>@error('packageCount')<small class="wsl-field-error">{{ $message }}</small>@enderror</label>
                     <label class="wsl-field"><span class="field-label">Ambar Takip / Teslim No</span><input wire:model="trackingNumber" @disabled($readonly)></label>
-                    <label class="wsl-field"><span class="field-label">Gideceği Ambar *</span><input wire:model="destinationWarehouse" @disabled($readonly) @error('destinationWarehouse') aria-invalid="true" @enderror>@error('destinationWarehouse')<small class="wsl-field-error">{{ $message }}</small>@enderror</label>
                     <label class="wsl-field"><span class="field-label">Toplam Ağırlık (kg)</span><input type="number" min="0" step="0.01" wire:model="weightKg" @disabled($readonly)></label>
 
                 </div>

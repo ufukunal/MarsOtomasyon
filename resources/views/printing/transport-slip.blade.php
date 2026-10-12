@@ -57,7 +57,7 @@ th{background:#f1f5f9}
         </header>
         <table class="details">
             <tr><td>Taşıyıcı / Ambar</td><td>{{ $slip->carrier }}</td><td>Gönderim</td><td>{{ $slip->shipping_type }}</td></tr>
-            <tr><td>Gideceği Ambar</td><td>{{ $slip->destination_warehouse }}</td><td>Koli / Ağırlık</td><td>{{ $slip->package_count }} koli · {{ $slip->weight_kg ?? '0' }} kg</td></tr>
+            <tr><td>Koli / Ağırlık</td><td colspan="3">{{ $slip->package_count }} koli · {{ $slip->weight_kg ?? '0' }} kg</td></tr>
             <tr><td>Takip / Teslim No</td><td>{{ $slip->tracking_number ?: '—' }}</td><td>Sipariş / İrsaliye</td><td>{{ $slip->order_reference ?: '—' }} / {{ $slip->dispatch_reference ?: '—' }}</td></tr>
             <tr><td>Teslim Firma</td><td>{{ $slip->delivery_company }}</td><td>Yetkili / Telefon</td><td>{{ $slip->delivery_person ?: '—' }} · {{ $slip->delivery_phone }}</td></tr>
             <tr><td>İl / İlçe</td><td>{{ $slip->delivery_city }} / {{ $slip->delivery_district }}</td><td>Adres</td><td>{{ $slip->delivery_address }}</td></tr>
@@ -78,7 +78,7 @@ th{background:#f1f5f9}
                 <header class="label-header"><div><b>SEVKİYAT ETİKETİ</b><p>{{ $slip->number }}</p></div><strong>{{ $i }}/{{ $slip->package_count }}</strong></header>
                 <div class="label-company">{{ $slip->delivery_company }}</div>
                 <table>
-                    <tr><th>Gideceği Ambar</th><td>{{ $slip->destination_warehouse }}</td></tr>
+                    <tr><th>Taşıyıcı / Ambar</th><td>{{ $slip->carrier }}</td></tr>
                     <tr><th>Teslim Alacak</th><td>{{ $slip->delivery_person ?: '—' }}</td></tr>
                     <tr><th>Telefon</th><td>{{ $slip->delivery_phone }}</td></tr>
                     <tr><th>İl / İlçe</th><td>{{ $slip->delivery_city }} / {{ $slip->delivery_district }}</td></tr>
