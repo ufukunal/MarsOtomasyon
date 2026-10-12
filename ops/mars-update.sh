@@ -3,6 +3,11 @@
 # Never runs as root; uses the existing isolated UAT Lab and its guarded resume.
 set -Eeuo pipefail
 if [[ "${1:-}" != update || $# -ne 1 ]]; then echo 'Kullanim: mars update' >&2; exit 2; fi
+# No Actions pipeline remains: do not pretend that a fresh immutable image exists.
+echo 'BLOCKED: GitHub workflowlar silindi. Yeni UAT imaj yayin akisina onay verilene kadar mars update devre disi.' >&2
+echo 'Mevcut calisan UAT uygulamasi ve veritabanlari degistirilmedi.' >&2
+exit 77
+
 if (( EUID == 0 )); then echo 'HATA: Root olarak calistirmayin. Normal UAT kullanicisi ile girin.' >&2; exit 77; fi
 command -v git >/dev/null || { echo 'HATA: git eksik' >&2; exit 77; }
 command -v sudo >/dev/null || { echo 'HATA: sudo eksik' >&2; exit 77; }
