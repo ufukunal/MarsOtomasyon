@@ -65,8 +65,8 @@ def main():
                 if not approved(url):
                     continue
                 img = fetch(url)
-                valid = (img.startswith(b"\\xff\\xd8\\xff")
-                         or img.startswith(b"\\x89PNG\\r\\n\\x1a\\n")
+                valid = (img.startswith(b"\xff\xd8\xff")
+                         or img.startswith(b"\x89PNG\r\n\x1a\n")
                          or (img.startswith(b"RIFF") and img[8:12] == b"WEBP"))
                 if valid and len(img) >= 4000:
                     target.write_bytes(img)
