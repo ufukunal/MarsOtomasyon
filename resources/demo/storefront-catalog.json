@@ -1,0 +1,105 @@
+{
+  "snapshot_date": "2026-10-12",
+  "vat_assumption_percent": 20,
+  "note": "Displayed storefront price (VAT included) snapshot; excludes discounts/shipping. VAT 20% is an assumed demo normalization and not a verified product-specific tax rate. No live stock or manufacturing assertion.",
+  "products": [
+    {
+      "code": "DM-AV-001",
+      "name": "Rüya Halo Kristal 3 Renk LED Sarkıt Avize",
+      "price_including_vat": "12500.00",
+      "source": "Avizelerim",
+      "url": "https://avizelerim.com/urun/ruya-halo-kristal-3-renk-led-sarkit-avize/"
+    },
+    {
+      "code": "DM-AV-002",
+      "name": "Rüya Lineer Kristal 3 Renk LED Sarkıt Avize",
+      "price_including_vat": "20500.00",
+      "source": "Avizelerim",
+      "url": "https://avizelerim.com/urun/ruya-lineer-kristal-3-renk-led-sarkit-avize/"
+    },
+    {
+      "code": "DM-AV-003",
+      "name": "Rüya Duo Kristal 3 Renk LED Sarkıt Avize",
+      "price_including_vat": "25700.00",
+      "source": "Avizelerim",
+      "url": "https://avizelerim.com/urun/ruya-duo-kristal-3-renk-led-sarkit-avize/"
+    },
+    {
+      "code": "DM-AV-004",
+      "name": "Özmen 12’li Kristal 3 Renk LED Sarkıt Avize",
+      "price_including_vat": "28500.00",
+      "source": "Avizelerim",
+      "url": "https://avizelerim.com/urun/ozmen-12li-kristal-3-renk-led-sarkit-avize/"
+    },
+    {
+      "code": "DM-AV-005",
+      "name": "Nasa Duo 2’li Kristal 3 Renk LED Sarkıt Avize",
+      "price_including_vat": "67500.00",
+      "source": "Avizelerim",
+      "url": "https://avizelerim.com/urun/nasa-duo-2li-kristal-3-renk-led-sarkit-avize/"
+    },
+    {
+      "code": "DM-AV-006",
+      "name": "Nare Halka 3 Renk LED Sarkıt Avize",
+      "price_including_vat": "14500.00",
+      "source": "Avizelerim",
+      "url": "https://avizelerim.com/urun/nare-halka-3-renk-led-sarkit-avize/"
+    },
+    {
+      "code": "DM-HK-001",
+      "name": "Hugger Eskitme Mermer Dikdörtgen Avize",
+      "price_including_vat": "124900.00",
+      "source": "Heka Store",
+      "url": "https://hekastore.com/collections/avize/products/hugger-eskitme-mermer-dikdortgen-avize"
+    },
+    {
+      "code": "DM-HK-002",
+      "name": "Ponte Platin Dikdörtgen Mermer Avize Large",
+      "price_including_vat": "95634.00",
+      "source": "Heka Store",
+      "url": "https://hekastore.com/collections/avize/products/ponte-platin-dikdortgen-mermer-avize-large"
+    },
+    {
+      "code": "DM-HK-003",
+      "name": "Labranda Füme Cam Siyah Deri Kemer Sarkıt",
+      "price_including_vat": "36750.00",
+      "source": "Heka Store",
+      "url": "https://hekastore.com/collections/avize/products/labranda-7li-fume-camli-siyah-deri-kemerli-avize"
+    },
+    {
+      "code": "DM-HK-004",
+      "name": "Ekho Mermer Eskitme Dikdörtgen Avize",
+      "price_including_vat": "47500.00",
+      "source": "Heka Store",
+      "url": "https://hekastore.com/collections/avize/products/ekho-eskitme-mermer-yemek-masa-ustu-led-sarkit-avize-120-cm"
+    },
+    {
+      "code": "DM-HK-005",
+      "name": "Hartum Mermer Eskitme Yuvarlak Avize",
+      "price_including_vat": "179900.00",
+      "source": "Heka Store",
+      "url": "https://hekastore.com/collections/avize/products/hartum-mermer-eskitme-salon-avize-80cm"
+    },
+    {
+      "code": "DM-HK-006",
+      "name": "Zambiya Buzlu Cam Eskitme Dikdörtgen Avize Large",
+      "price_including_vat": "141900.00",
+      "source": "Heka Store",
+      "url": "https://hekastore.com/collections/avize/products/zambiya-beyaz-buzlu-cam-eskitme-yatay-sarkit-avize"
+    },
+    {
+      "code": "DM-HK-007",
+      "name": "Kinşasa Siyah Deri Beş Füme Cam Plafonyer",
+      "price_including_vat": "18900.00",
+      "source": "Heka Store",
+      "url": "https://hekastore.com/collections/avize/products/kinsasa-siyah-deri-bes-fume-cam-plafonyer"
+    },
+    {
+      "code": "DM-HK-008",
+      "name": "Anvers Eskitme Beyaz Mermer LED Salon Avize",
+      "price_including_vat": "49500.00",
+      "source": "Heka Store",
+      "url": "https://hekastore.com/collections/avize/products/anvers-eskitme-beyaz-mermer-led-salon-avize"
+    }
+  ]
+}
