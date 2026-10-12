@@ -1,3 +1,18 @@
+
+// Keep current route authoritative when the browser restores old <details> state.
+const syncV65Navigation = () => {
+    document.querySelectorAll('[data-v65-nav-group]').forEach((group) => {
+        if (!(group instanceof HTMLDetailsElement)) return;
+        group.open = group.dataset.currentGroup === 'true';
+    });
+};
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', syncV65Navigation, { once: true });
+} else {
+    syncV65Navigation();
+}
+document.addEventListener('livewire:navigated', syncV65Navigation);
+
 document.documentElement.classList.add('js');
 
 document.addEventListener('blur', (event) => {
