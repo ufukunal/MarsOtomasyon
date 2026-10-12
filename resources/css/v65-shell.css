@@ -254,7 +254,7 @@
  --v65-btn-success:#16a34a;--v65-btn-danger:#dc2626;
  --v65-btn-warning:#f59e0b;--v65-btn-purple:#7c3aed;
 }
-.app-shell :where(button,.button-link,.button-secondary,.button-danger,.button-ghost,.wsl-footer-btn,.wsl-footer-back){
+.app-shell :where(button:not(.sort-button):not(.link-button):not(.tab):not(.workspace-tab):not(.tab-close):not(.worktab-close):not(.iconbtn):not(.modal-close):not(.sidebar-toggle):not(.nav-group-title),.button-link,.button-secondary,.button-danger,.button-ghost,.wsl-footer-btn,.wsl-footer-back){
  font-size:12.25px!important;font-weight:700!important;
  border-radius:0!important;box-shadow:0 1px 2px rgba(15,23,42,.035);
  transition:none!important;animation:none!important;
@@ -281,14 +281,15 @@
 .app-shell :where(.page-actions,.v65-page-actions) :where(button,.button-link,.button-secondary,.button-danger,a.button-link,a.button-secondary,.page-action-menu>summary){
  min-height:28px!important;height:28px!important;padding:0 10px!important;
  font-size:11.5px!important;font-weight:600!important;
- gap:5px!important;border-radius:0!important;box-shadow:none!important;white-space:nowrap;
+ gap:5px!important;border-radius:6px!important;box-shadow:none!important;white-space:nowrap;
 }
-.app-shell .page-action-menu-items{border-radius:0!important}
+.app-shell .page-action-menu-items{border-radius:8px!important}
 .app-shell .page-action-menu-items>a{display:flex;align-items:center;min-height:30px;padding:6px 9px;font-weight:500;font-size:11.5px;background:transparent!important;color:#33465c!important}
 .app-shell .page-action-menu-items>a:hover{background:#eef3f9!important}
 .app-shell :where(.table-toolbar-actions,.form-actions,.document-actions,.row-actions,.wsl-footer-right,.wsl-head-actions){gap:7px}
 .app-shell :where(.table-toolbar-actions,.form-actions,.document-actions,.row-actions,.wsl-footer-right,.wsl-head-actions) :where(button,.button-link,.button-secondary,.button-danger,.button-ghost,a.button-link,a.button-secondary){border-radius:0!important}
-.app-shell :where(.column-picker>summary,.page-action-menu>summary,.wsl-footer-btn,.wsl-footer-back){border-radius:0!important}
+.app-shell :where(.column-picker>summary,.wsl-footer-btn,.wsl-footer-back){border-radius:0!important}
+.app-shell .page-action-menu>summary{border-radius:6px!important}
 .app-shell .wsl-footer{--wsl-action-height:38px}
 .app-shell .wsl-footer :where(.wsl-footer-btn,.wsl-footer-back){min-height:38px!important;border-radius:0!important;font-size:12.25px!important;font-weight:700!important}
 .app-shell .wsl-footer .wsl-footer-btn-primary{background:#1a73e8!important;border-color:#1a73e8!important;color:#fff!important}
