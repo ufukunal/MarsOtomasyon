@@ -162,3 +162,16 @@ it('keeps shared module button sets consistent without restyling specialized con
         ->toContain('.page-actions>button')
         ->not->toContain('.app-shell :where(.button-link,button:not(.button-secondary)');
 });
+
+it('uses one print and PDF control per shared toolbar while retaining the same print target', function (): void {
+    $layout = file_get_contents(base_path('resources/views/layouts/app.blade.php'));
+    $css = file_get_contents(base_path('resources/css/v65-shell.css'));
+
+    expect($layout)->toContain('Yazdır / PDF')
+        ->not->toContain('>Yazdır</button>')
+        ->not->toContain('>PDF</button>')
+        ->not->toContain('>PDF</a>')
+        ->and($css)->toContain('/* v65 toolbar alignment pass: shared data tables, filters and bulk operations. */')
+        ->toContain('.app-shell .table-toolbar-actions .column-picker>summary')
+        ->toContain('.app-shell .bulk-bar button');
+});
