@@ -42,7 +42,7 @@ it('keeps v65 daily dashboard visible and older period widgets accessible withou
 it('uses the same reference table scaffolding for product, stock and other lists', function (): void {
     $view = file_get_contents(base_path('resources/views/livewire/components/data-table.blade.php'));
 
-    expect($view)->toContain('v65-products-list-heading')
+    expect($view)->toContain('v65-products-heading-actions')
         ->toContain('v65-shared-table-title')
         ->toContain('v65-products-heading-actions')
         ->not->toContain('v65-shared-list-heading')
@@ -198,8 +198,8 @@ it('matches the approved product-list screenshot without changing other list sel
     $layout = file_get_contents(base_path('resources/views/layouts/app.blade.php'));
     $css = file_get_contents(base_path('resources/css/v65-shell.css'));
 
-    expect($view)->toContain('v65-products-list-heading')
-        ->toContain('Ürün kartları, fiyat ve stok özeti.')
+    expect($view)->toContain('v65-products-heading-actions')
+        ->not->toContain('Ürün kartları, fiyat ve stok özeti.')
         ->toContain('data-v65-products-print-dialog')
         ->toContain('data-v65-products-export-open')
         ->toContain('data-v65-products-print-open')
