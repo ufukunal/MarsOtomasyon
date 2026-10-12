@@ -44,8 +44,8 @@
             </label>
             <div class="v65-products-dialog-actions"><button type="button" class="button-secondary" data-v65-products-dialog-close>İptal</button><button type="button" class="button-link" data-v65-products-print-run>Yazdır / PDF</button></div>
         </dialog>
-        <dialog class="v65-products-dialog" data-v65-products-export-dialog aria-label="Ürünleri dışa aktar">
-            <div class="v65-products-dialog-head"><strong>Dışa Aktar</strong><button type="button" data-v65-products-dialog-close aria-label="Kapat">×</button></div>
+        <dialog class="v65-products-dialog v65-products-export-dialog" data-v65-products-export-dialog aria-label="Ürün Listesi Dışa Aktar">
+            <div class="v65-products-dialog-head"><strong>Ürün Listesi Dışa Aktar</strong><button type="button" data-v65-products-dialog-close aria-label="Kapat">×</button></div>
             <label>Dosya biçimi
                 <select wire:model="exportFormat">
                     <option value="xlsx">Excel (.xlsx)</option>
@@ -60,7 +60,32 @@
                     <option value="all">Tüm ürünler</option>
                 </select>
             </label>
-            <div class="v65-products-dialog-actions"><button type="button" class="button-secondary" data-v65-products-dialog-close>İptal</button><button type="button" class="button-link" wire:click="exportProducts">Dışa Aktar</button></div>
+            @php
+                $exportKeys = collect($columns)->pluck('key');
+                $exportSelectedCount = $exportKeys->filter(fn (string $key): bool => (bool) ($exportFields[$key] ?? false))->count();
+            @endphp
+            <div class="v65-products-export-fields" role="group" aria-label="Dışa aktarılacak alanlar">
+                <div class="v65-products-export-fields-head">
+                    <label class="v65-products-export-field">
+                        <input type="checkbox" wire:click="toggleAllExportFields" @checked($exportSelectedCount === $exportKeys->count()) aria-label="Tüm alanları seç veya kaldır">
+                        <span>Dışa Aktar</span>
+                    </label>
+                    <strong>Alan Adı</strong>
+                </div>
+                <div class="v65-products-export-fields-scroll">
+                    @foreach($columns as $column)
+                        <label class="v65-products-export-field-row" wire:key="export-field-{{ $column->key }}">
+                            <input type="checkbox" wire:model.live="exportFields.{{ $column->key }}">
+                            <span>{{ $column->label }}</span>
+                        </label>
+                    @endforeach
+                </div>
+            </div>
+            <div class="v65-products-dialog-actions">
+                <small>{{ $exportSelectedCount }} alan seçili</small>
+                <button type="button" class="button-secondary" data-v65-products-dialog-close>Kapat</button>
+                <button type="button" class="button-link" wire:click="exportProducts" @disabled($exportSelectedCount === 0)>Dışa Aktar</button>
+            </div>
         </dialog>
     @endif
     <div class="table-toolbar">
