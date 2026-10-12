@@ -198,6 +198,39 @@ document.addEventListener('keydown', (event) => {
 });
 
 
+// Close dropdowns when clicking elsewhere, opening another menu or pressing Escape.
+document.addEventListener('pointerdown', (event) => {
+    const target = event.target;
+    if (!(target instanceof Element)) return;
+    const menu = target.closest('details');
+    if (menu && !menu.matches('.page-action-menu, .topbar-create, .user-menu, .v65-products-export-menu')) return;
+    for (const open of document.querySelectorAll('details[open].page-action-menu, details[open].topbar-create, details[open].user-menu, details[open].v65-products-export-menu')) {
+        if (open !== menu && !open.contains(target)) open.open = false;
+    }
+}, true);
+document.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape') return;
+    for (const open of document.querySelectorAll('details[open].page-action-menu, details[open].topbar-create, details[open].user-menu, details[open].v65-products-export-menu')) {
+        open.open = false;
+    }
+});
+
+// Dirty state belongs to the currently loaded page, never to another tab's saved label.
+let marsWorktabDirty = false;
+const marsDirtyControls = 'main input:not([type="hidden"]):not([type="search"]), main select, main textarea, main [contenteditable="true"]';
+document.addEventListener('input', (event) => {
+    if (event.target instanceof Element && event.target.matches(marsDirtyControls)) marsWorktabDirty = true;
+}, true);
+document.addEventListener('change', (event) => {
+    if (event.target instanceof Element && event.target.matches(marsDirtyControls)) marsWorktabDirty = true;
+}, true);
+document.addEventListener('submit', () => { marsWorktabDirty = false; }, true);
+window.addEventListener('beforeunload', (event) => {
+    if (!marsWorktabDirty) return;
+    event.preventDefault();
+    event.returnValue = '';
+});
+
 // v65 worktabs: open business screens persist for this user and active company
 // in this browser tab only. Store paths/titles, never form state or credentials.
 document.addEventListener('DOMContentLoaded', () => {
@@ -241,16 +274,32 @@ document.addEventListener('DOMContentLoaded', () => {
             link.textContent = tab.title;
             if (tab.path === path) link.setAttribute('aria-current', 'page');
             item.append(link);
-            if (tab.path !== path) {
+            {
                 const close = document.createElement('button');
                 close.type = 'button';
                 close.className = 'workspace-tab-close';
                 close.setAttribute('aria-label', tab.title + ' sekmesini kapat');
                 close.textContent = '×';
-                close.addEventListener('click', () => {
+                const closeTab = () => {
+                    if (tab.path === path && marsWorktabDirty
+                        && !window.confirm('Kaydedilmemiş işlemler var. Sekmeyi kapatmak istiyor musunuz?')) return;
                     tabs = tabs.filter((current) => current.path !== tab.path);
                     store();
-                    render();
+                    if (tab.path === path) {
+                        marsWorktabDirty = false;
+                        window.location.assign(tabs.at(-1)?.path ?? '/');
+                    } else {
+                        render();
+                    }
+                };
+                close.addEventListener('click', closeTab);
+                item.addEventListener('auxclick', (event) => {
+                    if (event.button !== 1 || event.target.closest('button')) return;
+                    event.preventDefault();
+                    closeTab();
+                });
+                item.addEventListener('mousedown', (event) => {
+                    if (event.button === 1) event.preventDefault();
                 });
                 item.append(close);
             }
