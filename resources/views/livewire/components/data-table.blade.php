@@ -19,7 +19,11 @@
             ->first(fn (array $item): bool => $item['route'] === $activeRoute);
         $listLabel = $stockMeta[0] ?? ($navigationItem['label'] ?? 'Kayıt Listesi');
     @endphp
-    @php($visibleColumnCount = collect($columns)->filter(fn ($column): bool => ! ($hiddenColumns[$column->key] ?? false))->count())
+    @php
+        $visibleColumnCount = collect($columns)
+            ->filter(fn ($column): bool => ! ($hiddenColumns[$column->key] ?? false))
+            ->count();
+    @endphp
     @if(!$isProductTable && $this instanceof \App\Livewire\Pages\Stock\StockStatus && !($this instanceof \App\Livewire\Pages\Stock\StockCost))
         <div class="alert"><strong>Kısaca:</strong> Kullanılabilir stok, rezerve ve bloke miktarları ayrı gösterilir.</div>
     @endif
@@ -221,7 +225,9 @@
                     @foreach ($columns as $column)
                         @continue($hiddenColumns[$column->key] ?? false)
                         <td @class(['align-end tabular' => $column->align === 'end'])>
-                            @php($cellUrl = $this->columnUrl($row, $column))
+                            @php
+                                $cellUrl = $this->columnUrl($row, $column);
+                            @endphp
                             @if($cellUrl)
                                 <a href="{{ $cellUrl }}" @class(['v65-products-name-link' => $isProductTable && $column->key === 'name'])>{{ $this->formattedValue($row, $column) }}</a>
                             @elseif($isProductTable && $column->key === 'is_active')
