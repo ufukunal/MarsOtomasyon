@@ -71,7 +71,7 @@ it('preserves approved field groups, filters and A4/A5 and numbered carton print
     expect($printing)->toContain('$copy < 2')
         ->toContain('$i <= $slip->package_count')
         ->toContain('OpaqueQrSvg::render')
-        ->toContain('SEVKİYAT ETİKETİ');
+        ->toContain('class="label-header"');
 });
 
 it('requires a distinct period migration and keeps the UAT migration isolated', function (): void {
@@ -322,9 +322,10 @@ it('renders both A4 halves and carton labels without requiring a database', func
         ->not->toContain('<table class="items">');
 
     $labels = view('printing.transport-slip', [...$data, 'format' => 'labels'])->render();
-    expect(substr_count($labels, 'SEVKİYAT ETİKETİ'))->toBe(3)
+    expect(substr_count($labels, 'class="label-qr"'))->toBe(3)
         ->and($labels)->toContain('1/3')
-        ->toContain('3/3');
+        ->toContain('3/3')
+        ->not->toContain('SEVKİYAT ETİKETİ');
 });
 
 it('groups the warehouse footer actions consistently without changing Livewire behavior', function (): void {
@@ -382,9 +383,9 @@ it('prints confidential QR codes rather than public barcodes on transport slips 
         ->toContain('OpaqueQrSvg::token($qrScope, 0,')
         ->toContain('OpaqueQrSvg::token($qrScope, $i,')
         ->toContain('font-size:47px')
-        ->toContain('font-size:27px')
+        ->toContain('font-size:33px')
         ->toContain('font-size:18px')
-        ->toContain('font-size:24px')
+        ->toContain('font-size:29px')
         ->toContain('class="label-city"')
         ->toContain('class="label-district"')
         ->not->toContain('Code39Svg::render')
@@ -392,4 +393,28 @@ it('prints confidential QR codes rather than public barcodes on transport slips 
         ->not->toContain('$item->product')
         ->and($controller)->toContain("'qrScope' => implode(':',")
         ->and($editor)->toContain("'qrScope' => \$this->slip !== null");
+});
+ 
+it('positions each parcel QR above the divider without the former heading or slip number', function (): void {
+    $print = file_get_contents(base_path('resources/views/printing/transport-slip.blade.php'));
+
+    $labelTemplate = substr($print, strpos($print, '<main class="sheet" style="width:210mm">'));
+
+    expect($labelTemplate)->toContain('class="label-header"')
+        ->toContain('class="label-company"')
+        ->toContain('class="label-city"')
+        ->and($print)->toContain('.label-header .label-qr{width:25mm')
+        ->not->toContain('SEVKİYAT ETİKETİ')
+        ->not->toContain('<p>{{ $slip->number }}</p>');
+
+    $headerStart = strpos($labelTemplate, '<header class="label-header">');
+    $headerEnd = strpos($labelTemplate, '</header>', $headerStart);
+    $qrPosition = strpos($labelTemplate, 'OpaqueQrSvg::token($qrScope, $i,');
+    $counterPosition = strpos($labelTemplate, '<strong>{{ $i }}/{{ $slip->package_count }}</strong>');
+
+    expect($qrPosition)->toBeGreaterThan($headerStart)
+        ->toBeLessThan($headerEnd)
+        ->and($counterPosition)->toBeGreaterThan($qrPosition)
+        ->toBeLessThan($headerEnd)
+        ->and(substr_count($labelTemplate, 'OpaqueQrSvg::token($qrScope, $i,'))->toBe(1);
 });

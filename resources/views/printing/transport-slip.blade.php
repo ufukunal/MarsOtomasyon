@@ -26,12 +26,12 @@ th{background:#f1f5f9}
 .signatures>div{border-top:1px solid #15242d;text-align:center;padding:4px}
 .label-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:5mm;padding:5mm;background:#fff}
 .label{border:2px solid #15242d;padding:6mm;min-height:130mm;break-inside:avoid;page-break-inside:avoid}
-.label-header{display:flex;align-items:start;justify-content:space-between;border-bottom:2px solid #15242d;padding-bottom:10px}
-.label-header b{font-size:17px}
+.label-header{display:flex;align-items:center;justify-content:space-between;gap:8px;border-bottom:2px solid #15242d;padding-bottom:8px;min-height:29mm}
+.label-header .label-qr{width:25mm;height:25mm;flex:0 0 25mm;max-width:none;margin:0}
 .label-header strong{font-size:47px;line-height:1;font-weight:900;white-space:nowrap}
-.label-company{font-weight:850;font-size:24px;line-height:1.2;margin:12px 0 8px;overflow-wrap:anywhere}
+.label-company{font-weight:850;font-size:29px;line-height:1.15;margin:12px 0 8px;overflow-wrap:anywhere}
 .label-location{border-bottom:1px solid #d1dce5;padding:5px 0 9px;margin-bottom:9px}
-.label-city{font-weight:900;font-size:27px;line-height:1.15;text-transform:uppercase;overflow-wrap:anywhere}
+.label-city{font-weight:900;font-size:33px;line-height:1.1;text-transform:uppercase;overflow-wrap:anywhere}
 .label-district{font-weight:750;font-size:18px;line-height:1.25;margin-top:3px;overflow-wrap:anywhere}
 .label-qr{display:block;margin:7mm auto 0;width:40mm;height:40mm;max-width:100%}
 .copy .label-qr{width:29mm;height:29mm;margin:3mm auto 0}
@@ -79,7 +79,10 @@ th{background:#f1f5f9}
     <div class="label-grid">
         @for($i = 1; $i <= $slip->package_count; $i++)
             <section class="label">
-                <header class="label-header"><div><b>SEVKİYAT ETİKETİ</b><p>{{ $slip->number }}</p></div><strong>{{ $i }}/{{ $slip->package_count }}</strong></header>
+                <header class="label-header">
+                    {!! \App\Support\Printing\Label\OpaqueQrSvg::render(\App\Support\Printing\Label\OpaqueQrSvg::token($qrScope, $i, (string) config('app.key'))) !!}
+                    <strong>{{ $i }}/{{ $slip->package_count }}</strong>
+                </header>
                 <div class="label-company">{{ $slip->delivery_company }}</div>
                 <div class="label-location">
                     <div class="label-city">{{ $slip->delivery_city }}</div>
@@ -92,7 +95,6 @@ th{background:#f1f5f9}
                     <tr><th>Adres</th><td>{{ $slip->delivery_address }}</td></tr>
                 </table>
                 @if($warnings)<div class="warning">{{ $warnings }}</div>@endif
-                {!! \App\Support\Printing\Label\OpaqueQrSvg::render(\App\Support\Printing\Label\OpaqueQrSvg::token($qrScope, $i, (string) config('app.key'))) !!}
                 <p>{{ $slip->note }}</p>
             </section>
         @endfor
