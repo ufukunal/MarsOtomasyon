@@ -427,7 +427,7 @@ it('keeps the A5 slip title but omits the header contact and removed reference r
     $slipTemplate = substr($print, strpos($print, "@if(\$format === 'slip')"), strpos($print, '@else', strpos($print, "@if(\$format === 'slip')")) - strpos($print, "@if(\$format === 'slip')"));
 
     expect($slipTemplate)->toContain('<h1>AMBAR FİŞİ</h1>')
-        ->toContain("{{ \$slip->number }}")
+        ->toContain('{{ $slip->number }}')
         ->not->toContain('contact?->title')
         ->not->toContain('contact?->code')
         ->not->toContain('Takip / Teslim No')
