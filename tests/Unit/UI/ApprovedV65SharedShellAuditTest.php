@@ -384,3 +384,17 @@ it('keeps company period selectors and navigation aligned with the active screen
         ->and($css)->toContain('.v65-home-quick :where(.v65-home-quick-icon,strong,small)')
         ->toContain('.nav-child-label');
 });
+
+it('renders selected company and period options and prevents vacant home shortcut slots', function (): void {
+    $company = file_get_contents(base_path('resources/views/livewire/shell/company-switcher.blade.php'));
+    $period = file_get_contents(base_path('resources/views/livewire/components/period-switcher.blade.php'));
+    $dashboard = file_get_contents(base_path('resources/views/livewire/reporting/dashboard.blade.php'));
+    $css = file_get_contents(base_path('resources/css/v65-shell.css'));
+
+    expect($company)->toContain('@selected((int) $companyId === (int) $company->id)')
+        ->and($period)->toContain('@selected((int) $periodId === (int) $period->id)')
+        ->and($dashboard)->toContain('v65-home-quick-title')
+        ->toContain('v65-home-quick-description')
+        ->and($css)->toContain('display:flex!important;flex-wrap:wrap!important')
+        ->toContain('.v65-home-quick-grid>.v65-home-quick:not(:has(');
+});
