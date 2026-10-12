@@ -10,19 +10,13 @@ command -v docker >/dev/null || { echo 'HATA: docker eksik' >&2; exit 77; }
 ENV_FILE="$HOME/.config/mars/uat-lab.env"
 [[ -f "$ENV_FILE" && ! -L "$ENV_FILE" ]] || { echo "HATA: Mevcut UAT env yok: $ENV_FILE" >&2; exit 77; }
 [[ "$(stat -c '%a' "$ENV_FILE")" == 600 && "$(stat -c '%U' "$ENV_FILE")" == "$(id -un)" ]] || { echo 'HATA: UAT env izin/sahiplik hatasi' >&2; exit 77; }
-shopt -s nullglob
-candidates=("$HOME"/mars-uat-*)
-repo=''
-for d in "${candidates[@]}"; do
-  if [[ -d "$d/.git" && -f "$d/ops/uat-lab-resume.sh" ]]; then
-    if [[ -n "$repo" ]]; then echo 'HATA: Birden cok UAT checkout var; otomatik secim guvenli degil' >&2; exit 77; fi
-    repo="$d"
-  fi
-done
-[[ -n "$repo" ]] || { echo 'HATA: /home/<kullanici>/mars-uat-* checkout bulunamadi' >&2; exit 77; }
+repo="${MARS_UAT_REPO:-$HOME/mars-uat-129189}"
+[[ -d "$repo/.git" && -f "$repo/ops/uat-lab-resume.sh" && -f "$repo/compose.uat.lab.yml" ]] || {
+  echo "HATA: UAT Lab checkout bulunamadi: $repo" >&2; exit 77;
+}
 cd "$repo"
 [[ -z "$(git status --porcelain)" ]] || { echo 'HATA: Yerel degisiklik var, guncelleme durduruldu' >&2; exit 77; }
-[[ "$(git branch --show-current)" == main ]] || { echo 'HATA: main dalinda degilsiniz' >&2; exit 77; }
+# Detached HEAD is a supported release state; no implicit overwrite of local history.
 echo '=== GitHub main son surumu kontrol ediliyor ==='
 git fetch --prune origin main
 # The newest main commit may be docs/ops-only and have no published image.
@@ -30,7 +24,9 @@ git fetch --prune origin main
 target="$(git log -1 --format=%H refs/remotes/origin/main -- Dockerfile.uat vite.config.js compose.uat.yml compose.uat.lab.yml app resources routes lang config scripts/ci/verify-vite-manifest.php ops/uat-lab-resume.sh ops/uat-lab-start.sh ops/uat-lab-postgres-init.sh .github/workflows/uat-image-publish.yml)"
 current="$(git rev-parse HEAD)"
 [[ "$target" =~ ^[0-9a-f]{40}$ ]] || exit 77
-git merge-base --is-ancestor "$current" "$target" || { echo 'HATA: main ileri-sarilamiyor; kaynak kod degistirilmedi' >&2; exit 77; }
+git merge-base --is-ancestor "$current" refs/remotes/origin/main || {
+  echo 'HATA: Yerel commit main dalinda degil, guncelleme durduruldu' >&2; exit 77;
+}
 image="ghcr.io/ufukunal/marsotomasyon:uat-$target"
 echo "Hedef commit: $target"
 echo "Hedef image: $image"
@@ -44,13 +40,12 @@ done
 (( ready == 1 )) || { echo 'HATA: UAT image bulunamadi. Yayin yapilmadi.' >&2; exit 77; }
 revision="$(sudo docker image inspect "$image" --format '{{index .Config.Labels "org.opencontainers.image.revision"}}')"
 [[ "$revision" == "$target" ]] || { echo 'HATA: Image revision hedef commit ile eslesmiyor' >&2; exit 77; }
-git merge --ff-only refs/remotes/origin/main
-[[ "$(git rev-parse HEAD)" == "$(git rev-parse refs/remotes/origin/main)" ]] || exit 77
-# UAT resume uses HEAD as the image revision; ops-only commits do not have images.
-if [[ "$(git rev-parse HEAD)" != "$target" ]]; then
-  echo 'HATA: Kaynak main HEAD image revizyonundan farkli. Bu surum icin image yayini gerekiyor.' >&2
-  exit 77
-fi
+# Resume is image-SHA-pinned; use the exact published commit in a detached checkout.
+# Never reset branches or switch databases.
+git switch --detach "$target"
+[[ "$(git rev-parse HEAD)" == "$target" ]] || exit 77
 echo '=== Izole UAT Lab kontrolleri ve guncelleme ==='
 bash ops/uat-lab-resume.sh
+running="$(sudo docker inspect mars-uat-lab-web-1 --format '{{index .Config.Labels "org.opencontainers.image.revision"}}')"
+[[ "$running" == "$target" ]] || { echo 'HATA: Calisan konteyner revizyonu eslesmiyor' >&2; exit 77; }
 echo "BASARILI: UAT yayin commit $target"
