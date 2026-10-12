@@ -294,3 +294,21 @@ it('integrates existing secured product image attachments into list, editor and 
         ->toContain('data-v65-product-preview-open')
         ->and($script)->toContain('Product detail cover/gallery preview');
 });
+
+it('supplies persistent product-specific thumbnails to the isolated UAT demo', function (): void {
+    $seeder = file_get_contents(base_path('database/seeders/UatLabDemoSeeder.php'));
+    $painter = file_get_contents(base_path('app/Support/Products/UatDemoImagePainter.php'));
+    $list = file_get_contents(base_path('resources/views/livewire/components/data-table.blade.php'));
+
+    expect($seeder)->toContain('mars_uat_master')
+        ->toContain('mars_uat_demo_2026')
+        ->toContain("MARS_UAT_DEMO_SEED")
+        ->toContain('private function seedProductImages(')
+        ->toContain("Storage::disk(\$disk)->put(\$path, \$png)")
+        ->toContain("'image/png'")
+        ->toContain("['collection' => \$collection, 'original_name' => \$name]")
+        ->and($painter)->toContain('final class UatDemoImagePainter')
+        ->toContain('imagepng(')
+        ->and($list)->toContain('v65-product-photo-thumb')
+        ->toContain('products.images.show');
+});
