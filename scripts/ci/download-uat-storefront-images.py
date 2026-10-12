@@ -80,8 +80,11 @@ def main():
             print("WARN " + errors[-1], file=sys.stderr, flush=True)
     print("Downloaded product images:", counts)
     # Never silently claim both storefronts were imported if an entire source fails.
-    if min(counts.values()) == 0:
-        raise SystemExit("Missing all photos for one storefront; not publishing incomplete UAT image")
+    if sum(counts.values()) != len(products):
+        raise SystemExit(
+            f"Missing {len(products) - sum(counts.values())} real product photos; "
+            "refusing an incomplete UAT catalog image"
+        )
 
 if __name__ == "__main__":
     main()
