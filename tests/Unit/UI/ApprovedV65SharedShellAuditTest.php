@@ -330,3 +330,21 @@ it('keeps product detail cover large and only refreshes UAT-owned demo images', 
         ->toContain("'uat-demo/products/v2/'")
         ->toContain('$existing->update([');
 });
+
+it('keeps storefront catalog data authentic, price normalized and UAT-only', function (): void {
+    $snapshot = json_decode(file_get_contents(base_path('resources/demo/storefront-catalog.json')), true, 512, JSON_THROW_ON_ERROR);
+    $seeder = file_get_contents(base_path('database/seeders/UatStorefrontCatalogSeeder.php'));
+    $workflow = file_get_contents(base_path('.github/workflows/uat-image-publish.yml'));
+
+    expect($snapshot['products'])->toHaveCount(14);
+    expect(collect($snapshot['products'])->pluck('source')->unique()->sort()->values()->all())
+        ->toBe(['Avizelerim', 'Heka Store'])
+        ->and($seeder)->toContain('MARS_UAT_STORE_CATALOG')
+        ->toContain('mars_uat_master')
+        ->toContain('mars_uat_demo_2026')
+        ->toContain("bcdiv(\$gross, '1.20', 4)")
+        ->toContain('imagecreatefromstring(')
+        ->toContain('UAT KATALOG DEMOSU')
+        ->toContain("firstOrCreate(")
+        ->and($workflow)->toContain('download-uat-storefront-images.py');
+});
