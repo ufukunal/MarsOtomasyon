@@ -357,3 +357,4 @@
 .app-shell .v65-operations-actions{display:flex;align-items:center;justify-content:flex-end;gap:7px;flex-wrap:wrap;flex:0 1 auto;min-width:0;border:0;background:transparent;box-shadow:none;padding:0;height:auto}
 .app-shell .v65-operations-actions button{min-height:38px;max-width:100%;margin:0}
 @media(max-width:680px){.app-shell .v65-operations-actions{flex:1 1 100%;justify-content:flex-start}}
+/* UAT release marker: approved v65 manual per-screen button review, 2026-10-12. */
