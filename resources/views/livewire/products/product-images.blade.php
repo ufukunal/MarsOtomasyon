@@ -3,8 +3,8 @@
         <select wire:model.live="collection">
             @foreach($collections as $set)<option value="{{ $set }}">{{ $set }}</option>@endforeach
         </select>
-        <input type="file" wire:model="image" accept=".jpg,.jpeg,.png,.webp">
-        <button type="button" wire:click="upload">Yükle</button>
+        <input type="file" wire:model="image" accept=".jpg,.jpeg,.png,.webp" aria-label="Ürün görseli seç">
+        <button type="button" wire:click="upload" wire:loading.attr="disabled" wire:target="image,upload">Görsel Yükle</button>
     </div>
 
     @if($usingFallback)
@@ -21,6 +21,7 @@
                 </div>
                 @unless($usingFallback)
                     <div class="form-row">
+                        @unless($loop->first)<button type="button" class="button-secondary" wire:click="setCover({{ $imageRow->id }})">Kapak Yap</button>@endunless
                         <span class="drag-handle" title="Sürükleyerek sırala">↕ Sürükle</span>
                         <button type="button" wire:click="move({{ $imageRow->id }}, 'up')">↑</button>
                         <button type="button" wire:click="move({{ $imageRow->id }}, 'down')">↓</button>
@@ -29,7 +30,7 @@
                 @endunless
             </article>
         @empty
-            <p>Bu sette görsel yok. Kanal çözümlemesinde Ortak sete düşülür.</p>
+            <p>Henüz ürün görseli yok. JPG, PNG veya WebP görsel yükleyin; ilk görsel kapak olur.</p>
         @endforelse
     </div>
 </section>
