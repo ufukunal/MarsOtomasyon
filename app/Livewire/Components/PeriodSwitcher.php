@@ -20,8 +20,8 @@ class PeriodSwitcher extends Component
     public function mount(): void
     {
         $this->seedMutationKeys(['selectCompany', 'selectPeriod']);
-        $this->companyId = session('active_company_id') ?? Auth::user()?->last_company_id;
-        $this->periodId = session('active_period_id') ?? Auth::user()?->last_period_id;
+        $this->companyId = PeriodContext::companyId() ?? Auth::user()?->last_company_id;
+        $this->periodId = PeriodContext::periodId() ?? Auth::user()?->last_period_id;
     }
 
     public function updatedCompanyId(?int $companyId): void
@@ -47,6 +47,7 @@ class PeriodSwitcher extends Component
         session()->forget(['active_period_id', 'active_year']);
         PeriodContext::clear();
         session(['active_company_id' => $companyId]);
+        $this->redirect('/secim', navigate: false);
     }
 
     public function updatedPeriodId(?int $periodId): void
