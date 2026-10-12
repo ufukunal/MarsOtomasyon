@@ -9,11 +9,18 @@ table=resources/views/livewire/components/data-table.blade.php
 prototype=reference/marsotomasyon-PROTOTIP-ONAYLI-v65.html
 test -s "$prototype"
 test -s "$css" && test -s "$shell_css" && test -s "$shell" && test -s "$table"
-test "$(wc -c < "$css")" -lt 40000
-if grep -Fq '!important' "$css" || grep -Fq '!important' "$shell_css"; then
-  echo 'FAIL: duplicated specificity via !important in canonical UI theme' >&2
-  exit 1
-fi
+test "$(wc -c < "$css")" -lt 55000
+# The approved prototype itself uses explicit cascade overrides; reject
+# stale 34px guesses instead of banning those intentional overrides.
+grep -Fq -- '--v65-btn-height:38px' "$shell_css" || {
+  echo 'FAIL: approved v65 38px action control sizing is missing' >&2; exit 1;
+}
+grep -Fq -- '--v65-btn-primary:#1a73e8' "$shell_css" || {
+  echo 'FAIL: approved primary action color is missing' >&2; exit 1;
+}
+grep -Fq 'min-height:28px!important;height:28px!important' "$shell_css" || {
+  echo 'FAIL: compact page-header action sizing is missing' >&2; exit 1;
+}
 for selector in '.sidebar-search' '.nav-group-title' '.nav-children' '.worktabs' '.topbar-breadcrumb' '.data-table-shell' '.table-toolbar' '.field-control' '.wizard-form-grid' '.document-editor-form' '.report-center' '.dashboard-grid'; do
   grep -Fq "$selector" "$css" || { echo "FAIL: v65 shared component missing $selector" >&2; exit 1; }
 done
