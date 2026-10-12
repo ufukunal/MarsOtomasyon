@@ -97,3 +97,14 @@ it('standardizes primary UI control sizing, tab overflow and product quick actio
         ->and($layout)->toContain("\$routeName === 'warehouse.transport.index'")
         ->toContain('+ Yeni Ambar Fişi');
 });
+
+it('keeps shared table selection accessible and empty rows aligned after hiding columns', function (): void {
+    $view = file_get_contents(base_path('resources/views/livewire/components/data-table.blade.php'));
+
+    expect($view)->toContain('$visibleColumnCount = collect($columns)->filter(')
+        ->toContain('colspan="{{ $visibleColumnCount + 1 + (count($rowActions) > 0 ? 1 : 0) }}"')
+        ->toContain('aria-label="Kayıt {{ $row->getKey() }} seç"')
+        ->toContain('scope="col"')
+        ->toContain('wire:click="toggleColumn(')
+        ->toContain('wire:click="runRowAction(');
+});
