@@ -26,13 +26,13 @@ td,th{border:1px solid #d1dce5;padding:4px;text-align:left;vertical-align:top;ov
 th{background:#f1f5f9}
 .details td:nth-child(odd){font-weight:bold;width:19%}
 .warning{border:2px solid #15242d;text-align:center;padding:6px;font-weight:800;margin:6px 0}
-.label-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:5mm;padding:5mm;background:#fff}
-.label{border:2px solid #15242d;padding:6mm;min-height:130mm;break-inside:avoid;page-break-inside:avoid}
-.label-header{display:flex;align-items:center;justify-content:space-between;gap:8px;border-bottom:2px solid #15242d;padding-bottom:8px;min-height:29mm}
+.label-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5mm;padding:5mm;background:#fff}
+.label{min-width:0;border:2px solid #15242d;padding:6mm;min-height:130mm;break-inside:avoid;page-break-inside:avoid;overflow-wrap:anywhere}
+.label-header{display:flex;align-items:center;justify-content:space-between;gap:8px;border-bottom:2px solid #15242d;padding-bottom:8px;min-height:29mm;min-width:0}
 .label-header .label-qr{width:25mm;height:25mm;flex:0 0 25mm;max-width:none;margin:0}
-.label-header strong{display:flex;align-items:center;justify-content:flex-end;min-height:25mm;font-size:88px;line-height:1;font-weight:900;white-space:nowrap;letter-spacing:-2px}
-.label-header strong.parcel-count-wide{font-size:70px}
-.label-header strong.parcel-count-xwide{font-size:51px}
+.label-header strong{display:flex;align-items:center;justify-content:flex-end;min-width:0;min-height:25mm;font-size:72px;line-height:1;font-weight:900;white-space:nowrap;letter-spacing:-2px;font-variant-numeric:tabular-nums}
+.label-header strong.parcel-count-wide{font-size:54px}
+.label-header strong.parcel-count-xwide{font-size:38px}
 .label-company{font-weight:850;font-size:29px;line-height:1.15;margin:12px 0 8px;overflow-wrap:anywhere}
 .label-location{border-bottom:1px solid #d1dce5;padding:5px 0 9px;margin-bottom:9px}
 .label-city{font-weight:900;font-size:33px;line-height:1.1;text-transform:uppercase;overflow-wrap:anywhere}
