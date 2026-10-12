@@ -29,6 +29,8 @@
                 <strong>Ürün Listesi</strong>
                 <small>Ürün kartları, fiyat ve stok özeti.</small>
             </div>
+        </div>
+        @teleport('.page-actions.v65-page-actions')
             <div class="v65-products-heading-actions">
                 @if($emptyAction)
                     <a class="button-link v65-products-create" href="{{ route($emptyAction['route']) }}">+ {{ $emptyAction['label'] }}</a>
@@ -41,7 +43,7 @@
                     </div>
                 </details>
             </div>
-        </div>
+        @endteleport
     @endif
     <div class="table-toolbar">
         <div class="table-toolbar-main">
