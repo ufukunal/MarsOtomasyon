@@ -108,3 +108,19 @@ it('keeps shared table selection accessible and empty rows aligned after hiding 
         ->toContain('wire:click="toggleColumn(')
         ->toContain('wire:click="runRowAction(');
 });
+
+it('keeps catalog empty actions permission-scoped and report downloads visibly actionable', function (): void {
+    $category = file_get_contents(base_path('resources/views/livewire/pages/catalog/category-list.blade.php'));
+    $export = file_get_contents(base_path('resources/views/livewire/reporting/export-center.blade.php'));
+    $location = file_get_contents(base_path('resources/views/livewire/pages/catalog/location-detail.blade.php'));
+    $css = file_get_contents(base_path('resources/css/v65-shell.css'));
+
+    expect($category)->toContain('@can(\'product_categories.create\')')
+        ->toContain('class="empty-state v65-category-empty"')
+        ->toContain('route(\'categories.create\')')
+        ->and($export)->toContain('class="button-secondary" href="{{ route(\'reports.exports.download\', $job) }}"')
+        ->and($location)->not->toContain('<strong>{{ $location->code }} · {{ $location->name }}</strong>')
+        ->and($css)->toContain('.app-shell a.button-secondary{display:inline-flex')
+        ->toContain('.app-shell .empty-state .button-link')
+        ->toContain('.app-shell .category-tree .empty-state');
+});
