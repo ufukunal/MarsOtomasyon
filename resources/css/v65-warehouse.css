@@ -11,20 +11,20 @@
 .app-shell .wsl-grid .wsl-field{display:grid;grid-template-columns:155px minmax(0,1fr);gap:8px;align-items:center;min-width:0}
 .app-shell .wsl-grid input,.app-shell .wsl-grid select,.app-shell .wsl-grid textarea{width:100%;min-width:0;min-height:var(--ctl);height:var(--ctl);border:1px solid #d5e0e9;border-radius:4px;padding:7px 9px;background:#fff;color:#263741;font:inherit}
 .app-shell .wsl-grid input[readonly],.app-shell .wsl-grid input:disabled,.app-shell .wsl-grid select:disabled{background:#f4f7fa}
-.app-shell .wsl-grid .field-label{text-align:right;font-size:9px;font-weight:800;color:#526873}
+.app-shell .wsl-grid .field-label{text-align:right;font-size:11px;font-weight:700;color:#526873}
 .app-shell .wsl-wide{grid-column:1/-1}
 .app-shell .wsl-checks{display:flex;flex-wrap:wrap;gap:10px 22px;padding:15px 0 0}
 .app-shell .wsl-checks label{display:flex;gap:7px;align-items:center;font-size:11px;font-weight:700;cursor:pointer;border:1px solid #d9e3ee;background:#fafcfd;border-radius:7px;padding:7px 10px}
-.app-shell .wsl-info{background:#eef8fc;border-left:3px solid #1686b7;padding:8px 10px;border-radius:7px;font-size:9px}
-.app-shell .wsl-warn{background:#fff6df;border-left:3px solid #d59613;padding:8px 10px;font-size:9px;border-radius:7px}
+.app-shell .wsl-info{background:#eef8fc;border-left:3px solid #1686b7;padding:8px 10px;border-radius:7px;font-size:11px}
+.app-shell .wsl-warn{background:#fff6df;border-left:3px solid #d59613;padding:8px 10px;font-size:11px}
 .app-shell .wsl-table{width:100%;border-collapse:collapse;min-width:980px}
 .app-shell .wsl-table th,.app-shell .wsl-items th{background:#f5f8fa;white-space:nowrap}
-.app-shell .wsl-table td,.app-shell .wsl-items td{padding:7px 8px;font-size:9px;vertical-align:middle}
+.app-shell .wsl-table td,.app-shell .wsl-items td{padding:7px 8px;font-size:11px;vertical-align:middle}
 .app-shell .wsl-items select,.app-shell .wsl-items input{width:100%;min-width:90px}
 .app-shell .wsl-items select{min-width:220px}
 .app-shell .wsl-items td:first-child{width:35%}
-.app-shell .wsl-actions{display:flex;align-items:center;gap:5px}
-.app-shell .wsl-actions a{display:inline-flex;align-items:center;min-height:var(--ctl);padding:0 10px;white-space:nowrap;border:1px solid #d6e0e9;border-radius:4px}
+.app-shell .wsl-actions{white-space:nowrap;vertical-align:middle}
+.app-shell .wsl-actions a{display:inline-flex;align-items:center;justify-content:center;min-height:var(--ctl);padding:0 10px;margin:2px 4px 2px 0;white-space:nowrap;border:1px solid #d6e0e9;border-radius:4px}
 .app-shell .wsl-badge{display:inline-flex;align-items:center;padding:3px 7px;font-size:8px;font-weight:800;border:0;border-radius:999px;background:#e8f5fb;color:#126d98}
 .app-shell .wsl-badge.gray{background:#eef2f4;color:#60737c}
 .app-shell .wsl-badge.ok{background:#e7f8ee;color:#087b40;border-color:#c8e9d3}
