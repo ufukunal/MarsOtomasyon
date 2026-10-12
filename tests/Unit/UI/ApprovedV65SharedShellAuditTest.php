@@ -124,3 +124,14 @@ it('keeps catalog empty actions permission-scoped and report downloads visibly a
         ->toContain('.app-shell .empty-state .button-link')
         ->toContain('.app-shell .category-tree .empty-state');
 });
+
+it('preserves actual warehouse table-cell layout and readable field typography', function (): void {
+    $css = file_get_contents(base_path('resources/css/v65-warehouse.css'));
+
+    expect($css)->toContain('.app-shell .wsl-actions{white-space:nowrap;vertical-align:middle}')
+        ->not->toContain('.app-shell .wsl-actions{display:flex')
+        ->toContain('font-size:11px;vertical-align:middle')
+        ->toContain('text-align:right;font-size:11px;font-weight:700')
+        ->toContain('.app-shell .wsl-info{background:#eef8fc')
+        ->toContain('.app-shell .wsl-warn{background:#fff6df');
+});
