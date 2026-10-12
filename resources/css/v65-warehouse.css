@@ -50,6 +50,19 @@
 .app-shell .wsl-footer .wsl-footer-btn-danger:hover{color:#962c2c;background:#fff1f1;border-color:#eab9b9}
 .app-shell .wsl-footer :is(a,button):focus-visible{outline:2px solid #247fbb;outline-offset:2px}
 .app-shell .wsl-footer button:disabled{opacity:.5;cursor:not-allowed}
+/* Approved action-set sizing: preview, print, document and save controls share one row rhythm. */
+.app-shell .wsl-footer{--wsl-action-height:var(--ctl)}
+.app-shell .wsl-footer .wsl-footer-btn,.app-shell .wsl-footer .wsl-footer-back{min-height:var(--wsl-action-height);height:auto;padding:7px 12px;line-height:1.25;text-align:center}
+.app-shell .wsl-footer-pair>.wsl-footer-btn{flex:1 1 auto}
+.app-shell .wsl-footer-group-print .wsl-footer-btn{border-color:#bed5e7;color:#17618d;background:#fff}
+.app-shell .wsl-footer-group-print .wsl-footer-btn:hover{background:#eaf4fb;border-color:#8ebcda}
+.app-shell .wsl-footer-group-document .wsl-footer-btn{background:#fff}
+.app-shell .wsl-footer-group-document .wsl-footer-btn-primary,.app-shell .wsl-footer>.wsl-footer-right>.wsl-footer-btn-primary{background:#1679ae;color:#fff;border-color:#1679ae}
+.app-shell .wsl-footer-group-document .wsl-footer-btn-danger{color:#a83d3d;background:#fff;border-color:#f0cece}
+.app-shell .wsl-footer .wsl-footer-right>.wsl-footer-btn-primary{min-width:94px}
+.app-shell .wsl-head-actions :where(.button-link,.button-secondary){display:inline-flex;align-items:center;justify-content:center;padding:0 12px}
+@media(max-width:610px){.app-shell .wsl-footer-right>.wsl-footer-btn-primary{flex:1 1 100%}.app-shell .wsl-footer-group-document{justify-content:flex-start}}
+
 @media(max-width:1200px){.app-shell .wsl-footer-right{justify-content:flex-start}.app-shell .wsl-footer{grid-template-columns:1fr}.app-shell .wsl-footer-group-document{border-left:0;padding-left:0}}
 @media(max-width:610px){.app-shell .wsl-footer-group-print{width:100%;align-items:stretch}.app-shell .wsl-footer-pair{flex:1 1 100%}.app-shell .wsl-footer-divider{height:1px;width:100%;margin:1px 0}.app-shell .wsl-footer .wsl-footer-btn{flex-grow:1}.app-shell .wsl-footer-group-document{width:100%}}
 @media(max-width:1050px){.app-shell .wsl-grid .wsl-field{grid-template-columns:120px minmax(0,1fr)}}
