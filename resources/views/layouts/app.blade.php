@@ -78,7 +78,9 @@
 
         <nav class="navigation" aria-label="{{ __('app.navigation') }}">
             @foreach ($visibleNavigation as $group)
-                @php($hasActive = $activeGroup && $activeGroup['label'] === $group['label'])
+                @php
+                    $hasActive = $activeGroup && $activeGroup['label'] === $group['label'];
+                @endphp
                 <details class="nav-group" @if($hasActive) open @endif>
                     <summary class="nav-group-title">
                         <span class="nav-icon" aria-hidden="true">{{ $navigationIcons[$group['label']] ?? '◇' }}</span>
