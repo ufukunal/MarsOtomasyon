@@ -111,7 +111,7 @@
     @endif
 
     @if($document)
-        <div class="document-actions panel">
+        <div class="document-actions panel v65-document-actions" role="group" aria-label="Belge işlemleri">
             @if(method_exists($this, 'submitApproval') && $document->status === 'draft')
                 <button type="button" wire:click="submitApproval">Onaya Gönder</button>
             @endif
