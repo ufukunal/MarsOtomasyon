@@ -217,7 +217,7 @@ document.addEventListener('keydown', (event) => {
 
 // Dirty state belongs to the currently loaded page, never to another tab's saved label.
 let marsWorktabDirty = false;
-const marsDirtyControls = 'main input:not([type="hidden"]):not([type="search"]), main select, main textarea, main [contenteditable="true"]';
+const marsDirtyControls = 'main form:not([method="GET"]) input:not([type="hidden"]):not([type="search"]), main form:not([method="GET"]) select, main form:not([method="GET"]) textarea, main [contenteditable="true"]';
 document.addEventListener('input', (event) => {
     if (event.target instanceof Element && event.target.matches(marsDirtyControls)) marsWorktabDirty = true;
 }, true);
