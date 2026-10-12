@@ -81,7 +81,7 @@
                 @php
                     $hasActive = $activeGroup && $activeGroup['label'] === $group['label'];
                 @endphp
-                <details class="nav-group" @if($hasActive) open @endif>
+                <details class="nav-group" data-v65-nav-group @if($hasActive) data-current-group="true" open @endif>
                     <summary class="nav-group-title">
                         <span class="nav-icon" aria-hidden="true">{{ $navigationIcons[$group['label']] ?? '◇' }}</span>
                         <span>{{ $group['label'] }}</span>
@@ -110,7 +110,7 @@
                                                 <a href="{{ route($item['route']) }}"
                                                     @class(['nav-link', 'is-active' => $activeItem && $item['route'] === $activeItem['route']])
                                                     @if($activeItem && $item['route'] === $activeItem['route']) aria-current="page" @endif
-                                                ><span class="nav-child-dot" aria-hidden="true">◦</span>{{ $item['label'] }}</a>
+                                                ><span class="nav-child-dot" aria-hidden="true">◦</span><span class="nav-child-label">{{ $item['label'] }}</span></a>
                                             @endforeach
                                         </div>
                                     </details>
