@@ -54,11 +54,9 @@ class ProductList extends DataTableComponent
                     }
                     return;
                 }
-                $query->chunkById(500, function ($rows) use ($emit): void {
-                    foreach ($rows as $row) {
-                        $emit($row);
-                    }
-                }, 'products.id', 'id');
+                foreach ($query->cursor() as $row) {
+                    $emit($row);
+                }
             };
             if ($format === 'xlsx') {
                 $spreadsheet = new Spreadsheet;
