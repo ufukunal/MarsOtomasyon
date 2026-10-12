@@ -134,6 +134,7 @@ NEW_IMAGE="$REGISTRY:uat-$TARGET"
 START_HEAD="$(git rev-parse HEAD)"
 SOURCE_SWITCHED=0
 MARKER_CHANGED=0
+WEB_SWITCH_ATTEMPTED=0
 SUCCESS=0
 restore_on_failure() {
   rc="$?"
@@ -142,8 +143,10 @@ restore_on_failure() {
     if (( SOURCE_SWITCHED == 1 )); then
       git switch --detach "$START_HEAD" >/dev/null || true
     fi
-    if (( MARKER_CHANGED == 1 )); then
+    if (( MARKER_CHANGED == 1 || WEB_SWITCH_ATTEMPTED == 1 )); then
       sed -i "s/^MARS_UAT_SHA=$TARGET$/MARS_UAT_SHA=$RUNNING_SHA/" "$ENV_FILE" || true
+    fi
+    if (( WEB_SWITCH_ATTEMPTED == 1 )); then
       sudo docker compose --env-file "$ENV_FILE" -f compose.uat.lab.yml --profile application \
         up -d --no-deps --pull never --force-recreate web || true
     fi
@@ -181,6 +184,7 @@ grep -Fxq "MARS_UAT_SHA=$TARGET" "$ENV_FILE"
 DC=(sudo docker compose --env-file "$ENV_FILE" -f compose.uat.lab.yml --profile application)
 "${DC[@]}" config --quiet
 echo "=== Recreate UAT web only (no migration, DB stop or volume operation) ==="
+WEB_SWITCH_ATTEMPTED=1
 "${DC[@]}" up -d --no-deps --pull never --force-recreate web
 NEW_CID="$(sudo docker ps -q --filter name=^/mars-uat-lab-web-1$)"
 [[ -n "$NEW_CID" ]]
