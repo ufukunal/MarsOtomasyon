@@ -27,6 +27,18 @@ class ProductList extends DataTableComponent
 
     public string $exportScope = 'filtered';
 
+    /** @var array<string, bool> Selected export fields (independent of table visibility). */
+    public array $exportFields = [];
+
+    public function toggleAllExportFields(): void
+    {
+        $keys = collect($this->columns())->pluck('key')->all();
+        $allSelected = collect($keys)->every(fn (string $key): bool => (bool) ($this->exportFields[$key] ?? false));
+        foreach ($keys as $key) {
+            $this->exportFields[$key] = ! $allSelected;
+        }
+    }
+
     public function exportProducts(): StreamedResponse
     {
         $this->authorize('viewAny', Product::class);
@@ -35,9 +47,10 @@ class ProductList extends DataTableComponent
 
         $format = $this->exportFormat;
         $scope = $this->exportScope;
-        $columns = collect($this->columns())->reject(
-            fn (Column $column): bool => $this->hiddenColumns[$column->key] ?? false
+        $columns = collect($this->columns())->filter(
+            fn (Column $column): bool => (bool) ($this->exportFields[$column->key] ?? false)
         )->values();
+        abort_if($columns->isEmpty(), 422, 'Dışa aktarmak için en az bir alan seçin.');
         $name = 'urunler-'.now()->format('Ymd-His').'.'.$format;
         $headers = [
             'csv' => 'text/csv; charset=UTF-8',
@@ -96,6 +109,10 @@ class ProductList extends DataTableComponent
     public function mount(): void
     {
         $this->authorize('viewAny', Product::class);
+        // Match the selection-list reference: code and product name preselected.
+        $this->exportFields = collect($this->columns())
+            ->mapWithKeys(fn (Column $column): array => [$column->key => in_array($column->key, ['code', 'name'], true)])
+            ->all();
     }
 
     /** @return Builder<Product> */
