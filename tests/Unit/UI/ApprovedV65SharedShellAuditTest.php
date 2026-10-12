@@ -348,3 +348,19 @@ it('keeps storefront catalog data authentic, price normalized and UAT-only', fun
         ->toContain("firstOrCreate(")
         ->and($workflow)->toContain('download-uat-storefront-images.py');
 });
+
+it('requires 50 real sourced products and images for each UAT catalog batch', function (): void {
+    $builder = file_get_contents(base_path('scripts/ci/build-uat-catalog-batches.py'));
+    $seeder = file_get_contents(base_path('database/seeders/UatStorefrontCatalogSeeder.php'));
+    $workflow = file_get_contents(base_path('.github/workflows/uat-image-publish.yml'));
+
+    expect($builder)->toContain('count_each = batch * 25')
+        ->toContain('if len(selected) != 50:')
+        ->toContain('image_bytes(row["image_url"])')
+        ->toContain('batch-{batch:03d}.json')
+        ->and($seeder)->toContain('MARS_UAT_CATALOG_BATCH')
+        ->toContain('count($entries) !== 50')
+        ->toContain('demo/storefront-batches/batch-%03d.json')
+        ->toContain('demo/storefront-batches/images/batch-%03d/%s.bin')
+        ->and($workflow)->toContain('build-uat-catalog-batches.py');
+});
