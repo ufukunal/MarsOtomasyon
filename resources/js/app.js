@@ -269,6 +269,25 @@ window.addEventListener('afterprint', () => {
     document.querySelector('[data-v65-products-page-style]')?.remove();
 });
 
+// Product detail cover/gallery preview. Only authenticated image URLs rendered by Blade are used.
+document.addEventListener('click', (event) => {
+    const target = event.target;
+    if (!(target instanceof Element)) return;
+    const dialog = document.querySelector('[data-v65-product-image-lightbox]');
+    if (!(dialog instanceof HTMLDialogElement)) return;
+    const button = target.closest('[data-v65-product-preview-open]');
+    if (button) {
+        const source = button.querySelector('img');
+        const preview = dialog.querySelector('img');
+        if (!(source instanceof HTMLImageElement) || !(preview instanceof HTMLImageElement)) return;
+        preview.src = source.currentSrc || source.src;
+        preview.alt = source.alt || 'Ürün görseli';
+        if (!dialog.open) dialog.showModal();
+        return;
+    }
+    if (target.closest('[data-v65-product-preview-close]') || target === dialog) dialog.close();
+});
+
 // v65 worktabs: open business screens persist for this user and active company
 // in this browser tab only. Store paths/titles, never form state or credentials.
 document.addEventListener('DOMContentLoaded', () => {
