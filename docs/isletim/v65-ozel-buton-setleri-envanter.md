@@ -2,7 +2,7 @@
 
 Referans: `reference/marsotomasyon-PROTOTIP-ONAYLI-v65.html` ve sonradan onaylı ekran düzenleri. Bu dosya GitHub `main` kaynak kodu taramasında `wire:click` veya `button-secondary` barındıran görünüm dosyalarından üretilmiştir. Bu tarama tüm düz HTML butonlarını yakalamayabilir; ek ekran incelemesi gerekir.
 
-İşaretler: `[x]` kaynak kodda özel set düzeltmesi uygulandı; `[ ]` henüz ekran bazında tamamlanmadı. Genel CSS değişikliği tek başına `x` sayılmaz. Görsel UAT kabulü ayrıca gereklidir.
+İşaretler: `[x]` kaynak kodda özel set düzeltmesi uygulandı; `[ ]` henüz ekran bazında tamamlanmadı. Genel CSS değişikliği tek başına `x` sayılmaz. İşaretlenen ekranlar kaynak kod yerleşimi olarak tamamlandı; görsel UAT kabulü ayrı ve beklemede. Görsel UAT kabulü ayrıca gereklidir.
 
 ## tabs.blade.php (1 dosya)
 
@@ -97,7 +97,7 @@ Referans: `reference/marsotomasyon-PROTOTIP-ONAYLI-v65.html` ve sonradan onaylı
 
 ## purchases (2 dosya)
 
-- [ ] `resources/views/livewire/purchases/document-editor.blade.php` — işlem seti, sıralama, durum/izin, farklı ekran boyları ve v65 karşılaştırması
+- [x] `resources/views/livewire/purchases/document-editor.blade.php` — işlem seti, sıralama, durum/izin, farklı ekran boyları ve v65 karşılaştırması
 - [ ] `resources/views/livewire/purchases/payment-form.blade.php` — işlem seti, sıralama, durum/izin, farklı ekran boyları ve v65 karşılaştırması
 
 ## reporting (5 dosya)
@@ -114,7 +114,7 @@ Referans: `reference/marsotomasyon-PROTOTIP-ONAYLI-v65.html` ve sonradan onaylı
 
 ## sales (4 dosya)
 
-- [ ] `resources/views/livewire/sales/document-editor.blade.php` — işlem seti, sıralama, durum/izin, farklı ekran boyları ve v65 karşılaştırması
+- [x] `resources/views/livewire/sales/document-editor.blade.php` — işlem seti, sıralama, durum/izin, farklı ekran boyları ve v65 karşılaştırması
 - [ ] `resources/views/livewire/sales/document-list.blade.php` — işlem seti, sıralama, durum/izin, farklı ekran boyları ve v65 karşılaştırması
 - [ ] `resources/views/livewire/sales/proforma-detail.blade.php` — işlem seti, sıralama, durum/izin, farklı ekran boyları ve v65 karşılaştırması
 - [ ] `resources/views/livewire/sales/vehicle-hot-sale.blade.php` — işlem seti, sıralama, durum/izin, farklı ekran boyları ve v65 karşılaştırması
