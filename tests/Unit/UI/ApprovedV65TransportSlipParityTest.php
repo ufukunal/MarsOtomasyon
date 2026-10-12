@@ -70,7 +70,7 @@ it('preserves approved field groups, filters and A4/A5 and numbered carton print
     $printing = file_get_contents(base_path('resources/views/printing/transport-slip.blade.php'));
     expect($printing)->toContain('$copy < 2')
         ->toContain('$i <= $slip->package_count')
-        ->toContain('Code39Svg::render')
+        ->toContain('OpaqueQrSvg::render')
         ->toContain('SEVKİYAT ETİKETİ');
 });
 
@@ -138,8 +138,8 @@ it('previews unpersisted form values without creating any stock movement', funct
         ->toContain('new TransportSlip([')
         ->toContain("'TASLAK'")
         ->toContain('$this->slip !== null ? $this->slip->number')
-        ->toContain('new TransportSlipItem([')
-        ->toContain('setRelation(')
+        ->toContain("draftQrSeed = ''")
+        ->toContain("->setRelation('contact'")
         ->toContain('previewHtml')
         ->toContain('validate($this->rules(), [], $this->fieldNames())')
         ->and($form)->toContain('srcdoc="{{ $previewHtml }}"')
@@ -156,7 +156,7 @@ it('prints exactly two A5 transport slips on one A4 without product details', fu
         ->not->toContain('$slip->items->chunk(')
         ->not->toContain('<table class="items">')
         ->not->toContain('$item->product')
-        ->toContain('Code39Svg::render')
+        ->toContain('OpaqueQrSvg::render')
         ->toContain('@if($autoprint)')
         ->not->toContain('->take(8)')
         ->and($controller)->toContain("request()->boolean('autoprint')");
@@ -307,7 +307,9 @@ it('renders both A4 halves and carton labels without requiring a database', func
         ])),
     ];
 
-    $data = ['slip' => $slip, 'warnings' => 'KIRILABİLİR', 'autoprint' => false];
+    config(['app.key' => 'test-qr-key']);
+
+    $data = ['slip' => $slip, 'warnings' => 'KIRILABİLİR', 'autoprint' => false, 'qrScope' => 'test-company:period:slip'];
     $html = view('printing.transport-slip', [...$data, 'format' => 'slip'])->render();
 
     expect(substr_count($html, '<h1>AMBAR FİŞİ</h1>'))->toBe(2)
@@ -369,4 +371,25 @@ it('removes the redundant destination warehouse field without losing existing pe
         ->and($export)->not->toContain('Gideceği Ambar')
         ->not->toContain('$slip->destination_warehouse,')
         ->and($migration)->toContain("'destination_warehouse'");
+});
+
+it('prints confidential QR codes rather than public barcodes on transport slips and parcel labels', function (): void {
+    $print = file_get_contents(base_path('resources/views/printing/transport-slip.blade.php'));
+    $controller = file_get_contents(base_path('app/Http/Controllers/PrintTransportSlipController.php'));
+    $editor = file_get_contents(base_path('app/Livewire/Pages/Warehouse/TransportSlipEditor.php'));
+
+    expect($print)->toContain('OpaqueQrSvg::render')
+        ->toContain('OpaqueQrSvg::token($qrScope, 0,')
+        ->toContain('OpaqueQrSvg::token($qrScope, $i,')
+        ->toContain('font-size:47px')
+        ->toContain('font-size:27px')
+        ->toContain('font-size:18px')
+        ->toContain('font-size:24px')
+        ->toContain('class="label-city"')
+        ->toContain('class="label-district"')
+        ->not->toContain('Code39Svg::render')
+        ->not->toContain('<table class="items">')
+        ->not->toContain('$item->product')
+        ->and($controller)->toContain("'qrScope' => implode(':',")
+        ->and($editor)->toContain("'qrScope' => \$this->slip !== null");
 });

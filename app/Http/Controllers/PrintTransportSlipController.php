@@ -22,6 +22,7 @@ class PrintTransportSlipController
             'slip' => $slip,
             'format' => $format,
             'autoprint' => request()->boolean('autoprint'),
+            'qrScope' => implode(':', [(string) PeriodContext::companyId(), (string) PeriodContext::periodId(), (string) $slip->id]),
             'warnings' => collect([
                 $slip->contains_glass ? 'CAM ÜRÜN' : null,
                 $slip->fragile ? 'KIRILABİLİR / HASSAS' : null,

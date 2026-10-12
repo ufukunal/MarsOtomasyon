@@ -8,7 +8,6 @@ use App\Models\Period\Document;
 use App\Models\Period\Location;
 use App\Models\Period\Product;
 use App\Models\Period\TransportSlip;
-use App\Models\Period\TransportSlipItem;
 use App\Support\Period\PeriodContext;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
@@ -28,6 +27,9 @@ class TransportSlipEditor extends Component
     public ?string $preview = null;
 
     public bool $previewPrint = false;
+
+    #[Locked]
+    public string $draftQrSeed = '';
 
     public string $productSearch = '';
 
@@ -82,6 +84,7 @@ class TransportSlipEditor extends Component
     {
         abort_unless(auth()->user()->can('warehouse_slips.view'), 403);
         $this->date = now()->toDateString();
+        $this->draftQrSeed = bin2hex(random_bytes(16));
 
         if ($id !== null) {
             $this->mode = request()->routeIs('warehouse.transport.edit') ? 'edit' : 'detail';
@@ -423,19 +426,12 @@ class TransportSlipEditor extends Component
         ]);
 
         $draft->setRelation('contact', $this->contactId ? Contact::query()->find($this->contactId) : null);
-        $productIds = collect($this->items)->pluck('product_id')->filter()->map(fn ($id): int => (int) $id)->all();
-        $products = Product::query()->with('unit')->whereKey($productIds)->get()->keyBy('id');
-        $draft->setRelation('items', collect($this->items)->map(function (array $row) use ($products): TransportSlipItem {
-            $item = new TransportSlipItem([
-                'product_id' => $row['product_id'], 'quantity' => $row['quantity'],
-            ]);
-            $item->setRelation('product', $products->get((int) $row['product_id']));
-
-            return $item;
-        }));
 
         return view('printing.transport-slip', [
             'slip' => $draft, 'format' => $format, 'autoprint' => false,
+            'qrScope' => $this->slip !== null
+                ? implode(':', [(string) PeriodContext::companyId(), (string) PeriodContext::periodId(), (string) $this->slip->id])
+                : 'draft:'.$this->draftQrSeed,
             'warnings' => collect([
                 $this->containsGlass ? 'CAM ÜRÜN' : null,
                 $this->fragile ? 'KIRILABİLİR / HASSAS' : null,

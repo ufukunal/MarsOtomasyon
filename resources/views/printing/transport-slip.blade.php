@@ -28,9 +28,13 @@ th{background:#f1f5f9}
 .label{border:2px solid #15242d;padding:6mm;min-height:130mm;break-inside:avoid;page-break-inside:avoid}
 .label-header{display:flex;align-items:start;justify-content:space-between;border-bottom:2px solid #15242d;padding-bottom:10px}
 .label-header b{font-size:17px}
-.label-header strong{font-size:30px}
-.label-company{font-weight:800;font-size:19px;margin:12px 0}
-.barcode-text{font-weight:700;letter-spacing:2px;text-align:center;margin:10px 0}
+.label-header strong{font-size:47px;line-height:1;font-weight:900;white-space:nowrap}
+.label-company{font-weight:850;font-size:24px;line-height:1.2;margin:12px 0 8px;overflow-wrap:anywhere}
+.label-location{border-bottom:1px solid #d1dce5;padding:5px 0 9px;margin-bottom:9px}
+.label-city{font-weight:900;font-size:27px;line-height:1.15;text-transform:uppercase;overflow-wrap:anywhere}
+.label-district{font-weight:750;font-size:18px;line-height:1.25;margin-top:3px;overflow-wrap:anywhere}
+.label-qr{display:block;margin:7mm auto 0;width:40mm;height:40mm;max-width:100%}
+.copy .label-qr{width:29mm;height:29mm;margin:3mm auto 0}
 @page{size:A4 portrait;margin:0}
 @media print{
  body{background:#fff}
@@ -65,7 +69,7 @@ th{background:#f1f5f9}
         </table>
         @if($warnings)<div class="warning">{{ $warnings }}</div>@endif
         <div class="signatures"><div>Teslim Eden<br>Ad / İmza</div><div>Teslim Alan<br>Ad / İmza</div></div>
-        {!! \App\Support\Printing\Label\Code39Svg::render($slip->number) !!}
+        {!! \App\Support\Printing\Label\OpaqueQrSvg::render(\App\Support\Printing\Label\OpaqueQrSvg::token($qrScope, 0, (string) config('app.key'))) !!}
         @if($copy === 0)<span class="cut">KESİM ÇİZGİSİ</span>@endif
     </section>
     @endfor
@@ -77,15 +81,18 @@ th{background:#f1f5f9}
             <section class="label">
                 <header class="label-header"><div><b>SEVKİYAT ETİKETİ</b><p>{{ $slip->number }}</p></div><strong>{{ $i }}/{{ $slip->package_count }}</strong></header>
                 <div class="label-company">{{ $slip->delivery_company }}</div>
+                <div class="label-location">
+                    <div class="label-city">{{ $slip->delivery_city }}</div>
+                    <div class="label-district">{{ $slip->delivery_district }}</div>
+                </div>
                 <table>
                     <tr><th>Taşıyıcı / Ambar</th><td>{{ $slip->carrier }}</td></tr>
                     <tr><th>Teslim Alacak</th><td>{{ $slip->delivery_person ?: '—' }}</td></tr>
                     <tr><th>Telefon</th><td>{{ $slip->delivery_phone }}</td></tr>
-                    <tr><th>İl / İlçe</th><td>{{ $slip->delivery_city }} / {{ $slip->delivery_district }}</td></tr>
                     <tr><th>Adres</th><td>{{ $slip->delivery_address }}</td></tr>
                 </table>
                 @if($warnings)<div class="warning">{{ $warnings }}</div>@endif
-                {!! \App\Support\Printing\Label\Code39Svg::render($slip->number.'-'.$i.'-'.$slip->package_count) !!}
+                {!! \App\Support\Printing\Label\OpaqueQrSvg::render(\App\Support\Printing\Label\OpaqueQrSvg::token($qrScope, $i, (string) config('app.key'))) !!}
                 <p>{{ $slip->note }}</p>
             </section>
         @endfor
