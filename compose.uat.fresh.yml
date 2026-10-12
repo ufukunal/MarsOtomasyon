@@ -1,0 +1,108 @@
+# Fresh, independently named UAT comparison stack. Nothing references the existing UAT volumes.
+name: mars-uat-fresh
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: mars_uat_owner
+      POSTGRES_PASSWORD: ${MARS_UAT_PG_OWNER_PASSWORD:?fresh postgres password required}
+      POSTGRES_DB: postgres
+      MARS_UAT_PG_APP_PASSWORD: ${MARS_UAT_PG_APP_PASSWORD:?fresh app password required}
+    volumes:
+      - fresh_pg:/var/lib/postgresql/data
+      - ./ops/uat-lab-postgres-init.sh:/docker-entrypoint-initdb.d/10-uat-init.sh:ro
+    networks: [fresh_internal]
+    healthcheck:
+      test: ["CMD-SHELL", "psql -w -U mars_uat_owner -d postgres -tAc \"SELECT count(*) FROM pg_database WHERE datname IN ('mars_uat_master','mars_uat_demo_2026')\" | grep -qx 2"]
+      interval: 6s
+      timeout: 4s
+      retries: 30
+    mem_limit: 512m
+    cpus: 0.75
+    pids_limit: 128
+    security_opt: ["no-new-privileges:true"]
+  valkey:
+    image: valkey/valkey:8-alpine
+    command: ["valkey-server", "--appendonly", "yes", "--requirepass", "${MARS_UAT_VALKEY_PASSWORD:?fresh Valkey password required}"]
+    environment:
+      REDISCLI_AUTH: ${MARS_UAT_VALKEY_PASSWORD:?fresh Valkey password required}
+    volumes:
+      - fresh_valkey:/data
+    networks: [fresh_internal]
+    healthcheck:
+      test: ["CMD", "valkey-cli", "ping"]
+      interval: 6s
+      timeout: 4s
+      retries: 30
+    mem_limit: 128m
+    cpus: 0.25
+    pids_limit: 64
+    security_opt: ["no-new-privileges:true"]
+  web:
+    image: ghcr.io/ufukunal/marsotomasyon:uat-${MARS_UAT_SHA:?fresh pinned image required}
+    depends_on:
+      postgres: {condition: service_healthy}
+      valkey: {condition: service_healthy}
+    ports:
+      - "${MARS_FRESH_TAILSCALE_IP:?Tailscale IP required}:${MARS_FRESH_PORT:?fresh port required}:8080"
+    environment:
+      APP_NAME: MarsProjectFreshUAT
+      APP_ENV: uat
+      APP_DEBUG: "false"
+      APP_KEY: ${MARS_UAT_APP_KEY:?fresh Laravel app key required}
+      APP_URL: "http://${MARS_FRESH_TAILSCALE_IP:?Tailscale IP required}:${MARS_FRESH_PORT:?fresh port required}"
+      LOG_CHANNEL: stack
+      LOG_LEVEL: warning
+      DB_CONNECTION: master
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      DB_MASTER_DATABASE: mars_uat_master
+      DB_USERNAME: mars_uat_app
+      DB_PASSWORD: ${MARS_UAT_PG_APP_PASSWORD:?fresh app password required}
+      REDIS_CLIENT: phpredis
+      REDIS_HOST: valkey
+      REDIS_PORT: "6379"
+      REDIS_USERNAME: default
+      REDIS_PASSWORD: ${MARS_UAT_VALKEY_PASSWORD:?fresh Valkey password required}
+      REDIS_PREFIX: "mars:fresh:"
+      REDIS_DB: "0"
+      REDIS_CACHE_DB: "1"
+      REDIS_SESSION_DB: "2"
+      REDIS_QUEUE_DB: "3"
+      CACHE_STORE: redis
+      SESSION_DRIVER: redis
+      SESSION_CONNECTION: session
+      SESSION_COOKIE: mars_uat_fresh_session
+      QUEUE_CONNECTION: redis
+      REDIS_QUEUE_CONNECTION: queue
+      MAIL_MAILER: log
+      FILESYSTEM_DISK: local
+      ATTACHMENTS_DISK_DRIVER: local
+      RUNTIME_DB_USERNAME: mars_uat_app
+      MARS_UAT_PREPROVISIONED_PERIOD_DB: mars_uat_demo_2026
+    volumes:
+      - fresh_storage:/var/www/html/storage
+    read_only: true
+    tmpfs:
+      - /tmp:rw,nosuid,nodev,size=64m
+      - /var/www/html/bootstrap/cache:rw,nosuid,nodev,size=32m,uid=33,gid=33,mode=0770
+    networks: [fresh_internal]
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "--max-time", "5", "http://127.0.0.1:8080/up"]
+      start_period: 12s
+      interval: 8s
+      timeout: 6s
+      retries: 15
+    mem_limit: 768m
+    cpus: 0.75
+    pids_limit: 128
+    security_opt: ["no-new-privileges:true"]
+    cap_drop: ["ALL"]
+networks:
+  fresh_internal:
+    internal: true
+    driver: bridge
+volumes:
+  fresh_pg:
+  fresh_valkey:
+  fresh_storage:
