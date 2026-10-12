@@ -46,7 +46,7 @@ it('uses the same reference table scaffolding for product, stock and other lists
         ->toContain('v65-shared-table-title')
         ->not->toContain('v65-products-heading')
         ->not->toContain('v65-shared-list-heading')
-        ->toContain('v65-products-advanced')
+        ->toContain('v65-products-filter-popover')
         ->toContain('$navigationItem')
         ->toContain('wire:model.live.debounce.300ms="search"')
         ->toContain('wire:click="exportCsv"')
@@ -54,7 +54,7 @@ it('uses the same reference table scaffolding for product, stock and other lists
         ->toContain("route(\$emptyAction['route'])")
         ->toContain('class="table-toolbar-actions"')
         ->toContain('wire:change="setPerPage($event.target.value)"')
-        ->toContain('<strong>Sonuçlar</strong>');
+        ->toContain("'Ürün Listesi' : 'Sonuçlar'");
 });
 
 it('keeps UI shell separated from existing application functionality', function (): void {
@@ -102,7 +102,7 @@ it('keeps shared table selection accessible and empty rows aligned after hiding 
     $view = file_get_contents(base_path('resources/views/livewire/components/data-table.blade.php'));
 
     expect($view)->toContain('$visibleColumnCount = collect($columns)->filter(')
-        ->toContain('colspan="{{ $visibleColumnCount + 1 + (count($rowActions) > 0 ? 1 : 0) }}"')
+        ->toContain('colspan="{{ $visibleColumnCount + ($isProductTable ? 0 : 1 + (count($rowActions) > 0 ? 1 : 0)) }}"')
         ->toContain('aria-label="Kayıt {{ $row->getKey() }} seç"')
         ->toContain('scope="col"')
         ->toContain('wire:click="toggleColumn(')
@@ -191,4 +191,29 @@ it('follows the final approved v65 action-button cascade instead of the former g
         ->and($guest)->toContain('v65 approved guest/setup action controls')
         ->and($layout)->toContain('page-action-menu page-action-more')
         ->toContain('<summary>Diğer');
+});
+
+it('matches the approved product-list screenshot without changing other list selections', function (): void {
+    $view = file_get_contents(base_path('resources/views/livewire/components/data-table.blade.php'));
+    $layout = file_get_contents(base_path('resources/views/layouts/app.blade.php'));
+    $css = file_get_contents(base_path('resources/css/v65-shell.css'));
+
+    expect($view)->toContain('v65-products-list-heading')
+        ->toContain('Ürün kartları, fiyat ve stok özeti.')
+        ->toContain('v65-products-export-menu')
+        ->toContain('data-v65-product-export-xlsx')
+        ->toContain('data-v65-product-export-csv')
+        ->toContain('wire:click="exportXlsx"')
+        ->toContain('wire:click="exportCsv"')
+        ->toContain('v65-products-filter-popover')
+        ->not->toContain('v65-products-advanced')
+        ->toContain('@unless($isProductTable)')
+        ->toContain('@if(!$isProductTable && $rowActions !== [])')
+        ->toContain('v65-products-status')
+        ->toContain('v65-products-reserved')
+        ->toContain('v65-products-available')
+        ->and($layout)->toContain("if (\$routeName === 'products.index')")
+        ->toContain("document.querySelector('[data-v65-product-export-xlsx]')")
+        ->and($css)->toContain('v65 product list: exact approved HTML screen composition')
+        ->toContain('grid-template-columns:minmax(0,1.1fr) repeat(3,minmax(0,1fr)) minmax(80px,85px)');
 });
