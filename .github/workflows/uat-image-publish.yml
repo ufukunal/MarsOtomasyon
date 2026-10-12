@@ -19,6 +19,7 @@ on:
       - 'app/Actions/Periods/CreatePeriod.php'
       - 'app/Livewire/Pages/Setup/CompanyWizard.php'
       - 'config/operations.php'
+      - 'database/seeders/**'
       - 'resources/**'
       - 'lang/**'
       - 'config/navigation.php'
