@@ -25,7 +25,7 @@ it('applies one v65 shell asset to all authenticated modules', function (): void
         ->toContain('.document-editor-form')
         ->toContain('.app-shell .v65-product-detail')
         ->toContain('.app-shell .v65-home-workbench')
-        ->not->toContain('!important');
+        ->toContain('Approved prototype v65 effective button rules');
 });
 
 it('keeps v65 daily dashboard visible and older period widgets accessible without mock data', function (): void {
@@ -174,4 +174,21 @@ it('uses one print and PDF control per shared toolbar while retaining the same p
         ->and($css)->toContain('/* v65 toolbar alignment pass: shared data tables, filters and bulk operations. */')
         ->toContain('.app-shell .table-toolbar-actions .column-picker>summary')
         ->toContain('.app-shell .bulk-bar button');
+});
+
+it('follows the final approved v65 action-button cascade instead of the former guessed theme', function (): void {
+    $css = file_get_contents(base_path('resources/css/v65-shell.css'));
+    $guest = file_get_contents(base_path('resources/css/app.css'));
+    $layout = file_get_contents(base_path('resources/views/layouts/app.blade.php'));
+
+    expect($css)->toContain('--v65-btn-height:38px')
+        ->toContain('--v65-btn-primary:#1a73e8')
+        ->toContain('--v65-btn-danger:#dc2626')
+        ->toContain('min-height:28px!important;height:28px!important')
+        ->toContain('font-size:11.5px!important;font-weight:600!important')
+        ->toContain('border-radius:6px!important;box-shadow:none!important')
+        ->toContain('.app-shell .wsl-footer{--wsl-action-height:38px}')
+        ->and($guest)->toContain('v65 approved guest/setup action controls')
+        ->and($layout)->toContain('page-action-menu page-action-more')
+        ->toContain('<summary>Diğer');
 });
