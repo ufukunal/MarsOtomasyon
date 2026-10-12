@@ -154,13 +154,13 @@
                 <option value="bank">Banka</option>
             </select>
             <input type="number" wire:model="reverseMovementId" placeholder="Hareket ID">
-            <button type="button" wire:click="reverseManual">Hareketi Tersle</button>
+            <button class="button-danger" type="button" wire:click="reverseManual">Hareketi Tersle</button>
         </div>
 
         <div>
             <h3>Virman</h3>
             <input wire:model="reverseTransferGroupKey" placeholder="Virman group_key">
-            <button type="button" wire:click="reverseTransfer">Virmanı Tersle</button>
+            <button class="button-danger" type="button" wire:click="reverseTransfer">Virmanı Tersle</button>
         </div>
 
         <div>
@@ -173,7 +173,7 @@
                     </option>
                 @endforeach
             </select>
-            <button type="button" wire:click="reverseDocument">Belgeyi Tersle</button>
+            <button class="button-danger" type="button" wire:click="reverseDocument">Belgeyi Tersle</button>
         </div>
     </section>
 

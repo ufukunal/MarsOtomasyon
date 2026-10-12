@@ -51,6 +51,6 @@
         <div>Kesinleşen belge #{{ $postedDocumentId }}</div>
         <label>Ters kayıt tarihi <input type="date" wire:model="reversalDate"></label>
         <label>Gerekçe <input wire:model="reversalReason"></label>
-        <button type="button" wire:click="reverse">Ters Kayıt</button>
+        <button class="button-danger" type="button" wire:click="reverse">Ters Kayıt</button>
     @endif
 </div>

@@ -20,7 +20,7 @@
             </select>
         </label>
         <label>Dosya <input type="file" wire:model="file" accept=".xlsx,.csv,.txt,.mt940,.sta"></label>
-        <button type="button" wire:click="preview">Önizle</button>
+        <button class="button-secondary" type="button" wire:click="preview">Önizle</button>
         <button type="button" wire:click="import">İçe Aktar</button>
 
         @if($importResult)

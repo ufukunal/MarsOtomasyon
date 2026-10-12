@@ -69,7 +69,7 @@
                 @can('returns.cancel')
                     <input type="date" wire:model="reversalDate">
                     <input wire:model="reversalReason" placeholder="Ters kayıt gerekçesi">
-                    <button type="button" wire:click="reverse">Ters Kayıt</button>
+                    <button class="button-danger" type="button" wire:click="reverse">Ters Kayıt</button>
                 @endcan
             @endif
 
@@ -92,7 +92,7 @@
                     <td>{{ $return->document_date?->format('d.m.Y') }}</td>
                     <td>{{ $return->grand_total }} {{ $return->currency }}</td>
                     <td>{{ $return->status }}</td>
-                    <td><button type="button" wire:click="selectReturn({{ $return->id }})">Aç</button></td>
+                    <td><button class="button-secondary" type="button" wire:click="selectReturn({{ $return->id }})">Aç</button></td>
                 </tr>
             @endforeach
             </tbody>

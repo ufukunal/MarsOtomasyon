@@ -9,7 +9,7 @@
                 <input wire:model="cashCurrency" maxlength="3" placeholder="TRY">
                 <button type="button" wire:click="saveCash">{{ $cashEditId ? 'Kasayı Güncelle' : 'Kasa Ekle' }}</button>
                 @if($cashEditId)
-                    <button type="button" wire:click="cancelCashEdit">Vazgeç</button>
+                    <button class="button-secondary" type="button" wire:click="cancelCashEdit">Vazgeç</button>
                 @endif
             </div>
         @endcan
@@ -26,8 +26,8 @@
                     <td>{{ $account->is_active ? 'Aktif' : 'Pasif' }}</td>
                     <td>
                         @can('cash_accounts.update')
-                            <button type="button" wire:click="editCash({{ $account->id }})">Düzenle</button>
-                            <button type="button" wire:click="toggleCash({{ $account->id }})">
+                            <button class="button-secondary" type="button" wire:click="editCash({{ $account->id }})">Düzenle</button>
+                            <button class="button-secondary" type="button" wire:click="toggleCash({{ $account->id }})">
                                 {{ $account->is_active ? 'Pasife Al' : 'Aktifleştir' }}
                             </button>
                         @endcan
@@ -49,7 +49,7 @@
                 <input wire:model="bankCurrency" maxlength="3" placeholder="TRY">
                 <button type="button" wire:click="saveBank">{{ $bankEditId ? 'Bankayı Güncelle' : 'Banka Ekle' }}</button>
                 @if($bankEditId)
-                    <button type="button" wire:click="cancelBankEdit">Vazgeç</button>
+                    <button class="button-secondary" type="button" wire:click="cancelBankEdit">Vazgeç</button>
                 @endif
             </div>
         @endcan
@@ -81,8 +81,8 @@
                     <td>{{ $account->is_active ? 'Aktif' : 'Pasif' }}</td>
                     <td>
                         @can('bank_accounts.update')
-                            <button type="button" wire:click="editBank({{ $account->id }})">Düzenle</button>
-                            <button type="button" wire:click="toggleBank({{ $account->id }})">
+                            <button class="button-secondary" type="button" wire:click="editBank({{ $account->id }})">Düzenle</button>
+                            <button class="button-secondary" type="button" wire:click="toggleBank({{ $account->id }})">
                                 {{ $account->is_active ? 'Pasife Al' : 'Aktifleştir' }}
                             </button>
                         @endcan

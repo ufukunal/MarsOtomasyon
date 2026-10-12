@@ -110,7 +110,7 @@
         </label>
         <label>Tarih <input type="date" wire:model="reversalDate"></label>
         <label>Gerekçe <input wire:model="reversalReason"></label>
-        <button type="button" wire:click="reversePayroll">Bordroyu Tersle</button>
+        <button class="button-danger" type="button" wire:click="reversePayroll">Bordroyu Tersle</button>
     </section>
 
     <section>
