@@ -364,3 +364,23 @@ it('requires 50 real sourced products and images for each UAT catalog batch', fu
         ->toContain('demo/storefront-batches/images/batch-%03d/%s.bin')
         ->and($workflow)->toContain('build-uat-catalog-batches.py');
 });
+
+it('keeps company period selectors and navigation aligned with the active screen', function (): void {
+    $company = file_get_contents(base_path('app/Livewire/Shell/CompanySwitcher.php'));
+    $period = file_get_contents(base_path('app/Livewire/Components/PeriodSwitcher.php'));
+    $layout = file_get_contents(base_path('resources/views/layouts/app.blade.php'));
+    $js = file_get_contents(base_path('resources/js/app.js'));
+    $css = file_get_contents(base_path('resources/css/v65-shell.css'));
+
+    expect($company)->toContain('PeriodContext::companyId()')
+        ->and($period)->toContain('PeriodContext::companyId()')
+        ->toContain('PeriodContext::periodId()')
+        ->toContain("$this->redirect('/secim', navigate: false)")
+        ->and($layout)->toContain('data-v65-nav-group')
+        ->toContain('data-current-group="true"')
+        ->toContain('nav-child-label')
+        ->and($js)->toContain('const syncV65Navigation =')
+        ->toContain("document.addEventListener('livewire:navigated', syncV65Navigation)")
+        ->and($css)->toContain('.v65-home-quick :where(.v65-home-quick-icon,strong,small)')
+        ->toContain('.nav-child-label');
+});
