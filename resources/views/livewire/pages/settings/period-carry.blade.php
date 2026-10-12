@@ -17,7 +17,7 @@
                 <span>Hedef yıl</span>
                 <input wire:model="targetYear" type="number" min="2000" max="2200">
             </label>
-            <button type="button" wire:click="previewCarry">Ön Kontrolü Çalıştır</button>
+            <button class="button-secondary" type="button" wire:click="previewCarry">Ön Kontrolü Çalıştır</button>
         </div>
         @error('sourcePeriodId') <div class="field-error">{{ $message }}</div> @enderror
         @error('targetYear') <div class="field-error">{{ $message }}</div> @enderror
@@ -208,7 +208,7 @@
             @endforelse
 
             @if($accessCandidates->isNotEmpty())
-                <button type="button" wire:click="copyAccess">Seçili Erişimleri Kopyala</button>
+                <button class="button-secondary" type="button" wire:click="copyAccess">Seçili Erişimleri Kopyala</button>
             @endif
         </section>
     @endif

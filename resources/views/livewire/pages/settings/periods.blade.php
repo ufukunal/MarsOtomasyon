@@ -40,12 +40,12 @@
                     <td>
                         @if ($period->status === 'active')
                             @can('periods.cancel')
-                                <button type="button" wire:click="close({{ $period->id }})">Dönemi Kapat</button>
+                                <button class="button-danger" type="button" wire:click="close({{ $period->id }})">Dönemi Kapat</button>
                             @endcan
                         @elseif ($period->status === 'closed')
                             @can('periods.reopen')
                                 <input wire:model="reopenReason" type="text" placeholder="Yeniden açma gerekçesi">
-                                <button type="button" wire:click="reopen({{ $period->id }})">Yeniden Aç</button>
+                                <button class="button-secondary" type="button" wire:click="reopen({{ $period->id }})">Yeniden Aç</button>
                             @endcan
                         @endif
                     </td>

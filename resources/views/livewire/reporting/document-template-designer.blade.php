@@ -47,7 +47,7 @@
                     <option value="{{ $type }}">{{ $type }}</option>
                 @endforeach
             </select>
-            <button type="button" wire:click="addSection">Bölüm Ekle</button>
+            <button class="button-secondary" type="button" wire:click="addSection">Bölüm Ekle</button>
             <button type="button" class="button-secondary" wire:click="preview">Önizle</button>
             @can('document_templates.update')
                 <button type="button" wire:click="saveRevision">Yeni Revizyon Kaydet</button>

@@ -10,7 +10,7 @@
                 <p>Backup ve restore doğrulama işleri queue üzerinden yürütülür.</p>
             </div>
             <div class="toolbar">
-                <button type="button" wire:click="runHealth">Health Kontrolü Çalıştır</button>
+                <button class="button-secondary" type="button" wire:click="runHealth">Health Kontrolü Çalıştır</button>
                 @can('companies.update')
                     <button type="button" wire:click="backupNow">Şimdi Recovery-Set Backup Al</button>
                 @endcan
@@ -107,7 +107,7 @@
                         <td>
                             @can('companies.update')
                                 @if(in_array($run->status, ['done', 'verified'], true))
-                                    <button type="button" wire:click="verifyBackup({{ $run->id }})">Restore Provası</button>
+                                    <button class="button-secondary" type="button" wire:click="verifyBackup({{ $run->id }})">Restore Provası</button>
                                 @endif
                             @endcan
                         </td>

@@ -2,7 +2,7 @@
     <section class="panel">
         <div class="form-row">
             @foreach (['stock' => 'Stok', 'costs' => 'Maliyet', 'reservations' => 'Rezervasyon', 'quarantine' => 'Karantina', 'units' => 'Birim', 'documents' => 'Belgeler', 'partials' => 'Kısmi Belgeler', 'purchases' => 'Alış / Üçlü Eşleştirme', 'contacts' => 'Cari', 'finance' => 'Kasa / Banka / Çek-Senet', 'returns' => 'İadeler', 'imports_phase7' => 'İthalat / Landed Cost', 'recipes_phase8' => 'Üretim Reçeteleri', 'production_phase8' => 'Üretim / Fason', 'channels_phase9' => 'E-Ticaret Kanalları', 'channel_orders_phase9' => 'Kanal Siparişleri', 'numbers' => 'Numaralar'] as $key => $label)
-                <button type="button" wire:click="runNow('{{ $key }}')">{{ $label }} şimdi çalıştır</button>
+                <button class="button-secondary" type="button" wire:click="runNow('{{ $key }}')">{{ $label }} şimdi çalıştır</button>
             @endforeach
         </div>
     </section>
