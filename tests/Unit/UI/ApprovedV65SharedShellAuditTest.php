@@ -77,7 +77,6 @@ it('keeps UI shell separated from existing application functionality', function 
     expect(Route::has('purchases.invoices.index'))->toBeTrue();
 });
 
-
 it('standardizes primary UI control sizing, tab overflow and product quick actions', function (): void {
     $css = file_get_contents(base_path('resources/css/v65-shell.css'));
     $warehouseCss = file_get_contents(base_path('resources/css/v65-warehouse.css'));
