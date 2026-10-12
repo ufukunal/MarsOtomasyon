@@ -535,3 +535,13 @@
 .v65-product-image-lightbox>img{display:block;max-width:100%;max-height:calc(92vh - 60px);object-fit:contain}
 .v65-product-image-lightbox-close{position:absolute;top:5px;right:8px;width:29px;height:29px;border:0;background:transparent;font-size:24px;cursor:pointer;color:#475569}
 @media print{.app-shell .v65-product-photo-thumb{height:30px;width:30px}}
+
+/* v65 product detail: readable image at overview scale, without affecting list thumbnails. */
+.app-shell .v65-product-detail .product-identity{grid-template-columns:132px minmax(220px,1fr) minmax(350px,1.5fr);gap:18px;min-height:162px}
+.app-shell .v65-product-detail .product-identity>.product-photo{box-sizing:border-box;width:132px;height:132px;min-width:132px;min-height:132px;max-width:132px;max-height:132px;padding:6px;display:flex;justify-content:center;align-items:center;border:1px solid #d3dfec;border-radius:7px;background:#fff;overflow:hidden}
+.app-shell .v65-product-detail .product-photo>.v65-product-cover-zoom{display:flex;align-items:center;justify-content:center;width:100%;height:100%;padding:0;border:0;background:transparent;cursor:zoom-in}
+.app-shell .v65-product-detail .product-photo .v65-product-cover-zoom img{display:block;width:100%;height:100%;object-fit:contain;object-position:center}
+.app-shell .v65-product-detail .v65-product-gallery-open{box-sizing:border-box;display:flex;align-items:center;justify-content:center;width:84px;height:84px;padding:5px;border:1px solid #d3dfec;border-radius:6px;background:#fff;overflow:hidden;cursor:zoom-in}
+.app-shell .v65-product-detail .v65-product-gallery-open img{width:100%;height:100%;object-fit:contain}
+@media(max-width:1100px){.app-shell .v65-product-detail .product-identity{grid-template-columns:132px minmax(0,1fr)}.app-shell .v65-product-detail .product-summary{grid-column:1/-1}}
+@media(max-width:560px){.app-shell .v65-product-detail .product-identity{grid-template-columns:110px minmax(0,1fr);gap:10px}.app-shell .v65-product-detail .product-identity>.product-photo{width:110px;height:110px;min-width:110px;min-height:110px}.app-shell .v65-product-detail .product-main h2{font-size:14px}}
