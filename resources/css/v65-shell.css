@@ -558,3 +558,11 @@
 .app-shell .v65-home-quick small{color:#667b97!important}
 @media(min-width:1300px){.app-shell .v65-home-quick-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
 @media(max-width:650px){.app-shell .v65-home-quick-grid{grid-template-columns:1fr}}
+
+/* Home shortcuts should never reserve an artificial empty grid slot. */
+.app-shell .v65-home-quick-grid{display:flex!important;flex-wrap:wrap!important;align-items:stretch!important;justify-content:flex-start!important;gap:12px!important}
+.app-shell .v65-home-quick-grid>.v65-home-quick{flex:0 1 clamp(240px,calc((100% - 24px)/3),390px)!important;width:auto!important;max-width:100%!important}
+.app-shell .v65-home-quick-grid>.v65-home-quick:not(:has(.v65-home-quick-title:not(:empty))){display:none!important}
+.app-shell .v65-home-quick-grid .v65-home-quick-title{color:#15283d!important;font-size:12px!important;font-weight:750!important;visibility:visible!important;opacity:1!important}
+.app-shell .v65-home-quick-grid .v65-home-quick-description{color:#617591!important;font-size:11px!important;visibility:visible!important;opacity:1!important}
+@media(max-width:650px){.app-shell .v65-home-quick-grid>.v65-home-quick{flex-basis:100%!important}}
