@@ -394,7 +394,7 @@ it('prints confidential QR codes rather than public barcodes on transport slips 
         ->and($controller)->toContain("'qrScope' => implode(':',")
         ->and($editor)->toContain("'qrScope' => \$this->slip !== null");
 });
- 
+
 it('positions each parcel QR above the divider without the former heading or slip number', function (): void {
     $print = file_get_contents(base_path('resources/views/printing/transport-slip.blade.php'));
 
