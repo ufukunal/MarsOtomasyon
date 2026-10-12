@@ -20,9 +20,7 @@
         $listLabel = $stockMeta[0] ?? ($navigationItem['label'] ?? 'Kayıt Listesi');
     @endphp
     @php($visibleColumnCount = collect($columns)->filter(fn ($column): bool => ! ($hiddenColumns[$column->key] ?? false))->count())
-    @if($isProductTable)
-        <div class="alert v65-products-hint"><strong>Kısaca:</strong> Ürün kartlarını, satış fiyatlarını ve stok durumunu buradan yönetin.</div>
-    @elseif($this instanceof \App\Livewire\Pages\Stock\StockStatus && !($this instanceof \App\Livewire\Pages\Stock\StockCost))
+    @if(!$isProductTable && $this instanceof \App\Livewire\Pages\Stock\StockStatus && !($this instanceof \App\Livewire\Pages\Stock\StockCost))
         <div class="alert"><strong>Kısaca:</strong> Kullanılabilir stok, rezerve ve bloke miktarları ayrı gösterilir.</div>
     @endif
     @if($isProductTable)
