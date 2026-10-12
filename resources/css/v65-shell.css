@@ -320,3 +320,23 @@
  font-size:11.5px!important;font-weight:500!important;text-align:left!important;box-shadow:none!important;
 }
 .app-shell .page-action-menu-items>button:hover{background:#eef3f9!important;color:#12243a!important}
+
+/* Prototype v65 cross-module action toolbars and table-row button alignment. */
+.app-shell :where(.report-toolbar,.v65-stock-product-toolbar,.wizard-actions,.form-actions,.bulk-bar,.wsl-head-actions,.wsl-footer-right,.document-actions){
+ display:flex;align-items:center;gap:7px;flex-wrap:wrap;min-width:0;
+}
+.app-shell :where(.report-toolbar,.v65-stock-product-toolbar,.wizard-actions,.form-actions,.bulk-bar,.document-actions) :where(button,.button-link,.button-secondary,.button-danger){
+ margin:0;vertical-align:middle;max-width:100%;
+}
+.app-shell .data-table td:has(>button),.app-shell .data-table td:has(>a.button-secondary){white-space:normal;vertical-align:middle}
+.app-shell .data-table td:has(>button)>button,.app-shell .data-table td:has(>a.button-secondary)>a.button-secondary{
+ margin:2px 4px 2px 0;vertical-align:middle;
+}
+.app-shell .report-toolbar :where(button,.button-secondary){min-height:38px}
+.app-shell .table-toolbar-actions .column-picker>summary{border-radius:0!important}
+.app-shell .page-actions :where(.page-action-menu>summary,.page-action-menu-items>button){cursor:pointer}
+.app-shell :where(.report-toolbar,.v65-stock-product-toolbar,.wizard-actions,.form-actions,.bulk-bar,.document-actions) :where(button,.button-secondary,.button-link,.button-danger):disabled{opacity:.5;cursor:not-allowed}
+@media(max-width:640px){
+ .app-shell :where(.report-toolbar,.v65-stock-product-toolbar,.wizard-actions,.form-actions,.bulk-bar,.document-actions){justify-content:flex-start}
+ .app-shell :where(.report-toolbar,.v65-stock-product-toolbar,.wizard-actions,.form-actions,.bulk-bar,.document-actions)>button{max-width:100%}
+}
