@@ -7,6 +7,7 @@ on:
       - 'Dockerfile.uat'
       - 'vite.config.js'
       - 'scripts/ci/verify-vite-manifest.php'
+      - 'scripts/ci/download-uat-storefront-images.py'
       - 'compose.uat.yml'
       - 'ops/uat-preview-start.sh'
       - 'docs/isletim/.env.uat.example'
@@ -47,6 +48,11 @@ jobs:
       DEST_IMAGE: ghcr.io/ufukunal/marsotomasyon:uat-${{ github.sha }}
     steps:
       - uses: actions/checkout@v4
+      - name: Fetch verified storefront product photos for isolated UAT image
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          python3 scripts/ci/download-uat-storefront-images.py
       - name: Build source-pinned application image without environment secrets
         shell: bash
         run: |
