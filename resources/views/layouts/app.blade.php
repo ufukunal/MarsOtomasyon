@@ -224,11 +224,7 @@
                         </details>
                     @endcanany
                 @endif
-                @if ($routeName === 'products.index')
-                    <button type="button" class="button-secondary" onclick="window.print()">Yazdır</button>
-                    <button type="button" class="button-secondary" onclick="window.print()" title="Yazdırma penceresinde PDF olarak kaydet">PDF</button>
-                    <button type="button" class="button-secondary" onclick="document.querySelector('[data-v65-product-export-xlsx]')?.click()">Excel</button>
-                @endif
+
                 @if ($routeName === 'products.show')
                     <details class="page-action-menu page-action-more">
                         <summary>Diğer <span aria-hidden="true">⌄</span></summary>
@@ -244,7 +240,7 @@
                         </div>
                     </details>
                 @elseif ($routeName === 'products.index')
-                    {{-- Product-list header exposes independent Print, PDF and Excel actions above. --}}
+                    {{-- Product-specific create, print and export actions are teleported here. --}}
                 @elseif ($routeName === 'warehouse.transport.show')
                     @can('warehouse_slips.view')
                         <a class="button-secondary" target="_blank" rel="noopener" href="{{ route('warehouse.transport.print', ['slip' => request()->route('id'), 'format' => 'slip', 'autoprint' => 1]) }}" title="Yazdırma penceresinde PDF olarak kaydedebilirsiniz">Yazdır / PDF</a>
