@@ -478,7 +478,6 @@
 .v65-products-dialog-actions button{min-height:36px;padding:7px 13px;cursor:pointer}
 @media print{
   @page{size:A4 landscape;margin:10mm}
-  html.v65-products-print-portrait{@page{size:A4 portrait;margin:12mm}}
   .v65-products-dialog,.app-shell .v65-products-list-heading,.app-shell .v65-products .table-toolbar{display:none!important}
   .app-shell .v65-products .data-table{width:100%;min-width:0;font-size:9pt}
   .app-shell .v65-products .data-table :where(td,th){white-space:normal;padding:5px}
