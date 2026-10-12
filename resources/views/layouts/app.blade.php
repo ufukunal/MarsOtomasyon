@@ -86,13 +86,42 @@
                         <span class="nav-chevron" aria-hidden="true">⌄</span>
                     </summary>
                     <div class="nav-children">
-                        @foreach ($group['items'] as $item)
-                            <a
-                                href="{{ route($item['route']) }}"
-                                @class(['nav-link', 'is-active' => $activeItem && $item['route'] === $activeItem['route']])
-                                @if($activeItem && $item['route'] === $activeItem['route']) aria-current="page" @endif
-                            ><span class="nav-child-dot" aria-hidden="true">◦</span>{{ $item['label'] }}</a>
-                        @endforeach
+                        @if($group['label'] === 'Ürün / Stok')
+                            @php
+                                $stockSections = [
+                                    'Ürünler ve Fiyatlar' => ['products.index', 'price-lists.index', 'categories.index', 'brands.index', 'variant-groups.detail', 'units.index'],
+                                    'Stok ve Depolar' => ['stock.status', 'stock.movements', 'locations.index', 'stock.transfers.index', 'stock.transfers.create', 'stock.reservations.index', 'stock.quarantine.index'],
+                                    'Stok Sayımları' => ['stock.counts.index', 'stock.counts.create', 'stock.counts.quick', 'stock.counts.results'],
+                                    'Stok İşlemleri' => ['stock.warehouse-slips.index', 'stock.costs', 'stock.opening.index', 'imports.index'],
+                                ];
+                            @endphp
+                            @foreach($stockSections as $sectionLabel => $sectionRoutes)
+                                @php
+                                    $sectionItems = collect($group['items'])->filter(fn (array $item): bool => in_array($item['route'], $sectionRoutes, true));
+                                    $sectionActive = $activeItem && in_array($activeItem['route'], $sectionRoutes, true);
+                                @endphp
+                                @if($sectionItems->isNotEmpty())
+                                    <details class="nav-subgroup" @if($sectionActive || $loop->first) open @endif>
+                                        <summary class="nav-subgroup-title">{{ $sectionLabel }} <span aria-hidden="true">⌄</span></summary>
+                                        <div class="nav-subgroup-links">
+                                            @foreach($sectionItems as $item)
+                                                <a href="{{ route($item['route']) }}"
+                                                    @class(['nav-link', 'is-active' => $activeItem && $item['route'] === $activeItem['route']])
+                                                    @if($activeItem && $item['route'] === $activeItem['route']) aria-current="page" @endif
+                                                ><span class="nav-child-dot" aria-hidden="true">◦</span>{{ $item['label'] }}</a>
+                                            @endforeach
+                                        </div>
+                                    </details>
+                                @endif
+                            @endforeach
+                        @else
+                            @foreach ($group['items'] as $item)
+                                <a href="{{ route($item['route']) }}"
+                                    @class(['nav-link', 'is-active' => $activeItem && $item['route'] === $activeItem['route']])
+                                    @if($activeItem && $item['route'] === $activeItem['route']) aria-current="page" @endif
+                                ><span class="nav-child-dot" aria-hidden="true">◦</span>{{ $item['label'] }}</a>
+                            @endforeach
+                        @endif
                     </div>
                 </details>
             @endforeach
