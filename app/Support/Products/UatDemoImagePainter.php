@@ -23,14 +23,14 @@ final class UatDemoImagePainter
             throw new RuntimeException('UAT demo görseli oluşturulamadı.');
         }
 
-        $background = imagecolorallocate($img, 245, 247, 250);
+        $background = imagecolorallocate($img, 244, 247, 251);
         $white = imagecolorallocate($img, 255, 255, 255);
-        $gray = imagecolorallocate($img, 150, 165, 184);
-        $dark = imagecolorallocate($img, 61, 76, 97);
-        $metal = imagecolorallocate($img, 178, 145, 74);
-        $warm = imagecolorallocate($img, 247, 204, 117);
-        $accent = imagecolorallocate($img, 70, 132, 195);
-        $shadow = imagecolorallocate($img, 224, 231, 240);
+        $gray = imagecolorallocate($img, 116, 130, 150);
+        $dark = imagecolorallocate($img, 39, 53, 73);
+        $metal = imagecolorallocate($img, 182, 126, 32);
+        $warm = imagecolorallocate($img, 255, 188, 62);
+        $accent = imagecolorallocate($img, 40, 106, 190);
+        $shadow = imagecolorallocate($img, 215, 225, 238);
 
         imagefilledrectangle($img, 0, 0, $w, $h, $background);
         imagefilledrectangle($img, 24, 24, $w - 24, $h - 24, $white);
@@ -41,21 +41,21 @@ final class UatDemoImagePainter
             case 1: // Gold chandelier: canopy, arms and seven bulbs.
             case 2: // Crystal chandelier: cooler finish and pendants.
                 $finish = $variant === 1 ? $metal : $gray;
-                imagesetthickness($img, 6);
+                imagesetthickness($img, 9);
                 imageline($img, 260, 48, 260, 182, $finish);
                 imagefilledrectangle($img, 222, 48, 298, 62, $finish);
-                imagefilledellipse($img, 260, 180, 46, 18, $finish);
+                imagefilledellipse($img, 260, 180, 60, 25, $finish);
                 foreach ([-145, -100, -52, 0, 52, 100, 145] as $dx) {
                     $x = 260 + $dx;
                     imageline($img, 260, 182, $x, 226 - (int) (abs($dx) / 10), $finish);
-                    imagefilledellipse($img, $x, 228 - (int) (abs($dx) / 10), 29, 40, $variant === 1 ? $warm : $accent);
+                    imagefilledellipse($img, $x, 228 - (int) (abs($dx) / 10), 40, 49, $variant === 1 ? $warm : $accent);
                     if ($variant === 2) {
-                        imagefilledellipse($img, $x, 262 - (int) (abs($dx) / 10), 12, 31, $gray);
+                        imagefilledellipse($img, $x, 262 - (int) (abs($dx) / 10), 18, 37, $gray);
                     }
                 }
                 break;
             case 3: // Pendant lamp.
-                imagesetthickness($img, 5);
+                imagesetthickness($img, 8);
                 imageline($img, 260, 48, 260 + $shift, 205, $dark);
                 imagefilledrectangle($img, 222, 48, 298, 60, $dark);
                 imagefilledarc($img, 260 + $shift, 222, 245, 174, 0, 180, $accent, IMG_ARC_PIE);
@@ -98,6 +98,17 @@ final class UatDemoImagePainter
             imagefilledrectangle($img, 395, 45, 468, 51, $accent);
             imagefilledrectangle($img, 415, 59, 468, 63, $gray);
         }
+
+        // Enlarge the illustrated object within the same output dimensions.
+        // Crop only the empty margins, then upscale once to preserve the PNG API.
+        $framed = imagecreatetruecolor($w, $h);
+        if ($framed === false) {
+            imagedestroy($img);
+            throw new RuntimeException('UAT demo görseli yeniden boyutlandırılamadı.');
+        }
+        imagecopyresampled($framed, $img, 0, 0, 63, 32, $w, $h, 394, 310);
+        imagedestroy($img);
+        $img = $framed;
 
         ob_start();
         $ok = imagepng($img, null, 8);
