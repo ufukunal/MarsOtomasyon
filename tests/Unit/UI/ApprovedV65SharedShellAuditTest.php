@@ -230,3 +230,23 @@ it('keeps shared table toolbar controls aligned and readable across modules', fu
         ->and($table)->toContain('class="table-toolbar-main"')
         ->toContain('class="table-toolbar-actions"');
 });
+
+it('exports only explicitly selected product fields through the same Excel CSV and JSON formats', function (): void {
+    $component = file_get_contents(base_path('app/Livewire/Pages/Products/ProductList.php'));
+    $view = file_get_contents(base_path('resources/views/livewire/components/data-table.blade.php'));
+    $css = file_get_contents(base_path('resources/css/v65-shell.css'));
+
+    expect($component)->toContain('public array $exportFields = []')
+        ->toContain('public function toggleAllExportFields(): void')
+        ->toContain('public function exportProducts(): StreamedResponse')
+        ->toContain("$this->exportFields[$column->key] ?? false")
+        ->toContain("abort_if($columns->isEmpty(), 422")
+        ->toContain("['code', 'name']")
+        ->and($view)->toContain('v65-products-export-fields-head')
+        ->toContain('wire:click="toggleAllExportFields"')
+        ->toContain('wire:model.live="exportFields.{{ $column->key }}"')
+        ->toContain('{{ $column->label }}')
+        ->toContain('@disabled($exportSelectedCount === 0)')
+        ->and($css)->toContain('.v65-products-export-fields-scroll')
+        ->toContain('overflow-y:auto');
+});
