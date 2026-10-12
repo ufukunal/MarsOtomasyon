@@ -42,15 +42,15 @@ it('keeps v65 daily dashboard visible and older period widgets accessible withou
 it('uses the same reference table scaffolding for product, stock and other lists', function (): void {
     $view = file_get_contents(base_path('resources/views/livewire/components/data-table.blade.php'));
 
-    expect($view)->toContain('v65-products-hint')
+    expect($view)->toContain('v65-products-list-heading')
         ->toContain('v65-shared-table-title')
-        ->not->toContain('v65-products-heading')
+        ->toContain('v65-products-heading-actions')
         ->not->toContain('v65-shared-list-heading')
         ->toContain('v65-products-filter-popover')
         ->toContain('$navigationItem')
         ->toContain('wire:model.live.debounce.300ms="search"')
-        ->toContain('wire:click="exportCsv"')
-        ->toContain('wire:click="exportXlsx"')
+        ->toContain('wire:click="exportProducts"')
+        ->toContain('data-v65-products-export-dialog')
         ->toContain("route(\$emptyAction['route'])")
         ->toContain('class="table-toolbar-actions"')
         ->toContain('wire:change="setPerPage($event.target.value)"')
@@ -200,9 +200,9 @@ it('matches the approved product-list screenshot without changing other list sel
 
     expect($view)->toContain('v65-products-list-heading')
         ->toContain('Ürün kartları, fiyat ve stok özeti.')
-        ->toContain('v65-products-export-menu')
-        ->toContain('data-v65-product-export-xlsx')
-        ->toContain('data-v65-product-export-csv')
+        ->toContain('data-v65-products-print-dialog')
+        ->toContain('data-v65-products-export-open')
+        ->toContain('data-v65-products-print-open')
         ->toContain('wire:click="exportXlsx"')
         ->toContain('wire:click="exportCsv"')
         ->toContain('v65-products-filter-popover')
@@ -213,7 +213,7 @@ it('matches the approved product-list screenshot without changing other list sel
         ->toContain('v65-products-reserved')
         ->toContain('v65-products-available')
         ->and($layout)->toContain("if (\$routeName === 'products.index')")
-        ->toContain("document.querySelector('[data-v65-product-export-xlsx]')")
+        ->not->toContain("document.querySelector('[data-v65-product-export-xlsx]')")
         ->and($css)->toContain('v65 product list: exact approved HTML screen composition')
         ->toContain('grid-template-columns:minmax(0,1.1fr) repeat(3,minmax(0,1fr)) minmax(80px,85px)');
 });
