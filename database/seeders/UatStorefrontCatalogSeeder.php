@@ -37,15 +37,26 @@ final class UatStorefrontCatalogSeeder extends Seeder
             throw new RuntimeException('BLOCKED: UAT period is not writable.');
         }
 
+        $batch = filter_var(env('MARS_UAT_CATALOG_BATCH', '1'), FILTER_VALIDATE_INT, [
+            'options' => ['min_range' => 1, 'max_range' => 99],
+        ]);
+        if ($batch === false) {
+            throw new RuntimeException('BLOCKED: MARS_UAT_CATALOG_BATCH must be 1..99.');
+        }
+        $path = resource_path(sprintf('demo/storefront-batches/batch-%03d.json', $batch));
+        if (! is_file($path)) {
+            throw new RuntimeException('BLOCKED: missing verified catalog batch '.$batch);
+        }
         $manifest = json_decode(
-            (string) file_get_contents(resource_path('demo/storefront-catalog.json')),
+            (string) file_get_contents($path),
             true,
             512,
             JSON_THROW_ON_ERROR
         );
 
         $entries = $manifest['products'] ?? [];
-        if (count($entries) < 10 || (int) ($manifest['vat_assumption_percent'] ?? -1) !== 20) {
+        if (count($entries) !== 50 || (int) ($manifest['batch'] ?? -1) !== $batch
+            || (int) ($manifest['vat_assumption_percent'] ?? -1) !== 20) {
             throw new RuntimeException('BLOCKED: invalid catalog snapshot.');
         }
 
@@ -72,7 +83,7 @@ final class UatStorefrontCatalogSeeder extends Seeder
                     throw new RuntimeException('Invalid storefront product URL.');
                 }
 
-                $file = resource_path('demo/catalog-images/'.$code.'.bin');
+                $file = resource_path(sprintf('demo/storefront-batches/images/batch-%03d/%s.bin', $manifest['batch'], $code));
                 if (! is_file($file) || filesize($file) < 4000) {
                     throw new RuntimeException('Missing source photograph: '.$code);
                 }
@@ -149,7 +160,7 @@ final class UatStorefrontCatalogSeeder extends Seeder
                     }
 
                     $image = (string) file_get_contents(
-                        resource_path('demo/catalog-images/'.$code.'.bin')
+                        resource_path(sprintf('demo/storefront-batches/images/batch-%03d/%s.bin', $manifest['batch'], $code))
                     );
                     $size = @getimagesizefromstring($image);
                     if (! $size || $size[0] < 120 || $size[1] < 120) {
@@ -196,7 +207,7 @@ final class UatStorefrontCatalogSeeder extends Seeder
             });
 
             $this->command?->info(
-                'PASS: '.count($entries).' storefront demo products with stored real source photos; '
+                'PASS: batch '.(int) $manifest['batch'].' · '.count($entries).' storefront demo products with stored real source photos; '
                 .'existing records and stock unchanged.'
             );
         });
