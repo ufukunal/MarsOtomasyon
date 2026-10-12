@@ -76,6 +76,16 @@ git merge-base --is-ancestor "$OLD_SHA" "$TARGET" || {
   echo "BLOCKED: current UAT release is not an ancestor of main" >&2
   exit 77
 }
+if [[ "$OLD_SHA" == "$TARGET" ]]; then
+  echo "PASS: UAT is already pinned to the current main revision"
+  sudo docker exec "$WEB_CID" sh -ec '
+    grep -q "v65-home-workbench" /var/www/html/resources/views/livewire/reporting/dashboard.blade.php
+    test -s /var/www/html/public/build/manifest.json
+  ' || { echo "BLOCKED: installed image content does not match current UI expectations" >&2; exit 77; }
+  sudo docker exec "$WEB_CID" php artisan view:clear
+  echo "PASS: stale UAT Blade views cleared; reload the browser without cached assets"
+  exit 0
+fi
 if [[ -n "$(git diff --name-only "$OLD_SHA" "$TARGET" -- database/migrations)" ]]; then
   echo "BLOCKED: database migration changes require a separate backed-up UAT migration plan" >&2
   exit 77
@@ -95,13 +105,13 @@ restore_on_failure() {
   rc="$?"
   if (( rc != 0 && SUCCESS == 0 )); then
     echo "FAILED: UAT update; attempting isolated web rollback" >&2
+    if (( SOURCE_SWITCHED == 1 )); then
+      git switch --detach "$START_HEAD" >/dev/null || true
+    fi
     if (( MARKER_CHANGED == 1 )); then
       sed -i "s/^MARS_UAT_SHA=$TARGET$/MARS_UAT_SHA=$OLD_SHA/" "$ENV_FILE" || true
       sudo docker compose --env-file "$ENV_FILE" -f compose.uat.lab.yml --profile application \
         up -d --no-deps --pull never --force-recreate web || true
-    fi
-    if (( SOURCE_SWITCHED == 1 )); then
-      git switch --detach "$START_HEAD" >/dev/null || true
     fi
     echo "Rollback attempted; check the web revision before using UAT." >&2
   fi
