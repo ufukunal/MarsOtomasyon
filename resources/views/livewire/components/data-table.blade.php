@@ -48,7 +48,7 @@
             </label>
             <div class="v65-products-dialog-actions"><button type="button" class="button-secondary" data-v65-products-dialog-close>İptal</button><button type="button" class="button-link" data-v65-products-print-run>Yazdır / PDF</button></div>
         </dialog>
-        <dialog class="v65-products-dialog v65-products-export-dialog" data-v65-products-export-dialog aria-label="Ürün Listesi Dışa Aktar">
+        <dialog wire:ignore.self class="v65-products-dialog v65-products-export-dialog" data-v65-products-export-dialog aria-label="Ürün Listesi Dışa Aktar">
             <div class="v65-products-dialog-head"><strong>Ürün Listesi Dışa Aktar</strong><button type="button" data-v65-products-dialog-close aria-label="Kapat">×</button></div>
             <label>Dosya biçimi
                 <select wire:model="exportFormat">
