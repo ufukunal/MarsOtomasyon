@@ -28,7 +28,9 @@ th{background:#f1f5f9}
 .label{border:2px solid #15242d;padding:6mm;min-height:130mm;break-inside:avoid;page-break-inside:avoid}
 .label-header{display:flex;align-items:center;justify-content:space-between;gap:8px;border-bottom:2px solid #15242d;padding-bottom:8px;min-height:29mm}
 .label-header .label-qr{width:25mm;height:25mm;flex:0 0 25mm;max-width:none;margin:0}
-.label-header strong{font-size:47px;line-height:1;font-weight:900;white-space:nowrap}
+.label-header strong{display:flex;align-items:center;justify-content:flex-end;min-height:25mm;font-size:88px;line-height:1;font-weight:900;white-space:nowrap;letter-spacing:-2px}
+.label-header strong.parcel-count-wide{font-size:70px}
+.label-header strong.parcel-count-xwide{font-size:51px}
 .label-company{font-weight:850;font-size:29px;line-height:1.15;margin:12px 0 8px;overflow-wrap:anywhere}
 .label-location{border-bottom:1px solid #d1dce5;padding:5px 0 9px;margin-bottom:9px}
 .label-city{font-weight:900;font-size:33px;line-height:1.1;text-transform:uppercase;overflow-wrap:anywhere}
@@ -57,12 +59,10 @@ th{background:#f1f5f9}
     <section class="copy">
         <header class="head">
             <div><h1>AMBAR FİŞİ</h1><small>{{ $slip->number }} · {{ $slip->slip_date->format('d.m.Y') }}</small></div>
-            <div style="text-align:right"><b>{{ $slip->contact?->title }}</b><small>{{ $slip->contact?->code }}</small></div>
         </header>
         <table class="details">
             <tr><td>Taşıyıcı / Ambar</td><td>{{ $slip->carrier }}</td><td>Gönderim</td><td>{{ $slip->shipping_type }}</td></tr>
             <tr><td>Koli / Ağırlık</td><td colspan="3">{{ $slip->package_count }} koli · {{ $slip->weight_kg ?? '0' }} kg</td></tr>
-            <tr><td>Takip / Teslim No</td><td>{{ $slip->tracking_number ?: '—' }}</td><td>Sipariş / İrsaliye</td><td>{{ $slip->order_reference ?: '—' }} / {{ $slip->dispatch_reference ?: '—' }}</td></tr>
             <tr><td>Teslim Firma</td><td>{{ $slip->delivery_company }}</td><td>Yetkili / Telefon</td><td>{{ $slip->delivery_person ?: '—' }} · {{ $slip->delivery_phone }}</td></tr>
             <tr><td>İl / İlçe</td><td>{{ $slip->delivery_city }} / {{ $slip->delivery_district }}</td><td>Adres</td><td>{{ $slip->delivery_address }}</td></tr>
             <tr><td>Not</td><td colspan="3">{{ $slip->note ?: '—' }}</td></tr>
@@ -81,7 +81,7 @@ th{background:#f1f5f9}
             <section class="label">
                 <header class="label-header">
                     {!! \App\Support\Printing\Label\OpaqueQrSvg::render(\App\Support\Printing\Label\OpaqueQrSvg::token($qrScope, $i, (string) config('app.key'))) !!}
-                    <strong>{{ $i }}/{{ $slip->package_count }}</strong>
+                    <strong @class(['parcel-count-wide' => $slip->package_count >= 10 && $slip->package_count < 100, 'parcel-count-xwide' => $slip->package_count >= 100])>{{ $i }}/{{ $slip->package_count }}</strong>
                 </header>
                 <div class="label-company">{{ $slip->delivery_company }}</div>
                 <div class="label-location">

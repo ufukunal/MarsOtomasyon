@@ -316,6 +316,9 @@ it('renders both A4 halves and carton labels without requiring a database', func
         ->and($html)->toContain('AF-2026-00001')
         ->toContain('12.10.2026')
         ->toContain('KIRILABİLİR')
+        ->not->toContain('CR001')
+        ->not->toContain('Takip / Teslim No')
+        ->not->toContain('Sipariş / İrsaliye')
         ->not->toContain('UR001')
         ->not->toContain('Test Ürün')
         ->not->toContain('2,000')
@@ -382,7 +385,7 @@ it('prints confidential QR codes rather than public barcodes on transport slips 
     expect($print)->toContain('OpaqueQrSvg::render')
         ->toContain('OpaqueQrSvg::token($qrScope, 0,')
         ->toContain('OpaqueQrSvg::token($qrScope, $i,')
-        ->toContain('font-size:47px')
+        ->toContain('font-size:88px')
         ->toContain('font-size:33px')
         ->toContain('font-size:18px')
         ->toContain('font-size:29px')
@@ -417,4 +420,27 @@ it('positions each parcel QR above the divider without the former heading or sli
         ->and($counterPosition)->toBeGreaterThan($qrPosition)
         ->toBeLessThan($headerEnd)
         ->and(substr_count($labelTemplate, 'OpaqueQrSvg::token($qrScope, $i,'))->toBe(1);
+});
+
+it('keeps the A5 slip title but omits the header contact and removed reference row', function (): void {
+    $print = file_get_contents(base_path('resources/views/printing/transport-slip.blade.php'));
+    $slipTemplate = substr($print, strpos($print, "@if(\$format === 'slip')"), strpos($print, '@else', strpos($print, "@if(\$format === 'slip')")) - strpos($print, "@if(\$format === 'slip')"));
+
+    expect($slipTemplate)->toContain('<h1>AMBAR FİŞİ</h1>')
+        ->toContain("{{ \$slip->number }}")
+        ->not->toContain('contact?->title')
+        ->not->toContain('contact?->code')
+        ->not->toContain('Takip / Teslim No')
+        ->not->toContain('Sipariş / İrsaliye');
+});
+
+it('sizes the parcel number against the QR and keeps large carton counts legible', function (): void {
+    $print = file_get_contents(base_path('resources/views/printing/transport-slip.blade.php'));
+
+    expect($print)->toContain('.label-header .label-qr{width:25mm;height:25mm;')
+        ->toContain('min-height:25mm;font-size:88px')
+        ->toContain('strong.parcel-count-wide{font-size:70px}')
+        ->toContain('strong.parcel-count-xwide{font-size:51px}')
+        ->toContain("'parcel-count-wide' => \$slip->package_count >= 10")
+        ->toContain("'parcel-count-xwide' => \$slip->package_count >= 100");
 });
