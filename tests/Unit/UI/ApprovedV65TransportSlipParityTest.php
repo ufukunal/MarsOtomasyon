@@ -313,7 +313,9 @@ it('renders both A4 halves and carton labels without requiring a database', func
     $html = view('printing.transport-slip', [...$data, 'format' => 'slip'])->render();
 
     expect(substr_count($html, '<h1>AMBAR FİŞİ</h1>'))->toBe(2)
-        ->and($html)->toContain('AF-2026-00001')
+        ->and($html)->toContain('@page{size:A4 landscape;margin:0}')
+        ->not->toContain('@page{size:A4 portrait;margin:0}')
+        ->toContain('AF-2026-00001')
         ->toContain('12.10.2026')
         ->toContain('KIRILABİLİR')
         ->not->toContain('CR001')
@@ -326,7 +328,9 @@ it('renders both A4 halves and carton labels without requiring a database', func
 
     $labels = view('printing.transport-slip', [...$data, 'format' => 'labels'])->render();
     expect(substr_count($labels, 'class="label-qr"'))->toBe(3)
-        ->and($labels)->toContain('1/3')
+        ->and($labels)->toContain('@page{size:A4 portrait;margin:0}')
+        ->not->toContain('@page{size:A4 landscape;margin:0}')
+        ->toContain('1/3')
         ->toContain('3/3')
         ->not->toContain('SEVKİYAT ETİKETİ');
 });
@@ -443,4 +447,16 @@ it('sizes the parcel number against the QR and keeps large carton counts legible
         ->toContain('strong.parcel-count-xwide{font-size:51px}')
         ->toContain("'parcel-count-wide' => \$slip->package_count >= 10")
         ->toContain("'parcel-count-xwide' => \$slip->package_count >= 100");
+});
+
+it('lays out two upright A5 slips side by side on one landscape A4 with a vertical cut divider', function (): void {
+    $print = file_get_contents(base_path('resources/views/printing/transport-slip.blade.php'));
+
+    expect($print)->toContain('.a4{width:297mm;height:210mm;display:grid;grid-template-columns:148.5mm 148.5mm;')
+        ->toContain('.copy{width:148.5mm;height:210mm;')
+        ->toContain('.copy:first-child{border-right:1px dashed')
+        ->toContain('writing-mode:vertical-rl')
+        ->toContain("'Ambar Fişi (Yatay A4 / Yan Yana 2 × Dik A5)'")
+        ->not->toContain('grid-template-rows:148.5mm 148.5mm')
+        ->not->toContain('.copy:first-child{border-bottom:');
 });

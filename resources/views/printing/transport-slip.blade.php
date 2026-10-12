@@ -10,10 +10,10 @@ body{font:11px Arial,sans-serif;color:#15242d;background:#edf1f4;margin:0}
 .toolbar{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:12px 18px;background:#fff;position:sticky;top:0;z-index:10;border-bottom:1px solid #cad4dd}
 button{border:1px solid #b5c6d2;background:#fff;border-radius:4px;padding:10px 15px;cursor:pointer}
 .sheet{background:#fff;margin:20px auto;box-shadow:0 2px 12px #10203522}
-.a4{width:210mm;height:297mm;display:grid;grid-template-rows:148.5mm 148.5mm;break-after:page;page-break-after:always}.a4:last-child{break-after:auto;page-break-after:auto}
-.copy{height:148.5mm;overflow:hidden;padding:5mm 8mm;position:relative}
-.copy:first-child{border-bottom:1px dashed #6e8794}
-.cut{position:absolute;right:8mm;bottom:1mm;font-size:7px;color:#6e8794}
+.a4{width:297mm;height:210mm;display:grid;grid-template-columns:148.5mm 148.5mm;break-after:page;page-break-after:always}.a4:last-child{break-after:auto;page-break-after:auto}
+.copy{width:148.5mm;height:210mm;overflow:hidden;padding:5mm 8mm;position:relative}
+.copy:first-child{border-right:1px dashed #6e8794}
+.cut{position:absolute;right:1mm;top:50%;font-size:7px;color:#6e8794;white-space:nowrap;writing-mode:vertical-rl;transform:translateY(-50%)}
 .head{display:flex;justify-content:space-between;border-bottom:2px solid #15242d;padding-bottom:5px;margin-bottom:5px}
 .head h1{margin:0;font-size:19px}
 .head small{display:block;margin-top:4px}
@@ -37,7 +37,7 @@ th{background:#f1f5f9}
 .label-district{font-weight:750;font-size:18px;line-height:1.25;margin-top:3px;overflow-wrap:anywhere}
 .label-qr{display:block;margin:7mm auto 0;width:40mm;height:40mm;max-width:100%}
 .copy .label-qr{width:29mm;height:29mm;margin:3mm auto 0}
-@page{size:A4 portrait;margin:0}
+@page{size:A4 {{ $format === 'slip' ? 'landscape' : 'portrait' }};margin:0}
 @media print{
  body{background:#fff}
  .toolbar{display:none}
@@ -50,7 +50,7 @@ th{background:#f1f5f9}
 </head>
 <body>
 <div class="toolbar">
-  <div><b>{{ $slip->number }}</b> · {{ $format === 'labels' ? 'Koli Etiketleri' : 'Ambar Fişi (A4 / 2 × A5)' }}</div>
+  <div><b>{{ $slip->number }}</b> · {{ $format === 'labels' ? 'Koli Etiketleri' : 'Ambar Fişi (Yatay A4 / Yan Yana 2 × Dik A5)' }}</div>
   <button onclick="window.print()">Yazdır / PDF Olarak Kaydet</button>
 </div>
 @if($format === 'slip')
