@@ -492,3 +492,34 @@ it('lays out two upright A5 slips side by side on one landscape A4 with a vertic
         ->not->toContain('grid-template-rows:148.5mm 148.5mm')
         ->not->toContain('.copy:first-child{border-bottom:');
 });
+
+it('locks down approved slip and parcel print geometry and stable opaque identifiers', function (): void {
+    $view = file_get_contents(base_path('resources/views/printing/transport-slip.blade.php'));
+    $qr = file_get_contents(base_path('app/Support/Printing/Label/OpaqueQrSvg.php'));
+
+    expect($view)->toContain('grid-template-columns:148.5mm 148.5mm')
+        ->toContain('width:297mm;height:210mm')
+        ->toContain('border-right:1px dashed')
+        ->toContain('justify-content:flex-end')
+        ->toContain('class="head-token"')
+        ->toContain('class="stamp-approval"')
+        ->toContain('class="label-header"')
+        ->toContain('class="label-company"')
+        ->toContain('class="label-city"')
+        ->toContain('class="label-district"')
+        ->not->toContain('<table class="items">')
+        ->and($qr)->toContain("hash_hmac('sha256'");
+
+    $key = 'unit-test-only-stable-print-key';
+    $scope = 'company:period:slip';
+    $slipToken = OpaqueQrSvg::token($scope, 0, $key);
+    $first = OpaqueQrSvg::token($scope, 1, $key);
+    $second = OpaqueQrSvg::token($scope, 2, $key);
+
+    expect($slipToken)->toMatch('/^[A-F0-9]{32}$/')
+        ->and($first)->toMatch('/^[A-F0-9]{32}$/')
+        ->and($first)->toBe(OpaqueQrSvg::token($scope, 1, $key))
+        ->and($first)->not->toBe($second)
+        ->and($slipToken)->not->toBe($first)
+        ->and($first)->not->toBe(OpaqueQrSvg::token('company:period:other-slip', 1, $key));
+});
