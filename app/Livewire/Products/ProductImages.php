@@ -73,6 +73,32 @@ class ProductImages extends Component
         );
     }
 
+    public function setCover(int $attachmentId, ReorderProductImages $action): void
+    {
+        $this->authorize('update', $this->product);
+
+        $ids = $this->product->attachments()
+            ->where('collection', $this->collection)
+            ->orderBy('sort_order')
+            ->orderBy('id')
+            ->pluck('id')
+            ->map(fn ($id): int => (int) $id)
+            ->all();
+
+        if (! in_array($attachmentId, $ids, true)) {
+            abort(404);
+        }
+
+        $ordered = [$attachmentId, ...array_values(array_filter(
+            $ids, fn (int $id): bool => $id !== $attachmentId
+        ))];
+
+        $this->runPeriodMutation(
+            'reorder',
+            fn () => $action->handle($this->product, $this->collection, $ordered),
+        );
+    }
+
     public function move(int $attachmentId, string $direction, ReorderProductImages $action): void
     {
         $this->authorize('update', $this->product);
