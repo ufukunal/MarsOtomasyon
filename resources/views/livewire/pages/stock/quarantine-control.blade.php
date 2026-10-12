@@ -70,8 +70,8 @@
 
         @if(auth()->user()?->can('quarantine.update'))
             <div class="form-row">
-                <button type="button" wire:click="releaseSelected">Satılabilir</button>
-                <button type="button" wire:click="scrapSelected">Hurda</button>
+                <button type="button" class="button-secondary" wire:click="releaseSelected">Satılabilir</button>
+                <button type="button" class="button-danger" wire:click="scrapSelected">Hurda</button>
             </div>
         @endif
     </section>
