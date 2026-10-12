@@ -150,6 +150,14 @@ document.addEventListener('input', (event) => {
             visible = visible || matches;
         }
 
+        for (const subgroup of group.querySelectorAll('.nav-subgroup')) {
+            const subgroupLinks = Array.from(subgroup.querySelectorAll('.nav-link'));
+            const hasVisible = subgroupLinks.some((link) => !link.hidden);
+            subgroup.hidden = !hasVisible;
+            if (query && hasVisible) subgroup.open = true;
+            if (!query) subgroup.open = subgroupLinks.some((link) => link.hasAttribute('aria-current'))
+                || subgroup === group.querySelector('.nav-subgroup');
+        }
         group.hidden = !visible;
         if (query) {
             group.open = visible;
