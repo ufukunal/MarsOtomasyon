@@ -12,6 +12,11 @@
         $firstImage = $attachments->first(fn ($attachment) => str_starts_with((string) $attachment->mime, 'image/'));
     @endphp
 
+    <dialog class="v65-product-image-lightbox" data-v65-product-image-lightbox aria-label="Ürün görseli önizlemesi">
+        <button type="button" class="v65-product-image-lightbox-close" data-v65-product-preview-close aria-label="Kapat">×</button>
+        <img src="" alt="Ürün görseli">
+    </dialog>
+
     <nav class="tabs v65-product-tabs" role="tablist" aria-label="Ürün detay sekmeleri">
         @foreach($tabs as $key => $label)
             <button type="button" role="tab" @class(['tab', 'is-active' => $activeTab === $key])
@@ -24,7 +29,9 @@
     <section class="product-identity" aria-label="Ürün kimliği">
         <div class="product-photo">
             @if($firstImage)
-                <img src="{{ route('products.images.show', ['product' => $product->id, 'attachment' => $firstImage->id]) }}" alt="{{ $product->name }}" loading="lazy">
+                <button type="button" class="v65-product-cover-zoom" data-v65-product-preview-open aria-label="{{ $product->name }} görselini büyüt">
+                    <img src="{{ route('products.images.show', ['product' => $product->id, 'attachment' => $firstImage->id]) }}" alt="{{ $product->name }}" loading="lazy">
+                </button>
             @else
                 <span aria-hidden="true">◈</span>
             @endif
@@ -344,9 +351,14 @@
         <section class="panel stack"><strong>Ürün Görselleri</strong>
             <div class="image-grid">
                 @forelse($attachments->filter(fn ($row) => str_starts_with((string) $row->mime, 'image/')) as $image)
-                    <div class="image-card"><img class="product-image-preview"
-                        src="{{ route('products.images.show', ['product' => $product->id, 'attachment' => $image->id]) }}"
-                        alt="{{ $image->original_name }}" loading="lazy"><small>{{ $image->original_name }}</small></div>
+                    <div class="image-card">
+                        <button type="button" class="v65-product-gallery-open" data-v65-product-preview-open aria-label="{{ $image->original_name }} görselini büyüt">
+                            <img class="product-image-preview"
+                                src="{{ route('products.images.show', ['product' => $product->id, 'attachment' => $image->id]) }}"
+                                alt="{{ $image->original_name }}" loading="lazy">
+                        </button>
+                        <small>{{ $image->original_name }}</small>
+                    </div>
                 @empty
                     <p class="empty-state">Bu ürün için görsel yüklenmemiş.</p>
                 @endforelse
