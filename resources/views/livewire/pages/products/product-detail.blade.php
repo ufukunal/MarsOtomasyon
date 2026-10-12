@@ -197,7 +197,9 @@
             </table></div>
         </section>
     @elseif(in_array($activeTab, ['sales', 'purchases'], true))
-        @php($lines = $activeTab === 'sales' ? $sales : $purchases)
+        @php
+                    $lines = $activeTab === 'sales' ? $sales : $purchases;
+                @endphp
         <section class="panel stack">
             <div class="form-row"><strong>{{ $activeTab === 'sales' ? 'Ürün Satışları' : 'Ürün Alışları' }}</strong><span>{{ $product->code }} · {{ $product->name }}</span></div>
             <div class="table-scroll v65-grid-scroll"><table class="data-table">
