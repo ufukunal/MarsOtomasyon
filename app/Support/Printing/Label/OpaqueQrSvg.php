@@ -79,19 +79,19 @@ final class OpaqueQrSvg
         // BCH-protected QR format bits for ECC M, mask 0.
         $format = 0x5412;
         for ($i = 0; $i <= 5; $i++) {
-            $set(8, $i, (($format >> $i) & 1) !== 0);
+            $set(8, $i, (bool) (($format >> $i) & 1));
         }
-        $set(8, 7, (($format >> 6) & 1) !== 0);
-        $set(8, 8, (($format >> 7) & 1) !== 0);
-        $set(7, 8, (($format >> 8) & 1) !== 0);
+        $set(8, 7, (bool) (($format >> 6) & 1));
+        $set(8, 8, (bool) (($format >> 7) & 1));
+        $set(7, 8, (bool) (($format >> 8) & 1));
         for ($i = 9; $i < 15; $i++) {
-            $set(14 - $i, 8, (($format >> $i) & 1) !== 0);
+            $set(14 - $i, 8, (bool) (($format >> $i) & 1));
         }
         for ($i = 0; $i < 8; $i++) {
-            $set($size - 1 - $i, 8, (($format >> $i) & 1) !== 0);
+            $set($size - 1 - $i, 8, (bool) (($format >> $i) & 1));
         }
         for ($i = 8; $i < 15; $i++) {
-            $set(8, $size - 15 + $i, (($format >> $i) & 1) !== 0);
+            $set(8, $size - 15 + $i, (bool) (($format >> $i) & 1));
         }
         $set(8, $size - 8, true);
 
