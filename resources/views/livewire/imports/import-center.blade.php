@@ -52,7 +52,7 @@
                     <td>{{ $row->currency }}</td>
                     <td>{{ $row->exchange_rate ?? '—' }}</td>
                     <td>{{ $row->status }}</td>
-                    <td><button type="button" wire:click="selectFile({{ $row->id }})">Aç</button></td>
+                    <td><button class="button-secondary" type="button" wire:click="selectFile({{ $row->id }})">Aç</button></td>
                 </tr>
             @endforeach
             </tbody>
@@ -138,7 +138,7 @@
                         <td>
                             @if(!$file->isLocked())
                                 @can('import_shipments.update')
-                                    <button type="button" wire:click="editContainer({{ $container->id }})">Düzenle</button>
+                                    <button class="button-secondary" type="button" wire:click="editContainer({{ $container->id }})">Düzenle</button>
                                 @endcan
                             @endif
                         </td>
@@ -199,7 +199,7 @@
                         <td>
                             @if(!$file->isLocked())
                                 @can('import_shipments.update')
-                                    <button type="button" wire:click="editPackage({{ $package->id }})">Düzenle</button>
+                                    <button class="button-secondary" type="button" wire:click="editPackage({{ $package->id }})">Düzenle</button>
                                 @endcan
                             @endif
                         </td>
@@ -241,7 +241,7 @@
                         <td>
                             @if(!$file->isLocked())
                                 @can('import_shipments.update')
-                                    <button type="button" wire:click="editCost({{ $item->id }})">Düzenle</button>
+                                    <button class="button-secondary" type="button" wire:click="editCost({{ $item->id }})">Düzenle</button>
                                 @endcan
                             @endif
                         </td>

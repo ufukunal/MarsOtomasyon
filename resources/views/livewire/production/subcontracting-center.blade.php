@@ -10,7 +10,7 @@
                     <td>{{ $row->product->code }} · {{ $row->product->name }}</td>
                     <td>{{ $row->subcontractor?->title }}</td>
                     <td>{{ $row->status }}</td>
-                    <td><button type="button" wire:click="selectOrder({{ $row->id }})">Aç</button></td>
+                    <td><button class="button-secondary" type="button" wire:click="selectOrder({{ $row->id }})">Aç</button></td>
                 </tr>
             @endforeach
             </tbody>

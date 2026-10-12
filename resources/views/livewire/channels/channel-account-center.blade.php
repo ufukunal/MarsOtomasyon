@@ -19,7 +19,7 @@
                     <td>{{ $account->external_store_id }}</td>
                     <td>{{ $account->is_active ? 'Evet' : 'Hayır' }}</td>
                     <td>{{ $adapterAvailability[$account->platform->value] ? 'Hazır' : 'Kanal bloğu bekleniyor' }}</td>
-                    <td><button type="button" wire:click="selectAccount({{ $account->id }})">Aç</button></td>
+                    <td><button class="button-secondary" type="button" wire:click="selectAccount({{ $account->id }})">Aç</button></td>
                 </tr>
             @endforeach
             </tbody>
@@ -65,7 +65,7 @@
 
             @if($adapterAvailability[$platform] ?? false)
                 @can('channel_accounts.update')
-                    <button type="button" wire:click="testConnection">Bağlantıyı Test Et</button>
+                    <button class="button-secondary" type="button" wire:click="testConnection">Bağlantıyı Test Et</button>
                     @if($platform === 'trendyol')
                         @if(data_get($selectedAccount?->settings, 'trendyol_webhook_id'))
                             <span>Webhook ID: {{ data_get($selectedAccount?->settings, 'trendyol_webhook_id') }}</span>

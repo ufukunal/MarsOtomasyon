@@ -18,7 +18,7 @@
                     <td>{{ $listing->external_sku }}</td>
                     <td>{{ $listing->stock_mode ?: 'product default' }}</td>
                     <td>{{ $listing->is_active ? 'Evet' : 'Hayır' }}</td>
-                    <td><button type="button" wire:click="selectListing({{ $listing->id }})">Aç</button></td>
+                    <td><button class="button-secondary" type="button" wire:click="selectListing({{ $listing->id }})">Aç</button></td>
                 </tr>
             @endforeach
             </tbody>

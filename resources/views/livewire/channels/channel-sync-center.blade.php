@@ -22,7 +22,7 @@
                 <option value="failed">Failed</option>
             </select>
             @can('channel_sync.update')
-                <button type="button" wire:click="pollNow" @disabled(!$channelAccountId)>Seçili Hesabı Şimdi Poll Et</button>
+                <button class="button-secondary" type="button" wire:click="pollNow" @disabled(!$channelAccountId)>Seçili Hesabı Şimdi Poll Et</button>
             @endcan
         </div>
 
@@ -43,7 +43,7 @@
                     <td>
                         @if($event->status === 'failed' && $event->direction === 'outbound')
                             @can('channel_sync.update')
-                                <button type="button" wire:click="retryEvent({{ $event->id }})">Retry</button>
+                                <button class="button-secondary" type="button" wire:click="retryEvent({{ $event->id }})">Retry</button>
                             @endcan
                         @endif
                     </td>
@@ -68,7 +68,7 @@
                     <td>{{ $error->error_summary }}</td>
                     <td>
                         @can('channel_sync.update')
-                            <button type="button" wire:click="resolveError({{ $error->id }})">Resolved İşaretle</button>
+                            <button class="button-secondary" type="button" wire:click="resolveError({{ $error->id }})">Resolved İşaretle</button>
                         @endcan
                     </td>
                 </tr>

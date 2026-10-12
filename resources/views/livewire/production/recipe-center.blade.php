@@ -17,7 +17,7 @@
                     <td>{{ $recipe->output_quantity }}</td>
                     <td>{{ $recipe->is_active ? 'Evet' : 'Hayır' }}</td>
                     <td>
-                        <button type="button" wire:click="selectRecipe({{ $recipe->id }})">Aç</button>
+                        <button class="button-secondary" type="button" wire:click="selectRecipe({{ $recipe->id }})">Aç</button>
                         @if(!$recipe->is_active)
                             @can('production_recipes.update')
                                 <button type="button" wire:click="activate({{ $recipe->id }})">Aktif Yap</button>
@@ -64,12 +64,12 @@
                         </select>
                     </td>
                     <td><input data-tr-decimal wire:model="lines.{{ $index }}.quantity"></td>
-                    <td><button type="button" wire:click="removeLine({{ $index }})">Kaldır</button></td>
+                    <td><button class="button-danger" type="button" wire:click="removeLine({{ $index }})">Kaldır</button></td>
                 </tr>
             @endforeach
             </tbody>
         </table></div>
-        <button type="button" wire:click="addLine">Component Ekle</button>
+        <button class="button-secondary" type="button" wire:click="addLine">Component Ekle</button>
 
         @canany(['production_recipes.create','production_recipes.update'])
             <button type="button" wire:click="save">

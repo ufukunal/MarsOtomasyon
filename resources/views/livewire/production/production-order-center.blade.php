@@ -18,7 +18,7 @@
                     <td>{{ $row->planned_quantity }}</td>
                     <td>{{ $row->completed_quantity }}</td>
                     <td>{{ $row->status }}</td>
-                    <td><button type="button" wire:click="selectOrder({{ $row->id }})">Aç</button></td>
+                    <td><button class="button-secondary" type="button" wire:click="selectOrder({{ $row->id }})">Aç</button></td>
                 </tr>
             @endforeach
             </tbody>
@@ -79,7 +79,7 @@
                     <button type="button" wire:click="confirm">Emri Onayla</button>
                 @endcan
                 @can('production_orders.cancel')
-                    <button type="button" wire:click="cancelRemaining">Taslağı İptal Et</button>
+                    <button class="button-danger" type="button" wire:click="cancelRemaining">Taslağı İptal Et</button>
                 @endcan
             @endif
         @endif
@@ -148,15 +148,15 @@
                                 @endforeach
                             </select>
                             <input data-tr-decimal wire:model="outputs.{{ $index }}.quantity">
-                            <button type="button" wire:click="removeOutput({{ $index }})">Kaldır</button>
+                            <button class="button-danger" type="button" wire:click="removeOutput({{ $index }})">Kaldır</button>
                         </div>
                     @endforeach
-                    <button type="button" wire:click="addOutput">Output Lokasyonu Ekle</button>
+                    <button class="button-secondary" type="button" wire:click="addOutput">Output Lokasyonu Ekle</button>
                     <label>Completion Notu <textarea wire:model="completionNotes"></textarea></label>
                     <button type="button" wire:click="postCompletion">Completion Kesinleştir</button>
                 @endcan
                 @can('production_orders.cancel')
-                    <button type="button" wire:click="cancelRemaining">Kalanı İptal Et</button>
+                    <button class="button-danger" type="button" wire:click="cancelRemaining">Kalanı İptal Et</button>
                 @endcan
             @endif
 
@@ -179,7 +179,7 @@
                                 @can('production_orders.cancel')
                                     <input type="date" wire:model="reversalDate">
                                     <input wire:model="reversalReason" placeholder="Ters kayıt gerekçesi">
-                                    <button type="button" wire:click="reverseCompletion({{ $completion->id }})">Tersle</button>
+                                    <button class="button-danger" type="button" wire:click="reverseCompletion({{ $completion->id }})">Tersle</button>
                                 @endcan
                             @elseif($completion->reversal_of_id)
                                 #{{ $completion->reversal_of_id }} ters kaydı
