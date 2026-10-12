@@ -43,8 +43,6 @@ class PeriodSwitcher extends Component
             return true;
         });
 
-        session(['active_company_id' => $companyId]);
-        session()->forget(['active_period_id', 'active_year']);
         PeriodContext::clear();
         session(['active_company_id' => $companyId]);
         $this->redirect('/secim', navigate: false);
