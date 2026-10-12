@@ -412,7 +412,7 @@ it('prints confidential QR codes rather than public barcodes on transport slips 
     expect($print)->toContain('OpaqueQrSvg::render')
         ->toContain('OpaqueQrSvg::token($qrScope, 0,')
         ->toContain('OpaqueQrSvg::token($qrScope, $i,')
-        ->toContain('font-size:88px')
+        ->toContain('font-size:72px')
         ->toContain('font-size:33px')
         ->toContain('font-size:18px')
         ->toContain('font-size:29px')
@@ -478,9 +478,9 @@ it('sizes the parcel number against the QR and keeps large carton counts legible
     $print = file_get_contents(base_path('resources/views/printing/transport-slip.blade.php'));
 
     expect($print)->toContain('.label-header .label-qr{width:25mm;height:25mm;')
-        ->toContain('min-height:25mm;font-size:88px')
-        ->toContain('strong.parcel-count-wide{font-size:70px}')
-        ->toContain('strong.parcel-count-xwide{font-size:51px}')
+        ->toContain('min-width:0;min-height:25mm;font-size:72px')
+        ->toContain('strong.parcel-count-wide{font-size:54px}')
+        ->toContain('strong.parcel-count-xwide{font-size:38px}')
         ->toContain("'parcel-count-wide' => \$slip->package_count >= 10")
         ->toContain("'parcel-count-xwide' => \$slip->package_count >= 100");
 });
