@@ -400,6 +400,8 @@
 .app-shell .v65-products .data-table tbody tr:nth-child(even){background:#f8fafc}
 .app-shell .v65-products .data-table tbody tr:hover{background:#edf5ff}
 .app-shell .v65-products .data-table td a{color:#1268d6;font-weight:750}
+.app-shell .v65-products .data-table td a.v65-products-name-link{color:#26344b;font-weight:800}
+.app-shell .v65-products .data-table td a.v65-products-name-link:hover{color:#1268d6}
 .app-shell .v65-products .data-table td strong{font-weight:750}
 .app-shell .v65-products-reserved{color:#b37600}
 .app-shell .v65-products-available{color:#00864b}
