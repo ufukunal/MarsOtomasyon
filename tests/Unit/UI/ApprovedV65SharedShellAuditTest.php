@@ -274,3 +274,23 @@ it('keeps worktabs in first-opened order and aligns the close control', function
         ->toContain('.worktabs .workspace-tab>.workspace-tab-close')
         ->toContain('width:20px!important');
 });
+
+it('integrates existing secured product image attachments into list, editor and detail', function (): void {
+    $list = file_get_contents(base_path('app/Livewire/Pages/Products/ProductList.php'));
+    $table = file_get_contents(base_path('resources/views/livewire/components/data-table.blade.php'));
+    $images = file_get_contents(base_path('app/Livewire/Products/ProductImages.php'));
+    $editor = file_get_contents(base_path('resources/views/livewire/products/product-images.blade.php'));
+    $detail = file_get_contents(base_path('resources/views/livewire/pages/products/product-detail.blade.php'));
+    $script = file_get_contents(base_path('resources/js/app.js'));
+
+    expect($list)->toContain("'attachments' =>")
+        ->and($table)->toContain('class="v65-product-photo-column"')
+        ->toContain('route(\'products.images.show\'')
+        ->toContain('class="v65-product-photo-thumb"')
+        ->and($images)->toContain('public function setCover(')
+        ->and($editor)->toContain('Kapak Yap')
+        ->toContain('wire:click="upload"')
+        ->and($detail)->toContain('data-v65-product-image-lightbox')
+        ->toContain('data-v65-product-preview-open')
+        ->and($script)->toContain('Product detail cover/gallery preview');
+});
