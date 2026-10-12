@@ -413,7 +413,7 @@ it('positions each parcel QR above the divider without the former heading or sli
     $headerStart = strpos($labelTemplate, '<header class="label-header">');
     $headerEnd = strpos($labelTemplate, '</header>', $headerStart);
     $qrPosition = strpos($labelTemplate, 'OpaqueQrSvg::token($qrScope, $i,');
-    $counterPosition = strpos($labelTemplate, '<strong>{{ $i }}/{{ $slip->package_count }}</strong>');
+    $counterPosition = strpos($labelTemplate, '{{ $i }}/{{ $slip->package_count }}</strong>');
 
     expect($qrPosition)->toBeGreaterThan($headerStart)
         ->toBeLessThan($headerEnd)
