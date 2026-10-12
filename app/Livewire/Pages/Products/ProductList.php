@@ -14,11 +14,86 @@ use App\Models\Period\StockBalance;
 use App\Support\Formatting\TrFormatter;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /** @extends DataTableComponent<Product> */
 class ProductList extends DataTableComponent
 {
     public string $model = Product::class;
+
+    public string $exportFormat = 'xlsx';
+
+    public string $exportScope = 'filtered';
+
+    public function exportProducts(): StreamedResponse
+    {
+        $this->authorize('viewAny', Product::class);
+        abort_unless(in_array($this->exportFormat, ['xlsx', 'csv', 'json'], true), 422);
+        abort_unless(in_array($this->exportScope, ['filtered', 'page', 'all'], true), 422);
+
+        $format = $this->exportFormat;
+        $scope = $this->exportScope;
+        $columns = collect($this->columns())->reject(
+            fn (Column $column): bool => $this->hiddenColumns[$column->key] ?? false
+        )->values();
+        $name = 'urunler-'.now()->format('Ymd-His').'.'.$format;
+        $headers = [
+            'csv' => 'text/csv; charset=UTF-8',
+            'json' => 'application/json; charset=UTF-8',
+            'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ];
+
+        return response()->streamDownload(function () use ($format, $scope, $columns): void {
+            $query = $scope === 'all' ? $this->baseQuery()->orderBy('products.id') : $this->query();
+            $batch = function (callable $emit) use ($scope, $query): void {
+                if ($scope === 'page') {
+                    foreach ($this->rows()->items() as $row) {
+                        $emit($row);
+                    }
+                    return;
+                }
+                $query->chunkById(500, function ($rows) use ($emit): void {
+                    foreach ($rows as $row) {
+                        $emit($row);
+                    }
+                }, 'products.id', 'id');
+            };
+            if ($format === 'xlsx') {
+                $spreadsheet = new Spreadsheet;
+                $sheet = $spreadsheet->getActiveSheet();
+                $sheet->fromArray($columns->pluck('label')->all(), null, 'A1');
+                $line = 2;
+                $batch(function (Product $row) use ($sheet, $columns, &$line): void {
+                    $sheet->fromArray($columns->map(fn (Column $column): string => $this->formattedValue($row, $column))->all(), null, 'A'.$line++);
+                });
+                (new Xlsx($spreadsheet))->save('php://output');
+                $spreadsheet->disconnectWorksheets();
+                return;
+            }
+            $handle = fopen('php://output', 'wb');
+            if ($format === 'csv') {
+                fwrite($handle, "\xEF\xBB\xBF");
+                fputcsv($handle, $columns->pluck('label')->all(), ';');
+                $batch(function (Product $row) use ($handle, $columns): void {
+                    fputcsv($handle, $columns->map(fn (Column $column): string => $this->formattedValue($row, $column))->all(), ';');
+                });
+            } else {
+                fwrite($handle, '[');
+                $first = true;
+                $batch(function (Product $row) use ($handle, $columns, &$first): void {
+                    $record = $columns->mapWithKeys(
+                        fn (Column $column): array => [$column->key => $this->formattedValue($row, $column)]
+                    )->all();
+                    fwrite($handle, ($first ? '' : ',').json_encode($record, JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE | JSON_THROW_ON_ERROR));
+                    $first = false;
+                });
+                fwrite($handle, ']');
+            }
+            fclose($handle);
+        }, $name, ['Content-Type' => $headers[$format]]);
+    }
 
     public function mount(): void
     {
