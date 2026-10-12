@@ -118,7 +118,7 @@ class ProductList extends DataTableComponent
     /** @return Builder<Product> */
     protected function baseQuery(): Builder
     {
-        $query = Product::query()->with(['brand', 'category', 'unit'])
+        $query = Product::query()->with(['brand', 'category', 'unit', 'attachments' => fn ($query) => $query->where('collection', config('product_images.fallback', 'Ortak'))->where('mime', 'like', 'image/%')->orderBy('sort_order')->orderBy('id')])
             ->select('products.*');
 
         if (auth()->user()?->can('stock.view')) {
