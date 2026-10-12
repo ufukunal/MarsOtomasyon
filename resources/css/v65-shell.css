@@ -481,3 +481,23 @@
   .app-shell .v65-products .data-table{width:100%;min-width:0;font-size:9pt}
   .app-shell .v65-products .data-table :where(td,th){white-space:normal;padding:5px}
 }
+
+/* Product export field selection — compact, scrollable checklist. */
+.v65-products-export-dialog{width:min(480px,calc(100vw - 24px));max-height:min(85vh,760px);overflow:visible;padding:0}
+.v65-products-export-dialog .v65-products-dialog-head{margin:0;padding:14px 17px;border-bottom:1px solid #e2e8f0}
+.v65-products-export-dialog>label{margin:0;padding:9px 16px 0;display:grid;gap:5px}
+.v65-products-export-dialog>label select{height:35px}
+.v65-products-export-fields{margin:12px 16px 0;border:1px solid #e2e8f0;min-height:0}
+.v65-products-export-fields-head{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);align-items:center;min-height:34px;padding:0 11px;border-bottom:1px solid #e2e8f0;background:#f8fafc;color:#334155;font-size:11px}
+.v65-products-export-fields-head>strong{font-weight:700}
+.v65-products-export-fields-head .v65-products-export-field{display:flex;align-items:center;gap:9px;margin:0;font-size:11px;font-weight:700}
+.v65-products-export-fields :where(input[type=checkbox]){appearance:auto!important;accent-color:#188ace;width:15px;height:15px;min-width:15px;min-height:15px;margin:0;flex:none}
+.v65-products-export-fields-scroll{max-height:min(38vh,360px);overflow-y:auto;overscroll-behavior:contain}
+.v65-products-export-field-row{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);align-items:center;gap:9px;min-height:31px!important;margin:0!important;padding:6px 11px;border-bottom:1px solid #eef2f6;color:#465366;font-size:11px!important;font-weight:500!important;cursor:pointer}
+.v65-products-export-field-row:nth-child(even){background:#f8fafc}
+.v65-products-export-field-row:hover{background:#eaf2fc}
+.v65-products-export-field-row:last-child{border-bottom:0}
+.v65-products-export-dialog .v65-products-dialog-actions{align-items:center;margin:12px 0 0;padding:11px 16px;border-top:1px solid #e2e8f0;background:#fafbfd}
+.v65-products-export-dialog .v65-products-dialog-actions small{font-size:11px;color:#64748b;margin-right:auto}
+.v65-products-export-dialog .v65-products-dialog-actions button:disabled{opacity:.5;cursor:not-allowed}
+@media(max-width:520px){.v65-products-export-dialog{max-height:90vh}.v65-products-export-fields-scroll{max-height:32vh}}
