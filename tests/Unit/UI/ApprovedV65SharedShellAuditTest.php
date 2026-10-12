@@ -217,3 +217,16 @@ it('matches the approved product-list screenshot without changing other list sel
         ->and($css)->toContain('v65 product list: exact approved HTML screen composition')
         ->toContain('grid-template-columns:minmax(0,1.1fr) repeat(3,minmax(0,1fr)) minmax(80px,85px)');
 });
+
+it('keeps shared table toolbar controls aligned and readable across modules', function (): void {
+    $css = file_get_contents(base_path('resources/css/v65-shell.css'));
+    $table = file_get_contents(base_path('resources/views/livewire/components/data-table.blade.php'));
+
+    expect($css)->toContain('v65 shared list toolbar: higher-contrast filters and aligned action controls')
+        ->toContain('.data-table-shell:not(.v65-products)>.table-toolbar')
+        ->toContain('height:42px;min-height:42px')
+        ->toContain('color:#526780;opacity:1')
+        ->toContain('align-items:center;justify-content:flex-end')
+        ->and($table)->toContain('class="table-toolbar-main"')
+        ->toContain('class="table-toolbar-actions"');
+});
