@@ -180,7 +180,7 @@
                         <td @class(['align-end tabular' => $column->align === 'end'])>
                             @php($cellUrl = $this->columnUrl($row, $column))
                             @if($cellUrl)
-                                <a href="{{ $cellUrl }}">{{ $this->formattedValue($row, $column) }}</a>
+                                <a href="{{ $cellUrl }}" @class(['v65-products-name-link' => $isProductTable && $column->key === 'name'])>{{ $this->formattedValue($row, $column) }}</a>
                             @elseif($isProductTable && $column->key === 'is_active')
                                 <span @class(['v65-products-status', 'is-active' => (bool) $row->getAttribute('is_active'), 'is-inactive' => ! $row->getAttribute('is_active')])>{{ $this->formattedValue($row, $column) }}</span>
                             @elseif($isProductTable && in_array($column->key, ['reserved_v65', 'available_v65'], true))
