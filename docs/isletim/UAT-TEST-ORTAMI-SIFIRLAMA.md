@@ -3,7 +3,7 @@
 ## Karar
 2026-10-12 tarihinde `.github/workflows/` altındaki **14 GitHub Actions workflow dosyası main'den kaldırıldı**. Eski Actions çalıştırma geçmişi GitHub üzerinde kalır; mevcut sıradaki/çalışan GitHub Actions run'larını bu dosya silme işlemi iptal etmez. Test kodları (`tests/**`), CI yardımcı scriptleri (`scripts/ci/**`) ve kaynak kod korunmuştur.
 
-**Bu değişiklik sunuculara dağıtım değildir.** GitHub Actions otomatik Docker imaj yayını DURDU. Yeni commit için `mars update` otomatik yeni GHCR imajı bulamaz; yeni dağıtım prosedürü ayrı onayla kurulana kadar kullanılmamalıdır. Mevcut çalışan UAT web/PostgreSQL/Valkey verilerine dokunulmadı.
+**Bu değişiklik sunuculara dağıtım değildir.** GitHub Actions otomatik Docker imaj yayını DURDU. Eski `mars update` GHCR çekme yolu workflow silinince durdurulmuştu. Güncel `ops/mars-update.sh`, yalnızca açıkça çağrıldığında UAT host üzerinde SHA etiketli bir Docker imajını yerel olarak derler ve yalnız izole UAT web konteynerini günceller. Otomatik migration, PROD işlemi ve image push yapmaz. Mevcut çalışan UAT web/PostgreSQL/Valkey verilerine dokunulmadı.
 
 ## Katmanlar ve roller
 - **CI/runner sunucusu**: PHP 8.4, Composer, Node 22, Docker builder, testler. CI üzerinde PostgreSQL/Valkey kurulmaz. PHP bağımlılıkları `composer install` ile yüklenir.
@@ -36,7 +36,7 @@ curl --noproxy '*' -sS -o /dev/null -w 'UAT HTTP %{http_code}\n' http://100.127.
 4. **Integration/Valkey**: `scripts/ci/test-v4.sh` içindeki ek izolasyon ve test onayı değişkenleri zorunlu; yalnızca ayrı TEST veritabanı/namespace. UAT/PROD gerçek verisine test yazımı YOK.
 5. **Performans + tarayıcı**: gerçek kullanıcı/veri olmadan, kaynak limitleriyle ayrı onay.
 6. **Görsel UAT**: login, firma/dönem, dashboard, sol menü, açık sekmeler, ürün listesi/resimler, dışa aktarma, ambar fişi. UAT ile karşılaştırmalı ekran görüntüsü ve HTTP/JS konsol hata kontrolü.
-7. **Yayın**: CI'da imaj üret, build smoke geçir, değişmez commit SHA ile taşınabilir imaj oluştur; UAT izolasyon preflight'ı ve revizyon doğrulaması başarılı olmadan web geçişi YOK. Bu yeni akış henüz uygulanmadı; workflowsuz dağıtımın ayrıca tasarlanması gerekiyor.
+7. **Yayın**: `ops/mars-update.sh` ile yalnız UAT host üzerinde onaylı ana dal commit'i derlenir. Git SHA, izolasyon, volume sahipliği ve Vite manifesti kontrol edilir. Migration dosyalarında farklılık varsa otomatik yayın durur. Yalnız UAT `web` yeniden oluşturulur; eski imaj rollback için tutulur. `/up` ve `/giris` kontrolü başarısız olursa önceki web imajına dönüş denenir.
 
 ## Test kabul ölçütleri
 - Güncel kaynak SHA, imajın OCI revision etiketi ve çalışan UAT konteynerinin revision'ı **aynı**.
@@ -50,3 +50,17 @@ curl --noproxy '*' -sS -o /dev/null -w 'UAT HTTP %{http_code}\n' http://100.127.
 - PROD DB'de test/migration/seeding, PROD Valkey flush, sunucu reboot, Docker volume silme.
 - Test sonuçlarını ölçülmeden 'başarılı' ilan etmek.
 - CI çalıştırma veya yeni dağıtım için kullanıcı onayı olmadan PROD'a dokunmak.
+
+## Workflow'suz UAT yayın komutu
+
+Bu komutlar yalnızca mevcut izole **UAT Lab hostunda** ve normal UAT kullanıcı hesabında uygulanır; PROD sunucusunda çalıştırılmaz.
+
+```bash
+cd ~/mars-uat-129189
+git status --short
+git fetch origin main
+git show origin/main:ops/mars-update.sh | bash -n
+git show origin/main:ops/mars-update.sh | bash -s -- update
+```
+
+`git status --short` boş değilse devam etmeyin. Script temiz checkout, env dosyası 0600, üç mevcut UAT konteyneri, volume isimleri, çalışan release SHA ve migration farkını denetler. `PASS: UAT web running SHA=...` mesajı alınmadan yayın başarılı sayılmaz. Bu yalnız altyapı ve anonim HTTP smoke kontrolüdür; login sonrasında şirket/dönem seçimi ve dashboard görünümü tarayıcıda ayrıca doğrulanır. Sistem alias'ı eski `mars update` betiğine işaret edebilir; `git show` komutu GitHub'daki yeni sürümü kullanır.
