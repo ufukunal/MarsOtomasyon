@@ -155,9 +155,9 @@ it('keeps shared module button sets consistent without restyling specialized con
     $css = file_get_contents(base_path('resources/css/v65-shell.css'));
 
     expect($css)->toContain('/* Shared v65 button sets across every authenticated module.')
-        ->toContain('--v65-btn-height:34px')
+        ->toContain('--v65-btn-height:38px')
         ->toContain('.app-shell .row-actions{white-space:normal;vertical-align:middle}')
-        ->toContain('.app-shell :where(.button-danger){background:#fff1f1')
+        ->toContain('.app-shell :where(.button-danger){background:#dc2626')
         ->toContain('.app-shell :where(.button-secondary,a.button-secondary){background:#fff')
         ->toContain('.page-actions>button')
         ->not->toContain('.app-shell :where(.button-link,button:not(.button-secondary)');
