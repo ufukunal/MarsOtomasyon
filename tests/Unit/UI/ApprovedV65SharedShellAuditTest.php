@@ -135,3 +135,18 @@ it('preserves actual warehouse table-cell layout and readable field typography',
         ->toContain('.app-shell .wsl-info{background:#eef8fc')
         ->toContain('.app-shell .wsl-warn{background:#fff6df');
 });
+
+it('aligns warehouse action sets without changing live actions or permissions', function (): void {
+    $css = file_get_contents(base_path('resources/css/v65-warehouse.css'));
+    $view = file_get_contents(base_path('resources/views/livewire/pages/warehouse/transport-slip-editor.blade.php'));
+
+    expect($css)->toContain('--wsl-action-height:var(--ctl)')
+        ->toContain('.wsl-footer-pair>.wsl-footer-btn{flex:1 1 auto}')
+        ->toContain('.wsl-footer-group-print .wsl-footer-btn')
+        ->toContain('.wsl-footer-group-document .wsl-footer-btn')
+        ->and($view)->toContain("wire:click=\"openPreview('slip')\"")
+        ->toContain("wire:click=\"openPreview('labels')\"")
+        ->toContain('wire:click="advance"')
+        ->toContain('wire:click="cancel"')
+        ->toContain('type="submit" class="wsl-footer-btn wsl-footer-btn-primary"');
+});
