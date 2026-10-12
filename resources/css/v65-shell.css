@@ -200,10 +200,10 @@
  font-size:11px;font-weight:650;line-height:1.25;text-align:center;text-decoration:none;white-space:normal;
  border-radius:var(--v65-btn-radius);box-sizing:border-box;
 }
-.app-shell :where(.button-link,button:not(.button-secondary):not(.button-ghost):not(.button-danger):not(.wsl-footer-btn):not(.wsl-footer-back)){
+.app-shell :where(.button-link,.page-actions>button,.v65-page-actions>button,.form-actions>button,.table-toolbar-actions>button){
  background:var(--v65-btn-primary);border-color:var(--v65-btn-primary);color:#fff
 }
-.app-shell :where(.button-link,button:not(.button-secondary):not(.button-ghost):not(.button-danger):not(.wsl-footer-btn):not(.wsl-footer-back)):hover:not(:disabled){background:#10658f;border-color:#10658f;color:#fff}
+.app-shell :where(.button-link,.page-actions>button,.v65-page-actions>button,.form-actions>button,.table-toolbar-actions>button):hover:not(:disabled){background:#10658f;border-color:#10658f;color:#fff}
 .app-shell :where(.button-secondary,a.button-secondary){background:#fff;color:var(--v65-btn-ink);border:1px solid var(--v65-btn-border)}
 .app-shell :where(.button-secondary,a.button-secondary):hover:not(:disabled){background:#eef5fb;border-color:#9fbdd0;color:#145b81}
 .app-shell :where(.button-ghost){background:transparent;color:#365d75;border:1px solid transparent}
