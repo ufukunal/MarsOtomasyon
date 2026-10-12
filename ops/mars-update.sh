@@ -3,7 +3,7 @@
 # Never deploys PROD, never runs migrations, never removes data volumes.
 set -Eeuo pipefail
 
-if [[ "\${1:-}" != update || "$#" -ne 1 ]]; then
+if [[ "${1:-}" != update || "$#" -ne 1 ]]; then
   echo "Kullanim: bash ops/mars-update.sh update" >&2
   exit 2
 fi
@@ -15,7 +15,7 @@ for bin in git sudo docker curl sed; do
   command -v "$bin" >/dev/null || { echo "BLOCKED: missing $bin" >&2; exit 77; }
 done
 
-REPO="\${MARS_UAT_REPO:-$HOME/mars-uat-129189}"
+REPO="${MARS_UAT_REPO:-$HOME/mars-uat-129189}"
 [[ -d "$REPO/.git" && "$REPO" == /home/*/mars-uat-* ]] || {
   echo "BLOCKED: dedicated /home/<user>/mars-uat-* checkout required" >&2
   exit 77
@@ -47,8 +47,8 @@ VK_CID="$(sudo docker ps -q --filter name=^/mars-uat-lab-valkey-1$)"
   exit 77
 }
 for spec in "web:$WEB_CID" "postgres:$PG_CID" "valkey:$VK_CID"; do
-  service="\${spec%%:*}"
-  cid="\${spec#*:}"
+  service="${spec%%:*}"
+  cid="${spec#*:}"
   [[ "$(sudo docker inspect "$cid" --format '{{index .Config.Labels "com.docker.compose.project"}}')" == mars-uat-lab
     && "$(sudo docker inspect "$cid" --format '{{index .Config.Labels "com.docker.compose.service"}}')" == "$service" ]] || {
     echo "BLOCKED: container ownership mismatch: $service" >&2
@@ -135,9 +135,9 @@ fi
 [[ "$(stat -c '%a' "$ENV_FILE")" == 600 ]]
 grep -Fxq "MARS_UAT_SHA=$TARGET" "$ENV_FILE"
 DC=(sudo docker compose --env-file "$ENV_FILE" -f compose.uat.lab.yml --profile application)
-"\${DC[@]}" config --quiet
+"${DC[@]}" config --quiet
 echo "=== Recreate UAT web only (no migration, DB stop or volume operation) ==="
-"\${DC[@]}" up -d --no-deps --pull never --force-recreate web
+"${DC[@]}" up -d --no-deps --pull never --force-recreate web
 NEW_CID="$(sudo docker ps -q --filter name=^/mars-uat-lab-web-1$)"
 [[ -n "$NEW_CID" ]]
 [[ "$(sudo docker inspect "$NEW_CID" --format '{{index .Config.Labels "org.opencontainers.image.revision"}}')" == "$TARGET" ]]
