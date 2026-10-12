@@ -25,6 +25,26 @@
     @elseif($this instanceof \App\Livewire\Pages\Stock\StockStatus && !($this instanceof \App\Livewire\Pages\Stock\StockCost))
         <div class="alert"><strong>Kısaca:</strong> Kullanılabilir stok, rezerve ve bloke miktarları ayrı gösterilir.</div>
     @endif
+    @if($isProductTable)
+        <div class="v65-products-list-heading">
+            <div class="v65-products-list-intro">
+                <strong>Ürün Listesi</strong>
+                <small>Ürün kartları, fiyat ve stok özeti.</small>
+            </div>
+            <div class="v65-products-heading-actions">
+                @if($emptyAction)
+                    <a class="button-link v65-products-create" href="{{ route($emptyAction['route']) }}">+ {{ $emptyAction['label'] }}</a>
+                @endif
+                <details class="v65-products-export-menu">
+                    <summary>Excel / CSV</summary>
+                    <div class="v65-products-export-options">
+                        <button type="button" wire:click="exportXlsx" data-v65-product-export-xlsx>Excel (.xlsx)</button>
+                        <button type="button" wire:click="exportCsv" data-v65-product-export-csv>CSV (.csv)</button>
+                    </div>
+                </details>
+            </div>
+        </div>
+    @endif
     <div class="table-toolbar">
         <div class="table-toolbar-main">
             <label class="table-search">
@@ -55,11 +75,31 @@
                     </div>
                 @endif
             @endforeach
-        </div>
-        <div class="table-toolbar-actions">
             @if($isProductTable)
-                <button class="button-secondary v65-products-filter" type="button" wire:click="$refresh">Filtrele</button>
+                <details class="v65-products-filter-popover">
+                    <summary>Filtrele</summary>
+                    <div class="v65-products-filter-popover-body">
+                        <strong>Diğer Filtreler</strong>
+                        @foreach($filters as $filter)
+                            @if($filter instanceof \App\Livewire\Components\DataTable\SelectFilter && in_array($filter->key, ['kind', 'channel_stock_mode'], true))
+                                <label class="table-filter">
+                                    <span>{{ $filter->label }}</span>
+                                    <select wire:model.live="filterValues.{{ $filter->key }}">
+                                        <option value="">{{ $filter->label }} · Tümü</option>
+                                        @foreach($filter->options as $value => $label)
+                                            <option value="{{ $value }}">{{ $label }}</option>
+                                        @endforeach
+                                    </select>
+                                </label>
+                            @endif
+                        @endforeach
+                        <button type="button" class="button-secondary" wire:click="$refresh">Uygula</button>
+                    </div>
+                </details>
             @endif
+        </div>
+        @unless($isProductTable)
+        <div class="table-toolbar-actions">
             <label class="page-size-control">
                 <span>Satır</span>
                 <select wire:change="setPerPage($event.target.value)">
@@ -87,9 +127,10 @@
             <button class="button-secondary" type="button" wire:click="exportCsv">CSV</button>
             <button class="button-secondary" type="button" wire:click="exportXlsx">Excel</button>
         </div>
+        @endunless
     </div>
 
-    @if($selected !== [] && $bulkActions !== [])
+    @if(!$isProductTable && $selected !== [] && $bulkActions !== [])
         <div class="bulk-bar">
             <strong>{{ count($selected) }} kayıt seçili</strong>
             @foreach($bulkActions as $action)
@@ -99,37 +140,19 @@
         </div>
     @endif
 
-    @if($isProductTable)
-        <details class="v65-products-advanced">
-            <summary>Diğer Filtreler: Ürün Tipi / Stok Tipi</summary>
-            <div class="form-row">
-                @foreach($filters as $filter)
-                    @if($filter instanceof \App\Livewire\Components\DataTable\SelectFilter && in_array($filter->key, ['kind', 'channel_stock_mode'], true))
-                        <label class="table-filter">
-                            <span class="sr-only">{{ $filter->label }}</span>
-                            <select wire:model.live="filterValues.{{ $filter->key }}">
-                                <option value="">{{ $filter->label }} · Tümü</option>
-                                @foreach($filter->options as $value => $label)
-                                    <option value="{{ $value }}">{{ $label }}</option>
-                                @endforeach
-                            </select>
-                        </label>
-                    @endif
-                @endforeach
-            </div>
-        </details>
-    @endif
     <div class="v65-shared-table-title">
-        <strong>Sonuçlar</strong>
+        <strong>{{ $isProductTable ? 'Ürün Listesi' : 'Sonuçlar' }}</strong>
         <small>{{ $rows->total() }} kayıt</small>
     </div>
     <div class="table-scroll">
         <table class="data-table">
             <thead>
             <tr>
-                <th class="select-column" scope="col">
-                    <button type="button" class="link-button" wire:click="selectVisible">Tümü</button>
-                </th>
+                @unless($isProductTable)
+                    <th class="select-column" scope="col">
+                        <button type="button" class="link-button" wire:click="selectVisible">Tümü</button>
+                    </th>
+                @endunless
                 @foreach ($columns as $column)
                     @continue($hiddenColumns[$column->key] ?? false)
                     <th scope="col" @class(['align-end' => $column->align === 'end'])>
@@ -143,25 +166,33 @@
                         @endif
                     </th>
                 @endforeach
-                @if($rowActions !== [])<th scope="col">Eylemler</th>@endif
+                @if(!$isProductTable && $rowActions !== [])<th scope="col">Eylemler</th>@endif
             </tr>
             </thead>
             <tbody>
             @forelse ($rows as $row)
                 <tr wire:key="row-{{ $row->getKey() }}">
-                    <td><input wire:model.live="selected" type="checkbox" value="{{ $row->getKey() }}" aria-label="Kayıt {{ $row->getKey() }} seç"></td>
+                    @unless($isProductTable)
+                        <td><input wire:model.live="selected" type="checkbox" value="{{ $row->getKey() }}" aria-label="Kayıt {{ $row->getKey() }} seç"></td>
+                    @endunless
                     @foreach ($columns as $column)
                         @continue($hiddenColumns[$column->key] ?? false)
                         <td @class(['align-end tabular' => $column->align === 'end'])>
                             @php($cellUrl = $this->columnUrl($row, $column))
                             @if($cellUrl)
                                 <a href="{{ $cellUrl }}">{{ $this->formattedValue($row, $column) }}</a>
+                            @elseif($isProductTable && $column->key === 'is_active')
+                                <span @class(['v65-products-status', 'is-active' => (bool) $row->getAttribute('is_active'), 'is-inactive' => ! $row->getAttribute('is_active')])>{{ $this->formattedValue($row, $column) }}</span>
+                            @elseif($isProductTable && in_array($column->key, ['reserved_v65', 'available_v65'], true))
+                                <strong @class(['v65-products-reserved' => $column->key === 'reserved_v65', 'v65-products-available' => $column->key === 'available_v65' && (float) $row->getAttribute('available_v65') > 0, 'v65-products-unavailable' => $column->key === 'available_v65' && (float) $row->getAttribute('available_v65') <= 0])>{{ $this->formattedValue($row, $column) }}</strong>
+                            @elseif($isProductTable && in_array($column->key, ['list_price', 'on_hand_v65'], true))
+                                <strong>{{ $this->formattedValue($row, $column) }}{{ $column->key === 'list_price' ? ' ₺' : '' }}</strong>
                             @else
                                 {{ $this->formattedValue($row, $column) }}
                             @endif
                         </td>
                     @endforeach
-                    @if($rowActions !== [])
+                    @if(!$isProductTable && $rowActions !== [])
                         <td class="row-actions">
                             @foreach($rowActions as $action)
                                 <button type="button" class="button-secondary" wire:click="runRowAction('{{ $action['method'] }}', '{{ $row->getKey() }}')">{{ $action['label'] }}</button>
@@ -171,7 +202,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="{{ $visibleColumnCount + 1 + (count($rowActions) > 0 ? 1 : 0) }}" class="empty-state">
+                    <td colspan="{{ $visibleColumnCount + ($isProductTable ? 0 : 1 + (count($rowActions) > 0 ? 1 : 0)) }}" class="empty-state">
                         <div>Kayıt bulunamadı.</div>
                         @if($emptyAction)
                             <a class="button-link" href="{{ route($emptyAction['route']) }}">{{ $emptyAction['label'] }}</a>
@@ -183,14 +214,14 @@
             @if($summary !== [])
                 <tfoot>
                 <tr class="table-summary">
-                    <td></td>
+                    @unless($isProductTable)<td></td>@endunless
                     @foreach ($columns as $column)
                         @continue($hiddenColumns[$column->key] ?? false)
                         <td @class(['align-end tabular' => $column->align === 'end'])>
                             <strong>{{ $summary[$column->key] ?? '' }}</strong>
                         </td>
                     @endforeach
-                    @if($rowActions !== [])<td></td>@endif
+                    @if(!$isProductTable && $rowActions !== [])<td></td>@endif
                 </tr>
                 </tfoot>
             @endif
@@ -199,6 +230,29 @@
 
     <div class="table-footer">
         <span>{{ $rows->total() }} kayıt</span>
-        {{ $rows->links() }}
+        <div class="v65-products-footer-right">
+            @if($isProductTable)
+                <label class="page-size-control">
+                    <span>Satır</span>
+                    <select wire:change="setPerPage($event.target.value)">
+                        @foreach ([25,50,100] as $size)
+                            <option value="{{ $size }}" @selected($perPage === $size)>{{ $size }}</option>
+                        @endforeach
+                    </select>
+                </label>
+                <details class="column-picker">
+                    <summary>Kolonlar</summary>
+                    <div class="column-picker-menu">
+                        @foreach($columns as $column)
+                            <label>
+                                <input type="checkbox" @checked(!($hiddenColumns[$column->key] ?? false)) wire:click="toggleColumn('{{ $column->key }}')">
+                                {{ $column->label }}
+                            </label>
+                        @endforeach
+                    </div>
+                </details>
+            @endif
+            {{ $rows->links() }}
+        </div>
     </div>
 </div>
