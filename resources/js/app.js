@@ -239,6 +239,30 @@ window.addEventListener('beforeunload', (event) => {
     event.returnValue = '';
 });
 
+// Product-list print template / export dialogs: keep dropdown actions singular.
+document.addEventListener('click', (event) => {
+    const target = event.target;
+    if (!(target instanceof Element)) return;
+    const show = (selector) => {
+        const dialog = document.querySelector(selector);
+        if (dialog instanceof HTMLDialogElement && !dialog.open) dialog.showModal();
+    };
+    if (target.closest('[data-v65-products-print-open]')) show('[data-v65-products-print-dialog]');
+    if (target.closest('[data-v65-products-export-open]')) show('[data-v65-products-export-dialog]');
+    if (target.closest('[data-v65-products-dialog-close]')) target.closest('dialog')?.close();
+    if (target.matches('dialog.v65-products-dialog')) target.close();
+    if (target.closest('[data-v65-products-print-run]')) {
+        const dialog = target.closest('dialog');
+        const portrait = dialog?.querySelector('[data-v65-products-print-template]')?.value === 'portrait';
+        document.documentElement.classList.toggle('v65-products-print-portrait', portrait);
+        dialog?.close();
+        window.print();
+    }
+});
+window.addEventListener('afterprint', () => {
+    document.documentElement.classList.remove('v65-products-print-portrait');
+});
+
 // v65 worktabs: open business screens persist for this user and active company
 // in this browser tab only. Store paths/titles, never form state or credentials.
 document.addEventListener('DOMContentLoaded', () => {
