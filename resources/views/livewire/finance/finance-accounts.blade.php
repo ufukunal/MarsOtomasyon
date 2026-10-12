@@ -3,7 +3,7 @@
     <section class="panel stack v65-workspace-form">
         <h2>Kasa</h2>
         @can('cash_accounts.create')
-            <div>
+            <div class="v65-inline-action-form">
                 <input wire:model="cashCode" placeholder="Kod">
                 <input wire:model="cashName" placeholder="Ad">
                 <input wire:model="cashCurrency" maxlength="3" placeholder="TRY">
@@ -24,7 +24,7 @@
                     <td>{{ $account->currency }}</td>
                     <td>{{ $account->balance() }}</td>
                     <td>{{ $account->is_active ? 'Aktif' : 'Pasif' }}</td>
-                    <td>
+                    <td class="v65-row-actions">
                         @can('cash_accounts.update')
                             <button class="button-secondary" type="button" wire:click="editCash({{ $account->id }})">Düzenle</button>
                             <button class="button-secondary" type="button" wire:click="toggleCash({{ $account->id }})">
@@ -41,7 +41,7 @@
     <section class="panel stack v65-workspace-form">
         <h2>Banka</h2>
         @can('bank_accounts.create')
-            <div>
+            <div class="v65-inline-action-form">
                 <input wire:model="bankCode" placeholder="Kod">
                 <input wire:model="bankName" placeholder="Banka">
                 <input wire:model="bankAccountName" placeholder="Hesap adı">
@@ -79,7 +79,7 @@
                     <td>{{ $difference ?? '—' }}</td>
                     <td>{{ $account->unreconciledStatementCount() }}</td>
                     <td>{{ $account->is_active ? 'Aktif' : 'Pasif' }}</td>
-                    <td>
+                    <td class="v65-row-actions">
                         @can('bank_accounts.update')
                             <button class="button-secondary" type="button" wire:click="editBank({{ $account->id }})">Düzenle</button>
                             <button class="button-secondary" type="button" wire:click="toggleBank({{ $account->id }})">
