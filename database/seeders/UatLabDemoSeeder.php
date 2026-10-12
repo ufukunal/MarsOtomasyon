@@ -200,7 +200,7 @@ final class UatLabDemoSeeder extends Seeder
                         ],
                     );
                 }
-            } catch (\\Throwable $error) {
+            } catch (\Throwable $error) {
                 Storage::disk($disk)->delete($path);
                 throw $error;
             }
