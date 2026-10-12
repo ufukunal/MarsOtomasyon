@@ -1,5 +1,5 @@
 <div class="stack v65-stock-workspace">
-    <a href="{{ route('stock.reservations.index') }}">← Rezervasyonlar</a>
+    <a class="button-ghost" href="{{ route('stock.reservations.index') }}">← Rezervasyonlar</a>
     <section class="panel stack v65-stock-document">
         <div class="form-row">
             <strong>Rezervasyon · #{{ $reservation->id }}</strong>

@@ -1,6 +1,6 @@
 <div class="stack v65-stock-workspace">
     <div class="form-row">
-        <a href="{{ route('locations.index') }}">← Depolar / Lokasyonlar</a>
+        <a class="button-ghost" href="{{ route('locations.index') }}">← Depolar / Lokasyonlar</a>
         @can('locations.update')
             <a class="button-link" href="{{ route('locations.edit', ['location' => $location->id]) }}">Düzenle</a>
         @endcan

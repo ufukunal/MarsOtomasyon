@@ -1,6 +1,6 @@
 <div class="stack v65-stock-workspace">
     <div class="form-row">
-        <a href="{{ route('stock.movements') }}">← Stok Hareketleri</a>
+        <a class="button-ghost" href="{{ route('stock.movements') }}">← Stok Hareketleri</a>
         <span class="badge">Salt okunur · Kesinleşmiş hareket</span>
     </div>
     <section class="panel stack v65-stock-document">
