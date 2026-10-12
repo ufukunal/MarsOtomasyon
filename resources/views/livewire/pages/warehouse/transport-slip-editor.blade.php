@@ -159,7 +159,7 @@
             <div><small>Belge Durumu</small><strong>{{ $slip ? ($statusLabels[$slip->status] ?? $slip->status) : 'Taslak' }}</strong></div>
         </div>
 
-        <div class="wsl-warn"><strong>Baskı:</strong> Ambar fişi A4 dikeyde aynı kaydın iki A5 kopyasını üretir. Orta çizgiden kesildiğinde iki ayrı A5 fiş elde edilir. Koli etiketi koli adedi kadar üretilir.</div>
+        <div class="wsl-warn"><strong>Baskı:</strong> Ambar fişi A4 yatayda yan yana iki dik A5 kopya üretir. Orta çizgiden kesildiğinde iki ayrı A5 fiş elde edilir. Koli etiketi koli adedi kadar üretilir.</div>
 
 
 

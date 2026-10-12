@@ -14,16 +14,18 @@ button{border:1px solid #b5c6d2;background:#fff;border-radius:4px;padding:10px 1
 .copy{width:148.5mm;height:210mm;overflow:hidden;padding:5mm 8mm;position:relative}
 .copy:first-child{border-right:1px dashed #6e8794}
 .cut{position:absolute;right:1mm;top:50%;font-size:7px;color:#6e8794;white-space:nowrap;writing-mode:vertical-rl;transform:translateY(-50%)}
-.head{display:flex;justify-content:space-between;border-bottom:2px solid #15242d;padding-bottom:5px;margin-bottom:5px}
-.head h1{margin:0;font-size:19px}
-.head small{display:block;margin-top:4px}
+.head{display:flex;justify-content:flex-end;border-bottom:2px solid #15242d;padding-bottom:5px;margin-bottom:5px;min-height:17mm}
+.head-meta{text-align:right;margin-left:auto}
+.head-date{font-size:12px;font-weight:800}
+.head-token{display:block;margin-top:4px;font:8px/1.25 "Courier New",monospace;letter-spacing:.2px}
+.approval-row{display:grid;grid-template-columns:30mm minmax(0,1fr);gap:8mm;align-items:stretch;margin-top:8mm}
+.approval-row .label-qr{width:29mm;height:29mm;margin:0}
+.stamp-approval{min-height:29mm;border:1.5px solid #15242d;display:flex;align-items:flex-start;justify-content:center;padding:6px;font-weight:800}
 table{width:100%;border-collapse:collapse}
 td,th{border:1px solid #d1dce5;padding:4px;text-align:left;vertical-align:top;overflow-wrap:anywhere;word-break:break-word}
 th{background:#f1f5f9}
 .details td:nth-child(odd){font-weight:bold;width:19%}
 .warning{border:2px solid #15242d;text-align:center;padding:6px;font-weight:800;margin:6px 0}
-.signatures{display:grid;grid-template-columns:1fr 1fr;gap:8mm;margin:5mm 0 0}
-.signatures>div{border-top:1px solid #15242d;text-align:center;padding:4px}
 .label-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:5mm;padding:5mm;background:#fff}
 .label{border:2px solid #15242d;padding:6mm;min-height:130mm;break-inside:avoid;page-break-inside:avoid}
 .label-header{display:flex;align-items:center;justify-content:space-between;gap:8px;border-bottom:2px solid #15242d;padding-bottom:8px;min-height:29mm}
@@ -54,11 +56,15 @@ th{background:#f1f5f9}
   <button onclick="window.print()">Yazdır / PDF Olarak Kaydet</button>
 </div>
 @if($format === 'slip')
+@php($slipQrToken = \App\Support\Printing\Label\OpaqueQrSvg::token($qrScope, 0, (string) config('app.key')))
 <main class="sheet a4">
     @for($copy = 0; $copy < 2; $copy++)
     <section class="copy">
         <header class="head">
-            <div><h1>AMBAR FİŞİ</h1><small>{{ $slip->number }} · {{ $slip->slip_date->format('d.m.Y') }}</small></div>
+            <div class="head-meta">
+                <div class="head-date">{{ $slip->slip_date->format('d.m.Y') }}</div>
+                <code class="head-token">{{ $slipQrToken }}</code>
+            </div>
         </header>
         <table class="details">
             <tr><td>Taşıyıcı / Ambar</td><td>{{ $slip->carrier }}</td><td>Gönderim</td><td>{{ $slip->shipping_type }}</td></tr>
@@ -68,8 +74,10 @@ th{background:#f1f5f9}
             <tr><td>Not</td><td colspan="3">{{ $slip->note ?: '—' }}</td></tr>
         </table>
         @if($warnings)<div class="warning">{{ $warnings }}</div>@endif
-        <div class="signatures"><div>Teslim Eden<br>Ad / İmza</div><div>Teslim Alan<br>Ad / İmza</div></div>
-        {!! \App\Support\Printing\Label\OpaqueQrSvg::render(\App\Support\Printing\Label\OpaqueQrSvg::token($qrScope, 0, (string) config('app.key'))) !!}
+        <div class="approval-row">
+            {!! \App\Support\Printing\Label\OpaqueQrSvg::render($slipQrToken) !!}
+            <div class="stamp-approval">Kaşe / Onay</div>
+        </div>
         @if($copy === 0)<span class="cut">KESİM ÇİZGİSİ</span>@endif
     </section>
     @endfor

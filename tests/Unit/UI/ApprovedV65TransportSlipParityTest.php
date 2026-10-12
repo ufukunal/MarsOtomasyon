@@ -312,10 +312,15 @@ it('renders both A4 halves and carton labels without requiring a database', func
     $data = ['slip' => $slip, 'warnings' => 'KIRILABİLİR', 'autoprint' => false, 'qrScope' => 'test-company:period:slip'];
     $html = view('printing.transport-slip', [...$data, 'format' => 'slip'])->render();
 
-    expect(substr_count($html, '<h1>AMBAR FİŞİ</h1>'))->toBe(2)
+    $slipBody = substr($html, strpos($html, '<main class="sheet a4">'), strpos($html, '</main>') - strpos($html, '<main class="sheet a4">'));
+
+    expect(substr_count($slipBody, 'class="head-date"'))->toBe(2)
+        ->and(substr_count($slipBody, 'class="head-token"'))->toBe(2)
+        ->and(substr_count($slipBody, 'Kaşe / Onay'))->toBe(2)
         ->and($html)->toContain('@page{size:A4 landscape;margin:0}')
         ->not->toContain('@page{size:A4 portrait;margin:0}')
-        ->toContain('AF-2026-00001')
+        ->and($slipBody)->not->toContain('<h1>AMBAR FİŞİ</h1>')
+        ->not->toContain('AF-2026-00001')
         ->toContain('12.10.2026')
         ->toContain('KIRILABİLİR')
         ->not->toContain('CR001')
@@ -324,6 +329,8 @@ it('renders both A4 halves and carton labels without requiring a database', func
         ->not->toContain('UR001')
         ->not->toContain('Test Ürün')
         ->not->toContain('2,000')
+        ->not->toContain('Teslim Eden')
+        ->not->toContain('Teslim Alan')
         ->not->toContain('<table class="items">');
 
     $labels = view('printing.transport-slip', [...$data, 'format' => 'labels'])->render();
@@ -381,6 +388,21 @@ it('removes the redundant destination warehouse field without losing existing pe
         ->and($migration)->toContain("'destination_warehouse'");
 });
 
+it('keeps opaque QR identifiers stable per slip and distinct per parcel', function (): void {
+    $key = 'test-qr-key';
+    $scope = 'company:period:slip-42';
+    $slipToken = \App\Support\Printing\Label\OpaqueQrSvg::token($scope, 0, $key);
+    $parcelOne = \App\Support\Printing\Label\OpaqueQrSvg::token($scope, 1, $key);
+    $parcelTwo = \App\Support\Printing\Label\OpaqueQrSvg::token($scope, 2, $key);
+
+    expect($slipToken)->toMatch('/\\A[A-F0-9]{32}\\z/')
+        ->and($parcelOne)->toMatch('/\\A[A-F0-9]{32}\\z/')
+        ->and($parcelTwo)->toMatch('/\\A[A-F0-9]{32}\\z/')
+        ->and(\App\Support\Printing\Label\OpaqueQrSvg::token($scope, 1, $key))->toBe($parcelOne)
+        ->and($parcelOne)->not->toBe($parcelTwo)
+        ->and($slipToken)->not->toBe($parcelOne);
+});
+
 it('prints confidential QR codes rather than public barcodes on transport slips and parcel labels', function (): void {
     $print = file_get_contents(base_path('resources/views/printing/transport-slip.blade.php'));
     $controller = file_get_contents(base_path('app/Http/Controllers/PrintTransportSlipController.php'));
@@ -426,16 +448,25 @@ it('positions each parcel QR above the divider without the former heading or sli
         ->and(substr_count($labelTemplate, 'OpaqueQrSvg::token($qrScope, $i,'))->toBe(1);
 });
 
-it('keeps the A5 slip title but omits the header contact and removed reference row', function (): void {
+it('prints only date and the matching opaque QR identifier in the A5 header', function (): void {
     $print = file_get_contents(base_path('resources/views/printing/transport-slip.blade.php'));
     $slipTemplate = substr($print, strpos($print, "@if(\$format === 'slip')"), strpos($print, '@else', strpos($print, "@if(\$format === 'slip')")) - strpos($print, "@if(\$format === 'slip')"));
 
-    expect($slipTemplate)->toContain('<h1>AMBAR FİŞİ</h1>')
-        ->toContain('{{ $slip->number }}')
+    expect($slipTemplate)->toContain('class="head-date"')
+        ->toContain("{{ \$slip->slip_date->format('d.m.Y') }}")
+        ->toContain('class="head-token"')
+        ->toContain('{{ $slipQrToken }}')
+        ->toContain('OpaqueQrSvg::render($slipQrToken)')
+        ->toContain('Kaşe / Onay')
+        ->not->toContain('<h1>AMBAR FİŞİ</h1>')
+        ->not->toContain('{{ $slip->number }}')
         ->not->toContain('contact?->title')
         ->not->toContain('contact?->code')
         ->not->toContain('Takip / Teslim No')
-        ->not->toContain('Sipariş / İrsaliye');
+        ->not->toContain('Sipariş / İrsaliye')
+        ->not->toContain('signatures')
+        ->not->toContain('Teslim Eden')
+        ->not->toContain('Teslim Alan');
 });
 
 it('sizes the parcel number against the QR and keeps large carton counts legible', function (): void {
