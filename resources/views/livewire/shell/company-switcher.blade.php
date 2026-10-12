@@ -3,7 +3,7 @@
     <select wire:model.live="companyId" aria-label="{{ __('app.company') }}">
         <option value="">{{ __('app.select_company') }}</option>
         @foreach ($companies as $company)
-            <option value="{{ $company->id }}">{{ $company->name }}</option>
+            <option value="{{ $company->id }}" @selected((int) $companyId === (int) $company->id)>{{ $company->name }}</option>
         @endforeach
     </select>
 </label>
