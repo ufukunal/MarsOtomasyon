@@ -21,7 +21,7 @@ echo '=== GitHub main son surumu kontrol ediliyor ==='
 git fetch --prune origin main
 # The newest main commit may be docs/ops-only and have no published image.
 # Select the latest main commit that changes a UAT-image build input.
-target="$(git log -1 --format=%H refs/remotes/origin/main -- Dockerfile.uat vite.config.js compose.uat.yml compose.uat.lab.yml app resources routes lang config scripts/ci/verify-vite-manifest.php ops/uat-lab-resume.sh ops/uat-lab-start.sh ops/uat-lab-postgres-init.sh .github/workflows/uat-image-publish.yml)"
+target="$(git log -1 --format=%H refs/remotes/origin/main -- Dockerfile.uat vite.config.js compose.uat.yml compose.uat.lab.yml app resources routes lang config database/seeders scripts/ci/verify-vite-manifest.php ops/uat-lab-resume.sh ops/uat-lab-start.sh ops/uat-lab-postgres-init.sh .github/workflows/uat-image-publish.yml)"
 current="$(git rev-parse HEAD)"
 [[ "$target" =~ ^[0-9a-f]{40}$ ]] || exit 77
 git merge-base --is-ancestor "$current" refs/remotes/origin/main || {
