@@ -6,7 +6,6 @@
         @endcan
     </div>
     <section class="panel stack v65-stock-document">
-        <strong>{{ $location->code }} · {{ $location->name }}</strong>
         <div class="form-grid">
             <div class="field"><span class="field-label">Depo / Lokasyon Kodu</span><strong>{{ $location->code }}</strong></div>
             <div class="field"><span class="field-label">Adı</span><strong>{{ $location->name }}</strong></div>
