@@ -27,7 +27,7 @@
                     <td class="v65-row-actions">
                         @can('cash_accounts.update')
                             <button class="button-secondary" type="button" wire:click="editCash({{ $account->id }})">Düzenle</button>
-                            <button class="button-secondary" type="button" wire:click="toggleCash({{ $account->id }})">
+                            <button @class(['button-warning' => $account->is_active, 'button-success' => ! $account->is_active]) type="button" wire:click="toggleCash({{ $account->id }})">
                                 {{ $account->is_active ? 'Pasife Al' : 'Aktifleştir' }}
                             </button>
                         @endcan
@@ -82,7 +82,7 @@
                     <td class="v65-row-actions">
                         @can('bank_accounts.update')
                             <button class="button-secondary" type="button" wire:click="editBank({{ $account->id }})">Düzenle</button>
-                            <button class="button-secondary" type="button" wire:click="toggleBank({{ $account->id }})">
+                            <button @class(['button-warning' => $account->is_active, 'button-success' => ! $account->is_active]) type="button" wire:click="toggleBank({{ $account->id }})">
                                 {{ $account->is_active ? 'Pasife Al' : 'Aktifleştir' }}
                             </button>
                         @endcan
