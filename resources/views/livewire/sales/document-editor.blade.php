@@ -25,8 +25,8 @@
 
             <div>
                 <label>KDV % <input wire:model="bulkVatRate"></label>
-                <button type="button" wire:click="applyVatToAll">Tümüne KDV Uygula</button>
-                <button type="button" wire:click="clearVat">KDV Temizle</button>
+                <button class="button-secondary" type="button" wire:click="applyVatToAll">Tümüne KDV Uygula</button>
+                <button class="button-secondary" type="button" wire:click="clearVat">KDV Temizle</button>
             </div>
 
             <div class="table-scroll document-lines"><table class="data-table">
@@ -73,13 +73,13 @@
                             <td><input wire:model="lines.{{ $index }}.unit_price" inputmode="decimal" aria-label="Satır {{ $index + 1 }} birim fiyat"></td>
                             <td><input wire:model="lines.{{ $index }}.line_discount_rate" inputmode="decimal" aria-label="Satır {{ $index + 1 }} iskonto"></td>
                             <td><input wire:model="lines.{{ $index }}.vat_rate" inputmode="decimal" aria-label="Satır {{ $index + 1 }} KDV"></td>
-                            <td><button type="button" wire:click="removeLine({{ $index }})">Sil</button></td>
+                            <td><button class="button-danger" type="button" wire:click="removeLine({{ $index }})">Sil</button></td>
                         </tr>
                     @endforeach
                 </tbody>
             </table></div>
 
-            <button type="button" wire:click="addLine">Satır Ekle</button>
+            <button class="button-secondary" type="button" wire:click="addLine">Satır Ekle</button>
             <button type="submit" wire:loading.attr="disabled" wire:target="save">Kaydet</button>
         </form>
     @endif
@@ -125,7 +125,7 @@
                 <button type="button" wire:click="reserve">Rezerv Et</button>
                 <button type="button" wire:click="createDispatch">İrsaliye Oluştur</button>
                 <button type="button" wire:click="createInvoice">Fatura Oluştur</button>
-                <button type="button" wire:click="cancelRemaining">Kalanı İptal Et</button>
+                <button class="button-danger" type="button" wire:click="cancelRemaining">Kalanı İptal Et</button>
             @endif
             @if(method_exists($this, 'issueProforma') && in_array($document->status, ['approved','confirmed']))
                 <button type="button" wire:click="issueProforma">Proforma Oluştur</button>
@@ -136,7 +136,7 @@
             @if(method_exists($this, 'reverse') && $document->status === 'posted')
                 <label class="field"><span class="field-label">Ters Kayıt Tarihi</span><input type="date" wire:model="reversalDate"></label>
                 <label class="field"><span class="field-label">Ters Kayıt Gerekçesi</span><input wire:model="reversalReason"></label>
-                <button type="button" wire:click="reverse">Ters Kayıt</button>
+                <button class="button-danger" type="button" wire:click="reverse">Ters Kayıt</button>
             @endif
         </div>
     @endif

@@ -45,12 +45,12 @@
                     <td><input wire:model="lines.{{ $index }}.quantity"></td>
                     <td><input wire:model="lines.{{ $index }}.unit_price"></td>
                     <td><input wire:model="lines.{{ $index }}.vat_rate"></td>
-                    <td><button type="button" wire:click="removeLine({{ $index }})">Sil</button></td>
+                    <td><button class="button-danger" type="button" wire:click="removeLine({{ $index }})">Sil</button></td>
                 </tr>
             @endforeach
         </tbody>
     </table></div>
 
-    <button type="button" wire:click="addLine">Satır Ekle</button>
+    <button class="button-secondary" type="button" wire:click="addLine">Satır Ekle</button>
     <button type="button" wire:click="post">Satışı Kesinleştir</button>
 </div>

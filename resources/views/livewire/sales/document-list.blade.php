@@ -24,10 +24,13 @@
                     <td>{{ $document->contact?->title }}</td>
                     <td>{{ $document->status }}</td>
                     <td>{{ $document->grand_total }} {{ $document->currency }}</td>
-                    <td><button type="button" wire:click="open({{ $document->id }})">Aç</button></td>
+                    <td><button class="button-secondary" type="button" wire:click="open({{ $document->id }})">Aç</button></td>
                 </tr>
             @empty
-                <tr><td colspan="6" class="empty-state">Henüz kayıt yok.</td></tr>
+                <tr><td colspan="6" class="empty-state">
+                    <div>Henüz kayıt yok.</div>
+                    @if($createRoute)<a class="button-link" href="{{ route($createRoute) }}">+ Yeni Kayıt</a>@endif
+                </td></tr>
             @endforelse
         </tbody>
     </table></div></div>
