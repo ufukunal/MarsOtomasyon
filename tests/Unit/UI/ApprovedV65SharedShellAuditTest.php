@@ -312,3 +312,21 @@ it('supplies persistent product-specific thumbnails to the isolated UAT demo', f
         ->and($list)->toContain('v65-product-photo-thumb')
         ->toContain('products.images.show');
 });
+
+it('keeps product detail cover large and only refreshes UAT-owned demo images', function (): void {
+    $css = file_get_contents(base_path('resources/css/v65-shell.css'));
+    $painter = file_get_contents(base_path('app/Support/Products/UatDemoImagePainter.php'));
+    $seeder = file_get_contents(base_path('database/seeders/UatLabDemoSeeder.php'));
+
+    expect($css)->toContain('.v65-product-detail .product-identity>.product-photo')
+        ->toContain('width:132px;height:132px')
+        ->toContain('.v65-product-detail .v65-product-gallery-open')
+        ->and($painter)->toContain('imagecopyresampled(')
+        ->toContain('imagesetthickness($img, 9)')
+        ->and($seeder)->toContain('MARS_UAT_DEMO_REFRESH_IMAGES')
+        ->toContain("'mars_uat_master'")
+        ->toContain("'mars_uat_demo_2026'")
+        ->toContain("'Mars UAT Demo'")
+        ->toContain("'uat-demo/products/v2/'")
+        ->toContain('$existing->update([');
+});
