@@ -230,9 +230,9 @@
 
     <div class="table-footer">
         <span>{{ $rows->total() }} kayıt</span>
+        @if($isProductTable)
         <div class="v65-products-footer-right">
-            @if($isProductTable)
-                <label class="page-size-control">
+            <label class="page-size-control">
                     <span>Satır</span>
                     <select wire:change="setPerPage($event.target.value)">
                         @foreach ([25,50,100] as $size)
@@ -251,8 +251,10 @@
                         @endforeach
                     </div>
                 </details>
-            @endif
             {{ $rows->links() }}
         </div>
+        @else
+            {{ $rows->links() }}
+        @endif
     </div>
 </div>
