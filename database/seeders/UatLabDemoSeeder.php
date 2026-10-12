@@ -148,38 +148,59 @@ final class UatLabDemoSeeder extends Seeder
     private function seedProductImages(Product $product, int $variant): void
     {
         $collection = (string) config('product_images.fallback', 'Ortak');
-        $existing = $product->attachments()
-            ->where('collection', $collection)
-            ->where('mime', 'like', 'image/%')
-            ->count();
-
-        if ($existing > 0) {
-            return;
-        }
-
         $disk = (string) config('attachments.disk', 'attachments');
+        // Existing demo assets are updated only by an explicit, UAT-only opt-in.
+        // User-uploaded images and other collections are never altered.
+        $refresh = env('MARS_UAT_DEMO_REFRESH_IMAGES') === 'YES';
+
         foreach ([false, true] as $gallery) {
             $role = $gallery ? 'gallery' : 'cover';
             $name = strtolower($product->code).'-'.$role.'.png';
-            $path = 'uat-demo/products/'.$name;
+            $path = 'uat-demo/products/v2/'.$name;
+
+            $existing = $product->attachments()
+                ->where('collection', $collection)
+                ->where('original_name', $name)
+                ->where('uploaded_by_name', 'Mars UAT Demo')
+                ->first();
+
+            if ($existing && ! $refresh) {
+                continue;
+            }
+
+            // Do not insert a new cover into a product that already has any
+            // non-demo attachment: this avoids overriding someone's cover order.
+            if (! $existing && $product->attachments()->where('collection', $collection)->exists()) {
+                continue;
+            }
+
             $png = UatDemoImagePainter::png($variant, $gallery);
             if (! Storage::disk($disk)->put($path, $png)) {
                 throw new RuntimeException('Demo ürün görseli diske yazılamadı: '.$name);
             }
 
             try {
-                $product->attachments()->firstOrCreate(
-                    ['collection' => $collection, 'original_name' => $name],
-                    [
+                if ($existing) {
+                    // The attachment ID/order stay unchanged; only the
+                    // UAT-generated image bytes move to the new versioned path.
+                    $existing->update([
                         'disk' => $disk,
                         'path' => $path,
                         'mime' => 'image/png',
                         'size' => strlen($png),
-                        'sort_order' => $gallery ? 1 : 0,
-                        'uploaded_by_name' => 'Mars UAT Demo',
-                    ],
-                );
-            } catch (\Throwable $error) {
+                    ]);
+                } else {
+                    $product->attachments()->firstOrCreate(
+                        ['collection' => $collection, 'original_name' => $name],
+                        [
+                            'disk' => $disk, 'path' => $path,
+                            'mime' => 'image/png', 'size' => strlen($png),
+                            'sort_order' => $gallery ? 1 : 0,
+                            'uploaded_by_name' => 'Mars UAT Demo',
+                        ],
+                    );
+                }
+            } catch (\\Throwable $error) {
                 Storage::disk($disk)->delete($path);
                 throw $error;
             }
