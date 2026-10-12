@@ -24,7 +24,7 @@
                 <button type="button" wire:click="copy">Seçilenleri Kopyala</button>
             @endif
             @if($sourceCompanyId && $canViewSource)
-                <button type="button" wire:click="inspectSourceChanges">Kaynakta Değişti mi?</button>
+                <button class="button-secondary" type="button" wire:click="inspectSourceChanges">Kaynakta Değişti mi?</button>
             @endif
         </div>
     </section>
@@ -63,7 +63,7 @@
                         @if($row['source_missing'])
                             <span class="field-error">Kaynak kayıt artık bulunamıyor.</span>
                         @elseif($canRefresh)
-                            <button type="button" wire:click="refreshFromSource({{ $row['target_id'] }})">Kaynakla Güncelle</button>
+                            <button class="button-secondary" type="button" wire:click="refreshFromSource({{ $row['target_id'] }})">Kaynakla Güncelle</button>
                         @endif
                     </div>
                     @if(!$row['source_missing'])

@@ -3,7 +3,7 @@
     <section class="modal-panel" role="dialog" aria-modal="true">
         <header class="modal-header">
             <h2>{{ $title }}</h2>
-            <button type="button" x-on:click="open=false">Kapat</button>
+            <button type="button" class="button-ghost" x-on:click="open=false">Kapat</button>
         </header>
         <div class="modal-body">{{ $slot }}</div>
         @isset($footer)<footer class="modal-footer">{{ $footer }}</footer>@endisset

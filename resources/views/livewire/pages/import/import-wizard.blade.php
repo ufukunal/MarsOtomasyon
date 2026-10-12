@@ -27,7 +27,7 @@
                 </label>
                 @error("mapping.$field")<div class="field-error">{{ $message }}</div>@enderror
             @endforeach
-            <button type="button" wire:click="previewMapped">Önizle</button>
+            <button class="button-secondary" type="button" wire:click="previewMapped">Önizle</button>
         </section>
     @elseif($step === 3)
         <section class="panel stack">

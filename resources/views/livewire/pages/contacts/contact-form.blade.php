@@ -40,7 +40,7 @@
                     <x-field.toggle label="Varsayılan" wire:model="addressDefault" />
                 </div>
                 <button type="button" wire:click="saveAddress">{{ $addressId ? 'Adresi Güncelle' : 'Adres Ekle' }}</button>
-                <table class="data-table"><thead><tr><th>Tür</th><th>Başlık</th><th>Adres</th><th>Varsayılan</th><th></th></tr></thead><tbody>@foreach($addresses as $row)<tr><td>{{ $row->type }}</td><td>{{ $row->title }}</td><td>{{ $row->address }}</td><td>{{ $row->is_default?'Evet':'Hayır' }}</td><td><button type="button" wire:click="editAddress({{ $row->id }})">Düzenle</button> <button type="button" wire:click="deleteAddress({{ $row->id }})">Sil</button></td></tr>@endforeach</tbody></table>
+                <table class="data-table"><thead><tr><th>Tür</th><th>Başlık</th><th>Adres</th><th>Varsayılan</th><th></th></tr></thead><tbody>@foreach($addresses as $row)<tr><td>{{ $row->type }}</td><td>{{ $row->title }}</td><td>{{ $row->address }}</td><td>{{ $row->is_default?'Evet':'Hayır' }}</td><td><button class="button-secondary" type="button" wire:click="editAddress({{ $row->id }})">Düzenle</button> <button class="button-danger" type="button" wire:click="deleteAddress({{ $row->id }})">Sil</button></td></tr>@endforeach</tbody></table>
             @endif
         </section>
     @elseif($activeTab === 'people')
@@ -54,7 +54,7 @@
                     <x-field.toggle label="Varsayılan" wire:model="personDefault" />
                 </div>
                 <button type="button" wire:click="savePerson">{{ $personId ? 'Yetkiliyi Güncelle' : 'Yetkili Ekle' }}</button>
-                <table class="data-table"><thead><tr><th>Ad</th><th>Unvan</th><th>Telefon</th><th>Varsayılan</th><th></th></tr></thead><tbody>@foreach($people as $row)<tr><td>{{ $row->name }}</td><td>{{ $row->title }}</td><td>{{ $row->phone }}</td><td>{{ $row->is_default?'Evet':'Hayır' }}</td><td><button type="button" wire:click="editPerson({{ $row->id }})">Düzenle</button> <button type="button" wire:click="deletePerson({{ $row->id }})">Sil</button></td></tr>@endforeach</tbody></table>
+                <table class="data-table"><thead><tr><th>Ad</th><th>Unvan</th><th>Telefon</th><th>Varsayılan</th><th></th></tr></thead><tbody>@foreach($people as $row)<tr><td>{{ $row->name }}</td><td>{{ $row->title }}</td><td>{{ $row->phone }}</td><td>{{ $row->is_default?'Evet':'Hayır' }}</td><td><button class="button-secondary" type="button" wire:click="editPerson({{ $row->id }})">Düzenle</button> <button class="button-danger" type="button" wire:click="deletePerson({{ $row->id }})">Sil</button></td></tr>@endforeach</tbody></table>
             @endif
         </section>
     @elseif($activeTab === 'banks')
@@ -66,7 +66,7 @@
                     <x-field.toggle label="Varsayılan" wire:model="bankDefault" />
                 </div>
                 <button type="button" wire:click="saveBank">{{ $bankId ? 'Bankayı Güncelle' : 'Banka Ekle' }}</button>
-                <table class="data-table"><thead><tr><th>Banka</th><th>IBAN</th><th>Varsayılan</th><th></th></tr></thead><tbody>@foreach($banks as $row)<tr><td>{{ $row->bank_name }}</td><td>{{ $row->iban }}</td><td>{{ $row->is_default?'Evet':'Hayır' }}</td><td><button type="button" wire:click="editBank({{ $row->id }})">Düzenle</button> <button type="button" wire:click="deleteBank({{ $row->id }})">Sil</button></td></tr>@endforeach</tbody></table>
+                <table class="data-table"><thead><tr><th>Banka</th><th>IBAN</th><th>Varsayılan</th><th></th></tr></thead><tbody>@foreach($banks as $row)<tr><td>{{ $row->bank_name }}</td><td>{{ $row->iban }}</td><td>{{ $row->is_default?'Evet':'Hayır' }}</td><td><button class="button-secondary" type="button" wire:click="editBank({{ $row->id }})">Düzenle</button> <button class="button-danger" type="button" wire:click="deleteBank({{ $row->id }})">Sil</button></td></tr>@endforeach</tbody></table>
             @endif
         </section>
     @endif

@@ -10,7 +10,7 @@
                     <strong>{{ $root->name }}</strong>
                     <span>{{ $root->is_active ? 'Aktif' : 'Pasif' }}</span>
                     @can('product_categories.update')
-                        <a href="{{ route('categories.edit', ['category' => $root->id]) }}">Düzenle</a>
+                        <a class="button-secondary" href="{{ route('categories.edit', ['category' => $root->id]) }}">Düzenle</a>
                     @endcan
                 </div>
 
@@ -20,7 +20,7 @@
                             <span>{{ $child->name }}</span>
                             <span>{{ $child->is_active ? 'Aktif' : 'Pasif' }}</span>
                             @can('product_categories.update')
-                                <a href="{{ route('categories.edit', ['category' => $child->id]) }}">Düzenle</a>
+                                <a class="button-secondary" href="{{ route('categories.edit', ['category' => $child->id]) }}">Düzenle</a>
                             @endcan
                         </div>
 
@@ -30,7 +30,7 @@
                                     <span>{{ $grandchild->name }}</span>
                                     <span>{{ $grandchild->is_active ? 'Aktif' : 'Pasif' }}</span>
                                     @can('product_categories.update')
-                                        <a href="{{ route('categories.edit', ['category' => $grandchild->id]) }}">Düzenle</a>
+                                        <a class="button-secondary" href="{{ route('categories.edit', ['category' => $grandchild->id]) }}">Düzenle</a>
                                     @endcan
                                 </div>
                             </div>
