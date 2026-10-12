@@ -69,7 +69,7 @@ Referans: `reference/marsotomasyon-PROTOTIP-ONAYLI-v65.html` ve sonradan onaylı
 ## settings (4 dosya)
 
 - [ ] `resources/views/livewire/pages/settings/integrity-report.blade.php` — işlem seti, sıralama, durum/izin, farklı ekran boyları ve v65 karşılaştırması
-- [ ] `resources/views/livewire/pages/settings/operations-center.blade.php` — işlem seti, sıralama, durum/izin, farklı ekran boyları ve v65 karşılaştırması
+- [x] `resources/views/livewire/pages/settings/operations-center.blade.php` — işlem seti, sıralama, durum/izin, farklı ekran boyları ve v65 karşılaştırması
 - [ ] `resources/views/livewire/pages/settings/period-carry.blade.php` — işlem seti, sıralama, durum/izin, farklı ekran boyları ve v65 karşılaştırması
 - [ ] `resources/views/livewire/pages/settings/periods.blade.php` — işlem seti, sıralama, durum/izin, farklı ekran boyları ve v65 karşılaştırması
 
