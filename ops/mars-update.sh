@@ -25,7 +25,9 @@ cd "$repo"
 [[ "$(git branch --show-current)" == main ]] || { echo 'HATA: main dalinda degilsiniz' >&2; exit 77; }
 echo '=== GitHub main son surumu kontrol ediliyor ==='
 git fetch --prune origin main
-target="$(git rev-parse refs/remotes/origin/main)"
+# The newest main commit may be docs/ops-only and have no published image.
+# Select the latest main commit that changes a UAT-image build input.
+target="$(git log -1 --format=%H refs/remotes/origin/main -- Dockerfile.uat vite.config.js compose.uat.yml compose.uat.lab.yml app resources routes lang config scripts/ci/verify-vite-manifest.php ops/uat-lab-resume.sh ops/uat-lab-start.sh ops/uat-lab-postgres-init.sh .github/workflows/uat-image-publish.yml)"
 current="$(git rev-parse HEAD)"
 [[ "$target" =~ ^[0-9a-f]{40}$ ]] || exit 77
 git merge-base --is-ancestor "$current" "$target" || { echo 'HATA: main ileri-sarilamiyor; kaynak kod degistirilmedi' >&2; exit 77; }
@@ -43,7 +45,12 @@ done
 revision="$(sudo docker image inspect "$image" --format '{{index .Config.Labels "org.opencontainers.image.revision"}}')"
 [[ "$revision" == "$target" ]] || { echo 'HATA: Image revision hedef commit ile eslesmiyor' >&2; exit 77; }
 git merge --ff-only refs/remotes/origin/main
-[[ "$(git rev-parse HEAD)" == "$target" ]] || exit 77
+[[ "$(git rev-parse HEAD)" == "$(git rev-parse refs/remotes/origin/main)" ]] || exit 77
+# UAT resume uses HEAD as the image revision; ops-only commits do not have images.
+if [[ "$(git rev-parse HEAD)" != "$target" ]]; then
+  echo 'HATA: Kaynak main HEAD image revizyonundan farkli. Bu surum icin image yayini gerekiyor.' >&2
+  exit 77
+fi
 echo '=== Izole UAT Lab kontrolleri ve guncelleme ==='
 bash ops/uat-lab-resume.sh
 echo "BASARILI: UAT yayin commit $target"
