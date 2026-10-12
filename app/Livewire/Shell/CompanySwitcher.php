@@ -4,6 +4,7 @@ namespace App\Livewire\Shell;
 
 use App\Livewire\Concerns\WithIdempotentMutations;
 use Illuminate\Contracts\View\View;
+use App\Support\Period\PeriodContext;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 
@@ -16,7 +17,7 @@ class CompanySwitcher extends Component
     public function mount(): void
     {
         $this->seedMutationKeys(['selectCompany']);
-        $this->companyId = session('active_company_id')
+        $this->companyId = PeriodContext::companyId()
             ?? Auth::user()?->last_company_id;
     }
 
