@@ -299,3 +299,24 @@
  .app-shell :where(.page-actions,.v65-page-actions){align-items:flex-start}
  .app-shell :where(.page-actions,.v65-page-actions) :where(button,.button-secondary,.button-link){max-width:100%}
 }
+
+/* Prototype v65 special actions: product quick-action role palette (v26 block). */
+.app-shell .v65-product-detail .v65-quick-actions .v65-quick-action{
+ display:flex!important;align-items:center!important;justify-content:center!important;
+ min-height:40px!important;height:auto!important;padding:9px 12px!important;
+ font-weight:800!important;border-radius:12px!important;gap:8px!important;
+ text-align:center!important;line-height:1.3!important;
+}
+.app-shell .v65-product-detail .v65-quick-actions .v65-quick-quote{background:linear-gradient(135deg,#58bcff,#1790da)!important;border-color:#1790da!important;color:#fff!important}
+.app-shell .v65-product-detail .v65-quick-actions .v65-quick-order{background:linear-gradient(135deg,#9b84ff,#7759ec)!important;border-color:#7759ec!important;color:#fff!important}
+.app-shell .v65-product-detail .v65-quick-actions .v65-quick-invoice{background:linear-gradient(135deg,#ffb955,#f39a1f)!important;border-color:#f39a1f!important;color:#fff!important}
+.app-shell .v65-product-detail .v65-quick-actions .v65-quick-edit{background:linear-gradient(135deg,#45b6ff,#1688d6)!important;border-color:#1688d6!important;color:#fff!important}
+.app-shell .v65-product-detail .v65-quick-actions .v65-quick-stock{background:#fff!important;border-color:#cfdee7!important;color:#31586e!important}
+.app-shell .page-action-menu-items>button{
+ display:flex!important;align-items:center!important;justify-content:flex-start!important;
+ width:100%!important;min-height:30px!important;height:30px!important;
+ padding:0 9px!important;margin:0!important;border:0!important;
+ border-radius:5px!important;background:transparent!important;color:#33465c!important;
+ font-size:11.5px!important;font-weight:500!important;text-align:left!important;box-shadow:none!important;
+}
+.app-shell .page-action-menu-items>button:hover{background:#eef3f9!important;color:#12243a!important}
