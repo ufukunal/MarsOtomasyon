@@ -201,12 +201,10 @@
                 @endif
                 @if ($routeName === 'warehouse.transport.show')
                     @can('warehouse_slips.view')
-                        <a class="button-secondary" target="_blank" rel="noopener" href="{{ route('warehouse.transport.print', ['slip' => request()->route('id'), 'format' => 'slip', 'autoprint' => 1]) }}">Yazdır</a>
-                        <a class="button-secondary" target="_blank" rel="noopener" href="{{ route('warehouse.transport.print', ['slip' => request()->route('id'), 'format' => 'slip', 'autoprint' => 1]) }}" title="Yazdırma ekranında PDF olarak kaydet seçin">PDF</a>
+                        <a class="button-secondary" target="_blank" rel="noopener" href="{{ route('warehouse.transport.print', ['slip' => request()->route('id'), 'format' => 'slip', 'autoprint' => 1]) }}" title="Yazdırma penceresinde PDF olarak kaydedebilirsiniz">Yazdır / PDF</a>
                     @endcan
                 @elseif (in_array($routeName, ['warehouse.transport.create', 'warehouse.transport.edit'], true))
-                    <button type="button" class="button-secondary" onclick="document.querySelector('[data-wsl-print-slip]')?.click()">Yazdır</button>
-                    <button type="button" class="button-secondary" onclick="document.querySelector('[data-wsl-print-slip]')?.click()" title="Yazdırma ekranında PDF olarak kaydet seçin">PDF</button>
+                    <button type="button" class="button-secondary" onclick="document.querySelector('[data-wsl-print-slip]')?.click()" title="Yazdırma penceresinde PDF olarak kaydedebilirsiniz">Yazdır / PDF</button>
                 @else
                     <button type="button" class="button-secondary" onclick="window.print()">Yazdır</button>
                     <button type="button" class="button-secondary" onclick="window.print()" title="PDF için yazdırma ekranında PDF olarak kaydet seçin">PDF</button>
