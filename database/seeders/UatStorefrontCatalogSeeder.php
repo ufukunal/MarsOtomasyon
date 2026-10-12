@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Period;
 use App\Models\Period\Brand;
+use App\Models\Period\Contact;
 use App\Models\Period\Product;
 use App\Models\Period\ProductCategory;
 use App\Models\Period\Unit;
@@ -81,6 +82,16 @@ final class UatStorefrontCatalogSeeder extends Seeder
                 $unit = Unit::query()->firstOrCreate(
                     ['code' => 'ADET'],
                     ['name' => 'Adet', 'is_base' => true, 'is_active' => true],
+                );
+
+                // Partner contact only: do not fabricate production orders, sales or balances.
+                Contact::query()->firstOrCreate(
+                    ['title' => 'DEMO · Heka Store'],
+                    [
+                        'type' => 'legal',
+                        'address' => 'UAT demo üretim iş ortağı. Gerçek cari işlemi değildir.',
+                        'is_active' => true,
+                    ]
                 );
 
                 foreach ($entries as $entry) {
