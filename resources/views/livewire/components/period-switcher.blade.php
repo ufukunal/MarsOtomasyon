@@ -6,7 +6,7 @@
         <select wire:model.live="periodId" aria-label="Dönem" @disabled(! $companyId)>
             <option value="">Dönem seçin</option>
             @foreach ($periods as $period)
-                <option value="{{ $period->id }}">
+                <option value="{{ $period->id }}" @selected((int) $periodId === (int) $period->id)>
                     {{ $period->year }}{{ $period->status === 'closed' ? ' · kapalı' : '' }}
                 </option>
             @endforeach
