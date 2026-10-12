@@ -192,14 +192,22 @@
                             </div>
                         </details>
                     @endcanany
-                    @can('returns.view')
-                        <a class="button-secondary" href="{{ route('returns.center') }}">İade İşlemleri</a>
-                    @endcan
-                    @can('products.update')
-                        <a class="button-secondary" href="{{ route('products.edit', ['product' => request()->route('product')]) }}">Düzenle</a>
-                    @endcan
                 @endif
-                @if ($routeName === 'warehouse.transport.show')
+                @if ($routeName === 'products.show')
+                    <details class="page-action-menu page-action-more">
+                        <summary>Diğer <span aria-hidden="true">⌄</span></summary>
+                        <div class="page-action-menu-items">
+                            @can('returns.view')
+                                <a href="{{ route('returns.center') }}">İade İşlemleri</a>
+                            @endcan
+                            @can('products.update')
+                                <a href="{{ route('products.edit', ['product' => request()->route('product')]) }}">Düzenle</a>
+                            @endcan
+                            <button type="button" onclick="window.print()" title="Yazdırma penceresinde PDF olarak kaydedebilirsiniz">Yazdır / PDF</button>
+                            <button type="button" onclick="if (history.length > 1) history.back(); else location.href='{{ route('home') }}'">Geri</button>
+                        </div>
+                    </details>
+                @elseif ($routeName === 'warehouse.transport.show')
                     @can('warehouse_slips.view')
                         <a class="button-secondary" target="_blank" rel="noopener" href="{{ route('warehouse.transport.print', ['slip' => request()->route('id'), 'format' => 'slip', 'autoprint' => 1]) }}" title="Yazdırma penceresinde PDF olarak kaydedebilirsiniz">Yazdır / PDF</a>
                     @endcan
@@ -214,7 +222,9 @@
                     @endcan
                 @endif
                 @isset($pageActions){{ $pageActions }}@endisset
-                <button type="button" class="button-secondary" onclick="if (history.length > 1) history.back(); else location.href='{{ route('home') }}'">Geri</button>
+                @unless ($routeName === 'products.show')
+                    <button type="button" class="button-secondary" onclick="if (history.length > 1) history.back(); else location.href='{{ route('home') }}'">Geri</button>
+                @endunless
             </div>
         </header>
 
