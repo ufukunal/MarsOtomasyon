@@ -15,6 +15,7 @@ on:
       - 'ops/uat-lab-postgres-init.sh'
       - 'ops/uat-lab-start.sh'
       - 'ops/uat-lab-resume.sh'
+      - 'ops/mars-update.sh'
       - 'app/Actions/Periods/CreatePeriod.php'
       - 'app/Livewire/Pages/Setup/CompanyWizard.php'
       - 'config/operations.php'
