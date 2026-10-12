@@ -1,14 +1,4 @@
 <div class="wsl-shell stack">
-    <div class="wsl-head">
-        <div>
-            <h2>Ambar Fişleri</h2>
-            <p class="wsl-sub">Bağımsız taşıma belgeleri · Firma, ambar, koli, teslimat ve durum takibi</p>
-        </div>
-        @can('warehouse_slips.create')
-            <a class="button-link" href="{{ route('warehouse.transport.create') }}">+ Yeni Ambar Fişi</a>
-        @endcan
-    </div>
-
     <section class="wsl-card panel">
         <div class="wsl-card-head"><strong>Filtreler</strong><button type="button" class="button-secondary" wire:click="clearFilters">Temizle</button></div>
         <div class="wsl-card-body wsl-grid">
@@ -62,7 +52,14 @@
                             </td>
                         </tr>
                     @empty
-                        <tr><td colspan="9" class="empty-state">Kayıt bulunamadı. Yeni Ambar Fişi ile ilk taşıma belgenizi oluşturabilirsiniz.</td></tr>
+                        <tr>
+                            <td colspan="9" class="empty-state">
+                                <div>Kayıt bulunamadı.</div>
+                                @can('warehouse_slips.create')
+                                    <a class="button-link" href="{{ route('warehouse.transport.create') }}">+ Yeni Ambar Fişi</a>
+                                @endcan
+                            </td>
+                        </tr>
                     @endforelse
                 </tbody>
             </table>

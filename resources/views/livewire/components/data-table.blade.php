@@ -19,38 +19,10 @@
             ->first(fn (array $item): bool => $item['route'] === $activeRoute);
         $listLabel = $stockMeta[0] ?? ($navigationItem['label'] ?? 'Kayıt Listesi');
     @endphp
-    @if($this instanceof \App\Livewire\Pages\Products\ProductList)
-        <div class="alert v65-products-hint"><strong>Kısaca:</strong> Ürün kartlarını, satış fiyatlarını ve stok durumunu buradan yönetebilirsin.</div>
-        <header class="v65-products-heading">
-            <div class="stack">
-                <strong>Ürün Listesi</strong>
-                <small>Ürün kartları, fiyat ve stok özeti.</small>
-            </div>
-            <div class="form-row">
-                @can('products.create')
-                    <a class="button-link" href="{{ route('products.create') }}">＋ Yeni Ürün</a>
-                @endcan
-                <button class="button-secondary" type="button" wire:click="exportXlsx">Excel</button>
-                <button class="button-secondary" type="button" wire:click="exportCsv">CSV</button>
-            </div>
-        </header>
-    @endif
-    @if(! $stockMeta && ! $isProductTable)
-        <header class="panel form-row v65-shared-list-heading" aria-label="{{ $listLabel }} listesi">
-            <strong>{{ $listLabel }}</strong>
-            <small>Yetkili olduğunuz kayıtlar listelenir.</small>
-        </header>
-    @endif
-    @if($stockMeta)
-        @if($this instanceof \App\Livewire\Pages\Stock\StockStatus && !($this instanceof \App\Livewire\Pages\Stock\StockCost))
-            <div class="alert"><strong>Kısaca:</strong> Kullanılabilir stok, rezerve ve bloke miktarları ayrı gösterilir.</div>
-        @endif
-        <header class="panel form-row" aria-label="{{ $stockMeta[0] }} özeti">
-            <div class="stack">
-                <strong>{{ $stockMeta[0] }}</strong>
-                <small>{{ $stockMeta[1] }}</small>
-            </div>
-        </header>
+    @if($isProductTable)
+        <div class="alert v65-products-hint"><strong>Kısaca:</strong> Ürün kartlarını, satış fiyatlarını ve stok durumunu buradan yönetin.</div>
+    @elseif($this instanceof \App\Livewire\Pages\Stock\StockStatus && !($this instanceof \App\Livewire\Pages\Stock\StockCost))
+        <div class="alert"><strong>Kısaca:</strong> Kullanılabilir stok, rezerve ve bloke miktarları ayrı gösterilir.</div>
     @endif
     <div class="table-toolbar">
         <div class="table-toolbar-main">
@@ -83,10 +55,10 @@
                 @endif
             @endforeach
         </div>
-        @if($this instanceof \App\Livewire\Pages\Products\ProductList)
-            <button class="button-secondary v65-products-filter" type="button" wire:click="$refresh">Filtrele</button>
-        @else
         <div class="table-toolbar-actions">
+            @if($isProductTable)
+                <button class="button-secondary v65-products-filter" type="button" wire:click="$refresh">Filtrele</button>
+            @endif
             <label class="page-size-control">
                 <span>Satır</span>
                 <select wire:change="setPerPage($event.target.value)">
@@ -114,7 +86,6 @@
             <button class="button-secondary" type="button" wire:click="exportCsv">CSV</button>
             <button class="button-secondary" type="button" wire:click="exportXlsx">Excel</button>
         </div>
-        @endif
     </div>
 
     @if($selected !== [] && $bulkActions !== [])
@@ -148,7 +119,7 @@
         </details>
     @endif
     <div class="v65-shared-table-title">
-        <strong>{{ $listLabel }}</strong>
+        <strong>Sonuçlar</strong>
         <small>{{ $rows->total() }} kayıt</small>
     </div>
     <div class="table-scroll">
@@ -227,15 +198,6 @@
 
     <div class="table-footer">
         <span>{{ $rows->total() }} kayıt</span>
-        @if($this instanceof \App\Livewire\Pages\Products\ProductList)
-            <label class="page-size-control"><span>Satır</span>
-                <select wire:change="setPerPage($event.target.value)">
-                    @foreach([25, 50, 100] as $size)
-                        <option value="{{ $size }}" @selected($perPage === $size)>{{ $size }}</option>
-                    @endforeach
-                </select>
-            </label>
-        @endif
         {{ $rows->links() }}
     </div>
 </div>

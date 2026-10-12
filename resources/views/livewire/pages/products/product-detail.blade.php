@@ -137,14 +137,14 @@
                 @endcan
             </div>
             <aside class="stack">
-                <section class="panel stack">
+                <section class="panel stack v65-quick-actions">
                     <strong>Hızlı İşlemler</strong>
-                    @can('quotes.create')<a href="{{ route('sales.quotes.edit') }}">Teklif Oluştur</a>@endcan
-                    @can('sales_orders.create')<a href="{{ route('sales.orders.edit') }}">Sipariş Oluştur</a>@endcan
-                    @can('sales_invoices.create')<a href="{{ route('sales.invoices.edit') }}">Satış Faturası</a>@endcan
-                    @can('stock.view')<a href="{{ route('stock.movements', ['product' => $product->id]) }}">Stok Hareketleri</a>@endcan
-                    @can('stock_counts.view')<a href="{{ route('stock.counts.index') }}">Stok Sayımları</a>@endcan
-                    @can('products.update')<a href="{{ route('products.edit', ['product' => $product->id]) }}">Ürünü Düzenle</a>@endcan
+                    @can('quotes.create')<a class="button-secondary v65-quick-action" href="{{ route('sales.quotes.edit') }}">Teklif Oluştur</a>@endcan
+                    @can('sales_orders.create')<a class="button-secondary v65-quick-action" href="{{ route('sales.orders.edit') }}">Sipariş Oluştur</a>@endcan
+                    @can('sales_invoices.create')<a class="button-secondary v65-quick-action" href="{{ route('sales.invoices.edit') }}">Satış Faturası</a>@endcan
+                    @can('stock.view')<a class="button-secondary v65-quick-action" href="{{ route('stock.movements', ['product' => $product->id]) }}">Stok Hareketleri</a>@endcan
+                    @can('stock_counts.view')<a class="button-secondary v65-quick-action" href="{{ route('stock.counts.index') }}">Stok Sayımları</a>@endcan
+                    @can('products.update')<a class="button-secondary v65-quick-action" href="{{ route('products.edit', ['product' => $product->id]) }}">Ürünü Düzenle</a>@endcan
                 </section>
                 @can('stock.view')
                 <section class="panel stack">

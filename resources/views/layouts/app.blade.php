@@ -167,6 +167,11 @@
                 @endisset
             </div>
             <div class="page-actions v65-page-actions" aria-label="Sayfa işlemleri">
+                @if ($routeName === 'warehouse.transport.index')
+                    @can('warehouse_slips.create')
+                        <a class="button-link" href="{{ route('warehouse.transport.create') }}">+ Yeni Ambar Fişi</a>
+                    @endcan
+                @endif
                 @if ($routeName === 'products.show')
                     @canany(['supplier_invoices.create', 'purchase_orders.create'])
                         <details class="page-action-menu">
