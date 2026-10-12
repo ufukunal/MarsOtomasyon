@@ -294,7 +294,15 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch {
         tabs = [];
     }
-    tabs = [...tabs.filter((tab) => tab.path !== path), { path, title }].slice(-6);
+    // Preserve first-opened order. Revisited tabs become active without moving.
+    // New tabs append to the end; reopen after closing creates a new last tab.
+    const existing = tabs.find((tab) => tab.path === path);
+    if (existing) {
+        existing.title = title;
+    } else {
+        tabs.push({ path, title });
+        tabs = tabs.slice(-6);
+    }
     const store = () => {
         try {
             sessionStorage.setItem(key, JSON.stringify(tabs));
