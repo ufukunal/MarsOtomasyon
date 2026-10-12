@@ -12,8 +12,10 @@ use App\Models\Period\StockBalance;
 use App\Models\Period\StockMovement;
 use App\Models\Period\Unit;
 use App\Support\Period\PeriodContext;
+use App\Support\Products\UatDemoImagePainter;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use RuntimeException;
 
 /**
@@ -107,6 +109,8 @@ final class UatLabDemoSeeder extends Seeder
                          'is_active' => true],
                     );
 
+                    $this->seedProductImages($product, (int) substr($code, -1));
+
                     // Do not change an existing product or an existing stock balance.
                     $balance = StockBalance::query()->firstOrCreate(
                         ['product_id' => $product->id, 'location_id' => $locations[0]->id],
@@ -132,8 +136,54 @@ final class UatLabDemoSeeder extends Seeder
                     }
                 }
 
-                $this->command?->info('PASS: isolated UAT demo: 6 products, 3 contacts, 2 warehouses; existing records preserved.');
+                $this->command?->info('PASS: isolated UAT demo: 6 products, 12 illustrations, 3 contacts, 2 warehouses; existing records preserved.');
             });
         });
     }
+    /**
+     * Add a cover and one gallery image only to demo products with no prior
+     * images. Never reorder/delete/replace an existing cover. All assets stay
+     * on the authenticated attachment disk, shared across UAT web releases.
+     */
+    private function seedProductImages(Product $product, int $variant): void
+    {
+        $collection = (string) config('product_images.fallback', 'Ortak');
+        $existing = $product->attachments()
+            ->where('collection', $collection)
+            ->where('mime', 'like', 'image/%')
+            ->count();
+
+        if ($existing > 0) {
+            return;
+        }
+
+        $disk = (string) config('attachments.disk', 'attachments');
+        foreach ([false, true] as $gallery) {
+            $role = $gallery ? 'gallery' : 'cover';
+            $name = strtolower($product->code).'-'.$role.'.png';
+            $path = 'uat-demo/products/'.$name;
+            $png = UatDemoImagePainter::png($variant, $gallery);
+            if (! Storage::disk($disk)->put($path, $png)) {
+                throw new RuntimeException('Demo ürün görseli diske yazılamadı: '.$name);
+            }
+
+            try {
+                $product->attachments()->firstOrCreate(
+                    ['collection' => $collection, 'original_name' => $name],
+                    [
+                        'disk' => $disk,
+                        'path' => $path,
+                        'mime' => 'image/png',
+                        'size' => strlen($png),
+                        'sort_order' => $gallery ? 1 : 0,
+                        'uploaded_by_name' => 'Mars UAT Demo',
+                    ],
+                );
+            } catch (\Throwable $error) {
+                Storage::disk($disk)->delete($path);
+                throw $error;
+            }
+        }
+    }
+
 }
