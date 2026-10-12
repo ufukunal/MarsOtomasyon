@@ -17,8 +17,8 @@
             @foreach($quickActions as $action)
                 <a class="v65-home-quick" href="{{ route($action['route']) }}">
                     <span class="v65-home-quick-icon" aria-hidden="true">{{ $action['icon'] }}</span>
-                    <strong>{{ $action['title'] }}</strong>
-                    <small>{{ $action['description'] }}</small>
+                    <strong class="v65-home-quick-title">{{ $action['title'] }}</strong>
+                    <small class="v65-home-quick-description">{{ $action['description'] }}</small>
                 </a>
             @endforeach
         </nav>
