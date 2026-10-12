@@ -4,12 +4,12 @@
     @endif
 
     <section class="panel">
-        <div class="toolbar">
+        <div class="toolbar v65-operations-header">
             <div>
                 <h2>Operasyon İşlemleri</h2>
                 <p>Backup ve restore doğrulama işleri queue üzerinden yürütülür.</p>
             </div>
-            <div class="toolbar">
+            <div class="toolbar v65-operations-actions">
                 <button class="button-secondary" type="button" wire:click="runHealth">Health Kontrolü Çalıştır</button>
                 @can('companies.update')
                     <button type="button" wire:click="backupNow">Şimdi Recovery-Set Backup Al</button>
