@@ -11,6 +11,7 @@ use App\Actions\Sales\CreateInvoiceFromOrder;
 use App\Actions\Sales\IssueProforma;
 use App\Actions\Sales\ReserveSalesOrderLines;
 use App\Enums\DocumentType;
+use App\Models\Period\StockReservation;
 
 class SalesOrderEditor extends BaseSalesDocumentEditor
 {
@@ -24,6 +25,13 @@ class SalesOrderEditor extends BaseSalesDocumentEditor
 
     /** @var array<int,int|null> */
     public array $fulfillmentLocationIds = [];
+
+    /** @var array<int,string> Confirmed, still-active stock allocations in base units. */
+    public array $reservedQuantities = [];
+
+    public string $reservationNotice = '';
+
+    public string $reservationNoticeLevel = 'info';
 
     protected function documentType(): DocumentType
     {
@@ -71,18 +79,51 @@ class SalesOrderEditor extends BaseSalesDocumentEditor
 
     public function reserve(ReserveSalesOrderLines $action): void
     {
-        abort_unless($this->document !== null, 422);
+        abort_unless($this->document !== null && $this->document->status === 'confirmed', 422);
+
+        $this->reservationNotice = '';
+        $this->reservationNoticeLevel = 'info';
         $priorities = [];
 
-        foreach ($this->reservationLocationIds as $lineId => $locationId) {
+        // The fulfillment location is unrelated to the reservation location.
+        // Only validated stock lines in this order may be reserved.
+        foreach ($this->document->lines as $line) {
+            if ($line->line_kind !== 'stock') {
+                continue;
+            }
+
+            $locationId = $this->reservationLocationIds[$line->id] ?? null;
             if ($locationId) {
-                $priorities[(int) $lineId] = [(int) $locationId];
+                $priorities[(int) $line->id] = [(int) $locationId];
             }
         }
 
-        $action->handle($this->document, $priorities, $this->mutationKey('reserve'));
+        if ($priorities === []) {
+            $this->reservationNotice = 'Rezervasyon için en az bir stok satırında rezervasyon deposu seçin.';
+
+            return;
+        }
+
+        $results = $action->handle($this->document, $priorities, $this->mutationKey('reserve'));
         $this->completeMutation('reserve');
         $this->syncFulfillmentInputs();
+
+        $reserved = '0.000';
+        $unfilled = '0.000';
+        foreach ($results as $result) {
+            $reserved = bcadd($reserved, (string) $result['reserved_quantity'], 3);
+            $unfilled = bcadd($unfilled, (string) $result['open_quantity'], 3);
+        }
+
+        if ($results === []) {
+            $this->reservationNotice = 'Ayrılacak yeni miktar yok. Mevcut rezervasyonları ve siparişin kalan miktarını kontrol edin.';
+        } elseif (bccomp($reserved, '0', 3) === 0) {
+            $this->reservationNotice = 'Seçilen depolarda kullanılabilir stok bulunamadı. Başka rezervasyon deposu seçin.';
+        } else {
+            $this->reservationNoticeLevel = 'success';
+            $this->reservationNotice = $reserved.' temel birim stok rezerve edildi.'
+                .(bccomp($unfilled, '0', 3) > 0 ? ' Karşılanamayan miktar: '.$unfilled.'.' : '');
+        }
     }
 
     public function cancelRemaining(CancelSalesOrderRemaining $action): void
@@ -153,6 +194,26 @@ class SalesOrderEditor extends BaseSalesDocumentEditor
             $this->fulfillmentLocationIds[$line->id] ??= $line->location_id;
             $this->reservationLocationIds[$line->id] ??= $line->location_id;
         }
+
+        // Never infer reservation success from the click. Read current active
+        // records so reloading the page shows the same actual quantities.
+        $this->reservedQuantities = [];
+        StockReservation::query()
+            ->where('document_type', DocumentType::SalesOrder->value)
+            ->where('document_id', $this->document->id)
+            ->where('status', 'active')
+            ->get(['document_line_id', 'quantity'])
+            ->each(function (StockReservation $reservation): void {
+                if ($reservation->document_line_id === null) {
+                    return;
+                }
+                $id = (int) $reservation->document_line_id;
+                $this->reservedQuantities[$id] = bcadd(
+                    $this->reservedQuantities[$id] ?? '0.000',
+                    (string) $reservation->quantity,
+                    3,
+                );
+            });
     }
 
     /** @return array<int,string> */

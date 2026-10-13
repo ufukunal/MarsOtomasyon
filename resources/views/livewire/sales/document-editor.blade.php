@@ -104,30 +104,63 @@
                 <button type="button" wire:click="confirm">Siparişi Onayla</button>
             @endif
             @if(method_exists($this, 'reserve') && $document->status === 'confirmed')
-                @foreach($document->lines as $line)
-                    <div>
-                        <strong>{{ $line->line_no }} · {{ $line->description }}</strong>
-                        <input wire:model="fulfillmentQuantities.{{ $line->id }}" aria-label="Miktar">
-                        <select wire:model="fulfillmentLocationIds.{{ $line->id }}">
-                            <option value="">Sevk/Fatura Lokasyonu</option>
-                            @foreach($locations as $location)
-                                <option value="{{ $location->id }}">{{ $location->name }}</option>
-                            @endforeach
-                        </select>
-                        <select wire:model="reservationLocationIds.{{ $line->id }}">
-                            <option value="">Rezervasyon Lokasyonu</option>
-                            @foreach($locations as $location)
-                                <option value="{{ $location->id }}">{{ $location->name }}</option>
-                            @endforeach
-                        </select>
+                <section class="v65-order-fulfillment" aria-label="Sipariş rezervasyon ve sevkiyat işlemleri">
+                    <header class="v65-order-fulfillment-head">
+                        <strong>Stok Rezervasyonu ve Sevkiyat</strong>
+                        <small>Rezervasyon deposu ile sevk/fatura deposu birbirinden bağımsızdır.</small>
+                    </header>
+                    <div class="v65-order-fulfillment-lines">
+                        @foreach($document->lines as $line)
+                            <div class="v65-order-fulfillment-line" wire:key="order-fulfillment-{{ $line->id }}">
+                                <div class="v65-order-fulfillment-item">
+                                    <strong>{{ $line->line_no }} · {{ $line->description ?? 'Sipariş satırı' }}</strong>
+                                    <span>Sipariş miktarı: {{ $line->quantity }} · Aktif rezervasyon (temel birim): <b>{{ $reservedQuantities[$line->id] ?? '0.000' }}</b></span>
+                                </div>
+                                <div class="v65-order-fulfillment-inputs">
+                                    <label class="field">
+                                        <span class="field-label">Sevk / Fatura Miktarı</span>
+                                        <input wire:model="fulfillmentQuantities.{{ $line->id }}" inputmode="decimal" aria-label="Satır {{ $line->line_no }} sevk veya fatura miktarı">
+                                    </label>
+                                    <label class="field">
+                                        <span class="field-label">Sevk / Fatura Deposu</span>
+                                        <select wire:model="fulfillmentLocationIds.{{ $line->id }}" aria-label="Satır {{ $line->line_no }} sevk/fatura deposu">
+                                            <option value="">Depo seçin</option>
+                                            @foreach($locations as $location)
+                                                <option value="{{ $location->id }}">{{ $location->name }}</option>
+                                            @endforeach
+                                        </select>
+                                    </label>
+                                    @if($line->line_kind === 'stock')
+                                        <label class="field">
+                                            <span class="field-label">Rezervasyon Deposu</span>
+                                            <select wire:model="reservationLocationIds.{{ $line->id }}" aria-label="Satır {{ $line->line_no }} rezervasyon deposu">
+                                                <option value="">Depo seçin</option>
+                                                @foreach($locations as $location)
+                                                    <option value="{{ $location->id }}">{{ $location->name }}</option>
+                                                @endforeach
+                                            </select>
+                                        </label>
+                                    @endif
+                                </div>
+                            </div>
+                        @endforeach
                     </div>
-                @endforeach
-                <button type="button" wire:click="reserve">Rezerv Et</button>
-                <button type="button" wire:click="createDispatch">İrsaliye Oluştur</button>
-                <button type="button" wire:click="createInvoice">Fatura Oluştur</button>
-                <button class="button-danger" type="button" wire:click="cancelRemaining">Kalanı İptal Et</button>
-            @endif
-            @if(method_exists($this, 'issueProforma') && in_array($document->status, ['approved','confirmed']))
+                    @if($reservationNotice !== '')
+                        <div class="v65-reservation-notice {{ $reservationNoticeLevel === 'success' ? 'is-success' : 'is-warning' }}" role="status" aria-live="polite">{{ $reservationNotice }}</div>
+                    @endif
+                    <div class="v65-order-fulfillment-actions">
+                        @can('reservations.create')
+                            <button type="button" wire:click="reserve" wire:loading.attr="disabled" wire:target="reserve">Rezerv Et</button>
+                        @else
+                            <small class="v65-reservation-permission">Stok rezervasyonu oluşturma yetkiniz yok.</small>
+                        @endcan
+                        <button type="button" wire:click="createDispatch" wire:loading.attr="disabled" wire:target="createDispatch">İrsaliye Oluştur</button>
+                        <button type="button" wire:click="createInvoice" wire:loading.attr="disabled" wire:target="createInvoice">Fatura Oluştur</button>
+                        <button type="button" wire:click="issueProforma" wire:loading.attr="disabled" wire:target="issueProforma">Proforma Oluştur</button>
+                        <button class="button-danger" type="button" wire:click="cancelRemaining" wire:loading.attr="disabled" wire:target="cancelRemaining" wire:confirm="Siparişin kalan miktarını iptal etmek istediğinize emin misiniz?">Kalanı İptal Et</button>
+                    </div>
+                </section>
+            @elseif(method_exists($this, 'issueProforma') && in_array($document->status, ['approved','confirmed']))
                 <button type="button" wire:click="issueProforma">Proforma Oluştur</button>
             @endif
             @if(method_exists($this, 'post') && $document->status === 'draft')
