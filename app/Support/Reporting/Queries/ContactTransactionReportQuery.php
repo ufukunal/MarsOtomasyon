@@ -3,6 +3,7 @@
 namespace App\Support\Reporting\Queries;
 
 use App\Contracts\Reporting\ReportQuery;
+use App\Support\Reporting\CurrencySeparatedTotals;
 use App\Support\Reporting\ReportColumnDefinition;
 use App\Support\Reporting\ReportDefinition;
 use App\Support\Reporting\ReportDrillDownDefinition;
@@ -174,18 +175,17 @@ final class ContactTransactionReportQuery implements ReportQuery
             return [];
         }
 
-        $row = (clone $base)->selectRaw(
-            "COALESCE(SUM(CASE WHEN ct.direction = 'debit' THEN ct.amount ELSE 0 END), 0)::text AS debit,
+        $groups = (clone $base)->selectRaw(
+            "ct.currency AS currency,
+             COALESCE(SUM(CASE WHEN ct.direction = 'debit' THEN ct.amount ELSE 0 END), 0)::text AS debit,
              COALESCE(SUM(CASE WHEN ct.direction = 'credit' THEN ct.amount ELSE 0 END), 0)::text AS credit,
              COALESCE(SUM(CASE WHEN ct.direction = 'debit' THEN ct.amount ELSE -ct.amount END), 0)::text AS balance"
-        )->first();
+        )->groupBy('ct.currency')->get();
 
-        $values = [
-            'debit' => $row->debit ?? '0',
-            'credit' => $row->credit ?? '0',
-            'balance' => $row->balance ?? '0',
-        ];
-
-        return array_intersect_key($values, array_fill_keys($context->totalKeys, true));
+        return CurrencySeparatedTotals::fromGroups(
+            $groups,
+            $context->totalKeys,
+            $context->filters['currency'] ?? null,
+        );
     }
 }
