@@ -1,7 +1,8 @@
 <div class="space-y-6 v65-list-page">
     <section class="panel v65-list-panel">
-        <h1>Fason Üretim</h1>
-        <div class="v65-filter-toolbar">
+        
+        <x-v65.list-heading title="Fason Üretim">
+            <div class="v65-filter-toolbar">
             <x-v65.filter-drawer :count="$this->activeV65FilterCount()" :tab="$v65FilterTab">
                 <x-slot:filters>
                     <x-v65.filter-field label="Genel Arama">
@@ -23,6 +24,7 @@
                 </x-slot:sorting>
             </x-v65.filter-drawer>
         </div>
+        </x-v65.list-heading>
         <x-v65.active-filters :items="$this->v65ActiveFilterLabels()" />
         <div class="table-scroll v65-grid-scroll v65-list-table"><table class="data-table">
             <thead><tr><th>Emir</th><th>Mamul</th><th>Fasoncu</th><th>Durum</th></tr></thead>
