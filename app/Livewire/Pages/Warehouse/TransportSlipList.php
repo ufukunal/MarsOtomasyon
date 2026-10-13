@@ -3,6 +3,7 @@
 namespace App\Livewire\Pages\Warehouse;
 
 use App\Models\Period\TransportSlip;
+use App\Livewire\Concerns\WithV65FilterDrawer;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Url;
 use Livewire\Component;
@@ -11,6 +12,7 @@ use Livewire\WithPagination;
 class TransportSlipList extends Component
 {
     use WithPagination;
+    use WithV65FilterDrawer;
 
     #[Url(as: 'ara')]
     public string $search = '';
@@ -34,6 +36,68 @@ class TransportSlipList extends Component
     public string $dateTo = '';
 
     public int $perPage = 25;
+
+    public string $v65WarehouseSort = '';
+    public string $v65WarehouseDirection = 'desc';
+
+    protected function v65ReadFilterState(): array
+    {
+        return [
+            'search' => $this->search !== '' ? $this->search : $this->tableSearch,
+            'filters' => [
+                'status' => $this->status,
+                'carrier' => $this->carrier,
+                'glass' => $this->glass,
+                'date' => ['from' => $this->dateFrom, 'to' => $this->dateTo],
+            ],
+            'sort' => $this->v65WarehouseSort,
+            'direction' => $this->v65WarehouseDirection,
+        ];
+    }
+
+    protected function v65WriteFilterState(array $state): void
+    {
+        $this->search = $state['search'];
+        $this->tableSearch = '';
+        $this->status = (string) ($state['filters']['status'] ?? '');
+        $this->carrier = (string) ($state['filters']['carrier'] ?? '');
+        $this->glass = (string) ($state['filters']['glass'] ?? '');
+        $this->dateFrom = (string) ($state['filters']['date']['from'] ?? '');
+        $this->dateTo = (string) ($state['filters']['date']['to'] ?? '');
+        $this->v65WarehouseSort = $state['sort'];
+        $this->v65WarehouseDirection = $state['direction'];
+    }
+
+    protected function v65FilterDefinitions(): array
+    {
+        return [
+            'status' => ['label' => 'Durum', 'type' => 'select', 'options' => [
+                'draft' => 'Taslak', 'ready' => 'Hazır', 'handed_over' => 'Ambara Teslim',
+                'completed' => 'Tamamlandı', 'cancelled' => 'İptal',
+            ]],
+            'carrier' => ['label' => 'Ambar / Nakliye', 'type' => 'select',
+                'options' => TransportSlip::query()->where('carrier', '!=', '')
+                    ->distinct()->orderBy('carrier')->pluck('carrier', 'carrier')->all()],
+            'glass' => ['label' => 'Cam Durumu', 'type' => 'select',
+                'options' => ['yes' => 'Cam Var', 'no' => 'Cam Yok']],
+            'date' => ['label' => 'Fiş Tarihi', 'type' => 'date-range'],
+        ];
+    }
+
+    protected function v65SortOptions(): array
+    {
+        return ['slip_date' => 'Tarih', 'number' => 'Fiş Numarası', 'carrier' => 'Ambar / Nakliye', 'status' => 'Durum'];
+    }
+
+    protected function v65DefaultSort(): string
+    {
+        return '';
+    }
+
+    protected function v65DefaultDirection(): string
+    {
+        return 'desc';
+    }
 
     public function setPerPage(int $value): void
     {
@@ -62,7 +126,7 @@ class TransportSlipList extends Component
     {
         abort_unless(auth()->user()?->can('warehouse_slips.view'), 403);
 
-        $query = TransportSlip::query()->with('contact')->orderByDesc('slip_date')->orderByDesc('id');
+        $query = TransportSlip::query()->with('contact');
 
         if (trim($this->search) !== '') {
             $text = '%'.trim($this->search).'%';
@@ -100,6 +164,12 @@ class TransportSlipList extends Component
         }
         if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $this->dateTo)) {
             $query->whereDate('slip_date', '<=', $this->dateTo);
+        }
+
+        if ($this->v65WarehouseSort !== '' && array_key_exists($this->v65WarehouseSort, $this->v65SortOptions())) {
+            $query->orderBy($this->v65WarehouseSort, $this->v65WarehouseDirection === 'asc' ? 'asc' : 'desc')->orderByDesc('id');
+        } else {
+            $query->orderByDesc('slip_date')->orderByDesc('id');
         }
 
         return view('livewire.pages.warehouse.transport-slip-list', [
