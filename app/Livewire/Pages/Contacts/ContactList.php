@@ -141,13 +141,8 @@ class ContactList extends DataTableComponent
     /** @return list<array<string, mixed>> */
     public function rowActions(): array
     {
-        $actions = [['label' => 'Aç', 'method' => 'showContact']];
-
-        if (auth()->user()?->can('contacts.update')) {
-            $actions[] = ['label' => 'Düzenle', 'method' => 'editContact'];
-        }
-
-        return $actions;
+        // Records open via their linked identifiers, not redundant row buttons.
+        return [];
     }
 
     public function columnUrl(Model $row, Column $column): ?string
