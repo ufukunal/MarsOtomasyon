@@ -3,6 +3,7 @@
 namespace App\Support\Reporting\Queries;
 
 use App\Contracts\Reporting\ReportQuery;
+use App\Support\Reporting\CurrencySeparatedTotals;
 use App\Support\Reporting\ReportColumnDefinition;
 use App\Support\Reporting\ReportDefinition;
 use App\Support\Reporting\ReportDrillDownDefinition;
@@ -216,12 +217,11 @@ abstract class AbstractDocumentReportQuery implements ReportQuery
             'vat_amount' => 'COALESCE(SUM(d.vat_amount), 0)::text AS vat_amount',
             'grand_total' => 'COALESCE(SUM(d.grand_total), 0)::text AS grand_total',
         ];
-        $query = clone $base;
         $selected = [];
 
         foreach ($context->totalKeys as $key) {
             if (isset($expressions[$key])) {
-                $query->selectRaw($expressions[$key]);
+                // Select each monetary field per currency rather than aggregating across currencies.
                 $selected[] = $key;
             }
         }
@@ -230,10 +230,15 @@ abstract class AbstractDocumentReportQuery implements ReportQuery
             return [];
         }
 
-        $row = $query->first();
+        $query = (clone $base)->selectRaw('d.currency AS currency')->groupBy('d.currency');
+        foreach ($selected as $key) {
+            $query->selectRaw($expressions[$key]);
+        }
 
-        return collect($selected)
-            ->mapWithKeys(fn (string $key): array => [$key => $row->{$key} ?? '0'])
-            ->all();
+        return CurrencySeparatedTotals::fromGroups(
+            $query->get(),
+            $selected,
+            $context->filters['currency'] ?? null,
+        );
     }
 }
