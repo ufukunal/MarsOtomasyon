@@ -187,15 +187,17 @@ it('routes old Ambar bookmarks to v65 and retains G-207 stock documents separate
     expect($stockTable)->toContain("['Stok Düzeltme Fişleri',");
 });
 
-it('keeps v65 general and table search inputs independent', function (): void {
+it('preserves legacy ambar list search URLs while using one drawer', function (): void {
     $component = file_get_contents(base_path('app/Livewire/Pages/Warehouse/TransportSlipList.php'));
     $view = file_get_contents(base_path('resources/views/livewire/pages/warehouse/transport-slip-list.blade.php'));
 
     expect($component)->toContain("public string \$tableSearch = ''")
         ->toContain('trim($this->tableSearch)')
-        ->toContain("'search', 'tableSearch', 'status'")
-        ->and($view)->toContain('wire:model.live.debounce.300ms="search"')
-        ->toContain('wire:model.live.debounce.300ms="tableSearch"');
+        ->toContain('v65ReadFilterState')
+        ->toContain('v65WriteFilterState')
+        ->and($view)->toContain('<x-v65.filter-drawer')
+        ->toContain('wire:model="v65DraftFilters.search"')
+        ->not->toContain('<x-v65.list-filters>');
 });
 
 it('allows server-side product searching beyond the first page and distinguishes draft printing from preview', function (): void {
