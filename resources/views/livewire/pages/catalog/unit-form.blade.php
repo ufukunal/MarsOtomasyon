@@ -11,10 +11,10 @@
     @error('code')<div class="field-error" role="alert">{{ $message }}</div>@enderror
     @error('name')<div class="field-error" role="alert">{{ $message }}</div>@enderror
     @error('is_base')<div class="field-error" role="alert">{{ $message }}</div>@enderror
-    <div class="v65-product-edit-savebar">
-        <button type="button" wire:click="save" wire:loading.attr="disabled" wire:target="save">{{ $unit ? 'Değişiklikleri Kaydet' : 'Birimi Kaydet' }}</button>
-        <a class="button-secondary" href="{{ route('units.index') }}">Listeye Dön</a>
-    </div>
+    <x-v65.form-actions align="start" class="v65-product-edit-savebar">
+        <x-v65.button wire:click="save" wire:loading.attr="disabled" wire:target="save">{{ $unit ? 'Değişiklikleri Kaydet' : 'Birimi Kaydet' }}</x-v65.button>
+        <x-v65.button variant="secondary" :href="route('units.index')">Listeye Dön</x-v65.button>
+    </x-v65.form-actions>
     @if($unit)
         <section class="panel stack">
             <h2>Birim Dönüşümleri</h2>
@@ -41,7 +41,7 @@
                         @forelse($conversions as $row)
                             <tr><td>{{ $row->toUnit->code }}</td><td class="align-end">{{ $row->factor }}</td><td class="align-end">{{ bcdiv('1', (string) $row->factor, 6) }}</td></tr>
                         @empty
-                            <tr><td colspan="3" class="empty-state">Henüz dönüşüm tanımlanmadı.</td></tr>
+                            <tr><td colspan="3"><x-v65.empty-state title="Henüz dönüşüm tanımlanmadı." /></td></tr>
                         @endforelse
                     </tbody>
                 </table>
