@@ -17,9 +17,25 @@ use App\Models\Period\ProductionOrder;
 use App\Models\Period\ProductionRecipe;
 use Illuminate\Contracts\View\View;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 class ProductionOrderCenter extends Component
 {
+    use WithPagination;
+
+    public string $listSearch = '';
+
+    public int $perPage = 25;
+
+    public function updatedListSearch(): void { $this->resetPage(); }
+
+    public function setPerPage(int $value): void
+    {
+        abort_unless(in_array($value, [25, 50, 100], true), 422);
+        $this->perPage = $value;
+        $this->resetPage();
+    }
+
     use WithIdempotentMutations;
 
     public ?int $selectedOrderId = null;
@@ -207,9 +223,13 @@ class ProductionOrderCenter extends Component
         return view('livewire.production.production-order-center', [
             'orders' => ProductionOrder::query()
                 ->with('product')
+                ->when(trim($this->listSearch) !== '', fn ($query) => $query->where(function ($q): void {
+                    $needle = '%'.trim($this->listSearch).'%';
+                    $q->where('number', 'ilike', $needle)
+                        ->orWhereHas('product', fn ($p) => $p->where('name', 'ilike', $needle)->orWhere('code', 'ilike', $needle));
+                }))
                 ->orderByDesc('id')
-                ->limit(300)
-                ->get(),
+                ->paginate($this->perPage),
             'order' => $order,
             'products' => Product::query()
                 ->where('is_active', true)

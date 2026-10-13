@@ -6,6 +6,9 @@
                 <button type="button" wire:click="newOrder">Yeni Emir</button>
             @endcan
         </div>
+        <x-v65.list-filters>
+            <label class="v65-list-filter-field"><span class="sr-only">Listede ara</span><input type="search" wire:model.live.debounce.300ms="listSearch" placeholder="Ürün / belge / kod ara" aria-label="Listede ara"></label>
+        </x-v65.list-filters>
         <div class="table-scroll v65-grid-scroll v65-list-table"><table class="data-table">
             <thead><tr><th>No</th><th>Tarih</th><th>Mamul</th><th>Tip</th><th>Plan</th><th>Tamamlanan</th><th>Durum</th><th></th></tr></thead>
             <tbody>
@@ -23,6 +26,7 @@
             @endforeach
             </tbody>
         </table></div>
+        <x-v65.list-footer :paginator="$orders" :per-page="$perPage" />
     </section>
 
     <section class="panel stack v65-editor-panel">

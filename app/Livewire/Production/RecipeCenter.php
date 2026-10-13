@@ -10,9 +10,25 @@ use App\Models\Period\ProductionRecipe;
 use App\Models\Period\Unit;
 use Illuminate\Contracts\View\View;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 class RecipeCenter extends Component
 {
+    use WithPagination;
+
+    public string $listSearch = '';
+
+    public int $perPage = 25;
+
+    public function updatedListSearch(): void { $this->resetPage(); }
+
+    public function setPerPage(int $value): void
+    {
+        abort_unless(in_array($value, [25, 50, 100], true), 422);
+        $this->perPage = $value;
+        $this->resetPage();
+    }
+
     use WithIdempotentMutations;
 
     public ?int $selectedRecipeId = null;
@@ -113,9 +129,13 @@ class RecipeCenter extends Component
         return view('livewire.production.recipe-center', [
             'recipes' => ProductionRecipe::query()
                 ->with('product')
+                ->when(trim($this->listSearch) !== '', fn ($query) => $query->whereHas('product', function ($product): void {
+                    $needle = '%'.trim($this->listSearch).'%';
+                    $product->where('name', 'ilike', $needle)->orWhere('code', 'ilike', $needle);
+                }))
                 ->orderBy('product_id')
                 ->orderByDesc('revision_no')
-                ->get(),
+                ->paginate($this->perPage),
             'products' => Product::query()
                 ->where('is_active', true)
                 ->where('kind', '!=', 'set')

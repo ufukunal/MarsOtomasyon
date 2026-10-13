@@ -1,6 +1,9 @@
 <div class="space-y-6 v65-list-page">
     <section class="panel v65-list-panel">
         <h1>Fason Üretim</h1>
+        <x-v65.list-filters>
+            <label class="v65-list-filter-field"><span class="sr-only">Listede ara</span><input type="search" wire:model.live.debounce.300ms="listSearch" placeholder="Ürün / belge / kod ara" aria-label="Listede ara"></label>
+        </x-v65.list-filters>
         <div class="table-scroll v65-grid-scroll v65-list-table"><table class="data-table">
             <thead><tr><th>Emir</th><th>Mamul</th><th>Fasoncu</th><th>Durum</th><th></th></tr></thead>
             <tbody>
@@ -15,6 +18,7 @@
             @endforeach
             </tbody>
         </table></div>
+        <x-v65.list-footer :paginator="$orders" :per-page="$perPage" />
     </section>
 
     @if($order)
