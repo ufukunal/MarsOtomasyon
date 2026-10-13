@@ -130,10 +130,14 @@ class StockMovements extends DataTableComponent
             return route('stock.movements.show', ['id' => $row->getKey()]);
         }
 
-        if ($column->key !== 'document_no'
-            || ! $row->getAttribute('document_type')
-            || ! $row->getAttribute('document_id')) {
+        if ($column->key !== 'document_no') {
             return null;
+        }
+
+        // Even an unsupported or unauthorized source document has a readable
+        // stock-movement detail, so the visible document number remains clickable.
+        if (! $row->getAttribute('document_type') || ! $row->getAttribute('document_id')) {
+            return route('stock.movements.show', ['id' => $row->getKey()]);
         }
 
         [$route, $permission] = match ((string) $row->getAttribute('document_type')) {
@@ -145,7 +149,7 @@ class StockMovements extends DataTableComponent
 
         if ($route === null || ! Route::has($route)
             || ! auth()->user()?->can($permission)) {
-            return null;
+            return route('stock.movements.show', ['id' => $row->getKey()]);
         }
 
         return route($route, ['id' => (int) $row->getAttribute('document_id')]);
