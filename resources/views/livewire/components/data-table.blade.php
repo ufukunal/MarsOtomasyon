@@ -1,4 +1,4 @@
-<div @class(['data-table-shell', 'v65-products' => $this instanceof \App\Livewire\Pages\Products\ProductList, 'v65-stock-table' => str_starts_with(get_class($this), 'App\\Livewire\\Pages\\Stock\\') || $this instanceof \App\Livewire\Pages\Catalog\LocationList])>
+<div @class(['data-table-shell', 'v65-list-page', 'v65-products' => $this instanceof \App\Livewire\Pages\Products\ProductList, 'v65-stock-table' => str_starts_with(get_class($this), 'App\\Livewire\\Pages\\Stock\\') || $this instanceof \App\Livewire\Pages\Catalog\LocationList])>
     @php
         $stockListMeta = [
             \App\Livewire\Pages\Stock\StockStatus::class => ['Stok Durumu', 'Depo bazlı anlık stok, rezervasyon ve kullanılabilir miktarlar.'],
@@ -92,7 +92,7 @@
             </div>
         </dialog>
     @endif
-    <div class="table-toolbar">
+    <div class="table-toolbar v65-list-filters">
         <div class="table-toolbar-main">
             <label class="table-search">
                 <span class="sr-only">Tabloda ara</span>
@@ -147,27 +147,6 @@
         </div>
         @unless($isProductTable)
         <div class="table-toolbar-actions">
-            <label class="page-size-control">
-                <span>Satır</span>
-                <select wire:change="setPerPage($event.target.value)">
-                    @foreach ([25,50,100] as $size)
-                        <option value="{{ $size }}" @selected($perPage === $size)>{{ $size }}</option>
-                    @endforeach
-                </select>
-            </label>
-            <details class="column-picker">
-                <summary>Kolonlar</summary>
-                <div class="column-picker-menu">
-                    @foreach($columns as $column)
-                        <label>
-                            <input type="checkbox"
-                                   @checked(!($hiddenColumns[$column->key] ?? false))
-                                   wire:click="toggleColumn('{{ $column->key }}')">
-                            {{ $column->label }}
-                        </label>
-                    @endforeach
-                </div>
-            </details>
             @if($emptyAction)
                 <a class="button-link table-add-action" href="{{ route($emptyAction['route']) }}">+ {{ $emptyAction['label'] }}</a>
             @endif
@@ -191,7 +170,7 @@
         <strong>{{ $isProductTable ? 'Ürün Listesi' : 'Sonuçlar' }}</strong>
         <small>{{ $rows->total() }} kayıt</small>
     </div>
-    <div class="table-scroll">
+    <div class="table-scroll v65-list-table">
         <table class="data-table">
             <thead>
             <tr>
@@ -292,33 +271,21 @@
         </table>
     </div>
 
-    <div class="table-footer">
-        <span>{{ $rows->total() }} kayıt</span>
-        @if($isProductTable)
-        <div class="v65-products-footer-right">
-            <label class="page-size-control">
-                    <span>Satır</span>
-                    <select wire:change="setPerPage($event.target.value)">
-                        @foreach ([25,50,100] as $size)
-                            <option value="{{ $size }}" @selected($perPage === $size)>{{ $size }}</option>
-                        @endforeach
-                    </select>
-                </label>
-                <details class="column-picker">
-                    <summary>Kolonlar</summary>
-                    <div class="column-picker-menu">
-                        @foreach($columns as $column)
-                            <label>
-                                <input type="checkbox" @checked(!($hiddenColumns[$column->key] ?? false)) wire:click="toggleColumn('{{ $column->key }}')">
-                                {{ $column->label }}
-                            </label>
-                        @endforeach
-                    </div>
-                </details>
-            {{ $rows->links('livewire.components.data-table-pagination') }}
-        </div>
-        @else
-            {{ $rows->links('livewire.components.data-table-pagination') }}
-        @endif
-    </div>
+    <x-v65.list-footer :paginator="$rows" :per-page="$perPage">
+        <x-slot:columnControls>
+            <details class="column-picker">
+                <summary>Kolonlar</summary>
+                <div class="column-picker-menu">
+                    @foreach($columns as $column)
+                        <label>
+                            <input type="checkbox"
+                                   @checked(!($hiddenColumns[$column->key] ?? false))
+                                   wire:click="toggleColumn('{{ $column->key }}')">
+                            {{ $column->label }}
+                        </label>
+                    @endforeach
+                </div>
+            </details>
+        </x-slot:columnControls>
+    </x-v65.list-footer>
 </div>
