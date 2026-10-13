@@ -116,3 +116,44 @@ it('preserves the product image-free listing and record-identifier links', funct
         ->and($contacts)->toContain("['code', 'title']")
         ->toContain("function rowActions(): array");
 });
+
+
+it('defines and uses the new reusable V65 form and list primitives', function (): void {
+    foreach (['button', 'status-badge', 'select', 'empty-state', 'form-actions'] as $name) {
+        expect(is_file(base_path('resources/views/components/v65/'.$name.'.blade.php')))->toBeTrue();
+    }
+
+    $button = file_get_contents(base_path('resources/views/components/v65/button.blade.php'));
+    $select = file_get_contents(base_path('resources/views/components/v65/select.blade.php'));
+    $status = file_get_contents(base_path('resources/views/components/v65/status-badge.blade.php'));
+    $css = file_get_contents(base_path('resources/css/v65-shell.css'));
+    $accounts = file_get_contents(base_path('resources/views/livewire/finance/finance-accounts.blade.php'));
+    $bank = file_get_contents(base_path('resources/views/livewire/finance/bank-statement-center.blade.php'));
+    $collection = file_get_contents(base_path('resources/views/livewire/finance/collection-form.blade.php'));
+    $unit = file_get_contents(base_path('resources/views/livewire/pages/catalog/unit-form.blade.php'));
+    $category = file_get_contents(base_path('resources/views/livewire/pages/catalog/category-list.blade.php'));
+
+    expect($button)->toContain("'xs', 'sm', 'md', 'lg', 'xl'")
+        ->toContain("'primary', 'secondary', 'ghost', 'danger', 'success', 'warning'")
+        ->toContain('type="{{ $type }}"')
+        ->toContain('href="{{ $href }}"')
+        ->and($select)->toContain('{{ $slot }}')
+        ->toContain('$attributes->except')
+        ->and($status)->toContain("'neutral', 'success', 'danger', 'warning', 'info'")
+        ->and($css)->toContain('--v65-component-height:28px')
+        ->toContain('--v65-component-height:32px')
+        ->toContain('--v65-component-height:38px')
+        ->toContain('--v65-component-height:44px')
+        ->toContain('--v65-component-height:48px')
+        ->and($accounts)->toContain('<x-v65.status-badge')
+        ->toContain('class="align-end">Defter')
+        ->and($bank)->toContain('<x-v65.select label="Banka"')
+        ->toContain('wire:click="reconcileExisting"')
+        ->toContain('wire:click="createFromStatement"')
+        ->and($collection)->toContain('<x-v65.form-actions')
+        ->toContain('wire:click="post"')
+        ->toContain('wire:click="reverse"')
+        ->and($unit)->toContain('<x-v65.empty-state')
+        ->and($category)->toContain('<x-v65.status-badge')
+        ->toContain('<x-v65.empty-state');
+});
