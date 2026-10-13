@@ -1,5 +1,5 @@
 <section class="panel stack v65-list-page">
-    <p class="field-hint">{{ $description }}</p>
+    <x-v65.list-heading title="Ayar Kayıtları" :description="$description" />
     <div class="table-scroll v65-list-table">
         <table class="data-table">
             <thead><tr>
