@@ -69,3 +69,19 @@ V65 HTML'nin son durumuyla Cari Detay, Cari Bakiyeleri, Fiş Listesi ve Cari Eks
 Fresh web dağıtım betiği ops/uat-fresh-web-update.sh kaynak düzeyinde okundu. Betik kaynak commit SHA'yı gerektiriyor ve web imajı oluşturma, eski imajı tutma, yalnız web'i yenileme, PG/Valkey ID ve volume doğrulama, HTTP kontrolü ile rollback adımlarını içeriyor. Okunmuş olması yayınlandığı anlamına gelmez. Yalnız Fresh web hedeflenebilir; PROD, migration, PostgreSQL, Valkey ve veri volume'lerine müdahale yok.
 
 Kalan kabul: PHP/Blade/Vite denetimi, finans testleri ve indirmeler, tarayıcı boyutları, ayrı navigasyon kararı ve Fresh sürüm sonrası doğrulama. Her başarısızlık kanıtla raporlanmalı; çalıştırılmamış hiçbir test başarılı yazılmamalı.
+
+## 13 Ekim 2026 — Liste satırlarında gezinme standardı
+
+Kullanıcı kabulü: Liste satırında gereksiz Aç, Düzenle ve Detay butonları gösterilmez; kaydın kodu, adı/unvanı veya numarası tıklanarak ilgili kart/işlem açılır. Kart ve işlem içindeki gerçek düzenleme/saklama butonları korunur. Kesinleştir, rezervi çöz, aktif/pasif gibi gerçek operasyonlar kaldırılmaz.
+
+Uygulanan kapsam:
+- Ortak DataTable: Cari, Ürün, Marka, Birim, Depo/Lokasyon, Fiyat Listesi, Transfer, Sayım, Stok Hareketleri, Stok Düzeltme Fişi, Rezervasyon. RowActions sadece gerçek işlem içerebilir; Rezervi Çöz korunmuştur.
+- Stok/Depo lokasyon isimleri izinli lokasyon kartına, ürün kodları/isimleri izinli ürün kartına gider. Yetkisiz ekran linklenmez.
+- Satış/Alış/Proforma listeleri: belge numarası mevcut belge kartına ve yetkili kullanıcıda Cari unvanı Cari Detay'a gider; gereksiz Eylem sütunu kaldırılır.
+- Ambar Fişi Listesi: fiş numarası ve yetkili Cari adı tıklanır; Aç/Düzenle butonlarının bulunduğu sütun kaldırılır.
+- Kategoriler ağacı: düzenleme yetkisi olanlarda kategori adı bağlantısı; düzenle butonları kaldırıldı.
+- Üretim Emirleri/Reçeteler/Fason, İade, Kanal Hesapları/Listing, İthalat Dosyaları/Konteyner/Paket/Maliyet ve Kasa/Banka listeleri: numara/kod/ad üzerinden mevcut Livewire seçme/düzenleme aksiyonları; eski satır butonları kaldırıldı. Gerçek operasyon butonları korunuyor.
+- Ortak CSS v65-record-link erişilebilir odak ve hover görünümü için eklendi.
+- tests/Unit/UI/V65ListIdentifierNavigationTest.php üç sözleşme kontrolü eklenerek oluşturuldu. Önceki CatalogListCreateEditActionsTest.php yeni navigasyon davranışıyla uyumlu hale getirildi.
+
+**Durum:** GitHub'a kaynak kod işlendi. Bu kayda dayanarak çalışma zamanı, görsel kabul, Blade derleme veya otomatik test başarı iddiası yapılmaz. Fresh web yayını çalıştırılmadı. Testler ayrı onay koşuluyla çalıştırılacaktır.
