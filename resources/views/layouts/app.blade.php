@@ -42,6 +42,24 @@
         'imports.shipments',
         'channels.listings',
         'channels.sync',
+        // Finance, channel, reporting and administrative list centers also
+        // own their controls; never add generic browser-print / Back actions.
+        'finance.accounts',
+        'finance.operations',
+        'finance.bank-statements',
+        'finance.securities',
+        'finance.contact-aging',
+        'returns.center',
+        'channels.accounts',
+        'reports.center',
+        'reports.consolidated',
+        'reports.exports',
+        'reports.print-history',
+        'stock.quarantine.index',
+        'settings.periods',
+        'settings.audit',
+        'settings.integrity',
+        'settings.operations',
     ];
     $visibleNavigation = collect(config('navigation', []))
         ->map(function (array $group): array {
