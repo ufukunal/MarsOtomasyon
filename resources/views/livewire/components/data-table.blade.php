@@ -141,6 +141,10 @@
                                 @endforeach
                             </select>
                         </x-v65.filter-field>
+                    @elseif($filter instanceof \App\Livewire\Components\DataTable\TextFilter)
+                        <x-v65.filter-field :label="$filter->label">
+                            <input type="text" wire:model="v65DraftFilters.filters.{{ $filter->key }}" maxlength="255" placeholder="{{ $filter->label }} ara">
+                        </x-v65.filter-field>
                     @elseif($filter instanceof \App\Livewire\Components\DataTable\DateRangeFilter)
                         <x-v65.filter-field :label="$filter->label">
                             <div class="v65-filter-date-pair">
