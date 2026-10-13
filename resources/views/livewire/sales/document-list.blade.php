@@ -75,17 +75,16 @@
     </div>
     <x-v65.list-footer :paginator="$documents" :per-page="$perPage">
         <x-slot:columnControls>
-            <details class="column-picker">
-                <summary>Kolonlar</summary>
-                <div class="column-picker-menu">
-                    @foreach(['number' => 'Numara', 'date' => 'Tarih', 'contact' => 'Cari', 'status' => 'Durum', 'total' => 'Tutar'] as $key => $label)
-                        <label>
-                            <input type="checkbox" @checked(!($hiddenColumns[$key] ?? false)) wire:click="toggleColumn('{{ $key }}')">
-                            {{ $label }}
-                        </label>
-                    @endforeach
-                </div>
-            </details>
+            <x-v65.column-picker>
+                @foreach(['number' => 'Numara', 'date' => 'Tarih', 'contact' => 'Cari', 'status' => 'Durum', 'total' => 'Tutar'] as $key => $label)
+                    <label class="v65-column-picker-option" wire:key="column-pick-{{ $key }}">
+                        <input type="checkbox"
+                               @checked(!($hiddenColumns[$key] ?? false))
+                               wire:click="toggleColumn('{{ $key }}')">
+                        <span>{{ $label }}</span>
+                    </label>
+                @endforeach
+            </x-v65.column-picker>
         </x-slot:columnControls>
     </x-v65.list-footer>
 </div>

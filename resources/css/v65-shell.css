@@ -836,3 +836,74 @@
  background:#f0f5fb;border:1px solid #d9e4f1;border-radius:4px;color:#405575;font-size:11px;font-weight:650}
 .app-shell .v65-list-table .data-table :where(th,td).align-end{text-align:right}
 @media(max-width:768px){.app-shell .v65-list-filter-field{min-width:0}}
+
+/* Modal column selector: shared by all standard table and document list footers.
+   Native <dialog> uses the top layer, never clipped by a table or scroll area. */
+.app-shell .v65-column-picker{display:inline-flex;align-items:center;min-width:0}
+.app-shell .v65-list-footer-controls .v65-column-picker-trigger{
+  display:inline-flex;align-items:center;justify-content:center;gap:9px;
+  box-sizing:border-box;min-height:36px;height:36px;padding:0 13px;margin:0;
+  border:1px solid #cbd8e6!important;border-radius:6px!important;
+  background:#fff!important;color:#314965!important;
+  font-size:12px;font-weight:650;line-height:1.2;cursor:pointer;white-space:nowrap
+}
+.app-shell .v65-list-footer-controls .v65-column-picker-trigger:hover{
+  background:#eef5ff!important;border-color:#a9c7e9!important
+}
+.app-shell .v65-column-picker-dialog{
+  box-sizing:border-box;width:min(440px,calc(100vw - 28px));
+  max-width:calc(100vw - 28px);max-height:min(78dvh,560px);
+  margin:auto;padding:0;overflow:hidden;
+  color:#243c56;background:#fff;
+  border:1px solid #d2dfea;border-radius:12px!important;
+  box-shadow:0 20px 65px #112b4540
+}
+.app-shell .v65-column-picker-dialog[open]{display:flex;flex-direction:column}
+.app-shell .v65-column-picker-dialog::backdrop{background:rgb(12 29 51 / 48%)}
+.app-shell .v65-column-picker-header{
+  display:flex;align-items:flex-start;justify-content:space-between;gap:16px;
+  flex:none;padding:18px 20px 14px;border-bottom:1px solid #e5ebf3
+}
+.app-shell .v65-column-picker-header strong{
+  display:block;font-size:16px;line-height:1.4;font-weight:750;color:#1e3550
+}
+.app-shell .v65-column-picker-header p{
+  margin:5px 0 0;color:#617791;font-size:12px;line-height:1.5
+}
+.app-shell .v65-column-picker-close{
+  display:flex;align-items:center;justify-content:center;flex:none;
+  width:32px;height:32px;margin:0;padding:0;border:0;
+  background:transparent!important;color:#6a7c90!important;
+  font-size:23px;line-height:1;cursor:pointer;border-radius:5px!important
+}
+.app-shell .v65-column-picker-close:hover{background:#edf3f9!important}
+.app-shell .v65-column-picker-list{
+  display:grid;align-content:start;gap:4px;min-height:0;overflow-y:auto;
+  padding:12px 20px;overscroll-behavior:contain
+}
+.app-shell .v65-column-picker-option{
+  display:flex;align-items:center;gap:12px;min-height:40px;
+  padding:6px 10px;margin:0;border:1px solid transparent;
+  border-radius:6px;cursor:pointer;color:#324b67;font-size:13px;line-height:1.4
+}
+.app-shell .v65-column-picker-option:hover{background:#f2f7ff;border-color:#dfebf9}
+.app-shell .v65-column-picker-option input[type=checkbox]{
+  width:17px;height:17px;min-width:17px;margin:0;accent-color:#1a73e8;cursor:pointer
+}
+.app-shell .v65-column-picker-footer{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  flex:none;padding:12px 20px;border-top:1px solid #e5ebf3;background:#f9fbfe
+}
+.app-shell .v65-column-picker-footer small{font-size:11px;color:#708399}
+.app-shell .v65-column-picker-footer button{
+  min-height:36px;padding:7px 17px;margin:0;border-radius:6px!important;
+  font-size:12px;font-weight:700;cursor:pointer
+}
+.app-shell .v65-column-picker-dialog :where(button,input):focus-visible,
+.app-shell .v65-column-picker-trigger:focus-visible{outline:2px solid #1a73e8;outline-offset:2px}
+@media(max-width:480px){
+  .app-shell .v65-column-picker-header{padding:15px}
+  .app-shell .v65-column-picker-list{padding:10px 14px}
+  .app-shell .v65-column-picker-footer{padding:12px 14px}
+}
+@media print{.app-shell .v65-column-picker-dialog{display:none!important}}

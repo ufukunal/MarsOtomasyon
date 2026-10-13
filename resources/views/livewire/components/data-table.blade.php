@@ -273,19 +273,16 @@
 
     <x-v65.list-footer :paginator="$rows" :per-page="$perPage">
         <x-slot:columnControls>
-            <details class="column-picker">
-                <summary>Kolonlar</summary>
-                <div class="column-picker-menu">
-                    @foreach($columns as $column)
-                        <label>
-                            <input type="checkbox"
-                                   @checked(!($hiddenColumns[$column->key] ?? false))
-                                   wire:click="toggleColumn('{{ $column->key }}')">
-                            {{ $column->label }}
-                        </label>
-                    @endforeach
-                </div>
-            </details>
+            <x-v65.column-picker>
+                @foreach($columns as $column)
+                    <label class="v65-column-picker-option" wire:key="column-pick-{{ $column->key }}">
+                        <input type="checkbox"
+                               @checked(!($hiddenColumns[$column->key] ?? false))
+                               wire:click="toggleColumn('{{ $column->key }}')">
+                        <span>{{ $column->label }}</span>
+                    </label>
+                @endforeach
+            </x-v65.column-picker>
         </x-slot:columnControls>
     </x-v65.list-footer>
 </div>

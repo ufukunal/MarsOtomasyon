@@ -389,3 +389,38 @@ document.addEventListener('DOMContentLoaded', () => {
     store();
     render();
 });
+
+// Shared column-picker modal (event delegation survives Livewire re-renders).
+// wire:ignore.self on the native dialog keeps it open when checkbox state morphs.
+document.addEventListener('click', (event) => {
+    const target = event.target;
+    if (!(target instanceof Element)) return;
+
+    const trigger = target.closest('[data-v65-column-picker-open]');
+    if (trigger) {
+        const picker = trigger.closest('[data-v65-column-picker]');
+        const dialog = picker?.querySelector('[data-v65-column-picker-dialog]');
+        if (dialog instanceof HTMLDialogElement && !dialog.open) {
+            dialog.showModal();
+        }
+        return;
+    }
+
+    const close = target.closest('[data-v65-column-picker-close]');
+    if (close) {
+        const dialog = close.closest('[data-v65-column-picker-dialog]');
+        if (dialog instanceof HTMLDialogElement && dialog.open) dialog.close();
+        return;
+    }
+
+    // Click on the shaded backdrop to dismiss; Escape is handled by <dialog>.
+    if (target.matches('[data-v65-column-picker-dialog]')) {
+        const dialog = target;
+        const bounds = dialog.getBoundingClientRect();
+        if (dialog instanceof HTMLDialogElement && dialog.open
+            && (event.clientX < bounds.left || event.clientX > bounds.right
+                || event.clientY < bounds.top || event.clientY > bounds.bottom)) {
+            dialog.close();
+        }
+    }
+});
