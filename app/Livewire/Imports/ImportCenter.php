@@ -28,10 +28,25 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 class ImportCenter extends Component
 {
     use WithIdempotentMutations;
+    use WithPagination;
+
+    public string $listSearch = '';
+
+    public int $perPage = 25;
+
+    public function updatedListSearch(): void { $this->resetPage(); }
+
+    public function setPerPage(int $value): void
+    {
+        abort_unless(in_array($value, [25, 50, 100], true), 422);
+        $this->perPage = $value;
+        $this->resetPage();
+    }
 
     public ?int $selectedFileId = null;
 
@@ -345,7 +360,13 @@ class ImportCenter extends Component
             : null;
 
         return view('livewire.imports.import-center', [
-            'files' => ImportFile::query()->with('supplier')->orderByDesc('id')->limit(200)->get(),
+            'files' => ImportFile::query()->with('supplier')
+                ->when(trim($this->listSearch) !== '', fn ($query) => $query->where(function ($q): void {
+                    $needle = '%'.trim($this->listSearch).'%';
+                    $q->where('number', 'ilike', $needle)
+                        ->orWhereHas('supplier', fn ($supplier) => $supplier->where('title', 'ilike', $needle));
+                }))
+                ->orderByDesc('id')->paginate($this->perPage),
             'file' => $file,
             'contacts' => Contact::query()->where('is_active', true)->orderBy('title')->limit(500)->get(),
             'locations' => Location::query()->where('is_active', true)->orderBy('name')->get(),

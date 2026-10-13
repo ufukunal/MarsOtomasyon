@@ -7,6 +7,12 @@
                 <button type="button" wire:click="newListing">Yeni Mapping</button>
             @endcan
         </div>
+        <x-v65.list-filters>
+            <label class="v65-list-filter-field">
+                <span class="sr-only">Listede ara</span>
+                <input type="search" wire:model.live.debounce.300ms="listSearch" placeholder="Kod / numara / ad ara" aria-label="Listede ara">
+            </label>
+        </x-v65.list-filters>
         <div class="table-scroll v65-grid-scroll v65-list-table"><table class="data-table">
             <thead><tr><th>Account</th><th>Ürün</th><th>External Listing</th><th>SKU</th><th>Mode</th><th>Aktif</th><th></th></tr></thead>
             <tbody>
@@ -23,6 +29,7 @@
             @endforeach
             </tbody>
         </table></div>
+        <x-v65.list-footer :paginator="$listings" :per-page="$perPage" />
     </section>
 
     <section class="panel stack v65-editor-panel v65-workspace-form">

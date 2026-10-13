@@ -18,10 +18,25 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Validation\ValidationException;
 use JsonException;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 class ChannelListingCenter extends Component
 {
     use WithIdempotentMutations;
+    use WithPagination;
+
+    public string $listSearch = '';
+
+    public int $perPage = 25;
+
+    public function updatedListSearch(): void { $this->resetPage(); }
+
+    public function setPerPage(int $value): void
+    {
+        abort_unless(in_array($value, [25, 50, 100], true), 422);
+        $this->perPage = $value;
+        $this->resetPage();
+    }
 
     public ?int $selectedListingId = null;
 
@@ -227,9 +242,16 @@ class ChannelListingCenter extends Component
             'listings' => ChannelProductListing::query()
                 ->with('product')
                 ->whereIn('channel_account_id', $accountIds)
+                ->when(trim($this->listSearch) !== '', fn ($query) => $query->where(function ($q): void {
+                    $needle = '%'.trim($this->listSearch).'%';
+                    $q->where('external_sku', 'ilike', $needle)
+                        ->orWhere('external_listing_id', 'ilike', $needle)
+                        ->orWhereHas('product', fn ($p) => $p->where('name', 'ilike', $needle)->orWhere('code', 'ilike', $needle));
+                }))
                 ->orderBy('channel_account_id')
                 ->orderBy('product_id')
-                ->get(),
+                ->orderBy('id')
+                ->paginate($this->perPage),
             'accounts' => SalesChannelAccount::query()
                 ->where('company_id', PeriodContext::companyId())
                 ->orderBy('platform')

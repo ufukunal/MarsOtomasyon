@@ -39,6 +39,12 @@
 
     <section class="panel stack">
         <h2>İthalat Dosyaları</h2>
+        <x-v65.list-filters>
+            <label class="v65-list-filter-field">
+                <span class="sr-only">Listede ara</span>
+                <input type="search" wire:model.live.debounce.300ms="listSearch" placeholder="Kod / numara / ad ara" aria-label="Listede ara">
+            </label>
+        </x-v65.list-filters>
         <div class="table-scroll v65-list-table"><table class="data-table">
             <thead><tr><th>No</th><th>Tedarikçi</th><th>Ülke</th><th>ETD</th><th>ETA</th><th>PB</th><th>Kur</th><th>Durum</th><th></th></tr></thead>
             <tbody>
@@ -57,6 +63,7 @@
             @endforeach
             </tbody>
         </table></div>
+        <x-v65.list-footer :paginator="$files" :per-page="$perPage" />
     </section>
 
     <section class="panel stack v65-workspace-form">
