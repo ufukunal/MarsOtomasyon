@@ -82,17 +82,17 @@
     <section class="panel stack">
         <h2>İade Geçmişi</h2>
         <div class="table-scroll v65-list-table"><table class="data-table">
-            <thead><tr><th>No</th><th>Tür</th><th>Cari</th><th>Tarih</th><th>Tutar</th><th>Durum</th><th></th></tr></thead>
+            <thead><tr><th>No</th><th>Tür</th><th>Cari</th><th>Tarih</th><th>Tutar</th><th>Durum</th></tr></thead>
             <tbody>
             @foreach($returns as $return)
                 <tr>
-                    <td>{{ $return->number ?? 'Taslak' }}</td>
+                    <td><button type="button" class="link-button v65-record-link" wire:click="selectReturn({{ $return->id }})">{{ $return->number ?? 'Taslak' }}</button></td>
                     <td>{{ $return->document_type === AppEnumsDocumentType::SalesReturn ? 'Satış' : 'Alış' }}</td>
-                    <td>{{ $return->contact?->title }}</td>
+                    <td>@if($return->contact && auth()->user()?->can('contacts.view'))<a href="{{ route('contacts.show', ['contact' => $return->contact_id]) }}">{{ $return->contact->title }}</a>@else{{ $return->contact?->title }}@endif</td>
                     <td>{{ $return->document_date?->format('d.m.Y') }}</td>
                     <td>{{ $return->grand_total }} {{ $return->currency }}</td>
                     <td>{{ $return->status }}</td>
-                    <td><button class="button-secondary" type="button" wire:click="selectReturn({{ $return->id }})">Aç</button></td>
+                    
                 </tr>
             @endforeach
             </tbody>
