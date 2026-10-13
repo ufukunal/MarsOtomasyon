@@ -624,7 +624,7 @@ class ContactDetail extends Component
             : $contact->addresses;
 
         return view('livewire.pages.contacts.contact-detail', compact(
-            'contact', 'tabs', 'year', 'balance', 'yearSales', 'openOrders', 'openQuotes',
+            'contact', 'tabs', 'year', 'balance', 'yearSales', 'openOrders', 'openQuotes', 'ordersAllowed',
             'lastMovement', 'movements', 'movementTotals', 'documents', 'activity',
             'products', 'productCategories', 'recentProductLines', 'productAnalysis',
             'annual', 'monthly', 'annualSummary', 'currencyBalances', 'balanceCurrency',
