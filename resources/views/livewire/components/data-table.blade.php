@@ -143,7 +143,7 @@
                 <button class="button-secondary" type="button" wire:click="exportXlsx" wire:loading.attr="disabled" wire:target="exportXlsx">Excel</button>
             </div>
         @endteleport
-    @endunless
+    @endif
     @unless($this instanceof \App\Livewire\Pages\Contacts\ContactList)
         @include('livewire.components.partials.v65-table-filter-controls')
     @endunless
