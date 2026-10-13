@@ -130,7 +130,7 @@ class StockMovements extends DataTableComponent
             return route('stock.movements.show', ['id' => $row->getKey()]);
         }
 
-        if ($column->key !== 'document_no') {
+        if ($column->key !== 'document_no' || blank($row->getAttribute('document_no'))) {
             return null;
         }
 
