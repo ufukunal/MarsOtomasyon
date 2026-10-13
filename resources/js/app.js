@@ -252,8 +252,10 @@ document.addEventListener('keydown', (event) => {
 });
 document.addEventListener('click', (event) => {
     if (!(event.target instanceof Element)) return;
-    const link = event.target.closest('details.v65-contact-action-menu a[href], details[data-v65-action-menu] a[href], details[data-v65-action-menu] button');
-    if (link) link.closest('details').open = false;
+    // Close only actual action menus after activation. Simple filter drawers also
+    // use the managed <details> lifecycle, but their controls must remain usable.
+    const action = event.target.closest('details.page-action-menu a[href], details.page-action-menu button, details.v65-contact-action-menu a[href], details.v65-contact-action-menu button, details.v65-products-export-menu a[href], details.v65-products-export-menu button');
+    if (action) action.closest('details').open = false;
 });
 document.addEventListener('livewire:navigating', () => closeV65ActionMenus());
 
