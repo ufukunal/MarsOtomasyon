@@ -55,8 +55,10 @@ class ContactDetail extends Component
             if ($date === null || $date === '') {
                 continue;
             }
-            $valid = preg_match('/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/D', $date)
-                && \DateTimeImmutable::createFromFormat('!Y-m-d', $date)?->format('Y-m-d') === $date;
+            $parsed = \DateTimeImmutable::createFromFormat('!Y-m-d', $date);
+            $valid = preg_match('/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/D', $date) === 1
+                && $parsed instanceof \DateTimeImmutable
+                && $parsed->format('Y-m-d') === $date;
             abort_unless($valid, 422);
         }
         abort_if($from && $to && $to < $from, 422);
