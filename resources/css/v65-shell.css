@@ -1483,3 +1483,33 @@
   .app-shell .v65-cari-list .v65-filter-toolbar{display:none!important}
   .app-shell .v65-cari-list .v65-list-table .data-table{min-width:0!important}
 }
+
+
+/* Cari list only: align filter action beside intro heading; header export is a single menu. */
+.app-shell .v65-cari-list .v65-cari-list-intro-title{
+  display:grid;grid-template-columns:minmax(0,1fr) auto;
+  grid-template-rows:auto auto;column-gap:12px;align-items:center
+}
+.app-shell .v65-cari-list .v65-cari-list-intro-title>strong{grid-column:1;grid-row:1}
+.app-shell .v65-cari-list .v65-cari-list-intro-title>span{grid-column:1;grid-row:2}
+.app-shell .v65-cari-list .v65-cari-intro-filters{
+  grid-column:2;grid-row:1 / 3;justify-self:end;align-self:center
+}
+.app-shell .v65-cari-list .v65-cari-intro-filters .v65-filter-toolbar{padding:0;margin:0}
+.app-shell .v65-cari-list .v65-cari-intro-filters .v65-filter-trigger{white-space:nowrap}
+.app-shell .v65-cari-heading-actions{display:flex;align-items:center;gap:7px}
+.app-shell .v65-cari-export-menu{position:relative}
+.app-shell .v65-cari-export-menu>summary{list-style:none;cursor:pointer}
+.app-shell .v65-cari-export-menu>summary::-webkit-details-marker{display:none}
+.app-shell .v65-cari-export-menu:not([open])>.v65-cari-export-options{display:none!important}
+.app-shell .v65-cari-export-menu[open]>.v65-cari-export-options{z-index:85;min-width:140px}
+.app-shell .v65-cari-export-options>button{
+  display:block;width:100%;border:0!important;background:#fff!important;
+  color:#223a56!important;padding:9px 12px!important;text-align:left;font-size:12px!important
+}
+.app-shell .v65-cari-export-options>button:hover{background:#eff5fd!important}
+@media(max-width:540px){
+  .app-shell .v65-cari-heading-actions{gap:4px;flex-wrap:wrap}
+  .app-shell .v65-cari-list .v65-cari-list-intro-title{column-gap:5px}
+  .app-shell .v65-cari-list .v65-cari-intro-filters .v65-filter-trigger{padding:0 9px!important}
+}
