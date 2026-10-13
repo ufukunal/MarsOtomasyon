@@ -3,6 +3,7 @@
 namespace App\Livewire\Concerns;
 
 use App\Livewire\Components\DataTable\DateRangeFilter;
+use App\Livewire\Components\DataTable\NumberRangeFilter;
 use App\Livewire\Components\DataTable\SelectFilter;
 use App\Livewire\Components\DataTable\TextFilter;
 use DateTimeImmutable;
@@ -43,6 +44,8 @@ trait WithV65FilterDrawer
                 $definitions[$filter->key] = ['label' => $filter->label, 'type' => 'select', 'options' => $filter->options];
             } elseif ($filter instanceof TextFilter) {
                 $definitions[$filter->key] = ['label' => $filter->label, 'type' => 'text'];
+            } elseif ($filter instanceof NumberRangeFilter) {
+                $definitions[$filter->key] = ['label' => $filter->label, 'type' => 'number-range'];
             } elseif ($filter instanceof DateRangeFilter) {
                 $definitions[$filter->key] = ['label' => $filter->label, 'type' => 'date-range'];
             }
@@ -123,6 +126,23 @@ trait WithV65FilterDrawer
                 abort_unless(mb_strlen($text) <= 255, 422);
                 if ($text !== '') {
                     $filters[$key] = $text;
+                }
+            } elseif ($definition['type'] === 'number-range') {
+                abort_unless(is_array($value), 422);
+                $range = [];
+                foreach (['min', 'max'] as $end) {
+                    $number = $value[$end] ?? '';
+                    abort_unless(is_scalar($number), 422);
+                    $number = trim((string) $number);
+                    if ($number !== '') {
+                        abort_unless(preg_match('/^-?[0-9]{1,12}(?:\\.[0-9]{1,4})?$/D', $number) === 1, 422);
+                        $range[$end] = $number;
+                    }
+                }
+                abort_unless(!isset($range['min'], $range['max'])
+                    || bccomp($range['min'], $range['max'], 4) <= 0, 422);
+                if ($range !== []) {
+                    $filters[$key] = $range;
                 }
             } elseif ($definition['type'] === 'date-range') {
                 abort_unless(is_array($value), 422);
@@ -205,6 +225,12 @@ trait WithV65FilterDrawer
             } elseif ($definition['type'] === 'select') {
                 $caption = $definition['options'][(string) $value] ?? (string) $value;
                 $chips[] = ['key' => 'filter:'.$key, 'label' => $definition['label'].': '.$caption];
+            } elseif ($definition['type'] === 'number-range' && is_array($value)) {
+                $min = $value['min'] ?? '';
+                $max = $value['max'] ?? '';
+                if ($min !== '' || $max !== '') {
+                    $chips[] = ['key' => 'filter:'.$key, 'label' => $definition['label'].': '.($min !== '' ? $min : '…').' – '.($max !== '' ? $max : '…')];
+                }
             } elseif (is_array($value)) {
                 $from = $value['from'] ?? '';
                 $to = $value['to'] ?? '';
