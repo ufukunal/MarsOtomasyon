@@ -1,12 +1,12 @@
-<div class="space-y-6">
+<div class="space-y-6 v65-list-page">
     <section class="panel v65-list-panel">
-        <div class="form-row">
+        <div class="form-row v65-list-heading-actions">
             <h1>Üretim Emirleri</h1>
             @can('production_orders.create')
                 <button type="button" wire:click="newOrder">Yeni Emir</button>
             @endcan
         </div>
-        <div class="table-scroll v65-grid-scroll"><table class="data-table">
+        <div class="table-scroll v65-grid-scroll v65-list-table"><table class="data-table">
             <thead><tr><th>No</th><th>Tarih</th><th>Mamul</th><th>Tip</th><th>Plan</th><th>Tamamlanan</th><th>Durum</th><th></th></tr></thead>
             <tbody>
             @foreach($orders as $row)
@@ -94,7 +94,7 @@
             </div>
 
             <h3>Component Snapshot</h3>
-            <div class="table-scroll v65-grid-scroll"><table class="data-table">
+            <div class="table-scroll v65-grid-scroll v65-list-table"><table class="data-table">
                 <thead><tr><th>Component</th><th>Plan</th><th>Temel Plan</th></tr></thead>
                 <tbody>
                 @foreach($order->components as $component)
@@ -113,7 +113,7 @@
                     <label>Tarih <input type="date" wire:model="completionDate"></label>
                     <label>Tamamlanan Miktar <input data-tr-decimal wire:model="completionQuantity"></label>
 
-                    <div class="table-scroll v65-grid-scroll"><table class="data-table">
+                    <div class="table-scroll v65-grid-scroll v65-list-table"><table class="data-table">
                         <thead><tr><th>Component</th><th>Actual Tüketim</th><th>Fire</th><th>Kaynak</th></tr></thead>
                         <tbody>
                         @foreach($order->components as $component)
@@ -161,7 +161,7 @@
             @endif
 
             <h3>Completion Geçmişi</h3>
-            <div class="table-scroll v65-grid-scroll"><table class="data-table">
+            <div class="table-scroll v65-grid-scroll v65-list-table"><table class="data-table">
                 <thead><tr><th>ID</th><th>Tarih</th><th>Miktar</th>@can('cost.view')<th>Malzeme</th><th>Fason Hizmet</th><th>Birim Maliyet</th>@endcan<th>Ters</th></tr></thead>
                 <tbody>
                 @foreach($order->completions as $completion)

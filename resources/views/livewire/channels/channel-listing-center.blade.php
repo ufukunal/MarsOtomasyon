@@ -1,13 +1,13 @@
-<div class="space-y-6">
+<div class="space-y-6 v65-list-page">
     @if(session('status')) <div class="panel">{{ session('status') }}</div> @endif
 
     <section class="panel v65-list-panel">
-        <div class="form-row">
+        <div class="form-row v65-list-heading-actions">
             @can('channel_listings.create')
                 <button type="button" wire:click="newListing">Yeni Mapping</button>
             @endcan
         </div>
-        <div class="table-scroll v65-grid-scroll"><table class="data-table">
+        <div class="table-scroll v65-grid-scroll v65-list-table"><table class="data-table">
             <thead><tr><th>Account</th><th>Ürün</th><th>External Listing</th><th>SKU</th><th>Mode</th><th>Aktif</th><th></th></tr></thead>
             <tbody>
             @foreach($listings as $listing)

@@ -1,12 +1,12 @@
-<div class="space-y-6">
+<div class="space-y-6 v65-list-page">
     <section class="panel v65-list-panel">
-        <div class="form-row">
+        <div class="form-row v65-list-heading-actions">
             <h1>Üretim Reçeteleri</h1>
             @can('production_recipes.create')
                 <button type="button" wire:click="newRecipe">Yeni Reçete</button>
             @endcan
         </div>
-        <div class="table-scroll v65-grid-scroll"><table class="data-table">
+        <div class="table-scroll v65-grid-scroll v65-list-table"><table class="data-table">
             <thead><tr><th>Mamul</th><th>Reçete</th><th>Rev.</th><th>Çıktı</th><th>Aktif</th><th></th></tr></thead>
             <tbody>
             @foreach($recipes as $recipe)
@@ -42,7 +42,7 @@
         </label>
         <label>Reçete Çıktı Miktarı <input data-tr-decimal wire:model="outputQuantity"></label>
 
-        <div class="table-scroll v65-grid-scroll"><table class="data-table">
+        <div class="table-scroll v65-grid-scroll v65-list-table"><table class="data-table">
             <thead><tr><th>Component</th><th>Birim</th><th>Miktar</th><th></th></tr></thead>
             <tbody>
             @foreach($lines as $index => $line)

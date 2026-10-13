@@ -1,15 +1,15 @@
-<div class="space-y-6">
+<div class="space-y-6 v65-list-page">
     @if(session('status')) <div class="panel">{{ session('status') }}</div> @endif
     @if(session('warning')) <div class="panel">{{ session('warning') }}</div> @endif
 
     <section class="panel v65-list-panel">
-        <div class="form-row">
+        <div class="form-row v65-list-heading-actions">
             @can('channel_accounts.create')
                 <button type="button" wire:click="newAccount">Yeni Hesap</button>
             @endcan
         </div>
 
-        <div class="table-scroll v65-grid-scroll"><table class="data-table">
+        <div class="table-scroll v65-grid-scroll v65-list-table"><table class="data-table">
             <thead><tr><th>Platform</th><th>Hesap</th><th>Store ID</th><th>Aktif</th><th>Adapter</th><th></th></tr></thead>
             <tbody>
             @foreach($accounts as $account)

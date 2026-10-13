@@ -1,5 +1,5 @@
-<div class="space-y-6">
-    <div class="form-row page-header-actions">
+<div class="space-y-6 v65-list-page">
+    <div class="form-row page-header-actions v65-list-heading-actions">
         @can('import_shipments.create')
             <button type="button" wire:click="newFile">Yeni İthalat Dosyası</button>
         @endcan
@@ -39,7 +39,7 @@
 
     <section class="panel stack">
         <h2>İthalat Dosyaları</h2>
-        <table>
+        <div class="table-scroll v65-list-table"><table class="data-table">
             <thead><tr><th>No</th><th>Tedarikçi</th><th>Ülke</th><th>ETD</th><th>ETA</th><th>PB</th><th>Kur</th><th>Durum</th><th></th></tr></thead>
             <tbody>
             @foreach($files as $row)
@@ -56,7 +56,7 @@
                 </tr>
             @endforeach
             </tbody>
-        </table>
+        </table></div>
     </section>
 
     <section class="panel stack v65-workspace-form">
@@ -123,7 +123,7 @@
                     </div>
                 @endcan
             @endif
-            <table>
+            <div class="table-scroll v65-list-table"><table class="data-table">
                 <thead><tr><th>No</th><th>Tip</th><th>Mühür</th><th>Ağırlık</th><th>Hacim</th><th>ETA</th><th>Durum</th><th></th></tr></thead>
                 <tbody>
                 @foreach($file->containers as $container)
@@ -145,7 +145,7 @@
                     </tr>
                 @endforeach
                 </tbody>
-            </table>
+            </table></div>
         </section>
 
         <section class="panel stack v65-workspace-form">
@@ -181,7 +181,7 @@
                     </div>
                 @endcan
             @endif
-            <table>
+            <div class="table-scroll v65-list-table"><table class="data-table">
                 <thead><tr><th>Konteyner</th><th>Koli</th><th>Parça</th><th>Ürün</th><th>Miktar</th><th>Değer</th><th>kg</th><th>m³</th><th>Landed/Adet</th><th>Durum</th><th></th></tr></thead>
                 <tbody>
                 @foreach($file->packages as $package)
@@ -206,7 +206,7 @@
                     </tr>
                 @endforeach
                 </tbody>
-            </table>
+            </table></div>
         </section>
 
         <section class="panel stack v65-workspace-form">
@@ -227,7 +227,7 @@
                     </div>
                 @endcan
             @endif
-            <table>
+            <div class="table-scroll v65-list-table"><table class="data-table">
                 <thead><tr><th>Kalem</th><th>Tutar</th><th>PB</th><th>Kur</th><th>TRY</th><th>Dağıtım</th><th></th></tr></thead>
                 <tbody>
                 @foreach($file->costItems as $item)
@@ -248,7 +248,7 @@
                     </tr>
                 @endforeach
                 </tbody>
-            </table>
+            </table></div>
 
             @if(!$file->isLocked())
                 @can('import_shipments.update')
@@ -275,7 +275,7 @@
                     Marj: %{{ $fileProfitability['margin_rate'] }}
                 </div>
                 <p>{{ $fileProfitability['note'] }}</p>
-                <table>
+                <div class="table-scroll v65-list-table"><table class="data-table">
                     <thead><tr><th>Ürün ID</th><th>İthal Miktar</th><th>Atfedilen Satış Miktarı</th><th>Satış</th><th>Maliyet</th><th>Kâr</th><th>Marj</th></tr></thead>
                     <tbody>
                     @foreach($fileProfitability['rows'] as $row)
@@ -290,12 +290,12 @@
                         </tr>
                     @endforeach
                     </tbody>
-                </table>
+                </table></div>
             </section>
 
             <section class="panel stack">
                 <h2>Konteyner Kârlılığı</h2>
-                <table>
+                <div class="table-scroll v65-list-table"><table class="data-table">
                     <thead><tr><th>Konteyner</th><th>Satış</th><th>Maliyet</th><th>Kâr</th><th>Marj</th><th>Atıf Esası</th></tr></thead>
                     <tbody>
                     @foreach($containerProfitability as $row)
@@ -309,7 +309,7 @@
                         </tr>
                     @endforeach
                     </tbody>
-                </table>
+                </table></div>
             </section>
         @endif
     @endif

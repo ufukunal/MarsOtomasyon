@@ -1,7 +1,7 @@
-<div class="space-y-6">
+<div class="space-y-6 v65-list-page">
     <section class="panel v65-list-panel">
         <h1>Fason Üretim</h1>
-        <div class="table-scroll v65-grid-scroll"><table class="data-table">
+        <div class="table-scroll v65-grid-scroll v65-list-table"><table class="data-table">
             <thead><tr><th>Emir</th><th>Mamul</th><th>Fasoncu</th><th>Durum</th><th></th></tr></thead>
             <tbody>
             @foreach($orders as $row)
@@ -45,7 +45,7 @@
             @endif
 
             <h3>Fason Lokasyon Stoku</h3>
-            <div class="table-scroll v65-grid-scroll"><table class="data-table">
+            <div class="table-scroll v65-grid-scroll v65-list-table"><table class="data-table">
                 <thead><tr><th>Ürün</th><th>Miktar</th></tr></thead>
                 <tbody>
                 @forelse($balances as $balance)
@@ -60,7 +60,7 @@
             </table></div>
 
             <h3>Fason Transferleri</h3>
-            <div class="table-scroll v65-grid-scroll"><table class="data-table">
+            <div class="table-scroll v65-grid-scroll v65-list-table"><table class="data-table">
                 <thead><tr><th>No</th><th>Durum</th><th>Satırlar</th></tr></thead>
                 <tbody>
                 @foreach($transfers as $transfer)
@@ -97,7 +97,7 @@
 
             @can('cost.view')
                 <h3>Hizmet Maliyet Dağılımı</h3>
-                <div class="table-scroll v65-grid-scroll"><table class="data-table">
+                <div class="table-scroll v65-grid-scroll v65-list-table"><table class="data-table">
                     <thead><tr><th>Fatura Satırı</th><th>Completion</th><th>Basis</th><th>Allocation</th><th>Applied</th></tr></thead>
                     <tbody>
                     @foreach($allocations as $allocation)
