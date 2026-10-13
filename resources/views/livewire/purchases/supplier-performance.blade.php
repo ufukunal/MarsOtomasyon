@@ -1,5 +1,5 @@
 <div class="stack v65-supplier-performance v65-list-page">
-    <h1>Tedarikçi Performansı</h1>
+    <x-v65.list-heading title="Tedarikçi Performansı" />
 
     <label>Tedarikçi
         <select wire:model.live="contactId">
