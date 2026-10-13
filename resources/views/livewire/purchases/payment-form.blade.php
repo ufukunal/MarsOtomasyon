@@ -1,8 +1,8 @@
-<div class="space-y-6">
-    <h1>Ödeme</h1>
+<div class="space-y-6 v65-workspace-form">
+    <h2>Ödeme</h2>
 
     <section class="panel stack v65-voucher-panel">
-        <label>Tedarikçi
+        <label class="field">Tedarikçi
             <select wire:model="contactId">
                 <option value="">Seçin</option>
                 @foreach($contacts as $contact)
@@ -10,7 +10,7 @@
                 @endforeach
             </select>
         </label>
-        <label>Kaynak Alış Faturası
+        <label class="field">Kaynak Alış Faturası
             <select wire:model="sourceInvoiceId">
                 <option value="">Bağımsız ödeme</option>
                 @foreach($invoices as $invoice)
@@ -18,17 +18,17 @@
                 @endforeach
             </select>
         </label>
-        <label>Tarih <input type="date" wire:model="documentDate"></label>
-        <label>Tutar <input wire:model="amount"></label>
-        <label>Para Birimi <input wire:model="currency" maxlength="3"></label>
-        <label>Kur <input wire:model="exchangeRate"></label>
-        <label>Hesap Türü
+        <label class="field">Tarih <input type="date" wire:model="documentDate"></label>
+        <label class="field">Tutar <input wire:model="amount"></label>
+        <label class="field">Para Birimi <input wire:model="currency" maxlength="3"></label>
+        <label class="field">Kur <input wire:model="exchangeRate"></label>
+        <label class="field">Hesap Türü
             <select wire:model="accountType">
                 <option value="cash">Kasa</option>
                 <option value="bank">Banka</option>
             </select>
         </label>
-        <label>Hesap
+        <label class="field">Hesap
             <select wire:model="accountId">
                 <option value="">Seçin</option>
                 @if($accountType === 'cash')
@@ -42,16 +42,16 @@
                 @endif
             </select>
         </label>
-        <label>Not <textarea wire:model="note"></textarea></label>
-        <button type="button" wire:click="post">Ödemeyi Kesinleştir</button>
+        <label class="field">Not <textarea wire:model="note"></textarea></label>
+        <div class="v65-form-footer"><button type="button" wire:click="post">Ödemeyi Kesinleştir</button></div>
     </section>
 
     @if($postedDocumentId)
         <section class="panel stack v65-voucher-panel">
             <div>Kesinleşen belge: #{{ $postedDocumentId }}</div>
             <input type="date" wire:model="reversalDate" aria-label="Ters kayıt tarihi">
-            <input wire:model="reversalReason" placeholder="Ters kayıt gerekçesi">
-            <button class="button-danger" type="button" wire:click="reverse">Ters Kayıt</button>
+            <label class="field">Gerekçe <input wire:model="reversalReason" placeholder="Ters kayıt gerekçesi"></label>
+            <div class="v65-form-footer"><button class="button-danger" type="button" wire:click="reverse">Ters Kayıt</button></div>
         </section>
     @endif
 </div>
