@@ -146,9 +146,6 @@
             <aside class="stack">
                 <section class="panel stack v65-quick-actions">
                     <strong>Hızlı İşlemler</strong>
-                    @can('quotes.create')<a class="button-secondary v65-quick-action v65-quick-quote" href="{{ route('sales.quotes.edit') }}">Teklif Oluştur</a>@endcan
-                    @can('sales_orders.create')<a class="button-secondary v65-quick-action v65-quick-order" href="{{ route('sales.orders.edit') }}">Sipariş Oluştur</a>@endcan
-                    @can('sales_invoices.create')<a class="button-secondary v65-quick-action v65-quick-invoice" href="{{ route('sales.invoices.edit') }}">Satış Faturası</a>@endcan
                     @can('stock.view')<a class="button-secondary v65-quick-action v65-quick-stock" href="{{ route('stock.movements', ['product' => $product->id]) }}">Stok Hareketleri</a>@endcan
                     @can('stock_counts.view')<a class="button-secondary v65-quick-action v65-quick-stock" href="{{ route('stock.counts.index') }}">Stok Sayımları</a>@endcan
                     @can('products.update')<a class="button-secondary v65-quick-action v65-quick-edit" href="{{ route('products.edit', ['product' => $product->id]) }}">Ürünü Düzenle</a>@endcan
@@ -301,13 +298,16 @@
     @elseif($activeTab === 'technical')
         <section class="panel stack">
             <strong>Teknik Bilgi Föyü</strong>
-            <p>Ürüne ait teknik bilgiler ve ilişkili dokümanlar burada gösterilir. Bağımsız teknik föy şablonu mevcut veri modelinde bulunmuyor.</p>
+            <p>Ürünün teknik özelliklerini ve ilişkilendirilmiş PDF teknik föylerini buradan inceleyebilirsiniz.</p>
             @if($product->description)
                 <div class="field"><span class="field-label">Ürün Açıklaması</span><p class="readonly-note">{{ $product->description }}</p></div>
             @endif
             <div class="stack">
-                @forelse($attachments->filter(fn ($row) => str_contains(mb_strtolower($row->original_name), 'teknik') || str_contains(mb_strtolower($row->original_name), 'technical')) as $file)
-                    <div class="form-row"><span>{{ $file->original_name }}</span><small>{{ $file->mime }}</small></div>
+                @forelse($attachments->filter(fn ($row) => $row->collection === 'Teknik Föy' && $row->mime === 'application/pdf') as $file)
+                    <div class="form-row">
+                        <a href="{{ route('products.technical-sheet.show', ['product' => $product->id, 'attachment' => $file->id]) }}" target="_blank" rel="noopener" aria-label="{{ $file->original_name }} PDF teknik föyünü aç">{{ $file->original_name }} · PDF'yi Aç ↗</a>
+                        <small>PDF · Teknik Föy</small>
+                    </div>
                 @empty
                     <p class="empty-state">Ürüne bağlı teknik doküman bulunamadı.</p>
                 @endforelse

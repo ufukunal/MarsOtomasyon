@@ -204,28 +204,6 @@
                     @endcan
                 @endif
                 @if ($routeName === 'products.show')
-                    @canany(['supplier_invoices.create', 'purchase_orders.create'])
-                        <details class="page-action-menu">
-                            <summary>Alım İşlemleri <span aria-hidden="true">⌄</span></summary>
-                            <div class="page-action-menu-items">
-                                @can('purchase_orders.create')<a href="{{ route('purchases.orders.edit') }}">Satınalma Siparişi</a>@endcan
-                                @can('supplier_invoices.create')<a href="{{ route('purchases.invoices.edit') }}">Alış Faturası</a>@endcan
-                            </div>
-                        </details>
-                    @endcanany
-                    @canany(['quotes.create', 'sales_orders.create', 'sales_invoices.create'])
-                        <details class="page-action-menu">
-                            <summary>Satış İşlemleri <span aria-hidden="true">⌄</span></summary>
-                            <div class="page-action-menu-items">
-                                @can('quotes.create')<a href="{{ route('sales.quotes.edit') }}">Teklif</a>@endcan
-                                @can('sales_orders.create')<a href="{{ route('sales.orders.edit') }}">Satış Siparişi</a>@endcan
-                                @can('sales_invoices.create')<a href="{{ route('sales.invoices.edit') }}">Satış Faturası</a>@endcan
-                            </div>
-                        </details>
-                    @endcanany
-                @endif
-
-                @if ($routeName === 'products.show')
                     <details class="page-action-menu page-action-more">
                         <summary>Diğer <span aria-hidden="true">⌄</span></summary>
                         <div class="page-action-menu-items">

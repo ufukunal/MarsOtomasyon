@@ -7,6 +7,7 @@ use App\Http\Controllers\HepsiburadaWebhookController;
 use App\Http\Controllers\ImportErrorReportController;
 use App\Http\Controllers\PrintTransportSlipController;
 use App\Http\Controllers\ProductImageController;
+use App\Http\Controllers\ProductTechnicalSheetController;
 use App\Http\Controllers\ReportExportDownloadController;
 use App\Http\Controllers\TrendyolWebhookController;
 use App\Http\Controllers\WooCommerceWebhookController;
@@ -259,6 +260,7 @@ Route::middleware('auth')->group(function (): void {
         ->whereNumber('id')->name('stock.warehouse-slips.show');
     Route::get('/ice-aktarma/{batchId}/hatalar.xlsx', ImportErrorReportController::class)->name('imports.errors');
     Route::get('/urunler/{product}/gorseller/{attachment}', ProductImageController::class)->name('products.images.show');
+    Route::get('/urunler/{product}/teknik-foy/{attachment}', ProductTechnicalSheetController::class)->name('products.technical-sheet.show');
     Route::get('/ayarlar/butunluk', IntegrityReport::class)->name('settings.integrity');
     Route::get('/ayarlar/operasyonlar', OperationsCenter::class)->name('settings.operations');
 

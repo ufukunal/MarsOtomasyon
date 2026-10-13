@@ -81,7 +81,7 @@ it('populates v65 analytics from posted period documents without fabricated tota
         ->and($view)->toContain('{{ $buyer->last_purchase_at')
         ->toContain('Ortalama Fiyat')
         ->toContain('Kesinleşmiş Alışlar')
-        ->toContain('Bağımsız teknik föy şablonu mevcut veri modelinde bulunmuyor.')
+        ->toContain("route('products.technical-sheet.show'")
         ->not->toContain('684.000')
         ->not->toContain('10687.50');
 
