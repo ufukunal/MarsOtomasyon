@@ -136,6 +136,18 @@ php -l /var/www/html/app/Http/Controllers/ProductTechnicalSheetController.php
 php -l /var/www/html/app/Livewire/Pages/Contacts/ContactDetail.php
 php -l /var/www/html/app/Livewire/Pages/Contacts/ContactList.php
 php -l /var/www/html/app/Livewire/Sales/BaseSalesDocumentEditor.php
+# Compile and PHP-lint every Blade template inside the disposable image BEFORE
+# replacing the running Fresh web container. php -l on Livewire classes alone
+# cannot catch errors in the compiled view code.
+php /var/www/html/artisan view:cache >/dev/null || { echo "IMAGE_CHECK_FAIL Blade compilation failed" >&2; exit 1; }
+compiled_count=0
+for compiled in /var/www/html/storage/framework/views/*.php; do
+  [ -f "$compiled" ] || continue
+  compiled_count=$((compiled_count + 1))
+  php -l "$compiled" >/dev/null || { echo "IMAGE_CHECK_FAIL compiled Blade syntax: $compiled" >&2; exit 1; }
+done
+[ "$compiled_count" -gt 0 ] || { echo "IMAGE_CHECK_FAIL no compiled Blade templates found" >&2; exit 1; }
+echo "IMAGE_BLADE_LINT_OK=$compiled_count"
 test -s /var/www/html/resources/views/livewire/pages/contacts/contact-detail.blade.php || { echo "IMAGE_CHECK_FAIL contact detail Blade missing" >&2; exit 1; }
 grep -Fq "exportContactDocumentsCsv" /var/www/html/app/Livewire/Pages/Contacts/ContactDetail.php || { echo "IMAGE_CHECK_FAIL contact document export missing" >&2; exit 1; }
 grep -Fq "v65-contact-tabs" /var/www/html/resources/views/livewire/pages/contacts/contact-detail.blade.php || { echo "IMAGE_CHECK_FAIL contact detail tabs missing" >&2; exit 1; }
