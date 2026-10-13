@@ -154,7 +154,8 @@ class StockMovements extends DataTableComponent
     /** @return list<array<string, mixed>> */
     public function rowActions(): array
     {
-        return [['label' => 'Detay', 'method' => 'showMovement']];
+        // Records open via their linked identifiers, not redundant row buttons.
+        return [];
     }
 
     public function showMovement(int|string $id): mixed
