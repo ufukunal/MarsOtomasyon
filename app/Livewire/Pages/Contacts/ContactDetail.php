@@ -97,6 +97,11 @@ class ContactDetail extends Component
         $opening = $this->openingBalances();
         $balances = $opening;
         $rows = [];
+        // Preserve balances brought forward even when the selected period has no activity.
+        ksort($opening);
+        foreach ($opening as $currency => $amount) {
+            $rows[] = ['', '', 'Devir Bakiyesi', '', '', '', (string) $amount, (string) $currency];
+        }
         foreach ($this->filteredMovementQuery()->with('document')
             ->orderBy('transaction_date')->orderBy('id')->get() as $movement) {
             $currency = (string) $movement->currency;
@@ -113,6 +118,10 @@ class ContactDetail extends Component
                 $balances[$currency],
                 $currency,
             ];
+        }
+        ksort($balances);
+        foreach ($balances as $currency => $amount) {
+            $rows[] = ['', '', 'Son Bakiye', '', '', '', (string) $amount, (string) $currency];
         }
         return $rows;
     }
@@ -453,8 +462,20 @@ class ContactDetail extends Component
                     ->orderBy('currency')->get();
 
                 // Devir and closing balances must include movements before the filter.
+                // Include currencies with opening balances but no movements in this date range.
                 // Keep each currency separate; never add USD/EUR balances to TRY.
                 $openings = $this->openingBalances();
+                foreach ($openings as $currency => $opening) {
+                    if (! $movementTotals->contains('currency', $currency)) {
+                        $movementTotals->push((object) [
+                            'currency' => (string) $currency,
+                            'total_debit' => '0.0000',
+                            'total_credit' => '0.0000',
+                            'total_movements' => 0,
+                        ]);
+                    }
+                }
+                $movementTotals = $movementTotals->sortBy('currency')->values();
                 $movementTotals->each(static function ($total) use ($openings): void {
                     $opening = (string) ($openings[$total->currency] ?? '0');
                     $total->opening = $opening;
