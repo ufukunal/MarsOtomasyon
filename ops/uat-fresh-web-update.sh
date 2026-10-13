@@ -134,7 +134,12 @@ grep -Fq "mars-pagination" /var/www/html/resources/css/v65-shell.css || { echo "
 php -l /var/www/html/app/Http/Controllers/ProductTechnicalSheetController.php
 # Validate the newly added contact detail before any web-container switch.
 php -l /var/www/html/app/Livewire/Pages/Contacts/ContactDetail.php
+php -l /var/www/html/app/Livewire/Pages/Contacts/ContactList.php
+php -l /var/www/html/app/Livewire/Sales/BaseSalesDocumentEditor.php
 test -s /var/www/html/resources/views/livewire/pages/contacts/contact-detail.blade.php || { echo "IMAGE_CHECK_FAIL contact detail Blade missing" >&2; exit 1; }
+grep -Fq "exportContactDocumentsCsv" /var/www/html/app/Livewire/Pages/Contacts/ContactDetail.php || { echo "IMAGE_CHECK_FAIL contact document export missing" >&2; exit 1; }
+grep -Fq "v65-contact-tabs" /var/www/html/resources/views/livewire/pages/contacts/contact-detail.blade.php || { echo "IMAGE_CHECK_FAIL contact detail tabs missing" >&2; exit 1; }
+grep -Fq "v65-list-footer" /var/www/html/resources/views/components/v65/list-footer.blade.php || { echo "IMAGE_CHECK_FAIL shared list footer missing" >&2; exit 1; }
 echo "IMAGE_CHECK_OK=YES (www-data readable and UI code present)"
 ' || fail 'Built image validation failed; Fresh is unchanged'
 
