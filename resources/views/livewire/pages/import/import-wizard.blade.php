@@ -1,4 +1,4 @@
-<div class="stack">
+<div class="stack v65-list-page">
     @if($step === 1)
         <section class="panel stack">
             @if($openingOnly)
@@ -32,7 +32,7 @@
     @elseif($step === 3)
         <section class="panel stack">
             <h2>İlk 20 Satır</h2>
-            <div class="table-scroll">
+            <div class="table-scroll v65-list-table">
                 <table class="data-table">
                     <thead><tr><th>#</th>@foreach($headers as $header)<th>{{ $header }}</th>@endforeach<th>Doğrulama</th></tr></thead>
                     <tbody>
@@ -82,9 +82,9 @@
                 @if($batch->failure_message)<div class="alert alert-warning">{{ $batch->failure_message }}</div>@endif
                 @if($batch->errors->isNotEmpty())
                     <p><a href="{{ route('imports.errors', ['batchId' => $batch->id]) }}">Hata Raporu XLSX indir</a></p>
-                    <table class="data-table"><thead><tr><th>Satır</th><th>Kolon</th><th>Değer</th><th>Hata</th></tr></thead><tbody>
+                    <div class="table-scroll v65-list-table"><table class="data-table"><thead><tr><th>Satır</th><th>Kolon</th><th>Değer</th><th>Hata</th></tr></thead><tbody>
                     @foreach($batch->errors as $error)<tr><td>{{ $error->row_no }}</td><td>{{ $error->column_name }}</td><td>{{ $error->value }}</td><td>{{ $error->message }}</td></tr>@endforeach
-                    </tbody></table>
+                    </tbody></table></div>
                 @endif
             @endif
         </section>

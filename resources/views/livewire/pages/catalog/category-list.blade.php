@@ -1,6 +1,8 @@
-<div class="stack">
+<div class="stack v65-list-page">
     @can('product_categories.create')
-        <div class="v65-page-actions"><a class="button-link table-add-action" href="{{ route('categories.create') }}">+ Yeni Kategori</a></div>
+        @teleport('.page-actions.v65-page-actions')
+            <div class="v65-list-heading-actions"><a class="button-link table-add-action" href="{{ route('categories.create') }}">+ Yeni Kategori</a></div>
+        @endteleport
     @endcan
 
     <section class="panel category-tree">

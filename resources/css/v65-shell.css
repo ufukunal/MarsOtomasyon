@@ -818,3 +818,21 @@
   .app-shell .v65-list-table{overflow:visible!important}
   .app-shell .v65-list-table .data-table{min-width:0!important}
 }
+/* Shared list labels, heading actions and filter form density. */
+.app-shell .v65-list-heading-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap;min-width:0}
+.app-shell .v65-list-heading-actions :where(button,.button-link,.button-secondary,a.button-link){
+  display:inline-flex;align-items:center;justify-content:center;min-height:36px;padding:7px 12px;
+  font-size:12px;font-weight:650;white-space:nowrap;border-radius:5px!important;margin:0
+}
+.app-shell .v65-list-filter-field{display:grid;gap:5px;flex:1 1 170px;min-width:160px}
+.app-shell .v65-list-filter-field :where(input,select){width:100%;min-width:0}
+.app-shell .v65-list-filter-panel .v65-list-filters{margin:0;padding:0;border:0;background:transparent}
+.app-shell .v65-list-filters .wsl-field{display:grid;gap:5px;min-width:0}
+.app-shell .v65-list-filters .wsl-field :where(input,select){width:100%;min-width:0}
+.app-shell .v65-list-table-grid{min-width:0}
+.app-shell .v65-list-row-actions{white-space:nowrap}
+.app-shell .v65-list-row-actions :where(button,.button-secondary){min-height:34px;padding:6px 11px;border-radius:5px!important}
+.app-shell .v65-list-status{display:inline-flex;align-items:center;min-height:25px;padding:3px 8px;
+ background:#f0f5fb;border:1px solid #d9e4f1;border-radius:4px;color:#405575;font-size:11px;font-weight:650}
+.app-shell .v65-list-table .data-table :where(th,td).align-end{text-align:right}
+@media(max-width:768px){.app-shell .v65-list-filter-field{min-width:0}}
