@@ -170,8 +170,25 @@
     @elseif(in_array($activeTab, ['invoices','orders','quotes'], true))
         <section class="v65-contact-panel">
             <div class="v65-contact-panel-header">
-                <h3>{{ $tabs[$activeTab] }}</h3>
-                <span class="v65-contact-panel-sub">{{ $contact->code }} · {{ $contact->title }}</span>
+                <div class="v65-contact-panel-heading">
+                    <h3>{{ $tabs[$activeTab] }}</h3>
+                    <small>{{ $contact->code }} · {{ $contact->title }}</small>
+                </div>
+                <div class="v65-contact-panel-controls">
+                    @if($activeTab === 'quotes')
+                        @can('quotes.create')<a class="button-link" href="{{ route('sales.quotes.edit') }}">+ Yeni Teklif</a>@endcan
+                    @elseif($activeTab === 'orders')
+                        @can('sales_orders.create')<a class="button-link" href="{{ route('sales.orders.edit') }}">+ Yeni Sipariş</a>@endcan
+                    @elseif($activeTab === 'invoices')
+                        @can('sales_invoices.create')<a class="button-link" href="{{ route('sales.invoices.edit') }}">+ Yeni Satış Faturası</a>@endcan
+                    @endif
+                    <button type="button" class="button-secondary"
+                        wire:click="exportContactDocumentsCsv" wire:loading.attr="disabled"
+                        wire:target="exportContactDocumentsCsv">CSV</button>
+                    <button type="button" class="button-secondary"
+                        wire:click="exportContactDocumentsXlsx" wire:loading.attr="disabled"
+                        wire:target="exportContactDocumentsXlsx">Excel</button>
+                </div>
             </div>
             <div class="table-scroll">
                 <table class="data-table">
@@ -405,7 +422,7 @@
 
     @elseif($activeTab === 'addresses')
         <div class="v65-contact-address-grid">
-            @forelse($contact->addresses as $address)
+            @forelse($addresses as $address)
                 <section class="v65-contact-address-card" wire:key="contact-address-card-{{ $address->id }}">
                     <strong>{{ $address->title ?: ($address->type === 'invoice' ? 'Fatura Adresi' : 'Sevk Adresi') }}</strong>
                     <p>{{ $address->address }}</p>

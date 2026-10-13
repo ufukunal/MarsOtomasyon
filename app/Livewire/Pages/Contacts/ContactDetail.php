@@ -155,6 +155,114 @@ class ContactDetail extends Component
         }, $filename, ['Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet']);
     }
 
+
+    /** @return list<string> Only permitted document types are ever returned. */
+    private function documentKindsForTab(string $tab): array
+    {
+        return array_values(match ($tab) {
+            'invoices' => array_filter([
+                auth()->user()?->can('sales_invoices.view') ? DocumentType::SalesInvoice->value : null,
+                auth()->user()?->can('supplier_invoices.view') ? DocumentType::SupplierInvoice->value : null,
+            ]),
+            'orders' => array_filter([
+                auth()->user()?->can('sales_orders.view') ? DocumentType::SalesOrder->value : null,
+                auth()->user()?->can('purchase_orders.view') ? DocumentType::PurchaseOrder->value : null,
+            ]),
+            'quotes' => auth()->user()?->can('quotes.view') ? [DocumentType::Quote->value] : [],
+            default => [],
+        });
+    }
+
+    /** @return \Illuminate\Database\Eloquent\Builder<Document> */
+    private function documentQueryForTab(string $tab): \Illuminate\Database\Eloquent\Builder
+    {
+        $this->authorize('view', $this->contact);
+        abort_unless(in_array($tab, ['invoices', 'orders', 'quotes'], true), 422);
+        $types = $this->documentKindsForTab($tab);
+        abort_if($types === [], 403);
+
+        return Document::query()
+            ->where('contact_id', $this->contact->id)
+            ->whereIn('document_type', $types)
+            ->orderByDesc('document_date')
+            ->orderByDesc('id');
+    }
+
+    /** @return \Generator<list<string>> */
+    private function documentExportRows(string $tab): \Generator
+    {
+        foreach ($this->documentQueryForTab($tab)->cursor() as $document) {
+            yield [
+                (string) ($document->number ?? 'Taslak'),
+                $document->document_date?->format('d.m.Y') ?? '',
+                $document->document_type->value,
+                $document->valid_until?->format('d.m.Y') ?? '',
+                $document->due_date?->format('d.m.Y') ?? '',
+                (string) $document->tax_base,
+                (string) $document->vat_amount,
+                (string) $document->grand_total,
+                (string) $document->currency,
+                (string) $document->status,
+            ];
+        }
+    }
+
+    /** @return list<string> */
+    private static function documentExportHeadings(): array
+    {
+        return ['Belge No', 'Tarih', 'Tür', 'Geçerlilik', 'Vade', 'Matrah', 'KDV', 'Toplam', 'Para Birimi', 'Durum'];
+    }
+
+    public function exportContactDocumentsCsv(): StreamedResponse
+    {
+        $tab = $this->activeTab;
+        // Check permissions before response headers are sent.
+        $this->documentQueryForTab($tab);
+        $name = 'cari-'.$this->contact->code.'-'.$tab.'.csv';
+
+        return response()->streamDownload(function () use ($tab): void {
+            $out = fopen('php://output', 'wb');
+            fwrite($out, "\xEF\xBB\xBF");
+            fputcsv($out, self::documentExportHeadings(), ';');
+            foreach ($this->documentExportRows($tab) as $row) {
+                $row = array_map(
+                    static fn (string $field): string => preg_match('/^[=+\-@\t\r]/u', $field) ? "'".$field : $field,
+                    $row
+                );
+                fputcsv($out, $row, ';');
+            }
+            fclose($out);
+        }, $name, ['Content-Type' => 'text/csv; charset=UTF-8']);
+    }
+
+    public function exportContactDocumentsXlsx(): StreamedResponse
+    {
+        $tab = $this->activeTab;
+        $this->documentQueryForTab($tab);
+        $name = 'cari-'.$this->contact->code.'-'.$tab.'.xlsx';
+
+        return response()->streamDownload(function () use ($tab): void {
+            $book = new Spreadsheet();
+            $sheet = $book->getActiveSheet();
+            $index = 1;
+            foreach ((function () use ($tab) {
+                yield self::documentExportHeadings();
+                yield from $this->documentExportRows($tab);
+            })() as $row) {
+                foreach ($row as $column => $value) {
+                    $sheet->setCellValueExplicit(
+                        \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($column + 1).$index,
+                        (string) $value,
+                        DataType::TYPE_STRING
+                    );
+                }
+                $index++;
+            }
+            (new Xlsx($book))->save('php://output');
+            $book->disconnectWorksheets();
+        }, $name, ['Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet']);
+    }
+
     public function mount(Contact $contact): void
     {
         $this->authorize('view', $contact);
@@ -350,23 +458,9 @@ class ContactDetail extends Component
         }
 
         $documents = null;
-        $documentKinds = match ($tab) {
-            'invoices' => array_filter([
-                $sales ? DocumentType::SalesInvoice->value : null,
-                auth()->user()?->can('supplier_invoices.view') ? DocumentType::SupplierInvoice->value : null,
-            ]),
-            'orders' => array_filter([
-                $ordersAllowed ? DocumentType::SalesOrder->value : null,
-                auth()->user()?->can('purchase_orders.view') ? DocumentType::PurchaseOrder->value : null,
-            ]),
-            'quotes' => $quotesAllowed ? [DocumentType::Quote->value] : [],
-            default => [],
-        };
-        if ($documentKinds !== []) {
-            $documents = Document::query()->where('contact_id', $contact->id)
-                ->whereIn('document_type', $documentKinds)
-                ->orderByDesc('document_date')->orderByDesc('id')
-                ->paginate($this->perPage);
+        if (in_array($tab, ['invoices', 'orders', 'quotes'], true)
+            && $this->documentKindsForTab($tab) !== []) {
+            $documents = $this->documentQueryForTab($tab)->paginate($this->perPage);
         }
 
         $activity = collect();
