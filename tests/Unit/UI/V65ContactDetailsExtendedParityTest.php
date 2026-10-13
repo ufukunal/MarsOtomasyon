@@ -16,7 +16,7 @@ it('keeps a distinct authorized customer-detail page and the shared list standar
         ->toContain("route('contacts.show'")
         ->toContain("where('currency', 'TRY')")
         ->and($table)->toContain('v65-data-table-heading-actions')
-        ->toContain('v65-data-table-filters')
+        ->toContain('<x-v65.filter-drawer')
         ->toContain('<x-v65.list-footer')
         ->toContain('v65-cari-list-stats')
         ->not->toContain('148.150,00')
