@@ -19,7 +19,7 @@
     </section>
 
     <section class="panel">
-        <h2>Güncel Operational Health</h2>
+        <x-v65.list-heading title="Güncel Operational Health" />
         @if($latestHealth)
             <p>
                 Durum: <strong>{{ strtoupper($latestHealth->overall_status) }}</strong>
@@ -53,7 +53,7 @@
     </section>
 
     <section class="panel">
-        <h2>Deployment Geçmişi</h2>
+        <x-v65.list-heading title="Deployment Geçmişi" />
         <div class="table-scroll v65-list-table">
             <table class="data-table">
                 <thead>
@@ -84,7 +84,7 @@
     </section>
 
     <section class="panel">
-        <h2>Recovery-Set Backup</h2>
+        <x-v65.list-heading title="Recovery-Set Backup" />
         <div class="table-scroll v65-list-table">
             <table class="data-table">
                 <thead>
@@ -121,7 +121,7 @@
     </section>
 
     <section class="panel">
-        <h2>Restore Geçmişi</h2>
+        <x-v65.list-heading title="Restore Geçmişi" />
         <div class="table-scroll v65-list-table">
             <table class="data-table">
                 <thead>
@@ -149,7 +149,7 @@
     </section>
 
     <section class="panel">
-        <h2>Health Geçmişi</h2>
+        <x-v65.list-heading title="Health Geçmişi" />
         <div class="table-scroll v65-list-table">
             <table class="data-table">
                 <thead>
