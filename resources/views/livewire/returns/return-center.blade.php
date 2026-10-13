@@ -80,7 +80,7 @@
     @endif
 
     <section class="panel stack">
-        <h2>İade Geçmişi</h2>
+        <x-v65.list-heading title="İade Geçmişi" />
         <div class="table-scroll v65-list-table"><table class="data-table">
             <thead><tr><th>No</th><th>Tür</th><th>Cari</th><th>Tarih</th><th>Tutar</th><th>Durum</th></tr></thead>
             <tbody>
