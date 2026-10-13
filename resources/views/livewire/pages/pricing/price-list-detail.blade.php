@@ -13,7 +13,7 @@
 
     @if($list)
         <section class="panel stack">
-            <h2>Ürün Fiyatları</h2>
+            <x-v65.list-heading title="Ürün Fiyatları" />
             <div class="form-grid">
                 <label class="field"><span class="field-label">Ürün</span><select wire:model="productId"><option value="">Ürün Seçin</option>@foreach($products as $product)<option value="{{ $product->id }}">{{ $product->code }} · {{ $product->name }}</option>@endforeach</select></label>
                 <label class="field"><span class="field-label">Fiyat</span><input wire:model="price" inputmode="decimal"></label>
