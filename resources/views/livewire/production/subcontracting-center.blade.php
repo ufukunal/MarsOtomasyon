@@ -11,7 +11,7 @@
                 <tr>
                     <td><button type="button" class="link-button v65-record-link" wire:click="selectOrder({{ $row->id }})">{{ $row->number ?? 'Taslak #'.$row->id }}</button></td>
                     <td>@can('products.view')<a class="v65-record-link" href="{{ route('products.show', ['product' => $row->product_id]) }}">{{ $row->product->code }} · {{ $row->product->name }}</a>@else{{ $row->product->code }} · {{ $row->product->name }}@endcan</td>
-                    <td>@if($row->subcontractor && auth()->user()?->can('contacts.view'))<a class="v65-record-link" href="{{ route('contacts.show', ['contact' => $row->subcontractor_id]) }}">{{ $row->subcontractor->title }}</a>@else{{ $row->subcontractor?->title }}@endif</td>
+                    <td>@if($row->subcontractor && auth()->user()?->can('contacts.view'))<a class="v65-record-link" href="{{ route('contacts.show', ['contact' => $row->subcontractor_contact_id]) }}">{{ $row->subcontractor->title }}</a>@else{{ $row->subcontractor?->title }}@endif</td>
                     <td>{{ $row->status }}</td>
                     
                 </tr>
