@@ -9,6 +9,7 @@ use App\Actions\Production\ReverseProductionCompletion;
 use App\Actions\Production\SaveProductionOrderDraft;
 use App\Enums\LocationKind;
 use App\Livewire\Concerns\WithIdempotentMutations;
+use App\Livewire\Concerns\WithV65SimpleListFilter;
 use App\Models\Period\Contact;
 use App\Models\Period\Location;
 use App\Models\Period\Product;
@@ -22,6 +23,7 @@ use Livewire\WithPagination;
 class ProductionOrderCenter extends Component
 {
     use WithPagination;
+    use WithV65SimpleListFilter;
 
     public string $listSearch = '';
 
@@ -228,7 +230,7 @@ class ProductionOrderCenter extends Component
                     $q->where('number', 'ilike', $needle)
                         ->orWhereHas('product', fn ($p) => $p->where('name', 'ilike', $needle)->orWhere('code', 'ilike', $needle));
                 }))
-                ->orderByDesc('id')
+                ->when($this->v65SimpleSort === 'id', fn ($q) => $q->orderBy('id', $this->v65SimpleDirection), fn ($q) => $q->orderByDesc('id'))
                 ->paginate($this->perPage),
             'order' => $order,
             'products' => Product::query()
