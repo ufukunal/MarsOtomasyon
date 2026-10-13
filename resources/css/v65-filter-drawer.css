@@ -1,0 +1,35 @@
+/* MarsProject V65 - compact reusable list filter drawer */
+.app-shell .v65-filter-toolbar{display:flex;align-items:center;justify-content:flex-end;gap:9px;padding:8px 0;min-height:42px}
+.app-shell .v65-filter-control{display:inline-flex;align-items:center}
+.app-shell .v65-filter-trigger{display:inline-flex;align-items:center;gap:8px;justify-content:center;height:38px;min-height:38px;padding:0 13px!important;border:1px solid #dce5f0!important;border-radius:6px!important;background:#fff!important;color:#263b53!important;font-size:12px;font-weight:650;cursor:pointer;box-shadow:none!important}
+.app-shell .v65-filter-trigger:hover{border-color:#a9c7e9!important;background:#f5f9ff!important}
+.app-shell .v65-filter-count{display:inline-flex;align-items:center;justify-content:center;min-width:19px;height:19px;border-radius:10px;background:#e9f2ff;color:#1a73e8;font-size:11px}
+.app-shell .v65-filter-dialog{position:fixed;inset:0 0 0 auto;margin:0;padding:0;width:min(400px,100vw);max-width:100vw;height:100dvh;max-height:100dvh;border:0;border-left:1px solid #dce5f0;border-radius:0;color:#263b53;background:#fff;box-shadow:-8px 0 32px rgba(15,35,55,.12);overflow:hidden}
+.app-shell .v65-filter-dialog::backdrop{background:rgba(15,23,42,.28)}
+.app-shell .v65-filter-panel{height:100%;display:flex;flex-direction:column;min-height:0}
+.app-shell .v65-filter-header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:18px 20px;border-bottom:1px solid #e7edf5}
+.app-shell .v65-filter-header>div{display:grid;gap:3px}
+.app-shell .v65-filter-header strong{font-size:16px;font-weight:700}
+.app-shell .v65-filter-header small{color:#64748b;font-size:11px}
+.app-shell .v65-filter-close{border:0!important;background:transparent!important;color:#64748b!important;font-size:23px;cursor:pointer;padding:4px 8px!important;min-height:32px}
+.app-shell .v65-filter-tabs{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid #e7edf5}
+.app-shell .v65-filter-tabs>button{min-height:42px;border:0!important;border-bottom:2px solid transparent!important;background:#fff!important;color:#64748b!important;font-size:12px;font-weight:600;cursor:pointer;border-radius:0!important}
+.app-shell .v65-filter-tabs>button.is-active{border-bottom-color:#1a73e8!important;color:#1a73e8!important;background:#f7faff!important}
+.app-shell .v65-filter-body{flex:1;overflow-y:auto;overscroll-behavior:contain;display:grid;align-content:start;gap:14px;padding:20px;min-height:0}
+.app-shell .v65-filter-field{display:grid;gap:6px;font-size:12px}
+.app-shell .v65-filter-field-label{font-size:11px;font-weight:650;color:#3d526d}
+.app-shell .v65-filter-field :is(input,select){box-sizing:border-box;width:100%;height:40px;min-height:40px;padding:0 10px;background:#fff!important;color:#263b53!important;border:1px solid #cfd8e3!important;border-radius:6px!important;font-size:12px!important}
+.app-shell .v65-filter-field :is(input,select):focus-visible{outline:2px solid #8bbaf2;outline-offset:1px}
+.app-shell .v65-filter-field-hint{color:#64748b;font-size:11px}
+.app-shell .v65-filter-date-pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.app-shell .v65-filter-footer{flex:none;display:grid;grid-template-columns:1fr 1fr;gap:10px;border-top:1px solid #e7edf5;padding:12px 18px calc(12px + env(safe-area-inset-bottom))}
+.app-shell .v65-filter-footer>button{height:42px!important;border-radius:6px!important;font-size:12px!important;font-weight:650!important}
+.app-shell .v65-filter-clear{background:#fff6eb!important;border:1px solid #f1d8b4!important;color:#91601b!important}
+.app-shell .v65-filter-submit{background:#1a73e8!important;border:1px solid #1a73e8!important;color:#fff!important}
+.app-shell .v65-active-filters{display:flex;gap:6px;flex-wrap:wrap;margin:2px 0 10px}
+.app-shell .v65-filter-chip{display:inline-flex;align-items:center;gap:6px;border:1px solid #d4e3f5!important;border-radius:14px!important;background:#f4f8fd!important;color:#365875!important;padding:5px 9px!important;font-size:11px!important;min-height:28px!important}
+.app-shell .v65-filter-chip:hover{background:#e8f2ff!important}
+.app-shell :is(.v65-filter-trigger,.v65-filter-dialog button,.v65-filter-chip):focus-visible{outline:2px solid #1a73e8;outline-offset:2px}
+@media(max-width:480px){.app-shell .v65-filter-dialog{width:100vw}.app-shell .v65-filter-header{padding:14px 16px}.app-shell .v65-filter-body{padding:16px}.app-shell .v65-filter-footer{padding-left:14px;padding-right:14px}}
+@media print{.app-shell .v65-filter-toolbar,.app-shell .v65-filter-control,.app-shell .v65-active-filters{display:none!important}}
+@media(prefers-reduced-motion:reduce){.app-shell .v65-filter-dialog{scroll-behavior:auto}}
