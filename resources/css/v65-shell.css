@@ -530,7 +530,6 @@
 .v65-product-image-lightbox::backdrop{background:#071b36b3}
 .v65-product-image-lightbox>img{display:block;max-width:100%;max-height:calc(92vh - 60px);object-fit:contain}
 .v65-product-image-lightbox-close{position:absolute;top:5px;right:8px;width:29px;height:29px;border:0;background:transparent;font-size:24px;cursor:pointer;color:#475569}
-@media print{.app-shell .v65-product-photo-thumb{height:30px;width:30px}}
 
 /* v65 product detail: readable image at overview scale, without affecting list thumbnails. */
 .app-shell .v65-product-detail .product-identity{grid-template-columns:132px minmax(220px,1fr) minmax(350px,1.5fr);gap:18px;min-height:162px}
