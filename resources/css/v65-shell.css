@@ -1188,11 +1188,19 @@
 }
 .app-shell .v65-contact-tabs .tab:hover{background:#edf4fe}
 .app-shell .v65-contact-tabs .tab.is-active{background:#fff;color:#0867d9;border-bottom-color:#1976ed;font-weight:700}
+.app-shell .page-header:has(.v65-contact-top-actions){position:relative;z-index:30;overflow:visible}
 .app-shell .page-actions .v65-contact-top-actions{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
 .app-shell .page-actions .v65-contact-top-actions :where(a.button-secondary,button.button-secondary){
   min-height:34px;padding:7px 11px;margin:0;font-size:11px;white-space:nowrap;border-radius:6px!important
 }
-.app-shell .v65-contact-action-menu{position:relative;display:inline-flex}
+.app-shell .v65-contact-action-menu{position:relative;display:inline-flex;z-index:1}
+.app-shell .v65-contact-action-menu[open]{z-index:75}
+/* Explicit closed state is essential: author display:grid must never expose
+   the panels of closed native <details> elements. */
+.app-shell .v65-contact-action-menu:not([open])>.v65-contact-action-panel{display:none!important}
+.app-shell .v65-contact-action-menu[open]>summary{background:#eef5ff;border-color:#a6c8f2;color:#175aa7}
+.app-shell .v65-contact-action-menu summary:focus-visible,
+.app-shell .v65-contact-action-panel a:focus-visible{outline:2px solid #1a73e8;outline-offset:2px}
 .app-shell .v65-contact-action-menu summary{
   display:inline-flex;align-items:center;gap:8px;list-style:none;cursor:pointer;
   background:#fff;border:1px solid #d2dfee;color:#2e4b68;
@@ -1202,7 +1210,8 @@
 .app-shell .v65-contact-action-menu summary::-webkit-details-marker{display:none}
 .app-shell .v65-contact-action-menu summary:after{content:"⌄";font-size:12px}
 .app-shell .v65-contact-action-panel{
-  position:absolute;z-index:40;top:calc(100% + 5px);right:0;min-width:180px;
+  position:absolute;z-index:80;top:calc(100% + 5px);right:0;min-width:180px;
+  max-width:min(270px,calc(100vw - 24px));
   display:grid;padding:6px;background:#fff;border:1px solid #d8e3f0;
   box-shadow:0 10px 25px #1e395125;border-radius:8px
 }
