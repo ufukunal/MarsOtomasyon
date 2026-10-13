@@ -19,8 +19,8 @@ Kullanıcıdan gelen iki bekleyen Cari Listesi yerleşim kararını uygulamak; T
 PostSalesInvoice, satış faturası TRY ise ve cari risk limiti aşılacaksa, işlemden önce kullanıcıdan açık kabul ister. Satış faturası oluşturulması ile kesinleştirme farklı işlemlerdir. Tekrar oynatılan idempotent kesinleştirme işlemleri için zaten `posted` durumundaki faturalarda ikinci risk uyarısı uygulanmaz.
 
 - Kaynak TRY cari neti: `contact_transactions`, debit eksi credit.
-- Pozitif net: şirketin müşteriden alacağı; limit yüzdesine girer.
-- Negatif net: şirketin cariye borcu; sırf mutlak değer alınıp müşteri riski olarak sayılmaz.
+- Pozitif net: şirketin müşteriden alacağı; **cari açısından Borçlu/kırmızı**, limit yüzdesine girer.
+- Negatif net: şirketin cariye borcu; **cari açısından Alacaklı/yeşil**, sırf mutlak değer alınıp müşteri riski olarak sayılmaz.
 - Risk limiti 0: limitsiz; risk yüzde alanı `—`, limit aşımı filtresinde gösterilmez.
 - Döviz tutarları TRY ile dönüşüm yapılmadan toplanmaz. Döviz faturasında ayrı risk değerlendirmesi gerekir.
 - Risk kontrolü mevcut sipariş onaylama algoritmasının bilinen alacak projeksiyonunu kullanır. Portföy kıymet riskini eksiksiz hesapladığı iddia edilmez.
