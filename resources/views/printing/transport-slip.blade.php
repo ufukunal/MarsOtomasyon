@@ -56,7 +56,9 @@ th{background:#f1f5f9}
   <button onclick="window.print()">Yazdır / PDF Olarak Kaydet</button>
 </div>
 @if($format === 'slip')
-@php($slipQrToken = \App\Support\Printing\Label\OpaqueQrSvg::token($qrScope, 0, (string) config('app.key')))
+@php
+    $slipQrToken = \App\Support\Printing\Label\OpaqueQrSvg::token($qrScope, 0, (string) config('app.key'));
+@endphp
 <main class="sheet a4">
     @for($copy = 0; $copy < 2; $copy++)
     <section class="copy">
