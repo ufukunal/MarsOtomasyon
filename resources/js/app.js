@@ -424,3 +424,53 @@ document.addEventListener('click', (event) => {
         }
     }
 });
+
+
+// V65 list drawer: native dialog manages modality and keyboard focus.
+document.addEventListener('click', (event) => {
+    if (!(event.target instanceof Element)) return;
+    const open = event.target.closest('[data-v65-filter-open]');
+    if (open) {
+        const dialog = open.closest('.v65-filter-control')?.querySelector('[data-v65-filter-dialog]');
+        if (dialog instanceof HTMLDialogElement && !dialog.open) {
+            dialog.showModal();
+            document.documentElement.classList.add('v65-filter-is-open');
+        }
+        return;
+    }
+
+    const button = event.target.closest('[data-v65-filter-close],[data-v65-filter-apply]');
+    if (button) {
+        const dialog = button.closest('[data-v65-filter-dialog]');
+        if (dialog instanceof HTMLDialogElement && dialog.open) dialog.close();
+    }
+});
+
+document.addEventListener('click', (event) => {
+    const dialog = event.target;
+    if (!(dialog instanceof HTMLDialogElement) || !dialog.matches('[data-v65-filter-dialog]')) return;
+    // Native <dialog> receives the click when the backdrop is clicked.
+    const rect = dialog.getBoundingClientRect();
+    if (event.clientX >= rect.left && event.clientX <= rect.right
+        && event.clientY >= rect.top && event.clientY <= rect.bottom) return;
+    dialog.close();
+    const id = dialog.closest('[wire\\:id]')?.getAttribute('wire:id');
+    if (id && window.Livewire?.find(id)) window.Livewire.find(id).call('closeV65Filters');
+});
+
+document.addEventListener('cancel', (event) => {
+    if (!(event.target instanceof HTMLDialogElement) || !event.target.matches('[data-v65-filter-dialog]')) return;
+    const id = event.target.closest('[wire\\:id]')?.getAttribute('wire:id');
+    if (id && window.Livewire?.find(id)) window.Livewire.find(id).call('closeV65Filters');
+}, true);
+
+document.addEventListener('close', (event) => {
+    if (!(event.target instanceof HTMLDialogElement) || !event.target.matches('[data-v65-filter-dialog]')) return;
+    if (!document.querySelector('[data-v65-filter-dialog][open]')) document.documentElement.classList.remove('v65-filter-is-open');
+    const trigger = event.target.closest('.v65-filter-control')?.querySelector('[data-v65-filter-open]');
+    if (trigger instanceof HTMLElement) trigger.focus({ preventScroll: true });
+}, true);
+
+document.addEventListener('livewire:navigating', () => {
+    document.documentElement.classList.remove('v65-filter-is-open');
+});
