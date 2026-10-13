@@ -111,6 +111,7 @@ class ContactList extends DataTableComponent
 
         if (Schema::connection('period')->hasTable('contact_transactions')) {
             $netByContact = DB::connection('period')->table('contact_transactions')
+                ->where('currency', 'TRY')
                 ->groupBy('contact_id')
                 ->selectRaw("COALESCE(SUM(CASE WHEN direction = 'debit' THEN amount ELSE -amount END),0)::text AS net")
                 ->get();
@@ -130,8 +131,10 @@ class ContactList extends DataTableComponent
             'active' => (int) ($counts?->active_count ?? 0),
             'inactive' => (int) ($counts?->inactive_count ?? 0),
             'cities' => (int) ($counts?->city_count ?? 0),
-            'debit' => $debit,
-            'credit' => $credit,
+            // Positive net debits are receivables for the company (alacak).
+            // Negative net balances are payables (borç).
+            'debit' => $credit,
+            'credit' => $debit,
         ];
     }
 

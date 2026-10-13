@@ -40,8 +40,8 @@
                 <div><small>Aktif</small><strong>{{ $cariStats['active'] }}</strong></div>
                 <div><small>Pasif</small><strong>{{ $cariStats['inactive'] }}</strong></div>
                 <div><small>Şehir</small><strong>{{ $cariStats['cities'] }}</strong></div>
-                <div><small>Toplam Borç</small><strong>{{ \App\Support\Formatting\TrFormatter::money($cariStats['debit']) }} ₺</strong></div>
-                <div><small>Toplam Alacak</small><strong>{{ \App\Support\Formatting\TrFormatter::money($cariStats['credit']) }} ₺</strong></div>
+                <div><small>Toplam Borç (TRY)</small><strong>{{ \App\Support\Formatting\TrFormatter::money($cariStats['debit']) }} ₺</strong></div>
+                <div><small>Toplam Alacak (TRY)</small><strong>{{ \App\Support\Formatting\TrFormatter::money($cariStats['credit']) }} ₺</strong></div>
             </div>
         </section>
     @endif
