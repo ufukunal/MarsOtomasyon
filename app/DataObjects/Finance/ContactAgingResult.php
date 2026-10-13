@@ -14,5 +14,6 @@ final readonly class ContactAgingResult
         public string $openDebit,
         public string $excessCredit,
         public array $buckets,
+        public string $currency = 'TRY',
     ) {}
 }
