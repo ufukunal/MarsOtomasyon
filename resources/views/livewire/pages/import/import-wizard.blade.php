@@ -37,7 +37,9 @@
                     <thead><tr><th>#</th>@foreach($headers as $header)<th>{{ $header }}</th>@endforeach<th>Doğrulama</th></tr></thead>
                     <tbody>
                     @foreach($preview as $index => $row)
-                        @php($validation = $previewValidation[$index] ?? ['valid'=>true,'errors'=>[]])
+                        @php
+                            $validation = $previewValidation[$index] ?? ['valid'=>true,'errors'=>[]];
+                        @endphp
                         <tr @class(['import-row-error' => !$validation['valid']])>
                             <td>{{ $index + 2 }}</td>
                             @foreach($headers as $header)<td>{{ $row[$header] ?? '' }}</td>@endforeach
