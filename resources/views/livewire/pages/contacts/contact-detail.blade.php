@@ -226,7 +226,14 @@
                     <button type="button" @class(['button-secondary','is-current'=>$statementMode==='vouchers']) wire:click="switchStatementMode('vouchers')">Fiş Listesi</button>
                     <button type="button" @class(['button-secondary','is-current'=>$statementMode==='summary']) wire:click="switchStatementMode('summary')">Detaysız Ekstre</button>
                     <button type="button" @class(['button-secondary','is-current'=>$statementMode==='detailed']) wire:click="switchStatementMode('detailed')">Detaylı Ekstre</button>
+                    <button type="button" class="button-secondary" wire:click="exportStatementCsv" wire:loading.attr="disabled" wire:target="exportStatementCsv">CSV</button>
+                    <button type="button" class="button-secondary" wire:click="exportStatementXlsx" wire:loading.attr="disabled" wire:target="exportStatementXlsx">Excel</button>
                 </div>
+            </div>
+            <div class="v65-contact-statement-filter">
+                <label>Başlangıç <input type="date" wire:model.live.debounce.300ms="statementFrom" aria-label="Ekstre başlangıç tarihi"></label>
+                <label>Bitiş <input type="date" wire:model.live.debounce.300ms="statementTo" aria-label="Ekstre bitiş tarihi"></label>
+                <span>Fişler tarih sırasıyla listelenir. Önceki hareketlerin devir bakiyesi korunur.</span>
             </div>
             @if($movementTotals->isNotEmpty())
                 <div class="v65-contact-statement-totals">
