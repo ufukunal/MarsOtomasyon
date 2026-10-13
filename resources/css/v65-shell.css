@@ -1383,3 +1383,22 @@
 .app-shell .v65-contact-statement-filter>span{
   flex:1 1 230px;font-size:11px;color:#698099;line-height:1.6
 }
+
+/* Record identifiers replace list-only Open/Edit buttons. Keep links compact
+   and keyboard-visible without changing action buttons inside detail cards. */
+.app-shell .v65-list-table .data-table :is(a.v65-record-link,button.v65-record-link),
+.app-shell .data-table :is(a.v65-record-link,button.v65-record-link),
+.app-shell .category-tree a.v65-record-link{
+  display:inline;appearance:none;background:transparent;border:0;border-radius:0;
+  margin:0;padding:0;color:#0965d7;font:inherit;font-weight:650;
+  text-align:left;text-decoration:none;cursor:pointer;min-height:0;height:auto;
+  box-shadow:none
+}
+.app-shell .data-table :is(a.v65-record-link,button.v65-record-link):hover,
+.app-shell .category-tree a.v65-record-link:hover{
+  color:#064eab;text-decoration:underline
+}
+.app-shell .data-table :is(a.v65-record-link,button.v65-record-link):focus-visible,
+.app-shell .category-tree a.v65-record-link:focus-visible{
+  outline:2px solid #0965d7;outline-offset:3px
+}
