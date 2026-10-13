@@ -35,18 +35,21 @@ final class ContactBalanceCheck implements IntegrityCheck
         }
 
         $contacts = ContactTransaction::query()
-            ->select('contact_id')
+            ->select('contact_id', 'currency')
             ->distinct()
-            ->pluck('contact_id');
+            ->get();
         $mismatches = [];
 
-        foreach ($contacts as $contactId) {
-            $aging = $this->aging->handle((int) $contactId, now()->toDateString());
+        foreach ($contacts as $position) {
+            $contactId = (int) $position->contact_id;
+            $currency = (string) $position->currency;
+            $aging = $this->aging->handle($contactId, now()->toDateString(), $currency);
             $expectedOpen = bccomp($aging->balance, '0', 4) > 0 ? $aging->balance : '0.0000';
 
             if (bccomp($aging->openDebit, $expectedOpen, 4) !== 0) {
                 $mismatches[] = [
                     'contact_id' => $contactId,
+                    'currency' => $currency,
                     'reason' => 'aging_balance_mismatch',
                     'balance' => $aging->balance,
                     'open_debit' => $aging->openDebit,
