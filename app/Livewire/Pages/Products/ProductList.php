@@ -6,6 +6,7 @@ use App\Enums\ProductKind;
 use App\Livewire\Components\DataTable\Column;
 use App\Livewire\Components\DataTable\DataTableComponent;
 use App\Livewire\Components\DataTable\DateRangeFilter;
+use App\Livewire\Components\DataTable\NumberRangeFilter;
 use App\Livewire\Components\DataTable\SelectFilter;
 use App\Livewire\Components\DataTable\TextFilter;
 use App\Models\Period\Brand;
@@ -190,13 +191,14 @@ class ProductList extends DataTableComponent
         return parent::formattedValue($row, $column);
     }
 
-    /** @return list<SelectFilter|DateRangeFilter|TextFilter> */
+    /** @return list<SelectFilter|DateRangeFilter|TextFilter|NumberRangeFilter> */
     public function filters(): array
     {
         return [
             TextFilter::make('code', 'Ürün Kodu'),
             TextFilter::make('name', 'Ürün Adı'),
             TextFilter::make('barcode', 'Barkod'),
+            NumberRangeFilter::make('list_price', 'Satış Fiyatı (TRY)'),
             SelectFilter::make('category_id', 'Kategori')->options(
                 ProductCategory::query()->where('is_active', true)->orderBy('name')->pluck('name', 'id')->all()
             ),
