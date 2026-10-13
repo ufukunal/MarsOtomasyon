@@ -178,7 +178,7 @@
     </section>
 
     <section class="panel stack">
-        <h2>Son Kasa Hareketleri</h2>
+        <x-v65.list-heading title="Son Kasa Hareketleri" />
         <div class="table-scroll v65-list-table"><table class="data-table">
             <thead><tr><th>ID</th><th>Tarih</th><th>Tür</th><th>Yön</th><th>Tutar</th><th>Referans</th><th>Grup</th></tr></thead>
             <tbody>
@@ -198,7 +198,7 @@
     </section>
 
     <section class="panel stack">
-        <h2>Son Banka Defter Hareketleri</h2>
+        <x-v65.list-heading title="Son Banka Defter Hareketleri" />
         <div class="table-scroll v65-list-table"><table class="data-table">
             <thead><tr><th>ID</th><th>Tarih</th><th>Tür</th><th>Yön</th><th>Tutar</th><th>Referans</th><th>Grup</th></tr></thead>
             <tbody>
