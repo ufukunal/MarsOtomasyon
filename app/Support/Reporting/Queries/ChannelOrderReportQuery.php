@@ -6,6 +6,7 @@ use App\Contracts\Reporting\ReportQuery;
 use App\Enums\DocumentType;
 use App\Models\SalesChannelAccount;
 use App\Support\Period\PeriodContext;
+use App\Support\Reporting\CurrencySeparatedTotals;
 use App\Support\Reporting\ReportColumnDefinition;
 use App\Support\Reporting\ReportDefinition;
 use App\Support\Reporting\ReportDrillDownDefinition;
@@ -31,6 +32,7 @@ final class ChannelOrderReportQuery implements ReportQuery
                 new ReportFilterDefinition('date_to', 'Bitiş tarihi', 'date'),
                 new ReportFilterDefinition('channel_account_id', 'Kanal Hesabı', 'positive_integer'),
                 new ReportFilterDefinition('status', 'Sipariş Durumu'),
+                new ReportFilterDefinition('currency', 'Döviz'),
             ],
             columns: [
                 new ReportColumnDefinition('snapshot_id', 'Snapshot ID', 'integer', defaultVisible: false),
@@ -110,13 +112,17 @@ final class ChannelOrderReportQuery implements ReportQuery
 
         $totals = [];
         if ($context->totalKeys !== []) {
-            $row = (clone $base)->selectRaw(
-                'COUNT(*)::bigint AS orders, COALESCE(SUM(d.grand_total),0)::text AS grand_total'
-            )->first();
-            foreach ($context->totalKeys as $key) {
-                $totals[$key] = $key === 'orders'
-                    ? (int) ($row->orders ?? 0)
-                    : ($row->{$key} ?? '0');
+            $groups = (clone $base)->selectRaw(
+                'd.currency AS currency, COUNT(*)::bigint AS orders, '
+                .'COALESCE(SUM(d.grand_total),0)::text AS grand_total'
+            )->groupBy('d.currency')->get();
+            if (in_array('orders', $context->totalKeys, true)) {
+                $totals['orders'] = (int) $groups->sum('orders');
+            }
+            if (in_array('grand_total', $context->totalKeys, true)) {
+                $totals += CurrencySeparatedTotals::fromGroups(
+                    $groups, ['grand_total'], $context->filters['currency'] ?? null,
+                );
             }
         }
 
@@ -137,6 +143,9 @@ final class ChannelOrderReportQuery implements ReportQuery
         }
         if (isset($filters['status'])) {
             $query->where('d.status', $filters['status']);
+        }
+        if (isset($filters['currency'])) {
+            $query->where('d.currency', strtoupper((string) $filters['currency']));
         }
     }
 
