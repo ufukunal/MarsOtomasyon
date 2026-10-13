@@ -16,7 +16,7 @@
                 <tr>
                     <td><button type="button" class="link-button v65-record-link" wire:click="selectOrder({{ $row->id }})">{{ $row->number ?? 'Taslak #'.$row->id }}</button></td>
                     <td>{{ $row->document_date?->format('d.m.Y') }}</td>
-                    <td>{{ $row->product->code }} · {{ $row->product->name }}</td>
+                    <td>@can('products.view')<a class="v65-record-link" href="{{ route('products.show', ['product' => $row->product_id]) }}">{{ $row->product->code }} · {{ $row->product->name }}</a>@else{{ $row->product->code }} · {{ $row->product->name }}@endcan</td>
                     <td>{{ $row->production_type }}</td>
                     <td>{{ $row->planned_quantity }}</td>
                     <td>{{ $row->completed_quantity }}</td>
