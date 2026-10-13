@@ -1,7 +1,7 @@
-<div class="space-y-5 panel">
-    <h1>Cari Borç / Alacak Fişi</h1>
+<div class="space-y-5 panel v65-workspace-form">
+    <h2>Cari Borç / Alacak Fişi</h2>
 
-    <label>Cari
+    <label class="field">Cari
         <select wire:model="contactId">
             <option value="">Seçin</option>
             @foreach($contacts as $contact)
@@ -9,17 +9,17 @@
             @endforeach
         </select>
     </label>
-    <label>Yön
+    <label class="field">Yön
         <select wire:model="direction">
             <option value="debit">Borç (Debit)</option>
             <option value="credit">Alacak (Credit)</option>
         </select>
     </label>
-    <label>Tutar <input wire:model="amount"></label>
-    <label>Tarih <input type="date" wire:model="documentDate"></label>
-    <label>Gerekçe <input wire:model="reason"></label>
-    <label>Not <textarea wire:model="note"></textarea></label>
-    <button type="button" wire:click="post">Kesinleştir</button>
+    <label class="field">Tutar <input wire:model="amount"></label>
+    <label class="field">Tarih <input type="date" wire:model="documentDate"></label>
+    <label class="field">Gerekçe <input wire:model="reason"></label>
+    <label class="field">Not <textarea wire:model="note"></textarea></label>
+    <div class="v65-form-footer"><button type="button" wire:click="post">Kesinleştir</button></div>
 
     @if($postedDocumentId)
         <div>Kesinleşen belge #{{ $postedDocumentId }}</div>
