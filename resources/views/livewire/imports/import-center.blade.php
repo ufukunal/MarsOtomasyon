@@ -189,7 +189,7 @@
                         <td>{{ $package->container?->container_no ?? $package->container_id }}</td>
                         <td>@if(!$file->isLocked() && auth()->user()?->can('import_shipments.update'))<button type="button" class="link-button v65-record-link" wire:click="editPackage({{ $package->id }})">{{ $package->carton_no }}</button>@else{{ $package->carton_no }}@endif</td>
                         <td>{{ $package->component_name }}</td>
-                        <td>{{ $package->product?->code ?? 'Eşleşmedi' }}</td>
+                        <td>@if($package->product && auth()->user()?->can('products.view'))<a class="v65-record-link" href="{{ route('products.show', ['product' => $package->product_id]) }}">{{ $package->product->code }}</a>@else{{ $package->product?->code ?? 'Eşleşmedi' }}@endif</td>
                         <td>{{ $package->quantity }}</td>
                         <td>{{ $package->unit_price }} {{ $file->currency }}</td>
                         <td>{{ $package->weight_kg }}</td>
