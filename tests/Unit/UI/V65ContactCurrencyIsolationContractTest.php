@@ -8,7 +8,7 @@ it('isolates the scalar cari balance and risk comparison to TRY', function (): v
         ->toContain("->where('currency', 'TRY')")
         ->and($list)
         ->toContain("ct.currency = 'TRY'")
-        ->toContain("Bakiye (TRY)")
+        ->toContain("Column::make('balance_display', 'Bakiye')")
         ->toContain("->where('currency', 'TRY')");
 });
 
