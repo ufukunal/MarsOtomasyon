@@ -82,7 +82,7 @@
     <section class="panel stack">
         <x-v65.list-heading title="İade Geçmişi" />
         <div class="table-scroll v65-list-table"><table class="data-table">
-            <thead><tr><th>No</th><th>Tür</th><th>Cari</th><th>Tarih</th><th>Tutar</th><th>Durum</th></tr></thead>
+            <thead><tr><th>No</th><th>Tür</th><th>Cari</th><th>Tarih</th><th class="align-end">Tutar</th><th>Durum</th></tr></thead>
             <tbody>
             @foreach($returns as $return)
                 <tr>
@@ -90,7 +90,7 @@
                     <td>{{ $return->document_type === AppEnumsDocumentType::SalesReturn ? 'Satış' : 'Alış' }}</td>
                     <td>@if($return->contact && auth()->user()?->can('contacts.view'))<a href="{{ route('contacts.show', ['contact' => $return->contact_id]) }}">{{ $return->contact->title }}</a>@else{{ $return->contact?->title }}@endif</td>
                     <td>{{ $return->document_date?->format('d.m.Y') }}</td>
-                    <td>{{ $return->grand_total }} {{ $return->currency }}</td>
+                    <td class="align-end">{{ $return->grand_total }} {{ $return->currency }}</td>
                     <td>{{ $return->status }}</td>
                     
                 </tr>
