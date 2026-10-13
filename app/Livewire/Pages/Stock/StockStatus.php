@@ -129,12 +129,16 @@ class StockStatus extends DataTableComponent
 
     public function columnUrl(Model $row, Column $column): ?string
     {
-        if (! in_array($column->key, ['product_code', 'product_name'], true)
-            || ! auth()->user()?->can('products.view')) {
-            return null;
+        if (in_array($column->key, ['product_code', 'product_name'], true)
+            && auth()->user()?->can('products.view')) {
+            return route('products.show', ['product' => (int) $row->getAttribute('product_id')]);
         }
 
-        return route('products.show', ['product' => (int) $row->getAttribute('product_id')]);
+        if ($column->key === 'location_name' && auth()->user()?->can('locations.view')) {
+            return route('locations.show', ['location' => (int) $row->getAttribute('location_id')]);
+        }
+
+        return null;
     }
 
     private function canViewCost(): bool
