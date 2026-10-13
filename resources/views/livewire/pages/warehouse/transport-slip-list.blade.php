@@ -1,5 +1,9 @@
 <div class="wsl-shell stack v65-list-page">
-    <div class="v65-filter-toolbar">
+    <x-v65.active-filters :items="$this->v65ActiveFilterLabels()" />
+
+    <section class="wsl-card panel v65-list-panel">
+        <x-v65.list-heading title="Ambar Fişi Listesi">
+            <div class="v65-filter-toolbar">
         <x-v65.filter-drawer :count="$this->activeV65FilterCount()" :tab="$v65FilterTab">
             <x-slot:filters>
                 <x-v65.filter-field label="Genel Arama">
@@ -46,10 +50,7 @@
             </x-slot:sorting>
         </x-v65.filter-drawer>
     </div>
-    <x-v65.active-filters :items="$this->v65ActiveFilterLabels()" />
-
-    <section class="wsl-card panel v65-list-panel">
-        <div class="wsl-card-head"><strong>Ambar Fişi Listesi</strong></div>
+        </x-v65.list-heading>
         <div class="table-scroll v65-list-table">
             <table class="data-table wsl-table">
                 <thead><tr>
