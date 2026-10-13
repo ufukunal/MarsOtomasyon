@@ -1,7 +1,6 @@
 <div class="stack v65-list-page">
-    <section class="panel stack">
-        <h2>Baskı Geçmişi Filtreleri</h2>
-        <div class="form-grid">
+    <x-v65.list-heading title="Baskı Geçmişi">
+        <x-v65.simple-filter-drawer>
             <label>
                 <span>Durum</span>
                 <select wire:model.live="status">
@@ -22,8 +21,8 @@
                     <option value="report">Rapor</option>
                 </select>
             </label>
-        </div>
-    </section>
+        </x-v65.simple-filter-drawer>
+    </x-v65.list-heading>
 
     <section class="panel">
         <div class="table-scroll v65-list-table">
