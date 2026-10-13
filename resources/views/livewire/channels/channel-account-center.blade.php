@@ -10,16 +10,16 @@
         </div>
 
         <div class="table-scroll v65-grid-scroll v65-list-table"><table class="data-table">
-            <thead><tr><th>Platform</th><th>Hesap</th><th>Store ID</th><th>Aktif</th><th>Adapter</th><th></th></tr></thead>
+            <thead><tr><th>Platform</th><th>Hesap</th><th>Store ID</th><th>Aktif</th><th>Adapter</th></tr></thead>
             <tbody>
             @foreach($accounts as $account)
                 <tr>
                     <td>{{ $account->platform->label() }}</td>
-                    <td>{{ $account->name }}</td>
+                    <td><button type="button" class="link-button v65-record-link" wire:click="selectAccount({{ $account->id }})">{{ $account->name }}</button></td>
                     <td>{{ $account->external_store_id }}</td>
                     <td>{{ $account->is_active ? 'Evet' : 'Hayır' }}</td>
                     <td>{{ $adapterAvailability[$account->platform->value] ? 'Hazır' : 'Kanal bloğu bekleniyor' }}</td>
-                    <td><button class="button-secondary" type="button" wire:click="selectAccount({{ $account->id }})">Aç</button></td>
+                    
                 </tr>
             @endforeach
             </tbody>
