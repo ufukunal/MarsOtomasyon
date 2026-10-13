@@ -145,7 +145,11 @@
         @endteleport
     @endif
     @unless($this instanceof \App\Livewire\Pages\Contacts\ContactList)
-        @include('livewire.components.partials.v65-table-filter-controls')
+        <x-v65.list-heading class="v65-shared-table-title"
+            :title="$isProductTable ? 'Ürün Listesi' : $listLabel"
+            :description="$rows->total().' kayıt'">
+            @include('livewire.components.partials.v65-table-filter-controls')
+        </x-v65.list-heading>
     @endunless
     <x-v65.active-filters :items="$this->v65ActiveFilterLabels()" />
 
@@ -159,12 +163,6 @@
         </div>
     @endif
 
-    @unless($this instanceof \App\Livewire\Pages\Contacts\ContactList)
-        <div class="v65-shared-table-title">
-            <strong>{{ $isProductTable ? 'Ürün Listesi' : $listLabel }}</strong>
-            <small>{{ $rows->total() }} kayıt</small>
-        </div>
-    @endunless
     <div class="table-scroll v65-list-table">
         <table class="data-table">
             <thead>
