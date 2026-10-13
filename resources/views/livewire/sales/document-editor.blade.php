@@ -171,7 +171,7 @@
                     @if($invoiceRisk?->knownLimitExceeded)
                         <div class="alert alert-warning" role="alert">
                             <strong>Cari risk limiti aşılıyor.</strong>
-                            Mevcut alacak: {{ \App\Support\Formatting\TrFormatter::money($invoiceRisk->currentBalance) }} ₺;
+                            Carinin mevcut net borcu: {{ \App\Support\Formatting\TrFormatter::money($invoiceRisk->currentBalance) }} ₺;
                             fatura: {{ \App\Support\Formatting\TrFormatter::money($invoiceRisk->orderTotal) }} ₺;
                             tahmini risk: {{ \App\Support\Formatting\TrFormatter::money($invoiceRisk->knownExposure) }} ₺;
                             limit: {{ \App\Support\Formatting\TrFormatter::money($invoiceRisk->riskLimit) }} ₺.
