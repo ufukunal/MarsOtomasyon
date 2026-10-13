@@ -46,9 +46,9 @@ it('uses the same reference table scaffolding for product, stock and other lists
         ->toContain('v65-shared-table-title')
         ->toContain('v65-products-heading-actions')
         ->not->toContain('v65-shared-list-heading')
-        ->toContain('<x-v65.filter-drawer')
+        ->toContain("@include('livewire.components.partials.v65-table-filter-controls')")
         ->toContain('$navigationItem')
-        ->toContain('wire:model="v65DraftFilters.search"')
+        ->toContain("v65-cari-intro-filters")
         ->toContain('wire:click="exportProducts"')
         ->toContain('data-v65-products-export-dialog')
         ->toContain("route(\$emptyAction['route'])")
@@ -205,7 +205,7 @@ it('matches the approved product-list screenshot without changing other list sel
         ->toContain('data-v65-products-print-open')
         ->toContain('wire:click="exportXlsx"')
         ->toContain('wire:click="exportCsv"')
-        ->toContain('<x-v65.filter-drawer')
+        ->toContain("@include('livewire.components.partials.v65-table-filter-controls')")
         ->not->toContain('v65-products-advanced')
         ->toContain('@unless($isProductTable)')
         ->toContain('@if(!$isProductTable && $rowActions !== [])')
@@ -227,7 +227,7 @@ it('keeps shared table toolbar controls aligned and readable across modules', fu
         ->toContain('height:42px;min-height:42px')
         ->toContain('color:#526780;opacity:1')
         ->toContain('align-items:center;justify-content:flex-end')
-        ->and($table)->toContain('class="v65-filter-toolbar"')
+        ->and($table)->toContain("livewire.components.partials.v65-table-filter-controls")
         ->toContain('v65-data-table-heading-actions');
 });
 
