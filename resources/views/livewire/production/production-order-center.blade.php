@@ -1,12 +1,14 @@
 <div class="space-y-6 v65-list-page">
     <section class="panel v65-list-panel">
-        <div class="form-row v65-list-heading-actions">
-            <h1>Üretim Emirleri</h1>
+        @teleport('.page-actions.v65-page-actions')
+        <div class="v65-list-heading-actions">
             @can('production_orders.create')
                 <button type="button" wire:click="newOrder">Yeni Emir</button>
             @endcan
         </div>
-        <div class="v65-filter-toolbar">
+    @endteleport
+        <x-v65.list-heading title="Üretim Emirleri">
+            <div class="v65-filter-toolbar">
             <x-v65.filter-drawer :count="$this->activeV65FilterCount()" :tab="$v65FilterTab">
                 <x-slot:filters>
                     <x-v65.filter-field label="Genel Arama">
@@ -28,6 +30,7 @@
                 </x-slot:sorting>
             </x-v65.filter-drawer>
         </div>
+        </x-v65.list-heading>
         <x-v65.active-filters :items="$this->v65ActiveFilterLabels()" />
         <div class="table-scroll v65-grid-scroll v65-list-table"><table class="data-table">
             <thead><tr><th>No</th><th>Tarih</th><th>Mamul</th><th>Tip</th><th>Plan</th><th>Tamamlanan</th><th>Durum</th></tr></thead>
