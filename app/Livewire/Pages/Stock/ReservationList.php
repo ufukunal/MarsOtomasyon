@@ -73,13 +73,10 @@ class ReservationList extends DataTableComponent
     /** @return list<array<string, mixed>> */
     public function rowActions(): array
     {
-        $actions = [['label' => 'Detay', 'method' => 'showReservation']];
-
-        if (auth()->user()?->can('reservations.update')) {
-            $actions[] = ['label' => 'Rezervi Çöz', 'method' => 'releaseReservation'];
-        }
-
-        return $actions;
+        // Only the business operation remains as a button; opening uses the linked record.
+        return auth()->user()?->can('reservations.update')
+            ? [['label' => 'Rezervi Çöz', 'method' => 'releaseReservation']]
+            : [];
     }
 
     public function columnUrl(Model $row, Column $column): ?string
