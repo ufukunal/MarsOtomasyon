@@ -10,7 +10,7 @@
             <div class="field"><span class="field-label">Depo / Lokasyon Kodu</span><strong>{{ $location->code }}</strong></div>
             <div class="field"><span class="field-label">Adı</span><strong>{{ $location->name }}</strong></div>
             <div class="field"><span class="field-label">Tür</span><span>{{ $location->kind->value }}</span></div>
-            <div class="field"><span class="field-label">Durum</span><span class="badge">{{ $location->is_active ? 'Aktif' : 'Pasif' }}</span></div>
+            <div class="field"><span class="field-label">Durum</span><x-v65.status-badge :tone="$location->is_active ? 'success' : 'danger'">{{ $location->is_active ? 'Aktif' : 'Pasif' }}</x-v65.status-badge></div>
             <div class="field"><span class="field-label">Varsayılan</span><span>{{ $location->is_default ? 'Evet' : 'Hayır' }}</span></div>
             <div class="field"><span class="field-label">Araç Plakası</span><span>{{ $location->plate ?: '—' }}</span></div>
             <div class="field"><span class="field-label">Adres</span><span>{{ $location->address ?: '—' }}</span></div>
@@ -38,7 +38,7 @@
                         <td>{{ \App\Support\Formatting\TrFormatter::quantity($balance->available()) }}</td>
                     </tr>
                 @empty
-                    <tr><td colspan="6" class="empty-state">Bu depoda stok kaydı bulunamadı.</td></tr>
+                    <tr><td colspan="6"><x-v65.empty-state title="Bu depoda stok kaydı bulunamadı." /></td></tr>
                 @endforelse
                 </tbody>
             </table></div>
