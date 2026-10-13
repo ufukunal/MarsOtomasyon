@@ -11,7 +11,9 @@
                 @forelse ($rows as $row)
                     <tr wire:key="master-setting-{{ $section }}-{{ $row->id }}">
                         @foreach ($columns as $field => $label)
-                            @php($value = $row->{$field})
+                            @php
+                                $value = $row->{$field};
+                            @endphp
                             <td>
                                 @if (is_bool($value))
                                     {{ $value ? 'Evet' : 'Hayır' }}
