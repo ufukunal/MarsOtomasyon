@@ -36,10 +36,10 @@
             @error('factor')<div class="field-error" role="alert">{{ $message }}</div>@enderror
             <div class="table-scroll v65-list-table">
                 <table class="data-table">
-                    <thead><tr><th>Hedef</th><th>Katsayı</th><th>Ters</th></tr></thead>
+                    <thead><tr><th>Hedef</th><th class="align-end">Katsayı</th><th class="align-end">Ters</th></tr></thead>
                     <tbody>
                         @forelse($conversions as $row)
-                            <tr><td>{{ $row->toUnit->code }}</td><td>{{ $row->factor }}</td><td>{{ bcdiv('1', (string) $row->factor, 6) }}</td></tr>
+                            <tr><td>{{ $row->toUnit->code }}</td><td class="align-end">{{ $row->factor }}</td><td class="align-end">{{ bcdiv('1', (string) $row->factor, 6) }}</td></tr>
                         @empty
                             <tr><td colspan="3" class="empty-state">Henüz dönüşüm tanımlanmadı.</td></tr>
                         @endforelse
