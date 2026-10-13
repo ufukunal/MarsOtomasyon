@@ -1397,3 +1397,71 @@
 .app-shell .category-tree a.v65-record-link:focus-visible{
   outline:2px solid #0965d7;outline-offset:3px
 }
+
+/* V65 Cari Listesi — approved reference: compact six KPI cards and ledger-colored grid.
+   Scoped to contacts only; stock, products, document lists and contact detail remain unchanged. */
+.app-shell .v65-cari-list .v65-cari-list-intro{gap:10px;margin:0 0 12px}
+.app-shell .v65-cari-list .v65-cari-list-intro-title{
+  min-height:58px;display:grid;align-content:center;gap:5px;padding:10px 12px;
+  border:1px solid #dce5f0;border-radius:10px;background:#fff;
+  box-shadow:0 3px 12px rgba(20,42,68,.04)
+}
+.app-shell .v65-cari-list .v65-cari-list-intro-title strong{font-size:13px;font-weight:750;color:#173454}
+.app-shell .v65-cari-list .v65-cari-list-intro-title span{font-size:11px;color:#6683a4}
+.app-shell .v65-cari-list .v65-cari-list-stats{grid-template-columns:repeat(6,minmax(0,1fr));gap:9px}
+.app-shell .v65-cari-list .v65-cari-list-stats>div{
+  min-height:60px;display:grid;align-content:center;gap:7px;padding:10px 12px;
+  border:1px solid #dbe5f0;border-radius:15px;background:#fff;box-shadow:none
+}
+.app-shell .v65-cari-list .v65-cari-list-stats small{font-size:10.5px;color:#7588a1;line-height:1.1}
+.app-shell .v65-cari-list .v65-cari-list-stats strong{font-size:15px;font-weight:750;color:#183653;line-height:1.2;white-space:nowrap}
+.app-shell .v65-cari-list .v65-cari-list-stats .v65-cari-kpi-credit{color:#008744}
+.app-shell .v65-cari-list .v65-cari-list-stats .v65-cari-kpi-debit{color:#d5232e}
+.app-shell .v65-cari-list .v65-filter-toolbar{margin:3px 0 7px;padding:0}
+.app-shell .v65-cari-list .v65-list-table{border:1px solid #dce5f0;border-radius:8px;background:#fff;overflow-x:auto}
+.app-shell .v65-cari-list .v65-list-table .data-table{
+  min-width:1250px;width:100%;border-collapse:separate;border-spacing:0;table-layout:auto
+}
+.app-shell .v65-cari-list .v65-list-table .data-table thead th{
+  height:42px;padding:9px 10px!important;background:#f5f8fc;color:#364e70;
+  border-bottom:1px solid #dce5f0;border-right:1px solid #e7edf4;
+  font-size:11px;font-weight:700;text-align:left;white-space:nowrap
+}
+.app-shell .v65-cari-list .v65-list-table .data-table tbody td{
+  box-sizing:border-box;height:56px;padding:10px!important;color:#273b55;
+  border-bottom:1px solid #e8edf4;border-right:1px solid #eef2f7;
+  font-size:11.5px;line-height:1.4;vertical-align:middle
+}
+.app-shell .v65-cari-list .v65-list-table .data-table :is(th,td):last-child{border-right:0}
+.app-shell .v65-cari-list .v65-list-table .data-table tbody tr:nth-child(even){background:#f7faff}
+.app-shell .v65-cari-list .v65-list-table .data-table tbody tr:hover{background:#eef5ff}
+.app-shell .v65-cari-list .v65-list-table .data-table .select-column,
+.app-shell .v65-cari-list .v65-list-table .data-table td:has(>input[type=checkbox]){
+  width:36px!important;min-width:36px!important;max-width:36px!important;
+  padding:0 9px!important;text-align:center
+}
+.app-shell .v65-cari-list .data-table .v65-cari-record-title{color:#233957!important;font-weight:750}
+.app-shell .v65-cari-list .data-table .v65-cari-balance{font-size:11.5px;font-weight:750;white-space:nowrap;color:#334155}
+.app-shell .v65-cari-list .data-table .v65-cari-balance.is-receivable{color:#008744}
+.app-shell .v65-cari-list .data-table .v65-cari-balance.is-payable{color:#d5232e}
+.app-shell .v65-cari-list .data-table .v65-cari-state{
+  display:inline-flex;align-items:center;justify-content:center;
+  padding:4px 9px;border:1px solid #bfe6cc;background:#eaf8ef;color:#08763b;
+  font-size:11px;font-weight:700;white-space:nowrap
+}
+.app-shell .v65-cari-list .data-table .v65-cari-state.is-inactive{
+  border-color:#ebd0d0;background:#fff1f1;color:#a53636
+}
+.app-shell .v65-cari-list .data-table .sort-button{text-align:left;color:inherit;font:inherit}
+@media(max-width:1280px){
+  .app-shell .v65-cari-list .v65-cari-list-stats{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media(max-width:680px){
+  .app-shell .v65-cari-list .v65-cari-list-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .app-shell .v65-cari-list .v65-cari-list-stats strong{font-size:13px}
+  .app-shell .v65-cari-list .v65-cari-list-intro-title{min-height:55px}
+}
+@media print{
+  .app-shell .v65-cari-list .v65-filter-toolbar{display:none!important}
+  .app-shell .v65-cari-list .v65-list-table .data-table{min-width:0!important}
+}
