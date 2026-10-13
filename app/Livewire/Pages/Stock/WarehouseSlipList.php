@@ -77,7 +77,8 @@ class WarehouseSlipList extends DataTableComponent
     /** @return list<array<string, mixed>> */
     public function rowActions(): array
     {
-        return [['label' => 'Detay', 'method' => 'openSlip']];
+        // Records open via their linked identifiers, not redundant row buttons.
+        return [];
     }
 
     public function openSlip(int|string $id): mixed
