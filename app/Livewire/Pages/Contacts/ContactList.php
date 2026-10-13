@@ -181,6 +181,12 @@ class ContactList extends DataTableComponent
         }
 
         if ($column->key === 'category_names') {
+            $roles = $row->categories->pluck('name')
+                ->map(fn (string $name): string => mb_strtolower(trim($name)));
+            if ($roles->contains('müşteri') && $roles->contains('tedarikçi')) {
+                return 'Müşteri + Tedarikçi';
+            }
+
             return $row->getCategoryNamesAttribute() ?: '—';
         }
 
