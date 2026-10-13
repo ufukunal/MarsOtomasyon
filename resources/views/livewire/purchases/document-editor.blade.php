@@ -1,5 +1,7 @@
 <div class="document-workspace stack">
-    @php($isGoodsReceipt = $document?->document_type === \App\Enums\DocumentType::GoodsReceipt)
+    @php
+        $isGoodsReceipt = $document?->document_type === \App\Enums\DocumentType::GoodsReceipt;
+    @endphp
 
     <div>
         <span class="page-category">Satınalma Yönetimi</span><h2>{{ $title }}</h2>
