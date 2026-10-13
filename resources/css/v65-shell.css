@@ -1515,3 +1515,114 @@
   .app-shell .v65-cari-list .v65-cari-list-intro-title{column-gap:5px}
   .app-shell .v65-cari-list .v65-cari-intro-filters .v65-filter-trigger{padding:0 9px!important}
 }
+
+
+/* =======================================================================
+   V65 unified ERP list controls, revision 2026-10-14.
+   Scope deliberate: never override printed slips or standalone auth screens.
+   ======================================================================= */
+.app-shell{
+  --v65-list-border:#dce5ef;--v65-list-header:#f4f7fb;--v65-list-even:#f8fafd;
+  --v65-list-hover:#eef5ff;--v65-list-ink:#293e57;--v65-list-muted:#657b93;
+  --v65-list-btn-compact:28px;--v65-list-btn-normal:38px;
+  --v65-list-focus:#1a73e8;--v65-list-gap:10px
+}
+.app-shell .v65-standard-list-heading{
+  min-width:0;display:flex;align-items:center;justify-content:space-between;
+  gap:12px;margin:0 0 10px;padding:12px 14px;border:1px solid var(--v65-list-border);
+  background:#fff
+}
+.app-shell .v65-standard-list-heading-copy{min-width:0;display:grid;gap:4px}
+.app-shell .v65-standard-list-heading-copy>strong{font-size:13px;line-height:1.35;font-weight:750;color:#193755}
+.app-shell .v65-standard-list-heading-copy>small{font-size:11px;line-height:1.35;color:var(--v65-list-muted)}
+.app-shell .v65-standard-list-heading-controls{flex:none;margin-inline-start:auto;display:flex;align-items:center;justify-content:flex-end;gap:8px}
+.app-shell .v65-standard-list-heading-controls .v65-filter-toolbar{padding:0;margin:0;min-height:0}
+.app-shell .v65-standard-list-heading-controls .v65-filter-trigger{height:var(--v65-list-btn-normal)!important;min-height:var(--v65-list-btn-normal)!important}
+.app-shell .v65-standard-list-heading-controls :where(button,select,summary){max-width:100%}
+.app-shell .v65-list-page :is(.v65-list-heading-actions,.v65-cari-heading-actions,.v65-products-heading-actions){
+  display:flex;align-items:center;justify-content:flex-end;gap:7px;flex-wrap:wrap;
+}
+.app-shell .v65-list-page :is(.v65-list-heading-actions,.v65-cari-heading-actions) :where(button,a,summary){
+  margin:0;white-space:nowrap
+}
+.app-shell .v65-standard-action-menu{display:inline-flex;position:relative;z-index:3;flex:none}
+.app-shell .v65-standard-action-menu[open]{z-index:105}
+.app-shell .v65-standard-action-menu>summary{
+  box-sizing:border-box;display:inline-flex;justify-content:center;align-items:center;
+  gap:6px;min-height:var(--v65-list-btn-compact);list-style:none;cursor:pointer;white-space:nowrap
+}
+.app-shell .v65-standard-action-menu>summary::-webkit-details-marker{display:none}
+.app-shell .v65-standard-action-menu:not([open])>[data-v65-action-menu-panel]{display:none!important}
+.app-shell .v65-standard-action-menu[open]>summary{border-color:#a7c7eb!important;background:#edf5ff!important}
+.app-shell .v65-standard-action-menu-panel{
+  position:absolute;inset-inline-end:0;inset-inline-start:auto;top:calc(100% + 5px);
+  display:grid!important;align-content:start;min-width:154px;width:max-content;
+  max-width:min(280px,calc(100vw - 24px));padding:5px!important;
+  border:1px solid var(--v65-list-border)!important;border-radius:4px!important;
+  background:#fff;box-shadow:0 10px 26px rgba(17,43,73,.16);z-index:106
+}
+.app-shell .v65-standard-action-menu-panel :where(a,button){
+  box-sizing:border-box;display:flex!important;align-items:center;justify-content:flex-start!important;
+  width:100%;min-height:34px!important;height:auto!important;padding:7px 10px!important;
+  border:0!important;border-radius:2px!important;background:#fff!important;
+  color:#283e58!important;font-size:12px!important;text-align:start;white-space:nowrap
+}
+.app-shell .v65-standard-action-menu-panel :where(a,button):hover,
+.app-shell .v65-standard-action-menu-panel :where(a,button):focus-visible{
+  background:#edf5ff!important;color:#155aaf!important
+}
+.app-shell .v65-list-page :where(.table-scroll,.v65-list-table,.v65-grid-scroll){max-width:100%;overflow-x:auto;overscroll-behavior-x:contain}
+.app-shell .v65-list-page :where(.table-scroll,.v65-list-table) table.data-table{
+  width:100%;border-collapse:separate;border-spacing:0;table-layout:auto;background:#fff
+}
+.app-shell .v65-list-page table.data-table thead :is(th,td){
+  background:var(--v65-list-header);color:#38526d;font-size:11.5px;
+  font-weight:700;padding:10px 11px!important;border-bottom:1px solid var(--v65-list-border);
+  border-inline-end:1px solid #eaf0f7;white-space:nowrap;vertical-align:middle
+}
+.app-shell .v65-list-page table.data-table tbody td{
+  height:45px;box-sizing:border-box;padding:9px 11px!important;
+  font-size:11.5px;line-height:1.4;color:var(--v65-list-ink);vertical-align:middle;
+  border-bottom:1px solid #e8eef5;border-inline-end:1px solid #f1f4f8
+}
+.app-shell .v65-list-page table.data-table :is(th,td):last-child{border-inline-end:0}
+.app-shell .v65-list-page table.data-table tbody tr:nth-child(even){background:var(--v65-list-even)}
+.app-shell .v65-list-page table.data-table tbody tr:hover{background:var(--v65-list-hover)}
+.app-shell .v65-list-page table.data-table :where(.align-end,[data-type="number"]){text-align:end;font-variant-numeric:tabular-nums}
+.app-shell .v65-list-page table.data-table :where(.select-column,[data-column="select"]){text-align:center;width:38px;min-width:38px}
+.app-shell .v65-list-page .v65-list-footer{
+  display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;
+  padding:10px 12px;background:#fff;border-top:1px solid var(--v65-list-border)
+}
+.app-shell .v65-list-page .v65-list-footer-controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.app-shell .v65-list-page :where(.v65-record-link,button.link-button){color:#1764be;text-decoration:none;font-weight:650}
+.app-shell .v65-list-page :where(.v65-record-link,button.link-button):hover{text-decoration:underline}
+.app-shell .v65-list-page :where(.v65-standard-action-menu>summary,.v65-filter-trigger,select):focus-visible{
+  outline:2px solid var(--v65-list-focus)!important;outline-offset:2px!important
+}
+.app-shell :where(.v65-list-page,.v65-editor-panel,.v65-workspace-form,.form-grid,.field)
+  :is(select,input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),textarea){
+  box-sizing:border-box;max-width:100%;min-height:var(--v65-list-btn-normal);
+  border:1px solid #cfd9e6;border-radius:3px;background:#fff;color:#29415c;
+  font-size:12px;line-height:1.35
+}
+.app-shell :where(.v65-list-page,.v65-editor-panel,.v65-workspace-form,.form-grid,.field)
+  select{padding:0 32px 0 10px;cursor:pointer}
+.app-shell :where(.v65-list-page,.v65-editor-panel,.v65-workspace-form,.form-grid,.field)
+  :is(select,input,textarea):disabled{cursor:not-allowed;opacity:.58;background:#f1f4f8}
+.app-shell :where(.v65-list-page,.v65-editor-panel,.v65-workspace-form,.form-grid,.field)
+  :is(select,input,textarea):focus-visible{outline:2px solid #8eb9ef;outline-offset:1px}
+.app-shell .v65-list-page :where(.v65-list-heading-actions,.v65-standard-list-heading) h1{font-size:13px;margin:0}
+@media(max-width:680px){
+  .app-shell .v65-standard-list-heading{align-items:stretch;flex-wrap:wrap;padding:10px 11px}
+  .app-shell .v65-standard-list-heading-copy{flex:1 1 180px}
+  .app-shell .v65-standard-list-heading-controls{margin-inline-start:auto;flex:0 0 auto}
+  .app-shell .v65-list-page :where(.v65-list-heading-actions,.v65-cari-heading-actions){justify-content:flex-start}
+  .app-shell .v65-list-page table.data-table :is(th,td){white-space:nowrap}
+}
+@media print{
+  .app-shell .v65-standard-list-heading-controls,
+  .app-shell .v65-standard-action-menu,
+  .app-shell .v65-list-page .v65-filter-toolbar{display:none!important}
+  .app-shell .v65-list-page :where(.table-scroll,.v65-list-table){overflow:visible!important}
+}
