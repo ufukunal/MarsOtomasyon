@@ -1,6 +1,6 @@
-<section class="panel stack">
+<section class="panel stack v65-list-page">
     <p class="field-hint">{{ $description }}</p>
-    <div class="table-scroll">
+    <div class="table-scroll v65-list-table">
         <table class="data-table">
             <thead><tr>
                 @foreach ($columns as $label)

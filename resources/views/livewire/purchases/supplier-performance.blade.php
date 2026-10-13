@@ -1,4 +1,4 @@
-<div class="stack v65-supplier-performance">
+<div class="stack v65-supplier-performance v65-list-page">
     <h1>Tedarikçi Performansı</h1>
 
     <label>Tedarikçi
@@ -11,7 +11,7 @@
     </label>
 
     @if($metrics)
-        <div class="panel"><div class="table-scroll v65-grid-scroll"><table class="data-table">
+        <div class="panel"><div class="table-scroll v65-grid-scroll v65-list-table"><table class="data-table">
             <tbody>
             <tr><th>Satınalma Siparişi</th><td>{{ $metrics['purchase_orders'] }}</td></tr>
             <tr><th>Mal Kabul</th><td>{{ $metrics['goods_receipts'] }}</td></tr>

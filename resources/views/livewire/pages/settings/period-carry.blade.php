@@ -1,4 +1,4 @@
-<div class="stack" wire:poll.5s="refreshCarryStatus">
+<div class="stack v65-list-page" wire:poll.5s="refreshCarryStatus">
     <section class="panel">
         <h2>Dönem Devri Ön Kontrolü</h2>
         <div class="form-row">
@@ -26,7 +26,7 @@
     @if($preview)
         <section class="panel">
             <h2>Kontrol Listesi</h2>
-            <div class="table-scroll">
+            <div class="table-scroll v65-list-table">
                 <table class="data-table">
                     <thead>
                     <tr>
@@ -52,7 +52,7 @@
 
         <section class="panel">
             <h2>Kapanış / Taşıma Özeti</h2>
-            <div class="table-scroll">
+            <div class="table-scroll v65-list-table">
                 <table class="data-table">
                     <tbody>
                     @foreach($preview['summary'] as $key => $value)
@@ -68,7 +68,7 @@
 
         <section class="panel">
             <h2>K-256 Açık Siparişler</h2>
-            <div class="table-scroll">
+            <div class="table-scroll v65-list-table">
                 <table class="data-table">
                     <thead>
                     <tr>
@@ -122,7 +122,7 @@
 
         <section class="panel">
             <h2>K-259 Açık İthalat / Karantina</h2>
-            <div class="table-scroll">
+            <div class="table-scroll v65-list-table">
                 <table class="data-table">
                     <thead>
                     <tr>

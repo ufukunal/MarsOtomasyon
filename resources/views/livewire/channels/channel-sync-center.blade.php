@@ -1,4 +1,4 @@
-<div class="space-y-6">
+<div class="space-y-6 v65-list-page">
     @if(session('status')) <div class="panel">{{ session('status') }}</div> @endif
     <section class="panel">
         <h1>Kanal Sync Merkezi</h1>
@@ -26,7 +26,7 @@
             @endcan
         </div>
 
-        <table class="data-table">
+        <div class="table-scroll v65-list-table"><table class="data-table">
             <thead><tr><th>Zaman</th><th>Kanal</th><th>Yön</th><th>Entity</th><th>Action</th><th>Status</th><th>Attempt</th><th>Correlation</th><th>Hata</th><th></th></tr></thead>
             <tbody>
             @forelse($events as $event)
@@ -52,12 +52,12 @@
                 <tr><td colspan="10">Henüz sync event yok.</td></tr>
             @endforelse
             </tbody>
-        </table>
+        </table></div>
     </section>
 
     <section class="panel">
         <h2>Açık Kalıcı Hatalar</h2>
-        <table class="data-table">
+        <div class="table-scroll v65-list-table"><table class="data-table">
             <thead><tr><th>ID</th><th>Event</th><th>Kanal</th><th>Hata</th><th></th></tr></thead>
             <tbody>
             @forelse($errors as $error)
@@ -76,7 +76,7 @@
                 <tr><td colspan="5">Açık kalıcı hata yok.</td></tr>
             @endforelse
             </tbody>
-        </table>
+        </table></div>
         <div>Webhook destekleyen kanallarda webhook primary, 15 dakikalık polling güvenlik ağıdır. Outbound başarısız sync 30/60/120 saniye politikasına göre otomatik yeniden denenir.</div>
     </section>
 </div>

@@ -1,4 +1,4 @@
-<div class="stack">
+<div class="stack v65-list-page">
     @can('periods.create')
         <section class="panel">
             <h2>Yeni Dönem Aç</h2>
@@ -18,7 +18,7 @@
     @endcan
 
     <section class="panel">
-        <table class="data-table">
+        <div class="table-scroll v65-list-table"><table class="data-table">
             <thead>
             <tr>
                 <th>Şirket</th>
@@ -52,6 +52,6 @@
                 </tr>
             @endforeach
             </tbody>
-        </table>
+        </table></div>
     </section>
 </div>
