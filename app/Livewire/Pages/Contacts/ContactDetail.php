@@ -8,6 +8,10 @@ use App\Models\Period\ContactTransaction;
 use App\Models\Period\Document;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\DB;
+use Symfony\Component\HttpFoundation\StreamedResponse;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -25,6 +29,124 @@ class ContactDetail extends Component
 
     #[Url(as: 'gorunum')]
     public string $statementMode = 'summary';
+
+    #[Url(as: 'baslangic')]
+    public ?string $statementFrom = null;
+
+    #[Url(as: 'bitis')]
+    public ?string $statementTo = null;
+
+    public function updatedStatementFrom(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedStatementTo(): void
+    {
+        $this->resetPage();
+    }
+
+    /** @return array{0:?string,1:?string} */
+    private function statementRange(): array
+    {
+        $from = $this->statementFrom;
+        $to = $this->statementTo;
+        foreach ([$from, $to] as $date) {
+            abort_if($date !== null && $date !== '' && ! preg_match('/^\d{4}-\d{2}-\d{2}$/D', $date), 422);
+        }
+        abort_if($from && $to && $to < $from, 422);
+        return [$from ?: null, $to ?: null];
+    }
+
+    /** @return \Illuminate\Database\Eloquent\Builder<ContactTransaction> */
+    private function filteredMovementQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        [$from, $to] = $this->statementRange();
+        return ContactTransaction::query()
+            ->where('contact_id', $this->contact->id)
+            ->when($from, fn ($q) => $q->whereDate('transaction_date', '>=', $from))
+            ->when($to, fn ($q) => $q->whereDate('transaction_date', '<=', $to));
+    }
+
+    /** @return array<string,string> */
+    private function openingBalances(): array
+    {
+        [$from] = $this->statementRange();
+        if (! $from) {
+            return [];
+        }
+        return DB::connection('period')->table('contact_transactions')
+            ->where('contact_id', $this->contact->id)
+            ->whereDate('transaction_date', '<', $from)
+            ->groupBy('currency')
+            ->selectRaw("currency, COALESCE(SUM(CASE WHEN direction = 'debit' THEN amount ELSE -amount END), 0)::text AS opening")
+            ->get()->pluck('opening', 'currency')->all();
+    }
+
+    /** @return list<list<string>> */
+    private function statementRows(): array
+    {
+        $this->authorize('view', $this->contact);
+        $opening = $this->openingBalances();
+        $balances = $opening;
+        $rows = [];
+        foreach ($this->filteredMovementQuery()->with('document')
+            ->orderBy('transaction_date')->orderBy('id')->get() as $movement) {
+            $currency = (string) $movement->currency;
+            $amount = (string) $movement->amount;
+            $delta = $movement->direction === 'debit' ? $amount : bcmul($amount, '-1', 4);
+            $balances[$currency] = bcadd($balances[$currency] ?? '0', $delta, 4);
+            $rows[] = [
+                $movement->transaction_date?->format('d.m.Y') ?? '',
+                (string) ($movement->document?->number ?? ''),
+                (string) $movement->transaction_type,
+                (string) ($movement->description ?? ''),
+                $movement->direction === 'debit' ? $amount : '',
+                $movement->direction === 'credit' ? $amount : '',
+                $balances[$currency],
+                $currency,
+            ];
+        }
+        return $rows;
+    }
+
+    public function exportStatementCsv(): StreamedResponse
+    {
+        $rows = $this->statementRows();
+        $filename = 'cari-ekstre-'.$this->contact->code.'.csv';
+        return response()->streamDownload(static function () use ($rows): void {
+            $output = fopen('php://output', 'wb');
+            fwrite($output, "\xEF\xBB\xBF");
+            fputcsv($output, ['Tarih','Belge','İşlem','Açıklama','Borç','Alacak','Bakiye','PB'], ';');
+            foreach ($rows as $row) {
+                // Spreadsheet formula injection cannot originate from free-text descriptions.
+                $safe = array_map(static fn (string $v): string => preg_match('/^[=+@\-\t\r]/u', $v) ? "'".$v : $v, $row);
+                fputcsv($output, $safe, ';');
+            }
+            fclose($output);
+        }, $filename, ['Content-Type' => 'text/csv; charset=UTF-8']);
+    }
+
+    public function exportStatementXlsx(): StreamedResponse
+    {
+        $rows = $this->statementRows();
+        $filename = 'cari-ekstre-'.$this->contact->code.'.xlsx';
+        return response()->streamDownload(static function () use ($rows): void {
+            $book = new Spreadsheet();
+            $sheet = $book->getActiveSheet();
+            foreach ([['Tarih','Belge','İşlem','Açıklama','Borç','Alacak','Bakiye','PB'], ...$rows] as $rowIndex => $row) {
+                foreach ($row as $colIndex => $value) {
+                    $sheet->setCellValueExplicit(
+                        \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colIndex + 1).($rowIndex + 1),
+                        (string) $value,
+                        DataType::TYPE_STRING,
+                    );
+                }
+            }
+            (new Xlsx($book))->save('php://output');
+            $book->disconnectWorksheets();
+        }, $filename, ['Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet']);
+    }
 
     public function mount(Contact $contact): void
     {
@@ -185,8 +307,9 @@ class ContactDetail extends Component
         if (in_array($tab, ['overview', 'movements'], true)) {
             // Window function computes each transaction's running balance in chronological
             // order, before display sorting and pagination, partitioned by currency.
-            $moveQuery = ContactTransaction::query()
-                ->where('contact_id', $contact->id)
+            $moveQuery = ($tab === 'movements'
+                ? $this->filteredMovementQuery()
+                : ContactTransaction::query()->where('contact_id', $contact->id))
                 ->select('contact_transactions.*')
                 ->selectRaw("(SUM(CASE WHEN direction = 'debit' THEN amount ELSE -amount END)
                     OVER (PARTITION BY currency ORDER BY transaction_date, id
@@ -198,8 +321,17 @@ class ContactDetail extends Component
                 }
                 $movements = $moveQuery->orderBy('transaction_date')->orderBy('id')
                     ->paginate($this->perPage);
+                $opening = $this->openingBalances();
+                foreach ($movements->getCollection() as $movement) {
+                    $movement->setAttribute('running_balance',
+                        bcadd((string) ($opening[$movement->currency] ?? '0'), (string) $movement->running_balance, 4));
+                }
+                [$statementFrom, $statementTo] = $this->statementRange();
                 $movementTotals = DB::connection('period')->table('contact_transactions')
-                    ->where('contact_id', $contact->id)->groupBy('currency')
+                    ->where('contact_id', $contact->id)
+                    ->when($statementFrom, fn ($q) => $q->whereDate('transaction_date', '>=', $statementFrom))
+                    ->when($statementTo, fn ($q) => $q->whereDate('transaction_date', '<=', $statementTo))
+                    ->groupBy('currency')
                     ->selectRaw("currency, SUM(CASE WHEN direction = 'debit' THEN amount ELSE 0 END)::text AS total_debit")
                     ->selectRaw("SUM(CASE WHEN direction = 'credit' THEN amount ELSE 0 END)::text AS total_credit")
                     ->selectRaw('COUNT(*)::int AS total_movements')
@@ -289,7 +421,7 @@ class ContactDetail extends Component
                 ->orderByDesc('doc.document_date')->orderByDesc('line.id')->limit(8)->get();
 
             $productAnalysis = [
-                'distinct' => $products->count(),
+                'distinct' => (clone $salesLines)->distinct()->count('product.id'),
                 'top_product' => $products->first()?->code,
                 'revenue_try' => $categoryTotal,
             ];
