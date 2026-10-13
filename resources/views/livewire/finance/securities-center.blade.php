@@ -41,7 +41,7 @@
     </section>
 
     <section>
-        <h2>Portföy</h2>
+        <x-v65.list-heading title="Portföy" />
         <div class="table-scroll v65-list-table"><table class="data-table">
             <thead>
             <tr><th>Seç</th><th>No</th><th>Tür</th><th>Yön</th><th>Cari</th><th>Vade</th><th>Tutar</th><th>Durum</th></tr>
@@ -114,7 +114,7 @@
     </section>
 
     <section>
-        <h2>Son Bordrolar</h2>
+        <x-v65.list-heading title="Son Bordrolar" />
         <div class="table-scroll v65-list-table"><table class="data-table">
             <thead><tr><th>No</th><th>İşlem</th><th>Tarih</th><th>Toplam</th><th>Adet</th><th>Terslenen</th><th>Durum</th></tr></thead>
             <tbody>
