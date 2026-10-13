@@ -174,7 +174,7 @@ trait WithV65DocumentList
                 ->orderByDesc('id');
         }
 
-        return $query->orderByDesc('document_date')->orderByDesc('id');
+        return $query->orderBy('document_date', $this->v65DocumentDirection === 'asc' ? 'asc' : 'desc')->orderByDesc('id');
     }
 
     /** @return array<string,string> */
