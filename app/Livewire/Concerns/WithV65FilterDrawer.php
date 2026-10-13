@@ -4,6 +4,7 @@ namespace App\Livewire\Concerns;
 
 use App\Livewire\Components\DataTable\DateRangeFilter;
 use App\Livewire\Components\DataTable\SelectFilter;
+use App\Livewire\Components\DataTable\TextFilter;
 use DateTimeImmutable;
 
 trait WithV65FilterDrawer
@@ -40,6 +41,8 @@ trait WithV65FilterDrawer
         foreach ($this->filters() as $filter) {
             if ($filter instanceof SelectFilter) {
                 $definitions[$filter->key] = ['label' => $filter->label, 'type' => 'select', 'options' => $filter->options];
+            } elseif ($filter instanceof TextFilter) {
+                $definitions[$filter->key] = ['label' => $filter->label, 'type' => 'text'];
             } elseif ($filter instanceof DateRangeFilter) {
                 $definitions[$filter->key] = ['label' => $filter->label, 'type' => 'date-range'];
             }
@@ -107,6 +110,13 @@ trait WithV65FilterDrawer
                     $options = $definition['options'] ?? [];
                     abort_unless(array_key_exists((string) $value, $options), 422);
                     $filters[$key] = (string) $value;
+                }
+            } elseif ($definition['type'] === 'text') {
+                abort_unless(is_scalar($value) || $value === null, 422);
+                $text = trim((string) ($value ?? ''));
+                abort_unless(mb_strlen($text) <= 255, 422);
+                if ($text !== '') {
+                    $filters[$key] = $text;
                 }
             } elseif ($definition['type'] === 'date-range') {
                 abort_unless(is_array($value), 422);
@@ -184,7 +194,9 @@ trait WithV65FilterDrawer
                 continue;
             }
 
-            if ($definition['type'] === 'select') {
+            if ($definition['type'] === 'text') {
+                $chips[] = ['key' => 'filter:'.$key, 'label' => $definition['label'].': '.$value];
+            } elseif ($definition['type'] === 'select') {
                 $caption = $definition['options'][(string) $value] ?? (string) $value;
                 $chips[] = ['key' => 'filter:'.$key, 'label' => $definition['label'].': '.$caption];
             } elseif (is_array($value)) {
