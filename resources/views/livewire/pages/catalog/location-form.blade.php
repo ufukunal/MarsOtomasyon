@@ -1,4 +1,4 @@
-<form wire:submit="save" class="panel stack">
+<form wire:submit="save" class="panel stack v65-workspace-form">
     <x-field.text label="Kod" wire:model="code" :disabled="(bool) $location" />
     <x-field.text label="Ad" wire:model="name" />
     <x-field.select label="Tip" wire:model.live="kind" :options="['warehouse'=>'Depo','branch'=>'Şube','vehicle'=>'Araç','subcontractor'=>'Fasoncu']" />
@@ -18,5 +18,5 @@
     <x-field.textarea label="Adres" wire:model="address" />
     <x-field.toggle label="Varsayılan" wire:model="isDefault" />
     <x-field.toggle label="Aktif" wire:model="isActive" />
-    <button type="submit">Kaydet</button>
+    <div class="v65-form-footer"><button type="submit">Kaydet</button></div>
 </form>
