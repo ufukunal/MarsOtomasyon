@@ -31,7 +31,7 @@
             <div class="table-scroll v65-list-table">
                 <table class="data-table"><thead><tr><th>Ürün</th><th>Fiyat</th><th>Başlangıç</th><th>Bitiş</th><th>İşlem</th></tr></thead><tbody>
                 @forelse($items as $item)
-                    <tr><td>{{ $item->product->code }} · {{ $item->product->name }}</td><td>{{ \App\Support\Formatting\TrFormatter::money((string)$item->price,4) }}</td><td>{{ $item->valid_from?->format('d.m.Y') }}</td><td>{{ $item->valid_to?->format('d.m.Y') }}</td><td><button type="button" class="button-secondary" wire:click="editItem({{ $item->id }})">Düzenle</button></td></tr>
+                    <tr><td>@can('products.view')<a class="v65-record-link" href="{{ route('products.show', ['product' => $item->product_id]) }}">{{ $item->product->code }} · {{ $item->product->name }}</a>@else{{ $item->product->code }} · {{ $item->product->name }}@endcan</td><td>{{ \App\Support\Formatting\TrFormatter::money((string)$item->price,4) }}</td><td>{{ $item->valid_from?->format('d.m.Y') }}</td><td>{{ $item->valid_to?->format('d.m.Y') }}</td><td><button type="button" class="button-secondary" wire:click="editItem({{ $item->id }})">Düzenle</button></td></tr>
                 @empty
                     <tr><td colspan="5" class="empty-state">Listeye henüz fiyat eklenmedi.</td></tr>
                 @endforelse
