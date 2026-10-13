@@ -1,5 +1,5 @@
 <div class="space-y-8 v65-list-page">
-    <h1>Banka Ekstresi / Mutabakat</h1>
+    <x-v65.list-heading title="Banka Ekstresi / Mutabakat" description="Ekstre içe aktarma, satır eşleştirme ve mutabakat işlemleri" />
 
     <section class="panel stack">
         <h2>Ekstre Dosyası</h2>
@@ -34,7 +34,7 @@
         <section>
             <h2>Önizleme</h2>
             <div class="table-scroll v65-list-table"><table class="data-table">
-                <thead><tr><th>Tarih</th><th>Valör</th><th>Referans</th><th>Açıklama</th><th>Yön</th><th>Tutar</th><th>Bakiye</th></tr></thead>
+                <thead><tr><th>Tarih</th><th>Valör</th><th>Referans</th><th>Açıklama</th><th>Yön</th><th class="align-end">Tutar</th><th class="align-end">Bakiye</th></tr></thead>
                 <tbody>
                 @foreach($previewRows as $row)
                     <tr>
@@ -43,8 +43,8 @@
                         <td>{{ $row['reference'] ?? '—' }}</td>
                         <td>{{ $row['description'] }}</td>
                         <td>{{ $row['direction'] }}</td>
-                        <td>{{ $row['amount'] }}</td>
-                        <td>{{ $row['balance'] ?? '—' }}</td>
+                        <td class="align-end">{{ $row['amount'] }}</td>
+                        <td class="align-end">{{ $row['balance'] ?? '—' }}</td>
                     </tr>
                 @endforeach
                 </tbody>
@@ -55,7 +55,7 @@
     <section>
         <h2>Ekstre Satırları</h2>
         <div class="table-scroll v65-list-table"><table class="data-table">
-            <thead><tr><th>Seç</th><th>Banka</th><th>Tarih</th><th>Referans</th><th>Açıklama</th><th>Yön</th><th>Tutar</th><th>Durum</th></tr></thead>
+            <thead><tr><th>Seç</th><th>Banka</th><th>Tarih</th><th>Referans</th><th>Açıklama</th><th>Yön</th><th class="align-end">Tutar</th><th>Durum</th></tr></thead>
             <tbody>
             @foreach($statementRows as $row)
                 <tr>
@@ -65,7 +65,7 @@
                     <td>{{ $row->reference }}</td>
                     <td>{{ $row->statement_description }}</td>
                     <td>{{ $row->direction }}</td>
-                    <td>{{ $row->amount }}</td>
+                    <td class="align-end">{{ $row->amount }}</td>
                     <td>{{ $row->reconciled_movement_id ? 'Mutabık' : 'Bekliyor' }}</td>
                 </tr>
             @endforeach
@@ -80,12 +80,12 @@
             @if($suggestions !== [])
                 <h3>Öneriler</h3>
                 <div class="table-scroll v65-list-table"><table class="data-table">
-                    <thead><tr><th>Hareket</th><th>Skor</th><th>Neden</th><th></th></tr></thead>
+                    <thead><tr><th>Hareket</th><th class="align-end">Skor</th><th>Neden</th><th></th></tr></thead>
                     <tbody>
                     @foreach($suggestions as $suggestion)
                         <tr>
                             <td>#{{ $suggestion['movement_id'] }}</td>
-                            <td>%{{ $suggestion['score'] }}</td>
+                            <td class="align-end">%{{ $suggestion['score'] }}</td>
                             <td>{{ $suggestion['reason'] }}</td>
                             <td><button type="button" wire:click="$set('selectedBookMovementId', {{ $suggestion['movement_id'] }})">Seç</button></td>
                         </tr>
