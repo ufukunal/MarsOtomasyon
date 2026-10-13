@@ -18,7 +18,7 @@
     </section>
     @can('stock.view')
         <section class="panel stack">
-            <strong>Depodaki Stoklar · İlk 100 Ürün</strong>
+            <x-v65.list-heading title="Depodaki Stoklar" description="İlk 100 Ürün" />
             <div class="table-scroll v65-grid-scroll v65-list-table"><table class="data-table">
                 <thead><tr><th>Ürün Kodu</th><th>Ürün</th><th>Toplam</th><th>Rezerve</th><th>Karantina</th><th>Kullanılabilir</th></tr></thead>
                 <tbody>
