@@ -3,7 +3,9 @@
         <h1>Firma Kurulum Sihirbazı</h1>
         <p>Şirket, dönem ve başlangıç yapılandırması</p>
     </header>
-    @php($stepNames = ['Firma Bilgileri', 'İlk Dönem', 'Varsayılanlar', 'Lokasyonlar', 'Belge Serileri', 'Yönetici', 'Açılış Verisi', 'Özet ve Tamamla'])
+    @php
+        $stepNames = ['Firma Bilgileri', 'İlk Dönem', 'Varsayılanlar', 'Lokasyonlar', 'Belge Serileri', 'Yönetici', 'Açılış Verisi', 'Özet ve Tamamla'];
+    @endphp
     <div class="wizard-progress" aria-label="Kurulum ilerlemesi">
         <span>Adım {{ $step }} / 8</span>
         <strong>{{ $stepNames[$step - 1] }}</strong>
