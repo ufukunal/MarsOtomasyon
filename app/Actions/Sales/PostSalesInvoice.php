@@ -26,7 +26,8 @@ final class PostSalesInvoice
         // A sales invoice adds a customer debit when it is posted. Warn on the
         // real TRY exposure before allowing the irreversible ledger movement.
         // Non-TRY totals must never be added to a TRY-denominated risk limit.
-        if ($invoice->currency === 'TRY' && $invoice->contact_id !== null) {
+        if ($invoice->currency === 'TRY' && $invoice->contact_id !== null
+            && Document::query()->whereKey($invoice->getKey())->value('status') !== 'posted') {
             $projection = $this->riskProjection->handle($invoice);
             if ($projection->knownLimitExceeded && ! $riskAccepted) {
                 throw new DomainException(
