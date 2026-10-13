@@ -12,10 +12,26 @@ use App\Support\Channels\ChannelSyncRecorder;
 use App\Support\Period\PeriodContext;
 use Illuminate\Contracts\View\View;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 class ChannelSyncCenter extends Component
 {
     use WithIdempotentMutations;
+    use WithPagination;
+
+    public int $perPage = 25;
+
+    public function updatedStatus(): void { $this->resetPage(); }
+    public function updatedDirection(): void { $this->resetPage(); }
+    public function updatedChannelAccountId(): void { $this->resetPage(); }
+
+    public function setPerPage(int $value): void
+    {
+        abort_unless(in_array($value, [25, 50, 100], true), 422);
+        $this->perPage = $value;
+        $this->resetPage();
+    }
+
 
     public string $status = '';
 
@@ -86,8 +102,7 @@ class ChannelSyncCenter extends Component
             ->when($this->status !== '', fn ($query) => $query->where('status', $this->status))
             ->when($this->direction !== '', fn ($query) => $query->where('direction', $this->direction))
             ->latest('id')
-            ->limit(300)
-            ->get();
+            ->paginate($this->perPage);
 
         $errors = ChannelSyncError::query()
             ->with('event')

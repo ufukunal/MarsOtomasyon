@@ -2,7 +2,7 @@
     @if(session('status')) <div class="panel">{{ session('status') }}</div> @endif
     <section class="panel">
         <h1>Kanal Sync Merkezi</h1>
-        <div class="form-row">
+        <div class="form-row v65-list-filters">
             <select aria-label="Kanal hesabı" wire:model.live="channelAccountId">
                 <option value="">Tüm Kanal Hesapları</option>
                 @foreach($accounts as $account)
@@ -53,6 +53,7 @@
             @endforelse
             </tbody>
         </table></div>
+        <x-v65.list-footer :paginator="$events" :per-page="$perPage" />
     </section>
 
     <section class="panel">
