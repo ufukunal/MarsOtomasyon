@@ -124,7 +124,7 @@
                 <button class="button-secondary" type="button" onclick="window.print()">Yazdır</button>
                 <details class="v65-cari-export-menu page-action-menu">
                     <summary class="button-secondary">Dışa Aktar <span aria-hidden="true">⌄</span></summary>
-                    <div class="v65-cari-export-options">
+                    <div class="page-action-menu-items v65-cari-export-options">
                         <button type="button" wire:click="exportCsv" wire:loading.attr="disabled" wire:target="exportCsv">CSV</button>
                         <button type="button" wire:click="exportXlsx" wire:loading.attr="disabled" wire:target="exportXlsx">Excel</button>
                     </div>
