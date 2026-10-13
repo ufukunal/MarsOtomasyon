@@ -106,6 +106,11 @@ for name in ['Dockerfile.uat','resources/views/layouts/app.blade.php','resources
 print(source)
 PY
 )"
+# ZipFile.extractall respects umask 077: extracted files become root-only
+# (0600, directories 0700) in Docker COPY layers. Laravel runs as www-data.
+# Restore readability ONLY within the disposable GitHub source snapshot.
+chmod -R a+rX "$SOURCE"
+[[ -r "$SOURCE/artisan" && -r "$SOURCE/resources/css/v65-shell.css" ]] || fail 'Staged source is unreadable after permission repair'
 VIEW="$SOURCE/resources/views/livewire/pages/products/product-detail.blade.php"
 LAYOUT="$SOURCE/resources/views/layouts/app.blade.php"
 grep -Fq "products.technical-sheet.show" "$VIEW" || fail 'Technical PDF link missing'
@@ -118,11 +123,17 @@ grep -Fq "products.technical-sheet.show" "$VIEW" || fail 'Technical PDF link mis
 echo '=== BUILD NEW WEB IMAGE (DATA UNTOUCHED) ==='
 sudo docker build -f "$SOURCE/Dockerfile.uat" --label "org.opencontainers.image.revision=$TARGET" -t "$NEW_IMAGE" "$SOURCE"
 [[ "$(sudo docker image inspect "$NEW_IMAGE" -f '{{index .Config.Labels "org.opencontainers.image.revision"}}')" == "$TARGET" ]] || fail 'Build image SHA mismatch'
-sudo docker run --rm --entrypoint sh "$NEW_IMAGE" -ec '
-test -s /var/www/html/public/build/manifest.json
-grep -Fq "products.technical-sheet.show" /var/www/html/resources/views/livewire/pages/products/product-detail.blade.php
-grep -Fq "mars-pagination" /var/www/html/resources/css/v65-shell.css
-' || fail 'New image is missing required UI changes'
+# Explicitly verify as www-data, and print the exact failed path/check.
+sudo docker run --rm --user 33:33 --entrypoint sh "$NEW_IMAGE" -ec '
+for f in /var/www/html/artisan /var/www/html/public/build/manifest.json /var/www/html/resources/views/livewire/pages/products/product-detail.blade.php /var/www/html/resources/css/v65-shell.css; do
+  if [ ! -r "$f" ]; then echo "IMAGE_CHECK_FAIL unreadable=$f" >&2; exit 1; fi
+done
+test -s /var/www/html/public/build/manifest.json || { echo "IMAGE_CHECK_FAIL Vite manifest empty" >&2; exit 1; }
+grep -Fq "products.technical-sheet.show" /var/www/html/resources/views/livewire/pages/products/product-detail.blade.php || { echo "IMAGE_CHECK_FAIL technical PDF link missing" >&2; exit 1; }
+grep -Fq "mars-pagination" /var/www/html/resources/css/v65-shell.css || { echo "IMAGE_CHECK_FAIL compact pagination CSS missing" >&2; exit 1; }
+php -l /var/www/html/app/Http/Controllers/ProductTechnicalSheetController.php
+echo "IMAGE_CHECK_OK=YES (www-data readable and UI code present)"
+' || fail 'Built image validation failed; Fresh is unchanged'
 
 echo '=== RECREATE ONLY FRESH WEB WITH ROLLBACK ==='
 set_pin "$OLD" "$TARGET"
