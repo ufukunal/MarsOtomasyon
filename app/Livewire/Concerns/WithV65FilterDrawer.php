@@ -62,12 +62,18 @@ trait WithV65FilterDrawer
 
     protected function v65DefaultSort(): string
     {
-        return 'id';
+        // Some tables default to movement_date/created_at rather than id.
+        return (string) ((new \ReflectionClass($this))->getDefaultProperties()['sort'] ?? 'id');
     }
 
     protected function v65DefaultDirection(): string
     {
-        return 'asc';
+        return (string) ((new \ReflectionClass($this))->getDefaultProperties()['direction'] ?? 'asc');
+    }
+
+    public function v65DefaultSortKey(): string
+    {
+        return $this->v65DefaultSort();
     }
 
     public function openV65Filters(): void
