@@ -1,0 +1,7 @@
+code,name,currency,account_kind,demo_only
+DM26-ACC-01,DEMO · TL Banka,TRY,bank,True
+DM26-ACC-02,DEMO · EUR Banka,EUR,bank,True
+DM26-ACC-03,DEMO · USD Banka,USD,bank,True
+DM26-ACC-04,DEMO · Merkez Kasa,TRY,cash,True
+DM26-ACC-05,DEMO · Şube Kasa,TRY,cash,True
+DM26-ACC-06,DEMO · POS Hesabı,TRY,bank,True

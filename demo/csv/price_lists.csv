@@ -1,0 +1,5 @@
+code,name,currency,is_default,status
+DM26-PL-01,DEMO · Toptan A,TRY,False,active
+DM26-PL-02,DEMO · Toptan B,TRY,False,active
+DM26-PL-03,DEMO · Perakende,TRY,True,active
+DM26-PL-04,DEMO · İhracat Örneği,TRY,False,active

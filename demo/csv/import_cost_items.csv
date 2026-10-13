@@ -1,0 +1,13 @@
+name,import_file_no,cost_name,currency,amount,allocation_basis,status
+DM26-IC-001-1,DM26-IMP-001,Nakliye,TRY,21300.0000,value,planned
+DM26-IC-001-2,DM26-IMP-001,Sigorta,TRY,25800.0000,weight,planned
+DM26-IC-001-3,DM26-IMP-001,Gümrükleme,TRY,30300.0000,volume,planned
+DM26-IC-002-1,DM26-IMP-002,Nakliye,TRY,23100.0000,value,planned
+DM26-IC-002-2,DM26-IMP-002,Sigorta,TRY,27600.0000,weight,planned
+DM26-IC-002-3,DM26-IMP-002,Gümrükleme,TRY,32100.0000,volume,planned
+DM26-IC-003-1,DM26-IMP-003,Nakliye,TRY,24900.0000,value,planned
+DM26-IC-003-2,DM26-IMP-003,Sigorta,TRY,29400.0000,weight,planned
+DM26-IC-003-3,DM26-IMP-003,Gümrükleme,TRY,33900.0000,volume,planned
+DM26-IC-004-1,DM26-IMP-004,Nakliye,TRY,26700.0000,value,planned
+DM26-IC-004-2,DM26-IMP-004,Sigorta,TRY,31200.0000,weight,planned
+DM26-IC-004-3,DM26-IMP-004,Gümrükleme,TRY,35700.0000,volume,planned

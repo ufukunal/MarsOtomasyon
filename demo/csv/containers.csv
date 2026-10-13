@@ -1,0 +1,5 @@
+number,import_file_no,container_no,container_type,seal_no,gross_weight_kg,volume_cbm,etd,eta,scenario_status,database_seed_status
+DM26-CONT-001,DM26-IMP-001,MRSD0000001,40HC,DM-SEAL-0001,9920.00,43.00,2026-01-24,2026-03-21,in_transit,planned
+DM26-CONT-002,DM26-IMP-002,MRSD0000002,20GP,DM-SEAL-0002,11840.00,48.00,2026-02-04,2026-04-01,customs,planned
+DM26-CONT-003,DM26-IMP-003,MRSD0000003,40HC,DM-SEAL-0003,13760.00,53.00,2026-02-15,2026-04-12,draft,planned
+DM26-CONT-004,DM26-IMP-004,MRSD0000004,20GP,DM-SEAL-0004,15680.00,58.00,2026-02-26,2026-04-23,in_transit,planned

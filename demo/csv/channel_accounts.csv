@@ -1,0 +1,5 @@
+code,platform,name,credentials,status,webhook
+DM26-CHAN-TRENDYOL,Trendyol,DEMO · Trendyol,NO_EXTERNAL_NETWORK,disabled,disabled
+DM26-CHAN-HEPSIBURADA,Hepsiburada,DEMO · Hepsiburada,NO_EXTERNAL_NETWORK,disabled,disabled
+DM26-CHAN-N11,N11,DEMO · N11,NO_EXTERNAL_NETWORK,disabled,disabled
+DM26-CHAN-WOOCOMMERCE,WooCommerce,DEMO · WooCommerce,NO_EXTERNAL_NETWORK,disabled,disabled

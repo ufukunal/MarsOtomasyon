@@ -1,0 +1,25 @@
+code,module,name,granularity,period,requires_posted_data,scenario_status
+DM26-RPT-001,sales,DEMO · sales monthly raporu,monthly,2026,True,ready_for_acceptance
+DM26-RPT-002,sales,DEMO · sales by_contact raporu,by_contact,2026,True,ready_for_acceptance
+DM26-RPT-003,sales,DEMO · sales by_product raporu,by_product,2026,True,ready_for_acceptance
+DM26-RPT-004,purchases,DEMO · purchases monthly raporu,monthly,2026,True,ready_for_acceptance
+DM26-RPT-005,purchases,DEMO · purchases by_contact raporu,by_contact,2026,True,ready_for_acceptance
+DM26-RPT-006,purchases,DEMO · purchases by_product raporu,by_product,2026,True,ready_for_acceptance
+DM26-RPT-007,stock,DEMO · stock monthly raporu,monthly,2026,True,ready_for_acceptance
+DM26-RPT-008,stock,DEMO · stock by_contact raporu,by_contact,2026,True,ready_for_acceptance
+DM26-RPT-009,stock,DEMO · stock by_product raporu,by_product,2026,True,ready_for_acceptance
+DM26-RPT-010,finance,DEMO · finance monthly raporu,monthly,2026,True,ready_for_acceptance
+DM26-RPT-011,finance,DEMO · finance by_contact raporu,by_contact,2026,True,ready_for_acceptance
+DM26-RPT-012,finance,DEMO · finance by_product raporu,by_product,2026,True,ready_for_acceptance
+DM26-RPT-013,imports,DEMO · imports monthly raporu,monthly,2026,True,ready_for_acceptance
+DM26-RPT-014,imports,DEMO · imports by_contact raporu,by_contact,2026,True,ready_for_acceptance
+DM26-RPT-015,imports,DEMO · imports by_product raporu,by_product,2026,True,ready_for_acceptance
+DM26-RPT-016,production,DEMO · production monthly raporu,monthly,2026,True,ready_for_acceptance
+DM26-RPT-017,production,DEMO · production by_contact raporu,by_contact,2026,True,ready_for_acceptance
+DM26-RPT-018,production,DEMO · production by_product raporu,by_product,2026,True,ready_for_acceptance
+DM26-RPT-019,subcontract,DEMO · subcontract monthly raporu,monthly,2026,True,ready_for_acceptance
+DM26-RPT-020,subcontract,DEMO · subcontract by_contact raporu,by_contact,2026,True,ready_for_acceptance
+DM26-RPT-021,subcontract,DEMO · subcontract by_product raporu,by_product,2026,True,ready_for_acceptance
+DM26-RPT-022,returns,DEMO · returns monthly raporu,monthly,2026,True,ready_for_acceptance
+DM26-RPT-023,returns,DEMO · returns by_contact raporu,by_contact,2026,True,ready_for_acceptance
+DM26-RPT-024,returns,DEMO · returns by_product raporu,by_product,2026,True,ready_for_acceptance

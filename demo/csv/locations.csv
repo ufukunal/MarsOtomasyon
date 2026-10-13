@@ -1,0 +1,11 @@
+code,name,kind,subcontractor_contact_code,plate,city,is_default
+DM26-L01,DEMO · Merkez Depo,warehouse,,,Ankara,False
+DM26-L02,DEMO · İthalat Kabul Deposu,warehouse,,,İzmir,False
+DM26-L03,DEMO · Ham Madde Deposu,warehouse,,,Bursa,False
+DM26-L04,DEMO · Montaj Deposu,warehouse,,,Antalya,False
+DM26-L05,DEMO · Sevkiyat Deposu,warehouse,,,Konya,False
+DM26-L06,DEMO · İade/Karantina Deposu,warehouse,,,Kayseri,False
+DM26-L07,DEMO · İstanbul Şube,branch,,,Gaziantep,False
+DM26-L08,DEMO · Ankara Şube,branch,,,Samsun,False
+DM26-L09,DEMO · Dağıtım Aracı 34,vehicle,,34 DEM 26,Eskişehir,False
+DM26-L10,DEMO · Fason Atölye,subcontractor,DM26-C091,,İstanbul,False

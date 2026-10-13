@@ -1,0 +1,201 @@
+contact_code,type,name,city,district,address,default
+DM26-C001,invoice,Fatura Adresi,Ankara,Demo Merkez 2,Demo Mahallesi Test Sokak No: 1 / Ankara,True
+DM26-C001,delivery,Teslimat Adresi,Ankara,Demo Merkez 2,"Ankara Demo OSB, Blok 2, Kapı 1",True
+DM26-C002,invoice,Fatura Adresi,İzmir,Demo Merkez 3,Demo Mahallesi Test Sokak No: 2 / İzmir,True
+DM26-C002,delivery,Teslimat Adresi,İzmir,Demo Merkez 3,"İzmir Demo OSB, Blok 3, Kapı 2",True
+DM26-C003,invoice,Fatura Adresi,Bursa,Demo Merkez 4,Demo Mahallesi Test Sokak No: 3 / Bursa,True
+DM26-C003,delivery,Teslimat Adresi,Bursa,Demo Merkez 4,"Bursa Demo OSB, Blok 4, Kapı 3",True
+DM26-C004,invoice,Fatura Adresi,Antalya,Demo Merkez 5,Demo Mahallesi Test Sokak No: 4 / Antalya,True
+DM26-C004,delivery,Teslimat Adresi,Antalya,Demo Merkez 5,"Antalya Demo OSB, Blok 5, Kapı 4",True
+DM26-C005,invoice,Fatura Adresi,Konya,Demo Merkez 6,Demo Mahallesi Test Sokak No: 5 / Konya,True
+DM26-C005,delivery,Teslimat Adresi,Konya,Demo Merkez 6,"Konya Demo OSB, Blok 1, Kapı 5",True
+DM26-C006,invoice,Fatura Adresi,Kayseri,Demo Merkez 1,Demo Mahallesi Test Sokak No: 6 / Kayseri,True
+DM26-C006,delivery,Teslimat Adresi,Kayseri,Demo Merkez 1,"Kayseri Demo OSB, Blok 2, Kapı 6",True
+DM26-C007,invoice,Fatura Adresi,Gaziantep,Demo Merkez 2,Demo Mahallesi Test Sokak No: 7 / Gaziantep,True
+DM26-C007,delivery,Teslimat Adresi,Gaziantep,Demo Merkez 2,"Gaziantep Demo OSB, Blok 3, Kapı 7",True
+DM26-C008,invoice,Fatura Adresi,Samsun,Demo Merkez 3,Demo Mahallesi Test Sokak No: 8 / Samsun,True
+DM26-C008,delivery,Teslimat Adresi,Samsun,Demo Merkez 3,"Samsun Demo OSB, Blok 4, Kapı 8",True
+DM26-C009,invoice,Fatura Adresi,Eskişehir,Demo Merkez 4,Demo Mahallesi Test Sokak No: 9 / Eskişehir,True
+DM26-C009,delivery,Teslimat Adresi,Eskişehir,Demo Merkez 4,"Eskişehir Demo OSB, Blok 5, Kapı 9",True
+DM26-C010,invoice,Fatura Adresi,İstanbul,Demo Merkez 5,Demo Mahallesi Test Sokak No: 10 / İstanbul,True
+DM26-C010,delivery,Teslimat Adresi,İstanbul,Demo Merkez 5,"İstanbul Demo OSB, Blok 1, Kapı 10",True
+DM26-C011,invoice,Fatura Adresi,Ankara,Demo Merkez 6,Demo Mahallesi Test Sokak No: 11 / Ankara,True
+DM26-C011,delivery,Teslimat Adresi,Ankara,Demo Merkez 6,"Ankara Demo OSB, Blok 2, Kapı 11",True
+DM26-C012,invoice,Fatura Adresi,İzmir,Demo Merkez 1,Demo Mahallesi Test Sokak No: 12 / İzmir,True
+DM26-C012,delivery,Teslimat Adresi,İzmir,Demo Merkez 1,"İzmir Demo OSB, Blok 3, Kapı 12",True
+DM26-C013,invoice,Fatura Adresi,Bursa,Demo Merkez 2,Demo Mahallesi Test Sokak No: 13 / Bursa,True
+DM26-C013,delivery,Teslimat Adresi,Bursa,Demo Merkez 2,"Bursa Demo OSB, Blok 4, Kapı 13",True
+DM26-C014,invoice,Fatura Adresi,Antalya,Demo Merkez 3,Demo Mahallesi Test Sokak No: 14 / Antalya,True
+DM26-C014,delivery,Teslimat Adresi,Antalya,Demo Merkez 3,"Antalya Demo OSB, Blok 5, Kapı 14",True
+DM26-C015,invoice,Fatura Adresi,Konya,Demo Merkez 4,Demo Mahallesi Test Sokak No: 15 / Konya,True
+DM26-C015,delivery,Teslimat Adresi,Konya,Demo Merkez 4,"Konya Demo OSB, Blok 1, Kapı 15",True
+DM26-C016,invoice,Fatura Adresi,Kayseri,Demo Merkez 5,Demo Mahallesi Test Sokak No: 16 / Kayseri,True
+DM26-C016,delivery,Teslimat Adresi,Kayseri,Demo Merkez 5,"Kayseri Demo OSB, Blok 2, Kapı 16",True
+DM26-C017,invoice,Fatura Adresi,Gaziantep,Demo Merkez 6,Demo Mahallesi Test Sokak No: 17 / Gaziantep,True
+DM26-C017,delivery,Teslimat Adresi,Gaziantep,Demo Merkez 6,"Gaziantep Demo OSB, Blok 3, Kapı 17",True
+DM26-C018,invoice,Fatura Adresi,Samsun,Demo Merkez 1,Demo Mahallesi Test Sokak No: 18 / Samsun,True
+DM26-C018,delivery,Teslimat Adresi,Samsun,Demo Merkez 1,"Samsun Demo OSB, Blok 4, Kapı 18",True
+DM26-C019,invoice,Fatura Adresi,Eskişehir,Demo Merkez 2,Demo Mahallesi Test Sokak No: 19 / Eskişehir,True
+DM26-C019,delivery,Teslimat Adresi,Eskişehir,Demo Merkez 2,"Eskişehir Demo OSB, Blok 5, Kapı 19",True
+DM26-C020,invoice,Fatura Adresi,İstanbul,Demo Merkez 3,Demo Mahallesi Test Sokak No: 20 / İstanbul,True
+DM26-C020,delivery,Teslimat Adresi,İstanbul,Demo Merkez 3,"İstanbul Demo OSB, Blok 1, Kapı 20",True
+DM26-C021,invoice,Fatura Adresi,Ankara,Demo Merkez 4,Demo Mahallesi Test Sokak No: 21 / Ankara,True
+DM26-C021,delivery,Teslimat Adresi,Ankara,Demo Merkez 4,"Ankara Demo OSB, Blok 2, Kapı 21",True
+DM26-C022,invoice,Fatura Adresi,İzmir,Demo Merkez 5,Demo Mahallesi Test Sokak No: 22 / İzmir,True
+DM26-C022,delivery,Teslimat Adresi,İzmir,Demo Merkez 5,"İzmir Demo OSB, Blok 3, Kapı 22",True
+DM26-C023,invoice,Fatura Adresi,Bursa,Demo Merkez 6,Demo Mahallesi Test Sokak No: 23 / Bursa,True
+DM26-C023,delivery,Teslimat Adresi,Bursa,Demo Merkez 6,"Bursa Demo OSB, Blok 4, Kapı 23",True
+DM26-C024,invoice,Fatura Adresi,Antalya,Demo Merkez 1,Demo Mahallesi Test Sokak No: 24 / Antalya,True
+DM26-C024,delivery,Teslimat Adresi,Antalya,Demo Merkez 1,"Antalya Demo OSB, Blok 5, Kapı 24",True
+DM26-C025,invoice,Fatura Adresi,Konya,Demo Merkez 2,Demo Mahallesi Test Sokak No: 25 / Konya,True
+DM26-C025,delivery,Teslimat Adresi,Konya,Demo Merkez 2,"Konya Demo OSB, Blok 1, Kapı 25",True
+DM26-C026,invoice,Fatura Adresi,Kayseri,Demo Merkez 3,Demo Mahallesi Test Sokak No: 26 / Kayseri,True
+DM26-C026,delivery,Teslimat Adresi,Kayseri,Demo Merkez 3,"Kayseri Demo OSB, Blok 2, Kapı 26",True
+DM26-C027,invoice,Fatura Adresi,Gaziantep,Demo Merkez 4,Demo Mahallesi Test Sokak No: 27 / Gaziantep,True
+DM26-C027,delivery,Teslimat Adresi,Gaziantep,Demo Merkez 4,"Gaziantep Demo OSB, Blok 3, Kapı 27",True
+DM26-C028,invoice,Fatura Adresi,Samsun,Demo Merkez 5,Demo Mahallesi Test Sokak No: 28 / Samsun,True
+DM26-C028,delivery,Teslimat Adresi,Samsun,Demo Merkez 5,"Samsun Demo OSB, Blok 4, Kapı 28",True
+DM26-C029,invoice,Fatura Adresi,Eskişehir,Demo Merkez 6,Demo Mahallesi Test Sokak No: 29 / Eskişehir,True
+DM26-C029,delivery,Teslimat Adresi,Eskişehir,Demo Merkez 6,"Eskişehir Demo OSB, Blok 5, Kapı 29",True
+DM26-C030,invoice,Fatura Adresi,İstanbul,Demo Merkez 1,Demo Mahallesi Test Sokak No: 30 / İstanbul,True
+DM26-C030,delivery,Teslimat Adresi,İstanbul,Demo Merkez 1,"İstanbul Demo OSB, Blok 1, Kapı 30",True
+DM26-C031,invoice,Fatura Adresi,Ankara,Demo Merkez 2,Demo Mahallesi Test Sokak No: 31 / Ankara,True
+DM26-C031,delivery,Teslimat Adresi,Ankara,Demo Merkez 2,"Ankara Demo OSB, Blok 2, Kapı 31",True
+DM26-C032,invoice,Fatura Adresi,İzmir,Demo Merkez 3,Demo Mahallesi Test Sokak No: 32 / İzmir,True
+DM26-C032,delivery,Teslimat Adresi,İzmir,Demo Merkez 3,"İzmir Demo OSB, Blok 3, Kapı 32",True
+DM26-C033,invoice,Fatura Adresi,Bursa,Demo Merkez 4,Demo Mahallesi Test Sokak No: 33 / Bursa,True
+DM26-C033,delivery,Teslimat Adresi,Bursa,Demo Merkez 4,"Bursa Demo OSB, Blok 4, Kapı 33",True
+DM26-C034,invoice,Fatura Adresi,Antalya,Demo Merkez 5,Demo Mahallesi Test Sokak No: 34 / Antalya,True
+DM26-C034,delivery,Teslimat Adresi,Antalya,Demo Merkez 5,"Antalya Demo OSB, Blok 5, Kapı 34",True
+DM26-C035,invoice,Fatura Adresi,Konya,Demo Merkez 6,Demo Mahallesi Test Sokak No: 35 / Konya,True
+DM26-C035,delivery,Teslimat Adresi,Konya,Demo Merkez 6,"Konya Demo OSB, Blok 1, Kapı 35",True
+DM26-C036,invoice,Fatura Adresi,Kayseri,Demo Merkez 1,Demo Mahallesi Test Sokak No: 36 / Kayseri,True
+DM26-C036,delivery,Teslimat Adresi,Kayseri,Demo Merkez 1,"Kayseri Demo OSB, Blok 2, Kapı 36",True
+DM26-C037,invoice,Fatura Adresi,Gaziantep,Demo Merkez 2,Demo Mahallesi Test Sokak No: 37 / Gaziantep,True
+DM26-C037,delivery,Teslimat Adresi,Gaziantep,Demo Merkez 2,"Gaziantep Demo OSB, Blok 3, Kapı 37",True
+DM26-C038,invoice,Fatura Adresi,Samsun,Demo Merkez 3,Demo Mahallesi Test Sokak No: 38 / Samsun,True
+DM26-C038,delivery,Teslimat Adresi,Samsun,Demo Merkez 3,"Samsun Demo OSB, Blok 4, Kapı 38",True
+DM26-C039,invoice,Fatura Adresi,Eskişehir,Demo Merkez 4,Demo Mahallesi Test Sokak No: 39 / Eskişehir,True
+DM26-C039,delivery,Teslimat Adresi,Eskişehir,Demo Merkez 4,"Eskişehir Demo OSB, Blok 5, Kapı 39",True
+DM26-C040,invoice,Fatura Adresi,İstanbul,Demo Merkez 5,Demo Mahallesi Test Sokak No: 40 / İstanbul,True
+DM26-C040,delivery,Teslimat Adresi,İstanbul,Demo Merkez 5,"İstanbul Demo OSB, Blok 1, Kapı 40",True
+DM26-C041,invoice,Fatura Adresi,Ankara,Demo Merkez 6,Demo Mahallesi Test Sokak No: 41 / Ankara,True
+DM26-C041,delivery,Teslimat Adresi,Ankara,Demo Merkez 6,"Ankara Demo OSB, Blok 2, Kapı 41",True
+DM26-C042,invoice,Fatura Adresi,İzmir,Demo Merkez 1,Demo Mahallesi Test Sokak No: 42 / İzmir,True
+DM26-C042,delivery,Teslimat Adresi,İzmir,Demo Merkez 1,"İzmir Demo OSB, Blok 3, Kapı 42",True
+DM26-C043,invoice,Fatura Adresi,Bursa,Demo Merkez 2,Demo Mahallesi Test Sokak No: 43 / Bursa,True
+DM26-C043,delivery,Teslimat Adresi,Bursa,Demo Merkez 2,"Bursa Demo OSB, Blok 4, Kapı 43",True
+DM26-C044,invoice,Fatura Adresi,Antalya,Demo Merkez 3,Demo Mahallesi Test Sokak No: 44 / Antalya,True
+DM26-C044,delivery,Teslimat Adresi,Antalya,Demo Merkez 3,"Antalya Demo OSB, Blok 5, Kapı 44",True
+DM26-C045,invoice,Fatura Adresi,Konya,Demo Merkez 4,Demo Mahallesi Test Sokak No: 45 / Konya,True
+DM26-C045,delivery,Teslimat Adresi,Konya,Demo Merkez 4,"Konya Demo OSB, Blok 1, Kapı 45",True
+DM26-C046,invoice,Fatura Adresi,Kayseri,Demo Merkez 5,Demo Mahallesi Test Sokak No: 46 / Kayseri,True
+DM26-C046,delivery,Teslimat Adresi,Kayseri,Demo Merkez 5,"Kayseri Demo OSB, Blok 2, Kapı 46",True
+DM26-C047,invoice,Fatura Adresi,Gaziantep,Demo Merkez 6,Demo Mahallesi Test Sokak No: 47 / Gaziantep,True
+DM26-C047,delivery,Teslimat Adresi,Gaziantep,Demo Merkez 6,"Gaziantep Demo OSB, Blok 3, Kapı 47",True
+DM26-C048,invoice,Fatura Adresi,Samsun,Demo Merkez 1,Demo Mahallesi Test Sokak No: 48 / Samsun,True
+DM26-C048,delivery,Teslimat Adresi,Samsun,Demo Merkez 1,"Samsun Demo OSB, Blok 4, Kapı 48",True
+DM26-C049,invoice,Fatura Adresi,Eskişehir,Demo Merkez 2,Demo Mahallesi Test Sokak No: 49 / Eskişehir,True
+DM26-C049,delivery,Teslimat Adresi,Eskişehir,Demo Merkez 2,"Eskişehir Demo OSB, Blok 5, Kapı 49",True
+DM26-C050,invoice,Fatura Adresi,İstanbul,Demo Merkez 3,Demo Mahallesi Test Sokak No: 50 / İstanbul,True
+DM26-C050,delivery,Teslimat Adresi,İstanbul,Demo Merkez 3,"İstanbul Demo OSB, Blok 1, Kapı 50",True
+DM26-C051,invoice,Fatura Adresi,Ankara,Demo Merkez 4,Demo Mahallesi Test Sokak No: 51 / Ankara,True
+DM26-C051,delivery,Teslimat Adresi,Ankara,Demo Merkez 4,"Ankara Demo OSB, Blok 2, Kapı 51",True
+DM26-C052,invoice,Fatura Adresi,İzmir,Demo Merkez 5,Demo Mahallesi Test Sokak No: 52 / İzmir,True
+DM26-C052,delivery,Teslimat Adresi,İzmir,Demo Merkez 5,"İzmir Demo OSB, Blok 3, Kapı 52",True
+DM26-C053,invoice,Fatura Adresi,Bursa,Demo Merkez 6,Demo Mahallesi Test Sokak No: 53 / Bursa,True
+DM26-C053,delivery,Teslimat Adresi,Bursa,Demo Merkez 6,"Bursa Demo OSB, Blok 4, Kapı 53",True
+DM26-C054,invoice,Fatura Adresi,Antalya,Demo Merkez 1,Demo Mahallesi Test Sokak No: 54 / Antalya,True
+DM26-C054,delivery,Teslimat Adresi,Antalya,Demo Merkez 1,"Antalya Demo OSB, Blok 5, Kapı 54",True
+DM26-C055,invoice,Fatura Adresi,Konya,Demo Merkez 2,Demo Mahallesi Test Sokak No: 55 / Konya,True
+DM26-C055,delivery,Teslimat Adresi,Konya,Demo Merkez 2,"Konya Demo OSB, Blok 1, Kapı 55",True
+DM26-C056,invoice,Fatura Adresi,Kayseri,Demo Merkez 3,Demo Mahallesi Test Sokak No: 56 / Kayseri,True
+DM26-C056,delivery,Teslimat Adresi,Kayseri,Demo Merkez 3,"Kayseri Demo OSB, Blok 2, Kapı 56",True
+DM26-C057,invoice,Fatura Adresi,Gaziantep,Demo Merkez 4,Demo Mahallesi Test Sokak No: 57 / Gaziantep,True
+DM26-C057,delivery,Teslimat Adresi,Gaziantep,Demo Merkez 4,"Gaziantep Demo OSB, Blok 3, Kapı 57",True
+DM26-C058,invoice,Fatura Adresi,Samsun,Demo Merkez 5,Demo Mahallesi Test Sokak No: 58 / Samsun,True
+DM26-C058,delivery,Teslimat Adresi,Samsun,Demo Merkez 5,"Samsun Demo OSB, Blok 4, Kapı 58",True
+DM26-C059,invoice,Fatura Adresi,Eskişehir,Demo Merkez 6,Demo Mahallesi Test Sokak No: 59 / Eskişehir,True
+DM26-C059,delivery,Teslimat Adresi,Eskişehir,Demo Merkez 6,"Eskişehir Demo OSB, Blok 5, Kapı 59",True
+DM26-C060,invoice,Fatura Adresi,İstanbul,Demo Merkez 1,Demo Mahallesi Test Sokak No: 60 / İstanbul,True
+DM26-C060,delivery,Teslimat Adresi,İstanbul,Demo Merkez 1,"İstanbul Demo OSB, Blok 1, Kapı 60",True
+DM26-C061,invoice,Fatura Adresi,Ankara,Demo Merkez 2,Demo Mahallesi Test Sokak No: 61 / Ankara,True
+DM26-C061,delivery,Teslimat Adresi,Ankara,Demo Merkez 2,"Ankara Demo OSB, Blok 2, Kapı 61",True
+DM26-C062,invoice,Fatura Adresi,İzmir,Demo Merkez 3,Demo Mahallesi Test Sokak No: 62 / İzmir,True
+DM26-C062,delivery,Teslimat Adresi,İzmir,Demo Merkez 3,"İzmir Demo OSB, Blok 3, Kapı 62",True
+DM26-C063,invoice,Fatura Adresi,Bursa,Demo Merkez 4,Demo Mahallesi Test Sokak No: 63 / Bursa,True
+DM26-C063,delivery,Teslimat Adresi,Bursa,Demo Merkez 4,"Bursa Demo OSB, Blok 4, Kapı 63",True
+DM26-C064,invoice,Fatura Adresi,Antalya,Demo Merkez 5,Demo Mahallesi Test Sokak No: 64 / Antalya,True
+DM26-C064,delivery,Teslimat Adresi,Antalya,Demo Merkez 5,"Antalya Demo OSB, Blok 5, Kapı 64",True
+DM26-C065,invoice,Fatura Adresi,Konya,Demo Merkez 6,Demo Mahallesi Test Sokak No: 65 / Konya,True
+DM26-C065,delivery,Teslimat Adresi,Konya,Demo Merkez 6,"Konya Demo OSB, Blok 1, Kapı 65",True
+DM26-C066,invoice,Fatura Adresi,Kayseri,Demo Merkez 1,Demo Mahallesi Test Sokak No: 66 / Kayseri,True
+DM26-C066,delivery,Teslimat Adresi,Kayseri,Demo Merkez 1,"Kayseri Demo OSB, Blok 2, Kapı 66",True
+DM26-C067,invoice,Fatura Adresi,Gaziantep,Demo Merkez 2,Demo Mahallesi Test Sokak No: 67 / Gaziantep,True
+DM26-C067,delivery,Teslimat Adresi,Gaziantep,Demo Merkez 2,"Gaziantep Demo OSB, Blok 3, Kapı 67",True
+DM26-C068,invoice,Fatura Adresi,Samsun,Demo Merkez 3,Demo Mahallesi Test Sokak No: 68 / Samsun,True
+DM26-C068,delivery,Teslimat Adresi,Samsun,Demo Merkez 3,"Samsun Demo OSB, Blok 4, Kapı 68",True
+DM26-C069,invoice,Fatura Adresi,Eskişehir,Demo Merkez 4,Demo Mahallesi Test Sokak No: 69 / Eskişehir,True
+DM26-C069,delivery,Teslimat Adresi,Eskişehir,Demo Merkez 4,"Eskişehir Demo OSB, Blok 5, Kapı 69",True
+DM26-C070,invoice,Fatura Adresi,İstanbul,Demo Merkez 5,Demo Mahallesi Test Sokak No: 70 / İstanbul,True
+DM26-C070,delivery,Teslimat Adresi,İstanbul,Demo Merkez 5,"İstanbul Demo OSB, Blok 1, Kapı 70",True
+DM26-C071,invoice,Fatura Adresi,Ankara,Demo Merkez 6,Demo Mahallesi Test Sokak No: 71 / Ankara,True
+DM26-C071,delivery,Teslimat Adresi,Ankara,Demo Merkez 6,"Ankara Demo OSB, Blok 2, Kapı 71",True
+DM26-C072,invoice,Fatura Adresi,İzmir,Demo Merkez 1,Demo Mahallesi Test Sokak No: 72 / İzmir,True
+DM26-C072,delivery,Teslimat Adresi,İzmir,Demo Merkez 1,"İzmir Demo OSB, Blok 3, Kapı 72",True
+DM26-C073,invoice,Fatura Adresi,Bursa,Demo Merkez 2,Demo Mahallesi Test Sokak No: 73 / Bursa,True
+DM26-C073,delivery,Teslimat Adresi,Bursa,Demo Merkez 2,"Bursa Demo OSB, Blok 4, Kapı 73",True
+DM26-C074,invoice,Fatura Adresi,Antalya,Demo Merkez 3,Demo Mahallesi Test Sokak No: 74 / Antalya,True
+DM26-C074,delivery,Teslimat Adresi,Antalya,Demo Merkez 3,"Antalya Demo OSB, Blok 5, Kapı 74",True
+DM26-C075,invoice,Fatura Adresi,Konya,Demo Merkez 4,Demo Mahallesi Test Sokak No: 75 / Konya,True
+DM26-C075,delivery,Teslimat Adresi,Konya,Demo Merkez 4,"Konya Demo OSB, Blok 1, Kapı 75",True
+DM26-C076,invoice,Fatura Adresi,Kayseri,Demo Merkez 5,Demo Mahallesi Test Sokak No: 76 / Kayseri,True
+DM26-C076,delivery,Teslimat Adresi,Kayseri,Demo Merkez 5,"Kayseri Demo OSB, Blok 2, Kapı 76",True
+DM26-C077,invoice,Fatura Adresi,Gaziantep,Demo Merkez 6,Demo Mahallesi Test Sokak No: 77 / Gaziantep,True
+DM26-C077,delivery,Teslimat Adresi,Gaziantep,Demo Merkez 6,"Gaziantep Demo OSB, Blok 3, Kapı 77",True
+DM26-C078,invoice,Fatura Adresi,Samsun,Demo Merkez 1,Demo Mahallesi Test Sokak No: 78 / Samsun,True
+DM26-C078,delivery,Teslimat Adresi,Samsun,Demo Merkez 1,"Samsun Demo OSB, Blok 4, Kapı 78",True
+DM26-C079,invoice,Fatura Adresi,Eskişehir,Demo Merkez 2,Demo Mahallesi Test Sokak No: 79 / Eskişehir,True
+DM26-C079,delivery,Teslimat Adresi,Eskişehir,Demo Merkez 2,"Eskişehir Demo OSB, Blok 5, Kapı 79",True
+DM26-C080,invoice,Fatura Adresi,İstanbul,Demo Merkez 3,Demo Mahallesi Test Sokak No: 80 / İstanbul,True
+DM26-C080,delivery,Teslimat Adresi,İstanbul,Demo Merkez 3,"İstanbul Demo OSB, Blok 1, Kapı 80",True
+DM26-C081,invoice,Fatura Adresi,Ankara,Demo Merkez 4,Demo Mahallesi Test Sokak No: 81 / Ankara,True
+DM26-C081,delivery,Teslimat Adresi,Ankara,Demo Merkez 4,"Ankara Demo OSB, Blok 2, Kapı 81",True
+DM26-C082,invoice,Fatura Adresi,İzmir,Demo Merkez 5,Demo Mahallesi Test Sokak No: 82 / İzmir,True
+DM26-C082,delivery,Teslimat Adresi,İzmir,Demo Merkez 5,"İzmir Demo OSB, Blok 3, Kapı 82",True
+DM26-C083,invoice,Fatura Adresi,Bursa,Demo Merkez 6,Demo Mahallesi Test Sokak No: 83 / Bursa,True
+DM26-C083,delivery,Teslimat Adresi,Bursa,Demo Merkez 6,"Bursa Demo OSB, Blok 4, Kapı 83",True
+DM26-C084,invoice,Fatura Adresi,Antalya,Demo Merkez 1,Demo Mahallesi Test Sokak No: 84 / Antalya,True
+DM26-C084,delivery,Teslimat Adresi,Antalya,Demo Merkez 1,"Antalya Demo OSB, Blok 5, Kapı 84",True
+DM26-C085,invoice,Fatura Adresi,Konya,Demo Merkez 2,Demo Mahallesi Test Sokak No: 85 / Konya,True
+DM26-C085,delivery,Teslimat Adresi,Konya,Demo Merkez 2,"Konya Demo OSB, Blok 1, Kapı 85",True
+DM26-C086,invoice,Fatura Adresi,Kayseri,Demo Merkez 3,Demo Mahallesi Test Sokak No: 86 / Kayseri,True
+DM26-C086,delivery,Teslimat Adresi,Kayseri,Demo Merkez 3,"Kayseri Demo OSB, Blok 2, Kapı 86",True
+DM26-C087,invoice,Fatura Adresi,Gaziantep,Demo Merkez 4,Demo Mahallesi Test Sokak No: 87 / Gaziantep,True
+DM26-C087,delivery,Teslimat Adresi,Gaziantep,Demo Merkez 4,"Gaziantep Demo OSB, Blok 3, Kapı 87",True
+DM26-C088,invoice,Fatura Adresi,Samsun,Demo Merkez 5,Demo Mahallesi Test Sokak No: 88 / Samsun,True
+DM26-C088,delivery,Teslimat Adresi,Samsun,Demo Merkez 5,"Samsun Demo OSB, Blok 4, Kapı 88",True
+DM26-C089,invoice,Fatura Adresi,Eskişehir,Demo Merkez 6,Demo Mahallesi Test Sokak No: 89 / Eskişehir,True
+DM26-C089,delivery,Teslimat Adresi,Eskişehir,Demo Merkez 6,"Eskişehir Demo OSB, Blok 5, Kapı 89",True
+DM26-C090,invoice,Fatura Adresi,İstanbul,Demo Merkez 1,Demo Mahallesi Test Sokak No: 90 / İstanbul,True
+DM26-C090,delivery,Teslimat Adresi,İstanbul,Demo Merkez 1,"İstanbul Demo OSB, Blok 1, Kapı 90",True
+DM26-C091,invoice,Fatura Adresi,Ankara,Demo Merkez 2,Demo Mahallesi Test Sokak No: 91 / Ankara,True
+DM26-C091,delivery,Teslimat Adresi,Ankara,Demo Merkez 2,"Ankara Demo OSB, Blok 2, Kapı 91",True
+DM26-C092,invoice,Fatura Adresi,İzmir,Demo Merkez 3,Demo Mahallesi Test Sokak No: 92 / İzmir,True
+DM26-C092,delivery,Teslimat Adresi,İzmir,Demo Merkez 3,"İzmir Demo OSB, Blok 3, Kapı 92",True
+DM26-C093,invoice,Fatura Adresi,Bursa,Demo Merkez 4,Demo Mahallesi Test Sokak No: 93 / Bursa,True
+DM26-C093,delivery,Teslimat Adresi,Bursa,Demo Merkez 4,"Bursa Demo OSB, Blok 4, Kapı 93",True
+DM26-C094,invoice,Fatura Adresi,Antalya,Demo Merkez 5,Demo Mahallesi Test Sokak No: 94 / Antalya,True
+DM26-C094,delivery,Teslimat Adresi,Antalya,Demo Merkez 5,"Antalya Demo OSB, Blok 5, Kapı 94",True
+DM26-C095,invoice,Fatura Adresi,Konya,Demo Merkez 6,Demo Mahallesi Test Sokak No: 95 / Konya,True
+DM26-C095,delivery,Teslimat Adresi,Konya,Demo Merkez 6,"Konya Demo OSB, Blok 1, Kapı 95",True
+DM26-C096,invoice,Fatura Adresi,Kayseri,Demo Merkez 1,Demo Mahallesi Test Sokak No: 96 / Kayseri,True
+DM26-C096,delivery,Teslimat Adresi,Kayseri,Demo Merkez 1,"Kayseri Demo OSB, Blok 2, Kapı 96",True
+DM26-C097,invoice,Fatura Adresi,Gaziantep,Demo Merkez 2,Demo Mahallesi Test Sokak No: 97 / Gaziantep,True
+DM26-C097,delivery,Teslimat Adresi,Gaziantep,Demo Merkez 2,"Gaziantep Demo OSB, Blok 3, Kapı 97",True
+DM26-C098,invoice,Fatura Adresi,Samsun,Demo Merkez 3,Demo Mahallesi Test Sokak No: 98 / Samsun,True
+DM26-C098,delivery,Teslimat Adresi,Samsun,Demo Merkez 3,"Samsun Demo OSB, Blok 4, Kapı 98",True
+DM26-C099,invoice,Fatura Adresi,Eskişehir,Demo Merkez 4,Demo Mahallesi Test Sokak No: 99 / Eskişehir,True
+DM26-C099,delivery,Teslimat Adresi,Eskişehir,Demo Merkez 4,"Eskişehir Demo OSB, Blok 5, Kapı 99",True
+DM26-C100,invoice,Fatura Adresi,İstanbul,Demo Merkez 5,Demo Mahallesi Test Sokak No: 100 / İstanbul,True
+DM26-C100,delivery,Teslimat Adresi,İstanbul,Demo Merkez 5,"İstanbul Demo OSB, Blok 1, Kapı 100",True

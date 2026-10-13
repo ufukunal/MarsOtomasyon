@@ -1,0 +1,5 @@
+number,supplier_contact_code,receiving_location_code,country,incoterm,currency,exchange_rate,etd,eta,scenario_status,database_seed_status,notes
+DM26-IMP-001,DM26-C066,DM26-L02,Çin,FOB,USD,39.250000,2026-01-24,2026-03-21,in_transit,draft,"SENTETİK ithalat dosyası, gümrük beyannamesi değildir."
+DM26-IMP-002,DM26-C067,DM26-L02,Polonya,CIF,EUR,45.150000,2026-02-04,2026-04-01,customs,draft,"SENTETİK ithalat dosyası, gümrük beyannamesi değildir."
+DM26-IMP-003,DM26-C068,DM26-L02,İtalya,EXW,EUR,39.250000,2026-02-15,2026-04-12,draft,draft,"SENTETİK ithalat dosyası, gümrük beyannamesi değildir."
+DM26-IMP-004,DM26-C069,DM26-L02,Almanya,DAP,USD,45.150000,2026-02-26,2026-04-23,in_transit,draft,"SENTETİK ithalat dosyası, gümrük beyannamesi değildir."
