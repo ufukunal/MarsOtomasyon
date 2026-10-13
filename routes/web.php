@@ -37,6 +37,7 @@ use App\Livewire\Pages\Catalog\UnitForm;
 use App\Livewire\Pages\Catalog\UnitList;
 use App\Livewire\Pages\Companies\CrossCompanyCopy;
 use App\Livewire\Pages\Contacts\ContactForm;
+use App\Livewire\Pages\Contacts\ContactDetail;
 use App\Livewire\Pages\Contacts\ContactList;
 use App\Livewire\Pages\Import\ImportWizard;
 use App\Livewire\Pages\Pricing\PriceListDetail;
@@ -161,6 +162,7 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/kartlar/cariler', ContactList::class)->name('contacts.index');
     Route::get('/kartlar/cariler/yeni', ContactForm::class)->name('contacts.create');
     Route::get('/kartlar/cariler/{contact}', ContactForm::class)->name('contacts.edit');
+    Route::get('/kartlar/cariler/{contact}/detay', ContactDetail::class)->name('contacts.show');
     Route::get('/kartlar/urunler', ProductList::class)->name('products.index');
     Route::get('/kartlar/urunler/yeni', ProductForm::class)->name('products.create');
     Route::get('/kartlar/urunler/{product}', ProductForm::class)->name('products.edit');

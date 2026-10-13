@@ -8,6 +8,7 @@ use App\Livewire\Components\DataTable\DateRangeFilter;
 use App\Livewire\Components\DataTable\SelectFilter;
 use App\Models\Period\Contact;
 use App\Models\Period\ContactCategory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Schema;
 
@@ -97,9 +98,27 @@ class ContactList extends DataTableComponent
     /** @return list<array<string, mixed>> */
     public function rowActions(): array
     {
-        return auth()->user()?->can('contacts.update')
-            ? [['label' => 'Düzenle', 'method' => 'editContact']]
-            : [];
+        $actions = [['label' => 'Aç', 'method' => 'showContact']];
+
+        if (auth()->user()?->can('contacts.update')) {
+            $actions[] = ['label' => 'Düzenle', 'method' => 'editContact'];
+        }
+
+        return $actions;
+    }
+
+    public function columnUrl(Model $row, Column $column): ?string
+    {
+        return in_array($column->key, ['code', 'title'], true)
+            ? route('contacts.show', ['contact' => $row->getKey()])
+            : null;
+    }
+
+    public function showContact(int|string $id): mixed
+    {
+        abort_unless(auth()->user()?->can('contacts.view'), 403);
+
+        return $this->redirectRoute('contacts.show', ['contact' => $id], navigate: false);
     }
 
     public function editContact(int|string $id): mixed

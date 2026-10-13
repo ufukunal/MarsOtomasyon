@@ -1,4 +1,7 @@
 <form wire:submit="save" class="stack">
+    @if($contact)
+        <nav class="v65-product-edit-navigation"><a href="{{ route('contacts.index') }}">← Cari Listesi</a> <a href="{{ route('contacts.show', ['contact' => $contact->id]) }}">Cari Detayına Dön →</a></nav>
+    @endif
     <x-tabs :tabs="['general'=>'Firma / Ticari','terms'=>'Ticari Koşullar','addresses'=>'Adresler','people'=>'İletişim','banks'=>'Banka Bilgileri']" :active="$activeTab" />
 
     @if($activeTab === 'general')
