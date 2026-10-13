@@ -168,10 +168,11 @@ class ContactList extends DataTableComponent
             'active' => (int) ($counts?->active_count ?? 0),
             'inactive' => (int) ($counts?->inactive_count ?? 0),
             'cities' => (int) ($counts?->city_count ?? 0),
-            // Positive net debits are receivables for the company (alacak).
-            // Negative net balances are payables (borç).
-            'debit' => $credit,
-            'credit' => $debit,
+            // These totals are labelled from the cari's perspective:
+            // positive net (debit) = cari owes us (Borç); negative net (credit)
+            // = we owe the cari (Alacak). Ledger directions are unchanged.
+            'debit' => $debit,
+            'credit' => $credit,
         ];
     }
 
@@ -204,8 +205,8 @@ class ContactList extends DataTableComponent
             $absolute = bccomp($balance, '0', 4) < 0 ? bcmul($balance, '-1', 4) : $balance;
 
             return TrFormatter::money($absolute).' ₺'.match (bccomp($balance, '0', 4)) {
-                1 => ' Alacaklı',
-                -1 => ' Borçlu',
+                1 => ' Borçlu',
+                -1 => ' Alacaklı',
                 default => '',
             };
         }
