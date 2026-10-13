@@ -158,9 +158,9 @@
             <x-slot:sorting>
                 <x-v65.filter-field label="Sıralama Alanı">
                     <select wire:model="v65DraftFilters.sort">
-                        <option value="id">Varsayılan</option>
+                        <option value="{{ $this->v65DefaultSortKey() }}">Varsayılan</option>
                         @foreach($this->v65AvailableSortOptions() as $key => $label)
-                            @if($key !== 'id')<option value="{{ $key }}">{{ $label }}</option>@endif
+                            @if($key !== $this->v65DefaultSortKey())<option value="{{ $key }}">{{ $label }}</option>@endif
                         @endforeach
                     </select>
                 </x-v65.filter-field>
