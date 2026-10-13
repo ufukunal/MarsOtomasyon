@@ -18,5 +18,5 @@
     <x-field.textarea label="Adres" wire:model="address" />
     <x-field.toggle label="Varsayılan" wire:model="isDefault" />
     <x-field.toggle label="Aktif" wire:model="isActive" />
-    <div class="v65-form-footer"><button type="submit">Kaydet</button></div>
+    <x-v65.form-actions class="v65-form-footer"><x-v65.button type="submit" wire:loading.attr="disabled" wire:target="save">Kaydet</x-v65.button></x-v65.form-actions>
 </form>
