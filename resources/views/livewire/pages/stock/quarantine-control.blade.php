@@ -1,17 +1,20 @@
 <div class="stack v65-stock-workspace v65-list-page">
     <section class="panel stack v65-stock-document">
+        <x-v65.list-heading title="Karantina Stokları">
+            <x-v65.simple-filter-drawer>
+                <label>Durum
+                    <select wire:model.live="status">
+                        <option value="open">Bekleyen / Kısmi</option>
+                        <option value="pending">Bekleyen</option>
+                        <option value="partial">Kısmi Kararlı</option>
+                        <option value="released">Satılabilir</option>
+                        <option value="scrapped">Hurda</option>
+                        <option value="all">Tümü</option>
+                    </select>
+                </label>
+            </x-v65.simple-filter-drawer>
+        </x-v65.list-heading>
         <div class="form-row">
-            <label class="field">
-                <span class="field-label">Durum</span>
-                <select wire:model.live="status">
-                    <option value="open">Bekleyen / Kısmi</option>
-                    <option value="pending">Bekleyen</option>
-                    <option value="partial">Kısmi Kararlı</option>
-                    <option value="released">Satılabilir</option>
-                    <option value="scrapped">Hurda</option>
-                    <option value="all">Tümü</option>
-                </select>
-            </label>
             <label class="field">
                 <span class="field-label">Karar Notu</span>
                 <input wire:model="decisionNote">
