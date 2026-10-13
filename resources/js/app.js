@@ -223,7 +223,7 @@ document.addEventListener('keydown', (event) => {
 
 // Keep page action dropdowns mutually exclusive, including teleported Cari Detay menus.
 // Event delegation survives Livewire morphing and browser back/forward navigation.
-const v65ActionMenuSelector = 'details.page-action-menu, details.topbar-create, details.user-menu, details.v65-products-export-menu, details.v65-contact-action-menu';
+const v65ActionMenuSelector = 'details.page-action-menu, details.topbar-create, details.user-menu, details.v65-products-export-menu, details.v65-contact-action-menu, details[data-v65-action-menu]';
 const closeV65ActionMenus = (except = null) => {
     for (const opened of document.querySelectorAll(v65ActionMenuSelector)) {
         if (opened.open && opened !== except) opened.open = false;
@@ -252,7 +252,7 @@ document.addEventListener('keydown', (event) => {
 });
 document.addEventListener('click', (event) => {
     if (!(event.target instanceof Element)) return;
-    const link = event.target.closest('details.v65-contact-action-menu a[href]');
+    const link = event.target.closest('details.v65-contact-action-menu a[href], details[data-v65-action-menu] a[href], details[data-v65-action-menu] button');
     if (link) link.closest('details').open = false;
 });
 document.addEventListener('livewire:navigating', () => closeV65ActionMenus());
