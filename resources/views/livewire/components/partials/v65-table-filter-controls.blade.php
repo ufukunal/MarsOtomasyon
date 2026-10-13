@@ -1,9 +1,7 @@
     <div class="v65-filter-toolbar">
         <x-v65.filter-drawer :count="$this->activeV65FilterCount()" :tab="$v65FilterTab">
             <x-slot:filters>
-                <x-v65.filter-field label="Genel Arama">
-                    <input type="search" wire:model="v65DraftFilters.search" maxlength="255" placeholder="Kod, ad veya numara ara">
-                </x-v65.filter-field>
+                <x-v65.search-field label="Genel Arama" wire:model="v65DraftFilters.search" maxlength="255" placeholder="Kod, ad veya numara ara" />
                 @foreach($filters as $filter)
                     @if($filter instanceof \App\Livewire\Components\DataTable\SelectFilter)
                         <x-v65.filter-field :label="$filter->label">
