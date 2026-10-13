@@ -55,3 +55,22 @@ it('shows collection-based technical PDFs with an authorized product-scoped rout
         ->toContain("where('mime', 'application/pdf')")
         ->toContain("whereKey(\$attachment->id)");
 });
+
+it('shows only a direct product-list link instead of the product detail other menu', function (): void {
+    $layout = file_get_contents(base_path('resources/views/layouts/app.blade.php'));
+    $productStart = strpos($layout, "@if (\$routeName === 'products.show')");
+    $productsIndex = strpos($layout, "@elseif (\$routeName === 'products.index')", $productStart);
+
+    expect($productStart)->not->toBeFalse()
+        ->and($productsIndex)->not->toBeFalse();
+
+    $actions = substr($layout, $productStart, $productsIndex - $productStart);
+
+    expect($actions)->toContain("route('products.index')")
+        ->toContain('Ürün Listesi')
+        ->not->toContain('page-action-menu')
+        ->not->toContain('İade İşlemleri')
+        ->not->toContain('Düzenle')
+        ->not->toContain('Yazdır / PDF')
+        ->not->toContain('history.back()');
+});

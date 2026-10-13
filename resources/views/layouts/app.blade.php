@@ -204,19 +204,8 @@
                     @endcan
                 @endif
                 @if ($routeName === 'products.show')
-                    <details class="page-action-menu page-action-more">
-                        <summary>Diğer <span aria-hidden="true">⌄</span></summary>
-                        <div class="page-action-menu-items">
-                            @can('returns.view')
-                                <a href="{{ route('returns.center') }}">İade İşlemleri</a>
-                            @endcan
-                            @can('products.update')
-                                <a href="{{ route('products.edit', ['product' => request()->route('product')]) }}">Düzenle</a>
-                            @endcan
-                            <button type="button" onclick="window.print()" title="Yazdırma penceresinde PDF olarak kaydedebilirsiniz">Yazdır / PDF</button>
-                            <button type="button" onclick="if (history.length > 1) history.back(); else location.href='{{ route('home') }}'">Geri</button>
-                        </div>
-                    </details>
+                    {{-- Product detail stays read-only: keep editing in the authorized overview action. --}}
+                    <a class="button-secondary" href="{{ route('products.index') }}" aria-label="Ürün listesine dön">← Ürün Listesi</a>
                 @elseif ($routeName === 'products.index')
                     {{-- Product-specific create, print and export actions are teleported here. --}}
                 @elseif ($routeName === 'warehouse.transport.show')
