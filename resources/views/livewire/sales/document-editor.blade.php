@@ -164,6 +164,25 @@
                 <button type="button" wire:click="issueProforma">Proforma Oluştur</button>
             @endif
             @if(method_exists($this, 'post') && $document->status === 'draft')
+                @if($this instanceof \App\Livewire\Sales\SalesInvoiceEditor)
+                    @php
+                        $invoiceRisk = $this->invoiceRiskProjection();
+                    @endphp
+                    @if($invoiceRisk?->knownLimitExceeded)
+                        <div class="alert alert-warning" role="alert">
+                            <strong>Cari risk limiti aşılıyor.</strong>
+                            Mevcut alacak: {{ \App\Support\Formatting\TrFormatter::money($invoiceRisk->currentBalance) }} ₺;
+                            fatura: {{ \App\Support\Formatting\TrFormatter::money($invoiceRisk->orderTotal) }} ₺;
+                            tahmini risk: {{ \App\Support\Formatting\TrFormatter::money($invoiceRisk->knownExposure) }} ₺;
+                            limit: {{ \App\Support\Formatting\TrFormatter::money($invoiceRisk->riskLimit) }} ₺.
+                            <label><input type="checkbox" wire:model="riskAccepted"> Risk limitinin aşıldığını kabul ediyorum.</label>
+                        </div>
+                    @elseif($document->currency !== 'TRY')
+                        <div class="alert alert-warning" role="status">
+                            Fatura TRY dışında bir para birimindedir. TRY risk limitiyle döviz tutarı doğrudan karşılaştırılamaz; risk ayrıca kontrol edilmelidir.
+                        </div>
+                    @endif
+                @endif
                 <button type="button" wire:click="post">Kesinleştir</button>
             @endif
             @if(method_exists($this, 'reverse') && $document->status === 'posted')
