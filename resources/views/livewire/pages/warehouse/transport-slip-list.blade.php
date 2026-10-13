@@ -1,28 +1,52 @@
 <div class="wsl-shell stack v65-list-page">
-    <section class="wsl-card panel v65-list-filter-panel">
-        <x-v65.list-filters>
-            <div class="v65-list-filter-fields">
-            <label class="wsl-field"><span class="field-label">Genel Arama</span><input wire:model.live.debounce.300ms="search" placeholder="Fiş no, firma, ambar..."></label>
-            <label class="wsl-field"><span class="field-label">Durum</span>
-                <select wire:model.live="status">
-                    <option value="">Tümü</option>
-                    @foreach($statusLabels as $value => $label)<option value="{{ $value }}">{{ $label }}</option>@endforeach
-                </select>
-            </label>
-            <label class="wsl-field"><span class="field-label">Ambar / Nakliye</span>
-                <select wire:model.live="carrier"><option value="">Tümü</option>
-                    @foreach($carriers as $option)<option value="{{ $option }}">{{ $option }}</option>@endforeach
-                </select>
-            </label>
-            <label class="wsl-field"><span class="field-label">Cam Durumu</span>
-                <select wire:model.live="glass"><option value="">Tümü</option><option value="yes">Cam Var</option><option value="no">Cam Yok</option></select>
-            </label>
-            <label class="wsl-field"><span class="field-label">Tarih Başlangıç</span><input type="date" wire:model.live="dateFrom"></label>
-            <label class="wsl-field"><span class="field-label">Tarih Bitiş</span><input type="date" wire:model.live="dateTo"></label>
-            </div>
-            <button type="button" class="button-secondary v65-list-clear" wire:click="clearFilters">Temizle</button>
-        </x-v65.list-filters>
-    </section>
+    <div class="v65-filter-toolbar">
+        <x-v65.filter-drawer :count="$this->activeV65FilterCount()" :tab="$v65FilterTab">
+            <x-slot:filters>
+                <x-v65.filter-field label="Genel Arama">
+                    <input type="search" wire:model="v65DraftFilters.search" maxlength="255" placeholder="Fiş no, firma, ambar...">
+                </x-v65.filter-field>
+                <x-v65.filter-field label="Durum">
+                    <select wire:model="v65DraftFilters.filters.status">
+                        <option value="">Tümü</option>
+                        @foreach($statusLabels as $value => $label)<option value="{{ $value }}">{{ $label }}</option>@endforeach
+                    </select>
+                </x-v65.filter-field>
+                <x-v65.filter-field label="Ambar / Nakliye">
+                    <select wire:model="v65DraftFilters.filters.carrier">
+                        <option value="">Tümü</option>
+                        @foreach($carriers as $carrier)<option value="{{ $carrier }}">{{ $carrier }}</option>@endforeach
+                    </select>
+                </x-v65.filter-field>
+                <x-v65.filter-field label="Cam Durumu">
+                    <select wire:model="v65DraftFilters.filters.glass">
+                        <option value="">Tümü</option><option value="yes">Cam Var</option><option value="no">Cam Yok</option>
+                    </select>
+                </x-v65.filter-field>
+                <x-v65.filter-field label="Fiş Tarihi">
+                    <div class="v65-filter-date-pair">
+                        <input type="date" aria-label="Tarih başlangıç" wire:model="v65DraftFilters.filters.date.from">
+                        <input type="date" aria-label="Tarih bitiş" wire:model="v65DraftFilters.filters.date.to">
+                    </div>
+                </x-v65.filter-field>
+            </x-slot:filters>
+            <x-slot:sorting>
+                <x-v65.filter-field label="Sıralama Alanı">
+                    <select wire:model="v65DraftFilters.sort">
+                        <option value="">Varsayılan (en yeni)</option>
+                        @foreach($this->v65AvailableSortOptions() as $key => $label)
+                            <option value="{{ $key }}">{{ $label }}</option>
+                        @endforeach
+                    </select>
+                </x-v65.filter-field>
+                <x-v65.filter-field label="Sıralama Yönü">
+                    <select wire:model="v65DraftFilters.direction">
+                        <option value="asc">Artan</option><option value="desc">Azalan</option>
+                    </select>
+                </x-v65.filter-field>
+            </x-slot:sorting>
+        </x-v65.filter-drawer>
+    </div>
+    <x-v65.active-filters :items="$this->v65ActiveFilterLabels()" />
 
     <section class="wsl-card panel v65-list-panel">
         <div class="wsl-card-head"><strong>Ambar Fişi Listesi</strong></div>
