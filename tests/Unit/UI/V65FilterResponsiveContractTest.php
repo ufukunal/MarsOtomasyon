@@ -19,7 +19,7 @@ it('offers a responsive keyboard-accessible native modal drawer', function (): v
 
 it('removes horizontal filter wrappers from every formerly affected list', function (): void {
     $views = [
-        'resources/views/livewire/components/data-table.blade.php',
+        'resources/views/livewire/components/partials/v65-table-filter-controls.blade.php',
         'resources/views/livewire/sales/document-list.blade.php',
         'resources/views/livewire/pages/warehouse/transport-slip-list.blade.php',
         'resources/views/livewire/production/production-order-center.blade.php',
@@ -28,6 +28,9 @@ it('removes horizontal filter wrappers from every formerly affected list', funct
         'resources/views/livewire/imports/import-center.blade.php',
         'resources/views/livewire/channels/channel-listing-center.blade.php',
     ];
+
+    $table = file_get_contents(base_path('resources/views/livewire/components/data-table.blade.php'));
+    expect($table)->toContain("@include('livewire.components.partials.v65-table-filter-controls')");
 
     foreach ($views as $path) {
         $source = file_get_contents(base_path($path));
