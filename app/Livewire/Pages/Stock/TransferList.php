@@ -95,9 +95,19 @@ class TransferList extends DataTableComponent
 
     public function columnUrl(Model $row, Column $column): ?string
     {
-        return $column->key === 'number'
-            ? route('stock.transfers.show', ['id' => $row->getKey()])
-            : null;
+        if ($column->key === 'number') {
+            return route('stock.transfers.show', ['id' => $row->getKey()]);
+        }
+
+        if (auth()->user()?->can('locations.view')) {
+            return match ($column->key) {
+                'from_location_name' => route('locations.show', ['location' => $row->getAttribute('from_location_id')]),
+                'to_location_name' => route('locations.show', ['location' => $row->getAttribute('to_location_id')]),
+                default => null,
+            };
+        }
+
+        return null;
     }
 
     /** @return list<array<string, mixed>> */
