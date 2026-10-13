@@ -31,6 +31,7 @@
             @if($groupProducts->count() === 1)
                 <div class="alert alert-warning">Varyant grubu yalnız bir ürün içeriyor. Bu durum engellenmez ancak grup sunum açısından anlamlı değildir.</div>
             @endif
+            <x-v65.list-heading title="Varyant Ürünleri" />
             <div class="table-scroll v65-list-table"><table class="data-table">
                 <thead><tr><th>Kod</th><th>Ürün</th><th>Değerler</th><th>Fiyat</th><th>Stok</th><th>Durum</th></tr></thead>
                 <tbody>
