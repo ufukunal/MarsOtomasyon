@@ -25,7 +25,7 @@
 
     @if($preview)
         <section class="panel">
-            <h2>Kontrol Listesi</h2>
+            <x-v65.list-heading title="Kontrol Listesi" />
             <div class="table-scroll v65-list-table">
                 <table class="data-table">
                     <thead>
@@ -51,7 +51,7 @@
         </section>
 
         <section class="panel">
-            <h2>Kapanış / Taşıma Özeti</h2>
+            <x-v65.list-heading title="Kapanış / Taşıma Özeti" />
             <div class="table-scroll v65-list-table">
                 <table class="data-table">
                     <tbody>
@@ -67,7 +67,7 @@
         </section>
 
         <section class="panel">
-            <h2>K-256 Açık Siparişler</h2>
+            <x-v65.list-heading title="K-256 Açık Siparişler" />
             <div class="table-scroll v65-list-table">
                 <table class="data-table">
                     <thead>
@@ -121,7 +121,7 @@
         </section>
 
         <section class="panel">
-            <h2>K-259 Açık İthalat / Karantina</h2>
+            <x-v65.list-heading title="K-259 Açık İthalat / Karantina" />
             <div class="table-scroll v65-list-table">
                 <table class="data-table">
                     <thead>
