@@ -92,6 +92,13 @@
             </div>
         </dialog>
     @endif
+    @if(!$isProductTable && $emptyAction && \Illuminate\Support\Facades\Route::has($emptyAction['route']))
+        @teleport('.page-actions.v65-page-actions')
+            <div class="v65-list-heading-actions">
+                <a class="button-link table-add-action" href="{{ route($emptyAction['route']) }}">+ {{ $emptyAction['label'] }}</a>
+            </div>
+        @endteleport
+    @endif
     <div class="table-toolbar v65-list-filters">
         <div class="table-toolbar-main">
             <label class="table-search">
