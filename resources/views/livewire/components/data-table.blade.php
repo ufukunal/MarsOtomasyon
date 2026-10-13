@@ -198,7 +198,6 @@
         <table class="data-table">
             <thead>
             <tr>
-                @if($isProductTable)<th scope="col" class="v65-product-photo-column">Görsel</th>@endif
                 @unless($isProductTable)
                     <th class="select-column" scope="col">
                         <button type="button" class="link-button" wire:click="selectVisible">Tümü</button>
@@ -223,20 +222,6 @@
             <tbody>
             @forelse ($rows as $row)
                 <tr wire:key="row-{{ $row->getKey() }}">
-                    @if($isProductTable)
-                        @php
-                            $cover = $row->attachments->first();
-                        @endphp
-                        <td class="v65-product-photo-column">
-                            <a class="v65-product-photo-thumb" href="{{ route('products.show', ['product' => $row->getKey()]) }}" aria-label="{{ $row->name }} görseli ve detayları">
-                                @if($cover)
-                                    <img loading="lazy" src="{{ route('products.images.show', ['product' => $row->getKey(), 'attachment' => $cover->id]) }}" alt="{{ $row->name }}">
-                                @else
-                                    <span aria-hidden="true">▧</span>
-                                @endif
-                            </a>
-                        </td>
-                    @endif
                     @unless($isProductTable)
                         <td><input wire:model.live="selected" type="checkbox" value="{{ $row->getKey() }}" aria-label="Kayıt {{ $row->getKey() }} seç"></td>
                     @endunless
@@ -269,7 +254,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="{{ $visibleColumnCount + ($isProductTable ? 1 : 1 + (count($rowActions) > 0 ? 1 : 0)) }}" class="empty-state">
+                    <td colspan="{{ $visibleColumnCount + ($isProductTable ? 0 : 1 + (count($rowActions) > 0 ? 1 : 0)) }}" class="empty-state">
                         <div>Kayıt bulunamadı.</div>
                         @if($emptyAction)
                             <a class="button-link" href="{{ route($emptyAction['route']) }}">{{ $emptyAction['label'] }}</a>
@@ -281,7 +266,7 @@
             @if($summary !== [])
                 <tfoot>
                 <tr class="table-summary">
-                    @if($isProductTable)<td></td>@else<td></td>@endif
+                    @unless($isProductTable)<td></td>@endunless
                     @foreach ($columns as $column)
                         @continue($hiddenColumns[$column->key] ?? false)
                         <td @class(['align-end tabular' => $column->align === 'end'])>
