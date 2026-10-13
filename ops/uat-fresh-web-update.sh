@@ -132,6 +132,9 @@ test -s /var/www/html/public/build/manifest.json || { echo "IMAGE_CHECK_FAIL Vit
 grep -Fq "products.technical-sheet.show" /var/www/html/resources/views/livewire/pages/products/product-detail.blade.php || { echo "IMAGE_CHECK_FAIL technical PDF link missing" >&2; exit 1; }
 grep -Fq "mars-pagination" /var/www/html/resources/css/v65-shell.css || { echo "IMAGE_CHECK_FAIL compact pagination CSS missing" >&2; exit 1; }
 php -l /var/www/html/app/Http/Controllers/ProductTechnicalSheetController.php
+# Validate the newly added contact detail before any web-container switch.
+php -l /var/www/html/app/Livewire/Pages/Contacts/ContactDetail.php
+test -s /var/www/html/resources/views/livewire/pages/contacts/contact-detail.blade.php || { echo "IMAGE_CHECK_FAIL contact detail Blade missing" >&2; exit 1; }
 echo "IMAGE_CHECK_OK=YES (www-data readable and UI code present)"
 ' || fail 'Built image validation failed; Fresh is unchanged'
 
