@@ -3,11 +3,14 @@
     @if(session('warning')) <div class="panel">{{ session('warning') }}</div> @endif
 
     <section class="panel v65-list-panel">
-        <div class="form-row v65-list-heading-actions">
-            @can('channel_accounts.create')
-                <button type="button" wire:click="newAccount">Yeni Hesap</button>
-            @endcan
-        </div>
+        <x-v65.list-heading title="Kanal Hesapları" />
+        @teleport('.page-actions.v65-page-actions')
+            <div class="v65-list-heading-actions">
+                @can('channel_accounts.create')
+                    <button type="button" class="button-link" wire:click="newAccount">+ Yeni Hesap</button>
+                @endcan
+            </div>
+        @endteleport
 
         <div class="table-scroll v65-grid-scroll v65-list-table"><table class="data-table">
             <thead><tr><th>Platform</th><th>Hesap</th><th>Store ID</th><th>Aktif</th><th>Adapter</th></tr></thead>
