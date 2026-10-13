@@ -98,9 +98,9 @@
                     @endforeach
                 </select>
 
-                <details class="column-picker">
+                <details class="column-picker v65-standard-action-menu" data-v65-action-menu>
                     <summary>Kolonlar</summary>
-                    <div class="column-picker-menu">
+                    <div class="column-picker-menu v65-standard-action-menu-panel" data-v65-action-menu-panel>
                         @foreach($selectedReport->columns as $column)
                             <label>
                                 <input
