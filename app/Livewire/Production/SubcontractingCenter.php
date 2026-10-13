@@ -7,6 +7,7 @@ use App\Actions\Production\SendMaterialsToSubcontractor;
 use App\Enums\DocumentType;
 use App\Enums\LocationKind;
 use App\Livewire\Concerns\WithIdempotentMutations;
+use App\Livewire\Concerns\WithV65SimpleListFilter;
 use App\Models\Period\Document;
 use App\Models\Period\Location;
 use App\Models\Period\ProductionOrder;
@@ -20,6 +21,7 @@ use Livewire\WithPagination;
 class SubcontractingCenter extends Component
 {
     use WithPagination;
+    use WithV65SimpleListFilter;
 
     public string $listSearch = '';
 
@@ -161,7 +163,7 @@ class SubcontractingCenter extends Component
                         ->orWhereHas('product', fn ($p) => $p->where('name', 'ilike', $needle)->orWhere('code', 'ilike', $needle))
                         ->orWhereHas('subcontractor', fn ($c) => $c->where('title', 'ilike', $needle));
                 }))
-                ->orderByDesc('id')
+                ->when($this->v65SimpleSort === 'id', fn ($q) => $q->orderBy('id', $this->v65SimpleDirection), fn ($q) => $q->orderByDesc('id'))
                 ->paginate($this->perPage),
             'order' => $order,
             'normalLocations' => Location::query()
