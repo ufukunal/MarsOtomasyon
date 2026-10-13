@@ -49,7 +49,7 @@
                 @forelse($documents as $document)
                     <tr wire:key="doc-{{ $document->id }}">
                         @unless($hiddenColumns['number'] ?? false)
-                            <td><a href="{{ route($detailRoute, ['id' => $document->id]) }}">{{ $document->number ?? 'Taslak' }}@if($document->revision_no > 0) / Rev.{{ $document->revision_no }}@endif</a></td>
+                            <td><a class="v65-record-link" href="{{ route($detailRoute, ['id' => $document->id]) }}">{{ $document->number ?? 'Taslak' }}@if($document->revision_no > 0) / Rev.{{ $document->revision_no }}@endif</a></td>
                         @endunless
                         @unless($hiddenColumns['date'] ?? false)<td>{{ $document->document_date?->format('d.m.Y') ?? '—' }}</td>@endunless
                         @unless($hiddenColumns['contact'] ?? false)
