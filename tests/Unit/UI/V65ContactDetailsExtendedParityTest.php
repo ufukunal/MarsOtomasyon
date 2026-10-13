@@ -12,7 +12,7 @@ it('keeps a distinct authorized customer-detail page and the shared list standar
     expect(Route::has('contacts.show'))->toBeTrue()
         ->and(is_subclass_of(ContactList::class, \App\Livewire\Components\DataTable\DataTableComponent::class))->toBeTrue()
         ->and(is_subclass_of(ContactDetail::class, \Livewire\Component::class))->toBeTrue()
-        ->and($list)->toContain("'label' => 'Aç'")
+        ->and($list)->not->toContain("'label' => 'Aç'")
         ->toContain("route('contacts.show'")
         ->toContain("where('currency', 'TRY')")
         ->and($table)->toContain('v65-data-table-heading-actions')
