@@ -1,4 +1,4 @@
-<div class="space-y-8">
+<div class="space-y-8 v65-list-page">
     <h1>Banka Ekstresi / Mutabakat</h1>
 
     <section class="panel stack">
@@ -33,7 +33,7 @@
     @if($previewRows !== [])
         <section>
             <h2>Önizleme</h2>
-            <table>
+            <div class="table-scroll v65-list-table"><table class="data-table">
                 <thead><tr><th>Tarih</th><th>Valör</th><th>Referans</th><th>Açıklama</th><th>Yön</th><th>Tutar</th><th>Bakiye</th></tr></thead>
                 <tbody>
                 @foreach($previewRows as $row)
@@ -48,13 +48,13 @@
                     </tr>
                 @endforeach
                 </tbody>
-            </table>
+            </table></div>
         </section>
     @endif
 
     <section>
         <h2>Ekstre Satırları</h2>
-        <table>
+        <div class="table-scroll v65-list-table"><table class="data-table">
             <thead><tr><th>Seç</th><th>Banka</th><th>Tarih</th><th>Referans</th><th>Açıklama</th><th>Yön</th><th>Tutar</th><th>Durum</th></tr></thead>
             <tbody>
             @foreach($statementRows as $row)
@@ -70,7 +70,7 @@
                 </tr>
             @endforeach
             </tbody>
-        </table>
+        </table></div>
     </section>
 
     @if($selectedStatementId)
@@ -79,7 +79,7 @@
 
             @if($suggestions !== [])
                 <h3>Öneriler</h3>
-                <table>
+                <div class="table-scroll v65-list-table"><table class="data-table">
                     <thead><tr><th>Hareket</th><th>Skor</th><th>Neden</th><th></th></tr></thead>
                     <tbody>
                     @foreach($suggestions as $suggestion)
@@ -91,7 +91,7 @@
                         </tr>
                     @endforeach
                     </tbody>
-                </table>
+                </table></div>
             @endif
 
             <label>Mevcut Defter Hareketi

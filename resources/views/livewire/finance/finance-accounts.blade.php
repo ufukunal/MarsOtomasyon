@@ -1,4 +1,4 @@
-<div class="space-y-6">
+<div class="space-y-6 v65-list-page">
 
     <section class="panel stack v65-workspace-form">
         <h2>Kasa</h2>
@@ -14,7 +14,7 @@
             </div>
         @endcan
 
-        <table>
+        <div class="table-scroll v65-list-table"><table class="data-table">
             <thead><tr><th>Kod</th><th>Ad</th><th>PB</th><th>Defter Bakiyesi</th><th>Durum</th><th></th></tr></thead>
             <tbody>
             @foreach($cashAccounts as $account)
@@ -35,7 +35,7 @@
                 </tr>
             @endforeach
             </tbody>
-        </table>
+        </table></div>
     </section>
 
     <section class="panel stack v65-workspace-form">
@@ -54,7 +54,7 @@
             </div>
         @endcan
 
-        <table>
+        <div class="table-scroll v65-list-table"><table class="data-table">
             <thead>
             <tr>
                 <th>Kod</th><th>Banka</th><th>Hesap</th><th>IBAN</th><th>PB</th>
@@ -90,6 +90,6 @@
                 </tr>
             @endforeach
             </tbody>
-        </table>
+        </table></div>
     </section>
 </div>

@@ -1,4 +1,4 @@
-<div class="space-y-5 panel">
+<div class="space-y-5 panel v65-list-page">
     <h1>Cari Yaşlandırma</h1>
 
     <label>Cari
@@ -13,7 +13,7 @@
 
     @if($aging)
         <div>Bakiye: {{ $aging->balance }} · Açık borç: {{ $aging->openDebit }} · Fazla kredi: {{ $aging->excessCredit }}</div>
-        <table>
+        <div class="table-scroll v65-list-table"><table class="data-table">
             <thead><tr><th>Tarih</th><th>Vade</th><th>Orijinal</th><th>Uygulanan kredi</th><th>Kalan</th><th>Dilim</th><th>Durum</th></tr></thead>
             <tbody>
                 @foreach($aging->lines as $line)
@@ -28,6 +28,6 @@
                     </tr>
                 @endforeach
             </tbody>
-        </table>
+        </table></div>
     @endif
 </div>

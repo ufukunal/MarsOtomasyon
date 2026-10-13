@@ -1,4 +1,4 @@
-<div class="space-y-6">
+<div class="space-y-6 v65-list-page">
 
     <section class="panel stack v65-workspace-form">
         <label>İade Türü
@@ -23,7 +23,7 @@
         <label>Not <textarea wire:model="note"></textarea></label>
 
         @if($sourceInvoice)
-            <table>
+            <div class="table-scroll v65-list-table"><table class="data-table">
                 <thead><tr><th>Satır</th><th>Ürün/Hizmet</th><th>Fatura Miktarı</th><th>İade</th><th>Lokasyon</th></tr></thead>
                 <tbody>
                 @foreach($sourceInvoice->lines as $line)
@@ -47,7 +47,7 @@
                     </tr>
                 @endforeach
                 </tbody>
-            </table>
+            </table></div>
 
             @can('returns.create')
                 <button type="button" wire:click="create">İade Taslağı Oluştur</button>
@@ -81,7 +81,7 @@
 
     <section class="panel stack">
         <h2>İade Geçmişi</h2>
-        <table>
+        <div class="table-scroll v65-list-table"><table class="data-table">
             <thead><tr><th>No</th><th>Tür</th><th>Cari</th><th>Tarih</th><th>Tutar</th><th>Durum</th><th></th></tr></thead>
             <tbody>
             @foreach($returns as $return)
@@ -96,6 +96,6 @@
                 </tr>
             @endforeach
             </tbody>
-        </table>
+        </table></div>
     </section>
 </div>

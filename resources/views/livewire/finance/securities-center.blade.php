@@ -1,4 +1,4 @@
-<div class="space-y-8">
+<div class="space-y-8 v65-list-page">
     <h1>Çek / Senet</h1>
 
     <section class="panel stack">
@@ -42,7 +42,7 @@
 
     <section>
         <h2>Portföy</h2>
-        <table>
+        <div class="table-scroll v65-list-table"><table class="data-table">
             <thead>
             <tr><th>Seç</th><th>No</th><th>Tür</th><th>Yön</th><th>Cari</th><th>Vade</th><th>Tutar</th><th>Durum</th></tr>
             </thead>
@@ -60,7 +60,7 @@
                 </tr>
             @endforeach
             </tbody>
-        </table>
+        </table></div>
     </section>
 
     <section class="panel stack">
@@ -115,7 +115,7 @@
 
     <section>
         <h2>Son Bordrolar</h2>
-        <table>
+        <div class="table-scroll v65-list-table"><table class="data-table">
             <thead><tr><th>No</th><th>İşlem</th><th>Tarih</th><th>Toplam</th><th>Adet</th><th>Terslenen</th><th>Durum</th></tr></thead>
             <tbody>
             @foreach($payrolls as $payroll)
@@ -130,6 +130,6 @@
                 </tr>
             @endforeach
             </tbody>
-        </table>
+        </table></div>
     </section>
 </div>

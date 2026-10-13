@@ -1,4 +1,4 @@
-<div class="space-y-8">
+<div class="space-y-8 v65-list-page">
 
     <section class="panel stack v65-workspace-form">
         <h2>Manuel Kasa / Banka Hareketi</h2>
@@ -179,7 +179,7 @@
 
     <section class="panel stack">
         <h2>Son Kasa Hareketleri</h2>
-        <table>
+        <div class="table-scroll v65-list-table"><table class="data-table">
             <thead><tr><th>ID</th><th>Tarih</th><th>Tür</th><th>Yön</th><th>Tutar</th><th>Referans</th><th>Grup</th></tr></thead>
             <tbody>
             @foreach($cashMovements as $movement)
@@ -194,12 +194,12 @@
                 </tr>
             @endforeach
             </tbody>
-        </table>
+        </table></div>
     </section>
 
     <section class="panel stack">
         <h2>Son Banka Defter Hareketleri</h2>
-        <table>
+        <div class="table-scroll v65-list-table"><table class="data-table">
             <thead><tr><th>ID</th><th>Tarih</th><th>Tür</th><th>Yön</th><th>Tutar</th><th>Referans</th><th>Grup</th></tr></thead>
             <tbody>
             @foreach($bankMovements as $movement)
@@ -214,6 +214,6 @@
                 </tr>
             @endforeach
             </tbody>
-        </table>
+        </table></div>
     </section>
 </div>
