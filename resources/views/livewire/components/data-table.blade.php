@@ -189,7 +189,7 @@
     @endif
 
     <div class="v65-shared-table-title">
-        <strong>{{ $isProductTable ? 'Ürün Listesi' : 'Sonuçlar' }}</strong>
+        <strong>{{ $isProductTable ? 'Ürün Listesi' : $listLabel }}</strong>
         <small>{{ $rows->total() }} kayıt</small>
     </div>
     <div class="table-scroll v65-list-table">

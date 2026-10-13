@@ -52,9 +52,9 @@ it('uses the same reference table scaffolding for product, stock and other lists
         ->toContain('wire:click="exportProducts"')
         ->toContain('data-v65-products-export-dialog')
         ->toContain("route(\$emptyAction['route'])")
-        ->toContain('class="table-toolbar-actions"')
+        ->toContain('v65-data-table-heading-actions')
         ->toContain('wire:change="setPerPage($event.target.value)"')
-        ->toContain("'Ürün Listesi' : 'Sonuçlar'");
+        ->toContain("'Ürün Listesi' : \$listLabel");
 });
 
 it('keeps UI shell separated from existing application functionality', function (): void {
@@ -228,7 +228,7 @@ it('keeps shared table toolbar controls aligned and readable across modules', fu
         ->toContain('color:#526780;opacity:1')
         ->toContain('align-items:center;justify-content:flex-end')
         ->and($table)->toContain('class="table-toolbar-main"')
-        ->toContain('class="table-toolbar-actions"');
+        ->toContain('v65-data-table-heading-actions');
 });
 
 it('exports only explicitly selected product fields through the same Excel CSV and JSON formats', function (): void {
