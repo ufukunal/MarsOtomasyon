@@ -52,7 +52,12 @@ class ContactDetail extends Component
         $from = $this->statementFrom;
         $to = $this->statementTo;
         foreach ([$from, $to] as $date) {
-            abort_if($date !== null && $date !== '' && ! preg_match('/^\d{4}-\d{2}-\d{2}$/D', $date), 422);
+            if ($date === null || $date === '') {
+                continue;
+            }
+            $valid = preg_match('/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/D', $date)
+                && \DateTimeImmutable::createFromFormat('!Y-m-d', $date)?->format('Y-m-d') === $date;
+            abort_unless($valid, 422);
         }
         abort_if($from && $to && $to < $from, 422);
         return [$from ?: null, $to ?: null];
@@ -403,10 +408,9 @@ class ContactDetail extends Component
                 ->selectRaw('SUM(line.line_total)::text AS revenue')
                 ->orderByRaw('SUM(line.line_total) DESC')->limit(12)->get();
 
-            $categoryTotal = '0.0000';
-            foreach ($categoryRows as $row) {
-                $categoryTotal = bcadd($categoryTotal, (string) $row->revenue, 4);
-            }
+            // Category rows are capped for display; compute the denominator from ALL
+            // posted TRY lines so the percentages and totals never become truncated.
+            $categoryTotal = (string) (clone $salesLines)->sum('line.line_total');
             $productCategories = $categoryRows->map(function ($row) use ($categoryTotal) {
                 $row->percent = bccomp($categoryTotal, '0', 4) > 0
                     ? min(100, max(0, (float) bcmul(bcdiv((string) $row->revenue, $categoryTotal, 6), '100', 2)))
