@@ -135,7 +135,7 @@ it('places the only Cari drawer beside the heading and groups export actions', f
         ->toContain("@include('livewire.components.partials.v65-table-filter-controls')")
         ->and($partial)->toContain('<x-v65.filter-drawer')
         ->and($layout)->toContain("'contacts.show', 'contacts.index'")
-        ->and($css)->toContain('.v65-cari-export-menu:not([open])>.v65-cari-export-options{display:none!important}');
+        ->and($css)->toContain('.v65-standard-action-menu:not([open])>[data-v65-action-menu-panel]{display:none!important}');
 });
 
 it('only flags a customer with a positive TRY risk limit and excess receivable', function (): void {
