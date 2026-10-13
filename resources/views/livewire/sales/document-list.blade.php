@@ -9,30 +9,46 @@
         </div>
     @endteleport
 
-    <x-v65.list-filters>
-        <label class="v65-list-filter-field">
-            <span class="sr-only">Belge numarası veya cari ara</span>
-            <input type="search" wire:model.live.debounce.300ms="search" placeholder="Belge no / cari ara" aria-label="Belge numarası veya cari ara">
-        </label>
-        <label class="v65-list-filter-field">
-            <span class="sr-only">Belge durumu</span>
-            <select wire:model.live="status" aria-label="Belge durumu">
-                <option value="">Durum · Tümü</option>
-                @foreach($statusLabels as $status => $label)
-                    <option value="{{ $status }}">{{ $label }}</option>
-                @endforeach
-            </select>
-        </label>
-        <label class="v65-list-filter-field">
-            <span class="sr-only">Başlangıç tarihi</span>
-            <input type="date" wire:model.live="dateFrom" aria-label="Başlangıç tarihi" title="Başlangıç tarihi">
-        </label>
-        <label class="v65-list-filter-field">
-            <span class="sr-only">Bitiş tarihi</span>
-            <input type="date" wire:model.live="dateTo" aria-label="Bitiş tarihi" title="Bitiş tarihi">
-        </label>
-        <button class="button-secondary v65-list-clear" type="button" wire:click="clearFilters">Temizle</button>
-    </x-v65.list-filters>
+    <div class="v65-filter-toolbar">
+        <x-v65.filter-drawer :count="$this->activeV65FilterCount()" :tab="$v65FilterTab">
+            <x-slot:filters>
+                <x-v65.filter-field label="Genel Arama">
+                    <input type="search" wire:model="v65DraftFilters.search" maxlength="255" placeholder="Belge no / cari ara">
+                </x-v65.filter-field>
+                <x-v65.filter-field label="Belge Durumu">
+                    <select wire:model="v65DraftFilters.filters.status">
+                        <option value="">Tümü</option>
+                        @foreach($statusLabels as $status => $label)
+                            <option value="{{ $status }}">{{ $label }}</option>
+                        @endforeach
+                    </select>
+                </x-v65.filter-field>
+                <x-v65.filter-field label="Belge Tarihi">
+                    <div class="v65-filter-date-pair">
+                        <input type="date" aria-label="Başlangıç tarihi" wire:model="v65DraftFilters.filters.date.from">
+                        <input type="date" aria-label="Bitiş tarihi" wire:model="v65DraftFilters.filters.date.to">
+                    </div>
+                </x-v65.filter-field>
+            </x-slot:filters>
+            <x-slot:sorting>
+                <x-v65.filter-field label="Sıralama Alanı">
+                    <select wire:model="v65DraftFilters.sort">
+                        <option value="">Varsayılan (en yeni)</option>
+                        @foreach($this->v65AvailableSortOptions() as $key => $label)
+                            <option value="{{ $key }}">{{ $label }}</option>
+                        @endforeach
+                    </select>
+                </x-v65.filter-field>
+                <x-v65.filter-field label="Sıralama Yönü">
+                    <select wire:model="v65DraftFilters.direction">
+                        <option value="asc">Artan</option>
+                        <option value="desc">Azalan</option>
+                    </select>
+                </x-v65.filter-field>
+            </x-slot:sorting>
+        </x-v65.filter-drawer>
+    </div>
+    <x-v65.active-filters :items="$this->v65ActiveFilterLabels()" />
 
     <div class="v65-list-table table-scroll v65-grid-scroll">
         <table class="data-table">
