@@ -225,7 +225,7 @@ final class CopyPeriodCards
 
         $balanceIds = $db->table('contact_transactions')
             ->select('contact_id')
-            ->groupBy('contact_id')
+            ->groupBy('contact_id', 'currency')
             ->havingRaw("SUM(CASE WHEN direction = 'debit' THEN amount ELSE -amount END) <> 0")
             ->pluck('contact_id');
         $ids += $this->ids($balanceIds);
