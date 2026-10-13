@@ -43,27 +43,33 @@
                     @unless($hiddenColumns['contact'] ?? false)<th>Cari</th>@endunless
                     @unless($hiddenColumns['status'] ?? false)<th>Durum</th>@endunless
                     @unless($hiddenColumns['total'] ?? false)<th class="align-end">Tutar</th>@endunless
-                    <th>Eylem</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse($documents as $document)
                     <tr wire:key="doc-{{ $document->id }}">
                         @unless($hiddenColumns['number'] ?? false)
-                            <td>{{ $document->number ?? 'Taslak' }}@if($document->revision_no > 0) / Rev.{{ $document->revision_no }}@endif</td>
+                            <td><a href="{{ route($detailRoute, ['id' => $document->id]) }}">{{ $document->number ?? 'Taslak' }}@if($document->revision_no > 0) / Rev.{{ $document->revision_no }}@endif</a></td>
                         @endunless
                         @unless($hiddenColumns['date'] ?? false)<td>{{ $document->document_date?->format('d.m.Y') ?? '—' }}</td>@endunless
-                        @unless($hiddenColumns['contact'] ?? false)<td>{{ $document->contact?->title ?? '—' }}</td>@endunless
+                        @unless($hiddenColumns['contact'] ?? false)
+                            <td>
+                                @if($document->contact && auth()->user()?->can('contacts.view'))
+                                    <a href="{{ route('contacts.show', ['contact' => $document->contact_id]) }}">{{ $document->contact->title }}</a>
+                                @else
+                                    {{ $document->contact?->title ?? '—' }}
+                                @endif
+                            </td>
+                        @endunless
                         @unless($hiddenColumns['status'] ?? false)
                             <td><span class="v65-list-status">{{ $statusLabels[$document->status] ?? $document->status }}</span></td>
                         @endunless
                         @unless($hiddenColumns['total'] ?? false)
                             <td class="align-end tabular">{{ number_format((float) $document->grand_total, 2, ',', '.') }} {{ $document->currency }}</td>
                         @endunless
-                        <td class="v65-list-row-actions"><button class="button-secondary" type="button" wire:click="open({{ $document->id }})">Aç</button></td>
                     </tr>
                 @empty
-                    <tr><td colspan="{{ 1 + collect(['number','date','contact','status','total'])->reject(fn ($column) => $hiddenColumns[$column] ?? false)->count() }}" class="empty-state">
+                    <tr><td colspan="{{ collect(['number','date','contact','status','total'])->reject(fn ($column) => $hiddenColumns[$column] ?? false)->count() }}" class="empty-state">
                         <div>Kayıt bulunamadı.</div>
                         @if($createRoute)
                             <a class="button-link" href="{{ route($createRoute) }}">+ Yeni Kayıt</a>
