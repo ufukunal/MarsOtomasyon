@@ -33,7 +33,7 @@
                         <td>{{ $line->appliedCredit }}</td>
                         <td>{{ $line->remaining }}</td>
                         <td>{{ $line->bucket }}</td>
-                        <td>{{ match($line->color) { 'green' => 'Kapandı', 'yellow' => 'Kısmen kapandı', default => 'Açık' } }}</td>
+                        <td>{{ $line->color === 'green' ? 'Kapandı' : ($line->color === 'yellow' ? 'Kısmen kapandı' : 'Açık') }}</td>
                     </tr>
                 @endforeach
             </tbody>
