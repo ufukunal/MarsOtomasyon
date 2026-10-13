@@ -19,14 +19,13 @@
             <tbody>
             @foreach($cashAccounts as $account)
                 <tr>
-                    <td>{{ $account->code }}</td>
-                    <td>{{ $account->name }}</td>
+                    <td>@can('cash_accounts.update')<button type="button" class="link-button v65-record-link" wire:click="editCash({{ $account->id }})">{{ $account->code }}</button>@else{{ $account->code }}@endcan</td>
+                    <td>@can('cash_accounts.update')<button type="button" class="link-button v65-record-link" wire:click="editCash({{ $account->id }})">{{ $account->name }}</button>@else{{ $account->name }}@endcan</td>
                     <td>{{ $account->currency }}</td>
                     <td>{{ $account->balance() }}</td>
                     <td>{{ $account->is_active ? 'Aktif' : 'Pasif' }}</td>
                     <td class="v65-row-actions">
                         @can('cash_accounts.update')
-                            <button class="button-secondary" type="button" wire:click="editCash({{ $account->id }})">Düzenle</button>
                             <button @class(['button-warning' => $account->is_active, 'button-success' => ! $account->is_active]) type="button" wire:click="toggleCash({{ $account->id }})">
                                 {{ $account->is_active ? 'Pasife Al' : 'Aktifleştir' }}
                             </button>
@@ -69,9 +68,9 @@
                     $difference = $statement === null ? null : bcsub($statement, $book, 4);
                 @endphp
                 <tr>
-                    <td>{{ $account->code }}</td>
-                    <td>{{ $account->bank_name }}</td>
-                    <td>{{ $account->account_name }}</td>
+                    <td>@can('bank_accounts.update')<button type="button" class="link-button v65-record-link" wire:click="editBank({{ $account->id }})">{{ $account->code }}</button>@else{{ $account->code }}@endcan</td>
+                    <td>@can('bank_accounts.update')<button type="button" class="link-button v65-record-link" wire:click="editBank({{ $account->id }})">{{ $account->bank_name }}</button>@else{{ $account->bank_name }}@endcan</td>
+                    <td>@can('bank_accounts.update')<button type="button" class="link-button v65-record-link" wire:click="editBank({{ $account->id }})">{{ $account->account_name }}</button>@else{{ $account->account_name }}@endcan</td>
                     <td>{{ $account->iban }}</td>
                     <td>{{ $account->currency }}</td>
                     <td>{{ $book }}</td>
@@ -81,7 +80,6 @@
                     <td>{{ $account->is_active ? 'Aktif' : 'Pasif' }}</td>
                     <td class="v65-row-actions">
                         @can('bank_accounts.update')
-                            <button class="button-secondary" type="button" wire:click="editBank({{ $account->id }})">Düzenle</button>
                             <button @class(['button-warning' => $account->is_active, 'button-success' => ! $account->is_active]) type="button" wire:click="toggleBank({{ $account->id }})">
                                 {{ $account->is_active ? 'Pasife Al' : 'Aktifleştir' }}
                             </button>
