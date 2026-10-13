@@ -221,19 +221,71 @@ final class MultiPeriodQuery
     private function mergeTotals(array &$combined, ReportResult $result, array $totalDefinitions): void
     {
         foreach ($result->totals as $key => $value) {
-            if (! is_numeric((string) $value)) {
-                throw new DomainException("Çok dönemli toplam numeric değil: {$key}.");
-            }
-
             $type = $totalDefinitions[$key]->type ?? 'decimal';
             $scale = $type === 'integer' ? 0 : 8;
             $current = (string) ($combined[$key] ?? '0');
-            $sum = bcadd($current, (string) $value, $scale);
+            $incoming = (string) $value;
 
-            $combined[$key] = $scale === 0
-                ? $sum
-                : $this->trimDecimal($sum);
+            if (! is_numeric($incoming) || ! is_numeric($current)) {
+                if ($scale === 0) {
+                    throw new DomainException("Çok dönemli toplam numeric değil: {$key}.");
+                }
+
+                // A single-period monetary report can return currency-labelled
+                // subtotals; sum each currency only with its own denomination.
+                $combined[$key] = $this->mergeCurrencyTotals($current, $incoming, $scale);
+
+                continue;
+            }
+
+            $sum = bcadd($current, $incoming, $scale);
+            $combined[$key] = $scale === 0 ? $sum : $this->trimDecimal($sum);
         }
+    }
+
+    /** Combine strict "amount ISO" representations, never currencies numerically. */
+    private function mergeCurrencyTotals(string $current, string $incoming, int $scale): string
+    {
+        $parse = static function (string $value): array {
+            if ($value === '0') {
+                return [];
+            }
+            $result = [];
+            foreach (explode(' / ', $value) as $part) {
+                if (preg_match('/^(-?[0-9]+(?:\\.[0-9]+)?) ([A-Z]{3})$/D', $part, $match) !== 1
+                    || isset($result[$match[2]])) {
+                    throw new DomainException('Çok dönemli parasal toplamın döviz biçimi geçersiz.');
+                }
+                $result[$match[2]] = $match[1];
+            }
+
+            return $result;
+        };
+
+        if (is_numeric($current)) {
+            if (bccomp($current, '0', $scale) !== 0) {
+                throw new DomainException('Dövizsiz tutar dövizli toplamla birleştirilemez.');
+            }
+            $current = '0';
+        }
+        if (is_numeric($incoming)) {
+            if (bccomp($incoming, '0', $scale) !== 0) {
+                throw new DomainException('Dövizsiz tutar dövizli toplamla birleştirilemez.');
+            }
+            $incoming = '0';
+        }
+
+        $sums = $parse($current);
+        foreach ($parse($incoming) as $currency => $amount) {
+            $sums[$currency] = bcadd($sums[$currency] ?? '0', $amount, $scale);
+        }
+        ksort($sums);
+
+        return $sums === [] ? '0' : implode(' / ', array_map(
+            fn (string $code, string $amount): string => $this->trimDecimal($amount).' '.$code,
+            array_keys($sums),
+            array_values($sums),
+        ));
     }
 
     /**
