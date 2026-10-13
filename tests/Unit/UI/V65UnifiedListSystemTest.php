@@ -26,11 +26,11 @@ it('uses the approved right-aligned filter beside the list title on seven indepe
         'channels/channel-listing-center',
     ] as $name) {
         $blade = file_get_contents(base_path('resources/views/livewire/'.$name.'.blade.php'));
-        expect($blade)->toContain('<x-v65.list-heading', $name)
-            ->toContain('<x-v65.filter-drawer', $name)
-            ->toContain('</x-v65.list-heading>', $name)
-            ->toContain('<x-v65.list-footer', $name)
-            ->and(substr_count($blade, '<x-v65.filter-drawer'))->toBe(1, $name);
+        expect($blade)->toContain('<x-v65.list-heading')
+            ->toContain('<x-v65.filter-drawer')
+            ->toContain('</x-v65.list-heading>')
+            ->toContain('<x-v65.list-footer')
+            ->and(substr_count($blade, '<x-v65.filter-drawer'))->toBe(1 );
     }
 });
 
