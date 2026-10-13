@@ -39,12 +39,29 @@
 
     <section class="panel stack">
         <h2>İthalat Dosyaları</h2>
-        <x-v65.list-filters>
-            <label class="v65-list-filter-field">
-                <span class="sr-only">Listede ara</span>
-                <input type="search" wire:model.live.debounce.300ms="listSearch" placeholder="Kod / numara / ad ara" aria-label="Listede ara">
-            </label>
-        </x-v65.list-filters>
+        <div class="v65-filter-toolbar">
+            <x-v65.filter-drawer :count="$this->activeV65FilterCount()" :tab="$v65FilterTab">
+                <x-slot:filters>
+                    <x-v65.filter-field label="Genel Arama">
+                        <input type="search" wire:model="v65DraftFilters.search" maxlength="255" placeholder="Kod, belge veya ürün ara">
+                    </x-v65.filter-field>
+                </x-slot:filters>
+                <x-slot:sorting>
+                    <x-v65.filter-field label="Sıralama Alanı">
+                        <select wire:model="v65DraftFilters.sort">
+                            <option value="">Varsayılan</option>
+                            <option value="id">Kayıt Numarası</option>
+                        </select>
+                    </x-v65.filter-field>
+                    <x-v65.filter-field label="Sıralama Yönü">
+                        <select wire:model="v65DraftFilters.direction">
+                            <option value="asc">Artan</option><option value="desc">Azalan</option>
+                        </select>
+                    </x-v65.filter-field>
+                </x-slot:sorting>
+            </x-v65.filter-drawer>
+        </div>
+        <x-v65.active-filters :items="$this->v65ActiveFilterLabels()" />
         <div class="table-scroll v65-list-table"><table class="data-table">
             <thead><tr><th>No</th><th>Tedarikçi</th><th>Ülke</th><th>ETD</th><th>ETA</th><th>PB</th><th>Kur</th><th>Durum</th></tr></thead>
             <tbody>
