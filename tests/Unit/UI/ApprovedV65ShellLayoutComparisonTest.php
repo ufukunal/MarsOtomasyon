@@ -61,7 +61,7 @@ it('uses posted transaction records and due drafts instead of sample dashboard d
         ->toContain('Hızlı Durum')
         ->toContain('Bugünkü Satış')
         ->toContain('Bugünkü Tahsilat')
-        ->toContain('Cari Alacak (Net Pozitif)')
+        ->toContain('Carilerden Alacaklarımız')
         ->toContain('Kasa + Banka')
         ->not->toContain('184.250');
 });
