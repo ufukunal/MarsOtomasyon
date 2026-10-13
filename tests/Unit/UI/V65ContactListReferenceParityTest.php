@@ -116,3 +116,37 @@ it('uses the supplied blue-edge three-line KPI card design only on the cari list
         ->toContain('font-variant-numeric:tabular-nums')
         ->toContain('.app-shell .v65-cari-list .v65-cari-list-stats .v65-cari-kpi-note');
 });
+
+
+it('places the only Cari drawer beside the heading and groups export actions', function (): void {
+    $view = file_get_contents(base_path('resources/views/livewire/components/data-table.blade.php'));
+    $partial = file_get_contents(base_path('resources/views/livewire/components/partials/v65-table-filter-controls.blade.php'));
+    $layout = file_get_contents(base_path('resources/views/layouts/app.blade.php'));
+    $css = file_get_contents(base_path('resources/css/v65-shell.css'));
+
+    $start = strpos($view, 'class="v65-cari-heading-actions"');
+    $end = strpos($view, '</details>', $start);
+    $menu = substr($view, $start, $end - $start);
+    expect(strpos($menu, '+ Yeni Cari'))->toBeLessThan(strpos($menu, '>Yazdır</button>'))
+        ->and(strpos($menu, '>Yazdır</button>'))->toBeLessThan(strpos($menu, 'Dışa Aktar'))
+        ->and($menu)->toContain('wire:click="exportCsv"')
+        ->toContain('wire:click="exportXlsx"')
+        ->and($view)->toContain('class="v65-cari-intro-filters"')
+        ->toContain("@include('livewire.components.partials.v65-table-filter-controls')")
+        ->and($partial)->toContain('<x-v65.filter-drawer')
+        ->and($layout)->toContain("'contacts.show', 'contacts.index'")
+        ->and($css)->toContain('.v65-cari-export-menu:not([open])>.v65-cari-export-options{display:none!important}');
+});
+
+it('only flags a customer with a positive TRY risk limit and excess receivable', function (): void {
+    $list = file_get_contents(base_path('app/Livewire/Pages/Contacts/ContactList.php'));
+    $invoice = file_get_contents(base_path('app/Actions/Sales/PostSalesInvoice.php'));
+    $editor = file_get_contents(base_path('resources/views/livewire/sales/document-editor.blade.php'));
+
+    expect($list)->toContain("where('contacts.risk_limit', '>', 0)")
+        ->toContain("ct.currency = 'TRY'")
+        ->and($invoice)->toContain('knownLimitExceeded && ! $riskAccepted')
+        ->toContain("currency === 'TRY'")
+        ->and($editor)->toContain('Risk limitinin aşıldığını kabul ediyorum')
+        ->toContain('invoiceRiskProjection()');
+});
