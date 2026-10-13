@@ -92,15 +92,21 @@
             </div>
         </dialog>
     @endif
-    @if(!$isProductTable && $emptyAction && \Illuminate\Support\Facades\Route::has($emptyAction['route']))
+    @unless($isProductTable)
+        {{-- The header is the only place for create/export actions on ordinary DataTables.
+             Never duplicate them inside the search and filter row. --}}
         @teleport('.page-actions.v65-page-actions')
-            <div class="v65-list-heading-actions">
-                <a class="button-link table-add-action" href="{{ route($emptyAction['route']) }}">+ {{ $emptyAction['label'] }}</a>
+            <div class="v65-list-heading-actions v65-data-table-heading-actions">
+                @if($emptyAction && \Illuminate\Support\Facades\Route::has($emptyAction['route']))
+                    <a class="button-link table-add-action" href="{{ route($emptyAction['route']) }}">+ {{ $emptyAction['label'] }}</a>
+                @endif
+                <button class="button-secondary" type="button" wire:click="exportCsv" wire:loading.attr="disabled" wire:target="exportCsv">CSV</button>
+                <button class="button-secondary" type="button" wire:click="exportXlsx" wire:loading.attr="disabled" wire:target="exportXlsx">Excel</button>
             </div>
         @endteleport
-    @endif
-    <div class="table-toolbar v65-list-filters">
-        <div class="table-toolbar-main">
+    @endunless
+    <div @class(['table-toolbar', 'v65-list-filters', 'v65-data-table-filters' => !$isProductTable])>
+        <div @class(['table-toolbar-main', 'v65-data-table-filter-fields' => !$isProductTable])>
             <label class="table-search">
                 <span class="sr-only">Tabloda ara</span>
                 <span class="table-search-icon" aria-hidden="true">⌕</span>
@@ -122,10 +128,10 @@
                         </select>
                     </label>
                 @elseif ($filter instanceof \App\Livewire\Components\DataTable\DateRangeFilter)
-                    <div class="date-range-filter">
-                        <span>{{ $filter->label }}</span>
-                        <input type="date" wire:model.live="filterValues.{{ $filter->key }}.from" aria-label="{{ $filter->label }} başlangıç">
-                        <input type="date" wire:model.live="filterValues.{{ $filter->key }}.to" aria-label="{{ $filter->label }} bitiş">
+                    <div class="date-range-filter v65-date-range-filter" role="group" aria-label="{{ $filter->label }}">
+                        <span class="v65-date-range-caption">{{ $filter->label }}</span>
+                        <label class="v65-date-range-input"><span class="sr-only">{{ $filter->label }} başlangıç</span><input type="date" wire:model.live="filterValues.{{ $filter->key }}.from" aria-label="{{ $filter->label }} başlangıç" title="{{ $filter->label }} başlangıç"></label>
+                        <label class="v65-date-range-input"><span class="sr-only">{{ $filter->label }} bitiş</span><input type="date" wire:model.live="filterValues.{{ $filter->key }}.to" aria-label="{{ $filter->label }} bitiş" title="{{ $filter->label }} bitiş"></label>
                     </div>
                 @endif
             @endforeach
@@ -152,15 +158,6 @@
                 </details>
             @endif
         </div>
-        @unless($isProductTable)
-        <div class="table-toolbar-actions">
-            @if($emptyAction)
-                <a class="button-link table-add-action" href="{{ route($emptyAction['route']) }}">+ {{ $emptyAction['label'] }}</a>
-            @endif
-            <button class="button-secondary" type="button" wire:click="exportCsv">CSV</button>
-            <button class="button-secondary" type="button" wire:click="exportXlsx">Excel</button>
-        </div>
-        @endunless
     </div>
 
     @if(!$isProductTable && $selected !== [] && $bulkActions !== [])

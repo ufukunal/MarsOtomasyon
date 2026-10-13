@@ -907,3 +907,153 @@
   .app-shell .v65-column-picker-footer{padding:12px 14px}
 }
 @media print{.app-shell .v65-column-picker-dialog{display:none!important}}
+
+/*
+ * DataTable layout contract (2026-10-13):
+ *   Page header: create/CSV/Excel plus existing print/back actions.
+ *   Toolbar: search and real filters ONLY, with consistent widths.
+ *   Footer: record count, page size, column modal, pagination.
+ * This block deliberately overrides legacy narrow .table-toolbar rules,
+ * without affecting the approved special Product List filter layout.
+ */
+.app-shell .page-actions.v65-page-actions > .v65-data-table-heading-actions {
+  order:-2;
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:7px;
+  min-width:0;
+  margin:0;
+  flex-wrap:wrap
+}
+.app-shell .v65-data-table-heading-actions :where(.button-link,.button-secondary,button) {
+  box-sizing:border-box;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:36px;
+  height:36px;
+  margin:0;
+  padding:0 12px;
+  border-radius:5px!important;
+  font-size:12px;
+  white-space:nowrap
+}
+.app-shell .data-table-shell:not(.v65-products) > .table-toolbar.v65-data-table-filters {
+  display:block;
+  box-sizing:border-box;
+  width:100%;
+  max-width:100%;
+  padding:12px;
+  margin:0 0 10px;
+  border:1px solid #d7e0e9;
+  border-radius:7px;
+  background:#fff
+}
+.app-shell .data-table-shell:not(.v65-products) > .table-toolbar.v65-data-table-filters .v65-data-table-filter-fields {
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  align-content:start;
+  gap:10px;
+  flex-basis:auto;
+  width:100%;
+  max-width:100%;
+  margin:0;
+  padding:0
+}
+.app-shell .data-table-shell:not(.v65-products) > .table-toolbar.v65-data-table-filters .table-search {
+  box-sizing:border-box;
+  flex:1 1 300px;
+  width:auto;
+  max-width:450px;
+  min-width:min(100%,240px);
+  margin:0
+}
+.app-shell .data-table-shell:not(.v65-products) > .table-toolbar.v65-data-table-filters .table-filter {
+  box-sizing:border-box;
+  flex:1 1 160px;
+  max-width:240px;
+  min-width:min(100%,155px);
+  margin:0
+}
+.app-shell .data-table-shell:not(.v65-products) > .table-toolbar.v65-data-table-filters .table-filter select,
+.app-shell .data-table-shell:not(.v65-products) > .table-toolbar.v65-data-table-filters .table-search input {
+  box-sizing:border-box;
+  width:100%;
+  max-width:100%;
+  min-width:0;
+  min-height:42px;
+  height:42px;
+  margin:0;
+  border-radius:6px;
+  line-height:1.4
+}
+.app-shell .data-table-shell:not(.v65-products) .v65-date-range-filter {
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr) minmax(0,1fr);
+  align-items:center;
+  gap:6px;
+  flex:0 1 350px;
+  width:auto;
+  min-width:min(100%,300px);
+  max-width:380px;
+  margin:0;
+  padding:0;
+  white-space:nowrap
+}
+.app-shell .data-table-shell:not(.v65-products) .v65-date-range-caption {
+  font-size:12px;
+  color:#526780;
+  white-space:nowrap;
+  margin:0
+}
+.app-shell .data-table-shell:not(.v65-products) .v65-date-range-input {
+  display:block;
+  min-width:0;
+  width:100%;
+  margin:0
+}
+.app-shell .data-table-shell:not(.v65-products) .v65-date-range-input input[type=date] {
+  box-sizing:border-box;
+  display:block;
+  width:100%;
+  min-width:0;
+  height:42px;
+  min-height:42px;
+  padding:0 8px;
+  border:1px solid #cbd7e5;
+  border-radius:6px;
+  background:#fff;
+  color:#263b53;
+  font-size:12px;
+  line-height:1.35
+}
+@media(max-width:930px){
+  .app-shell .data-table-shell:not(.v65-products) > .table-toolbar.v65-data-table-filters .table-search{
+    flex-basis:100%;
+    max-width:none
+  }
+}
+@media(max-width:650px){
+  .app-shell .data-table-shell:not(.v65-products) > .table-toolbar.v65-data-table-filters .table-filter {
+    flex:1 1 calc(50% - 6px);
+    max-width:none
+  }
+  .app-shell .data-table-shell:not(.v65-products) .v65-date-range-filter {
+    flex:1 1 100%;
+    max-width:none;
+    min-width:0
+  }
+}
+@media(max-width:430px){
+  .app-shell .data-table-shell:not(.v65-products) > .table-toolbar.v65-data-table-filters .table-filter {
+    flex-basis:100%
+  }
+  .app-shell .data-table-shell:not(.v65-products) .v65-date-range-filter {
+    grid-template-columns:1fr 1fr
+  }
+  .app-shell .data-table-shell:not(.v65-products) .v65-date-range-caption {
+    grid-column:1/-1
+  }
+}
