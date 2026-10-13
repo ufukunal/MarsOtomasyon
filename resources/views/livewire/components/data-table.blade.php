@@ -236,7 +236,9 @@
                             @if($cellUrl)
                                 <a href="{{ $cellUrl }}" @class(['v65-record-link', 'v65-products-name-link' => $isProductTable && $column->key === 'name', 'v65-cari-record-title' => $this instanceof \App\Livewire\Pages\Contacts\ContactList && $column->key === 'title'])>{{ $this->formattedValue($row, $column) }}</a>
                             @elseif($this instanceof \App\Livewire\Pages\Contacts\ContactList && $column->key === 'balance_display')
-                                @php($cariNet = (string) ($row->getAttribute('v65_try_net') ?? $row->balance()))
+                                @php
+                                    $cariNet = (string) ($row->getAttribute('v65_try_net') ?? $row->balance());
+                                @endphp
                                 <strong @class(['v65-cari-balance', 'is-receivable' => bccomp($cariNet, '0', 4) > 0, 'is-payable' => bccomp($cariNet, '0', 4) < 0])>{{ $this->formattedValue($row, $column) }}</strong>
                             @elseif($this instanceof \App\Livewire\Pages\Contacts\ContactList && $column->key === 'is_active')
                                 <span @class(['v65-cari-state', 'is-active' => (bool) $row->is_active, 'is-inactive' => ! $row->is_active])>{{ $this->formattedValue($row, $column) }}</span>
