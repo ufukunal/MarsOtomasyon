@@ -122,13 +122,10 @@
                     <a class="button-link" href="{{ route($emptyAction['route']) }}">+ Yeni Cari</a>
                 @endif
                 <button class="button-secondary" type="button" onclick="window.print()">Yazdır</button>
-                <details class="v65-cari-export-menu page-action-menu">
-                    <summary class="button-secondary">Dışa Aktar <span aria-hidden="true">⌄</span></summary>
-                    <div class="page-action-menu-items v65-cari-export-options">
-                        <button type="button" wire:click="exportCsv" wire:loading.attr="disabled" wire:target="exportCsv">CSV</button>
-                        <button type="button" wire:click="exportXlsx" wire:loading.attr="disabled" wire:target="exportXlsx">Excel</button>
-                    </div>
-                </details>
+                <x-v65.action-menu label="Dışa Aktar">
+                    <button type="button" wire:click="exportCsv" wire:loading.attr="disabled" wire:target="exportCsv">CSV</button>
+                    <button type="button" wire:click="exportXlsx" wire:loading.attr="disabled" wire:target="exportXlsx">Excel</button>
+                </x-v65.action-menu>
             </div>
         @endteleport
     @elseif(!$isProductTable)
@@ -139,8 +136,11 @@
                 @if($emptyAction && \Illuminate\Support\Facades\Route::has($emptyAction['route']))
                     <a class="button-link table-add-action" href="{{ route($emptyAction['route']) }}">+ {{ $emptyAction['label'] }}</a>
                 @endif
-                <button class="button-secondary" type="button" wire:click="exportCsv" wire:loading.attr="disabled" wire:target="exportCsv">CSV</button>
-                <button class="button-secondary" type="button" wire:click="exportXlsx" wire:loading.attr="disabled" wire:target="exportXlsx">Excel</button>
+                <button class="button-secondary" type="button" onclick="window.print()">Yazdır</button>
+                <x-v65.action-menu label="Dışa Aktar">
+                    <button type="button" wire:click="exportCsv" wire:loading.attr="disabled" wire:target="exportCsv">CSV</button>
+                    <button type="button" wire:click="exportXlsx" wire:loading.attr="disabled" wire:target="exportXlsx">Excel</button>
+                </x-v65.action-menu>
             </div>
         @endteleport
     @endif
