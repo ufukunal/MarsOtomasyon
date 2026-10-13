@@ -189,7 +189,9 @@ class ContactList extends DataTableComponent
                 ->filter(fn ($part): bool => filled($part))->implode(' / ') ?: '—';
         }
 
-        $balance = (string) ($row->getAttribute('v65_try_net') ?? $row->balance());
+        if (in_array($column->key, ['balance_display', 'risk_usage'], true)) {
+            $balance = (string) ($row->getAttribute('v65_try_net') ?? $row->balance());
+        }
 
         if ($column->key === 'balance_display') {
             $absolute = bccomp($balance, '0', 4) < 0 ? bcmul($balance, '-1', 4) : $balance;
