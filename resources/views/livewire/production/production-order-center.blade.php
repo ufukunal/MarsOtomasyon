@@ -33,7 +33,7 @@
         </x-v65.list-heading>
         <x-v65.active-filters :items="$this->v65ActiveFilterLabels()" />
         <div class="table-scroll v65-grid-scroll v65-list-table"><table class="data-table">
-            <thead><tr><th>No</th><th>Tarih</th><th>Mamul</th><th>Tip</th><th>Plan</th><th>Tamamlanan</th><th>Durum</th></tr></thead>
+            <thead><tr><th>No</th><th>Tarih</th><th>Mamul</th><th>Tip</th><th class="align-end">Plan</th><th class="align-end">Tamamlanan</th><th>Durum</th></tr></thead>
             <tbody>
             @foreach($orders as $row)
                 <tr>
@@ -41,8 +41,8 @@
                     <td>{{ $row->document_date?->format('d.m.Y') }}</td>
                     <td>@can('products.view')<a class="v65-record-link" href="{{ route('products.show', ['product' => $row->product_id]) }}">{{ $row->product->code }} · {{ $row->product->name }}</a>@else{{ $row->product->code }} · {{ $row->product->name }}@endcan</td>
                     <td>{{ $row->production_type }}</td>
-                    <td>{{ $row->planned_quantity }}</td>
-                    <td>{{ $row->completed_quantity }}</td>
+                    <td class="align-end">{{ $row->planned_quantity }}</td>
+                    <td class="align-end">{{ $row->completed_quantity }}</td>
                     <td>{{ $row->status }}</td>
                     
                 </tr>
