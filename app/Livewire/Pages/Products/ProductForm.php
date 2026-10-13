@@ -104,16 +104,31 @@ class ProductForm extends Component
         $this->brandId = $product->brand_id;
         $this->unitId = $product->unit_id;
         $this->barcode = (string) $product->barcode;
-        $this->vatRate = (string) $product->vat_rate;
-        $this->listPrice = (string) $product->list_price;
+        $this->vatRate = self::displayDecimal((string) $product->vat_rate);
+        $this->listPrice = self::displayDecimal((string) $product->list_price);
         $this->currency = $product->currency;
         $this->kind = $product->kind->value;
         $this->variantGroupId = $product->variant_group_id;
         $this->allowNegativeStock = (bool) $product->allow_negative_stock;
-        $this->minStock = (string) $product->min_stock;
+        $this->minStock = self::displayDecimal((string) $product->min_stock);
         $this->channelStockMode = $product->channel_stock_mode->value;
         $this->isActive = (bool) $product->is_active;
         $this->version = (int) $product->version;
+    }
+
+    /**
+     * Show values without redundant trailing zeros while preserving the exact
+     * decimal precision needed by the existing SaveProduct action.
+     */
+    private static function displayDecimal(string $value): string
+    {
+        if (! str_contains($value, '.')) {
+            return $value;
+        }
+
+        $formatted = rtrim(rtrim($value, '0'), '.');
+
+        return $formatted === '' ? '0' : $formatted;
     }
 
     public function save(SaveProduct $action): void

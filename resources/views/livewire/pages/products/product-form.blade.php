@@ -1,31 +1,45 @@
 <form wire:submit="save" class="stack v65-product-edit">
-    <nav class="form-row" aria-label="Ürün gezinme">
+    <nav class="v65-product-edit-navigation" aria-label="Ürün gezinme">
         <a href="{{ route('products.index') }}">← Ürün Listesi</a>
         @if($product)
-            <a href="{{ route('products.show', ['product' => $product->id]) }}">Ürün Detayına Dön →</a>
+            <a href="{{ route('products.show', ['product' => $product->id]) }}">Ürün Detayı →</a>
         @endif
     </nav>
-    <x-tabs :tabs="['general'=>'Genel','price'=>'Fiyat','stock'=>'Stok','type'=>'Tip','components'=>'Bileşenler','config'=>'Konfigürasyon','images'=>'Görseller']" :active="$activeTab" />
+    @php
+        $editTabs = ['general' => 'Genel', 'price' => 'Fiyat', 'stock' => 'Stok', 'type' => 'Tip'];
+        // A product must first be saved as a set/configurable product before editing
+        // its special details. Do not offer empty tabs on ordinary products.
+        if ($product && $kind === 'set' && $product->kind->value === 'set') {
+            $editTabs['components'] = 'Bileşenler';
+        }
+        if ($product && $kind === 'configurable' && $product->kind->value === 'configurable') {
+            $editTabs['config'] = 'Konfigürasyon';
+        }
+        if ($product) {
+            $editTabs['images'] = 'Görseller';
+        }
+    @endphp
+    <x-tabs :tabs="$editTabs" :active="$activeTab" />
 
     @if($activeTab === 'general')
-        <section class="panel form-grid">
+        <section class="panel form-grid v65-product-edit-card">
             <x-field.text label="Kod" wire:model="code" :disabled="(bool) $product" />
             <x-field.text label="Ad" wire:model="name" />
-            <x-field.textarea label="Açıklama" wire:model="description" />
+            <x-field.textarea label="Açıklama" wire:model="description" rows="3" />
             <label class="field"><span class="field-label">Kategori</span><select wire:model="categoryId"><option value="">—</option>@foreach($categories as $row)<option value="{{ $row->id }}">{{ $row->name }}</option>@endforeach</select></label>
             <label class="field"><span class="field-label">Marka</span><select wire:model="brandId"><option value="">—</option>@foreach($brands as $row)<option value="{{ $row->id }}">{{ $row->name }}</option>@endforeach</select></label>
             <label class="field"><span class="field-label">Temel Birim</span><select wire:model="unitId">@foreach($units as $row)<option value="{{ $row->id }}">{{ $row->name }}</option>@endforeach</select></label>
             <x-field.text label="Barkod" wire:model="barcode" />
         </section>
     @elseif($activeTab === 'price')
-        <section class="panel form-grid">
+        <section class="panel form-grid v65-product-edit-card">
             <x-field.number label="Liste Fiyatı" wire:model="listPrice" />
             <x-field.number label="KDV %" wire:model="vatRate" />
             <x-field.toggle label="Girilen fiyat KDV dahil" wire:model="priceVatIncluded" />
             <x-field.text label="Para Birimi" wire:model="currency" />
         </section>
     @elseif($activeTab === 'stock')
-        <section class="panel form-grid">
+        <section class="panel form-grid v65-product-edit-card">
             <x-field.toggle label="Negatif stok izni" wire:model="allowNegativeStock" />
             <x-field.number label="Minimum Stok" kind="quantity" wire:model="minStock" />
             <x-field.select label="Kanal Stok Modu" wire:model="channelStockMode" :options="['stock'=>'Stok','production'=>'Üretim','manual'=>'Manuel']" />
@@ -37,7 +51,7 @@
             @endif
         </section>
     @elseif($activeTab === 'type')
-        <section class="panel form-grid">
+        <section class="panel form-grid v65-product-edit-card">
             <x-field.select label="Ürün Tipi" wire:model.live="kind" :options="['normal'=>'Normal','set'=>'Set','configurable'=>'Konfigüre']" />
             <label class="field"><span class="field-label">Varyant Grubu</span><select wire:model="variantGroupId"><option value="">—</option>@foreach($variantGroups as $row)<option value="{{ $row->id }}">{{ $row->name }}</option>@endforeach</select></label>
             <x-field.toggle label="Aktif" wire:model="isActive" />
@@ -93,6 +107,17 @@
         @endif
     @endif
 
-    @foreach($errors->all() as $error)<div class="field-error">{{ $error }}</div>@endforeach
-    <button type="submit">Ürünü Kaydet</button>
+    @if($errors->any())
+        <div class="alert alert-warning" role="alert">
+            @foreach($errors->all() as $error)
+                <div class="field-error">{{ $error }}</div>
+            @endforeach
+        </div>
+    @endif
+    @if(in_array($activeTab, ['general', 'price', 'stock', 'type'], true))
+        <div class="v65-product-edit-savebar">
+            <button type="submit" wire:loading.attr="disabled" wire:target="save">Ürünü Kaydet</button>
+            <small>Değişiklikler yalnızca kaydettiğinizde uygulanır.</small>
+        </div>
+    @endif
 </form>

@@ -619,3 +619,72 @@
   .app-shell .data-table-shell .mars-pagination{flex-wrap:wrap}
   .app-shell .data-table-shell .mars-pagination-controls{flex-wrap:wrap;justify-content:flex-start}
 }
+
+/* Product editor: settings form, not the read-only Product Detail page. */
+.app-shell .v65-product-edit{gap:12px;min-width:0}
+.app-shell .v65-product-edit-navigation{display:flex;align-items:center;flex-wrap:wrap;gap:8px}
+.app-shell .v65-product-edit-navigation a{
+  display:inline-flex;align-items:center;min-height:34px;padding:0 11px;
+  border:1px solid #d4dfeb;border-radius:6px;background:#fff;
+  color:#30577e;font-size:12px;font-weight:600;text-decoration:none
+}
+.app-shell .v65-product-edit-navigation a:hover{background:#edf5ff;border-color:#a8c9f2}
+.app-shell .v65-product-edit>.tabs{margin:0;border-bottom:1px solid #d7e1ee}
+.app-shell .v65-product-edit>.tabs .tab{min-height:40px;padding:8px 15px}
+.app-shell .v65-product-edit-card{
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+  align-items:start;gap:16px 20px;padding:20px;
+  border:1px solid #d9e4f0;border-radius:10px;background:#fff
+}
+.app-shell .v65-product-edit-card .field{min-width:0;align-self:start}
+.app-shell .v65-product-edit-card .field-label{
+  display:block;margin:0 0 6px;font-size:12px;font-weight:700;color:#334e6e
+}
+.app-shell .v65-product-edit-card :where(input:not([type=checkbox]),select,textarea){
+  width:100%;min-height:40px;border:1px solid #cbd9e6;border-radius:6px;background:#fff
+}
+.app-shell .v65-product-edit-card textarea{min-height:90px;resize:vertical;line-height:1.5}
+.app-shell .v65-product-edit-card .toggle-field{
+  display:flex;align-items:center;gap:10px;min-height:40px;margin:0;
+  padding:7px 10px;border:1px solid #d9e4f0;border-radius:6px;
+  color:#334e6e;background:#f8fafc
+}
+.app-shell .v65-product-edit-card .toggle-field input{margin:0;width:17px;height:17px;flex:0 0 17px}
+.app-shell .v65-product-edit-card .field-control{width:100%}
+.app-shell .v65-product-edit-savebar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:0 0 8px}
+.app-shell .v65-product-edit-savebar button{min-height:38px;padding:0 17px}
+.app-shell .v65-product-edit-savebar small{font-size:11px;color:#697f98}
+.app-shell .v65-product-image-manager{gap:16px;padding:18px}
+.app-shell .v65-product-image-heading{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.app-shell .v65-product-image-heading>div{display:grid;gap:4px}
+.app-shell .v65-product-image-heading strong{font-size:14px;color:#243d58}
+.app-shell .v65-product-image-heading small{font-size:11px;color:#637995}
+.app-shell .v65-product-image-upload{display:grid;grid-template-columns:minmax(150px,200px) minmax(230px,400px) auto;align-items:end;justify-content:start;gap:10px}
+.app-shell .v65-product-image-upload .field{display:grid;gap:6px;min-width:0}
+.app-shell .v65-product-image-upload .field-label{font-size:11px;font-weight:700;color:#354e6a}
+.app-shell .v65-product-image-upload :where(select,input[type=file]){width:100%;min-width:0;min-height:38px;border:1px solid #ccdbe9;border-radius:6px;background:#fff}
+.app-shell .v65-product-image-upload input[type=file]{padding:6px 8px;font-size:11px}
+.app-shell .v65-product-image-upload>button{min-height:38px;padding:0 13px}
+.app-shell .v65-product-image-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,250px));align-items:start;gap:12px}
+.app-shell .v65-product-image-card{display:grid;grid-template-rows:auto auto 1fr;gap:9px;min-width:0;padding:12px;border:1px solid #d5e1ed;border-radius:8px;background:#f9fbfd}
+.app-shell .v65-product-image-card .product-image-preview{display:block;width:100%;height:175px;min-height:175px;object-fit:contain;background:#fff;border:1px solid #e1e9f2;border-radius:6px}
+.app-shell .v65-product-image-card .image-meta{display:grid;gap:6px;min-width:0}
+.app-shell .v65-product-image-cover{justify-self:start;padding:4px 7px;border:1px solid #b8dfcb;border-radius:4px;background:#ebf8ef;color:#187747;font-size:11px}
+.app-shell .v65-product-image-name{overflow-wrap:anywhere;color:#405878;font-size:11px}
+.app-shell .v65-product-image-actions{display:grid;align-content:end;gap:8px}
+.app-shell .v65-product-image-action-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.app-shell .v65-product-image-action-row .drag-handle{margin-left:auto;color:#647b97;font-size:11px}
+.app-shell .v65-product-image-action-row button{min-height:32px;padding:4px 9px;font-size:11px}
+.app-shell .v65-product-image-action-row button:disabled{opacity:.45;cursor:not-allowed}
+.app-shell .v65-product-image-action-row .button-danger{margin-left:auto;background:#fff!important;color:#ac3434!important;border:1px solid #ecc7c7!important}
+.app-shell .v65-product-image-action-row .button-danger:hover{background:#fff0f0!important}
+.app-shell .v65-product-image-empty{grid-column:1/-1;margin:0;padding:16px;border:1px dashed #c7d7e8;border-radius:7px;color:#637995}
+@media(max-width:850px){
+  .app-shell .v65-product-image-upload{grid-template-columns:minmax(0,1fr) minmax(0,2fr)}
+  .app-shell .v65-product-image-upload>button{justify-self:start}
+}
+@media(max-width:640px){
+  .app-shell .v65-product-edit-card{grid-template-columns:1fr;padding:14px;gap:12px}
+  .app-shell .v65-product-image-upload{grid-template-columns:1fr}
+  .app-shell .v65-product-image-grid{grid-template-columns:repeat(auto-fill,minmax(180px,1fr))}
+}

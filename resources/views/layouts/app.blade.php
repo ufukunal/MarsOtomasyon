@@ -206,6 +206,8 @@
                 @if ($routeName === 'products.show')
                     {{-- Product detail stays read-only: keep editing in the authorized overview action. --}}
                     <a class="button-secondary" href="{{ route('products.index') }}" aria-label="Ürün listesine dön">← Ürün Listesi</a>
+                @elseif (in_array($routeName, ['products.create', 'products.edit'], true))
+                    {{-- Product editor uses its own product-list/detail navigation; no generic print or back. --}}
                 @elseif ($routeName === 'products.index')
                     {{-- Product-specific create, print and export actions are teleported here. --}}
                 @elseif ($routeName === 'warehouse.transport.show')
@@ -223,7 +225,7 @@
                     @endcan
                 @endif
                 @isset($pageActions){{ $pageActions }}@endisset
-                @unless ($routeName === 'products.show')
+                @unless (in_array($routeName, ['products.show', 'products.create', 'products.edit'], true))
                     <button type="button" class="button-secondary" onclick="if (history.length > 1) history.back(); else location.href='{{ route('home') }}'">Geri</button>
                 @endunless
             </div>
