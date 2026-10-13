@@ -35,9 +35,9 @@ it('links the document number and authorized cari on sales and purchase lists', 
     $view = file_get_contents(base_path('resources/views/livewire/sales/document-list.blade.php'));
     $trait = file_get_contents(base_path('app/Livewire/Concerns/WithV65DocumentList.php'));
 
-    expect($trait)->toContain("'detailRoute' => $this->editRoute()")
-        ->and($view)->toContain("route($detailRoute, ['id' => $document->id])")
-        ->toContain("route('contacts.show', ['contact' => $document->contact_id])")
+    expect($trait)->toContain("'detailRoute' => \$this->editRoute()")
+        ->and($view)->toContain("route(\$detailRoute, ['id' => \$document->id])")
+        ->toContain("route('contacts.show', ['contact' => \$document->contact_id])")
         ->not->toContain('wire:click="open(')
         ->not->toContain('<th>Eylem</th>');
 });
