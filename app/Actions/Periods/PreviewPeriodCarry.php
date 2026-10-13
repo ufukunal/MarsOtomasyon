@@ -9,6 +9,7 @@ use App\Enums\DocumentType;
 use App\Models\Period;
 use App\Models\Period\Document;
 use App\Support\Period\PeriodContext;
+use App\Support\Reporting\CurrencySeparatedTotals;
 use DomainException;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
@@ -291,12 +292,12 @@ final class PreviewPeriodCarry
                 'stock_quantity' => (string) (DB::connection('period')->table('stock_balances')->sum('quantity')),
                 'stock_balance_rows' => DB::connection('period')->table('stock_balances')->count(),
                 'product_cost_rows' => DB::connection('period')->table('product_costs')->count(),
-                'contact_debit' => (string) (DB::connection('period')->table('contact_transactions')->where('direction', 'debit')->sum('amount')),
-                'contact_credit' => (string) (DB::connection('period')->table('contact_transactions')->where('direction', 'credit')->sum('amount')),
-                'cash_in' => (string) (DB::connection('period')->table('cash_movements')->where('direction', 'in')->sum('amount')),
-                'cash_out' => (string) (DB::connection('period')->table('cash_movements')->where('direction', 'out')->sum('amount')),
-                'bank_in' => (string) (DB::connection('period')->table('bank_movements')->where('direction', 'in')->sum('amount')),
-                'bank_out' => (string) (DB::connection('period')->table('bank_movements')->where('direction', 'out')->sum('amount')),
+                'contact_debit' => $this->currencyMovementTotal('contact_transactions', 'debit'),
+                'contact_credit' => $this->currencyMovementTotal('contact_transactions', 'credit'),
+                'cash_in' => $this->currencyMovementTotal('cash_movements', 'in', 'cash_accounts', 'cash_account_id'),
+                'cash_out' => $this->currencyMovementTotal('cash_movements', 'out', 'cash_accounts', 'cash_account_id'),
+                'bank_in' => $this->currencyMovementTotal('bank_movements', 'in', 'bank_accounts', 'bank_account_id'),
+                'bank_out' => $this->currencyMovementTotal('bank_movements', 'out', 'bank_accounts', 'bank_account_id'),
                 'unmatured_securities' => DB::connection('period')->table('securities')
                     ->whereIn('status', ['portfolio', 'issued', 'endorsed', 'banked'])
                     ->count(),
@@ -391,6 +392,32 @@ final class PreviewPeriodCarry
 
             return false;
         });
+    }
+
+    /**
+     * Human-readable carry preview only. Never sum different currencies into
+     * one scalar. Movement currency for bank/cash comes from its parent account.
+     */
+    private function currencyMovementTotal(
+        string $table,
+        string $direction,
+        ?string $accountTable = null,
+        ?string $foreignKey = null,
+    ): string {
+        $query = DB::connection('period')->table($table.' as m')
+            ->where('m.direction', $direction);
+
+        if ($accountTable !== null && $foreignKey !== null) {
+            $query->join($accountTable.' as a', 'a.id', '=', 'm.'.$foreignKey);
+            $currencyColumn = 'a.currency';
+        } else {
+            $currencyColumn = 'm.currency';
+        }
+
+        $groups = $query->selectRaw($currencyColumn.' AS currency, SUM(m.amount)::text AS amount')
+            ->groupBy($currencyColumn)->get();
+
+        return CurrencySeparatedTotals::fromGroups($groups, ['amount'])['amount'];
     }
 
     /** @return array{key:string,status:string,message:string,count?:int} */
