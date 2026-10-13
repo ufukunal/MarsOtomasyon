@@ -74,18 +74,31 @@
                 @if($multiCurrency)
                     <strong>Para birimi bazında</strong>
                     @foreach($currencyBalances as $currencyRow)
-                        <span>{{ $money($currencyRow->balance) }} {{ $currencyRow->currency }}</span>
+                        <span @class(['is-debit' => bccomp((string) $currencyRow->balance, '0', 4) > 0, 'is-credit' => bccomp((string) $currencyRow->balance, '0', 4) < 0])>
+                            {{ $money(bccomp((string) $currencyRow->balance, '0', 4) < 0 ? bcmul((string) $currencyRow->balance, '-1', 4) : $currencyRow->balance) }} {{ $currencyRow->currency }}
+                            {{ bccomp((string) $currencyRow->balance, '0', 4) > 0 ? 'Borçlu' : (bccomp((string) $currencyRow->balance, '0', 4) < 0 ? 'Alacaklı' : 'Dengede') }}
+                        </span>
                     @endforeach
                 @else
-                    <strong @class(['is-credit' => bccomp($balance, '0', 4) > 0, 'is-debit' => bccomp($balance, '0', 4) < 0])>
+                    <strong @class(['is-debit' => bccomp($balance, '0', 4) > 0, 'is-credit' => bccomp($balance, '0', 4) < 0])>
                         {{ $money(bccomp($balance, '0', 4) < 0 ? bcmul($balance, '-1', 4) : $balance) }} {{ $balanceCurrency }}
-                        {{ bccomp($balance, '0', 4) > 0 ? 'Alacaklı' : (bccomp($balance, '0', 4) < 0 ? 'Borçlu' : 'Dengede') }}
+                        {{ bccomp($balance, '0', 4) > 0 ? 'Borçlu' : (bccomp($balance, '0', 4) < 0 ? 'Alacaklı' : 'Dengede') }}
                     </strong>
                 @endif
             </div>
         </section>
         <div class="v65-contact-metrics">
-            <div class="v65-contact-metric"><small>Cari Bakiye</small><strong>{{ $multiCurrency ? 'Çoklu para birimi' : $money($balance).' '.$balanceCurrency }}</strong></div>
+            <div class="v65-contact-metric">
+                <small>Cari Bakiye</small>
+                <strong @class(['is-debit' => ! $multiCurrency && bccomp($balance, '0', 4) > 0, 'is-credit' => ! $multiCurrency && bccomp($balance, '0', 4) < 0])>
+                    @if($multiCurrency)
+                        Çoklu para birimi
+                    @else
+                        {{ $money(bccomp($balance, '0', 4) < 0 ? bcmul($balance, '-1', 4) : $balance) }} {{ $balanceCurrency }}
+                        {{ bccomp($balance, '0', 4) > 0 ? 'Borçlu' : (bccomp($balance, '0', 4) < 0 ? 'Alacaklı' : 'Dengede') }}
+                    @endif
+                </strong>
+            </div>
             @if($yearSales !== null)
                 <div class="v65-contact-metric"><small>{{ $year }} Satış (TRY)</small><strong>{{ $money($yearSales) }} ₺</strong></div>
             @endif
