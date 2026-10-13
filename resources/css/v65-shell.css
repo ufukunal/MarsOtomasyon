@@ -1057,3 +1057,92 @@
     grid-column:1/-1
   }
 }
+
+/* v65 compact list-density contract
+ * Applies to listing tables only. Do not squeeze Product List thumbnails,
+ * document line editors, product forms or print templates.
+ * Tables with long/multiline content or editable inputs may grow naturally.
+ */
+.app-shell .v65-list-page:not(.v65-products) .v65-list-table .data-table{
+  width:100%;
+  font-size:12px;
+  line-height:1.45;
+}
+.app-shell .v65-list-page:not(.v65-products) .v65-list-table .data-table thead th{
+  height:36px;
+  min-height:0;
+  box-sizing:border-box;
+  padding:6px 10px;
+  line-height:1.4;
+  font-size:12px;
+  vertical-align:middle;
+}
+.app-shell .v65-list-page:not(.v65-products) .v65-list-table .data-table tbody tr{
+  height:42px;
+}
+.app-shell .v65-list-page:not(.v65-products) .v65-list-table .data-table tbody td,
+.app-shell .v65-list-page:not(.v65-products) .v65-list-table .data-table tfoot td{
+  height:auto;
+  min-height:0;
+  box-sizing:border-box;
+  padding:5px 10px;
+  line-height:1.45;
+  font-size:12px;
+  vertical-align:middle;
+}
+.app-shell .v65-list-page:not(.v65-products) .v65-list-table .data-table .select-column,
+.app-shell .v65-list-page:not(.v65-products) .v65-list-table .data-table td:has(>input[type="checkbox"]){
+  width:62px;
+  padding-left:14px;
+}
+.app-shell .v65-list-page:not(.v65-products) .v65-list-table .data-table td > input[type="checkbox"]{
+  display:inline-block;
+  vertical-align:middle;
+  width:16px;
+  height:16px;
+  margin:0;
+}
+.app-shell .data-table-shell.v65-list-page:not(.v65-products) .v65-list-table .row-actions{
+  min-width:100px;
+  width:1%;
+  white-space:nowrap;
+}
+.app-shell .v65-list-page:not(.v65-products) .v65-list-table .v65-list-row-actions{
+  width:1%;
+  white-space:nowrap;
+}
+.app-shell .v65-list-page:not(.v65-products) .v65-list-table
+  :is(.row-actions,.v65-list-row-actions) :where(button,a.button-secondary,a.button-link){
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:30px;
+  height:30px;
+  box-sizing:border-box;
+  margin:0 4px 0 0;
+  padding:4px 10px;
+  border-radius:5px!important;
+  line-height:1.25;
+  font-size:11.5px;
+  white-space:nowrap;
+  vertical-align:middle;
+}
+.app-shell .v65-list-page:not(.v65-products) .v65-shared-table-title{
+  min-height:36px;
+  padding:7px 10px;
+}
+.app-shell .v65-list-page:not(.v65-products) .v65-list-footer{
+  padding:8px 11px;
+}
+@media(max-width:640px){
+  .app-shell .v65-list-page:not(.v65-products) .v65-list-table .data-table thead th{
+    padding:6px 9px;
+  }
+  .app-shell .v65-list-page:not(.v65-products) .v65-list-table .data-table tbody td,
+  .app-shell .v65-list-page:not(.v65-products) .v65-list-table .data-table tfoot td{
+    padding:6px 9px;
+  }
+  .app-shell .data-table-shell.v65-list-page:not(.v65-products) .v65-list-table .row-actions{
+    white-space:normal;
+  }
+}
