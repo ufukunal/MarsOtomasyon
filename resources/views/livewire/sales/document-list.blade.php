@@ -4,12 +4,15 @@
             @if($createRoute)
                 <a class="button-link" href="{{ route($createRoute) }}">+ Yeni {{ $title }}</a>
             @endif
-            <button type="button" class="button-secondary" wire:click="exportCsv">CSV</button>
-            <button type="button" class="button-secondary" wire:click="exportXlsx">Excel</button>
+            <x-v65.action-menu label="Dışa Aktar">
+                <button type="button" wire:click="exportCsv" wire:loading.attr="disabled" wire:target="exportCsv">CSV</button>
+                <button type="button" wire:click="exportXlsx" wire:loading.attr="disabled" wire:target="exportXlsx">Excel</button>
+            </x-v65.action-menu>
         </div>
     @endteleport
 
-    <div class="v65-filter-toolbar">
+    <x-v65.list-heading :title="$title">
+        <div class="v65-filter-toolbar">
         <x-v65.filter-drawer :count="$this->activeV65FilterCount()" :tab="$v65FilterTab">
             <x-slot:filters>
                 <x-v65.filter-field label="Genel Arama">
@@ -48,6 +51,7 @@
             </x-slot:sorting>
         </x-v65.filter-drawer>
     </div>
+    </x-v65.list-heading>
     <x-v65.active-filters :items="$this->v65ActiveFilterLabels()" />
 
     <div class="v65-list-table table-scroll v65-grid-scroll">
