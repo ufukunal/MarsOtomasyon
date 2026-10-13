@@ -15,12 +15,12 @@
             @foreach($recipes as $recipe)
                 <tr>
                     <td>{{ $recipe->product->code }} · {{ $recipe->product->name }}</td>
-                    <td>{{ $recipe->number }}</td>
+                    <td><button type="button" class="link-button v65-record-link" wire:click="selectRecipe({{ $recipe->id }})">{{ $recipe->number }}</button></td>
                     <td>{{ $recipe->revision_no }}</td>
                     <td>{{ $recipe->output_quantity }}</td>
                     <td>{{ $recipe->is_active ? 'Evet' : 'Hayır' }}</td>
                     <td>
-                        <button class="button-secondary" type="button" wire:click="selectRecipe({{ $recipe->id }})">Aç</button>
+                        
                         @if(!$recipe->is_active)
                             @can('production_recipes.update')
                                 <button type="button" wire:click="activate({{ $recipe->id }})">Aktif Yap</button>
