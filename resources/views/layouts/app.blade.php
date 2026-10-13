@@ -11,6 +11,38 @@
 <body>
 @php
     $routeName = \Illuminate\Support\Facades\Route::currentRouteName();
+    // Main list routes own their page actions; never inject fake print or Back actions.
+    // Keep detail/editor page workflows and their explicit print actions untouched.
+    $v65IndexRoutes = [
+        'products.index',
+        'contacts.index',
+        'brands.index',
+        'units.index',
+        'locations.index',
+        'price-lists.index',
+        'stock.status',
+        'stock.movements',
+        'stock.transfers.index',
+        'stock.counts.index',
+        'stock.counts.results',
+        'stock.reservations.index',
+        'stock.warehouse-slips.index',
+        'sales.quotes.index',
+        'sales.orders.index',
+        'sales.dispatches.index',
+        'sales.invoices.index',
+        'sales.proformas.index',
+        'purchases.orders.index',
+        'purchases.receipts.index',
+        'purchases.invoices.index',
+        'warehouse.transport.index',
+        'production.orders',
+        'production.recipes',
+        'production.subcontracting',
+        'imports.shipments',
+        'channels.listings',
+        'channels.sync',
+    ];
     $visibleNavigation = collect(config('navigation', []))
         ->map(function (array $group): array {
             $group['items'] = collect($group['items'] ?? [])
@@ -226,6 +258,8 @@
                     @endcan
                 @elseif (in_array($routeName, ['warehouse.transport.create', 'warehouse.transport.edit'], true))
                     <button type="button" class="button-secondary" onclick="document.querySelector('[data-wsl-print-slip]')?.click()" title="Yazdırma penceresinde PDF olarak kaydedebilirsiniz">Yazdır / PDF</button>
+                @elseif (in_array($routeName, $v65IndexRoutes, true))
+                    {{-- List screens only expose print/export actions they actually implement. --}}
                 @else
                     <button type="button" class="button-secondary" onclick="window.print()" title="Yazdırma penceresinde PDF olarak kaydedebilirsiniz">Yazdır / PDF</button>
                 @endif
@@ -235,7 +269,7 @@
                     @endcan
                 @endif
                 @isset($pageActions){{ $pageActions }}@endisset
-                @unless (in_array($routeName, ['products.show', 'products.create', 'products.edit', 'contacts.show', 'contacts.index', 'warehouse.transport.index'], true))
+                @unless (in_array($routeName, ['products.show', 'products.create', 'products.edit', 'contacts.show', 'contacts.index', 'warehouse.transport.index'], true) || in_array($routeName, $v65IndexRoutes, true))
                     <button type="button" class="button-secondary" onclick="if (history.length > 1) history.back(); else location.href='{{ route('home') }}'">Geri</button>
                 @endunless
             </div>
