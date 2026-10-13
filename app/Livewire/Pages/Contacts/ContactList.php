@@ -38,7 +38,7 @@ class ContactList extends DataTableComponent
             Column::make('primary_contact_name', 'Yetkili'),
             Column::make('category_names', 'Kategori'),
             Column::make('city', 'İl')->searchable()->sortable(),
-            Column::make('balance_display', 'Bakiye')->money(),
+            Column::make('balance_display', 'Bakiye (TRY)')->money(),
             Column::make('risk_status', 'Risk'),
             Column::make('is_active', 'Durum')->sortable(),
         ];
@@ -87,7 +87,7 @@ class ContactList extends DataTableComponent
 
             $query->whereRaw(
                 "(SELECT COALESCE(SUM(CASE WHEN direction = 'debit' THEN amount ELSE -amount END), 0)
-                  FROM contact_transactions ct WHERE ct.contact_id = contacts.id) > contacts.risk_limit"
+                  FROM contact_transactions ct WHERE ct.contact_id = contacts.id AND ct.currency = 'TRY') > contacts.risk_limit"
             );
 
             return;
