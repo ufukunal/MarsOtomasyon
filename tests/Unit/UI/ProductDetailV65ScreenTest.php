@@ -21,7 +21,7 @@ it('exposes a distinct authorized v65 product detail page', function (): void {
         ->toContain('selectTab')
         ->toContain('Genel Bakış')
         ->and($list)->toContain("route('products.show'")
-        ->toContain("'label' => 'Detay'");
+        ->not->toContain("'label' => 'Detay'");
 });
 
 it('keeps editable product configuration options backed by product data', function (): void {
