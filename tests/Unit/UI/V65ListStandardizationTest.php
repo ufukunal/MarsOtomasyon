@@ -98,7 +98,7 @@ it('keeps the approved warehouse print template and transactional buttons out of
     $code = file_get_contents(base_path('app/Livewire/Pages/Warehouse/TransportSlipList.php'));
 
     expect($warehouse)->toContain("route('warehouse.transport.show'")
-        ->toContain("route('warehouse.transport.edit'")
+        ->not->toContain("route('warehouse.transport.edit'")
         ->toContain("route('warehouse.transport.create'")
         ->and($code)->toContain("can('warehouse_slips.view')")
         ->toContain('TransportSlip::query()');
