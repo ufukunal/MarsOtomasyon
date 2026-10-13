@@ -39,9 +39,8 @@ class UnitList extends DataTableComponent
     /** @return list<array<string,mixed>> */
     public function rowActions(): array
     {
-        return auth()->user()?->can('units.update')
-            ? [['label' => 'Düzenle', 'method' => 'editUnit']]
-            : [];
+        // Records open via their linked identifiers, not redundant row buttons.
+        return [];
     }
 
     public function columnUrl(Model $row, Column $column): ?string
