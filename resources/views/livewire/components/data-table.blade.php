@@ -29,7 +29,9 @@
     @endif
 
     @if($this instanceof \App\Livewire\Pages\Contacts\ContactList)
-        @php($cariStats = $this->overviewStats())
+        @php
+            $cariStats = $this->overviewStats();
+        @endphp
         <section class="v65-cari-list-intro" aria-label="Cari liste özeti">
             <div class="v65-cari-list-intro-title">
                 <strong>Cari Listesi</strong>
