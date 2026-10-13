@@ -1316,3 +1316,53 @@
 .app-shell .data-table-shell.v65-list-page:not(.v65-products) .v65-shared-table-title small{
   font-size:11px;color:#6c829a;font-variant-numeric:tabular-nums
 }
+
+/* Approved HTML reference: contact detail cards and finance sub-tabs */
+.app-shell .v65-contact-panel-heading{display:grid;gap:4px;min-width:0}
+.app-shell .v65-contact-panel-heading h3{margin:0}
+.app-shell .v65-contact-panel-heading small,.app-shell .v65-contact-panel-sub{font-size:11px;color:#668098}
+.app-shell .v65-contact-panel-controls{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.app-shell .v65-contact-panel-controls button{min-height:34px;margin:0;font-size:11px;padding:7px 12px;white-space:nowrap}
+.app-shell .v65-contact-panel-controls .is-current{background:#1976ee;color:#fff;border-color:#1976ee}
+.app-shell .v65-contact-state.is-success{background:#e8f7ed;color:#167b38;border-color:#c6e5d0}
+.app-shell .v65-contact-state.is-warning{background:#fff3dd;color:#985a08;border-color:#f2d8a7}
+.app-shell .v65-contact-statement-totals{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;padding:11px 12px}
+.app-shell .v65-contact-statement-totals>div{display:grid;gap:5px;padding:10px 12px;border:1px solid #e0e7f1;border-radius:8px}
+.app-shell .v65-contact-statement-totals small{font-size:10.5px;color:#67809c}
+.app-shell .v65-contact-statement-totals strong{font-size:13px;color:#263c55}
+.app-shell .v65-statement-lines-row>td{padding:9px 10px 10px!important;background:#fafcff}
+.app-shell .v65-statement-lines-wrap{overflow-x:auto;border-left:3px solid #b8dbee}
+.app-shell .v65-statement-lines-wrap table{width:100%;min-width:620px}
+.app-shell .v65-statement-row.is-detail{background:#f2f8ff}
+.app-shell .v65-contact-two-column{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start;gap:12px;min-width:0}
+.app-shell .v65-contact-section-column{display:grid;align-content:start;gap:12px;min-width:0}
+.app-shell .v65-contact-category-bars{display:grid;gap:13px;padding:15px}
+.app-shell .v65-contact-category-row>div:first-child{display:flex;justify-content:space-between;gap:10px;align-items:center;margin:0 0 4px}
+.app-shell .v65-contact-category-row strong{font-size:12px}
+.app-shell .v65-contact-category-row span{font-size:11px}
+.app-shell .v65-contact-category-track{height:7px;overflow:hidden;background:#edf2f8;border-radius:8px}
+.app-shell .v65-contact-category-track span{display:block;height:100%;background:#539bc0;border-radius:8px;max-width:100%}
+.app-shell .v65-contact-address-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.app-shell .v65-contact-address-card{display:grid;align-content:start;gap:8px;padding:15px;background:#fff;border:1px solid #dce5ef;border-radius:14px;min-width:0}
+.app-shell .v65-contact-address-card strong{font-size:12px;color:#17334f}
+.app-shell .v65-contact-address-card p{margin:0;font-size:11.5px;line-height:1.45;color:#6e8299;overflow-wrap:anywhere}
+.app-shell .v65-contact-address-separator{border-bottom:1px solid #dce4ec;margin-top:4px}
+.app-shell .v65-contact-address-card .v65-contact-state{justify-self:start}
+.app-shell .v65-contact-hint{padding:10px 13px;border:1px solid #dce5ed;border-radius:8px;font-size:11px;color:#708398}
+.app-shell .v65-contact-people-list{display:grid;gap:10px;padding:12px}
+.app-shell .v65-contact-person{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;padding:12px;background:#fff;border:1px solid #e0e8f0;border-radius:7px}
+.app-shell .v65-contact-person>div{display:grid;align-content:start;gap:7px;min-width:0}
+.app-shell .v65-contact-person small{font-size:10.5px;color:#6b8197}
+.app-shell .v65-contact-person strong{font-size:12px;color:#233d57;overflow-wrap:anywhere}
+.app-shell .v65-contact-definition-grid.v65-contact-invoice-info{grid-template-columns:repeat(4,minmax(0,1fr));gap:0;padding:0}
+.app-shell .v65-contact-invoice-info>div{min-width:0;min-height:72px;padding:12px;border-right:1px solid #e3eaf2;border-bottom:1px solid #e3eaf2}
+.app-shell .v65-contact-invoice-info small{font-size:11px}
+@media(max-width:1000px){
+  .app-shell .v65-contact-address-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .app-shell .v65-contact-invoice-info.v65-contact-definition-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:720px){
+  .app-shell .v65-contact-two-column{grid-template-columns:1fr}
+  .app-shell .v65-contact-people-list .v65-contact-person{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .app-shell .v65-contact-address-grid{grid-template-columns:1fr}
+}

@@ -395,51 +395,94 @@
             </section>
         </div>
     
-    @elseif($activeTab === 'addresses' || $activeTab === 'shipping')
-        <section class="v65-contact-panel">
-            <div class="v65-contact-panel-header">
-                <h3>{{ $tabs[$activeTab] }}</h3>
-                @can('contacts.update')<a href="{{ route('contacts.edit', ['contact' => $contact->id]) }}">Adresleri Düzenle</a>@endcan
-            </div>
-            <div class="table-scroll"><table class="data-table">
-                <thead><tr><th>Tür</th><th>Başlık</th><th>Adres</th><th>İl / İlçe</th><th>Varsayılan</th></tr></thead><tbody>
-                @forelse($addresses as $address)
-                    <tr><td>{{ $address->type === 'invoice' ? 'Fatura' : 'Sevk' }}</td><td>{{ $address->title ?: '—' }}</td><td>{{ $address->address }}</td><td>{{ collect([$address->city,$address->district])->filter()->implode(' / ') }}</td><td>{{ $address->is_default ? 'Evet' : 'Hayır' }}</td></tr>
-                @empty
-                    <tr><td colspan="5" class="empty-state">Adres kaydı bulunamadı.</td></tr>
-                @endforelse
-                </tbody></table></div>
-        </section>
+
+    @elseif($activeTab === 'addresses')
+        <div class="v65-contact-address-grid">
+            @forelse($contact->addresses as $address)
+                <section class="v65-contact-address-card" wire:key="contact-address-card-{{ $address->id }}">
+                    <strong>{{ $address->title ?: ($address->type === 'invoice' ? 'Fatura Adresi' : 'Sevk Adresi') }}</strong>
+                    <p>{{ $address->address }}</p>
+                    <p>{{ collect([$address->district,$address->city])->filter()->implode(' / ') ?: '—' }}</p>
+                    <div class="v65-contact-address-separator"></div>
+                    <span @class(['v65-contact-state','is-success'=>$address->is_default])>{{ $address->is_default ? 'Varsayılan ' : '' }}{{ $address->type === 'invoice' ? 'Fatura Adresi' : 'Sevk Adresi' }}</span>
+                </section>
+            @empty
+                <section class="v65-contact-panel"><p class="v65-contact-note">Cari için kayıtlı adres bulunmuyor.</p></section>
+            @endforelse
+        </div>
+        @can('contacts.update')
+            <div class="v65-contact-hint">Adres değişikliği için <a href="{{ route('contacts.edit', ['contact'=>$contact->id]) }}">Cari Düzenle</a> ekranını kullanın.</div>
+        @endcan
+    
+
     @elseif($activeTab === 'people')
         <section class="v65-contact-panel">
             <div class="v65-contact-panel-header">
-                <h3>İletişim</h3>
-                @can('contacts.update')<a href="{{ route('contacts.edit', ['contact' => $contact->id]) }}">Yetkilileri Düzenle</a>@endcan
+                <div class="v65-contact-panel-heading"><h3>İletişim</h3><small>{{ $contact->code }} · {{ $contact->title }}</small></div>
+                @can('contacts.update')<a class="button-secondary" href="{{ route('contacts.edit', ['contact'=>$contact->id]) }}">İletişimi Düzenle</a>@endcan
             </div>
-            <div class="table-scroll"><table class="data-table">
-                <thead><tr><th>Ad Soyad</th><th>Unvan</th><th>Telefon</th><th>E-posta</th><th>Varsayılan</th></tr></thead><tbody>
-                @forelse($contact->people as $person)
-                    <tr><td>{{ $person->name }}</td><td>{{ $person->title ?: '—' }}</td><td>{{ $person->phone ?: '—' }}</td><td>{{ $person->email ?: '—' }}</td><td>{{ $person->is_default ? 'Evet' : 'Hayır' }}</td></tr>
-                @empty
-                    <tr><td colspan="5" class="empty-state">İletişim yetkilisi bulunamadı.</td></tr>
-                @endforelse
-                </tbody></table></div>
         </section>
+        <section class="v65-contact-panel">
+            <div class="v65-contact-panel-header"><h3>Firma İletişim Kanalları</h3></div>
+            <div class="v65-contact-definition-grid">
+                <div><small>Ana Telefon</small><strong>{{ $contact->phone ?: '—' }}</strong></div>
+                <div><small>Genel E-Posta</small><strong>{{ $contact->email ?: '—' }}</strong></div>
+                <div><small>İl / İlçe</small><strong>{{ collect([$contact->city,$contact->district])->filter()->implode(' / ') ?: '—' }}</strong></div>
+                <div><small>Varsayılan Yetkili</small><strong>{{ $contact->people->firstWhere('is_default',true)?->name ?: '—' }}</strong></div>
+            </div>
+        </section>
+        <section class="v65-contact-panel">
+            <div class="v65-contact-panel-header"><h3>Yetkililer</h3><small>{{ $contact->people->count() }} kişi</small></div>
+            <div class="v65-contact-people-list">
+                @forelse($contact->people as $person)
+                    <div class="v65-contact-person" wire:key="contact-person-card-{{ $person->id }}">
+                        <div><small>Ad Soyad</small><strong>{{ $person->name }} @if($person->is_default)<span class="v65-contact-state is-success">Birincil</span>@endif</strong></div>
+                        <div><small>Görev</small><strong>{{ $person->title ?: '—' }}</strong></div>
+                        <div><small>Cep Telefonu</small><strong>{{ $person->phone ?: '—' }}</strong></div>
+                        <div><small>E-Posta</small><strong>{{ $person->email ?: '—' }}</strong></div>
+                    </div>
+                @empty
+                    <p class="v65-contact-note">Kayıtlı yetkili bulunmuyor.</p>
+                @endforelse
+            </div>
+        </section>
+    
+
     @elseif($activeTab === 'invoice_info')
         <section class="v65-contact-panel">
             <div class="v65-contact-panel-header">
                 <h3>Fatura Bilgileri</h3>
-                @can('contacts.update')<a href="{{ route('contacts.edit', ['contact' => $contact->id]) }}">Düzenle</a>@endcan
+                @can('contacts.update')<a href="{{ route('contacts.edit',['contact'=>$contact->id]) }}">Düzenle</a>@endcan
             </div>
-            <div class="v65-contact-definition-grid">
-                <div><small>Cari Unvan</small><strong>{{ $contact->title }}</strong></div>
+            <div class="v65-contact-definition-grid v65-contact-invoice-info">
+                <div><small>Fatura Unvanı</small><strong>{{ $contact->title }}</strong></div>
                 <div><small>Vergi Dairesi</small><strong>{{ $contact->tax_office ?: '—' }}</strong></div>
-                <div><small>Vergi Numarası</small><strong>{{ $contact->tax_number ?: '—' }}</strong></div>
-                <div><small>Telefon</small><strong>{{ $contact->phone ?: '—' }}</strong></div>
-                <div><small>E-posta</small><strong>{{ $contact->email ?: '—' }}</strong></div>
-                <div><small>Fatura Adresi</small><strong>{{ $contact->addresses->firstWhere('type', 'invoice')?->address ?: ($contact->address ?: '—') }}</strong></div>
+                <div><small>Vergi No</small><strong>{{ $contact->tax_number ?: '—' }}</strong></div>
+                <div><small>Fatura Adresi</small><strong>{{ $contact->addresses->firstWhere('type','invoice')?->address ?: ($contact->address ?: '—') }}</strong></div>
+                <div><small>Vade</small><strong>{{ $contact->term_days ?? '—' }} gün</strong></div>
+                <div><small>İskonto</small><strong>%{{ number_format((float)$contact->discount_rate,2,',','.') }}</strong></div>
+                <div><small>Risk Limiti</small><strong>{{ $money($contact->risk_limit) }} ₺</strong></div>
+                <div><small>Fiyat Sistemi</small><strong>{{ $contact->priceList?->name ?? 'Varsayılan liste' }}</strong></div>
             </div>
+            <p class="v65-contact-note">E-Fatura etiketi ve senaryosu gibi kayıtlı olmayan alanlar gösterilmez.</p>
         </section>
+    @elseif($activeTab === 'shipping')
+        <section class="v65-contact-panel">
+            <div class="v65-contact-panel-header">
+                <h3>Sevk Bilgileri</h3>
+                @can('contacts.update')<a href="{{ route('contacts.edit',['contact'=>$contact->id]) }}">Sevk Adresini Düzenle</a>@endcan
+            </div>
+            <div class="v65-contact-definition-grid v65-contact-invoice-info">
+                <div><small>Varsayılan Sevk Adresi</small><strong>{{ $contact->addresses->where('type','shipping')->firstWhere('is_default',true)?->address ?: ($contact->addresses->firstWhere('type','shipping')?->address ?: '—') }}</strong></div>
+                <div><small>İl</small><strong>{{ $contact->addresses->firstWhere('type','shipping')?->city ?: ($contact->city ?: '—') }}</strong></div>
+                <div><small>İlçe</small><strong>{{ $contact->addresses->firstWhere('type','shipping')?->district ?: ($contact->district ?: '—') }}</strong></div>
+                <div><small>Telefon</small><strong>{{ $contact->phone ?: '—' }}</strong></div>
+                <div><small>İletişim Yetkilisi</small><strong>{{ $contact->primary_contact_name ?: '—' }}</strong></div>
+            </div>
+            <p class="v65-contact-note">Teslimat günleri, saatleri, taşıyıcı ve ambar firma tercihleri cari veritabanında tanımlı olmadığından örnek değer gösterilmiyor.</p>
+        </section>
+    
+
     @elseif($activeTab === 'banks')
         <section class="v65-contact-panel">
             <div class="v65-contact-panel-header">
@@ -447,19 +490,28 @@
                 @can('contacts.update')<a href="{{ route('contacts.edit', ['contact' => $contact->id]) }}">Banka Bilgilerini Düzenle</a>@endcan
             </div>
             <div class="table-scroll"><table class="data-table">
-                <thead><tr><th>Banka</th><th>IBAN</th><th>Varsayılan</th></tr></thead><tbody>
+                <thead><tr><th>Banka</th><th>IBAN</th><th>Hesap Sahibi</th><th>Varsayılan</th></tr></thead><tbody>
                 @forelse($contact->banks as $bank)
-                    <tr><td>{{ $bank->bank_name ?: '—' }}</td><td>{{ $bank->iban }}</td><td>{{ $bank->is_default ? 'Evet' : 'Hayır' }}</td></tr>
+                    <tr><td>{{ $bank->bank_name ?: '—' }}</td><td>{{ $bank->iban }}</td><td>{{ $contact->title }}</td><td>{{ $bank->is_default ? 'Evet' : 'Hayır' }}</td></tr>
                 @empty
-                    <tr><td colspan="3" class="empty-state">Banka kaydı bulunamadı.</td></tr>
+                    <tr><td colspan="4" class="empty-state">Banka kaydı bulunamadı.</td></tr>
                 @endforelse
                 </tbody></table></div>
         </section>
+    
+
     @elseif($activeTab === 'notes')
-        <section class="v65-contact-panel">
-            <div class="v65-contact-panel-header"><h3>Özel Açıklamalar</h3></div>
-            <div class="v65-contact-panel-body">Bu cari kaydında özel açıklama alanı bulunmuyor. Mevcut cari kartı bilgileri değiştirilmiyor.</div>
-        </section>
+        <div class="v65-contact-two-column">
+            <section class="v65-contact-panel">
+                <div class="v65-contact-panel-header"><h3>Cari Notu</h3></div>
+                <div class="v65-contact-panel-body">Cari kartında kayıtlı cari notu alanı bulunmuyor.</div>
+            </section>
+            <section class="v65-contact-panel">
+                <div class="v65-contact-panel-header"><h3>İç Not</h3></div>
+                <div class="v65-contact-panel-body">İç not alanı mevcut veri modelinde bulunmuyor.</div>
+            </section>
+        </div>
+    
     @elseif($activeTab === 'b2b')
         <section class="v65-contact-panel">
             <div class="v65-contact-panel-header"><h3>B2B / Bayi</h3></div>
