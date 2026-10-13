@@ -34,7 +34,9 @@
             </thead>
             <tbody>
             @foreach($entries as $entry)
-                @php($days = $entry->created_at?->diffInDays(now()) ?? 0)
+                @php
+                    $days = $entry->created_at?->diffInDays(now()) ?? 0;
+                @endphp
                 <tr @class(['row-warning' => $days > 30 && in_array($entry->status, ['pending','partial'], true)])>
                     <td>
                         @if(in_array($entry->status, ['pending','partial'], true))
