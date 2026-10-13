@@ -10,7 +10,7 @@
             @foreach($orders as $row)
                 <tr>
                     <td><button type="button" class="link-button v65-record-link" wire:click="selectOrder({{ $row->id }})">{{ $row->number ?? 'Taslak #'.$row->id }}</button></td>
-                    <td>{{ $row->product->code }} · {{ $row->product->name }}</td>
+                    <td>@can('products.view')<a class="v65-record-link" href="{{ route('products.show', ['product' => $row->product_id]) }}">{{ $row->product->code }} · {{ $row->product->name }}</a>@else{{ $row->product->code }} · {{ $row->product->name }}@endcan</td>
                     <td>{{ $row->subcontractor?->title }}</td>
                     <td>{{ $row->status }}</td>
                     
