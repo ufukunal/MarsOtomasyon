@@ -14,7 +14,7 @@
                     @else
                         <strong>{{ $root->name }}</strong>
                     @endcan
-                    <span>{{ $root->is_active ? 'Aktif' : 'Pasif' }}</span>
+                    <x-v65.status-badge :tone="$root->is_active ? 'success' : 'danger'">{{ $root->is_active ? 'Aktif' : 'Pasif' }}</x-v65.status-badge>
 
                 </div>
 
@@ -26,7 +26,7 @@
                             @else
                                 <span>{{ $child->name }}</span>
                             @endcan
-                            <span>{{ $child->is_active ? 'Aktif' : 'Pasif' }}</span>
+                            <x-v65.status-badge :tone="$child->is_active ? 'success' : 'danger'">{{ $child->is_active ? 'Aktif' : 'Pasif' }}</x-v65.status-badge>
 
                         </div>
 
@@ -38,7 +38,7 @@
                                 @else
                                     <span>{{ $grandchild->name }}</span>
                                 @endcan
-                                    <span>{{ $grandchild->is_active ? 'Aktif' : 'Pasif' }}</span>
+                                    <x-v65.status-badge :tone="$grandchild->is_active ? 'success' : 'danger'">{{ $grandchild->is_active ? 'Aktif' : 'Pasif' }}</x-v65.status-badge>
 
                                 </div>
                             </div>
@@ -47,11 +47,11 @@
                 @endforeach
             </div>
         @empty
-            <div class="empty-state v65-category-empty"><p>Henüz kategori kaydı bulunmuyor.</p>
+            <x-v65.empty-state title="Henüz kategori kaydı bulunmuyor." class="v65-category-empty">
                 @can('product_categories.create')
                     <a class="button-link table-add-action" href="{{ route('categories.create') }}">+ Yeni Kategori</a>
                 @endcan
-            </div>
+            </x-v65.empty-state>
         @endforelse
     </section>
 </div>
