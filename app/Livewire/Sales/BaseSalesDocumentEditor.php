@@ -62,6 +62,15 @@ abstract class BaseSalesDocumentEditor extends Component
             abort_unless($document->document_type === $this->documentType(), 404);
             $this->loadDocument($document);
         } else {
+            // A new document started from Cari Detay keeps its originating cari,
+            // without affecting edits or trusting an unvalidated URL id.
+            $selectedCari = request()->query('cari');
+            if (is_scalar($selectedCari) && preg_match('/^[1-9][0-9]*$/D', (string) $selectedCari)) {
+                $this->contactId = Contact::query()
+                    ->where('is_active', true)
+                    ->whereKey((int) $selectedCari)
+                    ->value('id');
+            }
             $this->lines = [$this->emptyLine()];
         }
     }

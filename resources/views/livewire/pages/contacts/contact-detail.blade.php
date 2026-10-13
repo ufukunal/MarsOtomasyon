@@ -176,11 +176,11 @@
                 </div>
                 <div class="v65-contact-panel-controls">
                     @if($activeTab === 'quotes')
-                        @can('quotes.create')<a class="button-link" href="{{ route('sales.quotes.edit') }}">+ Yeni Teklif</a>@endcan
+                        @can('quotes.create')<a class="button-link" href="{{ route('sales.quotes.edit', ['cari' => $contact->id]) }}">+ Yeni Teklif</a>@endcan
                     @elseif($activeTab === 'orders')
-                        @can('sales_orders.create')<a class="button-link" href="{{ route('sales.orders.edit') }}">+ Yeni Sipariş</a>@endcan
+                        @can('sales_orders.create')<a class="button-link" href="{{ route('sales.orders.edit', ['cari' => $contact->id]) }}">+ Yeni Sipariş</a>@endcan
                     @elseif($activeTab === 'invoices')
-                        @can('sales_invoices.create')<a class="button-link" href="{{ route('sales.invoices.edit') }}">+ Yeni Satış Faturası</a>@endcan
+                        @can('sales_invoices.create')<a class="button-link" href="{{ route('sales.invoices.edit', ['cari' => $contact->id]) }}">+ Yeni Satış Faturası</a>@endcan
                     @endif
                     <button type="button" class="button-secondary"
                         wire:click="exportContactDocumentsCsv" wire:loading.attr="disabled"
