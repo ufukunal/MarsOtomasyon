@@ -87,6 +87,23 @@ it('standardizes mobile, dropdown and table styles without modifying print templ
         ->toContain("document.addEventListener('livewire:navigating'");
 });
 
+it('excludes generic print and back buttons from independently managed list pages', function (): void {
+    $layout = file_get_contents(base_path('resources/views/layouts/app.blade.php'));
+    $js = file_get_contents(base_path('resources/js/app.js'));
+    $drawerCss = file_get_contents(base_path('resources/css/v65-filter-drawer.css'));
+    $bank = file_get_contents(base_path('resources/views/livewire/finance/bank-statement-center.blade.php'));
+
+    expect($layout)->toContain('$v65IndexRoutes = [')
+        ->toContain("'stock.warehouse-slips.index'")
+        ->toContain("'channels.sync'")
+        ->toContain('in_array($routeName, $v65IndexRoutes, true)')
+        ->and($js)->toContain('details.page-action-menu button')
+        ->not->toContain('details[data-v65-action-menu] button')
+        ->and($drawerCss)->toContain('width:100%;height:38px;min-height:38px;')
+        ->and($bank)->toContain('<x-v65.list-heading title="Banka Ekstresi / Mutabakat"')
+        ->toContain('class="align-end">Tutar');
+});
+
 it('preserves the product image-free listing and record-identifier links', function (): void {
     $table = file_get_contents(base_path('resources/views/livewire/components/data-table.blade.php'));
     $products = file_get_contents(base_path('app/Livewire/Pages/Products/ProductList.php'));
