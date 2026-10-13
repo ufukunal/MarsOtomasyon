@@ -3,6 +3,7 @@
 namespace App\Support\Reporting\Queries;
 
 use App\Contracts\Reporting\ReportQuery;
+use App\Support\Reporting\CurrencySeparatedTotals;
 use App\Support\Reporting\ReportColumnDefinition;
 use App\Support\Reporting\ReportDefinition;
 use App\Support\Reporting\ReportDrillDownDefinition;
@@ -45,6 +46,7 @@ abstract class AbstractFinanceMovementReportQuery implements ReportQuery
             new ReportFilterDefinition('date_from', 'Başlangıç tarihi', 'date'),
             new ReportFilterDefinition('date_to', 'Bitiş tarihi', 'date'),
             new ReportFilterDefinition('account_id', 'Hesap', 'positive_integer'),
+            new ReportFilterDefinition('currency', 'Döviz'),
             new ReportFilterDefinition('direction', 'Yön'),
             new ReportFilterDefinition('movement_type', 'Hareket Türü'),
         ];
@@ -149,6 +151,9 @@ abstract class AbstractFinanceMovementReportQuery implements ReportQuery
         if (isset($filters['account_id'])) {
             $query->where('a.id', $filters['account_id']);
         }
+        if (isset($filters['currency'])) {
+            $query->where('a.currency', strtoupper((string) $filters['currency']));
+        }
         foreach (['direction', 'movement_type', 'origin'] as $key) {
             if (isset($filters[$key])) {
                 $query->where('m.'.$key, $filters[$key]);
@@ -199,18 +204,17 @@ abstract class AbstractFinanceMovementReportQuery implements ReportQuery
             return [];
         }
 
-        $row = (clone $base)->selectRaw(
-            "COALESCE(SUM(CASE WHEN m.direction = 'in' THEN m.amount ELSE 0 END), 0)::text AS in_total,
+        $groups = (clone $base)->selectRaw(
+            "a.currency AS currency,
+             COALESCE(SUM(CASE WHEN m.direction = 'in' THEN m.amount ELSE 0 END), 0)::text AS in_total,
              COALESCE(SUM(CASE WHEN m.direction = 'out' THEN m.amount ELSE 0 END), 0)::text AS out_total,
              COALESCE(SUM(CASE WHEN m.direction = 'in' THEN m.amount ELSE -m.amount END), 0)::text AS net"
-        )->first();
+        )->groupBy('a.currency')->get();
 
-        $values = [
-            'in' => $row->in_total ?? '0',
-            'out' => $row->out_total ?? '0',
-            'net' => $row->net ?? '0',
-        ];
+        $labels = ['in' => 'in_total', 'out' => 'out_total', 'net' => 'net'];
+        $selected = array_map(fn (string $key): string => $labels[$key], $context->totalKeys);
+        $totals = CurrencySeparatedTotals::fromGroups($groups, $selected, $context->filters['currency'] ?? null);
 
-        return array_intersect_key($values, array_fill_keys($context->totalKeys, true));
+        return array_combine($context->totalKeys, array_values($totals));
     }
 }
