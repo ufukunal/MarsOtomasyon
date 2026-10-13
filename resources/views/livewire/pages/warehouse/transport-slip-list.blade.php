@@ -1,7 +1,7 @@
-<div class="wsl-shell stack">
-    <section class="wsl-card panel">
-        <div class="wsl-card-head"><strong>Filtreler</strong><button type="button" class="button-secondary" wire:click="clearFilters">Temizle</button></div>
-        <div class="wsl-card-body wsl-grid">
+<div class="wsl-shell stack v65-list-page">
+    <section class="wsl-card panel v65-list-filter-panel">
+        <x-v65.list-filters>
+            <div class="v65-list-filter-fields">
             <label class="wsl-field"><span class="field-label">Genel Arama</span><input wire:model.live.debounce.300ms="search" placeholder="Fiş no, firma, ambar..."></label>
             <label class="wsl-field"><span class="field-label">Durum</span>
                 <select wire:model.live="status">
@@ -19,13 +19,14 @@
             </label>
             <label class="wsl-field"><span class="field-label">Tarih Başlangıç</span><input type="date" wire:model.live="dateFrom"></label>
             <label class="wsl-field"><span class="field-label">Tarih Bitiş</span><input type="date" wire:model.live="dateTo"></label>
-        </div>
+            </div>
+            <button type="button" class="button-secondary v65-list-clear" wire:click="clearFilters">Temizle</button>
+        </x-v65.list-filters>
     </section>
 
-    <section class="wsl-card panel">
-        <div class="wsl-card-head"><strong>Ambar Fişi Listesi</strong><span class="badge">{{ $slips->total() }} kayıt</span></div>
-        <div class="wsl-table-search"><input wire:model.live.debounce.300ms="tableSearch" placeholder="Listede ara..." aria-label="Ambar fiş listesinde ara"></div>
-        <div class="table-scroll">
+    <section class="wsl-card panel v65-list-panel">
+        <div class="wsl-card-head"><strong>Ambar Fişi Listesi</strong></div>
+        <div class="table-scroll v65-list-table">
             <table class="data-table wsl-table">
                 <thead><tr>
                     <th>Fiş No</th><th>Firma</th><th>Ambar / Nakliye</th><th>Koli</th>
@@ -64,6 +65,6 @@
                 </tbody>
             </table>
         </div>
-        <div class="table-footer"><span>{{ $slips->total() }} kayıt</span>{{ $slips->links() }}</div>
+        <x-v65.list-footer :paginator="$slips" :per-page="$perPage" />
     </section>
 </div>

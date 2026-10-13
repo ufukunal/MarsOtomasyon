@@ -33,6 +33,15 @@ class TransportSlipList extends Component
     #[Url(as: 'bitis')]
     public string $dateTo = '';
 
+    public int $perPage = 25;
+
+    public function setPerPage(int $value): void
+    {
+        abort_unless(in_array($value, [25, 50, 100], true), 422);
+        $this->perPage = $value;
+        $this->resetPage();
+    }
+
     public function mount(): void
     {
         abort_unless(auth()->user()?->can('warehouse_slips.view'), 403);
@@ -94,7 +103,7 @@ class TransportSlipList extends Component
         }
 
         return view('livewire.pages.warehouse.transport-slip-list', [
-            'slips' => $query->paginate(25),
+            'slips' => $query->paginate($this->perPage),
             'carriers' => TransportSlip::query()->where('carrier', '!=', '')->distinct()->orderBy('carrier')->pluck('carrier'),
             'statusLabels' => [
                 'draft' => 'Taslak', 'ready' => 'Hazır', 'handed_over' => 'Ambara Teslim',
