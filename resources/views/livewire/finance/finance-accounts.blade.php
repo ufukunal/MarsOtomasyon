@@ -1,7 +1,7 @@
 <div class="space-y-6 v65-list-page">
 
     <section class="panel stack v65-workspace-form">
-        <h2>Kasa</h2>
+        <x-v65.list-heading title="Kasa" />
         @can('cash_accounts.create')
             <div class="v65-inline-action-form">
                 <input wire:model="cashCode" placeholder="Kod">
@@ -38,7 +38,7 @@
     </section>
 
     <section class="panel stack v65-workspace-form">
-        <h2>Banka</h2>
+        <x-v65.list-heading title="Banka" />
         @can('bank_accounts.create')
             <div class="v65-inline-action-form">
                 <input wire:model="bankCode" placeholder="Kod">
