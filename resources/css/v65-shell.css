@@ -522,10 +522,6 @@
 .app-shell .worktabs .workspace-tab.is-active>.workspace-tab-close{color:#526a88!important}
 
 /* Product images: cover in lists, lightbox in detail and explicit cover selection. */
-.app-shell .v65-products .v65-product-photo-column{width:64px;min-width:64px;max-width:64px;text-align:center;padding:4px 6px}
-.app-shell .v65-product-photo-thumb{display:inline-flex;width:44px;height:44px;align-items:center;justify-content:center;border:1px solid #dce5ef;border-radius:5px;background:#f4f7fa;text-decoration:none;overflow:hidden}
-.app-shell .v65-product-photo-thumb img{display:block;width:100%;height:100%;object-fit:contain}
-.app-shell .v65-product-photo-thumb span{font-size:18px;font-weight:500;color:#91a2b6}
 .app-shell .product-photo .v65-product-cover-zoom{display:block;width:100%;height:100%;padding:0;border:0;background:transparent;cursor:zoom-in}
 .app-shell .product-photo .v65-product-cover-zoom img{width:100%;height:100%;object-fit:contain}
 .app-shell .v65-product-gallery-open{display:block;width:100%;padding:0;border:0;background:transparent;cursor:zoom-in}
