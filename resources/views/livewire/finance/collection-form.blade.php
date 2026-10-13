@@ -1,7 +1,7 @@
-<div class="space-y-5 panel">
-    <h1>Tahsilat</h1>
+<div class="space-y-5 panel v65-workspace-form">
+    <h2>Tahsilat</h2>
 
-    <label>Cari
+    <label class="field">Cari
         <select wire:model="contactId">
             <option value="">Seçin</option>
             @foreach($contacts as $contact)
@@ -10,17 +10,17 @@
         </select>
     </label>
 
-    <label>Tutar <input wire:model="amount"></label>
-    <label>Tarih <input type="date" wire:model="documentDate"></label>
+    <label class="field">Tutar <input wire:model="amount"></label>
+    <label class="field">Tarih <input type="date" wire:model="documentDate"></label>
 
-    <label>Hesap türü
+    <label class="field">Hesap türü
         <select wire:model.live="accountType">
             <option value="cash">Kasa</option>
             <option value="bank">Banka</option>
         </select>
     </label>
 
-    <label>Hesap
+    <label class="field">Hesap
         <select wire:model="accountId">
             <option value="">Seçin</option>
             @if($accountType === 'cash')
@@ -35,7 +35,7 @@
         </select>
     </label>
 
-    <label>Kaynak fatura (opsiyonel)
+    <label class="field">Kaynak fatura (opsiyonel)
         <select wire:model="sourceInvoiceId">
             <option value="">Yok</option>
             @foreach($invoices as $invoice)
@@ -44,13 +44,13 @@
         </select>
     </label>
 
-    <label>Not <textarea wire:model="note"></textarea></label>
-    <button type="button" wire:click="post">Tahsilatı Kesinleştir</button>
+    <label class="field">Not <textarea wire:model="note"></textarea></label>
+    <div class="v65-form-footer"><button type="button" wire:click="post">Tahsilatı Kesinleştir</button></div>
 
     @if($postedDocumentId)
         <div>Kesinleşen belge #{{ $postedDocumentId }}</div>
-        <label>Ters kayıt tarihi <input type="date" wire:model="reversalDate"></label>
-        <label>Gerekçe <input wire:model="reversalReason"></label>
-        <button class="button-danger" type="button" wire:click="reverse">Ters Kayıt</button>
+        <label class="field">Ters kayıt tarihi <input type="date" wire:model="reversalDate"></label>
+        <label class="field">Gerekçe <input wire:model="reversalReason"></label>
+        <div class="v65-form-footer"><button class="button-danger" type="button" wire:click="reverse">Ters Kayıt</button></div>
     @endif
 </div>
