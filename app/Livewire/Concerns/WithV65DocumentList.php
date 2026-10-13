@@ -3,6 +3,7 @@
 namespace App\Livewire\Concerns;
 
 use App\Enums\DocumentType;
+use App\Livewire\Concerns\WithV65FilterDrawer;
 use App\Models\Period\Document;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
@@ -16,6 +17,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 trait WithV65DocumentList
 {
     use WithPagination;
+    use WithV65FilterDrawer;
 
     #[Url(as: 'ara')]
     public string $search = '';
@@ -30,6 +32,56 @@ trait WithV65DocumentList
     public string $dateTo = '';
 
     public int $perPage = 25;
+
+    public string $v65DocumentSort = '';
+
+    public string $v65DocumentDirection = 'desc';
+
+    protected function v65ReadFilterState(): array
+    {
+        return [
+            'search' => $this->search,
+            'filters' => [
+                'status' => $this->status,
+                'date' => ['from' => $this->dateFrom, 'to' => $this->dateTo],
+            ],
+            'sort' => $this->v65DocumentSort,
+            'direction' => $this->v65DocumentDirection,
+        ];
+    }
+
+    protected function v65WriteFilterState(array $state): void
+    {
+        $this->search = $state['search'];
+        $this->status = (string) ($state['filters']['status'] ?? '');
+        $this->dateFrom = (string) ($state['filters']['date']['from'] ?? '');
+        $this->dateTo = (string) ($state['filters']['date']['to'] ?? '');
+        $this->v65DocumentSort = $state['sort'];
+        $this->v65DocumentDirection = $state['direction'];
+    }
+
+    protected function v65FilterDefinitions(): array
+    {
+        return [
+            'status' => ['label' => 'Durum', 'type' => 'select', 'options' => self::documentStatusLabels()],
+            'date' => ['label' => 'Belge Tarihi', 'type' => 'date-range'],
+        ];
+    }
+
+    protected function v65SortOptions(): array
+    {
+        return ['document_date' => 'Tarih', 'number' => 'Belge Numarası', 'grand_total' => 'Tutar', 'status' => 'Durum'];
+    }
+
+    protected function v65DefaultSort(): string
+    {
+        return '';
+    }
+
+    protected function v65DefaultDirection(): string
+    {
+        return 'desc';
+    }
 
     /** @var array<string,bool> */
     public array $hiddenColumns = [];
@@ -115,6 +167,11 @@ trait WithV65DocumentList
                 && checkdate((int) substr($value, 5, 2), (int) substr($value, 8, 2), (int) substr($value, 0, 4))) {
                 $query->whereDate('document_date', $operator, $value);
             }
+        }
+
+        if ($this->v65DocumentSort !== '' && array_key_exists($this->v65DocumentSort, $this->v65SortOptions())) {
+            return $query->orderBy($this->v65DocumentSort, $this->v65DocumentDirection === 'asc' ? 'asc' : 'desc')
+                ->orderByDesc('id');
         }
 
         return $query->orderByDesc('document_date')->orderByDesc('id');
