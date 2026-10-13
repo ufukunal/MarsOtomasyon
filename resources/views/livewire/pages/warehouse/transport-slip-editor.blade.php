@@ -115,7 +115,9 @@
                 <thead><tr><th>Ürün Kodu</th><th>Ürün Adı</th><th>Miktar</th><th>Birim</th>@unless($readonly)<th>İşlem</th>@endunless</tr></thead>
                 <tbody>
                     @foreach($items as $i => $row)
-                        @php($selectedProduct = $products->firstWhere('id', $row['product_id'] ?? null))
+                        @php
+                            $selectedProduct = $products->firstWhere('id', $row['product_id'] ?? null);
+                        @endphp
                         <tr wire:key="transport-item-{{ $i }}">
                             <td>
                                 @if($readonly)
