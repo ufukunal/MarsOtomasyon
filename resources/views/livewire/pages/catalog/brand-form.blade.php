@@ -7,8 +7,8 @@
         <x-field.toggle label="Aktif" wire:model="isActive" />
     </section>
     @error('name')<div class="field-error" role="alert">{{ $message }}</div>@enderror
-    <div class="v65-product-edit-savebar">
-        <button type="button" wire:click="save" wire:loading.attr="disabled" wire:target="save">{{ $brand ? 'Değişiklikleri Kaydet' : 'Markayı Kaydet' }}</button>
-        <a class="button-secondary" href="{{ route('brands.index') }}">Listeye Dön</a>
-    </div>
+    <x-v65.form-actions align="start" class="v65-product-edit-savebar">
+        <x-v65.button wire:click="save" wire:loading.attr="disabled" wire:target="save">{{ $brand ? 'Değişiklikleri Kaydet' : 'Markayı Kaydet' }}</x-v65.button>
+        <x-v65.button variant="secondary" :href="route('brands.index')">Listeye Dön</x-v65.button>
+    </x-v65.form-actions>
 </div>
