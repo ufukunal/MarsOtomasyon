@@ -60,7 +60,7 @@ abstract class DataTableComponent extends Component
         }
     }
 
-    /** @return list<SelectFilter|DateRangeFilter|TextFilter> */
+    /** @return list<SelectFilter|DateRangeFilter|TextFilter|NumberRangeFilter> */
     public function filters(): array
     {
         return [];
@@ -162,6 +162,17 @@ abstract class DataTableComponent extends Component
 
         if ($filter instanceof SelectFilter) {
             $query->where($filter->key, $value);
+
+            return;
+        }
+
+        if ($filter instanceof NumberRangeFilter && is_array($value)) {
+            if (isset($value['min']) && $value['min'] !== '') {
+                $query->where($filter->key, '>=', $value['min']);
+            }
+            if (isset($value['max']) && $value['max'] !== '') {
+                $query->where($filter->key, '<=', $value['max']);
+            }
 
             return;
         }
