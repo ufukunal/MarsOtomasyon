@@ -216,13 +216,8 @@ class ProductList extends DataTableComponent
     /** @return list<array<string, mixed>> */
     public function rowActions(): array
     {
-        $actions = [['label' => 'Detay', 'method' => 'showProduct']];
-
-        if (auth()->user()?->can('products.update')) {
-            $actions[] = ['label' => 'Düzenle', 'method' => 'editProduct'];
-        }
-
-        return $actions;
+        // Records open via their linked identifiers, not redundant row buttons.
+        return [];
     }
 
     public function columnUrl(Model $row, Column $column): ?string
