@@ -2,7 +2,7 @@
     @if($contact)
         <nav class="v65-product-edit-navigation"><a href="{{ route('contacts.index') }}">← Cari Listesi</a> <a href="{{ route('contacts.show', ['contact' => $contact->id]) }}">Cari Detayına Dön →</a></nav>
     @endif
-    <x-tabs :tabs="['general'=>'Firma / Ticari','terms'=>'Ticari Koşullar','addresses'=>'Adresler','people'=>'İletişim','banks'=>'Banka Bilgileri']" :active="$activeTab" />
+    <x-v65.tabs :tabs="['general'=>'Firma / Ticari','terms'=>'Ticari Koşullar','addresses'=>'Adresler','people'=>'İletişim','banks'=>'Banka Bilgileri']" :active="$activeTab" />
 
     @if($activeTab === 'general')
         <section class="panel form-grid">
@@ -21,7 +21,7 @@
             <x-field.text label="İlçe" wire:model="district" />
             <x-field.text label="Telefon" wire:model="phone" />
             <x-field.text label="E-posta" wire:model="email" />
-            <div class="field span-2"><span class="field-label">Kategoriler</span><div class="check-grid">@foreach($categories as $category)<label><input type="checkbox" wire:model="categoryIds" value="{{ $category->id }}"> {{ $category->name }}</label>@endforeach</div></div>
+            <x-v65.multi-select label="Kategoriler" class="span-2"><div class="check-grid">@foreach($categories as $category)<label><input type="checkbox" wire:model="categoryIds" value="{{ $category->id }}"> {{ $category->name }}</label>@endforeach</div></x-v65.multi-select>
         </section>
     @elseif($activeTab === 'terms')
         <section class="panel form-grid">
@@ -75,5 +75,5 @@
     @endif
 
     @foreach($errors->all() as $error)<div class="field-error">{{ $error }}</div>@endforeach
-    @if(in_array($activeTab,['general','terms'],true))<div class="v65-form-footer"><button type="submit">Kaydet</button></div>@endif
+    @if(in_array($activeTab,['general','terms'],true))<x-v65.form-actions class="v65-form-footer"><x-v65.button type="submit" wire:loading.attr="disabled" wire:target="save">Kaydet</x-v65.button></x-v65.form-actions>@endif
 </form>
