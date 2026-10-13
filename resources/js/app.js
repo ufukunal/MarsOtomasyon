@@ -495,3 +495,61 @@ document.addEventListener('close', (event) => {
 document.addEventListener('livewire:navigating', () => {
     document.documentElement.classList.remove('v65-filter-is-open');
 });
+
+
+// V65 native dialog lifecycle. Controls remain Livewire-owned; JS only manages presentation.
+const v65ModalFocus = new WeakMap();
+document.addEventListener('click', (event) => {
+    const target = event.target;
+    if (!(target instanceof Element)) return;
+    const trigger = target.closest('[data-v65-modal-open]');
+    if (trigger instanceof HTMLElement) {
+        const id = trigger.getAttribute('data-v65-modal-open');
+        const dialog = id ? document.getElementById(id) : null;
+        if (dialog instanceof HTMLDialogElement && !dialog.open) {
+            v65ModalFocus.set(dialog, trigger);
+            dialog.showModal();
+        }
+        return;
+    }
+    const close = target.closest('[data-v65-modal-close]');
+    if (close) {
+        const dialog = close.closest('dialog[data-v65-modal]');
+        if (dialog instanceof HTMLDialogElement && dialog.open) dialog.close();
+        return;
+    }
+    if (target instanceof HTMLDialogElement && target.matches('[data-v65-modal]') && target.open) {
+        // Click on the backdrop, not inside the modal content.
+        const rect = target.getBoundingClientRect();
+        if (event.clientX < rect.left || event.clientX > rect.right
+            || event.clientY < rect.top || event.clientY > rect.bottom) target.close();
+    }
+});
+document.addEventListener('close', (event) => {
+    const dialog = event.target;
+    if (!(dialog instanceof HTMLDialogElement) || !dialog.matches('[data-v65-modal]')) return;
+    const focus = v65ModalFocus.get(dialog);
+    if (focus instanceof HTMLElement && focus.isConnected) focus.focus();
+    v65ModalFocus.delete(dialog);
+}, true);
+document.addEventListener('livewire:navigating', () => {
+    document.querySelectorAll('dialog[data-v65-modal][open]').forEach((dialog) => dialog.close());
+});
+
+// Keyboard navigation between Livewire-backed V65 tabs.
+document.addEventListener('keydown', (event) => {
+    if (!(event.target instanceof HTMLElement) || !event.target.matches('[data-v65-tabs] [role="tab"]')) return;
+    if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+    const tabs = Array.from(event.target.closest('[data-v65-tabs]')?.querySelectorAll('[role="tab"]:not([disabled])') ?? []);
+    const index = tabs.indexOf(event.target);
+    if (index < 0 || tabs.length === 0) return;
+    const nextIndex = event.key === 'Home' ? 0
+        : event.key === 'End' ? tabs.length - 1
+        : (index + (event.key === 'ArrowRight' ? 1 : -1) + tabs.length) % tabs.length;
+    const next = tabs[nextIndex];
+    if (!(next instanceof HTMLElement)) return;
+    event.preventDefault();
+    next.tabIndex = 0;
+    next.focus();
+    next.click();
+});
