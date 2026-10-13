@@ -5,6 +5,7 @@ namespace App\Livewire\Production;
 use App\Actions\Production\CreateProductionRecipeRevision;
 use App\Actions\Production\SetActiveProductionRecipe;
 use App\Livewire\Concerns\WithIdempotentMutations;
+use App\Livewire\Concerns\WithV65SimpleListFilter;
 use App\Models\Period\Product;
 use App\Models\Period\ProductionRecipe;
 use App\Models\Period\Unit;
@@ -15,6 +16,7 @@ use Livewire\WithPagination;
 class RecipeCenter extends Component
 {
     use WithPagination;
+    use WithV65SimpleListFilter;
 
     public string $listSearch = '';
 
@@ -133,8 +135,7 @@ class RecipeCenter extends Component
                     $needle = '%'.trim($this->listSearch).'%';
                     $product->where('name', 'ilike', $needle)->orWhere('code', 'ilike', $needle);
                 }))
-                ->orderBy('product_id')
-                ->orderByDesc('revision_no')
+                ->when($this->v65SimpleSort === 'id', fn ($q) => $q->orderBy('id', $this->v65SimpleDirection), fn ($q) => $q->orderBy('product_id')->orderByDesc('revision_no'))
                 ->paginate($this->perPage),
             'products' => Product::query()
                 ->where('is_active', true)
