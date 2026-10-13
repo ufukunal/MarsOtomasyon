@@ -1,30 +1,39 @@
 <div class="space-y-6 v65-list-page">
     @if(session('status')) <div class="panel">{{ session('status') }}</div> @endif
     <section class="panel">
-        <h1>Kanal Sync Merkezi</h1>
-        <div class="form-row v65-list-filters">
-            <select aria-label="Kanal hesabı" wire:model.live="channelAccountId">
+        <x-v65.list-heading title="Kanal Sync Merkezi">
+            <x-v65.simple-filter-drawer>
+                <label>Kanal Hesabı
+<select aria-label="Kanal hesabı" wire:model.live="channelAccountId">
                 <option value="">Tüm Kanal Hesapları</option>
                 @foreach($accounts as $account)
                     <option value="{{ $account->id }}">{{ $account->platform->label() }} · {{ $account->name }}</option>
                 @endforeach
             </select>
-            <select aria-label="Senkronizasyon yönü" wire:model.live="direction">
+</label>
+<label>Senkronizasyon Yönü
+<select aria-label="Senkronizasyon yönü" wire:model.live="direction">
                 <option value="">Tüm Yönler</option>
                 <option value="outbound">Outbound</option>
                 <option value="inbound">Inbound</option>
             </select>
-            <select aria-label="Senkronizasyon durumu" wire:model.live="status">
+</label>
+<label>Durum
+<select aria-label="Senkronizasyon durumu" wire:model.live="status">
                 <option value="">Tüm Durumlar</option>
                 <option value="queued">Queued</option>
                 <option value="processing">Processing</option>
                 <option value="success">Success</option>
                 <option value="failed">Failed</option>
             </select>
-            @can('channel_sync.update')
+</label>
+            </x-v65.simple-filter-drawer>
+        </x-v65.list-heading>
+        @can('channel_sync.update')
+            <div class="v65-section-actions">
                 <button class="button-secondary" type="button" wire:click="pollNow" @disabled(!$channelAccountId)>Seçili Hesabı Şimdi Poll Et</button>
-            @endcan
-        </div>
+            </div>
+        @endcan
 
         <div class="table-scroll v65-list-table"><table class="data-table">
             <thead><tr><th>Zaman</th><th>Kanal</th><th>Yön</th><th>Entity</th><th>Action</th><th>Status</th><th>Attempt</th><th>Correlation</th><th>Hata</th><th></th></tr></thead>
