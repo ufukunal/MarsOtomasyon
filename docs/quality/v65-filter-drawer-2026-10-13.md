@@ -62,3 +62,7 @@ Mevcut ilgili UI/warehouse sözleşme testlerindeki eski yatay filtre beklentile
 - Fresh yayını ancak ayrı onay ve yayın öncesi derleme kontrolüyle yapılmalıdır.
 
 Bu belge statik kod değişikliği raporudur; çalışma zamanı kabul belgesi değildir.
+
+## Son statik genişletme
+
+Ürün fiyat alanının veri modelinde mevcut olduğu doğrulandı. `app/Livewire/Components/DataTable/NumberRangeFilter.php` ile 4 haneli ondalık alt/üst tutar filtresi eklendi ve Ürün Listesi `list_price` alanına bağlandı. Negatif/geçersiz format, çok uzun sayı ve ters aralıklar apply sırasında reddedilir; `0` geçerli sınırdır. `V65FilterDraftStateTest.php` bu sözleşmeye göre genişletildi (çalıştırılmadı). Modal, `fieldset`/`legend` ile gruplanan erişilebilir alanlara ve arka plan scroll kilidine sahiptir. Vite girişleri ile CI kaynak sözleşmesi kontrol edilerek güncellendi.
