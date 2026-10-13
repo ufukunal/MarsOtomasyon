@@ -210,6 +210,8 @@
                     {{-- Product editor uses its own product-list/detail navigation; no generic print or back. --}}
                 @elseif ($routeName === 'products.index')
                     {{-- Product-specific create, print and export actions are teleported here. --}}
+                @elseif ($routeName === 'contacts.show')
+                    {{-- Contact detail supplies its approved-v65 header actions via teleport. --}}
                 @elseif ($routeName === 'warehouse.transport.show')
                     @can('warehouse_slips.view')
                         <a class="button-secondary" target="_blank" rel="noopener" href="{{ route('warehouse.transport.print', ['slip' => request()->route('id'), 'format' => 'slip', 'autoprint' => 1]) }}" title="Yazdırma penceresinde PDF olarak kaydedebilirsiniz">Yazdır / PDF</a>
@@ -225,7 +227,7 @@
                     @endcan
                 @endif
                 @isset($pageActions){{ $pageActions }}@endisset
-                @unless (in_array($routeName, ['products.show', 'products.create', 'products.edit'], true))
+                @unless (in_array($routeName, ['products.show', 'products.create', 'products.edit', 'contacts.show'], true))
                     <button type="button" class="button-secondary" onclick="if (history.length > 1) history.back(); else location.href='{{ route('home') }}'">Geri</button>
                 @endunless
             </div>

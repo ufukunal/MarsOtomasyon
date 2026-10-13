@@ -44,3 +44,14 @@ it('preserves the agreed shared list toolbar while opening contact details by na
         ->toContain('v65-data-table-filters')
         ->toContain('v65-data-table-heading-actions');
 });
+
+it('does not duplicate print/back controls in the contact detail header', function (): void {
+    $layout = file_get_contents(base_path('resources/views/layouts/app.blade.php'));
+    $view = file_get_contents(base_path('resources/views/livewire/pages/contacts/contact-detail.blade.php'));
+
+    expect($layout)->toContain("@elseif (\$routeName === 'contacts.show')")
+        ->toContain("'contacts.show'], true)")
+        ->and($view)->toContain('v65-contact-top-actions')
+        ->toContain('onclick="window.print()"')
+        ->toContain("route('contacts.index')");
+});
