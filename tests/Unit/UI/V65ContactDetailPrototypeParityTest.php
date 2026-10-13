@@ -41,7 +41,7 @@ it('preserves the agreed shared list toolbar while opening contact details by na
         ->not->toContain("'label' => 'Aç'")
         ->not->toContain("'label' => 'Düzenle'")
         ->and($table)->toContain('<x-v65.list-footer')
-        ->toContain('v65-data-table-filters')
+        ->toContain('<x-v65.filter-drawer')
         ->toContain('v65-data-table-heading-actions');
 });
 
