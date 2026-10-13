@@ -231,11 +231,14 @@ class ContactDetail extends Component
         }
 
         $attachments = $tab === 'files' ? $contact->attachments()->get() : collect();
+        $addresses = $tab === 'shipping'
+            ? $contact->addresses->where('type', 'shipping')
+            : $contact->addresses;
 
         return view('livewire.pages.contacts.contact-detail', compact(
             'contact', 'tabs', 'year', 'balance', 'yearSales', 'openOrders', 'openQuotes',
             'lastMovement', 'movements', 'documents', 'activity', 'products', 'annual',
-            'attachments',
+            'attachments', 'addresses',
         ))->layout('layouts.app', ['pageTitle' => 'Cari Detay · '.$contact->title]);
     }
 }

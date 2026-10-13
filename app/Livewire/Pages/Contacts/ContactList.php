@@ -11,6 +11,7 @@ use App\Models\Period\ContactCategory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 /** @extends DataTableComponent<Contact> */
 class ContactList extends DataTableComponent
@@ -93,6 +94,45 @@ class ContactList extends DataTableComponent
         }
 
         parent::applyFilter($query, $filter, $value);
+    }
+
+    /** @return array<string,string|int> */
+    public function overviewStats(): array
+    {
+        $counts = Contact::query()
+            ->selectRaw('COUNT(*) AS total')
+            ->selectRaw('COUNT(*) FILTER (WHERE is_active = true) AS active_count')
+            ->selectRaw('COUNT(*) FILTER (WHERE is_active = false) AS inactive_count')
+            ->selectRaw("COUNT(DISTINCT NULLIF(city, '')) AS city_count")
+            ->first();
+
+        $debit = '0.0000';
+        $credit = '0.0000';
+
+        if (Schema::connection('period')->hasTable('contact_transactions')) {
+            $netByContact = DB::connection('period')->table('contact_transactions')
+                ->groupBy('contact_id')
+                ->selectRaw("COALESCE(SUM(CASE WHEN direction = 'debit' THEN amount ELSE -amount END),0)::text AS net")
+                ->get();
+
+            foreach ($netByContact as $row) {
+                $balance = (string) $row->net;
+                if (bccomp($balance, '0', 4) > 0) {
+                    $debit = bcadd($debit, $balance, 4);
+                } elseif (bccomp($balance, '0', 4) < 0) {
+                    $credit = bcadd($credit, bcmul($balance, '-1', 4), 4);
+                }
+            }
+        }
+
+        return [
+            'total' => (int) ($counts?->total ?? 0),
+            'active' => (int) ($counts?->active_count ?? 0),
+            'inactive' => (int) ($counts?->inactive_count ?? 0),
+            'cities' => (int) ($counts?->city_count ?? 0),
+            'debit' => $debit,
+            'credit' => $credit,
+        ];
     }
 
     /** @return list<array<string, mixed>> */

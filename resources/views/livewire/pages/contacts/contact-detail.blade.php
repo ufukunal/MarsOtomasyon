@@ -32,14 +32,14 @@
                     </div>
                 </details>
             @endif
-            @if(auth()->user()?->can('sales_returns.view') || auth()->user()?->can('purchase_returns.view'))
+            @can('returns.view')
                 <details class="v65-contact-action-menu">
                     <summary>İade İşlemleri</summary>
                     <div class="v65-contact-action-panel">
                         <a href="{{ route('returns.center') }}">İade Merkezi</a>
                     </div>
                 </details>
-            @endif
+            @endcan
             <details class="v65-contact-action-menu">
                 <summary>Diğer</summary>
                 <div class="v65-contact-action-panel">
@@ -242,7 +242,7 @@
             </div>
             <div class="table-scroll"><table class="data-table">
                 <thead><tr><th>Tür</th><th>Başlık</th><th>Adres</th><th>İl / İlçe</th><th>Varsayılan</th></tr></thead><tbody>
-                @forelse($contact->addresses->filter(fn ($address) => $activeTab === 'addresses' || $address->type === 'shipping') as $address)
+                @forelse($addresses as $address)
                     <tr><td>{{ $address->type === 'invoice' ? 'Fatura' : 'Sevk' }}</td><td>{{ $address->title ?: '—' }}</td><td>{{ $address->address }}</td><td>{{ collect([$address->city,$address->district])->filter()->implode(' / ') }}</td><td>{{ $address->is_default ? 'Evet' : 'Hayır' }}</td></tr>
                 @empty
                     <tr><td colspan="5" class="empty-state">Adres kaydı bulunamadı.</td></tr>

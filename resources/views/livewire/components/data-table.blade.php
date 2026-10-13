@@ -27,6 +27,24 @@
     @if(!$isProductTable && $this instanceof \App\Livewire\Pages\Stock\StockStatus && !($this instanceof \App\Livewire\Pages\Stock\StockCost))
         <div class="alert"><strong>Kısaca:</strong> Kullanılabilir stok, rezerve ve bloke miktarları ayrı gösterilir.</div>
     @endif
+
+    @if($this instanceof \App\Livewire\Pages\Contacts\ContactList)
+        @php($cariStats = $this->overviewStats())
+        <section class="v65-cari-list-intro" aria-label="Cari liste özeti">
+            <div class="v65-cari-list-intro-title">
+                <strong>Cari Listesi</strong>
+                <span>Müşteri, tedarikçi ve diğer cari kartları</span>
+            </div>
+            <div class="v65-cari-list-stats">
+                <div><small>Toplam Cari</small><strong>{{ $cariStats['total'] }}</strong></div>
+                <div><small>Aktif</small><strong>{{ $cariStats['active'] }}</strong></div>
+                <div><small>Pasif</small><strong>{{ $cariStats['inactive'] }}</strong></div>
+                <div><small>Şehir</small><strong>{{ $cariStats['cities'] }}</strong></div>
+                <div><small>Toplam Borç</small><strong>{{ \App\Support\Formatting\TrFormatter::money($cariStats['debit']) }} ₺</strong></div>
+                <div><small>Toplam Alacak</small><strong>{{ \App\Support\Formatting\TrFormatter::money($cariStats['credit']) }} ₺</strong></div>
+            </div>
+        </section>
+    @endif
     @if($isProductTable)
         @teleport('.page-actions.v65-page-actions')
             <div class="v65-products-heading-actions">
