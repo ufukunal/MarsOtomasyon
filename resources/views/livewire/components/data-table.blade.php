@@ -217,7 +217,7 @@
                                 @php
                                     $cariNet = (string) ($row->getAttribute('v65_try_net') ?? $row->balance());
                                 @endphp
-                                <strong @class(['v65-cari-balance', 'is-receivable' => bccomp($cariNet, '0', 4) > 0, 'is-payable' => bccomp($cariNet, '0', 4) < 0])>{{ $this->formattedValue($row, $column) }}</strong>
+                                <strong @class(['v65-cari-balance', 'is-debtor' => bccomp($cariNet, '0', 4) > 0, 'is-creditor' => bccomp($cariNet, '0', 4) < 0])>{{ $this->formattedValue($row, $column) }}</strong>
                             @elseif($this instanceof \App\Livewire\Pages\Contacts\ContactList && $column->key === 'is_active')
                                 <span @class(['v65-cari-state', 'is-active' => (bool) $row->is_active, 'is-inactive' => ! $row->is_active])>{{ $this->formattedValue($row, $column) }}</span>
                             @elseif($isProductTable && $column->key === 'is_active')
