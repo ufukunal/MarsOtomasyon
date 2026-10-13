@@ -30,31 +30,29 @@
             <table class="data-table wsl-table">
                 <thead><tr>
                     <th>Fiş No</th><th>Firma</th><th>Ambar / Nakliye</th><th>Koli</th>
-                    <th>Cam</th><th>Kırılabilir</th><th>Tarih</th><th>Durum</th><th>Aksiyon</th>
+                    <th>Cam</th><th>Kırılabilir</th><th>Tarih</th><th>Durum</th>
                 </tr></thead>
                 <tbody>
                     @forelse($slips as $slip)
                         <tr wire:key="transport-slip-{{ $slip->id }}">
                             <td><a href="{{ route('warehouse.transport.show', ['id' => $slip->id]) }}">{{ $slip->number }}</a></td>
-                            <td>{{ $slip->contact?->title ?? '—' }}</td>
+                            <td>
+                                @if($slip->contact && auth()->user()?->can('contacts.view'))
+                                    <a href="{{ route('contacts.show', ['contact' => $slip->contact_id]) }}">{{ $slip->contact->title }}</a>
+                                @else
+                                    {{ $slip->contact?->title ?? '—' }}
+                                @endif
+                            </td>
                             <td>{{ $slip->carrier }}</td>
                             <td><strong>{{ $slip->package_count }}</strong></td>
                             <td>@if($slip->contains_glass)<span class="wsl-badge warn">Cam Var</span>@else Hayır @endif</td>
                             <td>@if($slip->fragile)<span class="wsl-badge red">Hassas</span>@else Hayır @endif</td>
                             <td>{{ $slip->slip_date?->format('d.m.Y') }}</td>
                             <td><span @class(['wsl-badge', 'gray' => in_array($slip->status, ['draft', 'cancelled'], true), 'ok' => $slip->status === 'completed', 'warn' => $slip->status === 'ready'])>{{ $statusLabels[$slip->status] ?? $slip->status }}</span></td>
-                            <td class="wsl-actions">
-                                <a class="button-secondary" href="{{ route('warehouse.transport.show', ['id' => $slip->id]) }}">Aç</a>
-                                @if(in_array($slip->status, ['draft', 'ready'], true))
-                                    @can('warehouse_slips.update')
-                                        <a class="button-secondary" href="{{ route('warehouse.transport.edit', ['id' => $slip->id]) }}">Düzenle</a>
-                                    @endcan
-                                @endif
-                            </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="9" class="empty-state">
+                            <td colspan="8" class="empty-state">
                                 <div>Kayıt bulunamadı.</div>
                                 @can('warehouse_slips.create')
                                     <a class="button-link" href="{{ route('warehouse.transport.create') }}">+ Yeni Ambar Fişi</a>
