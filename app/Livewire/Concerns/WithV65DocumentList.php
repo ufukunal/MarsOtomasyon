@@ -199,6 +199,7 @@ trait WithV65DocumentList
         return view('livewire.sales.document-list', [
             'documents' => $this->listQuery()->paginate($this->perPage),
             'title' => $this->pageTitle(),
+            'detailRoute' => $this->editRoute(),
             'createRoute' => $createRoute,
             'statusLabels' => self::documentStatusLabels(),
         ])->layout('layouts.app', ['pageTitle' => $this->pageTitle()]);
