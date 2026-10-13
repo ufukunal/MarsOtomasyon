@@ -195,12 +195,10 @@
                     @elseif($activeTab === 'invoices')
                         @can('sales_invoices.create')<a class="button-link" href="{{ route('sales.invoices.edit', ['cari' => $contact->id]) }}">+ Yeni Satış Faturası</a>@endcan
                     @endif
-                    <button type="button" class="button-secondary"
-                        wire:click="exportContactDocumentsCsv" wire:loading.attr="disabled"
-                        wire:target="exportContactDocumentsCsv">CSV</button>
-                    <button type="button" class="button-secondary"
-                        wire:click="exportContactDocumentsXlsx" wire:loading.attr="disabled"
-                        wire:target="exportContactDocumentsXlsx">Excel</button>
+                    <x-v65.action-menu label="Dışa Aktar">
+                        <button type="button" wire:click="exportContactDocumentsCsv" wire:loading.attr="disabled" wire:target="exportContactDocumentsCsv">CSV</button>
+                        <button type="button" wire:click="exportContactDocumentsXlsx" wire:loading.attr="disabled" wire:target="exportContactDocumentsXlsx">Excel</button>
+                    </x-v65.action-menu>
                 </div>
             </div>
             <div class="table-scroll">
@@ -256,8 +254,10 @@
                     <button type="button" @class(['button-secondary','is-current'=>$statementMode==='vouchers']) wire:click="switchStatementMode('vouchers')">Fiş Listesi</button>
                     <button type="button" @class(['button-secondary','is-current'=>$statementMode==='summary']) wire:click="switchStatementMode('summary')">Detaysız Ekstre</button>
                     <button type="button" @class(['button-secondary','is-current'=>$statementMode==='detailed']) wire:click="switchStatementMode('detailed')">Detaylı Ekstre</button>
-                    <button type="button" class="button-secondary" wire:click="exportStatementCsv" wire:loading.attr="disabled" wire:target="exportStatementCsv">CSV</button>
-                    <button type="button" class="button-secondary" wire:click="exportStatementXlsx" wire:loading.attr="disabled" wire:target="exportStatementXlsx">Excel</button>
+                    <x-v65.action-menu label="Dışa Aktar">
+                        <button type="button" wire:click="exportStatementCsv" wire:loading.attr="disabled" wire:target="exportStatementCsv">CSV</button>
+                        <button type="button" wire:click="exportStatementXlsx" wire:loading.attr="disabled" wire:target="exportStatementXlsx">Excel</button>
+                    </x-v65.action-menu>
                 </div>
             </div>
             <div class="v65-contact-statement-filter">
