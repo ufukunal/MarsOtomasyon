@@ -42,16 +42,16 @@
             @endif
             @if(isset($daily['receivables']))
                 <div class="v65-home-kpi">
-                    <span>Cari Alacak (Net Pozitif)</span>
+                    <span>Carilerden Alacaklarımız</span>
                     <strong>{{ $daily['receivables']['value'] }}</strong>
-                    <small>TRY cari hareket bakiyeleri</small>
+                    <small>Şirket açısından · TRY net borç/alacak</small>
                 </div>
             @endif
             @if(isset($daily['payables']))
                 <div class="v65-home-kpi">
-                    <span>Cari Borç (Net Negatif)</span>
+                    <span>Carilere Borçlarımız</span>
                     <strong>{{ $daily['payables']['value'] }}</strong>
-                    <small>TRY cari hareket bakiyeleri</small>
+                    <small>Şirket açısından · TRY net borç/alacak</small>
                 </div>
             @endif
             @if(isset($daily['cash']))
