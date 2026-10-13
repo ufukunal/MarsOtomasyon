@@ -60,13 +60,8 @@ class LocationList extends DataTableComponent
     /** @return list<array<string, mixed>> */
     public function rowActions(): array
     {
-        $actions = [['label' => 'Detay', 'method' => 'showLocation']];
-
-        if (auth()->user()?->can('locations.update')) {
-            $actions[] = ['label' => 'Düzenle', 'method' => 'openLocation'];
-        }
-
-        return $actions;
+        // Records open via their linked identifiers, not redundant row buttons.
+        return [];
     }
 
     public function columnUrl(Model $row, Column $column): ?string
