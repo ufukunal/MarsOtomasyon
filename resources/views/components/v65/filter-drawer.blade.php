@@ -14,13 +14,13 @@
                 <button type="button" role="tab" aria-selected="{{ $tab === 'filters' ? 'true' : 'false' }}" @class(['is-active' => $tab === 'filters']) wire:click="v65SetFilterTab('filters')">Filtreleme</button>
                 <button type="button" role="tab" aria-selected="{{ $tab === 'sorting' ? 'true' : 'false' }}" @class(['is-active' => $tab === 'sorting']) wire:click="v65SetFilterTab('sorting')">Sıralama</button>
             </div>
-            <main class="v65-filter-body" role="tabpanel">
+            <div class="v65-filter-body" role="tabpanel">
                 @if($tab === 'filters')
                     {{ $filters }}
                 @else
                     {{ $sorting }}
                 @endif
-            </main>
+            </div>
             <footer class="v65-filter-footer">
                 <button type="button" class="v65-filter-clear" wire:click="clearV65Filters" data-v65-filter-close>Temizle</button>
                 <button type="button" class="v65-filter-submit" wire:click="applyV65Filters" data-v65-filter-apply>Filtrele</button>
