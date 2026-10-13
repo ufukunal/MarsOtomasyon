@@ -6,6 +6,7 @@ use App\Livewire\Components\DataTable\Column;
 use App\Livewire\Components\DataTable\DataTableComponent;
 use App\Models\Period\PriceList;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 
 /** @extends DataTableComponent<PriceList> */
 class PriceListList extends DataTableComponent
@@ -39,9 +40,15 @@ class PriceListList extends DataTableComponent
     /** @return list<array<string, mixed>> */
     public function rowActions(): array
     {
-        return auth()->user()?->can('price_lists.update')
-            ? [['label' => 'Düzenle', 'method' => 'editList']]
-            : [];
+        // Records open via their linked identifiers, not redundant row buttons.
+        return [];
+    }
+
+    public function columnUrl(Model $row, Column $column): ?string
+    {
+        return $column->key === 'name'
+            ? route('price-lists.detail', ['list' => $row->getKey()])
+            : null;
     }
 
     public function editList(int|string $id): mixed
