@@ -1682,7 +1682,7 @@
 }
 .app-shell .v65-simple-filter-fields>label{display:grid;gap:6px;font-size:11.5px;font-weight:600;color:#3d526d}
 .app-shell .v65-simple-filter-fields :is(input:not([type="checkbox"]),select){
-  width:100%;height:40px;min-height:40px;border:1px solid #cfd8e3;
+  width:100%;height:38px;min-height:38px;border:1px solid #cfd8e3;
   padding:0 10px;background:#fff;color:#263b53;font-size:12px
 }
 .app-shell .v65-simple-filter-foot{padding:12px 18px;border-top:1px solid #e7edf5;color:#64748b;font-size:11px}
