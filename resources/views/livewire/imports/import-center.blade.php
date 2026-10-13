@@ -46,19 +46,19 @@
             </label>
         </x-v65.list-filters>
         <div class="table-scroll v65-list-table"><table class="data-table">
-            <thead><tr><th>No</th><th>Tedarikçi</th><th>Ülke</th><th>ETD</th><th>ETA</th><th>PB</th><th>Kur</th><th>Durum</th><th></th></tr></thead>
+            <thead><tr><th>No</th><th>Tedarikçi</th><th>Ülke</th><th>ETD</th><th>ETA</th><th>PB</th><th>Kur</th><th>Durum</th></tr></thead>
             <tbody>
             @foreach($files as $row)
                 <tr>
-                    <td>{{ $row->number }}</td>
-                    <td>{{ $row->supplier?->title }}</td>
+                    <td><button type="button" class="link-button v65-record-link" wire:click="selectFile({{ $row->id }})">{{ $row->number }}</button></td>
+                    <td>@if($row->supplier && auth()->user()?->can('contacts.view'))<a href="{{ route('contacts.show', ['contact' => $row->supplier_contact_id]) }}">{{ $row->supplier->title }}</a>@else{{ $row->supplier?->title }}@endif</td>
                     <td>{{ $row->country }}</td>
                     <td>{{ $row->etd?->format('d.m.Y') }}</td>
                     <td>{{ $row->eta?->format('d.m.Y') }}</td>
                     <td>{{ $row->currency }}</td>
                     <td>{{ $row->exchange_rate ?? '—' }}</td>
                     <td>{{ $row->status }}</td>
-                    <td><button class="button-secondary" type="button" wire:click="selectFile({{ $row->id }})">Aç</button></td>
+                    
                 </tr>
             @endforeach
             </tbody>
@@ -131,24 +131,17 @@
                 @endcan
             @endif
             <div class="table-scroll v65-list-table"><table class="data-table">
-                <thead><tr><th>No</th><th>Tip</th><th>Mühür</th><th>Ağırlık</th><th>Hacim</th><th>ETA</th><th>Durum</th><th></th></tr></thead>
+                <thead><tr><th>No</th><th>Tip</th><th>Mühür</th><th>Ağırlık</th><th>Hacim</th><th>ETA</th><th>Durum</th></tr></thead>
                 <tbody>
                 @foreach($file->containers as $container)
                     <tr>
-                        <td>{{ $container->container_no }}</td>
+                        <td>@if(!$file->isLocked() && auth()->user()?->can('import_shipments.update'))<button type="button" class="link-button v65-record-link" wire:click="editContainer({{ $container->id }})">{{ $container->container_no }}</button>@else{{ $container->container_no }}@endif</td>
                         <td>{{ $container->container_type }}</td>
                         <td>{{ $container->seal_no }}</td>
                         <td>{{ $container->gross_weight_kg }}</td>
                         <td>{{ $container->volume_cbm }}</td>
                         <td>{{ $container->eta?->format('d.m.Y') }}</td>
                         <td>{{ $container->status }}</td>
-                        <td>
-                            @if(!$file->isLocked())
-                                @can('import_shipments.update')
-                                    <button class="button-secondary" type="button" wire:click="editContainer({{ $container->id }})">Düzenle</button>
-                                @endcan
-                            @endif
-                        </td>
                     </tr>
                 @endforeach
                 </tbody>
@@ -189,12 +182,12 @@
                 @endcan
             @endif
             <div class="table-scroll v65-list-table"><table class="data-table">
-                <thead><tr><th>Konteyner</th><th>Koli</th><th>Parça</th><th>Ürün</th><th>Miktar</th><th>Değer</th><th>kg</th><th>m³</th><th>Landed/Adet</th><th>Durum</th><th></th></tr></thead>
+                <thead><tr><th>Konteyner</th><th>Koli</th><th>Parça</th><th>Ürün</th><th>Miktar</th><th>Değer</th><th>kg</th><th>m³</th><th>Landed/Adet</th><th>Durum</th></tr></thead>
                 <tbody>
                 @foreach($file->packages as $package)
                     <tr>
                         <td>{{ $package->container?->container_no ?? $package->container_id }}</td>
-                        <td>{{ $package->carton_no }}</td>
+                        <td>@if(!$file->isLocked() && auth()->user()?->can('import_shipments.update'))<button type="button" class="link-button v65-record-link" wire:click="editPackage({{ $package->id }})">{{ $package->carton_no }}</button>@else{{ $package->carton_no }}@endif</td>
                         <td>{{ $package->component_name }}</td>
                         <td>{{ $package->product?->code ?? 'Eşleşmedi' }}</td>
                         <td>{{ $package->quantity }}</td>
@@ -203,13 +196,6 @@
                         <td>{{ $package->volume_cbm }}</td>
                         <td>{{ $package->landed_unit_cost_try ?? '—' }}</td>
                         <td>{{ $package->status }}</td>
-                        <td>
-                            @if(!$file->isLocked())
-                                @can('import_shipments.update')
-                                    <button class="button-secondary" type="button" wire:click="editPackage({{ $package->id }})">Düzenle</button>
-                                @endcan
-                            @endif
-                        </td>
                     </tr>
                 @endforeach
                 </tbody>
@@ -235,23 +221,16 @@
                 @endcan
             @endif
             <div class="table-scroll v65-list-table"><table class="data-table">
-                <thead><tr><th>Kalem</th><th>Tutar</th><th>PB</th><th>Kur</th><th>TRY</th><th>Dağıtım</th><th></th></tr></thead>
+                <thead><tr><th>Kalem</th><th>Tutar</th><th>PB</th><th>Kur</th><th>TRY</th><th>Dağıtım</th></tr></thead>
                 <tbody>
                 @foreach($file->costItems as $item)
                     <tr>
-                        <td>{{ $item->name }}</td>
+                        <td>@if(!$file->isLocked() && auth()->user()?->can('import_shipments.update'))<button type="button" class="link-button v65-record-link" wire:click="editCost({{ $item->id }})">{{ $item->name }}</button>@else{{ $item->name }}@endif</td>
                         <td>{{ $item->amount }}</td>
                         <td>{{ $item->currency }}</td>
                         <td>{{ $item->exchange_rate ?? '—' }}</td>
                         <td>{{ $item->amount_try ?? '—' }}</td>
                         <td>{{ $item->allocation_basis }}</td>
-                        <td>
-                            @if(!$file->isLocked())
-                                @can('import_shipments.update')
-                                    <button class="button-secondary" type="button" wire:click="editCost({{ $item->id }})">Düzenle</button>
-                                @endcan
-                            @endif
-                        </td>
                     </tr>
                 @endforeach
                 </tbody>
