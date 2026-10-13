@@ -87,6 +87,10 @@ class ReservationList extends DataTableComponent
                 : null;
         }
 
+        if ($column->key === 'location_name' && auth()->user()?->can('locations.view')) {
+            return route('locations.show', ['location' => $row->getAttribute('location_id')]);
+        }
+
         return $column->key === 'document_id'
             ? route('stock.reservations.show', ['id' => $row->getKey()])
             : null;
