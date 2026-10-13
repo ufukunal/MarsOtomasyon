@@ -39,7 +39,7 @@ it('keeps the existing top-level actions while showing the filter drawer and lin
         ->toContain("route(\$emptyAction['route'])")
         ->toContain('wire:click="exportCsv"')
         ->toContain('wire:click="exportXlsx"')
-        ->toContain('<x-v65.filter-drawer')
+        ->toContain("@include('livewire.components.partials.v65-table-filter-controls')")
         ->toContain('v65-cari-record-title')
         ->toContain('v65-cari-balance')
         ->toContain('v65-cari-state')
