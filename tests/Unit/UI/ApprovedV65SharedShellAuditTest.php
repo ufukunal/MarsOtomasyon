@@ -41,6 +41,7 @@ it('keeps v65 daily dashboard visible and older period widgets accessible withou
 
 it('uses the same reference table scaffolding for product, stock and other lists', function (): void {
     $view = file_get_contents(base_path('resources/views/livewire/components/data-table.blade.php'));
+    $footer = file_get_contents(base_path('resources/views/components/v65/list-footer.blade.php'));
 
     expect($view)->toContain('v65-products-heading-actions')
         ->toContain('v65-shared-table-title')
@@ -53,8 +54,8 @@ it('uses the same reference table scaffolding for product, stock and other lists
         ->toContain('data-v65-products-export-dialog')
         ->toContain("route(\$emptyAction['route'])")
         ->toContain('v65-data-table-heading-actions')
-        ->toContain('wire:change="setPerPage($event.target.value)"')
-        ->toContain("'Ürün Listesi' : \$listLabel");
+        ->toContain("'Ürün Listesi' : \$listLabel")
+        ->and($footer)->toContain('wire:change="setPerPage($event.target.value)"');
 });
 
 it('keeps UI shell separated from existing application functionality', function (): void {
