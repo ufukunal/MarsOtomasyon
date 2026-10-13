@@ -21,7 +21,7 @@
                     <td>#{{ $listing->channel_account_id }}</td>
                     <td>@can('products.view')<a class="v65-record-link" href="{{ route('products.show', ['product' => $listing->product_id]) }}">{{ $listing->product->code }} · {{ $listing->product->name }}</a>@else{{ $listing->product->code }} · {{ $listing->product->name }}@endcan</td>
                     <td><button type="button" class="link-button v65-record-link" wire:click="selectListing({{ $listing->id }})">{{ $listing->external_listing_id ?? ('#'.$listing->id) }}</button></td>
-                    <td>{{ $listing->external_sku }}</td>
+                    <td>@if(filled($listing->external_sku))<button type="button" class="link-button v65-record-link" wire:click="selectListing({{ $listing->id }})">{{ $listing->external_sku }}</button>@else—@endif</td>
                     <td>{{ $listing->stock_mode ?: 'product default' }}</td>
                     <td>{{ $listing->is_active ? 'Evet' : 'Hayır' }}</td>
                     
