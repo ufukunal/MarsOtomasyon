@@ -14,7 +14,7 @@
             <tbody>
             @foreach($recipes as $recipe)
                 <tr>
-                    <td>{{ $recipe->product->code }} · {{ $recipe->product->name }}</td>
+                    <td>@can('products.view')<a class="v65-record-link" href="{{ route('products.show', ['product' => $recipe->product_id]) }}">{{ $recipe->product->code }} · {{ $recipe->product->name }}</a>@else{{ $recipe->product->code }} · {{ $recipe->product->name }}@endcan</td>
                     <td><button type="button" class="link-button v65-record-link" wire:click="selectRecipe({{ $recipe->id }})">{{ $recipe->number }}</button></td>
                     <td>{{ $recipe->revision_no }}</td>
                     <td>{{ $recipe->output_quantity }}</td>
