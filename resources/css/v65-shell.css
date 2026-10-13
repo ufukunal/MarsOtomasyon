@@ -1720,3 +1720,93 @@
   box-sizing:border-box;min-height:38px!important;height:38px!important
 }
 .app-shell .report-toolbar .v65-standard-action-menu-panel{max-height:min(65vh,430px);overflow-y:auto}
+
+
+/* V65 reusable component primitives: scoped to authenticated application screens. */
+.app-shell .v65-btn{
+  --v65-component-height:38px;--v65-component-bg:#1a73e8;
+  --v65-component-fg:#fff;--v65-component-border:#1a73e8;
+  box-sizing:border-box!important;display:inline-flex!important;align-items:center;justify-content:center;
+  gap:6px;max-width:100%;height:var(--v65-component-height)!important;
+  min-height:var(--v65-component-height)!important;padding:0 13px!important;
+  border:1px solid var(--v65-component-border)!important;border-radius:4px!important;
+  background:var(--v65-component-bg)!important;color:var(--v65-component-fg)!important;
+  font-size:12px!important;font-weight:650!important;line-height:1.2;
+  white-space:nowrap;vertical-align:middle;text-align:center;text-decoration:none!important;
+  cursor:pointer;transition:background-color .12s ease,border-color .12s ease
+}
+.app-shell .v65-btn--xs{--v65-component-height:28px;padding-inline:9px!important;font-size:11px!important}
+.app-shell .v65-btn--sm{--v65-component-height:32px;padding-inline:10px!important;font-size:11.5px!important}
+.app-shell .v65-btn--md{--v65-component-height:38px}
+.app-shell .v65-btn--lg{--v65-component-height:44px;padding-inline:16px!important;font-size:12.5px!important}
+.app-shell .v65-btn--xl{--v65-component-height:48px;padding-inline:18px!important;font-size:13px!important}
+.app-shell .v65-btn--secondary{
+  --v65-component-bg:#fff;--v65-component-fg:#334155;--v65-component-border:#d3deea
+}
+.app-shell .v65-btn--ghost{
+  --v65-component-bg:transparent;--v65-component-fg:#365d75;--v65-component-border:transparent
+}
+.app-shell .v65-btn--danger{
+  --v65-component-bg:#dc2626;--v65-component-fg:#fff;--v65-component-border:#dc2626
+}
+.app-shell .v65-btn--success{
+  --v65-component-bg:#15803d;--v65-component-fg:#fff;--v65-component-border:#15803d
+}
+.app-shell .v65-btn--warning{
+  --v65-component-bg:#b45309;--v65-component-fg:#fff;--v65-component-border:#b45309
+}
+.app-shell .v65-btn--primary:hover:not(:disabled){--v65-component-bg:#1669d5;--v65-component-border:#1669d5}
+.app-shell .v65-btn--secondary:hover:not(:disabled){--v65-component-bg:#edf4fb;--v65-component-border:#aabed5}
+.app-shell .v65-btn--ghost:hover:not(:disabled){--v65-component-bg:#edf4fb}
+.app-shell .v65-btn--danger:hover:not(:disabled){--v65-component-bg:#b91c1c;--v65-component-border:#b91c1c}
+.app-shell .v65-btn--success:hover:not(:disabled){--v65-component-bg:#166534;--v65-component-border:#166534}
+.app-shell .v65-btn--warning:hover:not(:disabled){--v65-component-bg:#92400e;--v65-component-border:#92400e}
+.app-shell .v65-btn:disabled{opacity:.52;cursor:not-allowed}
+.app-shell .v65-btn:focus-visible{outline:2px solid #1a73e8!important;outline-offset:2px!important}
+.app-shell .v65-form-actions{
+  display:flex;align-items:center;flex-wrap:wrap;gap:8px;min-width:0;
+  justify-content:flex-end
+}
+.app-shell .v65-form-actions--start{justify-content:flex-start}
+.app-shell .v65-form-actions--between{justify-content:space-between}
+.app-shell .v65-form-actions--end{justify-content:flex-end}
+.app-shell .v65-form-actions.v65-form-footer{grid-column:1/-1}
+.app-shell .v65-select-field{min-width:0}
+.app-shell .v65-select-field>select{box-sizing:border-box;width:100%;min-width:0;min-height:38px}
+.app-shell .v65-status-badge{
+  --v65-status-bg:#f0f4f9;--v65-status-border:#d9e3ef;--v65-status-ink:#3e5269;
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  box-sizing:border-box;max-width:100%;min-height:25px;padding:3px 9px;
+  border:1px solid var(--v65-status-border);border-radius:4px;
+  background:var(--v65-status-bg);color:var(--v65-status-ink);
+  font-size:11px;font-weight:700;line-height:1.25;white-space:nowrap
+}
+.app-shell .v65-status-badge--success{
+  --v65-status-bg:#eaf8ef;--v65-status-border:#bfe5ce;--v65-status-ink:#146c3e
+}
+.app-shell .v65-status-badge--danger{
+  --v65-status-bg:#fff0f0;--v65-status-border:#eccccc;--v65-status-ink:#a52b35
+}
+.app-shell .v65-status-badge--warning{
+  --v65-status-bg:#fff7e7;--v65-status-border:#f0dbab;--v65-status-ink:#8f5811
+}
+.app-shell .v65-status-badge--info{
+  --v65-status-bg:#ecf5ff;--v65-status-border:#c7dff8;--v65-status-ink:#175b9d
+}
+.app-shell .v65-status-badge-dot{
+  display:inline-block;flex:none;width:6px;height:6px;border-radius:50%;background:currentColor
+}
+.app-shell .v65-empty-state{
+  display:grid;justify-items:center;align-content:center;gap:8px;
+  padding:22px 18px;text-align:center;color:#5c7087
+}
+.app-shell .v65-empty-state-title{font-size:13px;font-weight:750;color:#354a64}
+.app-shell .v65-empty-state-description{font-size:12px;margin:0;max-width:480px}
+.app-shell .v65-empty-state-actions{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-top:4px}
+@media(max-width:480px){
+  .app-shell .v65-form-actions{justify-content:flex-start}
+  .app-shell .v65-btn{max-width:100%}
+}
+@media print{
+  .app-shell .v65-form-actions{display:none!important}
+}
