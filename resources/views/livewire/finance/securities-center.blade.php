@@ -1,5 +1,5 @@
 <div class="space-y-8 v65-list-page">
-    <h1>Çek / Senet</h1>
+
 
     <section class="panel stack">
         <h2>Yeni Çek / Senet</h2>
