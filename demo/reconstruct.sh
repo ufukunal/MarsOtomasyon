@@ -11,7 +11,8 @@ esac
 TMP="$(mktemp "$ROOT/.mars-demo-zip-XXXXXX")"
 trap 'rm -f "$TMP"' EXIT
 for i in $(seq -w 1 9); do
-  PART="$ROOT/archive/part-0$i.bin"
+  printf -v num "%03d" "$i"
+  PART="$ROOT/archive/part-$num.bin"
   [[ -f "$PART" ]] || { echo "EKSIK: $PART" >&2; exit 1; }
   cat "$PART" >> "$TMP"
 done
