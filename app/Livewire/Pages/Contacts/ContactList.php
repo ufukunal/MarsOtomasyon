@@ -8,6 +8,9 @@ use App\Livewire\Components\DataTable\DateRangeFilter;
 use App\Livewire\Components\DataTable\SelectFilter;
 use App\Models\Period\Contact;
 use App\Models\Period\ContactCategory;
+use App\Models\Period\ContactTransaction;
+use App\Livewire\Components\DataTable\TextFilter;
+use App\Support\Formatting\TrFormatter;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Schema;
@@ -26,25 +29,46 @@ class ContactList extends DataTableComponent
     /** @return Builder<Contact> */
     protected function baseQuery(): Builder
     {
-        return Contact::query()->with(['people', 'categories']);
+        $query = Contact::query()->with(['people', 'categories'])->select('contacts.*');
+
+        // One scalar subquery per page instead of extra per-row ledger requests.
+        if (Schema::connection('period')->hasTable('contact_transactions')) {
+            $query->selectSub(
+                ContactTransaction::query()
+                    ->selectRaw("COALESCE(SUM(CASE WHEN direction = 'debit' THEN amount ELSE -amount END), 0)")
+                    ->whereColumn('contact_id', 'contacts.id')
+                    ->where('currency', 'TRY'),
+                'v65_try_net',
+            )->selectSub(
+                ContactTransaction::query()
+                    ->selectRaw('MAX(transaction_date)')
+                    ->whereColumn('contact_id', 'contacts.id'),
+                'v65_last_movement',
+            );
+        }
+
+        return $query;
     }
 
     /** @return list<Column> */
     public function columns(): array
     {
         return [
-            Column::make('code', 'Kod')->searchable()->sortable(),
-            Column::make('title', 'Unvan')->searchable()->sortable(),
+            Column::make('code', 'Cari Kodu')->searchable()->sortable(),
+            Column::make('title', 'Ünvan')->searchable()->sortable(),
             Column::make('primary_contact_name', 'Yetkili'),
-            Column::make('category_names', 'Kategori'),
-            Column::make('city', 'İl')->searchable()->sortable(),
-            Column::make('balance_display', 'Bakiye (TRY)')->money(),
-            Column::make('risk_status', 'Risk'),
+            Column::make('category_names', 'Tip'),
+            Column::make('city_district', 'İl / İlçe'),
+            Column::make('phone', 'Telefon')->searchable(),
+            Column::make('tax_number', 'Vergi No')->searchable(),
+            Column::make('balance_display', 'Bakiye'),
+            Column::make('risk_usage', 'Risk Kullanımı'),
+            Column::make('last_movement', 'Son Hareket'),
             Column::make('is_active', 'Durum')->sortable(),
         ];
     }
 
-    /** @return list<SelectFilter|DateRangeFilter> */
+    /** @return list<SelectFilter|DateRangeFilter|TextFilter> */
     public function filters(): array
     {
         $categories = ContactCategory::query()
@@ -62,6 +86,10 @@ class ContactList extends DataTableComponent
             ->all();
 
         return [
+            TextFilter::make('code', 'Cari Kodu'),
+            TextFilter::make('title', 'Ünvan'),
+            TextFilter::make('phone', 'Telefon'),
+            TextFilter::make('tax_number', 'Vergi No'),
             SelectFilter::make('category_id', 'Kategori')->options($categories),
             SelectFilter::make('city', 'İl')->options($cities),
             SelectFilter::make('is_active', 'Durum')->options([1 => 'Aktif', 0 => 'Pasif']),
@@ -106,6 +134,12 @@ class ContactList extends DataTableComponent
             ->selectRaw("COUNT(DISTINCT NULLIF(city, '')) AS city_count")
             ->first();
 
+        // A mixed-role cari is counted in both groups, but only once in total.
+        $customers = Contact::query()->whereHas('categories', fn (Builder $q) =>
+            $q->where('name', 'ilike', 'Müşteri'))->count();
+        $suppliers = Contact::query()->whereHas('categories', fn (Builder $q) =>
+            $q->where('name', 'ilike', 'Tedarikçi'))->count();
+
         $debit = '0.0000';
         $credit = '0.0000';
 
@@ -128,6 +162,8 @@ class ContactList extends DataTableComponent
 
         return [
             'total' => (int) ($counts?->total ?? 0),
+            'customers' => $customers,
+            'suppliers' => $suppliers,
             'active' => (int) ($counts?->active_count ?? 0),
             'inactive' => (int) ($counts?->inactive_count ?? 0),
             'cities' => (int) ($counts?->city_count ?? 0),
@@ -136,6 +172,57 @@ class ContactList extends DataTableComponent
             'debit' => $credit,
             'credit' => $debit,
         ];
+    }
+
+    public function formattedValue(Model $row, Column $column): string
+    {
+        if (! $row instanceof Contact) {
+            return parent::formattedValue($row, $column);
+        }
+
+        if ($column->key === 'category_names') {
+            return $row->getCategoryNamesAttribute() ?: '—';
+        }
+
+        if ($column->key === 'city_district') {
+            return collect([$row->city, $row->district])
+                ->filter(fn ($part): bool => filled($part))->implode(' / ') ?: '—';
+        }
+
+        $balance = (string) ($row->getAttribute('v65_try_net') ?? $row->balance());
+
+        if ($column->key === 'balance_display') {
+            $absolute = bccomp($balance, '0', 4) < 0 ? bcmul($balance, '-1', 4) : $balance;
+
+            return TrFormatter::money($absolute).' ₺'.match (bccomp($balance, '0', 4)) {
+                1 => ' Alacaklı',
+                -1 => ' Borçlu',
+                default => '',
+            };
+        }
+
+        if ($column->key === 'risk_usage') {
+            $limit = (string) ($row->risk_limit ?? '0');
+            if (bccomp($limit, '0', 4) <= 0) {
+                return '—';
+            }
+
+            $receivable = bccomp($balance, '0', 4) > 0 ? $balance : '0';
+
+            return TrFormatter::money(bcdiv(bcmul($receivable, '100', 4), $limit, 4), 0).'%';
+        }
+
+        if ($column->key === 'last_movement') {
+            $date = $row->getAttribute('v65_last_movement');
+
+            return $date ? \Illuminate\Support\Carbon::parse($date)->format('d.m.Y') : '—';
+        }
+
+        if ($column->key === 'is_active') {
+            return $row->is_active ? 'Aktif' : 'Pasif';
+        }
+
+        return parent::formattedValue($row, $column) ?: '—';
     }
 
     /** @return list<array<string, mixed>> */
