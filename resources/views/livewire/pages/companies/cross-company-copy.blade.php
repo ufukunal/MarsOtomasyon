@@ -11,6 +11,7 @@
     </section>
 
     <section class="panel">
+        <x-v65.list-heading title="Kopyalanabilir Kayıtlar" />
         <div class="table-scroll v65-grid-scroll v65-list-table"><table class="data-table">
             <thead><tr><th></th><th>Kod</th><th>Kayıt</th></tr></thead>
             <tbody>
