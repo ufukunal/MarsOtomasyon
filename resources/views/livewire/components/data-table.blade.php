@@ -1,4 +1,4 @@
-<div @class(['data-table-shell', 'v65-list-page', 'v65-products' => $this instanceof \App\Livewire\Pages\Products\ProductList, 'v65-stock-table' => str_starts_with(get_class($this), 'App\\Livewire\\Pages\\Stock\\') || $this instanceof \App\Livewire\Pages\Catalog\LocationList])>
+<div @class(['data-table-shell', 'v65-list-page', 'v65-products' => $this instanceof \App\Livewire\Pages\Products\ProductList, 'v65-cari-list' => $this instanceof \App\Livewire\Pages\Contacts\ContactList, 'v65-stock-table' => str_starts_with(get_class($this), 'App\\Livewire\\Pages\\Stock\\') || $this instanceof \App\Livewire\Pages\Catalog\LocationList])>
     @php
         $stockListMeta = [
             \App\Livewire\Pages\Stock\StockStatus::class => ['Stok Durumu', 'Depo bazlı anlık stok, rezervasyon ve kullanılabilir miktarlar.'],
@@ -35,15 +35,15 @@
         <section class="v65-cari-list-intro" aria-label="Cari liste özeti">
             <div class="v65-cari-list-intro-title">
                 <strong>Cari Listesi</strong>
-                <span>Müşteri, tedarikçi ve diğer cari kartları</span>
+                <span>Müşteri ve tedarikçi kartları</span>
             </div>
             <div class="v65-cari-list-stats">
                 <div><small>Toplam Cari</small><strong>{{ $cariStats['total'] }}</strong></div>
+                <div><small>Müşteri</small><strong>{{ $cariStats['customers'] }}</strong></div>
+                <div><small>Tedarikçi</small><strong>{{ $cariStats['suppliers'] }}</strong></div>
+                <div><small>Toplam Alacak</small><strong class="v65-cari-kpi-credit">{{ \App\Support\Formatting\TrFormatter::money($cariStats['credit']) }} ₺</strong></div>
+                <div><small>Toplam Borç</small><strong class="v65-cari-kpi-debit">{{ \App\Support\Formatting\TrFormatter::money($cariStats['debit']) }} ₺</strong></div>
                 <div><small>Aktif</small><strong>{{ $cariStats['active'] }}</strong></div>
-                <div><small>Pasif</small><strong>{{ $cariStats['inactive'] }}</strong></div>
-                <div><small>Şehir</small><strong>{{ $cariStats['cities'] }}</strong></div>
-                <div><small>Toplam Borç (TRY)</small><strong>{{ \App\Support\Formatting\TrFormatter::money($cariStats['debit']) }} ₺</strong></div>
-                <div><small>Toplam Alacak (TRY)</small><strong>{{ \App\Support\Formatting\TrFormatter::money($cariStats['credit']) }} ₺</strong></div>
             </div>
         </section>
     @endif
@@ -234,7 +234,12 @@
                                 $cellUrl = $this->columnUrl($row, $column);
                             @endphp
                             @if($cellUrl)
-                                <a href="{{ $cellUrl }}" @class(['v65-record-link', 'v65-products-name-link' => $isProductTable && $column->key === 'name'])>{{ $this->formattedValue($row, $column) }}</a>
+                                <a href="{{ $cellUrl }}" @class(['v65-record-link', 'v65-products-name-link' => $isProductTable && $column->key === 'name', 'v65-cari-record-title' => $this instanceof \App\Livewire\Pages\Contacts\ContactList && $column->key === 'title'])>{{ $this->formattedValue($row, $column) }}</a>
+                            @elseif($this instanceof \App\Livewire\Pages\Contacts\ContactList && $column->key === 'balance_display')
+                                @php($cariNet = (string) ($row->getAttribute('v65_try_net') ?? $row->balance()))
+                                <strong @class(['v65-cari-balance', 'is-receivable' => bccomp($cariNet, '0', 4) > 0, 'is-payable' => bccomp($cariNet, '0', 4) < 0])>{{ $this->formattedValue($row, $column) }}</strong>
+                            @elseif($this instanceof \App\Livewire\Pages\Contacts\ContactList && $column->key === 'is_active')
+                                <span @class(['v65-cari-state', 'is-active' => (bool) $row->is_active, 'is-inactive' => ! $row->is_active])>{{ $this->formattedValue($row, $column) }}</span>
                             @elseif($isProductTable && $column->key === 'is_active')
                                 <span @class(['v65-products-status', 'is-active' => (bool) $row->getAttribute('is_active'), 'is-inactive' => ! $row->getAttribute('is_active')])>{{ $this->formattedValue($row, $column) }}</span>
                             @elseif($isProductTable && in_array($column->key, ['reserved_v65', 'available_v65'], true))
