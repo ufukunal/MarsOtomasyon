@@ -1,6 +1,6 @@
 @props(['title' => 'Filtreler'])
 <details {{ $attributes->class(['v65-simple-filter-drawer']) }} data-v65-action-menu>
-    <summary class="v65-filter-trigger" aria-label="Filtre panelini aç" aria-haspopup="true">{{ $title }}</summary>
+    <summary class="v65-filter-trigger" aria-label="Filtre panelini aç veya kapat">{{ $title }}</summary>
     <div class="v65-simple-filter-panel">
         <header class="v65-simple-filter-head">
             <strong>Filtreleme</strong>
