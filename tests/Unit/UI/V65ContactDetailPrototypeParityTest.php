@@ -41,7 +41,7 @@ it('preserves the agreed shared list toolbar while opening contact details by na
         ->not->toContain("'label' => 'Aç'")
         ->not->toContain("'label' => 'Düzenle'")
         ->and($table)->toContain('<x-v65.list-footer')
-        ->toContain('<x-v65.filter-drawer')
+        ->toContain("@include('livewire.components.partials.v65-table-filter-controls')")
         ->toContain('v65-data-table-heading-actions');
 });
 
