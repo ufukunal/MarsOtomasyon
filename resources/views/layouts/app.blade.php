@@ -202,6 +202,12 @@
                     @can('warehouse_slips.create')
                         <a class="button-link" href="{{ route('warehouse.transport.create') }}">+ Yeni Ambar Fişi</a>
                     @endcan
+                    @can('warehouse_slips.view')
+                        <button type="button" class="button-secondary" onclick="window.print()">Yazdır</button>
+                        <x-v65.action-menu label="Dışa Aktar">
+                            <a href="{{ route('warehouse.transport.export') }}">CSV / Excel uyumlu</a>
+                        </x-v65.action-menu>
+                    @endcan
                 @endif
                 @if ($routeName === 'products.show')
                     {{-- Product detail stays read-only: keep editing in the authorized overview action. --}}
@@ -212,6 +218,8 @@
                     {{-- Product-specific create, print and export actions are teleported here. --}}
                 @elseif (in_array($routeName, ['contacts.show', 'contacts.index'], true))
                     {{-- Contact detail supplies its approved-v65 header actions via teleport. --}}
+                @elseif ($routeName === 'warehouse.transport.index')
+                    {{-- Index supplies correctly ordered create / print / export actions above. --}}
                 @elseif ($routeName === 'warehouse.transport.show')
                     @can('warehouse_slips.view')
                         <a class="button-secondary" target="_blank" rel="noopener" href="{{ route('warehouse.transport.print', ['slip' => request()->route('id'), 'format' => 'slip', 'autoprint' => 1]) }}" title="Yazdırma penceresinde PDF olarak kaydedebilirsiniz">Yazdır / PDF</a>
@@ -221,13 +229,13 @@
                 @else
                     <button type="button" class="button-secondary" onclick="window.print()" title="Yazdırma penceresinde PDF olarak kaydedebilirsiniz">Yazdır / PDF</button>
                 @endif
-                @if (in_array($routeName, ['warehouse.transport.index', 'warehouse.transport.show', 'warehouse.transport.create', 'warehouse.transport.edit'], true))
+                @if (in_array($routeName, ['warehouse.transport.show', 'warehouse.transport.create', 'warehouse.transport.edit'], true))
                     @can('warehouse_slips.view')
                         <a class="button-secondary" href="{{ route('warehouse.transport.export', $routeName === 'warehouse.transport.show' ? ['id' => request()->route('id')] : []) }}" title="Kayıtlı ambar fişlerini Excel uyumlu CSV olarak dışa aktar">Excel</a>
                     @endcan
                 @endif
                 @isset($pageActions){{ $pageActions }}@endisset
-                @unless (in_array($routeName, ['products.show', 'products.create', 'products.edit', 'contacts.show', 'contacts.index'], true))
+                @unless (in_array($routeName, ['products.show', 'products.create', 'products.edit', 'contacts.show', 'contacts.index', 'warehouse.transport.index'], true))
                     <button type="button" class="button-secondary" onclick="if (history.length > 1) history.back(); else location.href='{{ route('home') }}'">Geri</button>
                 @endunless
             </div>
