@@ -1,0 +1,58 @@
+<?php
+
+use App\Livewire\Concerns\WithV65FilterDrawer;
+
+it('keeps draft changes out of the applied list until explicit apply', function (): void {
+    $screen = new class {
+        use WithV65FilterDrawer;
+        public string $search = 'önceki';
+        public array $filterValues = ['active' => '1'];
+        public string $sort = 'id';
+        public string $direction = 'asc';
+        public int $pageResets = 0;
+
+        protected function v65FilterDefinitions(): array
+        {
+            return ['active' => ['type' => 'select', 'label' => 'Durum', 'options' => ['1' => 'Aktif', '0' => 'Pasif']]];
+        }
+
+        protected function v65SortOptions(): array
+        {
+            return ['code' => 'Kod'];
+        }
+
+        public function resetPage(): void
+        {
+            $this->pageResets++;
+        }
+    };
+
+    $screen->openV65Filters();
+    $screen->v65DraftFilters['search'] = 'yeni';
+    $screen->v65DraftFilters['filters']['active'] = '0';
+
+    expect($screen->search)->toBe('önceki')
+        ->and($screen->filterValues['active'])->toBe('1');
+
+    $screen->closeV65Filters();
+    expect($screen->search)->toBe('önceki');
+
+    $screen->openV65Filters();
+    $screen->v65DraftFilters['search'] = 'yeni';
+    $screen->v65DraftFilters['filters']['active'] = '0';
+    $screen->applyV65Filters();
+
+    expect($screen->search)->toBe('yeni')
+        ->and($screen->filterValues['active'])->toBe('0')
+        ->and($screen->pageResets)->toBe(1)
+        ->and($screen->activeV65FilterCount())->toBe(2);
+
+    $screen->removeV65Filter('filter:active');
+    expect($screen->filterValues)->toBe([])
+        ->and($screen->search)->toBe('yeni');
+
+    $screen->clearV65Filters();
+    expect($screen->search)->toBe('')
+        ->and($screen->filterValues)->toBe([])
+        ->and($screen->direction)->toBe('asc');
+});
