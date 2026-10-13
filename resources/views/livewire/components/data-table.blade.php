@@ -125,60 +125,51 @@
             </div>
         @endteleport
     @endunless
-    <div @class(['table-toolbar', 'v65-list-filters', 'v65-data-table-filters' => !$isProductTable])>
-        <div @class(['table-toolbar-main', 'v65-data-table-filter-fields' => !$isProductTable])>
-            <label class="table-search">
-                <span class="sr-only">Tabloda ara</span>
-                <span class="table-search-icon" aria-hidden="true">⌕</span>
-                <input wire:model.live.debounce.300ms="search" type="search" placeholder="{{ $this instanceof \App\Livewire\Pages\Products\ProductList ? 'Ürün kodu / adı' : 'Tabloda ara…' }}">
-            </label>
-
-            @foreach ($filters as $filter)
-                @if($isProductTable && in_array($filter->key, ['kind', 'channel_stock_mode'], true))
-                    @continue
-                @endif
-                @if ($filter instanceof \App\Livewire\Components\DataTable\SelectFilter)
-                    <label class="table-filter">
-                        <span class="sr-only">{{ $filter->label }}</span>
-                        <select wire:model.live="filterValues.{{ $filter->key }}">
-                            <option value="">{{ $filter->label }} · Tümü</option>
-                            @foreach ($filter->options as $value => $label)
-                                <option value="{{ $value }}">{{ $label }}</option>
-                            @endforeach
-                        </select>
-                    </label>
-                @elseif ($filter instanceof \App\Livewire\Components\DataTable\DateRangeFilter)
-                    <div class="date-range-filter v65-date-range-filter" role="group" aria-label="{{ $filter->label }}">
-                        <span class="v65-date-range-caption">{{ $filter->label }}</span>
-                        <label class="v65-date-range-input"><span class="sr-only">{{ $filter->label }} başlangıç</span><input type="date" wire:model.live="filterValues.{{ $filter->key }}.from" aria-label="{{ $filter->label }} başlangıç" title="{{ $filter->label }} başlangıç"></label>
-                        <label class="v65-date-range-input"><span class="sr-only">{{ $filter->label }} bitiş</span><input type="date" wire:model.live="filterValues.{{ $filter->key }}.to" aria-label="{{ $filter->label }} bitiş" title="{{ $filter->label }} bitiş"></label>
-                    </div>
-                @endif
-            @endforeach
-            @if($isProductTable)
-                <details class="v65-products-filter-popover">
-                    <summary>Filtrele</summary>
-                    <div class="v65-products-filter-popover-body">
-                        <strong>Diğer Filtreler</strong>
-                        @foreach($filters as $filter)
-                            @if($filter instanceof \App\Livewire\Components\DataTable\SelectFilter && in_array($filter->key, ['kind', 'channel_stock_mode'], true))
-                                <label class="table-filter">
-                                    <span>{{ $filter->label }}</span>
-                                    <select wire:model.live="filterValues.{{ $filter->key }}">
-                                        <option value="">{{ $filter->label }} · Tümü</option>
-                                        @foreach($filter->options as $value => $label)
-                                            <option value="{{ $value }}">{{ $label }}</option>
-                                        @endforeach
-                                    </select>
-                                </label>
-                            @endif
+    <div class="v65-filter-toolbar">
+        <x-v65.filter-drawer :count="$this->activeV65FilterCount()" :tab="$v65FilterTab">
+            <x-slot:filters>
+                <x-v65.filter-field label="Genel Arama">
+                    <input type="search" wire:model="v65DraftFilters.search" maxlength="255" placeholder="Kod, ad veya numara ara">
+                </x-v65.filter-field>
+                @foreach($filters as $filter)
+                    @if($filter instanceof \App\Livewire\Components\DataTable\SelectFilter)
+                        <x-v65.filter-field :label="$filter->label">
+                            <select wire:model="v65DraftFilters.filters.{{ $filter->key }}">
+                                <option value="">Tümü</option>
+                                @foreach($filter->options as $value => $label)
+                                    <option value="{{ $value }}">{{ $label }}</option>
+                                @endforeach
+                            </select>
+                        </x-v65.filter-field>
+                    @elseif($filter instanceof \App\Livewire\Components\DataTable\DateRangeFilter)
+                        <x-v65.filter-field :label="$filter->label">
+                            <div class="v65-filter-date-pair">
+                                <input type="date" aria-label="{{ $filter->label }} başlangıç" wire:model="v65DraftFilters.filters.{{ $filter->key }}.from">
+                                <input type="date" aria-label="{{ $filter->label }} bitiş" wire:model="v65DraftFilters.filters.{{ $filter->key }}.to">
+                            </div>
+                        </x-v65.filter-field>
+                    @endif
+                @endforeach
+            </x-slot:filters>
+            <x-slot:sorting>
+                <x-v65.filter-field label="Sıralama Alanı">
+                    <select wire:model="v65DraftFilters.sort">
+                        <option value="id">Varsayılan</option>
+                        @foreach($this->v65AvailableSortOptions() as $key => $label)
+                            @if($key !== 'id')<option value="{{ $key }}">{{ $label }}</option>@endif
                         @endforeach
-                        <button type="button" class="button-secondary" wire:click="$refresh">Uygula</button>
-                    </div>
-                </details>
-            @endif
-        </div>
+                    </select>
+                </x-v65.filter-field>
+                <x-v65.filter-field label="Sıralama Yönü">
+                    <select wire:model="v65DraftFilters.direction">
+                        <option value="asc">Artan</option>
+                        <option value="desc">Azalan</option>
+                    </select>
+                </x-v65.filter-field>
+            </x-slot:sorting>
+        </x-v65.filter-drawer>
     </div>
+    <x-v65.active-filters :items="$this->v65ActiveFilterLabels()" />
 
     @if(!$isProductTable && $selected !== [] && $bulkActions !== [])
         <div class="bulk-bar">
