@@ -4,6 +4,7 @@
             @if($createRoute)
                 <a class="button-link" href="{{ route($createRoute) }}">+ Yeni {{ $title }}</a>
             @endif
+            <button type="button" class="button-secondary" onclick="window.print()">Yazdır</button>
             <x-v65.action-menu label="Dışa Aktar">
                 <button type="button" wire:click="exportCsv" wire:loading.attr="disabled" wire:target="exportCsv">CSV</button>
                 <button type="button" wire:click="exportXlsx" wire:loading.attr="disabled" wire:target="exportXlsx">Excel</button>
