@@ -92,3 +92,27 @@ it('formats real TRY ledger net as receivable, payable, and risk percent', funct
     $contact->setAttribute('risk_limit', '0');
     expect($list->formattedValue($contact, Column::make('risk_usage', 'Risk Kullanımı')))->toBe('—');
 });
+
+
+it('uses the supplied blue-edge three-line KPI card design only on the cari list', function (): void {
+    $view = file_get_contents(base_path('resources/views/livewire/components/data-table.blade.php'));
+    $css = file_get_contents(base_path('resources/css/v65-shell.css'));
+
+    $expectedNotes = [
+        'Tüm cari kartları', 'Müşteri kartları', 'Tedarikçi kartları',
+        'TRY bazında', 'Aktif cari kartları',
+    ];
+    foreach ($expectedNotes as $note) {
+        expect($view)->toContain('<span class="v65-cari-kpi-note">'.$note.'</span>');
+    }
+
+    $section = substr($view, strpos($view, '<div class="v65-cari-list-stats">'));
+    $section = substr($section, 0, strpos($section, '</section>'));
+    expect(substr_count($section, '<div><small>'))->toBe(6)
+        ->and(substr_count($section, 'class="v65-cari-kpi-note"'))->toBe(6)
+        ->and($css)->toContain('border-left:4px solid #1877e9')
+        ->toContain('grid-template-rows:auto auto auto')
+        ->toContain('border-radius:0;background:#fff')
+        ->toContain('font-variant-numeric:tabular-nums')
+        ->toContain('.app-shell .v65-cari-list .v65-cari-list-stats .v65-cari-kpi-note');
+});
