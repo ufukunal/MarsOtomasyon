@@ -5,7 +5,7 @@ it('keeps Cari header actions in the approved order while sharing one filter inc
     $drawer = file_get_contents(base_path('resources/views/livewire/components/partials/v65-table-filter-controls.blade.php'));
 
     $start = strpos($markup, '<div class="v65-cari-heading-actions">');
-    $end = strpos($markup, '</details>', $start);
+    $end = strpos($markup, '</x-v65.action-menu>', $start);
     expect($start)->not->toBeFalse()->and($end)->not->toBeFalse();
     $actions = substr($markup, $start, $end - $start);
     $previous = -1;
@@ -15,7 +15,8 @@ it('keeps Cari header actions in the approved order while sharing one filter inc
         $previous = $position;
     }
 
-    expect($actions)->toContain('wire:click="exportCsv"')
+    expect($actions)->toContain('<x-v65.action-menu label="Dışa Aktar">')
+        ->toContain('wire:click="exportCsv"')
         ->toContain('wire:click="exportXlsx"')
         ->and($markup)->toContain("v65-cari-intro-filters")
         ->toContain("@include('livewire.components.partials.v65-table-filter-controls')")
