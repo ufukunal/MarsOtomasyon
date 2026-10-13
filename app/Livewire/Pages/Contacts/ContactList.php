@@ -113,10 +113,11 @@ class ContactList extends DataTableComponent
                 return;
             }
 
-            $query->whereRaw(
-                "(SELECT COALESCE(SUM(CASE WHEN direction = 'debit' THEN amount ELSE -amount END), 0)
-                  FROM contact_transactions ct WHERE ct.contact_id = contacts.id AND ct.currency = 'TRY') > contacts.risk_limit"
-            );
+            $query->where('contacts.risk_limit', '>', 0)
+                ->whereRaw(
+                    "(SELECT COALESCE(SUM(CASE WHEN direction = 'debit' THEN amount ELSE -amount END), 0)
+                      FROM contact_transactions ct WHERE ct.contact_id = contacts.id AND ct.currency = 'TRY') > contacts.risk_limit"
+                );
 
             return;
         }
