@@ -11,7 +11,9 @@
 </head>
 <body>
 @foreach($sections as $section)
-    @php($text = (string) ($section['settings']['text'] ?? ''))
+    @php
+        $text = (string) ($section['settings']['text'] ?? '');
+    @endphp
     @if($text !== '')
         <div class="label-section">{!! $text !!}</div>
     @endif
