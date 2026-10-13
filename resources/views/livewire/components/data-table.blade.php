@@ -38,12 +38,12 @@
                 <span>Müşteri ve tedarikçi kartları</span>
             </div>
             <div class="v65-cari-list-stats">
-                <div><small>Toplam Cari</small><strong>{{ $cariStats['total'] }}</strong></div>
-                <div><small>Müşteri</small><strong>{{ $cariStats['customers'] }}</strong></div>
-                <div><small>Tedarikçi</small><strong>{{ $cariStats['suppliers'] }}</strong></div>
-                <div><small>Toplam Alacak</small><strong class="v65-cari-kpi-credit">{{ \App\Support\Formatting\TrFormatter::money($cariStats['credit']) }} ₺</strong></div>
-                <div><small>Toplam Borç</small><strong class="v65-cari-kpi-debit">{{ \App\Support\Formatting\TrFormatter::money($cariStats['debit']) }} ₺</strong></div>
-                <div><small>Aktif</small><strong>{{ $cariStats['active'] }}</strong></div>
+                <div><small>Toplam Cari</small><strong>{{ $cariStats['total'] }}</strong><span class="v65-cari-kpi-note">Tüm cari kartları</span></div>
+                <div><small>Müşteri</small><strong>{{ $cariStats['customers'] }}</strong><span class="v65-cari-kpi-note">Müşteri kartları</span></div>
+                <div><small>Tedarikçi</small><strong>{{ $cariStats['suppliers'] }}</strong><span class="v65-cari-kpi-note">Tedarikçi kartları</span></div>
+                <div><small>Toplam Alacak</small><strong class="v65-cari-kpi-credit">{{ \App\Support\Formatting\TrFormatter::money($cariStats['credit']) }} ₺</strong><span class="v65-cari-kpi-note">TRY bazında</span></div>
+                <div><small>Toplam Borç</small><strong class="v65-cari-kpi-debit">{{ \App\Support\Formatting\TrFormatter::money($cariStats['debit']) }} ₺</strong><span class="v65-cari-kpi-note">TRY bazında</span></div>
+                <div><small>Aktif</small><strong>{{ $cariStats['active'] }}</strong><span class="v65-cari-kpi-note">Aktif cari kartları</span></div>
             </div>
         </section>
     @endif
