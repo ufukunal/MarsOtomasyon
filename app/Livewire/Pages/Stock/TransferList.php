@@ -103,7 +103,8 @@ class TransferList extends DataTableComponent
     /** @return list<array<string, mixed>> */
     public function rowActions(): array
     {
-        return [['label' => 'Detay', 'method' => 'openTransfer']];
+        // Records open via their linked identifiers, not redundant row buttons.
+        return [];
     }
 
     public function openTransfer(int|string $id): mixed
