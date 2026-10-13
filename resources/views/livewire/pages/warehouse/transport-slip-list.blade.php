@@ -54,7 +54,7 @@
         <div class="table-scroll v65-list-table">
             <table class="data-table wsl-table">
                 <thead><tr>
-                    <th>Fiş No</th><th>Firma</th><th>Ambar / Nakliye</th><th>Koli</th>
+                    <th>Fiş No</th><th>Firma</th><th>Ambar / Nakliye</th><th class="align-end">Koli</th>
                     <th>Cam</th><th>Kırılabilir</th><th>Tarih</th><th>Durum</th>
                 </tr></thead>
                 <tbody>
@@ -69,7 +69,7 @@
                                 @endif
                             </td>
                             <td>{{ $slip->carrier }}</td>
-                            <td><strong>{{ $slip->package_count }}</strong></td>
+                            <td class="align-end"><strong>{{ $slip->package_count }}</strong></td>
                             <td>@if($slip->contains_glass)<span class="wsl-badge warn">Cam Var</span>@else Hayır @endif</td>
                             <td>@if($slip->fragile)<span class="wsl-badge red">Hassas</span>@else Hayır @endif</td>
                             <td>{{ $slip->slip_date?->format('d.m.Y') }}</td>
