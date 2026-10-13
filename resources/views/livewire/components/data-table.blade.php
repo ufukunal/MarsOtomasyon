@@ -145,6 +145,13 @@
                         <x-v65.filter-field :label="$filter->label">
                             <input type="text" wire:model="v65DraftFilters.filters.{{ $filter->key }}" maxlength="255" placeholder="{{ $filter->label }} ara">
                         </x-v65.filter-field>
+                    @elseif($filter instanceof \App\Livewire\Components\DataTable\NumberRangeFilter)
+                        <x-v65.filter-field :label="$filter->label">
+                            <div class="v65-filter-date-pair">
+                                <input type="number" step="0.0001" aria-label="{{ $filter->label }} en az" placeholder="En az" wire:model="v65DraftFilters.filters.{{ $filter->key }}.min">
+                                <input type="number" step="0.0001" aria-label="{{ $filter->label }} en çok" placeholder="En çok" wire:model="v65DraftFilters.filters.{{ $filter->key }}.max">
+                            </div>
+                        </x-v65.filter-field>
                     @elseif($filter instanceof \App\Livewire\Components\DataTable\DateRangeFilter)
                         <x-v65.filter-field :label="$filter->label">
                             <div class="v65-filter-date-pair">
