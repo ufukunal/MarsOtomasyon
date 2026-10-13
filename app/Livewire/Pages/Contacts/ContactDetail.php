@@ -90,6 +90,25 @@ class ContactDetail extends Component
             ->get()->pluck('opening', 'currency')->all();
     }
 
+    /**
+     * Historical demo notes describe the seeding plan, not the current posting
+     * state. Keep the original ledger description unchanged in storage.
+     */
+    public function movementDisplayDescription(ContactTransaction $movement): string
+    {
+        $description = (string) ($movement->description ?: $movement->transaction_type);
+        if ($movement->document?->status === 'posted' && str_contains($description, 'UAT sentetik')
+            && str_contains($description, 'TASLAK tutulur')) {
+            $description = str_replace(
+                'Belge gerçek muhasebeleştirme yapılmadan TASLAK tutulur.',
+                'Demo hazırlık notu; güncel belge durumu: Kesinleşti.',
+                $description,
+            );
+        }
+
+        return $description;
+    }
+
     /** @return list<list<string>> */
     private function statementRows(): array
     {
@@ -112,7 +131,7 @@ class ContactDetail extends Component
                 $movement->transaction_date?->format('d.m.Y') ?? '',
                 (string) ($movement->document?->number ?? ''),
                 (string) $movement->transaction_type,
-                (string) ($movement->description ?? ''),
+                $this->movementDisplayDescription($movement),
                 $movement->direction === 'debit' ? $amount : '',
                 $movement->direction === 'credit' ? $amount : '',
                 $balances[$currency],
