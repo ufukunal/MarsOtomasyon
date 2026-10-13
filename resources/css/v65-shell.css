@@ -1234,8 +1234,10 @@
 .app-shell .v65-contact-balance{text-align:right;display:grid;gap:4px;align-items:center;min-width:135px}
 .app-shell .v65-contact-balance small{font-size:11px;color:#677d94}
 .app-shell .v65-contact-balance strong{font-size:15px;color:#2b4968}
-.app-shell .v65-contact-balance strong.is-debit{color:#b44b39}
-.app-shell .v65-contact-balance strong.is-credit{color:#15804d}
+.app-shell .v65-contact-balance :is(strong,span).is-debit{color:#d5232e}
+.app-shell .v65-contact-balance :is(strong,span).is-credit{color:#008744}
+.app-shell .v65-contact-metrics .v65-contact-metric strong.is-debit{color:#d5232e}
+.app-shell .v65-contact-metrics .v65-contact-metric strong.is-credit{color:#008744}
 .app-shell .v65-contact-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(154px,1fr));gap:8px}
 .app-shell .v65-contact-metric{
   display:grid;gap:8px;align-content:center;min-height:62px;
@@ -1460,8 +1462,8 @@
 }
 .app-shell .v65-cari-list .data-table .v65-cari-record-title{color:#233957!important;font-weight:750}
 .app-shell .v65-cari-list .data-table .v65-cari-balance{font-size:11.5px;font-weight:750;white-space:nowrap;color:#334155}
-.app-shell .v65-cari-list .data-table .v65-cari-balance.is-receivable{color:#008744}
-.app-shell .v65-cari-list .data-table .v65-cari-balance.is-payable{color:#d5232e}
+.app-shell .v65-cari-list .data-table .v65-cari-balance.is-debtor{color:#d5232e}
+.app-shell .v65-cari-list .data-table .v65-cari-balance.is-creditor{color:#008744}
 .app-shell .v65-cari-list .data-table .v65-cari-state{
   display:inline-flex;align-items:center;justify-content:center;
   padding:4px 9px;border:1px solid #bfe6cc;background:#eaf8ef;color:#08763b;
