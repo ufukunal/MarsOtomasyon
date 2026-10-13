@@ -1651,3 +1651,40 @@
 .app-shell :is(.v65-contact-detail,.v65-product-detail,.v65-editor-panel,.v65-workspace-form) table.data-table:not(.wsl-items) tbody td{
   padding:9px 11px;font-size:11.5px;vertical-align:middle;border-bottom:1px solid #e8eef5
 }
+
+
+/* Legacy live-filter lists share the same right-side drawer geometry.
+   Their inputs apply instantly; no fake Livewire apply/reset handlers. */
+.app-shell .v65-simple-filter-drawer{position:relative;display:inline-flex;align-items:center}
+.app-shell .v65-simple-filter-drawer>summary{list-style:none;cursor:pointer}
+.app-shell .v65-simple-filter-drawer>summary::-webkit-details-marker{display:none}
+.app-shell .v65-simple-filter-drawer:not([open])>.v65-simple-filter-panel{display:none!important}
+.app-shell .v65-simple-filter-drawer[open]{z-index:150}
+.app-shell .v65-simple-filter-drawer[open]::before{
+  content:"";position:fixed;inset:0;background:rgba(15,23,42,.28);
+  z-index:150;pointer-events:none
+}
+.app-shell .v65-simple-filter-drawer .v65-simple-filter-panel{
+  box-sizing:border-box;position:fixed;top:0;right:0;bottom:0;
+  z-index:151;width:min(400px,100vw);height:100dvh;
+  background:#fff;border-left:1px solid #dce5f0;
+  box-shadow:-8px 0 30px rgba(15,23,42,.12);
+  display:flex;flex-direction:column
+}
+.app-shell .v65-simple-filter-head{
+  display:flex;justify-content:space-between;align-items:center;gap:12px;
+  padding:17px 20px;border-bottom:1px solid #e7edf5
+}
+.app-shell .v65-simple-filter-head>strong{font-size:15px;color:#1f3854}
+.app-shell .v65-simple-filter-fields{
+  padding:18px 20px;flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;
+  display:grid;align-content:start;gap:13px
+}
+.app-shell .v65-simple-filter-fields>label{display:grid;gap:6px;font-size:11.5px;font-weight:600;color:#3d526d}
+.app-shell .v65-simple-filter-fields :is(input:not([type="checkbox"]),select){
+  width:100%;height:40px;min-height:40px;border:1px solid #cfd8e3;
+  padding:0 10px;background:#fff;color:#263b53;font-size:12px
+}
+.app-shell .v65-simple-filter-foot{padding:12px 18px;border-top:1px solid #e7edf5;color:#64748b;font-size:11px}
+@media(max-width:480px){.app-shell .v65-simple-filter-head,.app-shell .v65-simple-filter-fields{padding:14px 16px}}
+@media print{.app-shell .v65-simple-filter-drawer{display:none!important}}
