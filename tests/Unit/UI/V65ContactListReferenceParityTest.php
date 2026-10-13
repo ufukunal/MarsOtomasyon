@@ -45,8 +45,8 @@ it('keeps the existing top-level actions while showing the filter drawer and lin
         ->toContain('v65-cari-state')
         ->toContain('wire:click="toggleVisibleContacts"')
         ->and($css)->toContain('.v65-cari-list .v65-cari-list-stats')
-        ->toContain('.v65-cari-list .data-table .v65-cari-balance.is-receivable')
-        ->toContain('.v65-cari-list .data-table .v65-cari-balance.is-payable')
+        ->toContain('.v65-cari-list .data-table .v65-cari-balance.is-debtor')
+        ->toContain('.v65-cari-list .data-table .v65-cari-balance.is-creditor')
         ->toContain('grid-template-columns:repeat(2,minmax(0,1fr))');
 });
 
@@ -66,7 +66,7 @@ it('exposes only real contact and ledger fields in the reference table order', f
         ->toContain('function toggleVisibleContacts()');
 });
 
-it('formats real TRY ledger net as receivable, payable, and risk percent', function (): void {
+it('formats positive TRY debit as customer debt and negative TRY credit as customer receivable, retaining risk percent', function (): void {
     $list = new ContactList;
     $contact = new Contact;
     $contact->forceFill([
@@ -80,13 +80,13 @@ it('formats real TRY ledger net as receivable, payable, and risk percent', funct
 
     expect($list->formattedValue($contact, Column::make('city_district', 'İl / İlçe')))->toBe('İstanbul / Ümraniye')
         ->and($list->formattedValue($contact, Column::make('category_names', 'Tip')))->toBe('Müşteri + Tedarikçi')
-        ->and($list->formattedValue($contact, Column::make('balance_display', 'Bakiye')))->toBe('50,00 ₺ Alacaklı')
+        ->and($list->formattedValue($contact, Column::make('balance_display', 'Bakiye')))->toBe('50,00 ₺ Borçlu')
         ->and($list->formattedValue($contact, Column::make('risk_usage', 'Risk Kullanımı')))->toBe('25%')
         ->and($list->formattedValue($contact, Column::make('last_movement', 'Son Hareket')))->toBe('23.08.2026')
         ->and($list->formattedValue($contact, Column::make('is_active', 'Durum')))->toBe('Aktif');
 
     $contact->setAttribute('v65_try_net', '-92.4000');
-    expect($list->formattedValue($contact, Column::make('balance_display', 'Bakiye')))->toBe('92,40 ₺ Borçlu')
+    expect($list->formattedValue($contact, Column::make('balance_display', 'Bakiye')))->toBe('92,40 ₺ Alacaklı')
         ->and($list->formattedValue($contact, Column::make('risk_usage', 'Risk Kullanımı')))->toBe('0%');
 
     $contact->setAttribute('risk_limit', '0');
@@ -149,4 +149,29 @@ it('only flags a customer with a positive TRY risk limit and excess receivable',
         ->toContain("currency === 'TRY'")
         ->and($editor)->toContain('Risk limitinin aşıldığını kabul ediyorum')
         ->toContain('invoiceRiskProjection()');
+});
+
+
+it('uses the cari perspective consistently in totals, balance cells and detail identity without altering ledger signs', function (): void {
+    $listClass = file_get_contents(base_path('app/Livewire/Pages/Contacts/ContactList.php'));
+    $listView = file_get_contents(base_path('resources/views/livewire/components/data-table.blade.php'));
+    $detailView = file_get_contents(base_path('resources/views/livewire/pages/contacts/contact-detail.blade.php'));
+    $styles = file_get_contents(base_path('resources/css/v65-shell.css'));
+
+    expect($listClass)->toContain("'debit' => \$debit")
+        ->toContain("'credit' => \$credit")
+        ->toContain("1 => ' Borçlu'")
+        ->toContain("-1 => ' Alacaklı'")
+        ->toContain("bccomp(\$balance, '0', 4) > 0 ? \$balance : '0'")
+        ->and($listView)->toContain("'is-debtor' => bccomp(\$cariNet, '0', 4) > 0")
+        ->toContain("'is-creditor' => bccomp(\$cariNet, '0', 4) < 0")
+        ->toContain("['credit']")
+        ->toContain("['debit']")
+        ->and($detailView)->toContain("'is-debit' => bccomp(\$balance, '0', 4) > 0")
+        ->toContain("'is-credit' => bccomp(\$balance, '0', 4) < 0")
+        ->toContain("? 'Borçlu' : (bccomp(\$balance, '0', 4) < 0 ? 'Alacaklı' : 'Dengede')")
+        ->and($styles)->toContain('.v65-cari-balance.is-debtor{color:#d5232e}')
+        ->toContain('.v65-cari-balance.is-creditor{color:#008744}')
+        ->toContain('.v65-contact-metric strong.is-debit{color:#d5232e}')
+        ->toContain('.v65-contact-metric strong.is-credit{color:#008744}');
 });
