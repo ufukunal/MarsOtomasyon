@@ -67,8 +67,17 @@ for c in "$PG" "$VK" "$WEB"; do
     [[ "$h" == healthy ]] || die "not healthy: $c $h"
 done
 
-http="$(curl --noproxy '*' -sS --connect-timeout 3 --max-time 10 -o /dev/null -w '%{http_code}' 'http://100.127.235.30:18082/kurulum' 2>/dev/null)" || die '/kurulum HTTP not reachable'
-[[ "$http" == 200 ]] || die "/kurulum HTTP=$http"
+# After setup creates the first user, CompanyWizard::mount() intentionally
+# returns HTTP 403 for unauthenticated /kurulum requests. A previously valid
+# installation must not be rejected merely because setup is protected.
+echo '=== FRESH HTTP CHECK ==='
+login_http="$(curl --noproxy '*' -sS --connect-timeout 3 --max-time 10 -o /dev/null -w '%{http_code}' 'http://100.127.235.30:18082/giris' 2>/dev/null)" || die '/giris HTTP not reachable'
+[[ "$login_http" == 200 ]] || die "/giris HTTP=$login_http"
+setup_http="$(curl --noproxy '*' -sS --connect-timeout 3 --max-time 10 -o /dev/null -w '%{http_code}' 'http://100.127.235.30:18082/kurulum' 2>/dev/null)" || die '/kurulum HTTP not reachable'
+[[ "$setup_http" == 200 || "$setup_http" == 403 ]] || die "/kurulum HTTP=$setup_http (expected 200 before installation, 403 after setup)"
+printf 'PASS: /giris HTTP=%s; /kurulum HTTP=%s (setup can be protected after first user)\n' "$login_http" "$setup_http"
+# Real readiness is also checked below using Laravel Master/period schema,
+# exact isolated database names and active company period.
 
 DC=(sudo docker compose --env-file "$ENV_FILE" -f "$COMPOSE")
 "${DC[@]}" config --quiet || die 'Compose validation failed'
@@ -103,7 +112,10 @@ echo '=== APPLY DATASET: CORE CARDS + DRAFT DOCUMENTS ==='
 
 echo '=== VERIFY DATABASE COUNTS / HTTP ==='
 "${DC[@]}" run --rm "${COMMON[@]}" web php /var/www/html/storage/app/uat-demo-rich/deploy/postflight.php || die 'postflight dataset counts failed'
-http="$(curl --noproxy '*' -sS --connect-timeout 3 --max-time 10 -o /dev/null -w '%{http_code}' 'http://100.127.235.30:18082/kurulum' 2>/dev/null)" || http=000
-printf 'KURULUM_HTTP=%s\n' "$http"
+login_http="$(curl --noproxy '*' -sS --connect-timeout 3 --max-time 10 -o /dev/null -w '%{http_code}' 'http://100.127.235.30:18082/giris' 2>/dev/null)" || login_http=000
+printf 'GIRIS_HTTP=%s\n' "$login_http"
+[[ "$login_http" == 200 ]] || die "postflight /giris HTTP=$login_http"
+setup_http="$(curl --noproxy '*' -sS --connect-timeout 3 --max-time 10 -o /dev/null -w '%{http_code}' 'http://100.127.235.30:18082/kurulum' 2>/dev/null)" || setup_http=000
+printf 'KURULUM_HTTP=%s\n' "$setup_http"
 printf 'IMPORT_EXIT=0\n'
 echo 'NOTE: Settled/posted accounting, cost allocations, channels and other scenario-only CSV are NOT imported as actual completed transactions.'
