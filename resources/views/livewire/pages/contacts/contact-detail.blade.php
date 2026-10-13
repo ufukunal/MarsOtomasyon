@@ -123,7 +123,7 @@
                                     <tr wire:key="contact-overview-move-{{ $movement->id }}">
                                         <td>{{ $renderDate($movement->transaction_date) }}</td>
                                         <td>{{ $movement->document?->number ?? '—' }}</td>
-                                        <td>{{ $movement->description ?: $movement->transaction_type }}</td>
+                                        <td>{{ $this->movementDisplayDescription($movement) }}</td>
                                         <td class="align-end">{{ $movement->direction === 'debit' ? $money($movement->amount) : '—' }}</td>
                                         <td class="align-end">{{ $movement->direction === 'credit' ? $money($movement->amount) : '—' }}</td>
                                         <td>{{ $movement->currency }}</td>
@@ -288,7 +288,7 @@
                                 <td>{{ $renderDate($move->transaction_date) }}</td>
                                 <td>{{ $move->document?->number ?? '—' }}</td>
                                 <td>{{ $move->transaction_type }}</td>
-                                <td>{{ $move->description ?: '—' }}</td>
+                                <td>{{ $this->movementDisplayDescription($move) }}</td>
                                 <td class="align-end">{{ $move->direction === 'debit' ? $money($move->amount) : '—' }}</td>
                                 <td class="align-end">{{ $move->direction === 'credit' ? $money($move->amount) : '—' }}</td>
                                 <td class="align-end"><strong>{{ $money($move->running_balance) }}</strong></td>
