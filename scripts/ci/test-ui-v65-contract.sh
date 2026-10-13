@@ -6,9 +6,10 @@ css=resources/css/app.css
 shell_css=resources/css/v65-shell.css
 shell=resources/views/layouts/app.blade.php
 table=resources/views/livewire/components/data-table.blade.php
+filter_partial=resources/views/livewire/components/partials/v65-table-filter-controls.blade.php
 prototype=reference/marsotomasyon-PROTOTIP-ONAYLI-v65.html
 test -s "$prototype"
-test -s "$css" && test -s "$shell_css" && test -s "$shell" && test -s "$table"
+test -s "$css" && test -s "$shell_css" && test -s "$shell" && test -s "$table" && test -s "$filter_partial"
 test "$(wc -c < "$css")" -lt 55000
 # The approved prototype itself uses explicit cascade overrides; reject
 # stale 34px guesses instead of banning those intentional overrides.
@@ -33,8 +34,11 @@ grep -Fq 'resources/css/v65-shell.css' "$shell" || {
 for marker in 'class="sidebar"' 'class="navigation"' 'aria-current="page"' 'class="topbar"' 'class="worktabs"' 'id="main-content"'; do
   grep -Fq "$marker" "$shell" || { echo "FAIL: v65 shell marker missing $marker" >&2; exit 1; }
 done
-for marker in '<x-v65.filter-drawer' 'wire:model="v65DraftFilters.search"' 'wire:model="v65DraftFilters.filters.' 'wire:click="exportCsv"' 'wire:click="exportXlsx"' '<x-v65.list-footer'; do
+for marker in "@include('livewire.components.partials.v65-table-filter-controls')" 'wire:click="exportCsv"' 'wire:click="exportXlsx"' '<x-v65.list-footer'; do
   grep -Fq "$marker" "$table" || { echo "FAIL: shared DataTable feature missing $marker" >&2; exit 1; }
+done
+for marker in '<x-v65.filter-drawer' 'wire:model="v65DraftFilters.search"' 'wire:model="v65DraftFilters.filters.'; do
+  grep -Fq "$marker" "$filter_partial" || { echo "FAIL: shared filter partial missing $marker" >&2; exit 1; }
 done
 # Every data grid in these critical UAT operations must be scrollable on narrower screens.
 for view in \
