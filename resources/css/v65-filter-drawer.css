@@ -1,4 +1,5 @@
 /* MarsProject V65 - compact reusable list filter drawer */
+html.v65-filter-is-open,html.v65-filter-is-open body{overflow:hidden!important;overscroll-behavior:none}
 .app-shell .v65-filter-toolbar{display:flex;align-items:center;justify-content:flex-end;gap:9px;padding:8px 0;min-height:42px}
 .app-shell .v65-filter-control{display:inline-flex;align-items:center}
 .app-shell .v65-filter-trigger{display:inline-flex;align-items:center;gap:8px;justify-content:center;height:38px;min-height:38px;padding:0 13px!important;border:1px solid #dce5f0!important;border-radius:6px!important;background:#fff!important;color:#263b53!important;font-size:12px;font-weight:650;cursor:pointer;box-shadow:none!important}
