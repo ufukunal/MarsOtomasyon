@@ -1,4 +1,4 @@
-<div class="stack v65-stock-workspace">
+<div class="stack v65-stock-workspace v65-list-page">
     <div class="form-row">
         <a class="button-ghost" href="{{ route('locations.index') }}">← Depolar / Lokasyonlar</a>
         @can('locations.update')
@@ -19,7 +19,7 @@
     @can('stock.view')
         <section class="panel stack">
             <strong>Depodaki Stoklar · İlk 100 Ürün</strong>
-            <div class="table-scroll v65-grid-scroll"><table class="data-table">
+            <div class="table-scroll v65-grid-scroll v65-list-table"><table class="data-table">
                 <thead><tr><th>Ürün Kodu</th><th>Ürün</th><th>Toplam</th><th>Rezerve</th><th>Karantina</th><th>Kullanılabilir</th></tr></thead>
                 <tbody>
                 @forelse($balances as $balance)

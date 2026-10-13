@@ -1,4 +1,4 @@
-<div class="stack v65-home">
+<div class="stack v65-home v65-list-page">
     <section class="v65-home-welcome" aria-label="Hızlı başlangıç">
         <div class="v65-home-intro">
             <strong>Bugün ne yapmak istiyorsun?</strong>
@@ -73,7 +73,7 @@
                 </div>
                 @can('sales_orders.view')<a class="button-secondary" href="{{ route('sales.orders.index') }}">Tümünü Gör</a>@endcan
             </header>
-            <div class="table-scroll">
+            <div class="table-scroll v65-list-table">
                 <table class="data-table">
                     <thead><tr><th>İş</th><th>Cari / Belge</th><th>Tutar</th><th>Termin</th><th>Durum</th></tr></thead>
                     <tbody>

@@ -1,4 +1,4 @@
-<div class="stack">
+<div class="stack v65-list-page">
     <section class="panel form-row">
         <select aria-label="Kopyalanacak kart tipi" wire:model.live="type" wire:change="loadSource">
             <option value="contact">Cari</option>
@@ -11,7 +11,7 @@
     </section>
 
     <section class="panel">
-        <div class="table-scroll v65-grid-scroll"><table class="data-table">
+        <div class="table-scroll v65-grid-scroll v65-list-table"><table class="data-table">
             <thead><tr><th></th><th>Kod</th><th>Kayıt</th></tr></thead>
             <tbody>
             @foreach($sourceRows as $row)
@@ -67,7 +67,7 @@
                         @endif
                     </div>
                     @if(!$row['source_missing'])
-                        <div class="table-scroll v65-grid-scroll"><table class="data-table">
+                        <div class="table-scroll v65-grid-scroll v65-list-table"><table class="data-table">
                             <thead><tr><th>Alan</th><th>Hedef</th><th>Kaynak</th></tr></thead>
                             <tbody>
                             @foreach($row['changes'] as $change)

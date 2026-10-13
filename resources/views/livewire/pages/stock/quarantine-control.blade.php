@@ -1,4 +1,4 @@
-<div class="stack v65-stock-workspace">
+<div class="stack v65-stock-workspace v65-list-page">
     <section class="panel stack v65-stock-document">
         <div class="form-row">
             <label class="field">
@@ -18,7 +18,7 @@
             </label>
         </div>
 
-        <div class="table-scroll v65-grid-scroll"><table class="data-table">
+        <div class="table-scroll v65-grid-scroll v65-list-table"><table class="data-table">
             <thead>
             <tr>
                 <th></th>

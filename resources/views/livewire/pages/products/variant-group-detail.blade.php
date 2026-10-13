@@ -1,4 +1,4 @@
-<div class="stack">
+<div class="stack v65-list-page">
     <section class="panel form-row">
         <input wire:model="name" placeholder="Grup adı">
         <label><input type="checkbox" wire:model="isActive"> Aktif</label>
@@ -31,7 +31,7 @@
             @if($groupProducts->count() === 1)
                 <div class="alert alert-warning">Varyant grubu yalnız bir ürün içeriyor. Bu durum engellenmez ancak grup sunum açısından anlamlı değildir.</div>
             @endif
-            <table class="data-table">
+            <div class="table-scroll v65-list-table"><table class="data-table">
                 <thead><tr><th>Kod</th><th>Ürün</th><th>Değerler</th><th>Fiyat</th><th>Stok</th><th>Durum</th></tr></thead>
                 <tbody>
                 @foreach($groupProducts as $product)
@@ -45,7 +45,7 @@
                     </tr>
                 @endforeach
                 </tbody>
-            </table>
+            </table></div>
         </section>
     @endif
 </div>

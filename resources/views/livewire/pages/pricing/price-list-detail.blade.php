@@ -1,4 +1,4 @@
-<div class="stack">
+<div class="stack v65-list-page">
     <section class="panel">
         <h2>Fiyat Listesi</h2>
         <div class="form-grid">
@@ -28,7 +28,7 @@
                 <label class="field"><span class="field-label">Toplu Fiyat Değişimi (%)</span><input wire:model="bulkPercent" inputmode="decimal"></label>
                 <button type="button" class="button-secondary" wire:click="bulkAdjust">Toplu Yüzde Uygula</button>
             </div>
-            <div class="table-scroll">
+            <div class="table-scroll v65-list-table">
                 <table class="data-table"><thead><tr><th>Ürün</th><th>Fiyat</th><th>Başlangıç</th><th>Bitiş</th><th>İşlem</th></tr></thead><tbody>
                 @forelse($items as $item)
                     <tr><td>{{ $item->product->code }} · {{ $item->product->name }}</td><td>{{ \App\Support\Formatting\TrFormatter::money((string)$item->price,4) }}</td><td>{{ $item->valid_from?->format('d.m.Y') }}</td><td>{{ $item->valid_to?->format('d.m.Y') }}</td><td><button type="button" class="button-secondary" wire:click="editItem({{ $item->id }})">Düzenle</button></td></tr>
