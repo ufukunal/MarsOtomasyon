@@ -9,12 +9,17 @@ use Carbon\CarbonImmutable;
 
 final class BuildContactAging
 {
-    public function handle(int $contactId, string $asOf): ContactAgingResult
+    public function handle(int $contactId, string $asOf, string $currency = 'TRY'): ContactAgingResult
     {
         $asOfDate = CarbonImmutable::parse($asOf)->startOfDay();
+        $currency = strtoupper(trim($currency));
+        if (preg_match('/^[A-Z]{3}$/D', $currency) !== 1) {
+            throw new \InvalidArgumentException('Yaşlandırma para birimi geçersiz.');
+        }
 
         $rows = ContactTransaction::query()
             ->where('contact_id', $contactId)
+            ->where('currency', $currency)
             ->whereDate('transaction_date', '<=', $asOfDate)
             ->orderBy('transaction_date')
             ->orderBy('id')
@@ -114,6 +119,7 @@ final class BuildContactAging
             openDebit: $expectedOpen,
             excessCredit: $excessCredit,
             buckets: $buckets,
+            currency: $currency,
         );
     }
 
