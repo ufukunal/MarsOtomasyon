@@ -35,7 +35,7 @@
                 <tbody>
                     @forelse($slips as $slip)
                         <tr wire:key="transport-slip-{{ $slip->id }}">
-                            <td><a href="{{ route('warehouse.transport.show', ['id' => $slip->id]) }}">{{ $slip->number }}</a></td>
+                            <td><a class="v65-record-link" href="{{ route('warehouse.transport.show', ['id' => $slip->id]) }}">{{ $slip->number }}</a></td>
                             <td>
                                 @if($slip->contact && auth()->user()?->can('contacts.view'))
                                     <a href="{{ route('contacts.show', ['contact' => $slip->contact_id]) }}">{{ $slip->contact->title }}</a>
