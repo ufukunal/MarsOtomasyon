@@ -5,6 +5,7 @@ it('uses one common filter drawer with two tabs and a fixed action footer', func
     $field = file_get_contents(base_path('resources/views/components/v65/filter-field.blade.php'));
     $chips = file_get_contents(base_path('resources/views/components/v65/active-filters.blade.php'));
     $table = file_get_contents(base_path('resources/views/livewire/components/data-table.blade.php'));
+    $partial = file_get_contents(base_path('resources/views/livewire/components/partials/v65-table-filter-controls.blade.php'));
 
     expect($drawer)->toContain('data-v65-filter-dialog')
         ->toContain('data-v65-filter-open')
@@ -15,7 +16,8 @@ it('uses one common filter drawer with two tabs and a fixed action footer', func
         ->toContain('applyV65Filters')
         ->and($field)->toContain('v65-filter-field-label')
         ->and($chips)->toContain('removeV65Filter')
-        ->and($table)->toContain('<x-v65.filter-drawer')
+        ->and($table)->toContain("@include('livewire.components.partials.v65-table-filter-controls')")
+        ->and($partial)->toContain('<x-v65.filter-drawer')
         ->toContain('<x-v65.active-filters')
         ->not->toContain('v65-products-filter-popover')
         ->not->toContain('<div @class([\'table-toolbar\'');
