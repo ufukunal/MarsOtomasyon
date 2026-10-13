@@ -10,18 +10,18 @@
             <label class="v65-list-filter-field"><span class="sr-only">Listede ara</span><input type="search" wire:model.live.debounce.300ms="listSearch" placeholder="Ürün / belge / kod ara" aria-label="Listede ara"></label>
         </x-v65.list-filters>
         <div class="table-scroll v65-grid-scroll v65-list-table"><table class="data-table">
-            <thead><tr><th>No</th><th>Tarih</th><th>Mamul</th><th>Tip</th><th>Plan</th><th>Tamamlanan</th><th>Durum</th><th></th></tr></thead>
+            <thead><tr><th>No</th><th>Tarih</th><th>Mamul</th><th>Tip</th><th>Plan</th><th>Tamamlanan</th><th>Durum</th></tr></thead>
             <tbody>
             @foreach($orders as $row)
                 <tr>
-                    <td>{{ $row->number ?? 'Taslak #'.$row->id }}</td>
+                    <td><button type="button" class="link-button v65-record-link" wire:click="selectOrder({{ $row->id }})">{{ $row->number ?? 'Taslak #'.$row->id }}</button></td>
                     <td>{{ $row->document_date?->format('d.m.Y') }}</td>
                     <td>{{ $row->product->code }} · {{ $row->product->name }}</td>
                     <td>{{ $row->production_type }}</td>
                     <td>{{ $row->planned_quantity }}</td>
                     <td>{{ $row->completed_quantity }}</td>
                     <td>{{ $row->status }}</td>
-                    <td><button class="button-secondary" type="button" wire:click="selectOrder({{ $row->id }})">Aç</button></td>
+                    
                 </tr>
             @endforeach
             </tbody>
