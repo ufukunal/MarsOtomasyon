@@ -34,3 +34,38 @@ Kaynak: `reference/marsotomasyon-PROTOTIP-ONAYLI-v65.html` dosyası ve kullanıc
 3. Boş ve dolu veride her sekme, ürün bağlantıları, iptal/taslak/kesinleşmiş durumlar.
 4. Para birimleri TRY ve USD karışıkken bakiye / CSV / Excel, tarih aralığı dışı devir bakiyesi.
 5. 768 / 1024 / 1440 / 1920 ekran genişliklerinde üst ve alt bar, sekmelerin yatay kayması, adres kartları ve tablo satır yoğunluğu.
+
+## 13 Ekim 2026 — Devir sonrası somut düzeltmeler ve kabul sınırları
+
+Başlangıç main HEAD: fe78894fc3717b35bce9e376658687bc12da6818.
+
+Commit'ler:
+- e711de4c78a90dec6512441af5386ef47d22e4a2 — Devir olup filtre aralığında hareketi olmayan dövizleri ekstre kartlarında koruma; CSV/XLSX devir/son satırlarını ekleme.
+- cc5a0cc5fd2b5b73a94d2c39f07e470a8c041380 — Tek tutarlı Cari::balance() hesabını TRY ile sınırlandırma.
+- 5afc00775f6d6469481a115a2d5a30a08e805e73 — Risk filtresi TRY ile sınırlandırıldı, Cari Liste kolonu Bakiye (TRY).
+- 3a4bae354affdc77939a80626927972eefc885fd — İki kaynak sözleşmesi testi eklendi.
+- 0335acc67dd44a819a43bbcd0b7cee0db65a7832 — CSV enjeksiyonuna karşı korunurken gerçek negatif bakiye değerleri bozulmuyor.
+- 1864dd58afafa2ddf52f923feaa2c102aa864398 — CSV metin güvenliği ve negatif tutarlar için çalışma zamanı test senaryosu.
+
+Referans: Onaylı V65 HTML GitHub blob SHA c11eb5f38bfa4d98f45c3c0758f692ff32bcf974. 19 temel Livewire ekran/form sınıfının GitHub'da bulunduğu doğrulandı. Bu yalnız kaynak varlığı kanıtıdır, görsel veya işlevsel kabul değildir.
+
+| Alan | Durum | Açıklama |
+|---|---|---|
+| GitHub kod okuma / commit | TAMAM | Yukarıdaki altı değişiklik |
+| Devir-only para birimi ekstre kartı | KODDA DÜZELTİLDİ, TEST EDİLMEDİ | ContactDetail |
+| Çoklu dövizin skaler toplamda karışması | KODDA DÜZELTİLDİ, TEST EDİLMEDİ | Contact / ContactList |
+| CSV negatif rakam koruması | KODDA DÜZELTİLDİ, TEST EDİLMEDİ | csvSafeRow |
+| Ekstre CSV/XLSX gerçek dosya ve bakiye testi | DOĞRULANMADI | Fresh işlem verisine erişim yok |
+| Cari yetki matrisi ve dönem izolasyonu | KISMEN İNCELENDİ | Kaynakta yetki kontrolleri görüldü |
+| 19 ekranın tarayıcı ve responsive karşılaştırması | DOĞRULANMADI | 390/768/1024/1440/1920 px kontrol gerek |
+| Cari Bakiyeleri / Fiş Listesi / Ekstre menüsü | KISMEN TAMAM | V65 menüsünde bağımsız; Laravel'de Ekstre/Fiş modları Cari Detay Hareketler altında. Bağımsız rotalar bulunmadı |
+| Barkod, Paket, Maliyet Faktörü bağımsız ekranları | DOĞRULANMADI | İlişkili veri ve işlemler bulunması tek başına ekran kabulü değildir |
+| Otomatik ve entegrasyon testleri | ÇALIŞTIRILMADI | Önceki ayrı onay şartı korundu |
+| PostgreSQL kayıt sayıları | DOĞRULANMADI | Demo veri sıfırlaması veya tekrar import yok |
+| Fresh web imajı / HTTP / health | DOĞRULANMADI | Sunucuya doğrudan erişim yok |
+
+V65 HTML'nin son durumuyla Cari Detay, Cari Bakiyeleri, Fiş Listesi ve Cari Ekstre ayrı navigasyon başlıkları olarak karşılaştırıldı; mevcut uygulamanın bazı işlevleri ortak Hareketler sekmesinde topladığı belirlendi. Bu fark kullanıcı kabulü gerektiriyor; çalışan akışa izinsiz paralel ekran eklenmedi.
+
+Fresh web dağıtım betiği ops/uat-fresh-web-update.sh kaynak düzeyinde okundu. Betik kaynak commit SHA'yı gerektiriyor ve web imajı oluşturma, eski imajı tutma, yalnız web'i yenileme, PG/Valkey ID ve volume doğrulama, HTTP kontrolü ile rollback adımlarını içeriyor. Okunmuş olması yayınlandığı anlamına gelmez. Yalnız Fresh web hedeflenebilir; PROD, migration, PostgreSQL, Valkey ve veri volume'lerine müdahale yok.
+
+Kalan kabul: PHP/Blade/Vite denetimi, finans testleri ve indirmeler, tarayıcı boyutları, ayrı navigasyon kararı ve Fresh sürüm sonrası doğrulama. Her başarısızlık kanıtla raporlanmalı; çalıştırılmamış hiçbir test başarılı yazılmamalı.
