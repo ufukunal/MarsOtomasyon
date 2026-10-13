@@ -6,6 +6,7 @@ use App\Actions\Channels\SaveChannelProductListing;
 use App\Actions\Channels\SyncChannelListing;
 use App\Enums\LocationKind;
 use App\Livewire\Concerns\WithIdempotentMutations;
+use App\Livewire\Concerns\WithV65SimpleListFilter;
 use App\Models\Period\ChannelProductListing;
 use App\Models\Period\Location;
 use App\Models\Period\Product;
@@ -24,6 +25,7 @@ class ChannelListingCenter extends Component
 {
     use WithIdempotentMutations;
     use WithPagination;
+    use WithV65SimpleListFilter;
 
     public string $listSearch = '';
 
@@ -248,9 +250,7 @@ class ChannelListingCenter extends Component
                         ->orWhere('external_listing_id', 'ilike', $needle)
                         ->orWhereHas('product', fn ($p) => $p->where('name', 'ilike', $needle)->orWhere('code', 'ilike', $needle));
                 }))
-                ->orderBy('channel_account_id')
-                ->orderBy('product_id')
-                ->orderBy('id')
+                ->when($this->v65SimpleSort === 'id', fn ($q) => $q->orderBy('id', $this->v65SimpleDirection), fn ($q) => $q->orderBy('channel_account_id')->orderBy('product_id')->orderBy('id'))
                 ->paginate($this->perPage),
             'accounts' => SalesChannelAccount::query()
                 ->where('company_id', PeriodContext::companyId())
