@@ -8,9 +8,9 @@
 - Cari Liste özet başlığında “Cari Listesi / Müşteri ve tedarikçi kartları” metni yer alır; iç başlığa ikinci bir Yeni Cari veya Excel/CSV butonu eklenmez.
 - KPI kartları tek sırada altı başlıktır: Toplam Cari, Müşteri, Tedarikçi, Toplam Alacak, Toplam Borç, Aktif. Dar ekranlarda üç/iki sütuna uyarlanır.
 - Müşteri/Tedarikçi sayıları `contact_categories` ilişkisinden hesaplanır, aynı Cari iki rolde bulunabilir; sayılar sahte referans değeri olarak girilmez.
-- TRY net pozitif tutar alacaklı/yeşil, negatif tutar borçlu/kırmızı olarak sunulur. Birden fazla para birimi toplama işlemi yapılmaz.
+- Cari açısından pozitif TRY net tutar **Borçlu/kırmızı**, negatif TRY net tutar **Alacaklı/yeşil** olarak sunulur. Şirketin muhasebe debit/credit yönleri değişmez. Birden fazla para birimi toplama işlemi yapılmaz.
 - 11 sütun: Cari Kodu, Ünvan, Yetkili, Tip, İl/İlçe, Telefon, Vergi No, Bakiye, Risk Kullanımı, Son Hareket, Durum.
-- Risk Kullanımı = pozitif TRY alacağı / risk limiti * 100; risk limiti 0 veya boşsa “—”; borçlu Cari için 0% gösterilir.
+- Risk Kullanımı = carinin pozitif TRY net borcu / risk limiti * 100; risk limiti 0 veya boşsa “—”; net alacaklı cari için 0% gösterilir.
 - Son Hareket tarihini gerçek `contact_transactions.transaction_date` üzerinden hesapla; fiş yoksa “—”.
 - Cari kodu ve ünvan kart detayına tıklanabilir, satır Aç/Düzenle eylemleri bulunmaz.
 - Checkbox'lar görünür kayıtlar için tek tıkla toplu seçim ve tekrar tıklamayla seçimi bırakma imkanı sunar.
