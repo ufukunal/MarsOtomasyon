@@ -143,6 +143,9 @@ class Contact extends PeriodModel implements HasAttachmentsContract, SearchIndex
             ->getConnection()
             ->table('contact_transactions')
             ->where('contact_id', $this->id)
+            // A scalar balance must never add TRY, USD and other currencies together.
+            // Contact list and TRY-denominated risk limit use the TRY ledger only.
+            ->where('currency', 'TRY')
             ->selectRaw("COALESCE(SUM(CASE WHEN direction = 'debit' THEN amount ELSE -amount END), 0)::text AS balance")
             ->value('balance');
 
