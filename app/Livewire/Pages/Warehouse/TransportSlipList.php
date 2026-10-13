@@ -169,7 +169,7 @@ class TransportSlipList extends Component
         if ($this->v65WarehouseSort !== '' && array_key_exists($this->v65WarehouseSort, $this->v65SortOptions())) {
             $query->orderBy($this->v65WarehouseSort, $this->v65WarehouseDirection === 'asc' ? 'asc' : 'desc')->orderByDesc('id');
         } else {
-            $query->orderByDesc('slip_date')->orderByDesc('id');
+            $query->orderBy('slip_date', $this->v65WarehouseDirection === 'asc' ? 'asc' : 'desc')->orderByDesc('id');
         }
 
         return view('livewire.pages.warehouse.transport-slip-list', [
