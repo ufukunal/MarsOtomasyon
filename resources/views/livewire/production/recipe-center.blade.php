@@ -33,14 +33,14 @@
         </x-v65.list-heading>
         <x-v65.active-filters :items="$this->v65ActiveFilterLabels()" />
         <div class="table-scroll v65-grid-scroll v65-list-table"><table class="data-table">
-            <thead><tr><th>Mamul</th><th>Reçete</th><th>Rev.</th><th>Çıktı</th><th>Aktif</th><th></th></tr></thead>
+            <thead><tr><th>Mamul</th><th>Reçete</th><th class="align-end">Rev.</th><th class="align-end">Çıktı</th><th>Aktif</th><th></th></tr></thead>
             <tbody>
             @foreach($recipes as $recipe)
                 <tr>
                     <td>@can('products.view')<a class="v65-record-link" href="{{ route('products.show', ['product' => $recipe->product_id]) }}">{{ $recipe->product->code }} · {{ $recipe->product->name }}</a>@else{{ $recipe->product->code }} · {{ $recipe->product->name }}@endcan</td>
                     <td><button type="button" class="link-button v65-record-link" wire:click="selectRecipe({{ $recipe->id }})">{{ $recipe->number }}</button></td>
-                    <td>{{ $recipe->revision_no }}</td>
-                    <td>{{ $recipe->output_quantity }}</td>
+                    <td class="align-end">{{ $recipe->revision_no }}</td>
+                    <td class="align-end">{{ $recipe->output_quantity }}</td>
                     <td>{{ $recipe->is_active ? 'Evet' : 'Hayır' }}</td>
                     <td>
                         
