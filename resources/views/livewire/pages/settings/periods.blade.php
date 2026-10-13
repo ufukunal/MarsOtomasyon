@@ -18,6 +18,7 @@
     @endcan
 
     <section class="panel">
+        <x-v65.list-heading title="Dönem Listesi" />
         <div class="table-scroll v65-list-table"><table class="data-table">
             <thead>
             <tr>
