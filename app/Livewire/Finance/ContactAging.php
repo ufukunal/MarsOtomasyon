@@ -22,6 +22,14 @@ class ContactAging extends Component
         $this->asOf = now()->toDateString();
     }
 
+    public function updatedContactId(): void
+    {
+        $this->currency = $this->contactId
+            ? (string) (ContactTransaction::query()->where('contact_id', $this->contactId)
+                ->orderBy('currency')->value('currency') ?? 'TRY')
+            : 'TRY';
+    }
+
     public function render(BuildContactAging $query): View
     {
         $currencies = $this->contactId
