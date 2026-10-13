@@ -14,17 +14,17 @@
             </label>
         </x-v65.list-filters>
         <div class="table-scroll v65-grid-scroll v65-list-table"><table class="data-table">
-            <thead><tr><th>Account</th><th>Ürün</th><th>External Listing</th><th>SKU</th><th>Mode</th><th>Aktif</th><th></th></tr></thead>
+            <thead><tr><th>Account</th><th>Ürün</th><th>External Listing</th><th>SKU</th><th>Mode</th><th>Aktif</th></tr></thead>
             <tbody>
             @foreach($listings as $listing)
                 <tr>
                     <td>#{{ $listing->channel_account_id }}</td>
                     <td>{{ $listing->product->code }} · {{ $listing->product->name }}</td>
-                    <td>{{ $listing->external_listing_id }}</td>
+                    <td><button type="button" class="link-button v65-record-link" wire:click="selectListing({{ $listing->id }})">{{ $listing->external_listing_id ?? ('#'.$listing->id) }}</button></td>
                     <td>{{ $listing->external_sku }}</td>
                     <td>{{ $listing->stock_mode ?: 'product default' }}</td>
                     <td>{{ $listing->is_active ? 'Evet' : 'Hayır' }}</td>
-                    <td><button class="button-secondary" type="button" wire:click="selectListing({{ $listing->id }})">Aç</button></td>
+                    
                 </tr>
             @endforeach
             </tbody>
