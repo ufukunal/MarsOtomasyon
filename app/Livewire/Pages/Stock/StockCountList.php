@@ -60,8 +60,12 @@ class StockCountList extends DataTableComponent
 
     public function columnUrl(Model $row, Column $column): ?string
     {
-        return $column->key === 'number'
-            ? route('stock.counts.show', ['id' => $row->getKey()])
+        if ($column->key === 'number') {
+            return route('stock.counts.show', ['id' => $row->getKey()]);
+        }
+
+        return $column->key === 'location_name' && auth()->user()?->can('locations.view')
+            ? route('locations.show', ['location' => $row->getAttribute('location_id')])
             : null;
     }
 
