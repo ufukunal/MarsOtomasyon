@@ -1,37 +1,29 @@
 <?php
 
-it('keeps exactly one create action and exports in the page header for shared non-product tables', function (): void {
+it('keeps create and export controls separate from the shared drawer', function (): void {
     $markup = file_get_contents(base_path('resources/views/livewire/components/data-table.blade.php'));
-    $headerStart = strpos($markup, '@unless($isProductTable)');
-    $filtersStart = strpos($markup, '<div @class([\'table-toolbar\'', $headerStart);
-    expect($headerStart)->not->toBeFalse()
-        ->and($filtersStart)->not->toBeFalse();
+    $header = substr($markup, 0, strpos($markup, '<div class="v65-filter-toolbar">'));
+    $drawer = substr($markup, strpos($markup, '<div class="v65-filter-toolbar">'), strpos($markup, '@if(!$isProductTable && $selected !== []') - strpos($markup, '<div class="v65-filter-toolbar">'));
 
-    $header = substr($markup, $headerStart, $filtersStart - $headerStart);
-    $filterEnd = strpos($markup, '@if(!$isProductTable && $selected !== []', $filtersStart);
-    $filters = substr($markup, $filtersStart, $filterEnd - $filtersStart);
-
-    expect($header)->toContain('@teleport(\'.page-actions.v65-page-actions\')')
-        ->toContain('v65-data-table-heading-actions')
+    expect($header)->toContain('v65-data-table-heading-actions')
         ->toContain('table-add-action')
         ->toContain('wire:click="exportCsv"')
         ->toContain('wire:click="exportXlsx"')
-        ->and($filters)->toContain('v65-data-table-filter-fields')
+        ->and($drawer)->toContain('<x-v65.filter-drawer')
+        ->toContain('wire:model="v65DraftFilters.search"')
         ->not->toContain('table-add-action')
         ->not->toContain('wire:click="exportCsv"')
         ->not->toContain('wire:click="exportXlsx"');
 });
 
-it('keeps stock-date filters readable with distinct accessible start/end labels', function (): void {
-    $markup = file_get_contents(base_path('resources/views/livewire/components/data-table.blade.php'));
-    $css = file_get_contents(base_path('resources/css/v65-shell.css'));
+it('provides distinct date bounds inside the shared drawer', function (): void {
+    $view = file_get_contents(base_path('resources/views/livewire/components/data-table.blade.php'));
+    $css = file_get_contents(base_path('resources/css/v65-filter-drawer.css'));
 
-    expect($markup)->toContain('v65-date-range-filter')
-        ->toContain('v65-date-range-input')
-        ->toContain('aria-label="{{ $filter->label }} başlangıç"')
+    expect($view)->toContain('aria-label="{{ $filter->label }} başlangıç"')
         ->toContain('aria-label="{{ $filter->label }} bitiş"')
-        ->toContain('v65-data-table-filters')
-        ->and($css)->toContain('grid-template-columns:auto minmax(0,1fr) minmax(0,1fr)')
-        ->toContain('.v65-data-table-heading-actions')
-        ->toContain('max-width:240px');
+        ->toContain('v65DraftFilters.filters.{{ $filter->key }}.from')
+        ->toContain('v65DraftFilters.filters.{{ $filter->key }}.to')
+        ->and($css)->toContain('.v65-filter-date-pair')
+        ->toContain('grid-template-columns:repeat(2,minmax(0,1fr))');
 });
