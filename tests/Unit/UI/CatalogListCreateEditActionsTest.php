@@ -12,7 +12,6 @@ it('exposes the existing brand and unit create/edit routes', function (): void {
 
 it('makes catalog create and edit actions available to users with matching permissions', function (): void {
     foreach ([BrandList::class => ['brands.create', 'brands.update', 'brands.edit'], UnitList::class => ['units.create', 'units.update', 'units.edit']] as $class => $spec) {
-        $instance = new $class;
         $source = file_get_contents(base_path(str_replace('App/', 'app/', str_replace('\\', '/', $class)).'.php'));
         // The list must not expose mutations to users who cannot create/update.
         expect($source)->toContain("can('".$spec[0]."')")
