@@ -451,6 +451,19 @@ class ContactDetail extends Component
                     ->selectRaw("SUM(CASE WHEN direction = 'credit' THEN amount ELSE 0 END)::text AS total_credit")
                     ->selectRaw('COUNT(*)::int AS total_movements')
                     ->orderBy('currency')->get();
+
+                // Devir and closing balances must include movements before the filter.
+                // Keep each currency separate; never add USD/EUR balances to TRY.
+                $openings = $this->openingBalances();
+                $movementTotals->each(static function ($total) use ($openings): void {
+                    $opening = (string) ($openings[$total->currency] ?? '0');
+                    $total->opening = $opening;
+                    $total->closing = bcsub(
+                        bcadd($opening, (string) $total->total_debit, 4),
+                        (string) $total->total_credit,
+                        4,
+                    );
+                });
             } else {
                 $movements = $moveQuery->orderByDesc('transaction_date')
                     ->orderByDesc('id')->limit(5)->get();
@@ -538,7 +551,7 @@ class ContactDetail extends Component
                 ->selectRaw('EXTRACT(YEAR FROM document_date)::int AS year, currency, COUNT(*) AS document_count, SUM(grand_total)::text AS total')
                 ->orderByDesc('year')->get();
 
-            $monthly = Document::query()->where('contact_id', $contact->id)
+            $monthlySales = Document::query()->where('contact_id', $contact->id)
                 ->where('document_type', DocumentType::SalesInvoice->value)
                 ->where('status', 'posted')->where('currency', 'TRY')
                 ->whereYear('document_date', $year)
@@ -547,11 +560,61 @@ class ContactDetail extends Component
                 ->selectRaw('SUM(grand_total)::text AS revenue')
                 ->orderBy('month')->get();
 
+            // Sales orders remain distinct from invoiced revenue and are counted
+            // only if the user is allowed to see sales orders.
+            $monthlyOrders = $ordersAllowed
+                ? Document::query()->where('contact_id', $contact->id)
+                    ->where('document_type', DocumentType::SalesOrder->value)
+                    ->whereNotIn('status', ['cancelled', 'reversed'])
+                    ->whereYear('document_date', $year)
+                    ->groupByRaw('EXTRACT(MONTH FROM document_date)')
+                    ->selectRaw('EXTRACT(MONTH FROM document_date)::int AS month, COUNT(*)::int AS order_count')
+                    ->pluck('order_count', 'month')->all()
+                : [];
+
+            // Only posted collection transactions in TRY are included as tahsilat.
+            // Ordinary credits, draft documents and other currencies are excluded.
+            $monthlyCollections = DB::connection('period')->table('contact_transactions as ct')
+                ->join('documents as d', 'd.id', '=', 'ct.document_id')
+                ->where('ct.contact_id', $contact->id)
+                ->where('ct.direction', 'credit')
+                ->where('ct.currency', 'TRY')
+                ->where('d.document_type', DocumentType::Collection->value)
+                ->where('d.status', 'posted')
+                ->whereYear('ct.transaction_date', $year)
+                ->groupByRaw('EXTRACT(MONTH FROM ct.transaction_date)')
+                ->selectRaw('EXTRACT(MONTH FROM ct.transaction_date)::int AS month')
+                ->selectRaw('SUM(ct.amount)::text AS collection_total')
+                ->pluck('collection_total', 'month')->all();
+
+            $monthsWithActivity = array_unique([
+                ...$monthlySales->pluck('month')->all(),
+                ...array_keys($monthlyOrders),
+                ...array_keys($monthlyCollections),
+            ]);
+            sort($monthsWithActivity, SORT_NUMERIC);
+            $salesByMonth = $monthlySales->keyBy('month');
+            $monthly = collect($monthsWithActivity)->map(static function ($month) use (
+                $salesByMonth,
+                $monthlyOrders,
+                $monthlyCollections,
+            ) {
+                $salesRow = $salesByMonth->get($month);
+
+                return (object) [
+                    'month' => (int) $month,
+                    'invoices' => (int) ($salesRow?->invoices ?? 0),
+                    'revenue' => (string) ($salesRow?->revenue ?? '0'),
+                    'orders' => (int) ($monthlyOrders[$month] ?? 0),
+                    'collection_total' => (string) ($monthlyCollections[$month] ?? '0'),
+                ];
+            });
+
             $annualSummary = [
                 'sales_try' => (string) ($yearSales ?? '0'),
-                'sales_count' => $monthly->sum('invoices'),
-                'months' => $monthly->count(),
-                'last_month' => $monthly->last()?->month,
+                'sales_count' => $monthlySales->sum('invoices'),
+                'months' => $monthlySales->count(),
+                'last_month' => $monthlySales->last()?->month,
             ];
         }
 

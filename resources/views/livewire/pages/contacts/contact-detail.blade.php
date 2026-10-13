@@ -255,9 +255,11 @@
             @if($movementTotals->isNotEmpty())
                 <div class="v65-contact-statement-totals">
                     @foreach($movementTotals as $totalRow)
+                        <div><small>Devir Bakiye · {{ $totalRow->currency }}</small><strong>{{ $money($totalRow->opening) }}</strong></div>
                         <div><small>Toplam Borç · {{ $totalRow->currency }}</small><strong>{{ $money($totalRow->total_debit) }}</strong></div>
                         <div><small>Toplam Alacak · {{ $totalRow->currency }}</small><strong>{{ $money($totalRow->total_credit) }}</strong></div>
                         <div><small>Hareket · {{ $totalRow->currency }}</small><strong>{{ $totalRow->total_movements }}</strong></div>
+                        <div><small>Son Bakiye · {{ $totalRow->currency }}</small><strong>{{ $money($totalRow->closing) }}</strong></div>
                     @endforeach
                 </div>
             @endif
@@ -393,12 +395,12 @@
             <section class="v65-contact-panel">
                 <div class="v65-contact-panel-header"><h3>{{ $year }} Aylık Performans</h3><small>TRY kesinleşmiş satışlar</small></div>
                 <div class="table-scroll"><table class="data-table">
-                    <thead><tr><th>Ay</th><th class="align-end">Satış</th><th class="align-end">Fatura Sayısı</th></tr></thead>
+                    <thead><tr><th>Ay</th><th class="align-end">Satış (TRY)</th><th class="align-end">Fatura Sayısı</th><th class="align-end">Sipariş Sayısı</th><th class="align-end">Tahsilat (TRY)</th></tr></thead>
                     <tbody>
                     @forelse($monthly as $row)
-                        <tr><td>{{ $months[$row->month] ?? $row->month }}</td><td class="align-end">{{ $money($row->revenue) }} ₺</td><td class="align-end">{{ $row->invoices }}</td></tr>
+                        <tr><td>{{ $months[$row->month] ?? $row->month }}</td><td class="align-end">{{ $money($row->revenue) }} ₺</td><td class="align-end">{{ $row->invoices }}</td><td class="align-end">{{ $ordersAllowed ? $row->orders : '—' }}</td><td class="align-end">{{ $money($row->collection_total) }} ₺</td></tr>
                     @empty
-                        <tr><td colspan="3" class="empty-state">Bu yıl kesinleşmiş satış bulunmuyor.</td></tr>
+                        <tr><td colspan="5" class="empty-state">Bu yıl satış, sipariş veya tahsilat kaydı bulunmuyor.</td></tr>
                     @endforelse
                     </tbody>
                 </table></div>
