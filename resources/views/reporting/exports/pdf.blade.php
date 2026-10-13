@@ -35,7 +35,9 @@
         @foreach($dataset->rows as $row)
             <tr>
                 @foreach($dataset->columns as $column)
-                    @php($value = $row[$column->key] ?? null)
+                    @php
+                        $value = $row[$column->key] ?? null;
+                    @endphp
                     <td>{{ is_scalar($value) ? (string) $value : '' }}</td>
                 @endforeach
             </tr>
