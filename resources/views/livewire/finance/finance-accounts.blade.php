@@ -15,15 +15,15 @@
         @endcan
 
         <div class="table-scroll v65-list-table"><table class="data-table">
-            <thead><tr><th>Kod</th><th>Ad</th><th>PB</th><th>Defter Bakiyesi</th><th>Durum</th><th></th></tr></thead>
+            <thead><tr><th>Kod</th><th>Ad</th><th>PB</th><th class="align-end">Defter Bakiyesi</th><th>Durum</th><th></th></tr></thead>
             <tbody>
             @foreach($cashAccounts as $account)
                 <tr>
                     <td>@can('cash_accounts.update')<button type="button" class="link-button v65-record-link" wire:click="editCash({{ $account->id }})">{{ $account->code }}</button>@else{{ $account->code }}@endcan</td>
                     <td>@can('cash_accounts.update')<button type="button" class="link-button v65-record-link" wire:click="editCash({{ $account->id }})">{{ $account->name }}</button>@else{{ $account->name }}@endcan</td>
                     <td>{{ $account->currency }}</td>
-                    <td>{{ $account->balance() }}</td>
-                    <td>{{ $account->is_active ? 'Aktif' : 'Pasif' }}</td>
+                    <td class="align-end">{{ $account->balance() }}</td>
+                    <td><x-v65.status-badge :tone="$account->is_active ? 'success' : 'danger'" :dot="true">{{ $account->is_active ? 'Aktif' : 'Pasif' }}</x-v65.status-badge></td>
                     <td class="v65-row-actions">
                         @can('cash_accounts.update')
                             <button @class(['button-warning' => $account->is_active, 'button-success' => ! $account->is_active]) type="button" wire:click="toggleCash({{ $account->id }})">
@@ -57,7 +57,7 @@
             <thead>
             <tr>
                 <th>Kod</th><th>Banka</th><th>Hesap</th><th>IBAN</th><th>PB</th>
-                <th>Defter</th><th>Ekstre</th><th>Fark</th><th>Bekleyen</th><th>Durum</th><th></th>
+                <th class="align-end">Defter</th><th class="align-end">Ekstre</th><th class="align-end">Fark</th><th class="align-end">Bekleyen</th><th>Durum</th><th></th>
             </tr>
             </thead>
             <tbody>
@@ -73,11 +73,11 @@
                     <td>@can('bank_accounts.update')<button type="button" class="link-button v65-record-link" wire:click="editBank({{ $account->id }})">{{ $account->account_name }}</button>@else{{ $account->account_name }}@endcan</td>
                     <td>{{ $account->iban }}</td>
                     <td>{{ $account->currency }}</td>
-                    <td>{{ $book }}</td>
-                    <td>{{ $statement ?? '—' }}</td>
-                    <td>{{ $difference ?? '—' }}</td>
-                    <td>{{ $account->unreconciledStatementCount() }}</td>
-                    <td>{{ $account->is_active ? 'Aktif' : 'Pasif' }}</td>
+                    <td class="align-end">{{ $book }}</td>
+                    <td class="align-end">{{ $statement ?? '—' }}</td>
+                    <td class="align-end">{{ $difference ?? '—' }}</td>
+                    <td class="align-end">{{ $account->unreconciledStatementCount() }}</td>
+                    <td><x-v65.status-badge :tone="$account->is_active ? 'success' : 'danger'" :dot="true">{{ $account->is_active ? 'Aktif' : 'Pasif' }}</x-v65.status-badge></td>
                     <td class="v65-row-actions">
                         @can('bank_accounts.update')
                             <button @class(['button-warning' => $account->is_active, 'button-success' => ! $account->is_active]) type="button" wire:click="toggleBank({{ $account->id }})">
