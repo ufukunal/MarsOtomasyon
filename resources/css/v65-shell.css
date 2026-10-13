@@ -1626,3 +1626,28 @@
   .app-shell .v65-list-page .v65-filter-toolbar{display:none!important}
   .app-shell .v65-list-page :where(.table-scroll,.v65-list-table){overflow:visible!important}
 }
+
+
+/* Page layout remains the single action region; eliminate route-default
+   Print/Back controls when a list owns its own actions and print scope. */
+.app-shell main.content:has(> .v65-list-page) > .page-header .page-actions
+  >button[onclick*="window.print"],
+.app-shell main.content:has(> .v65-list-page) > .page-header .page-actions
+  >button[onclick*="history.back"]{display:none!important}
+.app-shell .page-actions:has(.v65-list-heading-actions,.v65-cari-heading-actions,.v65-products-heading-actions){
+  display:flex;align-items:center;justify-content:flex-end;gap:7px
+}
+.app-shell .page-actions .v65-list-heading-actions{margin-inline-start:auto}
+.app-shell .page-actions :is(.v65-list-heading-actions,.v65-cari-heading-actions,.v65-products-heading-actions) :where(.v65-standard-action-menu>summary){
+  height:var(--v65-list-btn-compact)!important;min-height:var(--v65-list-btn-compact)!important;
+  border-radius:4px!important;font-size:11.5px!important
+}
+/* Embed read-only/detail data grids in the same visual family, without
+   altering the shipping-slip printable markup. */
+.app-shell :is(.v65-contact-detail,.v65-product-detail,.v65-editor-panel,.v65-workspace-form) table.data-table:not(.wsl-items) thead th{
+  background:var(--v65-list-header);color:#38526d;border-bottom:1px solid var(--v65-list-border);
+  padding:10px 11px;font-size:11.5px;vertical-align:middle
+}
+.app-shell :is(.v65-contact-detail,.v65-product-detail,.v65-editor-panel,.v65-workspace-form) table.data-table:not(.wsl-items) tbody td{
+  padding:9px 11px;font-size:11.5px;vertical-align:middle;border-bottom:1px solid #e8eef5
+}
