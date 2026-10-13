@@ -126,6 +126,29 @@ class ContactDetail extends Component
         return $rows;
     }
 
+    /**
+     * Escape spreadsheet formulas in text while preserving valid negative amounts.
+     *
+     * @param list<string> $row
+     * @param list<int> $numericColumns Zero-based monetary column indexes.
+     * @return list<string>
+     */
+    private static function csvSafeRow(array $row, array $numericColumns): array
+    {
+        foreach ($row as $index => $value) {
+            if (in_array($index, $numericColumns, true)
+                && preg_match('/^-?[0-9]+(?:\.[0-9]+)?$/D', $value) === 1) {
+                continue;
+            }
+
+            if (preg_match('/^[=+@\-\t\r]/u', $value) === 1) {
+                $row[$index] = "'".$value;
+            }
+        }
+
+        return $row;
+    }
+
     public function exportStatementCsv(): StreamedResponse
     {
         $rows = $this->statementRows();
@@ -135,9 +158,7 @@ class ContactDetail extends Component
             fwrite($output, "\xEF\xBB\xBF");
             fputcsv($output, ['Tarih','Belge','İşlem','Açıklama','Borç','Alacak','Bakiye','PB'], ';');
             foreach ($rows as $row) {
-                // Spreadsheet formula injection cannot originate from free-text descriptions.
-                $safe = array_map(static fn (string $v): string => preg_match('/^[=+@\-\t\r]/u', $v) ? "'".$v : $v, $row);
-                fputcsv($output, $safe, ';');
+                fputcsv($output, self::csvSafeRow($row, [4, 5, 6]), ';');
             }
             fclose($output);
         }, $filename, ['Content-Type' => 'text/csv; charset=UTF-8']);
@@ -234,11 +255,7 @@ class ContactDetail extends Component
             fwrite($out, "\xEF\xBB\xBF");
             fputcsv($out, self::documentExportHeadings(), ';');
             foreach ($this->documentExportRows($tab) as $row) {
-                $row = array_map(
-                    static fn (string $field): string => preg_match('/^[=+\-@\t\r]/u', $field) ? "'".$field : $field,
-                    $row
-                );
-                fputcsv($out, $row, ';');
+                fputcsv($out, self::csvSafeRow($row, [5, 6, 7]), ';');
             }
             fclose($out);
         }, $name, ['Content-Type' => 'text/csv; charset=UTF-8']);
