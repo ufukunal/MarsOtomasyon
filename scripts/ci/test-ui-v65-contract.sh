@@ -33,7 +33,7 @@ grep -Fq 'resources/css/v65-shell.css' "$shell" || {
 for marker in 'class="sidebar"' 'class="navigation"' 'aria-current="page"' 'class="topbar"' 'class="worktabs"' 'id="main-content"'; do
   grep -Fq "$marker" "$shell" || { echo "FAIL: v65 shell marker missing $marker" >&2; exit 1; }
 done
-for marker in 'wire:model.live.debounce.300ms="search"' 'wire:model.live="filterValues.' 'wire:click="exportCsv"' 'wire:click="exportXlsx"' 'class="table-footer"'; do
+for marker in '<x-v65.filter-drawer' 'wire:model="v65DraftFilters.search"' 'wire:model="v65DraftFilters.filters.' 'wire:click="exportCsv"' 'wire:click="exportXlsx"' '<x-v65.list-footer'; do
   grep -Fq "$marker" "$table" || { echo "FAIL: shared DataTable feature missing $marker" >&2; exit 1; }
 done
 # Every data grid in these critical UAT operations must be scrollable on narrower screens.
@@ -46,7 +46,7 @@ for view in \
   resources/views/livewire/channels/channel-account-center.blade.php \
   resources/views/livewire/channels/channel-listing-center.blade.php \
   resources/views/livewire/sales/document-list.blade.php; do
-  grep -Fq 'class="table-scroll v65-grid-scroll"' "$view" || {
+  grep -Eq 'class="(table-scroll v65-grid-scroll|v65-list-table table-scroll v65-grid-scroll)' "$view" || {
     echo "FAIL: v65 responsive table wrapper missing: $view" >&2; exit 1;
   }
 done
