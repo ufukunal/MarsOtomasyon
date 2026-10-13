@@ -3,6 +3,7 @@
 namespace App\Livewire\Components\DataTable;
 
 use App\Contracts\SearchIndexed;
+use App\Livewire\Concerns\WithV65FilterDrawer;
 use App\Support\Formatting\TableValueFormatter;
 use App\Support\Search\SearchNormalizer;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -23,6 +24,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 abstract class DataTableComponent extends Component
 {
     use WithPagination;
+    use WithV65FilterDrawer;
 
     /** @var class-string<TModel> */
     public string $model;
