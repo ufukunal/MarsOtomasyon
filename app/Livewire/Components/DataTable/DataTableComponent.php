@@ -60,7 +60,7 @@ abstract class DataTableComponent extends Component
         }
     }
 
-    /** @return list<SelectFilter|DateRangeFilter> */
+    /** @return list<SelectFilter|DateRangeFilter|TextFilter> */
     public function filters(): array
     {
         return [];
@@ -152,6 +152,14 @@ abstract class DataTableComponent extends Component
     /** @param Builder<TModel> $query */
     protected function applyFilter(Builder $query, mixed $filter, mixed $value): void
     {
+        if ($filter instanceof TextFilter) {
+            $term = trim((string) $value);
+            $term = str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $term);
+            $query->where($filter->key, 'ilike', '%'.$term.'%');
+
+            return;
+        }
+
         if ($filter instanceof SelectFilter) {
             $query->where($filter->key, $value);
 
