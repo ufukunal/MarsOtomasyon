@@ -3,25 +3,21 @@
 
     <section class="panel stack">
         <h2>Ekstre Dosyası</h2>
-        <label>Banka
-            <select wire:model="bankAccountId">
-                <option value="">Seçin</option>
+        <x-v65.select label="Banka" wire:model="bankAccountId" placeholder="Seçin">
+                
                 @foreach($bankAccounts as $account)
                     <option value="{{ $account->id }}">{{ $account->code }} · {{ $account->bank_name }} · {{ $account->account_name }}</option>
                 @endforeach
-            </select>
-        </label>
-        <label>Format
-            <select wire:model="format">
+            </x-v65.select>
+        <x-v65.select label="Format" wire:model="format">
                 <option value="auto">Otomatik</option>
                 <option value="xlsx">Excel (.xlsx)</option>
                 <option value="csv">CSV</option>
                 <option value="mt940">MT940</option>
-            </select>
-        </label>
+            </x-v65.select>
         <label>Dosya <input type="file" wire:model="file" accept=".xlsx,.csv,.txt,.mt940,.sta"></label>
-        <button class="button-secondary" type="button" wire:click="preview">Önizle</button>
-        <button type="button" wire:click="import">İçe Aktar</button>
+        <x-v65.button variant="secondary" wire:click="preview" wire:loading.attr="disabled" wire:target="preview">Önizle</x-v65.button>
+        <x-v65.button wire:click="import" wire:loading.attr="disabled" wire:target="import">İçe Aktar</x-v65.button>
 
         @if($importResult)
             <div>
@@ -59,14 +55,14 @@
             <tbody>
             @foreach($statementRows as $row)
                 <tr>
-                    <td><button type="button" wire:click="$set('selectedStatementId', {{ $row->id }})">Seç</button></td>
+                    <td><x-v65.button variant="secondary" size="xs" wire:click="$set('selectedStatementId', {{ $row->id }})">Seç</x-v65.button></td>
                     <td>{{ $row->account?->bank_name }}</td>
                     <td>{{ $row->movement_date?->format('d.m.Y') }}</td>
                     <td>{{ $row->reference }}</td>
                     <td>{{ $row->statement_description }}</td>
                     <td>{{ $row->direction }}</td>
                     <td class="align-end">{{ $row->amount }}</td>
-                    <td>{{ $row->reconciled_movement_id ? 'Mutabık' : 'Bekliyor' }}</td>
+                    <td><x-v65.status-badge :tone="$row->reconciled_movement_id ? 'success' : 'warning'">{{ $row->reconciled_movement_id ? 'Mutabık' : 'Bekliyor' }}</x-v65.status-badge></td>
                 </tr>
             @endforeach
             </tbody>
@@ -87,37 +83,33 @@
                             <td>#{{ $suggestion['movement_id'] }}</td>
                             <td class="align-end">%{{ $suggestion['score'] }}</td>
                             <td>{{ $suggestion['reason'] }}</td>
-                            <td><button type="button" wire:click="$set('selectedBookMovementId', {{ $suggestion['movement_id'] }})">Seç</button></td>
+                            <td><x-v65.button variant="secondary" size="xs" wire:click="$set('selectedBookMovementId', {{ $suggestion['movement_id'] }})">Seç</x-v65.button></td>
                         </tr>
                     @endforeach
                     </tbody>
                 </table></div>
             @endif
 
-            <label>Mevcut Defter Hareketi
-                <select wire:model="selectedBookMovementId">
-                    <option value="">Seçin</option>
+            <x-v65.select label="Mevcut Defter Hareketi" wire:model="selectedBookMovementId" placeholder="Seçin">
+                    
                     @foreach($bookRows as $row)
                         <option value="{{ $row->id }}">
                             #{{ $row->id }} · {{ $row->movement_date?->format('d.m.Y') }} · {{ $row->direction }} · {{ $row->amount }} · {{ $row->reference }}
                         </option>
                     @endforeach
-                </select>
-            </label>
-            <button type="button" wire:click="reconcileExisting">Mevcut Hareketle Eşleştir</button>
+                </x-v65.select>
+            <x-v65.button wire:click="reconcileExisting" wire:loading.attr="disabled" wire:target="reconcileExisting">Mevcut Hareketle Eşleştir</x-v65.button>
 
             <hr>
 
-            <label>Cari
-                <select wire:model="selectedContactId">
-                    <option value="">Cari etkisi yok</option>
+            <x-v65.select label="Cari" wire:model="selectedContactId" placeholder="Cari etkisi yok">
+                    
                     @foreach($contacts as $contact)
                         <option value="{{ $contact->id }}">{{ $contact->code }} · {{ $contact->title }}</option>
                     @endforeach
-                </select>
-            </label>
+                </x-v65.select>
             <label>Yeni Hareket Türü <input wire:model="newMovementType"></label>
-            <button type="button" wire:click="createFromStatement">Ekstreden Yeni Defter Hareketi</button>
+            <x-v65.button wire:click="createFromStatement" wire:loading.attr="disabled" wire:target="createFromStatement">Ekstreden Yeni Defter Hareketi</x-v65.button>
         </section>
     @endif
 </div>
