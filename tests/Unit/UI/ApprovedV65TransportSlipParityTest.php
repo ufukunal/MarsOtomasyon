@@ -64,9 +64,9 @@ it('preserves approved field groups, filters and A4/A5 and numbered carton print
         ->toContain('Ambar / Nakliye')
         ->toContain('Cam Durumu')
         ->toContain('Kırılabilir')
-        ->toContain('Filtreler')
-        ->toContain('wsl-field')
-        ->toContain('Listede ara...');
+        ->toContain('<x-v65.list-heading title="Ambar Fişi Listesi">')
+        ->toContain('<x-v65.filter-drawer')
+        ->toContain('wire:model="v65DraftFilters.search"');
 
     $printing = file_get_contents(base_path('resources/views/printing/transport-slip.blade.php'));
     expect($printing)->toContain('$copy < 2')
