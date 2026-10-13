@@ -54,3 +54,35 @@ it('rejects nonnumeric reporting totals rather than silently corrupting the aggr
         ['amount' => new ReportTotalDefinition('amount', 'Amount')],
     ))->toThrow(DomainException::class);
 })->with(['invalid', '', '1;DELETE', 'not-a-number']);
+
+
+it('consolidates finance totals per currency across periods without converting USD to TRY', function (): void {
+    $combined = [];
+    $defs = ['amount' => new ReportTotalDefinition('amount', 'Tutar')];
+
+    v4MergeMultiPeriodTotals(
+        $combined,
+        v4ReportWithTotals(['amount' => '100.0000 TRY / 10.0000 USD']),
+        $defs,
+    );
+    v4MergeMultiPeriodTotals(
+        $combined,
+        v4ReportWithTotals(['amount' => '50.0000 TRY / 4.0000 EUR']),
+        $defs,
+    );
+    v4MergeMultiPeriodTotals($combined, v4ReportWithTotals(['amount' => '0']), $defs);
+
+    expect($combined['amount'])->toBe('4 EUR / 150 TRY / 10 USD');
+});
+
+it('rejects unlabelled nonzero amounts mixed with currency subtotals', function (): void {
+    $combined = [];
+    $defs = ['amount' => new ReportTotalDefinition('amount', 'Tutar')];
+    v4MergeMultiPeriodTotals($combined, v4ReportWithTotals(['amount' => '100 TRY']), $defs);
+
+    expect(fn () => v4MergeMultiPeriodTotals(
+        $combined,
+        v4ReportWithTotals(['amount' => '10']),
+        $defs,
+    ))->toThrow(DomainException::class);
+});
