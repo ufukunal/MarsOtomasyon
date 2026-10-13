@@ -1,6 +1,6 @@
 <div class="space-y-6 v65-list-page">
-    @if(session('status')) <div class="panel">{{ session('status') }}</div> @endif
-    @if(session('warning')) <div class="panel">{{ session('warning') }}</div> @endif
+    @if(session('status')) <x-v65.notice tone="success">{{ session('status') }}</x-v65.notice> @endif
+    @if(session('warning')) <x-v65.notice tone="warning">{{ session('warning') }}</x-v65.notice> @endif
 
     <section class="panel v65-list-panel">
         <x-v65.list-heading title="Kanal Hesapları" />
@@ -20,7 +20,7 @@
                     <td>{{ $account->platform->label() }}</td>
                     <td><button type="button" class="link-button v65-record-link" wire:click="selectAccount({{ $account->id }})">{{ $account->name }}</button></td>
                     <td>{{ $account->external_store_id }}</td>
-                    <td>{{ $account->is_active ? 'Evet' : 'Hayır' }}</td>
+                    <td><x-v65.status-badge :tone="$account->is_active ? 'success' : 'danger'">{{ $account->is_active ? 'Aktif' : 'Pasif' }}</x-v65.status-badge></td>
                     <td>{{ $adapterAvailability[$account->platform->value] ? 'Hazır' : 'Kanal bloğu bekleniyor' }}</td>
                     
                 </tr>
