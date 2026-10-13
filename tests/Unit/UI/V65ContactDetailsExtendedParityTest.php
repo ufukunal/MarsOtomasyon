@@ -16,7 +16,7 @@ it('keeps a distinct authorized customer-detail page and the shared list standar
         ->toContain("route('contacts.show'")
         ->toContain("where('currency', 'TRY')")
         ->and($table)->toContain('v65-data-table-heading-actions')
-        ->toContain('<x-v65.filter-drawer')
+        ->toContain("@include('livewire.components.partials.v65-table-filter-controls')")
         ->toContain('<x-v65.list-footer')
         ->toContain('v65-cari-list-stats')
         ->not->toContain('148.150,00')
