@@ -217,7 +217,9 @@
                                         </td>
                                     @endforeach
                                     @if($result->drillDowns !== [])
-                                        @php($drillDown = $this->drillDownLink($row, $result->drillDowns))
+                                        @php
+                                            $drillDown = $this->drillDownLink($row, $result->drillDowns);
+                                        @endphp
                                         <td>
                                             @if($drillDown)
                                                 <a href="{{ $drillDown['url'] }}">{{ $drillDown['label'] }}</a>
