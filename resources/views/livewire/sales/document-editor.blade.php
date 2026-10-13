@@ -179,7 +179,7 @@
                         </div>
                     @elseif($document->currency !== 'TRY')
                         <div class="alert alert-warning" role="status">
-                            Fatura TRY dışında bir para birimindedir. TRY risk limitiyle döviz tutarı doğrudan karşılaştırılamaz; risk ayrıca kontrol edilmelidir.
+                            Fatura TRY dışındaki para birimindedir. TRY risk limiti olan carilerde doğrulanmış kur dönüşümü bulunmadığı için kesinleştirme engellenir.
                         </div>
                     @endif
                 @endif
