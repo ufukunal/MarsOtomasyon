@@ -102,7 +102,7 @@ it('implements separate read-only detail and editing routes and safe copy-to-edi
         ->toContain("redirectRoute('warehouse.transport.edit'")
         ->toContain("\$duplicate->status = 'draft'")
         ->toContain('$duplicate->tracking_number = null')
-        ->and($list)->toContain("route('warehouse.transport.edit'");
+        ->and($list)->not->toContain("route('warehouse.transport.edit'");
 });
 
 it('matches two-column left-labeled form, real choices and four distinct print actions', function (): void {
