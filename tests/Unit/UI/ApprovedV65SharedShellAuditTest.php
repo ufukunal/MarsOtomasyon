@@ -275,7 +275,7 @@ it('keeps worktabs in first-opened order and aligns the close control', function
         ->toContain('width:20px!important');
 });
 
-it('integrates existing secured product image attachments into list, editor and detail', function (): void {
+it('keeps secure product images on editor/detail without loading thumbnails in the list', function (): void {
     $list = file_get_contents(base_path('app/Livewire/Pages/Products/ProductList.php'));
     $table = file_get_contents(base_path('resources/views/livewire/components/data-table.blade.php'));
     $images = file_get_contents(base_path('app/Livewire/Products/ProductImages.php'));
@@ -283,10 +283,12 @@ it('integrates existing secured product image attachments into list, editor and 
     $detail = file_get_contents(base_path('resources/views/livewire/pages/products/product-detail.blade.php'));
     $script = file_get_contents(base_path('resources/js/app.js'));
 
-    expect($list)->toContain("'attachments' =>")
-        ->and($table)->toContain('class="v65-product-photo-column"')
-        ->toContain('route(\'products.images.show\'')
-        ->toContain('class="v65-product-photo-thumb"')
+    expect($list)->not->toContain("'attachments' =>")
+        ->and($table)->not->toContain('v65-product-photo-column')
+        ->not->toContain('v65-product-photo-thumb')
+        ->not->toContain('>Görsel</th>')
+        ->not->toContain('$row->attachments->first()')
+        ->toContain("colspan=\"{{ \$visibleColumnCount + (\$isProductTable ? 0 : 1 + (count(\$rowActions) > 0 ? 1 : 0)) }}\"")
         ->and($images)->toContain('public function setCover(')
         ->and($editor)->toContain('Kapak Yap')
         ->toContain('wire:click="upload"')
@@ -309,8 +311,8 @@ it('supplies persistent product-specific thumbnails to the isolated UAT demo', f
         ->toContain("['collection' => \$collection, 'original_name' => \$name]")
         ->and($painter)->toContain('final class UatDemoImagePainter')
         ->toContain('imagepng(')
-        ->and($list)->toContain('v65-product-photo-thumb')
-        ->toContain('products.images.show');
+        ->and($list)->not->toContain('v65-product-photo-thumb')
+        ->not->toContain('products.images.show');
 });
 
 it('keeps product detail cover large and only refreshes UAT-owned demo images', function (): void {
