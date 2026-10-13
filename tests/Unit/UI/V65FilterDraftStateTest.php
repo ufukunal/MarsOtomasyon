@@ -13,7 +13,10 @@ it('keeps draft changes out of the applied list until explicit apply', function 
 
         protected function v65FilterDefinitions(): array
         {
-            return ['active' => ['type' => 'select', 'label' => 'Durum', 'options' => ['1' => 'Aktif', '0' => 'Pasif']]];
+            return [
+                'active' => ['type' => 'select', 'label' => 'Durum', 'options' => ['1' => 'Aktif', '0' => 'Pasif']],
+                'price' => ['type' => 'number-range', 'label' => 'Fiyat'],
+            ];
         }
 
         protected function v65SortOptions(): array
@@ -55,4 +58,30 @@ it('keeps draft changes out of the applied list until explicit apply', function 
     expect($screen->search)->toBe('')
         ->and($screen->filterValues)->toBe([])
         ->and($screen->direction)->toBe('asc');
+});
+
+
+it('validates numeric bounds before applying a range', function (): void {
+    $screen = new class {
+        use \App\Livewire\Concerns\WithV65FilterDrawer;
+        public string $search = '';
+        public array $filterValues = [];
+        public string $sort = 'id';
+        public string $direction = 'asc';
+        public function resetPage(): void {}
+        protected function v65FilterDefinitions(): array
+        {
+            return ['price' => ['label' => 'Satış Fiyatı', 'type' => 'number-range']];
+        }
+        protected function v65SortOptions(): array { return []; }
+    };
+
+    $screen->openV65Filters();
+    $screen->v65DraftFilters['filters']['price'] = ['min' => '20.0000', 'max' => '10.0000'];
+    expect(fn () => $screen->applyV65Filters())->toThrow(\Symfony\Component\HttpKernel\Exception\HttpException::class);
+    expect($screen->filterValues)->toBe([]);
+
+    $screen->v65DraftFilters['filters']['price'] = ['min' => '0', 'max' => '10.5000'];
+    $screen->applyV65Filters();
+    expect($screen->filterValues['price'])->toBe(['min' => '0', 'max' => '10.5000']);
 });
