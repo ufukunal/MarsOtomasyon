@@ -5,6 +5,7 @@ namespace App\Actions\Sales;
 use App\Actions\Documents\PostDocument;
 use App\Enums\DocumentType;
 use App\Models\Period\Document;
+use App\Models\Period\Contact;
 use App\Support\Auth\MutationAuthorizer;
 use DomainException;
 
@@ -21,6 +22,17 @@ final class PostSalesInvoice
 
         if ($invoice->document_type !== DocumentType::SalesInvoice) {
             throw new DomainException('Yalnız satış faturası PostSalesInvoice ile kesinleştirilebilir.');
+        }
+
+        // FX totals cannot be compared with a TRY risk limit as raw numbers.
+        // Never silently bypass an established risk limit when the rate cannot
+        // be verified. Already-posted idempotent retries remain unaffected.
+        if ($invoice->currency !== 'TRY' && $invoice->contact_id !== null
+            && Document::query()->whereKey($invoice->getKey())->value('status') !== 'posted'
+            && bccomp((string) Contact::query()->findOrFail($invoice->contact_id)->risk_limit, '0', 4) > 0) {
+            throw new DomainException(
+                'Dövizli satış faturası TRY risk limitine güvenli dönüştürülemedi. Kesinleştirme engellendi.',
+            );
         }
 
         // A sales invoice adds a customer debit when it is posted. Warn on the
