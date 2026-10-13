@@ -192,17 +192,28 @@
         </div>
     @endif
 
-    <div class="v65-shared-table-title">
-        <strong>{{ $isProductTable ? 'Ürün Listesi' : $listLabel }}</strong>
-        <small>{{ $rows->total() }} kayıt</small>
-    </div>
+    @unless($this instanceof \App\Livewire\Pages\Contacts\ContactList)
+        <div class="v65-shared-table-title">
+            <strong>{{ $isProductTable ? 'Ürün Listesi' : $listLabel }}</strong>
+            <small>{{ $rows->total() }} kayıt</small>
+        </div>
+    @endunless
     <div class="table-scroll v65-list-table">
         <table class="data-table">
             <thead>
             <tr>
                 @unless($isProductTable)
                     <th class="select-column" scope="col">
-                        <button type="button" class="link-button" wire:click="selectVisible">Tümü</button>
+                        @if($this instanceof \App\Livewire\Pages\Contacts\ContactList)
+                            @php
+                                $visibleCariIds = collect($rows->items())->map(fn ($item): string => (string) $item->getKey())->all();
+                                $checkedCariIds = array_map('strval', $selected);
+                                $allVisibleCarisSelected = $visibleCariIds !== [] && count(array_diff($visibleCariIds, $checkedCariIds)) === 0;
+                            @endphp
+                            <input type="checkbox" wire:click="toggleVisibleContacts" aria-label="Görünen carilerin tümünü seç" @checked($allVisibleCarisSelected)>
+                        @else
+                            <button type="button" class="link-button" wire:click="selectVisible">Tümü</button>
+                        @endif
                     </th>
                 @endunless
                 @foreach ($columns as $column)
