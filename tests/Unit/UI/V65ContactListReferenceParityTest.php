@@ -79,7 +79,7 @@ it('formats real TRY ledger net as receivable, payable, and risk percent', funct
     ]));
 
     expect($list->formattedValue($contact, Column::make('city_district', 'İl / İlçe')))->toBe('İstanbul / Ümraniye')
-        ->and($list->formattedValue($contact, Column::make('category_names', 'Tip')))->toBe('Müşteri, Tedarikçi')
+        ->and($list->formattedValue($contact, Column::make('category_names', 'Tip')))->toBe('Müşteri + Tedarikçi')
         ->and($list->formattedValue($contact, Column::make('balance_display', 'Bakiye')))->toBe('50,00 ₺ Alacaklı')
         ->and($list->formattedValue($contact, Column::make('risk_usage', 'Risk Kullanımı')))->toBe('25%')
         ->and($list->formattedValue($contact, Column::make('last_movement', 'Son Hareket')))->toBe('23.08.2026')
