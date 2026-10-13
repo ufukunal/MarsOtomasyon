@@ -221,22 +221,41 @@ document.addEventListener('keydown', (event) => {
 });
 
 
-// Close dropdowns when clicking elsewhere, opening another menu or pressing Escape.
+// Keep page action dropdowns mutually exclusive, including teleported Cari Detay menus.
+// Event delegation survives Livewire morphing and browser back/forward navigation.
+const v65ActionMenuSelector = 'details.page-action-menu, details.topbar-create, details.user-menu, details.v65-products-export-menu, details.v65-contact-action-menu';
+const closeV65ActionMenus = (except = null) => {
+    for (const opened of document.querySelectorAll(v65ActionMenuSelector)) {
+        if (opened.open && opened !== except) opened.open = false;
+    }
+};
 document.addEventListener('pointerdown', (event) => {
-    const target = event.target;
-    if (!(target instanceof Element)) return;
-    const menu = target.closest('details');
-    if (menu && !menu.matches('.page-action-menu, .topbar-create, .user-menu, .v65-products-export-menu')) return;
-    for (const open of document.querySelectorAll('details[open].page-action-menu, details[open].topbar-create, details[open].user-menu, details[open].v65-products-export-menu')) {
-        if (open !== menu && !open.contains(target)) open.open = false;
+    if (!(event.target instanceof Element)) return;
+    const current = event.target.closest(v65ActionMenuSelector);
+    // A click outside any managed menu closes them; don't interfere with sidebar details.
+    closeV65ActionMenus(current);
+}, true);
+// Native summary keyboard activation can change <details> without pointer events.
+document.addEventListener('toggle', (event) => {
+    const current = event.target;
+    if (current instanceof HTMLDetailsElement && current.matches(v65ActionMenuSelector) && current.open) {
+        closeV65ActionMenus(current);
     }
 }, true);
 document.addEventListener('keydown', (event) => {
     if (event.key !== 'Escape') return;
-    for (const open of document.querySelectorAll('details[open].page-action-menu, details[open].topbar-create, details[open].user-menu, details[open].v65-products-export-menu')) {
-        open.open = false;
-    }
+    const opened = document.querySelector(v65ActionMenuSelector.split(', ').map((s) => s + '[open]').join(', '));
+    if (!(opened instanceof HTMLDetailsElement)) return;
+    closeV65ActionMenus();
+    opened.querySelector('summary')?.focus();
+    event.preventDefault();
 });
+document.addEventListener('click', (event) => {
+    if (!(event.target instanceof Element)) return;
+    const link = event.target.closest('details.v65-contact-action-menu a[href]');
+    if (link) link.closest('details').open = false;
+});
+document.addEventListener('livewire:navigating', () => closeV65ActionMenus());
 
 // Dirty state belongs to the currently loaded page, never to another tab's saved label.
 let marsWorktabDirty = false;
