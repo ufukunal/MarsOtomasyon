@@ -38,8 +38,8 @@ it('preserves the agreed shared list toolbar while opening contact details by na
     $table = file_get_contents(base_path('resources/views/livewire/components/data-table.blade.php'));
 
     expect($list)->toContain("route('contacts.show'")
-        ->toContain("'label' => 'Aç'")
-        ->toContain("'label' => 'Düzenle'")
+        ->not->toContain("'label' => 'Aç'")
+        ->not->toContain("'label' => 'Düzenle'")
         ->and($table)->toContain('<x-v65.list-footer')
         ->toContain('v65-data-table-filters')
         ->toContain('v65-data-table-heading-actions');
