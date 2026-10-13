@@ -1,4 +1,4 @@
-<div class="stack">
+<div class="stack v65-list-page">
     @if (session('status'))
         <div class="alert alert-success">{{ session('status') }}</div>
     @endif
@@ -26,7 +26,7 @@
                 — {{ $latestHealth->checked_at?->format('d.m.Y H:i:s') }}
                 — <code>{{ $latestHealth->correlation_id ?? '—' }}</code>
             </p>
-            <div class="table-scroll">
+            <div class="table-scroll v65-list-table">
                 <table class="data-table">
                     <thead>
                     <tr><th>Kontrol</th><th>Durum</th><th>Detay</th></tr>
@@ -54,7 +54,7 @@
 
     <section class="panel">
         <h2>Deployment Geçmişi</h2>
-        <div class="table-scroll">
+        <div class="table-scroll v65-list-table">
             <table class="data-table">
                 <thead>
                 <tr>
@@ -85,7 +85,7 @@
 
     <section class="panel">
         <h2>Recovery-Set Backup</h2>
-        <div class="table-scroll">
+        <div class="table-scroll v65-list-table">
             <table class="data-table">
                 <thead>
                 <tr>
@@ -122,7 +122,7 @@
 
     <section class="panel">
         <h2>Restore Geçmişi</h2>
-        <div class="table-scroll">
+        <div class="table-scroll v65-list-table">
             <table class="data-table">
                 <thead>
                 <tr>
@@ -150,7 +150,7 @@
 
     <section class="panel">
         <h2>Health Geçmişi</h2>
-        <div class="table-scroll">
+        <div class="table-scroll v65-list-table">
             <table class="data-table">
                 <thead>
                 <tr><th>#</th><th>Zaman</th><th>Durum</th><th>Correlation ID</th></tr>

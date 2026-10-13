@@ -1,4 +1,4 @@
-<div class="stack">
+<div class="stack v65-list-page">
     @if($message)
         <div class="alert">{{ $message }}</div>
     @endif
@@ -95,7 +95,7 @@
 
     <section class="panel">
         <h2>Revizyon Geçmişi</h2>
-        <div class="table-scroll">
+        <div class="table-scroll v65-list-table">
             <table class="data-table">
                 <thead>
                 <tr>

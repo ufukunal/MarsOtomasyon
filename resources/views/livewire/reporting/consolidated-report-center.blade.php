@@ -1,4 +1,4 @@
-<div class="stack">
+<div class="stack v65-list-page">
     <section class="panel stack">
         <div class="report-heading">
             <div>
@@ -136,7 +136,7 @@
         @endif
 
         <section class="panel">
-            <div class="table-scroll">
+            <div class="table-scroll v65-list-table">
                 <table class="data-table report-table">
                     <thead>
                     <tr>

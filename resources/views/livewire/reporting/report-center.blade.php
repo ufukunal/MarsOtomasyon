@@ -1,4 +1,4 @@
-<div class="report-center">
+<div class="report-center v65-list-page">
     <aside class="report-catalog panel">
         <h2>Rapor Kataloğu</h2>
 
@@ -194,7 +194,7 @@
                 @endif
 
                 <section class="panel">
-                    <div class="table-scroll">
+                    <div class="table-scroll v65-list-table">
                         <table class="data-table report-table">
                             <thead>
                             <tr>

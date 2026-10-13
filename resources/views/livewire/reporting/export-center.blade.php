@@ -1,7 +1,7 @@
-<div class="stack">
+<div class="stack v65-list-page">
     <section class="panel stack">
         <h2>Dışa Aktarım Geçmişi</h2>
-        <div class="table-scroll">
+        <div class="table-scroll v65-list-table">
             <table class="data-table">
                 <thead>
                 <tr>
