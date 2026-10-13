@@ -1057,92 +1057,124 @@
     grid-column:1/-1
   }
 }
-
-/* v65 compact list-density contract
- * Applies to listing tables only. Do not squeeze Product List thumbnails,
- * document line editors, product forms or print templates.
- * Tables with long/multiline content or editable inputs may grow naturally.
+/* MarsProject v65 application-wide compact table density
+ * One rule set for ALL application tables: catalog, documents, details, stock,
+ * imports, production, returns, finance, channels, reporting, and admin.
+ *
+ * The .app-shell .content boundary deliberately excludes dedicated print/PDF
+ * templates, which run outside the application layout. Data-entry controls
+ * retain their intrinsic size; rows with fields or images can grow naturally.
+ *
+ * The .wsl-items warehouse editor and the approved visual Product List have
+ * their own explicit sizing below. This supersedes the older list-only rules.
  */
-.app-shell .v65-list-page:not(.v65-products) .v65-list-table .data-table{
+.app-shell .content table.data-table:not(.wsl-items){
   width:100%;
+  border-collapse:collapse;
   font-size:12px;
-  line-height:1.45;
+  line-height:1.4;
 }
-.app-shell .v65-list-page:not(.v65-products) .v65-list-table .data-table thead th{
+.app-shell .content table.data-table:not(.wsl-items) thead th{
+  box-sizing:border-box;
   height:36px;
   min-height:0;
-  box-sizing:border-box;
   padding:6px 10px;
-  line-height:1.4;
-  font-size:12px;
+  font-size:11.5px;
+  line-height:1.35;
   vertical-align:middle;
+  background:#f5f8fc;
+  color:#405575;
 }
-.app-shell .v65-list-page:not(.v65-products) .v65-list-table .data-table tbody tr{
+.app-shell .content table.data-table:not(.wsl-items) tbody tr{
   height:42px;
 }
-.app-shell .v65-list-page:not(.v65-products) .v65-list-table .data-table tbody td,
-.app-shell .v65-list-page:not(.v65-products) .v65-list-table .data-table tfoot td{
+.app-shell .content table.data-table:not(.wsl-items) :is(tbody,tfoot) td{
+  box-sizing:border-box;
   height:auto;
   min-height:0;
-  box-sizing:border-box;
   padding:5px 10px;
-  line-height:1.45;
   font-size:12px;
+  line-height:1.4;
   vertical-align:middle;
 }
-.app-shell .v65-list-page:not(.v65-products) .v65-list-table .data-table .select-column,
-.app-shell .v65-list-page:not(.v65-products) .v65-list-table .data-table td:has(>input[type="checkbox"]){
+.app-shell .content table.data-table:not(.wsl-items) .select-column,
+.app-shell .content table.data-table:not(.wsl-items) td:has(> input[type="checkbox"]){
+  box-sizing:border-box;
   width:62px;
+  min-width:62px;
   padding-left:14px;
 }
-.app-shell .v65-list-page:not(.v65-products) .v65-list-table .data-table td > input[type="checkbox"]{
+.app-shell .content table.data-table:not(.wsl-items) tbody td > input[type="checkbox"]{
   display:inline-block;
   vertical-align:middle;
   width:16px;
   height:16px;
   margin:0;
 }
-.app-shell .data-table-shell.v65-list-page:not(.v65-products) .v65-list-table .row-actions{
-  min-width:100px;
+.app-shell .content table.data-table:not(.wsl-items) :is(.row-actions,.v65-row-actions,.v65-list-row-actions){
+  min-width:98px;
   width:1%;
-  white-space:nowrap;
-}
-.app-shell .v65-list-page:not(.v65-products) .v65-list-table .v65-list-row-actions{
-  width:1%;
-  white-space:nowrap;
-}
-.app-shell .v65-list-page:not(.v65-products) .v65-list-table
-  :is(.row-actions,.v65-list-row-actions) :where(button,a.button-secondary,a.button-link){
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  min-height:30px;
-  height:30px;
-  box-sizing:border-box;
-  margin:0 4px 0 0;
-  padding:4px 10px;
-  border-radius:5px!important;
-  line-height:1.25;
-  font-size:11.5px;
   white-space:nowrap;
   vertical-align:middle;
 }
-.app-shell .v65-list-page:not(.v65-products) .v65-shared-table-title{
+.app-shell .content table.data-table:not(.wsl-items) :is(.row-actions,.v65-row-actions,.v65-list-row-actions) :where(button,a.button-secondary,a.button-link),
+.app-shell .content table.data-table:not(.wsl-items) tbody td > :is(button.button-secondary,button.button-danger,a.button-secondary){
+  box-sizing:border-box;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  height:30px;
+  min-height:30px;
+  margin:0 4px 0 0;
+  padding:4px 10px;
+  font-size:11.5px;
+  line-height:1.25;
+  border-radius:5px!important;
+  vertical-align:middle;
+  white-space:nowrap;
+}
+/* Preserve control readability in document/stock/warehouse processing tables;
+   a multiline field, image or input must never be clipped to a fixed height. */
+.app-shell .content :is(.document-workspace,.v65-stock-workspace,.v65-detail-screen)
+  table.data-table:not(.wsl-items) tbody tr:has(:is(input:not([type="checkbox"]),select,textarea,img)){
+  height:auto;
+}
+.app-shell .content :is(.document-workspace,.v65-stock-workspace,.v65-detail-screen)
+  table.data-table:not(.wsl-items) tbody td:has(:is(input:not([type="checkbox"]),select,textarea,img)){
+  padding-top:7px;
+  padding-bottom:7px;
+}
+/* Plain semantic HTML tables in the app also receive the same density.
+   Excludes PDFs and the approved transport-slip print view by scope. */
+.app-shell .content table:not(.data-table) :is(th,td){
+  box-sizing:border-box;
+  padding:6px 10px;
+  font-size:12px;
+  line-height:1.4;
+  vertical-align:middle;
+}
+/* Result headings are metadata, not tall content cards. */
+.app-shell .content .v65-shared-table-title{
   min-height:36px;
   padding:7px 10px;
 }
-.app-shell .v65-list-page:not(.v65-products) .v65-list-footer{
-  padding:8px 11px;
+/* Keep the approved Product List's thumbnail and visual row dimensions. */
+.app-shell .content .v65-products table.data-table thead th{
+  height:43px;
+  padding:9px 11px;
+  font-size:11px;
+}
+.app-shell .content .v65-products table.data-table tbody tr{
+  height:auto;
+}
+.app-shell .content .v65-products table.data-table tbody td{
+  height:44px;
+  padding:9px 11px;
+  font-size:11.5px;
 }
 @media(max-width:640px){
-  .app-shell .v65-list-page:not(.v65-products) .v65-list-table .data-table thead th{
-    padding:6px 9px;
-  }
-  .app-shell .v65-list-page:not(.v65-products) .v65-list-table .data-table tbody td,
-  .app-shell .v65-list-page:not(.v65-products) .v65-list-table .data-table tfoot td{
-    padding:6px 9px;
-  }
-  .app-shell .data-table-shell.v65-list-page:not(.v65-products) .v65-list-table .row-actions{
-    white-space:normal;
+  .app-shell .content table.data-table:not(.wsl-items) :is(th,td){
+    padding-left:9px;
+    padding-right:9px;
   }
 }
