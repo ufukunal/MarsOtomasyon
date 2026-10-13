@@ -315,10 +315,10 @@
                         @endforeach
                     </div>
                 </details>
-            {{ $rows->links() }}
+            {{ $rows->links('livewire.components.data-table-pagination') }}
         </div>
         @else
-            {{ $rows->links() }}
+            {{ $rows->links('livewire.components.data-table-pagination') }}
         @endif
     </div>
 </div>
