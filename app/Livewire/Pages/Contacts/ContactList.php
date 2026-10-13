@@ -225,6 +225,19 @@ class ContactList extends DataTableComponent
         return parent::formattedValue($row, $column) ?: '—';
     }
 
+    public function toggleVisibleContacts(): void
+    {
+        $ids = collect($this->rows()->items())
+            ->map(fn (Contact $contact): string => (string) $contact->getKey())
+            ->all();
+        $selected = array_map('strval', $this->selected);
+        $allSelected = $ids !== [] && count(array_diff($ids, $selected)) === 0;
+
+        $this->selected = $allSelected
+            ? array_values(array_diff($selected, $ids))
+            : array_values(array_unique(array_merge($selected, $ids)));
+    }
+
     /** @return list<array<string, mixed>> */
     public function rowActions(): array
     {
