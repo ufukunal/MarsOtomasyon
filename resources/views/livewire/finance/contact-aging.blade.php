@@ -1,5 +1,6 @@
 <div class="space-y-5 panel v65-list-page">
-    <h1>Cari Yaşlandırma</h1>
+    <x-v65.list-heading title="Cari Yaşlandırma" />
+    <div class="v65-report-parameters">
 
     <label>Cari
         <select wire:model.live="contactId">
@@ -19,6 +20,8 @@
             </select>
         </label>
     @endif
+
+    </div>
 
     @if($aging)
         <div>Bakiye: {{ $aging->balance }} {{ $aging->currency }} · Açık borç: {{ $aging->openDebit }} {{ $aging->currency }} · Fazla alacak: {{ $aging->excessCredit }} {{ $aging->currency }}</div>
