@@ -4,6 +4,7 @@
         $statuses = \App\Livewire\Pages\Contacts\ContactDetail::statusLabels();
         $money = fn ($value) => $fmt::money((string) ($value ?? '0'));
         $renderDate = fn ($date) => $date?->format('d.m.Y') ?? '—';
+        $months = [1=>'Ocak',2=>'Şubat',3=>'Mart',4=>'Nisan',5=>'Mayıs',6=>'Haziran',7=>'Temmuz',8=>'Ağustos',9=>'Eylül',10=>'Ekim',11=>'Kasım',12=>'Aralık'];
         $typeLabels = [
             'quote' => 'Teklif', 'sales_order' => 'Satış Siparişi', 'purchase_order' => 'Satınalma Siparişi',
             'sales_invoice' => 'Satış Faturası', 'supplier_invoice' => 'Alış Faturası',
@@ -70,14 +71,21 @@
             </div>
             <div class="v65-contact-balance">
                 <small>Cari Bakiye</small>
-                <strong @class(['is-debit' => bccomp($balance, '0', 4) > 0, 'is-credit' => bccomp($balance, '0', 4) < 0])>
-                    {{ $money(bccomp($balance, '0', 4) < 0 ? bcmul($balance, '-1', 4) : $balance) }} ₺
-                    {{ bccomp($balance, '0', 4) > 0 ? 'Borç' : (bccomp($balance, '0', 4) < 0 ? 'Alacak' : 'Dengede') }}
-                </strong>
+                @if($multiCurrency)
+                    <strong>Para birimi bazında</strong>
+                    @foreach($currencyBalances as $currencyRow)
+                        <span>{{ $money($currencyRow->balance) }} {{ $currencyRow->currency }}</span>
+                    @endforeach
+                @else
+                    <strong @class(['is-credit' => bccomp($balance, '0', 4) > 0, 'is-debit' => bccomp($balance, '0', 4) < 0])>
+                        {{ $money(bccomp($balance, '0', 4) < 0 ? bcmul($balance, '-1', 4) : $balance) }} {{ $balanceCurrency }}
+                        {{ bccomp($balance, '0', 4) > 0 ? 'Alacaklı' : (bccomp($balance, '0', 4) < 0 ? 'Borçlu' : 'Dengede') }}
+                    </strong>
+                @endif
             </div>
         </section>
         <div class="v65-contact-metrics">
-            <div class="v65-contact-metric"><small>Cari Bakiye</small><strong>{{ $money($balance) }} ₺</strong></div>
+            <div class="v65-contact-metric"><small>Cari Bakiye</small><strong>{{ $multiCurrency ? 'Çoklu para birimi' : $money($balance).' '.$balanceCurrency }}</strong></div>
             @if($yearSales !== null)
                 <div class="v65-contact-metric"><small>{{ $year }} Satış (TRY)</small><strong>{{ $money($yearSales) }} ₺</strong></div>
             @endif
@@ -158,82 +166,235 @@
                 </section>
             </aside>
         </div>
+
     @elseif(in_array($activeTab, ['invoices','orders','quotes'], true))
         <section class="v65-contact-panel">
             <div class="v65-contact-panel-header">
                 <h3>{{ $tabs[$activeTab] }}</h3>
+                <span class="v65-contact-panel-sub">{{ $contact->code }} · {{ $contact->title }}</span>
             </div>
             <div class="table-scroll">
                 <table class="data-table">
-                    <thead><tr><th>Belge No</th><th>Tarih</th><th>Tür</th><th>Vade</th><th>Genel Toplam</th><th>Durum</th></tr></thead>
+                    <thead>
+                        @if($activeTab === 'quotes')
+                            <tr><th>Teklif No</th><th>Tarih</th><th>Geçerlilik</th><th class="align-end">Tutar</th><th>Durum</th></tr>
+                        @elseif($activeTab === 'orders')
+                            <tr><th>Sipariş No</th><th>Tarih</th><th>Tür</th><th>Vade</th><th class="align-end">Tutar</th><th>Durum</th></tr>
+                        @else
+                            <tr><th>Fatura No</th><th>Tarih</th><th>Tür</th><th>Vade</th><th class="align-end">Matrah</th><th class="align-end">KDV</th><th class="align-end">Genel Toplam</th><th>Durum</th></tr>
+                        @endif
+                    </thead>
                     <tbody>
                         @forelse($documents as $doc)
                             <tr wire:key="contact-document-{{ $doc->id }}">
                                 <td>@if($this->documentUrl($doc))<a href="{{ $this->documentUrl($doc) }}">{{ $doc->number ?? 'Taslak' }}</a>@else{{ $doc->number ?? 'Taslak' }}@endif</td>
                                 <td>{{ $renderDate($doc->document_date) }}</td>
-                                <td>{{ $typeLabels[$doc->document_type->value] ?? $doc->document_type->value }}</td>
-                                <td>{{ $renderDate($doc->due_date) }}</td>
-                                <td class="align-end">{{ $money($doc->grand_total) }} {{ $doc->currency }}</td>
-                                <td><span class="v65-contact-state">{{ $statuses[$doc->status] ?? $doc->status }}</span></td>
+                                @if($activeTab === 'quotes')
+                                    <td>{{ $renderDate($doc->valid_until) }}</td>
+                                    <td class="align-end">{{ $money($doc->grand_total) }} {{ $doc->currency }}</td>
+                                @elseif($activeTab === 'orders')
+                                    <td>{{ $typeLabels[$doc->document_type->value] ?? $doc->document_type->value }}</td>
+                                    <td>{{ $renderDate($doc->due_date) }}</td>
+                                    <td class="align-end">{{ $money($doc->grand_total) }} {{ $doc->currency }}</td>
+                                @else
+                                    <td>{{ $typeLabels[$doc->document_type->value] ?? $doc->document_type->value }}</td>
+                                    <td>{{ $renderDate($doc->due_date) }}</td>
+                                    <td class="align-end">{{ $money($doc->tax_base) }} {{ $doc->currency }}</td>
+                                    <td class="align-end">{{ $money($doc->vat_amount) }} {{ $doc->currency }}</td>
+                                    <td class="align-end">{{ $money($doc->grand_total) }} {{ $doc->currency }}</td>
+                                @endif
+                                <td><span @class(['v65-contact-state','is-success'=>in_array($doc->status,['posted','confirmed'],true),'is-warning'=>in_array($doc->status,['draft','customer_review','internal_review'],true)])>{{ $statuses[$doc->status] ?? $doc->status }}</span></td>
                             </tr>
                         @empty
-                            <tr><td colspan="6" class="empty-state">Bu cari için kayıt bulunamadı.</td></tr>
+                            <tr><td colspan="{{ $activeTab === 'quotes' ? 5 : ($activeTab === 'orders' ? 6 : 8) }}" class="empty-state">Bu cari için kayıt bulunamadı.</td></tr>
                         @endforelse
                     </tbody>
                 </table>
             </div>
             @if($documents)<x-v65.list-footer :paginator="$documents" :per-page="$perPage" />@endif
         </section>
+    
+
     @elseif($activeTab === 'movements')
         <section class="v65-contact-panel">
-            <div class="v65-contact-panel-header"><h3>Cari Hareketler</h3></div>
+            <div class="v65-contact-panel-header">
+                <div class="v65-contact-panel-heading">
+                    <h3>{{ $statementMode === 'vouchers' ? 'Fiş Listesi' : ($statementMode === 'detailed' ? 'Detaylı Cari Ekstre' : 'Detaysız Cari Ekstre') }}</h3>
+                    <small>{{ $contact->code }} · {{ $contact->title }}</small>
+                </div>
+                <div class="v65-contact-panel-controls">
+                    <button type="button" @class(['button-secondary','is-current'=>$statementMode==='vouchers']) wire:click="switchStatementMode('vouchers')">Fiş Listesi</button>
+                    <button type="button" @class(['button-secondary','is-current'=>$statementMode==='summary']) wire:click="switchStatementMode('summary')">Detaysız Ekstre</button>
+                    <button type="button" @class(['button-secondary','is-current'=>$statementMode==='detailed']) wire:click="switchStatementMode('detailed')">Detaylı Ekstre</button>
+                </div>
+            </div>
+            @if($movementTotals->isNotEmpty())
+                <div class="v65-contact-statement-totals">
+                    @foreach($movementTotals as $totalRow)
+                        <div><small>Toplam Borç · {{ $totalRow->currency }}</small><strong>{{ $money($totalRow->total_debit) }}</strong></div>
+                        <div><small>Toplam Alacak · {{ $totalRow->currency }}</small><strong>{{ $money($totalRow->total_credit) }}</strong></div>
+                        <div><small>Hareket · {{ $totalRow->currency }}</small><strong>{{ $totalRow->total_movements }}</strong></div>
+                    @endforeach
+                </div>
+            @endif
             <div class="table-scroll">
                 <table class="data-table">
-                    <thead><tr><th>Tarih</th><th>Belge</th><th>İşlem</th><th>Borç</th><th>Alacak</th><th>Para Birimi</th></tr></thead>
+                    <thead><tr>
+                        <th>Tarih</th><th>Belge No</th><th>İşlem</th><th>Açıklama</th>
+                        <th class="align-end">Borç</th><th class="align-end">Alacak</th><th class="align-end">Bakiye</th><th>PB</th>
+                    </tr></thead>
                     <tbody>
                         @forelse($movements as $move)
-                            <tr wire:key="contact-movement-{{ $move->id }}">
+                            <tr wire:key="contact-movement-{{ $move->id }}" @class(['v65-statement-row','is-detail'=>$statementMode==='detailed'])>
                                 <td>{{ $renderDate($move->transaction_date) }}</td>
                                 <td>{{ $move->document?->number ?? '—' }}</td>
-                                <td>{{ $move->description ?: $move->transaction_type }}</td>
+                                <td>{{ $move->transaction_type }}</td>
+                                <td>{{ $move->description ?: '—' }}</td>
                                 <td class="align-end">{{ $move->direction === 'debit' ? $money($move->amount) : '—' }}</td>
                                 <td class="align-end">{{ $move->direction === 'credit' ? $money($move->amount) : '—' }}</td>
+                                <td class="align-end"><strong>{{ $money($move->running_balance) }}</strong></td>
                                 <td>{{ $move->currency }}</td>
                             </tr>
+                            @if($statementMode === 'detailed' && $move->document && $this->documentUrl($move->document) && $move->document->lines->isNotEmpty())
+                                <tr wire:key="contact-movement-lines-{{ $move->id }}" class="v65-statement-lines-row">
+                                    <td></td><td colspan="7">
+                                        <div class="v65-statement-lines-wrap">
+                                            <table class="data-table">
+                                                <thead><tr><th>Ürün Kodu</th><th>Ürün / Açıklama</th><th>Miktar</th><th>Birim</th><th>Fiyat</th><th>KDV</th><th>Satır Toplamı</th></tr></thead>
+                                                <tbody>
+                                                @foreach($move->document->lines as $line)
+                                                    <tr wire:key="statement-line-{{ $move->id }}-{{ $line->id }}">
+                                                        <td>{{ $line->product?->code ?? '—' }}</td>
+                                                        <td>{{ $line->product?->name ?? $line->description ?? '—' }}</td>
+                                                        <td class="align-end">{{ $fmt::quantity((string)$line->quantity) }}</td>
+                                                        <td>{{ $line->unit?->name ?? '—' }}</td>
+                                                        <td class="align-end">{{ $money($line->unit_price) }}</td>
+                                                        <td class="align-end">%{{ number_format((float) $line->vat_rate,2,',','.') }}</td>
+                                                        <td class="align-end">{{ $money($line->line_total) }}</td>
+                                                    </tr>
+                                                @endforeach
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endif
                         @empty
-                            <tr><td colspan="6" class="empty-state">Cari hareketi bulunamadı.</td></tr>
+                            <tr><td colspan="8" class="empty-state">Cari hareketi bulunamadı.</td></tr>
                         @endforelse
                     </tbody>
                 </table>
             </div>
             <x-v65.list-footer :paginator="$movements" :per-page="$perPage" />
         </section>
+    
+
     @elseif($activeTab === 'products')
-        <section class="v65-contact-panel">
-            <div class="v65-contact-panel-header"><h3>Ürün Analizi</h3><small>Kesinleşmiş satış faturalarından hesaplanır.</small></div>
-            <div class="table-scroll"><table class="data-table">
-                <thead><tr><th>Ürün Kodu</th><th>Ürün Adı</th><th>Satılan Miktar</th><th>Belge Sayısı</th></tr></thead>
-                <tbody>
-                @forelse($products as $row)
-                    <tr><td>@can('products.view')<a href="{{ route('products.show', ['product' => $row->id]) }}">{{ $row->code }}</a>@else{{ $row->code }}@endcan</td><td>{{ $row->name }}</td><td class="align-end">{{ $fmt::quantity((string) $row->quantity) }}</td><td class="align-end">{{ $row->document_count }}</td></tr>
-                @empty
-                    <tr><td colspan="4" class="empty-state">Kesinleşmiş satış kaydı bulunamadı.</td></tr>
-                @endforelse
-                </tbody></table></div>
-        </section>
+        <div class="v65-contact-two-column">
+            <div class="v65-contact-section-column">
+                <section class="v65-contact-panel">
+                    <div class="v65-contact-panel-header"><h3>En Çok Alınan Ürünler</h3><small>Kesinleşmiş satış faturaları · TRY</small></div>
+                    <div class="table-scroll"><table class="data-table">
+                        <thead><tr><th>Ürün</th><th>Miktar</th><th class="align-end">Ciro</th><th>Son Alım</th><th class="align-end">Ort. Fiyat</th></tr></thead>
+                        <tbody>
+                        @forelse($products as $row)
+                            <tr>
+                                <td>@can('products.view')<a href="{{ route('products.show', ['product'=>$row->id]) }}">{{ $row->code }} · {{ $row->name }}</a>@else{{ $row->code }} · {{ $row->name }}@endcan</td>
+                                <td>{{ $fmt::quantity((string)$row->quantity) }} {{ $row->unit_name }}</td>
+                                <td class="align-end">{{ $money($row->revenue) }} ₺</td>
+                                <td>{{ $row->last_sale_at ? \Illuminate\Support\Carbon::parse($row->last_sale_at)->format('d.m.Y') : '—' }}</td>
+                                <td class="align-end">{{ bccomp((string)$row->quantity,'0',3)>0 ? $money(bcdiv((string)$row->revenue,(string)$row->quantity,4)).' ₺' : '—' }}</td>
+                            </tr>
+                        @empty
+                            <tr><td colspan="5" class="empty-state">Kesinleşmiş TL satış faturası bulunmuyor.</td></tr>
+                        @endforelse
+                        </tbody>
+                    </table></div>
+                </section>
+                <section class="v65-contact-panel">
+                    <div class="v65-contact-panel-header"><h3>Son Ürün Hareketleri</h3></div>
+                    <div class="table-scroll"><table class="data-table">
+                        <thead><tr><th>Tarih</th><th>Ürün</th><th>Belge</th><th>Miktar</th><th class="align-end">Fiyat</th><th class="align-end">Tutar</th></tr></thead>
+                        <tbody>
+                        @forelse($recentProductLines as $line)
+                            <tr><td>{{ $line->document_date ? \Illuminate\Support\Carbon::parse($line->document_date)->format('d.m.Y') : '—' }}</td>
+                                <td>{{ $line->code }}</td><td>{{ $line->number ?: '—' }}</td>
+                                <td>{{ $fmt::quantity((string)$line->quantity) }} {{ $line->unit_name }}</td>
+                                <td class="align-end">{{ $money($line->unit_price) }}</td>
+                                <td class="align-end">{{ $money($line->line_total) }}</td></tr>
+                        @empty
+                            <tr><td colspan="6" class="empty-state">Ürün hareketi bulunmadı.</td></tr>
+                        @endforelse
+                        </tbody>
+                    </table></div>
+                </section>
+            </div>
+            <div class="v65-contact-section-column">
+                <section class="v65-contact-panel">
+                    <div class="v65-contact-panel-header"><h3>Kategori Dağılımı</h3><small>TRY satış tutarı payı</small></div>
+                    <div class="v65-contact-category-bars">
+                        @forelse($productCategories as $category)
+                            <div class="v65-contact-category-row">
+                                <div><strong>{{ $category->category }}</strong><span>%{{ number_format($category->percent,1,',','.') }}</span></div>
+                                <div class="v65-contact-category-track"><span style="width: {{ $category->percent }}%"></span></div>
+                            </div>
+                        @empty
+                            <p>Kesinleşmiş satış kaydı bulunmadı.</p>
+                        @endforelse
+                    </div>
+                </section>
+                <section class="v65-contact-panel">
+                    <div class="v65-contact-panel-header"><h3>Analiz Özeti</h3></div>
+                    <div class="v65-contact-panel-body">
+                        <p>Listelenen farklı ürün: <strong>{{ $productAnalysis['distinct'] ?? 0 }}</strong></p>
+                        <p>En çok ciro üreten: <strong>{{ $productAnalysis['top_product'] ?? '—' }}</strong></p>
+                        <p>TRY satış toplamı: <strong>{{ $money($productAnalysis['revenue_try'] ?? '0') }} ₺</strong></p>
+                        <small>Farklı para birimindeki belgeler toplam dışındadır; adetler ürün bazında gruplanır.</small>
+                    </div>
+                </section>
+            </div>
+        </div>
+    
+
     @elseif($activeTab === 'annual')
-        <section class="v65-contact-panel">
-            <div class="v65-contact-panel-header"><h3>Yıllık Performans</h3><small>Para birimleri ayrı toplamlanır.</small></div>
-            <div class="table-scroll"><table class="data-table">
-                <thead><tr><th>Yıl</th><th>Para Birimi</th><th>Satış Faturası</th><th>Kesinleşmiş Satış Toplamı</th></tr></thead>
-                <tbody>
-                @forelse($annual as $row)
-                    <tr><td>{{ $row->year }}</td><td>{{ $row->currency }}</td><td>{{ $row->document_count }}</td><td class="align-end">{{ $money($row->total) }} {{ $row->currency }}</td></tr>
-                @empty
-                    <tr><td colspan="4" class="empty-state">Yıllık satış performansı için kesinleşmiş kayıt bulunamadı.</td></tr>
-                @endforelse
-                </tbody></table></div>
-        </section>
+        <div class="v65-contact-metrics">
+            <div class="v65-contact-metric"><small>{{ $year }} Satış</small><strong>{{ $money($annualSummary['sales_try'] ?? '0') }} ₺</strong></div>
+            <div class="v65-contact-metric"><small>Satış Faturası</small><strong>{{ $annualSummary['sales_count'] ?? 0 }}</strong></div>
+            <div class="v65-contact-metric"><small>Satış Olan Ay</small><strong>{{ $annualSummary['months'] ?? 0 }}</strong></div>
+            <div class="v65-contact-metric"><small>Son Satış Ayı</small><strong>{{ isset($annualSummary['last_month']) ? ($months[$annualSummary['last_month']] ?? '—') : '—' }}</strong></div>
+            <div class="v65-contact-metric"><small>Vade</small><strong>{{ $contact->term_days ?? '—' }} gün</strong></div>
+            <div class="v65-contact-metric"><small>Risk Limiti</small><strong>{{ $money($contact->risk_limit) }} ₺</strong></div>
+        </div>
+        <div class="v65-contact-two-column">
+            <section class="v65-contact-panel">
+                <div class="v65-contact-panel-header"><h3>{{ $year }} Aylık Performans</h3><small>TRY kesinleşmiş satışlar</small></div>
+                <div class="table-scroll"><table class="data-table">
+                    <thead><tr><th>Ay</th><th class="align-end">Satış</th><th class="align-end">Fatura Sayısı</th></tr></thead>
+                    <tbody>
+                    @forelse($monthly as $row)
+                        <tr><td>{{ $months[$row->month] ?? $row->month }}</td><td class="align-end">{{ $money($row->revenue) }} ₺</td><td class="align-end">{{ $row->invoices }}</td></tr>
+                    @empty
+                        <tr><td colspan="3" class="empty-state">Bu yıl kesinleşmiş satış bulunmuyor.</td></tr>
+                    @endforelse
+                    </tbody>
+                </table></div>
+            </section>
+            <section class="v65-contact-panel">
+                <div class="v65-contact-panel-header"><h3>Yıllık Değerlendirme</h3></div>
+                <div class="table-scroll"><table class="data-table">
+                    <thead><tr><th>Yıl</th><th>Para Birimi</th><th>Fatura Sayısı</th><th class="align-end">Satış Toplamı</th></tr></thead>
+                    <tbody>
+                    @forelse($annual as $row)
+                        <tr><td>{{ $row->year }}</td><td>{{ $row->currency }}</td><td>{{ $row->document_count }}</td><td class="align-end">{{ $money($row->total) }} {{ $row->currency }}</td></tr>
+                    @empty
+                        <tr><td colspan="4" class="empty-state">Yıllık performans kaydı bulunmadı.</td></tr>
+                    @endforelse
+                    </tbody>
+                </table></div>
+                <p class="v65-contact-note">Trend, sınıf ve tahsilat disiplini gibi göstergeler hesaplanmadan varsayılan değer gösterilmez.</p>
+            </section>
+        </div>
+    
     @elseif($activeTab === 'addresses' || $activeTab === 'shipping')
         <section class="v65-contact-panel">
             <div class="v65-contact-panel-header">
