@@ -5,6 +5,7 @@ namespace App\Support\Audit;
 use App\Support\Period\PeriodContext;
 use Closure;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 use Spatie\Activitylog\Contracts\Activity as ActivityContract;
 
 final class AuditContext
@@ -99,13 +100,18 @@ final class AuditContext
 
     private static function correlationId(): ?string
     {
-        if (app()->runningInConsole() || ! app()->bound('request')) {
+        if (! app()->bound('request')) {
             return null;
         }
 
         $request = request();
-
-        return $request->attributes->get('correlation_id')
+        $candidate = $request->attributes->get('correlation_id')
             ?? $request->headers->get('X-Correlation-ID');
+
+        // A malformed external/legacy request ID must never break business
+        // transactions while inserting the UUID-typed period audit row.
+        return is_string($candidate) && Str::isUuid($candidate)
+            ? $candidate
+            : null;
     }
 }

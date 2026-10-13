@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
 
-it('issues a fresh fixed-length correlation ID for each request and returns it in response headers', function (): void {
+it('issues a UUID correlation ID for each request, suitable for the audit table', function (): void {
     $middleware = new CorrelationId;
     $first = Request::create('/v4');
     $second = Request::create('/v4');
@@ -18,8 +18,11 @@ it('issues a fresh fixed-length correlation ID for each request and returns it i
     $idA = $responseA->headers->get('X-Correlation-ID');
     $idB = $responseB->headers->get('X-Correlation-ID');
 
-    expect($idA)->toMatch('/^[0-9A-F]{6}$/')
-        ->and($idB)->toMatch('/^[0-9A-F]{6}$/')
+    $uuidPattern = '/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/';
+
+    expect($idA)->toMatch($uuidPattern)
+        ->and($idB)->toMatch($uuidPattern)
+        ->and($idA)->not->toBe($idB)
         ->and($first->attributes->get('correlation_id'))->toBe($idA)
         ->and($second->attributes->get('correlation_id'))->toBe($idB);
 });
