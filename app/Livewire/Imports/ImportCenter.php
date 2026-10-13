@@ -12,6 +12,7 @@ use App\Actions\Imports\SaveImportFile;
 use App\Actions\Imports\SaveImportPackage;
 use App\Enums\ProductKind;
 use App\Livewire\Concerns\WithIdempotentMutations;
+use App\Livewire\Concerns\WithV65SimpleListFilter;
 use App\Models\Period;
 use App\Models\Period\Contact;
 use App\Models\Period\ImportContainer;
@@ -34,6 +35,7 @@ class ImportCenter extends Component
 {
     use WithIdempotentMutations;
     use WithPagination;
+    use WithV65SimpleListFilter;
 
     public string $listSearch = '';
 
@@ -366,7 +368,7 @@ class ImportCenter extends Component
                     $q->where('number', 'ilike', $needle)
                         ->orWhereHas('supplier', fn ($supplier) => $supplier->where('title', 'ilike', $needle));
                 }))
-                ->orderByDesc('id')->paginate($this->perPage),
+                ->when($this->v65SimpleSort === 'id', fn ($q) => $q->orderBy('id', $this->v65SimpleDirection), fn ($q) => $q->orderByDesc('id'))->paginate($this->perPage),
             'file' => $file,
             'contacts' => Contact::query()->where('is_active', true)->orderBy('title')->limit(500)->get(),
             'locations' => Location::query()->where('is_active', true)->orderBy('name')->get(),
