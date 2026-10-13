@@ -9,31 +9,37 @@
         @forelse($roots as $root)
             <div class="category-node level-1">
                 <div class="category-node-row">
-                    <strong>{{ $root->name }}</strong>
-                    <span>{{ $root->is_active ? 'Aktif' : 'Pasif' }}</span>
                     @can('product_categories.update')
-                        <a class="button-secondary" href="{{ route('categories.edit', ['category' => $root->id]) }}">Düzenle</a>
+                        <a class="v65-record-link" href="{{ route('categories.edit', ['category' => $root->id]) }}"><strong>{{ $root->name }}</strong></a>
+                    @else
+                        <strong>{{ $root->name }}</strong>
                     @endcan
+                    <span>{{ $root->is_active ? 'Aktif' : 'Pasif' }}</span>
+
                 </div>
 
                 @foreach($root->children as $child)
                     <div class="category-node level-2">
                         <div class="category-node-row">
-                            <span>{{ $child->name }}</span>
-                            <span>{{ $child->is_active ? 'Aktif' : 'Pasif' }}</span>
                             @can('product_categories.update')
-                                <a class="button-secondary" href="{{ route('categories.edit', ['category' => $child->id]) }}">Düzenle</a>
+                                <a class="v65-record-link" href="{{ route('categories.edit', ['category' => $child->id]) }}">{{ $child->name }}</a>
+                            @else
+                                <span>{{ $child->name }}</span>
                             @endcan
+                            <span>{{ $child->is_active ? 'Aktif' : 'Pasif' }}</span>
+
                         </div>
 
                         @foreach($child->children as $grandchild)
                             <div class="category-node level-3">
                                 <div class="category-node-row">
-                                    <span>{{ $grandchild->name }}</span>
-                                    <span>{{ $grandchild->is_active ? 'Aktif' : 'Pasif' }}</span>
                                     @can('product_categories.update')
-                                        <a class="button-secondary" href="{{ route('categories.edit', ['category' => $grandchild->id]) }}">Düzenle</a>
-                                    @endcan
+                                    <a class="v65-record-link" href="{{ route('categories.edit', ['category' => $grandchild->id]) }}">{{ $grandchild->name }}</a>
+                                @else
+                                    <span>{{ $grandchild->name }}</span>
+                                @endcan
+                                    <span>{{ $grandchild->is_active ? 'Aktif' : 'Pasif' }}</span>
+
                                 </div>
                             </div>
                         @endforeach
