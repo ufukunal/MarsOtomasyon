@@ -22,7 +22,7 @@ it('opens stock row links in read-only details rather than edit forms', function
         ->not->toContain("route('products.edit'")
         ->and($stockMovements)->toContain("route('products.show'")
         ->toContain("route('stock.movements.show'")
-        ->and($productList)->toContain("'label' => 'Detay'")
+        ->and($productList)->not->toContain("'label' => 'Detay'")
         ->toContain("route('products.show'")
         ->and($reservationList)->toContain("route('products.show'")
         ->toContain("route('stock.reservations.show'")
