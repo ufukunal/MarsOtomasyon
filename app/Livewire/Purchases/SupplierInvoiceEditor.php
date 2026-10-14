@@ -44,6 +44,7 @@ class SupplierInvoiceEditor extends BasePurchaseDocumentEditor
 
     public function post(PostSupplierInvoice $action): void
     {
+        $this->requireSavedDraft();
         abort_unless($this->document !== null, 422);
         $this->loadDocument($action->handle(
             $this->document,
