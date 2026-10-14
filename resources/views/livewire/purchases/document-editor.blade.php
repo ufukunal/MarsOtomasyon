@@ -20,6 +20,8 @@
         <x-v65.notice tone="warning">Kaydedilmemiş değişiklikler var. Belge işlemine devam etmeden önce Kaydet'i kullanın.</x-v65.notice>
     @endif
 
+    @php($draftPreview = $this->draftTotalsPreview())
+
     @if(!$document || $document->status === 'draft')
         <form wire:submit="save" class="document-editor-form v65-doc-editor">
             <div class="v65-doc-contact-picker">
@@ -132,7 +134,7 @@
                             <td class="align-end"><input wire:model.blur="lines.{{ $index }}.line_discount_rate" inputmode="decimal" data-tr-decimal aria-label="Satır {{ $index + 1 }} iskonto"></td>
                             <td class="align-end"><input wire:model.blur="lines.{{ $index }}.vat_rate" inputmode="decimal" data-tr-decimal aria-label="Satır {{ $index + 1 }} KDV"></td>
                         @endif
-                        <td class="align-end v65-doc-line-net">@if(!$documentDirty && isset($line['line_total'])){{ \App\Support\Formatting\TrFormatter::money((string) $line['line_total']) }}@else—@endif</td>
+                        <td class="align-end v65-doc-line-net">@if($draftPreview && isset($draftPreview->lines[$index])){{ \App\Support\Formatting\TrFormatter::money((string) $draftPreview->lines[$index]->lineTotal) }}@elseif(!$documentDirty && isset($line['line_total'])){{ \App\Support\Formatting\TrFormatter::money((string) $line['line_total']) }}@else—@endif</td>
                         @unless($isGoodsReceipt)
                             <td><x-v65.button variant="danger" size="xs" wire:click="removeLine({{ $index }})" aria-label="Satır {{ $index + 1 }} sil">Sil</x-v65.button></td>
                         @endunless
@@ -155,7 +157,7 @@
         <div class="v65-doc-print-only"><x-v65.document-readonly :document="$document" /></div>
     @endif
 
-    <x-v65.document-summary :document="$document" :preview="$this->draftTotalsPreview()" />
+    <x-v65.document-summary :document="$document" :preview="$draftPreview" />
 
     @if($document)
         <section class="document-actions panel v65-document-actions v65-doc-workflow" role="group" aria-label="Belge işlemleri">
