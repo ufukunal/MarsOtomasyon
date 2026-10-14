@@ -40,6 +40,7 @@ class DispatchEditor extends BaseSalesDocumentEditor
 
     public function post(PostDispatch $action): void
     {
+        $this->requireSavedDraft();
         abort_unless($this->document !== null, 422);
         $this->loadDocument($action->handle($this->document, $this->mutationKey('post'))->load('lines'));
         $this->completeMutation('post');
