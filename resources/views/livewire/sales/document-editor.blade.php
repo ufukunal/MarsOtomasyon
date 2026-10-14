@@ -1,5 +1,13 @@
 <div class="document-workspace stack">
-    <x-v65.document-heading :document="$document" :title="$title" section="Satış Yönetimi" />
+    @php
+        $documentIndexRoute = match (true) {
+            $this instanceof \App\Livewire\Sales\QuoteEditor => 'sales.quotes.index',
+            $this instanceof \App\Livewire\Sales\SalesOrderEditor => 'sales.orders.index',
+            $this instanceof \App\Livewire\Sales\DispatchEditor => 'sales.dispatches.index',
+            default => 'sales.invoices.index',
+        };
+    @endphp
+    <x-v65.document-heading :document="$document" :title="$title" section="Satış Yönetimi" :index-route="$documentIndexRoute" />
     @if($errors->any())
         <x-v65.notice tone="danger" title="Belge kontrolü">
             <ul>@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>
@@ -117,6 +125,10 @@
         </form>
     @elseif($document)
         <x-v65.document-readonly :document="$document" />
+    @endif
+
+    @if($document && $document->status === 'draft')
+        <div class="v65-doc-print-only"><x-v65.document-readonly :document="$document" /></div>
     @endif
 
     <x-v65.document-summary :document="$document" :preview="$this->draftTotalsPreview()" />
