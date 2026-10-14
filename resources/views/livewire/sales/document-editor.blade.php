@@ -50,7 +50,7 @@
                         <tr wire:key="sales-line-{{ $line['row_key'] ?? $index }}">
                             <td>{{ $index + 1 }}</td>
                             <td>
-                                <select wire:model="lines.{{ $index }}.line_kind">
+                                <select wire:model.live="lines.{{ $index }}.line_kind" aria-label="Satır {{ $index + 1 }} tür">
                                     <option value="stock">Stok</option>
                                     <option value="service">Hizmet</option>
                                 </select>
