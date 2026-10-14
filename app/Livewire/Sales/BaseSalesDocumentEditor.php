@@ -36,6 +36,8 @@ abstract class BaseSalesDocumentEditor extends Component
 
     public int $version = 1;
 
+    public bool $documentDirty = false;
+
     /** @var list<array<string,mixed>> */
     public array $lines = [];
 
@@ -75,15 +77,37 @@ abstract class BaseSalesDocumentEditor extends Component
         }
     }
 
+    public function updated(string $property): void
+    {
+        foreach (['contactId', 'documentDate', 'dueDate', 'validUntil', 'currency', 'exchangeRate', 'discountRate', 'notes', 'lines'] as $field) {
+            if ($property === $field || str_starts_with($property, $field.'.')) {
+                $this->documentDirty = true;
+
+                return;
+            }
+        }
+    }
+
+    protected function requireSavedDraft(): void
+    {
+        if ($this->documentDirty) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'document' => 'Belgede kaydedilmemiş değişiklikler var. İşleme devam etmek için önce Kaydet düğmesini kullanın.',
+            ]);
+        }
+    }
+
     public function addLine(): void
     {
         $this->lines[] = $this->emptyLine();
+        $this->documentDirty = true;
     }
 
     public function removeLine(int $index): void
     {
         unset($this->lines[$index]);
         $this->lines = array_values($this->lines);
+        $this->documentDirty = true;
     }
 
     public function applyVatToAll(): void
@@ -99,6 +123,7 @@ abstract class BaseSalesDocumentEditor extends Component
         foreach ($this->lines as $index => $line) {
             $this->lines[$index]['vat_rate'] = $rate;
         }
+        $this->documentDirty = true;
     }
 
     public function clearVat(): void
@@ -106,6 +131,7 @@ abstract class BaseSalesDocumentEditor extends Component
         foreach ($this->lines as $index => $line) {
             $this->lines[$index]['vat_rate'] = '0.0000';
         }
+        $this->documentDirty = true;
     }
 
     public function save(SaveSalesDocumentDraft $action): void
@@ -130,6 +156,7 @@ abstract class BaseSalesDocumentEditor extends Component
         ));
 
         $this->loadDocument($saved->load('lines'));
+        $this->documentDirty = false;
     }
 
     public function render(): View
@@ -149,6 +176,7 @@ abstract class BaseSalesDocumentEditor extends Component
 
     protected function loadDocument(Document $document): void
     {
+        $document->loadMissing(['lines.unit', 'contact']);
         $this->document = $document;
         $this->contactId = $document->contact_id;
         $this->documentDate = $document->document_date->toDateString();
@@ -158,6 +186,7 @@ abstract class BaseSalesDocumentEditor extends Component
         $this->notes = (string) ($document->notes ?? '');
         $this->version = (int) $document->version;
         $this->lines = $document->lines->map(fn ($line) => [
+            'row_key' => 'saved-'.$line->id,
             'line_kind' => $line->line_kind,
             'product_id' => $line->product_id,
             'description' => $line->description,
@@ -179,6 +208,7 @@ abstract class BaseSalesDocumentEditor extends Component
     private function emptyLine(): array
     {
         return [
+            'row_key' => 'new-'.(string) \Illuminate\Support\Str::uuid(),
             'line_kind' => 'stock',
             'product_id' => null,
             'description' => '',
