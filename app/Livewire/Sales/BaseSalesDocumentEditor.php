@@ -82,6 +82,26 @@ abstract class BaseSalesDocumentEditor extends Component
 
     public function updated(string $property): void
     {
+        // Apply the selected product's actual unit, VAT and description
+        // on the server, so the row stays coherent after Livewire morphing.
+        if (preg_match('/^lines\.(\d+)\.product_id$/D', $property, $productMatch)) {
+            $index = (int) $productMatch[1];
+            $productId = (int) ($this->lines[$index]['product_id'] ?? 0);
+            $product = $productId > 0
+                ? Product::query()->where('is_active', true)->find($productId)
+                : null;
+
+            if ($product !== null) {
+                $this->lines[$index]['unit_id'] = $product->unit_id;
+                $this->lines[$index]['vat_rate'] = (string) $product->vat_rate;
+                $this->lines[$index]['description'] = $product->name;
+                $this->lines[$index]['conversion_factor'] = null;
+                $this->lines[$index]['line_discount_amount'] = '0';
+                $this->lines[$index]['unit_price'] = app(\App\Support\Pricing\PriceResolver::class)
+                    ->resolve($product, $this->contactId ? Contact::query()->find($this->contactId) : null);
+            }
+        }
+
         // When a source value changes, an old persisted discount amount cannot
         // be reused with the new price, quantity or discount percentage.
         if (preg_match('/^lines\.(\d+)\.(quantity|unit_price|line_discount_rate)$/D', $property, $matches)) {
@@ -230,7 +250,8 @@ abstract class BaseSalesDocumentEditor extends Component
             $needle = '%'.str_replace(['%', '_'], ['\\%', '\\_'], $search).'%';
             $query->where(fn ($builder) => $builder
                 ->where('code', 'ilike', $needle)
-                ->orWhere('name', 'ilike', $needle));
+                ->orWhere('name', 'ilike', $needle)
+                ->orWhere('barcode', 'ilike', $needle));
         }
 
         $options = $query->orderBy('name')->limit(35)->get();
