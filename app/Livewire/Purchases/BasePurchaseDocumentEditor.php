@@ -292,7 +292,7 @@ abstract class BasePurchaseDocumentEditor extends Component
 
     protected function loadDocument(Document $document): void
     {
-        $document->loadMissing(['lines.unit', 'contact']);
+        $document->loadMissing(['lines.unit', 'contact', 'incomingRelations.sourceDocument']);
         $this->document = $document;
         $this->contactId = $document->contact_id;
         $this->documentDate = $document->document_date->toDateString();
