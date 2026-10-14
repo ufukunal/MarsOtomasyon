@@ -24,7 +24,7 @@
             @if($this instanceof \App\Livewire\Sales\QuoteEditor)
                 <label class="field">Teklif Geçerlilik Tarihi <input type="date" wire:model="validUntil"></label>
             @endif
-            <label class="field">Belge İskonto % <input wire:model="discountRate" data-tr-decimal inputmode="decimal"></label>
+            <label class="field">Belge İskonto % <input wire:model.blur="discountRate" data-tr-decimal inputmode="decimal"></label>
             <label class="field v65-doc-notes">Not <textarea wire:model="notes" rows="3"></textarea></label>
 
             <div class="v65-doc-vat-toolbar" role="group" aria-label="Satırlara toplu KDV uygula">
@@ -59,9 +59,13 @@
                                 @if(($line['line_kind'] ?? 'stock') === 'service')
                                     <input wire:model="lines.{{ $index }}.description" placeholder="Hizmet açıklaması" aria-label="Satır {{ $index + 1 }} hizmet açıklaması">
                                 @else
+                                    <input type="search" class="v65-doc-product-search"
+                                        wire:model.live.debounce.300ms="productSearches.{{ $line['row_key'] ?? $index }}"
+                                        placeholder="Ürün kodu veya adıyla ara"
+                                        aria-label="Satır {{ $index + 1 }} ürün ara" autocomplete="off">
                                     <select wire:model="lines.{{ $index }}.product_id" aria-label="Satır {{ $index + 1 }} ürün">
                                         <option value="">Ürün seçin</option>
-                                        @foreach($products as $product)
+                                        @foreach($this->productOptionsForLine((string) ($line['row_key'] ?? $index), (int) ($line['product_id'] ?? 0)) as $product)
                                             <option value="{{ $product->id }}">{{ $product->code }} · {{ $product->name }}</option>
                                         @endforeach
                                     </select>
@@ -80,7 +84,7 @@
                                     </select>
                                 @endif
                             </td>
-                            <td class="align-end"><input wire:model="lines.{{ $index }}.quantity" inputmode="decimal" data-tr-decimal aria-label="Satır {{ $index + 1 }} miktar"></td>
+                            <td class="align-end"><input wire:model.blur="lines.{{ $index }}.quantity" inputmode="decimal" data-tr-decimal aria-label="Satır {{ $index + 1 }} miktar"></td>
                             <td>
                                 @if(($line['line_kind'] ?? 'stock') === 'service')
                                     <span class="v65-doc-muted">—</span>
@@ -93,9 +97,9 @@
                                     </select>
                                 @endif
                             </td>
-                            <td class="align-end"><input wire:model="lines.{{ $index }}.unit_price" inputmode="decimal" data-tr-decimal aria-label="Satır {{ $index + 1 }} birim fiyat"></td>
-                            <td class="align-end"><input wire:model="lines.{{ $index }}.line_discount_rate" inputmode="decimal" data-tr-decimal aria-label="Satır {{ $index + 1 }} iskonto"></td>
-                            <td class="align-end"><input wire:model="lines.{{ $index }}.vat_rate" inputmode="decimal" data-tr-decimal aria-label="Satır {{ $index + 1 }} KDV"></td>
+                            <td class="align-end"><input wire:model.blur="lines.{{ $index }}.unit_price" inputmode="decimal" data-tr-decimal aria-label="Satır {{ $index + 1 }} birim fiyat"></td>
+                            <td class="align-end"><input wire:model.blur="lines.{{ $index }}.line_discount_rate" inputmode="decimal" data-tr-decimal aria-label="Satır {{ $index + 1 }} iskonto"></td>
+                            <td class="align-end"><input wire:model.blur="lines.{{ $index }}.vat_rate" inputmode="decimal" data-tr-decimal aria-label="Satır {{ $index + 1 }} KDV"></td>
                             <td class="v65-doc-line-actions">
                                 <span class="v65-doc-line-net align-end">@if(!$documentDirty && isset($line['line_total'])){{ \App\Support\Formatting\TrFormatter::money((string) $line['line_total']) }}@else—@endif</span>
                             </td>
@@ -115,7 +119,7 @@
         <x-v65.document-readonly :document="$document" />
     @endif
 
-    <x-v65.document-summary :document="$document" />
+    <x-v65.document-summary :document="$document" :preview="$this->draftTotalsPreview()" />
 
     @if($document)
         <section class="document-actions panel v65-document-actions v65-doc-workflow" role="group" aria-label="Belge işlemleri">
