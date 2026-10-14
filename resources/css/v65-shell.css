@@ -2050,3 +2050,26 @@
   .app-shell .v65-doc-editor,.app-shell .v65-doc-workflow,.app-shell .v65-doc-form-actions{display:none!important}
   .app-shell .v65-doc-readonly,.app-shell .v65-doc-summary{break-inside:avoid}
 }
+
+
+/* Document-only print preview and local controls (never affect ambar slips). */
+.app-shell .v65-doc-heading-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+.app-shell .v65-doc-product-search{margin-bottom:5px!important;font-size:11px!important}
+.app-shell .v65-doc-print-only{display:none}
+.app-shell .v65-doc-workflow>.v65-doc-matching-table{flex:1 1 100%}
+.app-shell .v65-doc-workflow>.v65-doc-workflow-title{width:100%}
+@media(max-width:640px){
+  .app-shell .v65-doc-heading-actions{width:100%;justify-content:flex-start}
+}
+@media print{
+  .app-shell .v65-doc-print-only{display:block!important}
+  .app-shell .v65-doc-heading-actions{display:none!important}
+  .app-shell .document-workspace>.v65-notice{display:none!important}
+  .app-shell .v65-doc-heading{border:0;padding:4px 0 14px}
+  .app-shell .v65-doc-summary{width:100%;margin:12px 0}
+  .app-shell .v65-doc-summary-warning{display:none!important}
+  .app-shell .v65-doc-readonly{overflow:visible;border:0}
+  .app-shell .v65-doc-table-scroll{overflow:visible!important}
+  .app-shell .v65-doc-table{min-width:0!important;table-layout:auto}
+  .app-shell .v65-doc-table :is(th,td){padding:5px!important;font-size:9px!important}
+}
