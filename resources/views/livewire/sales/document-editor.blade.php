@@ -44,7 +44,7 @@
             <section class="v65-doc-lines" aria-label="Belge kalemleri">
                 <div class="v65-doc-lines-head">
                     <strong>Belge Kalemleri</strong>
-                    <small>Fiyat ve vergi toplamları kaydedildiğinde güncellenir.</small>
+                    <small>Miktar, fiyat ve vergi değişince taslak toplamları güncellenir.</small>
                 </div>
                 <div class="table-scroll document-lines v65-doc-table-scroll"><table class="data-table v65-doc-table">
                 <thead>
@@ -71,7 +71,7 @@
                                         wire:model.live.debounce.300ms="productSearches.{{ $line['row_key'] ?? $index }}"
                                         placeholder="Ürün kodu veya adıyla ara"
                                         aria-label="Satır {{ $index + 1 }} ürün ara" autocomplete="off">
-                                    <select wire:model="lines.{{ $index }}.product_id" aria-label="Satır {{ $index + 1 }} ürün">
+                                    <select wire:model.live="lines.{{ $index }}.product_id" aria-label="Satır {{ $index + 1 }} ürün">
                                         <option value="">Ürün seçin</option>
                                         @foreach($this->productOptionsForLine((string) ($line['row_key'] ?? $index), (int) ($line['product_id'] ?? 0)) as $product)
                                             <option value="{{ $product->id }}">{{ $product->code }} · {{ $product->name }}</option>
