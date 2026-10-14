@@ -19,11 +19,16 @@
 
     @if(!$document || $document->status === 'draft')
         <form wire:submit="save" class="document-editor-form v65-doc-editor">
-            <x-v65.select label="Cari" wire:model="contactId" placeholder="Cari seçin" class="v65-doc-contact">
-                @foreach($contacts as $contact)
-                    <option value="{{ $contact->id }}">{{ $contact->code }} · {{ $contact->title }}</option>
-                @endforeach
-            </x-v65.select>
+            <div class="v65-doc-contact-picker">
+                <label class="field">Cari Ara
+                    <input type="search" wire:model.live.debounce.300ms="contactSearch" placeholder="Kod veya unvan ile ara" autocomplete="off">
+                </label>
+                <x-v65.select label="Cari" wire:model.live="contactId" placeholder="Cari seçin" class="v65-doc-contact">
+                    @foreach($this->contactOptions() as $contact)
+                        <option value="{{ $contact->id }}">{{ $contact->code }} · {{ $contact->title }}</option>
+                    @endforeach
+                </x-v65.select>
+            </div>
 
             <label class="field">Belge Tarihi <input type="date" wire:model="documentDate"></label>
             @unless($this instanceof \App\Livewire\Sales\DispatchEditor)
