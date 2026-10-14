@@ -60,7 +60,7 @@ it('tracks unsaved edits and guards document workflow transitions without changi
             ->toContain('public function productOptionsForLine(')
             ->toContain('public function contactOptions()')
             ->toContain("['row_key']")
-            ->toContain("'line_total' => (string) $line->line_total")
+            ->toContain("'line_total' => (string) ".'$line->line_total')
             ->toContain('protected function requireSavedDraft(): void')
             ->toContain('ValidationException::withMessages');
     }
