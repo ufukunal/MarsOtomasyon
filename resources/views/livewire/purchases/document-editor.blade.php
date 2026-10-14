@@ -24,8 +24,8 @@
             @if(!$isGoodsReceipt)
                 <label class="field">Vade <input type="date" wire:model="dueDate"></label>
                 <label class="field">Para Birimi <input wire:model="currency" maxlength="3"></label>
-                <label class="field">Kur <input wire:model="exchangeRate" inputmode="decimal" data-tr-decimal></label>
-                <label class="field">Belge İskonto % <input wire:model="discountRate" inputmode="decimal" data-tr-decimal></label>
+                <label class="field">Kur <input wire:model.blur="exchangeRate" inputmode="decimal" data-tr-decimal></label>
+                <label class="field">Belge İskonto % <input wire:model.blur="discountRate" inputmode="decimal" data-tr-decimal></label>
             @else
                 <div class="v65-doc-static-field"><strong>Para Birimi / Kur</strong><span>{{ $currency }} · {{ $exchangeRate }}</span></div>
             @endif
@@ -75,9 +75,13 @@
                             @elseif(($line['line_kind'] ?? 'stock') === 'service')
                                 <input wire:model="lines.{{ $index }}.description" placeholder="Hizmet açıklaması" aria-label="Satır {{ $index + 1 }} hizmet açıklaması">
                             @else
+                                <input type="search" class="v65-doc-product-search"
+                                    wire:model.live.debounce.300ms="productSearches.{{ $line['row_key'] ?? $index }}"
+                                    placeholder="Ürün kodu veya adıyla ara"
+                                    aria-label="Satır {{ $index + 1 }} ürün ara" autocomplete="off">
                                 <select wire:model="lines.{{ $index }}.product_id" aria-label="Satır {{ $index + 1 }} ürün">
                                     <option value="">Ürün seçin</option>
-                                    @foreach($products as $product)
+                                    @foreach($this->productOptionsForLine((string) ($line['row_key'] ?? $index), (int) ($line['product_id'] ?? 0)) as $product)
                                         <option value="{{ $product->id }}">{{ $product->code }} · {{ $product->name }}</option>
                                     @endforeach
                                 </select>
@@ -98,7 +102,7 @@
                                 </select>
                             @endif
                         </td>
-                        <td class="align-end"><input wire:model="lines.{{ $index }}.quantity" inputmode="decimal" data-tr-decimal aria-label="Satır {{ $index + 1 }} miktar"></td>
+                        <td class="align-end"><input wire:model.blur="lines.{{ $index }}.quantity" inputmode="decimal" data-tr-decimal aria-label="Satır {{ $index + 1 }} miktar"></td>
                         <td>
                             @if(($line['line_kind'] ?? 'stock') === 'service')
                                 <span class="v65-doc-muted">—</span>
@@ -112,9 +116,9 @@
                             @endif
                         </td>
                         @if(!$isGoodsReceipt)
-                            <td class="align-end"><input wire:model="lines.{{ $index }}.unit_price" inputmode="decimal" data-tr-decimal aria-label="Satır {{ $index + 1 }} birim fiyat"></td>
-                            <td class="align-end"><input wire:model="lines.{{ $index }}.line_discount_rate" inputmode="decimal" data-tr-decimal aria-label="Satır {{ $index + 1 }} iskonto"></td>
-                            <td class="align-end"><input wire:model="lines.{{ $index }}.vat_rate" inputmode="decimal" data-tr-decimal aria-label="Satır {{ $index + 1 }} KDV"></td>
+                            <td class="align-end"><input wire:model.blur="lines.{{ $index }}.unit_price" inputmode="decimal" data-tr-decimal aria-label="Satır {{ $index + 1 }} birim fiyat"></td>
+                            <td class="align-end"><input wire:model.blur="lines.{{ $index }}.line_discount_rate" inputmode="decimal" data-tr-decimal aria-label="Satır {{ $index + 1 }} iskonto"></td>
+                            <td class="align-end"><input wire:model.blur="lines.{{ $index }}.vat_rate" inputmode="decimal" data-tr-decimal aria-label="Satır {{ $index + 1 }} KDV"></td>
                         @endif
                         <td class="align-end v65-doc-line-net">@if(!$documentDirty && isset($line['line_total'])){{ \App\Support\Formatting\TrFormatter::money((string) $line['line_total']) }}@else—@endif</td>
                         @unless($isGoodsReceipt)
@@ -135,7 +139,7 @@
         <x-v65.document-readonly :document="$document" />
     @endif
 
-    <x-v65.document-summary :document="$document" />
+    <x-v65.document-summary :document="$document" :preview="$this->draftTotalsPreview()" />
 
     @if($document)
         <section class="document-actions panel v65-document-actions v65-doc-workflow" role="group" aria-label="Belge işlemleri">
