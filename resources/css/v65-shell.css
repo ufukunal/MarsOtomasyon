@@ -2073,3 +2073,19 @@
   .app-shell .v65-doc-table{min-width:0!important;table-layout:auto}
   .app-shell .v65-doc-table :is(th,td){padding:5px!important;font-size:9px!important}
 }
+
+/* Per-document searchable customer and supplier picker. */
+.app-shell .v65-doc-editor>.v65-doc-contact-picker{
+  display:grid;grid-column:span 2;grid-template-columns:minmax(0,1fr);
+  gap:8px;min-width:0
+}
+.app-shell .v65-doc-contact-picker>.field,
+.app-shell .v65-doc-contact-picker>.v65-select-field{
+  display:grid;gap:5px;align-content:start;font-size:12px;font-weight:650;color:#38536e;min-width:0
+}
+.app-shell .v65-doc-contact-picker input[type="search"],
+.app-shell .v65-doc-contact-picker select{
+  box-sizing:border-box;width:100%;height:38px;min-height:38px;
+  border:1px solid #cfd9e6;border-radius:4px;padding:7px 10px;background:#fff
+}
+@media(max-width:640px){.app-shell .v65-doc-editor>.v65-doc-contact-picker{grid-column:1/-1}}
