@@ -4,6 +4,23 @@
     $currency = $document?->currency ?? 'TRY';
     $isPreview = $source === $preview && $preview !== null;
     $money = \App\Support\Formatting\TrFormatter::class;
+    $grossAmount = '0.0000';
+    $lineDiscountAmount = '0.0000';
+    if ($isPreview) {
+        foreach ($preview->lines as $line) {
+            $grossAmount = bcadd($grossAmount, $line->gross, 4);
+            $lineDiscountAmount = bcadd($lineDiscountAmount, $line->discountAmount, 4);
+        }
+    } elseif ($document) {
+        foreach ($document->lines as $line) {
+            $grossAmount = bcadd(
+                $grossAmount,
+                \App\Support\Money\Money::of((string) $line->unit_price)->times((string) $line->quantity)->amount,
+                4
+            );
+            $lineDiscountAmount = bcadd($lineDiscountAmount, (string) $line->line_discount_amount, 4);
+        }
+    }
 @endphp
 <section {{ $attributes->class(['v65-doc-summary']) }} aria-label="Belge toplamları">
     <div class="v65-doc-summary-head">
@@ -12,6 +29,8 @@
     </div>
     @if($source)
         <dl class="v65-doc-summary-rows">
+            <div><dt>Mal / Hizmet Brüt</dt><dd>{{ $money::money($grossAmount) }} {{ $currency }}</dd></div>
+            <div><dt>Satır İskontoları</dt><dd>{{ $money::money($lineDiscountAmount) }} {{ $currency }}</dd></div>
             <div><dt>Satırlar Toplamı (İskonto Sonrası)</dt><dd>{{ $money::money((string) $source->subtotal) }} {{ $currency }}</dd></div>
             <div><dt>Belge İskontosu</dt><dd>{{ $money::money((string) ($isPreview ? $source->discountAmount : $source->discount_amount)) }} {{ $currency }}</dd></div>
             <div><dt>KDV Matrahı</dt><dd>{{ $money::money((string) ($isPreview ? $source->taxBase : $source->tax_base)) }} {{ $currency }}</dd></div>
