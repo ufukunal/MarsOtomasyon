@@ -48,6 +48,7 @@ class PurchaseOrderEditor extends BasePurchaseDocumentEditor
 
     public function submitApproval(SubmitPurchaseOrderForApproval $action): void
     {
+        $this->requireSavedDraft();
         abort_unless($this->document !== null, 422);
         $this->loadDocument($action->handle(
             $this->document,
