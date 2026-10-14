@@ -44,6 +44,7 @@ class SalesInvoiceEditor extends BaseSalesDocumentEditor
 
     public function post(PostSalesInvoice $action): void
     {
+        $this->requireSavedDraft();
         abort_unless($this->document !== null, 422);
         $this->loadDocument($action->handle($this->document, $this->mutationKey('post'), $this->riskAccepted)->load('lines'));
         $this->completeMutation('post');
