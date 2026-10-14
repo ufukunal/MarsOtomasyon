@@ -39,6 +39,8 @@ abstract class BasePurchaseDocumentEditor extends Component
 
     public bool $documentDirty = false;
 
+    public string $contactSearch = '';
+
     /** @var array<string,string> */
     public array $productSearches = [];
 
@@ -228,6 +230,32 @@ abstract class BasePurchaseDocumentEditor extends Component
 
 
     /** @return \Illuminate\Database\Eloquent\Collection<int, Product> */
+
+    /** @return \Illuminate\Database\Eloquent\Collection<int, Contact> */
+    public function contactOptions(): \Illuminate\Database\Eloquent\Collection
+    {
+        $search = mb_substr(trim($this->contactSearch), 0, 80);
+        $query = Contact::query()->where('is_active', true);
+
+        if ($search !== '') {
+            $needle = '%'.str_replace(['%', '_'], ['\\%', '\\_'], $search).'%';
+            $query->where(fn ($builder) => $builder
+                ->where('code', 'ilike', $needle)
+                ->orWhere('title', 'ilike', $needle));
+        }
+
+        $options = $query->orderBy('title')->limit(35)->get();
+
+        if ($this->contactId && ! $options->contains('id', $this->contactId)) {
+            $selected = Contact::query()->find($this->contactId);
+            if ($selected !== null) {
+                $options->prepend($selected);
+            }
+        }
+
+        return $options;
+    }
+
     public function productOptionsForLine(string $rowKey, int $productId = 0): \Illuminate\Database\Eloquent\Collection
     {
         $search = mb_substr(trim((string) ($this->productSearches[$rowKey] ?? '')), 0, 80);
@@ -257,7 +285,6 @@ abstract class BasePurchaseDocumentEditor extends Component
     {
         return view('livewire.purchases.document-editor', [
             'title' => $this->pageTitle(),
-            'contacts' => Contact::query()->where('is_active', true)->orderBy('title')->limit(500)->get(),
             'units' => Unit::query()->where('is_active', true)->orderBy('name')->get(),
             'locations' => Location::query()->where('is_active', true)->orderBy('name')->get(),
         ])->layout('layouts.app', ['pageTitle' => $this->pageTitle()]);
