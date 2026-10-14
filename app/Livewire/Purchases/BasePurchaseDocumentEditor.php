@@ -172,6 +172,7 @@ abstract class BasePurchaseDocumentEditor extends Component
         $this->version = (int) $document->version;
         $this->lines = $document->lines->map(fn ($line) => [
             'row_key' => 'saved-'.$line->id,
+            'line_total' => (string) $line->line_total,
             'line_kind' => $line->line_kind,
             'product_id' => $line->product_id,
             'description' => $line->description,
