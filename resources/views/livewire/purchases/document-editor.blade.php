@@ -3,119 +3,143 @@
         $isGoodsReceipt = $document?->document_type === \App\Enums\DocumentType::GoodsReceipt;
     @endphp
 
-    <div>
-        <span class="page-category">Satınalma Yönetimi</span><h2>{{ $title }}</h2>
-        @if($document)
-            <div>{{ $document->number ?? 'Taslak' }} · {{ $document->status }}</div>
-        @endif
-    </div>
+    <x-v65.document-heading :document="$document" :title="$title" section="Satınalma Yönetimi" />
+    @if($errors->any())
+        <x-v65.notice tone="danger" title="Belge kontrolü">
+            <ul>@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>
+        </x-v65.notice>
+    @endif
+    @if($documentDirty)
+        <x-v65.notice tone="warning">Kaydedilmemiş değişiklikler var. Belge işlemine devam etmeden önce Kaydet'i kullanın.</x-v65.notice>
+    @endif
 
     @if(!$document || $document->status === 'draft')
-        <form wire:submit="save" class="document-editor-form">
-            <label>Tedarikçi
-                <select wire:model="contactId">
-                    <option value="">Seçin</option>
-                    @foreach($contacts as $contact)
-                        <option value="{{ $contact->id }}">{{ $contact->code }} · {{ $contact->title }}</option>
-                    @endforeach
-                </select>
-            </label>
-            <label>Tarih <input type="date" wire:model="documentDate"></label>
+        <form wire:submit="save" class="document-editor-form v65-doc-editor">
+            <x-v65.select label="Tedarikçi" wire:model="contactId" placeholder="Tedarikçi seçin" class="v65-doc-contact">
+                @foreach($contacts as $contact)
+                    <option value="{{ $contact->id }}">{{ $contact->code }} · {{ $contact->title }}</option>
+                @endforeach
+            </x-v65.select>
+            <label class="field">Belge Tarihi <input type="date" wire:model="documentDate"></label>
             @if(!$isGoodsReceipt)
-                <label>Vade <input type="date" wire:model="dueDate"></label>
-                <label>Para Birimi <input wire:model="currency" maxlength="3"></label>
-                <label>Kur <input wire:model="exchangeRate"></label>
-                <label>Belge İskonto % <input wire:model="discountRate"></label>
+                <label class="field">Vade <input type="date" wire:model="dueDate"></label>
+                <label class="field">Para Birimi <input wire:model="currency" maxlength="3"></label>
+                <label class="field">Kur <input wire:model="exchangeRate" inputmode="decimal" data-tr-decimal></label>
+                <label class="field">Belge İskonto % <input wire:model="discountRate" inputmode="decimal" data-tr-decimal></label>
             @else
-                <div>{{ $currency }} · kur {{ $exchangeRate }}</div>
+                <div class="v65-doc-static-field"><strong>Para Birimi / Kur</strong><span>{{ $currency }} · {{ $exchangeRate }}</span></div>
             @endif
-            <label>Not <textarea wire:model="notes"></textarea></label>
+            <label class="field v65-doc-notes">Not <textarea wire:model="notes" rows="3"></textarea></label>
 
             @if(!$isGoodsReceipt)
-                <div>
-                    <label>KDV % <input wire:model="bulkVatRate"></label>
-                    <button class="button-secondary" type="button" wire:click="applyVatToAll">Tümüne KDV Uygula</button>
-                    <button class="button-secondary" type="button" wire:click="clearVat">KDV Temizle</button>
+                <div class="v65-doc-vat-toolbar" role="group" aria-label="Satırlara toplu KDV uygula">
+                    <label class="field">Toplu KDV % <input wire:model="bulkVatRate" inputmode="decimal" data-tr-decimal></label>
+                    <x-v65.button variant="secondary" size="sm" wire:click="applyVatToAll">Tüm Satırlara Uygula</x-v65.button>
+                    <x-v65.button variant="secondary" size="sm" wire:click="clearVat">KDV'yi Temizle</x-v65.button>
                 </div>
             @endif
 
-            <div class="table-scroll document-lines"><table class="data-table">
+            <section class="v65-doc-lines" aria-label="Belge kalemleri">
+                <div class="v65-doc-lines-head">
+                    <strong>Belge Kalemleri</strong>
+                    <small>Fiyat ve vergi toplamları kaydedildiğinde güncellenir.</small>
+                </div>
+                <div class="table-scroll document-lines v65-doc-table-scroll"><table class="data-table v65-doc-table">
                 <thead>
                 <tr>
-                    <th>Tür</th><th>Ürün</th><th>Birim</th><th>Miktar</th><th>Lokasyon</th>
-                    @if(!$isGoodsReceipt)
-                        <th>Fiyat</th><th>İsk. %</th><th>KDV %</th><th></th>
-                    @endif
+                    <th scope="col">#</th><th scope="col">Tür</th><th scope="col">Ürün / Açıklama</th><th scope="col">Birim</th><th scope="col" class="align-end">Miktar</th><th scope="col">Lokasyon</th>
+                    @unless($isGoodsReceipt)
+                        <th scope="col" class="align-end">Fiyat</th><th scope="col" class="align-end">İsk. %</th><th scope="col" class="align-end">KDV %</th>
+                    @endunless
+                    <th scope="col" class="align-end">Satır Net</th>
+                    @unless($isGoodsReceipt)<th scope="col">İşlem</th>@endunless
                 </tr>
                 </thead>
                 <tbody>
                 @foreach($lines as $index => $line)
-                    <tr wire:key="purchase-line-{{ $index }}">
+                    <tr wire:key="purchase-line-{{ $line['row_key'] ?? $index }}">
+                        <td>{{ $index + 1 }}</td>
                         <td>
                             @if($isGoodsReceipt)
                                 {{ $line['line_kind'] === 'stock' ? 'Stok' : 'Hizmet' }}
                             @else
-                                <select wire:model="lines.{{ $index }}.line_kind">
+                                <select wire:model.live="lines.{{ $index }}.line_kind" aria-label="Satır {{ $index + 1 }} tür">
                                     <option value="stock">Stok</option>
                                     <option value="service">Hizmet</option>
                                 </select>
                             @endif
                         </td>
-                        <td>
+                        <td class="v65-doc-product-cell">
                             @if($isGoodsReceipt)
                                 {{ $line['description'] ?? 'Kaynak satır' }}
+                            @elseif(($line['line_kind'] ?? 'stock') === 'service')
+                                <input wire:model="lines.{{ $index }}.description" placeholder="Hizmet açıklaması" aria-label="Satır {{ $index + 1 }} hizmet açıklaması">
                             @else
-                                <select wire:model="lines.{{ $index }}.product_id">
-                                    <option value="">Seçin</option>
+                                <select wire:model="lines.{{ $index }}.product_id" aria-label="Satır {{ $index + 1 }} ürün">
+                                    <option value="">Ürün seçin</option>
                                     @foreach($products as $product)
                                         <option value="{{ $product->id }}">{{ $product->code }} · {{ $product->name }}</option>
                                     @endforeach
                                 </select>
+                                <input class="v65-doc-line-description" wire:model="lines.{{ $index }}.description" placeholder="Satır açıklaması (isteğe bağlı)" aria-label="Satır {{ $index + 1 }} açıklama">
                             @endif
                         </td>
                         <td>
                             @if($isGoodsReceipt)
-                                {{ $line['unit_id'] ?? '—' }}
+                                {{ $units->firstWhere('id', (int) ($line['unit_id'] ?? 0))?->code ?? '—' }}
+                            @elseif(($line['line_kind'] ?? 'stock') === 'service')
+                                <span class="v65-doc-muted">—</span>
                             @else
-                                <select wire:model="lines.{{ $index }}.unit_id">
-                                    <option value="">Seçin</option>
+                                <select wire:model="lines.{{ $index }}.unit_id" aria-label="Satır {{ $index + 1 }} birim">
+                                    <option value="">Birim</option>
                                     @foreach($units as $unit)
                                         <option value="{{ $unit->id }}">{{ $unit->code }}</option>
                                     @endforeach
                                 </select>
                             @endif
                         </td>
-                        <td><input wire:model="lines.{{ $index }}.quantity" inputmode="decimal" aria-label="Satır {{ $index + 1 }} miktar"></td>
+                        <td class="align-end"><input wire:model="lines.{{ $index }}.quantity" inputmode="decimal" data-tr-decimal aria-label="Satır {{ $index + 1 }} miktar"></td>
                         <td>
-                            <select wire:model="lines.{{ $index }}.location_id">
-                                <option value="">Seçin</option>
-                                @foreach($locations as $location)
-                                    <option value="{{ $location->id }}">{{ $location->name }}</option>
-                                @endforeach
-                            </select>
+                            @if(($line['line_kind'] ?? 'stock') === 'service')
+                                <span class="v65-doc-muted">—</span>
+                            @else
+                                <select wire:model="lines.{{ $index }}.location_id" aria-label="Satır {{ $index + 1 }} depo">
+                                    <option value="">Depo seçin</option>
+                                    @foreach($locations as $location)
+                                        <option value="{{ $location->id }}">{{ $location->name }}</option>
+                                    @endforeach
+                                </select>
+                            @endif
                         </td>
                         @if(!$isGoodsReceipt)
-                            <td><input wire:model="lines.{{ $index }}.unit_price" inputmode="decimal" aria-label="Satır {{ $index + 1 }} birim fiyat"></td>
-                            <td><input wire:model="lines.{{ $index }}.line_discount_rate" inputmode="decimal" aria-label="Satır {{ $index + 1 }} iskonto"></td>
-                            <td><input wire:model="lines.{{ $index }}.vat_rate" inputmode="decimal" aria-label="Satır {{ $index + 1 }} KDV"></td>
-                            <td><button class="button-danger" type="button" wire:click="removeLine({{ $index }})">Sil</button></td>
+                            <td class="align-end"><input wire:model="lines.{{ $index }}.unit_price" inputmode="decimal" data-tr-decimal aria-label="Satır {{ $index + 1 }} birim fiyat"></td>
+                            <td class="align-end"><input wire:model="lines.{{ $index }}.line_discount_rate" inputmode="decimal" data-tr-decimal aria-label="Satır {{ $index + 1 }} iskonto"></td>
+                            <td class="align-end"><input wire:model="lines.{{ $index }}.vat_rate" inputmode="decimal" data-tr-decimal aria-label="Satır {{ $index + 1 }} KDV"></td>
+                            <td><x-v65.button variant="danger" size="xs" wire:click="removeLine({{ $index }})" aria-label="Satır {{ $index + 1 }} sil">Sil</x-v65.button></td>
                         @endif
+                        <td class="align-end v65-doc-line-net">@if(!$documentDirty && isset($line['line_total'])){{ \App\Support\Formatting\TrFormatter::money((string) $line['line_total']) }}@else—@endif</td>
                     </tr>
                 @endforeach
                 </tbody>
             </table></div>
+            </section>
 
-            @if(!$isGoodsReceipt)
-                <button class="button-secondary" type="button" wire:click="addLine">Satır Ekle</button>
-            @endif
-            <button type="submit" wire:loading.attr="disabled" wire:target="save">Kaydet</button>
+            <x-v65.form-actions align="between" class="v65-doc-form-actions">
+                @unless($isGoodsReceipt)<x-v65.button variant="secondary" wire:click="addLine">+ Satır Ekle</x-v65.button>@endunless
+                <x-v65.button type="submit" wire:loading.attr="disabled" wire:target="save">Kaydet</x-v65.button>
+            </x-v65.form-actions>
         </form>
+    @elseif($document)
+        <x-v65.document-readonly :document="$document" />
     @endif
 
+    <x-v65.document-summary :document="$document" />
+
     @if($document)
-        <div class="document-actions panel v65-document-actions" role="group" aria-label="Belge işlemleri">
+        <section class="document-actions panel v65-document-actions v65-doc-workflow" role="group" aria-label="Belge işlemleri">
+            <h3 class="v65-doc-workflow-title">Belge İşlemleri</h3>
             @if(method_exists($this, 'submitApproval') && $document->status === 'draft')
-                <button type="button" wire:click="submitApproval">Onaya Gönder</button>
+                <x-v65.button variant="secondary" wire:click="submitApproval" wire:loading.attr="disabled" wire:target="submitApproval">Onaya Gönder</x-v65.button>
             @endif
 
             @if(method_exists($this, 'approve') && $document->status === 'pending_approval')
@@ -129,7 +153,7 @@
             @endif
 
             @if(method_exists($this, 'createGoodsReceipt') && in_array($document->status, ['approved', 'sent']))
-                <label>Mal Kabul Tarihi <input type="date" wire:model="receiptDate"></label>
+                <label class="field">Mal Kabul Tarihi <input type="date" wire:model="receiptDate"></label>
                 @foreach($document->lines as $line)
                     <div>
                         <strong>{{ $line->line_no }} · {{ $line->description }}</strong>
@@ -144,7 +168,7 @@
                         @endif
                     </div>
                 @endforeach
-                <button type="button" wire:click="createGoodsReceipt">Mal Kabul Oluştur</button>
+                <x-v65.button wire:click="createGoodsReceipt" wire:loading.attr="disabled" wire:target="createGoodsReceipt">Mal Kabul Oluştur</x-v65.button>
             @endif
 
             @if(method_exists($this, 'post') && $document->status === 'draft')
@@ -154,31 +178,31 @@
                         ±%25 alış fiyat sapması varsa uyarıyı kabul ediyorum
                     </label>
                 @endif
-                <button type="button" wire:click="post">Kesinleştir</button>
+                <x-v65.button wire:click="post" wire:loading.attr="disabled" wire:target="post" wire:confirm="Son kaydedilen belgeyi kesinleştirmek istiyor musunuz?">Kesinleştir</x-v65.button>
             @endif
 
             @if(method_exists($this, 'createInvoice') && $document->status === 'posted')
-                <label>Fatura Tarihi <input type="date" wire:model="invoiceDate"></label>
-                <label>Para Birimi <input wire:model="invoiceCurrency" maxlength="3"></label>
-                <label>Kur <input wire:model="invoiceExchangeRate"></label>
+                <label class="field">Fatura Tarihi <input type="date" wire:model="invoiceDate"></label>
+                <label class="field">Para Birimi <input wire:model="invoiceCurrency" maxlength="3"></label>
+                <label class="field">Kur <input wire:model="invoiceExchangeRate" data-tr-decimal inputmode="decimal"></label>
                 @foreach($document->lines as $line)
                     <div>
                         <strong>{{ $line->line_no }} · {{ $line->description }}</strong>
                         <input wire:model="invoiceQuantities.{{ $line->id }}" aria-label="Fatura miktarı">
                     </div>
                 @endforeach
-                <button type="button" wire:click="createInvoice">Alış Faturası Oluştur</button>
+                <x-v65.button wire:click="createInvoice" wire:loading.attr="disabled" wire:target="createInvoice">Alış Faturası Oluştur</x-v65.button>
             @endif
 
             @if(method_exists($this, 'reverse') && $document->status === 'posted')
                 <label class="field"><span class="field-label">Ters Kayıt Tarihi</span><input type="date" wire:model="reversalDate"></label>
                 <label class="field"><span class="field-label">Ters Kayıt Gerekçesi</span><input wire:model="reversalReason"></label>
-                <button class="button-danger" type="button" wire:click="reverse">Ters Kayıt</button>
+                <x-v65.button variant="danger" wire:click="reverse" wire:loading.attr="disabled" wire:target="reverse" wire:confirm="Kaydedilmiş belgeye ters kayıt oluşturulacak. Devam edilsin mi?">Ters Kayıt</x-v65.button>
             @endif
 
             @if(isset($purchaseMatches) && $purchaseMatches->isNotEmpty())
                 <h2>Üçlü Eşleştirme</h2>
-                <table>
+                <div class="table-scroll v65-doc-matching-table"><table class="data-table">
                     <thead>
                     <tr>
                         <th>Fatura Satırı</th>
@@ -201,8 +225,8 @@
                         </tr>
                     @endforeach
                     </tbody>
-                </table>
+                </table></div>
             @endif
-        </div>
+        </section>
     @endif
 </div>
