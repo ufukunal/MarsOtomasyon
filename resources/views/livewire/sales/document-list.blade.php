@@ -83,18 +83,19 @@
                             </td>
                         @endunless
                         @unless($hiddenColumns['status'] ?? false)
-                            <td><span class="v65-list-status">{{ $statusLabels[$document->status] ?? $document->status }}</span></td>
+                            <td><x-v65.status-badge :dot="true" :tone="in_array($document->status, ['posted', 'confirmed', 'approved'], true) ? 'success' : (in_array($document->status, ['cancelled', 'reversed'], true) ? 'danger' : (in_array($document->status, ['internal_review', 'customer_review', 'pending_approval'], true) ? 'warning' : 'neutral'))">{{ $statusLabels[$document->status] ?? $document->status }}</x-v65.status-badge></td>
                         @endunless
                         @unless($hiddenColumns['total'] ?? false)
                             <td class="align-end tabular">{{ number_format((float) $document->grand_total, 2, ',', '.') }} {{ $document->currency }}</td>
                         @endunless
                     </tr>
                 @empty
-                    <tr><td colspan="{{ collect(['number','date','contact','status','total'])->reject(fn ($column) => $hiddenColumns[$column] ?? false)->count() }}" class="empty-state">
-                        <div>Kayıt bulunamadı.</div>
-                        @if($createRoute)
-                            <a class="button-link" href="{{ route($createRoute) }}">+ Yeni Kayıt</a>
-                        @endif
+                    <tr><td colspan="{{ collect(['number','date','contact','status','total'])->reject(fn ($column) => $hiddenColumns[$column] ?? false)->count() }}">
+                        <x-v65.empty-state title="Kayıt bulunamadı.">
+                            @if($createRoute)
+                                <x-v65.button size="sm" :href="route($createRoute)">+ Yeni Kayıt</x-v65.button>
+                            @endif
+                        </x-v65.empty-state>
                     </td></tr>
                 @endforelse
             </tbody>
