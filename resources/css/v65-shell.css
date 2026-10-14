@@ -2089,3 +2089,12 @@
   border:1px solid #cfd9e6;border-radius:4px;padding:7px 10px;background:#fff
 }
 @media(max-width:640px){.app-shell .v65-doc-editor>.v65-doc-contact-picker{grid-column:1/-1}}
+
+.app-shell .v65-doc-source-references{
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  margin:0 14px;padding:10px 0;border-top:1px solid #edf1f6;
+  font-size:12px;color:#445e7b
+}
+.app-shell .v65-doc-source-references>strong{font-size:11px;color:#617991}
+.app-shell .v65-doc-source-references>a{color:#175fb3;font-weight:700;text-decoration:none}
+.app-shell .v65-doc-source-references>a:hover{text-decoration:underline}
