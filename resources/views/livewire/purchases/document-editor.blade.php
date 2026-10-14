@@ -3,7 +3,14 @@
         $isGoodsReceipt = $document?->document_type === \App\Enums\DocumentType::GoodsReceipt;
     @endphp
 
-    <x-v65.document-heading :document="$document" :title="$title" section="Satınalma Yönetimi" />
+    @php
+        $documentIndexRoute = match (true) {
+            $this instanceof \App\Livewire\Purchases\PurchaseOrderEditor => 'purchases.orders.index',
+            $this instanceof \App\Livewire\Purchases\GoodsReceiptEditor => 'purchases.receipts.index',
+            default => 'purchases.invoices.index',
+        };
+    @endphp
+    <x-v65.document-heading :document="$document" :title="$title" section="Satınalma Yönetimi" :index-route="$documentIndexRoute" />
     @if($errors->any())
         <x-v65.notice tone="danger" title="Belge kontrolü">
             <ul>@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>
@@ -137,6 +144,10 @@
         </form>
     @elseif($document)
         <x-v65.document-readonly :document="$document" />
+    @endif
+
+    @if($document && $document->status === 'draft')
+        <div class="v65-doc-print-only"><x-v65.document-readonly :document="$document" /></div>
     @endif
 
     <x-v65.document-summary :document="$document" :preview="$this->draftTotalsPreview()" />
