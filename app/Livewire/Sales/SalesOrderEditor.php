@@ -67,6 +67,7 @@ class SalesOrderEditor extends BaseSalesDocumentEditor
 
     public function confirm(ConfirmSalesOrder $action): void
     {
+        $this->requireSavedDraft();
         abort_unless($this->document !== null, 422);
         $this->loadDocument($action->handle(
             $this->document,
