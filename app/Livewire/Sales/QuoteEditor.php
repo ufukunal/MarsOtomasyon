@@ -34,6 +34,7 @@ class QuoteEditor extends BaseSalesDocumentEditor
 
     public function internalReview(SubmitQuoteForInternalApproval $action): void
     {
+        $this->requireSavedDraft();
         abort_unless($this->document !== null, 422);
         $this->loadDocument($action->handle($this->document, $this->mutationKey('internalReview'))->load('lines'));
         $this->completeMutation('internalReview');
@@ -41,6 +42,7 @@ class QuoteEditor extends BaseSalesDocumentEditor
 
     public function customerReview(SendQuoteToCustomerReview $action): void
     {
+        $this->requireSavedDraft();
         abort_unless($this->document !== null, 422);
         $this->loadDocument($action->handle($this->document, $this->mutationKey('customerReview'))->load('lines'));
         $this->completeMutation('customerReview');
