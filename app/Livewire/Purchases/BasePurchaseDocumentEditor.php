@@ -147,6 +147,50 @@ abstract class BasePurchaseDocumentEditor extends Component
         $this->documentDirty = false;
     }
 
+
+    /**
+     * Unsaved, non-authoritative display calculation. Final amounts always come
+     * from Save*DocumentDraft and are revalidated inside the period transaction.
+     */
+    public function draftTotalsPreview(): ?\App\DataObjects\Documents\DocumentTotals
+    {
+        if ($this->document && $this->document->status !== 'draft') {
+            return null;
+        }
+
+        if ($this->lines === []) {
+            return null;
+        }
+
+        $input = [];
+        foreach ($this->lines as $line) {
+            $quantity = trim((string) ($line['quantity'] ?? ''));
+            $price = trim((string) ($line['unit_price'] ?? ''));
+            $vat = trim((string) ($line['vat_rate'] ?? '0'));
+            $discount = trim((string) ($line['line_discount_rate'] ?? '0'));
+
+            if ($quantity === '' || $price === '' || ! is_numeric($quantity)
+                || ! is_numeric($price) || ! is_numeric($vat) || ! is_numeric($discount)) {
+                return null;
+            }
+
+            $input[] = [
+                'quantity' => $quantity,
+                'unit_price' => $price,
+                'line_discount_rate' => $discount,
+                'line_discount_amount' => (string) ($line['line_discount_amount'] ?? '0'),
+                'vat_rate' => $vat,
+            ];
+        }
+
+        try {
+            return app(\App\Actions\Documents\CalculateDocumentTotals::class)
+                ->handle($input, (string) $this->discountRate);
+        } catch (\DomainException|\ValueError $exception) {
+            return null;
+        }
+    }
+
     public function render(): View
     {
         return view('livewire.purchases.document-editor', [
