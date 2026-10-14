@@ -79,6 +79,15 @@ abstract class BaseSalesDocumentEditor extends Component
 
     public function updated(string $property): void
     {
+        // When a source value changes, an old persisted discount amount cannot
+        // be reused with the new price, quantity or discount percentage.
+        if (preg_match('/^lines\.(\d+)\.(quantity|unit_price|line_discount_rate)$/D', $property, $matches)) {
+            $index = (int) $matches[1];
+            if (isset($this->lines[$index])) {
+                $this->lines[$index]['line_discount_amount'] = '0';
+            }
+        }
+
         foreach (['contactId', 'documentDate', 'dueDate', 'validUntil', 'currency', 'exchangeRate', 'discountRate', 'notes', 'lines'] as $field) {
             if ($property === $field || str_starts_with($property, $field.'.')) {
                 $this->documentDirty = true;
