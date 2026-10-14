@@ -39,6 +39,9 @@ abstract class BasePurchaseDocumentEditor extends Component
 
     public bool $documentDirty = false;
 
+    /** @var array<string,string> */
+    public array $productSearches = [];
+
     /** @var list<array<string,mixed>> */
     public array $lines = [];
 
@@ -106,6 +109,10 @@ abstract class BasePurchaseDocumentEditor extends Component
 
     public function removeLine(int $index): void
     {
+        $rowKey = (string) ($this->lines[$index]['row_key'] ?? '');
+        if ($rowKey !== '') {
+            unset($this->productSearches[$rowKey]);
+        }
         unset($this->lines[$index]);
         $this->lines = array_values($this->lines);
         $this->documentDirty = true;
@@ -200,12 +207,37 @@ abstract class BasePurchaseDocumentEditor extends Component
         }
     }
 
+
+    /** @return \Illuminate\Database\Eloquent\Collection<int, Product> */
+    public function productOptionsForLine(string $rowKey, int $productId = 0): \Illuminate\Database\Eloquent\Collection
+    {
+        $search = mb_substr(trim((string) ($this->productSearches[$rowKey] ?? '')), 0, 80);
+        $query = Product::query()->where('is_active', true);
+
+        if ($search !== '') {
+            $needle = '%'.str_replace(['%', '_'], ['\\%', '\\_'], $search).'%';
+            $query->where(fn ($builder) => $builder
+                ->where('code', 'ilike', $needle)
+                ->orWhere('name', 'ilike', $needle));
+        }
+
+        $options = $query->orderBy('name')->limit(35)->get();
+
+        if ($productId > 0 && ! $options->contains('id', $productId)) {
+            $selected = Product::query()->find($productId);
+            if ($selected !== null) {
+                $options->prepend($selected);
+            }
+        }
+
+        return $options;
+    }
+
     public function render(): View
     {
         return view('livewire.purchases.document-editor', [
             'title' => $this->pageTitle(),
             'contacts' => Contact::query()->where('is_active', true)->orderBy('title')->limit(500)->get(),
-            'products' => Product::query()->where('is_active', true)->orderBy('name')->limit(500)->get(),
             'units' => Unit::query()->where('is_active', true)->orderBy('name')->get(),
             'locations' => Location::query()->where('is_active', true)->orderBy('name')->get(),
         ])->layout('layouts.app', ['pageTitle' => $this->pageTitle()]);
