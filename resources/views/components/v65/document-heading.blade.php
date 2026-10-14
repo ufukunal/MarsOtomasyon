@@ -1,4 +1,4 @@
-@props(['document' => null, 'title' => 'Belge', 'section' => 'Belge Yönetimi'])
+@props(['document' => null, 'title' => 'Belge', 'section' => 'Belge Yönetimi', 'indexRoute' => null])
 @php
     $statusNames = [
         'draft' => 'Taslak', 'internal_review' => 'İç İnceleme',
@@ -24,7 +24,12 @@
         </div>
         <small>{{ $title }}@if($document && $document->revision_no) · Revizyon {{ $document->revision_no }}@endif</small>
     </div>
-    @if($document && $document->status !== 'draft')
-        <small class="v65-doc-readonly-hint">Bu aşamada belge satırları salt okunur gösterilir.</small>
-    @endif
+    <div class="v65-doc-heading-actions">
+        @if($document)
+            <x-v65.button variant="secondary" size="sm" onclick="window.print()">Yazdır / PDF</x-v65.button>
+        @endif
+        @if($indexRoute)
+            <x-v65.button variant="ghost" size="sm" :href="route($indexRoute)">← Listeye Dön</x-v65.button>
+        @endif
+    </div>
 </header>
