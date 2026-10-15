@@ -86,3 +86,71 @@ it('uses the backend financial calculator for an unsaved draft preview', functio
         ->and($preview->vatAmount)->toBe('36.0000')
         ->and($preview->grandTotal)->toBe('216.0000');
 });
+
+
+it('drops stale stock and tax data when a sales line becomes a service', function (): void {
+    $editor = new SalesInvoiceEditor;
+    $editor->lines = [[
+        'row_key' => 'test-1',
+        'line_kind' => 'service',
+        'product_id' => 25,
+        'unit_id' => 2,
+        'location_id' => 3,
+        'conversion_factor' => '1',
+        'description' => 'Eski ürün açıklaması',
+        'quantity' => '2',
+        'unit_price' => '450',
+        'line_discount_amount' => '20',
+        'vat_rate' => '20',
+    ]];
+
+    $editor->updated('lines.0.line_kind');
+
+    foreach (['product_id', 'unit_id', 'location_id', 'conversion_factor'] as $key) {
+        expect($editor->lines[0][$key])->toBeNull();
+    }
+
+    expect($editor->lines[0]['description'])->toBe('')
+        ->and($editor->lines[0]['unit_price'])->toBe('0')
+        ->and($editor->lines[0]['vat_rate'])->toBe('0')
+        ->and($editor->lines[0]['line_discount_amount'])->toBe('0')
+        ->and($editor->documentDirty)->toBeTrue();
+});
+
+it('does not reuse a previous product purchase price when selection is cleared', function (): void {
+    $editor = new PurchaseOrderEditor;
+    $editor->lines = [[
+        'row_key' => 'test-1',
+        'line_kind' => 'stock',
+        'product_id' => null,
+        'unit_id' => 2,
+        'location_id' => 3,
+        'description' => 'Önceki ürün',
+        'unit_price' => '625',
+        'line_discount_amount' => '30',
+        'vat_rate' => '20',
+    ]];
+
+    $editor->updated('lines.0.product_id');
+
+    expect($editor->lines[0]['unit_id'])->toBeNull()
+        ->and($editor->lines[0]['location_id'])->toBeNull()
+        ->and($editor->lines[0]['description'])->toBe('')
+        ->and($editor->lines[0]['unit_price'])->toBe('0')
+        ->and($editor->lines[0]['vat_rate'])->toBe('0')
+        ->and($editor->lines[0]['line_discount_amount'])->toBe('0');
+});
+
+it('provides required contact, product, service and bulk VAT validations before mutation', function (): void {
+    foreach ([
+        'app/Livewire/Sales/BaseSalesDocumentEditor.php',
+        'app/Livewire/Purchases/BasePurchaseDocumentEditor.php',
+    ] as $path) {
+        $code = file_get_contents(base_path($path));
+        expect($code)->toContain("'contactId' => ['required', 'integer']")
+            ->toContain("'lines.'.$index.'.product_id'")
+            ->toContain("'lines.'.$index.'.description'")
+            ->toContain("'bulkVatRate' => ['required', 'numeric', 'between:0,100']")
+            ->toContain("'product_id', 'unit_id', 'location_id', 'conversion_factor'");
+    }
+});
