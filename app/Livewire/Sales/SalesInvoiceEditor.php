@@ -100,6 +100,7 @@ class SalesInvoiceEditor extends BaseSalesDocumentEditor
             'projected' => $exposure,
             'exceeded' => $configured && bccomp($exposure, $limit, 4) > 0,
             'is_preview' => $preview !== null,
+            'is_posted' => $this->document !== null && $this->document->status !== 'draft',
         ];
     }
 
