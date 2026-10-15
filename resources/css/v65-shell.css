@@ -2119,3 +2119,12 @@
   .app-shell .v65-doc-contact-actions{align-items:stretch;flex-direction:column}
   .app-shell .v65-doc-contact-actions>.v65-btn{align-self:start;white-space:normal;height:auto!important;min-height:38px!important}
 }
+
+/* Source-document links are visible during editing, but never duplicated on print. */
+.app-shell .document-workspace>.v65-doc-draft-sources{
+  box-sizing:border-box;margin:0;padding:10px 14px;
+  border:1px solid #dce5f0;border-radius:4px;background:#f8fbff
+}
+@media print{
+  .app-shell .document-workspace>.v65-doc-draft-sources{display:none!important}
+}
