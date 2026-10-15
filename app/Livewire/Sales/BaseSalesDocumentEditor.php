@@ -98,6 +98,7 @@ abstract class BaseSalesDocumentEditor extends Component
                 $this->lines[$index]['description'] = '';
                 $this->lines[$index]['unit_price'] = '0';
                 $this->lines[$index]['vat_rate'] = '0';
+                $this->lines[$index]['line_discount_rate'] = '0';
                 $this->lines[$index]['line_discount_amount'] = '0';
             }
         }
@@ -120,6 +121,7 @@ abstract class BaseSalesDocumentEditor extends Component
                 $this->lines[$index]['description'] = '';
                 $this->lines[$index]['unit_price'] = '0';
                 $this->lines[$index]['vat_rate'] = '0';
+                $this->lines[$index]['line_discount_rate'] = '0';
                 $this->lines[$index]['line_discount_amount'] = '0';
             }
 
@@ -129,6 +131,7 @@ abstract class BaseSalesDocumentEditor extends Component
                 $this->lines[$index]['vat_rate'] = (string) $product->vat_rate;
                 $this->lines[$index]['description'] = $product->name;
                 $this->lines[$index]['conversion_factor'] = null;
+                $this->lines[$index]['line_discount_rate'] = '0';
                 $this->lines[$index]['line_discount_amount'] = '0';
                 $this->lines[$index]['unit_price'] = app(\App\Support\Pricing\PriceResolver::class)
                     ->resolve($product, $this->contactId ? Contact::query()->find($this->contactId) : null);
