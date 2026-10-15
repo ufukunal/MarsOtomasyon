@@ -183,12 +183,12 @@
         <section class="document-actions panel v65-document-actions v65-doc-workflow" role="group" aria-label="Belge işlemleri">
             <h3 class="v65-doc-workflow-title">Belge İşlemleri</h3>
             @if(method_exists($this, 'submitApproval') && $document->status === 'draft')
-                <x-v65.document-confirm id="v65-purchase-submit" title="Onaya Gönder" label="Onaya Gönder" action="submitApproval" variant="secondary" :document="$document" message="Son kaydedilen alış siparişi onay sürecine gönderilecektir." />
+                <x-v65.document-confirm id="v65-purchase-submit" title="Onaya Gönder" label="Onaya Gönder" action="submitApproval" variant="secondary" :document="$document" message="Son kaydedilen alış siparişi onay sürecine gönderilecektir." :dirty="$documentDirty" />
             @endif
 
             @if(method_exists($this, 'approve') && $document->status === 'pending_approval')
                 @can('purchase_orders.approve')
-                    <x-v65.document-confirm id="v65-purchase-approve" title="Alış Siparişi Onayı" label="Onayla" action="approve" :document="$document" message="Alış siparişi son kaydedilen haliyle onaylanacaktır." />
+                    <x-v65.document-confirm id="v65-purchase-approve" title="Alış Siparişi Onayı" label="Onayla" action="approve" :document="$document" message="Alış siparişi son kaydedilen haliyle onaylanacaktır." :dirty="$documentDirty" />
                 @endcan
             @endif
 
@@ -222,7 +222,7 @@
                         ±%25 alış fiyat sapması varsa uyarıyı kabul ediyorum
                     </label>
                 @endif
-                <x-v65.document-confirm id="v65-purchase-post" title="Belgeyi Kesinleştir" label="Kesinleştir" action="post" :document="$document" message="Son kaydedilen alış belgesi sunucuda doğrulanıp kesinleştirilecektir. Fiyat sapması kabulünüz gerektiğinde işlem sırasında kontrol edilir." />
+                <x-v65.document-confirm id="v65-purchase-post" title="Belgeyi Kesinleştir" label="Kesinleştir" action="post" :document="$document" message="Son kaydedilen alış belgesi sunucuda doğrulanıp kesinleştirilecektir. Fiyat sapması kabulünüz gerektiğinde işlem sırasında kontrol edilir." :dirty="$documentDirty" />
             @endif
 
             @if(method_exists($this, 'createInvoice') && $document->status === 'posted')
@@ -241,7 +241,7 @@
             @if(method_exists($this, 'reverse') && $document->status === 'posted')
                 <label class="field"><span class="field-label">Ters Kayıt Tarihi</span><input type="date" wire:model="reversalDate"></label>
                 <label class="field"><span class="field-label">Ters Kayıt Gerekçesi</span><input wire:model="reversalReason"></label>
-                <x-v65.document-confirm id="v65-purchase-reverse" title="Alış Ters Kayıt Onayı" label="Ters Kayıt" action="reverse" variant="danger" :document="$document" message="Kesinleşmiş alış belgesine ters kayıt oluşturulur. Tarih ve gerekçeyi kontrol edin." />
+                <x-v65.document-confirm id="v65-purchase-reverse" title="Alış Ters Kayıt Onayı" label="Ters Kayıt" action="reverse" variant="danger" :document="$document" message="Kesinleşmiş alış belgesine ters kayıt oluşturulur. Tarih ve gerekçeyi kontrol edin." :dirty="$documentDirty" />
             @endif
 
             @if(isset($purchaseMatches) && $purchaseMatches->isNotEmpty())
