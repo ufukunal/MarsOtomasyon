@@ -45,6 +45,8 @@ it('uses the shared confirmation modal for document approval, posting and revers
         ->toContain('wire:click="{{ $action }}"')
         ->toContain('wire:loading.attr="disabled"')
         ->toContain('data-v65-modal-close')
+        ->toContain(':disabled="$dirty"')
+        ->toContain("@error('document')")
         ->toContain('Son kaydedilen toplam')
         ->and($modal)->toContain('aria-labelledby');
 
@@ -53,6 +55,7 @@ it('uses the shared confirmation modal for document approval, posting and revers
         'resources/views/livewire/purchases/document-editor.blade.php',
     ] as $path) {
         expect(file_get_contents(base_path($path)))->toContain('<x-v65.document-confirm')
+            ->toContain(':dirty="$documentDirty"')
             ->toContain('action="post"')
             ->toContain('action="reverse"');
     }
