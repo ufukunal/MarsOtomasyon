@@ -56,7 +56,7 @@ Onaylanan V65 ortak görsel yaklaşımı, satış/alış belge düzenleyicilerin
 - Taslak hesap özeti; rakamsal alanlar geçerliyse aynı backend hesaplayıcısından **önizleme** sağlar. Kesin tutarlar kayıtta yeniden hesaplanır.
 - Alış ürün fiyatı manuel girilir; satışta \`PriceResolver\` kullanılır. Ekran kaydı başarıyla çalışmadan toplamın kalıcı olduğu iddia edilmez.
 - Ekranın doğrudan tarayıcı ve canlı veriyle test edilmesi henüz yapılmadı.
-- Yazdırma, kaydedilmiş belge detayının tarayıcı baskı görünümüdür; e-fatura/UBL veya kanuni belge şablonu ürettiği iddia edilmez.
+- Yazdırma, kaydedilmiş belge verisini kullanır; çıktı düzeninin tarayıcıda ayrıca doğrulanması gerekir.
 
 ## Tamamlama kontrol listesi
 
