@@ -227,8 +227,8 @@ trait WithV65DocumentList
                     $safe = static fn (string $value): string => preg_match('/^[=+\-@\t\r]/u', $value) ? "'".$value : $value;
                     fputcsv($out, [
                         $safe((string) ($document->number ?? 'Taslak')),
-                        $document->document_date?->format('d.m.Y') ?? '',
-                        $safe((string) ($document->contact?->title ?? '')),
+                        $document->document_date->format('d.m.Y'),
+                        $safe((string) data_get($document->contact, 'title', '')),
                         self::documentStatusLabels()[$document->status] ?? $document->status,
                         $document->grand_total,
                         $document->currency,
@@ -252,8 +252,8 @@ trait WithV65DocumentList
             $this->listQuery()->chunk(500, function ($documents) use (&$i, $sheet): void {
                 foreach ($documents as $document) {
                     $sheet->setCellValueExplicit('A'.$i, (string) ($document->number ?? 'Taslak'), DataType::TYPE_STRING);
-                    $sheet->setCellValue('B'.$i, $document->document_date?->format('d.m.Y'));
-                    $sheet->setCellValueExplicit('C'.$i, (string) ($document->contact?->title ?? ''), DataType::TYPE_STRING);
+                    $sheet->setCellValue('B'.$i, $document->document_date->format('d.m.Y'));
+                    $sheet->setCellValueExplicit('C'.$i, (string) data_get($document->contact, 'title', ''), DataType::TYPE_STRING);
                     $sheet->setCellValue('D'.$i, self::documentStatusLabels()[$document->status] ?? $document->status);
                     $sheet->setCellValue('E'.$i, (float) $document->grand_total);
                     $sheet->setCellValue('F'.$i, $document->currency);
@@ -270,7 +270,7 @@ trait WithV65DocumentList
     {
         abort_unless(auth()->user()?->can($this->permission()), 403);
         $createRoute = $this->createRoute();
-        if (! auth()->user()?->can(str_replace('.view', '.create', $this->permission()))) {
+        if (! auth()->user()->can(str_replace('.view', '.create', $this->permission()))) {
             $createRoute = null;
         }
 
