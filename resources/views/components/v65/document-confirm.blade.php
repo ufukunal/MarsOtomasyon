@@ -1,6 +1,6 @@
 @props(['id', 'title', 'label', 'action', 'message', 'document' => null, 'variant' => 'primary', 'dirty' => false])
 @php
-    $allowedActions = ['post', 'reverse', 'confirm', 'approve', 'submitApproval'];
+    $allowedActions = ['post', 'reverse', 'confirm', 'approve', 'submitApproval', 'cancelRemaining'];
     $action = in_array($action, $allowedActions, true) ? $action : null;
 @endphp
 @if($action)
