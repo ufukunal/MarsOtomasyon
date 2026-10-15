@@ -29,7 +29,7 @@ it('adds create actions to the list header but opens records from identifiers', 
     $view = file_get_contents(base_path('resources/views/livewire/components/data-table.blade.php'));
     expect($view)->toContain('!$isProductTable && $emptyAction')
         ->toContain("@teleport('.page-actions.v65-page-actions')")
-        ->toContain("route($emptyAction['route'])")
+        ->toContain('route($emptyAction[\'route\'])')
         ->toContain('v65-record-link')
         ->toContain('$this->columnUrl($row, $column)');
 });
