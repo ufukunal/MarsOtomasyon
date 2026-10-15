@@ -6,13 +6,12 @@ use App\Enums\DocumentType;
 use App\Models\Company;
 use App\Models\Period\Document;
 use App\Support\Period\PeriodContext;
-use Illuminate\Contracts\View\View;
 use Illuminate\Http\Response;
 use Spatie\Browsershot\Browsershot;
 
 final class PrintBusinessDocumentController
 {
-    public function __invoke(int $document, string $format): View|Response
+    public function __invoke(int $document, string $format): Response
     {
         abort_unless(in_array($format, ['html', 'pdf'], true), 404);
         // Period selection must happen before querying period-scoped Document.
@@ -55,7 +54,11 @@ final class PrintBusinessDocumentController
         ]);
 
         if ($format === 'html') {
-            return $view;
+            return response($view->render(), 200, [
+                'Content-Type' => 'text/html; charset=UTF-8',
+                'X-Content-Type-Options' => 'nosniff',
+                'Cache-Control' => 'private, no-store',
+            ]);
         }
 
         // Render stored document lines and totals only, never unsaved Livewire values.
