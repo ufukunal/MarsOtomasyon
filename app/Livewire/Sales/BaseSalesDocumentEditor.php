@@ -371,8 +371,6 @@ abstract class BaseSalesDocumentEditor extends Component
     }
 
 
-    /** @return \Illuminate\Database\Eloquent\Collection<int, Product> */
-
     /** @return \Illuminate\Database\Eloquent\Collection<int, Contact> */
     public function contactOptions(): \Illuminate\Database\Eloquent\Collection
     {
@@ -398,6 +396,7 @@ abstract class BaseSalesDocumentEditor extends Component
         return $options;
     }
 
+    /** @return \Illuminate\Database\Eloquent\Collection<int, Product> */
     public function productOptionsForLine(string $rowKey, int $productId = 0): \Illuminate\Database\Eloquent\Collection
     {
         $search = mb_substr(trim((string) ($this->productSearches[$rowKey] ?? '')), 0, 80);
