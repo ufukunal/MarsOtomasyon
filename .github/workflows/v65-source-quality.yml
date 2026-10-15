@@ -1,22 +1,6 @@
 name: V65 Source Quality (no database)
+# No implicit test execution on code push. Dispatch requires separate approval.
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'app/**'
-      - 'bootstrap/**'
-      - 'config/**'
-      - 'database/**'
-      - 'resources/**'
-      - 'routes/**'
-      - 'tests/Unit/**'
-      - 'tests/Contracts/**'
-      - 'composer.*'
-      - 'package*.json'
-      - 'phpstan.neon.dist'
-      - 'pint.json'
-      - 'scripts/ci/**'
-      - '.github/workflows/v65-source-quality.yml'
   workflow_dispatch:
 
 permissions:

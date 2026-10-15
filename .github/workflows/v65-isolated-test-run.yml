@@ -1,15 +1,19 @@
 name: V65 isolated TEST acceptance
+# Manual only, with explicit confirmation for TEST-only execution.
 on:
-  push:
-    branches: [main]
-    paths:
-      - '.github/workflows/v65-isolated-test-run.yml'
+  workflow_dispatch:
+    inputs:
+      confirm_isolated_test:
+        description: 'I approve isolated TEST-only execution'
+        required: true
+        type: boolean
 
 permissions:
   contents: read
 
 jobs:
   test:
+    if: ${{ inputs.confirm_isolated_test == true }}
     runs-on: [self-hosted, Linux, mars-ubuntu, mars-r4]
     timeout-minutes: 18
     env:

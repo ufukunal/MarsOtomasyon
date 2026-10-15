@@ -255,7 +255,8 @@ trait WithV65DocumentList
                     $sheet->setCellValue('B'.$i, $document->document_date->format('d.m.Y'));
                     $sheet->setCellValueExplicit('C'.$i, (string) data_get($document->contact, 'title', ''), DataType::TYPE_STRING);
                     $sheet->setCellValue('D'.$i, self::documentStatusLabels()[$document->status] ?? $document->status);
-                    $sheet->setCellValue('E'.$i, (float) $document->grand_total);
+                    // Financial values must not lose decimal precision via PHP float.
+                    $sheet->setCellValueExplicit('E'.$i, (string) $document->grand_total, DataType::TYPE_STRING);
                     $sheet->setCellValue('F'.$i, $document->currency);
                     $i++;
                 }

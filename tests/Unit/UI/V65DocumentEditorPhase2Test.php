@@ -100,6 +100,7 @@ it('uses the current purchase currency for an unsaved financial preview', functi
 
     expect($summary)->toContain("'currency' => null")
         ->toContain('$currency ?: ($document?->currency ?:')
+        ->toContain(': ($document?->currency ?: ($currency ?:')
         ->and($purchase)->toContain(':currency="$currency"')
         ->toContain('wire:model.blur="currency"');
 });

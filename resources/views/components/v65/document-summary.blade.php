@@ -1,8 +1,11 @@
 @props(['document' => null, 'preview' => null, 'currency' => null])
 @php
     $source = ($document === null || $document->status === 'draft') && $preview !== null ? $preview : $document;
-    $currency = strtoupper((string) ($currency ?: ($document?->currency ?: 'TRY')));
     $isPreview = $source === $preview && $preview !== null;
+    // Never pair persisted totals with an unsaved currency selection.
+    $currency = strtoupper((string) ($isPreview
+        ? ($currency ?: ($document?->currency ?: 'TRY'))
+        : ($document?->currency ?: ($currency ?: 'TRY'))));
     $money = \App\Support\Formatting\TrFormatter::class;
     $grossAmount = '0.0000';
     $lineDiscountAmount = '0.0000';

@@ -36,6 +36,34 @@ final class PrintBusinessDocumentController
 
         $company = Company::query()->findOrFail(PeriodContext::companyId());
 
+        // Source reference numbers are visible only with that document type's permission.
+        $sourceReferences = $record->incomingRelations
+            ->map(static function ($relation): ?string {
+                $source = $relation->sourceDocument;
+                if ($source === null) {
+                    return null;
+                }
+
+                $permission = match ($source->document_type) {
+                    DocumentType::Quote => 'quotes.view',
+                    DocumentType::SalesOrder => 'sales_orders.view',
+                    DocumentType::Dispatch => 'dispatches.view',
+                    DocumentType::SalesInvoice => 'sales_invoices.view',
+                    DocumentType::PurchaseOrder => 'purchase_orders.view',
+                    DocumentType::GoodsReceipt => 'goods_receipts.view',
+                    DocumentType::SupplierInvoice => 'supplier_invoices.view',
+                    default => null,
+                };
+
+                if ($permission === null || ! auth()->user()?->can($permission)) {
+                    return null;
+                }
+
+                return (string) ($source->number ?? 'Taslak #'.$source->id);
+            })
+            ->filter()
+            ->values();
+
         // These are presentation aggregates from persisted line discounts,
         // not a new calculation of VAT, allocations or payable amount.
         $lineDiscountAmount = '0.0000';
@@ -51,6 +79,7 @@ final class PrintBusinessDocumentController
             'generatedAt' => now(),
             'grossTotal' => $grossTotal,
             'lineDiscountAmount' => $lineDiscountAmount,
+            'sourceReferences' => $sourceReferences,
         ]);
 
         if ($format === 'html') {

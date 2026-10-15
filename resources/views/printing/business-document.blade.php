@@ -91,12 +91,10 @@
             </table>
         </div>
     </section>
-    @if($document->incomingRelations->isNotEmpty())
+    @if($sourceReferences->isNotEmpty())
         <div class="source-references"><strong>Kaynak Belgeler:</strong>
-            @foreach($document->incomingRelations as $relation)
-                @if($relation->sourceDocument)
-                    <span>{{ $relation->sourceDocument->number ?? ('#'.$relation->sourceDocument->id) }}</span>
-                @endif
+            @foreach($sourceReferences as $sourceNumber)
+                <span>{{ $sourceNumber }}</span>
             @endforeach
         </div>
     @endif

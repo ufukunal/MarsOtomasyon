@@ -12,7 +12,9 @@ it('restricts all seven corporate document outputs to authenticated period and r
         ->toContain("abort_unless(in_array(\$format, ['html', 'pdf'], true), 404)")
         ->toContain('Cache-Control')
         ->toContain('private, no-store')
-        ->toContain('X-Content-Type-Options');
+        ->toContain('X-Content-Type-Options')
+        ->toContain("'sourceReferences' => $sourceReferences")
+        ->toContain('if ($permission === null || ! auth()->user()?->can($permission))');
 
     foreach ([
         'Quote', 'SalesOrder', 'Dispatch', 'SalesInvoice',
