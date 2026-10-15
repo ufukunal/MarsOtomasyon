@@ -32,3 +32,15 @@ that each module renders without HTTP 4xx/5xx errors. It performs no mutations.
 ## Additional explicit permission for browser writes
 
 Product creation, contact creation and negative form validation tests are in `specs/isolated-product-contact-crud.spec.ts`. They are skipped unless `MARS_BROWSER_TEST_MUTATIONS_APPROVED=I_APPROVE_LOCAL_UI_WRITES`, all base browser approval gates and local company/period fixture IDs are present. For product creation also provide `MARS_BROWSER_TEST_PRODUCT_UNIT_ID` for a disposable local unit. All successful CRUD cases create records only in the dedicated remote PostgreSQL TEST database reached directly through Tailscale; they must never target production databases or accounts. Do not execute browser writes until dedicated fixture cleanup and test ACL restrictions have been independently verified. These test files have not been executed.
+
+## V65 belge ekranları — yalnız okuma
+
+`specs/v65-document-editor-readonly.spec.ts`, **ayrı ve açık test çalıştırma onayı** sonrasında, izole test şirketi/dönemi ve `@invalid.test` aktörüyle çalıştırılabilir. Daha önce tanımlı `MARS_TEST_EXECUTION_APPROVED`, `MARS_BROWSER_TESTS_APPROVED`, `MARS_BROWSER_TEST_PERIOD_READY` kapılarına ek olarak:
+
+- `MARS_BROWSER_TEST_DOCUMENT_UI_APPROVED=I_APPROVE_LOCAL_DOCUMENT_UI` gereklidir.
+- Aktör satış/alış belge görüntüleme ve yeni taslak editör sayfalarını açma yetkisine sahip olmalıdır.
+- Altı yeni belge editörü `390 / 768 / 1024 / 1440 / 1920` px genişliklerinde yalnızca GET ve ekran denetimiyle kontrol edilir. Form kaydı, onay, kesinleştirme veya veri değişikliği yapılmaz.
+- Mal kabul ekranı yalnızca izole test veritabanından önceden hazırlanmış `MARS_BROWSER_GOODS_RECEIPT_ID` ile açılır; aksi halde vaka atlanır.
+- Bu testler, e-fatura/UBL veya yasal PDF çıktı doğrulaması değildir. Print/PDF ve iş akışı kabulü ayrıca yapılmalıdır.
+
+**Not:** Bu test dosyası hazırlanmıştır; otomatik olarak çalıştırılmamıştır.
