@@ -127,7 +127,7 @@ it('preserves manually priced sales lines when the customer changes', function (
         ->toContain("['price_source'] = 'manual'")
         ->toContain("'price_source' => 'manual'")
         ->toContain("'price_source' => 'auto'")
-        ->toContain("(['price_source'] ?? 'manual') !== 'auto'")
+        ->toContain("(\$line['price_source'] ?? 'manual') !== 'auto'")
         ->toContain('private function refreshContactPrices(bool $includeManual = false): void')
         ->toContain('$this->refreshContactPrices(true);')
         ->toContain('public function applyContactPrices(): void')
