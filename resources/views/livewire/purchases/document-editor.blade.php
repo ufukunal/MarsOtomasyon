@@ -19,6 +19,9 @@
     @if($documentDirty)
         <x-v65.notice tone="warning">Kaydedilmemiş değişiklikler var. Belge işlemine devam etmeden önce Kaydet'i kullanın.</x-v65.notice>
     @endif
+    @if($document && $document->status === 'draft')
+        <x-v65.document-sources class="v65-doc-draft-sources" :document="$document" />
+    @endif
 
     @php
         $draftPreview = $this->draftTotalsPreview();
