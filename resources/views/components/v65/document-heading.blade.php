@@ -1,4 +1,4 @@
-@props(['document' => null, 'title' => 'Belge', 'section' => 'Belge Yönetimi', 'indexRoute' => null])
+@props(['document' => null, 'title' => 'Belge', 'section' => 'Belge Yönetimi', 'indexRoute' => null, 'dirty' => false])
 @php
     $statusNames = [
         'draft' => 'Taslak', 'internal_review' => 'İç İnceleme',
@@ -26,7 +26,14 @@
     </div>
     <div class="v65-doc-heading-actions">
         @if($document)
-            <x-v65.button variant="secondary" size="sm" onclick="window.print()">Yazdır / PDF</x-v65.button>
+            <x-v65.button variant="secondary" size="sm"
+                :href="route('documents.print', ['document' => $document->id, 'format' => 'html'])"
+                target="_blank" rel="noopener noreferrer">Belge Önizle</x-v65.button>
+            <x-v65.button variant="secondary" size="sm"
+                :href="route('documents.print', ['document' => $document->id, 'format' => 'pdf'])">PDF İndir</x-v65.button>
+            @if($dirty)
+                <small class="v65-doc-print-saved-note">Çıktı son kaydedilen belgeyi kullanır.</small>
+            @endif
         @endif
         @if($indexRoute)
             <x-v65.button variant="ghost" size="sm" :href="route($indexRoute)">← Listeye Dön</x-v65.button>
