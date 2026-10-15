@@ -14,6 +14,7 @@ trait WithV65SimpleListFilter
 
     public string $v65SimpleDirection = 'desc';
 
+    /** @return array{search:string,filters:array<string,mixed>,sort:string,direction:string} */
     protected function v65ReadFilterState(): array
     {
         return [
@@ -24,6 +25,7 @@ trait WithV65SimpleListFilter
         ];
     }
 
+    /** @param array{search:string,filters:array<string,mixed>,sort:string,direction:string} $state */
     protected function v65WriteFilterState(array $state): void
     {
         $this->listSearch = $state['search'];
@@ -31,11 +33,13 @@ trait WithV65SimpleListFilter
         $this->v65SimpleDirection = $state['direction'];
     }
 
+    /** @return array<string,array{label:string,type:string,options?:array<int|string,string>}> */
     protected function v65FilterDefinitions(): array
     {
         return [];
     }
 
+    /** @return array<string,string> */
     protected function v65SortOptions(): array
     {
         return ['id' => 'Kayıt Numarası'];
