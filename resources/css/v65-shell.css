@@ -2183,3 +2183,16 @@
   .app-shell .v65-doc-table thead th:first-child{z-index:2;background:#f5f8fc}
 }
 @media print{.app-shell .v65-doc-mobile-scroll-hint{display:none!important}}
+
+/* Long multi-page document print: header repeats and line rows do not split. */
+@media print {
+  .app-shell .document-workspace { display:block; }
+  .app-shell .v65-doc-readonly { break-inside:auto!important; overflow:visible!important; }
+  .app-shell .v65-doc-table { border-collapse:collapse; min-width:0!important; width:100%!important; }
+  .app-shell .v65-doc-table thead { display:table-header-group; }
+  .app-shell .v65-doc-table tr { break-inside:avoid; page-break-inside:avoid; }
+  .app-shell .v65-doc-table :is(th,td) { position:static!important; box-shadow:none!important; }
+  .app-shell .v65-doc-summary { break-inside:avoid; page-break-inside:avoid; }
+  .app-shell .v65-doc-heading { break-after:avoid; page-break-after:avoid; }
+  .app-shell .v65-doc-source-references { break-inside:avoid; }
+}
