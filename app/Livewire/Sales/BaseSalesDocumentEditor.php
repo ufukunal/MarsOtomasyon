@@ -209,6 +209,10 @@ abstract class BaseSalesDocumentEditor extends Component
 
     public function applyVatToAll(): void
     {
+        $this->validateOnly('bulkVatRate', [
+            'bulkVatRate' => ['required', 'numeric', 'between:0,100'],
+        ], [], ['bulkVatRate' => 'Toplu KDV oranı']);
+
         $rate = bcadd($this->bulkVatRate, '0', 4);
 
         abort_if(
@@ -238,6 +242,7 @@ abstract class BaseSalesDocumentEditor extends Component
         ), 403);
 
         $this->validate([
+            'contactId' => ['required', 'integer'],
             'documentDate' => ['required', 'date'],
             'dueDate' => ['nullable', 'date'],
             'validUntil' => ['nullable', 'date'],
@@ -249,6 +254,7 @@ abstract class BaseSalesDocumentEditor extends Component
             'lines.*.line_discount_rate' => ['required', 'numeric', 'between:0,100'],
             'lines.*.vat_rate' => ['required', 'numeric', 'between:0,100'],
         ], [], [
+            'contactId' => 'Cari',
             'documentDate' => 'Belge tarihi', 'dueDate' => 'Vade tarihi',
             'validUntil' => 'Geçerlilik tarihi', 'discountRate' => 'Belge iskonto oranı',
             'lines' => 'Belge satırları', 'lines.*.quantity' => 'Satır miktarı',
@@ -256,6 +262,20 @@ abstract class BaseSalesDocumentEditor extends Component
             'lines.*.line_discount_rate' => 'Satır iskonto oranı',
             'lines.*.vat_rate' => 'Satır KDV oranı',
         ]);
+
+        foreach ($this->lines as $index => $line) {
+            $kind = (string) ($line['line_kind'] ?? 'stock');
+            if ($kind === 'stock' && empty($line['product_id'])) {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'lines.'.$index.'.product_id' => 'Stok satırı için ürün seçin.',
+                ]);
+            }
+            if ($kind === 'service' && trim((string) ($line['description'] ?? '')) === '') {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'lines.'.$index.'.description' => 'Hizmet açıklamasını girin.',
+                ]);
+            }
+        }
 
         $saved = $this->runPeriodMutation('save', fn () => $action->handle(
             $this->documentType(),
