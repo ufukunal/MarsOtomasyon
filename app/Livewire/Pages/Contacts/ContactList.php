@@ -161,12 +161,12 @@ class ContactList extends DataTableComponent
         }
 
         return [
-            'total' => (int) ($counts?->total ?? 0),
+            'total' => (int) $counts->getAttribute('total'),
             'customers' => $customers,
             'suppliers' => $suppliers,
-            'active' => (int) ($counts?->active_count ?? 0),
-            'inactive' => (int) ($counts?->inactive_count ?? 0),
-            'cities' => (int) ($counts?->city_count ?? 0),
+            'active' => (int) $counts->getAttribute('active_count'),
+            'inactive' => (int) $counts->getAttribute('inactive_count'),
+            'cities' => (int) $counts->getAttribute('city_count'),
             // These totals are labelled from the cari's perspective:
             // positive net (debit) = cari owes us (Borç); negative net (credit)
             // = we owe the cari (Alacak). Ledger directions are unchanged.
@@ -196,6 +196,7 @@ class ContactList extends DataTableComponent
                 ->filter(fn ($part): bool => filled($part))->implode(' / ') ?: '—';
         }
 
+        $balance = '0.0000';
         if (in_array($column->key, ['balance_display', 'risk_usage'], true)) {
             $balance = (string) ($row->getAttribute('v65_try_net') ?? $row->balance());
         }
