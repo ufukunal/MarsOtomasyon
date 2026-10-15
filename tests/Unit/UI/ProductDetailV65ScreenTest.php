@@ -53,7 +53,7 @@ it('shows collection-based technical PDFs with an authorized product-scoped rout
         ->and($handler)->toContain("authorize('view', \$product)")
         ->toContain("where('collection', 'Teknik Föy')")
         ->toContain("where('mime', 'application/pdf')")
-        ->toContain("whereKey(\$attachment->id)");
+        ->toContain('whereKey($attachment->id)');
 });
 
 it('shows only a direct product-list link instead of the product detail other menu', function (): void {

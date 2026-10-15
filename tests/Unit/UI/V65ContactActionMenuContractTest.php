@@ -34,5 +34,5 @@ it('closes other open menus on pointer, native keyboard toggle, Escape and Livew
         ->toContain("event.key !== 'Escape'")
         ->toContain("document.addEventListener('livewire:navigating'")
         ->toContain('opened.querySelector(\'summary\')?.focus()')
-        ->not->toContain("if (menu && !menu.matches(");
+        ->not->toContain('if (menu && !menu.matches(');
 });

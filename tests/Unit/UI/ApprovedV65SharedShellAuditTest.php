@@ -228,7 +228,7 @@ it('keeps shared table toolbar controls aligned and readable across modules', fu
         ->toContain('height:42px;min-height:42px')
         ->toContain('color:#526780;opacity:1')
         ->toContain('align-items:center;justify-content:flex-end')
-        ->and($table)->toContain("livewire.components.partials.v65-table-filter-controls")
+        ->and($table)->toContain('livewire.components.partials.v65-table-filter-controls')
         ->toContain('v65-data-table-heading-actions');
 });
 
@@ -289,7 +289,7 @@ it('keeps secure product images on editor/detail without loading thumbnails in t
         ->not->toContain('v65-product-photo-thumb')
         ->not->toContain('>Görsel</th>')
         ->not->toContain('$row->attachments->first()')
-        ->toContain("colspan=\"{{ \$visibleColumnCount + (\$isProductTable ? 0 : 1 + (count(\$rowActions) > 0 ? 1 : 0)) }}\"")
+        ->toContain('colspan="{{ $visibleColumnCount + ($isProductTable ? 0 : 1 + (count($rowActions) > 0 ? 1 : 0)) }}"')
         ->and($images)->toContain('public function setCover(')
         ->and($editor)->toContain('Kapak Yap')
         ->toContain('wire:click="upload"')
@@ -307,7 +307,7 @@ it('supplies persistent product-specific thumbnails to the isolated UAT demo', f
         ->toContain('mars_uat_demo_2026')
         ->toContain('MARS_UAT_DEMO_SEED')
         ->toContain('private function seedProductImages(')
-        ->toContain("Storage::disk(\$disk)->put(\$path, \$png)")
+        ->toContain('Storage::disk($disk)->put($path, $png)')
         ->toContain("'image/png'")
         ->toContain("['collection' => \$collection, 'original_name' => \$name]")
         ->and($painter)->toContain('final class UatDemoImagePainter')
@@ -348,7 +348,7 @@ it('keeps storefront catalog data authentic, price normalized and UAT-only', fun
         ->toContain("bcdiv(\$gross, '1.20', 4)")
         ->toContain('imagecreatefromstring(')
         ->toContain('UAT KATALOG DEMOSU')
-        ->toContain("firstOrCreate(")
+        ->toContain('firstOrCreate(')
         ->and($workflow)->toContain('download-uat-storefront-images.py');
 });
 

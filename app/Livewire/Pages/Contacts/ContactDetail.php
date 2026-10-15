@@ -7,14 +7,16 @@ use App\Models\Period\Contact;
 use App\Models\Period\ContactTransaction;
 use App\Models\Period\Document;
 use Illuminate\Contracts\View\View;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
-use Symfony\Component\HttpFoundation\StreamedResponse;
-use PhpOffice\PhpSpreadsheet\Spreadsheet;
-use PhpOffice\PhpSpreadsheet\Cell\DataType;
-use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ContactDetail extends Component
 {
@@ -62,13 +64,15 @@ class ContactDetail extends Component
             abort_unless($valid, 422);
         }
         abort_if($from && $to && $to < $from, 422);
+
         return [$from ?: null, $to ?: null];
     }
 
-    /** @return \Illuminate\Database\Eloquent\Builder<ContactTransaction> */
-    private function filteredMovementQuery(): \Illuminate\Database\Eloquent\Builder
+    /** @return Builder<ContactTransaction> */
+    private function filteredMovementQuery(): Builder
     {
         [$from, $to] = $this->statementRange();
+
         return ContactTransaction::query()
             ->where('contact_id', $this->contact->id)
             ->when($from, fn ($q) => $q->whereDate('transaction_date', '>=', $from))
@@ -82,6 +86,7 @@ class ContactDetail extends Component
         if (! $from) {
             return [];
         }
+
         return DB::connection('period')->table('contact_transactions')
             ->where('contact_id', $this->contact->id)
             ->whereDate('transaction_date', '<', $from)
@@ -142,14 +147,15 @@ class ContactDetail extends Component
         foreach ($balances as $currency => $amount) {
             $rows[] = ['', '', 'Son Bakiye', '', '', '', (string) $amount, (string) $currency];
         }
+
         return $rows;
     }
 
     /**
      * Escape spreadsheet formulas in text while preserving valid negative amounts.
      *
-     * @param list<string> $row
-     * @param list<int> $numericColumns Zero-based monetary column indexes.
+     * @param  list<string>  $row
+     * @param  list<int>  $numericColumns  Zero-based monetary column indexes.
      * @return list<string>
      */
     private static function csvSafeRow(array $row, array $numericColumns): array
@@ -172,10 +178,11 @@ class ContactDetail extends Component
     {
         $rows = $this->statementRows();
         $filename = 'cari-ekstre-'.$this->contact->code.'.csv';
+
         return response()->streamDownload(static function () use ($rows): void {
             $output = fopen('php://output', 'wb');
             fwrite($output, "\xEF\xBB\xBF");
-            fputcsv($output, ['Tarih','Belge','İşlem','Açıklama','Borç','Alacak','Bakiye','PB'], ';');
+            fputcsv($output, ['Tarih', 'Belge', 'İşlem', 'Açıklama', 'Borç', 'Alacak', 'Bakiye', 'PB'], ';');
             foreach ($rows as $row) {
                 fputcsv($output, self::csvSafeRow($row, [4, 5, 6]), ';');
             }
@@ -187,13 +194,14 @@ class ContactDetail extends Component
     {
         $rows = $this->statementRows();
         $filename = 'cari-ekstre-'.$this->contact->code.'.xlsx';
+
         return response()->streamDownload(static function () use ($rows): void {
-            $book = new Spreadsheet();
+            $book = new Spreadsheet;
             $sheet = $book->getActiveSheet();
-            foreach ([['Tarih','Belge','İşlem','Açıklama','Borç','Alacak','Bakiye','PB'], ...$rows] as $rowIndex => $row) {
+            foreach ([['Tarih', 'Belge', 'İşlem', 'Açıklama', 'Borç', 'Alacak', 'Bakiye', 'PB'], ...$rows] as $rowIndex => $row) {
                 foreach ($row as $colIndex => $value) {
                     $sheet->setCellValueExplicit(
-                        \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colIndex + 1).($rowIndex + 1),
+                        Coordinate::stringFromColumnIndex($colIndex + 1).($rowIndex + 1),
                         (string) $value,
                         DataType::TYPE_STRING,
                     );
@@ -203,7 +211,6 @@ class ContactDetail extends Component
             $book->disconnectWorksheets();
         }, $filename, ['Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet']);
     }
-
 
     /** @return list<string> Only permitted document types are ever returned. */
     private function documentKindsForTab(string $tab): array
@@ -222,8 +229,8 @@ class ContactDetail extends Component
         });
     }
 
-    /** @return \Illuminate\Database\Eloquent\Builder<Document> */
-    private function documentQueryForTab(string $tab): \Illuminate\Database\Eloquent\Builder
+    /** @return Builder<Document> */
+    private function documentQueryForTab(string $tab): Builder
     {
         $this->authorize('view', $this->contact);
         abort_unless(in_array($tab, ['invoices', 'orders', 'quotes'], true), 422);
@@ -287,7 +294,7 @@ class ContactDetail extends Component
         $name = 'cari-'.$this->contact->code.'-'.$tab.'.xlsx';
 
         return response()->streamDownload(function () use ($tab): void {
-            $book = new Spreadsheet();
+            $book = new Spreadsheet;
             $sheet = $book->getActiveSheet();
             $index = 1;
             foreach ((function () use ($tab) {
@@ -296,7 +303,7 @@ class ContactDetail extends Component
             })() as $row) {
                 foreach ($row as $column => $value) {
                     $sheet->setCellValueExplicit(
-                        \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($column + 1).$index,
+                        Coordinate::stringFromColumnIndex($column + 1).$index,
                         (string) $value,
                         DataType::TYPE_STRING
                     );
@@ -581,6 +588,7 @@ class ContactDetail extends Component
                 $row->percent = bccomp($categoryTotal, '0', 4) > 0
                     ? min(100, max(0, (float) bcmul(bcdiv((string) $row->revenue, $categoryTotal, 6), '100', 2)))
                     : 0;
+
                 return $row;
             });
 

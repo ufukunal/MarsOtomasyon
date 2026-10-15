@@ -20,9 +20,9 @@ it('reports filtered statement opening and final balances separately by currency
     $class = file_get_contents(base_path('app/Livewire/Pages/Contacts/ContactDetail.php'));
     $view = file_get_contents(base_path('resources/views/livewire/pages/contacts/contact-detail.blade.php'));
 
-    expect($class)->toContain("\$total->opening = \$opening")
-        ->toContain("\$total->closing = bcsub(")
-        ->toContain("\$this->openingBalances()")
+    expect($class)->toContain('$total->opening = $opening')
+        ->toContain('$total->closing = bcsub(')
+        ->toContain('$this->openingBalances()')
         ->and($view)->toContain('Devir Bakiye')
         ->toContain('Son Bakiye');
 });

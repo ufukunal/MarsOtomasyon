@@ -11,6 +11,7 @@ trait WithV65SimpleListFilter
     use WithV65FilterDrawer;
 
     public string $v65SimpleSort = '';
+
     public string $v65SimpleDirection = 'desc';
 
     protected function v65ReadFilterState(): array

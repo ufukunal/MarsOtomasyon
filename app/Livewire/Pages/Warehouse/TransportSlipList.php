@@ -2,8 +2,8 @@
 
 namespace App\Livewire\Pages\Warehouse;
 
-use App\Models\Period\TransportSlip;
 use App\Livewire\Concerns\WithV65FilterDrawer;
+use App\Models\Period\TransportSlip;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Url;
 use Livewire\Component;
@@ -38,6 +38,7 @@ class TransportSlipList extends Component
     public int $perPage = 25;
 
     public string $v65WarehouseSort = '';
+
     public string $v65WarehouseDirection = 'desc';
 
     protected function v65ReadFilterState(): array

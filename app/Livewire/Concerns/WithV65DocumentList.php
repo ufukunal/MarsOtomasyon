@@ -3,13 +3,12 @@
 namespace App\Livewire\Concerns;
 
 use App\Enums\DocumentType;
-use App\Livewire\Concerns\WithV65FilterDrawer;
 use App\Models\Period\Document;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Facades\Gate;
 use Livewire\Attributes\Url;
 use Livewire\WithPagination;
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -86,7 +85,6 @@ trait WithV65DocumentList
     /** @var array<string,bool> */
     public array $hiddenColumns = [];
 
-    /** @return DocumentType */
     abstract protected function documentType(): DocumentType;
 
     abstract protected function permission(): string;
@@ -102,10 +100,25 @@ trait WithV65DocumentList
         abort_unless(auth()->user()?->can($this->permission()), 403);
     }
 
-    public function updatedSearch(): void { $this->resetPage(); }
-    public function updatedStatus(): void { $this->resetPage(); }
-    public function updatedDateFrom(): void { $this->resetPage(); }
-    public function updatedDateTo(): void { $this->resetPage(); }
+    public function updatedSearch(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedStatus(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedDateFrom(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedDateTo(): void
+    {
+        $this->resetPage();
+    }
 
     public function clearFilters(): void
     {
@@ -125,17 +138,18 @@ trait WithV65DocumentList
         $keys = ['number', 'date', 'contact', 'status', 'total'];
         abort_unless(in_array($key, $keys, true), 422);
 
-        $visible = array_filter($keys, fn (string $name): bool => !($this->hiddenColumns[$name] ?? false));
+        $visible = array_filter($keys, fn (string $name): bool => ! ($this->hiddenColumns[$name] ?? false));
         if (count($visible) === 1 && in_array($key, $visible, true)) {
             return;
         }
 
-        $this->hiddenColumns[$key] = !($this->hiddenColumns[$key] ?? false);
+        $this->hiddenColumns[$key] = ! ($this->hiddenColumns[$key] ?? false);
     }
 
     public function open(int|string $id): mixed
     {
         abort_unless(auth()->user()?->can($this->permission()), 403);
+
         return $this->redirectRoute($this->editRoute(), ['id' => $id], navigate: false);
     }
 
@@ -198,6 +212,7 @@ trait WithV65DocumentList
     {
         abort_unless(auth()->user()?->can($this->permission()), 403);
         $name = 'belge-listesi-'.now()->format('Ymd-His').'.csv';
+
         return response()->streamDownload(function (): void {
             $out = fopen('php://output', 'wb');
             fwrite($out, "\xEF\xBB\xBF");
@@ -205,8 +220,7 @@ trait WithV65DocumentList
             $this->listQuery()->chunk(500, function ($documents) use ($out): void {
                 foreach ($documents as $document) {
                     // Protect spreadsheet consumers against CSV formula injection.
-                    $safe = static fn (string $value): string =>
-                        preg_match('/^[=+\-@\t\r]/u', $value) ? "'".$value : $value;
+                    $safe = static fn (string $value): string => preg_match('/^[=+\-@\t\r]/u', $value) ? "'".$value : $value;
                     fputcsv($out, [
                         $safe((string) ($document->number ?? 'Taslak')),
                         $document->document_date?->format('d.m.Y') ?? '',
@@ -225,6 +239,7 @@ trait WithV65DocumentList
     {
         abort_unless(auth()->user()?->can($this->permission()), 403);
         $name = 'belge-listesi-'.now()->format('Ymd-His').'.xlsx';
+
         return response()->streamDownload(function (): void {
             $book = new Spreadsheet;
             $sheet = $book->getActiveSheet();
@@ -232,9 +247,9 @@ trait WithV65DocumentList
             $i = 2;
             $this->listQuery()->chunk(500, function ($documents) use (&$i, $sheet): void {
                 foreach ($documents as $document) {
-                    $sheet->setCellValueExplicit('A'.$i, (string) ($document->number ?? 'Taslak'), \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
+                    $sheet->setCellValueExplicit('A'.$i, (string) ($document->number ?? 'Taslak'), DataType::TYPE_STRING);
                     $sheet->setCellValue('B'.$i, $document->document_date?->format('d.m.Y'));
-                    $sheet->setCellValueExplicit('C'.$i, (string) ($document->contact?->title ?? ''), \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
+                    $sheet->setCellValueExplicit('C'.$i, (string) ($document->contact?->title ?? ''), DataType::TYPE_STRING);
                     $sheet->setCellValue('D'.$i, self::documentStatusLabels()[$document->status] ?? $document->status);
                     $sheet->setCellValue('E'.$i, (float) $document->grand_total);
                     $sheet->setCellValue('F'.$i, $document->currency);
@@ -251,7 +266,7 @@ trait WithV65DocumentList
     {
         abort_unless(auth()->user()?->can($this->permission()), 403);
         $createRoute = $this->createRoute();
-        if (!auth()->user()?->can(str_replace('.view', '.create', $this->permission()))) {
+        if (! auth()->user()?->can(str_replace('.view', '.create', $this->permission()))) {
             $createRoute = null;
         }
 

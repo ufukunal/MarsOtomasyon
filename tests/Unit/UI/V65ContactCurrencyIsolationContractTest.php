@@ -1,5 +1,7 @@
 <?php
 
+use App\Livewire\Pages\Contacts\ContactDetail;
+
 it('isolates the scalar cari balance and risk comparison to TRY', function (): void {
     $contact = file_get_contents(base_path('app/Models/Period/Contact.php'));
     $list = file_get_contents(base_path('app/Livewire/Pages/Contacts/ContactList.php'));
@@ -16,16 +18,16 @@ it('preserves opening-only currencies and exports opening and closing balances',
     $detail = file_get_contents(base_path('app/Livewire/Pages/Contacts/ContactDetail.php'));
 
     expect($detail)
-        ->toContain("foreach (\$openings as \$currency => \$opening)")
+        ->toContain('foreach ($openings as $currency => $opening)')
         ->toContain("! \$movementTotals->contains('currency', \$currency)")
         ->toContain("\$movementTotals = \$movementTotals->sortBy('currency')->values()")
         ->toContain("'Devir Bakiyesi'")
         ->toContain("'Son Bakiye'")
-        ->toContain("ksort(\$balances)");
+        ->toContain('ksort($balances)');
 });
 
 it('keeps signed monetary values numeric in CSV while escaping formula-like text', function (): void {
-    $method = new \ReflectionMethod(\App\Livewire\Pages\Contacts\ContactDetail::class, 'csvSafeRow');
+    $method = new ReflectionMethod(ContactDetail::class, 'csvSafeRow');
     $row = ['', '=-2+1', 'İşlem', '@SUM(A1)', '-125.5000', '24.0000', '-101.5000', 'TRY'];
     $safe = $method->invoke(null, $row, [4, 5, 6]);
 

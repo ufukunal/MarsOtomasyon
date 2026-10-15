@@ -36,7 +36,7 @@ it('requires an explicit acknowledgement before posting a sales invoice above a 
             $key = 'risk-invoice-'.Str::random(18);
             $action = app(PostSalesInvoice::class);
             expect(fn () => $action->handle($draft, $key))->toThrow(
-                \DomainException::class,
+                DomainException::class,
                 'Cari risk limiti aşılıyor'
             );
             expect($draft->fresh()->status)->toBe('draft')

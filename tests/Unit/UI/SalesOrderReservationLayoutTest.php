@@ -1,7 +1,5 @@
 <?php
 
-use App\Livewire\Sales\SalesOrderEditor;
-
 it('separates reservation and fulfillment controls with labelled quantities and locations', function (): void {
     $view = file_get_contents(base_path('resources/views/livewire/sales/document-editor.blade.php'));
     $css = file_get_contents(base_path('resources/css/v65-shell.css'));

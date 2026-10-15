@@ -87,7 +87,6 @@ it('uses the backend financial calculator for an unsaved draft preview', functio
         ->and($preview->grandTotal)->toBe('216.0000');
 });
 
-
 it('drops stale stock and tax data when a sales line becomes a service', function (): void {
     $editor = new SalesInvoiceEditor;
     $editor->lines = [[

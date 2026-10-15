@@ -6,15 +6,16 @@ use App\Livewire\Components\DataTable\Column;
 use App\Livewire\Components\DataTable\DataTableComponent;
 use App\Livewire\Components\DataTable\DateRangeFilter;
 use App\Livewire\Components\DataTable\SelectFilter;
+use App\Livewire\Components\DataTable\TextFilter;
 use App\Models\Period\Contact;
 use App\Models\Period\ContactCategory;
 use App\Models\Period\ContactTransaction;
-use App\Livewire\Components\DataTable\TextFilter;
 use App\Support\Formatting\TrFormatter;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Facades\Schema;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 /** @extends DataTableComponent<Contact> */
 class ContactList extends DataTableComponent
@@ -136,10 +137,8 @@ class ContactList extends DataTableComponent
             ->first();
 
         // A mixed-role cari is counted in both groups, but only once in total.
-        $customers = Contact::query()->whereHas('categories', fn (Builder $q) =>
-            $q->where('name', 'ilike', 'Müşteri'))->count();
-        $suppliers = Contact::query()->whereHas('categories', fn (Builder $q) =>
-            $q->where('name', 'ilike', 'Tedarikçi'))->count();
+        $customers = Contact::query()->whereHas('categories', fn (Builder $q) => $q->where('name', 'ilike', 'Müşteri'))->count();
+        $suppliers = Contact::query()->whereHas('categories', fn (Builder $q) => $q->where('name', 'ilike', 'Tedarikçi'))->count();
 
         $debit = '0.0000';
         $credit = '0.0000';
@@ -225,7 +224,7 @@ class ContactList extends DataTableComponent
         if ($column->key === 'last_movement') {
             $date = $row->getAttribute('v65_last_movement');
 
-            return $date ? \Illuminate\Support\Carbon::parse($date)->format('d.m.Y') : '—';
+            return $date ? Carbon::parse($date)->format('d.m.Y') : '—';
         }
 
         if ($column->key === 'is_active') {

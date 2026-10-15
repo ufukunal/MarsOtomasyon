@@ -1,13 +1,13 @@
 <?php
 
 use App\Livewire\Pages\Contacts\ContactDetail;
-use App\Models\Period\Contact;
 use Illuminate\Support\Facades\Route;
+use Livewire\Component;
 
 it('has a permissioned contact details route distinct from contact edit', function (): void {
     expect(Route::has('contacts.show'))->toBeTrue()
         ->and(Route::has('contacts.edit'))->toBeTrue()
-        ->and(is_subclass_of(ContactDetail::class, \Livewire\Component::class))->toBeTrue();
+        ->and(is_subclass_of(ContactDetail::class, Component::class))->toBeTrue();
 });
 
 it('shows approved contact-detail tabs but no fabricated b2b metrics', function (): void {
@@ -30,7 +30,7 @@ it('shows approved contact-detail tabs but no fabricated b2b metrics', function 
         ->toContain("where('status', 'posted')")
         ->toContain('groupByRaw(')
         ->toContain('paginate($this->perPage)')
-        ->toContain("selectTab(string \$tab)");
+        ->toContain('selectTab(string $tab)');
 });
 
 it('preserves the agreed shared list toolbar while opening contact details by name/code', function (): void {

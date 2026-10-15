@@ -139,7 +139,7 @@ trait WithV65FilterDrawer
                         $range[$end] = $number;
                     }
                 }
-                abort_unless(!isset($range['min'], $range['max'])
+                abort_unless(! isset($range['min'], $range['max'])
                     || bccomp($range['min'], $range['max'], 4) <= 0, 422);
                 if ($range !== []) {
                     $filters[$key] = $range;
@@ -156,7 +156,7 @@ trait WithV65FilterDrawer
                         $range[$end] = $date;
                     }
                 }
-                abort_unless(!isset($range['from'], $range['to']) || $range['from'] <= $range['to'], 422);
+                abort_unless(! isset($range['from'], $range['to']) || $range['from'] <= $range['to'], 422);
                 if ($range !== []) {
                     $filters[$key] = $range;
                 }

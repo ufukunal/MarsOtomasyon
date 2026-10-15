@@ -18,7 +18,7 @@ it('keeps Cari header actions in the approved order while sharing one filter inc
     expect($actions)->toContain('<x-v65.action-menu label="Dışa Aktar">')
         ->toContain('wire:click="exportCsv"')
         ->toContain('wire:click="exportXlsx"')
-        ->and($markup)->toContain("v65-cari-intro-filters")
+        ->and($markup)->toContain('v65-cari-intro-filters')
         ->toContain("@include('livewire.components.partials.v65-table-filter-controls')")
         ->and($drawer)->toContain('<x-v65.filter-drawer')
         ->toContain('wire:model="v65DraftFilters.search"')

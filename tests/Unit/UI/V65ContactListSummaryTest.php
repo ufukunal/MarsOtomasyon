@@ -1,5 +1,6 @@
 <?php
 
+use App\Livewire\Components\DataTable\DataTableComponent;
 use App\Livewire\Pages\Contacts\ContactList;
 
 it('renders the approved contact list summary from period records, not synthetic prototype data', function (): void {
@@ -7,14 +8,14 @@ it('renders the approved contact list summary from period records, not synthetic
     $class = file_get_contents(base_path('app/Livewire/Pages/Contacts/ContactList.php'));
     $css = file_get_contents(base_path('resources/css/v65-shell.css'));
 
-    expect(is_subclass_of(ContactList::class, \App\Livewire\Components\DataTable\DataTableComponent::class))->toBeTrue()
+    expect(is_subclass_of(ContactList::class, DataTableComponent::class))->toBeTrue()
         ->and($table)->toContain('v65-cari-list-stats')
-        ->toContain("overviewStats()")
+        ->toContain('overviewStats()')
         ->toContain('Toplam Cari')
         ->toContain('Toplam Borç')
         ->toContain('Toplam Alacak')
         ->toContain('<x-v65.list-footer')
-        ->and($class)->toContain("COUNT(*) FILTER")
+        ->and($class)->toContain('COUNT(*) FILTER')
         ->toContain("groupBy('contact_id')")
         ->toContain('function columnUrl')
         ->and($css)->toContain('.v65-cari-list-stats');
@@ -26,5 +27,5 @@ it('provides separate shipping addresses in the detail view and authorizes retur
     expect($class)->toContain("where('type', 'shipping')")
         ->and($view)->toContain('@forelse($addresses as $address)')
         ->toContain("@can('returns.view')")
-        ->not->toContain("sales_returns.view");
+        ->not->toContain('sales_returns.view');
 });

@@ -41,7 +41,10 @@ class ImportCenter extends Component
 
     public int $perPage = 25;
 
-    public function updatedListSearch(): void { $this->resetPage(); }
+    public function updatedListSearch(): void
+    {
+        $this->resetPage();
+    }
 
     public function setPerPage(int $value): void
     {

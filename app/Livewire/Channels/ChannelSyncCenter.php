@@ -21,9 +21,20 @@ class ChannelSyncCenter extends Component
 
     public int $perPage = 25;
 
-    public function updatedStatus(): void { $this->resetPage(); }
-    public function updatedDirection(): void { $this->resetPage(); }
-    public function updatedChannelAccountId(): void { $this->resetPage(); }
+    public function updatedStatus(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedDirection(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedChannelAccountId(): void
+    {
+        $this->resetPage();
+    }
 
     public function setPerPage(int $value): void
     {
@@ -31,7 +42,6 @@ class ChannelSyncCenter extends Component
         $this->perPage = $value;
         $this->resetPage();
     }
-
 
     public string $status = '';
 

@@ -4,8 +4,8 @@ namespace App\Actions\Sales;
 
 use App\Actions\Documents\PostDocument;
 use App\Enums\DocumentType;
-use App\Models\Period\Document;
 use App\Models\Period\Contact;
+use App\Models\Period\Document;
 use App\Support\Auth\MutationAuthorizer;
 use DomainException;
 

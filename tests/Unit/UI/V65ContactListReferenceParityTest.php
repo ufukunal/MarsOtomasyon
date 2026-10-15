@@ -93,7 +93,6 @@ it('formats positive TRY debit as customer debt and negative TRY credit as custo
     expect($list->formattedValue($contact, Column::make('risk_usage', 'Risk Kullanımı')))->toBe('—');
 });
 
-
 it('uses the supplied blue-edge three-line KPI card design only on the cari list', function (): void {
     $view = file_get_contents(base_path('resources/views/livewire/components/data-table.blade.php'));
     $css = file_get_contents(base_path('resources/css/v65-shell.css'));
@@ -116,7 +115,6 @@ it('uses the supplied blue-edge three-line KPI card design only on the cari list
         ->toContain('font-variant-numeric:tabular-nums')
         ->toContain('.app-shell .v65-cari-list .v65-cari-list-stats .v65-cari-kpi-note');
 });
-
 
 it('places the only Cari drawer beside the heading and groups export actions', function (): void {
     $view = file_get_contents(base_path('resources/views/livewire/components/data-table.blade.php'));
@@ -150,7 +148,6 @@ it('only flags a customer with a positive TRY risk limit and excess receivable',
         ->and($editor)->toContain('Risk limitinin aşıldığını kabul ediyorum')
         ->toContain('invoiceRiskProjection()');
 });
-
 
 it('uses the cari perspective consistently in totals, balance cells and detail identity without altering ledger signs', function (): void {
     $listClass = file_get_contents(base_path('app/Livewire/Pages/Contacts/ContactList.php'));

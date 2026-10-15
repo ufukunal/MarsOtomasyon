@@ -67,6 +67,7 @@ class ProductList extends DataTableComponent
                     foreach ($this->rows()->items() as $row) {
                         $emit($row);
                     }
+
                     return;
                 }
                 foreach ($query->cursor() as $row) {
@@ -83,6 +84,7 @@ class ProductList extends DataTableComponent
                 });
                 (new Xlsx($spreadsheet))->save('php://output');
                 $spreadsheet->disconnectWorksheets();
+
                 return;
             }
             $handle = fopen('php://output', 'wb');

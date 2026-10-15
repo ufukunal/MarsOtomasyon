@@ -8,7 +8,7 @@ it('shows a permission-restricted TRY invoice risk summary without double-counti
     expect($editor)->toContain("auth()->user()?->can('contacts.view')")
         ->toContain("'is_posted' =>")
         ->toContain("status !== 'draft'")
-        ->toContain("bcadd(\$balance, \$amount, 4)")
+        ->toContain('bcadd($balance, $amount, 4)')
         ->and($panel)->toContain('Cari Finansal Durum (TRY)')
         ->toContain('Cari borçlu')
         ->toContain('Cari alacaklı')
@@ -93,7 +93,6 @@ it('provides per-field error messages, deterministic invalid focus and search fe
             ->toContain('v65-doc-mobile-scroll-hint');
     }
 });
-
 
 it('uses the current purchase currency for an unsaved financial preview', function (): void {
     $summary = file_get_contents(base_path('resources/views/components/v65/document-summary.blade.php'));
