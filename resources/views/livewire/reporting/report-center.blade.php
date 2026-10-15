@@ -89,7 +89,7 @@
                                     <select wire:model.defer="filterValues.{{ $filter->key }}">
                                         <option value="">Tümü</option>
                                         @foreach($filter->allowedValues as $value)
-                                            <option value="{{ $value }}">{{ $value }}</option>
+                                            <option value="{{ $value }}">{{ \App\Support\Formatting\BusinessLabelFormatter::report($selectedReport->key, $filter->key, $value) }}</option>
                                         @endforeach
                                     </select>
                                 @elseif(in_array($filter->type, ['integer', 'positive_integer'], true))

@@ -22,7 +22,7 @@
                         <td>{{ $job->report_key }}</td>
                         <td>{{ strtoupper($job->format) }}</td>
                         <td>{{ implode(', ', $job->periods ?? []) }}</td>
-                        <td>{{ $job->status }}</td>
+                        <td>{{ \App\Support\Formatting\BusinessLabelFormatter::status($job->status) }}</td>
                         <td>{{ $job->progress === null ? '—' : $job->progress.'%' }}</td>
                         <td>{{ $job->created_at?->format('d.m.Y H:i:s') }}</td>
                         <td>

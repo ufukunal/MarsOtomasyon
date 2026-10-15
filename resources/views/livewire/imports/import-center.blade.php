@@ -25,7 +25,7 @@
                             <option value="">Seçin</option>
                             @foreach($carrySourceFiles as $sourceFile)
                                 <option value="{{ $sourceFile->id }}">
-                                    {{ $sourceFile->number }} · {{ $sourceFile->status }} · ETA {{ $sourceFile->eta ?? '—' }}
+                                    {{ $sourceFile->number }} · {{ \App\Support\Formatting\BusinessLabelFormatter::value('import_status', $sourceFile->status) }} · ETA {{ $sourceFile->eta ?? '—' }}
                                 </option>
                             @endforeach
                         </select>
@@ -78,7 +78,7 @@
                     <td>{{ $row->eta?->format('d.m.Y') }}</td>
                     <td>{{ $row->currency }}</td>
                     <td>{{ $row->exchange_rate ?? '—' }}</td>
-                    <td>{{ $row->status }}</td>
+                    <td>{{ \App\Support\Formatting\BusinessLabelFormatter::value('import_status', $row->status) }}</td>
                     
                 </tr>
             @endforeach
@@ -162,7 +162,7 @@
                         <td>{{ $container->gross_weight_kg }}</td>
                         <td>{{ $container->volume_cbm }}</td>
                         <td>{{ $container->eta?->format('d.m.Y') }}</td>
-                        <td>{{ $container->status }}</td>
+                        <td>{{ \App\Support\Formatting\BusinessLabelFormatter::status($container->status) }}</td>
                     </tr>
                 @endforeach
                 </tbody>
@@ -216,7 +216,7 @@
                         <td>{{ $package->weight_kg }}</td>
                         <td>{{ $package->volume_cbm }}</td>
                         <td>{{ $package->landed_unit_cost_try ?? '—' }}</td>
-                        <td>{{ $package->status }}</td>
+                        <td>{{ \App\Support\Formatting\BusinessLabelFormatter::status($package->status) }}</td>
                     </tr>
                 @endforeach
                 </tbody>

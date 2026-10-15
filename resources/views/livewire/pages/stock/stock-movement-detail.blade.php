@@ -8,7 +8,7 @@
         <div class="form-grid">
             <div class="field"><span class="field-label">Tarih</span><strong>{{ $movement->movement_date?->format('d.m.Y') }}</strong></div>
             <div class="field"><span class="field-label">Hareket Yönü</span><strong>{{ $movement->direction === 'in' ? 'Giriş' : 'Çıkış' }}</strong></div>
-            <div class="field"><span class="field-label">Sebep</span><strong>{{ $movement->reason }}</strong></div>
+            <div class="field"><span class="field-label">Sebep</span><strong>{{ \App\Support\Formatting\BusinessLabelFormatter::stockMovement($movement->reason) }}</strong></div>
             <div class="field"><span class="field-label">Depo / Lokasyon</span>
                 @can('locations.view')
                     <a href="{{ route('locations.show', ['location' => $movement->location_id]) }}">{{ $movement->location?->name ?? '—' }}</a>

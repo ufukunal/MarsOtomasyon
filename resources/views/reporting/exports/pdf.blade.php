@@ -38,7 +38,7 @@
                     @php
                         $value = $row[$column->key] ?? null;
                     @endphp
-                    <td>{{ is_scalar($value) ? (string) $value : '' }}</td>
+                    <td>{{ \App\Support\Formatting\BusinessLabelFormatter::report($dataset->key, $column->key, $value) }}</td>
                 @endforeach
             </tr>
         @endforeach

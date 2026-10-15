@@ -103,7 +103,8 @@ class StockMovements extends DataTableComponent
                     ->whereNotNull('document_type')
                     ->distinct()
                     ->orderBy('document_type')
-                    ->pluck('document_type', 'document_type')
+                    ->pluck('document_type')
+                    ->mapWithKeys(fn ($type) => [(string) $type => \App\Support\Formatting\BusinessLabelFormatter::documentType($type)])
                     ->all(),
             ),
             SelectFilter::make('created_by', 'Kullanıcı')->options(

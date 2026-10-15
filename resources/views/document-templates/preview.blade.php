@@ -15,7 +15,7 @@
     <h1>{{ $name }}</h1>
     @forelse($sections as $section)
         <section @class(['section', 'hidden' => !$section['visible']])>
-            <div class="section-label">{{ $section['type'] }}{{ $section['visible'] ? '' : ' · gizli' }}</div>
+            <div class="section-label">{{ \App\Support\Formatting\BusinessLabelFormatter::value('document_section', $section['type']) }}{{ $section['visible'] ? '' : ' · gizli' }}</div>
             @if($section['settings'] !== [])
                 <div class="settings">{{ json_encode($section['settings'], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) }}</div>
             @endif

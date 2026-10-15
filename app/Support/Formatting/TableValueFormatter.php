@@ -36,7 +36,9 @@ final class TableValueFormatter
         }
 
         if (is_scalar($value)) {
-            return (string) $value;
+            return $column->labelContext !== null
+                ? BusinessLabelFormatter::value($column->labelContext, $value)
+                : (string) $value;
         }
 
         if ($value instanceof Stringable) {

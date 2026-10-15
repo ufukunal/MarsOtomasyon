@@ -31,7 +31,7 @@
 <div class="form-row"><button type="button" wire:click="saveDraft">Taslağı Kaydet</button>@if($count && auth()->user()?->can('stock_counts.update'))<button type="button" wire:click="start">Sayımı Başlat</button>@endif</div>
 @else
 <div class="alert alert-warning">Sayım sırasında bu lokasyonda hareket yapılmaması önerilir.</div>
-<div class="form-row" id="stock-document-details"><strong>{{ $count->number ?: 'Henüz numara verilmedi' }}</strong><span>Durum: {{ $count->status }}</span><label><input type="checkbox" wire:model.live="differencesOnly"> Yalnızca farklıları göster</label></div>
+<div class="form-row" id="stock-document-details"><strong>{{ $count->number ?: 'Henüz numara verilmedi' }}</strong><span>Durum: {{ \App\Support\Formatting\BusinessLabelFormatter::status($count->status) }}</span><label><input type="checkbox" wire:model.live="differencesOnly"> Yalnızca farklıları göster</label></div>
 <div class="table-scroll v65-grid-scroll" id="stock-document-lines"><table class="data-table"><thead><tr><th>Ürün</th><th>Sistem</th><th>Sayılan</th><th>Fark</th><th>Onay</th><th>Not</th><th></th></tr></thead><tbody>
 @foreach($countLines as $line)<tr>
 <td>{{ $line->product->code }} · {{ $line->product->name }}</td>

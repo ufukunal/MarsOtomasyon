@@ -101,7 +101,7 @@ class ContactDetail extends Component
      */
     public function movementDisplayDescription(ContactTransaction $movement): string
     {
-        $description = (string) ($movement->description ?: $movement->transaction_type);
+        $description = (string) ($movement->description ?: \App\Support\Formatting\BusinessLabelFormatter::contactTransaction($movement->transaction_type));
         if ($movement->document?->status === 'posted' && str_contains($description, 'UAT sentetik')
             && str_contains($description, 'TASLAK tutulur')) {
             $description = str_replace(
@@ -135,7 +135,7 @@ class ContactDetail extends Component
             $rows[] = [
                 $movement->transaction_date->format('d.m.Y'),
                 (string) data_get($movement->document, 'number', ''),
-                (string) $movement->transaction_type,
+                \App\Support\Formatting\BusinessLabelFormatter::contactTransaction($movement->transaction_type),
                 $this->movementDisplayDescription($movement),
                 $movement->direction === 'debit' ? $amount : '',
                 $movement->direction === 'credit' ? $amount : '',
@@ -251,14 +251,14 @@ class ContactDetail extends Component
             yield [
                 (string) ($document->number ?? 'Taslak'),
                 $document->document_date->format('d.m.Y'),
-                $document->document_type->value,
+                \App\Support\Formatting\BusinessLabelFormatter::documentType($document->document_type),
                 $document->valid_until?->format('d.m.Y') ?? '',
                 $document->due_date?->format('d.m.Y') ?? '',
                 (string) $document->tax_base,
                 (string) $document->vat_amount,
                 (string) $document->grand_total,
                 (string) $document->currency,
-                (string) $document->status,
+                \App\Support\Formatting\BusinessLabelFormatter::status($document->status),
             ];
         }
     }

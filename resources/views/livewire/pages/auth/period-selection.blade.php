@@ -17,7 +17,7 @@
             <option value="">Dönem seçin</option>
             @foreach ($periods as $period)
                 <option value="{{ $period->id }}" @disabled($period->status === 'archived')>
-                    {{ $period->year }} · {{ $period->database_name }} · {{ $period->status }}
+                    {{ $period->year }} · {{ $period->database_name }} · {{ \App\Support\Formatting\BusinessLabelFormatter::value('period_status', $period->status) }}
                 </option>
             @endforeach
         </select>

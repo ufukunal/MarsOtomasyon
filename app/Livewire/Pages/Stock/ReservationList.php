@@ -50,10 +50,10 @@ class ReservationList extends DataTableComponent
             Column::make('product_name', 'Ürün')->searchable()->sortable(),
             Column::make('location_name', 'Lokasyon')->sortable(),
             Column::make('quantity', 'Miktar')->quantity()->sortable(),
-            Column::make('document_type', 'Belge Türü')->sortable(),
+            Column::make('document_type', 'Belge Türü')->labels('document_type')->sortable(),
             Column::make('document_id', 'Belge')->sortable(),
             Column::make('document_line_id', 'Satır')->sortable(),
-            Column::make('status', 'Durum')->sortable(),
+            Column::make('status', 'Durum')->labels('reservation_status')->sortable(),
             Column::make('created_at', 'Oluşturma')->sortable(),
         ];
     }

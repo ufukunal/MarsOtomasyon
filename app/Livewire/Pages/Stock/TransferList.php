@@ -74,7 +74,7 @@ class TransferList extends DataTableComponent
             Column::make('received_quantity', 'Alınan')->quantity()->alignEnd(),
             Column::make('remaining_quantity', 'Fark / Kalan')->quantity()->alignEnd(),
             Column::make('line_count', 'Satır')->alignEnd(),
-            Column::make('status', 'Durum')->sortable(),
+            Column::make('status', 'Durum')->labels('status')->sortable(),
         ];
     }
 

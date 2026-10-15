@@ -47,10 +47,10 @@
                 @forelse($jobs as $job)
                     <tr>
                         <td>{{ $job->id }}</td>
-                        <td>{{ $job->print_type?->value ?? $job->print_type }}</td>
+                        <td>{{ \App\Support\Formatting\BusinessLabelFormatter::value('print_type', $job->print_type) }}</td>
                         <td>
                             @if($job->source_type && $job->source_id)
-                                {{ $job->source_type }} #{{ $job->source_id }}
+                                {{ \App\Support\Formatting\BusinessLabelFormatter::value('document_type', $job->source_type) }} #{{ $job->source_id }}
                             @else
                                 —
                             @endif
@@ -60,14 +60,14 @@
                         <td>{{ $job->template_revision_no ?? '—' }}</td>
                         <td>{{ $job->result_metadata['revision_selection'] ?? '—' }}</td>
                         <td>{{ $job->profile?->printer_name ?? 'Sistem varsayılanı' }}</td>
-                        <td>{{ $job->status }}</td>
+                        <td>{{ \App\Support\Formatting\BusinessLabelFormatter::status($job->status) }}</td>
                         <td>{{ $job->user_id ?? 'system' }}</td>
                         <td>{{ $job->created_at?->format('d.m.Y H:i:s') }}</td>
                         <td>
                             @if($job->status === 'done')
                                 {{ $job->result_metadata['filename'] ?? 'Tamamlandı' }}
                             @elseif($job->status === 'failed')
-                                {{ $job->result_metadata['error_summary'] ?? 'Print operation failed.' }}
+                                {{ $job->result_metadata['error_summary'] ?? 'Baskı işlemi başarısız oldu.' }}
                             @else
                                 İşleniyor
                             @endif

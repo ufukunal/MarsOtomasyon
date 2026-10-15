@@ -58,11 +58,11 @@
                         @endif
                     </td>
                     <td>
-                        {{ $entry->source_document_type ?: 'Manuel' }}
+                        {{ $entry->source_document_type ? \App\Support\Formatting\BusinessLabelFormatter::documentType($entry->source_document_type) : 'Manuel' }}
                         @if($entry->source_document_id) #{{ $entry->source_document_id }} @endif
                     </td>
                     <td>{{ $days }} gün</td>
-                    <td>{{ $entry->status }}</td>
+                    <td>{{ \App\Support\Formatting\BusinessLabelFormatter::value('quarantine_status', $entry->status) }}</td>
                 </tr>
             @endforeach
             @if($entries->isEmpty())

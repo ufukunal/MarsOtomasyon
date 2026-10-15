@@ -43,7 +43,7 @@
                     <td>{{ $row->production_type }}</td>
                     <td class="align-end">{{ $row->planned_quantity }}</td>
                     <td class="align-end">{{ $row->completed_quantity }}</td>
-                    <td>{{ $row->status }}</td>
+                    <td>{{ \App\Support\Formatting\BusinessLabelFormatter::value('production_status', $row->status) }}</td>
                     
                 </tr>
             @endforeach

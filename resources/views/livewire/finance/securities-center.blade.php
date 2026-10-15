@@ -51,12 +51,12 @@
                 <tr>
                     <td><input type="checkbox" wire:model="selectedSecurityIds" value="{{ $security->id }}"></td>
                     <td>{{ $security->instrument_no }}</td>
-                    <td>{{ $security->kind }}</td>
-                    <td>{{ $security->direction }}</td>
+                    <td>{{ \App\Support\Formatting\BusinessLabelFormatter::value('security_kind', $security->kind) }}</td>
+                    <td>{{ \App\Support\Formatting\BusinessLabelFormatter::direction($security->direction) }}</td>
                     <td>{{ $security->contact?->title }}</td>
                     <td>{{ $security->due_date?->format('d.m.Y') }}</td>
                     <td class="align-end">{{ $security->amount }}</td>
-                    <td><x-v65.status-badge>{{ $security->status }}</x-v65.status-badge></td>
+                    <td><x-v65.status-badge>{{ \App\Support\Formatting\BusinessLabelFormatter::status($security->status) }}</x-v65.status-badge></td>
                 </tr>
             @endforeach
             </tbody>
@@ -106,7 +106,7 @@
                 <option value="">Seçin</option>
                 @foreach($payrolls as $payroll)
                     @if($payroll->action !== 'reversal')
-                        <option value="{{ $payroll->id }}">{{ $payroll->number }} · {{ $payroll->action }} · {{ $payroll->total_amount }}</option>
+                        <option value="{{ $payroll->id }}">{{ $payroll->number }} · {{ \App\Support\Formatting\BusinessLabelFormatter::value('security_action', $payroll->action) }} · {{ $payroll->total_amount }}</option>
                     @endif
                 @endforeach
             </select>
@@ -124,12 +124,12 @@
             @foreach($payrolls as $payroll)
                 <tr>
                     <td>{{ $payroll->number }}</td>
-                    <td>{{ $payroll->action }}</td>
+                    <td>{{ \App\Support\Formatting\BusinessLabelFormatter::value('security_action', $payroll->action) }}</td>
                     <td>{{ $payroll->payroll_date?->format('d.m.Y') }}</td>
                     <td class="align-end">{{ $payroll->total_amount }}</td>
                     <td class="align-end">{{ count($payroll->security_ids) }}</td>
                     <td>{{ $payroll->reversal_of_id ?? '—' }}</td>
-                    <td><x-v65.status-badge>{{ $payroll->status }}</x-v65.status-badge></td>
+                    <td><x-v65.status-badge>{{ \App\Support\Formatting\BusinessLabelFormatter::status($payroll->status) }}</x-v65.status-badge></td>
                 </tr>
             @endforeach
             </tbody>

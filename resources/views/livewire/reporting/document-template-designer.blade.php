@@ -58,7 +58,7 @@
             @forelse($sections as $index => $section)
                 <div class="panel" wire:key="template-section-{{ $index }}">
                     <div class="report-toolbar">
-                        <strong>{{ $index + 1 }}. {{ $section['type'] }}</strong>
+                        <strong>{{ $index + 1 }}. {{ \App\Support\Formatting\BusinessLabelFormatter::value('document_section', $section['type']) }}</strong>
                         <label>
                             <input type="checkbox" wire:model.defer="sections.{{ $index }}.visible">
                             Görünür

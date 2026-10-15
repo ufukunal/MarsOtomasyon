@@ -36,7 +36,7 @@
                     <td>{{ $period->company->name }}</td>
                     <td>{{ $period->year }}</td>
                     <td><code>{{ $period->database_name }}</code></td>
-                    <td>{{ $period->status }}</td>
+                    <td>{{ \App\Support\Formatting\BusinessLabelFormatter::value('period_status', $period->status) }}</td>
                     <td>{{ $period->carried_at ? 'Yapıldı' : 'Yapılmadı' }}</td>
                     <td>
                         @if ($period->status === 'active')

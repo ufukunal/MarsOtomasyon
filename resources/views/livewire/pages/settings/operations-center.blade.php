@@ -22,7 +22,7 @@
         <x-v65.list-heading title="Güncel Operational Health" />
         @if($latestHealth)
             <p>
-                Durum: <strong>{{ strtoupper($latestHealth->overall_status) }}</strong>
+                Durum: <strong>{{ \App\Support\Formatting\BusinessLabelFormatter::status($latestHealth->overall_status) }}</strong>
                 — {{ $latestHealth->checked_at?->format('d.m.Y H:i:s') }}
                 — <code>{{ $latestHealth->correlation_id ?? '—' }}</code>
             </p>
@@ -35,7 +35,7 @@
                     @foreach(($latestHealth->checks ?? []) as $name => $check)
                         <tr>
                             <td>{{ $name }}</td>
-                            <td>{{ ($check['ok'] ?? false) ? 'OK' : 'FAIL' }} / {{ $check['status'] ?? 'unknown' }}</td>
+                            <td>{{ ($check['ok'] ?? false) ? 'Başarılı' : 'Başarısız' }} / {{ \App\Support\Formatting\BusinessLabelFormatter::status($check['status'] ?? 'unknown') }}</td>
                             <td>
                                 {{ json_encode(
                                     collect($check)->except(['ok', 'status', 'severity'])->all(),
@@ -68,7 +68,7 @@
                         <td>{{ $run->id }}</td>
                         <td>{{ $run->release_id }}</td>
                         <td><code>{{ $run->commit_sha }}</code></td>
-                        <td>{{ $run->status }}</td>
+                        <td>{{ \App\Support\Formatting\BusinessLabelFormatter::status($run->status) }}</td>
                         <td>{{ $run->previous_release_id ?? '—' }}</td>
                         <td>{{ $run->started_at?->format('d.m.Y H:i:s') }}</td>
                         <td>{{ $run->finished_at?->format('d.m.Y H:i:s') ?? '—' }}</td>
@@ -99,7 +99,7 @@
                         <td>{{ $run->id }}</td>
                         <td><code>{{ $run->recovery_set_id }}</code></td>
                         <td>{{ $run->trigger_type }}</td>
-                        <td>{{ $run->status }}</td>
+                        <td>{{ \App\Support\Formatting\BusinessLabelFormatter::status($run->status) }}</td>
                         <td>{{ $run->started_at?->format('d.m.Y H:i:s') }}</td>
                         <td>{{ $run->verified_at?->format('d.m.Y H:i:s') ?? '—' }}</td>
                         <td>{{ count($run->period_manifest ?? []) }}</td>
@@ -135,7 +135,7 @@
                         <td>{{ $run->id }}</td>
                         <td><code>{{ $run->recovery_set_id }}</code></td>
                         <td>{{ $run->target_type }}</td>
-                        <td>{{ $run->status }}</td>
+                        <td>{{ \App\Support\Formatting\BusinessLabelFormatter::status($run->status) }}</td>
                         <td>{{ $run->started_at?->format('d.m.Y H:i:s') }}</td>
                         <td>{{ $run->finished_at?->format('d.m.Y H:i:s') ?? '—' }}</td>
                         <td>{{ $run->error_summary ?? '—' }}</td>
@@ -160,7 +160,7 @@
                     <tr>
                         <td>{{ $run->id }}</td>
                         <td>{{ $run->checked_at?->format('d.m.Y H:i:s') }}</td>
-                        <td>{{ $run->overall_status }}</td>
+                        <td>{{ \App\Support\Formatting\BusinessLabelFormatter::status($run->overall_status) }}</td>
                         <td><code>{{ $run->correlation_id ?? '—' }}</code></td>
                     </tr>
                 @empty

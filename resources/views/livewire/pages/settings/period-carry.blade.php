@@ -8,7 +8,7 @@
                     <option value="">Dönem seçin</option>
                     @foreach($sourcePeriods as $period)
                         <option value="{{ $period->id }}">
-                            {{ $period->company->name }} — {{ $period->year }} ({{ $period->status }})
+                            {{ $period->company->name }} — {{ $period->year }} ({{ \App\Support\Formatting\BusinessLabelFormatter::value('period_status', $period->status) }})
                         </option>
                     @endforeach
                 </select>
@@ -40,7 +40,7 @@
                     @foreach($preview['checks'] as $check)
                         <tr>
                             <td>{{ $check['key'] }}</td>
-                            <td>{{ strtoupper($check['status']) }}</td>
+                            <td>{{ \App\Support\Formatting\BusinessLabelFormatter::status($check['status']) }}</td>
                             <td>{{ $check['count'] ?? '—' }}</td>
                             <td>{{ $check['message'] }}</td>
                         </tr>
@@ -137,7 +137,7 @@
                         <tr>
                             <td>İthalat</td>
                             <td>#{{ $file['id'] }} {{ $file['number'] }}</td>
-                            <td>{{ $file['status'] }}</td>
+                            <td>{{ \App\Support\Formatting\BusinessLabelFormatter::value('import_status', $file['status']) }}</td>
                             <td>
                                 {{ $file['containers'] }} konteyner,
                                 {{ $file['packages'] }} paket,

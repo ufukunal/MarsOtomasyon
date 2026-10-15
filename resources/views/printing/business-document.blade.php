@@ -85,7 +85,7 @@
                 <tr><th>Belge Tarihi</th><td>{{ $document->document_date?->format('d.m.Y') }}</td></tr>
                 @if($document->due_date)<tr><th>Vade</th><td>{{ $document->due_date->format('d.m.Y') }}</td></tr>@endif
                 @if($document->valid_until)<tr><th>Geçerlilik</th><td>{{ $document->valid_until->format('d.m.Y') }}</td></tr>@endif
-                <tr><th>Durum</th><td>{{ $draft ? 'Taslak' : ($document->status === 'posted' ? 'Kesinleşti' : ucfirst($document->status)) }}</td></tr>
+                <tr><th>Durum</th><td>{{ \App\Support\Formatting\BusinessLabelFormatter::status($document->status) }}</td></tr>
                 <tr><th>Para Birimi</th><td>{{ $currency }}</td></tr>
                 @if($document->exchange_rate && $currency !== 'TRY')<tr><th>Kur</th><td>{{ $document->exchange_rate }}</td></tr>@endif
             </table>

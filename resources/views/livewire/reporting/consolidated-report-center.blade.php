@@ -23,7 +23,7 @@
             @foreach($availablePeriods as $period)
                 <label class="field">
                     <span class="field-label">
-                        {{ $period->year }} · {{ $period->status }}
+                        {{ $period->year }} · {{ \App\Support\Formatting\BusinessLabelFormatter::value('period_status', $period->status) }}
                     </span>
                     <input
                         type="checkbox"

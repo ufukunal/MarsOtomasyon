@@ -73,7 +73,7 @@
                 <p>Batch bekleniyor…</p>
             @else
                 <dl>
-                    <dt>Durum</dt><dd>{{ $batch->status }}</dd>
+                    <dt>Durum</dt><dd>{{ \App\Support\Formatting\BusinessLabelFormatter::status($batch->status) }}</dd>
                     @if($batch->type === 'opening_stock')
                         <dt>Açılış Tarihi</dt><dd>{{ $batch->opening_date?->format('d.m.Y') }}</dd>
                     @endif

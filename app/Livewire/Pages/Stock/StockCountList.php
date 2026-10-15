@@ -41,7 +41,7 @@ class StockCountList extends DataTableComponent
             Column::make('number', 'Sayım No')->searchable()->sortable(),
             Column::make('location_name', 'Depo / Lokasyon'),
             Column::make('count_date', 'Tarih')->sortable(),
-            Column::make('status', 'Durum')->sortable(),
+            Column::make('status', 'Durum')->labels('status')->sortable(),
             Column::make('line_count', 'Satır')->alignEnd(),
             Column::make('difference_count', 'Fark Satırı')->alignEnd(),
         ];

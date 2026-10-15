@@ -14,6 +14,8 @@ final class Column
 
     public string $align = 'start';
 
+    public ?string $labelContext = null;
+
     private function __construct(
         public readonly string $key,
         public readonly string $label,
@@ -50,6 +52,13 @@ final class Column
     {
         $this->quantity = true;
         $this->align = 'end';
+
+        return $this;
+    }
+
+    public function labels(string $context): self
+    {
+        $this->labelContext = $context;
 
         return $this;
     }

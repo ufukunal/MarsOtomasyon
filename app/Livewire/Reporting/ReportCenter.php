@@ -247,7 +247,7 @@ final class ReportCenter extends Component
             return filter_var($value, FILTER_VALIDATE_BOOL) ? 'Evet' : 'Hayır';
         }
 
-        return is_scalar($value) ? (string) $value : '';
+        return \App\Support\Formatting\BusinessLabelFormatter::report($this->reportKey, $column->key, $value);
     }
 
     public function isNumericColumn(ReportColumnDefinition $column): bool

@@ -67,7 +67,7 @@
         @else
             <div class="form-row">
                 <strong>{{ $transfer->number }}</strong>
-                <span>Durum: {{ $transfer->status }}</span>
+                <span>Durum: {{ \App\Support\Formatting\BusinessLabelFormatter::status($transfer->status) }}</span>
             </div>
 
             <div class="table-scroll v65-grid-scroll" id="stock-document-lines"><table class="data-table">

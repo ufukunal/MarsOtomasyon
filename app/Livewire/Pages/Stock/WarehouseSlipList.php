@@ -46,10 +46,10 @@ class WarehouseSlipList extends DataTableComponent
             Column::make('number', 'Fiş No')->searchable()->sortable(),
             Column::make('slip_date', 'Tarih')->sortable(),
             Column::make('location_name', 'Depo / Lokasyon'),
-            Column::make('direction', 'Yön')->sortable(),
-            Column::make('reason', 'Sebep')->sortable(),
+            Column::make('direction', 'Yön')->labels('direction')->sortable(),
+            Column::make('reason', 'Sebep')->labels('stock_reason')->sortable(),
             Column::make('line_count', 'Satır')->alignEnd(),
-            Column::make('status', 'Durum')->sortable(),
+            Column::make('status', 'Durum')->labels('status')->sortable(),
         ];
     }
 

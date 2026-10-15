@@ -169,7 +169,7 @@
                 <option value="">Belge seçin</option>
                 @foreach($financeDocuments as $document)
                     <option value="{{ $document->id }}">
-                        {{ $document->number }} · {{ $document->document_type->value }} · {{ $document->grand_total }} {{ $document->currency }}
+                        {{ $document->number }} · {{ \App\Support\Formatting\BusinessLabelFormatter::documentType($document->document_type) }} · {{ $document->grand_total }} {{ $document->currency }}
                     </option>
                 @endforeach
             </select>
@@ -187,7 +187,7 @@
                     <td>{{ $movement->id }}</td>
                     <td>{{ $movement->movement_date?->format('d.m.Y') }}</td>
                     <td>{{ $movement->movement_type }}</td>
-                    <td>{{ $movement->direction }}</td>
+                    <td>{{ \App\Support\Formatting\BusinessLabelFormatter::direction($movement->direction) }}</td>
                     <td>{{ $movement->amount }}</td>
                     <td>{{ $movement->reference }}</td>
                     <td>{{ $movement->group_key }}</td>
@@ -207,7 +207,7 @@
                     <td>{{ $movement->id }}</td>
                     <td>{{ $movement->movement_date?->format('d.m.Y') }}</td>
                     <td>{{ $movement->movement_type }}</td>
-                    <td>{{ $movement->direction }}</td>
+                    <td>{{ \App\Support\Formatting\BusinessLabelFormatter::direction($movement->direction) }}</td>
                     <td>{{ $movement->amount }}</td>
                     <td>{{ $movement->reference }}</td>
                     <td>{{ $movement->group_key }}</td>

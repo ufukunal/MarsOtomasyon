@@ -287,7 +287,7 @@
                             <tr wire:key="contact-movement-{{ $move->id }}" @class(['v65-statement-row','is-detail'=>$statementMode==='detailed'])>
                                 <td>{{ $renderDate($move->transaction_date) }}</td>
                                 <td>{{ $move->document?->number ?? '—' }}</td>
-                                <td>{{ $move->transaction_type }}</td>
+                                <td>{{ \App\Support\Formatting\BusinessLabelFormatter::contactTransaction($move->transaction_type) }}</td>
                                 <td>{{ $this->movementDisplayDescription($move) }}</td>
                                 <td class="align-end">{{ $move->direction === 'debit' ? $money($move->amount) : '—' }}</td>
                                 <td class="align-end">{{ $move->direction === 'credit' ? $money($move->amount) : '—' }}</td>

@@ -110,7 +110,7 @@
                         @forelse($movements as $movement)
                             <tr><td>{{ $movement->movement_date?->format('d.m.Y') }}</td>
                                 <td><a href="{{ route('stock.movements.show', ['id' => $movement->id]) }}">{{ $movement->document_no ?? '#'.$movement->id }}</a></td>
-                                <td>{{ $movement->reason }}</td>
+                                <td>{{ \App\Support\Formatting\BusinessLabelFormatter::stockMovement($movement->reason) }}</td>
                                 <td>{{ $movement->direction === 'in' ? $tr::quantity((string) $movement->quantity) : '—' }}</td>
                                 <td>{{ $movement->direction === 'out' ? $tr::quantity((string) $movement->quantity) : '—' }}</td>
                                 <td>{{ $tr::quantity((string) $movement->balance_after) }}</td>
@@ -189,7 +189,7 @@
                 <tbody>
                 @forelse($movements as $movement)
                     <tr><td>{{ $movement->movement_date?->format('d.m.Y') }}</td>
-                        <td><a href="{{ route('stock.movements.show', ['id' => $movement->id]) }}">{{ $movement->document_no ?? '#'.$movement->id }}</a></td><td>{{ $movement->reason }}</td>
+                        <td><a href="{{ route('stock.movements.show', ['id' => $movement->id]) }}">{{ $movement->document_no ?? '#'.$movement->id }}</a></td><td>{{ \App\Support\Formatting\BusinessLabelFormatter::stockMovement($movement->reason) }}</td>
                         <td>{{ $movement->location?->name ?? '—' }}</td>
                         <td>{{ $movement->direction === 'in' ? 'Giriş' : 'Çıkış' }}</td>
                         <td>{{ $tr::quantity((string) $movement->quantity) }}</td>

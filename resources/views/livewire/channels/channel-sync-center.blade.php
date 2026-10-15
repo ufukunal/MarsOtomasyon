@@ -14,17 +14,17 @@
 <label>Senkronizasyon Yönü
 <select aria-label="Senkronizasyon yönü" wire:model.live="direction">
                 <option value="">Tüm Yönler</option>
-                <option value="outbound">Outbound</option>
-                <option value="inbound">Inbound</option>
+                <option value="outbound">Giden</option>
+                <option value="inbound">Gelen</option>
             </select>
 </label>
 <label>Durum
 <select aria-label="Senkronizasyon durumu" wire:model.live="status">
                 <option value="">Tüm Durumlar</option>
-                <option value="queued">Queued</option>
-                <option value="processing">Processing</option>
-                <option value="success">Success</option>
-                <option value="failed">Failed</option>
+                <option value="queued">Kuyrukta</option>
+                <option value="processing">İşleniyor</option>
+                <option value="success">Başarılı</option>
+                <option value="failed">Başarısız</option>
             </select>
 </label>
             </x-v65.simple-filter-drawer>
@@ -42,10 +42,10 @@
                 <tr>
                     <td>{{ $event->created_at?->format('d.m.Y H:i:s') }}</td>
                     <td>{{ $accountNames[$event->channel_account_id] ?? '#'.$event->channel_account_id }}</td>
-                    <td>{{ $event->direction }}</td>
+                    <td>{{ \App\Support\Formatting\BusinessLabelFormatter::direction($event->direction) }}</td>
                     <td>{{ $event->entity_type }} #{{ $event->entity_id }}</td>
-                    <td>{{ $event->action }}</td>
-                    <td>{{ $event->status }}</td>
+                    <td>{{ \App\Support\Formatting\BusinessLabelFormatter::value('sync_action', $event->action) }}</td>
+                    <td>{{ \App\Support\Formatting\BusinessLabelFormatter::status($event->status) }}</td>
                     <td>{{ $event->attempts }}</td>
                     <td>{{ $event->correlation_id }}</td>
                     <td>{{ $event->error_summary }}</td>

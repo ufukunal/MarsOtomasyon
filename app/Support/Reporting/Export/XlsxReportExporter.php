@@ -24,6 +24,9 @@ final class XlsxReportExporter
         foreach ($dataset->rows as $rowIndex => $row) {
             foreach ($dataset->columns as $columnIndex => $column) {
                 $value = $row[$column->key] ?? null;
+                if ($value !== null) {
+                    $value = \App\Support\Formatting\BusinessLabelFormatter::report($dataset->key, $column->key, $value);
+                }
                 $cell = $sheet->getCell([$columnIndex + 1, $rowIndex + 2]);
 
                 if ($value === null || $value === '') {

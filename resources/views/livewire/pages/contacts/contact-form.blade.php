@@ -42,7 +42,7 @@
                     <x-field.toggle label="Varsayılan" wire:model="addressDefault" />
                 </div>
                 <button type="button" wire:click="saveAddress">{{ $addressId ? 'Adresi Güncelle' : 'Adres Ekle' }}</button>
-                <table class="data-table"><thead><tr><th>Tür</th><th>Başlık</th><th>Adres</th><th>Varsayılan</th><th></th></tr></thead><tbody>@foreach($addresses as $row)<tr><td>{{ $row->type }}</td><td>{{ $row->title }}</td><td>{{ $row->address }}</td><td>{{ $row->is_default?'Evet':'Hayır' }}</td><td class="v65-row-actions"><button class="button-secondary" type="button" wire:click="editAddress({{ $row->id }})">Düzenle</button> <button class="button-danger" type="button" wire:click="deleteAddress({{ $row->id }})">Sil</button></td></tr>@endforeach</tbody></table>
+                <table class="data-table"><thead><tr><th>Tür</th><th>Başlık</th><th>Adres</th><th>Varsayılan</th><th></th></tr></thead><tbody>@foreach($addresses as $row)<tr><td>{{ \App\Support\Formatting\BusinessLabelFormatter::value('address_type', $row->type) }}</td><td>{{ $row->title }}</td><td>{{ $row->address }}</td><td>{{ $row->is_default?'Evet':'Hayır' }}</td><td class="v65-row-actions"><button class="button-secondary" type="button" wire:click="editAddress({{ $row->id }})">Düzenle</button> <button class="button-danger" type="button" wire:click="deleteAddress({{ $row->id }})">Sil</button></td></tr>@endforeach</tbody></table>
             @endif
         </section>
     @elseif($activeTab === 'people')

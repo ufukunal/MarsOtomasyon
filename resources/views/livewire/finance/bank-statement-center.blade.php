@@ -38,7 +38,7 @@
                         <td>{{ $row['value_date'] ?? '—' }}</td>
                         <td>{{ $row['reference'] ?? '—' }}</td>
                         <td>{{ $row['description'] }}</td>
-                        <td>{{ $row['direction'] }}</td>
+                        <td>{{ \App\Support\Formatting\BusinessLabelFormatter::direction($row['direction']) }}</td>
                         <td class="align-end">{{ $row['amount'] }}</td>
                         <td class="align-end">{{ $row['balance'] ?? '—' }}</td>
                     </tr>
@@ -60,7 +60,7 @@
                     <td>{{ $row->movement_date?->format('d.m.Y') }}</td>
                     <td>{{ $row->reference }}</td>
                     <td>{{ $row->statement_description }}</td>
-                    <td>{{ $row->direction }}</td>
+                    <td>{{ \App\Support\Formatting\BusinessLabelFormatter::direction($row->direction) }}</td>
                     <td class="align-end">{{ $row->amount }}</td>
                     <td><x-v65.status-badge :tone="$row->reconciled_movement_id ? 'success' : 'warning'">{{ $row->reconciled_movement_id ? 'Mutabık' : 'Bekliyor' }}</x-v65.status-badge></td>
                 </tr>
@@ -94,7 +94,7 @@
                     
                     @foreach($bookRows as $row)
                         <option value="{{ $row->id }}">
-                            #{{ $row->id }} · {{ $row->movement_date?->format('d.m.Y') }} · {{ $row->direction }} · {{ $row->amount }} · {{ $row->reference }}
+                            #{{ $row->id }} · {{ $row->movement_date?->format('d.m.Y') }} · {{ \App\Support\Formatting\BusinessLabelFormatter::direction($row->direction) }} · {{ $row->amount }} · {{ $row->reference }}
                         </option>
                     @endforeach
                 </x-v65.select>

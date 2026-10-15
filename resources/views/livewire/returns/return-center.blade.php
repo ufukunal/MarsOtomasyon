@@ -57,7 +57,7 @@
 
     @if($selectedReturn)
         <section class="panel stack v65-workspace-form">
-            <h2>{{ $selectedReturn->number ?? 'Taslak' }} · {{ $selectedReturn->document_type->value }} · {{ $selectedReturn->status }}</h2>
+            <h2>{{ $selectedReturn->number ?? 'Taslak' }} · {{ \App\Support\Formatting\BusinessLabelFormatter::documentType($selectedReturn->document_type) }} · {{ \App\Support\Formatting\BusinessLabelFormatter::status($selectedReturn->status) }}</h2>
             <div>Cari: {{ $selectedReturn->contact?->title }}</div>
             <div>Tutar: {{ $selectedReturn->grand_total }} {{ $selectedReturn->currency }}</div>
 
@@ -91,7 +91,7 @@
                     <td>@if($return->contact && auth()->user()?->can('contacts.view'))<a href="{{ route('contacts.show', ['contact' => $return->contact_id]) }}">{{ $return->contact->title }}</a>@else{{ $return->contact?->title }}@endif</td>
                     <td>{{ $return->document_date?->format('d.m.Y') }}</td>
                     <td class="align-end">{{ $return->grand_total }} {{ $return->currency }}</td>
-                    <td>{{ $return->status }}</td>
+                    <td>{{ \App\Support\Formatting\BusinessLabelFormatter::status($return->status) }}</td>
                     
                 </tr>
             @endforeach

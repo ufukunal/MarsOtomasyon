@@ -56,7 +56,7 @@ final class StockMovementListQuery
                         WHEN 'scrap' THEN 'Hurda'
                         WHEN 'opening' THEN 'Açılış'
                         WHEN 'adjustment' THEN 'Düzeltme'
-                        ELSE sm.reason
+                        ELSE 'Tanımsız Stok Hareketi'
                      END AS reason_label"
                 ),
             ]);

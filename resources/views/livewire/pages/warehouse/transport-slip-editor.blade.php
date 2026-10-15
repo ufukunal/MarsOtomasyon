@@ -5,7 +5,7 @@
             <p class="wsl-sub">Bağımsız taşıma fişi. Sipariş ve irsaliye referansları opsiyoneldir.</p>
         </div>
         <div class="wsl-head-actions">
-            <span @class(['wsl-badge', 'gray' => ! $slip || in_array($slip->status, ['draft', 'cancelled'], true), 'warn' => $slip?->status === 'ready', 'ok' => $slip?->status === 'completed'])>{{ $slip ? ($statusLabels[$slip->status] ?? $slip->status) : 'Taslak' }}</span>
+            <span @class(['wsl-badge', 'gray' => ! $slip || in_array($slip->status, ['draft', 'cancelled'], true), 'warn' => $slip?->status === 'ready', 'ok' => $slip?->status === 'completed'])>{{ $slip ? ($statusLabels[$slip->status] ?? \App\Support\Formatting\BusinessLabelFormatter::status($slip->status)) : 'Taslak' }}</span>
             @if($mode === 'detail' && $slip && in_array($slip->status, ['draft', 'ready'], true))
                 @can('warehouse_slips.update')
                     <a class="button-link" href="{{ route('warehouse.transport.edit', ['id' => $slip->id]) }}">Düzenle</a>
@@ -158,7 +158,7 @@
             <div><small>Koli Adedi</small><strong>{{ $packageCount }}</strong></div>
             <div><small>Cam</small><strong>{{ $containsGlass ? 'VAR' : 'YOK' }}</strong></div>
             <div><small>Kırılabilir</small><strong>{{ $fragile ? 'EVET' : 'HAYIR' }}</strong></div>
-            <div><small>Belge Durumu</small><strong>{{ $slip ? ($statusLabels[$slip->status] ?? $slip->status) : 'Taslak' }}</strong></div>
+            <div><small>Belge Durumu</small><strong>{{ $slip ? ($statusLabels[$slip->status] ?? \App\Support\Formatting\BusinessLabelFormatter::status($slip->status)) : 'Taslak' }}</strong></div>
         </div>
 
         <div class="wsl-warn"><strong>Baskı:</strong> Ambar fişi A4 yatayda yan yana iki dik A5 kopya üretir. Orta çizgiden kesildiğinde iki ayrı A5 fiş elde edilir. Koli etiketi koli adedi kadar üretilir.</div>
