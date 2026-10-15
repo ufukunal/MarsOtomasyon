@@ -83,7 +83,23 @@ jobs:
         continue-on-error: true
         run: vendor/bin/pint --test
       - name: Static analysis
-        run: vendor/bin/phpstan analyse --no-progress --memory-limit=2G
+        run: vendor/bin/phpstan analyse --no-progress --memory-limit=2G --error-format=raw
       - name: Enforce code style result
         if: steps.pint.outcome == 'failure'
         run: exit 1
+
+  prototype-browser:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Render approved V65 in real Chromium
+        run: bash scripts/ci/test-v65-browser-smoke.sh
+      - name: Attach read-only prototype browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v65-approved-prototype-browser
+          path: artifacts/v65-browser-*.png
+          if-no-files-found: warn
+          retention-days: 7
