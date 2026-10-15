@@ -36,11 +36,22 @@ final class PrintBusinessDocumentController
         abort_unless(auth()->user()?->can($definition[1]), 403);
 
         $company = Company::query()->findOrFail(PeriodContext::companyId());
+
+        // These are presentation aggregates from persisted line discounts,
+        // not a new calculation of VAT, allocations or payable amount.
+        $lineDiscountAmount = '0.0000';
+        foreach ($record->lines as $line) {
+            $lineDiscountAmount = bcadd($lineDiscountAmount, (string) $line->line_discount_amount, 4);
+        }
+        $grossTotal = bcadd((string) $record->subtotal, $lineDiscountAmount, 4);
+
         $view = view('printing.business-document', [
             'document' => $record,
             'company' => $company,
             'title' => $definition[0],
             'generatedAt' => now(),
+            'grossTotal' => $grossTotal,
+            'lineDiscountAmount' => $lineDiscountAmount,
         ]);
 
         if ($format === 'html') {
