@@ -73,7 +73,7 @@ class SalesInvoiceEditor extends BaseSalesDocumentEditor
             return null;
         }
 
-        $currency = (string) ($this->document?->currency ?? 'TRY');
+        $currency = (string) data_get($this->document, 'currency', 'TRY');
         if ($currency !== 'TRY') {
             return null;
         }
@@ -90,7 +90,7 @@ class SalesInvoiceEditor extends BaseSalesDocumentEditor
         // Posted invoices already affect ledger balance; adding them again would double-count risk.
         $amount = $this->document && $this->document->status !== 'draft'
             ? '0'
-            : (string) ($preview?->grandTotal ?? $this->document?->grand_total ?? '0');
+            : (string) data_get($preview, 'grandTotal', data_get($this->document, 'grand_total', '0'));
         $exposure = bcadd($balance, $amount, 4);
 
         return [
