@@ -41,4 +41,4 @@ Cari Borçlu/Alacaklı düzeltmesinin ardından repo genelinde tespit edilen 8 f
 
 ## Koruma ilkesi
 
-Mevcut e-fatura, satış/alış, tahsilat, iade, cari bakiyesi, reversal ve defter hareketlerinde DB tarafında işaret/tutar/direction değişikliği yapılmamıştır.
+Mevcut satış/alış, tahsilat, iade, cari bakiyesi, reversal ve defter hareketlerinde DB tarafında işaret/tutar/direction değişikliği yapılmamıştır.
