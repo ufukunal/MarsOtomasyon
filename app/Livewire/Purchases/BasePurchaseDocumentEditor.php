@@ -167,6 +167,29 @@ abstract class BasePurchaseDocumentEditor extends Component
             $this->permissionPrefix().($this->document ? '.update' : '.create')
         ), 403);
 
+        $this->validate([
+            'contactId' => ['required', 'integer'],
+            'documentDate' => ['required', 'date'],
+            'dueDate' => ['nullable', 'date'],
+            'currency' => ['required', 'string', 'size:3'],
+            'exchangeRate' => ['required', 'numeric', 'gt:0'],
+            'discountRate' => ['required', 'numeric', 'between:0,100'],
+            'lines' => ['required', 'array', 'min:1'],
+            'lines.*.line_kind' => ['required', 'in:stock,service'],
+            'lines.*.quantity' => ['required', 'numeric', 'gt:0'],
+            'lines.*.unit_price' => ['required', 'numeric', 'min:0'],
+            'lines.*.line_discount_rate' => ['required', 'numeric', 'between:0,100'],
+            'lines.*.vat_rate' => ['required', 'numeric', 'between:0,100'],
+        ], [], [
+            'contactId' => 'Tedarikçi', 'documentDate' => 'Belge tarihi',
+            'dueDate' => 'Vade tarihi', 'currency' => 'Para birimi',
+            'exchangeRate' => 'Kur', 'discountRate' => 'Belge iskonto oranı',
+            'lines' => 'Belge satırları', 'lines.*.quantity' => 'Satır miktarı',
+            'lines.*.unit_price' => 'Satır birim fiyatı',
+            'lines.*.line_discount_rate' => 'Satır iskonto oranı',
+            'lines.*.vat_rate' => 'Satır KDV oranı',
+        ]);
+
         $saved = $this->runPeriodMutation('save', fn () => $action->handle(
             $this->documentType(),
             [
