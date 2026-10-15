@@ -25,6 +25,8 @@
         .detail-table th, .detail-table td { padding: 3px 0; vertical-align: top; }
         .detail-table th { color: #5a728b; font-weight: 600; text-align: left; width: 44%; }
         .detail-table td { text-align: right; overflow-wrap: anywhere; }
+        .source-references { display:flex; gap:8px; flex-wrap:wrap; padding:0 1px 9px; font-size:10px; color:#536d83; }
+        .line-location { display:block; color:#73869a; font-size:9px; margin-top:2px; }
         .lines { width: 100%; border-collapse: collapse; font-size: 10px; }
         .lines thead { display: table-header-group; }
         .lines th { background: #f1f5f9; color: #254560; font-size: 9px; padding: 7px 5px; text-align: left; border-bottom: 1px solid #c3d1df; }
@@ -89,6 +91,15 @@
             </table>
         </div>
     </section>
+    @if($document->incomingRelations->isNotEmpty())
+        <div class="source-references"><strong>Kaynak Belgeler:</strong>
+            @foreach($document->incomingRelations as $relation)
+                @if($relation->sourceDocument)
+                    <span>{{ $relation->sourceDocument->number ?? ('#'.$relation->sourceDocument->id) }}</span>
+                @endif
+            @endforeach
+        </div>
+    @endif
     <table class="lines">
         <thead>
             <tr>
@@ -100,7 +111,7 @@
         <tbody>
             @forelse($document->lines as $line)
                 <tr>
-                    <td>{{ $line->line_no }}</td><td class="desc">{{ $line->description ?: '—' }}</td>
+                    <td>{{ $line->line_no }}</td><td class="desc">{{ $line->description ?: '—' }}@if($line->location)<small class="line-location">Depo: {{ $line->location->name }}</small>@endif</td>
                     <td>{{ $line->unit?->code ?? '—' }}</td>
                     <td class="numeric">{{ \App\Support\Formatting\TrFormatter::quantity((string) $line->quantity) }}</td>
                     <td class="numeric">{{ $money::money((string) $line->unit_price) }}</td>
