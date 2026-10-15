@@ -8,6 +8,7 @@ use App\Livewire\Sales\ProformaList;
 use App\Livewire\Sales\QuoteList;
 use App\Livewire\Sales\SalesInvoiceList;
 use App\Livewire\Sales\SalesOrderList;
+use Livewire\Component;
 
 it('uses one footer for shared data tables, sales/purchase lists and warehouse slips', function (): void {
     foreach ([
@@ -36,7 +37,7 @@ it('keeps isolated, permissioned document queries on both sales and purchase lis
         SalesInvoiceList::class, ProformaList::class,
         PurchaseOrderList::class, GoodsReceiptList::class, SupplierInvoiceList::class,
     ] as $class) {
-        expect(is_subclass_of($class, \Livewire\Component::class))->toBeTrue();
+        expect(is_subclass_of($class, Component::class))->toBeTrue();
     }
 
     $source = file_get_contents(base_path('app/Livewire/Concerns/WithV65DocumentList.php'));

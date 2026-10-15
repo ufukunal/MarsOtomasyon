@@ -1,7 +1,5 @@
 <?php
 
-use App\Livewire\Pages\Contacts\ContactDetail;
-
 it('provides document actions and exports only for authorized contact-scoped tabs', function (): void {
     $view = file_get_contents(base_path('resources/views/livewire/pages/contacts/contact-detail.blade.php'));
     $controller = file_get_contents(base_path('app/Livewire/Pages/Contacts/ContactDetail.php'));
@@ -14,7 +12,7 @@ it('provides document actions and exports only for authorized contact-scoped tab
         ->toContain('@can(')
         ->and($controller)->toContain('function documentKindsForTab')
         ->toContain("where('contact_id', \$this->contact->id)")
-        ->toContain("documentQueryForTab(\$tab)")
+        ->toContain('documentQueryForTab($tab)')
         ->toContain('function exportContactDocumentsCsv')
         ->toContain('function exportContactDocumentsXlsx')
         ->toContain('DataType::TYPE_STRING')

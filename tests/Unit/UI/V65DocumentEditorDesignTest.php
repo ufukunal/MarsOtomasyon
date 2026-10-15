@@ -97,7 +97,6 @@ it('keeps generic print buttons off document editors and uses responsive documen
         ->toContain('<x-v65.empty-state');
 });
 
-
 it('keeps draft printing consistent with the saved document and Blade PHP syntax compatible', function (): void {
     foreach ([
         'resources/views/livewire/sales/document-editor.blade.php',
@@ -135,7 +134,6 @@ it('preserves manually priced sales lines when the customer changes', function (
         ->toContain('Manuel girdiğiniz satır fiyatları')
         ->toContain('wire:loading.attr="disabled"');
 });
-
 
 it('shows permission-aware source documents when editing saved drafts', function (): void {
     $sources = file_get_contents(base_path('resources/views/components/v65/document-sources.blade.php'));

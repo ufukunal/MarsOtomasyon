@@ -22,5 +22,5 @@ it('never combines nominal values from different currencies', function (): void 
 it('rejects corrupt or missing currencies instead of producing misleading totals', function (): void {
     expect(fn () => CurrencySeparatedTotals::fromGroups(
         [(object) ['currency' => '', 'balance' => 9000]], ['balance']
-    ))->toThrow(\DomainException::class);
+    ))->toThrow(DomainException::class);
 });

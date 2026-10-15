@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Attachment;
 use App\Models\Period\Product;
-use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 

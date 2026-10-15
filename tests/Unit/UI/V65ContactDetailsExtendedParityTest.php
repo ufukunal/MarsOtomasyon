@@ -1,8 +1,10 @@
 <?php
 
+use App\Livewire\Components\DataTable\DataTableComponent;
 use App\Livewire\Pages\Contacts\ContactDetail;
 use App\Livewire\Pages\Contacts\ContactList;
 use Illuminate\Support\Facades\Route;
+use Livewire\Component;
 
 it('keeps a distinct authorized customer-detail page and the shared list standard', function (): void {
     $list = file_get_contents(base_path('app/Livewire/Pages/Contacts/ContactList.php'));
@@ -10,8 +12,8 @@ it('keeps a distinct authorized customer-detail page and the shared list standar
     $detail = file_get_contents(base_path('app/Livewire/Pages/Contacts/ContactDetail.php'));
 
     expect(Route::has('contacts.show'))->toBeTrue()
-        ->and(is_subclass_of(ContactList::class, \App\Livewire\Components\DataTable\DataTableComponent::class))->toBeTrue()
-        ->and(is_subclass_of(ContactDetail::class, \Livewire\Component::class))->toBeTrue()
+        ->and(is_subclass_of(ContactList::class, DataTableComponent::class))->toBeTrue()
+        ->and(is_subclass_of(ContactDetail::class, Component::class))->toBeTrue()
         ->and($list)->not->toContain("'label' => 'Aç'")
         ->toContain("route('contacts.show'")
         ->toContain("where('currency', 'TRY')")

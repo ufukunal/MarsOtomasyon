@@ -3,10 +3,11 @@
 namespace App\Livewire\Sales;
 
 use App\Actions\Documents\ReverseDocument;
-use App\Actions\Sales\PostSalesInvoice;
 use App\Actions\Sales\CalculateSalesRiskProjection;
+use App\Actions\Sales\PostSalesInvoice;
 use App\DataObjects\Sales\SalesRiskProjection;
 use App\Enums\DocumentType;
+use App\Models\Period\Contact;
 
 class SalesInvoiceEditor extends BaseSalesDocumentEditor
 {
@@ -77,7 +78,7 @@ class SalesInvoiceEditor extends BaseSalesDocumentEditor
             return null;
         }
 
-        $contact = \App\Models\Period\Contact::query()->find($this->contactId);
+        $contact = Contact::query()->find($this->contactId);
         if (! $contact) {
             return null;
         }

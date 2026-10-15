@@ -2,7 +2,9 @@
 
 namespace App\Livewire\Purchases;
 
+use App\Actions\Documents\CalculateDocumentTotals;
 use App\Actions\Purchases\SavePurchaseDocumentDraft;
+use App\DataObjects\Documents\DocumentTotals;
 use App\Enums\DocumentType;
 use App\Livewire\Concerns\WithIdempotentMutations;
 use App\Models\Period\Contact;
@@ -11,6 +13,9 @@ use App\Models\Period\Location;
 use App\Models\Period\Product;
 use App\Models\Period\Unit;
 use Illuminate\Contracts\View\View;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Livewire\Component;
 
 abstract class BasePurchaseDocumentEditor extends Component
@@ -45,7 +50,7 @@ abstract class BasePurchaseDocumentEditor extends Component
     public array $productSearches = [];
 
     /** Cached per request to avoid repeating the same default options query for every line. */
-    private ?\Illuminate\Database\Eloquent\Collection $defaultProductOptions = null;
+    private ?Collection $defaultProductOptions = null;
 
     /** @var list<array<string,mixed>> */
     public array $lines = [];
@@ -151,7 +156,7 @@ abstract class BasePurchaseDocumentEditor extends Component
     protected function requireSavedDraft(): void
     {
         if ($this->documentDirty) {
-            throw \Illuminate\Validation\ValidationException::withMessages([
+            throw ValidationException::withMessages([
                 'document' => 'Belgede kaydedilmemiş değişiklikler var. İşleme devam etmek için önce Kaydet düğmesini kullanın.',
             ]);
         }
@@ -229,12 +234,12 @@ abstract class BasePurchaseDocumentEditor extends Component
         foreach ($this->lines as $index => $line) {
             $kind = (string) ($line['line_kind'] ?? 'stock');
             if ($kind === 'stock' && empty($line['product_id'])) {
-                throw \Illuminate\Validation\ValidationException::withMessages([
+                throw ValidationException::withMessages([
                     'lines.'.$index.'.product_id' => 'Stok satırı için ürün seçin.',
                 ]);
             }
             if ($kind === 'service' && trim((string) ($line['description'] ?? '')) === '') {
-                throw \Illuminate\Validation\ValidationException::withMessages([
+                throw ValidationException::withMessages([
                     'lines.'.$index.'.description' => 'Hizmet açıklamasını girin.',
                 ]);
             }
@@ -260,12 +265,11 @@ abstract class BasePurchaseDocumentEditor extends Component
         $this->documentDirty = false;
     }
 
-
     /**
      * Unsaved, non-authoritative display calculation. Final amounts always come
      * from Save*DocumentDraft and are revalidated inside the period transaction.
      */
-    public function draftTotalsPreview(): ?\App\DataObjects\Documents\DocumentTotals
+    public function draftTotalsPreview(): ?DocumentTotals
     {
         if ($this->document && $this->document->status !== 'draft') {
             return null;
@@ -297,16 +301,15 @@ abstract class BasePurchaseDocumentEditor extends Component
         }
 
         try {
-            return app(\App\Actions\Documents\CalculateDocumentTotals::class)
+            return app(CalculateDocumentTotals::class)
                 ->handle($input, (string) $this->discountRate);
         } catch (\DomainException|\ValueError $exception) {
             return null;
         }
     }
 
-
-    /** @return \Illuminate\Database\Eloquent\Collection<int, Contact> */
-    public function contactOptions(): \Illuminate\Database\Eloquent\Collection
+    /** @return Collection<int, Contact> */
+    public function contactOptions(): Collection
     {
         $search = mb_substr(trim($this->contactSearch), 0, 80);
         $query = Contact::query()->where('is_active', true);
@@ -330,8 +333,8 @@ abstract class BasePurchaseDocumentEditor extends Component
         return $options;
     }
 
-    /** @return \Illuminate\Database\Eloquent\Collection<int, Product> */
-    public function productOptionsForLine(string $rowKey, int $productId = 0): \Illuminate\Database\Eloquent\Collection
+    /** @return Collection<int, Product> */
+    public function productOptionsForLine(string $rowKey, int $productId = 0): Collection
     {
         $search = mb_substr(trim((string) ($this->productSearches[$rowKey] ?? '')), 0, 80);
         $query = Product::query()->where('is_active', true);
@@ -405,7 +408,7 @@ abstract class BasePurchaseDocumentEditor extends Component
     private function emptyLine(): array
     {
         return [
-            'row_key' => 'new-'.(string) \Illuminate\Support\Str::uuid(),
+            'row_key' => 'new-'.(string) Str::uuid(),
             'line_kind' => 'stock',
             'product_id' => null,
             'description' => '',

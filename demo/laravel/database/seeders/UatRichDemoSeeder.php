@@ -57,20 +57,28 @@ final class UatRichDemoSeeder extends Seeder
 
     /** @var array<string,int> */
     private array $productIds = [];
+
     /** @var array<string,int> */
     private array $contactIds = [];
+
     /** @var array<string,int> */
     private array $locationIds = [];
+
     /** @var array<string,int> */
     private array $documentIds = [];
+
     /** @var array<string,int> */
     private array $recipeIds = [];
+
     /** @var array<string,int> */
     private array $orderIds = [];
+
     /** @var array<string,int> */
     private array $fileIds = [];
+
     /** @var array<string,int> */
     private array $containerIds = [];
+
     private int $unitId;
 
     public function run(): void
@@ -156,6 +164,7 @@ final class UatRichDemoSeeder extends Seeder
                 }
                 $rows[] = array_combine($header, $cells);
             }
+
             return $rows;
         } finally {
             fclose($fp);
@@ -167,6 +176,7 @@ final class UatRichDemoSeeder extends Seeder
         if (! isset($ids[$key])) {
             throw new RuntimeException('Missing demo '.$kind.' reference: '.$key);
         }
+
         return $ids[$key];
     }
 
@@ -256,7 +266,7 @@ final class UatRichDemoSeeder extends Seeder
             $stock = StockBalance::query()->firstOrCreate(
                 ['product_id' => $pid, 'location_id' => $lid],
                 ['quantity' => $r['quantity'], 'reserved' => '0.000',
-                 'consignment_reserved' => '0.000', 'quarantine' => '0.000']
+                    'consignment_reserved' => '0.000', 'quarantine' => '0.000']
             );
             if ($stock->wasRecentlyCreated) {
                 $unitCost = $r['unit_cost_try'];
@@ -322,14 +332,14 @@ final class UatRichDemoSeeder extends Seeder
                 DocumentLine::query()->firstOrCreate(
                     ['document_id' => $doc->id, 'line_no' => (int) $line['line_no']],
                     ['line_kind' => 'stock', 'product_id' => $pid, 'description' => $line['description'],
-                     'unit_id' => $this->unitId, 'quantity' => $line['quantity'],
-                     'conversion_factor' => '1.000000', 'base_quantity' => $line['quantity'],
-                     'location_id' => $this->id($this->locationIds, $line['location_code'], 'location'),
-                     'unit_price' => $line['unit_price'], 'vat_rate' => $line['vat_rate'],
-                     'line_discount_rate' => $totals->lines[$k]->discountRate,
-                     'line_discount_amount' => $totals->lines[$k]->discountAmount,
-                     'line_total' => $totals->lines[$k]->lineTotal,
-                     'reserve_stock' => false, 'cancelled_quantity' => '0.000']
+                        'unit_id' => $this->unitId, 'quantity' => $line['quantity'],
+                        'conversion_factor' => '1.000000', 'base_quantity' => $line['quantity'],
+                        'location_id' => $this->id($this->locationIds, $line['location_code'], 'location'),
+                        'unit_price' => $line['unit_price'], 'vat_rate' => $line['vat_rate'],
+                        'line_discount_rate' => $totals->lines[$k]->discountRate,
+                        'line_discount_amount' => $totals->lines[$k]->discountAmount,
+                        'line_total' => $totals->lines[$k]->lineTotal,
+                        'reserve_stock' => false, 'cancelled_quantity' => '0.000']
                 );
             }
         }
@@ -431,21 +441,21 @@ final class UatRichDemoSeeder extends Seeder
             ImportPackage::query()->firstOrCreate(
                 ['import_file_id' => $this->id($this->fileIds, $r['import_file_no'], 'import file'), 'carton_no' => $r['carton_no']],
                 ['container_id' => $this->id($this->containerIds, $r['container_no'], 'container'),
-                 'product_id' => $this->id($this->productIds, $r['sku'], 'product'),
-                 'location_id' => $this->id($this->locationIds, $r['location_code'], 'location'),
-                 'component_name' => 'DEMO ürün/koli', 'quantity' => $r['quantity'],
-                 'unit_price' => $r['unit_price_foreign'], 'weight_kg' => $r['weight_kg'],
-                 'volume_cbm' => $r['volume_cbm'], 'status' => $r['database_seed_status'],
-                 'notes' => $r['notes']]
+                    'product_id' => $this->id($this->productIds, $r['sku'], 'product'),
+                    'location_id' => $this->id($this->locationIds, $r['location_code'], 'location'),
+                    'component_name' => 'DEMO ürün/koli', 'quantity' => $r['quantity'],
+                    'unit_price' => $r['unit_price_foreign'], 'weight_kg' => $r['weight_kg'],
+                    'volume_cbm' => $r['volume_cbm'], 'status' => $r['database_seed_status'],
+                    'notes' => $r['notes']]
             );
         }
         foreach ($this->csv('import_cost_items') as $r) {
             ImportCostItem::query()->firstOrCreate(
                 ['import_file_id' => $this->id($this->fileIds, $r['import_file_no'], 'import file'), 'name' => $r['cost_name']],
                 ['amount' => $r['amount'], 'currency' => $r['currency'],
-                 'exchange_rate' => '1.000000', 'amount_try' => $r['amount'],
-                 'allocation_basis' => $r['allocation_basis'],
-                 'notes' => 'DEMO maliyet; dağıtım henüz çalıştırılmadı.']
+                    'exchange_rate' => '1.000000', 'amount_try' => $r['amount'],
+                    'allocation_basis' => $r['allocation_basis'],
+                    'notes' => 'DEMO maliyet; dağıtım henüz çalıştırılmadı.']
             );
         }
     }
@@ -456,7 +466,7 @@ final class UatRichDemoSeeder extends Seeder
             $recipe = ProductionRecipe::query()->firstOrCreate(
                 ['product_id' => $this->id($this->productIds, $r['sku'], 'product'), 'revision_no' => 1],
                 ['number' => $r['number'], 'output_quantity' => $r['output_quantity'],
-                 'is_active' => true, 'created_by_name' => 'Mars UAT Rich Demo']
+                    'is_active' => true, 'created_by_name' => 'Mars UAT Rich Demo']
             );
             $this->recipeIds[$r['number']] = (int) $recipe->id;
         }
@@ -464,10 +474,10 @@ final class UatRichDemoSeeder extends Seeder
             $recipeId = $this->id($this->recipeIds, $r['recipe_no'], 'recipe');
             ProductionRecipeLine::query()->firstOrCreate(
                 ['production_recipe_id' => $recipeId,
-                 'component_product_id' => $this->id($this->productIds, $r['component_sku'], 'component')],
+                    'component_product_id' => $this->id($this->productIds, $r['component_sku'], 'component')],
                 ['unit_id' => $this->unitId, 'quantity' => $r['quantity'],
-                 'base_quantity' => number_format((float) $r['quantity'], 3, '.', ''),
-                 'conversion_factor' => '1.000000']
+                    'base_quantity' => number_format((float) $r['quantity'], 3, '.', ''),
+                    'conversion_factor' => '1.000000']
             );
         }
         foreach ($this->csv('production_orders') as $r) {
@@ -493,11 +503,11 @@ final class UatRichDemoSeeder extends Seeder
         foreach ($this->csv('production_order_components') as $r) {
             ProductionOrderComponent::query()->firstOrCreate(
                 ['production_order_id' => $this->id($this->orderIds, $r['production_order_no'], 'production order'),
-                 'component_product_id' => $this->id($this->productIds, $r['component_sku'], 'component')],
+                    'component_product_id' => $this->id($this->productIds, $r['component_sku'], 'component')],
                 ['unit_id' => $this->unitId,
-                 'planned_quantity' => number_format((float) $r['planned_quantity'], 3, '.', ''),
-                 'planned_base_quantity' => number_format((float) $r['planned_quantity'], 3, '.', ''),
-                 'conversion_factor' => '1.000000']
+                    'planned_quantity' => number_format((float) $r['planned_quantity'], 3, '.', ''),
+                    'planned_base_quantity' => number_format((float) $r['planned_quantity'], 3, '.', ''),
+                    'conversion_factor' => '1.000000']
             );
         }
     }
@@ -534,9 +544,9 @@ final class UatRichDemoSeeder extends Seeder
                 $product->attachments()->firstOrCreate(
                     ['collection' => $collection, 'original_name' => $name],
                     ['disk' => $disk, 'path' => $target,
-                     'mime' => $key === 'technical_sheet' ? 'application/pdf' : 'image/png',
-                     'size' => strlen($bytes), 'sort_order' => $key === 'image_detail' ? 1 : 0,
-                     'uploaded_by_name' => 'Mars UAT Rich Demo']
+                        'mime' => $key === 'technical_sheet' ? 'application/pdf' : 'image/png',
+                        'size' => strlen($bytes), 'sort_order' => $key === 'image_detail' ? 1 : 0,
+                        'uploaded_by_name' => 'Mars UAT Rich Demo']
                 );
             }
         }

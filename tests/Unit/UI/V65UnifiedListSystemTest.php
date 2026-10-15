@@ -114,9 +114,8 @@ it('preserves the product image-free listing and record-identifier links', funct
         ->toContain('v65-record-link')
         ->and($products)->toContain("['code', 'name']")
         ->and($contacts)->toContain("['code', 'title']")
-        ->toContain("function rowActions(): array");
+        ->toContain('function rowActions(): array');
 });
-
 
 it('defines and uses the new reusable V65 form and list primitives', function (): void {
     foreach (['button', 'status-badge', 'select', 'empty-state', 'form-actions'] as $name) {

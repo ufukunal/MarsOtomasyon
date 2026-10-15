@@ -1,14 +1,21 @@
 <?php
 
 use App\Livewire\Concerns\WithV65FilterDrawer;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 it('keeps draft changes out of the applied list until explicit apply', function (): void {
-    $screen = new class {
+    $screen = new class
+    {
         use WithV65FilterDrawer;
+
         public string $search = 'önceki';
+
         public array $filterValues = ['active' => '1'];
+
         public string $sort = 'id';
+
         public string $direction = 'asc';
+
         public int $pageResets = 0;
 
         protected function v65FilterDefinitions(): array
@@ -60,25 +67,35 @@ it('keeps draft changes out of the applied list until explicit apply', function 
         ->and($screen->direction)->toBe('asc');
 });
 
-
 it('validates numeric bounds before applying a range', function (): void {
-    $screen = new class {
-        use \App\Livewire\Concerns\WithV65FilterDrawer;
+    $screen = new class
+    {
+        use WithV65FilterDrawer;
+
         public string $search = '';
+
         public array $filterValues = [];
+
         public string $sort = 'id';
+
         public string $direction = 'asc';
+
         public function resetPage(): void {}
+
         protected function v65FilterDefinitions(): array
         {
             return ['price' => ['label' => 'Satış Fiyatı', 'type' => 'number-range']];
         }
-        protected function v65SortOptions(): array { return []; }
+
+        protected function v65SortOptions(): array
+        {
+            return [];
+        }
     };
 
     $screen->openV65Filters();
     $screen->v65DraftFilters['filters']['price'] = ['min' => '20.0000', 'max' => '10.0000'];
-    expect(fn () => $screen->applyV65Filters())->toThrow(\Symfony\Component\HttpKernel\Exception\HttpException::class);
+    expect(fn () => $screen->applyV65Filters())->toThrow(HttpException::class);
     expect($screen->filterValues)->toBe([]);
 
     $screen->v65DraftFilters['filters']['price'] = ['min' => '0', 'max' => '10.5000'];

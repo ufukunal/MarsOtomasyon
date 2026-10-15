@@ -42,5 +42,5 @@ it('ages TRY and USD separately without using foreign-currency credits against T
 it('rejects non-TRY sales risk projection rather than treating USD as TRY', function (): void {
     $order = new Document(['contact_id' => 1, 'currency' => 'USD', 'grand_total' => '500.0000']);
     expect(fn () => app(CalculateSalesRiskProjection::class)->handle($order))
-        ->toThrow(\DomainException::class, 'TRY dışındaki');
+        ->toThrow(DomainException::class, 'TRY dışındaki');
 });

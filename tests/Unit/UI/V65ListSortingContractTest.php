@@ -4,15 +4,29 @@ use App\Livewire\Concerns\WithV65FilterDrawer;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
 it('rejects unlisted client sort columns and supports ascending/descending values', function (): void {
-    $screen = new class {
+    $screen = new class
+    {
         use WithV65FilterDrawer;
+
         public string $search = '';
+
         public array $filterValues = [];
+
         public string $sort = 'id';
+
         public string $direction = 'asc';
+
         public function resetPage(): void {}
-        protected function v65FilterDefinitions(): array { return []; }
-        protected function v65SortOptions(): array { return ['code' => 'Kod']; }
+
+        protected function v65FilterDefinitions(): array
+        {
+            return [];
+        }
+
+        protected function v65SortOptions(): array
+        {
+            return ['code' => 'Kod'];
+        }
     };
 
     $screen->openV65Filters();

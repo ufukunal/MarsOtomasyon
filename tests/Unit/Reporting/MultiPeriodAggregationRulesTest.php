@@ -55,7 +55,6 @@ it('rejects nonnumeric reporting totals rather than silently corrupting the aggr
     ))->toThrow(DomainException::class);
 })->with(['invalid', '', '1;DELETE', 'not-a-number']);
 
-
 it('consolidates finance totals per currency across periods without converting USD to TRY', function (): void {
     $combined = [];
     $defs = ['amount' => new ReportTotalDefinition('amount', 'Tutar')];
