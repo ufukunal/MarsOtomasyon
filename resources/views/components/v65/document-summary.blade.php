@@ -1,7 +1,7 @@
-@props(['document' => null, 'preview' => null])
+@props(['document' => null, 'preview' => null, 'currency' => null])
 @php
     $source = ($document === null || $document->status === 'draft') && $preview !== null ? $preview : $document;
-    $currency = $document?->currency ?? 'TRY';
+    $currency = strtoupper((string) ($currency ?: ($document?->currency ?: 'TRY')));
     $isPreview = $source === $preview && $preview !== null;
     $money = \App\Support\Formatting\TrFormatter::class;
     $grossAmount = '0.0000';
