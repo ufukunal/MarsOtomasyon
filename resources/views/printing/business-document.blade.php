@@ -50,12 +50,6 @@
     $money = \App\Support\Formatting\TrFormatter::class;
     $currency = $document->currency;
     $draft = $document->status === 'draft';
-    $gross = '0.0000';
-    $lineDiscount = '0.0000';
-    foreach ($document->lines as $line) {
-        $gross = bcadd($gross, bcmul((string) $line->quantity, (string) $line->unit_price, 4), 4);
-        $lineDiscount = bcadd($lineDiscount, (string) $line->line_discount_amount, 4);
-    }
 @endphp
 <div class="screen-actions"><button type="button" onclick="window.print()">Yazdır</button></div>
 <main class="paper">
@@ -121,8 +115,8 @@
     </table>
     <section class="summary" aria-label="Kaydedilmiş belge tutarları">
         <dl>
-            <div><dt>Mal / Hizmet Toplamı</dt><dd>{{ $money::money($gross) }} {{ $currency }}</dd></div>
-            <div><dt>Satır İskontoları</dt><dd>{{ $money::money($lineDiscount) }} {{ $currency }}</dd></div>
+            <div><dt>Mal / Hizmet Toplamı</dt><dd>{{ $money::money($grossTotal) }} {{ $currency }}</dd></div>
+            <div><dt>Satır İskontoları</dt><dd>{{ $money::money($lineDiscountAmount) }} {{ $currency }}</dd></div>
             <div><dt>Satır Netleri</dt><dd>{{ $money::money((string) $document->subtotal) }} {{ $currency }}</dd></div>
             <div><dt>Belge İskontosu</dt><dd>{{ $money::money((string) $document->discount_amount) }} {{ $currency }}</dd></div>
             <div><dt>KDV Matrahı</dt><dd>{{ $money::money((string) $document->tax_base) }} {{ $currency }}</dd></div>
