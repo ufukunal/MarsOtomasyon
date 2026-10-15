@@ -1,12 +1,15 @@
-@props(['id', 'title', 'label', 'action', 'message', 'document' => null, 'variant' => 'primary'])
+@props(['id', 'title', 'label', 'action', 'message', 'document' => null, 'variant' => 'primary', 'dirty' => false])
 @php
     $allowedActions = ['post', 'reverse', 'confirm', 'approve', 'submitApproval'];
     $action = in_array($action, $allowedActions, true) ? $action : null;
 @endphp
 @if($action)
-    <x-v65.button :variant="$variant" data-v65-modal-open="{{ $id }}">{{ $label }}</x-v65.button>
+    <x-v65.button :variant="$variant" :disabled="$dirty" :title="$dirty ? 'Önce kaydedilmemiş değişiklikleri kaydedin.' : null" data-v65-modal-open="{{ $id }}">{{ $label }}</x-v65.button>
     <x-v65.modal :id="$id" :title="$title" size="sm">
         <p>{{ $message }}</p>
+        @error('document')
+            <p class="v65-doc-confirm-error" role="alert">{{ $message }}</p>
+        @enderror
         @if($document)
             <dl class="v65-doc-confirm-summary">
                 <div><dt>Belge</dt><dd>{{ $document->number ?? 'Taslak' }}</dd></div>
