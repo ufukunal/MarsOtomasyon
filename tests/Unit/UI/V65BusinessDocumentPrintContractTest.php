@@ -1,7 +1,5 @@
 <?php
 
-use App\Enums\DocumentType;
-
 it('restricts all seven corporate document outputs to authenticated period and role', function (): void {
     $routes = file_get_contents(base_path('routes/web.php'));
     $controller = file_get_contents(base_path('app/Http/Controllers/PrintBusinessDocumentController.php'));
