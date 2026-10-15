@@ -378,7 +378,7 @@ it('keeps company period selectors and navigation aligned with the active screen
     expect($company)->toContain('PeriodContext::companyId()')
         ->and($period)->toContain('PeriodContext::companyId()')
         ->toContain('PeriodContext::periodId()')
-        ->toContain('\$this->redirect(\'/secim\', navigate: false)')
+        ->toContain('$this->redirect(\'/secim\', navigate: false)')
         ->and($layout)->toContain('data-v65-nav-group')
         ->toContain('data-current-group="true"')
         ->toContain('nav-child-label')
