@@ -1,0 +1,82 @@
+name: V65 Source Quality (no database)
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'app/**'
+      - 'bootstrap/**'
+      - 'config/**'
+      - 'database/**'
+      - 'resources/**'
+      - 'routes/**'
+      - 'tests/Unit/**'
+      - 'tests/Contracts/**'
+      - 'composer.*'
+      - 'package*.json'
+      - 'phpstan.neon.dist'
+      - 'pint.json'
+      - 'scripts/ci/**'
+      - '.github/workflows/v65-source-quality.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: v65-static-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 22
+    env:
+      APP_ENV: testing
+      APP_DEBUG: 'false'
+      APP_KEY: base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+      CACHE_STORE: array
+      SESSION_DRIVER: array
+      QUEUE_CONNECTION: sync
+      DB_HOST: 127.0.0.1
+      REDIS_HOST: 127.0.0.1
+      MARS_INTEGRATION_TESTS_APPROVED: 'NO'
+      MARS_VALKEY_TESTS_APPROVED: 'NO'
+      MARS_PERFORMANCE_TESTS_APPROVED: 'NO'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: bcmath, mbstring, intl, gd, zip, pdo_pgsql, redis
+          tools: composer:v2
+          coverage: none
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install PHP dependencies
+        run: composer install --no-interaction --no-progress --prefer-dist
+      - name: Check PHP syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          find app bootstrap config database routes tests -type f -name '*.php' -print0 |
+            xargs -0 -r -n 1 php -l > /tmp/mars-php-lint.log
+          echo "PHP files parsed: $(wc -l < /tmp/mars-php-lint.log)"
+      - name: Compile Blade templates
+        run: php artisan view:cache
+      - name: Install frontend dependencies and build
+        run: |
+          npm ci --no-audit --no-fund
+          npm run build
+      - name: Validate V65 source contracts
+        run: |
+          bash scripts/ci/test-ui-v65-contract.sh
+          node scripts/ci/verify-v65-html.mjs
+      - name: Run isolated source-level UI tests
+        run: |
+          php artisan test tests/Unit/UI/V65BusinessDocumentPrintContractTest.php tests/Unit/UI/V65DocumentEditorPhase2Test.php tests/Unit/UI/V65DocumentEditorDesignTest.php tests/Unit/Documents/V65DocumentDraftSafetyTest.php --stop-on-failure
+      - name: Check code style
+        run: vendor/bin/pint --test
+      - name: Static analysis
+        run: vendor/bin/phpstan analyse --no-progress --memory-limit=2G
