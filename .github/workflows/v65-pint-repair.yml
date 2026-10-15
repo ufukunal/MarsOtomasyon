@@ -1,0 +1,52 @@
+name: V65 one-time Pint repair
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/v65-pint-repair.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  format:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    env:
+      APP_ENV: testing
+      APP_DEBUG: 'false'
+      APP_KEY: base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+      DB_HOST: 127.0.0.1
+      REDIS_HOST: 127.0.0.1
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: bcmath, mbstring, intl, gd, zip, pdo_pgsql, redis
+          tools: composer:v2
+          coverage: none
+      - name: Install Pint from locked dependencies
+        run: composer install --no-interaction --no-progress --prefer-dist
+      - name: Apply the existing approved Laravel Pint preset
+        run: vendor/bin/pint
+      - name: Review formatting diff
+        run: |
+          git diff --check
+          git diff --stat
+      - name: Commit formatter-only branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          branch="v65/pint-$(git rev-parse --short=12 HEAD)"
+          git config user.name 'mars-v65-ci'
+          git config user.email 'mars-v65-ci@users.noreply.github.com'
+          if [[ -z "$(git status --porcelain)" ]]; then
+            echo 'NO_FORMATTING_CHANGES'
+            exit 0
+          fi
+          git switch -c "$branch"
+          git add -u
+          git commit -m 'style(v65): align existing PHP sources with Laravel Pint'
+          git push origin "HEAD:refs/heads/$branch"
+          echo "FORMATTED_BRANCH=$branch"
