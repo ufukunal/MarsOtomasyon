@@ -60,6 +60,46 @@ class SalesInvoiceEditor extends BaseSalesDocumentEditor
         return app(CalculateSalesRiskProjection::class)->handle($this->document);
     }
 
+    /**
+     * TRY-only informational view. This is not a credit approval and does not
+     * include security or foreign-currency exposure.
+     *
+     * @return array<string,string|bool|null>|null
+     */
+    public function contactRiskOverview(): ?array
+    {
+        if (! $this->contactId || ! auth()->user()?->can('contacts.view')) {
+            return null;
+        }
+
+        $currency = (string) ($this->document?->currency ?? 'TRY');
+        if ($currency !== 'TRY') {
+            return null;
+        }
+
+        $contact = \App\Models\Period\Contact::query()->find($this->contactId);
+        if (! $contact) {
+            return null;
+        }
+
+        $balance = $contact->balance();
+        $limit = bcadd((string) ($contact->risk_limit ?? '0'), '0', 4);
+        $configured = bccomp($limit, '0', 4) > 0;
+        $preview = $this->draftTotalsPreview();
+        $amount = (string) ($preview?->grandTotal ?? $this->document?->grand_total ?? '0');
+        $exposure = bcadd($balance, $amount, 4);
+
+        return [
+            'balance' => $balance,
+            'limit' => $limit,
+            'configured' => $configured,
+            'available' => $configured ? bcsub($limit, $balance, 4) : null,
+            'projected' => $exposure,
+            'exceeded' => $configured && bccomp($exposure, $limit, 4) > 0,
+            'is_preview' => $preview !== null,
+        ];
+    }
+
     public function reverse(ReverseDocument $action): mixed
     {
         abort_unless($this->document !== null, 422);
