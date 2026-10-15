@@ -84,8 +84,14 @@ final class UatLabDemoSeeder extends Seeder
                 ] as [$name, $city, $role]) {
                     Contact::query()->firstOrCreate(
                         ['title' => $name],
-                        ['type' => 'legal', 'city' => $city, 'address' => 'Yalnızca UAT test kaydı',
-                         'is_active' => true, 'term_days' => 30, 'risk_limit' => '50000.0000'],
+                        [
+                            'type' => 'legal',
+                            'city' => $city,
+                            'address' => 'Yalnızca UAT test kaydı',
+                            'is_active' => true,
+                            'term_days' => 30,
+                            'risk_limit' => '50000.0000',
+                        ],
                     );
                 }
 
@@ -102,11 +108,18 @@ final class UatLabDemoSeeder extends Seeder
                 foreach ($items as [$code, $name, $brand, $category, $price, $qty, $reserved]) {
                     $product = Product::query()->firstOrCreate(
                         ['code' => $code],
-                        ['name' => $name, 'brand_id' => $brands[$brand]->id,
-                         'category_id' => $categories[$category]->id,
-                         'unit_id' => $unit->id, 'list_price' => $price, 'currency' => 'TRY',
-                         'vat_rate' => '20.0000', 'kind' => 'normal', 'channel_stock_mode' => 'stock',
-                         'is_active' => true],
+                        [
+                            'name' => $name,
+                            'brand_id' => $brands[$brand]->id,
+                            'category_id' => $categories[$category]->id,
+                            'unit_id' => $unit->id,
+                            'list_price' => $price,
+                            'currency' => 'TRY',
+                            'vat_rate' => '20.0000',
+                            'kind' => 'normal',
+                            'channel_stock_mode' => 'stock',
+                            'is_active' => true,
+                        ],
                     );
 
                     $this->seedProductImages($product, (int) substr($code, -1));
@@ -114,24 +127,37 @@ final class UatLabDemoSeeder extends Seeder
                     // Do not change an existing product or an existing stock balance.
                     $balance = StockBalance::query()->firstOrCreate(
                         ['product_id' => $product->id, 'location_id' => $locations[0]->id],
-                        ['quantity' => $qty, 'reserved' => $reserved,
-                         'consignment_reserved' => '0.000', 'quarantine' => '0.000'],
+                        [
+                            'quantity' => $qty,
+                            'reserved' => $reserved,
+                            'consignment_reserved' => '0.000',
+                            'quarantine' => '0.000',
+                        ],
                     );
 
                     // One matching immutable opening movement, inserted only once.
                     // Never manufacture a movement for a pre-existing balance.
                     if ($balance->wasRecentlyCreated) {
                         StockMovement::query()->firstOrCreate(
-                            ['product_id' => $product->id, 'location_id' => $locations[0]->id,
-                             'document_no' => 'DM-UAT-OPEN-'.$code],
-                            ['product_code' => $code, 'movement_date' => '2026-01-15',
-                             'direction' => 'in', 'reason' => 'opening',
-                             'quantity' => $qty, 'unit_cost' => '0.0000',
-                             'total_cost' => '0.0000', 'balance_after' => $qty,
-                             'avg_cost_after' => '0.0000',
-                             'document_type' => 'demo_opening',
-                             'note' => 'UAT demo verisi; gerçek ticari işlem değildir.',
-                             'created_by_name' => 'Mars UAT Demo'],
+                            [
+                                'product_id' => $product->id,
+                                'location_id' => $locations[0]->id,
+                                'document_no' => 'DM-UAT-OPEN-'.$code,
+                            ],
+                            [
+                                'product_code' => $code,
+                                'movement_date' => '2026-01-15',
+                                'direction' => 'in',
+                                'reason' => 'opening',
+                                'quantity' => $qty,
+                                'unit_cost' => '0.0000',
+                                'total_cost' => '0.0000',
+                                'balance_after' => $qty,
+                                'avg_cost_after' => '0.0000',
+                                'document_type' => 'demo_opening',
+                                'note' => 'UAT demo verisi; gerçek ticari işlem değildir.',
+                                'created_by_name' => 'Mars UAT Demo',
+                            ],
                         );
                     }
                 }
@@ -140,6 +166,7 @@ final class UatLabDemoSeeder extends Seeder
             });
         });
     }
+
     /**
      * Add a cover and one gallery image only to demo products with no prior
      * images. Never reorder/delete/replace an existing cover. All assets stay
@@ -193,8 +220,10 @@ final class UatLabDemoSeeder extends Seeder
                     $product->attachments()->firstOrCreate(
                         ['collection' => $collection, 'original_name' => $name],
                         [
-                            'disk' => $disk, 'path' => $path,
-                            'mime' => 'image/png', 'size' => strlen($png),
+                            'disk' => $disk,
+                            'path' => $path,
+                            'mime' => 'image/png',
+                            'size' => strlen($png),
                             'sort_order' => $gallery ? 1 : 0,
                             'uploaded_by_name' => 'Mars UAT Demo',
                         ],
@@ -206,5 +235,4 @@ final class UatLabDemoSeeder extends Seeder
             }
         }
     }
-
 }
