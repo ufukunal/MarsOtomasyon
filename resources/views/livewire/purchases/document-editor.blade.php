@@ -156,10 +156,13 @@
     @endif
 
     @if($document && $document->status === 'draft')
-        <div class="v65-doc-print-only"><x-v65.document-readonly :document="$document" /></div>
+        <div class="v65-doc-print-only">
+            <x-v65.document-readonly :document="$document" />
+            <x-v65.document-summary :document="$document" />
+        </div>
     @endif
 
-    <x-v65.document-summary :document="$document" :preview="$draftPreview" />
+    <x-v65.document-summary class="v65-doc-screen-summary" :document="$document" :preview="$draftPreview" />
 
     @if($document)
         <section class="document-actions panel v65-document-actions v65-doc-workflow" role="group" aria-label="Belge işlemleri">
