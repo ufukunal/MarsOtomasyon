@@ -17,7 +17,9 @@
         <x-v65.notice tone="warning">Kaydedilmemiş değişiklikler var. Belge işlemine devam etmeden önce Kaydet'i kullanın.</x-v65.notice>
     @endif
 
-    @php($draftPreview = $this->draftTotalsPreview())
+    @php
+        $draftPreview = $this->draftTotalsPreview();
+    @endphp
 
     @if(!$document || $document->status === 'draft')
         <form wire:submit="save" class="document-editor-form v65-doc-editor">
