@@ -89,6 +89,7 @@ abstract class BasePurchaseDocumentEditor extends Component
                 }
                 $this->lines[$index]['description'] = '';
                 $this->lines[$index]['unit_price'] = '0';
+                $this->lines[$index]['vat_rate'] = '0';
                 $this->lines[$index]['line_discount_amount'] = '0';
             }
         }
@@ -110,6 +111,7 @@ abstract class BasePurchaseDocumentEditor extends Component
                 }
                 $this->lines[$index]['description'] = '';
                 $this->lines[$index]['unit_price'] = '0';
+                $this->lines[$index]['vat_rate'] = '0';
                 $this->lines[$index]['line_discount_amount'] = '0';
             }
 
@@ -119,7 +121,9 @@ abstract class BasePurchaseDocumentEditor extends Component
                 $this->lines[$index]['description'] = $product->name;
                 $this->lines[$index]['conversion_factor'] = null;
                 $this->lines[$index]['line_discount_amount'] = '0';
-                // Purchasing prices are user-entered; never substitute a selling list price.
+                // The old product's purchase price cannot be reused for a new
+                // product; purchase unit price must be entered deliberately.
+                $this->lines[$index]['unit_price'] = '0';
             }
         }
 
