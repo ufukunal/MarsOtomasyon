@@ -144,6 +144,10 @@ abstract class BasePurchaseDocumentEditor extends Component
 
     public function applyVatToAll(): void
     {
+        $this->validateOnly('bulkVatRate', [
+            'bulkVatRate' => ['required', 'numeric', 'between:0,100'],
+        ], [], ['bulkVatRate' => 'Toplu KDV oranı']);
+
         $rate = bcadd($this->bulkVatRate, '0', 4);
         abort_if(bccomp($rate, '0', 4) < 0 || bccomp($rate, '100', 4) > 0, 422);
 
@@ -189,6 +193,20 @@ abstract class BasePurchaseDocumentEditor extends Component
             'lines.*.line_discount_rate' => 'Satır iskonto oranı',
             'lines.*.vat_rate' => 'Satır KDV oranı',
         ]);
+
+        foreach ($this->lines as $index => $line) {
+            $kind = (string) ($line['line_kind'] ?? 'stock');
+            if ($kind === 'stock' && empty($line['product_id'])) {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'lines.'.$index.'.product_id' => 'Stok satırı için ürün seçin.',
+                ]);
+            }
+            if ($kind === 'service' && trim((string) ($line['description'] ?? '')) === '') {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'lines.'.$index.'.description' => 'Hizmet açıklamasını girin.',
+                ]);
+            }
+        }
 
         $saved = $this->runPeriodMutation('save', fn () => $action->handle(
             $this->documentType(),
