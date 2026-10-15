@@ -3,7 +3,6 @@
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Str;
 use PHPUnit\Framework\Assert;
-use RuntimeException;
 
 function marsValkeyTestApproval(): void
 {
