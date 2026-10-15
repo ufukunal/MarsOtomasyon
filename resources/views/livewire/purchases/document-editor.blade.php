@@ -191,7 +191,7 @@
             @endif
 
             @if(method_exists($this, 'sendToSupplier') && $document->status === 'approved')
-                <button type="button" wire:click="sendToSupplier">Tedarikçiye Gönder</button>
+                <x-v65.button variant="secondary" wire:click="sendToSupplier" wire:loading.attr="disabled" wire:target="sendToSupplier">Tedarikçiye Gönder</x-v65.button>
             @endif
 
             @if(method_exists($this, 'createGoodsReceipt') && in_array($document->status, ['approved', 'sent']))
