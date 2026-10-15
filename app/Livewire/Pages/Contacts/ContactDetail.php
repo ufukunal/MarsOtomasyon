@@ -92,7 +92,7 @@ class ContactDetail extends Component
             ->whereDate('transaction_date', '<', $from)
             ->groupBy('currency')
             ->selectRaw("currency, COALESCE(SUM(CASE WHEN direction = 'debit' THEN amount ELSE -amount END), 0)::text AS opening")
-            ->get()->pluck('opening', 'currency')->all();
+            ->pluck('opening', 'currency')->all();
     }
 
     /**
@@ -133,8 +133,8 @@ class ContactDetail extends Component
             $delta = $movement->direction === 'debit' ? $amount : bcmul($amount, '-1', 4);
             $balances[$currency] = bcadd($balances[$currency] ?? '0', $delta, 4);
             $rows[] = [
-                $movement->transaction_date?->format('d.m.Y') ?? '',
-                (string) ($movement->document?->number ?? ''),
+                $movement->transaction_date->format('d.m.Y'),
+                (string) data_get($movement->document, 'number', ''),
                 (string) $movement->transaction_type,
                 $this->movementDisplayDescription($movement),
                 $movement->direction === 'debit' ? $amount : '',
@@ -250,7 +250,7 @@ class ContactDetail extends Component
         foreach ($this->documentQueryForTab($tab)->cursor() as $document) {
             yield [
                 (string) ($document->number ?? 'Taslak'),
-                $document->document_date?->format('d.m.Y') ?? '',
+                $document->document_date->format('d.m.Y'),
                 $document->document_type->value,
                 $document->valid_until?->format('d.m.Y') ?? '',
                 $document->due_date?->format('d.m.Y') ?? '',
@@ -435,7 +435,7 @@ class ContactDetail extends Component
             ->orderBy('currency')->get();
         $balanceCurrency = $currencyBalances->count() === 1 ? (string) $currencyBalances->first()->currency : 'TRY';
         $multiCurrency = $currencyBalances->count() > 1;
-        $balance = $multiCurrency ? '0.0000' : (string) ($currencyBalances->first()?->balance ?? '0.0000');
+        $balance = $multiCurrency ? '0.0000' : (string) data_get($currencyBalances->first(), 'balance', '0.0000');
 
         $sales = auth()->user()?->can('sales_invoices.view') ?? false;
         $ordersAllowed = auth()->user()?->can('sales_orders.view') ?? false;
@@ -491,7 +491,7 @@ class ContactDetail extends Component
                 $opening = $this->openingBalances();
                 foreach ($movements->getCollection() as $movement) {
                     $movement->setAttribute('running_balance',
-                        bcadd((string) ($opening[$movement->currency] ?? '0'), (string) $movement->running_balance, 4));
+                        bcadd((string) ($opening[$movement->currency] ?? '0'), (string) $movement->getAttribute('running_balance'), 4));
                 }
                 [$statementFrom, $statementTo] = $this->statementRange();
                 $movementTotals = DB::connection('period')->table('contact_transactions')
@@ -668,8 +668,8 @@ class ContactDetail extends Component
 
                 return (object) [
                     'month' => (int) $month,
-                    'invoices' => (int) ($salesRow?->invoices ?? 0),
-                    'revenue' => (string) ($salesRow?->revenue ?? '0'),
+                    'invoices' => (int) data_get($salesRow, 'invoices', 0),
+                    'revenue' => (string) data_get($salesRow, 'revenue', '0'),
                     'orders' => (int) ($monthlyOrders[$month] ?? 0),
                     'collection_total' => (string) ($monthlyCollections[$month] ?? '0'),
                 ];
@@ -679,7 +679,7 @@ class ContactDetail extends Component
                 'sales_try' => (string) ($yearSales ?? '0'),
                 'sales_count' => $monthlySales->sum('invoices'),
                 'months' => $monthlySales->count(),
-                'last_month' => $monthlySales->last()?->month,
+                'last_month' => data_get($monthlySales->last(), 'month'),
             ];
         }
 
