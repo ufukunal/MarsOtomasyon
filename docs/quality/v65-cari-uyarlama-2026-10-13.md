@@ -22,7 +22,7 @@ Kaynak: `reference/marsotomasyon-PROTOTIP-ONAYLI-v65.html` dosyası ve kullanıc
 - Banka Bilgileri, Özel Açıklamalar, B2B, Dosyalar: kayıtlı alanların gösterilmesi; mevcut şemadaki boşlukların uydurulmaması.
 
 ## Bilinen sınırlar ve eksikler
-- Onaylı HTML'deki E-Fatura etiketi, bazı sevk parametreleri, ek banka alanları, B2B portal istatistikleri, ayrı özel/iç not, risk sınıfı/trend analizleri mevcut cari modelinde yoktur; ek tablo/migration uydurulmamıştır.
+- Onaylı HTML'deki bazı sevk parametreleri, ek banka alanları, B2B portal istatistikleri, ayrı özel/iç not ve risk sınıfı/trend analizleri mevcut cari modelinde yoktur; ek tablo/migration uydurulmamıştır.
 - Cari Ekstre ve Fiş Listesi bağımsız rotalar değil; Cari Detay `movements` altındaki 3 işlevsel görünüm olarak sunuluyor.
 - Kasa/mahsup muhasebe doğrulaması, erişim yetkileri, CSV/XLSX çıktı içeriği, farklı para birimi ve dönem filtreleri, tarayıcı boyutları için **çalıştırılabilir entegrasyon/E2E testleri henüz koşturulmadı**.
 - Bütün yazılımın iş ekranları için **tek seferde birebir kabul verilmiş değildir**; yukarıdaki değişiklikler Cari Detay'a yoğunlaşır.
