@@ -32,6 +32,10 @@
                         <option value="{{ $contact->id }}">{{ $contact->code }} · {{ $contact->title }}</option>
                     @endforeach
                 </x-v65.select>
+                <div class="v65-doc-contact-actions">
+                    <x-v65.button variant="secondary" size="sm" wire:click="applyContactPrices" wire:loading.attr="disabled" wire:target="applyContactPrices" wire:confirm="Manuel girdiğiniz satır fiyatları da seçili carinin fiyat listesine göre değiştirilecek. Devam edilsin mi?">Cari Fiyatlarını Uygula</x-v65.button>
+                    <small>Cari değişince otomatik fiyatlar güncellenir; manuel fiyatlar yalnızca bu butonla yeniden hesaplanır.</small>
+                </div>
             </div>
 
             <label class="field">Belge Tarihi <input type="date" wire:model="documentDate"></label>
