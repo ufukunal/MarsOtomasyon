@@ -71,6 +71,7 @@
                     <strong>Belge Kalemleri</strong>
                     <small>Miktar, fiyat ve vergi değişince taslak toplamları güncellenir.</small>
                 </div>
+                <small class="v65-doc-mobile-scroll-hint">Tablodaki diğer satır alanlarını görmek için yatay kaydırın.</small>
                 <div class="table-scroll document-lines v65-doc-table-scroll"><table class="data-table v65-doc-table">
                 <thead>
                     <tr>
