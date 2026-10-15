@@ -86,7 +86,10 @@ class SalesInvoiceEditor extends BaseSalesDocumentEditor
         $limit = bcadd((string) ($contact->risk_limit ?? '0'), '0', 4);
         $configured = bccomp($limit, '0', 4) > 0;
         $preview = $this->draftTotalsPreview();
-        $amount = (string) ($preview?->grandTotal ?? $this->document?->grand_total ?? '0');
+        // Posted invoices already affect ledger balance; adding them again would double-count risk.
+        $amount = $this->document && $this->document->status !== 'draft'
+            ? '0'
+            : (string) ($preview?->grandTotal ?? $this->document?->grand_total ?? '0');
         $exposure = bcadd($balance, $amount, 4);
 
         return [
