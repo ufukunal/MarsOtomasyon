@@ -56,6 +56,8 @@ jobs:
           cache: npm
       - name: Install PHP dependencies
         run: composer install --no-interaction --no-progress --prefer-dist
+      - name: Prepare isolated test configuration
+        run: cp .env.example .env
       - name: Check PHP syntax
         shell: bash
         run: |
@@ -77,6 +79,11 @@ jobs:
         run: |
           php artisan test tests/Unit/UI/V65BusinessDocumentPrintContractTest.php tests/Unit/UI/V65DocumentEditorPhase2Test.php tests/Unit/UI/V65DocumentEditorDesignTest.php tests/Unit/Documents/V65DocumentDraftSafetyTest.php --stop-on-failure
       - name: Check code style
+        id: pint
+        continue-on-error: true
         run: vendor/bin/pint --test
       - name: Static analysis
         run: vendor/bin/phpstan analyse --no-progress --memory-limit=2G
+      - name: Enforce code style result
+        if: steps.pint.outcome == 'failure'
+        run: exit 1
