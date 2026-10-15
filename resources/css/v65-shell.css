@@ -2111,3 +2111,11 @@
     margin:12px 0;
   }
 }
+
+/* Customer repricing is explicit for manually entered document prices. */
+.app-shell .v65-doc-contact-actions{display:flex;align-items:center;flex-wrap:wrap;gap:8px;min-width:0}
+.app-shell .v65-doc-contact-actions>small{color:#667e96;font-size:11px;line-height:1.4}
+@media(max-width:640px){
+  .app-shell .v65-doc-contact-actions{align-items:stretch;flex-direction:column}
+  .app-shell .v65-doc-contact-actions>.v65-btn{align-self:start;white-space:normal;height:auto!important;min-height:38px!important}
+}
