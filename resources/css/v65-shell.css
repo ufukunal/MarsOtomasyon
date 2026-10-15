@@ -2169,3 +2169,17 @@
 .app-shell .v65-doc-confirm-summary dt{color:#697f96;font-size:11px}
 .app-shell .v65-doc-confirm-summary dd{margin:0;color:#294660;font-size:12px;font-weight:700;text-align:end;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
 @media(max-width:520px){.app-shell .v65-doc-confirm-summary>div{flex-wrap:wrap}}
+
+/* Compact document table: keep row identity visible during horizontal scrolling. */
+.app-shell .v65-doc-mobile-scroll-hint{display:none;padding:7px 12px;color:#647b94;font-size:11px;background:#f6f9fd}
+@media(max-width:1150px){
+  .app-shell .v65-doc-mobile-scroll-hint{display:block}
+  .app-shell .v65-doc-table{min-width:1250px}
+  .app-shell .v65-doc-table thead th:first-child,
+  .app-shell .v65-doc-table tbody td:first-child{
+    position:sticky;left:0;z-index:1;background:#f8fbff;
+    box-shadow:1px 0 0 #dce5f0
+  }
+  .app-shell .v65-doc-table thead th:first-child{z-index:2;background:#f5f8fc}
+}
+@media print{.app-shell .v65-doc-mobile-scroll-hint{display:none!important}}
