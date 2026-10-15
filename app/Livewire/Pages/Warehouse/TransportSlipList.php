@@ -41,6 +41,7 @@ class TransportSlipList extends Component
 
     public string $v65WarehouseDirection = 'desc';
 
+    /** @return array{search:string,filters:array<string,mixed>,sort:string,direction:string} */
     protected function v65ReadFilterState(): array
     {
         return [
@@ -56,6 +57,7 @@ class TransportSlipList extends Component
         ];
     }
 
+    /** @param array{search:string,filters:array<string,mixed>,sort:string,direction:string} $state */
     protected function v65WriteFilterState(array $state): void
     {
         $this->search = $state['search'];
@@ -69,6 +71,7 @@ class TransportSlipList extends Component
         $this->v65WarehouseDirection = $state['direction'];
     }
 
+    /** @return array<string,array{label:string,type:string,options?:array<int|string,string>}> */
     protected function v65FilterDefinitions(): array
     {
         return [
@@ -85,6 +88,7 @@ class TransportSlipList extends Component
         ];
     }
 
+    /** @return array<string,string> */
     protected function v65SortOptions(): array
     {
         return ['slip_date' => 'Tarih', 'number' => 'Fiş Numarası', 'carrier' => 'Ambar / Nakliye', 'status' => 'Durum'];
