@@ -90,3 +90,14 @@ it('provides per-field error messages, deterministic invalid focus and search fe
             ->toContain('v65-doc-mobile-scroll-hint');
     }
 });
+
+
+it('uses the current purchase currency for an unsaved financial preview', function (): void {
+    $summary = file_get_contents(base_path('resources/views/components/v65/document-summary.blade.php'));
+    $purchase = file_get_contents(base_path('resources/views/livewire/purchases/document-editor.blade.php'));
+
+    expect($summary)->toContain("'currency' => null")
+        ->toContain('$currency ?: ($document?->currency ?:')
+        ->and($purchase)->toContain(':currency="$currency"')
+        ->toContain('wire:model.blur="currency"');
+});
