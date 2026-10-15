@@ -38,13 +38,14 @@
                         <option value="{{ $contact->id }}">{{ $contact->code }} · {{ $contact->title }}</option>
                     @endforeach
                 </x-v65.select>
+                <x-v65.input-error field="contactId" />
             </div>
-            <label class="field">Belge Tarihi <input type="date" wire:model="documentDate"></label>
+            <label class="field">Belge Tarihi <input type="date" wire:model="documentDate"><x-v65.input-error field="documentDate" /></label>
             @if(!$isGoodsReceipt)
-                <label class="field">Vade <input type="date" wire:model="dueDate"></label>
-                <label class="field">Para Birimi <input wire:model="currency" maxlength="3"></label>
-                <label class="field">Kur <input wire:model.blur="exchangeRate" inputmode="decimal" data-tr-decimal></label>
-                <label class="field">Belge İskonto % <input wire:model.blur="discountRate" inputmode="decimal" data-tr-decimal></label>
+                <label class="field">Vade <input type="date" wire:model="dueDate"><x-v65.input-error field="dueDate" /></label>
+                <label class="field">Para Birimi <input wire:model="currency" maxlength="3"><x-v65.input-error field="currency" /></label>
+                <label class="field">Kur <input wire:model.blur="exchangeRate" inputmode="decimal" data-tr-decimal><x-v65.input-error field="exchangeRate" /></label>
+                <label class="field">Belge İskonto % <input wire:model.blur="discountRate" inputmode="decimal" data-tr-decimal><x-v65.input-error field="discountRate" /></label>
             @else
                 <div class="v65-doc-static-field"><strong>Para Birimi / Kur</strong><span>{{ $currency }} · {{ $exchangeRate }}</span></div>
             @endif
@@ -121,7 +122,7 @@
                                 </select>
                             @endif
                         </td>
-                        <td class="align-end"><input wire:model.blur="lines.{{ $index }}.quantity" inputmode="decimal" data-tr-decimal aria-label="Satır {{ $index + 1 }} miktar"></td>
+                        <td class="align-end"><input wire:model.blur="lines.{{ $index }}.quantity" inputmode="decimal" data-tr-decimal aria-label="Satır {{ $index + 1 }} miktar"><x-v65.input-error :field="'lines.'.$index.'.quantity'" /></td>
                         <td>
                             @if(($line['line_kind'] ?? 'stock') === 'service')
                                 <span class="v65-doc-muted">—</span>
@@ -135,9 +136,9 @@
                             @endif
                         </td>
                         @if(!$isGoodsReceipt)
-                            <td class="align-end"><input wire:model.blur="lines.{{ $index }}.unit_price" inputmode="decimal" data-tr-decimal aria-label="Satır {{ $index + 1 }} birim fiyat"></td>
-                            <td class="align-end"><input wire:model.blur="lines.{{ $index }}.line_discount_rate" inputmode="decimal" data-tr-decimal aria-label="Satır {{ $index + 1 }} iskonto"></td>
-                            <td class="align-end"><input wire:model.blur="lines.{{ $index }}.vat_rate" inputmode="decimal" data-tr-decimal aria-label="Satır {{ $index + 1 }} KDV"></td>
+                            <td class="align-end"><input wire:model.blur="lines.{{ $index }}.unit_price" inputmode="decimal" data-tr-decimal aria-label="Satır {{ $index + 1 }} birim fiyat"><x-v65.input-error :field="'lines.'.$index.'.unit_price'" /></td>
+                            <td class="align-end"><input wire:model.blur="lines.{{ $index }}.line_discount_rate" inputmode="decimal" data-tr-decimal aria-label="Satır {{ $index + 1 }} iskonto"><x-v65.input-error :field="'lines.'.$index.'.line_discount_rate'" /></td>
+                            <td class="align-end"><input wire:model.blur="lines.{{ $index }}.vat_rate" inputmode="decimal" data-tr-decimal aria-label="Satır {{ $index + 1 }} KDV"><x-v65.input-error :field="'lines.'.$index.'.vat_rate'" /></td>
                         @endif
                         <x-v65.document-line-amounts :calculation="$draftPreview?->lines[$index] ?? null" :line="$line" :show-stored="!$documentDirty" />
                         <td class="align-end v65-doc-line-net">@if($draftPreview && isset($draftPreview->lines[$index])){{ \App\Support\Formatting\TrFormatter::money((string) $draftPreview->lines[$index]->lineTotal) }}@elseif(!$documentDirty && isset($line['line_total'])){{ \App\Support\Formatting\TrFormatter::money((string) $line['line_total']) }}@else—@endif</td>
