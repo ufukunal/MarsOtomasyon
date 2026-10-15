@@ -148,8 +148,8 @@ it('provides required contact, product, service and bulk VAT validations before 
     ] as $path) {
         $code = file_get_contents(base_path($path));
         expect($code)->toContain("'contactId' => ['required', 'integer']")
-            ->toContain("'lines.'.$index.'.product_id'")
-            ->toContain("'lines.'.$index.'.description'")
+            ->toContain("'lines.'.\$index.'.product_id'")
+            ->toContain("'lines.'.\$index.'.description'")
             ->toContain("'bulkVatRate' => ['required', 'numeric', 'between:0,100']")
             ->toContain("'product_id', 'unit_id', 'location_id', 'conversion_factor'");
     }
