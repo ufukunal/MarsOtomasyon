@@ -19,7 +19,7 @@ final class PrintBusinessDocumentController
         PeriodContext::ensure();
 
         $record = Document::query()
-            ->with(['contact', 'lines.unit', 'incomingRelations.sourceDocument'])
+            ->with(['contact', 'lines.unit', 'lines.location', 'incomingRelations.sourceDocument'])
             ->findOrFail($document);
 
         $definition = match ($record->document_type) {
