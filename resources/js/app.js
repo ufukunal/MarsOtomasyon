@@ -553,3 +553,28 @@ document.addEventListener('keydown', (event) => {
     next.focus();
     next.click();
 });
+
+// Move keyboard focus to the first invalid document field after Livewire reports
+// validation errors. The same message is not refocused on subsequent morphs.
+document.addEventListener('livewire:init', () => {
+    const focusedDocumentErrors = new WeakSet();
+    Livewire.hook('morphed', ({ el }) => {
+        if (!(el instanceof Element)) return;
+        const summary = el.matches('[data-v65-document-errors]')
+            ? el
+            : el.querySelector('[data-v65-document-errors]');
+        if (!(summary instanceof HTMLElement) || focusedDocumentErrors.has(summary)) return;
+        focusedDocumentErrors.add(summary);
+        requestAnimationFrame(() => {
+            if (!summary.isConnected) return;
+            const invalid = el.querySelector('[aria-invalid="true"]');
+            const fieldError = el.querySelector('.v65-input-error');
+            const field = invalid ?? fieldError?.parentElement?.querySelector('input, select, textarea');
+            if (field instanceof HTMLElement && !field.hasAttribute('disabled')) {
+                field.focus({ preventScroll: false });
+            } else {
+                summary.focus({ preventScroll: false });
+            }
+        });
+    });
+});
