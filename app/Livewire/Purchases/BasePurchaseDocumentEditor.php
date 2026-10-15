@@ -79,6 +79,20 @@ abstract class BasePurchaseDocumentEditor extends Component
 
     public function updated(string $property): void
     {
+        // Changing between stock and service must not silently carry over
+        // the previous product's description, unit, location or price.
+        if (preg_match('/^lines\.(\d+)\.line_kind$/D', $property, $kindMatch)) {
+            $index = (int) $kindMatch[1];
+            if (isset($this->lines[$index])) {
+                foreach (['product_id', 'unit_id', 'location_id', 'conversion_factor'] as $field) {
+                    $this->lines[$index][$field] = null;
+                }
+                $this->lines[$index]['description'] = '';
+                $this->lines[$index]['unit_price'] = '0';
+                $this->lines[$index]['line_discount_amount'] = '0';
+            }
+        }
+
         // Apply the selected product's actual unit, VAT and description
         // on the server, so the row stays coherent after Livewire morphing.
         if (preg_match('/^lines\.(\d+)\.product_id$/D', $property, $productMatch)) {
@@ -87,6 +101,17 @@ abstract class BasePurchaseDocumentEditor extends Component
             $product = $productId > 0
                 ? Product::query()->where('is_active', true)->find($productId)
                 : null;
+
+            if ($productId === 0) {
+                // Clearing a product cannot leave the previous product's price
+                // or stock metadata attached to an empty stock line.
+                foreach (['unit_id', 'location_id', 'conversion_factor'] as $field) {
+                    $this->lines[$index][$field] = null;
+                }
+                $this->lines[$index]['description'] = '';
+                $this->lines[$index]['unit_price'] = '0';
+                $this->lines[$index]['line_discount_amount'] = '0';
+            }
 
             if ($product !== null) {
                 $this->lines[$index]['unit_id'] = $product->unit_id;
