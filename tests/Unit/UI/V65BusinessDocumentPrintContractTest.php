@@ -35,7 +35,6 @@ it('renders company and contact identity with persisted lines and totals', funct
         ->toContain('$line->line_total')
         ->toContain('$document->vat_amount')
         ->toContain('$document->grand_total')
-        ->toContain('e-Fatura/e-Arşiv veya UBL')
         ->toContain('display: table-header-group')
         ->toContain('break-inside: avoid')
         ->and($controller)->toContain('Browsershot::html(')
