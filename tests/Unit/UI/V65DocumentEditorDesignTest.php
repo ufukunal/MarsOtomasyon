@@ -135,3 +135,38 @@ it('preserves manually priced sales lines when the customer changes', function (
         ->toContain('Manuel girdiğiniz satır fiyatları')
         ->toContain('wire:loading.attr="disabled"');
 });
+
+
+it('shows permission-aware source documents when editing saved drafts', function (): void {
+    $sources = file_get_contents(base_path('resources/views/components/v65/document-sources.blade.php'));
+    $readonly = file_get_contents(base_path('resources/views/components/v65/document-readonly.blade.php'));
+
+    foreach ([
+        'resources/views/livewire/sales/document-editor.blade.php',
+        'resources/views/livewire/purchases/document-editor.blade.php',
+    ] as $path) {
+        $blade = file_get_contents(base_path($path));
+        expect($blade)->toContain('class="v65-doc-draft-sources"')
+            ->toContain('<x-v65.document-sources');
+    }
+
+    expect($sources)->toContain('incomingRelations')
+        ->toContain('auth()->user()?->can(')
+        ->toContain('sourceDocument')
+        ->and($readonly)->toContain('<x-v65.document-sources :document="$document" />');
+});
+
+it('shares the default product choices across rows while preserving targeted search', function (): void {
+    foreach ([
+        'app/Livewire/Sales/BaseSalesDocumentEditor.php',
+        'app/Livewire/Purchases/BasePurchaseDocumentEditor.php',
+    ] as $path) {
+        $editor = file_get_contents(base_path($path));
+
+        expect($editor)->toContain('private ?\\Illuminate\\Database\\Eloquent\\Collection $defaultProductOptions = null;')
+            ->toContain('$this->defaultProductOptions ??=')
+            ->toContain('clone $this->defaultProductOptions')
+            ->toContain('public function productOptionsForLine(')
+            ->toContain("->orWhere('barcode', 'ilike',");
+    }
+});
