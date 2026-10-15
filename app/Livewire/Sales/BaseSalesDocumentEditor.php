@@ -97,6 +97,7 @@ abstract class BaseSalesDocumentEditor extends Component
                 }
                 $this->lines[$index]['description'] = '';
                 $this->lines[$index]['unit_price'] = '0';
+                $this->lines[$index]['vat_rate'] = '0';
                 $this->lines[$index]['line_discount_amount'] = '0';
             }
         }
@@ -118,6 +119,7 @@ abstract class BaseSalesDocumentEditor extends Component
                 }
                 $this->lines[$index]['description'] = '';
                 $this->lines[$index]['unit_price'] = '0';
+                $this->lines[$index]['vat_rate'] = '0';
                 $this->lines[$index]['line_discount_amount'] = '0';
             }
 
