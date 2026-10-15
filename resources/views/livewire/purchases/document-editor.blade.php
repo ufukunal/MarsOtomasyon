@@ -12,7 +12,7 @@
     @endphp
     <x-v65.document-heading :document="$document" :title="$title" section="Satınalma Yönetimi" :index-route="$documentIndexRoute" />
     @if($errors->any())
-        <x-v65.notice tone="danger" title="Belge kontrolü">
+        <x-v65.notice tone="danger" title="Belge kontrolü" data-v65-document-errors tabindex="-1">
             <ul>@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>
         </x-v65.notice>
     @endif
@@ -32,11 +32,15 @@
             <div class="v65-doc-contact-picker">
                 <label class="field">Tedarikçi Ara
                     <input type="search" wire:model.live.debounce.300ms="contactSearch" placeholder="Kod veya unvan ile ara" autocomplete="off">
+                    <small class="v65-doc-search-hint">Kod veya unvan yazarak arayın. En fazla 35 eşleşme listelenir.</small>
+                    <small class="v65-doc-search-loading" wire:loading wire:target="contactSearch">Aranıyor…</small>
                 </label>
                 <x-v65.select label="Tedarikçi" wire:model.live="contactId" placeholder="Tedarikçi seçin" class="v65-doc-contact">
-                    @foreach($this->contactOptions() as $contact)
+                    @forelse($this->contactOptions() as $contact)
                         <option value="{{ $contact->id }}">{{ $contact->code }} · {{ $contact->title }}</option>
-                    @endforeach
+                    @empty
+                        <option value="" disabled>Aramaya uygun cari bulunamadı</option>
+                    @endforelse
                 </x-v65.select>
                 <x-v65.input-error field="contactId" />
             </div>
@@ -99,11 +103,14 @@
                                     wire:model.live.debounce.300ms="productSearches.{{ $line['row_key'] ?? $index }}"
                                     placeholder="Ürün kodu veya adıyla ara"
                                     aria-label="Satır {{ $index + 1 }} ürün ara" autocomplete="off">
+                                    <small class="v65-doc-search-loading" wire:loading wire:target="productSearches.{{ $line['row_key'] ?? $index }}">Aranıyor…</small>
                                 <select wire:model.live="lines.{{ $index }}.product_id" aria-label="Satır {{ $index + 1 }} ürün">
                                     <option value="">Ürün seçin</option>
-                                    @foreach($this->productOptionsForLine((string) ($line['row_key'] ?? $index), (int) ($line['product_id'] ?? 0)) as $product)
+                                    @forelse($this->productOptionsForLine((string) ($line['row_key'] ?? $index), (int) ($line['product_id'] ?? 0)) as $product)
                                         <option value="{{ $product->id }}">{{ $product->code }} · {{ $product->name }}</option>
-                                    @endforeach
+                                    @empty
+                                        <option value="" disabled>Ürün bulunamadı</option>
+                                    @endforelse
                                 </select>
                                 <input class="v65-doc-line-description" wire:model="lines.{{ $index }}.description" placeholder="Satır açıklaması (isteğe bağlı)" aria-label="Satır {{ $index + 1 }} açıklama">
                             @endif
@@ -122,7 +129,7 @@
                                 </select>
                             @endif
                         </td>
-                        <td class="align-end"><input wire:model.blur="lines.{{ $index }}.quantity" inputmode="decimal" data-tr-decimal aria-label="Satır {{ $index + 1 }} miktar"><x-v65.input-error :field="'lines.'.$index.'.quantity'" /></td>
+                        <td class="align-end"><input wire:model.blur="lines.{{ $index }}.quantity" aria-invalid="{{ $errors->has('lines.'.$index.'.quantity') ? 'true' : 'false' }}" inputmode="decimal" data-tr-decimal aria-label="Satır {{ $index + 1 }} miktar"><x-v65.input-error :field="'lines.'.$index.'.quantity'" /></td>
                         <td>
                             @if(($line['line_kind'] ?? 'stock') === 'service')
                                 <span class="v65-doc-muted">—</span>
@@ -136,9 +143,9 @@
                             @endif
                         </td>
                         @if(!$isGoodsReceipt)
-                            <td class="align-end"><input wire:model.blur="lines.{{ $index }}.unit_price" inputmode="decimal" data-tr-decimal aria-label="Satır {{ $index + 1 }} birim fiyat"><x-v65.input-error :field="'lines.'.$index.'.unit_price'" /></td>
-                            <td class="align-end"><input wire:model.blur="lines.{{ $index }}.line_discount_rate" inputmode="decimal" data-tr-decimal aria-label="Satır {{ $index + 1 }} iskonto"><x-v65.input-error :field="'lines.'.$index.'.line_discount_rate'" /></td>
-                            <td class="align-end"><input wire:model.blur="lines.{{ $index }}.vat_rate" inputmode="decimal" data-tr-decimal aria-label="Satır {{ $index + 1 }} KDV"><x-v65.input-error :field="'lines.'.$index.'.vat_rate'" /></td>
+                            <td class="align-end"><input wire:model.blur="lines.{{ $index }}.unit_price" aria-invalid="{{ $errors->has('lines.'.$index.'.unit_price') ? 'true' : 'false' }}" inputmode="decimal" data-tr-decimal aria-label="Satır {{ $index + 1 }} birim fiyat"><x-v65.input-error :field="'lines.'.$index.'.unit_price'" /></td>
+                            <td class="align-end"><input wire:model.blur="lines.{{ $index }}.line_discount_rate" aria-invalid="{{ $errors->has('lines.'.$index.'.line_discount_rate') ? 'true' : 'false' }}" inputmode="decimal" data-tr-decimal aria-label="Satır {{ $index + 1 }} iskonto"><x-v65.input-error :field="'lines.'.$index.'.line_discount_rate'" /></td>
+                            <td class="align-end"><input wire:model.blur="lines.{{ $index }}.vat_rate" aria-invalid="{{ $errors->has('lines.'.$index.'.vat_rate') ? 'true' : 'false' }}" inputmode="decimal" data-tr-decimal aria-label="Satır {{ $index + 1 }} KDV"><x-v65.input-error :field="'lines.'.$index.'.vat_rate'" /></td>
                         @endif
                         <x-v65.document-line-amounts :calculation="$draftPreview?->lines[$index] ?? null" :line="$line" :show-stored="!$documentDirty" />
                         <td class="align-end v65-doc-line-net">@if($draftPreview && isset($draftPreview->lines[$index])){{ \App\Support\Formatting\TrFormatter::money((string) $draftPreview->lines[$index]->lineTotal) }}@elseif(!$documentDirty && isset($line['line_total'])){{ \App\Support\Formatting\TrFormatter::money((string) $line['line_total']) }}@else—@endif</td>
