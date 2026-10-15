@@ -36,6 +36,7 @@ trait WithV65DocumentList
 
     public string $v65DocumentDirection = 'desc';
 
+    /** @return array{search:string,filters:array<string,mixed>,sort:string,direction:string} */
     protected function v65ReadFilterState(): array
     {
         return [
@@ -49,6 +50,7 @@ trait WithV65DocumentList
         ];
     }
 
+    /** @param array{search:string,filters:array<string,mixed>,sort:string,direction:string} $state */
     protected function v65WriteFilterState(array $state): void
     {
         $this->search = $state['search'];
@@ -59,6 +61,7 @@ trait WithV65DocumentList
         $this->v65DocumentDirection = $state['direction'];
     }
 
+    /** @return array<string,array{label:string,type:string,options?:array<int|string,string>}> */
     protected function v65FilterDefinitions(): array
     {
         return [
@@ -67,6 +70,7 @@ trait WithV65DocumentList
         ];
     }
 
+    /** @return array<string,string> */
     protected function v65SortOptions(): array
     {
         return ['document_date' => 'Tarih', 'number' => 'Belge Numarası', 'grand_total' => 'Tutar', 'status' => 'Durum'];
