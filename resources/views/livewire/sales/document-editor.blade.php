@@ -166,7 +166,7 @@
                 <x-v65.button variant="secondary" wire:click="customerReview" wire:loading.attr="disabled" wire:target="customerReview">Müşteri İncelemesine Gönder</x-v65.button>
             @endif
             @if(method_exists($this, 'approve') && in_array($document->status, ['internal_review','customer_review']))
-                <button type="button" wire:click="approve">Onayla</button>
+                <x-v65.document-confirm id="v65-sales-approve" title="Teklifi Onayla" label="Onayla" action="approve" :document="$document" message="Teklif son kaydedilen haliyle onaylanacaktır. Devam edilsin mi?" />
             @endif
             @if(method_exists($this, 'revision') && $document->number)
                 <button type="button" wire:click="revision">Revizyon Oluştur</button>
@@ -176,7 +176,7 @@
             @endif
             @if(method_exists($this, 'confirm') && $document->status === 'draft')
                 <label><input type="checkbox" wire:model="riskAccepted"> Risk uyarısını kabul ediyorum</label>
-                <x-v65.button wire:click="confirm" wire:loading.attr="disabled" wire:target="confirm" wire:confirm="Kaydedilmiş siparişi onaylamak istiyor musunuz?">Siparişi Onayla</x-v65.button>
+                <x-v65.document-confirm id="v65-sales-confirm" title="Sipariş Onayı" label="Siparişi Onayla" action="confirm" :document="$document" message="Stok ve cari risk kontrolleri sunucuda tekrar uygulanacaktır. Son kaydedilen siparişi onaylamak istiyor musunuz?" />
             @endif
             @if(method_exists($this, 'reserve') && $document->status === 'confirmed')
                 <section class="v65-order-fulfillment" aria-label="Sipariş rezervasyon ve sevkiyat işlemleri">
@@ -258,12 +258,12 @@
                         </div>
                     @endif
                 @endif
-                <x-v65.button wire:click="post" wire:loading.attr="disabled" wire:target="post" wire:confirm="Son kaydedilen belge tutarlarını kontrol ettiniz mi? Belge kesinleştirilecek.">Kesinleştir</x-v65.button>
+                <x-v65.document-confirm id="v65-sales-post" title="Belgeyi Kesinleştir" label="Kesinleştir" action="post" :document="$document" message="Son kaydedilen satırlar, KDV ve genel toplam kesinleştirmeye esas alınacaktır. Risk kontrolleri sunucuda tekrar yapılır." />
             @endif
             @if(method_exists($this, 'reverse') && $document->status === 'posted')
                 <label class="field"><span class="field-label">Ters Kayıt Tarihi</span><input type="date" wire:model="reversalDate"></label>
                 <label class="field"><span class="field-label">Ters Kayıt Gerekçesi</span><input wire:model="reversalReason"></label>
-                <x-v65.button variant="danger" wire:click="reverse" wire:loading.attr="disabled" wire:target="reverse" wire:confirm="Kaydedilmiş belge için ters kayıt oluşturulacak. Devam edilsin mi?">Ters Kayıt</x-v65.button>
+                <x-v65.document-confirm id="v65-sales-reverse" title="Ters Kayıt Onayı" label="Ters Kayıt" action="reverse" variant="danger" :document="$document" message="Kesinleşmiş belgeye ters kayıt oluşturulur. Tarih ve gerekçeyi kontrol ederek onaylayın." />
             @endif
         </section>
     @endif
