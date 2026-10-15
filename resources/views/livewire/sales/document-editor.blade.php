@@ -242,7 +242,7 @@
                         <x-v65.button wire:click="createDispatch" wire:loading.attr="disabled" wire:target="createDispatch">İrsaliye Oluştur</x-v65.button>
                         <x-v65.button wire:click="createInvoice" wire:loading.attr="disabled" wire:target="createInvoice">Fatura Oluştur</x-v65.button>
                         <x-v65.button variant="secondary" wire:click="issueProforma" wire:loading.attr="disabled" wire:target="issueProforma">Proforma Oluştur</x-v65.button>
-                        <x-v65.button variant="danger" wire:click="cancelRemaining" wire:loading.attr="disabled" wire:target="cancelRemaining" wire:confirm="Siparişin kalan miktarını iptal etmek istediğinize emin misiniz?">Kalanı İptal Et</x-v65.button>
+                        <x-v65.document-confirm id="v65-order-cancel-remaining" title="Kalan Sipariş Miktarını İptal Et" label="Kalanı İptal Et" action="cancelRemaining" variant="danger" :document="$document" :dirty="$documentDirty" message="Siparişin teslim edilmemiş kalan miktarı iptal edilecektir. Bu işlem için kaydedilmiş sipariş esas alınır." />
                     </div>
                 </section>
             @elseif(method_exists($this, 'issueProforma') && in_array($document->status, ['approved','confirmed']))
