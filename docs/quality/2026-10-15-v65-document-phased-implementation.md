@@ -47,7 +47,7 @@ Test **kodları hazır**, ancak testler **çalıştırılmadı**. Kaynak düzeyi
 2. **Kritik:** Türkçe virgül, fiyat, iskonto, çoklu KDV, para birimi/kur, risk ve belge kesinleştirme regresyon testleri.
 3. **Kritik:** Teklif → Sipariş → İrsaliye → Fatura ve Alış Siparişi → Mal Kabul → Alış Faturası uçtan uca testleri.
 4. **Yüksek:** 390/768/1024/1440/1920 px onaylı V65 HTML ile gerçek tarayıcı karşılaştırması; responsive davranışın kabulü.
-5. **Yüksek:** Resmi/kurumsal fatura, teklif, irsaliye PDF/çıktı şablonlarının tasarım ve mevzuat kabulü. Mevcut yazdırma tarayıcı baskısıdır; e-fatura veya UBL yerine geçmez.
+5. **Yüksek:** Kurumsal fatura, teklif ve irsaliye PDF/çıktı şablonlarının görsel ve çalışır kabulü.
 6. **Yüksek:** Fresh UAT ortamına ayrı onayla kontrollü yayın ve kullanıcı kabul testi.
 7. **Yüksek:** Belge iskontosunun her satıra dağıtılmış kesin KDV miktarı isteniyorsa hesaplama servisi ve belge politikası için ayrıca karar/veri doğrulaması.
 
