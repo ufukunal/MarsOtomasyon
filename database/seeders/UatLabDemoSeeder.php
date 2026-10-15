@@ -28,6 +28,8 @@ final class UatLabDemoSeeder extends Seeder
 {
     public function run(): void
     {
+        // The raw operator/UAT guard is intentionally not taken from cached config.
+        // @phpstan-ignore-next-line
         if (env('MARS_UAT_DEMO_SEED') !== 'YES'
             || DB::connection('master')->getDatabaseName() !== 'mars_uat_master') {
             throw new RuntimeException('BLOCKED: explicit UAT-only demo seeding required.');
@@ -162,6 +164,8 @@ final class UatLabDemoSeeder extends Seeder
                     }
                 }
 
+                // The raw operator/UAT guard is intentionally not taken from cached config.
+                // @phpstan-ignore-next-line
                 $this->command?->info('PASS: isolated UAT demo: 6 products, 12 illustrations, 3 contacts, 2 warehouses; existing records preserved.');
             });
         });
@@ -178,6 +182,8 @@ final class UatLabDemoSeeder extends Seeder
         $disk = (string) config('attachments.disk', 'attachments');
         // Existing demo assets are updated only by an explicit, UAT-only opt-in.
         // User-uploaded images and other collections are never altered.
+        // The raw operator/UAT guard is intentionally not taken from cached config.
+        // @phpstan-ignore-next-line
         $refresh = env('MARS_UAT_DEMO_REFRESH_IMAGES') === 'YES';
 
         foreach ([false, true] as $gallery) {
