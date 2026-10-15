@@ -26,6 +26,8 @@ final class UatStorefrontCatalogSeeder extends Seeder
 {
     public function run(): void
     {
+        // The raw operator/UAT guard is intentionally not taken from cached config.
+        // @phpstan-ignore-next-line
         if (env('MARS_UAT_STORE_CATALOG') !== 'YES'
             || DB::connection('master')->getDatabaseName() !== 'mars_uat_master') {
             throw new RuntimeException('BLOCKED: only explicitly authorized isolated UAT catalog import is permitted.');
@@ -37,6 +39,8 @@ final class UatStorefrontCatalogSeeder extends Seeder
             throw new RuntimeException('BLOCKED: UAT period is not writable.');
         }
 
+        // The raw operator/UAT guard is intentionally not taken from cached config.
+        // @phpstan-ignore-next-line
         $batch = filter_var(env('MARS_UAT_CATALOG_BATCH', '1'), FILTER_VALIDATE_INT, [
             'options' => ['min_range' => 1, 'max_range' => 99],
         ]);
@@ -206,6 +210,8 @@ final class UatStorefrontCatalogSeeder extends Seeder
                 }
             });
 
+            // The raw operator/UAT guard is intentionally not taken from cached config.
+            // @phpstan-ignore-next-line
             $this->command?->info(
                 'PASS: batch '.(int) $manifest['batch'].' · '.count($entries).' storefront demo products with stored real source photos; '
                 .'existing records and stock unchanged.'
