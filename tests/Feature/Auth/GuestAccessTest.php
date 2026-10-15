@@ -8,7 +8,7 @@ it('redirects unauthenticated users away from every ordinary business module', f
 })->with([
     'home',
     'locations.index', 'units.index', 'categories.index', 'brands.index', 'contacts.index',
-    'products.index', 'price-lists.index', 'company-copy.index',
+    'products.index', 'company-copy.index',
     'sales.quotes.index', 'sales.orders.index', 'sales.dispatches.index',
     'sales.invoices.index', 'sales.proformas.index', 'sales.vehicle-hot-sale',
     'purchases.orders.index', 'purchases.receipts.index', 'purchases.invoices.index',

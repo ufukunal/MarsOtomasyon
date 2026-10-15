@@ -41,8 +41,6 @@ use App\Livewire\Pages\Contacts\ContactDetail;
 use App\Livewire\Pages\Contacts\ContactForm;
 use App\Livewire\Pages\Contacts\ContactList;
 use App\Livewire\Pages\Import\ImportWizard;
-use App\Livewire\Pages\Pricing\PriceListDetail;
-use App\Livewire\Pages\Pricing\PriceListList;
 use App\Livewire\Pages\Products\ProductDetail;
 use App\Livewire\Pages\Products\ProductForm;
 use App\Livewire\Pages\Products\ProductList;
@@ -169,8 +167,6 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/kartlar/urunler/{product}', ProductForm::class)->name('products.edit');
     Route::get('/kartlar/urunler/{product}/detay', ProductDetail::class)->name('products.show');
     Route::get('/kartlar/varyant-gruplari/{group?}', VariantGroupDetail::class)->name('variant-groups.detail');
-    Route::get('/kartlar/fiyat-listeleri', PriceListList::class)->name('price-lists.index');
-    Route::get('/kartlar/fiyat-listeleri/{list?}', PriceListDetail::class)->name('price-lists.detail');
     Route::get('/kartlar/baska-sirketten-aktar', CrossCompanyCopy::class)->name('company-copy.index');
 
     Route::get('/belgeler/{document}/cikti/{format}', PrintBusinessDocumentController::class)

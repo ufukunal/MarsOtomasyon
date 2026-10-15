@@ -15,7 +15,6 @@ use App\Models\Period\ContactAddress;
 use App\Models\Period\ContactBank;
 use App\Models\Period\ContactCategory;
 use App\Models\Period\ContactPerson;
-use App\Models\Period\PriceList;
 use App\Support\Security\SensitiveFieldMasker;
 use Illuminate\Contracts\View\View;
 use Livewire\Component;
@@ -385,7 +384,6 @@ class ContactForm extends Component
     {
         return view('livewire.pages.contacts.contact-form', [
             'categories' => ContactCategory::query()->where('is_active', true)->orderBy('name')->get(),
-            'priceLists' => PriceList::query()->where('is_active', true)->orderBy('name')->get(),
             'addresses' => $this->contact?->addresses()->orderByDesc('is_default')->orderBy('id')->get() ?? collect(),
             'people' => $this->contact?->people()->orderByDesc('is_default')->orderBy('id')->get() ?? collect(),
             'banks' => $this->contact?->banks()->orderByDesc('is_default')->orderBy('id')->get() ?? collect(),

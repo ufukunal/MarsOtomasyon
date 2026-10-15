@@ -286,14 +286,6 @@
                     <div class="field"><span class="field-label">Hareketli Ortalama</span><strong>{{ $tr::money((string) $cost->moving_average) }}</strong></div>
                 @endif
             </div>
-            <div class="table-scroll v65-grid-scroll"><table class="data-table">
-                <thead><tr><th>Fiyat Listesi</th><th>Fiyat</th><th>Başlangıç</th><th>Bitiş</th></tr></thead>
-                <tbody>@forelse($prices as $item)
-                    <tr><td>{{ $item->priceList?->name ?? '—' }}</td><td>{{ $tr::money((string) $item->price) }}</td>
-                        <td>{{ $item->valid_from?->format('d.m.Y') ?? '—' }}</td>
-                        <td>{{ $item->valid_to?->format('d.m.Y') ?? '—' }}</td></tr>
-                @empty<tr><td colspan="4" class="empty-state">Ek fiyat listesi kaydı yok.</td></tr>@endforelse</tbody>
-            </table></div>
         </section>
     @elseif($activeTab === 'technical')
         <section class="panel stack">

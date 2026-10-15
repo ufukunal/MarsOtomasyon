@@ -4,7 +4,6 @@ it('replaces shared list navigation buttons with links on code, name or number',
     $classes = [
         'app/Livewire/Pages/Contacts/ContactList.php',
         'app/Livewire/Pages/Products/ProductList.php',
-        'app/Livewire/Pages/Pricing/PriceListList.php',
         'app/Livewire/Pages/Catalog/BrandList.php',
         'app/Livewire/Pages/Catalog/UnitList.php',
         'app/Livewire/Pages/Catalog/LocationList.php',

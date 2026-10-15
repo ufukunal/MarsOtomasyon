@@ -75,6 +75,10 @@ class ImportWizard extends Component
             $this->type = 'opening_stock';
         }
 
+        if (! in_array($this->type, ['contact', 'product', 'opening_stock'], true)) {
+            $this->type = 'contact';
+        }
+
         if ($this->type === 'opening_stock') {
             $this->errorMode = 'cancel_all';
             $this->openingDate = $this->openingDate !== '' ? $this->openingDate : now()->toDateString();
@@ -88,7 +92,7 @@ class ImportWizard extends Component
         }
 
         $this->validate([
-            'type' => ['required', 'in:contact,product,price_list,opening_stock'],
+            'type' => ['required', 'in:contact,product,opening_stock'],
             'openingDate' => ['required_if:type,opening_stock', 'nullable', 'date'],
             'file' => ['required', 'file', 'max:51200', 'mimes:xlsx,csv,json'],
         ]);
@@ -137,6 +141,8 @@ class ImportWizard extends Component
 
     public function previewMapped(ImportRowImporterResolver $resolver): void
     {
+        abort_unless(in_array($this->type, ['contact', 'product', 'opening_stock'], true), 422);
+
         foreach (ImportMapping::fields($this->type) as $field => $definition) {
             if ($definition['required'] && empty($this->mapping[$field])) {
                 $this->addError("mapping.{$field}", "{$definition['label']} için kaynak kolon seçilmelidir.");
@@ -169,6 +175,8 @@ class ImportWizard extends Component
         if ($this->openingOnly) {
             $this->type = 'opening_stock';
         }
+
+        abort_unless(in_array($this->type, ['contact', 'product', 'opening_stock'], true), 422);
 
         if ($this->type === 'opening_stock') {
             $this->validate([

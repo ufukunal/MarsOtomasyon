@@ -28,7 +28,6 @@
             <x-field.number label="Vade Günü" wire:model="termDays" kind="quantity" />
             <x-field.number label="İskonto %" wire:model="discountRate" />
             <x-field.number label="Risk Limiti" wire:model="riskLimit" />
-            <label class="field"><span class="field-label">Fiyat Listesi</span><select wire:model="priceListId"><option value="">Varsayılan</option>@foreach($priceLists as $list)<option value="{{ $list->id }}">{{ $list->name }}</option>@endforeach</select></label>
             <x-field.toggle label="Aktif" wire:model="isActive" />
         </section>
     @elseif($activeTab === 'addresses')

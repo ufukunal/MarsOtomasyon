@@ -20,7 +20,6 @@ return [
         'label' => 'Ürün / Stok',
         'items' => [
             ['label' => 'Ürün Listesi', 'route' => 'products.index', 'permission' => 'products.view'],
-            ['label' => 'Fiyat Listeleri', 'route' => 'price-lists.index', 'permission' => 'price_lists.view'],
             ['label' => 'Stok Durumu', 'route' => 'stock.status', 'permission' => 'stock.view'],
             ['label' => 'Stok Hareketleri', 'route' => 'stock.movements', 'permission' => 'stock.view'],
             ['label' => 'Depolar', 'route' => 'locations.index', 'permission' => 'locations.view'],

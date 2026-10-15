@@ -24,7 +24,6 @@
         'brands.index',
         'units.index',
         'locations.index',
-        'price-lists.index',
         'stock.status',
         'stock.movements',
         'stock.transfers.index',
@@ -146,7 +145,7 @@
                         @if($group['label'] === 'Ürün / Stok')
                             @php
                                 $stockSections = [
-                                    'Ürünler ve Fiyatlar' => ['products.index', 'price-lists.index', 'categories.index', 'brands.index', 'variant-groups.detail', 'units.index'],
+                                    'Ürün Kartları' => ['products.index', 'categories.index', 'brands.index', 'variant-groups.detail', 'units.index'],
                                     'Stok ve Depolar' => ['stock.status', 'stock.movements', 'locations.index', 'stock.transfers.index', 'stock.transfers.create', 'stock.reservations.index', 'stock.quarantine.index'],
                                     'Stok Sayımları' => ['stock.counts.index', 'stock.counts.create', 'stock.counts.quick', 'stock.counts.results'],
                                     'Stok İşlemleri' => ['stock.warehouse-slips.index', 'stock.costs', 'stock.opening.index', 'imports.index'],

@@ -3,7 +3,6 @@
 namespace App\Livewire\Pages\Products;
 
 use App\Models\Period\DocumentLine;
-use App\Models\Period\PriceListItem;
 use App\Models\Period\Product;
 use App\Models\Period\ProductCost;
 use App\Models\Period\StockBalance;
@@ -108,7 +107,6 @@ class ProductDetail extends Component
         $purchases = collect();
         $topBuyers = collect();
         $annual = collect();
-        $prices = collect();
         $variants = collect();
         $attachments = collect();
         $salesStats = null;
@@ -219,11 +217,6 @@ class ProductDetail extends Component
                 ->get();
         }
 
-        if ($tab === 'prices') {
-            $prices = PriceListItem::query()->where('product_id', $product->id)
-                ->with('priceList')->orderByDesc('id')->get();
-        }
-
         if ($tab === 'variants') {
             $variants = $product->variantValues()->with('attribute')->get();
         }
@@ -239,7 +232,7 @@ class ProductDetail extends Component
 
         return view('livewire.pages.products.product-detail', compact(
             'product', 'tabs', 'summary', 'balances', 'movements', 'sales', 'purchases',
-            'topBuyers', 'annual', 'prices', 'variants', 'attachments', 'cost', 'canViewCost',
+            'topBuyers', 'annual', 'variants', 'attachments', 'cost', 'canViewCost',
             'salesStats', 'purchaseStats', 'topSuppliers', 'currentYear', 'canViewStock'
         ))->layout('layouts.app', [
             'pageTitle' => 'Ürün Detay · '.$product->code.' · '.$product->name,

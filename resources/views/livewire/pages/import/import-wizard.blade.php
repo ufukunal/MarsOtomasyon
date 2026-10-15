@@ -4,7 +4,7 @@
             @if($openingOnly)
                 <h2>Açılış Stok Bakiyesi</h2>
             @else
-                <x-field.select label="Aktarım Tipi" wire:model.live="type" :options="['contact'=>'Cari','product'=>'Ürün','price_list'=>'Fiyat Listesi','opening_stock'=>'Açılış Stok']" />
+                <x-field.select label="Aktarım Tipi" wire:model.live="type" :options="['contact'=>'Cari','product'=>'Ürün','opening_stock'=>'Açılış Stok']" />
             @endif
             @if($type === 'opening_stock')
                 <label class="field">

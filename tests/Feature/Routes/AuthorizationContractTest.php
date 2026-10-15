@@ -6,7 +6,7 @@ it('requires auth for every module UI screen, including exports and downloads', 
     $prefixes = [
         'sales.', 'purchases.', 'finance.', 'returns.', 'imports.', 'production.',
         'channels.', 'reports.', 'stock.', 'settings.', 'products.', 'contacts.',
-        'locations.', 'units.', 'categories.', 'brands.', 'price-lists.',
+        'locations.', 'units.', 'categories.', 'brands.',
         'variant-groups.', 'company-copy.',
     ];
     $matched = [];
@@ -52,7 +52,7 @@ it('registers the expected screen and integration module entry points', function
 })->with([
     'home', 'login', 'period.select', 'stock.status', 'stock.counts.index',
     'stock.transfers.index', 'stock.warehouse-slips.index', 'stock.quarantine.index',
-    'products.index', 'units.index', 'contacts.index', 'price-lists.index',
+    'products.index', 'units.index', 'contacts.index',
     'sales.quotes.index', 'sales.orders.index', 'sales.invoices.index',
     'purchases.orders.index', 'purchases.receipts.index', 'purchases.invoices.index',
     'finance.operations', 'finance.bank-statements', 'returns.center', 'imports.shipments',
