@@ -161,7 +161,7 @@ it('shares the default product choices across rows while preserving targeted sea
     ] as $path) {
         $editor = file_get_contents(base_path($path));
 
-        expect($editor)->toContain('private ?\\Illuminate\\Database\\Eloquent\\Collection $defaultProductOptions = null;')
+        expect($editor)->toContain('private ?Collection $defaultProductOptions = null;')
             ->toContain('$this->defaultProductOptions ??=')
             ->toContain('clone $this->defaultProductOptions')
             ->toContain('public function productOptionsForLine(')
