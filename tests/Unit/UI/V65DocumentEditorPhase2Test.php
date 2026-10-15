@@ -40,7 +40,7 @@ it('uses the shared confirmation modal for document approval, posting and revers
     $component = file_get_contents(base_path('resources/views/components/v65/document-confirm.blade.php'));
     $modal = file_get_contents(base_path('resources/views/components/v65/modal.blade.php'));
 
-    expect($component)->toContain("['post', 'reverse', 'confirm', 'approve', 'submitApproval']")
+    expect($component)->toContain("['post', 'reverse', 'confirm', 'approve', 'submitApproval', 'cancelRemaining']")
         ->toContain('data-v65-modal-open')
         ->toContain('wire:click="{{ $action }}"')
         ->toContain('wire:loading.attr="disabled"')
