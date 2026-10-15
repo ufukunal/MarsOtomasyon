@@ -96,3 +96,42 @@ it('keeps generic print buttons off document editors and uses responsive documen
         ->and($list)->toContain('<x-v65.status-badge')
         ->toContain('<x-v65.empty-state');
 });
+
+
+it('keeps draft printing consistent with the saved document and Blade PHP syntax compatible', function (): void {
+    foreach ([
+        'resources/views/livewire/sales/document-editor.blade.php',
+        'resources/views/livewire/purchases/document-editor.blade.php',
+    ] as $view) {
+        $source = file_get_contents(base_path($view));
+        expect($source)->not->toContain('@php(')
+            ->and($source)->toContain('@php'."\n".'        $draftPreview = $this->draftTotalsPreview();')
+            ->toContain('<div class="v65-doc-print-only">')
+            ->toContain('<x-v65.document-readonly :document="$document" />')
+            ->toContain('<x-v65.document-summary :document="$document" />')
+            ->toContain('class="v65-doc-screen-summary"')
+            ->toContain(':preview="$draftPreview"');
+    }
+
+    $css = file_get_contents(base_path('resources/css/v65-shell.css'));
+    expect($css)->toContain('.v65-doc-print-only ~ .v65-doc-screen-summary')
+        ->toContain('.v65-doc-print-only > .v65-doc-summary');
+});
+
+it('preserves manually priced sales lines when the customer changes', function (): void {
+    $editor = file_get_contents(base_path('app/Livewire/Sales/BaseSalesDocumentEditor.php'));
+    $view = file_get_contents(base_path('resources/views/livewire/sales/document-editor.blade.php'));
+
+    expect($editor)->toContain("if (\$property === 'contactId')")
+        ->toContain('$this->refreshContactPrices();')
+        ->toContain("['price_source'] = 'manual'")
+        ->toContain("'price_source' => 'manual'")
+        ->toContain("'price_source' => 'auto'")
+        ->toContain("(['price_source'] ?? 'manual') !== 'auto'")
+        ->toContain('private function refreshContactPrices(bool $includeManual = false): void')
+        ->toContain('$this->refreshContactPrices(true);')
+        ->toContain('public function applyContactPrices(): void')
+        ->and($view)->toContain('wire:click="applyContactPrices"')
+        ->toContain('Manuel girdiğiniz satır fiyatları')
+        ->toContain('wire:loading.attr="disabled"');
+});
