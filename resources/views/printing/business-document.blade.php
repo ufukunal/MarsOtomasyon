@@ -141,7 +141,6 @@
 {{ $document->notes }}</section>@endif
     <footer class="footer">
         <p>Oluşturma: {{ $generatedAt->format('d.m.Y H:i') }} · Belge kayıt numarası: {{ $document->id }}</p>
-        <p>Bu çıktı kayıtlı belgeye ait kurumsal görünümdür; e-Fatura/e-Arşiv veya UBL elektronik belgesinin yerine geçmez.</p>
     </footer>
 </main>
 </body>
