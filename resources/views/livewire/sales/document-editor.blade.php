@@ -177,10 +177,10 @@
                 <x-v65.document-confirm id="v65-sales-approve" title="Teklifi Onayla" label="Onayla" action="approve" :document="$document" message="Teklif son kaydedilen haliyle onaylanacaktır. Devam edilsin mi?" />
             @endif
             @if(method_exists($this, 'revision') && $document->number)
-                <button type="button" wire:click="revision">Revizyon Oluştur</button>
+                <x-v65.button variant="secondary" wire:click="revision" wire:loading.attr="disabled" wire:target="revision">Revizyon Oluştur</x-v65.button>
             @endif
             @if(method_exists($this, 'toOrder') && $document->status === 'approved')
-                <button type="button" wire:click="toOrder">Sipariş Oluştur</button>
+                <x-v65.button wire:click="toOrder" wire:loading.attr="disabled" wire:target="toOrder">Sipariş Oluştur</x-v65.button>
             @endif
             @if(method_exists($this, 'confirm') && $document->status === 'draft')
                 <label><input type="checkbox" wire:model="riskAccepted"> Risk uyarısını kabul ediyorum</label>
@@ -233,18 +233,18 @@
                     @endif
                     <div class="v65-order-fulfillment-actions">
                         @can('reservations.create')
-                            <button type="button" wire:click="reserve" wire:loading.attr="disabled" wire:target="reserve">Rezerv Et</button>
+                            <x-v65.button variant="secondary" wire:click="reserve" wire:loading.attr="disabled" wire:target="reserve">Rezerv Et</x-v65.button>
                         @else
                             <small class="v65-reservation-permission">Stok rezervasyonu oluşturma yetkiniz yok.</small>
                         @endcan
-                        <button type="button" wire:click="createDispatch" wire:loading.attr="disabled" wire:target="createDispatch">İrsaliye Oluştur</button>
-                        <button type="button" wire:click="createInvoice" wire:loading.attr="disabled" wire:target="createInvoice">Fatura Oluştur</button>
-                        <button type="button" wire:click="issueProforma" wire:loading.attr="disabled" wire:target="issueProforma">Proforma Oluştur</button>
-                        <button class="button-danger" type="button" wire:click="cancelRemaining" wire:loading.attr="disabled" wire:target="cancelRemaining" wire:confirm="Siparişin kalan miktarını iptal etmek istediğinize emin misiniz?">Kalanı İptal Et</button>
+                        <x-v65.button wire:click="createDispatch" wire:loading.attr="disabled" wire:target="createDispatch">İrsaliye Oluştur</x-v65.button>
+                        <x-v65.button wire:click="createInvoice" wire:loading.attr="disabled" wire:target="createInvoice">Fatura Oluştur</x-v65.button>
+                        <x-v65.button variant="secondary" wire:click="issueProforma" wire:loading.attr="disabled" wire:target="issueProforma">Proforma Oluştur</x-v65.button>
+                        <x-v65.button variant="danger" wire:click="cancelRemaining" wire:loading.attr="disabled" wire:target="cancelRemaining" wire:confirm="Siparişin kalan miktarını iptal etmek istediğinize emin misiniz?">Kalanı İptal Et</x-v65.button>
                     </div>
                 </section>
             @elseif(method_exists($this, 'issueProforma') && in_array($document->status, ['approved','confirmed']))
-                <button type="button" wire:click="issueProforma">Proforma Oluştur</button>
+                <x-v65.button variant="secondary" wire:click="issueProforma" wire:loading.attr="disabled" wire:target="issueProforma">Proforma Oluştur</x-v65.button>
             @endif
             @if(method_exists($this, 'post') && $document->status === 'draft')
                 @if($this instanceof \App\Livewire\Sales\SalesInvoiceEditor)
