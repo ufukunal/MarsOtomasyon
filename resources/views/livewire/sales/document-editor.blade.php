@@ -20,6 +20,10 @@
         <x-v65.document-sources class="v65-doc-draft-sources" :document="$document" />
     @endif
 
+    @if($this instanceof \App\Livewire\Sales\SalesInvoiceEditor)
+        <x-v65.contact-risk-overview :risk="$this->contactRiskOverview()" />
+    @endif
+
     @php
         $draftPreview = $this->draftTotalsPreview();
     @endphp
