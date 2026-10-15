@@ -10,7 +10,7 @@
             default => 'purchases.invoices.index',
         };
     @endphp
-    <x-v65.document-heading :document="$document" :title="$title" section="Satınalma Yönetimi" :index-route="$documentIndexRoute" />
+    <x-v65.document-heading :document="$document" :title="$title" section="Satınalma Yönetimi" :index-route="$documentIndexRoute" :dirty="$documentDirty" />
     @if($errors->any())
         <x-v65.notice tone="danger" title="Belge kontrolü" data-v65-document-errors tabindex="-1">
             <ul>@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>
