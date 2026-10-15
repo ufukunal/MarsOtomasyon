@@ -30,7 +30,7 @@ it('uses the approved right-aligned filter beside the list title on seven indepe
             ->toContain('<x-v65.filter-drawer')
             ->toContain('</x-v65.list-heading>')
             ->toContain('<x-v65.list-footer')
-            ->and(substr_count($blade, '<x-v65.filter-drawer'))->toBe(1 );
+            ->and(substr_count($blade, '<x-v65.filter-drawer'))->toBe(1);
     }
 });
 
