@@ -94,6 +94,7 @@ abstract class BaseSalesDocumentEditor extends Component
                 : null;
 
             if ($product !== null) {
+                $this->lines[$index]['price_source'] = 'auto';
                 $this->lines[$index]['unit_id'] = $product->unit_id;
                 $this->lines[$index]['vat_rate'] = (string) $product->vat_rate;
                 $this->lines[$index]['description'] = $product->name;
@@ -101,6 +102,19 @@ abstract class BaseSalesDocumentEditor extends Component
                 $this->lines[$index]['line_discount_amount'] = '0';
                 $this->lines[$index]['unit_price'] = app(\App\Support\Pricing\PriceResolver::class)
                     ->resolve($product, $this->contactId ? Contact::query()->find($this->contactId) : null);
+            }
+        }
+
+        if ($property === 'contactId') {
+            // Only product prices originally resolved automatically may change.
+            // Historical and manually edited unit prices remain untouched.
+            $this->refreshContactPrices();
+        }
+
+        if (preg_match('/^lines\\.(\\d+)\\.unit_price$/D', $property, $priceMatch)) {
+            $index = (int) $priceMatch[1];
+            if (isset($this->lines[$index])) {
+                $this->lines[$index]['price_source'] = 'manual';
             }
         }
 
@@ -120,6 +134,48 @@ abstract class BaseSalesDocumentEditor extends Component
                 return;
             }
         }
+    }
+
+    /**
+     * Recalculate only automatically resolved prices when the customer changes.
+     * Manually entered prices, including previously saved document prices,
+     * are preserved until the user explicitly requests re-pricing.
+     */
+    private function refreshContactPrices(bool $includeManual = false): void
+    {
+        $contact = $this->contactId
+            ? Contact::query()->where('is_active', true)->find($this->contactId)
+            : null;
+        $resolver = app(\App\Support\Pricing\PriceResolver::class);
+
+        foreach ($this->lines as $index => $line) {
+            if (($line['line_kind'] ?? 'stock') !== 'stock'
+                || ! ($line['product_id'] ?? null)
+                || (! $includeManual && ($line['price_source'] ?? 'manual') !== 'auto')) {
+                continue;
+            }
+
+            $product = Product::query()->where('is_active', true)->find((int) $line['product_id']);
+            if ($product === null) {
+                continue;
+            }
+
+            $this->lines[$index]['unit_price'] = $resolver->resolve($product, $contact);
+            $this->lines[$index]['line_discount_amount'] = '0';
+            $this->lines[$index]['price_source'] = 'auto';
+        }
+    }
+
+    /** Explicit action that can replace manually entered prices. */
+    public function applyContactPrices(): void
+    {
+        abort_unless($this->document === null || $this->document->status === 'draft', 409);
+        abort_unless(auth()->user()?->can(
+            $this->permissionPrefix().($this->document ? '.update' : '.create')
+        ), 403);
+
+        $this->refreshContactPrices(true);
+        $this->documentDirty = true;
     }
 
     protected function requireSavedDraft(): void
@@ -321,6 +377,7 @@ abstract class BaseSalesDocumentEditor extends Component
         $this->lines = $document->lines->map(fn ($line) => [
             'row_key' => 'saved-'.$line->id,
             'line_total' => (string) $line->line_total,
+            'price_source' => 'manual',
             'line_kind' => $line->line_kind,
             'product_id' => $line->product_id,
             'description' => $line->description,
@@ -343,6 +400,7 @@ abstract class BaseSalesDocumentEditor extends Component
     {
         return [
             'row_key' => 'new-'.(string) \Illuminate\Support\Str::uuid(),
+            'price_source' => 'auto',
             'line_kind' => 'stock',
             'product_id' => null,
             'description' => '',
