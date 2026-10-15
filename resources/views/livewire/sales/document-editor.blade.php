@@ -139,8 +139,8 @@
                             <td class="align-end"><input wire:model.blur="lines.{{ $index }}.line_discount_rate" aria-invalid="{{ $errors->has('lines.'.$index.'.line_discount_rate') ? 'true' : 'false' }}" inputmode="decimal" data-tr-decimal aria-label="Satır {{ $index + 1 }} iskonto"><x-v65.input-error :field="'lines.'.$index.'.line_discount_rate'" /></td>
                             <td class="align-end"><input wire:model.blur="lines.{{ $index }}.vat_rate" aria-invalid="{{ $errors->has('lines.'.$index.'.vat_rate') ? 'true' : 'false' }}" inputmode="decimal" data-tr-decimal aria-label="Satır {{ $index + 1 }} KDV"><x-v65.input-error :field="'lines.'.$index.'.vat_rate'" /></td>
                             <x-v65.document-line-amounts :calculation="$draftPreview?->lines[$index] ?? null" :line="$line" :show-stored="!$documentDirty" />
-                            <td class="v65-doc-line-actions">
-                                <span class="v65-doc-line-net align-end">@if($draftPreview && isset($draftPreview->lines[$index])){{ \App\Support\Formatting\TrFormatter::money((string) $draftPreview->lines[$index]->lineTotal) }}@elseif(!$documentDirty && isset($line['line_total'])){{ \App\Support\Formatting\TrFormatter::money((string) $line['line_total']) }}@else—@endif</span>
+                            <td class="align-end v65-doc-line-net">
+                                <span>@if($draftPreview && isset($draftPreview->lines[$index])){{ \App\Support\Formatting\TrFormatter::money((string) $draftPreview->lines[$index]->lineTotal) }}@elseif(!$documentDirty && isset($line['line_total'])){{ \App\Support\Formatting\TrFormatter::money((string) $line['line_total']) }}@else—@endif</span>
                             </td>
                             <td><x-v65.button variant="danger" size="xs" wire:click="removeLine({{ $index }})" aria-label="Satır {{ $index + 1 }} sil">Sil</x-v65.button></td>
                         </tr>
