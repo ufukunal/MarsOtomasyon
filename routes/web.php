@@ -6,6 +6,7 @@ use App\Http\Controllers\HealthController;
 use App\Http\Controllers\HepsiburadaWebhookController;
 use App\Http\Controllers\ImportErrorReportController;
 use App\Http\Controllers\PrintTransportSlipController;
+use App\Http\Controllers\PrintBusinessDocumentController;
 use App\Http\Controllers\ProductImageController;
 use App\Http\Controllers\ProductTechnicalSheetController;
 use App\Http\Controllers\ReportExportDownloadController;
@@ -171,6 +172,12 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/kartlar/fiyat-listeleri', PriceListList::class)->name('price-lists.index');
     Route::get('/kartlar/fiyat-listeleri/{list?}', PriceListDetail::class)->name('price-lists.detail');
     Route::get('/kartlar/baska-sirketten-aktar', CrossCompanyCopy::class)->name('company-copy.index');
+
+    Route::get('/belgeler/{document}/cikti/{format}', PrintBusinessDocumentController::class)
+        ->whereNumber('document')
+        ->where('format', 'html|pdf')
+        ->middleware('throttle:report')
+        ->name('documents.print');
 
     Route::get('/satis/teklifler', QuoteList::class)->name('sales.quotes.index');
     Route::get('/satis/teklif/{id?}', QuoteEditor::class)->name('sales.quotes.edit');
