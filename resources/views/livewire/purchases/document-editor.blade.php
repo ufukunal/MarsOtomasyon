@@ -57,7 +57,7 @@
 
             @if(!$isGoodsReceipt)
                 <div class="v65-doc-vat-toolbar" role="group" aria-label="Satırlara toplu KDV uygula">
-                    <label class="field">Toplu KDV % <input wire:model="bulkVatRate" inputmode="decimal" data-tr-decimal></label>
+                    <label class="field">Toplu KDV % <input wire:model="bulkVatRate" inputmode="decimal" data-tr-decimal aria-invalid="{{ $errors->has('bulkVatRate') ? 'true' : 'false' }}"><x-v65.input-error field="bulkVatRate" /></label>
                     <x-v65.button variant="secondary" size="sm" wire:click="applyVatToAll">Tüm Satırlara Uygula</x-v65.button>
                     <x-v65.button variant="secondary" size="sm" wire:click="clearVat">KDV'yi Temizle</x-v65.button>
                 </div>
@@ -98,14 +98,14 @@
                             @if($isGoodsReceipt)
                                 {{ $line['description'] ?? 'Kaynak satır' }}
                             @elseif(($line['line_kind'] ?? 'stock') === 'service')
-                                <input wire:model="lines.{{ $index }}.description" placeholder="Hizmet açıklaması" aria-label="Satır {{ $index + 1 }} hizmet açıklaması">
+                                <input wire:model="lines.{{ $index }}.description" placeholder="Hizmet açıklaması" aria-invalid="{{ $errors->has('lines.'.$index.'.description') ? 'true' : 'false' }}" aria-label="Satır {{ $index + 1 }} hizmet açıklaması"><x-v65.input-error :field="'lines.'.$index.'.description'" />
                             @else
                                 <input type="search" class="v65-doc-product-search"
                                     wire:model.live.debounce.300ms="productSearches.{{ $line['row_key'] ?? $index }}"
                                     placeholder="Ürün kodu veya adıyla ara"
                                     aria-label="Satır {{ $index + 1 }} ürün ara" autocomplete="off">
                                     <small class="v65-doc-search-loading" wire:loading wire:target="productSearches.{{ $line['row_key'] ?? $index }}">Aranıyor…</small>
-                                <select wire:model.live="lines.{{ $index }}.product_id" aria-label="Satır {{ $index + 1 }} ürün">
+                                <select wire:model.live="lines.{{ $index }}.product_id" aria-invalid="{{ $errors->has('lines.'.$index.'.product_id') ? 'true' : 'false' }}" aria-label="Satır {{ $index + 1 }} ürün">
                                     <option value="">Ürün seçin</option>
                                     @forelse($this->productOptionsForLine((string) ($line['row_key'] ?? $index), (int) ($line['product_id'] ?? 0)) as $product)
                                         <option value="{{ $product->id }}">{{ $product->code }} · {{ $product->name }}</option>
@@ -113,6 +113,7 @@
                                         <option value="" disabled>Ürün bulunamadı</option>
                                     @endforelse
                                 </select>
+                                    <x-v65.input-error :field="'lines.'.$index.'.product_id'" />
                                 <input class="v65-doc-line-description" wire:model="lines.{{ $index }}.description" placeholder="Satır açıklaması (isteğe bağlı)" aria-label="Satır {{ $index + 1 }} açıklama">
                             @endif
                         </td>
