@@ -47,7 +47,7 @@
             <label class="field">Belge Tarihi <input type="date" wire:model="documentDate"><x-v65.input-error field="documentDate" /></label>
             @if(!$isGoodsReceipt)
                 <label class="field">Vade <input type="date" wire:model="dueDate"><x-v65.input-error field="dueDate" /></label>
-                <label class="field">Para Birimi <input wire:model="currency" maxlength="3"><x-v65.input-error field="currency" /></label>
+                <label class="field">Para Birimi <input wire:model.blur="currency" maxlength="3"><x-v65.input-error field="currency" /></label>
                 <label class="field">Kur <input wire:model.blur="exchangeRate" inputmode="decimal" data-tr-decimal><x-v65.input-error field="exchangeRate" /></label>
                 <label class="field">Belge İskonto % <input wire:model.blur="discountRate" inputmode="decimal" data-tr-decimal><x-v65.input-error field="discountRate" /></label>
             @else
@@ -176,7 +176,7 @@
         </div>
     @endif
 
-    <x-v65.document-summary class="v65-doc-screen-summary" :document="$document" :preview="$draftPreview" />
+    <x-v65.document-summary class="v65-doc-screen-summary" :document="$document" :preview="$draftPreview" :currency="$currency" />
 
     @if($document)
         <section class="document-actions panel v65-document-actions v65-doc-workflow" role="group" aria-label="Belge işlemleri">
