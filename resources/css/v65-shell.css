@@ -2156,3 +2156,16 @@
 @media(max-width:1000px){.app-shell .v65-doc-risk-values{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:520px){.app-shell .v65-doc-risk-values{grid-template-columns:minmax(0,1fr)}}
 @media print{.app-shell .v65-doc-risk{display:none!important}}
+
+/* Form validation, product-search feedback and explicit document workflow review. */
+.app-shell .v65-input-error{display:block;margin:4px 0 0;color:#b42331;font-size:11px;font-weight:600;line-height:1.35;text-align:start}
+.app-shell .v65-doc-editor [aria-invalid="true"]{border-color:#c43443!important;box-shadow:0 0 0 1px rgba(196,52,67,.14)}
+.app-shell .v65-doc-search-hint,.app-shell .v65-doc-search-loading{display:block;margin:4px 0;font-size:10.5px;font-weight:450;color:#687d96}
+.app-shell .v65-doc-search-loading{color:#175fa8}
+.app-shell [data-v65-document-errors]:focus{outline:2px solid #c43443;outline-offset:2px}
+.app-shell .v65-doc-confirm-summary{display:grid;gap:0;margin:12px 0 0;padding:0;border:1px solid #e2eaf3;border-radius:4px}
+.app-shell .v65-doc-confirm-summary>div{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;padding:10px 12px}
+.app-shell .v65-doc-confirm-summary>div+div{border-top:1px solid #eaf0f5}
+.app-shell .v65-doc-confirm-summary dt{color:#697f96;font-size:11px}
+.app-shell .v65-doc-confirm-summary dd{margin:0;color:#294660;font-size:12px;font-weight:700;text-align:end;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+@media(max-width:520px){.app-shell .v65-doc-confirm-summary>div{flex-wrap:wrap}}
