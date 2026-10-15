@@ -3,8 +3,8 @@
 namespace App\Livewire\Shell;
 
 use App\Livewire\Concerns\WithIdempotentMutations;
-use Illuminate\Contracts\View\View;
 use App\Support\Period\PeriodContext;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 
