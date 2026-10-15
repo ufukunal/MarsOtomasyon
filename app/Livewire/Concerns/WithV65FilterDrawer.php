@@ -10,7 +10,7 @@ use DateTimeImmutable;
 
 trait WithV65FilterDrawer
 {
-    /** @var array{search:string,filters:array<string,mixed>,sort:string,direction:string} */
+    /** @var array<string, mixed> Unapplied Livewire form data may be empty or partially populated. */
     public array $v65DraftFilters = [];
 
     public string $v65FilterTab = 'filters';
