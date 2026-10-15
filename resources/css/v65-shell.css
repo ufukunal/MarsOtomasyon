@@ -2128,3 +2128,31 @@
 @media print{
   .app-shell .document-workspace>.v65-doc-draft-sources{display:none!important}
 }
+
+/* Invoice TRY risk preview and line tax/discount information. */
+.app-shell .v65-doc-risk{
+  display:grid;gap:0;min-width:0;border:1px solid #dce5f0;
+  border-radius:6px;background:#fff;overflow:hidden
+}
+.app-shell .v65-doc-risk-head{
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;
+  gap:8px;padding:12px 15px;border-bottom:1px solid #e4ebf3;
+  background:#f7fafc
+}
+.app-shell .v65-doc-risk-head strong{color:#25435f;font-size:13px;font-weight:750}
+.app-shell .v65-doc-risk-values{
+  display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;
+  margin:0;padding:14px 15px
+}
+.app-shell .v65-doc-risk-values>div{display:grid;gap:5px;min-width:0}
+.app-shell .v65-doc-risk-values dt{color:#6b7f93;font-size:11px}
+.app-shell .v65-doc-risk-values dd{margin:0;color:#294660;font-size:13px;font-weight:750;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.app-shell .v65-doc-risk-disclaimer{
+  margin:0;padding:9px 15px;background:#fffaf0;border-top:1px solid #f2e8cf;
+  color:#795d26;font-size:11px;line-height:1.5
+}
+.app-shell .v65-doc-line-discount,.app-shell .v65-doc-line-vat{white-space:nowrap;font-variant-numeric:tabular-nums}
+.app-shell .v65-doc-line-tax-note{display:block;padding:10px 13px;color:#647f9c;font-size:11px;line-height:1.45}
+@media(max-width:1000px){.app-shell .v65-doc-risk-values{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:520px){.app-shell .v65-doc-risk-values{grid-template-columns:minmax(0,1fr)}}
+@media print{.app-shell .v65-doc-risk{display:none!important}}
