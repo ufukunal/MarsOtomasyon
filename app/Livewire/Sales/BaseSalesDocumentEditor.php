@@ -49,7 +49,7 @@ abstract class BaseSalesDocumentEditor extends Component
     /** @var array<string,string> */
     public array $productSearches = [];
 
-    /** Cached per request to avoid repeating the same default options query for every line. */
+    /** @var Collection<int, Product>|null Cached once per Livewire request. */
     private ?Collection $defaultProductOptions = null;
 
     /** @var list<array<string,mixed>> */
