@@ -503,7 +503,6 @@
                 <div><small>Risk Limiti</small><strong>{{ $money($contact->risk_limit) }} ₺</strong></div>
                 <div><small>Fiyat Sistemi</small><strong>{{ $contact->priceList?->name ?? 'Varsayılan liste' }}</strong></div>
             </div>
-            <p class="v65-contact-note">E-Fatura etiketi ve senaryosu gibi kayıtlı olmayan alanlar gösterilmez.</p>
         </section>
     @elseif($activeTab === 'shipping')
         <section class="v65-contact-panel">
