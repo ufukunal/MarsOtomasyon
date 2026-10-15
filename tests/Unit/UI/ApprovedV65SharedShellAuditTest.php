@@ -117,7 +117,7 @@ it('keeps catalog empty actions permission-scoped and report downloads visibly a
     $css = file_get_contents(base_path('resources/css/v65-shell.css'));
 
     expect($category)->toContain('@can(\'product_categories.create\')')
-        ->toContain('class="empty-state v65-category-empty"')
+        ->toContain('<x-v65.empty-state title="Henüz kategori kaydı bulunmuyor." class="v65-category-empty">')
         ->toContain('route(\'categories.create\')')
         ->and($export)->toContain('class="button-secondary" href="{{ route(\'reports.exports.download\', $job) }}"')
         ->and($location)->not->toContain('<strong>{{ $location->code }} · {{ $location->name }}</strong>')
