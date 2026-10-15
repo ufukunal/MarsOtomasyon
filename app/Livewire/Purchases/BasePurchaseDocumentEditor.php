@@ -44,6 +44,9 @@ abstract class BasePurchaseDocumentEditor extends Component
     /** @var array<string,string> */
     public array $productSearches = [];
 
+    /** Cached per request to avoid repeating the same default options query for every line. */
+    private ?\Illuminate\Database\Eloquent\Collection $defaultProductOptions = null;
+
     /** @var list<array<string,mixed>> */
     public array $lines = [];
 
@@ -269,7 +272,12 @@ abstract class BasePurchaseDocumentEditor extends Component
                 ->orWhere('barcode', 'ilike', $needle));
         }
 
-        $options = $query->orderBy('name')->limit(35)->get();
+        if ($search === '') {
+            $this->defaultProductOptions ??= $query->orderBy('name')->limit(35)->get();
+            $options = clone $this->defaultProductOptions;
+        } else {
+            $options = $query->orderBy('name')->limit(35)->get();
+        }
 
         if ($productId > 0 && ! $options->contains('id', $productId)) {
             $selected = Product::query()->find($productId);
