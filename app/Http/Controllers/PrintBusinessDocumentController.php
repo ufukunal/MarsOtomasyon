@@ -62,7 +62,6 @@ final class PrintBusinessDocumentController
         }
 
         // Render stored document lines and totals only, never unsaved Livewire values.
-        // This is a corporate PDF, not a legally issued e-Fatura/e-Arşiv XML.
         $pdf = Browsershot::html($view->render())
             ->format('A4')
             ->margins(12, 10, 14, 10)
