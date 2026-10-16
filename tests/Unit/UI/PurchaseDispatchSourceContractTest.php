@@ -51,3 +51,13 @@ it('exposes both supplier dispatch routes and permission-protected print output'
         ->and($print)->toContain("DocumentType::PurchaseDispatch => ['Alış İrsaliyesi', 'purchase_dispatches.view']")
         ->and($navigation)->toContain("'permission' => 'purchase_dispatches.view'");
 });
+
+
+it('validates goods receipt entry before processing supplier dispatch', function (): void {
+    $editor = file_get_contents(base_path('app/Livewire/Purchases/PurchaseDispatchEditor.php'));
+
+    expect($editor)->toContain('$this->requireSavedDraft();')
+        ->toContain("'receiptDate' => ['required', 'date']")
+        ->toContain("'receiptQuantities.*' => ['required', 'numeric', 'min:0', 'decimal:0,3']")
+        ->toContain("'receiptLocationIds.*' => ['nullable', 'integer']");
+});
