@@ -126,7 +126,7 @@ final class CreateSupplierInvoiceFromReceipts
                         'due_date' => $this->dueDate->handle($contact, $documentDate),
                         'currency' => strtoupper($currency),
                         'exchange_rate' => $exchangeRate,
-                        'discount_rate' => $discountRate ?? '0',
+                        'discount_rate' => $discountRate,
                         'additional_discount_amount' => $additionalDiscount,
                     ],
                     $draftLines,

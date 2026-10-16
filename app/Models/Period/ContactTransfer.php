@@ -40,11 +40,13 @@ final class ContactTransfer extends PeriodModel
         });
     }
 
+    /** @return BelongsTo<Contact, $this> */
     public function sourceContact(): BelongsTo
     {
         return $this->belongsTo(Contact::class, 'source_contact_id');
     }
 
+    /** @return BelongsTo<Contact, $this> */
     public function targetContact(): BelongsTo
     {
         return $this->belongsTo(Contact::class, 'target_contact_id');

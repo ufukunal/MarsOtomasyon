@@ -119,7 +119,7 @@ final class PostContactTransfer
                         'amount' => $amount,
                         'currency' => 'TRY',
                         'reason' => trim($reason),
-                        'overdraft_approved' => $exceeded && $overdraftApproved,
+                        'overdraft_approved' => $exceeded,
                         'status' => 'posted',
                         'created_by' => $actor?->id,
                         'created_by_name' => $actor?->name,
@@ -130,7 +130,7 @@ final class PostContactTransfer
                         'target_contact_id' => $targetId,
                         'amount' => $amount,
                         'balance_type' => $balanceType,
-                        'overdraft_approved' => $exceeded && $overdraftApproved,
+                        'overdraft_approved' => $exceeded,
                     ], $sourceMovement, 'contact_transfer_posted');
 
                     return $transfer;

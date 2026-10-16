@@ -1,4 +1,4 @@
-name: V65 approved source rerun (TEST secrets unavailable)
+name: V65 approved source rerun (PHPStan corrections)
 # Explicit user approval 2026-10-16. Triggers only on this one-shot workflow file.
 on:
   push:

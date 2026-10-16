@@ -49,7 +49,7 @@ final class XlsxReportExporter
                 }
 
                 $cell->setValueExplicit(
-                    is_scalar($value) ? (string) $value : '',
+                    (string) $value,
                     DataType::TYPE_STRING,
                 );
             }
