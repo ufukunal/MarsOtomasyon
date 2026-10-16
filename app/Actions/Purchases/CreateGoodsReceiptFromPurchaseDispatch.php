@@ -16,8 +16,8 @@ final class CreateGoodsReceiptFromPurchaseDispatch
     public function __construct(private readonly CreateGoodsReceiptFromOrder $fromOrder) {}
 
     /**
-     * @param array<int,string> $lineQuantities
-     * @param array<int,int> $lineLocationIds
+     * @param  array<int,string>  $lineQuantities
+     * @param  array<int,int>  $lineLocationIds
      */
     public function handle(Document $dispatch, array $lineQuantities, array $lineLocationIds, string $date, string $key): Document
     {
