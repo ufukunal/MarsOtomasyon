@@ -64,6 +64,7 @@
                     @unless($hiddenColumns['contact'] ?? false)<th>Cari</th>@endunless
                     @unless($hiddenColumns['status'] ?? false)<th>Durum</th>@endunless
                     @unless($hiddenColumns['total'] ?? false)<th class="align-end">Tutar</th>@endunless
+                    <th>İşlem</th>
                 </tr>
             </thead>
             <tbody>
@@ -86,11 +87,16 @@
                             <td><x-v65.status-badge :dot="true" :tone="in_array($document->status, ['posted', 'confirmed', 'approved'], true) ? 'success' : (in_array($document->status, ['cancelled', 'reversed'], true) ? 'danger' : (in_array($document->status, ['internal_review', 'customer_review', 'pending_approval'], true) ? 'warning' : 'neutral'))">{{ $statusLabels[$document->status] ?? $document->status }}</x-v65.status-badge></td>
                         @endunless
                         @unless($hiddenColumns['total'] ?? false)
-                            <td class="align-end tabular">{{ number_format((float) $document->grand_total, 2, ',', '.') }} {{ $document->currency }}</td>
+                            <td class="align-end tabular">{{ \App\Support\Formatting\TrFormatter::money((string) $document->grand_total) }} {{ $document->currency }}</td>
                         @endunless
+                        <td>
+                            <x-v65.button variant="secondary" size="xs" :href="route($detailRoute, ['id' => $document->id])">
+                                {{ $document->status === 'draft' && $canEditDocuments ? 'Düzenle' : 'İncele / İşlem' }}
+                            </x-v65.button>
+                        </td>
                     </tr>
                 @empty
-                    <tr><td colspan="{{ collect(['number','date','contact','status','total'])->reject(fn ($column) => $hiddenColumns[$column] ?? false)->count() }}">
+                    <tr><td colspan="{{ collect(['number','date','contact','status','total'])->reject(fn ($column) => $hiddenColumns[$column] ?? false)->count() + 1 }}">
                         <x-v65.empty-state title="Kayıt bulunamadı.">
                             @if($createRoute)
                                 <x-v65.button size="sm" :href="route($createRoute)">+ Yeni Kayıt</x-v65.button>

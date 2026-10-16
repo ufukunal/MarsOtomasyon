@@ -281,6 +281,7 @@ trait WithV65DocumentList
             'detailRoute' => $this->editRoute(),
             'createRoute' => $createRoute,
             'statusLabels' => self::documentStatusLabels(),
+            'canEditDocuments' => auth()->user()->can(str_replace('.view', '.update', $this->permission())),
         ])->layout('layouts.app', ['pageTitle' => $this->pageTitle()]);
     }
 }
