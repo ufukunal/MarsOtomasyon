@@ -153,3 +153,13 @@ it('provides required contact, product, service and bulk VAT validations before 
             ->toContain("'product_id', 'unit_id', 'location_id', 'conversion_factor'");
     }
 });
+
+
+it('rechecks the persisted document state before updating either sales or purchase drafts', function (): void {
+    foreach (['app/Livewire/Sales/BaseSalesDocumentEditor.php', 'app/Livewire/Purchases/BasePurchaseDocumentEditor.php'] as $path) {
+        $code = file_get_contents(base_path($path));
+        expect($code)->toContain("\$current = Document::query()->findOrFail(\$this->document->id);")
+            ->toContain("abort_unless(\$current->document_type === \$this->documentType(), 404);")
+            ->toContain("abort_unless(\$current->status === 'draft', 409");
+    }
+});
