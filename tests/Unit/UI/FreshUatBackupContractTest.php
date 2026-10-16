@@ -45,3 +45,18 @@ it('refuses Fresh schema migrations without the matching restore-verified backup
         ->toContain('-le 3600')
         ->toContain('FRESH_PERIOD_MIGRATIONS=PASS');
 });
+
+
+it('orchestrates 18 through 21 sequentially without skipping identity and restore proofs', function (): void {
+    $source = file_get_contents(base_path('ops/uat-fresh-stage-18-21.sh'));
+    expect($source)->toContain('set -Eeuo pipefail')
+        ->toContain('bash "$SCRIPT_DIR/uat-fresh-identity-check.sh"')
+        ->toContain('bash "$SCRIPT_DIR/uat-fresh-backup-verify.sh"')
+        ->toContain("grep -qx 'OFFLINE_RESTORE=PASS'")
+        ->toContain('bash "$SCRIPT_DIR/uat-fresh-period-migrations.sh" "$BACKUP_PATH"')
+        ->toContain('FRESH_18_21=PASS');
+    expect(strpos($source, 'uat-fresh-identity-check.sh" || abort'))
+        ->toBeLessThan(strpos($source, 'uat-fresh-backup-verify.sh" | tee'))
+        ->and(strpos($source, 'uat-fresh-backup-verify.sh" | tee'))
+        ->toBeLessThan(strpos($source, 'uat-fresh-period-migrations.sh" "$BACKUP_PATH"'));
+});
