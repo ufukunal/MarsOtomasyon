@@ -1,4 +1,5 @@
-<div class="space-y-6 v65-workspace-form">
+<div class="space-y-5 v65-workspace-form">
+    <section class="panel stack v65-voucher-panel">
     <label class="field">Cari Ara
         <input type="search" wire:model.live.debounce.300ms="contactSearch" placeholder="Cari kodu veya unvanı" autocomplete="off">
     </label>
@@ -12,9 +13,8 @@
     @endif
     <h2>Ödeme</h2>
 
-    <section class="panel stack v65-voucher-panel">
         <label class="field">Tedarikçi
-            <select wire:model="contactId">
+            <select wire:model.live="contactId">
                 <option value="">Seçin</option>
                 @foreach($contacts as $contact)
                     <option value="{{ $contact->id }}">{{ $contact->code }} · {{ $contact->title }}</option>
@@ -30,9 +30,9 @@
             </select>
         </label>
         <label class="field">Tarih <input type="date" wire:model="documentDate"></label>
-        <label class="field">Tutar <input wire:model.blur="amount" inputmode="decimal" data-tr-decimal></label>
+        <label class="field">Tutar <input wire:model.blur="amount" inputmode="decimal" data-tr-decimal><x-v65.input-error field="amount" /></label>
         <label class="field">Para Birimi <input wire:model="currency" maxlength="3"></label>
-        <label class="field">Kur <input wire:model.blur="exchangeRate" inputmode="decimal" data-tr-decimal></label>
+        <label class="field">Kur <input wire:model.blur="exchangeRate" inputmode="decimal" data-tr-decimal><x-v65.input-error field="exchangeRate" /></label>
         <label class="field">Hesap Türü
             <select wire:model.live="accountType">
                 <option value="cash">Kasa</option>
@@ -40,7 +40,7 @@
             </select>
         </label>
         <label class="field">Hesap
-            <select wire:model="accountId">
+            <select wire:key="account-{{ $accountType }}" wire:model="accountId">
                 <option value="">Seçin</option>
                 @if($accountType === 'cash')
                     @foreach($cashAccounts as $account)
