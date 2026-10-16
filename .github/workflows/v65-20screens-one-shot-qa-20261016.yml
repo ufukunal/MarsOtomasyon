@@ -1,4 +1,4 @@
-name: MarsProject approved 20-screen source and isolated TEST QA
+name: MarsProject approved 20-screen rerun after PHPStan fix
 on:
   push:
     branches: [main]

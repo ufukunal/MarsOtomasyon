@@ -38,7 +38,7 @@ final class UpdateSecurityDetails
                     throw new DomainException('Evrak açıklaması en fazla 1000 karakter olabilir.');
                 }
 
-                $oldDueDate = $locked->due_date?->toDateString();
+                $oldDueDate = $locked->due_date->toDateString();
                 $updated = $locked->updateWithVersion([
                     'due_date' => $date->toDateString(),
                     'notes' => trim($notes) ?: null,
