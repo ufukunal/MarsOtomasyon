@@ -1,4 +1,5 @@
-<div class="space-y-5 panel v65-workspace-form">
+<div class="space-y-5 v65-workspace-form">
+    <section class="panel stack v65-voucher-panel">
     <label class="field">Cari Ara
         <input type="search" wire:model.live.debounce.300ms="contactSearch" placeholder="Cari kodu veya unvanı" autocomplete="off">
     </label>
@@ -12,22 +13,22 @@
     @endif
     <h2>Tahsilat</h2>
 
-    <x-v65.select label="Cari" wire:model="contactId" placeholder="Seçin">
+    <x-v65.select label="Cari" wire:model.live="contactId" placeholder="Seçin">
             
             @foreach($contacts as $contact)
                 <option value="{{ $contact->id }}">{{ $contact->code }} · {{ $contact->title }}</option>
             @endforeach
         </x-v65.select>
 
-    <label class="field">Tutar <input wire:model.blur="amount" inputmode="decimal" data-tr-decimal></label>
-    <label class="field">Tarih <input type="date" wire:model="documentDate"></label>
+    <label class="field">Tutar <input wire:model.blur="amount" inputmode="decimal" data-tr-decimal aria-invalid="{{ $errors->has('amount') ? 'true' : 'false' }}"><x-v65.input-error field="amount" /></label>
+    <label class="field">Tarih <input type="date" wire:model="documentDate"><x-v65.input-error field="documentDate" /></label>
 
     <x-v65.select label="Hesap türü" wire:model.live="accountType">
             <option value="cash">Kasa</option>
             <option value="bank">Banka</option>
         </x-v65.select>
 
-    <x-v65.select label="Hesap" wire:model="accountId" placeholder="Seçin">
+    <x-v65.select label="Hesap" wire:key="account-{{ $accountType }}" wire:model="accountId" placeholder="Seçin">
             
             @if($accountType === 'cash')
                 @foreach($cashAccounts as $account)
@@ -49,6 +50,8 @@
 
     <label class="field">Not <textarea wire:model="note"></textarea></label>
     <x-v65.form-actions class="v65-form-footer"><x-v65.button wire:click="post" wire:loading.attr="disabled" wire:target="post" :disabled="$correctionMode">Tahsilatı Kesinleştir</x-v65.button></x-v65.form-actions>
+
+    </section>
 
     @if($postedDocumentId)
         <x-v65.status-badge tone="success">Kesinleşen belge #{{ $postedDocumentId }}</x-v65.status-badge>
