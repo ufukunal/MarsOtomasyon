@@ -36,20 +36,36 @@ it('moves TRY balances between two caris once, without cash or bank movement, th
                 ->and(DB::connection('period')->table('cash_movements')->count())->toBe($beforeCash)
                 ->and(DB::connection('period')->table('bank_movements')->count())->toBe($beforeBank);
 
+            $postedEntries = ContactTransaction::query()->whereIn('id', [
+                $transfer->source_transaction_id, $transfer->target_transaction_id,
+            ])->get();
+            expect($postedEntries)->toHaveCount(2)
+                ->and($postedEntries->pluck('direction')->sort()->values()->all())->toBe(['credit', 'debit'])
+                ->and($postedEntries->pluck('amount')->map(fn ($amount): string => (string) $amount)->unique()->count())->toBe(1);
+
             $replayed = $posting->handle(
                 $source->id, $target->id, 'debit', '30', '2026-10-10', 'Integration transfer', $key,
             );
             expect($replayed->id)->toBe($transfer->id);
 
+            $reversalKey = 'reverse-'.Str::random(20);
             $reversed = app(ReverseContactTransfer::class)->handle(
-                $transfer, '2026-10-10', 'Integration correction', 'reverse-'.Str::random(20),
+                $transfer, '2026-10-10', 'Integration correction', $reversalKey,
             );
             expect($reversed->reversal_of_id)->toBe($transfer->id)
                 ->and($source->fresh()->balance())->toBe('100.0000')
                 ->and($target->fresh()->balance())->toBe('0.0000')
                 ->and(DB::connection('period')->table('contact_transactions')
                     ->whereIn('reversal_of_id', [$transfer->source_transaction_id, $transfer->target_transaction_id])
-                    ->count())->toBe(2);
+                    ->count())->toBe(2)
+                ->and(DB::connection('period')->table('cash_movements')->count())->toBe($beforeCash)
+                ->and(DB::connection('period')->table('bank_movements')->count())->toBe($beforeBank);
+
+            $replayedReversal = app(ReverseContactTransfer::class)->handle(
+                $transfer, '2026-10-10', 'Integration correction',
+                $reversalKey,
+            );
+            expect($replayedReversal->id)->toBe($reversed->id);
 
             expect(fn () => app(ReverseContactTransfer::class)->handle(
                 $transfer, '2026-10-10', 'Duplicate', 'reverse-'.Str::random(20),
