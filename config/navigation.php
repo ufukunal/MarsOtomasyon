@@ -65,6 +65,7 @@ return [
         'items' => [
             ['label' => 'Alış Teklifleri', 'route' => 'purchases.quotes.index', 'permission' => 'purchase_quotes.view'],
             ['label' => 'Satınalma Siparişleri', 'route' => 'purchases.orders.index', 'permission' => 'purchase_orders.view'],
+            ['label' => 'Alış İrsaliyeleri', 'route' => 'purchases.dispatches.index', 'permission' => 'purchase_dispatches.view'],
             ['label' => 'Mal Kabul', 'route' => 'purchases.receipts.index', 'permission' => 'goods_receipts.view'],
             ['label' => 'Alış Faturaları', 'route' => 'purchases.invoices.index', 'permission' => 'supplier_invoices.view'],
             ['label' => 'Ödeme', 'route' => 'purchases.payments.create', 'permission' => 'payments.view'],

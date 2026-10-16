@@ -9,6 +9,7 @@ return [
         'proforma' => 'PRF',
         'purchase_quote' => 'ATK',
         'purchase_order' => 'PO',
+        'purchase_dispatch' => 'AIR',
         'goods_receipt' => 'MK',
         'supplier_invoice' => 'AF',
         'sales_return' => 'SI',

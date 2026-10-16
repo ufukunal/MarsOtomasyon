@@ -36,6 +36,7 @@ final class SavePurchaseDocumentDraft
         if (! in_array($type, [
             DocumentType::PurchaseQuote,
             DocumentType::PurchaseOrder,
+            DocumentType::PurchaseDispatch,
             DocumentType::GoodsReceipt,
             DocumentType::SupplierInvoice,
         ], true)) {

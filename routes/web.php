@@ -75,6 +75,8 @@ use App\Livewire\Purchases\GoodsReceiptEditor;
 use App\Livewire\Purchases\GoodsReceiptList;
 use App\Livewire\Purchases\PaymentForm;
 use App\Livewire\Purchases\PurchaseOrderEditor;
+use App\Livewire\Purchases\PurchaseDispatchEditor;
+use App\Livewire\Purchases\PurchaseDispatchList;
 use App\Livewire\Purchases\PurchaseQuoteEditor;
 use App\Livewire\Purchases\PurchaseQuoteList;
 use App\Livewire\Purchases\PurchaseOrderList;
@@ -194,6 +196,8 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/alis/teklif/{id?}', PurchaseQuoteEditor::class)->name('purchases.quotes.edit');
     Route::get('/alis/siparisler', PurchaseOrderList::class)->name('purchases.orders.index');
     Route::get('/alis/siparis/{id?}', PurchaseOrderEditor::class)->name('purchases.orders.edit');
+    Route::get('/alis/irsaliyeler', PurchaseDispatchList::class)->name('purchases.dispatches.index');
+    Route::get('/alis/irsaliye/{id}', PurchaseDispatchEditor::class)->name('purchases.dispatches.edit');
     Route::get('/alis/mal-kabul', GoodsReceiptList::class)->name('purchases.receipts.index');
     Route::get('/alis/mal-kabul/{id}', GoodsReceiptEditor::class)->name('purchases.receipts.edit');
     Route::get('/alis/faturalar', SupplierInvoiceList::class)->name('purchases.invoices.index');

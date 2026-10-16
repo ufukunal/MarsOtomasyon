@@ -4,6 +4,7 @@ namespace App\Livewire\Purchases;
 
 use App\Actions\Purchases\ApprovePurchaseOrder;
 use App\Actions\Purchases\CreateGoodsReceiptFromOrder;
+use App\Actions\Purchases\CreatePurchaseDispatchFromOrder;
 use App\Actions\Purchases\PurchaseLineAvailability;
 use App\Actions\Purchases\SendPurchaseOrderToSupplier;
 use App\Actions\Purchases\SubmitPurchaseOrderForApproval;
@@ -36,7 +37,7 @@ class PurchaseOrderEditor extends BasePurchaseDocumentEditor
 
     protected function extraMutationNames(): array
     {
-        return ['submitApproval', 'approve', 'sendToSupplier', 'goodsReceipt'];
+        return ['submitApproval', 'approve', 'sendToSupplier', 'goodsReceipt', 'purchaseDispatch'];
     }
 
     public function mount(?int $id = null): void
@@ -105,6 +106,24 @@ class PurchaseOrderEditor extends BasePurchaseDocumentEditor
         $this->completeMutation('goodsReceipt');
 
         return $this->redirectRoute('purchases.receipts.edit', ['id' => $receipt->id], navigate: false);
+    }
+
+    public function createPurchaseDispatch(CreatePurchaseDispatchFromOrder $action): mixed
+    {
+        abort_unless($this->document !== null, 422);
+        $quantities = array_filter(
+            $this->receiptQuantities,
+            fn (string $quantity): bool => bccomp($quantity, '0', 3) > 0,
+        );
+        $dispatch = $action->handle(
+            $this->document,
+            $quantities,
+            $this->receiptDate,
+            $this->mutationKey('purchaseDispatch'),
+        );
+        $this->completeMutation('purchaseDispatch');
+
+        return $this->redirectRoute('purchases.dispatches.edit', ['id' => $dispatch->id], navigate: false);
     }
 
     private function syncReceiptInputs(): void

@@ -7,6 +7,7 @@
         $documentIndexRoute = match (true) {
             $this instanceof \App\Livewire\Purchases\PurchaseQuoteEditor => 'purchases.quotes.index',
             $this instanceof \App\Livewire\Purchases\PurchaseOrderEditor => 'purchases.orders.index',
+            $this instanceof \App\Livewire\Purchases\PurchaseDispatchEditor => 'purchases.dispatches.index',
             $this instanceof \App\Livewire\Purchases\GoodsReceiptEditor => 'purchases.receipts.index',
             default => 'purchases.invoices.index',
         };
@@ -195,6 +196,27 @@
                     <x-v65.document-confirm id="v65-purchase-quote-convert" title="Alış Siparişi Oluştur" label="Siparişe Dönüştür" action="convertToOrder" :document="$document" message="Teklif kalemleri ve iskontolarıyla taslak alış siparişi hazırlanacaktır." :dirty="$documentDirty" />
                 @endcan
             @endif
+            @if($this instanceof \App\Livewire\Purchases\PurchaseDispatchEditor && $document->status === 'draft')
+                <x-v65.document-confirm id="v65-purchase-dispatch-finalize" title="Alış İrsaliyesini Onayla" label="İrsaliyeyi Onayla" action="confirmDispatch" :document="$document" message="Stok ve cari hareketi oluşturulmayacak. Stok ancak Mal Kabul kesinleştirilince artar." :dirty="$documentDirty" />
+            @endif
+            @if($this instanceof \App\Livewire\Purchases\PurchaseDispatchEditor && $document->status === 'confirmed')
+                <label class="field">Mal Kabul Tarihi <input type="date" wire:model="receiptDate"></label>
+                @foreach($document->lines as $line)
+                    <div>
+                        <strong>{{ $line->line_no }} · {{ $line->description }}</strong>
+                        <input wire:model="receiptQuantities.{{ $line->id }}" aria-label="Mal kabul miktarı">
+                        @if($line->line_kind === 'stock')
+                            <select wire:model="receiptLocationIds.{{ $line->id }}">
+                                <option value="">Depo / Lokasyon</option>
+                                @foreach($locations as $location)
+                                    <option value="{{ $location->id }}">{{ $location->name }}</option>
+                                @endforeach
+                            </select>
+                        @endif
+                    </div>
+                @endforeach
+                <x-v65.button wire:click="createReceipt" wire:loading.attr="disabled" wire:target="createReceipt">İrsaliyeden Mal Kabul Oluştur</x-v65.button>
+            @endif
             @if(method_exists($this, 'submitApproval') && $document->status === 'draft')
                 <x-v65.document-confirm id="v65-purchase-submit" title="Onaya Gönder" label="Onaya Gönder" action="submitApproval" variant="secondary" :document="$document" message="Son kaydedilen alış siparişi onay sürecine gönderilecektir." :dirty="$documentDirty" />
             @endif
@@ -209,6 +231,9 @@
                 <x-v65.button variant="secondary" wire:click="sendToSupplier" wire:loading.attr="disabled" wire:target="sendToSupplier">Tedarikçiye Gönder</x-v65.button>
             @endif
 
+            @if(method_exists($this, 'createPurchaseDispatch') && in_array($document->status, ['approved', 'sent']))
+                <x-v65.button variant="secondary" wire:click="createPurchaseDispatch" wire:loading.attr="disabled" wire:target="createPurchaseDispatch">Alış İrsaliyesi Oluştur</x-v65.button>
+            @endif
             @if(method_exists($this, 'createGoodsReceipt') && in_array($document->status, ['approved', 'sent']))
                 <label class="field">Mal Kabul Tarihi <input type="date" wire:model="receiptDate"></label>
                 @foreach($document->lines as $line)
