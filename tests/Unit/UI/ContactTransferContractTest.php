@@ -35,3 +35,10 @@ it('clears exceptional overdraft consent even when posting fails', function (): 
     $form = file_get_contents(base_path('app/Livewire/Finance/ContactTransferForm.php'));
     expect($form)->toMatch('/function confirmOverdraft\([^)]*\): void\s*\{.*?try\s*\{\s*\$this->post\(\$action\);\s*\}\s*finally\s*\{\s*\$this->overdraftConfirmed = false;\s*\$this->overdraftAcknowledged = false;/s');
 });
+
+
+it('requires explicit acknowledgment on direct transfer posting paths', function (): void {
+    $form = file_get_contents(base_path('app/Livewire/Finance/ContactTransferForm.php'));
+    expect($form)->toContain('if ($this->overdraftConfirmed && ! $this->overdraftAcknowledged)')
+        ->toContain("'overdraftAcknowledged' => 'Bakiye aşımını açıkça onaylayın.'");
+});
