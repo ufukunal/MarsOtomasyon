@@ -23,6 +23,23 @@ it('tests full restoration without network or access to live Fresh DB volumes', 
         ->toContain('DST_COUNT')
         ->toContain('sudo docker rm -f "$CTR"')
         ->toContain('sudo docker volume rm "$VOL"')
+        ->toContain('RESTORE_VERIFIED')
+        ->toContain('SHA256SUMS.sha256')
         ->toContain('OFFLINE_RESTORE=PASS')
         ->toContain('ORIGINAL_FRESH_DATABASES_MODIFIED=NO');
+});
+
+it('refuses Fresh schema migrations without the matching restore-verified backup', function (): void {
+    $script = file_get_contents(base_path('ops/uat-fresh-period-migrations.sh'));
+
+    expect($script)->toContain('bash "$GATE"')
+        ->toContain('FRESH_BACKUP=RESTORE_VERIFIED')
+        ->toContain('SOURCE_PERIOD=mars_uat_demo_2026')
+        ->toContain('sha256sum -c --status SHA256SUMS')
+        ->toContain('0001_12_02_000010_add_document_additional_discount.php')
+        ->toContain('0001_12_02_000020_create_contact_transfers.php')
+        ->toContain('DB_PERIOD_DATABASE=mars_uat_demo_2026')
+        ->toContain('--database=period')
+        ->toContain('--no-deps')
+        ->toContain('FRESH_PERIOD_MIGRATIONS=PASS');
 });
