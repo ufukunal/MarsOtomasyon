@@ -20,7 +20,7 @@ trait WithFastDocumentLines
             && in_array(trim((string) ($line['unit_price'] ?? '0')), ['', '0', '0.0', '0.0000'], true)
             && in_array(trim((string) ($line['line_discount_rate'] ?? '0')), ['0', '0.0', '0.0000'], true)
             && in_array(trim((string) ($line['line_discount_amount'] ?? '0')), ['0', '0.0', '0.0000'], true)
-            && in_array(trim((string) ($line['vat_rate'] ?? '20')), ['20', '20.0', '20.0000'], true);
+            && in_array(trim((string) ($line['vat_rate'] ?? '20')), ['0', '0.0', '0.0000', '20', '20.0', '20.0000'], true);
     }
 
     /** @return list<array<string,mixed>> */
@@ -34,8 +34,16 @@ trait WithFastDocumentLines
 
     private function ensureNextEntryRow(): void
     {
-        if ($this->lines === [] || ! $this->isUnusedEntryRow($this->lines[array_key_last($this->lines)])) {
-            $this->lines[] = $this->emptyLine();
+        // Collapse empty rows after changing or clearing a product.
+        // Keep partially filled rows so validation can show their errors.
+        $entered = $this->enteredLines();
+        $empty = null;
+        foreach ($this->lines as $line) {
+            if ($this->isUnusedEntryRow($line)) {
+                $empty = $line;
+            }
         }
+        $entered[] = $empty ?? $this->emptyLine();
+        $this->lines = $entered;
     }
 }
