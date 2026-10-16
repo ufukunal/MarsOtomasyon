@@ -13,7 +13,7 @@ it('restricts all seven corporate document outputs to authenticated period and r
         ->toContain('Cache-Control')
         ->toContain('private, no-store')
         ->toContain('X-Content-Type-Options')
-        ->toContain("'sourceReferences' => $sourceReferences")
+        ->toContain("'sourceReferences' => \$sourceReferences")
         ->toContain('if ($permission === null || ! auth()->user()?->can($permission))');
 
     foreach ([

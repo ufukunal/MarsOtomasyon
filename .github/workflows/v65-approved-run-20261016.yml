@@ -1,4 +1,4 @@
-name: V65 approved one-shot quality and isolated TEST
+name: V65 approved source rerun (TEST secrets unavailable)
 # Explicit user approval 2026-10-16. Triggers only on this one-shot workflow file.
 on:
   push:
@@ -65,6 +65,9 @@ jobs:
       - name: Run isolated source-level UI tests
         run: |
           php artisan test tests/Unit/UI/V65BusinessDocumentPrintContractTest.php tests/Unit/UI/V65DocumentEditorPhase2Test.php tests/Unit/UI/V65DocumentEditorDesignTest.php tests/Unit/Documents/V65DocumentDraftSafetyTest.php --stop-on-failure
+      - name: Run financial regressions without DB
+        run: |
+          php artisan test tests/Unit/Documents/DocumentTotalsTest.php tests/Unit/UI/V65FastDocumentLinesTest.php tests/Unit/UI/ContactTransferContractTest.php --stop-on-failure
       - name: Check code style
         id: pint
         continue-on-error: true
@@ -90,58 +93,3 @@ jobs:
           path: artifacts/v65-browser-*.png
           if-no-files-found: warn
           retention-days: 7
-
-  test:
-    if: github.ref == 'refs/heads/main'
-    runs-on: [self-hosted, Linux, mars-ubuntu, mars-r4]
-    timeout-minutes: 18
-    env:
-      APP_ENV: testing
-      APP_DEBUG: 'false'
-      APP_KEY: base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
-      DB_CONNECTION: master
-      DB_HOST: mars-prod-1.taila20365.ts.net
-      DB_PORT: '55432'
-      DB_MASTER_DATABASE: mars_test_master
-      DB_USERNAME: mars_test
-      DB_PASSWORD: ${{ secrets.MARS_V4_DB_PASSWORD }}
-      REDIS_CLIENT: phpredis
-      REDIS_HOST: mars-prod-1.taila20365.ts.net
-      REDIS_PORT: '6379'
-      REDIS_USERNAME: mars_test
-      REDIS_PASSWORD: ${{ secrets.MARS_V4_VALKEY_PASSWORD }}
-      REDIS_PREFIX: 'mars:test:'
-      CACHE_STORE: array
-      SESSION_DRIVER: array
-      QUEUE_CONNECTION: sync
-      MAIL_MAILER: array
-      MARS_TEST_EXECUTION_APPROVED: MARS_V4_EXECUTION_APPROVED
-      MARS_INTEGRATION_TESTS_APPROVED: I_APPROVE_LOCAL_TEST_ONLY
-      MARS_VALKEY_TESTS_APPROVED: I_APPROVE_LOCAL_VALKEY_ONLY
-      MARS_PERFORMANCE_TESTS_APPROVED: 'NO'
-      ISOLATION_CONFIRMED: 'NO'
-    steps:
-      - uses: actions/checkout@v4
-      - name: Check correct independent TEST runner
-        run: |
-          test "$RUNNER_NAME" = mars-ubuntu-04
-          test "$DB_USERNAME" = mars_test
-          test "$DB_MASTER_DATABASE" = mars_test_master
-          test "$REDIS_USERNAME" = mars_test
-          test "$REDIS_PREFIX" = 'mars:test:'
-      - name: Install application dependencies on test runner
-        run: composer install --no-interaction --no-progress --prefer-dist
-      - name: Verify TEST-only database roles and Valkey ACL (read-only)
-        run: |
-          bash scripts/ci/test-v4-direct.sh preflight
-          echo ISOLATION_CONFIRMED=YES >> "$GITHUB_ENV"
-      - name: Contract tests
-        run: bash scripts/ci/test-v4-direct.sh contracts
-      - name: Unit tests
-        run: bash scripts/ci/test-v4-direct.sh unit
-      - name: HTTP feature tests
-        run: bash scripts/ci/test-v4-direct.sh feature
-      - name: PostgreSQL integration tests
-        run: bash scripts/ci/test-v4-direct.sh integration
-      - name: Isolated Valkey tests
-        run: bash scripts/ci/test-v4-direct.sh valkey
