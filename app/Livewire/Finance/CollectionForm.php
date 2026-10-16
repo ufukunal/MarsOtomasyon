@@ -3,7 +3,9 @@
 namespace App\Livewire\Finance;
 
 use App\Actions\Documents\ReverseDocument;
+use App\Enums\DocumentType;
 use App\Actions\Finance\PostCollection;
+use App\Livewire\Concerns\WithFinancialRecordCorrection;
 use App\Livewire\Concerns\WithIdempotentMutations;
 use App\Models\Period\BankAccount;
 use App\Models\Period\CashAccount;
@@ -14,6 +16,7 @@ use Livewire\Component;
 
 class CollectionForm extends Component
 {
+    use WithFinancialRecordCorrection;
     use WithIdempotentMutations;
 
     public ?int $contactId = null;
@@ -36,6 +39,16 @@ class CollectionForm extends Component
 
     public string $reversalReason = '';
 
+    protected function financialDocumentType(): DocumentType
+    {
+        return DocumentType::Collection;
+    }
+
+    protected function financialPermission(): string
+    {
+        return 'collections';
+    }
+
     public function mount(): void
     {
         $this->seedMutationKeys(['post', 'reverse']);
@@ -46,6 +59,8 @@ class CollectionForm extends Component
 
     public function post(PostCollection $action): void
     {
+        abort_if($this->correctionMode, 422, 'Önce eski kaydı tersleyerek düzeltme işlemine başlayın.');
+        abort_unless(auth()->user()?->can('collections.create'), 403);
         $document = $action->handle(
             (int) $this->contactId,
             $this->amount,
@@ -58,10 +73,12 @@ class CollectionForm extends Component
         );
         $this->completeMutation('post');
         $this->postedDocumentId = (int) $document->id;
+        $this->financialCorrectionPosted();
     }
 
     public function reverse(ReverseDocument $action): void
     {
+        abort_unless(auth()->user()?->can('collections.cancel'), 403);
         abort_unless($this->postedDocumentId !== null, 422);
         $document = Document::query()->findOrFail($this->postedDocumentId);
         $reversal = $action->handle(
@@ -71,17 +88,19 @@ class CollectionForm extends Component
             $this->mutationKey('reverse'),
         );
         $this->completeMutation('reverse');
-        $this->postedDocumentId = (int) $reversal->id;
+        $this->financialCorrectionReversed((int) $document->id);
     }
 
     public function render(): View
     {
         return view('livewire.finance.collection-form', [
-            'contacts' => Contact::query()->where('is_active', true)->orderBy('title')->limit(500)->get(),
+            'contacts' => $this->financialContactOptions(),
+            ...$this->financialHistoryData(),
             'cashAccounts' => CashAccount::query()->where('is_active', true)->orderBy('name')->get(),
             'bankAccounts' => BankAccount::query()->where('is_active', true)->orderBy('bank_name')->get(),
             'invoices' => Document::query()
                 ->where('document_type', 'sales_invoice')
+                ->when($this->contactId, fn ($q) => $q->where('contact_id', $this->contactId))
                 ->where('status', 'posted')
                 ->orderByDesc('document_date')
                 ->limit(500)
