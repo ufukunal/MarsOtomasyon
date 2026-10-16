@@ -109,26 +109,31 @@ class SecuritiesCenter extends Component
 
     public function saveSecurityEdit(UpdateSecurityDetails $action): void
     {
+        abort_unless(auth()->user()?->can('securities.update'), 403);
+        abort_unless(in_array($this->scopeMode(), ['center', 'list', 'create'], true), 403);
         abort_unless($this->editingSecurityId !== null, 422);
+        $security = Security::query()->findOrFail($this->editingSecurityId);
+        abort_if($this->scopeKind() !== null && $security->kind !== $this->scopeKind(), 404);
+        abort_if($this->scopeDirection() !== null && $security->direction !== $this->scopeDirection(), 404);
         $this->validate([
             'editingDueDate' => ['required', 'date'],
             'editingNotes' => ['nullable', 'string', 'max:1000'],
         ]);
         $id = $this->editingSecurityId;
         $action->handle(
-            Security::query()->findOrFail($id),
+            $security,
             $this->editingDueDate,
             $this->editingNotes,
             $this->editingSecurityVersion,
-            $this->childMutationKey('create', $id),
+            $this->childMutationKey('edit', $id),
         );
-        $this->completeMutation('create');
+        $this->completeMutation('edit');
         $this->cancelSecurityEdit();
     }
 
     public function mount(): void
     {
-        $this->seedMutationKeys(['create', 'payroll', 'reversePayroll']);
+        $this->seedMutationKeys(['create', 'edit', 'payroll', 'reversePayroll']);
         abort_unless(auth()->user()?->can('securities.view'), 403);
         $this->transactionDate = now()->toDateString();
         $this->dueDate = now()->addMonth()->toDateString();
@@ -200,7 +205,13 @@ class SecuritiesCenter extends Component
     public function reversePayroll(ReverseSecurityPayroll $action): void
     {
         abort_unless($this->scopeMode() === 'center', 403);
-        $payroll = SecurityPayroll::query()->findOrFail((int) $this->reversePayrollId);
+        abort_unless(auth()->user()?->can('security_payrolls.cancel'), 403);
+        abort_unless($this->reversePayrollId !== null, 422);
+        $this->validate([
+            'reversalDate' => ['required', 'date'],
+            'reversalReason' => ['required', 'string', 'min:3', 'max:1000'],
+        ]);
+        $payroll = SecurityPayroll::query()->findOrFail($this->reversePayrollId);
 
         $action->handle(
             $payroll,
@@ -218,7 +229,7 @@ class SecuritiesCenter extends Component
         if ($this->scopeKind() !== null) {
             $securities->where('kind', $this->scopeKind());
         }
-        if ($this->scopeMode() === 'create' && $this->scopeDirection() !== null) {
+        if ($this->scopeDirection() !== null) {
             $securities->where('direction', $this->scopeDirection());
         }
         if ($this->scopeMode() === 'endorse') {
