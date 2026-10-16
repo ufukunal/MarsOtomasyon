@@ -5,6 +5,7 @@ namespace App\Livewire\Finance;
 use App\Actions\Finance\CreateSecurity;
 use App\Actions\Finance\PostSecurityPayroll;
 use App\Actions\Finance\ReverseSecurityPayroll;
+use App\Actions\Finance\UpdateSecurityDetails;
 use App\Livewire\Concerns\WithIdempotentMutations;
 use App\Models\Period\BankAccount;
 use App\Models\Period\Contact;
@@ -73,6 +74,56 @@ class SecuritiesCenter extends Component
     public string $reversalDate = '';
 
     public string $reversalReason = '';
+
+    public ?int $editingSecurityId = null;
+
+    public int $editingSecurityVersion = 0;
+
+    public string $editingDueDate = '';
+
+    public string $editingNotes = '';
+
+    public function prepareSecurityEdit(int $id): void
+    {
+        abort_unless(auth()->user()?->can('securities.update'), 403);
+        abort_unless(in_array($this->scopeMode(), ['center', 'list', 'create'], true), 403);
+
+        $security = Security::query()->findOrFail($id);
+        abort_if($this->scopeKind() !== null && $security->kind !== $this->scopeKind(), 404);
+        abort_if(! in_array($security->status, ['portfolio', 'issued'], true)
+            || $security->last_payroll_id !== null, 422,
+            'İşlem görmüş evrakın mali alanları bu ekranda düzenlenemez.');
+
+        $this->editingSecurityId = $security->id;
+        $this->editingSecurityVersion = (int) $security->version;
+        $this->editingDueDate = $security->due_date->toDateString();
+        $this->editingNotes = (string) ($security->notes ?? '');
+    }
+
+    public function cancelSecurityEdit(): void
+    {
+        $this->editingSecurityId = null;
+        $this->editingNotes = '';
+    }
+
+    public function saveSecurityEdit(UpdateSecurityDetails $action): void
+    {
+        abort_unless($this->editingSecurityId !== null, 422);
+        $this->validate([
+            'editingDueDate' => ['required', 'date'],
+            'editingNotes' => ['nullable', 'string', 'max:1000'],
+        ]);
+        $id = $this->editingSecurityId;
+        $action->handle(
+            Security::query()->findOrFail($id),
+            $this->editingDueDate,
+            $this->editingNotes,
+            $this->editingSecurityVersion,
+            $this->childMutationKey('create', $id),
+        );
+        $this->completeMutation('create');
+        $this->cancelSecurityEdit();
+    }
 
     public function mount(): void
     {

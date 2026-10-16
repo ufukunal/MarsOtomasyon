@@ -64,7 +64,7 @@
         <x-v65.list-heading :title="$screenMode === 'center' ? 'Portföy' : $screenTitle . ' Kayıtları'" />
         <div class="table-scroll v65-list-table"><table class="data-table">
             <thead>
-            <tr><th>Seç</th><th>No</th><th>Tür</th><th>Yön</th><th>Cari</th><th>Vade</th><th class="align-end">Tutar</th><th>Durum</th></tr>
+            <tr><th>Seç</th><th>No</th><th>Tür</th><th>Yön</th><th>Cari</th><th>Vade</th><th class="align-end">Tutar</th><th>Durum</th><th>İşlem</th></tr>
             </thead>
             <tbody>
             @foreach($securities as $security)
@@ -83,6 +83,14 @@
                     <td>{{ $security->due_date?->format('d.m.Y') }}</td>
                     <td class="align-end">{{ $security->amount }}</td>
                     <td><x-v65.status-badge>{{ \App\Support\Formatting\BusinessLabelFormatter::status($security->status) }}</x-v65.status-badge></td>
+                    <td>
+                        @if(in_array($screenMode, ['center', 'list', 'create'], true) && auth()->user()?->can('securities.update')
+                            && in_array($security->status, ['portfolio', 'issued'], true) && $security->last_payroll_id === null)
+                            <x-v65.button size="xs" variant="secondary" wire:click="prepareSecurityEdit({{ $security->id }})">Düzenle</x-v65.button>
+                        @else
+                            <span>—</span>
+                        @endif
+                    </td>
                 </tr>
             @endforeach
             </tbody>
@@ -182,5 +190,22 @@
             <x-v65.button variant="danger" wire:click="reversePayroll" wire:loading.attr="disabled" wire:target="reversePayroll" data-v65-modal-close>Ters Kaydı Onayla</x-v65.button>
         </x-slot:footer>
     </x-v65.modal>
+    @endif
+
+    @if($editingSecurityId !== null)
+        <div class="v65-contact-transfer-overlay" role="presentation">
+            <div class="v65-contact-transfer-dialog" role="dialog" aria-modal="true" aria-labelledby="v65-security-details-title">
+                <h3 id="v65-security-details-title">Çek / Senet Belge Bilgileri</h3>
+                <p>Yalnız vade ve açıklama düzenlenebilir. Cari, tutar, banka ve evrak numarası muhasebe bütünlüğü için değiştirilmez.</p>
+                <label class="field">Vade <input type="date" wire:model="editingDueDate"></label>
+                <x-v65.input-error field="editingDueDate"/>
+                <label class="field">Açıklama <textarea wire:model="editingNotes" rows="3"></textarea></label>
+                <x-v65.input-error field="editingNotes"/>
+                <div class="v65-contact-transfer-dialog-actions">
+                    <x-v65.button variant="secondary" wire:click="cancelSecurityEdit">Vazgeç</x-v65.button>
+                    <x-v65.button wire:click="saveSecurityEdit" wire:loading.attr="disabled" wire:target="saveSecurityEdit">Değişiklikleri Kaydet</x-v65.button>
+                </div>
+            </div>
+        </div>
     @endif
 </div>
