@@ -60,3 +60,16 @@ it('orchestrates 18 through 21 sequentially without skipping identity and restor
         ->and(strpos($source, 'uat-fresh-backup-verify.sh" | tee'))
         ->toBeLessThan(strpos($source, 'uat-fresh-period-migrations.sh" "$BACKUP_PATH"'));
 });
+
+it('exports only the approved Fresh UAT scripts and period migrations from CI', function (): void {
+    $source = file_get_contents(base_path('ops/uat-fresh-export-release.sh'));
+    expect($source)->toContain('git archive --format=tar HEAD')
+        ->toContain('ops/uat-fresh-stage-18-21.sh')
+        ->toContain('ops/uat-fresh-identity-check.sh')
+        ->toContain('ops/uat-fresh-backup-verify.sh')
+        ->toContain('ops/uat-fresh-period-migrations.sh')
+        ->toContain('0001_12_02_000010_add_document_additional_discount.php')
+        ->toContain('0001_12_02_000020_create_contact_transfers.php')
+        ->toContain('sha256sum')
+        ->not->toContain('docker compose up');
+});
