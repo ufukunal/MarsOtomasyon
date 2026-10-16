@@ -60,6 +60,15 @@ class CollectionForm extends Component
     {
         abort_if($this->correctionMode, 422, 'Önce eski kaydı tersleyerek düzeltme işlemine başlayın.');
         abort_unless(auth()->user()?->can('collections.create'), 403);
+        $this->validate([
+            'contactId' => ['required', 'integer', 'min:1'],
+            'amount' => ['required', 'numeric', 'gt:0'],
+            'documentDate' => ['required', 'date'],
+            'accountType' => ['required', 'in:cash,bank'],
+            'accountId' => ['required', 'integer', 'min:1'],
+            'sourceInvoiceId' => ['nullable', 'integer', 'min:1'],
+            'note' => ['nullable', 'string', 'max:1000'],
+        ]);
         $document = $action->handle(
             (int) $this->contactId,
             $this->amount,
