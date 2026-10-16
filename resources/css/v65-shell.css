@@ -2196,3 +2196,13 @@
   .app-shell .v65-doc-heading { break-after:avoid; page-break-after:avoid; }
   .app-shell .v65-doc-source-references { break-inside:avoid; }
 }
+
+/* Hızlı belge kalemi girişi: v65 grid, dar satırlar ve gerektiğinde açılan not. */
+.app-shell .v65-doc-table thead th{height:33px;padding:6px 7px}
+.app-shell .v65-doc-table tbody td{padding:5px 6px;min-height:38px}
+.app-shell .v65-doc-table td :where(select,input:not([type="checkbox"])){min-height:32px;height:32px;padding:0 7px}
+.app-shell .v65-doc-product-cell .v65-doc-product-search{margin-bottom:4px}
+.app-shell .v65-doc-line-details{margin-top:4px;font-size:10px;color:#56718b}
+.app-shell .v65-doc-line-details summary{cursor:pointer;display:inline-block}
+.app-shell .v65-doc-line-details summary:hover{text-decoration:underline}
+.app-shell .v65-doc-line-details .v65-doc-line-description{margin-top:4px}

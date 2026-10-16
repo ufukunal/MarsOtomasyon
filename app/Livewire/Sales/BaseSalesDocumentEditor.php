@@ -7,6 +7,7 @@ use App\Actions\Documents\SaveSalesDocumentDraft;
 use App\DataObjects\Documents\DocumentTotals;
 use App\Enums\DocumentType;
 use App\Enums\LocationKind;
+use App\Livewire\Concerns\WithFastDocumentLines;
 use App\Livewire\Concerns\WithIdempotentMutations;
 use App\Models\Period\Contact;
 use App\Models\Period\Document;
@@ -22,6 +23,7 @@ use Livewire\Component;
 
 abstract class BaseSalesDocumentEditor extends Component
 {
+    use WithFastDocumentLines;
     use WithIdempotentMutations;
 
     public ?Document $document = null;
@@ -166,6 +168,12 @@ abstract class BaseSalesDocumentEditor extends Component
             }
         }
 
+        // After selecting a product or editing a service line, a new blank row
+        // is available without requiring the "+ Satır Ekle" button.
+        if (str_starts_with($property, 'lines.')) {
+            $this->ensureNextEntryRow();
+        }
+
         foreach (['contactId', 'documentDate', 'dueDate', 'validUntil', 'currency', 'exchangeRate', 'discountRate', 'notes', 'lines'] as $field) {
             if ($property === $field || str_starts_with($property, $field.'.')) {
                 $this->documentDirty = true;
@@ -228,8 +236,8 @@ abstract class BaseSalesDocumentEditor extends Component
 
     public function addLine(): void
     {
-        $this->lines[] = $this->emptyLine();
-        $this->documentDirty = true;
+        // There is always one ready-to-use row; never create duplicate blanks.
+        $this->ensureNextEntryRow();
     }
 
     public function removeLine(int $index): void
@@ -240,6 +248,7 @@ abstract class BaseSalesDocumentEditor extends Component
         }
         unset($this->lines[$index]);
         $this->lines = array_values($this->lines);
+        $this->ensureNextEntryRow();
         $this->documentDirty = true;
     }
 
@@ -258,7 +267,9 @@ abstract class BaseSalesDocumentEditor extends Component
         );
 
         foreach ($this->lines as $index => $line) {
-            $this->lines[$index]['vat_rate'] = $rate;
+            if (! $this->isUnusedEntryRow($line)) {
+                $this->lines[$index]['vat_rate'] = $rate;
+            }
         }
         $this->documentDirty = true;
     }
@@ -266,7 +277,9 @@ abstract class BaseSalesDocumentEditor extends Component
     public function clearVat(): void
     {
         foreach ($this->lines as $index => $line) {
-            $this->lines[$index]['vat_rate'] = '0.0000';
+            if (! $this->isUnusedEntryRow($line)) {
+                $this->lines[$index]['vat_rate'] = '0.0000';
+            }
         }
         $this->documentDirty = true;
     }
@@ -276,6 +289,15 @@ abstract class BaseSalesDocumentEditor extends Component
         abort_unless(auth()->user()?->can(
             $this->permissionPrefix().($this->document ? '.update' : '.create')
         ), 403);
+
+        // Exclude the UI-only trailing entry row, not partially entered lines.
+        $this->lines = $this->enteredLines();
+        if ($this->lines === []) {
+            $this->ensureNextEntryRow();
+            throw ValidationException::withMessages([
+                'lines' => 'Belgeye en az bir ürün veya hizmet ekleyin.',
+            ]);
+        }
 
         $this->validate([
             'contactId' => ['required', 'integer'],
@@ -342,12 +364,13 @@ abstract class BaseSalesDocumentEditor extends Component
             return null;
         }
 
-        if ($this->lines === []) {
+        $entered = $this->enteredLines();
+        if ($entered === []) {
             return null;
         }
 
         $input = [];
-        foreach ($this->lines as $line) {
+        foreach ($entered as $line) {
             $quantity = trim((string) ($line['quantity'] ?? ''));
             $price = trim((string) ($line['unit_price'] ?? ''));
             $vat = trim((string) ($line['vat_rate'] ?? '0'));
@@ -474,6 +497,9 @@ abstract class BaseSalesDocumentEditor extends Component
             'configuration' => $line->configuration,
             'source_line_id' => $line->source_line_id,
         ])->all();
+        if ($document->status === 'draft') {
+            $this->ensureNextEntryRow();
+        }
     }
 
     /** @return array<string,mixed> */

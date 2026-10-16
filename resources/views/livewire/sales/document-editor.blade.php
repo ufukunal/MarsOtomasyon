@@ -69,7 +69,7 @@
             <section class="v65-doc-lines" aria-label="Belge kalemleri">
                 <div class="v65-doc-lines-head">
                     <strong>Belge Kalemleri</strong>
-                    <small>Miktar, fiyat ve vergi değişince taslak toplamları güncellenir.</small>
+                    <small>Ürün seçtiğinizde sonraki boş satır otomatik hazırlanır. Boş satırlar kaydedilmez.</small>
                 </div>
                 <small class="v65-doc-mobile-scroll-hint">Tablodaki diğer satır alanlarını görmek için yatay kaydırın.</small>
                 <div class="table-scroll document-lines v65-doc-table-scroll"><table class="data-table v65-doc-table">
@@ -91,7 +91,7 @@
                             </td>
                             <td class="v65-doc-product-cell">
                                 @if(($line['line_kind'] ?? 'stock') === 'service')
-                                    <input wire:model="lines.{{ $index }}.description" placeholder="Hizmet açıklaması" aria-invalid="{{ $errors->has('lines.'.$index.'.description') ? 'true' : 'false' }}" aria-label="Satır {{ $index + 1 }} hizmet açıklaması"><x-v65.input-error :field="'lines.'.$index.'.description'" />
+                                    <input wire:model.blur="lines.{{ $index }}.description" placeholder="Hizmet açıklaması" aria-invalid="{{ $errors->has('lines.'.$index.'.description') ? 'true' : 'false' }}" aria-label="Satır {{ $index + 1 }} hizmet açıklaması"><x-v65.input-error :field="'lines.'.$index.'.description'" />
                                 @else
                                     <input type="search" class="v65-doc-product-search"
                                         wire:model.live.debounce.300ms="productSearches.{{ $line['row_key'] ?? $index }}"
@@ -107,7 +107,9 @@
                                         @endforelse
                                     </select>
                                     <x-v65.input-error :field="'lines.'.$index.'.product_id'" />
-                                    <input class="v65-doc-line-description" wire:model="lines.{{ $index }}.description" placeholder="Satır açıklaması (isteğe bağlı)" aria-label="Satır {{ $index + 1 }} açıklama">
+                                    <details class="v65-doc-line-details"><summary>Satır açıklaması</summary>
+                                        <input class="v65-doc-line-description" wire:model="lines.{{ $index }}.description" placeholder="İsteğe bağlı açıklama" aria-label="Satır {{ $index + 1 }} açıklama">
+                                    </details>
                                 @endif
                             </td>
                             <td>
