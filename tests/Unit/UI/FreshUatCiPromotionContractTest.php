@@ -42,3 +42,22 @@ it('exports both CI and Fresh promotion scripts in a hash-verifiable release pac
         ->toContain('mars-fresh-18-23-$SHA.tar.gz')
         ->toContain('sha256sum');
 });
+
+it('transports an immutable CI-built image offline without invoking a PROD build', function (): void {
+    $export = file_get_contents(base_path('ops/uat-fresh-ci-export-image.sh'));
+    $import = file_get_contents(base_path('ops/uat-fresh-import-image.sh'));
+    $promote = file_get_contents(base_path('ops/uat-fresh-ci-image-promote.sh'));
+    $package = file_get_contents(base_path('ops/uat-fresh-export-release.sh'));
+
+    expect($export)->toContain('sudo docker save "$IMAGE"')
+        ->toContain('sha256sum')
+        ->toContain('CI_OFFLINE_IMAGE=PASS');
+    expect($import)->toContain('sha256sum -c --status')
+        ->toContain('sudo docker load -i "$FILE"')
+        ->toContain('MARS_FRESH_OFFLINE_IMAGE=1 bash "$PROMOTE" "$SHA"')
+        ->not->toContain('docker build');
+    expect($promote)->toContain('MARS_FRESH_OFFLINE_IMAGE')
+        ->toContain('sudo docker image inspect "$NEW_IMAGE"');
+    expect($package)->toContain('ops/uat-fresh-ci-export-image.sh')
+        ->toContain('ops/uat-fresh-import-image.sh');
+});
