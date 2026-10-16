@@ -2258,3 +2258,50 @@
     width:100%;
   }
 }
+
+
+/* Finance voucher screens: shared V65 composition for collection and payment. */
+.app-shell .v65-workspace-form>.v65-voucher-panel{
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:12px 16px;align-items:start;padding:18px;
+}
+.app-shell .v65-workspace-form>.v65-voucher-panel>h2,
+.app-shell .v65-workspace-form>.v65-voucher-panel>.v65-contact-transfer-balance,
+.app-shell .v65-workspace-form>.v65-voucher-panel>.v65-notice,
+.app-shell .v65-workspace-form>.v65-voucher-panel>.v65-form-footer,
+.app-shell .v65-workspace-form>.v65-voucher-panel>.v65-form-actions{
+  grid-column:1/-1;
+}
+.app-shell .v65-voucher-panel>.field,
+.app-shell .v65-voucher-panel>.v65-select-field{min-width:0;margin:0}
+.app-shell .v65-voucher-panel :where(input:not([type=checkbox]),select,textarea){
+  box-sizing:border-box;width:100%;max-width:100%;min-width:0;
+}
+.app-shell .v65-voucher-panel :where(input:not([type=checkbox]),select){
+  min-height:38px;
+}
+.app-shell .v65-voucher-panel textarea{min-height:80px;resize:vertical}
+.app-shell .v65-voucher-panel .v65-contact-transfer-balance{
+  padding:10px 12px;background:#f8fafc;border:1px solid #e0e8f1;
+}
+.app-shell .v65-financial-history{
+  min-width:0;padding:16px 18px;
+}
+.app-shell .v65-financial-history h3{margin:0 0 8px}
+.app-shell .v65-financial-history>.table-scroll{
+  margin-top:12px;max-width:100%;overflow-x:auto;
+}
+.app-shell .v65-financial-history .data-table :where(th,td){vertical-align:middle}
+.app-shell .v65-financial-history .data-table :where(th:last-child,td:last-child){
+  white-space:nowrap;text-align:end;
+}
+@media(max-width:720px){
+  .app-shell .v65-workspace-form>.v65-voucher-panel{
+    grid-template-columns:minmax(0,1fr);padding:12px;
+  }
+  .app-shell .v65-financial-history{padding:12px}
+}
+@media print{
+  .app-shell .v65-workspace-form>.v65-voucher-panel{display:block}
+  .app-shell .v65-voucher-panel :where(button,.v65-form-actions){display:none!important}
+}
