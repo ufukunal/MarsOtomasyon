@@ -20,12 +20,30 @@ abstract class SecurityScreen extends SecuritiesCenter
     }
 
     protected const KIND = 'check';
+
     protected const MODE = 'list';
+
     protected const DIRECTION = null;
+
     protected const TITLE = 'Çek / Senet';
 
-    protected function scopeKind(): ?string { return static::KIND; }
-    protected function scopeDirection(): ?string { return static::DIRECTION; }
-    protected function scopeMode(): string { return static::MODE; }
-    protected function scopeTitle(): string { return static::TITLE; }
+    protected function scopeKind(): ?string
+    {
+        return static::KIND;
+    }
+
+    protected function scopeDirection(): ?string
+    {
+        return static::DIRECTION;
+    }
+
+    protected function scopeMode(): string
+    {
+        return static::MODE;
+    }
+
+    protected function scopeTitle(): string
+    {
+        return static::TITLE;
+    }
 }

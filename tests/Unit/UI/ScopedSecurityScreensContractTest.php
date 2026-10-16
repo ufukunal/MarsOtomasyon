@@ -32,7 +32,6 @@ it('requires server-side scoped kind and direction on cheque/senet creation and 
         ->toContain("->where('status', 'portfolio')");
 });
 
-
 it('restricts standalone creation and endorsement routes by server roles', function (): void {
     $source = file_get_contents(base_path('app/Livewire/Finance/SecurityScreen.php'));
 

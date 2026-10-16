@@ -17,13 +17,25 @@ class SecuritiesCenter extends Component
 {
     use WithIdempotentMutations;
 
-    protected function scopeKind(): ?string { return null; }
+    protected function scopeKind(): ?string
+    {
+        return null;
+    }
 
-    protected function scopeDirection(): ?string { return null; }
+    protected function scopeDirection(): ?string
+    {
+        return null;
+    }
 
-    protected function scopeMode(): string { return 'center'; }
+    protected function scopeMode(): string
+    {
+        return 'center';
+    }
 
-    protected function scopeTitle(): string { return 'Çek / Senet'; }
+    protected function scopeTitle(): string
+    {
+        return 'Çek / Senet';
+    }
 
     public string $direction = 'incoming';
 
