@@ -44,3 +44,11 @@ it('keeps fixed discount, document relations and source-line traceability on pur
         ->and($routes)->toContain("->name('purchases.quotes.index')")
         ->toContain("->name('purchases.quotes.edit')");
 });
+
+
+it('refuses purchase quote approval and order conversion when editor changes are not saved', function (): void {
+    $editor = file_get_contents(base_path('app/Livewire/Purchases/PurchaseQuoteEditor.php'));
+
+    expect($editor)->toMatch('/function approveQuote\([^)]*\): void\s*\{\s*\$this->requireSavedDraft\(\);/s')
+        ->toMatch('/function convertToOrder\([^)]*\): mixed\s*\{\s*\$this->requireSavedDraft\(\);/s');
+});
