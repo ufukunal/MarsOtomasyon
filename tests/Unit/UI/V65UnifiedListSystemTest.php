@@ -156,3 +156,20 @@ it('defines and uses the new reusable V65 form and list primitives', function ()
         ->and($category)->toContain('<x-v65.status-badge')
         ->toContain('<x-v65.empty-state');
 });
+
+
+it('keeps global V65 selection and filter controls accessible and aligned', function (): void {
+    $select = file_get_contents(base_path('resources/views/components/v65/select.blade.php'));
+    $button = file_get_contents(base_path('resources/views/components/v65/button.blade.php'));
+    $footer = file_get_contents(base_path('resources/views/components/v65/list-footer.blade.php'));
+    $css = file_get_contents(base_path('resources/css/v65-shell.css'));
+
+    expect($select)->toContain("'invalid' => false")
+        ->toContain("'v65-select-control'")
+        ->toContain("'aria-invalid'")
+        ->and($button)->toContain("'v65-btn--'.\$size")
+        ->and($footer)->toContain("wire:change=\"setPerPage(\$event.target.value)\"")
+        ->and($css)->toContain('.v65-select-control[aria-invalid="true"]')
+        ->toContain('.v65-list-filters')
+        ->toContain('.table-toolbar-actions,.v65-page-actions,.v65-form-actions,.row-actions');
+});
