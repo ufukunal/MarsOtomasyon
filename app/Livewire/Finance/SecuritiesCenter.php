@@ -104,6 +104,8 @@ class SecuritiesCenter extends Component
     public function cancelSecurityEdit(): void
     {
         $this->editingSecurityId = null;
+        $this->editingSecurityVersion = 0;
+        $this->editingDueDate = '';
         $this->editingNotes = '';
     }
 
