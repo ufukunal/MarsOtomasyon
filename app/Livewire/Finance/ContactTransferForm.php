@@ -17,18 +17,31 @@ class ContactTransferForm extends Component
     use WithIdempotentMutations;
 
     public ?int $sourceContactId = null;
+
     public ?int $targetContactId = null;
+
     public string $sourceSearch = '';
+
     public string $targetSearch = '';
+
     public string $balanceType = 'debit';
+
     public string $amount = '';
+
     public string $documentDate = '';
+
     public string $reason = '';
+
     public bool $showOverdraftConfirm = false;
+
     public bool $overdraftConfirmed = false;
+
     public bool $overdraftAcknowledged = false;
+
     public ?int $postedTransferId = null;
+
     public string $reversalDate = '';
+
     public string $reversalReason = '';
 
     public ?int $pendingReversalId = null;
@@ -154,6 +167,7 @@ class ContactTransferForm extends Component
 
         if (bccomp($this->amount, $available, 4) > 0 && ! $this->overdraftConfirmed) {
             $this->showOverdraftConfirm = true;
+
             return;
         }
 

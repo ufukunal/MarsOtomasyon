@@ -32,13 +32,13 @@ return new class extends Migration
         });
 
         DB::connection('period')->statement(
-            "ALTER TABLE contact_transfers ADD CONSTRAINT contact_transfers_distinct_contacts CHECK (source_contact_id <> target_contact_id)"
+            'ALTER TABLE contact_transfers ADD CONSTRAINT contact_transfers_distinct_contacts CHECK (source_contact_id <> target_contact_id)'
         );
         DB::connection('period')->statement(
             "ALTER TABLE contact_transfers ADD CONSTRAINT contact_transfers_balance_type_valid CHECK (balance_type IN ('debit','credit'))"
         );
         DB::connection('period')->statement(
-            "ALTER TABLE contact_transfers ADD CONSTRAINT contact_transfers_amount_positive CHECK (amount > 0)"
+            'ALTER TABLE contact_transfers ADD CONSTRAINT contact_transfers_amount_positive CHECK (amount > 0)'
         );
         DB::connection('period')->statement(
             "ALTER TABLE contact_transfers ADD CONSTRAINT contact_transfers_try_only CHECK (currency = 'TRY')"

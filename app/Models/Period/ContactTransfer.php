@@ -32,10 +32,10 @@ final class ContactTransfer extends PeriodModel
 
     protected static function booted(): void
     {
-        static::updating(function (): never {
+        self::updating(function (): never {
             throw new LogicException('Kesinleşmiş cari virman yerinde değiştirilemez.');
         });
-        static::deleting(function (): never {
+        self::deleting(function (): never {
             throw new LogicException('Cari virman silinemez; ters kayıt kullanılmalıdır.');
         });
     }

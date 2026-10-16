@@ -18,7 +18,7 @@ final class ProrateFixedDiscount
     public function __construct(private readonly CalculateDocumentTotals $calculator) {}
 
     /**
-     * @param list<array<string,mixed>> $selectedLines
+     * @param  list<array<string,mixed>>  $selectedLines
      */
     public function handle(Document $source, array $selectedLines): string
     {

@@ -2,6 +2,7 @@
 
 namespace App\Support\Reporting\Export;
 
+use App\Support\Formatting\BusinessLabelFormatter;
 use RuntimeException;
 
 final class CsvReportExporter
@@ -29,7 +30,7 @@ final class CsvReportExporter
             foreach ($dataset->columns as $column) {
                 $value = $row[$column->key] ?? null;
                 if ($value !== null) {
-                    $value = \App\Support\Formatting\BusinessLabelFormatter::report($dataset->key, $column->key, $value);
+                    $value = BusinessLabelFormatter::report($dataset->key, $column->key, $value);
                 }
                 $values[] = $this->safeValue($value, (string) $column->type);
             }

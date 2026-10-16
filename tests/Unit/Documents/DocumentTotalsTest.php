@@ -1,6 +1,8 @@
 <?php
 
 use App\Actions\Documents\CalculateDocumentTotals;
+use App\Models\Period\Document;
+use App\Support\Documents\ProrateFixedDiscount;
 
 it('calculates subtotal VAT and grand total for sales and purchase line shapes', function (): void {
     $totals = app(CalculateDocumentTotals::class)->handle([
@@ -47,7 +49,7 @@ it('permits zero-priced lines without manufacturing a VAT amount', function (): 
 });
 
 it('adds a fixed bottom discount after percentage discount and allocates VAT correctly', function (): void {
-    $result = app(\App\Actions\Documents\CalculateDocumentTotals::class)->handle([
+    $result = app(CalculateDocumentTotals::class)->handle([
         ['quantity' => '1', 'unit_price' => '100', 'vat_rate' => '20'],
         ['quantity' => '1', 'unit_price' => '100', 'vat_rate' => '10'],
     ], '10', '0', '20');
@@ -61,19 +63,18 @@ it('adds a fixed bottom discount after percentage discount and allocates VAT cor
 });
 
 it('rejects a negative extra discount or combined amount above subtotal', function (): void {
-    $calculator = app(\App\Actions\Documents\CalculateDocumentTotals::class);
+    $calculator = app(CalculateDocumentTotals::class);
     $lines = [['quantity' => '1', 'unit_price' => '100', 'vat_rate' => '20']];
 
-    expect(fn () => $calculator->handle($lines, '0', '0', '-1'))->toThrow(\DomainException::class)
-        ->and(fn () => $calculator->handle($lines, '60', '0', '41'))->toThrow(\DomainException::class);
+    expect(fn () => $calculator->handle($lines, '0', '0', '-1'))->toThrow(DomainException::class)
+        ->and(fn () => $calculator->handle($lines, '60', '0', '41'))->toThrow(DomainException::class);
 });
 
-
 it('prorates a fixed source document discount without duplicating it on partial deliveries', function (): void {
-    $source = new \App\Models\Period\Document;
+    $source = new Document;
     $source->subtotal = '200.0000';
     $source->additional_discount_amount = '50.0000';
-    $allocator = app(\App\Support\Documents\ProrateFixedDiscount::class);
+    $allocator = app(ProrateFixedDiscount::class);
     $half = [['quantity' => '1', 'unit_price' => '100', 'vat_rate' => '20']];
     $whole = [['quantity' => '2', 'unit_price' => '100', 'vat_rate' => '20']];
 
@@ -82,12 +83,12 @@ it('prorates a fixed source document discount without duplicating it on partial 
 });
 
 it('recognizes a saved combined percentage and extra discount during posting verification', function (): void {
-    $result = app(\App\Actions\Documents\CalculateDocumentTotals::class)->handle([
+    $result = app(CalculateDocumentTotals::class)->handle([
         ['quantity' => '1', 'unit_price' => '100', 'vat_rate' => '20'],
     ], '10', '0', '25');
 
     $percentagePart = bcsub($result->discountAmount, '25.0000', 4);
-    $rechecked = app(\App\Actions\Documents\CalculateDocumentTotals::class)->handle([
+    $rechecked = app(CalculateDocumentTotals::class)->handle([
         ['quantity' => '1', 'unit_price' => '100', 'vat_rate' => '20'],
     ], $result->discountRate, $percentagePart, '25.0000');
 

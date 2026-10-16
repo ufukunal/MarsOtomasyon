@@ -7,6 +7,7 @@ use App\Actions\Reporting\ExportReport;
 use App\Actions\Reporting\QueueReportExport;
 use App\Actions\Reporting\RunReport;
 use App\Actions\Reporting\SaveReportPreset;
+use App\Support\Formatting\BusinessLabelFormatter;
 use App\Support\Period\PeriodContext;
 use App\Support\Reporting\ReportCatalog;
 use App\Support\Reporting\ReportCatalogItem;
@@ -247,7 +248,7 @@ final class ReportCenter extends Component
             return filter_var($value, FILTER_VALIDATE_BOOL) ? 'Evet' : 'Hayır';
         }
 
-        return \App\Support\Formatting\BusinessLabelFormatter::report($this->reportKey, $column->key, $value);
+        return BusinessLabelFormatter::report($this->reportKey, $column->key, $value);
     }
 
     public function isNumericColumn(ReportColumnDefinition $column): bool

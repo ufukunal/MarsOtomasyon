@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\DocumentType;
 use App\Livewire\Components\DataTable\Column;
 use App\Support\Formatting\BusinessLabelFormatter as Labels;
 use App\Support\Formatting\TableValueFormatter;
@@ -7,7 +8,7 @@ use App\Support\Formatting\TableValueFormatter;
 it('shows Turkish labels while retaining original typed codes for storage and filtering', function (): void {
     expect(Labels::contactTransaction('opening'))->toBe('Açılış Bakiyesi')
         ->and(Labels::stockMovement('opening'))->toBe('Açılış Stok Girişi')
-        ->and(Labels::documentType(\App\Enums\DocumentType::SalesInvoice))->toBe('Satış Faturası')
+        ->and(Labels::documentType(DocumentType::SalesInvoice))->toBe('Satış Faturası')
         ->and(Labels::direction('debit'))->toBe('Borç')
         ->and(Labels::direction('credit'))->toBe('Alacak')
         ->and(Labels::value('security_kind', 'note'))->toBe('Senet')

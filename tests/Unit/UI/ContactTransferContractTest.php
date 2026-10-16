@@ -11,13 +11,12 @@ it('keeps cari virman atomic, balanced and permission-gated at the source', func
         ->toContain("'currency' => 'TRY'")
         ->toContain("'direction' => \$sourceDirection")
         ->toContain("'direction' => \$targetDirection")
-        ->toContain("IdempotencyKey::run(")
+        ->toContain('IdempotencyKey::run(')
         ->and($reversal)->toContain("MutationAuthorizer::authorize('contact_transfers.cancel')")
         ->toContain("'reversal_of_id' => \$entry->id")
         ->and($migration)->toContain('contact_transfers_distinct_contacts')
         ->toContain('contact_transfers_try_only');
 });
-
 
 it('requires confirmation for reversals and does not offer already reversed documents', function (): void {
     $form = file_get_contents(base_path('app/Livewire/Finance/ContactTransferForm.php'));

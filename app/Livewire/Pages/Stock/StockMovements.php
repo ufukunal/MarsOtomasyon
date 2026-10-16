@@ -9,6 +9,7 @@ use App\Livewire\Components\DataTable\SelectFilter;
 use App\Models\Period\Location;
 use App\Models\Period\Product;
 use App\Models\Period\StockMovement;
+use App\Support\Formatting\BusinessLabelFormatter;
 use App\Support\Stock\StockMovementListQuery;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -104,7 +105,7 @@ class StockMovements extends DataTableComponent
                     ->distinct()
                     ->orderBy('document_type')
                     ->pluck('document_type')
-                    ->mapWithKeys(fn ($type) => [(string) $type => \App\Support\Formatting\BusinessLabelFormatter::documentType($type)])
+                    ->mapWithKeys(fn ($type) => [(string) $type => BusinessLabelFormatter::documentType($type)])
                     ->all(),
             ),
             SelectFilter::make('created_by', 'Kullanıcı')->options(

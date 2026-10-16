@@ -2,6 +2,7 @@
 
 namespace App\Support\Reporting\Export;
 
+use App\Support\Formatting\BusinessLabelFormatter;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Cell\DataType;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -25,7 +26,7 @@ final class XlsxReportExporter
             foreach ($dataset->columns as $columnIndex => $column) {
                 $value = $row[$column->key] ?? null;
                 if ($value !== null) {
-                    $value = \App\Support\Formatting\BusinessLabelFormatter::report($dataset->key, $column->key, $value);
+                    $value = BusinessLabelFormatter::report($dataset->key, $column->key, $value);
                 }
                 $cell = $sheet->getCell([$columnIndex + 1, $rowIndex + 2]);
 
