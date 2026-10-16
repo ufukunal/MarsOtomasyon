@@ -46,3 +46,19 @@ it('does not allow a collection correction to reverse a payment or vice versa', 
             ->toContain('->findOrFail($this->postedDocumentId)');
     }
 });
+
+
+it('validates voucher posting and retains aligned V65 screens', function (): void {
+    foreach (['Finance/CollectionForm.php', 'Purchases/PaymentForm.php'] as $file) {
+        $source = file_get_contents(base_path('app/Livewire/'.$file));
+        expect($source)->toContain("'contactId' => ['required', 'integer', 'min:1']")
+            ->toContain("'amount' => ['required', 'numeric', 'gt:0']")
+            ->toContain("'accountType' => ['required', 'in:cash,bank']");
+    }
+    foreach (['finance/collection-form.blade.php', 'purchases/payment-form.blade.php'] as $file) {
+        $blade = file_get_contents(base_path('resources/views/livewire/'.$file));
+        expect($blade)->toContain('v65-voucher-panel')
+            ->toContain('wire:key="account-{{ $accountType }}"')
+            ->toContain('wire:model.live="contactId"');
+    }
+});
