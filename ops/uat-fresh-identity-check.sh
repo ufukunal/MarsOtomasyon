@@ -42,6 +42,12 @@ DB_NAMES="$(sudo docker exec "$PG" psql -w -XAtq -v ON_ERROR_STOP=1 -U mars_uat_
 PERIOD_NAME="$(sudo docker exec "$PG" psql -w -XAtq -v ON_ERROR_STOP=1 -U mars_uat_owner -d mars_uat_demo_2026 -c 'SELECT current_database();' 2>/dev/null)" || fail 'cannot connect to Fresh period database'
 [ "$PERIOD_NAME" = 'mars_uat_demo_2026' ] || fail 'Fresh period database mismatch'
 
+MASTER_MAPPING="$(sudo docker exec "$PG" psql -w -XAtq -v ON_ERROR_STOP=1 -U mars_uat_owner -d mars_uat_master -c "SELECT count(*) FROM periods WHERE database_name='mars_uat_demo_2026' AND year=2026 AND status='active';" 2>/dev/null)" || fail 'cannot validate Fresh master period mapping'
+[ "$MASTER_MAPPING" = '1' ] || fail 'Fresh period is missing, inactive or mapped ambiguously'
+PIN_SHA="$(sed -n 's/^MARS_UAT_SHA=//p' "$ENV_FILE")"
+IMAGE="$(sudo docker inspect "$WEB" --format '{{.Config.Image}}' 2>/dev/null)" || fail 'cannot read Fresh web image'
+[ "$IMAGE" = "ghcr.io/ufukunal/marsotomasyon:uat-$PIN_SHA" ] || fail 'Fresh web image does not match its pinned commit'
+
 # Explicit runtime identity; do not dump container environment (contains secrets).
 APP_ID="$(sudo docker exec "$WEB" php -r '
 $e = getenv("APP_ENV"); $m = getenv("DB_MASTER_DATABASE");
