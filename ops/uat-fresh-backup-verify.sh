@@ -5,8 +5,8 @@ umask 077
 die(){ printf 'BLOCKED: %s\n' "$*" >&2; exit 77; }
 [[ "$EUID" != 0 ]] || die 'run as normal UAT user'
 for c in sudo docker sha256sum stat mktemp df awk date; do command -v "$c" >/dev/null || die "missing: $c"; done
-ROOT="$HOME/mars-uat-fresh-src"
-GATE="$ROOT/ops/uat-fresh-identity-check.sh"
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
+GATE="$SCRIPT_DIR/uat-fresh-identity-check.sh"
 [[ -f "$GATE" && ! -L "$GATE" ]] || die 'identity gate absent: sync checkout'
 bash "$GATE" || die 'Fresh identity gate failed'
 
