@@ -41,6 +41,7 @@ class PurchaseQuoteEditor extends BasePurchaseDocumentEditor
 
     public function convertToOrder(ConvertPurchaseQuoteToOrder $action): mixed
     {
+        $this->requireSavedDraft();
         abort_unless($this->document !== null, 422);
         $order = $action->handle($this->document, $this->mutationKey('convertToOrder'));
         $this->completeMutation('convertToOrder');
