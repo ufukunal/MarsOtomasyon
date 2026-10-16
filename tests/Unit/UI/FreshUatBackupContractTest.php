@@ -41,5 +41,7 @@ it('refuses Fresh schema migrations without the matching restore-verified backup
         ->toContain('DB_PERIOD_DATABASE=mars_uat_demo_2026')
         ->toContain('--database=period')
         ->toContain('--no-deps')
+        ->toContain('VERIFIED_EPOCH')
+        ->toContain('-le 3600')
         ->toContain('FRESH_PERIOD_MIGRATIONS=PASS');
 });
