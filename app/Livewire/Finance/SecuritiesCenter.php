@@ -17,6 +17,14 @@ class SecuritiesCenter extends Component
 {
     use WithIdempotentMutations;
 
+    protected function scopeKind(): ?string { return null; }
+
+    protected function scopeDirection(): ?string { return null; }
+
+    protected function scopeMode(): string { return 'center'; }
+
+    protected function scopeTitle(): string { return 'Çek / Senet'; }
+
     public string $direction = 'incoming';
 
     public string $kind = 'check';
@@ -62,13 +70,19 @@ class SecuritiesCenter extends Component
         $this->dueDate = now()->addMonth()->toDateString();
         $this->payrollDate = now()->toDateString();
         $this->reversalDate = now()->toDateString();
+        $this->kind = $this->scopeKind() ?? $this->kind;
+        $this->direction = $this->scopeDirection() ?? $this->direction;
+        if ($this->scopeMode() === 'endorse') {
+            $this->payrollAction = 'endorsement';
+        }
     }
 
     public function create(CreateSecurity $action): void
     {
+        abort_unless(in_array($this->scopeMode(), ['center', 'create'], true), 403);
         $action->handle(
-            $this->direction,
-            $this->kind,
+            $this->scopeDirection() ?? $this->direction,
+            $this->scopeKind() ?? $this->kind,
             $this->instrumentNo,
             (int) $this->contactId,
             $this->amount,
@@ -86,8 +100,18 @@ class SecuritiesCenter extends Component
 
     public function postPayroll(PostSecurityPayroll $action): void
     {
+        abort_unless(in_array($this->scopeMode(), ['center', 'endorse'], true), 403);
+        if ($this->scopeMode() === 'endorse') {
+            $ids = array_values(array_unique(array_map('intval', $this->selectedSecurityIds)));
+            $eligible = Security::query()->whereIn('id', $ids)
+                ->where('kind', $this->scopeKind())
+                ->where('direction', 'incoming')
+                ->where('status', 'portfolio')->count();
+            abort_if($ids === [] || $eligible !== count($ids), 422);
+        }
+
         $action->handle(
-            $this->payrollAction,
+            $this->scopeMode() === 'endorse' ? 'endorsement' : $this->payrollAction,
             $this->selectedSecurityIds,
             $this->payrollDate,
             $this->mutationKey('payroll'),
@@ -101,6 +125,7 @@ class SecuritiesCenter extends Component
 
     public function reversePayroll(ReverseSecurityPayroll $action): void
     {
+        abort_unless($this->scopeMode() === 'center', 403);
         $payroll = SecurityPayroll::query()->findOrFail((int) $this->reversePayrollId);
 
         $action->handle(
@@ -115,15 +140,26 @@ class SecuritiesCenter extends Component
 
     public function render(): View
     {
+        $securities = Security::query()->with(['contact', 'endorsedToContact', 'bankAccount']);
+        if ($this->scopeKind() !== null) {
+            $securities->where('kind', $this->scopeKind());
+        }
+        if ($this->scopeMode() === 'create' && $this->scopeDirection() !== null) {
+            $securities->where('direction', $this->scopeDirection());
+        }
+        if ($this->scopeMode() === 'endorse') {
+            $securities->where('direction', 'incoming');
+        }
+
         return view('livewire.finance.securities-center', [
+            'screenMode' => $this->scopeMode(),
+            'screenTitle' => $this->scopeTitle(),
+            'screenKind' => $this->scopeKind(),
+            'screenDirection' => $this->scopeDirection(),
             'contacts' => Contact::query()->where('is_active', true)->orderBy('title')->limit(500)->get(),
             'bankAccounts' => BankAccount::query()->where('is_active', true)->orderBy('code')->get(),
-            'securities' => Security::query()->with(['contact', 'endorsedToContact', 'bankAccount'])
-                ->orderBy('due_date')
-                ->orderBy('id')
-                ->limit(500)
-                ->get(),
+            'securities' => $securities->orderBy('due_date')->orderBy('id')->limit(500)->get(),
             'payrolls' => SecurityPayroll::query()->latest('payroll_date')->latest('id')->limit(100)->get(),
-        ])->layout('layouts.app', ['pageTitle' => 'Çek / Senet']);
+        ])->layout('layouts.app', ['pageTitle' => $this->scopeTitle()]);
     }
 }

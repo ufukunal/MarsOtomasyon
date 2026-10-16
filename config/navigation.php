@@ -94,7 +94,15 @@ return [
     [
         'label' => 'Çek / Senet',
         'items' => [
-            ['label' => 'Çek / Senet', 'route' => 'finance.securities', 'permission' => 'securities.view'],
+            ['label' => 'Çek / Senet Merkezi', 'route' => 'finance.securities', 'permission' => 'securities.view'],
+            ['label' => 'Çek Listesi', 'route' => 'finance.checks.index', 'permission' => 'securities.view'],
+            ['label' => 'Alınan Çek', 'route' => 'finance.checks.incoming', 'permission' => 'securities.view'],
+            ['label' => 'Verilen Çek', 'route' => 'finance.checks.outgoing', 'permission' => 'securities.view'],
+            ['label' => 'Çek Ciro', 'route' => 'finance.checks.endorsement', 'permission' => 'securities.view'],
+            ['label' => 'Senet Listesi', 'route' => 'finance.notes.index', 'permission' => 'securities.view'],
+            ['label' => 'Alınan Senet', 'route' => 'finance.notes.incoming', 'permission' => 'securities.view'],
+            ['label' => 'Verilen Senet', 'route' => 'finance.notes.outgoing', 'permission' => 'securities.view'],
+            ['label' => 'Senet Ciro', 'route' => 'finance.notes.endorsement', 'permission' => 'securities.view'],
         ],
     ],
     [

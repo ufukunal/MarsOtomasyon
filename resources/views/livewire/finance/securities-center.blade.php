@@ -1,8 +1,24 @@
 <div class="space-y-8 v65-list-page">
+    @if($screenMode !== 'center')
+        <section class="panel stack">
+            <h2>{{ $screenTitle }}</h2>
+            <nav class="v65-security-nav" aria-label="Çek ve senet işlemleri">
+                @foreach([
+                    'finance.checks.index' => 'Çek Listesi', 'finance.checks.incoming' => 'Alınan Çek',
+                    'finance.checks.outgoing' => 'Verilen Çek', 'finance.checks.endorsement' => 'Çek Ciro',
+                    'finance.notes.index' => 'Senet Listesi', 'finance.notes.incoming' => 'Alınan Senet',
+                    'finance.notes.outgoing' => 'Verilen Senet', 'finance.notes.endorsement' => 'Senet Ciro'
+                ] as $route => $label)
+                    <a href="{{ route($route) }}" class="v65-security-nav-link">{{ $label }}</a>
+                @endforeach
+            </nav>
+        </section>
+    @endif
 
-
+    @if(in_array($screenMode, ['center', 'create'], true))
     <section class="panel stack">
-        <h2>Yeni Çek / Senet</h2>
+        <h2>{{ $screenMode === 'center' ? 'Yeni Çek / Senet' : $screenTitle }}</h2>
+        @if($screenMode === 'center')
         <label>Yön
             <select wire:model="direction">
                 <option value="incoming">Alınan</option>
@@ -15,6 +31,9 @@
                 <option value="note">Senet</option>
             </select>
         </label>
+        @else
+            <p>{{ $screenDirection === 'incoming' ? 'Alınan' : 'Verilen' }} {{ $screenKind === 'check' ? 'Çek' : 'Senet' }} kaydı</p>
+        @endif
         <label>No <input wire:model="instrumentNo"></label>
         <label>Cari
             <select wire:model="contactId">
@@ -37,11 +56,12 @@
             </select>
         </label>
         <label>Not <textarea wire:model="note"></textarea></label>
-        <button type="button" wire:click="create">Kaydet</button>
+        <x-v65.button wire:click="create" wire:loading.attr="disabled" wire:target="create">Kaydet</x-v65.button>
     </section>
+    @endif
 
     <section>
-        <x-v65.list-heading title="Portföy" />
+        <x-v65.list-heading :title="$screenMode === 'center' ? 'Portföy' : $screenTitle . ' Kayıtları'" />
         <div class="table-scroll v65-list-table"><table class="data-table">
             <thead>
             <tr><th>Seç</th><th>No</th><th>Tür</th><th>Yön</th><th>Cari</th><th>Vade</th><th class="align-end">Tutar</th><th>Durum</th></tr>
@@ -49,7 +69,13 @@
             <tbody>
             @foreach($securities as $security)
                 <tr>
-                    <td><input type="checkbox" wire:model="selectedSecurityIds" value="{{ $security->id }}"></td>
+                    <td>
+                        @if(in_array($screenMode, ['center', 'endorse'], true) && ($screenMode !== 'endorse' || ($security->direction === 'incoming' && $security->status === 'portfolio')))
+                            <input type="checkbox" wire:model="selectedSecurityIds" value="{{ $security->id }}">
+                        @else
+                            —
+                        @endif
+                    </td>
                     <td>{{ $security->instrument_no }}</td>
                     <td>{{ \App\Support\Formatting\BusinessLabelFormatter::value('security_kind', $security->kind) }}</td>
                     <td>{{ \App\Support\Formatting\BusinessLabelFormatter::direction($security->direction) }}</td>
@@ -61,13 +87,17 @@
             @endforeach
             </tbody>
         </table></div>
-        <x-v65.bulk-actions :count="count($selectedSecurityIds)" label="evrak seçildi">
-            <span>Bordro İşlemi bölümünden işlem türünü ve tarihi belirleyin.</span>
-        </x-v65.bulk-actions>
+        @if(in_array($screenMode, ['center', 'endorse'], true))
+            <x-v65.bulk-actions :count="count($selectedSecurityIds)" label="evrak seçildi">
+                <span>{{ $screenMode === 'endorse' ? 'Ciro işlemi için hedef cariyi seçin.' : 'Bordro İşlemi bölümünden işlem türünü ve tarihi belirleyin.' }}</span>
+            </x-v65.bulk-actions>
+        @endif
     </section>
 
+    @if(in_array($screenMode, ['center', 'endorse'], true))
     <section class="panel stack">
-        <h2>Bordro İşlemi</h2>
+        <h2>{{ $screenMode === 'endorse' ? $screenTitle : 'Bordro İşlemi' }}</h2>
+        @if($screenMode === 'center')
         <label>İşlem
             <select wire:model="payrollAction">
                 <option value="endorsement">Ciro Et</option>
@@ -79,6 +109,9 @@
                 <option value="cancel">Verilen Evrakı İptal Et</option>
             </select>
         </label>
+        @else
+            <p>İşlem: Ciro Et · Portföydeki alınan {{ $screenKind === 'check' ? 'çekler' : 'senetler' }}</p>
+        @endif
         <label>Tarih <input type="date" wire:model="payrollDate"></label>
         <label>Hedef Cari
             <select wire:model="payrollContactId">
@@ -88,6 +121,7 @@
                 @endforeach
             </select>
         </label>
+        @if($screenMode === 'center')
         <label>Banka
             <select wire:model="payrollBankAccountId">
                 <option value="">Seçim yok</option>
@@ -96,9 +130,12 @@
                 @endforeach
             </select>
         </label>
-        <button type="button" wire:click="postPayroll">Bordroyu Kesinleştir</button>
+        @endif
+        <x-v65.button wire:click="postPayroll" wire:loading.attr="disabled" wire:target="postPayroll">{{ $screenMode === 'endorse' ? 'Ciroyu Onayla' : 'Bordroyu Kesinleştir' }}</x-v65.button>
     </section>
+    @endif
 
+    @if($screenMode === 'center')
     <section class="panel stack">
         <h2>Bordro Ters Kayıt</h2>
         <label>Bordro
@@ -145,4 +182,5 @@
             <x-v65.button variant="danger" wire:click="reversePayroll" wire:loading.attr="disabled" wire:target="reversePayroll" data-v65-modal-close>Ters Kaydı Onayla</x-v65.button>
         </x-slot:footer>
     </x-v65.modal>
+    @endif
 </div>
