@@ -21,6 +21,11 @@ grep -qx 'FRESH_BACKUP=RESTORE_VERIFIED' "$BACKUP/RESTORE_VERIFIED" || stop 'bac
 grep -qx 'SOURCE_PROJECT=mars-uat-fresh' "$BACKUP/RESTORE_VERIFIED" || stop 'wrong project backup'
 grep -qx 'SOURCE_MASTER=mars_uat_master' "$BACKUP/RESTORE_VERIFIED" || stop 'wrong master backup'
 grep -qx 'SOURCE_PERIOD=mars_uat_demo_2026' "$BACKUP/RESTORE_VERIFIED" || stop 'wrong period backup'
+VERIFIED_UTC="$(sed -n 's/^VERIFIED_UTC=//p' "$BACKUP/RESTORE_VERIFIED")"
+[[ "$VERIFIED_UTC" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$ ]] || stop 'invalid backup timestamp'
+VERIFIED_EPOCH="$(date -u -d "$VERIFIED_UTC" +%s)" || stop 'unparseable backup timestamp'
+NOW_EPOCH="$(date -u +%s)"
+[[ "$VERIFIED_EPOCH" -le "$NOW_EPOCH" && $((NOW_EPOCH - VERIFIED_EPOCH)) -le 3600 ]] || stop 'Fresh backup must be verified within one hour'
 (cd "$BACKUP" && sha256sum -c --status SHA256SUMS.sha256 && sha256sum -c --status SHA256SUMS) || stop 'backup integrity failure'
 [[ -s "$BACKUP/mars_uat_master.dump" && -s "$BACKUP/mars_uat_demo_2026.dump" ]] || stop 'both archives needed'
 ENV="$HOME/.config/mars/uat-fresh.env"
