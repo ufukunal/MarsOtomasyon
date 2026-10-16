@@ -90,6 +90,7 @@ class SecuritiesCenter extends Component
 
         $security = Security::query()->findOrFail($id);
         abort_if($this->scopeKind() !== null && $security->kind !== $this->scopeKind(), 404);
+        abort_if($this->scopeDirection() !== null && $security->direction !== $this->scopeDirection(), 404);
         abort_if(! in_array($security->status, ['portfolio', 'issued'], true)
             || $security->last_payroll_id !== null, 422,
             'İşlem görmüş evrakın mali alanları bu ekranda düzenlenemez.');
@@ -143,6 +144,16 @@ class SecuritiesCenter extends Component
     public function create(CreateSecurity $action): void
     {
         abort_unless(in_array($this->scopeMode(), ['center', 'create'], true), 403);
+        $this->validate([
+            'instrumentNo' => ['required', 'string', 'max:100'],
+            'contactId' => ['required', 'integer', 'min:1'],
+            'amount' => ['required', 'numeric', 'gt:0'],
+            'transactionDate' => ['required', 'date'],
+            'dueDate' => ['required', 'date'],
+            'bankName' => ['nullable', 'string', 'max:255'],
+            'bankAccountId' => ['nullable', 'integer'],
+            'note' => ['nullable', 'string', 'max:1000'],
+        ]);
         $action->handle(
             $this->scopeDirection() ?? $this->direction,
             $this->scopeKind() ?? $this->kind,
