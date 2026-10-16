@@ -31,6 +31,8 @@ class ContactTransferForm extends Component
     public string $reversalDate = '';
     public string $reversalReason = '';
 
+    public ?int $pendingReversalId = null;
+
     public function mount(): void
     {
         abort_unless(auth()->user()?->can('contact_transfers.view'), 403);
@@ -178,13 +180,34 @@ class ContactTransferForm extends Component
         $this->overdraftAcknowledged = false;
     }
 
-    public function reverse(ReverseContactTransfer $action, int $id): void
+    public function prepareReverse(int $id): void
     {
         abort_unless(auth()->user()?->can('contact_transfers.cancel'), 403);
+        $transfer = ContactTransfer::query()->findOrFail($id);
+        if ($transfer->reversal_of_id !== null
+            || ContactTransfer::query()->where('reversal_of_id', $id)->exists()) {
+            throw ValidationException::withMessages([
+                'reversalReason' => 'Virman daha önce terslenmiş veya ters kayıttır.',
+            ]);
+        }
+        $this->pendingReversalId = $id;
+    }
+
+    public function cancelReverse(): void
+    {
+        $this->pendingReversalId = null;
+        $this->reversalReason = '';
+    }
+
+    public function confirmReverse(ReverseContactTransfer $action): void
+    {
+        abort_unless(auth()->user()?->can('contact_transfers.cancel'), 403);
+        abort_unless($this->pendingReversalId !== null, 422);
         $this->validate([
             'reversalDate' => ['required', 'date'],
             'reversalReason' => ['required', 'string', 'min:3', 'max:1000'],
         ]);
+        $id = $this->pendingReversalId;
         $action->handle(
             ContactTransfer::query()->findOrFail($id),
             $this->reversalDate,
@@ -192,16 +215,25 @@ class ContactTransferForm extends Component
             $this->childMutationKey('reverse', $id),
         );
         $this->completeMutation('reverse');
-        $this->reversalReason = '';
+        $this->cancelReverse();
     }
 
     public function render(): View
     {
+        $transfers = ContactTransfer::query()->with(['sourceContact', 'targetContact'])
+            ->orderByDesc('transfer_date')->orderByDesc('id')->limit(50)->get();
+        $reversedIds = ContactTransfer::query()
+            ->whereIn('reversal_of_id', $transfers->pluck('id'))
+            ->pluck('reversal_of_id')->map(fn ($id): int => (int) $id)->all();
+
         return view('livewire.finance.contact-transfer-form', [
             'sourceOptions' => $this->contactOptions($this->sourceSearch, $this->sourceContactId),
             'targetOptions' => $this->contactOptions($this->targetSearch, $this->targetContactId),
-            'transfers' => ContactTransfer::query()->with(['sourceContact', 'targetContact'])
-                ->orderByDesc('transfer_date')->orderByDesc('id')->limit(50)->get(),
+            'transfers' => $transfers,
+            'reversedIds' => $reversedIds,
+            'pendingReversal' => $this->pendingReversalId === null
+                ? null
+                : ContactTransfer::query()->with(['sourceContact', 'targetContact'])->find($this->pendingReversalId),
         ])->layout('layouts.app', ['pageTitle' => 'Cari Virman']);
     }
 }

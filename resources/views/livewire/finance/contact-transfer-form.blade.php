@@ -85,8 +85,8 @@
                     <td>{{ \App\Support\Formatting\TrFormatter::money((string) $transfer->amount) }} TRY</td>
                     <td>{{ $transfer->overdraft_approved ? 'Onaylı' : '—' }}</td>
                     <td>
-                        @if($transfer->reversal_of_id === null && auth()->user()?->can('contact_transfers.cancel'))
-                            <x-v65.button variant="secondary" size="xs" wire:click="reverse({{ $transfer->id }})">Ters Kayıt</x-v65.button>
+                        @if($transfer->reversal_of_id === null && !in_array((int) $transfer->id, $reversedIds, true) && auth()->user()?->can('contact_transfers.cancel'))
+                            <x-v65.button variant="secondary" size="xs" wire:click="prepareReverse({{ $transfer->id }})">Ters Kayıt</x-v65.button>
                         @else
                             <span>—</span>
                         @endif
@@ -97,13 +97,28 @@
                 @endforelse
             </tbody>
         </table></div>
-        @if(auth()->user()?->can('contact_transfers.cancel'))
-            <div class="v65-contact-transfer-controls">
-                <label class="field">Ters Kayıt Tarihi <input type="date" wire:model="reversalDate"></label>
-                <label class="field">Ters Kayıt Gerekçesi <input wire:model="reversalReason" placeholder="Ters kayıt için gerekçe zorunlu"></label>
-            </div>
-        @endif
     </section>
+
+    @if($pendingReversal)
+        <div class="v65-contact-transfer-overlay" role="presentation">
+            <div class="v65-contact-transfer-dialog" role="dialog" aria-modal="true" aria-labelledby="v65-reversal-title">
+                <h3 id="v65-reversal-title">Cari Virman — Ters Kayıt Onayı</h3>
+                <p>Asıl virman değiştirilmeyecek. İki cari hareketinin tersleri aynı işlemde kaydedilecek.</p>
+                <p><strong>No:</strong> {{ $pendingReversal->number }}</p>
+                <p><strong>Kaynak:</strong> {{ $pendingReversal->sourceContact?->title }}</p>
+                <p><strong>Hedef:</strong> {{ $pendingReversal->targetContact?->title }}</p>
+                <p><strong>Tutar:</strong> {{ \App\Support\Formatting\TrFormatter::money((string) $pendingReversal->amount) }} TRY</p>
+                <label class="field">Ters Kayıt Tarihi <input type="date" wire:model="reversalDate"></label>
+                <label class="field">Ters Kayıt Gerekçesi <input wire:model="reversalReason" placeholder="Ters kayıt gerekçesi"></label>
+                <x-v65.input-error field="reversalDate"/>
+                <x-v65.input-error field="reversalReason"/>
+                <div class="v65-contact-transfer-dialog-actions">
+                    <x-v65.button variant="secondary" wire:click="cancelReverse">Vazgeç</x-v65.button>
+                    <x-v65.button wire:click="confirmReverse" wire:loading.attr="disabled" wire:target="confirmReverse">Ters Kaydı Onayla</x-v65.button>
+                </div>
+            </div>
+        </div>
+    @endif
 
     @if($showOverdraftConfirm)
         <div class="v65-contact-transfer-overlay" role="presentation">

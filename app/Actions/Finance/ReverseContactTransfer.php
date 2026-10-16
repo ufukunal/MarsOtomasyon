@@ -38,6 +38,9 @@ final class ReverseContactTransfer
                     || ContactTransfer::query()->where('reversal_of_id', $locked->id)->exists()) {
                     throw new DomainException('Bu cari virman daha önce terslenmiş veya terslenemez.');
                 }
+                if ($date->lessThan($locked->transfer_date)) {
+                    throw new DomainException('Ters kayıt tarihi asıl virman tarihinden önce olamaz.');
+                }
                 Contact::query()->whereIn('id', [$locked->source_contact_id, $locked->target_contact_id])
                     ->orderBy('id')->lockForUpdate()->get();
                 $number = $this->numbers->handle('contact_transfer', $date->year);
