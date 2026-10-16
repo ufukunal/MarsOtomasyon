@@ -29,3 +29,9 @@ it('requires confirmation for reversals and does not offer already reversed docu
         ->toContain('wire:click="confirmReverse"')
         ->toContain('!in_array((int) $transfer->id, $reversedIds, true)');
 });
+
+
+it('clears exceptional overdraft consent even when posting fails', function (): void {
+    $form = file_get_contents(base_path('app/Livewire/Finance/ContactTransferForm.php'));
+    expect($form)->toMatch('/function confirmOverdraft\([^)]*\): void\s*\{.*?try\s*\{\s*\$this->post\(\$action\);\s*\}\s*finally\s*\{\s*\$this->overdraftConfirmed = false;\s*\$this->overdraftAcknowledged = false;/s');
+});
