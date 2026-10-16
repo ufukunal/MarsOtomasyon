@@ -42,8 +42,13 @@ SCHEMA="$(sudo docker exec "$PG" psql -w -U mars_uat_owner -d mars_uat_demo_2026
 [[ "$SCHEMA" == READY ]] || fail 'period schema incomplete'
 PERMS="$(sudo docker exec "$PG" psql -w -U mars_uat_owner -d mars_uat_master -XAtq -v ON_ERROR_STOP=1 -c "SELECT count(*) FROM (SELECT p.id FROM permissions p JOIN role_has_permissions rp ON rp.permission_id=p.id WHERE p.guard_name='web' AND p.name IN ('contact_transfers.view','contact_transfers.create','contact_transfers.cancel','contact_transfers.override_balance') GROUP BY p.id HAVING count(rp.role_id)>0) a")" || fail 'cannot inspect Fresh role permissions'
 [[ "$PERMS" == 4 ]] || fail 'not all four Fresh permissions assigned to roles'
-echo '=== Pull CI-built image (PROD does NOT build) ==='
-sudo docker pull "$NEW_IMAGE" || fail 'CI image unavailable, no deployment'
+if [[ "${MARS_FRESH_OFFLINE_IMAGE:-0}" == 1 ]]; then
+  echo '=== Verify imported CI image (offline transport; PROD does NOT build) ==='
+  sudo docker image inspect "$NEW_IMAGE" >/dev/null || fail 'offline CI image has not been loaded and verified'
+else
+  echo '=== Pull CI-built image (PROD does NOT build) ==='
+  sudo docker pull "$NEW_IMAGE" || fail 'CI image unavailable, no deployment'
+fi
 [[ "$(sudo docker image inspect "$NEW_IMAGE" --format '{{index .Config.Labels "org.opencontainers.image.revision"}}')" == "$TARGET" ]] || fail 'CI image revision mismatch'
 sudo docker run --rm --user 33:33 --entrypoint sh "$NEW_IMAGE" -ec '
   test -r /var/www/html/artisan
