@@ -13,6 +13,8 @@ if [[ -n "${1:-}" ]]; then [[ "$1" == "$SHA" ]] || fail 'checkout does not match
 FILES=(
  ops/uat-fresh-stage-18-21.sh
  ops/uat-fresh-stage-22.sh
+ ops/uat-fresh-ci-image-promote.sh
+ ops/uat-fresh-ci-build-push.sh
  app/Support/Auth/CompanyRoleProvisioner.php
  ops/uat-fresh-identity-check.sh
  ops/uat-fresh-backup-verify.sh
@@ -24,7 +26,7 @@ for p in "${FILES[@]}"; do [[ -f "$p" ]] || fail "missing: $p"; done
 DEST="${MARS_FRESH_PACKAGE_DIR:-$HOME/mars-fresh-package}"
 [[ ! -L "$DEST" ]] || fail 'symlinked output directory'
 mkdir -p "$DEST"; chmod 700 "$DEST"
-ARCHIVE="$DEST/mars-fresh-18-22-$SHA.tar.gz"
+ARCHIVE="$DEST/mars-fresh-18-23-$SHA.tar.gz"
 [[ ! -e "$ARCHIVE" ]] || fail 'refuse overwrite'
 git archive --format=tar HEAD -- "${FILES[@]}" | gzip -n -9 > "$ARCHIVE"
 [[ -s "$ARCHIVE" ]] || fail 'empty archive'
