@@ -1,0 +1,40 @@
+name: V65 One-time Pint source formatting
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/v65-pint-one-shot-20261016.yml'
+permissions:
+  contents: write
+concurrency:
+  group: mars-v65-pint-one-shot
+  cancel-in-progress: false
+jobs:
+  format:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: bcmath, mbstring, intl, gd, zip, pdo_pgsql
+          tools: composer:v2
+      - name: Install PHP dependencies
+        run: composer install --no-interaction --no-progress --prefer-dist
+      - name: Run Laravel Pint formatting
+        run: vendor/bin/pint
+      - name: Commit formatting only
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- '*.php'
+          if git diff --cached --quiet; then
+            echo 'PINT_FORMATTED=NO_CHANGES'
+            exit 0
+          fi
+          git commit -m 'style: normalize Laravel Pint across source files'
+          git push origin HEAD:main
+          echo 'PINT_FORMATTED=PUSHED'
