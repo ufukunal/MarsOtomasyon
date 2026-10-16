@@ -35,6 +35,33 @@ done
 OLD_IMAGE="$REG:uat-$OLD"
 NEW_IMAGE="$REG:uat-$TARGET"
 [[ "$(sudo docker inspect "$WEB" --format '{{.Config.Image}}')" == "$OLD_IMAGE" ]] || fail 'Current Fresh web image differs from env pin'
+
+# Guard web-only updates against releasing code before the new period schema
+# and company roles have been migrated by an explicitly approved operation.
+# Read-only queries: no migrations, writes, or secret values in logs.
+echo '=== FRESH SCHEMA READINESS (READ-ONLY) ==='
+PERIOD_SCHEMA_READY="$(sudo docker exec -i "$PG" sh -ec 'PGPASSWORD="$POSTGRES_PASSWORD" exec psql -XAtq -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d mars_uat_demo_2026' <<'SQL'
+SELECT CASE WHEN
+    EXISTS (SELECT 1 FROM information_schema.columns
+            WHERE table_schema='public' AND table_name='documents'
+            AND column_name='additional_discount_amount')
+    AND to_regclass('public.contact_transfers') IS NOT NULL
+THEN 'READY' ELSE 'MISSING' END;
+SQL
+)" || fail 'Could not verify isolated period schema'
+[[ "$PERIOD_SCHEMA_READY" == 'READY' ]] || fail 'FRESH schema migration is pending. Do not deploy web only.'
+MASTER_PERMISSIONS_READY="$(sudo docker exec -i "$PG" sh -ec 'PGPASSWORD="$POSTGRES_PASSWORD" exec psql -XAtq -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d mars_uat_master' <<'SQL'
+SELECT CASE WHEN
+    EXISTS (SELECT 1 FROM permissions WHERE name='contact_transfers.view' AND guard_name='web')
+    AND EXISTS (SELECT 1 FROM permissions WHERE name='contact_transfers.create' AND guard_name='web')
+    AND EXISTS (SELECT 1 FROM permissions WHERE name='contact_transfers.cancel' AND guard_name='web')
+    AND EXISTS (SELECT 1 FROM permissions WHERE name='contact_transfers.override_balance' AND guard_name='web')
+THEN 'READY' ELSE 'MISSING' END;
+SQL
+)" || fail 'Could not verify isolated master permissions'
+[[ "$MASTER_PERMISSIONS_READY" == 'READY' ]] || fail 'FRESH role synchronization is pending. Do not deploy web only.'
+echo 'FRESH_SCHEMA_READY=YES FRESH_PERMISSIONS_READY=YES'
+
 sudo docker image inspect "$OLD_IMAGE" >/dev/null || fail 'Old web image not available for rollback'
 VOLUME="$(sudo docker inspect "$WEB" --format '{{range .Mounts}}{{if eq .Destination "/var/www/html/storage"}}{{.Name}}{{end}}{{end}}')"
 [[ -n "$VOLUME" ]] || fail 'Fresh web storage volume missing'
