@@ -50,3 +50,12 @@ Referanslar:
 ## Yayın kararı
 
 **Kod kaynaklı ekran eşleştirmesi: 20/20 rota. Üretim kabulü: henüz yok.** Fresh UAT canlı sunucu smoke, finansal etki testleri ve kullanıcı imzası olmadan PROD'a yayın yapılmaz.
+
+
+## 17.10.2026 — 17/27 kaynak kodu karşılaştırma ek denetimi
+
+- `resources/views/livewire/finance/collection-form.blade.php` ve `resources/views/livewire/purchases/payment-form.blade.php` ortak `v65-voucher-panel`, `v65-financial-history` ve cari bakiye sınıflarını kullanıyor.
+- Bu sınıfların `resources/css/v65-shell.css` içinde bulunmayan finans görünümü kuralları eklendi: iki sütunlu masaüstü formu, 720px altında tek sütun, eş genişlikte giriş alanları, tablo işlem hücresi hizalaması ve yazdırma davranışı.
+- `tests/Unit/UI/FinancialRecordCorrectionContractTest.php` içine iki ekranın ortak sınıf ve responsive CSS sözleşmesini denetleyen kaynak testi eklendi.
+
+**Kabul sınırı:** Bu iş kaynak kodu bazlı bir uyum düzeltmesidir. Onaylı dış 20 ekran HTML dosyası bu depo içinde bulunmuyor ve bu oturumda dosyaya erişilemiyor. O nedenle 20 ekranın piksel bazında birebir eşleştiği veya tarayıcıda çalıştığı ileri sürülemez. Fresh UAT tarayıcı ve ekran boyutlarına göre görsel kabul hâlâ gereklidir. 20/20 rota eşleşmesi, 20/20 görsel kabul anlamına gelmez.
