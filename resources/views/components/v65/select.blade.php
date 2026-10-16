@@ -1,7 +1,10 @@
-@props(['label', 'name' => null, 'hint' => null, 'placeholder' => null])
+@props(['label', 'name' => null, 'hint' => null, 'placeholder' => null, 'invalid' => false])
 <label class="field v65-select-field">
     <span class="field-label">{{ $label }}</span>
-    <select {{ $attributes->except(['label', 'name', 'hint', 'placeholder'])->merge(['name' => $name]) }}>
+    @php
+        $hasError = $invalid || ($name !== null && $errors->has($name));
+    @endphp
+    <select {{ $attributes->except(['label', 'name', 'hint', 'placeholder', 'invalid'])->class(['v65-select-control', 'is-invalid' => $hasError])->merge(['name' => $name, 'aria-invalid' => $hasError ? 'true' : 'false']) }}>
         @if($placeholder !== null)
             <option value="">{{ $placeholder }}</option>
         @endif
