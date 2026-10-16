@@ -27,5 +27,6 @@ jobs:
           php-version: '8.4'
           extensions: bcmath, mbstring, intl, gd, zip, pdo_pgsql
       - run: composer install --no-interaction --no-progress --prefer-dist
+      - run: cp .env.example .env
       - run: php artisan test tests/Unit/UI/PurchaseQuoteSourceContractTest.php tests/Unit/UI/PurchaseDispatchSourceContractTest.php tests/Unit/UI/V65BusinessDocumentPrintContractTest.php --stop-on-failure
       - run: vendor/bin/pint --test tests/Unit/UI/PurchaseQuoteSourceContractTest.php tests/Unit/UI/PurchaseDispatchSourceContractTest.php tests/Unit/UI/V65BusinessDocumentPrintContractTest.php
