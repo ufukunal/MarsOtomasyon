@@ -223,6 +223,13 @@ abstract class BasePurchaseDocumentEditor extends Component
             $this->permissionPrefix().($this->document ? '.update' : '.create')
         ), 403);
 
+        // A posted/approved document cannot be re-opened as a draft by a stale Livewire request.
+        if ($this->document !== null) {
+            $current = Document::query()->findOrFail($this->document->id);
+            abort_unless($current->document_type === $this->documentType(), 404);
+            abort_unless($current->status === 'draft', 409, 'Kesinleşmiş belge taslak olarak değiştirilemez.');
+        }
+
         // Exclude the UI-only trailing entry row, not partially entered lines.
         $this->lines = $this->enteredLines();
         if ($this->lines === []) {
