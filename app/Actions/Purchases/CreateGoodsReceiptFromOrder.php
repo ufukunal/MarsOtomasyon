@@ -29,13 +29,14 @@ final class CreateGoodsReceiptFromOrder
         string $documentDate,
         string $idempotencyKey,
         ?string $deliveryNote = null,
+        bool $fromSupplierDispatch = false,
     ): Document {
         MutationAuthorizer::authorize('goods_receipts.create');
 
         return IdempotencyKey::run(
             $idempotencyKey,
             'purchase-order.to-goods-receipt:'.$order->id,
-            function () use ($order, $lineQuantities, $lineLocationIds, $documentDate, $deliveryNote): Document {
+            function () use ($order, $lineQuantities, $lineLocationIds, $documentDate, $deliveryNote, $fromSupplierDispatch): Document {
                 $locked = Document::query()->with('lines')->lockForUpdate()->findOrFail($order->id);
 
                 if ($locked->document_type !== DocumentType::PurchaseOrder
@@ -52,6 +53,12 @@ final class CreateGoodsReceiptFromOrder
                         ->findOrFail((int) $lineId);
                     $requested = bcadd((string) $quantity, '0', 3);
                     $remaining = $this->availability->orderReceiptRemaining($source);
+                    if (! $fromSupplierDispatch) {
+                        $allocated = $this->availability->orderDispatchRemaining($source);
+                        if (bccomp($allocated, $remaining, 3) < 0) {
+                            $remaining = $allocated;
+                        }
+                    }
 
                     if (bccomp($requested, '0', 3) <= 0 || bccomp($requested, $remaining, 3) > 0) {
                         throw new DomainException('Mal kabul miktarı sipariş satırı kalanını aşıyor.');

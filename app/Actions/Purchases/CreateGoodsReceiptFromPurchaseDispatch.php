@@ -71,7 +71,7 @@ final class CreateGoodsReceiptFromPurchaseDispatch
                 throw new DomainException('Mal kabul satırı seçilmedi.');
             }
 
-            $receipt = $this->fromOrder->handle($order, $orderQuantities, $orderLocations, $date, $key.'-order');
+            $receipt = $this->fromOrder->handle($order, $orderQuantities, $orderLocations, $date, $key.'-order', null, true);
             $actor = auth()->user();
             DocumentRelation::query()->create([
                 'source_document_id' => $locked->id,
