@@ -62,3 +62,21 @@ it('validates voucher posting and retains aligned V65 screens', function (): voi
             ->toContain('wire:model.live="contactId"');
     }
 });
+
+
+it('styles payment and collection with the same responsive V65 voucher composition', function (): void {
+    $css = file_get_contents(base_path('resources/css/v65-shell.css'));
+    foreach ([
+        'finance/collection-form.blade.php',
+        'purchases/payment-form.blade.php',
+    ] as $path) {
+        $view = file_get_contents(base_path('resources/views/livewire/'.$path));
+        expect($view)->toContain('class="panel stack v65-voucher-panel"')
+            ->toContain('class="panel v65-financial-history"')
+            ->toContain('v65-contact-transfer-balance');
+    }
+    expect($css)->toContain('.v65-workspace-form>.v65-voucher-panel')
+        ->toContain('.v65-financial-history')
+        ->toContain('@media(max-width:720px)')
+        ->toContain('grid-template-columns:minmax(0,1fr)');
+});
