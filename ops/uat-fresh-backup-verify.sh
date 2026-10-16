@@ -75,4 +75,6 @@ for DB in mars_uat_master mars_uat_demo_2026; do
   [[ "$SRC_COUNT" == "$DST_COUNT" ]] || die "row count changed during backup or restore: $DB"
   printf '%s_RESTORED_TABLES=%s\n' "$DB" "$COUNT"
 done
+( cd "$BACKUP" && sha256sum SHA256SUMS > SHA256SUMS.sha256 ) || die 'cannot seal verified backup manifest'
+printf 'FRESH_BACKUP=RESTORE_VERIFIED\nSOURCE_PROJECT=mars-uat-fresh\nSOURCE_MASTER=mars_uat_master\nSOURCE_PERIOD=mars_uat_demo_2026\nVERIFIED_UTC=%s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > "$BACKUP/RESTORE_VERIFIED"
 printf 'BACKUP_CHECKSUM=PASS\nOFFLINE_RESTORE=PASS\nORIGINAL_FRESH_DATABASES_MODIFIED=NO\nBACKUP_PATH=%s\n' "$BACKUP"
