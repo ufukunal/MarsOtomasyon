@@ -1,0 +1,91 @@
+name: V65 purchases approved one-time source QA
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/v65-purchases-qa-20261016.yml'
+permissions:
+  contents: read
+concurrency:
+  group: mars-v65-purchases-qa-20261016
+  cancel-in-progress: false
+jobs:
+  quality:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 22
+    env:
+      APP_ENV: testing
+      APP_DEBUG: 'false'
+      APP_KEY: base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+      CACHE_STORE: array
+      SESSION_DRIVER: array
+      QUEUE_CONNECTION: sync
+      DB_HOST: 127.0.0.1
+      REDIS_HOST: 127.0.0.1
+      MARS_INTEGRATION_TESTS_APPROVED: 'NO'
+      MARS_VALKEY_TESTS_APPROVED: 'NO'
+      MARS_PERFORMANCE_TESTS_APPROVED: 'NO'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: bcmath, mbstring, intl, gd, zip, pdo_pgsql, redis
+          tools: composer:v2
+          coverage: none
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install PHP dependencies
+        run: composer install --no-interaction --no-progress --prefer-dist
+      - name: Prepare isolated test configuration
+        run: cp .env.example .env
+      - name: Check PHP syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          find app bootstrap config database routes tests -type f -name '*.php' -print0 |
+            xargs -0 -r -n 1 php -l > /tmp/mars-php-lint.log
+          echo "PHP files parsed: $(wc -l < /tmp/mars-php-lint.log)"
+      - name: Compile Blade templates
+        run: php artisan view:cache
+      - name: Install frontend dependencies and build
+        run: |
+          npm ci --no-audit --no-fund
+          npm run build
+      - name: Validate V65 source contracts
+        run: |
+          bash scripts/ci/test-ui-v65-contract.sh
+          node scripts/ci/verify-v65-html.mjs
+      - name: Run isolated source-level UI tests
+        run: |
+          php artisan test tests/Unit/UI/V65BusinessDocumentPrintContractTest.php tests/Unit/UI/V65DocumentEditorPhase2Test.php tests/Unit/UI/V65DocumentEditorDesignTest.php tests/Unit/Documents/V65DocumentDraftSafetyTest.php --stop-on-failure
+      - name: Validate purchase quote and purchase dispatch source contracts
+        run: |
+          php artisan test tests/Unit/UI/PurchaseQuoteSourceContractTest.php tests/Unit/UI/PurchaseDispatchSourceContractTest.php tests/Unit/Documents/DocumentTotalsTest.php tests/Unit/UI/V65FastDocumentLinesTest.php --stop-on-failure
+      - name: Check code style
+        id: pint
+        continue-on-error: true
+        run: vendor/bin/pint --test
+      - name: Static analysis
+        run: vendor/bin/phpstan analyse --no-progress --memory-limit=2G --error-format=raw
+      - name: Enforce code style result
+        if: steps.pint.outcome == 'failure'
+        run: exit 1
+
+  prototype-browser:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Render approved V65 in real Chromium
+        run: bash scripts/ci/test-v65-browser-smoke.sh
+      - name: Attach read-only prototype browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v65-approved-prototype-browser
+          path: artifacts/v65-browser-*.png
+          if-no-files-found: warn
+          retention-days: 7
