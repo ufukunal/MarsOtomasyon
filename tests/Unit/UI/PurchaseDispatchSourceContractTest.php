@@ -40,3 +40,14 @@ it('prevents a direct receipt from bypassing reserved supplier-dispatch quantiti
         ->toContain('orderDispatchRemaining($source)')
         ->and($fromDispatch)->toContain('null, true)');
 });
+
+it('exposes both supplier dispatch routes and permission-protected print output', function (): void {
+    $routes = file_get_contents(base_path('routes/web.php'));
+    $print = file_get_contents(base_path('app/Http/Controllers/PrintBusinessDocumentController.php'));
+    $navigation = file_get_contents(base_path('config/navigation.php'));
+
+    expect($routes)->toContain("->name('purchases.dispatches.index')")
+        ->toContain("->name('purchases.dispatches.edit')")
+        ->and($print)->toContain("DocumentType::PurchaseDispatch => ['Alış İrsaliyesi', 'purchase_dispatches.view']")
+        ->and($navigation)->toContain("'permission' => 'purchase_dispatches.view'");
+});

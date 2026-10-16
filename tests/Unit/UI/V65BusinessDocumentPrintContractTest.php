@@ -1,6 +1,6 @@
 <?php
 
-it('restricts all seven corporate document outputs to authenticated period and role', function (): void {
+it('restricts all nine corporate document outputs to authenticated period and role', function (): void {
     $routes = file_get_contents(base_path('routes/web.php'));
     $controller = file_get_contents(base_path('app/Http/Controllers/PrintBusinessDocumentController.php'));
 
@@ -18,7 +18,7 @@ it('restricts all seven corporate document outputs to authenticated period and r
 
     foreach ([
         'Quote', 'SalesOrder', 'Dispatch', 'SalesInvoice',
-        'PurchaseOrder', 'GoodsReceipt', 'SupplierInvoice',
+        'PurchaseQuote', 'PurchaseOrder', 'PurchaseDispatch', 'GoodsReceipt', 'SupplierInvoice',
     ] as $type) {
         expect($controller)->toContain('DocumentType::'.$type.' =>');
     }

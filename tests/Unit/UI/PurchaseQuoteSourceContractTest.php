@@ -31,3 +31,16 @@ it('limits quote-to-order conversion to a period-open approved quotation with sa
         ->toContain("@can('purchase_orders.create')")
         ->toContain('action="convertToOrder"');
 });
+
+it('keeps fixed discount, document relations and source-line traceability on purchase quote conversion', function (): void {
+    $convert = file_get_contents(base_path('app/Actions/Purchases/ConvertPurchaseQuoteToOrder.php'));
+    $print = file_get_contents(base_path('app/Http/Controllers/PrintBusinessDocumentController.php'));
+    $routes = file_get_contents(base_path('routes/web.php'));
+
+    expect($convert)->toContain("'additional_discount_amount', 'subtotal', 'tax_base', 'vat_amount'")
+        ->toContain("'source_line_id' => $line->id")
+        ->toContain("'relation_type' => 'purchase_quote_to_order'")
+        ->and($print)->toContain("DocumentType::PurchaseQuote => ['Alış Teklifi', 'purchase_quotes.view']")
+        ->and($routes)->toContain("->name('purchases.quotes.index')")
+        ->toContain("->name('purchases.quotes.edit')");
+});
