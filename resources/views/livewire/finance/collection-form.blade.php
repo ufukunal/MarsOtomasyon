@@ -19,7 +19,7 @@
             @endforeach
         </x-v65.select>
 
-    <label class="field">Tutar <input wire:model="amount"></label>
+    <label class="field">Tutar <input wire:model.blur="amount" inputmode="decimal" data-tr-decimal></label>
     <label class="field">Tarih <input type="date" wire:model="documentDate"></label>
 
     <x-v65.select label="Hesap türü" wire:model.live="accountType">

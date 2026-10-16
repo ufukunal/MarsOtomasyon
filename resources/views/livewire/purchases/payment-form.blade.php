@@ -30,11 +30,11 @@
             </select>
         </label>
         <label class="field">Tarih <input type="date" wire:model="documentDate"></label>
-        <label class="field">Tutar <input wire:model="amount"></label>
+        <label class="field">Tutar <input wire:model.blur="amount" inputmode="decimal" data-tr-decimal></label>
         <label class="field">Para Birimi <input wire:model="currency" maxlength="3"></label>
-        <label class="field">Kur <input wire:model="exchangeRate"></label>
+        <label class="field">Kur <input wire:model.blur="exchangeRate" inputmode="decimal" data-tr-decimal></label>
         <label class="field">Hesap Türü
-            <select wire:model="accountType">
+            <select wire:model.live="accountType">
                 <option value="cash">Kasa</option>
                 <option value="bank">Banka</option>
             </select>

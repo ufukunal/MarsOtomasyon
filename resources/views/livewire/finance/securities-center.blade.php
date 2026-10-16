@@ -19,13 +19,13 @@
     <section class="panel stack">
         <h2>{{ $screenMode === 'center' ? 'Yeni Çek / Senet' : $screenTitle }}</h2>
         @if($screenMode === 'center')
-        <label>Yön
+        <label class="field">Yön
             <select wire:model="direction">
                 <option value="incoming">Alınan</option>
                 <option value="outgoing">Verilen</option>
             </select>
         </label>
-        <label>Tür
+        <label class="field">Tür
             <select wire:model="kind">
                 <option value="check">Çek</option>
                 <option value="note">Senet</option>
@@ -34,8 +34,8 @@
         @else
             <p>{{ $screenDirection === 'incoming' ? 'Alınan' : 'Verilen' }} {{ $screenKind === 'check' ? 'Çek' : 'Senet' }} kaydı</p>
         @endif
-        <label>No <input wire:model="instrumentNo"></label>
-        <label>Cari
+        <label class="field">No <input wire:model.blur="instrumentNo"></label>
+        <label class="field">Cari
             <select wire:model="contactId">
                 <option value="">Seçin</option>
                 @foreach($contacts as $contact)
@@ -43,11 +43,11 @@
                 @endforeach
             </select>
         </label>
-        <label>Tutar <input wire:model="amount"></label>
-        <label>İşlem Tarihi <input type="date" wire:model="transactionDate"></label>
-        <label>Vade <input type="date" wire:model="dueDate"></label>
-        <label>Banka Adı <input wire:model="bankName"></label>
-        <label>Banka Hesabı
+        <label class="field">Tutar <input wire:model.blur="amount" inputmode="decimal" data-tr-decimal></label>
+        <label class="field">İşlem Tarihi <input type="date" wire:model="transactionDate"></label>
+        <label class="field">Vade <input type="date" wire:model="dueDate"></label>
+        <label class="field">Banka Adı <input wire:model="bankName"></label>
+        <label class="field">Banka Hesabı
             <select wire:model="bankAccountId">
                 <option value="">Seçim yok</option>
                 @foreach($bankAccounts as $account)
@@ -55,7 +55,7 @@
                 @endforeach
             </select>
         </label>
-        <label>Not <textarea wire:model="note"></textarea></label>
+        <label class="field">Not <textarea wire:model.blur="note" rows="3"></textarea></label>
         <x-v65.button wire:click="create" wire:loading.attr="disabled" wire:target="create">Kaydet</x-v65.button>
     </section>
     @endif
@@ -106,7 +106,7 @@
     <section class="panel stack">
         <h2>{{ $screenMode === 'endorse' ? $screenTitle : 'Bordro İşlemi' }}</h2>
         @if($screenMode === 'center')
-        <label>İşlem
+        <label class="field">İşlem
             <select wire:model="payrollAction">
                 <option value="endorsement">Ciro Et</option>
                 <option value="bank_deposit">Bankaya Ver</option>
@@ -120,8 +120,8 @@
         @else
             <p>İşlem: Ciro Et · Portföydeki alınan {{ $screenKind === 'check' ? 'çekler' : 'senetler' }}</p>
         @endif
-        <label>Tarih <input type="date" wire:model="payrollDate"></label>
-        <label>Hedef Cari
+        <label class="field">Tarih <input type="date" wire:model="payrollDate"></label>
+        <label class="field">Hedef Cari
             <select wire:model="payrollContactId">
                 <option value="">Seçim yok</option>
                 @foreach($contacts as $contact)
@@ -130,7 +130,7 @@
             </select>
         </label>
         @if($screenMode === 'center')
-        <label>Banka
+        <label class="field">Banka
             <select wire:model="payrollBankAccountId">
                 <option value="">Seçim yok</option>
                 @foreach($bankAccounts as $account)
@@ -146,7 +146,7 @@
     @if($screenMode === 'center')
     <section class="panel stack">
         <h2>Bordro Ters Kayıt</h2>
-        <label>Bordro
+        <label class="field">Bordro
             <select wire:model="reversePayrollId">
                 <option value="">Seçin</option>
                 @foreach($payrolls as $payroll)
@@ -156,8 +156,8 @@
                 @endforeach
             </select>
         </label>
-        <label>Tarih <input type="date" wire:model="reversalDate"></label>
-        <label>Gerekçe <input wire:model="reversalReason"></label>
+        <label class="field">Tarih <input type="date" wire:model="reversalDate"></label>
+        <label class="field">Gerekçe <input wire:model="reversalReason"></label>
         <x-v65.button variant="danger" data-v65-modal-open="v65-security-reversal-confirm">Bordroyu Tersle</x-v65.button>
     </section>
 
