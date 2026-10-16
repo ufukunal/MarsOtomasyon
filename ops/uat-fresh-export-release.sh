@@ -14,6 +14,8 @@ FILES=(
  ops/uat-fresh-stage-18-21.sh
  ops/uat-fresh-stage-22.sh
  ops/uat-fresh-ci-image-promote.sh
+ ops/uat-fresh-ci-export-image.sh
+ ops/uat-fresh-import-image.sh
  ops/uat-fresh-ci-build-push.sh
  app/Support/Auth/CompanyRoleProvisioner.php
  ops/uat-fresh-identity-check.sh
