@@ -39,7 +39,7 @@ final class ConvertQuoteToSalesOrder
                     'status' => 'draft',
                     'discount_rate' => $locked->discount_rate,
                     'discount_amount' => $locked->discount_amount,
-                        'additional_discount_amount' => $locked->additional_discount_amount,
+                    'additional_discount_amount' => $locked->additional_discount_amount,
                     'subtotal' => $locked->subtotal,
                     'tax_base' => $locked->tax_base,
                     'vat_amount' => $locked->vat_amount,

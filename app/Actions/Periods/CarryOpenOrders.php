@@ -13,6 +13,7 @@ use App\Models\Period;
 use App\Models\Period\Document;
 use App\Models\Period\StockReservation;
 use App\Support\Audit\AuditContext;
+use App\Support\Documents\ProrateFixedDiscount;
 use App\Support\Period\PeriodContext;
 use DomainException;
 use Illuminate\Support\Facades\DB;
@@ -177,6 +178,7 @@ final class CarryOpenOrders
                 'due_date' => $order->due_date?->toDateString(),
                 'discount_rate' => (string) $order->discount_rate,
                 'discount_amount' => '0.0000',
+                'additional_discount_amount' => app(ProrateFixedDiscount::class)->handle($order, $lines),
                 'requirements_snapshot' => $order->requirements_snapshot,
                 'notes' => $order->notes,
                 'lines' => $lines,
@@ -248,6 +250,7 @@ final class CarryOpenOrders
                 'exchange_rate' => $sourceOrder['exchange_rate'],
                 'discount_rate' => $sourceOrder['discount_rate'],
                 'discount_amount' => $sourceOrder['discount_amount'],
+                'additional_discount_amount' => $sourceOrder['additional_discount_amount'],
                 'requirements_snapshot' => $sourceOrder['requirements_snapshot'],
                 'notes' => $sourceOrder['notes'],
             ];
