@@ -36,3 +36,13 @@ it('asks for confirmation before reversing a posted financial record', function 
             ->toContain('contactBalance()');
     }
 });
+
+
+it('does not allow a collection correction to reverse a payment or vice versa', function (): void {
+    foreach (['Finance/CollectionForm.php', 'Purchases/PaymentForm.php'] as $file) {
+        $source = file_get_contents(base_path('app/Livewire/'.$file));
+        expect($source)->toContain("->where('document_type', \$this->financialDocumentType()->value)")
+            ->toContain("->where('status', 'posted')")
+            ->toContain('->findOrFail($this->postedDocumentId)');
+    }
+});
