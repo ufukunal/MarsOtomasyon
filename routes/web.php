@@ -75,6 +75,8 @@ use App\Livewire\Purchases\GoodsReceiptEditor;
 use App\Livewire\Purchases\GoodsReceiptList;
 use App\Livewire\Purchases\PaymentForm;
 use App\Livewire\Purchases\PurchaseOrderEditor;
+use App\Livewire\Purchases\PurchaseQuoteEditor;
+use App\Livewire\Purchases\PurchaseQuoteList;
 use App\Livewire\Purchases\PurchaseOrderList;
 use App\Livewire\Purchases\SupplierInvoiceEditor;
 use App\Livewire\Purchases\SupplierInvoiceList;
@@ -188,6 +190,8 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/satis/proforma/{id}', ProformaDetail::class)->name('sales.proformas.show');
     Route::get('/satis/arac-sicak-satis', VehicleHotSale::class)->name('sales.vehicle-hot-sale');
 
+    Route::get('/alis/teklifler', PurchaseQuoteList::class)->name('purchases.quotes.index');
+    Route::get('/alis/teklif/{id?}', PurchaseQuoteEditor::class)->name('purchases.quotes.edit');
     Route::get('/alis/siparisler', PurchaseOrderList::class)->name('purchases.orders.index');
     Route::get('/alis/siparis/{id?}', PurchaseOrderEditor::class)->name('purchases.orders.edit');
     Route::get('/alis/mal-kabul', GoodsReceiptList::class)->name('purchases.receipts.index');

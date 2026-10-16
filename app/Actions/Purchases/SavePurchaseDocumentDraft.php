@@ -34,6 +34,7 @@ final class SavePurchaseDocumentDraft
         PeriodContext::ensureWritable();
 
         if (! in_array($type, [
+            DocumentType::PurchaseQuote,
             DocumentType::PurchaseOrder,
             DocumentType::GoodsReceipt,
             DocumentType::SupplierInvoice,

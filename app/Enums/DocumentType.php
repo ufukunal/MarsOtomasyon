@@ -11,6 +11,7 @@ enum DocumentType: string
     case Proforma = 'proforma';
     case Collection = 'collection';
     case ContactDebitCredit = 'contact_debit_credit';
+    case PurchaseQuote = 'purchase_quote';
     case PurchaseOrder = 'purchase_order';
     case GoodsReceipt = 'goods_receipt';
     case SupplierInvoice = 'supplier_invoice';
@@ -29,6 +30,7 @@ enum DocumentType: string
             self::Dispatch,
             self::SalesInvoice,
             self::Proforma,
+            self::PurchaseQuote,
             self::PurchaseOrder,
             self::GoodsReceipt,
             self::SupplierInvoice,

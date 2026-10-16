@@ -5,6 +5,7 @@
 
     @php
         $documentIndexRoute = match (true) {
+            $this instanceof \App\Livewire\Purchases\PurchaseQuoteEditor => 'purchases.quotes.index',
             $this instanceof \App\Livewire\Purchases\PurchaseOrderEditor => 'purchases.orders.index',
             $this instanceof \App\Livewire\Purchases\GoodsReceiptEditor => 'purchases.receipts.index',
             default => 'purchases.invoices.index',
@@ -184,6 +185,16 @@
     @if($document)
         <section class="document-actions panel v65-document-actions v65-doc-workflow" role="group" aria-label="Belge işlemleri">
             <h3 class="v65-doc-workflow-title">Belge İşlemleri</h3>
+            @if($this instanceof \App\Livewire\Purchases\PurchaseQuoteEditor && $document->status === 'draft')
+                @can('purchase_quotes.approve')
+                    <x-v65.document-confirm id="v65-purchase-quote-approve" title="Alış Teklifini Onayla" label="Teklifi Onayla" action="approveQuote" :document="$document" message="Teklif onaylanacak; stok veya cari hareket oluşmayacaktır." :dirty="$documentDirty" />
+                @endcan
+            @endif
+            @if($this instanceof \App\Livewire\Purchases\PurchaseQuoteEditor && $document->status === 'approved')
+                @can('purchase_orders.create')
+                    <x-v65.document-confirm id="v65-purchase-quote-convert" title="Alış Siparişi Oluştur" label="Siparişe Dönüştür" action="convertToOrder" :document="$document" message="Teklif kalemleri ve iskontolarıyla taslak alış siparişi hazırlanacaktır." :dirty="$documentDirty" />
+                @endcan
+            @endif
             @if(method_exists($this, 'submitApproval') && $document->status === 'draft')
                 <x-v65.document-confirm id="v65-purchase-submit" title="Onaya Gönder" label="Onaya Gönder" action="submitApproval" variant="secondary" :document="$document" message="Son kaydedilen alış siparişi onay sürecine gönderilecektir." :dirty="$documentDirty" />
             @endif

@@ -7,6 +7,7 @@ return [
         'dispatch' => 'IRS',
         'sales_invoice' => 'SF',
         'proforma' => 'PRF',
+        'purchase_quote' => 'ATK',
         'purchase_order' => 'PO',
         'goods_receipt' => 'MK',
         'supplier_invoice' => 'AF',
