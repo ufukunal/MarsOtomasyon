@@ -48,3 +48,16 @@ it('rejects cross-direction editing on scoped cheque and note screens', function
         ->toContain("'contactId' => ['required', 'integer', 'min:1']")
         ->toContain("'amount' => ['required', 'numeric', 'gt:0']");
 });
+
+
+it('isolates instrument edits from issuance and forbids scoped edits and unsafe payroll reversal', function (): void {
+    $source = file_get_contents(base_path('app/Livewire/Finance/SecuritiesCenter.php'));
+    expect($source)->toContain("['create', 'edit', 'payroll', 'reversePayroll']")
+        ->toContain("\$this->childMutationKey('edit', \$id)")
+        ->toContain("\$this->completeMutation('edit')")
+        ->toContain("abort_unless(auth()->user()?->can('securities.update'), 403)")
+        ->toContain("abort_if(\$this->scopeDirection() !== null && \$security->direction !== \$this->scopeDirection(), 404)")
+        ->toContain("abort_unless(auth()->user()?->can('security_payrolls.cancel'), 403)")
+        ->toContain("'reversalReason' => ['required', 'string', 'min:3', 'max:1000']")
+        ->toContain("if (\$this->scopeDirection() !== null) {");
+});
