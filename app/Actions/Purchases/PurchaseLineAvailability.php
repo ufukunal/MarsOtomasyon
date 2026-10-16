@@ -37,6 +37,48 @@ final class PurchaseLineAvailability
         return bcsub((string) $orderLine->quantity, $received, 3);
     }
 
+    /**
+     * A supplier dispatch reserves an order quantity without changing stock.
+     * Direct goods receipts reserve separate quantities. A receipt generated
+     * from an existing dispatch must not be counted twice.
+     */
+    public function orderDispatchRemaining(DocumentLine $orderLine): string
+    {
+        $reserved = '0.000';
+        $dispatches = DocumentLine::query()
+            ->where('source_line_id', $orderLine->id)
+            ->whereHas('document', fn ($query) => $query
+                ->where('document_type', DocumentType::PurchaseDispatch->value)
+                ->whereIn('status', ['draft', 'confirmed']))
+            ->get();
+
+        foreach ($dispatches as $dispatch) {
+            $reserved = bcadd($reserved, (string) $dispatch->quantity, 3);
+        }
+
+        $directReceipts = DocumentLine::query()
+            ->where('source_line_id', $orderLine->id)
+            ->whereHas('document', fn ($query) => $query
+                ->where('document_type', DocumentType::GoodsReceipt->value)
+                ->whereIn('status', ['draft', 'posted']))
+            ->get();
+
+        foreach ($directReceipts as $receipt) {
+            if ($this->isReversed((int) $receipt->document_id)) {
+                continue;
+            }
+            $fromDispatch = DB::connection('period')->table('document_relations')
+                ->where('target_document_id', $receipt->document_id)
+                ->where('relation_type', 'purchase_dispatch_to_goods_receipt')
+                ->exists();
+            if (! $fromDispatch) {
+                $reserved = bcadd($reserved, (string) $receipt->quantity, 3);
+            }
+        }
+
+        return bcsub((string) $orderLine->quantity, $reserved, 3);
+    }
+
     public function receiptInvoiceRemaining(DocumentLine $receiptLine): string
     {
         $invoiced = '0.000';

@@ -2,6 +2,7 @@
 
 namespace App\Actions\Purchases;
 
+use App\Actions\Periods\EnsurePeriodOpen;
 use App\Enums\DocumentType;
 use App\Models\Period\Document;
 use App\Models\Period\DocumentLine;
@@ -9,10 +10,13 @@ use App\Models\Period\DocumentRelation;
 use App\Support\Audit\AuditContext;
 use App\Support\Auth\MutationAuthorizer;
 use App\Support\Concurrency\IdempotencyKey;
+use Carbon\CarbonImmutable;
 use DomainException;
 
 final class ConvertPurchaseQuoteToOrder
 {
+    public function __construct(private readonly EnsurePeriodOpen $period) {}
+
     public function handle(Document $quote, string $key): Document
     {
         MutationAuthorizer::authorize('purchase_quotes.update');
@@ -20,10 +24,12 @@ final class ConvertPurchaseQuoteToOrder
 
         return IdempotencyKey::run($key, 'purchase-quote.to-order:'.$quote->id, function () use ($quote): Document {
             $locked = Document::query()->with('lines')->lockForUpdate()->findOrFail($quote->id);
-            if ($locked->document_type !== DocumentType::PurchaseQuote || $locked->status !== 'approved') {
-                throw new DomainException('Yalnız onaylanmış alış teklifi siparişe dönüştürülebilir.');
+            if ($locked->document_type !== DocumentType::PurchaseQuote || $locked->status !== 'approved'
+                || $locked->number === null || $locked->lines->isEmpty()) {
+                throw new DomainException('Yalnız numaralı, satırlı onaylı alış teklifi siparişe dönüştürülebilir.');
             }
 
+            $this->period->handle(CarbonImmutable::parse($locked->document_date));
             $actor = auth()->user();
             $order = Document::query()->create([
                 ...$locked->only([

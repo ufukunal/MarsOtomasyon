@@ -16,3 +16,19 @@ it('keeps a supplier dispatch distinct from an inventory goods receipt', functio
         ->and($receipt)->toContain("'purchase_dispatch_to_goods_receipt'")
         ->toContain("'goods_receipts.create'");
 });
+
+
+it('checks supplier dispatch allocations and hides actions without permissions', function (): void {
+    $availability = file_get_contents(base_path('app/Actions/Purchases/PurchaseLineAvailability.php'));
+    $dispatch = file_get_contents(base_path('app/Actions/Purchases/CreatePurchaseDispatchFromOrder.php'));
+    $confirm = file_get_contents(base_path('app/Actions/Purchases/ConfirmPurchaseDispatch.php'));
+    $view = file_get_contents(base_path('resources/views/livewire/purchases/document-editor.blade.php'));
+
+    expect($availability)->toContain('function orderDispatchRemaining(')
+        ->toContain("'purchase_dispatch_to_goods_receipt'")
+        ->and($dispatch)->toContain('orderDispatchRemaining($source)')
+        ->and($confirm)->toContain('orderDispatchRemaining($sourceLine)')
+        ->and($view)->toContain("@can('purchase_dispatches.create')")
+        ->toContain("@can('purchase_dispatches.update')")
+        ->toContain("@can('goods_receipts.create')");
+});

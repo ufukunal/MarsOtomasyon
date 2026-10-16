@@ -34,7 +34,7 @@ final class CreatePurchaseDispatchFromOrder
             foreach ($lineQuantities as $lineId => $quantity) {
                 $source = DocumentLine::query()->where('document_id', $locked->id)->lockForUpdate()->findOrFail((int) $lineId);
                 $requested = bcadd((string) $quantity, '0', 3);
-                if (bccomp($requested, '0', 3) <= 0 || bccomp($requested, $this->availability->orderReceiptRemaining($source), 3) > 0) {
+                if (bccomp($requested, '0', 3) <= 0 || bccomp($requested, $this->availability->orderDispatchRemaining($source), 3) > 0) {
                     throw new DomainException('Alış irsaliyesi miktarı sipariş kalanını aşıyor.');
                 }
                 $lines[] = [

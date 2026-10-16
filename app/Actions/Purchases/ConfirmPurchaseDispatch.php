@@ -17,6 +17,7 @@ final class ConfirmPurchaseDispatch
     public function __construct(
         private readonly GenerateDocumentNumber $numbers,
         private readonly EnsurePeriodOpen $period,
+        private readonly PurchaseLineAvailability $availability,
     ) {}
 
     public function handle(Document $dispatch, string $key): Document
@@ -32,13 +33,21 @@ final class ConfirmPurchaseDispatch
 
             $order = $locked->incomingRelations->firstWhere('relation_type', 'purchase_order_to_purchase_dispatch')?->sourceDocument;
             if (! $order || $order->document_type !== DocumentType::PurchaseOrder
-                || ! in_array($order->status, ['approved', 'sent'], true)) {
-                throw new DomainException('Alış irsaliyesinin onaylı kaynak siparişi bulunamadı.');
+                || ! in_array($order->status, ['approved', 'sent'], true)
+                || (int) $locked->contact_id !== (int) $order->contact_id
+                || (string) $locked->currency !== (string) $order->currency) {
+                throw new DomainException('İrsaliye tedarikçisi, dövizi veya kaynak siparişi uyuşmuyor.');
             }
 
             foreach ($locked->lines as $line) {
-                if (! $order->lines()->whereKey($line->source_line_id)->exists()) {
-                    throw new DomainException('İrsaliye kalemi kaynak siparişle uyuşmuyor.');
+                $sourceLine = $order->lines()->find($line->source_line_id);
+                if ($sourceLine === null
+                    || $line->line_kind !== $sourceLine->line_kind
+                    || $line->product_id !== $sourceLine->product_id
+                    || $line->unit_id !== $sourceLine->unit_id
+                    || bccomp((string) $line->quantity, '0', 3) <= 0
+                    || bccomp($this->availability->orderDispatchRemaining($sourceLine), '0', 3) < 0) {
+                    throw new DomainException('İrsaliye satırı veya ayrılan toplam miktar kaynak siparişle uyuşmuyor.');
                 }
             }
 

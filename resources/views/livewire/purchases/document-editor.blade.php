@@ -192,14 +192,19 @@
                 @endcan
             @endif
             @if($this instanceof \App\Livewire\Purchases\PurchaseQuoteEditor && $document->status === 'approved')
-                @can('purchase_orders.create')
-                    <x-v65.document-confirm id="v65-purchase-quote-convert" title="Alış Siparişi Oluştur" label="Siparişe Dönüştür" action="convertToOrder" :document="$document" message="Teklif kalemleri ve iskontolarıyla taslak alış siparişi hazırlanacaktır." :dirty="$documentDirty" />
+                @can('purchase_quotes.update')
+                    @can('purchase_orders.create')
+                        <x-v65.document-confirm id="v65-purchase-quote-convert" title="Alış Siparişi Oluştur" label="Siparişe Dönüştür" action="convertToOrder" :document="$document" message="Teklif kalemleri ve iskontolarıyla taslak alış siparişi hazırlanacaktır." :dirty="$documentDirty" />
+                    @endcan
                 @endcan
             @endif
             @if($this instanceof \App\Livewire\Purchases\PurchaseDispatchEditor && $document->status === 'draft')
-                <x-v65.document-confirm id="v65-purchase-dispatch-finalize" title="Alış İrsaliyesini Onayla" label="İrsaliyeyi Onayla" action="confirmDispatch" :document="$document" message="Stok ve cari hareketi oluşturulmayacak. Stok ancak Mal Kabul kesinleştirilince artar." :dirty="$documentDirty" />
+                @can('purchase_dispatches.update')
+                    <x-v65.document-confirm id="v65-purchase-dispatch-finalize" title="Alış İrsaliyesini Onayla" label="İrsaliyeyi Onayla" action="confirmDispatch" :document="$document" message="Stok ve cari hareketi oluşturulmayacak. Stok ancak Mal Kabul kesinleştirilince artar." :dirty="$documentDirty" />
+                @endcan
             @endif
             @if($this instanceof \App\Livewire\Purchases\PurchaseDispatchEditor && $document->status === 'confirmed')
+                @can('goods_receipts.create')
                 <label class="field">Mal Kabul Tarihi <input type="date" wire:model="receiptDate"></label>
                 @foreach($document->lines as $line)
                     <div>
@@ -216,6 +221,7 @@
                     </div>
                 @endforeach
                 <x-v65.button wire:click="createReceipt" wire:loading.attr="disabled" wire:target="createReceipt">İrsaliyeden Mal Kabul Oluştur</x-v65.button>
+                @endcan
             @endif
             @if(method_exists($this, 'submitApproval') && $document->status === 'draft')
                 <x-v65.document-confirm id="v65-purchase-submit" title="Onaya Gönder" label="Onaya Gönder" action="submitApproval" variant="secondary" :document="$document" message="Son kaydedilen alış siparişi onay sürecine gönderilecektir." :dirty="$documentDirty" />
@@ -232,7 +238,9 @@
             @endif
 
             @if(method_exists($this, 'createPurchaseDispatch') && in_array($document->status, ['approved', 'sent']))
-                <x-v65.button variant="secondary" wire:click="createPurchaseDispatch" wire:loading.attr="disabled" wire:target="createPurchaseDispatch">Alış İrsaliyesi Oluştur</x-v65.button>
+                @can('purchase_dispatches.create')
+                    <x-v65.button variant="secondary" wire:click="createPurchaseDispatch" wire:loading.attr="disabled" wire:target="createPurchaseDispatch">Alış İrsaliyesi Oluştur</x-v65.button>
+                @endcan
             @endif
             @if(method_exists($this, 'createGoodsReceipt') && in_array($document->status, ['approved', 'sent']))
                 <label class="field">Mal Kabul Tarihi <input type="date" wire:model="receiptDate"></label>
