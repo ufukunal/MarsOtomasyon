@@ -12,7 +12,7 @@ final class CalculateDocumentTotals
     /**
      * @param  list<array{quantity:string,unit_price:string,line_discount_rate?:string,line_discount_amount?:string,vat_rate?:string}>  $lines
      */
-    public function handle(array $lines, string $discountRate = '0', string $discountAmount = '0'): DocumentTotals
+    public function handle(array $lines, string $discountRate = '0', string $discountAmount = '0', string $additionalDiscount = '0'): DocumentTotals
     {
         if ($lines === []) {
             throw new DomainException('Satırlı belge hesaplamasında en az bir satır zorunludur.');
@@ -61,8 +61,16 @@ final class CalculateDocumentTotals
             $discountAmount,
         );
 
+        // Extra amount discount is independent of the document percentage discount.
+        // The existing discount_amount remains the combined financial discount.
+        $extra = Money::of($additionalDiscount)->amount;
+        if (bccomp($extra, '0', 4) < 0) {
+            throw new DomainException('Ek iskonto tutarı negatif olamaz.');
+        }
+        $documentDiscount = Money::of($documentDiscount)->plus(Money::of($extra))->amount;
+
         if (bccomp($documentDiscount, $subtotal->amount, 4) > 0) {
-            throw new DomainException('Belge iskontosu subtotal tutarını aşamaz.');
+            throw new DomainException('Toplam belge iskontosu satırlar toplamını aşamaz.');
         }
 
         $taxBase = $subtotal->minus(Money::of($documentDiscount));

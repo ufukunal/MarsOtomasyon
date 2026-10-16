@@ -2206,3 +2206,12 @@
 .app-shell .v65-doc-line-details summary{cursor:pointer;display:inline-block}
 .app-shell .v65-doc-line-details summary:hover{text-decoration:underline}
 .app-shell .v65-doc-line-details .v65-doc-line-description{margin-top:4px}
+
+/* Amount-based bottom discount, shared by sales and purchasing. */
+.app-shell .v65-doc-summary-rows .v65-doc-extra-discount{min-height:44px}
+.app-shell .v65-doc-summary-rows .v65-doc-extra-discount input{
+  box-sizing:border-box;min-width:0;width:154px;max-width:100%;
+  min-height:34px;padding:5px 8px;border:1px solid #bdcde1;border-radius:4px;
+  background:#fff;color:#26445f;text-align:right;font-size:12px;font-variant-numeric:tabular-nums
+}
+.app-shell .v65-doc-summary-rows .v65-doc-extra-discount-error{padding:0 0 6px}

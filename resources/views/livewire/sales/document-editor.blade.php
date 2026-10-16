@@ -168,7 +168,7 @@
         </div>
     @endif
 
-    <x-v65.document-summary class="v65-doc-screen-summary" :document="$document" :preview="$draftPreview" />
+    <x-v65.document-summary :editable="!$document || $document->status === 'draft'" :additional-discount="$additionalDiscountAmount" class="v65-doc-screen-summary" :document="$document" :preview="$draftPreview" />
 
     @if($document)
         <section class="document-actions panel v65-document-actions v65-doc-workflow" role="group" aria-label="Belge işlemleri">

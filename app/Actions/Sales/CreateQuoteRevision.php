@@ -59,6 +59,7 @@ final class CreateQuoteRevision
                         'status' => 'draft',
                         'discount_rate' => $latest->discount_rate,
                         'discount_amount' => $latest->discount_amount,
+                        'additional_discount_amount' => $latest->additional_discount_amount,
                         'subtotal' => $latest->subtotal,
                         'tax_base' => $latest->tax_base,
                         'vat_amount' => $latest->vat_amount,

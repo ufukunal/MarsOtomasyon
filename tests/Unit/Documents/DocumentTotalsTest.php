@@ -45,3 +45,25 @@ it('permits zero-priced lines without manufacturing a VAT amount', function (): 
     expect($result->grandTotal)->toBe('0.0000')
         ->and($result->vatAmount)->toBe('0.0000');
 });
+
+it('adds a fixed bottom discount after percentage discount and allocates VAT correctly', function (): void {
+    $result = app(\App\Actions\Documents\CalculateDocumentTotals::class)->handle([
+        ['quantity' => '1', 'unit_price' => '100', 'vat_rate' => '20'],
+        ['quantity' => '1', 'unit_price' => '100', 'vat_rate' => '10'],
+    ], '10', '0', '20');
+
+    expect($result->subtotal)->toBe('200.0000')
+        ->and($result->discountRate)->toBe('10.0000')
+        ->and($result->discountAmount)->toBe('40.0000')
+        ->and($result->taxBase)->toBe('160.0000')
+        ->and($result->vatAmount)->toBe('24.0000')
+        ->and($result->grandTotal)->toBe('184.0000');
+});
+
+it('rejects a negative extra discount or combined amount above subtotal', function (): void {
+    $calculator = app(\App\Actions\Documents\CalculateDocumentTotals::class);
+    $lines = [['quantity' => '1', 'unit_price' => '100', 'vat_rate' => '20']];
+
+    expect(fn () => $calculator->handle($lines, '0', '0', '-1'))->toThrow(\DomainException::class)
+        ->and(fn () => $calculator->handle($lines, '60', '0', '41'))->toThrow(\DomainException::class);
+});

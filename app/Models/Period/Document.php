@@ -21,6 +21,7 @@ use LogicException;
  * @property string $exchange_rate
  * @property string $discount_rate
  * @property string $discount_amount
+ * @property string $additional_discount_amount
  * @property string $subtotal
  * @property string $tax_base
  * @property string $vat_amount
@@ -34,7 +35,7 @@ class Document extends PeriodModel
 
     protected $fillable = [
         'document_type', 'number', 'revision_no', 'document_date', 'due_date', 'valid_until',
-        'contact_id', 'currency', 'exchange_rate', 'status', 'discount_rate', 'discount_amount',
+        'contact_id', 'currency', 'exchange_rate', 'status', 'discount_rate', 'discount_amount', 'additional_discount_amount',
         'subtotal', 'tax_base', 'vat_amount', 'rounding_difference', 'grand_total',
         'requirements_snapshot', 'notes', 'created_by', 'created_by_name',
         'posted_by', 'posted_by_name', 'posted_at',
@@ -67,6 +68,7 @@ class Document extends PeriodModel
             'exchange_rate' => 'decimal:6',
             'discount_rate' => 'decimal:4',
             'discount_amount' => 'decimal:4',
+            'additional_discount_amount' => 'decimal:4',
             'subtotal' => 'decimal:4',
             'tax_base' => 'decimal:4',
             'vat_amount' => 'decimal:4',

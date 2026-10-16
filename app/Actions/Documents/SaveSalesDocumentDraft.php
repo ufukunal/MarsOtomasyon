@@ -145,6 +145,7 @@ final class SaveSalesDocumentDraft
                 $calcInput,
                 (string) ($header['discount_rate'] ?? '0'),
                 (string) ($header['discount_amount'] ?? '0'),
+                (string) ($header['additional_discount_amount'] ?? '0'),
             );
 
             $actor = auth()->user();
@@ -158,6 +159,7 @@ final class SaveSalesDocumentDraft
                 'exchange_rate' => '1.000000',
                 'discount_rate' => $totals->discountRate,
                 'discount_amount' => $totals->discountAmount,
+                'additional_discount_amount' => (string) ($header['additional_discount_amount'] ?? '0'),
                 'subtotal' => $totals->subtotal,
                 'tax_base' => $totals->taxBase,
                 'vat_amount' => $totals->vatAmount,

@@ -179,7 +179,7 @@
         </div>
     @endif
 
-    <x-v65.document-summary class="v65-doc-screen-summary" :document="$document" :preview="$draftPreview" :currency="$currency" />
+    <x-v65.document-summary :editable="!$document || $document->status === 'draft'" :additional-discount="$additionalDiscountAmount" class="v65-doc-screen-summary" :document="$document" :preview="$draftPreview" :currency="$currency" />
 
     @if($document)
         <section class="document-actions panel v65-document-actions v65-doc-workflow" role="group" aria-label="Belge işlemleri">

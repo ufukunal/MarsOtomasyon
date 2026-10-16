@@ -38,6 +38,8 @@ abstract class BaseSalesDocumentEditor extends Component
 
     public string $discountRate = '0';
 
+    public string $additionalDiscountAmount = '0';
+
     public string $bulkVatRate = '20';
 
     public string $notes = '';
@@ -174,7 +176,7 @@ abstract class BaseSalesDocumentEditor extends Component
             $this->ensureNextEntryRow();
         }
 
-        foreach (['contactId', 'documentDate', 'dueDate', 'validUntil', 'currency', 'exchangeRate', 'discountRate', 'notes', 'lines'] as $field) {
+        foreach (['contactId', 'documentDate', 'dueDate', 'validUntil', 'currency', 'exchangeRate', 'discountRate', 'additionalDiscountAmount', 'notes', 'lines'] as $field) {
             if ($property === $field || str_starts_with($property, $field.'.')) {
                 $this->documentDirty = true;
 
@@ -305,6 +307,7 @@ abstract class BaseSalesDocumentEditor extends Component
             'dueDate' => ['nullable', 'date'],
             'validUntil' => ['nullable', 'date'],
             'discountRate' => ['required', 'numeric', 'between:0,100'],
+            'additionalDiscountAmount' => ['required', 'numeric', 'min:0', 'decimal:0,4'],
             'lines' => ['required', 'array', 'min:1'],
             'lines.*.line_kind' => ['required', 'in:stock,service'],
             'lines.*.quantity' => ['required', 'numeric', 'gt:0'],
@@ -343,6 +346,7 @@ abstract class BaseSalesDocumentEditor extends Component
                 'due_date' => $this->dueDate,
                 'valid_until' => $this->validUntil,
                 'discount_rate' => $this->discountRate,
+                'additional_discount_amount' => $this->additionalDiscountAmount,
                 'notes' => $this->notes,
             ],
             $this->lines,
@@ -392,7 +396,7 @@ abstract class BaseSalesDocumentEditor extends Component
 
         try {
             return app(CalculateDocumentTotals::class)
-                ->handle($input, (string) $this->discountRate);
+                ->handle($input, (string) $this->discountRate, '0', (string) $this->additionalDiscountAmount);
         } catch (\DomainException|\ValueError $exception) {
             return null;
         }
@@ -476,6 +480,7 @@ abstract class BaseSalesDocumentEditor extends Component
         $this->dueDate = $document->due_date?->toDateString();
         $this->validUntil = $document->valid_until?->toDateString();
         $this->discountRate = (string) $document->discount_rate;
+        $this->additionalDiscountAmount = (string) ($document->additional_discount_amount ?? '0');
         $this->notes = (string) ($document->notes ?? '');
         $this->version = (int) $document->version;
         $this->lines = $document->lines->map(fn ($line) => [

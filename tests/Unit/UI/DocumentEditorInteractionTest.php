@@ -37,7 +37,9 @@ it('keeps purchase line arithmetic and initial form shape deterministic', functi
         ->and($page->lines[0]['quantity'])->toBe('1.000');
     $page->bulkVatRate = '10';
     $page->applyVatToAll();
-    expect($page->lines[0]['vat_rate'])->toBe('10.0000');
+    // Blank quick-entry rows remain unposted and do not receive bulk VAT.
+    expect($page->lines[0]['vat_rate'])->toBe('20');
     $page->removeLine(0);
-    expect($page->lines)->toBe([]);
+    expect($page->lines)->toHaveCount(1)
+        ->and($page->lines[0]['quantity'])->toBe('1.000');
 });
