@@ -59,7 +59,15 @@ class PurchaseDispatchEditor extends BasePurchaseDocumentEditor
 
     public function createReceipt(CreateGoodsReceiptFromPurchaseDispatch $action): mixed
     {
+        $this->requireSavedDraft();
         abort_unless($this->document !== null, 422);
+
+        $this->validate([
+            'receiptDate' => ['required', 'date'],
+            'receiptQuantities' => ['required', 'array'],
+            'receiptQuantities.*' => ['required', 'numeric', 'min:0', 'decimal:0,3'],
+            'receiptLocationIds.*' => ['nullable', 'integer'],
+        ]);
 
         $quantities = array_filter(
             $this->receiptQuantities,
