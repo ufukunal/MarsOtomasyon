@@ -141,7 +141,12 @@ class ContactTransferForm extends Component
             throw ValidationException::withMessages(['overdraftAcknowledged' => 'Bakiye aşımını açıkça onaylayın.']);
         }
         $this->overdraftConfirmed = true;
-        $this->post($action);
+        try {
+            $this->post($action);
+        } finally {
+            $this->overdraftConfirmed = false;
+            $this->overdraftAcknowledged = false;
+        }
     }
 
     public function post(PostContactTransfer $action): void
