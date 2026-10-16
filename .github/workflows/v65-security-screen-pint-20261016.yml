@@ -1,0 +1,42 @@
+name: V65 security screens one-shot Pint
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/v65-security-screen-pint-20261016.yml']
+permissions:
+  contents: write
+jobs:
+  style:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      APP_ENV: testing
+      APP_DEBUG: 'false'
+      APP_KEY: base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+      BACKUP_NOTIFICATION_EMAIL: ci-only@invalid.test
+      CACHE_STORE: array
+      SESSION_DRIVER: array
+      QUEUE_CONNECTION: sync
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: bcmath, mbstring, intl, gd, zip, pdo_pgsql
+          tools: composer:v2
+      - run: composer install --no-interaction --no-progress --prefer-dist
+      - name: Format new security screen PHP
+        run: vendor/bin/pint app/Livewire/Finance/SecuritiesCenter.php app/Livewire/Finance/SecurityScreen.php app/Livewire/Finance/CheckListScreen.php app/Livewire/Finance/IncomingCheckScreen.php app/Livewire/Finance/OutgoingCheckScreen.php app/Livewire/Finance/CheckEndorsementScreen.php app/Livewire/Finance/NoteListScreen.php app/Livewire/Finance/IncomingNoteScreen.php app/Livewire/Finance/OutgoingNoteScreen.php app/Livewire/Finance/NoteEndorsementScreen.php tests/Unit/UI/ScopedSecurityScreensContractTest.php routes/web.php
+      - name: Publish source formatting
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- '*.php'
+          if git diff --cached --quiet; then
+            echo 'STYLE_UNCHANGED'
+            exit 0
+          fi
+          git commit -m 'style(finance): Pint scoped cheque note and endorsement pages'
+          git push origin HEAD:main
