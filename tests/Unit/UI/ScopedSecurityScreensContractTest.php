@@ -38,3 +38,13 @@ it('restricts standalone creation and endorsement routes by server roles', funct
     expect($source)->toContain("can('securities.create')")
         ->toContain("can('security_payrolls.create')");
 });
+
+
+it('rejects cross-direction editing on scoped cheque and note screens', function (): void {
+    $source = file_get_contents(base_path('app/Livewire/Finance/SecuritiesCenter.php'));
+
+    expect($source)->toContain('$security->direction !== $this->scopeDirection()')
+        ->toContain("'instrumentNo' => ['required', 'string', 'max:100']")
+        ->toContain("'contactId' => ['required', 'integer', 'min:1']")
+        ->toContain("'amount' => ['required', 'numeric', 'gt:0']");
+});
