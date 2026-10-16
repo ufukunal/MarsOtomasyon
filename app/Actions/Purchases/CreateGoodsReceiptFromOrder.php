@@ -8,6 +8,7 @@ use App\Models\Period\DocumentLine;
 use App\Models\Period\DocumentRelation;
 use App\Support\Auth\MutationAuthorizer;
 use App\Support\Concurrency\IdempotencyKey;
+use App\Support\Documents\ProrateFixedDiscount;
 use DomainException;
 
 final class CreateGoodsReceiptFromOrder
@@ -93,6 +94,7 @@ final class CreateGoodsReceiptFromOrder
                         'currency' => $locked->currency,
                         'exchange_rate' => $locked->exchange_rate,
                         'discount_rate' => $locked->discount_rate,
+                        'additional_discount_amount' => app(ProrateFixedDiscount::class)->handle($locked, $draftLines),
                         'notes' => $deliveryNote,
                     ],
                     $draftLines,

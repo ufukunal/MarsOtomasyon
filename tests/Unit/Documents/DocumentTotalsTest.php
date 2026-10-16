@@ -67,3 +67,30 @@ it('rejects a negative extra discount or combined amount above subtotal', functi
     expect(fn () => $calculator->handle($lines, '0', '0', '-1'))->toThrow(\DomainException::class)
         ->and(fn () => $calculator->handle($lines, '60', '0', '41'))->toThrow(\DomainException::class);
 });
+
+
+it('prorates a fixed source document discount without duplicating it on partial deliveries', function (): void {
+    $source = new \App\Models\Period\Document;
+    $source->subtotal = '200.0000';
+    $source->additional_discount_amount = '50.0000';
+    $allocator = app(\App\Support\Documents\ProrateFixedDiscount::class);
+    $half = [['quantity' => '1', 'unit_price' => '100', 'vat_rate' => '20']];
+    $whole = [['quantity' => '2', 'unit_price' => '100', 'vat_rate' => '20']];
+
+    expect($allocator->handle($source, $half))->toBe('25.0000')
+        ->and($allocator->handle($source, $whole))->toBe('50.0000');
+});
+
+it('recognizes a saved combined percentage and extra discount during posting verification', function (): void {
+    $result = app(\App\Actions\Documents\CalculateDocumentTotals::class)->handle([
+        ['quantity' => '1', 'unit_price' => '100', 'vat_rate' => '20'],
+    ], '10', '0', '25');
+
+    $percentagePart = bcsub($result->discountAmount, '25.0000', 4);
+    $rechecked = app(\App\Actions\Documents\CalculateDocumentTotals::class)->handle([
+        ['quantity' => '1', 'unit_price' => '100', 'vat_rate' => '20'],
+    ], $result->discountRate, $percentagePart, '25.0000');
+
+    expect($rechecked->grandTotal)->toBe($result->grandTotal)
+        ->and($rechecked->discountAmount)->toBe($result->discountAmount);
+});

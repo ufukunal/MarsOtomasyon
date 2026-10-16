@@ -11,6 +11,7 @@ use App\Models\Period\DocumentLine;
 use App\Models\Period\DocumentRelation;
 use App\Support\Auth\MutationAuthorizer;
 use App\Support\Concurrency\IdempotencyKey;
+use App\Support\Documents\ProrateFixedDiscount;
 use DomainException;
 
 final class CreateInvoiceFromDispatches
@@ -37,6 +38,8 @@ final class CreateInvoiceFromDispatches
             function () use ($dispatchLineQuantities, $documentDate): Document {
                 $draftLines = [];
                 $dispatchIds = [];
+                $discountLinesByDispatch = [];
+                $discountSources = [];
                 $contactId = null;
                 $discountRate = null;
                 $currency = null;
@@ -85,10 +88,21 @@ final class CreateInvoiceFromDispatches
                         'source_line_id' => $source->id,
                     ];
                     $dispatchIds[(int) $dispatch->id] = true;
+                    $discountSources[(int) $dispatch->id] = $dispatch;
+                    $discountLinesByDispatch[(int) $dispatch->id][] = $draftLines[array_key_last($draftLines)];
                 }
 
                 if ($draftLines === [] || $contactId === null) {
                     throw new DomainException('Faturalanacak irsaliye satırı seçilmedi.');
+                }
+
+                $additionalDiscount = '0.0000';
+                foreach ($discountLinesByDispatch as $dispatchId => $selectedLines) {
+                    $additionalDiscount = bcadd(
+                        $additionalDiscount,
+                        app(ProrateFixedDiscount::class)->handle($discountSources[$dispatchId], $selectedLines),
+                        4,
+                    );
                 }
 
                 $contact = Contact::query()->findOrFail((int) $contactId);
@@ -100,6 +114,7 @@ final class CreateInvoiceFromDispatches
                         'contact_id' => $contactId,
                         'discount_rate' => $discountRate,
                         'discount_amount' => '0',
+                        'additional_discount_amount' => $additionalDiscount,
                     ],
                     $draftLines,
                 );

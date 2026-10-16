@@ -171,7 +171,8 @@ final class PostReturnDocument
                 'vat_rate' => (string) $line->vat_rate,
             ])->all(),
             (string) $document->discount_rate,
-            (string) $document->discount_amount,
+            bcsub((string) $document->discount_amount, (string) $document->additional_discount_amount, 4),
+            (string) $document->additional_discount_amount,
         );
 
         foreach ($document->lines->values() as $index => $line) {

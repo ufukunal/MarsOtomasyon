@@ -49,7 +49,8 @@ final class ConfirmSalesOrder
                         'vat_rate' => (string) $line->vat_rate,
                     ])->all(),
                     (string) $locked->discount_rate,
-                    (string) $locked->discount_amount,
+                    bcsub((string) $locked->discount_amount, (string) $locked->additional_discount_amount, 4),
+                    (string) $locked->additional_discount_amount,
                 );
 
                 foreach ($locked->lines->values() as $index => $line) {

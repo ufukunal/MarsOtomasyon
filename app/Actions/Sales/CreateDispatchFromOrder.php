@@ -10,6 +10,7 @@ use App\Models\Period\DocumentLine;
 use App\Models\Period\DocumentRelation;
 use App\Support\Auth\MutationAuthorizer;
 use App\Support\Concurrency\IdempotencyKey;
+use App\Support\Documents\ProrateFixedDiscount;
 use DomainException;
 
 final class CreateDispatchFromOrder
@@ -87,6 +88,7 @@ final class CreateDispatchFromOrder
                         'contact_id' => $locked->contact_id,
                         'discount_rate' => $locked->discount_rate,
                         'discount_amount' => '0',
+                        'additional_discount_amount' => app(ProrateFixedDiscount::class)->handle($locked, $draftLines),
                         'notes' => $locked->notes,
                     ],
                     $draftLines,

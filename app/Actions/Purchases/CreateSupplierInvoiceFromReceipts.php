@@ -9,6 +9,7 @@ use App\Models\Period\DocumentLine;
 use App\Models\Period\DocumentRelation;
 use App\Support\Auth\MutationAuthorizer;
 use App\Support\Concurrency\IdempotencyKey;
+use App\Support\Documents\ProrateFixedDiscount;
 use DomainException;
 
 final class CreateSupplierInvoiceFromReceipts
@@ -37,6 +38,9 @@ final class CreateSupplierInvoiceFromReceipts
                 $draftLines = [];
                 $contactId = null;
                 $receiptDocumentIds = [];
+                $discountLinesByReceipt = [];
+                $discountSources = [];
+                $discountRate = null;
 
                 foreach ($lineQuantities as $lineId => $quantity) {
                     $receiptLine = DocumentLine::query()
@@ -75,6 +79,12 @@ final class CreateSupplierInvoiceFromReceipts
 
                     $contactId = $supplierId;
                     $receiptDocumentIds[(int) $receiptLine->document_id] = true;
+                    $receiptRate = (string) $receiptLine->document->discount_rate;
+                    $discountRate ??= $receiptRate;
+                    if (bccomp($discountRate, $receiptRate, 4) !== 0) {
+                        throw new DomainException('Birleştirilen mal kabullerin belge iskontosu uyumlu olmalıdır.');
+                    }
+                    $discountSources[(int) $receiptLine->document_id] = $receiptLine->document;
 
                     $draftLines[] = [
                         'line_kind' => $receiptLine->line_kind,
@@ -91,10 +101,20 @@ final class CreateSupplierInvoiceFromReceipts
                         'configuration' => $receiptLine->configuration,
                         'source_line_id' => $receiptLine->id,
                     ];
+                    $discountLinesByReceipt[(int) $receiptLine->document_id][] = $draftLines[array_key_last($draftLines)];
                 }
 
                 if ($draftLines === []) {
                     throw new DomainException('Faturalanacak mal kabul satırı seçilmedi.');
+                }
+
+                $additionalDiscount = '0.0000';
+                foreach ($discountLinesByReceipt as $receiptId => $selectedLines) {
+                    $additionalDiscount = bcadd(
+                        $additionalDiscount,
+                        app(ProrateFixedDiscount::class)->handle($discountSources[$receiptId], $selectedLines),
+                        4,
+                    );
                 }
 
                 $contact = Contact::query()->findOrFail($contactId);
@@ -106,7 +126,8 @@ final class CreateSupplierInvoiceFromReceipts
                         'due_date' => $this->dueDate->handle($contact, $documentDate),
                         'currency' => strtoupper($currency),
                         'exchange_rate' => $exchangeRate,
-                        'discount_rate' => '0',
+                        'discount_rate' => $discountRate ?? '0',
+                        'additional_discount_amount' => $additionalDiscount,
                     ],
                     $draftLines,
                 );

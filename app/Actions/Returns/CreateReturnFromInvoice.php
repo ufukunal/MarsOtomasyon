@@ -9,6 +9,7 @@ use App\Models\Period\DocumentLine;
 use App\Models\Period\DocumentRelation;
 use App\Support\Auth\MutationAuthorizer;
 use App\Support\Concurrency\IdempotencyKey;
+use App\Support\Documents\ProrateFixedDiscount;
 use DomainException;
 use Illuminate\Support\Facades\DB;
 
@@ -117,10 +118,12 @@ final class CreateReturnFromInvoice
                     throw new DomainException('İade edilecek satır seçilmedi.');
                 }
 
+                $extra = app(ProrateFixedDiscount::class)->handle($source, $calcInput);
                 $totals = $this->calculator->handle(
                     $calcInput,
                     (string) $source->discount_rate,
                     '0',
+                    $extra,
                 );
                 $actor = auth()->user();
 
@@ -134,6 +137,7 @@ final class CreateReturnFromInvoice
                     'status' => 'draft',
                     'discount_rate' => $totals->discountRate,
                     'discount_amount' => $totals->discountAmount,
+                    'additional_discount_amount' => $extra,
                     'subtotal' => $totals->subtotal,
                     'tax_base' => $totals->taxBase,
                     'vat_amount' => $totals->vatAmount,

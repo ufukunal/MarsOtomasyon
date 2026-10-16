@@ -373,6 +373,7 @@ final class PostDocument
                 || bccomp((string) $document->subtotal, (string) $document->tax_base, 4) !== 0
                 || bccomp((string) $document->tax_base, (string) $document->grand_total, 4) !== 0
                 || bccomp((string) $document->discount_amount, '0', 4) !== 0
+                || bccomp((string) $document->additional_discount_amount, '0', 4) !== 0
                 || bccomp((string) $document->vat_amount, '0', 4) !== 0
                 || bccomp((string) $document->rounding_difference, '0', 4) !== 0) {
                 throw new DomainException('Header-amount belge toplam invariantı geçersiz.');
@@ -390,7 +391,8 @@ final class PostDocument
                 'vat_rate' => (string) $line->vat_rate,
             ])->all(),
             (string) $document->discount_rate,
-            (string) $document->discount_amount,
+            bcsub((string) $document->discount_amount, (string) $document->additional_discount_amount, 4),
+            (string) $document->additional_discount_amount,
         );
 
         foreach ($document->lines->values() as $index => $line) {
