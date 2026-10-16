@@ -79,7 +79,10 @@ class CollectionForm extends Component
     {
         abort_unless(auth()->user()?->can('collections.cancel'), 403);
         abort_unless($this->postedDocumentId !== null, 422);
-        $document = Document::query()->findOrFail($this->postedDocumentId);
+        $document = Document::query()
+            ->where('document_type', $this->financialDocumentType()->value)
+            ->where('status', 'posted')
+            ->findOrFail($this->postedDocumentId);
         $reversal = $action->handle(
             $document,
             $this->reversalDate,
