@@ -13,6 +13,7 @@ return [
         'sales_return' => 'SI',
         'purchase_return' => 'AI',
         'transfer' => 'TRF',
+        'contact_transfer' => 'CV',
         'stock_count' => 'CNT',
         'warehouse_slip' => 'AMB',
         'production_order' => 'UE',

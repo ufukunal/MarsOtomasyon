@@ -19,6 +19,7 @@ use App\Livewire\Finance\BankStatementCenter;
 use App\Livewire\Finance\CollectionForm;
 use App\Livewire\Finance\ContactAging;
 use App\Livewire\Finance\ContactDebitCreditForm;
+use App\Livewire\Finance\ContactTransferForm;
 use App\Livewire\Finance\FinanceAccounts;
 use App\Livewire\Finance\FinanceOperationCenter;
 use App\Livewire\Finance\SecuritiesCenter;
@@ -198,6 +199,7 @@ Route::middleware('auth')->group(function (): void {
 
     Route::get('/finans/tahsilat', CollectionForm::class)->name('finance.collections.create');
     Route::get('/finans/cari-fis', ContactDebitCreditForm::class)->name('finance.contact-debit-credit');
+    Route::get('/finans/cari-virman', ContactTransferForm::class)->name('finance.contact-transfers');
     Route::get('/finans/yaslandirma', ContactAging::class)->name('finance.contact-aging');
     Route::get('/finans/hesaplar', FinanceAccounts::class)->name('finance.accounts');
     Route::get('/finans/islemler', FinanceOperationCenter::class)->name('finance.operations');

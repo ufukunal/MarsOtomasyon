@@ -1,0 +1,132 @@
+<div class="space-y-5 v65-contact-transfer">
+    <section class="panel v65-workspace-form">
+        <h2>Cari Virman</h2>
+        <p class="v65-doc-search-hint">Cari bakiyesi esaslı virman. Kasa/banka hareketi oluşturmaz. Kayıtlar TRY cinsindendir.</p>
+        <div class="v65-contact-transfer-grid">
+            <div class="v65-contact-transfer-party">
+                <strong>Kaynak Cari</strong>
+                <label class="field"><span>Cari kodu / ünvan ara</span>
+                    <input type="search" wire:model.live.debounce.300ms="sourceSearch" placeholder="Kaynak cari ara">
+                </label>
+                <label class="field"><span>Cari seç</span>
+                    <select wire:model.live="sourceContactId">
+                        <option value="">Kaynak cari seçin</option>
+                        @foreach($sourceOptions as $contact)
+                            <option value="{{ $contact->id }}">{{ $contact->code }} · {{ $contact->title }}</option>
+                        @endforeach
+                    </select>
+                </label>
+                <div class="v65-contact-transfer-balance"><span>Mevcut bakiye (Borç − Alacak)</span>
+                    <strong>{{ \App\Support\Formatting\TrFormatter::money($this->sourceBalance()) }} TRY</strong>
+                </div>
+                <div class="v65-contact-transfer-balance"><span>İşlem Sonrası (Taslak)</span>
+                    <strong>{{ \App\Support\Formatting\TrFormatter::money($this->projectedSourceBalance()) }} TRY</strong>
+                </div>
+            </div>
+            <div class="v65-contact-transfer-party">
+                <strong>Hedef Cari</strong>
+                <label class="field"><span>Cari kodu / ünvan ara</span>
+                    <input type="search" wire:model.live.debounce.300ms="targetSearch" placeholder="Hedef cari ara">
+                </label>
+                <label class="field"><span>Cari seç</span>
+                    <select wire:model.live="targetContactId">
+                        <option value="">Hedef cari seçin</option>
+                        @foreach($targetOptions as $contact)
+                            <option value="{{ $contact->id }}">{{ $contact->code }} · {{ $contact->title }}</option>
+                        @endforeach
+                    </select>
+                </label>
+                <div class="v65-contact-transfer-balance"><span>Mevcut bakiye (Borç − Alacak)</span>
+                    <strong>{{ \App\Support\Formatting\TrFormatter::money($this->targetBalance()) }} TRY</strong>
+                </div>
+                <div class="v65-contact-transfer-balance"><span>İşlem Sonrası (Taslak)</span>
+                    <strong>{{ \App\Support\Formatting\TrFormatter::money($this->projectedTargetBalance()) }} TRY</strong>
+                </div>
+            </div>
+        </div>
+        <div class="v65-contact-transfer-controls">
+            <label class="field"><span>Virman Yönü</span>
+                <select wire:model.live="balanceType">
+                    <option value="debit">Borç bakiyesi devri</option>
+                    <option value="credit">Alacak bakiyesi devri</option>
+                </select>
+            </label>
+            <label class="field"><span>Virman Tutarı (TRY)</span>
+                <input wire:model.blur="amount" data-tr-decimal inputmode="decimal" aria-invalid="{{ $errors->has('amount') ? 'true' : 'false' }}">
+                <x-v65.input-error field="amount"/>
+            </label>
+            <label class="field"><span>İşlem Tarihi</span>
+                <input type="date" wire:model="documentDate">
+            </label>
+            <label class="field"><span>Gerekçe / Açıklama</span>
+                <input wire:model.blur="reason" placeholder="Virmanın nedenini yazın">
+                <x-v65.input-error field="reason"/>
+            </label>
+        </div>
+        @if($postedTransferId)
+            <div role="status" class="v65-contact-transfer-notice">Virman kaydedildi. Kayıt #{{ $postedTransferId }}</div>
+        @endif
+        <div class="v65-form-footer">
+            <x-v65.button wire:click="post" wire:loading.attr="disabled" wire:target="post">Virmanı Oluştur</x-v65.button>
+        </div>
+    </section>
+    <section class="panel v65-workspace-form">
+        <h3>Cari Virman Geçmişi</h3>
+        <div class="table-scroll"><table class="data-table">
+            <thead><tr><th>No</th><th>Tarih</th><th>Kaynak Cari</th><th>Hedef Cari</th><th>Yön</th><th>Tutar</th><th>Aşım Onayı</th><th>İşlem</th></tr></thead>
+            <tbody>
+                @forelse($transfers as $transfer)
+                <tr>
+                    <td>{{ $transfer->number }}</td>
+                    <td>{{ $transfer->transfer_date?->format('d.m.Y') }}</td>
+                    <td>{{ $transfer->sourceContact?->title }}</td>
+                    <td>{{ $transfer->targetContact?->title }}</td>
+                    <td>{{ $transfer->balance_type === 'debit' ? 'Borç Devri' : 'Alacak Devri' }}</td>
+                    <td>{{ \App\Support\Formatting\TrFormatter::money((string) $transfer->amount) }} TRY</td>
+                    <td>{{ $transfer->overdraft_approved ? 'Onaylı' : '—' }}</td>
+                    <td>
+                        @if($transfer->reversal_of_id === null && auth()->user()?->can('contact_transfers.cancel'))
+                            <x-v65.button variant="secondary" size="xs" wire:click="reverse({{ $transfer->id }})">Ters Kayıt</x-v65.button>
+                        @else
+                            <span>—</span>
+                        @endif
+                    </td>
+                </tr>
+                @empty
+                <tr><td colspan="8">Henüz cari virman kaydı bulunmuyor.</td></tr>
+                @endforelse
+            </tbody>
+        </table></div>
+        @if(auth()->user()?->can('contact_transfers.cancel'))
+            <div class="v65-contact-transfer-controls">
+                <label class="field">Ters Kayıt Tarihi <input type="date" wire:model="reversalDate"></label>
+                <label class="field">Ters Kayıt Gerekçesi <input wire:model="reversalReason" placeholder="Ters kayıt için gerekçe zorunlu"></label>
+            </div>
+        @endif
+    </section>
+
+    @if($showOverdraftConfirm)
+        <div class="v65-contact-transfer-overlay" role="presentation">
+            <div class="v65-contact-transfer-dialog" role="dialog" aria-modal="true" aria-labelledby="v65-contact-overdraft-title">
+                <h3 id="v65-contact-overdraft-title">Bakiye Aşımı — Onay Gerekiyor</h3>
+                <p>Aktarılacak tutar kaynak carinin mevcut {{ $balanceType === 'debit' ? 'borç' : 'alacak' }} bakiyesini aşamaz.</p>
+                <p>Bu işlem ancak bakiye aşımı yetkisiyle ve kayıtlı gerekçeyle yapılabilir.</p>
+                <p><strong>Kaynak cari:</strong> {{ $this->sourceContact()?->title }} · <strong>Hedef cari:</strong> {{ $this->targetContact()?->title }}</p>
+                <p><strong>İşlem tutarı:</strong> {{ \App\Support\Formatting\TrFormatter::money((string) $amount) }} TRY</p>
+                @if(!auth()->user()?->can('contact_transfers.override_balance'))
+                    <div class="v65-contact-transfer-error" role="alert">Bu işlem için yetkili kullanıcı onayı gereklidir. Mevcut hesabınızın bakiye aşımı yetkisi yok.</div>
+                @endif
+                <label class="field"><input type="checkbox" wire:model.live="overdraftAcknowledged">
+                    Bakiye aşımını ve işlem sonrası olası ters bakiyeyi onaylıyorum.
+                </label>
+                <x-v65.input-error field="overdraftAcknowledged"/>
+                <div class="v65-contact-transfer-dialog-actions">
+                    <x-v65.button variant="secondary" wire:click="cancelOverdraft">Vazgeç</x-v65.button>
+                    @if(auth()->user()?->can('contact_transfers.override_balance'))
+                        <x-v65.button wire:click="confirmOverdraft" :disabled="!$overdraftAcknowledged">Bakiye Aşımını Onayla ve Kaydet</x-v65.button>
+                    @endif
+                </div>
+            </div>
+        </div>
+    @endif
+</div>

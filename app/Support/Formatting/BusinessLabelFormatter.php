@@ -28,7 +28,7 @@ final class BusinessLabelFormatter
                 'receipt'=>'Fiş','report'=>'Rapor','a4'=>'A4 Belgesi',
             ],
             'contact_transaction' => [
-                'opening'=>'Açılış Bakiyesi', 'sales_invoice'=>'Satış Faturası',
+                'opening'=>'Açılış Bakiyesi', 'contact_transfer'=>'Cari Virman', 'sales_invoice'=>'Satış Faturası',
                 'supplier_invoice'=>'Alış Faturası', 'collection'=>'Tahsilat',
                 'payment'=>'Ödeme', 'contact_debit_credit'=>'Cari Borç / Alacak',
                 'sales_return'=>'Satış İadesi', 'purchase_return'=>'Alış İadesi',

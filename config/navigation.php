@@ -13,6 +13,7 @@ return [
         'label' => 'Cariler',
         'items' => [
             ['label' => 'Cari Listesi', 'route' => 'contacts.index', 'permission' => 'contacts.view'],
+            ['label' => 'Cari Virman', 'route' => 'finance.contact-transfers', 'permission' => 'contact_transfers.view'],
             ['label' => 'Başka Şirketten Aktar', 'route' => 'company-copy.index', 'permission' => 'company_copy_permissions.view'],
         ],
     ],

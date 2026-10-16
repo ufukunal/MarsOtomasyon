@@ -2215,3 +2215,15 @@
   background:#fff;color:#26445f;text-align:right;font-size:12px;font-variant-numeric:tabular-nums
 }
 .app-shell .v65-doc-summary-rows .v65-doc-extra-discount-error{padding:0 0 6px}
+
+/* Cari virman: separate balance panels and explicit overdraft confirmation. */
+.app-shell .v65-contact-transfer-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.app-shell .v65-contact-transfer-party{border:1px solid #dce6f1;border-radius:7px;padding:14px;display:grid;gap:10px}
+.app-shell .v65-contact-transfer-balance{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;font-size:12px}
+.app-shell .v65-contact-transfer-controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-block:16px}
+.app-shell .v65-contact-transfer-notice{padding:10px;border:1px solid #b9d8c5;color:#286c4a;border-radius:5px}
+.app-shell .v65-contact-transfer-overlay{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;background:rgba(21,39,61,.52);padding:16px}
+.app-shell .v65-contact-transfer-dialog{width:min(100%,600px);background:#fff;border-radius:8px;padding:24px;box-shadow:0 12px 48px #182c4555}
+.app-shell .v65-contact-transfer-dialog-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:20px}
+.app-shell .v65-contact-transfer-error{background:#fff0ef;color:#a32e29;padding:11px}
+@media(max-width:760px){.app-shell .v65-contact-transfer-grid,.app-shell .v65-contact-transfer-controls{grid-template-columns:minmax(0,1fr)}}
