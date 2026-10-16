@@ -176,6 +176,10 @@ class ContactTransferForm extends Component
             return;
         }
 
+        if ($this->overdraftConfirmed && ! $this->overdraftAcknowledged) {
+            throw ValidationException::withMessages(['overdraftAcknowledged' => 'Bakiye aşımını açıkça onaylayın.']);
+        }
+
         if ($this->overdraftConfirmed && trim($this->reason) === '') {
             throw ValidationException::withMessages(['reason' => 'Bakiye aşımı için gerekçe girin.']);
         }
