@@ -1,4 +1,4 @@
-name: MarsProject approved 20-screen rerun after PHPStan fix
+name: MarsProject approved financial correction PHPStan rerun
 on:
   push:
     branches: [main]

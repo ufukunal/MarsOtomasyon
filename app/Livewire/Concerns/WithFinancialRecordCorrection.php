@@ -67,7 +67,7 @@ trait WithFinancialRecordCorrection
     public function selectForCorrection(int $id): void
     {
         abort_unless(auth()->user()?->can($this->financialPermission().'.view')
-            && auth()->user()?->can($this->financialPermission().'.cancel'), 403);
+            && auth()->user()->can($this->financialPermission().'.cancel'), 403);
 
         $document = Document::query()
             ->where('document_type', $this->financialDocumentType()->value)
@@ -88,16 +88,18 @@ trait WithFinancialRecordCorrection
         $this->documentDate = $document->document_date->toDateString();
         $this->note = (string) ($document->notes ?? '');
         $this->accountType = $cash ? 'cash' : 'bank';
-        $this->accountId = $cash ? $cash->cash_account_id : $bank?->bank_account_id;
-        if (property_exists($this, 'currency')) {
-            $this->currency = (string) $document->currency;
-            $this->exchangeRate = (string) $document->exchange_rate;
-        }
+        $this->accountId = $cash ? $cash->cash_account_id : $bank->bank_account_id;
+        $this->restoreFinancialCurrency($document);
         $this->postedDocumentId = $id;
         $this->correctionMode = true;
         $this->correctionSourceId = null;
         $this->reversalDate = now()->toDateString();
         $this->reversalReason = '';
+    }
+
+    protected function restoreFinancialCurrency(Document $document): void
+    {
+        // Collection documents use TRY; payment overrides this hook.
     }
 
     public function financialCorrectionPosted(): void
