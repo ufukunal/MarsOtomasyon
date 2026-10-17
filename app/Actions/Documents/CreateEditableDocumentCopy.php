@@ -18,9 +18,11 @@ use Illuminate\Support\Facades\DB;
 /**
  * Creates an independent, editable draft of a locked document.
  *
- * A finalized ledger document cannot be silently reopened. It must first be
- * reversed by the existing verified reversal workflow. A copy never alters
- * the source's status, stock reservations, invoice ledger or audit history.
+ * A finalized ledger document cannot be silently reopened. The invoice
+ * editing path may create a non-posted independent copy while retaining the
+ * original invoice's financial effect until the new invoice posts atomically
+ * with an audited reversal. All other posted documents still require a
+ * preceding reversal. Opening a draft never alters the source's ledger.
  * A purchase dispatch is reopened in place only when no Goods Receipt exists,
  * because its draft lines already reserve quantities from the source order.
  */

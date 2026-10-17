@@ -36,7 +36,11 @@
     @if($document && $document->status !== 'draft' && !($this instanceof \App\Livewire\Purchases\GoodsReceiptEditor))
         <div class="v65-reference-edit-notice" role="status">
             <strong>Bu sürüm kayıtlıdır.</strong>
-            @if($document->status === 'posted' && ! $this->canCreateEditableCopy())
+            @if($this instanceof \App\Livewire\Purchases\SupplierInvoiceEditor)
+                Faturayı değiştirmek için <strong>Düzenle</strong> seçin.
+                Önceki fatura, yeni kayıt kaydedilene kadar geçerlidir.
+                <strong>Sil</strong> işlemi muhasebe geçmişini koruyarak faturayı listeden kaldırır.
+            @elseif($document->status === 'posted' && ! $this->canCreateEditableCopy())
                 Kesinleşmiş belge üzerinde tutar veya stok değişikliği yapılamaz.
                 Düzeltme için önce Belge İşlemleri bölümündeki Ters Kayıt uygulanmalıdır.
                 Ters kayıt oluştuktan sonra bu ekrandan yeni düzenleme taslağı açılabilir.
