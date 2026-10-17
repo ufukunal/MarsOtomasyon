@@ -20,7 +20,8 @@
 
 
 
-        <label class="field">Tedarikçi
+        <label class="field">İşlem No <input readonly value="{{ $postedDocumentId ? 'Kayıt #'.$postedDocumentId : 'Kaydedilince atanır' }}"></label>
+        <label class="field">Tedarikçi / Cari *
             <select wire:model.live="contactId">
                 <option value="">Seçin</option>
                 @foreach($contacts as $contact)
@@ -36,17 +37,17 @@
                 @endforeach
             </select>
         </label>
-        <label class="field">Tarih <input type="date" wire:model="documentDate"></label>
-        <label class="field">Tutar <input wire:model.blur="amount" inputmode="decimal" data-tr-decimal><x-v65.input-error field="amount" /></label>
+        <label class="field">İşlem Tarihi <input type="date" wire:model="documentDate"></label>
+        <label class="field">Tediye Tutarı * <input wire:model.blur="amount" inputmode="decimal" data-tr-decimal><x-v65.input-error field="amount" /></label>
         <label class="field">Para Birimi <input wire:model="currency" maxlength="3"></label>
         <label class="field">Kur <input wire:model.blur="exchangeRate" inputmode="decimal" data-tr-decimal><x-v65.input-error field="exchangeRate" /></label>
-        <label class="field">Hesap Türü
+        <label class="field">Ödeme Yöntemi
             <select wire:model.live="accountType">
                 <option value="cash">Kasa</option>
                 <option value="bank">Banka</option>
             </select>
         </label>
-        <label class="field">Hesap
+        <label class="field">Banka / Kasa Hesabı
             <select wire:key="account-{{ $accountType }}" wire:model="accountId">
                 <option value="">Seçin</option>
                 @if($accountType === 'cash')
@@ -60,8 +61,8 @@
                 @endif
             </select>
         </label>
-        <label class="field">Dekont / Referans No <input wire:model.blur="reference" maxlength="140" placeholder="Banka dekontu / işlem referansı"></label>
-    <label class="field">Not <textarea wire:model="note"></textarea></label>
+        <label class="field">Makbuz / Dekont No <input wire:model.blur="reference" maxlength="140" placeholder="Banka dekontu / işlem referansı"></label>
+    <label class="field">Açıklama <textarea wire:model="note"></textarea></label>
         <div class="v65-form-footer"><x-v65.button wire:click="post" wire:loading.attr="disabled" wire:target="post" :disabled="$correctionMode">Tediyeyi Kesinleştir</x-v65.button></div>
     </section>
     <section class="panel v65-ref-card v65-ref-summary-card" aria-label="Cari hareket özeti">
