@@ -18,7 +18,7 @@ aksiyonları üzerinden çalışır ve tarayıcıdaki önizleme hiçbir zaman de
 | D01 | 5 kolon belge formu | Uygulandı, responsive | Tarayıcı |
 | D02 | Tür-bazlı üst bilgi | `ui_meta` JSONB ile kaydedilen alanlar eklendi | Alanların iş-akışına etkisi ayrıca değerlendirilir |
 | D03 | Cari arama/seçme | Sunucu araması korunuyor; tek kontrol birebir değil | UX görsel kabul |
-| D04 | 11 kolon ve KDV dahil | Uygulandı, KDV bilgi amaçlı | Tutar/stil |
+| D04 | 10 kolon ve KDV dahil | Uygulandı, KDV bilgi amaçlı | Tutar/stil |
 | D05 | Hizmet satırı/detay | Eklendi | UI test |
 | D06 | Barkod/hızlı giriş | Backend kod/ad/barkod araması + klavye kısayolu | Browser focus |
 | D07 | Yatay 5 özet kartı | Eklendi; hesap sunucuda | KDV |
@@ -74,3 +74,15 @@ aksiyonları üzerinden çalışır ve tarayıcıdaki önizleme hiçbir zaman de
 - `app/Livewire/Concerns/WithFinancialRecordCorrection.php`
 - `resources/css/v65-shell.css`, `resources/js/app.js`
 - `tests/Unit/UI/{MarsHTML20ParityContractTest,V65DocumentEditorPhase2Test}.php`
+
+
+## 17 Ekim tam denetim bulguları
+
+- Onaylı 20 ekranlı HTML prototipi Chromium'da 1440×900 ve 390×844: 40/40 açılış, 0 sayfa JavaScript hatası.
+- Orijinal dokuz belge formunda 10 sütun; iki çek/senet listesinde 9 sütun vardı. Önceki 11/10 sütun raporu yanlıştı. Denetim dalındaki kaynak patch bunu düzeltiyor.
+- Tahsilat/tediye ortak trait'i yalnız tediye formunda bulunan kur/para birimi alanlarına erişiyordu: PHPStan riski. Kur/para birimi hook'a taşındı.
+- Finansal hesap seçilmediğinde yanıltıcı negatif bakiye; yetkisiz bakiye önizlemesi; tüm modülleri etkileyen CSS root override'ı kaynak patch ile giderildi.
+- 16 Ekim son izole TEST başarısızlığı: eksik dedicated PostgreSQL TEST password (exit 77). Eski QA quality job'u başarılıydı; 17 Ekim merge SHA'sında yeni başarılı QA yok.
+- Operasyonel depo/teslim ui_meta alanlarının tamamı stok defterini yönetmiyor. Bağımsız alış irsaliyesi/Mal Kabul source zorunluluğu korunuyor.
+- ReplaceSecurity güncel işlem tarihiyle tekrar düzenleme yapıyor; eski vadeli evrak düzeltme senaryosu sınırlı. Ayrıca gerçek DB rollback/idempotency kabulü yok.
+- Denetim dalı: fix/html20-full-audit-20261017. Bu çalışma PHPStan/DB/E2E testlerinin çalıştırıldığını göstermez.

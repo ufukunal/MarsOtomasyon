@@ -64,9 +64,9 @@
             <h3>İlk Kayıt Mali Etkisi <small>Banka hareketi ancak tahsil/ödeme bordrosunda oluşur.</small></h3>
             <div class="v65-impact-grid">
                 <div class="v65-impact-card"><span>İlgili Cari Önce (Borç − Alacak)</span>
-                    <strong class="{{ bccomp($this->selectedContactBalance(), '0', 4) > 0 ? 'is-debtor' : (bccomp($this->selectedContactBalance(), '0', 4) < 0 ? 'is-creditor' : '') }}">{{ \App\Support\Formatting\TrFormatter::money($this->selectedContactBalance()) }} TRY</strong></div>
+                    <strong class="{{ bccomp($this->selectedContactBalance(), '0', 4) > 0 ? 'is-debtor' : (bccomp($this->selectedContactBalance(), '0', 4) < 0 ? 'is-creditor' : '') }}">{{ $this->canViewSecurityContactBalance() ? \App\Support\Formatting\TrFormatter::money($this->selectedContactBalance()) . ' TRY' : 'Görüntüleme yetkisi yok' }}</strong></div>
                 <div class="v65-impact-card"><span>İlgili Cari Sonra (Tahmini)</span>
-                    <strong class="{{ bccomp($this->projectedContactBalance(), '0', 4) > 0 ? 'is-debtor' : (bccomp($this->projectedContactBalance(), '0', 4) < 0 ? 'is-creditor' : '') }}">{{ \App\Support\Formatting\TrFormatter::money($this->projectedContactBalance()) }} TRY</strong></div>
+                    <strong class="{{ bccomp($this->projectedContactBalance(), '0', 4) > 0 ? 'is-debtor' : (bccomp($this->projectedContactBalance(), '0', 4) < 0 ? 'is-creditor' : '') }}">{{ $this->canViewSecurityContactBalance() ? \App\Support\Formatting\TrFormatter::money($this->projectedContactBalance()) . ' TRY' : 'Görüntüleme yetkisi yok' }}</strong></div>
                 <div class="v65-impact-card"><span>Başlangıç Banka Etkisi</span><strong>0,00 TRY</strong></div>
                 <div class="v65-impact-card"><span>Yeni Evrak Yönü</span>
                     <strong>{{ ($screenDirection ?? $direction) === 'outgoing' ? 'Verilen: cari borcu artar' : 'Alınan: cari borcu azalır' }}</strong></div>
@@ -114,20 +114,35 @@
         <x-v65.list-heading :title="$screenMode === 'center' ? 'Portföy' : $screenTitle . ' Kayıtları'" />
         <div class="table-scroll v65-list-table"><table class="data-table">
             <thead>
-            <tr><th>Seç</th><th>No</th><th>Tür</th><th>Yön</th><th>Cari</th><th>Vade</th><th class="align-end">Tutar</th><th class="align-end">Cari Etkisi (İlk Kayıt)</th><th>Durum</th><th>İşlem</th></tr>
+            <tr>
+                @if($screenMode === 'list')
+                    <th>No</th><th>{{ $screenKind === 'check' ? 'Çek Numarası' : 'Senet Numarası' }}</th><th>İşlem</th>
+                @else
+                    <th>Seç</th><th>No</th><th>Tür</th><th>Yön</th>
+                @endif
+                <th>İlgili Cari</th><th>Vade</th><th class="align-end">Tutar</th>
+                <th class="align-end">Cari Etkisi (Kayıtta)</th><th>Durum</th>
+                <th>{{ $screenMode === 'list' ? 'Sonraki İşlem' : 'İşlem' }}</th>
+            </tr>
             </thead>
             <tbody>
             @foreach($securities as $security)
                 <tr>
-                    <td>
-                        @if(in_array($screenMode, ['center', 'endorse'], true) && ($screenMode !== 'endorse' || ($security->direction === 'incoming' && $security->status === 'portfolio')))
-                            <input type="checkbox" wire:model="selectedSecurityIds" value="{{ $security->id }}">
-                        @else
-                            —
-                        @endif
-                    </td>
+                    @if($screenMode === 'list')
+                        <td>{{ ($securities->firstItem() ?? 1) + $loop->index }}</td>
+                    @else
+                        <td>
+                            @if(in_array($screenMode, ['center', 'endorse'], true) && ($screenMode !== 'endorse' || ($security->direction === 'incoming' && $security->status === 'portfolio')))
+                                <input type="checkbox" wire:model="selectedSecurityIds" value="{{ $security->id }}">
+                            @else
+                                —
+                            @endif
+                        </td>
+                    @endif
                     <td>{{ $security->instrument_no }}</td>
-                    <td>{{ \App\Support\Formatting\BusinessLabelFormatter::value('security_kind', $security->kind) }}</td>
+                    @if($screenMode !== 'list')
+                        <td>{{ \App\Support\Formatting\BusinessLabelFormatter::value('security_kind', $security->kind) }}</td>
+                    @endif
                     <td>{{ \App\Support\Formatting\BusinessLabelFormatter::direction($security->direction) }}</td>
                     <td>{{ $security->contact?->title }}</td>
                     <td>{{ $security->due_date?->format('d.m.Y') }}</td>
@@ -169,9 +184,11 @@
                                 @if($security->direction === 'incoming' && in_array($security->status, ['portfolio', 'banked'], true))
                                     <x-v65.button size="xs" variant="secondary" wire:click="prepareListPayroll({{ $security->id }}, 'collection')">Tahsil</x-v65.button>
                                     <x-v65.button size="xs" variant="secondary" wire:click="prepareListPayroll({{ $security->id }}, 'return')">İade</x-v65.button>
+                                    <x-v65.button size="xs" variant="secondary" wire:click="prepareListPayroll({{ $security->id }}, 'protest')">Protesto</x-v65.button>
                                 @endif
                                 @if($security->direction === 'outgoing' && $security->status === 'issued')
                                     <x-v65.button size="xs" variant="secondary" wire:click="prepareListPayroll({{ $security->id }}, 'payment')">Öde</x-v65.button>
+                                    <x-v65.button size="xs" variant="danger" wire:click="prepareListPayroll({{ $security->id }}, 'cancel')">İptal</x-v65.button>
                                 @endif
                             </span>
                         @endif
@@ -250,8 +267,8 @@
                 <h3>Ciro Mali Etkisi <small>İlk evrakı veren/alan carinin etkisi tekrar yazılmaz.</small></h3>
                 <div class="v65-impact-grid">
                     <div class="v65-impact-card"><span>Seçilen Evrak Tutarı</span><strong>{{ \App\Support\Formatting\TrFormatter::money($this->selectedPayrollTotal()) }} TRY</strong></div>
-                    <div class="v65-impact-card"><span>Hedef Cari Önce</span><strong>{{ \App\Support\Formatting\TrFormatter::money($this->payrollTargetBalance()) }} TRY</strong></div>
-                    <div class="v65-impact-card"><span>Hedef Cari Sonra</span><strong class="{{ bccomp($this->projectedPayrollTargetBalance(), '0', 4) > 0 ? 'is-debtor' : (bccomp($this->projectedPayrollTargetBalance(), '0', 4) < 0 ? 'is-creditor' : '') }}">{{ \App\Support\Formatting\TrFormatter::money($this->projectedPayrollTargetBalance()) }} TRY</strong></div>
+                    <div class="v65-impact-card"><span>Hedef Cari Önce</span><strong>{{ $this->canViewSecurityContactBalance() ? \App\Support\Formatting\TrFormatter::money($this->payrollTargetBalance()) . ' TRY' : 'Görüntüleme yetkisi yok' }}</strong></div>
+                    <div class="v65-impact-card"><span>Hedef Cari Sonra</span><strong class="{{ bccomp($this->projectedPayrollTargetBalance(), '0', 4) > 0 ? 'is-debtor' : (bccomp($this->projectedPayrollTargetBalance(), '0', 4) < 0 ? 'is-creditor' : '') }}">{{ $this->canViewSecurityContactBalance() ? \App\Support\Formatting\TrFormatter::money($this->projectedPayrollTargetBalance()) . ' TRY' : 'Görüntüleme yetkisi yok' }}</strong></div>
                     <div class="v65-impact-card"><span>Ciro İşleminde Banka Etkisi</span><strong>0,00 TRY</strong></div>
                 </div>
             </section>
