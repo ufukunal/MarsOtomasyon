@@ -61,7 +61,7 @@ jobs:
           node scripts/ci/verify-v65-html.mjs
       - name: Run isolated source-level UI tests
         run: |
-          php artisan test tests/Unit/UI/MarsAllDocumentEditingContractTest.php tests/Unit/UI/MarsAllDocumentCorrectionNavigationTest.php tests/Unit/UI/MarsAllDocumentEditabilityAuditTest.php tests/Unit/UI/MarsDocumentSafeEditingContractTest.php tests/Unit/UI/MarsPurchaseSalesReferenceScreensTest.php tests/Unit/UI/MarsHTML20ParityContractTest.php tests/Unit/UI/V65BusinessDocumentPrintContractTest.php tests/Unit/UI/V65DocumentEditorPhase2Test.php tests/Unit/UI/V65DocumentEditorDesignTest.php tests/Unit/Documents/V65DocumentDraftSafetyTest.php --stop-on-failure
+          php artisan test tests/Unit/UI/MarsExactDocumentHistoryContractTest.php tests/Unit/UI/MarsAllDocumentEditingContractTest.php tests/Unit/UI/MarsAllDocumentCorrectionNavigationTest.php tests/Unit/UI/MarsAllDocumentEditabilityAuditTest.php tests/Unit/UI/MarsDocumentSafeEditingContractTest.php tests/Unit/UI/MarsPurchaseSalesReferenceScreensTest.php tests/Unit/UI/MarsHTML20ParityContractTest.php tests/Unit/UI/V65BusinessDocumentPrintContractTest.php tests/Unit/UI/V65DocumentEditorPhase2Test.php tests/Unit/UI/V65DocumentEditorDesignTest.php tests/Unit/Documents/V65DocumentDraftSafetyTest.php --stop-on-failure
       - name: Check code style
         id: pint
         continue-on-error: true

@@ -111,3 +111,38 @@ Manuel kalite kontratı:
 - `php -l`, `artisan view:cache`, PHPStan/Pint, izolasyonlu PostgreSQL,
   mali ters kayıt kabulü ve production Docker dağıtımı bu ek yamada
   gerçekleştirilmedi.
+
+
+## 17 Ekim — bütün belgeler için tekil kayıt geçmişi yayını
+
+- Ana dalda `DocumentEditCatalog::entries()` ile 18/18 belge tipi ve ilgili
+  modüllerdeki mevcut düzeltme akışları yeniden karşılaştırıldı.
+- Önceki davranış: ters kaydı bulunan veya düzeltme yetkisi bulunmayan
+  tahsilat, tediye, cari fişi, avans, gider ve iade belgesinin bağlantısı
+  çoğu zaman sadece genel listeyi açıyordu; özgün belge seçili değildi.
+- Yeni `documents.history` rotası `/belgeler/gecmis/{id}`, tekil belgeyi
+  **salt okunur** gösterir: numara, tür, durum, toplam, kalemler ve izlenebilen
+  kaynak/revizyon/ters kayıt bağlantıları.
+- `DocumentHistoryDetail` her render sırasında kayıt türü ve kullanıcı
+  `.view` iznini yeniden doğrular. `#[Locked]` document ID ile istemcinin
+  diğer period kaydı seçmeye çalışması engellenir. Bağlı belge kayıtları yalnız
+  kendi `.view` yetkileri olduğunda gösterilir. Cari unvanı `contacts.view`
+  izni olmadan yazdırılmaz.
+- Mevcut belge düzenleme merkezinde **Kayıt Geçmişi**, ortak satış/alış
+  listesinde **Geçmiş**, sekiz belge formunda ve Mal Kabul başlığında
+  **Kayıt Geçmişi** bağlantısı eklendi.
+- `DocumentEditCatalog::url()` durum/yetki nedeniyle değişiklik yapamayan
+  finans/iade kayıtlarının URL'sini kayıp belge kimliği ile genel modüle
+  göndermek yerine tekil geçmiş sayfasına yönlendirir.
+- Proforma için `Kaynakta Düzenle` etiketinin doğrudan proforma üzerinde
+  finansal değişiklik yapılabildiği izlenimini vermemesi sağlandı;
+  proforma anlık görüntüsü ve kaynak üzerinden revizyon yaklaşımı korunur.
+- PostgreSQL defteri ve stok hareketleri için yeni mutasyon eklenmedi.
+  Tüm 18 tip için `source/reverse/revision/draft` ayrımı aynen korunuyor.
+- Kaynak regresyonu: `tests/Unit/UI/MarsExactDocumentHistoryContractTest.php`,
+  manuel `v65-source-quality.yml` listesine dahil edildi.
+- Statik PHP blok ve Blade yönerge kontrolleri yapıldı; **gerçek**
+  `php -l`, Laravel `view:cache`, PHPStan, izole PostgreSQL ve UAT
+  ekran testleri bu adımda çalıştırılmadı.
+- Production veya Fresh UAT Docker dağıtımı yapılmadı; kod GitHub
+  `main` yayını ile sınırlıdır.

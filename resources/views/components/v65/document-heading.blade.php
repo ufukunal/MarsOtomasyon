@@ -27,6 +27,8 @@
     <div class="v65-doc-heading-actions">
         @if($document)
             <x-v65.button variant="secondary" size="sm"
+                :href="route('documents.history', ['id' => $document->id])">Kayıt Geçmişi</x-v65.button>
+            <x-v65.button variant="secondary" size="sm"
                 :href="route('documents.print', ['document' => $document->id, 'format' => 'html'])"
                 target="_blank" rel="noopener noreferrer">Belge Önizle</x-v65.button>
             <x-v65.button variant="secondary" size="sm"

@@ -59,6 +59,10 @@
                                     href="{{ \App\Support\Documents\DocumentEditCatalog::url($document, $entry) }}">
                                     {{ \App\Support\Documents\DocumentEditCatalog::actionLabel($document, $entry) }}
                                 </a>
+                                <a class="v65-btn v65-btn--secondary v65-btn--sm"
+                                    href="{{ route('documents.history', ['id' => $document->id]) }}">
+                                    Kayıt Geçmişi
+                                </a>
                             </td>
                         </tr>
                     @empty
