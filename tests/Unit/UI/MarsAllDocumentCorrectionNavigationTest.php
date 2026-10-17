@@ -45,3 +45,21 @@ it('keeps all correction paths separate from unchangeable ledger and stock histo
         ->and($financial)->toContain('financialCorrectionReversed(')
         ->and($warehouse)->toContain('public function duplicate()');
 });
+
+
+it('keeps the exact financial source document selected when navigating from stock history', function (): void {
+    $navigation = file_get_contents(base_path('app/Support/Documents/DocumentEditNavigation.php'));
+    $catalog = file_get_contents(base_path('app/Support/Documents/DocumentEditCatalog.php'));
+    $financeLink = file_get_contents(base_path('app/Livewire/Concerns/WithDocumentEditDeepLink.php'));
+
+    expect($navigation)->toContain("use App\\Models\\Period\\Document;")
+        ->toContain("->where('document_type', \$type)")
+        ->toContain("->find(\$id)")
+        ->toContain("->with(['incomingRelations', 'outgoingRelations'])")
+        ->toContain('DocumentEditCatalog::entries()')
+        ->toContain('DocumentEditCatalog::url($document, $entry)')
+        ->toContain("'contact_debit_credit' => ['route' => 'finance.contact-debit-credit', 'permission' => 'contacts.update']")
+        ->and($catalog)->toContain("'belge' => \$document->id")
+        ->toContain("self::hasReversal(\$document)")
+        ->and($financeLink)->toContain("request()->query('belge')");
+});
