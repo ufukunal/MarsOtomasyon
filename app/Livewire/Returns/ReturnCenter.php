@@ -128,6 +128,7 @@ class ReturnCenter extends Component
     public function clearReturnLine(int $lineId): void
     {
         abort_unless(auth()->user()?->can($this->editingReturnDraft ? 'returns.update' : 'returns.create'), 403);
+        abort_if($this->selectedReturnId !== null && ! $this->editingReturnDraft, 409);
         abort_unless($this->sourceInvoiceId !== null, 422);
         $belongsToSource = \App\Models\Period\DocumentLine::query()
             ->where('document_id', $this->sourceInvoiceId)
