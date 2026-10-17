@@ -167,6 +167,12 @@ final class DocumentEditCatalog
             if ($document->status === 'posted' && ! $user->can($permission.'.cancel')) {
                 return 'İncele';
             }
+
+            if ($document->status === 'posted'
+                && in_array($document->document_type, [DocumentType::SalesInvoice, DocumentType::SupplierInvoice], true)
+                && ! $user->can($permission.'.create')) {
+                return 'İncele';
+            }
         }
 
         if ($entry['mode'] === 'source') {
@@ -174,6 +180,10 @@ final class DocumentEditCatalog
         }
 
         if ($document->status === 'draft') {
+            return 'Düzenle';
+        }
+
+        if (in_array($document->document_type, [DocumentType::SalesInvoice, DocumentType::SupplierInvoice], true)) {
             return 'Düzenle';
         }
 

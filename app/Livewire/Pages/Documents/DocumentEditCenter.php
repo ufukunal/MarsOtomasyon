@@ -67,6 +67,20 @@ class DocumentEditCenter extends Component
             ->with(['contact', 'incomingRelations', 'outgoingRelations'])
             ->whereIn('document_type', array_keys($allowed));
 
+        // Removed/edited invoices retain their immutable accounting history,
+        // but their reversal pairs do not appear as ordinary editable records.
+        $query->where(function ($documents): void {
+            $documents->whereNotIn('document_type', [
+                \App\Enums\DocumentType::SalesInvoice->value,
+                \App\Enums\DocumentType::SupplierInvoice->value,
+            ])->orWhere(function ($invoices): void {
+                $invoices->whereDoesntHave('incomingRelations', fn ($relation) => $relation
+                    ->where('relation_type', 'reversal_of'))
+                    ->whereDoesntHave('outgoingRelations', fn ($relation) => $relation
+                        ->where('relation_type', 'reversal_of'));
+            });
+        });
+
         if ($type !== '') {
             $query->where('document_type', $type);
         }
@@ -76,11 +90,13 @@ class DocumentEditCenter extends Component
         if ($needle !== '') {
             $pattern = '%'.str_replace(['%', '_'], ['\\%', '\\_'], $needle).'%';
             $query->where(function ($q) use ($pattern): void {
-                $q->where('number', 'ilike', $pattern)
-                    ->orWhereHas('contact', function ($c) use ($pattern): void {
+                $q->where('number', 'ilike', $pattern);
+                if (auth()->user()?->can('contacts.view')) {
+                    $q->orWhereHas('contact', function ($c) use ($pattern): void {
                         $c->where('code', 'ilike', $pattern)
                             ->orWhere('title', 'ilike', $pattern);
                     });
+                }
             });
         }
 
