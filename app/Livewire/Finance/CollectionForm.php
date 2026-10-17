@@ -32,6 +32,8 @@ class CollectionForm extends Component
 
     public string $note = '';
 
+    public string $reference = '';
+
     public ?int $postedDocumentId = null;
 
     public string $reversalDate = '';
@@ -68,6 +70,7 @@ class CollectionForm extends Component
             'accountId' => ['required', 'integer', 'min:1'],
             'sourceInvoiceId' => ['nullable', 'integer', 'min:1'],
             'note' => ['nullable', 'string', 'max:1000'],
+            'reference' => ['nullable', 'string', 'max:140'],
         ]);
         $document = $action->handle(
             (int) $this->contactId,
@@ -78,6 +81,7 @@ class CollectionForm extends Component
             $this->mutationKey('post'),
             $this->sourceInvoiceId,
             $this->note !== '' ? $this->note : null,
+            $this->reference !== '' ? $this->reference : null,
         );
         $this->completeMutation('post');
         $this->postedDocumentId = (int) $document->id;

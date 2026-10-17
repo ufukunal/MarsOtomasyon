@@ -28,11 +28,13 @@ it('exposes discount amounts and clearly provisional line VAT without claiming f
         'resources/views/livewire/purchases/document-editor.blade.php',
     ] as $path) {
         $view = file_get_contents(base_path($path));
-        expect($view)->toContain('İskonto Tutarı')
-            ->toContain('Satır KDV*')
-            ->toContain('Satır Net / Matrah')
-            ->toContain('<x-v65.document-line-amounts')
-            ->toContain('belge genel iskontosu uygulanmadan önceki');
+        expect($view)->toContain('v65-prototype-lines')
+            ->toContain('KDV Dahil*')
+            ->toContain('Net Tutar')
+            ->toContain('Satır detayı')
+            ->toContain('discountAmount')
+            ->toContain('lineWithVat')
+            ->toContain('belge genel/ek iskontoları öncesi');
     }
 });
 

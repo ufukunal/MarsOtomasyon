@@ -94,6 +94,7 @@ final class CreateInvoiceFromOrder
                         'discount_amount' => '0',
                         'additional_discount_amount' => app(ProrateFixedDiscount::class)->handle($locked, $draftLines),
                         'notes' => $locked->notes,
+                        'ui_meta' => $locked->ui_meta ?? [],
                     ],
                     $draftLines,
                 );

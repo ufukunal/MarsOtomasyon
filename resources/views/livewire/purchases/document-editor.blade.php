@@ -119,9 +119,11 @@
                                         placeholder="Kod / barkod / ad ara" autocomplete="off" aria-label="Satır {{ $index + 1 }} ürün ara">
                                     <select data-v65-fast-product-select wire:model.live="lines.{{ $index }}.product_id" aria-label="Satır {{ $index + 1 }} ürün seç">
                                         <option value="">Ürün seçin</option>
-                                        @foreach($this->productOptionsForLine((string) ($line['row_key'] ?? $index), (int) ($line['product_id'] ?? 0)) as $product)
+                                        @forelse($this->productOptionsForLine((string) ($line['row_key'] ?? $index), (int) ($line['product_id'] ?? 0)) as $product)
                                             <option value="{{ $product->id }}">{{ $product->code }} · {{ $product->name }} {{ $product->barcode ? '(' . $product->barcode . ')' : '' }}</option>
-                                        @endforeach
+                                        @empty
+                                            <option disabled value="">Ürün bulunamadı</option>
+                                        @endforelse
                                     </select>
                                     <x-v65.input-error :field="'lines.'.$index.'.product_id'"/>
                                 @endif
@@ -160,9 +162,9 @@
                                     </select>
                                 @endif
                             </td>
-                            <td class="align-end">@if($isGoodsReceipt){{ \App\Support\Formatting\TrFormatter::money((string) ($line['unit_price'] ?? '0')) }}@else<input wire:model.blur="lines.{{ $index }}.unit_price" inputmode="decimal" data-tr-decimal aria-label="Satır fiyatı">@endif</td>
-                            <td class="align-end">@if($isGoodsReceipt){{ $line['line_discount_rate'] ?? '0' }}@else<input wire:model.blur="lines.{{ $index }}.line_discount_rate" inputmode="decimal" data-tr-decimal aria-label="Satır iskonto oranı">@endif</td>
-                            <td class="align-end">@if($isGoodsReceipt){{ $line['vat_rate'] ?? '0' }}@else<input wire:model.blur="lines.{{ $index }}.vat_rate" inputmode="decimal" data-tr-decimal aria-label="Satır KDV oranı">@endif</td>
+                            <td class="align-end">@if($isGoodsReceipt){{ \App\Support\Formatting\TrFormatter::money((string) ($line['unit_price'] ?? '0')) }}@else<input wire:model.blur="lines.{{ $index }}.unit_price" inputmode="decimal" data-tr-decimal aria-invalid="{{ $errors->has('lines.'.$index.'.unit_price') ? 'true' : 'false' }}" aria-label="Satır fiyatı">@endif</td>
+                            <td class="align-end">@if($isGoodsReceipt){{ $line['line_discount_rate'] ?? '0' }}@else<input wire:model.blur="lines.{{ $index }}.line_discount_rate" inputmode="decimal" data-tr-decimal aria-invalid="{{ $errors->has('lines.'.$index.'.line_discount_rate') ? 'true' : 'false' }}" aria-label="Satır iskonto oranı">@endif</td>
+                            <td class="align-end">@if($isGoodsReceipt){{ $line['vat_rate'] ?? '0' }}@else<input wire:model.blur="lines.{{ $index }}.vat_rate" inputmode="decimal" data-tr-decimal aria-invalid="{{ $errors->has('lines.'.$index.'.vat_rate') ? 'true' : 'false' }}" aria-label="Satır KDV oranı">@endif</td>
                             <td class="align-end v65-doc-line-net">{{ $lineNet !== null ? \App\Support\Formatting\TrFormatter::money((string) $lineNet) : '—' }}</td>
                             <td class="align-end v65-doc-line-incl">{{ $lineWithVat !== null ? \App\Support\Formatting\TrFormatter::money($lineWithVat) : '—' }}</td>
                             <td>@unless($isGoodsReceipt)<x-v65.button size="xs" variant="danger" wire:click="removeLine({{ $index }})" aria-label="Satır sil">Sil</x-v65.button>@else<span>Kaynak Satır</span>@endunless</td>

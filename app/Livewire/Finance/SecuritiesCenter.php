@@ -6,6 +6,7 @@ use App\Actions\Finance\CreateSecurity;
 use App\Actions\Finance\PostSecurityPayroll;
 use App\Actions\Finance\ReverseSecurityPayroll;
 use App\Actions\Finance\UpdateSecurityDetails;
+use App\Actions\Finance\ReplaceSecurity;
 use App\Livewire\Concerns\WithIdempotentMutations;
 use App\Models\Period\BankAccount;
 use App\Models\Period\Contact;
@@ -45,9 +46,18 @@ class SecuritiesCenter extends Component
     public string $listDirection = '';
     public string $listStatus = '';
 
-    public function updatedListSearch(): void { $this->resetPage(); }
-    public function updatedListDirection(): void { $this->resetPage(); }
-    public function updatedListStatus(): void { $this->resetPage(); }
+    public function updatedListSearch(): void
+    {
+        $this->resetPage();
+    }
+    public function updatedListDirection(): void
+    {
+        $this->resetPage();
+    }
+    public function updatedListStatus(): void
+    {
+        $this->resetPage();
+    }
 
     public function selectedContactBalance(): string
     {
@@ -69,13 +79,17 @@ class SecuritiesCenter extends Component
     public function selectedPayrollTotal(): string
     {
         $ids = array_values(array_unique(array_filter(array_map('intval', $this->selectedSecurityIds))));
-        if ($ids === []) return '0.0000';
+        if ($ids === []) {
+            return '0.0000';
+        }
         $items = Security::query()->whereIn('id', $ids)
             ->where('status', 'portfolio')->where('direction', 'incoming')
             ->when($this->scopeKind(), fn ($q, $kind) => $q->where('kind', $kind))
             ->get(['id', 'amount']);
         $total = '0.0000';
-        foreach ($items as $item) $total = bcadd($total, (string) $item->amount, 4);
+        foreach ($items as $item) {
+            $total = bcadd($total, (string) $item->amount, 4);
+        }
         return $total;
     }
 
@@ -88,6 +102,47 @@ class SecuritiesCenter extends Component
     public function projectedPayrollTargetBalance(): string
     {
         return bcadd($this->payrollTargetBalance(), $this->selectedPayrollTotal(), 4);
+    }
+
+    /** Single-record shortcut while retaining the existing multi-record board. */
+    public string $quickEndorseSecurityId = '';
+
+    public function updatedQuickEndorseSecurityId(): void
+    {
+        $id = (int) $this->quickEndorseSecurityId;
+        if ($id <= 0) {
+            $this->selectedSecurityIds = [];
+            return;
+        }
+        $eligible = Security::query()->whereKey($id)->where('direction', 'incoming')
+            ->where('status', 'portfolio')
+            ->when($this->scopeKind(), fn ($q, $kind) => $q->where('kind', $kind))
+            ->exists();
+        $this->selectedSecurityIds = $eligible ? [$id] : [];
+    }
+
+    public string $securityContactSearch = '';
+    public string $payrollContactSearch = '';
+    public string $correctionContactSearch = '';
+
+    /** Active contacts are queried by name/code, retaining selected IDs. */
+    public function securityContactOptions(string $search, ?int $selectedId): \Illuminate\Database\Eloquent\Collection
+    {
+        $query = Contact::query()->where('is_active', true);
+        $needle = mb_substr(trim($search), 0, 80);
+        if ($needle !== '') {
+            $pattern = '%'.str_replace(['%', '_'], ['\\%', '\\_'], $needle).'%';
+            $query->where(fn ($q) => $q->where('code', 'ilike', $pattern)
+                ->orWhere('title', 'ilike', $pattern));
+        }
+        $options = $query->orderBy('title')->limit(35)->get();
+        if ($selectedId && ! $options->contains('id', $selectedId)) {
+            $selected = Contact::query()->where('is_active', true)->find($selectedId);
+            if ($selected) {
+                $options->prepend($selected);
+            }
+        }
+        return $options;
     }
 
     public string $direction = 'incoming';
@@ -134,6 +189,81 @@ class SecuritiesCenter extends Component
     public string $editingDueDate = '';
 
     public string $editingNotes = '';
+
+    /** Strict financial correction: reverse the old posting, then issue a new record. */
+    public ?int $financialCorrectionId = null;
+    public int $financialCorrectionVersion = 0;
+    public string $correctedInstrumentNo = '';
+    public ?int $correctedContactId = null;
+    public string $correctedAmount = '';
+    public string $correctedDueDate = '';
+    public ?int $correctedBankAccountId = null;
+    public string $correctedBankName = '';
+    public string $correctedNote = '';
+    public string $correctionReason = '';
+    public ?int $replacementSecurityId = null;
+
+    public function prepareFinancialCorrection(int $id): void
+    {
+        abort_unless(auth()->user()?->can('securities.update')
+            && auth()->user()?->can('securities.cancel')
+            && auth()->user()?->can('securities.create'), 403);
+        abort_unless(in_array($this->scopeMode(), ['center', 'list', 'create'], true), 403);
+        $security = Security::query()->findOrFail($id);
+        abort_if($this->scopeKind() !== null && $security->kind !== $this->scopeKind(), 404);
+        abort_if($this->scopeDirection() !== null && $security->direction !== $this->scopeDirection(), 404);
+        abort_unless(in_array($security->status, ['portfolio', 'issued'], true)
+            && $security->last_payroll_id === null, 422);
+        $this->financialCorrectionId = $id;
+        $this->correctionContactSearch = '';
+        $this->financialCorrectionVersion = (int) $security->version;
+        $this->correctedInstrumentNo = (string) $security->instrument_no;
+        $this->correctedContactId = (int) $security->contact_id;
+        $this->correctedAmount = (string) $security->amount;
+        $this->correctedDueDate = $security->due_date->toDateString();
+        $this->correctedBankAccountId = $security->bank_account_id;
+        $this->correctedBankName = (string) ($security->bank_name ?? '');
+        $this->correctedNote = (string) ($security->notes ?? '');
+        $this->correctionReason = '';
+    }
+
+    public function cancelFinancialCorrection(): void
+    {
+        $this->financialCorrectionId = null;
+        $this->financialCorrectionVersion = 0;
+        $this->correctionReason = '';
+    }
+
+    public function confirmFinancialCorrection(ReplaceSecurity $action): void
+    {
+        abort_unless($this->financialCorrectionId !== null, 422);
+        $this->validate([
+            'correctedInstrumentNo' => ['required', 'string', 'max:80'],
+            'correctedContactId' => ['required', 'integer', 'min:1'],
+            'correctedAmount' => ['required', 'numeric', 'gt:0'],
+            'correctedDueDate' => ['required', 'date'],
+            'correctedBankAccountId' => ['nullable', 'integer', 'min:1'],
+            'correctedBankName' => ['nullable', 'string', 'max:255'],
+            'correctedNote' => ['nullable', 'string', 'max:1000'],
+            'correctionReason' => ['required', 'string', 'max:1000'],
+        ]);
+        $id = $this->financialCorrectionId;
+        $old = Security::query()->findOrFail($id);
+        abort_if($this->scopeKind() !== null && $old->kind !== $this->scopeKind(), 404);
+        abort_if($this->scopeDirection() !== null && $old->direction !== $this->scopeDirection(), 404);
+        $new = $action->handle($old, $this->financialCorrectionVersion, [
+            'instrument_no' => $this->correctedInstrumentNo,
+            'contact_id' => (int) $this->correctedContactId,
+            'amount' => $this->correctedAmount,
+            'due_date' => $this->correctedDueDate,
+            'bank_account_id' => $this->correctedBankAccountId,
+            'bank_name' => $this->correctedBankName,
+            'notes' => $this->correctedNote,
+        ], $this->correctionReason, $this->childMutationKey('replace', $id));
+        $this->completeMutation('replace');
+        $this->replacementSecurityId = (int) $new->id;
+        $this->cancelFinancialCorrection();
+    }
 
     public function prepareSecurityEdit(int $id): void
     {
@@ -187,7 +317,7 @@ class SecuritiesCenter extends Component
 
     public function mount(): void
     {
-        $this->seedMutationKeys(['create', 'edit', 'payroll', 'reversePayroll']);
+        $this->seedMutationKeys(['create', 'edit', 'replace', 'payroll', 'reversePayroll']);
         abort_unless(auth()->user()?->can('securities.view'), 403);
         $this->transactionDate = now()->toDateString();
         $this->dueDate = now()->addMonth()->toDateString();
@@ -231,9 +361,41 @@ class SecuritiesCenter extends Component
         $this->amount = '0.0000';
     }
 
+    /**
+     * Select exactly one security for a real payroll action from the list.
+     * The posting service revalidates status, permission, currency and bank.
+     */
+    public function prepareListPayroll(int $id, string $action): void
+    {
+        abort_unless($this->scopeMode() === 'list', 403);
+        abort_unless(auth()->user()?->can('security_payrolls.create'), 403);
+        $security = Security::query()->findOrFail($id);
+        abort_if($this->scopeKind() !== null && $security->kind !== $this->scopeKind(), 404);
+        $allowed = match (true) {
+            $security->direction === 'incoming' && $security->status === 'portfolio'
+                => ['endorsement', 'bank_deposit', 'collection', 'return', 'protest'],
+            $security->direction === 'incoming' && $security->status === 'banked'
+                => ['collection', 'return', 'protest'],
+            $security->direction === 'outgoing' && $security->status === 'issued'
+                => ['payment', 'cancel'],
+            default => [],
+        };
+        abort_unless(in_array($action, $allowed, true), 422);
+        $this->selectedSecurityIds = [$id];
+        $this->payrollAction = $action;
+        $this->payrollContactId = null;
+        $this->payrollBankAccountId = null;
+    }
+
     public function postPayroll(PostSecurityPayroll $action): void
     {
-        abort_unless(in_array($this->scopeMode(), ['center', 'endorse'], true), 403);
+        abort_unless(in_array($this->scopeMode(), ['center', 'endorse', 'list'], true), 403);
+        if ($this->scopeMode() === 'list') {
+            $ids = array_values(array_unique(array_map('intval', $this->selectedSecurityIds)));
+            abort_unless(count($ids) === 1, 422);
+            $instrument = Security::query()->findOrFail($ids[0]);
+            abort_if($this->scopeKind() !== null && $instrument->kind !== $this->scopeKind(), 404);
+        }
         if ($this->scopeMode() === 'endorse') {
             $ids = array_values(array_unique(array_map('intval', $this->selectedSecurityIds)));
             $eligible = Security::query()->whereIn('id', $ids)
@@ -301,13 +463,17 @@ class SecuritiesCenter extends Component
         foreach ($summaryRows as $row) {
             $count = (int) $row->records;
             $summary['count'] += $count;
-            if (isset($summary[$row->status])) $summary[$row->status] += $count;
-            if (in_array($row->status, ['collected', 'paid'], true)) $summary['settled'] += $count;
+            if (isset($summary[$row->status])) {
+                $summary[$row->status] += $count;
+            }
+            if (in_array($row->status, ['collected', 'paid'], true)) {
+                $summary['settled'] += $count;
+            }
         }
 
         // Search on real records before pagination, never filter only 500 loaded rows.
         $needle = trim(mb_substr($this->listSearch, 0, 80));
-        if ($needle !== '' && $this->scopeMode() !== 'endorse') {
+        if ($needle !== '') {
             $pattern = '%'.str_replace(['%', '_'], ['\\%', '\\_'], $needle).'%';
             $securities->where(fn ($q) => $q->where('instrument_no', 'ilike', $pattern)
                 ->orWhereHas('contact', fn ($c) => $c->where('code', 'ilike', $pattern)
@@ -325,7 +491,9 @@ class SecuritiesCenter extends Component
             'screenTitle' => $this->scopeTitle(),
             'screenKind' => $this->scopeKind(),
             'screenDirection' => $this->scopeDirection(),
-            'contacts' => Contact::query()->where('is_active', true)->orderBy('title')->limit(500)->get(),
+            'contacts' => $this->securityContactOptions($this->securityContactSearch, $this->contactId),
+            'payrollContacts' => $this->securityContactOptions($this->payrollContactSearch, $this->payrollContactId),
+            'correctionContacts' => $this->securityContactOptions($this->correctionContactSearch, $this->correctedContactId),
             'bankAccounts' => BankAccount::query()->where('is_active', true)->orderBy('code')->get(),
             'securities' => $securities->orderBy('due_date')->orderBy('id')->paginate(25),
             'securitySummary' => $summary,

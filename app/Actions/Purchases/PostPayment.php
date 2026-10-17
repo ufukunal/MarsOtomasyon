@@ -29,6 +29,7 @@ final class PostPayment
         string $idempotencyKey,
         ?int $sourceInvoiceId = null,
         ?string $note = null,
+        ?string $reference = null,
     ): Document {
         MutationAuthorizer::authorize('payments.create');
 
@@ -46,6 +47,7 @@ final class PostPayment
                 $idempotencyKey,
                 $sourceInvoiceId,
                 $note,
+                $reference,
             ): Document {
                 $normalized = bcadd($amount, '0', 4);
                 $currency = strtoupper($currency);
@@ -103,6 +105,7 @@ final class PostPayment
                     'rounding_difference' => '0.0000',
                     'grand_total' => $normalized,
                     'notes' => $note,
+                    'ui_meta' => $reference !== null && trim($reference) !== '' ? ['receipt_reference' => trim($reference)] : null,
                     'created_by' => $actor?->id,
                     'created_by_name' => $actor?->name,
                 ]);

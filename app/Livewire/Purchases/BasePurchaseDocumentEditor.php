@@ -51,9 +51,13 @@ abstract class BasePurchaseDocumentEditor extends Component
     public function updatedUiMetaDefaultLocationId(): void
     {
         $id = (int) ($this->uiMeta['default_location_id'] ?? 0);
-        if ($id <= 0) return;
+        if ($id <= 0) {
+            return;
+        }
         $allowed = Location::query()->where('is_active', true)->whereKey($id)->exists();
-        if (! $allowed) return;
+        if (! $allowed) {
+            return;
+        }
         foreach ($this->lines as $index => $line) {
             if (($line['line_kind'] ?? 'stock') === 'stock' && ! empty($line['product_id']) && empty($line['location_id'])) {
                 $this->lines[$index]['location_id'] = $id;

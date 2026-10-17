@@ -1,4 +1,7 @@
 <div class="space-y-8 v65-list-page">
+    @if($replacementSecurityId)
+        <x-v65.notice tone="success">Mali düzeltme tamamlandı. Eski evrak terslendi; yeni evrak #{{ $replacementSecurityId }} oluşturuldu.</x-v65.notice>
+    @endif
     @if($screenMode !== 'center')
         <section class="panel stack">
             <h2>{{ $screenTitle }}</h2>
@@ -35,7 +38,8 @@
             <p>{{ $screenDirection === 'incoming' ? 'Alınan' : 'Verilen' }} {{ $screenKind === 'check' ? 'Çek' : 'Senet' }} kaydı</p>
         @endif
         <label class="field">No <input wire:model.blur="instrumentNo"></label>
-        <label class="field">Cari
+        <label class="field">{{ ($screenKind ?? $kind) === 'note' ? 'Borçlu / Lehtar (Cari)' : 'Cari' }}
+            <input type="search" wire:model.live.debounce.300ms="securityContactSearch" placeholder="Cari kodu veya unvanı ara" autocomplete="off" aria-label="Evrak cari ara">
             <select wire:model="contactId">
                 <option value="">Seçin</option>
                 @foreach($contacts as $contact)
@@ -137,6 +141,29 @@
                         @else
                             <span>—</span>
                         @endif
+                        @if(in_array($screenMode, ['center', 'list', 'create'], true)
+                            && in_array($security->status, ['portfolio', 'issued'], true)
+                            && $security->last_payroll_id === null
+                            && auth()->user()?->can('securities.update')
+                            && auth()->user()?->can('securities.cancel')
+                            && auth()->user()?->can('securities.create'))
+                            <x-v65.button variant="secondary" size="xs" wire:click="prepareFinancialCorrection({{ $security->id }})">Mali Düzelt</x-v65.button>
+                        @endif
+                        @if($screenMode === 'list' && auth()->user()?->can('security_payrolls.create'))
+                            <span class="v65-security-row-actions">
+                                @if($security->direction === 'incoming' && $security->status === 'portfolio')
+                                    <x-v65.button size="xs" variant="secondary" wire:click="prepareListPayroll({{ $security->id }}, 'endorsement')">Ciro</x-v65.button>
+                                    <x-v65.button size="xs" variant="secondary" wire:click="prepareListPayroll({{ $security->id }}, 'bank_deposit')">Bankaya Ver</x-v65.button>
+                                @endif
+                                @if($security->direction === 'incoming' && in_array($security->status, ['portfolio', 'banked'], true))
+                                    <x-v65.button size="xs" variant="secondary" wire:click="prepareListPayroll({{ $security->id }}, 'collection')">Tahsil</x-v65.button>
+                                    <x-v65.button size="xs" variant="secondary" wire:click="prepareListPayroll({{ $security->id }}, 'return')">İade</x-v65.button>
+                                @endif
+                                @if($security->direction === 'outgoing' && $security->status === 'issued')
+                                    <x-v65.button size="xs" variant="secondary" wire:click="prepareListPayroll({{ $security->id }}, 'payment')">Öde</x-v65.button>
+                                @endif
+                            </span>
+                        @endif
                     </td>
                 </tr>
             @endforeach
@@ -150,10 +177,10 @@
         @endif
     </section>
 
-    @if(in_array($screenMode, ['center', 'endorse'], true))
+    @if(in_array($screenMode, ['center', 'endorse', 'list'], true))
     <section class="panel stack">
         <h2>{{ $screenMode === 'endorse' ? $screenTitle : 'Bordro İşlemi' }}</h2>
-        @if($screenMode === 'center')
+        @if($screenMode !== 'endorse')
         <label class="field">İşlem
             <select wire:model="payrollAction">
                 <option value="endorsement">Ciro Et</option>
@@ -168,11 +195,31 @@
         @else
             <p>İşlem: Ciro Et · Portföydeki alınan {{ $screenKind === 'check' ? 'çekler' : 'senetler' }}</p>
         @endif
+        @if($screenMode === 'endorse')
+            <label class="field">Evrak Ara
+                <input type="search" wire:model.live.debounce.300ms="listSearch" placeholder="Evrak no veya cari unvanı" autocomplete="off">
+            </label>
+            <label class="field">Tek Evrak Seç (İsteğe Bağlı)
+                <select wire:model.live="quickEndorseSecurityId">
+                    <option value="">Toplu seçim / aşağıdaki listeden seç</option>
+                    @foreach($securities as $instrument)
+                        @if($instrument->direction === 'incoming' && $instrument->status === 'portfolio')
+                            <option value="{{ $instrument->id }}">{{ $instrument->instrument_no }} · {{ $instrument->contact?->title }} · {{ \App\Support\Formatting\TrFormatter::money((string) $instrument->amount) }} TRY</option>
+                        @endif
+                    @endforeach
+                </select>
+            </label>
+        @endif
+        @if($screenMode === 'list')
+            <p class="v65-doc-search-hint">Yukarıdaki listeden bir evrak ve işlem seçin. Bordro işlemi burada gerçek veritabanı kaydına dönüşür. Hedef cari veya banka hesabı gerekiyorsa aşağıdan seçin.</p>
+            <div class="v65-security-selected">Seçilen evrak: {{ $selectedSecurityIds[0] ?? 'Henüz seçilmedi' }}</div>
+        @endif
         <label class="field">Tarih <input type="date" wire:model="payrollDate"></label>
         <label class="field">Hedef Cari
+            <input type="search" wire:model.live.debounce.300ms="payrollContactSearch" placeholder="Cari kodu veya unvanı ara" autocomplete="off" aria-label="Ciro hedef cari ara">
             <select wire:model="payrollContactId">
                 <option value="">Seçim yok</option>
-                @foreach($contacts as $contact)
+                @foreach($payrollContacts as $contact)
                     <option value="{{ $contact->id }}">{{ $contact->code }} · {{ $contact->title }}</option>
                 @endforeach
             </select>
@@ -263,6 +310,38 @@
                 <div class="v65-contact-transfer-dialog-actions">
                     <x-v65.button variant="secondary" wire:click="cancelSecurityEdit">Vazgeç</x-v65.button>
                     <x-v65.button wire:click="saveSecurityEdit" wire:loading.attr="disabled" wire:target="saveSecurityEdit">Değişiklikleri Kaydet</x-v65.button>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    @if($financialCorrectionId !== null)
+        <div class="v65-contact-transfer-overlay" role="presentation">
+            <div class="v65-contact-transfer-dialog v65-security-correction-dialog" role="dialog" aria-modal="true" aria-labelledby="v65-financial-correction-title">
+                <h3 id="v65-financial-correction-title">Çek / Senet Mali Düzeltme</h3>
+                <x-v65.notice tone="warning">Mevcut evrak yerinde değiştirilmeyecek. İlk cari hareketi terslenip yeni evrak güncel tarihle düzenlenecek. Bordro işlemi görmüş evraklar bu yolla değiştirilemez.</x-v65.notice>
+                <div class="v65-financial-correction-fields">
+                    <label class="field">Evrak No<input wire:model="correctedInstrumentNo" maxlength="80"></label>
+                    <label class="field">Cari
+                        <input type="search" wire:model.live.debounce.300ms="correctionContactSearch" placeholder="Cari ara" autocomplete="off" aria-label="Mali düzeltme cari ara">
+                        <select wire:model="correctedContactId"><option value="">Seçin</option>
+                        @foreach($correctionContacts as $contact)<option value="{{ $contact->id }}">{{ $contact->code }} · {{ $contact->title }}</option>@endforeach
+                    </select></label>
+                    <label class="field">Tutar (TRY)<input wire:model.blur="correctedAmount" data-tr-decimal inputmode="decimal"></label>
+                    <label class="field">Vade Tarihi<input type="date" wire:model="correctedDueDate"></label>
+                    <label class="field">Banka Adı<input wire:model="correctedBankName"></label>
+                    <label class="field">Banka Hesabı<select wire:model="correctedBankAccountId"><option value="">Seçim yok</option>
+                        @foreach($bankAccounts as $account)<option value="{{ $account->id }}">{{ $account->code }} · {{ $account->bank_name }}</option>@endforeach
+                    </select></label>
+                    <label class="field">Düzeltme Gerekçesi<input wire:model.blur="correctionReason" maxlength="1000" required></label>
+                    <label class="field">Açıklama<textarea wire:model="correctedNote" rows="2"></textarea></label>
+                </div>
+                @if($errors->any())
+                    <x-v65.notice tone="danger">@foreach($errors->all() as $error)<div>{{ $error }}</div>@endforeach</x-v65.notice>
+                @endif
+                <div class="v65-contact-transfer-dialog-actions">
+                    <x-v65.button variant="secondary" wire:click="cancelFinancialCorrection">Vazgeç</x-v65.button>
+                    <x-v65.button variant="danger" wire:click="confirmFinancialCorrection" wire:loading.attr="disabled" wire:target="confirmFinancialCorrection">Tersle ve Yeni Evrak Oluştur</x-v65.button>
                 </div>
             </div>
         </div>

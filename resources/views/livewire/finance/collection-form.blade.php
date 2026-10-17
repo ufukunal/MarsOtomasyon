@@ -66,6 +66,7 @@
             @endforeach
         </x-v65.select>
 
+    <label class="field">Dekont / Referans No <input wire:model.blur="reference" maxlength="140" placeholder="Banka dekontu / işlem referansı"></label>
     <label class="field">Not <textarea wire:model="note"></textarea></label>
     <x-v65.form-actions class="v65-form-footer"><x-v65.button wire:click="post" wire:loading.attr="disabled" wire:target="post" :disabled="$correctionMode">Tahsilatı Kesinleştir</x-v65.button></x-v65.form-actions>
 

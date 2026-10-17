@@ -578,3 +578,33 @@ document.addEventListener('livewire:init', () => {
         });
     });
 });
+
+/* Approved HTML quick-entry interaction, scoped to the 11-column document grid.
+ * Search itself remains server-side; never build client-side product records.
+ */
+document.addEventListener('keydown', (event) => {
+    const search = event.target;
+    if (!(search instanceof HTMLInputElement) || !search.matches('[data-v65-fast-product-search]')) return;
+    const cell = search.closest('td');
+    const select = cell?.querySelector('[data-v65-fast-product-select]');
+    if (!(select instanceof HTMLSelectElement)) return;
+    if (event.key === 'ArrowDown') {
+        event.preventDefault();
+        select.focus();
+    }
+    if (event.key === 'Enter') {
+        event.preventDefault();
+        if (!select.value) {
+            const first = [...select.options].find((option) => option.value && !option.disabled);
+            if (first) select.value = first.value;
+        }
+        if (!select.value) return;
+        select.dispatchEvent(new Event('input', { bubbles: true }));
+        select.dispatchEvent(new Event('change', { bubbles: true }));
+        const row = search.closest('tr');
+        requestAnimationFrame(() => {
+            const quantity = row?.querySelector('[data-v65-fast-quantity]');
+            if (quantity instanceof HTMLInputElement) quantity.focus();
+        });
+    }
+});

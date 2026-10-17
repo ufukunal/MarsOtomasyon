@@ -36,7 +36,7 @@ final class ConvertPurchaseQuoteToOrder
                     'document_date', 'due_date', 'valid_until', 'contact_id',
                     'currency', 'exchange_rate', 'discount_rate', 'discount_amount',
                     'additional_discount_amount', 'subtotal', 'tax_base', 'vat_amount',
-                    'rounding_difference', 'grand_total', 'requirements_snapshot', 'notes',
+                    'rounding_difference', 'grand_total', 'requirements_snapshot', 'ui_meta', 'notes',
                 ]),
                 'document_type' => DocumentType::PurchaseOrder->value,
                 'revision_no' => 0,

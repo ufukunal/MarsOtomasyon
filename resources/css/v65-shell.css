@@ -2406,3 +2406,14 @@
  .app-shell .v65-prototype-total-strip{grid-template-columns:repeat(5,minmax(0,1fr));break-inside:avoid}
  .app-shell .v65-finance-impact{break-inside:avoid}
 }
+
+/* Secure replacement: keep all fields visible without overflowing smaller screens. */
+.app-shell .v65-security-correction-dialog{max-height:90vh;overflow-y:auto}
+.app-shell .v65-financial-correction-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}
+.app-shell .v65-financial-correction-fields>.field{display:grid;gap:5px;font-size:12px;min-width:0}
+.app-shell .v65-financial-correction-fields :is(input,select,textarea){min-width:0;width:100%}
+@media(max-width:570px){.app-shell .v65-financial-correction-fields{grid-template-columns:minmax(0,1fr)}}
+
+.app-shell .v65-security-row-actions{display:inline-flex;flex-wrap:wrap;gap:4px;margin-inline-start:5px}
+.app-shell .v65-security-selected{padding:9px;border:1px solid #dce5ef;background:#f8fafd;border-radius:5px;font-weight:650;font-size:12px}
+.app-shell .v65-security-row-actions>.v65-btn{margin-block:2px}

@@ -88,6 +88,22 @@
                 <tr><th>Durum</th><td>{{ \App\Support\Formatting\BusinessLabelFormatter::status($document->status) }}</td></tr>
                 <tr><th>Para Birimi</th><td>{{ $currency }}</td></tr>
                 @if($document->exchange_rate && $currency !== 'TRY')<tr><th>Kur</th><td>{{ $document->exchange_rate }}</td></tr>@endif
+                @php
+                    $extraLabels = [
+                        'delivery_terms' => 'Teslim Süresi', 'payment_terms' => 'Ödeme Şartı',
+                        'planned_delivery' => 'Planlanan Teslim', 'customer_order_no' => 'Müşteri Sipariş No',
+                        'vehicle_plate' => 'Araç / Plaka', 'payment_method' => 'Ödeme Şekli',
+                        'quote_valid_until' => 'Teklif Geçerlilik', 'supplier_quote_no' => 'Tedarikçi Teklif No',
+                        'expected_delivery' => 'Beklenen Teslim', 'supplier_dispatch_no' => 'Tedarikçi İrsaliye No',
+                        'supplier_invoice_no' => 'Tedarikçi Fatura No',
+                        'goods_receipt_reference' => 'Kabul / Kaynak Notu',
+                    ];
+                @endphp
+                @foreach(($document->ui_meta ?? []) as $key => $value)
+                    @if(isset($extraLabels[$key]) && $value !== null && $value !== '')
+                        <tr><th>{{ $extraLabels[$key] }}</th><td>{{ $value }}</td></tr>
+                    @endif
+                @endforeach
             </table>
         </div>
     </section>

@@ -27,6 +27,7 @@ final class PostCollection
         string $idempotencyKey,
         ?int $sourceInvoiceId = null,
         ?string $note = null,
+        ?string $reference = null,
     ): Document {
         MutationAuthorizer::authorize('collections.create');
 
@@ -42,6 +43,7 @@ final class PostCollection
                 $idempotencyKey,
                 $sourceInvoiceId,
                 $note,
+                $reference,
             ): Document {
                 $normalized = bcadd($amount, '0', 4);
 
@@ -55,10 +57,11 @@ final class PostCollection
                     throw new DomainException('Tahsilat hesabı cash veya bank olmalıdır.');
                 }
 
-                if ($accountType === 'cash') {
-                    CashAccount::query()->where('is_active', true)->findOrFail($accountId);
-                } else {
-                    BankAccount::query()->where('is_active', true)->findOrFail($accountId);
+                $account = $accountType === 'cash'
+                    ? CashAccount::query()->where('is_active', true)->findOrFail($accountId)
+                    : BankAccount::query()->where('is_active', true)->findOrFail($accountId);
+                if ($account->currency !== 'TRY') {
+                    throw new DomainException('Tahsilat için TRY cinsinden kasa/banka hesabı seçilmelidir.');
                 }
 
                 $sourceInvoice = null;
@@ -90,6 +93,7 @@ final class PostCollection
                     'rounding_difference' => '0.0000',
                     'grand_total' => $normalized,
                     'notes' => $note,
+                    'ui_meta' => $reference !== null && trim($reference) !== '' ? ['receipt_reference' => trim($reference)] : null,
                     'created_by' => $actor?->id,
                     'created_by_name' => $actor?->name,
                 ]);

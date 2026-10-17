@@ -9,6 +9,32 @@
             <div><dt>Geçerlilik Tarihi</dt><dd>{{ $document->valid_until->format('d.m.Y') }}</dd></div>
         @endif
         <div><dt>Para Birimi</dt><dd>{{ $document->currency }}</dd></div>
+        @php
+            $prototypeLabels = [
+                'default_location_id' => 'Varsayılan Depo (Lokasyon ID)',
+                'delivery_terms' => 'Teslim Süresi',
+                'payment_terms' => 'Ödeme Şartı',
+                'planned_delivery' => 'Planlanan Teslim',
+                'shipment_location_id' => 'Sevkiyat Deposu (Lokasyon ID)',
+                'customer_order_no' => 'Müşteri Sipariş No',
+                'vehicle_plate' => 'Araç / Plaka',
+                'payment_method' => 'Ödeme Şekli',
+                'quote_valid_until' => 'Teklif Geçerlilik',
+                'delivery_location_id' => 'Teslim Yeri (Lokasyon ID)',
+                'supplier_quote_no' => 'Tedarikçi Teklif No',
+                'expected_delivery' => 'Beklenen Teslim',
+                'receipt_location_id' => 'Kabul Deposu (Lokasyon ID)',
+                'supplier_dispatch_no' => 'Tedarikçi İrsaliye No',
+                'goods_receipt_reference' => 'Kabul / Kaynak Notu',
+                'supplier_invoice_no' => 'Tedarikçi Fatura No',
+                'receipt_reference' => 'Dekont / Referans No',
+            ];
+        @endphp
+        @foreach(($document->ui_meta ?? []) as $key => $value)
+            @if(isset($prototypeLabels[$key]) && $value !== null && $value !== '')
+                <div><dt>{{ $prototypeLabels[$key] }}</dt><dd>{{ $value }}</dd></div>
+            @endif
+        @endforeach
     </dl>
     @if($document->notes)<p class="v65-doc-readonly-note"><strong>Not:</strong> {{ $document->notes }}</p>@endif
     <x-v65.document-sources :document="$document" />

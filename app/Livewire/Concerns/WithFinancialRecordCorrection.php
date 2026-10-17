@@ -50,11 +50,17 @@ trait WithFinancialRecordCorrection
     public function projectedFinancialContactBalance(): string
     {
         $before = $this->contactBalance();
-        if (! is_numeric($this->amount) || bccomp((string) $this->amount, '0', 4) <= 0) return $before;
+        if (! preg_match('/^\\d{1,14}(?:\\.\\d{1,4})?$/D', (string) $this->amount) || bccomp((string) $this->amount, '0', 4) <= 0) return $before;
         $amount = (string) $this->amount;
         if ($this->financialDocumentType() === DocumentType::Payment) {
-            $rate = (string) ($this->exchangeRate ?? '1');
-            if (! is_numeric($rate) || bccomp($rate, '0', 6) <= 0) return $before;
+            $linkedInvoice = $this->sourceInvoiceId
+                ? Document::query()->where('document_type', DocumentType::SupplierInvoice->value)
+                    ->where('contact_id', $this->contactId)->where('status', 'posted')
+                    ->find($this->sourceInvoiceId)
+                : null;
+            // PostPayment uses the linked invoice's rate, not the editable draft rate.
+            $rate = (string) ($linkedInvoice?->exchange_rate ?? ($this->exchangeRate ?? '1'));
+            if (! preg_match('/^\\d{1,12}(?:\\.\\d{1,6})?$/D', $rate) || bccomp($rate, '0', 6) <= 0) return $before;
             $amount = bcadd(bcmul($amount, $rate, 8), '0', 4);
             return bcadd($before, $amount, 4);
         }
@@ -63,7 +69,9 @@ trait WithFinancialRecordCorrection
 
     public function selectedFinancialAccount(): \App\Models\Period\CashAccount|\App\Models\Period\BankAccount|null
     {
-        if (! $this->accountId) return null;
+        if (! $this->accountId) {
+            return null;
+        }
         return $this->accountType === 'cash'
             ? \App\Models\Period\CashAccount::query()->where('is_active', true)->find($this->accountId)
             : \App\Models\Period\BankAccount::query()->where('is_active', true)->find($this->accountId);
@@ -72,7 +80,9 @@ trait WithFinancialRecordCorrection
     public function financialAccountBalance(): string
     {
         $account = $this->selectedFinancialAccount();
-        if (! $account) return '0.0000';
+        if (! $account) {
+            return '0.0000';
+        }
         return $account instanceof \App\Models\Period\CashAccount
             ? $account->balance() : $account->bookBalance();
     }
@@ -90,9 +100,11 @@ trait WithFinancialRecordCorrection
 
     public function projectedFinancialAccountBalance(): ?string
     {
-        if (! $this->financialAccountCurrencyMatches()) return null;
+        if (! $this->financialAccountCurrencyMatches()) {
+            return null;
+        }
         $before = $this->financialAccountBalance();
-        if (! is_numeric($this->amount) || bccomp((string) $this->amount, '0', 4) <= 0) return $before;
+        if (! preg_match('/^\\d{1,14}(?:\\.\\d{1,4})?$/D', (string) $this->amount) || bccomp((string) $this->amount, '0', 4) <= 0) return $before;
         return $this->financialDocumentType() === DocumentType::Payment
             ? bcsub($before, (string) $this->amount, 4)
             : bcadd($before, (string) $this->amount, 4);
@@ -142,6 +154,7 @@ trait WithFinancialRecordCorrection
         $this->amount = (string) $document->grand_total;
         $this->documentDate = $document->document_date->toDateString();
         $this->note = (string) ($document->notes ?? '');
+        $this->reference = (string) (($document->ui_meta ?? [])['receipt_reference'] ?? '');
         $this->accountType = $cash ? 'cash' : 'bank';
         $this->accountId = $cash ? $cash->cash_account_id : $bank->bank_account_id;
         $this->restoreFinancialCurrency($document);
