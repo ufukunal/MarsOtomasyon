@@ -20,22 +20,23 @@
 
 
 
-    <x-v65.select label="Cari" wire:model.live="contactId" placeholder="Seçin">
+    <label class="field">İşlem No <input readonly value="{{ $postedDocumentId ? 'Kayıt #'.$postedDocumentId : 'Kaydedilince atanır' }}"></label>
+    <x-v65.select label="Müşteri / Cari *" wire:model.live="contactId" placeholder="Seçin">
             
             @foreach($contacts as $contact)
                 <option value="{{ $contact->id }}">{{ $contact->code }} · {{ $contact->title }}</option>
             @endforeach
         </x-v65.select>
 
-    <label class="field">Tutar <input wire:model.blur="amount" inputmode="decimal" data-tr-decimal aria-invalid="{{ $errors->has('amount') ? 'true' : 'false' }}"><x-v65.input-error field="amount" /></label>
-    <label class="field">Tarih <input type="date" wire:model="documentDate"><x-v65.input-error field="documentDate" /></label>
+    <label class="field">Tahsilat Tutarı * <input wire:model.blur="amount" inputmode="decimal" data-tr-decimal aria-invalid="{{ $errors->has('amount') ? 'true' : 'false' }}"><x-v65.input-error field="amount" /></label>
+    <label class="field">İşlem Tarihi <input type="date" wire:model="documentDate"><x-v65.input-error field="documentDate" /></label>
 
-    <x-v65.select label="Hesap türü" wire:model.live="accountType">
+    <x-v65.select label="Ödeme Yöntemi" wire:model.live="accountType">
             <option value="cash">Kasa</option>
             <option value="bank">Banka</option>
         </x-v65.select>
 
-    <x-v65.select label="Hesap" wire:key="account-{{ $accountType }}" wire:model="accountId" placeholder="Seçin">
+    <x-v65.select label="Banka / Kasa Hesabı" wire:key="account-{{ $accountType }}" wire:model="accountId" placeholder="Seçin">
             
             @if($accountType === 'cash')
                 @foreach($cashAccounts as $account)
@@ -55,8 +56,9 @@
             @endforeach
         </x-v65.select>
 
-    <label class="field">Dekont / Referans No <input wire:model.blur="reference" maxlength="140" placeholder="Banka dekontu / işlem referansı"></label>
-    <label class="field">Not <textarea wire:model="note"></textarea></label>
+    <label class="field">Para Birimi <input readonly value="TRY · Türk Lirası"></label>
+    <label class="field">Makbuz / Dekont No <input wire:model.blur="reference" maxlength="140" placeholder="Banka dekontu / işlem referansı"></label>
+    <label class="field">Açıklama <textarea wire:model="note"></textarea></label>
     <x-v65.form-actions class="v65-form-footer"><x-v65.button wire:click="post" wire:loading.attr="disabled" wire:target="post" :disabled="$correctionMode">Tahsilatı Kesinleştir</x-v65.button></x-v65.form-actions>
 
     </section>
