@@ -86,3 +86,28 @@ Yapılan çalışma yalnız mevcut PHP/Laravel kaynak kodu ve GitHub dosyaları
 
 Manuel kalite kontratı:
 `tests/Unit/UI/MarsAllDocumentEditingContractTest.php`.
+
+
+## 17 Ekim ek doğrulama — finansal kaynak hareketinden düzenlemeye geçiş
+
+- `main` üzerinde `564aea9cb4facf90084d23bffc15739550820aa5` commit'inin
+  18 DocumentType için merkezi düzenleme kataloğunu ve 11 ek modül
+  yönlendirmesini içerdiği doğrulandı.
+- Stok hareketi ve rezervasyon detaylarından finansal kaynak belgeye yapılan
+  navigasyonda `DocumentEditNavigation::url()` yalnız liste URL'si
+  döndürüyordu. Oysa tahsilat, tediye, cari borç/alacak, gider,
+  avans, avans iadesi ve iadeler `?belge=ID` ile kayıt seçebilen
+  düzeltme ekranları kullanıyor.
+- Düzeltme: URL, aynı türdeki gerçek period `documents` kaydı üzerinden
+  ve `DocumentEditCatalog::url()` yardımıyla oluşturulur. Yanlış kaynak
+  ID/tür eşleşmesinde bağlantı üretilmez. Yetkisi olmayan veya
+  zaten terslenmiş kayıt için otomatik düzeltme başlatılmaz.
+- Cari borç/alacak fişi kaynağına navigasyon izni, formun gerçek
+  `contacts.update` yetkisi ile eşlendi; yalnız `contacts.view`
+  olan kişiye yetkisiz düzenleme ekranı bağlantısı verilmez.
+- Kaynak kontratı `MarsAllDocumentCorrectionNavigationTest.php` ile
+  genişletildi. Bu kontrollerin kaynakta bulunması PHP/Pest testinin
+  GitHub Actions'ta başarıyla çalıştığı anlamına gelmez.
+- `php -l`, `artisan view:cache`, PHPStan/Pint, izolasyonlu PostgreSQL,
+  mali ters kayıt kabulü ve production Docker dağıtımı bu ek yamada
+  gerçekleştirilmedi.

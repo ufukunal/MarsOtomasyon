@@ -2,6 +2,8 @@
 
 namespace App\Support\Documents;
 
+use App\Models\Period\Document;
+
 /**
  * Navigation only. It never changes ledger entries or bypasses posting rules.
  * Do not add arbitrary route names from user-supplied document_type strings.
@@ -22,7 +24,7 @@ final class DocumentEditNavigation
         'proforma' => ['route' => 'sales.proformas.show', 'permission' => 'proformas.view'],
         'collection' => ['route' => 'finance.collections.create', 'permission' => 'collections.view'],
         'payment' => ['route' => 'purchases.payments.create', 'permission' => 'payments.view'],
-        'contact_debit_credit' => ['route' => 'finance.contact-debit-credit', 'permission' => 'contacts.view'],
+        'contact_debit_credit' => ['route' => 'finance.contact-debit-credit', 'permission' => 'contacts.update'],
         'expense' => ['route' => 'finance.operations', 'permission' => 'expenses.view'],
         'advance' => ['route' => 'finance.operations', 'permission' => 'advances.view'],
         'advance_return' => ['route' => 'finance.operations', 'permission' => 'advances.view'],
@@ -48,13 +50,28 @@ final class DocumentEditNavigation
             return null;
         }
 
-        // Return Center is a filterable list, not /{id}; it remains an
-        // authorized entry point to existing return correction actions.
+        // These modules use ?belge=ID rather than /{id}. Only pass the
+        // selected record when it is a real Document of the expected type.
+        // The shared catalog also checks reversals and mutation permissions;
+        // a view-only user gets the list, never an unauthorized correction.
         if (in_array($type, [
             'sales_return', 'purchase_return', 'collection', 'payment',
             'contact_debit_credit', 'expense', 'advance', 'advance_return',
         ], true)) {
-            return route($destination['route']);
+            $document = Document::query()
+                ->with(['incomingRelations', 'outgoingRelations'])
+                ->where('document_type', $type)
+                ->find($id);
+
+            if ($document === null) {
+                return null;
+            }
+
+            $entry = DocumentEditCatalog::entries()[$type] ?? null;
+
+            return $entry === null
+                ? route($destination['route'])
+                : DocumentEditCatalog::url($document, $entry);
         }
 
         return route($destination['route'], ['id' => $id]);
