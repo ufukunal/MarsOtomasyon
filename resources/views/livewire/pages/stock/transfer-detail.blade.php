@@ -69,6 +69,13 @@
                 <strong>{{ $transfer->number }}</strong>
                 <span>Durum: {{ \App\Support\Formatting\BusinessLabelFormatter::status($transfer->status) }}</span>
             </div>
+            <x-v65.notice tone="info">
+                Gönderilmiş veya teslim alınmış transfer, stok hareketleri nedeniyle yerinde düzenlenmez.
+                Açık teslim/kalan iptalini tamamlayın; yeni transferle düzeltme yapın.
+            </x-v65.notice>
+            @if(in_array($transfer->status, ['received','cancelled','completed','closed'], true) && auth()->user()?->can('transfers.create'))
+                <a class="button-secondary" href="{{ route('stock.transfers.create') }}">Yeni Transferle Düzelt</a>
+            @endif
 
             <div class="table-scroll v65-grid-scroll" id="stock-document-lines"><table class="data-table">
                 <thead><tr><th>Ürün</th><th>Gönderilen</th><th>Teslim Alınan</th><th>Kalan</th><th>Şimdi Teslim</th></tr></thead>

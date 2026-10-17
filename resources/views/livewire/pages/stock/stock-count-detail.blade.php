@@ -31,6 +31,12 @@
 <div class="form-row"><button type="button" wire:click="saveDraft">Taslağı Kaydet</button>@if($count && auth()->user()?->can('stock_counts.update'))<button type="button" wire:click="start">Sayımı Başlat</button>@endif</div>
 @else
 <div class="alert alert-warning">Sayım sırasında bu lokasyonda hareket yapılmaması önerilir.</div>
+@if($count->status === 'posted')
+    <x-v65.notice tone="info">Kesinleşmiş sayım envanter hareketi oluşturduğu için yerinde düzenlenmez. Yeni bir sayım yaparak farkları yeniden kontrol edebilirsiniz; eski sayım geçmişte korunur.</x-v65.notice>
+    @can('stock_counts.create')
+        <a class="button-secondary" href="{{ route('stock.counts.create') }}">Düzenleme İçin Yeni Sayım Aç</a>
+    @endcan
+@endif
 <div class="form-row" id="stock-document-details"><strong>{{ $count->number ?: 'Henüz numara verilmedi' }}</strong><span>Durum: {{ \App\Support\Formatting\BusinessLabelFormatter::status($count->status) }}</span><label><input type="checkbox" wire:model.live="differencesOnly"> Yalnızca farklıları göster</label></div>
 <div class="table-scroll v65-grid-scroll" id="stock-document-lines"><table class="data-table"><thead><tr><th>Ürün</th><th>Sistem</th><th>Sayılan</th><th>Fark</th><th>Onay</th><th>Not</th><th></th></tr></thead><tbody>
 @foreach($countLines as $line)<tr>
