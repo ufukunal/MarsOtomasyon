@@ -1,4 +1,4 @@
-<div class="space-y-8 v65-list-page v65-ref-finance v65-ref-securities">
+<div class="space-y-8 v65-list-page v65-ref-finance v65-ref-securities {{ $screenMode === 'endorse' ? 'v65-ref-security-is-endorse' : '' }}">
 <header class="v65-ref-heading"><div><h1>{{ $screenTitle }}</h1><p>@if($screenMode === 'list') Alınan, verilen ve ciro edilen {{ $screenKind === 'check' ? 'çek' : 'senet' }} kayıtları
 @elseif($screenMode === 'endorse') Alınan evrakı başka cariye devretme · Bağımsız işlem
 @else Cari bakiye ve portföy etkisiyle {{ $screenKind === 'check' ? 'çek' : 'senet' }} kaydı @endif</p></div>
@@ -40,8 +40,8 @@
         @else
             <p>{{ $screenDirection === 'incoming' ? 'Alınan' : 'Verilen' }} {{ $screenKind === 'check' ? 'Çek' : 'Senet' }} kaydı</p>
         @endif
-        <label class="field">No <input wire:model.blur="instrumentNo"></label>
-        <label class="field">{{ ($screenKind ?? $kind) === 'note' ? 'Borçlu / Lehtar (Cari)' : 'Cari' }}
+        <label class="field">{{ ($screenKind ?? $kind) === 'check' ? 'Çek Numarası *' : 'Senet Numarası *' }} <input wire:model.blur="instrumentNo"></label>
+        <label class="field">{{ ($screenDirection ?? $direction) === 'incoming' ? 'Çeki/Senedi Veren Cari *' : 'Çeki/Senedi Alacak Cari *' }}
             <input type="search" wire:model.live.debounce.300ms="securityContactSearch" placeholder="Cari kodu veya unvanı ara" autocomplete="off" aria-label="Evrak cari ara">
             <select wire:model="contactId">
                 <option value="">Seçin</option>
@@ -50,19 +50,27 @@
                 @endforeach
             </select>
         </label>
-        <label class="field">Tutar <input wire:model.blur="amount" inputmode="decimal" data-tr-decimal></label>
-        <label class="field">İşlem Tarihi <input type="date" wire:model="transactionDate"></label>
-        <label class="field">Vade <input type="date" wire:model="dueDate"></label>
-        <label class="field">Banka Adı <input wire:model="bankName"></label>
-        <label class="field">Banka Hesabı
-            <select wire:model="bankAccountId">
-                <option value="">Seçim yok</option>
-                @foreach($bankAccounts as $account)
-                    <option value="{{ $account->id }}">{{ $account->code }} · {{ $account->bank_name }} · {{ $account->account_name }}</option>
-                @endforeach
-            </select>
-        </label>
-        <label class="field">Not <textarea wire:model.blur="note" rows="3"></textarea></label>
+        <label class="field">Düzenleme Tarihi * <input type="date" wire:model="transactionDate"></label>
+        <label class="field">Vade Tarihi * <input type="date" wire:model="dueDate"></label>
+        <label class="field">{{ ($screenKind ?? $kind) === 'check' ? 'Çek Tutarı *' : 'Senet Tutarı *' }} <input wire:model.blur="amount" inputmode="decimal" data-tr-decimal></label>
+        <label class="field">Para Birimi <input readonly value="TRY · Türk Lirası"></label>
+        @if(($screenKind ?? $kind) === 'check')
+            @if(($screenDirection ?? $direction) === 'incoming')
+                <label class="field">Muhatap Banka <input wire:model.blur="bankName"></label>
+            @else
+                <label class="field">Ödeme Yapılacak Banka Hesabı
+                    <select wire:model="bankAccountId">
+                        <option value="">Seçim yok</option>
+                        @foreach($bankAccounts as $account)
+                            <option value="{{ $account->id }}">{{ $account->code }} · {{ $account->bank_name }} · {{ $account->account_name }}</option>
+                        @endforeach
+                    </select>
+                </label>
+            @endif
+        @else
+            <div class="field v65-ref-security-note-party"><strong>Borçlu / Lehtar</strong><small>Seçilen cari hesabın unvanı evrak tarafı olarak kaydedilir.</small></div>
+        @endif
+        <label class="field v65-ref-security-note">Açıklama <textarea wire:model.blur="note" rows="3"></textarea></label>
         <section class="v65-finance-impact" aria-label="Evrak ilk kayıt önizlemesi">
             <h3>İlk Kayıt Mali Etkisi <small>Banka hareketi ancak tahsil/ödeme bordrosunda oluşur.</small></h3>
             <div class="v65-impact-grid">
@@ -82,6 +90,7 @@
     </section>
     @endif
 
+    @unless($screenMode === 'create')
     <section class="v65-ref-security-records">
         @if($screenMode === 'list')
             <section class="v65-security-toolbar" aria-label="Çek senet liste özeti ve filtreler">
@@ -208,6 +217,8 @@
         @endif
     </section>
 
+    @endunless
+
     @if(in_array($screenMode, ['center', 'endorse', 'list'], true))
     <section class="panel stack v65-ref-card v65-ref-security-payroll">
         <header class="v65-ref-card-head"><strong>{{ $screenMode === 'endorse' ? $screenTitle . ' Bilgileri' : 'Bordro İşlemi' }}</strong><small>Kaynak evrak ve işlem detayları</small></header>
@@ -231,7 +242,7 @@
             <label class="field">Evrak Ara
                 <input type="search" wire:model.live.debounce.300ms="listSearch" placeholder="Evrak no veya cari unvanı" autocomplete="off">
             </label>
-            <label class="field">Tek Evrak Seç (İsteğe Bağlı)
+            <label class="field">Ciro Edilecek {{ $screenKind === 'check' ? 'Çek' : 'Senet' }} *
                 <select wire:model.live="quickEndorseSecurityId">
                     <option value="">Toplu seçim / aşağıdaki listeden seç</option>
                     @foreach($securities as $instrument)
@@ -246,8 +257,8 @@
             <p class="v65-doc-search-hint">Yukarıdaki listeden bir evrak ve işlem seçin. Bordro işlemi burada gerçek veritabanı kaydına dönüşür. Hedef cari veya banka hesabı gerekiyorsa aşağıdan seçin.</p>
             <div class="v65-security-selected">Seçilen evrak: {{ $selectedSecurityIds[0] ?? 'Henüz seçilmedi' }}</div>
         @endif
-        <label class="field">Tarih <input type="date" wire:model="payrollDate"></label>
-        <label class="field">Hedef Cari
+        <label class="field">{{ $screenMode === 'endorse' ? 'Ciro Tarihi *' : 'İşlem Tarihi' }} <input type="date" wire:model="payrollDate"></label>
+        <label class="field">{{ $screenMode === 'endorse' ? 'Ciro Edilen / Hedef Cari *' : 'Hedef Cari' }}
             <input type="search" wire:model.live.debounce.300ms="payrollContactSearch" placeholder="Cari kodu veya unvanı ara" autocomplete="off" aria-label="Ciro hedef cari ara">
             <select wire:model="payrollContactId">
                 <option value="">Seçim yok</option>
