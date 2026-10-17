@@ -45,6 +45,8 @@ class SupplierInvoiceEditor extends BasePurchaseDocumentEditor
     /** The single visible Save button also posts the invoice to the ledger. */
     public function save(SavePurchaseDocumentDraft $action): void
     {
+        // Posting requires update permission even when saving a brand-new invoice.
+        abort_unless(auth()->user()?->can($this->permissionPrefix().'.update'), 403);
         parent::save($action);
         $this->post(app(\App\Actions\Documents\ManageInvoiceRecord::class));
     }

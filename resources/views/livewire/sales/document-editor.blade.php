@@ -316,14 +316,21 @@
                 </div>
             </section>
             @if($this instanceof \App\Livewire\Sales\SalesInvoiceEditor)
-                @php $invoiceRisk = $this->invoiceRiskProjection(); @endphp
-                @if($invoiceRisk?->knownLimitExceeded)
+                @php
+                    $invoiceRisk = $this->invoiceRiskProjection();
+                    $draftRiskOverview = $this->contactRiskOverview();
+                @endphp
+                @if($invoiceRisk?->knownLimitExceeded || ($draftRiskOverview['exceeded'] ?? false))
                     <div class="alert alert-warning v65-simple-invoice-warning" role="alert">
                         <strong>Cari risk limiti aşılıyor.</strong>
-                        <span>Mevcut cari bakiyesi: {{ \App\Support\Formatting\TrFormatter::money($invoiceRisk->currentBalance) }} ₺;
-                            fatura: {{ \App\Support\Formatting\TrFormatter::money($invoiceRisk->orderTotal) }} ₺;
-                            tahmini risk: {{ \App\Support\Formatting\TrFormatter::money($invoiceRisk->knownExposure) }} ₺;
-                            limit: {{ \App\Support\Formatting\TrFormatter::money($invoiceRisk->riskLimit) }} ₺.</span>
+                        @if($invoiceRisk)
+                            <span>Mevcut cari bakiyesi: {{ \App\Support\Formatting\TrFormatter::money($invoiceRisk->currentBalance) }} ₺;
+                                fatura: {{ \App\Support\Formatting\TrFormatter::money($invoiceRisk->orderTotal) }} ₺;
+                                tahmini risk: {{ \App\Support\Formatting\TrFormatter::money($invoiceRisk->knownExposure) }} ₺;
+                                limit: {{ \App\Support\Formatting\TrFormatter::money($invoiceRisk->riskLimit) }} ₺.</span>
+                        @else
+                            <span>Önizlenen tutar seçili carinin tanımlı risk limitini aşabilir.</span>
+                        @endif
                         <label><input type="checkbox" wire:model="riskAccepted"> Risk limiti aşımını kabul ediyorum.</label>
                     </div>
                 @endif
