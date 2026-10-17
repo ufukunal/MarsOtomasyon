@@ -3,6 +3,7 @@
 namespace App\Livewire\Pages\Stock;
 
 use App\Models\Period\StockMovement;
+use App\Support\Documents\DocumentEditNavigation;
 use Illuminate\Contracts\View\View;
 use Livewire\Component;
 
@@ -22,23 +23,10 @@ class StockMovementDetail extends Component
     {
         abort_unless(auth()->user()?->can('stock.view'), 403);
 
-        $sourceRoute = match ((string) $this->movement->document_type) {
-            'transfer' => 'stock.transfers.show',
-            'warehouse_slip' => 'stock.warehouse-slips.show',
-            'stock_count' => 'stock.counts.show',
-            default => null,
-        };
-        $sourcePermission = match ((string) $this->movement->document_type) {
-            'transfer' => 'transfers.view',
-            'warehouse_slip' => 'warehouse_slips.view',
-            'stock_count' => 'stock_counts.view',
-            default => null,
-        };
-        $sourceUrl = $sourceRoute && $sourcePermission
-            && $this->movement->document_id
-            && auth()->user()->can($sourcePermission)
-            ? route($sourceRoute, ['id' => $this->movement->document_id])
-            : null;
+        $sourceUrl = DocumentEditNavigation::url(
+            (string) $this->movement->document_type,
+            $this->movement->document_id,
+        );
 
         return view('livewire.pages.stock.stock-movement-detail', [
             'sourceUrl' => $sourceUrl,
