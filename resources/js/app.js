@@ -579,7 +579,7 @@ document.addEventListener('livewire:init', () => {
     });
 });
 
-/* Approved HTML quick-entry interaction, scoped to the 11-column document grid.
+/* Approved HTML quick-entry interaction, scoped to the 10-column document grid.
  * Search itself remains server-side; never build client-side product records.
  */
 document.addEventListener('keydown', (event) => {
@@ -595,7 +595,11 @@ document.addEventListener('keydown', (event) => {
     if (event.key === 'Enter') {
         event.preventDefault();
         if (!select.value) {
-            const first = [...select.options].find((option) => option.value && !option.disabled);
+            const needle = search.value.trim().toLocaleLowerCase('tr');
+            // Never select an unrelated default option before Livewire search results arrive.
+            if (needle.length < 2) return;
+            const first = [...select.options].find((option) => option.value && !option.disabled
+                && option.textContent.toLocaleLowerCase('tr').includes(needle));
             if (first) select.value = first.value;
         }
         if (!select.value) return;
@@ -607,4 +611,29 @@ document.addEventListener('keydown', (event) => {
             if (quantity instanceof HTMLInputElement) quantity.focus();
         });
     }
+});
+
+
+// Screenshot-matched global product search: Enter chooses only an actual,
+// server-returned product result. No client-side product or financial writes.
+document.addEventListener('keydown', (event) => {
+    const input = event.target;
+    if (!(input instanceof HTMLInputElement) || !input.matches('[data-v65-reference-quick-input]')) return;
+    const panel = input.closest('.v65-reference-quick-product');
+    if (!(panel instanceof HTMLElement)) return;
+
+    if (event.key === 'Escape') {
+        input.value = '';
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+        return;
+    }
+    if (event.key !== 'Enter') return;
+
+    const first = panel.querySelector('[data-v65-reference-quick-choice]');
+    if (!(first instanceof HTMLButtonElement)) return;
+    const text = first.textContent.toLocaleLowerCase('tr');
+    const query = input.value.trim().toLocaleLowerCase('tr');
+    if (query.length < 2 || !text.includes(query)) return;
+    event.preventDefault();
+    first.click();
 });

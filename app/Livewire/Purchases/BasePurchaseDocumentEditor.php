@@ -7,6 +7,7 @@ use App\Actions\Purchases\SavePurchaseDocumentDraft;
 use App\DataObjects\Documents\DocumentTotals;
 use App\Enums\DocumentType;
 use App\Livewire\Concerns\WithFastDocumentLines;
+use App\Livewire\Concerns\WithPrototypeDocumentControls;
 use App\Livewire\Concerns\WithIdempotentMutations;
 use App\Models\Period\Contact;
 use App\Models\Period\Document;
@@ -23,6 +24,7 @@ abstract class BasePurchaseDocumentEditor extends Component
 {
     use WithFastDocumentLines;
     use WithIdempotentMutations;
+    use WithPrototypeDocumentControls;
 
     public ?Document $document = null;
 
@@ -102,6 +104,12 @@ abstract class BasePurchaseDocumentEditor extends Component
     protected function extraMutationNames(): array
     {
         return [];
+    }
+
+    protected function resetPrototypeTypeFields(): void
+    {
+        $this->currency = 'TRY';
+        $this->exchangeRate = '1.000000';
     }
 
     public function mount(?int $id = null): void

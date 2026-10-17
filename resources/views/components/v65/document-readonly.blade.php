@@ -17,6 +17,7 @@
                 'planned_delivery' => 'Planlanan Teslim',
                 'shipment_location_id' => 'Sevkiyat Deposu (Lokasyon ID)',
                 'customer_order_no' => 'Müşteri Sipariş No',
+                'customer_reference_no' => 'Müşteri Referans No',
                 'vehicle_plate' => 'Araç / Plaka',
                 'payment_method' => 'Ödeme Şekli',
                 'quote_valid_until' => 'Teklif Geçerlilik',

@@ -34,7 +34,7 @@ it('exposes discount amounts and clearly provisional line VAT without claiming f
             ->toContain('Satır detayı')
             ->toContain('discountAmount')
             ->toContain('lineWithVat')
-            ->toContain('belge genel/ek iskontoları öncesi');
+            ->toContain('belge genel iskontoları öncesi');
     }
 });
 
