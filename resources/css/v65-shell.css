@@ -3158,3 +3158,60 @@
     }
     .app-shell .v65-reference-suggestion-metric strong{white-space:normal;overflow-wrap:anywhere}
 }
+
+/* Product quick search overlay and Ctrl+click multi-select, scoped to editors.
+   Overflow (not only z-index) must be visible or the dropdown is clipped by
+   .v65-doc-lines and .v65-reference-products-card. */
+.app-shell .v65-reference-workspace .v65-reference-products-card{
+    position:relative;overflow:visible;z-index:2
+}
+.app-shell .v65-reference-workspace .v65-reference-products-card:focus-within{
+    z-index:110
+}
+.app-shell .v65-reference-products-card .v65-reference-products-bar{
+    position:relative;overflow:visible;z-index:3
+}
+.app-shell .v65-reference-products-card .v65-reference-products-tools{
+    position:relative;overflow:visible;z-index:4
+}
+.app-shell .v65-reference-products-tools .v65-reference-quick-product{
+    position:relative;z-index:5
+}
+.app-shell .v65-reference-products-tools .v65-reference-suggestions{
+    z-index:120
+}
+.app-shell .v65-reference-suggestions>button.is-multi-selected{
+    background:#e4f1ff;box-shadow:inset 3px 0 0 #2479c6
+}
+.app-shell .v65-reference-suggestions>button.is-multi-selected:hover,
+.app-shell .v65-reference-suggestions>button.is-multi-selected:focus-visible{
+    background:#d8eafd
+}
+.app-shell .v65-reference-multi-help{
+    display:block;padding-top:5px;color:#6587a8;font-size:10px
+}
+.app-shell .v65-reference-multi-footer{
+    position:sticky;bottom:0;z-index:2;display:flex;align-items:center;
+    gap:8px;flex-wrap:wrap;padding:10px 12px;background:#f4f9ff;
+    border-top:1px solid #bad7f3;box-shadow:0 -3px 9px rgba(25,64,105,.06)
+}
+.app-shell .v65-reference-multi-footer>span{
+    margin-right:auto;font-size:11px;font-weight:700;color:#245a85
+}
+.app-shell .v65-reference-multi-footer>button{
+    border:1px solid #bad0e6;border-radius:5px;background:white;
+    color:#2e577b;font-size:11px;font-weight:700;padding:7px 10px;
+    min-height:29px;cursor:pointer
+}
+.app-shell .v65-reference-multi-footer>.v65-reference-multi-apply{
+    background:#176bb7;border-color:#176bb7;color:white
+}
+.app-shell .v65-reference-multi-footer>button:focus-visible{
+    outline:2px solid #82b8ec;outline-offset:2px
+}
+.app-shell .v65-reference-multi-footer>button:disabled{opacity:.6;cursor:wait}
+.app-shell .v65-reference-multi-footer[x-cloak]{display:none!important}
+@media(max-width:580px){
+    .app-shell .v65-reference-multi-footer{gap:6px;padding:8px}
+    .app-shell .v65-reference-multi-footer>span{flex:1 1 100%}
+}

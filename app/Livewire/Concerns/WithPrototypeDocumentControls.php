@@ -165,6 +165,40 @@ trait WithPrototypeDocumentControls
         return $products;
     }
 
+    /**
+     * Multi-select is UI-only until the user presses "Seçilenleri Ekle".
+     * Accept only real active products from the currently displayed results,
+     * with a bounded number of distinct IDs and the same permissions as a
+     * normal single-product insertion. No accounting records are written here.
+     *
+     * @param list<int|string> $productIds
+     */
+    public function insertQuickProducts(array $productIds): void
+    {
+        abort_unless(auth()->user()?->can(
+            $this->permissionPrefix().($this->document ? '.update' : '.create')
+        ), 403);
+        abort_unless($this->document === null || $this->document->status === 'draft', 409);
+        abort_unless(count($productIds) >= 1 && count($productIds) <= 12, 422);
+
+        $ids = [];
+        foreach ($productIds as $id) {
+            abort_unless(is_int($id) || (is_string($id) && ctype_digit($id)), 422);
+            $normalized = (int) $id;
+            abort_unless($normalized > 0 && ! in_array($normalized, $ids, true), 422);
+            $ids[] = $normalized;
+        }
+
+        $visible = $this->quickProductOptions()->modelKeys();
+        abort_unless(array_diff($ids, $visible) === [], 422);
+
+        foreach ($ids as $id) {
+            // Reuse the authoritative product initialization and trailing-row
+            // maintenance instead of constructing mock lines in the browser.
+            $this->insertQuickProduct($id);
+        }
+    }
+
     public function insertQuickProduct(int $productId): void
     {
         abort_unless(auth()->user()?->can(
