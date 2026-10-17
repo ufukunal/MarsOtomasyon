@@ -3089,3 +3089,8 @@
 @media(max-width:800px){.app-shell .v65-ref-returns-info-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.app-shell .v65-ref-returns-info-grid>.v65-ref-returns-note{grid-column:1/-1}.app-shell .v65-ref-returns-products .v65-reference-quick-product{flex:1 1 100%}}
 @media(max-width:580px){.app-shell .v65-ref-returns-info-grid{grid-template-columns:1fr}.app-shell .v65-ref-returns-info-grid>.v65-ref-returns-source{grid-column:auto}.app-shell .v65-ref-returns-products .v65-reference-vat-select{width:100%;margin-left:0;justify-content:space-between}.app-shell .v65-ref-returns-footer{justify-content:stretch}.app-shell .v65-ref-returns-footer .v65-reference-footer-actions{width:100%}.app-shell .v65-ref-returns-footer .v65-btn{flex:1}}
 @media print{.app-shell .v65-ref-returns-tabs,.app-shell .v65-ref-returns-footer,.app-shell .v65-ref-returns-audit-actions,.app-shell .v65-ref-returns-history{display:none!important}}
+
+/* Return type navigation uses real deep-linkable screens. */
+.app-shell .v65-ref-returns-tabs>a{display:inline-flex;align-items:center;justify-content:center;min-height:36px;padding:8px 16px;background:#fff;border:1px solid #d5e3f0;border-radius:6px;font-size:12px;font-weight:700;color:#365e81;text-decoration:none}
+.app-shell .v65-ref-returns-tabs>a.is-active{color:#fff;background:#176bb7;border-color:#176bb7}
+.app-shell .v65-ref-returns-tabs>a:not(.is-active):hover{background:#edf6ff}

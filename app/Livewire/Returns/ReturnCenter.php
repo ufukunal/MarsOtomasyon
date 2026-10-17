@@ -57,6 +57,11 @@ class ReturnCenter extends Component
         abort_unless(auth()->user()?->can('returns.view'), 403);
         $this->documentDate = now()->toDateString();
         $this->reversalDate = now()->toDateString();
+        if (request()->routeIs('returns.sales')) {
+            $this->type = DocumentType::SalesReturn->value;
+        } elseif (request()->routeIs('returns.purchases')) {
+            $this->type = DocumentType::PurchaseReturn->value;
+        }
         $id = $this->linkedDocumentId();
         if ($id !== null) {
             $document = Document::query()->whereIn('document_type', [
@@ -220,7 +225,7 @@ class ReturnCenter extends Component
 
     public function selectReturn(int $id): void
     {
-        $document = Document::query()->findOrFail($id);
+        $document = Document::query()->with('lines')->findOrFail($id);
         abort_unless(in_array($document->document_type, [DocumentType::SalesReturn, DocumentType::PurchaseReturn], true), 404);
         $this->type = $document->document_type->value;
         $this->selectedReturnId = $id;
@@ -229,6 +234,33 @@ class ReturnCenter extends Component
         $this->sourceInvoiceId = null;
         $this->quantities = [];
         $this->locationIds = [];
+
+        // Show the original invoice and its frozen values when an existing
+        // return is inspected; never make the posted return editable in place.
+        $relationType = $document->document_type === DocumentType::SalesReturn
+            ? 'sales_invoice_to_return' : 'supplier_invoice_to_return';
+        $sourceId = DocumentRelation::query()
+            ->where('target_document_id', $document->id)
+            ->where('relation_type', $relationType)
+            ->value('source_document_id');
+        if ($sourceId !== null) {
+            $source = Document::query()->with('lines')->find((int) $sourceId);
+            $sourceType = $document->document_type === DocumentType::SalesReturn
+                ? DocumentType::SalesInvoice : DocumentType::SupplierInvoice;
+            if ($source && $source->document_type === $sourceType) {
+                $this->sourceInvoiceId = (int) $sourceId;
+                foreach ($source->lines as $line) {
+                    $this->quantities[(int) $line->id] = '0';
+                    $this->locationIds[(int) $line->id] = $line->location_id;
+                }
+                foreach ($document->lines as $line) {
+                    if ($line->source_line_id !== null) {
+                        $this->quantities[(int) $line->source_line_id] = (string) $line->quantity;
+                        $this->locationIds[(int) $line->source_line_id] = $line->location_id;
+                    }
+                }
+            }
+        }
     }
 
     public function editDraft(int $id): void
@@ -282,10 +314,35 @@ class ReturnCenter extends Component
                 ->where('status', 'posted')
                 ->find($this->sourceInvoiceId)
             : null;
+        $selectedReturn = $this->selectedReturnId
+            ? Document::query()->with(['lines', 'contact'])->find($this->selectedReturnId)
+            : null;
+        $isPosted = $selectedReturn && $selectedReturn->status === 'posted';
         $preview = $sourceInvoice
-            ? app(ReturnDraftPreview::class)->handle($sourceInvoice, $returnType, $this->quantities)
+            ? app(ReturnDraftPreview::class)->handle(
+                $sourceInvoice, $returnType, $isPosted ? [] : $this->quantities,
+            )
             : ['totals' => null, 'additional' => '0.0000', 'rows' => [],
                 'remaining' => [], 'count' => 0, 'error' => null];
+
+        if ($isPosted) {
+            $preview['count'] = $selectedReturn->lines->count();
+            $preview['additional'] = (string) $selectedReturn->additional_discount_amount;
+            $preview['error'] = null;
+            foreach ($selectedReturn->lines as $line) {
+                if ($line->source_line_id === null) {
+                    continue;
+                }
+                $net = (string) $line->line_total;
+                $vat = \App\Support\Money\Money::of($net)
+                    ->percent((string) $line->vat_rate)->amount;
+                $preview['rows'][(int) $line->source_line_id] = [
+                    'net' => $net,
+                    'with_vat' => \App\Support\Money\Money::of($net)
+                        ->plus(\App\Support\Money\Money::of($vat))->amount,
+                ];
+            }
+        }
 
         return view('livewire.returns.return-center', [
             'returnPreview' => $preview,
@@ -299,9 +356,7 @@ class ReturnCenter extends Component
                 ->limit(500)
                 ->get(),
             'sourceInvoice' => $sourceInvoice,
-            'selectedReturn' => $this->selectedReturnId
-                ? Document::query()->with(['lines', 'contact'])->find($this->selectedReturnId)
-                : null,
+            'selectedReturn' => $selectedReturn,
             'returns' => Document::query()
                 ->with('contact')
                 ->where('document_type', $returnType->value)

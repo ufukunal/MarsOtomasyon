@@ -20,12 +20,10 @@
     </header>
 
     <nav class="v65-ref-returns-tabs" aria-label="İade türü">
-        <button type="button" wire:click="$set('type', 'sales_return')"
-            class="{{ $isSalesReturn ? 'is-active' : '' }}" aria-current="{{ $isSalesReturn ? 'page' : 'false' }}"
-            @disabled($editingReturnDraft)>Satış İadesi</button>
-        <button type="button" wire:click="$set('type', 'purchase_return')"
-            class="{{ ! $isSalesReturn ? 'is-active' : '' }}" aria-current="{{ ! $isSalesReturn ? 'page' : 'false' }}"
-            @disabled($editingReturnDraft)>Alış İadesi</button>
+        <a href="{{ route('returns.sales') }}" class="{{ $isSalesReturn ? 'is-active' : '' }}"
+            aria-current="{{ $isSalesReturn ? 'page' : 'false' }}">Satış İadesi</a>
+        <a href="{{ route('returns.purchases') }}" class="{{ ! $isSalesReturn ? 'is-active' : '' }}"
+            aria-current="{{ ! $isSalesReturn ? 'page' : 'false' }}">Alış İadesi</a>
     </nav>
 
     @if($errors->any())
@@ -264,7 +262,7 @@
                         @else Görüntüleme yetkisi yok @endif</td>
                     <td>{{ $return->document_date?->format('d.m.Y') }}</td>
                     <td class="align-end">{{ $money::money((string) $return->grand_total) }} {{ $return->currency }}</td>
-                    <td><x-v65.status-badge :status="$return->status" /></td>
+                    <td><x-v65.status-badge :tone="$return->status === 'posted' ? 'success' : 'neutral'">{{ \App\Support\Formatting\BusinessLabelFormatter::status($return->status) }}</x-v65.status-badge></td>
                     <td>@if($return->status === 'draft' && auth()->user()?->can('returns.update'))
                             <x-v65.button size="xs" variant="secondary" wire:click="editDraft({{ $return->id }})">Düzenle</x-v65.button>
                         @else

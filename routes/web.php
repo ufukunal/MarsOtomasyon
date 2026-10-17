@@ -236,6 +236,8 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/finans/verilen-senet', OutgoingNoteScreen::class)->name('finance.notes.outgoing');
     Route::get('/finans/senet-ciro', NoteEndorsementScreen::class)->name('finance.notes.endorsement');
     Route::get('/iadeler', ReturnCenter::class)->name('returns.center');
+    Route::get('/iadeler/satis', ReturnCenter::class)->name('returns.sales');
+    Route::get('/iadeler/alis', ReturnCenter::class)->name('returns.purchases');
     Route::get('/ithalat', ImportCenter::class)->name('imports.shipments');
 
     Route::get('/uretim/receteler', RecipeCenter::class)->name('production.recipes');
