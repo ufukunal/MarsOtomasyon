@@ -76,17 +76,15 @@
     @endphp
 
     @if(!$document || $document->status === 'draft')
-        <form wire:submit="save" id="{{ $formId }}" class="document-editor-form v65-doc-editor {{ $isGoodsReceipt ? '' : 'v65-reference-form' }}">
-            @unless($isGoodsReceipt)
-                <section class="v65-reference-info-card" aria-label="Belge bilgileri">
-                    <header class="v65-reference-info-head">
-                        <strong>Belge Bilgileri</strong>
-                        <small>Bu alanlar yalnız {{ $screen['title'] }} için düzenlenmiştir</small>
-                    </header>
-                    <div class="v65-reference-info-fields">
-            @endunless
+        <form wire:submit="save" id="{{ $formId }}" class="document-editor-form v65-doc-editor v65-reference-form {{ $isGoodsReceipt ? 'v65-goods-receipt-reference' : '' }}">
+            <section class="v65-reference-info-card" aria-label="Belge bilgileri">
+                <header class="v65-reference-info-head">
+                    <strong>Belge Bilgileri</strong>
+                    <small>{{ $isGoodsReceipt ? 'Mal Kabul' : ($screen['title'] ?? 'Satınalma Belgesi') }} bilgileri</small>
+                </header>
+                <div class="v65-reference-info-fields">
             <div class="v65-doc-contact-picker">
-                <label class="field">{{ $isGoodsReceipt ? 'Tedarikçi Ara' : $screen['party'] }}
+                <label class="field">{{ $isGoodsReceipt ? 'Tedarikçi / Cari' : $screen['party'] }}
                     <input type="search" wire:model.live.debounce.300ms="contactSearch" placeholder="Kod veya unvan ile ara" autocomplete="off">
                     <small class="v65-doc-search-hint">Kod veya unvan yazarak arayın. En fazla 35 eşleşme listelenir.</small>
                     <small class="v65-doc-search-loading" wire:loading wire:target="contactSearch">Aranıyor…</small>
@@ -100,7 +98,7 @@
                 </x-v65.select>
                 <x-v65.input-error field="contactId" />
             </div>
-            <label class="field">{{ $isGoodsReceipt ? 'Belge Tarihi' : $screen['date'] }} <input type="date" wire:model="documentDate"><x-v65.input-error field="documentDate" /></label>
+            <label class="field">{{ $isGoodsReceipt ? 'Kabul Tarihi' : $screen['date'] }} <input type="date" wire:model="documentDate"><x-v65.input-error field="documentDate" /></label>
             @if(!$isGoodsReceipt)
                 <label class="field v65-reference-currency">Para Birimi
                     <input wire:model.blur="currency" maxlength="3" list="v65-reference-currency-options" autocomplete="off" aria-label="Para birimi">
@@ -110,7 +108,7 @@
                     <x-v65.input-error field="currency" />
                 </label>
             @else
-                <div class="v65-doc-static-field"><strong>Para Birimi / Kur</strong><span>{{ $currency }} · {{ $exchangeRate }}</span></div>
+                <label class="field">Para Birimi <input readonly value="{{ $currency }}" title="Mal kabulde kaynak belge para birimi"></label>
             @endif
 
             <label class="field">Varsayılan Depo <select wire:model.live="uiMeta.default_location_id">
@@ -133,10 +131,19 @@
                         <span>Onaylı satınalma siparişinden oluşturulur</span>
                     @endif
                 </div>
+                <label class="field">Planlanan Kabul Deposu <select wire:model="uiMeta.receipt_location_id"><option value="">Satır bazında seç</option>@foreach($locations as $location)<option value="{{ $location->id }}">{{ $location->name }}</option>@endforeach</select></label>
                 <label class="field">Tedarikçi İrsaliye No <input wire:model.blur="uiMeta.supplier_dispatch_no" maxlength="140"></label>
-                <label class="field">Kabul Deposu <select wire:model="uiMeta.receipt_location_id"><option value="">Satır bazında seç</option>@foreach($locations as $location)<option value="{{ $location->id }}">{{ $location->name }}</option>@endforeach</select></label>
             @elseif($this instanceof \App\Livewire\Purchases\GoodsReceiptEditor)
-                <label class="field">Kabul / Kaynak Notu <input wire:model.blur="uiMeta.goods_receipt_reference" maxlength="140"></label>
+                <div class="field v65-reference-source-field">
+                    <strong>Kaynak Sipariş</strong>
+                    @if($document && $document->incomingRelations->isNotEmpty())
+                        <x-v65.document-sources :document="$document" />
+                    @else
+                        <span>Kaynak sipariş/irsaliye üzerinden oluşturulur</span>
+                    @endif
+                </div>
+                <label class="field">Kabul Deposu <select wire:model="uiMeta.receipt_location_id"><option value="">Satır bazında seç</option>@foreach($locations as $location)<option value="{{ $location->id }}">{{ $location->name }}</option>@endforeach</select></label>
+                <label class="field">İrsaliye No <input wire:model.blur="uiMeta.goods_receipt_reference" maxlength="140"></label>
             @elseif($this instanceof \App\Livewire\Purchases\SupplierInvoiceEditor)
                 <label class="field">Tedarikçi Fatura No <input wire:model.blur="uiMeta.supplier_invoice_no" maxlength="140"></label>
                 <label class="field">Vade Tarihi <input type="date" wire:model="dueDate"><x-v65.input-error field="dueDate" /></label>
@@ -168,8 +175,8 @@
                     </div>
                 </details>
             @endif
-            @unless($isGoodsReceipt)
                     </div>
+                    @unless($isGoodsReceipt)
                     <div class="v65-reference-document-sources">
                         @if($document && $document->incomingRelations->isNotEmpty())
                             <x-v65.document-sources :document="$document" />
@@ -181,12 +188,12 @@
                         @endif
                     </div>
                     <x-v65.document-prototype-stage :document="$document" :screen-type="$screenType" />
+                    @endunless
                 </section>
-            @endunless
 
 
 
-            <section class="v65-doc-lines {{ $isGoodsReceipt ? '' : 'v65-reference-products-card' }}" aria-label="Belge kalemleri">
+            <section class="v65-doc-lines v65-reference-products-card {{ $isGoodsReceipt ? 'v65-goods-receipt-lines' : '' }}" aria-label="Belge kalemleri">
                 @if($isGoodsReceipt)
                     <div class="v65-doc-lines-head">
                         <strong>Mal Kabul Kalemleri</strong>
