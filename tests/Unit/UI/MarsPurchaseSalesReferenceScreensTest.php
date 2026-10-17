@@ -53,6 +53,7 @@ it('keeps the four purchase screen-specific fields and source relations', functi
     // An incoming relation is presented, never fabricated from unsaved UI metadata.
     expect($blade)->toContain('<x-v65.document-sources :document="$document" />')
         ->toContain('Mal Kabul Kalemleri')
+        ->toContain('instanceof \\App\\Livewire\\Purchases\\GoodsReceiptEditor')
         ->toContain('@if($isGoodsReceipt)');
 });
 
