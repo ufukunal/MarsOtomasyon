@@ -35,10 +35,10 @@ it('posts invoices from the single Save button without bypassing risk or deviati
     $saleView = file_get_contents(base_path('resources/views/livewire/sales/document-editor.blade.php'));
     $purchaseView = file_get_contents(base_path('resources/views/livewire/purchases/document-editor.blade.php'));
     expect($sales)->toContain('parent::save($action)')
-        ->toContain('$this->post(app(PostSalesInvoice::class))')
+        ->toContain('ManageInvoiceRecord::class')
         ->toContain('riskAccepted')
         ->and($purchase)->toContain('parent::save($action)')
-        ->toContain('$this->post(app(PostSupplierInvoice::class))')
+        ->toContain('ManageInvoiceRecord::class')
         ->toContain('deviationAccepted')
         ->and($saleView)->toContain('wire:model="riskAccepted"')
         ->and($purchaseView)->toContain('wire:model="deviationAccepted"');
@@ -53,4 +53,15 @@ it('exposes one-click invoice list edit and delete while preserving normal lists
         ->and($blade)->toContain('wire:click="editInvoiceFromList(')
         ->toContain('wire:click="deleteInvoiceFromList(')
         ->toContain('Görüntüleme yetkisi yok');
+});
+
+it('does not reverse a posted invoice just because its editor was opened', function (): void {
+    $actions = file_get_contents(base_path('app/Actions/Documents/ManageInvoiceRecord.php'));
+    $copy = file_get_contents(base_path('app/Actions/Documents/CreateEditableDocumentCopy.php'));
+    expect($actions)->toContain('allowPostedInvoiceEdit: true')
+        ->toContain('public function save(Document $draft')
+        ->toContain("'edit_copy_of'")
+        ->toContain('DB::connection(\'period\')->transaction')
+        ->toContain('revision-reverse')
+        ->and($copy)->toContain('bool $allowPostedInvoiceEdit = false');
 });

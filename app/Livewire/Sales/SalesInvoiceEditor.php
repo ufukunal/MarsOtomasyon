@@ -5,7 +5,6 @@ namespace App\Livewire\Sales;
 use App\Actions\Documents\ReverseDocument;
 use App\Actions\Documents\SaveSalesDocumentDraft;
 use App\Actions\Sales\CalculateSalesRiskProjection;
-use App\Actions\Sales\PostSalesInvoice;
 use App\DataObjects\Sales\SalesRiskProjection;
 use App\Enums\DocumentType;
 use App\Models\Period\Contact;
@@ -48,14 +47,14 @@ class SalesInvoiceEditor extends BaseSalesDocumentEditor
     public function save(SaveSalesDocumentDraft $action): void
     {
         parent::save($action);
-        $this->post(app(PostSalesInvoice::class));
+        $this->post(app(\App\Actions\Documents\ManageInvoiceRecord::class));
     }
 
-    public function post(PostSalesInvoice $action): void
+    public function post(\App\Actions\Documents\ManageInvoiceRecord $action): void
     {
         $this->requireSavedDraft();
         abort_unless($this->document !== null, 422);
-        $this->loadDocument($action->handle($this->document, $this->mutationKey('post'), $this->riskAccepted)->load('lines'));
+        $this->loadDocument($action->save($this->document, $this->mutationKey('post'), riskAccepted: $this->riskAccepted)->load('lines'));
         $this->completeMutation('post');
     }
 

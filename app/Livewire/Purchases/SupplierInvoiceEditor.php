@@ -4,7 +4,6 @@ namespace App\Livewire\Purchases;
 
 use App\Actions\Documents\ReverseDocument;
 use App\Actions\Purchases\SavePurchaseDocumentDraft;
-use App\Actions\Purchases\PostSupplierInvoice;
 use App\Enums\DocumentType;
 use App\Models\Period\PurchaseMatch;
 use Illuminate\Contracts\View\View;
@@ -47,17 +46,17 @@ class SupplierInvoiceEditor extends BasePurchaseDocumentEditor
     public function save(SavePurchaseDocumentDraft $action): void
     {
         parent::save($action);
-        $this->post(app(PostSupplierInvoice::class));
+        $this->post(app(\App\Actions\Documents\ManageInvoiceRecord::class));
     }
 
-    public function post(PostSupplierInvoice $action): void
+    public function post(\App\Actions\Documents\ManageInvoiceRecord $action): void
     {
         $this->requireSavedDraft();
         abort_unless($this->document !== null, 422);
-        $this->loadDocument($action->handle(
+        $this->loadDocument($action->save(
             $this->document,
             $this->mutationKey('post'),
-            $this->deviationAccepted,
+            deviationAccepted: $this->deviationAccepted,
         )->load('lines'));
         $this->completeMutation('post');
     }

@@ -39,7 +39,7 @@ final class CreateEditableDocumentCopy
         DocumentType::SupplierInvoice->value => 'supplier_invoices',
     ];
 
-    public function handle(Document $original, string $key): Document
+    public function handle(Document $original, string $key, bool $allowPostedInvoiceEdit = false): Document
     {
         $type = $original->document_type->value;
         $permission = self::PERMISSIONS[$type] ?? null;
@@ -56,8 +56,8 @@ final class CreateEditableDocumentCopy
         return IdempotencyKey::run(
             $key,
             'document.edit-copy:'.$original->id,
-            function () use ($original, $type): Document {
-                return DB::connection('period')->transaction(function () use ($original, $type): Document {
+            function () use ($original, $type, $allowPostedInvoiceEdit): Document {
+                return DB::connection('period')->transaction(function () use ($original, $type, $allowPostedInvoiceEdit): Document {
                     $locked = Document::query()
                         ->with(['lines', 'incomingRelations'])
                         ->lockForUpdate()
@@ -79,10 +79,26 @@ final class CreateEditableDocumentCopy
                         throw new DomainException('Ters kayıt fişi yeni düzenleme kopyasının kaynağı olamaz.');
                     }
 
-                    if ($locked->status === 'posted' && ! DocumentRelation::query()
+                    if ($allowPostedInvoiceEdit && ! in_array($locked->document_type, [
+                        DocumentType::SalesInvoice, DocumentType::SupplierInvoice,
+                    ], true)) {
+                        throw new DomainException('Önceden tersleme yapılmadan düzenleme yalnız faturalar için mümkündür.');
+                    }
+
+                    $reversal = DocumentRelation::query()
                         ->where('relation_type', 'reversal_of')
                         ->where('target_document_id', $locked->id)
-                        ->exists()) {
+                        ->with('sourceDocument')
+                        ->first();
+                    if (in_array($locked->document_type, [DocumentType::SalesInvoice, DocumentType::SupplierInvoice], true)
+                        && $reversal !== null && str_starts_with(
+                            (string) ($reversal->sourceDocument?->notes ?? ''),
+                            'Fatura kullanıcı talebiyle silindi;'
+                        )) {
+                        throw new DomainException('Silinmiş fatura yeniden düzenlenemez.');
+                    }
+
+                    if ($locked->status === 'posted' && ! $allowPostedInvoiceEdit && $reversal === null) {
                         throw new DomainException('Kesinleşmiş belge önce Ters Kayıt ile düzeltilmelidir.');
                     }
 

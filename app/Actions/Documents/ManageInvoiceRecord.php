@@ -2,6 +2,8 @@
 
 namespace App\Actions\Documents;
 
+use App\Actions\Purchases\PostSupplierInvoice;
+use App\Actions\Sales\PostSalesInvoice;
 use App\Enums\DocumentType;
 use App\Models\Period\BankMovement;
 use App\Models\Period\CashMovement;
@@ -26,6 +28,8 @@ final class ManageInvoiceRecord
     public function __construct(
         private readonly ReverseDocument $reverse,
         private readonly CreateEditableDocumentCopy $editableCopy,
+        private readonly PostSalesInvoice $postSales,
+        private readonly PostSupplierInvoice $postPurchase,
     ) {}
 
     private function permission(Document $document): string
@@ -37,6 +41,10 @@ final class ManageInvoiceRecord
         };
     }
 
+    /**
+     * Opening the editor never reverses an existing invoice. The original
+     * remains financially active until the edited draft is saved successfully.
+     */
     public function edit(Document $invoice, string $key): Document
     {
         $permission = $this->permission($invoice);
@@ -57,33 +65,86 @@ final class ManageInvoiceRecord
                 throw new DomainException('Bu fatura mevcut durumunda düzenlenemiyor.');
             }
 
-            // A posted document is immutable: hide this accounting correction
-            // from the UI, not from the ledger or audit log.
-            $earlierReversal = DocumentRelation::query()
+            MutationAuthorizer::authorize($permission.'.cancel');
+            $reversal = DocumentRelation::query()
                 ->where('relation_type', 'reversal_of')
                 ->where('target_document_id', $locked->id)
                 ->with('sourceDocument')
                 ->first();
-            if ($earlierReversal !== null && str_starts_with(
-                (string) ($earlierReversal->sourceDocument?->notes ?? ''),
+            if ($reversal !== null && str_starts_with(
+                (string) ($reversal->sourceDocument?->notes ?? ''),
                 'Fatura kullanıcı talebiyle silindi;'
             )) {
-                throw new DomainException('Silinmiş fatura tekrar düzenlenemez; kayıt geçmişinden incelenebilir.');
-            }
-            if ($earlierReversal === null) {
-                MutationAuthorizer::authorize($permission.'.cancel');
-                $this->reverse->handle(
-                    $locked,
-                    now()->toDateString(),
-                    'Fatura düzenlemesi için önceki kayıt geri alındı.',
-                    hash('sha256', $key.':reverse'),
-                );
+                throw new DomainException('Silinmiş fatura tekrar düzenlenemez; geçmişinden incelenebilir.');
             }
 
             return $this->editableCopy->handle(
                 $locked,
                 hash('sha256', $key.':editable-copy'),
+                allowPostedInvoiceEdit: true,
             );
+        }, attempts: 3);
+    }
+
+    /**
+     * The edited draft is posted only after the original invoice's reversal.
+     * Both monetary mutations share one period transaction. If posting fails,
+     * the original stays financially effective and the draft stays editable.
+     */
+    public function save(Document $draft, string $key, bool $riskAccepted = false, bool $deviationAccepted = false): Document
+    {
+        $permission = $this->permission($draft);
+        foreach (['view', 'update', 'create'] as $operation) {
+            MutationAuthorizer::authorize($permission.'.'.$operation);
+        }
+        PeriodContext::ensureWritable();
+
+        return DB::connection('period')->transaction(function () use ($draft, $key, $riskAccepted, $deviationAccepted, $permission): Document {
+            $locked = Document::query()->lockForUpdate()->findOrFail($draft->id);
+            if ($locked->document_type !== $draft->document_type || $locked->status !== 'draft') {
+                throw new DomainException('Yalnız açık fatura taslağı kaydedilebilir.');
+            }
+
+            $link = DocumentRelation::query()
+                ->where('relation_type', 'edit_copy_of')
+                ->where('target_document_id', $locked->id)
+                ->first();
+            if ($link !== null) {
+                $source = Document::query()->lockForUpdate()->findOrFail($link->source_document_id);
+                if ($source->document_type !== $locked->document_type || $source->status !== 'posted') {
+                    throw new DomainException('Düzenleme kaynağı artık geçerli değil.');
+                }
+                $reversal = DocumentRelation::query()
+                    ->where('relation_type', 'reversal_of')
+                    ->where('target_document_id', $source->id)
+                    ->with('sourceDocument')
+                    ->first();
+                if ($reversal !== null && str_starts_with(
+                    (string) ($reversal->sourceDocument?->notes ?? ''),
+                    'Fatura kullanıcı talebiyle silindi;'
+                )) {
+                    throw new DomainException('Kaynak fatura silinmiş, taslak işlenemez.');
+                }
+                if ($reversal === null) {
+                    MutationAuthorizer::authorize($permission.'.cancel');
+                    $this->reverse->handle(
+                        $source,
+                        now()->toDateString(),
+                        'Fatura düzenlemesi: önceki kayıt güvenle geri alındı.',
+                        hash('sha256', $key.':revision-reverse'),
+                    );
+                }
+            }
+
+            return match ($locked->document_type) {
+                DocumentType::SalesInvoice => $this->postSales->handle(
+                    $locked, hash('sha256', $key.':post'), $riskAccepted,
+                ),
+                DocumentType::SupplierInvoice => $this->postPurchase->handle(
+                    $locked, hash('sha256', $key.':post'), $deviationAccepted,
+                ),
+                default => throw new DomainException('Fatura türü kaydedilemiyor.'),
+            };
         }, attempts: 3);
     }
 
