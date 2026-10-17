@@ -278,6 +278,7 @@
         </label>
         @endif
         @if($screenMode === 'endorse')
+            <label class="field v65-ref-security-note">Ciro Açıklaması <textarea wire:model.blur="note" rows="2" maxlength="1000" placeholder="Ciro referansı / açıklama"></textarea></label>
             <section class="v65-finance-impact" aria-label="Ciro önizlemesi">
                 <h3>Ciro Mali Etkisi <small>İlk evrakı veren/alan carinin etkisi tekrar yazılmaz.</small></h3>
                 <div class="v65-impact-grid">
