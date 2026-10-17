@@ -2958,3 +2958,62 @@
 .app-shell .v65-simple-invoice-warning label{display:flex;align-items:center;gap:9px;margin:5px 0}
 .app-shell .v65-simple-invoice-warning input[type=checkbox]{min-width:16px;min-height:16px}
 .app-shell .v65-simple-invoice-note{display:block;padding:9px 2px;color:#7189a1;font-size:11px}
+
+/* Unified 9-document product/service input grid: approved compact reference. */
+.app-shell .v65-reference-products-card{border-radius:9px 9px 0 0}
+.app-shell .v65-reference-products-card .v65-prototype-lines{min-width:1190px;width:100%;table-layout:fixed}
+.app-shell .v65-reference-products-card .v65-prototype-lines th:nth-child(1){width:3.5%}
+.app-shell .v65-reference-products-card .v65-prototype-lines th:nth-child(2){width:25%}
+.app-shell .v65-reference-products-card .v65-prototype-lines th:nth-child(3){width:7.5%}
+.app-shell .v65-reference-products-card .v65-prototype-lines th:nth-child(4){width:6%}
+.app-shell .v65-reference-products-card .v65-prototype-lines th:nth-child(5){width:11%}
+.app-shell .v65-reference-products-card .v65-prototype-lines th:nth-child(6){width:8%}
+.app-shell .v65-reference-products-card .v65-prototype-lines th:nth-child(7){width:8%}
+.app-shell .v65-reference-products-card .v65-prototype-lines th:nth-child(8){width:10%}
+.app-shell .v65-reference-products-card .v65-prototype-lines th:nth-child(9){width:11%}
+.app-shell .v65-reference-products-card .v65-prototype-lines th:nth-child(10){width:10%}
+.app-shell .v65-reference-products-card .v65-prototype-lines th{height:33px;background:#eff3f9;font-weight:750;font-size:10px;color:#315c86}
+.app-shell .v65-reference-products-card .v65-prototype-lines tbody td{height:44px;padding:6px 8px;vertical-align:middle}
+.app-shell .v65-reference-products-card .v65-prototype-lines tbody td:nth-child(1){text-align:center;color:#8da5bf}
+.app-shell .v65-reference-products-card .v65-prototype-lines tbody td :where(input,select){min-height:30px;height:30px;border-color:#cbdcf0;border-radius:5px}
+.app-shell .v65-reference-products-card .v65-prototype-lines tbody tr:hover:not(.v65-reference-entry-row){background:#f8fbff}
+.app-shell .v65-reference-products-card .v65-prototype-lines .v65-doc-product-combined{min-width:0}
+.app-shell .v65-reference-products-card .v65-prototype-lines .v65-doc-product-combined>.v65-doc-product-cell{min-width:0}
+.app-shell .v65-reference-products-card .v65-prototype-lines .v65-doc-product-detail{min-width:0;overflow-wrap:anywhere}
+.app-shell .v65-reference-products-card .v65-prototype-lines .v65-doc-product-detail strong{font-size:11px}
+.app-shell .v65-reference-products-card .v65-prototype-lines .v65-doc-line-net{color:#2b4b70;font-size:11px;font-weight:600}
+.app-shell .v65-reference-products-card .v65-prototype-lines .v65-doc-line-incl{color:#064b91;font-size:11px;font-weight:800}
+.app-shell .v65-reference-line-actions{display:flex;align-items:center;justify-content:center;gap:7px}
+.app-shell .v65-reference-line-menu{position:relative;display:block}
+.app-shell .v65-reference-line-menu>summary,.app-shell .v65-reference-line-delete{
+    display:grid;place-items:center;width:28px;height:28px;min-width:28px;padding:0;border-radius:5px;
+    border:1px solid #cadbf0;background:#fff;color:#1a527f;font-size:14px;cursor:pointer;list-style:none
+}
+.app-shell .v65-reference-line-menu>summary::-webkit-details-marker{display:none}
+.app-shell .v65-reference-line-menu[open]>summary{background:#eaf5ff;border-color:#90bae7}
+.app-shell .v65-reference-line-delete{border-color:#f2cbd0;color:#c34e63;background:#fff7f8}
+.app-shell .v65-reference-line-delete:hover{background:#ffecef}
+.app-shell .v65-reference-line-popover{
+    position:absolute;z-index:21;inset-inline-end:0;top:calc(100% + 3px);width:275px;
+    max-width:80vw;padding:10px;background:#fff;border:1px solid #d6e3f2;border-radius:7px;
+    box-shadow:0 9px 30px rgba(24,65,112,.16);text-align:start;color:#335673
+}
+.app-shell .v65-reference-line-popover .v65-doc-line-details{display:block}
+.app-shell .v65-reference-line-popover .v65-doc-line-details>summary{display:none}
+.app-shell .v65-reference-line-popover .v65-doc-line-details label{display:grid;gap:4px;margin-bottom:8px;font-size:11px}
+.app-shell .v65-reference-source-label{font-size:10px;color:#7e94a9}
+.app-shell .v65-reference-products-card .v65-reference-new-product-button{
+    padding:6px 8px;border:0;background:transparent;color:#1b659d;font-size:11px;font-weight:750;cursor:pointer
+}
+.app-shell .v65-reference-products-card .v65-reference-new-product-button:hover{text-decoration:underline}
+.app-shell .v65-reference-fast-indicator{appearance:none;cursor:pointer;white-space:nowrap}
+.app-shell .v65-reference-fast-indicator:hover{background:#e9f5ff}
+.app-shell .v65-reference-fast-indicator[aria-pressed=false]{background:#f5f6f9;color:#71839b}
+.app-shell .v65-reference-products-tools .v65-reference-quick-product[x-cloak]{display:none}
+.app-shell .v65-reference-totals-layout{padding:16px 15px;gap:17px}
+.app-shell .v65-reference-inline-summary .v65-prototype-total-strip strong{font-variant-numeric:tabular-nums}
+.app-shell .v65-reference-document-footer{min-height:56px}
+@media(max-width:850px){
+    .app-shell .v65-reference-products-card .v65-prototype-lines{min-width:1190px}
+    .app-shell .v65-reference-line-popover{inset-inline-end:0}
+}

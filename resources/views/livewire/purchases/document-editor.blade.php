@@ -219,11 +219,7 @@
                 @endif
                 <small class="v65-doc-mobile-scroll-hint">Tablodaki diğer satır alanlarını görmek için yatay kaydırın.</small>
                 <div class="table-scroll document-lines v65-doc-table-scroll"><table class="data-table v65-doc-table v65-prototype-lines">
-                    <thead><tr>
-                        <th>#</th><th>Ürün Kodu / Ürün Adı</th><th class="align-end">Miktar</th>
-                        <th>Birim</th><th class="align-end">{{ $isGoodsReceipt ? 'Alış Fiyatı' : $screen['price'] }}</th><th class="align-end">İsk. %</th><th class="align-end">KDV %</th>
-                        <th class="align-end">Net Tutar</th><th class="align-end">KDV Dahil*</th><th>İşlem</th>
-                    </tr></thead>
+                    <x-v65.document-product-table-head :price-label="($isGoodsReceipt ? 'Alış Fiyatı' : $screen['price'])" />
                     <tbody>
                     @foreach($lines as $index => $line)
                         @php
@@ -292,18 +288,7 @@
                                     <strong>{{ $line['description'] ?? 'Ürün seçin' }}</strong>
                                     @if($selectedProduct)<small class="v65-reference-sku">{{ $selectedProduct->code }}</small>@endif
                                 @endif
-                                @unless($isGoodsReceipt)
-                                <details class="v65-doc-line-details"><summary>Satır detayı</summary>
-                                    <label>Tür <select wire:model.live="lines.{{ $index }}.line_kind" aria-label="Satır türü">
-                                        <option value="stock">Stok</option><option value="service">Hizmet</option>
-                                    </select></label>
-                                    @unless($service)
-                                    <label>Depo <select wire:model="lines.{{ $index }}.location_id">
-                                        <option value="">Depo seçin</option>
-                                        @foreach($locations as $location)<option value="{{ $location->id }}">{{ $location->name }}</option>@endforeach
-                                    </select></label>
-                                    <label>Satır Notu <input wire:model.blur="lines.{{ $index }}.description" placeholder="İsteğe bağlı not"></label>
-                                    @endunless
+
                                     <small>İskonto tutarı: {{ $previewLine ? \App\Support\Formatting\TrFormatter::money((string) $previewLine->discountAmount) : '—' }}</small>
                                 </details>
                                 @endunless
@@ -325,7 +310,22 @@
                             <td class="align-end">@if($isGoodsReceipt){{ $line['vat_rate'] ?? '0' }}@else<input wire:model.blur="lines.{{ $index }}.vat_rate" inputmode="decimal" data-tr-decimal aria-invalid="{{ $errors->has('lines.'.$index.'.vat_rate') ? 'true' : 'false' }}" aria-label="Satır KDV oranı">@endif</td>
                             <td class="align-end v65-doc-line-net">{{ $lineNet !== null ? \App\Support\Formatting\TrFormatter::money((string) $lineNet) : '—' }}</td>
                             <td class="align-end v65-doc-line-incl">{{ $lineWithVat !== null ? \App\Support\Formatting\TrFormatter::money($lineWithVat) : '—' }}</td>
-                            <td>@unless($isGoodsReceipt)<x-v65.button size="xs" variant="danger" wire:click="removeLine({{ $index }})" aria-label="Satır sil">Sil</x-v65.button>@else<span>Kaynak Satır</span>@endunless</td>
+                            <td class="v65-reference-actions-cell">@unless($isGoodsReceipt)
+                                <x-v65.document-line-actions :index="$index">
+                                @unless($isGoodsReceipt)
+                                <details class="v65-doc-line-details"><summary>Satır detayı</summary>
+                                    <label>Tür <select wire:model.live="lines.{{ $index }}.line_kind" aria-label="Satır türü">
+                                        <option value="stock">Stok</option><option value="service">Hizmet</option>
+                                    </select></label>
+                                    @unless($service)
+                                    <label>Depo <select wire:model="lines.{{ $index }}.location_id">
+                                        <option value="">Depo seçin</option>
+                                        @foreach($locations as $location)<option value="{{ $location->id }}">{{ $location->name }}</option>@endforeach
+                                    </select></label>
+                                    <label>Satır Notu <input wire:model.blur="lines.{{ $index }}.description" placeholder="İsteğe bağlı not"></label>
+                                    @endunless
+                                </x-v65.document-line-actions>
+                                @else<span class="v65-reference-source-label">Kaynak Satır</span>@endunless</td>
                         </tr>
                         @endif
                     @endforeach
@@ -333,7 +333,7 @@
                 </table></div>
                 @unless($isGoodsReceipt)
                     <div class="v65-reference-new-line">
-                        <x-v65.button variant="secondary" size="sm" wire:click="addLine">+ Yeni ürün satırı</x-v65.button>
+                        <button type="button" class="v65-reference-new-product-button" data-v65-add-product-focus>+ Yeni ürün satırı</button>
                         <small>Aşağıdaki boş satıra da ürün kodu veya barkod yazabilirsiniz. Enter ürün seçer, Tab sonraki alana geçer.</small>
                     </div>
                     <div class="v65-reference-totals-layout">

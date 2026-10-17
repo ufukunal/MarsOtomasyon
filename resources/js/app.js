@@ -637,3 +637,16 @@ document.addEventListener('keydown', (event) => {
     event.preventDefault();
     first.click();
 });
+
+// The always-present empty product row is an actual editable row. Focusing it
+// avoids redundant server calls or duplicate empty rows when users select "+ Yeni".
+document.addEventListener('click', (event) => {
+    const trigger = event.target.closest?.('[data-v65-add-product-focus]');
+    if (!(trigger instanceof HTMLButtonElement)) return;
+    const form = trigger.closest('form');
+    const entry = form?.querySelector('.v65-reference-entry-row [data-v65-fast-product-search]');
+    if (entry instanceof HTMLInputElement) {
+        entry.focus();
+        entry.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }
+});
