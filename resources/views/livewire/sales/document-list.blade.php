@@ -91,7 +91,7 @@
                         @endunless
                         <td>
                             <x-v65.button variant="secondary" size="xs" :href="route($detailRoute, ['id' => $document->id])">
-                                {{ $document->status === 'draft' && $canEditDocuments ? 'Düzenle' : 'İncele / İşlem' }}
+                                {{ $canEditDocuments ? ($document->status === 'draft' ? 'Düzenle' : 'Düzenleme / İncele') : 'İncele / İşlem' }}
                             </x-v65.button>
                         </td>
                     </tr>
