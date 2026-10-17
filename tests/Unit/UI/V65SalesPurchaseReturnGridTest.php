@@ -51,7 +51,7 @@ it('keeps posted returns immutable while allowing draft quantity and location ch
         ->toContain('public function selectReturn(int $id)')
         ->toContain('abort_if($this->selectedReturnId !== null && ! $this->editingReturnDraft, 409)')
         ->toContain("'status', 'posted'")
-        ->and($editAction)->toContain("where('status', 'draft')")
+        ->and($editAction)->toContain("status !== 'draft'")
         ->toContain('return_draft_updated')
         ->and($post)->toContain('ReceiveToQuarantine')
         ->toContain("MutationAuthorizer::authorize('returns.update')")
