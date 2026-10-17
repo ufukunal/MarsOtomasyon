@@ -4,7 +4,6 @@ namespace App\Livewire\Returns;
 
 use App\Actions\Returns\CreateReturnFromInvoice;
 use App\Actions\Returns\PostReturnDocument;
-use App\Actions\Returns\ReturnLineAvailability;
 use App\Actions\Returns\ReverseReturnDocument;
 use App\Actions\Returns\UpdateReturnDraft;
 use App\Enums\DocumentType;
@@ -116,10 +115,10 @@ class ReturnCenter extends Component
             ->where('document_type', $invoiceType->value)
             ->where('status', 'posted')
             ->findOrFail($this->sourceInvoiceId);
-        $availability = app(ReturnLineAvailability::class);
-
+        // Selecting an invoice must never auto-return every eligible line.
+        // Available quantities remain visible in ReturnDraftPreview.
         foreach ($invoice->lines as $line) {
-            $this->quantities[$line->id] = $availability->remaining($line, $returnType);
+            $this->quantities[$line->id] = '0';
             $this->locationIds[$line->id] = $line->location_id;
         }
     }
@@ -139,8 +138,17 @@ class ReturnCenter extends Component
 
     public function create(CreateReturnFromInvoice $action): void
     {
-        abort_if($this->editingReturnDraft, 409, 'Düzenlediğiniz iade taslağını önce kaydedin veya kapatın.');
-        abort_unless($this->sourceInvoiceId !== null, 422);
+        abort_if($this->editingReturnDraft || $this->selectedReturnId !== null, 409,
+            'Yeni iade için önce Yeni İade seçin.');
+        $this->validate([
+            'type' => ['required', 'in:sales_return,purchase_return'],
+            'sourceInvoiceId' => ['required', 'integer', 'min:1'],
+            'documentDate' => ['required', 'date'],
+            'note' => ['nullable', 'string', 'max:3000'],
+            'quantities' => ['required', 'array'],
+            'quantities.*' => ['required', 'numeric', 'min:0', 'decimal:0,3'],
+            'locationIds.*' => ['nullable', 'integer', 'min:1'],
+        ]);
         $source = Document::query()->findOrFail($this->sourceInvoiceId);
 
         $quantities = array_filter(
@@ -361,6 +369,8 @@ class ReturnCenter extends Component
             'returns' => Document::query()
                 ->with('contact')
                 ->where('document_type', $returnType->value)
+                ->whereDoesntHave('incomingRelations', fn ($relation) => $relation->where('relation_type', 'reversal_of'))
+                ->whereDoesntHave('outgoingRelations', fn ($relation) => $relation->where('relation_type', 'reversal_of'))
                 ->orderByDesc('document_date')
                 ->orderByDesc('id')
                 ->limit(200)

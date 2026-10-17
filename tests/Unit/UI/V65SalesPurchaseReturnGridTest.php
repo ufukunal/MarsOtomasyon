@@ -58,3 +58,13 @@ it('keeps posted returns immutable while allowing draft quantity and location ch
         ->and($view)->toContain('Geçmiş / teknik düzeltme')
         ->toContain('Görüntüleme yetkisi yok');
 });
+
+it('starts every invoice-based return unselected and validates quantities before drafting', function (): void {
+    $center = file_get_contents(base_path('app/Livewire/Returns/ReturnCenter.php'));
+    expect($center)->toContain("\$this->quantities[\$line->id] = '0';")
+        ->not->toContain("\$this->quantities[\$line->id] = \$availability->remaining(")
+        ->toContain("abort_if(\$this->editingReturnDraft || \$this->selectedReturnId !== null, 409,")
+        ->toContain("'quantities.*' => ['required', 'numeric', 'min:0', 'decimal:0,3']")
+        ->toContain("->whereDoesntHave('incomingRelations'")
+        ->toContain("->whereDoesntHave('outgoingRelations'");
+});

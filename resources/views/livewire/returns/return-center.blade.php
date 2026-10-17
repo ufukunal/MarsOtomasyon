@@ -89,7 +89,7 @@
                         placeholder="Ürün kodu, barkod veya ürün adını arayın..." autocomplete="off"
                         aria-label="Kaynak fatura ürünlerinde ara" @disabled(!$sourceInvoice)>
                 </div>
-                <span class="v65-ref-returns-source-tip">+ Hizmet satırı: yalnız kaynak faturadaki hizmetler</span>
+                <span class="v65-ref-returns-source-tip">Hizmet iadeleri yalnız kaynak faturadaki hizmet satırlarından seçilir</span>
                 <div class="v65-reference-vat-select"><label for="return-vat-source">Toplu KDV:</label>
                     <select id="return-vat-source" disabled aria-label="İade KDV oranı kaynak faturadan alınır">
                         <option>Kaynaktan sabit</option>
