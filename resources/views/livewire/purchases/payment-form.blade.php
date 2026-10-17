@@ -16,24 +16,8 @@
     @elseif($correctionMode)
         <x-v65.notice tone="warning">#{{ $postedDocumentId }} kesinleşmiş kaydı düzeltme için açıldı. Yeni kayıt oluşturmadan önce ters kayıt onayını tamamlayın.</x-v65.notice>
     @endif
-    <h2>Ödeme</h2>
-    <section class="v65-finance-impact" aria-label="İşlem öncesi ve sonrası mali etki">
-        <h3>İşlem Etkisi <small>Bilgilendirme amaçlı önizleme</small></h3>
-        <div class="v65-impact-grid">
-            <div class="v65-impact-card"><span>Cari Önce (Borç − Alacak)</span>
-                <strong class="{{ bccomp($this->contactBalance(), '0', 4) > 0 ? 'is-debtor' : (bccomp($this->contactBalance(), '0', 4) < 0 ? 'is-creditor' : '') }}">{{ $this->canViewFinancialContactBalance() ? \App\Support\Formatting\TrFormatter::money($this->contactBalance()) . ' TRY' : 'Görüntüleme yetkisi yok' }}</strong></div>
-            <div class="v65-impact-card"><span>Cari Sonra (Tahmini)</span>
-                <strong class="{{ bccomp($this->projectedFinancialContactBalance(), '0', 4) > 0 ? 'is-debtor' : (bccomp($this->projectedFinancialContactBalance(), '0', 4) < 0 ? 'is-creditor' : '') }}">{{ $this->canViewFinancialContactBalance() ? \App\Support\Formatting\TrFormatter::money($this->projectedFinancialContactBalance()) . ' TRY' : 'Görüntüleme yetkisi yok' }}</strong></div>
-            <div class="v65-impact-card"><span>Kasa / Banka Önce (Defter)</span>
-                <strong>{{ ! $this->canViewFinancialAccountBalance() ? 'Görüntüleme yetkisi yok' : ($this->selectedFinancialAccount() === null ? 'Hesap seçin' : \App\Support\Formatting\TrFormatter::money($this->financialAccountBalance()) . ' ' . $this->financialAccountCurrency()) }}</strong></div>
-            <div class="v65-impact-card"><span>Kasa / Banka Sonra (Tahmini)</span>
-                <strong>{{ $this->projectedFinancialAccountBalance() === null ? ($this->canViewFinancialAccountBalance() ? ($this->selectedFinancialAccount() === null ? 'Hesap seçin' : 'Para birimi uyuşmuyor') : 'Görüntüleme yetkisi yok') : \App\Support\Formatting\TrFormatter::money($this->projectedFinancialAccountBalance()) . ' ' . $this->financialAccountCurrency() }}</strong></div>
-        </div>
-        @unless($this->financialAccountCurrencyMatches())
-            <x-v65.notice tone="danger">Seçilen kasa/banka hesabının para birimi işlem para biriminden farklıdır.</x-v65.notice>
-        @endunless
-        <small>Kesinleştirme sırasında cari ve kasa/banka tutarları sunucuda yeniden doğrulanır.</small>
-    </section>
+    <h2 class="v65-ref-screenreader">Ödeme</h2>
+
 
 
         <label class="field">Tedarikçi
@@ -78,7 +62,25 @@
         </label>
         <label class="field">Dekont / Referans No <input wire:model.blur="reference" maxlength="140" placeholder="Banka dekontu / işlem referansı"></label>
     <label class="field">Not <textarea wire:model="note"></textarea></label>
-        <div class="v65-form-footer"><x-v65.button wire:click="post" wire:loading.attr="disabled" wire:target="post" :disabled="$correctionMode">Tediyeyi Kesinleştir</x-v65.button></div>
+        <div class="v65-ref-impact-title">Cari Hareket Özeti <small>İşlem öncesi ve sonrası bakiye</small></div>
+        <section class="v65-finance-impact" aria-label="İşlem öncesi ve sonrası mali etki">
+        <h3>İşlem Etkisi <small>Bilgilendirme amaçlı önizleme</small></h3>
+        <div class="v65-impact-grid">
+            <div class="v65-impact-card"><span>Cari Önce (Borç − Alacak)</span>
+                <strong class="{{ bccomp($this->contactBalance(), '0', 4) > 0 ? 'is-debtor' : (bccomp($this->contactBalance(), '0', 4) < 0 ? 'is-creditor' : '') }}">{{ $this->canViewFinancialContactBalance() ? \App\Support\Formatting\TrFormatter::money($this->contactBalance()) . ' TRY' : 'Görüntüleme yetkisi yok' }}</strong></div>
+            <div class="v65-impact-card"><span>Cari Sonra (Tahmini)</span>
+                <strong class="{{ bccomp($this->projectedFinancialContactBalance(), '0', 4) > 0 ? 'is-debtor' : (bccomp($this->projectedFinancialContactBalance(), '0', 4) < 0 ? 'is-creditor' : '') }}">{{ $this->canViewFinancialContactBalance() ? \App\Support\Formatting\TrFormatter::money($this->projectedFinancialContactBalance()) . ' TRY' : 'Görüntüleme yetkisi yok' }}</strong></div>
+            <div class="v65-impact-card"><span>Kasa / Banka Önce (Defter)</span>
+                <strong>{{ ! $this->canViewFinancialAccountBalance() ? 'Görüntüleme yetkisi yok' : ($this->selectedFinancialAccount() === null ? 'Hesap seçin' : \App\Support\Formatting\TrFormatter::money($this->financialAccountBalance()) . ' ' . $this->financialAccountCurrency()) }}</strong></div>
+            <div class="v65-impact-card"><span>Kasa / Banka Sonra (Tahmini)</span>
+                <strong>{{ $this->projectedFinancialAccountBalance() === null ? ($this->canViewFinancialAccountBalance() ? ($this->selectedFinancialAccount() === null ? 'Hesap seçin' : 'Para birimi uyuşmuyor') : 'Görüntüleme yetkisi yok') : \App\Support\Formatting\TrFormatter::money($this->projectedFinancialAccountBalance()) . ' ' . $this->financialAccountCurrency() }}</strong></div>
+        </div>
+        @unless($this->financialAccountCurrencyMatches())
+            <x-v65.notice tone="danger">Seçilen kasa/banka hesabının para birimi işlem para biriminden farklıdır.</x-v65.notice>
+        @endunless
+        <small>Kesinleştirme sırasında cari ve kasa/banka tutarları sunucuda yeniden doğrulanır.</small>
+    </section>
+    <div class="v65-form-footer"><x-v65.button wire:click="post" wire:loading.attr="disabled" wire:target="post" :disabled="$correctionMode">Tediyeyi Kesinleştir</x-v65.button></div>
     </section>
 
     @if($postedDocumentId)
@@ -101,8 +103,9 @@
         </x-v65.modal>
     @endif
 
-    <section class="panel v65-financial-history">
-        <h3>Kayıtları Aç / Düzenle</h3>
+    <section class="panel v65-financial-history v65-ref-card v65-ref-history">
+        <header class="v65-ref-card-head"><strong>Tediye Geçmişi</strong><small>Kayıtları açın ve güvenli düzeltme işlemini seçin</small></header>
+        <h3 class="v65-ref-screenreader">Kayıtları Aç / Düzenle</h3>
         <p class="v65-doc-search-hint">Kesinleşmiş hareketler doğrudan değiştirilmez. Kaydı seçin, ters kayıt onayı verin, ardından düzeltilmiş işlemi yeniden kaydedin.</p>
         <div class="table-scroll"><table class="data-table">
             <thead><tr><th>Belge</th><th>Tarih</th><th>Tutar</th><th>Durum</th><th>İşlem</th></tr></thead>

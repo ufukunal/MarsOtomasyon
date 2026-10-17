@@ -2871,3 +2871,13 @@
 @media(max-width:1100px){.app-shell .v65-ref-securities .v65-ref-security-form{grid-template-columns:repeat(2,minmax(0,1fr))}.app-shell .v65-contact-transfer.v65-ref-finance .v65-contact-transfer-controls{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:720px){.app-shell .v65-ref-heading h1{font-size:21px}.app-shell .v65-ref-tabs,.app-shell .v65-ref-securities .v65-security-nav{flex-wrap:nowrap;overflow-x:auto;padding-bottom:6px}.app-shell .v65-ref-tabs a,.app-shell .v65-ref-securities .v65-security-nav-link{flex:none}.app-shell .v65-contact-transfer.v65-ref-finance .v65-contact-transfer-grid,.app-shell .v65-contact-transfer.v65-ref-finance .v65-contact-transfer-controls,.app-shell .v65-workspace-form.v65-ref-finance>.v65-voucher-panel,.app-shell .v65-ref-securities .v65-ref-security-form,.app-shell .v65-ref-securities .v65-ref-security-payroll{grid-template-columns:minmax(0,1fr)}.app-shell .v65-contact-transfer.v65-ref-finance .v65-contact-transfer-controls>.field:last-child{grid-column:auto}.app-shell .v65-ref-card-head small{width:100%}}
 @media print{.app-shell .v65-ref-tabs,.app-shell .v65-ref-securities .v65-security-nav,.app-shell .v65-ref-finance .v65-form-footer{display:none!important}.app-shell .v65-ref-card{break-inside:avoid;box-shadow:none}}
+
+/* Finance reference history and summary follow-up: keep entry fields above projections. */
+.app-shell .v65-ref-finance .v65-ref-screenreader{position:absolute!important;width:1px!important;height:1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important}
+.app-shell .v65-ref-finance .v65-ref-impact-title{grid-column:1/-1;margin:12px 16px 0;font-size:12px;font-weight:750;color:#2c5377}
+.app-shell .v65-ref-finance .v65-ref-impact-title small{font-size:11px;font-weight:400;color:#8094a8;margin-left:8px}
+.app-shell .v65-ref-finance .v65-financial-history.v65-ref-history{padding:0!important}
+.app-shell .v65-ref-finance .v65-ref-history>.table-scroll{margin:0!important;overflow-x:auto}
+.app-shell .v65-ref-finance .v65-ref-history .data-table{margin:0}
+.app-shell .v65-ref-finance .v65-ref-history .v65-security-pagination{padding:10px}
+@media(max-width:720px){.app-shell .v65-ref-finance .v65-ref-impact-title{margin-inline:12px}}
