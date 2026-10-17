@@ -199,10 +199,8 @@
 
             <section class="v65-doc-lines v65-reference-products-card {{ $isGoodsReceipt ? 'v65-goods-receipt-lines' : '' }}" aria-label="Belge kalemleri">
                 @if($isGoodsReceipt)
-                    <div class="v65-doc-lines-head">
-                        <strong>Ürün ve Hizmetler</strong>
-                        <small>Mal Kabul Kalemleri · Ürün satırları bağlı kaynak belgeye göre oluşturulur.</small>
-                    </div>
+                    <x-v65.document-prototype-toolbar :screen-type="$screenType" :editable="false" :show-vat="false" />
+                    <small class="v65-reference-receipt-description">Mal Kabul Kalemleri · Ürün satırları kaynak belgeye göre oluşturulur; miktarlar depoya kabul edilir.</small>
                 @else
                     <x-v65.document-prototype-toolbar :screen-type="$screenType"
                         :products="$this->quickProductOptions()" :quick-search="$quickProductSearch" />

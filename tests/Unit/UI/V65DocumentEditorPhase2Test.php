@@ -29,13 +29,19 @@ it('exposes discount amounts and clearly provisional line VAT without claiming f
     ] as $path) {
         $view = file_get_contents(base_path($path));
         expect($view)->toContain('v65-prototype-lines')
-            ->toContain('KDV Dahil*')
-            ->toContain('Net Tutar')
-            ->toContain('Satır detayı')
+            ->toContain('<x-v65.document-product-table-head')
+            ->toContain('v65-reference-actions-cell')
+            ->toContain('<x-v65.document-line-actions')
             ->toContain('discountAmount')
             ->toContain('lineWithVat')
             ->toContain('belge genel iskontoları öncesi');
     }
+
+    $columns = file_get_contents(base_path('resources/views/components/v65/document-product-table-head.blade.php'));
+    $actions = file_get_contents(base_path('resources/views/components/v65/document-line-actions.blade.php'));
+    expect($columns)->toContain('KDV Dahil')->toContain('Net Tutar')
+        ->and($actions)->toContain('Satır Detayları')
+        ->toContain('wire:click="removeLine(');
 });
 
 it('uses the shared confirmation modal for document approval, posting and reversals', function (): void {

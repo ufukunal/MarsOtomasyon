@@ -32,9 +32,13 @@ it('uses the same functional form, header, empty entry line and totals on both s
             ->toContain('wire:submit="save"')
             ->toContain(':compact="true"');
 
-        $head = [];
-        expect(preg_match('/<table class="data-table v65-doc-table v65-prototype-lines">\\s*<thead><tr>(.*?)<\\/tr><\\/thead>/s', $blade, $head))->toBe(1);
-        expect(substr_count($head[1], '<th'))->toBe(10);
+        expect($blade)->toContain('<x-v65.document-product-table-head');
+    }
+
+    $sharedHead = file_get_contents(base_path('resources/views/components/v65/document-product-table-head.blade.php'));
+    expect(substr_count($sharedHead, '<th scope="col"'))->toBe(10);
+    foreach (['Ürün Kodu / Ürün Adı', 'Miktar', 'Birim', 'İsk. %', 'KDV %', 'Net Tutar', 'KDV Dahil', 'İşlem'] as $column) {
+        expect($sharedHead)->toContain($column);
     }
 });
 
