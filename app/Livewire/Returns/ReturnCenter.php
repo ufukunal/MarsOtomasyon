@@ -70,6 +70,20 @@ class ReturnCenter extends Component
         }
     }
 
+    public function startNewReturn(): void
+    {
+        abort_unless(auth()->user()?->can('returns.create'), 403);
+        $this->sourceInvoiceId = null;
+        $this->selectedReturnId = null;
+        $this->selectedReturnVersion = 0;
+        $this->editingReturnDraft = false;
+        $this->quantities = [];
+        $this->locationIds = [];
+        $this->note = '';
+        $this->documentDate = now()->toDateString();
+        $this->resetValidation();
+    }
+
     public function updatedType(): void
     {
         $this->sourceInvoiceId = null;
@@ -175,7 +189,7 @@ class ReturnCenter extends Component
         );
         $this->completeMutation('saveDraft');
         $this->selectedReturnVersion = (int) $updated->version;
-        $this->editingReturnDraft = true;
+        $this->editingReturnDraft = false;
     }
 
     public function post(PostReturnDocument $action): void
@@ -208,9 +222,13 @@ class ReturnCenter extends Component
     {
         $document = Document::query()->findOrFail($id);
         abort_unless(in_array($document->document_type, [DocumentType::SalesReturn, DocumentType::PurchaseReturn], true), 404);
+        $this->type = $document->document_type->value;
         $this->selectedReturnId = $id;
         $this->selectedReturnVersion = (int) $document->version;
         $this->editingReturnDraft = false;
+        $this->sourceInvoiceId = null;
+        $this->quantities = [];
+        $this->locationIds = [];
     }
 
     public function editDraft(int $id): void
