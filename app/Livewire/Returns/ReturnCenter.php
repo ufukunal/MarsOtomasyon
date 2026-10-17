@@ -9,6 +9,7 @@ use App\Actions\Returns\ReturnLineAvailability;
 use App\Actions\Returns\ReverseReturnDocument;
 use App\Actions\Returns\UpdateReturnDraft;
 use App\Models\Period\DocumentRelation;
+use App\Support\Returns\ReturnDraftPreview;
 use Illuminate\Validation\ValidationException;
 use App\Enums\DocumentType;
 use App\Livewire\Concerns\WithIdempotentMutations;
@@ -88,14 +89,32 @@ class ReturnCenter extends Component
             return;
         }
 
-        $invoice = Document::query()->with('lines')->findOrFail($this->sourceInvoiceId);
         $returnType = DocumentType::from($this->type);
+        abort_unless(in_array($returnType, [DocumentType::SalesReturn, DocumentType::PurchaseReturn], true), 422);
+        $invoiceType = $returnType === DocumentType::SalesReturn
+            ? DocumentType::SalesInvoice : DocumentType::SupplierInvoice;
+        $invoice = Document::query()->with('lines')
+            ->where('document_type', $invoiceType->value)
+            ->where('status', 'posted')
+            ->findOrFail($this->sourceInvoiceId);
         $availability = app(ReturnLineAvailability::class);
 
         foreach ($invoice->lines as $line) {
             $this->quantities[$line->id] = $availability->remaining($line, $returnType);
             $this->locationIds[$line->id] = $line->location_id;
         }
+    }
+
+    /** Remove a row from the return selection; never change the source invoice. */
+    public function clearReturnLine(int $lineId): void
+    {
+        abort_unless(auth()->user()?->can($this->editingReturnDraft ? 'returns.update' : 'returns.create'), 403);
+        abort_unless($this->sourceInvoiceId !== null, 422);
+        $belongsToSource = \App\Models\Period\DocumentLine::query()
+            ->where('document_id', $this->sourceInvoiceId)
+            ->whereKey($lineId)->exists();
+        abort_unless($belongsToSource, 404);
+        $this->quantities[$lineId] = '0';
     }
 
     public function create(CreateReturnFromInvoice $action): void
@@ -235,11 +254,23 @@ class ReturnCenter extends Component
 
     public function render(): View
     {
-        $sourceType = $this->type === DocumentType::SalesReturn->value
-            ? DocumentType::SalesInvoice
-            : DocumentType::SupplierInvoice;
+        $returnType = $this->type === DocumentType::SalesReturn->value
+            ? DocumentType::SalesReturn : DocumentType::PurchaseReturn;
+        $sourceType = $returnType === DocumentType::SalesReturn
+            ? DocumentType::SalesInvoice : DocumentType::SupplierInvoice;
+        $sourceInvoice = $this->sourceInvoiceId
+            ? Document::query()->with(['lines.product', 'lines.unit', 'contact'])
+                ->where('document_type', $sourceType->value)
+                ->where('status', 'posted')
+                ->find($this->sourceInvoiceId)
+            : null;
+        $preview = $sourceInvoice
+            ? app(ReturnDraftPreview::class)->handle($sourceInvoice, $returnType, $this->quantities)
+            : ['totals' => null, 'additional' => '0.0000', 'rows' => [],
+                'remaining' => [], 'count' => 0, 'error' => null];
 
         return view('livewire.returns.return-center', [
+            'returnPreview' => $preview,
             'sourceInvoices' => Document::query()
                 ->with('contact')
                 ->where('document_type', $sourceType->value)
@@ -249,15 +280,13 @@ class ReturnCenter extends Component
                 ->orderByDesc('document_date')
                 ->limit(500)
                 ->get(),
-            'sourceInvoice' => $this->sourceInvoiceId
-                ? Document::query()->with('lines')->find($this->sourceInvoiceId)
-                : null,
+            'sourceInvoice' => $sourceInvoice,
             'selectedReturn' => $this->selectedReturnId
                 ? Document::query()->with(['lines', 'contact'])->find($this->selectedReturnId)
                 : null,
             'returns' => Document::query()
                 ->with('contact')
-                ->whereIn('document_type', [DocumentType::SalesReturn->value, DocumentType::PurchaseReturn->value])
+                ->where('document_type', $returnType->value)
                 ->orderByDesc('document_date')
                 ->orderByDesc('id')
                 ->limit(200)
