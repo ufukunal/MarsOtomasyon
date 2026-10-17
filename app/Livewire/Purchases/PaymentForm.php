@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Purchases;
 
+use App\Livewire\Concerns\WithDocumentEditDeepLink;
 use App\Actions\Documents\ReverseDocument;
 use App\Actions\Purchases\PostPayment;
 use App\Enums\DocumentType;
@@ -17,6 +18,7 @@ class PaymentForm extends Component
 {
     use WithFinancialRecordCorrection;
     use WithIdempotentMutations;
+    use WithDocumentEditDeepLink;
 
     public ?int $contactId = null;
 
@@ -70,12 +72,22 @@ class PaymentForm extends Component
         return 'payments';
     }
 
+
+    private function selectLinkedCorrectionDocument(): void
+    {
+        $id = $this->linkedDocumentId();
+        if ($id !== null) {
+            $this->selectForCorrection($id);
+        }
+    }
+
     public function mount(): void
     {
         $this->seedMutationKeys(['post', 'reverse']);
         abort_unless(auth()->user()?->can('payments.view'), 403);
         $this->documentDate = now()->toDateString();
         $this->reversalDate = now()->toDateString();
+        $this->selectLinkedCorrectionDocument();
     }
 
     public function post(PostPayment $action): void

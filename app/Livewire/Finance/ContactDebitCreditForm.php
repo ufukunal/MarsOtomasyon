@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Finance;
 
+use App\Livewire\Concerns\WithDocumentEditDeepLink;
 use App\Actions\Finance\PostContactDebitCredit;
 use App\Actions\Documents\ReverseDocument;
 use App\Enums\DocumentType;
@@ -17,6 +18,7 @@ use Livewire\Component;
 class ContactDebitCreditForm extends Component
 {
     use WithIdempotentMutations;
+    use WithDocumentEditDeepLink;
 
     public ?int $contactId = null;
 
@@ -48,6 +50,10 @@ class ContactDebitCreditForm extends Component
         abort_unless(auth()->user()?->can('contacts.update'), 403);
         $this->documentDate = now()->toDateString();
         $this->reversalDate = now()->toDateString();
+        $id = $this->linkedDocumentId();
+        if ($id !== null) {
+            $this->prepareCorrection($id);
+        }
     }
 
     public function post(PostContactDebitCredit $action): void

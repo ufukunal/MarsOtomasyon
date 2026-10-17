@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Finance;
 
+use App\Livewire\Concerns\WithDocumentEditDeepLink;
 use App\Actions\Documents\ReverseDocument;
 use App\Actions\Finance\PostCollection;
 use App\Enums\DocumentType;
@@ -17,6 +18,7 @@ class CollectionForm extends Component
 {
     use WithFinancialRecordCorrection;
     use WithIdempotentMutations;
+    use WithDocumentEditDeepLink;
 
     public ?int $contactId = null;
 
@@ -50,12 +52,22 @@ class CollectionForm extends Component
         return 'collections';
     }
 
+
+    private function selectLinkedCorrectionDocument(): void
+    {
+        $id = $this->linkedDocumentId();
+        if ($id !== null) {
+            $this->selectForCorrection($id);
+        }
+    }
+
     public function mount(): void
     {
         $this->seedMutationKeys(['post', 'reverse']);
         abort_unless(auth()->user()?->can('collections.view'), 403);
         $this->documentDate = now()->toDateString();
         $this->reversalDate = now()->toDateString();
+        $this->selectLinkedCorrectionDocument();
     }
 
     public function post(PostCollection $action): void

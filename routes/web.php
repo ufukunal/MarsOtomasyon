@@ -46,6 +46,7 @@ use App\Livewire\Pages\Catalog\LocationList;
 use App\Livewire\Pages\Catalog\UnitForm;
 use App\Livewire\Pages\Catalog\UnitList;
 use App\Livewire\Pages\Companies\CrossCompanyCopy;
+use App\Livewire\Pages\Documents\DocumentEditCenter;
 use App\Livewire\Pages\Contacts\ContactDetail;
 use App\Livewire\Pages\Contacts\ContactForm;
 use App\Livewire\Pages\Contacts\ContactList;
@@ -181,6 +182,8 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/kartlar/urunler/{product}/detay', ProductDetail::class)->name('products.show');
     Route::get('/kartlar/varyant-gruplari/{group?}', VariantGroupDetail::class)->name('variant-groups.detail');
     Route::get('/kartlar/baska-sirketten-aktar', CrossCompanyCopy::class)->name('company-copy.index');
+
+    Route::get('/belgeler/duzenle', DocumentEditCenter::class)->name('documents.edit-center');
 
     Route::get('/belgeler/{document}/cikti/{format}', PrintBusinessDocumentController::class)
         ->whereNumber('document')

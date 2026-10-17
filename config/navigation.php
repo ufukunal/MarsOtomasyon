@@ -10,6 +10,12 @@ return [
         ],
     ],
     [
+        'label' => 'Belgeler',
+        'items' => [
+            ['label' => 'Belge Düzenleme Merkezi', 'route' => 'documents.edit-center', 'permission' => null],
+        ],
+    ],
+    [
         'label' => 'Cariler',
         'items' => [
             ['label' => 'Cari Listesi', 'route' => 'contacts.index', 'permission' => 'contacts.view'],
