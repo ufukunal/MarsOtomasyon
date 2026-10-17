@@ -137,3 +137,35 @@ it('hides the balance preview from users without the matching account and contac
         ->and($center)->toContain("can('contacts.view')")
         ->and($view)->toContain('canViewSecurityContactBalance');
 });
+
+
+it('never exposes a contact ledger balance through public financial preview methods without contacts.view', function (): void {
+    $trait = file_get_contents(base_path('app/Livewire/Concerns/WithFinancialRecordCorrection.php'));
+
+    expect($trait)->toContain("public function canViewFinancialContactBalance(): bool")
+        ->toContain("auth()->check()")
+        ->toContain("can('contacts.view')")
+        ->toContain("if (! \$this->canViewFinancialContactBalance())")
+        ->toContain("return '0.0000';");
+
+    foreach ([
+        'resources/views/livewire/finance/collection-form.blade.php',
+        'resources/views/livewire/purchases/payment-form.blade.php',
+    ] as $file) {
+        $view = file_get_contents(base_path($file));
+
+        expect(substr_count($view, 'canViewFinancialContactBalance()'))->toBeGreaterThanOrEqual(3)
+            ->and($view)->toContain('Görüntüleme yetkisi yok')
+            ->toContain('Hesap seçin');
+    }
+});
+
+it('guards cheque and note preview permissions without nullable user calls', function (): void {
+    $center = file_get_contents(base_path('app/Livewire/Finance/SecuritiesCenter.php'));
+    $finance = file_get_contents(base_path('app/Livewire/Concerns/WithFinancialRecordCorrection.php'));
+
+    expect($center)->toContain("return auth()->check() && auth()->user()->can('contacts.view')")
+        ->not->toContain("auth()->user()?->can(")
+        ->and($finance)->toContain("return auth()->check() && auth()->user()->can('contacts.view')")
+        ->not->toContain("auth()->user()?->can(");
+});

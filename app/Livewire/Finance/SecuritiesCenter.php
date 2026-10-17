@@ -61,7 +61,7 @@ class SecuritiesCenter extends Component
 
     public function canViewSecurityContactBalance(): bool
     {
-        return auth()->user()?->can('contacts.view') ?? false;
+        return auth()->user()->can('contacts.view') ?? false;
     }
 
     public function selectedContactBalance(): string
@@ -218,9 +218,9 @@ class SecuritiesCenter extends Component
 
     public function prepareFinancialCorrection(int $id): void
     {
-        abort_unless(auth()->user()?->can('securities.update')
-            && auth()->user()?->can('securities.cancel')
-            && auth()->user()?->can('securities.create'), 403);
+        abort_unless(auth()->user()->can('securities.update')
+            && auth()->user()->can('securities.cancel')
+            && auth()->user()->can('securities.create'), 403);
         abort_unless(in_array($this->scopeMode(), ['center', 'list', 'create'], true), 403);
         $security = Security::query()->findOrFail($id);
         abort_if($this->scopeKind() !== null && $security->kind !== $this->scopeKind(), 404);
@@ -280,7 +280,7 @@ class SecuritiesCenter extends Component
 
     public function prepareSecurityEdit(int $id): void
     {
-        abort_unless(auth()->user()?->can('securities.update'), 403);
+        abort_unless(auth()->user()->can('securities.update'), 403);
         abort_unless(in_array($this->scopeMode(), ['center', 'list', 'create'], true), 403);
 
         $security = Security::query()->findOrFail($id);
@@ -306,7 +306,7 @@ class SecuritiesCenter extends Component
 
     public function saveSecurityEdit(UpdateSecurityDetails $action): void
     {
-        abort_unless(auth()->user()?->can('securities.update'), 403);
+        abort_unless(auth()->user()->can('securities.update'), 403);
         abort_unless(in_array($this->scopeMode(), ['center', 'list', 'create'], true), 403);
         abort_unless($this->editingSecurityId !== null, 422);
         $security = Security::query()->findOrFail($this->editingSecurityId);
@@ -331,7 +331,7 @@ class SecuritiesCenter extends Component
     public function mount(): void
     {
         $this->seedMutationKeys(['create', 'edit', 'replace', 'payroll', 'reversePayroll']);
-        abort_unless(auth()->user()?->can('securities.view'), 403);
+        abort_unless(auth()->check() && auth()->user()->can('securities.view'), 403);
         $this->transactionDate = now()->toDateString();
         $this->dueDate = now()->addMonth()->toDateString();
         $this->payrollDate = now()->toDateString();
@@ -381,7 +381,7 @@ class SecuritiesCenter extends Component
     public function prepareListPayroll(int $id, string $action): void
     {
         abort_unless($this->scopeMode() === 'list', 403);
-        abort_unless(auth()->user()?->can('security_payrolls.create'), 403);
+        abort_unless(auth()->user()->can('security_payrolls.create'), 403);
         $security = Security::query()->findOrFail($id);
         abort_if($this->scopeKind() !== null && $security->kind !== $this->scopeKind(), 404);
         $allowed = match (true) {
@@ -434,7 +434,7 @@ class SecuritiesCenter extends Component
     public function reversePayroll(ReverseSecurityPayroll $action): void
     {
         abort_unless($this->scopeMode() === 'center', 403);
-        abort_unless(auth()->user()?->can('security_payrolls.cancel'), 403);
+        abort_unless(auth()->user()->can('security_payrolls.cancel'), 403);
         abort_unless($this->reversePayrollId !== null, 422);
         $this->validate([
             'reversalDate' => ['required', 'date'],

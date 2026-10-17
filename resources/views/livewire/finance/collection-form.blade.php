@@ -4,7 +4,7 @@
         <input type="search" wire:model.live.debounce.300ms="contactSearch" placeholder="Cari kodu veya unvanı" autocomplete="off">
     </label>
     <div class="v65-contact-transfer-balance"><span>Seçili cari bakiyesi (Borç − Alacak)</span>
-        <strong>{{ \App\Support\Formatting\TrFormatter::money($this->contactBalance()) }} TRY</strong>
+        <strong>{{ $this->canViewFinancialContactBalance() ? \App\Support\Formatting\TrFormatter::money($this->contactBalance()) . ' TRY' : 'Görüntüleme yetkisi yok' }}</strong>
     </div>
     @if($correctionSourceId)
         <x-v65.notice tone="warning">#{{ $correctionSourceId }} numaralı kayıt terslendi. Düzeltilen alanları kontrol edip yeni işlem oluşturabilirsiniz.</x-v65.notice>
@@ -16,11 +16,11 @@
         <h3>İşlem Etkisi <small>Bilgilendirme amaçlı önizleme</small></h3>
         <div class="v65-impact-grid">
             <div class="v65-impact-card"><span>Cari Önce (Borç − Alacak)</span>
-                <strong class="{{ bccomp($this->contactBalance(), '0', 4) > 0 ? 'is-debtor' : (bccomp($this->contactBalance(), '0', 4) < 0 ? 'is-creditor' : '') }}">{{ \App\Support\Formatting\TrFormatter::money($this->contactBalance()) }} TRY</strong></div>
+                <strong class="{{ bccomp($this->contactBalance(), '0', 4) > 0 ? 'is-debtor' : (bccomp($this->contactBalance(), '0', 4) < 0 ? 'is-creditor' : '') }}">{{ $this->canViewFinancialContactBalance() ? \App\Support\Formatting\TrFormatter::money($this->contactBalance()) . ' TRY' : 'Görüntüleme yetkisi yok' }}</strong></div>
             <div class="v65-impact-card"><span>Cari Sonra (Tahmini)</span>
-                <strong class="{{ bccomp($this->projectedFinancialContactBalance(), '0', 4) > 0 ? 'is-debtor' : (bccomp($this->projectedFinancialContactBalance(), '0', 4) < 0 ? 'is-creditor' : '') }}">{{ \App\Support\Formatting\TrFormatter::money($this->projectedFinancialContactBalance()) }} TRY</strong></div>
+                <strong class="{{ bccomp($this->projectedFinancialContactBalance(), '0', 4) > 0 ? 'is-debtor' : (bccomp($this->projectedFinancialContactBalance(), '0', 4) < 0 ? 'is-creditor' : '') }}">{{ $this->canViewFinancialContactBalance() ? \App\Support\Formatting\TrFormatter::money($this->projectedFinancialContactBalance()) . ' TRY' : 'Görüntüleme yetkisi yok' }}</strong></div>
             <div class="v65-impact-card"><span>Kasa / Banka Önce (Defter)</span>
-                <strong>{{ $this->canViewFinancialAccountBalance() ? \App\Support\Formatting\TrFormatter::money($this->financialAccountBalance()) . ' ' . $this->financialAccountCurrency() : 'Görüntüleme yetkisi yok' }}</strong></div>
+                <strong>{{ ! $this->canViewFinancialAccountBalance() ? 'Görüntüleme yetkisi yok' : ($this->selectedFinancialAccount() === null ? 'Hesap seçin' : \App\Support\Formatting\TrFormatter::money($this->financialAccountBalance()) . ' ' . $this->financialAccountCurrency()) }}</strong></div>
             <div class="v65-impact-card"><span>Kasa / Banka Sonra (Tahmini)</span>
                 <strong>{{ $this->projectedFinancialAccountBalance() === null ? ($this->canViewFinancialAccountBalance() ? ($this->selectedFinancialAccount() === null ? 'Hesap seçin' : 'Para birimi uyuşmuyor') : 'Görüntüleme yetkisi yok') : \App\Support\Formatting\TrFormatter::money($this->projectedFinancialAccountBalance()) . ' ' . $this->financialAccountCurrency() }}</strong></div>
         </div>

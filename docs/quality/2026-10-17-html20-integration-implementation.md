@@ -86,3 +86,16 @@ aksiyonları üzerinden çalışır ve tarayıcıdaki önizleme hiçbir zaman de
 - Operasyonel depo/teslim ui_meta alanlarının tamamı stok defterini yönetmiyor. Bağımsız alış irsaliyesi/Mal Kabul source zorunluluğu korunuyor.
 - ReplaceSecurity güncel işlem tarihiyle tekrar düzenleme yapıyor; eski vadeli evrak düzeltme senaryosu sınırlı. Ayrıca gerçek DB rollback/idempotency kabulü yok.
 - Denetim dalı: fix/html20-full-audit-20261017. Bu çalışma PHPStan/DB/E2E testlerinin çalıştırıldığını göstermez.
+
+
+## 17 Ekim — ikinci kaynak kontrolü ve yetki düzeltmesi
+
+- Kontrol edilen `main`: `54ddae0667eef88bd5c4ba350e72875c777ea724`. Kaynakta PR #7 düzeltmeleri mevcuttu.
+- Satış/alış dokuz belge ekranının 10 kolonlu tablo işaretleri, 20 işlem rota adı ve kayıt metaverisinin varlığı kaynak düzeyinde yeniden doğrulandı.
+- Kaynak kontrat kontrolünde 45/45 metin/rota/tablo işareti eşleşti. Bu sayı çalıştırılmış PHP Unit testi olarak yorumlanmamalıdır.
+- Tahsilat ve tediye finansal önizlemelerinin public Livewire `contactBalance()` / `projectedFinancialContactBalance()` metotlarında `contacts.view` yetkisi yoktu. Doğrudan metot çağrısı ve üç görünür alan artık yetki koruması kullanıyor; yetki yoksa gerçek bakiye yerine açıklayıcı metin gösteriliyor.
+- Hesap seçilmediğinde gerçekte 0 bakiye varmış gibi gösteren önizleme yerine hesap seçme uyarısı gösteriliyor.
+- Yetki kontrolü `auth()->check()` + `auth()->user()->can(...)` ile yazılarak PHPStan'in nullable user tipiyle ilgili geçmiş uyarılarına benzer yeni ihlaller önlendi.
+- Eklenen kaynak kontrat testleri: `tests/Unit/UI/MarsHTML20ParityContractTest.php`.
+- **Kabul edilmemiş kapılar:** bu commit için PHP lint, Laravel Blade compile, Pint, PHPStan, izole PostgreSQL, finansal işlemlerin gerçek kaydı, tarayıcıda PHP piksel eşitliği ve production sunucuya dağıtım henüz çalıştırılmadı/doğrulanmadı.
+- GitHub workflow'ları `workflow_dispatch` üzerinde manuel onaya bağlıdır; bunlar yalnız kod birleştirildi diye tetiklenmez.
