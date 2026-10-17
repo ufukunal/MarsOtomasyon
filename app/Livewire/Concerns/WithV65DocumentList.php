@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Concerns;
 
+use App\Actions\Documents\ManageInvoiceRecord;
 use App\Enums\DocumentType;
 use App\Models\Period\Document;
 use Illuminate\Contracts\View\View;
@@ -12,6 +13,7 @@ use PhpOffice\PhpSpreadsheet\Cell\DataType;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Symfony\Component\HttpFoundation\StreamedResponse;
+use Illuminate\Support\Str;
 
 trait WithV65DocumentList
 {
@@ -157,6 +159,25 @@ trait WithV65DocumentList
         return $this->redirectRoute($this->editRoute(), ['id' => $id], navigate: false);
     }
 
+
+    /** The list action is restricted to the invoice family and verified record type. */
+    public function editInvoiceFromList(int $id, ManageInvoiceRecord $action): mixed
+    {
+        abort_unless(in_array($this->documentType(), [DocumentType::SalesInvoice, DocumentType::SupplierInvoice], true), 403);
+        $invoice = Document::query()->where('document_type', $this->documentType()->value)->findOrFail($id);
+        $draft = $action->edit($invoice, (string) Str::uuid());
+
+        return $this->redirectRoute($this->editRoute(), ['id' => $draft->id], navigate: false);
+    }
+
+    public function deleteInvoiceFromList(int $id, ManageInvoiceRecord $action): void
+    {
+        abort_unless(in_array($this->documentType(), [DocumentType::SalesInvoice, DocumentType::SupplierInvoice], true), 403);
+        $invoice = Document::query()->where('document_type', $this->documentType()->value)->findOrFail($id);
+        $action->delete($invoice, (string) Str::uuid());
+        $this->resetPage();
+    }
+
     /** @return Builder<Document> */
     protected function listQuery(): Builder
     {
@@ -293,6 +314,9 @@ trait WithV65DocumentList
             'createRoute' => $createRoute,
             'statusLabels' => self::documentStatusLabels(),
             'canEditDocuments' => auth()->user()->can(str_replace('.view', '.update', $this->permission())),
+            'canCreateDocuments' => auth()->user()->can(str_replace('.view', '.create', $this->permission())),
+            'canCancelDocuments' => auth()->user()->can(str_replace('.view', '.cancel', $this->permission())),
+            'isInvoiceList' => in_array($this->documentType(), [DocumentType::SalesInvoice, DocumentType::SupplierInvoice], true),
         ])->layout('layouts.app', ['pageTitle' => $this->pageTitle()]);
     }
 }

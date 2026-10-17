@@ -59,10 +59,18 @@ final class ManageInvoiceRecord
 
             // A posted document is immutable: hide this accounting correction
             // from the UI, not from the ledger or audit log.
-            if (! DocumentRelation::query()
+            $earlierReversal = DocumentRelation::query()
                 ->where('relation_type', 'reversal_of')
                 ->where('target_document_id', $locked->id)
-                ->exists()) {
+                ->with('sourceDocument')
+                ->first();
+            if ($earlierReversal !== null && str_starts_with(
+                (string) ($earlierReversal->sourceDocument?->notes ?? ''),
+                'Fatura kullanıcı talebiyle silindi;'
+            )) {
+                throw new DomainException('Silinmiş fatura tekrar düzenlenemez; kayıt geçmişinden incelenebilir.');
+            }
+            if ($earlierReversal === null) {
                 MutationAuthorizer::authorize($permission.'.cancel');
                 $this->reverse->handle(
                     $locked,

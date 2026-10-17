@@ -79,7 +79,7 @@
                                 @if($document->contact && auth()->user()?->can('contacts.view'))
                                     <a href="{{ route('contacts.show', ['contact' => $document->contact_id]) }}">{{ $document->contact->title }}</a>
                                 @else
-                                    {{ $document->contact?->title ?? '—' }}
+                                    {{ auth()->user()?->can('contacts.view') ? ($document->contact?->title ?? '—') : 'Görüntüleme yetkisi yok' }}
                                 @endif
                             </td>
                         @endunless
@@ -90,9 +90,23 @@
                             <td class="align-end tabular">{{ \App\Support\Formatting\TrFormatter::money((string) $document->grand_total) }} {{ $document->currency }}</td>
                         @endunless
                         <td>
-                            <x-v65.button variant="secondary" size="xs" :href="route($detailRoute, ['id' => $document->id])">
-                                {{ $canEditDocuments ? ($document->status === 'draft' ? 'Düzenle' : 'Düzenleme / İncele') : 'İncele / İşlem' }}
-                            </x-v65.button>
+                            @if($isInvoiceList && $canEditDocuments && $canCreateDocuments
+                                && ($document->status === 'draft' || $canCancelDocuments))
+                                <x-v65.button variant="secondary" size="xs"
+                                    wire:click="editInvoiceFromList({{ $document->id }})"
+                                    wire:loading.attr="disabled"
+                                    wire:target="editInvoiceFromList">Düzenle</x-v65.button>
+                            @else
+                                <x-v65.button variant="secondary" size="xs" :href="route($detailRoute, ['id' => $document->id])">
+                                    {{ $canEditDocuments && ! $isInvoiceList ? ($document->status === 'draft' ? 'Düzenle' : 'Düzenleme / İncele') : 'İncele' }}
+                                </x-v65.button>
+                            @endif
+                            @if($isInvoiceList && $canCancelDocuments && in_array($document->status, ['draft', 'posted'], true))
+                                <x-v65.button variant="danger" size="xs"
+                                    wire:click="deleteInvoiceFromList({{ $document->id }})"
+                                    wire:loading.attr="disabled"
+                                    wire:target="deleteInvoiceFromList">Sil</x-v65.button>
+                            @endif
                             <x-v65.button variant="secondary" size="xs" :href="route('documents.history', ['id' => $document->id])">
                                 Geçmiş
                             </x-v65.button>
