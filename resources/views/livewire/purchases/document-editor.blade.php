@@ -25,7 +25,9 @@
             || (($line['line_kind'] ?? 'stock') === 'service' && trim((string) ($line['description'] ?? '')) !== ''))->count();
     @endphp
     @if($isGoodsReceipt)
-        <x-v65.document-heading :document="$document" :title="$title" section="Satınalma Yönetimi" :index-route="$documentIndexRoute" :dirty="$documentDirty" />
+        <x-v65.document-prototype-heading :document="$document" :screen-type="$screenType"
+            :index-route="$documentIndexRoute" :dirty="$documentDirty" :form-id="$formId"
+            :can-copy="false" :edit-permission="$this->permissionPrefix()" />
     @else
         <x-v65.document-prototype-heading :document="$document" :screen-type="$screenType"
             :index-route="$documentIndexRoute" :dirty="$documentDirty" :form-id="$formId"

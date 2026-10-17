@@ -1,5 +1,10 @@
-<div class="space-y-5 v65-workspace-form">
-    <section class="panel stack v65-voucher-panel">
+<div class="space-y-5 v65-workspace-form v65-ref-finance"><header class="v65-ref-heading"><div><h1>Tediye</h1><p>Cari bakiye üzerinden fatura zorunluluğu olmadan ödeme</p></div><span class="v65-ref-tag">Bakiye esaslı · TRY</span></header><nav class="v65-ref-tabs" aria-label="Cari finans ekranları">
+<a href="{{ route('finance.collections.create') }}">Tahsilat</a>
+<a href="{{ route('purchases.payments.create') }}" aria-current="page">Tediye</a>
+<a href="{{ route('finance.contact-transfers') }}">Cari Virman</a>
+<a href="{{ route('finance.checks.index') }}">Çek Listesi</a>
+<a href="{{ route('finance.notes.index') }}">Senet Listesi</a></nav>
+    <section class="panel stack v65-voucher-panel v65-ref-card"><header class="v65-ref-card-head"><strong>Tediye Bilgileri</strong><small>Cari hesabı esas alan kayıt</small></header>
     <label class="field">Cari Ara
         <input type="search" wire:model.live.debounce.300ms="contactSearch" placeholder="Cari kodu veya unvanı" autocomplete="off">
     </label>

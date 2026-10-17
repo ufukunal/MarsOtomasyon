@@ -1,26 +1,29 @@
-<div class="space-y-8 v65-list-page">
+<div class="space-y-8 v65-list-page v65-ref-finance v65-ref-securities">
+<header class="v65-ref-heading"><div><h1>{{ $screenTitle }}</h1><p>@if($screenMode === 'list') Alınan, verilen ve ciro edilen {{ $screenKind === 'check' ? 'çek' : 'senet' }} kayıtları
+@elseif($screenMode === 'endorse') Alınan evrakı başka cariye devretme · Bağımsız işlem
+@else Cari bakiye ve portföy etkisiyle {{ $screenKind === 'check' ? 'çek' : 'senet' }} kaydı @endif</p></div>
+<span class="v65-ref-tag">{{ $screenMode === 'list' ? 'Portföy / Vade' : 'Bakiye esaslı · TRY' }}</span></header>
     @if($replacementSecurityId)
         <x-v65.notice tone="success">Mali düzeltme tamamlandı. Eski evrak terslendi; yeni evrak #{{ $replacementSecurityId }} oluşturuldu.</x-v65.notice>
     @endif
     @if($screenMode !== 'center')
-        <section class="panel stack">
-            <h2>{{ $screenTitle }}</h2>
-            <nav class="v65-security-nav" aria-label="Çek ve senet işlemleri">
+        <section class="v65-ref-security-nav"><nav class="v65-security-nav" aria-label="Çek ve senet işlemleri">
                 @foreach([
                     'finance.checks.index' => 'Çek Listesi', 'finance.checks.incoming' => 'Alınan Çek',
                     'finance.checks.outgoing' => 'Verilen Çek', 'finance.checks.endorsement' => 'Çek Ciro',
                     'finance.notes.index' => 'Senet Listesi', 'finance.notes.incoming' => 'Alınan Senet',
                     'finance.notes.outgoing' => 'Verilen Senet', 'finance.notes.endorsement' => 'Senet Ciro'
                 ] as $route => $label)
-                    <a href="{{ route($route) }}" class="v65-security-nav-link">{{ $label }}</a>
+                    <a href="{{ route($route) }}" class="v65-security-nav-link {{ request()->routeIs($route) ? 'is-current' : '' }}" @if(request()->routeIs($route)) aria-current="page" @endif>{{ $label }}</a>
                 @endforeach
             </nav>
         </section>
     @endif
 
     @if(in_array($screenMode, ['center', 'create'], true))
-    <section class="panel stack">
-        <h2>{{ $screenMode === 'center' ? 'Yeni Çek / Senet' : $screenTitle }}</h2>
+    <section class="panel stack v65-ref-card v65-ref-security-form">
+        <header class="v65-ref-card-head"><strong>{{ $screenMode === 'center' ? 'Yeni Çek / Senet' : $screenTitle . ' Bilgileri' }}</strong><small>Bağımsız evrak kaydı · TRY</small></header>
+        <h2 class="v65-ref-screenreader">{{ $screenMode === 'center' ? 'Yeni Çek / Senet' : $screenTitle }}</h2>
         @if($screenMode === 'center')
         <label class="field">Yön
             <select wire:model="direction">
@@ -79,7 +82,7 @@
     </section>
     @endif
 
-    <section>
+    <section class="v65-ref-security-records">
         @if($screenMode === 'list')
             <section class="v65-security-toolbar" aria-label="Çek senet liste özeti ve filtreler">
                 <div class="v65-security-summary">
@@ -206,8 +209,9 @@
     </section>
 
     @if(in_array($screenMode, ['center', 'endorse', 'list'], true))
-    <section class="panel stack">
-        <h2>{{ $screenMode === 'endorse' ? $screenTitle : 'Bordro İşlemi' }}</h2>
+    <section class="panel stack v65-ref-card v65-ref-security-payroll">
+        <header class="v65-ref-card-head"><strong>{{ $screenMode === 'endorse' ? $screenTitle . ' Bilgileri' : 'Bordro İşlemi' }}</strong><small>Kaynak evrak ve işlem detayları</small></header>
+        <h2 class="v65-ref-screenreader">{{ $screenMode === 'endorse' ? $screenTitle : 'Bordro İşlemi' }}</h2>
         @if($screenMode !== 'endorse')
         <label class="field">İşlem
             <select wire:model="payrollAction">

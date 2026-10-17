@@ -1,6 +1,13 @@
-<div class="space-y-5 v65-contact-transfer">
-    <section class="panel v65-workspace-form">
-        <h2>Cari Virman</h2>
+<div class="space-y-5 v65-contact-transfer v65-ref-finance">
+<header class="v65-ref-heading"><div><h1>Cari Virman</h1><p>İki cari arasında bakiye devri · Aynı para birimi · Banka ve kasa hareketi oluşturulmaz</p></div><span class="v65-ref-tag">Bakiye esaslı · TRY</span></header>
+<nav class="v65-ref-tabs" aria-label="Cari finans ekranları">
+<a href="{{ route('finance.collections.create') }}">Tahsilat</a>
+<a href="{{ route('purchases.payments.create') }}">Tediye</a>
+<a href="{{ route('finance.contact-transfers') }}" aria-current="page">Cari Virman</a>
+<a href="{{ route('finance.checks.index') }}">Çek Listesi</a>
+<a href="{{ route('finance.notes.index') }}">Senet Listesi</a></nav>
+<div class="v65-ref-banner"><strong>Cari bakiyeler arasında aktarım:</strong> Kaynak carinin bakiyesi azalır, hedef caride aynı yönde bakiye artar. Toplam cari bakiye değişmez; banka/kasa etkisi sıfırdır.</div>
+    <section class="panel v65-workspace-form v65-ref-card"><header class="v65-ref-card-head"><strong>Virman Bilgileri</strong><small>Kaynak ve hedef carileri ayrı ayrı seçin</small></header>
         @if($correctionSourceId)
             <x-v65.notice :tone="$correctionReady ? 'success' : 'warning'">
                 #{{ $correctionSourceId }} numaralı virman düzeltme için açıldı.
@@ -93,8 +100,7 @@
             <x-v65.button wire:click="post" wire:loading.attr="disabled" wire:target="post" :disabled="$correctionSourceId !== null && ! $correctionReady">{{ $correctionReady ? 'Düzeltilmiş Virmanı Kaydet' : 'Virmanı Oluştur' }}</x-v65.button>
         </div>
     </section>
-    <section class="panel v65-workspace-form">
-        <h3>Cari Virman Geçmişi</h3>
+    <section class="panel v65-workspace-form v65-ref-card v65-ref-history"><header class="v65-ref-card-head"><strong>Cari Virman Geçmişi</strong><small>Yetkili olduğunuz kayıtlar</small></header>
         <div class="table-scroll"><table class="data-table">
             <thead><tr><th>No</th><th>Tarih</th><th>Kaynak Cari</th><th>Hedef Cari</th><th>Yön</th><th>Referans</th><th>Tutar</th><th>Aşım Onayı</th><th>İşlem</th></tr></thead>
             <tbody>

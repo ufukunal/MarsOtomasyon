@@ -2809,3 +2809,65 @@
 @media print{
  .app-shell .v65-document-history-actions{display:none!important}
 }
+
+/* 20-screen HTML visual reference — isolated transaction screens; no financial logic changes. */
+.app-shell .v65-ref-finance{--rline:#dde6ef;--rink:#183954;--rmuted:#70859d;display:flex;flex-direction:column;gap:12px;max-width:1800px;margin:0 auto;color:var(--rink)}
+.app-shell .v65-ref-heading{display:flex;align-items:center;justify-content:space-between;gap:15px;flex-wrap:wrap;padding:5px 0}
+.app-shell .v65-ref-heading h1{font-size:24px;line-height:1.25;margin:0 0 5px;color:#183954;font-weight:750;letter-spacing:-.4px}
+.app-shell .v65-ref-heading p{font-size:12px;color:var(--rmuted);margin:0;line-height:1.5}
+.app-shell .v65-ref-tag{padding:6px 9px;background:#eef6ff;border:1px solid #d8e6f3;color:#225d91;font-size:11px;font-weight:650;border-radius:5px}
+.app-shell .v65-ref-tabs,.app-shell .v65-ref-securities .v65-security-nav{display:flex;flex-wrap:wrap;align-items:center;gap:7px;margin:0}
+.app-shell .v65-ref-tabs a,.app-shell .v65-ref-securities .v65-security-nav-link{font-size:11px;font-weight:650;display:inline-flex;align-items:center;justify-content:center;min-height:34px;padding:7px 12px;border:1px solid #d8e4f1;background:#fff;color:#2b587e;border-radius:5px;text-decoration:none}
+.app-shell .v65-ref-tabs a[aria-current=page],.app-shell .v65-ref-securities .v65-security-nav-link.is-current{background:#196ab7;border-color:#196ab7;color:#fff}
+.app-shell .v65-ref-tabs a:hover:not([aria-current=page]),.app-shell .v65-ref-securities .v65-security-nav-link:hover:not(.is-current){background:#eef6ff}
+.app-shell .v65-ref-banner{padding:12px 16px;font-size:12px;line-height:1.55;border:1px solid #cfe2f5;border-left:3px solid #2584c9;background:#f0f7ff;border-radius:6px;color:#3e6588}
+.app-shell .v65-ref-card{min-width:0;overflow:hidden;padding:0!important;border:1px solid var(--rline);border-radius:9px;background:#fff;box-shadow:0 3px 15px rgba(25,55,90,.045)}
+.app-shell .v65-ref-card-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;min-height:45px;padding:12px 16px;border-bottom:1px solid #e3ebf3;background:#fff}
+.app-shell .v65-ref-card-head>strong{font-size:13px;font-weight:750;color:#234766}
+.app-shell .v65-ref-card-head>small{font-size:11px;color:#8ca0b4}
+.app-shell .v65-ref-finance :where(input:not([type=checkbox]),select,textarea){box-sizing:border-box;max-width:100%;min-width:0;border-radius:5px;font-size:12px}
+.app-shell .v65-ref-finance :where(input:not([type=checkbox]),select){min-height:35px}
+.app-shell .v65-ref-finance :where(input:not([type=checkbox]),select,textarea):focus-visible{outline:2px solid #94bff0;outline-offset:1px}
+.app-shell .v65-ref-finance .v65-btn{border-radius:5px;min-height:34px}
+.app-shell .v65-contact-transfer.v65-ref-finance .v65-contact-transfer-grid{margin:14px 16px 0;gap:12px}
+.app-shell .v65-contact-transfer.v65-ref-finance .v65-contact-transfer-party{border:0;padding:0;align-content:start;gap:8px}
+.app-shell .v65-contact-transfer.v65-ref-finance .v65-contact-transfer-party>strong{font-size:12px;color:#315978}
+.app-shell .v65-contact-transfer.v65-ref-finance .v65-contact-transfer-balance{padding:9px 11px;background:#f7faff;border:1px solid #e1ebf6;border-radius:6px;min-height:45px;align-items:center;font-size:11px}
+.app-shell .v65-contact-transfer.v65-ref-finance .v65-contact-transfer-balance strong{font-size:13px;font-variant-numeric:tabular-nums}
+.app-shell .v65-contact-transfer.v65-ref-finance .v65-contact-transfer-controls{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:16px}
+.app-shell .v65-contact-transfer.v65-ref-finance .v65-contact-transfer-controls>.field:last-child{grid-column:1/-1}
+.app-shell .v65-contact-transfer.v65-ref-finance .v65-ref-card>.v65-doc-search-hint,
+.app-shell .v65-contact-transfer.v65-ref-finance .v65-ref-card>.v65-contact-transfer-notice{margin:12px 16px}
+.app-shell .v65-contact-transfer.v65-ref-finance .v65-form-footer{display:flex;justify-content:flex-end;padding:12px 16px;border-top:1px solid var(--rline);background:#fcfdff}
+.app-shell .v65-contact-transfer.v65-ref-finance .v65-ref-history .table-scroll{margin:0}
+.app-shell .v65-ref-finance .data-table th{background:#f1f5fa;color:#647e98;font-size:10px}
+.app-shell .v65-workspace-form.v65-ref-finance>.v65-voucher-panel{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 16px}
+.app-shell .v65-workspace-form.v65-ref-finance .v65-voucher-panel>.v65-ref-card-head{grid-column:1/-1}
+.app-shell .v65-workspace-form.v65-ref-finance .v65-voucher-panel>.field{padding:0 16px}
+.app-shell .v65-workspace-form.v65-ref-finance .v65-voucher-panel>.v65-contact-transfer-balance{margin:0 16px}
+.app-shell .v65-workspace-form.v65-ref-finance .v65-voucher-panel>.v65-finance-impact{grid-column:1/-1;margin:0 16px 14px;background:#f7faff}
+.app-shell .v65-workspace-form.v65-ref-finance .v65-voucher-panel>.v65-form-footer{padding:12px 16px;border-top:1px solid var(--rline)}
+.app-shell .v65-ref-finance .v65-impact-card{background:#fff;border:1px solid #dfe9f4;border-radius:6px}
+.app-shell .v65-ref-securities .v65-ref-security-nav{margin:0}
+.app-shell .v65-ref-securities .v65-ref-screenreader{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
+.app-shell .v65-ref-securities .v65-ref-security-form{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;padding-bottom:15px!important}
+.app-shell .v65-ref-securities .v65-ref-security-form>.v65-ref-card-head{grid-column:1/-1}
+.app-shell .v65-ref-securities .v65-ref-security-form>.field{min-width:0;margin:0;padding:0 14px}
+.app-shell .v65-ref-securities .v65-ref-security-form>.field :where(input,select,textarea){width:100%}
+.app-shell .v65-ref-securities .v65-ref-security-form>.field:has(textarea){grid-column:1/-1}
+.app-shell .v65-ref-securities .v65-ref-security-form>.v65-finance-impact{grid-column:1/-1;margin:0 14px}
+.app-shell .v65-ref-securities .v65-ref-security-form>.v65-btn{grid-column:1/-1;justify-self:end;margin:0 14px}
+.app-shell .v65-ref-securities .v65-ref-security-form>p{grid-column:1/-1;margin:0 14px}
+.app-shell .v65-ref-securities .v65-ref-security-records{min-width:0;border:1px solid var(--rline);border-radius:8px;background:#fff;overflow:hidden}
+.app-shell .v65-ref-securities .v65-ref-security-records .v65-security-toolbar{padding:14px 16px 0}
+.app-shell .v65-ref-securities .v65-ref-security-records .v65-list-heading{padding:12px 16px;margin:0;border-bottom:1px solid var(--rline)}
+.app-shell .v65-ref-securities .v65-ref-security-records .v65-list-table{margin:0}
+.app-shell .v65-ref-securities .v65-ref-security-records .v65-security-pagination{padding:12px 16px}
+.app-shell .v65-ref-securities .v65-ref-security-payroll{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;padding-bottom:15px!important}
+.app-shell .v65-ref-securities .v65-ref-security-payroll>.v65-ref-card-head{grid-column:1/-1}
+.app-shell .v65-ref-securities .v65-ref-security-payroll>.field{min-width:0;margin:0 14px}
+.app-shell .v65-ref-securities .v65-ref-security-payroll>p{grid-column:1/-1;margin-inline:14px}
+.app-shell .v65-reference-workspace :where(.v65-reference-info-card,.v65-reference-products-card){border-color:#dde6ef;box-shadow:0 3px 15px rgba(25,55,90,.045)}
+@media(max-width:1100px){.app-shell .v65-ref-securities .v65-ref-security-form{grid-template-columns:repeat(2,minmax(0,1fr))}.app-shell .v65-contact-transfer.v65-ref-finance .v65-contact-transfer-controls{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:720px){.app-shell .v65-ref-heading h1{font-size:21px}.app-shell .v65-ref-tabs,.app-shell .v65-ref-securities .v65-security-nav{flex-wrap:nowrap;overflow-x:auto;padding-bottom:6px}.app-shell .v65-ref-tabs a,.app-shell .v65-ref-securities .v65-security-nav-link{flex:none}.app-shell .v65-contact-transfer.v65-ref-finance .v65-contact-transfer-grid,.app-shell .v65-contact-transfer.v65-ref-finance .v65-contact-transfer-controls,.app-shell .v65-workspace-form.v65-ref-finance>.v65-voucher-panel,.app-shell .v65-ref-securities .v65-ref-security-form,.app-shell .v65-ref-securities .v65-ref-security-payroll{grid-template-columns:minmax(0,1fr)}.app-shell .v65-contact-transfer.v65-ref-finance .v65-contact-transfer-controls>.field:last-child{grid-column:auto}.app-shell .v65-ref-card-head small{width:100%}}
+@media print{.app-shell .v65-ref-tabs,.app-shell .v65-ref-securities .v65-security-nav,.app-shell .v65-ref-finance .v65-form-footer{display:none!important}.app-shell .v65-ref-card{break-inside:avoid;box-shadow:none}}
