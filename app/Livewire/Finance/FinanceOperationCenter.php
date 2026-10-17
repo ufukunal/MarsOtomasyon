@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Finance;
 
+use App\Livewire\Concerns\WithDocumentEditDeepLink;
 use App\Actions\Documents\ReverseDocument;
 use App\Actions\Finance\PostAdvance;
 use App\Actions\Finance\PostExpense;
@@ -26,6 +27,7 @@ use Livewire\Component;
 class FinanceOperationCenter extends Component
 {
     use WithIdempotentMutations;
+    use WithDocumentEditDeepLink;
 
     public string $date = '';
 
@@ -141,6 +143,10 @@ class FinanceOperationCenter extends Component
         );
         $this->date = now()->toDateString();
         $this->reversalDate = now()->toDateString();
+        $id = $this->linkedDocumentId();
+        if ($id !== null) {
+            $this->prepareDocumentCorrection($id);
+        }
     }
 
     public function postManual(PostManualFinanceMovement $action): void

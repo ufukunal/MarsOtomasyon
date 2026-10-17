@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Returns;
 
+use App\Livewire\Concerns\WithDocumentEditDeepLink;
 use App\Actions\Returns\CreateReturnFromInvoice;
 use App\Actions\Returns\PostReturnDocument;
 use App\Actions\Returns\ReturnLineAvailability;
@@ -20,6 +21,7 @@ use Livewire\Component;
 class ReturnCenter extends Component
 {
     use WithIdempotentMutations;
+    use WithDocumentEditDeepLink;
 
     public string $type = 'sales_return';
 
@@ -54,6 +56,17 @@ class ReturnCenter extends Component
         abort_unless(auth()->user()?->can('returns.view'), 403);
         $this->documentDate = now()->toDateString();
         $this->reversalDate = now()->toDateString();
+        $id = $this->linkedDocumentId();
+        if ($id !== null) {
+            $document = Document::query()->whereIn('document_type', [
+                DocumentType::SalesReturn->value, DocumentType::PurchaseReturn->value,
+            ])->findOrFail($id);
+            if ($document->status === 'draft' && auth()->user()?->can('returns.update')) {
+                $this->editDraft($id);
+            } else {
+                $this->selectReturn($id);
+            }
+        }
     }
 
     public function updatedType(): void
