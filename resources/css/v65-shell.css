@@ -2929,3 +2929,26 @@
 .app-shell .v65-ref-virman-party .is-creditor,.app-shell .v65-ref-virman-form .is-creditor{color:#167d63!important}
 @media(max-width:920px){.app-shell .v65-ref-virman-inputs{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:650px){.app-shell .v65-ref-virman-inputs{grid-template-columns:1fr}.app-shell .v65-ref-virman-contact,.app-shell .v65-ref-virman-inputs>.v65-ref-virman-wide,.app-shell .v65-ref-virman-inputs>.v65-ref-virman-full{grid-column:auto}.app-shell .v65-ref-virman-balances{grid-template-columns:1fr}.app-shell .v65-ref-virman-totals{grid-template-columns:1fr}.app-shell .v65-ref-virman-totals>div{border-right:0;border-bottom:1px solid #e5edf6}.app-shell .v65-ref-virman-footer{align-items:stretch}.app-shell .v65-ref-virman-actions{width:100%}}
+
+/* Final approved 20-screen sections: separate collection/payment summaries. */
+.app-shell .v65-ref-finance .v65-ref-summary-card{display:block;border-radius:9px}
+.app-shell .v65-ref-finance .v65-ref-summary-body{padding:15px 16px}
+.app-shell .v65-ref-finance .v65-ref-summary-body>.v65-ref-impact-title{display:none}
+.app-shell .v65-ref-finance .v65-ref-summary-body>.v65-finance-impact{margin:0;background:#f7faff;border:1px solid #e2ebf5;border-radius:7px}
+.app-shell .v65-ref-finance .v65-ref-summary-body .v65-impact-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+.app-shell .v65-ref-finance .v65-ref-summary-body .v65-impact-card{display:flex;flex-direction:column;gap:7px;min-height:78px;padding:11px}
+.app-shell .v65-ref-finance .v65-ref-summary-body .v65-impact-card>strong{font-variant-numeric:tabular-nums;font-size:13px;overflow-wrap:anywhere}
+.app-shell .v65-ref-securities .v65-ref-security-is-endorse{display:flex;flex-direction:column}
+.app-shell .v65-ref-securities.v65-ref-security-is-endorse>.v65-ref-security-payroll{order:3}
+.app-shell .v65-ref-securities.v65-ref-security-is-endorse>.v65-ref-security-records{order:4}
+.app-shell .v65-ref-securities .v65-ref-security-form>.v65-ref-security-note{grid-column:1/-1}
+.app-shell .v65-ref-securities .v65-ref-security-payroll>.v65-ref-security-note{grid-column:1/-1}
+.app-shell .v65-ref-securities .v65-ref-security-note-party{padding:10px 14px;border:1px solid #e1eaf4;border-radius:6px;background:#f8fbff}
+.app-shell .v65-ref-securities .v65-ref-security-note-party>strong{display:block;font-size:11px;color:#446786}
+.app-shell .v65-ref-securities .v65-ref-security-note-party>small{display:block;font-size:10px;color:#8198b0;margin-top:6px}
+.app-shell .v65-reference-workspace .v65-goods-receipt-reference .v65-reference-info-card{margin-bottom:12px}
+.app-shell .v65-reference-workspace .v65-goods-receipt-lines{border:1px solid #dce7f2;border-radius:8px;background:#fff}
+.app-shell .v65-reference-workspace .v65-goods-receipt-lines .v65-doc-lines-head{padding:14px 16px;border-bottom:1px solid #e3ebf3}
+@media(max-width:1080px){.app-shell .v65-ref-finance .v65-ref-summary-body .v65-impact-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:650px){.app-shell .v65-ref-finance .v65-ref-summary-body .v65-impact-grid{grid-template-columns:1fr}}
+@media print{.app-shell .v65-ref-summary-card{break-inside:avoid}.app-shell .v65-ref-securities .v65-ref-security-payroll .v65-btn{display:none!important}}
