@@ -28,8 +28,32 @@
                         @forelse($products ?? [] as $product)
                             <button type="button" wire:click="insertQuickProduct({{ $product->id }})"
                                 data-v65-reference-quick-choice>
-                                <strong>{{ $product->name }}</strong>
-                                <small>{{ $product->code }}@if($product->barcode) · {{ $product->barcode }}@endif</small>
+                                <span class="v65-reference-suggestion-identity">
+                                    <strong>{{ $product->name }}</strong>
+                                    <small>{{ $product->code }}@if($product->barcode) · {{ $product->barcode }}@endif</small>
+                                </span>
+                                <span class="v65-reference-suggestion-metrics">
+                                    <span class="v65-reference-suggestion-metric">
+                                        <small>{{ str_starts_with($screenType, 'purchase_') ? 'Liste Fiyatı' : 'Fiyat' }}</small>
+                                        <strong>{{ \App\Support\Formatting\TrFormatter::money((string) $product->lookup_price) }} {{ $product->lookup_price_currency }}</strong>
+                                    </span>
+                                    @if(auth()->user()?->can('stock.view'))
+                                        <span class="v65-reference-suggestion-metric">
+                                            <small>Stok</small>
+                                            <strong>{{ $product->lookup_physical !== null ? \App\Support\Formatting\TrFormatter::quantity((string) $product->lookup_physical) : '—' }}</strong>
+                                        </span>
+                                        <span class="v65-reference-suggestion-metric">
+                                            <small>Rezerve</small>
+                                            <strong>{{ $product->lookup_reserved !== null ? \App\Support\Formatting\TrFormatter::quantity((string) $product->lookup_reserved) : '—' }}</strong>
+                                        </span>
+                                        <span class="v65-reference-suggestion-metric v65-reference-suggestion-available">
+                                            <small>Kullanılabilir</small>
+                                            <strong>{{ $product->lookup_available !== null ? \App\Support\Formatting\TrFormatter::quantity((string) $product->lookup_available) : '—' }}</strong>
+                                        </span>
+                                    @else
+                                        <span class="v65-reference-suggestion-stock-locked">Stok görüntüleme yetkisi yok</span>
+                                    @endif
+                                </span>
                             </button>
                         @empty
                             <span class="v65-reference-no-product">Eşleşen aktif ürün bulunamadı</span>

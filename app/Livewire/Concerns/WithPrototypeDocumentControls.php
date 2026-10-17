@@ -5,7 +5,11 @@ namespace App\Livewire\Concerns;
 use App\Actions\Documents\CreateEditableDocumentCopy;
 use App\Enums\DocumentType;
 use App\Models\Period\DocumentRelation;
+use App\Models\Period\Contact;
 use App\Models\Period\Product;
+use App\Models\Period\StockBalance;
+use App\Enums\ProductKind;
+use App\Support\Pricing\PriceResolver;
 use Illuminate\Database\Eloquent\Collection;
 
 /**
@@ -104,11 +108,61 @@ trait WithPrototypeDocumentControls
 
         $pattern = '%'.str_replace(['%', '_'], ['\\%', '\\_'], $needle).'%';
 
-        return Product::query()->where('is_active', true)
+        $products = Product::query()->where('is_active', true)
             ->where(fn ($query) => $query->where('code', 'ilike', $pattern)
                 ->orWhere('name', 'ilike', $pattern)
                 ->orWhere('barcode', 'ilike', $pattern))
             ->orderBy('name')->limit(12)->get();
+
+        if ($products->isEmpty()) {
+            return $products;
+        }
+
+        // Read once for the entire result page. Never expose stock balances
+        // through document search when the user lacks stock.view permission.
+        $canViewStock = auth()->user()?->can('stock.view') ?? false;
+        $stockByProduct = $canViewStock
+            ? StockBalance::query()
+                ->whereIn('product_id', $products->modelKeys())
+                ->select('product_id')
+                ->selectRaw('COALESCE(SUM(quantity), 0)::text AS physical')
+                ->selectRaw('COALESCE(SUM(reserved + consignment_reserved), 0)::text AS reserved_total')
+                ->selectRaw('COALESCE(SUM(quantity - reserved - consignment_reserved - quarantine), 0)::text AS available_total')
+                ->groupBy('product_id')
+                ->get()->keyBy('product_id')
+            : collect();
+
+        $isSales = in_array($this->documentType(), [
+            DocumentType::Quote, DocumentType::SalesOrder,
+            DocumentType::Dispatch, DocumentType::SalesInvoice,
+        ], true);
+        $contact = $isSales && $this->contactId
+            ? Contact::query()->find($this->contactId) : null;
+        $priceResolver = $isSales ? app(PriceResolver::class) : null;
+
+        foreach ($products as $product) {
+            // Sales displays the effective customer/default price applied to
+            // new lines; purchase displays the catalog list price, not cost.
+            $product->setAttribute('lookup_price', $isSales
+                ? $priceResolver->resolve($product, $contact)
+                : (string) $product->list_price);
+            $product->setAttribute('lookup_price_currency', $isSales ? 'TRY' : $product->currency);
+            if (! $canViewStock) {
+                continue;
+            }
+            if ($product->kind === ProductKind::Set) {
+                $product->setAttribute('lookup_physical', null);
+                $product->setAttribute('lookup_reserved', null);
+                $product->setAttribute('lookup_available', $product->setAvailability());
+                continue;
+            }
+            $stock = $stockByProduct->get($product->id);
+            $product->setAttribute('lookup_physical', (string) ($stock?->physical ?? '0'));
+            $product->setAttribute('lookup_reserved', (string) ($stock?->reserved_total ?? '0'));
+            $product->setAttribute('lookup_available', (string) ($stock?->available_total ?? '0'));
+        }
+
+        return $products;
     }
 
     public function insertQuickProduct(int $productId): void
