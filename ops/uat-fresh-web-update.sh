@@ -23,7 +23,28 @@ grep -qx 'MARS_FRESH_PORT=18082' "$ENV" || fail 'Unexpected port'
 grep -qx 'MARS_FRESH_TAILSCALE_IP=100.127.235.30' "$ENV" || fail 'Unexpected IP'
 OLD="$(sed -n 's/^MARS_UAT_SHA=//p' "$ENV")"
 [[ "$OLD" =~ ^[0-9a-f]{40}$ ]] || fail 'Invalid previous image pin'
-[[ "$OLD" != "$TARGET" ]] || { echo "ALREADY_PINNED=$TARGET"; exit 0; }
+# A matching env pin does not prove that the app serves the new UI. Do not
+# report success for stale, swapped or partially built runtime images.
+if [[ "$OLD" == "$TARGET" ]]; then
+  echo '=== ALREADY PINNED: VERIFY ACTUAL RUNNING IMAGE AND UI ==='
+  actual="$(sudo docker inspect mars-uat-fresh-web-1 --format '{{.Config.Image}}' 2>/dev/null)" || fail 'Running Fresh web container missing'
+  [[ "$actual" == "ghcr.io/ufukunal/marsotomasyon:uat-$TARGET" ]] || fail 'Env pin matches but running image does not'
+  revision="$(sudo docker image inspect "$actual" --format '{{index .Config.Labels "org.opencontainers.image.revision"}}' 2>/dev/null)" || fail 'Pinned image missing'
+  [[ "$revision" == "$TARGET" ]] || fail 'Running image revision label does not match commit'
+  sudo docker exec mars-uat-fresh-web-1 sh -ec '
+for view in \
+  /var/www/html/resources/views/livewire/sales/document-editor.blade.php \
+  /var/www/html/resources/views/livewire/purchases/document-editor.blade.php; do
+  grep -Fq "document-product-table-head" "$view" || { echo "DESIGN_CHECK_FAIL missing new 10-column header in $view" >&2; exit 1; }
+  grep -Fq "document-prototype-toolbar" "$view" || { echo "DESIGN_CHECK_FAIL missing new toolbar in $view" >&2; exit 1; }
+done
+test -s /var/www/html/resources/views/components/v65/document-product-table-head.blade.php || { echo "DESIGN_CHECK_FAIL shared header component missing" >&2; exit 1; }
+grep -Fq "fastEntry = !fastEntry" /var/www/html/resources/views/components/v65/document-prototype-toolbar.blade.php || { echo "DESIGN_CHECK_FAIL quick-entry toggle missing" >&2; exit 1; }
+  ' || fail 'Running Fresh image has old sales/purchase design; do not claim already updated'
+  echo "RELEASE_OK=$TARGET"
+  echo 'FRESH_UI_SOURCE_MATCH=YES'
+  exit 0
+fi
 
 echo '=== FRESH PREFLIGHT ==='
 for spec in "postgres:$PG" "valkey:$VK" "web:$WEB"; do
@@ -149,6 +170,15 @@ grep -Fq "products.technical-sheet.show" "$VIEW" || fail 'Technical PDF link mis
 ! grep -Fq 'Alım İşlemleri' "$LAYOUT" || fail 'Purchase menu remains'
 ! grep -Fq 'Satış İşlemleri' "$LAYOUT" || fail 'Sales menu remains'
 
+echo '=== CHECK REQUESTED DESIGN IS IN SOURCE SNAPSHOT ==='
+for view in \
+  "$SOURCE/resources/views/livewire/sales/document-editor.blade.php" \
+  "$SOURCE/resources/views/livewire/purchases/document-editor.blade.php"; do
+  grep -Fq "document-product-table-head" "$view" || fail "Sales/purchase redesign missing in $view"
+  grep -Fq "document-prototype-toolbar" "$view" || fail "Product toolbar missing in $view"
+done
+grep -Fq "fastEntry = !fastEntry" "$SOURCE/resources/views/components/v65/document-prototype-toolbar.blade.php" || fail 'Quick entry toggle missing'
+
 echo '=== BUILD NEW WEB IMAGE (DATA UNTOUCHED) ==='
 sudo docker build -f "$SOURCE/Dockerfile.uat" --label "org.opencontainers.image.revision=$TARGET" -t "$NEW_IMAGE" "$SOURCE"
 [[ "$(sudo docker image inspect "$NEW_IMAGE" -f '{{index .Config.Labels "org.opencontainers.image.revision"}}')" == "$TARGET" ]] || fail 'Build image SHA mismatch'
@@ -160,6 +190,14 @@ done
 test -s /var/www/html/public/build/manifest.json || { echo "IMAGE_CHECK_FAIL Vite manifest empty" >&2; exit 1; }
 grep -Fq "products.technical-sheet.show" /var/www/html/resources/views/livewire/pages/products/product-detail.blade.php || { echo "IMAGE_CHECK_FAIL technical PDF link missing" >&2; exit 1; }
 grep -Fq "mars-pagination" /var/www/html/resources/css/v65-shell.css || { echo "IMAGE_CHECK_FAIL compact pagination CSS missing" >&2; exit 1; }
+for view in \
+  /var/www/html/resources/views/livewire/sales/document-editor.blade.php \
+  /var/www/html/resources/views/livewire/purchases/document-editor.blade.php; do
+  grep -Fq "document-product-table-head" "$view" || { echo "DESIGN_CHECK_FAIL missing new 10-column header in $view" >&2; exit 1; }
+  grep -Fq "document-prototype-toolbar" "$view" || { echo "DESIGN_CHECK_FAIL missing new toolbar in $view" >&2; exit 1; }
+done
+test -s /var/www/html/resources/views/components/v65/document-product-table-head.blade.php || { echo "DESIGN_CHECK_FAIL shared header component missing" >&2; exit 1; }
+grep -Fq "fastEntry = !fastEntry" /var/www/html/resources/views/components/v65/document-prototype-toolbar.blade.php || { echo "DESIGN_CHECK_FAIL quick-entry toggle missing" >&2; exit 1; }
 php -l /var/www/html/app/Http/Controllers/ProductTechnicalSheetController.php
 # Validate the newly added contact detail before any web-container switch.
 php -l /var/www/html/app/Livewire/Pages/Contacts/ContactDetail.php
@@ -200,8 +238,20 @@ done
 [[ "$(sudo docker inspect "$WEB" -f '{{range .Mounts}}{{if eq .Destination "/var/www/html/storage"}}{{.Name}}{{end}}{{end}}')" == "$VOLUME" ]] || fail 'Fresh storage volume changed'
 [[ "$(sudo docker inspect "$PG" -f '{{.Id}}')" == "$PGID" ]] || fail 'Fresh PG container changed'
 [[ "$(sudo docker inspect "$VK" -f '{{.Id}}')" == "$VKID" ]] || fail 'Fresh Valkey container changed'
+# Verify the real service's file tree, not just its image tag or login page.
+sudo docker exec "$WEB" sh -ec '
+for view in \
+  /var/www/html/resources/views/livewire/sales/document-editor.blade.php \
+  /var/www/html/resources/views/livewire/purchases/document-editor.blade.php; do
+  grep -Fq "document-product-table-head" "$view" || { echo "DESIGN_CHECK_FAIL missing new 10-column header in $view" >&2; exit 1; }
+  grep -Fq "document-prototype-toolbar" "$view" || { echo "DESIGN_CHECK_FAIL missing new toolbar in $view" >&2; exit 1; }
+done
+test -s /var/www/html/resources/views/components/v65/document-product-table-head.blade.php || { echo "DESIGN_CHECK_FAIL shared header component missing" >&2; exit 1; }
+grep -Fq "fastEntry = !fastEntry" /var/www/html/resources/views/components/v65/document-prototype-toolbar.blade.php || { echo "DESIGN_CHECK_FAIL quick-entry toggle missing" >&2; exit 1; }
+' || fail 'Fresh web is healthy but still contains old sales/purchase document UI'
 sudo docker exec "$WEB" php artisan view:clear
 SUCCESS=1
 echo "RELEASE_OK=$TARGET"
+echo 'FRESH_UI_SOURCE_MATCH=YES'
 echo 'FRESH_LOGIN_HTTP=200'
 echo 'POSTGRES_UNCHANGED=YES VALKEY_UNCHANGED=YES STORAGE_UNCHANGED=YES'
