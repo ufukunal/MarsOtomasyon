@@ -2984,23 +2984,6 @@
 .app-shell .v65-reference-products-card .v65-prototype-lines .v65-doc-line-net{color:#2b4b70;font-size:11px;font-weight:600}
 .app-shell .v65-reference-products-card .v65-prototype-lines .v65-doc-line-incl{color:#064b91;font-size:11px;font-weight:800}
 .app-shell .v65-reference-line-actions{display:flex;align-items:center;justify-content:center;gap:7px}
-.app-shell .v65-reference-line-menu{position:relative;display:block}
-.app-shell .v65-reference-line-menu>summary,.app-shell .v65-reference-line-delete{
-    display:grid;place-items:center;width:28px;height:28px;min-width:28px;padding:0;border-radius:5px;
-    border:1px solid #cadbf0;background:#fff;color:#1a527f;font-size:14px;cursor:pointer;list-style:none
-}
-.app-shell .v65-reference-line-menu>summary::-webkit-details-marker{display:none}
-.app-shell .v65-reference-line-menu[open]>summary{background:#eaf5ff;border-color:#90bae7}
-.app-shell .v65-reference-line-delete{border-color:#f2cbd0;color:#c34e63;background:#fff7f8}
-.app-shell .v65-reference-line-delete:hover{background:#ffecef}
-.app-shell .v65-reference-line-popover{
-    position:absolute;z-index:21;inset-inline-end:0;top:calc(100% + 3px);width:275px;
-    max-width:80vw;padding:10px;background:#fff;border:1px solid #d6e3f2;border-radius:7px;
-    box-shadow:0 9px 30px rgba(24,65,112,.16);text-align:start;color:#335673
-}
-.app-shell .v65-reference-line-popover .v65-doc-line-details{display:block}
-.app-shell .v65-reference-line-popover .v65-doc-line-details>summary{display:none}
-.app-shell .v65-reference-line-popover .v65-doc-line-details label{display:grid;gap:4px;margin-bottom:8px;font-size:11px}
 .app-shell .v65-reference-source-label{font-size:10px;color:#7e94a9}
 .app-shell .v65-reference-products-card .v65-reference-new-product-button{
     padding:6px 8px;border:0;background:transparent;color:#1b659d;font-size:11px;font-weight:750;cursor:pointer
@@ -3033,3 +3016,6 @@
     border:1px solid #cbdcf0;border-radius:5px;padding:6px 9px
 }
 .app-shell .v65-reference-line-detail-fields small{font-size:11px;color:#7089a6}
+
+.app-shell .v65-reference-source-indicator{cursor:default;background:#f5f8fc;color:#6b829b}
+.app-shell .v65-reference-receipt-description{display:block;padding:9px 16px;color:#6e86a0;font-size:10px;background:#f7faff;border-bottom:1px solid #e1eaf3}

@@ -6,9 +6,13 @@
             <h2>Ürün ve Hizmetler</h2>
             <small>{{ config('document_prototype.'.$screenType.'.hint', 'Ürün ve hizmetleri girin.') }}</small>
         </div>
-        <button type="button" class="v65-reference-fast-indicator" x-on:click="fastEntry = !fastEntry"
-            x-bind:aria-pressed="fastEntry.toString()" aria-controls="v65-reference-quick-{{ $screenType }}"
-            x-text="fastEntry ? 'Hızlı satır girişi açık' : 'Hızlı satır girişi kapalı'">Hızlı satır girişi açık</button>
+        @if($editable)
+            <button type="button" class="v65-reference-fast-indicator" x-on:click="fastEntry = !fastEntry"
+                x-bind:aria-pressed="fastEntry.toString()" aria-controls="v65-reference-quick-{{ $screenType }}"
+                x-text="fastEntry ? 'Hızlı satır girişi açık' : 'Hızlı satır girişi kapalı'">Hızlı satır girişi açık</button>
+        @else
+            <span class="v65-reference-fast-indicator v65-reference-source-indicator">Kaynak belge satırları</span>
+        @endif
     </div>
     @if($editable)
         <div class="v65-reference-products-tools">
