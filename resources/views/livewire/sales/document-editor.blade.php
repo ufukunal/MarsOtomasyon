@@ -279,7 +279,7 @@
                             <td class="align-end v65-doc-line-net">{{ $lineNet !== null ? \App\Support\Formatting\TrFormatter::money((string) $lineNet) : '—' }}</td>
                             <td class="align-end v65-doc-line-incl">{{ $lineWithVat !== null ? \App\Support\Formatting\TrFormatter::money($lineWithVat) : '—' }}</td>
                             <td class="v65-reference-actions-cell"><x-v65.document-line-actions :index="$index">
-                                <details class="v65-doc-line-details"><summary>Satır detayı</summary>
+                                <div class="v65-doc-line-details">
                                     <label>Tür <select wire:model.live="lines.{{ $index }}.line_kind" aria-label="Satır türü">
                                         <option value="stock">Stok</option><option value="service">Hizmet</option>
                                     </select></label>
@@ -291,7 +291,7 @@
                                     <label>Satır Notu <input wire:model.blur="lines.{{ $index }}.description" placeholder="İsteğe bağlı not"></label>
                                     @endunless
                                     <small>İskonto tutarı: {{ $previewLine ? \App\Support\Formatting\TrFormatter::money((string) $previewLine->discountAmount) : '—' }}</small>
-                                </details>
+                                </div>
                             </x-v65.document-line-actions></td>
                         </tr>
                         @endif

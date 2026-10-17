@@ -3017,3 +3017,19 @@
     .app-shell .v65-reference-products-card .v65-prototype-lines{min-width:1190px}
     .app-shell .v65-reference-line-popover{inset-inline-end:0}
 }
+
+/* Native V65 dialog keeps row actions visible even inside horizontal table scrolling. */
+.app-shell .v65-reference-line-menu-button{
+    display:grid;place-items:center;width:28px;height:28px;min-width:28px;padding:0;
+    border:1px solid #cadbf0;border-radius:5px;background:#fff;color:#1a527f;
+    font-size:14px;cursor:pointer
+}
+.app-shell .v65-reference-line-menu-button:hover{background:#eaf5ff}
+.app-shell .v65-reference-line-detail-fields{display:grid;gap:10px}
+.app-shell .v65-reference-line-detail-fields .v65-doc-line-details{display:grid;gap:10px}
+.app-shell .v65-reference-line-detail-fields .v65-doc-line-details label{display:grid;gap:5px;margin:0;color:#456b8d;font-size:12px}
+.app-shell .v65-reference-line-detail-fields :where(input,select){
+    height:36px;min-height:36px;width:100%;min-width:0;
+    border:1px solid #cbdcf0;border-radius:5px;padding:6px 9px
+}
+.app-shell .v65-reference-line-detail-fields small{font-size:11px;color:#7089a6}

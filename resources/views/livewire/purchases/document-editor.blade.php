@@ -200,8 +200,8 @@
             <section class="v65-doc-lines v65-reference-products-card {{ $isGoodsReceipt ? 'v65-goods-receipt-lines' : '' }}" aria-label="Belge kalemleri">
                 @if($isGoodsReceipt)
                     <div class="v65-doc-lines-head">
-                        <strong>Mal Kabul Kalemleri</strong>
-                        <small>Ürün satırları bağlı kaynak belgeye göre oluşturulur.</small>
+                        <strong>Ürün ve Hizmetler</strong>
+                        <small>Mal Kabul Kalemleri · Ürün satırları bağlı kaynak belgeye göre oluşturulur.</small>
                     </div>
                 @else
                     <x-v65.document-prototype-toolbar :screen-type="$screenType"
@@ -289,9 +289,6 @@
                                     @if($selectedProduct)<small class="v65-reference-sku">{{ $selectedProduct->code }}</small>@endif
                                 @endif
 
-                                    <small>İskonto tutarı: {{ $previewLine ? \App\Support\Formatting\TrFormatter::money((string) $previewLine->discountAmount) : '—' }}</small>
-                                </details>
-                                @endunless
                             </div>
                             </td>
                             <td class="align-end">
@@ -312,8 +309,7 @@
                             <td class="align-end v65-doc-line-incl">{{ $lineWithVat !== null ? \App\Support\Formatting\TrFormatter::money($lineWithVat) : '—' }}</td>
                             <td class="v65-reference-actions-cell">@unless($isGoodsReceipt)
                                 <x-v65.document-line-actions :index="$index">
-                                @unless($isGoodsReceipt)
-                                <details class="v65-doc-line-details"><summary>Satır detayı</summary>
+                                <div class="v65-doc-line-details">
                                     <label>Tür <select wire:model.live="lines.{{ $index }}.line_kind" aria-label="Satır türü">
                                         <option value="stock">Stok</option><option value="service">Hizmet</option>
                                     </select></label>
@@ -324,6 +320,8 @@
                                     </select></label>
                                     <label>Satır Notu <input wire:model.blur="lines.{{ $index }}.description" placeholder="İsteğe bağlı not"></label>
                                     @endunless
+                                    <small>İskonto tutarı: {{ $previewLine ? \App\Support\Formatting\TrFormatter::money((string) $previewLine->discountAmount) : '—' }}</small>
+                                </div>
                                 </x-v65.document-line-actions>
                                 @else<span class="v65-reference-source-label">Kaynak Satır</span>@endunless</td>
                         </tr>
