@@ -62,7 +62,12 @@
         </label>
         <label class="field">Dekont / Referans No <input wire:model.blur="reference" maxlength="140" placeholder="Banka dekontu / işlem referansı"></label>
     <label class="field">Not <textarea wire:model="note"></textarea></label>
-        <div class="v65-ref-impact-title">Cari Hareket Özeti <small>İşlem öncesi ve sonrası bakiye</small></div>
+        <div class="v65-form-footer"><x-v65.button wire:click="post" wire:loading.attr="disabled" wire:target="post" :disabled="$correctionMode">Tediyeyi Kesinleştir</x-v65.button></div>
+    </section>
+    <section class="panel v65-ref-card v65-ref-summary-card" aria-label="Cari hareket özeti">
+        <header class="v65-ref-card-head"><strong>Cari Hareket Özeti</strong><small>Tediye öncesi ve sonrası cari/kasa banka etkisi</small></header>
+        <div class="v65-ref-summary-body">
+    <div class="v65-ref-impact-title">Cari Hareket Özeti <small>İşlem öncesi ve sonrası bakiye</small></div>
         <section class="v65-finance-impact" aria-label="İşlem öncesi ve sonrası mali etki">
         <h3>İşlem Etkisi <small>Bilgilendirme amaçlı önizleme</small></h3>
         <div class="v65-impact-grid">
@@ -80,7 +85,8 @@
         @endunless
         <small>Kesinleştirme sırasında cari ve kasa/banka tutarları sunucuda yeniden doğrulanır.</small>
     </section>
-    <div class="v65-form-footer"><x-v65.button wire:click="post" wire:loading.attr="disabled" wire:target="post" :disabled="$correctionMode">Tediyeyi Kesinleştir</x-v65.button></div>
+
+        </div>
     </section>
 
     @if($postedDocumentId)
