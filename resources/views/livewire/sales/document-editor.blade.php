@@ -206,29 +206,7 @@
                                 ? \App\Support\Money\Money::of((string) $lineNet)->percent((string) ($line['vat_rate'] ?? 0))->amount : null;
                             $lineWithVat = $lineVat !== null ? \App\Support\Money\Money::of((string) $lineNet)->plus(\App\Support\Money\Money::of($lineVat))->amount : null;
                         @endphp
-                        @if($isEntryRow)
-                            <tr wire:key="sales-entry-{{ $rowKey }}" class="v65-reference-entry-row" x-show="fastEntry">
-                                <td>+</td>
-                                <td class="v65-reference-entry-cell">
-                                    <input type="search" class="v65-doc-product-search" data-v65-fast-product-search
-                                        wire:model.live.debounce.300ms="productSearches.{{ $rowKey }}"
-                                        autocomplete="off" placeholder="Ürün kodu, barkod veya ürün adı yazın..."
-                                        aria-label="Yeni boş satır ürün ara">
-                                    <select data-v65-fast-product-select wire:model.live="lines.{{ $index }}.product_id"
-                                        aria-label="Yeni boş satır ürün seç">
-                                        <option value="">Ürün seçin</option>
-                                        @forelse($productChoices as $product)
-                                            <option value="{{ $product->id }}">{{ $product->code }} · {{ $product->name }}</option>
-                                        @empty
-                                            <option value="" disabled>Aramaya uygun ürün bulunamadı</option>
-                                        @endforelse
-                                    </select>
-                                </td>
-                                <td colspan="8" class="v65-reference-entry-description">
-                                    Ürün seçildiğinde yeni boş satır otomatik açılır · Enter ile ekleyin
-                                </td>
-                            </tr>
-                        @else
+                        @if(! $isEntryRow)
                         <tr wire:key="sales-line-{{ $line['row_key'] ?? $index }}">
                             <td>{{ $index + 1 }}</td>
                             <td class="v65-doc-product-combined">
@@ -300,11 +278,11 @@
                 </table></div>
                 <div class="v65-reference-new-line">
                     <button type="button" class="v65-reference-new-product-button" data-v65-add-product-focus x-on:click="fastEntry = true">+ Yeni ürün satırı</button>
-                    <small>Aşağıdaki boş satıra da doğrudan ürün kodu veya barkod yazabilirsiniz. Enter ürün seçer, Tab sonraki alana ilerler.</small>
+                    <small>Yeni ürün eklemek için üstteki ürün arama alanını kullanın. Enter ile seçin, Tab ile ilerleyin.</small>
                 </div>
                 <div class="v65-reference-totals-layout">
                     <div class="v65-reference-totals-help">
-                        <strong>Hızlı giriş:</strong> Ürün kodunu aratıp Enter ile ekleyin. Sonraki boş satır otomatik hazırlanır.
+                        <strong>Hızlı giriş:</strong> Ürün kodu veya barkodu üstteki arama alanına yazıp Enter ile ekleyin.
                         <p>Depo, satır notu ve birim bilgileri satır detayından düzenlenebilir.
                         Ek iskonto KDV hariç net tutardan düşülür; geçerli matrah ve KDV sunucuda hesaplanır.</p>
                         <small>* Satır KDV dahil tutarı belge genel iskontoları öncesi bilgi amaçlıdır.</small>

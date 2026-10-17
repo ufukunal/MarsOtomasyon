@@ -26,7 +26,7 @@ it('uses the same functional form, header, empty entry line and totals on both s
             ->toContain('<x-v65.document-prototype-heading')
             ->toContain('<x-v65.document-prototype-toolbar')
             ->toContain('<x-v65.document-prototype-footer')
-            ->toContain('v65-reference-entry-row')
+            ->not->toContain('v65-reference-entry-row')
             ->toContain('data-v65-fast-product-search')
             ->toContain('wire:model.live="uiMeta.default_location_id"')
             ->toContain('wire:submit="save"')

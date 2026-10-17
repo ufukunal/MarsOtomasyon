@@ -638,17 +638,17 @@ document.addEventListener('keydown', (event) => {
     first.click();
 });
 
-// The always-present empty product row is an actual editable row. Focusing it
-// avoids redundant server calls or duplicate empty rows when users select "+ Yeni".
+// Keep the footer shortcut functional after removing the redundant empty
+// product row: it now focuses the primary quick-product search.
 document.addEventListener('click', (event) => {
     const trigger = event.target.closest?.('[data-v65-add-product-focus]');
     if (!(trigger instanceof HTMLButtonElement)) return;
     const form = trigger.closest('form');
-    const entry = form?.querySelector('.v65-reference-entry-row [data-v65-fast-product-search]');
-    if (entry instanceof HTMLInputElement) {
+    const search = form?.querySelector('[data-v65-reference-quick-input]');
+    if (search instanceof HTMLInputElement) {
         requestAnimationFrame(() => {
-            entry.focus();
-            entry.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+            search.focus();
+            search.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
         });
     }
 });

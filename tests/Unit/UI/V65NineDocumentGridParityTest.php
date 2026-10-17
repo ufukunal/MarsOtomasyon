@@ -12,7 +12,7 @@ it('uses one 10-column product header and row action modal across sale and purch
         $view = file_get_contents(base_path("resources/views/livewire/{$side}/document-editor.blade.php"));
         expect($view)->toContain('<x-v65.document-product-table-head')
             ->toContain('<x-v65.document-line-actions')
-            ->toContain('v65-reference-entry-row')
+            ->not->toContain('v65-reference-entry-row')
             ->toContain('data-v65-fast-product-search')
             ->toContain('data-v65-add-product-focus')
             ->toContain('v65-reference-inline-summary')
@@ -40,7 +40,21 @@ it('toggles quick product search without creating fictitious product records', f
         ->toContain('x-show="fastEntry"')
         ->toContain('insertQuickProduct(')
         ->and($js)->toContain('data-v65-add-product-focus')
+        ->toContain("form?.querySelector('[data-v65-reference-quick-input]')")
         ->toContain('data-v65-reference-quick-choice')
         ->and($css)->toContain('v65-reference-line-menu-button')
         ->toContain('v65-reference-totals-layout');
+});
+
+it('hides the unused trailing product row and keeps the primary search functional', function (): void {
+    foreach (['sales', 'purchases'] as $side) {
+        $view = file_get_contents(base_path("resources/views/livewire/{$side}/document-editor.blade.php"));
+        expect($view)->toContain('@if(! $isEntryRow)')
+            ->toContain('Yeni ürün eklemek için üstteki ürün arama alanını kullanın.')
+            ->not->toContain('v65-reference-entry-row')
+            ->not->toContain('Yeni boş satır ürün ara');
+    }
+    $js = file_get_contents(base_path('resources/js/app.js'));
+    expect($js)->toContain("form?.querySelector('[data-v65-reference-quick-input]')")
+        ->not->toContain("form?.querySelector('.v65-reference-entry-row");
 });
