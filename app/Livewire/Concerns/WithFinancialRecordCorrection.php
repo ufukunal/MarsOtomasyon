@@ -50,8 +50,17 @@ trait WithFinancialRecordCorrection
         $this->sourceInvoiceId = null;
     }
 
+    public function canViewFinancialContactBalance(): bool
+    {
+        return auth()->check() && auth()->user()->can('contacts.view');
+    }
+
     public function contactBalance(): string
     {
+        if (! $this->canViewFinancialContactBalance()) {
+            return '0.0000';
+        }
+
         return $this->contactId
             ? (Contact::query()->find($this->contactId)?->balance() ?? '0.0000')
             : '0.0000';
@@ -64,7 +73,13 @@ trait WithFinancialRecordCorrection
     public function projectedFinancialContactBalance(): string
     {
         $before = $this->contactBalance();
-        if (! preg_match('/^\\d{1,14}(?:\\.\\d{1,4})?$/D', (string) $this->amount) || bccomp((string) $this->amount, '0', 4) <= 0) return $before;
+        if (! $this->canViewFinancialContactBalance()) {
+            return '0.0000';
+        }
+        if (! preg_match('/^\\d{1,14}(?:\\.\\d{1,4})?$/D', (string) $this->amount)
+            || bccomp((string) $this->amount, '0', 4) <= 0) {
+            return $before;
+        }
         $amount = (string) $this->amount;
         if ($this->financialDocumentType() === DocumentType::Payment) {
             $linkedInvoice = $this->sourceInvoiceId
@@ -74,7 +89,10 @@ trait WithFinancialRecordCorrection
                 : null;
             // PostPayment uses the linked invoice's rate, not the editable draft rate.
             $rate = (string) ($linkedInvoice?->exchange_rate ?? $this->financialExchangeRate());
-            if (! preg_match('/^\\d{1,12}(?:\\.\\d{1,6})?$/D', $rate) || bccomp($rate, '0', 6) <= 0) return $before;
+            if (! preg_match('/^\\d{1,12}(?:\\.\\d{1,6})?$/D', $rate)
+                || bccomp($rate, '0', 6) <= 0) {
+                return $before;
+            }
             $amount = bcadd(bcmul($amount, $rate, 8), '0', 4);
             return bcadd($before, $amount, 4);
         }
@@ -85,7 +103,7 @@ trait WithFinancialRecordCorrection
     {
         $permission = $this->accountType === 'cash' ? 'cash_accounts.view' : 'bank_accounts.view';
 
-        return auth()->user()?->can($permission) ?? false;
+        return auth()->check() && auth()->user()->can($permission);
     }
 
     public function selectedFinancialAccount(): \App\Models\Period\CashAccount|\App\Models\Period\BankAccount|null
@@ -130,7 +148,10 @@ trait WithFinancialRecordCorrection
             return null;
         }
         $before = $this->financialAccountBalance();
-        if (! preg_match('/^\\d{1,14}(?:\\.\\d{1,4})?$/D', (string) $this->amount) || bccomp((string) $this->amount, '0', 4) <= 0) return $before;
+        if (! preg_match('/^\\d{1,14}(?:\\.\\d{1,4})?$/D', (string) $this->amount)
+            || bccomp((string) $this->amount, '0', 4) <= 0) {
+            return $before;
+        }
         return $this->financialDocumentType() === DocumentType::Payment
             ? bcsub($before, (string) $this->amount, 4)
             : bcadd($before, (string) $this->amount, 4);
@@ -159,7 +180,8 @@ trait WithFinancialRecordCorrection
 
     public function selectForCorrection(int $id): void
     {
-        abort_unless(auth()->user()?->can($this->financialPermission().'.view')
+        abort_unless(auth()->check()
+            && auth()->user()->can($this->financialPermission().'.view')
             && auth()->user()->can($this->financialPermission().'.cancel'), 403);
 
         $document = Document::query()
