@@ -211,7 +211,12 @@ compiled_count=0
 for compiled in /var/www/html/storage/framework/views/*.php; do
   [ -f "$compiled" ] || continue
   compiled_count=$((compiled_count + 1))
-  php -l "$compiled" >/dev/null || { echo "IMAGE_CHECK_FAIL compiled Blade syntax: $compiled" >&2; exit 1; }
+  if ! php -l "$compiled"; then
+    echo "IMAGE_CHECK_FAIL compiled Blade syntax: $compiled" >&2
+    # Laravel adds original Blade source path as a footer comment.
+    tail -n 3 "$compiled" | grep -E 'PATH .+ ENDPATH' >&2 || true
+    exit 1
+  fi
 done
 [ "$compiled_count" -gt 0 ] || { echo "IMAGE_CHECK_FAIL no compiled Blade templates found" >&2; exit 1; }
 echo "IMAGE_BLADE_LINT_OK=$compiled_count"

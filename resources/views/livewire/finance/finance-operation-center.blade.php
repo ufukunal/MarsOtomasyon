@@ -216,9 +216,9 @@
                         <td>{{ $record->document_date?->format('d.m.Y') }}</td>
                         <td>{{ \App\Support\Formatting\TrFormatter::money((string) $record->grand_total) }} TRY</td>
                         <td>
-                            @if(($record->document_type === \App\Enums\\DocumentType::Expense
+                            @if(($record->document_type === \App\Enums\DocumentType::Expense
                                     && auth()->user()?->can('expenses.cancel') && auth()->user()?->can('expenses.create'))
-                                || ($record->document_type !== \App\Enums\\DocumentType::Expense
+                                || ($record->document_type !== \App\Enums\DocumentType::Expense
                                     && auth()->user()?->can('advances.cancel') && auth()->user()?->can('advances.create')))
                                 <button type="button" class="button-secondary" wire:click="prepareDocumentCorrection({{ $record->id }})">
                                     Düzenle
