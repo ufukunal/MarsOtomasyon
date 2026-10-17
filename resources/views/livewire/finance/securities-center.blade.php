@@ -133,7 +133,18 @@
                     <td>{{ $security->due_date?->format('d.m.Y') }}</td>
                     <td class="align-end">{{ \App\Support\Formatting\TrFormatter::money((string) $security->amount) }} TRY</td>
                     <td class="align-end {{ $security->direction === 'outgoing' ? 'is-debtor' : 'is-creditor' }}">{{ $security->direction === 'outgoing' ? '+' : '−' }}{{ \App\Support\Formatting\TrFormatter::money((string) $security->amount) }} TRY</td>
-                    <td><x-v65.status-badge>{{ \App\Support\Formatting\BusinessLabelFormatter::status($security->status) }}</x-v65.status-badge></td>
+                    <td>
+                        @php
+                            $securityTone = match ($security->status) {
+                                'portfolio', 'issued' => 'warning',
+                                'banked', 'endorsed' => 'info',
+                                'collected', 'paid' => 'success',
+                                'protested', 'returned', 'cancelled' => 'danger',
+                                default => 'neutral',
+                            };
+                        @endphp
+                        <x-v65.status-badge :tone="$securityTone" :dot="true">{{ \App\Support\Formatting\BusinessLabelFormatter::status($security->status) }}</x-v65.status-badge>
+                    </td>
                     <td>
                         @if(in_array($screenMode, ['center', 'list', 'create'], true) && auth()->user()?->can('securities.update')
                             && in_array($security->status, ['portfolio', 'issued'], true) && $security->last_payroll_id === null)

@@ -48,7 +48,7 @@ aksiyonları üzerinden çalışır ve tarayıcıdaki önizleme hiçbir zaman de
 | D31 | Finans PostgreSQL senaryoları | **Çalıştırılmadı** | İzole TEST |
 | D32 | Belge mali/stok regresyonları | **Çalıştırılmadı** | İzole TEST |
 | D33 | Barkod SQL | Önceden vardı, tek kontrol üzerinden kullanılıyor | DB |
-| D34 | Çek/senet rozetleri | PHP formatter korunuyor; HTML piksel eşitliği doğrulanmadı | Pixel |
+| D34 | Çek/senet rozetleri | Duruma göre warning/info/success/danger tonu ve PHP formatter uygulandı | Pixel |
 | D35 | Klavye/focus/ARIA | Etiketler/focus shortcut eklendi, kapsamlı a11y testi yapılmadı | Browser |
 
 ## Ana kontrol sınırları
