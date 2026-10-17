@@ -1,4 +1,4 @@
-@props(['document' => null, 'screenType', 'indexRoute' => null, 'formId' => null, 'dirty' => false])
+@props(['document' => null, 'screenType', 'indexRoute' => null, 'formId' => null, 'dirty' => false, 'canCopy' => false, 'canReopen' => false, 'editPermission' => null])
 
 @php
     $screen = config('document_prototype.'.$screenType, []);
@@ -36,8 +36,30 @@
             <span class="v65-reference-print-placeholder" title="Yazdırma, ilk kayıt sonrasında kullanılabilir">Yazdır: kayıt sonrası</span>
         @endif
         @if($editable && $formId)
+            @if($document && $editPermission && auth()->user()?->can($editPermission.'.update'))
+                <a class="v65-btn v65-btn--secondary v65-btn--sm"
+                    href="#{{ $formId }}">Düzenle</a>
+            @endif
             <x-v65.button type="submit" size="sm" :form="$formId"
                 wire:loading.attr="disabled" wire:target="save">{{ $saveLabel }}</x-v65.button>
+        @elseif($document)
+            @if($screenType === 'quote' && $document->number !== null && auth()->user()?->can('quotes.update'))
+                <x-v65.button variant="secondary" size="sm" wire:click="revision"
+                    wire:confirm="Satış teklifinin kayıtlı sürümü korunacak; düzenlenebilir yeni bir revizyon oluşturulacak. Devam edilsin mi?"
+                    wire:loading.attr="disabled" wire:target="revision">Revizyonla Düzenle</x-v65.button>
+            @elseif($canReopen && $screenType === 'purchase_dispatch')
+                <x-v65.button variant="secondary" size="sm" wire:click="reopenForEditing"
+                    wire:confirm="Bağlı Mal Kabul bulunmadığı doğrulanacak. Mevcut alış irsaliyesi aynı belge numarasıyla taslağa alınacak ve yeniden onay gerekecek. Devam edilsin mi?"
+                    wire:loading.attr="disabled" wire:target="reopenForEditing">Düzenlemek için Aç</x-v65.button>
+            @elseif($canCopy)
+                <x-v65.button variant="secondary" size="sm" wire:click="startEditableCopy"
+                    wire:confirm="Bu işlem mevcut belgeyi değiştirmez veya iptal etmez. Yeni ve ayrı bir düzenleme taslağı oluşturulur. Devam edilsin mi?"
+                    wire:loading.attr="disabled" wire:target="startEditableCopy">Düzenleme Taslağı Aç</x-v65.button>
+            @elseif($document->status === 'posted' && $editPermission && auth()->user()?->can($editPermission.'.cancel'))
+                <a class="v65-btn v65-btn--secondary v65-btn--sm" href="#v65-reference-workflow">
+                    Ters Kayıt ile Düzelt
+                </a>
+            @endif
         @endif
         @if($indexRoute)
             <x-v65.button variant="ghost" size="sm" :href="route($indexRoute)">Listeye Dön</x-v65.button>

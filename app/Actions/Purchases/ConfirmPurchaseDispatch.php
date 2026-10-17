@@ -52,7 +52,10 @@ final class ConfirmPurchaseDispatch
             }
 
             $this->period->handle(CarbonImmutable::parse($locked->document_date));
-            $locked->number = $this->numbers->handle('purchase_dispatch', $locked->document_date->year);
+            // Reopened dispatches retain their original immutable document number.
+            if ($locked->number === null) {
+                $locked->number = $this->numbers->handle('purchase_dispatch', $locked->document_date->year);
+            }
             $locked->status = 'confirmed';
             $locked->version = (int) $locked->version + 1;
             $locked->save();

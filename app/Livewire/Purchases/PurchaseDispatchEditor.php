@@ -4,6 +4,7 @@ namespace App\Livewire\Purchases;
 
 use App\Actions\Purchases\ConfirmPurchaseDispatch;
 use App\Actions\Purchases\CreateGoodsReceiptFromPurchaseDispatch;
+use App\Actions\Purchases\ReopenPurchaseDispatchForEditing;
 use App\Enums\DocumentType;
 use Illuminate\Support\Facades\DB;
 
@@ -35,7 +36,7 @@ class PurchaseDispatchEditor extends BasePurchaseDocumentEditor
     /** @return list<string> */
     protected function extraMutationNames(): array
     {
-        return ['confirmDispatch', 'createReceipt'];
+        return ['confirmDispatch', 'createReceipt', 'reopenEdit'];
     }
 
     public function mount(?int $id = null): void
@@ -44,6 +45,22 @@ class PurchaseDispatchEditor extends BasePurchaseDocumentEditor
         parent::mount($id);
         $this->receiptDate = now()->toDateString();
         $this->loadReceiptInputs();
+    }
+
+    public function canReopenForEditing(): bool
+    {
+        return $this->document !== null
+            && auth()->user()?->can('purchase_dispatches.view')
+            && auth()->user()?->can('purchase_dispatches.update')
+            && app(ReopenPurchaseDispatchForEditing::class)->eligible($this->document);
+    }
+
+    public function reopenForEditing(ReopenPurchaseDispatchForEditing $action): void
+    {
+        abort_unless($this->document !== null && $this->canReopenForEditing(), 403);
+
+        $this->loadDocument($action->handle($this->document, $this->mutationKey('reopenEdit')));
+        $this->completeMutation('reopenEdit');
     }
 
     public function confirmDispatch(ConfirmPurchaseDispatch $action): void

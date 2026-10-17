@@ -2750,3 +2750,14 @@
   .app-shell .v65-reference-advanced{display:none!important}
   .app-shell .v65-reference-heading{padding:5px 0}
 }
+
+/* Safe editing navigation: final postings remain immutable; a separate draft
+   is clearly labelled and linked to the original document. */
+.app-shell .v65-reference-edit-notice{
+  padding:11px 14px;border:1px solid #d7e6f4;border-left:3px solid #3d86c4;
+  border-radius:5px;background:#f6faff;color:#4b6887;font-size:11px;
+  line-height:1.55
+}
+.app-shell .v65-reference-edit-notice strong{color:#164a73;margin-right:5px}
+.app-shell .v65-reference-heading-actions a[href^="#"]{white-space:nowrap}
+@media print{.app-shell .v65-reference-edit-notice{display:none!important}}

@@ -209,6 +209,8 @@ trait WithV65DocumentList
             'posted' => 'Kesinleşti',
             'cancelled' => 'İptal',
             'reversed' => 'Ters Kayıt',
+            'converted' => 'Siparişe Dönüştürüldü',
+            'closed' => 'Kapandı',
         ];
     }
 

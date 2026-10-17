@@ -114,7 +114,7 @@ abstract class BasePurchaseDocumentEditor extends Component
 
     public function mount(?int $id = null): void
     {
-        $this->seedMutationKeys(['save', ...$this->extraMutationNames()]);
+        $this->seedMutationKeys(['save', 'editCopy', ...$this->extraMutationNames()]);
         abort_unless(auth()->user()?->can($this->permissionPrefix().'.view'), 403);
         $this->documentDate = now()->toDateString();
 

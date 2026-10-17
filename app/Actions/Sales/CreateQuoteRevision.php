@@ -66,6 +66,7 @@ final class CreateQuoteRevision
                         'rounding_difference' => $latest->rounding_difference,
                         'grand_total' => $latest->grand_total,
                         'requirements_snapshot' => $latest->requirements_snapshot,
+                        'ui_meta' => $latest->ui_meta,
                         'notes' => $latest->notes,
                         'created_by' => $actor?->id,
                         'created_by_name' => $actor?->name,

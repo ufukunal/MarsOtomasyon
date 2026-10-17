@@ -28,7 +28,36 @@
         <x-v65.document-heading :document="$document" :title="$title" section="Satınalma Yönetimi" :index-route="$documentIndexRoute" :dirty="$documentDirty" />
     @else
         <x-v65.document-prototype-heading :document="$document" :screen-type="$screenType"
-            :index-route="$documentIndexRoute" :dirty="$documentDirty" :form-id="$formId" />
+            :index-route="$documentIndexRoute" :dirty="$documentDirty" :form-id="$formId"
+            :can-copy="$this->canCreateEditableCopy()"
+            :can-reopen="$this instanceof \App\Livewire\Purchases\PurchaseDispatchEditor && $this->canReopenForEditing()"
+            :edit-permission="$this->permissionPrefix()" />
+    @endif
+    @if($document && $document->status !== 'draft' && !($this instanceof \App\Livewire\Purchases\GoodsReceiptEditor))
+        <div class="v65-reference-edit-notice" role="status">
+            <strong>Bu sürüm kayıtlıdır.</strong>
+            @if($document->status === 'posted' && ! $this->canCreateEditableCopy())
+                Kesinleşmiş belge üzerinde tutar veya stok değişikliği yapılamaz.
+                Düzeltme için önce Belge İşlemleri bölümündeki Ters Kayıt uygulanmalıdır.
+                Ters kayıt oluştuktan sonra bu ekrandan yeni düzenleme taslağı açılabilir.
+            @elseif($this instanceof \App\Livewire\Sales\QuoteEditor && $document->number)
+                Eski teklif değişmez; düzenleme yeni bir teklif revizyonunda yapılır.
+            @elseif($this instanceof \App\Livewire\Purchases\PurchaseDispatchEditor && $document->status === 'confirmed')
+                @if($this->canReopenForEditing())
+                    Alış irsaliyesi Mal Kabul görmediği için aynı numarayla taslağa döndürülüp düzenlenebilir.
+                    Değişikliklerden sonra yeniden onaylanması gerekir.
+                @else
+                    Bağlı Mal Kabul veya başka kaynak işlemi bulunduğundan irsaliye güvenle yeniden açılamaz.
+                    İlgili kayıtların düzeltilmesi gerekir.
+                @endif
+            @elseif($this->canCreateEditableCopy())
+                Yeni bir düzenleme taslağı açabilirsiniz. Önceki belge geçerli kalır;
+                bu işlem eski siparişi veya irsaliyeyi otomatik iptal etmez.
+            @else
+                Bu belge için düzenleme kopyası oluşturma yetkisi veya uygun işlem durumu bulunmuyor.
+                Kayıt geçmişi ve ilgili ters kayıt belgeleri değiştirilemez.
+            @endif
+        </div>
     @endif
     @if($errors->any())
         <x-v65.notice tone="danger" title="Belge kontrolü" data-v65-document-errors tabindex="-1">

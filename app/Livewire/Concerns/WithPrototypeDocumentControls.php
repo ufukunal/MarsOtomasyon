@@ -2,7 +2,9 @@
 
 namespace App\Livewire\Concerns;
 
+use App\Actions\Documents\CreateEditableDocumentCopy;
 use App\Enums\DocumentType;
+use App\Models\Period\DocumentRelation;
 use App\Models\Period\Product;
 use Illuminate\Database\Eloquent\Collection;
 
@@ -13,6 +15,75 @@ use Illuminate\Database\Eloquent\Collection;
  */
 trait WithPrototypeDocumentControls
 {
+    /**
+     * A closed document stays immutable. Once the source is financially
+     * reversed (where applicable), authorized users can open a separate draft.
+     */
+    public function canCreateEditableCopy(): bool
+    {
+        $document = $this->document;
+
+        if ($document === null || $document->status === 'draft'
+            || ! in_array($document->document_type, [
+                DocumentType::Quote,
+                DocumentType::SalesOrder,
+                DocumentType::Dispatch,
+                DocumentType::SalesInvoice,
+                DocumentType::PurchaseQuote,
+                DocumentType::PurchaseOrder,
+
+                DocumentType::SupplierInvoice,
+            ], true)) {
+            return false;
+        }
+
+        $user = auth()->user();
+        $permission = $this->permissionPrefix();
+
+        if (! $user || ! $user->can($permission.'.view')
+            || ! $user->can($permission.'.update')
+            || ! $user->can($permission.'.create')) {
+            return false;
+        }
+
+        if ($document->document_type === DocumentType::Quote && $document->number !== null) {
+            return false; // Existing numbered-quote revision workflow.
+        }
+
+        if (DocumentRelation::query()
+            ->where('relation_type', 'reversal_of')
+            ->where('source_document_id', $document->id)->exists()) {
+            return false;
+        }
+
+        return $document->status !== 'posted' || DocumentRelation::query()
+            ->where('relation_type', 'reversal_of')
+            ->where('target_document_id', $document->id)
+            ->exists();
+    }
+
+    public function startEditableCopy(CreateEditableDocumentCopy $action): mixed
+    {
+        abort_unless($this->document !== null && $this->canCreateEditableCopy(), 403);
+
+        $copy = $action->handle($this->document, $this->mutationKey('editCopy'));
+        $this->completeMutation('editCopy');
+
+        $route = match ($copy->document_type) {
+            DocumentType::Quote => 'sales.quotes.edit',
+            DocumentType::SalesOrder => 'sales.orders.edit',
+            DocumentType::Dispatch => 'sales.dispatches.edit',
+            DocumentType::SalesInvoice => 'sales.invoices.edit',
+            DocumentType::PurchaseQuote => 'purchases.quotes.edit',
+            DocumentType::PurchaseOrder => 'purchases.orders.edit',
+            DocumentType::PurchaseDispatch => 'purchases.dispatches.edit',
+            DocumentType::SupplierInvoice => 'purchases.invoices.edit',
+            default => abort(404),
+        };
+
+        return $this->redirectRoute($route, ['id' => $copy->id], navigate: false);
+    }
+
     public string $quickProductSearch = '';
 
     public string $bulkVatPreset = '';
