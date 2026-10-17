@@ -95,14 +95,13 @@
             </label>
             @if($this instanceof \App\Livewire\Sales\QuoteEditor)
                 <label class="field">Teklif Geçerlilik Tarihi <input type="date" wire:model="validUntil"><x-v65.input-error field="validUntil" /></label>
-                <label class="field">Teslim Yeri
-                    <select wire:model="uiMeta.delivery_location_id"><option value="">Teslim yeri seçin</option>
-                        @foreach($locations as $location)<option value="{{ $location->id }}">{{ $location->name }}</option>@endforeach
-                    </select>
-                </label>
-                <label class="field">Müşteri Referans No <input wire:model.blur="uiMeta.customer_reference_no" maxlength="140"></label>
+                <label class="field">Teslim Süresi <input wire:model.blur="uiMeta.delivery_terms" maxlength="140" placeholder="Örn. 7 iş günü"></label>
+                <label class="field">Ödeme Şartı <select wire:model.live="uiMeta.payment_terms"><option value="">Seçin</option>
+                    <option value="Peşin">Peşin</option><option value="15 Gün">15 Gün</option>
+                    <option value="30 Gün">30 Gün</option><option value="60 Gün">60 Gün</option>
+                </select></label>
             @elseif($this instanceof \App\Livewire\Sales\SalesOrderEditor)
-                <label class="field">Beklenen Sevk <input type="date" wire:model="uiMeta.planned_delivery"></label>
+                <label class="field">Planlanan Teslim <input type="date" wire:model="uiMeta.planned_delivery" title="Beklenen Sevk"></label>
                 <label class="field">Sevkiyat Deposu
                     <select wire:model.live="uiMeta.shipment_location_id"><option value="">Satırdan seç</option>
                         @foreach($locations as $location)<option value="{{ $location->id }}">{{ $location->name }}</option>@endforeach
@@ -125,7 +124,6 @@
                 </label>
                 <label class="field">Araç / Plaka <input wire:model.blur="uiMeta.vehicle_plate" maxlength="140"></label>
             @elseif($this instanceof \App\Livewire\Sales\SalesInvoiceEditor)
-                <label class="field">Müşteri Referans No <input wire:model.blur="uiMeta.customer_reference_no" maxlength="140"></label>
                 <label class="field">Vade Tarihi <input type="date" wire:model="dueDate"><x-v65.input-error field="dueDate" /></label>
                 <div class="field v65-reference-source-field">
                     <strong>Kaynak Sevk / İrsaliye</strong>
@@ -135,23 +133,25 @@
                         <span>Kaynak sipariş / irsaliye kayıtlarıyla ilişkilendirilir</span>
                     @endif
                 </div>
+                @if($this instanceof \App\Livewire\Sales\SalesInvoiceEditor)
+                    <label class="field">Ödeme Şekli <select wire:model="uiMeta.payment_method">
+                        <option value="">Seçin</option><option value="Peşin">Peşin</option>
+                        <option value="Vadeli">Vadeli</option><option value="Banka">Banka</option>
+                    </select></label>
+                @endif
             @endif
             <details class="v65-reference-more-options">
                 <summary>Belge indirimi, teslim ve ek seçenekler</summary>
                 <div class="v65-reference-more-fields">
                     @if($this instanceof \App\Livewire\Sales\QuoteEditor)
-                        <label class="field">Teslim Süresi <input wire:model.blur="uiMeta.delivery_terms" maxlength="140" placeholder="Örn. 7 iş günü"></label>
-                        <label class="field">Ödeme Şartı
-                            <select wire:model.live="uiMeta.payment_terms"><option value="">Seçin</option>
-                                <option value="Peşin">Peşin</option><option value="15 Gün">15 Gün</option>
-                                <option value="30 Gün">30 Gün</option><option value="60 Gün">60 Gün</option>
-                            </select>
-                        </label>
+                    <label class="field">Teslim Yeri
+                        <select wire:model="uiMeta.delivery_location_id"><option value="">Teslim yeri seçin</option>
+                            @foreach($locations as $location)<option value="{{ $location->id }}">{{ $location->name }}</option>@endforeach
+                        </select>
+                    </label>
+                    <label class="field">Müşteri Referans No <input wire:model.blur="uiMeta.customer_reference_no" maxlength="140"></label>
                     @elseif($this instanceof \App\Livewire\Sales\SalesInvoiceEditor)
-                        <label class="field">Ödeme Şekli <select wire:model="uiMeta.payment_method">
-                            <option value="">Seçin</option><option value="Peşin">Peşin</option>
-                            <option value="Vadeli">Vadeli</option><option value="Banka">Banka</option>
-                        </select></label>
+                        <label class="field">Müşteri Referans No <input wire:model.blur="uiMeta.customer_reference_no" maxlength="140"></label>
                     @elseif($this instanceof \App\Livewire\Sales\SalesOrderEditor)
                         <label class="field">Vade <input type="date" wire:model="dueDate"><x-v65.input-error field="dueDate" /></label>
                     @endif
