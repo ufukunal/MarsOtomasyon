@@ -68,3 +68,10 @@ it('starts every invoice-based return unselected and validates quantities before
         ->toContain("->whereDoesntHave('incomingRelations'")
         ->toContain("->whereDoesntHave('outgoingRelations'");
 });
+
+it('excludes non-TRY sales invoices from the source picker and rejects them in the preview', function (): void {
+    $center = file_get_contents(base_path('app/Livewire/Returns/ReturnCenter.php'));
+    $preview = file_get_contents(base_path('app/Support/Returns/ReturnDraftPreview.php'));
+    expect(substr_count($center, "when(\$returnType === DocumentType::SalesReturn, fn (\$query) => \$query->where('currency', 'TRY'))"))->toBe(2)
+        ->and($preview)->toContain("\$returnType === DocumentType::SalesReturn && \$invoice->currency !== 'TRY'");
+});

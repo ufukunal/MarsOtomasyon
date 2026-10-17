@@ -114,6 +114,7 @@ class ReturnCenter extends Component
         $invoice = Document::query()->with('lines')
             ->where('document_type', $invoiceType->value)
             ->where('status', 'posted')
+            ->when($returnType === DocumentType::SalesReturn, fn ($query) => $query->where('currency', 'TRY'))
             ->findOrFail($this->sourceInvoiceId);
         // Selecting an invoice must never auto-return every eligible line.
         // Available quantities remain visible in ReturnDraftPreview.
@@ -359,6 +360,7 @@ class ReturnCenter extends Component
                 ->with('contact')
                 ->where('document_type', $sourceType->value)
                 ->where('status', 'posted')
+                ->when($returnType === DocumentType::SalesReturn, fn ($query) => $query->where('currency', 'TRY'))
                 ->whereDoesntHave('incomingRelations', fn ($query) => $query->where('relation_type', 'reversal_of'))
                 ->whereDoesntHave('outgoingRelations', fn ($query) => $query->where('relation_type', 'reversal_of'))
                 ->orderByDesc('document_date')

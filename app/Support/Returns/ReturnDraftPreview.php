@@ -32,7 +32,8 @@ final class ReturnDraftPreview
 
         $expectedType = $returnType === DocumentType::SalesReturn
             ? DocumentType::SalesInvoice : DocumentType::SupplierInvoice;
-        if ($invoice->document_type !== $expectedType || $invoice->status !== 'posted') {
+        if ($invoice->document_type !== $expectedType || $invoice->status !== 'posted'
+            || ($returnType === DocumentType::SalesReturn && $invoice->currency !== 'TRY')) {
             $result['error'] = 'Seçilen kaynak fatura iade için uygun değil.';
 
             return $result;
