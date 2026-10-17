@@ -3095,24 +3095,61 @@
 .app-shell .v65-ref-returns-tabs>a.is-active{color:#fff;background:#176bb7;border-color:#176bb7}
 .app-shell .v65-ref-returns-tabs>a:not(.is-active):hover{background:#edf6ff}
 
-/* Quick product lookup: left-aligned product identity and real stock columns. */
-.app-shell .v65-reference-suggestions{direction:ltr;text-align:left;max-height:340px}
+/* Quick product lookup: a wider single-row ledger-like result on desktop. */
+.app-shell .v65-reference-products-tools>.v65-reference-quick-product{
+    flex:0 1 720px;min-width:min(100%,280px);max-width:100%
+}
+.app-shell .v65-reference-suggestions{
+    left:0;right:auto;width:min(980px,calc(100vw - 48px));max-width:calc(100vw - 48px);
+    box-sizing:border-box;direction:ltr;text-align:left;max-height:340px
+}
 .app-shell .v65-reference-suggestions>button{
-    display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;
-    gap:6px;text-align:left!important;padding:10px 12px;min-width:0
+    display:grid;grid-template-columns:minmax(240px,2.35fr) repeat(4,minmax(110px,1fr));
+    align-items:center;justify-items:stretch;column-gap:12px;row-gap:3px;
+    width:100%;min-width:0;padding:9px 13px;text-align:left!important
 }
-.app-shell .v65-reference-suggestion-identity{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 9px;min-width:0;text-align:left}
-.app-shell .v65-reference-suggestion-identity strong{display:inline;white-space:normal;overflow-wrap:anywhere;text-align:left}
-.app-shell .v65-reference-suggestion-identity small{display:inline;overflow-wrap:anywhere;text-align:left}
-.app-shell .v65-reference-suggestion-metrics{
-    display:grid;grid-template-columns:minmax(112px,1.4fr) repeat(3,minmax(75px,1fr));
-    gap:8px;width:100%;align-items:start;text-align:left
+.app-shell .v65-reference-suggestion-identity{
+    display:flex;flex-direction:column;align-items:flex-start;justify-self:start;
+    gap:3px;min-width:0;width:100%;text-align:left!important
 }
-.app-shell .v65-reference-suggestion-metric{min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:2px}
-.app-shell .v65-reference-suggestion-metric small{display:block;font-size:9px;line-height:1.15;color:#7890a9}
-.app-shell .v65-reference-suggestion-metric strong{display:block;font-size:10px;color:#214a70;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.app-shell .v65-reference-suggestion-identity strong{
+    display:block;white-space:normal;overflow-wrap:anywhere;text-align:left!important;line-height:1.25
+}
+.app-shell .v65-reference-suggestion-identity small{
+    display:block;white-space:normal;overflow-wrap:anywhere;text-align:left!important;line-height:1.2
+}
+/* Flatten the metric wrapper so all five cells occupy the same grid row. */
+.app-shell .v65-reference-suggestion-metrics{display:contents}
+.app-shell .v65-reference-suggestion-metric{
+    min-width:0;display:flex;flex-direction:column;align-items:flex-start;
+    justify-content:center;gap:3px;text-align:left
+}
+.app-shell .v65-reference-suggestion-metric small{
+    display:block;font-size:9px;line-height:1.15;color:#7890a9
+}
+.app-shell .v65-reference-suggestion-metric strong{
+    display:block;font-size:10px;color:#214a70;font-weight:700;
+    font-variant-numeric:tabular-nums;white-space:nowrap
+}
 .app-shell .v65-reference-suggestion-available strong{color:#126748}
-.app-shell .v65-reference-suggestion-stock-locked{font-size:10px;color:#7c8d9e}
-@media(max-width:540px){
-    .app-shell .v65-reference-suggestion-metrics{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px 12px}
+.app-shell .v65-reference-suggestion-stock-locked{
+    grid-column:2/-1;font-size:10px;color:#7c8d9e
+}
+@media(max-width:1050px){
+    .app-shell .v65-reference-suggestions{width:min(800px,calc(100vw - 36px));max-width:calc(100vw - 36px)}
+    .app-shell .v65-reference-suggestions>button{
+        grid-template-columns:minmax(180px,2fr) repeat(4,minmax(85px,1fr));column-gap:9px
+    }
+}
+@media(max-width:720px){
+    .app-shell .v65-reference-suggestions{width:min(580px,calc(100vw - 24px));max-width:calc(100vw - 24px)}
+    .app-shell .v65-reference-suggestions>button{
+        grid-template-columns:repeat(4,minmax(0,1fr));column-gap:8px;row-gap:8px
+    }
+    .app-shell .v65-reference-suggestion-identity{grid-column:1/-1}
+    .app-shell .v65-reference-suggestion-stock-locked{grid-column:1/-1}
+}
+@media(max-width:420px){
+    .app-shell .v65-reference-suggestions>button{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .app-shell .v65-reference-suggestion-metric strong{white-space:normal}
 }
