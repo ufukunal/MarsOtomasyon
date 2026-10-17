@@ -330,7 +330,7 @@
         <x-v65.document-summary :editable="false" class="v65-doc-screen-summary" :document="$document" />
     @endif
 
-    @if($document)
+    @if($document && ! ($this instanceof \App\Livewire\Sales\SalesInvoiceEditor))
         <section id="v65-reference-workflow" class="document-actions panel v65-document-actions v65-doc-workflow" role="group" aria-label="Belge işlemleri">
             <h3 class="v65-doc-workflow-title">Belge İşlemleri</h3>
             @if(method_exists($this, 'internalReview') && $document->status === 'draft')

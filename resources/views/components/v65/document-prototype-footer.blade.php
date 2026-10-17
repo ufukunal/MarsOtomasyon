@@ -8,15 +8,17 @@
         @if(!$document)
             <x-v65.button variant="secondary" size="sm" wire:click="resetNewDraft"
                 wire:confirm="Henüz kaydedilmemiş bu belgedeki bütün girişler temizlenecek. Devam edilsin mi?">
-                Girişi Sıfırla
+                {{ in_array($screenType, ['sales_invoice', 'supplier_invoice'], true) ? 'Sil' : 'Girişi Sıfırla' }}
             </x-v65.button>
-        @elseif($document->status === 'draft')
+        @elseif($document->status === 'draft' && ! in_array($screenType, ['sales_invoice', 'supplier_invoice'], true))
             <a class="v65-btn v65-btn--secondary v65-btn--sm" href="#v65-reference-workflow">
                 Kontrol ve Onay İşlemleri
             </a>
         @endif
-        <x-v65.button type="submit" size="sm" wire:loading.attr="disabled" wire:target="save">
-            {{ config('document_prototype.'.$screenType.'.save', 'Belgeyi Kaydet') }} →
-        </x-v65.button>
+        @unless(in_array($screenType, ['sales_invoice', 'supplier_invoice'], true))
+            <x-v65.button type="submit" size="sm" wire:loading.attr="disabled" wire:target="save">
+                {{ config('document_prototype.'.$screenType.'.save', 'Belgeyi Kaydet') }} →
+            </x-v65.button>
+        @endunless
     </div>
 </footer>

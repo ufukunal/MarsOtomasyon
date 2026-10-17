@@ -11,6 +11,8 @@
     $currentState = $document?->status ?? 'draft';
     $editable = $document === null || $currentState === 'draft';
     $saveLabel = $screen['save'] ?? 'Belgeyi Kaydet';
+    $isInvoice = in_array($screenType, ['sales_invoice', 'supplier_invoice'], true);
+    $invoicePermission = $screenType === 'sales_invoice' ? 'sales_invoices' : 'supplier_invoices';
 @endphp
 
 <header {{ $attributes->class(['v65-reference-heading']) }}>
@@ -43,9 +45,24 @@
                     href="#{{ $formId }}">Düzenle</a>
             @endif
             <x-v65.button type="submit" size="sm" :form="$formId"
-                wire:loading.attr="disabled" wire:target="save">{{ $saveLabel }}</x-v65.button>
+                wire:loading.attr="disabled" wire:target="save">{{ $isInvoice ? 'Faturayı Kaydet' : $saveLabel }}</x-v65.button>
+            @if($isInvoice && $document && auth()->user()?->can($invoicePermission.'.cancel'))
+                <x-v65.button variant="danger" size="sm" wire:click="deleteInvoice"
+                    wire:loading.attr="disabled" wire:target="deleteInvoice">Sil</x-v65.button>
+            @endif
         @elseif($document)
-            @if($screenType === 'quote' && $document->number !== null && auth()->user()?->can('quotes.update'))
+            @if($isInvoice)
+                @if(auth()->user()?->can($invoicePermission.'.update') && auth()->user()?->can($invoicePermission.'.create')
+                    && (auth()->user()?->can($invoicePermission.'.cancel') || \App\Support\Documents\DocumentEditCatalog::hasReversal($document)))
+                    <x-v65.button variant="secondary" size="sm" wire:click="editInvoice"
+                        wire:loading.attr="disabled" wire:target="editInvoice">Düzenle</x-v65.button>
+                @endif
+                @if(auth()->user()?->can($invoicePermission.'.cancel')
+                    && ! \App\Support\Documents\DocumentEditCatalog::hasReversal($document))
+                    <x-v65.button variant="danger" size="sm" wire:click="deleteInvoice"
+                        wire:loading.attr="disabled" wire:target="deleteInvoice">Sil</x-v65.button>
+                @endif
+            @elseif($screenType === 'quote' && $document->number !== null && auth()->user()?->can('quotes.update'))
                 <x-v65.button variant="secondary" size="sm" wire:click="revision"
                     wire:confirm="Satış teklifinin kayıtlı sürümü korunacak; düzenlenebilir yeni bir revizyon oluşturulacak. Devam edilsin mi?"
                     wire:loading.attr="disabled" wire:target="revision">Revizyonla Düzenle</x-v65.button>

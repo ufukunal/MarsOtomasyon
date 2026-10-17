@@ -381,7 +381,7 @@
         <x-v65.document-sources :document="$document" />
     @endif
 
-    @if($document)
+    @if($document && ! ($this instanceof \App\Livewire\Purchases\SupplierInvoiceEditor))
         <section id="v65-reference-workflow" class="document-actions panel v65-document-actions v65-doc-workflow" role="group" aria-label="Belge işlemleri">
             <h3 class="v65-doc-workflow-title">Belge İşlemleri</h3>
             @if($this instanceof \App\Livewire\Purchases\PurchaseQuoteEditor && $document->status === 'draft')

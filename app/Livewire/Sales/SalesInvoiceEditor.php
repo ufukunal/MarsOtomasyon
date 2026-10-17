@@ -34,7 +34,7 @@ class SalesInvoiceEditor extends BaseSalesDocumentEditor
 
     protected function extraMutationNames(): array
     {
-        return ['post', 'reverse'];
+        return ['post', 'reverse', 'invoiceEdit', 'invoiceDelete'];
     }
 
     public function mount(?int $id = null): void
@@ -103,6 +103,28 @@ class SalesInvoiceEditor extends BaseSalesDocumentEditor
             'is_preview' => $preview !== null,
             'is_posted' => $this->document !== null && $this->document->status !== 'draft',
         ];
+    }
+
+    /**
+     * One-click invoice edit: keep the posted ledger immutable, open a safe
+     * editable draft after its internal reversal.
+     */
+    public function editInvoice(\App\Actions\Documents\ManageInvoiceRecord $action): mixed
+    {
+        abort_unless($this->document !== null, 422);
+        $draft = $action->edit($this->document, $this->mutationKey('invoiceEdit'));
+        $this->completeMutation('invoiceEdit');
+
+        return $this->redirectRoute('sales.invoices.edit', ['id' => $draft->id], navigate: false);
+    }
+
+    public function deleteInvoice(\App\Actions\Documents\ManageInvoiceRecord $action): mixed
+    {
+        abort_unless($this->document !== null, 422);
+        $action->delete($this->document, $this->mutationKey('invoiceDelete'));
+        $this->completeMutation('invoiceDelete');
+
+        return $this->redirectRoute('sales.invoices.index', navigate: false);
     }
 
     public function reverse(ReverseDocument $action): mixed

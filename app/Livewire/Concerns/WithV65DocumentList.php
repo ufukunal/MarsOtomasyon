@@ -164,6 +164,15 @@ trait WithV65DocumentList
             ->with('contact')
             ->where('document_type', $this->documentType()->value);
 
+        // Ordinary invoice screens hide reversed pairs; their immutable audit
+        // and accounting entries remain available from document history.
+        if (in_array($this->documentType(), [DocumentType::SalesInvoice, DocumentType::SupplierInvoice], true)) {
+            $query->whereDoesntHave('incomingRelations', fn (Builder $relation) => $relation
+                ->where('relation_type', 'reversal_of'))
+                ->whereDoesntHave('outgoingRelations', fn (Builder $relation) => $relation
+                    ->where('relation_type', 'reversal_of'));
+        }
+
         $search = trim($this->search);
         if ($search !== '') {
             $needle = '%'.str_replace(['%', '_'], ['\%', '\_'], $search).'%';
