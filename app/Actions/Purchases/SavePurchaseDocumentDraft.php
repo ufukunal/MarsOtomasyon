@@ -152,6 +152,7 @@ final class SavePurchaseDocumentDraft
                 'vat_amount' => $totals->vatAmount,
                 'rounding_difference' => $totals->roundingDifference,
                 'grand_total' => $totals->grandTotal,
+                'ui_meta' => $header['ui_meta'] ?? ($document?->ui_meta ?? []),
                 'notes' => trim((string) ($header['notes'] ?? '')) ?: null,
             ];
 

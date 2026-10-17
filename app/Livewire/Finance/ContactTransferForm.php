@@ -32,6 +32,8 @@ class ContactTransferForm extends Component
 
     public string $reason = '';
 
+    public string $reference = '';
+
     public bool $showOverdraftConfirm = false;
 
     public bool $overdraftConfirmed = false;
@@ -159,6 +161,7 @@ class ContactTransferForm extends Component
             'amount' => ['required', 'regex:/^\d{1,14}(?:\.\d{1,4})?$/D'],
             'documentDate' => ['required', 'date'],
             'reason' => ['nullable', 'string', 'max:1000'],
+            'reference' => ['nullable', 'string', 'max:100'],
         ], [], [
             'sourceContactId' => 'Kaynak cari',
             'targetContactId' => 'Hedef cari',
@@ -193,11 +196,13 @@ class ContactTransferForm extends Component
             $this->reason,
             $this->mutationKey('post'),
             $this->overdraftConfirmed,
+            $this->reference !== '' ? $this->reference : null,
         );
         $this->completeMutation('post');
         $this->postedTransferId = (int) $transfer->id;
         $this->amount = '';
         $this->reason = '';
+        $this->reference = '';
         $this->showOverdraftConfirm = false;
         $this->overdraftConfirmed = false;
         $this->overdraftAcknowledged = false;

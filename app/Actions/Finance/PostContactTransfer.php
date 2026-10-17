@@ -30,13 +30,14 @@ final class PostContactTransfer
         string $reason,
         string $idempotencyKey,
         bool $overdraftApproved = false,
+        ?string $reference = null,
     ): ContactTransfer {
         MutationAuthorizer::authorize('contact_transfers.create');
 
         return IdempotencyKey::run(
             $idempotencyKey,
             'contact-transfer.create',
-            function () use ($sourceId, $targetId, $balanceType, $amount, $date, $reason, $overdraftApproved): ContactTransfer {
+            function () use ($sourceId, $targetId, $balanceType, $amount, $date, $reason, $overdraftApproved, $reference): ContactTransfer {
                 if ($sourceId <= 0 || $targetId <= 0 || $sourceId === $targetId
                     || ! in_array($balanceType, ['debit', 'credit'], true)) {
                     throw new DomainException('Virman için farklı kaynak/hedef cari ve geçerli yön zorunludur.');
@@ -52,7 +53,7 @@ final class PostContactTransfer
                 $this->ensurePeriodOpen->handle($date);
 
                 return DB::connection('period')->transaction(function () use (
-                    $sourceId, $targetId, $balanceType, $amount, $date, $reason, $overdraftApproved
+                    $sourceId, $targetId, $balanceType, $amount, $date, $reason, $overdraftApproved, $reference
                 ): ContactTransfer {
                     $contacts = Contact::query()->whereIn('id', [$sourceId, $targetId])
                         ->where('is_active', true)->orderBy('id')->lockForUpdate()->get()->keyBy('id');
@@ -119,6 +120,7 @@ final class PostContactTransfer
                         'amount' => $amount,
                         'currency' => 'TRY',
                         'reason' => trim($reason),
+                        'reference' => trim((string) $reference) ?: null,
                         'overdraft_approved' => $exceeded,
                         'status' => 'posted',
                         'created_by' => $actor?->id,

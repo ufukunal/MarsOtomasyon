@@ -46,6 +46,7 @@ final class ConvertQuoteToSalesOrder
                     'rounding_difference' => $locked->rounding_difference,
                     'grand_total' => $locked->grand_total,
                     'requirements_snapshot' => $locked->requirements_snapshot,
+                    'ui_meta' => $locked->ui_meta ?? [],
                     'notes' => $locked->notes,
                     'created_by' => $actor?->id,
                     'created_by_name' => $actor?->name,

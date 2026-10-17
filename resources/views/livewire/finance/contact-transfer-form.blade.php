@@ -17,10 +17,10 @@
                     </select>
                 </label>
                 <div class="v65-contact-transfer-balance"><span>Mevcut bakiye (Borç − Alacak)</span>
-                    <strong>{{ \App\Support\Formatting\TrFormatter::money($this->sourceBalance()) }} TRY</strong>
+                    <strong class="{{ bccomp($this->sourceBalance(), '0', 4) > 0 ? 'is-debtor' : (bccomp($this->sourceBalance(), '0', 4) < 0 ? 'is-creditor' : '') }}">{{ \App\Support\Formatting\TrFormatter::money($this->sourceBalance()) }} TRY</strong>
                 </div>
                 <div class="v65-contact-transfer-balance"><span>İşlem Sonrası (Taslak)</span>
-                    <strong>{{ \App\Support\Formatting\TrFormatter::money($this->projectedSourceBalance()) }} TRY</strong>
+                    <strong class="{{ bccomp($this->projectedSourceBalance(), '0', 4) > 0 ? 'is-debtor' : (bccomp($this->projectedSourceBalance(), '0', 4) < 0 ? 'is-creditor' : '') }}">{{ \App\Support\Formatting\TrFormatter::money($this->projectedSourceBalance()) }} TRY</strong>
                 </div>
             </div>
             <div class="v65-contact-transfer-party">
@@ -37,10 +37,10 @@
                     </select>
                 </label>
                 <div class="v65-contact-transfer-balance"><span>Mevcut bakiye (Borç − Alacak)</span>
-                    <strong>{{ \App\Support\Formatting\TrFormatter::money($this->targetBalance()) }} TRY</strong>
+                    <strong class="{{ bccomp($this->targetBalance(), '0', 4) > 0 ? 'is-debtor' : (bccomp($this->targetBalance(), '0', 4) < 0 ? 'is-creditor' : '') }}">{{ \App\Support\Formatting\TrFormatter::money($this->targetBalance()) }} TRY</strong>
                 </div>
                 <div class="v65-contact-transfer-balance"><span>İşlem Sonrası (Taslak)</span>
-                    <strong>{{ \App\Support\Formatting\TrFormatter::money($this->projectedTargetBalance()) }} TRY</strong>
+                    <strong class="{{ bccomp($this->projectedTargetBalance(), '0', 4) > 0 ? 'is-debtor' : (bccomp($this->projectedTargetBalance(), '0', 4) < 0 ? 'is-creditor' : '') }}">{{ \App\Support\Formatting\TrFormatter::money($this->projectedTargetBalance()) }} TRY</strong>
                 </div>
             </div>
         </div>
@@ -58,6 +58,10 @@
             <label class="field"><span>İşlem Tarihi</span>
                 <input type="date" wire:model="documentDate">
             </label>
+            <label class="field"><span>Virman Referansı</span>
+                <input wire:model.blur="reference" maxlength="100" placeholder="Harici işlem / belge no">
+                <x-v65.input-error field="reference"/>
+            </label>
             <label class="field"><span>Gerekçe / Açıklama</span>
                 <input wire:model.blur="reason" placeholder="Virmanın nedenini yazın">
                 <x-v65.input-error field="reason"/>
@@ -66,6 +70,7 @@
         @if($postedTransferId)
             <div role="status" class="v65-contact-transfer-notice">Virman kaydedildi. Kayıt #{{ $postedTransferId }}</div>
         @endif
+        <p class="v65-doc-search-hint">Pozitif bakiye: <strong class="is-debtor">O Borçlu</strong> · Negatif bakiye: <strong class="is-creditor">O Alacaklı</strong>. Bakiye aşımlarında yalnız yetkili kullanıcı açık onay ve gerekçeyle işlem yapabilir.</p>
         <div class="v65-form-footer">
             <x-v65.button wire:click="post" wire:loading.attr="disabled" wire:target="post">Virmanı Oluştur</x-v65.button>
         </div>
@@ -73,7 +78,7 @@
     <section class="panel v65-workspace-form">
         <h3>Cari Virman Geçmişi</h3>
         <div class="table-scroll"><table class="data-table">
-            <thead><tr><th>No</th><th>Tarih</th><th>Kaynak Cari</th><th>Hedef Cari</th><th>Yön</th><th>Tutar</th><th>Aşım Onayı</th><th>İşlem</th></tr></thead>
+            <thead><tr><th>No</th><th>Tarih</th><th>Kaynak Cari</th><th>Hedef Cari</th><th>Yön</th><th>Referans</th><th>Tutar</th><th>Aşım Onayı</th><th>İşlem</th></tr></thead>
             <tbody>
                 @forelse($transfers as $transfer)
                 <tr>
@@ -82,6 +87,7 @@
                     <td>{{ $transfer->sourceContact?->title }}</td>
                     <td>{{ $transfer->targetContact?->title }}</td>
                     <td>{{ $transfer->balance_type === 'debit' ? 'Borç Devri' : 'Alacak Devri' }}</td>
+                    <td>{{ $transfer->reference ?: '—' }}</td>
                     <td>{{ \App\Support\Formatting\TrFormatter::money((string) $transfer->amount) }} TRY</td>
                     <td>{{ $transfer->overdraft_approved ? 'Onaylı' : '—' }}</td>
                     <td>
@@ -93,7 +99,7 @@
                     </td>
                 </tr>
                 @empty
-                <tr><td colspan="8">Henüz cari virman kaydı bulunmuyor.</td></tr>
+                <tr><td colspan="9">Henüz cari virman kaydı bulunmuyor.</td></tr>
                 @endforelse
             </tbody>
         </table></div>

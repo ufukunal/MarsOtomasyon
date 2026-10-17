@@ -55,6 +55,28 @@
             @else
                 <div class="v65-doc-static-field"><strong>Para Birimi / Kur</strong><span>{{ $currency }} · {{ $exchangeRate }}</span></div>
             @endif
+
+            <label class="field">Varsayılan Depo <select wire:model.live="uiMeta.default_location_id">
+                <option value="">Satır bazında seç</option>@foreach($locations as $location)<option value="{{ $location->id }}">{{ $location->name }}</option>@endforeach</select>
+            </label>
+            @if($this instanceof \App\Livewire\Purchases\PurchaseQuoteEditor)
+                <label class="field">Teklif Geçerlilik <input type="date" wire:model="uiMeta.quote_valid_until"></label>
+                <label class="field">Teslim Yeri <select wire:model="uiMeta.delivery_location_id"><option value="">Seçin</option>@foreach($locations as $location)<option value="{{ $location->id }}">{{ $location->name }}</option>@endforeach</select></label>
+                <label class="field">Tedarikçi Teklif No <input wire:model.blur="uiMeta.supplier_quote_no" maxlength="140"></label>
+            @elseif($this instanceof \App\Livewire\Purchases\PurchaseOrderEditor)
+                <label class="field">Beklenen Teslim <input type="date" wire:model="uiMeta.expected_delivery"></label>
+                <label class="field">Kabul Deposu <select wire:model="uiMeta.receipt_location_id"><option value="">Satır bazında seç</option>@foreach($locations as $location)<option value="{{ $location->id }}">{{ $location->name }}</option>@endforeach</select></label>
+                <label class="field">Tedarikçi Teklif No <input wire:model.blur="uiMeta.supplier_quote_no" maxlength="140"></label>
+            @elseif($this instanceof \App\Livewire\Purchases\PurchaseDispatchEditor)
+                <label class="field">Tedarikçi İrsaliye No <input wire:model.blur="uiMeta.supplier_dispatch_no" maxlength="140"></label>
+                <label class="field">Kabul Deposu <select wire:model="uiMeta.receipt_location_id"><option value="">Satır bazında seç</option>@foreach($locations as $location)<option value="{{ $location->id }}">{{ $location->name }}</option>@endforeach</select></label>
+            @elseif($this instanceof \App\Livewire\Purchases\GoodsReceiptEditor)
+                <label class="field">Kabul / Kaynak Notu <input wire:model.blur="uiMeta.goods_receipt_reference" maxlength="140"></label>
+            @elseif($this instanceof \App\Livewire\Purchases\SupplierInvoiceEditor)
+                <label class="field">Tedarikçi Fatura No <input wire:model.blur="uiMeta.supplier_invoice_no" maxlength="140"></label>
+                <label class="field">Ödeme Şekli <select wire:model="uiMeta.payment_method"><option value="">Seçin</option>
+                    <option value="Peşin">Peşin</option><option value="Vadeli">Vadeli</option><option value="Banka">Banka</option></select></label>
+            @endif
             <label class="field v65-doc-notes">Not <textarea wire:model="notes" rows="3"></textarea></label>
 
             @if(!$isGoodsReceipt)
@@ -71,102 +93,90 @@
                     <small>Ürün seçtiğinizde sonraki boş satır otomatik hazırlanır. Boş satırlar kaydedilmez.</small>
                 </div>
                 <small class="v65-doc-mobile-scroll-hint">Tablodaki diğer satır alanlarını görmek için yatay kaydırın.</small>
-                <div class="table-scroll document-lines v65-doc-table-scroll"><table class="data-table v65-doc-table">
-                <thead>
-                <tr>
-                    <th scope="col">#</th><th scope="col">Tür</th><th scope="col">Ürün / Açıklama</th><th scope="col">Birim</th><th scope="col" class="align-end">Miktar</th><th scope="col">Lokasyon</th>
-                    @unless($isGoodsReceipt)
-                        <th scope="col" class="align-end">Fiyat</th><th scope="col" class="align-end">İsk. %</th><th scope="col" class="align-end">KDV %</th>
-                    @endunless
-                    <th scope="col" class="align-end">İskonto Tutarı</th><th scope="col" class="align-end">Satır KDV*</th><th scope="col" class="align-end">Satır Net / Matrah</th>
-                    @unless($isGoodsReceipt)<th scope="col">İşlem</th>@endunless
-                </tr>
-                </thead>
-                <tbody>
-                @foreach($lines as $index => $line)
-                    <tr wire:key="purchase-line-{{ $line['row_key'] ?? $index }}">
-                        <td>{{ $index + 1 }}</td>
-                        <td>
-                            @if($isGoodsReceipt)
-                                {{ $line['line_kind'] === 'stock' ? 'Stok' : 'Hizmet' }}
-                            @else
-                                <select wire:model.live="lines.{{ $index }}.line_kind" aria-label="Satır {{ $index + 1 }} tür">
-                                    <option value="stock">Stok</option>
-                                    <option value="service">Hizmet</option>
-                                </select>
-                            @endif
-                        </td>
-                        <td class="v65-doc-product-cell">
-                            @if($isGoodsReceipt)
-                                {{ $line['description'] ?? 'Kaynak satır' }}
-                            @elseif(($line['line_kind'] ?? 'stock') === 'service')
-                                <input wire:model.blur="lines.{{ $index }}.description" placeholder="Hizmet açıklaması" aria-invalid="{{ $errors->has('lines.'.$index.'.description') ? 'true' : 'false' }}" aria-label="Satır {{ $index + 1 }} hizmet açıklaması"><x-v65.input-error :field="'lines.'.$index.'.description'" />
-                            @else
-                                <input type="search" class="v65-doc-product-search"
-                                    wire:model.live.debounce.300ms="productSearches.{{ $line['row_key'] ?? $index }}"
-                                    placeholder="Ürün kodu veya adıyla ara"
-                                    aria-label="Satır {{ $index + 1 }} ürün ara" autocomplete="off">
-                                    <small class="v65-doc-search-loading" wire:loading wire:target="productSearches.{{ $line['row_key'] ?? $index }}">Aranıyor…</small>
-                                <select wire:model.live="lines.{{ $index }}.product_id" aria-invalid="{{ $errors->has('lines.'.$index.'.product_id') ? 'true' : 'false' }}" aria-label="Satır {{ $index + 1 }} ürün">
-                                    <option value="">Ürün seçin</option>
-                                    @forelse($this->productOptionsForLine((string) ($line['row_key'] ?? $index), (int) ($line['product_id'] ?? 0)) as $product)
-                                        <option value="{{ $product->id }}">{{ $product->code }} · {{ $product->name }}</option>
-                                    @empty
-                                        <option value="" disabled>Ürün bulunamadı</option>
-                                    @endforelse
-                                </select>
-                                    <x-v65.input-error :field="'lines.'.$index.'.product_id'" />
-                                <details class="v65-doc-line-details"><summary>Satır açıklaması</summary>
-                                        <input class="v65-doc-line-description" wire:model="lines.{{ $index }}.description" placeholder="İsteğe bağlı açıklama" aria-label="Satır {{ $index + 1 }} açıklama">
-                                    </details>
-                            @endif
-                        </td>
-                        <td>
-                            @if($isGoodsReceipt)
-                                {{ $units->firstWhere('id', (int) ($line['unit_id'] ?? 0))?->code ?? '—' }}
-                            @elseif(($line['line_kind'] ?? 'stock') === 'service')
-                                <span class="v65-doc-muted">—</span>
-                            @else
-                                <select wire:model="lines.{{ $index }}.unit_id" aria-label="Satır {{ $index + 1 }} birim">
-                                    <option value="">Birim</option>
-                                    @foreach($units as $unit)
-                                        <option value="{{ $unit->id }}">{{ $unit->code }}</option>
-                                    @endforeach
-                                </select>
-                            @endif
-                        </td>
-                        <td class="align-end"><input wire:model.blur="lines.{{ $index }}.quantity" aria-invalid="{{ $errors->has('lines.'.$index.'.quantity') ? 'true' : 'false' }}" inputmode="decimal" data-tr-decimal aria-label="Satır {{ $index + 1 }} miktar"><x-v65.input-error :field="'lines.'.$index.'.quantity'" /></td>
-                        <td>
-                            @if(($line['line_kind'] ?? 'stock') === 'service')
-                                <span class="v65-doc-muted">—</span>
-                            @else
-                                <select wire:model="lines.{{ $index }}.location_id" aria-label="Satır {{ $index + 1 }} depo">
-                                    <option value="">Depo seçin</option>
-                                    @foreach($locations as $location)
-                                        <option value="{{ $location->id }}">{{ $location->name }}</option>
-                                    @endforeach
-                                </select>
-                            @endif
-                        </td>
-                        @if(!$isGoodsReceipt)
-                            <td class="align-end"><input wire:model.blur="lines.{{ $index }}.unit_price" aria-invalid="{{ $errors->has('lines.'.$index.'.unit_price') ? 'true' : 'false' }}" inputmode="decimal" data-tr-decimal aria-label="Satır {{ $index + 1 }} birim fiyat"><x-v65.input-error :field="'lines.'.$index.'.unit_price'" /></td>
-                            <td class="align-end"><input wire:model.blur="lines.{{ $index }}.line_discount_rate" aria-invalid="{{ $errors->has('lines.'.$index.'.line_discount_rate') ? 'true' : 'false' }}" inputmode="decimal" data-tr-decimal aria-label="Satır {{ $index + 1 }} iskonto"><x-v65.input-error :field="'lines.'.$index.'.line_discount_rate'" /></td>
-                            <td class="align-end"><input wire:model.blur="lines.{{ $index }}.vat_rate" aria-invalid="{{ $errors->has('lines.'.$index.'.vat_rate') ? 'true' : 'false' }}" inputmode="decimal" data-tr-decimal aria-label="Satır {{ $index + 1 }} KDV"><x-v65.input-error :field="'lines.'.$index.'.vat_rate'" /></td>
-                        @endif
-                        <x-v65.document-line-amounts :calculation="$draftPreview?->lines[$index] ?? null" :line="$line" :show-stored="!$documentDirty" />
-                        <td class="align-end v65-doc-line-net">@if($draftPreview && isset($draftPreview->lines[$index])){{ \App\Support\Formatting\TrFormatter::money((string) $draftPreview->lines[$index]->lineTotal) }}@elseif(!$documentDirty && isset($line['line_total'])){{ \App\Support\Formatting\TrFormatter::money((string) $line['line_total']) }}@else—@endif</td>
-                        @unless($isGoodsReceipt)
-                            <td><x-v65.button variant="danger" size="xs" wire:click="removeLine({{ $index }})" aria-label="Satır {{ $index + 1 }} sil">Sil</x-v65.button></td>
-                        @endunless
-                    </tr>
-                @endforeach
-                </tbody>
-            </table></div>
-                <small class="v65-doc-line-tax-note">* Satır KDV tutarı, belge genel iskontosu uygulanmadan önceki bilgi amaçlı hesaplamadır. Geçerli toplam KDV, Belge Toplamları panelindeki sunucu hesaplamasıdır.</small>
+                <div class="table-scroll document-lines v65-doc-table-scroll"><table class="data-table v65-doc-table v65-prototype-lines">
+                    <thead><tr>
+                        <th>#</th><th>Ürün Kodu / Barkod</th><th>Ürün Adı ve Detay</th><th class="align-end">Miktar</th>
+                        <th>Birim</th><th class="align-end">Fiyat</th><th class="align-end">İsk. %</th><th class="align-end">KDV %</th>
+                        <th class="align-end">Net Tutar</th><th class="align-end">KDV Dahil*</th><th>İşlem</th>
+                    </tr></thead>
+                    <tbody>
+                    @foreach($lines as $index => $line)
+                        @php
+                            $service = ($line['line_kind'] ?? 'stock') === 'service';
+                            $previewLine = $draftPreview?->lines[$index] ?? null;
+                            $lineNet = $previewLine?->lineTotal ?? (!$documentDirty ? ($line['line_total'] ?? null) : null);
+                            $lineVat = $lineNet !== null && is_numeric((string) ($line['vat_rate'] ?? 0))
+                                ? \App\Support\Money\Money::of((string) $lineNet)->percent((string) ($line['vat_rate'] ?? 0))->amount : null;
+                            $lineWithVat = $lineVat !== null ? \App\Support\Money\Money::of((string) $lineNet)->plus(\App\Support\Money\Money::of($lineVat))->amount : null;
+                        @endphp
+                        <tr wire:key="purchase-line-{{ $line['row_key'] ?? $index }}">
+                            <td>{{ $index + 1 }}</td>
+                            <td class="v65-doc-product-cell">
+                                @if($isGoodsReceipt)<span>Kaynak Ürün / Hizmet</span>@elseif($service)<span class="v65-doc-muted">HİZMET</span>
+                                @else
+                                    <input type="search" class="v65-doc-product-search" data-v65-fast-product-search
+                                        wire:model.live.debounce.300ms="productSearches.{{ $line['row_key'] ?? $index }}"
+                                        placeholder="Kod / barkod / ad ara" autocomplete="off" aria-label="Satır {{ $index + 1 }} ürün ara">
+                                    <select data-v65-fast-product-select wire:model.live="lines.{{ $index }}.product_id" aria-label="Satır {{ $index + 1 }} ürün seç">
+                                        <option value="">Ürün seçin</option>
+                                        @forelse($this->productOptionsForLine((string) ($line['row_key'] ?? $index), (int) ($line['product_id'] ?? 0)) as $product)
+                                            <option value="{{ $product->id }}">{{ $product->code }} · {{ $product->name }} {{ $product->barcode ? '(' . $product->barcode . ')' : '' }}</option>
+                                        @empty
+                                            <option disabled value="">Ürün bulunamadı</option>
+                                        @endforelse
+                                    </select>
+                                    <x-v65.input-error :field="'lines.'.$index.'.product_id'"/>
+                                @endif
+                            </td>
+                            <td class="v65-doc-product-detail">
+                                @if($isGoodsReceipt)<strong>{{ $line['description'] ?? 'Kaynak satır' }}</strong>
+                                @elseif($service)
+                                    <input wire:model.blur="lines.{{ $index }}.description" placeholder="Hizmet açıklaması">
+                                    <x-v65.input-error :field="'lines.'.$index.'.description'"/>
+                                @else <strong>{{ $line['description'] ?? 'Ürün seçin' }}</strong>
+                                @endif
+                                @unless($isGoodsReceipt)
+                                <details class="v65-doc-line-details"><summary>Satır detayı</summary>
+                                    <label>Tür <select wire:model.live="lines.{{ $index }}.line_kind" aria-label="Satır türü">
+                                        <option value="stock">Stok</option><option value="service">Hizmet</option>
+                                    </select></label>
+                                    @unless($service)
+                                    <label>Depo <select wire:model="lines.{{ $index }}.location_id">
+                                        <option value="">Depo seçin</option>
+                                        @foreach($locations as $location)<option value="{{ $location->id }}">{{ $location->name }}</option>@endforeach
+                                    </select></label>
+                                    <label>Satır Notu <input wire:model.blur="lines.{{ $index }}.description" placeholder="İsteğe bağlı not"></label>
+                                    @endunless
+                                    <small>İskonto tutarı: {{ $previewLine ? \App\Support\Formatting\TrFormatter::money((string) $previewLine->discountAmount) : '—' }}</small>
+                                </details>
+                                @endunless
+                            </td>
+                            <td class="align-end">
+                                <input data-v65-fast-quantity wire:model.blur="lines.{{ $index }}.quantity" inputmode="decimal" data-tr-decimal aria-label="Satır {{ $index + 1 }} miktar">
+                                <x-v65.input-error :field="'lines.'.$index.'.quantity'"/>
+                            </td>
+                            <td>
+                                @if($isGoodsReceipt)<span>{{ $units->firstWhere('id', (int) ($line['unit_id'] ?? 0))?->code ?? '—' }}</span>@elseif($service)<span>—</span>@else
+                                    <select wire:model="lines.{{ $index }}.unit_id" aria-label="Satır {{ $index + 1 }} birim">
+                                        <option value="">Birim</option>@foreach($units as $unit)<option value="{{ $unit->id }}">{{ $unit->code }}</option>@endforeach
+                                    </select>
+                                @endif
+                            </td>
+                            <td class="align-end">@if($isGoodsReceipt){{ \App\Support\Formatting\TrFormatter::money((string) ($line['unit_price'] ?? '0')) }}@else<input wire:model.blur="lines.{{ $index }}.unit_price" inputmode="decimal" data-tr-decimal aria-invalid="{{ $errors->has('lines.'.$index.'.unit_price') ? 'true' : 'false' }}" aria-label="Satır fiyatı">@endif</td>
+                            <td class="align-end">@if($isGoodsReceipt){{ $line['line_discount_rate'] ?? '0' }}@else<input wire:model.blur="lines.{{ $index }}.line_discount_rate" inputmode="decimal" data-tr-decimal aria-invalid="{{ $errors->has('lines.'.$index.'.line_discount_rate') ? 'true' : 'false' }}" aria-label="Satır iskonto oranı">@endif</td>
+                            <td class="align-end">@if($isGoodsReceipt){{ $line['vat_rate'] ?? '0' }}@else<input wire:model.blur="lines.{{ $index }}.vat_rate" inputmode="decimal" data-tr-decimal aria-invalid="{{ $errors->has('lines.'.$index.'.vat_rate') ? 'true' : 'false' }}" aria-label="Satır KDV oranı">@endif</td>
+                            <td class="align-end v65-doc-line-net">{{ $lineNet !== null ? \App\Support\Formatting\TrFormatter::money((string) $lineNet) : '—' }}</td>
+                            <td class="align-end v65-doc-line-incl">{{ $lineWithVat !== null ? \App\Support\Formatting\TrFormatter::money($lineWithVat) : '—' }}</td>
+                            <td>@unless($isGoodsReceipt)<x-v65.button size="xs" variant="danger" wire:click="removeLine({{ $index }})" aria-label="Satır sil">Sil</x-v65.button>@else<span>Kaynak Satır</span>@endunless</td>
+                        </tr>
+                    @endforeach
+                    </tbody>
+                </table></div>
+                <small class="v65-doc-line-tax-note">* KDV Dahil satır tutarı belge genel/ek iskontoları öncesi bilgi amaçlıdır; nihai tutarlar sunucu tarafından hesaplanır.</small>
             </section>
 
             <x-v65.form-actions align="between" class="v65-doc-form-actions">
-                @unless($isGoodsReceipt)<x-v65.button variant="secondary" wire:click="addLine">+ Satır Ekle</x-v65.button>@endunless
+                @unless($isGoodsReceipt)<div class="v65-line-add-actions"><x-v65.button variant="secondary" wire:click="addServiceLine">+ Hizmet Satırı</x-v65.button><x-v65.button variant="secondary" wire:click="addLine">+ Yeni Ürün Satırı</x-v65.button></div>@endunless
                 <x-v65.button type="submit" wire:loading.attr="disabled" wire:target="save">Kaydet</x-v65.button>
             </x-v65.form-actions>
         </form>

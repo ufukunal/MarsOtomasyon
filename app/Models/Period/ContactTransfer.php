@@ -12,7 +12,7 @@ final class ContactTransfer extends PeriodModel
         'number', 'source_contact_id', 'target_contact_id',
         'source_transaction_id', 'target_transaction_id',
         'balance_type', 'transfer_date', 'amount', 'currency',
-        'reason', 'overdraft_approved', 'status', 'reversal_of_id',
+        'reason', 'reference', 'overdraft_approved', 'status', 'reversal_of_id',
         'created_by', 'created_by_name',
     ];
 

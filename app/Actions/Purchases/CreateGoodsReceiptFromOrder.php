@@ -103,6 +103,7 @@ final class CreateGoodsReceiptFromOrder
                         'discount_rate' => $locked->discount_rate,
                         'additional_discount_amount' => app(ProrateFixedDiscount::class)->handle($locked, $draftLines),
                         'notes' => $deliveryNote,
+                        'ui_meta' => $locked->ui_meta ?? [],
                     ],
                     $draftLines,
                 );

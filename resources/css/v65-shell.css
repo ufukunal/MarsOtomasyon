@@ -2305,3 +2305,115 @@
   .app-shell .v65-workspace-form>.v65-voucher-panel{display:block}
   .app-shell .v65-voucher-panel :where(button,.v65-form-actions){display:none!important}
 }
+
+
+/* 2026-10-17 · MarsProject approved 20-screen parity: additive, scoped layout. */
+:root{--side:230px;--bg:#f3f6fb;--ctl:35px}
+.app-shell .document-workspace{max-width:1800px;margin-inline:auto}
+.app-shell .document-editor-form.v65-doc-editor{
+  grid-template-columns:repeat(5,minmax(0,1fr));column-gap:13px;row-gap:12px
+}
+.app-shell .v65-doc-editor :where(input:not([type="checkbox"]),select){min-height:35px;height:35px}
+.app-shell .v65-prototype-lines{min-width:1120px;table-layout:fixed}
+.app-shell .v65-prototype-lines th:nth-child(1){width:42px}
+.app-shell .v65-prototype-lines th:nth-child(2){width:190px}
+.app-shell .v65-prototype-lines th:nth-child(3){width:220px}
+.app-shell .v65-prototype-lines th:nth-child(4){width:90px}
+.app-shell .v65-prototype-lines th:nth-child(5){width:95px}
+.app-shell .v65-prototype-lines th:nth-child(6){width:105px}
+.app-shell .v65-prototype-lines th:nth-child(7){width:75px}
+.app-shell .v65-prototype-lines th:nth-child(8){width:75px}
+.app-shell .v65-prototype-lines th:nth-child(9),
+.app-shell .v65-prototype-lines th:nth-child(10){width:120px}
+.app-shell .v65-prototype-lines th:nth-child(11){width:75px}
+.app-shell .v65-prototype-lines td{vertical-align:top}
+.app-shell .v65-prototype-lines .v65-doc-product-search{margin:0 0 5px!important}
+.app-shell .v65-prototype-lines .v65-doc-product-detail strong{display:block;overflow-wrap:anywhere;font-weight:550;font-size:12px}
+.app-shell .v65-prototype-lines .v65-doc-line-details{margin-top:5px;padding:2px 4px}
+.app-shell .v65-prototype-lines .v65-doc-line-details>summary{cursor:pointer;color:#196ab7;font-size:11px;white-space:nowrap}
+.app-shell .v65-prototype-lines .v65-doc-line-details label{display:grid;gap:4px;margin-top:7px;font-size:11px}
+.app-shell .v65-prototype-lines .v65-doc-line-incl{font-weight:700;color:#183954;font-variant-numeric:tabular-nums}
+.app-shell .v65-line-add-actions{display:flex;gap:7px;flex-wrap:wrap}
+.app-shell .v65-doc-summary{max-width:none;width:100%;margin-inline:0}
+.app-shell .v65-prototype-total-strip{
+  display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px;
+  padding:12px 15px;border-bottom:1px solid #dce5ef
+}
+.app-shell .v65-prototype-total-strip>div{
+  min-width:0;background:#f8fafd;border:1px solid #dce5ef;border-radius:6px;
+  padding:11px;display:flex;flex-direction:column;gap:6px
+}
+.app-shell .v65-prototype-total-strip small{font-size:11px;color:#60748a}
+.app-shell .v65-prototype-total-strip strong{font-size:14px;color:#183954;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+.app-shell .v65-prototype-total-strip .is-grand{background:#eaf3fd;border-color:#c2daef}
+.app-shell .v65-prototype-total-strip .is-grand strong{color:#196ab7}
+.app-shell .v65-doc-summary-rows{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:24px}
+.app-shell .v65-finance-impact{min-width:0;background:#fff;border:1px solid #dce5ef;border-radius:7px;padding:14px}
+.app-shell .v65-finance-impact>h3{margin:0 0 12px;font-size:14px;color:#183954}
+.app-shell .v65-finance-impact>h3 small{display:inline;font-size:11px;font-weight:400;color:#6f8196}
+.app-shell .v65-finance-impact>small{display:block;color:#6f8196;font-size:11px;margin-top:8px}
+.app-shell .v65-voucher-panel>.v65-finance-impact{grid-column:1/-1}
+.app-shell .v65-impact-grid,.app-shell .v65-security-summary{
+  display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:11px
+}
+.app-shell .v65-impact-card{
+  min-width:0;background:#f8fafd;border:1px solid #dae4f0;border-radius:6px;
+  padding:12px;display:grid;gap:8px;align-content:space-between
+}
+.app-shell .v65-impact-card>span{font-size:11px;color:#60748a}
+.app-shell .v65-impact-card>strong{font-size:15px;color:#183954;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+.app-shell :is(.v65-impact-card,.v65-contact-transfer-balance,.v65-list-table) .is-debtor,
+.app-shell .is-debtor{color:#c43539!important}
+.app-shell :is(.v65-impact-card,.v65-contact-transfer-balance,.v65-list-table) .is-creditor,
+.app-shell .is-creditor{color:#16835a!important}
+.app-shell .v65-security-toolbar{display:grid;gap:12px;margin-bottom:12px}
+.app-shell .v65-security-filters{
+  display:grid;grid-template-columns:minmax(160px,2fr) repeat(2,minmax(135px,1fr)) auto;
+  gap:10px;align-items:end;padding:13px;border:1px solid #dce5ef;border-radius:7px;background:#fff
+}
+.app-shell .v65-security-filters .field{min-width:0;display:grid;gap:5px;font-size:11px;font-weight:650}
+.app-shell .v65-security-filters :is(select,input){width:100%;height:38px;min-width:0}
+.app-shell .v65-security-new-actions{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.app-shell .v65-security-nav{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px}
+.app-shell .v65-security-nav-link{border:1px solid #dce5ef;padding:8px 10px;background:#f8fafd;border-radius:5px;font-size:11px;color:#225b91}
+.app-shell .v65-security-nav-link:hover,.app-shell .v65-security-nav-link:focus-visible{background:#eaf3fd;border-color:#accde6}
+.app-shell .v65-security-pagination{display:flex;justify-content:flex-end;margin:14px 0}
+.app-shell .v65-security-pagination nav{max-width:100%;overflow-x:auto}
+.app-shell .v65-contact-transfer-party .v65-contact-transfer-balance strong{font-weight:750}
+@media(max-width:1140px){
+ .app-shell .document-editor-form.v65-doc-editor{grid-template-columns:repeat(3,minmax(0,1fr))}
+ .app-shell .v65-security-filters{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .app-shell .v65-security-new-actions{grid-column:1/-1}
+ .app-shell .v65-prototype-total-strip{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media(max-width:760px){
+ .app-shell .v65-impact-grid,.app-shell .v65-security-summary{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .app-shell .v65-doc-summary-rows{grid-template-columns:1fr}
+ .app-shell .v65-prototype-total-strip{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:720px){
+ .app-shell .document-editor-form.v65-doc-editor{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .app-shell .v65-security-filters{grid-template-columns:1fr}
+ .app-shell .v65-security-new-actions{grid-column:1}
+}
+@media(max-width:480px){
+ .app-shell .document-editor-form.v65-doc-editor{grid-template-columns:minmax(0,1fr);padding:12px}
+ .app-shell .v65-prototype-total-strip{grid-template-columns:minmax(0,1fr)}
+ .app-shell .v65-impact-grid,.app-shell .v65-security-summary{grid-template-columns:minmax(0,1fr)}
+}
+@media print{
+ .app-shell .v65-security-filters,.app-shell .v65-security-new-actions,.app-shell .v65-security-nav,.app-shell .v65-security-pagination{display:none!important}
+ .app-shell .v65-prototype-total-strip{grid-template-columns:repeat(5,minmax(0,1fr));break-inside:avoid}
+ .app-shell .v65-finance-impact{break-inside:avoid}
+}
+
+/* Secure replacement: keep all fields visible without overflowing smaller screens. */
+.app-shell .v65-security-correction-dialog{max-height:90vh;overflow-y:auto}
+.app-shell .v65-financial-correction-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}
+.app-shell .v65-financial-correction-fields>.field{display:grid;gap:5px;font-size:12px;min-width:0}
+.app-shell .v65-financial-correction-fields :is(input,select,textarea){min-width:0;width:100%}
+@media(max-width:570px){.app-shell .v65-financial-correction-fields{grid-template-columns:minmax(0,1fr)}}
+
+.app-shell .v65-security-row-actions{display:inline-flex;flex-wrap:wrap;gap:4px;margin-inline-start:5px}
+.app-shell .v65-security-selected{padding:9px;border:1px solid #dce5ef;background:#f8fafd;border-radius:5px;font-weight:650;font-size:12px}
+.app-shell .v65-security-row-actions>.v65-btn{margin-block:2px}

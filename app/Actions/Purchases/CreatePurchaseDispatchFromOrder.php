@@ -61,6 +61,7 @@ final class CreatePurchaseDispatchFromOrder
                 'document_date' => $date,
                 'currency' => $locked->currency,
                 'exchange_rate' => $locked->exchange_rate,
+                'ui_meta' => $locked->ui_meta ?? [],
                 'discount_rate' => $locked->discount_rate,
                 'additional_discount_amount' => $this->proration->handle($locked, $lines),
             ], $lines);
