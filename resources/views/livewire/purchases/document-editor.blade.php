@@ -95,7 +95,7 @@
                 <small class="v65-doc-mobile-scroll-hint">Tablodaki diğer satır alanlarını görmek için yatay kaydırın.</small>
                 <div class="table-scroll document-lines v65-doc-table-scroll"><table class="data-table v65-doc-table v65-prototype-lines">
                     <thead><tr>
-                        <th>#</th><th>Ürün Kodu / Barkod</th><th>Ürün Adı ve Detay</th><th class="align-end">Miktar</th>
+                        <th>#</th><th>Ürün Kodu / Ürün Adı</th><th class="align-end">Miktar</th>
                         <th>Birim</th><th class="align-end">Fiyat</th><th class="align-end">İsk. %</th><th class="align-end">KDV %</th>
                         <th class="align-end">Net Tutar</th><th class="align-end">KDV Dahil*</th><th>İşlem</th>
                     </tr></thead>
@@ -111,7 +111,8 @@
                         @endphp
                         <tr wire:key="purchase-line-{{ $line['row_key'] ?? $index }}">
                             <td>{{ $index + 1 }}</td>
-                            <td class="v65-doc-product-cell">
+                            <td class="v65-doc-product-combined">
+                                <div class="v65-doc-product-cell">
                                 @if($isGoodsReceipt)<span>Kaynak Ürün / Hizmet</span>@elseif($service)<span class="v65-doc-muted">HİZMET</span>
                                 @else
                                     <input type="search" class="v65-doc-product-search" data-v65-fast-product-search
@@ -127,8 +128,8 @@
                                     </select>
                                     <x-v65.input-error :field="'lines.'.$index.'.product_id'"/>
                                 @endif
-                            </td>
-                            <td class="v65-doc-product-detail">
+                            </div>
+                                <div class="v65-doc-product-detail">
                                 @if($isGoodsReceipt)<strong>{{ $line['description'] ?? 'Kaynak satır' }}</strong>
                                 @elseif($service)
                                     <input wire:model.blur="lines.{{ $index }}.description" placeholder="Hizmet açıklaması">
@@ -150,6 +151,7 @@
                                     <small>İskonto tutarı: {{ $previewLine ? \App\Support\Formatting\TrFormatter::money((string) $previewLine->discountAmount) : '—' }}</small>
                                 </details>
                                 @endunless
+                            </div>
                             </td>
                             <td class="align-end">
                                 <input data-v65-fast-quantity wire:model.blur="lines.{{ $index }}.quantity" inputmode="decimal" data-tr-decimal aria-label="Satır {{ $index + 1 }} miktar">

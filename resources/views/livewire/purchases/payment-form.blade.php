@@ -20,9 +20,9 @@
             <div class="v65-impact-card"><span>Cari Sonra (Tahmini)</span>
                 <strong class="{{ bccomp($this->projectedFinancialContactBalance(), '0', 4) > 0 ? 'is-debtor' : (bccomp($this->projectedFinancialContactBalance(), '0', 4) < 0 ? 'is-creditor' : '') }}">{{ \App\Support\Formatting\TrFormatter::money($this->projectedFinancialContactBalance()) }} TRY</strong></div>
             <div class="v65-impact-card"><span>Kasa / Banka Önce (Defter)</span>
-                <strong>{{ \App\Support\Formatting\TrFormatter::money($this->financialAccountBalance()) }} {{ $this->financialAccountCurrency() }}</strong></div>
+                <strong>{{ $this->canViewFinancialAccountBalance() ? \App\Support\Formatting\TrFormatter::money($this->financialAccountBalance()) . ' ' . $this->financialAccountCurrency() : 'Görüntüleme yetkisi yok' }}</strong></div>
             <div class="v65-impact-card"><span>Kasa / Banka Sonra (Tahmini)</span>
-                <strong>{{ $this->projectedFinancialAccountBalance() === null ? 'Para birimi uyuşmuyor' : \App\Support\Formatting\TrFormatter::money($this->projectedFinancialAccountBalance()) . ' ' . $this->financialAccountCurrency() }}</strong></div>
+                <strong>{{ $this->projectedFinancialAccountBalance() === null ? ($this->canViewFinancialAccountBalance() ? ($this->selectedFinancialAccount() === null ? 'Hesap seçin' : 'Para birimi uyuşmuyor') : 'Görüntüleme yetkisi yok') : \App\Support\Formatting\TrFormatter::money($this->projectedFinancialAccountBalance()) . ' ' . $this->financialAccountCurrency() }}</strong></div>
         </div>
         @unless($this->financialAccountCurrencyMatches())
             <x-v65.notice tone="danger">Seçilen kasa/banka hesabının para birimi işlem para biriminden farklıdır.</x-v65.notice>

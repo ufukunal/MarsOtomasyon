@@ -34,7 +34,6 @@
         <small>{{ $isPreview ? 'Taslak hesap önizlemesi' : ($document ? 'Son kaydedilen değerler' : 'Henüz hesaplanmadı') }}</small>
     </div>
     @if($source)
-        @if($source)
     <div class="v65-prototype-total-strip" aria-label="HTML prototipindeki beş tutar özeti">
         <div><small>Ara Toplam</small><strong>{{ $money::money($grossAmount) }} {{ $currency }}</strong></div>
         <div><small>Satır İndirimi</small><strong>{{ $money::money($lineDiscountAmount) }} {{ $currency }}</strong></div>
@@ -42,7 +41,6 @@
         <div><small>KDV</small><strong>{{ $money::money((string) ($isPreview ? $source->vatAmount : $source->vat_amount)) }} {{ $currency }}</strong></div>
         <div class="is-grand"><small>Genel Toplam</small><strong>{{ $money::money((string) ($isPreview ? $source->grandTotal : $source->grand_total)) }} {{ $currency }}</strong></div>
     </div>
-    @endif
     <dl class="v65-doc-summary-rows">
             <div><dt>Mal / Hizmet Brüt</dt><dd>{{ $money::money($grossAmount) }} {{ $currency }}</dd></div>
             <div><dt>Satır İskontoları</dt><dd>{{ $money::money($lineDiscountAmount) }} {{ $currency }}</dd></div>

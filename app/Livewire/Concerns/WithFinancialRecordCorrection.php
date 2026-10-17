@@ -26,6 +26,20 @@ trait WithFinancialRecordCorrection
 
     abstract protected function financialPermission(): string;
 
+    /**
+     * Collection is always TRY. Payment overrides these hooks, preventing
+     * undefined currency/rate properties in the CollectionForm trait context.
+     */
+    protected function financialCurrency(): string
+    {
+        return 'TRY';
+    }
+
+    protected function financialExchangeRate(): string
+    {
+        return '1.000000';
+    }
+
     public function updatedAccountType(): void
     {
         $this->accountId = null;
@@ -59,7 +73,7 @@ trait WithFinancialRecordCorrection
                     ->find($this->sourceInvoiceId)
                 : null;
             // PostPayment uses the linked invoice's rate, not the editable draft rate.
-            $rate = (string) ($linkedInvoice?->exchange_rate ?? ($this->exchangeRate ?? '1'));
+            $rate = (string) ($linkedInvoice?->exchange_rate ?? $this->financialExchangeRate());
             if (! preg_match('/^\\d{1,12}(?:\\.\\d{1,6})?$/D', $rate) || bccomp($rate, '0', 6) <= 0) return $before;
             $amount = bcadd(bcmul($amount, $rate, 8), '0', 4);
             return bcadd($before, $amount, 4);
@@ -67,8 +81,20 @@ trait WithFinancialRecordCorrection
         return bcsub($before, $amount, 4);
     }
 
+    public function canViewFinancialAccountBalance(): bool
+    {
+        $permission = $this->accountType === 'cash' ? 'cash_accounts.view' : 'bank_accounts.view';
+
+        return auth()->user()?->can($permission) ?? false;
+    }
+
     public function selectedFinancialAccount(): \App\Models\Period\CashAccount|\App\Models\Period\BankAccount|null
     {
+        // This public Livewire method must never reveal account data to users
+        // who can post a collection/payment but lack permission to view balances.
+        if (! $this->canViewFinancialAccountBalance()) {
+            return null;
+        }
         if (! $this->accountId) {
             return null;
         }
@@ -89,18 +115,18 @@ trait WithFinancialRecordCorrection
 
     public function financialAccountCurrency(): string
     {
-        return (string) ($this->selectedFinancialAccount()?->currency ?? ($this->currency ?? 'TRY'));
+        return (string) ($this->selectedFinancialAccount()?->currency ?? $this->financialCurrency());
     }
 
     public function financialAccountCurrencyMatches(): bool
     {
         $account = $this->selectedFinancialAccount();
-        return $account === null || $account->currency === (string) ($this->currency ?? 'TRY');
+        return $account === null || $account->currency === (string) $this->financialCurrency();
     }
 
     public function projectedFinancialAccountBalance(): ?string
     {
-        if (! $this->financialAccountCurrencyMatches()) {
+        if ($this->selectedFinancialAccount() === null || ! $this->financialAccountCurrencyMatches()) {
             return null;
         }
         $before = $this->financialAccountBalance();

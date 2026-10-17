@@ -17,11 +17,11 @@ it('maps the approved twenty operation routes without replacing the ERP navigati
     expect($nav)->toContain("'label' => 'Üretim'")->toContain("'label' => 'E-Ticaret'");
 });
 
-it('keeps exactly eleven visible prototype line columns while retaining extra financial details', function (): void {
+it('keeps exactly ten original HTML document columns without losing financial details', function (): void {
     foreach (['sales', 'purchases'] as $section) {
         $view = file_get_contents(base_path("resources/views/livewire/{$section}/document-editor.blade.php"));
         expect(preg_match('/<table class="data-table v65-doc-table v65-prototype-lines">\s*<thead><tr>(.*?)<\/tr><\/thead>/s', $view, $matches))->toBe(1);
-        expect(substr_count($matches[1], '<th'))->toBe(11);
+        expect(substr_count($matches[1], '<th'))->toBe(10);
         expect($view)->toContain('data-v65-fast-product-search')
             ->toContain('data-v65-fast-quantity')
             ->toContain('KDV Dahil*')
@@ -66,7 +66,7 @@ it('filters all cheque and note records on SQL before paginating', function (): 
         ->and($view)->toContain('wire:model.live.debounce.300ms="listSearch"')
         ->toContain('wire:model.live="listDirection"')
         ->toContain('wire:model.live="listStatus"')
-        ->toContain('Cari Etkisi (İlk Kayıt)')
+        ->toContain('Cari Etkisi (Kayıtta)')
         ->toContain('$securities->links()');
 });
 
@@ -112,4 +112,28 @@ it('preserves receipt references and generated virman numbers as different field
         ->and($transfer)->toContain("'reference' => trim((string) \$reference)")
         ->toContain("'number' => \$number")
         ->and($migration)->toContain("'reference', 100");
+});
+
+it('uses a type-safe currency hook for payment, while collection stays TRY', function (): void {
+    $trait = file_get_contents(base_path('app/Livewire/Concerns/WithFinancialRecordCorrection.php'));
+    $payment = file_get_contents(base_path('app/Livewire/Purchases/PaymentForm.php'));
+    expect($trait)->toContain('protected function financialCurrency(): string')
+        ->toContain('protected function financialExchangeRate(): string')
+        ->toContain('$this->financialCurrency()')
+        ->toContain('$this->financialExchangeRate()')
+        ->not->toContain('$this->currency')
+        ->not->toContain('$this->exchangeRate')
+        ->and($payment)->toContain('protected function financialCurrency(): string')
+        ->toContain('protected function financialExchangeRate(): string');
+});
+
+it('hides the balance preview from users without the matching account and contact permissions', function (): void {
+    $trait = file_get_contents(base_path('app/Livewire/Concerns/WithFinancialRecordCorrection.php'));
+    $center = file_get_contents(base_path('app/Livewire/Finance/SecuritiesCenter.php'));
+    $view = file_get_contents(base_path('resources/views/livewire/finance/securities-center.blade.php'));
+    expect($trait)->toContain('cash_accounts.view')
+        ->toContain('bank_accounts.view')
+        ->toContain('canViewFinancialAccountBalance')
+        ->and($center)->toContain("can('contacts.view')")
+        ->and($view)->toContain('canViewSecurityContactBalance');
 });

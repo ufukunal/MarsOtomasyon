@@ -59,8 +59,17 @@ class SecuritiesCenter extends Component
         $this->resetPage();
     }
 
+    public function canViewSecurityContactBalance(): bool
+    {
+        return auth()->user()?->can('contacts.view') ?? false;
+    }
+
     public function selectedContactBalance(): string
     {
+        if (! $this->canViewSecurityContactBalance()) {
+            return '0.0000';
+        }
+
         return $this->contactId
             ? (Contact::query()->find($this->contactId)?->balance() ?? '0.0000') : '0.0000';
     }
@@ -95,6 +104,10 @@ class SecuritiesCenter extends Component
 
     public function payrollTargetBalance(): string
     {
+        if (! $this->canViewSecurityContactBalance()) {
+            return '0.0000';
+        }
+
         return $this->payrollContactId
             ? (Contact::query()->find($this->payrollContactId)?->balance() ?? '0.0000') : '0.0000';
     }

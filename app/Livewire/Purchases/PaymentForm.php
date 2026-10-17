@@ -44,6 +44,16 @@ class PaymentForm extends Component
 
     public string $reversalReason = '';
 
+    protected function financialCurrency(): string
+    {
+        return $this->currency;
+    }
+
+    protected function financialExchangeRate(): string
+    {
+        return $this->exchangeRate;
+    }
+
     protected function restoreFinancialCurrency(Document $document): void
     {
         $this->currency = (string) $document->currency;

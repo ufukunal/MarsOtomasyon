@@ -2308,24 +2308,25 @@
 
 
 /* 2026-10-17 · MarsProject approved 20-screen parity: additive, scoped layout. */
-:root{--side:230px;--bg:#f3f6fb;--ctl:35px}
+/* Keep the approved application-wide shell dimensions; style only changed screens. */
 .app-shell .document-workspace{max-width:1800px;margin-inline:auto}
 .app-shell .document-editor-form.v65-doc-editor{
   grid-template-columns:repeat(5,minmax(0,1fr));column-gap:13px;row-gap:12px
 }
 .app-shell .v65-doc-editor :where(input:not([type="checkbox"]),select){min-height:35px;height:35px}
-.app-shell .v65-prototype-lines{min-width:1120px;table-layout:fixed}
+.app-shell .v65-prototype-lines{min-width:1080px;table-layout:fixed}
 .app-shell .v65-prototype-lines th:nth-child(1){width:42px}
-.app-shell .v65-prototype-lines th:nth-child(2){width:190px}
-.app-shell .v65-prototype-lines th:nth-child(3){width:220px}
-.app-shell .v65-prototype-lines th:nth-child(4){width:90px}
-.app-shell .v65-prototype-lines th:nth-child(5){width:95px}
-.app-shell .v65-prototype-lines th:nth-child(6){width:105px}
+.app-shell .v65-prototype-lines th:nth-child(2){width:340px}
+.app-shell .v65-prototype-lines th:nth-child(3){width:90px}
+.app-shell .v65-prototype-lines th:nth-child(4){width:95px}
+.app-shell .v65-prototype-lines th:nth-child(5){width:105px}
+.app-shell .v65-prototype-lines th:nth-child(6){width:75px}
 .app-shell .v65-prototype-lines th:nth-child(7){width:75px}
-.app-shell .v65-prototype-lines th:nth-child(8){width:75px}
-.app-shell .v65-prototype-lines th:nth-child(9),
-.app-shell .v65-prototype-lines th:nth-child(10){width:120px}
-.app-shell .v65-prototype-lines th:nth-child(11){width:75px}
+.app-shell .v65-prototype-lines th:nth-child(8),
+.app-shell .v65-prototype-lines th:nth-child(9){width:120px}
+.app-shell .v65-prototype-lines th:nth-child(10){width:75px}
+.app-shell .v65-doc-product-combined .v65-doc-product-detail{padding-top:5px}
+.app-shell .v65-doc-product-combined .v65-doc-product-cell select{display:block;width:100%}
 .app-shell .v65-prototype-lines td{vertical-align:top}
 .app-shell .v65-prototype-lines .v65-doc-product-search{margin:0 0 5px!important}
 .app-shell .v65-prototype-lines .v65-doc-product-detail strong{display:block;overflow-wrap:anywhere;font-weight:550;font-size:12px}
