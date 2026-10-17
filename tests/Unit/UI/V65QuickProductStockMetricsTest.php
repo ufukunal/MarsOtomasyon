@@ -12,10 +12,10 @@ it('left-aligns quick product results and displays price physical reserved and a
         ->toContain('Kullanılabilir')
         ->toContain('TrFormatter::quantity')
         ->and($css)->toContain('.v65-reference-suggestions>button')
-        ->toContain('grid-template-columns:minmax(245px,.95fr) minmax(0,1.55fr)')
-        ->toContain('width:min(1180px,calc(100vw - 32px))')
-        ->toContain('grid-template-columns:minmax(120px,1.3fr) repeat(3,minmax(92px,1fr))')
-        ->toContain('column-gap:24px')
+        ->toContain('grid-template-columns:minmax(190px,.88fr) minmax(0,1.6fr)')
+        ->toContain('width:100%;max-width:100%')
+        ->toContain('grid-template-columns:minmax(0,1.24fr) repeat(3,minmax(0,1fr))')
+        ->toContain('column-gap:12px')
         ->toContain('text-align:left!important')
         ->toContain('v65-reference-suggestion-available');
 });
@@ -45,4 +45,17 @@ it('keeps the expanded quick product search readable on mobile and tablets', fun
         ->toContain('@media(max-width:580px)')
         ->toContain('grid-template-columns:repeat(2,minmax(0,1fr))')
         ->toContain('scrollbar-gutter:stable');
+});
+
+it('keeps the dropdown exactly the same width as the product search textbox', function (): void {
+    $css = file_get_contents(base_path('resources/css/v65-shell.css'));
+
+    // The search field uses width:100% inside the same positioned container.
+    expect($css)->toContain('.v65-reference-quick-product>input[type=search]')
+        ->toContain('.v65-reference-products-tools>.v65-reference-quick-product')
+        ->toContain('.v65-reference-suggestions{')
+        ->toContain('left:0;right:auto')
+        ->toContain('width:100%;max-width:100%')
+        ->toContain('box-sizing:border-box')
+        ->not->toContain('width:min(1180px,calc(100vw - 32px))');
 });

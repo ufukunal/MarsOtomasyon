@@ -3095,22 +3095,22 @@
 .app-shell .v65-ref-returns-tabs>a.is-active{color:#fff;background:#176bb7;border-color:#176bb7}
 .app-shell .v65-ref-returns-tabs>a:not(.is-active):hover{background:#edf6ff}
 
-/* V65 quick-product results: wider aligned identity / price / inventory grid.
-   Keep a nested 4-column metrics grid so stock values never collapse together. */
+/* Quick-product suggestions are exactly as wide as their search input.
+   Narrower grid gaps prevent the price/stock columns from overflowing. */
 .app-shell .v65-reference-products-tools>.v65-reference-quick-product{
     flex:0 1 790px;min-width:min(100%,280px);max-width:100%
 }
 .app-shell .v65-reference-suggestions{
     position:absolute;left:0;right:auto;top:calc(100% + 3px);
-    width:min(1180px,calc(100vw - 32px));max-width:calc(100vw - 32px);
+    width:100%;max-width:100%;
     min-width:0;box-sizing:border-box;direction:ltr;text-align:left;
     max-height:400px;overflow-y:auto;scrollbar-gutter:stable;
     background:#fff;border:1px solid #b9d3ed;border-radius:6px;
     box-shadow:0 9px 26px rgba(28,58,95,.19);z-index:25
 }
 .app-shell .v65-reference-suggestions>button{
-    display:grid;grid-template-columns:minmax(245px,.95fr) minmax(0,1.55fr);
-    column-gap:24px;align-items:center;justify-items:stretch;
+    display:grid;grid-template-columns:minmax(190px,.88fr) minmax(0,1.6fr);
+    column-gap:12px;align-items:center;justify-items:stretch;
     width:100%;min-width:0;box-sizing:border-box;padding:11px 16px;
     border:0;border-bottom:1px solid #e5edf6;
     background:#fff;text-align:left!important;cursor:pointer
@@ -3130,8 +3130,8 @@
     white-space:normal;overflow-wrap:anywhere;line-height:1.3;text-align:left!important
 }
 .app-shell .v65-reference-suggestion-metrics{
-    display:grid;grid-template-columns:minmax(120px,1.3fr) repeat(3,minmax(92px,1fr));
-    align-items:center;gap:16px;min-width:0;width:100%;text-align:left
+    display:grid;grid-template-columns:minmax(0,1.24fr) repeat(3,minmax(0,1fr));
+    align-items:center;gap:9px;min-width:0;width:100%;text-align:left
 }
 .app-shell .v65-reference-suggestion-metric{
     display:flex;flex-direction:column;align-items:flex-start;justify-content:center;
@@ -3160,7 +3160,7 @@
 }
 @media(max-width:580px){
     .app-shell .v65-reference-suggestions{
-        width:min(100%,calc(100vw - 24px));max-width:calc(100vw - 24px)
+        width:100%;max-width:100%
     }
     .app-shell .v65-reference-suggestions>button{padding:11px 12px}
     .app-shell .v65-reference-suggestion-metrics{
