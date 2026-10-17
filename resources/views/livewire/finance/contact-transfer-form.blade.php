@@ -1,6 +1,16 @@
 <div class="space-y-5 v65-contact-transfer">
     <section class="panel v65-workspace-form">
         <h2>Cari Virman</h2>
+        @if($correctionSourceId)
+            <x-v65.notice :tone="$correctionReady ? 'success' : 'warning'">
+                #{{ $correctionSourceId }} numaralı virman düzeltme için açıldı.
+                @if($correctionReady)
+                    Eski virman terslendi; güncel alanları kontrol edip yeni virmanı oluşturabilirsiniz.
+                @else
+                    Önce ters kayıt onayını tamamlayın. Eski kayıt yerinde değiştirilemez.
+                @endif
+            </x-v65.notice>
+        @endif
         <p class="v65-doc-search-hint">Cari bakiyesi esaslı virman. Kasa/banka hareketi oluşturmaz. Kayıtlar TRY cinsindendir.</p>
         <div class="v65-contact-transfer-grid">
             <div class="v65-contact-transfer-party">
@@ -16,12 +26,16 @@
                         @endforeach
                     </select>
                 </label>
+                @if($this->canViewContactBalances())
                 <div class="v65-contact-transfer-balance"><span>Mevcut bakiye (Borç − Alacak)</span>
                     <strong class="{{ bccomp($this->sourceBalance(), '0', 4) > 0 ? 'is-debtor' : (bccomp($this->sourceBalance(), '0', 4) < 0 ? 'is-creditor' : '') }}">{{ \App\Support\Formatting\TrFormatter::money($this->sourceBalance()) }} TRY</strong>
                 </div>
                 <div class="v65-contact-transfer-balance"><span>İşlem Sonrası (Taslak)</span>
                     <strong class="{{ bccomp($this->projectedSourceBalance(), '0', 4) > 0 ? 'is-debtor' : (bccomp($this->projectedSourceBalance(), '0', 4) < 0 ? 'is-creditor' : '') }}">{{ \App\Support\Formatting\TrFormatter::money($this->projectedSourceBalance()) }} TRY</strong>
                 </div>
+                @else
+                <div class="v65-contact-transfer-balance"><span>Cari bakiye</span><strong>Görüntüleme yetkisi yok</strong></div>
+                @endif
             </div>
             <div class="v65-contact-transfer-party">
                 <strong>Hedef Cari</strong>
@@ -36,12 +50,16 @@
                         @endforeach
                     </select>
                 </label>
+                @if($this->canViewContactBalances())
                 <div class="v65-contact-transfer-balance"><span>Mevcut bakiye (Borç − Alacak)</span>
                     <strong class="{{ bccomp($this->targetBalance(), '0', 4) > 0 ? 'is-debtor' : (bccomp($this->targetBalance(), '0', 4) < 0 ? 'is-creditor' : '') }}">{{ \App\Support\Formatting\TrFormatter::money($this->targetBalance()) }} TRY</strong>
                 </div>
                 <div class="v65-contact-transfer-balance"><span>İşlem Sonrası (Taslak)</span>
                     <strong class="{{ bccomp($this->projectedTargetBalance(), '0', 4) > 0 ? 'is-debtor' : (bccomp($this->projectedTargetBalance(), '0', 4) < 0 ? 'is-creditor' : '') }}">{{ \App\Support\Formatting\TrFormatter::money($this->projectedTargetBalance()) }} TRY</strong>
                 </div>
+                @else
+                <div class="v65-contact-transfer-balance"><span>Cari bakiye</span><strong>Görüntüleme yetkisi yok</strong></div>
+                @endif
             </div>
         </div>
         <div class="v65-contact-transfer-controls">
@@ -72,7 +90,7 @@
         @endif
         <p class="v65-doc-search-hint">Pozitif bakiye: <strong class="is-debtor">O Borçlu</strong> · Negatif bakiye: <strong class="is-creditor">O Alacaklı</strong>. Bakiye aşımlarında yalnız yetkili kullanıcı açık onay ve gerekçeyle işlem yapabilir.</p>
         <div class="v65-form-footer">
-            <x-v65.button wire:click="post" wire:loading.attr="disabled" wire:target="post">Virmanı Oluştur</x-v65.button>
+            <x-v65.button wire:click="post" wire:loading.attr="disabled" wire:target="post" :disabled="$correctionSourceId !== null && ! $correctionReady">{{ $correctionReady ? 'Düzeltilmiş Virmanı Kaydet' : 'Virmanı Oluştur' }}</x-v65.button>
         </div>
     </section>
     <section class="panel v65-workspace-form">
@@ -92,6 +110,9 @@
                     <td>{{ $transfer->overdraft_approved ? 'Onaylı' : '—' }}</td>
                     <td>
                         @if($transfer->reversal_of_id === null && !in_array((int) $transfer->id, $reversedIds, true) && auth()->user()?->can('contact_transfers.cancel'))
+                            @if(auth()->user()?->can('contact_transfers.create'))
+                                <x-v65.button variant="secondary" size="xs" wire:click="prepareCorrection({{ $transfer->id }})">Düzenle</x-v65.button>
+                            @endif
                             <x-v65.button variant="secondary" size="xs" wire:click="prepareReverse({{ $transfer->id }})">Ters Kayıt</x-v65.button>
                         @else
                             <span>—</span>
@@ -110,6 +131,9 @@
             <div class="v65-contact-transfer-dialog" role="dialog" aria-modal="true" aria-labelledby="v65-reversal-title">
                 <h3 id="v65-reversal-title">Cari Virman — Ters Kayıt Onayı</h3>
                 <p>Asıl virman değiştirilmeyecek. İki cari hareketinin tersleri aynı işlemde kaydedilecek.</p>
+                @if($correctionSourceId === $pendingReversalId)
+                    <p>Ters kayıttan sonra önceki işlem alanları yeni virman için düzenlenebilir kalacaktır.</p>
+                @endif
                 <p><strong>No:</strong> {{ $pendingReversal->number }}</p>
                 <p><strong>Kaynak:</strong> {{ $pendingReversal->sourceContact?->title }}</p>
                 <p><strong>Hedef:</strong> {{ $pendingReversal->targetContact?->title }}</p>

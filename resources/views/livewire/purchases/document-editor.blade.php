@@ -365,6 +365,15 @@
             :document="$document" :preview="$draftPreview" :currency="$currency" />
     @endif
 
+    @if($isGoodsReceipt && $document && $document->status === 'posted')
+        <x-v65.notice tone="info">
+            Mal Kabul kesinleştiği için stok hareketleri doğrudan düzenlenemez.
+            Önce varsa bağlı alış faturalarını kontrol edin, sonra Ters Kayıt ile
+            düzeltin. Yeni Mal Kabul, kaynak satınalma siparişinden veya alış irsaliyesinden oluşturulur.
+        </x-v65.notice>
+        <x-v65.document-sources :document="$document" />
+    @endif
+
     @if($document)
         <section id="v65-reference-workflow" class="document-actions panel v65-document-actions v65-doc-workflow" role="group" aria-label="Belge işlemleri">
             <h3 class="v65-doc-workflow-title">Belge İşlemleri</h3>

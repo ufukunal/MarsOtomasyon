@@ -10,6 +10,7 @@ use App\Models\Period\ContactTransfer;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Validation\ValidationException;
+use Livewire\Attributes\Locked;
 use Livewire\Component;
 
 class ContactTransferForm extends Component
@@ -46,7 +47,14 @@ class ContactTransferForm extends Component
 
     public string $reversalReason = '';
 
+    #[Locked]
     public ?int $pendingReversalId = null;
+
+    #[Locked]
+    public ?int $correctionSourceId = null;
+
+    #[Locked]
+    public bool $correctionReady = false;
 
     public function mount(): void
     {
@@ -75,14 +83,25 @@ class ContactTransferForm extends Component
         return $this->targetContactId ? Contact::query()->find($this->targetContactId) : null;
     }
 
-    public function sourceBalance(): string
+    public function canViewContactBalances(): bool
+    {
+        return auth()->check() && auth()->user()->can('contacts.view');
+    }
+
+    private function sourceLedgerBalance(): string
     {
         return $this->sourceContact()?->balance() ?? '0.0000';
     }
 
+    public function sourceBalance(): string
+    {
+        return $this->canViewContactBalances() ? $this->sourceLedgerBalance() : '0.0000';
+    }
+
     public function targetBalance(): string
     {
-        return $this->targetContact()?->balance() ?? '0.0000';
+        return $this->canViewContactBalances()
+            ? ($this->targetContact()?->balance() ?? '0.0000') : '0.0000';
     }
 
     public function projectedSourceBalance(): string
@@ -154,6 +173,8 @@ class ContactTransferForm extends Component
     public function post(PostContactTransfer $action): void
     {
         abort_unless(auth()->user()?->can('contact_transfers.create'), 403);
+        abort_if($this->correctionSourceId !== null && ! $this->correctionReady,
+            409, 'Düzeltilecek virman için önce ters kayıt onayı gereklidir.');
         $this->validate([
             'sourceContactId' => ['required', 'integer', 'different:targetContactId'],
             'targetContactId' => ['required', 'integer'],
@@ -168,7 +189,7 @@ class ContactTransferForm extends Component
             'amount' => 'Virman tutarı',
         ]);
 
-        $sourceBalance = $this->sourceBalance();
+        $sourceBalance = $this->sourceLedgerBalance();
         $available = $this->balanceType === 'debit'
             ? (bccomp($sourceBalance, '0', 4) > 0 ? $sourceBalance : '0.0000')
             : (bccomp($sourceBalance, '0', 4) < 0 ? bcmul($sourceBalance, '-1', 4) : '0.0000');
@@ -200,12 +221,43 @@ class ContactTransferForm extends Component
         );
         $this->completeMutation('post');
         $this->postedTransferId = (int) $transfer->id;
+        $this->correctionSourceId = null;
+        $this->correctionReady = false;
         $this->amount = '';
         $this->reason = '';
         $this->reference = '';
         $this->showOverdraftConfirm = false;
         $this->overdraftConfirmed = false;
         $this->overdraftAcknowledged = false;
+    }
+
+    public function prepareCorrection(int $id): void
+    {
+        abort_unless(auth()->user()?->can('contact_transfers.view')
+            && auth()->user()->can('contact_transfers.cancel')
+            && auth()->user()->can('contact_transfers.create'), 403);
+
+        $transfer = ContactTransfer::query()->whereNull('reversal_of_id')->findOrFail($id);
+        abort_if(ContactTransfer::query()->where('reversal_of_id', $id)->exists(),
+            422, 'Virman zaten terslenmiş.');
+
+        $this->sourceContactId = $transfer->source_contact_id;
+        $this->targetContactId = $transfer->target_contact_id;
+        $this->balanceType = $transfer->balance_type;
+        $this->amount = (string) $transfer->amount;
+        $this->documentDate = $transfer->transfer_date->toDateString();
+        $this->reason = (string) ($transfer->reason ?? '');
+        $this->reference = (string) ($transfer->reference ?? '');
+        $this->sourceSearch = '';
+        $this->targetSearch = '';
+        $this->correctionSourceId = $id;
+        $this->correctionReady = false;
+        $this->overdraftConfirmed = false;
+        $this->overdraftAcknowledged = false;
+        $this->showOverdraftConfirm = false;
+        $this->pendingReversalId = $id;
+        $this->reversalDate = now()->toDateString();
+        $this->reversalReason = '';
     }
 
     public function prepareReverse(int $id): void
@@ -223,6 +275,10 @@ class ContactTransferForm extends Component
 
     public function cancelReverse(): void
     {
+        if ($this->correctionSourceId === $this->pendingReversalId) {
+            $this->correctionSourceId = null;
+            $this->correctionReady = false;
+        }
         $this->pendingReversalId = null;
         $this->reversalReason = '';
     }
@@ -243,7 +299,13 @@ class ContactTransferForm extends Component
             $this->childMutationKey('reverse', $id),
         );
         $this->completeMutation('reverse');
-        $this->cancelReverse();
+        if ($this->correctionSourceId === $id) {
+            $this->correctionReady = true;
+            $this->pendingReversalId = null;
+            $this->reversalReason = '';
+        } else {
+            $this->cancelReverse();
+        }
     }
 
     public function render(): View

@@ -33,7 +33,7 @@
         </x-v65.list-heading>
         <x-v65.active-filters :items="$this->v65ActiveFilterLabels()" />
         <div class="table-scroll v65-grid-scroll v65-list-table"><table class="data-table">
-            <thead><tr><th>No</th><th>Tarih</th><th>Mamul</th><th>Tip</th><th class="align-end">Plan</th><th class="align-end">Tamamlanan</th><th>Durum</th></tr></thead>
+            <thead><tr><th>No</th><th>Tarih</th><th>Mamul</th><th>Tip</th><th class="align-end">Plan</th><th class="align-end">Tamamlanan</th><th>Durum</th><th>İşlem</th></tr></thead>
             <tbody>
             @foreach($orders as $row)
                 <tr>
@@ -44,6 +44,9 @@
                     <td class="align-end">{{ $row->planned_quantity }}</td>
                     <td class="align-end">{{ $row->completed_quantity }}</td>
                     <td>{{ \App\Support\Formatting\BusinessLabelFormatter::value('production_status', $row->status) }}</td>
+                    <td><button type="button" class="button-secondary" wire:click="selectOrder({{ $row->id }})">
+                        {{ $row->status === 'draft' ? 'Düzenle' : 'İncele / Düzelt' }}
+                    </button></td>
                     
                 </tr>
             @endforeach
@@ -54,6 +57,16 @@
 
     <section class="panel stack v65-editor-panel">
         <h2>{{ $order?->number ?? 'Yeni Üretim Emri' }}</h2>
+        @if($order && $order->status !== 'draft')
+            <x-v65.notice tone="info">
+                Üretim emri onaylandıktan sonra reçete, tüketim ve gerçekleşen miktarlar kayıt zincirine bağlanır.
+                Mevcut tamamlamalar gerekiyorsa kendi ters kayıt işlemleriyle düzeltilir.
+                Yeni üretim emri, önceki kaydı değiştirmeden oluşturulur.
+            </x-v65.notice>
+            @can('production_orders.create')
+                <button type="button" class="button-secondary" wire:click="newOrder">Düzeltme için Yeni Emir</button>
+            @endcan
+        @endif
         @if(!$order || $order->status === 'draft')
             <label>Tarih <input type="date" wire:model="documentDate"></label>
             <label>Mamul

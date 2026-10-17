@@ -49,6 +49,13 @@
             </div>
         @else
             <div class="form-row"><strong>{{ $slip->number }}</strong><span>Durum: {{ \App\Support\Formatting\BusinessLabelFormatter::status($slip->status) }}</span></div>
+            <x-v65.notice tone="info">
+                Kesinleşmiş stok fişi doğrudan değiştirilmez. Düzeltmek için ters fiş oluşturun;
+                ardından yeni stok düzeltme fişinden doğru hareketi kaydedin.
+            </x-v65.notice>
+            @can('warehouse_slips.create')
+                <a class="button-secondary" href="{{ route('stock.warehouse-slips.create') }}">Yeni Düzeltme Fişi Aç</a>
+            @endcan
             <div class="table-scroll v65-grid-scroll" id="stock-document-lines"><table class="data-table"><thead><tr><th>Ürün</th><th>Miktar</th>@if($canViewCost)<th>Birim Maliyet</th>@endif<th>Not</th></tr></thead><tbody>
             @foreach($postedLines as $line)<tr><td>{{ $line->product->code }} · {{ $line->product->name }}</td><td>{{ \App\Support\Formatting\TrFormatter::quantity((string)$line->quantity) }}</td>@if($canViewCost)<td>{{ $line->unit_cost !== null ? \App\Support\Formatting\TrFormatter::money((string)$line->unit_cost,4) : '—' }}</td>@endif<td>{{ $line->note }}</td></tr>@endforeach
             </tbody></table></div>

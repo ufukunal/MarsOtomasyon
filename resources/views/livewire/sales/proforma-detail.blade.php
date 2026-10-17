@@ -1,5 +1,16 @@
 <div class="space-y-5 panel v65-detail-screen">
     <h1>Proforma {{ $proforma->number }}</h1>
+    <x-v65.notice tone="info">
+        Proforma, onaylı teklif veya siparişten oluşturulan kayıtlı bir anlık görüntüdür.
+        Değişiklikler için kaynağı açıp yeni teklif revizyonu veya sipariş düzenleme taslağı oluşturun;
+        ardından yeni proforma düzenleyin. Önceki proforma ve ona bağlı faturalar değiştirilmez.
+    </x-v65.notice>
+    @if($originalSource && auth()->user()?->can($sourcePermission))
+        <x-v65.button variant="secondary" size="sm"
+            :href="route($sourceRoute, ['id' => $originalSource->id])">
+            Düzenle / Yeni Proforma İçin Kaynağı Aç
+        </x-v65.button>
+    @endif
     <div>{{ $proforma->contact?->title }} · {{ $proforma->document_date->format('d.m.Y') }} · {{ $proforma->grand_total }} {{ $proforma->currency }}</div>
 
     <div class="table-scroll v65-grid-scroll"><table class="data-table">
