@@ -75,9 +75,9 @@ it('shows Ctrl/Meta multi-select without breaking the single-click product actio
 it('prevents unsourced or duplicate product IDs in a multi-insert request', function (): void {
     $trait = file_get_contents(base_path('app/Livewire/Concerns/WithPrototypeDocumentControls.php'));
     expect($trait)->toContain('public function insertQuickProducts(array $productIds): void')
-        ->toContain("count($productIds) <= 12")
-        ->toContain("in_array($normalized, $ids, true)")
-        ->toContain("array_diff($ids, $visible) === []")
+        ->toContain('count($productIds) <= 12')
+        ->toContain('in_array($normalized, $ids, true)')
+        ->toContain('array_diff($ids, $visible) === []')
         ->toContain('$this->quickProductOptions()->modelKeys()')
         ->toContain('$this->insertQuickProduct($id)')
         ->toContain("->status === 'draft'");
