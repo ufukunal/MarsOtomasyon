@@ -22,7 +22,11 @@
             </div>
             <div class="field"><span class="field-label">Rezerve Miktar</span><strong>{{ \App\Support\Formatting\TrFormatter::quantity((string) $reservation->quantity) }}</strong></div>
             <div class="field"><span class="field-label">Kaynak Belge</span>
-                <span>{{ \App\Support\Formatting\BusinessLabelFormatter::documentType($reservation->document_type) }} · {{ $reservation->document_id ?: '—' }}</span>
+                @if($sourceUrl)
+                    <a href="{{ $sourceUrl }}">{{ \App\Support\Formatting\BusinessLabelFormatter::documentType($reservation->document_type) }} · {{ $reservation->document_id }}</a>
+                @else
+                    <span>{{ \App\Support\Formatting\BusinessLabelFormatter::documentType($reservation->document_type) }} · {{ $reservation->document_id ?: '—' }}</span>
+                @endif
             </div>
             <div class="field"><span class="field-label">Belge Satırı</span><span>{{ $reservation->document_line_id ?: '—' }}</span></div>
             <div class="field"><span class="field-label">Oluşturma</span><span>{{ $reservation->created_at?->format('d.m.Y H:i') }}</span></div>
