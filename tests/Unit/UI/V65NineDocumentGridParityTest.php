@@ -12,11 +12,11 @@ it('uses one 10-column product header and row action modal across sale and purch
         $view = file_get_contents(base_path("resources/views/livewire/{$side}/document-editor.blade.php"));
         expect($view)->toContain('<x-v65.document-product-table-head')
             ->toContain('<x-v65.document-line-actions')
-            ->not->toContain('v65-reference-entry-row')
             ->toContain('data-v65-fast-product-search')
             ->toContain('data-v65-add-product-focus')
             ->toContain('v65-reference-inline-summary')
             ->toContain('wire:model.blur="lines.{{ $index }}.quantity"');
+        expect($view)->not->toContain('v65-reference-entry-row');
     }
 });
 

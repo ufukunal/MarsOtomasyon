@@ -17,7 +17,7 @@ it('defines precisely the eight requested purchasing and selling screen variants
     }
 });
 
-it('uses the same functional form, header, empty entry line and totals on both sides', function (): void {
+it('uses the same functional form, shared search, header and totals on both sides', function (): void {
     foreach (['sales', 'purchases'] as $side) {
         $blade = file_get_contents(base_path("resources/views/livewire/{$side}/document-editor.blade.php"));
 
@@ -26,13 +26,13 @@ it('uses the same functional form, header, empty entry line and totals on both s
             ->toContain('<x-v65.document-prototype-heading')
             ->toContain('<x-v65.document-prototype-toolbar')
             ->toContain('<x-v65.document-prototype-footer')
-            ->not->toContain('v65-reference-entry-row')
             ->toContain('data-v65-fast-product-search')
             ->toContain('wire:model.live="uiMeta.default_location_id"')
             ->toContain('wire:submit="save"')
             ->toContain(':compact="true"');
 
         expect($blade)->toContain('<x-v65.document-product-table-head');
+        expect($blade)->not->toContain('v65-reference-entry-row');
     }
 
     $sharedHead = file_get_contents(base_path('resources/views/components/v65/document-product-table-head.blade.php'));
