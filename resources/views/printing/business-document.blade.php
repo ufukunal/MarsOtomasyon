@@ -92,6 +92,7 @@
                     $extraLabels = [
                         'delivery_terms' => 'Teslim Süresi', 'payment_terms' => 'Ödeme Şartı',
                         'planned_delivery' => 'Planlanan Teslim', 'customer_order_no' => 'Müşteri Sipariş No',
+                        'customer_reference_no' => 'Müşteri Referans No',
                         'vehicle_plate' => 'Araç / Plaka', 'payment_method' => 'Ödeme Şekli',
                         'quote_valid_until' => 'Teklif Geçerlilik', 'supplier_quote_no' => 'Tedarikçi Teklif No',
                         'expected_delivery' => 'Beklenen Teslim', 'supplier_dispatch_no' => 'Tedarikçi İrsaliye No',

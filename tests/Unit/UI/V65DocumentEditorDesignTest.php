@@ -5,13 +5,13 @@ it('uses the same V65 editor structure for sales and purchasing documents', func
     $purchase = file_get_contents(base_path('resources/views/livewire/purchases/document-editor.blade.php'));
 
     foreach ([$sales, $purchase] as $blade) {
-        expect($blade)->toContain('<x-v65.document-heading')
+        expect($blade)->toContain('<x-v65.document-prototype-heading')
             ->toContain('<x-v65.document-readonly')
             ->toContain('<x-v65.document-summary')
-            ->toContain('<x-v65.form-actions')
+            ->toContain('<x-v65.document-prototype-footer')
             ->toContain('v65-doc-vat-toolbar')
             ->toContain('v65-doc-lines')
-            ->toContain('v65-doc-form-actions')
+            ->toContain('v65-reference-totals-layout')
             ->toContain('wire:submit="save"')
             ->toContain('wire:model.live="contactId"')
             ->toContain('wire:model.live.debounce.300ms="contactSearch"')
@@ -144,8 +144,7 @@ it('shows permission-aware source documents when editing saved drafts', function
         'resources/views/livewire/purchases/document-editor.blade.php',
     ] as $path) {
         $blade = file_get_contents(base_path($path));
-        expect($blade)->toContain('class="v65-doc-draft-sources"')
-            ->toContain('<x-v65.document-sources');
+        expect($blade)->toContain('<x-v65.document-sources');
     }
 
     expect($sources)->toContain('incomingRelations')
@@ -167,4 +166,18 @@ it('shares the default product choices across rows while preserving targeted sea
             ->toContain('public function productOptionsForLine(')
             ->toContain("->orWhere('barcode', 'ilike',");
     }
+});
+
+it('preserves the standalone Goods Receipt presentation while adopting eight reference screens', function (): void {
+    $purchase = file_get_contents(base_path('resources/views/livewire/purchases/document-editor.blade.php'));
+    $sale = file_get_contents(base_path('resources/views/livewire/sales/document-editor.blade.php'));
+    $heading = file_get_contents(base_path('resources/views/components/v65/document-prototype-heading.blade.php'));
+
+    expect($purchase)->toContain('@if($isGoodsReceipt)')
+        ->toContain('<x-v65.document-heading')
+        ->toContain('Mal Kabul Kalemleri')
+        ->and($sale)->toContain('<x-v65.document-prototype-heading')
+        ->and($heading)->toContain("route('documents.print'")
+        ->toContain('type="submit"')
+        ->toContain('wire:target="save"');
 });

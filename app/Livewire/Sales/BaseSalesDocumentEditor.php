@@ -8,6 +8,7 @@ use App\DataObjects\Documents\DocumentTotals;
 use App\Enums\DocumentType;
 use App\Enums\LocationKind;
 use App\Livewire\Concerns\WithFastDocumentLines;
+use App\Livewire\Concerns\WithPrototypeDocumentControls;
 use App\Livewire\Concerns\WithIdempotentMutations;
 use App\Models\Period\Contact;
 use App\Models\Period\Document;
@@ -25,6 +26,7 @@ abstract class BaseSalesDocumentEditor extends Component
 {
     use WithFastDocumentLines;
     use WithIdempotentMutations;
+    use WithPrototypeDocumentControls;
 
     public ?Document $document = null;
 
@@ -102,6 +104,11 @@ abstract class BaseSalesDocumentEditor extends Component
     protected function extraMutationNames(): array
     {
         return [];
+    }
+
+    protected function resetPrototypeTypeFields(): void
+    {
+        $this->validUntil = null;
     }
 
     public function mount(?int $id = null): void

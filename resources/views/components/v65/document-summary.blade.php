@@ -1,4 +1,4 @@
-@props(['document' => null, 'preview' => null, 'currency' => null, 'editable' => false, 'additionalDiscount' => '0'])
+@props(['document' => null, 'preview' => null, 'currency' => null, 'editable' => false, 'additionalDiscount' => '0', 'compact' => false])
 @php
     $source = ($document === null || $document->status === 'draft') && $preview !== null ? $preview : $document;
     $isPreview = $source === $preview && $preview !== null;
@@ -37,10 +37,25 @@
     <div class="v65-prototype-total-strip" aria-label="HTML prototipindeki beş tutar özeti">
         <div><small>Ara Toplam</small><strong>{{ $money::money($grossAmount) }} {{ $currency }}</strong></div>
         <div><small>Satır İndirimi</small><strong>{{ $money::money($lineDiscountAmount) }} {{ $currency }}</strong></div>
-        <div><small>Ek İndirim</small><strong>{{ $money::money($additionalAmount) }} {{ $currency }}</strong></div>
+        <div class="v65-reference-discount-total">
+            <small>Ek İskonto (Tutar)</small>
+            @if($compact && $editable)
+                <label class="v65-reference-discount-input" for="v65-additional-discount">
+                    <input id="v65-additional-discount" type="text" inputmode="decimal"
+                        data-tr-decimal wire:model.blur="additionalDiscountAmount"
+                        aria-label="Belge ek iskonto tutarı">
+                    <span>{{ $currency }}</span>
+                </label>
+                <small>KDV hariç net tutardan düşülür</small>
+                <x-v65.input-error field="additionalDiscountAmount" />
+            @else
+                <strong>{{ $money::money($additionalAmount) }} {{ $currency }}</strong>
+            @endif
+        </div>
         <div><small>KDV</small><strong>{{ $money::money((string) ($isPreview ? $source->vatAmount : $source->vat_amount)) }} {{ $currency }}</strong></div>
         <div class="is-grand"><small>Genel Toplam</small><strong>{{ $money::money((string) ($isPreview ? $source->grandTotal : $source->grand_total)) }} {{ $currency }}</strong></div>
     </div>
+    @unless($compact)
     <dl class="v65-doc-summary-rows">
             <div><dt>Mal / Hizmet Brüt</dt><dd>{{ $money::money($grossAmount) }} {{ $currency }}</dd></div>
             <div><dt>Satır İskontoları</dt><dd>{{ $money::money($lineDiscountAmount) }} {{ $currency }}</dd></div>
@@ -63,6 +78,7 @@
             <div><dt>Yuvarlama Farkı</dt><dd>{{ $money::money((string) ($isPreview ? $source->roundingDifference : $source->rounding_difference)) }} {{ $currency }}</dd></div>
             <div class="v65-doc-grand-total"><dt>GENEL TOPLAM</dt><dd>{{ $money::money((string) ($isPreview ? $source->grandTotal : $source->grand_total)) }} {{ $currency }}</dd></div>
         </dl>
+    @endunless
         @if($isPreview)
             <small class="v65-doc-summary-warning">Bu tutarlar kaydedilmemiş taslak önizlemesidir. Kesin tutarlar kayıtta yeniden doğrulanır.</small>
         @elseif($document?->status === 'draft')

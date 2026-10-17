@@ -1,4 +1,4 @@
-<div class="document-workspace stack">
+<div class="document-workspace stack v65-reference-workspace">
     @php
         $documentIndexRoute = match (true) {
             $this instanceof \App\Livewire\Sales\QuoteEditor => 'sales.quotes.index',
@@ -6,8 +6,19 @@
             $this instanceof \App\Livewire\Sales\DispatchEditor => 'sales.dispatches.index',
             default => 'sales.invoices.index',
         };
+        $screenType = match (true) {
+            $this instanceof \App\Livewire\Sales\QuoteEditor => 'quote',
+            $this instanceof \App\Livewire\Sales\SalesOrderEditor => 'sales_order',
+            $this instanceof \App\Livewire\Sales\DispatchEditor => 'dispatch',
+            default => 'sales_invoice',
+        };
+        $screen = config('document_prototype.'.$screenType);
+        $formId = 'v65-reference-form-'.$screenType;
+        $lineCount = collect($lines)->filter(fn ($line) => ! empty($line['product_id'])
+            || (($line['line_kind'] ?? 'stock') === 'service' && trim((string) ($line['description'] ?? '')) !== ''))->count();
     @endphp
-    <x-v65.document-heading :document="$document" :title="$title" section="Satış Yönetimi" :index-route="$documentIndexRoute" :dirty="$documentDirty" />
+    <x-v65.document-prototype-heading :document="$document" :screen-type="$screenType"
+        :index-route="$documentIndexRoute" :dirty="$documentDirty" :form-id="$formId" />
     @if($errors->any())
         <x-v65.notice tone="danger" title="Belge kontrolü" data-v65-document-errors tabindex="-1">
             <ul>@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>
@@ -15,9 +26,6 @@
     @endif
     @if($documentDirty)
         <x-v65.notice tone="warning">Kaydedilmemiş değişiklikler var. Belge işlemine devam etmeden önce Kaydet'i kullanın.</x-v65.notice>
-    @endif
-    @if($document && $document->status === 'draft')
-        <x-v65.document-sources class="v65-doc-draft-sources" :document="$document" />
     @endif
 
     @if($this instanceof \App\Livewire\Sales\SalesInvoiceEditor)
@@ -29,9 +37,15 @@
     @endphp
 
     @if(!$document || $document->status === 'draft')
-        <form wire:submit="save" class="document-editor-form v65-doc-editor">
+        <form wire:submit="save" id="{{ $formId }}" class="document-editor-form v65-doc-editor v65-reference-form">
+            <section class="v65-reference-info-card" aria-label="Belge bilgileri">
+                <header class="v65-reference-info-head">
+                    <strong>Belge Bilgileri</strong>
+                    <small>Bu alanlar yalnız {{ $screen['title'] }} için düzenlenmiştir</small>
+                </header>
+                <div class="v65-reference-info-fields">
             <div class="v65-doc-contact-picker">
-                <label class="field">Cari Ara
+                <label class="field">{{ $screen['party'] }}
                     <input type="search" wire:model.live.debounce.300ms="contactSearch" placeholder="Kod veya unvan ile ara" autocomplete="off">
                     <small class="v65-doc-search-hint">Kod veya unvan yazarak arayın. En fazla 35 eşleşme listelenir.</small>
                     <small class="v65-doc-search-loading" wire:loading wire:target="contactSearch">Aranıyor…</small>
@@ -44,20 +58,16 @@
                     @endforelse
                 </x-v65.select>
                 <x-v65.input-error field="contactId" />
+                <details class="v65-reference-contact-prices">
+                    <summary>Cari fiyat listesi</summary>
                 <div class="v65-doc-contact-actions">
                     <x-v65.button variant="secondary" size="sm" wire:click="applyContactPrices" wire:loading.attr="disabled" wire:target="applyContactPrices" wire:confirm="Manuel girdiğiniz satır fiyatları da seçili carinin fiyat listesine göre değiştirilecek. Devam edilsin mi?">Cari Fiyatlarını Uygula</x-v65.button>
                     <small>Cari değişince otomatik fiyatlar güncellenir; manuel fiyatlar yalnızca bu butonla yeniden hesaplanır.</small>
                 </div>
+                </details>
             </div>
 
-            <label class="field">Belge Tarihi <input type="date" wire:model="documentDate"><x-v65.input-error field="documentDate" /></label>
-            @unless($this instanceof \App\Livewire\Sales\DispatchEditor)
-                <label class="field">Vade <input type="date" wire:model="dueDate"><x-v65.input-error field="dueDate" /></label>
-            @endunless
-            @if($this instanceof \App\Livewire\Sales\QuoteEditor)
-                <label class="field">Teklif Geçerlilik Tarihi <input type="date" wire:model="validUntil"><x-v65.input-error field="validUntil" /></label>
-            @endif
-
+            <label class="field">{{ $screen['date'] }} <input type="date" wire:model="documentDate"><x-v65.input-error field="documentDate" /></label>
             <label class="field"><span>Para Birimi</span><input readonly value="TRY" title="Satış muhasebesi mevcut aşamada TRY bazlıdır"></label>
             <label class="field"><span>Varsayılan Depo</span>
                 <select wire:model.live="uiMeta.default_location_id"><option value="">Satır bazında seç</option>
@@ -65,15 +75,15 @@
                 </select>
             </label>
             @if($this instanceof \App\Livewire\Sales\QuoteEditor)
-                <label class="field">Teslim Süresi <input wire:model.blur="uiMeta.delivery_terms" maxlength="140" placeholder="Örn. 7 iş günü"></label>
-                <label class="field">Ödeme Şartı
-                    <select wire:model.live="uiMeta.payment_terms"><option value="">Seçin</option>
-                        <option value="Peşin">Peşin</option><option value="15 Gün">15 Gün</option>
-                        <option value="30 Gün">30 Gün</option><option value="60 Gün">60 Gün</option>
+                <label class="field">Teklif Geçerlilik Tarihi <input type="date" wire:model="validUntil"><x-v65.input-error field="validUntil" /></label>
+                <label class="field">Teslim Yeri
+                    <select wire:model="uiMeta.delivery_location_id"><option value="">Teslim yeri seçin</option>
+                        @foreach($locations as $location)<option value="{{ $location->id }}">{{ $location->name }}</option>@endforeach
                     </select>
                 </label>
+                <label class="field">Müşteri Referans No <input wire:model.blur="uiMeta.customer_reference_no" maxlength="140"></label>
             @elseif($this instanceof \App\Livewire\Sales\SalesOrderEditor)
-                <label class="field">Planlanan Teslim <input type="date" wire:model="uiMeta.planned_delivery"></label>
+                <label class="field">Beklenen Sevk <input type="date" wire:model="uiMeta.planned_delivery"></label>
                 <label class="field">Sevkiyat Deposu
                     <select wire:model.live="uiMeta.shipment_location_id"><option value="">Satırdan seç</option>
                         @foreach($locations as $location)<option value="{{ $location->id }}">{{ $location->name }}</option>@endforeach
@@ -81,6 +91,14 @@
                 </label>
                 <label class="field">Müşteri Sipariş No <input wire:model.blur="uiMeta.customer_order_no" maxlength="140"></label>
             @elseif($this instanceof \App\Livewire\Sales\DispatchEditor)
+                <div class="field v65-reference-source-field">
+                    <strong>Kaynak Satış Siparişi</strong>
+                    @if($document && $document->incomingRelations->isNotEmpty())
+                        <x-v65.document-sources :document="$document" />
+                    @else
+                        <span>Onaylı siparişten sevk işlemiyle oluşturulur</span>
+                    @endif
+                </div>
                 <label class="field">Çıkış Deposu
                     <select wire:model.live="uiMeta.shipment_location_id"><option value="">Satırdan seç</option>
                         @foreach($locations as $location)<option value="{{ $location->id }}">{{ $location->name }}</option>@endforeach
@@ -88,69 +106,139 @@
                 </label>
                 <label class="field">Araç / Plaka <input wire:model.blur="uiMeta.vehicle_plate" maxlength="140"></label>
             @elseif($this instanceof \App\Livewire\Sales\SalesInvoiceEditor)
-                <label class="field">Ödeme Şekli
-                    <select wire:model="uiMeta.payment_method"><option value="">Seçin</option>
-                        <option value="Peşin">Peşin</option><option value="Vadeli">Vadeli</option><option value="Banka">Banka</option>
-                    </select>
-                </label>
+                <label class="field">Müşteri Referans No <input wire:model.blur="uiMeta.customer_reference_no" maxlength="140"></label>
+                <label class="field">Vade Tarihi <input type="date" wire:model="dueDate"><x-v65.input-error field="dueDate" /></label>
+                <div class="field v65-reference-source-field">
+                    <strong>Kaynak Sevk / İrsaliye</strong>
+                    @if($document && $document->incomingRelations->isNotEmpty())
+                        <x-v65.document-sources :document="$document" />
+                    @else
+                        <span>Kaynak sipariş / irsaliye kayıtlarıyla ilişkilendirilir</span>
+                    @endif
+                </div>
             @endif
-            <label class="field">Belge İskonto % <input wire:model.blur="discountRate" data-tr-decimal inputmode="decimal"><x-v65.input-error field="discountRate" /></label>
-            <label class="field v65-doc-notes">Not <textarea wire:model="notes" rows="3"></textarea></label>
+            <details class="v65-reference-more-options">
+                <summary>Belge indirimi, teslim ve ek seçenekler</summary>
+                <div class="v65-reference-more-fields">
+                    @if($this instanceof \App\Livewire\Sales\QuoteEditor)
+                        <label class="field">Teslim Süresi <input wire:model.blur="uiMeta.delivery_terms" maxlength="140" placeholder="Örn. 7 iş günü"></label>
+                        <label class="field">Ödeme Şartı
+                            <select wire:model.live="uiMeta.payment_terms"><option value="">Seçin</option>
+                                <option value="Peşin">Peşin</option><option value="15 Gün">15 Gün</option>
+                                <option value="30 Gün">30 Gün</option><option value="60 Gün">60 Gün</option>
+                            </select>
+                        </label>
+                    @elseif($this instanceof \App\Livewire\Sales\SalesInvoiceEditor)
+                        <label class="field">Ödeme Şekli <select wire:model="uiMeta.payment_method">
+                            <option value="">Seçin</option><option value="Peşin">Peşin</option>
+                            <option value="Vadeli">Vadeli</option><option value="Banka">Banka</option>
+                        </select></label>
+                    @elseif($this instanceof \App\Livewire\Sales\SalesOrderEditor)
+                        <label class="field">Vade <input type="date" wire:model="dueDate"><x-v65.input-error field="dueDate" /></label>
+                    @endif
+                    <label class="field">Belge İskonto % <input wire:model.blur="discountRate" data-tr-decimal inputmode="decimal"><x-v65.input-error field="discountRate" /></label>
+                    <label class="field v65-doc-notes">Not <textarea wire:model="notes" rows="3"></textarea></label>
+                </div>
+            </details>
+                </div>
+                <div class="v65-reference-document-sources">
+                    @if($document && $document->incomingRelations->isNotEmpty())
+                        <x-v65.document-sources :document="$document" />
+                    @endif
+                    @if($this instanceof \App\Livewire\Sales\DispatchEditor || $this instanceof \App\Livewire\Sales\SalesInvoiceEditor)
+                        <small>Kaynak sipariş ve irsaliye bağlantıları kayıtlı belge üzerinden yönetilir.</small>
+                    @endif
+                </div>
+                <x-v65.document-prototype-stage :document="$document" :screen-type="$screenType" />
+            </section>
 
+
+
+            <section class="v65-doc-lines v65-reference-products-card" aria-label="Ürün ve hizmetler">
+                <x-v65.document-prototype-toolbar :screen-type="$screenType"
+                    :products="$this->quickProductOptions()" :quick-search="$quickProductSearch" />
+                <details class="v65-reference-advanced">
+                    <summary>Özel KDV / Gelişmiş Vergi İşlemleri</summary>
             <div class="v65-doc-vat-toolbar" role="group" aria-label="Satırlara toplu KDV uygula">
                 <label class="field">Toplu KDV % <input wire:model="bulkVatRate" inputmode="decimal" data-tr-decimal aria-invalid="{{ $errors->has('bulkVatRate') ? 'true' : 'false' }}"><x-v65.input-error field="bulkVatRate" /></label>
                 <x-v65.button variant="secondary" size="sm" wire:click="applyVatToAll">Tüm Satırlara Uygula</x-v65.button>
                 <x-v65.button variant="secondary" size="sm" wire:click="clearVat">KDV'yi Temizle</x-v65.button>
             </div>
-
-            <section class="v65-doc-lines" aria-label="Belge kalemleri">
-                <div class="v65-doc-lines-head">
-                    <strong>Belge Kalemleri</strong>
-                    <small>Ürün seçtiğinizde sonraki boş satır otomatik hazırlanır. Boş satırlar kaydedilmez.</small>
-                </div>
+                </details>
                 <small class="v65-doc-mobile-scroll-hint">Tablodaki diğer satır alanlarını görmek için yatay kaydırın.</small>
 
                 <div class="table-scroll document-lines v65-doc-table-scroll"><table class="data-table v65-doc-table v65-prototype-lines">
                     <thead><tr>
                         <th>#</th><th>Ürün Kodu / Ürün Adı</th><th class="align-end">Miktar</th>
-                        <th>Birim</th><th class="align-end">Fiyat</th><th class="align-end">İsk. %</th><th class="align-end">KDV %</th>
+                        <th>Birim</th><th class="align-end">{{ $screen['price'] }}</th><th class="align-end">İsk. %</th><th class="align-end">KDV %</th>
                         <th class="align-end">Net Tutar</th><th class="align-end">KDV Dahil*</th><th>İşlem</th>
                     </tr></thead>
                     <tbody>
                     @foreach($lines as $index => $line)
                         @php
                             $service = ($line['line_kind'] ?? 'stock') === 'service';
+                            $rowKey = (string) ($line['row_key'] ?? $index);
+                            $isEntryRow = $index === count($lines) - 1 && $this->isPrototypeEntryRow($line);
+                            $productChoices = $this->productOptionsForLine($rowKey, (int) ($line['product_id'] ?? 0));
+                            $selectedProduct = $productChoices->firstWhere('id', (int) ($line['product_id'] ?? 0));
                             $previewLine = $draftPreview?->lines[$index] ?? null;
                             $lineNet = $previewLine?->lineTotal ?? (!$documentDirty ? ($line['line_total'] ?? null) : null);
                             $lineVat = $lineNet !== null && is_numeric((string) ($line['vat_rate'] ?? 0))
                                 ? \App\Support\Money\Money::of((string) $lineNet)->percent((string) ($line['vat_rate'] ?? 0))->amount : null;
                             $lineWithVat = $lineVat !== null ? \App\Support\Money\Money::of((string) $lineNet)->plus(\App\Support\Money\Money::of($lineVat))->amount : null;
                         @endphp
+                        @if($isEntryRow)
+                            <tr wire:key="sales-entry-{{ $rowKey }}" class="v65-reference-entry-row">
+                                <td>+</td>
+                                <td class="v65-reference-entry-cell">
+                                    <input type="search" class="v65-doc-product-search" data-v65-fast-product-search
+                                        wire:model.live.debounce.300ms="productSearches.{{ $rowKey }}"
+                                        autocomplete="off" placeholder="Ürün kodu, barkod veya ürün adı yazın..."
+                                        aria-label="Yeni boş satır ürün ara">
+                                    <select data-v65-fast-product-select wire:model.live="lines.{{ $index }}.product_id"
+                                        aria-label="Yeni boş satır ürün seç">
+                                        <option value="">Ürün seçin</option>
+                                        @forelse($productChoices as $product)
+                                            <option value="{{ $product->id }}">{{ $product->code }} · {{ $product->name }}</option>
+                                        @empty
+                                            <option value="" disabled>Aramaya uygun ürün bulunamadı</option>
+                                        @endforelse
+                                    </select>
+                                </td>
+                                <td colspan="8" class="v65-reference-entry-description">
+                                    Ürün seçildiğinde yeni boş satır otomatik açılır · Enter ile ekleyin
+                                </td>
+                            </tr>
+                        @else
                         <tr wire:key="sales-line-{{ $line['row_key'] ?? $index }}">
                             <td>{{ $index + 1 }}</td>
                             <td class="v65-doc-product-combined">
                                 <div class="v65-doc-product-cell">
                                 @if($service)<span class="v65-doc-muted">HİZMET</span>
                                 @else
+                                    @if(!empty($line['product_id']))<details class="v65-reference-change-product"><summary>Ürünü değiştir</summary>@endif
                                     <input type="search" class="v65-doc-product-search" data-v65-fast-product-search
                                         wire:model.live.debounce.300ms="productSearches.{{ $line['row_key'] ?? $index }}"
                                         placeholder="Kod / barkod / ad ara" autocomplete="off" aria-label="Satır {{ $index + 1 }} ürün ara">
                                     <select data-v65-fast-product-select wire:model.live="lines.{{ $index }}.product_id" aria-label="Satır {{ $index + 1 }} ürün seç">
                                         <option value="">Ürün seçin</option>
-                                        @forelse($this->productOptionsForLine((string) ($line['row_key'] ?? $index), (int) ($line['product_id'] ?? 0)) as $product)
+                                        @forelse($productChoices as $product)
                                             <option value="{{ $product->id }}">{{ $product->code }} · {{ $product->name }} {{ $product->barcode ? '(' . $product->barcode . ')' : '' }}</option>
                                         @empty
                                             <option disabled value="">Ürün bulunamadı</option>
                                         @endforelse
                                     </select>
                                     <x-v65.input-error :field="'lines.'.$index.'.product_id'"/>
+                                    @if(!empty($line['product_id']))</details>@endif
                                 @endif
                             </div>
                                 <div class="v65-doc-product-detail">
                                 @if($service)
                                     <input wire:model.blur="lines.{{ $index }}.description" placeholder="Hizmet açıklaması">
                                     <x-v65.input-error :field="'lines.'.$index.'.description'"/>
-                                @else <strong>{{ $line['description'] ?? 'Ürün seçin' }}</strong>
+                                @else
+                                    <strong>{{ $line['description'] ?? 'Ürün seçin' }}</strong>
+                                    @if($selectedProduct)<small class="v65-reference-sku">{{ $selectedProduct->code }}</small>@endif
                                 @endif
                                 <details class="v65-doc-line-details"><summary>Satır detayı</summary>
                                     <label>Tür <select wire:model.live="lines.{{ $index }}.line_kind" aria-label="Satır türü">
@@ -185,16 +273,28 @@
                             <td class="align-end v65-doc-line-incl">{{ $lineWithVat !== null ? \App\Support\Formatting\TrFormatter::money($lineWithVat) : '—' }}</td>
                             <td><x-v65.button size="xs" variant="danger" wire:click="removeLine({{ $index }})" aria-label="Satır sil">Sil</x-v65.button></td>
                         </tr>
+                        @endif
                     @endforeach
                     </tbody>
                 </table></div>
-                <small class="v65-doc-line-tax-note">* KDV Dahil satır tutarı belge genel/ek iskontoları öncesi bilgi amaçlıdır; geçerli KDV ve genel toplam sağdaki sunucu hesaplamalı özettir.</small>
+                <div class="v65-reference-new-line">
+                    <x-v65.button variant="secondary" size="sm" wire:click="addLine">+ Yeni ürün satırı</x-v65.button>
+                    <small>Aşağıdaki boş satıra da doğrudan ürün kodu veya barkod yazabilirsiniz. Enter ürün seçer, Tab sonraki alana ilerler.</small>
+                </div>
+                <div class="v65-reference-totals-layout">
+                    <div class="v65-reference-totals-help">
+                        <strong>Hızlı giriş:</strong> Ürün kodunu aratıp Enter ile ekleyin. Sonraki boş satır otomatik hazırlanır.
+                        <p>Depo, satır notu ve birim bilgileri satır detayından düzenlenebilir.
+                        Ek iskonto KDV hariç net tutardan düşülür; geçerli matrah ve KDV sunucuda hesaplanır.</p>
+                        <small>* Satır KDV dahil tutarı belge genel iskontoları öncesi bilgi amaçlıdır.</small>
+                    </div>
+                    <x-v65.document-summary class="v65-reference-inline-summary" :compact="true" :editable="true"
+                        :document="$document" :preview="$draftPreview" :additional-discount="$additionalDiscountAmount" />
+                </div>
             </section>
+            <x-v65.document-prototype-footer :document="$document" :screen-type="$screenType" :item-count="$lineCount" />
 
-            <x-v65.form-actions align="between" class="v65-doc-form-actions">
-                <div class="v65-line-add-actions"><x-v65.button variant="secondary" wire:click="addServiceLine">+ Hizmet Satırı</x-v65.button><x-v65.button variant="secondary" wire:click="addLine">+ Yeni Ürün Satırı</x-v65.button></div>
-                <x-v65.button type="submit" wire:loading.attr="disabled" wire:target="save">Kaydet</x-v65.button>
-            </x-v65.form-actions>
+
         </form>
     @elseif($document)
         <x-v65.document-readonly :document="$document" />
@@ -207,10 +307,12 @@
         </div>
     @endif
 
-    <x-v65.document-summary :editable="!$document || $document->status === 'draft'" :additional-discount="$additionalDiscountAmount" class="v65-doc-screen-summary" :document="$document" :preview="$draftPreview" />
+    @if($document && $document->status !== 'draft')
+        <x-v65.document-summary :editable="false" class="v65-doc-screen-summary" :document="$document" />
+    @endif
 
     @if($document)
-        <section class="document-actions panel v65-document-actions v65-doc-workflow" role="group" aria-label="Belge işlemleri">
+        <section id="v65-reference-workflow" class="document-actions panel v65-document-actions v65-doc-workflow" role="group" aria-label="Belge işlemleri">
             <h3 class="v65-doc-workflow-title">Belge İşlemleri</h3>
             @if(method_exists($this, 'internalReview') && $document->status === 'draft')
                 <x-v65.button variant="secondary" wire:click="internalReview" wire:loading.attr="disabled" wire:target="internalReview">İç Onaya Gönder</x-v65.button>
