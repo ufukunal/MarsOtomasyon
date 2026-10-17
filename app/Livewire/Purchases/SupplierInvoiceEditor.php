@@ -39,7 +39,19 @@ class SupplierInvoiceEditor extends BasePurchaseDocumentEditor
     public function mount(?int $id = null): void
     {
         parent::mount($id);
+
+        // Default only new/unspecified draft invoices; retain saved choices.
+        if ($this->document === null || $this->document->status === 'draft') {
+            $this->uiMeta['payment_method'] ??= 'Vadeli';
+        }
+
         $this->reversalDate = now()->toDateString();
+    }
+
+    protected function resetPrototypeTypeFields(): void
+    {
+        parent::resetPrototypeTypeFields();
+        $this->uiMeta['payment_method'] = 'Vadeli';
     }
 
     /** The single visible Save button also posts the invoice to the ledger. */

@@ -65,3 +65,19 @@ it('does not reverse a posted invoice just because its editor was opened', funct
         ->toContain('revision-reverse')
         ->and($copy)->toContain('bool $allowPostedInvoiceEdit = false');
 });
+
+it('starts new sales and purchase invoices with Vadeli payment and preserves saved choices', function (): void {
+    $sales = file_get_contents(base_path('app/Livewire/Sales/SalesInvoiceEditor.php'));
+    $purchase = file_get_contents(base_path('app/Livewire/Purchases/SupplierInvoiceEditor.php'));
+
+    foreach ([$sales, $purchase] as $editor) {
+        expect($editor)->toContain("\$this->uiMeta['payment_method'] ??= 'Vadeli';")
+            ->toContain("\$this->uiMeta['payment_method'] = 'Vadeli';")
+            ->toContain("\$this->document === null || \$this->document->status === 'draft'");
+    }
+
+    $salesView = file_get_contents(base_path('resources/views/livewire/sales/document-editor.blade.php'));
+    $purchaseView = file_get_contents(base_path('resources/views/livewire/purchases/document-editor.blade.php'));
+    expect($salesView)->toContain('wire:model="uiMeta.payment_method"')
+        ->and($purchaseView)->toContain('wire:model="uiMeta.payment_method"');
+});
