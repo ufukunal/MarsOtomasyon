@@ -48,7 +48,7 @@
                         <tr wire:key="doc-edit-{{ $document->id }}">
                             <td>{{ $document->number ?: 'Taslak #'.$document->id }}</td>
                             <td>{{ $entry['label'] }}</td>
-                            <td>{{ $document->contact?->title ?: '—' }}</td>
+                            <td>{{ auth()->user()?->can('contacts.view') ? ($document->contact?->title ?: '—') : 'Görüntüleme yetkisi yok' }}</td>
                             <td>{{ $document->document_date?->format('d.m.Y') }}</td>
                             <td>
                                 <x-v65.status-badge>{{ \App\Support\Formatting\BusinessLabelFormatter::status($document->status) }}</x-v65.status-badge>

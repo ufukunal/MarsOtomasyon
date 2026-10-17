@@ -32,13 +32,13 @@ ENV="$HOME/.config/mars/uat-fresh.env"
 COMPOSE="$HOME/mars-uat-fresh-src/compose.uat.fresh.yml"
 [[ -f "$ENV" && -f "$COMPOSE" ]] || stop 'Fresh compose/env unavailable'
 PG=mars-uat-fresh-postgres-1
-for MIGRATION in 0001_12_02_000010_add_document_additional_discount.php 0001_12_02_000020_create_contact_transfers.php; do
+for MIGRATION in 0001_12_02_000010_add_document_additional_discount.php 0001_12_02_000020_create_contact_transfers.php 0001_12_02_000030_add_document_ui_meta.php 0001_12_02_000040_add_contact_transfer_reference.php; do
   LOCAL="$ROOT/database/migrations/period/$MIGRATION"
   [[ -f "$LOCAL" && ! -L "$LOCAL" ]] || stop "migration missing: $MIGRATION"
 done
 # Only approved files, mounted read-only into isolated one-off Fresh application.
 # Explicit period connection prevents accidental writes to Fresh master or PROD.
-for MIGRATION in 0001_12_02_000010_add_document_additional_discount.php 0001_12_02_000020_create_contact_transfers.php; do
+for MIGRATION in 0001_12_02_000010_add_document_additional_discount.php 0001_12_02_000020_create_contact_transfers.php 0001_12_02_000030_add_document_ui_meta.php 0001_12_02_000040_add_contact_transfer_reference.php; do
   LOCAL="$ROOT/database/migrations/period/$MIGRATION"
   REMOTE="/var/www/html/database/migrations/period/$MIGRATION"
   echo "=== Fresh period migration: $MIGRATION ==="
@@ -53,6 +53,8 @@ RESULT="$(sudo docker exec "$PG" psql -U mars_uat_owner -d mars_uat_demo_2026 -X
 SELECT CASE WHEN
  EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='documents' AND column_name='additional_discount_amount')
  AND to_regclass('public.contact_transfers') IS NOT NULL
+ AND EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='documents' AND column_name='ui_meta')
+ AND EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='contact_transfers' AND column_name='reference')
  AND EXISTS (SELECT 1 FROM pg_constraint WHERE conname='documents_additional_discount_nonnegative')
  AND EXISTS (SELECT 1 FROM pg_constraint WHERE conname='contact_transfers_distinct_contacts')
  AND EXISTS (SELECT 1 FROM pg_constraint WHERE conname='contact_transfers_amount_positive')

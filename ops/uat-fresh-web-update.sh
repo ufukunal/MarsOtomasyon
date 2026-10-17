@@ -46,6 +46,8 @@ SELECT CASE WHEN
             WHERE table_schema='public' AND table_name='documents'
             AND column_name='additional_discount_amount')
     AND to_regclass('public.contact_transfers') IS NOT NULL
+    AND EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='documents' AND column_name='ui_meta')
+    AND EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='contact_transfers' AND column_name='reference')
 THEN 'READY' ELSE 'MISSING' END;
 SQL
 )" || fail 'Could not verify isolated period schema'
