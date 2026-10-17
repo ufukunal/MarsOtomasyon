@@ -7,7 +7,8 @@
 <a href="{{ route('finance.checks.index') }}">Çek Listesi</a>
 <a href="{{ route('finance.notes.index') }}">Senet Listesi</a></nav>
 <div class="v65-ref-banner"><strong>Cari bakiyeler arasında aktarım:</strong> Kaynak carinin bakiyesi azalır, hedef caride aynı yönde bakiye artar. Toplam cari bakiye değişmez; banka/kasa etkisi sıfırdır.</div>
-    <section class="panel v65-workspace-form v65-ref-card"><header class="v65-ref-card-head"><strong>Virman Bilgileri</strong><small>Kaynak ve hedef carileri ayrı ayrı seçin</small></header>
+    <section class="panel v65-workspace-form v65-ref-card v65-ref-virman-form" aria-label="Virman bilgileri">
+        <header class="v65-ref-card-head"><strong>Virman Bilgileri</strong><small>Kaynak ve hedef carileri ayrı ayrı seçin</small></header>
         @if($correctionSourceId)
             <x-v65.notice :tone="$correctionReady ? 'success' : 'warning'">
                 #{{ $correctionSourceId }} numaralı virman düzeltme için açıldı.
@@ -18,86 +19,93 @@
                 @endif
             </x-v65.notice>
         @endif
-        <p class="v65-doc-search-hint">Cari bakiyesi esaslı virman. Kasa/banka hareketi oluşturmaz. Kayıtlar TRY cinsindendir.</p>
-        <div class="v65-contact-transfer-grid">
-            <div class="v65-contact-transfer-party">
-                <strong>Kaynak Cari</strong>
-                <label class="field"><span>Cari kodu / ünvan ara</span>
-                    <input type="search" wire:model.live.debounce.300ms="sourceSearch" placeholder="Kaynak cari ara">
+        <div class="v65-ref-virman-inputs">
+            <div class="v65-ref-virman-contact">
+                <label class="field"><span>Kaynak Cari *</span>
+                    <input type="search" wire:model.live.debounce.300ms="sourceSearch" placeholder="Cari kodu veya unvanına göre ara..." autocomplete="off">
                 </label>
-                <label class="field"><span>Cari seç</span>
-                    <select wire:model.live="sourceContactId">
-                        <option value="">Kaynak cari seçin</option>
+                <label class="field v65-ref-virman-choice"><span>Kaynak cari seçimi</span>
+                    <select wire:model.live="sourceContactId"><option value="">Kaynak cari seçin</option>
                         @foreach($sourceOptions as $contact)
                             <option value="{{ $contact->id }}">{{ $contact->code }} · {{ $contact->title }}</option>
                         @endforeach
                     </select>
                 </label>
-                @if($this->canViewContactBalances())
-                <div class="v65-contact-transfer-balance"><span>Mevcut bakiye (Borç − Alacak)</span>
-                    <strong class="{{ bccomp($this->sourceBalance(), '0', 4) > 0 ? 'is-debtor' : (bccomp($this->sourceBalance(), '0', 4) < 0 ? 'is-creditor' : '') }}">{{ \App\Support\Formatting\TrFormatter::money($this->sourceBalance()) }} TRY</strong>
-                </div>
-                <div class="v65-contact-transfer-balance"><span>İşlem Sonrası (Taslak)</span>
-                    <strong class="{{ bccomp($this->projectedSourceBalance(), '0', 4) > 0 ? 'is-debtor' : (bccomp($this->projectedSourceBalance(), '0', 4) < 0 ? 'is-creditor' : '') }}">{{ \App\Support\Formatting\TrFormatter::money($this->projectedSourceBalance()) }} TRY</strong>
-                </div>
-                @else
-                <div class="v65-contact-transfer-balance"><span>Cari bakiye</span><strong>Görüntüleme yetkisi yok</strong></div>
-                @endif
+                <small>Aktarılacak bakiyenin bulunduğu cari</small><x-v65.input-error field="sourceContactId"/>
             </div>
-            <div class="v65-contact-transfer-party">
-                <strong>Hedef Cari</strong>
-                <label class="field"><span>Cari kodu / ünvan ara</span>
-                    <input type="search" wire:model.live.debounce.300ms="targetSearch" placeholder="Hedef cari ara">
+            <div class="v65-ref-virman-contact">
+                <label class="field"><span>Hedef Cari *</span>
+                    <input type="search" wire:model.live.debounce.300ms="targetSearch" placeholder="Cari kodu veya unvanına göre ara..." autocomplete="off">
                 </label>
-                <label class="field"><span>Cari seç</span>
-                    <select wire:model.live="targetContactId">
-                        <option value="">Hedef cari seçin</option>
+                <label class="field v65-ref-virman-choice"><span>Hedef cari seçimi</span>
+                    <select wire:model.live="targetContactId"><option value="">Hedef cari seçin</option>
                         @foreach($targetOptions as $contact)
                             <option value="{{ $contact->id }}">{{ $contact->code }} · {{ $contact->title }}</option>
                         @endforeach
                     </select>
                 </label>
-                @if($this->canViewContactBalances())
-                <div class="v65-contact-transfer-balance"><span>Mevcut bakiye (Borç − Alacak)</span>
-                    <strong class="{{ bccomp($this->targetBalance(), '0', 4) > 0 ? 'is-debtor' : (bccomp($this->targetBalance(), '0', 4) < 0 ? 'is-creditor' : '') }}">{{ \App\Support\Formatting\TrFormatter::money($this->targetBalance()) }} TRY</strong>
-                </div>
-                <div class="v65-contact-transfer-balance"><span>İşlem Sonrası (Taslak)</span>
-                    <strong class="{{ bccomp($this->projectedTargetBalance(), '0', 4) > 0 ? 'is-debtor' : (bccomp($this->projectedTargetBalance(), '0', 4) < 0 ? 'is-creditor' : '') }}">{{ \App\Support\Formatting\TrFormatter::money($this->projectedTargetBalance()) }} TRY</strong>
-                </div>
-                @else
-                <div class="v65-contact-transfer-balance"><span>Cari bakiye</span><strong>Görüntüleme yetkisi yok</strong></div>
-                @endif
+                <small>Bakiyenin aktarılacağı cari</small><x-v65.input-error field="targetContactId"/>
             </div>
-        </div>
-        <div class="v65-contact-transfer-controls">
-            <label class="field"><span>Virman Yönü</span>
-                <select wire:model.live="balanceType">
-                    <option value="debit">Borç bakiyesi devri</option>
-                    <option value="credit">Alacak bakiyesi devri</option>
-                </select>
+            <label class="field"><span>Virman No</span>
+                <input readonly value="{{ $postedTransferId ? 'Kayıt #'.$postedTransferId : 'Kaydedilince oluşturulur' }}" aria-label="Virman numarası" />
             </label>
-            <label class="field"><span>Virman Tutarı (TRY)</span>
-                <input wire:model.blur="amount" data-tr-decimal inputmode="decimal" aria-invalid="{{ $errors->has('amount') ? 'true' : 'false' }}">
+            <label class="field"><span>Virman Tarihi *</span>
+                <input type="date" wire:model="documentDate"><x-v65.input-error field="documentDate"/>
+            </label>
+            <label class="field"><span>Aktarılacak Bakiye Türü</span>
+                <select wire:model.live="balanceType"><option value="debit">Borç bakiyesi</option><option value="credit">Alacak bakiyesi</option></select>
+            </label>
+            <label class="field"><span>Para Birimi</span><input readonly value="TRY · Türk Lirası"></label>
+            <label class="field v65-ref-virman-wide"><span>Aktarılacak Tutar *</span>
+                <input wire:model.blur="amount" data-tr-decimal inputmode="decimal" placeholder="0,00" aria-invalid="{{ $errors->has('amount') ? 'true' : 'false' }}">
                 <x-v65.input-error field="amount"/>
+                <small>Aktarılabilir bakiye yalnız seçili kaynak cari üzerinden hesaplanır.</small>
             </label>
-            <label class="field"><span>İşlem Tarihi</span>
-                <input type="date" wire:model="documentDate">
-            </label>
-            <label class="field"><span>Virman Referansı</span>
-                <input wire:model.blur="reference" maxlength="100" placeholder="Harici işlem / belge no">
+            <label class="field v65-ref-virman-wide"><span>Referans / Belge No</span>
+                <input wire:model.blur="reference" maxlength="100" placeholder="Opsiyonel işlem / belge no">
                 <x-v65.input-error field="reference"/>
             </label>
-            <label class="field"><span>Gerekçe / Açıklama</span>
-                <input wire:model.blur="reason" placeholder="Virmanın nedenini yazın">
+            <label class="field v65-ref-virman-full"><span>Açıklama / Gerekçe</span>
+                <textarea rows="2" wire:model.blur="reason" placeholder="Cari hesaplar arası bakiye virmanı"></textarea>
                 <x-v65.input-error field="reason"/>
             </label>
+        </div>
+        <section class="v65-ref-virman-impact" aria-label="İşlem öncesi ve sonrası bakiyeler">
+            <header><div><strong>İşlem Öncesi / Sonrası Bakiyeler</strong><small>Cari borç bakiyesi kırmızı, alacak bakiyesi yeşil gösterilir.</small></div><span>TRY · Bakiye Bazlı</span></header>
+            @if($this->canViewContactBalances())
+                <div class="v65-ref-virman-balances">
+                    <article class="v65-ref-virman-party"><header><span class="v65-ref-virman-number">01</span><div><strong>Kaynak Cari</strong><small>{{ $this->sourceContact()?->title ?: 'Henüz seçilmedi' }}</small></div></header>
+<div class="v65-ref-virman-balance-pair"><div><small>Mevcut Bakiye</small>
+<strong class="{{ bccomp($this->sourceBalance(), '0', 4) > 0 ? 'is-debtor' : (bccomp($this->sourceBalance(), '0', 4) < 0 ? 'is-creditor' : '') }}">{{ \App\Support\Formatting\TrFormatter::money($this->sourceBalance()) }} TRY</strong></div>
+<span aria-hidden="true">→</span><div class="v65-ref-virman-after"><small>Virman Sonrası</small>
+<strong class="{{ bccomp($this->projectedSourceBalance(), '0', 4) > 0 ? 'is-debtor' : (bccomp($this->projectedSourceBalance(), '0', 4) < 0 ? 'is-creditor' : '') }}">{{ \App\Support\Formatting\TrFormatter::money($this->projectedSourceBalance()) }} TRY</strong></div></div>
+<footer>Bakiye etkisi: {{ $sourceContactId ? 'Tahmini işlem sonrası bakiye' : 'Cari seçilmedi' }}</footer></article>
+                    <article class="v65-ref-virman-party"><header><span class="v65-ref-virman-number">02</span><div><strong>Hedef Cari</strong><small>{{ $this->targetContact()?->title ?: 'Henüz seçilmedi' }}</small></div></header>
+<div class="v65-ref-virman-balance-pair"><div><small>Mevcut Bakiye</small>
+<strong class="{{ bccomp($this->targetBalance(), '0', 4) > 0 ? 'is-debtor' : (bccomp($this->targetBalance(), '0', 4) < 0 ? 'is-creditor' : '') }}">{{ \App\Support\Formatting\TrFormatter::money($this->targetBalance()) }} TRY</strong></div>
+<span aria-hidden="true">→</span><div class="v65-ref-virman-after"><small>Virman Sonrası</small>
+<strong class="{{ bccomp($this->projectedTargetBalance(), '0', 4) > 0 ? 'is-debtor' : (bccomp($this->projectedTargetBalance(), '0', 4) < 0 ? 'is-creditor' : '') }}">{{ \App\Support\Formatting\TrFormatter::money($this->projectedTargetBalance()) }} TRY</strong></div></div>
+<footer>Bakiye etkisi: {{ $targetContactId ? 'Tahmini işlem sonrası bakiye' : 'Cari seçilmedi' }}</footer></article>
+                </div>
+            @else
+                <div class="v65-ref-virman-no-permission">Cari bakiyeleri için görüntüleme yetkisi yok.</div>
+            @endif
+        </section>
+        <div class="v65-ref-virman-totals">
+            <div><small>Virman Tutarı</small><strong>{{ is_numeric($amount) ? \App\Support\Formatting\TrFormatter::money((string) $amount) : '0,00' }} TRY</strong></div>
+            <div><small>Toplam Cari Bakiye Değişimi</small><strong class="is-creditor">0,00 TRY</strong></div>
+            <div><small>Banka / Kasa Etkisi</small><strong>0,00 TRY</strong></div>
         </div>
         @if($postedTransferId)
             <div role="status" class="v65-contact-transfer-notice">Virman kaydedildi. Kayıt #{{ $postedTransferId }}</div>
         @endif
-        <p class="v65-doc-search-hint">Pozitif bakiye: <strong class="is-debtor">O Borçlu</strong> · Negatif bakiye: <strong class="is-creditor">O Alacaklı</strong>. Bakiye aşımlarında yalnız yetkili kullanıcı açık onay ve gerekçeyle işlem yapabilir.</p>
-        <div class="v65-form-footer">
-            <x-v65.button wire:click="post" wire:loading.attr="disabled" wire:target="post" :disabled="$correctionSourceId !== null && ! $correctionReady">{{ $correctionReady ? 'Düzeltilmiş Virmanı Kaydet' : 'Virmanı Oluştur' }}</x-v65.button>
+        <p class="v65-ref-virman-help">Pozitif bakiye: <strong class="is-debtor">O Borçlu</strong> · Negatif bakiye: <strong class="is-creditor">O Alacaklı</strong>. Bakiye aşımında yalnız yetkili kullanıcı gerekçeli onay verebilir.</p>
+        <div class="v65-ref-virman-footer">
+            <small><b>Muhasebe yönü:</b> İki cari hareketi eşit tutarlı, zıt yönlü olarak oluşturulur.</small>
+            <div class="v65-ref-virman-actions">
+                <x-v65.button variant="secondary" wire:click="clearForm" :disabled="$correctionSourceId !== null">Formu Temizle</x-v65.button>
+                <x-v65.button wire:click="post" wire:loading.attr="disabled" wire:target="post" :disabled="$correctionSourceId !== null && ! $correctionReady">{{ $correctionReady ? 'Düzeltilmiş Virmanı Kaydet' : 'Virmanı Oluştur' }}</x-v65.button>
+            </div>
         </div>
     </section>
     <section class="panel v65-workspace-form v65-ref-card v65-ref-history"><header class="v65-ref-card-head"><strong>Cari Virman Geçmişi</strong><small>Yetkili olduğunuz kayıtlar</small></header>

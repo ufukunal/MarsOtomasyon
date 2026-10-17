@@ -73,6 +73,19 @@ class ContactTransferForm extends Component
         }
     }
 
+    /** Clear only a new draft; reversing a posted transfer requires its separate confirmation. */
+    public function clearForm(): void
+    {
+        abort_unless(auth()->user()?->can('contact_transfers.create'), 403);
+        abort_if($this->correctionSourceId !== null, 409);
+        $this->reset(['sourceContactId', 'targetContactId', 'sourceSearch', 'targetSearch',
+            'amount', 'reason', 'reference', 'postedTransferId',
+            'showOverdraftConfirm', 'overdraftConfirmed', 'overdraftAcknowledged']);
+        $this->balanceType = 'debit';
+        $this->documentDate = now()->toDateString();
+        $this->resetValidation();
+    }
+
     public function sourceContact(): ?Contact
     {
         return $this->sourceContactId ? Contact::query()->find($this->sourceContactId) : null;
