@@ -56,15 +56,61 @@
             </select>
         </label>
         <label class="field">Not <textarea wire:model.blur="note" rows="3"></textarea></label>
+        <section class="v65-finance-impact" aria-label="Evrak ilk kayıt önizlemesi">
+            <h3>İlk Kayıt Mali Etkisi <small>Banka hareketi ancak tahsil/ödeme bordrosunda oluşur.</small></h3>
+            <div class="v65-impact-grid">
+                <div class="v65-impact-card"><span>İlgili Cari Önce (Borç − Alacak)</span>
+                    <strong class="{{ bccomp($this->selectedContactBalance(), '0', 4) > 0 ? 'is-debtor' : (bccomp($this->selectedContactBalance(), '0', 4) < 0 ? 'is-creditor' : '') }}">{{ \App\Support\Formatting\TrFormatter::money($this->selectedContactBalance()) }} TRY</strong></div>
+                <div class="v65-impact-card"><span>İlgili Cari Sonra (Tahmini)</span>
+                    <strong class="{{ bccomp($this->projectedContactBalance(), '0', 4) > 0 ? 'is-debtor' : (bccomp($this->projectedContactBalance(), '0', 4) < 0 ? 'is-creditor' : '') }}">{{ \App\Support\Formatting\TrFormatter::money($this->projectedContactBalance()) }} TRY</strong></div>
+                <div class="v65-impact-card"><span>Başlangıç Banka Etkisi</span><strong>0,00 TRY</strong></div>
+                <div class="v65-impact-card"><span>Yeni Evrak Yönü</span>
+                    <strong>{{ ($screenDirection ?? $direction) === 'outgoing' ? 'Verilen: cari borcu artar' : 'Alınan: cari borcu azalır' }}</strong></div>
+            </div>
+            @if(($screenKind ?? $kind) === 'note')
+                <small>Borçlu / lehtar bilgisi seçili cariye bağlıdır. Banka adı alanı ayrı bir bilgidir.</small>
+            @endif
+        </section>
         <x-v65.button wire:click="create" wire:loading.attr="disabled" wire:target="create">Kaydet</x-v65.button>
     </section>
     @endif
 
     <section>
+        @if($screenMode === 'list')
+            <section class="v65-security-toolbar" aria-label="Çek senet liste özeti ve filtreler">
+                <div class="v65-security-summary">
+                    <div class="v65-impact-card"><span>Toplam Evrak</span><strong>{{ $securitySummary['count'] }}</strong></div>
+                    <div class="v65-impact-card"><span>Portföyde</span><strong>{{ $securitySummary['portfolio'] }}</strong></div>
+                    <div class="v65-impact-card"><span>Bankada / Cirolu</span><strong>{{ $securitySummary['banked'] + $securitySummary['endorsed'] }}</strong></div>
+                    <div class="v65-impact-card"><span>Ödenen / Tahsil Edilen</span><strong>{{ $securitySummary['settled'] }}</strong></div>
+                </div>
+                <div class="v65-security-filters">
+                    <label class="field">Evrak No / Cari Ara<input type="search" wire:model.live.debounce.300ms="listSearch" placeholder="Evrak no, cari kodu veya unvan"></label>
+                    <label class="field">İşlem Yönü
+                        <select wire:model.live="listDirection">
+                            <option value="">Tüm İşlemler</option><option value="incoming">Alınan</option><option value="outgoing">Verilen</option>
+                        </select>
+                    </label>
+                    <label class="field">Durum
+                        <select wire:model.live="listStatus">
+                            <option value="">Tüm Durumlar</option>
+                            @foreach(['portfolio' => 'Portföyde', 'issued' => 'Verildi', 'banked' => 'Bankada', 'endorsed' => 'Ciro Edildi', 'collected' => 'Tahsil Edildi', 'paid' => 'Ödendi', 'returned' => 'İade', 'protested' => 'Protesto', 'cancelled' => 'İptal'] as $status => $label)
+                                <option value="{{ $status }}">{{ $label }}</option>
+                            @endforeach
+                        </select>
+                    </label>
+                    <div class="v65-security-new-actions">
+                        <x-v65.button variant="secondary" size="sm" :href="route($screenKind === 'check' ? 'finance.checks.incoming' : 'finance.notes.incoming')">+ Alınan {{ $screenKind === 'check' ? 'Çek' : 'Senet' }}</x-v65.button>
+                        <x-v65.button variant="secondary" size="sm" :href="route($screenKind === 'check' ? 'finance.checks.outgoing' : 'finance.notes.outgoing')">+ Verilen {{ $screenKind === 'check' ? 'Çek' : 'Senet' }}</x-v65.button>
+                        <x-v65.button variant="secondary" size="sm" :href="route($screenKind === 'check' ? 'finance.checks.endorsement' : 'finance.notes.endorsement')">+ Ciro</x-v65.button>
+                    </div>
+                </div>
+            </section>
+        @endif
         <x-v65.list-heading :title="$screenMode === 'center' ? 'Portföy' : $screenTitle . ' Kayıtları'" />
         <div class="table-scroll v65-list-table"><table class="data-table">
             <thead>
-            <tr><th>Seç</th><th>No</th><th>Tür</th><th>Yön</th><th>Cari</th><th>Vade</th><th class="align-end">Tutar</th><th>Durum</th><th>İşlem</th></tr>
+            <tr><th>Seç</th><th>No</th><th>Tür</th><th>Yön</th><th>Cari</th><th>Vade</th><th class="align-end">Tutar</th><th class="align-end">Cari Etkisi (İlk Kayıt)</th><th>Durum</th><th>İşlem</th></tr>
             </thead>
             <tbody>
             @foreach($securities as $security)
@@ -81,7 +127,8 @@
                     <td>{{ \App\Support\Formatting\BusinessLabelFormatter::direction($security->direction) }}</td>
                     <td>{{ $security->contact?->title }}</td>
                     <td>{{ $security->due_date?->format('d.m.Y') }}</td>
-                    <td class="align-end">{{ $security->amount }}</td>
+                    <td class="align-end">{{ \App\Support\Formatting\TrFormatter::money((string) $security->amount) }} TRY</td>
+                    <td class="align-end {{ $security->direction === 'outgoing' ? 'is-debtor' : 'is-creditor' }}">{{ $security->direction === 'outgoing' ? '+' : '−' }}{{ \App\Support\Formatting\TrFormatter::money((string) $security->amount) }} TRY</td>
                     <td><x-v65.status-badge>{{ \App\Support\Formatting\BusinessLabelFormatter::status($security->status) }}</x-v65.status-badge></td>
                     <td>
                         @if(in_array($screenMode, ['center', 'list', 'create'], true) && auth()->user()?->can('securities.update')
@@ -95,6 +142,7 @@
             @endforeach
             </tbody>
         </table></div>
+        <div class="v65-security-pagination">{{ $securities->links() }}</div>
         @if(in_array($screenMode, ['center', 'endorse'], true))
             <x-v65.bulk-actions :count="count($selectedSecurityIds)" label="evrak seçildi">
                 <span>{{ $screenMode === 'endorse' ? 'Ciro işlemi için hedef cariyi seçin.' : 'Bordro İşlemi bölümünden işlem türünü ve tarihi belirleyin.' }}</span>
@@ -138,6 +186,17 @@
                 @endforeach
             </select>
         </label>
+        @endif
+        @if($screenMode === 'endorse')
+            <section class="v65-finance-impact" aria-label="Ciro önizlemesi">
+                <h3>Ciro Mali Etkisi <small>İlk evrakı veren/alan carinin etkisi tekrar yazılmaz.</small></h3>
+                <div class="v65-impact-grid">
+                    <div class="v65-impact-card"><span>Seçilen Evrak Tutarı</span><strong>{{ \App\Support\Formatting\TrFormatter::money($this->selectedPayrollTotal()) }} TRY</strong></div>
+                    <div class="v65-impact-card"><span>Hedef Cari Önce</span><strong>{{ \App\Support\Formatting\TrFormatter::money($this->payrollTargetBalance()) }} TRY</strong></div>
+                    <div class="v65-impact-card"><span>Hedef Cari Sonra</span><strong class="{{ bccomp($this->projectedPayrollTargetBalance(), '0', 4) > 0 ? 'is-debtor' : (bccomp($this->projectedPayrollTargetBalance(), '0', 4) < 0 ? 'is-creditor' : '') }}">{{ \App\Support\Formatting\TrFormatter::money($this->projectedPayrollTargetBalance()) }} TRY</strong></div>
+                    <div class="v65-impact-card"><span>Ciro İşleminde Banka Etkisi</span><strong>0,00 TRY</strong></div>
+                </div>
+            </section>
         @endif
         <x-v65.button wire:click="postPayroll" wire:loading.attr="disabled" wire:target="postPayroll">{{ $screenMode === 'endorse' ? 'Ciroyu Onayla' : 'Bordroyu Kesinleştir' }}</x-v65.button>
     </section>

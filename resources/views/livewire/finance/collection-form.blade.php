@@ -12,6 +12,24 @@
         <x-v65.notice tone="warning">#{{ $postedDocumentId }} kesinleşmiş kaydı düzeltme için açıldı. Yeni kayıt oluşturmadan önce ters kayıt onayını tamamlayın.</x-v65.notice>
     @endif
     <h2>Tahsilat</h2>
+    <section class="v65-finance-impact" aria-label="İşlem öncesi ve sonrası mali etki">
+        <h3>İşlem Etkisi <small>Bilgilendirme amaçlı önizleme</small></h3>
+        <div class="v65-impact-grid">
+            <div class="v65-impact-card"><span>Cari Önce (Borç − Alacak)</span>
+                <strong class="{{ bccomp($this->contactBalance(), '0', 4) > 0 ? 'is-debtor' : (bccomp($this->contactBalance(), '0', 4) < 0 ? 'is-creditor' : '') }}">{{ \App\Support\Formatting\TrFormatter::money($this->contactBalance()) }} TRY</strong></div>
+            <div class="v65-impact-card"><span>Cari Sonra (Tahmini)</span>
+                <strong class="{{ bccomp($this->projectedFinancialContactBalance(), '0', 4) > 0 ? 'is-debtor' : (bccomp($this->projectedFinancialContactBalance(), '0', 4) < 0 ? 'is-creditor' : '') }}">{{ \App\Support\Formatting\TrFormatter::money($this->projectedFinancialContactBalance()) }} TRY</strong></div>
+            <div class="v65-impact-card"><span>Kasa / Banka Önce (Defter)</span>
+                <strong>{{ \App\Support\Formatting\TrFormatter::money($this->financialAccountBalance()) }} {{ $this->financialAccountCurrency() }}</strong></div>
+            <div class="v65-impact-card"><span>Kasa / Banka Sonra (Tahmini)</span>
+                <strong>{{ $this->projectedFinancialAccountBalance() === null ? 'Para birimi uyuşmuyor' : \App\Support\Formatting\TrFormatter::money($this->projectedFinancialAccountBalance()) . ' ' . $this->financialAccountCurrency() }}</strong></div>
+        </div>
+        @unless($this->financialAccountCurrencyMatches())
+            <x-v65.notice tone="danger">Seçilen kasa/banka hesabının para birimi işlem para biriminden farklıdır.</x-v65.notice>
+        @endunless
+        <small>Kesinleştirme sırasında cari ve kasa/banka tutarları sunucuda yeniden doğrulanır.</small>
+    </section>
+
 
     <x-v65.select label="Cari" wire:model.live="contactId" placeholder="Seçin">
             

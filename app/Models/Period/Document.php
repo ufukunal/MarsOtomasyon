@@ -27,6 +27,7 @@ use LogicException;
  * @property string $vat_amount
  * @property string $rounding_difference
  * @property string $grand_total
+ * @property array<string, mixed>|null $ui_meta
  * @property array<string, mixed>|null $requirements_snapshot
  */
 class Document extends PeriodModel
@@ -37,7 +38,7 @@ class Document extends PeriodModel
         'document_type', 'number', 'revision_no', 'document_date', 'due_date', 'valid_until',
         'contact_id', 'currency', 'exchange_rate', 'status', 'discount_rate', 'discount_amount', 'additional_discount_amount',
         'subtotal', 'tax_base', 'vat_amount', 'rounding_difference', 'grand_total',
-        'requirements_snapshot', 'notes', 'created_by', 'created_by_name',
+        'requirements_snapshot', 'ui_meta', 'notes', 'created_by', 'created_by_name',
         'posted_by', 'posted_by_name', 'posted_at',
     ];
 
@@ -75,6 +76,7 @@ class Document extends PeriodModel
             'rounding_difference' => 'decimal:4',
             'grand_total' => 'decimal:4',
             'requirements_snapshot' => 'array',
+            'ui_meta' => 'array',
             'version' => 'integer',
             'created_by' => 'integer',
             'posted_by' => 'integer',

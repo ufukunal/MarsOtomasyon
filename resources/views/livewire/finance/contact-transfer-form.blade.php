@@ -17,10 +17,10 @@
                     </select>
                 </label>
                 <div class="v65-contact-transfer-balance"><span>Mevcut bakiye (Borç − Alacak)</span>
-                    <strong>{{ \App\Support\Formatting\TrFormatter::money($this->sourceBalance()) }} TRY</strong>
+                    <strong class="{{ bccomp($this->sourceBalance(), '0', 4) > 0 ? 'is-debtor' : (bccomp($this->sourceBalance(), '0', 4) < 0 ? 'is-creditor' : '') }}">{{ \App\Support\Formatting\TrFormatter::money($this->sourceBalance()) }} TRY</strong>
                 </div>
                 <div class="v65-contact-transfer-balance"><span>İşlem Sonrası (Taslak)</span>
-                    <strong>{{ \App\Support\Formatting\TrFormatter::money($this->projectedSourceBalance()) }} TRY</strong>
+                    <strong class="{{ bccomp($this->projectedSourceBalance(), '0', 4) > 0 ? 'is-debtor' : (bccomp($this->projectedSourceBalance(), '0', 4) < 0 ? 'is-creditor' : '') }}">{{ \App\Support\Formatting\TrFormatter::money($this->projectedSourceBalance()) }} TRY</strong>
                 </div>
             </div>
             <div class="v65-contact-transfer-party">
@@ -37,10 +37,10 @@
                     </select>
                 </label>
                 <div class="v65-contact-transfer-balance"><span>Mevcut bakiye (Borç − Alacak)</span>
-                    <strong>{{ \App\Support\Formatting\TrFormatter::money($this->targetBalance()) }} TRY</strong>
+                    <strong class="{{ bccomp($this->targetBalance(), '0', 4) > 0 ? 'is-debtor' : (bccomp($this->targetBalance(), '0', 4) < 0 ? 'is-creditor' : '') }}">{{ \App\Support\Formatting\TrFormatter::money($this->targetBalance()) }} TRY</strong>
                 </div>
                 <div class="v65-contact-transfer-balance"><span>İşlem Sonrası (Taslak)</span>
-                    <strong>{{ \App\Support\Formatting\TrFormatter::money($this->projectedTargetBalance()) }} TRY</strong>
+                    <strong class="{{ bccomp($this->projectedTargetBalance(), '0', 4) > 0 ? 'is-debtor' : (bccomp($this->projectedTargetBalance(), '0', 4) < 0 ? 'is-creditor' : '') }}">{{ \App\Support\Formatting\TrFormatter::money($this->projectedTargetBalance()) }} TRY</strong>
                 </div>
             </div>
         </div>
@@ -66,6 +66,7 @@
         @if($postedTransferId)
             <div role="status" class="v65-contact-transfer-notice">Virman kaydedildi. Kayıt #{{ $postedTransferId }}</div>
         @endif
+        <p class="v65-doc-search-hint">Pozitif bakiye: <strong class="is-debtor">O Borçlu</strong> · Negatif bakiye: <strong class="is-creditor">O Alacaklı</strong>. Bakiye aşımlarında yalnız yetkili kullanıcı açık onay ve gerekçeyle işlem yapabilir.</p>
         <div class="v65-form-footer">
             <x-v65.button wire:click="post" wire:loading.attr="disabled" wire:target="post">Virmanı Oluştur</x-v65.button>
         </div>

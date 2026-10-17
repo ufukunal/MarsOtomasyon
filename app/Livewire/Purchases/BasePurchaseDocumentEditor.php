@@ -44,6 +44,35 @@ abstract class BasePurchaseDocumentEditor extends Component
 
     public string $notes = '';
 
+    /** Additional HTML prototype header fields stored separately from accounting data. */
+    public array $uiMeta = [];
+
+    /** Copy a selected default warehouse to stock rows that do not specify a warehouse. */
+    public function updatedUiMetaDefaultLocationId(): void
+    {
+        $id = (int) ($this->uiMeta['default_location_id'] ?? 0);
+        if ($id <= 0) return;
+        $allowed = Location::query()->where('is_active', true)->whereKey($id)->exists();
+        if (! $allowed) return;
+        foreach ($this->lines as $index => $line) {
+            if (($line['line_kind'] ?? 'stock') === 'stock' && ! empty($line['product_id']) && empty($line['location_id'])) {
+                $this->lines[$index]['location_id'] = $id;
+            }
+        }
+        $this->documentDirty = true;
+    }
+
+    public function addServiceLine(): void
+    {
+        abort_unless($this->document === null || $this->document->status === 'draft', 409);
+        $this->lines[] = array_replace($this->emptyLine(), [
+            'line_kind' => 'service', 'description' => '', 'unit_id' => null, 'location_id' => null,
+            'row_key' => 'service-'.(string) Str::uuid(),
+        ]);
+        $this->ensureNextEntryRow();
+        $this->documentDirty = true;
+    }
+
     public int $version = 1;
 
     public bool $documentDirty = false;
@@ -127,6 +156,10 @@ abstract class BasePurchaseDocumentEditor extends Component
             }
 
             if ($product !== null) {
+                $defaultLocation = (int) ($this->uiMeta['default_location_id'] ?? 0);
+                if ($defaultLocation > 0 && Location::query()->where('is_active', true)->whereKey($defaultLocation)->exists()) {
+                    $this->lines[$index]['location_id'] = $defaultLocation;
+                }
                 $this->lines[$index]['unit_id'] = $product->unit_id;
                 $this->lines[$index]['vat_rate'] = (string) $product->vat_rate;
                 $this->lines[$index]['description'] = $product->name;
@@ -154,7 +187,7 @@ abstract class BasePurchaseDocumentEditor extends Component
             $this->ensureNextEntryRow();
         }
 
-        foreach (['contactId', 'documentDate', 'dueDate', 'validUntil', 'currency', 'exchangeRate', 'discountRate', 'additionalDiscountAmount', 'notes', 'lines'] as $field) {
+        foreach (['contactId', 'documentDate', 'dueDate', 'validUntil', 'currency', 'exchangeRate', 'discountRate', 'additionalDiscountAmount', 'notes', 'uiMeta', 'lines'] as $field) {
             if ($property === $field || str_starts_with($property, $field.'.')) {
                 $this->documentDirty = true;
 
@@ -247,6 +280,8 @@ abstract class BasePurchaseDocumentEditor extends Component
             'exchangeRate' => ['required', 'numeric', 'gt:0'],
             'discountRate' => ['required', 'numeric', 'between:0,100'],
             'additionalDiscountAmount' => ['required', 'numeric', 'min:0', 'decimal:0,4'],
+            'uiMeta' => ['array', 'max:20'],
+            'uiMeta.*' => ['nullable', 'string', 'max:140'],
             'lines' => ['required', 'array', 'min:1'],
             'lines.*.line_kind' => ['required', 'in:stock,service'],
             'lines.*.quantity' => ['required', 'numeric', 'gt:0'],
@@ -288,6 +323,7 @@ abstract class BasePurchaseDocumentEditor extends Component
                 'discount_rate' => $this->discountRate,
                 'additional_discount_amount' => $this->additionalDiscountAmount,
                 'notes' => $this->notes,
+                'ui_meta' => $this->uiMeta,
             ],
             $this->lines,
             $this->document,
@@ -419,6 +455,7 @@ abstract class BasePurchaseDocumentEditor extends Component
         $this->discountRate = (string) $document->discount_rate;
         $this->additionalDiscountAmount = (string) ($document->additional_discount_amount ?? '0');
         $this->notes = (string) ($document->notes ?? '');
+        $this->uiMeta = is_array($document->ui_meta) ? $document->ui_meta : [];
         $this->version = (int) $document->version;
         $this->lines = $document->lines->map(fn ($line) => [
             'row_key' => 'saved-'.$line->id,

@@ -13,10 +13,12 @@ use App\Models\Period\Security;
 use App\Models\Period\SecurityPayroll;
 use Illuminate\Contracts\View\View;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 class SecuritiesCenter extends Component
 {
     use WithIdempotentMutations;
+    use WithPagination;
 
     protected function scopeKind(): ?string
     {
@@ -36,6 +38,56 @@ class SecuritiesCenter extends Component
     protected function scopeTitle(): string
     {
         return 'Çek / Senet';
+    }
+
+    /** Server-side list filters; applies before pagination. */
+    public string $listSearch = '';
+    public string $listDirection = '';
+    public string $listStatus = '';
+
+    public function updatedListSearch(): void { $this->resetPage(); }
+    public function updatedListDirection(): void { $this->resetPage(); }
+    public function updatedListStatus(): void { $this->resetPage(); }
+
+    public function selectedContactBalance(): string
+    {
+        return $this->contactId
+            ? (Contact::query()->find($this->contactId)?->balance() ?? '0.0000') : '0.0000';
+    }
+
+    public function projectedContactBalance(): string
+    {
+        $before = $this->selectedContactBalance();
+        $value = trim($this->amount);
+        if (! preg_match('/^\\d{1,14}(?:\\.\\d{1,4})?$/D', $value) || bccomp($value, '0', 4) <= 0) {
+            return $before;
+        }
+        return ($this->scopeDirection() ?? $this->direction) === 'incoming'
+            ? bcsub($before, $value, 4) : bcadd($before, $value, 4);
+    }
+
+    public function selectedPayrollTotal(): string
+    {
+        $ids = array_values(array_unique(array_filter(array_map('intval', $this->selectedSecurityIds))));
+        if ($ids === []) return '0.0000';
+        $items = Security::query()->whereIn('id', $ids)
+            ->where('status', 'portfolio')->where('direction', 'incoming')
+            ->when($this->scopeKind(), fn ($q, $kind) => $q->where('kind', $kind))
+            ->get(['id', 'amount']);
+        $total = '0.0000';
+        foreach ($items as $item) $total = bcadd($total, (string) $item->amount, 4);
+        return $total;
+    }
+
+    public function payrollTargetBalance(): string
+    {
+        return $this->payrollContactId
+            ? (Contact::query()->find($this->payrollContactId)?->balance() ?? '0.0000') : '0.0000';
+    }
+
+    public function projectedPayrollTargetBalance(): string
+    {
+        return bcadd($this->payrollTargetBalance(), $this->selectedPayrollTotal(), 4);
     }
 
     public string $direction = 'incoming';
@@ -238,6 +290,36 @@ class SecuritiesCenter extends Component
             $securities->where('direction', 'incoming');
         }
 
+        // Scoped KPIs represent all records of this instrument kind, not only the current page.
+        $summaryQuery = Security::query()
+            ->when($this->scopeKind(), fn ($q, $kind) => $q->where('kind', $kind))
+            ->when($this->scopeDirection(), fn ($q, $direction) => $q->where('direction', $direction));
+        $summaryRows = $summaryQuery->selectRaw(
+            "status, COUNT(*) AS records, COALESCE(SUM(amount), 0)::text AS total_amount"
+        )->groupBy('status')->get();
+        $summary = ['count' => 0, 'portfolio' => 0, 'issued' => 0, 'banked' => 0, 'endorsed' => 0, 'settled' => 0];
+        foreach ($summaryRows as $row) {
+            $count = (int) $row->records;
+            $summary['count'] += $count;
+            if (isset($summary[$row->status])) $summary[$row->status] += $count;
+            if (in_array($row->status, ['collected', 'paid'], true)) $summary['settled'] += $count;
+        }
+
+        // Search on real records before pagination, never filter only 500 loaded rows.
+        $needle = trim(mb_substr($this->listSearch, 0, 80));
+        if ($needle !== '' && $this->scopeMode() !== 'endorse') {
+            $pattern = '%'.str_replace(['%', '_'], ['\\%', '\\_'], $needle).'%';
+            $securities->where(fn ($q) => $q->where('instrument_no', 'ilike', $pattern)
+                ->orWhereHas('contact', fn ($c) => $c->where('code', 'ilike', $pattern)
+                    ->orWhere('title', 'ilike', $pattern)));
+        }
+        if ($this->scopeMode() !== 'endorse' && $this->listDirection !== '') {
+            $securities->where('direction', $this->listDirection);
+        }
+        if ($this->scopeMode() !== 'endorse' && $this->listStatus !== '') {
+            $securities->where('status', $this->listStatus);
+        }
+
         return view('livewire.finance.securities-center', [
             'screenMode' => $this->scopeMode(),
             'screenTitle' => $this->scopeTitle(),
@@ -245,7 +327,8 @@ class SecuritiesCenter extends Component
             'screenDirection' => $this->scopeDirection(),
             'contacts' => Contact::query()->where('is_active', true)->orderBy('title')->limit(500)->get(),
             'bankAccounts' => BankAccount::query()->where('is_active', true)->orderBy('code')->get(),
-            'securities' => $securities->orderBy('due_date')->orderBy('id')->limit(500)->get(),
+            'securities' => $securities->orderBy('due_date')->orderBy('id')->paginate(25),
+            'securitySummary' => $summary,
             'payrolls' => SecurityPayroll::query()->latest('payroll_date')->latest('id')->limit(100)->get(),
         ])->layout('layouts.app', ['pageTitle' => $this->scopeTitle()]);
     }
