@@ -1,6 +1,6 @@
 @props(['screenType', 'products' => null, 'quickSearch' => '', 'editable' => true, 'showVat' => true])
 
-<section {{ $attributes->class(['v65-reference-products-bar']) }} x-data="{ fastEntry: true }" aria-label="Ürün ve hizmet giriş araçları">
+<section {{ $attributes->class(['v65-reference-products-bar']) }} aria-label="Ürün ve hizmet giriş araçları">
     <div class="v65-reference-products-title">
         <div>
             <h2>Ürün ve Hizmetler</h2>

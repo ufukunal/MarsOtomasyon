@@ -177,7 +177,7 @@
 
 
 
-            <section class="v65-doc-lines v65-reference-products-card" aria-label="Ürün ve hizmetler">
+            <section class="v65-doc-lines v65-reference-products-card" aria-label="Ürün ve hizmetler" x-data="{ fastEntry: true }">
                 <x-v65.document-prototype-toolbar :screen-type="$screenType"
                     :products="$this->quickProductOptions()" :quick-search="$quickProductSearch" />
                 <details class="v65-reference-advanced">
@@ -207,7 +207,7 @@
                             $lineWithVat = $lineVat !== null ? \App\Support\Money\Money::of((string) $lineNet)->plus(\App\Support\Money\Money::of($lineVat))->amount : null;
                         @endphp
                         @if($isEntryRow)
-                            <tr wire:key="sales-entry-{{ $rowKey }}" class="v65-reference-entry-row">
+                            <tr wire:key="sales-entry-{{ $rowKey }}" class="v65-reference-entry-row" x-show="fastEntry">
                                 <td>+</td>
                                 <td class="v65-reference-entry-cell">
                                     <input type="search" class="v65-doc-product-search" data-v65-fast-product-search
@@ -299,7 +299,7 @@
                     </tbody>
                 </table></div>
                 <div class="v65-reference-new-line">
-                    <button type="button" class="v65-reference-new-product-button" data-v65-add-product-focus>+ Yeni ürün satırı</button>
+                    <button type="button" class="v65-reference-new-product-button" data-v65-add-product-focus x-on:click="fastEntry = true">+ Yeni ürün satırı</button>
                     <small>Aşağıdaki boş satıra da doğrudan ürün kodu veya barkod yazabilirsiniz. Enter ürün seçer, Tab sonraki alana ilerler.</small>
                 </div>
                 <div class="v65-reference-totals-layout">

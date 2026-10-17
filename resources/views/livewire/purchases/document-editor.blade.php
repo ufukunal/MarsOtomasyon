@@ -197,7 +197,7 @@
 
 
 
-            <section class="v65-doc-lines v65-reference-products-card {{ $isGoodsReceipt ? 'v65-goods-receipt-lines' : '' }}" aria-label="Belge kalemleri">
+            <section class="v65-doc-lines v65-reference-products-card {{ $isGoodsReceipt ? 'v65-goods-receipt-lines' : '' }}" aria-label="Belge kalemleri" x-data="{ fastEntry: true }">
                 @if($isGoodsReceipt)
                     <x-v65.document-prototype-toolbar :screen-type="$screenType" :editable="false" :show-vat="false" />
                     <small class="v65-reference-receipt-description">Mal Kabul Kalemleri · Ürün satırları kaynak belgeye göre oluşturulur; miktarlar depoya kabul edilir.</small>
@@ -233,7 +233,7 @@
                             $lineWithVat = $lineVat !== null ? \App\Support\Money\Money::of((string) $lineNet)->plus(\App\Support\Money\Money::of($lineVat))->amount : null;
                         @endphp
                         @if($isEntryRow)
-                            <tr wire:key="purchase-entry-{{ $rowKey }}" class="v65-reference-entry-row">
+                            <tr wire:key="purchase-entry-{{ $rowKey }}" class="v65-reference-entry-row" x-show="fastEntry">
                                 <td>+</td>
                                 <td class="v65-reference-entry-cell">
                                     <input type="search" class="v65-doc-product-search" data-v65-fast-product-search
@@ -329,7 +329,7 @@
                 </table></div>
                 @unless($isGoodsReceipt)
                     <div class="v65-reference-new-line">
-                        <button type="button" class="v65-reference-new-product-button" data-v65-add-product-focus>+ Yeni ürün satırı</button>
+                        <button type="button" class="v65-reference-new-product-button" data-v65-add-product-focus x-on:click="fastEntry = true">+ Yeni ürün satırı</button>
                         <small>Aşağıdaki boş satıra da ürün kodu veya barkod yazabilirsiniz. Enter ürün seçer, Tab sonraki alana geçer.</small>
                     </div>
                     <div class="v65-reference-totals-layout">

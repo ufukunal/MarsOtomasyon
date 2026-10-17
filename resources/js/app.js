@@ -646,7 +646,9 @@ document.addEventListener('click', (event) => {
     const form = trigger.closest('form');
     const entry = form?.querySelector('.v65-reference-entry-row [data-v65-fast-product-search]');
     if (entry instanceof HTMLInputElement) {
-        entry.focus();
-        entry.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+        requestAnimationFrame(() => {
+            entry.focus();
+            entry.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+        });
     }
 });
