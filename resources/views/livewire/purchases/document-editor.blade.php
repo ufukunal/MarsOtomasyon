@@ -1,6 +1,7 @@
 <div class="document-workspace stack v65-reference-workspace">
     @php
-        $isGoodsReceipt = $document?->document_type === \App\Enums\DocumentType::GoodsReceipt;
+        $isGoodsReceipt = $this instanceof \App\Livewire\Purchases\GoodsReceiptEditor
+            || $document?->document_type === \App\Enums\DocumentType::GoodsReceipt;
     @endphp
 
     @php
