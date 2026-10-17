@@ -179,11 +179,27 @@ for view in \
 done
 grep -Fq "fastEntry = !fastEntry" "$SOURCE/resources/views/components/v65/document-prototype-toolbar.blade.php" || fail 'Quick entry toggle missing'
 
+echo '=== CHECK IMAGE VALIDATOR SHELL SYNTAX (BEFORE DOCKER BUILD) ==='
+python3 - "$0" <<'PY' | sh -n || fail 'Embedded image validation shell contains a syntax error'
+from pathlib import Path
+import sys
+source = Path(sys.argv[1]).read_text()
+start = """-es <<'IMAGE_CHECK_SH' || fail 'Built image validation failed; Fresh is unchanged'\n"""
+end = "\nIMAGE_CHECK_SH\n"
+if source.count(start) != 1:
+    raise SystemExit("IMAGE_CHECK_SH start marker is missing or duplicated")
+payload = source.split(start, 1)[1]
+if end not in payload:
+    raise SystemExit("IMAGE_CHECK_SH terminator missing")
+print(payload.split(end, 1)[0])
+PY
+echo 'IMAGE_VERIFIER_SHELL=PASS'
+
 echo '=== BUILD NEW WEB IMAGE (DATA UNTOUCHED) ==='
 sudo docker build -f "$SOURCE/Dockerfile.uat" --label "org.opencontainers.image.revision=$TARGET" -t "$NEW_IMAGE" "$SOURCE"
 [[ "$(sudo docker image inspect "$NEW_IMAGE" -f '{{index .Config.Labels "org.opencontainers.image.revision"}}')" == "$TARGET" ]] || fail 'Build image SHA mismatch'
 # Explicitly verify as www-data, and print the exact failed path/check.
-sudo docker run --rm --user 33:33 --entrypoint sh "$NEW_IMAGE" -ec '
+sudo docker run --rm -i --user 33:33 --entrypoint sh "$NEW_IMAGE" -es <<'IMAGE_CHECK_SH' || fail 'Built image validation failed; Fresh is unchanged'
 for f in /var/www/html/artisan /var/www/html/public/build/manifest.json /var/www/html/resources/views/livewire/pages/products/product-detail.blade.php /var/www/html/resources/css/v65-shell.css; do
   if [ ! -r "$f" ]; then echo "IMAGE_CHECK_FAIL unreadable=$f" >&2; exit 1; fi
 done
@@ -214,7 +230,7 @@ for compiled in /var/www/html/storage/framework/views/*.php; do
   if ! php -l "$compiled"; then
     echo "IMAGE_CHECK_FAIL compiled Blade syntax: $compiled" >&2
     # Laravel adds original Blade source path as a footer comment.
-    tail -n 3 "$compiled" | grep -E 'PATH .+ ENDPATH' >&2 || true
+    tail -n 3 "$compiled" | grep -E "PATH .+ ENDPATH" >&2 || true
     exit 1
   fi
 done
@@ -225,7 +241,7 @@ grep -Fq "exportContactDocumentsCsv" /var/www/html/app/Livewire/Pages/Contacts/C
 grep -Fq "v65-contact-tabs" /var/www/html/resources/views/livewire/pages/contacts/contact-detail.blade.php || { echo "IMAGE_CHECK_FAIL contact detail tabs missing" >&2; exit 1; }
 grep -Fq "v65-list-footer" /var/www/html/resources/views/components/v65/list-footer.blade.php || { echo "IMAGE_CHECK_FAIL shared list footer missing" >&2; exit 1; }
 echo "IMAGE_CHECK_OK=YES (www-data readable and UI code present)"
-' || fail 'Built image validation failed; Fresh is unchanged'
+IMAGE_CHECK_SH
 
 echo '=== RECREATE ONLY FRESH WEB WITH ROLLBACK ==='
 set_pin "$OLD" "$TARGET"

@@ -11,6 +11,9 @@ it('prints the real PHP lint error and originating Blade view on failed Fresh im
     $script = file_get_contents(base_path('ops/uat-fresh-web-update.sh'));
 
     expect($script)->toContain('if ! php -l "$compiled"; then')
-        ->toContain("grep -E 'PATH .+ ENDPATH'")
+        ->toContain("<<'IMAGE_CHECK_SH'")
+        ->toContain('IMAGE_VERIFIER_SHELL=PASS')
+        ->toContain('sh -n')
+        ->toContain('grep -E "PATH .+ ENDPATH"')
         ->toContain('IMAGE_CHECK_FAIL compiled Blade syntax:');
 });
