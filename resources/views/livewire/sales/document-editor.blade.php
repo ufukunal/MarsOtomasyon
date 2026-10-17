@@ -311,6 +311,20 @@
                         :document="$document" :preview="$draftPreview" :additional-discount="$additionalDiscountAmount" />
                 </div>
             </section>
+            @if($this instanceof \App\Livewire\Sales\SalesInvoiceEditor)
+                @php $invoiceRisk = $this->invoiceRiskProjection(); @endphp
+                @if($invoiceRisk?->knownLimitExceeded)
+                    <div class="alert alert-warning v65-simple-invoice-warning" role="alert">
+                        <strong>Cari risk limiti aşılıyor.</strong>
+                        <span>Mevcut cari bakiyesi: {{ \App\Support\Formatting\TrFormatter::money($invoiceRisk->currentBalance) }} ₺;
+                            fatura: {{ \App\Support\Formatting\TrFormatter::money($invoiceRisk->orderTotal) }} ₺;
+                            tahmini risk: {{ \App\Support\Formatting\TrFormatter::money($invoiceRisk->knownExposure) }} ₺;
+                            limit: {{ \App\Support\Formatting\TrFormatter::money($invoiceRisk->riskLimit) }} ₺.</span>
+                        <label><input type="checkbox" wire:model="riskAccepted"> Risk limiti aşımını kabul ediyorum.</label>
+                    </div>
+                @endif
+                <small class="v65-simple-invoice-note">Faturayı Kaydet, muhasebe kaydını da oluşturur. Sonradan Düzenle kullanılabilir.</small>
+            @endif
             <x-v65.document-prototype-footer :document="$document" :screen-type="$screenType" :item-count="$lineCount" />
 
 

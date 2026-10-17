@@ -3,6 +3,7 @@
 namespace App\Livewire\Sales;
 
 use App\Actions\Documents\ReverseDocument;
+use App\Actions\Documents\SaveSalesDocumentDraft;
 use App\Actions\Sales\CalculateSalesRiskProjection;
 use App\Actions\Sales\PostSalesInvoice;
 use App\DataObjects\Sales\SalesRiskProjection;
@@ -41,6 +42,13 @@ class SalesInvoiceEditor extends BaseSalesDocumentEditor
     {
         parent::mount($id);
         $this->reversalDate = now()->toDateString();
+    }
+
+    /** The single visible Save button also posts the invoice to the ledger. */
+    public function save(SaveSalesDocumentDraft $action): void
+    {
+        parent::save($action);
+        $this->post(app(PostSalesInvoice::class));
     }
 
     public function post(PostSalesInvoice $action): void

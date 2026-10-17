@@ -24,7 +24,22 @@ it('keeps posted invoice deletion as audited reversal and editing as reversal pl
         ->toContain('ReverseDocument')
         ->toContain("status === 'draft'")
         ->toContain('invoice_draft_deleted')
-        ->toContain('document.reverse')
+        ->toContain("hash('sha256', \$key.':delete-reversal')")
         ->and($list)->toContain("whereDoesntHave('incomingRelations'")
         ->toContain("whereDoesntHave('outgoingRelations'");
+});
+
+it('posts invoices from the single Save button without bypassing risk or deviation checks', function (): void {
+    $sales = file_get_contents(base_path('app/Livewire/Sales/SalesInvoiceEditor.php'));
+    $purchase = file_get_contents(base_path('app/Livewire/Purchases/SupplierInvoiceEditor.php'));
+    $saleView = file_get_contents(base_path('resources/views/livewire/sales/document-editor.blade.php'));
+    $purchaseView = file_get_contents(base_path('resources/views/livewire/purchases/document-editor.blade.php'));
+    expect($sales)->toContain('parent::save($action)')
+        ->toContain('$this->post(app(PostSalesInvoice::class))')
+        ->toContain('riskAccepted')
+        ->and($purchase)->toContain('parent::save($action)')
+        ->toContain('$this->post(app(PostSupplierInvoice::class))')
+        ->toContain('deviationAccepted')
+        ->and($saleView)->toContain('wire:model="riskAccepted"')
+        ->and($purchaseView)->toContain('wire:model="deviationAccepted"');
 });

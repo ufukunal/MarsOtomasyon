@@ -347,6 +347,15 @@
                 @endunless
             </section>
 
+            @if($this instanceof \App\Livewire\Purchases\SupplierInvoiceEditor)
+                <div class="v65-simple-invoice-warning">
+                    <label><input type="checkbox" wire:model="deviationAccepted">
+                        Alış fiyatı sapması ±%25 sınırını aşıyorsa buna izin veriyorum.
+                    </label>
+                </div>
+                <small class="v65-simple-invoice-note">Faturayı Kaydet, muhasebe kaydını da oluşturur. Sonradan Düzenle kullanılabilir.</small>
+            @endif
+
             @if($isGoodsReceipt)
                 <x-v65.form-actions align="between" class="v65-doc-form-actions">
                     <x-v65.button type="submit" wire:loading.attr="disabled" wire:target="save">Mal Kabul Taslağını Kaydet</x-v65.button>

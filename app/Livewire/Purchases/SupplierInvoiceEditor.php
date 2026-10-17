@@ -3,6 +3,7 @@
 namespace App\Livewire\Purchases;
 
 use App\Actions\Documents\ReverseDocument;
+use App\Actions\Purchases\SavePurchaseDocumentDraft;
 use App\Actions\Purchases\PostSupplierInvoice;
 use App\Enums\DocumentType;
 use App\Models\Period\PurchaseMatch;
@@ -40,6 +41,13 @@ class SupplierInvoiceEditor extends BasePurchaseDocumentEditor
     {
         parent::mount($id);
         $this->reversalDate = now()->toDateString();
+    }
+
+    /** The single visible Save button also posts the invoice to the ledger. */
+    public function save(SavePurchaseDocumentDraft $action): void
+    {
+        parent::save($action);
+        $this->post(app(PostSupplierInvoice::class));
     }
 
     public function post(PostSupplierInvoice $action): void
