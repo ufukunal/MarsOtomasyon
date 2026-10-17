@@ -45,7 +45,7 @@ it('updates unposted returns with source-line and version protections', function
         ->toContain('abort_if($this->editingReturnDraft')
         ->and($view)->toContain('wire:click="saveDraft"')
         ->toContain('wire:click="editDraft(')
-        ->toContain('Ters Kayıt ile Düzelt')
+        ->toContain('Geçmiş / teknik düzeltme')
         ->not->toContain('AppEnumsDocumentType');
 });
 
