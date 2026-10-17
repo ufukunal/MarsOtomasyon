@@ -4,11 +4,11 @@ namespace App\Livewire\Concerns;
 
 use App\Actions\Documents\CreateEditableDocumentCopy;
 use App\Enums\DocumentType;
-use App\Models\Period\DocumentRelation;
+use App\Enums\ProductKind;
 use App\Models\Period\Contact;
+use App\Models\Period\DocumentRelation;
 use App\Models\Period\Product;
 use App\Models\Period\StockBalance;
-use App\Enums\ProductKind;
 use App\Support\Pricing\PriceResolver;
 use Illuminate\Database\Eloquent\Collection;
 
