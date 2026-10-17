@@ -30,6 +30,8 @@
         <span class="v65-reference-status"><i aria-hidden="true"></i>{{ $statusNames[$currentState] ?? $currentState }}</span>
         @if($document)
             <x-v65.button variant="secondary" size="sm"
+                :href="route('documents.history', ['id' => $document->id])">Kayıt Geçmişi</x-v65.button>
+            <x-v65.button variant="secondary" size="sm"
                 :href="route('documents.print', ['document' => $document->id, 'format' => 'html'])"
                 target="_blank" rel="noopener noreferrer">Yazdır</x-v65.button>
         @else

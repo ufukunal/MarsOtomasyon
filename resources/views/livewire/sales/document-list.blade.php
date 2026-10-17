@@ -93,6 +93,9 @@
                             <x-v65.button variant="secondary" size="xs" :href="route($detailRoute, ['id' => $document->id])">
                                 {{ $canEditDocuments ? ($document->status === 'draft' ? 'Düzenle' : 'Düzenleme / İncele') : 'İncele / İşlem' }}
                             </x-v65.button>
+                            <x-v65.button variant="secondary" size="xs" :href="route('documents.history', ['id' => $document->id])">
+                                Geçmiş
+                            </x-v65.button>
                         </td>
                     </tr>
                 @empty

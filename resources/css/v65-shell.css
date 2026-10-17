@@ -2780,3 +2780,32 @@
     .app-shell .v65-document-edit-search .v65-edit-filters{grid-template-columns:1fr}
     .app-shell .v65-edit-filters .field:first-child{grid-column:auto}
 }
+
+/* 2026-10-17: exact-record document correction and history panel */
+.app-shell .v65-document-history-detail{min-width:0}
+.app-shell .v65-document-history-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.app-shell .v65-document-history-detail .panel{min-width:0}
+.app-shell .v65-document-history-detail .panel>h2{
+  margin:0 0 12px;color:#174969;font-size:14px;font-weight:750
+}
+.app-shell .v65-history-key-values{
+  display:grid;grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:10px;margin:0
+}
+.app-shell .v65-history-key-values>div{
+  min-width:0;padding:11px;border:1px solid #dde7f2;
+  background:#f9fbfe;border-radius:5px;overflow-wrap:anywhere
+}
+.app-shell .v65-history-key-values dt{font-size:10px;color:#6c849c;margin:0 0 5px}
+.app-shell .v65-history-key-values dd{margin:0;color:#163f60;font-size:12px;font-weight:650}
+.app-shell .v65-document-history-notes{padding-top:12px;color:#506a84;font-size:12px}
+@media(max-width:900px){
+ .app-shell .v65-history-key-values{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:530px){
+ .app-shell .v65-history-key-values{grid-template-columns:minmax(0,1fr)}
+ .app-shell .v65-document-history-actions{justify-content:flex-start}
+}
+@media print{
+ .app-shell .v65-document-history-actions{display:none!important}
+}

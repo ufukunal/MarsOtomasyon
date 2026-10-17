@@ -134,9 +134,9 @@ final class DocumentEditCatalog
             auth()->user() instanceof User ? auth()->user() : null,
             $document,
         )) {
-            // Historical or unauthorized records open the existing list,
-            // never auto-select a protected reversal mutation.
-            return route($entry['route']);
+            // Keep the exact record accessible without selecting a protected
+            // reversal mutation or losing its identity in a module-wide list.
+            return route('documents.history', ['id' => $document->id]);
         }
 
         return route($entry['route'], ['belge' => $document->id]);
@@ -170,7 +170,7 @@ final class DocumentEditCatalog
         }
 
         if ($entry['mode'] === 'source') {
-            return 'Kaynakta Düzenle';
+            return 'Kaynak / Proforma Görünümü';
         }
 
         if ($document->status === 'draft') {
