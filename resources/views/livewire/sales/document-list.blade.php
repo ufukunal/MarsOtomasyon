@@ -90,8 +90,8 @@
                             <td class="align-end tabular">{{ \App\Support\Formatting\TrFormatter::money((string) $document->grand_total) }} {{ $document->currency }}</td>
                         @endunless
                         <td>
-                            @if($isInvoiceList && $canEditDocuments && $canCreateDocuments
-                                && ($document->status === 'draft' || $canCancelDocuments))
+                            @if($isInvoiceList && $canEditDocuments
+                                && ($document->status === 'draft' || ($canCreateDocuments && $canCancelDocuments)))
                                 <x-v65.button variant="secondary" size="xs"
                                     wire:click="editInvoiceFromList({{ $document->id }})"
                                     wire:loading.attr="disabled"

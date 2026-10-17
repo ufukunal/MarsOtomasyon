@@ -48,9 +48,8 @@ final class ManageInvoiceRecord
     public function edit(Document $invoice, string $key): Document
     {
         $permission = $this->permission($invoice);
-        foreach (['view', 'update', 'create'] as $operation) {
-            MutationAuthorizer::authorize($permission.'.'.$operation);
-        }
+        MutationAuthorizer::authorize($permission.'.view');
+        MutationAuthorizer::authorize($permission.'.update');
         PeriodContext::ensureWritable();
 
         return DB::connection('period')->transaction(function () use ($invoice, $key, $permission): Document {
@@ -65,6 +64,7 @@ final class ManageInvoiceRecord
                 throw new DomainException('Bu fatura mevcut durumunda düzenlenemiyor.');
             }
 
+            MutationAuthorizer::authorize($permission.'.create');
             MutationAuthorizer::authorize($permission.'.cancel');
             $reversal = DocumentRelation::query()
                 ->where('relation_type', 'reversal_of')
@@ -94,9 +94,8 @@ final class ManageInvoiceRecord
     public function save(Document $draft, string $key, bool $riskAccepted = false, bool $deviationAccepted = false): Document
     {
         $permission = $this->permission($draft);
-        foreach (['view', 'update', 'create'] as $operation) {
-            MutationAuthorizer::authorize($permission.'.'.$operation);
-        }
+        MutationAuthorizer::authorize($permission.'.view');
+        MutationAuthorizer::authorize($permission.'.create');
         PeriodContext::ensureWritable();
 
         return DB::connection('period')->transaction(function () use ($draft, $key, $riskAccepted, $deviationAccepted, $permission): Document {
@@ -110,6 +109,7 @@ final class ManageInvoiceRecord
                 ->where('target_document_id', $locked->id)
                 ->first();
             if ($link !== null) {
+                MutationAuthorizer::authorize($permission.'.update');
                 $source = Document::query()->lockForUpdate()->findOrFail($link->source_document_id);
                 if ($source->document_type !== $locked->document_type || $source->status !== 'posted') {
                     throw new DomainException('Düzenleme kaynağı artık geçerli değil.');
