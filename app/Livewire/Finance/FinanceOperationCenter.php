@@ -12,6 +12,7 @@ use App\Actions\Finance\ReverseFinanceTransfer;
 use App\Actions\Finance\ReverseManualFinanceMovement;
 use App\Enums\DocumentType;
 use App\Livewire\Concerns\WithIdempotentMutations;
+use App\Livewire\Concerns\WithVerifiedRecordDeletion;
 use App\Models\Period\BankAccount;
 use App\Models\Period\BankMovement;
 use App\Models\Period\CashAccount;
@@ -27,7 +28,14 @@ use Livewire\Component;
 
 class FinanceOperationCenter extends Component
 {
+    /** @return list<string> */
+    protected function allowedRecordDeletionActions(): array
+    {
+        return ['deleteFinanceDocument', 'deleteManualRecord', 'deleteTransferRecord'];
+    }
+
     use WithIdempotentMutations;
+    use WithVerifiedRecordDeletion;
     use WithDocumentEditDeepLink;
 
     public string $date = '';
@@ -346,6 +354,7 @@ class FinanceOperationCenter extends Component
     /** Delete from the user list without exposing the accounting reversal step. */
     public function deleteFinanceDocument(int $id): void
     {
+        $this->requireVerifiedRecordDeletion('deleteFinanceDocument');
         $document = Document::query()->whereIn('document_type', [
             DocumentType::Expense->value, DocumentType::Advance->value,
             DocumentType::AdvanceReturn->value,
@@ -366,6 +375,7 @@ class FinanceOperationCenter extends Component
 
     public function deleteManualRecord(string $type, int $id): void
     {
+        $this->requireVerifiedRecordDeletion('deleteManualRecord');
         abort_unless(in_array($type, ['cash', 'bank'], true), 422);
         app(ReverseManualFinanceMovement::class)->handle(
             $type, $id, now()->toDateString(),
@@ -383,6 +393,7 @@ class FinanceOperationCenter extends Component
 
     public function deleteTransferRecord(string $group): void
     {
+        $this->requireVerifiedRecordDeletion('deleteTransferRecord');
         abort_unless($group !== '' && mb_strlen($group) <= 255, 422);
         app(ReverseFinanceTransfer::class)->handle(
             $group, now()->toDateString(),

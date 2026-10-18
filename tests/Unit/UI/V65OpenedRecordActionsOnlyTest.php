@@ -12,15 +12,15 @@ it('opens documents and returns from their lists without exposing Edit or Delete
         ->not->toContain('wire:click="editInvoiceFromList(')
         ->not->toContain('wire:click="deleteInvoiceFromList(')
         ->and($heading)->toContain('wire:click="editInvoice"')
-        ->not->toContain('wire:click="deleteInvoice"');
+        ->not->toContain("wire:click=\"requestRecordDeletion('deleteInvoice')\"");
 
     $list = Str::between($returns, '@forelse($returns as $return)', '@endforelse');
     expect($list)->toContain('wire:click="selectReturn(')
         ->not->toContain('wire:click="editDraft(')
-        ->not->toContain('wire:click="deleteReturn(')
+        ->not->toContain("wire:click=\"requestRecordDeletion('deleteReturn'")
         ->and($returns)->toContain('aria-label="Seçili iade"')
         ->toContain('wire:click="editDraft(')
-        ->toContain('wire:click="deleteReturn(');
+        ->toContain("wire:click=\"requestRecordDeletion('deleteReturn'");
 });
 
 it('places voucher record mutations in an opened detail rather than history rows', function (): void {
@@ -30,10 +30,10 @@ it('places voucher record mutations in an opened detail rather than history rows
         $history = Str::before($history, '@endforelse');
 
         expect($history)->toContain('wire:click="openFinancialRecord(')
-            ->not->toContain('wire:click="deleteRecord(')
+            ->not->toContain("wire:click=\"requestRecordDeletion('deleteRecord'")
             ->not->toContain('wire:click="selectForCorrection(')
             ->and($view)->toContain('id="v65-finance-selected-record"')
-            ->toContain('wire:click="deleteRecord(')
+            ->toContain("wire:click=\"requestRecordDeletion('deleteRecord'")
             ->toContain('wire:click="selectForCorrection(');
     }
     $trait = file_get_contents(base_path('app/Livewire/Concerns/WithFinancialRecordCorrection.php'));
@@ -51,9 +51,9 @@ it('shows cari fiş and virman actions after opening a record, not within their 
         $rows = Str::between($view, $marker, '@endforelse');
         expect($rows)->toContain('wire:click="openRecord(')
             ->not->toContain('wire:click="prepareCorrection(')
-            ->not->toContain('wire:click="deleteRecord(')
+            ->not->toContain("wire:click=\"requestRecordDeletion('deleteRecord'")
             ->and($view)->toContain('v65-record-detail')
-            ->toContain('wire:click="deleteRecord(')
+            ->toContain("wire:click=\"requestRecordDeletion('deleteRecord'")
             ->toContain('wire:click="prepareCorrection(');
     }
 });
@@ -71,9 +71,9 @@ it('keeps finance and cheque-note list operations in record details', function (
             ->not->toContain('>Sil</button>');
     }
     expect($finance)->toContain('id="v65-finance-record-detail"')
-        ->toContain('wire:click="deleteFinanceDocument(')
-        ->toContain('wire:click="deleteManualRecord(')
-        ->toContain('wire:click="deleteTransferRecord(');
+        ->toContain("wire:click=\"requestRecordDeletion('deleteFinanceDocument'")
+        ->toContain("wire:click=\"requestRecordDeletion('deleteManualRecord'")
+        ->toContain("wire:click=\"requestRecordDeletion('deleteTransferRecord'");
 
     $security = file_get_contents(base_path('resources/views/livewire/finance/securities-center.blade.php'));
     $rows = Str::between($security, '@foreach($securities as $security)', '@endforeach');
@@ -81,9 +81,9 @@ it('keeps finance and cheque-note list operations in record details', function (
     expect($rows)->toContain('wire:click="openSecurityRecord(')
         ->not->toContain('wire:click="prepareSecurityEdit(')
         ->and($payrolls)->toContain('wire:click="openPayrollRecord(')
-        ->not->toContain('wire:click="deletePayroll(')
+        ->not->toContain("wire:click=\"requestRecordDeletion('deletePayroll'")
         ->and($security)->toContain('id="v65-security-selected-record"')
         ->toContain('id="v65-payroll-selected-record"')
         ->toContain('wire:click="prepareSecurityEdit(')
-        ->toContain('wire:click="deletePayroll(');
+        ->toContain("wire:click=\"requestRecordDeletion('deletePayroll'");
 });

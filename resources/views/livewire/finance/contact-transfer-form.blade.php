@@ -119,8 +119,8 @@
             @if($selectedTransfer->reversal_of_id === null && ! in_array((int) $selectedTransfer->id, $reversedIds, true))
                 @can('contact_transfers.cancel')
                     <x-v65.record-delete-footer>
-                        <x-v65.button variant="danger" wire:click="deleteRecord({{ $selectedTransfer->id }})"
-                            wire:loading.attr="disabled" wire:target="deleteRecord">Sil</x-v65.button>
+                        <x-v65.button variant="danger" wire:click="requestRecordDeletion('deleteRecord', [{{ $selectedTransfer->id }}])"
+                            wire:loading.attr="disabled" wire:target="requestRecordDeletion">Sil</x-v65.button>
                     </x-v65.record-delete-footer>
                 @endcan
             @endif
@@ -175,4 +175,5 @@
             </div>
         </div>
     @endif
+    @include('livewire.partials.record-delete-confirmation')
 </div>

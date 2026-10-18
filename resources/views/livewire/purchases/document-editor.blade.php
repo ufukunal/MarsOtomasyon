@@ -501,8 +501,9 @@
         && auth()->user()?->can('supplier_invoices.cancel')
         && ($document->status === 'draft' || ! \App\Support\Documents\DocumentEditCatalog::hasReversal($document)))
         <x-v65.record-delete-footer>
-            <x-v65.button variant="danger" size="sm" wire:click="deleteInvoice"
-                wire:loading.attr="disabled" wire:target="deleteInvoice">Sil</x-v65.button>
+            <x-v65.button variant="danger" size="sm" wire:click="requestRecordDeletion('deleteInvoice')"
+                wire:loading.attr="disabled" wire:target="requestRecordDeletion">Sil</x-v65.button>
         </x-v65.record-delete-footer>
     @endif
+    @include('livewire.partials.record-delete-confirmation')
 </div>

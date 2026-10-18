@@ -172,10 +172,9 @@ trait WithV65DocumentList
 
     public function deleteInvoiceFromList(int $id, ManageInvoiceRecord $action): void
     {
-        abort_unless(in_array($this->documentType(), [DocumentType::SalesInvoice, DocumentType::SupplierInvoice], true), 403);
-        $invoice = Document::query()->where('document_type', $this->documentType()->value)->findOrFail($id);
-        $action->delete($invoice, (string) Str::uuid());
-        $this->resetPage();
+        // A client can invoke Livewire public methods even without a visible button.
+        // Deletion is permitted only from the record detail after verification.
+        abort(403, 'Silme işlemi için belge detayını açıp doğrulama yapın.');
     }
 
     /** @return Builder<Document> */

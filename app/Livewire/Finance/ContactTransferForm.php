@@ -5,6 +5,7 @@ namespace App\Livewire\Finance;
 use App\Actions\Finance\PostContactTransfer;
 use App\Actions\Finance\ReverseContactTransfer;
 use App\Livewire\Concerns\WithIdempotentMutations;
+use App\Livewire\Concerns\WithVerifiedRecordDeletion;
 use App\Models\Period\Contact;
 use App\Models\Period\ContactTransfer;
 use Illuminate\Contracts\View\View;
@@ -16,7 +17,14 @@ use Livewire\Component;
 
 class ContactTransferForm extends Component
 {
+    /** @return list<string> */
+    protected function allowedRecordDeletionActions(): array
+    {
+        return ['deleteRecord'];
+    }
+
     use WithIdempotentMutations;
+    use WithVerifiedRecordDeletion;
 
     public ?int $sourceContactId = null;
 
@@ -330,6 +338,7 @@ class ContactTransferForm extends Component
     /** One-click removal from active virman records with an immutable audit trail. */
     public function deleteRecord(int $id): void
     {
+        $this->requireVerifiedRecordDeletion('deleteRecord');
         abort_unless(auth()->user()?->can('contact_transfers.cancel'), 403);
         $source = ContactTransfer::query()->whereNull('reversal_of_id')->findOrFail($id);
         $date = max(now()->toDateString(), $source->transfer_date->toDateString());

@@ -42,8 +42,8 @@
                 <x-v65.button variant="secondary" wire:click="closeRecord">Kapat</x-v65.button>
             </div>
             <x-v65.record-delete-footer>
-                <x-v65.button variant="danger" wire:click="deleteRecord({{ $selectedRecord->id }})"
-                    wire:loading.attr="disabled" wire:target="deleteRecord">Sil</x-v65.button>
+                <x-v65.button variant="danger" wire:click="requestRecordDeletion('deleteRecord', [{{ $selectedRecord->id }}])"
+                    wire:loading.attr="disabled" wire:target="requestRecordDeletion">Sil</x-v65.button>
             </x-v65.record-delete-footer>
         </section>
     @endif
@@ -69,4 +69,5 @@
             </tbody>
         </table></div>
     </section>
+    @include('livewire.partials.record-delete-confirmation')
 </div>

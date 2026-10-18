@@ -31,7 +31,7 @@ it('shows one-step Save, Edit and Delete without reversal confirmation dialogs',
         $view = file_get_contents(base_path('resources/views/livewire/'.$path));
         expect($view)->toContain('Kayıtları Aç / Düzenle')
             ->toContain('selectForCorrection(')
-            ->toContain('wire:click="deleteRecord(')
+            ->toContain("wire:click=\"requestRecordDeletion('deleteRecord'")
             ->toContain('wire:click="post"')
             ->not->toContain('Ters Kayıt Onayı')
             ->toContain('contactBalance()');

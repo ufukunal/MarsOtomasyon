@@ -55,7 +55,7 @@ it('keeps posted returns immutable while allowing draft quantity and location ch
         ->toContain('return_draft_updated')
         ->and($post)->toContain('ReceiveToQuarantine')
         ->toContain("MutationAuthorizer::authorize('returns.update')")
-        ->and($view)->toContain('wire:click="deleteReturn(')
+        ->and($view)->toContain("wire:click=\"requestRecordDeletion('deleteReturn'")
         ->toContain('Görüntüleme yetkisi yok');
 });
 

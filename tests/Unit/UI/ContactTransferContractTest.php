@@ -25,7 +25,7 @@ it('removes visible reversal confirmations but retains audited deletion and prev
     expect($form)->toContain('public function prepareReverse(')
         ->toContain('public function confirmReverse(')
         ->toContain("whereIn('reversal_of_id'")
-        ->and($view)->toContain('wire:click="deleteRecord(')
+        ->and($view)->toContain("wire:click=\"requestRecordDeletion('deleteRecord'")
         ->toContain('wire:click="post"')
         ->not->toContain('Cari Virman — Ters Kayıt Onayı')
         ->toContain('!in_array((int) $transfer->id, $reversedIds, true)');

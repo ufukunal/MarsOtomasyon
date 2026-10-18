@@ -9,6 +9,7 @@ use App\Actions\Returns\UpdateReturnDraft;
 use App\Enums\DocumentType;
 use App\Livewire\Concerns\WithDocumentEditDeepLink;
 use App\Livewire\Concerns\WithIdempotentMutations;
+use App\Livewire\Concerns\WithVerifiedRecordDeletion;
 use App\Models\Period\Document;
 use App\Models\Period\DocumentRelation;
 use App\Models\Period\Location;
@@ -20,7 +21,14 @@ use Livewire\Component;
 
 class ReturnCenter extends Component
 {
+    /** @return list<string> */
+    protected function allowedRecordDeletionActions(): array
+    {
+        return ['deleteReturn'];
+    }
+
     use WithIdempotentMutations;
+    use WithVerifiedRecordDeletion;
     use WithDocumentEditDeepLink;
 
     public string $type = 'sales_return';
@@ -221,6 +229,7 @@ class ReturnCenter extends Component
     /** Direct audited deletion for an already posted return. */
     public function deleteReturn(int $id): void
     {
+        $this->requireVerifiedRecordDeletion('deleteReturn');
         abort_unless(auth()->user()?->can('returns.cancel'), 403);
         $return = Document::query()->whereIn('document_type', [
             DocumentType::SalesReturn->value, DocumentType::PurchaseReturn->value,

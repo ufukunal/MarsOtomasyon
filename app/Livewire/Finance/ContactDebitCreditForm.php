@@ -10,6 +10,7 @@ use App\Models\Period\Document;
 use App\Models\Period\DocumentRelation;
 use App\Models\Period\ContactTransaction;
 use App\Livewire\Concerns\WithIdempotentMutations;
+use App\Livewire\Concerns\WithVerifiedRecordDeletion;
 use App\Models\Period\Contact;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\DB;
@@ -18,7 +19,14 @@ use Livewire\Component;
 
 class ContactDebitCreditForm extends Component
 {
+    /** @return list<string> */
+    protected function allowedRecordDeletionActions(): array
+    {
+        return ['deleteRecord'];
+    }
+
     use WithIdempotentMutations;
+    use WithVerifiedRecordDeletion;
     use WithDocumentEditDeepLink;
 
     public ?int $contactId = null;
@@ -146,6 +154,7 @@ class ContactDebitCreditForm extends Component
     /** Remove a posted fiş from active records, retaining ledger and audit history. */
     public function deleteRecord(int $id): void
     {
+        $this->requireVerifiedRecordDeletion('deleteRecord');
         abort_unless(auth()->user()?->can('contacts.update'), 403);
         $source = Document::query()->where('document_type', DocumentType::ContactDebitCredit->value)
             ->where('status', 'posted')->findOrFail($id);

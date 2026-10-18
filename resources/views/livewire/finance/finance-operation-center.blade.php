@@ -175,8 +175,8 @@
             </div>
             @if(auth()->user()?->can($financePermission.'.cancel'))
                 <x-v65.record-delete-footer>
-                    <button class="button-danger" type="button" wire:click="deleteFinanceDocument({{ $openedFinanceDocument->id }})"
-                        wire:loading.attr="disabled" wire:target="deleteFinanceDocument">Sil</button>
+                    <button class="button-danger" type="button" wire:click="requestRecordDeletion('deleteFinanceDocument', [{{ $openedFinanceDocument->id }}])"
+                        wire:loading.attr="disabled" wire:target="requestRecordDeletion">Sil</button>
                 </x-v65.record-delete-footer>
             @endif
         </section>
@@ -194,8 +194,8 @@
             </div>
             @can('finance_movements.cancel')
                 <x-v65.record-delete-footer>
-                    <button class="button-danger" type="button" wire:click="deleteManualRecord('{{ $openedAccount }}', {{ $openedManualMovement->id }})"
-                        wire:loading.attr="disabled" wire:target="deleteManualRecord">Sil</button>
+                    <button class="button-danger" type="button" wire:click="requestRecordDeletion('deleteManualRecord', ['{{ $openedAccount }}', {{ $openedManualMovement->id }}])"
+                        wire:loading.attr="disabled" wire:target="requestRecordDeletion">Sil</button>
                 </x-v65.record-delete-footer>
             @endcan
         </section>
@@ -213,8 +213,8 @@
             </div>
             @can('finance_transfers.cancel')
                 <x-v65.record-delete-footer>
-                    <button class="button-danger" type="button" wire:click="deleteTransferRecord('{{ $openedGroup }}')"
-                        wire:loading.attr="disabled" wire:target="deleteTransferRecord">Sil</button>
+                    <button class="button-danger" type="button" wire:click="requestRecordDeletion('deleteTransferRecord', [@js($openedGroup)])"
+                        wire:loading.attr="disabled" wire:target="requestRecordDeletion">Sil</button>
                 </x-v65.record-delete-footer>
             @endcan
         </section>
@@ -317,4 +317,5 @@
             </tbody>
         </table></div>
     </section>
+    @include('livewire.partials.record-delete-confirmation')
 </div>

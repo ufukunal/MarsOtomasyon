@@ -8,6 +8,7 @@ use App\Actions\Finance\PostCollection;
 use App\Enums\DocumentType;
 use App\Livewire\Concerns\WithFinancialRecordCorrection;
 use App\Livewire\Concerns\WithIdempotentMutations;
+use App\Livewire\Concerns\WithVerifiedRecordDeletion;
 use App\Models\Period\BankAccount;
 use App\Models\Period\CashAccount;
 use App\Models\Period\Document;
@@ -17,8 +18,15 @@ use Livewire\Component;
 
 class CollectionForm extends Component
 {
+    /** @return list<string> */
+    protected function allowedRecordDeletionActions(): array
+    {
+        return ['deleteRecord'];
+    }
+
     use WithFinancialRecordCorrection;
     use WithIdempotentMutations;
+    use WithVerifiedRecordDeletion;
     use WithDocumentEditDeepLink;
 
     public ?int $contactId = null;
@@ -123,6 +131,7 @@ class CollectionForm extends Component
     /** Immediate audited removal from the active list; no reversal form or second confirmation. */
     public function deleteRecord(int $id): void
     {
+        $this->requireVerifiedRecordDeletion('deleteRecord');
         abort_unless(auth()->user()?->can('collections.cancel'), 403);
         $document = Document::query()
             ->where('document_type', DocumentType::Collection->value)

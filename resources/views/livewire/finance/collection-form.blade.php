@@ -108,8 +108,8 @@
             </div>
             @if(! $openedReversed && auth()->user()?->can('collections.cancel'))
                 <x-v65.record-delete-footer>
-                    <x-v65.button variant="danger" wire:click="deleteRecord({{ $openedRecord->id }})"
-                        wire:loading.attr="disabled" wire:target="deleteRecord">Sil</x-v65.button>
+                    <x-v65.button variant="danger" wire:click="requestRecordDeletion('deleteRecord', [{{ $openedRecord->id }}])"
+                        wire:loading.attr="disabled" wire:target="requestRecordDeletion">Sil</x-v65.button>
                 </x-v65.record-delete-footer>
             @endif
         </section>
@@ -139,4 +139,5 @@
             </tbody>
         </table></div>
     </section>
+    @include('livewire.partials.record-delete-confirmation')
 </div>

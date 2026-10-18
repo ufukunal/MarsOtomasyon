@@ -314,8 +314,8 @@
             </div>
             @if($openedPayroll->action !== 'reversal' && $openedPayroll->status === 'posted' && auth()->user()?->can('security_payrolls.cancel'))
                 <x-v65.record-delete-footer>
-                    <x-v65.button variant="danger" wire:click="deletePayroll({{ $openedPayroll->id }})"
-                        wire:loading.attr="disabled" wire:target="deletePayroll">Sil</x-v65.button>
+                    <x-v65.button variant="danger" wire:click="requestRecordDeletion('deletePayroll', [{{ $openedPayroll->id }}])"
+                        wire:loading.attr="disabled" wire:target="requestRecordDeletion">Sil</x-v65.button>
                 </x-v65.record-delete-footer>
             @endif
         </section>
@@ -392,4 +392,5 @@
             </div>
         </div>
     @endif
+    @include('livewire.partials.record-delete-confirmation')
 </div>

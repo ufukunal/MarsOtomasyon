@@ -8,6 +8,7 @@ use App\Actions\Finance\ReverseSecurityPayroll;
 use App\Actions\Finance\UpdateSecurityDetails;
 use App\Actions\Finance\ReplaceSecurity;
 use App\Livewire\Concerns\WithIdempotentMutations;
+use App\Livewire\Concerns\WithVerifiedRecordDeletion;
 use App\Models\Period\BankAccount;
 use App\Models\Period\Contact;
 use App\Models\Period\Security;
@@ -19,7 +20,14 @@ use Livewire\Attributes\Locked;
 
 class SecuritiesCenter extends Component
 {
+    /** @return list<string> */
+    protected function allowedRecordDeletionActions(): array
+    {
+        return ['deletePayroll'];
+    }
+
     use WithIdempotentMutations;
+    use WithVerifiedRecordDeletion;
     use WithPagination;
 
     protected function scopeKind(): ?string
@@ -472,6 +480,7 @@ class SecuritiesCenter extends Component
     /** Direct audited deletion of a security payroll from active business operations. */
     public function deletePayroll(int $id): void
     {
+        $this->requireVerifiedRecordDeletion('deletePayroll');
         abort_unless($this->scopeMode() === 'center', 403);
         abort_unless(auth()->user()?->can('security_payrolls.cancel'), 403);
         $payroll = SecurityPayroll::query()->where('status', 'posted')

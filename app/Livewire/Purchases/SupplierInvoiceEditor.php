@@ -10,6 +10,12 @@ use Illuminate\Contracts\View\View;
 
 class SupplierInvoiceEditor extends BasePurchaseDocumentEditor
 {
+    /** @return list<string> */
+    protected function allowedRecordDeletionActions(): array
+    {
+        return ['deleteInvoice'];
+    }
+
     public bool $deviationAccepted = false;
 
     public string $reversalDate = '';
@@ -105,6 +111,7 @@ class SupplierInvoiceEditor extends BasePurchaseDocumentEditor
 
     public function deleteInvoice(\App\Actions\Documents\ManageInvoiceRecord $action): mixed
     {
+        $this->requireVerifiedRecordDeletion('deleteInvoice');
         abort_unless($this->document !== null, 422);
         $action->delete($this->document, $this->mutationKey('invoiceDelete'));
         $this->completeMutation('invoiceDelete');

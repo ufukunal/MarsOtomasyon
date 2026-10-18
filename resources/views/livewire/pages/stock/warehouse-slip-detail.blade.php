@@ -61,8 +61,8 @@
             </tbody></table></div>
             @if($slip->status === 'posted' && auth()->user()?->can('warehouse_slips.cancel'))
                 <x-v65.record-delete-footer>
-                    <button class="button-danger" type="button" wire:click="reverse"
-                        wire:loading.attr="disabled" wire:target="reverse">Sil</button>
+                    <button class="button-danger" type="button" wire:click="requestRecordDeletion('reverse')"
+                        wire:loading.attr="disabled" wire:target="requestRecordDeletion">Sil</button>
                 </x-v65.record-delete-footer>
             @endif
         @endif
@@ -70,4 +70,5 @@
 
     @foreach($costWarnings as $warning)<div class="alert alert-warning">{{ $warning }}</div>@endforeach
     @foreach($errors->all() as $error)<div class="field-error">{{ $error }}</div>@endforeach
+    @include('livewire.partials.record-delete-confirmation')
 </div>

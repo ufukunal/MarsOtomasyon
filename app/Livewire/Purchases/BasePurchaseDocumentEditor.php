@@ -8,6 +8,7 @@ use App\DataObjects\Documents\DocumentTotals;
 use App\Enums\DocumentType;
 use App\Livewire\Concerns\WithFastDocumentLines;
 use App\Livewire\Concerns\WithPrototypeDocumentControls;
+use App\Livewire\Concerns\WithVerifiedRecordDeletion;
 use App\Livewire\Concerns\WithIdempotentMutations;
 use App\Models\Period\Contact;
 use App\Models\Period\Document;
@@ -24,6 +25,7 @@ abstract class BasePurchaseDocumentEditor extends Component
 {
     use WithFastDocumentLines;
     use WithIdempotentMutations;
+    use WithVerifiedRecordDeletion;
     use WithPrototypeDocumentControls;
 
     public ?Document $document = null;

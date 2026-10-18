@@ -8,6 +8,7 @@ use App\Actions\Purchases\PostPayment;
 use App\Enums\DocumentType;
 use App\Livewire\Concerns\WithFinancialRecordCorrection;
 use App\Livewire\Concerns\WithIdempotentMutations;
+use App\Livewire\Concerns\WithVerifiedRecordDeletion;
 use App\Models\Period\BankAccount;
 use App\Models\Period\CashAccount;
 use App\Models\Period\Document;
@@ -17,8 +18,15 @@ use Livewire\Component;
 
 class PaymentForm extends Component
 {
+    /** @return list<string> */
+    protected function allowedRecordDeletionActions(): array
+    {
+        return ['deleteRecord'];
+    }
+
     use WithFinancialRecordCorrection;
     use WithIdempotentMutations;
+    use WithVerifiedRecordDeletion;
     use WithDocumentEditDeepLink;
 
     public ?int $contactId = null;
@@ -147,6 +155,7 @@ class PaymentForm extends Component
     /** Immediate audited removal from the active list; no reversal form or second confirmation. */
     public function deleteRecord(int $id): void
     {
+        $this->requireVerifiedRecordDeletion('deleteRecord');
         abort_unless(auth()->user()?->can('payments.cancel'), 403);
         $document = Document::query()
             ->where('document_type', DocumentType::Payment->value)

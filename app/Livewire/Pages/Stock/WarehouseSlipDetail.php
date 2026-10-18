@@ -7,6 +7,7 @@ use App\Actions\Stock\ReverseWarehouseSlip;
 use App\Actions\Stock\SaveWarehouseSlipDraft;
 use App\Exceptions\CostDeviationConfirmationRequiredException;
 use App\Livewire\Concerns\WithIdempotentMutations;
+use App\Livewire\Concerns\WithVerifiedRecordDeletion;
 use App\Models\Period\Location;
 use App\Models\Period\Product;
 use App\Models\Period\WarehouseSlip;
@@ -17,7 +18,14 @@ use Livewire\Component;
 
 class WarehouseSlipDetail extends Component
 {
+    /** @return list<string> */
+    protected function allowedRecordDeletionActions(): array
+    {
+        return ['reverse'];
+    }
+
     use WithIdempotentMutations;
+    use WithVerifiedRecordDeletion;
 
     public ?WarehouseSlip $slip = null;
 
@@ -169,6 +177,7 @@ class WarehouseSlipDetail extends Component
 
     public function reverse(ReverseWarehouseSlip $action): void
     {
+        $this->requireVerifiedRecordDeletion('reverse');
         abort_unless($this->slip !== null, 422);
 
         $this->slip = $action->handle($this->slip->id, $this->reverseKey);

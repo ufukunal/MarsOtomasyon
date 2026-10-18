@@ -236,8 +236,8 @@
         </section>
         @if($selectedReturn->status === 'posted' && auth()->user()?->can('returns.cancel'))
             <x-v65.record-delete-footer>
-                <x-v65.button variant="danger" size="sm" wire:click="deleteReturn({{ $selectedReturn->id }})"
-                    wire:loading.attr="disabled" wire:target="deleteReturn">Sil</x-v65.button>
+                <x-v65.button variant="danger" size="sm" wire:click="requestRecordDeletion('deleteReturn', [{{ $selectedReturn->id }}])"
+                    wire:loading.attr="disabled" wire:target="requestRecordDeletion">Sil</x-v65.button>
             </x-v65.record-delete-footer>
         @endif
     @endif
@@ -265,4 +265,5 @@
             </tbody>
         </table></div>
     </section>
+    @include('livewire.partials.record-delete-confirmation')
 </div>

@@ -11,6 +11,12 @@ use App\Models\Period\Contact;
 
 class SalesInvoiceEditor extends BaseSalesDocumentEditor
 {
+    /** @return list<string> */
+    protected function allowedRecordDeletionActions(): array
+    {
+        return ['deleteInvoice'];
+    }
+
     public string $reversalDate = '';
 
     public string $reversalReason = '';
@@ -141,6 +147,7 @@ class SalesInvoiceEditor extends BaseSalesDocumentEditor
 
     public function deleteInvoice(\App\Actions\Documents\ManageInvoiceRecord $action): mixed
     {
+        $this->requireVerifiedRecordDeletion('deleteInvoice');
         abort_unless($this->document !== null, 422);
         $action->delete($this->document, $this->mutationKey('invoiceDelete'));
         $this->completeMutation('invoiceDelete');

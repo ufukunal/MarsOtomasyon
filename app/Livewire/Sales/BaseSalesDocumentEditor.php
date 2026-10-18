@@ -9,6 +9,7 @@ use App\Enums\DocumentType;
 use App\Enums\LocationKind;
 use App\Livewire\Concerns\WithFastDocumentLines;
 use App\Livewire\Concerns\WithPrototypeDocumentControls;
+use App\Livewire\Concerns\WithVerifiedRecordDeletion;
 use App\Livewire\Concerns\WithIdempotentMutations;
 use App\Models\Period\Contact;
 use App\Models\Period\Document;
@@ -26,6 +27,7 @@ abstract class BaseSalesDocumentEditor extends Component
 {
     use WithFastDocumentLines;
     use WithIdempotentMutations;
+    use WithVerifiedRecordDeletion;
     use WithPrototypeDocumentControls;
 
     public ?Document $document = null;

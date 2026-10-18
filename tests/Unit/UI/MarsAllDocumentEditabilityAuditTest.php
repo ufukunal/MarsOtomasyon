@@ -46,7 +46,7 @@ it('updates unposted returns with source-line and version protections', function
         ->and($view)->toContain('wire:click="saveDraft"')
         ->toContain('wire:click="editDraft(')
         ->toContain('wire:click="selectReturn(')
-        ->toContain('wire:click="deleteReturn(')
+        ->toContain("wire:click=\"requestRecordDeletion('deleteReturn'")
         ->not->toContain('AppEnumsDocumentType');
 });
 
@@ -60,7 +60,7 @@ it('supports historical correction for contact debit credit and contact transfer
         ->toContain('public function reverseForCorrection(')
         ->toContain('public bool $correctionReady = false')
         ->toContain("DocumentType::ContactDebitCredit->value")
-        ->and($debitView)->toContain('wire:click="deleteRecord(')
+        ->and($debitView)->toContain("wire:click=\"requestRecordDeletion('deleteRecord'")
         ->toContain('wire:click="post"')
         ->and($transfer)->toContain('public function prepareCorrection(')
         ->toContain('public function canViewContactBalances(): bool')
@@ -90,8 +90,8 @@ it('prefills real finance movements and enforces reversal before posting correct
         ->and($view)->toContain('wire:click="prepareDocumentCorrection(')
         ->toContain('wire:click="prepareManualCorrection(')
         ->toContain('wire:click="prepareTransferCorrection(')
-        ->toContain('wire:click="deleteManualRecord(')
-        ->toContain('wire:click="deleteTransferRecord(')
+        ->toContain("wire:click=\"requestRecordDeletion('deleteManualRecord'")
+        ->toContain("wire:click=\"requestRecordDeletion('deleteTransferRecord'")
         ->not->toContain('v65-finance-reversal');
 });
 
