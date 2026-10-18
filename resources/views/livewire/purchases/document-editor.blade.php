@@ -42,8 +42,7 @@
                 <strong>Sil</strong> işlemi muhasebe geçmişini koruyarak faturayı listeden kaldırır.
             @elseif($document->status === 'posted' && ! $this->canCreateEditableCopy())
                 Kesinleşmiş belge üzerinde tutar veya stok değişikliği yapılamaz.
-                Düzeltme için önce Belge İşlemleri bölümündeki Ters Kayıt uygulanmalıdır.
-                Ters kayıt oluştuktan sonra bu ekrandan yeni düzenleme taslağı açılabilir.
+                Bu belge için mevcut kaydı değiştiren güvenli düzenleme işlemi kullanılır; mali geçmiş korunur.
             @elseif($this instanceof \App\Livewire\Sales\QuoteEditor && $document->number)
                 Eski teklif değişmez; düzenleme yeni bir teklif revizyonunda yapılır.
             @elseif($this instanceof \App\Livewire\Purchases\PurchaseDispatchEditor && $document->status === 'confirmed')
@@ -361,9 +360,8 @@
 
     @if($isGoodsReceipt && $document && $document->status === 'posted')
         <x-v65.notice tone="info">
-            Mal Kabul kesinleştiği için stok hareketleri doğrudan düzenlenemez.
-            Önce varsa bağlı alış faturalarını kontrol edin, sonra Ters Kayıt ile
-            düzeltin. Yeni Mal Kabul, kaynak satınalma siparişinden veya alış irsaliyesinden oluşturulur.
+            İşlenmiş Mal Kabul için stok hareketleri korunur.
+            Bağlı alış faturaları ve kaynak satınalma siparişi kontrol edilerek yeni Mal Kabul oluşturulabilir.
         </x-v65.notice>
         <x-v65.document-sources :document="$document" />
     @endif
@@ -373,19 +371,19 @@
             <h3 class="v65-doc-workflow-title">Belge İşlemleri</h3>
             @if($this instanceof \App\Livewire\Purchases\PurchaseQuoteEditor && $document->status === 'draft')
                 @can('purchase_quotes.approve')
-                    <x-v65.document-confirm id="v65-purchase-quote-approve" title="Alış Teklifini Onayla" label="Teklifi Onayla" action="approveQuote" :document="$document" message="Teklif onaylanacak; stok veya cari hareket oluşmayacaktır." :dirty="$documentDirty" />
+                    <x-v65.button wire:click="approveQuote" wire:loading.attr="disabled" wire:target="approveQuote" :disabled="$documentDirty">Teklifi Onayla</x-v65.button>
                 @endcan
             @endif
             @if($this instanceof \App\Livewire\Purchases\PurchaseQuoteEditor && $document->status === 'approved')
                 @can('purchase_quotes.update')
                     @can('purchase_orders.create')
-                        <x-v65.document-confirm id="v65-purchase-quote-convert" title="Alış Siparişi Oluştur" label="Siparişe Dönüştür" action="convertToOrder" :document="$document" message="Teklif kalemleri ve iskontolarıyla taslak alış siparişi hazırlanacaktır." :dirty="$documentDirty" />
+                        <x-v65.button wire:click="convertToOrder" wire:loading.attr="disabled" wire:target="convertToOrder" :disabled="$documentDirty">Siparişe Dönüştür</x-v65.button>
                     @endcan
                 @endcan
             @endif
             @if($this instanceof \App\Livewire\Purchases\PurchaseDispatchEditor && $document->status === 'draft')
                 @can('purchase_dispatches.update')
-                    <x-v65.document-confirm id="v65-purchase-dispatch-finalize" title="Alış İrsaliyesini Onayla" label="İrsaliyeyi Onayla" action="confirmDispatch" :document="$document" message="Stok ve cari hareketi oluşturulmayacak. Stok ancak Mal Kabul kesinleştirilince artar." :dirty="$documentDirty" />
+                    <x-v65.button wire:click="confirmDispatch" wire:loading.attr="disabled" wire:target="confirmDispatch" :disabled="$documentDirty">İrsaliyeyi Onayla</x-v65.button>
                 @endcan
             @endif
             @if($this instanceof \App\Livewire\Purchases\PurchaseDispatchEditor && $document->status === 'confirmed')
@@ -409,12 +407,12 @@
                 @endcan
             @endif
             @if(method_exists($this, 'submitApproval') && $document->status === 'draft')
-                <x-v65.document-confirm id="v65-purchase-submit" title="Onaya Gönder" label="Onaya Gönder" action="submitApproval" variant="secondary" :document="$document" message="Son kaydedilen alış siparişi onay sürecine gönderilecektir." :dirty="$documentDirty" />
+                <x-v65.button wire:click="submitApproval" wire:loading.attr="disabled" wire:target="submitApproval" :disabled="$documentDirty">Onaya Gönder</x-v65.button>
             @endif
 
             @if(method_exists($this, 'approve') && $document->status === 'pending_approval')
                 @can('purchase_orders.approve')
-                    <x-v65.document-confirm id="v65-purchase-approve" title="Alış Siparişi Onayı" label="Onayla" action="approve" :document="$document" message="Alış siparişi son kaydedilen haliyle onaylanacaktır." :dirty="$documentDirty" />
+                    <x-v65.button wire:click="approve" wire:loading.attr="disabled" wire:target="approve" :disabled="$documentDirty">Onayla</x-v65.button>
                 @endcan
             @endif
 
@@ -453,7 +451,7 @@
                         ±%25 alış fiyat sapması varsa uyarıyı kabul ediyorum
                     </label>
                 @endif
-                <x-v65.document-confirm id="v65-purchase-post" title="Belgeyi Kesinleştir" label="Kesinleştir" action="post" :document="$document" message="Son kaydedilen alış belgesi sunucuda doğrulanıp kesinleştirilecektir. Fiyat sapması kabulünüz gerektiğinde işlem sırasında kontrol edilir." :dirty="$documentDirty" />
+                <x-v65.button wire:click="post" wire:loading.attr="disabled" wire:target="post" :disabled="$documentDirty">Kaydet ve İşle</x-v65.button>
             @endif
 
             @if(method_exists($this, 'createInvoice') && $document->status === 'posted')
@@ -469,11 +467,6 @@
                 <x-v65.button wire:click="createInvoice" wire:loading.attr="disabled" wire:target="createInvoice">Alış Faturası Oluştur</x-v65.button>
             @endif
 
-            @if(method_exists($this, 'reverse') && $document->status === 'posted')
-                <label class="field"><span class="field-label">Ters Kayıt Tarihi</span><input type="date" wire:model="reversalDate"></label>
-                <label class="field"><span class="field-label">Ters Kayıt Gerekçesi</span><input wire:model="reversalReason"></label>
-                <x-v65.document-confirm id="v65-purchase-reverse" title="Alış Ters Kayıt Onayı" label="Ters Kayıt" action="reverse" variant="danger" :document="$document" message="Kesinleşmiş alış belgesine ters kayıt oluşturulur. Tarih ve gerekçeyi kontrol edin." :dirty="$documentDirty" />
-            @endif
 
             @if(isset($purchaseMatches) && $purchaseMatches->isNotEmpty())
                 <h2>Üçlü Eşleştirme</h2>

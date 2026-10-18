@@ -29,8 +29,7 @@
                 <strong>Sil</strong> işlemi muhasebe geçmişini koruyarak faturayı listeden kaldırır.
             @elseif($document->status === 'posted' && ! $this->canCreateEditableCopy())
                 Kesinleşmiş belge üzerinde tutar veya stok değişikliği yapılamaz.
-                Düzeltme için önce Belge İşlemleri bölümündeki Ters Kayıt uygulanmalıdır.
-                Ters kayıt oluştuktan sonra bu ekrandan yeni düzenleme taslağı açılabilir.
+                Bu belge için mevcut kaydı değiştiren güvenli düzenleme işlemi kullanılır; mali geçmiş korunur.
             @elseif($this instanceof \App\Livewire\Sales\QuoteEditor && $document->number)
                 Eski teklif değişmez; düzenleme yeni bir teklif revizyonunda yapılır.
             @elseif($this->canCreateEditableCopy())
@@ -339,7 +338,7 @@
                 <x-v65.button variant="secondary" wire:click="customerReview" wire:loading.attr="disabled" wire:target="customerReview">Müşteri İncelemesine Gönder</x-v65.button>
             @endif
             @if(method_exists($this, 'approve') && in_array($document->status, ['internal_review','customer_review']))
-                <x-v65.document-confirm id="v65-sales-approve" title="Teklifi Onayla" label="Onayla" action="approve" :document="$document" message="Teklif son kaydedilen haliyle onaylanacaktır. Devam edilsin mi?" :dirty="$documentDirty" />
+                <x-v65.button wire:click="approve" wire:loading.attr="disabled" wire:target="approve" :disabled="$documentDirty">Onayla</x-v65.button>
             @endif
             @if(method_exists($this, 'revision') && $document->number)
                 <x-v65.button variant="secondary" wire:click="revision" wire:loading.attr="disabled" wire:target="revision">Revizyon Oluştur</x-v65.button>
@@ -349,7 +348,7 @@
             @endif
             @if(method_exists($this, 'confirm') && $document->status === 'draft')
                 <label><input type="checkbox" wire:model="riskAccepted"> Risk uyarısını kabul ediyorum</label>
-                <x-v65.document-confirm id="v65-sales-confirm" title="Sipariş Onayı" label="Siparişi Onayla" action="confirm" :document="$document" message="Stok ve cari risk kontrolleri sunucuda tekrar uygulanacaktır. Son kaydedilen siparişi onaylamak istiyor musunuz?" :dirty="$documentDirty" />
+                <x-v65.button wire:click="confirm" wire:loading.attr="disabled" wire:target="confirm" :disabled="$documentDirty">Siparişi Onayla</x-v65.button>
             @endif
             @if(method_exists($this, 'reserve') && $document->status === 'confirmed')
                 <section class="v65-order-fulfillment" aria-label="Sipariş rezervasyon ve sevkiyat işlemleri">
@@ -431,12 +430,7 @@
                         </div>
                     @endif
                 @endif
-                <x-v65.document-confirm id="v65-sales-post" title="Belgeyi Kesinleştir" label="Kesinleştir" action="post" :document="$document" message="Son kaydedilen satırlar, KDV ve genel toplam kesinleştirmeye esas alınacaktır. Risk kontrolleri sunucuda tekrar yapılır." :dirty="$documentDirty" />
-            @endif
-            @if(method_exists($this, 'reverse') && $document->status === 'posted')
-                <label class="field"><span class="field-label">Ters Kayıt Tarihi</span><input type="date" wire:model="reversalDate"></label>
-                <label class="field"><span class="field-label">Ters Kayıt Gerekçesi</span><input wire:model="reversalReason"></label>
-                <x-v65.document-confirm id="v65-sales-reverse" title="Ters Kayıt Onayı" label="Ters Kayıt" action="reverse" variant="danger" :document="$document" message="Kesinleşmiş belgeye ters kayıt oluşturulur. Tarih ve gerekçeyi kontrol ederek onaylayın." :dirty="$documentDirty" />
+                <x-v65.button wire:click="post" wire:loading.attr="disabled" wire:target="post" :disabled="$documentDirty">Kaydet ve İşle</x-v65.button>
             @endif
         </section>
     @endif

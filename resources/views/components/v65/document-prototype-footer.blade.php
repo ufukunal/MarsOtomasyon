@@ -2,17 +2,17 @@
 
 <footer {{ $attributes->class(['v65-reference-document-footer']) }}>
     <p><span class="v65-reference-count-dot" aria-hidden="true"></span>
-        <strong>{{ $itemCount }} kalem</strong> · Otomatik boş satır · Sunucu hesaplaması
+        <strong>{{ $itemCount }} kalem</strong> · Sunucu hesaplaması
     </p>
     <div class="v65-reference-footer-actions">
         @if(!$document)
             <x-v65.button variant="secondary" size="sm" wire:click="resetNewDraft"
-                wire:confirm="Henüz kaydedilmemiş bu belgedeki bütün girişler temizlenecek. Devam edilsin mi?">
+>
                 {{ in_array($screenType, ['sales_invoice', 'supplier_invoice'], true) ? 'Sil' : 'Girişi Sıfırla' }}
             </x-v65.button>
         @elseif($document->status === 'draft' && ! in_array($screenType, ['sales_invoice', 'supplier_invoice'], true))
             <a class="v65-btn v65-btn--secondary v65-btn--sm" href="#v65-reference-workflow">
-                Kontrol ve Onay İşlemleri
+                Belge İşlemleri
             </a>
         @endif
         @unless(in_array($screenType, ['sales_invoice', 'supplier_invoice'], true))
