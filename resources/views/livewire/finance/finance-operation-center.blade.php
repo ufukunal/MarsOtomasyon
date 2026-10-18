@@ -243,8 +243,7 @@
                         <td>{{ $record['movement']->movement_date?->format('d.m.Y') }}</td>
                         <td>{{ $record['movement']->direction === 'in' ? 'Giriş' : 'Çıkış' }}</td>
                         <td>{{ \App\Support\Formatting\TrFormatter::money((string) $record['movement']->amount) }}</td>
-                        <td><button class="button-secondary" type="button" wire:click="openManualRecord('{{ $record['account'] }}', {{ $record['movement']->id }})">Aç</button>
-                            @endif</td>
+                        <td><button class="button-secondary" type="button" wire:click="openManualRecord('{{ $record['account'] }}', {{ $record['movement']->id }})">Aç</button></td>
                     </tr>
                 @empty
                     <tr><td colspan="5">Düzeltilebilir manuel hareket bulunamadı.</td></tr>
@@ -261,8 +260,7 @@
                 @forelse($transferCorrectable as $group)
                     <tr>
                         <td>{{ substr((string) $group, 0, 20) }}…</td>
-                        <td><button class="button-secondary" type="button" wire:click="openTransferRecord('{{ $group }}')">Aç</button>
-                            @endif</td>
+                        <td><button class="button-secondary" type="button" wire:click="openTransferRecord('{{ $group }}')">Aç</button></td>
                     </tr>
                 @empty
                     <tr><td colspan="2">Düzeltilebilir finans virmanı bulunamadı.</td></tr>
