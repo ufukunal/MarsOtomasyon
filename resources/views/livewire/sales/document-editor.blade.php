@@ -477,13 +477,42 @@
                         <label><input type="checkbox" wire:model="riskAccepted"> Risk limiti aşımını kabul ediyorum.</label>
                     </div>
                 @endif
-                <small class="v65-simple-invoice-note">Faturayı Kaydet, muhasebe kaydını da oluşturur. Sonradan Düzenle kullanılabilir.</small>
-                <x-v65.contact-risk-overview :risk="$this->contactRiskOverview()" />
-                <x-v65.document-prototype-footer :document="$document" :screen-type="$screenType" :item-count="$lineCount" />
-                <section class="v65-invoice-bottom-totals" aria-label="Fatura toplamları">
-                    <x-v65.document-summary class="v65-invoice-summary" :compact="true" :editable="true"
-                        :document="$document" :preview="$draftPreview" :additional-discount="$additionalDiscountAmount" />
-                </section>
+                <div class="v65-invoice-bottom-zone" aria-label="Fatura alt özeti">
+                    @if($draftRiskOverview)
+                        <details class="v65-invoice-risk-details {{ ($draftRiskOverview['exceeded'] ?? false) ? 'is-exceeded' : '' }}"
+                            {{ ($draftRiskOverview['exceeded'] ?? false) ? 'open' : '' }}>
+                            <summary>
+                                <strong>Cari Finansal Durum (TRY)</strong>
+                                <span>Bilinen risk:
+                                    <b>{{ \App\Support\Formatting\TrFormatter::money($draftRiskOverview['projected']) }} ₺</b>
+                                </span>
+                                <span>Risk limiti:
+                                    <b>{{ $draftRiskOverview['configured'] ? \App\Support\Formatting\TrFormatter::money($draftRiskOverview['limit']).' ₺' : 'Tanımlanmamış' }}</b>
+                                </span>
+                                <small>Risk ayrıntıları</small>
+                            </summary>
+                            <x-v65.contact-risk-overview :risk="$draftRiskOverview" />
+                        </details>
+                    @endif
+                    <section class="v65-invoice-bottom-totals" aria-label="Fatura toplamları">
+                        <header class="v65-invoice-totals-toolbar">
+                            <strong>Belge Toplamları</strong>
+                            <span class="v65-invoice-line-count">
+                                <i class="v65-reference-count-dot" aria-hidden="true"></i>
+                                {{ $lineCount }} kalem · Sunucu hesaplaması
+                            </span>
+                            <small>Faturayı Kaydet, muhasebe kaydını da oluşturur. Sonradan Düzenle kullanılabilir.</small>
+                            @if(!$document)
+                                <x-v65.button variant="secondary" size="sm"
+                                    wire:click="resetNewDraft" wire:loading.attr="disabled" wire:target="resetNewDraft">
+                                    Girişi Sıfırla
+                                </x-v65.button>
+                            @endif
+                        </header>
+                        <x-v65.document-summary class="v65-invoice-summary" :compact="true" :editable="true"
+                            :document="$document" :preview="$draftPreview" :additional-discount="$additionalDiscountAmount" />
+                    </section>
+                </div>
             @endif
             @if($screenType !== 'sales_invoice')
                 <x-v65.document-prototype-footer :document="$document" :screen-type="$screenType" :item-count="$lineCount" />

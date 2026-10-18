@@ -3386,3 +3386,121 @@
     .app-shell .v65-invoice-tabs{display:none!important}
     .app-shell .v65-invoice-tab-panel[x-cloak]{display:none!important}
 }
+
+
+/* Compact, invoice-only bottom summary: risk disclosure, count and totals in one zone. */
+.app-shell .v65-invoice-tabbed-form .v65-invoice-bottom-zone{
+    display:grid;gap:8px;min-width:0;margin-top:9px
+}
+.app-shell .v65-invoice-bottom-zone .v65-invoice-risk-details{
+    min-width:0;border:1px solid #dbe5f1;border-radius:7px;background:#f8fbff
+}
+.app-shell .v65-invoice-risk-details>summary{
+    display:flex;align-items:center;flex-wrap:wrap;gap:7px 22px;
+    min-height:38px;box-sizing:border-box;padding:8px 12px;cursor:pointer;
+    color:#516b87;font-size:11px
+}
+.app-shell .v65-invoice-risk-details>summary::marker{color:#196ab7}
+.app-shell .v65-invoice-risk-details>summary strong{
+    font-size:12px;font-weight:750;color:#1b466c
+}
+.app-shell .v65-invoice-risk-details>summary b{
+    margin-left:3px;font-size:12px;font-variant-numeric:tabular-nums;color:#1b466c
+}
+.app-shell .v65-invoice-risk-details>summary small{
+    color:#2a6caa;font-weight:650;margin-left:auto
+}
+.app-shell .v65-invoice-risk-details.is-exceeded{
+    border-color:#d99c99;background:#fff5f3
+}
+.app-shell .v65-invoice-risk-details.is-exceeded>summary :where(strong,b){
+    color:#a72323
+}
+.app-shell .v65-invoice-risk-details>.v65-doc-risk{
+    margin:0;border:0;border-top:1px solid #e0e9f2;border-radius:0;box-shadow:none
+}
+.app-shell .v65-invoice-risk-details .v65-doc-risk-head{display:none}
+.app-shell .v65-invoice-risk-details .v65-doc-risk-values{
+    padding:10px 12px;gap:10px
+}
+.app-shell .v65-invoice-risk-details .v65-doc-risk-disclaimer{
+    padding:7px 12px;font-size:10px
+}
+.app-shell .v65-invoice-tabbed-form .v65-invoice-bottom-zone .v65-invoice-bottom-totals{
+    min-width:0;margin:0;border:1px solid #dce6f0;border-radius:8px;background:#fff;
+    overflow:hidden
+}
+.app-shell .v65-invoice-bottom-totals .v65-invoice-totals-toolbar{
+    display:flex;align-items:center;gap:8px 16px;flex-wrap:wrap;
+    padding:9px 12px;background:#f7f9fc;border-bottom:1px solid #dce6f0
+}
+.app-shell .v65-invoice-totals-toolbar>strong{
+    color:#1c456a;font-size:12px;font-weight:750
+}
+.app-shell .v65-invoice-totals-toolbar :where(.v65-invoice-line-count,small){
+    font-size:10px;color:#6e85a0
+}
+.app-shell .v65-invoice-totals-toolbar>.v65-btn{margin-left:auto;min-height:27px}
+.app-shell .v65-invoice-bottom-totals>.v65-invoice-summary{
+    width:100%;max-width:none;margin:0;border:0;border-radius:0;box-shadow:none;background:transparent
+}
+.app-shell .v65-invoice-bottom-totals .v65-doc-summary-head{display:none}
+.app-shell .v65-invoice-bottom-totals .v65-prototype-total-strip{
+    display:grid;grid-template-columns:1fr 1fr minmax(160px,1.35fr) 1fr minmax(170px,1.4fr);
+    gap:0;margin:0;padding:0;border:0;border-bottom:1px solid #e5edf5;border-radius:0
+}
+.app-shell .v65-invoice-bottom-totals .v65-prototype-total-strip>div{
+    display:flex;flex-direction:column;justify-content:center;align-items:stretch;
+    box-sizing:border-box;min-width:0;min-height:68px;margin:0;
+    padding:9px 12px;gap:5px;border:0;border-right:1px solid #e6edf5;
+    border-radius:0;background:#fff
+}
+.app-shell .v65-invoice-bottom-totals .v65-prototype-total-strip>div:last-child{
+    border-right:0
+}
+.app-shell .v65-invoice-bottom-totals .v65-prototype-total-strip small{
+    font-size:10px;color:#70859d
+}
+.app-shell .v65-invoice-bottom-totals .v65-prototype-total-strip strong{
+    font-size:13px;color:#1a3e60;font-weight:750;white-space:nowrap;
+    font-variant-numeric:tabular-nums
+}
+.app-shell .v65-invoice-bottom-totals .v65-prototype-total-strip .is-grand{
+    background:#eaf3fd
+}
+.app-shell .v65-invoice-bottom-totals .v65-prototype-total-strip .is-grand strong{
+    font-size:16px;color:#1165ad
+}
+.app-shell .v65-invoice-bottom-totals .v65-prototype-total-strip .v65-reference-discount-total{
+    background:#fffdf9
+}
+.app-shell .v65-invoice-bottom-totals .v65-reference-discount-input input{
+    height:27px!important;min-height:27px!important
+}
+.app-shell .v65-invoice-bottom-totals .v65-doc-summary-warning{
+    padding:6px 12px;font-size:10px;line-height:1.4;border-top:0;
+    background:#fffaf1
+}
+@media(max-width:1050px){
+    .app-shell .v65-invoice-bottom-totals .v65-prototype-total-strip{
+        grid-template-columns:repeat(3,minmax(0,1fr))
+    }
+    .app-shell .v65-invoice-bottom-totals .v65-prototype-total-strip>div{
+        border-bottom:1px solid #e5edf5
+    }
+}
+@media(max-width:630px){
+    .app-shell .v65-invoice-risk-details>summary{gap:6px 12px}
+    .app-shell .v65-invoice-risk-details>summary small{margin-left:0}
+    .app-shell .v65-invoice-bottom-totals .v65-prototype-total-strip{
+        grid-template-columns:repeat(2,minmax(0,1fr))
+    }
+    .app-shell .v65-invoice-bottom-totals .v65-prototype-total-strip>.is-grand{
+        grid-column:1/-1
+    }
+    .app-shell .v65-invoice-totals-toolbar>small{flex-basis:100%}
+}
+@media print{
+    .app-shell .v65-invoice-risk-details{display:none!important}
+    .app-shell .v65-invoice-totals-toolbar>.v65-btn{display:none!important}
+}

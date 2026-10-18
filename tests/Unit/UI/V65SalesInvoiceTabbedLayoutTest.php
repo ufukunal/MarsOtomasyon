@@ -95,3 +95,24 @@ it('keeps sales invoice header compact with four columns and side-by-side contac
         ->toContain('.v65-invoice-contact-panels')
         ->toContain('@media(max-width:760px)');
 });
+
+
+it('unifies invoice risk, item count and amounts into one compact bottom zone', function (): void {
+    $view = file_get_contents(base_path('resources/views/livewire/sales/document-editor.blade.php'));
+    $css = file_get_contents(base_path('resources/css/v65-shell.css'));
+
+    expect($view)->toContain('v65-invoice-bottom-zone')
+        ->toContain('<details class="v65-invoice-risk-details')
+        ->toContain('<x-v65.contact-risk-overview :risk="$draftRiskOverview" />')
+        ->toContain('v65-invoice-totals-toolbar')
+        ->toContain('{{ $lineCount }} kalem · Sunucu hesaplaması')
+        ->toContain('wire:click="resetNewDraft"')
+        ->toContain('v65-invoice-bottom-totals')
+        ->toContain('wire:model="riskAccepted"')
+        ->toContain('v65-invoice-summary')
+        ->not->toContain('<x-v65.document-prototype-footer :document="$document" :screen-type="$screenType" :item-count="$lineCount" />'."\n".'                <section class="v65-invoice-bottom-totals"')
+        ->and($css)->toContain('.v65-invoice-bottom-zone')
+        ->toContain('.v65-invoice-risk-details')
+        ->toContain('.v65-invoice-bottom-totals .v65-doc-summary-head{display:none}')
+        ->toContain('grid-template-columns:repeat(2,minmax(0,1fr))');
+});
