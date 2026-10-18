@@ -217,7 +217,7 @@
                     <x-v65.button variant="secondary" size="sm" wire:click="editDraft({{ $selectedReturn->id }})">Düzenle</x-v65.button>
                     <x-v65.button size="sm" wire:click="post"
                         wire:loading.attr="disabled" wire:target="post"
-                        wire:confirm="İade işlemi stok ve cari hareketi oluşturacak. Kaydedilen tutarları kontrol ettiniz mi?">İadeyi İşle →</x-v65.button>
+                        >Kaydet ve İşle</x-v65.button>
                 @endcan
             @else
                 <x-v65.button variant="secondary" size="sm" :href="route('documents.history', ['id' => $selectedReturn->id])">Kayıt Geçmişi</x-v65.button>
@@ -234,16 +234,8 @@
                 <small>Stok karantina kontrolü ayrıca yapılır.</small>
             @endif
             @if($selectedReturn->status === 'posted' && auth()->user()?->can('returns.cancel'))
-                <details class="v65-ref-returns-audit-actions">
-                    <summary>Geçmiş / teknik düzeltme</summary>
-                    <div>
-                        <label>Ters Kayıt Tarihi <input type="date" wire:model="reversalDate"></label>
-                        <label>Gerekçe <input wire:model="reversalReason" placeholder="Zorunlu düzeltme gerekçesi"></label>
-                        <x-v65.button variant="danger" size="sm" wire:click="reverse"
-                            wire:loading.attr="disabled" wire:target="reverse"
-                            wire:confirm="Muhasebe ve stok kayıtları ters hareketle geri alınacak. İşlem geçmişte kalıcı olarak izlenir.">Teknik Düzeltme</x-v65.button>
-                    </div>
-                </details>
+                <x-v65.button variant="danger" size="sm" wire:click="deleteReturn({{ $selectedReturn->id }})"
+                    wire:loading.attr="disabled" wire:target="deleteReturn">Sil</x-v65.button>
             @endif
         </section>
     @endif

@@ -218,6 +218,25 @@ class ReturnCenter extends Component
         $this->editingReturnDraft = false;
     }
 
+    /** Direct audited deletion for an already posted return. */
+    public function deleteReturn(int $id): void
+    {
+        abort_unless(auth()->user()?->can('returns.cancel'), 403);
+        $return = Document::query()->whereIn('document_type', [
+            DocumentType::SalesReturn->value, DocumentType::PurchaseReturn->value,
+        ])->where('status', 'posted')->findOrFail($id);
+        app(ReverseReturnDocument::class)->handle(
+            $return,
+            now()->toDateString(),
+            'İade kullanıcı tarafından silindi; mali geçmiş korundu.',
+            $this->childMutationKey('reverse', 'delete:'.$id),
+        );
+        $this->completeMutation('reverse');
+        if ($this->selectedReturnId === $id) {
+            $this->startNewReturn();
+        }
+    }
+
     public function reverse(ReverseReturnDocument $action): void
     {
         abort_unless($this->selectedReturnId !== null, 422);
