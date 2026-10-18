@@ -41,6 +41,22 @@ class ContactDebitCreditForm extends Component
     #[Locked]
     public bool $correctionReady = false;
 
+    #[Locked]
+    public ?int $selectedRecordId = null;
+
+    public function openRecord(int $id): void
+    {
+        abort_unless(auth()->user()?->can('contacts.update'), 403);
+        Document::query()->where('document_type', DocumentType::ContactDebitCredit->value)
+            ->where('status', 'posted')->findOrFail($id);
+        $this->selectedRecordId = $id;
+    }
+
+    public function closeRecord(): void
+    {
+        $this->selectedRecordId = null;
+    }
+
     public string $reversalDate = '';
 
     public string $reversalReason = '';
@@ -87,6 +103,7 @@ class ContactDebitCreditForm extends Component
         }, attempts: 3);
         $this->completeMutation('post');
         $this->postedDocumentId = (int) $document->id;
+        $this->selectedRecordId = (int) $document->id;
         $this->correctionSourceId = null;
         $this->correctionReady = false;
     }
@@ -113,6 +130,7 @@ class ContactDebitCreditForm extends Component
         $this->documentDate = $document->document_date->toDateString();
         $this->reason = (string) ($movement->description ?: 'Cari fiş düzeltmesi');
         $this->note = (string) ($document->notes ?? '');
+        $this->selectedRecordId = $id;
         $this->correctionSourceId = $id;
         $this->correctionReady = false;
         $this->reversalDate = now()->toDateString();
@@ -137,6 +155,9 @@ class ContactDebitCreditForm extends Component
             $this->childMutationKey('reverse', 'delete:'.$id),
         );
         $this->completeMutation('reverse');
+        if ($this->selectedRecordId === $id) {
+            $this->selectedRecordId = null;
+        }
         if ($this->correctionSourceId === $id || $this->postedDocumentId === $id) {
             $this->cancelCorrection();
             $this->postedDocumentId = null;
@@ -165,6 +186,9 @@ class ContactDebitCreditForm extends Component
     public function render(): View
     {
         return view('livewire.finance.contact-debit-credit-form', [
+            'selectedRecord' => $this->selectedRecordId === null ? null : Document::query()
+                ->where('document_type', DocumentType::ContactDebitCredit->value)
+                ->where('status', 'posted')->with('contact')->find($this->selectedRecordId),
             'recentDocuments' => Document::query()
                 ->where('document_type', DocumentType::ContactDebitCredit->value)
                 ->where('status', 'posted')

@@ -101,13 +101,35 @@
             </div>
         </div>
     </section>
+    @if($selectedTransfer)
+        <section class="panel v65-ref-card v65-record-detail" aria-label="Cari virman detayları" id="v65-virman-selected-record">
+            <header class="v65-ref-card-head"><strong>Virman · {{ $selectedTransfer->number }}</strong>
+                <small>{{ $selectedTransfer->transfer_date?->format('d.m.Y') }}</small></header>
+            <p><strong>Kaynak:</strong> {{ $selectedTransfer->sourceContact?->title ?? '—' }}</p>
+            <p><strong>Hedef:</strong> {{ $selectedTransfer->targetContact?->title ?? '—' }}</p>
+            <p><strong>Tutar:</strong> {{ \App\Support\Formatting\TrFormatter::money((string) $selectedTransfer->amount) }} TRY</p>
+            <div class="v65-ref-virman-actions">
+                @if($selectedTransfer->reversal_of_id === null && ! in_array((int) $selectedTransfer->id, $reversedIds, true))
+                    @if(auth()->user()?->can('contact_transfers.cancel') && auth()->user()?->can('contact_transfers.create'))
+                        <x-v65.button variant="secondary" wire:click="prepareCorrection({{ $selectedTransfer->id }})">Düzenle</x-v65.button>
+                    @endif
+                    @can('contact_transfers.cancel')
+                        <x-v65.button variant="danger" wire:click="deleteRecord({{ $selectedTransfer->id }})"
+                            wire:loading.attr="disabled" wire:target="deleteRecord">Sil</x-v65.button>
+                    @endcan
+                @endif
+                <x-v65.button variant="secondary" wire:click="closeRecord">Kapat</x-v65.button>
+            </div>
+        </section>
+    @endif
+
     <section class="panel v65-workspace-form v65-ref-card v65-ref-history"><header class="v65-ref-card-head"><strong>Cari Virman Geçmişi</strong><small>Yetkili olduğunuz kayıtlar</small></header>
         <div class="table-scroll"><table class="data-table">
             <thead><tr><th>No</th><th>Tarih</th><th>Kaynak Cari</th><th>Hedef Cari</th><th>Yön</th><th>Referans</th><th>Tutar</th><th>Aşım Onayı</th><th>İşlem</th></tr></thead>
             <tbody>
                 @forelse($transfers as $transfer)
                 <tr>
-                    <td>{{ $transfer->number }}</td>
+                    <td><button type="button" class="link-button v65-record-link" wire:click="openRecord({{ $transfer->id }})">{{ $transfer->number }}</button></td>
                     <td>{{ $transfer->transfer_date?->format('d.m.Y') }}</td>
                     <td>{{ $transfer->sourceContact?->title }}</td>
                     <td>{{ $transfer->targetContact?->title }}</td>
@@ -115,16 +137,7 @@
                     <td>{{ $transfer->reference ?: '—' }}</td>
                     <td>{{ \App\Support\Formatting\TrFormatter::money((string) $transfer->amount) }} TRY</td>
                     <td>{{ $transfer->overdraft_approved ? 'Onaylı' : '—' }}</td>
-                    <td>
-                        @if($transfer->reversal_of_id === null && !in_array((int) $transfer->id, $reversedIds, true) && auth()->user()?->can('contact_transfers.cancel'))
-                            @if(auth()->user()?->can('contact_transfers.create'))
-                                <x-v65.button variant="secondary" size="xs" wire:click="prepareCorrection({{ $transfer->id }})">Düzenle</x-v65.button>
-                            @endif
-                            <x-v65.button variant="danger" size="xs" wire:click="deleteRecord({{ $transfer->id }})"
-                                wire:loading.attr="disabled" wire:target="deleteRecord">Sil</x-v65.button>
-                        @else
-                            <span>—</span>
-                        @endif
+                    <td><x-v65.button variant="secondary" size="xs" wire:click="openRecord({{ $transfer->id }})">Aç</x-v65.button>
                     </td>
                 </tr>
                 @empty

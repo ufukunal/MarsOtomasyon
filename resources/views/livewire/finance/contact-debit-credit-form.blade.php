@@ -31,6 +31,21 @@
         <div>Kaydedilen fiş #{{ $postedDocumentId }}</div>
     @endif
 
+    @if($selectedRecord)
+        <section class="panel v65-record-detail" aria-label="Cari fişi detayları" id="v65-contact-selected-record">
+            <h3>Cari Fişi · {{ $selectedRecord->number ?? '#'.$selectedRecord->id }}</h3>
+            <p><strong>Cari:</strong> {{ auth()->user()?->can('contacts.view') ? ($selectedRecord->contact?->title ?? '—') : 'Görüntüleme yetkisi yok' }}</p>
+            <p><strong>Tarih:</strong> {{ $selectedRecord->document_date?->format('d.m.Y') }}</p>
+            <p><strong>Tutar:</strong> {{ \App\Support\Formatting\TrFormatter::money((string) $selectedRecord->grand_total) }} TRY</p>
+            <div class="v65-form-footer">
+                <x-v65.button variant="secondary" wire:click="prepareCorrection({{ $selectedRecord->id }})">Düzenle</x-v65.button>
+                <x-v65.button variant="danger" wire:click="deleteRecord({{ $selectedRecord->id }})"
+                    wire:loading.attr="disabled" wire:target="deleteRecord">Sil</x-v65.button>
+                <x-v65.button variant="secondary" wire:click="closeRecord">Kapat</x-v65.button>
+            </div>
+        </section>
+    @endif
+
     <section class="panel" aria-label="Cari fiş geçmişi">
         <h3>Cari Fiş Geçmişi / Düzenleme</h3>
         <p class="v65-doc-search-hint">Kaydı seçip alanları düzenleyin; Kaydet ile değişiklikleri uygulayın.</p>
@@ -39,19 +54,12 @@
             <tbody>
                 @forelse($recentDocuments as $record)
                     <tr wire:key="contact-debit-credit-{{ $record->id }}">
-                        <td>{{ $record->number ?? '#'.$record->id }}</td>
+                        <td><button type="button" class="link-button v65-record-link" wire:click="openRecord({{ $record->id }})">{{ $record->number ?? '#'.$record->id }}</button></td>
                         <td>{{ $record->document_date?->format('d.m.Y') }}</td>
                         <td>{{ $record->contact?->title ?? '—' }}</td>
                         <td>{{ $record->contactTransactions->first()?->direction === 'debit' ? 'Borç' : 'Alacak' }}</td>
                         <td>{{ \App\Support\Formatting\TrFormatter::money((string) $record->grand_total) }}</td>
-                        <td>
-                            @can('contacts.update')
-                                <x-v65.button variant="secondary" size="xs"
-                                    wire:click="prepareCorrection({{ $record->id }})">Düzenle</x-v65.button>
-                                <x-v65.button variant="danger" size="xs" wire:click="deleteRecord({{ $record->id }})"
-                                    wire:loading.attr="disabled" wire:target="deleteRecord">Sil</x-v65.button>
-                            @endcan
-                        </td>
+                        <td><x-v65.button variant="secondary" size="xs" wire:click="openRecord({{ $record->id }})">Aç</x-v65.button></td>
                     </tr>
                 @empty
                     <tr><td colspan="6">Düzeltilebilir fiş bulunamadı.</td></tr>

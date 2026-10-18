@@ -44,6 +44,21 @@ class ContactTransferForm extends Component
 
     public ?int $postedTransferId = null;
 
+    #[Locked]
+    public ?int $selectedRecordId = null;
+
+    public function openRecord(int $id): void
+    {
+        abort_unless(auth()->user()?->can('contact_transfers.view'), 403);
+        ContactTransfer::query()->findOrFail($id);
+        $this->selectedRecordId = $id;
+    }
+
+    public function closeRecord(): void
+    {
+        $this->selectedRecordId = null;
+    }
+
     public string $reversalDate = '';
 
     public string $reversalReason = '';
@@ -271,6 +286,7 @@ class ContactTransferForm extends Component
         }, attempts: 3);
         $this->completeMutation('post');
         $this->postedTransferId = (int) $transfer->id;
+        $this->selectedRecordId = (int) $transfer->id;
         $this->correctionSourceId = null;
         $this->correctionReady = false;
         $this->amount = '';
@@ -300,6 +316,7 @@ class ContactTransferForm extends Component
         $this->reference = (string) ($transfer->reference ?? '');
         $this->sourceSearch = '';
         $this->targetSearch = '';
+        $this->selectedRecordId = $id;
         $this->correctionSourceId = $id;
         $this->correctionReady = false;
         $this->overdraftConfirmed = false;
@@ -322,6 +339,9 @@ class ContactTransferForm extends Component
             $this->childMutationKey('reverse', 'delete:'.$id),
         );
         $this->completeMutation('reverse');
+        if ($this->selectedRecordId === $id) {
+            $this->selectedRecordId = null;
+        }
         if ($this->correctionSourceId === $id) {
             $this->correctionSourceId = null;
             $this->correctionReady = false;
@@ -390,6 +410,8 @@ class ContactTransferForm extends Component
             'sourceOptions' => $this->contactOptions($this->sourceSearch, $this->sourceContactId),
             'targetOptions' => $this->contactOptions($this->targetSearch, $this->targetContactId),
             'transfers' => $transfers,
+            'selectedTransfer' => $this->selectedRecordId === null ? null : ContactTransfer::query()
+                ->with(['sourceContact', 'targetContact'])->find($this->selectedRecordId),
             'reversedIds' => $reversedIds,
             'pendingReversal' => $this->pendingReversalId === null
                 ? null
