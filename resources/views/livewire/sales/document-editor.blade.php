@@ -50,16 +50,182 @@
         <x-v65.notice tone="warning">Kaydedilmemiş değişiklikler var. Belge işlemine devam etmeden önce Kaydet'i kullanın.</x-v65.notice>
     @endif
 
-    @if($this instanceof \App\Livewire\Sales\SalesInvoiceEditor)
-        <x-v65.contact-risk-overview :risk="$this->contactRiskOverview()" />
-    @endif
-
     @php
         $draftPreview = $this->draftTotalsPreview();
     @endphp
 
     @if(!$document || $document->status === 'draft')
-        <form wire:submit="save" id="{{ $formId }}" class="document-editor-form v65-doc-editor v65-reference-form">
+        <form wire:submit="save" id="{{ $formId }}" class="document-editor-form v65-doc-editor v65-reference-form {{ $screenType === 'sales_invoice' ? 'v65-invoice-tabbed-form' : '' }}">
+            @if($screenType === 'sales_invoice')
+                <section class="v65-invoice-meta" aria-label="Fatura üst bilgileri" x-data="{ invoiceTab: 'bilgiler' }">
+                    <nav class="v65-invoice-tabs" role="tablist" aria-label="Satış faturası üst bilgi sekmeleri">
+                        <button type="button" id="v65-invoice-tab-bilgiler" role="tab"
+                            x-on:click="invoiceTab = 'bilgiler'"
+                            x-bind:aria-selected="invoiceTab === 'bilgiler' ? 'true' : 'false'"
+                            x-bind:class="{ 'is-active': invoiceTab === 'bilgiler' }"
+                            aria-controls="v65-invoice-panel-bilgiler">Bilgiler</button>
+                        <button type="button" id="v65-invoice-tab-notlar" role="tab"
+                            x-on:click="invoiceTab = 'notlar'"
+                            x-bind:aria-selected="invoiceTab === 'notlar' ? 'true' : 'false'"
+                            x-bind:class="{ 'is-active': invoiceTab === 'notlar' }"
+                            aria-controls="v65-invoice-panel-notlar">Notlar</button>
+                        <button type="button" id="v65-invoice-tab-diger" role="tab"
+                            x-on:click="invoiceTab = 'diger'"
+                            x-bind:aria-selected="invoiceTab === 'diger' ? 'true' : 'false'"
+                            x-bind:class="{ 'is-active': invoiceTab === 'diger' }"
+                            aria-controls="v65-invoice-panel-diger">Diğer</button>
+                    </nav>
+
+                    <div id="v65-invoice-panel-bilgiler" class="v65-invoice-tab-panel"
+                        role="tabpanel" aria-labelledby="v65-invoice-tab-bilgiler"
+                        x-show="invoiceTab === 'bilgiler'">
+                        <section class="v65-invoice-info-group" aria-label="Belge bilgileri">
+                            <header class="v65-invoice-group-title"><strong>Belge Bilgileri</strong></header>
+                            <div class="v65-invoice-info-grid">
+                                <div class="v65-doc-contact-picker v65-invoice-contact-picker">
+                                    <label class="field">Müşteri / Cari Ara
+                                        <input type="search" wire:model.live.debounce.300ms="contactSearch"
+                                            placeholder="Kod veya unvan ile ara" autocomplete="off">
+                                        <small class="v65-doc-search-hint">Kod veya unvan ile arayın; 35 sonuç gösterilir.</small>
+                                        <small class="v65-doc-search-loading" wire:loading wire:target="contactSearch">Aranıyor…</small>
+                                    </label>
+                                    <x-v65.select label="Cari" wire:model.live="contactId" placeholder="Cari seçin" class="v65-doc-contact">
+                                        @forelse($this->contactOptions() as $contact)
+                                            <option value="{{ $contact->id }}">{{ $contact->code }} · {{ $contact->title }}</option>
+                                        @empty
+                                            <option value="" disabled>Aramaya uygun cari bulunamadı</option>
+                                        @endforelse
+                                    </x-v65.select>
+                                    <x-v65.input-error field="contactId" />
+                                    <details class="v65-reference-contact-prices">
+                                        <summary>Cari fiyat listesi</summary>
+                                        <div class="v65-doc-contact-actions">
+                                            <x-v65.button variant="secondary" size="sm" wire:click="applyContactPrices"
+                                                wire:loading.attr="disabled" wire:target="applyContactPrices"
+                                                wire:confirm="Manuel satır fiyatları da seçili carinin fiyat listesine göre değiştirilsin mi?">Cari Fiyatlarını Uygula</x-v65.button>
+                                            <small>Manuel fiyatlar yalnız bu işlemle yeniden hesaplanır.</small>
+                                        </div>
+                                    </details>
+                                </div>
+                                <label class="field">Fatura Tarihi
+                                    <input type="date" wire:model="documentDate">
+                                    <x-v65.input-error field="documentDate" />
+                                </label>
+                                <label class="field">Vade Tarihi
+                                    <input type="date" wire:model="dueDate">
+                                    <x-v65.input-error field="dueDate" />
+                                </label>
+                                <label class="field">Ödeme Şekli
+                                    <select wire:model="uiMeta.payment_method">
+                                        <option value="">Seçin</option>
+                                        <option value="Peşin">Peşin</option>
+                                        <option value="Vadeli">Vadeli</option>
+                                        <option value="Banka">Banka</option>
+                                    </select>
+                                </label>
+                                <label class="field">Para Birimi
+                                    <input readonly value="TRY" title="Satış muhasebesi TRY bazlıdır">
+                                </label>
+                                <label class="field">Varsayılan Depo
+                                    <select wire:model.live="uiMeta.default_location_id">
+                                        <option value="">Satır bazında seç</option>
+                                        @foreach($locations as $location)
+                                            <option value="{{ $location->id }}">{{ $location->name }}</option>
+                                        @endforeach
+                                    </select>
+                                </label>
+                                <label class="field">Belge No
+                                    <input readonly value="{{ $document?->number ?? 'Kaydedildiğinde oluşturulur' }}">
+                                </label>
+                            </div>
+                        </section>
+
+                        @php($invoiceContact = $this->invoiceContactDetails())
+                        <section class="v65-invoice-info-group" aria-label="Kişi firma bilgileri">
+                            <header class="v65-invoice-group-title"><strong>Kişi / Firma</strong>
+                                <small>Seçili cari kartından alınır; fatura içinde değiştirilmez.</small></header>
+                            <div class="v65-invoice-info-grid">
+                                <label class="field">Unvan
+                                    <input readonly value="{{ $invoiceContact['title'] ?? '—' }}">
+                                </label>
+                                <label class="field">Vergi Dairesi
+                                    <input readonly value="{{ $invoiceContact['tax_office'] ?? '—' }}">
+                                </label>
+                                <label class="field">Vergi Numarası
+                                    <input readonly value="{{ $invoiceContact['tax_number'] ?? '—' }}">
+                                </label>
+                            </div>
+                        </section>
+
+                        <section class="v65-invoice-info-group" aria-label="İletişim bilgileri">
+                            <header class="v65-invoice-group-title"><strong>İletişim Bilgileri</strong></header>
+                            <div class="v65-invoice-info-grid">
+                                <label class="field v65-invoice-field-wide">Adres
+                                    <input readonly value="{{ $invoiceContact['address'] ?? '—' }}">
+                                </label>
+                                <label class="field">İl
+                                    <input readonly value="{{ $invoiceContact['city'] ?? '—' }}">
+                                </label>
+                                <label class="field">İlçe
+                                    <input readonly value="{{ $invoiceContact['district'] ?? '—' }}">
+                                </label>
+                                <label class="field">Telefon
+                                    <input readonly value="{{ $invoiceContact['phone'] ?? '—' }}">
+                                </label>
+                                <label class="field">E-posta
+                                    <input readonly value="{{ $invoiceContact['email'] ?? '—' }}">
+                                </label>
+                            </div>
+                        </section>
+
+                        @if(! empty($invoiceContact['categories']))
+                            <section class="v65-invoice-info-group" aria-label="Cari kategorileri">
+                                <header class="v65-invoice-group-title"><strong>Kategoriler</strong></header>
+                                <div class="v65-invoice-category-list">
+                                    @foreach($invoiceContact['categories'] as $categoryName)
+                                        <span>{{ $categoryName }}</span>
+                                    @endforeach
+                                </div>
+                            </section>
+                        @endif
+                    </div>
+
+                    <div id="v65-invoice-panel-notlar" class="v65-invoice-tab-panel" role="tabpanel"
+                        aria-labelledby="v65-invoice-tab-notlar" x-show="invoiceTab === 'notlar'" x-cloak>
+                        <section class="v65-invoice-info-group">
+                            <header class="v65-invoice-group-title"><strong>Not Bilgileri</strong></header>
+                            <label class="field v65-invoice-note-label">Fatura Notu
+                                <textarea wire:model.blur="notes" rows="7"
+                                    placeholder="Faturaya ait notları ve açıklamaları yazın..."></textarea>
+                            </label>
+                        </section>
+                    </div>
+
+                    <div id="v65-invoice-panel-diger" class="v65-invoice-tab-panel" role="tabpanel"
+                        aria-labelledby="v65-invoice-tab-diger" x-show="invoiceTab === 'diger'" x-cloak>
+                        <section class="v65-invoice-info-group">
+                            <header class="v65-invoice-group-title"><strong>Diğer Belge Seçenekleri</strong></header>
+                            <div class="v65-invoice-info-grid">
+                                <label class="field">Belge İskonto %
+                                    <input wire:model.blur="discountRate" data-tr-decimal inputmode="decimal">
+                                    <x-v65.input-error field="discountRate" />
+                                </label>
+                                <label class="field">Müşteri Referans No
+                                    <input wire:model.blur="uiMeta.customer_reference_no" maxlength="140">
+                                </label>
+                            </div>
+                            <div class="v65-invoice-source-detail">
+                                <strong>Kaynak Sipariş / İrsaliye</strong>
+                                @if($document && $document->incomingRelations->isNotEmpty())
+                                    <x-v65.document-sources :document="$document" />
+                                @else
+                                    <p>Kaynak sipariş ve irsaliye bağlantıları kayıtlı belgeler üzerinden yönetilir.</p>
+                                @endif
+                            </div>
+                        </section>
+                    </div>
+                </section>
+            @else
             <section class="v65-reference-info-card" aria-label="Belge bilgileri">
                 <header class="v65-reference-info-head">
                     <strong>Belge Bilgileri</strong>
@@ -176,6 +342,8 @@
 
 
 
+            @endif
+
             <section class="v65-doc-lines v65-reference-products-card" aria-label="Ürün ve hizmetler" x-data="{ fastEntry: true }">
                 <x-v65.document-prototype-toolbar :screen-type="$screenType"
                     :products="$this->quickProductOptions()" :quick-search="$quickProductSearch" />
@@ -279,6 +447,7 @@
                     <button type="button" class="v65-reference-new-product-button" data-v65-add-product-focus x-on:click="fastEntry = true">+ Yeni ürün satırı</button>
                     <small>Yeni ürün eklemek için üstteki ürün arama alanını kullanın. Enter ile seçin, Tab ile ilerleyin.</small>
                 </div>
+                @if($screenType !== 'sales_invoice')
                 <div class="v65-reference-totals-layout">
                     <div class="v65-reference-totals-help">
                         <strong>Hızlı giriş:</strong> Ürün kodu veya barkodu üstteki arama alanına yazıp Enter ile ekleyin.
@@ -289,6 +458,7 @@
                     <x-v65.document-summary class="v65-reference-inline-summary" :compact="true" :editable="true"
                         :document="$document" :preview="$draftPreview" :additional-discount="$additionalDiscountAmount" />
                 </div>
+                @endif
             </section>
             @if($this instanceof \App\Livewire\Sales\SalesInvoiceEditor)
                 @php
@@ -310,10 +480,16 @@
                     </div>
                 @endif
                 <small class="v65-simple-invoice-note">Faturayı Kaydet, muhasebe kaydını da oluşturur. Sonradan Düzenle kullanılabilir.</small>
+                <x-v65.contact-risk-overview :risk="$this->contactRiskOverview()" />
+                <x-v65.document-prototype-footer :document="$document" :screen-type="$screenType" :item-count="$lineCount" />
+                <section class="v65-invoice-bottom-totals" aria-label="Fatura toplamları">
+                    <x-v65.document-summary class="v65-invoice-summary" :compact="true" :editable="true"
+                        :document="$document" :preview="$draftPreview" :additional-discount="$additionalDiscountAmount" />
+                </section>
             @endif
-            <x-v65.document-prototype-footer :document="$document" :screen-type="$screenType" :item-count="$lineCount" />
-
-
+            @if($screenType !== 'sales_invoice')
+                <x-v65.document-prototype-footer :document="$document" :screen-type="$screenType" :item-count="$lineCount" />
+            @endif
         </form>
     @elseif($document)
         <x-v65.document-readonly :document="$document" />
@@ -328,6 +504,9 @@
 
     @if($document && $document->status !== 'draft')
         <x-v65.document-summary :editable="false" class="v65-doc-screen-summary" :document="$document" />
+    @endif
+    @if($this instanceof \App\Livewire\Sales\SalesInvoiceEditor && $document && $document->status !== 'draft')
+        <x-v65.contact-risk-overview :risk="$this->contactRiskOverview()" />
     @endif
 
     @if($document && ! ($this instanceof \App\Livewire\Sales\SalesInvoiceEditor))

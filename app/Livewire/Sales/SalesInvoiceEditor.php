@@ -94,6 +94,40 @@ class SalesInvoiceEditor extends BaseSalesDocumentEditor
      *
      * @return array<string,string|bool|null>|null
      */
+
+    /**
+     * Read-only invoice contact details. Never expose tax or contact fields
+     * without permission to view the selected contact.
+     *
+     * @return array<string, string|array<int,string>>|null
+     */
+    public function invoiceContactDetails(): ?array
+    {
+        if (! $this->contactId || ! auth()->user()?->can('contacts.view')) {
+            return null;
+        }
+
+        $contact = Contact::query()
+            ->with('categories')
+            ->find($this->contactId);
+
+        if ($contact === null) {
+            return null;
+        }
+
+        return [
+            'title' => (string) $contact->title,
+            'tax_office' => (string) ($contact->tax_office ?? ''),
+            'tax_number' => (string) ($contact->tax_number ?? ''),
+            'address' => (string) ($contact->address ?? ''),
+            'city' => (string) ($contact->city ?? ''),
+            'district' => (string) ($contact->district ?? ''),
+            'phone' => (string) ($contact->phone ?? ''),
+            'email' => (string) ($contact->email ?? ''),
+            'categories' => $contact->categories->pluck('name')->values()->all(),
+        ];
+    }
+
     public function contactRiskOverview(): ?array
     {
         if (! $this->contactId || ! auth()->user()?->can('contacts.view')) {

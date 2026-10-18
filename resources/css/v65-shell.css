@@ -3258,3 +3258,97 @@
   .app-shell .v65-record-delete-dialog-actions .v65-btn{flex:1 1 180px}
 }
 @media print{.app-shell .v65-record-delete-overlay{display:none!important}}
+
+/* Sales invoice: top metadata tabs, permanent movements, totals at page bottom.
+   Scoped to invoice; quotes, orders and dispatches retain their current layout. */
+.app-shell .v65-invoice-tabbed-form{min-width:0}
+.app-shell .v65-invoice-tabbed-form .v65-invoice-meta{
+    min-width:0;margin-bottom:12px;background:#fff;border:1px solid #dce6f0;
+    border-radius:8px;overflow:visible
+}
+.app-shell .v65-invoice-tabbed-form .v65-invoice-tabs{
+    display:flex;align-items:flex-end;flex-wrap:wrap;gap:3px;
+    padding:8px 12px 0;border-bottom:1px solid #dce6f0;background:#f6f8fb;
+    border-radius:8px 8px 0 0
+}
+.app-shell .v65-invoice-tabbed-form .v65-invoice-tabs button{
+    border:1px solid transparent;border-bottom:0;border-radius:6px 6px 0 0;
+    background:transparent;color:#38668c;font-size:12px;font-weight:700;
+    min-height:38px;padding:9px 19px;cursor:pointer
+}
+.app-shell .v65-invoice-tabbed-form .v65-invoice-tabs button.is-active,
+.app-shell .v65-invoice-tabbed-form .v65-invoice-tabs button[aria-selected="true"]{
+    border-color:#dce6f0;background:#fff;color:#115c9c;
+    box-shadow:inset 0 3px 0 #176fc5
+}
+.app-shell .v65-invoice-tabbed-form .v65-invoice-tabs button:focus-visible{
+    outline:2px solid #176fc5;outline-offset:-2px
+}
+.app-shell .v65-invoice-tab-panel[x-cloak]{display:none!important}
+.app-shell .v65-invoice-tab-panel{min-width:0;padding:15px}
+.app-shell .v65-invoice-info-group{
+    min-width:0;border:1px solid #e0e8f1;border-radius:7px;background:#fff;
+    margin-bottom:12px;overflow:hidden
+}
+.app-shell .v65-invoice-info-group:last-child{margin-bottom:0}
+.app-shell .v65-invoice-group-title{
+    display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;
+    gap:8px;min-height:38px;padding:10px 13px;border-bottom:1px solid #e0e8f1;
+    background:#f6f8fb
+}
+.app-shell .v65-invoice-group-title strong{font-size:12px;color:#183a58}
+.app-shell .v65-invoice-group-title small{color:#70869f;font-size:10px}
+.app-shell .v65-invoice-info-grid{
+    display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+    align-items:start;column-gap:14px;row-gap:13px;padding:15px
+}
+.app-shell .v65-invoice-info-grid>.field{
+    display:grid;align-content:start;gap:6px;min-width:0;
+    color:#426487;font-size:11px;font-weight:700
+}
+.app-shell .v65-invoice-info-grid :where(input:not([type=checkbox]),select){
+    box-sizing:border-box;width:100%;min-width:0;min-height:38px;
+    border:1px solid #cedbeb;border-radius:5px;padding:6px 10px
+}
+.app-shell .v65-invoice-info-grid input[readonly]{background:#f7f9fc;color:#577087}
+.app-shell .v65-invoice-info-grid .v65-invoice-contact-picker{min-width:0}
+.app-shell .v65-invoice-contact-picker>.field{display:grid;gap:6px;font-size:11px}
+.app-shell .v65-invoice-contact-picker .v65-doc-contact{min-width:0}
+.app-shell .v65-invoice-field-wide{grid-column:span 2}
+.app-shell .v65-invoice-note-label{display:grid;gap:8px;padding:15px;font-size:12px;color:#426487}
+.app-shell .v65-invoice-note-label textarea{
+    box-sizing:border-box;width:100%;min-height:175px;resize:vertical;
+    border:1px solid #cedbeb;border-radius:5px;padding:12px
+}
+.app-shell .v65-invoice-category-list{display:flex;gap:8px;flex-wrap:wrap;padding:15px}
+.app-shell .v65-invoice-category-list span{
+    padding:6px 10px;border:1px solid #dae6f3;border-radius:5px;
+    background:#f5f9fd;color:#355b7f;font-size:11px
+}
+.app-shell .v65-invoice-source-detail{
+    display:grid;gap:7px;margin:0 15px 15px;padding:12px;
+    border:1px solid #e0e9f3;border-radius:5px;color:#486986;font-size:11px
+}
+.app-shell .v65-invoice-source-detail p{margin:0}
+.app-shell .v65-invoice-tabbed-form>.v65-reference-products-card{
+    border-bottom:1px solid #dce6f0;border-radius:8px
+}
+.app-shell .v65-invoice-tabbed-form>.v65-invoice-bottom-totals{
+    margin-top:12px;min-width:0;background:#fff;border:1px solid #dce6f0;border-radius:8px
+}
+.app-shell .v65-invoice-tabbed-form .v65-invoice-summary{
+    border:0;box-shadow:none;margin:0;min-width:0
+}
+@media(max-width:920px){
+    .app-shell .v65-invoice-info-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:580px){
+    .app-shell .v65-invoice-tab-panel{padding:9px}
+    .app-shell .v65-invoice-info-grid{grid-template-columns:minmax(0,1fr);padding:10px}
+    .app-shell .v65-invoice-field-wide{grid-column:auto}
+    .app-shell .v65-invoice-tabbed-form .v65-invoice-tabs button{flex:1 1 0;padding:9px 8px}
+}
+@media print{
+    .app-shell .v65-invoice-tabs{display:none!important}
+    .app-shell .v65-invoice-tab-panel[x-cloak]{display:none!important}
+}
