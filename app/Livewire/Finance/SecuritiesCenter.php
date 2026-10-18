@@ -431,6 +431,21 @@ class SecuritiesCenter extends Component
         $this->selectedSecurityIds = [];
     }
 
+    /** Direct audited deletion of a security payroll from active business operations. */
+    public function deletePayroll(int $id): void
+    {
+        abort_unless($this->scopeMode() === 'center', 403);
+        abort_unless(auth()->user()?->can('security_payrolls.cancel'), 403);
+        $payroll = SecurityPayroll::query()->where('status', 'posted')
+            ->where('action', '!=', 'reversal')->findOrFail($id);
+        app(ReverseSecurityPayroll::class)->handle(
+            $payroll, max(now()->toDateString(), $payroll->payroll_date->toDateString()),
+            'Çek/senet bordrosu kullanıcı tarafından silindi; mali geçmiş korundu.',
+            $this->childMutationKey('reversePayroll', 'delete:'.$id),
+        );
+        $this->completeMutation('reversePayroll');
+    }
+
     public function reversePayroll(ReverseSecurityPayroll $action): void
     {
         abort_unless($this->scopeMode() === 'center', 403);

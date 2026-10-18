@@ -289,32 +289,15 @@
                 </div>
             </section>
         @endif
-        <x-v65.button wire:click="postPayroll" wire:loading.attr="disabled" wire:target="postPayroll">{{ $screenMode === 'endorse' ? 'Ciroyu Onayla' : 'Bordroyu Kesinleştir' }}</x-v65.button>
+        <x-v65.button wire:click="postPayroll" wire:loading.attr="disabled" wire:target="postPayroll">{{ $screenMode === 'endorse' ? 'Ciroyu Kaydet' : 'Kaydet' }}</x-v65.button>
     </section>
     @endif
 
     @if($screenMode === 'center')
-    <section class="panel stack">
-        <h2>Bordro Ters Kayıt</h2>
-        <label class="field">Bordro
-            <select wire:model="reversePayrollId">
-                <option value="">Seçin</option>
-                @foreach($payrolls as $payroll)
-                    @if($payroll->action !== 'reversal')
-                        <option value="{{ $payroll->id }}">{{ $payroll->number }} · {{ \App\Support\Formatting\BusinessLabelFormatter::value('security_action', $payroll->action) }} · {{ $payroll->total_amount }}</option>
-                    @endif
-                @endforeach
-            </select>
-        </label>
-        <label class="field">Tarih <input type="date" wire:model="reversalDate"></label>
-        <label class="field">Gerekçe <input wire:model="reversalReason"></label>
-        <x-v65.button variant="danger" data-v65-modal-open="v65-security-reversal-confirm">Bordroyu Tersle</x-v65.button>
-    </section>
-
     <section>
         <x-v65.list-heading title="Son Bordrolar" />
         <div class="table-scroll v65-list-table"><table class="data-table">
-            <thead><tr><th>No</th><th>İşlem</th><th>Tarih</th><th class="align-end">Toplam</th><th class="align-end">Adet</th><th>Terslenen</th><th>Durum</th></tr></thead>
+            <thead><tr><th>No</th><th>İşlem</th><th>Tarih</th><th class="align-end">Toplam</th><th class="align-end">Adet</th><th>Durum</th><th>İşlem</th></tr></thead>
             <tbody>
             @foreach($payrolls as $payroll)
                 <tr>
@@ -323,23 +306,21 @@
                     <td>{{ $payroll->payroll_date?->format('d.m.Y') }}</td>
                     <td class="align-end">{{ $payroll->total_amount }}</td>
                     <td class="align-end">{{ count($payroll->security_ids) }}</td>
-                    <td>{{ $payroll->reversal_of_id ?? '—' }}</td>
                     <td><x-v65.status-badge>{{ \App\Support\Formatting\BusinessLabelFormatter::status($payroll->status) }}</x-v65.status-badge></td>
+                    <td>
+                        @if($payroll->action !== 'reversal' && $payroll->status === 'posted' && auth()->user()?->can('security_payrolls.cancel'))
+                            <x-v65.button variant="danger" size="xs" wire:click="deletePayroll({{ $payroll->id }})"
+                                wire:loading.attr="disabled" wire:target="deletePayroll">Sil</x-v65.button>
+                        @else
+                            —
+                        @endif
+                    </td>
                 </tr>
             @endforeach
             </tbody>
         </table></div>
     </section>
 
-    <x-v65.modal id="v65-security-reversal-confirm" title="Bordroyu Ters Kaydet" size="sm">
-        <p>Seçilen bordro için ters kayıt oluşturulacaktır. İşlem tarihi ve gerekçeyi kontrol edin.</p>
-        <p><strong>Bordro:</strong> {{ $reversePayrollId ?: 'Seçilmedi' }}</p>
-        <p><strong>Gerekçe:</strong> {{ $reversalReason ?: 'Girilmedi' }}</p>
-        <x-slot:footer>
-            <x-v65.button variant="secondary" data-v65-modal-close>Vazgeç</x-v65.button>
-            <x-v65.button variant="danger" wire:click="reversePayroll" wire:loading.attr="disabled" wire:target="reversePayroll" data-v65-modal-close>Ters Kaydı Onayla</x-v65.button>
-        </x-slot:footer>
-    </x-v65.modal>
     @endif
 
     @if($editingSecurityId !== null)
