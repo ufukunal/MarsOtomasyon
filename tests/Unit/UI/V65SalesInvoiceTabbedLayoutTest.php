@@ -162,6 +162,8 @@ it('formats sales invoice price display separately from four-decimal calculation
         ->toContain('minimumFractionDigits: 2')
         ->toContain('maximumFractionDigits: 2')
         ->toContain('v65DisplayRaw')
+        ->toContain("input.dataset.v65InputEdited !== 'true'")
+        ->toContain('input.value = input.dataset.v65DisplayRaw')
         ->toContain("input.dataset.v65DiscountEdited === 'true'")
         ->toContain('event.isTrusted')
         ->toContain("Livewire.hook('morph.updated'")

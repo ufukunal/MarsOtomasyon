@@ -15,6 +15,16 @@ document.addEventListener('livewire:navigated', syncV65Navigation);
 
 document.documentElement.classList.add('js');
 
+// Restore untouched sales invoice values before normalizing/committing blur.
+document.addEventListener('blur', (event) => {
+    const input = event.target;
+    if (input instanceof HTMLInputElement
+        && input.dataset.v65DisplayRaw !== undefined
+        && input.dataset.v65InputEdited !== 'true') {
+        input.value = input.dataset.v65DisplayRaw;
+    }
+}, true);
+
 document.addEventListener('blur', (event) => {
     const input = event.target;
 
@@ -41,8 +51,8 @@ document.addEventListener('blur', (event) => {
 
 
 
-// Presentation only: sales invoice prices display two decimals. Original
-// Livewire price values are restored on focus and submitted at full precision.
+// Presentation only: sales invoice prices display two decimals. Untouched
+// fields restore their exact Livewire values on blur before submission.
 const v65InvoiceMoneySelector = [
     '.v65-invoice-tabbed-form input[data-v65-money-display]',
     '.v65-invoice-tabbed-form .v65-invoice-bottom-totals input[aria-label="Belge ek iskonto tutarı"]',
@@ -85,16 +95,14 @@ const scheduleV65InvoiceDecimalDisplay = () => {
 document.addEventListener('focus', (event) => {
     const input = event.target;
     if (!(input instanceof HTMLInputElement) || !input.matches(v65InvoiceDecimalSelector)) return;
-    if (input.dataset.v65DisplayRaw !== undefined) {
-        input.value = input.dataset.v65DisplayRaw;
-        delete input.dataset.v65DisplayRaw;
-        delete input.dataset.v65DisplayFormatted;
-    }
+    delete input.dataset.v65InputEdited;
 }, true);
 document.addEventListener('input', (event) => {
     const input = event.target;
-    if (event.isTrusted && input instanceof HTMLInputElement
-        && input.matches(v65InvoiceDiscountSelector)) {
+    if (!event.isTrusted || !(input instanceof HTMLInputElement)
+        || !input.matches(v65InvoiceDecimalSelector)) return;
+    input.dataset.v65InputEdited = 'true';
+    if (input.matches(v65InvoiceDiscountSelector)) {
         input.dataset.v65DiscountEdited = 'true';
     }
 }, true);
