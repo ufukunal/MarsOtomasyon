@@ -9,6 +9,7 @@ use App\Models\Period\Contact;
 use App\Models\Period\ContactTransfer;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
@@ -73,11 +74,13 @@ class ContactTransferForm extends Component
         }
     }
 
-    /** Clear only a new draft; reversing a posted transfer requires its separate confirmation. */
+    /** Clear current fields without touching any posted transfer. */
     public function clearForm(): void
     {
         abort_unless(auth()->user()?->can('contact_transfers.create'), 403);
-        abort_if($this->correctionSourceId !== null, 409);
+        $this->correctionSourceId = null;
+        $this->correctionReady = false;
+        $this->pendingReversalId = null;
         $this->reset(['sourceContactId', 'targetContactId', 'sourceSearch', 'targetSearch',
             'amount', 'reason', 'reference', 'postedTransferId',
             'showOverdraftConfirm', 'overdraftConfirmed', 'overdraftAcknowledged']);
@@ -186,8 +189,6 @@ class ContactTransferForm extends Component
     public function post(PostContactTransfer $action): void
     {
         abort_unless(auth()->user()?->can('contact_transfers.create'), 403);
-        abort_if($this->correctionSourceId !== null && ! $this->correctionReady,
-            409, 'Düzeltilecek virman için önce ters kayıt onayı gereklidir.');
         $this->validate([
             'sourceContactId' => ['required', 'integer', 'different:targetContactId'],
             'targetContactId' => ['required', 'integer'],
@@ -203,6 +204,23 @@ class ContactTransferForm extends Component
         ]);
 
         $sourceBalance = $this->sourceLedgerBalance();
+        if ($this->correctionSourceId !== null && ! $this->correctionReady) {
+            // Preview the old transfer's reversal before comparing balance.
+            // This is a UX projection; authoritative checks run in PostContactTransfer.
+            $old = ContactTransfer::query()->whereNull('reversal_of_id')
+                ->findOrFail($this->correctionSourceId);
+            $oldAmount = (string) $old->amount;
+            if ((int) $old->source_contact_id === (int) $this->sourceContactId) {
+                $sourceBalance = $old->balance_type === 'debit'
+                    ? bcadd($sourceBalance, $oldAmount, 4)
+                    : bcsub($sourceBalance, $oldAmount, 4);
+            }
+            if ((int) $old->target_contact_id === (int) $this->sourceContactId) {
+                $sourceBalance = $old->balance_type === 'debit'
+                    ? bcsub($sourceBalance, $oldAmount, 4)
+                    : bcadd($sourceBalance, $oldAmount, 4);
+            }
+        }
         $available = $this->balanceType === 'debit'
             ? (bccomp($sourceBalance, '0', 4) > 0 ? $sourceBalance : '0.0000')
             : (bccomp($sourceBalance, '0', 4) < 0 ? bcmul($sourceBalance, '-1', 4) : '0.0000');
@@ -221,17 +239,36 @@ class ContactTransferForm extends Component
             throw ValidationException::withMessages(['reason' => 'Bakiye aşımı için gerekçe girin.']);
         }
 
-        $transfer = $action->handle(
-            (int) $this->sourceContactId,
-            (int) $this->targetContactId,
-            $this->balanceType,
-            $this->amount,
-            $this->documentDate,
-            $this->reason,
-            $this->mutationKey('post'),
-            $this->overdraftConfirmed,
-            $this->reference !== '' ? $this->reference : null,
-        );
+        // Correction is one period transaction: undo old ledger effects and
+        // post the edited transfer together, or leave the original untouched.
+        $transfer = DB::connection('period')->transaction(function () use ($action) {
+            $key = $this->mutationKey('post');
+            if ($this->correctionSourceId !== null) {
+                if (! $this->correctionReady) {
+                    $old = ContactTransfer::query()->whereNull('reversal_of_id')
+                        ->lockForUpdate()->findOrFail($this->correctionSourceId);
+                    $date = max(now()->toDateString(), $old->transfer_date->toDateString());
+                    app(ReverseContactTransfer::class)->handle(
+                        $old, $date,
+                        'Cari virman düzenlendi; eski bakiye hareketi geçmişte korundu.',
+                        $this->childMutationKey('post', 'old-revision'),
+                    );
+                }
+                $key = $this->childMutationKey('post', 'new-revision');
+            }
+
+            return $action->handle(
+                (int) $this->sourceContactId,
+                (int) $this->targetContactId,
+                $this->balanceType,
+                $this->amount,
+                $this->documentDate,
+                $this->reason,
+                $key,
+                $this->overdraftConfirmed,
+                $this->reference !== '' ? $this->reference : null,
+            );
+        }, attempts: 3);
         $this->completeMutation('post');
         $this->postedTransferId = (int) $transfer->id;
         $this->correctionSourceId = null;
@@ -271,6 +308,23 @@ class ContactTransferForm extends Component
         $this->pendingReversalId = $id;
         $this->reversalDate = now()->toDateString();
         $this->reversalReason = '';
+    }
+
+    /** One-click removal from active virman records with an immutable audit trail. */
+    public function deleteRecord(int $id): void
+    {
+        abort_unless(auth()->user()?->can('contact_transfers.cancel'), 403);
+        $source = ContactTransfer::query()->whereNull('reversal_of_id')->findOrFail($id);
+        $date = max(now()->toDateString(), $source->transfer_date->toDateString());
+        app(ReverseContactTransfer::class)->handle(
+            $source, $date,
+            'Cari virman kullanıcı tarafından silindi; mali geçmiş korundu.',
+            $this->childMutationKey('reverse', 'delete:'.$id),
+        );
+        $this->completeMutation('reverse');
+        if ($this->correctionSourceId === $id) {
+            $this->clearForm();
+        }
     }
 
     public function prepareReverse(int $id): void

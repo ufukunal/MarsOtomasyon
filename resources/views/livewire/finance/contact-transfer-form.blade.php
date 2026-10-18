@@ -10,14 +10,7 @@
     <section class="panel v65-workspace-form v65-ref-card v65-ref-virman-form" aria-label="Virman bilgileri">
         <header class="v65-ref-card-head"><strong>Virman Bilgileri</strong><small>Kaynak ve hedef carileri ayrı ayrı seçin</small></header>
         @if($correctionSourceId)
-            <x-v65.notice :tone="$correctionReady ? 'success' : 'warning'">
-                #{{ $correctionSourceId }} numaralı virman düzeltme için açıldı.
-                @if($correctionReady)
-                    Eski virman terslendi; güncel alanları kontrol edip yeni virmanı oluşturabilirsiniz.
-                @else
-                    Önce ters kayıt onayını tamamlayın. Eski kayıt yerinde değiştirilemez.
-                @endif
-            </x-v65.notice>
+            <x-v65.notice tone="info">Virman düzenleniyor. Değişiklikleri Kaydet ile uygulayın.</x-v65.notice>
         @endif
         <div class="v65-ref-virman-inputs">
             <div class="v65-ref-virman-contact">
@@ -103,8 +96,8 @@
         <div class="v65-ref-virman-footer">
             <small><b>Muhasebe yönü:</b> İki cari hareketi eşit tutarlı, zıt yönlü olarak oluşturulur.</small>
             <div class="v65-ref-virman-actions">
-                <x-v65.button variant="secondary" wire:click="clearForm" :disabled="$correctionSourceId !== null">Formu Temizle</x-v65.button>
-                <x-v65.button wire:click="post" wire:loading.attr="disabled" wire:target="post" :disabled="$correctionSourceId !== null && ! $correctionReady">{{ $correctionReady ? 'Düzeltilmiş Virmanı Kaydet' : 'Virmanı Oluştur' }}</x-v65.button>
+                <x-v65.button variant="secondary" wire:click="clearForm" >Formu Temizle</x-v65.button>
+                <x-v65.button wire:click="post" wire:loading.attr="disabled" wire:target="post" >Kaydet</x-v65.button>
             </div>
         </div>
     </section>
@@ -127,7 +120,8 @@
                             @if(auth()->user()?->can('contact_transfers.create'))
                                 <x-v65.button variant="secondary" size="xs" wire:click="prepareCorrection({{ $transfer->id }})">Düzenle</x-v65.button>
                             @endif
-                            <x-v65.button variant="secondary" size="xs" wire:click="prepareReverse({{ $transfer->id }})">Ters Kayıt</x-v65.button>
+                            <x-v65.button variant="danger" size="xs" wire:click="deleteRecord({{ $transfer->id }})"
+                                wire:loading.attr="disabled" wire:target="deleteRecord">Sil</x-v65.button>
                         @else
                             <span>—</span>
                         @endif
@@ -139,30 +133,6 @@
             </tbody>
         </table></div>
     </section>
-
-    @if($pendingReversal)
-        <div class="v65-contact-transfer-overlay" role="presentation">
-            <div class="v65-contact-transfer-dialog" role="dialog" aria-modal="true" aria-labelledby="v65-reversal-title">
-                <h3 id="v65-reversal-title">Cari Virman — Ters Kayıt Onayı</h3>
-                <p>Asıl virman değiştirilmeyecek. İki cari hareketinin tersleri aynı işlemde kaydedilecek.</p>
-                @if($correctionSourceId === $pendingReversalId)
-                    <p>Ters kayıttan sonra önceki işlem alanları yeni virman için düzenlenebilir kalacaktır.</p>
-                @endif
-                <p><strong>No:</strong> {{ $pendingReversal->number }}</p>
-                <p><strong>Kaynak:</strong> {{ $pendingReversal->sourceContact?->title }}</p>
-                <p><strong>Hedef:</strong> {{ $pendingReversal->targetContact?->title }}</p>
-                <p><strong>Tutar:</strong> {{ \App\Support\Formatting\TrFormatter::money((string) $pendingReversal->amount) }} TRY</p>
-                <label class="field">Ters Kayıt Tarihi <input type="date" wire:model="reversalDate"></label>
-                <label class="field">Ters Kayıt Gerekçesi <input wire:model="reversalReason" placeholder="Ters kayıt gerekçesi"></label>
-                <x-v65.input-error field="reversalDate"/>
-                <x-v65.input-error field="reversalReason"/>
-                <div class="v65-contact-transfer-dialog-actions">
-                    <x-v65.button variant="secondary" wire:click="cancelReverse">Vazgeç</x-v65.button>
-                    <x-v65.button wire:click="confirmReverse" wire:loading.attr="disabled" wire:target="confirmReverse">Ters Kaydı Onayla</x-v65.button>
-                </div>
-            </div>
-        </div>
-    @endif
 
     @if($showOverdraftConfirm)
         <div class="v65-contact-transfer-overlay" role="presentation">
