@@ -15,6 +15,7 @@ use App\Models\Period\SecurityPayroll;
 use Illuminate\Contracts\View\View;
 use Livewire\Component;
 use Livewire\WithPagination;
+use Livewire\Attributes\Locked;
 
 class SecuritiesCenter extends Component
 {
@@ -188,6 +189,38 @@ class SecuritiesCenter extends Component
     public ?int $payrollBankAccountId = null;
 
     public string $payrollDate = '';
+
+    #[Locked]
+    public ?int $openedSecurityId = null;
+
+    #[Locked]
+    public ?int $openedPayrollId = null;
+
+    public function openSecurityRecord(int $id): void
+    {
+        abort_unless(auth()->user()?->can('securities.view'), 403);
+        $security = Security::query()->findOrFail($id);
+        abort_if($this->scopeKind() !== null && $security->kind !== $this->scopeKind(), 404);
+        abort_if($this->scopeDirection() !== null && $security->direction !== $this->scopeDirection(), 404);
+        $this->openedSecurityId = $id;
+    }
+
+    public function closeSecurityRecord(): void
+    {
+        $this->openedSecurityId = null;
+    }
+
+    public function openPayrollRecord(int $id): void
+    {
+        abort_unless($this->scopeMode() === 'center' && auth()->user()?->can('security_payrolls.view'), 403);
+        SecurityPayroll::query()->findOrFail($id);
+        $this->openedPayrollId = $id;
+    }
+
+    public function closePayrollRecord(): void
+    {
+        $this->openedPayrollId = null;
+    }
 
     public ?int $reversePayrollId = null;
 
@@ -444,6 +477,9 @@ class SecuritiesCenter extends Component
             $this->childMutationKey('reversePayroll', 'delete:'.$id),
         );
         $this->completeMutation('reversePayroll');
+        if ($this->openedPayrollId === $id) {
+            $this->openedPayrollId = null;
+        }
     }
 
     public function reversePayroll(ReverseSecurityPayroll $action): void
@@ -516,6 +552,14 @@ class SecuritiesCenter extends Component
 
         return view('livewire.finance.securities-center', [
             'screenMode' => $this->scopeMode(),
+            'openedSecurity' => $this->openedSecurityId !== null && auth()->user()?->can('securities.view')
+                ? Security::query()->with(['contact', 'endorsedToContact', 'bankAccount'])
+                    ->when($this->scopeKind(), fn ($q, $kind) => $q->where('kind', $kind))
+                    ->when($this->scopeDirection(), fn ($q, $direction) => $q->where('direction', $direction))
+                    ->find($this->openedSecurityId) : null,
+            'openedPayroll' => $this->scopeMode() === 'center' && $this->openedPayrollId !== null
+                && auth()->user()?->can('security_payrolls.view')
+                ? SecurityPayroll::query()->find($this->openedPayrollId) : null,
             'screenTitle' => $this->scopeTitle(),
             'screenKind' => $this->scopeKind(),
             'screenDirection' => $this->scopeDirection(),
