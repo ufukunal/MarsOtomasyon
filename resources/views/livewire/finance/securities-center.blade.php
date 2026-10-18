@@ -151,7 +151,7 @@
                             @endif
                         </td>
                     @endif
-                    <td>{{ $security->instrument_no }}</td>
+                    <td><button type="button" class="link-button v65-record-link" wire:click="openSecurityRecord({{ $security->id }})">{{ $security->instrument_no }}</button></td>
                     @if($screenMode !== 'list')
                         <td>{{ \App\Support\Formatting\BusinessLabelFormatter::value('security_kind', $security->kind) }}</td>
                     @endif
@@ -173,20 +173,7 @@
                         <x-v65.status-badge :tone="$securityTone" :dot="true">{{ \App\Support\Formatting\BusinessLabelFormatter::status($security->status) }}</x-v65.status-badge>
                     </td>
                     <td>
-                        @if(in_array($screenMode, ['center', 'list', 'create'], true) && auth()->user()?->can('securities.update')
-                            && in_array($security->status, ['portfolio', 'issued'], true) && $security->last_payroll_id === null)
-                            <x-v65.button size="xs" variant="secondary" wire:click="prepareSecurityEdit({{ $security->id }})">Düzenle</x-v65.button>
-                        @else
-                            <span>—</span>
-                        @endif
-                        @if(in_array($screenMode, ['center', 'list', 'create'], true)
-                            && in_array($security->status, ['portfolio', 'issued'], true)
-                            && $security->last_payroll_id === null
-                            && auth()->user()?->can('securities.update')
-                            && auth()->user()?->can('securities.cancel')
-                            && auth()->user()?->can('securities.create'))
-                            <x-v65.button variant="secondary" size="xs" wire:click="prepareFinancialCorrection({{ $security->id }})">Mali Düzelt</x-v65.button>
-                        @endif
+                        <x-v65.button variant="secondary" size="xs" wire:click="openSecurityRecord({{ $security->id }})">Aç</x-v65.button>
                         @if($screenMode === 'list' && auth()->user()?->can('security_payrolls.create'))
                             <span class="v65-security-row-actions">
                                 @if($security->direction === 'incoming' && $security->status === 'portfolio')
@@ -218,6 +205,29 @@
     </section>
 
     @endunless
+
+    @if($openedSecurity)
+        <section class="panel v65-ref-card v65-record-detail" aria-label="Çek veya senet detayları" id="v65-security-selected-record">
+            <header class="v65-ref-card-head"><strong>{{ $openedSecurity->instrument_no }}</strong>
+                <small>{{ \App\Support\Formatting\BusinessLabelFormatter::status($openedSecurity->status) }}</small></header>
+            <p><strong>Cari:</strong> {{ auth()->user()?->can('contacts.view') ? ($openedSecurity->contact?->title ?? '—') : 'Görüntüleme yetkisi yok' }}</p>
+            <p><strong>Vade:</strong> {{ $openedSecurity->due_date?->format('d.m.Y') }}</p>
+            <p><strong>Tutar:</strong> {{ \App\Support\Formatting\TrFormatter::money((string) $openedSecurity->amount) }} TRY</p>
+            <div class="v65-form-footer">
+                @if(in_array($screenMode, ['center','list','create'], true) && in_array($openedSecurity->status, ['portfolio','issued'], true)
+                    && $openedSecurity->last_payroll_id === null)
+                    @can('securities.update')
+                        <x-v65.button variant="secondary" wire:click="prepareSecurityEdit({{ $openedSecurity->id }})">Düzenle</x-v65.button>
+                    @endcan
+                    @if(auth()->user()?->can('securities.update') && auth()->user()?->can('securities.cancel')
+                        && auth()->user()?->can('securities.create'))
+                        <x-v65.button variant="secondary" wire:click="prepareFinancialCorrection({{ $openedSecurity->id }})">Mali Düzelt</x-v65.button>
+                    @endif
+                @endif
+                <x-v65.button variant="secondary" wire:click="closeSecurityRecord">Kapat</x-v65.button>
+            </div>
+        </section>
+    @endif
 
     @if(in_array($screenMode, ['center', 'endorse', 'list'], true))
     <section class="panel stack v65-ref-card v65-ref-security-payroll">
@@ -293,6 +303,22 @@
     </section>
     @endif
 
+    @if($screenMode === 'center' && $openedPayroll)
+        <section class="panel v65-ref-card v65-record-detail" aria-label="Bordro detayları" id="v65-payroll-selected-record">
+            <header class="v65-ref-card-head"><strong>Bordro · {{ $openedPayroll->number }}</strong>
+                <small>{{ $openedPayroll->payroll_date?->format('d.m.Y') }}</small></header>
+            <p><strong>Tutar:</strong> {{ \App\Support\Formatting\TrFormatter::money((string) $openedPayroll->total_amount) }} TRY</p>
+            <p><strong>Durum:</strong> {{ \App\Support\Formatting\BusinessLabelFormatter::status($openedPayroll->status) }}</p>
+            <div class="v65-form-footer">
+                @if($openedPayroll->action !== 'reversal' && $openedPayroll->status === 'posted' && auth()->user()?->can('security_payrolls.cancel'))
+                    <x-v65.button variant="danger" wire:click="deletePayroll({{ $openedPayroll->id }})"
+                        wire:loading.attr="disabled" wire:target="deletePayroll">Sil</x-v65.button>
+                @endif
+                <x-v65.button variant="secondary" wire:click="closePayrollRecord">Kapat</x-v65.button>
+            </div>
+        </section>
+    @endif
+
     @if($screenMode === 'center')
     <section>
         <x-v65.list-heading title="Son Bordrolar" />
@@ -301,19 +327,13 @@
             <tbody>
             @foreach($payrolls as $payroll)
                 <tr>
-                    <td>{{ $payroll->number }}</td>
+                    <td><button type="button" class="link-button v65-record-link" wire:click="openPayrollRecord({{ $payroll->id }})">{{ $payroll->number }}</button></td>
                     <td>{{ \App\Support\Formatting\BusinessLabelFormatter::value('security_action', $payroll->action) }}</td>
                     <td>{{ $payroll->payroll_date?->format('d.m.Y') }}</td>
                     <td class="align-end">{{ $payroll->total_amount }}</td>
                     <td class="align-end">{{ count($payroll->security_ids) }}</td>
                     <td><x-v65.status-badge>{{ \App\Support\Formatting\BusinessLabelFormatter::status($payroll->status) }}</x-v65.status-badge></td>
-                    <td>
-                        @if($payroll->action !== 'reversal' && $payroll->status === 'posted' && auth()->user()?->can('security_payrolls.cancel'))
-                            <x-v65.button variant="danger" size="xs" wire:click="deletePayroll({{ $payroll->id }})"
-                                wire:loading.attr="disabled" wire:target="deletePayroll">Sil</x-v65.button>
-                        @else
-                            —
-                        @endif
+                    <td><x-v65.button variant="secondary" size="xs" wire:click="openPayrollRecord({{ $payroll->id }})">Aç</x-v65.button>
                     </td>
                 </tr>
             @endforeach
