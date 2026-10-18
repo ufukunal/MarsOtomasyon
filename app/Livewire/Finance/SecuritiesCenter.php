@@ -62,7 +62,7 @@ class SecuritiesCenter extends Component
 
     public function canViewSecurityContactBalance(): bool
     {
-        return auth()->user()->can('contacts.view') ?? false;
+        return auth()->check() && auth()->user()->can('contacts.view');
     }
 
     public function selectedContactBalance(): string
@@ -228,8 +228,10 @@ class SecuritiesCenter extends Component
 
     public string $reversalReason = '';
 
+    #[Locked]
     public ?int $editingSecurityId = null;
 
+    #[Locked]
     public int $editingSecurityVersion = 0;
 
     public string $editingDueDate = '';
@@ -237,7 +239,9 @@ class SecuritiesCenter extends Component
     public string $editingNotes = '';
 
     /** Strict financial correction: reverse the old posting, then issue a new record. */
+    #[Locked]
     public ?int $financialCorrectionId = null;
+    #[Locked]
     public int $financialCorrectionVersion = 0;
     public string $correctedInstrumentNo = '';
     public ?int $correctedContactId = null;
@@ -308,6 +312,7 @@ class SecuritiesCenter extends Component
         ], $this->correctionReason, $this->childMutationKey('replace', $id));
         $this->completeMutation('replace');
         $this->replacementSecurityId = (int) $new->id;
+        $this->openedSecurityId = (int) $new->id;
         $this->cancelFinancialCorrection();
     }
 

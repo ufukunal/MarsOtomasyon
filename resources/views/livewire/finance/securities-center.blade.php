@@ -4,7 +4,7 @@
 @else Cari bakiye ve portföy etkisiyle {{ $screenKind === 'check' ? 'çek' : 'senet' }} kaydı @endif</p></div>
 <span class="v65-ref-tag">{{ $screenMode === 'list' ? 'Portföy / Vade' : 'Bakiye esaslı · TRY' }}</span></header>
     @if($replacementSecurityId)
-        <x-v65.notice tone="success">Mali düzeltme tamamlandı. Eski evrak terslendi; yeni evrak #{{ $replacementSecurityId }} oluşturuldu.</x-v65.notice>
+        <x-v65.notice tone="success">Değişiklikler kaydedildi. Evrak #{{ $replacementSecurityId }} açıldı.</x-v65.notice>
     @endif
     @if($screenMode !== 'center')
         <section class="v65-ref-security-nav"><nav class="v65-security-nav" aria-label="Çek ve senet işlemleri">
@@ -217,12 +217,12 @@
                 @if(in_array($screenMode, ['center','list','create'], true) && in_array($openedSecurity->status, ['portfolio','issued'], true)
                     && $openedSecurity->last_payroll_id === null)
                     @can('securities.update')
-                        <x-v65.button variant="secondary" wire:click="prepareSecurityEdit({{ $openedSecurity->id }})">Düzenle</x-v65.button>
+                        @if(auth()->user()?->can('securities.cancel') && auth()->user()?->can('securities.create'))
+                            <x-v65.button variant="secondary" wire:click="prepareFinancialCorrection({{ $openedSecurity->id }})">Düzenle</x-v65.button>
+                        @else
+                            <x-v65.button variant="secondary" wire:click="prepareSecurityEdit({{ $openedSecurity->id }})">Düzenle</x-v65.button>
+                        @endif
                     @endcan
-                    @if(auth()->user()?->can('securities.update') && auth()->user()?->can('securities.cancel')
-                        && auth()->user()?->can('securities.create'))
-                        <x-v65.button variant="secondary" wire:click="prepareFinancialCorrection({{ $openedSecurity->id }})">Mali Düzelt</x-v65.button>
-                    @endif
                 @endif
                 <x-v65.button variant="secondary" wire:click="closeSecurityRecord">Kapat</x-v65.button>
             </div>
@@ -363,12 +363,11 @@
     @if($financialCorrectionId !== null)
         <div class="v65-contact-transfer-overlay" role="presentation">
             <div class="v65-contact-transfer-dialog v65-security-correction-dialog" role="dialog" aria-modal="true" aria-labelledby="v65-financial-correction-title">
-                <h3 id="v65-financial-correction-title">Çek / Senet Mali Düzeltme</h3>
-                <x-v65.notice tone="warning">Mevcut evrak yerinde değiştirilmeyecek. İlk cari hareketi terslenip yeni evrak güncel tarihle düzenlenecek. Bordro işlemi görmüş evraklar bu yolla değiştirilemez.</x-v65.notice>
+                <h3 id="v65-financial-correction-title">Çek / Senet Düzenle</h3>
                 <div class="v65-financial-correction-fields">
                     <label class="field">Evrak No<input wire:model="correctedInstrumentNo" maxlength="80"></label>
                     <label class="field">Cari
-                        <input type="search" wire:model.live.debounce.300ms="correctionContactSearch" placeholder="Cari ara" autocomplete="off" aria-label="Mali düzeltme cari ara">
+                        <input type="search" wire:model.live.debounce.300ms="correctionContactSearch" placeholder="Cari ara" autocomplete="off" aria-label="Cari ara">
                         <select wire:model="correctedContactId"><option value="">Seçin</option>
                         @foreach($correctionContacts as $contact)<option value="{{ $contact->id }}">{{ $contact->code }} · {{ $contact->title }}</option>@endforeach
                     </select></label>
@@ -378,7 +377,7 @@
                     <label class="field">Banka Hesabı<select wire:model="correctedBankAccountId"><option value="">Seçim yok</option>
                         @foreach($bankAccounts as $account)<option value="{{ $account->id }}">{{ $account->code }} · {{ $account->bank_name }}</option>@endforeach
                     </select></label>
-                    <label class="field">Düzeltme Gerekçesi<input wire:model.blur="correctionReason" maxlength="1000" required></label>
+                    <label class="field">Değişiklik Nedeni<input wire:model.blur="correctionReason" maxlength="1000" required></label>
                     <label class="field">Açıklama<textarea wire:model="correctedNote" rows="2"></textarea></label>
                 </div>
                 @if($errors->any())
@@ -386,7 +385,7 @@
                 @endif
                 <div class="v65-contact-transfer-dialog-actions">
                     <x-v65.button variant="secondary" wire:click="cancelFinancialCorrection">Vazgeç</x-v65.button>
-                    <x-v65.button variant="danger" wire:click="confirmFinancialCorrection" wire:loading.attr="disabled" wire:target="confirmFinancialCorrection">Tersle ve Yeni Evrak Oluştur</x-v65.button>
+                    <x-v65.button wire:click="confirmFinancialCorrection" wire:loading.attr="disabled" wire:target="confirmFinancialCorrection">Kaydet</x-v65.button>
                 </div>
             </div>
         </div>

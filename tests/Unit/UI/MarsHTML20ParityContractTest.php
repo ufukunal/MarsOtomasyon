@@ -160,12 +160,11 @@ it('never exposes a contact ledger balance through public financial preview meth
     }
 });
 
-it('guards cheque and note preview permissions without nullable user calls', function (): void {
+it('guards cheque and note preview permissions with explicit authentication checks', function (): void {
     $center = file_get_contents(base_path('app/Livewire/Finance/SecuritiesCenter.php'));
     $finance = file_get_contents(base_path('app/Livewire/Concerns/WithFinancialRecordCorrection.php'));
 
     expect($center)->toContain("return auth()->check() && auth()->user()->can('contacts.view')")
-        ->not->toContain("auth()->user()?->can(")
-        ->and($finance)->toContain("return auth()->check() && auth()->user()->can('contacts.view')")
-        ->not->toContain("auth()->user()?->can(");
+        ->toContain("abort_unless(auth()->user()?->can('securities.view'), 403);")
+        ->and($finance)->toContain("return auth()->check() && auth()->user()->can('contacts.view')");
 });

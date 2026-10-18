@@ -128,6 +128,10 @@ it('provides route-based safe correction navigation for source-linked and stock 
         ->and($stockCount)->toContain('Düzenleme İçin Yeni Sayım Aç')
         ->and($stockTransfer)->toContain('Yeni Transferle Düzelt')
         ->and($production)->toContain('Düzeltme için Yeni Emir')
-        ->and($securities)->toContain('Mali Düzelt')
+        ->and($securities)->toContain('wire:click="prepareFinancialCorrection(')
+        ->toContain('wire:click="confirmFinancialCorrection"')
+        ->toContain('>Kaydet</x-v65.button>')
+        ->not->toContain('Tersle ve Yeni Evrak Oluştur')
+        ->not->toContain('>Mali Düzelt</x-v65.button>')
         ->and($transport)->toContain("warehouse.transport.edit");
 });
