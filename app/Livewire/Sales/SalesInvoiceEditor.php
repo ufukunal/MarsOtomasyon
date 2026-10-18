@@ -52,7 +52,30 @@ class SalesInvoiceEditor extends BaseSalesDocumentEditor
             $this->uiMeta['payment_method'] ??= 'Vadeli';
         }
 
+        // New invoice from a Cari card must start with that customer's discount.
+        // Existing drafts retain their saved document discount, including manual edits.
+        if ($this->document === null && $this->contactId !== null) {
+            $this->applySelectedContactDiscount();
+        }
+
         $this->reversalDate = now()->toDateString();
+    }
+
+    /** Apply the chosen contact's document discount without changing line prices. */
+    public function updatedContactId(): void
+    {
+        $this->applySelectedContactDiscount();
+    }
+
+    private function applySelectedContactDiscount(): void
+    {
+        $contactRate = $this->contactId
+            ? Contact::query()->where('is_active', true)->whereKey($this->contactId)->value('discount_rate')
+            : null;
+
+        // With no selected contact the invoice has no inherited discount.
+        // After selection users can still override the visible invoice percentage.
+        $this->discountRate = (string) ($contactRate ?? '0');
     }
 
     protected function resetPrototypeTypeFields(): void

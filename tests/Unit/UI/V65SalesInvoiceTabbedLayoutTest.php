@@ -116,3 +116,32 @@ it('unifies invoice risk, item count and amounts into one compact bottom zone', 
         ->toContain('.v65-invoice-bottom-totals .v65-doc-summary-head{display:none}')
         ->toContain('grid-template-columns:repeat(2,minmax(0,1fr))');
 });
+
+
+it('inherits customer card discount for new sales invoices without overwriting existing drafts', function (): void {
+    $invoice = file_get_contents(base_path('app/Livewire/Sales/SalesInvoiceEditor.php'));
+    $base = file_get_contents(base_path('app/Livewire/Sales/BaseSalesDocumentEditor.php'));
+    $contact = file_get_contents(base_path('app/Models/Period/Contact.php'));
+    $view = file_get_contents(base_path('resources/views/livewire/sales/document-editor.blade.php'));
+
+    expect($contact)->toContain("'discount_rate' => 'decimal:4'")
+        ->and($invoice)->toContain('public function updatedContactId(): void')
+        ->toContain('private function applySelectedContactDiscount(): void')
+        ->toContain("->where('is_active', true)->whereKey(\$this->contactId)->value('discount_rate')")
+        ->toContain("\$this->discountRate = (string) (\$contactRate ?? '0');")
+        ->toContain('if ($this->document === null && $this->contactId !== null)')
+        ->toContain('$this->applySelectedContactDiscount();')
+        ->and($base)->toContain('$this->discountRate = (string) $document->discount_rate;')
+        ->toContain("'discount_rate' => \$this->discountRate")
+        ->toContain("->handle(\$input, (string) \$this->discountRate")
+        ->and($view)->toContain('aria-label="Satış faturası belge iskonto yüzdesi"')
+        ->toContain('Cari kartından gelir; değiştirilebilir.')
+        ->toContain('Belge No:')
+        ->toContain('wire:model.blur="discountRate"');
+
+    // New invoice: one editor only. No second discount field in the "Diğer" panel.
+    $invoiceMeta = substr($view, strpos($view, 'class="v65-invoice-meta"'), strpos($view, 'id="v65-invoice-panel-notlar"') - strpos($view, 'class="v65-invoice-meta"'));
+    $otherPanel = substr($view, strpos($view, 'id="v65-invoice-panel-diger"'), strpos($view, '            @else') - strpos($view, 'id="v65-invoice-panel-diger"'));
+    expect(substr_count($invoiceMeta, 'wire:model.blur="discountRate"'))->toBe(1)
+        ->and($otherPanel)->not->toContain('wire:model.blur="discountRate"');
+});

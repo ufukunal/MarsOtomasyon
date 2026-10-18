@@ -80,7 +80,9 @@
                         role="tabpanel" aria-labelledby="v65-invoice-tab-bilgiler"
                         x-show="invoiceTab === 'bilgiler'">
                         <section class="v65-invoice-info-group" aria-label="Belge bilgileri">
-                            <header class="v65-invoice-group-title"><strong>Belge Bilgileri</strong></header>
+                            <header class="v65-invoice-group-title"><strong>Belge Bilgileri</strong>
+                                <small>Belge No: {{ $document?->number ?? 'Kaydedildiğinde oluşturulur' }}</small>
+                            </header>
                             <div class="v65-invoice-info-grid">
                                 <div class="v65-doc-contact-picker v65-invoice-contact-picker">
                                     <div class="v65-invoice-contact-controls">
@@ -135,8 +137,11 @@
                                         @endforeach
                                     </select>
                                 </label>
-                                <label class="field">Belge No
-                                    <input readonly value="{{ $document?->number ?? 'Kaydedildiğinde oluşturulur' }}">
+                                <label class="field v65-invoice-discount-field">Belge İskonto %
+                                    <input wire:model.blur="discountRate" data-tr-decimal inputmode="decimal"
+                                        aria-label="Satış faturası belge iskonto yüzdesi">
+                                    <x-v65.input-error field="discountRate" />
+                                    <small class="v65-invoice-discount-help">Cari kartından gelir; değiştirilebilir.</small>
                                 </label>
                             </div>
                         </section>
@@ -204,10 +209,6 @@
                         <section class="v65-invoice-info-group">
                             <header class="v65-invoice-group-title"><strong>Diğer Belge Seçenekleri</strong></header>
                             <div class="v65-invoice-info-grid">
-                                <label class="field">Belge İskonto %
-                                    <input wire:model.blur="discountRate" data-tr-decimal inputmode="decimal">
-                                    <x-v65.input-error field="discountRate" />
-                                </label>
                                 <label class="field">Müşteri Referans No
                                     <input wire:model.blur="uiMeta.customer_reference_no" maxlength="140">
                                 </label>
