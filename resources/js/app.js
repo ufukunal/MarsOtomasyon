@@ -39,6 +39,83 @@ document.addEventListener('blur', (event) => {
     }
 }, true);
 
+
+
+// Presentation only: sales invoice prices display two decimals. Original
+// Livewire price values are restored on focus and submitted at full precision.
+const v65InvoiceMoneySelector = [
+    '.v65-invoice-tabbed-form input[data-v65-money-display]',
+    '.v65-invoice-tabbed-form .v65-invoice-bottom-totals input[aria-label="Belge ek iskonto tutarı"]',
+].join(', ');
+const v65InvoiceDiscountSelector = '.v65-invoice-tabbed-form input[data-v65-discount-display]';
+const v65InvoiceDecimalSelector = v65InvoiceMoneySelector + ', ' + v65InvoiceDiscountSelector;
+const v65InvoiceMoneyFormatter = new Intl.NumberFormat('tr-TR', {
+    minimumFractionDigits: 2, maximumFractionDigits: 2,
+});
+const formatV65InvoiceDecimal = (input) => {
+    if (!(input instanceof HTMLInputElement) || document.activeElement === input) return;
+    if (input.dataset.v65DisplayFormatted === input.value) return;
+    const raw = input.value.trim();
+    if (!/^-?\d+(?:[.,]\d+)?$/.test(raw)) return;
+    const canonical = raw.replace(',', '.');
+    let display;
+    if (input.matches(v65InvoiceDiscountSelector)) {
+        const parts = canonical.split('.');
+        const fraction = input.dataset.v65DiscountEdited === 'true'
+            ? (parts[1] ?? '')
+            : (parts[1] ?? '').replace(/0+$/, '');
+        display = parts[0] + (fraction ? ',' + fraction : '');
+    } else {
+        const number = Number(canonical);
+        if (!Number.isFinite(number)) return;
+        display = v65InvoiceMoneyFormatter.format(number);
+    }
+    input.dataset.v65DisplayRaw = raw;
+    input.dataset.v65DisplayFormatted = display;
+    input.value = display;
+};
+let v65InvoiceDecimalFrame = null;
+const scheduleV65InvoiceDecimalDisplay = () => {
+    if (v65InvoiceDecimalFrame !== null) return;
+    v65InvoiceDecimalFrame = requestAnimationFrame(() => {
+        v65InvoiceDecimalFrame = null;
+        document.querySelectorAll(v65InvoiceDecimalSelector).forEach(formatV65InvoiceDecimal);
+    });
+};
+document.addEventListener('focus', (event) => {
+    const input = event.target;
+    if (!(input instanceof HTMLInputElement) || !input.matches(v65InvoiceDecimalSelector)) return;
+    if (input.dataset.v65DisplayRaw !== undefined) {
+        input.value = input.dataset.v65DisplayRaw;
+        delete input.dataset.v65DisplayRaw;
+        delete input.dataset.v65DisplayFormatted;
+    }
+}, true);
+document.addEventListener('input', (event) => {
+    const input = event.target;
+    if (event.isTrusted && input instanceof HTMLInputElement
+        && input.matches(v65InvoiceDiscountSelector)) {
+        input.dataset.v65DiscountEdited = 'true';
+    }
+}, true);
+document.addEventListener('blur', (event) => {
+    if (event.target instanceof HTMLInputElement
+        && event.target.matches(v65InvoiceDecimalSelector)) {
+        // Existing data-tr-decimal and Livewire handlers read the unformatted value.
+        scheduleV65InvoiceDecimalDisplay();
+    }
+}, true);
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', scheduleV65InvoiceDecimalDisplay, { once: true });
+} else {
+    scheduleV65InvoiceDecimalDisplay();
+}
+document.addEventListener('livewire:navigated', scheduleV65InvoiceDecimalDisplay);
+document.addEventListener('livewire:init', () => {
+    Livewire.hook('morph.updated', scheduleV65InvoiceDecimalDisplay);
+    Livewire.hook('morph.added', scheduleV65InvoiceDecimalDisplay);
+});
+
 document.addEventListener('livewire:init', () => {
     Livewire.on('lookup-selected', () => {
         requestAnimationFrame(() => {

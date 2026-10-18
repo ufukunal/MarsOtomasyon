@@ -138,10 +138,10 @@
                                     </select>
                                 </label>
                                 <label class="field v65-invoice-discount-field">Belge İskonto %
-                                    <input wire:model.blur="discountRate" data-tr-decimal inputmode="decimal"
+                                    <input wire:model.blur="discountRate" data-tr-decimal data-v65-discount-display
+                                        inputmode="decimal" title="Cari kartından gelir; değiştirilebilir."
                                         aria-label="Satış faturası belge iskonto yüzdesi">
                                     <x-v65.input-error field="discountRate" />
-                                    <small class="v65-invoice-discount-help">Cari kartından gelir; değiştirilebilir.</small>
                                 </label>
                             </div>
                         </section>
@@ -417,7 +417,7 @@
                                     </select>
                                 @endif
                             </td>
-                            <td class="align-end"><input wire:model.blur="lines.{{ $index }}.unit_price" inputmode="decimal" data-tr-decimal aria-invalid="{{ $errors->has('lines.'.$index.'.unit_price') ? 'true' : 'false' }}" aria-label="Satır fiyatı"></td>
+                            <td class="align-end"><input wire:model.blur="lines.{{ $index }}.unit_price" inputmode="decimal" data-tr-decimal data-v65-money-display aria-invalid="{{ $errors->has('lines.'.$index.'.unit_price') ? 'true' : 'false' }}" aria-label="Satır fiyatı"></td>
                             <td class="align-end"><input wire:model.blur="lines.{{ $index }}.line_discount_rate" inputmode="decimal" data-tr-decimal aria-invalid="{{ $errors->has('lines.'.$index.'.line_discount_rate') ? 'true' : 'false' }}" aria-label="Satır iskonto oranı"></td>
                             <td class="align-end"><input wire:model.blur="lines.{{ $index }}.vat_rate" inputmode="decimal" data-tr-decimal aria-invalid="{{ $errors->has('lines.'.$index.'.vat_rate') ? 'true' : 'false' }}" aria-label="Satır KDV oranı"></td>
                             <td class="align-end v65-doc-line-net">{{ $lineNet !== null ? \App\Support\Formatting\TrFormatter::money((string) $lineNet) : '—' }}</td>

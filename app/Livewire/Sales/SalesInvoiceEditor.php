@@ -75,7 +75,10 @@ class SalesInvoiceEditor extends BaseSalesDocumentEditor
 
         // With no selected contact the invoice has no inherited discount.
         // After selection users can still override the visible invoice percentage.
-        $this->discountRate = (string) ($contactRate ?? '0');
+        $rate = (string) ($contactRate ?? '0');
+        $this->discountRate = str_contains($rate, '.')
+            ? (rtrim(rtrim($rate, '0'), '.') ?: '0')
+            : $rate;
     }
 
     protected function resetPrototypeTypeFields(): void

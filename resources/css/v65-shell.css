@@ -3504,3 +3504,39 @@
     .app-shell .v65-invoice-risk-details{display:none!important}
     .app-shell .v65-invoice-totals-toolbar>.v65-btn{display:none!important}
 }
+
+
+/* Invoice-specific aligned form fields and product entry controls. */
+.app-shell .v65-invoice-tabbed-form .v65-invoice-info-grid>.v65-invoice-discount-field{
+    align-content:start;align-self:start;gap:4px
+}
+.app-shell .v65-invoice-tabbed-form .v65-invoice-info-grid>.v65-invoice-discount-field input{
+    height:34px;min-height:34px;text-align:end;font-variant-numeric:tabular-nums
+}
+.app-shell .v65-invoice-tabbed-form .v65-reference-products-tools{
+    align-items:flex-start;gap:10px
+}
+.app-shell .v65-invoice-tabbed-form .v65-reference-products-tools>.v65-reference-quick-product{
+    flex:1 1 440px;min-width:min(100%,280px);max-width:none
+}
+.app-shell .v65-invoice-tabbed-form .v65-reference-products-tools>.v65-btn{
+    align-self:flex-start;height:34px;min-height:34px;margin:0
+}
+.app-shell .v65-invoice-tabbed-form .v65-reference-products-tools>.v65-reference-vat-select{
+    align-self:flex-start;min-height:34px;margin-left:auto
+}
+.app-shell .v65-invoice-tabbed-form .v65-reference-products-tools>.v65-reference-vat-select select{
+    height:34px;min-height:34px
+}
+.app-shell .v65-invoice-tabbed-form .v65-prototype-lines input[data-v65-money-display],
+.app-shell .v65-invoice-tabbed-form .v65-invoice-bottom-totals input[aria-label="Belge ek iskonto tutarı"]{
+    text-align:end;font-variant-numeric:tabular-nums
+}
+@media(max-width:740px){
+    .app-shell .v65-invoice-tabbed-form .v65-reference-products-tools>.v65-reference-quick-product{
+        flex:1 1 100%
+    }
+    .app-shell .v65-invoice-tabbed-form .v65-reference-products-tools>.v65-reference-vat-select{
+        margin-left:0
+    }
+}

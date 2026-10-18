@@ -128,7 +128,8 @@ it('inherits customer card discount for new sales invoices without overwriting e
         ->and($invoice)->toContain('public function updatedContactId(): void')
         ->toContain('private function applySelectedContactDiscount(): void')
         ->toContain("->where('is_active', true)->whereKey(\$this->contactId)->value('discount_rate')")
-        ->toContain("\$this->discountRate = (string) (\$contactRate ?? '0');")
+        ->toContain("\$rate = (string) (\$contactRate ?? '0');")
+        ->toContain("rtrim(rtrim(\$rate, '0'), '.')")
         ->toContain('if ($this->document === null && $this->contactId !== null)')
         ->toContain('$this->applySelectedContactDiscount();')
         ->and($base)->toContain('$this->discountRate = (string) $document->discount_rate;')
@@ -144,4 +145,28 @@ it('inherits customer card discount for new sales invoices without overwriting e
     $otherPanel = substr($view, strpos($view, 'id="v65-invoice-panel-diger"'), strpos($view, '            @else') - strpos($view, 'id="v65-invoice-panel-diger"'));
     expect(substr_count($invoiceMeta, 'wire:model.blur="discountRate"'))->toBe(1)
         ->and($otherPanel)->not->toContain('wire:model.blur="discountRate"');
+});
+
+
+it('formats sales invoice price display separately from four-decimal calculation state', function (): void {
+    $view = file_get_contents(base_path('resources/views/livewire/sales/document-editor.blade.php'));
+    $script = file_get_contents(base_path('resources/js/app.js'));
+    $css = file_get_contents(base_path('resources/css/v65-shell.css'));
+    $editor = file_get_contents(base_path('app/Livewire/Sales/BaseSalesDocumentEditor.php'));
+
+    expect($view)->toContain('data-tr-decimal data-v65-money-display')
+        ->toContain('data-v65-discount-display')
+        ->toContain('title="Cari kartından gelir; değiştirilebilir."')
+        ->toContain('wire:model.blur="discountRate"')
+        ->and($script)->toContain('v65InvoiceMoneyFormatter')
+        ->toContain('minimumFractionDigits: 2')
+        ->toContain('maximumFractionDigits: 2')
+        ->toContain('v65DisplayRaw')
+        ->toContain("input.dataset.v65DiscountEdited === 'true'")
+        ->toContain('event.isTrusted')
+        ->toContain("Livewire.hook('morph.updated'")
+        ->and($editor)->toContain("'unit_price' => \$price")
+        ->toContain("'discount_rate' => \$this->discountRate")
+        ->and($css)->toContain('.v65-invoice-tabbed-form .v65-reference-products-tools')
+        ->toContain('.v65-invoice-info-grid>.v65-invoice-discount-field');
 });
