@@ -1,13 +1,8 @@
 <div class="space-y-8 v65-list-page">
     @if($correctionDocumentId || $correctionMovementId || $correctionTransferGroup !== '')
-        <x-v65.notice tone="warning">
-            Düzenleme için eski mali işlem seçildi.
-            @if($correctionDocumentReady || $correctionMovementReady || $correctionTransferReady)
-                Ters kayıt tamamlandı. İlgili form alanlarını düzenleyip yeni işlemi oluşturun.
-            @else
-                Yeni kayıt oluşturmadan önce Ters Kayıt bölümünden eski hareketi tersleyin.
-            @endif
-            <button type="button" class="button-secondary" wire:click="cancelCorrection">Düzenleme Seçimini Temizle</button>
+        <x-v65.notice tone="info">
+            İşlem düzenleniyor. Değişikliklerinizi Kaydet ile uygulayın.
+            <button type="button" class="button-secondary" wire:click="cancelCorrection">Vazgeç</button>
         </x-v65.notice>
     @endif
 
@@ -54,8 +49,8 @@
         <label>Referans <input wire:model="reference"></label>
         <label>Not <textarea wire:model="note"></textarea></label>
         <button type="button" wire:click="postManual"
-            @disabled($correctionMovementId !== null && ! $correctionMovementReady)>
-            {{ $correctionMovementReady ? 'Düzeltilmiş Hareketi Kesinleştir' : 'Hareketi Kesinleştir' }}
+>
+            Kaydet
         </button>
     </section>
 
@@ -95,8 +90,8 @@
         </label>
         <label>Tutar <input wire:model="transferAmount"></label>
         <button type="button" wire:click="postTransfer"
-            @disabled($correctionTransferGroup !== '' && ! $correctionTransferReady)>
-            {{ $correctionTransferReady ? 'Düzeltilmiş Virmanı Kesinleştir' : 'Virmanı Kesinleştir' }}
+>
+            Kaydet
         </button>
         <p>Virman aynı para birimli hesaplar arasında yapılır; döviz hesabı virmanı kur dönüşümü yapmaz.</p>
     </section>
@@ -122,8 +117,8 @@
             </select>
         </label>
         <button type="button" wire:click="postExpense"
-            @disabled($correctionDocumentId !== null && ! $correctionDocumentReady)>
-            {{ $correctionDocumentReady && $correctionDocumentType === 'expense' ? 'Düzeltilmiş Gideri Kesinleştir' : 'Gideri Kesinleştir' }}
+>
+            Kaydet
         </button>
     </section>
 
@@ -160,52 +155,13 @@
             </select>
         </label>
         <button type="button" wire:click="postAdvance"
-            @disabled($correctionDocumentId !== null && ! $correctionDocumentReady)>
-            {{ $correctionDocumentReady && $correctionDocumentType !== 'expense' ? 'Düzeltilmiş Avansı Kesinleştir' : 'Avans İşlemini Kesinleştir' }}
+>
+            Kaydet
         </button>
     </section>
 
-    <section id="v65-finance-reversal" class="panel stack v65-workspace-form">
-        <h2>Ters Kayıt</h2>
-        <p class="v65-doc-search-hint">Düzenle butonuyla işlem seçildiğinde eski kayıt yerinde değiştirilmez. Gerekçe ve tarihi kontrol edip tersleyin, ardından yeni işlemi kaydedin.</p>
-        <label>Tarih <input type="date" wire:model="reversalDate"></label>
-        <label>Gerekçe <input wire:model="reversalReason"></label>
-
-        <div>
-            <h3>Manuel Hareket</h3>
-            <select wire:model="reverseAccountType">
-                <option value="cash">Kasa</option>
-                <option value="bank">Banka</option>
-            </select>
-            <input type="number" wire:model="reverseMovementId" placeholder="Hareket ID">
-            <button class="button-danger" type="button" wire:click="reverseManual"
-                wire:confirm="Manuel finans hareketi ters kayda alınacak. Devam edilsin mi?">Hareketi Tersle</button>
-        </div>
-
-        <div>
-            <h3>Virman</h3>
-            <input wire:model="reverseTransferGroupKey" placeholder="Virman group_key">
-            <button class="button-danger" type="button" wire:click="reverseTransfer"
-                wire:confirm="İki finans hareketi birlikte terslenir; eski kayıtlar silinmez. Devam edilsin mi?">Virmanı Tersle</button>
-        </div>
-
-        <div>
-            <h3>Gider / Avans Belgesi</h3>
-            <select wire:model="reverseDocumentId">
-                <option value="">Belge seçin</option>
-                @foreach($financeDocuments as $document)
-                    <option value="{{ $document->id }}">
-                        {{ $document->number }} · {{ \App\Support\Formatting\BusinessLabelFormatter::documentType($document->document_type) }} · {{ $document->grand_total }} {{ $document->currency }}
-                    </option>
-                @endforeach
-            </select>
-            <button class="button-danger" type="button" wire:click="reverseDocument"
-                wire:confirm="Gider/avans belgesinin mali hareketleri terslenir; önceki belge değişmez. Devam edilsin mi?">Belgeyi Tersle</button>
-        </div>
-    </section>
-
     <section class="panel stack" aria-label="Finans belgesi düzeltme listesi">
-        <h2>Gider ve Avans Belgeleri — Düzenleme</h2>
+        <h2>Gider ve Avans Belgeleri</h2>
         <div class="table-scroll"><table class="data-table">
             <thead><tr><th>Belge</th><th>Tür</th><th>Tarih</th><th>Tutar</th><th>İşlem</th></tr></thead>
             <tbody>
@@ -234,7 +190,7 @@
     </section>
 
     <section class="panel stack" aria-label="Manuel finans hareketi düzeltme listesi">
-        <h2>Manuel Hareketler — Düzenleme</h2>
+        <h2>Manuel Hareketler</h2>
         <div class="table-scroll"><table class="data-table">
             <thead><tr><th>Hesap Türü</th><th>Tarih</th><th>Yön</th><th>Tutar</th><th>İşlem</th></tr></thead>
             <tbody>
@@ -257,7 +213,7 @@
     </section>
 
     <section class="panel stack" aria-label="Finans virmanı düzeltme listesi">
-        <h2>Finans Virmanları — Düzenleme</h2>
+        <h2>Finans Virmanları</h2>
         <div class="table-scroll"><table class="data-table">
             <thead><tr><th>İşlem Grubu</th><th>İşlem</th></tr></thead>
             <tbody>
