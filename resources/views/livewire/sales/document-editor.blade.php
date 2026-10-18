@@ -140,7 +140,9 @@
                             </div>
                         </section>
 
-                        @php($invoiceContact = $this->invoiceContactDetails())
+                        @php
+                            $invoiceContact = $this->invoiceContactDetails();
+                        @endphp
                         <section class="v65-invoice-info-group" aria-label="Kişi firma bilgileri">
                             <header class="v65-invoice-group-title"><strong>Kişi / Firma</strong>
                                 <small>Seçili cari kartından alınır; fatura içinde değiştirilmez.</small></header>
