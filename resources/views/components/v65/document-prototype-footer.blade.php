@@ -8,7 +8,7 @@
         @if(!$document)
             <x-v65.button variant="secondary" size="sm" wire:click="resetNewDraft"
 >
-                {{ in_array($screenType, ['sales_invoice', 'supplier_invoice'], true) ? 'Sil' : 'Girişi Sıfırla' }}
+                Girişi Sıfırla
             </x-v65.button>
         @elseif($document->status === 'draft' && ! in_array($screenType, ['sales_invoice', 'supplier_invoice'], true))
             <a class="v65-btn v65-btn--secondary v65-btn--sm" href="#v65-reference-workflow">

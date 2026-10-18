@@ -46,21 +46,12 @@
             @endif
             <x-v65.button type="submit" size="sm" :form="$formId"
                 wire:loading.attr="disabled" wire:target="save">{{ $isInvoice ? 'Faturayı Kaydet' : $saveLabel }}</x-v65.button>
-            @if($isInvoice && $document && auth()->user()?->can($invoicePermission.'.cancel'))
-                <x-v65.button variant="danger" size="sm" wire:click="deleteInvoice"
-                    wire:loading.attr="disabled" wire:target="deleteInvoice">Sil</x-v65.button>
-            @endif
         @elseif($document)
             @if($isInvoice)
                 @if(auth()->user()?->can($invoicePermission.'.update') && auth()->user()?->can($invoicePermission.'.create')
                     && (auth()->user()?->can($invoicePermission.'.cancel') || \App\Support\Documents\DocumentEditCatalog::hasReversal($document)))
                     <x-v65.button variant="secondary" size="sm" wire:click="editInvoice"
                         wire:loading.attr="disabled" wire:target="editInvoice">Düzenle</x-v65.button>
-                @endif
-                @if(auth()->user()?->can($invoicePermission.'.cancel')
-                    && ! \App\Support\Documents\DocumentEditCatalog::hasReversal($document))
-                    <x-v65.button variant="danger" size="sm" wire:click="deleteInvoice"
-                        wire:loading.attr="disabled" wire:target="deleteInvoice">Sil</x-v65.button>
                 @endif
             @elseif($screenType === 'quote' && $document->number !== null && auth()->user()?->can('quotes.update'))
                 <x-v65.button variant="secondary" size="sm" wire:click="revision"

@@ -39,10 +39,12 @@
             <p><strong>Tutar:</strong> {{ \App\Support\Formatting\TrFormatter::money((string) $selectedRecord->grand_total) }} TRY</p>
             <div class="v65-form-footer">
                 <x-v65.button variant="secondary" wire:click="prepareCorrection({{ $selectedRecord->id }})">Düzenle</x-v65.button>
-                <x-v65.button variant="danger" wire:click="deleteRecord({{ $selectedRecord->id }})"
-                    wire:loading.attr="disabled" wire:target="deleteRecord">Sil</x-v65.button>
                 <x-v65.button variant="secondary" wire:click="closeRecord">Kapat</x-v65.button>
             </div>
+            <x-v65.record-delete-footer>
+                <x-v65.button variant="danger" wire:click="deleteRecord({{ $selectedRecord->id }})"
+                    wire:loading.attr="disabled" wire:target="deleteRecord">Sil</x-v65.button>
+            </x-v65.record-delete-footer>
         </section>
     @endif
 

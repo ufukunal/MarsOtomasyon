@@ -113,13 +113,17 @@
                     @if(auth()->user()?->can('contact_transfers.cancel') && auth()->user()?->can('contact_transfers.create'))
                         <x-v65.button variant="secondary" wire:click="prepareCorrection({{ $selectedTransfer->id }})">Düzenle</x-v65.button>
                     @endif
-                    @can('contact_transfers.cancel')
-                        <x-v65.button variant="danger" wire:click="deleteRecord({{ $selectedTransfer->id }})"
-                            wire:loading.attr="disabled" wire:target="deleteRecord">Sil</x-v65.button>
-                    @endcan
                 @endif
                 <x-v65.button variant="secondary" wire:click="closeRecord">Kapat</x-v65.button>
             </div>
+            @if($selectedTransfer->reversal_of_id === null && ! in_array((int) $selectedTransfer->id, $reversedIds, true))
+                @can('contact_transfers.cancel')
+                    <x-v65.record-delete-footer>
+                        <x-v65.button variant="danger" wire:click="deleteRecord({{ $selectedTransfer->id }})"
+                            wire:loading.attr="disabled" wire:target="deleteRecord">Sil</x-v65.button>
+                    </x-v65.record-delete-footer>
+                @endcan
+            @endif
         </section>
     @endif
 

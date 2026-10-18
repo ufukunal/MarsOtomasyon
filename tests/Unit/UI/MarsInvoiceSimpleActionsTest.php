@@ -7,13 +7,17 @@ it('uses simple edit, delete and save controls for sales and purchase invoices',
         expect($heading)->toContain($type);
     }
     expect($heading)->toContain('wire:click="editInvoice"')
-        ->toContain('wire:click="deleteInvoice"')
+        ->not->toContain('wire:click="deleteInvoice"')
         ->toContain('Faturayı Kaydet')
         ->and($footer)->toContain("['sales_invoice', 'supplier_invoice']");
     $sale = file_get_contents(base_path('resources/views/livewire/sales/document-editor.blade.php'));
     $purchase = file_get_contents(base_path('resources/views/livewire/purchases/document-editor.blade.php'));
     expect($sale)->toContain('! ($this instanceof \\App\\Livewire\\Sales\\SalesInvoiceEditor)')
-        ->and($purchase)->toContain('! ($this instanceof \\App\\Livewire\\Purchases\\SupplierInvoiceEditor)');
+        ->toContain('wire:click="deleteInvoice"')
+        ->toContain('<x-v65.record-delete-footer>')
+        ->and($purchase)->toContain('! ($this instanceof \\App\\Livewire\\Purchases\\SupplierInvoiceEditor)')
+        ->toContain('wire:click="deleteInvoice"')
+        ->toContain('<x-v65.record-delete-footer>');
 });
 
 it('keeps posted invoice deletion as audited reversal and editing as reversal plus editable draft', function (): void {

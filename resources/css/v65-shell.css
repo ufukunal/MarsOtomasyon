@@ -3215,3 +3215,19 @@
     .app-shell .v65-reference-multi-footer{gap:6px;padding:8px}
     .app-shell .v65-reference-multi-footer>span{flex:1 1 100%}
 }
+
+/* Shared bottom-left delete zone for opened document and financial record details. */
+.app-shell .v65-record-delete-footer{
+    display:flex;align-items:center;justify-content:flex-start;gap:8px;
+    width:100%;min-height:56px;min-width:0;box-sizing:border-box;
+    margin-top:12px;padding:10px 16px;
+    border:1px solid #dce6f0;border-radius:8px;background:#fff
+}
+.app-shell .v65-record-delete-footer :where(.v65-btn,.button-danger){
+    flex:0 0 auto;min-height:36px;margin:0
+}
+@media(max-width:580px){
+    .app-shell .v65-record-delete-footer{padding:10px 12px}
+    .app-shell .v65-record-delete-footer :where(.v65-btn,.button-danger){min-height:40px}
+}
+@media print{.app-shell .v65-record-delete-footer{display:none!important}}

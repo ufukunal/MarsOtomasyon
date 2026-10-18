@@ -170,12 +170,15 @@
                 @if(auth()->user()?->can($financePermission.'.cancel') && auth()->user()?->can($financePermission.'.create'))
                     <button class="button-secondary" type="button" wire:click="prepareDocumentCorrection({{ $openedFinanceDocument->id }})">Düzenle</button>
                 @endif
-                @if(auth()->user()?->can($financePermission.'.cancel'))
-                    <button class="button-danger" type="button" wire:click="deleteFinanceDocument({{ $openedFinanceDocument->id }})"
-                        wire:loading.attr="disabled" wire:target="deleteFinanceDocument">Sil</button>
-                @endif
+                
                 <button class="button-secondary" type="button" wire:click="closeOpenedRecord">Kapat</button>
             </div>
+            @if(auth()->user()?->can($financePermission.'.cancel'))
+                <x-v65.record-delete-footer>
+                    <button class="button-danger" type="button" wire:click="deleteFinanceDocument({{ $openedFinanceDocument->id }})"
+                        wire:loading.attr="disabled" wire:target="deleteFinanceDocument">Sil</button>
+                </x-v65.record-delete-footer>
+            @endif
         </section>
     @elseif($openedManualMovement)
         <section class="panel stack v65-record-detail" tabindex="-1" x-init="$nextTick(() => $el.scrollIntoView({ block: 'start', behavior: 'smooth' }))" aria-label="Finans hareketi detayları" id="v65-finance-record-detail">
@@ -186,12 +189,15 @@
                 @if(auth()->user()?->can('finance_movements.cancel') && auth()->user()?->can('finance_movements.create'))
                     <button class="button-secondary" type="button" wire:click="prepareManualCorrection('{{ $openedAccount }}', {{ $openedManualMovement->id }})">Düzenle</button>
                 @endif
-                @can('finance_movements.cancel')
-                    <button class="button-danger" type="button" wire:click="deleteManualRecord('{{ $openedAccount }}', {{ $openedManualMovement->id }})"
-                        wire:loading.attr="disabled" wire:target="deleteManualRecord">Sil</button>
-                @endcan
+                
                 <button class="button-secondary" type="button" wire:click="closeOpenedRecord">Kapat</button>
             </div>
+            @can('finance_movements.cancel')
+                <x-v65.record-delete-footer>
+                    <button class="button-danger" type="button" wire:click="deleteManualRecord('{{ $openedAccount }}', {{ $openedManualMovement->id }})"
+                        wire:loading.attr="disabled" wire:target="deleteManualRecord">Sil</button>
+                </x-v65.record-delete-footer>
+            @endcan
         </section>
     @elseif($openedTransferMovement)
         <section class="panel stack v65-record-detail" tabindex="-1" x-init="$nextTick(() => $el.scrollIntoView({ block: 'start', behavior: 'smooth' }))" aria-label="Finans virmanı detayları" id="v65-finance-record-detail">
@@ -202,12 +208,15 @@
                 @if(auth()->user()?->can('finance_transfers.cancel') && auth()->user()?->can('finance_transfers.create'))
                     <button class="button-secondary" type="button" wire:click="prepareTransferCorrection('{{ $openedGroup }}')">Düzenle</button>
                 @endif
-                @can('finance_transfers.cancel')
-                    <button class="button-danger" type="button" wire:click="deleteTransferRecord('{{ $openedGroup }}')"
-                        wire:loading.attr="disabled" wire:target="deleteTransferRecord">Sil</button>
-                @endcan
+                
                 <button class="button-secondary" type="button" wire:click="closeOpenedRecord">Kapat</button>
             </div>
+            @can('finance_transfers.cancel')
+                <x-v65.record-delete-footer>
+                    <button class="button-danger" type="button" wire:click="deleteTransferRecord('{{ $openedGroup }}')"
+                        wire:loading.attr="disabled" wire:target="deleteTransferRecord">Sil</button>
+                </x-v65.record-delete-footer>
+            @endcan
         </section>
     @endif
 

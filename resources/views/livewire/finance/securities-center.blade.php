@@ -310,12 +310,14 @@
             <p><strong>Tutar:</strong> {{ \App\Support\Formatting\TrFormatter::money((string) $openedPayroll->total_amount) }} TRY</p>
             <p><strong>Durum:</strong> {{ \App\Support\Formatting\BusinessLabelFormatter::status($openedPayroll->status) }}</p>
             <div class="v65-form-footer">
-                @if($openedPayroll->action !== 'reversal' && $openedPayroll->status === 'posted' && auth()->user()?->can('security_payrolls.cancel'))
-                    <x-v65.button variant="danger" wire:click="deletePayroll({{ $openedPayroll->id }})"
-                        wire:loading.attr="disabled" wire:target="deletePayroll">Sil</x-v65.button>
-                @endif
                 <x-v65.button variant="secondary" wire:click="closePayrollRecord">Kapat</x-v65.button>
             </div>
+            @if($openedPayroll->action !== 'reversal' && $openedPayroll->status === 'posted' && auth()->user()?->can('security_payrolls.cancel'))
+                <x-v65.record-delete-footer>
+                    <x-v65.button variant="danger" wire:click="deletePayroll({{ $openedPayroll->id }})"
+                        wire:loading.attr="disabled" wire:target="deletePayroll">Sil</x-v65.button>
+                </x-v65.record-delete-footer>
+            @endif
         </section>
     @endif
 

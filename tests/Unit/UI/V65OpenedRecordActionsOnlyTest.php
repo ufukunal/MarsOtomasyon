@@ -12,7 +12,7 @@ it('opens documents and returns from their lists without exposing Edit or Delete
         ->not->toContain('wire:click="editInvoiceFromList(')
         ->not->toContain('wire:click="deleteInvoiceFromList(')
         ->and($heading)->toContain('wire:click="editInvoice"')
-        ->toContain('wire:click="deleteInvoice"');
+        ->not->toContain('wire:click="deleteInvoice"');
 
     $list = Str::between($returns, '@forelse($returns as $return)', '@endforelse');
     expect($list)->toContain('wire:click="selectReturn(')

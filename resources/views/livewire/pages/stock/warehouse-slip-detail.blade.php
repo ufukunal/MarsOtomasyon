@@ -59,7 +59,12 @@
             <div class="table-scroll v65-grid-scroll" id="stock-document-lines"><table class="data-table"><thead><tr><th>Ürün</th><th>Miktar</th>@if($canViewCost)<th>Birim Maliyet</th>@endif<th>Not</th></tr></thead><tbody>
             @foreach($postedLines as $line)<tr><td>{{ $line->product->code }} · {{ $line->product->name }}</td><td>{{ \App\Support\Formatting\TrFormatter::quantity((string)$line->quantity) }}</td>@if($canViewCost)<td>{{ $line->unit_cost !== null ? \App\Support\Formatting\TrFormatter::money((string)$line->unit_cost,4) : '—' }}</td>@endif<td>{{ $line->note }}</td></tr>@endforeach
             </tbody></table></div>
-            @if($slip->status === 'posted' && auth()->user()?->can('warehouse_slips.cancel'))<button class="button-danger" type="button" wire:click="reverse" wire:loading.attr="disabled" wire:target="reverse">Sil</button>@endif
+            @if($slip->status === 'posted' && auth()->user()?->can('warehouse_slips.cancel'))
+                <x-v65.record-delete-footer>
+                    <button class="button-danger" type="button" wire:click="reverse"
+                        wire:loading.attr="disabled" wire:target="reverse">Sil</button>
+                </x-v65.record-delete-footer>
+            @endif
         @endif
     </section>
 

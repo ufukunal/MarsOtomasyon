@@ -104,12 +104,14 @@
                 @if(! $openedReversed && auth()->user()?->can('collections.cancel') && auth()->user()?->can('collections.create'))
                     <x-v65.button variant="secondary" wire:click="selectForCorrection({{ $openedRecord->id }})">Düzenle</x-v65.button>
                 @endif
-                @if(! $openedReversed && auth()->user()?->can('collections.cancel'))
-                    <x-v65.button variant="danger" wire:click="deleteRecord({{ $openedRecord->id }})"
-                        wire:loading.attr="disabled" wire:target="deleteRecord">Sil</x-v65.button>
-                @endif
                 <x-v65.button variant="secondary" wire:click="closeFinancialRecord">Kapat</x-v65.button>
             </div>
+            @if(! $openedReversed && auth()->user()?->can('collections.cancel'))
+                <x-v65.record-delete-footer>
+                    <x-v65.button variant="danger" wire:click="deleteRecord({{ $openedRecord->id }})"
+                        wire:loading.attr="disabled" wire:target="deleteRecord">Sil</x-v65.button>
+                </x-v65.record-delete-footer>
+            @endif
         </section>
     @endif
 
