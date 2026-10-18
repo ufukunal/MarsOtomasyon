@@ -116,8 +116,8 @@ it('makes edit and correction navigation discoverable in the shared sales and pu
     $list = file_get_contents(base_path('resources/views/livewire/sales/document-list.blade.php'));
     $listTrait = file_get_contents(base_path('app/Livewire/Concerns/WithV65DocumentList.php'));
 
-    expect($list)->toContain('Düzenleme / İncele')
-        ->toContain('Düzenle')
+    expect($list)->toContain('>Aç</x-v65.button>')
+        ->not->toContain('>Düzenle</x-v65.button>')
         ->and($listTrait)->toContain('closed')
         ->toContain('converted');
 });

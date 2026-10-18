@@ -255,11 +255,7 @@
                     <td>{{ $return->document_date?->format('d.m.Y') }}</td>
                     <td class="align-end">{{ $money::money((string) $return->grand_total) }} {{ $return->currency }}</td>
                     <td><x-v65.status-badge :tone="$return->status === 'posted' ? 'success' : 'neutral'">{{ \App\Support\Formatting\BusinessLabelFormatter::status($return->status) }}</x-v65.status-badge></td>
-                    <td>@if($return->status === 'draft' && auth()->user()?->can('returns.update'))
-                            <x-v65.button size="xs" variant="secondary" wire:click="editDraft({{ $return->id }})">Düzenle</x-v65.button>
-                        @else
-                            <x-v65.button size="xs" variant="secondary" wire:click="selectReturn({{ $return->id }})">İncele</x-v65.button>
-                        @endif</td>
+                    <td><x-v65.button size="xs" variant="secondary" wire:click="selectReturn({{ $return->id }})">Aç</x-v65.button></td>
                 </tr>
             @empty
                 <tr><td colspan="7" class="v65-ref-returns-empty-row">Bu türde iade kaydı bulunamadı.</td></tr>

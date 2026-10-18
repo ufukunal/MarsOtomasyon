@@ -90,23 +90,7 @@
                             <td class="align-end tabular">{{ \App\Support\Formatting\TrFormatter::money((string) $document->grand_total) }} {{ $document->currency }}</td>
                         @endunless
                         <td>
-                            @if($isInvoiceList && $canEditDocuments
-                                && ($document->status === 'draft' || ($canCreateDocuments && $canCancelDocuments)))
-                                <x-v65.button variant="secondary" size="xs"
-                                    wire:click="editInvoiceFromList({{ $document->id }})"
-                                    wire:loading.attr="disabled"
-                                    wire:target="editInvoiceFromList">Düzenle</x-v65.button>
-                            @else
-                                <x-v65.button variant="secondary" size="xs" :href="route($detailRoute, ['id' => $document->id])">
-                                    {{ $canEditDocuments && ! $isInvoiceList ? ($document->status === 'draft' ? 'Düzenle' : 'Düzenleme / İncele') : 'İncele' }}
-                                </x-v65.button>
-                            @endif
-                            @if($isInvoiceList && $canCancelDocuments && in_array($document->status, ['draft', 'posted'], true))
-                                <x-v65.button variant="danger" size="xs"
-                                    wire:click="deleteInvoiceFromList({{ $document->id }})"
-                                    wire:loading.attr="disabled"
-                                    wire:target="deleteInvoiceFromList">Sil</x-v65.button>
-                            @endif
+                            <x-v65.button variant="secondary" size="xs" :href="route($detailRoute, ['id' => $document->id])">Aç</x-v65.button>
                             <x-v65.button variant="secondary" size="xs" :href="route('documents.history', ['id' => $document->id])">
                                 Geçmiş
                             </x-v65.button>

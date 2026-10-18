@@ -44,14 +44,15 @@ it('posts invoices from the single Save button without bypassing risk or deviati
         ->and($purchaseView)->toContain('wire:model="deviationAccepted"');
 });
 
-it('exposes one-click invoice list edit and delete while preserving normal lists', function (): void {
+it('keeps invoice edit and delete inside document detail rather than lists', function (): void {
     $trait = file_get_contents(base_path('app/Livewire/Concerns/WithV65DocumentList.php'));
     $blade = file_get_contents(base_path('resources/views/livewire/sales/document-list.blade.php'));
     expect($trait)->toContain('public function editInvoiceFromList(')
         ->toContain('public function deleteInvoiceFromList(')
         ->toContain("DocumentType::SalesInvoice, DocumentType::SupplierInvoice")
-        ->and($blade)->toContain('wire:click="editInvoiceFromList(')
-        ->toContain('wire:click="deleteInvoiceFromList(')
+        ->and($blade)->toContain('route($detailRoute, [\'id\' => $document->id])')
+        ->not->toContain('wire:click="editInvoiceFromList(')
+        ->not->toContain('wire:click="deleteInvoiceFromList(')
         ->toContain('Görüntüleme yetkisi yok');
 });
 

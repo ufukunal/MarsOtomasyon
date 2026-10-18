@@ -45,6 +45,7 @@ it('updates unposted returns with source-line and version protections', function
         ->toContain('abort_if($this->editingReturnDraft')
         ->and($view)->toContain('wire:click="saveDraft"')
         ->toContain('wire:click="editDraft(')
+        ->toContain('wire:click="selectReturn(')
         ->toContain('wire:click="deleteReturn(')
         ->not->toContain('AppEnumsDocumentType');
 });
