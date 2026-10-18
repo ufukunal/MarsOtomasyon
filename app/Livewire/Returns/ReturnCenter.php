@@ -233,7 +233,12 @@ class ReturnCenter extends Component
         );
         $this->completeMutation('reverse');
         if ($this->selectedReturnId === $id) {
-            $this->startNewReturn();
+            $this->selectedReturnId = null;
+            $this->selectedReturnVersion = 0;
+            $this->editingReturnDraft = false;
+            $this->sourceInvoiceId = null;
+            $this->quantities = [];
+            $this->locationIds = [];
         }
     }
 
