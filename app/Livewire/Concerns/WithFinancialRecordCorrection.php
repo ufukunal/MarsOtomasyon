@@ -9,6 +9,7 @@ use App\Models\Period\Contact;
 use App\Models\Period\Document;
 use App\Models\Period\DocumentRelation;
 use Illuminate\Database\Eloquent\Collection;
+use Livewire\Attributes\Locked;
 
 /**
  * Financial corrections retain the posted ledger, require reversal, and only
@@ -21,6 +22,46 @@ trait WithFinancialRecordCorrection
     public bool $correctionMode = false;
 
     public ?int $correctionSourceId = null;
+
+    #[Locked]
+    public ?int $selectedFinancialRecordId = null;
+
+    public function openFinancialRecord(int $id): void
+    {
+        abort_unless(auth()->user()?->can($this->financialPermission().'.view'), 403);
+        Document::query()
+            ->where('document_type', $this->financialDocumentType()->value)
+            ->where('status', 'posted')->findOrFail($id);
+        $this->selectedFinancialRecordId = $id;
+    }
+
+    public function closeFinancialRecord(): void
+    {
+        $this->selectedFinancialRecordId = null;
+    }
+
+    public function selectedFinancialRecord(): ?Document
+    {
+        if ($this->selectedFinancialRecordId === null
+            || ! auth()->user()?->can($this->financialPermission().'.view')) {
+            return null;
+        }
+
+        return Document::query()
+            ->where('document_type', $this->financialDocumentType()->value)
+            ->where('status', 'posted')->find($this->selectedFinancialRecordId);
+    }
+
+    public function selectedFinancialRecordIsReversed(): bool
+    {
+        if ($this->selectedFinancialRecordId === null) {
+            return false;
+        }
+        return DocumentRelation::query()->where('relation_type', 'reversal_of')
+            ->where(fn ($q) => $q
+                ->where('source_document_id', $this->selectedFinancialRecordId)
+                ->orWhere('target_document_id', $this->selectedFinancialRecordId))->exists();
+    }
 
     abstract protected function financialDocumentType(): DocumentType;
 
@@ -207,6 +248,7 @@ trait WithFinancialRecordCorrection
         $this->accountId = $cash ? $cash->cash_account_id : $bank->bank_account_id;
         $this->restoreFinancialCurrency($document);
         $this->postedDocumentId = $id;
+        $this->selectedFinancialRecordId = $id;
         $this->correctionMode = true;
         $this->correctionSourceId = null;
         $this->reversalDate = now()->toDateString();
@@ -220,6 +262,7 @@ trait WithFinancialRecordCorrection
 
     public function financialCorrectionPosted(): void
     {
+        $this->selectedFinancialRecordId = $this->postedDocumentId;
         $this->correctionSourceId = null;
         $this->correctionMode = false;
     }
