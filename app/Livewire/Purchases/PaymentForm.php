@@ -160,6 +160,7 @@ class PaymentForm extends Component
         $this->completeMutation('reverse');
         if ($this->postedDocumentId === $id) {
             $this->postedDocumentId = null;
+            $this->selectedFinancialRecordId = null;
             $this->correctionMode = false;
             $this->correctionSourceId = null;
         }

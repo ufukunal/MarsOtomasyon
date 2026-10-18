@@ -88,8 +88,36 @@
         </div>
     </section>
 
+    @php
+        $openedRecord = $this->selectedFinancialRecord();
+        $openedReversed = $this->selectedFinancialRecordIsReversed();
+    @endphp
+    @if($openedRecord)
+        <section class="panel v65-ref-card v65-record-detail" aria-label="Tediye kaydı" id="v65-finance-selected-record">
+            <header class="v65-ref-card-head">
+                <strong>Tediye · {{ $openedRecord->number ?? '#'.$openedRecord->id }}</strong>
+                <small>{{ $openedRecord->document_date?->format('d.m.Y') }}</small>
+            </header>
+            <p><strong>Tutar:</strong> {{ \App\Support\Formatting\TrFormatter::money((string) $openedRecord->grand_total) }} {{ $openedRecord->currency }}</p>
+            <p><strong>Durum:</strong> {{ $openedReversed ? 'İptal edildi' : 'Kaydedildi' }}</p>
+            @if($openedRecord->notes)
+                <p><strong>Açıklama:</strong> {{ $openedRecord->notes }}</p>
+            @endif
+            <div class="v65-form-footer">
+                @if(! $openedReversed && auth()->user()?->can('payments.cancel') && auth()->user()?->can('payments.create'))
+                    <x-v65.button variant="secondary" wire:click="selectForCorrection({{ $openedRecord->id }})">Düzenle</x-v65.button>
+                @endif
+                @if(! $openedReversed && auth()->user()?->can('payments.cancel'))
+                    <x-v65.button variant="danger" wire:click="deleteRecord({{ $openedRecord->id }})"
+                        wire:loading.attr="disabled" wire:target="deleteRecord">Sil</x-v65.button>
+                @endif
+                <x-v65.button variant="secondary" wire:click="closeFinancialRecord">Kapat</x-v65.button>
+            </div>
+        </section>
+    @endif
+
     <section class="panel v65-financial-history v65-ref-card v65-ref-history">
-        <header class="v65-ref-card-head"><strong>Tediye Geçmişi</strong><small>Kayıtları düzenleyin veya silin</small></header>
+        <header class="v65-ref-card-head"><strong>Tediye Geçmişi</strong><small>Kaydı açarak inceleyin</small></header>
         <h3 class="v65-ref-screenreader">Kayıtları Aç / Düzenle</h3>
         
         <div class="table-scroll"><table class="data-table">
@@ -103,12 +131,7 @@
                         <td>{{ \App\Support\Formatting\TrFormatter::money((string) $record->grand_total) }} {{ $record->currency }}</td>
                         <td>{{ $hasReverse ? 'Terslendi' : 'Kesinleşti' }}</td>
                         <td>
-                            @if(!$hasReverse && auth()->user()?->can('payments'.'.cancel'))
-                                <x-v65.button variant="secondary" size="xs" wire:click="selectForCorrection({{ $record->id }})">Düzenle</x-v65.button>
-                                <x-v65.button variant="danger" size="xs" wire:click="deleteRecord({{ $record->id }})" wire:loading.attr="disabled" wire:target="deleteRecord">Sil</x-v65.button>
-                            @else
-                                <span>—</span>
-                            @endif
+                            <x-v65.button variant="secondary" size="xs" wire:click="openFinancialRecord({{ $record->id }})">Aç</x-v65.button>
                         </td>
                     </tr>
                 @empty
