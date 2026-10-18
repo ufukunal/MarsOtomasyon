@@ -219,6 +219,19 @@ php -l /var/www/html/app/Http/Controllers/ProductTechnicalSheetController.php
 php -l /var/www/html/app/Livewire/Pages/Contacts/ContactDetail.php
 php -l /var/www/html/app/Livewire/Pages/Contacts/ContactList.php
 php -l /var/www/html/app/Livewire/Sales/BaseSalesDocumentEditor.php
+# Check all recently edited record/detail Livewire classes before replacing Fresh.
+for file in \
+  /var/www/html/app/Livewire/Finance/CollectionForm.php \
+  /var/www/html/app/Livewire/Purchases/PaymentForm.php \
+  /var/www/html/app/Livewire/Finance/FinanceOperationCenter.php \
+  /var/www/html/app/Livewire/Finance/ContactTransferForm.php \
+  /var/www/html/app/Livewire/Finance/ContactDebitCreditForm.php \
+  /var/www/html/app/Livewire/Finance/SecuritiesCenter.php \
+  /var/www/html/app/Livewire/Concerns/WithFinancialRecordCorrection.php \
+  /var/www/html/app/Livewire/Returns/ReturnCenter.php; do
+  php -l "$file" || { echo "IMAGE_CHECK_FAIL business PHP syntax: $file" >&2; exit 1; }
+done
+echo 'IMAGE_BUSINESS_PHP_LINT=PASS'
 # Compile and PHP-lint every Blade template inside the disposable image BEFORE
 # replacing the running Fresh web container. php -l on Livewire classes alone
 # cannot catch errors in the compiled view code.
