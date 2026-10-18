@@ -40,7 +40,7 @@ it('maps approved v65 stock destinations to real authorized Laravel routes', fun
 it('keeps inventory actions wired to existing authenticated Livewire workflows', function (): void {
     $views = [
         'transfer-detail' => ['wire:click="saveDraft"', 'wire:click="send"', 'wire:click="receive"'],
-        'warehouse-slip-detail' => ['wire:click="saveDraft"', 'wire:click="post"', 'wire:click="reverse"'],
+        'warehouse-slip-detail' => ['wire:click="saveAndPost"', 'wire:click="reverse"'],
         'stock-count-detail' => ['wire:click="saveDraft"', 'wire:click="start"', 'wire:click="saveLine(', 'wire:click="review"', 'wire:click="post"'],
         'quarantine-control' => ['wire:click="releaseSelected"', 'wire:click="scrapSelected"'],
     ];
