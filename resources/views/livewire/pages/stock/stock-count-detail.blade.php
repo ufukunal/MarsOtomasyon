@@ -32,7 +32,7 @@
 @else
 <div class="alert alert-warning">Sayım sırasında bu lokasyonda hareket yapılmaması önerilir.</div>
 @if($count->status === 'posted')
-    <x-v65.notice tone="info">Kesinleşmiş sayım envanter hareketi oluşturduğu için yerinde düzenlenmez. Yeni bir sayım yaparak farkları yeniden kontrol edebilirsiniz; eski sayım geçmişte korunur.</x-v65.notice>
+    <x-v65.notice tone="info">Kaydedilmiş sayım envanter hareketi oluşturduğu için yerinde düzenlenmez. Yeni bir sayım yaparak farkları yeniden kontrol edebilirsiniz; eski sayım geçmişte korunur.</x-v65.notice>
     @can('stock_counts.create')
         <a class="button-secondary" href="{{ route('stock.counts.create') }}">Düzenleme İçin Yeni Sayım Aç</a>
     @endcan
@@ -49,7 +49,7 @@
 <td>@if(in_array($count->status,['counting','review'],true))<button class="button-secondary" type="button" wire:click="saveLine({{ $line->id }})">Kaydet</button>@endif</td>
 </tr>@endforeach
 </tbody></table></div>
-<div class="form-row">@if($count->status==='counting' && auth()->user()?->can('stock_counts.update'))<button type="button" class="button-secondary" wire:click="review">Farkları Göster / İncelemeye Al</button>@endif @if($count->status==='review' && auth()->user()?->can('stock_counts.update'))<button type="button" wire:click="post">Sayımı Kesinleştir</button>@endif</div>
+<div class="form-row">@if($count->status==='counting' && auth()->user()?->can('stock_counts.update'))<button type="button" class="button-secondary" wire:click="review">Farkları Göster / İncelemeye Al</button>@endif @if($count->status==='review' && auth()->user()?->can('stock_counts.update'))<button type="button" wire:click="post">Kaydet</button>@endif</div>
 @endif
 </section>
 @foreach($errors->all() as $error)<div class="field-error">{{ $error }}</div>@endforeach

@@ -137,6 +137,13 @@ class WarehouseSlipDetail extends Component
         }
     }
 
+    /** A single Save records the draft and performs the stock posting. */
+    public function saveAndPost(SaveWarehouseSlipDraft $draft, PostWarehouseSlip $post): void
+    {
+        $this->saveDraft($draft);
+        $this->post($post);
+    }
+
     public function post(PostWarehouseSlip $action): void
     {
         abort_unless($this->slip !== null, 422);

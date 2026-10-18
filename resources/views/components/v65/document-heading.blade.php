@@ -4,7 +4,7 @@
         'draft' => 'Taslak', 'internal_review' => 'İç İnceleme',
         'customer_review' => 'Müşteri İncelemesi', 'pending_approval' => 'Onay Bekliyor',
         'approved' => 'Onaylı', 'sent' => 'Gönderildi', 'confirmed' => 'Onaylandı',
-        'posted' => 'Kesinleşti', 'cancelled' => 'İptal', 'reversed' => 'Ters Kayıt',
+        'posted' => 'Kaydedildi', 'cancelled' => 'İptal', 'reversed' => 'İptal',
     ];
     $state = $document?->status ?? 'draft';
     $tone = match ($state) {

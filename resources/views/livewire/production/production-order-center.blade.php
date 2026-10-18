@@ -193,7 +193,7 @@
                     @endforeach
                     <button class="button-secondary" type="button" wire:click="addOutput">Output Lokasyonu Ekle</button>
                     <label>Completion Notu <textarea wire:model="completionNotes"></textarea></label>
-                    <button type="button" wire:click="postCompletion">Completion Kesinleştir</button>
+                    <button type="button" wire:click="postCompletion">Üretimi Kaydet</button>
                 @endcan
                 @can('production_orders.cancel')
                     <button class="button-danger" type="button" wire:click="cancelRemaining">Kalanı İptal Et</button>
@@ -219,12 +219,12 @@
                                 @can('production_orders.cancel')
                                     <input type="date" wire:model="reversalDate">
                                     <input wire:model="reversalReason" placeholder="Ters kayıt gerekçesi">
-                                    <button class="button-danger" type="button" wire:click="reverseCompletion({{ $completion->id }})">Tersle</button>
+                                    <button class="button-danger" type="button" wire:click="reverseCompletion({{ $completion->id }})">İptal Et</button>
                                 @endcan
                             @elseif($completion->reversal_of_id)
                                 #{{ $completion->reversal_of_id }} ters kaydı
                             @else
-                                Terslendi
+                                İptal Edildi
                             @endif
                         </td>
                     </tr>

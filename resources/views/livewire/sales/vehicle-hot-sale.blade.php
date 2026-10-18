@@ -52,5 +52,5 @@
     </table></div>
 
     <button class="button-secondary" type="button" wire:click="addLine">Satır Ekle</button>
-    <div class="v65-form-footer"><button type="button" wire:click="post">Satışı Kesinleştir</button></div>
+    <div class="v65-form-footer"><button type="button" wire:click="post">Satışı Kaydet</button></div>
 </div>
