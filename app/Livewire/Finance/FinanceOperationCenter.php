@@ -21,6 +21,7 @@ use App\Models\Period\Document;
 use App\Models\Period\DocumentRelation;
 use DomainException;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
 
@@ -151,21 +152,30 @@ class FinanceOperationCenter extends Component
 
     public function postManual(PostManualFinanceMovement $action): void
     {
-        abort_if($this->correctionMovementId !== null && ! $this->correctionMovementReady,
-            409, 'Düzenlemeden önce mevcut hareketi tersleyin.');
-        $action->handle(
+
+        DB::connection('period')->transaction(function () use ($action) {
+            if ($this->correctionMovementId !== null && ! $this->correctionMovementReady) {
+                app(ReverseManualFinanceMovement::class)->handle(
+                    $this->correctionMovementAccountType, $this->correctionMovementId,
+                    now()->toDateString(),
+                    'Finans hareketi düzenlendi; eski işlem geçmişte korundu.',
+                    $this->childMutationKey('manual', 'old-revision'),
+                );
+            }
+            $action->handle(
             $this->accountType,
             (int) $this->accountId,
             $this->direction,
             $this->amount,
             $this->date,
-            $this->mutationKey('manual'),
+            ($this->correctionMovementId !== null ? $this->childMutationKey('manual', 'new-revision') : $this->mutationKey('manual')),
             $this->contactId,
             $this->exchangeRate,
             $this->movementType,
             $this->reference ?: null,
             $this->note ?: null,
-        );
+            );
+        }, attempts: 3);
         $this->completeMutation('manual');
         $this->correctionMovementId = null;
         $this->correctionMovementReady = false;
@@ -173,18 +183,26 @@ class FinanceOperationCenter extends Component
 
     public function postTransfer(PostFinanceTransfer $action): void
     {
-        abort_if($this->correctionTransferGroup !== '' && ! $this->correctionTransferReady,
-            409, 'Düzenlemeden önce mevcut virmanı tersleyin.');
-        $action->handle(
+
+        DB::connection('period')->transaction(function () use ($action) {
+            if ($this->correctionTransferGroup !== '' && ! $this->correctionTransferReady) {
+                app(ReverseFinanceTransfer::class)->handle(
+                    $this->correctionTransferGroup, now()->toDateString(),
+                    'Finans virmanı düzenlendi; eski hareketler geçmişte korundu.',
+                    $this->childMutationKey('transfer', 'old-revision'),
+                );
+            }
+            $action->handle(
             $this->transferSourceType,
             (int) $this->transferSourceId,
             $this->transferTargetType,
             (int) $this->transferTargetId,
             $this->transferAmount,
             $this->date,
-            $this->mutationKey('transfer'),
+            ($this->correctionTransferGroup !== '' ? $this->childMutationKey('transfer', 'new-revision') : $this->mutationKey('transfer')),
             $this->note ?: null,
-        );
+            );
+        }, attempts: 3);
         $this->completeMutation('transfer');
         $this->correctionTransferGroup = '';
         $this->correctionTransferReady = false;
@@ -193,10 +211,20 @@ class FinanceOperationCenter extends Component
     public function postExpense(PostExpense $action): void
     {
         abort_if($this->correctionDocumentId !== null
-            && ($this->correctionDocumentType !== DocumentType::Expense->value
-                || ! $this->correctionDocumentReady),
-            409, 'Gider düzeltmesi için önce eski belgeyi tersleyin.');
-        $action->handle(
+            && $this->correctionDocumentType !== DocumentType::Expense->value,
+            409, 'Düzenleme kaydı farklı bir işlem türüne ait.');
+        DB::connection('period')->transaction(function () use ($action) {
+            if ($this->correctionDocumentId !== null && ! $this->correctionDocumentReady) {
+                $source = Document::query()->where('document_type', DocumentType::Expense->value)
+                    ->where('status', 'posted')->lockForUpdate()
+                    ->findOrFail($this->correctionDocumentId);
+                app(ReverseDocument::class)->handle(
+                    $source, now()->toDateString(),
+                    'Gider düzenlendi; eski belge geçmişte saklandı.',
+                    $this->childMutationKey('expense', 'old-revision'),
+                );
+            }
+            $action->handle(
             $this->expenseCategory,
             $this->expenseNet,
             $this->expenseVatRate,
@@ -205,9 +233,10 @@ class FinanceOperationCenter extends Component
             (int) $this->expenseAccountId,
             $this->expenseCurrency,
             $this->expenseExchangeRate,
-            $this->mutationKey('expense'),
+            ($this->correctionDocumentId !== null ? $this->childMutationKey('expense', 'new-revision') : $this->mutationKey('expense')),
             $this->note ?: null,
-        );
+            );
+        }, attempts: 3);
         $this->completeMutation('expense');
         if ($this->correctionDocumentType === DocumentType::Expense->value) {
             $this->correctionDocumentId = null;
@@ -219,11 +248,24 @@ class FinanceOperationCenter extends Component
     public function postAdvance(PostAdvance $action): void
     {
         abort_if($this->correctionDocumentId !== null
-            && (! in_array($this->correctionDocumentType, [
+            && ! in_array($this->correctionDocumentType, [
                 DocumentType::Advance->value, DocumentType::AdvanceReturn->value,
-            ], true) || ! $this->correctionDocumentReady),
-            409, 'Avans düzeltmesi için önce eski belgeyi tersleyin.');
-        $action->handle(
+            ], true),
+            409, 'Düzenleme kaydı farklı bir işlem türüne ait.');
+        DB::connection('period')->transaction(function () use ($action) {
+            if ($this->correctionDocumentId !== null && ! $this->correctionDocumentReady) {
+                $source = Document::query()
+                    ->whereIn('document_type', [
+                        DocumentType::Advance->value, DocumentType::AdvanceReturn->value,
+                    ])->where('status', 'posted')->lockForUpdate()
+                    ->findOrFail($this->correctionDocumentId);
+                app(ReverseDocument::class)->handle(
+                    $source, now()->toDateString(),
+                    'Avans düzenlendi; eski belge geçmişte saklandı.',
+                    $this->childMutationKey('advance', 'old-revision'),
+                );
+            }
+            $action->handle(
             $this->advanceOperation,
             (int) $this->advanceContactId,
             $this->advanceAmount,
@@ -232,9 +274,10 @@ class FinanceOperationCenter extends Component
             (int) $this->advanceAccountId,
             $this->advanceCurrency,
             $this->advanceExchangeRate,
-            $this->mutationKey('advance'),
+            ($this->correctionDocumentId !== null ? $this->childMutationKey('advance', 'new-revision') : $this->mutationKey('advance')),
             $this->note ?: null,
-        );
+            );
+        }, attempts: 3);
         $this->completeMutation('advance');
         if (in_array($this->correctionDocumentType, [
             DocumentType::Advance->value, DocumentType::AdvanceReturn->value,
@@ -242,6 +285,52 @@ class FinanceOperationCenter extends Component
             $this->correctionDocumentId = null;
             $this->correctionDocumentReady = false;
             $this->correctionDocumentType = '';
+        }
+    }
+
+    /** Delete from the user list without exposing the accounting reversal step. */
+    public function deleteFinanceDocument(int $id): void
+    {
+        $document = Document::query()->whereIn('document_type', [
+            DocumentType::Expense->value, DocumentType::Advance->value,
+            DocumentType::AdvanceReturn->value,
+        ])->where('status', 'posted')->findOrFail($id);
+        app(ReverseDocument::class)->handle(
+            $document, now()->toDateString(),
+            'Finans belgesi silindi; mali geçmiş korundu.',
+            $this->childMutationKey('reverseDocument', 'delete:'.$id),
+        );
+        $this->completeMutation('reverseDocument');
+        if ($this->correctionDocumentId === $id) {
+            $this->cancelCorrection();
+        }
+    }
+
+    public function deleteManualRecord(string $type, int $id): void
+    {
+        abort_unless(in_array($type, ['cash', 'bank'], true), 422);
+        app(ReverseManualFinanceMovement::class)->handle(
+            $type, $id, now()->toDateString(),
+            'Manuel hareket silindi; mali geçmiş korundu.',
+            $this->childMutationKey('reverseManual', 'delete:'.$type.':'.$id),
+        );
+        $this->completeMutation('reverseManual');
+        if ($this->correctionMovementId === $id && $this->correctionMovementAccountType === $type) {
+            $this->cancelCorrection();
+        }
+    }
+
+    public function deleteTransferRecord(string $group): void
+    {
+        abort_unless($group !== '' && mb_strlen($group) <= 255, 422);
+        app(ReverseFinanceTransfer::class)->handle(
+            $group, now()->toDateString(),
+            'Finans virmanı silindi; mali geçmiş korundu.',
+            $this->childMutationKey('reverseTransfer', 'delete:'.$group),
+        );
+        $this->completeMutation('reverseTransfer');
+        if ($this->correctionTransferGroup === $group) {
+            $this->cancelCorrection();
         }
     }
 
