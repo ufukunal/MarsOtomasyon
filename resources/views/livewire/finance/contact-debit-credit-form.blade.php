@@ -1,25 +1,8 @@
 <div class="space-y-5 panel v65-workspace-form">
     <h2>Cari Borç / Alacak Fişi</h2>
     @if($correctionSourceId)
-        <div class="alert {{ $correctionReady ? 'alert-success' : 'alert-warning' }}" role="status">
-            Cari fiş #{{ $correctionSourceId }} düzeltme için seçildi.
-            {{ $correctionReady
-                ? 'Ters kayıt tamamlandı; alanları düzenleyip yeni fişi kesinleştirebilirsiniz.'
-                : 'Önce eski belgeyi tersleyin; eski kayıt yerinde değiştirilmez.' }}
-        </div>
-        @unless($correctionReady)
-            <label class="field">Ters Kayıt Tarihi <input type="date" wire:model="reversalDate"></label>
-            <label class="field">Ters Kayıt Gerekçesi <input wire:model="reversalReason"></label>
-            <x-v65.input-error field="reversalDate" />
-            <x-v65.input-error field="reversalReason" />
-            <div class="v65-form-footer">
-                <x-v65.button variant="secondary" wire:click="cancelCorrection">Vazgeç</x-v65.button>
-                <x-v65.button variant="danger" wire:click="reverseForCorrection"
-                    wire:confirm="Kesinleşmiş cari fiş ters kayda alınacak; mali hareketler silinmeyecek. Devam edilsin mi?">
-                    Ters Kayıt ile Düzelt
-                </x-v65.button>
-            </div>
-        @endunless
+        <x-v65.notice tone="info">Cari fişi düzenleniyor. Değişiklikleri kaydettiğinizde önceki mali hareket otomatik olarak dengelenecek.</x-v65.notice>
+        <x-v65.button variant="secondary" wire:click="cancelCorrection">Vazgeç</x-v65.button>
     @endif
 
     <label class="field">Cari
@@ -41,19 +24,16 @@
     <label class="field">Gerekçe <input wire:model="reason"></label>
     <label class="field">Not <textarea wire:model="note"></textarea></label>
     <div class="v65-form-footer">
-        <x-v65.button wire:click="post" wire:loading.attr="disabled" wire:target="post"
-            :disabled="$correctionSourceId !== null && ! $correctionReady">
-            {{ $correctionReady ? 'Düzeltilmiş Fişi Kesinleştir' : 'Kesinleştir' }}
-        </x-v65.button>
+        <x-v65.button wire:click="post" wire:loading.attr="disabled" wire:target="post">Kaydet</x-v65.button>
     </div>
 
     @if($postedDocumentId)
-        <div>Kesinleşen belge #{{ $postedDocumentId }}</div>
+        <div>Kaydedilen fiş #{{ $postedDocumentId }}</div>
     @endif
 
     <section class="panel" aria-label="Cari fiş geçmişi">
         <h3>Cari Fiş Geçmişi / Düzenleme</h3>
-        <p class="v65-doc-search-hint">Kaydı seçtiğinizde eski işlem terslenir, düzeltilen değerlerle yeni fiş oluşturulur.</p>
+        <p class="v65-doc-search-hint">Kaydı seçip alanları düzenleyin; Kaydet ile değişiklikleri uygulayın.</p>
         <div class="table-scroll"><table class="data-table">
             <thead><tr><th>Belge</th><th>Tarih</th><th>Cari</th><th>Yön</th><th>Tutar (TRY)</th><th>İşlem</th></tr></thead>
             <tbody>
@@ -68,6 +48,8 @@
                             @can('contacts.update')
                                 <x-v65.button variant="secondary" size="xs"
                                     wire:click="prepareCorrection({{ $record->id }})">Düzenle</x-v65.button>
+                                <x-v65.button variant="danger" size="xs" wire:click="deleteRecord({{ $record->id }})"
+                                    wire:loading.attr="disabled" wire:target="deleteRecord">Sil</x-v65.button>
                             @endcan
                         </td>
                     </tr>
