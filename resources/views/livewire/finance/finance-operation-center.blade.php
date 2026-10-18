@@ -160,6 +160,57 @@
         </button>
     </section>
 
+    @if($openedFinanceDocument)
+        <section class="panel stack v65-record-detail" aria-label="Finans belgesi detayları" id="v65-finance-record-detail">
+            <h3>{{ \App\Support\Formatting\BusinessLabelFormatter::documentType($openedFinanceDocument->document_type) }} · {{ $openedFinanceDocument->number ?? '#'.$openedFinanceDocument->id }}</h3>
+            <p><strong>Tarih:</strong> {{ $openedFinanceDocument->document_date?->format('d.m.Y') }}</p>
+            <p><strong>Tutar:</strong> {{ \App\Support\Formatting\TrFormatter::money((string) $openedFinanceDocument->grand_total) }} {{ $openedFinanceDocument->currency }}</p>
+            <div class="v65-form-footer">
+                @php $financePermission = $openedFinanceDocument->document_type === \App\Enums\DocumentType::Expense ? 'expenses' : 'advances'; @endphp
+                @if(auth()->user()?->can($financePermission.'.cancel') && auth()->user()?->can($financePermission.'.create'))
+                    <button class="button-secondary" type="button" wire:click="prepareDocumentCorrection({{ $openedFinanceDocument->id }})">Düzenle</button>
+                @endif
+                @if(auth()->user()?->can($financePermission.'.cancel'))
+                    <button class="button-danger" type="button" wire:click="deleteFinanceDocument({{ $openedFinanceDocument->id }})"
+                        wire:loading.attr="disabled" wire:target="deleteFinanceDocument">Sil</button>
+                @endif
+                <button class="button-secondary" type="button" wire:click="closeOpenedRecord">Kapat</button>
+            </div>
+        </section>
+    @elseif($openedManualMovement)
+        <section class="panel stack v65-record-detail" aria-label="Finans hareketi detayları" id="v65-finance-record-detail">
+            <h3>{{ $openedAccount === 'cash' ? 'Kasa' : 'Banka' }} Hareketi · #{{ $openedManualMovement->id }}</h3>
+            <p><strong>Tarih:</strong> {{ $openedManualMovement->movement_date?->format('d.m.Y') }}</p>
+            <p><strong>Tutar:</strong> {{ \App\Support\Formatting\TrFormatter::money((string) $openedManualMovement->amount) }}</p>
+            <div class="v65-form-footer">
+                @if(auth()->user()?->can('finance_movements.cancel') && auth()->user()?->can('finance_movements.create'))
+                    <button class="button-secondary" type="button" wire:click="prepareManualCorrection('{{ $openedAccount }}', {{ $openedManualMovement->id }})">Düzenle</button>
+                @endif
+                @can('finance_movements.cancel')
+                    <button class="button-danger" type="button" wire:click="deleteManualRecord('{{ $openedAccount }}', {{ $openedManualMovement->id }})"
+                        wire:loading.attr="disabled" wire:target="deleteManualRecord">Sil</button>
+                @endcan
+                <button class="button-secondary" type="button" wire:click="closeOpenedRecord">Kapat</button>
+            </div>
+        </section>
+    @elseif($openedTransferMovement)
+        <section class="panel stack v65-record-detail" aria-label="Finans virmanı detayları" id="v65-finance-record-detail">
+            <h3>Finans Virmanı</h3>
+            <p><strong>Tarih:</strong> {{ $openedTransferMovement->movement_date?->format('d.m.Y') }}</p>
+            <p><strong>Tutar:</strong> {{ \App\Support\Formatting\TrFormatter::money((string) $openedTransferMovement->amount) }}</p>
+            <div class="v65-form-footer">
+                @if(auth()->user()?->can('finance_transfers.cancel') && auth()->user()?->can('finance_transfers.create'))
+                    <button class="button-secondary" type="button" wire:click="prepareTransferCorrection('{{ $openedGroup }}')">Düzenle</button>
+                @endif
+                @can('finance_transfers.cancel')
+                    <button class="button-danger" type="button" wire:click="deleteTransferRecord('{{ $openedGroup }}')"
+                        wire:loading.attr="disabled" wire:target="deleteTransferRecord">Sil</button>
+                @endcan
+                <button class="button-secondary" type="button" wire:click="closeOpenedRecord">Kapat</button>
+            </div>
+        </section>
+    @endif
+
     <section class="panel stack" aria-label="Finans belgesi düzeltme listesi">
         <h2>Gider ve Avans Belgeleri</h2>
         <div class="table-scroll"><table class="data-table">
@@ -171,14 +222,7 @@
                         <td>{{ \App\Support\Formatting\BusinessLabelFormatter::documentType($record->document_type) }}</td>
                         <td>{{ $record->document_date?->format('d.m.Y') }}</td>
                         <td>{{ \App\Support\Formatting\TrFormatter::money((string) $record->grand_total) }} TRY</td>
-                        <td>
-                            @if(($record->document_type === \App\Enums\DocumentType::Expense
-                                    && auth()->user()?->can('expenses.cancel') && auth()->user()?->can('expenses.create'))
-                                || ($record->document_type !== \App\Enums\DocumentType::Expense
-                                    && auth()->user()?->can('advances.cancel') && auth()->user()?->can('advances.create')))
-                                <button type="button" class="button-secondary" wire:click="prepareDocumentCorrection({{ $record->id }})">Düzenle</button>
-                                <button type="button" class="button-danger" wire:click="deleteFinanceDocument({{ $record->id }})" wire:loading.attr="disabled" wire:target="deleteFinanceDocument">Sil</button>
-                            @endif
+                        <td><button class="button-secondary" type="button" wire:click="openFinanceDocument({{ $record->id }})">Aç</button>
                         </td>
                     </tr>
                 @empty
@@ -199,11 +243,7 @@
                         <td>{{ $record['movement']->movement_date?->format('d.m.Y') }}</td>
                         <td>{{ $record['movement']->direction === 'in' ? 'Giriş' : 'Çıkış' }}</td>
                         <td>{{ \App\Support\Formatting\TrFormatter::money((string) $record['movement']->amount) }}</td>
-                        <td>@if(auth()->user()?->can('finance_movements.view') && auth()->user()?->can('finance_movements.cancel') && auth()->user()?->can('finance_movements.create'))
-                            <button type="button" class="button-secondary"
-                                wire:click="prepareManualCorrection('{{ $record['account'] }}', {{ $record['movement']->id }})">Düzenle</button>
-                            <button type="button" class="button-danger"
-                                wire:click="deleteManualRecord('{{ $record['account'] }}', {{ $record['movement']->id }})" wire:loading.attr="disabled" wire:target="deleteManualRecord">Sil</button>
+                        <td><button class="button-secondary" type="button" wire:click="openManualRecord('{{ $record['account'] }}', {{ $record['movement']->id }})">Aç</button>
                             @endif</td>
                     </tr>
                 @empty
@@ -221,11 +261,7 @@
                 @forelse($transferCorrectable as $group)
                     <tr>
                         <td>{{ substr((string) $group, 0, 20) }}…</td>
-                        <td>@if(auth()->user()?->can('finance_transfers.view') && auth()->user()?->can('finance_transfers.cancel') && auth()->user()?->can('finance_transfers.create'))
-                            <button type="button" class="button-secondary"
-                                wire:click="prepareTransferCorrection('{{ $group }}')">Düzenle</button>
-                            <button type="button" class="button-danger"
-                                wire:click="deleteTransferRecord('{{ $group }}')" wire:loading.attr="disabled" wire:target="deleteTransferRecord">Sil</button>
+                        <td><button class="button-secondary" type="button" wire:click="openTransferRecord('{{ $group }}')">Aç</button>
                             @endif</td>
                     </tr>
                 @empty
