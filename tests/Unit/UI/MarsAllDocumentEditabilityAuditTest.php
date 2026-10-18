@@ -23,9 +23,9 @@ it('keeps posted documents immutable and offers safe eight-screen editing', func
         ->toContain("->where('relation_type', 'reversal_of')")
         ->toContain("->where('relation_type', 'edit_copy_of')")
         ->and($heading)->toContain('Düzenle')
-        ->toContain('Revizyonla Düzenle')
-        ->toContain('Düzenleme Taslağı Aç')
-        ->toContain('Ters Kayıt ile Düzelt');
+        ->toContain('wire:click="startEditableCopy"')
+        ->toContain('wire:click="editInvoice"')
+        ->not->toContain('Ters Kayıt ile Düzelt');
 });
 
 it('updates unposted returns with source-line and version protections', function (): void {
@@ -45,7 +45,7 @@ it('updates unposted returns with source-line and version protections', function
         ->toContain('abort_if($this->editingReturnDraft')
         ->and($view)->toContain('wire:click="saveDraft"')
         ->toContain('wire:click="editDraft(')
-        ->toContain('Geçmiş / teknik düzeltme')
+        ->toContain('wire:click="deleteReturn(')
         ->not->toContain('AppEnumsDocumentType');
 });
 
@@ -59,7 +59,8 @@ it('supports historical correction for contact debit credit and contact transfer
         ->toContain('public function reverseForCorrection(')
         ->toContain('public bool $correctionReady = false')
         ->toContain("DocumentType::ContactDebitCredit->value")
-        ->and($debitView)->toContain('Düzeltilmiş Fişi Kesinleştir')
+        ->and($debitView)->toContain('wire:click="deleteRecord(')
+        ->toContain('wire:click="post"')
         ->and($transfer)->toContain('public function prepareCorrection(')
         ->toContain('public function canViewContactBalances(): bool')
         ->toContain('private function sourceLedgerBalance(): string')
@@ -88,8 +89,9 @@ it('prefills real finance movements and enforces reversal before posting correct
         ->and($view)->toContain('wire:click="prepareDocumentCorrection(')
         ->toContain('wire:click="prepareManualCorrection(')
         ->toContain('wire:click="prepareTransferCorrection(')
-        ->toContain('Düzeltilmiş Hareketi Kesinleştir')
-        ->toContain('Düzeltilmiş Virmanı Kesinleştir');
+        ->toContain('wire:click="deleteManualRecord(')
+        ->toContain('wire:click="deleteTransferRecord(')
+        ->not->toContain('v65-finance-reversal');
 });
 
 it('locks correction state against browser tampering', function (): void {

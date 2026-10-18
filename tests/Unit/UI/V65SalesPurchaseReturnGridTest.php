@@ -15,7 +15,7 @@ it('defines independent sales and purchase return screens using one 10-column do
         ->toContain('v65-reference-totals-layout')
         ->toContain('v65-reference-inline-summary')
         ->toContain('İade Taslağını Kaydet')
-        ->toContain('İadeyi İşle')
+        ->toContain('Kaydet ve İşle')
         ->and(substr_count($table, '<th scope="col"'))->toBe(10);
 });
 
@@ -55,7 +55,7 @@ it('keeps posted returns immutable while allowing draft quantity and location ch
         ->toContain('return_draft_updated')
         ->and($post)->toContain('ReceiveToQuarantine')
         ->toContain("MutationAuthorizer::authorize('returns.update')")
-        ->and($view)->toContain('Geçmiş / teknik düzeltme')
+        ->and($view)->toContain('wire:click="deleteReturn(')
         ->toContain('Görüntüleme yetkisi yok');
 });
 

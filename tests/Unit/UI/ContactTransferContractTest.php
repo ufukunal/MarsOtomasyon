@@ -18,15 +18,16 @@ it('keeps cari virman atomic, balanced and permission-gated at the source', func
         ->toContain('contact_transfers_try_only');
 });
 
-it('requires confirmation for reversals and does not offer already reversed documents', function (): void {
+it('removes visible reversal confirmations but retains audited deletion and prevents double reversal', function (): void {
     $form = file_get_contents(base_path('app/Livewire/Finance/ContactTransferForm.php'));
     $view = file_get_contents(base_path('resources/views/livewire/finance/contact-transfer-form.blade.php'));
 
     expect($form)->toContain('public function prepareReverse(')
         ->toContain('public function confirmReverse(')
         ->toContain("whereIn('reversal_of_id'")
-        ->and($view)->toContain('Cari Virman — Ters Kayıt Onayı')
-        ->toContain('wire:click="confirmReverse"')
+        ->and($view)->toContain('wire:click="deleteRecord(')
+        ->toContain('wire:click="post"')
+        ->not->toContain('Cari Virman — Ters Kayıt Onayı')
         ->toContain('!in_array((int) $transfer->id, $reversedIds, true)');
 });
 

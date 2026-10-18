@@ -1,6 +1,6 @@
 <?php
 
-it('opens posted payment and collection records only through a ledger-safe reversal flow', function (): void {
+it('opens posted payment and collection records for atomic audited replacement', function (): void {
     $trait = file_get_contents(base_path('app/Livewire/Concerns/WithFinancialRecordCorrection.php'));
 
     expect($trait)->toContain("where('status', 'posted')")
@@ -16,13 +16,14 @@ it('opens posted payment and collection records only through a ledger-safe rever
     ] as $file => $permission) {
         $source = file_get_contents(base_path('app/Livewire/'.$file));
         expect($source)->toContain('use WithFinancialRecordCorrection;')
-            ->toContain('abort_if($this->correctionMode')
+            ->toContain("DB::connection('period')->transaction")
+            ->toContain('deleteRecord(int $id)')
             ->toContain($permission)
-            ->toContain('$this->financialCorrectionReversed(');
+            ->toContain('$this->financialCorrectionPosted()');
     }
 });
 
-it('asks for confirmation before reversing a posted financial record', function (): void {
+it('shows one-step Save, Edit and Delete without reversal confirmation dialogs', function (): void {
     foreach ([
         'finance/collection-form.blade.php',
         'purchases/payment-form.blade.php',
@@ -30,9 +31,9 @@ it('asks for confirmation before reversing a posted financial record', function 
         $view = file_get_contents(base_path('resources/views/livewire/'.$path));
         expect($view)->toContain('Kayıtları Aç / Düzenle')
             ->toContain('selectForCorrection(')
-            ->toContain('data-v65-modal-open=')
-            ->toContain('Ters Kayıt Onayı')
-            ->toContain('wire:click="reverse"')
+            ->toContain('wire:click="deleteRecord(')
+            ->toContain('wire:click="post"')
+            ->not->toContain('Ters Kayıt Onayı')
             ->toContain('contactBalance()');
     }
 });

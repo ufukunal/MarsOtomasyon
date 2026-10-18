@@ -34,7 +34,7 @@ it('keeps the three independent finance entry screens, secure reversal and separ
     }
     foreach (['Virman Bilgileri', 'Virman Tarihi *', 'Aktarılacak Bakiye Türü', 'Referans / Belge No',
         'İşlem Öncesi / Sonrası Bakiyeler', 'Toplam Cari Bakiye Değişimi', 'Banka / Kasa Etkisi',
-        'Cari Virman Geçmişi', 'showOverdraftConfirm', 'wire:click="confirmReverse"'] as $marker) {
+        'Cari Virman Geçmişi', 'showOverdraftConfirm', 'wire:click="deleteRecord"'] as $marker) {
         expect($transfer)->toContain($marker);
     }
 });

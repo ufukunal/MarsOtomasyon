@@ -4,11 +4,9 @@ it('offers a safe edit or revision path on all eight document editors', function
     $heading = file_get_contents(base_path('resources/views/components/v65/document-prototype-heading.blade.php'));
 
     expect($heading)->toContain('Düzenle</a>')
-        ->toContain('Revizyonla Düzenle')
-        ->toContain('Düzenleme Taslağı Aç')
-        ->toContain('Ters Kayıt ile Düzelt')
-        ->toContain('Düzenlemek için Aç')
-        ->toContain('wire:confirm=')
+        ->toContain('wire:click="editInvoice"')
+        ->not->toContain('Ters Kayıt ile Düzelt')
+        ->not->toContain('wire:confirm=')
         ->toContain('wire:click="startEditableCopy"');
 
     foreach (['sales', 'purchases'] as $side) {
