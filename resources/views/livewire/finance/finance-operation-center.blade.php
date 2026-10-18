@@ -176,9 +176,8 @@
                                     && auth()->user()?->can('expenses.cancel') && auth()->user()?->can('expenses.create'))
                                 || ($record->document_type !== \App\Enums\DocumentType::Expense
                                     && auth()->user()?->can('advances.cancel') && auth()->user()?->can('advances.create')))
-                                <button type="button" class="button-secondary" wire:click="prepareDocumentCorrection({{ $record->id }})">
-                                    Düzenle
-                                </button>
+                                <button type="button" class="button-secondary" wire:click="prepareDocumentCorrection({{ $record->id }})">Düzenle</button>
+                                <button type="button" class="button-danger" wire:click="deleteFinanceDocument({{ $record->id }})" wire:loading.attr="disabled" wire:target="deleteFinanceDocument">Sil</button>
                             @endif
                         </td>
                     </tr>
@@ -203,6 +202,8 @@
                         <td>@if(auth()->user()?->can('finance_movements.view') && auth()->user()?->can('finance_movements.cancel') && auth()->user()?->can('finance_movements.create'))
                             <button type="button" class="button-secondary"
                                 wire:click="prepareManualCorrection('{{ $record['account'] }}', {{ $record['movement']->id }})">Düzenle</button>
+                            <button type="button" class="button-danger"
+                                wire:click="deleteManualRecord('{{ $record['account'] }}', {{ $record['movement']->id }})" wire:loading.attr="disabled" wire:target="deleteManualRecord">Sil</button>
                             @endif</td>
                     </tr>
                 @empty
@@ -223,6 +224,8 @@
                         <td>@if(auth()->user()?->can('finance_transfers.view') && auth()->user()?->can('finance_transfers.cancel') && auth()->user()?->can('finance_transfers.create'))
                             <button type="button" class="button-secondary"
                                 wire:click="prepareTransferCorrection('{{ $group }}')">Düzenle</button>
+                            <button type="button" class="button-danger"
+                                wire:click="deleteTransferRecord('{{ $group }}')" wire:loading.attr="disabled" wire:target="deleteTransferRecord">Sil</button>
                             @endif</td>
                     </tr>
                 @empty
