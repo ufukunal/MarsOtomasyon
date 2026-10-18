@@ -12,6 +12,7 @@ use App\Models\Period\ContactTransaction;
 use App\Livewire\Concerns\WithIdempotentMutations;
 use App\Models\Period\Contact;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
 
@@ -59,17 +60,31 @@ class ContactDebitCreditForm extends Component
     public function post(PostContactDebitCredit $action): void
     {
         abort_unless(auth()->user()?->can('contacts.update'), 403);
-        abort_if($this->correctionSourceId !== null && ! $this->correctionReady, 409,
-            'Düzeltme için önce eski cari fişin ters kaydı onaylanmalıdır.');
-        $document = $action->handle(
+        // Correct an existing posted document with one Save; never leave
+        // the original reversed when replacement validation/posting fails.
+        $document = DB::connection('period')->transaction(function () use ($action) {
+            $key = $this->mutationKey('post');
+            if ($this->correctionSourceId !== null && ! $this->correctionReady) {
+                $source = Document::query()
+                    ->where('document_type', DocumentType::ContactDebitCredit->value)
+                    ->where('status', 'posted')->lockForUpdate()->findOrFail($this->correctionSourceId);
+                app(ReverseDocument::class)->handle(
+                    $source, now()->toDateString(),
+                    'Cari fişi düzenlendi; eski işlem denetim geçmişinde saklandı.',
+                    $this->childMutationKey('post', 'old-revision'),
+                );
+                $key = $this->childMutationKey('post', 'new-revision');
+            }
+            return $action->handle(
             (int) $this->contactId,
             $this->direction,
             $this->amount,
             $this->documentDate,
             $this->reason,
-            $this->mutationKey('post'),
+            $key,
             $this->note !== '' ? $this->note : null,
-        );
+            );
+        }, attempts: 3);
         $this->completeMutation('post');
         $this->postedDocumentId = (int) $document->id;
         $this->correctionSourceId = null;
@@ -108,6 +123,24 @@ class ContactDebitCreditForm extends Component
     {
         $this->correctionSourceId = null;
         $this->correctionReady = false;
+    }
+
+    /** Remove a posted fiş from active records, retaining ledger and audit history. */
+    public function deleteRecord(int $id): void
+    {
+        abort_unless(auth()->user()?->can('contacts.update'), 403);
+        $source = Document::query()->where('document_type', DocumentType::ContactDebitCredit->value)
+            ->where('status', 'posted')->findOrFail($id);
+        app(ReverseDocument::class)->handle(
+            $source, now()->toDateString(),
+            'Cari fişi kullanıcı tarafından silindi; mali geçmiş korundu.',
+            $this->childMutationKey('reverse', 'delete:'.$id),
+        );
+        $this->completeMutation('reverse');
+        if ($this->correctionSourceId === $id || $this->postedDocumentId === $id) {
+            $this->cancelCorrection();
+            $this->postedDocumentId = null;
+        }
     }
 
     public function reverseForCorrection(ReverseDocument $action): void

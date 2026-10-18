@@ -12,6 +12,7 @@ use App\Models\Period\BankAccount;
 use App\Models\Period\CashAccount;
 use App\Models\Period\Document;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 
 class CollectionForm extends Component
@@ -72,7 +73,7 @@ class CollectionForm extends Component
 
     public function post(PostCollection $action): void
     {
-        abort_if($this->correctionMode, 422, 'Önce eski kaydı tersleyerek düzeltme işlemine başlayın.');
+
         abort_unless(auth()->user()?->can('collections.create'), 403);
         $this->validate([
             'contactId' => ['required', 'integer', 'min:1'],
@@ -84,20 +85,60 @@ class CollectionForm extends Component
             'note' => ['nullable', 'string', 'max:1000'],
             'reference' => ['nullable', 'string', 'max:140'],
         ]);
-        $document = $action->handle(
+        // One Save performs the audit reversal and replacement atomically.
+        // A failed replacement rolls the original ledger back unchanged.
+        $document = DB::connection('period')->transaction(function () use ($action) {
+            $key = $this->mutationKey('post');
+            if ($this->correctionMode) {
+                abort_unless(auth()->user()?->can('collections.cancel'), 403);
+                $source = Document::query()->where('document_type', DocumentType::Collection->value)
+                    ->where('status', 'posted')->lockForUpdate()
+                    ->findOrFail($this->postedDocumentId);
+                app(ReverseDocument::class)->handle(
+                    $source,
+                    now()->toDateString(),
+                    'Tahsilat düzenlendi; eski işlem denetim geçmişinde saklandı.',
+                    $this->childMutationKey('post', 'old-revision'),
+                );
+                $key = $this->childMutationKey('post', 'new-revision');
+            }
+
+            return $action->handle(
             (int) $this->contactId,
             $this->amount,
             $this->documentDate,
             $this->accountType,
             (int) $this->accountId,
-            $this->mutationKey('post'),
+            $key,
             $this->sourceInvoiceId,
             $this->note !== '' ? $this->note : null,
             $this->reference !== '' ? $this->reference : null,
-        );
+            );
+        }, attempts: 3);
         $this->completeMutation('post');
         $this->postedDocumentId = (int) $document->id;
         $this->financialCorrectionPosted();
+    }
+
+    /** Immediate audited removal from the active list; no reversal form or second confirmation. */
+    public function deleteRecord(int $id): void
+    {
+        abort_unless(auth()->user()?->can('collections.cancel'), 403);
+        $document = Document::query()
+            ->where('document_type', DocumentType::Collection->value)
+            ->where('status', 'posted')->findOrFail($id);
+        app(ReverseDocument::class)->handle(
+            $document,
+            now()->toDateString(),
+            'Tahsilat kullanıcı tarafından silindi; mali geçmiş korundu.',
+            $this->childMutationKey('reverse', 'delete:'.$id),
+        );
+        $this->completeMutation('reverse');
+        if ($this->postedDocumentId === $id) {
+            $this->postedDocumentId = null;
+            $this->correctionMode = false;
+            $this->correctionSourceId = null;
+        }
     }
 
     public function reverse(ReverseDocument $action): void

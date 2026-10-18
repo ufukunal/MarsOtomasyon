@@ -11,10 +11,8 @@
     <div class="v65-contact-transfer-balance"><span>Seçili cari bakiyesi (Borç − Alacak)</span>
         <strong>{{ $this->canViewFinancialContactBalance() ? \App\Support\Formatting\TrFormatter::money($this->contactBalance()) . ' TRY' : 'Görüntüleme yetkisi yok' }}</strong>
     </div>
-    @if($correctionSourceId)
-        <x-v65.notice tone="warning">#{{ $correctionSourceId }} numaralı kayıt terslendi. Düzeltilen alanları kontrol edip yeni işlem oluşturabilirsiniz.</x-v65.notice>
-    @elseif($correctionMode)
-        <x-v65.notice tone="warning">#{{ $postedDocumentId }} kesinleşmiş kaydı düzeltme için açıldı. Yeni kayıt oluşturmadan önce ters kayıt onayını tamamlayın.</x-v65.notice>
+    @if($correctionMode)
+        <x-v65.notice tone="info">Kayıt düzenleniyor. Kaydet ile değişiklikler uygulanacak.</x-v65.notice>
     @endif
     <h2 class="v65-ref-screenreader">Tahsilat</h2>
 
@@ -59,7 +57,7 @@
     <label class="field">Para Birimi <input readonly value="TRY · Türk Lirası"></label>
     <label class="field">Makbuz / Dekont No <input wire:model.blur="reference" maxlength="140" placeholder="Banka dekontu / işlem referansı"></label>
     <label class="field">Açıklama <textarea wire:model="note"></textarea></label>
-    <x-v65.form-actions class="v65-form-footer"><x-v65.button wire:click="post" wire:loading.attr="disabled" wire:target="post" :disabled="$correctionMode">Tahsilatı Kesinleştir</x-v65.button></x-v65.form-actions>
+    <x-v65.form-actions class="v65-form-footer"><x-v65.button wire:click="post" wire:loading.attr="disabled" wire:target="post" >Tahsilatı Kaydet</x-v65.button></x-v65.form-actions>
 
     </section>
     <section class="panel v65-ref-card v65-ref-summary-card" aria-label="Cari hareket özeti">
@@ -81,34 +79,16 @@
         @unless($this->financialAccountCurrencyMatches())
             <x-v65.notice tone="danger">Seçilen kasa/banka hesabının para birimi işlem para biriminden farklıdır.</x-v65.notice>
         @endunless
-        <small>Kesinleştirme sırasında cari ve kasa/banka tutarları sunucuda yeniden doğrulanır.</small>
+        <small>Kaydetme sırasında cari ve kasa/banka tutarları sunucuda yeniden doğrulanır.</small>
     </section>
 
         </div>
     </section>
 
-    @if($postedDocumentId)
-        <x-v65.status-badge tone="success">Kesinleşen belge #{{ $postedDocumentId }}</x-v65.status-badge>
-        <label class="field">Ters kayıt tarihi <input type="date" wire:model="reversalDate"></label>
-        <label class="field">Gerekçe <input wire:model="reversalReason"></label>
-        <x-v65.form-actions class="v65-form-footer"><x-v65.button variant="danger" data-v65-modal-open="v65-collection-reversal">Ters Kayıt</x-v65.button></x-v65.form-actions>
-    @endif
-
-    @if($postedDocumentId && auth()->user()?->can('collections.cancel'))
-        <x-v65.modal id="v65-collection-reversal" title="Ters Kayıt Onayı" size="sm">
-            <p>#{{ $postedDocumentId }} kesinleşmiş finansal belgesi ters kaydedilecek. Bu işlem kasa/banka ve cari hesaplarda karşıt hareket oluşturur.</p>
-            <p>İşlem tarihi ve düzeltme gerekçesini kontrol edin.</p>
-            <x-slot:footer>
-                <x-v65.button variant="secondary" data-v65-modal-close>Vazgeç</x-v65.button>
-                <x-v65.button variant="danger" wire:click="reverse" wire:loading.attr="disabled" wire:target="reverse" data-v65-modal-close>Onayla ve Tersle</x-v65.button>
-            </x-slot:footer>
-        </x-v65.modal>
-    @endif
-
     <section class="panel v65-financial-history v65-ref-card v65-ref-history">
-        <header class="v65-ref-card-head"><strong>Tahsilat Geçmişi</strong><small>Kayıtları açın ve güvenli düzeltme işlemini seçin</small></header>
+        <header class="v65-ref-card-head"><strong>Tahsilat Geçmişi</strong><small>Kayıtları düzenleyin veya silin</small></header>
         <h3 class="v65-ref-screenreader">Kayıtları Aç / Düzenle</h3>
-        <p class="v65-doc-search-hint">Kesinleşmiş hareketler doğrudan değiştirilmez. Kaydı seçin, ters kayıt onayı verin, ardından düzeltilmiş işlemi yeniden kaydedin.</p>
+        
         <div class="table-scroll"><table class="data-table">
             <thead><tr><th>Belge</th><th>Tarih</th><th>Tutar</th><th>Durum</th><th>İşlem</th></tr></thead>
             <tbody>
@@ -122,6 +102,7 @@
                         <td>
                             @if(!$hasReverse && auth()->user()?->can('collections'.'.cancel'))
                                 <x-v65.button variant="secondary" size="xs" wire:click="selectForCorrection({{ $record->id }})">Düzenle</x-v65.button>
+                                <x-v65.button variant="danger" size="xs" wire:click="deleteRecord({{ $record->id }})" wire:loading.attr="disabled" wire:target="deleteRecord">Sil</x-v65.button>
                             @else
                                 <span>—</span>
                             @endif
