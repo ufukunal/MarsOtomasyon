@@ -83,19 +83,20 @@
                             <header class="v65-invoice-group-title"><strong>Belge Bilgileri</strong></header>
                             <div class="v65-invoice-info-grid">
                                 <div class="v65-doc-contact-picker v65-invoice-contact-picker">
-                                    <label class="field">Müşteri / Cari Ara
-                                        <input type="search" wire:model.live.debounce.300ms="contactSearch"
-                                            placeholder="Kod veya unvan ile ara" autocomplete="off">
-                                        <small class="v65-doc-search-hint">Kod veya unvan ile arayın; 35 sonuç gösterilir.</small>
-                                        <small class="v65-doc-search-loading" wire:loading wire:target="contactSearch">Aranıyor…</small>
-                                    </label>
-                                    <x-v65.select label="Cari" wire:model.live="contactId" placeholder="Cari seçin" class="v65-doc-contact">
-                                        @forelse($this->contactOptions() as $contact)
-                                            <option value="{{ $contact->id }}">{{ $contact->code }} · {{ $contact->title }}</option>
-                                        @empty
-                                            <option value="" disabled>Aramaya uygun cari bulunamadı</option>
-                                        @endforelse
-                                    </x-v65.select>
+                                    <div class="v65-invoice-contact-controls">
+                                        <label class="field">Müşteri / Cari Ara
+                                            <input type="search" wire:model.live.debounce.300ms="contactSearch"
+                                                placeholder="Kod veya unvan ile ara" autocomplete="off">
+                                            <small class="v65-doc-search-loading" wire:loading wire:target="contactSearch">Aranıyor…</small>
+                                        </label>
+                                        <x-v65.select label="Cari" wire:model.live="contactId" placeholder="Cari seçin" class="v65-doc-contact">
+                                            @forelse($this->contactOptions() as $contact)
+                                                <option value="{{ $contact->id }}">{{ $contact->code }} · {{ $contact->title }}</option>
+                                            @empty
+                                                <option value="" disabled>Aramaya uygun cari bulunamadı</option>
+                                            @endforelse
+                                        </x-v65.select>
+                                    </div>
                                     <x-v65.input-error field="contactId" />
                                     <details class="v65-reference-contact-prices">
                                         <summary>Cari fiyat listesi</summary>
@@ -143,56 +144,51 @@
                         @php
                             $invoiceContact = $this->invoiceContactDetails();
                         @endphp
-                        <section class="v65-invoice-info-group" aria-label="Kişi firma bilgileri">
-                            <header class="v65-invoice-group-title"><strong>Kişi / Firma</strong>
-                                <small>Seçili cari kartından alınır; fatura içinde değiştirilmez.</small></header>
-                            <div class="v65-invoice-info-grid">
-                                <label class="field">Unvan
-                                    <input readonly value="{{ $invoiceContact['title'] ?? '—' }}">
-                                </label>
-                                <label class="field">Vergi Dairesi
-                                    <input readonly value="{{ $invoiceContact['tax_office'] ?? '—' }}">
-                                </label>
-                                <label class="field">Vergi Numarası
-                                    <input readonly value="{{ $invoiceContact['tax_number'] ?? '—' }}">
-                                </label>
-                            </div>
-                        </section>
-
-                        <section class="v65-invoice-info-group" aria-label="İletişim bilgileri">
-                            <header class="v65-invoice-group-title"><strong>İletişim Bilgileri</strong></header>
-                            <div class="v65-invoice-info-grid">
-                                <label class="field v65-invoice-field-wide">Adres
-                                    <input readonly value="{{ $invoiceContact['address'] ?? '—' }}">
-                                </label>
-                                <label class="field">İl
-                                    <input readonly value="{{ $invoiceContact['city'] ?? '—' }}">
-                                </label>
-                                <label class="field">İlçe
-                                    <input readonly value="{{ $invoiceContact['district'] ?? '—' }}">
-                                </label>
-                                <label class="field">Telefon
-                                    <input readonly value="{{ $invoiceContact['phone'] ?? '—' }}">
-                                </label>
-                                <label class="field">E-posta
-                                    <input readonly value="{{ $invoiceContact['email'] ?? '—' }}">
-                                </label>
-                            </div>
-                        </section>
-
-                        @if(! empty($invoiceContact['categories']))
-                            <section class="v65-invoice-info-group" aria-label="Cari kategorileri">
-                                <header class="v65-invoice-group-title"><strong>Kategoriler</strong></header>
-                                <div class="v65-invoice-category-list">
-                                    @foreach($invoiceContact['categories'] as $categoryName)
-                                        <span>{{ $categoryName }}</span>
-                                    @endforeach
-                                </div>
+                        <div class="v65-invoice-contact-panels">
+                            <section class="v65-invoice-info-group" aria-label="Kişi firma bilgileri">
+                                <header class="v65-invoice-group-title"><strong>Kişi / Firma</strong>
+                                    <small>Cari kartından alınır</small></header>
+                                <dl class="v65-invoice-readonly-grid">
+                                    <div class="v65-invoice-readonly-item v65-invoice-readonly-wide">
+                                        <dt>Unvan</dt><dd>{{ $invoiceContact['title'] ?? '—' }}</dd>
+                                    </div>
+                                    <div class="v65-invoice-readonly-item">
+                                        <dt>Vergi Dairesi</dt><dd>{{ $invoiceContact['tax_office'] ?? '—' }}</dd>
+                                    </div>
+                                    <div class="v65-invoice-readonly-item">
+                                        <dt>Vergi Numarası</dt><dd>{{ $invoiceContact['tax_number'] ?? '—' }}</dd>
+                                    </div>
+                                </dl>
+                                @if(! empty($invoiceContact['categories']))
+                                    <div class="v65-invoice-category-list" aria-label="Cari kategorileri">
+                                        @foreach($invoiceContact['categories'] as $categoryName)
+                                            <span>{{ $categoryName }}</span>
+                                        @endforeach
+                                    </div>
+                                @endif
                             </section>
-                        @endif
+                            <section class="v65-invoice-info-group" aria-label="İletişim bilgileri">
+                                <header class="v65-invoice-group-title"><strong>İletişim Bilgileri</strong></header>
+                                <dl class="v65-invoice-readonly-grid">
+                                    <div class="v65-invoice-readonly-item v65-invoice-readonly-wide">
+                                        <dt>Adres</dt><dd>{{ $invoiceContact['address'] ?? '—' }}</dd>
+                                    </div>
+                                    <div class="v65-invoice-readonly-item">
+                                        <dt>İl / İlçe</dt>
+                                        <dd>{{ collect([$invoiceContact['city'] ?? null, $invoiceContact['district'] ?? null])->filter()->implode(' / ') ?: '—' }}</dd>
+                                    </div>
+                                    <div class="v65-invoice-readonly-item">
+                                        <dt>Telefon</dt><dd>{{ $invoiceContact['phone'] ?? '—' }}</dd>
+                                    </div>
+                                    <div class="v65-invoice-readonly-item v65-invoice-readonly-wide">
+                                        <dt>E-posta</dt><dd>{{ $invoiceContact['email'] ?? '—' }}</dd>
+                                    </div>
+                                </dl>
+                            </section>
+                        </div>
                     </div>
 
-                    <div id="v65-invoice-panel-notlar" class="v65-invoice-tab-panel" role="tabpanel"
+                                        <div id="v65-invoice-panel-notlar" class="v65-invoice-tab-panel" role="tabpanel"
                         aria-labelledby="v65-invoice-tab-notlar" x-show="invoiceTab === 'notlar'" x-cloak>
                         <section class="v65-invoice-info-group">
                             <header class="v65-invoice-group-title"><strong>Not Bilgileri</strong></header>
