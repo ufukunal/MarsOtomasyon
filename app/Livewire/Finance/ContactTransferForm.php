@@ -323,7 +323,10 @@ class ContactTransferForm extends Component
         );
         $this->completeMutation('reverse');
         if ($this->correctionSourceId === $id) {
-            $this->clearForm();
+            $this->correctionSourceId = null;
+            $this->correctionReady = false;
+            $this->postedTransferId = null;
+            $this->pendingReversalId = null;
         }
     }
 
