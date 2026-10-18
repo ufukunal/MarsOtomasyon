@@ -61,7 +61,7 @@ it('keeps reversed and view-only financial records linked to their own history',
         ->toContain('self::canCorrect(')
         ->and($center)->toContain("route('documents.history', ['id' => \$document->id])")
         ->toContain('Kayıt Geçmişi')
-        ->and($list)->toContain('Düzenleme / İncele');
+        ->and($list)->toContain('>Aç</x-v65.button>');
 });
 
 it('leaves posted ledger and stock histories immutable rather than changing source records', function (): void {
