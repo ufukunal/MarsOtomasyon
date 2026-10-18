@@ -88,6 +88,61 @@ class FinanceOperationCenter extends Component
 
     public ?int $advanceAccountId = null;
 
+    #[Locked]
+    public string $openedKind = '';
+
+    #[Locked]
+    public ?int $openedId = null;
+
+    #[Locked]
+    public string $openedAccount = '';
+
+    #[Locked]
+    public string $openedGroup = '';
+
+    public function openFinanceDocument(int $id): void
+    {
+        $document = Document::query()->whereIn('document_type', [
+            DocumentType::Expense->value, DocumentType::Advance->value,
+            DocumentType::AdvanceReturn->value,
+        ])->where('status', 'posted')->findOrFail($id);
+        $permission = $document->document_type === DocumentType::Expense ? 'expenses.view' : 'advances.view';
+        abort_unless(auth()->user()?->can($permission), 403);
+        $this->openedKind = 'document';
+        $this->openedId = $id;
+    }
+
+    public function openManualRecord(string $account, int $id): void
+    {
+        abort_unless(auth()->user()?->can('finance_movements.view'), 403);
+        abort_unless(in_array($account, ['cash', 'bank'], true), 422);
+        $model = $account === 'cash' ? CashMovement::class : BankMovement::class;
+        $model::query()->whereNull('document_id')->whereNull('reversal_of_id')->findOrFail($id);
+        $this->openedKind = 'manual';
+        $this->openedAccount = $account;
+        $this->openedId = $id;
+    }
+
+    public function openTransferRecord(string $group): void
+    {
+        abort_unless(auth()->user()?->can('finance_transfers.view'), 403);
+        abort_unless($group !== '' && mb_strlen($group) <= 255, 422);
+        $exists = CashMovement::query()->where('movement_type', 'transfer')->where('group_key', $group)->exists()
+            || BankMovement::query()->where('movement_type', 'transfer')->where('origin', 'book')
+                ->where('group_key', $group)->exists();
+        abort_unless($exists, 404);
+        $this->openedKind = 'transfer';
+        $this->openedGroup = $group;
+    }
+
+    public function closeOpenedRecord(): void
+    {
+        $this->openedKind = '';
+        $this->openedId = null;
+        $this->openedAccount = '';
+        $this->openedGroup = '';
+    }
+
     public string $reversalDate = '';
 
     public string $reversalReason = '';
@@ -301,6 +356,9 @@ class FinanceOperationCenter extends Component
             $this->childMutationKey('reverseDocument', 'delete:'.$id),
         );
         $this->completeMutation('reverseDocument');
+        if ($this->openedKind === 'document' && $this->openedId === $id) {
+            $this->closeOpenedRecord();
+        }
         if ($this->correctionDocumentId === $id) {
             $this->cancelCorrection();
         }
@@ -315,6 +373,9 @@ class FinanceOperationCenter extends Component
             $this->childMutationKey('reverseManual', 'delete:'.$type.':'.$id),
         );
         $this->completeMutation('reverseManual');
+        if ($this->openedKind === 'manual' && $this->openedId === $id && $this->openedAccount === $type) {
+            $this->closeOpenedRecord();
+        }
         if ($this->correctionMovementId === $id && $this->correctionMovementAccountType === $type) {
             $this->cancelCorrection();
         }
@@ -329,6 +390,9 @@ class FinanceOperationCenter extends Component
             $this->childMutationKey('reverseTransfer', 'delete:'.$group),
         );
         $this->completeMutation('reverseTransfer');
+        if ($this->openedKind === 'transfer' && $this->openedGroup === $group) {
+            $this->closeOpenedRecord();
+        }
         if ($this->correctionTransferGroup === $group) {
             $this->cancelCorrection();
         }
@@ -570,6 +634,21 @@ class FinanceOperationCenter extends Component
             'cashAccounts' => CashAccount::query()->where('is_active', true)->orderBy('code')->get(),
             'bankAccounts' => BankAccount::query()->where('is_active', true)->orderBy('code')->get(),
             'contacts' => Contact::query()->where('is_active', true)->orderBy('title')->limit(500)->get(),
+            'openedFinanceDocument' => $this->openedKind === 'document'
+                && ($mayViewExpenses || $mayViewAdvances)
+                ? Document::query()->where('status', 'posted')
+                    ->whereIn('document_type', [
+                        ...($mayViewExpenses ? [DocumentType::Expense->value] : []),
+                        ...($mayViewAdvances ? [DocumentType::Advance->value, DocumentType::AdvanceReturn->value] : []),
+                    ])->find($this->openedId) : null,
+            'openedManualMovement' => $this->openedKind === 'manual' && $mayViewManual
+                && in_array($this->openedAccount, ['cash', 'bank'], true)
+                ? ($this->openedAccount === 'cash' ? CashMovement::query() : BankMovement::query())
+                    ->whereNull('document_id')->whereNull('reversal_of_id')->find($this->openedId) : null,
+            'openedTransferMovement' => $this->openedKind === 'transfer' && $mayViewTransfers
+                ? (CashMovement::query()->where('movement_type', 'transfer')->where('group_key', $this->openedGroup)->first()
+                    ?? BankMovement::query()->where('movement_type', 'transfer')->where('origin', 'book')
+                        ->where('group_key', $this->openedGroup)->first()) : null,
             'cashMovements' => $mayViewManual ? CashMovement::query()
                 ->latest('movement_date')->latest('id')->limit(50)->get() : collect(),
             'bankMovements' => $mayViewManual ? BankMovement::query()
