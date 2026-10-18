@@ -226,7 +226,7 @@
     </footer>
 
     @if($selectedReturn)
-        <section class="v65-ref-returns-selected" aria-label="Seçili iade">
+        <section class="v65-ref-returns-selected" aria-label="Seçili iade" tabindex="-1" x-init="$nextTick(() => $el.scrollIntoView({ block: 'start', behavior: 'smooth' }))">
             <strong>{{ $selectedReturn->number ?? 'Taslak #'.$selectedReturn->id }}</strong>
             <span>{{ \App\Support\Formatting\BusinessLabelFormatter::status($selectedReturn->status) }}</span>
             <span>{{ $money::money((string) $selectedReturn->grand_total) }} {{ $selectedReturn->currency }}</span>

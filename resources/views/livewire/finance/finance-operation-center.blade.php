@@ -161,7 +161,7 @@
     </section>
 
     @if($openedFinanceDocument)
-        <section class="panel stack v65-record-detail" aria-label="Finans belgesi detayları" id="v65-finance-record-detail">
+        <section class="panel stack v65-record-detail" tabindex="-1" x-init="$nextTick(() => $el.scrollIntoView({ block: 'start', behavior: 'smooth' }))" aria-label="Finans belgesi detayları" id="v65-finance-record-detail">
             <h3>{{ \App\Support\Formatting\BusinessLabelFormatter::documentType($openedFinanceDocument->document_type) }} · {{ $openedFinanceDocument->number ?? '#'.$openedFinanceDocument->id }}</h3>
             <p><strong>Tarih:</strong> {{ $openedFinanceDocument->document_date?->format('d.m.Y') }}</p>
             <p><strong>Tutar:</strong> {{ \App\Support\Formatting\TrFormatter::money((string) $openedFinanceDocument->grand_total) }} {{ $openedFinanceDocument->currency }}</p>
@@ -178,7 +178,7 @@
             </div>
         </section>
     @elseif($openedManualMovement)
-        <section class="panel stack v65-record-detail" aria-label="Finans hareketi detayları" id="v65-finance-record-detail">
+        <section class="panel stack v65-record-detail" tabindex="-1" x-init="$nextTick(() => $el.scrollIntoView({ block: 'start', behavior: 'smooth' }))" aria-label="Finans hareketi detayları" id="v65-finance-record-detail">
             <h3>{{ $openedAccount === 'cash' ? 'Kasa' : 'Banka' }} Hareketi · #{{ $openedManualMovement->id }}</h3>
             <p><strong>Tarih:</strong> {{ $openedManualMovement->movement_date?->format('d.m.Y') }}</p>
             <p><strong>Tutar:</strong> {{ \App\Support\Formatting\TrFormatter::money((string) $openedManualMovement->amount) }}</p>
@@ -194,7 +194,7 @@
             </div>
         </section>
     @elseif($openedTransferMovement)
-        <section class="panel stack v65-record-detail" aria-label="Finans virmanı detayları" id="v65-finance-record-detail">
+        <section class="panel stack v65-record-detail" tabindex="-1" x-init="$nextTick(() => $el.scrollIntoView({ block: 'start', behavior: 'smooth' }))" aria-label="Finans virmanı detayları" id="v65-finance-record-detail">
             <h3>Finans Virmanı</h3>
             <p><strong>Tarih:</strong> {{ $openedTransferMovement->movement_date?->format('d.m.Y') }}</p>
             <p><strong>Tutar:</strong> {{ \App\Support\Formatting\TrFormatter::money((string) $openedTransferMovement->amount) }}</p>

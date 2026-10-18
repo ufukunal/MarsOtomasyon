@@ -102,7 +102,7 @@
         </div>
     </section>
     @if($selectedTransfer)
-        <section class="panel v65-ref-card v65-record-detail" aria-label="Cari virman detayları" id="v65-virman-selected-record">
+        <section class="panel v65-ref-card v65-record-detail" tabindex="-1" x-init="$nextTick(() => $el.scrollIntoView({ block: 'start', behavior: 'smooth' }))" aria-label="Cari virman detayları" id="v65-virman-selected-record">
             <header class="v65-ref-card-head"><strong>Virman · {{ $selectedTransfer->number }}</strong>
                 <small>{{ $selectedTransfer->transfer_date?->format('d.m.Y') }}</small></header>
             <p><strong>Kaynak:</strong> {{ $selectedTransfer->sourceContact?->title ?? '—' }}</p>

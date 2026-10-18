@@ -32,7 +32,7 @@
     @endif
 
     @if($selectedRecord)
-        <section class="panel v65-record-detail" aria-label="Cari fişi detayları" id="v65-contact-selected-record">
+        <section class="panel v65-record-detail" tabindex="-1" x-init="$nextTick(() => $el.scrollIntoView({ block: 'start', behavior: 'smooth' }))" aria-label="Cari fişi detayları" id="v65-contact-selected-record">
             <h3>Cari Fişi · {{ $selectedRecord->number ?? '#'.$selectedRecord->id }}</h3>
             <p><strong>Cari:</strong> {{ auth()->user()?->can('contacts.view') ? ($selectedRecord->contact?->title ?? '—') : 'Görüntüleme yetkisi yok' }}</p>
             <p><strong>Tarih:</strong> {{ $selectedRecord->document_date?->format('d.m.Y') }}</p>

@@ -90,7 +90,7 @@
         $openedReversed = $this->selectedFinancialRecordIsReversed();
     @endphp
     @if($openedRecord)
-        <section class="panel v65-ref-card v65-record-detail" aria-label="Tahsilat kaydı" id="v65-finance-selected-record">
+        <section class="panel v65-ref-card v65-record-detail" tabindex="-1" x-init="$nextTick(() => $el.scrollIntoView({ block: 'start', behavior: 'smooth' }))" aria-label="Tahsilat kaydı" id="v65-finance-selected-record">
             <header class="v65-ref-card-head">
                 <strong>Tahsilat · {{ $openedRecord->number ?? '#'.$openedRecord->id }}</strong>
                 <small>{{ $openedRecord->document_date?->format('d.m.Y') }}</small>

@@ -207,7 +207,7 @@
     @endunless
 
     @if($openedSecurity)
-        <section class="panel v65-ref-card v65-record-detail" aria-label="Çek veya senet detayları" id="v65-security-selected-record">
+        <section class="panel v65-ref-card v65-record-detail" tabindex="-1" x-init="$nextTick(() => $el.scrollIntoView({ block: 'start', behavior: 'smooth' }))" aria-label="Çek veya senet detayları" id="v65-security-selected-record">
             <header class="v65-ref-card-head"><strong>{{ $openedSecurity->instrument_no }}</strong>
                 <small>{{ \App\Support\Formatting\BusinessLabelFormatter::status($openedSecurity->status) }}</small></header>
             <p><strong>Cari:</strong> {{ auth()->user()?->can('contacts.view') ? ($openedSecurity->contact?->title ?? '—') : 'Görüntüleme yetkisi yok' }}</p>
@@ -304,7 +304,7 @@
     @endif
 
     @if($screenMode === 'center' && $openedPayroll)
-        <section class="panel v65-ref-card v65-record-detail" aria-label="Bordro detayları" id="v65-payroll-selected-record">
+        <section class="panel v65-ref-card v65-record-detail" tabindex="-1" x-init="$nextTick(() => $el.scrollIntoView({ block: 'start', behavior: 'smooth' }))" aria-label="Bordro detayları" id="v65-payroll-selected-record">
             <header class="v65-ref-card-head"><strong>Bordro · {{ $openedPayroll->number }}</strong>
                 <small>{{ $openedPayroll->payroll_date?->format('d.m.Y') }}</small></header>
             <p><strong>Tutar:</strong> {{ \App\Support\Formatting\TrFormatter::money((string) $openedPayroll->total_amount) }} TRY</p>
