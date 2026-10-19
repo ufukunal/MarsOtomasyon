@@ -150,18 +150,27 @@
                             $invoiceContact = $this->invoiceContactDetails();
                         @endphp
                         <div class="v65-invoice-contact-panels">
-                            <section class="v65-invoice-info-group" aria-label="Kişi firma bilgileri">
-                                <header class="v65-invoice-group-title"><strong>Kişi / Firma</strong>
-                                    <small>Cari kartından alınır</small></header>
+                            <section class="v65-invoice-info-group" aria-label="Fatura bilgileri">
+                                <header class="v65-invoice-group-title">
+                                    <strong>Fatura Bilgileri</strong>
+                                    <small>Cari kartından alınır</small>
+                                </header>
                                 <dl class="v65-invoice-readonly-grid">
                                     <div class="v65-invoice-readonly-item v65-invoice-readonly-wide">
-                                        <dt>Unvan</dt><dd>{{ $invoiceContact['title'] ?? '—' }}</dd>
+                                        <dt>Ünvan</dt><dd>{{ $invoiceContact['title'] ?? '—' }}</dd>
                                     </div>
                                     <div class="v65-invoice-readonly-item">
                                         <dt>Vergi Dairesi</dt><dd>{{ $invoiceContact['tax_office'] ?? '—' }}</dd>
                                     </div>
                                     <div class="v65-invoice-readonly-item">
                                         <dt>Vergi Numarası</dt><dd>{{ $invoiceContact['tax_number'] ?? '—' }}</dd>
+                                    </div>
+                                    <div class="v65-invoice-readonly-item v65-invoice-readonly-wide">
+                                        <dt>Fatura Adresi</dt><dd>{{ ($invoiceContact['billing_address'] ?? '') ?: '—' }}</dd>
+                                    </div>
+                                    <div class="v65-invoice-readonly-item v65-invoice-readonly-wide">
+                                        <dt>İl / İlçe</dt>
+                                        <dd>{{ collect([$invoiceContact['billing_city'] ?? null, $invoiceContact['billing_district'] ?? null])->filter()->implode(' / ') ?: '—' }}</dd>
                                     </div>
                                 </dl>
                                 @if(! empty($invoiceContact['categories']))
@@ -172,17 +181,36 @@
                                     </div>
                                 @endif
                             </section>
+                            <section class="v65-invoice-info-group" aria-label="Sevk bilgileri">
+                                <header class="v65-invoice-group-title">
+                                    <strong>Sevk Bilgileri</strong>
+                                    <small>Cari sevk adresinden alınır</small>
+                                </header>
+                                @if(! empty($invoiceContact['shipping_defined']))
+                                    <dl class="v65-invoice-readonly-grid">
+                                        @if(! empty($invoiceContact['shipping_title']))
+                                            <div class="v65-invoice-readonly-item v65-invoice-readonly-wide">
+                                                <dt>Adres Başlığı</dt><dd>{{ $invoiceContact['shipping_title'] }}</dd>
+                                            </div>
+                                        @endif
+                                        <div class="v65-invoice-readonly-item v65-invoice-readonly-wide">
+                                            <dt>Sevk Adresi</dt><dd>{{ ($invoiceContact['shipping_address'] ?? '') ?: '—' }}</dd>
+                                        </div>
+                                        <div class="v65-invoice-readonly-item v65-invoice-readonly-wide">
+                                            <dt>İl / İlçe</dt>
+                                            <dd>{{ collect([$invoiceContact['shipping_city'] ?? null, $invoiceContact['shipping_district'] ?? null])->filter()->implode(' / ') ?: '—' }}</dd>
+                                        </div>
+                                    </dl>
+                                @else
+                                    <p class="v65-invoice-empty-info">
+                                        {{ $invoiceContact ? 'Cari kartında sevk adresi tanımlı değil.' : 'Cari bilgisi seçildiğinde gösterilir.' }}
+                                    </p>
+                                @endif
+                            </section>
                             <section class="v65-invoice-info-group" aria-label="İletişim bilgileri">
                                 <header class="v65-invoice-group-title"><strong>İletişim Bilgileri</strong></header>
                                 <dl class="v65-invoice-readonly-grid">
                                     <div class="v65-invoice-readonly-item v65-invoice-readonly-wide">
-                                        <dt>Adres</dt><dd>{{ $invoiceContact['address'] ?? '—' }}</dd>
-                                    </div>
-                                    <div class="v65-invoice-readonly-item">
-                                        <dt>İl / İlçe</dt>
-                                        <dd>{{ collect([$invoiceContact['city'] ?? null, $invoiceContact['district'] ?? null])->filter()->implode(' / ') ?: '—' }}</dd>
-                                    </div>
-                                    <div class="v65-invoice-readonly-item">
                                         <dt>Telefon</dt><dd>{{ $invoiceContact['phone'] ?? '—' }}</dd>
                                     </div>
                                     <div class="v65-invoice-readonly-item v65-invoice-readonly-wide">

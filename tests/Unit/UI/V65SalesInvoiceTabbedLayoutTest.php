@@ -54,7 +54,7 @@ it('shows read-only contact information only with contact viewing permission', f
 
     expect($invoice)->toContain('public function invoiceContactDetails(): ?array')
         ->toContain("can('contacts.view')")
-        ->toContain("->with('categories')")
+        ->toContain("->with(['categories', 'addresses'])")
         ->toContain("'tax_office' =>")
         ->toContain("'tax_number' =>")
         ->toContain("'categories' =>")
@@ -75,7 +75,7 @@ it('uses responsive invoice tabs without affecting purchase invoice styles', fun
 });
 
 
-it('keeps sales invoice header compact with four columns and side-by-side contact summaries', function (): void {
+it('keeps sales invoice header compact with four columns and separate contact panels', function (): void {
     $view = file_get_contents(base_path('resources/views/livewire/sales/document-editor.blade.php'));
     $style = file_get_contents(base_path('resources/css/v65-shell.css'));
 
@@ -171,4 +171,30 @@ it('formats sales invoice price display separately from four-decimal calculation
         ->toContain("'discount_rate' => \$this->discountRate")
         ->and($css)->toContain('.v65-invoice-tabbed-form .v65-reference-products-tools')
         ->toContain('.v65-invoice-info-grid>.v65-invoice-discount-field');
+});
+
+
+it('separates invoice, shipping and communication details using typed contact addresses', function (): void {
+    $editor = file_get_contents(base_path('app/Livewire/Sales/SalesInvoiceEditor.php'));
+    $view = file_get_contents(base_path('resources/views/livewire/sales/document-editor.blade.php'));
+    $css = file_get_contents(base_path('resources/css/v65-shell.css'));
+    $address = file_get_contents(base_path('app/Models/Period/ContactAddress.php'));
+    $contactForm = file_get_contents(base_path('resources/views/livewire/pages/contacts/contact-form.blade.php'));
+
+    expect($editor)->toContain("->with(['categories', 'addresses'])")
+        ->toContain("->where('type', 'invoice')->sortByDesc('is_default')->first()")
+        ->toContain("->where('type', 'shipping')->sortByDesc('is_default')->first()")
+        ->toContain("'billing_address' =>")
+        ->toContain("'shipping_address' =>")
+        ->toContain("'shipping_defined' =>")
+        ->and($view)->toContain('aria-label="Fatura bilgileri"')
+        ->toContain('aria-label="Sevk bilgileri"')
+        ->toContain('aria-label="İletişim bilgileri"')
+        ->toContain("{{ (\$invoiceContact['billing_address'] ?? '') ?: '—' }}")
+        ->toContain("{{ (\$invoiceContact['shipping_address'] ?? '') ?: '—' }}")
+        ->toContain('Cari kartında sevk adresi tanımlı değil.')
+        ->and($css)->toContain('grid-template-columns:repeat(3,minmax(0,1fr))')
+        ->toContain('.v65-invoice-contact-panels>.v65-invoice-info-group:last-child')
+        ->and($address)->toContain("'type', 'title', 'address', 'city', 'district', 'is_default'")
+        ->and($contactForm)->toContain("['invoice'=>'Fatura','shipping'=>'Sevk']");
 });

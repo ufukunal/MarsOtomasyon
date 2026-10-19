@@ -125,7 +125,7 @@ class SalesInvoiceEditor extends BaseSalesDocumentEditor
      * Read-only invoice contact details. Never expose tax or contact fields
      * without permission to view the selected contact.
      *
-     * @return array<string, string|array<int,string>>|null
+     * @return array<string, string|bool|array<int,string>>|null
      */
     public function invoiceContactDetails(): ?array
     {
@@ -134,14 +134,29 @@ class SalesInvoiceEditor extends BaseSalesDocumentEditor
         }
 
         $contact = Contact::query()
-            ->with('categories')
+            ->with(['categories', 'addresses'])
             ->find($this->contactId);
 
         if ($contact === null) {
             return null;
         }
 
+        // Address cards carry separate billing and shipping destinations.
+        // Prefer defaults; do not substitute the invoice address for an undefined shipment.
+        $billingAddress = $contact->addresses
+            ->where('type', 'invoice')->sortByDesc('is_default')->first();
+        $shippingAddress = $contact->addresses
+            ->where('type', 'shipping')->sortByDesc('is_default')->first();
+
         return [
+            'billing_address' => (string) ($billingAddress?->address ?? $contact->address ?? ''),
+            'billing_city' => (string) ($billingAddress?->city ?? $contact->city ?? ''),
+            'billing_district' => (string) ($billingAddress?->district ?? $contact->district ?? ''),
+            'shipping_defined' => $shippingAddress !== null,
+            'shipping_title' => (string) ($shippingAddress?->title ?? ''),
+            'shipping_address' => (string) ($shippingAddress?->address ?? ''),
+            'shipping_city' => (string) ($shippingAddress?->city ?? ''),
+            'shipping_district' => (string) ($shippingAddress?->district ?? ''),
             'title' => (string) $contact->title,
             'tax_office' => (string) ($contact->tax_office ?? ''),
             'tax_number' => (string) ($contact->tax_number ?? ''),
