@@ -362,7 +362,16 @@ abstract class BaseSalesDocumentEditor extends Component
             'discountRate' => ['required', 'numeric', 'between:0,100'],
             'additionalDiscountAmount' => ['required', 'numeric', 'min:0', 'decimal:0,4'],
             'uiMeta' => ['array', 'max:20'],
-            'uiMeta.*' => ['nullable', 'string', 'max:140'],
+            'uiMeta.*' => ['nullable', 'string', function (string $attribute, mixed $value, $fail): void {
+                $limit = match (true) {
+                    $this->documentType() === DocumentType::SalesInvoice && $attribute === 'uiMeta.delivery_address' => 4000,
+                    $this->documentType() === DocumentType::SalesInvoice && $attribute === 'uiMeta.delivery_company' => 180,
+                    default => 140,
+                };
+                if (is_string($value) && mb_strlen($value) > $limit) {
+                    $fail("Alan {$limit} karakteri aşamaz.");
+                }
+            }],
             'lines' => ['required', 'array', 'min:1'],
             'lines.*.line_kind' => ['required', 'in:stock,service'],
             'lines.*.quantity' => ['required', 'numeric', 'gt:0'],

@@ -27,13 +27,20 @@
     @endif
 
     <form id="wsl-transport-form" wire:submit="save" class="stack">
+        @if($sourceInvoiceId !== null)
+            <div class="wsl-info" role="status">
+                <strong>Satış faturası #{{ $sourceInvoiceId }} kaynak alındı.</strong>
+                Firma / Cari faturanın müşterisidir; teslim edilecek firma farklı olabilir.
+                Koli adedi, taşıyıcı ve teslimat bilgilerini kontrol edip Kaydet'e basın.
+            </div>
+        @endif
         <section class="wsl-card panel">
             <div class="wsl-card-head">Fiş Bilgileri</div>
             <div class="wsl-card-body wsl-grid">
                 <label class="wsl-field"><span class="field-label">Ambar Fişi No</span><input value="{{ $slip?->number ?? 'Otomatik' }}" readonly></label>
                 <label class="wsl-field"><span class="field-label">Tarih *</span><input type="date" wire:model="date" @disabled($readonly) @error('date') aria-invalid="true" @enderror>@error('date')<small class="wsl-field-error">{{ $message }}</small>@enderror</label>
                 <label class="wsl-field"><span class="field-label">Firma / Cari *</span>
-                    <select wire:model.live="contactId" @disabled($readonly) @error('contactId') aria-invalid="true" @enderror>
+                    <select wire:model.live="contactId" @disabled($readonly || $sourceInvoiceId !== null) @error('contactId') aria-invalid="true" @enderror>
                         <option value="">Seçiniz</option>
                         @foreach($contacts as $contact)<option value="{{ $contact->id }}">{{ $contact->code }} · {{ $contact->title }}</option>@endforeach
                     </select>

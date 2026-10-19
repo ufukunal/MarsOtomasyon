@@ -8,6 +8,8 @@ use App\Actions\Sales\CalculateSalesRiskProjection;
 use App\DataObjects\Sales\SalesRiskProjection;
 use App\Enums\DocumentType;
 use App\Models\Period\Contact;
+use App\Models\Period\ContactAddress;
+use Illuminate\Validation\ValidationException;
 
 class SalesInvoiceEditor extends BaseSalesDocumentEditor
 {
@@ -50,6 +52,7 @@ class SalesInvoiceEditor extends BaseSalesDocumentEditor
         // Default only new/unspecified draft invoices; retain saved choices.
         if ($this->document === null || $this->document->status === 'draft') {
             $this->uiMeta['payment_method'] ??= 'Vadeli';
+            $this->uiMeta['delivery_mode'] ??= 'customer';
         }
 
         // New invoice from a Cari card must start with that customer's discount.
@@ -65,6 +68,128 @@ class SalesInvoiceEditor extends BaseSalesDocumentEditor
     public function updatedContactId(): void
     {
         $this->applySelectedContactDiscount();
+        $this->clearInvoiceDelivery();
+        $this->uiMeta['delivery_mode'] = 'customer';
+    }
+
+    public function updatedUiMetaDeliveryMode(): void
+    {
+        $mode = (string) ($this->uiMeta['delivery_mode'] ?? 'customer');
+        $this->clearInvoiceDelivery();
+        $this->uiMeta['delivery_mode'] = $mode;
+    }
+
+    public function updatedUiMetaDeliveryAddressId(): void
+    {
+        $this->fillInvoiceDeliveryFromAddress();
+    }
+
+    /** @return \Illuminate\Database\Eloquent\Collection<int, ContactAddress> */
+    public function invoiceDeliveryAddresses(): \Illuminate\Database\Eloquent\Collection
+    {
+        if (! $this->contactId || ! auth()->user()?->can('contacts.view')) {
+            return new \Illuminate\Database\Eloquent\Collection;
+        }
+
+        return ContactAddress::query()
+            ->where('contact_id', $this->contactId)
+            ->where('type', 'shipping')
+            ->orderByDesc('is_default')
+            ->orderBy('id')
+            ->get();
+    }
+
+    private function clearInvoiceDelivery(): void
+    {
+        foreach (['delivery_address_id', 'delivery_company', 'delivery_person',
+            'delivery_phone', 'delivery_city', 'delivery_district', 'delivery_address'] as $field) {
+            unset($this->uiMeta[$field]);
+        }
+    }
+
+    private function fillInvoiceDeliveryFromAddress(): void
+    {
+        $id = (int) ($this->uiMeta['delivery_address_id'] ?? 0);
+        $contact = $this->contactId
+            ? Contact::query()->where('is_active', true)->find($this->contactId)
+            : null;
+        $address = $contact && $id > 0
+            ? ContactAddress::query()->where('contact_id', $contact->id)
+                ->where('type', 'shipping')->find($id)
+            : null;
+
+        // Keep a selected address bound to the invoice's billed customer.
+        foreach (['delivery_company', 'delivery_person', 'delivery_phone',
+            'delivery_city', 'delivery_district', 'delivery_address'] as $field) {
+            unset($this->uiMeta[$field]);
+        }
+        if (! $address) {
+            return;
+        }
+
+        $this->uiMeta['delivery_company'] = (string) ($address->title ?: $contact->title);
+        $this->uiMeta['delivery_city'] = (string) ($address->city ?? '');
+        $this->uiMeta['delivery_district'] = (string) ($address->district ?? '');
+        $this->uiMeta['delivery_address'] = (string) $address->address;
+        // A shipping address has no contact-specific phone in the current schema.
+        // Do not copy the billed customer's telephone to the third-party recipient.
+    }
+
+    private function prepareInvoiceDelivery(): void
+    {
+        $mode = (string) ($this->uiMeta['delivery_mode'] ?? 'customer');
+        if (! in_array($mode, ['customer', 'saved', 'manual'], true)) {
+            throw ValidationException::withMessages(['uiMeta.delivery_mode' => 'Geçersiz sevk şekli.']);
+        }
+        $this->uiMeta['delivery_mode'] = $mode;
+
+        if ($mode === 'customer') {
+            $this->clearInvoiceDelivery();
+            $contact = $this->contactId
+                ? Contact::query()->where('is_active', true)->with('addresses')->find($this->contactId)
+                : null;
+            if (! $contact) {
+                return; // The base invoice validator reports the missing/invalid contact.
+            }
+            $address = $contact->addresses->where('type', 'shipping')
+                ->sortByDesc('is_default')->first();
+            $this->uiMeta['delivery_company'] = (string) $contact->title;
+            $this->uiMeta['delivery_person'] = (string) ($contact->primary_contact_name ?? '');
+            $this->uiMeta['delivery_phone'] = (string) ($contact->phone ?? '');
+            $this->uiMeta['delivery_city'] = (string) ($address?->city ?? $contact->city ?? '');
+            $this->uiMeta['delivery_district'] = (string) ($address?->district ?? $contact->district ?? '');
+            $this->uiMeta['delivery_address'] = (string) ($address?->address ?? $contact->address ?? '');
+
+            return;
+        }
+
+        if ($mode === 'saved') {
+            $id = (int) ($this->uiMeta['delivery_address_id'] ?? 0);
+            $belongsToContact = $id > 0 && $this->contactId
+                && ContactAddress::query()->where('contact_id', $this->contactId)
+                    ->where('type', 'shipping')->whereKey($id)->exists();
+            if (! $belongsToContact) {
+                throw ValidationException::withMessages([
+                    'uiMeta.delivery_address_id' => 'Sevk adresini seçili müşterinin kartından seçin.',
+                ]);
+            }
+        } else {
+            unset($this->uiMeta['delivery_address_id']);
+        }
+
+        foreach ([
+            'delivery_company' => 180, 'delivery_phone' => 40,
+            'delivery_city' => 100, 'delivery_district' => 100,
+            'delivery_address' => 4000,
+        ] as $field => $maxLength) {
+            $value = trim((string) ($this->uiMeta[$field] ?? ''));
+            if ($value === '' || mb_strlen($value) > $maxLength) {
+                throw ValidationException::withMessages([
+                    'uiMeta.'.$field => 'Teslimat bilgisi zorunludur; en fazla '.$maxLength.' karakter olabilir.',
+                ]);
+            }
+            $this->uiMeta[$field] = $value;
+        }
     }
 
     private function applySelectedContactDiscount(): void
@@ -85,6 +210,8 @@ class SalesInvoiceEditor extends BaseSalesDocumentEditor
     {
         parent::resetPrototypeTypeFields();
         $this->uiMeta['payment_method'] = 'Vadeli';
+        $this->clearInvoiceDelivery();
+        $this->uiMeta['delivery_mode'] = 'customer';
     }
 
     /** The single visible Save button also posts the invoice to the ledger. */
@@ -92,6 +219,7 @@ class SalesInvoiceEditor extends BaseSalesDocumentEditor
     {
         // Posting requires update permission even when saving a brand-new invoice.
         abort_unless(auth()->user()?->can($this->permissionPrefix().'.update'), 403);
+        $this->prepareInvoiceDelivery();
         parent::save($action);
         $this->post(app(\App\Actions\Documents\ManageInvoiceRecord::class));
     }

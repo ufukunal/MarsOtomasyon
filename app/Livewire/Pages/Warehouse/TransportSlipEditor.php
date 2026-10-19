@@ -24,6 +24,9 @@ class TransportSlipEditor extends Component
     #[Locked]
     public string $mode = 'new';
 
+    #[Locked]
+    public ?int $sourceInvoiceId = null;
+
     public ?string $preview = null;
 
     public bool $previewPrint = false;
@@ -101,7 +104,63 @@ class TransportSlipEditor extends Component
         }
 
         abort_unless(auth()->user()->can('warehouse_slips.create'), 403);
+        $source = request()->query('invoice');
+        if ($source !== null) {
+            abort_unless(is_scalar($source)
+                && preg_match('/^[1-9][0-9]*$/D', (string) $source), 422);
+            $this->prefillFromInvoice((int) $source);
+
+            return;
+        }
         $this->addItem();
+    }
+
+    private function prefillFromInvoice(int $id): void
+    {
+        abort_unless(auth()->user()->can('sales_invoices.view'), 403);
+        $invoice = Document::query()->with(['lines', 'contact.addresses', 'incomingRelations.sourceDocument'])
+            ->where('document_type', DocumentType::SalesInvoice)
+            ->where('status', 'posted')
+            ->findOrFail($id);
+        abort_unless($invoice->contact_id !== null && $invoice->contact !== null, 422);
+
+        $lines = $invoice->lines->filter(fn ($line) =>
+            $line->line_kind === 'stock' && $line->product_id !== null
+                && (float) ($line->base_quantity ?: $line->quantity) > 0
+        )->values();
+        abort_unless($lines->isNotEmpty() && $lines->count() <= 200, 422,
+            'Ambar fişi için 1–200 stok satırı gerekir.');
+
+        $meta = is_array($invoice->ui_meta) ? $invoice->ui_meta : [];
+        $customer = $invoice->contact;
+        // Legacy invoices have no delivery snapshot: fall back to billed customer's
+        // own shipping/general address, never infer a third-party recipient.
+        $default = $customer->addresses->where('type', 'shipping')
+            ->sortByDesc('is_default')->first();
+
+        $this->sourceInvoiceId = $invoice->id;
+        $this->contactId = (int) $invoice->contact_id;
+        $this->locationId = $lines->first()?->location_id;
+        $this->deliveryCompany = (string) ($meta['delivery_company'] ?? $customer->title);
+        $this->deliveryPerson = (string) ($meta['delivery_person'] ?? $customer->primary_contact_name ?? '');
+        $this->deliveryPhone = (string) ($meta['delivery_phone'] ?? $customer->phone ?? '');
+        $this->deliveryCity = (string) ($meta['delivery_city'] ?? $default?->city ?? $customer->city ?? '');
+        $this->deliveryDistrict = (string) ($meta['delivery_district'] ?? $default?->district ?? $customer->district ?? '');
+        $this->deliveryAddress = (string) ($meta['delivery_address'] ?? $default?->address ?? $customer->address ?? '');
+        $this->note = 'Satış Faturası: '.($invoice->number ?: '#'.$invoice->id);
+        foreach ($invoice->incomingRelations as $relation) {
+            $origin = $relation->sourceDocument;
+            if ($origin?->document_type === DocumentType::Dispatch && $this->dispatchReference === '') {
+                $this->dispatchReference = (string) ($origin->number ?? '');
+            }
+            if ($origin?->document_type === DocumentType::SalesOrder && $this->orderReference === '') {
+                $this->orderReference = (string) ($origin->number ?? '');
+            }
+        }
+        $this->items = $lines->map(fn ($line) => [
+            'product_id' => (int) $line->product_id,
+            'quantity' => (string) ($line->base_quantity ?: $line->quantity),
+        ])->all();
     }
 
     public function updatedContactId(): void
@@ -151,6 +210,15 @@ class TransportSlipEditor extends Component
     {
         $this->assertEditable();
         PeriodContext::ensureWritable();
+
+        // Source-invoice identity may not be replaced by a crafted Livewire request.
+        if ($this->sourceInvoiceId !== null) {
+            abort_unless(auth()->user()->can('sales_invoices.view'), 403);
+            $invoice = Document::query()
+                ->where('document_type', DocumentType::SalesInvoice)
+                ->where('status', 'posted')->findOrFail($this->sourceInvoiceId);
+            abort_unless((int) $invoice->contact_id === $this->contactId, 403);
+        }
 
         $data = $this->validate($this->rules(), [], $this->fieldNames());
 
@@ -336,7 +404,7 @@ class TransportSlipEditor extends Component
             ],
         ])->layout('layouts.app', [
             'pageTitle' => $this->mode === 'new' ? 'Yeni Ambar Fişi'
-                : ($this->mode === 'edit' ? 'Ambar Fişini Düzenle · ' : 'Ambar Fişi · ').$this->slip->number,
+                : ($this->mode === 'edit' ? 'Ambar Fişini Düzenle · ' : 'Ambar Fişi · ').($this->slip?->number ?? ''),
         ]);
     }
 

@@ -184,9 +184,73 @@
                             <section class="v65-invoice-info-group" aria-label="Sevk bilgileri">
                                 <header class="v65-invoice-group-title">
                                     <strong>Sevk Bilgileri</strong>
-                                    <small>Cari sevk adresinden alınır</small>
+                                    <small>Teslimat noktasını seçin</small>
                                 </header>
-                                @if(! empty($invoiceContact['shipping_defined']))
+                                <div class="v65-invoice-delivery-controls">
+                                    <label class="field">Teslimat Şekli
+                                        <select wire:model.live="uiMeta.delivery_mode">
+                                            <option value="customer">Fatura müşterisine sevk</option>
+                                            <option value="saved">Müşterinin müşterisine / Kayıtlı sevk noktası</option>
+                                            <option value="manual">Tek seferlik farklı adrese sevk</option>
+                                        </select>
+                                    </label>
+                                    @if(($uiMeta['delivery_mode'] ?? 'customer') === 'saved')
+                                        <label class="field">Sevk Edilecek Firma / Adres
+                                            <select wire:model.live="uiMeta.delivery_address_id">
+                                                <option value="">Sevk noktası seçin</option>
+                                                @foreach($this->invoiceDeliveryAddresses() as $deliveryAddress)
+                                                    <option value="{{ $deliveryAddress->id }}">{{ $deliveryAddress->title ?: $deliveryAddress->address }} · {{ $deliveryAddress->city }}</option>
+                                                @endforeach
+                                            </select>
+                                            <x-v65.input-error field="uiMeta.delivery_address_id" />
+                                        </label>
+                                    @endif
+                                    @if(in_array(($uiMeta['delivery_mode'] ?? 'customer'), ['saved', 'manual'], true))
+                                        <label class="field">Teslim Alacak Firma / Kişi
+                                            <input wire:model.blur="uiMeta.delivery_company" maxlength="180">
+                                            <x-v65.input-error field="uiMeta.delivery_company" />
+                                        </label>
+                                        <label class="field">Yetkili Kişi
+                                            <input wire:model.blur="uiMeta.delivery_person" maxlength="120">
+                                        </label>
+                                        <label class="field">Telefon
+                                            <input wire:model.blur="uiMeta.delivery_phone" maxlength="40">
+                                            <x-v65.input-error field="uiMeta.delivery_phone" />
+                                        </label>
+                                        <label class="field">İl
+                                            <input wire:model.blur="uiMeta.delivery_city" maxlength="100">
+                                            <x-v65.input-error field="uiMeta.delivery_city" />
+                                        </label>
+                                        <label class="field">İlçe
+                                            <input wire:model.blur="uiMeta.delivery_district" maxlength="100">
+                                            <x-v65.input-error field="uiMeta.delivery_district" />
+                                        </label>
+                                        <label class="field v65-invoice-delivery-address">Teslimat Adresi
+                                            <textarea wire:model.blur="uiMeta.delivery_address" rows="2" maxlength="4000"></textarea>
+                                            <x-v65.input-error field="uiMeta.delivery_address" />
+                                        </label>
+                                        <small class="v65-invoice-delivery-note">Bu bilgiler faturaya kaydedilir ve ambar fişi ile koli etiketine aktarılır.</small>
+                                    @endif
+                                    @if($contactId && auth()->user()?->can('contacts.update'))
+                                        <a class="v65-invoice-address-link" target="_blank" rel="noopener"
+                                            href="{{ route('contacts.edit', ['contact' => $contactId]) }}">Cari kartında sevk adreslerini yönet</a>
+                                    @endif
+                                </div>
+
+                                @if(in_array(($uiMeta['delivery_mode'] ?? 'customer'), ['saved', 'manual'], true)
+                                    && ! empty($uiMeta['delivery_company']))
+                                    <dl class="v65-invoice-readonly-grid">
+                                        <div class="v65-invoice-readonly-item v65-invoice-readonly-wide">
+                                            <dt>Teslim Edilecek Firma</dt><dd>{{ $uiMeta['delivery_company'] }}</dd>
+                                        </div>
+                                        <div class="v65-invoice-readonly-item v65-invoice-readonly-wide">
+                                            <dt>Sevk Adresi</dt><dd>{{ $uiMeta['delivery_address'] ?? '—' }}</dd>
+                                        </div>
+                                        <div class="v65-invoice-readonly-item v65-invoice-readonly-wide">
+                                            <dt>İl / İlçe</dt><dd>{{ collect([$uiMeta['delivery_city'] ?? null, $uiMeta['delivery_district'] ?? null])->filter()->implode(' / ') ?: '—' }}</dd>
+                                        </div>
+                                    </dl>
+                                @elseif(! empty($invoiceContact['shipping_defined']))
                                     <dl class="v65-invoice-readonly-grid">
                                         @if(! empty($invoiceContact['shipping_title']))
                                             <div class="v65-invoice-readonly-item v65-invoice-readonly-wide">
@@ -668,6 +732,19 @@
                 <x-v65.button wire:click="post" wire:loading.attr="disabled" wire:target="post" :disabled="$documentDirty">Kaydet ve İşle</x-v65.button>
             @endif
         </section>
+    @endif
+
+    @if($this instanceof \App\Livewire\Sales\SalesInvoiceEditor && $document
+        && $document->status === 'posted' && auth()->user()?->can('warehouse_slips.create')
+        && auth()->user()?->can('warehouse_slips.view')
+        && auth()->user()?->can('sales_invoices.view')
+        && $document->lines()->where('line_kind', 'stock')->whereNotNull('product_id')->exists())
+        <div class="v65-invoice-warehouse-link">
+            <span>Sevk bilgileri ve stok satırları kayıtlı faturadan alınacaktır. Ambar fişi kaydedilmeden oluşturulmaz.</span>
+            <a class="button-link" href="{{ route('warehouse.transport.create', ['invoice' => $document->id]) }}">
+                Ambar Fişi Oluştur
+            </a>
+        </div>
     @endif
     @if($this instanceof \App\Livewire\Sales\SalesInvoiceEditor && $document
         && auth()->user()?->can('sales_invoices.cancel')

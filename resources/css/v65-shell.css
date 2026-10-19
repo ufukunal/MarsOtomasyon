@@ -3550,3 +3550,32 @@
 .app-shell .v65-invoice-contact-panels .v65-invoice-empty-info{
     padding:12px;margin:0;color:#6a829c;font-size:11px;line-height:1.5
 }
+
+
+/* Sales invoice: choose billed-customer delivery, a saved third-party address or one-off destination. */
+.app-shell .v65-invoice-delivery-controls{
+    display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:9px 12px;padding:12px;border-top:1px solid #e3ebf4
+}
+.app-shell .v65-invoice-delivery-controls>.field{
+    display:grid;gap:4px;min-width:0;font-size:11px;font-weight:700;color:#426487
+}
+.app-shell .v65-invoice-delivery-controls :where(input,select,textarea){
+    width:100%;max-width:100%;box-sizing:border-box;min-height:34px;
+    padding:6px 9px;border:1px solid #cedbeb;border-radius:5px
+}
+.app-shell .v65-invoice-delivery-controls>.v65-invoice-delivery-address{grid-column:1/-1}
+.app-shell .v65-invoice-delivery-controls>.v65-invoice-delivery-note{
+    grid-column:1/-1;color:#6a829c
+}
+.app-shell .v65-invoice-address-link{grid-column:1/-1;font-size:11px}
+.app-shell .v65-invoice-warehouse-link{
+    display:flex;align-items:center;justify-content:space-between;gap:12px;
+    padding:12px;margin-top:10px;border:1px solid #dae5f0;border-radius:7px;
+    color:#47617b;background:#f7fafe;font-size:11px
+}
+.app-shell .v65-invoice-warehouse-link .button-link{flex:0 0 auto}
+@media(max-width:700px){
+    .app-shell .v65-invoice-delivery-controls{grid-template-columns:minmax(0,1fr)}
+    .app-shell .v65-invoice-warehouse-link{flex-wrap:wrap}
+}
