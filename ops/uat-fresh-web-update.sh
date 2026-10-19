@@ -219,6 +219,9 @@ php -l /var/www/html/app/Http/Controllers/ProductTechnicalSheetController.php
 php -l /var/www/html/app/Livewire/Pages/Contacts/ContactDetail.php
 php -l /var/www/html/app/Livewire/Pages/Contacts/ContactList.php
 php -l /var/www/html/app/Livewire/Sales/BaseSalesDocumentEditor.php
+# New sales-invoice delivery and warehouse handoff must lint before the web switch.
+php -l /var/www/html/app/Livewire/Sales/SalesInvoiceEditor.php
+php -l /var/www/html/app/Livewire/Pages/Warehouse/TransportSlipEditor.php
 # Check all recently edited record/detail Livewire classes before replacing Fresh.
 for file in \
   /var/www/html/app/Livewire/Finance/CollectionForm.php \
