@@ -222,6 +222,10 @@ php -l /var/www/html/app/Livewire/Sales/BaseSalesDocumentEditor.php
 # New sales-invoice delivery and warehouse handoff must lint before the web switch.
 php -l /var/www/html/app/Livewire/Sales/SalesInvoiceEditor.php
 php -l /var/www/html/app/Livewire/Pages/Warehouse/TransportSlipEditor.php
+# Four-mode PDF printing classes are validated BEFORE switching Fresh web.
+php -l /var/www/html/app/Enums/BusinessDocumentPrintVariant.php
+php -l /var/www/html/app/Http/Controllers/PrintBusinessDocumentController.php
+php -l /var/www/html/app/Support/Printing/BusinessDocumentImageResolver.php
 # Check all recently edited record/detail Livewire classes before replacing Fresh.
 for file in \
   /var/www/html/app/Livewire/Finance/CollectionForm.php \
