@@ -83,6 +83,22 @@ THEN 'READY' ELSE 'MISSING' END;
 SQL
 )" || fail 'Could not verify isolated master permissions'
 [[ "$MASTER_PERMISSIONS_READY" == 'READY' ]] || fail 'FRESH role synchronization is pending. Do not deploy web only.'
+# Code handling custom quote lines must not run against the old Fresh database schema.
+CUSTOM_QUOTE_SCHEMA_READY="$(sudo docker exec "$PG" psql -w -U mars_uat_owner
+  -d mars_uat_demo_2026 -XAtq -v ON_ERROR_STOP=1 -c "
+SELECT CASE WHEN
+  to_regclass('public.quote_custom_code_seq') IS NOT NULL
+  AND EXISTS (SELECT 1 FROM pg_constraint
+    WHERE conname='document_lines_kind_valid' AND pg_get_constraintdef(oid) LIKE '%custom%')
+  AND EXISTS (SELECT 1 FROM pg_constraint
+    WHERE conname='document_lines_stock_shape_valid' AND pg_get_constraintdef(oid) LIKE '%custom%')
+  AND EXISTS (SELECT 1 FROM migrations
+    WHERE migration='2026_10_20_000001_add_custom_quote_document_lines')
+  AND has_sequence_privilege('mars_uat_app', 'public.quote_custom_code_seq', 'USAGE')
+THEN 'READY' ELSE 'MISSING' END;
+")" || fail 'Could not verify isolated custom-quote schema'
+[[ "$CUSTOM_QUOTE_SCHEMA_READY" == READY ]] || fail 'Custom quote migration missing; leave Fresh web unchanged'
+echo 'FRESH_CUSTOM_QUOTE_SCHEMA=READY'
 echo 'FRESH_SCHEMA_READY=YES FRESH_PERMISSIONS_READY=YES'
 
 sudo docker image inspect "$OLD_IMAGE" >/dev/null || fail 'Old web image not available for rollback'
@@ -226,6 +242,22 @@ php -l /var/www/html/app/Livewire/Pages/Warehouse/TransportSlipEditor.php
 php -l /var/www/html/app/Enums/BusinessDocumentPrintVariant.php
 php -l /var/www/html/app/Http/Controllers/PrintBusinessDocumentController.php
 php -l /var/www/html/app/Support/Printing/BusinessDocumentImageResolver.php
+# Isolated custom fabrication classes must lint before Fresh web switch.
+for source in \
+  /var/www/html/app/Livewire/Sales/QuoteEditor.php \
+  /var/www/html/app/Actions/Documents/SaveSalesDocumentDraft.php \
+  /var/www/html/app/Models/Period/Document.php \
+  /var/www/html/app/Http/Controllers/QuoteCustomImageController.php \
+  /var/www/html/app/Support/Quotes/CopyCustomQuoteImages.php \
+  /var/www/html/app/Actions/Sales/CreateQuoteRevision.php \
+  /var/www/html/app/Actions/Sales/CreateDispatchFromOrder.php \
+  /var/www/html/app/Actions/Sales/CreateInvoiceFromOrder.php \
+  /var/www/html/database/migrations/period/2026_10_20_000001_add_custom_quote_document_lines.php
+do
+  php -l "$source" || { echo "CUSTOM_QUOTE_PHP_LINT_FAIL: $source" >&2; exit 1; }
+done
+echo 'CUSTOM_QUOTE_PHP_LINT=PASS'
+
 # Check all recently edited record/detail Livewire classes before replacing Fresh.
 for file in \
   /var/www/html/app/Livewire/Finance/CollectionForm.php \
