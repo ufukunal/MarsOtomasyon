@@ -54,6 +54,9 @@ it('replaces in-editor generic print with server backed preview and PDF links', 
         ->and($selector)->toContain("route('documents.print'")
         ->toContain("'format' => 'html'")
         ->toContain("'format' => 'pdf'")
+        ->toContain('v65-document-direct-pdf')
+        ->toContain('Düz Fiyatlı belgeyi doğrudan PDF indir')
+        ->toContain('BusinessDocumentPrintVariant::PlainPriced->value')
         ->toContain('Çıktı yalnız kaydedilmiş belgeyi kullanır.')
         ->not->toContain('onclick="window.print()"');
 

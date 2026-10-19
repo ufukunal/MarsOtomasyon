@@ -29,6 +29,10 @@ it('selects print layout only after source-document permission check and disallo
         ->toContain('variant')
         ->toContain('Önizle')
         ->toContain('PDF İndir')
+        ->toContain('v65-document-print-actions')
+        ->toContain('v65-document-direct-pdf')
+        ->toContain('BusinessDocumentPrintVariant::PlainPriced->value')
+        ->toContain('Düz Fiyatlı tasarımla tek tıkla indir')
         ->and($generic)->toContain('x-v65.document-print-options')
         ->and($prototype)->toContain('x-v65.document-print-options');
 });

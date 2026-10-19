@@ -3602,3 +3602,13 @@
 @media(max-width:700px){
     .app-shell .v65-document-print-menu{left:0;right:auto}
 }
+
+/* Direct default PDF download immediately beside the four-mode print selector. */
+.app-shell .v65-document-print-actions{
+    display:inline-flex;align-items:center;gap:8px;flex-wrap:nowrap;max-width:100%
+}
+.app-shell .v65-document-print-actions>.v65-btn,
+.app-shell .v65-document-print-actions>.v65-document-print-picker>summary{
+    height:32px;min-height:32px;display:inline-flex;align-items:center;
+    justify-content:center;white-space:nowrap;box-sizing:border-box
+}
