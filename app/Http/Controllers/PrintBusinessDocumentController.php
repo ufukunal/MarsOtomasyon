@@ -49,6 +49,9 @@ final class PrintBusinessDocumentController
         $productImages = $printVariant->showImages()
             ? app(BusinessDocumentImageResolver::class)->forDocument($record)
             : [];
+        $customImages = $printVariant->showImages()
+            ? app(BusinessDocumentImageResolver::class)->forCustomDocument($record)
+            : [];
 
         $meta = is_array($record->ui_meta) ? $record->ui_meta : [];
         $record->contact?->loadMissing('addresses');
@@ -130,6 +133,7 @@ final class PrintBusinessDocumentController
             'showPrices' => $printVariant->showPrices(),
             'showImages' => $printVariant->showImages(),
             'productImages' => $productImages,
+            'customImages' => $customImages,
             'billing' => $billing,
             'delivery' => $delivery,
             'documentQrToken' => $documentQrToken,

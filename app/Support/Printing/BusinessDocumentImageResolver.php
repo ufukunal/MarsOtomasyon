@@ -3,6 +3,7 @@
 namespace App\Support\Printing;
 
 use App\Models\Period\Document;
+use App\Models\Period\DocumentLine;
 use Illuminate\Support\Facades\Storage;
 
 /**
@@ -67,4 +68,71 @@ final class BusinessDocumentImageResolver
 
         return $result;
     }
+
+    /**
+     * Source-line ancestry preserves a quoted custom item's cover image through
+     * quote -> order -> dispatch -> invoice without stock product creation.
+     *
+     * @return array<string,string> Custom code => embedded image data URI
+     */
+    public function forCustomDocument(Document $document): array
+    {
+        $document->loadMissing('lines');
+        $result = [];
+        $budget = 15 * 1024 * 1024;
+
+        foreach ($document->lines as $line) {
+            if ($line->line_kind !== 'custom') {
+                continue;
+            }
+            $code = (string) ($line->configuration['custom_code'] ?? '');
+            if (preg_match('/^OZ-[0-9]{4}-[0-9]{6}$/D', $code) !== 1 || isset($result[$code])) {
+                continue;
+            }
+
+            $current = $line;
+            $seen = [];
+            for ($depth = 0; $current !== null && $depth < 12; $depth++) {
+                if (isset($seen[$current->id])) {
+                    break;
+                }
+                $seen[$current->id] = true;
+                $owner = $current->document;
+                if ($owner === null) {
+                    break;
+                }
+                $image = $owner->attachments()
+                    ->where('collection', 'quote_custom_'.$code)
+                    ->whereIn('mime', ['image/png', 'image/jpeg', 'image/webp'])
+                    ->orderBy('sort_order')->first();
+
+                if ($image !== null && (int) $image->size <= 5 * 1024 * 1024) {
+                    try {
+                        $bytes = Storage::disk($image->disk)->get($image->path);
+                        $length = strlen($bytes);
+                        if ($length > 0 && $length <= 5 * 1024 * 1024 && $length <= $budget) {
+                            $mime = (new \finfo(FILEINFO_MIME_TYPE))->buffer($bytes);
+                            if ($mime === $image->mime) {
+                                $result[$code] = 'data:'.$mime.';base64,'.base64_encode($bytes);
+                                $budget -= $length;
+                                break;
+                            }
+                        }
+                    } catch (\Throwable) {
+                        // Missing media must not prevent an otherwise valid PDF.
+                    }
+                }
+
+                $current->loadMissing('sourceLine.document');
+                $parent = $current->sourceLine;
+                if ($parent !== null && ($parent->configuration['custom_code'] ?? '') !== $code) {
+                    break;
+                }
+                $current = $parent;
+            }
+        }
+
+        return $result;
+    }
+
 }

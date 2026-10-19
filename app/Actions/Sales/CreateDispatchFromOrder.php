@@ -58,7 +58,7 @@ final class CreateDispatchFromOrder
                         throw new DomainException('Sevk miktarı sipariş satırı kalanını aşıyor.');
                     }
 
-                    if ($source->line_kind === 'service') {
+                    if ($source->line_kind !== 'stock') {
                         $draftLines[] = $this->copyLine($source, $requested, null);
 
                         continue;

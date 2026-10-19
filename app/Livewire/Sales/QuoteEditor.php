@@ -9,9 +9,120 @@ use App\Actions\Sales\IssueProforma;
 use App\Actions\Sales\SendQuoteToCustomerReview;
 use App\Actions\Sales\SubmitQuoteForInternalApproval;
 use App\Enums\DocumentType;
+use App\Actions\Attachments\StoreAttachment;
+use App\Models\Attachment;
+use App\Models\Period\Document;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
+use Livewire\WithFileUploads;
 
 class QuoteEditor extends BaseSalesDocumentEditor
 {
+    use WithFileUploads;
+
+    public string $customSelectedRowKey = '';
+
+    /** @var array<int, \Livewire\Features\SupportFileUploads\TemporaryUploadedFile> */
+    public array $customImageUploads = [];
+
+    /** @return array{index:int,line:array<string,mixed>}|null */
+    public function selectedCustomRow(): ?array
+    {
+        $first = null;
+        foreach ($this->lines as $index => $line) {
+            if (($line['line_kind'] ?? '') !== 'custom') {
+                continue;
+            }
+            $row = ['index' => $index, 'line' => $line];
+            $first ??= $row;
+            if (($line['row_key'] ?? '') === $this->customSelectedRowKey) {
+                return $row;
+            }
+        }
+        return $first;
+    }
+
+    public function selectCustomRow(string $rowKey): void
+    {
+        if (collect($this->lines)->contains(
+            static fn (array $line): bool => ($line['line_kind'] ?? '') === 'custom'
+                && ($line['row_key'] ?? '') === $rowKey
+        )) {
+            $this->customSelectedRowKey = $rowKey;
+        }
+    }
+
+    /** @return Collection<int, Attachment> */
+    public function selectedCustomImages(): Collection
+    {
+        $code = (string) ($this->selectedCustomRow()['line']['configuration']['custom_code'] ?? '');
+        if (! $this->document || $code === '') {
+            return new Collection;
+        }
+        return $this->document->attachments()
+            ->where('collection', 'quote_custom_'.$code)
+            ->orderBy('sort_order')->get();
+    }
+
+    private function requireEditableCustomPhotoCollection(): string
+    {
+        abort_unless(auth()->user()?->can('quotes.update'), 403);
+        abort_unless($this->document !== null, 409, 'Önce teklifi kaydedin.');
+        $quote = Document::query()->findOrFail($this->document->id);
+        abort_unless($quote->document_type === DocumentType::Quote && $quote->status === 'draft', 409);
+
+        $code = (string) ($this->selectedCustomRow()['line']['configuration']['custom_code'] ?? '');
+        abort_unless(preg_match('/^OZ-[0-9]{4}-[0-9]{6}$/D', $code) === 1, 422);
+        $owned = $quote->lines()->where('line_kind', 'custom')->get()
+            ->contains(static fn ($line): bool => ($line->configuration['custom_code'] ?? '') === $code);
+        abort_unless($owned, 404);
+
+        return 'quote_custom_'.$code;
+    }
+
+    public function uploadCustomImages(StoreAttachment $store): void
+    {
+        $collection = $this->requireEditableCustomPhotoCollection();
+        $this->validate([
+            'customImageUploads' => ['required', 'array', 'min:1', 'max:8'],
+            'customImageUploads.*' => ['required', 'image', 'mimetypes:image/jpeg,image/png,image/webp', 'max:5120'],
+        ]);
+        $count = $this->document->attachments()->where('collection', $collection)->count();
+        if ($count + count($this->customImageUploads) > 10) {
+            throw ValidationException::withMessages([
+                'customImageUploads' => 'Bir özel üretim kalemine en fazla 10 görsel eklenebilir.',
+            ]);
+        }
+        foreach ($this->customImageUploads as $index => $file) {
+            $store->handle($this->document, $file, $collection, $count + $index);
+        }
+        $this->reset('customImageUploads');
+    }
+
+    public function setCustomCover(int $attachmentId): void
+    {
+        $collection = $this->requireEditableCustomPhotoCollection();
+        DB::connection('period')->transaction(function () use ($collection, $attachmentId): void {
+            $images = $this->document->attachments()->where('collection', $collection)
+                ->orderBy('sort_order')->lockForUpdate()->get();
+            abort_unless($images->contains('id', $attachmentId), 404);
+            foreach ($images->sortBy(static fn ($item): int => $item->id === $attachmentId ? -1 : $item->sort_order)->values() as $index => $image) {
+                $image->sort_order = $index;
+                $image->save();
+            }
+        });
+    }
+
+    public function deleteCustomImage(int $attachmentId): void
+    {
+        $collection = $this->requireEditableCustomPhotoCollection();
+        $image = $this->document->attachments()->where('collection', $collection)
+            ->findOrFail($attachmentId);
+        $image->delete();
+    }
+
+
     protected function documentType(): DocumentType
     {
         return DocumentType::Quote;

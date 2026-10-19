@@ -51,8 +51,16 @@
                 @forelse($document->lines as $line)
                     <tr>
                         <td>{{ $line->line_no }}</td>
-                        <td>{{ $line->line_kind === 'service' ? 'Hizmet' : 'Stok' }}</td>
-                        <td>{{ $line->description ?: '—' }}</td>
+                        <td>{{ match ($line->line_kind) {'service' => 'Hizmet', 'custom' => 'Özel Üretim', default => 'Stok'} }}</td>
+                        <td>
+                            {{ $line->description ?: '—' }}
+                            @if($line->line_kind === 'custom')
+                                <small class="v65-doc-muted">{{ $line->configuration['custom_code'] ?? '' }}</small>
+                                @if(!empty($line->configuration['technical_notes']))
+                                    <small class="v65-doc-muted">{{ $line->configuration['technical_notes'] }}</small>
+                                @endif
+                            @endif
+                        </td>
                         <td>{{ $line->unit?->code ?? '—' }}</td>
                         <td class="align-end">{{ \App\Support\Formatting\TrFormatter::quantity((string) $line->quantity) }}</td>
                         <td class="align-end">{{ \App\Support\Formatting\TrFormatter::money((string) $line->unit_price) }}</td>

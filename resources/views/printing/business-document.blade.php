@@ -172,7 +172,11 @@
                     <td>{{ $line->line_no }}</td>
                     @if($showImages)
                         <td class="product-thumb">
-                            @if($line->product_id && isset($productImages[$line->product_id]))
+                            @if($line->line_kind === 'custom'
+                                && isset($customImages[$line->configuration['custom_code'] ?? '']))
+                                <img src="{{ $customImages[$line->configuration['custom_code']] }}"
+                                    alt="{{ $line->description ?: 'Özel üretim görseli' }}">
+                            @elseif($line->product_id && isset($productImages[$line->product_id]))
                                 <img src="{{ $productImages[$line->product_id] }}"
                                     alt="{{ $line->description ?: 'Ürün görseli' }}">
                             @else
@@ -182,7 +186,14 @@
                     @endif
                     <td class="desc">
                         {{ $line->description ?: '—' }}
-                        @if($line->product?->code)<small class="line-location">{{ $line->product->code }}</small>@endif
+                        @if($line->line_kind === 'custom')
+                            <small class="line-location"><strong>{{ $line->configuration['custom_code'] ?? 'Özel Üretim' }}</strong></small>
+                            @if(! empty($line->configuration['technical_notes']))
+                                <small class="line-location">{{ $line->configuration['technical_notes'] }}</small>
+                            @endif
+                        @elseif($line->product?->code)
+                            <small class="line-location">{{ $line->product->code }}</small>
+                        @endif
                         @if($line->location)<small class="line-location">Depo: {{ $line->location->name }}</small>@endif
                     </td>
                     <td>{{ $line->unit?->code ?? '—' }}</td>

@@ -3612,3 +3612,27 @@
     height:32px;min-height:32px;display:inline-flex;align-items:center;
     justify-content:center;white-space:nowrap;box-sizing:border-box
 }
+
+
+/* Quote-only, isolated custom fabrication lines and clipboard image gallery. */
+.app-shell .v65-custom-quote-code{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.app-shell .v65-custom-quote-code>strong{font-size:11px;color:#17618d;white-space:nowrap}
+.app-shell .v65-custom-quote-code>button{border:1px solid #b9d2e7;border-radius:5px;background:#fff;color:#24608b;padding:4px 7px;cursor:pointer;font-size:10px}
+.app-shell .v65-custom-quote-panel{margin:12px 0;border:1px solid #cedce9;border-radius:7px;background:#fff;overflow:hidden}
+.app-shell .v65-custom-quote-panel-head{background:#edf5fd;display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 15px}
+.app-shell .v65-custom-quote-panel-head>div{display:grid;gap:4px}
+.app-shell .v65-custom-quote-panel-head small{color:#687e92}
+.app-shell .v65-custom-quote-nostock{color:#255e82;font-size:10px;white-space:nowrap}
+.app-shell .v65-custom-quote-detail{padding:13px;display:grid;gap:10px;min-width:0}
+.app-shell .v65-custom-quote-detail>label{display:grid;gap:5px;font-size:11px;font-weight:650}
+.app-shell .v65-custom-quote-detail :where(input:not([type=file]),textarea){width:100%;min-height:35px;border:1px solid #ccdbe8;border-radius:5px;padding:7px 10px;box-sizing:border-box}
+.app-shell .v65-custom-image-drop{padding:16px;border:2px dashed #bed3e5;border-radius:8px;display:grid;gap:10px;place-items:center;text-align:center;background:#f8fbff;min-width:0}
+.app-shell .v65-custom-image-drop:focus-visible{outline:2px solid #2479bd}
+.app-shell .v65-custom-image-drop label{display:grid;gap:6px;font-size:11px}
+.app-shell .v65-custom-quote-gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px}
+.app-shell .v65-custom-quote-image{min-width:0;display:grid;gap:6px;align-content:start}
+.app-shell .v65-custom-quote-image img{width:100%;height:125px;object-fit:contain;background:#f5f8fc;border:1px solid #d8e3ee;border-radius:5px}
+.app-shell .v65-custom-quote-image small{font-size:10px}
+.app-shell .v65-custom-image-actions{display:flex;gap:6px}
+.app-shell .v65-custom-image-actions button{border:1px solid #c8d8e9;border-radius:5px;padding:6px 8px;background:#fff;cursor:pointer;font-size:10px}
+@media(max-width:700px){.app-shell .v65-custom-quote-panel-head{align-items:flex-start;flex-wrap:wrap}}

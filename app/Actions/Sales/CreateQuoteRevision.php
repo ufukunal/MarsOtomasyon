@@ -7,6 +7,7 @@ use App\Models\Period\Document;
 use App\Models\Period\DocumentLine;
 use App\Models\Period\DocumentRelation;
 use App\Support\Audit\AuditContext;
+use App\Support\Quotes\CopyCustomQuoteImages;
 use App\Support\Auth\MutationAuthorizer;
 use App\Support\Concurrency\IdempotencyKey;
 use DomainException;
@@ -83,6 +84,8 @@ final class CreateQuoteRevision
                             'document_id' => $revision->id,
                         ]);
                     }
+
+                    app(CopyCustomQuoteImages::class)->handle($latest, $revision);
 
                     DocumentRelation::query()->create([
                         'source_document_id' => $revision->id,

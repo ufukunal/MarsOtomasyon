@@ -3,6 +3,8 @@
 namespace App\Models\Period;
 
 use App\Enums\DocumentType;
+use App\Contracts\HasAttachments as HasAttachmentsContract;
+use App\Models\Concerns\HasAttachments;
 use App\Models\PeriodModel;
 use App\Support\Concurrency\HasOptimisticLock;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -30,9 +32,10 @@ use LogicException;
  * @property array<string, mixed>|null $ui_meta
  * @property array<string, mixed>|null $requirements_snapshot
  */
-class Document extends PeriodModel
+class Document extends PeriodModel implements HasAttachmentsContract
 {
     use HasOptimisticLock;
+    use HasAttachments;
 
     protected $fillable = [
         'document_type', 'number', 'revision_no', 'document_date', 'due_date', 'valid_until',

@@ -86,6 +86,10 @@
                 @endif
                 <small class="v65-reference-multi-help">Ctrl + tıklama ile birden fazla ürün seçebilirsiniz.</small>
             </div>
+            @if($screenType === 'quote')
+                <x-v65.button variant="secondary" size="sm" wire:click="addCustomLine"
+                    wire:loading.attr="disabled" wire:target="addCustomLine">+ Özel Üretim Ekle</x-v65.button>
+            @endif
             <x-v65.button variant="secondary" size="sm" wire:click="addServiceLine">+ Hizmet Satırı</x-v65.button>
             @if($showVat)
                 <div class="v65-reference-vat-select">

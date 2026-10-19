@@ -8,6 +8,7 @@ use App\Http\Controllers\ImportErrorReportController;
 use App\Http\Controllers\PrintBusinessDocumentController;
 use App\Http\Controllers\PrintTransportSlipController;
 use App\Http\Controllers\ProductImageController;
+use App\Http\Controllers\QuoteCustomImageController;
 use App\Http\Controllers\ProductTechnicalSheetController;
 use App\Http\Controllers\ReportExportDownloadController;
 use App\Http\Controllers\TrendyolWebhookController;
@@ -195,6 +196,8 @@ Route::middleware('auth')->group(function (): void {
         ->name('documents.print');
 
     Route::get('/satis/teklifler', QuoteList::class)->name('sales.quotes.index');
+    Route::get('/satis/teklif-gorsel/{document}/{attachment}', QuoteCustomImageController::class)
+        ->whereNumber('document')->whereNumber('attachment')->name('sales.quotes.custom-image');
     Route::get('/satis/teklif/{id?}', QuoteEditor::class)->name('sales.quotes.edit');
     Route::get('/satis/siparisler', SalesOrderList::class)->name('sales.orders.index');
     Route::get('/satis/siparis/{id?}', SalesOrderEditor::class)->name('sales.orders.edit');

@@ -9,6 +9,7 @@ use App\Models\Period\Document;
 use App\Models\Period\DocumentLine;
 use App\Models\Period\Location;
 use App\Models\Period\Product;
+use App\Models\Period\Unit;
 use App\Support\Period\PeriodContext;
 use App\Support\Pricing\PriceDeviation;
 use App\Support\Pricing\PriceResolver;
@@ -64,12 +65,13 @@ final class SaveSalesDocumentDraft
             $contact = $contactId ? Contact::query()->findOrFail($contactId) : null;
             $normalized = [];
             $calcInput = [];
+            $customCodes = [];
 
             foreach ($lines as $index => $line) {
                 $kind = (string) ($line['line_kind'] ?? 'stock');
                 $quantity = bcadd((string) ($line['quantity'] ?? '0'), '0', 3);
 
-                if (! in_array($kind, ['stock', 'service'], true) || bccomp($quantity, '0', 3) <= 0) {
+                if (! in_array($kind, ['stock', 'service', 'custom'], true) || bccomp($quantity, '0', 3) <= 0) {
                     throw new DomainException('Belge satır türü veya miktarı geçersiz.');
                 }
 
@@ -78,6 +80,54 @@ final class SaveSalesDocumentDraft
                 $factor = null;
                 $baseQuantity = null;
                 $locationId = null;
+                $configuration = $line['configuration'] ?? null;
+
+                if ($kind === 'custom') {
+                    if (! is_array($configuration)) {
+                        $configuration = [];
+                    }
+                    $description = trim((string) ($line['description'] ?? ''));
+                    if ($description === '' || mb_strlen($description) > 255) {
+                        throw new DomainException('Özel üretim ürün adı 1–255 karakter olmalıdır.');
+                    }
+                    $unitId = (int) ($line['unit_id'] ?? 0);
+                    if (! Unit::query()->where('is_active', true)->whereKey($unitId)->exists()) {
+                        throw new DomainException('Özel üretim satırında geçerli birim zorunludur.');
+                    }
+                    $notes = trim((string) ($configuration['technical_notes'] ?? ''));
+                    if (mb_strlen($notes) > 1500) {
+                        throw new DomainException('Özel üretim teknik açıklaması 1500 karakteri aşamaz.');
+                    }
+                    $code = (string) ($configuration['custom_code'] ?? '');
+                    $savedCode = $document !== null && $code !== ''
+                        && $document->lines()->where('line_kind', 'custom')->get()->contains(
+                            static fn (DocumentLine $existing): bool => ($existing->configuration['custom_code'] ?? null) === $code
+                        );
+
+                    if ($type === DocumentType::Quote && ! $savedCode) {
+                        // Never accept client-supplied codes for new quote rows.
+                        $sequence = DB::connection('period')->selectOne(
+                            "SELECT nextval('quote_custom_code_seq') AS number"
+                        );
+                        $number = (int) $sequence->number;
+                        if ($number <= 0 || $number > 999999) {
+                            throw new DomainException('Özel üretim kod aralığı doldu.');
+                        }
+                        $code = 'OZ-'.now()->format('Y').'-'.str_pad((string) $number, 6, '0', STR_PAD_LEFT);
+                    } elseif ($type !== DocumentType::Quote && ! $savedCode) {
+                        $source = ! empty($line['source_line_id'])
+                            ? DocumentLine::query()->where('line_kind', 'custom')->find((int) $line['source_line_id'])
+                            : null;
+                        if (! $source || ($source->configuration['custom_code'] ?? null) !== $code) {
+                            throw new DomainException('Özel üretim satırı yalnız kaynak belgeden aktarılabilir.');
+                        }
+                    }
+                    if (isset($customCodes[$code])) {
+                        throw new DomainException('Aynı özel üretim kodu bir belgede tekrarlanamaz.');
+                    }
+                    $customCodes[$code] = true;
+                    $configuration = ['custom_code' => $code, 'technical_notes' => $notes];
+                }
 
                 if ($kind === 'stock') {
                     $product = Product::query()->findOrFail((int) ($line['product_id'] ?? 0));
@@ -131,12 +181,12 @@ final class SaveSalesDocumentDraft
                     'quantity' => $quantity,
                     'conversion_factor' => $factor,
                     'base_quantity' => $baseQuantity,
-                    'location_id' => $kind === 'service' ? null : $locationId,
+                    'location_id' => $kind === 'stock' ? $locationId : null,
                     'unit_price' => $unitPrice,
                     'vat_rate' => $vatRate,
-                    'reserve_stock' => (bool) ($line['reserve_stock'] ?? false),
+                    'reserve_stock' => $kind === 'stock' && (bool) ($line['reserve_stock'] ?? false),
                     'cancelled_quantity' => '0.000',
-                    'configuration' => $line['configuration'] ?? null,
+                    'configuration' => $configuration,
                     'source_line_id' => isset($line['source_line_id']) ? (int) $line['source_line_id'] : null,
                 ];
             }

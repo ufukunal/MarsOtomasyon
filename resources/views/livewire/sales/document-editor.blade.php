@@ -15,7 +15,8 @@
         $screen = config('document_prototype.'.$screenType);
         $formId = 'v65-reference-form-'.$screenType;
         $lineCount = collect($lines)->filter(fn ($line) => ! empty($line['product_id'])
-            || (($line['line_kind'] ?? 'stock') === 'service' && trim((string) ($line['description'] ?? '')) !== ''))->count();
+            || (in_array(($line['line_kind'] ?? 'stock'), ['service', 'custom'], true)
+                && trim((string) ($line['description'] ?? '')) !== ''))->count();
     @endphp
     <x-v65.document-prototype-heading :document="$document" :screen-type="$screenType"
         :index-route="$documentIndexRoute" :dirty="$documentDirty" :form-id="$formId"
@@ -454,6 +455,7 @@
                     @foreach($lines as $index => $line)
                         @php
                             $service = ($line['line_kind'] ?? 'stock') === 'service';
+                            $custom = ($line['line_kind'] ?? 'stock') === 'custom';
                             $rowKey = (string) ($line['row_key'] ?? $index);
                             $isEntryRow = $index === count($lines) - 1 && $this->isPrototypeEntryRow($line);
                             $productChoices = $this->productOptionsForLine($rowKey, (int) ($line['product_id'] ?? 0));
@@ -470,6 +472,13 @@
                             <td class="v65-doc-product-combined">
                                 <div class="v65-doc-product-cell">
                                 @if($service)<span class="v65-doc-muted">HİZMET</span>
+                                @elseif($custom)
+                                    <div class="v65-custom-quote-code">
+                                        <strong>{{ $line['configuration']['custom_code'] ?? 'Kayıt sonrası özel kod' }}</strong>
+                                        @if($this instanceof \App\Livewire\Sales\QuoteEditor)
+                                            <button type="button" wire:click="selectCustomRow('{{ $rowKey }}')">Görseller</button>
+                                        @endif
+                                    </div>
                                 @else
                                     @if(!empty($line['product_id']))<details class="v65-reference-change-product"><summary>Ürünü değiştir</summary>@endif
                                     <input type="search" class="v65-doc-product-search" data-v65-fast-product-search
@@ -488,8 +497,12 @@
                                 @endif
                             </div>
                                 <div class="v65-doc-product-detail">
-                                @if($service)
-                                    <input wire:model.blur="lines.{{ $index }}.description" placeholder="Hizmet açıklaması">
+                                @if($service || $custom)
+                                    <input wire:model.blur="lines.{{ $index }}.description" maxlength="255"
+                                        placeholder="{{ $custom ? 'Özel üretim ürün adı' : 'Hizmet açıklaması' }}">
+                                    @if($custom)
+                                        <small class="v65-doc-muted">Ana stok sistemine eklenmez</small>
+                                    @endif
                                     <x-v65.input-error :field="'lines.'.$index.'.description'"/>
                                 @else
                                     <strong>{{ $line['description'] ?? 'Ürün seçin' }}</strong>
@@ -516,16 +529,24 @@
                             <td class="align-end v65-doc-line-incl">{{ $lineWithVat !== null ? \App\Support\Formatting\TrFormatter::money($lineWithVat) : '—' }}</td>
                             <td class="v65-reference-actions-cell"><x-v65.document-line-actions :index="$index">
                                 <div class="v65-doc-line-details">
-                                    <label>Tür <select wire:model.live="lines.{{ $index }}.line_kind" aria-label="Satır türü">
-                                        <option value="stock">Stok</option><option value="service">Hizmet</option>
-                                    </select></label>
-                                    @unless($service)
+                                    @if($custom)
+                                        <strong>Özel Üretim · Stok Dışı</strong>
+                                        <label>Teknik Özellikler / Ölçüler
+                                            <textarea wire:model.blur="lines.{{ $index }}.configuration.technical_notes"
+                                                rows="3" maxlength="1500" placeholder="Malzeme, renk, ebat ve üretim notları"></textarea>
+                                        </label>
+                                    @else
+                                        <label>Tür <select wire:model.live="lines.{{ $index }}.line_kind" aria-label="Satır türü">
+                                            <option value="stock">Stok</option><option value="service">Hizmet</option>
+                                        </select></label>
+                                    @endif
+                                    @if(! $service && ! $custom)
                                     <label>Depo <select wire:model="lines.{{ $index }}.location_id">
                                         <option value="">Depo seçin</option>
                                         @foreach($locations as $location)<option value="{{ $location->id }}">{{ $location->name }}</option>@endforeach
                                     </select></label>
                                     <label>Satır Notu <input wire:model.blur="lines.{{ $index }}.description" placeholder="İsteğe bağlı not"></label>
-                                    @endunless
+                                    @endif
                                     <small>İskonto tutarı: {{ $previewLine ? \App\Support\Formatting\TrFormatter::money((string) $previewLine->discountAmount) : '—' }}</small>
                                 </div>
                             </x-v65.document-line-actions></td>
@@ -534,6 +555,84 @@
                     @endforeach
                     </tbody>
                 </table></div>
+                @if($this instanceof \App\Livewire\Sales\QuoteEditor)
+                    @php
+                        $customSelection = $this->selectedCustomRow();
+                        $customPhotos = $this->selectedCustomImages();
+                    @endphp
+                    @if($customSelection)
+                        <section class="v65-custom-quote-panel" aria-label="Özel üretim görselleri ve teknik detaylar">
+                            <header class="v65-custom-quote-panel-head">
+                                <div>
+                                    <strong>Özel Üretim Ürün Detayı</strong>
+                                    <small>{{ $customSelection['line']['configuration']['custom_code'] ?? 'Yeni özel üretim kalemi' }}
+                                        · {{ $customSelection['line']['description'] ?? '' }}</small>
+                                </div>
+                                <span class="v65-custom-quote-nostock">Ana stoktan bağımsız</span>
+                            </header>
+                            <div class="v65-custom-quote-detail">
+                                <label>Ürün Adı
+                                    <input wire:model.blur="lines.{{ $customSelection['index'] }}.description"
+                                        maxlength="255" placeholder="Müşteriye özel ürün adı">
+                                </label>
+                                <label>Teknik Özellikler / Ölçüler
+                                    <textarea wire:model.blur="lines.{{ $customSelection['index'] }}.configuration.technical_notes"
+                                        rows="3" maxlength="1500" placeholder="Malzeme, renk, ölçü ve üretim açıklaması"></textarea>
+                                </label>
+                                <strong>Ürün Görselleri (en fazla 10 adet)</strong>
+                                @if($document && $document->status === 'draft'
+                                    && ! empty($customSelection['line']['configuration']['custom_code']))
+                                    <div class="v65-custom-image-drop" tabindex="0" role="group"
+                                         aria-label="Görsel yükleme, ekran görüntüsü yapıştırma veya bırakma"
+                                         x-on:dragover.prevent
+                                         x-on:drop.prevent="
+                                            const files = Array.from($event.dataTransfer.files).filter(f => ['image/png','image/jpeg','image/webp'].includes(f.type)).slice(0,8);
+                                            if (files.length) $wire.uploadMultiple('customImageUploads', files, () => $wire.uploadCustomImages());
+                                         "
+                                         x-on:paste="
+                                            const files = Array.from($event.clipboardData.files).filter(f => ['image/png','image/jpeg','image/webp'].includes(f.type)).slice(0,8);
+                                            if (files.length) {
+                                                $event.preventDefault();
+                                                $wire.uploadMultiple('customImageUploads', files, () => $wire.uploadCustomImages());
+                                            }
+                                         ">
+                                        <strong>Ctrl + V ile ekran görüntüsü yapıştırın veya sürükleyip bırakın</strong>
+                                        <label>Görsel seç
+                                            <input type="file" wire:model="customImageUploads"
+                                                accept="image/png,image/jpeg,image/webp" multiple>
+                                        </label>
+                                        <button type="button" class="v65-btn v65-btn--secondary v65-btn--sm"
+                                            wire:click="uploadCustomImages" wire:loading.attr="disabled"
+                                            wire:target="customImageUploads,uploadCustomImages">Görselleri Ekle</button>
+                                    </div>
+                                    <x-v65.input-error field="customImageUploads"/>
+                                    <x-v65.input-error field="customImageUploads.0"/>
+                                @else
+                                    <small>Görsel eklemek için önce teklif taslağını kaydedin.</small>
+                                @endif
+                                @if($customPhotos->isNotEmpty())
+                                    <div class="v65-custom-quote-gallery">
+                                        @foreach($customPhotos as $image)
+                                            <div class="v65-custom-quote-image" wire:key="custom-quote-image-{{ $image->id }}">
+                                                <img src="{{ route('sales.quotes.custom-image', ['document' => $document->id, 'attachment' => $image->id]) }}"
+                                                     alt="{{ $image->original_name }}" loading="lazy">
+                                                <small>{{ $image->sort_order === $customPhotos->min('sort_order') ? 'Kapak Resmi' : 'Görsel' }}</small>
+                                                @if($document->status === 'draft')
+                                                    <div class="v65-custom-image-actions">
+                                                        <button type="button" wire:click="setCustomCover({{ $image->id }})"
+                                                            title="Kapak resmi seç">Kapak</button>
+                                                        <button type="button" wire:click="deleteCustomImage({{ $image->id }})"
+                                                            wire:confirm="Bu görsel kaldırılsın mı?" title="Görseli kaldır">Sil</button>
+                                                    </div>
+                                                @endif
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                @endif
+                            </div>
+                        </section>
+                    @endif
+                @endif
                 <div class="v65-reference-new-line">
                     <button type="button" class="v65-reference-new-product-button" data-v65-add-product-focus x-on:click="fastEntry = true">+ Yeni ürün satırı</button>
                     <small>Yeni ürün eklemek için üstteki ürün arama alanını kullanın. Enter ile seçin, Tab ile ilerleyin.</small>
@@ -613,6 +712,38 @@
         </form>
     @elseif($document)
         <x-v65.document-readonly :document="$document" />
+    @endif
+
+    @if($this instanceof \App\Livewire\Sales\QuoteEditor
+        && $document && $document->status !== 'draft'
+        && $document->lines->contains('line_kind', 'custom'))
+        <section class="v65-custom-quote-panel" aria-label="Kayıtlı özel üretim görselleri">
+            <header class="v65-custom-quote-panel-head"><strong>Özel Üretim Görselleri</strong></header>
+            <div class="v65-custom-quote-detail">
+                @foreach($document->lines->where('line_kind', 'custom') as $customLine)
+                    @php
+                        $savedCode = (string) ($customLine->configuration['custom_code'] ?? '');
+                        $savedPhotos = $document->attachments()
+                            ->where('collection', 'quote_custom_'.$savedCode)
+                            ->orderBy('sort_order')->get();
+                    @endphp
+                    <div><strong>{{ $savedCode }} · {{ $customLine->description }}</strong></div>
+                    @if($savedPhotos->isNotEmpty())
+                        <div class="v65-custom-quote-gallery">
+                            @foreach($savedPhotos as $photo)
+                                <div class="v65-custom-quote-image">
+                                    <img src="{{ route('sales.quotes.custom-image', ['document' => $document->id, 'attachment' => $photo->id]) }}"
+                                        alt="{{ $photo->original_name }}" loading="lazy">
+                                    <small>{{ $photo->original_name }}</small>
+                                </div>
+                            @endforeach
+                        </div>
+                    @else
+                        <small>Görsel eklenmemiş.</small>
+                    @endif
+                @endforeach
+            </div>
+        </section>
     @endif
 
     @if($document && $document->status === 'draft')

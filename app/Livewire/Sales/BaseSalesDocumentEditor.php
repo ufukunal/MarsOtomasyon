@@ -70,6 +70,23 @@ abstract class BaseSalesDocumentEditor extends Component
         $this->documentDirty = true;
     }
 
+    public function addCustomLine(): void
+    {
+        abort_unless($this->documentType() === DocumentType::Quote, 404);
+        abort_unless($this->document === null || $this->document->status === 'draft', 409);
+        abort_unless(auth()->user()?->can($this->document ? 'quotes.update' : 'quotes.create'), 403);
+        $this->lines[] = array_replace($this->emptyLine(), [
+            'line_kind' => 'custom', 'description' => '', 'product_id' => null,
+            'unit_id' => null, 'conversion_factor' => null, 'base_quantity' => null,
+            'location_id' => null, 'reserve_stock' => false,
+            'configuration' => ['technical_notes' => ''],
+            'row_key' => 'custom-'.(string) Str::uuid(),
+            'unit_price' => '0',
+        ]);
+        $this->ensureNextEntryRow();
+        $this->documentDirty = true;
+    }
+
     public function addServiceLine(): void
     {
         abort_unless($this->document === null || $this->document->status === 'draft', 409);
@@ -144,7 +161,7 @@ abstract class BaseSalesDocumentEditor extends Component
         if (preg_match('/^lines\.(\d+)\.line_kind$/D', $property, $kindMatch)) {
             $index = (int) $kindMatch[1];
             if (isset($this->lines[$index])) {
-                foreach (['product_id', 'unit_id', 'location_id', 'conversion_factor'] as $field) {
+                foreach (['product_id', 'unit_id', 'location_id', 'conversion_factor', 'configuration'] as $field) {
                     $this->lines[$index][$field] = null;
                 }
                 $this->lines[$index]['description'] = '';
@@ -373,7 +390,7 @@ abstract class BaseSalesDocumentEditor extends Component
                 }
             }],
             'lines' => ['required', 'array', 'min:1'],
-            'lines.*.line_kind' => ['required', 'in:stock,service'],
+            'lines.*.line_kind' => ['required', 'in:stock,service,custom'],
             'lines.*.quantity' => ['required', 'numeric', 'gt:0'],
             'lines.*.unit_price' => ['required', 'numeric', 'min:0'],
             'lines.*.line_discount_rate' => ['required', 'numeric', 'between:0,100'],
@@ -394,6 +411,19 @@ abstract class BaseSalesDocumentEditor extends Component
                 throw ValidationException::withMessages([
                     'lines.'.$index.'.product_id' => 'Stok satırı için ürün seçin.',
                 ]);
+            }
+            if ($kind === 'custom') {
+                if ($this->documentType() !== DocumentType::Quote && empty($line['source_line_id'])
+                    && empty($line['configuration']['custom_code'])) {
+                    throw ValidationException::withMessages([
+                        'lines.'.$index.'.line_kind' => 'Özel üretim yalnız tekliften aktarılabilir.',
+                    ]);
+                }
+                if (trim((string) ($line['description'] ?? '')) === '' || empty($line['unit_id'])) {
+                    throw ValidationException::withMessages([
+                        'lines.'.$index.'.description' => 'Özel üretim ürün adı ve birimi zorunludur.',
+                    ]);
+                }
             }
             if ($kind === 'service' && trim((string) ($line['description'] ?? '')) === '') {
                 throw ValidationException::withMessages([

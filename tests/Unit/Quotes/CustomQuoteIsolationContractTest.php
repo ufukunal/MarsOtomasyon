@@ -1,0 +1,90 @@
+<?php
+
+use App\Enums\DocumentType;
+
+it('reserves custom goods for quotes only without creating stock products or movements', function (): void {
+    $migration = file_get_contents(base_path('database/migrations/period/2026_10_20_000001_add_custom_quote_document_lines.php'));
+    $save = file_get_contents(base_path('app/Actions/Documents/SaveSalesDocumentDraft.php'));
+    $editor = file_get_contents(base_path('app/Livewire/Sales/BaseSalesDocumentEditor.php'));
+    $post = file_get_contents(base_path('app/Actions/Documents/PostDocument.php'));
+    $reserve = file_get_contents(base_path('app/Actions/Sales/ReserveSalesOrderLines.php'));
+    $production = file_get_contents(base_path('app/Actions/Production/CreateProductionOrdersForSalesOrder.php'));
+
+    expect($migration)->toContain("'stock','service','custom'")
+        ->toContain("line_kind = 'custom' AND product_id IS NULL")
+        ->toContain("reserve_stock = false")
+        ->toContain('quote_custom_code_seq')
+        ->and($save)->toContain("nextval('quote_custom_code_seq')")
+        ->toContain("'product_id' => \$product?->id")
+        ->toContain("'location_id' => \$kind === 'stock' ? \$locationId : null")
+        ->toContain("'reserve_stock' => \$kind === 'stock' &&")
+        ->toContain("'custom_code' => \$code")
+        ->and($editor)->toContain('public function addCustomLine(): void')
+        ->toContain("DocumentType::Quote")
+        ->toContain("in:stock,service,custom")
+        ->and($post)->toContain("if (\$line->line_kind !== 'stock')")
+        ->and($reserve)->toContain("if (\$line->line_kind !== 'stock')")
+        ->and($production)->toContain("if (\$line->line_kind !== 'stock'");
+});
+
+it('converts custom quote lines to sales documents without warehouse allocation', function (): void {
+    foreach ([
+        'app/Actions/Sales/CreateDispatchFromOrder.php',
+        'app/Actions/Sales/CreateInvoiceFromOrder.php',
+    ] as $path) {
+        expect(file_get_contents(base_path($path)))
+            ->toContain("if (\$source->line_kind !== 'stock')");
+    }
+
+    foreach ([
+        'app/Actions/Sales/ConvertQuoteToSalesOrder.php',
+        'app/Actions/Sales/CreateQuoteRevision.php',
+        'app/Actions/Sales/CreateDispatchFromOrder.php',
+        'app/Actions/Sales/CreateInvoiceFromOrder.php',
+        'app/Actions/Sales/CreateInvoiceFromDispatches.php',
+    ] as $path) {
+        expect(file_get_contents(base_path($path)))->toContain("'configuration'");
+    }
+});
+
+it('scopes quote screenshots to stored custom codes, draft lifecycle and trusted private media', function (): void {
+    $quote = file_get_contents(base_path('app/Livewire/Sales/QuoteEditor.php'));
+    $controller = file_get_contents(base_path('app/Http/Controllers/QuoteCustomImageController.php'));
+    $copy = file_get_contents(base_path('app/Support/Quotes/CopyCustomQuoteImages.php'));
+
+    expect($quote)->toContain('use WithFileUploads;')
+        ->toContain('public function uploadCustomImages(')
+        ->toContain('quotes.update')
+        ->toContain("status === 'draft'")
+        ->toContain('quote_custom_')
+        ->toContain('uploadCustomImages')
+        ->toContain('setCustomCover')
+        ->toContain('deleteCustomImage')
+        ->and($controller)->toContain('PeriodContext::ensure()')
+        ->toContain("can('quotes.view')")
+        ->toContain("->whereIn('collection', \$codes)")
+        ->toContain("'Cache-Control' => 'private, no-store'")
+        ->and($copy)->toContain('Storage::disk($image->disk)->copy(')
+        ->and(file_get_contents(base_path('app/Actions/Sales/CreateQuoteRevision.php')))
+        ->toContain('CopyCustomQuoteImages::class');
+});
+
+it('supports clipboard paste, drag-drop, and custom cover photo on both illustrated print modes', function (): void {
+    $form = file_get_contents(base_path('resources/views/livewire/sales/document-editor.blade.php'));
+    $toolbar = file_get_contents(base_path('resources/views/components/v65/document-prototype-toolbar.blade.php'));
+    $resolver = file_get_contents(base_path('app/Support/Printing/BusinessDocumentImageResolver.php'));
+    $print = file_get_contents(base_path('resources/views/printing/business-document.blade.php'));
+
+    expect($toolbar)->toContain('Özel Üretim Ekle')
+        ->and($form)->toContain('x-on:paste=')
+        ->toContain('x-on:drop.prevent')
+        ->toContain("uploadMultiple('customImageUploads'")
+        ->toContain('selectedCustomImages()')
+        ->toContain('setCustomCover(')
+        ->toContain('Teknik Özellikler')
+        ->and($resolver)->toContain('forCustomDocument')
+        ->toContain('sourceLine.document')
+        ->and($print)->toContain("isset(\$customImages[")
+        ->toContain('@if($showImages)')
+        ->toContain('@if($showPrices)');
+});
