@@ -3579,3 +3579,26 @@
     .app-shell .v65-invoice-delivery-controls{grid-template-columns:minmax(0,1fr)}
     .app-shell .v65-invoice-warehouse-link{flex-wrap:wrap}
 }
+
+
+/* Shared document print picker: no change to warehouse slip and carton labels. */
+.app-shell .v65-document-print-picker{position:relative;display:inline-flex;align-items:center}
+.app-shell .v65-document-print-picker>summary{list-style:none;cursor:pointer;user-select:none;white-space:nowrap}
+.app-shell .v65-document-print-picker[open]{z-index:221}
+.app-shell .v65-document-print-picker>summary::-webkit-details-marker{display:none}
+.app-shell .v65-document-print-menu{
+    position:absolute;z-index:220;right:0;top:calc(100% + 7px);
+    width:min(342px,calc(100vw - 34px));padding:12px;
+    border:1px solid #cbd9e8;border-radius:9px;
+    background:#fff;box-shadow:0 14px 28px #152d4929;display:grid;gap:7px;
+}
+.app-shell .v65-document-print-menu>strong{font-size:12px;color:#18416a}
+.app-shell .v65-document-print-menu>small{font-size:10px;color:#607891}
+.app-shell .v65-document-print-option{display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:7px;padding:7px 0;border-top:1px solid #e6edf5}
+.app-shell .v65-document-print-option>span{min-width:0;font-weight:600;font-size:11px}
+.app-shell .v65-document-print-option>a{font-size:10px;padding:6px 8px;border:1px solid #c8d8ea;border-radius:5px;color:#275783;white-space:nowrap;text-decoration:none}
+.app-shell .v65-document-print-option>a:hover{background:#f0f6fc}
+
+@media(max-width:700px){
+    .app-shell .v65-document-print-menu{left:0;right:auto}
+}

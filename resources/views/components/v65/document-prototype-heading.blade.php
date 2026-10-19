@@ -33,9 +33,7 @@
         @if($document)
             <x-v65.button variant="secondary" size="sm"
                 :href="route('documents.history', ['id' => $document->id])">Kayıt Geçmişi</x-v65.button>
-            <x-v65.button variant="secondary" size="sm"
-                :href="route('documents.print', ['document' => $document->id, 'format' => 'html'])"
-                target="_blank" rel="noopener noreferrer">Yazdır</x-v65.button>
+            <x-v65.document-print-options :document="$document" />
         @else
             <span class="v65-reference-print-placeholder" title="Yazdırma, ilk kayıt sonrasında kullanılabilir">Yazdır: kayıt sonrası</span>
         @endif

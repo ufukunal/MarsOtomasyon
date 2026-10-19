@@ -28,11 +28,7 @@
         @if($document)
             <x-v65.button variant="secondary" size="sm"
                 :href="route('documents.history', ['id' => $document->id])">Kayıt Geçmişi</x-v65.button>
-            <x-v65.button variant="secondary" size="sm"
-                :href="route('documents.print', ['document' => $document->id, 'format' => 'html'])"
-                target="_blank" rel="noopener noreferrer">Belge Önizle</x-v65.button>
-            <x-v65.button variant="secondary" size="sm"
-                :href="route('documents.print', ['document' => $document->id, 'format' => 'pdf'])">PDF İndir</x-v65.button>
+            <x-v65.document-print-options :document="$document" />
             @if($dirty)
                 <small class="v65-doc-print-saved-note">Çıktı son kaydedilen belgeyi kullanır.</small>
             @endif

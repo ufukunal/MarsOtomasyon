@@ -3,9 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Enums\DocumentType;
+use App\Enums\BusinessDocumentPrintVariant;
 use App\Models\Company;
 use App\Models\Period\Document;
 use App\Support\Period\PeriodContext;
+use App\Support\Printing\BusinessDocumentImageResolver;
+use App\Support\Printing\Label\OpaqueQrSvg;
 use Illuminate\Http\Response;
 use Spatie\Browsershot\Browsershot;
 
@@ -18,7 +21,7 @@ final class PrintBusinessDocumentController
         PeriodContext::ensure();
 
         $record = Document::query()
-            ->with(['contact', 'lines.unit', 'lines.location', 'incomingRelations.sourceDocument'])
+            ->with(['contact', 'lines.unit', 'lines.product', 'lines.location', 'incomingRelations.sourceDocument'])
             ->findOrFail($document);
 
         $definition = match ($record->document_type) {
@@ -35,6 +38,45 @@ final class PrintBusinessDocumentController
         };
         abort_unless($definition !== null, 404);
         abort_unless(auth()->user()?->can($definition[1]), 403);
+
+        $variantValue = request()->query('variant', BusinessDocumentPrintVariant::PlainPriced->value);
+        $printVariant = is_string($variantValue)
+            ? BusinessDocumentPrintVariant::tryFrom($variantValue)
+            : null;
+        abort_unless($printVariant !== null, 422, 'Geçersiz yazdırma tasarımı.');
+
+        // Inline thumbnails are used for both HTML preview and PDF.
+        $productImages = $printVariant->showImages()
+            ? app(BusinessDocumentImageResolver::class)->forDocument($record)
+            : [];
+
+        $meta = is_array($record->ui_meta) ? $record->ui_meta : [];
+        $record->contact?->loadMissing('addresses');
+        $contactAddresses = $record->contact?->addresses;
+        $billAddress = $contactAddresses?->where('type', 'invoice')
+            ->sortByDesc('is_default')->first();
+        $shipAddress = $contactAddresses?->where('type', 'shipping')
+            ->sortByDesc('is_default')->first();
+        $delivery = [
+            'company' => (string) ($meta['delivery_company'] ?? $record->contact?->title ?? ''),
+            'person' => (string) ($meta['delivery_person'] ?? ''),
+            'phone' => (string) ($meta['delivery_phone'] ?? ''),
+            'address' => (string) ($meta['delivery_address'] ?? $shipAddress?->address ?? $record->contact?->address ?? ''),
+            'city' => (string) ($meta['delivery_city'] ?? $shipAddress?->city ?? $record->contact?->city ?? ''),
+            'district' => (string) ($meta['delivery_district'] ?? $shipAddress?->district ?? $record->contact?->district ?? ''),
+        ];
+        $billing = [
+            'address' => (string) ($billAddress?->address ?? $record->contact?->address ?? ''),
+            'city' => (string) ($billAddress?->city ?? $record->contact?->city ?? ''),
+            'district' => (string) ($billAddress?->district ?? $record->contact?->district ?? ''),
+        ];
+        $qrScope = implode(':', [
+            (string) PeriodContext::companyId(),
+            (string) PeriodContext::periodId(),
+            $record->document_type->value,
+            (string) $record->id,
+        ]);
+        $documentQrToken = OpaqueQrSvg::token($qrScope, 0, (string) config('app.key'));
 
         $company = Company::query()->findOrFail(PeriodContext::companyId());
 
@@ -84,6 +126,13 @@ final class PrintBusinessDocumentController
             'grossTotal' => $grossTotal,
             'lineDiscountAmount' => $lineDiscountAmount,
             'sourceReferences' => $sourceReferences,
+            'printVariant' => $printVariant,
+            'showPrices' => $printVariant->showPrices(),
+            'showImages' => $printVariant->showImages(),
+            'productImages' => $productImages,
+            'billing' => $billing,
+            'delivery' => $delivery,
+            'documentQrToken' => $documentQrToken,
         ]);
 
         if ($format === 'html') {
@@ -102,7 +151,7 @@ final class PrintBusinessDocumentController
             ->pdf();
 
         $basename = preg_replace('/[^A-Za-z0-9_-]+/', '-', (string) ($record->number ?: 'belge-'.$record->id));
-        $basename = trim((string) $basename, '-') ?: 'belge-'.$record->id;
+        $basename = (trim((string) $basename, '-') ?: 'belge-'.$record->id).'-'.$printVariant->value;
 
         return response($pdf, 200, [
             'Content-Type' => 'application/pdf',

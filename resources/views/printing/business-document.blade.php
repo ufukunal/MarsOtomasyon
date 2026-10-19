@@ -13,6 +13,10 @@
         .company-name { margin: 0 0 5px; font-weight: 750; font-size: 18px; overflow-wrap: anywhere; }
         .company-line { color: #52687f; max-width: 105mm; overflow-wrap: anywhere; }
         .heading { text-align: right; min-width: 56mm; }
+        .heading-meta { display:flex; align-items:flex-start; justify-content:flex-end; gap:9px; }
+        .document-qr { width:23mm; flex:0 0 23mm; }
+        .document-qr .label-qr { display:block; width:100%; height:auto; }
+        .print-kind { margin-top:3px; color:#536b83; font-size:9px; }
         .heading h1 { font-size: 19px; margin: 0 0 5px; color: #1a456d; line-height: 1.2; }
         .heading strong { font-size: 12px; }
         .heading small { display: block; color: #668097; margin-top: 5px; }
@@ -33,7 +37,17 @@
         .lines td { border-bottom: 1px solid #e5ebf1; padding: 7px 5px; vertical-align: top; overflow-wrap: anywhere; }
         .lines tr { break-inside: avoid; page-break-inside: avoid; }
         .numeric { text-align: right !important; white-space: nowrap; font-variant-numeric: tabular-nums; }
-        .desc { width: 33%; }
+        .desc { width: 33%; min-width:0; }
+        .product-thumb { width:17mm; }
+        .product-thumb img { width:15mm; height:15mm; max-width:100%; object-fit:contain; display:block; }
+        .lines td.product-thumb { width:17mm; }
+        .heading-meta { min-width:0; }
+        .product-thumb-empty { width:15mm; height:15mm; display:flex; align-items:center; justify-content:center; border:1px solid #e2e8ef; font-size:8px; color:#8c9dae; text-align:center; }
+        .address-panels { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:-4px 0 15px; }
+        .address-panels .box { min-height:27mm; }
+        .unpriced-count { margin-top:11px; color:#536b83; font-weight:700; text-align:right; }
+        .signatures { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:0; margin-top:18px; break-inside:avoid; }
+        .signatures div { min-height:22mm; border:1px solid #ced8e3; margin-right:-1px; padding:5px; text-align:center; font-size:9px; color:#607991; }
         .summary { width: min(100%, 88mm); margin: 14px 0 0 auto; border: 1px solid #d3deea; border-radius: 4px; padding: 7px 12px; break-inside: avoid; }
         .summary dl { margin: 0; }
         .summary dl div { display: flex; gap: 10px; justify-content: space-between; align-items: baseline; padding: 5px 0; }
@@ -63,11 +77,15 @@
             @if($company->tax_office || $company->tax_number)<p class="company-line">Vergi: {{ $company->tax_office }} {{ $company->tax_number }}</p>@endif
             @if($company->phone || $company->email)<p class="company-line">{{ $company->phone }} {{ $company->email }}</p>@endif
         </div>
-        <div class="heading">
-            <h1>{{ $title }}</h1>
-            <strong>{{ $document->number ?? 'Taslak #'.$document->id }}</strong>
-            <small>{{ $document->document_date?->format('d.m.Y') }}</small>
-            @if($draft)<div class="draft-stamp">Taslak · Kesinleşmemiş Belge</div>@endif
+        <div class="heading-meta">
+            <div class="heading">
+                <h1>{{ $title }}</h1>
+                <strong>{{ $document->number ?? 'Taslak #'.$document->id }}</strong>
+                <small>{{ $document->document_date?->format('d.m.Y') }}</small>
+                <span class="print-kind">{{ $printVariant->label() }}</span>
+                @if($draft)<div class="draft-stamp">Taslak · Kesinleşmemiş Belge</div>@endif
+            </div>
+            <div class="document-qr" aria-label="Belge QR kodu">{!! \App\Support\Printing\Label\OpaqueQrSvg::render($documentQrToken) !!}</div>
         </div>
     </header>
     <section class="details">
@@ -86,8 +104,10 @@
                 @if($document->due_date)<tr><th>Vade</th><td>{{ $document->due_date->format('d.m.Y') }}</td></tr>@endif
                 @if($document->valid_until)<tr><th>Geçerlilik</th><td>{{ $document->valid_until->format('d.m.Y') }}</td></tr>@endif
                 <tr><th>Durum</th><td>{{ \App\Support\Formatting\BusinessLabelFormatter::status($document->status) }}</td></tr>
-                <tr><th>Para Birimi</th><td>{{ $currency }}</td></tr>
-                @if($document->exchange_rate && $currency !== 'TRY')<tr><th>Kur</th><td>{{ $document->exchange_rate }}</td></tr>@endif
+                @if($showPrices)
+                    <tr><th>Para Birimi</th><td>{{ $currency }}</td></tr>
+                    @if($document->exchange_rate && $currency !== 'TRY')<tr><th>Kur</th><td>{{ $document->exchange_rate }}</td></tr>@endif
+                @endif
                 @php
                     $extraLabels = [
                         'delivery_terms' => 'Teslim Süresi', 'payment_terms' => 'Ödeme Şartı',
@@ -108,6 +128,22 @@
             </table>
         </div>
     </section>
+    <section class="address-panels" aria-label="Fatura ve sevk adresleri">
+        <div class="box">
+            <h2>Fatura Adresi</h2>
+            <p><strong>{{ $document->contact?->title ?? '—' }}</strong></p>
+            <p>{{ $billing['address'] ?: '—' }}</p>
+            <p>{{ collect([$billing['district'], $billing['city']])->filter()->implode(' / ') }}</p>
+        </div>
+        <div class="box">
+            <h2>Sevk / Teslimat Adresi</h2>
+            <p><strong>{{ $delivery['company'] ?: '—' }}</strong></p>
+            <p>{{ $delivery['address'] ?: '—' }}</p>
+            <p>{{ collect([$delivery['district'], $delivery['city']])->filter()->implode(' / ') }}</p>
+            @if($delivery['person'])<p>Yetkili: {{ $delivery['person'] }}</p>@endif
+            @if($delivery['phone'])<p>Tel: {{ $delivery['phone'] }}</p>@endif
+        </div>
+    </section>
     @if($sourceReferences->isNotEmpty())
         <div class="source-references"><strong>Kaynak Belgeler:</strong>
             @foreach($sourceReferences as $sourceNumber)
@@ -118,27 +154,52 @@
     <table class="lines">
         <thead>
             <tr>
-                <th>#</th><th class="desc">Ürün / Hizmet</th><th>Birim</th>
-                <th class="numeric">Miktar</th><th class="numeric">Birim Fiyat</th>
-                <th class="numeric">İskonto</th><th class="numeric">KDV %</th><th class="numeric">Net Tutar</th>
+                <th>#</th>
+                @if($showImages)<th class="product-thumb">Resim</th>@endif
+                <th class="desc">Ürün / Hizmet</th><th>Birim</th>
+                <th class="numeric">Miktar</th>
+                @if($showPrices)
+                    <th class="numeric">Birim Fiyat</th>
+                    <th class="numeric">İskonto</th>
+                    <th class="numeric">KDV %</th>
+                    <th class="numeric">Net Tutar</th>
+                @endif
             </tr>
         </thead>
         <tbody>
             @forelse($document->lines as $line)
                 <tr>
-                    <td>{{ $line->line_no }}</td><td class="desc">{{ $line->description ?: '—' }}@if($line->location)<small class="line-location">Depo: {{ $line->location->name }}</small>@endif</td>
+                    <td>{{ $line->line_no }}</td>
+                    @if($showImages)
+                        <td class="product-thumb">
+                            @if($line->product_id && isset($productImages[$line->product_id]))
+                                <img src="{{ $productImages[$line->product_id] }}"
+                                    alt="{{ $line->description ?: 'Ürün görseli' }}">
+                            @else
+                                <span class="product-thumb-empty">Görsel yok</span>
+                            @endif
+                        </td>
+                    @endif
+                    <td class="desc">
+                        {{ $line->description ?: '—' }}
+                        @if($line->product?->code)<small class="line-location">{{ $line->product->code }}</small>@endif
+                        @if($line->location)<small class="line-location">Depo: {{ $line->location->name }}</small>@endif
+                    </td>
                     <td>{{ $line->unit?->code ?? '—' }}</td>
                     <td class="numeric">{{ \App\Support\Formatting\TrFormatter::quantity((string) $line->quantity) }}</td>
-                    <td class="numeric">{{ $money::money((string) $line->unit_price) }}</td>
-                    <td class="numeric">{{ $money::money((string) $line->line_discount_amount) }}</td>
-                    <td class="numeric">{{ $line->vat_rate }}</td>
-                    <td class="numeric">{{ $money::money((string) $line->line_total) }}</td>
+                    @if($showPrices)
+                        <td class="numeric">{{ $money::money((string) $line->unit_price) }}</td>
+                        <td class="numeric">{{ $money::money((string) $line->line_discount_amount) }}</td>
+                        <td class="numeric">{{ $line->vat_rate }}</td>
+                        <td class="numeric">{{ $money::money((string) $line->line_total) }}</td>
+                    @endif
                 </tr>
             @empty
-                <tr><td colspan="8">Belge satırı bulunamadı.</td></tr>
+                <tr><td colspan="{{ ($showImages ? 1 : 0) + ($showPrices ? 8 : 4) }}">Belge satırı bulunamadı.</td></tr>
             @endforelse
         </tbody>
     </table>
+    @if($showPrices)
     <section class="summary" aria-label="Kaydedilmiş belge tutarları">
         <dl>
             <div><dt>Mal / Hizmet Toplamı</dt><dd>{{ $money::money($grossTotal) }} {{ $currency }}</dd></div>
@@ -151,9 +212,20 @@
             <div class="grand"><dt>GENEL TOPLAM</dt><dd>{{ $money::money((string) $document->grand_total) }} {{ $currency }}</dd></div>
         </dl>
     </section>
+    @else
+        <div class="unpriced-count">Toplam Kalem: {{ $document->lines->count() }}</div>
+    @endif
     @if($document->notes)<section class="notes"><strong>Açıklama / Notlar</strong>
 
 {{ $document->notes }}</section>@endif
+    <section class="signatures" aria-label="İmza alanları">
+        @if($document->document_type === \App\Enums\DocumentType::Dispatch
+            || $document->document_type === \App\Enums\DocumentType::PurchaseDispatch)
+            <div>Düzenleyen</div><div>Teslim Eden</div><div>Teslim Alan / Kaşe</div>
+        @else
+            <div>Düzenleyen</div><div>Kontrol</div><div>Onay / Kaşe</div>
+        @endif
+    </section>
     <footer class="footer">
         <p>Oluşturma: {{ $generatedAt->format('d.m.Y H:i') }} · Belge kayıt numarası: {{ $document->id }}</p>
     </footer>

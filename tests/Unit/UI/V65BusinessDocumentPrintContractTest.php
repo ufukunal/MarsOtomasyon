@@ -45,11 +45,16 @@ it('renders company and contact identity with persisted lines and totals', funct
 it('replaces in-editor generic print with server backed preview and PDF links', function (): void {
     $heading = file_get_contents(base_path('resources/views/components/v65/document-heading.blade.php'));
 
+    $prototype = file_get_contents(base_path('resources/views/components/v65/document-prototype-heading.blade.php'));
+    $selector = file_get_contents(base_path('resources/views/components/v65/document-print-options.blade.php'));
+
     expect($heading)->toContain("'dirty' => false")
-        ->toContain("route('documents.print'")
+        ->toContain('<x-v65.document-print-options :document="$document" />')
+        ->and($prototype)->toContain('<x-v65.document-print-options :document="$document" />')
+        ->and($selector)->toContain("route('documents.print'")
         ->toContain("'format' => 'html'")
         ->toContain("'format' => 'pdf'")
-        ->toContain('Çıktı son kaydedilen belgeyi kullanır.')
+        ->toContain('Çıktı yalnız kaydedilmiş belgeyi kullanır.')
         ->not->toContain('onclick="window.print()"');
 
     foreach ([
