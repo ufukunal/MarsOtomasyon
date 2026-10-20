@@ -3770,3 +3770,15 @@
   .app-shell .v65-photo-layout{min-height:0}
   .app-shell .v65-photo-stage .v65-custom-photo-canvas-scroll{min-height:220px}
 }
+
+
+/* Quote revisions live in the quote editor, not as duplicate rows in the offer list. */
+.app-shell .v65-quote-revisions{background:#fff;border:1px solid #d6e2ee;border-radius:7px;overflow:hidden}
+.app-shell .v65-quote-revisions summary{display:flex;align-items:center;gap:7px;cursor:pointer;padding:10px 14px;font-size:12px;font-weight:750;color:#244969;background:#edf5fd}
+.app-shell .v65-quote-revisions summary span{font-weight:500;color:#56718b}
+.app-shell .v65-quote-revisions .table-scroll{max-width:100%;overflow-x:auto}
+.app-shell .v65-quote-revisions .data-table{margin:0;width:100%}
+.app-shell .v65-quote-revisions .data-table :where(th,td){padding:9px 12px;font-size:11px}
+.app-shell .v65-quote-revisions .v65-quote-revision-current{background:#edf5ff}
+.app-shell .v65-quote-revisions .v65-quote-revision-current-label{color:#365c81;font-weight:700}
+.app-shell .v65-quote-revisions .v65-quote-revision-link{color:#155eac;font-weight:700;text-decoration:underline}

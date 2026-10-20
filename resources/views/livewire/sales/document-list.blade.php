@@ -71,7 +71,7 @@
                 @forelse($documents as $document)
                     <tr wire:key="doc-{{ $document->id }}">
                         @unless($hiddenColumns['number'] ?? false)
-                            <td><a class="v65-record-link" href="{{ route($detailRoute, ['id' => $document->id]) }}">{{ $document->number ?? 'Taslak' }}@if($document->revision_no > 0) / Rev.{{ $document->revision_no }}@endif</a></td>
+                            <td><a class="v65-record-link" href="{{ route($detailRoute, ['id' => $document->id]) }}">{{ $document->number ?? 'Taslak' }}@if(!($this instanceof \App\Livewire\Sales\QuoteList) && $document->revision_no > 0) / Rev.{{ $document->revision_no }}@endif</a></td>
                         @endunless
                         @unless($hiddenColumns['date'] ?? false)<td>{{ $document->document_date?->format('d.m.Y') ?? '—' }}</td>@endunless
                         @unless($hiddenColumns['contact'] ?? false)
@@ -91,9 +91,11 @@
                         @endunless
                         <td>
                             <x-v65.button variant="secondary" size="xs" :href="route($detailRoute, ['id' => $document->id])">Aç</x-v65.button>
-                            <x-v65.button variant="secondary" size="xs" :href="route('documents.history', ['id' => $document->id])">
-                                Geçmiş
-                            </x-v65.button>
+                            @unless($this instanceof \App\Livewire\Sales\QuoteList)
+                                <x-v65.button variant="secondary" size="xs" :href="route('documents.history', ['id' => $document->id])">
+                                    Geçmiş
+                                </x-v65.button>
+                            @endunless
                         </td>
                     </tr>
                 @empty

@@ -21,6 +21,42 @@
     <x-v65.document-prototype-heading :document="$document" :screen-type="$screenType"
         :index-route="$documentIndexRoute" :dirty="$documentDirty" :form-id="$formId"
             :can-copy="$this->canCreateEditableCopy()" :edit-permission="$this->permissionPrefix()" />
+
+    @if($this instanceof \App\Livewire\Sales\QuoteEditor && $document && $document->number)
+        @php $quoteRevisions = $this->quoteRevisions(); @endphp
+        @if($quoteRevisions->count() > 1)
+            <section class="v65-quote-revisions" aria-label="Teklif revizyon geçmişi">
+                <details open>
+                    <summary>Revizyon Geçmişi <span>({{ $quoteRevisions->count() }} sürüm)</span></summary>
+                    <div class="table-scroll v65-grid-scroll">
+                        <table class="data-table">
+                            <thead>
+                                <tr><th>Revizyon</th><th>Tarih</th><th>Durum</th><th class="align-end">Tutar</th><th>İşlem</th></tr>
+                            </thead>
+                            <tbody>
+                                @foreach($quoteRevisions as $revision)
+                                    <tr wire:key="quote-revision-{{ $revision->id }}"
+                                        @class(['v65-quote-revision-current' => $revision->id === $document->id])>
+                                        <td><strong>Rev.{{ $revision->revision_no }}</strong></td>
+                                        <td>{{ $revision->document_date?->format('d.m.Y') ?? '—' }}</td>
+                                        <td>{{ \App\Support\Formatting\BusinessLabelFormatter::status($revision->status) }}</td>
+                                        <td class="align-end tabular">{{ \App\Support\Formatting\TrFormatter::money((string) $revision->grand_total) }} {{ $revision->currency }}</td>
+                                        <td>
+                                            @if($revision->id === $document->id)
+                                                <span class="v65-quote-revision-current-label">Bu sürüm</span>
+                                            @else
+                                                <a class="v65-quote-revision-link" href="{{ route('sales.quotes.edit', ['id' => $revision->id]) }}">Görüntüle</a>
+                                            @endif
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </details>
+            </section>
+        @endif
+    @endif
     @if($document && $document->status !== 'draft' && !($this instanceof \App\Livewire\Purchases\GoodsReceiptEditor))
         <div class="v65-reference-edit-notice" role="status">
             <strong>Bu sürüm kayıtlıdır.</strong>

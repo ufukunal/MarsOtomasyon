@@ -402,6 +402,27 @@ class QuoteEditor extends BaseSalesDocumentEditor
     }
 
 
+
+    /**
+     * All revisions of the open quote are shown inside its own editor,
+     * without exposing history for unrelated quote numbers.
+     *
+     * @return Collection<int, Document>
+     */
+    public function quoteRevisions(): Collection
+    {
+        if ($this->document === null || $this->document->number === null) {
+            return new Collection;
+        }
+
+        return Document::query()
+            ->where('document_type', DocumentType::Quote->value)
+            ->where('number', $this->document->number)
+            ->orderByDesc('revision_no')
+            ->orderByDesc('id')
+            ->get();
+    }
+
     protected function documentType(): DocumentType
     {
         return DocumentType::Quote;
