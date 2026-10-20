@@ -11,6 +11,40 @@ use Illuminate\Support\Facades\Storage;
  */
 final class QuoteCustomImageSource
 {
+    /** @return array{bytes:string,mime:string,size:int}|null Historical render, scoped to this image. */
+    public function readVersion(Attachment $attachment, int $index): ?array
+    {
+        if ($index === -1) {
+            return $this->read($attachment, true);
+        }
+        if ($index < 0 || $index >= 30) {
+            return null;
+        }
+        $version = $attachment->editedVersions()->orderBy('id')->skip($index)->first();
+
+        return $version === null ? null : $this->readFile($version);
+    }
+
+    /** @return array{bytes:string,mime:string,size:int}|null */
+    private function readFile(Attachment|\App\Models\QuoteCustomImageEdit $file): ?array
+    {
+        if (! in_array($file->mime, ['image/jpeg', 'image/png', 'image/webp'], true)
+            || (int) $file->size < 1 || (int) $file->size > 5 * 1024 * 1024) {
+            return null;
+        }
+        try {
+            $bytes = Storage::disk($file->disk)->get($file->path);
+            $length = strlen($bytes);
+            if ($length < 1 || $length > 5 * 1024 * 1024
+                || (new \finfo(FILEINFO_MIME_TYPE))->buffer($bytes) !== $file->mime) {
+                return null;
+            }
+            return ['bytes' => $bytes, 'mime' => $file->mime, 'size' => $length];
+        } catch (\Throwable) {
+            return null;
+        }
+    }
+
     /** @return array{bytes:string,mime:string,size:int}|null */
     public function read(Attachment $attachment, bool $original = false): ?array
     {
@@ -18,24 +52,12 @@ final class QuoteCustomImageSource
         $versions[] = $attachment;
 
         foreach ($versions as $file) {
-            if ($file === null || ! in_array($file->mime, ['image/jpeg', 'image/png', 'image/webp'], true)
-                || (int) $file->size < 1 || (int) $file->size > 5 * 1024 * 1024) {
+            if ($file === null) {
                 continue;
             }
-
-            try {
-                $bytes = Storage::disk($file->disk)->get($file->path);
-                $length = strlen($bytes);
-                if ($length === 0 || $length > 5 * 1024 * 1024) {
-                    continue;
-                }
-                if ((new \finfo(FILEINFO_MIME_TYPE))->buffer($bytes) !== $file->mime) {
-                    continue;
-                }
-
-                return ['bytes' => $bytes, 'mime' => $file->mime, 'size' => $length];
-            } catch (\Throwable) {
-                // Missing edited files fall back to the original; never to a remote URL.
+            $data = $this->readFile($file);
+            if ($data !== null) {
+                return $data;
             }
         }
 

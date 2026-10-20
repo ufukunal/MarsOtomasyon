@@ -23,7 +23,20 @@ final class QuoteCustomImageController
             ->whereIn('collection', $codes)->firstOrFail();
         abort_unless(in_array($photo->mime, ['image/jpeg', 'image/png', 'image/webp'], true), 404);
 
-        $file = app(QuoteCustomImageSource::class)->read($photo, request()->boolean('original'));
+        $source = app(QuoteCustomImageSource::class);
+        if (request()->boolean('original')) {
+            $file = $source->read($photo, true);
+        } elseif (request()->boolean('base')) {
+            $versions = $photo->editedVersions()->orderBy('id')->get();
+            $latest = $versions->last();
+            $metadata = $latest?->instructions;
+            $index = is_array($metadata) && ($metadata['version'] ?? null) === 2
+                ? (int) ($metadata['base_index'] ?? -1)
+                : $versions->count() - 1;
+            $file = $source->readVersion($photo, $index);
+        } else {
+            $file = $source->read($photo);
+        }
         abort_unless($file !== null, 404);
 
         return response($file['bytes'], 200, [

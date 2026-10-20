@@ -32,6 +32,9 @@ class QuoteEditor extends BaseSalesDocumentEditor
     /** Current edited upload; stored separately from the immutable original image. */
     public $customImageEditUpload = null;
 
+    /** Original clean background for an independent copy. */
+    public $customImageBaseUpload = null;
+
     /**
      * Unsaved quote images belong to a UI row key, never to a stock product.
      * Livewire holds the temporary uploads; original and edited are separate.
@@ -195,29 +198,34 @@ class QuoteEditor extends BaseSalesDocumentEditor
             ],
         ]);
         $this->pendingCustomImages[$key][$index]['edited'] = $this->customImageEditUpload;
-        $this->pendingCustomImages[$key][$index]['instructions'] = collect($instructions)->take(40)
-            ->filter(static fn ($step): bool => is_string($step))
-            ->map(static fn (string $step): string => mb_substr($step, 0, 80))->all();
+        $scene = app(SaveCustomQuoteImageEdit::class)->normalizeInstructions($instructions);
+        if (($scene['version'] ?? null) === 2) {
+            $scene['base_index'] = -1; // The unsaved background is always its own original.
+        }
+        $this->pendingCustomImages[$key][$index]['instructions'] = $scene;
         $this->reset('customImageEditUpload');
         $this->dispatch('v65-quote-image-edited', attachmentId: 'staged-'.$index);
     }
 
-    public function savePendingCustomImageAsNew(): void
+    public function savePendingCustomImageAsNew(array $instructions = []): void
     {
         $key = $this->requireEditableCustomRowKey();
         $this->validate([
-            'customImageEditUpload' => [
-                'required', 'image', 'mimetypes:image/jpeg,image/png,image/webp', 'max:5120',
-            ],
+            'customImageEditUpload' => ['required', 'image', 'mimetypes:image/jpeg,image/png,image/webp', 'max:5120'],
+            'customImageBaseUpload' => ['required', 'image', 'mimetypes:image/jpeg,image/png,image/webp', 'max:5120'],
         ]);
         $this->validatePendingImageCount($key, 1);
+        $scene = app(SaveCustomQuoteImageEdit::class)->normalizeInstructions($instructions);
+        $scene['base_index'] = -1;
+        $scene['ops'] = [];
         $this->pendingCustomImages[$key][] = [
-            'original' => $this->customImageEditUpload, 'edited' => null, 'instructions' => [],
+            'original' => $this->customImageBaseUpload,
+            'edited' => $this->customImageEditUpload,
+            'instructions' => $scene,
         ];
-        $this->reset('customImageEditUpload');
+        $this->reset('customImageEditUpload', 'customImageBaseUpload');
         $this->dispatch('v65-quote-image-added');
     }
-
     public function updated(string $property): void
     {
         parent::updated($property);
@@ -338,33 +346,39 @@ class QuoteEditor extends BaseSalesDocumentEditor
     }
 
     /** "Farklı Kaydet" is a new independent original, never a replacement. */
-    public function saveCustomImageAsNew(): void
+    public function saveCustomImageAsNew(array $instructions = []): void
     {
         $collection = $this->requireEditableCustomPhotoCollection();
         $this->validate([
             'customImageEditUpload' => ['required', 'image', 'mimetypes:image/jpeg,image/png,image/webp', 'max:5120'],
+            'customImageBaseUpload' => ['required', 'image', 'mimetypes:image/jpeg,image/png,image/webp', 'max:5120'],
         ]);
         $count = $this->document->attachments()->where('collection', $collection)->count();
         if ($count >= 10) {
-            throw ValidationException::withMessages([
-                'customImageEditUpload' => 'En fazla 10 görsel eklenebilir.',
-            ]);
+            throw ValidationException::withMessages(['customImageEditUpload' => 'En fazla 10 görsel eklenebilir.']);
         }
-        $dims = @getimagesize($this->customImageEditUpload->getRealPath());
-        if (! is_array($dims) || $dims[0] < 1 || $dims[1] < 1
-            || $dims[0] > 3200 || $dims[1] > 3200
-            || $dims[0] * $dims[1] > 10000000) {
-            throw ValidationException::withMessages([
-                'customImageEditUpload' => 'Görsel ölçüleri geçersiz.',
-            ]);
+        foreach ([$this->customImageEditUpload, $this->customImageBaseUpload] as $upload) {
+            $dims = @getimagesize($upload->getRealPath());
+            if (! is_array($dims) || $dims[0] < 1 || $dims[1] < 1
+                || $dims[0] > 3200 || $dims[1] > 3200 || $dims[0] * $dims[1] > 10000000) {
+                throw ValidationException::withMessages(['customImageEditUpload' => 'Görsel ölçüleri geçersiz.']);
+            }
         }
-        app(StoreAttachment::class)->handle(
-            $this->document, $this->customImageEditUpload, $collection, $count
+        $scene = app(SaveCustomQuoteImageEdit::class)->normalizeInstructions($instructions);
+        $scene['base_index'] = -1;
+        $scene['ops'] = [];
+        $original = app(StoreAttachment::class)->handle(
+            $this->document, $this->customImageBaseUpload, $collection, $count
         );
-        $this->reset('customImageEditUpload');
+        try {
+            app(SaveCustomQuoteImageEdit::class)->handle($original, $this->customImageEditUpload, $scene);
+        } catch (\Throwable $e) {
+            $original->delete();
+            throw $e;
+        }
+        $this->reset('customImageEditUpload', 'customImageBaseUpload');
         $this->dispatch('v65-quote-image-added');
     }
-
     public function setCustomCover(int $attachmentId): void
     {
         $collection = $this->requireEditableCustomPhotoCollection();

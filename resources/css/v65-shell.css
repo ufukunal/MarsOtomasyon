@@ -3704,3 +3704,49 @@
 .app-shell .v65-custom-photo-zoom button{min-height:28px;border:1px solid #d0ddea;border-radius:5px;padding:5px 9px;color:#264b70;background:#fff;cursor:pointer;font-size:11px}
 .app-shell .v65-custom-photo-zoom input[type=range]{width:150px;max-width:35vw;accent-color:#1e63af}
 .app-shell .v65-custom-photo-zoom span{font-size:11px;min-width:40px;color:#45627f}
+
+
+/* Selectable custom-quote annotation editor; no changes to shared v65 form controls. */
+.app-shell .v65-photo-header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 15px;background:#fff;border-bottom:1px solid #dce5ef}
+.app-shell .v65-photo-header>div:first-child{display:grid;gap:3px;color:#193756}
+.app-shell .v65-photo-header small{font-size:11px;color:#627b96}
+.app-shell .v65-photo-header-actions{display:flex;gap:6px;flex-wrap:wrap}
+.app-shell .v65-photo-layout{display:grid;grid-template-columns:65px minmax(0,1fr) 200px;min-height:370px;min-width:0}
+.app-shell .v65-custom-photo-tools{display:flex;flex-direction:column;flex-wrap:nowrap;gap:4px;padding:10px 6px;background:#fff;border-right:1px solid #dce5ef}
+.app-shell .v65-custom-photo-tools button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:48px;width:52px;font-size:21px;border-radius:8px}
+.app-shell .v65-custom-photo-tools button span{font-size:10px;font-weight:650}
+.app-shell .v65-photo-stage{min-width:0;display:flex;flex-direction:column;background:#eef3f8}
+.app-shell .v65-photo-raster-actions{display:flex;flex-wrap:wrap;gap:6px;padding:8px 10px;background:#fff;border-bottom:1px solid #dce5ef}
+.app-shell .v65-photo-raster-actions button,.app-shell .v65-photo-header-actions button,.app-shell .v65-photo-inspector button{
+  border:1px solid #ccdbe8;border-radius:6px;padding:7px 9px;color:#244e76;background:#fff;font-size:11px;cursor:pointer}
+.app-shell .v65-photo-raster-actions button:hover,.app-shell .v65-photo-inspector button:hover{background:#f0f6fd}
+.app-shell .v65-photo-stage .v65-custom-photo-canvas-scroll{flex:1;max-height:580px;min-height:330px;padding:22px}
+.app-shell .v65-photo-stage .v65-custom-photo-zoom{border-top:1px solid #dce5ef}
+.app-shell .v65-photo-inspector{min-width:0;padding:13px 12px;display:flex;flex-direction:column;gap:10px;border-left:1px solid #dce5ef;background:#fff;max-height:640px;overflow-y:auto}
+.app-shell .v65-photo-inspector h3{font-size:12px;margin:0;color:#294866}
+.app-shell .v65-photo-defaults,.app-shell .v65-photo-selected-properties,.app-shell .v65-photo-resize{display:grid;gap:9px}
+.app-shell .v65-photo-inspector label{display:grid;gap:4px;font-size:11px;font-weight:600;color:#46637f}
+.app-shell .v65-photo-inspector input{width:100%;max-width:100%;height:32px;border:1px solid #cfdce9;border-radius:6px;padding:4px 8px;background:#fff;color:#253f5c}
+.app-shell .v65-photo-inspector input[type=color]{width:56px;padding:2px;cursor:pointer}
+.app-shell .v65-photo-selected-properties{border-top:1px solid #e4eaf1;padding-top:10px}
+.app-shell .v65-photo-selected-properties[hidden]{display:none}
+.app-shell .v65-photo-object-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}
+.app-shell .v65-photo-inspector button.is-danger{color:#b42335;border-color:#f4c6cd}
+.app-shell .v65-photo-layers{display:grid;gap:4px;max-height:170px;overflow:auto}
+.app-shell .v65-photo-layers button{text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.app-shell .v65-photo-layers button.is-selected{background:#e8f1fe;border-color:#7faeef;color:#164982}
+.app-shell .v65-photo-resize{border-top:1px solid #e4eaf1;padding-top:12px;margin-top:auto}
+.app-shell canvas[data-v65-image-overlay]{cursor:crosshair}
+.app-shell .v65-custom-photo-savebar{padding:11px 15px}
+@media(max-width:1100px){
+  .app-shell .v65-photo-layout{grid-template-columns:58px minmax(0,1fr)}
+  .app-shell .v65-photo-inspector{grid-column:1/-1;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));max-height:none;border-left:0;border-top:1px solid #dce5ef}
+  .app-shell .v65-photo-inspector h3{grid-column:1/-1}
+}
+@media(max-width:650px){
+  .app-shell .v65-photo-header{align-items:start;flex-direction:column}
+  .app-shell .v65-photo-layout{grid-template-columns:minmax(0,1fr)}
+  .app-shell .v65-custom-photo-tools{flex-direction:row;overflow-x:auto;border-right:0;border-bottom:1px solid #dce5ef}
+  .app-shell .v65-photo-inspector{grid-column:auto;grid-template-columns:minmax(0,1fr)}
+  .app-shell .v65-photo-stage .v65-custom-photo-canvas-scroll{min-height:210px}
+}

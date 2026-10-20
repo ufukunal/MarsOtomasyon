@@ -616,6 +616,14 @@
                                 @if($customPhotos->isNotEmpty() || $pendingPhotos !== [])
                                     <div class="v65-custom-quote-gallery">
                                         @foreach($customPhotos as $image)
+                                            @php
+                                                $versions = $image->editedVersions()->orderBy('id')->get();
+                                                $latest = $versions->last();
+                                                $stored = $latest?->instructions;
+                                                $scene = is_array($stored) && ($stored['version'] ?? null) === 2
+                                                    ? $stored
+                                                    : ['version' => 2, 'base_index' => $versions->count() - 1, 'ops' => [], 'objects' => []];
+                                            @endphp
                                             <div class="v65-custom-quote-image" wire:key="custom-quote-image-{{ $image->id }}">
                                                 <img src="{{ route('sales.quotes.custom-image', ['document' => $document->id, 'attachment' => $image->id]) }}"
                                                      alt="{{ $image->original_name }}" loading="lazy">
@@ -625,6 +633,9 @@
                                                         data-v65-image-select data-image-id="{{ $image->id }}"
                                                         data-image-url="{{ route('sales.quotes.custom-image', ['document' => $document->id, 'attachment' => $image->id]) }}"
                                                         data-image-original="{{ route('sales.quotes.custom-image', ['document' => $document->id, 'attachment' => $image->id, 'original' => 1]) }}"
+                                                        data-image-base="{{ route('sales.quotes.custom-image', ['document' => $document->id, 'attachment' => $image->id, 'base' => 1]) }}"
+                                                        data-image-base-index="{{ $scene['base_index'] }}"
+                                                        data-image-scene="{{ json_encode($scene, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) }}"
                                                         data-image-name="{{ $image->original_name }}">Düzenle</button>
                                                     <div class="v65-custom-image-actions">
                                                         <button type="button" wire:click="setCustomCover({{ $image->id }})"
@@ -647,6 +658,9 @@
                                                     data-v65-image-select data-image-id="staged-{{ $index }}"
                                                     data-image-url="{{ $pendingFile->temporaryUrl() }}"
                                                     data-image-original="{{ $photo['original']->temporaryUrl() }}"
+                                                    data-image-base="{{ $photo['original']->temporaryUrl() }}"
+                                                    data-image-base-index="-1"
+                                                    data-image-scene="{{ json_encode($photo['instructions'] ?: ['version' => 2, 'base_index' => -1, 'ops' => [], 'objects' => []], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) }}"
                                                     data-image-name="{{ $photo['original']->getClientOriginalName() }}">Düzenle</button>
                                                 <div class="v65-custom-image-actions">
                                                     <button type="button" wire:click="setPendingCustomCover({{ $index }})">Kapak</button>

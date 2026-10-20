@@ -1,8 +1,10 @@
 <?php
 
+use App\Actions\Quotes\SaveCustomQuoteImageEdit;
 use App\Models\Attachment;
 use App\Models\QuoteCustomImageEdit;
 use App\Support\Quotes\QuoteCustomImageSource;
+use Illuminate\Validation\ValidationException;
 
 it('keeps each edited picture as a separate immutable version of a scoped quote attachment', function (): void {
     $migration = file_get_contents(base_path('database/migrations/period/2026_10_20_000002_create_quote_custom_image_edits.php'));
@@ -36,7 +38,7 @@ it('saves edited quote files only after confirming ownership, draft status and f
         ->toContain('SaveCustomQuoteImageEdit::class')
         ->toContain("dispatch('v65-quote-image-edited'")
         ->toContain("status === 'draft'")
-        ->toContain('function saveCustomImageAsNew()')
+        ->toContain('function saveCustomImageAsNew(')
         ->toContain("dispatch('v65-quote-image-added'");
 });
 
@@ -89,16 +91,23 @@ it('embeds a scoped V65 canvas editor with crop, rotate, flip, markup, undo and 
         ->toContain('data-v65-image-action="save"')
         ->toContain('data-v65-image-action="save-as"')
         ->toContain('data-v65-image-zoom')
+        ->toContain('data-v65-image-tool="select"')
+        ->toContain('data-v65-image-layers')
+        ->toContain('data-v65-image-properties')
         ->and($js)->toContain('canvas.toBlob(')
-        ->toContain("component.upload('customImageEditUpload'")
-        ->toContain("component.call('saveCustomImageEdit'")
+        ->toContain("await upload('customImageEditUpload'")
+        ->toContain("await component.call(method,...args)")
         ->toContain("document.addEventListener('v65-quote-image-edited'")
-        ->toContain("component.call(asNew ? 'saveCustomImageAsNew' : 'saveCustomImageEdit'")
+        ->toContain("asNew?'saveCustomImageAsNew':'saveCustomImageEdit'")
         ->toContain('quoteRestore(')
         ->toContain('quoteDrawShape(')
         ->toContain('quoteTransform(')
         ->toContain('quoteResize(')
         ->toContain('quoteZoom(')
+        ->toContain('quoteHit(')
+        ->toContain('quoteScaleObject(')
+        ->toContain('quoteRender(')
+        ->toContain('quoteScene(')
         ->and($entry)->toContain("import './quote-image-editor.js'");
 });
 
@@ -130,7 +139,7 @@ it('allows staging screenshots and editing them before the first quote is saved'
         ->toContain("if (\$this->document === null || \$code === '')")
         ->toContain("'original' => \$file, 'edited' => null")
         ->toContain('function savePendingCustomImageEdit(')
-        ->toContain('function savePendingCustomImageAsNew()')
+        ->toContain('function savePendingCustomImageAsNew(')
         ->toContain('function removePendingCustomImage(')
         ->toContain('function setPendingCustomCover(')
         ->toContain('function removeLine(int $index)')
@@ -168,4 +177,77 @@ it('promotes only approved custom-line images after a successful quote save, pre
         ->toContain('Teklif kaydedildi ancak görsellerden bazıları aktarılamadı')
         ->not->toContain('Product::query()->create(')
         ->not->toContain('StockMovement::query()->create(');
+});
+
+
+it('preserves selectable annotation scenes with bounded and validated geometry', function (): void {
+    $action = new SaveCustomQuoteImageEdit;
+    $scene = [
+        'version' => 2,
+        'base_index' => -1,
+        'ops' => [['kind' => 'rotate-right'], ['kind' => 'resize', 'width' => 640]],
+        'objects' => [
+            ['id' => 1, 'type' => 'text', 'x' => 25, 'y' => 30, 'text' => 'Ölçü kontrolü',
+                'size' => 24, 'bold' => true, 'color' => '#112233', 'width' => 3],
+            ['id' => 2, 'type' => 'arrow', 'x' => 10, 'y' => 20, 'w' => 70, 'h' => 40,
+                'color' => '#ff0044', 'width' => 4],
+            ['id' => 3, 'type' => 'path', 'color' => '#445566', 'width' => 2,
+                'points' => [['x' => 1, 'y' => 2], ['x' => 3, 'y' => 4]]],
+        ],
+    ];
+
+    $saved = $action->normalizeInstructions($scene);
+    expect($saved['version'])->toBe(2)
+        ->and($saved['ops'])->toHaveCount(2)
+        ->and($saved['objects'])->toHaveCount(3)
+        ->and($saved['objects'][0]['text'])->toBe('Ölçü kontrolü')
+        ->and($saved['objects'][2]['points'])->toHaveCount(2)
+        ->and($action->normalizeInstructions(['crop', 'rotate-right']))->toBe(['crop', 'rotate-right']);
+});
+
+it('rejects unsafe or oversized editable annotation payloads', function (): void {
+    $action = new SaveCustomQuoteImageEdit;
+    $valid = [
+        'version' => 2, 'base_index' => -1, 'ops' => [],
+        'objects' => [['id' => 1, 'type' => 'text', 'x' => 10, 'y' => 20,
+            'text' => 'Güvenli', 'size' => 24, 'color' => '#123abc', 'width' => 3]],
+    ];
+
+    $unsafe = $valid;
+    $unsafe['objects'][0]['color'] = 'javascript:alert(1)';
+    expect(fn () => $action->normalizeInstructions($unsafe))->toThrow(ValidationException::class);
+
+    $overflow = $valid;
+    $overflow['objects'] = array_map(
+        static fn (int $id): array => [...$valid['objects'][0], 'id' => $id],
+        range(1, 61),
+    );
+    expect(fn () => $action->normalizeInstructions($overflow))->toThrow(ValidationException::class);
+
+    $outside = $valid;
+    $outside['base_index'] = 999;
+    expect(fn () => $action->normalizeInstructions($outside))->toThrow(ValidationException::class);
+});
+
+it('retains editable scenes across staged images, saved versions and quote revisions', function (): void {
+    $form = file_get_contents(base_path('resources/views/livewire/sales/document-editor.blade.php'));
+    $editor = file_get_contents(base_path('app/Livewire/Sales/QuoteEditor.php'));
+    $controller = file_get_contents(base_path('app/Http/Controllers/QuoteCustomImageController.php'));
+    $source = file_get_contents(base_path('app/Support/Quotes/QuoteCustomImageSource.php'));
+    $copy = file_get_contents(base_path('app/Support/Quotes/CopyCustomQuoteImages.php'));
+    $js = file_get_contents(base_path('resources/js/quote-image-editor.js'));
+
+    expect($form)->toContain('data-image-scene')
+        ->toContain('data-image-base')
+        ->toContain('data-image-base-index')
+        ->and($editor)->toContain('customImageBaseUpload')
+        ->toContain('normalizeInstructions($instructions)')
+        ->and($controller)->toContain("request()->boolean('base')")
+        ->toContain('readVersion($photo, $index)')
+        ->and($source)->toContain('function readVersion(')
+        ->and($copy)->toContain("'instructions' => \$version->instructions")
+        ->and($js)->toContain('quoteDefaultScene(')
+        ->toContain("const scene=quoteScene(s,asNew)")
+        ->toContain("await upload('customImageBaseUpload',base)")
+        ->toContain("function quoteReplay(s,scene)");
 });
