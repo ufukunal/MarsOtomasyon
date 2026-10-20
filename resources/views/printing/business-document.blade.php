@@ -219,8 +219,7 @@
                 <div><dt>İskontolu Tutar</dt><dd>{{ $money::money((string) $document->tax_base) }} {{ $currency }}</dd></div>
                 <div><dt>KDV Tutarı</dt><dd>{{ $money::money((string) $document->vat_amount) }} {{ $currency }}</dd></div>
             @else
-                <div><dt>Ara Toplam</dt><dd>{{ $money::money((string) $document->tax_base) }} {{ $currency }}</dd></div>
-                <div><dt>KDV</dt><dd>{{ $money::money((string) $document->vat_amount) }} {{ $currency }}</dd></div>
+                <div><dt>Toplam KDV</dt><dd>{{ $money::money((string) $document->vat_amount) }} {{ $currency }}</dd></div>
             @endif
             <div class="grand"><dt>GENEL TOPLAM</dt><dd>{{ $money::money((string) $document->grand_total) }} {{ $currency }}</dd></div>
         </dl>
