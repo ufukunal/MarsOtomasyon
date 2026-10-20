@@ -213,10 +213,14 @@
     @if($showPrices)
     <section class="summary" aria-label="Kaydedilmiş belge tutarları">
         <dl>
-            <div><dt>İskontosuz Tutar</dt><dd>{{ $money::money($grossTotal) }} {{ $currency }}</dd></div>
-            <div><dt>Toplam İskonto Tutarı</dt><dd>{{ $money::money($totalDiscountAmount) }} {{ $currency }}</dd></div>
-            <div><dt>İskontolu Tutar</dt><dd>{{ $money::money((string) $document->tax_base) }} {{ $currency }}</dd></div>
-            <div><dt>KDV Tutarı</dt><dd>{{ $money::money((string) $document->vat_amount) }} {{ $currency }}</dd></div>
+            @if(bccomp($totalDiscountAmount, '0', 4) > 0)
+                <div><dt>İskontosuz Tutar</dt><dd>{{ $money::money($grossTotal) }} {{ $currency }}</dd></div>
+                <div><dt>Toplam İskonto Tutarı</dt><dd>{{ $money::money($totalDiscountAmount) }} {{ $currency }}</dd></div>
+                <div><dt>İskontolu Tutar</dt><dd>{{ $money::money((string) $document->tax_base) }} {{ $currency }}</dd></div>
+                <div><dt>KDV Tutarı</dt><dd>{{ $money::money((string) $document->vat_amount) }} {{ $currency }}</dd></div>
+            @else
+                <div><dt>Toplam KDV</dt><dd>{{ $money::money((string) $document->vat_amount) }} {{ $currency }}</dd></div>
+            @endif
             <div class="grand"><dt>GENEL TOPLAM</dt><dd>{{ $money::money((string) $document->grand_total) }} {{ $currency }}</dd></div>
         </dl>
     </section>

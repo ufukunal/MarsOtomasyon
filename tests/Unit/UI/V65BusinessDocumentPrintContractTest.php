@@ -78,21 +78,20 @@ it('keeps printed draft marked as unposted and does not recompute stored VAT', f
         ->not->toContain('CalculateDocumentTotals');
 });
 
-it('prints exactly five summary rows with all discounts and persisted tax base', function (): void {
+it('prints five totals with any line/document discount, or only VAT and grand total without discount', function (): void {
     $markup = file_get_contents(base_path('resources/views/printing/business-document.blade.php'));
     $controller = file_get_contents(base_path('app/Http/Controllers/PrintBusinessDocumentController.php'));
 
     preg_match('/<section class="summary"[^>]*>(.*?)<\/section>/s', $markup, $match);
-    $summary = $match[1] ?? '';
+    $summary = $match[0] ?? '';
 
-    expect(substr_count($summary, '<dt>'))->toBe(5)
-        ->and($summary)->toContain('İskontosuz Tutar')
+    expect($summary)->toContain("bccomp(\$totalDiscountAmount, '0', 4) > 0")
+        ->toContain('İskontosuz Tutar')
         ->toContain('Toplam İskonto Tutarı')
         ->toContain('İskontolu Tutar')
         ->toContain('KDV Tutarı')
+        ->toContain('Toplam KDV')
         ->toContain('GENEL TOPLAM')
-        ->toContain('$totalDiscountAmount')
-        ->toContain('$document->tax_base')
         ->toContain('$document->vat_amount')
         ->toContain('$document->grand_total')
         ->not->toContain('Yuvarlama Farkı')
@@ -100,5 +99,40 @@ it('prints exactly five summary rows with all discounts and persisted tax base',
         ->and($controller)->toContain('bcadd($lineDiscountAmount, (string) $record->discount_amount, 4)')
         ->toContain("'totalDiscountAmount' => \$totalDiscountAmount")
         ->toContain("'grossTotal' => \$grossTotal");
-});
 
+    $render = static fn (string $discount): string => \Illuminate\Support\Facades\Blade::render(
+        $summary,
+        [
+            'totalDiscountAmount' => $discount,
+            'grossTotal' => '100.0000',
+            'document' => (object) [
+                'tax_base' => '90.0000',
+                'vat_amount' => '18.0000',
+                'grand_total' => '108.0000',
+            ],
+            'money' => \App\Support\Formatting\TrFormatter::class,
+            'currency' => 'TRY',
+        ],
+    );
+
+    $none = $render('0.0000');
+    expect(substr_count($none, '<dt>'))->toBe(2)
+        ->and($none)->toContain('Toplam KDV')->toContain('GENEL TOPLAM')
+        ->not->toContain('İskontosuz Tutar')
+        ->not->toContain('Toplam İskonto Tutarı')
+        ->not->toContain('İskontolu Tutar')
+        ->not->toContain('KDV Tutarı');
+
+    $discounted = $render('10.0000');
+    expect(substr_count($discounted, '<dt>'))->toBe(5)
+        ->and($discounted)->toContain('İskontosuz Tutar')
+        ->toContain('Toplam İskonto Tutarı')
+        ->toContain('İskontolu Tutar')
+        ->toContain('KDV Tutarı')
+        ->toContain('GENEL TOPLAM')
+        ->not->toContain('<dt>Toplam KDV</dt>');
+
+    // A four-decimal positive discount is still a real discount even if
+    // rounded to 0,00 in the printed two-decimal currency format.
+    expect(substr_count($render('0.0001'), '<dt>'))->toBe(5);
+});
