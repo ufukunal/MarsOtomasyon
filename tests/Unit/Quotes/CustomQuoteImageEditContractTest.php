@@ -88,6 +88,7 @@ it('embeds a scoped V65 canvas editor with crop, rotate, flip, markup, undo and 
         ->toContain('data-v65-image-action="crop-apply"')
         ->toContain('data-v65-image-action="save"')
         ->toContain('data-v65-image-action="save-as"')
+        ->toContain('data-v65-image-zoom')
         ->and($js)->toContain('canvas.toBlob(')
         ->toContain("component.upload('customImageEditUpload'")
         ->toContain("component.call('saveCustomImageEdit'")
@@ -97,6 +98,7 @@ it('embeds a scoped V65 canvas editor with crop, rotate, flip, markup, undo and 
         ->toContain('quoteDrawShape(')
         ->toContain('quoteTransform(')
         ->toContain('quoteResize(')
+        ->toContain('quoteZoom(')
         ->and($entry)->toContain("import './quote-image-editor.js'");
 });
 

@@ -3698,3 +3698,9 @@
   .app-shell .v65-custom-photo-canvas-scroll{min-height:220px;max-height:420px}
 }
 @media print{.app-shell .v65-custom-photo-editor{display:none!important}}
+
+
+.app-shell .v65-custom-photo-zoom{display:flex;align-items:center;justify-content:center;gap:9px;padding:8px;background:#fff;border-top:1px solid #dfe7f0}
+.app-shell .v65-custom-photo-zoom button{min-height:28px;border:1px solid #d0ddea;border-radius:5px;padding:5px 9px;color:#264b70;background:#fff;cursor:pointer;font-size:11px}
+.app-shell .v65-custom-photo-zoom input[type=range]{width:150px;max-width:35vw;accent-color:#1e63af}
+.app-shell .v65-custom-photo-zoom span{font-size:11px;min-width:40px;color:#45627f}

@@ -21,6 +21,14 @@
             <canvas data-v65-image-overlay aria-label="Kırpma ve işaretleme önizlemesi"></canvas>
         </div>
     </div>
+    <div class="v65-custom-photo-zoom" aria-label="Resim yakınlaştırma">
+        <button type="button" data-v65-image-zoom-step="-10" aria-label="Uzaklaştır">−</button>
+        <input type="range" data-v65-image-zoom min="50" max="200" step="10" value="100"
+            aria-label="Yakınlaştırma yüzdesi">
+        <button type="button" data-v65-image-zoom-step="10" aria-label="Yakınlaştır">+</button>
+        <span data-v65-image-zoom-label>% 100</span>
+        <button type="button" data-v65-image-action="fit">Ekrana Sığdır</button>
+    </div>
     <div class="v65-custom-photo-resize">
         <label>Genişlik (px) <input type="number" data-v65-image-width min="1" max="3200"></label>
         <button type="button" data-v65-image-action="resize">Boyutlandır</button>

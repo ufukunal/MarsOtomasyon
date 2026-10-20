@@ -27,6 +27,21 @@ function quoteStatus(s, message) {
     s.status.textContent = message;
 }
 
+function quoteZoom(s, value) {
+    const slider = s.root.querySelector('[data-v65-image-zoom]');
+    const label = s.root.querySelector('[data-v65-image-zoom-label]');
+    const scroll = s.root.querySelector('.v65-custom-photo-canvas-scroll');
+    if (!slider || !scroll || !s.canvas.width) return;
+    const pct = Math.max(50, Math.min(200, Number(value) || 100));
+    slider.value = String(pct);
+    if (label) label.textContent = '% ' + pct;
+    const fit = Math.min(1, Math.max(100, scroll.clientWidth - 40) / s.canvas.width);
+    const wrapper = s.canvas.parentElement;
+    wrapper.style.maxWidth = 'none';
+    wrapper.style.width = Math.round(s.canvas.width * fit * pct / 100) + 'px';
+    s.canvas.style.width = '100%';
+}
+
 function quoteSyncOverlay(s) {
     s.overlay.width = s.canvas.width;
     s.overlay.height = s.canvas.height;
@@ -34,6 +49,7 @@ function quoteSyncOverlay(s) {
     s.over.clearRect(0, 0, s.overlay.width, s.overlay.height);
     s.rect = null;
     s.start = null;
+    quoteZoom(s, s.root.querySelector('[data-v65-image-zoom]')?.value);
 }
 
 function quoteSnapshot(s, step) {
@@ -246,6 +262,7 @@ function quoteAction(s, action) {
     else if (action === 'redo') quoteRestore(s, s.cursor + 1);
     else if (action === 'reset') quoteRestore(s, 0);
     else if (action === 'original') quoteSelect(s, s.item, true);
+    else if (action === 'fit') quoteZoom(s, 100);
     else if (action === 'save') void quoteSave(s);
     else if (action === 'save-as') void quoteSave(s, true);
 }
@@ -326,6 +343,15 @@ document.addEventListener('click', (event) => {
         if (root) void quoteSelect(quoteImageEditor(root), select);
         return;
     }
+    const zoomStep = target.closest('[data-v65-image-zoom-step]');
+    if (zoomStep instanceof HTMLButtonElement) {
+        const root = zoomStep.closest('[data-v65-quote-image-editor]');
+        if (root) {
+            const current = Number(root.querySelector('[data-v65-image-zoom]')?.value || 100);
+            quoteZoom(quoteImageEditor(root), current + Number(zoomStep.dataset.v65ImageZoomStep));
+        }
+        return;
+    }
     const tool = target.closest('[data-v65-image-tool]');
     if (tool instanceof HTMLButtonElement) {
         const root = tool.closest('[data-v65-quote-image-editor]');
@@ -390,4 +416,12 @@ document.addEventListener('v65-quote-image-added', () => {
     s.dirty = false;
     s.steps = [];
     quoteStatus(s, 'Düzenlenmiş resim yeni bir görsel olarak eklendi. Diğer görseller korundu.');
+});
+
+
+document.addEventListener('input', (event) => {
+    const input = event.target;
+    if (!(input instanceof HTMLInputElement) || !input.matches('[data-v65-image-zoom]')) return;
+    const root = input.closest('[data-v65-quote-image-editor]');
+    if (root) quoteZoom(quoteImageEditor(root), input.value);
 });
