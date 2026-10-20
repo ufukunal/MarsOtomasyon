@@ -78,7 +78,7 @@ it('keeps printed draft marked as unposted and does not recompute stored VAT', f
         ->not->toContain('CalculateDocumentTotals');
 });
 
-it('prints five totals with any line/document discount, or only VAT and grand total without discount', function (): void {
+it('prints five totals with discount, or subtotal VAT and grand total without discount', function (): void {
     $markup = file_get_contents(base_path('resources/views/printing/business-document.blade.php'));
     $controller = file_get_contents(base_path('app/Http/Controllers/PrintBusinessDocumentController.php'));
 
@@ -90,7 +90,8 @@ it('prints five totals with any line/document discount, or only VAT and grand to
         ->toContain('Toplam İskonto Tutarı')
         ->toContain('İskontolu Tutar')
         ->toContain('KDV Tutarı')
-        ->toContain('Toplam KDV')
+        ->toContain('Ara Toplam')
+        ->toContain('<dt>KDV</dt>')
         ->toContain('GENEL TOPLAM')
         ->toContain('$document->vat_amount')
         ->toContain('$document->grand_total')
@@ -116,8 +117,13 @@ it('prints five totals with any line/document discount, or only VAT and grand to
     );
 
     $none = $render('0.0000');
-    expect(substr_count($none, '<dt>'))->toBe(2)
-        ->and($none)->toContain('Toplam KDV')->toContain('GENEL TOPLAM')
+    expect(substr_count($none, '<dt>'))->toBe(3)
+        ->and($none)->toContain('<dt>Ara Toplam</dt>')
+        ->toContain('<dt>KDV</dt>')
+        ->toContain('GENEL TOPLAM')
+        ->toContain(\App\Support\Formatting\TrFormatter::money('90.0000'))
+        ->toContain(\App\Support\Formatting\TrFormatter::money('18.0000'))
+        ->toContain(\App\Support\Formatting\TrFormatter::money('108.0000'))
         ->not->toContain('İskontosuz Tutar')
         ->not->toContain('Toplam İskonto Tutarı')
         ->not->toContain('İskontolu Tutar')
@@ -130,7 +136,8 @@ it('prints five totals with any line/document discount, or only VAT and grand to
         ->toContain('İskontolu Tutar')
         ->toContain('KDV Tutarı')
         ->toContain('GENEL TOPLAM')
-        ->not->toContain('<dt>Toplam KDV</dt>');
+        ->not->toContain('<dt>Ara Toplam</dt>')
+        ->not->toContain('<dt>KDV</dt>');
 
     // A four-decimal positive discount is still a real discount even if
     // rounded to 0,00 in the printed two-decimal currency format.
