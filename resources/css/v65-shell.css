@@ -3664,13 +3664,27 @@
 
 
 /* Fabrication-only photo editing workspace. Shared v65 dialogs and stock lists are unchanged. */
-.app-shell .v65-modal.v65-custom-quote-dialog{max-width:min(1310px,calc(100vw - 28px))}
-.app-shell .v65-custom-quote-workspace{display:grid;grid-template-columns:minmax(248px,.72fr) minmax(0,1.7fr);gap:0;padding:0!important;align-items:stretch}
+.app-shell .v65-modal.v65-custom-quote-dialog{width:calc(100vw - 24px);max-width:1600px;max-height:calc(100dvh - 20px);min-height:min(830px,94dvh)}
+.app-shell .v65-custom-quote-workspace{display:grid;grid-template-columns:minmax(335px,380px) minmax(0,1fr);gap:0;padding:0!important;align-items:stretch}
 .app-shell .v65-custom-quote-left{display:grid;gap:10px;align-content:start;min-width:0;padding:16px;border-right:1px solid #dfe7f0}
 .app-shell .v65-custom-quote-left>label{display:grid;gap:5px;font-weight:650}
 .app-shell .v65-custom-quote-left .v65-custom-image-drop{padding:10px}
-.app-shell .v65-custom-quote-left .v65-custom-quote-gallery{grid-template-columns:repeat(auto-fill,minmax(106px,1fr));gap:8px}
-.app-shell .v65-custom-quote-left .v65-custom-quote-image img{height:92px}
+.app-shell .v65-custom-quote-left .v65-custom-quote-gallery{grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px}
+.app-shell .v65-custom-quote-left .v65-custom-quote-image img{height:132px}
+
+.app-shell .v65-custom-quote-left .v65-custom-quote-image{gap:7px}
+.app-shell .v65-custom-quote-left .v65-custom-quote-edit-select{width:100%;min-height:36px;font-size:11px}
+.app-shell .v65-custom-quote-left .v65-custom-image-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+.app-shell .v65-custom-quote-left .v65-custom-image-actions .v65-custom-image-action{
+  box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;
+  min-width:0;min-height:36px;padding:7px 8px;
+  border:1px solid #b8d2eb;border-radius:5px;background:#f6faff;
+  color:#245784!important;font-size:11px;font-weight:700;line-height:1.2;
+  white-space:nowrap;opacity:1;cursor:pointer
+}
+.app-shell .v65-custom-quote-left .v65-custom-image-actions .v65-custom-image-action:hover{background:#e8f2ff;border-color:#85b0d9}
+.app-shell .v65-custom-quote-left .v65-custom-image-actions .v65-custom-image-action--delete{background:#fff7f7;border-color:#e9c5c8;color:#a8333e!important}
+.app-shell .v65-custom-quote-left .v65-custom-image-actions .v65-custom-image-action--delete:hover{background:#ffecee;border-color:#d999a0}
 .app-shell .v65-custom-photo-editor{min-width:0;display:flex;flex-direction:column;background:#f8fafc}
 .app-shell .v65-custom-photo-tools{display:flex;align-items:center;flex-wrap:wrap;gap:5px;padding:10px;background:#fff;border-bottom:1px solid #dfe7f0}
 .app-shell .v65-custom-photo-tools button,.app-shell .v65-custom-photo-resize button,.app-shell .v65-custom-photo-savebar button{
@@ -3711,7 +3725,7 @@
 .app-shell .v65-photo-header>div:first-child{display:grid;gap:3px;color:#193756}
 .app-shell .v65-photo-header small{font-size:11px;color:#627b96}
 .app-shell .v65-photo-header-actions{display:flex;gap:6px;flex-wrap:wrap}
-.app-shell .v65-photo-layout{display:grid;grid-template-columns:65px minmax(0,1fr) 200px;min-height:370px;min-width:0}
+.app-shell .v65-photo-layout{display:grid;grid-template-columns:65px minmax(0,1fr) 230px;min-height:min(650px,72dvh);min-width:0}
 .app-shell .v65-custom-photo-tools{display:flex;flex-direction:column;flex-wrap:nowrap;gap:4px;padding:10px 6px;background:#fff;border-right:1px solid #dce5ef}
 .app-shell .v65-custom-photo-tools button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:48px;width:52px;font-size:21px;border-radius:8px}
 .app-shell .v65-custom-photo-tools button span{font-size:10px;font-weight:650}
@@ -3720,9 +3734,9 @@
 .app-shell .v65-photo-raster-actions button,.app-shell .v65-photo-header-actions button,.app-shell .v65-photo-inspector button{
   border:1px solid #ccdbe8;border-radius:6px;padding:7px 9px;color:#244e76;background:#fff;font-size:11px;cursor:pointer}
 .app-shell .v65-photo-raster-actions button:hover,.app-shell .v65-photo-inspector button:hover{background:#f0f6fd}
-.app-shell .v65-photo-stage .v65-custom-photo-canvas-scroll{flex:1;max-height:580px;min-height:330px;padding:22px}
+.app-shell .v65-photo-stage .v65-custom-photo-canvas-scroll{flex:1;max-height:650px;min-height:400px;padding:22px}
 .app-shell .v65-photo-stage .v65-custom-photo-zoom{border-top:1px solid #dce5ef}
-.app-shell .v65-photo-inspector{min-width:0;padding:13px 12px;display:flex;flex-direction:column;gap:10px;border-left:1px solid #dce5ef;background:#fff;max-height:640px;overflow-y:auto}
+.app-shell .v65-photo-inspector{min-width:0;padding:13px 12px;display:flex;flex-direction:column;gap:10px;border-left:1px solid #dce5ef;background:#fff;max-height:700px;overflow-y:auto}
 .app-shell .v65-photo-inspector h3{font-size:12px;margin:0;color:#294866}
 .app-shell .v65-photo-defaults,.app-shell .v65-photo-selected-properties,.app-shell .v65-photo-resize{display:grid;gap:9px}
 .app-shell .v65-photo-inspector label{display:grid;gap:4px;font-size:11px;font-weight:600;color:#46637f}
@@ -3749,4 +3763,10 @@
   .app-shell .v65-custom-photo-tools{flex-direction:row;overflow-x:auto;border-right:0;border-bottom:1px solid #dce5ef}
   .app-shell .v65-photo-inspector{grid-column:auto;grid-template-columns:minmax(0,1fr)}
   .app-shell .v65-photo-stage .v65-custom-photo-canvas-scroll{min-height:210px}
+}
+
+@media(max-width:700px){
+  .app-shell .v65-modal.v65-custom-quote-dialog{width:calc(100vw - 10px);max-height:calc(100dvh - 10px);min-height:0}
+  .app-shell .v65-photo-layout{min-height:0}
+  .app-shell .v65-photo-stage .v65-custom-photo-canvas-scroll{min-height:220px}
 }

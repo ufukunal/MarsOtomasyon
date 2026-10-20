@@ -638,9 +638,9 @@
                                                         data-image-scene="{{ json_encode($scene, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) }}"
                                                         data-image-name="{{ $image->original_name }}">Düzenle</button>
                                                     <div class="v65-custom-image-actions">
-                                                        <button type="button" wire:click="setCustomCover({{ $image->id }})"
+                                                        <button type="button" class="v65-custom-image-action v65-custom-image-action--cover" wire:click="setCustomCover({{ $image->id }})"
                                                             title="Kapak resmi seç">Kapak</button>
-                                                        <button type="button" wire:click="deleteCustomImage({{ $image->id }})"
+                                                        <button type="button" class="v65-custom-image-action v65-custom-image-action--delete" wire:click="deleteCustomImage({{ $image->id }})"
                                                             wire:confirm="Bu görsel kaldırılsın mı?" title="Görseli kaldır">Sil</button>
                                                     </div>
                                                 @endif
@@ -663,8 +663,8 @@
                                                     data-image-scene="{{ json_encode($photo['instructions'] ?: ['version' => 2, 'base_index' => -1, 'ops' => [], 'objects' => []], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) }}"
                                                     data-image-name="{{ $photo['original']->getClientOriginalName() }}">Düzenle</button>
                                                 <div class="v65-custom-image-actions">
-                                                    <button type="button" wire:click="setPendingCustomCover({{ $index }})">Kapak</button>
-                                                    <button type="button" wire:click="removePendingCustomImage({{ $index }})"
+                                                    <button type="button" class="v65-custom-image-action v65-custom-image-action--cover" wire:click="setPendingCustomCover({{ $index }})">Kapak</button>
+                                                    <button type="button" class="v65-custom-image-action v65-custom-image-action--delete" wire:click="removePendingCustomImage({{ $index }})"
                                                         wire:confirm="Geçici görsel kaldırılsın mı?">Sil</button>
                                                 </div>
                                             </div>

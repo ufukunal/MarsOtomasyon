@@ -251,3 +251,21 @@ it('retains editable scenes across staged images, saved versions and quote revis
         ->toContain("await upload('customImageBaseUpload',base)")
         ->toContain("function quoteReplay(s,scene)");
 });
+
+it('keeps the enlarged custom quote editor and gallery cover/delete actions readable', function (): void {
+    $blade = file_get_contents(base_path('resources/views/livewire/sales/document-editor.blade.php'));
+    $css = file_get_contents(base_path('resources/css/v65-shell.css'));
+
+    expect($blade)->toContain('class="v65-custom-image-action v65-custom-image-action--cover"')
+        ->toContain('class="v65-custom-image-action v65-custom-image-action--delete"')
+        ->toContain('setCustomCover(')
+        ->toContain('setPendingCustomCover(')
+        ->toContain('deleteCustomImage(')
+        ->toContain('removePendingCustomImage(')
+        ->and($css)->toContain('max-width:1600px')
+        ->toContain('max-height:calc(100dvh - 20px)')
+        ->toContain('grid-template-columns:minmax(335px,380px) minmax(0,1fr)')
+        ->toContain('.v65-custom-image-action--delete')
+        ->toContain('color:#245784!important')
+        ->toContain('color:#a8333e!important');
+});
