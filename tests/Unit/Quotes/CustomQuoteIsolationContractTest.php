@@ -88,3 +88,17 @@ it('supports clipboard paste, drag-drop, and custom cover photo on both illustra
         ->toContain('@if($showImages)')
         ->toContain('@if($showPrices)');
 });
+
+it('keeps the Fresh quote-schema readiness psql arguments in one continued command', function (): void {
+    $release = file_get_contents(base_path('ops/uat-fresh-web-update.sh'));
+    $deploy = file_get_contents(base_path('ops/uat-fresh-custom-quote-deploy.sh'));
+
+    expect($release)
+        ->toContain('CUSTOM_QUOTE_SCHEMA_READY="$(sudo docker exec "$PG" \\')
+        ->toContain('psql -w -U mars_uat_owner -d mars_uat_demo_2026 -XAtq')
+        ->toContain("FRESH_CUSTOM_QUOTE_SCHEMA=READY")
+        ->not->toContain("psql -w -U mars_uat_owner\n  -d ")
+        ->and($deploy)->toContain('CUSTOM_QUOTE_SCHEMA=PASS')
+        ->toContain('OFFLINE_RESTORE=PASS');
+});
+

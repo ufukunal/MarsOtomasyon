@@ -84,8 +84,8 @@ SQL
 )" || fail 'Could not verify isolated master permissions'
 [[ "$MASTER_PERMISSIONS_READY" == 'READY' ]] || fail 'FRESH role synchronization is pending. Do not deploy web only.'
 # Code handling custom quote lines must not run against the old Fresh database schema.
-CUSTOM_QUOTE_SCHEMA_READY="$(sudo docker exec "$PG" psql -w -U mars_uat_owner
-  -d mars_uat_demo_2026 -XAtq -v ON_ERROR_STOP=1 -c "
+CUSTOM_QUOTE_SCHEMA_READY="$(sudo docker exec "$PG" \
+  psql -w -U mars_uat_owner -d mars_uat_demo_2026 -XAtq -v ON_ERROR_STOP=1 -c "
 SELECT CASE WHEN
   to_regclass('public.quote_custom_code_seq') IS NOT NULL
   AND EXISTS (SELECT 1 FROM pg_constraint
