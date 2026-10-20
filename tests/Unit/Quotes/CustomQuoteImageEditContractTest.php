@@ -114,3 +114,58 @@ it('requires both Fresh period migrations and new image editor source checks bef
         ->toContain('SaveCustomQuoteImageEdit.php')
         ->toContain('QuoteCustomImageSource.php');
 });
+
+
+it('allows staging screenshots and editing them before the first quote is saved', function (): void {
+    $editor = file_get_contents(base_path('app/Livewire/Sales/QuoteEditor.php'));
+    $blade = file_get_contents(base_path('resources/views/livewire/sales/document-editor.blade.php'));
+    $js = file_get_contents(base_path('resources/js/quote-image-editor.js'));
+
+    expect($editor)
+        ->toContain('public array $pendingCustomImages = []')
+        ->toContain('function selectedPendingCustomImages()')
+        ->toContain('function requireEditableCustomRowKey()')
+        ->toContain("quotes.create")
+        ->toContain('function uploadCustomImages(')
+        ->toContain("if (\$this->document === null || \$code === '')")
+        ->toContain("'original' => \$file, 'edited' => null")
+        ->toContain('function savePendingCustomImageEdit(')
+        ->toContain('function savePendingCustomImageAsNew()')
+        ->toContain('function removePendingCustomImage(')
+        ->toContain('function setPendingCustomCover(')
+        ->toContain('function removeLine(int $index)')
+        ->and($blade)
+        ->toContain('$this->selectedPendingCustomImages()')
+        ->toContain("@if(!\$document || \$document->status === 'draft')")
+        ->toContain('temporaryUrl()')
+        ->toContain('data-image-id="staged-')
+        ->toContain('setPendingCustomCover(')
+        ->toContain('removePendingCustomImage(')
+        ->toContain('<x-v65.quote-image-editor />')
+        ->not->toContain('Teklifi kaydedip bir görsel eklediğinizde')
+        ->and($js)
+        ->toContain("staged-(0|[1-9][0-9]*)")
+        ->toContain("'savePendingCustomImageEdit'")
+        ->toContain("'savePendingCustomImageAsNew'")
+        ->toContain("'v65-quote-image-staged'")
+        ->toContain('Livewire temporary URLs are signed');
+});
+
+it('promotes only approved custom-line images after a successful quote save, preserving originals and versions', function (): void {
+    $editor = file_get_contents(base_path('app/Livewire/Sales/QuoteEditor.php'));
+
+    expect($editor)
+        ->toContain('parent::save($action)')
+        ->toContain("->where('line_kind', 'custom')->get()")
+        ->toContain("newKey = 'saved-'")
+        ->toContain('function attachPendingCustomImages(')
+        ->toContain("->where('collection', \$collection)")
+        ->toContain("'attachment_id'")
+        ->toContain("\$store->handle(\$this->document, \$pending['original']")
+        ->toContain("\$edit->handle(\$original, \$pending['edited'], \$pending['instructions'])")
+        ->toContain('if ($this->pendingCustomImages === [])')
+        ->toContain('unset($this->pendingCustomImages[$key][$i])')
+        ->toContain('Teklif kaydedildi ancak görsellerden bazıları aktarılamadı')
+        ->not->toContain('Product::query()->create(')
+        ->not->toContain('StockMovement::query()->create(');
+});

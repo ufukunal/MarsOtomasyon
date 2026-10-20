@@ -92,8 +92,8 @@ async function quoteLoadCanvas(s, url, fresh = true) {
 async function quoteSelect(s, button, original = false) {
     if (s.busy) return;
     if (s.dirty && !window.confirm('Kaydedilmemiş görsel değişikliklerini iptal etmek istiyor musunuz?')) return;
-    const id = Number(button.dataset.imageId);
-    if (!Number.isSafeInteger(id) || id <= 0) return;
+    const id = String(button.dataset.imageId || '');
+    if (!(/^[1-9][0-9]*$/.test(id) || /^staged-(0|[1-9][0-9]*)$/.test(id))) return;
     s.id = id;
     s.item = button;
     s.root.closest('dialog')?.querySelectorAll('[data-v65-image-select]').forEach(
@@ -227,8 +227,12 @@ async function quoteSave(s, asNew = false) {
     quoteStatus(s, 'Düzenlenen görsel kaydediliyor…');
     const uploaded = new File([file], 'quote-image-edited.png', { type: 'image/png' });
     component.upload('customImageEditUpload', uploaded, () => {
-        component.call(asNew ? 'saveCustomImageAsNew' : 'saveCustomImageEdit',
-            ...(asNew ? [] : [s.id, s.steps.slice(-40)]))
+        const pending = s.id.startsWith('staged-');
+        const method = pending
+            ? (asNew ? 'savePendingCustomImageAsNew' : 'savePendingCustomImageEdit')
+            : (asNew ? 'saveCustomImageAsNew' : 'saveCustomImageEdit');
+        const args = asNew ? [] : [pending ? Number(s.id.slice(7)) : Number(s.id), s.steps.slice(-40)];
+        component.call(method, ...args)
             .then(() => {
                 if (s.busy) quoteStatus(s, 'Kaydetme onayı alınamadı; form hatalarını kontrol edin.');
             })
@@ -389,8 +393,8 @@ document.addEventListener('v65-quote-image-edited', (event) => {
     const dialog = document.getElementById('v65-custom-quote-dialog');
     const root = dialog?.querySelector('[data-v65-quote-image-editor]');
     const s = root && quoteImageEditors.get(root);
-    const id = Number(event.detail?.attachmentId);
-    if (!s || !Number.isSafeInteger(id) || id !== s.id) return;
+    const id = String(event.detail?.attachmentId ?? '');
+    if (!s || id !== s.id) return;
 
     s.busy = false;
     s.dirty = false;
@@ -398,7 +402,10 @@ document.addEventListener('v65-quote-image-edited', (event) => {
     const item = dialog.querySelector('[data-v65-image-select][data-image-id="' + id + '"]');
     if (item instanceof HTMLButtonElement) {
         s.item = item;
-        const current = item.dataset.imageUrl.split('?')[0] + '?refresh=' + Date.now();
+        // Livewire temporary URLs are signed: never discard their query string.
+        const current = id.startsWith('staged-')
+            ? item.dataset.imageUrl
+            : item.dataset.imageUrl.split('?')[0] + '?refresh=' + Date.now();
         item.dataset.imageUrl = current;
         const preview = item.closest('.v65-custom-quote-image')?.querySelector('img');
         if (preview) preview.src = current;
@@ -424,4 +431,21 @@ document.addEventListener('input', (event) => {
     if (!(input instanceof HTMLInputElement) || !input.matches('[data-v65-image-zoom]')) return;
     const root = input.closest('[data-v65-quote-image-editor]');
     if (root) quoteZoom(quoteImageEditor(root), input.value);
+});
+
+
+// Images attached to unsaved quote rows are visible/editable immediately.
+document.addEventListener('v65-quote-image-staged', () => {
+    queueMicrotask(() => {
+        const dialog = document.getElementById('v65-custom-quote-dialog');
+        const root = dialog?.querySelector('[data-v65-quote-image-editor]');
+        if (!root) return;
+        const s = quoteImageEditor(root);
+        if (s.dirty || s.busy) return;
+        const matches = Array.from(dialog.querySelectorAll('[data-v65-image-select]'));
+        if (!matches.some(button => button.dataset.imageId === s.id)) {
+            const staged = matches.find(button => button.dataset.imageId?.startsWith('staged-'));
+            if (staged) void quoteSelect(s, staged);
+        }
+    });
 });

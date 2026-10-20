@@ -11,12 +11,14 @@ use App\Actions\Sales\SubmitQuoteForInternalApproval;
 use App\Enums\DocumentType;
 use App\Actions\Attachments\StoreAttachment;
 use App\Actions\Quotes\SaveCustomQuoteImageEdit;
+use App\Actions\Documents\SaveSalesDocumentDraft;
 use App\Models\Attachment;
 use App\Models\Period\Document;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Livewire\WithFileUploads;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 
 class QuoteEditor extends BaseSalesDocumentEditor
 {
@@ -29,6 +31,44 @@ class QuoteEditor extends BaseSalesDocumentEditor
 
     /** Current edited upload; stored separately from the immutable original image. */
     public $customImageEditUpload = null;
+
+    /**
+     * Unsaved quote images belong to a UI row key, never to a stock product.
+     * Livewire holds the temporary uploads; original and edited are separate.
+     *
+     * @var array<string,list<array{original:TemporaryUploadedFile,edited:?TemporaryUploadedFile,instructions:array<int,string>,attachment_id?:int}>>
+     */
+    public array $pendingCustomImages = [];
+
+    /** @return list<array{original:TemporaryUploadedFile,edited:?TemporaryUploadedFile,instructions:array<int,string>,attachment_id?:int}> */
+    public function selectedPendingCustomImages(): array
+    {
+        $key = (string) ($this->selectedCustomRow()['line']['row_key'] ?? '');
+
+        return $this->pendingCustomImages[$key] ?? [];
+    }
+
+    private function requireEditableCustomRowKey(): string
+    {
+        abort_unless($this->document === null || $this->document->status === 'draft', 409);
+        abort_unless(auth()->user()?->can($this->document ? 'quotes.update' : 'quotes.create'), 403);
+        $selected = $this->selectedCustomRow();
+        abort_unless($selected !== null && ($selected['line']['line_kind'] ?? '') === 'custom', 404);
+        $key = (string) ($selected['line']['row_key'] ?? '');
+        abort_unless($key !== '', 422);
+
+        return $key;
+    }
+
+    private function validatePendingImageCount(string $key, int $additional): void
+    {
+        $count = count($this->pendingCustomImages[$key] ?? []);
+        if ($count + $additional > 10) {
+            throw ValidationException::withMessages([
+                'customImageUploads' => 'Bir özel üretim kalemine en fazla 10 görsel eklenebilir.',
+            ]);
+        }
+    }
 
     /** @return array{index:int,line:array<string,mixed>}|null */
     public function selectedCustomRow(): ?array
@@ -89,11 +129,29 @@ class QuoteEditor extends BaseSalesDocumentEditor
 
     public function uploadCustomImages(StoreAttachment $store): void
     {
-        $collection = $this->requireEditableCustomPhotoCollection();
+        $rowKey = $this->requireEditableCustomRowKey();
         $this->validate([
             'customImageUploads' => ['required', 'array', 'min:1', 'max:8'],
             'customImageUploads.*' => ['required', 'image', 'mimetypes:image/jpeg,image/png,image/webp', 'max:5120'],
         ]);
+
+        // Newly entered special goods have no saved custom code yet.
+        // Keep their originals in Livewire temporary storage until a valid quote save.
+        $code = (string) ($this->selectedCustomRow()['line']['configuration']['custom_code'] ?? '');
+        if ($this->document === null || $code === '') {
+            $this->validatePendingImageCount($rowKey, count($this->customImageUploads));
+            foreach ($this->customImageUploads as $file) {
+                $this->pendingCustomImages[$rowKey][] = [
+                    'original' => $file, 'edited' => null, 'instructions' => [],
+                ];
+            }
+            $this->reset('customImageUploads');
+            $this->dispatch('v65-quote-image-staged');
+
+            return;
+        }
+
+        $collection = $this->requireEditableCustomPhotoCollection();
         $count = $this->document->attachments()->where('collection', $collection)->count();
         if ($count + count($this->customImageUploads) > 10) {
             throw ValidationException::withMessages([
@@ -104,6 +162,159 @@ class QuoteEditor extends BaseSalesDocumentEditor
             $store->handle($this->document, $file, $collection, $count + $index);
         }
         $this->reset('customImageUploads');
+        $this->dispatch('v65-quote-image-staged');
+    }
+
+    public function removePendingCustomImage(int $index): void
+    {
+        $key = $this->requireEditableCustomRowKey();
+        abort_unless(isset($this->pendingCustomImages[$key][$index]), 404);
+        abort_unless(! isset($this->pendingCustomImages[$key][$index]['attachment_id']), 409);
+        array_splice($this->pendingCustomImages[$key], $index, 1);
+        if ($this->pendingCustomImages[$key] === []) {
+            unset($this->pendingCustomImages[$key]);
+        }
+    }
+
+    public function setPendingCustomCover(int $index): void
+    {
+        $key = $this->requireEditableCustomRowKey();
+        abort_unless(isset($this->pendingCustomImages[$key][$index]), 404);
+        $item = $this->pendingCustomImages[$key][$index];
+        array_splice($this->pendingCustomImages[$key], $index, 1);
+        array_unshift($this->pendingCustomImages[$key], $item);
+    }
+
+    public function savePendingCustomImageEdit(int $index, array $instructions = []): void
+    {
+        $key = $this->requireEditableCustomRowKey();
+        abort_unless(isset($this->pendingCustomImages[$key][$index]), 404);
+        $this->validate([
+            'customImageEditUpload' => [
+                'required', 'image', 'mimetypes:image/jpeg,image/png,image/webp', 'max:5120',
+            ],
+        ]);
+        $this->pendingCustomImages[$key][$index]['edited'] = $this->customImageEditUpload;
+        $this->pendingCustomImages[$key][$index]['instructions'] = collect($instructions)->take(40)
+            ->filter(static fn ($step): bool => is_string($step))
+            ->map(static fn (string $step): string => mb_substr($step, 0, 80))->all();
+        $this->reset('customImageEditUpload');
+        $this->dispatch('v65-quote-image-edited', attachmentId: 'staged-'.$index);
+    }
+
+    public function savePendingCustomImageAsNew(): void
+    {
+        $key = $this->requireEditableCustomRowKey();
+        $this->validate([
+            'customImageEditUpload' => [
+                'required', 'image', 'mimetypes:image/jpeg,image/png,image/webp', 'max:5120',
+            ],
+        ]);
+        $this->validatePendingImageCount($key, 1);
+        $this->pendingCustomImages[$key][] = [
+            'original' => $this->customImageEditUpload, 'edited' => null, 'instructions' => [],
+        ];
+        $this->reset('customImageEditUpload');
+        $this->dispatch('v65-quote-image-added');
+    }
+
+    public function updated(string $property): void
+    {
+        parent::updated($property);
+
+        if (preg_match('/^lines\.(\d+)\.line_kind$/D', $property, $matches)) {
+            $row = $this->lines[(int) $matches[1]] ?? null;
+            if (is_array($row) && ($row['line_kind'] ?? '') !== 'custom') {
+                unset($this->pendingCustomImages[(string) ($row['row_key'] ?? '')]);
+            }
+        }
+    }
+
+    public function removeLine(int $index): void
+    {
+        $key = (string) ($this->lines[$index]['row_key'] ?? '');
+        parent::removeLine($index);
+        if ($key !== '') {
+            unset($this->pendingCustomImages[$key]);
+        }
+    }
+
+    public function save(SaveSalesDocumentDraft $action): void
+    {
+        $before = collect($this->lines)
+            ->filter(static fn (array $line): bool => ($line['line_kind'] ?? '') === 'custom')
+            ->pluck('row_key')->values()->all();
+
+        // Do not allow abandoned images to follow a deleted/converted UI row.
+        $active = array_fill_keys($before, true);
+        foreach (array_keys($this->pendingCustomImages) as $key) {
+            if (! isset($active[$key])) {
+                unset($this->pendingCustomImages[$key]);
+            }
+        }
+
+        parent::save($action);
+
+        if ($this->pendingCustomImages === []) {
+            return;
+        }
+
+        $after = $this->document->lines()->where('line_kind', 'custom')->get();
+        if (count($before) !== $after->count()) {
+            throw ValidationException::withMessages([
+                'customImageUploads' => 'Özel üretim satırları değişti. Fotoğraflar aktarılmadı; yeniden deneyin.',
+            ]);
+        }
+
+        // Remap the temporary row keys to persistent line identities after save.
+        foreach ($before as $i => $oldKey) {
+            $newKey = 'saved-'.$after[$i]->id;
+            if (isset($this->pendingCustomImages[$oldKey]) && $oldKey !== $newKey) {
+                $this->pendingCustomImages[$newKey] = array_merge(
+                    $this->pendingCustomImages[$newKey] ?? [],
+                    $this->pendingCustomImages[$oldKey]
+                );
+                unset($this->pendingCustomImages[$oldKey]);
+            }
+        }
+        try {
+            $this->attachPendingCustomImages(app(StoreAttachment::class), app(SaveCustomQuoteImageEdit::class));
+        } catch (\Throwable $error) {
+            throw ValidationException::withMessages([
+                'customImageUploads' => 'Teklif kaydedildi ancak görsellerden bazıları aktarılamadı. '
+                    .'Teklifi tekrar kaydederek kalan görselleri aktarın. '.$error->getMessage(),
+            ]);
+        }
+    }
+
+    private function attachPendingCustomImages(StoreAttachment $store, SaveCustomQuoteImageEdit $edit): void
+    {
+        foreach ($this->document->lines()->where('line_kind', 'custom')->get() as $line) {
+            $key = 'saved-'.$line->id;
+            if (empty($this->pendingCustomImages[$key])) {
+                continue;
+            }
+            $code = (string) ($line->configuration['custom_code'] ?? '');
+            abort_unless(preg_match('/^OZ-[0-9]{4}-[0-9]{6}$/D', $code), 422);
+            $collection = 'quote_custom_'.$code;
+
+            foreach ($this->pendingCustomImages[$key] as $i => $pending) {
+                if (! isset($pending['attachment_id'])) {
+                    $sortOrder = $this->document->attachments()->where('collection', $collection)->count();
+                    $original = $store->handle($this->document, $pending['original'], $collection, $sortOrder);
+                    $this->pendingCustomImages[$key][$i]['attachment_id'] = $original->id;
+                } else {
+                    $original = $this->document->attachments()->where('collection', $collection)
+                        ->findOrFail($pending['attachment_id']);
+                }
+
+                if ($pending['edited'] !== null) {
+                    $edit->handle($original, $pending['edited'], $pending['instructions']);
+                }
+                unset($this->pendingCustomImages[$key][$i]);
+            }
+            unset($this->pendingCustomImages[$key]);
+        }
     }
 
     /** Commit an edited image as a new immutable version; the original attachment is untouched. */

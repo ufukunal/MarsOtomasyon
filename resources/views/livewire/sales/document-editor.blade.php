@@ -559,6 +559,7 @@
                     @php
                         $customSelection = $this->selectedCustomRow();
                         $customPhotos = $this->selectedCustomImages();
+                        $pendingPhotos = $this->selectedPendingCustomImages();
                     @endphp
                     @if($customSelection)
                         <x-v65.modal id="v65-custom-quote-dialog" title="Özel Üretim Ürün Detayı"
@@ -583,8 +584,7 @@
                                         rows="3" maxlength="1500" placeholder="Malzeme, renk, ölçü ve üretim açıklaması"></textarea>
                                 </label>
                                 <strong>Ürün Görselleri (en fazla 10 adet)</strong>
-                                @if($document && $document->status === 'draft'
-                                    && ! empty($customSelection['line']['configuration']['custom_code']))
+                                @if(!$document || $document->status === 'draft')
                                     <div class="v65-custom-image-drop" tabindex="0" role="group"
                                          aria-label="Görsel yükleme, ekran görüntüsü yapıştırma veya bırakma"
                                          x-on:dragover.prevent
@@ -611,9 +611,9 @@
                                     <x-v65.input-error field="customImageUploads"/>
                                     <x-v65.input-error field="customImageUploads.0"/>
                                 @else
-                                    <small>Görsel eklemek için önce teklif taslağını kaydedin.</small>
+                                    <small>Kesinleşmiş teklifte görseller değiştirilemez.</small>
                                 @endif
-                                @if($customPhotos->isNotEmpty())
+                                @if($customPhotos->isNotEmpty() || $pendingPhotos !== [])
                                     <div class="v65-custom-quote-gallery">
                                         @foreach($customPhotos as $image)
                                             <div class="v65-custom-quote-image" wire:key="custom-quote-image-{{ $image->id }}">
@@ -635,14 +635,35 @@
                                                 @endif
                                             </div>
                                         @endforeach
+                                        @foreach($pendingPhotos as $index => $photo)
+                                            @php
+                                                $pendingFile = $photo['edited'] ?? $photo['original'];
+                                            @endphp
+                                            <div class="v65-custom-quote-image" wire:key="pending-custom-image-{{ $customSelection['line']['row_key'] }}-{{ $index }}">
+                                                <img src="{{ $pendingFile->temporaryUrl() }}"
+                                                    alt="{{ $photo['original']->getClientOriginalName() }}" loading="lazy">
+                                                <small>{{ $index === 0 && $customPhotos->isEmpty() ? 'Kapak Resmi' : 'Geçici Görsel' }}</small>
+                                                <button type="button" class="v65-custom-quote-edit-select"
+                                                    data-v65-image-select data-image-id="staged-{{ $index }}"
+                                                    data-image-url="{{ $pendingFile->temporaryUrl() }}"
+                                                    data-image-original="{{ $photo['original']->temporaryUrl() }}"
+                                                    data-image-name="{{ $photo['original']->getClientOriginalName() }}">Düzenle</button>
+                                                <div class="v65-custom-image-actions">
+                                                    <button type="button" wire:click="setPendingCustomCover({{ $index }})">Kapak</button>
+                                                    <button type="button" wire:click="removePendingCustomImage({{ $index }})"
+                                                        wire:confirm="Geçici görsel kaldırılsın mı?">Sil</button>
+                                                </div>
+                                            </div>
+                                        @endforeach
                                     </div>
                                 @endif
                                 </div>
-                                @if($document && $document->status === 'draft' && $customPhotos->isNotEmpty())
+                                @if((!$document || $document->status === 'draft')
+                                    && ($customPhotos->isNotEmpty() || $pendingPhotos !== []))
                                     <x-v65.quote-image-editor />
                                 @else
                                     <div class="v65-custom-photo-editor-placeholder">
-                                        Teklifi kaydedip bir görsel eklediğinizde düzenleme araçları burada açılacaktır.
+                                        Görsel eklediğiniz anda düzenleme araçları açılır. Teklifi kaydetmeniz gerekmez.
                                     </div>
                                 @endif
                             </div>
