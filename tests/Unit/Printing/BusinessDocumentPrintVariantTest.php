@@ -47,6 +47,8 @@ it('hides every monetary figure in both unpriced layouts and preserves stored pr
         ->toContain('KDV %')
         ->toContain('Net Tutar')
         ->toContain('$document->grand_total')
+        ->toContain('Toplam İskonto Tutarı')
+        ->toContain('İskontolu Tutar')
         ->toContain('Toplam Kalem:')
         ->toContain('$document->lines as $line')
         ->toContain('Görsel yok')

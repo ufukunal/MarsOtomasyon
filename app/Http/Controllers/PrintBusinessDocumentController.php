@@ -120,6 +120,9 @@ final class PrintBusinessDocumentController
             $lineDiscountAmount = bcadd($lineDiscountAmount, (string) $line->line_discount_amount, 4);
         }
         $grossTotal = bcadd((string) $record->subtotal, $lineDiscountAmount, 4);
+        // Both line and document discounts contribute to the displayed total discount.
+        // This is only a display aggregate; persisted VAT and grand totals are authoritative.
+        $totalDiscountAmount = bcadd($lineDiscountAmount, (string) $record->discount_amount, 4);
 
         $view = view('printing.business-document', [
             'document' => $record,
@@ -128,6 +131,7 @@ final class PrintBusinessDocumentController
             'generatedAt' => now(),
             'grossTotal' => $grossTotal,
             'lineDiscountAmount' => $lineDiscountAmount,
+            'totalDiscountAmount' => $totalDiscountAmount,
             'sourceReferences' => $sourceReferences,
             'printVariant' => $printVariant,
             'showPrices' => $printVariant->showPrices(),

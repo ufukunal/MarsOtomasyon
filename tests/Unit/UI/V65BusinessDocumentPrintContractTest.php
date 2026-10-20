@@ -74,7 +74,31 @@ it('keeps printed draft marked as unposted and does not recompute stored VAT', f
     expect($markup)->toContain("=== 'draft'")
         ->toContain('Taslak · Kesinleşmemiş Belge')
         ->toContain('$document->tax_base')
-        ->toContain('$document->discount_amount')
         ->toContain('$document->vat_amount')
         ->not->toContain('CalculateDocumentTotals');
 });
+
+it('prints exactly five summary rows with all discounts and persisted tax base', function (): void {
+    $markup = file_get_contents(base_path('resources/views/printing/business-document.blade.php'));
+    $controller = file_get_contents(base_path('app/Http/Controllers/PrintBusinessDocumentController.php'));
+
+    preg_match('/<section class="summary"[^>]*>(.*?)<\/section>/s', $markup, $match);
+    $summary = $match[1] ?? '';
+
+    expect(substr_count($summary, '<dt>'))->toBe(5)
+        ->and($summary)->toContain('İskontosuz Tutar')
+        ->toContain('Toplam İskonto Tutarı')
+        ->toContain('İskontolu Tutar')
+        ->toContain('KDV Tutarı')
+        ->toContain('GENEL TOPLAM')
+        ->toContain('$totalDiscountAmount')
+        ->toContain('$document->tax_base')
+        ->toContain('$document->vat_amount')
+        ->toContain('$document->grand_total')
+        ->not->toContain('Yuvarlama Farkı')
+        ->not->toContain('Satır Netleri')
+        ->and($controller)->toContain('bcadd($lineDiscountAmount, (string) $record->discount_amount, 4)')
+        ->toContain("'totalDiscountAmount' => \$totalDiscountAmount")
+        ->toContain("'grossTotal' => \$grossTotal");
+});
+
