@@ -3801,7 +3801,7 @@
 .app-shell .v65-quote-products-grid .v65-reference-quick-product{display:block}
 .app-shell .v65-quote-products-grid .v65-reference-products-tools{
   display:grid;grid-template-columns:minmax(260px,1fr) auto auto minmax(142px,auto);
-  align-items:center;column-gap:9px;row-gap:8px
+  align-items:start;column-gap:9px;row-gap:8px
 }
 .app-shell .v65-quote-products-grid .v65-reference-quick-product{min-width:0;max-width:none;width:100%;flex:none}
 .app-shell .v65-quote-products-grid .v65-reference-products-tools>.v65-btn{

@@ -71,5 +71,7 @@ it('keeps quote search always visible without the quick-entry toggle', function 
         ->and($sales)->toContain("aria-label=\"Ürün ve hizmetler\" @if(\$screenType !== 'quote')")
         ->toContain("data-v65-add-product-focus @if(\$screenType !== 'quote')")
         ->and($css)->toContain('.v65-quote-products-grid .v65-reference-products-title{margin-bottom:10px}')
-        ->toContain('.v65-quote-products-grid .v65-reference-quick-product{display:block}');
+        ->toContain('.v65-quote-products-grid .v65-reference-quick-product{display:block}')
+        ->toContain('align-items:start;column-gap:9px;row-gap:8px')
+        ->toContain('min-height:36px;height:36px');
 });
