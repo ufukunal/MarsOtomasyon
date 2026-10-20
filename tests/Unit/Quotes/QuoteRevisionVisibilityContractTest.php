@@ -31,15 +31,15 @@ it('keeps older quote revisions accessible inside the quote editor without chang
         ->toContain("orderByDesc('revision_no')")
         ->toContain("orderByDesc('id')")
         ->and($quoteView)->toContain('$this->quoteRevisions()')
-        ->toContain(':quote-revisions=')
-        ->not->toContain('<section class="v65-quote-revisions"')
-        ->and($heading)->toContain('v65-quote-revision-picker')
+        ->toContain('v65-quote-revision-workflow')
         ->toContain('Revizyon Geçmişi')
         ->toContain("route('sales.quotes.edit', ['id' => \$revision->id])")
         ->toContain('Bu sürüm')
         ->toContain('$revision->document_date')
         ->toContain('$revision->status')
         ->toContain('$revision->grand_total')
+        ->not->toContain(':quote-revisions=')
+        ->and($heading)->not->toContain('v65-quote-revision-picker')
         ->and($listView)->toContain('$this instanceof \\App\\Livewire\\Sales\\QuoteList')
         ->toContain("route('documents.history', ['id' => \$document->id])")
         ->and($css)->toContain('.v65-quote-revision-popover');
@@ -53,4 +53,22 @@ it('retains the append-only quote revision and document relation history', funct
         ->toContain("'relation_type' => 'revision_of'")
         ->toContain('Document::query()->create([')
         ->and($editor)->toContain("return \$this->redirectRoute('sales.quotes.edit', ['id' => \$revision->id]");
+});
+
+it('aligns only sales quote product rows and moves revision selection into document actions', function (): void {
+    $view = file_get_contents(base_path('resources/views/livewire/sales/document-editor.blade.php'));
+    $css = file_get_contents(base_path('resources/css/v65-shell.css'));
+
+    $workflow = strpos($view, 'aria-label="Belge işlemleri"');
+    $history = strpos($view, 'v65-quote-revision-workflow');
+
+    expect($workflow)->not->toBeFalse()
+        ->and($history)->not->toBeFalse()
+        ->and($history)->toBeGreaterThan($workflow)
+        ->and($view)->toContain("v65-quote-products-grid")
+        ->toContain("Revizyon Oluştur")
+        ->and($css)->toContain('.v65-quote-products-grid .v65-prototype-lines')
+        ->toContain('min-width:1340px')
+        ->toContain('.v65-quote-products-grid .v65-reference-line-actions>button')
+        ->toContain('.v65-doc-workflow>.v65-quote-revision-workflow');
 });

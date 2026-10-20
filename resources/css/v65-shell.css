@@ -3772,14 +3772,14 @@
 }
 
 
-/* Quote-only collapsed revision history beside document heading. */
-.app-shell .v65-quote-revision-picker{position:relative;display:inline-block;margin:7px 0 0;z-index:4}
+/* Quote-only revision history in the lower document workflow. */
+.app-shell .v65-quote-revision-picker{position:relative;display:inline-block;margin:0;z-index:4}
 .app-shell .v65-quote-revision-picker[open]{z-index:240}
 .app-shell .v65-quote-revision-picker>summary{list-style:none;display:inline-flex;align-items:center;gap:8px;cursor:pointer;
   background:#f1f6fd;border:1px solid #ccdfef;border-radius:6px;color:#245a87;font-size:11px;font-weight:700;padding:7px 10px;white-space:nowrap}
 .app-shell .v65-quote-revision-picker>summary::-webkit-details-marker{display:none}
 .app-shell .v65-quote-revision-picker>summary:hover{background:#e7f1fc}
-.app-shell .v65-quote-revision-popover{position:absolute;z-index:241;left:0;top:calc(100% + 5px);
+.app-shell .v65-quote-revision-popover{position:absolute;z-index:241;right:0;left:auto;bottom:calc(100% + 7px);top:auto;
   width:min(440px,calc(100vw - 32px));background:#fff;border:1px solid #c8d8ea;border-radius:8px;
   box-shadow:0 12px 30px #172e4930;padding:12px;display:grid;gap:7px}
 .app-shell .v65-quote-revision-popover>strong{font-size:12px;color:#163d63}
@@ -3791,3 +3791,83 @@
 .app-shell .v65-quote-revision-entry-side{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
 .app-shell .v65-quote-revision-entry-side>a{color:#1766b4;text-decoration:underline;font-weight:700}
 @media(max-width:600px){.app-shell .v65-quote-revision-popover{width:min(340px,calc(100vw - 40px))}}
+
+
+/* Sales quote only: optically aligned quote item entry grid without changing other documents. */
+.app-shell .v65-doc-workflow>.v65-quote-revision-workflow{margin-inline-start:auto;flex:0 0 auto}
+.app-shell .v65-quote-revision-workflow>summary{min-height:34px;box-sizing:border-box}
+.app-shell .v65-quote-products-grid .v65-reference-products-tools{
+  display:grid;grid-template-columns:minmax(260px,1fr) auto auto minmax(142px,auto);
+  align-items:center;column-gap:9px;row-gap:8px
+}
+.app-shell .v65-quote-products-grid .v65-reference-quick-product{min-width:0;max-width:none;width:100%;flex:none}
+.app-shell .v65-quote-products-grid .v65-reference-products-tools>.v65-btn{
+  min-height:36px;height:36px;box-sizing:border-box;display:inline-flex;
+  justify-content:center;align-items:center;padding:0 12px;white-space:nowrap
+}
+.app-shell .v65-quote-products-grid .v65-reference-quick-product>input[type=search]{
+  min-height:36px;height:36px
+}
+.app-shell .v65-quote-products-grid .v65-reference-vat-select{
+  display:flex;align-items:center;justify-content:flex-end;gap:8px;margin:0;min-width:0
+}
+.app-shell .v65-quote-products-grid .v65-reference-vat-select select{min-height:36px;height:36px}
+.app-shell .v65-quote-products-grid .v65-prototype-lines{
+  width:100%;min-width:1340px;table-layout:fixed;border-spacing:0
+}
+.app-shell .v65-quote-products-grid .v65-prototype-lines thead th{
+  height:39px;vertical-align:middle;padding:8px 10px;white-space:nowrap
+}
+.app-shell .v65-quote-products-grid .v65-prototype-lines tbody td{
+  height:auto;min-height:64px;padding:11px 9px;vertical-align:middle
+}
+.app-shell .v65-quote-products-grid .v65-prototype-lines tbody td:nth-child(2){padding-inline:12px}
+.app-shell .v65-quote-products-grid .v65-prototype-lines tbody td :where(input:not([type=checkbox]),select){
+  display:block;box-sizing:border-box;width:100%;max-width:100%;min-width:0;
+  height:36px;min-height:36px;margin:0;border-radius:6px;padding:0 9px;font-size:12px
+}
+.app-shell .v65-quote-products-grid .v65-prototype-lines tbody td.align-end>input{
+  text-align:right;font-variant-numeric:tabular-nums
+}
+.app-shell .v65-quote-products-grid .v65-prototype-lines .v65-doc-product-combined{vertical-align:middle}
+.app-shell .v65-quote-products-grid .v65-prototype-lines .v65-doc-product-cell,
+.app-shell .v65-quote-products-grid .v65-prototype-lines .v65-doc-product-detail{
+  display:flex;flex-direction:column;justify-content:center;align-items:stretch;gap:5px;
+  margin:0;min-width:0;width:100%
+}
+.app-shell .v65-quote-products-grid .v65-prototype-lines .v65-doc-product-detail{margin-top:5px}
+.app-shell .v65-quote-products-grid .v65-prototype-lines .v65-doc-product-detail small{
+  display:block;margin:0;color:#768ba2;line-height:1.35;font-size:10px
+}
+.app-shell .v65-quote-products-grid .v65-custom-quote-code{
+  display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;min-height:30px
+}
+.app-shell .v65-quote-products-grid .v65-custom-quote-code>button{
+  min-height:30px;padding:5px 10px;border-radius:5px;white-space:nowrap
+}
+.app-shell .v65-quote-products-grid .v65-prototype-lines .v65-doc-line-net,
+.app-shell .v65-quote-products-grid .v65-prototype-lines .v65-doc-line-incl{
+  text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums;font-weight:700
+}
+.app-shell .v65-quote-products-grid .v65-reference-line-actions{display:flex;align-items:center;justify-content:center;gap:8px}
+.app-shell .v65-quote-products-grid .v65-reference-line-actions>button{
+  display:inline-flex;align-items:center;justify-content:center;flex:0 0 36px;
+  width:36px;height:36px;min-height:36px;padding:0;box-sizing:border-box
+}
+@media(max-width:1100px){
+  .app-shell .v65-quote-products-grid .v65-reference-products-tools{
+    grid-template-columns:minmax(230px,1fr) auto auto
+  }
+  .app-shell .v65-quote-products-grid .v65-reference-vat-select{grid-column:1/-1;justify-content:flex-end}
+}
+@media(max-width:670px){
+  .app-shell .v65-quote-products-grid .v65-reference-products-tools{
+    grid-template-columns:repeat(2,minmax(0,1fr))
+  }
+  .app-shell .v65-quote-products-grid .v65-reference-quick-product{grid-column:1/-1}
+  .app-shell .v65-quote-products-grid .v65-reference-products-tools>.v65-btn{
+    width:100%;white-space:normal;text-align:center
+  }
+  .app-shell .v65-quote-products-grid .v65-reference-vat-select{grid-column:1/-1}
+  .app-shell .v65-doc-workflow>.v65-quote-revision-workflow{margin-inline-start:0}
+}

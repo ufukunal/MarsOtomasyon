@@ -20,8 +20,7 @@
     @endphp
     <x-v65.document-prototype-heading :document="$document" :screen-type="$screenType"
         :index-route="$documentIndexRoute" :dirty="$documentDirty" :form-id="$formId"
-            :can-copy="$this->canCreateEditableCopy()" :edit-permission="$this->permissionPrefix()"
-            :quote-revisions="$this instanceof \App\Livewire\Sales\QuoteEditor && $document ? $this->quoteRevisions() : null" />
+            :can-copy="$this->canCreateEditableCopy()" :edit-permission="$this->permissionPrefix()" />
 
     @if($document && $document->status !== 'draft' && !($this instanceof \App\Livewire\Purchases\GoodsReceiptEditor))
         <div class="v65-reference-edit-notice" role="status">
@@ -438,7 +437,7 @@
 
             @endif
 
-            <section class="v65-doc-lines v65-reference-products-card" aria-label="Ürün ve hizmetler" x-data="{ fastEntry: true }">
+            <section class="v65-doc-lines v65-reference-products-card {{ $screenType === 'quote' ? 'v65-quote-products-grid' : '' }}" aria-label="Ürün ve hizmetler" x-data="{ fastEntry: true }">
                 <x-v65.document-prototype-toolbar :screen-type="$screenType"
                     :products="$this->quickProductOptions()" :quick-search="$quickProductSearch" />
                 <details class="v65-reference-advanced">
@@ -838,6 +837,34 @@
             @endif
             @if(method_exists($this, 'revision') && $document->number)
                 <x-v65.button variant="secondary" wire:click="revision" wire:loading.attr="disabled" wire:target="revision">Revizyon Oluştur</x-v65.button>
+            @endif
+            @if($this instanceof \App\Livewire\Sales\QuoteEditor && $document->number)
+                @php $quoteRevisions = $this->quoteRevisions(); @endphp
+                @if($quoteRevisions->count() > 1)
+                    <details class="v65-quote-revision-picker v65-quote-revision-workflow">
+                        <summary aria-label="Teklif revizyon geçmişini aç">Revizyonlar ({{ $quoteRevisions->count() }}) <span aria-hidden="true">⌄</span></summary>
+                        <div class="v65-quote-revision-popover">
+                            <strong>Revizyon Geçmişi</strong>
+                            <small>Önceki sürümler yalnızca görüntülenir.</small>
+                            @foreach($quoteRevisions as $revision)
+                                <div class="v65-quote-revision-entry" wire:key="quote-revision-{{ $revision->id }}">
+                                    <div class="v65-quote-revision-entry-main">
+                                        <strong>Rev.{{ $revision->revision_no }}</strong>
+                                        <small>{{ $revision->document_date?->format('d.m.Y') ?? '—' }} · {{ \App\Support\Formatting\BusinessLabelFormatter::status($revision->status) }}</small>
+                                    </div>
+                                    <div class="v65-quote-revision-entry-side">
+                                        <span>{{ \App\Support\Formatting\TrFormatter::money((string) $revision->grand_total) }} {{ $revision->currency }}</span>
+                                        @if($revision->id === $document->id)
+                                            <small>Bu sürüm</small>
+                                        @else
+                                            <a href="{{ route('sales.quotes.edit', ['id' => $revision->id]) }}">Görüntüle</a>
+                                        @endif
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </details>
+                @endif
             @endif
             @if(method_exists($this, 'toOrder') && $document->status === 'approved')
                 <x-v65.button wire:click="toOrder" wire:loading.attr="disabled" wire:target="toOrder">Sipariş Oluştur</x-v65.button>

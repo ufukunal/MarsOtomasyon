@@ -1,4 +1,4 @@
-@props(['document' => null, 'screenType', 'indexRoute' => null, 'formId' => null, 'dirty' => false, 'canCopy' => false, 'canReopen' => false, 'editPermission' => null, 'quoteRevisions' => null])
+@props(['document' => null, 'screenType', 'indexRoute' => null, 'formId' => null, 'dirty' => false, 'canCopy' => false, 'canReopen' => false, 'editPermission' => null])
 
 @php
     $screen = config('document_prototype.'.$screenType, []);
@@ -24,31 +24,6 @@
                 <span class="v65-reference-heading-number">{{ $document->number }}</span>
             @endif
         </p>
-        @if($screenType === 'quote' && $document?->number && $quoteRevisions && $quoteRevisions->count() > 1)
-            <details class="v65-quote-revision-picker">
-                <summary aria-label="Teklif revizyon geçmişini aç">Revizyonlar ({{ $quoteRevisions->count() }}) <span aria-hidden="true">⌄</span></summary>
-                <div class="v65-quote-revision-popover">
-                    <strong>Revizyon Geçmişi</strong>
-                    <small>Önceki sürümler yalnızca görüntülenir.</small>
-                    @foreach($quoteRevisions as $revision)
-                        <div class="v65-quote-revision-entry" wire:key="quote-revision-{{ $revision->id }}">
-                            <div class="v65-quote-revision-entry-main">
-                                <strong>Rev.{{ $revision->revision_no }}</strong>
-                                <small>{{ $revision->document_date?->format('d.m.Y') ?? '—' }} · {{ \App\Support\Formatting\BusinessLabelFormatter::status($revision->status) }}</small>
-                            </div>
-                            <div class="v65-quote-revision-entry-side">
-                                <span>{{ \App\Support\Formatting\TrFormatter::money((string) $revision->grand_total) }} {{ $revision->currency }}</span>
-                                @if($revision->id === $document->id)
-                                    <small>Bu sürüm</small>
-                                @else
-                                    <a href="{{ route('sales.quotes.edit', ['id' => $revision->id]) }}">Görüntüle</a>
-                                @endif
-                            </div>
-                        </div>
-                    @endforeach
-                </div>
-            </details>
-        @endif
         @if($dirty)
             <small class="v65-reference-unsaved">Kaydedilmemiş değişiklikler mevcut; çıktı son kaydedilen belgeyi kullanır.</small>
         @endif
