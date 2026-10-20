@@ -75,3 +75,36 @@ it('keeps quote search always visible without the quick-entry toggle', function 
         ->toContain('align-items:start;column-gap:9px;row-gap:8px')
         ->toContain('min-height:36px;height:36px');
 });
+
+it('supports quote-only VAT inclusive or exclusive unit-price entry without changing net accounting', function (): void {
+    $quotes = file_get_contents(base_path('app/Livewire/Sales/QuoteEditor.php'));
+    $toolbar = file_get_contents(base_path('resources/views/components/v65/document-prototype-toolbar.blade.php'));
+    $sales = file_get_contents(base_path('resources/views/livewire/sales/document-editor.blade.php'));
+    $engine = file_get_contents(base_path('app/Actions/Documents/CalculateDocumentTotals.php'));
+
+    expect($toolbar)->toContain("@if(\$screenType === 'quote')")
+        ->toContain('wire:model.live="uiMeta.quote_price_mode"')
+        ->toContain('KDV Hariç')
+        ->toContain('KDV Dahil')
+        ->and($sales)->toContain('setQuoteVatIncludedPrice(')
+        ->toContain('quoteVatIncludedPrice($line)')
+        ->toContain("(\$uiMeta['quote_price_mode'] ?? 'exclusive') === 'inclusive'")
+        ->toContain("wire:model.blur=\"lines.{{ \$index }}.unit_price\"")
+        ->and($quotes)->toContain('function setQuoteVatIncludedPrice(')
+        ->toContain('function quoteVatIncludedPrice(')
+        ->toContain("bcadd('100', \$rate, 4)")
+        ->toContain("['unit_price'] = bcdiv(")
+        ->toContain("['price_source'] = 'manual'")
+        ->toContain('quotes.update')
+        ->and($engine)->toContain("\$unitPrice = bcadd(\$line['unit_price'], '0', 4)");
+});
+
+it('computes a quote gross unit price with BCMath without touching the stored net amount', function (): void {
+    $component = new \App\Livewire\Sales\QuoteEditor;
+    $line = ['unit_price' => '100.0000', 'vat_rate' => '20.0000'];
+
+    expect($component->quoteVatIncludedPrice($line))->toBe('120.0000')
+        ->and($line['unit_price'])->toBe('100.0000')
+        ->and($component->quoteVatIncludedPrice(['unit_price' => '100.0000', 'vat_rate' => '0']))
+        ->toBe('100.0000');
+});

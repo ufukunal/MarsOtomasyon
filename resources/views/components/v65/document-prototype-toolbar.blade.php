@@ -91,6 +91,17 @@
                     wire:loading.attr="disabled" wire:target="addCustomLine">+ Özel Üretim Ekle</x-v65.button>
             @endif
             <x-v65.button variant="secondary" size="sm" wire:click="addServiceLine">+ Hizmet Satırı</x-v65.button>
+            @if($screenType === 'quote')
+                <label class="v65-quote-vat-price-mode" for="v65-quote-price-mode">
+                    <span>Satış Fiyatı:</span>
+                    <select id="v65-quote-price-mode" wire:model.live="uiMeta.quote_price_mode"
+                        aria-label="Satış fiyatı KDV dahil veya hariç giriş şekli"
+                        title="Fiyat giriş şeklini değiştirir; kaydedilmiş net tutarları değiştirmez.">
+                        <option value="exclusive">KDV Hariç</option>
+                        <option value="inclusive">KDV Dahil</option>
+                    </select>
+                </label>
+            @endif
             @if($showVat)
                 <div class="v65-reference-vat-select">
                     <label for="v65-reference-vat-{{ $screenType }}">Toplu KDV:</label>

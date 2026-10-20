@@ -451,7 +451,7 @@
                 <small class="v65-doc-mobile-scroll-hint">Tablodaki diğer satır alanlarını görmek için yatay kaydırın.</small>
 
                 <div class="table-scroll document-lines v65-doc-table-scroll"><table class="data-table v65-doc-table v65-prototype-lines">
-                    <x-v65.document-product-table-head :price-label="$screen['price']" />
+                    <x-v65.document-product-table-head :price-label="$screenType === 'quote' && ($uiMeta['quote_price_mode'] ?? 'exclusive') === 'inclusive' ? 'Fiyat (KDV Dahil)' : $screen['price']" />
                     <tbody>
                     @foreach($lines as $index => $line)
                         @php
@@ -523,7 +523,21 @@
                                     </select>
                                 @endif
                             </td>
-                            <td class="align-end"><input wire:model.blur="lines.{{ $index }}.unit_price" inputmode="decimal" data-tr-decimal data-v65-money-display aria-invalid="{{ $errors->has('lines.'.$index.'.unit_price') ? 'true' : 'false' }}" aria-label="Satır fiyatı"></td>
+                            <td class="align-end">
+                                @if($screenType === 'quote' && ($uiMeta['quote_price_mode'] ?? 'exclusive') === 'inclusive')
+                                    <input type="text" value="{{ $this->quoteVatIncludedPrice($line) }}"
+                                        wire:change="setQuoteVatIncludedPrice('{{ $rowKey }}', $event.target.value)"
+                                        inputmode="decimal" data-tr-decimal
+                                        aria-invalid="{{ $errors->has('quoteGrossPrice') ? 'true' : 'false' }}"
+                                        aria-label="Satır {{ $index + 1 }} KDV dahil birim fiyatı">
+                                    <x-v65.input-error field="quoteGrossPrice" />
+                                @else
+                                    <input wire:model.blur="lines.{{ $index }}.unit_price"
+                                        inputmode="decimal" data-tr-decimal data-v65-money-display
+                                        aria-invalid="{{ $errors->has('lines.'.$index.'.unit_price') ? 'true' : 'false' }}"
+                                        aria-label="Satır fiyatı">
+                                @endif
+                            </td>
                             <td class="align-end"><input wire:model.blur="lines.{{ $index }}.line_discount_rate" inputmode="decimal" data-tr-decimal aria-invalid="{{ $errors->has('lines.'.$index.'.line_discount_rate') ? 'true' : 'false' }}" aria-label="Satır iskonto oranı"></td>
                             <td class="align-end"><input wire:model.blur="lines.{{ $index }}.vat_rate" inputmode="decimal" data-tr-decimal aria-invalid="{{ $errors->has('lines.'.$index.'.vat_rate') ? 'true' : 'false' }}" aria-label="Satır KDV oranı"></td>
                             <td class="align-end v65-doc-line-net">{{ $lineNet !== null ? \App\Support\Formatting\TrFormatter::money((string) $lineNet) : '—' }}</td>

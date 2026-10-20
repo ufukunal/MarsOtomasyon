@@ -438,6 +438,67 @@ class QuoteEditor extends BaseSalesDocumentEditor
         return $this->document ? 'Teklif' : 'Yeni Teklif';
     }
 
+
+    /**
+     * Quote-only entry mode. Accounting and document_lines.unit_price always
+     * remain VAT-exclusive; switching the selector never changes stored amounts.
+     */
+    public function quoteVatIncludedPrice(array $line): string
+    {
+        $net = (string) ($line['unit_price'] ?? '');
+        $rate = (string) ($line['vat_rate'] ?? '0');
+        if ($net === '' || ! is_numeric($net) || ! is_numeric($rate)) {
+            return '';
+        }
+
+        return bcdiv(
+            bcmul(bcadd($net, '0', 4), bcadd('100', $rate, 4), 8),
+            '100',
+            4,
+        );
+    }
+
+    /** Accept an entered gross unit price and convert it into the canonical net price. */
+    public function setQuoteVatIncludedPrice(string $rowKey, string $gross): void
+    {
+        abort_unless($this->document === null || $this->document->status === 'draft', 409);
+        abort_unless(auth()->user()?->can($this->document ? 'quotes.update' : 'quotes.create'), 403);
+        abort_unless(($this->uiMeta['quote_price_mode'] ?? 'exclusive') === 'inclusive', 409);
+
+        $gross = trim(str_replace(',', '.', $gross));
+        if (preg_match('/^[0-9]{1,12}(?:\.[0-9]{1,4})?$/D', $gross) !== 1) {
+            throw ValidationException::withMessages([
+                'quoteGrossPrice' => 'KDV dahil satış fiyatını en fazla dört ondalık basamakla girin.',
+            ]);
+        }
+
+        foreach ($this->lines as $index => $line) {
+            if (($line['row_key'] ?? '') !== $rowKey) {
+                continue;
+            }
+
+            $rate = (string) ($line['vat_rate'] ?? '0');
+            if (! is_numeric($rate) || bccomp($rate, '0', 4) < 0 || bccomp($rate, '100', 4) > 0) {
+                throw ValidationException::withMessages([
+                    'quoteGrossPrice' => 'Fiyat dönüşümünden önce geçerli bir KDV oranı seçin.',
+                ]);
+            }
+
+            $this->lines[$index]['unit_price'] = bcdiv(
+                bcmul($gross, '100', 8),
+                bcadd('100', $rate, 4),
+                4,
+            );
+            $this->lines[$index]['price_source'] = 'manual';
+            $this->lines[$index]['line_discount_amount'] = '0';
+            $this->documentDirty = true;
+
+            return;
+        }
+
+        abort(404, 'Teklif satırı bulunamadı.');
+    }
+
     protected function extraMutationNames(): array
     {
         return ['internalReview', 'customerReview', 'approve', 'revision', 'order', 'proforma'];
