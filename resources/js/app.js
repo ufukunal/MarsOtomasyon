@@ -584,6 +584,19 @@ document.addEventListener('livewire:navigating', () => {
 
 // V65 native dialog lifecycle. Controls remain Livewire-owned; JS only manages presentation.
 const v65ModalFocus = new WeakMap();
+// Quote images open only after the selected Livewire row has been refreshed.
+document.addEventListener('v65-custom-quote-open', () => {
+    const dialog = document.getElementById('v65-custom-quote-dialog');
+    if (!(dialog instanceof HTMLDialogElement) || dialog.open) return;
+    const trigger = document.activeElement;
+    if (trigger instanceof HTMLElement) v65ModalFocus.set(dialog, trigger);
+    dialog.showModal();
+    const pasteTarget = dialog.querySelector('.v65-custom-image-drop');
+    if (pasteTarget instanceof HTMLElement) {
+        pasteTarget.focus({ preventScroll: true });
+    }
+});
+
 document.addEventListener('click', (event) => {
     const target = event.target;
     if (!(target instanceof Element)) return;

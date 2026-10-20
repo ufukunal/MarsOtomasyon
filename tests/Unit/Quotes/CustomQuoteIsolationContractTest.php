@@ -102,3 +102,28 @@ it('keeps the Fresh quote-schema readiness psql arguments in one continued comma
         ->toContain('OFFLINE_RESTORE=PASS');
 });
 
+
+
+it('opens custom quote detail on demand in the existing native dialog instead of an always visible panel', function (): void {
+    $editor = file_get_contents(base_path('app/Livewire/Sales/QuoteEditor.php'));
+    $form = file_get_contents(base_path('resources/views/livewire/sales/document-editor.blade.php'));
+    $modal = file_get_contents(base_path('resources/views/components/v65/modal.blade.php'));
+    $browser = file_get_contents(base_path('resources/js/app.js'));
+    $css = file_get_contents(base_path('resources/css/v65-shell.css'));
+
+    expect($editor)->toContain("dispatch('v65-custom-quote-open')")
+        ->and($form)->toContain('data-v65-custom-quote-launch')
+        ->toContain('<x-v65.modal id="v65-custom-quote-dialog"')
+        ->toContain('data-v65-modal-close>İşlemi Tamamla / Kapat')
+        ->toContain('id="v65-custom-quote-readonly-dialog"')
+        ->toContain('data-v65-modal-open="v65-custom-quote-readonly-dialog"')
+        ->toContain('x-on:paste=')
+        ->toContain('x-on:drop.prevent')
+        ->not->toContain('@if($customSelection)'."\n                        <section class=\"v65-custom-quote-panel\"")
+        ->and($modal)->toContain('data-v65-modal')
+        ->toContain('wire:ignore.self')
+        ->and($browser)->toContain("document.addEventListener('v65-custom-quote-open'")
+        ->toContain('dialog.showModal()')
+        ->toContain("pasteTarget.focus({ preventScroll: true })")
+        ->and($css)->toContain('.v65-modal.v65-custom-quote-dialog');
+});

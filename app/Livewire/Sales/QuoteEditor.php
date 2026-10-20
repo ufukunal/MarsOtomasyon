@@ -50,6 +50,8 @@ class QuoteEditor extends BaseSalesDocumentEditor
                 && ($line['row_key'] ?? '') === $rowKey
         )) {
             $this->customSelectedRowKey = $rowKey;
+            // Open only after Livewire has rendered the newly selected row.
+            $this->dispatch('v65-custom-quote-open');
         }
     }
 

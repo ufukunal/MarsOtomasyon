@@ -476,7 +476,7 @@
                                     <div class="v65-custom-quote-code">
                                         <strong>{{ $line['configuration']['custom_code'] ?? 'Kayıt sonrası özel kod' }}</strong>
                                         @if($this instanceof \App\Livewire\Sales\QuoteEditor)
-                                            <button type="button" wire:click="selectCustomRow('{{ $rowKey }}')">Görseller</button>
+                                            <button type="button" wire:click="selectCustomRow('{{ $rowKey }}')" data-v65-custom-quote-launch>Görseller</button>
                                         @endif
                                     </div>
                                 @else
@@ -561,10 +561,12 @@
                         $customPhotos = $this->selectedCustomImages();
                     @endphp
                     @if($customSelection)
+                        <x-v65.modal id="v65-custom-quote-dialog" title="Özel Üretim Ürün Detayı"
+                            size="lg" class="v65-custom-quote-dialog">
                         <section class="v65-custom-quote-panel" aria-label="Özel üretim görselleri ve teknik detaylar">
                             <header class="v65-custom-quote-panel-head">
                                 <div>
-                                    <strong>Özel Üretim Ürün Detayı</strong>
+                                    <strong>Seçili Özel Üretim</strong>
                                     <small>{{ $customSelection['line']['configuration']['custom_code'] ?? 'Yeni özel üretim kalemi' }}
                                         · {{ $customSelection['line']['description'] ?? '' }}</small>
                                 </div>
@@ -631,6 +633,10 @@
                                 @endif
                             </div>
                         </section>
+                        <x-slot:footer>
+                            <x-v65.button variant="secondary" data-v65-modal-close>İşlemi Tamamla / Kapat</x-v65.button>
+                        </x-slot:footer>
+                        </x-v65.modal>
                     @endif
                 @endif
                 <div class="v65-reference-new-line">
@@ -717,8 +723,12 @@
     @if($this instanceof \App\Livewire\Sales\QuoteEditor
         && $document && $document->status !== 'draft'
         && $document->lines->contains('line_kind', 'custom'))
+        <button type="button" class="v65-btn v65-btn--secondary v65-btn--sm v65-custom-quote-readonly-launch"
+            data-v65-modal-open="v65-custom-quote-readonly-dialog">Özel Üretim Görselleri</button>
+        <x-v65.modal id="v65-custom-quote-readonly-dialog" title="Özel Üretim Görselleri"
+            size="lg" class="v65-custom-quote-dialog">
         <section class="v65-custom-quote-panel" aria-label="Kayıtlı özel üretim görselleri">
-            <header class="v65-custom-quote-panel-head"><strong>Özel Üretim Görselleri</strong></header>
+            <header class="v65-custom-quote-panel-head"><strong>Teklif Görselleri</strong></header>
             <div class="v65-custom-quote-detail">
                 @foreach($document->lines->where('line_kind', 'custom') as $customLine)
                     @php
@@ -744,6 +754,10 @@
                 @endforeach
             </div>
         </section>
+        <x-slot:footer>
+            <x-v65.button variant="secondary" data-v65-modal-close>Kapat</x-v65.button>
+        </x-slot:footer>
+        </x-v65.modal>
     @endif
 
     @if($document && $document->status === 'draft')

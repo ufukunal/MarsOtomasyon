@@ -3636,3 +3636,28 @@
 .app-shell .v65-custom-image-actions{display:flex;gap:6px}
 .app-shell .v65-custom-image-actions button{border:1px solid #c8d8e9;border-radius:5px;padding:6px 8px;background:#fff;cursor:pointer;font-size:10px}
 @media(max-width:700px){.app-shell .v65-custom-quote-panel-head{align-items:flex-start;flex-wrap:wrap}}
+
+/* Special-production quote detail is a real v65 top-layer modal, not a persistent panel. */
+.app-shell .v65-modal.v65-custom-quote-dialog{
+    max-width:min(1020px,calc(100vw - 24px));
+}
+.app-shell .v65-custom-quote-dialog .v65-modal-body{
+    padding:0;
+}
+.app-shell .v65-custom-quote-dialog .v65-custom-quote-panel{
+    border:0;
+    margin:0;
+    border-radius:0;
+    overflow:visible;
+}
+.app-shell .v65-custom-quote-dialog .v65-custom-quote-panel-head{
+    padding:13px 20px;
+}
+.app-shell .v65-custom-quote-dialog .v65-custom-quote-detail{
+    padding:16px 20px 20px;
+}
+.app-shell .v65-custom-quote-readonly-launch{margin:10px 0;}
+@media(max-width:700px){
+    .app-shell .v65-custom-quote-dialog .v65-custom-quote-detail{padding:12px;}
+    .app-shell .v65-custom-quote-dialog .v65-custom-quote-panel-head{padding:12px;}
+}
