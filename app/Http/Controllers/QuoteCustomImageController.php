@@ -5,8 +5,8 @@ namespace App\Http\Controllers;
 use App\Enums\DocumentType;
 use App\Models\Period\Document;
 use App\Support\Period\PeriodContext;
+use App\Support\Quotes\QuoteCustomImageSource;
 use Illuminate\Http\Response;
-use Illuminate\Support\Facades\Storage;
 
 final class QuoteCustomImageController
 {
@@ -23,12 +23,11 @@ final class QuoteCustomImageController
             ->whereIn('collection', $codes)->firstOrFail();
         abort_unless(in_array($photo->mime, ['image/jpeg', 'image/png', 'image/webp'], true), 404);
 
-        $contents = Storage::disk($photo->disk)->get($photo->path);
-        abort_unless(strlen($contents) <= 5 * 1024 * 1024
-            && (new \finfo(FILEINFO_MIME_TYPE))->buffer($contents) === $photo->mime, 404);
+        $file = app(QuoteCustomImageSource::class)->read($photo, request()->boolean('original'));
+        abort_unless($file !== null, 404);
 
-        return response($contents, 200, [
-            'Content-Type' => $photo->mime,
+        return response($file['bytes'], 200, [
+            'Content-Type' => $file['mime'],
             'X-Content-Type-Options' => 'nosniff',
             'Content-Disposition' => 'inline',
             'Cache-Control' => 'private, no-store',

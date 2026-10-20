@@ -572,7 +572,8 @@
                                 </div>
                                 <span class="v65-custom-quote-nostock">Ana stoktan bağımsız</span>
                             </header>
-                            <div class="v65-custom-quote-detail">
+                            <div class="v65-custom-quote-detail v65-custom-quote-workspace">
+                                <div class="v65-custom-quote-left">
                                 <label>Ürün Adı
                                     <input wire:model.blur="lines.{{ $customSelection['index'] }}.description"
                                         maxlength="255" placeholder="Müşteriye özel ürün adı">
@@ -620,6 +621,11 @@
                                                      alt="{{ $image->original_name }}" loading="lazy">
                                                 <small>{{ $image->sort_order === $customPhotos->min('sort_order') ? 'Kapak Resmi' : 'Görsel' }}</small>
                                                 @if($document->status === 'draft')
+                                                    <button type="button" class="v65-custom-quote-edit-select"
+                                                        data-v65-image-select data-image-id="{{ $image->id }}"
+                                                        data-image-url="{{ route('sales.quotes.custom-image', ['document' => $document->id, 'attachment' => $image->id]) }}"
+                                                        data-image-original="{{ route('sales.quotes.custom-image', ['document' => $document->id, 'attachment' => $image->id, 'original' => 1]) }}"
+                                                        data-image-name="{{ $image->original_name }}">Düzenle</button>
                                                     <div class="v65-custom-image-actions">
                                                         <button type="button" wire:click="setCustomCover({{ $image->id }})"
                                                             title="Kapak resmi seç">Kapak</button>
@@ -631,8 +637,17 @@
                                         @endforeach
                                     </div>
                                 @endif
+                                </div>
+                                @if($document && $document->status === 'draft' && $customPhotos->isNotEmpty())
+                                    <x-v65.quote-image-editor />
+                                @else
+                                    <div class="v65-custom-photo-editor-placeholder">
+                                        Teklifi kaydedip bir görsel eklediğinizde düzenleme araçları burada açılacaktır.
+                                    </div>
+                                @endif
                             </div>
                         </section>
+                        <x-v65.input-error field="customImageEditUpload"/>
                         <x-slot:footer>
                             <x-v65.button variant="secondary" data-v65-modal-close>İşlemi Tamamla / Kapat</x-v65.button>
                         </x-slot:footer>

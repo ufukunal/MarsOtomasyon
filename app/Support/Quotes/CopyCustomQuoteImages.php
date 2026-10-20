@@ -29,7 +29,7 @@ final class CopyCustomQuoteImages
                     throw new RuntimeException('Teklif revizyon görseli kopyalanamadı.');
                 }
                 $copied[] = [$image->disk, $newPath];
-                $target->attachments()->create([
+                $newOriginal = $target->attachments()->create([
                     'disk' => $image->disk,
                     'path' => $newPath,
                     'original_name' => $image->original_name,
@@ -40,6 +40,25 @@ final class CopyCustomQuoteImages
                     'uploaded_by' => auth()->id(),
                     'uploaded_by_name' => auth()->user()?->name,
                 ]);
+
+                // Each revision owns independent immutable files and edit history.
+                foreach ($image->editedVersions()->orderBy('id')->get() as $version) {
+                    $newEditedPath = 'quote-custom-copies/'.Str::uuid().'.'.match ($version->mime) {
+                        'image/png' => 'png', 'image/webp' => 'webp', default => 'jpg',
+                    };
+                    if (! Storage::disk($version->disk)->copy($version->path, $newEditedPath)) {
+                        throw new RuntimeException('Teklif görsel düzenleme geçmişi kopyalanamadı.');
+                    }
+                    $copied[] = [$version->disk, $newEditedPath];
+                    $newOriginal->editedVersions()->create([
+                        'disk' => $version->disk,
+                        'path' => $newEditedPath,
+                        'mime' => $version->mime,
+                        'size' => $version->size,
+                        'instructions' => $version->instructions,
+                        'created_by' => auth()->id(),
+                    ]);
+                }
             }
         } catch (\Throwable $exception) {
             foreach ($copied as [$disk, $path]) {

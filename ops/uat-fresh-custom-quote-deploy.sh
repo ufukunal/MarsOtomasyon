@@ -38,19 +38,23 @@ echo '=== 3/5 CUSTOM QUOTE PERIOD MIGRATION ==='
 PG=mars-uat-fresh-postgres-1
 ENV="$HOME/.config/mars/uat-fresh.env"
 COMPOSE="$HOME/mars-uat-fresh-src/compose.uat.fresh.yml"
-NAME=2026_10_20_000001_add_custom_quote_document_lines.php
-MIGRATION="$HERE/$NAME"
-[[ -f "$MIGRATION" && ! -L "$MIGRATION" ]] || fail 'pinned migration missing'
 [[ -f "$ENV" && -f "$COMPOSE" ]] || fail 'isolated Fresh compose missing'
 sudo docker exec "$PG" psql -U mars_uat_owner -d mars_uat_demo_2026 \
   -XAtq -v ON_ERROR_STOP=1 -c 'SELECT current_database()' | grep -Fxq 'mars_uat_demo_2026' \
   || fail 'period database mismatch'
-sudo docker compose --env-file "$ENV" -f "$COMPOSE" run --rm -T --no-deps \
-  -v "$MIGRATION:/var/www/html/database/migrations/period/$NAME:ro" \
-  -e DB_CONNECTION=period -e DB_PERIOD_DATABASE=mars_uat_demo_2026 \
-  --entrypoint php web artisan migrate --database=period \
-  --path="database/migrations/period/$NAME" --force --no-interaction \
-  || fail 'custom quote migration failed'
+for NAME in \
+  2026_10_20_000001_add_custom_quote_document_lines.php \
+  2026_10_20_000002_create_quote_custom_image_edits.php
+do
+  MIGRATION="$HERE/$NAME"
+  [[ -f "$MIGRATION" && ! -L "$MIGRATION" ]] || fail "pinned migration missing: $NAME"
+  sudo docker compose --env-file "$ENV" -f "$COMPOSE" run --rm -T --no-deps \
+    -v "$MIGRATION:/var/www/html/database/migrations/period/$NAME:ro" \
+    -e DB_CONNECTION=period -e DB_PERIOD_DATABASE=mars_uat_demo_2026 \
+    --entrypoint php web artisan migrate --database=period \
+    --path="database/migrations/period/$NAME" --force --no-interaction \
+    || fail "custom quote migration failed: $NAME"
+done
 
 RESULT="$(sudo docker exec "$PG" psql -w -U mars_uat_owner -d mars_uat_demo_2026 \
   -XAtq -v ON_ERROR_STOP=1 -c "
@@ -63,6 +67,9 @@ SELECT CASE WHEN
     WHERE conname='document_lines_stock_shape_valid' AND pg_get_constraintdef(oid) LIKE '%custom%')
   AND EXISTS (SELECT 1 FROM migrations
     WHERE migration='2026_10_20_000001_add_custom_quote_document_lines')
+  AND to_regclass('public.quote_custom_image_edits') IS NOT NULL
+  AND EXISTS (SELECT 1 FROM migrations
+    WHERE migration='2026_10_20_000002_create_quote_custom_image_edits')
 THEN 'PASS' ELSE 'FAIL' END;
 ")" || fail 'cannot verify custom quote schema'
 [[ "$RESULT" == PASS ]] || fail 'custom quote schema not ready'
@@ -79,6 +86,8 @@ sudo docker exec mars-uat-fresh-web-1 sh -ec '
   grep -Fq "x-on:paste" "$ROOT/resources/views/livewire/sales/document-editor.blade.php"
   grep -Fq "forCustomDocument" "$ROOT/app/Support/Printing/BusinessDocumentImageResolver.php"
   grep -Fq "v65-document-direct-pdf" "$ROOT/resources/views/components/v65/document-print-options.blade.php"
+  test -s "$ROOT/resources/js/quote-image-editor.js"
+  grep -Fq "v65-quote-image-editor" "$ROOT/resources/views/components/v65/quote-image-editor.blade.php"
 ' || fail 'custom quote UI/PDF source verification failed'
 
 echo '=== 5/5 FRESH HEALTH ==='

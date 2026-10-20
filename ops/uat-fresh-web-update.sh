@@ -95,6 +95,9 @@ SELECT CASE WHEN
   AND EXISTS (SELECT 1 FROM migrations
     WHERE migration='2026_10_20_000001_add_custom_quote_document_lines')
   AND has_sequence_privilege('mars_uat_app', 'public.quote_custom_code_seq', 'USAGE')
+  AND to_regclass('public.quote_custom_image_edits') IS NOT NULL
+  AND EXISTS (SELECT 1 FROM migrations
+    WHERE migration='2026_10_20_000002_create_quote_custom_image_edits')
 THEN 'READY' ELSE 'MISSING' END;
 ")" || fail 'Could not verify isolated custom-quote schema'
 [[ "$CUSTOM_QUOTE_SCHEMA_READY" == READY ]] || fail 'Custom quote migration missing; leave Fresh web unchanged'
@@ -252,7 +255,13 @@ for source in \
   /var/www/html/app/Actions/Sales/CreateQuoteRevision.php \
   /var/www/html/app/Actions/Sales/CreateDispatchFromOrder.php \
   /var/www/html/app/Actions/Sales/CreateInvoiceFromOrder.php \
-  /var/www/html/database/migrations/period/2026_10_20_000001_add_custom_quote_document_lines.php
+  /var/www/html/database/migrations/period/2026_10_20_000001_add_custom_quote_document_lines.php \
+  /var/www/html/database/migrations/period/2026_10_20_000002_create_quote_custom_image_edits.php \
+  /var/www/html/app/Actions/Quotes/SaveCustomQuoteImageEdit.php \
+  /var/www/html/app/Support/Quotes/QuoteCustomImageSource.php \
+  /var/www/html/app/Models/QuoteCustomImageEdit.php \
+  /var/www/html/app/Models/Attachment.php \
+  /var/www/html/app/Observers/AttachmentObserver.php
 do
   php -l "$source" || { echo "CUSTOM_QUOTE_PHP_LINT_FAIL: $source" >&2; exit 1; }
 done

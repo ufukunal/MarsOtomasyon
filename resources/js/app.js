@@ -1,3 +1,4 @@
+import './quote-image-editor.js';
 
 // Keep current route authoritative when the browser restores old <details> state.
 const syncV65Navigation = () => {

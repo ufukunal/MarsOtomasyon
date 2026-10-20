@@ -10,6 +10,7 @@ use App\Actions\Sales\SendQuoteToCustomerReview;
 use App\Actions\Sales\SubmitQuoteForInternalApproval;
 use App\Enums\DocumentType;
 use App\Actions\Attachments\StoreAttachment;
+use App\Actions\Quotes\SaveCustomQuoteImageEdit;
 use App\Models\Attachment;
 use App\Models\Period\Document;
 use Illuminate\Database\Eloquent\Collection;
@@ -25,6 +26,9 @@ class QuoteEditor extends BaseSalesDocumentEditor
 
     /** @var array<int, \Livewire\Features\SupportFileUploads\TemporaryUploadedFile> */
     public array $customImageUploads = [];
+
+    /** Current edited upload; stored separately from the immutable original image. */
+    public $customImageEditUpload = null;
 
     /** @return array{index:int,line:array<string,mixed>}|null */
     public function selectedCustomRow(): ?array
@@ -100,6 +104,54 @@ class QuoteEditor extends BaseSalesDocumentEditor
             $store->handle($this->document, $file, $collection, $count + $index);
         }
         $this->reset('customImageUploads');
+    }
+
+    /** Commit an edited image as a new immutable version; the original attachment is untouched. */
+    public function saveCustomImageEdit(int $attachmentId, array $instructions = []): void
+    {
+        $collection = $this->requireEditableCustomPhotoCollection();
+        $this->validate([
+            'customImageEditUpload' => [
+                'required', 'image', 'mimetypes:image/jpeg,image/png,image/webp', 'max:5120',
+            ],
+        ]);
+
+        $image = $this->document->attachments()->where('collection', $collection)
+            ->findOrFail($attachmentId);
+
+        app(SaveCustomQuoteImageEdit::class)->handle(
+            $image, $this->customImageEditUpload, $instructions
+        );
+        $this->reset('customImageEditUpload');
+        $this->dispatch('v65-quote-image-edited', attachmentId: $attachmentId);
+    }
+
+    /** "Farklı Kaydet" is a new independent original, never a replacement. */
+    public function saveCustomImageAsNew(): void
+    {
+        $collection = $this->requireEditableCustomPhotoCollection();
+        $this->validate([
+            'customImageEditUpload' => ['required', 'image', 'mimetypes:image/jpeg,image/png,image/webp', 'max:5120'],
+        ]);
+        $count = $this->document->attachments()->where('collection', $collection)->count();
+        if ($count >= 10) {
+            throw ValidationException::withMessages([
+                'customImageEditUpload' => 'En fazla 10 görsel eklenebilir.',
+            ]);
+        }
+        $dims = @getimagesize($this->customImageEditUpload->getRealPath());
+        if (! is_array($dims) || $dims[0] < 1 || $dims[1] < 1
+            || $dims[0] > 3200 || $dims[1] > 3200
+            || $dims[0] * $dims[1] > 10000000) {
+            throw ValidationException::withMessages([
+                'customImageEditUpload' => 'Görsel ölçüleri geçersiz.',
+            ]);
+        }
+        app(StoreAttachment::class)->handle(
+            $this->document, $this->customImageEditUpload, $collection, $count
+        );
+        $this->reset('customImageEditUpload');
+        $this->dispatch('v65-quote-image-added');
     }
 
     public function setCustomCover(int $attachmentId): void

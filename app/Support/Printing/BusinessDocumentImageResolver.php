@@ -4,6 +4,7 @@ namespace App\Support\Printing;
 
 use App\Models\Period\Document;
 use App\Models\Period\DocumentLine;
+use App\Support\Quotes\QuoteCustomImageSource;
 use Illuminate\Support\Facades\Storage;
 
 /**
@@ -107,19 +108,11 @@ final class BusinessDocumentImageResolver
                     ->orderBy('sort_order')->first();
 
                 if ($image !== null && (int) $image->size <= 5 * 1024 * 1024) {
-                    try {
-                        $bytes = Storage::disk($image->disk)->get($image->path);
-                        $length = strlen($bytes);
-                        if ($length > 0 && $length <= 5 * 1024 * 1024 && $length <= $budget) {
-                            $mime = (new \finfo(FILEINFO_MIME_TYPE))->buffer($bytes);
-                            if ($mime === $image->mime) {
-                                $result[$code] = 'data:'.$mime.';base64,'.base64_encode($bytes);
-                                $budget -= $length;
-                                break;
-                            }
-                        }
-                    } catch (\Throwable) {
-                        // Missing media must not prevent an otherwise valid PDF.
+                    $active = app(QuoteCustomImageSource::class)->read($image);
+                    if ($active !== null && $active['size'] <= $budget) {
+                        $result[$code] = 'data:'.$active['mime'].';base64,'.base64_encode($active['bytes']);
+                        $budget -= $active['size'];
+                        break;
                     }
                 }
 
