@@ -58,3 +58,18 @@ it('hides the unused trailing product row and keeps the primary search functiona
     expect($js)->toContain("form?.querySelector('[data-v65-reference-quick-input]')")
         ->not->toContain("form?.querySelector('.v65-reference-entry-row");
 });
+
+it('keeps quote search always visible without the quick-entry toggle', function (): void {
+    $toolbar = file_get_contents(base_path('resources/views/components/v65/document-prototype-toolbar.blade.php'));
+    $sales = file_get_contents(base_path('resources/views/livewire/sales/document-editor.blade.php'));
+    $css = file_get_contents(base_path('resources/css/v65-shell.css'));
+
+    expect($toolbar)->toContain("@if(\$editable && \$screenType !== 'quote')")
+        ->toContain("@if(\$screenType !== 'quote') x-show=\"fastEntry\" @endif")
+        ->toContain('wire:model.live.debounce.250ms="quickProductSearch"')
+        ->toContain("insertQuickProducts([...selectedIds])")
+        ->and($sales)->toContain("aria-label=\"Ürün ve hizmetler\" @if(\$screenType !== 'quote')")
+        ->toContain("data-v65-add-product-focus @if(\$screenType !== 'quote')")
+        ->and($css)->toContain('.v65-quote-products-grid .v65-reference-products-title{margin-bottom:10px}')
+        ->toContain('.v65-quote-products-grid .v65-reference-quick-product{display:block}');
+});

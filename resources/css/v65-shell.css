@@ -3796,6 +3796,9 @@
 /* Sales quote only: optically aligned quote item entry grid without changing other documents. */
 .app-shell .v65-doc-workflow>.v65-quote-revision-workflow{margin-inline-start:auto;flex:0 0 auto}
 .app-shell .v65-quote-revision-workflow>summary{min-height:34px;box-sizing:border-box}
+/* No quick-entry toggle on quotes: keep the search field always visible. */
+.app-shell .v65-quote-products-grid .v65-reference-products-title{margin-bottom:10px}
+.app-shell .v65-quote-products-grid .v65-reference-quick-product{display:block}
 .app-shell .v65-quote-products-grid .v65-reference-products-tools{
   display:grid;grid-template-columns:minmax(260px,1fr) auto auto minmax(142px,auto);
   align-items:center;column-gap:9px;row-gap:8px

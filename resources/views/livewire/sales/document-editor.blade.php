@@ -437,7 +437,7 @@
 
             @endif
 
-            <section class="v65-doc-lines v65-reference-products-card {{ $screenType === 'quote' ? 'v65-quote-products-grid' : '' }}" aria-label="Ürün ve hizmetler" x-data="{ fastEntry: true }">
+            <section class="v65-doc-lines v65-reference-products-card {{ $screenType === 'quote' ? 'v65-quote-products-grid' : '' }}" aria-label="Ürün ve hizmetler" @if($screenType !== 'quote') x-data="{ fastEntry: true }" @endif>
                 <x-v65.document-prototype-toolbar :screen-type="$screenType"
                     :products="$this->quickProductOptions()" :quick-search="$quickProductSearch" />
                 <details class="v65-reference-advanced">
@@ -691,7 +691,7 @@
                     @endif
                 @endif
                 <div class="v65-reference-new-line">
-                    <button type="button" class="v65-reference-new-product-button" data-v65-add-product-focus x-on:click="fastEntry = true">+ Yeni ürün satırı</button>
+                    <button type="button" class="v65-reference-new-product-button" data-v65-add-product-focus @if($screenType !== 'quote') x-on:click="fastEntry = true" @endif>+ Yeni ürün satırı</button>
                     <small>Yeni ürün eklemek için üstteki ürün arama alanını kullanın. Enter ile seçin, Tab ile ilerleyin.</small>
                 </div>
                 @if($screenType !== 'sales_invoice')

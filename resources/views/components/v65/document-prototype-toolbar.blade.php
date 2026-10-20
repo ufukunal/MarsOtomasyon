@@ -6,17 +6,17 @@
             <h2>Ürün ve Hizmetler</h2>
             <small>{{ config('document_prototype.'.$screenType.'.hint', 'Ürün ve hizmetleri girin.') }}</small>
         </div>
-        @if($editable)
+        @if($editable && $screenType !== 'quote')
             <button type="button" class="v65-reference-fast-indicator" x-on:click="fastEntry = !fastEntry"
                 x-bind:aria-pressed="fastEntry.toString()" aria-controls="v65-reference-quick-{{ $screenType }}"
                 x-text="fastEntry ? 'Hızlı satır girişi açık' : 'Hızlı satır girişi kapalı'">Hızlı satır girişi açık</button>
-        @else
+        @elseif(!$editable)
             <span class="v65-reference-fast-indicator v65-reference-source-indicator">Kaynak belge satırları</span>
         @endif
     </div>
     @if($editable)
         <div class="v65-reference-products-tools">
-            <div class="v65-reference-quick-product" x-show="fastEntry" x-data="{ selectedIds: [] }">
+            <div class="v65-reference-quick-product" @if($screenType !== 'quote') x-show="fastEntry" @endif x-data="{ selectedIds: [] }">
                 <label for="v65-reference-quick-{{ $screenType }}" class="sr-only">Ürün kodu, barkod veya ürün adı ara</label>
                 <input id="v65-reference-quick-{{ $screenType }}" type="search"
                     wire:model.live.debounce.250ms="quickProductSearch"
