@@ -37,8 +37,10 @@ it('renders company and contact identity with persisted lines and totals', funct
         ->toContain('$document->grand_total')
         ->toContain('display: table-header-group')
         ->toContain('break-inside: avoid')
-        ->and($controller)->toContain('Browsershot::html(')
-        ->toContain("->format('A4')")
+        ->and($controller)->toContain("new Process([")
+        ->toContain("'--headless'")
+        ->toContain("'--no-pdf-header-footer'")
+        ->toContain("str_starts_with(\$pdf, '%PDF-')")
         ->toContain("'Content-Type' => 'application/pdf'");
 });
 
@@ -54,9 +56,11 @@ it('replaces in-editor generic print with server backed preview and PDF links', 
         ->and($selector)->toContain("route('documents.print'")
         ->toContain("'format' => 'html'")
         ->toContain("'format' => 'pdf'")
+        ->toContain('Çıktı Tasarımını Seçin')
+        ->toContain("'variant' => \$printVariant->value")
+        ->toContain('PDF İndir')
         ->toContain('v65-document-direct-pdf')
-        ->toContain('Düz Fiyatlı belgeyi doğrudan PDF indir')
-        ->toContain('BusinessDocumentPrintVariant::PlainPriced->value')
+        ->toContain('@if($document->document_type !== \\App\\Enums\\DocumentType::Quote)')
         ->toContain('Çıktı yalnız kaydedilmiş belgeyi kullanır.')
         ->not->toContain('onclick="window.print()"');
 
@@ -138,4 +142,20 @@ it('prints five totals with discount, or only VAT and grand total without discou
     // A four-decimal positive discount is still a real discount even if
     // rounded to 0,00 in the printed two-decimal currency format.
     expect(substr_count($render('0.0001'), '<dt>'))->toBe(5);
+});
+
+it('verifies PDF runtime before switching UAT to a new image', function (): void {
+    $runtime = file_get_contents(base_path('Dockerfile.uat'));
+    $release = file_get_contents(base_path('ops/uat-fresh-web-update.sh'));
+    $controller = file_get_contents(base_path('app/Http/Controllers/PrintBusinessDocumentController.php'));
+
+    expect($runtime)->toContain('postgresql-client chromium fonts-dejavu-core')
+        ->and($release)->toContain("command -v chromium")
+        ->toContain("timeout 40s chromium --headless")
+        ->toContain("IMAGE_PDF_RENDER=PASS")
+        ->toContain('PDF_RUNTIME_FAIL invalid PDF')
+        ->and($controller)->toContain("is_executable('/usr/bin/chromium')")
+        ->toContain("file_put_contents(\$htmlFile, \$html)")
+        ->toContain("str_starts_with(\$pdf, '%PDF-')")
+        ->toContain('File::deleteDirectory($workDir)');
 });

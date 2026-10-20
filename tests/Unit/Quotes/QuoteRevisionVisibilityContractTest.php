@@ -21,6 +21,7 @@ it('shows only the latest numbered quote revision in the quote list and exports'
 it('keeps older quote revisions accessible inside the quote editor without changing other document lists', function (): void {
     $editor = file_get_contents(base_path('app/Livewire/Sales/QuoteEditor.php'));
     $quoteView = file_get_contents(base_path('resources/views/livewire/sales/document-editor.blade.php'));
+    $heading = file_get_contents(base_path('resources/views/components/v65/document-prototype-heading.blade.php'));
     $listView = file_get_contents(base_path('resources/views/livewire/sales/document-list.blade.php'));
     $css = file_get_contents(base_path('resources/css/v65-shell.css'));
 
@@ -30,6 +31,9 @@ it('keeps older quote revisions accessible inside the quote editor without chang
         ->toContain("orderByDesc('revision_no')")
         ->toContain("orderByDesc('id')")
         ->and($quoteView)->toContain('$this->quoteRevisions()')
+        ->toContain(':quote-revisions=')
+        ->not->toContain('<section class="v65-quote-revisions"')
+        ->and($heading)->toContain('v65-quote-revision-picker')
         ->toContain('Revizyon Geçmişi')
         ->toContain("route('sales.quotes.edit', ['id' => \$revision->id])")
         ->toContain('Bu sürüm')
@@ -38,7 +42,7 @@ it('keeps older quote revisions accessible inside the quote editor without chang
         ->toContain('$revision->grand_total')
         ->and($listView)->toContain('$this instanceof \\App\\Livewire\\Sales\\QuoteList')
         ->toContain("route('documents.history', ['id' => \$document->id])")
-        ->and($css)->toContain('.v65-quote-revisions');
+        ->and($css)->toContain('.v65-quote-revision-popover');
 });
 
 it('retains the append-only quote revision and document relation history', function (): void {

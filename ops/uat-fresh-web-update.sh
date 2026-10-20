@@ -266,6 +266,21 @@ do
   php -l "$source" || { echo "CUSTOM_QUOTE_PHP_LINT_FAIL: $source" >&2; exit 1; }
 done
 echo 'CUSTOM_QUOTE_PHP_LINT=PASS'
+# Headless PDF must work inside the disposable image before switching UAT web.
+command -v chromium >/dev/null || { echo "PDF_RUNTIME_FAIL chromium missing" >&2; exit 1; }
+pdf_smoke_dir="$(mktemp -d)"
+printf '<!doctype html><html><head><meta charset="utf-8"><style>@page{size:A4}</style></head><body>PDF test</body></html>' > "$pdf_smoke_dir/test.html"
+if ! HOME="$pdf_smoke_dir" XDG_CONFIG_HOME="$pdf_smoke_dir" timeout 40s chromium --headless --no-sandbox --disable-dev-shm-usage --disable-gpu --disable-extensions --disable-background-networking --no-pdf-header-footer --user-data-dir="$pdf_smoke_dir/profile" --print-to-pdf="$pdf_smoke_dir/test.pdf" "file://$pdf_smoke_dir/test.html" >"$pdf_smoke_dir/chromium.log" 2>&1; then
+  tail -n 12 "$pdf_smoke_dir/chromium.log" >&2 || true
+  rm -rf "$pdf_smoke_dir"
+  echo "PDF_RUNTIME_FAIL chromium print failed" >&2; exit 1
+fi
+if [ "$(head -c 5 "$pdf_smoke_dir/test.pdf")" != "%PDF-" ]; then
+  rm -rf "$pdf_smoke_dir"
+  echo "PDF_RUNTIME_FAIL invalid PDF" >&2; exit 1
+fi
+rm -rf "$pdf_smoke_dir"
+echo 'IMAGE_PDF_RENDER=PASS'
 
 # Check all recently edited record/detail Livewire classes before replacing Fresh.
 for file in \

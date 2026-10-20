@@ -10,7 +10,9 @@ use App\Support\Period\PeriodContext;
 use App\Support\Printing\BusinessDocumentImageResolver;
 use App\Support\Printing\Label\OpaqueQrSvg;
 use Illuminate\Http\Response;
-use Spatie\Browsershot\Browsershot;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Log;
+use Symfony\Component\Process\Process;
 
 final class PrintBusinessDocumentController
 {
@@ -143,20 +145,72 @@ final class PrintBusinessDocumentController
             'documentQrToken' => $documentQrToken,
         ]);
 
+        $html = $view->render();
         if ($format === 'html') {
-            return response($view->render(), 200, [
+            return response($html, 200, [
                 'Content-Type' => 'text/html; charset=UTF-8',
                 'X-Content-Type-Options' => 'nosniff',
                 'Cache-Control' => 'private, no-store',
             ]);
         }
 
-        // Render stored document lines and totals only, never unsaved Livewire values.
-        $pdf = Browsershot::html($view->render())
-            ->format('A4')
-            ->margins(12, 10, 14, 10)
-            ->showBackground()
-            ->pdf();
+        // Print the same fully rendered, self-contained HTML as the selected preview.
+        // System Chromium is installed in the UAT image, without a Puppeteer runtime.
+        if (! is_executable('/usr/bin/chromium')) {
+            Log::error('Business document PDF runtime missing Chromium');
+            abort(503, 'PDF servisi kullanılamıyor. Sunucu tarayıcı bileşeni eksik.');
+        }
+        $workDir = sys_get_temp_dir().'/mars-document-pdf-'.bin2hex(random_bytes(12));
+        if (! File::makeDirectory($workDir, 0700)) {
+            abort(503, 'PDF geçici çalışma alanı oluşturulamadı.');
+        }
+
+        $pdf = '';
+        try {
+            $htmlFile = $workDir.'/document.html';
+            $pdfFile = $workDir.'/document.pdf';
+            if (file_put_contents($htmlFile, $html) === false) {
+                abort(503, 'PDF oluşturulamadı.');
+            }
+
+            $process = new Process([
+                '/usr/bin/chromium',
+                '--headless',
+                '--no-sandbox',
+                '--disable-dev-shm-usage',
+                '--disable-gpu',
+                '--disable-extensions',
+                '--disable-background-networking',
+                '--no-pdf-header-footer',
+                '--user-data-dir='.$workDir.'/profile',
+                '--print-to-pdf='.$pdfFile,
+                'file://'.$htmlFile,
+            ], null, ['HOME' => $workDir, 'XDG_CONFIG_HOME' => $workDir]);
+            $process->setTimeout(60);
+            try {
+                $process->run();
+            } catch (\Symfony\Component\Process\Exception\ExceptionInterface $error) {
+                Log::error('Business document PDF process could not start or timed out', [
+                    'document_type' => $record->document_type->value,
+                    'variant' => $printVariant->value,
+                    'message' => mb_substr($error->getMessage(), 0, 800),
+                ]);
+                abort(503, 'PDF oluşturulamadı. Yazdırma servisini kontrol edin.');
+            }
+            $pdf = is_file($pdfFile) ? file_get_contents($pdfFile) : false;
+
+            if (! $process->isSuccessful() || ! is_string($pdf) || ! str_starts_with($pdf, '%PDF-')) {
+                Log::error('Business document PDF rendering failed', [
+                    'document_type' => $record->document_type->value,
+                    'variant' => $printVariant->value,
+                    'exit_code' => $process->getExitCode(),
+                    'stderr' => mb_substr($process->getErrorOutput(), 0, 800),
+                ]);
+                abort(503, 'PDF oluşturulamadı. Yazdırma servisini kontrol edin.');
+            }
+        } finally {
+            File::deleteDirectory($workDir);
+        }
 
         $basename = preg_replace('/[^A-Za-z0-9_-]+/', '-', (string) ($record->number ?: 'belge-'.$record->id));
         $basename = (trim((string) $basename, '-') ?: 'belge-'.$record->id).'-'.$printVariant->value;

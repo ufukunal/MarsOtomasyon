@@ -8,7 +8,7 @@ RUN npm ci --ignore-scripts --no-audit --no-fund && npm run build
 FROM php:8.4-cli-bookworm AS app
 ENV APP_ENV=local APP_DEBUG=false
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    ca-certificates curl git unzip postgresql-client \
+    ca-certificates curl git unzip postgresql-client chromium fonts-dejavu-core \
     libfreetype6-dev libjpeg62-turbo-dev libpng-dev libicu-dev \
     libonig-dev libpq-dev libzip-dev libxml2-dev \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \

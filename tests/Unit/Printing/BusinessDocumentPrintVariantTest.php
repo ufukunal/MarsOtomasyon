@@ -30,9 +30,10 @@ it('selects print layout only after source-document permission check and disallo
         ->toContain('Önizle')
         ->toContain('PDF İndir')
         ->toContain('v65-document-print-actions')
+        ->toContain('Çıktı Tasarımını Seçin')
+        ->toContain("'variant' => \$printVariant->value")
         ->toContain('v65-document-direct-pdf')
-        ->toContain('BusinessDocumentPrintVariant::PlainPriced->value')
-        ->toContain('Düz Fiyatlı tasarımla tek tıkla indir')
+        ->toContain('@if($document->document_type !== \\App\\Enums\\DocumentType::Quote)')
         ->and($generic)->toContain('x-v65.document-print-options')
         ->and($prototype)->toContain('x-v65.document-print-options');
 });

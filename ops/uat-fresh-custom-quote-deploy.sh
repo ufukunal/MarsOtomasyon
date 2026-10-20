@@ -85,7 +85,8 @@ sudo docker exec mars-uat-fresh-web-1 sh -ec '
   grep -Fq "addCustomLine" "$ROOT/resources/views/components/v65/document-prototype-toolbar.blade.php"
   grep -Fq "x-on:paste" "$ROOT/resources/views/livewire/sales/document-editor.blade.php"
   grep -Fq "forCustomDocument" "$ROOT/app/Support/Printing/BusinessDocumentImageResolver.php"
-  grep -Fq "v65-document-direct-pdf" "$ROOT/resources/views/components/v65/document-print-options.blade.php"
+  grep -Fq "Çıktı Tasarımını Seçin" "$ROOT/resources/views/components/v65/document-print-options.blade.php"
+  grep -Fq "PDF İndir" "$ROOT/resources/views/components/v65/document-print-options.blade.php"
   test -s "$ROOT/resources/js/quote-image-editor.js"
   grep -Fq "v65-quote-image-editor" "$ROOT/resources/views/components/v65/quote-image-editor.blade.php"
 ' || fail 'custom quote UI/PDF source verification failed'
