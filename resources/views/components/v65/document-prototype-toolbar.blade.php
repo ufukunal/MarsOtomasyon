@@ -48,7 +48,7 @@
                                 </span>
                                 <span class="v65-reference-suggestion-metrics">
                                     <span class="v65-reference-suggestion-metric">
-                                        <small>{{ str_starts_with($screenType, 'purchase_') ? 'Liste Fiyatı' : 'Fiyat' }}</small>
+                                        <small>@if($screenType === 'quote'){{ $product->lookup_price_includes_vat ? 'Fiyat (KDV Dahil)' : 'Fiyat (KDV Hariç)' }}@else{{ str_starts_with($screenType, 'purchase_') ? 'Liste Fiyatı' : 'Fiyat' }}@endif</small>
                                         <strong>{{ \App\Support\Formatting\TrFormatter::money((string) $product->lookup_price) }} {{ $product->lookup_price_currency }}</strong>
                                     </span>
                                     @if(auth()->user()?->can('stock.view'))

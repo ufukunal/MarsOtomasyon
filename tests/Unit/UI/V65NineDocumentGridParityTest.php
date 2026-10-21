@@ -108,3 +108,15 @@ it('computes a quote gross unit price with BCMath without touching the stored ne
         ->and($component->quoteVatIncludedPrice(['unit_price' => '100.0000', 'vat_rate' => '0']))
         ->toBe('100.0000');
 });
+
+it('matches quick quote product search prices to the VAT inclusive or exclusive entry selector', function (): void {
+    $controls = file_get_contents(base_path('app/Livewire/Concerns/WithPrototypeDocumentControls.php'));
+    $toolbar = file_get_contents(base_path('resources/views/components/v65/document-prototype-toolbar.blade.php'));
+
+    expect($controls)->toContain("\$quoteIncludesVat = \$this->documentType() === DocumentType::Quote")
+        ->toContain("(\$this->uiMeta['quote_price_mode'] ?? 'exclusive') === 'inclusive'")
+        ->toContain("bcadd('100', (string) \$product->vat_rate, 4)")
+        ->toContain("setAttribute('lookup_price', \$lookupPrice)")
+        ->toContain("setAttribute('lookup_price_includes_vat', \$quoteIncludesVat)")
+        ->and($toolbar)->toContain("lookup_price_includes_vat ? 'Fiyat (KDV Dahil)' : 'Fiyat (KDV Hariç)'");
+});

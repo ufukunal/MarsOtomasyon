@@ -139,13 +139,25 @@ trait WithPrototypeDocumentControls
         $contact = $isSales && $this->contactId
             ? Contact::query()->find($this->contactId) : null;
         $priceResolver = $isSales ? app(PriceResolver::class) : null;
+        $quoteIncludesVat = $this->documentType() === DocumentType::Quote
+            && ($this->uiMeta['quote_price_mode'] ?? 'exclusive') === 'inclusive';
 
         foreach ($products as $product) {
-            // Sales displays the effective customer/default price applied to
-            // new lines; purchase displays the catalog list price, not cost.
-            $product->setAttribute('lookup_price', $isSales
+            // Search suggestions must show the same price entry mode as the
+            // quote row. The price resolver and saved unit prices stay net-only.
+            $lookupPrice = $isSales
                 ? $priceResolver->resolve($product, $contact)
-                : (string) $product->list_price);
+                : (string) $product->list_price;
+            if ($quoteIncludesVat) {
+                $lookupPrice = bcdiv(
+                    bcmul(bcadd($lookupPrice, '0', 4), bcadd('100', (string) $product->vat_rate, 4), 8),
+                    '100',
+                    4,
+                );
+            }
+
+            $product->setAttribute('lookup_price', $lookupPrice);
+            $product->setAttribute('lookup_price_includes_vat', $quoteIncludesVat);
             $product->setAttribute('lookup_price_currency', $isSales ? 'TRY' : $product->currency);
             if (! $canViewStock) {
                 continue;
