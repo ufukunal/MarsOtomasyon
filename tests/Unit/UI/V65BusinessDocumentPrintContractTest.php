@@ -82,7 +82,7 @@ it('keeps printed draft marked as unposted and does not recompute stored VAT', f
         ->not->toContain('CalculateDocumentTotals');
 });
 
-it('prints five totals with discount, or only VAT and grand total without discount', function (): void {
+it('prints five totals with discount, or subtotal VAT and grand total without discount', function (): void {
     $markup = file_get_contents(base_path('resources/views/printing/business-document.blade.php'));
     $controller = file_get_contents(base_path('app/Http/Controllers/PrintBusinessDocumentController.php'));
 
@@ -94,6 +94,7 @@ it('prints five totals with discount, or only VAT and grand total without discou
         ->toContain('Toplam İskonto Tutarı')
         ->toContain('İskontolu Tutar')
         ->toContain('KDV Tutarı')
+        ->toContain('<dt>Ara Toplam</dt>')
         ->toContain('<dt>Toplam KDV</dt>')
         ->toContain('GENEL TOPLAM')
         ->toContain('$document->vat_amount')
@@ -120,9 +121,11 @@ it('prints five totals with discount, or only VAT and grand total without discou
     );
 
     $none = $render('0.0000');
-    expect(substr_count($none, '<dt>'))->toBe(2)
-        ->and($none)->toContain('<dt>Toplam KDV</dt>')
+    expect(substr_count($none, '<dt>'))->toBe(3)
+        ->and($none)->toContain('<dt>Ara Toplam</dt>')
+        ->toContain('<dt>Toplam KDV</dt>')
         ->toContain('GENEL TOPLAM')
+        ->toContain(\App\Support\Formatting\TrFormatter::money('90.0000'))
         ->toContain(\App\Support\Formatting\TrFormatter::money('18.0000'))
         ->toContain(\App\Support\Formatting\TrFormatter::money('108.0000'))
         ->not->toContain('İskontosuz Tutar')
@@ -137,6 +140,7 @@ it('prints five totals with discount, or only VAT and grand total without discou
         ->toContain('İskontolu Tutar')
         ->toContain('KDV Tutarı')
         ->toContain('GENEL TOPLAM')
+        ->not->toContain('<dt>Ara Toplam</dt>')
         ->not->toContain('<dt>Toplam KDV</dt>');
 
     // A four-decimal positive discount is still a real discount even if

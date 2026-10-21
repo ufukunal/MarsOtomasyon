@@ -48,12 +48,14 @@
         .unpriced-count { margin-top:11px; color:#536b83; font-weight:700; text-align:right; }
         .signatures { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:0; margin-top:18px; break-inside:avoid; }
         .signatures div { min-height:22mm; border:1px solid #ced8e3; margin-right:-1px; padding:5px; text-align:center; font-size:9px; color:#607991; }
-        .summary { width: min(100%, 88mm); margin: 14px 0 0 auto; border: 1px solid #d3deea; border-radius: 4px; padding: 7px 12px; break-inside: avoid; }
+        .summary { width: min(100%, 88mm); margin: 14px 0 0 auto; border: 1px solid #d3deea; border-radius: 5px; padding: 10px 14px; break-inside: avoid; }
         .summary dl { margin: 0; }
-        .summary dl div { display: flex; gap: 10px; justify-content: space-between; align-items: baseline; padding: 5px 0; }
-        .summary dt { color: #56708b; }
-        .summary dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
-        .summary .grand { border-top: 1px solid #bdcbda; padding-top: 10px; margin-top: 6px; color: #164e81; font-size: 14px; font-weight: 750; }
+        .summary dl div { display: flex; gap: 16px; justify-content: space-between; align-items: baseline; padding: 6px 0; }
+        .summary dt { color: #56708b; font-size: 11px; font-weight: 600; }
+        .summary dd { margin: 0; text-align: right; color: #213650; font-size: 11px; font-weight: 650; font-variant-numeric: tabular-nums; white-space: nowrap; }
+        .summary .grand { border-top: 1px solid #bdcbda; padding-top: 10px; margin-top: 6px; }
+        .summary .grand dt { color: #24517d; font-size: 12px; font-weight: 750; }
+        .summary .grand dd { color: #164e81; font-size: 14px; font-weight: 800; }
         .notes { margin-top: 14px; padding: 10px 12px; border: 1px solid #d7e0ea; border-radius: 4px; white-space: pre-wrap; overflow-wrap: anywhere; break-inside: avoid; }
         .footer { margin-top: 15px; padding-top: 7px; border-top: 1px solid #d7e0ea; color: #6a7c8d; font-size: 9px; }
         .screen-actions { margin-bottom: 15px; }
@@ -219,6 +221,7 @@
                 <div><dt>İskontolu Tutar</dt><dd>{{ $money::money((string) $document->tax_base) }} {{ $currency }}</dd></div>
                 <div><dt>KDV Tutarı</dt><dd>{{ $money::money((string) $document->vat_amount) }} {{ $currency }}</dd></div>
             @else
+                <div><dt>Ara Toplam</dt><dd>{{ $money::money((string) $document->tax_base) }} {{ $currency }}</dd></div>
                 <div><dt>Toplam KDV</dt><dd>{{ $money::money((string) $document->vat_amount) }} {{ $currency }}</dd></div>
             @endif
             <div class="grand"><dt>GENEL TOPLAM</dt><dd>{{ $money::money((string) $document->grand_total) }} {{ $currency }}</dd></div>
