@@ -253,3 +253,36 @@ it('omits redundant quote print labels and both address cards without changing o
     expect(trim($renderAddresses(true)))->toBe('')
         ->and($renderAddresses(false))->toContain('Fatura Adresi')->toContain('Sevk / Teslimat Adresi');
 });
+
+it('hides signature boxes and creation metadata only in quote print and PDF', function (): void {
+    $markup = file_get_contents(base_path('resources/views/printing/business-document.blade.php'));
+    preg_match('/@unless\(\$isQuote\)\s*<section class="signatures".*?<\/footer>\s*@endunless/s', $markup, $matches);
+    $block = $matches[0] ?? '';
+
+    expect($block)->toContain('Düzenleyen')
+        ->toContain('Kontrol')
+        ->toContain('Onay / Kaşe')
+        ->toContain('Teslim Eden')
+        ->toContain('Belge kayıt numarası')
+        ->toContain('$generatedAt->format(')
+        ->and($markup)->toContain('<th>Durum</th>')
+        ->toContain('class="document-qr"');
+
+    $render = static fn (bool $isQuote): string => \Illuminate\Support\Facades\Blade::render(
+        $block,
+        [
+            'isQuote' => $isQuote,
+            'document' => (object) [
+                'id' => 1227,
+                'document_type' => \App\Enums\DocumentType::SalesOrder,
+            ],
+            'generatedAt' => new \DateTimeImmutable('2026-10-21 22:00:00'),
+        ],
+    );
+
+    expect(trim($render(true)))->toBe('')
+        ->and($render(false))->toContain('Düzenleyen')
+        ->toContain('Kontrol')
+        ->toContain('Onay / Kaşe')
+        ->toContain('Belge kayıt numarası: 1227');
+});

@@ -258,6 +258,7 @@
     @if($document->notes)<section class="notes"><strong>Açıklama / Notlar</strong>
 
 {{ $document->notes }}</section>@endif
+    @unless($isQuote)
     <section class="signatures" aria-label="İmza alanları">
         @if($document->document_type === \App\Enums\DocumentType::Dispatch
             || $document->document_type === \App\Enums\DocumentType::PurchaseDispatch)
@@ -269,6 +270,7 @@
     <footer class="footer">
         <p>Oluşturma: {{ $generatedAt->format('d.m.Y H:i') }} · Belge kayıt numarası: {{ $document->id }}</p>
     </footer>
+    @endunless
 </main>
 </body>
 </html>
