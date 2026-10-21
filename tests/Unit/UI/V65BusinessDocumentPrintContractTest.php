@@ -163,3 +163,35 @@ it('verifies PDF runtime before switching UAT to a new image', function (): void
         ->toContain("str_starts_with(\$pdf, '%PDF-')")
         ->toContain('File::deleteDirectory($workDir)');
 });
+
+it('prints the persisted discount percentage above the discount amount in each document line', function (): void {
+    $markup = file_get_contents(base_path('resources/views/printing/business-document.blade.php'));
+
+    preg_match('/<td class="numeric line-discount">(.*?)<\/td>/s', $markup, $matches);
+    $cell = $matches[0] ?? '';
+
+    expect($cell)->toContain('line-discount-rate')
+        ->toContain('line-discount-amount')
+        ->toContain('$line->line_discount_rate')
+        ->toContain('$line->line_discount_amount');
+
+    $render = static fn (string $rate, string $amount): string => \Illuminate\Support\Facades\Blade::render(
+        $cell,
+        [
+            'line' => (object) [
+                'line_discount_rate' => $rate,
+                'line_discount_amount' => $amount,
+            ],
+            'money' => \App\Support\Formatting\TrFormatter::class,
+        ],
+    );
+
+    $discounted = $render('10.0000', '1520.0000');
+    expect($discounted)->toContain('10,00%')
+        ->toContain('1.520,00')
+        ->and(strpos($discounted, '10,00%'))->toBeLessThan(strpos($discounted, '1.520,00'));
+
+    $noDiscount = $render('0.0000', '0.0000');
+    expect($noDiscount)->toContain('0,00%')
+        ->toContain('0,00');
+});

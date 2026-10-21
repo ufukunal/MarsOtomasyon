@@ -37,6 +37,8 @@
         .lines td { border-bottom: 1px solid #e5ebf1; padding: 7px 5px; vertical-align: top; overflow-wrap: anywhere; }
         .lines tr { break-inside: avoid; page-break-inside: avoid; }
         .numeric { text-align: right !important; white-space: nowrap; font-variant-numeric: tabular-nums; }
+        .lines .line-discount-rate { display: block; color: #41698e; font-size: 9px; font-weight: 700; line-height: 1.3; }
+        .lines .line-discount-amount { display: block; margin-top: 2px; font-size: 10px; line-height: 1.3; }
         .desc { width: 33%; min-width:0; }
         .product-thumb { width:17mm; }
         .product-thumb img { width:15mm; height:15mm; max-width:100%; object-fit:contain; display:block; }
@@ -202,7 +204,10 @@
                     <td class="numeric">{{ \App\Support\Formatting\TrFormatter::quantity((string) $line->quantity) }}</td>
                     @if($showPrices)
                         <td class="numeric">{{ $money::money((string) $line->unit_price) }}</td>
-                        <td class="numeric">{{ $money::money((string) $line->line_discount_amount) }}</td>
+                        <td class="numeric line-discount">
+                            <span class="line-discount-rate">{{ $money::money((string) $line->line_discount_rate) }}%</span>
+                            <span class="line-discount-amount">{{ $money::money((string) $line->line_discount_amount) }}</span>
+                        </td>
                         <td class="numeric">{{ $line->vat_rate }}</td>
                         <td class="numeric">{{ $money::money((string) $line->line_total) }}</td>
                     @endif
