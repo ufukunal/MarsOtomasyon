@@ -69,16 +69,12 @@
         .v65-quote-print .heading h1 { font-size: 16px; margin-bottom: 2px; }
         .v65-quote-print .heading strong { font-size: 11px; }
         .v65-quote-print .heading small { margin-top: 2px; font-size: 9px; }
-        .v65-quote-print .print-kind { display: block; margin-top: 2px; font-size: 8px; }
         .v65-quote-print .document-qr { width: 20mm; flex-basis: 20mm; }
-        .v65-quote-print .draft-stamp { display: inline-block; margin-top: 4px; padding: 3px 5px; font-size: 9px; line-height: 1.3; }
         .v65-quote-print .details { gap: 9px; margin: 9px 0 7px; }
         .v65-quote-print .box { padding: 7px 9px; }
         .v65-quote-print .box h2 { font-size: 10px; margin-bottom: 4px; }
         .v65-quote-print .box p { margin: 1px 0; line-height: 1.3; }
         .v65-quote-print .detail-table th, .v65-quote-print .detail-table td { padding: 1px 0; line-height: 1.35; }
-        .v65-quote-print .address-panels { gap: 9px; margin: 0 0 10px; }
-        .v65-quote-print .address-panels .box { min-height: 0; }
         .screen-actions { margin-bottom: 15px; }
         .screen-actions button { padding: 9px 16px; color: #fff; background: #245b90; border: 0; cursor: pointer; }
         @media print { .screen-actions { display: none; } .paper { width: 100%; } }
@@ -89,9 +85,10 @@
     $money = \App\Support\Formatting\TrFormatter::class;
     $currency = $document->currency;
     $draft = $document->status === 'draft';
+    $isQuote = $document->document_type === \App\Enums\DocumentType::Quote;
 @endphp
 <div class="screen-actions"><button type="button" onclick="window.print()">Yazdır</button></div>
-<main class="paper {{ $document->document_type === \App\Enums\DocumentType::Quote ? 'v65-quote-print' : '' }}">
+<main class="paper {{ $isQuote ? 'v65-quote-print' : '' }}">
     <header class="header">
         <div>
             <p class="company-name">{{ $company->legal_name ?: $company->name }}</p>
@@ -105,8 +102,10 @@
                 <h1>{{ $title }}</h1>
                 <strong>{{ $document->number ?? 'Taslak #'.$document->id }}</strong>
                 <small>{{ $document->document_date?->format('d.m.Y') }}</small>
-                <span class="print-kind">{{ $printVariant->label() }}</span>
-                @if($draft)<div class="draft-stamp">Taslak · Kesinleşmemiş Belge</div>@endif
+                @unless($isQuote)
+                    <span class="print-kind">{{ $printVariant->label() }}</span>
+                    @if($draft)<div class="draft-stamp">Taslak · Kesinleşmemiş Belge</div>@endif
+                @endunless
             </div>
             <div class="document-qr" aria-label="Belge QR kodu">{!! \App\Support\Printing\Label\OpaqueQrSvg::render($documentQrToken) !!}</div>
         </div>
@@ -151,6 +150,7 @@
             </table>
         </div>
     </section>
+    @unless($isQuote)
     <section class="address-panels" aria-label="Fatura ve sevk adresleri">
         <div class="box">
             <h2>Fatura Adresi</h2>
@@ -167,6 +167,7 @@
             @if($delivery['phone'])<p>Tel: {{ $delivery['phone'] }}</p>@endif
         </div>
     </section>
+    @endunless
     @if($sourceReferences->isNotEmpty())
         <div class="source-references"><strong>Kaynak Belgeler:</strong>
             @foreach($sourceReferences as $sourceNumber)

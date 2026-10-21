@@ -196,24 +196,60 @@ it('prints the persisted discount percentage above the discount amount in each d
         ->toContain('0,00');
 });
 
-it('compacts only the quote print header and preserves four information panels', function (): void {
+it('compacts the quote header while retaining customer and document information', function (): void {
     $markup = file_get_contents(base_path('resources/views/printing/business-document.blade.php'));
 
-    expect($markup)->toContain("DocumentType::Quote ? 'v65-quote-print' : ''")
+    expect($markup)->toContain("\$isQuote ? 'v65-quote-print' : ''")
         ->toContain('.v65-quote-print .header')
         ->toContain('.v65-quote-print .document-qr { width: 20mm; flex-basis: 20mm; }')
         ->toContain('.v65-quote-print .details { gap: 9px; margin: 9px 0 7px; }')
-        ->toContain('.v65-quote-print .address-panels .box { min-height: 0; }')
-        ->toContain('Taslak · Kesinleşmemiş Belge')
         ->toContain('class="document-qr"')
         ->toContain('<section class="details">')
-        ->toContain('<section class="address-panels"')
         ->toContain('Müşteri / Cari')
         ->toContain('Belge Bilgileri')
-        ->toContain('Fatura Adresi')
-        ->toContain('Sevk / Teslimat Adresi');
+        ->toContain('<th>Durum</th>');
 
-    // No generic PDF layout changes: the compact overrides are scoped.
-    preg_match_all('/^\s*\.(v65-quote-print[^\n]*)/m', $markup, $cssLines);
-    expect(count($cssLines[0] ?? []))->toBeGreaterThanOrEqual(15);
+    preg_match_all('/^\s*\.v65-quote-print[^\n]*/m', $markup, $cssLines);
+    expect(count($cssLines[0] ?? []))->toBeGreaterThanOrEqual(14);
+});
+
+it('omits redundant quote print labels and both address cards without changing other documents', function (): void {
+    $markup = file_get_contents(base_path('resources/views/printing/business-document.blade.php'));
+
+    preg_match('/@unless\(\$isQuote\)\s*<span class="print-kind".*?@endunless/s', $markup, $headingMatch);
+    preg_match('/@unless\(\$isQuote\)\s*<section class="address-panels".*?<\/section>\s*@endunless/s', $markup, $addressMatch);
+    $heading = $headingMatch[0] ?? '';
+    $addresses = $addressMatch[0] ?? '';
+
+    expect($heading)->toContain('$printVariant->label()')
+        ->toContain('Taslak · Kesinleşmemiş Belge')
+        ->and($addresses)->toContain('Fatura Adresi')->toContain('Sevk / Teslimat Adresi');
+
+    $printVariant = new class {
+        public function label(): string
+        {
+            return 'Resimli Fiyatlı';
+        }
+    };
+
+    $renderHeading = static fn (bool $isQuote): string => \Illuminate\Support\Facades\Blade::render(
+        $heading, compact('isQuote', 'printVariant') + ['draft' => true]
+    );
+    expect(trim($renderHeading(true)))->toBe('')
+        ->and($renderHeading(false))->toContain('Resimli Fiyatlı')->toContain('Taslak · Kesinleşmemiş Belge');
+
+    $renderAddresses = static fn (bool $isQuote): string => \Illuminate\Support\Facades\Blade::render(
+        $addresses,
+        [
+            'isQuote' => $isQuote,
+            'document' => (object) ['contact' => (object) ['title' => 'Cari Test']],
+            'billing' => ['address' => 'Fatura Test Sokak', 'district' => 'Merkez', 'city' => 'İstanbul'],
+            'delivery' => [
+                'company' => 'Sevk Test', 'address' => 'Sevk Test Sokak',
+                'district' => 'Merkez', 'city' => 'İstanbul', 'person' => '', 'phone' => '',
+            ],
+        ],
+    );
+    expect(trim($renderAddresses(true)))->toBe('')
+        ->and($renderAddresses(false))->toContain('Fatura Adresi')->toContain('Sevk / Teslimat Adresi');
 });
