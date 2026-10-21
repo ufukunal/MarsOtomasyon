@@ -195,3 +195,25 @@ it('prints the persisted discount percentage above the discount amount in each d
     expect($noDiscount)->toContain('0,00%')
         ->toContain('0,00');
 });
+
+it('compacts only the quote print header and preserves four information panels', function (): void {
+    $markup = file_get_contents(base_path('resources/views/printing/business-document.blade.php'));
+
+    expect($markup)->toContain("DocumentType::Quote ? 'v65-quote-print' : ''")
+        ->toContain('.v65-quote-print .header')
+        ->toContain('.v65-quote-print .document-qr { width: 20mm; flex-basis: 20mm; }')
+        ->toContain('.v65-quote-print .details { gap: 9px; margin: 9px 0 7px; }')
+        ->toContain('.v65-quote-print .address-panels .box { min-height: 0; }')
+        ->toContain('Taslak · Kesinleşmemiş Belge')
+        ->toContain('class="document-qr"')
+        ->toContain('<section class="details">')
+        ->toContain('<section class="address-panels"')
+        ->toContain('Müşteri / Cari')
+        ->toContain('Belge Bilgileri')
+        ->toContain('Fatura Adresi')
+        ->toContain('Sevk / Teslimat Adresi');
+
+    // No generic PDF layout changes: the compact overrides are scoped.
+    preg_match_all('/^\s*\.(v65-quote-print[^\n]*)/m', $markup, $cssLines);
+    expect(count($cssLines[0] ?? []))->toBeGreaterThanOrEqual(15);
+});

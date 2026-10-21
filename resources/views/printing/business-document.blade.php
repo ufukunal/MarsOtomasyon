@@ -60,6 +60,25 @@
         .summary .grand dd { color: #164e81; font-size: 14px; font-weight: 800; }
         .notes { margin-top: 14px; padding: 10px 12px; border: 1px solid #d7e0ea; border-radius: 4px; white-space: pre-wrap; overflow-wrap: anywhere; break-inside: avoid; }
         .footer { margin-top: 15px; padding-top: 7px; border-top: 1px solid #d7e0ea; color: #6a7c8d; font-size: 9px; }
+        /* Quote print only: use the first page for product rows, not blank header space. */
+        .v65-quote-print .header { gap: 12px; padding-bottom: 7px; }
+        .v65-quote-print .company-name { font-size: 16px; margin-bottom: 3px; }
+        .v65-quote-print .company-line { margin: 1px 0; line-height: 1.3; }
+        .v65-quote-print .heading-meta { gap: 7px; }
+        .v65-quote-print .heading { min-width: 46mm; }
+        .v65-quote-print .heading h1 { font-size: 16px; margin-bottom: 2px; }
+        .v65-quote-print .heading strong { font-size: 11px; }
+        .v65-quote-print .heading small { margin-top: 2px; font-size: 9px; }
+        .v65-quote-print .print-kind { display: block; margin-top: 2px; font-size: 8px; }
+        .v65-quote-print .document-qr { width: 20mm; flex-basis: 20mm; }
+        .v65-quote-print .draft-stamp { display: inline-block; margin-top: 4px; padding: 3px 5px; font-size: 9px; line-height: 1.3; }
+        .v65-quote-print .details { gap: 9px; margin: 9px 0 7px; }
+        .v65-quote-print .box { padding: 7px 9px; }
+        .v65-quote-print .box h2 { font-size: 10px; margin-bottom: 4px; }
+        .v65-quote-print .box p { margin: 1px 0; line-height: 1.3; }
+        .v65-quote-print .detail-table th, .v65-quote-print .detail-table td { padding: 1px 0; line-height: 1.35; }
+        .v65-quote-print .address-panels { gap: 9px; margin: 0 0 10px; }
+        .v65-quote-print .address-panels .box { min-height: 0; }
         .screen-actions { margin-bottom: 15px; }
         .screen-actions button { padding: 9px 16px; color: #fff; background: #245b90; border: 0; cursor: pointer; }
         @media print { .screen-actions { display: none; } .paper { width: 100%; } }
@@ -72,7 +91,7 @@
     $draft = $document->status === 'draft';
 @endphp
 <div class="screen-actions"><button type="button" onclick="window.print()">Yazdır</button></div>
-<main class="paper">
+<main class="paper {{ $document->document_type === \App\Enums\DocumentType::Quote ? 'v65-quote-print' : '' }}">
     <header class="header">
         <div>
             <p class="company-name">{{ $company->legal_name ?: $company->name }}</p>
