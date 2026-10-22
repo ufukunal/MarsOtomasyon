@@ -326,7 +326,9 @@
                 </header>
                 <div class="v65-reference-info-fields">
             @if($screenType === 'quote')
-            @php($selectedQuoteContact = $this->selectedQuoteContact())
+            @php
+                $selectedQuoteContact = $this->selectedQuoteContact();
+            @endphp
             <div class="v65-doc-contact-picker v65-quote-contact-picker" data-v65-single-contact="quote"
                 x-data="{ open: false }" x-on:click.outside="open = false"
                 x-on:keydown.escape="open = false"

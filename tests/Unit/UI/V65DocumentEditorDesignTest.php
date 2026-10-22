@@ -230,3 +230,18 @@ it('guards quote single-field contact selection in UAT images and supports Enter
     expect(substr_count($deploy, 'QUOTE_CONTACT_UI_FAIL'))->toBe(3);
     expect(substr_count($deploy, 'grep -Fq "data-v65-single-contact=\"quote\""'))->toBe(3);
 });
+
+it('compiles the quote customer selection PHP block without mixing it with later Blade PHP blocks', function (): void {
+    $view = file_get_contents(base_path('resources/views/livewire/sales/document-editor.blade.php'));
+
+    expect($view)->toContain('@php'."\n".'                $selectedQuoteContact = $this->selectedQuoteContact();'."\n".'            @endphp')
+        ->not->toContain('@php($selectedQuoteContact')
+        ->toContain('data-v65-single-contact="quote"');
+
+    // A parenthesized @php assignment followed by another @php block can
+    // leave the compiled template inside PHP, breaking HTML at "class".
+    $compiled = \Illuminate\Support\Facades\Blade::compileString(
+        "@php\n".' $selectedQuoteContact = $this->selectedQuoteContact();'."\n@endphp\n".'<div class="v65-quote-contact-picker"></div>'
+    );
+    expect($compiled)->toContain('?>')->toContain('<div class="v65-quote-contact-picker"></div>');
+});
