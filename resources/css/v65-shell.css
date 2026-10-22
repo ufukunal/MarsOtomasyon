@@ -3955,3 +3955,29 @@
 @media(max-width:850px){
   .app-shell .v65-reference-info-fields>.v65-quote-contact-picker{grid-column:1/-1}
 }
+
+/* Sales quote: balanced two-row document information, without extra phantom columns. */
+.app-shell .v65-quote-info-card .v65-reference-info-fields{
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  column-gap:14px;row-gap:12px;padding:13px 16px 14px
+}
+.app-shell .v65-quote-info-card .v65-reference-info-fields>.v65-quote-contact-picker{
+  grid-column:span 2
+}
+.app-shell .v65-quote-info-card .v65-quote-contact-control>input[type=search]{
+  width:100%;height:36px;min-height:36px
+}
+.app-shell .v65-quote-info-card .v65-reference-info-fields>.v65-reference-more-options{
+  grid-column:1/-1
+}
+.app-shell .v65-quote-info-card .v65-reference-more-options>summary{padding:1px 0}
+@media(max-width:1150px){
+  .app-shell .v65-quote-info-card .v65-reference-info-fields{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media(max-width:850px){
+  .app-shell .v65-quote-info-card .v65-reference-info-fields{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:580px){
+  .app-shell .v65-quote-info-card .v65-reference-info-fields{grid-template-columns:minmax(0,1fr)}
+  .app-shell .v65-quote-info-card .v65-reference-info-fields>.v65-quote-contact-picker{grid-column:1/-1}
+}

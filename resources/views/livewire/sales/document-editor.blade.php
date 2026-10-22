@@ -319,10 +319,12 @@
                     </div>
                 </section>
             @else
-            <section class="v65-reference-info-card" aria-label="Belge bilgileri">
+            <section class="v65-reference-info-card {{ $screenType === 'quote' ? 'v65-quote-info-card' : '' }}" aria-label="Belge bilgileri">
                 <header class="v65-reference-info-head">
                     <strong>Belge Bilgileri</strong>
-                    <small>Bu alanlar yalnız {{ $screen['title'] }} için düzenlenmiştir</small>
+                    @unless($screenType === 'quote')
+                        <small>Bu alanlar yalnız {{ $screen['title'] }} için düzenlenmiştir</small>
+                    @endunless
                 </header>
                 <div class="v65-reference-info-fields">
             @if($screenType === 'quote')
@@ -413,6 +415,9 @@
             @endif
 
             <label class="field">{{ $screen['date'] }} <input type="date" wire:model="documentDate"><x-v65.input-error field="documentDate" /></label>
+            @if($screenType === 'quote')
+                <label class="field">Teklif Geçerlilik Tarihi <input type="date" wire:model="validUntil"><x-v65.input-error field="validUntil" /></label>
+            @endif
             <label class="field"><span>Para Birimi</span><input readonly value="TRY" title="Satış muhasebesi mevcut aşamada TRY bazlıdır"></label>
             <label class="field"><span>Varsayılan Depo</span>
                 <select wire:model.live="uiMeta.default_location_id"><option value="">Satır bazında seç</option>
@@ -420,7 +425,6 @@
                 </select>
             </label>
             @if($this instanceof \App\Livewire\Sales\QuoteEditor)
-                <label class="field">Teklif Geçerlilik Tarihi <input type="date" wire:model="validUntil"><x-v65.input-error field="validUntil" /></label>
                 <label class="field">Teslim Süresi <input wire:model.blur="uiMeta.delivery_terms" maxlength="140" placeholder="Örn. 7 iş günü"></label>
                 <label class="field">Ödeme Şartı <select wire:model.live="uiMeta.payment_terms"><option value="">Seçin</option>
                     <option value="Peşin">Peşin</option><option value="15 Gün">15 Gün</option>

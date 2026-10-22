@@ -187,7 +187,7 @@ it('uses one searchable quote contact field and retains legacy pickers for other
     $editor = file_get_contents(base_path('app/Livewire/Sales/BaseSalesDocumentEditor.php'));
     $css = file_get_contents(base_path('resources/css/v65-shell.css'));
 
-    $quoteStart = strpos($view, '@php($selectedQuoteContact = $this->selectedQuoteContact())');
+    $quoteStart = strpos($view, '$selectedQuoteContact = $this->selectedQuoteContact();');
     $quoteEnd = strpos($view, "\n            @else\n            <div class=\"v65-doc-contact-picker\">", $quoteStart);
     expect($quoteStart)->not->toBeFalse();
     expect($quoteEnd)->not->toBeFalse();
@@ -244,4 +244,42 @@ it('compiles the quote customer selection PHP block without mixing it with later
         "@php\n".' $selectedQuoteContact = $this->selectedQuoteContact();'."\n@endphp\n".'<div class="v65-quote-contact-picker"></div>'
     );
     expect($compiled)->toContain('?>')->toContain('<div class="v65-quote-contact-picker"></div>');
+});
+
+it('lays out the quote document information as two balanced rows without changing other forms', function (): void {
+    $view = file_get_contents(base_path('resources/views/livewire/sales/document-editor.blade.php'));
+    $css = file_get_contents(base_path('resources/css/v65-shell.css'));
+
+    expect($view)->toContain("v65-reference-info-card {{ \$screenType === 'quote' ? 'v65-quote-info-card' : '' }}")
+        ->toContain("@unless(\$screenType === 'quote')")
+        ->toContain('data-v65-single-contact="quote"');
+
+    $quoteStart = strpos($view, 'data-v65-single-contact="quote"');
+    $quoteEnd = strpos($view, '@elseif($this instanceof \\App\\Livewire\\Sales\\SalesOrderEditor)', $quoteStart);
+    expect($quoteStart)->not->toBeFalse();
+    expect($quoteEnd)->not->toBeFalse();
+    $quoteForm = substr($view, $quoteStart, $quoteEnd - $quoteStart);
+
+    $date = strpos($quoteForm, 'wire:model="documentDate"');
+    $validity = strpos($quoteForm, 'wire:model="validUntil"');
+    $currency = strpos($quoteForm, 'title="Satış muhasebesi mevcut aşamada TRY bazlıdır"');
+    $warehouse = strpos($quoteForm, 'wire:model.live="uiMeta.default_location_id"');
+    $delivery = strpos($quoteForm, 'wire:model.blur="uiMeta.delivery_terms"');
+    $payment = strpos($quoteForm, 'wire:model.live="uiMeta.payment_terms"');
+    foreach ([$date, $validity, $currency, $warehouse, $delivery, $payment] as $position) {
+        expect($position)->not->toBeFalse();
+    }
+    expect($date)->toBeLessThan($validity)
+        ->and($validity)->toBeLessThan($currency)
+        ->and($currency)->toBeLessThan($warehouse)
+        ->and($warehouse)->toBeLessThan($delivery)
+        ->and($delivery)->toBeLessThan($payment)
+        ->and(substr_count($view, 'Teklif Geçerlilik Tarihi <input'))->toBe(1);
+
+    expect($css)->toContain('.v65-quote-info-card .v65-reference-info-fields')
+        ->toContain('grid-template-columns:repeat(4,minmax(0,1fr))')
+        ->toContain('.v65-quote-info-card .v65-reference-info-fields>.v65-quote-contact-picker')
+        ->toContain('grid-column:span 2')
+        ->toContain('@media(max-width:850px)')
+        ->toContain('@media(max-width:580px)');
 });
