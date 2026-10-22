@@ -39,6 +39,7 @@ for view in \
   grep -Fq "document-prototype-toolbar" "$view" || { echo "DESIGN_CHECK_FAIL missing new toolbar in $view" >&2; exit 1; }
 done
 test -s /var/www/html/resources/views/components/v65/document-product-table-head.blade.php || { echo "DESIGN_CHECK_FAIL shared header component missing" >&2; exit 1; }
+grep -Fq "data-v65-single-contact=\"quote\"" /var/www/html/resources/views/livewire/sales/document-editor.blade.php || { echo "QUOTE_CONTACT_UI_FAIL: single search field missing from deployed quote template" >&2; exit 1; }
 grep -Fq "fastEntry = !fastEntry" /var/www/html/resources/views/components/v65/document-prototype-toolbar.blade.php || { echo "DESIGN_CHECK_FAIL quick-entry toggle missing" >&2; exit 1; }
   ' || fail 'Running Fresh image has old sales/purchase design; do not claim already updated'
   echo "RELEASE_OK=$TARGET"
@@ -232,6 +233,7 @@ for view in \
   grep -Fq "document-prototype-toolbar" "$view" || { echo "DESIGN_CHECK_FAIL missing new toolbar in $view" >&2; exit 1; }
 done
 test -s /var/www/html/resources/views/components/v65/document-product-table-head.blade.php || { echo "DESIGN_CHECK_FAIL shared header component missing" >&2; exit 1; }
+grep -Fq "data-v65-single-contact=\"quote\"" /var/www/html/resources/views/livewire/sales/document-editor.blade.php || { echo "QUOTE_CONTACT_UI_FAIL: single search field missing from deployed quote template" >&2; exit 1; }
 grep -Fq "fastEntry = !fastEntry" /var/www/html/resources/views/components/v65/document-prototype-toolbar.blade.php || { echo "DESIGN_CHECK_FAIL quick-entry toggle missing" >&2; exit 1; }
 php -l /var/www/html/app/Http/Controllers/ProductTechnicalSheetController.php
 # Validate the newly added contact detail before any web-container switch.
@@ -344,6 +346,7 @@ for view in \
   grep -Fq "document-prototype-toolbar" "$view" || { echo "DESIGN_CHECK_FAIL missing new toolbar in $view" >&2; exit 1; }
 done
 test -s /var/www/html/resources/views/components/v65/document-product-table-head.blade.php || { echo "DESIGN_CHECK_FAIL shared header component missing" >&2; exit 1; }
+grep -Fq "data-v65-single-contact=\"quote\"" /var/www/html/resources/views/livewire/sales/document-editor.blade.php || { echo "QUOTE_CONTACT_UI_FAIL: single search field missing from deployed quote template" >&2; exit 1; }
 grep -Fq "fastEntry = !fastEntry" /var/www/html/resources/views/components/v65/document-prototype-toolbar.blade.php || { echo "DESIGN_CHECK_FAIL quick-entry toggle missing" >&2; exit 1; }
 ' || fail 'Fresh web is healthy but still contains old sales/purchase document UI'
 sudo docker exec "$WEB" php artisan view:clear

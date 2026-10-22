@@ -327,7 +327,7 @@
                 <div class="v65-reference-info-fields">
             @if($screenType === 'quote')
             @php($selectedQuoteContact = $this->selectedQuoteContact())
-            <div class="v65-doc-contact-picker v65-quote-contact-picker"
+            <div class="v65-doc-contact-picker v65-quote-contact-picker" data-v65-single-contact="quote"
                 x-data="{ open: false }" x-on:click.outside="open = false"
                 x-on:keydown.escape="open = false"
                 x-on:focusout="if (!$el.contains($event.relatedTarget)) open = false">
@@ -338,6 +338,7 @@
                         wire:model.live.debounce.300ms="contactSearch"
                         x-on:focus="open = true" x-on:input="open = true"
                         x-on:keydown.arrow-down.prevent="$refs.results?.querySelector('button')?.focus()"
+                        x-on:keydown.enter.prevent="$refs.results?.querySelector('button')?.click()"
                         autocomplete="off" maxlength="80" aria-autocomplete="list"
                         aria-controls="v65-quote-contact-results"
                         x-bind:aria-expanded="open && {{ mb_strlen(trim($contactSearch)) >= 2 ? 'true' : 'false' }}"

@@ -216,3 +216,17 @@ it('uses one searchable quote contact field and retains legacy pickers for other
         ->and($css)->toContain('.v65-reference-info-fields>.v65-quote-contact-picker')
         ->toContain('.v65-quote-contact-results');
 });
+
+it('guards quote single-field contact selection in UAT images and supports Enter selection', function (): void {
+    $view = file_get_contents(base_path('resources/views/livewire/sales/document-editor.blade.php'));
+    $deploy = file_get_contents(base_path('ops/uat-fresh-web-update.sh'));
+
+    expect($view)->toContain('data-v65-single-contact="quote"')
+        ->toContain('x-on:keydown.enter.prevent="$refs.results?.querySelector(\'button\')?.click()"')
+        ->and($deploy)->toContain('QUOTE_CONTACT_UI_FAIL')
+        ->toContain('single search field missing from deployed quote template');
+
+    // Already pinned image, image validation and running-container checks.
+    expect(substr_count($deploy, 'QUOTE_CONTACT_UI_FAIL'))->toBe(3);
+    expect(substr_count($deploy, 'grep -Fq "data-v65-single-contact=\"quote\""'))->toBe(3);
+});
