@@ -280,6 +280,10 @@ it('lays out the quote document information as two balanced rows without changin
         ->toContain('grid-template-columns:repeat(4,minmax(0,1fr))')
         ->toContain('.v65-quote-info-card .v65-reference-info-fields>.v65-quote-contact-picker')
         ->toContain('grid-column:span 2')
+        ->toContain('grid-template-columns:minmax(0,1fr)')
+        ->toContain('justify-self:stretch;align-self:start')
+        ->toContain('.v65-quote-contact-picker>.v65-quote-contact-control')
+        ->toContain('flex:1 1 auto;width:100%;max-width:none;min-width:0')
         ->toContain('@media(max-width:850px)')
         ->toContain('@media(max-width:580px)');
 });

@@ -3961,11 +3961,19 @@
   grid-template-columns:repeat(4,minmax(0,1fr));
   column-gap:14px;row-gap:12px;padding:13px 16px 14px
 }
-.app-shell .v65-quote-info-card .v65-reference-info-fields>.v65-quote-contact-picker{
-  grid-column:span 2
+.app-shell .v65-quote-info-card .v65-reference-info-fields>.v65-doc-contact-picker.v65-quote-contact-picker{
+  grid-column:span 2;display:grid;grid-template-columns:minmax(0,1fr);
+  width:100%;min-width:0;justify-self:stretch;align-self:start;gap:5px
+}
+.app-shell .v65-quote-info-card .v65-quote-contact-picker>.v65-quote-contact-control{
+  grid-column:1/-1;width:100%;min-width:0;display:flex
 }
 .app-shell .v65-quote-info-card .v65-quote-contact-control>input[type=search]{
-  width:100%;height:36px;min-height:36px
+  display:block;flex:1 1 auto;width:100%;max-width:none;min-width:0;
+  height:36px;min-height:36px
+}
+.app-shell .v65-quote-info-card .v65-reference-info-fields>.field{
+  width:100%;min-width:0;align-self:start
 }
 .app-shell .v65-quote-info-card .v65-reference-info-fields>.v65-reference-more-options{
   grid-column:1/-1
