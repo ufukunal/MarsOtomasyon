@@ -497,6 +497,60 @@ abstract class BaseSalesDocumentEditor extends Component
         }
     }
 
+    /** The selected quote customer stays visible even after search is cleared. */
+    public function selectedQuoteContact(): ?Contact
+    {
+        if ($this->documentType() !== DocumentType::Quote || ! $this->contactId) {
+            return null;
+        }
+
+        return Contact::query()->find($this->contactId);
+    }
+
+    /** @return Collection<int, Contact> */
+    public function quoteContactResults(): Collection
+    {
+        $search = mb_substr(trim($this->contactSearch), 0, 80);
+        if ($this->documentType() !== DocumentType::Quote || mb_strlen($search) < 2) {
+            return new Collection;
+        }
+
+        // Retain the 35-result limit and existing period-scoped contact search.
+        // Filter the previously selected contact if it does not match the query.
+        return $this->contactOptions()
+            ->filter(fn (Contact $contact) => mb_stripos((string) $contact->code, $search) !== false
+                || mb_stripos((string) $contact->title, $search) !== false)
+            ->values();
+    }
+
+    public function selectQuoteContact(int $contactId): void
+    {
+        abort_unless($this->documentType() === DocumentType::Quote, 404);
+        abort_unless($this->document === null || $this->document->status === 'draft', 409);
+        abort_unless(auth()->user()?->can(
+            $this->permissionPrefix().($this->document ? '.update' : '.create')
+        ), 403);
+
+        $contact = Contact::query()->where('is_active', true)->findOrFail($contactId);
+        $this->contactId = $contact->id;
+        $this->contactSearch = '';
+        $this->updated('contactId');
+        $this->resetValidation('contactId');
+    }
+
+    public function clearQuoteContact(): void
+    {
+        abort_unless($this->documentType() === DocumentType::Quote, 404);
+        abort_unless($this->document === null || $this->document->status === 'draft', 409);
+        abort_unless(auth()->user()?->can(
+            $this->permissionPrefix().($this->document ? '.update' : '.create')
+        ), 403);
+
+        $this->contactId = null;
+        $this->contactSearch = '';
+        $this->updated('contactId');
+    }
+
     /** @return Collection<int, Contact> */
     public function contactOptions(): Collection
     {

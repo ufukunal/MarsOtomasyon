@@ -181,3 +181,38 @@ it('preserves the standalone Goods Receipt presentation while adopting eight ref
         ->toContain('type="submit"')
         ->toContain('wire:target="save"');
 });
+
+it('uses one searchable quote contact field and retains legacy pickers for other sales documents', function (): void {
+    $view = file_get_contents(base_path('resources/views/livewire/sales/document-editor.blade.php'));
+    $editor = file_get_contents(base_path('app/Livewire/Sales/BaseSalesDocumentEditor.php'));
+    $css = file_get_contents(base_path('resources/css/v65-shell.css'));
+
+    $quoteStart = strpos($view, '@php($selectedQuoteContact = $this->selectedQuoteContact())');
+    $quoteEnd = strpos($view, "\n            @else\n            <div class=\"v65-doc-contact-picker\">", $quoteStart);
+    expect($quoteStart)->not->toBeFalse();
+    expect($quoteEnd)->not->toBeFalse();
+    $quotePicker = substr($view, $quoteStart, $quoteEnd - $quoteStart);
+    expect($quotePicker)->not->toContain('<x-v65.select')
+        ->not->toContain('wire:model.live="contactId"')
+        ->toContain('v65-quote-contact-picker');
+
+    expect($view)->toContain("@if(\$screenType === 'quote')")
+        ->toContain('v65-quote-contact-picker')
+        ->toContain('wire:model.live.debounce.300ms="contactSearch"')
+        ->toContain('wire:click="selectQuoteContact(')
+        ->toContain('wire:click="clearQuoteContact"')
+        ->toContain('quoteContactResults()')
+        ->toContain('selectedQuoteContact()')
+        ->toContain('x-on:keydown.arrow-down.prevent=')
+        ->toContain('<x-v65.input-error field="contactId" />')
+        ->toContain('<x-v65.select label="Cari" wire:model.live="contactId"')
+        ->and($editor)->toContain('function selectQuoteContact(int $contactId)')
+        ->toContain('function clearQuoteContact()')
+        ->toContain("where('is_active', true)->findOrFail(\$contactId)")
+        ->toContain("abort_unless(\$this->documentType() === DocumentType::Quote, 404)")
+        ->toContain("\$this->updated('contactId')")
+        ->toContain('function quoteContactResults(): Collection')
+        ->toContain('mb_strlen($search) < 2')
+        ->and($css)->toContain('.v65-reference-info-fields>.v65-quote-contact-picker')
+        ->toContain('.v65-quote-contact-results');
+});

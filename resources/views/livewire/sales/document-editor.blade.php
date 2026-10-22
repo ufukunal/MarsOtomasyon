@@ -325,6 +325,66 @@
                     <small>Bu alanlar yalnız {{ $screen['title'] }} için düzenlenmiştir</small>
                 </header>
                 <div class="v65-reference-info-fields">
+            @if($screenType === 'quote')
+            @php($selectedQuoteContact = $this->selectedQuoteContact())
+            <div class="v65-doc-contact-picker v65-quote-contact-picker"
+                x-data="{ open: false }" x-on:click.outside="open = false"
+                x-on:keydown.escape="open = false"
+                x-on:focusout="if (!$el.contains($event.relatedTarget)) open = false">
+                <label class="v65-quote-contact-label" for="v65-quote-contact-search">Müşteri / Cari</label>
+                <div class="v65-quote-contact-control">
+                    <span class="v65-quote-contact-search-icon" aria-hidden="true">⌕</span>
+                    <input id="v65-quote-contact-search" type="search"
+                        wire:model.live.debounce.300ms="contactSearch"
+                        x-on:focus="open = true" x-on:input="open = true"
+                        x-on:keydown.arrow-down.prevent="$refs.results?.querySelector('button')?.focus()"
+                        autocomplete="off" maxlength="80" aria-autocomplete="list"
+                        aria-controls="v65-quote-contact-results"
+                        x-bind:aria-expanded="open && {{ mb_strlen(trim($contactSearch)) >= 2 ? 'true' : 'false' }}"
+                        placeholder="{{ $selectedQuoteContact ? '' : 'Cari kodu veya unvanı ara...' }}"
+                        aria-label="Müşteri / Cari kodu veya unvanı ara">
+                    @if($selectedQuoteContact && trim($contactSearch) === '')
+                        <span class="v65-quote-contact-selected" x-show="!open" x-cloak>
+                            {{ $selectedQuoteContact->code }} · {{ $selectedQuoteContact->title }}
+                        </span>
+                    @endif
+                    @if($contactId)
+                        <button type="button" class="v65-quote-contact-clear"
+                            wire:click="clearQuoteContact" x-on:click="open = false"
+                            wire:loading.attr="disabled" wire:target="clearQuoteContact"
+                            aria-label="Seçili cariyi temizle" title="Cari seçimini temizle">×</button>
+                    @endif
+                </div>
+                @if(mb_strlen(trim($contactSearch)) >= 2)
+                    <div id="v65-quote-contact-results" class="v65-quote-contact-results"
+                        x-ref="results" x-show="open" x-cloak
+                        role="listbox" aria-label="Cari arama sonuçları">
+                        @forelse($this->quoteContactResults() as $contact)
+                            <button type="button" role="option"
+                                wire:key="quote-contact-option-{{ $contact->id }}"
+                                aria-selected="{{ (int) $contactId === (int) $contact->id ? 'true' : 'false' }}"
+                                wire:click="selectQuoteContact({{ $contact->id }})"
+                                x-on:click="open = false"
+                                wire:loading.attr="disabled" wire:target="selectQuoteContact">
+                                <strong>{{ $contact->title }}</strong>
+                                <small>{{ $contact->code }}</small>
+                            </button>
+                        @empty
+                            <span class="v65-quote-contact-empty">Eşleşen aktif cari bulunamadı.</span>
+                        @endforelse
+                    </div>
+                @endif
+                <small class="v65-doc-search-loading" wire:loading wire:target="contactSearch">Aranıyor…</small>
+                <x-v65.input-error field="contactId" />
+                <details class="v65-reference-contact-prices">
+                    <summary>Cari fiyat listesi</summary>
+                    <div class="v65-doc-contact-actions">
+                        <x-v65.button variant="secondary" size="sm" wire:click="applyContactPrices" wire:loading.attr="disabled" wire:target="applyContactPrices" wire:confirm="Manuel girdiğiniz satır fiyatları da seçili carinin fiyat listesine göre değiştirilecek. Devam edilsin mi?">Cari Fiyatlarını Uygula</x-v65.button>
+                        <small>Cari değişince otomatik fiyatlar güncellenir; manuel fiyatlar yalnızca bu butonla yeniden hesaplanır.</small>
+                    </div>
+                </details>
+            </div>
+            @else
             <div class="v65-doc-contact-picker">
                 <label class="field">{{ $screen['party'] }}
                     <input type="search" wire:model.live.debounce.300ms="contactSearch" placeholder="Kod veya unvan ile ara" autocomplete="off">
@@ -347,6 +407,7 @@
                 </div>
                 </details>
             </div>
+            @endif
 
             <label class="field">{{ $screen['date'] }} <input type="date" wire:model="documentDate"><x-v65.input-error field="documentDate" /></label>
             <label class="field"><span>Para Birimi</span><input readonly value="TRY" title="Satış muhasebesi mevcut aşamada TRY bazlıdır"></label>
