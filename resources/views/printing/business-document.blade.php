@@ -77,7 +77,11 @@
         .v65-quote-print .detail-table th, .v65-quote-print .detail-table td { padding: 1px 0; line-height: 1.35; }
         .screen-actions { margin-bottom: 15px; }
         .screen-actions button { padding: 9px 16px; color: #fff; background: #245b90; border: 0; cursor: pointer; }
-        @media print { .screen-actions { display: none; } .paper { width: 100%; } }
+        @media screen {
+            body { background: #e7ecf1; }
+            .paper { width: 210mm; min-height: 297mm; padding: 12mm 10mm 14mm; margin: 0 auto; background: #fff; box-shadow: 0 2px 15px #23394b1b; }
+        }
+        @media print { .screen-actions { display: none; } .paper { width: 100%; padding: 0; box-shadow: none; } }
     </style>
 </head>
 <body>
@@ -87,7 +91,9 @@
     $draft = $document->status === 'draft';
     $isQuote = $document->document_type === \App\Enums\DocumentType::Quote;
 @endphp
+@unless($embedded)
 <div class="screen-actions"><button type="button" onclick="window.print()">Yazdır</button></div>
+@endunless
 <main class="paper {{ $isQuote ? 'v65-quote-print' : '' }}">
     <header class="header">
         <div>
