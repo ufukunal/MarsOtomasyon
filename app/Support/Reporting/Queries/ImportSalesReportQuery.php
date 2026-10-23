@@ -36,9 +36,9 @@ final class ImportSalesReportQuery implements ReportQuery
             filters: [
                 new ReportFilterDefinition('year', 'Yıl', 'positive_integer'),
                 new ReportFilterDefinition('quarter', 'Çeyrek', 'select', allowedValues: [1, 2, 3, 4]),
-                new ReportFilterDefinition('import_file_id', 'İthalat Dosyası ID', 'positive_integer'),
-                new ReportFilterDefinition('product_id', 'Ürün ID', 'positive_integer'),
-                new ReportFilterDefinition('contact_id', 'Cari ID', 'positive_integer'),
+                new ReportFilterDefinition('import_number', 'İthalat Dosya No'),
+                new ReportFilterDefinition('product_code', 'Ürün Kodu'),
+                new ReportFilterDefinition('contact_code', 'Cari Kod'),
                 new ReportFilterDefinition('currency', 'Döviz'),
             ],
             columns: [
@@ -52,10 +52,12 @@ final class ImportSalesReportQuery implements ReportQuery
                 new ReportColumnDefinition('product_code', 'Ürün Kod'),
                 new ReportColumnDefinition('product_name', 'Ürün Adı'),
                 new ReportColumnDefinition('possible_import_files', 'Olası İthalat Dosyaları', sortable: false),
+                new ReportColumnDefinition('attribution_status', 'Parti Atfı', sortable: false),
                 new ReportColumnDefinition('quantity', 'Miktar (+Satış / -İade)', 'quantity'),
                 new ReportColumnDefinition('unit_name', 'Birim'),
                 new ReportColumnDefinition('unit_price', 'Birim Fiyat', 'decimal'),
                 new ReportColumnDefinition('line_discount_amount', 'Satır İskontosu', 'decimal'),
+                new ReportColumnDefinition('document_discount_share', 'Belge İskontosu (Satır Payı)', 'decimal'),
                 new ReportColumnDefinition('net_amount', 'KDV Hariç Net Tutar', 'decimal'),
                 new ReportColumnDefinition('vat_amount', 'Hesaplanan KDV', 'decimal'),
                 new ReportColumnDefinition('grand_total', 'KDV Dahil Satır Tutarı', 'decimal'),
@@ -114,16 +116,16 @@ final class ImportSalesReportQuery implements ReportQuery
                     ->whereIn('f.status', ['received', 'closed'])
                     ->whereColumn('f.received_at', '<=', 'd.document_date');
 
-                if (isset($context->filters['import_file_id'])) {
-                    $query->where('f.id', $context->filters['import_file_id']);
+                if (isset($context->filters['import_number'])) {
+                    $query->whereRaw('UPPER(f.number) = UPPER(?)', [$context->filters['import_number']]);
                 }
             });
 
-        if (isset($context->filters['product_id'])) {
-            $base->where('l.product_id', $context->filters['product_id']);
+        if (isset($context->filters['product_code'])) {
+            $base->whereRaw('UPPER(p.code) = UPPER(?)', [$context->filters['product_code']]);
         }
-        if (isset($context->filters['contact_id'])) {
-            $base->where('d.contact_id', $context->filters['contact_id']);
+        if (isset($context->filters['contact_code'])) {
+            $base->whereRaw('UPPER(c.code) = UPPER(?)', [$context->filters['contact_code']]);
         }
         if (isset($context->filters['currency'])) {
             $base->where('d.currency', strtoupper((string) $context->filters['currency']));
@@ -183,10 +185,12 @@ final class ImportSalesReportQuery implements ReportQuery
                 FROM packages AS ip JOIN import_files AS f ON f.id = ip.import_file_id
                 WHERE ip.product_id = l.product_id AND f.status IN ('received','closed')
                     AND f.received_at <= d.document_date)",
+            'attribution_status' => "'Parti doğrulanmadı'::text",
             'quantity' => "($sign * l.quantity)::text",
             'unit_name' => 'u.name',
             'unit_price' => 'l.unit_price::text',
             'line_discount_amount' => "($sign * l.line_discount_amount)::text",
+            'document_discount_share' => "($sign * (l.line_total - $netBeforeSign))::text",
             'net_amount' => "$net::text",
             'vat_amount' => "$vat::text",
             'grand_total' => "($net + $vat)::text",
@@ -211,6 +215,7 @@ final class ImportSalesReportQuery implements ReportQuery
             'unit_name' => 'u.name',
             'unit_price' => 'l.unit_price',
             'line_discount_amount' => str_replace('::text', '', $this->expressions()['line_discount_amount']),
+            'document_discount_share' => str_replace('::text', '', $this->expressions()['document_discount_share']),
             'net_amount' => str_replace('::text', '', $this->expressions()['net_amount']),
             'vat_amount' => str_replace('::text', '', $this->expressions()['vat_amount']),
             'grand_total' => str_replace('::text', '', $this->expressions()['grand_total']),
