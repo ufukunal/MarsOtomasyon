@@ -106,6 +106,16 @@ it('reports imported SKU product-wide fire and scrap separately without inventin
         ]);
         $recordOut('adjustment', 2, 'warehouse_slip', $brokenSlipId);
 
+        // A cancelled warehouse scrap slip must not contribute to loss or
+        // to the product-outflow denominator.
+        $cancelledSlipId = $db->table('warehouse_slips')->insertGetId([
+            'number' => 'LOSS-X-'.$code, 'location_id' => $part['location'],
+            'slip_date' => '2026-02-10', 'direction' => 'out',
+            'reason' => 'scrap', 'status' => 'cancelled',
+            'created_at' => $now, 'updated_at' => $now,
+        ]);
+        $recordOut('adjustment', 5, 'warehouse_slip', $cancelledSlipId);
+
         $report = new ImportLossReportQuery;
         $definition = $report->definition();
         $make = fn (int $quarter, array $extra = []): ReportExecutionContext => new ReportExecutionContext(
@@ -136,5 +146,21 @@ it('reports imported SKU product-wide fire and scrap separately without inventin
 
         expect(fn () => $report->execute($make(1, ['year' => 2025])))
             ->toThrow(DomainException::class);
+
+        // A completed production reversal removes the source fire and its
+        // original stock outflow from the active product-wide indicators.
+        $db->table('production_completions')->insert([
+            'production_order_id' => $orderId, 'completion_date' => '2026-03-15',
+            'completed_quantity' => 1, 'material_cost_total' => 60,
+            'production_cost_total' => 60, 'production_unit_cost' => 60,
+            'moving_average_before' => 5, 'moving_average_after' => 5,
+            'previous_production_cost' => 5, 'reversal_of_id' => $completionId,
+            'created_at' => $now, 'updated_at' => $now,
+        ]);
+        $corrected = $report->execute($make(1));
+        expect((float) $corrected->rows[0]['out_quantity'])->toBe(16.0)
+            ->and((float) $corrected->rows[0]['fire_quantity'])->toBe(0.0)
+            ->and((float) $corrected->rows[0]['scrap_quantity'])->toBe(4.0)
+            ->and((float) $corrected->rows[0]['scrap_rate'])->toBe(25.0);
     });
 });
