@@ -12,9 +12,10 @@ var trustedOrigins = config.TrustedOrigins();
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddWindowsService(options => options.ServiceName = "MarsScannerAgent");
 builder.Services.AddSingleton<WiaScanner>();
-builder.WebHost.UseUrls($"http://127.0.0.1:{config.Port}");
 builder.WebHost.ConfigureKestrel(options =>
 {
+    // Explicit socket binding overrides ambient ASPNETCORE_URLS settings.
+    options.Listen(System.Net.IPAddress.Loopback, config.Port);
     options.Limits.MaxRequestBodySize = 4096;
     options.Limits.RequestHeadersTimeout = TimeSpan.FromSeconds(10);
     options.Limits.KeepAliveTimeout = TimeSpan.FromSeconds(30);
