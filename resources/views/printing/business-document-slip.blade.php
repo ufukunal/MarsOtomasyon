@@ -64,7 +64,7 @@
     <header class="slip-head">
         <div>
             <h1 class="slip-company">{{ $company->legal_name ?: $company->name }}</h1>
-            <span class="slip-kind">{{ $title }}@if($draft) · Taslak / Kesinleşmemiş Belge@endif</span>
+            <span class="slip-kind">{{ $title }}{{ $draft ? ' · Taslak / Kesinleşmemiş Belge' : '' }}</span>
             <p class="slip-contact">{{ $document->contact?->title ?? '—' }}</p>
         </div>
         <div class="slip-meta">
