@@ -74,7 +74,7 @@ final class ImportContainerProductReportQuery implements ReportQuery
             $base->where('f.status', $context->filters['status']);
         }
 
-        $countQuery = (clone $base)->select('f.id', 'ct.id', 'p.id')
+        $countQuery = (clone $base)->selectRaw('f.id AS import_id, ct.id AS container_id, p.id AS product_id')
             ->groupBy('f.id', 'ct.id', 'p.id');
         $totalRows = DB::connection('period')->query()->fromSub($countQuery, 'grouped_container_products')->count();
 
