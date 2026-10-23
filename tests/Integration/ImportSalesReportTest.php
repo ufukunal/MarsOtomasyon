@@ -1,6 +1,8 @@
 <?php
 
 use App\Support\Reporting\Queries\ImportSalesReportQuery;
+use App\Support\Reporting\Queries\ImportProductReportQuery;
+use App\Support\Reporting\Queries\ImportContainerProductReportQuery;
 use App\Support\Reporting\ReportExecutionContext;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -124,8 +126,49 @@ it('lists quarterly imported-product invoice and return lines without multiplyin
             ->and($q1->rows[0]['possible_import_files'])->toContain('IMP-R1-'.$code)
             ->and($q1->rows[0]['possible_import_files'])->toContain('IMP-R2-'.$code)
             ->and($q1->rows[0]['attribution_status'])->toBe('Parti doğrulanmadı')
+            ->and($q1->rows[0]['possible_containers'])->toContain('CNT-'.$code)
             ->and($q1->totals['net_amount'])->toContain('800')
             ->and($q1->totals['net_amount'])->toContain('TRY');
+
+        $firstContainerNo = (string) $db->table('containers as ct')
+            ->join('import_files as f', 'f.id', '=', 'ct.import_file_id')
+            ->where('f.number', 'IMP-R1-'.$code)->value('ct.container_no');
+
+        expect($query->execute($context(1, ['container_no' => $firstContainerNo]))->totalRows)->toBe(2);
+        expect($query->execute($context(1, [
+            'container_no' => $firstContainerNo,
+            'import_number' => 'IMP-R2-'.$code,
+        ]))->totalRows)->toBe(0);
+
+        $sourceContext = static function (array $filters, $definition): ReportExecutionContext {
+            return new ReportExecutionContext(
+                filters: $filters,
+                columns: $definition->defaultColumnKeys(true),
+                sort: $definition->defaultSort,
+                totalKeys: [],
+                limit: 50,
+                offset: 0,
+                canViewCost: true,
+            );
+        };
+
+        $importProducts = new ImportProductReportQuery;
+        $fileResults = $importProducts->execute($sourceContext([], $importProducts->definition()));
+        $containerProducts = new ImportContainerProductReportQuery;
+        $containerResults = $containerProducts->execute($sourceContext([], $containerProducts->definition()));
+
+        expect($fileResults->totalRows)->toBe(2)
+            ->and($containerResults->totalRows)->toBe(2)
+            ->and((float) $fileResults->rows[0]['import_quantity'])->toBe(100.0)
+            ->and((int) $fileResults->rows[0]['container_count'])->toBe(1)
+            ->and((float) $containerResults->rows[0]['import_quantity'])->toBe(100.0);
+
+        expect($containerProducts->execute(
+            $sourceContext(['container_no' => $firstContainerNo], $containerProducts->definition())
+        )->totalRows)->toBe(1);
+        expect($importProducts->execute(
+            $sourceContext(['import_number' => 'IMP-R2-'.$code], $importProducts->definition())
+        )->totalRows)->toBe(1);
 
         expect($query->execute($context(2))->totalRows)->toBe(1);
         expect($query->execute($context(1, ['product_code' => $productCode]))->totalRows)->toBe(2);
