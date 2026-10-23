@@ -98,6 +98,8 @@ it('lists quarterly imported-product invoice and return lines without multiplyin
         $createLine('sales_invoice', '2026-03-02', 'draft', 'DRAFT-'.$code, 1);
         $createLine('sales_invoice', '2026-04-01', 'posted', 'APRIL-'.$code, 1);
 
+        $productCode = (string) $db->table('products')->where('id', $ids['product'])->value('code');
+
         $query = new ImportSalesReportQuery;
         $definition = $query->definition();
         $context = fn (int $quarter, array $extra = []): ReportExecutionContext => new ReportExecutionContext(
@@ -119,10 +121,16 @@ it('lists quarterly imported-product invoice and return lines without multiplyin
             ->and((float) $q1->rows[1]['net_amount'])->toBe(-1000.0)
             ->and($q1->rows[0]['possible_import_files'])->toContain('IMP-R1-'.$code)
             ->and($q1->rows[0]['possible_import_files'])->toContain('IMP-R2-'.$code)
+            ->and($q1->rows[0]['attribution_status'])->toBe('Parti doğrulanmadı')
             ->and($q1->totals['net_amount'])->toContain('1000')
             ->and($q1->totals['net_amount'])->toContain('TRY');
 
         expect($query->execute($context(2))->totalRows)->toBe(1);
-        expect($query->execute($context(1, ['product_id' => $ids['product']]))->totalRows)->toBe(2);
+        expect($query->execute($context(1, ['product_code' => $productCode]))->totalRows)->toBe(2);
+        expect($query->execute($context(1, ['import_number' => 'IMP-R1-'.$code]))->totalRows)->toBe(2);
+        expect($query->execute($context(1, ['import_number' => 'IMP-R2-'.$code]))->totalRows)->toBe(2);
+        expect($query->execute($context(1, ['import_number' => 'NOT-FOUND-'.$code]))->totalRows)->toBe(0);
+        expect($query->execute($context(1, ['contact_code' => 'MISSING-'.$code]))->totalRows)->toBe(0);
+        expect($q1->rows[0]['document_discount_share'])->toBe('0.0000');
     });
 });
