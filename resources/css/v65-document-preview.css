@@ -79,6 +79,7 @@
     cursor: pointer;
 }
 .app-shell .v65-document-preview-toolbar :is(a,button):hover { background: #f0f6fc; }
+.app-shell .v65-document-preview-toolbar [hidden] { display: none !important; }
 .app-shell .v65-document-preview-toolbar button:disabled { opacity: .65; cursor: wait; }
 .app-shell .v65-document-preview-viewport {
     flex: 1 1 auto;
