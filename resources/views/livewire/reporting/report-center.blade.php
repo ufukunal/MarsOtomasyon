@@ -35,6 +35,18 @@
                     <div class="report-meta">Tanım v{{ $selectedReport->version }}</div>
                 </div>
 
+                @if($selectedReport->key === 'imports.loss')
+                    <div class="alert alert-warning" role="note">
+                        Bu rapor ithalat dosyalarında bulunan ürün kodlarının şirket genelindeki stok çıkışı,
+                        üretim firesi ve hurda çıkışı paylarını gösterir. Fire ve hurda oranlarının paydası,
+                        seçili çeyrekte aynı ürün kodunun bütün fiziksel stok çıkışlarıdır.
+                        Bu değerler ithalat veya konteyner bazında doğrulanmış kayıp oranları değildir:
+                        stok çıkışları ithalat partisine bağlanmadığı için aynı ürünün yerli alışları da etkili olabilir.
+                        “İthalat Dosya No” filtresi yalnız ürün kümesini daraltır, fire/hurda hareketlerini o dosyaya atamaz.
+                        Kırık/hasarlı stok fişleri otomatik olarak hurdaya dahil edilmez.
+                    </div>
+                @endif
+
                 @if($selectedReport->key === 'imports.sales')
                     <div class="alert alert-warning" role="note">
                         Bu döküm ithalat dosyalarında yer alan ürünlerin kesinleşmiş satış faturalarını ve iadelerini listeler.
