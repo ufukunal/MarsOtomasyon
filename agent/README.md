@@ -26,8 +26,8 @@ MarsProject için bağımsız, küçük Windows servisidir. Tarayıcısı buluna
 ```powershell
 # Repoyu Windows bilgisayarına indirin veya agent/ klasörünü kopyalayın
 cd agent
-.\build.ps1
-.\install.ps1
+.\setup.ps1
+# İsterseniz ayrı ayrı: .\build.ps1 ve .\install.ps1
 ```
 
 Derleme sonrası: `agent/dist/win-x64/MarsScannerAgent.exe`
@@ -41,6 +41,7 @@ Windows hizmetini kontrol etmek:
 ```powershell
 Get-Service MarsScannerAgent
 Invoke-RestMethod http://127.0.0.1:17864/health
+.\diagnostics.ps1
 ```
 
 Hizmeti kaldırmak (erişim anahtarı/ayar dosyası varsayılan olarak kalır):
