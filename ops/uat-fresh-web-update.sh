@@ -224,6 +224,12 @@ for f in /var/www/html/artisan /var/www/html/public/build/manifest.json /var/www
   if [ ! -r "$f" ]; then echo "IMAGE_CHECK_FAIL unreadable=$f" >&2; exit 1; fi
 done
 test -s /var/www/html/public/build/manifest.json || { echo "IMAGE_CHECK_FAIL Vite manifest empty" >&2; exit 1; }
+# The authenticated app layout references this stylesheet as an independent
+# Vite entry. Fail before switching the live Fresh web container if absent.
+grep -Fq '"resources/css/v65-document-preview.css"' /var/www/html/public/build/manifest.json || {
+  echo "IMAGE_CHECK_FAIL document preview stylesheet absent from Vite manifest" >&2
+  exit 1
+}
 grep -Fq "products.technical-sheet.show" /var/www/html/resources/views/livewire/pages/products/product-detail.blade.php || { echo "IMAGE_CHECK_FAIL technical PDF link missing" >&2; exit 1; }
 grep -Fq "mars-pagination" /var/www/html/resources/css/v65-shell.css || { echo "IMAGE_CHECK_FAIL compact pagination CSS missing" >&2; exit 1; }
 for view in \
