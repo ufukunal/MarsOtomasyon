@@ -37,7 +37,7 @@ if (-not (Test-Path -LiteralPath $configFile)) {
         AllowedOrigins = @($origin)
     } | ConvertTo-Json -Depth 3
     [System.IO.File]::WriteAllText($configFile, $settings, (New-Object System.Text.UTF8Encoding($false)))
-    & icacls.exe $configFile /inheritance:r /grant:r '*S-1-5-18:(F)' '*S-1-5-32-544:(F)' | Out-Null
+    & icacls.exe $configFile /inheritance:r /grant:r '*S-1-5-18:(F)' '*S-1-5-32-544:(F)' '*S-1-5-19:(R)' | Out-Null
     if ($LASTEXITCODE -ne 0) { throw 'Ayar dosyası erişim izinleri güvenceye alınamadı.' }
 }
 
@@ -46,6 +46,10 @@ if (-not $existing) {
     New-Service -Name $serviceName -BinaryPathName $binaryPath -DisplayName 'Mars Scanner Agent' -Description 'MarsProject için yerel Windows WIA tarama hizmeti' -StartupType Automatic | Out-Null
 }
 
+# Service account defaults to LocalService, never LocalSystem.
+# Built-in LocalService requires no saved account password.
+& sc.exe config $serviceName obj= 'NT AUTHORITY\LocalService' password= '' | Out-Null
+if ($LASTEXITCODE -ne 0) { throw 'LocalService hizmet hesabı ayarlanamadı.' }
 & sc.exe failure $serviceName reset= 86400 actions= restart/60000/restart/60000/restart/60000 | Out-Null
 if ($LASTEXITCODE -ne 0) { throw 'Servis kurtarma ayarları uygulanamadı.' }
 Start-Service -Name $serviceName -ErrorAction Stop
