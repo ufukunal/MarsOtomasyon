@@ -35,6 +35,15 @@
                     <div class="report-meta">Tanım v{{ $selectedReport->version }}</div>
                 </div>
 
+                @if($selectedReport->key === 'imports.sales')
+                    <div class="alert alert-warning" role="note">
+                        Bu döküm ithalat dosyalarında yer alan ürünlerin kesinleşmiş satış faturalarını ve iadelerini listeler.
+                        Satış satırlarında ithalat lotu tutulmadığından “Olası İthalat Dosyaları” alanı kesin parti atfı değildir;
+                        aynı ürünün yerli alımı veya birden fazla ithalatı bulunabilir. Tutarlar fatura para birimindedir;
+                        satır KDV ve toplamında belge yuvarlama farkı olabilir.
+                    </div>
+                @endif
+
                 <div class="report-toolbar">
                     <label>
                         Preset
