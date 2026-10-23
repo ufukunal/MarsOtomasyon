@@ -9,6 +9,8 @@ enum BusinessDocumentPrintVariant: string
     case ImagePriced = 'image_priced';
     case PlainUnpriced = 'plain_unpriced';
     case ImageUnpriced = 'image_unpriced';
+    case SlipPriced = 'slip_priced';
+    case SlipUnpriced = 'slip_unpriced';
 
     public function showImages(): bool
     {
@@ -17,7 +19,12 @@ enum BusinessDocumentPrintVariant: string
 
     public function showPrices(): bool
     {
-        return in_array($this, [self::PlainPriced, self::ImagePriced], true);
+        return in_array($this, [self::PlainPriced, self::ImagePriced, self::SlipPriced], true);
+    }
+
+    public function isSlip(): bool
+    {
+        return in_array($this, [self::SlipPriced, self::SlipUnpriced], true);
     }
 
     public function label(): string
@@ -27,6 +34,8 @@ enum BusinessDocumentPrintVariant: string
             self::ImagePriced => 'Resimli Fiyatlı',
             self::PlainUnpriced => 'Fiyatsız',
             self::ImageUnpriced => 'Resimli Fiyatsız',
+            self::SlipPriced => 'Sade Fiyatlı',
+            self::SlipUnpriced => 'Sade Fiyatsız',
         };
     }
 }

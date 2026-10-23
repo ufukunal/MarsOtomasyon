@@ -5,11 +5,11 @@ it('restricts all nine corporate document outputs to authenticated period and ro
     $controller = file_get_contents(base_path('app/Http/Controllers/PrintBusinessDocumentController.php'));
 
     expect($routes)->toContain("->name('documents.print')")
-        ->toContain("->where('format', 'html|pdf')")
+        ->toContain("->where('format', 'html|pdf|png')")
         ->and($controller)->toContain('PeriodContext::ensure()')
         ->toContain('->findOrFail($document)')
         ->toContain('auth()->user()?->can($definition[1])')
-        ->toContain("abort_unless(in_array(\$format, ['html', 'pdf'], true), 404)")
+        ->toContain("abort_unless(in_array(\$format, ['html', 'pdf', 'png'], true), 404)")
         ->toContain('Cache-Control')
         ->toContain('private, no-store')
         ->toContain('X-Content-Type-Options')

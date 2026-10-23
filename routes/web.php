@@ -191,7 +191,7 @@ Route::middleware('auth')->group(function (): void {
 
     Route::get('/belgeler/{document}/cikti/{format}', PrintBusinessDocumentController::class)
         ->whereNumber('document')
-        ->where('format', 'html|pdf')
+        ->where('format', 'html|pdf|png')
         ->middleware('throttle:report')
         ->name('documents.print');
 
