@@ -70,7 +70,7 @@ final class ImportSalesReportQuery implements ReportQuery
                 new ReportTotalDefinition('vat_amount', 'Hesaplanan KDV'),
                 new ReportTotalDefinition('grand_total', 'KDV Dahil Satır Tutarı'),
             ],
-       );
+        );
     }
 
     public function execute(ReportExecutionContext $context): ReportQueryResult
@@ -164,7 +164,7 @@ final class ImportSalesReportQuery implements ReportQuery
     private function expressions(): array
     {
         // Include invoice-level additional discount via tax_base / subtotal.
-        $netBeforeSign = '(CASE WHEN d.subtotal > 0 THEN ROUND(l.line_total * d.tax_base / d.subtotal, 4) ELSE l.line_total END)';
+        $netBeforeSign = '(CASE WHEN d.subtotal > 0 THEN ROUND(l.line_total * d.tax_base / d.subtotal, 4) ELSE 0 END)';
         $sign = "(CASE WHEN d.document_type = 'sales_return' THEN -1 ELSE 1 END)";
         $net = "($sign * $netBeforeSign)";
         $vat = "ROUND($net * l.vat_rate / 100, 4)";
@@ -186,7 +186,7 @@ final class ImportSalesReportQuery implements ReportQuery
             'quantity' => "($sign * l.quantity)::text",
             'unit_name' => 'u.name',
             'unit_price' => 'l.unit_price::text',
-            'line_discount_amount' => 'l.line_discount_amount::text',
+            'line_discount_amount' => "($sign * l.line_discount_amount)::text",
             'net_amount' => "$net::text",
             'vat_amount' => "$vat::text",
             'grand_total' => "($net + $vat)::text",
@@ -210,7 +210,7 @@ final class ImportSalesReportQuery implements ReportQuery
             'quantity' => 'l.quantity',
             'unit_name' => 'u.name',
             'unit_price' => 'l.unit_price',
-            'line_discount_amount' => 'l.line_discount_amount',
+            'line_discount_amount' => str_replace('::text', '', $this->expressions()['line_discount_amount']),
             'net_amount' => str_replace('::text', '', $this->expressions()['net_amount']),
             'vat_amount' => str_replace('::text', '', $this->expressions()['vat_amount']),
             'grand_total' => str_replace('::text', '', $this->expressions()['grand_total']),
