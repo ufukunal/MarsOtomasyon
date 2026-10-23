@@ -197,6 +197,7 @@ final class BusinessLabelFormatter
             'movement_type','origin' => 'cash_movement',
             'direction' => 'direction',
             'status' => str_contains($reportKey, 'imports') ? 'import_status' : 'status',
+            'container_status' => 'status',
             'kind' => 'security_kind', 'action' => 'sync_action', 'entity_type' => 'sync_entity',
             'production_type' => 'production_type', default => null,
         };
