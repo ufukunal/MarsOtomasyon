@@ -10,6 +10,7 @@ use App\Support\Reporting\Queries\ImportProductReportQuery;
 use App\Support\Reporting\Queries\ImportContainerProductReportQuery;
 use App\Support\Reporting\Queries\ImportSalesReportQuery;
 use App\Support\Reporting\Queries\ImportLossReportQuery;
+use App\Support\Reporting\Queries\ImportConversionReportQuery;
 use App\Support\Reporting\Queries\ProductionOrderReportQuery;
 use App\Support\Reporting\Queries\QuarantineReportQuery;
 use App\Support\Reporting\Queries\ReturnDocumentReportQuery;
@@ -41,6 +42,7 @@ return [
         ImportContainerProductReportQuery::class,
         ImportSalesReportQuery::class,
         ImportLossReportQuery::class,
+        ImportConversionReportQuery::class,
         ProductionOrderReportQuery::class,
         ChannelOrderReportQuery::class,
         ChannelSyncStatusReportQuery::class,
