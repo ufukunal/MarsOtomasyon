@@ -1,0 +1,40 @@
+name: Mars Scanner Agent Windows Build
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  windows-binary:
+    runs-on: windows-2022
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install .NET 10 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Publish self-contained Windows x64 executable
+        shell: pwsh
+        run: |
+          & .\agent\build.ps1
+          if ($LASTEXITCODE -ne 0) { throw 'Scanner Agent publish failed.' }
+          if (-not (Test-Path agent/dist/win-x64/MarsScannerAgent.exe)) { throw 'Windows executable missing.' }
+      - name: Assemble Windows installation package
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force agent-package | Out-Null
+          Copy-Item agent/dist/win-x64/MarsScannerAgent.exe agent-package/MarsScannerAgent.exe
+          Copy-Item agent/install.ps1 agent-package/install.ps1
+          Copy-Item agent/uninstall.ps1 agent-package/uninstall.ps1
+          Copy-Item agent/README.md agent-package/README.md
+          Compress-Archive -Path agent-package/* -DestinationPath mars-scanner-agent-win-x64.zip -Force
+      - name: Upload Windows executable installer archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: mars-scanner-agent-win-x64
+          path: mars-scanner-agent-win-x64.zip
+          if-no-files-found: error
+          retention-days: 30
