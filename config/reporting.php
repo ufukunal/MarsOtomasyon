@@ -6,6 +6,7 @@ use App\Support\Reporting\Queries\ChannelOrderReportQuery;
 use App\Support\Reporting\Queries\ChannelSyncStatusReportQuery;
 use App\Support\Reporting\Queries\ContactTransactionReportQuery;
 use App\Support\Reporting\Queries\ImportFileReportQuery;
+use App\Support\Reporting\Queries\ImportSalesReportQuery;
 use App\Support\Reporting\Queries\ProductionOrderReportQuery;
 use App\Support\Reporting\Queries\QuarantineReportQuery;
 use App\Support\Reporting\Queries\ReturnDocumentReportQuery;
@@ -33,6 +34,7 @@ return [
         ReturnDocumentReportQuery::class,
         QuarantineReportQuery::class,
         ImportFileReportQuery::class,
+        ImportSalesReportQuery::class,
         ProductionOrderReportQuery::class,
         ChannelOrderReportQuery::class,
         ChannelSyncStatusReportQuery::class,
