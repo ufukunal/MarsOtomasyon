@@ -305,7 +305,7 @@ compiled_count=0
 for compiled in /var/www/html/storage/framework/views/*.php; do
   [ -f "$compiled" ] || continue
   compiled_count=$((compiled_count + 1))
-  if ! php -l "$compiled"; then
+  if ! php -d display_errors=1 -d log_errors=0 -l "$compiled"; then
     echo "IMAGE_CHECK_FAIL compiled Blade syntax: $compiled" >&2
     # Laravel adds original Blade source path as a footer comment.
     tail -n 3 "$compiled" | grep -E "PATH .+ ENDPATH" >&2 || true
