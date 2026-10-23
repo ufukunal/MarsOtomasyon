@@ -2,7 +2,7 @@
 #Requires -RunAsAdministrator
 [CmdletBinding()]
 param(
-    [string]$PublishedDir = (Join-Path $PSScriptRoot 'dist\win-x64')
+    [string]$PublishedDir = $(if (Test-Path (Join-Path $PSScriptRoot 'MarsScannerAgent.exe')) { $PSScriptRoot } else { Join-Path $PSScriptRoot 'dist\win-x64' })
 )
 $ErrorActionPreference = 'Stop'
 $serviceName = 'MarsScannerAgent'
