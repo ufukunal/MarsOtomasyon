@@ -38,6 +38,7 @@ final class ImportSalesReportQuery implements ReportQuery
                 new ReportFilterDefinition('year', 'Yıl', 'positive_integer'),
                 new ReportFilterDefinition('quarter', 'Çeyrek', 'select', allowedValues: [1, 2, 3, 4]),
                 new ReportFilterDefinition('import_number', 'İthalat Dosya No'),
+                new ReportFilterDefinition('container_no', 'Konteyner No'),
                 new ReportFilterDefinition('product_code', 'Ürün Kodu'),
                 new ReportFilterDefinition('contact_code', 'Cari Kod'),
                 new ReportFilterDefinition('currency', 'Döviz'),
@@ -53,6 +54,7 @@ final class ImportSalesReportQuery implements ReportQuery
                 new ReportColumnDefinition('product_code', 'Ürün Kod'),
                 new ReportColumnDefinition('product_name', 'Ürün Adı'),
                 new ReportColumnDefinition('possible_import_files', 'Olası İthalat Dosyaları', sortable: false),
+                new ReportColumnDefinition('possible_containers', 'Olası İthalat / Konteyner', sortable: false),
                 new ReportColumnDefinition('attribution_status', 'Parti Atfı', sortable: false),
                 new ReportColumnDefinition('quantity', 'Miktar (+Satış / -İade)', 'quantity'),
                 new ReportColumnDefinition('unit_name', 'Birim'),
@@ -118,12 +120,16 @@ final class ImportSalesReportQuery implements ReportQuery
                 $query->selectRaw('1')
                     ->from('packages as ip')
                     ->join('import_files as f', 'f.id', '=', 'ip.import_file_id')
+                    ->join('containers as ct', 'ct.id', '=', 'ip.container_id')
                     ->whereColumn('ip.product_id', 'l.product_id')
                     ->whereIn('f.status', ['received', 'closed'])
                     ->whereColumn('f.received_at', '<=', 'd.document_date');
 
                 if (isset($context->filters['import_number'])) {
                     $query->whereRaw('UPPER(f.number) = UPPER(?)', [$context->filters['import_number']]);
+                }
+                if (isset($context->filters['container_no'])) {
+                    $query->whereRaw('UPPER(ct.container_no) = UPPER(?)', [$context->filters['container_no']]);
                 }
             });
 
@@ -189,6 +195,11 @@ final class ImportSalesReportQuery implements ReportQuery
             'product_name' => 'p.name',
             'possible_import_files' => "(SELECT STRING_AGG(DISTINCT f.number, ', ' ORDER BY f.number)
                 FROM packages AS ip JOIN import_files AS f ON f.id = ip.import_file_id
+                WHERE ip.product_id = l.product_id AND f.status IN ('received','closed')
+                    AND f.received_at <= d.document_date)",
+            'possible_containers' => "(SELECT STRING_AGG(DISTINCT CONCAT(f.number, ' / ', ct.container_no), ', ' ORDER BY CONCAT(f.number, ' / ', ct.container_no))
+                FROM packages AS ip JOIN import_files AS f ON f.id = ip.import_file_id
+                JOIN containers AS ct ON ct.id = ip.container_id
                 WHERE ip.product_id = l.product_id AND f.status IN ('received','closed')
                     AND f.received_at <= d.document_date)",
             'attribution_status' => "'Parti doğrulanmadı'::text",
