@@ -1,5 +1,8 @@
 // Shared v65 document preview: preview and print the exact persisted document.
 const activePreview = (element) => element.closest('[data-v65-document-preview]');
+const canCopyPngToClipboard = () => window.isSecureContext
+    && typeof ClipboardItem !== 'undefined'
+    && typeof navigator.clipboard?.write === 'function';
 
 const fitPreview = (dialog) => {
     const sheet = dialog?.querySelector('.v65-document-preview-sheet');
@@ -21,6 +24,11 @@ document.addEventListener('click', async (event) => {
         dialog.querySelector('[data-v65-preview-pdf]').href = open.dataset.previewPdf;
         dialog.dataset.imageUrl = open.dataset.previewPng;
         dialog.dataset.htmlUrl = open.dataset.previewHtml;
+        dialog.dataset.copyFallback = 'false';
+        dialog.querySelector('[data-v65-preview-image-open]').href = open.dataset.previewPng;
+        dialog.querySelector('[data-v65-preview-image-download]').href = open.dataset.previewPng;
+        const copyButton = dialog.querySelector('[data-v65-preview-copy]');
+        copyButton.textContent = canCopyPngToClipboard() ? 'Resim Olarak Kopyala' : 'Resmi Aç ve Kopyala';
         dialog.querySelector('[data-v65-preview-status]').textContent = 'A4 önizleme yükleniyor…';
         frame.dataset.ready = 'false';
         frame.src = open.dataset.previewHtml;
@@ -59,8 +67,15 @@ document.addEventListener('click', async (event) => {
         const dialog = activePreview(copy);
         const status = dialog?.querySelector('[data-v65-preview-status]');
         if (!dialog || !status) return;
-        if (!window.isSecureContext || !navigator.clipboard?.write || typeof ClipboardItem === 'undefined') {
-            status.textContent = 'Resim kopyalama için güvenli bağlantı ve desteklenen tarayıcı gerekir.';
+        if (!canCopyPngToClipboard() || dialog.dataset.copyFallback === 'true') {
+            // Browsers prohibit binary clipboard writes on an insecure HTTP origin.
+            // Open the real PNG so the browser's native "Resmi kopyala" command
+            // remains available; do not claim that the clipboard was changed.
+            const imageLink = dialog.querySelector('[data-v65-preview-image-open]');
+            if (imageLink instanceof HTMLAnchorElement) {
+                imageLink.click();
+            }
+            status.textContent = 'HTTP veya tarayıcı kısıtlaması: Görseli açılan sekmede sağ tıklayıp “Resmi kopyala” seçin. Açılmazsa PNG Aç bağlantısını kullanın.';
             return;
         }
         copy.disabled = true;
@@ -78,7 +93,10 @@ document.addEventListener('click', async (event) => {
             await navigator.clipboard.write([new ClipboardItem({ 'image/png': image })]);
             status.textContent = 'İlk A4 sayfası resim olarak panoya kopyalandı.';
         } catch (error) {
-            status.textContent = error instanceof Error ? error.message : 'Resim panoya kopyalanamadı.';
+            dialog.dataset.copyFallback = 'true';
+            copy.textContent = 'Resmi Aç ve Kopyala';
+            const reason = error instanceof Error ? error.message : 'Tarayıcı panoya yazmayı reddetti.';
+            status.textContent = reason + ' PNG Aç bağlantısını kullanıp görsele sağ tıklayarak “Resmi kopyala” seçebilirsiniz.';
         } finally {
             copy.disabled = false;
         }
@@ -91,7 +109,9 @@ document.addEventListener('load', (event) => {
     const dialog = activePreview(frame);
     if (!dialog?.open || frame.src === 'about:blank') return;
     frame.dataset.ready = 'true';
-    dialog.querySelector('[data-v65-preview-status]').textContent = '';
+    dialog.querySelector('[data-v65-preview-status]').textContent = canCopyPngToClipboard()
+        ? ''
+        : 'HTTP bağlantısında doğrudan resim kopyalama tarayıcı tarafından engellenir. Resmi Aç ve Kopyala veya PNG İndir kullanın.';
 }, true);
 
 document.addEventListener('click', (event) => {
