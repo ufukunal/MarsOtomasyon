@@ -100,6 +100,7 @@ use App\Livewire\Reporting\DocumentTemplateDesigner;
 use App\Livewire\Reporting\ExportCenter;
 use App\Livewire\Reporting\PrintHistory;
 use App\Livewire\Reporting\ReportCenter;
+use App\Livewire\Reporting\ImportSourceCenter;
 use App\Livewire\Returns\ReturnCenter;
 use App\Livewire\Sales\DispatchEditor;
 use App\Livewire\Sales\DispatchList;
@@ -254,6 +255,9 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/raporlar', ReportCenter::class)
         ->middleware('throttle:report')
         ->name('reports.center');
+    Route::get('/raporlar/ithalat-kaynak', ImportSourceCenter::class)
+        ->middleware('throttle:report')
+        ->name('reports.import-sources');
     Route::get('/raporlar/cok-donem', ConsolidatedReportCenter::class)
         ->middleware('throttle:report')
         ->name('reports.consolidated');
