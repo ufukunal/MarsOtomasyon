@@ -30,6 +30,10 @@ final class ReportCatalog
                 continue;
             }
 
+            if ($definition->key === 'imports.sales' && ! $gate->allows('sales_invoices.view')) {
+                continue;
+            }
+
             $columns = array_values(array_filter(
                 $definition->columns,
                 fn (ReportColumnDefinition $column): bool => $canViewCost || ! $column->costSensitive,
