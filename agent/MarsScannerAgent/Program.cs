@@ -58,7 +58,7 @@ app.Use(async (context, next) =>
 app.MapGet("/", () => Results.Content(LocalUi.Html, "text/html; charset=utf-8"));
 app.MapGet("/health", () => Results.Ok(new { status = "ok", agent = "MarsScannerAgent", backend = "WIA" }));
 
-app.MapGet("/api/scanners", async (HttpContext context, WiaScanner scanner) =>
+app.MapGet("/api/scanners", async Task<IResult> (HttpContext context, WiaScanner scanner) =>
 {
     if (!Authorized(context, config.Token)) return Results.Unauthorized();
     try
@@ -77,7 +77,7 @@ app.MapGet("/api/scanners", async (HttpContext context, WiaScanner scanner) =>
     }
 });
 
-app.MapPost("/api/scan", async (HttpContext context, WiaScanner scanner) =>
+app.MapPost("/api/scan", async Task<IResult> (HttpContext context, WiaScanner scanner) =>
 {
     if (!Authorized(context, config.Token)) return Results.Unauthorized();
 
