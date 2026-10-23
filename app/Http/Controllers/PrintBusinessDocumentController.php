@@ -18,7 +18,7 @@ final class PrintBusinessDocumentController
 {
     public function __invoke(int $document, string $format): Response
     {
-        abort_unless(in_array($format, ['html', 'pdf'], true), 404);
+        abort_unless(in_array($format, ['html', 'pdf', 'png'], true), 404);
         // Period selection must happen before querying period-scoped Document.
         PeriodContext::ensure();
 
@@ -126,7 +126,7 @@ final class PrintBusinessDocumentController
         // This is only a display aggregate; persisted VAT and grand totals are authoritative.
         $totalDiscountAmount = bcadd($lineDiscountAmount, (string) $record->discount_amount, 4);
 
-        $view = view('printing.business-document', [
+        $view = view($printVariant->isSlip() ? 'printing.business-document-slip' : 'printing.business-document', [
             'document' => $record,
             'company' => $company,
             'title' => $definition[0],
@@ -143,12 +143,78 @@ final class PrintBusinessDocumentController
             'billing' => $billing,
             'delivery' => $delivery,
             'documentQrToken' => $documentQrToken,
+            'embedded' => request()->boolean('embedded') || $format === 'png',
         ]);
 
         $html = $view->render();
         if ($format === 'html') {
             return response($html, 200, [
                 'Content-Type' => 'text/html; charset=UTF-8',
+                'X-Content-Type-Options' => 'nosniff',
+                'Cache-Control' => 'private, no-store',
+            ]);
+        }
+
+        // Clipboard export uses the same authorized, server-rendered HTML.
+        // A4 screenshot represents the FIRST page; PDFs retain all pages.
+        if ($format === 'png') {
+            if (! is_executable('/usr/bin/chromium')) {
+                abort(503, 'Görsel servisi kullanılamıyor. Sunucu tarayıcı bileşeni eksik.');
+            }
+            $imageDir = sys_get_temp_dir().'/mars-document-image-'.bin2hex(random_bytes(12));
+            if (! File::makeDirectory($imageDir, 0700)) {
+                abort(503, 'Görsel geçici çalışma alanı oluşturulamadı.');
+            }
+
+            try {
+                $htmlFile = $imageDir.'/document.html';
+                $imageFile = $imageDir.'/document.png';
+                if (file_put_contents($htmlFile, $html) === false) {
+                    abort(503, 'Görsel oluşturulamadı.');
+                }
+                $process = new Process([
+                    '/usr/bin/chromium',
+                    '--headless',
+                    '--no-sandbox',
+                    '--disable-dev-shm-usage',
+                    '--disable-gpu',
+                    '--disable-extensions',
+                    '--disable-background-networking',
+                    '--hide-scrollbars',
+                    '--force-device-scale-factor=2',
+                    '--window-size=794,1123',
+                    '--user-data-dir='.$imageDir.'/profile',
+                    '--screenshot='.$imageFile,
+                    'file://'.$htmlFile,
+                ], null, ['HOME' => $imageDir, 'XDG_CONFIG_HOME' => $imageDir]);
+                $process->setTimeout(60);
+                try {
+                    $process->run();
+                } catch (\Symfony\Component\Process\Exception\ExceptionInterface $error) {
+                    Log::error('Business document image process could not start or timed out', [
+                        'document_type' => $record->document_type->value,
+                        'variant' => $printVariant->value,
+                        'message' => mb_substr($error->getMessage(), 0, 800),
+                    ]);
+                    abort(503, 'Görsel oluşturulamadı. Yazdırma servisini kontrol edin.');
+                }
+                $image = is_file($imageFile) ? file_get_contents($imageFile) : false;
+                if (! $process->isSuccessful() || ! is_string($image) || ! str_starts_with($image, "\x89PNG\r\n\x1a\n")) {
+                    Log::error('Business document image rendering failed', [
+                        'document_type' => $record->document_type->value,
+                        'variant' => $printVariant->value,
+                        'exit_code' => $process->getExitCode(),
+                        'stderr' => mb_substr($process->getErrorOutput(), 0, 800),
+                    ]);
+                    abort(503, 'Görsel oluşturulamadı. Yazdırma servisini kontrol edin.');
+                }
+            } finally {
+                File::deleteDirectory($imageDir);
+            }
+
+            return response($image, 200, [
+                'Content-Type' => 'image/png',
+                'Content-Disposition' => 'inline; filename="belge-'.(int) $record->id.'.png"',
                 'X-Content-Type-Options' => 'nosniff',
                 'Cache-Control' => 'private, no-store',
             ]);
