@@ -7,7 +7,6 @@ use App\Enums\DocumentType;
 use App\Support\Reporting\CurrencySeparatedTotals;
 use App\Support\Reporting\ReportColumnDefinition;
 use App\Support\Reporting\ReportDefinition;
-use App\Support\Reporting\ReportDrillDownDefinition;
 use App\Support\Reporting\ReportExecutionContext;
 use App\Support\Reporting\ReportFilterDefinition;
 use App\Support\Reporting\ReportQueryResult;
@@ -71,16 +70,7 @@ final class ImportSalesReportQuery implements ReportQuery
                 new ReportTotalDefinition('vat_amount', 'Hesaplanan KDV'),
                 new ReportTotalDefinition('grand_total', 'KDV Dahil Satır Tutarı'),
             ],
-            drillDowns: [
-                new ReportDrillDownDefinition(
-                    key: 'invoice',
-                    label: 'Fatura',
-                    permission: 'sales_invoices.view',
-                    idColumn: 'id',
-                    target: 'sales_invoices',
-                ),
-            ],
-        );
+       );
     }
 
     public function execute(ReportExecutionContext $context): ReportQueryResult
