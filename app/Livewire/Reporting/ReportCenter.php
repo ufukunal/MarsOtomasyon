@@ -172,7 +172,9 @@ final class ReportCenter extends Component
         $this->selectedPresetId = $preset->id;
         $this->presetName = $preset->name;
         $this->presetShared = (bool) $preset->is_shared;
-        $this->filterValues = $preset->filters ?? [];
+        $this->filterValues = $this->reportKey === 'imports.sales'
+            ? array_replace($this->quarterFilters(), $preset->filters ?? [])
+            : ($preset->filters ?? []);
         $this->selectedColumns = $preset->columns ?? [];
         $firstSort = ($preset->sort ?? [])[0] ?? null;
         $this->sortKey = $firstSort !== null ? $firstSort['key'] : '';
