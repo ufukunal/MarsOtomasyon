@@ -37,6 +37,10 @@
                         @error('sourceId') <span class="text-danger">{{ $message }}</span> @enderror
                     </label>
                     <label>
+                        İthalat / konteyner ara
+                        <input type="search" wire:model.live.debounce.350ms="importSearch" placeholder="Dosya veya konteyner numarası">
+                    </label>
+                    <label>
                         İthalat / konteyner
                         <select wire:model="containerId" required>
                             <option value="">Konteyner seçin</option>
@@ -70,7 +74,7 @@
         <p class="text-muted">Miktarlar stok temel birimindedir. Tablodaki ID'yi eşleştirme formuna girin. Liste dışındaki eski kayıtların ID'si de kullanılabilir.</p>
         <div class="table-scroll v65-list-table">
             <table class="data-table">
-                <thead><tr><th>ID</th><th>Tarih</th><th>Belge</th><th>Ürün</th><th class="align-end">Temel Miktar</th></tr></thead>
+                <thead><tr><th>ID</th><th>Tarih</th><th>Belge</th><th>Ürün</th><th class="align-end">Temel Miktar</th><th>Seç</th></tr></thead>
                 <tbody>
                     @forelse($sources as $source)
                         <tr>
@@ -79,9 +83,10 @@
                             <td>{{ $source->number ?? '—' }}</td>
                             <td>{{ $source->product_code }}</td>
                             <td class="align-end tabular">{{ $source->base_quantity ?? $source->quantity }}</td>
+                            <td><button type="button" class="button-secondary" wire:click="$set('sourceId', '{{ $source->id }}')">Seç</button></td>
                         </tr>
                     @empty
-                        <tr><td colspan="5" class="empty-state">Seçili türde işlem bulunamadı.</td></tr>
+                        <tr><td colspan="6" class="empty-state">Seçili türde işlem bulunamadı.</td></tr>
                     @endforelse
                 </tbody>
             </table>
