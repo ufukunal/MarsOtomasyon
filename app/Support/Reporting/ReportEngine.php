@@ -33,6 +33,9 @@ final class ReportEngine
         if ($definition->key === 'imports.sales') {
             $gate->authorize('sales_invoices.view');
         }
+        if ($definition->key === 'imports.loss') {
+            $gate->authorize('stock.view');
+        }
 
         $canViewCost = $gate->allows('cost.view');
         $filters = $this->normalizeFilters($definition, $request->filters);
