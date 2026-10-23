@@ -96,6 +96,18 @@ final class ImportLossReportQuery implements ReportQuery
             ->where('sm.direction', 'out')
             ->where('sm.reason', '<>', 'reversal')
             ->whereBetween('sm.movement_date', [$from, $to])
+            ->whereNotExists(function (Builder $query): void {
+                $query->selectRaw('1')->from('warehouse_slips as cancelled_slip')
+                    ->whereColumn('cancelled_slip.id', 'sm.document_id')
+                    ->where('sm.document_type', 'warehouse_slip')
+                    ->where('cancelled_slip.status', 'cancelled');
+            })
+            ->whereNotExists(function (Builder $query): void {
+                $query->selectRaw('1')->from('production_consumptions as reversed_consumption')
+                    ->join('production_completions as original', 'original.id', '=', 'reversed_consumption.production_completion_id')
+                    ->join('production_completions as reversal', 'reversal.reversal_of_id', '=', 'original.id')
+                    ->whereColumn('reversed_consumption.stock_movement_id', 'sm.id');
+            })
             ->selectRaw('sm.product_id, SUM(sm.quantity) AS quantity')
             ->groupBy('sm.product_id');
 
