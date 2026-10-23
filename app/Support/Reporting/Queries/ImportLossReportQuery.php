@@ -154,9 +154,13 @@ final class ImportLossReportQuery implements ReportQuery
         $out = 'COALESCE(outflow.quantity, 0)';
         $lossFire = 'COALESCE(fire.quantity, 0)';
         $lossScrap = 'COALESCE(scrap.quantity, 0)';
+        $ratesNumeric = [
+            'fire_rate' => "(CASE WHEN $out > 0 THEN ROUND($lossFire * 100 / $out, 2) ELSE NULL END)",
+            'scrap_rate' => "(CASE WHEN $out > 0 THEN ROUND($lossScrap * 100 / $out, 2) ELSE NULL END)",
+        ];
         $rates = [
-            'fire_rate' => "(CASE WHEN $out > 0 THEN ROUND($lossFire * 100 / $out, 2)::text ELSE NULL END)",
-            'scrap_rate' => "(CASE WHEN $out > 0 THEN ROUND($lossScrap * 100 / $out, 2)::text ELSE NULL END)",
+            'fire_rate' => $ratesNumeric['fire_rate'].'::text',
+            'scrap_rate' => $ratesNumeric['scrap_rate'].'::text',
         ];
         $fields = [
             'product_code' => 'p.code',
@@ -175,9 +179,9 @@ final class ImportLossReportQuery implements ReportQuery
             'unit_name' => 'u.name',
             'out_quantity' => $out,
             'fire_quantity' => $lossFire,
-            'fire_rate' => $rates['fire_rate'],
+            'fire_rate' => $ratesNumeric['fire_rate'],
             'scrap_quantity' => $lossScrap,
-            'scrap_rate' => $rates['scrap_rate'],
+            'scrap_rate' => $ratesNumeric['scrap_rate'],
         ];
 
         $rows = clone $base;
