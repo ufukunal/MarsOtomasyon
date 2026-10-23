@@ -135,7 +135,7 @@ return [
         'label' => 'Raporlar',
         'items' => [
             ['label' => 'Rapor Merkezi', 'route' => 'reports.center', 'permission' => 'reports.view'],
-            ['label' => 'İthalat Kaynak Eşleştirme', 'route' => 'reports.import-sources', 'permission' => 'import_shipments.view'],
+            ['label' => 'İthalat Kaynak Eşleştirme', 'route' => 'reports.import-sources', 'permission' => 'import_shipments.view', 'permission_secondary' => 'reports.view'],
             ['label' => 'Çok Dönemli Rapor', 'route' => 'reports.consolidated', 'permission' => 'reports.consolidated'],
             ['label' => 'Dışa Aktarma Merkezi', 'route' => 'reports.exports', 'permission' => 'reports.view'],
             ['label' => 'Belge Şablonları', 'route' => 'reports.templates', 'permission' => 'document_templates.view'],
