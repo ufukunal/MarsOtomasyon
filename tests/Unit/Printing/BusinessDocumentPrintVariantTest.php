@@ -2,9 +2,13 @@
 
 use App\Enums\BusinessDocumentPrintVariant;
 
-it('exposes exactly four price/image combinations with correct flags', function (): void {
+it('exposes four classic variants and two compact price modes with correct flags', function (): void {
     expect(array_map(fn (BusinessDocumentPrintVariant $style) => $style->value, BusinessDocumentPrintVariant::cases()))
-        ->toBe(['plain_priced', 'image_priced', 'plain_unpriced', 'image_unpriced']);
+        ->toBe(['plain_priced', 'image_priced', 'plain_unpriced', 'image_unpriced', 'slip_priced', 'slip_unpriced']);
+
+    expect(BusinessDocumentPrintVariant::SlipPriced->isSlip())->toBeTrue()
+        ->and(BusinessDocumentPrintVariant::SlipUnpriced->isSlip())->toBeTrue()
+        ->and(BusinessDocumentPrintVariant::PlainPriced->isSlip())->toBeFalse();
 
     foreach (BusinessDocumentPrintVariant::cases() as $style) {
         expect($style->showImages())->toBe(str_starts_with($style->value, 'image_'))
