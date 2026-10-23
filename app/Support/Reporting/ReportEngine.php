@@ -30,6 +30,10 @@ final class ReportEngine
         $gate = Gate::forUser($actor);
         $gate->authorize($definition->permission);
 
+        if ($definition->key === 'imports.sales') {
+            $gate->authorize('sales_invoices.view');
+        }
+
         $canViewCost = $gate->allows('cost.view');
         $filters = $this->normalizeFilters($definition, $request->filters);
         $columns = $this->normalizeColumns($definition, $request->columns, $canViewCost);
