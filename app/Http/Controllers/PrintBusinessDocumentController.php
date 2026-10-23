@@ -8,6 +8,7 @@ use App\Models\Company;
 use App\Models\Period\Document;
 use App\Support\Period\PeriodContext;
 use App\Support\Printing\BusinessDocumentImageResolver;
+use App\Support\Printing\TrimDocumentPng;
 use App\Support\Printing\Label\OpaqueQrSvg;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\File;
@@ -177,7 +178,16 @@ final class PrintBusinessDocumentController
             try {
                 $htmlFile = $imageDir.'/document.html';
                 $imageFile = $imageDir.'/document.png';
-                if (file_put_contents($htmlFile, $html) === false) {
+                // This stylesheet is PNG-only. A4 HTML preview and PDF retain their
+                // full page height; shared PNG exports use a plain white background
+                // so the trailing whitespace can be trimmed reliably.
+                $captureHtml = str_replace(
+                    '</head>',
+                    '<style>@media screen { html, body { background: #fff !important; } '
+                    .'.paper, .slip-paper { min-height: 0 !important; height: auto !important; box-shadow: none !important; } }</style></head>',
+                    $html,
+                );
+                if (file_put_contents($htmlFile, $captureHtml) === false) {
                     abort(503, 'Görsel oluşturulamadı.');
                 }
                 $process = new Process([
@@ -219,6 +229,9 @@ final class PrintBusinessDocumentController
             } finally {
                 File::deleteDirectory($imageDir);
             }
+
+            // Crop only the exported PNG; the PDF and print A4 size are unchanged.
+            $image = app(TrimDocumentPng::class)->handle($image);
 
             return response($image, 200, [
                 'Content-Type' => 'image/png',
