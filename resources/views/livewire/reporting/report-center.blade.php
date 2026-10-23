@@ -35,6 +35,16 @@
                     <div class="report-meta">Tanım v{{ $selectedReport->version }}</div>
                 </div>
 
+                @if($selectedReport->key === 'imports.conversion')
+                    <div class="alert alert-warning" role="note">
+                        Birleşik ithalat / konteyner dönüşüm hesabı yalnız yetkili kullanıcı tarafından kaynak belgesine
+                        doğrulanarak bağlanan satış, iade, üretim firesi ve hurda kayıtlarından oluşur.
+                        İthalat stokunun tamamı eşleştirilmiş sayılmaz. “Eşleştirme Dışı / Kalan” fiziksel güncel stok değildir.
+                        Eksik kaynaklar ve eski döneme ait işlemler yüzdeleri olduğundan düşük gösterebilir.
+                        <a href="{{ route('reports.import-sources') }}">Kaynak eşleştirmelerini yönet</a>
+                    </div>
+                @endif
+
                 @if($selectedReport->key === 'imports.loss')
                     <div class="alert alert-warning" role="note">
                         Bu rapor ithalat dosyalarında bulunan ürün kodlarının şirket genelindeki stok çıkışı,
