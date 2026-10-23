@@ -30,7 +30,7 @@ final class SaveImportReportingAllocation
             || $sourceId <= 0 || $containerId <= 0
             || ! preg_match('/^\d+(?:\.\d{1,3})?$/D', $quantity)
             || bccomp($quantity, '0', 3) <= 0
-            || mb_strlen($note) > 2000) {
+            || mb_strlen($note) < 8 || mb_strlen($note) > 2000) {
             throw new DomainException('Kaynak türü, ID, konteyner ve pozitif miktar geçerli olmalıdır.');
         }
 
@@ -46,6 +46,15 @@ final class SaveImportReportingAllocation
             if (! $container || ! in_array((string) $container->status, ['received', 'closed'], true)) {
                 throw new DomainException('Yalnız teslim alınmış ithalatın konteynerine eşleştirme yapılabilir.');
             }
+
+            $sourceTable = match ($type) {
+                'sales', 'return' => 'document_lines',
+                'fire' => 'production_consumptions',
+                'scrap' => 'stock_movements',
+            };
+            // Prevent two operators attributing the same source to different
+            // containers beyond its quantity in concurrent transactions.
+            $db->table($sourceTable)->where('id', $sourceId)->lockForUpdate()->first(['id']);
 
             $source = $this->source($type, $sourceId);
             if ($source === null) {
@@ -82,7 +91,7 @@ final class SaveImportReportingAllocation
             if ($type === 'return') {
                 $relatedSales = (string) ($db->table('import_reporting_allocations')
                     ->where('source_type', 'sales')
-                    ->where('source_id', $source['source_sales_line_id'])
+                    ->where('source_id', ($source['source_sales_line_id'] ?? 0))
                     ->where('container_id', $containerId)
                     ->whereNull('voided_at')
                     ->sum('quantity') ?: '0');
@@ -90,7 +99,7 @@ final class SaveImportReportingAllocation
                     ->join('document_lines as l', 'l.id', '=', 'a.source_id')
                     ->where('a.source_type', 'return')
                     ->where('a.container_id', $containerId)
-                    ->where('l.source_line_id', $source['source_sales_line_id'])
+                    ->where('l.source_line_id', ($source['source_sales_line_id'] ?? 0))
                     ->whereNull('a.voided_at')
                     ->sum('a.quantity') ?: '0');
 
@@ -163,6 +172,14 @@ final class SaveImportReportingAllocation
             if (! $allocation || $allocation->voided_at !== null) {
                 throw new DomainException('Aktif eşleştirme bulunamadı.');
             }
+
+            $sourceTable = match ($allocation->source_type) {
+                'sales', 'return' => 'document_lines',
+                'fire' => 'production_consumptions',
+                'scrap' => 'stock_movements',
+                default => throw new DomainException('Kaynak türü geçersiz.'),
+            };
+            $db->table($sourceTable)->where('id', $allocation->source_id)->lockForUpdate()->first(['id']);
 
             // Prevent retracting a sale source while an active linked return remains.
             if ($allocation->source_type === 'sales') {
