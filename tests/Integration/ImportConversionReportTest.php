@@ -145,6 +145,61 @@ it('reports only verified container-attributed sales, returns and scrap without 
                 ->and((float) $after->rows[0]['conversion_rate'])->toBe(20.0)
                 ->and($db->table('import_reporting_allocations')
                     ->whereNotNull('voided_at')->count())->toBe(2);
+
+            $recipeId = $db->table('production_recipes')->insertGetId([
+                'product_id' => $fixture['product'], 'number' => 'COMB-REC-'.$code,
+                'revision_no' => 1, 'output_quantity' => 1,
+                'created_at' => $now, 'updated_at' => $now,
+            ]);
+            $orderId = $db->table('production_orders')->insertGetId([
+                'number' => 'COMB-ORDER-'.$code, 'document_date' => '2026-03-10',
+                'product_id' => $fixture['product'], 'recipe_id' => $recipeId,
+                'recipe_revision_no' => 1, 'planned_quantity' => 1,
+                'created_at' => $now, 'updated_at' => $now,
+            ]);
+            $completionId = $db->table('production_completions')->insertGetId([
+                'production_order_id' => $orderId, 'completion_date' => '2026-03-10',
+                'completed_quantity' => 1, 'material_cost_total' => 25,
+                'production_cost_total' => 25, 'production_unit_cost' => 25,
+                'moving_average_before' => 5, 'moving_average_after' => 5,
+                'previous_production_cost' => 5,
+                'created_at' => $now, 'updated_at' => $now,
+            ]);
+            $movementId = $db->table('stock_movements')->insertGetId([
+                'product_id' => $fixture['product'], 'location_id' => $fixture['location'],
+                'product_code' => 'COMB-'.$code, 'movement_date' => '2026-03-10',
+                'direction' => 'out', 'reason' => 'production_consumption',
+                'quantity' => 5, 'unit_cost' => 5, 'total_cost' => 25,
+                'balance_after' => 170, 'avg_cost_after' => 5,
+                'document_type' => 'production_completion', 'document_id' => $completionId,
+                'created_at' => $now, 'updated_at' => $now,
+            ]);
+            $consumptionId = $db->table('production_consumptions')->insertGetId([
+                'production_completion_id' => $completionId,
+                'component_product_id' => $fixture['product'],
+                'location_id' => $fixture['location'], 'consumed_quantity' => 0,
+                'fire_quantity' => 5, 'unit_cost' => 5, 'total_cost' => 25,
+                'stock_movement_id' => $movementId,
+                'created_at' => $now, 'updated_at' => $now,
+            ]);
+
+            $save('fire', $consumptionId, $containerIds[0], 5);
+            $withFire = $query();
+            expect((float) $withFire->rows[0]['cumulative_fire'])->toBe(5.0)
+                ->and((float) $withFire->rows[0]['fire_rate'])->toBe(2.5);
+
+            $db->table('production_completions')->insert([
+                'production_order_id' => $orderId, 'completion_date' => '2026-03-20',
+                'reversal_of_id' => $completionId, 'completed_quantity' => 1,
+                'material_cost_total' => 25, 'production_cost_total' => 25,
+                'production_unit_cost' => 25, 'moving_average_before' => 5,
+                'moving_average_after' => 5, 'previous_production_cost' => 5,
+                'created_at' => $now, 'updated_at' => $now,
+            ]);
+            $reversed = $query();
+            expect((float) $reversed->rows[0]['cumulative_fire'])->toBe(0.0);
+            expect(fn () => $save('fire', $consumptionId, $containerIds[0], 1))
+                ->toThrow(DomainException::class);
         } finally {
             AuthorizedPeriod::logout();
         }
