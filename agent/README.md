@@ -11,7 +11,7 @@ MarsProject için bağımsız, küçük Windows servisidir. Tarayıcısı buluna
 - API: `GET /health`, `GET /api/scanners`, `POST /api/scan`
 - Tarama: tek sayfa, JPEG, 150/300/600 DPI; sürücünün desteklemediği çözünürlük hatayla bildirilir
 - Aynı anda tek tarama, en fazla 25 MB görüntü. Belge sunucuya otomatik gönderilmez.
-- `agent.json` erişim anahtarı Windows ProgramData içinde yalnız SYSTEM/Administrators için erişilebilirdir.
+- `agent.json` erişim anahtarı Windows ProgramData içinde yalnız SYSTEM/Administrators tam erişimli, LocalService salt okunur olacak şekilde korunur.
 - Tamamlanmış tarama bilgisayardaki RAM üzerinden tarayıcıya dönülür, geçici JPG dosyası temizlenir.
 
 ## Gereksinimler
