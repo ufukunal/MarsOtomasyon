@@ -387,9 +387,12 @@ final class ReportCenter extends Component
     /** @return array{year:int,quarter:int} */
     private function quarterFilters(): array
     {
+        $year = PeriodContext::year() ?? (int) now()->year;
+        $currentYear = (int) now()->year;
+
         return [
-            'year' => (int) now()->year,
-            'quarter' => intdiv((int) now()->month - 1, 3) + 1,
+            'year' => $year,
+            'quarter' => $year < $currentYear ? 4 : ($year > $currentYear ? 1 : intdiv((int) now()->month - 1, 3) + 1),
         ];
     }
 
