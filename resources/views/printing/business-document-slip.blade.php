@@ -20,11 +20,12 @@
         .slip-lines th { padding: 0 4px 5px; font-size: 8px; text-align: left; font-weight: 600; color: #555; border-bottom: 1px solid #ddd; }
         .slip-lines td { padding: 4px; vertical-align: top; overflow-wrap: anywhere; }
         .slip-lines tr { break-inside: avoid; page-break-inside: avoid; }
-        .slip-num { width: 15%; }
-        .slip-description { width: 42%; }
-        .slip-qty { width: 17%; }
-        .slip-money { width: 16%; }
-        .slip-rate { width: 10%; }
+        .slip-num { width: 9%; }
+        .slip-description { width: 39%; }
+        .slip-qty { width: 15%; }
+        .slip-money { width: 14%; }
+        .slip-rate { width: 9%; }
+        .slip-lines.is-unpriced .slip-num { width: 15%; }
         .slip-lines.is-unpriced .slip-description { width: 65%; }
         .slip-lines.is-unpriced .slip-qty { width: 20%; }
         .slip-lines .numeric { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
