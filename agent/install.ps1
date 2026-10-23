@@ -41,6 +41,10 @@ if (-not (Test-Path -LiteralPath $configFile)) {
     if ($LASTEXITCODE -ne 0) { throw 'Ayar dosyası erişim izinleri güvenceye alınamadı.' }
 }
 
+# Ensure LocalService can read the retained configuration on upgrades too.
+& icacls.exe $configFile /grant '*S-1-5-19:(R)' | Out-Null
+if ($LASTEXITCODE -ne 0) { throw 'LocalService erişim izni ayarlanamadı.' }
+
 if (-not $existing) {
     $binaryPath = '"' + $exe + '" --config "' + $configFile + '"'
     New-Service -Name $serviceName -BinaryPathName $binaryPath -DisplayName 'Mars Scanner Agent' -Description 'MarsProject için yerel Windows WIA tarama hizmeti' -StartupType Automatic | Out-Null
@@ -48,7 +52,7 @@ if (-not $existing) {
 
 # Service account defaults to LocalService, never LocalSystem.
 # Built-in LocalService requires no saved account password.
-& sc.exe config $serviceName obj= 'NT AUTHORITY\LocalService' password= '' | Out-Null
+& sc.exe config $serviceName obj= 'NT AUTHORITY\LocalService' | Out-Null
 if ($LASTEXITCODE -ne 0) { throw 'LocalService hizmet hesabı ayarlanamadı.' }
 & sc.exe failure $serviceName reset= 86400 actions= restart/60000/restart/60000/restart/60000 | Out-Null
 if ($LASTEXITCODE -ne 0) { throw 'Servis kurtarma ayarları uygulanamadı.' }
