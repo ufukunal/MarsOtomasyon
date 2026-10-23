@@ -25,7 +25,9 @@ document.addEventListener('click', async (event) => {
         dialog.dataset.imageUrl = open.dataset.previewPng;
         dialog.dataset.htmlUrl = open.dataset.previewHtml;
         dialog.dataset.copyFallback = 'false';
-        dialog.querySelector('[data-v65-preview-image-open]').href = open.dataset.previewPng;
+        const imageOpenLink = dialog.querySelector('[data-v65-preview-image-open]');
+        imageOpenLink.href = open.dataset.previewPng;
+        imageOpenLink.hidden = canCopyPngToClipboard();
         dialog.querySelector('[data-v65-preview-image-download]').href = open.dataset.previewPng;
         const copyButton = dialog.querySelector('[data-v65-preview-copy]');
         copyButton.textContent = canCopyPngToClipboard() ? 'Resim Olarak Kopyala' : 'Resmi Aç ve Kopyala';
@@ -95,6 +97,7 @@ document.addEventListener('click', async (event) => {
         } catch (error) {
             dialog.dataset.copyFallback = 'true';
             copy.textContent = 'Resmi Aç ve Kopyala';
+            dialog.querySelector('[data-v65-preview-image-open]').hidden = false;
             const reason = error instanceof Error ? error.message : 'Tarayıcı panoya yazmayı reddetti.';
             status.textContent = reason + ' PNG Aç bağlantısını kullanıp görsele sağ tıklayarak “Resmi kopyala” seçebilirsiniz.';
         } finally {
