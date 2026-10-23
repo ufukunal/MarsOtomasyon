@@ -87,7 +87,7 @@ final class ReportCenter extends Component
 
     public function clearFilters(): void
     {
-        $this->filterValues = $this->reportKey === 'imports.sales' ? $this->quarterFilters() : [];
+        $this->filterValues = in_array($this->reportKey, ['imports.sales', 'imports.loss'], true) ? $this->quarterFilters() : [];
         $this->page = 1;
         $this->queueMessage = null;
     }
@@ -172,7 +172,7 @@ final class ReportCenter extends Component
         $this->selectedPresetId = $preset->id;
         $this->presetName = $preset->name;
         $this->presetShared = (bool) $preset->is_shared;
-        $this->filterValues = $this->reportKey === 'imports.sales'
+        $this->filterValues = in_array($this->reportKey, ['imports.sales', 'imports.loss'], true)
             ? array_replace($this->quarterFilters(), $preset->filters ?? [])
             : ($preset->filters ?? []);
         $this->selectedColumns = $preset->columns ?? [];
@@ -337,7 +337,7 @@ final class ReportCenter extends Component
         abort_unless($report !== null, 403);
 
         $this->reportKey = $report->key;
-        $this->filterValues = $key === 'imports.sales' ? $this->quarterFilters() : [];
+        $this->filterValues = in_array($key, ['imports.sales', 'imports.loss'], true) ? $this->quarterFilters() : [];
         $this->selectedColumns = array_values(array_map(
             fn (ReportColumnDefinition $column): string => $column->key,
             array_filter(
