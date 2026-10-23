@@ -59,6 +59,23 @@ it('lists quarterly imported-product invoice and return lines without multiplyin
             ]);
         }
 
+        $firstImportId = (int) $db->table('import_files')
+            ->where('number', 'IMP-R1-'.$code)->value('id');
+        $firstContainerId = (int) $db->table('containers')
+            ->where('import_file_id', $firstImportId)->value('id');
+        $db->table('packages')->insert([
+            'import_file_id' => $firstImportId,
+            'container_id' => $firstContainerId,
+            'carton_no' => 'PKG-EXTRA-'.$code,
+            'product_id' => $ids['product'],
+            'location_id' => $ids['location'],
+            'status' => 'received',
+            'quantity' => 10,
+            'unit_price' => 100,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+
         $createLine = function (string $type, string $date, string $status, string $name, int $quantity, int $headerDiscount = 0) use ($db, $ids, $contact, $now): void {
             $subtotal = $quantity * 1000;
             $documentId = $db->table('documents')->insertGetId([
@@ -159,9 +176,11 @@ it('lists quarterly imported-product invoice and return lines without multiplyin
 
         expect($fileResults->totalRows)->toBe(2)
             ->and($containerResults->totalRows)->toBe(2)
-            ->and((float) $fileResults->rows[0]['import_quantity'])->toBe(100.0)
+            ->and((float) $fileResults->rows[0]['import_quantity'])->toBe(110.0)
             ->and((int) $fileResults->rows[0]['container_count'])->toBe(1)
-            ->and((float) $containerResults->rows[0]['import_quantity'])->toBe(100.0);
+            ->and((int) $fileResults->rows[0]['package_count'])->toBe(2)
+            ->and((float) $containerResults->rows[0]['import_quantity'])->toBe(110.0)
+            ->and((int) $containerResults->rows[0]['package_count'])->toBe(2);
 
         expect($containerProducts->execute(
             $sourceContext(['container_no' => $firstContainerNo], $containerProducts->definition())
