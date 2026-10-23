@@ -12,6 +12,7 @@ use App\Support\Reporting\ReportFilterDefinition;
 use App\Support\Reporting\ReportQueryResult;
 use App\Support\Reporting\ReportSort;
 use App\Support\Reporting\ReportTotalDefinition;
+use App\Support\Period\PeriodContext;
 use Carbon\CarbonImmutable;
 use DomainException;
 use Illuminate\Database\Query\Builder;
@@ -77,11 +78,16 @@ final class ImportSalesReportQuery implements ReportQuery
 
     public function execute(ReportExecutionContext $context): ReportQueryResult
     {
-        $year = (int) ($context->filters['year'] ?? now()->year);
+        $activeYear = PeriodContext::year();
+        $year = (int) ($context->filters['year'] ?? $activeYear ?? now()->year);
         $quarter = (int) ($context->filters['quarter'] ?? intdiv(now()->month - 1, 3) + 1);
 
         if ($year < 2000 || $year > 2100 || $quarter < 1 || $quarter > 4) {
             throw new DomainException('İthalat satış raporunun yılı veya çeyreği geçersiz.');
+        }
+
+        if ($activeYear !== null && $year !== $activeYear) {
+            throw new DomainException('Seçilen yıl aktif çalışma döneminden farklı. Önce ilgili şirket dönemini seçin.');
         }
 
         $from = CarbonImmutable::create($year, ($quarter - 1) * 3 + 1, 1)->toDateString();
