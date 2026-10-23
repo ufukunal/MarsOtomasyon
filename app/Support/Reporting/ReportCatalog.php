@@ -30,6 +30,10 @@ final class ReportCatalog
                 continue;
             }
 
+            if ($definition->key === 'imports.loss' && ! $gate->allows('stock.view')) {
+                continue;
+            }
+
             if ($definition->key === 'imports.sales' && ! $gate->allows('sales_invoices.view')) {
                 continue;
             }
