@@ -37,6 +37,7 @@
         .slip-totals dd { margin: 0; white-space: nowrap; text-align: right; font-variant-numeric: tabular-nums; }
         .slip-totals .slip-total { border-top: 1px double #111; border-bottom: 1px double #111; padding: 4px 0; margin-top: 2mm; font-weight: 700; }
         .slip-items-count { margin-top: 6mm; text-align: right; }
+        .slip-balance { margin-top: 6mm; display: flex; gap: 15mm; align-items: baseline; break-inside: avoid; }
         .slip-notes { margin-top: 8mm; white-space: pre-wrap; overflow-wrap: anywhere; break-inside: avoid; }
         .screen-actions { margin: 12px 0; text-align: center; }
         .screen-actions button { padding: 8px 16px; background: #255c8c; color: white; border: 0; cursor: pointer; }
@@ -117,6 +118,12 @@
         </section>
     @else
         <div class="slip-items-count">Toplam Kalem: {{ $document->lines->count() }}</div>
+    @endif
+    @if($showPrices && $contactBalance !== null)
+        <div class="slip-balance">
+            <span>Güncel Cari Hesap Bakiyesi (TRY):</span>
+            <span>{{ $money::money($contactBalance) }}</span>
+        </div>
     @endif
     @if($document->notes)
         <section class="slip-notes"><strong>Açıklama:</strong> {{ $document->notes }}</section>
