@@ -30,8 +30,11 @@ internal sealed class ScannerConfiguration
 
         if (config.Port is < 1024 or > 65535)
             throw new InvalidOperationException("Geçersiz yerel port.");
-        if (config.Token.Length < 32)
+        if (string.IsNullOrWhiteSpace(config.Token) || config.Token.Length < 32)
             throw new InvalidOperationException("En az 32 karakterlik güvenli erişim anahtarı gerekli.");
+
+        if (config.AllowedOrigins is null)
+            throw new InvalidOperationException("İzin verilen kaynaklar listesi eksik.");
 
         foreach (var origin in config.AllowedOrigins)
         {
