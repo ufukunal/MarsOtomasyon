@@ -38,6 +38,8 @@
             <a href="#" data-v65-preview-pdf target="_blank" rel="noopener noreferrer">PDF İndir</a>
             <button type="button" data-v65-preview-print>Yazdır</button>
             <button type="button" data-v65-preview-copy>Resim Olarak Kopyala</button>
+            <a href="#" data-v65-preview-image-open target="_blank" rel="noopener noreferrer" hidden>PNG Aç</a>
+            <a href="#" data-v65-preview-image-download download="belge-a4.png">PNG İndir</a>
         </div>
         <div class="v65-document-preview-viewport">
             <div class="v65-document-preview-sheet">
