@@ -17,6 +17,8 @@ final class ImportSourceCenter extends Component
 
     public string $containerId = '';
 
+    public string $importSearch = '';
+
     public string $quantity = '';
 
     public string $note = '';
@@ -92,6 +94,13 @@ final class ImportSourceCenter extends Component
         $containers = $db->table('containers as c')
             ->join('import_files as f', 'f.id', '=', 'c.import_file_id')
             ->whereIn('f.status', ['received', 'closed'])
+            ->when(trim($this->importSearch) !== '', function ($query): void {
+                $term = mb_substr(trim($this->importSearch), 0, 80);
+                $query->where(function ($search) use ($term): void {
+                    $search->whereRaw('f.number ILIKE ?', ['%'.$term.'%'])
+                        ->orWhereRaw('c.container_no ILIKE ?', ['%'.$term.'%']);
+                });
+            })
             ->orderByDesc('c.id')->limit(150)
             ->get(['c.id', 'c.container_no', 'f.number AS import_number']);
 
