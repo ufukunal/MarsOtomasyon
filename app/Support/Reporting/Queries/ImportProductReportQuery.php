@@ -9,7 +9,6 @@ use App\Support\Reporting\ReportExecutionContext;
 use App\Support\Reporting\ReportFilterDefinition;
 use App\Support\Reporting\ReportQueryResult;
 use App\Support\Reporting\ReportSort;
-use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -29,8 +28,8 @@ final class ImportProductReportQuery implements ReportQuery
                 new ReportFilterDefinition('import_number', 'İthalat Dosya No'),
                 new ReportFilterDefinition('supplier_code', 'Tedarikçi Kod'),
                 new ReportFilterDefinition('product_code', 'Ürün Kodu'),
-                new ReportFilterDefinition('received_from', 'Teslim başlangıç', 'date'),
-                new ReportFilterDefinition('received_to', 'Teslim bitiş', 'date'),
+                new ReportFilterDefinition('date_from', 'Teslim başlangıç', 'date'),
+                new ReportFilterDefinition('date_to', 'Teslim bitiş', 'date'),
                 new ReportFilterDefinition('status', 'Durum', 'select', allowedValues: ['draft', 'in_transit', 'customs', 'received', 'closed']),
             ],
             columns: [
@@ -73,17 +72,17 @@ final class ImportProductReportQuery implements ReportQuery
         if (isset($context->filters['product_code'])) {
             $base->whereRaw('UPPER(p.code) = UPPER(?)', [$context->filters['product_code']]);
         }
-        if (isset($context->filters['received_from'])) {
-            $base->whereDate('f.received_at', '>=', $context->filters['received_from']);
+        if (isset($context->filters['date_from'])) {
+            $base->whereDate('f.received_at', '>=', $context->filters['date_from']);
         }
-        if (isset($context->filters['received_to'])) {
-            $base->whereDate('f.received_at', '<=', $context->filters['received_to']);
+        if (isset($context->filters['date_to'])) {
+            $base->whereDate('f.received_at', '<=', $context->filters['date_to']);
         }
         if (isset($context->filters['status'])) {
             $base->where('f.status', $context->filters['status']);
         }
 
-        $countQuery = (clone $base)->select('f.id', 'p.id')->groupBy('f.id', 'p.id');
+        $countQuery = (clone $base)->selectRaw('f.id AS import_id, p.id AS product_id')->groupBy('f.id', 'p.id');
         $totalRows = DB::connection('period')->query()->fromSub($countQuery, 'grouped_import_products')->count();
 
         $rows = (clone $base)->selectRaw(
