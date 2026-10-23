@@ -51,7 +51,7 @@ final class ImportConversionReportQuery implements ReportQuery
                 new ReportColumnDefinition('period_scrap', 'Çeyrek Hurda', 'quantity'),
                 new ReportColumnDefinition('cumulative_scrap', 'Birikimli Hurda', 'quantity'),
                 new ReportColumnDefinition('scrap_rate', 'Hurda Oranı (%)', 'decimal'),
-                new ReportColumnDefinition('unassigned_quantity', 'Eşleştirilmemiş / Diğer Miktar', 'quantity'),
+                new ReportColumnDefinition('unassigned_quantity', 'Eşleştirme Dışı / Kalan', 'quantity'),
                 new ReportColumnDefinition('attribution_status', 'Kaynak Durumu', sortable: false),
             ],
             defaultSort: [new ReportSort('import_number'), new ReportSort('product_code')],
@@ -245,11 +245,6 @@ final class ImportConversionReportQuery implements ReportQuery
         }
         if (isset($context->filters['container_no'])) {
             $query->whereRaw('UPPER(ct.container_no) = UPPER(?)', [$context->filters['container_no']]);
-        }
-        if (isset($context->filters['product_code'])) {
-            $query->whereRaw('UPPER(pk.product_id::text) IN (
-                SELECT UPPER(product.id::text) FROM products AS product WHERE UPPER(product.code) = UPPER(?)
-            )', [$context->filters['product_code']]);
         }
     }
 }
