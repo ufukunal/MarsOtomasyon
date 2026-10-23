@@ -87,7 +87,7 @@ final class ReportCenter extends Component
 
     public function clearFilters(): void
     {
-        $this->filterValues = [];
+        $this->filterValues = $this->reportKey === 'imports.sales' ? $this->quarterFilters() : [];
         $this->page = 1;
         $this->queueMessage = null;
     }
@@ -335,7 +335,7 @@ final class ReportCenter extends Component
         abort_unless($report !== null, 403);
 
         $this->reportKey = $report->key;
-        $this->filterValues = [];
+        $this->filterValues = $key === 'imports.sales' ? $this->quarterFilters() : [];
         $this->selectedColumns = array_values(array_map(
             fn (ReportColumnDefinition $column): string => $column->key,
             array_filter(
@@ -380,6 +380,15 @@ final class ReportCenter extends Component
                 $this->filterValues[$key] = $value;
             }
         }
+    }
+
+    /** @return array{year:int,quarter:int} */
+    private function quarterFilters(): array
+    {
+        return [
+            'year' => (int) now()->year,
+            'quarter' => intdiv((int) now()->month - 1, 3) + 1,
+        ];
     }
 
     private function resetReport(): void
