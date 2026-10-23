@@ -134,5 +134,7 @@ it('lists quarterly imported-product invoice and return lines without multiplyin
         expect($query->execute($context(1, ['import_number' => 'NOT-FOUND-'.$code]))->totalRows)->toBe(0);
         expect($query->execute($context(1, ['contact_code' => 'MISSING-'.$code]))->totalRows)->toBe(0);
         expect((float) $q1->rows[1]['document_discount_share'])->toBe(0.0);
+        expect(fn () => $query->execute($context(1, ['year' => 2025])))
+            ->toThrow(DomainException::class);
     });
 });
