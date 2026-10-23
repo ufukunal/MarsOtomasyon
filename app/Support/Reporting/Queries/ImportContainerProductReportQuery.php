@@ -41,7 +41,7 @@ final class ImportContainerProductReportQuery implements ReportQuery
                 new ReportColumnDefinition('product_code', 'Ürün Kodu'),
                 new ReportColumnDefinition('product_name', 'Ürün Adı'),
                 new ReportColumnDefinition('unit_name', 'Birim'),
-                new ReportColumnDefinition('import_quantity', 'Konteyner Miktarı', 'quantity'),
+                new ReportColumnDefinition('import_quantity', 'Konteyner Kayıt Miktarı', 'quantity'),
                 new ReportColumnDefinition('package_count', 'Koli Kaydı', 'integer'),
             ],
             defaultSort: [
