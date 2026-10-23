@@ -57,7 +57,7 @@ it('lists quarterly imported-product invoice and return lines without multiplyin
             ]);
         }
 
-        $createLine = function (string $type, string $date, string $status, string $name, int $quantity) use ($db, $ids, $contact, $now): void {
+        $createLine = function (string $type, string $date, string $status, string $name, int $quantity, int $headerDiscount = 0) use ($db, $ids, $contact, $now): void {
             $subtotal = $quantity * 1000;
             $documentId = $db->table('documents')->insertGetId([
                 'document_type' => $type,
@@ -67,9 +67,10 @@ it('lists quarterly imported-product invoice and return lines without multiplyin
                 'status' => $status,
                 'currency' => 'TRY',
                 'subtotal' => $subtotal,
-                'tax_base' => $subtotal,
-                'vat_amount' => $subtotal * .20,
-                'grand_total' => $subtotal * 1.20,
+                'discount_amount' => $headerDiscount,
+                'tax_base' => $subtotal - $headerDiscount,
+                'vat_amount' => ($subtotal - $headerDiscount) * .20,
+                'grand_total' => ($subtotal - $headerDiscount) * 1.20,
                 'created_at' => $now,
                 'updated_at' => $now,
             ]);
@@ -93,7 +94,7 @@ it('lists quarterly imported-product invoice and return lines without multiplyin
         };
 
         $createLine('sales_invoice', '2026-01-10', 'posted', 'EARLY-'.$code, 1);
-        $createLine('sales_invoice', '2026-02-20', 'posted', 'INVOICE-'.$code, 2);
+        $createLine('sales_invoice', '2026-02-20', 'posted', 'INVOICE-'.$code, 2, 200);
         $createLine('sales_return', '2026-03-01', 'posted', 'RETURN-'.$code, 1);
         $createLine('sales_invoice', '2026-03-02', 'draft', 'DRAFT-'.$code, 1);
         $createLine('sales_invoice', '2026-04-01', 'posted', 'APRIL-'.$code, 1);
@@ -117,12 +118,13 @@ it('lists quarterly imported-product invoice and return lines without multiplyin
             ->and($q1->rows)->toHaveCount(2)
             ->and($q1->rows[0]['number'])->toBe('INVOICE-'.$code)
             ->and($q1->rows[1]['number'])->toBe('RETURN-'.$code)
-            ->and((float) $q1->rows[0]['net_amount'])->toBe(2000.0)
+            ->and((float) $q1->rows[0]['net_amount'])->toBe(1800.0)
+            ->and((float) $q1->rows[0]['document_discount_share'])->toBe(200.0)
             ->and((float) $q1->rows[1]['net_amount'])->toBe(-1000.0)
             ->and($q1->rows[0]['possible_import_files'])->toContain('IMP-R1-'.$code)
             ->and($q1->rows[0]['possible_import_files'])->toContain('IMP-R2-'.$code)
             ->and($q1->rows[0]['attribution_status'])->toBe('Parti doğrulanmadı')
-            ->and($q1->totals['net_amount'])->toContain('1000')
+            ->and($q1->totals['net_amount'])->toContain('800')
             ->and($q1->totals['net_amount'])->toContain('TRY');
 
         expect($query->execute($context(2))->totalRows)->toBe(1);
@@ -131,6 +133,6 @@ it('lists quarterly imported-product invoice and return lines without multiplyin
         expect($query->execute($context(1, ['import_number' => 'IMP-R2-'.$code]))->totalRows)->toBe(2);
         expect($query->execute($context(1, ['import_number' => 'NOT-FOUND-'.$code]))->totalRows)->toBe(0);
         expect($query->execute($context(1, ['contact_code' => 'MISSING-'.$code]))->totalRows)->toBe(0);
-        expect($q1->rows[0]['document_discount_share'])->toBe('0.0000');
+        expect((float) $q1->rows[1]['document_discount_share'])->toBe(0.0);
     });
 });
