@@ -32,9 +32,17 @@ final class ImportSourceCenter extends Component
         PeriodContext::ensure();
     }
 
+    public function updatedSourceType(): void
+    {
+        $this->sourceId = '';
+        $this->resetErrorBag();
+    }
+
     public function save(): void
     {
         abort_unless(auth()->user()?->can('import_shipments.update'), 403);
+
+        $this->quantity = str_replace(',', '.', trim($this->quantity));
 
         $this->validate([
             'sourceType' => 'required|in:sales,return,fire,scrap',
