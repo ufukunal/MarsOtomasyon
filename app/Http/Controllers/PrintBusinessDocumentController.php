@@ -126,6 +126,13 @@ final class PrintBusinessDocumentController
         // This is only a display aggregate; persisted VAT and grand totals are authoritative.
         $totalDiscountAmount = bcadd($lineDiscountAmount, (string) $record->discount_amount, 4);
 
+        // The ledger balance is TRY-only; never infer it from the document total.
+        // Hide financial contact information when the viewer lacks contact permission.
+        $contactBalance = $printVariant->isSlip() && $printVariant->showPrices()
+            && $record->contact !== null && auth()->user()?->can('contacts.view')
+            ? $record->contact->balance()
+            : null;
+
         $view = view($printVariant->isSlip() ? 'printing.business-document-slip' : 'printing.business-document', [
             'document' => $record,
             'company' => $company,
@@ -134,6 +141,7 @@ final class PrintBusinessDocumentController
             'grossTotal' => $grossTotal,
             'lineDiscountAmount' => $lineDiscountAmount,
             'totalDiscountAmount' => $totalDiscountAmount,
+            'contactBalance' => $contactBalance,
             'sourceReferences' => $sourceReferences,
             'printVariant' => $printVariant,
             'showPrices' => $printVariant->showPrices(),
