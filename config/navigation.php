@@ -94,6 +94,7 @@ return [
             ['label' => 'Cari Yaşlandırma', 'route' => 'finance.contact-aging', 'permission' => 'contact_aging.view'],
             ['label' => 'Kasa / Banka Hesapları', 'route' => 'finance.accounts', 'permission' => 'cash_accounts.view'],
             ['label' => 'Kasa / Banka Hareketleri', 'route' => 'finance.operations', 'permission' => 'finance_movements.view'],
+            ['label' => 'Nakit Akış Takvimi', 'route' => 'finance.cash-flow-calendar', 'permission' => 'finance_movements.view', 'permission_secondary' => 'reports.view'],
             ['label' => 'Banka Ekstresi / Mutabakat', 'route' => 'finance.bank-statements', 'permission' => 'bank_statements.view'],
         ],
     ],
