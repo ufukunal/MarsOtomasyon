@@ -10,7 +10,7 @@ import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 
 import { extname, join, relative } from 'node:path';
 
 const root = process.cwd();
-const directories = ['resources/views', 'resources/css', 'resources/js', 'reference'];
+const directories = ['resources/views', 'resources/css', 'resources/js', 'reference', 'tests/Browser/specs'];
 const allowed = ['.css', '.js', '.ts', '.tsx', '.html', '.vue', '.scss', '.blade.php'];
 const output = 'artifacts/v65-design-source-audit.json';
 const required = [
