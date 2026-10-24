@@ -9,6 +9,7 @@
     @livewireStyles
 </head>
 <body>
+<a class="v65-skip-link" href="#main-content">Ana içeriğe geç</a>
 @php
     $routeName = \Illuminate\Support\Facades\Route::currentRouteName();
     // Main list routes own their page actions; never inject fake print or Back actions.
