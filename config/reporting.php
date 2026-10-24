@@ -32,6 +32,13 @@ use App\Support\Reporting\Queries\StockTransferReportQuery;
 use App\Support\Reporting\Queries\StockCountDifferenceReportQuery;
 use App\Support\Reporting\Queries\WarehouseSlipReportQuery;
 
+use App\Support\Reporting\Queries\CollectionReportQuery;
+use App\Support\Reporting\Queries\PaymentReportQuery;
+use App\Support\Reporting\Queries\ExpenseReportQuery;
+use App\Support\Reporting\Queries\AdvanceReportQuery;
+use App\Support\Reporting\Queries\SalesProductPerformanceReportQuery;
+use App\Support\Reporting\Queries\ProductionConsumptionReportQuery;
+
 return [
     'max_page_size' => 250,
     'max_export_rows' => max(1, (int) env('REPORT_MAX_EXPORT_ROWS', 50000)),
@@ -42,6 +49,12 @@ return [
 
     'queries' => [
         SalesInvoiceReportQuery::class,
+        CollectionReportQuery::class,
+        PaymentReportQuery::class,
+        ExpenseReportQuery::class,
+        AdvanceReportQuery::class,
+        SalesProductPerformanceReportQuery::class,
+        ProductionConsumptionReportQuery::class,
         SalesQuoteReportQuery::class,
         SalesOrderReportQuery::class,
         SalesDispatchReportQuery::class,
