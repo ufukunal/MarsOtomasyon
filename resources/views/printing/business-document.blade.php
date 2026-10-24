@@ -83,6 +83,7 @@
         }
         @media print { .screen-actions { display: none; } .paper { width: 100%; padding: 0; box-shadow: none; } }
     </style>
+<script src="{{ asset('js/mars-print-actions.js') }}" defer></script>
 </head>
 <body>
 @php
@@ -92,7 +93,7 @@
     $isQuote = $document->document_type === \App\Enums\DocumentType::Quote;
 @endphp
 @unless($embedded)
-<div class="screen-actions"><button type="button" onclick="window.print()">Yazdır</button></div>
+<div class="screen-actions"><button type="button" data-mars-print>Yazdır</button></div>
 @endunless
 <main class="paper {{ $isQuote ? 'v65-quote-print' : '' }}">
     <header class="header">
