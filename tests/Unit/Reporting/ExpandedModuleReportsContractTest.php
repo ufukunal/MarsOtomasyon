@@ -3,6 +3,7 @@
 use App\Support\Reporting\Queries\AdvanceReportQuery;
 use App\Support\Reporting\Queries\CollectionReportQuery;
 use App\Support\Reporting\Queries\ContactBalanceReportQuery;
+use App\Support\Reporting\Queries\CashFlowCalendarReportQuery;
 use App\Support\Reporting\Queries\ExpenseReportQuery;
 use App\Support\Reporting\Queries\GoodsReceiptReportQuery;
 use App\Support\Reporting\Queries\PaymentReportQuery;
@@ -44,6 +45,7 @@ it('registers all expanded module reports with valid keys and sortable columns',
         'purchases.goods_receipts' => GoodsReceiptReportQuery::class,
         'finance.collections' => CollectionReportQuery::class,
         'contacts.balances' => ContactBalanceReportQuery::class,
+        'finance.cash_flow_calendar' => CashFlowCalendarReportQuery::class,
         'finance.payments' => PaymentReportQuery::class,
         'finance.expenses' => ExpenseReportQuery::class,
         'finance.advances' => AdvanceReportQuery::class,
