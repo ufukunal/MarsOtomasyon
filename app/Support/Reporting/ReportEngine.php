@@ -30,6 +30,12 @@ final class ReportEngine
         $gate = Gate::forUser($actor);
         $gate->authorize($definition->permission);
 
+        if ($definition->key === 'finance.cash_flow_calendar') {
+            foreach (['contacts.view', 'cash_accounts.view', 'bank_accounts.view', 'securities.view'] as $permission) {
+                $gate->authorize($permission);
+            }
+        }
+
         if ($definition->key === 'imports.sales') {
             $gate->authorize('sales_invoices.view');
         }
