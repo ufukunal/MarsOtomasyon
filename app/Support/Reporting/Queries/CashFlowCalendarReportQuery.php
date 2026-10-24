@@ -74,7 +74,7 @@ final class CashFlowCalendarReportQuery implements ReportQuery
         $selected = isset($context->filters['currency'])
             ? strtoupper((string) $context->filters['currency']) : null;
 
-        if ($end->lessThan($start) || $end->diffInDays($start) > 366
+        if ($end->lessThan($start) || abs((float) $end->diffInDays($start)) > 366
             || $asOf->lessThan($start) || $asOf->greaterThan($end)
             || ! in_array($granularity, ['day', 'week', 'month'], true)
             || ($selected !== null && preg_match('/^[A-Z]{3}$/D', $selected) !== 1)) {
