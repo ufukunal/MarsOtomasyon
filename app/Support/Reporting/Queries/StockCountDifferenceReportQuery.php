@@ -5,6 +5,7 @@ namespace App\Support\Reporting\Queries;
 use App\Contracts\Reporting\ReportQuery;
 use App\Support\Reporting\ReportColumnDefinition;
 use App\Support\Reporting\ReportDefinition;
+use App\Support\Reporting\ReportDrillDownDefinition;
 use App\Support\Reporting\ReportExecutionContext;
 use App\Support\Reporting\ReportFilterDefinition;
 use App\Support\Reporting\ReportQueryResult;
@@ -45,6 +46,9 @@ final class StockCountDifferenceReportQuery implements ReportQuery
                 new ReportColumnDefinition('is_approved', 'Onaylı', 'boolean'),
             ],
             defaultSort: [new ReportSort('count_date', 'desc'), new ReportSort('id', 'desc')],
+            drillDowns: [
+                new ReportDrillDownDefinition('source', 'Stok Sayımı', 'stock_counts.view', 'count_id', 'stock_counts'),
+            ],
         );
     }
 
@@ -98,6 +102,9 @@ final class StockCountDifferenceReportQuery implements ReportQuery
         $rows = clone $base;
         if (! $context->hasColumn('id')) {
             $rows->selectRaw('scl.id AS id');
+        }
+        if (! $context->hasColumn('count_id')) {
+            $rows->selectRaw('sc.id AS count_id');
         }
         foreach ($context->columns as $column) {
             $expression = $columns[$column];
