@@ -243,7 +243,7 @@
         <a class="worktab-current" href="{{ url()->current() }}" aria-current="page"><span aria-hidden="true">▤</span> {{ $activeTitle }}</a>
     </nav>
 
-    <main class="content" id="main-content">
+    <main class="content" id="main-content" tabindex="-1">
         <header class="page-header">
             <div>
                 <span class="page-category sr-only">{{ $activeSection }}</span>
