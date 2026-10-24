@@ -266,7 +266,7 @@
                         <a class="button-link" href="{{ route('warehouse.transport.create') }}">+ Yeni Ambar Fişi</a>
                     @endcan
                     @can('warehouse_slips.view')
-                        <button type="button" class="button-secondary" onclick="window.print()">Yazdır</button>
+                        <button type="button" class="button-secondary" data-v65-shell-print>Yazdır</button>
                         <x-v65.action-menu label="Dışa Aktar">
                             <a href="{{ route('warehouse.transport.export') }}">CSV / Excel uyumlu</a>
                         </x-v65.action-menu>
@@ -288,13 +288,13 @@
                         <a class="button-secondary" target="_blank" rel="noopener" href="{{ route('warehouse.transport.print', ['slip' => request()->route('id'), 'format' => 'slip', 'autoprint' => 1]) }}" title="Yazdırma penceresinde PDF olarak kaydedebilirsiniz">Yazdır / PDF</a>
                     @endcan
                 @elseif (in_array($routeName, ['warehouse.transport.create', 'warehouse.transport.edit'], true))
-                    <button type="button" class="button-secondary" onclick="document.querySelector('[data-wsl-print-slip]')?.click()" title="Yazdırma penceresinde PDF olarak kaydedebilirsiniz">Yazdır / PDF</button>
+                    <button type="button" class="button-secondary" data-v65-shell-transport-print title="Yazdırma penceresinde PDF olarak kaydedebilirsiniz">Yazdır / PDF</button>
                 @elseif (in_array($routeName, $v65DocumentEditorRoutes, true))
                     {{-- The shared V65 document heading owns its real print and return buttons. --}}
                 @elseif (in_array($routeName, $v65IndexRoutes, true))
                     {{-- List screens only expose print/export actions they actually implement. --}}
                 @else
-                    <button type="button" class="button-secondary" onclick="window.print()" title="Yazdırma penceresinde PDF olarak kaydedebilirsiniz">Yazdır / PDF</button>
+                    <button type="button" class="button-secondary" data-v65-shell-print title="Yazdırma penceresinde PDF olarak kaydedebilirsiniz">Yazdır / PDF</button>
                 @endif
                 @if (in_array($routeName, ['warehouse.transport.show', 'warehouse.transport.create', 'warehouse.transport.edit'], true))
                     @can('warehouse_slips.view')
@@ -303,7 +303,7 @@
                 @endif
                 @isset($pageActions){{ $pageActions }}@endisset
                 @unless (in_array($routeName, ['products.show', 'products.create', 'products.edit', 'contacts.show', 'contacts.index', 'warehouse.transport.index'], true) || in_array($routeName, $v65IndexRoutes, true) || in_array($routeName, $v65DocumentEditorRoutes, true))
-                    <button type="button" class="button-secondary" onclick="if (history.length > 1) history.back(); else location.href='{{ route('home') }}'">Geri</button>
+                    <button type="button" class="button-secondary" data-v65-shell-back data-fallback-url="{{ route('home') }}">Geri</button>
                 @endunless
             </div>
         </header>
