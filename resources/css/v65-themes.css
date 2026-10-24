@@ -174,7 +174,16 @@
     color-scheme: light;
     --bg: #fff;
     --surface: #fff;
+    --soft: #fff;
+    --line: #c8c8c8;
     --text: #000;
+    --muted: #444;
+    --mars-ui-bg: #fff;
+    --mars-ui-surface: #fff;
+    --mars-ui-subtle: #fff;
+    --mars-ui-border: #c8c8c8;
+    --mars-ui-text: #000;
+    --mars-ui-muted: #444;
   }
   .app-shell .v65-theme-setting {display:none}
 }
