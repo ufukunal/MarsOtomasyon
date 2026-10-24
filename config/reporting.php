@@ -44,6 +44,7 @@ use App\Support\Reporting\Queries\SalesCustomerPerformanceReportQuery;
 use App\Support\Reporting\Queries\InactiveStockReportQuery;
 use App\Support\Reporting\Queries\SecuritiesMaturityReportQuery;
 use App\Support\Reporting\Queries\BankReconciliationSummaryReportQuery;
+use App\Support\Reporting\Queries\CashFlowCalendarReportQuery;
 use App\Support\Reporting\Queries\SupplierPurchasePerformanceReportQuery;
 
 return [
@@ -65,6 +66,7 @@ return [
         InactiveStockReportQuery::class,
         SecuritiesMaturityReportQuery::class,
         BankReconciliationSummaryReportQuery::class,
+        CashFlowCalendarReportQuery::class,
         SupplierPurchasePerformanceReportQuery::class,
         ProductionConsumptionReportQuery::class,
         SalesQuoteReportQuery::class,
