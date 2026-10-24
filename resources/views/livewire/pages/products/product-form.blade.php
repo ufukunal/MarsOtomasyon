@@ -22,7 +22,7 @@
     <x-tabs :tabs="$editTabs" :active="$activeTab" />
 
     @if($activeTab === 'general')
-        <section class="panel form-grid v65-product-edit-card">
+        <section id="v65-product-edit-panel-general" role="tabpanel" tabindex="0" aria-labelledby="v65-product-edit-tab-general" class="panel form-grid v65-product-edit-card">
             <x-field.text label="Kod" wire:model="code" :disabled="(bool) $product" />
             <x-field.text label="Ad" wire:model="name" />
             <x-field.textarea label="Açıklama" wire:model="description" rows="3" />
@@ -32,14 +32,14 @@
             <x-field.text label="Barkod" wire:model="barcode" />
         </section>
     @elseif($activeTab === 'price')
-        <section class="panel form-grid v65-product-edit-card">
+        <section id="v65-product-edit-panel-price" role="tabpanel" tabindex="0" aria-labelledby="v65-product-edit-tab-price" class="panel form-grid v65-product-edit-card">
             <x-field.number label="Liste Fiyatı" wire:model="listPrice" />
             <x-field.number label="KDV %" wire:model="vatRate" />
             <x-field.toggle label="Girilen fiyat KDV dahil" wire:model="priceVatIncluded" />
             <x-field.text label="Para Birimi" wire:model="currency" />
         </section>
     @elseif($activeTab === 'stock')
-        <section class="panel form-grid v65-product-edit-card">
+        <section id="v65-product-edit-panel-stock" role="tabpanel" tabindex="0" aria-labelledby="v65-product-edit-tab-stock" class="panel form-grid v65-product-edit-card">
             <x-field.toggle label="Negatif stok izni" wire:model="allowNegativeStock" />
             <x-field.number label="Minimum Stok" kind="quantity" wire:model="minStock" />
             <x-field.select label="Kanal Stok Modu" wire:model="channelStockMode" :options="['stock'=>'Stok','production'=>'Üretim','manual'=>'Manuel']" />
@@ -51,13 +51,13 @@
             @endif
         </section>
     @elseif($activeTab === 'type')
-        <section class="panel form-grid v65-product-edit-card">
+        <section id="v65-product-edit-panel-type" role="tabpanel" tabindex="0" aria-labelledby="v65-product-edit-tab-type" class="panel form-grid v65-product-edit-card">
             <x-field.select label="Ürün Tipi" wire:model.live="kind" :options="['normal'=>'Normal','set'=>'Set','configurable'=>'Konfigüre']" />
             <label class="field"><span class="field-label">Varyant Grubu</span><select wire:model="variantGroupId"><option value="">—</option>@foreach($variantGroups as $row)<option value="{{ $row->id }}">{{ $row->name }}</option>@endforeach</select></label>
             <x-field.toggle label="Aktif" wire:model="isActive" />
         </section>
     @elseif($activeTab === 'components')
-        <section class="panel stack">
+        <section id="v65-product-edit-panel-components" role="tabpanel" tabindex="0" aria-labelledby="v65-product-edit-tab-components" class="panel stack">
             @if(!$product || $kind !== 'set')
                 <p>Bileşenler yalnız kaydedilmiş set ürünlerde düzenlenir.</p>
             @else
@@ -73,7 +73,7 @@
             @endif
         </section>
     @elseif($activeTab === 'config')
-        <section class="panel stack">
+        <section id="v65-product-edit-panel-config" role="tabpanel" tabindex="0" aria-labelledby="v65-product-edit-tab-config" class="panel stack">
             @if(!$product || $kind !== 'configurable')
                 <p>Konfigürasyon yalnız kaydedilmiş konfigüre ürünlerde düzenlenir.</p>
             @else
@@ -100,11 +100,13 @@
             @endif
         </section>
     @elseif($activeTab === 'images')
+        <section id="v65-product-edit-panel-images" role="tabpanel" tabindex="0" aria-labelledby="v65-product-edit-tab-images">
         @if($product)
             <livewire:products.product-images :product="$product" :key="'product-images-'.$product->id" />
         @else
             <section class="panel"><p>Görseller için önce ürün kartını kaydedin.</p></section>
         @endif
+        </section>
     @endif
 
     @if($errors->any())
