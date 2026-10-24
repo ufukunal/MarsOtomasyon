@@ -121,7 +121,7 @@
                 @if($emptyAction && \Illuminate\Support\Facades\Route::has($emptyAction['route']))
                     <a class="button-link" href="{{ route($emptyAction['route']) }}">+ Yeni Cari</a>
                 @endif
-                <button class="button-secondary" type="button" onclick="window.print()">Yazdır</button>
+                <button class="button-secondary" type="button" data-v65-shell-print>Yazdır</button>
                 <x-v65.action-menu label="Dışa Aktar">
                     <button type="button" wire:click="exportCsv" wire:loading.attr="disabled" wire:target="exportCsv">CSV</button>
                     <button type="button" wire:click="exportXlsx" wire:loading.attr="disabled" wire:target="exportXlsx">Excel</button>
@@ -136,7 +136,7 @@
                 @if($emptyAction && \Illuminate\Support\Facades\Route::has($emptyAction['route']))
                     <a class="button-link table-add-action" href="{{ route($emptyAction['route']) }}">+ {{ $emptyAction['label'] }}</a>
                 @endif
-                <button class="button-secondary" type="button" onclick="window.print()">Yazdır</button>
+                <button class="button-secondary" type="button" data-v65-shell-print>Yazdır</button>
                 <x-v65.action-menu label="Dışa Aktar">
                     <button type="button" wire:click="exportCsv" wire:loading.attr="disabled" wire:target="exportCsv">CSV</button>
                     <button type="button" wire:click="exportXlsx" wire:loading.attr="disabled" wire:target="exportXlsx">Excel</button>
