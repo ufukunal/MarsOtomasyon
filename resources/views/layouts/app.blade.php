@@ -1,11 +1,11 @@
 <!doctype html>
-<html lang="tr">
+<html lang="tr" data-mars-theme="light">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ $title ?? config('app.name') }}</title>
-    @vite(['resources/css/app.css', 'resources/css/v65-shell.css', 'resources/css/v65-filter-drawer.css', 'resources/css/v65-document-preview.css', 'resources/js/app.js'])
+    @vite(['resources/css/app.css', 'resources/css/v65-shell.css', 'resources/css/v65-filter-drawer.css', 'resources/css/v65-document-preview.css', 'resources/css/v65-themes.css', 'resources/js/app.js'])
     @livewireStyles
 </head>
 <body>
@@ -225,6 +225,14 @@
                     <div class="user-menu-panel">
                         <span class="user-menu-caption">{{ auth()->user()->email }}</span>
                         <a href="{{ route('home') }}">Ana Sayfa</a>
+                        <label class="v65-theme-setting" for="mars-ui-theme">
+                            Görünüm
+                            <select id="mars-ui-theme" data-mars-theme-select aria-label="Arayüz renk teması">
+                                <option value="light">Açık</option>
+                                <option value="dim">Orta</option>
+                                <option value="dark">Koyu</option>
+                            </select>
+                        </label>
                         <form action="{{ route('logout') }}" method="POST">
                             @csrf
                             <button type="submit" class="button-secondary">Çıkış Yap</button>
