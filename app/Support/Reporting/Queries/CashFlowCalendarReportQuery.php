@@ -283,7 +283,10 @@ final class CashFlowCalendarReportQuery implements ReportQuery
                     $expected[$dateKey][$currency]['expected_out'] ?? '0.0000', 4);
                 $running = bcsub(bcadd($running, $in, 4), $out, 4);
                 $bucket['closing_balance'] = $running;
-                $bucket['cash_alert'] = bccomp($running, '0', 4) < 0 ? 'Nakit açığı' : 'Normal';
+                // Weekly/monthly ranges must retain an intraperiod cash shortage
+                // even if the closing day has subsequently recovered.
+                $bucket['cash_alert'] = bccomp($running, '0', 4) < 0
+                    || $bucket['cash_alert'] === 'Nakit açığı' ? 'Nakit açığı' : 'Normal';
                 unset($bucket);
             }
             foreach ($buckets as $bucket) {
