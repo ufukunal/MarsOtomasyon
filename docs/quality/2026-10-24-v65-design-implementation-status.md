@@ -59,3 +59,22 @@ Durumlar: **Kodlandı** = kaynakta değişiklik var, **Kısmi** = yalnız bir al
 - Canlıya yayın gerçekleştirilmedi.
 
 Sonuç: Ortak arayüz geliştirmeleri GitHub'da mevcut; tüm 25 maddelik **profesyonel görsel kabul tamamlandı** iddiasında bulunulamaz.
+
+
+## Sonraki kaynak düzeltme paketi — aynı tarih
+
+GitHub ana dalına aşağıdaki dar kapsamlı düzenlemeler eklendi:
+
+1. Ürün ve cari sekmelerinde etkin panelin `role="tabpanel"`, `aria-labelledby` ve sekmenin `aria-controls` ilişkisi eklendi. Livewire etkin olmayan panelleri DOM'dan kaldırdığı için `aria-controls` yalnız etkin sekmeye uygulanır.
+2. Tarih ve dosya seçimindeki Livewire doğrulama hataları ortak alanlarla aynı `aria-invalid` ve `role="alert"` işaretlerini kullanır.
+3. Uygulama kabuğunun Yazdır / Geri işlemleri satır içi JavaScript yerine delegasyonla yönetilir.
+4. Bağımsız belge ve taşıma fişi HTML çıktılarının yazdırma eylemleri ortak `public/js/mars-print-actions.js` dosyasına taşındı. A4/A5 baskı düzenleri ve otomatik yazdırma seçeneği korunmuştur.
+5. Cari adres, yetkili ve banka düğmeleri ortak `x-v65.button` bileşenine taşındı; mevcut `wire:click` ve silme onayları korundu.
+6. Ürün set bileşenlerinin tablosu dar ekran için kaydırma kapsayıcısına alındı ve kalıcı bileşen silinmesinde kullanıcı onayı zorunlu hale getirildi.
+7. Rapor kataloğuna `aria-pressed`, rapor hata ve işlem sonucuna canlı bölge rolleri eklendi.
+8. 20 onaylı ekranın salt-okunur tarayıcı test kapsamı 390, 768, 1024, 1440 ve 1920 px genişliklerine çıkarıldı.
+9. Yeni `V65DesignCompletionContractsTest` ve ürün/cari sekme tarayıcı sözleşmeleri eklendi; önceki sekme birim testi yeni adaptöre göre güncellendi.
+
+**Bu işlemler kaynak koduna uygulanmıştır; başarıyla çalıştırılmış test veya canlıya yayın iddiası değildir.**
+
+Açık kapanış kapıları değişmedi: Onaylı haricî 20 HTML ekranla piksel bazında karşılaştırma, tema kontrastı ve cihaz geçişlerinde gerçek tarayıcı testi, tüm modüllerde CSS çakışma temizliği, desteklenen yazıcı/barkod donanımıyla çıktı kabulü ve deployment. Kaynak üzerinde çalışan olmayan donanım veya onaylı referans görseller olmadan bu maddeler `Tamamlandı` işaretlenemez. Üretim veritabanına müdahale edilmedi.
