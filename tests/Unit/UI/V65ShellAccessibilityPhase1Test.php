@@ -37,5 +37,9 @@ it('uses valid label field markup and scrollable contact detail tables', functio
         ->not->toContain('<div class="field-control">')
         ->and(substr_count($contact, '<div class="table-scroll v65-list-table"><table class="data-table">'))
         ->toBe(3)
+        ->and(substr_count($contact, '<th scope="col">İşlemler</th>'))->toBe(3)
+        ->and($contact)->toContain('wire:confirm="Cari adresi silinsin mi?"')
+        ->toContain('wire:confirm="Cari yetkili kaydı silinsin mi?"')
+        ->toContain('wire:confirm="Cari banka bilgisi silinsin mi?"')
         ->and($detail)->toContain('max(0, min(100, (float) $category->percent))');
 });
