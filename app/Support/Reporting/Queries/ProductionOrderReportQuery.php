@@ -100,7 +100,8 @@ final class ProductionOrderReportQuery implements ReportQuery
         }
 
         $totals = [];
-        if ($context->totalKeys !== []) {
+        // Do not add quantities of unrelated products with different base units.
+        if ($context->totalKeys !== [] && isset($context->filters['product_id'])) {
             $row = (clone $base)->selectRaw(
                 'COALESCE(SUM(o.planned_quantity),0)::text AS planned_quantity,
                  COALESCE(SUM(o.completed_quantity),0)::text AS completed_quantity,
