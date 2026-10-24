@@ -24,6 +24,8 @@ it('ships the six shared V65 advanced components', function (): void {
         ->toContain('v65-bulk-actions')
         ->and($tabs)->toContain('role="tablist"')
         ->toContain('aria-selected')
+        ->toContain('aria-controls')
+        ->toContain('panelPrefix')
         ->toContain('wire:click')
         ->and($notice)->toContain('v65-notice--')
         ->toContain("['warning', 'danger']");
