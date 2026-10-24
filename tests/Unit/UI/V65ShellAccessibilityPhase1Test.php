@@ -19,7 +19,7 @@ it('keeps the legacy product tabs on shared V65 keyboard navigation', function (
     $js = file_get_contents(base_path('resources/js/app.js'));
 
     expect($product)->toContain('<x-tabs :tabs="$editTabs" :active="$activeTab" />')
-        ->and($legacy)->toContain('<x-v65.tabs :tabs="$tabs" :active="$active" />')
+        ->and($legacy)->toContain('<x-v65.tabs :tabs="$tabs" :active="$active" panel-prefix="v65-product-edit" />')
         ->and($v65)->toContain('data-v65-tabs')
         ->toContain('aria-selected')
         ->toContain('tabindex=')
