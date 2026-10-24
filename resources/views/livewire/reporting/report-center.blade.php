@@ -243,6 +243,52 @@
                     </section>
                 @endif
 
+                @if($selectedReport->key === 'finance.cash_flow_calendar' && $result->rows !== [])
+                    <section class="v65-cashflow-calendar" aria-label="Nakit akış takvimi görünümü">
+                        <div class="v65-cashflow-calendar-heading">
+                            <h3>Nakit Akış Takvimi</h3>
+                            <p>Sayfa {{ $page }} / {{ $totalPages }} · Günlük / haftalık / aylık dönem özeti · Ayrıntılar aşağıdaki tabloda</p>
+                        </div>
+                        <div class="v65-cashflow-grid">
+                            @foreach($result->rows as $rowIndex => $row)
+                                @if(isset($row['period_start'], $row['currency'], $row['closing_balance']))
+                                    @php
+                                        $shortage = ($row['cash_alert'] ?? '') === 'Nakit açığı';
+                                        $start = \Carbon\CarbonImmutable::parse($row['period_start'])->format('d.m.Y');
+                                        $end = isset($row['period_end']) ? \Carbon\CarbonImmutable::parse($row['period_end'])->format('d.m.Y') : $start;
+                                    @endphp
+                                    <article @class(['v65-cashflow-day', 'is-shortage' => $shortage])
+                                        wire:key="cashflow-card-{{ $page }}-{{ $rowIndex }}-{{ $row['currency'] }}">
+                                        <div class="v65-cashflow-day-head">
+                                            <span class="v65-cashflow-day-date">{{ $start }}@if($end !== $start) – {{ $end }}@endif</span>
+                                            <span class="v65-cashflow-day-currency">{{ $row['currency'] }}</span>
+                                        </div>
+                                        <dl>
+                                            @foreach([
+                                                'opening_balance' => 'Açılış',
+                                                'actual_in' => 'Gerçekleşen giriş',
+                                                'actual_out' => 'Gerçekleşen çıkış',
+                                                'expected_in' => 'Beklenen tahsilat',
+                                                'expected_out' => 'Beklenen ödeme',
+                                            ] as $field => $fieldTitle)
+                                                @if(array_key_exists($field, $row))
+                                                    <dt>{{ $fieldTitle }}</dt>
+                                                    <dd>{{ $row[$field] }}</dd>
+                                                @endif
+                                            @endforeach
+                                            <dt><strong>Tahmini kapanış</strong></dt>
+                                            <dd class="v65-cashflow-day-closing">{{ $row['closing_balance'] }}</dd>
+                                        </dl>
+                                        @if($shortage)
+                                            <div class="v65-cashflow-day-alert">Nakit açığı</div>
+                                        @endif
+                                    </article>
+                                @endif
+                            @endforeach
+                        </div>
+                    </section>
+                @endif
+
                 <section class="panel">
                     <div class="table-scroll v65-list-table">
                         <table class="data-table report-table">
