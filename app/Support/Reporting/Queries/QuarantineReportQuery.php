@@ -95,7 +95,13 @@ final class QuarantineReportQuery implements ReportQuery
         }
 
         $totals = [];
-        if ($context->totalKeys !== []) {
+        // Physical quantity totals require a single product's base unit.
+        // Monetary quarantine value can still aggregate across products.
+        $eligibleTotalKeys = array_values(array_filter(
+            $context->totalKeys,
+            fn (string $key): bool => $key === 'pending_value' || isset($f['product_id']),
+        ));
+        if ($eligibleTotalKeys !== []) {
             $row = (clone $base)->selectRaw(
                 'COALESCE(SUM(q.quantity),0)::text AS quantity,
                  COALESCE(SUM(q.quantity-q.released_quantity-q.scrapped_quantity-q.reversed_quantity),0)::text AS pending_quantity'.
@@ -103,7 +109,7 @@ final class QuarantineReportQuery implements ReportQuery
                     ? ', COALESCE(SUM(trunc((q.quantity-q.released_quantity-q.scrapped_quantity-q.reversed_quantity)*q.unit_cost,4)),0)::text AS pending_value'
                     : '')
             )->first();
-            foreach ($context->totalKeys as $key) {
+            foreach ($eligibleTotalKeys as $key) {
                 $totals[$key] = $row->{$key} ?? '0';
             }
         }
