@@ -229,6 +229,8 @@ Route::middleware('auth')->group(function (): void {
     Route::get('/finans/yaslandirma', ContactAging::class)->name('finance.contact-aging');
     Route::get('/finans/hesaplar', FinanceAccounts::class)->name('finance.accounts');
     Route::get('/finans/islemler', FinanceOperationCenter::class)->name('finance.operations');
+    Route::redirect('/finans/nakit-akis-takvimi', '/raporlar?report=finance.cash_flow_calendar')
+        ->name('finance.cash-flow-calendar');
     Route::get('/finans/ekstre-mutabakat', BankStatementCenter::class)->name('finance.bank-statements');
     Route::get('/finans/cek-senet', SecuritiesCenter::class)->name('finance.securities');
     Route::get('/finans/cekler', CheckListScreen::class)->name('finance.checks.index');
