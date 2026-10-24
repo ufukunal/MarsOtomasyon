@@ -4,7 +4,7 @@
     <div class="v65-simple-filter-panel">
         <header class="v65-simple-filter-head">
             <strong>Filtreleme</strong>
-            <button type="button" class="button-secondary" onclick="this.closest('details').open=false" aria-label="Filtre panelini kapat">Kapat</button>
+            <button type="button" class="button-secondary" data-v65-simple-filter-close aria-label="Filtre panelini kapat">Kapat</button>
         </header>
         <div class="v65-simple-filter-fields">
             {{ $slot }}
