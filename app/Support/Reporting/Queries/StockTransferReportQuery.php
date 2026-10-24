@@ -5,6 +5,7 @@ namespace App\Support\Reporting\Queries;
 use App\Contracts\Reporting\ReportQuery;
 use App\Support\Reporting\ReportColumnDefinition;
 use App\Support\Reporting\ReportDefinition;
+use App\Support\Reporting\ReportDrillDownDefinition;
 use App\Support\Reporting\ReportExecutionContext;
 use App\Support\Reporting\ReportFilterDefinition;
 use App\Support\Reporting\ReportQueryResult;
@@ -47,6 +48,9 @@ final class StockTransferReportQuery implements ReportQuery
                 new ReportColumnDefinition('pending_quantity', 'Bekleyen', 'quantity'),
             ],
             defaultSort: [new ReportSort('transfer_date', 'desc'), new ReportSort('id', 'desc')],
+            drillDowns: [
+                new ReportDrillDownDefinition('source', 'Depo Transferi', 'transfers.view', 'transfer_id', 'stock_transfers'),
+            ],
         );
     }
 
@@ -105,6 +109,9 @@ final class StockTransferReportQuery implements ReportQuery
         $rows = clone $base;
         if (! $context->hasColumn('id')) {
             $rows->selectRaw('tl.id AS id');
+        }
+        if (! $context->hasColumn('transfer_id')) {
+            $rows->selectRaw('t.id AS transfer_id');
         }
         foreach ($context->columns as $column) {
             $expression = $columns[$column];
