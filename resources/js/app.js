@@ -1,6 +1,39 @@
 import './document-print-preview.js';
 import './quote-image-editor.js';
 
+// Presentation-only preference. No company or financial data is persisted.
+const marsThemeKey = 'mars.ui.theme';
+const marsThemeChoices = ['light', 'dim', 'dark'];
+const readMarsTheme = () => {
+    try {
+        const saved = window.localStorage.getItem(marsThemeKey);
+        return marsThemeChoices.includes(saved) ? saved : 'light';
+    } catch {
+        return 'light';
+    }
+};
+const applyMarsTheme = (theme) => {
+    const value = marsThemeChoices.includes(theme) ? theme : 'light';
+    document.documentElement.dataset.marsTheme = value;
+    document.querySelectorAll('[data-mars-theme-select]').forEach((select) => {
+        if (select instanceof HTMLSelectElement && select.value !== value) {
+            select.value = value;
+        }
+    });
+};
+applyMarsTheme(readMarsTheme());
+document.addEventListener('livewire:navigated', () => applyMarsTheme(readMarsTheme()));
+document.addEventListener('change', (event) => {
+    const select = event.target;
+    if (!(select instanceof HTMLSelectElement) || !select.matches('[data-mars-theme-select]')) return;
+    applyMarsTheme(select.value);
+    try {
+        window.localStorage.setItem(marsThemeKey, select.value);
+    } catch {
+        // Storage restrictions must not break appearance selection.
+    }
+});
+
 // Keep current route authoritative when the browser restores old <details> state.
 const syncV65Navigation = () => {
     document.querySelectorAll('[data-v65-nav-group]').forEach((group) => {
