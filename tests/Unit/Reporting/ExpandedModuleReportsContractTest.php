@@ -13,6 +13,9 @@ use App\Support\Reporting\Queries\PurchaseQuoteReportQuery;
 use App\Support\Reporting\Queries\SalesDispatchReportQuery;
 use App\Support\Reporting\Queries\SalesOrderReportQuery;
 use App\Support\Reporting\Queries\SalesProductPerformanceReportQuery;
+use App\Support\Reporting\Queries\SalesCustomerPerformanceReportQuery;
+use App\Support\Reporting\Queries\InactiveStockReportQuery;
+use App\Support\Reporting\Queries\SecuritiesMaturityReportQuery;
 use App\Support\Reporting\Queries\SalesProformaReportQuery;
 use App\Support\Reporting\Queries\SalesQuoteReportQuery;
 use App\Support\Reporting\Queries\StockCountDifferenceReportQuery;
@@ -28,6 +31,9 @@ it('registers all expanded module reports with valid keys and sortable columns',
         'sales.dispatches' => SalesDispatchReportQuery::class,
         'sales.proformas' => SalesProformaReportQuery::class,
         'sales.product_performance' => SalesProductPerformanceReportQuery::class,
+        'sales.customer_performance' => SalesCustomerPerformanceReportQuery::class,
+        'stock.inactive' => InactiveStockReportQuery::class,
+        'securities.maturities' => SecuritiesMaturityReportQuery::class,
         'purchases.quotes' => PurchaseQuoteReportQuery::class,
         'purchases.orders' => PurchaseOrderReportQuery::class,
         'purchases.dispatches' => PurchaseDispatchReportQuery::class,
@@ -69,6 +75,7 @@ it('registers all expanded module reports with valid keys and sortable columns',
 it('does not aggregate unconvertible physical quantities into arbitrary monetary totals', function (): void {
     foreach ([
         new StockMovementReportQuery,
+        new InactiveStockReportQuery,
         new StockTransferReportQuery,
         new StockCountDifferenceReportQuery,
         new WarehouseSlipReportQuery,
