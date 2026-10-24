@@ -375,7 +375,7 @@
                         @forelse($productCategories as $category)
                             <div class="v65-contact-category-row">
                                 <div><strong>{{ $category->category }}</strong><span>%{{ number_format($category->percent,1,',','.') }}</span></div>
-                                <div class="v65-contact-category-track"><span style="width: {{ $category->percent }}%"></span></div>
+                                <div class="v65-contact-category-track"><span style="width: {{ max(0, min(100, (float) $category->percent)) }}%"></span></div>
                             </div>
                         @empty
                             <p>Kesinleşmiş satış kaydı bulunmadı.</p>
