@@ -224,10 +224,7 @@ final class CashFlowCalendarReportQuery implements ReportQuery
                 $incoming ? 'security_in_reference' : 'security_out_reference', (string) $item->amount);
         }
 
-        $currencies = array_unique(array_merge(array_keys($opening),
-            ...array_map(static fn (array $dates): array => array_keys($dates), [$actual, $expected, $reference])
-                // These maps are keyed by date; flatten the currency keys below instead.
-        ));
+        $currencies = array_keys($opening);
         foreach ([$actual, $expected, $reference] as $dates) {
             foreach ($dates as $currencyValues) {
                 foreach (array_keys($currencyValues) as $currency) {
@@ -298,9 +295,6 @@ final class CashFlowCalendarReportQuery implements ReportQuery
             }
         }
 
-        $fields = ['period_start','period_end','currency','opening_balance','actual_in','actual_out',
-            'expected_in','expected_out','closing_balance','security_in_reference',
-            'security_out_reference','cash_alert'];
         foreach (array_reverse($context->sort) as $sort) {
             usort($rows, static function (array $a, array $b) use ($sort): int {
                 $key = $sort->key;
