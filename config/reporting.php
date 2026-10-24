@@ -5,6 +5,7 @@ use App\Support\Reporting\Queries\CashMovementReportQuery;
 use App\Support\Reporting\Queries\ChannelOrderReportQuery;
 use App\Support\Reporting\Queries\ChannelSyncStatusReportQuery;
 use App\Support\Reporting\Queries\ContactTransactionReportQuery;
+use App\Support\Reporting\Queries\ContactBalanceReportQuery;
 use App\Support\Reporting\Queries\ImportFileReportQuery;
 use App\Support\Reporting\Queries\ImportProductReportQuery;
 use App\Support\Reporting\Queries\ImportContainerProductReportQuery;
@@ -69,6 +70,7 @@ return [
         WarehouseSlipReportQuery::class,
         SupplierInvoiceReportQuery::class,
         ContactTransactionReportQuery::class,
+        ContactBalanceReportQuery::class,
         StockBalanceReportQuery::class,
         CashMovementReportQuery::class,
         BankMovementReportQuery::class,
