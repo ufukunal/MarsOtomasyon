@@ -40,6 +40,10 @@ use App\Support\Reporting\Queries\AdvanceReportQuery;
 use App\Support\Reporting\Queries\SalesProductPerformanceReportQuery;
 use App\Support\Reporting\Queries\ProductionConsumptionReportQuery;
 
+use App\Support\Reporting\Queries\SalesCustomerPerformanceReportQuery;
+use App\Support\Reporting\Queries\InactiveStockReportQuery;
+use App\Support\Reporting\Queries\SecuritiesMaturityReportQuery;
+
 return [
     'max_page_size' => 250,
     'max_export_rows' => max(1, (int) env('REPORT_MAX_EXPORT_ROWS', 50000)),
@@ -55,6 +59,9 @@ return [
         ExpenseReportQuery::class,
         AdvanceReportQuery::class,
         SalesProductPerformanceReportQuery::class,
+        SalesCustomerPerformanceReportQuery::class,
+        InactiveStockReportQuery::class,
+        SecuritiesMaturityReportQuery::class,
         ProductionConsumptionReportQuery::class,
         SalesQuoteReportQuery::class,
         SalesOrderReportQuery::class,
