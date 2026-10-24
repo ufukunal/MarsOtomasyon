@@ -1,0 +1,180 @@
+/*
+ * Mars V65 appearance variants.
+ *
+ * The approved reference remains the default ("light"). The dim/dark
+ * variants deliberately apply only when selected by the user and never
+ * affect printed business documents.
+ */
+:root[data-mars-theme="dim"] {
+  color-scheme: light;
+  --bg: #e8edf5;
+  --surface: #f5f7fb;
+  --soft: #e9eef6;
+  --line: #bac9db;
+  --line2: #d8e1ed;
+  --text: #21354e;
+  --muted: #536980;
+  --primary: #155db4;
+  --primary-600: #124e94;
+  --mars-ui-bg: #e8edf5;
+  --mars-ui-surface: #f5f7fb;
+  --mars-ui-subtle: #e4ebf4;
+  --mars-ui-border: #bac9db;
+  --mars-ui-text: #21354e;
+  --mars-ui-muted: #536980;
+  --mars-ui-focus: #155db4;
+  --mars-ui-primary: #155db4;
+  --mars-ui-primary-text: #fff;
+  --mars-ui-hover: #dce7f8;
+}
+:root[data-mars-theme="dark"] {
+  color-scheme: dark;
+  --bg: #111a29;
+  --surface: #1b293b;
+  --soft: #25354a;
+  --line: #42536b;
+  --line2: #324158;
+  --text: #edf3fb;
+  --muted: #b0bfd2;
+  --primary: #90c2ff;
+  --primary-600: #74b0fc;
+  --mars-ui-bg: #111a29;
+  --mars-ui-surface: #1b293b;
+  --mars-ui-subtle: #25354a;
+  --mars-ui-border: #42536b;
+  --mars-ui-text: #edf3fb;
+  --mars-ui-muted: #b0bfd2;
+  --mars-ui-focus: #a5d3ff;
+  --mars-ui-primary: #90c2ff;
+  --mars-ui-primary-text: #101b2d;
+  --mars-ui-hover: #2d4662;
+}
+:root:is([data-mars-theme="dim"],[data-mars-theme="dark"]) .app-shell {
+  background: var(--mars-ui-bg);
+  color: var(--mars-ui-text);
+  --v65-btn-border: var(--mars-ui-border);
+  --v65-btn-ink: var(--mars-ui-text);
+  --v65-btn-primary: var(--mars-ui-primary);
+}
+:root:is([data-mars-theme="dim"],[data-mars-theme="dark"]) .app-shell :is(
+  .sidebar,.topbar,.page-header,.panel,.table-toolbar,.data-table-shell,
+  .user-menu-panel,.topbar-create-menu,.page-action-menu-items,
+  .v65-modal,.v65-column-picker-dialog,.v65-filter-dialog
+) {
+  background: var(--mars-ui-surface);
+  color: var(--mars-ui-text);
+  border-color: var(--mars-ui-border);
+}
+:root:is([data-mars-theme="dim"],[data-mars-theme="dark"]) .app-shell :is(
+  .content,.worktabs,.tabs,.v65-tabs,.v65-list-page
+) {
+  background: var(--mars-ui-bg);
+  color: var(--mars-ui-text);
+  border-color: var(--mars-ui-border);
+}
+:root:is([data-mars-theme="dim"],[data-mars-theme="dark"]) .app-shell :is(
+  .nav-group-title,.nav-subgroup-title,.nav-link,.tab,.v65-tab,
+  .workspace-tab,.worktab-current,.page-header h1,.panel h2,
+  .data-table td,.data-table th,.field-label,.report-category
+) {
+  color: var(--mars-ui-text);
+  border-color: var(--mars-ui-border);
+}
+:root:is([data-mars-theme="dim"],[data-mars-theme="dark"]) .app-shell :is(
+  .data-table thead th,.data-table tbody tr:nth-child(even),
+  .v65-list-table thead th,.v65-tabs,.tabs
+) {
+  background: var(--mars-ui-subtle);
+}
+:root:is([data-mars-theme="dim"],[data-mars-theme="dark"]) .app-shell :is(
+  input:not([type="checkbox"]):not([type="radio"]),
+  textarea,select,.v65-select-control,.v65-filter-field input,
+  .v65-filter-field select,.page-size-control select
+) {
+  background: var(--mars-ui-surface);
+  border-color: var(--mars-ui-border);
+  color: var(--mars-ui-text);
+}
+:root:is([data-mars-theme="dim"],[data-mars-theme="dark"]) .app-shell :is(
+  input,select,textarea
+)::placeholder {
+  color: var(--mars-ui-muted);
+  opacity: 1;
+}
+:root:is([data-mars-theme="dim"],[data-mars-theme="dark"]) .app-shell :is(
+  .field-hint,.form-hint,.muted,.text-muted,.report-meta,.sidebar-foot,.user-menu-caption
+) {
+  color: var(--mars-ui-muted);
+}
+:root:is([data-mars-theme="dim"],[data-mars-theme="dark"]) .app-shell :is(
+  .button-secondary,.button-ghost,.v65-btn--secondary,.mars-page-button
+) {
+  background: var(--mars-ui-subtle);
+  color: var(--mars-ui-text);
+  border-color: var(--mars-ui-border);
+}
+:root:is([data-mars-theme="dim"],[data-mars-theme="dark"]) .app-shell :is(
+  .nav-link:hover,.nav-subgroup-title:hover,.tab:hover,.v65-tab:hover,
+  .data-table tbody tr:hover,.workspace-tab:hover
+) {
+  background: var(--mars-ui-hover);
+  color: var(--mars-ui-text);
+}
+:root:is([data-mars-theme="dim"],[data-mars-theme="dark"]) .app-shell :is(
+  a,button,input,select,textarea,summary,[role="tab"]
+):focus-visible {
+  outline: 2px solid var(--mars-ui-focus);
+  outline-offset: 2px;
+}
+:root[data-mars-theme="dark"] .app-shell :is(.v65-doc-editor,.v65-ref-finance,.report-center) :is(
+  .panel,.field,input,select,textarea,.data-table td,.data-table th
+) {
+  border-color: var(--mars-ui-border);
+  color: var(--mars-ui-text);
+}
+:root[data-mars-theme="dark"] .app-shell :is(.v65-doc-editor,.v65-ref-finance) :is(
+  .panel,input,select,textarea,.v65-invoice-tab-panel
+) {
+  background: var(--mars-ui-surface);
+}
+:root[data-mars-theme="dark"] .app-shell :is(.alert-warning,.v65-notice--warning) {
+  background: #433a23;
+  border-color: #ac914d;
+  color: #ffecb9;
+}
+:root[data-mars-theme="dark"] .app-shell :is(.alert,.empty-state) {
+  color: var(--mars-ui-text);
+}
+.app-shell .v65-theme-setting {
+  display: grid;
+  gap: 5px;
+  min-width: 160px;
+  padding: 8px 10px;
+  color: inherit;
+  font-size: 12px;
+}
+.app-shell .v65-theme-setting select {
+  width: 100%;
+  min-height: 36px;
+  margin: 0;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .app-shell :is(.v65-modal,.v65-filter-dialog,.v65-tabs,.sidebar,.topbar) {
+    scroll-behavior: auto;
+    animation-duration: 0.01ms;
+    transition-duration: 0.01ms;
+  }
+}
+@media print {
+  :root[data-mars-theme="dim"],:root[data-mars-theme="dark"] {
+    color-scheme: light;
+    --bg: #fff;
+    --surface: #fff;
+    --text: #000;
+  }
+  .app-shell .v65-theme-setting {display:none}
+}
