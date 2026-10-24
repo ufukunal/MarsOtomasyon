@@ -230,15 +230,15 @@
                         @if($mode === 'detail' && $slip)
                             <a class="button-link" target="_blank" rel="noopener" href="{{ route('warehouse.transport.print', ['slip' => $slip->id, 'format' => $preview, 'autoprint' => 1]) }}">Yazdır / PDF</a>
                         @else
-                            <button type="button" class="button-link" onclick="document.getElementById('wsl-preview-frame').contentWindow.print()">Yazdır / PDF</button>
+                            <button type="button" class="button-link" data-wsl-preview-print>Yazdır / PDF</button>
                         @endif
                         <button type="button" class="button-secondary" wire:click="closePreview">Kapat</button>
                     </div>
                 </header>
                 @if($mode === 'detail' && $slip)
-                    <iframe id="wsl-preview-frame" title="Ambar baskı önizlemesi" src="{{ route('warehouse.transport.print', ['slip' => $slip->id, 'format' => $preview]) }}"></iframe>
+                    <iframe id="wsl-preview-frame" data-wsl-preview-frame title="Ambar baskı önizlemesi" src="{{ route('warehouse.transport.print', ['slip' => $slip->id, 'format' => $preview]) }}"></iframe>
                 @else
-                    <iframe id="wsl-preview-frame" title="Ambar baskı önizlemesi" srcdoc="{{ $previewHtml }}" @if($previewPrint) onload="this.contentWindow.print()" @endif></iframe>
+                    <iframe id="wsl-preview-frame" data-wsl-preview-frame title="Ambar baskı önizlemesi" srcdoc="{{ $previewHtml }}" @if($previewPrint) data-wsl-preview-autoprint @endif></iframe>
                 @endif
             </section>
         </div>
