@@ -41,8 +41,8 @@
                     <x-field.text label="İlçe" wire:model="addressDistrict" />
                     <x-field.toggle label="Varsayılan" wire:model="addressDefault" />
                 </div>
-                <button type="button" wire:click="saveAddress">{{ $addressId ? 'Adresi Güncelle' : 'Adres Ekle' }}</button>
-                <div class="table-scroll v65-list-table"><table class="data-table"><thead><tr><th>Tür</th><th>Başlık</th><th>Adres</th><th>Varsayılan</th><th scope="col">İşlemler</th></tr></thead><tbody>@foreach($addresses as $row)<tr><td>{{ \App\Support\Formatting\BusinessLabelFormatter::value('address_type', $row->type) }}</td><td>{{ $row->title }}</td><td>{{ $row->address }}</td><td>{{ $row->is_default?'Evet':'Hayır' }}</td><td class="v65-row-actions"><button class="button-secondary" type="button" wire:click="editAddress({{ $row->id }})">Düzenle</button> <button class="button-danger" type="button" wire:click="deleteAddress({{ $row->id }})" wire:confirm="Cari adresi silinsin mi?">Sil</button></td></tr>@endforeach</tbody></table></div>
+                <x-v65.button type="button" size="sm" wire:click="saveAddress">{{ $addressId ? 'Adresi Güncelle' : 'Adres Ekle' }}</x-v65.button>
+                <div class="table-scroll v65-list-table"><table class="data-table"><thead><tr><th>Tür</th><th>Başlık</th><th>Adres</th><th>Varsayılan</th><th scope="col">İşlemler</th></tr></thead><tbody>@foreach($addresses as $row)<tr><td>{{ \App\Support\Formatting\BusinessLabelFormatter::value('address_type', $row->type) }}</td><td>{{ $row->title }}</td><td>{{ $row->address }}</td><td>{{ $row->is_default?'Evet':'Hayır' }}</td><td class="v65-row-actions"><x-v65.button variant="secondary" size="sm" type="button" wire:click="editAddress({{ $row->id }})">Düzenle</x-v65.button> <x-v65.button variant="danger" size="sm" type="button" wire:click="deleteAddress({{ $row->id }})" wire:confirm="Cari adresi silinsin mi?">Sil</x-v65.button></td></tr>@endforeach</tbody></table></div>
             @endif
         </section>
     @elseif($activeTab === 'people')
@@ -55,8 +55,8 @@
                     <x-field.text label="E-posta" wire:model="personEmail" />
                     <x-field.toggle label="Varsayılan" wire:model="personDefault" />
                 </div>
-                <button type="button" wire:click="savePerson">{{ $personId ? 'Yetkiliyi Güncelle' : 'Yetkili Ekle' }}</button>
-                <div class="table-scroll v65-list-table"><table class="data-table"><thead><tr><th>Ad</th><th>Unvan</th><th>Telefon</th><th>Varsayılan</th><th scope="col">İşlemler</th></tr></thead><tbody>@foreach($people as $row)<tr><td>{{ $row->name }}</td><td>{{ $row->title }}</td><td>{{ $row->phone }}</td><td>{{ $row->is_default?'Evet':'Hayır' }}</td><td class="v65-row-actions"><button class="button-secondary" type="button" wire:click="editPerson({{ $row->id }})">Düzenle</button> <button class="button-danger" type="button" wire:click="deletePerson({{ $row->id }})" wire:confirm="Cari yetkili kaydı silinsin mi?">Sil</button></td></tr>@endforeach</tbody></table></div>
+                <x-v65.button type="button" size="sm" wire:click="savePerson">{{ $personId ? 'Yetkiliyi Güncelle' : 'Yetkili Ekle' }}</x-v65.button>
+                <div class="table-scroll v65-list-table"><table class="data-table"><thead><tr><th>Ad</th><th>Unvan</th><th>Telefon</th><th>Varsayılan</th><th scope="col">İşlemler</th></tr></thead><tbody>@foreach($people as $row)<tr><td>{{ $row->name }}</td><td>{{ $row->title }}</td><td>{{ $row->phone }}</td><td>{{ $row->is_default?'Evet':'Hayır' }}</td><td class="v65-row-actions"><x-v65.button variant="secondary" size="sm" type="button" wire:click="editPerson({{ $row->id }})">Düzenle</x-v65.button> <x-v65.button variant="danger" size="sm" type="button" wire:click="deletePerson({{ $row->id }})" wire:confirm="Cari yetkili kaydı silinsin mi?">Sil</x-v65.button></td></tr>@endforeach</tbody></table></div>
             @endif
         </section>
     @elseif($activeTab === 'banks')
@@ -67,8 +67,8 @@
                     <x-field.text label="IBAN" wire:model="iban" />
                     <x-field.toggle label="Varsayılan" wire:model="bankDefault" />
                 </div>
-                <button type="button" wire:click="saveBank">{{ $bankId ? 'Bankayı Güncelle' : 'Banka Ekle' }}</button>
-                <div class="table-scroll v65-list-table"><table class="data-table"><thead><tr><th>Banka</th><th>IBAN</th><th>Varsayılan</th><th scope="col">İşlemler</th></tr></thead><tbody>@foreach($banks as $row)<tr><td>{{ $row->bank_name }}</td><td>{{ $row->iban }}</td><td>{{ $row->is_default?'Evet':'Hayır' }}</td><td class="v65-row-actions"><button class="button-secondary" type="button" wire:click="editBank({{ $row->id }})">Düzenle</button> <button class="button-danger" type="button" wire:click="deleteBank({{ $row->id }})" wire:confirm="Cari banka bilgisi silinsin mi?">Sil</button></td></tr>@endforeach</tbody></table></div>
+                <x-v65.button type="button" size="sm" wire:click="saveBank">{{ $bankId ? 'Bankayı Güncelle' : 'Banka Ekle' }}</x-v65.button>
+                <div class="table-scroll v65-list-table"><table class="data-table"><thead><tr><th>Banka</th><th>IBAN</th><th>Varsayılan</th><th scope="col">İşlemler</th></tr></thead><tbody>@foreach($banks as $row)<tr><td>{{ $row->bank_name }}</td><td>{{ $row->iban }}</td><td>{{ $row->is_default?'Evet':'Hayır' }}</td><td class="v65-row-actions"><x-v65.button variant="secondary" size="sm" type="button" wire:click="editBank({{ $row->id }})">Düzenle</x-v65.button> <x-v65.button variant="danger" size="sm" type="button" wire:click="deleteBank({{ $row->id }})" wire:confirm="Cari banka bilgisi silinsin mi?">Sil</x-v65.button></td></tr>@endforeach</tbody></table></div>
             @endif
         </section>
     @endif
