@@ -45,6 +45,8 @@
                         Beklenen tutarlar kesin tahsilat/ödeme taahhüdü değildir; fatura bazlı kapama takibi
                         yerine cari bazında yaklaşık FIFO dağılımı kullanılır. Para birimleri birleştirilmez.
                         Gelecek tarihli kesinleşmiş kasa/banka hareketleri tahmine ayrıca eklenmez.
+                        Çek/senet referansları bugünkü belge durumuna göre gösterilir; geriye dönük kesin durum arşivi değildir.
+                        Haftalık/aylık görünümde dönem içinde bir gün bile nakit açığı oluşmuşsa uyarı korunur.
                     </div>
                 @endif
 
