@@ -30,6 +30,14 @@ final class ReportCatalog
                 continue;
             }
 
+            if ($definition->key === 'finance.cash_flow_calendar'
+                && (! $gate->allows('contacts.view')
+                    || ! $gate->allows('cash_accounts.view')
+                    || ! $gate->allows('bank_accounts.view')
+                    || ! $gate->allows('securities.view'))) {
+                continue;
+            }
+
             if ($definition->key === 'imports.loss' && ! $gate->allows('stock.view')) {
                 continue;
             }
