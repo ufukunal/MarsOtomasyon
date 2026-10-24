@@ -35,6 +35,19 @@
                     <div class="report-meta">Tanım v{{ $selectedReport->version }}</div>
                 </div>
 
+                @if($selectedReport->key === 'finance.cash_flow_calendar')
+                    <div class="alert alert-warning" role="note">
+                        Nakit akış takvimi yalnız seçili şirket ve muhasebe dönemini kapsar.
+                        Geçmiş günlerde muhasebeleşmiş kasa ve banka defter hareketleri; hesaplama tarihinden
+                        sonraki günlerde ise carilerin mevcut net borç/alacak bakiyesinin vade dağılımı gösterilir.
+                        Vadesi geçmiş açık tutarlar ilk tahmin gününe taşınır.
+                        Çek/senet sütunları yalnız referanstır, tahmini bakiyeye ikinci kez eklenmez.
+                        Beklenen tutarlar kesin tahsilat/ödeme taahhüdü değildir; fatura bazlı kapama takibi
+                        yerine cari bazında yaklaşık FIFO dağılımı kullanılır. Para birimleri birleştirilmez.
+                        Gelecek tarihli kesinleşmiş kasa/banka hareketleri tahmine ayrıca eklenmez.
+                    </div>
+                @endif
+
                 @if($selectedReport->key === 'imports.conversion')
                     <div class="alert alert-warning" role="note">
                         Birleşik ithalat / konteyner dönüşüm hesabı yalnız yetkili kullanıcı tarafından kaynak belgesine
