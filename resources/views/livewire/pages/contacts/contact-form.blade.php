@@ -2,10 +2,10 @@
     @if($contact)
         <nav class="v65-product-edit-navigation"><a href="{{ route('contacts.index') }}">← Cari Listesi</a> <a href="{{ route('contacts.show', ['contact' => $contact->id]) }}">Cari Detayına Dön →</a></nav>
     @endif
-    <x-v65.tabs :tabs="['general'=>'Firma / Ticari','terms'=>'Ticari Koşullar','addresses'=>'Adresler','people'=>'İletişim','banks'=>'Banka Bilgileri']" :active="$activeTab" />
+    <x-v65.tabs :tabs="['general'=>'Firma / Ticari','terms'=>'Ticari Koşullar','addresses'=>'Adresler','people'=>'İletişim','banks'=>'Banka Bilgileri']" :active="$activeTab" panel-prefix="v65-contact-edit" />
 
     @if($activeTab === 'general')
-        <section class="panel form-grid">
+        <section id="v65-contact-edit-panel-general" role="tabpanel" tabindex="0" aria-labelledby="v65-contact-edit-tab-general" class="panel form-grid">
             @if($contact)<x-field.text label="Kod" wire:model="code" disabled />@endif
             <x-field.text label="Unvan" wire:model="title" />
             <x-field.select label="Tip" wire:model="type" :options="['legal'=>'Tüzel','real'=>'Gerçek']" />
@@ -24,14 +24,14 @@
             <x-v65.multi-select label="Kategoriler" class="span-2"><div class="check-grid">@foreach($categories as $category)<label><input type="checkbox" wire:model="categoryIds" value="{{ $category->id }}"> {{ $category->name }}</label>@endforeach</div></x-v65.multi-select>
         </section>
     @elseif($activeTab === 'terms')
-        <section class="panel form-grid">
+        <section id="v65-contact-edit-panel-terms" role="tabpanel" tabindex="0" aria-labelledby="v65-contact-edit-tab-terms" class="panel form-grid">
             <x-field.number label="Vade Günü" wire:model="termDays" kind="quantity" />
             <x-field.number label="İskonto %" wire:model="discountRate" />
             <x-field.number label="Risk Limiti" wire:model="riskLimit" />
             <x-field.toggle label="Aktif" wire:model="isActive" />
         </section>
     @elseif($activeTab === 'addresses')
-        <section class="panel stack">
+        <section id="v65-contact-edit-panel-addresses" role="tabpanel" tabindex="0" aria-labelledby="v65-contact-edit-tab-addresses" class="panel stack">
             @if(!$contact)<p>Önce cari kartını kaydedin.</p>@else
                 <div class="form-grid">
                     <x-field.select label="Tür" wire:model="addressType" :options="['invoice'=>'Fatura','shipping'=>'Sevk']" />
@@ -46,7 +46,7 @@
             @endif
         </section>
     @elseif($activeTab === 'people')
-        <section class="panel stack">
+        <section id="v65-contact-edit-panel-people" role="tabpanel" tabindex="0" aria-labelledby="v65-contact-edit-tab-people" class="panel stack">
             @if(!$contact)<p>Önce cari kartını kaydedin.</p>@else
                 <div class="form-grid">
                     <x-field.text label="Ad Soyad" wire:model="personName" />
@@ -60,7 +60,7 @@
             @endif
         </section>
     @elseif($activeTab === 'banks')
-        <section class="panel stack">
+        <section id="v65-contact-edit-panel-banks" role="tabpanel" tabindex="0" aria-labelledby="v65-contact-edit-tab-banks" class="panel stack">
             @if(!$contact)<p>Önce cari kartını kaydedin.</p>@else
                 <div class="form-grid">
                     <x-field.text label="Banka" wire:model="bankName" />
