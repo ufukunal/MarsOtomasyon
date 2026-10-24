@@ -58,7 +58,7 @@ test.describe('20 approved UI screen routes: isolated, read-only responsive chec
   });
 
   for (const screen of screens) {
-    for (const width of [390, 1440]) {
+    for (const width of [390, 768, 1024, 1440, 1920]) {
       test(screen.key + ' - ' + width + 'px', async ({ page }) => {
         test.skip(screen.url === '', 'Needs existing authorized test-only source document ID.');
         await page.setViewportSize({ width, height: 900 });
