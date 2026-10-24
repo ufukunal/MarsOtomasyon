@@ -83,3 +83,27 @@ it('has read-only responsive scenarios for all twenty approved routes at five wi
         ->toContain("const response = await page.goto(screen.url)")
         ->not->toContain('page.screenshot({ path:'); // No unapproved baseline replacement.
 });
+
+it('uses shared V65 buttons on contact subrecords and confirms destructive set removal', function (): void {
+    $contact = file_get_contents(base_path('resources/views/livewire/pages/contacts/contact-form.blade.php'));
+    $product = file_get_contents(base_path('resources/views/livewire/pages/products/product-form.blade.php'));
+
+    foreach (['Address', 'Person', 'Bank'] as $entity) {
+        expect($contact)->toContain('wire:click="save'.$entity.'"')
+            ->toContain('wire:click="edit'.$entity.'(')
+            ->toContain('wire:click="delete'.$entity.'(');
+    }
+    expect(substr_count($contact, '<x-v65.button'))->toBeGreaterThanOrEqual(10)
+        ->and($product)->toContain('wire:confirm="Set bileşeni kaldırılacak.')
+        ->toContain('class="table-scroll v65-list-table"')
+        ->toContain('aria-label="Set bileşen miktarı"');
+});
+
+it('makes report selection and asynchronous result announcements accessible', function (): void {
+    $center = file_get_contents(base_path('resources/views/livewire/reporting/report-center.blade.php'));
+
+    expect($center)->toContain('aria-pressed=')
+        ->toContain('aria-live="polite"')
+        ->toContain('<div class="alert" role="status">')
+        ->toContain('<div class="alert alert-warning" role="alert">');
+});
