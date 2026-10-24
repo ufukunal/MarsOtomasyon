@@ -19,6 +19,19 @@ use App\Support\Reporting\Queries\SecurityPortfolioReportQuery;
 use App\Support\Reporting\Queries\StockBalanceReportQuery;
 use App\Support\Reporting\Queries\SupplierInvoiceReportQuery;
 
+use App\Support\Reporting\Queries\SalesQuoteReportQuery;
+use App\Support\Reporting\Queries\SalesOrderReportQuery;
+use App\Support\Reporting\Queries\SalesDispatchReportQuery;
+use App\Support\Reporting\Queries\SalesProformaReportQuery;
+use App\Support\Reporting\Queries\PurchaseQuoteReportQuery;
+use App\Support\Reporting\Queries\PurchaseOrderReportQuery;
+use App\Support\Reporting\Queries\PurchaseDispatchReportQuery;
+use App\Support\Reporting\Queries\GoodsReceiptReportQuery;
+use App\Support\Reporting\Queries\StockMovementReportQuery;
+use App\Support\Reporting\Queries\StockTransferReportQuery;
+use App\Support\Reporting\Queries\StockCountDifferenceReportQuery;
+use App\Support\Reporting\Queries\WarehouseSlipReportQuery;
+
 return [
     'max_page_size' => 250,
     'max_export_rows' => max(1, (int) env('REPORT_MAX_EXPORT_ROWS', 50000)),
@@ -29,6 +42,18 @@ return [
 
     'queries' => [
         SalesInvoiceReportQuery::class,
+        SalesQuoteReportQuery::class,
+        SalesOrderReportQuery::class,
+        SalesDispatchReportQuery::class,
+        SalesProformaReportQuery::class,
+        PurchaseQuoteReportQuery::class,
+        PurchaseOrderReportQuery::class,
+        PurchaseDispatchReportQuery::class,
+        GoodsReceiptReportQuery::class,
+        StockMovementReportQuery::class,
+        StockTransferReportQuery::class,
+        StockCountDifferenceReportQuery::class,
+        WarehouseSlipReportQuery::class,
         SupplierInvoiceReportQuery::class,
         ContactTransactionReportQuery::class,
         StockBalanceReportQuery::class,
