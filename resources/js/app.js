@@ -34,6 +34,28 @@ document.addEventListener('change', (event) => {
     }
 });
 
+// Shared shell actions are delegated so they survive Livewire navigation.
+document.addEventListener('click', (event) => {
+    if (!(event.target instanceof Element)) return;
+    if (event.target.closest('[data-v65-shell-print]')) {
+        window.print();
+        return;
+    }
+    if (event.target.closest('[data-v65-shell-transport-print]')) {
+        document.querySelector('[data-wsl-print-slip]')?.click();
+        return;
+    }
+    const back = event.target.closest('[data-v65-shell-back]');
+    if (back instanceof HTMLElement) {
+        if (window.history.length > 1) {
+            window.history.back();
+        } else {
+            const fallback = back.dataset.fallbackUrl;
+            if (fallback) window.location.assign(fallback);
+        }
+    }
+});
+
 // Keep current route authoritative when the browser restores old <details> state.
 const syncV65Navigation = () => {
     document.querySelectorAll('[data-v65-nav-group]').forEach((group) => {
