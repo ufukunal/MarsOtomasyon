@@ -59,6 +59,15 @@ jobs:
         run: |
           bash scripts/ci/test-ui-v65-contract.sh
           node scripts/ci/verify-v65-html.mjs
+          node scripts/ci/audit-v65-design.mjs
+      - name: Attach deterministic design source audit
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v65-design-source-audit
+          path: artifacts/v65-design-source-audit.json
+          if-no-files-found: warn
+          retention-days: 7
       - name: Run isolated source-level UI tests
         run: |
           php artisan test tests/Unit/UI/MarsExactDocumentHistoryContractTest.php tests/Unit/UI/MarsAllDocumentEditingContractTest.php tests/Unit/UI/MarsAllDocumentCorrectionNavigationTest.php tests/Unit/UI/MarsAllDocumentEditabilityAuditTest.php tests/Unit/UI/MarsDocumentSafeEditingContractTest.php tests/Unit/UI/MarsPurchaseSalesReferenceScreensTest.php tests/Unit/UI/MarsHTML20ParityContractTest.php tests/Unit/UI/MarsReferenceReleaseSafetyTest.php tests/Unit/UI/MarsVirmanReferenceStructureTest.php tests/Unit/UI/MarsTwentyPageDesignSourceContractTest.php tests/Unit/UI/MarsInvoiceSimpleActionsTest.php tests/Unit/UI/V65OpenedRecordActionsOnlyTest.php tests/Unit/UI/V65NineDocumentGridParityTest.php tests/Unit/UI/V65QuickProductStockMetricsTest.php tests/Unit/UI/V65SalesPurchaseReturnGridTest.php tests/Unit/UI/MarsFinanceOperationBladeLintContractTest.php tests/Unit/UI/V65BusinessDocumentPrintContractTest.php tests/Unit/UI/V65ShellAccessibilityPhase1Test.php tests/Unit/UI/V65ThemeAndFieldContractTest.php tests/Unit/UI/V65DocumentEditorPhase2Test.php tests/Unit/UI/V65DocumentEditorDesignTest.php tests/Unit/Documents/V65DocumentDraftSafetyTest.php --stop-on-failure
