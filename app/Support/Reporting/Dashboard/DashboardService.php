@@ -91,7 +91,7 @@ final class DashboardService
                 description: $monthFrom.' – '.$todayDate,
                 reportKey: 'sales.invoices',
                 columns: ['id'],
-                filters: ['date_from' => $monthFrom, 'date_to' => $todayDate],
+                filters: ['date_from' => $monthFrom, 'date_to' => $todayDate, 'status' => 'posted'],
             ),
             new DashboardWidgetDefinition(
                 key: 'sales_month_try',
@@ -102,6 +102,7 @@ final class DashboardService
                 filters: [
                     'date_from' => $monthFrom,
                     'date_to' => $todayDate,
+                    'status' => 'posted',
                     'currency' => 'TRY',
                 ],
                 totalKey: 'grand_total',
@@ -116,6 +117,7 @@ final class DashboardService
                 filters: [
                     'date_from' => $monthFrom,
                     'date_to' => $todayDate,
+                    'status' => 'posted',
                     'currency' => 'TRY',
                 ],
                 totalKey: 'grand_total',
