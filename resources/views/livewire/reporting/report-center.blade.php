@@ -10,6 +10,7 @@
                         type="button"
                         wire:click="selectReport('{{ $item->key }}')"
                         @class(['report-catalog-item', 'is-active' => $reportKey === $item->key])
+                        aria-pressed="{{ $reportKey === $item->key ? 'true' : 'false' }}"
                     >
                         {{ $item->title }}
                     </button>
@@ -221,11 +222,11 @@
                 </div>
 
                 @if($queueMessage)
-                    <div class="alert">{{ $queueMessage }} <a href="{{ route('reports.exports') }}">Export Merkezi</a></div>
+                    <div class="alert" role="status">{{ $queueMessage }} <a href="{{ route('reports.exports') }}">Export Merkezi</a></div>
                 @endif
 
                 @if($reportError)
-                    <div class="alert alert-warning">{{ $reportError }}</div>
+                    <div class="alert alert-warning" role="alert">{{ $reportError }}</div>
                 @endif
             </section>
 
@@ -335,7 +336,7 @@
                     </div>
 
                     <div class="table-footer">
-                        <span>
+                        <span role="status" aria-live="polite">
                             {{ $result->totalRows }} kayıt · Sayfa {{ $page }} / {{ $totalPages }}
                         </span>
                         <div class="report-pagination">
