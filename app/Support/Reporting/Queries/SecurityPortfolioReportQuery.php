@@ -3,6 +3,7 @@
 namespace App\Support\Reporting\Queries;
 
 use App\Contracts\Reporting\ReportQuery;
+use App\Support\Reporting\CurrencySeparatedTotals;
 use App\Support\Reporting\ReportColumnDefinition;
 use App\Support\Reporting\ReportDefinition;
 use App\Support\Reporting\ReportDrillDownDefinition;
@@ -79,7 +80,12 @@ final class SecurityPortfolioReportQuery implements ReportQuery
 
         $totals = [];
         if ($context->hasTotal('amount')) {
-            $totals['amount'] = (string) ((clone $base)->selectRaw('COALESCE(SUM(s.amount),0)::text AS value')->value('value') ?? '0');
+            $groups = (clone $base)
+                ->selectRaw('s.currency AS currency, COALESCE(SUM(s.amount),0)::text AS amount')
+                ->groupBy('s.currency')->get();
+            $totals = CurrencySeparatedTotals::fromGroups(
+                $groups, ['amount'], $context->filters['currency'] ?? null,
+            );
         }
 
         return new ReportQueryResult(
