@@ -44,3 +44,16 @@ Product creation, contact creation and negative form validation tests are in `sp
 - Bu testler, e-fatura/UBL veya yasal PDF çıktı doğrulaması değildir. Print/PDF ve iş akışı kabulü ayrıca yapılmalıdır.
 
 **Not:** Bu test dosyası hazırlanmıştır; otomatik olarak çalıştırılmamıştır.
+
+
+## Tasarım kalite paketi (24.10.2026)
+
+Bu bölüm yalnız **izole test kullanıcısı** ve önceden tanımlanmış test şirketi/dönemi için geçerlidir. Mevcut MARS_TEST_EXECUTION_APPROVED, MARS_BROWSER_TESTS_APPROVED, MARS_BROWSER_TEST_PERIOD_READY güvenlik kapıları kaldırılmaz.
+
+- specs/v65-shell-accessibility-phase1.spec.ts: ana içeriğe geçiş, ortak sekme klavye davranışı.
+- specs/v65-theme-responsive-readonly.spec.ts: açık/orta/koyu görünüm seçimi ve 390, 768, 1024, 1440, 1920 px kabuk kontrolleri. Ek olarak MARS_BROWSER_TEST_DOCUMENT_UI_APPROVED=I_APPROVE_LOCAL_DOCUMENT_UI gerektirir.
+- specs/v65-twenty-screen-readonly.spec.ts: onaylı 20 ekranın 390 ve 1440 px GET tabanlı kontrolleri. Ek olarak MARS_BROWSER_TEST_20_SCREEN_APPROVED=I_APPROVE_LOCAL_20_SCREEN_READONLY gerektirir. Alış irsaliyesi için MARS_BROWSER_PURCHASE_DISPATCH_ID, mal kabul için MARS_BROWSER_GOODS_RECEIPT_ID yalnızca test verisi ID'si olmalı; verilmezse ilgili vakalar atlanır. Aktörün 20 ekranın tamamına erişim izni bulunmalıdır.
+
+Kaynak kodun her satırını tekrarlı olarak tarayan node scripts/ci/audit-v65-design.mjs komutu yalnız statik bulgu raporu üretir (artifacts/v65-design-source-audit.json). Bu tarama CSS tekrarları, satır içi stiller ve olaylar, form/ARIA kullanımı gibi gözden geçirilecek noktaları bulur; görsel veya erişilebilirlik başarısı iddia etmez.
+
+**Hiçbir yeni test otomatik çalıştırılmaz.** Üretim, gerçek müşteri/finans verisi, erişilebilirlik kabulü, tüm temaların ekran görüntüsü ve yazıcı/barkod donanım testleri ayrı kullanıcı onayı gerektirir.
