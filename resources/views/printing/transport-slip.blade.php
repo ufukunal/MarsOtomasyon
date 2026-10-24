@@ -49,11 +49,12 @@ th{background:#f1f5f9}
  .label{break-inside:avoid}
 }
 </style>
+<script src="{{ asset('js/mars-print-actions.js') }}" defer></script>
 </head>
-<body>
+<body data-mars-autoprint="{{ $autoprint ? 'true' : 'false' }}">
 <div class="toolbar">
   <div><b>{{ $slip->number }}</b> · {{ $format === 'labels' ? 'Koli Etiketleri' : 'Ambar Fişi (Yatay A4 / Yan Yana 2 × Dik A5)' }}</div>
-  <button onclick="window.print()">Yazdır / PDF Olarak Kaydet</button>
+  <button type="button" data-mars-print>Yazdır / PDF Olarak Kaydet</button>
 </div>
 @if($format === 'slip')
 @php
@@ -110,9 +111,6 @@ th{background:#f1f5f9}
         @endfor
     </div>
 </main>
-@endif
-@if($autoprint)
-<script>window.addEventListener('load', () => { window.print(); });</script>
 @endif
 </body>
 </html>
