@@ -16,6 +16,7 @@ use App\Support\Reporting\Queries\SalesProductPerformanceReportQuery;
 use App\Support\Reporting\Queries\SalesCustomerPerformanceReportQuery;
 use App\Support\Reporting\Queries\InactiveStockReportQuery;
 use App\Support\Reporting\Queries\BankReconciliationSummaryReportQuery;
+use App\Support\Reporting\Queries\SupplierPurchasePerformanceReportQuery;
 use App\Support\Reporting\Queries\SecuritiesMaturityReportQuery;
 use App\Support\Reporting\Queries\SalesProformaReportQuery;
 use App\Support\Reporting\Queries\SalesQuoteReportQuery;
@@ -35,6 +36,7 @@ it('registers all expanded module reports with valid keys and sortable columns',
         'sales.customer_performance' => SalesCustomerPerformanceReportQuery::class,
         'stock.inactive' => InactiveStockReportQuery::class,
         'finance.bank_reconciliation' => BankReconciliationSummaryReportQuery::class,
+        'purchases.supplier_performance' => SupplierPurchasePerformanceReportQuery::class,
         'securities.maturities' => SecuritiesMaturityReportQuery::class,
         'purchases.quotes' => PurchaseQuoteReportQuery::class,
         'purchases.orders' => PurchaseOrderReportQuery::class,
