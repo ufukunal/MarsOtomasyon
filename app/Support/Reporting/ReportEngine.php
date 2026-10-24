@@ -36,10 +36,10 @@ final class ReportEngine
             }
         }
 
-        if ($definition->key === 'imports.sales') {
+        if (in_array($definition->key, ['imports.sales', 'imports.conversion'], true)) {
             $gate->authorize('sales_invoices.view');
         }
-        if ($definition->key === 'imports.loss') {
+        if (in_array($definition->key, ['imports.loss', 'imports.conversion'], true)) {
             $gate->authorize('stock.view');
         }
 
