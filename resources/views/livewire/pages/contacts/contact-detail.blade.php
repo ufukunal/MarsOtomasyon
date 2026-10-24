@@ -48,7 +48,7 @@
                     <a href="{{ route('contacts.index') }}">Cari Listesi</a>
                 </div>
             </details>
-            <button type="button" class="button-secondary" onclick="window.print()">Yazdır</button>
+            <button type="button" class="button-secondary" data-v65-shell-print>Yazdır</button>
             <a class="button-secondary" href="{{ route('contacts.index') }}">Geri</a>
         </div>
     @endteleport
