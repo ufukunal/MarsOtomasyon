@@ -63,12 +63,12 @@
             @else
                 <div class="form-row">
                     <x-field.lookup label="Bileşen Ürün" wire:model="componentProductId" :model="\App\Models\Period\Product::class" label-field="name" code-field="code" barcode-field="barcode" />
-                    <input data-tr-decimal wire:model="componentQuantity" inputmode="decimal" placeholder="Miktar">
-                    <button type="button" wire:click="saveSetComponent">{{ $componentLineId ? 'Güncelle' : 'Ekle' }}</button>
+                    <input data-tr-decimal wire:model="componentQuantity" inputmode="decimal" placeholder="Miktar" aria-label="Set bileşen miktarı">
+                    <x-v65.button type="button" size="sm" wire:click="saveSetComponent">{{ $componentLineId ? 'Güncelle' : 'Ekle' }}</x-v65.button>
                 </div>
-                <table class="data-table"><thead><tr><th>Kod</th><th>Ürün</th><th>Miktar</th><th></th></tr></thead><tbody>
-                @foreach($setLines as $line)<tr><td>{{ $line->componentProduct->code }}</td><td>{{ $line->componentProduct->name }}</td><td>{{ $line->quantity }}</td><td><button class="button-secondary" type="button" wire:click="editSetComponent({{ $line->id }})">Düzenle</button> <button class="button-danger" type="button" wire:click="removeSetComponent({{ $line->id }})">Kaldır</button></td></tr>@endforeach
-                </tbody></table>
+                <div class="table-scroll v65-list-table"><table class="data-table"><thead><tr><th>Kod</th><th>Ürün</th><th>Miktar</th><th scope="col">İşlemler</th></tr></thead><tbody>
+                @foreach($setLines as $line)<tr><td>{{ $line->componentProduct->code }}</td><td>{{ $line->componentProduct->name }}</td><td>{{ $line->quantity }}</td><td><x-v65.button variant="secondary" size="sm" type="button" wire:click="editSetComponent({{ $line->id }})">Düzenle</x-v65.button> <x-v65.button variant="danger" size="sm" type="button" wire:click="removeSetComponent({{ $line->id }})" wire:confirm="Set bileşeni kaldırılacak. Onaylıyor musunuz?">Kaldır</x-v65.button></td></tr>@endforeach
+                </tbody></table></div>
                 <strong>Satılabilir: {{ $product->setAvailability() }}</strong>
             @endif
         </section>
