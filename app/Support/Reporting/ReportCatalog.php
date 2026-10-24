@@ -38,11 +38,13 @@ final class ReportCatalog
                 continue;
             }
 
-            if ($definition->key === 'imports.loss' && ! $gate->allows('stock.view')) {
+            if (in_array($definition->key, ['imports.loss', 'imports.conversion'], true)
+                && ! $gate->allows('stock.view')) {
                 continue;
             }
 
-            if ($definition->key === 'imports.sales' && ! $gate->allows('sales_invoices.view')) {
+            if (in_array($definition->key, ['imports.sales', 'imports.conversion'], true)
+                && ! $gate->allows('sales_invoices.view')) {
                 continue;
             }
 
