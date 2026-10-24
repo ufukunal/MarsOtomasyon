@@ -56,6 +56,36 @@ document.addEventListener('click', (event) => {
     }
 });
 
+// Warehouse-slip preview printing uses scoped, delegated controls.
+// No inline JS in Livewire-morphed markup, and no printing unrelated frames.
+document.addEventListener('click', (event) => {
+    if (!(event.target instanceof Element)) return;
+    const trigger = event.target.closest('[data-wsl-preview-print]');
+    if (!trigger) return;
+    const frame = trigger.closest('.wsl-modal')?.querySelector('[data-wsl-preview-frame]');
+    if (!(frame instanceof HTMLIFrameElement)) return;
+    try {
+        frame.contentWindow?.focus();
+        frame.contentWindow?.print();
+    } catch {
+        // A protected preview frame must not cause an uncaught UI exception.
+    }
+});
+
+document.addEventListener('load', (event) => {
+    const frame = event.target;
+    if (!(frame instanceof HTMLIFrameElement)
+        || !frame.matches('[data-wsl-preview-frame][data-wsl-preview-autoprint]')
+        || frame.dataset.wslPrintRequested === 'true') return;
+    frame.dataset.wslPrintRequested = 'true';
+    try {
+        frame.contentWindow?.focus();
+        frame.contentWindow?.print();
+    } catch {
+        frame.dataset.wslPrintRequested = 'false';
+    }
+}, true);
+
 // Keep current route authoritative when the browser restores old <details> state.
 const syncV65Navigation = () => {
     document.querySelectorAll('[data-v65-nav-group]').forEach((group) => {
