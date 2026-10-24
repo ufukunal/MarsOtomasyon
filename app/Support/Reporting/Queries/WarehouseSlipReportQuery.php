@@ -5,6 +5,7 @@ namespace App\Support\Reporting\Queries;
 use App\Contracts\Reporting\ReportQuery;
 use App\Support\Reporting\ReportColumnDefinition;
 use App\Support\Reporting\ReportDefinition;
+use App\Support\Reporting\ReportDrillDownDefinition;
 use App\Support\Reporting\ReportExecutionContext;
 use App\Support\Reporting\ReportFilterDefinition;
 use App\Support\Reporting\ReportQueryResult;
@@ -47,6 +48,9 @@ final class WarehouseSlipReportQuery implements ReportQuery
                 new ReportColumnDefinition('quantity', 'Fiş Miktarı (İşlem Durumu Ayrı)', 'quantity'),
             ],
             defaultSort: [new ReportSort('slip_date', 'desc'), new ReportSort('id', 'desc')],
+            drillDowns: [
+                new ReportDrillDownDefinition('source', 'Düzeltme Fişi', 'warehouse_slips.view', 'slip_id', 'warehouse_slips'),
+            ],
         );
     }
 
@@ -106,6 +110,9 @@ final class WarehouseSlipReportQuery implements ReportQuery
         $rows = clone $base;
         if (! $context->hasColumn('id')) {
             $rows->selectRaw('wsl.id AS id');
+        }
+        if (! $context->hasColumn('slip_id')) {
+            $rows->selectRaw('ws.id AS slip_id');
         }
         foreach ($context->columns as $column) {
             $expression = $columns[$column];
