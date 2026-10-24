@@ -1,6 +1,7 @@
 <?php
 
 use App\Support\Reporting\Queries\SalesProductPerformanceReportQuery;
+use App\Support\Reporting\Queries\ContactBalanceReportQuery;
 use App\Support\Reporting\Queries\StockCountDifferenceReportQuery;
 use App\Support\Reporting\Queries\StockTransferReportQuery;
 use App\Support\Reporting\Queries\WarehouseSlipReportQuery;
@@ -75,7 +76,8 @@ it('nets posted product invoices and returns without cross-currency summation', 
             ->and((float) $byCurrency['TRY']['net_quantity'])->toBe(8.0)
             ->and((float) $byCurrency['TRY']['net_amount'])->toBe(800.0)
             ->and((float) $byCurrency['EUR']['net_amount'])->toBe(300.0)
-            ->and($result->totals['net_amount'])->toContain('EUR', 'TRY');
+            ->and($result->totals['net_amount'])->toContain('EUR')
+            ->and($result->totals['net_amount'])->toContain('TRY');
 
         $try = $query->execute(marsExpandedReportContext($query, ['currency' => 'TRY']));
         expect($try->totalRows)->toBe(1)
@@ -152,5 +154,55 @@ it('lists transfer receipts, posted count differences and warehouse slip lines i
         $slipResult = $slipQuery->execute(marsExpandedReportContext($slipQuery, ['status' => 'posted']));
         expect($slipResult->totalRows)->toBe(1)
             ->and((float) $slipResult->rows[0]['quantity'])->toBe(4.0);
+    });
+});
+
+
+it('computes as-of customer balances by currency without mixing currencies or late movements', function (): void {
+    IsolatedPostgres::withActivePeriod(function (): void {
+        $db = DB::connection('period');
+        $contact = $db->table('contacts')->insertGetId([
+            'title' => 'Balance client '.Str::random(10), 'type' => 'legal',
+            'created_at' => now(), 'updated_at' => now(),
+        ]);
+
+        foreach ([
+            ['2026-05-01', 'TRY', 'debit', 100],
+            ['2026-05-02', 'TRY', 'credit', 25],
+            ['2026-05-03', 'EUR', 'credit', 50],
+            ['2026-08-01', 'TRY', 'debit', 80],
+        ] as [$date, $currency, $direction, $amount]) {
+            $db->table('contact_transactions')->insert([
+                'contact_id' => $contact,
+                'transaction_type' => 'manual',
+                'direction' => $direction,
+                'transaction_date' => $date,
+                'currency' => $currency,
+                'amount' => $amount,
+                'created_at' => now(), 'updated_at' => now(),
+            ]);
+        }
+
+        $query = new ContactBalanceReportQuery;
+        $result = $query->execute(marsExpandedReportContext($query, [
+            'date_to' => '2026-06-30', 'contact_id' => $contact,
+        ]));
+        expect($result->totalRows)->toBe(2);
+        $rows = collect($result->rows)->keyBy('currency');
+
+        expect((float) $rows['TRY']['balance'])->toBe(75.0)
+            ->and((float) $rows['TRY']['receivable'])->toBe(75.0)
+            ->and((float) $rows['TRY']['payable'])->toBe(0.0)
+            ->and((float) $rows['EUR']['balance'])->toBe(-50.0)
+            ->and((float) $rows['EUR']['receivable'])->toBe(0.0)
+            ->and((float) $rows['EUR']['payable'])->toBe(50.0)
+            ->and($result->totals['balance'])->toContain('TRY')
+            ->and($result->totals['balance'])->toContain('EUR');
+
+        $try = $query->execute(marsExpandedReportContext($query, [
+            'date_to' => '2026-06-30', 'contact_id' => $contact, 'currency' => 'TRY',
+        ]));
+        expect($try->totalRows)->toBe(1)
+            ->and((float) $try->totals['balance'])->toBe(75.0);
     });
 });
