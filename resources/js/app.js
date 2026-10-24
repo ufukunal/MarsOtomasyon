@@ -341,6 +341,14 @@ document.addEventListener('keydown', (event) => {
 });
 
 
+// Close the legacy simple filter drawer through the shared event system.
+document.addEventListener('click', (event) => {
+    if (!(event.target instanceof Element)) return;
+    const close = event.target.closest('[data-v65-simple-filter-close]');
+    const details = close?.closest('details.v65-simple-filter-drawer');
+    if (details instanceof HTMLDetailsElement) details.open = false;
+});
+
 // Keep page action dropdowns mutually exclusive, including teleported Cari Detay menus.
 // Event delegation survives Livewire morphing and browser back/forward navigation.
 const v65ActionMenuSelector = 'details.page-action-menu, details.topbar-create, details.user-menu, details.v65-products-export-menu, details.v65-contact-action-menu, details[data-v65-action-menu]';
