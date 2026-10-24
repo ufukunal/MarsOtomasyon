@@ -43,6 +43,7 @@ use App\Support\Reporting\Queries\ProductionConsumptionReportQuery;
 use App\Support\Reporting\Queries\SalesCustomerPerformanceReportQuery;
 use App\Support\Reporting\Queries\InactiveStockReportQuery;
 use App\Support\Reporting\Queries\SecuritiesMaturityReportQuery;
+use App\Support\Reporting\Queries\BankReconciliationSummaryReportQuery;
 
 return [
     'max_page_size' => 250,
@@ -62,6 +63,7 @@ return [
         SalesCustomerPerformanceReportQuery::class,
         InactiveStockReportQuery::class,
         SecuritiesMaturityReportQuery::class,
+        BankReconciliationSummaryReportQuery::class,
         ProductionConsumptionReportQuery::class,
         SalesQuoteReportQuery::class,
         SalesOrderReportQuery::class,
