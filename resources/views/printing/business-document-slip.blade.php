@@ -50,6 +50,7 @@
             .slip-paper { width: 100%; padding: 0; box-shadow: none; }
         }
     </style>
+<script src="{{ asset('js/mars-print-actions.js') }}" defer></script>
 </head>
 <body>
 @php
@@ -58,7 +59,7 @@
     $draft = $document->status === 'draft';
 @endphp
 @unless($embedded)
-<div class="screen-actions"><button type="button" onclick="window.print()">Yazdır</button></div>
+<div class="screen-actions"><button type="button" data-mars-print>Yazdır</button></div>
 @endunless
 <main class="slip-paper">
     <header class="slip-head">
