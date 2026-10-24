@@ -1,0 +1,86 @@
+/* Nakit akış takvimi: read-only calendar cards above the canonical report table. */
+.app-shell .v65-cashflow-calendar {
+  margin: 0 0 14px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--text);
+  border-radius: 8px;
+}
+.app-shell .v65-cashflow-calendar-heading {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.app-shell .v65-cashflow-calendar-heading h3 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+}
+.app-shell .v65-cashflow-calendar-heading p {
+  margin: 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+.app-shell .v65-cashflow-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
+  align-items: stretch;
+  gap: 12px;
+}
+.app-shell .v65-cashflow-day {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--line);
+  background: var(--soft);
+  border-radius: 7px;
+}
+.app-shell .v65-cashflow-day-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+  align-items: start;
+}
+.app-shell .v65-cashflow-day-date {font-weight: 700;overflow-wrap: anywhere}
+.app-shell .v65-cashflow-day-currency {color: var(--muted);font-variant-numeric: tabular-nums}
+.app-shell .v65-cashflow-day dl {display: grid;grid-template-columns: minmax(0,1fr) auto;gap: 6px 8px;margin: 0}
+.app-shell .v65-cashflow-day dt {font-size: 12px;color: var(--muted)}
+.app-shell .v65-cashflow-day dd {margin: 0;font-size: 12px;text-align: right;font-variant-numeric: tabular-nums;overflow-wrap: anywhere}
+.app-shell .v65-cashflow-day-closing {font-size: 14px;font-weight: 700}
+.app-shell .v65-cashflow-day .v65-cashflow-day-alert {
+  padding: 5px 8px;
+  font-size: 12px;
+  font-weight: 700;
+  border: 1px solid transparent;
+  border-radius: 5px;
+}
+.app-shell .v65-cashflow-day.is-shortage {
+  border-color: #bd544a;
+}
+.app-shell .v65-cashflow-day.is-shortage .v65-cashflow-day-alert {
+  color: #9c211b;
+  background: #fff0ee;
+  border-color: #d5958c;
+}
+:root[data-mars-theme="dark"] .app-shell .v65-cashflow-day.is-shortage .v65-cashflow-day-alert {
+  color: #ffd1c8;
+  background: #512c30;
+  border-color: #b76965;
+}
+@media (max-width: 480px) {
+  .app-shell .v65-cashflow-calendar {padding: 10px}
+  .app-shell .v65-cashflow-grid {grid-template-columns: minmax(0,1fr)}
+}
+@media print {
+  .app-shell .v65-cashflow-day {
+    background: #fff;
+    color: #000;
+    break-inside: avoid;
+  }
+}
