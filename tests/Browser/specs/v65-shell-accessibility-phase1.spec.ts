@@ -46,12 +46,32 @@ test.describe('V65 shell accessibility phase 1 (read only)', () => {
     const general = page.getByRole('tab', { name: 'Genel' });
     const price = page.getByRole('tab', { name: 'Fiyat' });
     await expect(general).toHaveAttribute('aria-selected', 'true');
+    await expect(general).toHaveAttribute('aria-controls', 'v65-product-edit-panel-general');
+    await expect(page.locator('#v65-product-edit-panel-general')).toBeVisible();
     await general.focus();
     await page.keyboard.press('ArrowRight');
     await expect(price).toHaveAttribute('aria-selected', 'true');
+    await expect(price).toHaveAttribute('aria-controls', 'v65-product-edit-panel-price');
+    await expect(page.locator('#v65-product-edit-panel-price')).toBeVisible();
     await expect(page.locator('main#main-content')).toBeVisible();
     const tabBox = await page.locator('[data-v65-tabs]').boundingBox();
     expect(tabBox).not.toBeNull();
     expect(tabBox!.x + tabBox!.width).toBeLessThanOrEqual(393);
   });
+
+  test('contact tab panels remain connected and keyboard navigable on tablet', async ({ page }) => {
+    await page.setViewportSize({ width: 768, height: 900 });
+    await page.goto('/kartlar/cariler/yeni');
+    const general = page.getByRole('tab', { name: 'Firma / Ticari' });
+    const terms = page.getByRole('tab', { name: 'Ticari Koşullar' });
+    await expect(general).toHaveAttribute('aria-controls', 'v65-contact-edit-panel-general');
+    await expect(page.locator('#v65-contact-edit-panel-general')).toBeVisible();
+
+    await general.focus();
+    await general.press('ArrowRight');
+    await expect(terms).toHaveAttribute('aria-selected', 'true');
+    await expect(terms).toHaveAttribute('aria-controls', 'v65-contact-edit-panel-terms');
+    await expect(page.locator('#v65-contact-edit-panel-terms')).toBeVisible();
+  });
+
 });
